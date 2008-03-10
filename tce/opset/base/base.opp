@@ -1,0 +1,952 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>ADDSUB</name>
+    <inputs>2</inputs>
+    <outputs>2</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <out id="4" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(add, IO(1), IO(2), IO(3));
+      EXEC_OPERATION(sub, IO(1), IO(2), IO(4));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ADD</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(add, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SUB</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sub, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDW</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STW</name>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <side-effects/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="UIntWord">
+      <mem-data/>
+    </in>
+    <trigger-semantics>
+      EXEC_OPERATION(stw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>EQ</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(eq, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GT</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gt, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GTU</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gtu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LT</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gt, IO(2), IO(1), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LTU</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gtu, IO(2), IO(1), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NE</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(gt, IO(1), IO(2), t1);
+      EXEC_OPERATION(gt, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GE</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(gt, IO(1), IO(2), t1);
+      EXEC_OPERATION(eq, IO(1), IO(2), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GEU</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(gtu, IO(1), IO(2), t1);
+      EXEC_OPERATION(eq, IO(1), IO(2), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LE</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(eq, IO(1), IO(2), t1);
+      EXEC_OPERATION(gt, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LEU</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1, t2;
+      EXEC_OPERATION(eq, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtu, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHL</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shl, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHR</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(shr, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SHRU</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>AND</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(and, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>IOR</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(ior, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>XOR</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(xor, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>JUMP</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <in id="1" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(jump, IO(1));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CALL</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <control-flow/>
+    <in id="1" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(call, IO(1));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MIN</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(min, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MAX</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(max, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MINU</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(minu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MAXU</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(maxu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDQ</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldq, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDH</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldh, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDD</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldd, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STQ</name>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <side-effects/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="UIntWord">
+      <mem-data/>
+    </in>
+    <trigger-semantics>
+      EXEC_OPERATION(stq, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STH</name>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <side-effects/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="UIntWord">
+      <mem-data/>
+    </in>
+    <trigger-semantics>
+      EXEC_OPERATION(sth, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STD</name>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <side-effects/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="UIntWord">
+      <mem-data/>
+    </in>
+    <trigger-semantics>
+      EXEC_OPERATION(std, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SXQW</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxqw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SXHW</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(sxhw, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NEG</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(neg, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NEGF</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <out id="2" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(negf, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MUL</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="SIntWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(mul, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>DIV</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(div, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>DIVU</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(divu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ADDF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(addf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>SUBF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(subf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MULF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(mulf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>DIVF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(divf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>EQF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(eqf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NEF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(nef, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GTF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gtf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GEF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gef, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LTF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(ltf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LEF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(lef, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CFI</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(cfi, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CFIU</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <out id="2" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(cfiu, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CIF</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(cif, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CIFU</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(cifu, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CFD</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <out id="2" type="DoubleWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(cfd, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>CDF</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="DoubleWord"/>
+    <out id="2" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(cdf, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ROTL</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>ROTR</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(rotr, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ABS</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <out id="2" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(abs, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>ABSF</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <out id="2" type="FloatWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(absf, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDQU</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldqu, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LDHU</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+    <trigger-semantics>
+      EXEC_OPERATION(ldhu, IO(1), IO(2));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MOD</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(mod, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>MODU</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(modu, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>STDOUT</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <in id="1" type="SIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(stdout, IO(1));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NOT</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+</osal>

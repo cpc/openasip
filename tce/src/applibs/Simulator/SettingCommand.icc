@@ -1,0 +1,269 @@
+/**
+ * Templated simulator setting.
+ *
+ * Allows setting the varying parts of setting types using
+ * policy classes: SettingValueType and SettingAction. The previous 
+ * validates and parses the user defined value, the latter performs the 
+ * activity that should be done when the value is changed. This class
+ * is used in implementation to provide easy generation of SimulatorSetting 
+ * classes without duplicating code.
+ */
+template <class SettingValueType, class SettingAction>
+class TemplatedSimulatorSetting : public SettingCommand::SimulatorSetting {
+public:
+
+    /**
+     * Constructor.
+     *
+     * @param description Description of the setting, to be displayed in
+     *                    the setting listing.
+     */
+    TemplatedSimulatorSetting(const std::string& description) :
+        description_(description) {
+        value_ = SettingAction::defaultValue();
+    }
+    
+    /**
+     * Destructor.
+     */
+    virtual ~TemplatedSimulatorSetting() {
+    }
+    
+    /**
+     * Sets a new value to the setting.
+     *
+     * SettingValueType class is used to validate and parse the value,
+     * SettingAction is used to perform any action connected to changing
+     * the value.
+     *
+     * @param interpreter Interpreter to set possible error messages to.
+     * @param simFront SimulatorFrontend to use in actions.
+     * @param newValue New value to set.
+     * @return Returns true if setting the value was successful.
+     */
+    virtual bool setValue(
+        SimulatorInterpreter& interpreter,
+        SimulatorFrontend& simFront, 
+        const DataObject& newValue) {
+
+        if (!SettingValueType::valid(newValue)) {
+            interpreter.setError(
+                (SimulatorToolbox::textGenerator().text(
+                    Texts::TXT_INTERP_SETTING_PARSE_ERROR) %
+                 SettingValueType::validStringsDescription()).str());
+            return false;
+        } 
+        bool success =
+            SettingAction::execute(
+                interpreter, simFront, SettingValueType::parseValue(newValue));
+
+        if (success) {  
+            if ((SettingAction::warnOnExistingProgramAndMachine()) && 
+               (simFront.isProgramLoaded() || simFront.isMachineLoaded()) &&
+               (newValue != value_)) {
+                    interpreter.setError(SimulatorToolbox::textGenerator().text(
+                        Texts::TXT_TRACE_SETTINGS_CHANGED_WARNING).str());
+                    
+                    value_ = newValue;
+                    return false;
+                }
+            
+            value_ = newValue;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns the current value of the setting as a string.
+     *
+     * Delegates formatting of the string to SettingValueType class.
+     *
+     * @param Current value of the setting as a string.
+     */
+    virtual std::string valueAsString() {
+        return SettingValueType::valueAsString(value_);
+    }
+
+    /**
+     * Returns the description of the setting.
+     */
+    virtual std::string description() {
+        return description_;
+    }
+    
+private:
+    /// the current value of the setting
+    DataObject value_;
+    /// the description of the setting
+    std::string description_;
+};
+
+/**
+ * Boolean setting type.
+ */
+class BooleanSetting {
+public:
+
+    /**
+     * Validates the given value.
+     *
+     * @param value The value to be validated.
+     * @return True if the value can be interpreted as a boolean.
+     */
+    static bool valid(const DataObject& value) {
+        std::string lowerCaseString = 
+            StringTools::stringToLower(value.stringValue());
+        return (lowerCaseString == "0" || lowerCaseString == "1" ||
+                lowerCaseString == "true" || lowerCaseString == "false" ||
+                lowerCaseString == "enabled" || 
+                lowerCaseString == "disabled" || lowerCaseString == "on" ||
+                lowerCaseString == "off");
+    }
+
+    /**
+     * Returns the string that describes the valid value strings for this 
+     * setting type.
+     *
+     * @return Description of the valid strings for this setting.
+     */
+    static std::string validStringsDescription() {
+        return "one of {0, 1, true, false, enabled, disabled, on, off}";
+    }
+    
+    /**
+     * Returns the value formatted as a boolean expression.
+     *
+     * @return Value as string.
+     */
+    static std::string valueAsString(const DataObject& value) {
+        if (value.stringValue() == "0") {
+            return "0";
+        } else {
+            return "1";
+        }
+    }   
+
+    /**
+     * Parses the value.
+     *
+     * @param value The value to parse.
+     * @return The parsed value.
+     */
+    static bool parseValue(const DataObject& value) {
+        std::string lowerCaseString = 
+            StringTools::stringToLower(value.stringValue());
+        return (lowerCaseString == "1" || lowerCaseString == "true" ||
+                lowerCaseString == "enabled" || lowerCaseString == "on");
+    }
+
+    /// type of this setting
+    typedef bool ValueType;
+};
+
+/**
+ * String setting type.
+ */
+class StringSetting {
+public:
+
+    /**
+     * Validates the given value.
+     *
+     * @param value The value to be validated.
+     * @return True if the value can be interpreted as a boolean.
+     */
+    static bool valid(const DataObject&) {
+        return true;
+    }
+
+    /**
+     * Returns the string that describes the valid value strings for this 
+     * setting type.
+     *
+     * @return Description of the valid strings for this setting.
+     */
+    static std::string validStringsDescription() {
+        return "string";
+    }
+    
+    /**
+     * Returns the value.
+     *
+     * @return Value as string.
+     */
+    static std::string valueAsString(const DataObject& value) {
+        return value.stringValue();
+    }
+
+    /**
+     * Parses the value.
+     *
+     * @param value The value to parse.
+     * @return The parsed value.
+     */
+    static std::string parseValue(const DataObject& value) {
+        return valueAsString(value);
+    }
+
+    /// type of this setting
+    typedef std::string ValueType;
+};
+
+/**
+ * Unsigned integer setting type.
+ */
+class PositiveIntegerSetting {
+public:
+
+    /**
+     * Validates the given value.
+     *
+     * @param value The value to be validated.
+     * @return True if the value can be interpreted as a boolean.
+     */
+    static bool valid(const DataObject& value) {
+        try {
+            /// @todo this is broken, what if the given value is uint and its 
+            /// value is larger than 31 bits?
+            int val  = value.integerValue();            
+            return val >= 0;
+        } catch (const NumberFormatException&) {
+            return false;
+        }
+    }
+
+    /**
+     * Returns the string that describes the valid value strings for this 
+     * setting type.
+     *
+     * @return Description of the valid strings for this setting.
+     */
+    static std::string validStringsDescription() {
+        return "positive integer";
+    }
+    
+    /**
+     * Returns the value.
+     *
+     * @return Value as string.
+     */
+    static std::string valueAsString(const DataObject& value) {
+        return value.stringValue();
+    }
+
+    /**
+     * Parses the value.
+     *
+     * @param value The value to parse.
+     * @return The parsed value.
+     */
+    static unsigned int parseValue(const DataObject& value) {
+        return static_cast<unsigned int>(value.integerValue());
+    }
+
+    /// type of this setting
+    typedef unsigned int ValueType;
+};
+

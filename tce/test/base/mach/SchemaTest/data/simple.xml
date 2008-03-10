@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<adf version="1.5">
+
+<bus name="bus1">
+    <width>32</width>
+    <guard>
+        <simple-expr>
+            <bool>
+                <name>regfile1</name>
+                <index>1</index>
+            </bool>
+        </simple-expr>
+    </guard>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<bus name="bus2">
+    <width>32</width>
+    <guard>
+        <always-true/>
+    </guard>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<socket name="socket1">
+    <reads-from>
+        <bus>bus1</bus>
+        <segment>seg1</segment>
+    </reads-from>
+</socket>
+
+<bridge name="bridge1">
+    <reads-from>bus1</reads-from>
+    <writes-to>bus2</writes-to>
+</bridge>
+
+<function-unit name="fu1">
+    <port name="op1">
+        <connects-to>socket1</connects-to>
+        <width>32</width>
+    </port>
+    <operation>
+        <name>operation1</name>
+        <bind name="2">op1</bind>
+        <pipeline>
+            <resource name="res1">
+                <start-cycle>0</start-cycle>
+                <cycles>5</cycles>
+            </resource>
+            <reads name="res1">
+                <start-cycle>0</start-cycle>
+                <cycles>5</cycles>
+            </reads>
+            <writes name="res11">
+                <start-cycle>0</start-cycle>
+                <cycles>5</cycles>
+            </writes>
+        </pipeline>
+    </operation>
+    <address-space>as1</address-space>
+</function-unit>
+
+<register-file name="regfile1">
+    <type>normal</type>
+    <size>8</size>
+    <width>32</width>
+    <max-reads>3</max-reads>
+    <max-writes>2</max-writes>
+    <port name="port1">
+        <connects-to>socket1</connects-to>
+    </port>
+</register-file>
+
+<address-space name="as1">
+    <width>32</width>
+    <min-address>1</min-address>
+    <max-address>32</max-address>
+</address-space>
+
+<global-control-unit name="gcu">
+    <port name="op1">
+        <connects-to>socket1</connects-to>
+        <width>32</width>
+    </port>
+    <return-address>
+    </return-address>
+    <ctrl-operation>
+        <name>ctrl</name>
+        <bind name="23">asd</bind>
+        <pipeline>
+            <resource name="res1">
+                <start-cycle>0</start-cycle>
+                <cycles>5</cycles>
+            </resource>
+            <reads name="res1">
+                <start-cycle>0</start-cycle>
+                <cycles>5</cycles>
+            </reads>
+            <writes name="res1">
+                <start-cycle>0</start-cycle>
+                <cycles>5</cycles>
+            </writes>
+        </pipeline>
+    </ctrl-operation>
+    <address-space>as1</address-space>
+    <delay-slots>0</delay-slots>
+    <guard-latency>1</guard-latency>
+</global-control-unit>
+
+<immediate-unit name="immunit1">
+    <type>normal</type>
+    <size>4</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <extension>zero</extension>
+    <port name="port1">
+        <connects-to>socket1</connects-to>
+    </port>
+    <template name="temp">
+        <slot>
+            <name>bus1</name>
+            <width>32</width>
+        </slot>
+    </template>
+</immediate-unit>
+
+<immediate-slot name="slot1"/>
+
+</adf>

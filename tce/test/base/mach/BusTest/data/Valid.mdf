@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<adf version="1.2">
+
+<bus name="B1">
+    <width>32</width>
+    <guard>
+        <simple-expr>
+            <bool>
+                <name>rf1</name>
+                <index>9</index>
+            </bool>
+        </simple-expr>
+    </guard>
+    <guard>
+        <simple-expr>
+            <unit>
+                <name>fu1</name>
+                <port>port1</port>
+            </unit>
+        </simple-expr>
+    </guard>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to>seg3</writes-to>
+    </segment>
+    <segment name="seg3">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<function-unit name="fu1">
+    <port name="port1">
+        <width>32</width>
+    </port>
+    <address-space/>
+</function-unit>
+
+<register-file name="rf1">
+    <type>normal</type>
+    <size>10</size>
+    <width>32</width>
+    <max-reads>0</max-reads>
+    <max-writes>0</max-writes>
+</register-file>
+
+</adf>

@@ -1,0 +1,23 @@
+/**
+ * @file OperationModule.icc
+ *
+ * Inline implementations of OperationModule class.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @note rating: yellow
+ * @note reviewed 7 September 2004 by pj, jn, jm, ao
+ */
+
+//////////////////////////////////////////////////////////////////////////////
+// NullOperationModule
+//////////////////////////////////////////////////////////////////////////////
+
+/** 
+ * Returns an instance of NullOperationModule class (singleton).
+ *
+ * @return Singleton instance of NullOperationBehavior class.
+ */
+inline NullOperationModule&
+NullOperationModule::instance() {
+    return instance_;
+}

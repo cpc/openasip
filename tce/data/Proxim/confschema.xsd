@@ -1,0 +1,261 @@
+<?xml version="1.0"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+<!-- ACTION NAMES -->
+<xsd:simpleType name="action-type">
+    <xsd:restriction base="xsd:string">
+        <xsd:enumeration value="Open Machine"/>
+        <xsd:enumeration value="Open Program"/>
+        <xsd:enumeration value="Quit"/>
+        <xsd:enumeration value="Simulator Settings"/>
+        <xsd:enumeration value="Options"/>
+        <xsd:enumeration value="Run"/>
+        <xsd:enumeration value="Resume"/>
+        <xsd:enumeration value="Kill"/>
+        <xsd:enumeration value="StepI"/>
+        <xsd:enumeration value="NextI"/>
+        <xsd:enumeration value="New Register Window"/>
+        <xsd:enumeration value="New Port Window"/>
+        <xsd:enumeration value="CD"/>
+        <xsd:enumeration value="About"/>
+    </xsd:restriction>
+</xsd:simpleType>
+
+<!-- WINDOW -->
+<xsd:complexType name="window-type">
+    <xsd:sequence>
+        <xsd:element name="full-screen" type="xsd:boolean"/>
+        <xsd:element name="width">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="1"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="height">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="1"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="x-position">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:element>
+        <xsd:element name="y-position">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="0"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:element>
+    </xsd:sequence>
+</xsd:complexType>
+
+
+<!-- TOOLBAR -->
+<xsd:complexType name="toolbar-type">
+    <xsd:sequence>
+        <xsd:element name="layout">
+            <xsd:complexType>
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:element name="text"/>
+                        <xsd:element name="icon"/>
+                    </xsd:choice>
+                    <xsd:choice minOccurs="0">
+                        <xsd:element name="text"/>
+                        <xsd:element name="icon"/>
+                    </xsd:choice>
+                </xsd:sequence>        
+            </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="visible" type="xsd:boolean"/>
+        <xsd:element name="slot" minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType>
+                <xsd:sequence>
+                    <xsd:element name="action" type="xsd:string"/>
+                </xsd:sequence>
+                <xsd:attribute name="position" use="required">
+                    <xsd:simpleType>
+                        <xsd:restriction base="xsd:integer">
+                            <xsd:minInclusive value="0"/>
+                        </xsd:restriction>
+                    </xsd:simpleType>
+                </xsd:attribute>
+            </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="separator" minOccurs="0" maxOccurs="unbounded">
+            <xsd:complexType>
+                <xsd:attribute name="position" use="required"> 
+                    <xsd:simpleType>
+                        <xsd:restriction base="xsd:integer">
+                            <xsd:minInclusive value="0"/>
+                        </xsd:restriction>
+                    </xsd:simpleType>
+                </xsd:attribute>
+            </xsd:complexType>
+        </xsd:element>
+    </xsd:sequence>
+</xsd:complexType>
+
+<!-- KEYBOARD SHORTCUT -->
+<xsd:complexType name="keyboard-shortcut-type">
+    <xsd:sequence>
+        <xsd:element name="key-combination">
+            <xsd:complexType>
+                <xsd:sequence>
+                    <xsd:choice>
+                        <xsd:sequence>
+                            <xsd:element name="ctrl"/>
+                            <xsd:choice>
+                                <xsd:element ref="key"/>
+                                <xsd:element ref="F-key"/>
+                                <xsd:sequence>
+                                    <xsd:element name="alt"/>
+                                    <xsd:choice>
+                                        <xsd:element ref="key"/>
+                                        <xsd:element ref="F-key"/>
+                                    </xsd:choice> 
+                                </xsd:sequence>    
+                            </xsd:choice>
+                        </xsd:sequence>
+                        <xsd:sequence>
+                            <xsd:element name="alt"/>
+                            <xsd:choice>
+                                <xsd:element ref="key"/>
+                                <xsd:element ref="F-key"/>
+                            </xsd:choice> 
+                        </xsd:sequence>
+                        <xsd:sequence>
+                            <xsd:element ref="F-key"/>
+                        </xsd:sequence>
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:complexType>
+        </xsd:element>
+        <xsd:element name="action" type="action-type"/>
+    </xsd:sequence>
+</xsd:complexType>
+                
+<xsd:element name="F-key">
+    <xsd:complexType>
+        <xsd:attribute name="number" use="required">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:integer">
+                    <xsd:minInclusive value="1"/>
+                    <xsd:maxInclusive value="12"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:attribute>
+    </xsd:complexType>
+</xsd:element>
+
+<xsd:element name="key">
+    <xsd:complexType>
+        <xsd:attribute name="value" use="required">
+            <xsd:simpleType>
+                <xsd:restriction base="xsd:string">
+                    <xsd:enumeration value="0"/>
+                    <xsd:enumeration value="1"/>
+                    <xsd:enumeration value="2"/>
+                    <xsd:enumeration value="3"/>
+                    <xsd:enumeration value="4"/>
+                    <xsd:enumeration value="5"/>
+                    <xsd:enumeration value="6"/>
+                    <xsd:enumeration value="7"/>
+                    <xsd:enumeration value="8"/>
+                    <xsd:enumeration value="9"/>
+                    <xsd:enumeration value="a"/>
+                    <xsd:enumeration value="b"/>
+                    <xsd:enumeration value="c"/>
+                    <xsd:enumeration value="d"/>
+                    <xsd:enumeration value="e"/>
+                    <xsd:enumeration value="f"/>
+                    <xsd:enumeration value="g"/>
+                    <xsd:enumeration value="h"/>
+                    <xsd:enumeration value="i"/>
+                    <xsd:enumeration value="j"/>
+                    <xsd:enumeration value="k"/>
+                    <xsd:enumeration value="l"/>
+                    <xsd:enumeration value="m"/>
+                    <xsd:enumeration value="n"/>
+                    <xsd:enumeration value="o"/>
+                    <xsd:enumeration value="p"/>
+                    <xsd:enumeration value="q"/>
+                    <xsd:enumeration value="r"/>
+                    <xsd:enumeration value="s"/>
+                    <xsd:enumeration value="t"/>
+                    <xsd:enumeration value="u"/>
+                    <xsd:enumeration value="v"/>
+                    <xsd:enumeration value="w"/>
+                    <xsd:enumeration value="x"/>
+                    <xsd:enumeration value="y"/>
+                    <xsd:enumeration value="z"/>
+                    <xsd:enumeration value="A"/>
+                    <xsd:enumeration value="B"/>
+                    <xsd:enumeration value="C"/>
+                    <xsd:enumeration value="D"/>
+                    <xsd:enumeration value="E"/>
+                    <xsd:enumeration value="F"/>
+                    <xsd:enumeration value="G"/>
+                    <xsd:enumeration value="H"/>
+                    <xsd:enumeration value="I"/>
+                    <xsd:enumeration value="J"/>
+                    <xsd:enumeration value="K"/>
+                    <xsd:enumeration value="L"/>
+                    <xsd:enumeration value="M"/>
+                    <xsd:enumeration value="N"/>
+                    <xsd:enumeration value="O"/>
+                    <xsd:enumeration value="P"/>
+                    <xsd:enumeration value="Q"/>
+                    <xsd:enumeration value="R"/>
+                    <xsd:enumeration value="S"/>
+                    <xsd:enumeration value="T"/>
+                    <xsd:enumeration value="U"/>
+                    <xsd:enumeration value="V"/>
+                    <xsd:enumeration value="W"/>
+                    <xsd:enumeration value="X"/>
+                    <xsd:enumeration value="Y"/>
+                    <xsd:enumeration value="Z"/>
+                    <xsd:enumeration value="del"/>
+                </xsd:restriction>
+            </xsd:simpleType>
+        </xsd:attribute>
+    </xsd:complexType>
+</xsd:element>   
+
+<xsd:group name="ctrl-key">
+    <xsd:sequence>
+        <xsd:element ref="key"/>
+        <xsd:element name="ctrl"/>
+    </xsd:sequence>
+</xsd:group>
+<xsd:group name="ctrl-f-key">
+    <xsd:sequence>
+        <xsd:element name="ctrl"/>
+        <xsd:element ref="F-key"/>
+    </xsd:sequence>
+</xsd:group>
+
+
+<!-- PROXIM-CONFIGURATION -->
+<xsd:element name="proxim-configuration">
+    <xsd:complexType>
+        <xsd:sequence>
+            <xsd:element name="window" type="window-type" minOccurs="0"/>
+            <xsd:element name="toolbar" type="toolbar-type" minOccurs="0"/>
+            <xsd:element name="keyboard-shortcut" 
+                         type="keyboard-shortcut-type"
+                         minOccurs="0" 
+                         maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+</xsd:element>
+
+</xsd:schema>

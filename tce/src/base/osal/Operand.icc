@@ -1,0 +1,26 @@
+/**
+ * @file Operand.icc
+ *
+ * Inline definition of Operand class.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @note rating: yellow
+ * @note reviewed 17 August 2004 by jn, ll, tr, pj
+ */
+
+//////////////////////////////////////////////////////////////////////////////
+// NullOperand
+//////////////////////////////////////////////////////////////////////////////
+
+/** 
+ * Returns an instance of NullOperand class (singleton).
+ *
+ * @return Singleton instance of NullOperand class.
+ */
+inline NullOperand&
+NullOperand::instance() {
+    if (instance_ == NULL) {
+        instance_ = new NullOperand();	
+    }
+    return *instance_;
+}

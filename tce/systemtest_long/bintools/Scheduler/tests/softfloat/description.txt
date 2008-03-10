@@ -1,0 +1,1 @@
+Test for software floatingpoint functions. Does not test float types -> software float support, only the functions defined in softfloat.h

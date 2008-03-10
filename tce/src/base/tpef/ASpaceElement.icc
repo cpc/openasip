@@ -1,0 +1,103 @@
+/**
+ * @file ASpaceElement.icc
+ *
+ * Inline definitions of ASpaceElement class.
+ *
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Returns bitwidth of minimum addressable unit.
+ *
+ * @return Bitwidth of minimum addressable unit.
+ */
+inline Byte
+ASpaceElement::MAU() const {
+    return mau_;
+}
+    
+/**
+ * Sets bitwidth of minimum addressable unit.
+ *
+ * @param aMAU Bitwidth to set.
+ */
+inline void
+ASpaceElement::setMAU(Byte aMAU) {
+    mau_ = aMAU;
+}
+
+/**
+ * Returns aligment of natural word.
+ *
+ * @return Aligment in MAU units.
+ */
+inline Byte
+ASpaceElement::align() const {
+    return align_;
+}
+
+/**
+ * Sets aligment.
+ *
+ * @param aAlign Aligment of address space in MAU units.
+ */
+inline void
+ASpaceElement::setAlign(Byte aAlign) {
+    align_ = aAlign;
+}
+
+/**
+ * Returns word size.
+ *
+ * @return Word size in MAU units.
+ */
+inline Byte
+ASpaceElement::wordSize() const {
+    return wSize_;
+}
+
+/**
+ * Sets word size.
+ *
+ * @param aWordSize Word size in MAU units.
+ */
+inline void
+ASpaceElement::setWordSize(Byte aWordSize) {
+    wSize_ = aWordSize;
+}
+
+/**
+ * Sets name.
+ *
+ * @param aName Reference to string table element.
+ */
+inline void
+ASpaceElement::setName(const ReferenceManager::SafePointer* aName) {
+    name_ = aName;
+}
+
+/**
+ * Sets name.
+ *
+ * @param aName Reference to string table element.
+ */
+inline void
+ASpaceElement::setName(Chunk* aName) {
+    name_ = ReferenceManager::SafePointer::replaceReference(name_, aName);
+}
+
+/**
+ * Returns name.
+ *
+ * @return String table element of name.
+ */
+inline Chunk*
+ASpaceElement::name() const {
+    return dynamic_cast<Chunk*>(name_->pointer());
+}
+
+}

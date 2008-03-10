@@ -1,0 +1,21 @@
+from binding_generator import *
+
+prefix = "../../src/applibs/Scheduler/ResourceManager/"
+
+
+bg = binding_generator_t(
+    module_name = "ResourceManager",
+    call_policies = (('SimpleResourceManager',
+                      [('instruction', return_internal_reference()),
+                       ('immediateValue', return_internal_reference())]),
+                     ),
+    headers = [prefix + "SimpleResourceManager.hh"],
+    extra_headers = ["Instruction.hh",
+                     "MoveNode.hh",
+                     "MoveNodeSet.hh"]
+    )
+
+bg.run()
+
+    
+

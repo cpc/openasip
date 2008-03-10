@@ -1,0 +1,859 @@
+/**
+ * @file Machine.cc
+ *
+ * Implementation of Machine class.
+ *
+ * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @note reviewed 16 Jun 2004 by ml, tr, jm, ll
+ * @note rating: red
+ */
+
+#include <string>
+#include <set>
+
+#include "Machine.hh"
+#include "Bus.hh"
+#include "Segment.hh"
+#include "Socket.hh"
+#include "Bridge.hh"
+#include "AddressSpace.hh"
+#include "InstructionTemplate.hh"
+#include "ImmediateUnit.hh"
+#include "FunctionUnit.hh"
+#include "RegisterFile.hh"
+#include "ControlUnit.hh"
+#include "MachineTester.hh"
+#include "DummyMachineTester.hh"
+#include "ContainerTools.hh"
+#include "Guard.hh"
+#include "FUPort.hh"
+#include "ImmediateSlot.hh"
+#include "Application.hh"
+#include "ADFSerializer.hh"
+
+using std::string;
+using std::set;
+
+namespace TTAMachine {
+
+// initialization of static data members
+const string Machine::OSNAME_MACHINE = "machine";
+
+/**
+ * Constructor.
+ */
+Machine::Machine() : 
+    controlUnit_(NULL), doValidityChecks_(true), 
+    machineTester_(new MachineTester(*this)), 
+    dummyMachineTester_(new DummyMachineTester(*this)),
+    EMPTY_ITEMP_NAME_("no_limm") {
+
+    new InstructionTemplate(EMPTY_ITEMP_NAME_, *this);
+}
+    
+    
+/**
+ * Copy constructor.
+ *
+ * Creates a copy of the given machine.
+ *
+ * @param old The machine to be copied.
+ */
+Machine::Machine(const Machine& old) : 
+    Serializable(), controlUnit_(NULL), doValidityChecks_(false),
+    machineTester_(new MachineTester(*this)), 
+    dummyMachineTester_(new DummyMachineTester(*this)) {
+    
+    ObjectState* state = old.saveState();
+    loadState(state);
+    delete state;
+    doValidityChecks_ = true;
+}
+    
+        
+/**
+ * Destructor.
+ *
+ * Deletes all the components of the machine as well.
+ */
+Machine::~Machine() {
+
+    if (controlUnit_ != NULL) {
+        delete controlUnit_;
+    }
+
+    delete machineTester_;
+    delete dummyMachineTester_;
+
+    // NOTE! other components are deleted in ComponentContainer's destructor
+}
+
+/**
+ * Adds a bus into the machine.
+ *
+ * @param bus Bus being added.
+ * @exception ComponentAlreadyExists If a bus or immediate slot by the same
+ *                                   name already exists in the machine.
+ */
+void
+Machine::addBus(Bus& bus)
+    throw (ComponentAlreadyExists) {
+
+    // check that the name is unique among immediate slots
+    if (immediateSlotNavigator().hasItem(bus.name())) {
+        const string procName = "Machine::addBus";
+        throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
+    }
+
+    addComponent(busses_, bus);
+}
+
+/**
+ * Adds a socket into the machine.
+ *
+ * @param socket Socket being added.
+ * @exception ComponentAlreadyExists If a socket by the same name already
+ *                                   exists in the machine.
+ */
+void
+Machine::addSocket(Socket& socket)
+    throw (ComponentAlreadyExists) {
+
+    addComponent(sockets_, socket);
+}
+
+/**
+ * Adds a unit into the machine.
+ *
+ * Use methods intended to add particular unit types like addFunctionUnit,
+ * addRegisterFile and addImmediateUnit if possible. Global control unit
+ * must be set using setGlobalControl function.
+ *
+ * @param unit Unit being added.
+ * @exception ComponentAlreadyExists If a unit by the same name and type
+ *                                   already exists in the machine.
+ * @exception IllegalParameters If ControlUnit is tried to add with this
+ *                              method.
+ */
+void
+Machine::addUnit(Unit& unit)
+    throw (ComponentAlreadyExists, IllegalParameters) {
+
+    FunctionUnit* fu = dynamic_cast<FunctionUnit*>(&unit);
+    ImmediateUnit* iu = dynamic_cast<ImmediateUnit*>(&unit);
+    RegisterFile* rf = dynamic_cast<RegisterFile*>(&unit);
+
+    if (fu != NULL) {
+        addFunctionUnit(*fu);
+    } else if (iu != NULL) {
+        addImmediateUnit(*iu);
+    } else if (rf != NULL) {
+        addRegisterFile(*rf);
+    } else {
+        const string procName = "Machine::addUnit";
+        throw IllegalParameters(__FILE__, __LINE__, procName);
+    }
+}
+
+
+/**
+ * Adds the given function unit to the machine.
+ *
+ * @param unit The function unit to be added.
+ * @exception ComponentAlreadyExists If a function unit by the same
+ *                                   name exists already.
+ * @exception IllegalParameters If tried to add control unit with this
+ *                              method.
+ */
+void
+Machine::addFunctionUnit(FunctionUnit& unit)
+    throw (ComponentAlreadyExists, IllegalParameters) {
+
+    const string procName = "Machine::addFunctionUnit";
+
+    if (dynamic_cast<ControlUnit*>(&unit) != NULL) {
+        throw IllegalParameters(__FILE__, __LINE__, procName);
+    }
+
+    if (controlUnit() != NULL && controlUnit()->name() == unit.name()) {
+        throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
+    }
+
+    addComponent(functionUnits_, unit);
+}
+
+
+/**
+ * Adds the given immediate unit to the machine.
+ *
+ * @param unit The immediate unit to be added.
+ * @exception ComponentAlreadyExists If an immediate unit by the same
+ *                                   name exists already.
+ */
+void
+Machine::addImmediateUnit(ImmediateUnit& unit)
+    throw (ComponentAlreadyExists) {
+
+    addComponent(immediateUnits_, unit);
+}
+
+
+/**
+ * Adds the given register file to the machine.
+ *
+ * @param unit The register file to be added.
+ * @exception ComponentAlreadyExists If a register file by the same name
+ *                                   exists already.
+ */
+void
+Machine::addRegisterFile(RegisterFile& unit)
+    throw (ComponentAlreadyExists) {
+
+    addComponent(registerFiles_, unit);
+}
+
+
+/**
+ * Adds an address space into the machine.
+ *
+ * @param as AddressSpace being added.
+ * @exception ComponentAlreadyExists If an address space by the same name
+ *                                   already exists in the machine.
+ */
+void
+Machine::addAddressSpace(AddressSpace& as)
+    throw (ComponentAlreadyExists) {
+
+    addRegisteredComponent(addressSpaces_, as);
+}
+
+
+/**
+ * Adds a bridge into the machine.
+ *
+ * This method should be called from Bridge constructor only since bridges
+ * are added to machine at construction. Do not call this method.
+ *
+ * @param bridge Bridge being added.
+ * @exception ComponentAlreadyExists If a bridge by the same name already
+ *                                   exists in the machine.
+ */
+void
+Machine::addBridge(Bridge& bridge)
+    throw (ComponentAlreadyExists) {
+
+    addRegisteredComponent(bridges_, bridge);
+}
+
+
+/**
+ * Adds an instruction template for the machine.
+ *
+ * @param instructionTemplate The instruction template to be added.
+ * @exception ComponentAlreadyExists If an instruction template by the same
+ *                                   name already exists in the machine.
+ */
+void
+Machine::addInstructionTemplate(InstructionTemplate& instrTempl)
+    throw (ComponentAlreadyExists) {
+
+    addRegisteredComponent(instructionTemplates_, instrTempl);
+}
+
+
+/**
+ * Adds an immediate slot to (instruction of) the machine.
+ *
+ * @param slot The immediate slot to be added.
+ * @exception ComponentAlreadyExists If an immediate slot or bus by the same
+ *                                   name already exists in the machine.
+ */
+void
+Machine::addImmediateSlot(ImmediateSlot& slot)
+    throw (ComponentAlreadyExists) {
+
+    // check that the name is unique among buses
+    if (busNavigator().hasItem(slot.name())) {
+        const string procName = "Machine::addImmediateSlot";
+        throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
+    }
+
+    addRegisteredComponent(immediateSlots_, slot);
+}   
+
+
+/**
+ * Sets the global control unit for the machine.
+ *
+ * @param unit The new global control unit.
+ * @exception ComponentAlreadyExists If a control unit already exists in the
+ *                                   machine.
+ */
+void
+Machine::setGlobalControl(ControlUnit& unit)
+    throw (ComponentAlreadyExists) {
+
+    const string procName = "Machine::setGlobalControl";
+
+    if (controlUnit_ != NULL) {
+        throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
+    }
+
+    // check that the name is unique among function units
+    FunctionUnitNavigator fuNav = functionUnitNavigator();
+    if (fuNav.hasItem(unit.name())) {
+        throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
+    }
+
+    if (unit.machine() == NULL) {
+        unit.setMachine(*this);
+    } else {
+        controlUnit_ = &unit;
+    }
+}
+
+
+/**
+ * Returns the control unit of the machine.
+ *
+ * Returns null pointer if there is no control unit in the machine.
+ *
+ * @return The control unit of the machine.
+ */
+ControlUnit*
+Machine::controlUnit() const {
+    return controlUnit_;
+}
+
+
+/**
+ * Returns a handle to the busses in the machine.
+ *
+ * @return Handle to the busses in the machine.
+ */
+Machine::BusNavigator
+Machine::busNavigator() const {
+    BusNavigator navigator(busses_);
+    return navigator;
+}
+
+
+/**
+ * Returns a handle to the sockets in the machine.
+ *
+ * @return Handle to the sockets in the machine.
+ */
+Machine::SocketNavigator
+Machine::socketNavigator() const {
+    SocketNavigator navigator(sockets_);
+    return navigator;
+}
+
+
+/**
+ * Returns a handle to the function units in the machine.
+ *
+ * @return Handle to the function units in the machine.
+ */
+Machine::FunctionUnitNavigator
+Machine::functionUnitNavigator() const {
+    FunctionUnitNavigator navigator(functionUnits_);
+    return navigator;
+}
+
+
+/**
+ * Returns a handle to the address spaces in the machine.
+ *
+ * @return Handle to the address spaces in the machine.
+ */
+Machine::AddressSpaceNavigator
+Machine::addressSpaceNavigator() const {
+    AddressSpaceNavigator navigator(addressSpaces_);
+    return navigator;
+}
+
+
+/**
+ * Returns a handle to the bridges in the machine.
+ *
+ * @return Handle to the bridges in the machine.
+ */
+Machine::BridgeNavigator
+Machine::bridgeNavigator() const {
+    BridgeNavigator navigator(bridges_);
+    return navigator;
+}
+
+
+/**
+ * Returns a handle to the immediate units in the machine.
+ *
+ * @return Handle to the immediate units in the machine.
+ */
+Machine::ImmediateUnitNavigator
+Machine::immediateUnitNavigator() const {
+    ImmediateUnitNavigator navigator(immediateUnits_);
+    return navigator;
+}
+
+
+/**
+ * Returns a handle to the instruction templates in the machine.
+ *
+ * @return Handle to the instruction templates in the machine.
+ */
+Machine::InstructionTemplateNavigator
+Machine::instructionTemplateNavigator() const {
+    InstructionTemplateNavigator navigator(instructionTemplates_);
+    return navigator;
+}
+
+
+/**
+ * Returns a handle to the register files in the machine.
+ *
+ * @return Handle to the register files in the machine.
+ */
+Machine::RegisterFileNavigator
+Machine::registerFileNavigator() const {
+    RegisterFileNavigator navigator(registerFiles_);
+    return navigator;
+}
+
+
+/**
+ * Returns a handle to the immediate slots in the machine.
+ *
+ * @return Handle to the immediate slots in the machine.
+ */
+Machine::ImmediateSlotNavigator
+Machine::immediateSlotNavigator() const {
+    ImmediateSlotNavigator navigator(immediateSlots_);
+    return navigator;
+}
+
+
+/**
+ * Removes bus from the machine.
+ *
+ * The machine will stay consistent after removal.
+ *
+ * @param bus Bus to be removed.
+ * @exception InstanceNotFound If the machine does not have the given bus.
+ */
+void
+Machine::removeBus(Bus& bus)
+    throw (InstanceNotFound) {
+
+    removeComponent(busses_, bus);
+}
+
+
+/**
+ * Removes socket from the machine.
+ *
+ * The machine will stay consistent after removal.
+ *
+ * @param socket Socket to be removed.
+ * @exception InstanceNotFound If the machine does not have the given socket.
+ */
+void
+Machine::removeSocket(Socket& socket)
+    throw (InstanceNotFound) {
+
+    removeComponent(sockets_, socket);
+}
+
+
+/**
+ * Removes unit from the machine.
+ *
+ * The machine will stay consistent after removal. Global control unit must
+ * be removed using unsetGlobalControl method.
+ *
+ * @param unit Unit to be removed.
+ * @exception InstanceNotFound If the machine does not have the given unit.
+ * @exception IllegalParameters If ControlUnit is tried to remove.
+ */
+void
+Machine::removeUnit(Unit& unit)
+    throw (InstanceNotFound, IllegalParameters) {
+
+    FunctionUnit* fu = dynamic_cast<FunctionUnit*>(&unit);
+    ImmediateUnit* iu = dynamic_cast<ImmediateUnit*>(&unit);
+    RegisterFile* rf = dynamic_cast<RegisterFile*>(&unit);
+
+    if (fu != NULL) {
+        removeFunctionUnit(*fu);
+    } else if (iu != NULL) {
+        removeImmediateUnit(*iu);
+    } else if (rf != NULL) {
+        removeRegisterFile(*rf);
+    } else {
+        const string procName = "Machine::removeUnit";
+        throw IllegalParameters(__FILE__, __LINE__, procName);
+    }
+}
+
+
+/**
+ * Removes the given function unit from the machine.
+ *
+ * @param unit The function unit to be removed.
+ * @exception InstanceNotFound If the given function unit does not belong to
+ *                             the machine.
+ */
+void
+Machine::removeFunctionUnit(FunctionUnit& unit)
+    throw (InstanceNotFound) {
+
+    removeComponent(functionUnits_, unit);
+}
+
+
+/**
+ * Removes the given immediate unit from the machine.
+ *
+ * @param unit The immediate unit to be removed.
+ * @exception InstanceNotFound If the given immediate unit does not belong to
+ *                             the machine.
+ */
+void
+Machine::removeImmediateUnit(ImmediateUnit& unit)
+    throw (InstanceNotFound) {
+
+    removeComponent(immediateUnits_, unit);
+}
+
+
+/**
+ * Removes the given register file from the machine.
+ *
+ * @param unit The register file to be removed.
+ * @exception InstanceNotFound If the given register file does not belong to
+ *                             the machine.
+ */
+void
+Machine::removeRegisterFile(RegisterFile& unit)
+    throw (InstanceNotFound) {
+
+    removeComponent(registerFiles_, unit);
+}
+
+
+/**
+ * Removes the global control unit from the machine.
+ *
+ * WARNING: The unit is not deleted. You should have a reference to it to be
+ * able to delete it later.
+ */
+void
+Machine::unsetGlobalControl() {
+    if (controlUnit_ == NULL) {
+        return;
+    } else {
+        if (controlUnit_->machine() == NULL) {
+            controlUnit_ = NULL;
+        } else {
+            controlUnit_->unsetMachine();
+        }
+    }
+}
+
+
+/**
+ * Deletes the given bridge.
+ *
+ * The machine will stay consistent after deletion.
+ *
+ * @param bridge Bridge to be deleted.
+ * @exception InstanceNotFound If the machine does not have the given bridge.
+ */
+void
+Machine::deleteBridge(Bridge& bridge)
+    throw (InstanceNotFound) {
+
+    deleteComponent(bridges_, bridge);
+}
+
+
+/**
+ * Deletes the given instruction template.
+ *
+ * @param instrTempl The instruction template to be deleted.
+ * @exception InstanceNotFound If the machine does not have the given
+ *                             instruction template.
+ */
+void
+Machine::deleteInstructionTemplate(InstructionTemplate& instrTempl)
+    throw (InstanceNotFound) {
+
+    deleteComponent(instructionTemplates_, instrTempl);
+}
+
+
+/**
+ * Deletes the given address space.
+ *
+ * @param as The address space to be deleted.
+ * @exception InstanceNotFound If the machine does not have the given address
+ *                             space.
+ */
+void
+Machine::deleteAddressSpace(AddressSpace& as)
+    throw (InstanceNotFound) {
+
+    deleteComponent(addressSpaces_, as);
+}
+
+
+/**
+ * Deletes the given immediate slot.
+ *
+ * @param slot The immediate slot to be deleted.
+ * @exception InstanceNotFound If the machine does not have the given
+ *                             immediate slot.
+ */
+void
+Machine::deleteImmediateSlot(ImmediateSlot& slot)
+    throw (InstanceNotFound) {
+
+    deleteComponent(immediateSlots_, slot);
+}
+
+
+/**
+ * Sets new position for the given bus.
+ *
+ * @param bus The bus being moved.
+ * @param newPosition The index of the new position 
+ *                    (the first position is 0).
+ * @exception IllagalRegistration If the given bus is not registered to the 
+ *                                machine.
+ * @exception OutOfRange If the given position is less than 0 or not smaller
+ *                       than the number of buses in the machine.
+ */
+void
+Machine::setBusPosition(const Bus& bus, int newPosition)
+    throw (IllegalRegistration, OutOfRange) {
+
+    const string procName = "Machine::setBusPosition";
+
+    if (bus.machine() != this) {
+        throw IllegalRegistration(__FILE__, __LINE__, procName);
+    }
+
+    if (newPosition < 0 || newPosition >= busNavigator().count()) {
+        throw OutOfRange(__FILE__, __LINE__, procName);
+    }
+
+    busses_.moveToPosition(&bus, newPosition);
+}
+
+
+/**
+ * Returns the machine tester for the machine.
+ *
+ * @return The machine tester for the machine.
+ */
+MachineTester&
+Machine::machineTester() const {
+    if (doValidityChecks_) {
+        return *machineTester_;
+    } else {
+        return *dummyMachineTester_;
+    }
+}
+
+
+/**
+ * Saves the machine to ObjectState tree.
+ *
+ * @return Root of the created ObjectState tree.
+ */
+ObjectState*
+Machine::saveState() const {
+
+    ObjectState* rootState = new ObjectState(OSNAME_MACHINE);
+
+    saveComponentStates(busses_, rootState);
+    saveComponentStates(sockets_, rootState);
+    saveComponentStates(bridges_, rootState);
+    saveComponentStates(functionUnits_, rootState);
+    saveComponentStates(registerFiles_, rootState);
+    saveComponentStates(immediateUnits_, rootState);
+    saveComponentStates(addressSpaces_, rootState);
+    saveComponentStates(instructionTemplates_, rootState);
+    saveComponentStates(immediateSlots_, rootState);
+
+    // save global control unit
+    if (controlUnit_ != NULL) {
+        rootState->addChild(controlUnit_->saveState());
+    }
+
+    return rootState;
+}
+
+
+/**
+ * Loads the state of the machine from the given ObjectState tree.
+ *
+ * @param state Root node of the ObjectState tree.
+ * @exception ObjectStateLoadingException If the given ObjectState tree is
+ *                                        invalid.
+ */
+void
+Machine::loadState(const ObjectState* state)
+    throw (ObjectStateLoadingException) {
+
+    string procName = "Machine::loadState";
+
+    if (state->name() != OSNAME_MACHINE) {
+        throw ObjectStateLoadingException(__FILE__, __LINE__, procName);
+    }
+
+    // delete all the old components
+    busses_.deleteAll();
+    sockets_.deleteAll();
+    instructionTemplates_.deleteAll();
+    registerFiles_.deleteAll();
+    immediateUnits_.deleteAll();
+    functionUnits_.deleteAll();
+    addressSpaces_.deleteAll();
+    bridges_.deleteAll();
+    immediateSlots_.deleteAll();
+
+    if (controlUnit_ != NULL) {
+        delete controlUnit_;
+        controlUnit_ = NULL;
+    }
+
+    Component* toAdd = NULL;
+
+    try {
+        // create skeletons
+        for (int i = 0; i < state->childCount(); i++) {
+            toAdd = NULL;
+            ObjectState* child = state->child(i);
+            if (child->name() == Bus::OSNAME_BUS) {
+                Bus* bus = new Bus(child);
+                toAdd = bus;
+                addBus(*bus);
+            } else if (child->name() == Socket::OSNAME_SOCKET) {
+                Socket* socket = new Socket(child);
+                toAdd = socket;
+                addSocket(*socket);
+            } else if (child->name() == Bridge::OSNAME_BRIDGE) {
+                // bridge is registered automatically
+                new Bridge(child, *this);
+            } else if (child->name() == AddressSpace::OSNAME_ADDRESS_SPACE) {
+                // address space is registered automatically and its state is
+                // loaded completely --> no need to call loadState later
+                new AddressSpace(child, *this);
+            } else if (child->name() == RegisterFile::OSNAME_REGISTER_FILE) {
+                RegisterFile* regFile = new RegisterFile(child);
+                toAdd = regFile;
+                addRegisterFile(*regFile);
+            } else if (child->name() == FunctionUnit::OSNAME_FU) {
+                FunctionUnit* fu = new FunctionUnit(child);
+                toAdd = fu;
+                addFunctionUnit(*fu);
+            } else if (child->name() == 
+                    ImmediateUnit::OSNAME_IMMEDIATE_UNIT) {
+                ImmediateUnit* immUnit = new ImmediateUnit(child);
+                toAdd = immUnit;
+                addImmediateUnit(*immUnit);
+            } else if (child->name() == ControlUnit::OSNAME_CONTROL_UNIT) {
+                ControlUnit* cUnit = new ControlUnit(child);
+                toAdd = cUnit;
+                setGlobalControl(*cUnit);
+            } else if (child->name() == ImmediateSlot::OSNAME_IMMEDIATE_SLOT) {
+                new ImmediateSlot(child, *this);
+            } else if (child->name() != 
+                       InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE) {
+                throw ObjectStateLoadingException(
+                    __FILE__, __LINE__, procName);
+            }
+        }
+
+    } catch (const Exception& e) {
+        if (toAdd != NULL) {
+            delete toAdd;
+        }
+        throw ObjectStateLoadingException(__FILE__, __LINE__, procName,
+                                          e.errorMessage());
+    }
+
+    // load states of each component
+    try {
+        for (int i = 0; i < state->childCount(); i++) {
+            ObjectState* child = state->child(i);
+            string name = child->stringAttribute(Component::OSKEY_NAME);
+            if (child->name() == Bus::OSNAME_BUS) {
+                BusNavigator busNav = busNavigator();
+                Bus* bus = busNav.item(name);
+                bus->loadState(child);
+            } else if (child->name() == Socket::OSNAME_SOCKET) {
+                SocketNavigator socketNav = socketNavigator();
+                Socket* socket = socketNav.item(name);
+                socket->loadState(child);
+            } else if (child->name() == Bridge::OSNAME_BRIDGE) {
+                BridgeNavigator bridgeNav = bridgeNavigator();
+                Bridge* bridge = bridgeNav.item(name);
+                bridge->loadState(child);
+            } else if (child->name() == RegisterFile::OSNAME_REGISTER_FILE) {
+                RegisterFileNavigator rfNav = registerFileNavigator();
+                RegisterFile* rf = rfNav.item(name);
+                rf->loadState(child);
+            } else if (child->name() == FunctionUnit::OSNAME_FU) {
+                FunctionUnitNavigator fuNav = functionUnitNavigator();
+                FunctionUnit* fu = fuNav.item(name);
+                fu->loadState(child);
+            } else if (child->name() ==
+                       ImmediateUnit::OSNAME_IMMEDIATE_UNIT) {
+                ImmediateUnitNavigator iuNav = immediateUnitNavigator();
+                ImmediateUnit* iu = iuNav.item(name);
+                iu->loadState(child);
+            } else if (child->name() ==
+                       ControlUnit::OSNAME_CONTROL_UNIT) {
+                ControlUnit* cu = controlUnit();
+                cu->loadState(child);
+            } else if (child->name() ==
+                       InstructionTemplate::OSNAME_INSTRUCTION_TEMPLATE) {
+                // instruction template loads its state completely
+                new InstructionTemplate(child, *this);
+            }
+        }
+    } catch (const Exception& e) {
+        throw ObjectStateLoadingException(__FILE__, __LINE__, procName,
+                                          e.errorMessage());
+    }
+
+    // create an empty instruction template if there is no instruction
+    // templates
+    InstructionTemplateNavigator itNav = instructionTemplateNavigator();
+    if (itNav.count() == 0) {
+        new InstructionTemplate(EMPTY_ITEMP_NAME_, *this);
+    }
+}
+
+/**
+ * Loads a Machine from the given ADF file.
+ *
+ * @param adfFileName The name of the file to load the ADF from.
+ * @return A machine instance.
+ * @exception Exception In case some error occured.
+ */
+TTAMachine::Machine*
+Machine::loadFromADF(const std::string& adfFileName)
+    throw (Exception) {
+
+    ADFSerializer serializer;
+    serializer.setSourceFile(adfFileName);
+
+    return serializer.readMachine();	
+}
+
+
+}

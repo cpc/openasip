@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<adf version="1.2">
+
+<bus name="B1">
+    <width>32</width>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to>seg3</writes-to>
+    </segment>
+    <segment name="seg3">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<socket name="S1">
+    <reads-from>
+        <bus>B1</bus>
+        <segment>seg1</segment>
+    </reads-from>
+</socket>
+
+<socket name="S2">
+    <writes-to>
+        <bus>B1</bus>
+        <segment>seg2</segment>
+    </writes-to>
+</socket>
+
+<register-file name="rf1">
+    <type>normal</type>
+    <size>50</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>0</max-writes>
+    <port name="port1">
+        <connects-to>S1</connects-to>
+        <connects-to>S2</connects-to>
+    </port>
+    <port name="port2">
+        <connects-to>S2</connects-to>
+    </port>
+</register-file>
+
+</adf>

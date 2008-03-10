@@ -1,0 +1,147 @@
+/**
+ * @file Application.hh
+ *
+ * Declaration of Application class and services of standalone applications.
+ *
+ * Application is a class for generic services that are project-wide
+ * applicable to standalone applications or modules. These services include
+ * assertion, program exiting, debugging to a log file, catching unexpected
+ * exceptions, "control-c" signal handling.
+ *
+ * @author Atte Oksman 2003 (oksman@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ */
+
+#ifndef TTA_APPLICATION_HH
+#define TTA_APPLICATION_HH
+
+#include <cstdlib>
+#include <string>
+#include <iostream>
+#include <vector>
+#include <signal.h>
+
+#ifdef assert
+#undef assert
+#endif
+
+#define UNKNOWN_FUNCTION "[?]"
+
+// taken from
+// http://gcc.gnu.org/onlinedocs/gcc-3.4.1/gcc/Function-Names.html#
+// Function%20Names
+#if __STDC_VERSION__ < 199901L
+# if __GNUC__ >= 2
+#  define __func__ __PRETTY_FUNCTION__
+# else
+#  define __func__ UNKNOWN_FUNCTION
+# endif
+#endif
+
+// abort the program with an error message
+#define abortWithError(message) \
+    Application::writeToErrorLog(__FILE__, __LINE__, __func__, message); \
+    Application::abortProgram();
+
+// provide a TCE version of assert macro for error logging
+#define assert(condition) \
+    if (!(condition)) { \
+        abortWithError("Assertion failed: " #condition); \
+    }
+
+// provide an easy way to "debug print"
+#define debugLog(text) \
+    Application::writeToErrorLog(__FILE__, __LINE__, __func__, \
+        std::string("DEBUG: ") + std::string(text))
+
+// provide an easy way to print out exception data
+#define CATCH_ANY(XXX__) \
+    try { XXX__; } \
+    catch (const Exception& e) { \
+   debugLog(e.errorMessage() + " in " + \
+	    e.fileName() + ":" + \
+	    e.procedureName() + ":" + \
+	    Conversion::toString(e.lineNum())); } \
+    catch ( ... ) { debugLog("Unknown exception"); }
+
+
+/// default value of maximum amount of output lines saved from popen() output
+/// in runShellCommandAndGetOutput()
+const int DEFAULT_MAX_OUTPUT_LINES = 200;
+
+/// maximum length of an output line saved from popen() output in
+/// runShellCommandAndGetOutput()
+const int MAX_OUTPUT_LINE_LENGTH = 512;
+
+/**
+ * A project-wide class for basic application services.
+ *
+ * Provides application services such as program exit and abort. It also
+ * provides generic debugging aids like error logging and handling of
+ * unexpected exceptions.
+ *
+ * Initialization of this toolkit happens when any function is called the
+ * first time.
+ *
+ * Should be used by every standalone application of the toolset.
+ */
+class Application {
+public:
+    static void initialize();
+    static void finalize();
+
+    static void writeToErrorLog(
+        const std::string fileName,
+        const int lineNumber,
+        const std::string functionName,
+        const std::string message);
+
+    static void exitProgram(const int status = EXIT_SUCCESS);
+    static void abortProgram();
+
+    static void unexpectedExceptionHandler();
+
+    static int runShellCommandAndGetOutput(
+	const std::string& command,
+	std::vector<std::string>& outputLines,
+	std::size_t maxOutputLines  = DEFAULT_MAX_OUTPUT_LINES);
+
+    static std::ostream& logStream();
+
+    /**
+     * An interface for classes that can receive notification when a Unix
+     * signal occurs.
+     */
+    class UnixSignalHandler {
+    public:
+        /**
+         * Executed when the Unix signal occurs.
+         *
+         * @param data Data of the signal.
+         */
+        virtual void execute(int data) = 0;
+        virtual ~UnixSignalHandler() {}
+    };
+
+    static void setCtrlcHandler(UnixSignalHandler& handler);
+    static void restoreCtrlcHandler();
+
+private:
+    static void ctrlcSignalRedirector(int data);
+    /// True when initialize() is called. Ensures that initialization is
+    /// done only once.
+    static bool initialized_;
+
+    /// The stream for error logging.
+    static std::ostream* logStream_;
+
+    /// The handler for signal produced by user pressing ctrl-c.
+    static UnixSignalHandler* ctrlcHandler_;
+
+    /// The original signal handler of the signal produced by ctrl-c.
+    static sig_t originalCtrlcHandler_;
+
+
+};
+
+#endif

@@ -1,0 +1,155 @@
+/**
+ * @file Figure.icc
+ *
+ * Inline implementation of Figure class.
+ *
+ * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 22 2004 by tr, ml, jm, am
+ */
+
+#include <iostream>
+using std::cerr;
+using std::endl;
+
+/**
+ * Returns the top-left location of the Figure's bounding rectangle.
+ *
+ * @return The top-left location of the Figure's bounding rectangle.
+ */
+inline wxPoint
+Figure::location() const {
+    return location_;
+}
+
+/**
+ * Sets the top-left location of the Figure's bounding rectangle.
+ *
+ * @param point New location.
+ */
+inline void
+Figure::setLocation(wxPoint point) {
+    location_ = point;
+}
+
+/**
+ * Sets the x-coordinate of the Figure's location.
+ *
+ * @param x New x-coordinate.
+ */
+inline void
+Figure::setX(int x) {
+    location_.x = x;
+    xSet_ = true;
+}
+
+/**
+ * Sets the y-coordinate of the Figure's location.
+ *
+ * @param y New y-coordinate.
+ */
+inline void
+Figure::setY(int y) {
+    location_.y = y;
+}
+
+/**
+ * Returns the Figure's bounding rectangle.
+ *
+ * @return The Figure's bounding rectangle.
+ */
+inline wxRect
+Figure::bounds() const {
+    return wxRect(location_, size_);
+}
+
+/**
+ * Returns the Figure's virtual bounding rectangle for easying
+ * selection of smaller blocks.
+ *
+ * Default implementation returns normal bounds.
+ *
+ * @return The Figure's virtual bounding rectangle.
+ */
+inline wxRect
+Figure::virtualBounds() const {
+    return wxRect(location_, size_);
+}
+
+/**
+ * Sets an 'ok' x-coordinate, that will be used if not decided
+ * otherwise.
+ *
+ * @param prefX New preferred x-coordinate.
+ */
+inline void
+Figure::setPreferredX(int prefX) {
+    location_.x = prefX;
+}
+
+/**
+ * Tells if the x-coordinate of the Figure has been finally decided.
+ * 
+ * @return True if x-coordinate has been fixed.
+ */
+inline bool
+Figure::xSet() const {
+    return xSet_;
+}
+
+/**
+ * Clears the flag that tells that the x-coordinate of this Figure has
+ * been set.
+ */
+inline void
+Figure::clearXSetFlag() {
+    xSet_ = false;
+}
+
+/**
+ * Adds a Figure as a child of this Figure.
+ *
+ * @param child Child to be added.
+ */
+inline void
+Figure::addChild(Figure* child) {
+    children_.push_back(child);
+}
+
+/**
+ * Returns the number of child Figures.
+ *
+ * @return The number of child Figures.
+ */
+inline int
+Figure::childCount() const {
+    return children_.size();
+}
+
+/**
+ * Returns the child figure at index.
+ *
+ * @param index Index of the child to return.
+ * @return The child figure corresponding to the given index.
+ */
+inline Figure*
+Figure::child(int index) const {
+    return children_[index];
+}
+
+/**
+ * Empty default implementation that can be used if no specific laying
+ * out needs to be done.
+ */
+inline void
+Figure::layoutSelf(wxDC*) {
+}
+
+/**
+ * Empty default implementation that can be used if the Figure is invisible.
+ *
+ * @param dc Device context.
+ */
+inline void
+Figure::drawSelf(wxDC*) {
+}

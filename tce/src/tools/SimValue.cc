@@ -1,0 +1,36 @@
+/**
+ * @file SimValue.icc
+ *
+ * Non-inline definitions of SimValue class.
+ *
+ * @author Pekka J‰‰skel‰inen 2004 (pjaaskel@cs.tut.fi)
+ */
+
+#include "SimValue.hh"
+
+//////////////////////////////////////////////////////////////////////////////
+// SimValue
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Destructor.
+ */
+SimValue::~SimValue() {
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// NullSimValue
+//////////////////////////////////////////////////////////////////////////////
+
+SimValue NullSimValue::instance_(0);
+
+/**
+ * Returns an instance of NullSimValue class (singleton).
+ *
+ * @return Singleton instance of NullSimValue class.
+ */
+SimValue&
+NullSimValue::instance() {
+    return instance_;
+}
+

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>../../../../../icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+  </ic-decoder-plugin>
+
+  <fu name="gcu">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>13</fu-id>
+  </fu>
+
+  <fu name="fu4">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="fu15">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>3</fu-id>
+  </fu>
+
+  <fu name="fu16">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>4</fu-id>
+  </fu>
+
+  <fu name="fu18">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>5</fu-id>
+  </fu>
+
+  <fu name="fu19">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>6</fu-id>
+  </fu>
+
+  <fu name="fu20">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>7</fu-id>
+  </fu>
+
+  <fu name="fu22">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>8</fu-id>
+  </fu>
+
+  <fu name="fu24">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>11</fu-id>
+  </fu>
+
+  <fu name="debug_operations">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <fu-id>12</fu-id>
+  </fu>
+
+  <rf name="integer3">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>2</rf-id>
+  </rf>
+
+  <rf name="integer5">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>3</rf-id>
+  </rf>
+
+  <rf name="integer4">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+  <rf name="integer2">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+  <rf name="integer1">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+  <rf name="integer0">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+  <rf name="float0">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>4</rf-id>
+  </rf>
+
+  <rf name="float1">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>5</rf-id>
+  </rf>
+
+  <rf name="boolean0">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>6</rf-id>
+  </rf>
+
+  <iu name="i1">
+    <hdb-file>10_bus_full_connectivity.hdb</hdb-file>
+    <rf-id>7</rf-id>
+  </iu>
+
+</adf-implementation>

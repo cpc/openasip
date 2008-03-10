@@ -1,0 +1,29 @@
+/**
+ * @file Request.icc
+ *
+ * Inline implementation of Request class.
+ *
+ * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 13 2004 by vpj, ll, jn, am
+ */
+
+/**
+ * Sets the type of the Request.
+ *
+ * @param type New type.
+ */
+inline void
+Request::setType(RequestType type) {
+    type_ = type;
+}
+
+/**
+ * Returns the type of the Request.
+ *
+ * @return The type of the Request.
+ */
+inline Request::RequestType
+Request::type() const {
+    return type_;
+}

@@ -1,0 +1,57 @@
+/**
+ * @file OperationExecutor.icc
+ *
+ * Inline definitions of OperationExecutor class.
+ *
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include <string>
+
+#include "PortState.hh"
+
+/**
+ * Returns parent of the executor.
+ *
+ * @return Parent of the executor.
+ */
+inline FUState&
+OperationExecutor::parent() const {
+    return *parent_;
+}
+
+/**
+ * Returns the port state bound to a certain operation input or output.
+ *
+ * If no port is bound to the index, returns NullPortState.
+ *
+ * @param io Index of the operand.
+ * @return PortState bound to the given index.
+ * @exception OutOfRange If index is out of range.
+ */
+inline PortState&
+OperationExecutor::binding(int io) const 
+    throw (OutOfRange) {
+
+    if (io < 1 || io > static_cast<int>(bindings_.size())) {
+        std::string msg = "Operand index out of range";
+        throw OutOfRange(__FILE__, __LINE__, __func__, msg);
+    }
+   
+    if (bindings_[io - 1] == NULL) {
+        return NullPortState::instance();
+    } else {
+        return *bindings_[io - 1];
+    }
+}
+
+/**
+ * Returns true if this OperationExecutor has pending operations.
+ *
+ * @return True if operations are pending.
+ */
+inline bool 
+OperationExecutor::hasPendingOperations() const { 
+    return hasPendingOperations_; 
+}

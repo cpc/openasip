@@ -1,0 +1,63 @@
+     1: at address 1 
+     1: at address 1 
+     2: at address 2 will be deleted after triggered 
+     1: at address 1 
+     2: at address 2 will be deleted after triggered 
+      1                      <_crt0+1>: ra -> stw.2 ;
+Stopped at breakpoint 1.
+     1: at address 1 
+     2: at address 2 will be deleted after triggered 
+mark 1
+     1: at address 1 
+     1: at address 1 is disabled 
+mark 2
+     1: at address 1 is disabled 
+     2: at address 2 will be deleted after triggered 
+     1: at address 1 
+mark 3
+     1: at address 1 
+     2: at address 2 will be deleted after triggered 
+     2: at address 2 will be deleted after triggered 
+mark 4
+      2                      <_crt0+2>: sp -> add.1 ;
+Program stopped at address 2.
+mark 5
+     3: at address 4 has condition '[info proc cycles] > 1' 
+     4: at address 5 
+     4: at address 5 has condition '[info proc cycles] < 1' 
+mark 7: conditions set
+     5: at address 6 
+      4                      <_crt0+4>: add.3 -> sp ;
+Stopped at breakpoint 3.
+Program stopped at address 4.
+Stopped at breakpoint 3.
+     3: at address 4 has condition '[info proc cycles] > 1' 
+     4: at address 5 has condition '[info proc cycles] < 1' 
+     5: at address 6 
+executing 'kill'
+     3: at address 4 has condition '[info proc cycles] > 1' 
+     4: at address 5 has condition '[info proc cycles] < 1' 
+     5: at address 6 
+      4                      <_crt0+4>: add.3 -> sp ;
+Stopped at breakpoint 3.
+Program stopped at address 4.
+Stopped at breakpoint 3.
+     3: at address 4 has condition '[info proc cycles] > 1' 
+     4: at address 5 has condition '[info proc cycles] < 1' 
+     5: at address 6 
+testing the ignore count feature
+     6: at address 20 
+     6: at address 20 will be ignored 3 time(s) 
+Hel     20               <_printstring+7>: iarg2 -> ldq.1 ;
+Stopped at breakpoint 6.
+     6: at address 20 
+l     20               <_printstring+7>: iarg2 -> ldq.1 ;
+Stopped at breakpoint 6.
+     6: at address 20 
+o     20               <_printstring+7>: iarg2 -> ldq.1 ;
+Stopped at breakpoint 6.
+ TTA world!
+Yeah!Yeah!Yeah!Yeah!Yeah!Bye!
+
+Simulation finished.
+No simulation running.

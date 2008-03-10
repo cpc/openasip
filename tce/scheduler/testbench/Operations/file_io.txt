@@ -1,0 +1,13 @@
+Defines a set of operations that can be used to emulate file I/O to
+allow compiling certain benchmarks which require input and output
+to be performed through a file system.
+
+The operations can be used to implement the syscalls 
+open(), write(), read(), and lseek(). See file_io_emu.c for
+implementations.
+
+TODO: 
+- make it possible to compile frontend which uses extern open()/write()/etc.
+  and link an object that defines the previous functions 
+  - a define CUSTOM_FILE_IO_FUNCTIONS or something
+

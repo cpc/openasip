@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf version="1.5">
+
+  <bus name="B1">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>32</width>
+    </short-immediate>
+  </bus>
+
+  <socket name="RF_i1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="RF_o1">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="RF_i2">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="RF_o2">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="FU_i1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="FU_i2">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="FU_o1">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="S1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="S1_1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="S2">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="S3">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="S4">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="S5">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="S6">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <function-unit name="ADD">
+    <port name="PRODEP1">
+      <connects-to>FU_i1</connects-to>
+      <width>30</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="Prodeportti2">
+      <connects-to>FU_i2</connects-to>
+      <width>30</width>
+    </port>
+    <port name="Prodeportti3">
+      <connects-to>FU_o1</connects-to>
+      <width>30</width>
+    </port>
+    <operation>
+      <name>add</name>
+      <bind name="1">PRODEP1</bind>
+      <bind name="2">Prodeportti2</bind>
+      <bind name="3">Prodeportti3</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="ADD_1">
+    <port name="PRODEP1">
+      <connects-to>S1</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="Prodeportti2">
+      <connects-to>S1_1</connects-to>
+      <width>32</width>
+    </port>
+    <port name="Prodeportti3">
+      <connects-to>S2</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>add</name>
+      <bind name="1">PRODEP1</bind>
+      <bind name="2">Prodeportti2</bind>
+      <bind name="3">Prodeportti3</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <register-file name="RF">
+    <type>normal</type>
+    <size>2</size>
+    <width>30</width>
+    <max-reads>2</max-reads>
+    <max-writes>2</max-writes>
+    <port name="P1">
+      <connects-to>RF_i1</connects-to>
+    </port>
+    <port name="P2">
+      <connects-to>RF_o1</connects-to>
+    </port>
+    <port name="P3">
+      <connects-to>RF_i2</connects-to>
+    </port>
+    <port name="P4">
+      <connects-to>RF_o2</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="RF_1wr_3rd">
+    <type>normal</type>
+    <size>8</size>
+    <width>32</width>
+    <max-reads>3</max-reads>
+    <max-writes>3</max-writes>
+    <port name="P1">
+      <connects-to>S3</connects-to>
+    </port>
+    <port name="P2">
+      <connects-to>S4</connects-to>
+    </port>
+    <port name="P3">
+      <connects-to>S5</connects-to>
+    </port>
+    <port name="P4">
+      <connects-to>S6</connects-to>
+    </port>
+  </register-file>
+
+</adf>

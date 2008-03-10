@@ -1,0 +1,18 @@
+Index: README.LLVM
+===================================================================
+--- README.LLVM	(revision 127541)
++++ README.LLVM	(revision 127542)
+@@ -45,7 +45,13 @@
+ If llvm-gcc doesn't build right, try building LLVM with OPTIMIZE_OPTION=-O2.
+ This may be host compiler version specific.
+ 
++If you get an error message building llvm-gcc like this:
++  ...gcc/libgcc_s.so.1: version `GCC_4.2.0' not found (required by 
++              /usr/lib/libstdc++.so.6)
+ 
++you are probably hitting http://llvm.org/PR896.  Please reconfigure with the
++--disable-shared option to work around this.
++
+ //===-----------------------
+ X86-64/AMD-64/EM64-T for any OS other than Darwin/Mac OS X:
+ 

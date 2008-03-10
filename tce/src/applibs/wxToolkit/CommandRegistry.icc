@@ -1,0 +1,18 @@
+/**
+ * @file CommandRegistry.icc
+ *
+ * Inline implementation of CommandRegistry class.
+ *
+ * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel@cs.tut.fi)
+ */
+
+
+/**
+ * Adds a command to the registry.
+ *
+ * @param command Command to add.
+ */
+inline void
+CommandRegistry::addCommand(GUICommand* command) {
+    commands_.push_back(command);
+}

@@ -1,0 +1,23 @@
+/**
+ * @file OperationPool.icc
+ *
+ * Inline definition of OperationPool class.
+ *
+ * @author Jussi Nyk‰nen 2004 (nykanen@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: yellow
+ * @note reviewed 19 August 2004 by pj, jn, ao, ac
+ */
+
+#include "Application.hh"
+
+/**
+ * Returns the operation index of operation pool.
+ *
+ * @return The operation index.
+ */
+inline OperationIndex&
+OperationPool::index() {
+    assert(index_ != NULL);
+    return *index_;
+}

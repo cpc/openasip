@@ -1,0 +1,648 @@
+\documentclass[twoside]{tce}
+\usepackage{pslatex}
+
+\begin{document}
+\author{Ari Mets‰halme, Andrea Cilio}
+\title{The Graph Interfaces}
+\ver{0.4}
+\firstday{12.11.2004}
+\lastday{24.01.2006}
+% id number in S- sequence
+\docnum{023}
+% draft/complete/committed
+\state{draft}
+
+\maketitle
+
+
+\chapter*{Document History}
+
+\begin{HistoryTable}
+
+ 0.1    & 12.11.2004 & A. Mets‰halme &
+ Initial draft.\\
+ 0.2    & 16.11.2004 & A. Mets‰halme &
+ Added (incomplete) interfaces, made fixes throughout the document. Removed
+ empty sections.\\
+ 0.3	& 10.12.2004 & A. Mets‰halme &
+ Rewrote Chapter 3.\\
+ 0.3.1	& 10.12.2004 & A. Cilio      &
+ Applied standard formatting, added 2.2, bibliography.\\
+ 0.4	& 24.01.2006 & A. Cilio      &
+ Complete revision. Changed title and scope of document.\\
+
+\end{HistoryTable}
+
+\tableofcontents
+
+
+
+\chapter{INTRODUCTION}
+
+\section{Purpose and Scope}
+
+This document describes the suggested interfaces for graph-based toolset
+modules or applications. The interfaces described here are not a software
+framework proper. The status of these interfaces is that of guidelines for
+people designing graph-based modules and their own specialised graph
+structures, such as, for example, a PDG~\cite{Ferrante87} for the Scheduler
+Framework~\cite{SchedulerArchitecture,SchedulerDesign}. A subset of the
+interfaces described here, however, could be implemented as framework proper
+infrastructure.
+
+\section{Definitions}
+
+\begin{description}
+\item[Graph Interfaces] Guidelines for defining interfaces of graph-based
+  structures throught the TCE toolset.
+\item[Scheduler]
+  The instruction scheduler of the TCE toolset.
+\end{description}
+
+
+\section{Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+PDG & Program Dependence Graph \\
+TCE & TTA Codesign Environment \\
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\chapter{FRAMEWORK OVERVIEW}
+
+\section{Philosophy of Design}
+
+The interfaces described here are intended to be generally applicable to any
+type of graphs. The primary purpose of these guidelines is to encourage
+consistent interfaces in different graph classes of the toolset. 
+
+It also suggessts a minimum set of services that should be available in any
+graph, for example addition and deletion of nodes and edges, tests for
+connectivity, search algorithms. These services depend only on the
+topological structure of the graph, not on the data that may reside in its
+nodes and edges.
+
+\section{External Modules and Application Environment}
+
+This section describes the relation of the graph interfaces with the rest of
+the system.
+
+
+\subsection{External Libraries}
+\label{ssec:external-libraries}
+
+The interfaces described in this document have been defined taking into
+account the \emph{boost-graph} library~\cite{BoostGraph} as a likely base
+for the implementations. In case other sensible alternatives for an
+operation could have been chosen, the alternative described here is the one
+that is more efficient to implement with \emph{boost-graph}.
+
+\subsection{External File Data Formats}
+\label{ssec:data-files}
+
+If the graph implementation provides a way to output (serialise) its
+information contents, the recommended output format should be
+\emph{DOT}~\cite{Graphviz}, which can be processed and rendered into several
+graphical formats by a number of publicly available applications.
+
+
+\subsection{Dependencies to Other Modules}
+\label{ssec:other-modules}
+
+The implementations of the graph interfaces may depend on domain or
+application-specific structures, as needed. The basic interfaces should not
+imply any dependency, not make any assumption about the specialised
+implementations. It is very likely, however, that any implementation will
+depend on certain components of the toolkit library~\cite{ToolkitDesign}.
+
+
+\section{Architecture of Databases}
+
+The graph interfaces do not define or require any basic data structure.
+However, it is recommended that the output format be \emph{DOT} in order to
+ensure interoperability with external applications.
+
+As an alternative to DOT, an XML-based format taking advantage of the base
+serialisation infrastructure of the toolkit could be defined, as needed.
+Such alternative would minimise the work necessary to serialise node and
+edge properties.
+
+In any case, an external representation of the graph structures should allow
+for storage and retrieval of node (vertex) and edge properties.
+
+
+
+\chapter{MODULE DESIGN}
+\label{cha:module_design}
+
+%% This chapter is repeated for each module in case this design document
+%% describes a multi-module larger module (or application).
+
+\section{Overview}
+
+% Overview of the module design in concrete terms.
+
+%% Remove this section (redundant) if the design document describes a single
+%% module (or an application consisting of a single module).
+
+The root interface of graph data structures is \emph{Graph}. Any
+\emph{Graph} implementation is responsible for nodes and edges it contains.
+Nodes are defined as implementations of the interface \emph{GraphNode},
+while edges implement the \emph{GraphEdge} interface.
+
+If a graph is
+directed, it is represented by a specialised \emph{DiGraph} object. A
+\emph{UniGraph} instance represents an undirected graph. Furthermore, a
+graph that can contain both directed and undirected edges is represented by
+a \emph{MixedGraph} object.
+
+For each specialised graph type (a data dependence graph for example),
+the required special node and edge classes are inherited from the
+\emph{GraphNode} and \emph{GraphEdge} base classes. Most importantly,
+the graph class itself is specialised from the appropriate base class
+(from \emph{DiGraph} in case of a data dependence graph).
+
+A \emph{Graph} object has full control over the nodes and the edges
+and their interrelations. It offers an interface for performing all
+actions needed to modify a graph, that is, interface for creating,
+adding, deleting, connecting and disconnecting nodes and edges. The
+graph can be altered only through the \emph{Graph} interface.
+
+It also offers services for obtaining various graph-related
+information: are node A and node B connected, what is the connecting
+edge etc. If a service is applicable only for a certain graph type,
+that service is not included in the base class interface. Instead, it
+will be offered only by the appropriate specialised class representing
+that graph type. For example, if a service is only sensible with a
+directed graph, only the \emph{DiGraph} class or its subclasses should
+offer that service. These services are described in detail in
+Section~\ref{sec:interfaces}.
+
+Figure~[TODO]~%\ref{fig:class_diagram}
+depicts the class structure of the framework.
+
+%\begin{figure}[htb]
+%\centerline{\psfig{figure=eps/class_diagram.eps,width=0.60\textwidth}}
+%\caption{The class diagram of the Graph Interfaces}
+%\label{fig:class_diagram}
+%\end{figure}
+
+\section{Interfaces}
+\label{sec:interfaces}
+
+% High level description of the interface of this module.  Low level details
+% are possible, but should be restricted to simple classes (like, for
+% example, NodeDescriptor in mdf module).  Low level details of large
+% interfaces, if present at all, should be stored in a separate UML
+% specification file (for example, Rational Rose MDL).
+
+\subsection{Graph}
+\label{ssec:graph}
+
+The \emph{Graph} interface stands for a graph and allows to access and
+manipulate it as needed and allowed by the specific implementation.
+
+A \emph{Graph} manages \emph{GraphNodes} and \emph{GraphEdges} and their
+relations. Graph nodes and edges are added, removed or accessed through the
+\emph{Graph} interface. This means that any request for adding or removing a
+node or an edge requires and explicit request to \emph{Graph} interface.
+
+\emph{Graph} describes services applicable to any graph, such as traversing
+and searches. These services are not dependent of the types of nodes and
+edges in the graph. The services described here exclusively depend on the
+topological properties of the nodes and edges, and are type-independent. Any
+type-related service or bookkeeping activity should be implemented in
+separate operations, specific to a graph implementation (or family thereof).
+Creation of node and edge instances is also left as a responsibility for the
+concrete graph subclasses: the base interface defines only how to connect
+and register those instances.
+
+Basic opterations:
+
+\begin{description}
+
+\item[Constructor]%
+  The constructor creates an empty graph.
+
+\item[Destructor]%
+  The destructor deletes all nodes and edges in the graph.
+
+\item[edgeCount(node : GraphNode\&) : int]%
+  Return the number of edges connected to the given node regardless of
+  the edge type.
+
+\item[edgeCount(void) : int]%
+  Return the total number of edges in the graph.
+
+\item[edge(index : int, node : GraphNode\&) : GraphEdge\&]%
+  Return
+%
+  \note{CHECK--pending \ref{ch:pending:edge-navigation}}
+%
+  the edge connected to a node in the graph at the given index. Applies to
+  all edges, regardless of the type.
+
+\item[edge(index : int) : GraphEdge\&]%
+  Return
+%
+  \note{CHECK - computationally expensive?}
+%
+  The total the edge of the graph identified by given index.
+
+\item[nodeCount() : int]%
+  Return the total number of nodes in the graph.
+
+\item[node(index : int) : GraphNode\&]%
+  Returns the node of the graph at the given index. Applies to all nodes,
+  regardless of the type.
+
+\item[headNode(edge : GraphEdge\&) : GraphNode\&]%
+  Return the first node connected to \emph{edge}. If the edge is directed,
+  this should be interpreted as the ``head'' node.
+
+  Throw \emph{InstanceNotFound} if \emph{edge} does not belong to this
+  graph.
+
+\item[tailNode(edge : GraphEdge\&) : GraphNode\&]%
+  Returns the second node connected to \emph{edge}. If the edge is directed,
+  this should be interpreted as the ``tail'' node.
+
+  Throw \emph{InstanceNotFound} if \emph{edge} does not belong to this
+  graph.
+
+\item[removeNode(node : GraphNode\&) : void]%
+  Delete all edges connected to the given node and then remove it from the
+  graph. After this call, the node is not part of the graph.
+
+\item[removeEdge(edge : GraphEdge\&) : void]%
+  Disconnect the tail and head nodes of the given edge and remove it from
+  the graph. After this call, the edge is not part of the graph.
+
+\item[disconnectNodes(node1 : GraphNode\&, node2 : GraphNode\&) : void]%
+  Disconnect two nodes. Remove from the graph and delete all edges between
+  them.
+
+\end{description}
+
+The following operations could be public (if construction of independent
+nodes and edges is permitted to any client) or protected (if nodes and edges
+are, by construction, part of a graph).
+
+\begin{description}
+
+\item[addNode(node : GraphNode\&) : void]%
+  Add the given node to the graph. After this call, the node is part of the
+  graph.
+
+\item[connectNodes(node1 : GraphNode\&, node2 : GraphNode\&, edge:
+  GraphEdge\&) : void]%
+  Connect two nodes with the given edge. After this call, the edge is part
+  of the graph.
+
+\end{description}
+
+*** TO DO ***
+
+This is implementation issues
+
+\begin{verbatim}
+template<GraphNode, GraphEdge>
+class GraphBase {
+    // common graph interface
+};
+\end{verbatim}
+
+Typical use for a complete reimplementation of the graph interface:
+
+\begin{verbatim}
+class MyGraph : public GraphBase<MyNode, MyEdge> {
+    // only needed methods of interface implemented
+    // new specialised methods if necessary
+};
+\end{verbatim}
+
+Note:
+\begin{enumerate}
+\item %
+  Probably no client will ever use directly the (awkward?) base class
+  interface \verb|GraphBase<ConcreteNode,ConcreteEdge>| because it is
+  obscure, unnecessary (too generic: if a client needs to work at that
+  level, then it is probably a toolkit component and could be integrated in
+  graph class implementation?).
+\item %
+  Since the class is a template, the base interface does not force the
+  concrete graphs to implement every method.
+\end{enumerate}
+
+It is questionable if there is any need for a base templated class.
+
+
+Another typical use of the graph framework is to derive the specialised
+graph class from a concrete but templated implementation of the base graph
+interface. For example, the toolset defines a templated implementation based
+on the boost graph library (BGL), \emph{BoostGraph}. To use it, a class must
+simply inherit and instantiate that template:
+
+\begin{verbatim}
+class MyGraph : public BoostGraph<MyNode, MyEdge> {
+    // only new specialised methods (if necessary)
+};
+\end{verbatim}
+
+\emph{BoostGraph} itself is a complete implementation of the graph
+interface:
+
+\begin{verbatim}
+template<GraphNode,GraphEdge>
+class BoostGraph : public GraphBase<GraphNode,GraphEdge> {
+    // all methods of interface implemented
+    // no specialised public methods
+};
+\end{verbatim}
+
+
+\subsection{DiGraph}
+\label{ssec:di_graph}
+
+A \emph{DiGraph} instance represents a directed graph. The edges in an
+undirected graph are instances of the \emph{DirectedGraphEdge} class.
+
+\begin{description}
+
+\item[DiGraph()]
+	The constructor creates an empty graph.
+
+\item[$\sim$DiGraph()]
+	The destructor deletes all nodes and edges in the graph.
+
+\item[incomingEdgeCount(node : GraphNode\&) : int]
+	Returns the number of incoming edges connected to the given node.
+
+\item[incomingEdge(index : int, node : GraphNode\&) : DirectedGraphEdge\&]
+	Returns the incoming edge connected to a node in the given index.
+
+\item[outgoingEdgeCount(node : GraphNode\&) : int]
+	Returns the number of outgoing edges connected to the given node.
+
+\item[outgoingEdge(index : int, node : GraphNode\&) : DirectedGraphEdge\&]
+	Returns the outgoing edge connected to a node in the given index.
+
+\end{description}
+
+\subsection{MixedGraph}
+\label{ssec:mixed_graph}
+
+A \emph{MixedGraph} instance is a graph that may contain both directed
+and undirected edges.
+
+\begin{description}
+
+\item[MixedGraph()]
+	The constructor creates an empty graph.
+
+\item[$\sim$MixedGraph()]
+	The destructor deletes all nodes and edges in the graph.
+
+\item[incomingEdgeCount(node : GraphNode\&) : int]
+	Returns the number of incoming edges connected to the given node.
+
+\item[incomingEdge(index : int, node : GraphNode\&) : DirectedGraphEdge\&]
+	Returns the incoming edge connected to a node in the given index.
+
+\item[outgoingEdgeCount(node : GraphNode\&) : int]
+	Returns the number of outgoing edges connected to the given node.
+
+\item[outgoingEdge(index : int, node : GraphNode\&) : DirectedGraphEdge\&]
+	Returns the outgoing edge connected to a node in the given index.
+
+\item[undirectedEdgeCount(node : GraphNode\&) : int]
+	Returns the number of undirected edges connected to a node in the
+	given index. If no node parameter is given, the index refers to the
+	graph itself.
+
+\item[undirectedEdge(index : int, node : GraphNode\&) : UndirectedGraphEdge\&]
+	Returns the undirected edge connected to a node in the given index.
+
+\end{description}
+
+\subsection{GraphNode}
+\label{ssec:graph_node}
+
+A \emph{GraphNode} instance represents a single node in a graph. It is
+not responsible of, nor knows the edges connected to it. The
+\emph{GraphNode} class is an abstract base class for concrete node types.
+
+Note that concrete instances of \emph{GraphNode} subclasses should not
+be created outside of the \emph{Graph}. The interface of the
+appropriate \emph{Graph} subclass offers the required methods for
+creation of node objects for that graph type.
+
+\begin{description}
+
+\item[GraphNode()]
+	The constructor creates a node with no data or connections.
+
+\item[$\sim$GraphNode()]
+	The destructor.
+
+\end{description}
+
+\subsection{GraphEdge}
+\label{ssec:graph_edge}
+
+An abstract base class representing a single edge in a graph. It is
+always associated with two \emph{GraphNode} objects.
+
+Note that concrete instances of \emph{GraphEdge} subclasses should not
+be created independent of a \emph{Graph} instance. The interface of
+the appropriate \emph{Graph} subclass offers the required methods for
+creation of edge objects for that graph type.
+
+\begin{description}
+
+\item[GraphEdge(head : GraphNode\&, tail : GraphNode\&)]
+	The constructor creates an edge and connects it to two nodes
+	in the graph.
+
+\item[$\sim$GraphEdge()]
+	The destructor.
+\end{description}
+
+\subsection{DirectedGraphEdge}
+\label{ssec:digraph_edge}
+
+Represents a directed edge between two nodes.
+
+\subsection{UndirectedGraphEdge}
+\label{ssec:unigraph_edge}
+
+Represents an undirected edge between two nodes.
+
+\section{Error Handling}
+
+% How are errors handled? What is considered internal and what is considered
+% external source of errors? What is handled by throwing exceptions and what
+% by assertions? What are the 
+
+Certain graph operations may result in error conditions.
+%
+All errors due to topological properties of the graph (for example,
+requesting the outgoing edges of an independent node to a graph) should be
+signalled by a consistent and restricted set of exceptions.
+
+The following exceptions from the TCE toolkit are suggested:
+\begin{enumerate}
+\item \emph{InstanceNotFound}:%
+  whenever the operation requested to a graph involves a component that is
+  supposed to be in a graph is in fact not present (independent or in
+  another graph).
+
+  Example: \emph{Graph::tailNode(edge)} on an edge that does not belong to
+  the graph.
+
+\item \emph{ObjectAlreadExists}:%
+  whenever the operation requested tries to add a component that is already
+  part of the graph.
+
+  Example: \emph{Graph::addNode(node)} on a node that already belongs to the
+  graph. Notice that this situation is impossible by design if nodes are
+  added automatically by their constructors.
+\end{enumerate}
+
+
+
+\chapter{REJECTED ALTERNATIVES}
+
+\begin{description}
+\item[24.01.2006] --- A graph software framework proper.
+
+  A framework proper, that is, an actual base abstract class and a set of
+  services and base classes to be implemented by all instances of concrete
+  graphs in the toolset, has been rejected in favour of a nonbinding set of
+  interface guidelines.
+
+  Motivations:
+  \begin{enumerate}
+  \item %
+    Most of the generally useful operations (topological sorts, dominance
+    computation) cannot be implemented (with reasonable efficency) in the
+    base classes without assuming an underlying implementation (for example,
+    the Boost graph library. An implementation, however, can be tuned for
+    and is affected by the type of graph (mutable or constant, undirected,
+    directed, with or without parallel edges).
+  \item %
+    Most of the generally useful operations may be needed only by a
+    restricted subset of the specialised graphs. All the work of defining
+    base interfaces might actually be restrictive and annoying extra methods
+    for most implementations, which just have to disable them in order to
+    keep their interface lean.
+  \end{enumerate}
+
+\item[27.01.2006] --- Interface for graph nodes and graph edges.
+
+  Methods to walk inside the graph are defined in the base interface of
+  nodes and edges. For example, edge's \emph{target} would return the target
+  node, and node's \emph{outEdges} would return the outgoing edges connected
+  to the node. This brings about several problems.
+
+  It is not possible for the node and edge subclasses of a concrete graph to
+  implement these methods independently. To access the non-public parts of
+  the graph, the subclasses must be declared friends (it it not enough that
+  their base node and edge classes are). This is problematic, since
+  subclassing of node, edge and graph types is open-ended.
+
+  So, the methods in node and edges must be implemented generically in the
+  base (templated) graph class. For this to work, either the methods in
+  graph base class are public or the node and edge base classes must be
+  declared \emph{friend}.
+
+  In the former case, the node and edge methods are mere shortcuts to the
+  equivalent graph methods, resulting in redundancy. In the latter case,
+  only the base node and edge classes have access to the graph non-public
+  parts (\emph{friend}-ness is not inherited).
+
+  Another drawback of this solution is that every node and edge object must
+  hold a backpointer to the owning graph, and that every node and edge type
+  must be derived from the base classes, thus making the graph framework
+  less generic.
+
+  Even the mere empty interfaces for nodes and edges might be problematic:
+  any method that returns a (reference to a) node or edge must necessarily
+  return the base classes. However, concrete graph subclasses will contain
+  specialised nodes and edges. Their clients will probably have to access
+  the specialised API of these nodes and edges most of the time. So, every
+  graph class should define wrappers that dynamically cast the returned
+  nodes and edges to the concrete subclasses. However, this is not possible
+  due to C++ binding rules, which ignore the return type. As a result, using
+  base node and edge nodes would require ubiquitous \verb|dynamic_cast| in
+  client code or a further wrapper graph class, thus making the graph
+  subclass not readily and fully usable.
+
+\end{description}
+
+
+%\chapter{IDEAS FOR FURTHER DEVELOPMENT}
+
+% Ideas that are not part of the design yet but that might be added in the
+% future are listed here. This is to have ideas written down somewhere.
+% This list should contain the date of addition, the idea described briefly
+% and the inventor of the idea.
+
+% Example:
+%
+% 18.11.2003 . . . -P.J‰‰skel‰inen
+
+
+
+\chapter{PENDING ISSUES}
+
+\section{Navigation of Edges}
+\label{ch:pending:edge-navigation}
+
+The currently suggested interface for navigating though edges (outgoing,
+incoming) of a node, or parallel edges connecting a node, is potentially
+extremely inefficient, because it requires to redo, internally, the same
+search at each request.
+
+A more efficient alternative would be a system based on edge iterators.
+However, this must be carefully designed to prevent ``leaks'' of
+implementation details (for example, boost templated types) into general,
+public interfaces.
+
+
+%\chapter{MAINTENANCE}
+
+% This chapter treats the problem of extending the design with new
+% capabilities that fit in a predefined framework.
+
+% For example, in case of the TPEF module, this chapter could describe the
+% steps that must be taken in order to add a new Section subclass and/or a
+% SectionReader subclass.
+
+% Remove this chapter no obvious and standardised way to extend the design
+% with new capabilities exists.
+
+
+% ------------------------------------------------------------------------
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% mode: auto-fill
+%%% TeX-master: t
+%%% End: 

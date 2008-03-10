@@ -1,0 +1,20 @@
+/**
+ * @file EditPartFactory.icc
+ *
+ * Inline implementation of EditPartFactory class.
+ *
+ * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 13 2004 by vpj, ll, jn, am
+ */
+
+/**
+ * Registers a new factory to which the Factory can delegate creation
+ * of EditParts it cannot create itself.
+ *
+ * @param factory New Factory to be registered.
+ */
+inline void
+EditPartFactory::registerFactory(Factory* factory) {
+    factories_.push_back(factory);
+}

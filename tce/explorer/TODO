@@ -1,0 +1,51 @@
+- CycleOptimizer:
+  - should be split to explorer plugins, now a single applibs class
+    with multiple useful methods
+  - create explorer plugins:
+    - [DONE] GrowMachine 
+      = optimizes cycle count by adding resources
+    - MinimizeMachine (minimizeBusFURF)
+      = removes resources until the real time requirements of apps are 
+        not reached anymore.
+    - [DONE] Pass frequency to the new MinimizeMachine and minimize fu/rf 
+      according to all programs max cycle times.
+  - Check that all CycleOptimizers functionality is implemented in plugins
+    and remove the module.
+
+- initial machine generator:
+    - should be able to use a config as a starting point. initial adf as default.
+    - expects default minimal op set that must be found from machine.
+    - no sequential program, no automatic selection of ops.
+    - adds fus, rfs, busses and so on only.
+
+- new plugin for op addition to given configuration.
+    - paramaters for (custom) ops addition to the machine.
+
+- new plugin for to handle immediate templates.
+    - Minimize busses should consider immediate templates, remove and create
+      new.
+
+- DesingSpaceExplorer:
+    - timeout/max cycle count for simulate.
+    - watchdog thread (boost), or timer to simulator.
+
+- selectComponents:
+  - isn't this a generic exploration method that should be moved to 
+  the base class or to ComponentImplementationSelector
+
+- tcecc support:
+  - should be able to read program.bc instead of sequential_program 
+  - call tcecc instead of scheduler to compile 
+  - no sequential simulation: initial machine generator simply uses
+    initial.adf     
+
+- testing:
+  - (FrequencySweepExplorer) create a (long) systemtest with at least 3 
+    applications with realistic realtime requirements, explore and verify the
+    result
+  - simple FrequencySweepExplorer long system test
+    /home/wor/work/svnroot/trunk/tce/systemtest/bintools/Scheduler/tests/FFT/r4fftditinplace_no_custom_op
+  - tests for plugings that use more than one application.
+
+- Update the documentation for the plugins.
+  - state clearly what is needed in application dir for specific plugin.

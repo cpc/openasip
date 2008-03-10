@@ -1,0 +1,21 @@
+This file lists solutions to common troubles people have with 
+compilation and installation of TCE.
+
+configure does not find wxWidgets library
+-----------------------------------------
+
+If you are sure that you have all wxWidgets headers and libraries installed
+(you can verify this by using wx-config), and configure is still unable to
+find it, the problem might be caused by gcc 4.0 and strict compiler flags.
+
+For example, when one has defined 'CXXFLAGS=-ansi -Wall -pedantic', the
+configure test that test compiles a small wxWidgets test program fails
+because of errors found in wxWidgets headers. A workaround to this is to
+add '-Wno-long-long' to the CXXFLAGS. This makes the compiler skip errors
+reported of usage of 'long long', which causes the compilation to fail.
+
+Manuals and specification documents are not built
+-------------------------------------------------
+
+Make sure you have installed the transfig package and latex2html.
+

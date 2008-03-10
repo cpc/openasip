@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<adf version="1.2">
+
+<bus name="B1">
+    <width>32</width>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to>seg3</writes-to>
+    </segment>
+    <segment name="seg3">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<bus name="B2">
+    <width>32</width>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to>seg3</writes-to>
+    </segment>
+    <segment name="seg3">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<bus name="B3">
+    <width>32</width>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to>seg3</writes-to>
+    </segment>
+    <segment name="seg3">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<bus name="B4">
+    <width>32</width>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to>seg3</writes-to>
+    </segment>
+    <segment name="seg3">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<bridge name="Br1">
+    <reads-from>B1</reads-from>
+    <writes-to>B2</writes-to>
+</bridge>
+
+<bridge name="Br2">
+    <reads-from>B2</reads-from>
+    <writes-to>B3</writes-to>
+</bridge>
+
+<bridge name="Br3">
+    <reads-from>B3</reads-from>
+    <writes-to>B4</writes-to>
+</bridge>
+
+<bridge name="Br4">
+    <reads-from>B4</reads-from>
+    <writes-to>B3</writes-to>
+</bridge>
+
+</adf>

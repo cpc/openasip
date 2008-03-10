@@ -1,0 +1,28 @@
+from binding_generator import *
+
+prefix = "../../src/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph/"
+
+
+bg = binding_generator_t(
+    module_name = "ProgramDependenceGraph",
+    call_policies = (('MoveNode',
+                      [('copy', return_value_policy(manage_new_object)),
+                       ('destinationOperation', return_internal_reference()),
+                       ('move', return_internal_reference()),
+                       ('scope', return_internal_reference()),
+                       ('sourceOperation', return_internal_reference())]),
+                     ('ProgramOperation',
+                      [('inputMove', return_internal_reference()),
+                       ('inputNode', return_internal_reference()),
+                       ('opcodeSettingNode', return_internal_reference()),
+                       ('operation', return_internal_reference()),
+                       ('outputMove', return_internal_reference()),
+                       ('outputNode', return_internal_reference()),
+                       ('triggeringMove', return_internal_reference())])),
+    headers = [prefix + "MoveNode.hh",
+               #"ProgramGraph.hh", # No real functionality here yet.
+               prefix + "ProgramOperation.hh"
+               ],
+    )
+
+bg.run()

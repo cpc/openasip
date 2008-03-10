@@ -1,0 +1,23 @@
+/**
+ * @file OperationBehavior.icc
+ *
+ * Inline definitions of OperationBehavior class.
+ *
+ * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen@tut.fi)
+ * @note rating: red
+ * @note reviewed 19 August 2004 by pj, jn, ao, ac
+ */
+
+///////////////////////////////////////////////////////////////////////////////
+// NullOperationBehavior
+///////////////////////////////////////////////////////////////////////////////
+
+/** 
+ * Returns an instance of NullOperationBehavior class (singleton).
+ *
+ * @return Singleton instance of NullOperationBehavior class.
+ */
+inline NullOperationBehavior&
+NullOperationBehavior::instance() {
+    return instance_;
+}

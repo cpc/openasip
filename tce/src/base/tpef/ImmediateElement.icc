@@ -1,0 +1,199 @@
+/**
+ * @file ImmediateElement.icc
+ *
+ * Inline definitions of ImmediateElement class.
+ *
+ * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
+ * @author Mikael Lepistö 18.12.2003 (tmlepist@cs.tut.fi)
+ * @note reviewed 21 October 2003 by rl, ml, jn, pj
+ *
+ * @note rating: yellow
+ */
+
+#include "Conversion.hh"
+
+namespace TPEF {
+
+/**
+ * Returns true if immediate is inline encoded.
+ *
+ * @return True immediate is inline encoded.
+ */
+inline bool
+ImmediateElement::isInline() const {
+    return (destinationUnit_ == 0);
+}
+
+/**
+ * Adds byte to the immediate.
+ *
+ * @param aByte Byte stored to immediate.
+ */
+inline void
+ImmediateElement::addByte(Byte aByte) {
+    value_.push_back(aByte);
+}
+
+/**
+ * Sets value of one byte of element.
+ *
+ * @param index Index of byte to set.
+ * @param aValue Value to set.
+ * @exception OutOfRange Thrown if index is too big.
+ */
+inline void
+ImmediateElement::setByte(unsigned int index, Byte aValue)
+    throw (OutOfRange) {
+
+    if (index >= length()) {
+        throw OutOfRange(__FILE__, __LINE__, "ImmediateElement::setByte()");
+    }
+    value_[index] = aValue;
+}
+
+/**
+ * Returns value of one byte in immediate.
+ *
+ * @param index Index of byte to get.
+ * @return Value of immediate.
+ * @exception OutOfRange If index is out of bounds.
+ */
+inline Byte
+ImmediateElement::byte(unsigned int index) const
+    throw (OutOfRange) {
+
+    if (index >= length()) {
+        throw OutOfRange(__FILE__, __LINE__, "ImmediateElement::byte()");
+    }
+    return value_[index];
+}
+
+/**
+ * Sets value of one word to immediate element.
+ *
+ * Clears old value and writes a word to element.
+ *
+ * If immediate is longer that written value, more significant bytes
+ * will be zeroed. See setWord(index, aValue) if you want to set
+ * word to any position of immediate without modifying other bytes
+ * stored inside.
+ *
+ * @param aValue Value to set.
+ */
+inline void
+ImmediateElement::setWord(Word aValue) {
+
+    // remove old value
+    value_.clear();
+
+    // check how many bytes are needed
+    Word tempValue = aValue;
+
+    for (unsigned int i = 0; i < sizeof(aValue); i++) {
+        if (tempValue > 0) {
+            addByte(0);
+        }
+        tempValue = tempValue >> BYTE_BITWIDTH;
+    }
+
+    for (unsigned int i = 1; i <= length(); i++) {
+        setByte(length() - i, static_cast<Byte>(aValue));
+        aValue = aValue >> BYTE_BITWIDTH;
+    }
+}
+
+/**
+ * Returns value of element as a word.
+ *
+ * If you want to get word from given index of immediate see
+ * word(index). Empty immediates are read as zero value.
+ *
+ * @return Value of immediate.
+ * @exception OutOfRange Value is too big to return as a word.
+ */
+inline Word
+ImmediateElement::word() const
+    throw (OutOfRange) {
+
+    Word retValue = 0;
+
+    // convert bytes to word
+    for (unsigned int i = 0; i < length(); i++) {
+        retValue =
+            ((retValue << BYTE_BITWIDTH) |
+             static_cast<Byte>(value_[i]));
+
+        if (retValue != 0 &&
+            length() - i > sizeof(retValue)) {
+
+            throw OutOfRange(
+                __FILE__, __LINE__, "ImmediateElement::word()",
+                "Value to return is longer than value to return.");
+        }
+    }
+
+    return retValue;
+}
+
+/**
+ * Returns the number of bytes taken by the immediate value.
+ *
+ * @return Length of immediate in bytes.
+ */
+inline unsigned int
+ImmediateElement::length() const {
+    return value_.size();
+}
+
+/**
+ * Returns destination unit.
+ *
+ * Unit 0x00 means that immediate is inline encoded. For inline immediates
+ * index is unique identifier and source field of move element should match
+ * to that. So destinationIndex and destinationUnit should be same that
+ * are in move element, which uses ImmediateElement.
+ *
+ * @return Destination unit.
+ */
+inline Byte
+ImmediateElement::destinationUnit() const {
+    return destinationUnit_;
+}
+
+/**
+ * Sets destination unit.
+ *
+ * See destinationUnit().
+ *
+ * @param aDestinationUnit Destination identifier.
+ */
+inline void
+ImmediateElement::setDestinationUnit(Byte aDestinationUnit) {
+    destinationUnit_ = aDestinationUnit;
+}
+
+/**
+ * Returns destination index.
+ *
+ * See destinationUnit().
+ *
+ * @return Destination index.
+ */
+inline Byte
+ImmediateElement::destinationIndex() const {
+    return destinationIndex_;
+}
+
+/**
+ * Sets destination index.
+ *
+ * See destinationUnit().
+ *
+ * @param aDestinationIndex Destination index.
+ */
+inline void
+ImmediateElement::setDestinationIndex(Byte aDestinationIndex) {
+    destinationIndex_ = aDestinationIndex;
+}
+
+}

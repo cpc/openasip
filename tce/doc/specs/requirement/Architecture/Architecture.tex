@@ -1,0 +1,1066 @@
+\documentclass[twoside]{tce}
+
+\usepackage{pslatex}
+
+\begin{document}
+\author{Andrea Cilio}
+\title{TCE Architecture Template Programming Interface}
+\ver{0.14.1}
+\firstday{07.01.2004}
+\lastday{26.10.2006}
+% id number in S- sequence
+\docnum{010}
+% draft/complete/committed
+\state{draft}
+\maketitle
+
+% highlighted style for parameters/variables or otherwise non-fixed parts
+% of a command syntax or of lines of text displayed by the application
+\newcommand{\parm}[1]{\textsl{#1\/}}
+
+\chapter*{Version History}
+
+\begin{HistoryTable}
+
+ 0.1    & 11.06.2004 & A. Cilio   &
+ Introduction, 1. First fragments, 2, 3.\\
+ 0.1.1  & 21.10.2004 & L. Laasonen &
+ Changed name of MDF to ADF. \\
+ 0.2    & 10.01.2005 & A. Cilio   &
+ Extended syntax  of source and destinations of moves.\\
+ 0.3    & 23.03.2005 & A. Cilio &
+ Added assembly language syntax, first draft.\\
+ 0.4    & 24.03.2005 & A. Cilio &
+ Completed specification of assembly language syntax.\\
+ 0.5    & 04.04.2005 & A. Cilio &
+ Revised syntax of bridge terms and data initialisation. Added
+ disambiguation rules.\\
+ 0.6    & 11.04.2005 & A. Cilio &
+ Added code conventions.\\
+ 0.7    & 03.08.2005 & A. Cilio &
+ Added assembly directives. Made grammar free-form.\\
+ 0.8    & 17.10.2005 & A. Cilio &
+ Updated grammar to actual implementation, restyle.\\
+ 0.9    & 25.10.2005 & A. Cilio &
+ Interim revision. Review by M.~Lepist� grammar.\\
+ 0.10   & 28.10.2005 & A. Cilio &
+ Major revision. Completed changes to grammar. Many corrections.\\
+ 0.11   & 28.10.2005 & A. Cilio &
+ Assembler syntax independent of whitespace.\\
+ 0.11.1 & 26.01.2006 & A. Cilio &
+ Made issues on assembly syntax clearer.\\
+ 0.12   & 14.03.2006 & M. Lepist\"o &
+ Moved section about GPR and IU naming from pendig issues to \
+ disambiguation rules. Fixed long immediate syntax.\\
+ 0.13   & 30.05.2006 & P. J\"a\"askel\"anen &
+ Revised the Universal Machine chapter. \\
+ 0.14   & 01.06.2006 & M. Lepist\"o &
+ Added information about address spaces of universal machine. \\
+ 0.14.1   & 26.10.2006 & H. Kultala &
+ Corrected information SP and RV register indeces \\
+ 0.14.2   & 08.12.2006 & P. J\"a\"askel\"anen &
+ The load/store operations are now bound to MAU multiples. Do not mention
+ 'word' as its meaning is ambiguous. \\
+
+\end{HistoryTable}
+
+% Table of contents
+\tableofcontents
+
+% Document text
+\chapter{INTRODUCTION}
+
+\section{Purpose}
+
+This document describes the programming interface of the TTA processor
+architecture template used by TCE.  These specifications do not include
+anything that is already specified by the ADF specification
+document~\cite{ADF-specs}.
+
+Architecture programming interface specifications consist of architectural
+conventions concerning the layout of call stack, registers, the format of
+disassembled instructions and so on.  This document provides a reference for
+any application of the TCE toolset that depends on such conventions.
+
+A special group of conventions applies to the restrictions of (completely)
+unscheduled TTA code.
+
+All TCE toolset applications should comply with the conventions described in
+this document.  When a certain specification is not a strict prescription
+but rather a suggestion, this is clearly noted.
+
+\section{Product Idea}
+
+The TTA processor architecture template is \emph{the} fundamental entity of
+TCE.  The template specifications given in~\cite{ADF-specs} define
+components and parameters of the template.  This, however, is not sufficient
+to define a usable architecture.  In addition to its structure, an
+architecture is also characterised by a number of \emph{conventions}
+concerning the use of the hardware resources.
+
+\section{Acronyms and Abbreviations}
+
+\begin{center}
+\begin{longtable}{p{0.10\textwidth}p{0.85\textwidth}}
+ABI   & Application Binary Interface.\\
+FU    & Function Unit.\\
+GCU   & Global Control Unit.\\
+IU    & Immediate Unit.\\
+MAU   & Minimum Addressable Unit.\\
+NW    & Natural Word.\\
+TCE   & TTA Codesign Environment. \\
+TTA   & Transport Triggered Architectures. \\
+SPR   & Stack Pointer Register. \\
+PC    & Program Counter. \\
+PSR   & Processor Status Register. \\
+RF    & Register File.\\
+UFU   & Universal Function Unit.\\
+UM    & Universal Machine.\\
+\end{longtable}
+\end{center}
+
+
+\chapter{PRODUCT OVERVIEW}
+
+\section{Perspective}
+
+The specifications found in this document are restricted to the TCE toolset.
+Despite the fact that it defines a vast space of processor architectures,
+the architectural template is nowhere near covering all the possible
+processor architectures that can be defined with the principle of transport
+triggering.
+
+A near perfect subset of the architecture space defined by the TCE
+architecture template and a base for its development is the Move-TTA
+architecture template.
+
+The specifications contained in this document affect practically all TCE
+applications.  In particular, the architecture conventions define the
+program-processor interface and restrict the type of acceptable TTA
+programs.
+
+\section{Assumptions and Dependencies}
+
+The specifications found in this document apply to the TCE processor
+architecture template defined in ADF Specification Document~\cite{ADF-specs}
+and depend on it.
+
+\chapter{APPLICATION BINARY INTERFACE}
+
+\section{Stack Frame Layout}
+\label{sec:stack-layout}
+
+\begin{figure}[t]
+  \centerline{
+  \psfig{figure=eps/StackFrames.eps,width=9.75cm}
+  }
+  \caption{Stack Layout.}
+  \label{fig:stack-frame}
+\end{figure}
+
+The stack of a program is divided up into blocks of contiguous memory called
+\emph{frames}. Each frame is activated upon entering a function and is
+destroyed (its storage is made available for new frames) when that function
+invocation returns. The stack frame of a function contains the arguments
+with which the function is called and variables local to the procedure.
+
+The stack pointer register (SPR) always points to the the first word past
+the area of the current frame that is dedicated to local variables.  The
+area of the stack past the local variables area contains the outgoing
+arguments of called functions (if any).  The stack of TTA's supported by TCE
+grows downwards, therefore the incoming arguments and the local variables on
+the local stack frame have positive offsets when accessed from the current
+function, whereas the outgoing arguments have negative stack offsets.
+
+Figure~\ref{fig:stack-frame} depicts the memory layout of part of a TTA
+stack that contains two frames: A and B.  When function A frame is
+activated, SPR points to the first word past the top of the local variable
+area of the caller frame (this location is shown as ``SPR'' in figure).  At
+function entry and before accessing the stack, function A initialises SPR
+with the top of its frame (shown as ``SPR-A'' in figure).  When function A
+prepares a call to function B, it sets up the outgoing arguments in the
+stack area past its local variable area.  At function entry, function B
+initialises SPR with the first word past the top of its local variable area
+(shown as ``SPR-B'' in figure).  In case function B does not use any stack
+for passing outgoing arguments, the location SPR-B corresponds to one word
+past the top of the frame.
+
+[[to do]] the local variable area may contain: addressed local variables,
+local data structures that cannot be allocated in registers, values of
+registers that are spilled to memory.
+
+\section{Universal Machine: a Target for Unscheduled TTA Code}
+\label{sec:umachine}
+
+The unscheduled TTA code generated by front-end compilers can be considered
+as valid code for a particular target TTA, called \emph{Universal Machine}.
+The Universal Machine (UM) consists of components (hardware resources) much
+like real target TTA's.  However, the meaning of an assignment to these
+components is peculiar.  In certain contexts (for example, during
+instruction scheduling), an element of a the TTA (data transport, source,
+destination, etc.) assigned to a component of UM may be considered as not
+assigned at all.  In this case, it is possible to ignore violations of what
+usually are hardware constraints.
+
+\subsection{Structure of Universal Machine}
+
+\begin{table}[tb]
+\begin{tabular}{|l|l|c|}
+  \hline
+  operation type & mnemonic  & optional\\
+  \hline
+  integer add and subtract    &
+    \texttt{add}, \texttt{sub} & no \\
+  load/store 4 minimum addressable units (MAU) at once & 
+    \texttt{ldw}, \texttt{stw} & no \\
+  integer compare             &
+    \texttt{eq}, \texttt{gt}, \texttt{gtu} & no \\
+  shift                       &
+    \texttt{shl}, \texttt{shr}, \texttt{shru} & no \\
+  logical                     &
+    \texttt{and}, \texttt{ior}, \texttt{xor} & no \\
+  absolute jump       &
+    \texttt{jump} & no \\
+  logical negation            &
+    \texttt{not}  & yes \\
+  arithmetic negation         &
+    \texttt{neg} & yes \\
+  procedure call &
+    \texttt{call} & yes \\
+  integer multiply and divide &
+    \texttt{mul}, \texttt{div}, \texttt{divu}, \texttt{mod},
+    \texttt{modu} & yes \\
+  load/store 1 (q)/2 (h)/8 (d) minimum addressable units at once
+     &
+    \texttt{ldq}, \texttt{ldqu}, \texttt{ldh}, \texttt{ldhu}, \texttt{stq},
+    \texttt{sth}, \texttt{ldd}, \texttt{std} & yes \\
+  sign-extend                 &
+    \texttt{sxbw}, \texttt{sxhw} & yes \\
+  floating-point arithmetic   &
+    \texttt{addf}, \texttt{subf}, \texttt{negf}, \texttt{mulf},
+    \texttt{divf}  & yes \\
+  floating-point compare      &
+    \texttt{eqf}, \texttt{gtf} & yes \\
+  type conversion             &
+    \texttt{cfi}, \texttt{cif}, \texttt{cfd}, \texttt{cdf} & yes \\
+  minimum and maximum         &
+    \texttt{min}, \texttt{max}, \texttt{minu}, \texttt{maxu} & yes \\
+  bit rotation                &
+    \texttt{ror}, \texttt{rol} & yes \\
+  \hline
+\end{tabular}
+\caption{The operation repertoire of the Universal Machine (The Base
+Operation Set).}
+\label{tab:op-repertoire}
+\end{table}
+
+The UM consists of the following components:
+\begin{enumerate}
+\item %
+  One transport bus.  The bus is wide enough to carry any data transport
+  that can occur in a program. Currently, the maximum width is the one
+  of a double precision floating point value, that is, 64 bits.
+\item %
+  One function unit, the Universal Function Unit (UFU).
+  This unit implements any operation that occurs in a program, all with
+  latency one cycle.  The results of any operation is available one cycle
+  after the last of its operands has been moved to UFU.  The predefined
+  operation set supported by UFU is a subset of the operations listed in
+  Table~\ref{tab:op-repertoire}.  In addition to this set, UFU can support
+  any user-defined operation. The operand width of any user-defined
+  operation is defined to be 64-bit (a double-precision float) so the
+  operation is able to implement floating point operations. The operand
+  width of base-operations except for the floating point operations is
+  32-bits. All floating point operations in universal machine are assumed
+  to be double-precision floats (64-bits).
+\item %
+  One control unit, that implements the supported control flow operations,
+  currently 'CALL' and 'JUMP'.
+\item %
+  One unbounded integer register file (IRF) for integer GPR's.
+\item %
+  One unbounded floating-point register file (FRF) for floating-point GPR's.
+\item %
+  A Boolean register file (BRF) of size and width of 1 for the Boolean
+  register used in guard expressions of sequential code.
+\item %
+  No immediate units. All immediates are defined as inline immediates
+  (see the next item).
+\item %
+  The source field of the move slot is wide enough to carry the widest
+  immediate that can occur (see Section~\ref{ssec:data-types} for details on
+  the data sizes of UM components).
+\item %
+  The transport bus supports a simple guard expression consisting of
+  invert/noninvert flag and a term that can be either the only register of
+  the Boolean register file or the constant zero.  The constant zero is
+  necessary to generate unconditional (move always) data transports.
+\item %
+  The number of UFU ports, their bit width and their binding to operation
+  input/outputs is not hard-coded.  It depends on the subset of the operation
+  repertoire that appears in the program and the implementation of the
+  client applications that build UM.\footnote{
+%
+    In practice, the UFU ports have no significance, since there is no
+    possibility of ``resource'' conflict.  Client applications must refer to
+    operation inputs and outputs instead.}
+\end{enumerate}
+
+\subsection{Data Types}
+\label{ssec:data-types}
+
+The UM supports a restricted set of word sizes:
+\begin{enumerate}
+\item Integer: 32 bits.
+\item Floating-point: 64 bits (IEEE-754 format, double precision).
+\item Boolean: 1 bit.
+\end{enumerate}
+
+The natural word width (NW) is 32 bits.  Consequently, the sizes of the
+words handled by load and store operations are:
+\begin{enumerate}
+\item For quarter-NW operations \emph{ldq}, \emph{ldqu}, \emph{stq}: 8 bits.
+\item For half-NW operations \emph{ldh}, \emph{ldhu}, \emph{sth}: 16 bits.
+\item For natural word operations \emph{ldw}, \emph{stw}: 32 bits.
+\item For double word operations \emph{ldd}, \emph{std}: 64 bits.
+\end{enumerate}
+
+The size of pointer is equal to the size of integer words, 32 bits.
+
+\section{Unscheduled TTA Code Conventions}
+\label{sec:um-conventions}
+
+The unscheduled code generated by TCE front-end compilers is expected to
+satisfy a number of constraints.  These constraints are meant to make
+analysis and transformation of sequential code easier.
+
+\subsection{No Software Bypasses}
+
+Any move that has a FU input as destination must have an (inline) immediate,
+the return address register (RA) or a GPR as source. Any move that has a FU
+output as source must have a GPR as destination.
+
+\subsection{Restrictions to Instruction Addressing}
+
+Control transfer moves (jumps and calls) can only have two types of source:
+\begin{enumerate}
+\item %
+  Constant, absolute addresses (which are inline immediates).
+\item %
+  Indirect address (a GPR).
+\end{enumerate}
+
+PC relative, page relative or other types of instruction addressing mode are
+not currently supported.
+
+\subsection{Restrictions to Guarding}
+
+Only jump moves (not calls!) can be guarded.
+
+\subsection{Predefined Calling Conventions}
+\label{ssec:sequential-calling}
+
+The calling conventions described in Section~\ref{ssec:calling-conventions}
+apply exactly to unscheduled code.  However, the register aliases reserved
+for passing parameters across function calls are fixed.  Assuming that the
+integer and the floating-point unbounded register files are called,
+respectively `R' and `F', the assignments are as follows:
+\begin{center}
+\begin{tabular}{|p{0.35\textwidth}@{\hspace{\fill}}|p{0.35\textwidth}|}
+\hline
+  aliases               & assigned registers \\
+\hline
+  \texttt{ires0}                     & \texttt{R0} \\
+  \texttt{fres0}                     & \texttt{F0} \\
+  \texttt{iarg1}\ldots\texttt{iarg4} & \texttt{R2}\ldots\texttt{R5} \\
+  \texttt{farg1}\ldots\texttt{farg4} & \texttt{F1}\ldots\texttt{F4} \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Predefined Register Conventions}
+\label{ssec:sequential-reg-save-restore}
+
+The register assigned to the stack pointer register (alias `sp') is register 
+number 1 of the integer register file.
+
+All registers that need to be preserved across a function call are stored on
+the stack by the program.  Registers with index 0 and 2 to 5 
+(reserved to passing and returning function parameters) and 6 to 511 are 
+caller-saved.  Registers with index 512 on are callee-saved.  See
+Section~\ref{ssec:register-convention} for an accurate descriptions of
+register conventions.
+
+\subsection{Address Spaces}
+\label{ssec:address-spaces-of-umach}
+
+Universal machine contains two address spaces: one for data, and one 
+for instructions. The instruction address space must be named as 
+"universal\_instructions". The data address space MAU size is 8 bits
+and the name of the data address space is "universal\_data".
+
+\section{General TTA Code Conventions}
+\label{sec:code-conventions}
+
+\subsection{Alignment of Memory Words}
+\label{ssec:align-conventions}
+
+The TCE-TTA template restricts the addresses of data word to multiples of a
+certain size.  The memory alignment is always equal to the size (in MAU's)
+of the (sub)word being addressed.  For example, if a Floating-point word
+takes 8 MAU's, its address must be a multiple of 8.
+
+Applications that process operations that access memory should at least warn
+about the presence of mis-aligned memory addresses.
+
+The effect of mis-aligned addresses on processor implementations are
+undefined. Typically: (1) the processor accesses the nearest (lower) aligned
+address instead; (2) the processor halts or rises an exception. Less likely
+but also possible, a processor could enter a slower operation mode and
+perform a mis-aligned memory access.
+
+\subsection{Word Order}
+\label{ssec:word-order}
+
+The TCE-TTA targets may order MAU's of words stored in memory in either of
+the usual conventions:
+\begin{enumerate}
+\item %
+  Most significant MAU in word start address (``big endian'' word order).
+\item %
+  Least significant MAU in word start address (``little endian'' word
+  order).
+\end{enumerate}
+
+Unusual word orders, such as ``2-MAU half-word big endian, MAU little
+endian'', are not supported.
+
+\emph{Example: Memory Layout and Word Order.}
+%
+The following three examples show the memory layout of a 32-bit, 4-MAU word
+containing 0x11223344 in the two supported word orders and one unusual
+(unsupported) word order.
+\begin{quote}
+  \begin{tabular*}{0.8\textwidth}{rrrr@{\extracolsep{\fill}}p{0.4\textwidth}}
+  \texttt{0x11} & \texttt{0x22} & \texttt{0x33} & \texttt{0x44} &
+    ``big endian'' word order \\
+  \texttt{0x44} & \texttt{0x33} & \texttt{0x22} & \texttt{0x11} &
+    ``little endian'' word order \\
+  \texttt{0x22} & \texttt{0x11} & \texttt{0x44} & \texttt{0x33} &
+    odd word order\footnotemark \\
+  \end{tabular*}
+\end{quote}
+%
+\footnotetext{Found in PDP-11.}
+
+The word order is hard-coded during set up and cannot be changed once the TCE
+toolset is installed without a fresh build.
+
+\subsection{Calling Conventions}
+\label{ssec:calling-conventions}
+
+The calling conventions define how parameters and results are exchanged
+between functions.  The calling conventions form an important part of the
+Application Binary Interface (ABI).  Two TTA programs can be linked together
+only if they conform to the same ABI.
+%
+\note{DISCUSS}
+%
+The ABI of TTA programs is not completely defined by these specifications.
+Since certain compilers may restrict the ABI (or otherwise work much more
+efficiently if a certain ABI is chosen), part of the TCE-TTA ABI is left
+dependent on the front-end compiler.  The part of the ABI described in this
+section is fixed and mandatory.
+
+\begin{enumerate}
+\item %
+  Two registers are reserved for passing results back to a function's call
+  site: the integer register can be indicated with alias `ires0', the
+  floating-point register can be indicated with alias `fres0'.
+\item %
+  Up to 4 integer and 4 floating-point registers (aliases
+  `iarg1'\ldots`iarg4', `farg1'\ldots`farg4', respectively) can be used to
+  pass parameters of suitable bit width to called functions.  When not
+  needed to pass arguments, argument registers can be assigned to variables
+  like any other GPR.  In this case, however, it must be noted that these
+  registers necessarily belong to the caller-saved convention (see
+  Section~\ref{ssec:register-conventions}).
+\item %
+  All parameters after the 5th integer parameter of the argument list and
+  the 5th floating-point parameter of the argument list are passed on the
+  stack.  The alignment rules defined in
+  Section~\ref{ssec:align-conventions} apply also to parameters passed on
+  the stack.
+\item %
+  All parameters of aggregate type that do not fit in an integer GPR are
+  always passed on the stack.
+\end{enumerate}
+
+The real registers corresponding to the aliases are a free choice of the
+back-end tools.  As long as enough registers are reserved and are of the
+right bit width, any assignment is valid.
+
+The following aspects of the ABI are not part of the TTA program convention
+and depend on the third party compiler:
+\begin{enumerate}
+\item %
+  Passing and returning aggregate data types of the structure or record sort
+  across functions.  Depending on their size, aggregates might be passed in
+  GPR's or forced on the stack.
+\item %
+  Passing a variable list of parameters to a function (the C `\ldots'
+  argument list, also called `vararg').  Depending on the front-end compiler
+  implementation, parameters of a variable list may be all forced on the
+  stack or may follow the conventions of normal parameters, defined above.
+\item %
+  Passing parameters that would fit in a GPR and that occupy positions below
+  the fifth in the argument list, but which follow a parameter passed on the
+  stack.  Certain compilers may still pass these parameters on a GPR of the
+  appropriate type, whereas other compilers may force into the stack all the
+  parameters that follow the first parameter passed on the stack.
+\end{enumerate}
+
+\subsection{Register Conventions}
+\label{ssec:register-conventions}
+
+The register conventions define how registers are used and who is
+responsible to save registers that may be used across function calls.  An
+important part of the register conventions is related to the mechanism for
+passing argument, which is described in
+Section~\ref{ssec:calling-conventions}.
+
+One integer GPR is reserved throughout the program for a special use: it is
+the stack pointer register (SPR), which is conventionally indicated by the
+register alias `spr'.  This register always points to a location of the
+program stack, described in Section~\ref{sec:stack-layout}.
+
+All GPR's except for SPR may have to be saved and restored as a result of a
+function call.  When a register carries a variable in the caller code that
+remains data-live across a function call, and is redefined in the callee, it
+needs to be saved and restored.  Registers are subdivided in two groups:
+those that are saved and restored around a function call, and those that are
+saved at the beginning of a function and are restored before it returns.
+The first group is termed caller-saved registers, the second group
+callee-saved registers.
+
+Unlike the unscheduled code, which must rely on a fixed convention (see
+Section~\ref{ssec:sequential-reg-save-restore}, parallel TTA code does not
+need to prescribed a fixed number of callee- and caller-saved registers.
+Depending on the properties of the program and the capacity of the register
+allocator, a varying fraction of the total GPR's in a register file may be
+assigned to either groups.  The register allocator may even dedicate one
+register file to caller-saved registers and another to callee-saved
+registers.
+
+\chapter{REJECTED OR ABANDONED IDEAS}
+
+\begin{description}
+\item[27.10.2005] -- Alternative syntax of general purpose registers.
+
+  If the name of register files and immediate units of a target architecture
+  do not end with a decimal digit, the dot separator between the register
+  file name and the register index can be omitted. In this case, the port
+  specifier must be omitted, too.
+%
+  For example, `i0' could indicate register with index 0 on immediate unit
+  `i', and `r5' register with index 5 on register file `r'.
+
+  This alternative has been rejected because it makes conflict with label
+  names more likely and because it impacts readability (two forms to express
+  the same term).
+
+  The alternative syntax could be less detrimental if its application were
+  restricted to the (reserved) names of the universal machine variable
+  pools: `r', `f', `b'.
+\end{description}
+
+
+
+\chapter{IDEAS FOR FURTHER DEVELOPMENT}
+\label{sec:further-ideas}
+
+% Ideas that are not part of the specifications yet but that might be
+% required in future are listed here. This is to "leave room" in design for
+% later extensions and to have ideas written down somewhere.  This list
+% should contain the date of addition, the idea described briefly and the
+% inventor of the idea.
+
+\begin{description}
+\item[23.03.2005]%
+  Explicit specification of address space in literals that represent memory
+  addresses. Instead of being implicitly bound to the address space of the
+  FU that contains move destinations that receive addresses, the address
+  could be specified explicitly. This is necessary to support multiple
+  address spaces in unscheduled code. Currently, it is possible to avoid
+  this by rearranging segments of a unique address space of sequential code
+  into multiple address spaces of the target architecture (in a fashion
+  similar to linker map files).
+
+  The address space could be added to the address literal by prepending its
+  name. For example, address `0x1FAFF' of address space `bram' would be
+  specified as follows:
+\begin{verbatim}
+    [bram]0x1FAFF -> fu2.p3
+\end{verbatim}
+  Address space specifier is not necessary when the address is symbolic,
+  that is, is given as a label expression, because it is implied. Labels
+  refer to the address space of the memory area declaration they belong to.
+%
+  ---A.~Cilio
+\item[23.03.2005 -- Register Specifier Prefixes.]%
+  On some applications, the registers names may be prepended by a character
+  to avoid clashes with the name space of other entities.  For example, in
+  case architected registers and variables can be freely mixed in
+  expressions of the language of a CLI-based application, such character
+  could be `\$'.
+%
+  ---A.~Cilio
+
+\item[24.03.2005 -- Register Aliases.]%
+  For convenience, a number of registers that are reserved for special
+  purpose can be referred to by an alias:
+%
+\begin{quote}
+\begin{tabular}{lp{0.75\textwidth}}
+register         & description \\\hline
+\texttt{spr}     &
+  stack pointer register\\
+\texttt{iar\parm{n}} &
+  integer argument register \emph{n}, with \emph{n} in [1,4] \\
+\texttt{far\parm{n}} &
+  floating-point argument register \emph{n}, with \emph{n} in [1,4] \\
+\texttt{iar0} &
+  integer return value register\\
+\texttt{far0} &
+  floating-point return value register\\
+\hline
+\end{tabular}
+\end{quote}
+%
+  Register aliases make it easier to code (the mnemonic effort demanded from
+  assembly programmers is lower) and makes the code more readable.  Pending
+  issue is how to specify the alias declaration and whether a default
+  convention can be defined (like taking the first registers or the first
+  integer register file, for example).
+%
+  -- A.~Cilio
+
+\item[27.10.2005] --- Forcing the character set of string literals.
+
+  String literals are not portable. To make sure a string is interpreted
+  correctly, the assembler could provide a directive to define the character
+  set to used:
+  \begin{quote}\tt
+    :charset \parm{charset-name}
+  \end{quote}
+
+  The character set could be forced on each individual string literal. For
+  example, to force a literal string to be interpreted in UTF-16 encoding:
+  \begin{verbatim}
+    " M. Lepist�[UTF-16]
+  \end{verbatim}
+%
+  A.~Cilio
+
+\item[28.10.2005] --- Support for ABI-free scheduled code.
+
+  The TTA code generation back-end does not have, in principle, to be
+  restricted to the conventions described in
+  Sections~\ref{ssec:calling-conventions} and
+  \ref{ssec:register-conventions}. These conventions are primarily meant to
+  make sequential code produced by front-ends unambiguous and standard.
+  Scheduling passes, if not followed by code transformation passes that rely
+  on ABI, are free to redefine calling, register and other architectural
+  conventions.
+
+  However, in order to support ABI-free back-end passes in a more general
+  way, additional support is needed. For example, ABI (when not default)
+  could be declared in a special program section, or the conventional uses
+  of registers and operations could be annotated.
+%
+  A.~Cilio
+\end{description}
+
+
+
+\chapter{PENDING ISSUES}
+
+This chapter contains pending issues concerning this specification document,
+and should be empty when the final product is ready.
+
+\section{Ambiguity in Unscheduled Code}
+\label{ch:pending:disambiguation}
+
+The assembly syntax for TTA code with (partially) unassigned move terms is
+potentially more ambiguous than in case of parallel TTA code.
+
+Ambiguity is increased if the architecture template allows for open-ended
+special register ports in the global control unit of the target
+architecture. Currently, only one name is reserved for a special register
+port: `rar', the return address register.
+
+Ambiguity is increased also if the architecture template allows custom
+variable pools, to be assigned to equally-named register files of the target
+architecture. Currently, only three names are reserved for as many
+predefined variable pools: `r', `f', and `b'.
+
+The architectural features described cause the following ambiguous
+interpretations in unscheduled TTA code:
+\begin{enumerate}
+\item %
+  Label name and name of a special register port conflict. A move with a
+  source term such as `\verb|xreg|' can represent: (1) a label called
+  `xreg'; (2) an unassigned special register port called `xreg' (which will
+  eventually be assigned to the GCU of the target architecture).
+\item %
+  A move with a source or destination term such as `\verb|xx.2|' can mean:
+  (1) variable with index 2 from the custom variable pool `xx'; (2) input or
+  output identified by index 2 of operation `xx'. Which of the two to
+  choose? Unscheduled code comes without target architecture specification,
+  so no assumption can be made as the name and type of register files or
+  operations defined in the target architecture.
+\end{enumerate}
+
+The assembler could refuse to decide and signal an error condition whenever
+a name conflict of the types listed above occurs, or could apply a
+disambiguation rule.
+
+If scheduled and unscheduled TTA code is mixed, a move term `\verb|xx.2|' is
+highly ambiguous, as it can be: (1) a variable in a custom variable pool; (2)
+a GPR in a register file; (3) an unassigned special register port; (4) an
+unassigned operation input or output.
+%
+In this case, the parser is greatly helped by the existence of a target
+architecture definition, because it can test:
+\begin{enumerate}
+\item %
+  Whether there exists a GPR in the target architecture with name `xx'.
+\item %
+  Whether there exists a FU in the target architecture that supports an
+  operation called `xx'.
+\item %
+  Whether there exists a special register port in the GCU of the target
+  architecture that is called `xx'.
+\end{enumerate}
+
+Still, when `xx' is the name of a reserved (custom) register file, the
+ambiguity is harder. How to tell whether a term `xx.2' refers to the custom
+variable pool of the universal machine or to the actual reserved register
+file of the target architecture? This might be a minor problem, since the
+binding of custom variables and GPR's of a reserved RF is straightforward
+and fixed (both name and index must match).
+
+
+
+\appendix
+
+
+
+\chapter{ASSEMBLY GRAMMAR}
+
+The assembly language is defined by the following grammar. With the
+exception of comments, which are terminated by the newline character, the
+physical lines are completely ignored and treated as whitespace.
+
+The assembly grammar is completely free-form.
+%
+Whitespaces and newlines can be freely mixed in the input program with all
+tokens recognised by the grammar. Conversely, whitespaces can be removed
+everywhere \emph{except between tokens that have no lexical separation}. For
+most tokens, lexical separation is provided by tokens consisting of reserved
+characters such as comma's, colons, plus, minus or equal sign. Two tokens
+such as the guard term and the source term have no lexical separation, so
+they must be separated by whitespace.
+
+\section{Program Areas}
+
+\begin{grammar}
+
+\grrule{program}
+    \grsym{area}*
+
+\grrule{area}
+    \grsym{data-area} \gror \grsym{code-area}
+
+\grrule{data-area}
+    \grsym{data-header} \grsym{data-lines}
+
+\grrule{code-area}
+    \grsym{code-header} \grsym{code-lines}
+
+\end{grammar}
+
+\section{Data Declarations}
+
+\begin{grammar}
+
+\grrule{data-header}
+    \grlit{DATA} \grsym{addr-space} \grsym{number} \grlit{;}
+
+\grrule{data-lines}
+    (\grsym{data-line} \grlit{;})*
+
+\grrule{data-line}
+    (\gropt{\grsym{label}})*
+    \grlit{DA} \grsym{number} \gropt{\grsym{init-data}}
+    \\\gror \grsym{directive}
+
+\grrule{init-data}
+    \grsym{init-chunk}*
+
+\grrule{init-chunk}
+    \gropt{\grsym{init-size}} \grsym{init-term}
+
+\grrule{init-size}
+    \grsym{number} \grlit{:}
+
+\end{grammar}
+
+\section{Labels and Symbolic Expressions}
+
+\begin{grammar}
+
+\grrule{label}
+    \grsym{name} \grlit{:}
+
+\grrule{init-term}
+    \grsym{imm-term}
+    \gror \grsym{string-literal}
+    \gror \grsym{float-literal}
+
+\grrule{imm-term}
+    \grsym{num-literal}
+    \gror \grsym{expression}
+
+\grrule{num-literal}
+    \grsym{number} \gror \grsym{hex-number} \gror \grsym{bin-number}
+
+\grrule{expression}
+    \grsym{sym-expression}
+    \\\gror \grsym{sym-expression} \grlit{=} \grsym{num-literal}
+
+\grrule{sym-expression}
+    \grsym{name} \gropt{\grsym{offset}}
+
+\grrule{offset}
+    (\grlit{$+$}|\grlit{$-$}) \grsym{num-literal}
+
+\end{grammar}
+
+\section{Code Area}
+
+\begin{grammar}
+
+\grrule{code-header}
+    \grlit{CODE} \gropt{\grsym{number}} \grlit{;}
+
+\grrule{code-lines}
+    (\grsym{code-line} \grlit{;})*
+
+\grrule{code-line}
+    (\gropt{\grsym{label}})*
+    \grsym{instruction}
+    \\\gror \grsym{directive}
+
+\grrule{instruction}
+    (\grsym{empty-instruction}
+    \\\gror \grsym{moves}) \grsym{immediate-specifier}*
+
+\grrule{empty-instruction}
+    \grlit{.\ \ .\ \ .}
+
+\grrule{moves}
+    \grsym{move} (\grlit{,} \grsym{move})*
+
+\grrule{move}
+    \grsym{empty-move}
+    \\\gror \grsym{immediate-specifier}
+    \\\gror \grsym{transport}
+
+\grrule{empty-move}
+    \grlit{\ldots}
+
+\grrule{immediate-specifier}
+    \grlit{[}(\grsym{rf-without-port}
+    \gror (\grsym{rf-without-port} \grlit{=} \grsym{imm-term}))\grlit{]}
+
+\grrule{transport}
+    \gropt{\grsym{guard}} \grsym{source} \grlit{->} \grsym{destination}
+
+\grrule{guard}
+    \grsym{invert-flag} \grsym{guard-term}
+
+\grrule{invert-flag}
+    \grlit{?} \gror \grlit{!}
+
+\grrule{guard-term}
+    \grsym{rf-without-port}
+    \gror \grsym{real-fu}
+
+\grrule{source}
+    \grsym{reg-term}
+    \gror \grsym{imm-term}
+
+\grrule{destination}
+    \grsym{reg-term}
+
+\grrule{reg-term}
+    \grsym{rf-term}
+    \gror \grsym{fu-term}
+    \gror \grsym{bus-term}
+
+\grrule{rf-term}
+    \grsym{rf-with-port} \gror \grsym{rf-without-port}
+
+\grrule{rf-with-port}
+    \grsym{unit} \grlit{.} \grsym{port} \grlit{.} \grsym{number}
+
+\grrule{rf-without-port}
+    \grsym{unit} \grlit{.} \grsym{number}
+
+\grrule{fu-term}
+    \grsym{universal-fu} \gror \grsym{real-fu}
+
+\grrule{universal-fu}
+    \grsym{operation} \grlit{.} \grsym{number}
+
+\grrule{real-fu}
+    \grsym{fu-with-port} \gror \grsym{fu-without-port}
+
+\grrule{fu-with-port}
+    \grsym{unit} \grlit{.} \grsym{port} \gropt{(\grlit{.} \grsym{operation})}
+
+\grrule{fu-without-port}
+    \grsym{unit} \grlit{.} \grsym{operation} \grlit{.} \grsym{number}
+
+\grrule{bus-term}
+    \grlit{\{prev\}} \gror \grlit{\{next\}}
+
+\end{grammar}
+
+\section{Assembler Directives}
+
+\begin{grammar}
+
+\grrule{directive}
+    \grlit{:} \grsym{name-directive} \grsym{directive-parameters}
+
+\end{grammar}
+
+The assembler recognises the following command directives:
+\begin{description}
+\item[:global \emph{label}] %
+  Mark a given (defined) label as globally visible.
+\item[:extern \emph{label}] %
+  Mark a given (undefined) label as globally visible.
+\item[:procedure \emph{label}] %
+  Declare a starting point for a procedure. Only allowed in a code area.
+\end{description}
+
+The number and format of the directive parameters depends on the specific
+command directive. The list of parameters is terminated by a semicolon.
+
+\section{Name of Labels}
+\label{sec:names}
+
+The name of labels matches the grammar symbol \emph{name}, which represents
+a string of characters with the following regular expression:
+\begin{quote}
+  [a-zA-Z\_][0-9a-zA-Z\_]*
+\end{quote}
+
+\section{Numbers}
+\label{sec:numbers}
+
+The numbers that appear in the grammar can be represented in various forms.
+
+The symbol \emph{number} represents a decimal integer number and matches a
+string of characters with the following regular expression:
+\begin{quote}
+  [0-9]+
+\end{quote}
+
+The symbol \emph{hex-number} represents an integer number in base 16 and
+matches a string of characters with the following regular expression:
+\begin{quote}
+  0x[0-9A-Fa-f]+
+\end{quote}
+
+The symbol \emph{bin-number} represents an integer number in base 2 and
+matches a string of characters with the following regular expression:
+\begin{quote}
+  0b[01]+
+\end{quote}
+
+\section{Strings}
+\label{sec:strings}
+
+The string literals are always quoted. Two quoting styles are possible:
+\begin{enumerate}
+\item %
+  Single quote:
+  \begin{quote}
+    \verb|'|[\verb|^'|]*\verb|'|
+  \end{quote}
+\item %
+  Double quote:
+  \begin{quote}
+    \verb|"|[\verb|^"|]*\verb|"|
+  \end{quote}
+\end{enumerate}
+
+Empty strings are ignored.
+%
+\note{DISCUSS: forbid empty strings?}
+
+A quoted string can contain any printable character of the host instruction
+set. End-of-line characters (like ASCII LF and CR characters) are not
+allowed and generate a parsing error.
+
+\section{Symbols That Refer to Target Architecture}
+
+The symbols \emph{addr-space}, \emph{unit} and \emph{port} match a string of
+characters that represent the name of an element of the target architecture
+definition. The set of characters allowed in these names is specified in the
+Architecture Definition File Format~\cite{ADF-specs}. \emph{Addr-space}
+represents the name of an address space. \emph{Unit} represents the name of
+a function unit, register file or immediate unit. \emph{Port} represents the
+name of a function unit port.
+
+The symbol \emph{operation} represents a valid operation name and matches a
+string with the restrictions specified in ``Operation Set Abstraction Layer
+Functional Requirements''~\cite{OSAL-specs}.
+
+\section{Syntax Variants}
+
+The assembly language allows a number of syntax variants, in order to suit
+the preferences of users and client applications
+
+\subsection{Inverted Source/Destination}
+
+The order of source and destination of a move can be inverted.  The token in
+between, which represents the transport action, is replaced by `<-'.
+
+The modified production is:
+\begin{grammar}
+\grrule{transport}
+    \gropt{\grsym{guard}} \grsym{destination} \grlit{<-} \grsym{source}
+\end{grammar}
+
+
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+%% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+
+\end{document}
+
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

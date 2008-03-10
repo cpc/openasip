@@ -1,0 +1,5 @@
+puts "This file is an initialization script."
+puts "The only purpose of this test is to ensure "
+puts "that all the lines of the init script"
+puts "are executed and they take effect."
+setting bus_trace 1

@@ -1,0 +1,151 @@
+/**
+ * @file AssocTools.icc
+ *
+ * Tools for handling STL Associative Containers (usually set).
+ *
+ * Inline and template definitions.
+ *
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi) 
+ */
+
+/**
+ *
+ * Deletes all items in a map and clears it.
+ *
+ * Calls delete for all items in container and clears it.
+ *
+ * @param aMap The map to delete all items from.
+ */
+template <typename ContainerType>
+void
+AssocTools::deleteAllItems(ContainerType& aMap) {
+
+    typename ContainerType::iterator next;
+    for (typename ContainerType::iterator i = aMap.begin();
+	 i != aMap.end(); ) {
+
+	// This trick is necessary because this same container can be
+	// modified (element erased) in the destructor of the deleted
+	// object. It would render the iterator faulty. Note that this
+	// works only for associative containers, with vectors the
+	// next iterator would get corrupted too.
+	next = i;
+	next++;
+	delete (*i);
+	i = next;
+    }
+
+    aMap.clear();
+}
+
+/**
+ * Delete all values in a map and clears it.
+ *
+ * @param aMap The map to delete the values from.
+ */
+template <typename ContainerType>
+void
+AssocTools::deleteAllValues(ContainerType& aMap) {
+
+    for (typename ContainerType::iterator i = aMap.begin(); i != aMap.end();
+         i++) {
+        delete (*i).second;
+    }
+    aMap.clear();
+}
+
+/**
+ * Checks if an element is found by the given key from the given container.
+ *
+ * @param aContainer The container to look in.
+ * @param aKey The key to look for.
+ * @return True if the key is found, otherwise false.
+ */
+template <typename ContainerType, typename KeyType>
+bool
+AssocTools::containsKey(
+    const ContainerType& aContainer,
+    const KeyType& aKey) {
+
+    return (aContainer.find(aKey) != aContainer.end());
+}
+
+/**
+ * Creates an intersection of the given containers.
+ *
+ * The elements in the intersection are selected by using < and > operators
+ * of the elements in the container. Thus, if both containers contains an
+ * equal element, it is added to the intersection.
+ *
+ * @param firstContainer The first container.
+ * @param secondContainer The second container.
+ * @param intersection Intersection of the container is added to this
+ *                     container.
+ */
+template <typename ContainerType>
+void
+AssocTools::intersection(
+    const ContainerType& firstContainer,
+    const ContainerType& secondContainer,
+    ContainerType& intersection) {
+
+    std::insert_iterator<ContainerType>
+        intersectIter(intersection, intersection.end());
+    std::set_intersection(firstContainer.begin(), firstContainer.end(),
+                          secondContainer.begin(), secondContainer.end(),
+                          intersectIter);
+}
+
+
+/**
+ * Constructs set difference of the given containers.
+ *
+ * The elements in the difference are selected by using < operator
+ * of the elements in the container. If the first given container contains
+ * an element that the second does not, it is added to the difference.
+ *
+ * @param firstContainer The first container.
+ * @param secondContainer The second container.
+ * @param difference Result set. Updated by adding all elements in the first
+ *            container that are not in the second container.
+ */
+template <typename ContainerType>
+void
+AssocTools::difference(
+    const ContainerType& firstContainer,
+    const ContainerType& secondContainer,
+    ContainerType& difference) {
+
+    std::insert_iterator<ContainerType>
+        differenceIter(difference, difference.end());
+    std::set_difference(firstContainer.begin(), firstContainer.end(),
+                        secondContainer.begin(), secondContainer.end(),
+                        differenceIter);
+}
+
+/**
+ * Finds all pair-wise combinations of elements in two containers.
+ *
+ * @return A set of pairs containing all combinations of elements.
+ */
+template <typename ContainerType1, typename ContainerType2>
+std::set<std::pair<
+             typename ContainerType1::value_type, 
+             typename ContainerType2::value_type> >
+AssocTools::pairs(
+    ContainerType1& firstContainer,
+    ContainerType2& secondContainer) {
+
+    typedef std::set<std::pair<
+    typename ContainerType1::value_type, 
+        typename ContainerType2::value_type> > CombinationSet;
+    CombinationSet combinations;
+    for (typename ContainerType1::const_iterator i1 = firstContainer.begin();
+         i1 != firstContainer.end(); ++i1) {
+        for (typename ContainerType2::const_iterator i2 = 
+                 secondContainer.begin(); i2 != secondContainer.end(); ++i2) {
+            combinations.insert(std::make_pair(*i1, *i2));
+        }
+    }
+    return combinations;
+}

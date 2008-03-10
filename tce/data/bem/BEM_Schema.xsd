@@ -1,0 +1,305 @@
+<?xml version="1.0"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:annotation>
+    <xs:documentation xml:lang="en">
+
+        Binary Encoding Map File Schema for the TCE
+        (TTA Codesign Environment) project at Tampere University of 
+        Technology.
+
+        Author: Lasse Laasonen 2005 (lasse.laasonen@tut.fi)
+
+    </xs:documentation>
+</xs:annotation>
+
+<!-- ==== GENERAL TYPES ================================================= -->
+
+<xs:simpleType name="encoding-type">
+    <xs:restriction base="xs:nonNegativeInteger"/>
+</xs:simpleType>
+
+<xs:simpleType name="extra-bits-type">
+    <xs:restriction base="xs:nonNegativeInteger"/>
+</xs:simpleType>
+
+<xs:simpleType name="pos-type">
+     <xs:restriction base="xs:nonNegativeInteger"/>
+</xs:simpleType>
+
+
+<!-- ==== MAP-PORTS ===================================================== -->
+
+<xs:complexType name="fu-port-code-type">
+    <xs:sequence>
+        <xs:element name="encoding" type="encoding-type"/>
+        <xs:element name="extra-bits" type="extra-bits-type"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+    <xs:attribute name="fu" type="xs:string" use="required"/>
+    <xs:attribute name="operation" type="xs:string" use="optional"/>
+</xs:complexType>
+
+<xs:group name="enc-and-extra-bits">
+    <xs:sequence>
+        <xs:element name="encoding" type="encoding-type"/>
+        <xs:element name="extra-bits" type="extra-bits-type"/>
+    </xs:sequence>
+</xs:group>
+
+<xs:complexType name="rf-port-code-type">
+    <xs:group ref="enc-and-extra-bits" minOccurs="0"/>
+    <xs:attribute name="rf" type="xs:string" use="required"/>
+    <xs:attribute name="index-width" type="xs:nonNegativeInteger" 
+                  use="required"/>
+</xs:complexType>
+
+<xs:complexType name="iu-port-code-type">
+    <xs:group ref="enc-and-extra-bits" minOccurs="0"/>
+    <xs:attribute name="iu" type="xs:string" use="required"/>
+    <xs:attribute name="index-width" type="xs:nonNegativeInteger" 
+                  use="required"/>
+</xs:complexType>
+
+<xs:complexType name="map-ports-type">
+    <xs:sequence>
+        <xs:element name="extra-bits" type="extra-bits-type"/>
+        <xs:element name="fu-port-code" type="fu-port-code-type" 
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="rf-port-code" type="rf-port-code-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="iu-port-code" type="iu-port-code-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+</xs:complexType>
+
+<!-- ==== LONG-IMMEDIATE-TAG ============================================ -->
+
+<xs:complexType name="map-type">
+    <xs:simpleContent>
+        <xs:extension base="xs:nonNegativeInteger">
+            <xs:attribute name="name" type="xs:string" use="required"/>
+        </xs:extension>
+    </xs:simpleContent>
+</xs:complexType>
+
+<xs:complexType name="long-immediate-tag-type">
+    <xs:sequence>
+        <xs:element name="pos" type="pos-type"/>
+        <xs:element name="extra-bits" type="extra-bits-type"/>
+        <xs:element name="map" type="map-type" maxOccurs="unbounded"/>
+    </xs:sequence>
+</xs:complexType>
+
+<!-- ==== IMMEDIATE REGISTER FIELD ====================================== -->
+
+<xs:complexType name="instruction-template-type">
+    <xs:sequence>
+        <xs:element name="reg-index-of" type="xs:string"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<xs:complexType name="imm-reg-field-type">
+    <xs:sequence>
+        <xs:element name="pos" type="xs:nonNegativeInteger"/>
+        <xs:element name="width" type="xs:positiveInteger"/>
+        <xs:element name="instruction-template"
+                    type="instruction-template-type" minOccurs="0"
+                    maxOccurs="unbounded"/>
+    </xs:sequence>
+</xs:complexType>
+
+<!-- ==== SLOT ========================================================== -->
+
+<xs:simpleType name="inv-type">
+    <xs:restriction base="xs:string">
+        <xs:pattern value="true|false"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:simpleType name="id-pos-type">
+    <xs:restriction base="xs:string">
+        <xs:pattern value="left|right"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:complexType name="reg-guard-code-type">
+    <xs:simpleContent>
+        <xs:extension base="encoding-type">
+            <xs:attribute name="rf" type="xs:string" use="required"/>
+            <xs:attribute name="index" type="xs:nonNegativeInteger"
+                          use="required"/>
+            <xs:attribute name="inv" type="inv-type" use="required"/>
+        </xs:extension>
+    </xs:simpleContent>
+</xs:complexType>
+
+<xs:complexType name="port-guard-code-type">
+    <xs:simpleContent>
+        <xs:extension base="encoding-type">
+            <xs:attribute name="fu" type="xs:string" use="required"/>
+            <xs:attribute name="port" type="xs:string" use="required"/>
+            <xs:attribute name="inv" type="inv-type" use="required"/>
+        </xs:extension>
+    </xs:simpleContent>
+</xs:complexType>
+
+<xs:complexType name="guard-type">
+    <xs:sequence>
+        <xs:element name="pos" type="pos-type"/>
+        <xs:element name="extra-bits" type="extra-bits-type"/>
+        <xs:element name="reg-guard-code" type="reg-guard-code-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="port-guard-code" type="port-guard-code-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="always-true-guard-code" type="encoding-type"
+                    minOccurs="0"/>
+        <xs:element name="always-false-guard-code" type="encoding-type"
+                    minOccurs="0"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="immediate-type">
+    <xs:sequence>
+        <xs:element name="map">
+            <xs:complexType>
+                <xs:simpleContent>
+                    <xs:extension base="encoding-type">
+                        <xs:attribute name="extra-bits" 
+                                      type="xs:nonNegativeInteger"
+                                      use="required"/>
+                    </xs:extension>
+                </xs:simpleContent>
+            </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+    <xs:attribute name="width" type="xs:nonNegativeInteger" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="socket-type">
+    <xs:sequence>
+        <xs:element name="map">
+            <xs:complexType>
+                <xs:simpleContent>
+                    <xs:extension base="encoding-type">
+                        <xs:attribute name="extra-bits" 
+                                      type="xs:nonNegativeInteger"
+                                      use="required"/>
+                        <xs:attribute name="codes" type="xs:string" 
+                                      use="optional"/>
+                    </xs:extension>
+                </xs:simpleContent>
+            </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+<xs:attribute name="name" type="xs:string" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="bridge-type">
+    <xs:sequence>
+        <xs:element name="map">
+            <xs:complexType>
+                <xs:simpleContent>
+                    <xs:extension base="encoding-type">
+                        <xs:attribute name="extra-bits" 
+                                      type="xs:nonNegativeInteger"
+                                      use="required"/>
+                    </xs:extension>
+                </xs:simpleContent>
+            </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="no-operation-type">
+    <xs:sequence>
+        <xs:element name="map">
+            <xs:complexType>
+                <xs:simpleContent>
+                    <xs:extension base="encoding-type">
+                        <xs:attribute name="extra-bits" 
+                                      type="xs:nonNegativeInteger"
+                                      use="required"/>
+                    </xs:extension>
+                </xs:simpleContent>
+            </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+</xs:complexType>                      
+
+<xs:complexType name="source-type">
+    <xs:sequence>
+        <xs:element name="pos" type="pos-type"/>
+        <xs:element name="extra-bits" type="extra-bits-type"/>
+        <xs:element name="id-pos" type="id-pos-type"/>
+        <xs:element name="immediate" type="immediate-type" minOccurs="0"/>
+        <xs:element name="socket" type="socket-type" minOccurs="0" 
+                    maxOccurs="unbounded"/>
+        <xs:element name="bridge" type="bridge-type" minOccurs="0"
+                    maxOccurs="unbounded"/>
+        <xs:element name="no-operation" type="no-operation-type" 
+                    minOccurs="0"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="destination-type">
+    <xs:sequence>
+        <xs:element name="pos" type="pos-type"/>
+        <xs:element name="extra-bits" type="extra-bits-type"/>
+        <xs:element name="id-pos" type="id-pos-type"/>
+        <xs:element name="socket" type="socket-type" minOccurs="0" 
+                    maxOccurs="unbounded"/>
+        <xs:element name="no-operation" type="no-operation-type"
+                    minOccurs="0"/>
+    </xs:sequence>
+</xs:complexType>        
+
+<xs:complexType name="slot-type">
+    <xs:sequence>
+        <xs:element name="pos" type="pos-type"/>
+        <xs:element name="extra-bits" type="extra-bits-type"/>
+        <xs:element name="guard" type="guard-type" minOccurs="0"/>
+        <xs:element name="source" type="source-type" minOccurs="0"/>
+        <xs:element name="destination" type="destination-type" 
+                    minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+</xs:complexType>
+
+<!-- ==== IMMEDIATE-SLOT ================================================ -->
+
+<xs:complexType name="immediate-slot-type">
+    <xs:sequence>
+        <xs:element name="pos" type="pos-type"/>
+        <xs:element name="width" type="xs:positiveInteger"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<!-- ==== BEM FILE ====================================================== -->
+
+<xs:element name="adf-encoding">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="map-ports" type="map-ports-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="long-immediate-tag" 
+                        type="long-immediate-tag-type" minOccurs="0"/>
+            <xs:element name="immediate-register-field" 
+                        type="imm-reg-field-type" minOccurs="0"
+                        maxOccurs="unbounded"/>
+            <xs:element name="slot" type="slot-type" minOccurs="0"
+                        maxOccurs="unbounded"/>
+            <xs:element name="immediate-slot" type="immediate-slot-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="version" type="xs:decimal" use="required"/>
+        <xs:attribute name="required-version" type="xs:decimal"/>
+    </xs:complexType>
+</xs:element>
+
+</xs:schema>

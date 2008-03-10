@@ -1,0 +1,2 @@
+      6                       <main+6>: ALU.P3 -> LSU.P2.ldq, ... ;
+0

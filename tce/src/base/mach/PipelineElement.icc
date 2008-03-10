@@ -1,0 +1,31 @@
+/**
+ * @file PipelineElement.icc
+ *
+ * Inline implementation of PipelineElement class.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ */
+
+namespace TTAMachine {
+
+/**
+ * Returns the name of the pipeline element.
+ *
+ * @return The name of the pipeline element.
+ */
+inline std::string
+PipelineElement::name() const {
+    return name_;
+}
+
+
+/**
+ * Returns the parent unit of the pipeline element.
+ *
+ * @return The parent unit.
+ */
+inline FunctionUnit*
+PipelineElement::parentUnit() const {
+    return parent_;
+}
+}

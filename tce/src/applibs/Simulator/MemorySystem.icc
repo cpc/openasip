@@ -1,0 +1,51 @@
+/**
+ * @file MemorySystem.icc
+ *
+ * Inline definitions of MemorySystem class.
+ *
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include "Memory.hh"
+
+/**
+ * Advances the clock of all the memories in the memory system.
+ */
+inline void 
+MemorySystem::advanceClockOfAllMemories() {
+    for (size_t i = 0; i < memoryList_.size(); ++i) {
+        Memory* mem = memoryList_.at(i);
+        if (!mem->isIdle()) {
+            mem->advanceClock();
+        }
+    }
+}
+
+/**
+ * Resets all the memories in the memory system.
+ *
+ * Reset clears any request queues.
+ */
+inline void 
+MemorySystem::resetAllMemories() {
+    for (size_t i = 0; i < memoryList_.size(); ++i) {
+        Memory* mem = memoryList_.at(i);
+        mem->reset();
+    }
+}
+
+/**
+ * Fills all memories with zeros.
+ *
+ * This is needed due to some buggy simulated programs which expect
+ * uninitialized data to be zero.
+ */
+inline void 
+MemorySystem::fillAllMemoriesWithZero() {
+    for (size_t i = 0; i < memoryList_.size(); ++i) {
+        Memory* mem = memoryList_.at(i);
+        mem->fillWithZeros();
+    }
+}
+

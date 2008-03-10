@@ -1,0 +1,23 @@
+/**
+ * @file Informer.icc
+ *
+ * Inline implementations of Informer class.
+ *
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Informs all the listeners of the given event that the event has occurred.
+ *
+ * @param event The event that occured.
+ */
+inline void
+Informer::handleEvent(int event) {
+    for (std::size_t i = 0; i < eventListeners_.size(); ++i) {
+        if (eventListeners_.at(i).first == event) {
+            eventListeners_.at(i).second->handleEvent(event);
+        }
+    }
+}
+

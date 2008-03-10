@@ -1,0 +1,127 @@
+CODE ; 
+    
+:global main;
+:global loopforever ;
+:global trynextdirection;
+    
+:procedure main;
+main:
+	# initial worm position		
+    dlab2+1 -> RF.0, dlab5 -> RF.1 [IMM.0=loopforever] [ IMM1.0 = dlab1 ] ; 
+    IMM1.0 -> RF.2, dlab4 -> RF.3 ;
+    
+loopforever:
+    # write 0x00 to ass piece of worm
+    RF.0 -> LSU.stq.1, 0 -> LSU.stq.2 ;
+    
+    # find next direction to move 
+    
+    # test if next direction in try sequence is ok
+    dlab3 -> ALU.P1,       # fu.port and fu.port.opcode syntax tests
+    ADD.P3      -> ALU.P2.add;   # calculate address where next direction can be read
+	
+    ALU.add.3   -> LSU.ldq.1, # ldq.2 got offset to next position in map where we go
+	RF.3 -> ALU.add.1 ;	  # worm head position address to adder
+    
+	LSU.ldq.2 -> ALU.add.2, ... ; # calculate next address to map (read as signed to adder)
+    
+trynextdirection: 
+    ALU.add.3 -> LSU.ldq.1, ... ; # get piece of map
+    
+    ? LSU.ldq.2 trynextdirection -> GCU.jump.1,  # jump to try next direction if there was not floor(0x00) in map 
+	? LSU.ldq.2 1 -> ADD.add.2 ;                 # increment direction test counter
+    
+	? LSU.ldq.2 dlab6 -> ALU.add.1,    
+	? LSU.ldq.2 ADD.add.3   -> ALU.add.2 ;   # calculate address where next direction can be read 
+	
+	? LSU.ldq.2 ALU.add.3 -> LSU.ldq.1,      # ldq.2 got offset to next position in map where we try to go
+ 	? LSU.ldq.2 RF.3 -> ALU.add.1 ;	         # worm head address 
+    
+	? LSU.ldq.2 LSU.ldq.2 -> ALU.add.2,  # get next piece of map
+	? LSU.ldq.2 ADD.add.3 -> ADD.add.1 ; # calculate next address to map
+    
+	# we found good direction for next move, map position where to go is now stored in ALU.add.3
+	
+	# move worm and jump back to start 
+	loopforever -> GCU.jump.1, ... ;       # jump to start
+	RF.1 -> RF.0, RF.2 -> RF.1 ;	       # move body
+	RF.3 -> RF.2, ALU.add.3 -> RF.3 ;      # move body
+	RF.3 -> LSU.stq.1, 0x88 -> LSU.stq.2 ; # write 0x88 to new head piece of worm
+    
+	# some empty instruction just for testing
+	. . . ; 
+	. . . ; 
+	. . . ; 
+	. . . ;
+
+DATA dmem32b;
+
+:global dlab1;
+
+dlab1:
+    DA 4 4:dlab1;
+    DA 7;
+    DA 11 2:15 2:2 2:dlab2 1:loopforever 4:-1337;
+    DA 2;
+
+DATA dmem27b 10;
+    DA 3 ;
+dlab2:
+    DA 10 dlab1 1 4 2:-1 dlab2;
+    DA 3;
+
+DATA dmem14b;
+    DA 3 ;
+    DA 10 dlab5 1 4 2:-1 dlab2;
+dlab3:
+    DA 3;
+    
+DATA dmem9b;
+    DA 3 ;
+    DA 10 dlab3 1 4 2:-1 dlab2;
+dlab4:
+    DA 3;
+
+DATA dmem8b;
+    DA 3 ;
+    DA 10 dlab4 1 4 2:-1 dlab6;
+dlab5:
+    DA 3;
+
+DATA dmem7b;
+    DA 3 ;
+    DA 10 dlab3 1 4 2:-1 dlab2;
+dlab6:
+    DA 3;
+
+DATA dmem32b;
+    DA 4 4:dlab1;
+    DA 7;
+    DA 11 2:15 2:2 2:dlab2 1:loopforever 4:1337;
+    DA 2;
+
+DATA dmem27b 30;
+    DA 3 ;
+    DA 10 dlab1 1 4 2:-1 dlab2;
+    DA 3;
+
+DATA dmem14b;
+    DA 3 ;
+    DA 10 dlab5 1 4 2:-1 dlab2;
+    DA 3;
+    
+
+DATA dmem9b;
+    DA 3 ;
+    DA 10 dlab3 1 4 2:-1 dlab2;
+    DA 3;
+
+DATA dmem8b;
+    DA 3 ;
+    DA 10 dlab4 1 4 2:-1 dlab6;
+    DA 3;
+
+DATA dmem7b;
+    DA 3 ;
+    DA 10 dlab3 1 4 2:-1 dlab2;
+    DA 3;

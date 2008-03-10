@@ -1,0 +1,20 @@
+/**
+ * @file EntryKeyFieldProperty.icc
+ *
+ * Inline implementation of EntryKeyFieldProperty class.
+ *
+ * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @note rating: red
+ */
+
+
+/**
+ * Returns field type.
+ *
+ * @return Field type.
+ */
+inline std::string
+EntryKeyFieldProperty::name() const {
+    return name_;
+}

@@ -1,0 +1,277 @@
+\documentclass[a4paper,twoside]{tce}
+\usepackage{pslatex}
+
+\RequirePackage{algorithm}
+\RequirePackage{algorithmic}
+
+\begin{document}
+\author{Tommi Rantanen}
+\title{TTA Processor Estimator}
+\ver{0.4.2}
+\firstday{10.11.2004}
+\lastday{27.04.2006}
+% id number in S- sequence
+\docnum{037}
+% draft/complete/committed
+\state{draft}
+
+\maketitle
+
+
+\chapter*{Document History}
+
+\begin{HistoryTable}
+
+0.1    & 10.11.2004 & T. Rantanen   &
+First draft. Initial version of the design.\\
+0.2    & 13.01.2005 & J. Mantyneva  &
+Added first draft of CostDB schema.\\
+0.2.1  & 13.01.2005 & J. Mantyneva  &
+Removed the Schema. The same information is found in the requirement. \\
+
+0.3 & 22.09.2005 & P. J‰‰skel‰inen &
+Updated to HDB and the new estimator design (all algorithms delegated to
+plug-ins). Removed empty sections. \\
+
+0.4 & 23.09.2005 & P. J‰‰skel‰inen &
+Added main design principles. Added plug-in interface of FU cost estimator,
+described others. \\
+
+0.4.1 & 29.09.2005 & P. J‰‰skel‰inen &
+Removed example and code from plug-in description. To be added when
+stable.\\
+
+0.4.2 & 27.04.2006 & A. Cilio &
+Minor format revision. Spelling corrections. \\
+
+\end{HistoryTable}
+
+
+\tableofcontents
+
+
+
+\chapter{INTRODUCTION}
+
+\section{Purpose and Scope}
+
+This document describes the design of the TTA Processor Estimator
+together with the communication with the external modules. The
+document is intended for the people implementing and maintaining the
+Estimator. However, it does not cover all the details required for the
+implementation but it is rather a reference of the design decisions
+and principles as well as for the issues that are good to know during
+the maintenance.
+
+\section{Definitions}
+
+\begin{description}
+\item[Hardware Database (HDB)] %
+  Database that includes access point to external cost estimation plug-ins
+  and the data the plug-ins need to estimate the costs of TTA processor
+  building blocks for different architectural properties.
+
+\item[Cost Model] %
+  The way which is used to estimate the costs of the target processor.
+
+\item[Estimator] %
+  The target architecture estimator of the TTA templated architecture.
+
+\item[Match Type] %
+  The type of the cost database query applied to a characteristic, i.e., a
+  field of a database entry. Alternatives are: exact match, superset, subset
+  and interpolation.
+
+\item[Simulation Trace Database] %
+  Database containing statistics from the simulation run of the target
+  application for a given processor.
+\end{description}
+
+\section{Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+FU    & Function Unit. \\
+GCU   & Global Control Unit. \\
+GUI   & Graphical User Interface. \\
+IU    & Immediate Unit. \\
+ADF   & Architecture Definition File. \\
+RF    & Register File. \\
+TCE   & TTA Codesign Environment. \\
+TPEF  & TTA Program Exchange Format. \\
+TTA   & Transport Triggered Architecture. \\
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\chapter{DESIGN OVERVIEW}
+
+\section{``Philosophy of Design''}
+
+One of the flexibility points required from TCE is easy experimentation of
+different algorithms for estimating processor costs. This requirement lead
+to such design of Estimator that most of the actual algorithmic work is
+allowed to be redefined very easily. In addition, all functionality
+involving selection of implementations for different machine parts were
+decided to be implemented in another library called Implementation Selector.
+These two reasons made the design of the actual cost Estimator of TCE is
+very simple.
+
+All complex work of actually estimating the costs of individual parts of the
+estimated processor is delegated to external cost estimation plug-in modules.
+User of Estimator is free to define new estimation plug-in modules in case he
+wants to use a new kind of cost estimation algorithm for estimating (parts
+of) the costs of the target machine. Estimator performs no intelligent
+implementation selection, but expects that the user of Estimator knows (at
+least partially) the implementations that are used. In case implementation
+information is missing for some of the machine parts, Estimator asks
+individual function unit plug-in modules whether they are able to estimate
+the costs of the given parts.
+
+Due to the plug-in system, the actual Estimator is merely a top-level
+"driver" which loads correct estimation plug-ins, estimates costs of
+individual machine parts using the loaded plug-ins, and simply sums the
+costs retrieved from the estimation functions to get the total costs for the
+given machine.
+
+Estimation functionality can also be invoked for individual parts of the
+machine. For example, costs of a single FU can be queried. This
+functionality is used by the Implementation Selector while performing its
+exploration of processor part implementations.
+
+\section{External Modules/ Application Environment}
+
+Estimator uses services of at least following modules.
+
+\subsection{Base Modules}
+
+\begin{itemize}
+
+\item \textbf{Hardware Database}
+
+  Hardware Database is used as an access point to cost estimation plug-in
+  modules. Cost estimation plug-in modules use HDB to retrieve data used in
+  the estimation algorithm. Such data can be anything, for example, purely
+  measurement data, or costs associated to an operation in an FU.
+
+\item \textbf{Machine Object Model}
+
+  MOM is used to load the given architecture definition file and traverse
+  trough the estimated machine parts.
+
+\item \textbf{Implementation Definition File}
+
+  Used to handle the IDF given as input. Estimator asks from this module to
+  give an implementation for a machine part, if defined in the file.
+
+\item \textbf{Simulation Trace Database}
+
+  Simulation trace database is used by the estimation plug-ins to get
+  simulation data for the program with which the consumed processor energy
+  is estimated. TraceDB provides information of the executed instruction in
+  each clock cycle and also the values contained in each bus in each clock
+  cycle. State transitions consume energy, therefore this kind of
+  information is needed in some algorithms.
+
+\item \textbf{Program Object Model}
+
+  For calculating consumed energy by running a program in the target
+  processor, estimator algorithms use POM to get access to instruction data.
+  Paired with simulation trace, estimation algorithm can compute how many
+  times a port was written, for example.
+
+\end{itemize}
+
+\subsection{Toolkit Modules}
+
+\begin{itemize}
+
+\item \textbf{PluginTools}
+
+Used to load and access cost estimation plug-ins.
+
+\end{itemize}
+
+\section{Architecture of Databases}
+
+Estimator depends on IDF, ADF, TPEF, and HDB databases. They are described
+in their own documents. In addition, the external cost estimation plug-in
+modules can be considered databases, after all, they store functions used to
+estimate costs.
+
+This section describes the user-visible plug-in interfaces of the cost
+estimation plug-ins.
+
+\subsection{FU Cost Estimation Plug-in}
+
+FU cost estimation plug-in is used to estimate area, energy, and speed of
+individual function units. Each plug-in may be able to estimate only one
+kind (architecture) of function unit, or arbitrary number of function unit
+architectures.
+
+The plug-in interface consists of methods to query the costs associated to a
+function unit. The functions return false in case they are not able to
+calculate the specific cost for the given function unit architecture
+(optionally accompanied with an implementation id). Using this mechanism,
+the estimator can query all FU estimation plug-ins in case they can estimate
+costs for a FU architecture in case no implementation id is given.
+
+\subsection{RF Cost Estimation Plug-in}
+
+RF cost estimation plug-in (currently) looks exactly like FU cost estimation
+plug-in. The interface is identical expect where it stands FU in FU plug-in,
+there stands RF in RF plug-in.
+
+\subsection{IC\&decoder Cost Estimation Plug-in}
+
+The plug-in interface is contained in the same plug-in interface which is
+used to generate the HDL for the IC\&decoder. The interface is documented
+in~\cite{ProGeDesign}.
+
+\subsection{Decompressor Cost Estimation Plug-in}
+
+Decompressor cost estimation interface is documented in~\cite{PIGDesign}.
+The cost estimation functionality is part of the plug-in that applies the
+compression to a program bit image and generates the HDL decompressor block.
+
+% \section{Module Communication}
+% TODO: some sequential diagram of two estimation cases:
+% - fully known implementation blocks
+% - some blocks do not have implementation (ask from estimation plugins
+%   to estimate)
+
+%% Remove this section if the design document describes just one module (or
+%% an application consisting of a single module).
+
+% This section describes the communication between modules of the
+% application or subsystem documented in this design document.
+
+
+
+\chapter{Module Design}
+
+The design of Estimator consists of a frontend class called
+\emph{CostEstimator}.
+
+\section{CostEstimator}
+
+\emph{CostEstimator} class is the main class of the cost estimation system.
+It loads the cost estimation plug-ins and calculates total cost estimate.
+Additionally, it provides interface for partial cost estimation purposes.
+Costs can be queried for individual FUs and RFs, and IC/Decoder, and
+decompressor.
+
+The class provides the same methods provided by individual plug-in modules.
+These methods are used to find an appropriate plug-in module for estimating
+the cost for the given machine part and estimate costs using it. In
+addition, there are methods for estimating costs of the whole machine.
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

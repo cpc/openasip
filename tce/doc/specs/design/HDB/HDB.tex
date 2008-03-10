@@ -1,0 +1,749 @@
+\documentclass[twoside]{tce}
+
+\begin{document}
+\author{Lasse Laasonen}
+\title{Hardware Database}
+\ver{0.5.3}
+\firstday{08.09.2005}
+\lastday{19.01.2005}
+% id number in S- sequence
+\docnum{(undefined)}
+% draft/complete/committed
+\state{draft}
+\maketitle
+
+% Version history
+\chapter*{Version History}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|p{0.10\textwidth}|p{0.15\textwidth}
+		|p{0.15\textwidth}|p{0.46\textwidth}|}
+\hline
+\textbf{Version} &\textbf{Date} &\textbf{Author} &
+\textbf{Description}\\
+\hline
+0.1  & 09.08.2005 & L. Laasonen     & 
+Contents of the database and most of the tables defined.\\
+0.2  & 09.09.2005 & L. Laasonen     &
+Changes in table names and in data contents concerning FU architecture.\\
+0.2.1 & 20.09.2005 & L. Laasonen &
+Added guard support attribute to RF architecture.\\
+0.3 & 22.09.2005 & P. Jääskeläinen &
+Added an explicit id to 'format' table and an explanation of what the table is (was a bit unclear).
+Added tables needed by Estimator.\\
+0.3.1 & 22.09.2005 & P. Jääskeläinen &
+Fixes to minor flaws noted by Lasse. \\
+0.3.2 & 26.09.2005 & P. Jääskeläinen &
+Added fu/rf/plugin references to the cost\_data table. \\
+0.4 & 26.09.2005 & L. Laasonen &
+Added HDBManager module.\\
+0.4.1 & 27.09.2005 & L. Laasonen &
+Cosmetic changes.\\
+0.4.2 & 28.09.2005 & L. Laasonen &
+Changed direction of \emph{fu}->\emph{fu\_implementation} and \emph{rf}->\emph{rf\_implementation} references. Fixed an error in the data content diagram.\\
+0.4.3 & 28.09.2005 & L. Laasonen &
+A couple of cosmetic changes in field names yet.\\
+0.4.4 & 29.09.2005 & L. Laasonen &
+Added \emph{action} field to \emph{io\_usage} table.\\
+0.4.5 & 05.10.2005 & L. Laasonen &
+Renamed a field in \emph{block\_source\_file} table.\\
+0.4.6 & 05.10.2005 & L. Laasonen &
+Combined path and file name in the \emph{block\_source\_file} table.
+Architecture is now optional in FU or RF entries.\\
+0.4.7 & 06.10.2005 & P. Jääskeläinen &
+Added name to \emph{cost\_function\_plugin} table.\\
+0.4.8 & 11.10.2005 & P. Jääskeläinen &
+Added \emph{\{bus,socket\}\_architecture}.\\
+0.4.9 & 12.10.2005 & P. Jääskeläinen &
+Renamed \emph{\{bus,socket\}\_architecture} to \emph{bus and socket}\\
+0.5   & 18.10.2005 & L. Laasonen &
+Added \emph{fu\_implementation\_parameter} table. Replaced the 
+\emph{width\_param} fields from \emph{fu\_port\_map} and 
+\emph{fu\_external\_port} tables with the \emph{width\_formula} field. Added
+\emph{opcode\_port\_width\_formula} field to \emph{rf\_data\_port} table.
+Removed the \emph{direction} field from \emph{fu\_data\_port} table.\\
+0.5.1 & 14.11.2005 & L. Laasonen &
+Added \emph{guard\_support} field to \emph{fu\_data\_port} table and 
+\emph{guard\_port} field to \emph{fu\_port\_map} table.\\
+0.5.2 & 23.11.2005 & L. Laasonen &
+Moved \emph{opcode\_port} field from \emph{fu\_port\_map} table to 
+\emph{fu\_implementation} table.\\
+0.5.3 & 19.01.2005 & L. Laasonen &
+Added fu\_ext\_port\_parameter\_dependency table.\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+% Table of contents
+\tableofcontents
+
+
+% Document text
+\chapter{INTRODUCTION}
+\label{cha:intro}
+
+\section{Purpose and Scope}
+
+This is the design document of Hardware Database (HDB). The purpose of
+this document is to describe the detailed design of the tables in the
+database and to give an overview how the data is accessed in different
+use cases.
+
+\section{Definitions}
+
+\section{Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+HDB & Hardware Database. \\
+SQL & Structured Query Language \\
+TCE & TTA Codesign Environment. \\
+TTA & Transport Triggered Architecture.\\
+UML & Unified Modeling Language. \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\chapter{Contents of the Database}
+
+This chapter describes the contents of the database in detail. In the
+beginning, an overview of the contents is given and the latter
+sections describes the relation tables in detail.
+
+\section{Overview}
+
+HDB is a database that contains all the necessary information of the
+provided and user defined processor building blocks, such as function
+units and register files that is needed by the tools of TCE. It
+consists of architural, cost and HDL implementation-specific
+information to make them usable in processor generation. The data in
+HDB lie in relation tables but HDB provides also an interface to
+clients that is in higher abstraction level. HDB is always accessed
+through this interface which hides the real implementation. Therefore
+the implementation of the database can be changed without any changes
+in the clients of the database. That is, clients do not access the
+database directly using SQL queries.
+
+\section{Data Content}
+
+Figure \ref{fig:data_content} depicts the data content of the
+database. It is an UML class diagram where each class represents a
+relation table in the database.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/hdb.eps,width=1.2\textwidth}}
+\caption{Data content diagram of the HDB.}
+\label{fig:data_content}
+\end{figure}
+
+\section{Relation Tables}
+
+This section defines the relation tables in the database. For each
+table, all the attributes are defined as well as the primary key.
+
+\begin{longtable}{|l||l|l|l|}
+\caption{Tables, fields and field types of the hardware database}
+\label{tab:database_contents}
+\cr\hline
+\bf{Table} & \bf{Field} & \bf{Field type} \\
+\hline
+              & @id            & id \\\cline{2-4}
+fu            & architecture   & id->fu\_architecture \\\cline{2-4}
+              & cost\_funtion  & cost\_function\_plugin->id \\\cline{2-4}
+\hline
+\hline
+fu\_architecture & @id         & id \\\cline{2-4}
+\hline
+
+\hline
+              & @id            & id \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{pipeline\_resource}
+              & fu\_arch           & fu\_architecture->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+operation\_pipeline & fu\_arch      & fu\_architecture->id \\\cline{2-4}
+              & operation      & operation->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & cycle & integer number \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{pipeline\_resource\_usage}
+              & resource       & pipeline\_resource->id \\\cline{2-4}
+              & pipeline       & operation\_pipeline->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & cycle          & integer number \\\cline{2-4}
+io\_usage     & io\_number     & integer number \\\cline{2-4}
+              & action         & boolean \\\cline{2-4}
+              & pipeline       & operation\_pipeline->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{operation}
+              & name           & string \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & triggers       & boolean \\\cline{2-4}
+              & sets\_opcode  & boolean \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{fu\_data\_port}
+              & guard\_support  & boolean \\\cline{2-4}
+              & width          & integer number \\\cline{2-4}
+              & fu\_arch       & fu\_architecture->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & io\_number     & integer number \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{io\_binding}
+              & port           & fu\_data\_port->id \\\cline{2-4}
+              & operation      & operation->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & name           & string \\\cline{2-4}
+              & opcode\_port   & string \\\cline{2-4}
+              & clk\_port      & string \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{fu\_implementation}
+              & rst\_port & string \\\cline{2-4}
+              & glock\_port    & string \\\cline{2-4}
+              & glock\_req\_port & string \\\cline{2-4}
+              & fu             & fu->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & opcode         & integer number \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{opcode\_map}   
+              & operation      & operation->id \\\cline{2-4}
+              & fu\_impl       & fu\_implementation->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & name           & string \\\cline{2-4}
+              & width\_formula & string \\\cline{2-4}
+fu\_port\_map & load\_port     & string \\\cline{2-4}
+              & guard\_port    & string \\\cline{2-4}
+              & fu\_impl       & fu\_implementation->id \\\cline{2-4}
+              & arch\_port     & fu\_data\_port->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & name           & string \\\cline{2-4}
+              & direction      & enumeration \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{fu\_external\_port}   
+              & width\_formula & string \\\cline{2-4}
+              & description    & string \\\cline{2-4}
+              & fu\_impl       & fu\_implementation->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & name & string \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{fu\_implementation\_parameter}   
+              & default\_value  & integer number \\\cline{2-4}
+              & fu\_impl       & fu\_implementation->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{fu\_ext\_port\_parameter\_dependency} & port & fu\_external\_port->id \\\cline{2-4}
+              & parameter      & fu\_implementation\_parameter->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+rf            & architecture   & rf\_architecture->id \\\cline{2-4}
+              & cost\_function & cost\_function\_plugin->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & size           & integer number \\\cline{2-4}
+              & width          & integer number \\\cline{2-4}
+              & read\_ports    & integer number \\\cline{2-4}
+              & write\_ports   & integer number \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{rf\_architecture}
+              & bidir\_ports   & integer number \\\cline{2-4}
+              & latency        & integer number \\\cline{2-4}
+              & max\_reads     & integer number \\\cline{2-4}
+              & max\_rw        & integer number \\\cline{2-4}
+              & guard\_support & boolean \\\cline{2-4} 
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & name           & string \\\cline{2-4}
+              & size\_param    & string \\\cline{2-4}
+              & width\_param   & string \\\cline{2-4}
+rf\_implementation & clk\_port  & string \\\cline{2-4}
+              & rst\_port      & string \\\cline{2-4}
+              & glock\_port    & string \\\cline{2-4}
+              & guard\_port    & string \\\cline{2-4}
+              & rf             & rf->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+              & name           & string \\\cline{2-4}
+              & direction      & enumeration \\\cline{2-4}
+\raisebox{1.5ex}[0pt]{rf\_data\_port}
+              & load\_port     & string \\\cline{2-4}
+              & opcode\_port   & string \\\cline{2-4}
+              & rf\_impl        & rf\_implementation->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+block\_source\_file & file     & string \\\cline{2-4}
+              & format         & format->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+rf\_source\_file & rf\_impl    & rf\_implementation->id \\\cline{2-4}
+              & file           & block\_source\_file->id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+fu\_source\_file & fu\_impl     & fu\_implementation->id \\\cline{2-4}
+              & file           & block\_source\_file->id \\\cline{2-4}
+\hline
+\hline
+bus           & @id         & id \\\cline{2-4}
+\hline
+\hline
+socket        & @id         & id \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-3}
+format        & format\_name   & string \\\cline{1-3}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+cost\_function\_plugin & description & string \\\cline{2-4}
+              & name           & string \\\cline{2-4}
+              & plugin\_file\_path           & string \\\cline{2-4}
+	      & type & string \{'fu' | 'rf' | 'decomp' | 'icdec'\} \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+cost\_estimation\_data   & plugin\_reference  & cost\_function\_plugin->id
+\\\cline{2-4}
+              & bus\_reference & bus->id \\\cline{2-4}
+              & socket\_reference & socket->id \\\cline{2-4}
+              & rf\_reference & rf->id \\\cline{2-4}
+              & fu\_reference & fu->id \\\cline{2-4}
+              & name & string \\\cline{2-4}
+              & value          & string \\\cline{2-4}
+\hline
+\hline
+              & @id            & id \\\cline{2-4}
+cost\_estimation\_metadata   & parent & cost\_estimation\_metadata->id
+\\\cline{2-4}
+              & name & string \\\cline{2-4}
+              & value          & string \\\cline{2-4}
+\hline
+
+
+\end{longtable}
+
+\subsection{format}
+
+Lists all possible formats the block implementations can be stored in (e.g.,
+'VHDL', 'Verilog', 'VHDL/Compiled'...).
+
+\subsection{cost\_function\_plugin}
+
+All cost estimation plugins must be registered in HDB. This includes, in
+addition to estimation plugins for FUs and RFs, also estimation plugins of
+decompressor and IC/decoder costs. \textbf{cost\_function\_plugin} table 
+lists the plugins that contain functions used to calculate costs for different
+types of elements. 
+
+Cost functions are stored in external plugin modules of which
+path is given in \textit{plugin\_file\_path} field. The path can be
+relative or absolute path. In case of a relative path, the default search
+locations are used to find the plugin. The class name of the plugin
+is stored in \textit{name}.
+
+Field \textit{type} tells the type of the cost estimation plugin. Type
+\textit{fu} is for function unit cost estimation function, \textit{rf} for
+register file cost estimation function, \textit{decomp} for decompressor
+generator plugin (which includes also estimation functions used to estimate
+costs of the particular decompressor), and \textit{icdec} for IC/decoder
+generator plugin (which includes also its cost estimation functions).
+
+\subsection{cost\_estimation\_data}
+
+Each cost estimation algorithm may store and retrieve arbitrary data in HDB.
+Such data can be pure measurement results of certain implementations, or
+anything that is needed to estimate the costs, for example, by interpolating
+between different cost data. The contents of data is purely decided by each
+estimation algorithm, therefore the data is stored as simple name/value pairs,
+in table \textbf{cost\_estimation\_data}. The table includes a list of names 
+(\textit{name}) and their values (\textit{value}). Each name/value pair can be
+connected to a cost estimation plugin (\textit{plugin\_reference}), to an FU
+entry (\textit{fu\_reference}), and  a RF entry (\textit{rf\_reference}). None
+of these connections are mandatory, thus can be NULL.  In addition, each
+name/value pair is identified with an unique id, thus it's possible to have
+multiple rows with identical fields -- only the row id must differ. This allows
+defining lists.
+
+\chapter{Access paths}
+
+This chapter illustrates how the information is obtained from the
+database in different use cases.
+
+\section{Use Case: Finding HW implementation of an FU}
+
+Input: ID of the function unit.\\ 
+Output: Implementation info of the FU.
+
+\emph{fu\_implementation} entry is obtained directly from the attribute
+\emph{fu->implementation}.
+
+\section{Use Case: Finding FU that has minimum cost}
+
+Input: Architecture definition of the function unit.\\
+Output: ID of the function unit.
+
+Architecture matching must be done at first. It can be done by
+selecting an \emph{fu\_architecture} entry one by one and checking its
+structure. Operation set is obtained by selecting the pipelines that
+refer to the particular \emph{fu\_architecture} entry. Data ports are
+obtained in the same way: by selecting the \emph{fu\_data\_port}
+entries that refer to that particular \emph{fu\_architecture}. When
+the architecture match is done, the \emph{fu} entries that refer to
+that architecture are selected. Then we have a set of \emph{fu}
+entries and we select the one that has the minimal cost.
+
+\chapter{HDBManager Module}
+
+\section{Overview}
+
+\emph{HDBManager} is a class that provides the interface used to access HDB. It contains methods to search, add and remove blocks from/to HDB. In 
+addition to the \emph{HDBManager} class, the module contains also
+other classes which are used to represent the contents of the
+database. The class diagram of the module is depicted in Figure
+\ref{fig:hdb_classdiagram}.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/hdb_classdiagram.eps,width=1.2\textwidth}}
+\caption{Class diagram of HDB module.}
+\label{fig:hdb_classdiagram}
+\end{figure}
+
+\section{HDBManager class}
+
+The HDBManager class provides an API to search, add and remove
+hardware blocks to/from HDB. This is the class that is used to access
+HDB. \emph{HDBManager} retrieves data from HDB by using SQL-queries and
+constructs C++ objects that represent the data. The objects can be
+handled by the clients then.
+
+\subsection{Interface}
+
+The HDBManager class has the following interface:
+
+\begin{description}
+\item[HDBManager(hdbFile : string)]%
+  Constructor. The HDB file to be managed by the HDBManager
+  instance is given as parameter.
+\item[addFunctionUnit(fu : FUEntry\&)]%
+  Add a new function unit to the HDB.
+\item[addRegisterFile(rf : RFEntry\&)]%
+  Add a new register file to the HBL.
+\item[removeFunctionUnit(id : int)]%
+  Remove the function unit that has the given id.
+\item[removeRegisterFile(id : int)]%
+  Remove the register file that has the given id.
+\item[fuByLooseArchitecture(architecture : FUArchitecture\&) : set<FUEntry*>]%
+  Returns all the FUs that has the given architecture. The returned
+  FUs may have extra operations that are not defined in the given
+  architecture.
+\item[rfByArchitecture(architecture : RFArchitecture\&) : set<RFEntry*>]%
+  Returns all the RFs that has the given architecture.
+\item[fuByID(id : integer) : FUEntry*]
+  Returns the FU that has the given ID.
+\item[rfByID(id : integer) : RFEntry*]
+  Returns the RF that has the given ID.
+\end{description}
+
+\section{FUEntry}
+
+\emph{FUEntry} class represents an FU in the HDB. It consists of 
+architecture and implementation parts (and cost part in the
+future). The implementation part may be missing, if there is only cost
+information of the FU in the HDB.
+
+\subsection{Interface}
+
+The \emph{FUEntry} class has the following interface:
+
+\begin{description}
+\item[FUEntry(id : integer, architecture : FUArchitecture*)]
+  The constructor. ID of the entry and the architecture are given as
+  parameters.
+\item[hasImplementation() : bool]
+  Tells whether the FU entry has an implementation.
+\item[implementation() : FUImplementation\&]
+  Returns the implementation of the FU.
+\item[architecture() : FUArchitecture\&]
+  Returns the architecture of the FU.
+\item[id() : integer]
+  Returns the ID of the entry.
+\item[hdbFile() : string]
+  Returns the name of the HDB file that contains the entry.
+\end{description}
+
+\section{FUArchitecture}
+
+FUArchitecture represents the visible architecture of a function
+unit. The architecture is mainly represented by the contained
+\emph{TTAMachine::FunctionUnit} instance but since the architecture
+may be parameterized, \emph{FUArchitecture} instance tells what is
+parameterized in the architecture.
+
+\subsection{Interface}
+
+\emph{FUArchitecture} class has the following interface:
+
+\begin{description}
+\item[FUArchitecture(fu : TTAMachine::FunctionUnit*)]
+  The constructor.
+\item[hasParameterizedWidth(port : string) : bool]
+  Tells whether the port of the given name has parameterized width.
+\item[setParameterizedWidth(port : string)]
+  Sets parameterized width for port of the given name.
+\item[architecture() : TTAMachine::FunctionUnit\&]
+  Returns the architecture.
+\end{description}
+
+\section{HWBlockImplementation}
+
+\emph{HWBlockImplementation} is a base class for \emph{FUImplementation} and \emph{RFImplementation}. It bundles up the common properties of those classes. It contains \emph{BlockImplementationFile} object(s) each of which represent a file that implements (a part of) the hardware block.
+
+\subsection{Interface}
+
+The \emph{HWBlockImplementation} class has the following interface:
+
+\begin{description}
+\item[HWBlockImplementation(moduleName : string, clkPort : string, rstPort : string, glockPort : string)]
+  The constructor. Name of the module and general ports are given as
+  parameters.
+\item[moduleName() : string]
+  Returns the name of the module.
+\item[clkPort() : string]
+  Returns the name of the clock port.
+\item[rstPort() : string]
+  Returns the name of the reset port.
+\item[glockPort() : string]
+  Returns the name of the global lock port.
+\item[addImplementationFile(file : BlockImplementationFile*)]
+  Adds the given implementation file for the implementation.
+\end{description}
+
+\section{FUImplementation}
+
+\emph{FUImplementation} class represents one particular hardware 
+implementation of a function unit. It tells the names of the ports in
+the hardware implementation and how the ports are mapped to the
+corresponding ports in the architecture.
+
+\subsection{Inteface}
+
+The \emph{FUImplementation} class has the following interface:
+
+\begin{description}
+\item[FUImplementation(name : string, clkPort : string, rstPort : string, glockPort : string, glockReqPort : string, parent : FUEntry\&)]
+  The constructor. Module name and port names are given as
+  parameters. Empty string is given if some port is missing. Also the
+  parent \emph{FUEntry} is given and the instance is automatically
+  registered to the parent.
+\item[glockRequestPort() : string]
+  Returns the name of the global lock request port.
+\item[setOperationCode(operation : string, opcode : int)]
+  Sets opcode for the given operation.
+\item[operationCode(operation : string)]
+  Returns the opcode of the given operation.
+\end{description}
+
+\section{FUExternalPort}
+
+This class represents an external port in the FU. The port is not
+visible in the architecture of the FU since it is external to the
+whole processor.
+
+\subsection{Interface}
+
+The \emph{FUExternalPort} class has the following interface:
+
+\begin{description}
+\item[FUExternalPort(name : string, direction : enum, width : int, description : string, parent : FUImplementation\&)]
+  The constructor. A non-parameterized port is created by this constructor.
+\item[FUExternalPort(name : string, direction : enum, widthParameter : string, description : string, parent : FUImplementation\&)]
+  The constuctor. Parameterized port is created by this constructor.
+\item[name() : string]
+  Returns the name of the port.
+\item[direction() : enum]
+  Returns the direction of the port.
+\item[hasParameterizedWidth() : bool]
+  Tells whether the port has parameterized width.
+\item[widthParameter() : string]
+  Returns the name of the width parameter.
+\item[width() : integer]
+  Returns the bit width of the port.
+\item[description() : string]
+  Returns the description of the port.
+\end{description}
+
+\section{FUPortImplementation}
+
+This class represents a port in the hardware implementation. It tells
+also which is the corresponding port in the architecture.
+
+\subsection{Interface}
+
+The \emph{FUPortImplementation} class has the following interface:
+
+\begin{description}
+\item[FUPortImplementation(name : string, architecturePort : string, widthParameter : string, loadPort : string, opcodePort : string, parent : FUImplementation\&)]
+  The constructor. Name of the port, the corresponding architectural
+  port, the width parameter, the load port and the opcode port are
+  given as parameters. Empty string is given if some doesn't exist.
+\item[name() : string]
+  Returns the name of the port.
+\item[architecturePort() : string]
+  Returns the name of the architecture port.
+\item[widthParameter() : string]
+  Returns the name of the width parameter.
+\item[loadPort() : string]
+  Returns the name of the load enable port.
+\item[opcodePort() : string]
+  Returns the name of the opcode port.
+\end{description}
+
+\section{RFEntry}
+
+The \emph{RFEntry} class is corresponding class to \emph{FUEntry} but
+it represents a register file. It consists of architecture part and
+possibly implementation part. It the future also cost part is added.
+
+\subsection{Interface}
+
+The \emph{RFEntry} class has the following interface:
+
+\begin{description}
+\item[RFEntry(id : integer, architecture : RFArchitecture*)]
+  The constructor. ID and architecture are given as parameters.
+\item[architecture() : RFArchitecture\&]
+  Returns the architecture of the register file.
+\item[hasImplementation() : bool]
+  Tells whether the RF has a hardware implementation also.
+\item[implementation() : RFImplementation\&]
+  Returns the implementation of the register file.
+\item[id() : int]
+  Returns the id of the register file.
+\item[hdbFile() : string]
+  Returns the name of the HDB file that contains the entry.
+\end{description}
+
+\section{RFArchitecture}
+
+The \emph{RFArchitecture} class represents the architectural
+properties of a register file.
+
+\subsection{Interface}
+
+The \emph{RFArchitecture} class has the following interface.
+
+\begin{description}
+\item[RFArchitecture(maxReads : int, maxWrites : int, readPorts : int, writePorts : int, bidirPorts : int, latency : int)]
+  The constructor. Creates an architecture with parameterized width and size.
+\item[hasParameterizedWidth() : bool]
+  Tells whether the architecture has parameterized width.
+\item[hasParameterizedSize() : bool]
+  Tells whether the architecture has parameterezed size.
+\item[setSize(size : int)]
+  Sets a fixed size.
+\item[setWidth(width : int)]
+  Sets a fixed width.
+\item[size() : int]
+  Returns the size of the register file.
+\item[width() : int]
+  Returns the width of the register file.
+\item[maxReads() : int]
+  Returns the maximum simultaneous reads of the register file.
+\item[maxWrites() : int]
+  Returns the maximum simultaneous writes of the register file.
+\item[readPortCount() : int]
+  Returns the number of read ports.
+\item[writePortCount() : int]
+  Returns the number of write ports.
+\item[bidirPortCount() : int]
+  Returns the number of bidirectional ports.
+\item[latency() : int]
+  Returns the latency of the register file.
+\end{description}
+
+\section{RFImplementation}
+
+\emph{RFImplementation} class represents one particular implementation of a register file. It is corresponding to the \emph{FUImplementation} class. It is always consisted by \emph{RFEntry} object.
+
+\subsection{Interface}
+
+The \emph{RFImplementation} class has the following interface:
+
+\begin{description}
+\item[RFImplementation(sizeParam : string, widthParam : string, guardPort : string, parent : RFEntry\&)]
+  The constructor. Registers the instance automatically to the given parent.
+\item[sizeParameter() : string]
+  Returns the name of the size parameter.
+\item[widthParameter() : string]
+  Returns the name of the width parameter.
+\item[guardPort() : string]
+  Returns the name of the guard port.
+\end{description}
+
+\section{RFPortImplementation}
+
+\emph{RFPortImplementation} class represents a read, write or bidirectional port of a register file implementation.
+
+\subsection{Interface}
+
+The \emph{RFPortImplementation} class has the following interface:
+
+\begin{description}
+\item[RFPortImplementation(name : string, direction : enum, loadPort : string, opcodePort : string, parent : RFImplementation\&)]
+  The constructor. Name of the port, direction and names of the load
+  enable port and opcode port are given as parameters. The port is
+  registered automatically to the given parent.
+\item[name() : string]
+  Returns the name of the port.
+\item[direction() : enum]
+  Returns the direction of the port.
+\item[loadPort() : string]
+  Returns the name of the load enable port.
+\item[opcodePort() : string]
+  Returns the name of the load enable port.
+\end{description}
+
+\section{BlockImplementationFile}
+
+This class represents a file that contains hardware implementation of
+a module.
+
+\subsection{Interface}
+
+The \emph{BlockImplementationFile} class has the following interface:
+
+\begin{description}
+\item[BlockImplementationFile(pathToFile : string, format : enum)]
+  The constructor.
+\item[pathToFile() : string]
+  Returns the name of the file.
+\item[format() : string]
+  Returns the format of the file.
+\end{description}
+
+\chapter{Open Issues}
+
+None at the moment.
+
+\end{document}

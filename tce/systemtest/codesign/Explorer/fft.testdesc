@@ -1,0 +1,8 @@
+<?php
+// short test description
+$test_description="Initial machine generator for fft case";
+
+// the binary being tested
+//$test_bin="../../../src/codesign/Explorer/explore -e InitialMachineExplorer -a data/FFTTest data/test.dsdb";
+$test_bin="./run_fft.sh";
+?>

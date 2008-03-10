@@ -1,0 +1,20 @@
+/**
+ * @file EntryKeyField.icc
+ *
+ * Inline implementation of EntryKeyField class.
+ *
+ * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @note rating: red
+ */
+
+
+/**
+ * Returns type of the field.
+ *
+ * @return Type of the field.
+ */
+inline const EntryKeyFieldProperty*
+EntryKeyField::type() const {
+    return properties_;
+}

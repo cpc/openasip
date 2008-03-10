@@ -1,0 +1,115 @@
+#!/bin/sh
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+exec_prefix_set=no
+
+tcl_ldflags="@TCL_LD_FLAGS@"
+
+editline_ldflags="@EDITLINE_LD_FLAGS@"
+editline_includes="@EDITLINE_INCLUDES@"
+
+boost_includes="@BOOST_INCLUDES@"
+boost_ldflags="@BOOST_LIBDIR@ @BOOST_LDFLAGS@"
+
+sqlite_includes="@SQLITE_INCLUDES@"
+sqlite_ldflags="@SQLITE_LD_FLAGS@"
+
+xerces_ldflags="@XERCES_LIBDIR@ @XERCES_LIBS@"
+
+shared_cxxflags="@SHARED_CXX_FLAGS@"
+
+dl_flags="@DL_FLAGS@"
+
+cppflags="@CPPFLAGS@"
+
+cxxflags="@CXXFLAGS@"
+
+cxx_command="@CXX@"
+
+dynamic_flag="@DYNAMIC_FLAG@"
+
+usage()
+{
+	cat <<EOF
+Usage: tce-config [OPTIONS]
+Options:
+  [--prefix]
+  [--exec-prefix]
+  [--libs]
+  [--includes]
+  [--cxxflags]
+  [--c++-compiler]
+  [--so-flags]
+EOF
+	exit $1
+}
+
+if test $# -eq 0; then
+	usage 1 1>&2
+fi
+
+while test $# -gt 0; do
+  case "$1" in
+  -*=*) optarg=`echo "$1" | sed 's/[-_a-zA-Z0-9]*=//'` ;;
+  *) optarg= ;;
+  esac
+
+  case $1 in
+    --prefix)
+      echo_prefix=yes
+      ;;
+    --exec-prefix)
+      echo_exec_prefix=yes
+      ;;
+    --libs)
+      echo_libs=yes
+      ;;
+    --includes)
+      echo_includes=yes
+      ;;
+    --c++-compiler)
+      compiler_command=yes
+      ;;
+    --so-flags)
+      so_flags=yes
+      ;;
+    --cxxflags)
+      echo_cxxflags=yes
+      ;;
+    *)
+      usage 1 1>&2
+      ;;
+  esac
+  shift
+done
+
+if test "$echo_prefix" = "yes"; then
+    echo $prefix
+fi
+
+if test "$compiler_command" = "yes"; then
+    echo $cxx_command
+fi
+
+if test "$so_flags" = "yes"; then
+    echo $shared_cxxflags
+fi
+
+if test "$echo_exec_prefix" = "yes"; then
+    echo $exec_prefix
+fi
+
+if test "$echo_includes" = "yes"; then
+    includes="-I@includedir@ -I@includedir@/tce"
+    echo "$includes $editline_includes $boost_includes $sqlite_includes"
+fi
+
+if test "$echo_libs" = "yes"; then
+    libdirs=-L@libdir@
+    echo "$libdirs -ltce $tcl_ldflags $editline_ldflags $boost_ldflags $sqlite_ldflags $xerces_ldflags"
+fi      
+
+if test "$echo_cxxflags" = "yes"; then
+    echo "$cxxflags"
+fi

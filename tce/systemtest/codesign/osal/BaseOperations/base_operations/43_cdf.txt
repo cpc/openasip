@@ -1,0 +1,5 @@
+!output float
+cdf 6.23589
+cdf 0.0
+cdf 70000.2
+!quit

@@ -1,0 +1,25 @@
+     1: at address 8 
+      1        <unknownFunctionName+1>: 52 -> RF.2, 53 -> RF.3 ;
+ALU
+LSU
+ADD
+GCU
+bus1: seg1
+bus2: seg2
+50
+RF
+     1: at address 8 has condition '[info ports ADD P3] == -16' 
+      8        <unknownFunctionName+8>: 0 -> ALU.P1, ADD.P3 -> ALU.P2.add ;
+Stopped at breakpoint 1.
+51
+RF.0 0x32 50
+RF.1 0x33 51
+RF.2 0x34 52
+RF.3 0x35 53
+RF.4 0x0 0
+Not enough arguments.
+ADD.P1 0xf 15
+ADD.P2 0x1 1
+ADD.P3 0x10 -16
+15
+Not enough arguments.

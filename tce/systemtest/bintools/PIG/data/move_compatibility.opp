@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>LD</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+  </operation>
+
+  <operation>
+    <name>LDB</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <reads-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <out id="2" type="UIntWord">
+      <mem-data/>
+    </out>
+  </operation>
+
+  <operation>
+    <name>ST</name>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="UIntWord">
+      <mem-data/>
+    </in>
+  </operation>
+
+  <operation>
+    <name>STB</name>
+    <inputs>2</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+    <in id="2" type="UIntWord">
+      <mem-data/>
+    </in>
+  </operation>
+
+</osal>

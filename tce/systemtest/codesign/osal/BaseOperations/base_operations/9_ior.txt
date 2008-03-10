@@ -1,0 +1,7 @@
+!output bin
+ior 1010101010b 101010101b
+!output hex
+ior 0x1234 0x4321
+!output signed
+ior 356882 456782
+!quit

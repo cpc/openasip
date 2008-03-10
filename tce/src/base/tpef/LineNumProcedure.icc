@@ -1,0 +1,81 @@
+/**
+ * @file LineNumProcedure.icc
+ *
+ * Inline definitions of LineNumProcedure class.
+ *
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ *
+ * @note rating: yellow
+ */
+
+#include "MapTools.hh"
+
+namespace TPEF {
+
+/**
+ * Returns symbol of the procedure.
+ *
+ * @return Symbol of the procedure.
+ */
+inline SymbolElement*
+LineNumProcedure::procedureSymbol() const {
+    return dynamic_cast<SymbolElement*>(symbol_->pointer());
+}
+
+/**
+ * Symbol of the procedure.
+ *
+ * @param Symbol of the procedure.
+ */
+inline void
+LineNumProcedure::setProcedureSymbol(
+    const ReferenceManager::SafePointer* aRef) {
+    symbol_ = aRef;
+}
+
+/**
+ * Symbol of the procedure.
+ *
+ * @param Symbol of the procedure.
+ */
+inline void
+LineNumProcedure::setProcedureSymbol(SymbolElement* aRef) {
+    symbol_ = ReferenceManager::SafePointer::replaceReference(symbol_, aRef);
+}
+
+/**
+ * Adds line to procedure.
+ *
+ * If there is already value for that line number, it will be deleted
+ * and replaced by a new element.
+ *
+ * @param elem Line number to add.
+ */
+inline void
+LineNumProcedure::addLine(const LineNumElement* elem) {
+    assert(elem != NULL);
+    lines_.push_back(elem);
+}
+
+/**
+ * Returns the element of requested index.
+ *
+ * @param index Index of element to return.
+ * @return Element which was found from requested index.
+ */
+inline const LineNumElement*
+LineNumProcedure::line(HalfWord index) const {
+    return lines_[index];
+}
+
+/**
+ * Returns line numbers which are defined for procedure.
+ *
+ * @return Line numbers which are defined for procedure.
+ */
+inline HalfWord
+LineNumProcedure::lineCount() const {
+    return lines_.size();
+}
+
+}

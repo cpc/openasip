@@ -1,0 +1,96 @@
+/**
+ * @file BinaryStream.icc
+ *
+ * Implementation of BinaryStream class inline functions.
+ *
+ * @author Ari Metsähalme 2003 (ari.metsahalme@tut.fi)
+ * @note reviewed 7 August 2003 by pj, am, jn, ao, rl
+ *
+ * @note rating: yellow
+ */
+
+#include "Exception.hh"
+#include "BinaryStream.hh"
+
+namespace TPEF {
+
+/**
+ * Reads a single byte from the stream.
+ *
+ * Opens the stream if it's not opened yet.
+ *
+ * @return One byte from the stream.
+ * @exception UnreachableStream If stream is bad.
+ * @exception EndOfFile If end of file was reached unexpectedly.
+ */
+inline Byte
+BinaryStream::getByte() throw (UnreachableStream, EndOfFile) {
+    if (!iStream_.is_open()) {
+        openInput(fileName_);
+    }
+    
+    if (iStream_.bad()) {
+        throw UnreachableStream(__FILE__, __LINE__, __func__, fileName_);
+    }
+    if (iStream_.eof()) {
+        throw EndOfFile(__FILE__, __LINE__, __func__, fileName_);
+    }
+
+    Byte result = iStream_.get();
+
+    if (iStream_.bad()) {
+        throw UnreachableStream(__FILE__, __LINE__, __func__, fileName_);
+    }
+
+    return result;
+}
+
+
+/**
+ * Writes a single byte to the stream.
+ *
+ * Opens the stream if it's not opened yet.
+ *
+ * @note If write position is set past the end of file, putByte will throw
+ *       UnreachableStream exception.
+ *
+ * @param byte The byte to write to the stream.
+ * @exception UnreachableStream If stream is bad.
+ * @exception WritePastEOF If write position is set past the end of
+ *            file and writing is attempted.
+ */
+inline void
+BinaryStream::putByte(Byte byte) throw (UnreachableStream, WritePastEOF){
+
+    if (extOStream_ != NULL) {
+        extOStream_->put(byte);
+        return;
+    }
+
+    if (!oStream_.is_open()) {
+        openOutput(fileName_);
+    }
+
+    if (oStream_.bad()) {
+        throw UnreachableStream(__FILE__, __LINE__, __func__, fileName_);
+    }
+
+    unsigned int writePos = oStream_.tellp();
+    oStream_.seekp(0, std::ios::end);
+    unsigned int eofPos = oStream_.tellp();
+
+    if (writePos > eofPos) {
+        oStream_.seekp(writePos);
+        throw WritePastEOF(__FILE__, __LINE__, __func__, fileName_);
+    }
+
+    oStream_.seekp(writePos);
+    oStream_.put(byte);
+
+    if (oStream_.bad()) {
+        throw UnreachableStream(__FILE__, __LINE__, __func__, fileName_);
+    }
+
+}
+
+}

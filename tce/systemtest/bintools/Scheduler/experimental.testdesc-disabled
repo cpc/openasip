@@ -1,0 +1,6 @@
+<?php
+// short test description
+$test_description="Scheduling short test cases with experimental scheduler";
+$test_bin="./testexp.sh";
+$bin_args="-r";
+?>

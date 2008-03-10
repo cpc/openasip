@@ -1,0 +1,26 @@
+#!/bin/bash
+CURDIR=$(pwd)
+cd $CURDIR
+
+# Compile the IC&decoder estimator plugin.
+pushd . > /dev/null
+cd ../../../icdecoder_plugins/ && rm -f *.so
+../src/procgen/ProGe/buildicdecoderplugin DefaultICDecoderPlugin.so DefaultICDecoderPlugin.cc DefaultDecoderGenerator.cc DefaultICGenerator.cc CentralizedControlICGenerator.cc > /dev/null
+popd > /dev/null
+
+# Compile the FU estimator plugin.
+pushd . > /dev/null
+cd ../../../cost_estimator_plugins/fu/ && rm -f *.so
+make > /dev/null
+popd > /dev/null
+
+# Compile the RF estimator plugin.
+pushd . > /dev/null
+cd ../../../cost_estimator_plugins/rf/ && rm -f *.so
+make > /dev/null
+popd > /dev/null
+
+./generate_hdb.sh
+./generate_tracedb.sh
+# Test with:
+# ../../../src/codesign/Estimator/estimate -p data/worm.tpef -t data/worm.tpef.trace data/worm.adf data/worm.idf

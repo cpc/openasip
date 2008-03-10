@@ -1,0 +1,8 @@
+info program
+prog data/hello
+info program
+stepi
+info program
+until 6
+info program
+quit

@@ -1,0 +1,1525 @@
+\documentclass[a4paper,twoside]{tce}
+
+\usepackage{pslatex}
+
+\begin{document}
+\author{Andrea Cilio, Pekka J\"a\"askel\"ainen, Mikael Lepist\"o}
+\title{Operation Set Abstraction Layer}
+\ver{0.11.1}
+\firstday{24.02.2004}
+\lastday{25.04.2006}
+% id number in S- sequence
+\docnum{028}
+% draft/complete/committed
+\state{draft}
+
+\maketitle
+
+
+\chapter*{Version History}
+
+\begin{HistoryTable}
+
+ 0.1    & 24.02.2004 & A. Cilio   &
+ First fragments. \\
+
+ 0.1.1  & 11.03.2004 & P. J\"a\"askel\"ainen &   
+ Added information of the proxy mechanism used in behavior loading
+ function of \emph{Operation}. \\
+
+ 0.2    & 22.03.2004 & A. Cilio   &
+ Added chapter 4, Operation Model. \\
+
+ 0.3    & 26.03.2004 & A. Cilio   &
+ Added chapter 5, Language.  Added pending issues: Proxy design, state
+ lookup, 8. Minor changes. \\
+
+ 0.4    & 29.03.2004 & A. Cilio   &
+ Minor, partial changes after P. J\"a\"askel\"ainen's review. \\
+
+ 0.4.1    & 17.05.2004 & P. J\"a\"askel\"ainen &
+
+ Text revision to match current design status.  Still some classes missing.
+ Clarified issues: operation behavior proxy and macro USES\_STATE.\\
+
+ 0.4.2      & 17.05.2004 & P. J\"a\"askel\"ainen &
+ Cleanups, prepare to add data from the new class diagram.\\
+
+ 0.5.0      & 18.05.2004 & P. J\"a\"askel\"ainen &
+
+ Added classes: \emph{OperationSerializer}, \emph{OperationBehavior}.
+ Extended classes: \emph{OperationPool}, \emph{Operation},
+ \emph{Operand}.\\
+
+ 0.5.1      & 19.05.2004 & P. J\"a\"askel\"ainen &
+ Added or revised descriptions of remaining classes.\\
+
+ 0.6        & 21.05.2004 & A. Cilio &
+ Major revision of the design.  Introduced classes \emph{OperationIndex} and
+ \emph{OperationModule}.  \\
+
+ 0.6.1      & 24.05.2004 & P. J\"a\"askel\"ainen &
+ Added algorithm for loading \emph{Operations}.  Added state-management API
+ to \emph{OperationBehavior} and \emph{OperationContext}.  Minor
+ corrections.  \\
+ 
+ 0.6.2      & 25.05.2004 & P. J\"a\"askel\"ainen &
+ Updated class diagrams.  Added simplified diagram: OSAL relations with its
+ client.  Renamed \emph{OperationContext} methods for state management.
+ Minor updates and fixes. \\
+
+ 0.6.3      & 29.05.2004 & P. J\"a\"askel\"ainen &
+ Not an error if a search path of \emph{OperationIndex} does not exist.
+ Added state-management API to \emph{Operation} class. \\
+
+ 0.7        & 31.05.2004 & A. Cilio &
+ Revised state-management API.  Extensive text revision. \\
+
+ 0.8        & 05.06.2004 & A. Cilio &
+ Added \emph{OperationPropertyLoader}.  \emph{OperationState} name.  Special
+ state via \emph{SimValue} objects.  Replaced nonmember assignment operators
+ (not C++) with conversion operators.  Updated some of the behaviour
+ language macros. \\
+
+ 0.8.1      & 08.06.2004 & P. J\"a\"askel\"ainen &
+ Added \emph{OperationPropertyLoader} to the class diagram. No method in
+ \emph{OperationBehavior} is pure virtual anymore; all create a ``null''
+ OperationBehavior object. \\
+
+ 0.8.2      & 10.06.2004 & P. J\"a\"askel\"ainen &
+ Reduced ``Behavior Definition Language'' chapter to a reference to comments
+ in OSAL.hh. \\
+
+ 0.8.3      & 10.06.2004 & J. Nyk\"anen &
+ Added two new methods to \emph{OperationPropertyLoader}.\\
+
+ 0.8.4      & 10.06.2004 & P. J\"a\"askel\"ainen &
+ Added \emph{Operation} argument to the behavior factory functions.\\
+
+ 0.8.5      & 11.06.2004 & J. Nyk\"anen &
+ Removed methods from \emph{OperationPropertyLoader}. Added information
+ about \emph{OperationIndex} (that it uses \emph{OperationSerializer}). \\
+
+ 0.8.6      & 14.06.2004 & P. J\"a\"askel\"ainen &
+ Updated information on \emph{SimValue}; added overloaded operators. \\
+
+ 0.8.7      & 17.06.2004 & P. J\"a\"askel\"ainen &
+ Added parent \emph{Operation} argument to method lookupBehavior of
+ \emph{OperationBehaviorLoader}. \\
+
+ 0.8.8      & 22.07.2004 & J. Nyk\"anen &
+ Added two methods to \emph{OperationIndex} and four methods to
+ \emph{Operation}. \\
+
+ 0.8.9      & 19.08.2004 & P. J\"a\"askel\"ainen &
+ Added information about MEM macro and its implementation. Added the memory
+ natural word width to \emph{OperationContext}.\\
+
+ 0.9        & 26.08.2004 & P. J\"a\"askel\"ainen &
+ Major modifications to behavior simulation API due to changes to Memory
+ Model. Added definitions of load and store operations as examples. Added
+ indentification code to \emph{OperationContext}.  Added syscall registers
+ to \emph{OperationContext}. \\
+
+ 0.10       & 31.08.2004 & A. Cilio &
+ Removed \emph{SimValue} overloaded operators. Several corrections
+ throughout the document. Fixed document history table.\\
+
+ 0.10.1     & 31.08.2004 & P. J\"a\"askel\"ainen &
+ Method \emph{lateResult} back to \emph{OperationBehavior}. Moved examples
+ of load and store implementations to requirement document. Updated class
+ diagrams.\\
+
+ 0.10.2     & 01.09.2004 & P. J\"a\"askel\"ainen &
+ Added method \emph{lateResult} to \emph{OperationState}. Changed access of
+ \emph{SimValue} contents (now direct).\\
+
+ 0.10.3     & 06.09.2004 & P. J\"a\"askel\"ainen &
+ Reorganisation of methods between classes \emph{OperationBehavior},
+ \emph{OperationState}, and \emph{OperationContext}.\\
+
+ 0.10.4      & 03.08.2005 & A. Cilio &
+ Assigned document number.\\
+
+ 0.11        & 08.03.2006 & A. Cilio &
+ Partial update of operation behaviour and state to ``as is''. \\
+
+ 0.11.1      & 25.04.2006 & A. Cilio &
+ Minor update.\\
+
+ 0.12.0      & 18.12.2007 & M. Lepist\"o &
+ Added section about Operation DAG.\\
+
+\end{HistoryTable}
+
+
+\tableofcontents
+
+
+
+\chapter{INTRODUCTION}
+
+\section{Purpose and Scope}
+
+This document describes the software architecture and the design of the
+Operation Set Abstraction Layer (OSAL).
+
+
+\section{Definitions}
+
+\begin{description}
+\item[Application]%
+  A stand-alone executable program that provides services for users of the
+  TCE toolset. It may be controlled by a command-line interface or by a
+  graphical user interface, or via a driver application that integrates a
+  group of related applications.
+\item[Client]%
+  Any part of a module or application that interacts with an object or
+  module by means of the interface provided by it.
+\item[Module]%
+  Part of an application or library which can be accessed and manipulated by
+  clients solely by means of the interface it provides.
+\item[Operation] %
+  The minimum amount of activity that can be performed by a function unit.
+  In a sequential processor architecture, operations are equivalent to
+  machine instructions.
+\item[Repertoire] (of operations) %
+  The set of all operations that may be implemented in a processor that
+  instantiates the TTA template.
+\end{description}
+
+
+
+\section{Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+OSAL  & Operation Set Abstraction Layer.  \\
+TCE   & TTA Co-design Environment. \\
+TTA   & Transport Triggered Architectures. \\
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\chapter{MODULE OVERVIEW}
+
+This chapter describes the high-level architecture of the OSAL module.
+
+\section{Philosophy of Design}
+
+% Describe the principles behind this design and give an overview of
+% it. Motivate briefly the design if necessary.
+
+%% No description of the module purpose and motivation, that belongs to the
+%% functional specification document.
+
+From the logical point of view, OSAL provides an abstract model of the
+target TTA operation repertoire and of every operation contained in it.  The
+repertoire is represented by a single class object, \emph{OperationPool},
+whereas the properties of operations are represented by as many objects as
+are the operations that clients need to work with.
+
+From the deployment point of view, the OSAL module can be divided into two
+very different parts:
+\begin{enumerate}
+\item %
+  A fixed submodule of the domain library.
+\item %
+  A variable number of files that contain operation definitions.
+\end{enumerate}
+
+The domain library part provides the interface to access operation
+repertoires and lookup the definition of single operations.
+
+The operation definition data is accessed solely \emph{at run time} and is
+organized into a variable number of dynamic modules and data files.  
+Any modification in the dynamic modules and data files affects
+the operation repertoire data set automatically, without any need to
+recompile or statically re-link the domain library or the applications that
+are client of OSAL module.
+
+\paragraph{Open-Ended Repertoire.}
+The operation repertoire is open-ended. Its design does not rely on
+hard-coded, reserved ``operation codes'' nor it reserves ``free operation
+slots'' for future user-defined operations.
+
+\paragraph{Transparent dynamic loading.}
+One of the useful services provided by OSAL is encapsulated interaction
+with dynamic modules. Because of this, user of OSAL doesn't need to know 
+that behavior is loaded from dynamic modules and static properties from 
+XML files.  The system- and implementation-dependent aspects
+of opening and linking symbols at run time (for example, by means of the
+Solaris and Linux \verb#dlopen()# interface) is hidden in toolkit module
+\emph{PluginTools}.
+
+\section{External Modules/ Application Environment}
+
+% Overview of module from an external perspective:
+% - dependencies with external modules-subsystems
+% - IFs of external modules that are used
+% - external (file) data formats used
+
+This section describes the modules of TCE system on which OSAL depends.
+
+\subsection{MemoryModel}
+
+Operations that access memory are clients of the Memory Model. An instance
+of Memory Model is accessed via OSAL macros and is stored in the operation
+context.
+
+\subsection{PluginTools}
+
+Handling of dynamic modules, also known as ``plugin modules'' is delegated
+to a toolkit module called \emph{PluginTools}.
+
+\subsection{XMLSerializer}
+
+Toolkit module \emph{XMLSerializer} works as a layer between the actual XML
+library and TCE.  It is used to load the static properties of operations.
+
+\section{Architecture of Databases}
+
+% Describes the data types defined and used by the module and their
+% relations.  The description is at type-accurate level. For example, the
+% description may consist of UML class diagrams with the attributes and
+% interfaces of classes of the target program. Another example, the database
+% tables are defined precisely, at level of single fields.
+
+The operation repertoire source data is stored in two types of files: XML
+data files and source files of the implementation language (C++).  The
+source files contain code that must be imported into client applications in
+order to simulate operation behavior.  The source files are compiled to
+independent plugin modules with the aid of a helper application ``OSAL
+builder''.
+
+The XML files contain specifications of operation properties, including a
+specification based on C++ of the operation behavior that can be integrated
+into the operation set simulator.
+
+
+%% \section{? Main Restrictions of Implementation}
+
+%% This section is in design document of SW document course
+%% I need to know precisely what it should contain to decide if it's useful
+%% enough for us.
+
+
+\section{Module Communication}
+
+The diagram depicted in Figure~\ref{fig:OSAL-communication} summarizes the
+dependencies and communication links between OSAL main classes and clients.
+Diagram is simplified for clarity.  For example, the Machine State Model
+(MSM) doesn't access OperationState objects directly, but holds them via
+\emph{OperationContext} objects, one in each class that models the Function
+Unit state.
+
+The Operation Set Abstraction Layer communicates and directly uses the
+interface of the Memory Model (described in~\cite{MemoryModuleDesign}
+and~\cite{SimulatorSpecs}).
+
+Except for memory and the toolkit modules, OSAL is completely independent
+from other modules. Communication with clients occurs only through operation
+input and output values implemented by type \emph{SimValue} and the
+operation context, modeled by class \emph{OperationContext}.
+
+The role of \emph{SimValue} and \emph{OperationContext} is crucial, because
+these classes provide the level of indirection necessary to insulate OSAL
+from direct dependencies of other domain modules.  In particular, the
+operation behavior model depends on data held in the Machine State Model and
+Machine Object Model.  For this reason, \emph{SimValue} and
+\emph{OperationContext} must provide a copy of such data.  For example, the
+bit width of a data word is included in the representation of the word given
+by a \emph{SimValue}.
+
+
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/OSALComm.eps,width=0.60\textwidth}}
+  \caption{Communication between parts of OSAL module and between OSAL and
+    client modules.}
+  \label{fig:OSAL-communication}
+\end{figure}
+
+\chapter{CLASSES}
+
+A detailed class diagram of Operation Set Abstraction Layer can be found
+from osal doxygen documentation.
+
+Figure~\ref{fig:OSAL_class_diagram_simple} shows a simplified class diagram 
+with relations of the OSAL classes to the client (``ClientUnit'').
+
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/OSALClassesSimplified.eps,width=1.0\textwidth}}
+  \caption{Simplified class diagram of OSAL classes and their relations with
+    client.}
+  \label{fig:OSAL_class_diagram_simple}
+\end{figure}
+
+Details of the classes of OSAL are described in following sections.
+
+\section{OperationPool}
+\label{sec:operationPool}
+
+\subsection{Overview}
+
+Clients access the models of operations of TTA processors through
+\emph{OperationPool}.  It provides interface for getting references to
+operations accessed with operation name strings.
+
+\emph{OperationPool} is responsible for loading operation models into its
+internal structures and hold them.  Most of its work is delegated to helper
+classes: \emph{OperationBehaviorLoader}, \emph{OperationIndex},
+\emph{OperationSerializer}, \emph{XMLSerializer}.  Helper classes are used,
+for example, to speed up the operation lookup by identifying and keeping a
+record of all external files that contain operation definitions.
+
+\emph{OperationPool} is also responsible for defining the path list used to
+search operation definitions to lookup.  Such path list is hard-coded to the
+default paths defined in \cite{OSAL-specs}. Currently it's not possible to
+edit the list of lookup paths dynamically.
+
+\subsection{Interface}
+
+\begin{description}
+
+\item[OperationPool()]%
+
+  The constructor creates and prepares the internal helper objects that are
+  necessary to perform its job: \emph{OperationBehaviorLoader}
+  (Section~\ref{sec:opBehaviorLoader}), \emph{OperationIndex}
+  (Section~\ref{sec:opIndex}) and \emph{OperationSerializer}
+  (Section~\ref{sec:operationSerializer}).
+
+\item[operation(name : const string\&) : Operation\&] %
+
+  Look up an operation identified by \emph{name} and returns a reference to
+  it.
+
+  Multiple calls to the lookup methods with the same operation name will
+  return always the same instance.  Such instance is unique and shared among
+  all clients of the given instance of operation repertoire (see
+  Section~\ref{ssec:operation-construction}).
+
+  When a client requests an operation lookup, the operation repertoire first
+  inspects its set of cached operations.  Operations are privately cached by
+  the \emph{OperationPool} instance.  If the requested operation is found in
+  this set, a reference to it is simply returned.
+
+  Clients are not allowed to make copies or delete operation objects.  See
+  Section~\ref{ssec:operation-construction} for details.
+
+  If no operation with given name is found in the cache,
+  \emph{OperationPool} scans all available operation data files in search of
+  the requested operation definition, and creates a new operation object
+  with the data from the definition.  Thus, operations are created only on
+  demand.  If the requested operation is not defined, a special null
+  operation (see \ref{ssec:nullOperation}) is returned.
+
+\end{description}
+
+\subsection{Null Operation}
+\label{ssec:nullOperation}
+
+The \emph{NullOperation} is a special singleton class that represents an
+operation that is undefined or not available.  The \emph{NullOperation}
+instance should be returned by all functions that return \emph{Operation}
+instances whenever the actual operation could not be returned due to some
+reason.  For example, \emph{OperationPool} returns it when operation lookup
+fails.  By means of the null operation, it is possible to postpone error
+detection to the time when it is not absolutely possible to ignore the
+error.  The null operation is an application of the \emph{Null Object}
+design pattern and can be seen as an alternative to throwing an exception
+immediately.
+
+All methods of the \emph{NullOperation} instance inherited from
+\emph{Operation} abort the program with an error message.
+
+In addition to the operation API, \emph{NullOperation} provides a static
+method to access its unique instance:
+\begin{description}
+\item[Operation\& it()]
+\end{description}
+
+Clients can test for null operation simply by comparing the operation with
+the \emph{NullOperation} singleton, given by \verb|NullOperation::instance()|.
+
+\subsection{Implementation}
+
+\subsubsection{Construction of OperationPool}
+
+Operation static data is obtained from \emph{OperationSerializer}
+(Section~\ref{sec:operationSerializer}), which uses \emph{XMLSerializer}
+\cite{ToolkitDesign} to read the data from XML file.  These
+\emph{Serializer} implementations allow also to write back the operation
+definition.  Writing capability is needed for client applications such an
+OSAL editor GUI.
+
+Operation data is not loaded during construction of an \emph{OperationPool}
+instance.  Instead, it is loaded only when a new operation (not yet cached)
+is requested.
+
+The operation pool cache is an associative map:
+\begin{quote}
+\verb|operationCache : map<string name, Operation>|
+\end{quote}
+Caching rationale is efficiency.  The \emph{OperationPool} instance avoids
+to repeatedly load the same static operation data from an external file when
+the data is already available.
+
+Operation uses a variant of the proxy design pattern~\cite{DesignPatterns}
+to avoid unnecessary loading of behavior in cases where it is not
+needed. The mechanism behind this pattern is explained in
+Section~\ref{sec:opBehaviorProxy}.
+
+\subsubsection{Loading an Operation}
+
+An algorithm for loading and constructing a single operation in
+\verb|operation()| is presented below.
+
+\begin{enumerate}
+\item %
+  Obtain the name of the operation module (an \emph{OperationModule}
+  instance) where the operation with the given name is defined from the
+  \emph{OperationIndex} instance of \emph{OperationPool}.
+\item %
+  Obtain from \emph{OperationSerializer} the object state tree of the
+  requested operation.  The data is loaded from the XML file indicated by
+  the \emph{OperationModule}.
+\item %
+  Create a new \emph{OperationBehaviorProxy} instance for the
+  \emph{Operation}, with a reference to the \emph{OperationBehaviorLoader}
+  held in \emph{OperationPool}.  Store the created proxy instance so it can
+  be later retrieved and deleted.
+\item %
+  Create a new \emph{Operation} with given name and created proxy.
+\item %
+  Let the newly created \emph{Operation} load its state from the object
+  state tree returned by \emph{OperationSerializer}. Or if there is no 
+  plugin behavior for an operation, then create behavior model out of 
+  a DAG presentation of the operation.
+\item % 
+  Store the constructed \emph{Operation} in the cache and return a reference
+  to it.
+\end{enumerate}
+
+\subsection{Error Handling}
+
+Error conditions occurring while reading the XML or dynamic module data are
+propagated to \emph{OperationPool} clients by throwing an exception.  This
+lets the client respond to error conditions in any way wanted.
+
+\subsubsection{Multiple Definitions of the Same Operation}
+
+All operations in a single data file must have a unique string.  If two
+operations have the same name, an error is generated at the time the
+operation module is scanned for the first time.
+
+Different databases and operation modules are independent and may
+contain operations with the same name.  In these cases, the first module
+that is scanned will return its operation definition, and the other
+definitions will be ignored.
+
+
+\section{OperationSerializer}
+\label{sec:operationSerializer}
+
+\subsection{Overview}
+
+\emph{OperationSerializer} is an implementation of the \emph{Serializer}
+interface (see \cite{ToolkitDesign}).  Its purpose is to construct an
+\emph{ObjectState} tree that represents the information contents of an
+operation from a given external file.  The bulk of the work is delegated to
+a more primitive class, called \emph{XMLSerializer}.
+
+\emph{XMLSerializer} transforms the information contents of an XML file into
+an \emph{ObjectState} tree.  Each XML element in the file has a
+corresponding object in the representation and each attribute in a node has
+a matching attribute in the object. This \emph{ObjectState} tree is
+converted by \emph{OperationSerializer} to an \emph{ObjectState} tree that
+matches the structure of the \emph{Operation} class.
+
+Clients can pass the tree constructed by \emph{OperationSerializer} to
+method \verb|loadState()| of \emph{Operation}, which redefines itself from
+the tree (and delegates \emph{Operand} specific data to \emph{Operand}
+objects).
+
+Both \emph{Operation} and \emph{Operand} implement the \emph{Serializable}
+interface, which means that they are able to load their data from an
+\emph{ObjectState} object. Implementing the interface guarantees that the
+class is able to save its data to an \emph{ObjectState} object.
+
+The conversion step between the object state tree returned by
+\emph{XMLSerializer} and the tree returned by \emph{OperationSerializer} is
+needed because the XML representation doesn't match the internal structure
+of the operation object model.  For example, in the XML file there might be
+XML elements for properties which are stored in operation \emph{ObjectState}
+as attributes, not as tree nodes.
+
+\emph{XMLSerializer} receives the absolute path name to the file from which
+operation definitions must be loaded (or to which must be stored).  Clients
+may use the services of \emph{OperationIndex} (Section~\ref{sec:opIndex}) to
+obtain the name of the file from which a given operation definition data
+must be loaded.
+
+
+\section{Operation}
+\label{sec:operation}
+
+\subsection{Overview}
+
+\emph{Operation} is the main class that models the static properties and the
+behavior of operations of the target processor.  Only properties that do not
+depend on the hardware implementation are modeled.  The state of operations
+is encapsulated in a separate class object.  The operation behavior is
+modeled by methods that simulate execution of the operation.  These methods
+are implemented by a concrete \emph{OperationBehavior} subclass.
+
+Operation state and properties that depend on the hardware implementation
+(such as the bit width of operation inputs and outputs) are passed by the
+clients of \emph{Operation}.
+
+\subsection{Interface}
+
+See doxygen documetation for updated information.
+
+\subsubsection{Redefining Operation Behavior}
+
+The behavior model of an operation can be redefined dynamically.  The
+following method is used to replace the \emph{OperationBehavior} instance
+assigned to the \emph{Operation}.  This method is currently used only by
+\emph{OperationBehaviorProxy} (Section~\ref{sec:opBehaviorProxy}) to replace
+itself with the concrete behavior object.
+
+\begin{description}
+\item[setBehavior(behavior : OperationBehavior\&)]%
+
+  Replaces the current operation behavior object model with the given
+  \emph{OperationBehavior} instance.
+
+  It is responsibility of the client of this method to dispose of the
+  operation object being replaced.
+
+\item[behavior() : OperationBehavior\&]%
+
+  Return the \emph{OperationBehavior} object assigned to the operation.
+  This method should be only used when the behavior needs to be redefined,
+  in order to dispose of the replaced behavior object.
+
+\end{description}
+
+Simulation methods are delegated to an \emph{OperationBehavior} instance.
+Methods that simulate operation behavior are listed in
+Section~\ref{sec:opBehavior}.
+
+An operation is never responsible for the deallocation of the
+\emph{OperationBehavior} instance assigned to it.  Every operation behavior
+proxy is responsible (owns) the concrete behavior instance it created, and
+the proxies themselves are owned by \emph{OperationPool}, which deallocates
+them.  As a result, \emph{OperationPool} must deallocate operations before
+their operations behavior instances, otherwise a dangling reference
+(albeit, temporary) is created.
+
+\subsubsection{Operation State Allocation}
+
+For operations that have state, \emph{Operation} provides methods for
+creating an operation state instance.  Such state is accessed by behavior
+simulation methods.
+
+\begin{description}
+\item[createState(OperationContext\&)]%
+\item[deleteState(OperationContext\&)]%
+\end{description}
+
+Above methods delegate construction and destruction of operation state to
+the only class that has specific type knowledge about the operation state
+and can construct and destruct it: the concrete \emph{OperationBehavior}
+subclass.  See Section~\ref{sec:opBehavior} for details.
+
+\subsubsection{Construction}
+\label{ssec:operation-construction}
+
+Within OSAL, operation objects are created and managed solely by the
+operation pool, described in Section~\ref{sec:operationPool}.
+
+Thanks to the fact that \emph{Operation} class does not contain any built-in
+dependency to hardware implementation properties or state, the operation
+model implemented by an \emph{Operation} instance can be shared by all the
+hardware implementations of the operation.  Clients, therefore, cannot copy
+or delete operation objects: for any given operation in a repertoire
+instance there can be one and only one \emph{Operation} instance.
+
+The operation pool assigns an \emph{OperationBehaviorProxy} to the operation
+to construct instead of an actual operation behavior object.  See
+Section~\ref{sec:opBehaviorProxy} for details on the behavior proxy.
+
+\section{OperationDAG}
+\label{sec:operationdag}
+
+\subsection{Overview}
+
+\emph{OperationDAG} is a graph description of an operation. Each Operation
+may contain multiple DAG presentations and those can be used to simulate 
+behavior of \emph{Operation} if there is not behavior plugin available for the 
+\emph{Operation}.
+
+Operation DAG is consists of two types of nodes \emph{OperationNode} and 
+\emph{TerminalNode} and \emph{OperationDAGEdge}. \emph{TerminalNode}s
+represents input and output operands of the DAG and \emph{OperationNode}s the 
+operations that are done for the operands.
+
+\emph{OperationDAG} is created from operation DAG language which is described
+in TCE User Manual. Construction of DAG is done with \emph{OperationDAGConverter}
+class.
+
+\subsection{Interface}
+
+Complete interface can be found from doxygen documantation.
+
+\section{OperationDAGConverter}
+\label{sec:operationdagconverter}
+
+\subsection{Overview}
+
+\emph{OperationDAGConverter} is a class for doing DAG Language -> DAG -> DAG Language
+conversions and other DAG related transformations like expanding DAG format etc.
+
+For building DAG class uses \emph{OperationDAGBuilder} class.
+
+\subsection{Interface}
+
+Complete interface can be found from doxygen documantation.
+
+\section{Operand}
+\label{sec:operand}
+
+\subsection{Overview}
+
+\subsection{Interface}
+
+The static properties of operation inputs and outputs, described in the
+specification document~\cite{OSAL-specs}. Latest class interface can be found
+from doxygen documentation.
+
+\section{OperationBehavior}
+\label{sec:opBehavior}
+
+\subsection{Overview}
+
+\emph{OperationBehavior} is an abstract class.  A class that implements it
+provides the behavior model of one operation.  Custom, user-defined
+operations require users of TCE to define new behavior classes.  Operation
+behavior classes are defined in plugin modules and are dynamically
+imported. There is also \emph{OperationDAGBehavior} class which is used for
+simulating \emph{OperationDAG}s.
+
+The operation behavior model is not needed by every client of OSAL. For this
+reason, concrete, operation-specific behavior classes are individually
+imported and instantiated on demand, using a proxy mechanism (detailed in
+Section~\ref{sec:opBehaviorProxy}).
+
+\subsection{Interface}
+
+All methods  have empty default implementation.  The implementation code for 
+these methods is generated with the macro definition language, automatically, 
+in \emph{OperationBehavior} subclasses. Complete interface is found from 
+doxygen documentation.
+
+\begin{description}
+\item[simulateTrigger(inouts : SimValue**, context : OperationContext\&) :
+  bool] %
+  Simulate the process of starting the execution of an operation. The first
+  argument is a vector of input and/or output values, accessible with macros
+  INT, UINT, FLT, and DBL.
+
+  The operation context is an object that models the state of the function
+  unit on which the given operation is simulated. Through this object, the
+  method can access and change the state of its operation, as described in
+  Section~\ref{sec:context-if}.
+
+  Result a flag that tells whether all results of the operation could be
+  computed and are stored in the output vector (value \emph{true}) or not
+  (return value \emph{false}).
+
+  A version of this method without operation context argument is available
+  for operations that do not have state.
+
+\item[lateResult(inouts : SimValue**, OperationContext\& context) : bool] %
+
+  This method models the behavior of operations for which it is not always
+  possible to compute all results at the time the operation is started.
+
+  When a pending result value is computed, this method writes the result
+  value, and signals that a new result is ready. The first argument of this
+  method is a vector of input and output values, including the values of
+  already computed results. The second argument gives the operation context,
+  described in Section~\ref{sec:context-if}.
+
+  This method returns a flag that tells whether at least one of the
+  operation results that were previously pending has been computed and its
+  value is stored in the output vector (value \emph{true}).
+
+  If this method is not reimplemented for a given operation behaviour model,
+  the predefined version of this method returns always false.
+
+\item[void createState(OperationContext\&)]%
+  Create a new instance of operation state and register it into given
+  operation context.
+
+  This method is overridden only by concrete operation behavior subclass
+  that need state.  Its empty, default implementation is enough for behavior
+  classes that need no state.
+
+  If an instance of the operation state class is already found in the
+  \emph{OperationContext}, this method does nothing.  This guarantees that
+  in any given context only one operation state instance for a given
+  operation group exists.  This method can be safely called multiple times
+  on the same operation context.  In particular, it can be called from
+  several different concrete \emph{OperationBehavior} objects that share the
+  same state.
+
+\item[void deleteState(OperationContext\&)]%
+  Remove an instance of operation state from the operation context and
+  deletes it.
+
+  This method is overridden only by concrete operation behavior subclass
+  that need state.  Its empty, default implementation is enough for behavior
+  classes that need no state.
+
+  If no instance of the operation state class exists in the given
+  \emph{OperationContext}, this method does nothing.  Therefore, this method
+  can be safely called multiple times from the same concrete
+  \emph{OperationBehavior} object or by several different object that share
+  the same state.
+\end{description}
+
+The input (output) values are passed (returned) through vectors of input or
+output values, described in Section~\ref{sec:simValue}.  The size of the
+vectors is not known to the \emph{Operation} object, but it is guaranteed
+that there are at least as many elements as the operation inputs plus
+operation outputs.
+
+Although the design would allow to build in protection of input and output
+values from (most of) erroneous uses, an explicit design decision is made to
+avoid protections of input and output values.  The choice is motivated by
+the high performance impact that it could have, given that input and output
+values are accessed in every simulation cycle, for every operation.
+
+\section{OperationState}
+\label{sec:operationState}
+
+\subsection{Overview}
+
+\emph{OperationState} is the base class of all concrete operation state
+classes.  One such class stores state information for one or more operations
+that share the same state.  A group of operations sharing the same state is
+termed \emph{operation family}.
+
+\subsection{Interface}
+
+\begin{description}
+\item[name() : string] %
+
+  Return the name that identifies the operation state.
+
+  This name consists of a unique string and identifies the concrete
+  operation state class of an operation family. Since it identifies a static
+  entity (the class), and not an instance, the string is hard-coded.
+
+\item[isAvailable(context : OperationContext\&) : bool] %
+
+  Return true if operation state is in ``available'' state, that is, it can
+  accept new operation invocations. In case operation is ``not available'',
+  the client should not go on with new operation invocations.
+
+\item[advanceClock(context : OperationContext\&)] %
+
+  This method must be invoked in every clock cycle until all results are
+  computed. Failing to do so may result in loss of some of the pending
+  results.
+
+  The argument gives the operation context, described in
+  Section~\ref{sec:context-if}.
+
+
+\end{description}
+
+
+\subsubsection{Construction of operation state.}
+The clients of operation behavior delegate construction of operation state
+objects (see Section~\ref{sec:operationState}) to the only entity that has
+specific knowledge of such state: the operation behavior subclass.  To this
+purpose, every user defined \emph{OperationBehavior} class that needs state
+data must implement factory method \verb|createState()| and destructor
+method \verb|deleteState()|.
+
+Typically, a client will invoke the factory method once for each operation
+object it is client of.  Multiple invocations do no harm.  The factory
+method checks whether an operation-specific state instance is already
+present in the operation context passed by the client.  If it is not, then
+it creates and adds one instance, otherwise it does nothing.
+
+\emph{Example.} Given 3 operations that share the same state and are
+implemented in the same unit, the first call to the \verb#createState()#
+method of any of the operations will construct a new operation state object.
+Later calls (even to the same operation method) will have no effect on
+\emph{OperationContext} object.
+
+The mechanism for deleting an operation state instance is symmetrical with
+respect to the factory method.  The client typically invokes the
+\verb|deleteState()| method for each operation it is client for; no harm is
+done if two or more of its operations share the same operation state.  Only
+the first invoked will delete the instance.
+
+
+\section{OperationBehaviorProxy}
+\label{sec:opBehaviorProxy}
+
+\subsection{Overview}
+
+\emph{OperationBehaviorProxy} is a special implementation of the
+\emph{OperationBehavior} interface (Section~\ref{sec:opBehavior}).  The
+\emph{OperationPool} initializes the instances of \emph{Operation} it
+creates with an instance of this class.  An operation behavior proxy object
+waits for the first access to any of the \emph{OperationBehavior} methods.
+Instead of simulating the operation behavior, the methods of the proxy find
+the appropriate operation behavior class for the operation, and then
+replace the reference to itself in the containing \emph{Operation} instance
+with the created object.  The \emph{OperationBehavior} subclass is imported
+from a dynamic module.  Future calls to behavior simulation methods of the
+operation are thus delegated to the behavior object constructed by the
+proxy, which completely disappears from the operation instance.
+
+Because \emph{OperationBehaviorProxy} effectively obsoletes itself when
+operation behavior is needed the first time, the pattern does not fully
+match the model of ``Gang of Four'' Proxy pattern described
+in~\cite{DesignPatterns}.  We decided to name our pattern ``Ghost Proxy'',
+because the proxy ``disappears'' from the subject after carrying out its
+instantiation task.
+
+The behavior proxy delegates actual importing of the appropriate operation
+behavior subclass to the helper class \emph{OperationBehaviorLoader}
+(Section~\ref{sec:opBehaviorLoader}).  A reference to an instance of this
+class is passed to the proxy constructor.
+
+Figure~\ref{fig:proxySequence} shows a sequence diagram of the proxy
+mechanism.
+
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/proxySequence.eps,width=1.0\textwidth}}
+  \caption{The Proxy Mechanism to Load Behavior Functions On-demand.}
+  \label{fig:proxySequence}
+\end{figure}
+
+\subsection{Interface}
+
+\begin{description}
+\item[OperationBehaviorProxy(Operation\& targetOperation, OperationBehaviorLoader\& loader)]%
+  A behavior proxy is assigned to one operation only.  The constructor
+  records the operation it is assigned to and the object (behavior loader)
+  to which delegate the actual work of finding and importing the behavior
+  methods.
+
+\item[$\sim$OperationBehaviorProxy()]%
+  The destructor makes sure that the operation behavior instance imported by
+  the proxy is deleted with the correct deletion function from the dynamic
+  module.
+
+  Deletion is delegated to the behavior loader, described in
+  Section~\ref{sec:opBehaviorLoader}.
+\end{description}
+
+
+\subsection{Behavior simulation function implementations}
+
+The behavior simulation methods of the \emph{OperationBehavior} interface
+are implemented by the proxy with the following code:
+
+\begin{verbatim}
+bool simulateTrigger(...) {
+   // next call results in loading the real behavior to the Operation
+   OperationBehavior& ob_ = loader_.lookupBehavior(operation_.name());
+   operation_.setBehavior(ob_);
+   // operation has an instance of the actual behavior object now
+   // let's call operation API and put proxy's job to test:
+   return operation_.simulateTrigger(...);
+}
+\end{verbatim}
+
+\section{OperationPropertyLoader}
+\label{sec:opPropertyLoader}
+
+\subsection{Overview}
+
+The purpose of this class is to import the static information contents of an
+operation from a data file.  This task is delegated to
+\emph{OperationSerializer}, which hides the details of accessing the data
+file, building the ObjectState tree structures, and selecting the sub-tree
+corresponding to the requested operation.
+
+\subsection{Interface}
+
+\begin{description}
+\item[void loadOperationProperties(Operation\&, const OperationModule\&)]%
+  Redefines a given operation with the data loaded from the external file
+  given by \emph{OperationModule}. This method should be called only on a
+  newly created operation.
+
+  If no data is found for the given operation (identified by its name), this
+  method throws an ObjectNotFound exception.
+  %
+
+\end{description}
+
+\subsection{Implementation}
+
+The operation property loader minimises the input from external files by
+keeping an internal data structure corresponding to each file that has been
+accessed at least once.  This structure consists of a list of
+\emph{ObjectState} trees, one for each operation definition found in the
+file.  For a given operation module, the loader creates one such list the
+first time the module is accessed.
+
+Notice that the loader does not keep an index mapping operation names to
+operation modules, it does not need it, because clients request an operation
+specifying directly the sole module where such operation is expected to be
+defined.
+
+
+\section{OperationBehaviorLoader}
+\label{sec:opBehaviorLoader}
+
+\subsection{Overview}
+
+The purpose of this class is to import operation behavior definitions from
+dynamic modules.  Before loading a definition, the loader must locate the
+operation module which contains it.  This task is delegated to
+\emph{OperationIndex}.  The loader keeps a reference to its operation index
+instance, which is directly managed by \emph{OperationPool}.  The lookup of
+operation modules occurs in the order given by the operation index.
+
+\subsection{Interface}
+
+\begin{description}
+
+\item[OperationBehaviorLoader(const OperationIndex\&)] %
+  The constructor records a reference to an \emph{OperationIndex}, which
+  will be used throughout loader extent to search for the operation module
+  that contains the operation behavior definition.
+
+\item[OperationBehavior\& lookupBehavior(name : const string\&, 
+parent : const Operation\&)] %
+
+  Look up the behavior definition for the operation identified by
+  \emph{name}.
+
+  First, the operation module that contains the operation is determined by
+  means of the operation index.  Then, the appropriate \emph{PluginTools}
+  instance is queried for the factory function that creates the behavior
+  class instance.
+
+  Method \verb|importSymbol()| of \emph{PluginTools} is invoked to lookup
+  the factory function.  The method version with an explicit module name
+  argument is used; the module name is obtained from \emph{OperationIndex}.
+
+  The factory function to search for is:
+  \begin{quote}\tt
+    OperationBehavior* createOpBehavior\verb|_|\textsl{name}(const Operation\&)
+  \end{quote}
+  where \emph{name} is the given operation name.
+
+  The module name argument of \verb|importSymbol()| is necessary to make
+  sure that the definition is imported from the correct file.  The name of
+  the module is retrieved from the \emph{OperationModule} instance
+  (Section~\ref{sec:opModule}) found by \emph{OperationIndex}.
+
+  The \emph{Operation} instance given as parameter to \verb|createOpBehaviorX|
+  call is the operation the behavior belongs to, it's the parent operation
+  given as argument for \verb|lookupBehavior()| call.
+
+  The loaded factory function is then invoked in order to create an instance
+  of the operation behavior subclass defined for the given operation.
+
+  In case behavior module or factory function for the given operation cannot
+  be found, a \emph{DynamicLibraryException} is thrown.
+
+\item[freeBehavior(name  : const string\&)]
+
+  Delete the behavior object model of the operation identified by
+  \emph{name}.
+
+  The \emph{OperationBehavior} instance of \emph{Operation} cannot be
+  deleted safely with \verb|delete|, because delete is an operator that can
+  be overloaded in the dynamic module or in the client application.  In
+  either case, there would be a mismatch between the \verb|new| and
+  \verb|delete| operators.  Therefore, a destructor function for the
+  specific class is looked up from the same plugin module that contains the
+  factory function of the operation behavior subclass.
+
+  Method \verb|importSymbol()|  of \emph{PluginTools} is invoked to lookup
+  the destructor function.  The method version with an explicit module name
+  argument is used; the module name is obtained from \emph{OperationIndex}.
+
+  The destructor function to search for is:
+  \begin{quote}\tt
+    void deleteOpBehavior\verb|_|\textsl{name}(OperationBehavior*)
+  \end{quote}
+  where \emph{name} is the given operation name.
+
+  The module name argument of \verb|importSymbol()| is necessary to make
+  sure that the definition is imported from the correct file.  The name of
+  the module is retrieved from the \emph{OperationModule} instance
+  (Section~\ref{sec:opModule}) found by \emph{OperationIndex}.
+
+  The imported function is invoked in order to delete the behavior object.
+
+  In case behavior module or destructor function for the given operation 
+  cannot be found, a \emph{DynamicLibraryException} is thrown.
+
+\end{description}
+
+The operation behavior loader relies on
+\emph{PluginTools}~\cite{ToolkitDesign} services for looking up and
+importing operation definitions from dynamic modules.  The loader contains
+one instance of \emph{PluginTools} for each lookup path that is accessed.
+The instances are constructed lazily.  Construction is postponed until the
+first time an operation from a module at the given path is required.  The
+lookup paths are stored in \emph{OperationIndex}
+(Section~\ref{sec:opIndex}).
+
+\section{OperationContext}
+\label{sec:context-if}
+
+\subsection{Overview}
+
+Class \emph{OperationContext} holds any implementation- and
+context-dependent data that may affect the result of an operation. In
+typical client applications, operation implementations are related to a
+function unit.
+
+\subsection{Interface}
+
+\subsubsection{Operation State Lookup}
+
+The most important operation implemented by \emph{OperationContext} is the
+lookup of operation state:
+
+\begin{description}
+\item[state(name : const string\&) : OperationState\&] %
+  Look up the (concrete) operation state identified by the string
+  \emph{name}.
+
+  Throw \emph{KeyNotFound} exception if no state with given name is found.
+\end{description}
+
+\subsubsection{Managing Instances of Operation State}
+
+The following API allows to register and unregister concrete operation state
+instances into the operation context.  These methods are public, but not
+visible to the client.  They are only used by \emph{OperationBehavior}
+objects when creating or deleting an operation state object (see
+Section~\ref{sec:opBehavior}).
+
+\begin{description}
+\item[registerState(state : OperationState*)] %
+  Register an operation state instance. Called in method \emph{createState}
+  of concrete \emph{OperationBehavior} subclasses.
+
+  Abort if an instance of the same type is already registered.
+
+\item[unregisterState(state : OperationState*)]%
+  Unregister an operation state instance.  Called in method
+  \verb|deleteState()| of concrete \emph{OperationBehavior} subclasses.
+
+  Abort if given operation state instance is not registered in the context.
+\end{description}
+
+\subsubsection{Advancing the Clock of the State Instances}
+
+The following method is used to advance the internal clock of each state
+instance registered to the \emph{OperationContext} instance.
+
+\begin{description}
+\item[advanceClock()] %
+  Advance the clock of each registered \emph{OperationState} instance.
+\end{description}
+
+\subsubsection{Special State}
+In addition to operation-specific state, the operation context includes
+information with a larger scope, which affects certain kinds of operations.
+Unlike operation state, which affects only a group of related operations,
+this information can affect unrelated operations in the same function unit
+or even in different function units. Special state is directly handled by
+the function unit state model and not by operations.
+
+TCE supports emulated syscalls by means of two dedicated registers that are
+part of the special state. The syscall handler register contains the vector
+to the handler code. The syscall number register is used to select which
+syscall to invoke, and is an operand of the syscall operation. The remaining
+arguments of a syscall are passed exactly like in procedure invocations.
+
+The following methods let the clients access special state:
+\begin{description}
+\item[memory() : Memory\&]%
+
+  Return a pointer to the Memory Module that can be accessed by the
+  function unit and behavior simulation methods. 
+  
+\item[setMemory(memory : Memory\&, naturalWordWidth : int)]%
+
+  Set the Memory Module pointer. Additionally, sets the natural word width
+  (NWW) of the memory in minimum addressable units (MAU). This argument was
+  added to make it possible to retrieve this value from MDF and not from
+  Memory implementation.
+
+\item[naturalWordWidth() : int]%
+
+  Return the width of the natural word of the memory of this context. Value is
+  in minimum addressable units. 
+
+\item[programCounter() : SimValue\&]%
+
+  Return a reference to the current value of the program counter register.
+  The value of the program counter can be changed through this reference.
+  This is used to implement control transfer operations like jumps and
+  calls to subroutines. 
+
+\item[returnAddress() : SimValue\&] %
+
+  Return a reference to the current value of the return address
+  register.  The value of the return address can be changed through
+  this reference.  This is used in implementing calls to
+  subroutines. 
+
+\item[contextId() : int] %
+  
+  Return the unique number that identifies the context. This id is used,
+  for example, to make memory access requests from different operation
+  implementations unique.  No two instances of \emph{OperationContext} have
+  the same value in execution time. 
+
+\item[syscallHandler() : SimValue\&] %
+  
+  Return the syscall handler register. This is used to enforce syscall
+  invocations.
+
+\item[syscallNumber() : SimValue\&] %
+  
+  Return the syscall handler code register, which defines the numeric code
+  that that identifies a syscall.
+
+\end{description}
+
+
+\section{SimValue}
+\label{sec:simValue}
+
+\subsection{Overview}
+
+The input and output values accessed by operations through simulation
+functions of \emph{OperationBehavior} class (see Section~\ref{sec:opBehavior}) 
+are modeled by the class \emph{SimValue}.
+This class represents any data type that can be manipulated by operations of
+the target architecture template, and provides the interface to access the
+data in three predefined types.
+
+\emph{SimValue} contains a union of built-in types IntWord, FloatWord and
+DoubleWord, whose properties are described in~\cite{OSAL-specs}.
+
+\subsection{Interface}
+
+When a SimValue is constructed, its bit width is defined:
+\begin{description}
+\item[SimValue(width : const int)]
+\end{description}
+
+The data contained by \emph{SimValue} is accessed directly. Data is stored
+in union with name \emph{value\_}. Complete interface is described in doxygen 
+documentation.
+
+The width of a \emph{SimValue} instance is set once and for all at
+construction time.
+
+\section{OperationModule}
+\label{sec:opModule}
+
+\subsection{Overview}
+
+\emph{OperationModule} is a simple concrete type that represents the names
+and the path of external files where operation definitions are stored.  A
+collection of these files related to the same group of operations is termed
+operation module.  Currently, an operation module consists of two files: a
+dynamic module containing the behavior object model of operations and a
+data file containing the properties of the same operations.  The dynamic
+module is optional and may be completely omitted.
+
+\subsection{Interface}
+
+\begin{description}
+\item[OperationModule(const string\& name, const string\& path)]
+\item[string name()]%
+  Name of the operation module.
+\item[string path()]%
+  Path of the operation module.
+\item[bool definesBehavior()]%
+  Return true if the operation module includes a file containing behavior
+  object model definitions.
+\item[string behaviorModule()]%
+  Name of the dynamic module where definitions of behavior object models
+  for the operation module are stored.  Throw exception \emph{FileNotFound}
+  if no behavior module is defined for this operation module.
+\item[string propertiesModule()]%
+  Name of the data file where definitions of operation properties for the
+  operation module are stored.
+\end{description}
+
+\section{OperationIndex}
+\label{sec:opIndex}
+
+\subsection{Overview}
+
+The class \emph{OperationIndex} has a crucial role in making lookup of
+operation data (properties and behavior) efficient.  Operation indexes are
+owned by individual \emph{OperationPool} objects; their services are used by
+the operation behavior loader (Section~\ref{sec:opBehaviorLoader}) and
+certain type of clients of \emph{OperationPool}.
+
+
+\subsection{Interface}
+
+The methods of \emph{OpertionIndex} may be divided in three groups:
+\begin{enumerate}
+\item Methods to manage the search paths.
+\item Methods to manage the operation modules.
+\item Methods to manage the operation index.
+\end{enumerate}
+
+\subsubsection{Construction}
+\emph{OperationIndex} objects are created with an empty constructor.  Before
+an object thus created can be used for anything useful, it must be
+initialized with one or more search paths.
+
+\subsubsection{Path List Management}
+
+An \emph{OperationIndex} keeps a list of absolute search paths.  These paths
+are searched for operation modules.  An operation module consists of two
+files: an XML data file and a dynamic module.  \emph{OperationSerializer}
+and \emph{OperationBehaviorLoader} use the operation module to lookup the
+required operation definitions.
+
+Path lookup order of operations is important because the first found
+operation takes precedence over the possibly later found operations. See
+Chapter~4 of Functional Specification Document~\cite{OSAL-specs} for a list
+of searched paths.
+
+The API for managing search path is the following:
+\begin{description}
+\item[addPath(const string\& path)]%
+  Append \emph{path} to the search path list.  The added path is the last
+  that will be searched for operation definitions.
+
+ Whenever a path is added to an operation index, it is immediately scanned,
+ and a list of all operation modules found in it is built and integrated with
+ the list of modules already found. 
+
+ If the given path is not found, function returns immediately. It is
+ also not an error if path is found but doesn't provide any operation 
+ definitions.
+
+\item[string path(int i)]%
+  Return the path in \emph{i}-th position in the search list.
+\item[int pathCount()]%
+  Return the number of paths registered into the operation index.
+\end{description}
+
+
+\subsubsection{Operation Modules Management}
+
+
+The single operation modules found by an operation index can be accessed
+using the following methods:
+\begin{description}
+\item[OperationModule module(int i)]%
+  Return the operation module in \emph{i}-th position in the overall search
+  list.
+\item[int moduleCount()]%
+  Return the total number of operation modules registered into the
+  operation index.
+\item[OperationModule module(int i, const string\& path)]%
+  Return the operation module in \emph{i}-th position in the list of
+  modules found in \emph{path}.
+\item[int moduleCount(const string\& path)]%
+  Return the number of operation modules registered into the operation
+  index and found in \emph{path}.
+\item[void addModule(OperationModule* module, string path)]%
+  Add a module in a given path.
+\item[void removeModule(const std::string\& path, const std::string\& modName)]%
+
+  Remove the module with given search path and name from OperationIndex.
+  Throw \emph{PathNotFound} in case path is not found, and 
+  \emph{InstanceNotFound} if module with given name is not found.
+
+\item[void refreshModule(const std::string\& path, const std::string\& modName)]%
+
+  Refresh (force reload) of module with given search path and name.
+  Throw \emph{PathNotFound} in case path is not found, and 
+  \emph{InstanceNotFound} if module with given name is not found.
+
+\end{description}
+
+\subsubsection{Operation Name List Management}
+
+The main purpose of \emph{OperationIndex}, as the name suggests, is to keep
+an index of operations.  The most important service offered by
+\emph{OperationIndex} is to give the name of the operation module where a
+given operation is defined.  The following methods let clients access the
+operation names:
+\begin{description}
+\item[OperationModule moduleOf(const string\& name)]%
+  Return the operation module where the operation with name \emph{name} is
+  defined.
+\item[string operationName(int i, const OperationModule\& om)]%
+  Return the name of operation found at \emph{i}-th position in operation
+  module \emph{om}.
+\item[int operationCount(const OperationModule\& om)]%
+  Return the number of operations defined in the operation module
+  \emph{om}.
+\end{description}
+
+\subsection{Implementation}
+
+\subsubsection{Data Structures}
+The main data structures that implement \emph{OperationIndex} are:
+\begin{description}
+\item[list<string>]%
+  An ordered list of paths that are searched for operation modules.
+\item[map<string, OperationModule*>]%
+  An associative map that relates operation with operation modules.
+  Operations are identified by their name.
+\end{description}
+
+Note: the actual \emph{OperationModule} objects are not stored in the
+associative map, but in a separate private container.  This ensures
+efficient handling of the map.  No problem can occur with pointers, because
+the APIs that relate to \emph{OperationModule} return copies of the stored
+objects.
+
+\subsubsection{Lazy Design}
+All activity in an \emph{OperationIndex} is postponed until it is made
+necessary by a request through its public API.  This design choice is
+motivated by efficiency.
+
+When a search path is added to the list, the list of operation modules is
+updated with all the modules found in the new path.  The single modules,
+however, are not scanned for operation definitions.
+
+When an operation-related method is invoked, \emph{OperationIndex} scans,
+one, by one, the operation modules until it finds a module where an
+operation with the given name is found. \emph{OperationIndex} uses
+\emph{OperationSerializer} class for reading the XML definitions
+of operations.  The operation container is
+updated with all the operations defined in each scanned module.  Thus, is
+may well occur that a module is never accessed simply because all operations
+requested by clients are defined in modules that are searched before it.
+
+Clients can force scanning of a operation module by invoking method
+\verb|operationCount()| with the module as argument.
+
+
+\chapter{BEHAVIOR DEFINITION LANGUAGE}
+\label{cha:language}
+
+Behavior definition language is implemented with a set of C preprocessor
+\#define macros. These macro definitions are located in OSAL.hh which is
+thoroughly commented.
+
+Operation DAG Language is described in TCE User Manual.
+
+\chapter{REJECTED ALTERNATIVES}
+
+% Rejected alternatives for (parts of) the design should be listed here with
+% the reasoning and date the alternative was dumped. For future reference.
+%
+%18.11.2003 . . .
+\begin{description}
+\item[24.05.2004 --- Public API to load operation behaviour.] %
+  Instead of using a Proxy mechanism, the operation behaviour could be
+  loaded explicitly by clients before they start to use the behaviour
+  interface.  This alternative would make the implementation much simpler,
+  but has been rejected because it is less convenient for clients, it
+  requires discipline and is error prone.  Efficiency is not a concern,
+  because a Proxy machanism without permanent overhead can be implemented
+  (Ghost Proxy).
+\end{description}
+
+
+\chapter{IDEAS FOR FURTHER DEVELOPMENT}
+
+% Ideas that are not part of the design yet but that might be added in the
+% future are listed here. This is to have ideas written down somewhere.
+% This list should contain the date of addition, the idea described briefly
+% and the inventor of the idea.
+
+\begin{description}
+\item[23.02.2004]%
+  Additional \emph{OperationPool} interface to manage paths in which the
+  data files of operation definitions are stored.  Currently, the path list
+  is hidden inside \emph{OperationIndex} and is hard-coded by
+  \emph{OperationPool}.  A possible API would be the following:
+  \begin{description}
+  \item[pathList()]%
+    Return a colon-separated list of search paths.
+  \item[addToPathList()]%
+    Add one or more colon-separated paths to the list.
+  \item[removeFromPathList()]%
+    Remove one or more colon-separate paths from the list.
+  \end{description}
+  --A. Cilio
+\item[25.04.2006] ---
+
+  Documentation filed in operation properties.
+
+  Add support for an (optional?) additional field that contains the textual
+  description of the operation.
+\end{description}
+
+
+\chapter{PENDING ISSUES}
+
+% Pending issues concerning this design, a sort of TODO list.
+% This chapter should be empty when implementation of this module/subsystem
+% is completed.
+
+\chapter{MAINTENANCE}
+
+% This chapter treats the problem of extending the design with new
+% capabilities that fit in a predefined framework.
+
+% For example, in case of the TPEF module, this chapter could describe the
+% steps that must be taken in order to add a new Section subclass and/or a
+% SectionReader subclass.
+
+% Remove this chapter no obvious and standardized way to extend the design
+% with new capabilities exists.
+
+
+% ------------------------------------------------------------------------
+
+%% Remove this part if there are no references.  Usually there will be at
+%% least a reference to the functional specifications of the same module.
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+%% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

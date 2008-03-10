@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>../../../icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+  </ic-decoder-plugin>
+
+  <fu name="ALU">
+    <hdb-file>../../../hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>704</fu-id>
+  </fu>
+
+  <fu name="LSU">
+    <hdb-file>../../../hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>225</fu-id>
+  </fu>
+
+  <fu name="add4">
+    <hdb-file>data/tour.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>../../../hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+  <rf name="boolRF">
+    <hdb-file>../../../hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>1742</rf-id>
+  </rf>
+
+</adf-implementation>

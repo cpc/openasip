@@ -1,0 +1,13 @@
+
+0x0000000a
+0x0000001a
+
+0x0000000a
+0x0000001a
+
+0x0000000a
+0x0000001a
+
+0x0000000a
+0x0000001a
+Warning: Return address port has different width than instruction memory address. ProGe uses the greater value.

@@ -1,0 +1,13 @@
+add2 35 34
+mul2 3 3
+accadd 2
+accadd 2
+add2 34 -35
+!trigger add2 34 -35
+!output unsigned
+add2 34 -35
+!output hex
+mul2 0x0080 00010b
+!output bin
+add2 32 00000000000000000000000001000000b
+!quit

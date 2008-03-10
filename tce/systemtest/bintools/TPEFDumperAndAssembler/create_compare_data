@@ -1,0 +1,3 @@
+#!/bin/bash
+../../../tools/scripts/exec_max_time 60 "../../../src/bintools/TPEFDumper/dumptpef -f -s -l -j0 -j1 -j2 -j3 -j4 -j5 -j6 -j7 -j8 -j9 -j10 -j11 -j12 data/precompiledworm.tpef > tceasm_file_compile_test/1_output.txt" 
+../../../tools/scripts/exec_max_time 60 "../../../src/bintools/TPEFDumper/dumptpef -f -s -j0 -j1 -j2 -j3 -j4 -j5 -j6 -j7 -j8 -j9 -j10 -j11 -j12 data/precompiledworm.tpef > dumptpef_test/1_output.txt"

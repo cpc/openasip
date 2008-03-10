@@ -1,0 +1,7 @@
+# This test used to cause false alarm for resource conflict.
+# Added as a regression test.
+mach data/wrong_conflict_detection.adf
+prog data/wrong_conflict_detection.tpef
+until 915
+# The conflict was reported at PC 914
+quit

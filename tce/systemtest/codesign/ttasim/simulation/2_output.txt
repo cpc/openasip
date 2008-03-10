@@ -1,0 +1,14 @@
+     49                     <_main+11>: 584 -> iarg1 ;
+0
+     50                     <_main+12>: _printstring -> call.1 ;
+584
+Hello TTA world!
+     52                     <_main+14>: _printstring -> call.1 ;
+Program stopped at address 52.
+Stopped after being stepped.
+r1 0xfffff8 16777208
+r2 0x25a 602
+r3 0x259 601
+r4 0xa 10
+r256 0x0 0
+bool 0x1 -1

@@ -1,0 +1,20 @@
+/**
+ * @file TargetMemory.icc
+ *
+ * Template implementation of TargetMemory class.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Casts a given type to integer.
+ *
+ * @param src Source type to be casted.
+ * @param index Memory index.
+ */
+template<typename source>
+int
+TargetMemory::asInteger(source& src, int index) {
+    return (reinterpret_cast<int*>(&src))[index];
+}

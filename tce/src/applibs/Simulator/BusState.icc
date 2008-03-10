@@ -1,0 +1,30 @@
+/**
+ * @file BusState.icc
+ *
+ * Inline definitions of BusState class.
+ *
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include "Application.hh"
+
+/**
+ * Sets the value of the bus.
+ *
+ * Does not extend the value. Version that is inlined
+ *
+ * @param value New value.
+ */
+inline void
+BusState::setValueInlined(const SimValue& value) {
+    RegisterState::setValue(value);
+}
+
+/**
+ * Sets the value of the bus to zero.
+ */
+inline void
+BusState::clear() {
+    value_ = 0;
+}

@@ -1,0 +1,33 @@
+/**
+ * @file ControlUnit.icc
+ *
+ * Inline implementation of ControlUnit class.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ */
+
+namespace TTAMachine {
+
+/**
+ * Returns the number of delay instruction slots caused by the transport 
+ * pipeline.
+ *
+ * This is currently always transportStages() - 1.
+ *
+ * @return The number of delay slots after a branch instruction.
+ */
+inline int
+ControlUnit::delaySlots() const {
+    return delaySlots_;
+}
+
+/**
+ * Returns the global guard latency.
+ *
+ * @return The latency.
+ */
+inline int
+ControlUnit::globalGuardLatency() const {
+    return globalGuardLatency_;
+}
+}

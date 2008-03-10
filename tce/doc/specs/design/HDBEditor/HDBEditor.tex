@@ -1,0 +1,140 @@
+\documentclass[twoside]{tce}
+
+\usepackage{pslatex}
+
+\makeindex
+
+\begin{document}
+\author{Veli-Pekka J‰‰skel‰inen}
+\title{HDB Editor}
+\ver{0.0.1}
+\firstday{8.5.2006}
+\lastday{8.5.2006}
+\docnum{(undefined)}
+\state{draft}
+\maketitle
+
+\chapter*{Version History}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|p{0.10\textwidth}|p{0.15\textwidth}
+                |p{0.15\textwidth}|p{0.46\textwidth}|}
+\hline
+\textbf{Version} &\textbf{Date} &\textbf{Author} &
+\textbf{Description}\\
+\hline
+0.1 & 8.5.2006 & Veli-Pekka J‰‰skel‰inen & First version.\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\chapter{INTRODUCTION}
+
+\section{Purpose and Scope}
+
+This document describes the software architecture and the design of the HDB
+Editor (Hardware database editor). HDBEditor is a graphical tool for displaying
+and modifying information in TCE hardware databases.
+
+\section{Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+GUI & Graphical User Interface.\\
+HDB & Hardware Database\\
+MVC & Model View Controller\\
+TCE & TTA Codesign Environment\\
+\end{tabular}
+\end{center}
+\end{table}
+
+\chapter{ARCHITECTURE DESIGN}
+
+\section{Philosophy of Solution}
+
+Philosophy behind the solution is based on the classical MVC design pattern, 
+in which system is divided to three entities (model, view, controller). Model 
+is the data contents of the system. View is a graphical representation of the 
+data. Controller controls all events, and updates the model and view according 
+to events.
+
+In HDB Editor, the hardware database files accessed by the HDBManager
+interface of the HDB library act as the model. The HDBManager interface
+wraps the HDB functionality behind it's interface, and HDB Editor doesn't
+have to care about the inner workings of the HDB library or the mechanism
+how the data is actually stored. HDBs are accesed only by one application
+at a time, so there's no need to track HDBs for outside changes.
+
+View of the HDB Editor consist of the main window and a nubmer of dialogs for
+creating and modifying the elements in HDBs. All window and dialog classes
+are derived from wxWidgets base classes, and follow the usual wxWidgets
+framework.  More information about wxWidgets can be found in \cite{wxWindows}.
+
+Control of the HDBEditor consists of the CommandRegistry classes of the
+wxToolkit library. HDBEditor commands are stored in a CommandRegistry
+instance, which maps menu items to command objects, derived from the
+GUICommand class.
+
+
+\section{Classes}
+
+Class diagram containing the core classes of HDBEditor is shown in
+Figure~\ref{fig:class_diagram}. Most of the dialog and command classes are left
+out. \emph{AddFUArchitectureCmd} and \emph{AddFUArchitectureDialog} and
+\emph{AddFUEntryCmd}  are examples of command and dialog classes.
+
+\begin{figure}[htb]
+\centerline{\psfig{figure=eps/ClassDiagram.eps,width=0.9\textwidth}}
+\caption{Core classes of the HDBEditor.}
+\label{fig:class_diagram}
+\end{figure}
+
+
+\subsection{HDBEditor}
+
+HDBEditor is the main class of the application, and it represents the
+application itself. HDBEditor class is responsible for initializing
+the GUI by creating the main frame instance.
+
+\subsection{HDBEditorMainFrame}
+
+HDBEditorMainFrame is the top level parent window of the GUI. It's responsible
+for managing the GUI by creating and executing commands from the command
+registry when a menu item is selected. HDBEditorMainFrame also creates and
+owns the CommandRegistry instance and the HDBBrowser instance, which is
+displayed in the main frame.
+
+\subsection{HDBBrowserWindow}
+HDBBrowserWindow is a window for browsing hardware database contents.
+An instance of the HDBBrowserWindow class is set as the contents of the
+HDBEditorMainFrame when the frame is initialzied. HDBBrowserWindow
+contains a HDBBrowserInfoPanel instance which displays details of the
+selected HDB element in a html-window.
+
+\subsection{HDBBrowserInfoPanel}
+HDBBrowserInfoPanel is a html-widget which utilizes HDBToHtml class to create
+html-format descriptions of the objects in a HDB.
+
+\subsection{HDBToHtml}
+HDBToHtml is a helper class which creates html-format descriptions of
+the objects stored in a HDB. This class used by passing a constant
+reference to an HDB element and a reference to an output stream to the
+static member functions of this class. Detailed description of the
+element is then written as html-code to the output stream.
+
+% ------------------------------------------------------------------------
+
+%% Remove this part if there are no references.  Usually there will be at
+%% least a reference to the functional specifications of the same module.
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+%% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+\end{document}

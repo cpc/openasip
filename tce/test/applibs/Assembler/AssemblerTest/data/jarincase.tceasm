@@ -1,0 +1,699 @@
+CODE ;
+
+#rv main()
+#{
+#0:	// predecessors	: { }
+# successors	: { }
+# live in	: 
+# live out	: 
+# live def	: 
+# live use	: 
+# a.out range	: <0, 16>
+# frequency	: 1 (* 17 = 17)
+# moves/cycle	: 1.23529
+# loop id	: 0
+-12 -> fu23.o0.add, ..., ..., 1016 -> fu23.trigger.add, ... ;
+632 -> integer1.0, ..., ..., ..., ... ;
+fu23.r0.add -> fu23.o0.add, ..., fu23.r0.add -> integer2.0, 8 -> fu23.trigger.add, ... ;
+..., ..., ..., ..., ... ;
+fu23.r0.add -> fu6.o0.st, gcu.ra -> fu6.trigger.st, ..., 20 -> gcu.pc.call, ... ;
+-12 -> fu23.o0.add, ..., integer2.0 -> fu23.trigger.add, ..., ... ;
+..., ..., ..., ..., ... ;
+fu23.r0.add -> fu23.o0.add, ..., fu23.r0.add -> integer2.0, 8 -> fu23.trigger.add, ... ;
+0 -> integer0.0, integer2.0 -> fu23.o0.add, 8 -> fu23.trigger.add, ..., ... ;
+..., ..., 12 -> fu23.trigger.add, ..., ... ;
+fu23.r0.add -> fu6.trigger.ld, ..., ..., ..., ... ;
+..., ..., fu23.r0.add -> integer2.0, ..., ... ;
+..., ..., ..., ..., ... ;
+fu6.r0.ld -> gcu.pc.jump, ..., ..., ..., ... ;
+..., ..., ..., ..., ... ;
+..., ..., ..., ..., ... ;
+..., ..., ..., ..., ... ;
+#}
+
+#void dct32()
+#{
+#0:	// predecessors	: { }
+# successors	: { }
+# live in	: 
+# live out	: 
+# live def	: 
+# live use	: 
+# a.out range	: <17, 49>
+# frequency	: 1 (* 33 = 33)
+# moves/cycle	: 1
+# loop id	: 0
+-12 -> fu23.o0.add, ..., integer2.0 -> fu23.trigger.add, ..., ... ;
+..., ..., ..., ..., ... ;
+fu23.r0.add -> fu23.o0.add, ..., fu23.r0.add -> integer2.0, 8 -> fu23.trigger.add, ... ;
+..., ..., ..., ..., ... ;
+fu23.r0.add -> fu6.o0.st, gcu.ra -> fu6.trigger.st, ..., 53 -> gcu.pc.call, ... ;
+0 -> fu6.trigger.ld, ..., ..., ..., ... ;
+124 -> fu6.trigger.ld, ..., ..., ..., ... ;
+316 -> fu6.trigger.ld, ..., ..., ..., ... ;
+141 -> gcu.pc.call, ..., ..., ..., ... ;
+128 -> fu6.trigger.ld, ..., ..., ..., ... ;
+136 -> fu6.trigger.ld, ..., ..., ..., ... ;
+284 -> fu6.trigger.ld, ..., ..., ..., ... ;
+235 -> gcu.pc.call, ..., ..., ..., ... ;
+0 -> fu6.trigger.ld, ..., ..., ..., ... ;
+16 -> fu6.trigger.ld, ..., ..., ..., ... ;
+268 -> fu6.trigger.ld, ..., ..., ..., ... ;
+322 -> gcu.pc.call, ..., ..., ..., ... ;
+128 -> fu6.trigger.ld, ..., ..., ..., ... ;
+160 -> fu6.trigger.ld, ..., ..., ..., ... ;
+260 -> fu6.trigger.ld, ..., ..., ..., ... ;
+406 -> gcu.pc.call, ..., ..., ..., ... ;
+0 -> fu6.trigger.ld, ..., ..., ..., ... ;
+64 -> fu6.trigger.ld, ..., ..., ..., ... ;
+256 -> fu6.trigger.ld, ..., ..., ..., ... ;
+..., integer2.0 -> fu23.o0.add, 8 -> fu23.trigger.add, ..., ... ;
+..., ..., 12 -> fu23.trigger.add, ..., ... ;
+fu23.r0.add -> fu6.trigger.ld, ..., ..., ..., ... ;
+..., ..., fu23.r0.add -> integer2.0, ..., ... ;
+..., ..., ..., ..., ... ;
+fu6.r0.ld -> gcu.pc.jump, ..., ..., ..., ... ;
+..., ..., ..., ..., ... ;
+..., ..., ..., ..., ... ;
+..., ..., ..., ..., ... ;
+#}
+
+#void first_stage()
+#{
+#0:	// predecessors	: { }
+# successors	: { }
+# live in	: 
+# live out	: 
+# live def	: 
+# live use	: 
+# a.out range	: <50, 137>
+# frequency	: 1 (* 88 = 88)
+# moves/cycle	: 3.5
+# loop id	: 0
+0 -> fu6.trigger.ld, ..., ..., ..., ... ;
+124 -> fu6.trigger.ld, ..., ..., ..., ... ;
+316 -> fu6.trigger.ld, ..., ..., ..., ... ;
+fu6.r0.ld -> integer4.0, ..., ..., 64 -> fu6.trigger.ld, ... ;
+60 -> fu6.trigger.ld, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, integer4.0 -> fu23.o0.add, ... ;
+fu6.r0.ld -> integer0.0, ..., ..., 320 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer3.0, 96 -> fu6.trigger.ld, ... ;
+28 -> fu6.trigger.ld, ..., fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+128 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer0.0, integer4.0 -> fu23.o0.add, integer3.0 -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer3.0, 324 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, fu6.r0.ld -> fu23.o0.add, integer3.0 -> fu23.trigger.add ;
+132 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+fu6.r0.ld -> integer0.0, fu10.r0.shr -> fu6.trigger.st, 1 -> fu10.trigger.shr, fu23.r0.add -> fu10.o0.shr, 136 -> fu6.o0.st ;
+fu4.r0.mul -> fu10.o0.shr, integer4.0 -> fu23.o0.sub, 16 -> fu10.trigger.shr, 32 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+144 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+140 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+fu6.r0.ld -> integer4.0, ..., ..., 92 -> fu6.trigger.ld, ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, ..., 12 -> fu6.trigger.ld, ... ;
+328 -> fu6.trigger.ld, ..., ..., ..., ... ;
+148 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer3.0, integer4.0 -> fu23.o0.add, fu6.r0.ld -> fu23.trigger.add ;
+fu6.r0.ld -> integer4.0, ..., ..., 112 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, 332 -> fu6.trigger.ld, ... ;
+76 -> fu6.trigger.ld, ..., ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+152 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer3.0, integer4.0 -> fu23.o0.add, fu6.r0.ld -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, 48 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer3.0, 336 -> fu6.trigger.ld, ... ;
+156 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+160 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer4.0, fu6.r0.ld -> fu23.o0.add, integer3.0 -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, integer4.0 -> fu23.o0.sub, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., 16 -> fu6.trigger.ld, ... ;
+164 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+168 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, 108 -> fu6.trigger.ld, ... ;
+44 -> fu6.trigger.ld, ..., ..., ..., ... ;
+172 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+340 -> fu6.trigger.ld, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, integer4.0 -> fu23.o0.add, ... ;
+fu6.r0.ld -> integer4.0, ..., ..., 80 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., 4 -> fu6.trigger.ld, ... ;
+fu6.r0.ld -> fu4.trigger.mul, ..., ..., fu23.r0.sub -> fu4.o0.mul, 344 -> fu6.trigger.ld ;
+176 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer3.0, integer4.0 -> fu23.o0.add, fu6.r0.ld -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, 120 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, 348 -> fu6.trigger.ld, ... ;
+180 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+184 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer3.0, integer4.0 -> fu23.o0.add, fu6.r0.ld -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, 68 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., 56 -> fu6.trigger.ld, ... ;
+188 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+192 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer3.0, ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, fu6.r0.ld -> fu23.o0.add, integer3.0 -> fu23.trigger.add ;
+352 -> fu6.trigger.ld, integer4.0 -> fu23.o0.sub, ..., ..., integer3.0 -> fu23.trigger.sub ;
+196 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, 1 -> fu10.trigger.shr, fu23.r0.add -> fu10.o0.shr, ... ;
+100 -> fu6.trigger.ld, ..., fu23.r0.sub -> integer3.0, ..., ... ;
+200 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu6.r0.ld -> fu4.trigger.mul, integer3.0 -> fu4.o0.mul ;
+24 -> fu6.trigger.ld, ..., ..., ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer3.0, 36 -> fu6.trigger.ld, ... ;
+356 -> fu6.trigger.ld, ..., ..., ..., ... ;
+204 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer4.0, fu6.r0.ld -> fu23.o0.add, integer3.0 -> fu23.trigger.add ;
+fu6.r0.ld -> integer4.0, integer4.0 -> fu23.o0.sub, ..., 88 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, 360 -> fu6.trigger.ld, ... ;
+116 -> fu6.trigger.ld, ..., ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+208 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer3.0, integer4.0 -> fu23.o0.add, fu6.r0.ld -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, 8 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer3.0, 364 -> fu6.trigger.ld, ... ;
+212 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+216 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer4.0, fu6.r0.ld -> fu23.o0.add, integer3.0 -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, integer4.0 -> fu23.o0.sub, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., 52 -> fu6.trigger.ld, ... ;
+220 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+224 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, 72 -> fu6.trigger.ld, ... ;
+20 -> fu6.trigger.ld, ..., ..., ..., ... ;
+228 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+368 -> fu6.trigger.ld, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, integer4.0 -> fu23.o0.add, ... ;
+fu6.r0.ld -> integer4.0, ..., ..., 104 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., 40 -> fu6.trigger.ld, ... ;
+fu6.r0.ld -> fu4.trigger.mul, ..., ..., fu23.r0.sub -> fu4.o0.mul, 372 -> fu6.trigger.ld ;
+232 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer3.0, integer4.0 -> fu23.o0.add, fu6.r0.ld -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, 84 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, 376 -> fu6.trigger.ld, ... ;
+236 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+240 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer3.0, integer4.0 -> fu23.o0.add, fu6.r0.ld -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu6.r0.ld -> integer0.0, ..., integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., ..., ... ;
+244 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu4.trigger.mul ;
+248 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., gcu.ra -> gcu.pc.jump, ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, ..., ..., ... ;
+..., ..., ..., ..., ... ;
+252 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+#}
+
+#void second_stage()
+#{
+#0:	// predecessors	: { }
+# successors	: { }
+# live in	: 
+# live out	: 
+# live def	: 
+# live use	: 
+# a.out range	: <138, 231>
+# frequency	: 1 (* 94 = 94)
+# moves/cycle	: 3.41489
+# loop id	: 0
+128 -> fu6.trigger.ld, ..., ..., ..., ... ;
+136 -> fu6.trigger.ld, ..., ..., ..., ... ;
+284 -> fu6.trigger.ld, ..., ..., ..., ... ;
+fu6.r0.ld -> integer4.0, ..., ..., 140 -> fu6.trigger.ld, ... ;
+132 -> fu6.trigger.ld, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, integer4.0 -> fu23.o0.add, ... ;
+fu6.r0.ld -> integer6.0, ..., ..., 144 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, 148 -> fu6.trigger.ld, ... ;
+integer6.0 -> fu4.trigger.mul, fu6.r0.ld -> fu23.o0.add, fu6.r0.ld -> integer5.0, fu23.r0.sub -> fu4.o0.mul, integer4.0 -> fu23.trigger.add ;
+0 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer4.0, integer5.0 -> fu23.o0.sub, integer4.0 -> fu23.trigger.sub ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu23.r0.add -> integer0.0, 288 -> fu6.trigger.ld, fu6.r0.ld -> integer5.0 ;
+integer6.0 -> fu4.trigger.mul, 1 -> fu10.trigger.shr, ..., fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu10.o0.shr ;
+4 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+8 -> fu6.o0.st, fu10.r0.shr -> integer3.0, 15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, fu10.r0.shr -> fu6.trigger.st ;
+152 -> fu6.trigger.ld, fu6.r0.ld -> integer6.0, ..., ..., ... ;
+156 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., ..., integer3.0 -> fu23.trigger.sub ;
+..., ..., ..., ..., ... ;
+12 -> fu6.o0.st, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.o0.add ;
+fu6.r0.ld -> integer4.0, ..., ..., 160 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, integer5.0 -> fu23.o0.add, 1 -> fu10.trigger.shr, integer4.0 -> fu23.trigger.add, 292 -> fu6.trigger.ld ;
+integer6.0 -> fu4.trigger.mul, ..., ..., fu23.r0.sub -> fu4.o0.mul, integer4.0 -> fu23.trigger.sub ;
+fu6.r0.ld -> integer4.0, fu10.r0.shr -> fu6.trigger.st, 1 -> fu10.trigger.shr, fu23.r0.add -> fu10.o0.shr, 16 -> fu6.o0.st ;
+fu4.r0.mul -> fu10.o0.shr, fu6.r0.ld -> integer6.0, 16 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, integer6.0 -> fu4.trigger.mul ;
+24 -> fu6.o0.st, fu10.r0.shr -> integer3.0, ..., ..., fu10.r0.shr -> fu6.trigger.st ;
+20 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, 15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, ... ;
+168 -> fu6.trigger.ld, ..., ..., ..., ... ;
+172 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., ..., integer3.0 -> fu23.trigger.sub ;
+164 -> fu6.trigger.ld, ..., ..., ..., ... ;
+28 -> fu6.o0.st, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.o0.add ;
+fu6.r0.ld -> integer4.0, ..., ..., 176 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, fu6.r0.ld -> fu23.o0.add, integer4.0 -> fu23.trigger.add ;
+integer6.0 -> fu4.trigger.mul, integer5.0 -> fu23.o0.sub, ..., fu23.r0.sub -> fu4.o0.mul, integer4.0 -> fu23.trigger.sub ;
+fu6.r0.ld -> integer4.0, fu10.r0.shr -> fu6.trigger.st, 1 -> fu10.trigger.shr, fu23.r0.add -> fu10.o0.shr, 32 -> fu6.o0.st ;
+integer6.0 -> fu4.trigger.mul, fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, 296 -> fu6.trigger.ld ;
+40 -> fu6.o0.st, fu10.r0.shr -> integer3.0, ..., ..., fu10.r0.shr -> fu6.trigger.st ;
+36 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, 15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, ... ;
+184 -> fu6.trigger.ld, fu6.r0.ld -> integer6.0, ..., ..., ... ;
+188 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., ..., integer3.0 -> fu23.trigger.sub ;
+180 -> fu6.trigger.ld, ..., ..., ..., ... ;
+44 -> fu6.o0.st, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.o0.add ;
+fu6.r0.ld -> integer4.0, ..., ..., 192 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, fu6.r0.ld -> fu23.o0.add, integer4.0 -> fu23.trigger.add ;
+integer6.0 -> fu4.trigger.mul, integer5.0 -> fu23.o0.sub, ..., fu23.r0.sub -> fu4.o0.mul, integer4.0 -> fu23.trigger.sub ;
+fu6.r0.ld -> integer4.0, fu10.r0.shr -> fu6.trigger.st, 1 -> fu10.trigger.shr, fu23.r0.add -> fu10.o0.shr, 48 -> fu6.o0.st ;
+integer6.0 -> fu4.trigger.mul, fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, 300 -> fu6.trigger.ld ;
+56 -> fu6.o0.st, fu10.r0.shr -> integer3.0, ..., ..., fu10.r0.shr -> fu6.trigger.st ;
+52 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, 15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, ... ;
+200 -> fu6.trigger.ld, fu6.r0.ld -> integer6.0, ..., ..., ... ;
+204 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., ..., integer3.0 -> fu23.trigger.sub ;
+196 -> fu6.trigger.ld, ..., ..., ..., ... ;
+60 -> fu6.o0.st, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.o0.add ;
+fu6.r0.ld -> integer4.0, ..., ..., 208 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, fu6.r0.ld -> fu23.o0.add, integer4.0 -> fu23.trigger.add ;
+integer6.0 -> fu4.trigger.mul, integer5.0 -> fu23.o0.sub, ..., fu23.r0.sub -> fu4.o0.mul, integer4.0 -> fu23.trigger.sub ;
+fu6.r0.ld -> integer4.0, fu10.r0.shr -> fu6.trigger.st, 1 -> fu10.trigger.shr, fu23.r0.add -> fu10.o0.shr, 64 -> fu6.o0.st ;
+integer6.0 -> fu4.trigger.mul, fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, 304 -> fu6.trigger.ld ;
+72 -> fu6.o0.st, fu10.r0.shr -> integer3.0, ..., ..., fu10.r0.shr -> fu6.trigger.st ;
+68 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, 15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, ... ;
+216 -> fu6.trigger.ld, fu6.r0.ld -> integer6.0, ..., ..., ... ;
+220 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., ..., integer3.0 -> fu23.trigger.sub ;
+212 -> fu6.trigger.ld, ..., ..., ..., ... ;
+76 -> fu6.o0.st, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.o0.add ;
+fu6.r0.ld -> integer4.0, ..., ..., 224 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, fu6.r0.ld -> fu23.o0.add, integer4.0 -> fu23.trigger.add ;
+integer6.0 -> fu4.trigger.mul, integer5.0 -> fu23.o0.sub, ..., fu23.r0.sub -> fu4.o0.mul, integer4.0 -> fu23.trigger.sub ;
+fu6.r0.ld -> integer4.0, fu10.r0.shr -> fu6.trigger.st, 1 -> fu10.trigger.shr, fu23.r0.add -> fu10.o0.shr, 80 -> fu6.o0.st ;
+integer6.0 -> fu4.trigger.mul, fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, 308 -> fu6.trigger.ld ;
+88 -> fu6.o0.st, fu10.r0.shr -> integer3.0, ..., ..., fu10.r0.shr -> fu6.trigger.st ;
+84 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, 15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, ... ;
+232 -> fu6.trigger.ld, fu6.r0.ld -> integer6.0, ..., ..., ... ;
+236 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., ..., integer3.0 -> fu23.trigger.sub ;
+228 -> fu6.trigger.ld, ..., ..., ..., ... ;
+92 -> fu6.o0.st, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.o0.add ;
+fu6.r0.ld -> integer4.0, ..., ..., 240 -> fu6.trigger.ld, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, fu6.r0.ld -> fu23.o0.add, integer4.0 -> fu23.trigger.add ;
+integer6.0 -> fu4.trigger.mul, integer5.0 -> fu23.o0.sub, ..., fu23.r0.sub -> fu4.o0.mul, integer4.0 -> fu23.trigger.sub ;
+fu6.r0.ld -> integer4.0, fu10.r0.shr -> fu6.trigger.st, 1 -> fu10.trigger.shr, fu23.r0.add -> fu10.o0.shr, 96 -> fu6.o0.st ;
+integer6.0 -> fu4.trigger.mul, fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, 312 -> fu6.trigger.ld ;
+104 -> fu6.o0.st, fu10.r0.shr -> integer3.0, ..., ..., fu10.r0.shr -> fu6.trigger.st ;
+100 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, 15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, ... ;
+248 -> fu6.trigger.ld, fu6.r0.ld -> integer6.0, ..., ..., ... ;
+252 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., ..., integer3.0 -> fu23.trigger.sub ;
+244 -> fu6.trigger.ld, ..., ..., ..., ... ;
+108 -> fu6.o0.st, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.o0.add ;
+fu6.r0.ld -> integer4.0, ..., ..., ..., integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, fu6.r0.ld -> fu23.o0.add, integer4.0 -> fu23.trigger.add ;
+integer6.0 -> fu4.trigger.mul, integer5.0 -> fu23.o0.sub, ..., fu23.r0.sub -> fu4.o0.mul, integer4.0 -> fu23.trigger.sub ;
+112 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, 1 -> fu10.trigger.shr, fu23.r0.add -> fu10.o0.shr, ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, ..., fu23.r0.sub -> fu4.o0.mul, integer6.0 -> fu4.trigger.mul ;
+120 -> fu6.o0.st, fu10.r0.shr -> integer3.0, ..., ..., fu10.r0.shr -> fu6.trigger.st ;
+116 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, 15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, ... ;
+gcu.ra -> gcu.pc.jump, ..., ..., ..., ... ;
+..., fu10.r0.shr -> fu23.o0.sub, ..., ..., integer3.0 -> fu23.trigger.sub ;
+..., ..., ..., ..., ... ;
+124 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+#}
+
+#void third_stage()
+#{
+#0:	// predecessors	: { }
+# successors	: { }
+# live in	: 
+# live out	: 
+# live def	: 
+# live use	: 
+# a.out range	: <232, 318>
+# frequency	: 1 (* 87 = 87)
+# moves/cycle	: 3.86207
+# loop id	: 0
+0 -> fu6.trigger.ld, ..., ..., ..., ... ;
+16 -> fu6.trigger.ld, ..., ..., ..., ... ;
+268 -> fu6.trigger.ld, ..., ..., ..., ... ;
+fu6.r0.ld -> integer4.0, ..., ..., 4 -> fu6.trigger.ld, ... ;
+20 -> fu6.trigger.ld, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, integer4.0 -> fu23.o0.add, ... ;
+8 -> fu6.trigger.ld, fu6.r0.ld -> integer3.0, ..., ..., integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., 24 -> fu6.trigger.ld, fu6.r0.ld -> integer6.0 ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer5.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu4.o0.mul, integer6.0 -> fu23.o0.add ;
+128 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, integer5.0 -> fu23.trigger.sub, ..., fu6.r0.ld -> integer6.0 ;
+fu6.r0.ld -> integer7.0, 16 -> fu10.trigger.shr, fu23.r0.add -> integer0.0, fu4.r0.mul -> fu10.o0.shr, integer6.0 -> fu23.o0.add ;
+integer3.0 -> fu4.trigger.mul, 1 -> fu10.trigger.shr, integer7.0 -> fu23.trigger.add, fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu10.o0.shr ;
+132 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+15 -> fu10.trigger.shr, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, fu4.r0.mul -> fu10.o0.shr, 136 -> fu6.o0.st ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, integer7.0 -> fu23.trigger.sub, 12 -> fu6.trigger.ld, ... ;
+28 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, ... ;
+integer3.0 -> fu4.trigger.mul, fu10.r0.shr -> integer5.0, ..., fu23.r0.sub -> fu4.o0.mul, 32 -> fu6.trigger.ld ;
+140 -> fu6.o0.st, ..., fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu6.trigger.st, ... ;
+fu6.r0.ld -> integer0.1, integer4.0 -> fu23.o0.sub, fu6.r0.ld -> fu23.trigger.sub, 48 -> fu6.trigger.ld, ... ;
+15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, integer0.1 -> fu23.trigger.add, fu6.r0.ld -> integer4.0, 144 -> fu6.o0.st ;
+integer3.0 -> fu4.trigger.mul, integer5.0 -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer4.0 -> fu23.o0.add ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu10.r0.shr -> integer0.0, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, ..., 272 -> fu6.trigger.ld, ... ;
+fu23.r0.add -> integer0.0, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> fu23.trigger.sub, 152 -> fu6.o0.st, integer0.0 -> fu23.o0.sub ;
+1 -> fu10.trigger.shr, fu10.r0.shr -> fu23.o0.sub, integer5.0 -> fu23.trigger.sub, 52 -> fu6.trigger.ld, integer0.0 -> fu10.o0.shr ;
+156 -> fu6.o0.st, integer4.0 -> fu23.o0.sub, fu6.r0.ld -> integer3.0, fu23.r0.sub -> fu6.trigger.st, integer3.0 -> fu23.trigger.sub ;
+148 -> fu6.o0.st, fu10.r0.shr -> integer0.0, ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+160 -> fu6.o0.st, fu6.r0.ld -> integer5.0, fu23.r0.sub -> integer0.0, ..., integer0.0 -> fu6.trigger.st ;
+integer3.0 -> fu4.trigger.mul, ..., ..., 40 -> fu6.trigger.ld, integer0.0 -> fu4.o0.mul ;
+36 -> fu6.trigger.ld, ..., ..., ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, ..., 44 -> fu6.trigger.ld, ... ;
+fu6.r0.ld -> integer0.1, ..., ..., 56 -> fu6.trigger.ld, ... ;
+164 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, integer5.0 -> fu23.trigger.add, fu6.r0.ld -> fu23.o0.add, fu6.r0.ld -> integer6.0 ;
+integer6.0 -> fu23.o0.sub, fu6.r0.ld -> integer5.0, integer5.0 -> fu23.trigger.sub, 88 -> fu6.trigger.ld, ... ;
+fu6.r0.ld -> integer7.0, 1 -> fu10.trigger.shr, fu6.r0.ld -> fu23.trigger.add, fu23.r0.add -> fu10.o0.shr, integer0.1 -> fu23.o0.add ;
+integer3.0 -> fu4.trigger.mul, ..., integer7.0 -> fu23.trigger.sub, fu23.r0.sub -> fu4.o0.mul, ... ;
+1 -> fu10.trigger.shr, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, fu23.r0.add -> fu10.o0.shr, 168 -> fu6.o0.st ;
+60 -> fu6.trigger.ld, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, integer3.0 -> fu4.trigger.mul ;
+64 -> fu6.trigger.ld, fu10.r0.shr -> integer6.0, ..., ..., fu6.r0.ld -> integer7.0 ;
+fu4.r0.mul -> fu10.o0.shr, fu10.r0.shr -> fu23.o0.sub, 15 -> fu10.trigger.shr, integer4.0 -> fu23.trigger.sub, 80 -> fu6.trigger.ld ;
+fu6.r0.ld -> integer4.0, integer5.0 -> fu23.o0.sub, fu6.r0.ld -> fu23.trigger.sub, 84 -> fu6.trigger.ld, ... ;
+172 -> fu6.o0.st, fu10.r0.shr -> integer0.0, fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.add ;
+176 -> fu6.o0.st, integer6.0 -> fu6.trigger.st, fu6.r0.ld -> integer3.0, fu23.r0.sub -> fu4.o0.mul, integer3.0 -> fu4.trigger.mul ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, integer4.0 -> fu23.o0.add, integer3.0 -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, ..., 276 -> fu6.trigger.ld, ... ;
+fu23.r0.add -> integer0.0, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> fu23.trigger.sub, 184 -> fu6.o0.st, integer0.0 -> fu23.o0.sub ;
+1 -> fu10.trigger.shr, fu10.r0.shr -> fu23.o0.sub, integer6.0 -> fu23.trigger.sub, 68 -> fu6.trigger.ld, integer0.0 -> fu10.o0.shr ;
+188 -> fu6.o0.st, integer4.0 -> fu23.o0.sub, fu6.r0.ld -> integer3.0, fu23.r0.sub -> fu6.trigger.st, integer3.0 -> fu23.trigger.sub ;
+180 -> fu6.o0.st, fu10.r0.shr -> integer0.0, ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+192 -> fu6.o0.st, fu6.r0.ld -> integer6.0, fu23.r0.sub -> integer0.0, ..., integer0.0 -> fu6.trigger.st ;
+integer3.0 -> fu4.trigger.mul, integer6.0 -> fu23.o0.add, integer5.0 -> fu23.trigger.add, 76 -> fu6.trigger.ld, integer0.0 -> fu4.o0.mul ;
+72 -> fu6.trigger.ld, ..., integer5.0 -> fu23.trigger.sub, ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu23.r0.add -> integer0.0, ..., ... ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer5.0, 1 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu10.o0.shr ;
+196 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer0.1, integer7.0 -> fu23.trigger.add, fu6.r0.ld -> fu23.o0.add ;
+15 -> fu10.trigger.shr, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, fu4.r0.mul -> fu10.o0.shr, 200 -> fu6.o0.st ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, integer7.0 -> fu23.trigger.sub, 92 -> fu6.trigger.ld, integer0.1 -> fu23.o0.sub ;
+96 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, ... ;
+integer3.0 -> fu4.trigger.mul, fu10.r0.shr -> integer6.0, ..., fu23.r0.sub -> fu4.o0.mul, 112 -> fu6.trigger.ld ;
+204 -> fu6.o0.st, integer5.0 -> fu23.o0.sub, fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu6.trigger.st, fu6.r0.ld -> fu23.trigger.sub ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, integer4.0 -> fu23.trigger.add, 116 -> fu6.trigger.ld ;
+208 -> fu6.o0.st, integer6.0 -> fu6.trigger.st, fu6.r0.ld -> integer3.0, fu23.r0.sub -> fu4.o0.mul, integer3.0 -> fu4.trigger.mul ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu10.r0.shr -> integer0.0, integer4.0 -> fu23.o0.add, integer3.0 -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, 280 -> fu6.trigger.ld, ... ;
+fu23.r0.add -> integer0.0, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> fu23.trigger.sub, 216 -> fu6.o0.st, integer0.0 -> fu23.o0.sub ;
+1 -> fu10.trigger.shr, fu10.r0.shr -> fu23.o0.sub, integer6.0 -> fu23.trigger.sub, 100 -> fu6.trigger.ld, integer0.0 -> fu10.o0.shr ;
+220 -> fu6.o0.st, integer4.0 -> fu23.o0.sub, fu6.r0.ld -> integer3.0, fu23.r0.sub -> fu6.trigger.st, integer3.0 -> fu23.trigger.sub ;
+212 -> fu6.o0.st, fu10.r0.shr -> integer0.0, ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+224 -> fu6.o0.st, fu6.r0.ld -> integer6.0, fu23.r0.sub -> integer0.0, ..., integer0.0 -> fu6.trigger.st ;
+integer3.0 -> fu4.trigger.mul, integer6.0 -> fu23.o0.add, integer5.0 -> fu23.trigger.add, 108 -> fu6.trigger.ld, integer0.0 -> fu4.o0.mul ;
+104 -> fu6.trigger.ld, ..., integer5.0 -> fu23.trigger.sub, ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, fu23.r0.add -> integer0.0, 120 -> fu6.trigger.ld, ... ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer5.0, 1 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu10.o0.shr ;
+228 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer0.1, ..., ... ;
+15 -> fu10.trigger.shr, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, fu4.r0.mul -> fu10.o0.shr, 232 -> fu6.o0.st ;
+fu6.r0.ld -> integer7.0, ..., fu6.r0.ld -> fu23.trigger.add, 124 -> fu6.trigger.ld, integer0.1 -> fu23.o0.add ;
+..., fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, ... ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, integer7.0 -> fu23.trigger.sub, ..., integer0.1 -> fu23.o0.sub ;
+236 -> fu6.o0.st, integer5.0 -> fu23.o0.sub, fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu6.trigger.st, fu6.r0.ld -> fu23.trigger.sub ;
+integer3.0 -> fu4.trigger.mul, fu10.r0.shr -> integer6.0, ..., integer4.0 -> fu23.trigger.add, fu23.r0.sub -> fu4.o0.mul ;
+240 -> fu6.o0.st, integer6.0 -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer3.0 -> fu4.trigger.mul ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu4.r0.mul -> integer0.0, ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, ..., ..., ... ;
+15 -> fu10.trigger.shr, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, 248 -> fu6.o0.st, integer0.0 -> fu10.o0.shr ;
+gcu.ra -> gcu.pc.jump, fu10.r0.shr -> fu23.o0.sub, integer6.0 -> fu23.trigger.sub, ..., ... ;
+..., fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, ... ;
+244 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+252 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+#}
+
+#void fourth_stage()
+#{
+#0:	// predecessors	: { }
+# successors	: { }
+# live in	: 
+# live out	: 
+# live def	: 
+# live use	: 
+# a.out range	: <319, 402>
+# frequency	: 1 (* 84 = 84)
+# moves/cycle	: 3.88095
+# loop id	: 0
+128 -> fu6.trigger.ld, ..., ..., ..., ... ;
+160 -> fu6.trigger.ld, ..., ..., ..., ... ;
+260 -> fu6.trigger.ld, ..., ..., ..., ... ;
+fu6.r0.ld -> integer4.0, ..., ..., 132 -> fu6.trigger.ld, ... ;
+164 -> fu6.trigger.ld, fu6.r0.ld -> integer3.0, fu6.r0.ld -> fu23.trigger.add, integer4.0 -> fu23.o0.add, ... ;
+136 -> fu6.trigger.ld, fu6.r0.ld -> integer3.0, ..., ..., integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., 168 -> fu6.trigger.ld, fu6.r0.ld -> integer6.0 ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer5.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu4.o0.mul, integer6.0 -> fu23.o0.add ;
+0 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, integer5.0 -> fu23.trigger.sub, ..., fu6.r0.ld -> integer6.0 ;
+fu6.r0.ld -> integer7.0, 16 -> fu10.trigger.shr, fu23.r0.add -> integer0.0, fu4.r0.mul -> fu10.o0.shr, integer6.0 -> fu23.o0.add ;
+integer3.0 -> fu4.trigger.mul, 1 -> fu10.trigger.shr, integer7.0 -> fu23.trigger.add, fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu10.o0.shr ;
+4 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+15 -> fu10.trigger.shr, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, fu4.r0.mul -> fu10.o0.shr, 8 -> fu6.o0.st ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, integer7.0 -> fu23.trigger.sub, 140 -> fu6.trigger.ld, ... ;
+172 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, ... ;
+integer3.0 -> fu4.trigger.mul, fu10.r0.shr -> integer5.0, ..., fu23.r0.sub -> fu4.o0.mul, 144 -> fu6.trigger.ld ;
+12 -> fu6.o0.st, ..., fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu6.trigger.st, ... ;
+fu6.r0.ld -> integer0.1, integer4.0 -> fu23.o0.sub, fu6.r0.ld -> fu23.trigger.sub, 180 -> fu6.trigger.ld, ... ;
+fu6.r0.ld -> integer0.1, integer5.0 -> fu6.trigger.st, integer0.1 -> fu23.trigger.add, 16 -> fu6.o0.st, ... ;
+integer3.0 -> fu4.trigger.mul, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, 176 -> fu6.trigger.ld ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, 148 -> fu6.trigger.ld, ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu10.r0.shr -> integer0.0, ..., ... ;
+fu6.r0.ld -> integer7.0, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> fu23.trigger.sub, 24 -> fu6.o0.st, integer0.0 -> fu23.o0.sub ;
+fu6.r0.ld -> integer5.0, fu10.r0.shr -> fu23.o0.sub, integer5.0 -> fu23.trigger.sub, 156 -> fu6.trigger.ld, ... ;
+28 -> fu6.o0.st, ..., integer7.0 -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer0.1 -> fu23.o0.add ;
+20 -> fu6.o0.st, integer5.0 -> fu23.o0.sub, ..., fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, integer4.0 -> fu23.trigger.add, 152 -> fu6.trigger.ld ;
+integer3.0 -> fu4.trigger.mul, ..., integer7.0 -> fu23.trigger.sub, fu23.r0.sub -> fu4.o0.mul, integer0.1 -> fu23.o0.sub ;
+fu23.r0.add -> fu10.o0.shr, fu10.r0.shr -> integer6.0, 1 -> fu10.trigger.shr, 184 -> fu6.trigger.ld, ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu6.r0.ld -> integer0.1, fu23.r0.sub -> fu4.o0.mul, integer3.0 -> fu4.trigger.mul ;
+40 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, integer6.0 -> fu23.trigger.sub, 188 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub ;
+fu6.r0.ld -> integer7.0, integer6.0 -> fu6.trigger.st, fu6.r0.ld -> fu23.trigger.add, 32 -> fu6.o0.st, integer0.1 -> fu23.o0.add ;
+36 -> fu6.o0.st, fu10.r0.shr -> fu23.o0.sub, ..., fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer4.0, integer5.0 -> fu23.o0.sub, fu6.r0.ld -> fu23.trigger.sub ;
+44 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.add ;
+integer3.0 -> fu4.trigger.mul, fu10.r0.shr -> integer6.0, integer7.0 -> fu23.trigger.sub, fu23.r0.sub -> fu4.o0.mul, integer0.1 -> fu23.o0.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., 224 -> fu6.trigger.ld, ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, ..., fu23.r0.sub -> fu4.o0.mul, integer3.0 -> fu4.trigger.mul ;
+56 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, integer6.0 -> fu23.trigger.sub, 192 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub ;
+264 -> fu6.trigger.ld, fu6.r0.ld -> integer3.0, ..., ..., ... ;
+52 -> fu6.o0.st, fu10.r0.shr -> fu23.o0.sub, ..., fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.sub ;
+48 -> fu6.o0.st, integer6.0 -> fu6.trigger.st, fu6.r0.ld -> integer4.0, fu6.r0.ld -> fu23.o0.add, integer3.0 -> fu23.trigger.add ;
+60 -> fu6.o0.st, integer4.0 -> fu23.o0.sub, fu6.r0.ld -> integer3.0, fu23.r0.sub -> fu6.trigger.st, integer3.0 -> fu23.trigger.sub ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, ..., 196 -> fu6.trigger.ld, ... ;
+integer3.0 -> fu4.trigger.mul, ..., ..., fu23.r0.sub -> fu4.o0.mul, 228 -> fu6.trigger.ld ;
+64 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 16 -> fu10.trigger.shr, ..., 204 -> fu6.trigger.ld, fu6.r0.ld -> integer6.0 ;
+fu6.r0.ld -> integer5.0, integer6.0 -> fu23.o0.add, fu6.r0.ld -> fu23.trigger.add, 200 -> fu6.trigger.ld, ... ;
+68 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, integer5.0 -> fu23.trigger.sub, ..., ... ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu6.r0.ld -> integer5.0, 232 -> fu6.trigger.ld, ... ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer0.1, ..., fu23.r0.sub -> fu4.o0.mul, 240 -> fu6.trigger.ld ;
+72 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, ..., integer0.1 -> fu23.o0.add ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu6.r0.ld -> fu23.trigger.add, 236 -> fu6.trigger.ld, fu6.r0.ld -> integer7.0 ;
+fu6.r0.ld -> integer7.0, ..., integer7.0 -> fu23.trigger.sub, 244 -> fu6.trigger.ld, ... ;
+fu23.r0.add -> fu10.o0.shr, fu10.r0.shr -> fu23.o0.sub, 1 -> fu10.trigger.shr, integer4.0 -> fu23.trigger.sub, 212 -> fu6.trigger.ld ;
+fu6.r0.ld -> integer4.0, integer5.0 -> fu23.o0.sub, fu6.r0.ld -> fu23.trigger.sub, fu23.r0.sub -> fu4.o0.mul, integer3.0 -> fu4.trigger.mul ;
+76 -> fu6.o0.st, fu10.r0.shr -> integer6.0, fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.add ;
+integer3.0 -> fu4.trigger.mul, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, fu6.r0.ld -> integer5.0 ;
+fu23.r0.add -> fu10.o0.shr, integer5.0 -> fu23.o0.sub, 1 -> fu10.trigger.shr, 208 -> fu6.trigger.ld, integer4.0 -> fu23.trigger.sub ;
+80 -> fu6.o0.st, fu10.r0.shr -> integer0.0, 15 -> fu10.trigger.shr, fu4.r0.mul -> fu10.o0.shr, integer6.0 -> fu6.trigger.st ;
+88 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> fu23.trigger.sub, fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu23.o0.sub ;
+fu6.r0.ld -> integer0.1, fu10.r0.shr -> fu23.o0.sub, integer6.0 -> fu23.trigger.sub, 220 -> fu6.trigger.ld, integer3.0 -> fu4.trigger.mul ;
+92 -> fu6.o0.st, ..., integer7.0 -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer0.1 -> fu23.o0.add ;
+84 -> fu6.o0.st, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu23.r0.sub -> fu6.trigger.st, ... ;
+fu23.r0.add -> fu10.o0.shr, integer5.0 -> fu23.o0.add, 1 -> fu10.trigger.shr, integer4.0 -> fu23.trigger.add, 216 -> fu6.trigger.ld ;
+248 -> fu6.trigger.ld, fu10.r0.shr -> integer0.0, fu6.r0.ld -> integer5.0, integer7.0 -> fu23.trigger.sub, integer0.1 -> fu23.o0.sub ;
+fu23.r0.add -> integer0.0, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> fu23.trigger.sub, 96 -> fu6.o0.st, integer0.0 -> fu23.o0.sub ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer0.1, 1 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, integer0.0 -> fu10.o0.shr ;
+100 -> fu6.o0.st, fu6.r0.ld -> integer7.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer0.1 -> fu23.o0.add ;
+15 -> fu10.trigger.shr, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> integer4.0, fu4.r0.mul -> fu10.o0.shr, 104 -> fu6.o0.st ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, integer7.0 -> fu23.trigger.sub, 252 -> fu6.trigger.ld, ... ;
+112 -> fu6.o0.st, fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, ... ;
+integer3.0 -> fu4.trigger.mul, fu10.r0.shr -> integer6.0, ..., fu23.r0.sub -> fu4.o0.mul, fu10.r0.shr -> fu6.trigger.st ;
+108 -> fu6.o0.st, integer5.0 -> fu23.o0.sub, fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu6.trigger.st, fu6.r0.ld -> fu23.trigger.sub ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, ..., integer4.0 -> fu23.trigger.add, ... ;
+integer3.0 -> fu4.trigger.mul, ..., ..., fu23.r0.sub -> fu4.o0.mul, ... ;
+fu23.r0.add -> fu10.o0.shr, 1 -> fu10.trigger.shr, fu10.r0.shr -> integer0.0, ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, ..., ..., ... ;
+120 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu10.r0.shr -> fu23.trigger.sub, gcu.ra -> gcu.pc.jump, integer0.0 -> fu23.o0.sub ;
+..., fu10.r0.shr -> fu23.o0.sub, integer6.0 -> fu23.trigger.sub, ..., ... ;
+124 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+116 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+#}
+
+#void fifth_stage()
+#{
+#0:	// predecessors	: { }
+# successors	: { }
+# live in	: 
+# live out	: 
+# live def	: 
+# live use	: 
+# a.out range	: <403, 483>
+# frequency	: 1 (* 81 = 81)
+# moves/cycle	: 3.7037
+# loop id	: 0
+0 -> fu6.trigger.ld, ..., ..., ..., ... ;
+64 -> fu6.trigger.ld, ..., ..., ..., ... ;
+256 -> fu6.trigger.ld, ..., ..., ..., ... ;
+fu6.r0.ld -> integer5.0, ..., ..., 4 -> fu6.trigger.ld, ... ;
+fu6.r0.ld -> integer4.0, integer5.0 -> fu23.o0.add, fu6.r0.ld -> fu23.trigger.add, 68 -> fu6.trigger.ld, ... ;
+fu6.r0.ld -> fu10.o0.shl, fu6.r0.ld -> integer3.0, 1 -> fu10.trigger.shl, integer4.0 -> fu23.trigger.sub, 8 -> fu6.trigger.ld ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> fu23.o0.add, fu6.r0.ld -> integer5.0, fu23.r0.add -> fu4.o0.mul, 76 -> fu6.trigger.ld ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer0.0, fu10.r0.shl -> integer3.0, fu23.r0.sub -> fu4.o0.mul, fu6.r0.ld -> fu23.trigger.add ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, integer0.0 -> fu23.trigger.sub, integer5.0 -> fu23.o0.sub, fu6.r0.ld -> integer5.0 ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu23.r0.add -> integer4.0, 160 -> fu6.o0.st, fu23.r0.add -> fu6.trigger.st ;
+128 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, fu6.r0.ld -> integer0.1, fu23.r0.sub -> fu4.o0.mul, integer3.0 -> fu4.trigger.mul ;
+192 -> fu6.o0.st, fu10.r0.shr -> fu6.trigger.st, ..., ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, ..., 12 -> fu6.trigger.ld, ... ;
+72 -> fu6.trigger.ld, ..., ..., ..., ... ;
+16 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, ... ;
+fu6.r0.ld -> integer4.0, fu6.r0.ld -> fu23.o0.sub, integer0.1 -> fu23.trigger.sub, 20 -> fu6.trigger.ld, ... ;
+224 -> fu6.o0.st, fu6.r0.ld -> integer6.0, integer0.1 -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.o0.add ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer0.1, integer6.0 -> fu23.trigger.add, fu23.r0.sub -> fu4.o0.mul, integer5.0 -> fu23.o0.add ;
+fu23.r0.add -> integer4.0, fu6.r0.ld -> integer5.0, integer6.0 -> fu23.trigger.sub, 176 -> fu6.o0.st, fu23.r0.add -> fu6.trigger.st ;
+fu23.r0.add -> integer7.0, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, 144 -> fu6.o0.st, fu23.r0.add -> fu6.trigger.st ;
+integer3.0 -> fu4.trigger.mul, ..., ..., fu23.r0.sub -> fu4.o0.mul, 80 -> fu6.trigger.ld ;
+84 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, integer7.0 -> fu23.trigger.sub, ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, ..., ..., ... ;
+240 -> fu6.o0.st, fu6.r0.ld -> integer7.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer0.1 -> fu23.o0.add ;
+fu6.r0.ld -> integer4.0, fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, 28 -> fu6.trigger.ld ;
+fu23.r0.add -> integer6.0, integer5.0 -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, 24 -> fu6.trigger.ld ;
+208 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.add ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer5.0, integer7.0 -> fu23.trigger.sub, fu23.r0.sub -> fu4.o0.mul, integer0.1 -> fu23.o0.sub ;
+fu23.r0.add -> integer4.0, fu6.r0.ld -> integer0.1, ..., 184 -> fu6.o0.st, fu23.r0.add -> fu6.trigger.st ;
+integer3.0 -> fu4.trigger.mul, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, 88 -> fu6.trigger.ld ;
+92 -> fu6.trigger.ld, ..., ..., ..., ... ;
+15 -> fu10.trigger.shr, fu10.r0.shr -> fu23.o0.sub, integer6.0 -> fu23.trigger.sub, fu4.r0.mul -> fu10.o0.shr, ... ;
+fu6.r0.ld -> integer7.0, ..., fu6.r0.ld -> fu23.trigger.add, 36 -> fu6.trigger.ld, integer0.1 -> fu23.o0.add ;
+248 -> fu6.o0.st, fu10.r0.shr -> fu23.o0.sub, fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.sub ;
+136 -> fu6.o0.st, integer6.0 -> fu6.trigger.st, fu23.r0.add -> integer6.0, integer5.0 -> fu23.o0.sub, integer4.0 -> fu23.trigger.sub ;
+200 -> fu6.o0.st, fu6.r0.ld -> integer5.0, ..., fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.add ;
+integer3.0 -> fu4.trigger.mul, ..., integer7.0 -> fu23.trigger.sub, fu23.r0.sub -> fu4.o0.mul, integer0.1 -> fu23.o0.sub ;
+fu23.r0.add -> integer4.0, ..., ..., 168 -> fu6.o0.st, fu23.r0.add -> fu6.trigger.st ;
+integer3.0 -> fu4.trigger.mul, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu23.r0.sub -> fu4.o0.mul, 32 -> fu6.trigger.ld ;
+100 -> fu6.trigger.ld, ..., ..., ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, integer6.0 -> fu23.trigger.sub, 96 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub ;
+fu6.r0.ld -> integer0.1, ..., ..., 44 -> fu6.trigger.ld, ... ;
+232 -> fu6.o0.st, fu10.r0.shr -> fu23.o0.sub, fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.sub ;
+fu6.r0.ld -> integer7.0, integer5.0 -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, ... ;
+216 -> fu6.o0.st, fu6.r0.ld -> integer5.0, ..., fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.add ;
+152 -> fu6.o0.st, integer6.0 -> fu6.trigger.st, ..., fu23.r0.sub -> fu4.o0.mul, integer3.0 -> fu4.trigger.mul ;
+fu23.r0.add -> integer4.0, ..., ..., 188 -> fu6.o0.st, fu23.r0.add -> fu6.trigger.st ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, integer7.0 -> fu23.trigger.add, 104 -> fu6.trigger.ld, integer0.1 -> fu23.o0.add ;
+40 -> fu6.trigger.ld, ..., integer7.0 -> fu23.trigger.sub, ..., ... ;
+132 -> fu6.o0.st, fu10.r0.shr -> fu23.o0.sub, fu23.r0.add -> fu23.trigger.sub, fu23.r0.add -> fu6.trigger.st, ... ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer7.0, ..., fu23.r0.sub -> fu4.o0.mul, 48 -> fu6.trigger.ld ;
+252 -> fu6.o0.st, fu6.r0.ld -> integer0.1, integer7.0 -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, fu6.r0.ld -> fu23.o0.add ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, integer7.0 -> fu23.trigger.sub, 108 -> fu6.trigger.ld, integer0.1 -> fu23.o0.sub ;
+fu23.r0.add -> integer6.0, fu6.r0.ld -> integer0.1, ..., 116 -> fu6.trigger.ld, ... ;
+integer3.0 -> fu4.trigger.mul, fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, fu23.r0.sub -> fu4.o0.mul ;
+fu6.r0.ld -> integer4.0, integer5.0 -> fu23.o0.sub, fu6.r0.ld -> fu23.trigger.sub, 52 -> fu6.trigger.ld, ... ;
+196 -> fu6.o0.st, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.add ;
+integer3.0 -> fu4.trigger.mul, ..., fu6.r0.ld -> integer4.0, fu23.r0.sub -> fu4.o0.mul, 112 -> fu6.trigger.ld ;
+164 -> fu6.o0.st, fu10.r0.shr -> fu23.o0.sub, fu23.r0.add -> fu23.trigger.sub, fu23.r0.add -> fu6.trigger.st, fu6.r0.ld -> integer5.0 ;
+fu4.r0.mul -> fu10.o0.shr, integer5.0 -> fu23.o0.sub, 15 -> fu10.trigger.shr, integer4.0 -> fu23.trigger.sub, 56 -> fu6.trigger.ld ;
+220 -> fu6.o0.st, fu6.r0.ld -> integer7.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu6.trigger.st, integer0.1 -> fu23.o0.add ;
+integer3.0 -> fu4.trigger.mul, fu10.r0.shr -> fu23.o0.sub, integer6.0 -> fu23.trigger.sub, fu23.r0.sub -> fu4.o0.mul, 60 -> fu6.trigger.ld ;
+fu23.r0.add -> integer6.0, integer6.0 -> fu6.trigger.st, integer7.0 -> fu23.trigger.sub, 156 -> fu6.o0.st, integer0.1 -> fu23.o0.sub ;
+fu6.r0.ld -> integer0.1, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, fu23.r0.sub -> fu6.trigger.st, 228 -> fu6.o0.st ;
+integer3.0 -> fu4.trigger.mul, integer5.0 -> fu23.o0.add, fu6.r0.ld -> integer5.0, integer4.0 -> fu23.trigger.add, fu23.r0.sub -> fu4.o0.mul ;
+124 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, integer6.0 -> fu23.trigger.sub, ..., ... ;
+fu23.r0.add -> integer4.0, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, 180 -> fu6.o0.st, fu23.r0.add -> fu6.trigger.st ;
+244 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+120 -> fu6.trigger.ld, fu10.r0.shr -> fu23.o0.sub, fu6.r0.ld -> integer4.0, integer4.0 -> fu23.trigger.sub, ... ;
+140 -> fu6.o0.st, integer6.0 -> fu6.trigger.st, ..., integer5.0 -> fu23.o0.sub, integer4.0 -> fu23.trigger.sub ;
+204 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, integer4.0 -> fu23.trigger.add ;
+integer3.0 -> fu4.trigger.mul, fu6.r0.ld -> integer7.0, fu6.r0.ld -> fu23.trigger.add, fu23.r0.sub -> fu4.o0.mul, integer0.1 -> fu23.o0.add ;
+fu23.r0.add -> integer4.0, ..., integer7.0 -> fu23.trigger.sub, 172 -> fu6.o0.st, fu23.r0.add -> fu6.trigger.st ;
+fu23.r0.add -> integer6.0, fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, 148 -> fu6.o0.st, fu23.r0.add -> fu6.trigger.st ;
+integer3.0 -> fu4.trigger.mul, ..., ..., fu23.r0.sub -> fu4.o0.mul, ... ;
+..., fu10.r0.shr -> fu23.o0.sub, integer6.0 -> fu23.trigger.sub, ..., ... ;
+fu4.r0.mul -> fu10.o0.shr, 15 -> fu10.trigger.shr, ..., ..., ... ;
+236 -> fu6.o0.st, gcu.ra -> gcu.pc.jump, ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+..., fu10.r0.shr -> fu23.o0.sub, ..., integer4.0 -> fu23.trigger.sub, ... ;
+..., ..., ..., ..., ... ;
+212 -> fu6.o0.st, ..., ..., fu23.r0.sub -> fu6.trigger.st, ... ;
+#}
+
+
+#}
+
+# MAU: 32bits
+DATA data_mem 0;
+
+DA 380
+4:0b00000000000000000101101111010010
+4:0b00000000000000000111111111110010
+4:0b00000000000000000101011001110101
+4:0b11111111111111111111100010000111
+4:0b11111111111111111001111100100001
+4:0b11111111111111111000000001111101
+4:0b11111111111111111010111100110010
+4:0b00000000000000000000111011101011
+4:0b00000000000000000110010110010110
+4:0b00000000000000000111111010100011
+4:0b00000000000000000100101011011110
+4:0b11111111111111111110100110101111
+4:0b11111111111111111001011000001001
+4:0b11111111111111111000001010101010
+4:0b11111111111111111011101101010001
+4:0b00000000000000000001110110100010
+4:0b00000000000000000110110111111001
+4:0b00000000000000000111101110011010
+4:0b00000000000000000011111001000010
+4:0b11111111111111111101101100100101
+4:0b11111111111111111000111001100100
+4:0b11111111111111111000011010001100
+4:0b11111111111111111100100001100000
+4:0b00000000000000000010101111110001
+4:0b00000000000000000111010011011011
+4:0b00000000000000000111011011100010
+4:0b00000000000000000011000011001100
+4:0b11111111111111111100110100011100
+4:0b11111111111111111000100001001011
+4:0b11111111111111111000110000010110
+4:0b11111111111111111101011000110000
+4:0b00000000000000000011100110101000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000000000000000000
+4:0b00000000000000000101101010000010
+4:0b00000000000000000111011001000001
+4:0b00000000000000000011000011111011
+4:0b00000000000000000111110110001010
+4:0b00000000000000000001100011111000
+4:0b00000000000000000110101001101101
+4:0b00000000000000000100011100011100
+4:0b00000000000000000111111101100010
+4:0b00000000000000000000110010001011
+4:0b00000000000000000110001011110010
+4:0b00000000000000000101000100110011
+4:0b00000000000000000111101001111101
+4:0b00000000000000000010010100101000
+4:0b00000000000000000111000011100010
+4:0b00000000000000000011110001010110
+4:0b00000000000000000111111111011000
+4:0b00000000000000000000011001000111
+4:0b00000000000000000101111011010111
+4:0b00000000000000000101010111110101
+4:0b00000000000000000111100010000100
+4:0b00000000000000000010101100011111
+4:0b00000000000000000111001110110101
+4:0b00000000000000000011011010111010
+4:0b00000000000000000111111010011101
+4:0b00000000000000000001001011001000
+4:0b00000000000000000110011011001111
+4:0b00000000000000000100110000111111
+4:0b00000000000000000111110000101001
+4:0b00000000000000000001111100011001
+4:0b00000000000000000110110111001010
+4:0b00000000000000000100000111001110 ; 
+
+DA 128 ;
+
+# Move to TCE register map
+# r1	= integer1.0
+# r2	= integer2.0
+# r0	= integer0.0
+# r4	= integer4.0
+# r3	= integer3.0
+# r6	= integer6.0
+# r5	= integer5.0
+# r7	= integer7.0
+# r8	= integer0.1

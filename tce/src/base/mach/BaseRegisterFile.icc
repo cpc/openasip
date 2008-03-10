@@ -1,0 +1,43 @@
+/**
+ * @file BaseRegisterFile.icc
+ *
+ * Inline implementation of BaseRegisterFile class.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @note reviewed 10 Jun 2004 by vpj, am, tr, ll
+ * @note rating: red
+ */
+
+namespace TTAMachine {
+
+/**
+ * Returns the number of registers in the register file.
+ *
+ * @return Number of registers in the register file.
+ */
+inline int
+BaseRegisterFile::numberOfRegisters() const {
+    return size_;
+}
+
+
+/**
+ * Returns the bit width of the registers in the register file.
+ *
+ * @return Bit width of the registers in the register file.
+ */
+inline int
+BaseRegisterFile::width() const {
+    return width_;
+}
+
+/**
+ * Returns number of registers in the register file.
+ *
+ * @return Register files size, number of registers in the register file.
+ */
+inline int
+BaseRegisterFile::size() const {
+    return size_;
+}
+}

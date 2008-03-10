@@ -1,0 +1,471 @@
+#!/usr/bin/python
+#
+# Compiler driver for tce-llvm-gcc toolset
+#
+
+import os, sys, commands, optparse, shutil, glob
+
+from tempfile import mkdtemp
+from optparse import OptionParser
+from shutil import rmtree
+
+debugMode = False
+tempDir = mkdtemp("","tcecc-")
+
+def cleanup(tmpDir):
+    """Removes temporary files created during build."""
+    if options.leave_dirty == False:
+        rmtree(tmpDir, ignore_errors=True)
+    else:
+        sys.stdout.write("Intermediate files left in build dir " +\
+                         tmpDir + "\n")
+
+def tryRemove(filename):
+    """Tries to remove a file."""
+    try:
+        os.remove(filename)
+    except:
+        pass
+
+def runCommand(command, echoOutput):
+    """Runs a command and prints everything if requested."""
+
+    if echoOutput:
+        print command
+
+    (exitCode, output) = commands.getstatusoutput(command)
+
+    if echoOutput:
+        print output
+
+    return (exitCode, output)
+    
+
+# TODO: add support for ll and check if file is .bc object from magic number...
+def processInputFiles(inFiles, tmpDir, verbose):
+    
+    """ Compiles input files to .bc files and returns list
+    cotaining all the files to link together.
+    """
+
+    compileFlags=""
+
+    if options.compile_only:
+        compileFlags += "-c "
+
+    for i in options.defines:
+        compileFlags += "-D" + i + " "
+
+    for i in options.include_dirs:
+        compileFlags += "-I" + i + " "
+
+    # list of valid suffixes
+    knownSuffices = [".cpp", ".cc", ".c", ".bc", ".o"]
+
+    linkList = []
+
+    # Compile input files if needed
+    if len(inFiles) == 0:
+        exitWithError(
+            1, verbose,
+            "There must be at least one .bc, .c, .cc or .cpp file given.\n")
+    else: 
+        for fName in inFiles:
+            # check file type based on knownSuffices
+            baseName = ""
+            suffix = ""
+            for i in range(len(knownSuffices)):
+                testSuffix = knownSuffices[i]
+                suffixStart = fName.rfind(testSuffix)
+
+                if suffixStart != -1:
+                    suffix = fName[suffixStart:len(fName)]
+                    baseName = fName[0:suffixStart]
+
+                    if suffix == testSuffix:
+                        break
+                    else:
+                        baseName = ""
+                        suffix = ""
+            
+            if baseName != "" and suffix != "":
+                # gen command for compiling, for files that need to
+                # be compiled first
+                command = ""
+                
+                # After compilation all malloc instructions are lowered
+                # to function calls... if malloc function
+                # is implemented as a instruction in llvm assembler,
+                # it won't be linked to final binary from libc.a
+                # (ld knows how to select only needed parts from libc.a,
+                # even thoug it does it very bad, it shorten optimizetime)
+                outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
+                if suffix == ".c":                    
+                    command = "tce-llvm-gcc -O2 -ffreestanding "\
+                              "-fno-unit-at-a-time -c -I" + tmpDir + " " +\
+                              compileFlags + baseName + suffix + " -o " +\
+                              outFileName
+
+                elif suffix == ".cpp" or suffix == ".cc":
+                    command = "tce-llvm-g++ -O2 -ffreestanding "\
+                              "-fno-unit-at-a-time -c -I" + tmpDir + " " +\
+                              compileFlags + baseName + suffix + " -o " +\
+                              outFileName
+
+                elif suffix == ".bc":
+                    exitWithError(
+                        1, verbose,
+                        "Bytecode files can't be relinked. "
+                        "Use .o suffix for unlinked bytecode files.\n")
+
+                elif suffix == ".o":
+                    outFileName =  fName
+
+                # add all files to list for linkage
+                linkList += [outFileName]
+
+                if command != "":                    
+                    (exitCode, output) = runCommand(command, verbose)
+                    if exitCode != 0:
+                        exitWithError(
+                            1, verbose,
+                            "Error while compiling file: " +\
+                            baseName + suffix + "\n" + output + "\n")
+            else:
+                exitWithError(
+                    1, verbose,\
+                    "Unknown input file type: " +\
+                    fName + ". Supported file types " +\
+                    str(knownSuffices) + "\n")
+    return linkList
+
+def exitWithError(status, alreadyVerbose, output):
+    if not alreadyVerbose:
+        sys.stderr.write(output + "\n")
+    cleanup(tempDir)
+    sys.exit(status)
+
+
+###
+# Links bytecode files and returns name of the linked file.
+##
+def linkBytecode(linkFiles, fileNamePrefix, verbose):
+
+    LINKFLAGS=""
+    for i in options.lib_dirs:
+        LINKFLAGS += "-L" + i + " "
+
+    for i in options.libs:
+        LINKFLAGS += "-l" + i + " "
+
+    linkedFileName = fileNamePrefix + "_linked"
+    #### Link all binary code together
+    command = "tce-llvm-gcc -O2 -o " + linkedFileName
+    for name in linkList:
+        command += " " + name
+
+    command += " " + LINKFLAGS
+
+    (exitCode, output) = runCommand(command, options.verbose)
+    if exitCode != 0:
+        sys.stderr.write("Error while linking bytecode: " + command + "\n")
+        exitWithError(1, verbose, output)
+
+    # remove annoying autogenerated script.
+    tryRemove(linkedFileName)
+
+    return linkedFileName + ".bc"
+
+####
+# Optimizes linked bc. Returns name of the optimized file.
+###
+def optimizeBytecode(inFile, fileNamePrefix, verbose):
+
+    defOptimization = ""
+    
+    if options.optimization_level == 0:
+        optSwitches = defOptimization
+
+    elif options.optimization_level == 1:
+        optSwitches = defOptimization + " -std-compile-opts"
+
+    elif options.optimization_level == 2 or options.optimization_level == 3:
+        optSwitches = defOptimization + " -internalize -internalize-public-api-list=_start -std-compile-opts"
+
+    else:
+        exitWithError(
+            1, verbose,\
+            "Optimization level " +\
+            str(options.optimization_level) + " not defined.\n")
+
+    if options.keep_symbols != "":
+        optSwitches += " -internalize-public-api-list=" +\
+                       options.keep_symbols
+
+    outputName = fileNamePrefix + "_optimized.bc"
+        
+    command = "opt -f " + inFile + " -o " +\
+              outputName + " " + optSwitches
+
+    (exitCode, output) = runCommand(command, verbose)
+    if exitCode != 0:
+        sys.stderr.write("Error while optimizing bytecode: " + command + "\n")
+        exitWithError(1, verbose, output)
+
+    return outputName
+
+####
+# Link emulation function bytecode to program.
+###
+def linkEmulationFuncs(inFile, fileNamePrefix, verbose, llvmprefix):
+
+    # if software floatingpoint should be lowered
+    emulationLib = llvmprefix + "/tce-llvm/lib/emulation_functions.o "
+    linkedName = fileNamePrefix + "_libemul.bc"
+        
+    command = ("llvm-link -f " + inFile + " " + emulationLib +
+               " -o " + linkedName)
+
+    (exitCode, output) = runCommand(command, verbose)
+
+    if exitCode != 0:
+        sys.stderr.write("Error while linking emulation lib: " + command + "\n")
+        exitWithError(1, verbose, output)
+
+    outputName = fileNamePrefix + "_emul_internalized.bc"
+    command = ("opt " + linkedName + " -f -internalize -internalize-public-api-list=_start -o " + outputName)
+
+    (exitCode, output) = runCommand(command, verbose)
+
+    if exitCode != 0:
+        sys.stderr.write("Error while internalizing emulation functions: " + command + "\n")
+        exitWithError(1, verbose, output)
+
+    return outputName
+
+#############################################
+# Super complex main program
+#############################################
+
+# Options..
+usage = "usage: %prog [options] source-or-bc-file1 source-or-bc-file2 ..."
+
+p = optparse.OptionParser(usage)
+
+p.add_option('-a', '--adf-file',
+             type="string", action="store", metavar='file',
+             dest="adf_file", default="",
+             help="Architecture which for program is scheduled after "
+             "the compilation. Note that 'schedule' must be installed.")
+
+p.add_option('-s', '--scheduler-config',
+             type="string", action="store", metavar='file',
+             dest="scheduler_config", default=None,
+             help="Configure file for scheduling command.")
+
+p.add_option('-O', '--optimization-level',
+             type="int", action="store", metavar='level',
+             dest='optimization_level', default=0,
+             help="Optimization level. 0=no optimizations, "
+             "1=preserve program API, 2=don't respect original API, "
+             "3 = same that 2. NOTE: For optimal floating point performance,"
+             "this switch must be given also when compiling bc files to tpef.")
+
+p.add_option('-k', '--keep-symbols',
+             type="string", action="store",
+             metavar='sym1,sym2,sym3', dest='keep_symbols', default="",
+             help="List of symbols whose optimization away is prevented. "
+             "If you are using this, remember to define "
+             "at least 'main' symbol.")
+
+p.add_option('-o', '--output-name',
+             type="string", action="store", metavar='file',
+             dest="output_name", default="",
+             help="File name for output binary.")
+
+p.add_option('-d', '--leave-dirty', action="store_true",
+             dest='leave_dirty', default=False,
+             help="Do not delete files from each compilation phase.")
+
+p.add_option('-c', '--compile-only', action="store_true",
+             dest='compile_only', default=False,
+             help="Compile only do not link or optimize.")
+
+p.add_option('-v', '--verbose', action="store_true",
+             dest='verbose', default=False,
+             help="Print out commands and outputs for each phase.")
+
+p.add_option('-D', '--preprocessor-define', 
+             type="string", action="append", metavar='string',
+             dest="defines", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-I', '--include-directory', 
+             type="string", action="append", metavar='directory',
+             dest="include_dirs", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-L', '--library-directory', 
+             type="string", action="append", metavar='directory',
+             dest="lib_dirs", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-l', '--library-link', 
+             type="string", action="append", metavar='libname',
+             dest="libs", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-W', '--warning', 
+             type="string", action="append", metavar='libname',
+             dest="libs", default=[],
+             help="Ignored.")
+
+p.add_option('--scheduler-binary',
+             type="string", action="store", metavar='scheduler binary',
+             dest="scheduler",
+             default="schedule",
+             help="Scheduler binary to use instead of 'schedule' in path.")
+
+p.add_option('--plugin-cache-dir',
+             type="string", action="store", metavar='directory',
+             dest="plugin_cache_dir",
+             default=os.path.expanduser("~/.tce/tcecc/cache"),
+             help="Directory for cached llvm target plugins.")
+
+p.add_option('--no-plugin-cache', action="store_true",
+             dest="no_cache", default=False,
+             help="Do not cache generated llvm target plugins.")
+
+p.add_option('--rebuild-plugin', action="store_true",
+             dest="rebuild_plugin", default=False,
+             help="Rebuild plugin in the cache.")
+
+p.add_option('--clear-plugin-cache', action="store_true",
+             dest="clear_cache", default=False,
+             help="Clear plugin cache completely.")
+
+
+# get commandline arguments
+options, inFiles = p.parse_args()
+
+# clear plugin cache and do nothing else if the --clear-plugin-cache
+# option is given
+if options.clear_cache:
+    pluginFiles = glob.glob(options.plugin_cache_dir + '/*.so')
+    for fName in pluginFiles:
+        tryRemove(fName)
+
+    sys.stdout.write("Cleared plugin cache.\n")
+    sys.exit(0)
+
+if len(inFiles) == 0:
+    p.print_help()
+    sys.exit(1)
+
+if options.output_name == "":
+    outputName = "llvm_output"
+else:
+    outputName = options.output_name
+
+### llvm-gcc install prefix
+(exitCode, output) = runCommand("dirname `which tce-llvm-gcc`", False)
+if exitCode != 0:
+    sys.stderr.write("Error while determining llvm prefix flags: \n")
+    exitWithError(1, options.verbose, output)
+llvmprefix = output + "/.."
+
+### tce install prefix
+(exitCode, output) = runCommand("tce-config --prefix", False)
+if exitCode != 0:
+    sys.stderr.write("Error while determining tce prefix: \n")
+    exitWithError(1, options.verbose, output)
+tceprefix = output
+
+namePrefix = tempDir + "/" + os.path.basename(outputName)
+
+if options.compile_only and options.output_name != "" and len(inFiles) > 1:
+    sys.stdout.write("Cannot specify -o  with -c and multiple input files.\n")
+    sys.exit(1)
+
+elif len(inFiles) == 1 and inFiles[0][-3:] == ".bc":
+    # Only one .bc inputfile given. No need to compile,
+    # link or optimize anything.
+    # Note: Already linked bytecode can't be linked or optimized
+    # with -lowermissing again anyway!
+    optimizedFileName = inFiles[0]
+
+else:
+    # Compile, link and optimize input files.
+    
+    # generate tceops.h
+    (exitCode, output) = runCommand(
+        "tceopgen -o " + tempDir + "/tceops.h" , options.verbose)
+    
+    if exitCode != 0:
+        sys.stderr.write("Error while generating custom operation macros:\n")
+        exitWithError(1, options.verbose, output)
+    
+    linkList = processInputFiles(inFiles, tempDir, options.verbose)
+
+    # if only compiling
+    if options.compile_only:
+        if options.output_name != "":
+            (exitCode, output) = runCommand(
+                "mv " + linkList[0] + " " + options.output_name,
+                options.verbose)
+
+        else:
+            cmd = "mv "
+            for fName in linkList:
+                cmd += fName + " "
+            cmd += "."
+            (exitCode, output) = runCommand(cmd, options.verbose)
+
+        cleanup(tempDir)
+        sys.exit(0)
+
+    # link
+    linkedFileName = linkBytecode(linkList, namePrefix, options.verbose)
+
+    # optimize
+    optimizedFileName = optimizeBytecode(
+        linkedFileName, namePrefix, options.verbose)
+
+    if (options.adf_file == ""):
+        (exitCode, output) = runCommand(
+            "mv " +  optimizedFileName + " " + outputName,
+            options.verbose)
+        
+#### Schedule compiled sequential code for machines
+if options.adf_file != "":
+
+    outFile = outputName
+    seqFile = tempDir + "/" + os.path.basename(outFile) + ".seq"
+
+    # optimize and lower flaotingpoint
+    emulationLinkedFileName = linkEmulationFuncs(
+        optimizedFileName, namePrefix, options.verbose, llvmprefix)
+
+    if options.scheduler_config is None:
+        (exitCode, output) = runCommand("tce-config --prefix", False)
+        if exitCode != 0:
+            sys.stderr.write("Error determining tce install location: \n")
+            exitWithError(1, options.verbose, output)
+
+        options.scheduler_config = output + "/share/tce/scheduler/passes/default_tcecc_scheduler.conf"
+
+    #### Compile to unscheduled mixed code for the target architecture
+    command = ("llvmtce" +
+               " -a " + options.adf_file +
+               " -c " + options.scheduler_config +
+               " -o " + outFile +
+               " " + emulationLinkedFileName)
+    
+    (exitCode, output) = runCommand(command, options.verbose)
+    if exitCode != 0:
+        sys.stderr.write("Error while compiling " + command + "\n")
+        exitWithError(1, options.verbose, output)
+
+
+#### Cleanup trashes
+cleanup(tempDir)

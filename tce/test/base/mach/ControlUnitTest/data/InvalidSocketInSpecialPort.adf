@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<adf version="1.3">
+
+<global-control-unit name="gcu">
+    <special-port name="port">
+        <connects-to>S1</connects-to>
+        <width>32</width>
+    </special-port>
+    <return-address/>
+    <address-space/>
+    <delay-slots>2</delay-slots>
+    <guard-latency>1</guard-latency>
+</global-control-unit>
+
+</adf>

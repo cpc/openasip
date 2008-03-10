@@ -1,0 +1,20 @@
+# Try to set an illegal history file name (a directory):
+setting history_filename data
+setting history_filename
+setting history_save
+puts "Hello this should not appear in .ttasim-history"
+setting history_save on
+puts "This should appear in .ttasim-history"
+info program
+puts "Is it there?"
+setting history_save off
+puts "This should not appear."
+setting history_save on
+puts "This should."
+setting history_filename another-history
+puts "This should appear in another-history."
+commands 100
+commands 4
+commands
+commands 1234423
+quit

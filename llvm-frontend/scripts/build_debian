@@ -1,0 +1,58 @@
+#!/bin/bash
+# Creates a new Debian package from the current LLVM frontend and 
+# deletes all older packages from the same directory.
+#
+# Good starting point for information:
+# http://www.ibm.com/developerworks/linux/library/l-debpkg.html
+
+cd ..
+
+# Grab the svn revision number
+version=$(svn info | grep "Last Changed Rev" | awk '{print $4}')
+
+echo "Creating a .deb for LLVM frontend version svn${version}."
+
+tempDir=$(mktemp -d)
+echo "Temporary directory for the package: ${tempDir}"
+
+mkdir $tempDir/DEBIAN
+cp scripts/DEBIAN/* $tempDir/DEBIAN
+
+echo "Building and installing LLVM into temp dir."
+
+mkdir llvm-gcc-build
+cd llvm-gcc-build
+../configure
+make
+make DESTDIR=$tempDir install
+
+cd ..
+
+# Create the .deb control file
+cat > $tempDir/DEBIAN/control <<EOF
+Package: tce-frontend
+Version: ${version}
+Section: devel 
+Priority: optional
+Architecture: i386
+Essential: no
+Depends: binfmt-support, libc6, libgcc1, libstdc++6
+Pre-Depends: perl 
+Conflicts: llvm
+Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
+Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen@tut.fi>
+Provides: tce-frontend
+Description: Low-Level Virtual Machine (LLVM) C/C++ compiler for TCE
+EOF
+
+# delete the old .deb files
+rm *.deb
+
+# create the new .deb
+package=llvm_tce_svn${version}_i386.deb
+
+rm -f $package
+dpkg -b $tempDir $package || exit 3
+
+rm -fr $tempDir
+

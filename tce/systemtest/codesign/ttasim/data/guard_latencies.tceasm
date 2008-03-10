@@ -1,0 +1,34 @@
+##########################################################
+# Simple test program that uses a guard that has a non-regular
+# latency (1+1).
+##########################################################
+	
+CODE ; 
+
+    20 -> RF.1;
+    1 -> RF.0; # Should take 1 instruction to update the guard value
+    ? RF.0 latency1 -> gcu.jump.1 ;
+    ? RF.0 latency2 -> gcu.jump.1 ;
+    ? RF.0 latency3 -> gcu.jump.1 ;
+    ? RF.0 latency4 -> gcu.jump.1 ;    
+    end -> gcu.jump.1 ;
+    
+latency1:
+    1 -> RF.1;
+    end -> gcu.jump.1;
+    
+latency2:    
+    2 -> RF.1;
+    end -> gcu.jump.1;
+
+latency3:
+    3 -> RF.1;
+    end -> gcu.jump.1;
+    
+latency4:
+    4 -> RF.1;
+    end -> gcu.jump.1;   
+
+end:
+    # Now RF.1 should contain 2 if test was passed
+    ... ;

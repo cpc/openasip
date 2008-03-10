@@ -1,0 +1,79 @@
+This file is an initialization script.
+The only purpose of this test is to ensure 
+that all the lines of the init script
+are executed and they take effect.
+Could not open file for writing.
+.ttasim-history
+0
+Hello this should not appear in .ttasim-history
+1
+This should appear in .ttasim-history
+Program not loaded.
+Is it there?
+1
+This should not appear.
+1
+This should.
+another-history
+This should appear in another-history.
+# Try to set an illegal history file name (a directory):
+setting history_filename data
+setting history_filename
+setting history_save
+puts "Hello this should not appear in .ttasim-history"
+setting history_save on
+puts "This should appear in .ttasim-history"
+info program
+puts "Is it there?"
+setting history_save off
+puts "This should not appear."
+setting history_save on
+puts "This should."
+setting history_filename another-history
+puts "This should appear in another-history."
+commands 100
+setting history_filename another-history
+puts "This should appear in another-history."
+commands 100
+commands 4
+puts "Is it there?"
+setting history_save off
+puts "This should not appear."
+setting history_save on
+puts "This should."
+setting history_filename another-history
+puts "This should appear in another-history."
+commands 100
+commands 4
+commands
+# Try to set an illegal history file name (a directory):
+setting history_filename data
+setting history_filename
+setting history_save
+puts "Hello this should not appear in .ttasim-history"
+setting history_save on
+puts "This should appear in .ttasim-history"
+info program
+puts "Is it there?"
+setting history_save off
+puts "This should not appear."
+setting history_save on
+puts "This should."
+setting history_filename another-history
+puts "This should appear in another-history."
+commands 100
+commands 4
+commands
+commands 1234423
+puts "This should appear in .ttasim-history"
+info program
+puts "Is it there?"
+setting history_save off
+puts "This should."
+setting history_filename another-history
+puts "This should appear in another-history."
+commands 100
+commands 4
+commands
+commands 1234423
+quit

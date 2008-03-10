@@ -1,0 +1,74 @@
+DIST_OBJECTS =	BinaryStream.o \
+		SafePointable.o \
+	       	SafePointer.o \
+	       	ReferenceKey.o \
+		Binary.o \
+		Section.o \
+	       	RelocSection.o \
+		DataSection.o \
+	       	CodeSection.o \
+	       	StringSection.o \
+	       	UDataSection.o \
+	       	ASpaceSection.o \
+	       	NullSection.o \
+	       	ResourceSection.o \
+	       	LineNumSection.o \
+	       	SymbolSection.o \
+	       	Chunk.o \
+	       	SectionElement.o \
+	       	InstructionElement.o \
+	       	ImmediateElement.o \
+	       	MoveElement.o \
+	       	ASpaceElement.o \
+	       	RelocElement.o \
+	       	ResourceElement.o \
+	       	SymbolElement.o \
+	       	LineNumElement.o \
+	       	LineNumProcedure.o \
+		BinaryReader.o \
+	       	SectionReader.o \
+		TPEFReader.o \
+		TPEFSectionReader.o \
+		TPEFASpaceSectionReader.o \
+		TPEFCodeSectionReader.o \
+		TPEFRelocSectionReader.o \
+		TPEFUDataSectionReader.o \
+		TPEFDataSectionReader.o \
+		TPEFStringSectionReader.o \
+		TPEFNullSectionReader.o \
+		TPEFResourceSectionReader.o \
+		TPEFLineNumSectionReader.o \
+		BinaryWriter.o \
+	       	SectionWriter.o \
+		TPEFWriter.o \
+		TPEFSectionWriter.o \
+		TPEFASpaceSectionWriter.o \
+		TPEFCodeSectionWriter.o \
+		TPEFRelocSectionWriter.o \
+		TPEFUDataSectionWriter.o \
+		TPEFDataSectionWriter.o \
+		TPEFStringSectionWriter.o \
+		TPEFNullSectionWriter.o \
+		TPEFResourceSectionWriter.o \
+		TPEFLineNumSectionWriter.o \
+		ValueReplacer.o \
+		FileOffsetReplacer.o \
+		SectionIdReplacer.o \
+		SectionOffsetReplacer.o \
+		SectionIndexReplacer.o \
+		SectionSizeReplacer.o \
+		TPEFSymbolSectionReader.o \
+		TPEFSymbolSectionWriter.o \
+		NoTypeSymElement.o \
+		CodeSymElement.o \
+		DataSymElement.o \
+		ProcedSymElement.o \
+		FileSymElement.o \
+		SectionSymElement.o \
+		Locator.o \
+
+TOP_SRCDIR = ../../../..
+TOOL_OBJECTS = Exception.o Conversion.o Application.o
+
+include ${TOP_SRCDIR}/test/Makefile_configure_settings
+include ${TOP_SRCDIR}/test/Makefile_test.defs

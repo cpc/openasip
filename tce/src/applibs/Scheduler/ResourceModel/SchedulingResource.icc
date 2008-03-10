@@ -1,0 +1,130 @@
+/**
+ * @file SchedulingResource.icc
+ *
+ * In-line definitions for Scheduling Resource class
+ *
+ * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Return the name of resource
+ * return Name of resource
+ */
+inline const std::string&
+SchedulingResource::name() const {
+    return name_;
+}
+
+/**
+ * Test if resource is InputPSocketResource
+ * @return True if resource is InputPSocketResource
+ */
+inline bool
+SchedulingResource::isInputPSocketResource() const {
+    return false;
+}
+
+/**
+  * Test if resource is OutputPSocketResource
+  * @return True if resource is OutputPSocketResource
+ */
+inline bool
+SchedulingResource::isOutputPSocketResource() const {
+    return false;
+}
+
+/**
+ * Test if resource is ShortImmPSocketResource.
+ *
+ * @return True if resource is ShortImmPSocketResource.
+ */
+inline bool
+SchedulingResource::isShortImmPSocketResource() const {
+    return false;
+}
+
+/**
+  * Test if resource is InputFUResource
+  * @return True if resource is InputFUResource
+ */
+
+inline bool
+SchedulingResource::isInputFUResource() const {
+    return false;
+}
+
+/**
+  * Test if resource is OutputFUResource
+  * @return True if resource is OutputFUResource
+ */
+inline bool
+SchedulingResource::isOutputFUResource() const {
+    return false;
+}
+
+/**
+  * Test if resource is ExecutionPipelineResource
+  * @return True if resource is ExecutionPipelineResource
+ */
+inline bool
+SchedulingResource::isExecutionPipelineResource() const {
+    return false;
+}
+
+/**
+  * Test if resource is BusResource
+  * @return True if resource is BusResource
+ */
+inline bool
+SchedulingResource::isBusResource() const {
+    return false;
+}
+
+/**
+  * Test if resource is SegmentResource
+  * @return True if resource is SegmentResource
+ */
+
+inline bool
+SchedulingResource::isSegmentResource() const {
+    return false;
+}
+/**
+  * Test if resource is IUResource
+  * @return True if resource is IUResource
+ */
+
+inline bool
+SchedulingResource::isIUResource() const {
+    return false;
+}
+/**
+  * Test if resource is ITemplateResource
+  * @return True if resource is ITemplateResource
+ */
+
+inline bool
+SchedulingResource::isITemplateResource() const {
+    return false;
+}
+/**
+ * Test if all resource in dependent groups are of type
+ * supported by relevant resource
+ * @return true if resources are of correct types
+ */
+
+inline bool
+SchedulingResource::validateDependentGroups()  {
+    return false;
+}
+/**
+ * Test if all resource in related groups are of type
+ * supported by relevant resource
+ * @return true if resources are of correct types
+ */
+
+inline bool
+SchedulingResource::validateRelatedGroups() {
+    return false;
+}

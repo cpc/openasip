@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>ID</name>
+    <inputs>4</inputs>
+    <outputs>4</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <in id="3" type="SIntWord"/>
+    <in id="4" type="SIntWord"/>
+    <out id="5" type="SIntWord"/>
+    <out id="6" type="SIntWord"/>
+    <out id="7" type="SIntWord"/>
+    <out id="8" type="SIntWord"/>
+  </operation>
+
+</osal>

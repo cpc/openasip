@@ -1,0 +1,9 @@
+# Reproduced a bug with disassemble after run. Should work from now on.
+mach data/portallocation.adf
+prog data/portallocation.tpef
+stepi 3
+info registers RF2 4
+resume
+info program
+disassemble
+quit

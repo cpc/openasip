@@ -1,0 +1,4 @@
+prog data/hello
+run
+disassemble
+

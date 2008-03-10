@@ -1,0 +1,201 @@
+\documentclass[twoside]{tce}
+
+\usepackage{pslatex}
+
+\makeindex
+
+\begin{document}
+\author{Jussi Nykänen}
+\title{OSEd}
+\ver{0.2.1}
+\firstday{8.7.2004}
+\lastday{12.10.2004}
+\docnum{(undefined)}
+\state{draft}
+\maketitle
+
+\chapter*{Version History}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{|p{0.10\textwidth}|p{0.15\textwidth}
+                |p{0.15\textwidth}|p{0.46\textwidth}|}
+\hline
+\textbf{Version} &\textbf{Date} &\textbf{Author} &
+\textbf{Description}\\
+\hline
+0.1 & 8.7.2004 & J. Nykänen & 
+First version.\\
+0.2 & 5.8.2004 & J. Nykänen &
+Enhanced class diagram. Added a lot more information about implementation.\\
+0.2.1 & 9.8.2004 & J. Nykänen &
+Added information about info view.\\
+0.3   & 12.10.2004 & J. Nykänen &
+Added information about Listener pattern usage.\\
+\hline
+\end{tabular}
+\end{center}
+\end{table}
+
+\chapter{INTRODUCTION}
+
+\section{Purpose and Scope}
+
+This document describes the software architecture and the design of the OSEd 
+(Operation Set Editor).
+
+\section{Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+OSAL & Operation Set Abstraction Layer.\\
+GUI & Graphical User Interface.\\
+CLI & Command Line Interface\\
+MVC & Model View Controller\\
+\end{tabular}
+\end{center}
+\end{table}
+
+\chapter{ARCHITECTURE DESIGN}
+
+\section{Philosophy of Solution}
+
+Philosophy behind the solution is based on the classical MVC design pattern, 
+in which system is divided to three entities (model, view, controller). Model 
+is the data contents of the system. View is a physical representation of the 
+data. Controller controls all events, and updates the model and view according 
+to events. In OSEd, model is OperationContainer. OperationContainer contains all
+necessary information: search paths, operation modules, and operations. View
+is a splitted window, which shows operation data base as tree-like structure in
+one window, and additional information on the second. Controller role is played
+by two parts: main window controls menu actions, and a tree view controls
+actions that take place in its components.
+
+OSEd and OSAL CLI tools need some common functionality (building operation
+behaviors, simulating operations). This functionality is separated to two
+modules that can be used by both OSEd and OSAL CLI applications. These modules
+are \emph{OperationBuilder} and \emph{OperationSimulator}.
+
+Graphic library used to implement OSEd is wxWidgets. More information
+about wxWidgets can be found in \cite{wxWindows}.
+
+\chapter{CLASSES}
+
+Class diagram containing the most important classes of OSEd is shown in 
+Figure~\ref{fig:class_diagram}. Most of the dialog and command classes are left
+out. \emph{OSEdSimulateCmd} and \emph{SimulateDialog} are examples of command
+and dialog classes.
+
+\begin{figure}[htb]
+\centerline{\psfig{figure=eps/ClassDiagram.eps,width=0.9\textwidth}}
+\caption{Main part of OSEd class diagram.}
+\label{fig:class_diagram}
+\end{figure}
+
+\section{OSEd}
+
+OSEd is the main class of the application. It is inherited from wxApp.
+OSEd initializes the application, ie. it creates the main window and reads
+the option file.
+
+\section{OSEdMainFrame}
+
+Class that controls the main window of the application. Initializes the 
+split window: the left side is a tree view (OSEdTreeView), and right side
+is a list of static information (OSEdInfoView). Initializes also the menu bar
+and adds all the commands in command registry.
+
+OSEdMainFrame handles all events from the menu.
+
+\section{OSEdTreeView} 
+
+Shows a tree-like structure of search paths, operation modules, and operations.
+For that purpose it uses wxTreeCtrl. OSEdTreeView controls the list of static 
+information (OSEdInfoView). The contents of static information list depends 
+on what is selected on the tree view. OSEdTreeView fetches the necessary 
+information about search paths, modules, and operations from OperationContainer.
+
+OSEdTreeView handles two kinds of events:
+
+1. An item is selected. Depending on the item, OSEdInfoView is asked to show
+a certain view.\\
+2. Right mouse button is clicked over an item. Depending on the item, a different
+drop down menu is shown. The handling of menu events is delegated to 
+OSEdMainFrame.\\
+
+\section{OSEdInfoView}
+
+Shows static information about search paths, modules, and operations. Uses
+wxListCtrl. OSEdInfoView offers the same kind of functionality than OSEdTreeView.
+User can select an item by clicking RMB, which brings up a drop down menu.
+
+\section{CommandRegistry}
+
+Holds all possible commands for OSEd. Same class is used also in ProDe 
+(Processor Designer).
+
+\section{Common Classes with OSAL CLI}
+
+OSAL CLI applications and OSEd shares same functionality: operation modules
+must be build, and operation behavior must be simulated. This functionality
+is separated to two classes, OperationBuilder and OperationSimulator. These
+classes contains necessary functions to build modules and to simulate
+operations.
+
+\section{OSEdOptions and OSEdOptionsSerializer}
+
+OSEdOptions is a very simple class, since the only option is OSEd currently is
+the text editor used to modify operation behavior source files. Options are
+given to OSEd as XML file. OSEdOptionsSerializer is used to read the XML file.
+
+\section{OSEdTextGenerator}
+
+OSEdTextGenerator is used to offer all the textual information shown to the user:
+dialog names, error messages etc. OSEdTextGenerator is inherited from
+TextGenerator. More information about TextGenerator can be found in 
+\cite{ToolkitDesign}.
+
+\section{OperationContainer}
+
+OperationContainer offers all the functionality needed from OSAL. OperationContainer
+uses three classes: OperationIndex, OperationSerializer and PluginTools.
+OperationIndex is used to get information of modules and operations, as well as
+to add new modules and operations. OperationSerializer is used for reading the
+operation property files. PluginTools is used to dynamically load the behavior
+of operations. More information about PluginTools can be found in 
+\cite{ToolkitDesign}. OperationContainer contains also necessary memory information
+for the simulation of the commands. \emph{OperationContext} used by all operations
+is also in OperationContainer (maybe it is no longer a good name?). 
+Thus, OperationContainer serves all the information needed for editing, adding,
+and simulation of operations.
+
+\chapter{Usage of listener pattern}
+
+Most of the dialogs in OSEd are modal, but a few dialogs are not modal. An example
+of such dialog is dialog for viewing and editing memory. Dialogs that are not modal
+needs somehow to know when occurs events that has an effect on them. This problem
+is solved by using Listener pattern. \emph{OSEdInformer} object located in mainframe
+serves as Observer, which then informs all the registered listeners that an event
+occurred. In the example case memory dialog is the listener. More information about
+listener pattern can be found in \cite{DesignPatterns}.
+
+\chapter{Handling Commands}
+
+When an action takes place, CommandRegistry is asked for a corresponding 
+command. Command executes itself and, if necessary, directly modifies 
+operations or modules in OperationContainer.
+
+% ------------------------------------------------------------------------
+
+%% Remove this part if there are no references.  Usually there will be at
+%% least a reference to the functional specifications of the same module.
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+%% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+\end{document}

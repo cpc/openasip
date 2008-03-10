@@ -1,0 +1,140 @@
+/**
+ * @file EditPolicyFactory.icc
+ *
+ * Inline implementation of EditPolicyFactory class.
+ *
+ * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include "Application.hh"
+
+/**
+ * Creates edit policies for function units.
+ *
+ * @return Function unit edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createFUEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates edit policies for register files.
+ *
+ * @return Register file edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createRFEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates edit policies for immediate units.
+ *
+ * @return Immediate unit edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createIUEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Craetes edit policy for global control unit.
+ *
+ * @return Global control unit edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createGCUEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Craetes edit policies for function unit ports.
+ *
+ * @return Function unit port edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createFUPortEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates edit policies for register file ports.
+ *
+ * @return Register file port edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createRFPortEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates edit policies for immediate unit ports.
+ *
+ * @return Immediate unit port edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createIUPortEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates edit policies for special register ports of control units.
+ *
+ * @return Special register port edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createSRPortEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates edit policies for sockets.
+ *
+ * @return Socket edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createSocketEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates edit policies for bus sergments.
+ *
+ * @return Segment edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createSegmentEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates edit policies for bridges.
+ *
+ * @return Bridge edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createBridgeEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates edit policies for buses.
+ *
+ * @return Bus edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createBusEditPolicy() {
+    return NULL;
+}
+
+/**
+ * Creates port edit policies for ports.
+ *
+ * @return Port edit policy.
+ */
+inline EditPolicy*
+EditPolicyFactory::createPortEditPolicy() {
+    return NULL;
+}

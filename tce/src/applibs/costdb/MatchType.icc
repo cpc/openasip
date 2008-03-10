@@ -1,0 +1,30 @@
+/**
+ * @file MatchType.icc
+ *
+ * Inline implementation of MatchType class.
+ *
+ * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @note rating: red
+ */
+
+
+/**
+ * Returns type of field.
+ *
+ * @return Type of field.
+ */
+inline const EntryKeyFieldProperty*
+MatchType::fieldType() const {
+    return fieldType_;
+}
+
+/**
+ * Returns type of match.
+ *
+ * @return Type of match.
+ */
+inline CostDBTypes::TypeOfMatch
+MatchType::matchingType() const {
+    return matchType_;
+}

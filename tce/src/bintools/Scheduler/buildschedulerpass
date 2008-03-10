@@ -1,0 +1,56 @@
+#!/bin/bash
+#
+# Script to build a shared object file from a scheduler pass module definition.
+
+if test $# -lt 2
+then
+    echo "Usage: buildschedulerpass <object file> <source files>"
+else
+    tceconf=$(which tce-config 2> /dev/null)
+	curdir=$(basename `pwd`)
+	cd ..
+    if [ "$(basename `pwd`)" == "passes" ];
+        then
+        
+        echo "Assuming that we are working with an uninstalled TCE. "
+
+        TCE_ROOT=../../..
+        SRC_BASE=${TCE_ROOT}/src
+        BASE=${SRC_BASE}/base
+        APPLIBS=${SRC_BASE}/applibs
+		SCHEDULER=${APPLIBS}/Scheduler/
+		RESOURCE_MANAGER=${SCHEDULER}/ResourceManager
+		RESOURCE_MODEL=${SCHEDULER}/ResourceModel
+		PDG=${SCHEDULER}/ProgramRepresentations/ProgramDependenceGraph
+		DDG=${SCHEDULER}/ProgramRepresentations/DataDependenceGraph
+		CFG=${SCHEDULER}/ProgramRepresentations/ControlFlowGraph
+        A_MACH=${APPLIBS}/mach
+        SELECTOR=${SCHEDULER}/Selector
+		DISASSEMBLER=${APPLIBS}/Disassembler
+		GRAPH=${BASE}/Graph
+        SCHEDULER_ALGO=${SCHEDULER}/Algorithms
+        SF_DIR=${SCHEDULER_ALGO}/StackFrameManagement
+        compiler=gcc
+        libdir=
+        includedir="-I${TCE_ROOT} -I${SRC_BASE}/tools -I${SCHEDULER} "\
+"-I${RESOURCE_MODEL} -I${RESOURCE_MANAGER} -I${PDG} -I${BASE}/mach "\
+"-I${BASE}/program -I${BASE}/umach -I${BASE}/osal -I${DISASSEMBLER} "\
+"-I${GRAPH} -I${DDG} -I${CFG} -I${SCHEDULER_ALGO} -I${SF_DIR} -I${SELECTOR} ${CPPFLAGS} -I${A_MACH}"
+        soflags="-lgcc -shared -g -fPIC -o"
+
+        else
+
+        compiler=$(tce-config --c++-compiler)
+        libdir=$(tce-config --libs) 
+        includedir=$(tce-config --includes)
+		includedir=$(echo $includedir)
+		devincludedir=${includedir}/tce
+        soflags="$(tce-config --so-flags) -o"
+
+    fi
+	cd $curdir
+    objectfile=$1
+    shift
+    $compiler $libdir $includedir $devincludedir $extra_objects $soflags $objectfile $* && \
+        echo "Compilation successful." || echo "Compilation failed." >&2
+fi

@@ -1,0 +1,14 @@
+# Test processor configuration file
+
+Architecture = foo.adf
+ArchitectureSize = 1238943
+ArchitectureModified = 2004-12-9 10:54
+
+EncodingMap = foo.bem
+EncodingSize = 129834
+EncodingModified = 2004-12-3 14:35
+
+Implementation = foo.idf
+ImplementationSize = 324354
+ImplementationModified = 2004-11-15 18:28
+

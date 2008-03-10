@@ -1,0 +1,10 @@
+<?php
+// file: wo_long_immediates.testdesc
+
+// short test description
+$test_description="generating a program image of a simple program that has no long immediates";
+// the binary being tested
+$test_bin="./run_wo_long_immediates_test.sh";
+// arguments given to the program
+$bin_args="";
+?>

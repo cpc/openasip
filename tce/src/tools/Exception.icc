@@ -1,0 +1,47 @@
+/**
+ * @file Exception.icc
+ * @author Pekka J‰‰skel‰inen (pjaaskel@cs.tut.fi) 2003
+ *
+ * Inline and template function definitions of exception classes.
+ */
+
+#include <string>
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Exception
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the name of the file in which this exception occurred.
+ */
+inline std::string
+Exception::fileName() const {
+    return file_;
+}
+
+/**
+ * Returns the line number of the file in which this exception occurred.
+ */
+inline int
+Exception::lineNum() const {
+    return line_;
+}
+
+
+/**
+ * Returns the name of the procedure in which this exception was thrown.
+ */
+inline std::string
+Exception::procedureName() const {
+    return proc_;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// PathNotFound
+///////////////////////////////////////////////////////////////////////////////
+inline std::string
+PathNotFound::path() const {
+    return path_;
+}

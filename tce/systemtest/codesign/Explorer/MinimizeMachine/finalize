@@ -1,0 +1,4 @@
+#!/bin/bash
+rm -rf testi.dsdb
+rm -rf sim.tpef
+rm -rf ttasim_output.temp

@@ -1,0 +1,8 @@
+      6                      <_crt0+6>: _main -> call.1 ;
+     38                      <_main+0>: sp -> stw.1 ;
+Hello TTA world!
+     52                     <_main+14>: _printstring -> call.1 ;
+     13               <_printstring+0>: sp -> stw.1 ;
+     27              <_printstring+14>: ldq.2 -> iarg1 ;
+Yeah!     37              <_printstring+24>: ra -> jump.1 ;
+     13               <_printstring+0>: sp -> stw.1 ;

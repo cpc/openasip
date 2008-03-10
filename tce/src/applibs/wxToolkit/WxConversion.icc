@@ -1,0 +1,31 @@
+/**
+ * @file WxConversion.icc
+ *
+ * Definition of WxConversion class.
+ *
+ * @author Ari Metsähalme 2003 (ari.metsahalme@tut.fi)
+ */
+
+#include <string>
+
+/**
+ * Converts a wxString to an std::string.
+ *
+ * @param source wxString to convert.
+ * @return An std::string.
+ */
+inline std::string
+WxConversion::toString(const wxString& source) {
+    return (const char*)source.mb_str();
+}
+
+/**
+ * Converts an std::string to a wxString.
+ *
+ * @param source std::string to convert.
+ * @return A wxString.
+ */
+inline wxString
+WxConversion::toWxString(const std::string& source) {
+    return wxString(source.c_str(), *wxConvCurrent);
+}

@@ -1,0 +1,8 @@
+sub 35 34
+sub 3 -3
+sub -3 3
+sub 2 123
+sub 2 -123
+sub -123 2
+sub 0xffffffff -1
+!quit

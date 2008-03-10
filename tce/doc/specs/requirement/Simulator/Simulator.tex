@@ -1,0 +1,2588 @@
+\documentclass[twoside]{tce}
+\usepackage{pslatex}
+\begin{document}
+\author{Andrea Cilio}
+\title{TTA Processor Simulator}
+\ver{0.11.2}
+\firstday{9.12.2003}
+\lastday{11.08.2005}
+% id number in S- sequence
+\docnum{008}
+% draft/complete/committed
+\state{draft}
+\maketitle
+
+% highlighted style for parameters/variables or otherwise non-fixed parts
+% of a command syntax or of lines of text displayed by the application
+\newcommand{\parm}[1]{\textsl{#1\/}}
+% command to print the type of data fields of data bases
+\newcommand{\ftyp}[1]{(\emph{#1\/})}
+% standard item vertical separation; temporarily overridden in some lists
+\newlength{\stditemsep}
+\setlength{\stditemsep}{\itemsep}
+% standard paragraph vertical separation; temporarily overridden in some lists
+\newlength{\stdparskip}
+\setlength{\stdparskip}{\parskip}
+
+\chapter*{Version History}
+
+\begin{HistoryTable}
+
+ 0.1  & 09.12.2003 & A. Cilio        &
+ First draft. 1, 2 (complete); 3, 4, 5 (parts).\\
+
+ 0.2  & 18.12.2003 & A. Cilio        &
+ Reorganisation according to comments by P.J‰‰skel‰inen.\\
+
+ 0.3  & 30.12.2003 & A. Cilio        &
+ Simulation statistics, command line options. 4.3.3, 4.5, 5.1.1.\\
+
+ 0.4  & 12.01.2004 & A. Cilio        &
+ Simulation control language; 4.6 (part).\\
+
+ 0.5  & 20.01.2004 & A. Cilio        &
+ Complete revision; added typographic conventions.\\
+
+ 0.6  & 27.01.2004 & A. Cilio        &
+ Corrections after review by P. J‰‰skel‰inen.\\
+
+ 0.7  & 02.02.2004 & A. Cilio        &
+ Modification after further comments by P. J‰‰skel‰inen. Removed simulation
+ statistics.\\
+
+ 0.8  & 25.02.2004 & A. Cilio & Flag to ignore resource conflicts. New `info'
+ commands to inspect processor state. List of external data files.\\
+
+ 0.9      & 08.03.2004 & A. Cilio &
+ Pending issue about memory implementation.\\
+
+ 0.10     & 06.04.2004 & A. Cilio        &
+ Changed stack initialisation, added initialisation script option. POSIX
+ pathname matching. Eliminated `set' subcommands. Added `help' command.\\
+
+ 0.10.1   & 21.10.2004 & L. Laasonen &
+ Renamed MDF to ADF. \\
+
+ 0.10.2   & 20.12.2004 & P. J‰‰skel‰inen &
+ Renamed `file' command to `prog'. Added `mach' and `conf' commands. \\
+
+ 0.10.3   & 02.05.2005 & P. J‰‰skel‰inen &
+ Renamed commands to avoid clashes with Tcl language or other
+ implementation issues.\\
+
+ 0.10.4   & 26.07.2005 & P. J‰‰skel‰inen &
+ Renamed `break' command to `bp'.\\
+
+ 0.11     & 04.08.2005 & P. J‰‰skel‰inen &
+ Added bus trace. Minor updates. Rejected canned command sequences. \\
+
+ 0.11.1   & 04.08.2005 & A. Cilio &
+ Corrected spelling, minor text formatting.\\
+ 
+ 0.11.2   & 11.08.2005 & P. J‰‰skel‰inen &
+ Updates commands that deal with command history logs.\\
+
+\end{HistoryTable}
+
+% Table of contents
+\tableofcontents
+
+% Document text
+\chapter{INTRODUCTION}
+
+\section{Purpose}
+
+%  Describe the purpose of the document - example:
+%  This document describes the project "TTA Codesign Environment".  Its
+%  purpose is to give an overview of the proposed TTA Codesign Environment,
+%  its main features and requirements, and a summary of the project
+%  motivations and goals.
+
+This document describes the target architecture simulator of the TCE
+toolset.  This document contains the functional specifications of the
+simulator.
+
+\section{Product Idea}
+
+% (PJ: product)
+
+%  Describe the project motivation in few words and the context in which
+%  this product should have a reason to exist - see TCE Project Plan for an
+%  example
+
+The target architecture simulator enables the user to evaluate how a given
+target processor runs a given TTA application.  The Simulator reproduces the
+cycle-accurate behaviour of application and target processor, and the
+precise \emph{architectural} state of the processor cycle by cycle, but does
+not model implementation details or even the instruction memory image.  The
+Simulator is an essential component of the TCE toolset because it provides
+several critical functionalities.
+
+On the application side, simulation is needed to:
+\begin{itemize}
+\item Verify application correctness.
+\item Profile application.
+\item Analyse application performance and characteristics.
+\end{itemize}
+To ensure application correctness at any stage of the compilation and
+scheduling process, the simulator must be capable of simulating both
+unscheduled intermediate code (for a generic target architecture) and code
+scheduled for a specific target architecture.
+
+On the target architecture side, simulation is needed to:
+\begin{itemize}
+\item Evaluate target processor performance.
+\item Analyse target processor resource usage.
+\end{itemize}
+Evaluation of target processor is essential in order to guide the process of
+finding an optimal target processor for a given cost-performance trade-off.
+
+The processor model used by the Simulator is purely architectural and thus
+implementation-independent.  It does not rely on a model of a possible
+hardware implementation.
+
+% Architecture simulation is useful before doing real HW model
+% simulation, because it's faster and doesn't require to have an
+% implementation of the target processor ready.
+
+\section{Product Overview}
+
+% (PJ: product + overview)
+
+% This section describes as briefly as possible the system that implements
+% the functionality wanted.
+
+%Only main features/requirements of the product, no details.
+
+Several different standalone applications may implement the target
+architecture simulator.  For example, a simulator application that is
+controlled by interactive command line interface and an application
+controlled by a graphical user interface.  All applications share the same
+target processor model and the same core simulation engine.
+
+In addition to standalone applications, the core simulation engine of the
+Simulator may be integrated into an executable model of a larger system (in
+practice, may be linked with an external simulator) to provide a model of
+the TTA processor for more complex system models.  This external simulator
+represents the environment of the TTA processor being simulated.  The core
+simulation engine design and its interface are described in the Simulator
+Design Document~\cite{SimulatorModDesign}.  The specification of the
+system-level simulator is out of the scope of this document.
+
+
+The rest of this document treats only standalone applications, and in
+particular on the CLI-based Simulator.
+
+Standalone applications receive as input data the TTA application to
+simulate and (optionally) the target processor to be simulated.  The
+CLI-based application accepts also a number of command-line options.  The
+GUI-based application, instead, reads and sets up the simulator
+configuration by reading a configuration data file.
+
+The target architecture simulator can produce or update several files as
+result of a run:
+\begin{itemize}
+\item Any output file created by the simulated TTA application.
+\item Execution trace, machine state snapshot.
+\item Profiling information.
+\end{itemize}
+
+The Simulator offers the capabilities of a debugger.  It allows to
+interactively control the simulation process, and to inspect and modify the
+state of the target processor on any cycle of the TTA application execution.
+
+\section{Definitions}
+
+\begin{description}
+\item[Application]%
+  A standalone executable program that provides services for users of the
+  TCE toolset. It may be controlled by a command-line interface or by a
+  graphical user interface, or via a driver application that integrates a
+  group of related applications.
+\item[Multicast]%
+  A special type of data transport whereby the signal on a transport bus is
+  delivered simultaneously to more than one destination.
+\item[Simulator]%
+  The target architecture simulator of the TTA templated architecture.
+\end{description}
+
+\section{Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+ADF   & Architecture Definition File. \\
+API   & Application Programming Interface.\\
+CLI   & Command Line Interface.\\
+GDB   & GNU Source-Level Debugger. \\
+GPR   & General-Purpose Register. \\
+GUI   & Graphical User Interface.\\
+ILP   & Instruction-Level Parallelism (or Processor).\\
+MAU   & Minimum Addressable Unit (of a memory address space).\\
+SPR   & Stack Pointer Register. \\
+TCE   & TTA Codesign Environment. \\
+TPEF  & TTA Program Exchange Format. \\
+TTA   & Transport Triggered Architectures. \\
+\end{tabular}
+\end{center}
+\end{table}
+
+\section{Typographic Conventions Used in This Document}
+
+\begin{center}
+\begin{tabular}{|p{0.30\textwidth}|p{0.63\textwidth}|}
+\hline
+\textbf{Style} &\textbf{Purpose}\\
+\hline
+\emph{italic}      & command and parameter names in running text\\
+\hline
+[brackets]†         & references\\
+\hline
+\texttt{monotype}   & messages displayed literally on screen\\
+\hline
+\parm{\texttt{monotype-slanted}} & variable part of messages displayed
+                      on screen\\
+\hline
+`single quoted'     & keywords, file names or literal strings in running
+                       text\\
+\hline
+`\emph{single quoted, italic}' & variable part of file names or other
+                      strings used in the application, in running text\\
+\hline
+\end{tabular}
+\end{center}
+
+
+\chapter{USER DESCRIPTION}
+
+\section{User Profile}
+
+%% Remove this section (not needed) for functional specifications of
+%% modules; may be needed for applications or subsystems.
+
+%  What's the user like? Student? Researcher? Professional? Expertise in
+%  hardware or software expert? How much skilled?
+
+% PEKKA:
+% Describe who are the or users of the module/application.
+% The users can be "a software engineer" or "a researcher that is developing
+% new scheduling algorithms".
+
+The typical users of the Simulator are \emph{application developers},
+\emph{architecture designers} and \emph{researchers of TTA concept}.
+
+Application developers are concerned with verifying the correctness of the
+application, pinpointing its critical spots (profiling) and ultimately
+fine-tuning the code so that it runs as fast as possible on the target
+processor.
+
+Architecture designers are concerned with evaluating the performance of the
+target processor architecture so that it runs one or more applications as
+fast as possible.  The architecture designer is concerned with pinpointing
+and eliminating hardware resource bottlenecks (by adding resources) and
+ensuring that the target processor uses available resources efficiently (by
+removing underutilised, noncritical resources).
+
+Researchers are interested not only in evaluating performance and
+architecture, but also in exploring new scheduling algorithms, new code
+optimisations or novel architecture features.  This type of user may need to
+modify the Simulator code and extend its capabilities.  For example, a
+researcher may implement new data processing tools to extract required
+information from Simulation statistics.
+
+\section{Key User Needs}
+
+%% Remove this section if the description in INTRODUCTION/Product Idea
+%% is sufficient (usually it is for functional specifications of modules)
+
+Verification of application correctness.  Evaluation of applications basic
+characteristics (analysis).  Application profiling and execution tracing.
+Evaluation of application performance on a given target processor.
+Measurement of target processor performance and efficiency (resource
+utilisation). Debugging: step-by-step simulation, examination of machine
+state at a given cycle, tracking of program execution.
+
+In addition to the human user, the Simulator produces data that is required
+for other TCE applications, in particular:
+\begin{enumerate}
+\item %
+  Profiling data guide the heuristics used by code analysis and
+  transformation passes as well as the instruction scheduler.
+\item %
+  Performance measurements provide a feedback for architecture space
+  explorer.
+\item %
+  Utilisation measurements provide data for applications that estimate power
+  consumption.
+\end{enumerate}
+
+
+\chapter{PRODUCT OVERVIEW}
+
+\section{Product Perspective}
+
+% (external connections)
+
+%  High-level description of the product with focus on its communication
+%  with external products/modules. What external modules does it depend
+%  from?  What is provided in the product and what is required and assumed
+%  available as external service?
+
+% PEKKA:
+% This section describes the environment where the product belongs to, for
+% example what the module is part of. Also client relationships to other
+% modules or applications are described in detail.
+%
+% Example:
+%
+
+
+% This module is part of the software subsystem of the TCE. Program Model
+% constructs itself using this module. Applications that inspect or modify
+% binary files (such as the linker) are direct clients of the module.
+%
+% This module uses the binary stream module to load and store binary files
+% from/to disk. Uses Reference Manager to handle references.
+%
+% This module is used by different binary file handling tools of the
+% project. Example of a such tool is TPEFDumper \cite{tpefdumper-fspecs},
+% which prints useful information on the binary files.
+
+TTA target processor simulation is one of the major functionalities of the
+TCE software subsystem.  Several different applications can implement this
+functionality.
+
+Depending on the application that implements the Simulator, a different
+interface is visible to the user.  Currently, we foresee two simulator
+applications: one controlled by an interactive command line interface, and
+one controlled by a GUI, henceforth called CLI-based and GUI-based
+simulator, respectively.
+
+The Simulator reads two fundamental input files: the TTA application (in a
+TPEF file, described in~\cite{TPEF-specs}) and the architecture definition
+file~\cite{ADF-specs}.
+
+The Simulator may optionally read several other input files:
+\begin{enumerate}
+\item Configuration file (GUI-based Simulator only).
+\item Debugging session.
+\item Machine state snapshot.
+\end{enumerate}
+
+The contents and the format of these files are described in the following
+sections.
+
+In addition to the output (if any) from the TTA application being simulated,
+the Simulator can produce several output files.
+
+The CLI-based simulator recognises a set of command line options for
+configuring the simulation environment, controlling the simulation process
+and the output produced.  These options are all described in
+Section~\ref{sec:usage}.
+
+The CLI-based simulator can run in interactive mode.  In this case, the
+simulation process can be controlled by means of a special language,
+described in Section~\ref{sec:debug}
+
+\section{Product Position Statement}
+
+%  In few words, almost a slogan, the reason for this product to exist
+To provide cycle-accurate simulation of TTA target processors that can be
+designed with TCE.  To allow simulation tracing, inspection of machine
+state, and simulation-based analysis of target processors and TTA
+applications.
+
+\section{Summary of Capabilities}
+
+% (advantages)
+
+The following capabilities motivate the Simulator requirements specified in
+this document.
+
+\begin{center}
+\begin{longtable}{@{}p{0.45\textwidth}@{}p{0.55\textwidth}@{}}
+  User Benefit                 &       Supporting Feature \\
+\hline
+processor performance analysis &  simulation statistics \\
+processor utilisation          &  simulation statistics \\
+execution profiling,
+application analysis           &  profile section management,
+                                  interactive disassemble \\
+cycle-by-cycle control of
+simulation                     &  interactive CLI language \\
+access to machine state        &  interactive CLI language \\
+off-line, complex  simulation
+analysis                       &  simulation trace file generation \\
+stopping and restarting
+simulation                     &  machine state snapshot file generation \\
+\end{longtable}
+\end{center}
+
+\section{Assumptions and Dependencies}
+
+% (portability)
+% (PJ: design constraints)
+
+%  Assumed environment, third-party applications or library assumed to be
+%  present. External services (like OS services) that are required.
+In addition to the general dependencies specified in~\cite{ProjectPlan}, the
+graphical front-end of the Simulator requires the \emph{wxWindows} graphical
+library.  This library is used as compatibility layer to avoid direct
+dependency from more primitive graphical libraries provided by the host
+operating system, such as GTK and X.
+
+The core module and the memory module of the Simulator are designed to work
+with SystemC models of the entire system.  However, any system-level
+modelling language that allows to call C functions of a linked software
+module is expected to work.
+
+Where bases of data must be accessible to SQL queries, the C library
+SQLite~\cite{SQLite-home} will be used.  This library supports most of SQL92
+standard, but not all.  DBMS-specific SQL commands are not supported (at
+least, support for them is not guaranteed).
+
+\chapter{PRODUCT FEATURES}
+\label{ch:product-features}
+% (PJ:functionality)
+
+% PEKKA:
+
+% This chapter describes the functionality of the product in detail. In case
+% modules, the required client interfaces are defined in broad manner. These
+% are the minimum interfaces the object should provide for the client. The
+% format or argument list of methods should not be in detailed level, that's
+% a thing that should be in the design notes instead.
+
+% In case of an application, all command line arguments and user interface
+% screens (GUI) are described in detail.  Also, all tasks the module or tool
+% must be able to accomplish are described here.
+
+% Example:
+%
+% This module must be able to read a.out and TPEF completely. No other
+% binary reading support is required at this point. Only writing of TPEF
+% format is required.
+
+%  Organise in sections.  Dedicate one section for each main feature.
+%  For example: program input/output modules (what it's usually called
+%  Binary Handling Module) could be divided in four parts:
+%  - common features
+%  - reader features
+%  - writer features
+%  - reference management
+%% Some modules may be so simple that a single section is sufficient.
+
+This chapter contains the detailed functional specifications of the TTA
+processor simulator.  Unless otherwise stated, these specifications apply
+only to the CLI-based Simulator, henceforth also called simply
+``Simulator''.
+
+\section{Overview}
+
+% In some situations (further specified in following
+% sections, the ADF name does not need to be given.
+%\begin{enumerate}
+%\item %
+%  The TPEF file contains a copy of the ADF as a file section.
+%\item %
+%  The TPEF file contains a reference to the external ADF.
+%\item %
+%  The information contained in ADF is not needed.
+%\end{enumerate}
+
+The Simulator provides a user interface to:
+\begin{enumerate}
+\item Setup the simulation environment.
+\item Configure the amount of information collected during simulation.
+\item Control the simulation process.
+\end{enumerate}
+
+In addition to simple, non-interactive control of the simulation process by
+means of the command line options, the Simulator provides advanced
+interactive control, basically the same functionality offered by a debugger.
+The Simulator makes it possible to control simulation of single TTA
+instructions step by step, and to inspect the state of all relevant building
+blocks of the target processor at any cycle of the simulation.  Also the
+state of memory can be inspected.
+
+To gain advanced control of the simulation process and access to the machine
+state, the Simulator must be run in \emph{debug mode}.  When in debug mode,
+the Simulator enters the interactive mode and prompts the user for commands.
+These commands control the simulation much in the same way a CLI-based
+debugger such as GNU GDB controls a running application.  The only
+difference is that the execution, in our case, is only simulated by the host
+computer system.  The language recognised by Simulator when running
+interactively in debug mode is specified in Section~\ref{sec:debug}.
+
+The level of tracing detail and the amount of simulation statistics
+collected during simulation can be configured by a number of command line
+options.  Similarly, the generation and management of profiling data is
+controlled by means of command line options.
+
+\section{Setup of Simulation Environment}
+
+The Simulator sets up the environment in which the simulation of the TTA
+application takes place.  This environment consists of the following data:
+
+\begin{enumerate}
+\item Program command line arguments and options.
+\item Stack pointer register.
+\item Pre-initialised stack area. 
+\end{enumerate}
+
+Simulated TTA applications can take arguments and options from the command
+line.  The Simulator allows to pass strings of arguments and options
+to the application.  It is also possible to pass several arguments or
+options in a single string.  The string must be surrounded by single or
+double quotes.
+
+The Stack Pointer Register (SPR) is a general purpose register (GPR) that is
+dedicated, by convention, to keep the address of the current stack frame.
+For more information on the architecture conventions and the structure of
+the stack, see [[architecture specs]].
+
+The SPR is not initialised directly by the Simulator: the TTA program is
+responsible for initialising SPR before using it.  However, for flexibility,
+the TTA program can load the initial value of the stack pointer from a
+memory location.  The address of this location is predefined and hard-coded
+in the TTA program.
+% WHO defined this location is a topic for the architecture document
+The contents of the memory location (which in the actual processor is
+initialised by the external environment, for example a host processor,
+before the TTA processor starts running) is computed by the Simulator or
+given as a command line option.
+
+The stack can be initialised by means of commands stored in a script file
+that may be optionally read before the simulation is started.  The
+initialisation script is written in Simulator control language (see
+Section~\ref{sec:debug} for an overview of the language,
+Section~\ref{ssec:debug-running} for specification of commands that modify
+the TTA program environment).  The stack initialisation data allows to
+communicate information from the external environment to the TTA processor.
+On personal computer operating systems, the environment area contains a
+sequence of NULL-terminated strings of characters.
+
+The maximum size of the stack is not defined; it is implied by the physical
+boundaries of the address space where the stack is located and the address
+of the top of the stack.  For example: given an address space with minimum
+and maximum addresses 0x1000 and 0x4000, respectively, and a stack with
+hard-coded bottom address 0x3F00 and an area of initialised external data of
+0x00A0 MAU's, the maximum size of the stack is 0x2F00 MAU's, and the
+available storage is 0x2E60 MAU's (0x2F00 less the initialised area).
+
+The Simulator needs to know%
+\note{better would be to store the memory location as auxiliary information
+  in the TPEF file and have Simulator read it}
+%
+the address of the memory location from which the SPR initial value is
+loaded, but not the address space of such location, because that is implied
+by (and hard-coded within) the program code.  See
+Section~\ref{ch:pending:stack} for issues related to defining the address
+space of the stack.
+
+\section{Configure Amount of Data Collected During Simulation}
+
+During the simulation process, the Simulator collects a vast amount of
+data.  These data fall into three categories:
+\begin{enumerate}
+\item Execution trace data.
+\item Execution profiling data.
+\item Processor utilization data.
+\end{enumerate}
+
+The execution trace is a temporally ordered log of the activities performed
+during the simulation.  Profiling data consists of the execution count of
+each instruction of the input TTA program.  Processor utilization data
+provides statistics of utilization of different components and operations
+of the simulated processor.
+
+\subsection{Execution Trace Data}
+
+The Simulator allows to control which type of activities are traced, the
+start and the end cycle of tracing, the sampling frequency of tracing.  For
+a complete description of the data stored in an execution trace, see
+Section~\ref{ssec:exec-trace}.  The trace file is called
+`\emph{application}.\emph{s}-\emph{e}.trace'.  Where \emph{s} is the start
+cycle and \emph{e} the end cycle being traced; the end cycle can be omitted.
+
+\subsection{Profiling Data}
+
+Unlike other types of data collected by the simulator, the profiling data of
+a given TTA program run is not stored in a separate file; instead, it is
+stored in the input TPEF file of the program.
+
+Storing of profiling data can be disabled.  If enabled, the data can be
+stored into the input TPEF file in several ways:
+\begin{enumerate}
+\item %
+  Accumulate execution counts with existing profiles (if any) from previous
+  simulation runs.
+\item %
+  Add a new profile data section for this specific simulation run.
+\item %
+  Overwrite any pre-existing profile sections.
+\end{enumerate}
+
+The entire program is profiled: it is not possible to include/exclude parts
+of the program, unlike for other types of data collected during simulation
+(see Section~\ref{sec:control} for details).
+
+\subsection{Processor Utilization Data}
+
+Utilization data is not stored in any file, but it is available through a
+application programming interface after simulation. The API can be 
+used, for example, by Estimator to get the information it needs to
+calculate the processor cost estimates.
+
+\section{Control Simulation Process}
+\label{sec:control}
+
+The Simulator allows a certain degree of non-interactive control of the
+simulation process by means of command line options.
+
+\paragraph{Machine state snapshots.}
+The Simulator is capable of stopping and resuming the simulation of a TTA
+application at any given cycle.  This capability allows to avoid infinite or
+exceedingly lengthy simulation runs; it is very useful, when the simulation
+crashes, to trace the cause of the problem without starting the simulation
+all over.
+
+The capability of resuming simulation is made possible by \emph{machine
+state snapshots}.  A snapshot contains the complete machine state at a given
+cycle of execution of the simulated TTA application.  Snapshots are stored
+in data files and can be taken at a given cycle, or, after a starting cycle,
+at given intervals.  After reading a machine state snapshot file, the
+Simulator can resume simulation immediately as if the whole simulation had
+been run again up to that cycle.
+
+The snapshot file is called `\emph{application}.state.\emph{cycle}',
+where \emph{application} is the name of the TTA application being simulated
+and \emph{cycle} is the real-time cycle at which the snapshot is taken.  See
+Section~\ref{ssec:sim-snapshot} for a description of the requirements on
+this data format.
+
+\begin{quote}\textbf{Note:}
+   The contents of the snapshot file uniquely identify the name of the
+   machine file, which is also stored (as reference or in-line copy) in the
+   application TPEF file, if the application is scheduled.
+\end{quote}
+
+By default, the simulator ignores any snapshot files and starts simulation
+from cycle 0.  This is different from loading a snapshot file taken at cycle
+zero.  Such a snapshot file can be taken, and represents the state of the
+processor before starting to execute the first instruction of the program.
+This state includes the stack initialization memory area.
+
+\paragraph{Selecting which procedures are traced and analysed.}
+The Simulator allows to include or exclude any procedure of the
+TTA application from simulation analysis and tracing.%
+\note{ALT: tag aggregate data in different ``pools'', one for procedure}
+%
+The excluded procedures are still simulated, but the Simulator does not
+collect statistics while simulating their code.  This capability is useful
+to reduce the amount of data produced (which may become unwieldy for
+long-running simulations), to speed up simulation and to focus analysis on
+critical parts of the application.
+
+In languages that allow multiple compilation units and subroutines
+(henceforth: procedures) with unit-local scope (e.g., C and C++
+\emph{static} non-member functions), a program can contain multiple
+procedures with the same name.  In this case, all procedures with the same
+name are affected (included or excluded).  It is possible to have a finer
+control of the included excluded procedures by prepending the name of the
+source file followed by a colon to the procedure name.  For example:
+``myModule.c:myfunc'' will affect only the function ``myfunc'' defined in
+file ``myModule.c''.
+
+\section{Usage}
+\label{sec:usage}
+
+In addition to the standard command line options accepted by every
+application of the TCE toolset [[document to define]], the CLI-based
+Simulator accepts the command line options listed below.  All command line
+options are prepended by two hyphens: `\verb|--|'.  For each option, the
+second column indicates the type of argument (if any) of the option:
+\emph{i} (integer number), \emph{k} (keyword), \emph{s} (string), \emph{f}
+(fractional number), \emph{b} (no option, that is, boolean).  A Boolean
+option disables the flag it controls if prepended by `\verb|no-|'.  Unless
+otherwise stated, other option types cannot be prepended by the `\verb|no-|'
+prefix.
+
+\begin{center}
+\begin{longtable}[htb]{@{}p{.20\textwidth}@{}p{.05\textwidth}%
+                     @{}p{.75\textwidth}}
+
+\multicolumn{3}{c}{Program environment control} \\
+\verb|arguments|      & \emph{s} & The string is passed unmodified to the
+                                   simulated application, which will treat
+                                   it as its command line.  This option may
+                                   be repeated, the strings are concatenated
+                                   in the same order they appear on the
+                                   Simulator command line.\\
+\verb|SPR-location|   & \emph{i} & Address of the location where the initial
+                                   value of SPR is stored. Ignored if the
+                                   SPR initial value is hard-coded in the
+                                   program.\\
+\verb|SPR-init|       & \emph{i} & Initial value of the stack pointer to be
+                                   stored in SPR. Ignored if the SPR initial
+                                   value is hard-coded in the program.\\
+\verb|SPR-true-top|   & \emph{b} & If enabled, the given initial value of
+                                   SPR is the real top of the stack, and any
+                                   initialisation data is stored below.  If
+                                   disabled, the initial value of SPR is the
+                                   bottom of the stack, and the real top of
+                                   the stack is given by adding the size of
+                                   the initialisation data area it.\\
+\verb|init|           & \emph{s} & Run a Simulation control language script
+                                   before starting simulation.  The name of
+                                   the script file is given by \emph{s}.\\
+\multicolumn{3}{c}{Trace control} \\
+\verb|trace-run|      & \emph{k} & What to store in the control flow trace:
+                                   \emph{syscall} calls to system,
+                                   \emph{call} procedure entry and exit
+                                   points, \emph{block} entry and exit
+                                   points, \emph{instruction} the address of
+                                   every instruction executed, \emph{stall}
+                                   elapsed cycles in which the processor is
+                                   locked.  This option may be repeated
+                                   several times to accumulate data.\\
+\verb|trace-bus|      & \emph{b} & Trace the signals carried on the
+                                   transport network.\\
+\verb|trace-memory|   & \emph{k} & Trace the memory activity: \emph{access}
+                                   load and store address, \emph{data} data
+                                   words sent to or loaded from memory,
+                                   \emph{width} of the data words.\\
+\verb|trace-freq|     & \emph{i} & Sampling rate: number of real-time cycles
+                                   between two consecutive entries in the
+                                   simulation trace.  By default, every
+                                   cycle is traced (sampling rate 1).\\
+\verb|trace-start|    & \emph{i} & Real-time start cycle of simulation
+                                   tracing.  By default, simulation starts
+                                   at cycle 0.\\
+\verb|trace-stop|     & \emph{i} & Real-time cycle of simulation at which
+                                   tracing stops.  By default, tracing stops
+                                   when the simulation ends.\\
+
+\multicolumn{3}{c}{Profile control} \\
+\verb|profile|        & \emph{k} & Method of storing profiling data:
+                                   \emph{none} disable profiling,
+                                   \emph{accumulate} with any existing
+                                   profile data set, \emph{append} a new
+                                   data section with this profile data set,
+                                   \emph{replace} any existing profile data
+                                   sections.\\
+
+\multicolumn{3}{c}{Simulation control} \\
+\verb|no-debug-mode|     & \emph{b} & Do not start Simulator in debug mode.  By
+                                   default, the simulation is started in debug mode.\\
+\verb|hazards|        & \emph{k} & Control what happens when a hardware
+                                   resource conflict (hazard) is detected:
+                                   \emph{none} ignore and continue
+                                   simulation, \emph{warning} print a
+                                   warning to standard error stream,
+                                   \emph{error} abort simulation.\\x
+\verb|snapshot-at|    & \emph{i} & Machine state snapshot.  Real-time cycle
+                                   at which a snapshot is taken.  This
+                                   option may be repeated.\\
+\verb|snapshot-every| & \emph{i} & Take a snapshot of the machine state at
+                                   intervals of \emph{i} cycles.\\
+\verb|start|          & \emph{i} & Start simulation at a given cycle
+                                   \emph{i}.  Works only if a machine state
+                                   snapshot at cycle \emph{i} has been taken
+                                   in a previous simulation run, and the
+                                   resulting file is in the current
+                                   directory.  By default, simulation is
+                                   started at cycle 0 without loading a
+                                   snapshot file.\\
+\verb|proc|           & \emph{s} & Include (exclude if option is negated)
+                                   all procedures by name \emph{s} from
+                                   collected data (execution trace,
+                                   simulation statistics).  If prepended by
+                                   a source file name followed by a colon
+                                   `:', then only the procedure in the given
+                                   file is affected.  This option may be
+                                   repeated to include (or exclude) multiple
+                                   procedures.  By default, all procedures
+                                   are included.\\
+\verb|proc-libs|      & \emph{b} & Include (exclude if option is negated)
+                                   all procedures that belong to libraries
+                                   linked to the target program.\\
+\end{longtable}
+\end{center}
+
+
+\subsection{Command Line Option Default Values}
+\label{ssec:usage-defaults}
+
+If no default value is listed, it means that the option has no default value
+(for example, an empty set/list of values) or that has an internal value
+that cannot be specified via command line option (for example, the default
+stop-tracing-at-end-of-simulation).
+
+\begin{center}
+\begin{tabular}[htb]{@{}p{.25\textwidth}@{}p{.75\textwidth}}
+
+\verb|SPR-location|   & ignored (assumed hard-coded in program)\\
+\verb|SPR-init|       & ignored (assumed hard-coded in program)\\
+\verb|SPR-true-top|   & true\\
+\verb|trace-bus|      & false\\
+\verb|trace-freq|     & 1\\
+\verb|trace-start|    & 0\\
+\verb|profile|        & none\\
+\verb|debug-mode|     & false\\
+\verb|proc-libs|      & true\\
+
+\end{tabular}
+\end{center}
+
+\section{Simulator Control Language}
+\label{sec:debug}
+
+The Simulator control language allows to:
+\begin{enumerate}
+\item %
+  Start program simulation, setup the environment that affects the program
+  behaviour.
+\item %
+  Stop and resume program simulation on specified conditions.
+\item %
+  Examine the state of the target processor and the simulation process.
+\item %
+  Modify the state of the target processor so that it is possible to correct
+  program errors during simulation.
+\end{enumerate}
+
+\begin{quote}
+  NOTE: The simulator control language syntax is strongly based on GNU
+  Source-Level Debugger (GDB) commands.  In practice, it is almost a
+  scaled-down and simplified version of the GDB command set.
+\end{quote}
+
+When the Simulator is run in debug mode, it automatically reads and executes
+the initialisation command file `.ttasim-init' if found in the user home
+directory.  After the initialisation command sequence is completed, the
+Simulator processes the command line options, and then reads the
+initialisation command file with the same name in current working directory.
+
+After it has processed the initalisation files and the command line options,
+the Simulator is ready to accept new commands, and prompts the user for
+input.  The prompt line contains the string `(ttasim) ' (notice the space at
+the end of the string).
+
+This section describes all the Simulator commands that can be entered when
+the Simulator runs in debug mode.  The Simulator displays a new line with
+the prompt string only when is ready to accept new commands (the simulation
+is not running).  The running simulation can be interrupted at any time by
+the key combination CTRL-c.  The simulator stops simulation and prompts the
+user for new commands as if it had been stopped by a breakpoint.
+
+The Simulator control language is based on the Toolset Control
+Language~\cite{Tcl-orig}.  It extends the predefined set of Tcl commands
+with a set of commands that allow to perform the functions listed above.  In
+addition to predefined commands, all basic properties of Tcl (expression
+evaluation, parameter substitution rules, operators, and so on) are
+supported.  For an extensive description of these properties, the reader is
+referred to any good book on Tcl, for example~\cite{Tcl-practical}.
+
+
+\subsection{Simulation and Program Environment Variables}
+\label{ssec:debug-set}
+
+The Simulator control language stores important information that affects
+simulation in a number of \emph{simulation environment variables}.  It is
+possible to set, modify and inspect these variables.
+
+\begin{description}
+\item[setting \emph{variable} \emph{value}] %
+  Sets a new value of environment variable \emph{variable}.
+\item[setting {[\emph{variable}]}] %
+  Prints the current value contained by environment variable
+  \emph{variable}.
+\end{description}
+
+These variables affect the simulator and must not be confused with the
+variables that represent the environment of the simulated program.  The
+\emph{program environment} is a set of variable definitions that are
+accessible to the simulated program and are used to pass information to a
+process from its caller.
+
+Normally, the shell environment from which the Simulator application was
+invoked is used for the simulated program, but it is possible to modify or
+completely replace this environment by means of command \emph{set
+environment}, described in Section~\ref{ssec:debug-running}.
+
+The simulation environment variables recognised by Simulator will be
+described in the following sections.
+
+\subsection{Control of How the Simulation Runs}
+\label{ssec:debug-running}
+
+The commands described in this section allow to control the simulation process.
+
+Before simulation can start, a program must be loaded into the Simulator.
+If no program is loaded, the command \emph{run} causes the following
+message:
+\begin{quote}
+  \begin{verbatim}
+  Simulation not initialized.
+  \end{verbatim}
+\end{quote}
+
+Whenever the simulation stops, the Simulator prints the TTA instruction
+where the program stopped:
+\begin{quote}\tt
+  \parm{addr} <\parm{symbol-offset}>: \parm{instruction}
+\end{quote}
+%
+where \emph{addr} is the absolute address of the instruction,
+\emph{symbol-offset} is the symbolic address (symbol + offset), which shows
+the offset from the nearest procedure entry point, and \emph{instruction} is
+the TTA instruction.
+
+\begin{description}
+\item[run {[\emph{arguments}]}] %
+  Starts simulation of the program currently loaded into the Simulator.  The
+  program can be loaded by \emph{file} command (see
+  Section~\ref{ssec:debug-files}) or may be given directly as argument, on
+  the command line.  Simulation runs until either a breakpoint is
+  encountered or the program terminates.
+
+  If specified, the arguments are passed on to the program to be simulated.
+  If no argument is given, the arguments (if any) of the most recent
+  \emph{run} command executed will be used.  It is also possible to set the
+  arguments in the environment variable \emph{args}.  A \emph{run} command
+  without arguments will take its arguments from \emph{args}.
+
+  To control the environment of the program, (see
+  Section~\ref{ssec:debug-set}), it is possible to use the \emph{set
+  environment} command, described below.
+
+\item[setargs {[\emph{arguments}\ldots]}]%
+  Sets the arguments that are passed on to the program being simulated.  The
+  arguments are treated as pathname patterns and undergo pathname expansion.
+  The pattern format and the expansion comply with POSIX.2
+  standard.\footnote
+  %
+  {Unix \emph{glob} library function complies with this standard and is
+  usually mimicked by shells.}
+  %
+  The arguments are then further processed.  Variable substitution takes
+  place as defined by the underlying interpreted language.
+
+\item[setenvironment \emph{varname} {[=]} \emph{value}]%
+  Sets environment variable \emph{varname} with value \emph{value}, to be
+  passed to the TTA program.  If parameter \emph{value} is omitted, the
+  variable is set to a null value.  Spaces between `=' and the two
+  parameters are removed.
+
+\item[unsetenvironment \emph{varname}]%
+  Remove variable \emph{varname} from the environment to be passed to the
+  TTA program.
+
+\item[resume {[\emph{count}]}] %
+  Resume simulation of the program until the simulation is finished or a
+  breakpoint is reached.  The \emph{count} argument gives the
+  number of times the \emph{continue} command is repeated, that is, the
+  number of times breakpoints should be ignored.
+
+\item[step {[\emph{count}]}] %
+  (optional) Continues to the next source line, stepping into a new stack
+  frame if a function call is reached.  The \emph{count} argument gives the
+  number of lines to skip.
+
+\item[stepi {[\emph{count}]}] %
+  Advances simulation to the next machine instructions, stepping into the
+  first instruction a new procedure if a function call is simulated.  The
+  \emph{count} argument gives the number of machine instruction to simulate.
+
+\item[next {[\emph{count}]}] %
+  (optional) Continues to the next source line in the current stack frame.
+  The \emph{count} argument gives the number of lines to skip.
+
+\item[nexti {[\emph{count}]}] %
+  Advances simulation to the next machine instructions in current procedure.
+  If the instruction contains a function call, simulation proceeds until
+  control returns from it, to the instruction past the function call.  The
+  \emph{count} argument gives the number of machine instruction to simulate.
+
+\item[finish] %
+  Continues simulation until the function of the selected stack frame
+  returns (see Section~\ref{ssec:debug-stack} for details on stack frames).
+
+\item[until {[\emph{arg}]}] %
+  Continue running until the program location specified by \emph{arg} is
+  reached.  Any valid argument that applies to command \emph{break} (see
+  Section~\ref{ssec:debug-breakpoints}) is also a valid argument for
+  \emph{until}.  If the argument is omitted, the implied program location%
+  \note{implicit program location = next source line: optional feature}
+  %
+  is the next source line.  In practice, this command is useful when
+  simulation control is inside a loop and the given location is outside it:
+  simulation will continue for as many iterations as required in order to
+  exit the loop (and reach the designated program location).
+
+\item[kill] %
+  Terminate the simulation.  The program being simulated remains loaded and
+  the simulation can be restarted from the beginning by means of command
+  \emph{run}.  The Simulator will normally prompt the user for confirmation
+  before terminating the simulation.
+
+\item[quit] %
+  This command is used to terminate simulation and exit the Simulator.
+\end{description}
+
+\paragraph{Redirecting program's input and output.}
+By default, the program being simulated reads its input and sends its output
+on the same terminal used to invoke the Simulator.  This is the same
+terminal that the Simulator uses to interact with the user by means of the
+simulation control commands. It is also possible, however, to redirect the
+input and the output.
+
+It is possible to redirect the output of the program being simulated to a
+file by appending the redirection operator `>' followed by a file name at
+the end of the \emph{run} command.
+
+Alternatively, it is possible to use command \emph{tty} to redirect both
+input and output of the simulated program to another terminal (see
+Section~\ref{ssec:debug-files} for details).
+
+\subsection{Examining the Stack}
+\label{ssec:debug-stack}
+
+The stack of a program is divided up into contiguous blocks of memory called
+\emph{frames}.  A frame is activated upon entering a function and is
+destroyed (that is, its storage is made available for new frames) when the
+Simulator returns from the function.  Each time the simulator performs a
+function call, it generates information to track the state of the stack.
+
+Several commands of the Simulator control language apply to the stack frame
+currently selected. Normally, the selected frame is the top frame, which
+belongs to the innermost function in the call chain.  Frames are identified
+by a unique \emph{frame number}.  This number is zero for the top frame (the
+frame of the innermost function call activation), and grows while proceeding
+to outer frames.
+
+A stack frame contains arguments of the called function, saved register
+values and local variables.  \note{TTA-specific part}
+%
+The stack pointer register (SPR) always points to the first word past the
+local variable area of the stack.  If current function calls other functions
+and passes any arguments on the stack, the word pointed at by SPR is the
+first word of the outgoing arguments area; otherwise, it is the first
+unallocated word past the stack top.  Since the stack grows downwards,
+incoming arguments and local variables on the stack frame have always
+positive offsets when accessed from the current function, whereas outgoing
+arguments have negative offsets.  See [[architecture specs]] for a detailed
+description of the frame organisation.
+
+The main properties of a stack frame are printed on two lines with the
+following format:
+\begin{quote}\tt
+  \#\parm{num}: \parm{function} (\parm{arg}=\parm{value}, \ldots)
+  at \parm{file}:\parm{lnum}\\
+  \parm{lnum}\hspace{8ex}\parm{sourceline}\\
+\end{quote}
+%
+where \emph{num} is the frame number, \emph{function} is the name of the
+function the frame belongs to, \emph{file} is the source file where the
+function is defined, and \emph{lnum} is the number of the source line in the
+frame the simulation control is at.  The list of function arguments (if any)
+and their values are also displayed.  (optional) The second line shows the
+text of the source line \emph{sourceline}; if the selected frame is not the
+innermost, this line should contain a function call.
+
+Detailed frame information is displayed in several lines of text, with the
+following format:
+\begin{quote}\tt
+  Stack level \parm{fnum}, frame at \parm{addr}:\\
+  spr = \parm{addrsp} in \parm{function} (\parm{file}:\parm{line});
+          saved spr \parm{par-addrsp}\\
+  called by frame at \parm{par-addr}\\
+  source language \parm{language}.\\
+  Arglist at \parm{arg-base}, \parm{name1}=\parm{argaddr1}, \ldots\\
+  Locals at \parm{local-base}\\
+  Saved registers:\\
+  \ \parm{regname1} at \parm{regaddr1}, \ldots\\
+\end{quote}
+%
+where \emph{fnum} is the frame number, \emph{addr} is the start (highest)
+address of the frame, \emph{addrsp} and \emph{par-addrsp} are, respectively,
+the current and the previous contents of SPR,%
+\note{clarify: contents of SPR before or after it is set up by current
+function?}
+%
+\emph{par-addr} is the start address of the parent frame.  The addresses
+\emph{arg-base} and \emph{local-base} are, respectively, the start address
+of the frame dedicated to incoming function arguments and local variables.
+In TTA architecture, \emph{arg-base} is always equal to \emph{addr}.  If no
+incoming argument is passed on the stack then also \emph{local-base} is
+equal to \emph{addr}.  The argument list base address is followed by a list
+of all incoming arguments (name and stack address).  The list of saved
+register shows the register name and the stack address where the registers
+are saved.
+
+Local variables and incoming arguments of selected frame are displayed on
+one line each, with the following formats:
+\begin{quote}\tt
+  \parm{name} = \parm{addr} \parm{value}\\
+\end{quote}
+%
+where \emph{name} is the name of the argument or the local variable,
+\emph{addr}, if applicable, is the address where the data is stored, and
+\emph{value} is the value of the variable.
+
+The following commands allow to select and examine the stack frames during
+simulation.
+
+\begin{description}
+\item[frame \emph{arg}] %
+  Select a stack frame.  The argument \emph{arg} may be either the address
+  of the frame or the stack frame number.  This command prints the main
+  properties of the selected frame.
+
+\item[select-frame \emph{arg}] %
+  Select a stack frame.  This is a silent version of the \emph{frame}
+  command which does not print the properties of the selected frame (see
+  above).
+
+\item[up {[\emph{num}]}] %
+  Move \emph{num} frames up the stack.  If \emph{num} is a positive number,
+  the Simulator advances toward the outermost frame, to higher frame
+  numbers.  If omitted, \emph{num} defaults to one.  This command prints the
+  main properties of the selected frame.
+
+\item[up-silently {[\emph{num}]}] %
+  Variant of command \emph{up} which does not display the new frame.
+
+\item[down {[\emph{num}]}] %
+  Move \emph{num} frames down the stack.  If \emph{num} is a positive
+  number, the Simulator advances toward the innermost frame, to lower frame
+  numbers.  If omitted, \emph{num} defaults to one.  This command prints the
+  main properties of the selected frame.
+
+\item[down-silently {[\emph{num}]}] %
+  Variant of command \emph{down} which does not display the new frame.
+
+\item[backtrace {[[-]\emph{num}]}] %
+  Prints a backtrace of \emph{num} innermost (outermost if prepended by
+  minus sign) frames.  If the argument is omitted, prints all stack frames.
+  Each frame is printed in a separate line.  Only the first line of main
+  properties (shown above) is printed.
+
+\item[info args] %
+  Prints the arguments of the selected frame, each on a separate line.
+
+\item[info frame {[\emph{addr}]}] %
+  Prints detailed description of the frame at address \emph{addr}.  The
+  frame currently selected remains unchanged by this command.  A valid
+  \emph{addr} argument for command \emph{frame} is also a valid argument of
+  command \emph{info frame}.  If \emph{addr} is omitted, the command applies
+  to the selected frame. 
+
+\item[info locals] %
+  Prints the local variables of the selected frame, each on a separate line.
+  These are all variables (declared either static or automatic) accessible
+  at the point of execution of the selected frame.
+\end{description}
+
+\subsection{Examining Program Code and Data}
+\label{ssec:debug-data}
+
+The Simulator allows to examine the program being simulated and the data it
+uses.  Usually, a variable or expression is displayed on one line, with the
+following format:
+\begin{quote}\tt
+  \verb|$|\parm{num} = \parm{addr} \parm{value}\\%$
+\end{quote}
+%
+where \emph{num} is the identification number assigned to the expression
+specified with the printing command, \emph{addr} is its absolute address (in
+hexadecimal base) and \emph{value} is the value of the variable, displayed
+with the appropriate data type.  If the expression displayed is a variable
+that lives in a register, then the address \emph{addr} is replaced by the
+register name, \emph{regname}:
+\begin{quote}\tt
+  \verb|$|\parm{num} = \parm{regname} \parm{value}\\%$
+\end{quote}
+
+The address \emph{addr} display can be disabled with command \emph{set print
+address}; the register name \emph{regname} can be disabled with command
+\emph{set print register}.  See Section~\ref{ssec:debug-misc} for details.
+
+Data structures are displayed in a format that resembles a C \emph{struct}
+declaration, as the following example shows:
+\begin{verbatim}
+$1 = {next = 0x0, foo = {bar = 5, bag = 77}, \
+baz = 0x54 "Umma Gamma"}
+\end{verbatim}%$
+
+It is often useful to print the value of an expression frequently, even
+every time simulation stops. The Simulator maintains a list of expression
+whose value is printed automatically.  A display has the following format:
+\begin{quote}\tt
+  \parm{num}: \parm{expr} = \parm{value}
+\end{quote}
+%
+where \emph{num} is a unique number that identifies this display,
+\emph{expr} is the expression as entered with the \emph{display} command
+(see below) and being displayed, and \emph{value} is the value of the
+expression.
+
+The program status is displayed with one of the following lines:
+\begin{quote}\tt
+  Program not loaded.\\
+  Loaded program not being simulated.\\
+  Program stopped at \parm{address}.\\
+\end{quote}
+If the program is being simulated, then an additional line summarises how
+the program simulation got to the given address. One of the following
+messages is possible:
+\begin{quote}\tt
+  Stopped at breakpoint \parm{num}.\\
+  Stopped after being stepped.\\
+  Stopped at a breakpoint that has since been deleted.\\
+\end{quote}
+The last message occurs when the Simulator has stopped at a temporary
+breakpoint created by the user (see command \emph{tbp},
+Section~\ref{ssec:debug-breakpoints}) or implicitly created by the Simulator
+as side-effect of certain commands (such as \emph{finish}, also described in
+Section~\ref{ssec:debug-breakpoints}).
+
+Source line  information is displayed in the following format:
+\begin{quote}\tt
+  Line \parm{lnum} of "\parm{file}" starts at pc \parm{saddr}
+      and ends at \parm{eaddr}.
+\end{quote}
+  %
+  where \emph{saddr} and \emph{eaddr} are absolute addresses displayed in
+  hexadecimal base.
+
+\begin{description}
+\item[print {[/\emph{fmt}] [\emph{expr}]}] %
+  Prints the current value of expression \emph{expr}.  See below for a
+  description of the output formats that can be specified by parameter
+  \emph{fmt}.  Whenever a \emph{print} command is executed, the value
+  displayed is assigned a unique identification number and stored in the
+  value history log, described in Section~\ref{ssec:debug-history}.
+
+  If \emph{expr} is omitted, the last value, taken from the value history,
+  is printed again.  This feature is useful when the same value must be
+  inspected in an alternative output format.
+
+\item[printf \emph{string}, \emph{expr}] %
+  Prints the values of the expression \emph{expr} with the format specified
+  by string \emph{string}.  The expression may consist of a sequence of
+  several expressions separated by commas.  The expression values are
+  printed exactly as if the command were replaced by a call to C function
+  \emph{printf} with the same arguments.
+
+\item[echo \emph{text}] %
+  Prints \emph{text}.  Nonprinting characters can be entered using C escape
+  sequences; for example, `$\backslash$n' prints a newline.  In addition to
+  the standard C escape sequences, a backslash followed by a space stands
+  for a space. This is useful for displaying a string with spaces at the
+  beginning or the end, since leading and trailing spaces are otherwise
+  trimmed from all arguments.
+
+  The values printed by command \emph{echo} are not entered in the value
+  history (see Section~\ref{ssec:debug-history}).
+
+
+\item[output {[/\emph{fmt}]} \emph{expr}] %
+  Prints the value of the expression \emph{exp}, without the preceding
+  `\$\emph{num} ='.  The value is not entered in the value history.  
+
+  See below for a description of the output formats that can be specified by
+  parameter \emph{fmt}
+
+\item[x {[/\emph{nfu}][\emph{addr}]}] %
+  This low-level command prints the data in memory starting at specified
+  addresses \emph{addr}.  The optional parameters \emph{n}, \emph{f} and
+  \emph{u} specify how much memory to display and how to format it.
+  \begin{description}
+  \item[\emph{n}] %
+    Repeat count: how many data words (counting by units \emph{u}) to
+    display.  If omitted, it defaults to 1.
+  \item[\emph{f}] %
+    Display format is one of the output (specified below), `s'
+    (null-terminated string) or `i' (machine instruction).  If omitted, it
+    defaults to `x' (hexadecimal).
+  \item[\emph{u}] %
+    Unit size: `b' (MAU, a byte in byte-addressed memories), `h' (double
+    MAU), `w' (quadruple word, a `word' in byte-addressed 32-bit
+    architectures), `g' (giant words, 8 MAU's).  The unit size is ignored
+    for formats `s' and `i'.
+  \end{description}
+
+  If \emph{addr} is omitted, then the first address past the last address
+  displayed by the previous \emph{x} command is implied.  If the value of
+  \emph{n}, \emph{f}, or \emph{u} is not specified, the value given in the
+  most recent \emph{x} command is maintained.
+
+  The values printed by command \emph{x} are not entered in the value
+  history (see Section~\ref{ssec:debug-history}).
+
+\item[display {[/\emph{fmt}]} {[\emph{addr}|\emph{expr}]}] %
+  Adds a memory address \emph{addr} or an expression \emph{expr} to the list
+  of expressions that are automatically displayed every time the simulation
+  stops.  If given an expression \emph{expr}, the \emph{display} command
+  accepts an optional output format parameter, described below.  If given an
+  address, the \emph{display} command accepts the same optional format
+  parameter accepted by command \emph{x}.
+
+  If only the format argument is given, then the most recent address or
+  expression is added again to the display list (with the new print format).
+  If only the address or expression is given, the format given in the most
+  recent \emph{display} command is assumed.  If no argument at all is given,
+  the Simulator prints the whole automatic display list (as if the program
+  just stopped).
+
+\item[undisplay {[num]}] %
+\setlength{\itemsep}{0cm}
+\setlength{\parskip}{0cm}
+\item[delete display {[num]}] %
+  Removes the display with number \emph{num} from the automatic display
+  list.
+\setlength{\itemsep}{\stditemsep}
+\setlength{\parskip}{\stdparskip}
+
+\item[enable {[num]}] %
+  Enables the display with number \emph{num} (if previously disabled).  The
+  Simulator automatically re-enables a display expression when its scope in
+  the program is reentered.
+
+\item[disable {[num]}] %
+  Disables the display with number \emph{num}.  When disabled, a
+  display remains in the automatic display list, but is not printed.  The
+  Simulator automatically disables a display expression when the scope (the
+  stack frame) where it is defined is not the currently active frame.
+
+\item[info display] %
+  Lists the expressions previously set up to display automatically, but
+  without showing their values.  Disabled expression are also shown.
+
+\item[disassemble {[\emph{addr1} [\emph{addr2}]]}] %
+  Prints a range of memory addresses as machine instructions.  When two
+  arguments \emph{addr1}, \emph{addr2} are given, \emph{addr1} specifies the
+  first address of the range to display, and \emph{addr2} specifies the last
+  address (not displayed).  If only one argument, \emph{addr1}, is given,
+  then the function that contains \emph{addr1} is disassembled.  If no
+  argument is given, the default memory range is the function surrounding
+  the program counter of the selected frame.
+
+\item[list {[\emph{line}|\emph{function}]}] %
+  (optional) Prints a number of lines centred around source line
+  \emph{line} or the beginning of function \emph{function}.
+
+  By default, 10 lines are printed.  This can be changed by the command
+  \emph{set listsize}.
+
+\item[info line {[\emph{linespec}]}] %
+  Prints the first and the last addresses of the source line
+  \emph{linespec}.  The argument \emph{linespec} can be one of the
+  line specifications described below.
+\end{description}
+
+\paragraph{Expressions.}
+Many commands accept expressions as arguments.  Any valid C expression%
+\footnote{The implementation language is Tcl, whose expression syntax is
+compatible with C syntax.},%
+with exception of type casts and function calls, is accepted as valid
+expression.  Variable names identify variables in the program source code
+and are valid expression terms.  A variable name can be qualified by the
+name of the source file where it is defined:
+\begin{quote}\tt
+  \parm{file}::\parm{variable}
+\end{quote}
+This means that it is possible to access a variable whose scope is
+a single source file even if the current execution point is not in that
+file.  Also local static variables can be accessed anywhere, in this case,
+the variable name is qualified with the function name:
+\begin{quote}\tt
+  \parm{function}::\parm{variable}
+\end{quote}
+
+\paragraph{Addresses.}
+Memory addresses are a special type of expression term.  Since the target
+architecture supports multiple, independent addressing spaces, the
+sequential integer number of a memory location is not sufficient, in
+general, to identify the location.  To be complete, an address must also
+specify the address space it refers to.  The address space can be referred
+to in several ways:
+\begin{enumerate}
+\item %
+  By specifying a unique address space identification number.
+\item %
+  By specifying the name of the address space.
+\end{enumerate}
+All address spaces that form the memory system of the target architecture
+are assigned a unique integer number.  The number zero is always assigned to
+the memory that contains the instructions of the program (instruction
+memory).  The address space is a suffix of the address and is separated from
+the address location number by a colon `:':
+\begin{quote}\tt
+  \parm{address-space}:\parm{location}
+\end{quote}
+To facilitate the use of commands with address arguments, if the address
+space is omitted, the last address space that was specified is implied.  The
+address space can be omitted when it is obvious from the context (that is,
+from the command in which it is used).  For example, the arguments specified
+with command \emph{disassemble} belong to the instruction memory.
+
+\paragraph{Output formats.}
+Certain commands take an optional \emph{format} argument that specifies the
+format of the values being printed by the command.  The format argument
+always starts with a slash `/' and is followed by a format letter.  Unless
+otherwise noted in the command description, the format letter supported are:
+\begin{description}
+\item[x] %
+  Integer in base 16 (hexadecimal).
+\item[d] %
+  Signed integer in decimal.
+\item[u] %
+  Unsigned integer in decimal.
+\item[o] %
+  Integer in base 8 (octal).
+\item[t] % 
+  Integer in base 2 (binary).  The letter `t' stands for "two".
+\item[a] %
+  Address, both absolute (in hexadecimal) and as an offset from the nearest
+  preceding symbol.  The latter is useful to discover in what function an
+  unknown address is located.  The offset expression has the following
+  format: \texttt{<\parm{function}+\parm{offset}>}. 
+\item[c] %
+  Integer printed as a character constant in the ASCII character set.
+\item[f] %
+  Floating point number printed using typical floating point syntax. 
+\end{description}
+
+\paragraph{Line specifications.}
+Commands that operate on source code lines take one or more line
+specification arguments.  A line specification argument may have several
+formats:
+\begin{description}
+\item[\emph{number}]%
+  Specifies the line number in the current source file.
+\item[*\emph{address}]%
+  Specifies the source line that contains address \emph{address}.
+\item[+\emph{offset}]%
+  Specifies the line \emph{offset} lines past the last line printed.
+\item[-\emph{offset}]%
+  Specifies the line \emph{offset} lines before the last line printed.
+\item[\emph{file}:\emph{number}]%
+  Specifies the line number and the source file name.
+\item[\emph{function}]%
+  Specifies the first source line of the function body of function
+  \emph{function} in current source file.
+\item[\emph{file}:\emph{function}]%
+  Specifies the first source line of the function body of function
+  \emph{function} in source file \emph{file}.
+\end{description}
+
+\subsection{Control Where and When to Stop Program Simulation}
+\label{ssec:debug-breakpoints}
+
+A breakpoint stops the simulation whenever the Simulator reaches a certain
+point in the program. It is possible to add a condition to a breakpoint, to
+control when the Simulator must stop with increased precision. There are two
+kinds of breakpoints: \emph{breakpoints} (proper) and \emph{watchpoints}. A
+watchpoint is a special breakpoint that stops simulation as soon as the
+value of an expression changes.
+
+Properties of breakpoints are displayed with a line in the following format:
+\begin{quote}
+ \parm{num}: \parm{description}
+\end{quote}
+%
+where \emph{num} is a unique number that identifies this breakpoint or
+watchpoint and \emph{description} describes the properties of the
+breakpoint. The properties include: whether the breakpoint must be deleted
+or disabled after it is reached; whether the breakpoint is currently
+disabled; the program address of the breakpoint, in case of a program
+breakpoint; the expression that, when modified by the program, causes the
+Simulator to stop, in case of a watchpoint.
+
+\begin{description}
+\item[bp {[\emph{file}:]\emph{function}}] %
+  Sets a breakpoint at the entry of any function whose name is
+  \emph{function}.  The optional \emph{file} prefix allows to restrict the
+  selection to the function of a given source file.
+
+\item[bp +\emph{offset}] %
+  (optional) Sets a breakpoint \emph{offset} lines forward from the position
+  at which execution is stopped in selected frame (see
+  Section~\ref{ssec:debug-stack} for details on stack frames).
+
+\item[bp -\emph{offset}] %
+  (optional) Sets a breakpoint \emph{offset} lines back from the position at
+  which execution is stopped in selected frame (see
+  Section~\ref{ssec:debug-stack} for details on stack frames).
+
+\item[bp {[\emph{file}:]\emph{line}}] %
+  (optional) Sets a breakpoint at line \emph{line} in the current source
+  file.  Simulation will stop the program just before any instruction that
+  belongs to given line is executed.
+\item[bp \emph{address}] %
+  Sets a breakpoint at address \emph{address}. Argument can also be a code
+  label such as global procedure name (e.g. 'main').
+\item[bp] %
+  Sets a breakpoint at the next instruction to be executed in selected stack
+  frame.  If selected frame is not the top frame, control returns from all
+  called functions and all inner frames are destroyed (see
+  Section~\ref{ssec:debug-stack} for details on stack frames).
+\item[bp \emph{args} if] %
+  Sets a conditional breakpoint.  The arguments \emph{args} are the same as
+  for unconditional breakpoints.  After entering this command, Simulator
+  prompts for the condition expression. Condition is evaluated each time 
+  the breakpoint is reached, and the simulation only when the condition 
+  evaluates as true.
+\item[tbp \emph{args}] %
+  Sets a temporary breakpoint, which is automatically deleted after the
+  first time it stops the simulation.  The arguments \emph{args} are the
+  same as for the \emph{bp} command.  Conditional temporary breakpoints
+  are also possible (see command \emph{condition} below).
+\item[watch \emph{expr}] %
+  Sets a watchpoint for the expression \emph{expr}.  The Simulator will stop
+  when the value of given expression is modified by the program.
+  Conditional watchpoints are also possible (see command \emph{condition}
+  below).
+
+\item[condition {[\emph{num}] [\emph{expr}]}] %
+  Specifies a condition under which breakpoint \emph{num} stops simulation.
+  The Simulator evaluates the expression \emph{expr} whenever the breakpoint
+  is reached, and stops simulation only if the expression evaluates as true
+  (nonzero).  The Simulator checks \emph{expr} for syntactic correctness as
+  the expression is entered.
+
+  When \emph{condition} is given without expression argument, it removes any
+  condition attached to the breakpoint, which becomes an ordinary
+  unconditional breakpoint.
+\item[ignore {[\emph{num}] [\emph{count}]}] %
+  Sets the number of times the breakpoint \emph{num} must be ignored when
+  reached.  A \emph{count} value zero means that the breakpoint will stop
+  simulation next time it is reached.
+
+\item[command {[\emph{num}] [\emph{command-list}]}] %
+  Specifies a list of commands for breakpoint \emph{num}.  The list of
+  commands starts with next line, spans multiple lines and is terminated by
+  a line containing only the command \emph{end}.  The commands in the list
+  will be executed each time the breakpoint is reached and, if conditional,
+  its condition evaluates as true.
+
+  If the first command in \emph{command-list} is \emph{silent}, then the
+  usual message about stopping at a breakpoint is not printed. If the
+  command list contains only \emph{end}, then any preexisting command list
+  is removed.  If no breakpoint number \emph{num} is specified, then the
+  command is applied to the last breakpoint that was set.
+
+  It is possible to include a command such as \emph{continue} or \emph{next}
+  (see Section~\ref{ssec:debug-running}) inside \emph{command-list} to
+  resume simulation.  In that case, all remaining commands in the list are
+  ignored; simulation resumes as if the simulation had not stopped at the
+  breakpoint.  This allows to patch corrupted processor state caused by
+  program errors and continue simulation.
+
+\item[enablebp {[delete|once] [\emph{num} \ldots]}] %
+  Enables the breakpoint specified by \emph{num}.  If \emph{once} flag is
+  specified, the breakpoint will be automatically disabled after it is
+  reached once.  If \emph{delete} flag is specified, the breakpoint will be
+  automatically deleted after it is reached once.
+\item[disablebp {[\emph{num} \ldots]}] %
+  Disables the breakpoint specified by \emph{num}.  A disabled breakpoint
+  has no effect, but all its options (ignore-counts, conditions and
+  commands) are remembered in case the breakpoint is enabled again.
+\item[deletebp {[\emph{num} \ldots]}] %
+  Deletes the breakpoint specified by \emph{num}.  If no arguments are
+  given, deletes all breakpoints currently set, asking first for
+  confirmation.
+\item[clear {[[\emph{filename}:]\emph{function}|\emph{line}]}]%
+  Deletes any breakpoints set at the entry of function \emph{function} or at
+  line \emph{line}.  If the filename prefix is specified, deletes only
+  breakpoints that belong to \emph{filename} source file.  If no arguments
+  are given, deletes any breakpoints at the next instruction in the selected
+  stack frame.  This is a convenient way to delete the breakpoint at which
+  simulation just stopped.
+\item[info breakpoints {[\emph{num}]}] %
+\setlength{\itemsep}{0cm}
+\setlength{\parskip}{0cm}
+\item[info watchpoints {[\emph{num}]}] %
+  Prints a table of all breakpoints and watchpoints.  Each breakpoint is
+  printed in a separate line.  The two commands are synonymous.
+\setlength{\itemsep}{\stditemsep}
+\setlength{\parskip}{\stdparskip}
+\end{description}
+
+\subsection{Specifying Files and Directories}
+\label{ssec:debug-files}
+
+The Simulator needs to know the file name of the program to
+simulate/debug and, usually, the Architecture Definition File (ADF)
+that describes the architecture of the target processor on which the
+program is going to run.  The name of the ADF is not necessary when:
+\begin{enumerate}
+\item %
+  The name of the file is specified in the program file, or is embedded in
+  the program file.
+\item %
+  The program is completely unscheduled, and therefore the target processor
+  information is unnecessary (see~\cite{TPEF-specs} for details).
+\end{enumerate}
+
+\begin{description}
+\item[prog {[\emph{filename}]}]%
+  Load the program to be simulated from file \emph{filename}.  If no
+  directory is specified with \emph{set directory}, the Simulator will
+  search in the current directory.
+
+  If no argument is specified, the Simulator discards any information it has
+  on the program.
+
+\item[mach {[\emph{filename}]}]%
+  Load the machine to be simulated from file \emph{filename}.  If no
+  directory is specified with \emph{set directory}, the Simulator will
+  search in the current directory.
+
+  In case a parallel program is tried to be simulated without machine,
+  an error message is printed and simulation is terminated immediately.
+  In some cases the machine file can be stored in the TPEF file.
+
+\item[conf {[\emph{filename}]}]%
+  Load the processor configuration to be simulated from file \emph{filename}.
+  If no directory is specified with \emph{set directory}, the Simulator will
+  search in the current directory.
+
+  Simulator expects to find the simulated machine from the processor 
+  configuration file. Other settings are ignored. This can be used as
+  replacement for the \emph{mach} command.
+
+\item[tty {[\emph{terminal}|\emph{filename}]}]%
+  Redirects input and output of the program being simulated to the given
+  terminal or file.  The input entered by the user is not affected by this
+  command.
+
+\item[cd \emph{directory}]%
+  Sets the working directory to \emph{directory}.  By default, the working
+  directory is the directory from which the Simulator was invoked.
+
+\item[pwd]%
+  Prints the current working directory.
+\end{description}
+
+\subsection{Examining State of Target Processor and Simulation}
+\label{ssec:debug-state}
+
+The current contents of any programmer visible state, which includes any
+programmable register, bus, or the last data word read from or written to a
+port, can be displayed. The value is displayed in base 10 to allow using it
+easily in Tcl expressions or conditions. This makes it possible, for
+example, to set a conditional breakpoint which stops simulation only if the
+value of some register is greater than some constant.
+
+The segments of a bus are displayed in one line, with the following format:
+\begin{quote}\tt
+  \parm{busname}: \parm{segment1} \ldots{} \parm{segmentN}
+\end{quote}
+where \emph{busname} is the name of the bus, and \emph{segment1} to
+\emph{segmentN} are the names of the \emph{N} segments that form the bus.
+
+The current contents of a transport bus segment are displayed in one line
+with the following format:
+\begin{quote}\tt
+  \parm{busname} \parm{segmentname} \parm{hexvalue} \parm{value}
+\end{quote}
+where \emph{busname} is the name of the transport bus, \emph{segmentname} is
+the name of one of the segments of the bus, \emph{hexvalue} is the current
+value transported by the bus segment expressed in base 16, and \emph{value}
+is the same value expressed in base 10.  The string `(undef)' is printed if
+the bus segment is not used in current simulation cycle.
+
+\begin{description}
+\item[info proc cycles] %
+  Displays the total execution cycle count and the total stall cycles count.
+
+\item[info proc mapping] %
+  Displays the address spaces and the address ranges occupied by the
+  program: address space, start and end address occupied, size.
+
+\item[info proc stats] %
+  In case of parallel simulation, displays current processor utilization
+  statistics. In case 'rf\_tracking' setting is enabled and running parallel
+  simulation, also lists the detailed register file access information. In
+  sequential simulation, displays only operation utilization statistics.
+
+\item[info regfiles] %
+  Prints the name of all the register files of the target processor.
+
+\item[info registers \emph{regfile} {[\emph{regname}]}] %
+  Prints the value of register \emph{regname} in register file
+  \emph{regfile}, where \emph{regfile}
+  is the name of a register file of the target processor, and \emph{regname}
+  is the name of a register that belongs to the specified register file.
+
+  If \emph{regname} is omitted, the value of all registers of the specified
+  register file is displayed.
+
+\item[info funits] %
+  Prints the name of all function units of the target processor.
+
+\item[info iunits] %
+  Prints the name of all immediate units of the target processor.
+
+\item[info immediates \emph{iunit} {[\emph{regname}]}] %
+  Prints the value of immediate register \emph{regname} in immediate unit
+  \emph{iunit}, where \emph{iunit} is the name of an immediate unit of 
+  the target processor, and \emph{regname} is the name of a register 
+  that belongs to the specified unit.
+
+  If \emph{regname} is omitted, the value of all registers of the specified
+  immediate unit is displayed.
+
+\item[info ports \emph{unit} {[\emph{portname}]}] %
+  Prints the last data word read from or written to port \emph{portname} of
+  unit \emph{unit}, where \emph{unit} may be any function unit, register
+  file or immediate unit of the target processor.  The value of the data
+  word is relative to the selected stack frame.
+
+  If \emph{portname} is omitted, the last value on every port of the
+  specified unit is displayed.
+
+\item[info busses {[\emph{busname}]}] %
+  Displays the name of all bus segments of transport bus \emph{busname}.  If
+  the argument is omitted, displays the name of the segments of all busses
+  of the target processor.%
+  \note{DISCUSS: display also values?}
+
+\item[info segments \emph{bus} {[\emph{segmentname}]}]] %
+  Prints the value currently transported by bus segment \emph{segmentname}
+  of the transport bus \emph{busname}.
+
+  If no segment name is given, the Simulator displays the contents of all
+  segments of transport bus \emph{bus}.
+
+\item[info program] %
+  Displays information about the status of the program: whether it is
+  loaded or running, why it stopped.
+\end{description}
+
+\subsection{Miscellaneous Support Commands and Features}
+\label{ssec:debug-misc}
+
+The following commands are facilities for finer control on the behaviour of
+the simulation control language.
+
+\begin{description}
+\item[help \emph{command}] %
+  Prints a help message briefly describing command \emph{command}.
+
+\item[set print address \emph{on}|\emph{off}] %
+  Whenever the Simulator displays the contents of a memory address, such as
+  the location of stack traces, structure values, pointer values,
+  breakpoints, it can automatically print also the address examined.  By
+  default, the addresses are printed.  The \emph{print address} variable
+  allows to enable (\emph{on}) or disable (\emph{off}) automatic address
+  display.
+ 
+\item[show print address] %
+  Shows the current setting of \emph{print address} variable.
+
+\item[set print register \emph{on}|\emph{off}] %
+  Whenever the Simulator displays the contents of a variable that is
+  allocated in a GPR, it can automatically print also the name of the
+  register.  By default, the register names are not printed.  The
+  \emph{print register} variable allows to enable (\emph{on}) or disable
+  (\emph{off}) automatic register name display.
+ 
+
+\item[show print address] %
+  Shows the current setting of \emph{print register} variable.
+
+\item[set print elements \emph{number-of-elements}] %
+  Specifies the maximum number of elements that the Simulator prints when an
+  array is displayed.
+
+\item[show print elements] %
+  Maximum number of elements of an array that are displayed.
+
+\item[set profile \emph{handling-mode}] %
+  Specifies how the profile information is handled.  Valid values for argument
+  \emph{handling-mode} are keywords from a restricted set: `none',
+  `accumulate', `append', `replace'.  See the corresponding command line
+  option `profile' for details.
+
+\item[set profile] %
+  Shows the current setting of profile handling mode.
+\end{description}
+
+\paragraph{Input mode for command sequences.}
+Two commands, \emph{command} (see Section~\ref{ssec:debug-breakpoints}) and
+\emph{define} (see Section~\ref{ssec:debug-macros}) accept a sequence of
+commands spanning multiple input lines as argument.  To enter these special
+arguments, the normal command input mode is suspended and the \emph{command
+sequence input mode} is enabled.  In this input mode, all the lines of text
+entered are stored without being executed.  This input mode is terminated by
+the command \emph{end}, which is only useful in command sequence input mode,
+and is ignored in normal command input mode.
+
+The command sequence input mode is signalled by the prompt `>' (note no
+space after the prompt).
+
+
+\subsection{Command and Value History Logs}
+\label{ssec:debug-history}
+
+All commands given during a simulation/debugging session are saved in a
+\emph{command history log}.  This forms a complete log of the session, and
+can be stored or reloaded at any moment.  By loading and running a complete
+session log, it is possible to resume the same state in which the session
+was saved.  Since running a session log implies running again the simulation
+as specified by the saved command, the time taken to resume the session
+state may be very long.  (Compare this with resuming the machine state,
+which is significantly faster, see Section~\ref{sec:control}).
+
+It is possible to run a sequence of commands stored in a command file at any
+time during simulation in debug mode using the \emph{source} command.  The
+lines in a command file are executed sequentially and are not printed as
+they are executed.  An error in any command terminates execution of the
+command file.  Commands that usually ask for confirmation or print messages
+that describe what they are doing proceed silently and without confirmation.
+
+The values displayed by commands that print expressions or memory addresses,
+unless otherwise stated, are saved in a separate \emph{value history} log.
+Each value in this log is assigned a unique number \emph{num} and can be
+referred to in subsequent commands or expressions as follows:
+`\$\emph{num}'.
+
+
+\begin{description}
+\item[setting history\_filename \emph{fname}]%
+  Sets the name of the Simulator command history file to \emph{fname}.  When
+  command history logging is enabled, the Simulator saves the command
+  history of current session in this file.  If the file already exists, the
+  new commands are appended at the end of the file.  The name of the history
+  file defaults to `.ttasim-history'.
+
+\item[setting history\_save \emph{on}|\emph{off}]%
+  Starts or stops recording the command history in the history file.  By
+  default, recording is disabled.
+
+\item[setting history\_size \emph{size}]%
+  Sets the maximum number of commands that are stored in the history file.
+  By default, up to 50 commands are saved.
+
+\item[commands [\emph{num}]]%
+  Displays the last \emph{num} commands in the command history log. If
+  the argument is omitted, the \emph{num} value defaults to 10.
+
+\item[source \emph{filename}]%
+  Executes the command file \emph{filename}.
+
+\item[show values {[+]|[\emph{num}]}]%
+  Without any arguments, prints the last 10 values in value history.  If
+  \emph{num} is given, prints the 10 values in the history log that are
+  centred at value \emph{num}.  If `+' is given, prints 10 history values
+  after the last vale that was printed.  An entry of the value history is
+  show in a separate line and has the following format: `\$\emph{num} =
+  \emph{value}'. If not enough values (or no values at all) exist, the
+  \emph{show value} command will display a list with fewer history values
+  (or nothing at all).
+\end{description}
+
+\chapter{DATABASES}
+
+%% Remove this whole chapter (not needed) for functional specifications of
+%% applications that do not define relevant data structures and that use
+%% only data from library modules.
+
+The most important bases of data used by the Simulator are managed
+externally, in the TCE domain library.  These bases of data are: the Machine
+object model (ADF), specified in~\cite{ADF-specs}, the Program object model
+(TPEF), specified in~\cite{TPEF-specs}.  In addition, the Simulator depends
+on a model of the target processor state and the contents of the memories
+accessed by the target processor.  Nevertheless, the Simulator produces and
+uses its own databases, which are described in this chapter.
+
+The data bases described in the following sections are stored in a binary
+format SQL databases, or, in cases where efficiency while writing is
+required, in pure ASCII format.
+
+% PEKKA:
+% This chapter describes the data that is processed and used by the module
+% or application in broad but still complete way.  More detailed
+% descriptions like database tables or XML field names should be in the
+% design document.
+
+\section{Contents of Information}
+
+% (PJ:data)
+
+% PEKKA:
+%
+% This section describes the data types defined and used by the module and
+% their relations.  The description is at a high-level, for example using
+% UML class diagrams that reflect the real world data, not the classes of
+% the target program.
+The Simulator generates and manages a number of data bases for communicating
+the results of simulation to users and client applications:
+\begin{enumerate}
+\item %
+  Simulation traces.
+\item %
+  Execution profile data.
+\item %
+  Machine state snapshot.
+\end{enumerate}
+
+The data described in this chapter does not imply the structure or the
+logical format in which data is stored.  Some structure is hinted at by
+grouping related data fields together, but this is merely done to enhance
+clarity of specification.  A possible actual implementation as relational
+database is out of the scope of this document.
+
+The data bases described in this chapter consist of data fields of different
+types.  A field is identified by a name followed by a data type indicator,
+which may be one of the following: integer \ftyp{i}, string of characters
+\ftyp{s}, boolean flag \ftyp{b}, fractional number \ftyp{f}.  Optional
+fields are surrounded by brackets `[ ]'.
+
+\paragraph{Data format version management}
+Every data base produced or read by the Simulator must contain two items of
+information pertaining data format version:
+\begin{itemize}
+\item Current version number.
+\item Oldest version number guaranteed to be compatible.
+\end{itemize}
+The oldest compatible version number is an aid for backward compatibility of
+any application that processes the data bases produced by Simulator.  If
+such an application supports a data base version equal or greater than
+current version number, it is guaranteed that it will work with the current
+version.  Both version numbers are stored as a couple of integer numbers:
+version-major, version-minor. Second-level minor version numbers are not
+supported; it is implied that a minor-minor version numbers must not impact
+compatibility.
+
+
+\subsection{Execution Trace}
+\label{ssec:exec-trace}
+
+A trace contains a subset of the following items of information for a given
+cycle of the simulation:
+\begin{enumerate}
+\item Nesting level in function call.
+\item Address of the instruction.
+\item Enter and exit of program control data structures.
+\item Data and control bits carried on each transport bus segment.
+\item Memory access activity: address, direction (load or store), size of
+  the data word.
+\end{enumerate}
+
+The execution trace contains also version information.  A trace processing
+application can read any trace for which the oldest compatible version
+number is equal or smaller than its own.  The version number of the first
+complete data base format is 1.0.  Version numbers smaller than that, used
+during development, will not be considered for backward compatibility.
+
+Each traced cycle is tagged with the execution cycle count (the ``virtual
+time'' seen by the target architecture) and the real cycle count (which
+takes into account also the stall cycles in which the target processor is
+locked).  Each traced cycle is described by a variable number of fields
+(called entries).  Some entries are optional and can be enabled or disabled.
+
+The trace data base consists of the following fields:
+\begin{description}
+\item[execution cycle count] \ftyp{i} %
+  Current cycle count, counting only architecturally-visible cycles, in
+  which the target processor executes and instruction.
+\item[real cycle count] \ftyp{i} %
+  Current cycle count, counting also cycles in which the target processor is
+  globally locked.
+\item[nesting level] \ftyp{i} %
+  Function call nesting level.  Whenever a function is entered, this number
+  is increased by one; after a function returns, this number is decreased by
+  one.  The initial nesting level is zero.
+\item[instruction address] [\ftyp{i}] %
+  Note: the address space index is not necessary, since only one address
+  space can contain the program code.
+\item[system-call] [\ftyp{s}] %
+  Name of the invoked system call.
+\item[procedure entry point] %
+  The following entries are optional, and are stored only for cycles in
+  which a new procedure is entered.  Notice that this may mean zero to
+  \emph{L} cycles after the procedure call, depending on how many call delay
+  slots have been successfully filled with instructions from the called
+  procedure.
+  \begin{description}
+  \item[name] \ftyp{s} %
+    Procedure name.
+  \item[address] \ftyp{i} %
+    Procedure entry address (effective, not nominal).
+  \end{description}
+\item[procedure exit point] %
+  The following entries are optional, and are stored only for cycles in
+  which a procedure returns.
+  \begin{description}
+  \item[name] \ftyp{s} %
+    Procedure name.
+  \end{description}
+\item[basic block entry point] %
+  The following entries are optional, and are only stored for cycles in
+  which the first instruction of a block is executed.
+  \begin{description}
+  \item[index] \ftyp{i} %
+    Basic block index. The index is a sequential number that uniquely
+    identifies the block \emph{within its procedure}.%
+    \note{assign indices sequentially in memory layout order?}
+  \item[address] \ftyp{i} %
+    Basic block entry address.
+  \end{description}
+
+\item[bus activity] %
+  The following entries are optional, and are stored for each bus that is
+  programmed in current cycle:
+  \begin{description}
+    \item[index] \ftyp{i} %
+      Bus index. The index is a sequential number that uniquely identifies
+      the bus.  Indices are assigned starting from 0 and follow the
+      declaration order in the ADF.
+    \item[data] \ftyp{s} %
+      The data written on the bus.  The interpretation of the data (number
+      of bits, whether it is integer of floating-point) depends on the bus
+      characteristics and the program context.
+    \item[squash] [\ftyp{b}] %
+      True if current signal on the bus is not carried to destination (that
+      is, if the transport has been \emph{squashed} by a guard expression
+      that evaluated to \emph{false}).
+  \end{description}
+
+\item[memory activity] %
+  The following entries are optional.  One entry of this type is stored for
+  each memory access occurring in current cycle.  Instruction memory reads
+  due to instruction fetching is not traced.
+  \begin{description}
+    \item[index]  \ftyp{i} %
+      Memory index. The index is a sequential number that uniquely
+      identifies the address space (memory).  Indices are assigned starting
+      from 0 and follow the declaration order in the ADF.
+    \item[address] \ftyp{i} %
+      Memory address being accessed.
+    \item[access type] \ftyp{b} %
+      Either load or store.
+    \item[size] [\ftyp{i}] %
+      Size (in MAU's) of the data word being read or written.
+    \item[data] [\ftyp{s}] %
+      The data read from or written to the memory.  The interpretation of
+      the data (number of bits, whether it is integer of floating-point)
+      depends on the program context.
+  \end{description}
+\end{description}
+
+\subsection{Bus Trace}
+\label{ssec:bus-trace}
+
+It is possible to make simulator save a pure ASCII format bus trace file.
+Bus trace lists contents of each bus in each simulated clock cycle. This
+file is useful in verification and debugging. Bus trace can be enabled in
+simulator control language with `setting bus\_trace 1'. Bus trace is stored
+in a file called \textit{[programname].bustrace}.
+
+\subsection{Profile Data}
+\label{ssec:sim-profile}
+
+Profile data is stored in binary format in a TPEF section.
+See~\cite{TPEF-specs} for the specifications of TPEF and the profile
+section.
+
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/CallsAndProfile.eps,width=6cm}}
+  \caption{Example of calls to the same procedure with different entry point
+    offsets, assuming 2 (or more) call delay slots.}%
+  \label{fig:call-profile}
+\end{figure}
+
+Profile data consists of execution counts.  Each count takes a fixed-sized%
+\note{DISCUSS: fixed-sized double fp counts or integer words of nonfixed
+  size? counts may easily exceed a 32-bit word capacity!}
+%
+data word.  In general, the program profile is stored at level of basic
+blocks: for every block one execution count is stored.  Some basic blocks,
+however, may require several counts, because they may be entered at
+different instruction offsets.  This is the case, for example, of procedure
+entry blocks (see Figure~\ref{fig:call-profile}).  Depending on scheduling
+conditions, one or more instructions of the called procedure may be
+duplicated and imported into the call delay slots of the call site.  Thus, a
+procedure called 1000 times may be entered, for example, 500 times from the
+first instructions (offset 0), 350 times with offset 1, 150 times with offset
+2.
+
+The first part of the profile section contains \emph{n} execution counts for
+each procedure, where $n-1$ is the number of delay slots of call operations
+of the target architecture.  The counts are ordered in ascending order of
+procedure address.
+
+The second part of the profile section contains one execution count for each
+basic block of the program, starting from the lowest program  address.  The
+counts are ordered in ascending order of block address.  The execution count
+of procedure entry blocks contains the sum of the execution counts at all
+the offsets of the block.
+
+The number of execution counts stored in a profile section depends on the
+number of procedures and basic blocks, neither of which is stored explicitly
+in the section; those numbers are implied by the program control flow.
+Similarly, the number of execution counts per procedure entry \emph{n}
+depends on the target architecture and is not explicitly stored in the
+profile section.
+
+The current version number and the oldest compatible version number of the
+profile data section are stored in the section header.
+
+\subsection{Machine State Snapshot}
+\label{ssec:sim-snapshot}
+
+The precise information contents and data format of the machine state
+snapshot depends on the model of the target processor state, and are out of
+the scope of this document.  The specifications of the target processor
+state model are given in~\cite{SimulatorDesign}.
+
+The machine state snapshots contain sufficient information to completely
+recreate the target processor state at the time the program simulation was
+stopped and the snapshot file was created.
+
+\paragraph{Auxiliary information}
+In addition to information strictly related to the processor, the machine
+state snapshot contains auxiliary information to enable the Simulator to
+completely
+recreate its internal state.%
+\note{DISCUSS}
+%
+This information includes the cycle count at the time the snapshot was taken
+and stack frame state.
+
+The machine snapshot file contains also numerical codes to indicate whether
+the machine snapshot data has been altered since it was created by the
+Simulator.
+
+The machine snapshot file contains also the modification time stamps the TTA
+Application file and the Machine Definition File.  These time stamps are
+compared with the time stamps of the files; if the time stamps mismatch, the
+the Simulator issues a warning, and nevertheless attempts to read the file.%
+\footnote{The motivation for a simple warning instead of a fatal failure is
+that a large space of modifications to a given TTA Application file and a
+given ADF do not make the state snapshot invalid.}
+
+The machine snapshot also contains current version number and oldest
+compatible version number.  A Simulator can read back a snapshot file with
+current version number greater than its own, as long as the oldest
+compatible version number of the file is smaller or equal.  In this case,
+the Simulator ignores any data fields that it does not recognise.  The
+oldest compatible version number guarantees that the new, unknown data
+fields can be safely ignored. It is responsibility of the designer of the
+data format modifications to determine the oldest compatible version.
+
+\section{Intensity of Use}
+
+The simulator is a one-user product and is expected to be used intensively.
+
+When driven by another application, use intensity is even greater: the
+simulator could be invoked thousands of times in a single run batch (for
+example, during an exploration of the target architecture space).
+
+\section{Files and Configuration}
+\label{ssec:config-files}
+
+The Simulator accesses the following data files:
+\begin{enumerate}
+\item %
+  TTA application, a binary TPEF file (see~\cite{TPEF-specs} for TPEF
+  specifications).  The input TPEF file is also used to store the execution
+  profile obtained from simulation.  Execution profiles are stored in
+  dedicates auxiliary TPEF sections.
+\item %
+  Definition of the target processor architecture, a textual file in ADF
+  format (see~\cite{ADF-specs} for ADF specifications).
+\item %
+  Execution trace, a database.  The detailed contents of information of
+  execution traces, outlined in Section~\ref{ssec:exec-trace}, is specified
+  in~\cite{SimulatorModDesign}.
+\item %
+  Snapshot of the target processor state at a given cycle, a textual%
+  \note{PENDING} file in [[TO DO]] format (see~\cite{MSM-design} for [[TO
+  DO]] specifications).
+\item %
+  Log of a simulation control language work session, a Tcl script with
+  extended commands of the simulator control language commands, specified in
+  Section~\ref{sec:debug}.
+\end{enumerate}
+
+In addition to above listed input and/or output files, the GUI-based
+Simulator can read a configuration file which controls initialisation of the
+simulation environment and the configuration of the graphical interface.
+
+The simulation setup includes parameters that control stack initialisation,
+simulation tracing (verbosity, type of information traced), type and amount
+of statistics that are collected.
+
+The simulation setup parameters contained in the configuration
+file must mirror exactly the command line options provided by the CLI-based
+Simulator (see Chapter~\ref{ch:product-features}).
+
+
+
+\chapter{OTHER PRODUCT REQUIREMENTS}
+
+\section{Performance Requirements}
+
+The slowdown factor of the Simulator (interpreted) should not exceed a
+factor 1000; the goal to aim for is a slowdown factor of 100.
+
+Response time to user activity in case of GUI-based Simulation must be
+within the limits that match normal human interaction speed (within few
+hundreds milliseconds).
+
+For a compiled Simulator (see Section~\ref{sec:further-ideas}) the slowdown
+factor achievable should be around 10.
+
+
+
+\chapter{DOCUMENTATION}
+
+\section{User Manual}
+
+%% Remove this section (not needed) for functional specifications of
+%% modules or other parts of a larger system that don't have user manual.
+The Simulator is fully documented by a users' manual. 
+
+\section{Online Help}
+
+%% Remove this section if not applicable. Only applications and, as general
+%% description, larger subsystems of a project have online help.
+The GUI-based Simulator front-end has a built-in online help hypertext
+documents that can be browsed by invoking an external HTML browser.
+
+The CLI-based Simulator provides an on-screen summary of the command line
+options it accepts and their default values (if applicable).
+
+\section{Design Document}
+
+The Design Document describes the software architecture of the Simulator
+from a developer's perspective.  The design choices taken may be motivated
+when several nonobvious alternatives are possible.
+
+\section{Installation and Configuration Guide}
+
+%% Remove this section (not needed) when the functional specifications refer
+%% to a module or application of a larger project.  May apply to some
+%% complex subsystems of a larger project when installation.
+The installation of the Simulator is an integral part of the TCE system, and
+is documented in the TCE Installation and Configuration
+guide~\cite{ProjectPlan}.
+
+\section{System Reference and Developer's Guide}
+
+%  Usually, application programming interface (API) hypertext reference
+%  generated by Doxygen. Sometimes also a separate manual (or part of
+%  another manual).
+System reference of the Simulator consists of an introductionary document
+(based on the design notes written during development) and a complete
+documentation of the application programming interface (API) is provided in
+the form of automatically generated hypertext and is integrated
+within the TCE API documentation.%
+\note{DISCUSS: better separate API docs of each application?}
+
+%  Usually (always?) must refer to a companion document of these functional
+%  specifications, less formal but more extensive in depth, about
+%  nonfunctional specifications, what we call "design notes".
+
+
+
+\chapter{KNOWN PROBLEMS AND RISKS}
+
+\chapter{REJECTED OR ABANDONED IDEAS}
+
+% PEKKA:
+
+% The abandoned requirements should be listed here with the reasoning and
+% date the requirement was dumped. This is for future reference.
+%
+%11.11.2003 HTTP connection to external server to fetch something. 
+%           This is simply not sensible and should be forgotten.
+
+\begin{description}
+\item[04.08.2005 --- Canned Command Sequences.]%
+  They are not providing any extra benefit over normal Tcl functions, as far
+  as I see it. --P.J.
+\end{description}
+
+\chapter{IDEAS FOR FURTHER DEVELOPMENT}
+\label{sec:further-ideas}
+
+% Ideas that are not part of the specifications yet but that might be
+% required in future are listed here. This is to "leave room" in design for
+% later extensions and to have ideas written down somewhere.  This list
+% should contain the date of addition, the idea described briefly and the
+% inventor of the idea.
+
+\begin{description}
+\item[10.12.2003]%
+  Compiled simulator for faster simulation.  A compiled simulator minimizes
+  the time spent on repetitive tasks such as the simulation of instruction
+  fetch and decode.  A compiled simulator hard-codes in a single executable
+  application the target TTA processor and the target application.
+
+  A sophisticated compiled simulator could be compiled only partially,
+  during simulation (just in time compilation).
+\item[07.01.2004]%
+  Support abbreviations of simulation control language commands in the same
+  way as GDB does.  At least, support one-character aliases of most used
+  commands.
+\item[07.01.2004]%
+  Support user-defined aliases.
+\item[08.01.2004]%
+  Allow function calls and other expressions that may have side-effects in
+  all commands (such as \emph{print}) that accept an expression as argument.
+\item[08.01.2004]%
+  Command \emph{shell} to run shell commands using the shell given by SHELL
+  environment variable or, by default, `/bin/sh'.
+\item[08.01.2004]%
+  Command completion and symbol name completion with TAB key.  The latter
+  may be not so easy to implement.
+\item[12.01.2004]%
+  Commands to navigate the source code: \emph{list}, \emph{search},
+  \emph{forward-search}, \emph{reverse-search}.  The command \emph{list}
+  displays a fixed number of source lines centred at the current program
+  position.  The search commands takes a regular expression as argument and
+  and shows the first source line that matches the expression.
+\item[12.01.2004]%
+  The \emph{source path} list contains the paths searched by the Simulator
+  when looking for the source text of the program currently loaded.  The
+  TPEF program file contains either a reference to the source files path or
+  the whole source code as embedded symbolic information, so setting the
+  source path list is not normally needed.  This capability is useful when
+  the source files are moved from their original position.
+\item[12.01.2004]%
+  Support for ``artificial array'': given a variable \emph{v} of type
+  ``pointer to \emph{t}'', the expression `\emph{v}@\emph{num}' displays
+  \emph{num} elements of type \emph{t} starting with the first element
+  located at \emph{v}.
+\item[14.01.2004]%
+  Extend live range statistics to include live ranges that are (partly)
+  spilled to memory.  This extension may require auxiliary information
+  (annotations?) in the TPEF files.  Extend also with register spilling
+  information: ratio of spilled vs. non-spilled GPR's.  This may also require
+  auxiliary information.
+\item[15.01.2004]%
+  Extend run time memory usage statistics with: maximum amount of free-store
+  used, average block size of each memory allocation.
+\item[15.01.2004]%
+  Extend simulation statistics about processor utilisation with resource
+  sharing ratios: socket sharing and, for architectures with
+  \emph{multicasts}, bus sharing.  These statistics may be computed off-line
+  with the data from the simulation trace.
+\item[16.01.2004]%
+  Extend \emph{bp} command (and other commands that can have a function
+  name as argument) with support for overloaded functions.  This extension
+  is useful if C++ source language is supported.
+\item[16.01.2004]%
+  Support C++ name demangling.
+\item[16.01.2004]%
+  Pretty-print data structures with indentation and line breaks to increase
+  readability (\emph{set print pretty} command).
+\item[16.01.2004]%
+  Capability of altering program execution and processor state.  This
+  feature is tightly related to evaluation of expression with side effects.
+  An equivalent to command \verb|print myvar=5| which sets the program
+  variable `myvar' without printing out it (new) value would be the command
+  \emph{set variable}: \verb|set variable myvar=5|.  Altering values is not
+  limited to variables defined in the source code: also processor storage,
+  such as GPR's, function unit registers, immediate registers, can be set by
+  similar \emph{set} commands.  For example, by setting the program counter
+  register \$pc, it is possible to have to simulation jump to an arbitrary
+  address.
+\item[16.01.2004]%
+  Support for advanced canned sequences of commands.  To make user-defined
+  commands (that is, canned sequences of commands), it is necessary to
+  provide basic conditional execution and control flow commands \emph{if}
+  and \emph{while}.  In addition, provide facilities to define and retrieve
+  help documentation of user-defined commands.
+\item[28.01.2004]%
+  Capability of altering the memory. This is an extension of the capability
+  of altering the processor state to memory addresses.  The syntax for
+  altering memory is to be decided.  One possibility, if source data types
+  are fully supported, is the syntax:
+  \begin{quote}\tt
+    \verb|{|\parm{type}\verb|}| \parm{addr} = \parm{value}
+  \end{quote}
+  where \emph{type} is the type of the object stored at address \emph{addr},
+  irrespective of what kind of data is supposed be located at \emph{addr}.
+\item[06.04.2004]%
+  Possibility to initialise the stack with data loaded from a separate file
+  `stack.data' before the processor starts to run the program.  The data
+  file could have the encoding and alignment rules specified in TPEF
+  specification document~\cite{TPEF-specs}, Section~16.  Alternatively, the
+  data file could mimic exactly the format of a machine snapshot file memory
+  area.  At least on personal computer operating systems, the environment
+  area contains a sequence of NULL-terminated strings, therefore encoding
+  and alignment presents no difficulty.
+ 
+\end{description}
+
+
+
+\chapter{PENDING ISSUES}
+
+% Pending issues concerning these specifications, a sort of TODO list.
+% This chapter should be empty when the final product is ready.
+
+\section{Memory Stack}
+\label{ch:pending:stack}
+
+(\emph{to be moved to document about architecture conventions when
+available}). In case the ADF defines multiple address spaces that can be
+used to store data, how to select which address space is used for the stack?
+The Simulator has no choice, because the A.S. of the stack is implicitly
+determined by the memory address and the unit that performs the load/store.
+Here are possible options:
+\begin{itemize}
+\item Additional parameter in ADF.
+\item Command line option of scheduler/program transformation tool.
+\item Use of some default rule (for example, first address space declared).
+\end{itemize}
+
+The first options is not convincing, since the position of the stack is an
+architectural convention, not an intrinsic feature.
+
+\section{Simulation Statistics}
+\label{ch:pending:stats}
+
+Should the Simulator allow a fine-grained control on the simulation
+statistical data that is stored in a file?  There are several levels of
+control, from coarser (0, already supported) to finer (4):
+\begin{enumerate}
+\item %
+  Whole file: enable/disable generation of file with statistical data.
+\item %
+  Individual sections of file: performance, utilisation, program statistics.
+\item %
+  Entry type: bus segment utilisation, data transport counts, upper bounds,
+  etc.
+\item %
+  Entries (for example, per processor component): bus ``X'' utilisation
+  count, squashed predicated data transports, parallelism upper bound, etc.
+\end{enumerate}
+%
+For some of the data entries collected, disabling computation of counts
+during simulation may reduce the simulation time.  The main disadvantage of
+finer levels of control is that they complicate the simulator interface
+(lots of command line options).  No matter how complex such interface, it is
+unlikely that any filtering and navigation wanted by users is supported.
+
+The alternative assumed at the moment is that all data is stored
+unconditionally and that a helper application (possibly with graphical
+interface) allows to navigate and filter the statistical data in full
+freedom.
+
+\section{Function Unit Utilisation}
+\label{ch:pending:fu-util}
+
+Problem: how to compute function unit utilisation? Depending whether a unit
+is (fully) pipelined or not, different formulae give different results.
+There are three possibilities:
+\begin{enumerate}
+\item %
+  Simple trigger count ratio.
+\item %
+  Pipeline stage utilisation ratio.
+\item %
+  Throughput ratio.
+\end{enumerate}
+
+The first is given by the simple formula:
+\begin{equation}
+  \label{eq:trig-ratio}
+  \frac{N_{ops}}{N_{cycles}}
+\end{equation}
+where $N_{ops}$ is the total trigger count for a given unit and $N_{cycle}$
+is the (execution) cycle count of the entire application.
+
+The second is given by:
+\begin{equation}
+  \label{eq:pipe-ratio}
+  \frac{N_{ops}\cdot L}{N_{cycles}\cdot P}
+\end{equation}
+where $L$ is the number of cycles the operation takes to complete and $P$ is
+the number of pipeline stages that are used by the operation.  This formula
+can be extended to the case in which a function unit implements several
+operations with differing values of $L$ and $P$; in that case, the results
+obtained for each operation with (\ref{eq:pipe-ratio}) are simply added
+up.  The problem of this formula is that the upper bound ratio, for certain
+operations, may be lower than 1, and requires then some analysis to be
+interpreted.
+
+The third is given by:
+\begin{equation}
+  \label{eq:fu-throughput}
+  \frac{N_{ops}}{\frac{N_{cycles}}{L'}}
+\end{equation}
+where $L'$ is the number of cycles, following a trigger, after which the
+function unit may be triggered again.  Also this formula can be easily
+extended to the case in which a function unit implements several operations.
+The problem with this formula is that, in general, the value of $L'$ depends
+on which operations are triggered in first and second position and is
+difficult to compute precisely.
+
+In summary, equation~(\ref{eq:trig-ratio}) is not giving much information,
+equation~(\ref{eq:pipe-ratio}) is of difficult interpretation for units with
+complex pipelines, and equation~(\ref{eq:fu-throughput}) is difficult to
+compute.
+
+\section{Non-GPR Live Ranges}
+\label{ch:pending:bypass-lr}
+
+It could be useful to provide another set of live range statistics that
+takes into account live ranges of bypassed data (as opposed to the
+conventional live ranges, which are allocated to GPR's).
+
+In GPR live range analysis, definitions of a GPR are easily recognised as
+the start points of a live range allocated to that GPR.  Each definition
+corresponds to a data transport that writes that GPR.  Non-GPR live range
+analysis is slightly more complicated, because the definition is never
+explicit.  It must be computed based on two factors:
+\begin{itemize}
+\item the cycle in which the operation is triggered,
+\item the cycle in which the result is ready.
+\end{itemize}
+The second item requires knowledge of the operation latencies; simple
+dataflow analysis of the program is not sufficient.
+
+\section{Memory Implementation and Processor Architecture}
+\label{ch:pending:mem-latency}
+
+The details of memory implementation and the memory characteristics are not
+part of the processor architecture.  The number of stall cycles due to, for
+example, bank conflicts on a memory system in which the number of requests
+on a given bank exceeds the number of available memory ports is not an
+architectural property: the stall cycles are ``invisible'' to the program.
+
+Yet, it may be crucial, for effective operation of the instruction scheduler
+and the code optimisation passes, to know what is the maximum number of
+memory accesses that can be placed simultaneously and what is the expected
+latency in case of a cache miss.
+
+Since this information is not architectural, it should not be stored in
+ADF~\cite{ADF-specs}.  The TTA programs for a processor configuration
+specified by a ADF can work perfectly well with radically different
+implementations of the same address space described in the ADF.
+
+Where to put this information?
+
+
+% ------------------------------------------------------------------------
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+%% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+
+\end{document}
+

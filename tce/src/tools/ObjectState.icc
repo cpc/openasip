@@ -1,0 +1,173 @@
+/**
+ * @file ObjectState.icc
+ *
+ * Inline implementation of ObjectState class.
+ *
+ * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @note reviewed 8 Jun 2004 by tr, jm, am, ll
+ * @note rating: red
+ */
+
+#include "Conversion.hh"
+
+/**
+ * Returns the parent of the ObjectState instance.
+ *
+ * If there is no parent, returns null pointer.
+ *
+ * @return Parent of the ObjectState instance.
+ */
+inline ObjectState*
+ObjectState::parent() const {
+    return parent_;
+}
+
+
+/**
+ * Returns the name of the object.
+ *
+ * @return Name of the object.
+ */
+inline std::string
+ObjectState::name() const {
+    return name_;
+}
+
+
+/**
+ * Sets the name of the object.
+ *
+ * @param name The new name.
+ */
+inline void
+ObjectState::setName(const std::string& name) {
+    name_ = name;
+}
+
+
+/**
+ * Sets the value of the object.
+ *
+ * @param value Value of the object.
+ */
+inline void
+ObjectState::setValue(const std::string& value) {
+    value_ = value;
+}
+
+
+/**
+ * Sets the value of the object.
+ *
+ * @param value Value of the object.
+ */
+inline void
+ObjectState::setValue(int value) {
+    value_ = Conversion::toString(value);
+}
+
+
+/**
+ * Sets the value of the object.
+ *
+ * @param value Value of the object.
+ */
+inline void
+ObjectState::setValue(double value) {
+    value_ = Conversion::toString(value);
+}
+
+
+/**
+ * Sets the value of the object.
+ *
+ * @param value Value of the object.
+ */
+inline void
+ObjectState::setValue(bool value) {
+    value_ = Conversion::toString(value);
+}
+
+
+/**
+ * Returns the value of the node.
+ *
+ * @return Value of the node.
+ */
+inline std::string
+ObjectState::stringValue() const {
+    return value_;
+}
+
+
+/**
+ * Returns the value of the node.
+ *
+ * @return Value of the node.
+ * @exception NumberFormatException If the value cannot be converted to int.
+ */
+inline int
+ObjectState::intValue() const
+    throw (NumberFormatException) {
+
+    return Conversion::toInt(value_);
+}
+
+
+/**
+ * Returns the value of the node.
+ *
+ * @return Value of the node.
+ * @exception NumberFormatException If the value cannot be converted to
+ *                                  double.
+ */
+inline double
+ObjectState::doubleValue() const
+    throw (NumberFormatException) {
+
+    return Conversion::toDouble(value_);
+}
+
+
+/**
+ * Returns the value of the node.
+ *
+ * @return Value of the node.
+ * @exception TypeMismatch If the value cannot be converted to boolean.
+ */
+inline bool
+ObjectState::boolValue() const
+    throw (TypeMismatch) {
+
+    int intValue;
+    try {
+        intValue = this->intValue();
+    } catch (const NumberFormatException& exception) {
+        const std::string procName = "ObjectState::boolValue";
+        throw TypeMismatch(__FILE__, __LINE__, procName);
+    }
+
+    return intValue;
+}
+
+
+/**
+ * Returns the number of attributes of the ObjectState instance.
+ *
+ * @return Number of attributes.
+ */
+inline int
+ObjectState::attributeCount() const {
+    return attributes_.size();
+}
+
+
+/**
+ * Returns the number of child instances of the ObjectState instance.
+ *
+ * @return The number of children.
+ */
+inline int
+ObjectState::childCount() const {
+    return children_.size();
+}

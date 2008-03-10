@@ -1,0 +1,97 @@
+/**
+ * @file CostEstimationPluginRegistry.icc
+ *
+ * Implementations of templated CostEstimationPluginRegistry class
+ *
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include "boost/format.hpp"
+
+#include "AssocTools.hh"
+#include "FileSystem.hh"
+#include "Exception.hh"
+#include "Application.hh"
+
+namespace CostEstimator {
+
+/// the prefix of the function in the plugin file that is used to create new
+/// estimator plugin instances
+const std::string PLUGIN_CREATOR_FUNCTION_PREFIX = 
+"create_estimator_plugin_";
+
+/**
+ * Constructor.
+ */
+template <typename T>
+CostEstimationPluginRegistry<T>::CostEstimationPluginRegistry() {
+    pluginTools_.addSearchPath(FileSystem::currentWorkingDir());
+}
+
+/**
+ * Destructor.
+ */
+template <typename T>
+CostEstimationPluginRegistry<T>::~CostEstimationPluginRegistry() {
+    /// @todo call the deletion function in the plugin instead, just in case
+    /// delete is overloaded in the plugin
+    AssocTools::deleteAllValues(registry_);
+}
+
+/**
+ * Returns the plugin that is stored in the given path.
+ *
+ * In case the plugin is not found, tries to open it.
+ *
+ * @param pluginFileName The path of the plugin.
+ * @param pluginName The (class) name of the plugin.
+ * @param sourceHDB The HDB from which the plugin should fetch its data.
+ * @param pluginID The id of the plugin in the sourceHDB.
+ * @return The plugin.
+ * @exception IOException In case an I/O error occured.
+ * @exception FileNotfound In case the plugin file was not found.
+ * @exception DynamicLibraryException In case the plugin interface is broken.
+ * @exception WrongSubClass In case the plugin is of wrong estimation plugin
+ *                          type.
+ */
+template <typename T>
+T& 
+CostEstimationPluginRegistry<T>::plugin(
+    const std::string& pluginFileName,
+    const std::string& pluginName)
+    throw (IOException, FileNotFound, DynamicLibraryException, 
+           WrongSubclass) {
+
+    T* pluginInstance = NULL;
+
+    if (AssocTools::containsKey(registry_, pluginFileName)) {
+        pluginInstance = registry_[pluginFileName];
+    } else {
+        /// try to load the plugin
+        try {
+            std::string pluginFile = FileSystem::findFileInSearchPaths(
+                Environment::estimatorPluginPaths(), pluginFileName);
+            T* (*creator)();
+            pluginTools_.importSymbol(
+                PLUGIN_CREATOR_FUNCTION_PREFIX + pluginName, creator, 
+                pluginFile);
+            pluginInstance = creator();
+        } catch (const FileNotFound& e) {
+            throw FileNotFound(
+                __FILE__, __LINE__, __func__, 
+                (boost::format("Plugin file '%s' not found.") % 
+                 pluginFileName).str());
+        } catch (const Exception& e) {
+            throw DynamicLibraryException(
+                __FILE__, __LINE__, __func__, 
+                std::string("Error while trying to import plugin. ") +
+                e.errorMessage());
+        }
+        registry_[pluginFileName] = pluginInstance;
+    }
+
+    return *pluginInstance;
+}
+
+}

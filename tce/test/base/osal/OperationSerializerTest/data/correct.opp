@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<osal version="0.1">
+
+    <operation>
+        <name>oper1</name>
+        <inputs>2</inputs>
+        <outputs>1</outputs>
+        <reads-memory/>
+
+    	<in id="1" type="SIntWord">
+            <mem-address/>
+            <can-swap>
+                <in id="2"/>
+            </can-swap>
+		</in>
+
+    	<out id="3" type="SIntWord">
+            <mem-data/>
+        </out>
+    
+        <trigger-semantics>
+            EXEC_OPERATION(oper1, IO(1), IO(2), IO(3));
+        </trigger-semantics>
+
+    </operation>
+
+    <operation>
+        <name>oper2</name>
+        <inputs>4</inputs>
+        <outputs>1</outputs>
+        <reads-memory/>
+        <writes-memory/>
+        <trap/>
+        <side-effects/>
+
+        <affected-by>
+            <operation name="oper1"/>
+        </affected-by>
+
+        <affects>
+            <operation name="oper1"/>
+        </affects>
+
+        <in id="1" type="UIntWord">
+            <mem-data/>
+            <can-swap>
+	        <in id="2"/>
+	        <in id="4"/>
+            </can-swap>
+        </in>
+
+        <in id="2" type="UIntWord">
+            <mem-data/>
+            <can-swap>
+	        <in id="1"/>
+	        <in id="4"/>
+            </can-swap>
+        </in>
+
+        <in id="3" type="UIntWord">
+            <mem-address/>
+        </in>
+
+        <in id="4" type="UIntWord">
+            <mem-data/>
+            <can-swap>
+	        <in id="1"/>
+	        <in id="2"/>
+            </can-swap>
+        </in>
+
+        <out id="5" type="UIntWord">
+            <mem-data/>
+        </out>
+    </operation>
+  
+
+</osal>

@@ -1,0 +1,1983 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf version="1.5">
+
+  <bus name="m7">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>0</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>sign</extension>
+      <width>4</width>
+    </short-immediate>
+  </bus>
+
+  <bus name="m8">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>0</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>4</width>
+    </short-immediate>
+  </bus>
+
+  <bus name="B1">
+    <width>32</width>
+    <guard>
+      <always-true/>
+    </guard>
+    <segment name="seg1">
+      <writes-to/>
+    </segment>
+    <short-immediate>
+      <extension>zero</extension>
+      <width>3</width>
+    </short-immediate>
+  </bus>
+
+  <socket name="fu4_o0">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu4_o1">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu4_o2">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu4_t">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu4_r0">
+    <writes-to>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="fu4_r1">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="fu15_o">
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu15_t">
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu15_r">
+    <writes-to>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="fu16_o">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu16_t">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu16_r">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="fu18_o">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu18_t">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu18_r">
+    <writes-to>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="fu19_o">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu19_t">
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu19_r">
+    <writes-to>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="fu22_o">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu22_t">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu22_r">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="fu24_o">
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu24_t">
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="fu24_r">
+    <writes-to>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_i2">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_i4">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_i6">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_i8">
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_i10">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_i11">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_i12">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_i13">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_i14">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_i16">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_o2">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_o4">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_o6">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ri_o7">
+    <writes-to>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_o8">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_o10">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_o12">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_o13">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_o14">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ri_o16">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="b_i2">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="pc">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ra_i">
+    <writes-to>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="ra_o">
+    <reads-from>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="ir_1">
+    <writes-to>
+      <bus>m8</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="S1">
+    <reads-from>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="br0r">
+    <writes-to>
+      <bus>m7</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <function-unit name="fu4">
+    <port name="trigger">
+      <connects-to>fu4_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu4_o0</connects-to>
+      <width>32</width>
+    </port>
+    <port name="o1">
+      <connects-to>fu4_o1</connects-to>
+      <width>32</width>
+    </port>
+    <port name="o2">
+      <connects-to>fu4_o2</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu4_r0</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r1">
+      <connects-to>fu4_r1</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>stdout</name>
+      <bind name="1">trigger</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="fu15">
+    <port name="trigger">
+      <connects-to>fu15_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu15_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu15_r</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>add</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sub</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>and</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>addf</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mul</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ior</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>max</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>maxu</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mulf</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>min</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>minu</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>xor</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>subf</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="fu16">
+    <port name="trigger">
+      <connects-to>fu16_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu16_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu16_r</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>add</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sub</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>modu</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>divu</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>neg</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>div</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>negf</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>divf</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mod</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>abs</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>absf</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="fu18">
+    <port name="trigger">
+      <connects-to>fu18_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu18_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu18_r</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>ldh</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sth</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>std</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ldd</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>stw</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ldw</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space>AS2</address-space>
+  </function-unit>
+
+  <function-unit name="fu19">
+    <port name="trigger">
+      <connects-to>fu19_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu19_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu19_r</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>ldh</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sth</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ldq</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>stq</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>ldqu</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space>AS2</address-space>
+  </function-unit>
+
+  <function-unit name="fu22">
+    <port name="trigger">
+      <connects-to>fu22_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu22_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu22_r</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>shl</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>shr</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>shru</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sxqw</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sxhw</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>rotl</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>rotr</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="fu24">
+    <port name="trigger">
+      <connects-to>fu24_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu24_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu24_r</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>eq</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>gt</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>gtu</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>cif</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>eqf</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>gtf</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>cfi</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="debug_operations">
+    <port name="P1">
+      <connects-to>pc</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <operation>
+      <name>outputdata</name>
+      <bind name="1">P1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>print_int</name>
+      <bind name="1">P1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="fft_cadd">
+    <port name="trigger">
+      <connects-to>fu19_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu24_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="o1">
+      <connects-to>fu24_t</connects-to>
+      <width>32</width>
+    </port>
+    <port name="o2">
+      <connects-to>fu22_t</connects-to>
+      <width>32</width>
+    </port>
+    <port name="o3">
+      <connects-to>fu22_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu24_r</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>cadd</name>
+      <bind name="1">o0</bind>
+      <bind name="2">o1</bind>
+      <bind name="3">o2</bind>
+      <bind name="4">o3</bind>
+      <bind name="5">trigger</bind>
+      <bind name="6">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="4">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="5">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="6">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="fft_r4fgen">
+    <port name="trigger">
+      <connects-to>fu24_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu24_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu24_r</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>fgen</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="fft_r4ag">
+    <port name="trigger">
+      <connects-to>pc</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>fu22_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="o1">
+      <connects-to>fu22_t</connects-to>
+      <width>32</width>
+    </port>
+    <port name="o2">
+      <connects-to>fu24_o</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>fu22_r</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r1">
+      <connects-to>fu24_r</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>ag</name>
+      <bind name="1">o0</bind>
+      <bind name="2">o1</bind>
+      <bind name="3">o2</bind>
+      <bind name="4">trigger</bind>
+      <bind name="5">r0</bind>
+      <bind name="6">r1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="4">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="5">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+        <writes name="6">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <function-unit name="fft_cmul">
+    <port name="trigger">
+      <connects-to>ri_i2</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <connects-to>pc</connects-to>
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <connects-to>ri_o2</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>cmul</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+  <register-file name="integer0">
+    <type>normal</type>
+    <size>8</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <port name="wr0">
+      <connects-to>ri_i2</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>ri_o2</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="integer1">
+    <type>normal</type>
+    <size>8</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <port name="wr0">
+      <connects-to>ri_i4</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>ri_o4</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="integer2">
+    <type>normal</type>
+    <size>8</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <port name="wr0">
+      <connects-to>ri_i6</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>ri_o6</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="integer3">
+    <type>normal</type>
+    <size>8</size>
+    <width>32</width>
+    <max-reads>2</max-reads>
+    <max-writes>2</max-writes>
+    <port name="wr0">
+      <connects-to>ri_i8</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>ri_o7</connects-to>
+    </port>
+    <port name="rd1">
+      <connects-to>ri_o8</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="integer4">
+    <type>normal</type>
+    <size>8</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <port name="wr0">
+      <connects-to>ri_i10</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>ri_o10</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="integer5">
+    <type>normal</type>
+    <size>8</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <port name="wr0">
+      <connects-to>ri_i11</connects-to>
+    </port>
+    <port name="wr1">
+      <connects-to>ri_i12</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>ri_o12</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="float0">
+    <type>normal</type>
+    <size>32</size>
+    <width>64</width>
+    <max-reads>2</max-reads>
+    <max-writes>2</max-writes>
+    <port name="wr0">
+      <connects-to>ri_i13</connects-to>
+    </port>
+    <port name="wr1">
+      <connects-to>ri_i14</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>ri_o13</connects-to>
+    </port>
+    <port name="rd1">
+      <connects-to>ri_o14</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="float1">
+    <type>normal</type>
+    <size>16</size>
+    <width>64</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <port name="wr0">
+      <connects-to>ri_i16</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>ri_o16</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="boolean0">
+    <type>normal</type>
+    <size>1</size>
+    <width>1</width>
+    <max-reads>0</max-reads>
+    <max-writes>0</max-writes>
+    <port name="wr0">
+      <connects-to>b_i2</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>br0r</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="float2">
+    <type>normal</type>
+    <size>32</size>
+    <width>64</width>
+    <max-reads>2</max-reads>
+    <max-writes>2</max-writes>
+    <port name="wr1">
+      <connects-to>ri_i8</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>ir_1</connects-to>
+    </port>
+  </register-file>
+
+  <address-space name="AS1">
+    <width>8</width>
+    <min-address>0</min-address>
+    <max-address>1048575</max-address>
+  </address-space>
+
+  <address-space name="AS2">
+    <width>8</width>
+    <min-address>0</min-address>
+    <max-address>716435456</max-address>
+  </address-space>
+
+  <global-control-unit name="gcu">
+    <port name="trigger">
+      <connects-to>S1</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <special-port name="ra">
+      <connects-to>ra_i</connects-to>
+      <connects-to>ra_o</connects-to>
+      <width>32</width>
+    </special-port>
+    <return-address>ra</return-address>
+    <ctrl-operation>
+      <name>call</name>
+      <bind name="1">trigger</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </ctrl-operation>
+    <ctrl-operation>
+      <name>jump</name>
+      <bind name="1">trigger</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </ctrl-operation>
+    <address-space>AS1</address-space>
+    <delay-slots>3</delay-slots>
+    <guard-latency>1</guard-latency>
+  </global-control-unit>
+
+  <immediate-unit name="i1">
+    <type>normal</type>
+    <size>1</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <extension>sign</extension>
+    <port name="rd">
+      <connects-to>ir_1</connects-to>
+    </port>
+    <template name="template0"/>
+    <template name="imms">
+      <slot>
+        <name>m7</name>
+        <width>8</width>
+      </slot>
+      <slot>
+        <name>m8</name>
+        <width>24</width>
+      </slot>
+    </template>
+  </immediate-unit>
+
+</adf>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf version="1.5">
+
+  <function-unit name="mul">
+    <port name="in1">
+      <width>32</width>
+    </port>
+    <port name="t">
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="out1">
+      <width>32</width>
+    </port>
+    <operation>
+      <name>mul</name>
+      <bind name="1">in1</bind>
+      <bind name="2">t</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <resource name="X">
+          <start-cycle>1</start-cycle>
+          <cycles>2</cycles>
+        </resource>
+        <resource name="Y">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+</adf>

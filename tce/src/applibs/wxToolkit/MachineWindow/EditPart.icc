@@ -1,0 +1,133 @@
+/**
+ * @file EditPart.icc
+ *
+ * Inline implementation of EditPart class.
+ *
+ * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 13 2004 by vpj, ll, jn, am
+ */
+
+#include "Application.hh"
+
+/**
+ * Returns the parent of this EditPart.
+ *
+ * @return Parent of this EditPart.
+ */
+inline EditPart*
+EditPart::parent() const {
+    return parent_;
+}
+
+/**
+ * Sets the parent EditPart.
+ *
+ * @param parent New parent.
+ */
+inline void
+EditPart::setParent(EditPart* parent) {
+    parent_ = parent;
+}
+
+/**
+ * Returns the model object corresponding to this EditPart.
+ *
+ * @return The model object corresponding to this EditPart.
+ */
+inline TTAMachine::MachinePart*
+EditPart::model() const {
+    return model_;
+}
+
+/**
+ * Sets the corresponding model object.
+ *
+ * @param model New model object.
+ */
+inline void
+EditPart::setModel(TTAMachine::MachinePart* model) {
+    model_ = model;
+}
+
+/**
+ * Returns the Figure of this EditPart.
+ *
+ * @return Figure of this EditPart.
+ */
+inline Figure*
+EditPart::figure() const {
+    return figure_;
+}
+
+/**
+ * Sets the Figure.
+ *
+ * @param figure New Figure.
+ */
+inline void
+EditPart::setFigure(Figure* figure) {
+    figure_ = figure;
+}
+
+/**
+ * Tells whether the EditPart is selectable or not.
+ *
+ * @return True if selectable, false otherwise.
+ */
+inline bool
+EditPart::selectable() const {
+    return selectable_;
+}
+
+/**
+ * Tells if the EditPart is selected.
+ *
+ * @return True if selected.
+ */
+inline bool
+EditPart::selected() const {
+    return selected_;
+}
+
+/**
+ * Sets selectability of the EditPart.
+ *
+ * @param selectable True if selectable, false otherwise.
+ */
+inline void
+EditPart::setSelectable(bool selectable) {
+    selectable_ = selectable;
+}
+
+/**
+ * Sets selection status of the EditPart.
+ *
+ * @param select True to select, false to unselect.
+ */
+inline void
+EditPart::setSelected(bool select) {
+    selected_ = select;
+}
+
+/**
+ * Returns the number of children.
+ *
+ * @return The number of child EditParts.
+ */
+inline int
+EditPart::childCount() const {
+    return children_.size();
+}
+
+/**
+ * Returns the child corresponding to the given index.
+ *
+ * @param index Index of the child EditPart to return
+ * @return The child corresponding to the given index.
+ */
+inline EditPart*
+EditPart::child(unsigned int index) const {
+    assert(index < children_.size());
+    return children_[index];
+}

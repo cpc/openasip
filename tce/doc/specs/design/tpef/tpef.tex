@@ -1,0 +1,1132 @@
+\documentclass[a4paper,twoside]{tce}
+
+\usepackage{pslatex}
+
+\begin{document}
+\author{Mikael Lepistö}
+\title{Binary Handling Module}
+\ver{0.6.1}
+\firstday{07.01.2004}
+\lastday{27.04.2006}
+% id number in S- sequence
+\docnum{038}
+% draft/complete/committed
+\state{draft}
+
+\maketitle
+
+
+\chapter*{Document History}
+
+\begin{HistoryTable}
+
+ 0.01   & 19.01.004 & M. Lepistö  &
+ Initial version of document.\\
+
+ 0.1    & 11.02.004 & M. Lepistö  &
+ First version for public to read.\\
+
+ 0.2    & 19.02.004 & M. Lepistö  &
+ Cleaned language and fixed some typos.\\
+
+ 0.3    & 05.03.004 & M. Lepistö  &
+ Made changes after Atte's review, added one section to ``Ideas for Further
+ Development'' chapter.\\
+
+ 0.4    & 12.03.004 & M. Lepistö  &
+ Added two ideas for further development.\\
+
+ 0.5    & 15.07.004 & M. Lepistö  &
+ Added section about Move TTA `a.out' file format.\\
+
+ 0.6    & 29.12.004 & M. Lepistö  &
+
+ Updated to current implementation state. Added few pending issues. Removed
+ description of `a.out' format, moved to TCE frontend document.\\
+
+ 0.6.1  & 27.04.2006 & A. Cilio   & 
+ Format revision.\\
+
+\end{HistoryTable}
+
+
+\tableofcontents
+
+
+
+\chapter{INTRODUCTION}
+
+\section{Purpose and Scope}
+
+This document describes the design and use of Binary Handling Module for
+future developers to understand, how the module should be maintanced and
+used. After reading this document the developer should know which are the
+main internal modules of Binary Handling Module and which are the
+responsibilities of each internal module. The developer should also be
+familiar with the base solutions of implementation of each internal module.
+
+\section{Developers}
+
+\begin{tabular}[h]{ll}
+  M. Lepistö      & All Binary Handling Module design,\\
+                  & Binary Writer and Reader implementation,\\
+                  & TPEF Reader and Writer implementation and\\
+                  & Value Replacer design and implementation.\\
+  P. Jääskeläinen & All Binary Handling Module design and \\
+                  & Reference Manager module design and implementation.\\
+  A. Metsähalme   & Implementation of some sections and readers. \\
+  J. Nykänen      & Initial implementations of a.out binary readers and \\
+                  & TPEF writer.\\
+\end{tabular}
+
+\section{Definitions, Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+  TTA  & Transport Triggered Architecture \\
+  TPEF & TTA Program Exchange Format \\
+  TOR  & TPEF Object Representation \\
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\chapter{ARCHITECTURE}
+%% TO DECIDE THE MOST APPROPRIATE NAME
+
+\section{Motivation and Philosophy of Design}
+
+% Describe the principles behind this design and give an overview of
+% it. Motivate briefly the design if necessary.
+
+Binary Handling Module is based on an idea to create an object structure
+which represents TPEF binary file and provide the needed interfaces for
+handling those objects. This module is used by linker, simulator and some
+other external clients to handle and modify a TTA binary file. Binary
+Handling Module is also able to write the TPEF Object Representation (TOR)
+as a TPEF binary file and read at least TCE a.out and TPEF binaries.
+
+When binary is stored in a file, all references to for example instructions
+and data blocks are made by file offsets, indexes or section offsets. In
+object representation binary does not contain any binary file representation
+specific data, as file offset references, but references are done by referring
+real objects inside the model.
+
+Because there might be many references to the same object inside the model,
+we wanted to avoid dangling pointer problem (for example when an object is
+deleted through a pointer there might be other pointers that same object left,
+those other pointers would not be valid anymore). SafePointers was created to
+avoid this problem. SafePointers are used always when there are references to
+other objects inside TOR.
+
+TPEF specification is still not complete, it's pretty young and very 
+expandable. Because of that Binary Handling Module was designed to be easily 
+expandable by adding new sections or section elements or adding support for 
+reading and/or writing new binary file types. So in most parts the design is 
+very flexible and that's why it's a bit more complicated that would actually 
+be needed without the increased flexibility.
+
+Data of binary file which Binary Handling Module stores should be the same
+that is defined in TPEF specification. Still, binary file specific data like
+section offsets, section ids and file offsets are not stored inside TPEF
+Object Representation, but are generated when TPEF Object Representation is
+written to file.
+
+%% No description of the module purpose and motivation, that belongs to the
+%% functional specification document.
+
+\section{External Modules / Application Environment}
+
+% Overview of module from an external perspective:
+% - dependencies with external modules-subsystems
+% - IFs of external modules that are used
+% - external (file) data formats used
+
+Module needs BinaryStream, Exceptions, ContainerTools and MapTools.
+
+% Do not put here the interfaces provided to other modules.
+\newpage
+\section{Architecture of Databases}
+
+% Describes the data types defined and used by the module and their
+% relations.  The description is at type-accurate level. For example, the
+% description may consist of UML class diagrams with the attributes and
+% interfaces of classes of the target program. Another example, the database
+% tables are defined precisely, at level of single fields.
+
+Module doesn't have a real data base, but it has an object structure which 
+contains all the data of TPEF binary file.
+
+\begin{figure}[htb]
+  \centerline{\psfig{figure=eps/TPEFObjectRepresentation.eps,width=1.0\textwidth}}
+  \caption{TPEF Object Representation.}
+  \label{fig:TOR}
+\end{figure}
+
+\section{Main Restrictions of Implementation}
+
+%% This section is in design document of SW document course
+%% I need to know precisely what it should contain to decide if it's useful
+%% enough for us.
+
+C++ language and state of the TPEF specification.
+
+\chapter{Module Design}
+
+%% This chapter is repeated for each module in case this design document
+%% describes a multi-module larger module (or application).
+
+\section{Overview}
+
+% Overview of the module design in concrete terms.
+
+%% Remove this section (redundant) if the design document describes a single
+%% module (or an application consisting of a single module).
+\subsection{TPEF Object Representation}
+The most important part in Binary Handling Module is TPEF Object
+Representation (TOR). That is primary data structure where a flat binary
+file is stored as objects and pointers. TOR is designed to be quite similar
+with TPEF binary file and it holds the same data that the file does. Main 
+difference between the binary file and the object representation is that in
+binary file all data is just blocks of bytes and for example references to
+instructions are made by offsets in file. Inside the TOR there is real an
+object for each section and section element and references are also pointers
+to real objects, not just an offset to data. This helps the handling of
+binary data, because anymore we don't have to care about updating offsets
+for example if we remove objects from a section. All references will still
+be valid.
+
+TOR is constructed from three different type of base classes, Binary,
+Section and SectionElment. Binary is a base class that contains information
+of file header and the Section object for each section of binary file. Every
+section contains SectionElements which can for example be MoveElements or
+ImmediateElements in TextSection. Section and SectionElement classes are
+abstract classes that provide a common interface for every Section and
+SectionElement. For each different section type there is an actual class
+inherited from Section base class.
+
+\subsection{Binary Reader and Binary Writer}
+The other two main modules in Binary Handling Module are Binary Reader
+and Binary Writer. These are kind of frameworks which define abstract base
+classes. Actual classes which do real reading and writing of files 
+must be inherited from these framework classes. These base classes provide 
+consistent interface for external clients to read and write any implented
+type of binary files.
+
+Binary Reader module contains two base classes, BinaryReader and
+SectionReader. When one wants to create file reading support for example
+to TPEF file format, one must first inherit TPEFReader class from
+BinaryReader and then inherit SectionReader based class for each section
+type to be read. For example TPEFCodeSectionReader for reading CodeSection
+from TPEF binary file.
+
+Reading binary file into TOR is always made through BinaryReader class.
+First client opens BinaryStream and then it asks BinaryReader to create
+TOR from it. BinaryReader can resolve by itself which actual BinaryReader
+class is the right one for given binary stream (in our case there are only
+TPEFReader and AOutReader implemented). 
+
+The actual task of reading a binary file is divided between the actual
+BinaryReader and SectionReader classes. With TPEF file TPEFReader
+first creates a Binary object, reads file header data and stores it into
+the Binary object. After that TPEFReader also reads section headers from
+TPEF file. When a section header is read TPEFReader asks Section object 
+with section type id from the Section base class (the type of each section 
+is usually defined in section's header). Then TPEFReader asks SectionReader
+base class to read the section data for the section. SectionReader knows
+which actual section reader class is capable to read that section and asks
+it to read the data into Section object. The actual SectionReader then 
+creates the needed SectionElement objects and adds them to the Section.
+
+After whole binary file is read and references that are made by keys are
+resolved finalize() method is called for every section. In this method
+may be done those things that needs data from elements referred by keys.
+
+Binary Writer's design is pretty much the same as Binary Reader's. Main
+difference between reader and writer is that client of Binary Handling 
+Modul  has to set which actual Binary Writer it wants to use before writing
+TOR in to BinaryStream.
+
+\subsection{Reference Manager}
+Inside TOR there might be more than one reference pointing to a same object,
+so when we delete that object from the model, we have to make sure that 
+every reference to it is set to null. When reading, there is also a need to
+refer to objects through id, file offset, section index or section offset.
+We have to convert references from binary file to real references to objects
+inside TOR. 
+
+For handling these problems SafePointer class was created and around it were
+built the whole Reference Manager module. SafePointers are always used when
+we make references inside TOR. SafePointers makes sure that inside the model
+there won't be any dangling pointers. When SafePointed object is deleted all
+references to that object are set to point to null-SafePointer. SafePointer
+functionality is hidden from external clients so they can handle TOR with
+normal pointers. TOR creates internally SafePointers for them.
+
+Reference Manager module also allows creating different keys for an object
+and assigning objects to a specific key. This functionality helps when we
+read objects from a stream. We can create references to objects by a key,
+before actual object is even created. SafePointers are must always be 
+created with CREATE\_SAFEPOINTER macro. Afterwards, when the actual object
+is created, it can be assigned for some keys and all references made for
+those  keys will be resolved to the actual object.
+
+For example when Binary Handling Module read SymbolSection:
+
+1. Reader creates SymbolSection object (Section::createSection(ST\_SYMBOL))
+
+2. Reader creates SymbolElement.
+
+3. Reader reads data from BinaryStream for creating SymbolElement. Let's
+suppose that symbol was pointing to some object which is not yet read from
+the stream. 
+
+4. Reader sets the created SymbolElement to point to that object with 
+SectionOffsetKey.
+
+5. Later on reader reaches a position where reader reads that object
+which was referred in SymbolElement. When reader reads the referred element
+it also adds a SectionOffsetKey for that object.
+
+6. Now, after reading, Reference Manager is asked to resolve all 
+references and after that all references are valid. Exception will be
+thrown if there is still references which can't be resolved. It doesn't
+matter if there are unused keys for some object, that will not emit an
+exception.
+
+\subsection{Value Replacer}
+When Binary Writer writes TOR into the binary file, we encounter another
+problem, with objects which are not yet written into file but which should
+be referred to by an offset in binary file. When the writer writes for example
+a SymbolElement object which has a pointer to InstructionElement, the writer 
+has to write that section offset where instruction element will be written in 
+BinaryStream. Because we do not know yet into which section offset 
+InstructionElement will be written, we have to keep track where the reference
+to that object was and which kind of reference it was to replace that value in
+the file later. After all sections and elements are written into the file those
+references which weren't able to be written before will be resolved and 
+written.
+
+Value Replacer module was created to help with writing of binary file. 
+When BinaryWriter wants to write to a binary file a value which should be
+replaced afterwards and the value is not known yet, writing should be done 
+with ValueReplacer inherited classes. Those classes write value straight
+ahead if a replacing value is already available. If value is not yet known,
+ValueReplacer marks the offset where the value should be written. After the
+writing of binary file is done and all replacement values should be known,
+ValueReplacer can be asked to resolve those values which were left unresolved
+before.
+
+\section{Interfaces}
+
+% High level description of the interface of this module.  Low level details
+% are possible, but should be restricted to simple classes (like, for
+% example, NodeDescriptor in mdf module).  Low level details of large
+% interfaces, if present at all, should be stored in a separate UML
+% specification file (for example, Rational Rose MDL).
+
+\subsection{Binary Reader}
+\begin{figure}[htb]
+  \centerline{\psfig{figure=eps/BinaryReader.eps,width=1.2\textwidth}}
+  \caption{Interface of Binary Reader.}
+  \label{fig:BinaryReader}
+\end{figure}
+
+\textbf{Classes for other modules to use:}
+\begin{itemize}
+\item BinaryReader 
+\end{itemize}
+
+\textbf{Interfaces for other modules to use:}
+\begin{itemize}
+\item Binary* BinaryReader::readBinary() 
+\end{itemize}
+
+\newpage
+\subsection{Binary Writer}
+\begin{figure}[htb]
+  \centerline{\psfig{figure=eps/BinaryWriter.eps,width=1.2\textwidth}}
+  \caption{Interface of Binary Writer.}
+  \label{fig:BinaryWriter}
+\end{figure}
+
+\textbf{Classes for other modules to use:}
+\begin{itemize}
+\item BinaryWriter 
+\item TPEFWriter 
+\end{itemize}
+
+\textbf{Interfaces for other modules to use:}
+\begin{itemize}
+\item BinaryWriter::writeBinary() 
+\item BinaryWriter::setWriter()
+\item TPEFWriter::instance() 
+\end{itemize}
+
+
+
+\newpage
+\subsection{Value Replacer}
+\begin{figure}[htb]
+  \centerline{\psfig{figure=eps/ValueReplacer.eps,width=1.2\textwidth}}
+  \caption{Interface of Value Replacer.}
+  \label{fig:ValueReplacer}
+\end{figure}
+
+\textbf{Classes for other modules to use:}
+\begin{itemize}
+\item Other modules create instances of all actual classes. 
+\end{itemize}
+
+\textbf{Interfaces for other modules to use:}
+\begin{itemize}
+\item ValueReplacer::initialize()
+\item ValueReplacer::finalize()
+\item ValueReplacer.replace()
+\item SectionSizeReplacer::setSize() 
+\item SectionSizeReplacer::clear() 
+\end{itemize}
+
+\newpage
+\subsection{Reference Manager}
+\begin{figure}[htb]
+  \centerline{\psfig{figure=eps/ReferenceManager.eps,width=1.2\textwidth}}
+  \caption{Interface of Reference Manager.}
+  \label{fig:ReferenceManager}
+\end{figure}
+
+\textbf{Classes for other modules to use:}
+\begin{itemize}
+\item SafePointer
+\item SafePointable is used to inherit classes which can be used with
+Reference Replacer.
+\item Other modules create instances of all actual ReferenceKey classes.
+\end{itemize}
+
+\textbf{Interfaces for other modules to use:}
+\begin{itemize}
+\item CREATE\_SAFEPOINTER()
+\item SafePointer.pointer()
+\item SafePointer::isReferenced()
+\item SafePointer::addObjectReference()
+\item SafePointer::sectionKeyFor()
+\item SafePointer::sectionIndexKeyFor()
+\item SafePointer::sectionOffsetKeyFor()
+\item SafePointer::fileOffsetKeyFor()
+\item SafePointer::resolve()
+\item SafePointer::cleanupKeyTables()
+\end{itemize}
+\newpage
+\section{Implementation}
+
+% Describe here important low-level details. Only details about complex
+% problems that require ``smart solution'' should be treated.  Do not
+% describe every single detail of the implementation when that follows from
+% the specification/design in a straightforward manner.
+\subsection{Registration of Section Classes}
+\textbf{Problem:}
+
+Because we can't know if there is going to be new section types in TPEF 
+specification, there was need to create a system which makes it possible to
+create a section without knowing anything about the class which actually 
+implements it. 
+
+\textbf{Solution:}
+
+All section objects are created by asking Section base class to give
+a section of some type. 
+
+For example when we read TPEF file and get a section\_id, we
+can ask for the section object like this:
+
+\begin{verbatim}
+Section* newSection = Section::createSection(section_id);
+\end{verbatim}
+
+To ease the of maintaining we wanted that creating new sections is possible
+without changing the existing code. Registeration system for section was 
+created for that.
+
+Now when actual section class is written, it must always create a static
+instance of it inside class declaration. This static instance registers 
+itself into Section base class when static instance's constructor is 
+executed. In registration the section class gives section type id which 
+type of section class implements. After registeration Section base class 
+knows, which section class implements requested section type.
+
+\begin{verbatim}
+Here is a example implementation of an actual section class which contains
+all needed functionality. (NOTE: intialization of section instance must 
+be done in .cc file):
+
+########### DummySection.hh ############
+
+#include "Section.hh"
+
+class DummySection : public Section {
+public:
+
+    virtual ~DummySection() {}
+
+    virtual SectionType type() const {
+      // NOTE: if one wants to use a enum value it must be defined in Section.hh
+      return ST_DUMMY; 
+    }
+
+protected:
+    DummySection(bool init) {
+      if (init) {
+        Section::registerSection(this);
+      }
+    }
+
+    /// Creates a clone of instance.
+    virtual Section* clone() const {
+      return new ASpaceSection(false);
+    }
+
+private:
+    // static instance which registers itself into Section base class
+    static DummySection proto_;
+};
+
+########## DummySection.cc #############
+
+#include "DummySection.hh"
+
+/// Registers section prototype to base class.
+DummySection DummySection::proto_(true);
+
+########## end DummySection.cc #########
+\end{verbatim}
+
+\subsection{Checking File Type of Given Stream}
+\textbf{Problem:}
+
+Adding support for reading a new binary file type is possible to do 
+without touching earlier code, even the clients get new support with only 
+linking new objects into TPEF module. How is it possible for client to know 
+if new binary format is supported? How does BinaryReader base class know that
+there is a new actual BinaryReader?
+
+\textbf{Solution:}
+
+Basic idea is the same, that is with adding new sections. Every actual 
+BinaryReader class registers itself into base class. Every BinaryReader also 
+has to implement isMyStreamType(BinaryStream) method. Now, after actual
+BinaryReader classes are registered to BinaryReader base class, BinaryReader
+have a list of all actual BinaryReaders implementations and can ask from every
+reader if they are able to read given stream.
+
+Creating instances of actual BinaryReaders is done a bit differently than 
+with Section classes. All BinaryReaders have to implement a static instance() 
+method which is used to create a singleton instance of the reader and after
+first call it always returns same instance of the reader. Instance() method is 
+first called from SectionReader classes of BinaryReader (for example 
+TPEFSectionReaders calls TPEFReader::instance() when they register themselves
+into SectionReader base class).
+
+\subsection{Registration of SectionReaders}
+\textbf{Problem:}
+
+Because there was the need to add read support for new sections without 
+touching existing BinaryReaders there was again a need for a registration 
+system which allows adding new actual SectionReaders for some section type.
+Again, actual SectionReaders do register themselves into the section base 
+class quite same way that sections do (they create static instances of 
+themselves which do actual registration in their constructors). Now there are
+many SectionReaders registered for the same section type (for example for 
+ST\_CODE there is TPEFCodeSectionReader and AOutTextSectionReader), how does 
+SectionReader know which is the right actual reader for some section type?
+
+\textbf{Solution:}
+
+Every actual SectionReader instance registers itself with two keys. The first
+key is a reference to a BinaryReader instance that is the right reader for 
+that SectionReader (for example TPEFReader for TPEFSectionReaders) and the 
+second key is a section type which the actual SectionReader can read 
+(ST\_CODE for TPEFCodeSectionReader). 
+
+The actual SectionReader gets reference of its BinaryReader instance with 
+BinaryReaders static instance() method (TPEFReader::instance() for 
+TPEFSectionReaders). 
+
+Now, when BinaryReader wants to read the data of some section it can do it by 
+calling SectionReader::readSection() method. That method gets BinaryReader
+and Section pointers as an parameter so now SectioReader can do the reading 
+with the right section reader of the right BinaryReader instance.
+
+\subsection{Reading TCE a.out Binary Format}
+
+See TCE Frontend Notes document for complete information of TCE a.out 
+file format.
+
+TCE a.out format is quite different and much more simple format than TPEF.
+A.out contains only code section, data section, uninitialized data section, 
+string section, symbol section and two relocation sections. Some of a.out 
+sections might be empty (for example if symboltable is stripped).
+
+TPEF specifications have some required sections which has to exist for valid
+TPEF binary. Because a.out doesn't contain these sections, required sections 
+and elements must be generated during reading of a.out.
+
+TPEF file must contain one NullSection with section index 0. There also has to
+be one ResourceSection, if there exists code sections. In TPEF string sections 
+must start with zero byte (probably this applies also to a.out string sections) 
+and all sections must have address space defined (even if it's undefined 
+address space). 
+
+When we create ASpaceSection, we also create undefined ASpaceElement
+and two other ASpaceElements. One for UDataSection and DataSection and 
+one for CodeSection. These address spaces have same MAU size of 8 bits. 
+So both address spaces have same MAU size that a.out binary have.
+
+\subsubsection{Text Section}
+
+This section is read by AOutTextSectionReader class. 
+
+Instruction size of CodeSection that is read from a.out is set to 
+8 MAU since in a.out every move is 8 bytes. Instruction encoding is
+set to be undefined fixed encoding. 
+
+A.out move contains fields described below:
+
+\textbf{Byte guard}
+
+Defines if guard bit is set and if guard is inverted. 
+Guard register file and register index is hard coded to be
+first register iof boolean register file.
+
+\textbf{Byte flags}
+
+If immediate bit is set, then we generate also inline encoded immediate element
+with id zero to which source of move refers. If bit is not set source field 
+is intepreted same way that destination.
+
+\textbf{Half word destination}
+
+In TCE a.out base register set is hard coded. Register numbers 0-1023 are
+integer registers, numbers between 1024-2047 are floating point registers,
+register number 2048 is boolean register and rest of registers are return
+address register and operation registers. Values of destination and 
+destination index are resolved with this information.
+
+\textbf{Work source}
+
+Either immediate value or type and index of source register.
+
+TCE a.out text section contains only move instructions and no 'free' 
+immediate elements exists. Immediate values are always encoded in a source 
+field of move element. Immediate bit is set in flag byte to indicate that 
+value of source field is actually an immediate value.
+
+In TCE a.out every immediate value that exists is just for one move 
+instruction, AOutTextSection reader generates always an immediate element
+and move element when instruction with immediate is read from a.out file.
+Source type of generated move is set to MVS\_IMM value to indicate that
+source of this move element is id of immediate element (inline encoding)
+or id of immediate register.
+
+\begin{verbatim}
+         TCE a.out format                      TPEF representation 
+    | move with an immediate | -----> | Immediate element | Move element |
+\end{verbatim}
+
+When we read InstructionElement we assign it with SectionOffsetKey. Only
+starting elements of instructions are assigned with keys because, only 
+starting elements may have references pointing to them (location() or 
+destination() field of RelocElement).
+
+\subsubsection{Relocation Sections}
+
+This section is read by AOutRelocationSectionReader class.
+
+There can be up to two relocation sections in every a.out file, one for
+data and one for code. Only difference between these sections is the section
+to which relocations apply. In TPEF this info is stored in referenced
+section field of RelocaSection. So only difference between reading
+these two a.out sections is when we set referenced section value of
+RelocSection class.
+
+Relocation element contains following fields:
+
+\textbf{Word address}
+
+Element referred by address is used to set location of RelocElement.
+
+This value is section offset to either data or text(a.out's code section) 
+section. If value refers to code section, then we know, that the value 
+of address is not section offset to start of move (location points always
+to immediate element, never to move element). Address field is pointing
+inside (to start of move + 4 bytes) a.out's move element to start of source 
+field (where actual value, which should be relocated lays) of move. 
+
+So AOutRelocationSectionReader fixes this value to point start of move. 
+Because we have registered ImmediateElement to start section offset of move,
+fixed value may be used as an section offset to immediate element of move.
+
+Because after linking value of the location pointed by address is not valid 
+anymore (linker updates only addend field while resolving relocations), we
+have to fix the value that is contained by location element. This fixing 
+is done in relocation reader's finalize() method which is called after all 
+sections are read. 
+
+\textbf{Word symbol, flags and type}
+
+First 24 bits of field has two different meanings. It may be symbol index 
+which is referred from  relocation element or section id of the section,
+which is referred by addend.
+
+If external flag is set, then we know that relocation have symbol and symbol
+index is really index of symbol.
+
+Relocation type is always set to be RT\_SELF or RT\_NOREL.
+
+\textbf{Word addend}
+
+Contains memory image address to element. This value is used to resolve 
+destination field of relocation. Addend is easily modified to section 
+offset (with help of knowing starting addresses and sizes of each program 
+section).
+
+\textbf {Resolving the destination of the relocation from addend}
+
+Addend field is address to memory image of a.out binary and the value 
+pointed by addend is the destination object of TPEF relocation. 
+
+Memory image of a.out is similair to binary file representation of file. 
+
+Memory image starts from address defined in file header (in TCE TTA a.out it 
+should be always zero) and first section in image is text section. In image 
+all section data is represented in same form that in binary file.
+
+\begin{verbatim}
+
+    A.out memory image:
+
+    Address         
+    -----------------------------------------
+    0x0000         |                    
+    ...            |
+    -----------------------------------------
+    fh_entry       | Start of text section.
+    ...            |
+    -----------------------------------------
+    fh_entry +     | Start of data section.
+    fh_textsize    |
+    ...            |
+    -----------------------------------------
+    fh_entry +     | Start of uninitialized
+    fh_textsize +  | data section.
+    fh_datasize    |
+    ...            |
+    -----------------------------------------
+    fh_entry +     | 
+    fh_text_size + | First address after end
+    fh_data_size + | of memory image.
+    fh_bss_size    | 
+    -----------------------------------------
+    
+    All values are gathered from a.out file header.
+    fh_entry = Virtual address of the entry point of the program.
+    fh_text_size = Size of text section in bytes.
+    fh_data_size = Size of data section in bytes.
+    fh_bss_size = Size of uninitilaized data section in bytes.
+
+\end{verbatim}
+
+Section offset and section id of object pointed by addend is easily resolved
+with this info. For resolved relocations (relocations whose external bit
+is not set) symbol number tells section id of object pointed by addend. 
+This value can be used as an sanity check. 
+
+\begin{verbatim}            
+
+    Symbol number | Section
+    -------------------------------------------   
+    0x04          | Text section.
+    0x06          | Data section.
+    0x08          | Uninitilized data section.
+  
+    Table about the meaning of symbol number field (first 24 bits of second 
+    word of relocation entry) of relocation entry which doesn't have external 
+    bit set.
+
+\end{verbatim}
+
+\subsubsection{Symbol Section}
+
+This section is read by AOutSymbolSectionReader class.
+
+In a.out, symbols are indexed starting from zero and there is no such thing
+as undefined symbol. For TPEF the undefined symbol is generated.
+
+\textbf{Word symbol name}
+
+Used to set name of symbol.
+
+\textbf{Byte symbol type}
+
+Used to resolve, how symbol is converted to TPEF. Righ now
+only few of symbols are converted, most of symbols are just ignored.
+
+\textbf{Word value}
+
+Value of symbol is intepret differently depending on which kind of
+symbol is read.
+
+\textbf{Converting symbol types}
+
+If symbol have external bit is set, then symbol binding is set to
+STB\_GLOBAL. 
+
+\textbf{N\_UNDF}
+
+These symbols are converted to NoTypeSymElements and will be 
+replaced with new symbol after linker resolves references. Value
+of symbol is ignored.
+
+\textbf{N\_TEXT}
+
+Value is used to resolve element to which symbol refers. Converted to 
+CodeSymElement.
+
+\textbf{N\_DATA and N\_BSS}
+
+Value is used to resolve data element, which to symbol refers. Symbols are 
+converted to a DataSymElement.
+
+\textbf{N\_FN}
+
+For each of these symbols FileSymElement is created. Value is igored.
+
+\textbf{N\_PRTAB}
+
+If symbol contain operation register symbol, then symbol is read to 
+ResourceSection and value is stored to be register id.
+
+Rest of the symbols are ignored.
+
+\section{Error Handling}
+
+% How are errors handled? What is considered internal and what is considered
+% external source of errors? What is handled by throwing exceptions and what
+% by assertions? What are the 
+\subsection{Policy}
+Exceptions are thrown when the module is used in a wrong way by the clients. 
+Assertions are used to verify that code inside the module is working. If fails
+occurs then there is a bug, that should be fixed.
+
+Actually right now there are lot of assertions that will fail if the module is 
+used to read a broken binary file, or used wrong in some other way. Better
+error handling should be done to TCE V2. 
+
+\section{Module Communication}
+
+%% Remove this section if the design document describes just one module (or
+%% an application consistingof a single module).
+
+% This section describes the communication between modules of the
+% application or subsystem documented in this design document.
+
+Binary Handling Module is divided in to 5 smaller modules: TPEF Object
+Representation, Binary Reader, Reference Manager, Binary Writer and Value 
+Replacer. Communication between these modules is restricted to each module's
+public interfaces.
+
+\begin{itemize}
+\item Reference Manager is used by all other modules some way.
+\item TPEF Object Representation is used by Binary Reader, Binary Writer 
+and external clients.
+\item Value Replacer is used by Binary Writer.
+\item Binary Reader and Binary Writer is used only by external clients.
+\end{itemize}
+
+\begin{figure}[htb]
+  \centerline{\psfig{figure=eps/ModuleCommunication.eps,width=1.2\textwidth}}
+  \caption{Communication between modules.}
+  \label{fig:Modules}
+\end{figure}
+
+% ADD NEW SECTIONS ON DESIGN HERE
+
+\chapter{REJECTED ALTERNATIVES}
+
+% Rejected alternatives for (parts of) the design should be listed here with
+% the reasoning and date the alternative was dumped. For future reference.
+%
+%18.11.2003 . . .
+\section{Refactoring All Registeration Functionality}
+Refactoring registration functionality and refactoring reader and writer 
+base functionality. There would be too much depency from the base class to the
+inherited classes which didn't look very nice in test implementation. Also, one
+central registeration handler was a kind of bad idea because it would cause 
+one central registeration database.   
+
+\chapter{IDEAS FOR FURTHER DEVELOPMENT}
+
+% Ideas that are not part of the design yet but that might be added in the
+% future are listed here. This is to have ideas written down somewhere.
+% This list should contain the date of addition, the idea described briefly
+% and the inventor of the idea.
+
+% Example:
+%
+% 18.11.2003 . . . -P.Jääskeläinen
+\section{Default SectionReader and SectionWriter}
+There could be some implementation of default section reader and writer
+that would be used if there is some unknown sections inside binaryfile which
+is read.
+
+\section{Unresolved References When Reading Binary File}
+If there is unresolved references while reading a binary file, exception 
+will be thrown and we don't know how complete reading of the binary file was. 
+If Reference Manager could set these unresolved references to point for
+example to the constant SafePointer::unresolved (like SafePointer::null), 
+the binary hierarchy would be ok to use even if the binary file that was 
+used to create it is not.
+
+\section{Exceptions vs. Assertions}
+There is a lot inconsistencies when assertions and exceptions are 
+used in module. If the module is released as a library, these inconsistencies
+should be fixed.
+
+\section{Making the Design More Symmetric}
+The design can be made more symmetric if the SectionReader class would have
+readHeader() method as the SectionWriter has the writeHeader(). Also offset
+parameter may be removed from the SectionReader::readData method.
+
+\chapter{PENDING ISSUES}
+
+% Pending issues concerning this design, a sort of TODO list.
+% This chapter should be empty when implementation of this module/subsystem
+% is completed.
+
+In this chapter are listed suggestions for improvements to design. 
+These matters should be concerned carefully and moved to th Ideas for Further
+Development or to the Rejected Alternatives chapter with reasoning of 
+decission. 
+
+\section{Restricted Interface for Clients}
+Different restricted headers of module for the enduser. That would contain 
+only those interfaces which should be used from the external clients. These 
+headers would hide for example intarfaces which take SafePointers as an 
+parameters.
+
+\section{Removing Chunkable Interface From RawSections}
+Because there is not anymore lists of elements returned from Section object
+we could combine also chunk() interface behind element() interface. After 
+improvement we could also ask chunks from RawSection's same way, that we
+ask for normal section elements. Because Now data is stored as MAUs in 
+DataSection we should not be able to ask single bytes from DataSection, 
+but it would be more easy to just ask one MAU from section. This would mean 
+that we need to create MAU Section element since we don't know how big values
+MAU might contain. Benefits would be more consistent interfaces and code and 
+it would make design easier to understand. It would also make MAU handling 
+easier. Current data reading and writing functions for DataSection are
+unnecessary complex.
+
+\section{Addend Field With Section Offset and Id for Relocation}
+To get rid off memory encoding stuff from TPEF file, relocation elements could
+be provided with addend field, where would be section id and section offset to
+destination of reloaction. This would make reading and writing of TPEF file
+more easy and would remove instruction encoding depency out from tpef file.
+Values of location() elements or relocations would be fixed afterwards, when
+instruction encoding is actually decided.
+
+\section{Reference to Parent for SectionElement Class}
+In some cases it would be useful to know the Section object where referred
+SectionElement is located.
+
+\section{Undefined Section and Elements}
+Now when there is reference to undefined symbol or to undefined address
+space we have always real object at the end of reference. Should every
+element type have this kind of undefined element? Should we also create
+undefined section object for each type of section. It's clear that we want
+to keep strong typing when ever it's possible, so we can't use NullSection
+reference for all (for references that more specific type of reference)
+undefined section references. These undefined elements would be more like
+tpef modules internal way to handle undefined references (and to prevent
+references to NULL).
+
+\chapter{MAINTENANCE}
+
+\section{Creating Support for Reading New Binary File Types}
+
+When creating new binary readers the first thing is to create the actual 
+BinaryReader inherited class. Actual binary reader class must implement 
+virtual readData() and isMyStreamType() methods and static instance() method. 
+
+IsMyStreamType(BinaryStream) method returns true or false, depending on if 
+given stream is readable with that BinaryReader. So it mainly checks the 
+magic number of binary file. Note that recognizing of binary file type must
+be bullet proof or otherwise it might prevent whole Binary Handling Module
+from working.
+
+Virtual readData() does the actual reading of binary. It creates a dynamically 
+allocated Binary object, reads section headers, creates needed sections 
+and adds them into the Binary object. 
+
+BinaryReaders are always singleton classes. It means that there is only one 
+instance of every reader in program. So BinaryReader's constructor must be
+private and the static instance() method must be implemented. The instance() 
+method creates an instance of actual reader when it is executed for the first 
+time. After that instance() always returns same instance of the actual 
+BinaryReader.
+
+First Binary object should be created in readData() method, then we can read
+the binary file headers and store necessary information from them into the 
+Binary object. If there are references to some objects in the file headers 
+that we should store (for example an id to section that contains names for all 
+sections) we can use Reference Manager to create those references. 
+It's done by creating a SafePointer instance for that id. We can use it like a 
+normal pointer.
+
+\begin{verbatim}
+Binary *newBin = new Binary();
+...
+//reading of file headers
+...
+SectionKey sectionIdKey(section_id);
+bin->setStrings(CREATE_SAFEPOINTER(sectionKey));
+\end{verbatim}
+
+Now Reference Manager module knows that there should be an object for that key
+after the reading. Later on when we read referred section from file, we can 
+assign created section object for that key that we used before. After assigning
+all references to that section id may be resolved.
+
+After file headers are read we can start to read sections. First we read the 
+section headers and create a Section instance for that. If binary file doesn't 
+have same section types that the TPEF has those section types must be
+converted into TPEF section types (see Section.hh). When we have created the 
+Section instance, we can add it to Reference Manager with sections id. So, 
+reference manager will know that when there are references to that section id it 
+really means the object we just created.
+
+\begin{verbatim}
+...
+// reading section header
+...
+SectionKey sectionKey(section_id);
+Section* newSection = Section::createSection(TPEF_section_type);
+bin->addSection(newSection);
+SafePointer::addObjectReference(sectionKey, newSection);
+\end{verbatim} 
+
+We should also set needed fields of the newly created Section object and of 
+course do references as an SafePointers needed (see TPEFReader.cc). Now we 
+can ask SectionReader to read data for \emph{newSection} and continue with 
+reading the next section header.
+
+\begin{verbatim}
+SectionReader::readSection(binaryStream, 
+                           newSection, 
+                           instance(), 
+                           offsetToData, 
+                           dataLength);
+\end{verbatim}
+
+After all sections are read we must call SafePointer::resolve() to resolve
+all remaining references which have been done by using keys.
+
+The most important thing to remember when reading section data is to add 
+suitable keys for every created object, SafePointer::addObjectReference() 
+can be called many times with different keys if there should be more than 
+one key for the object. Binary file specification should tell which kind of 
+references are used to refer to every object in binary file. Also exception
+from SafePointer::resolve() method should be catched at least in development
+version of the reader, otherwise it seems that program just crashes if an 
+exception is thrown.
+
+\section{Using ValueReplacer Class During Writing Binary}
+
+During the writing of binary we have the same kind of problem, that was with 
+reading it. Now we don't know what file offset, id, or index of referred 
+object will be, because it's not yet written into the file. ValueReplacers and 
+Reference Manager is used to solve this problem. New ValueReplacer classes 
+can be created for any type of value that is not yet known (for example it 
+is also used for writing section sizes).
+
+When we write an object into binary file we can ask Reference Manager if it
+is referenced in TOR. If it is a referenced object, we must add again the 
+needed keys to Reference Manager for the object we write.
+
+\begin{verbatim}
+...
+// needed keys for object are now known
+...
+if (SafePointer::isReferenced(objectToWrite) {
+  FileOffsetKey fileOffsetKey(fileOffsetOfObject);
+  SectionOffsetKey sectionOffsetKey(sectionId, sectionOffsetKey);
+  SafePointer::addObjectReference(fileOffsetKey, objectToWrite);
+  SafePointer::addObjectReference(sectionOffsetKey, objectToWrite);
+}
+\end{verbatim}
+
+We use the replacers for writing references in a uniform way and hide
+inside the ValueReplacer class the precise moment the reference is 
+actually encoded and written to file.
+
+This conditional behaviour of the replacer is hidden. The whole table of
+actual ValueReplacer instances are hidden inside the ValueReplacer base class.
+In other words, when you want to write reference you always do it same way:
+
+\begin{verbatim}
+// called once before any replacer instances are created
+ValueReplacer::initialize(stream);
+...
+FileOffsetReplacer replacer(obj);
+replacer.resolve();
+\end{verbatim}
+
+Now the replacer first checks if object has been already written out. If it
+has been, it writes the replacement value immediately. If it hasn't been it 
+adds a table entry where the file offset and the specific replacer are stored
+the table entry tells that this offset should be replaced after all objects 
+have been written out.
+
+After resolve() we know that replacement is done or it will be done at last
+when we call ValueReplacer::finalize() method. So after calling resolve()
+method we don't need the created replacer instance anymore.
+
+Because ValueReplacers writes their replacement values straight to BinaryStream
+before creating any actual reference replacer we have to define BinaryStream 
+where values are written. For that we have a static method:
+
+\begin{verbatim}
+ValueReplacer::initialize(BinaryStream& stream);
+\end{verbatim}
+
+This method has to be called before creating any concrete ValueReplacer
+instances. Initialize() method must be called if one wants to start 
+writing new reference replacements after running successfully also 
+the method:
+
+\begin{verbatim}
+ValueReplacer::finalize();
+\end{verbatim}
+
+% This chapter treats the problem of extending the design with new
+% capabilities that fit in a predefined framework.
+
+% For example, in case of the TPEF module, this chapter could describe the
+% steps that must be taken in order to add a new Section subclass and/or a
+% SectionReader subclass.
+
+% Remove this chapter no obvious and standardised way to extend the design
+% with new capabilities exists.
+
+
+% ------------------------------------------------------------------------
+
+%% Remove this part if there are no references.  Usually there will be at
+%% least a reference to the functional specifications of the same module.
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

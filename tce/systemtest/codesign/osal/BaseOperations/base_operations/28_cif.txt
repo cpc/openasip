@@ -1,0 +1,5 @@
+!output float
+cif 1
+cif 213
+cif 548924
+!quit

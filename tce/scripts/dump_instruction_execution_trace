@@ -1,0 +1,14 @@
+#!/bin/sh
+# Dumps the instruction execution trace of the program.
+#
+# Input:  The TraceDB file (produced with procedure_transfer_tracking on).
+# Output: Listing of instructions executed in order of execution.
+
+
+needSQLite=1
+
+. tce_scripts_settings.sh
+
+${TCE_SQLITE_BIN} $1 <<EOF
+SELECT * FROM instruction_execution ORDER BY cycle ASC;
+EOF

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>STDOUT</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="PRINT_INT"/>
+      <operation name="PRINT_INT_AS_HEX"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>PRINT_INT</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="PRINT_INT_AS_HEX"/>
+      <operation name="STDOUT"/>
+    </affected-by>
+    <in id="1" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>PRINT_INT_AS_HEX</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affected-by>
+      <operation name="PRINT_INT"/>
+      <operation name="STDOUT"/>
+    </affected-by>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>INPUT_DATA</name>
+    <inputs>1</inputs>
+    <outputs>2</outputs>
+    <side-effects/>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>OUTPUTDATA</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <in id="1" type="UIntWord"/>
+  </operation>
+
+</osal>

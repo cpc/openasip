@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>../../../../icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+  </ic-decoder-plugin>
+
+  <fu name="fm">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <fu-id>2</fu-id>
+  </fu>
+
+  <fu name="sq">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <fu-id>3</fu-id>
+  </fu>
+
+  <fu name="s">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <fu-id>4</fu-id>
+  </fu>
+
+  <fu name="ml">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <fu-id>5</fu-id>
+  </fu>
+
+  <fu name="m">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <fu-id>6</fu-id>
+  </fu>
+ 
+  <fu name="i">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <fu-id>7</fu-id>
+  </fu>
+
+  <fu name="a1">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <fu-id>8</fu-id>
+  </fu>
+
+  <fu name="a2">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <fu-id>8</fu-id>
+  </fu>
+
+  <fu name="sub">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <fu-id>9</fu-id>
+  </fu>
+
+  <rf name="r">
+    <hdb-file>data/no_lsunits/3rd.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+</adf-implementation>

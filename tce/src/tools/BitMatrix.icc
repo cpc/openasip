@@ -1,0 +1,136 @@
+/**
+ * @file BitMatrix.icc
+ *
+ * Inline implementation of BitMatrix class.
+ *
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @note rating: red
+ */
+
+#include "BaseType.hh"
+
+/**
+ * Count of rows in the bit matrix.
+ *
+ * @return Count of rows.
+ */
+inline int
+BitMatrix::rowCount() const {
+    return rows_;
+}
+
+/**
+ * Count of columns in the bit matrix.
+ *
+ * @return Count of columns.
+ */
+inline int
+BitMatrix::columnCount() const {
+    return columns_;
+}
+
+/**
+ * Performs an AND operation between the matrices for all elements and 
+ * returns true in case any result is nonzero.
+ *
+ * This is used to check for conflicts between two bit matrices, that is,
+ * to look for element in which both matrices have value '1'.
+ *
+ * @note Both matrices must be of same size. This is not checked by the
+ * method.
+ *
+ * @param another The bit matrix to AND with.
+ */
+inline bool
+BitMatrix::conflictsWith(const BitMatrix& another) const {
+    for (int word = 0; word < rows_ * wordsPerRow_; ++word) {
+        RowWord conflicts = 
+            matrix_[word] & another.matrix_[word];
+        if (conflicts != 0)
+            return true;
+    }
+    return false;
+}
+
+/**
+ * ORs the given matrix with this one.
+ *
+ * The resulting matrix has '1' in an element in case either the merged
+ * matrix or the original had '1' there.
+ *
+ * @param another The resource table of the merged.
+ */
+inline void
+BitMatrix::orWith(const BitMatrix& another) {
+    for (int word = 0; word < rows_ * wordsPerRow_; ++word) {
+        matrix_[word] |= another.matrix_[word];
+    }
+}
+
+/**
+ * Sets the bit at given element.
+ *
+ * @param column The column.
+ * @param row The row.
+ * @param value The bit.
+ */
+inline void
+BitMatrix::setBit(int column, int row, bool value) {
+
+    const int wordPos = column / (sizeof(RowWord) * BYTE_BITWIDTH);
+    const int bitPos = column % (sizeof(RowWord) * BYTE_BITWIDTH);
+    const RowWord oldWord = matrix_[row * wordsPerRow_ + wordPos];
+    RowWord newWord = 0;
+    if (value) {
+        // set bit to 1 by ORing
+        RowWord mask = 1 << bitPos;
+        newWord = oldWord | mask;
+    } else {
+        // set the bit to 0 by ANDing with all ones except the bit to set
+        RowWord mask = 1 << bitPos;
+        mask = ~mask;
+        newWord = oldWord & mask;
+    }
+    matrix_[row * wordsPerRow_ + wordPos] = newWord;
+}
+
+/**
+ * Checks if the given bit is set.
+ *
+ * @param column The column.
+ * @param row The row.
+ * @return Value of the bit.
+ */
+inline bool
+BitMatrix::bitAt(int column, int row) const {
+
+    const int wordPos = column / (sizeof(RowWord) * BYTE_BITWIDTH);
+    const int bitPos = column % (sizeof(RowWord) * BYTE_BITWIDTH);
+    const RowWord word = matrix_[row * wordsPerRow_ + wordPos];
+    // reset all bits except that one by ANDing
+    RowWord mask = 1 << bitPos;
+    return (word & mask) != 0;
+}
+
+/**
+ * Shifts the matrix left one step.
+ */
+inline void
+BitMatrix::shiftLeft() {
+
+    const int shiftAmount = sizeof(RowWord)*BYTE_BITWIDTH - 1;
+
+    for (int col = 0; col < wordsPerRow_; ++col) {
+        for (int row = 0; row < rows_; ++row) {
+            RowWord word = matrix_[row*wordsPerRow_ + col];
+            word >>= 1;
+            // transfer the upper bit from the next column
+            if (col + 1 < wordsPerRow_) {
+                unsigned upperBit = 
+                    matrix_[row*wordsPerRow_ + col + 1] << shiftAmount;
+                word |= upperBit;
+            }
+            matrix_[row*wordsPerRow_ + col] = word;
+        }
+    }
+}

@@ -1,0 +1,21 @@
+#!/bin/bash
+# Updates the TCE apt repository
+#
+# Note: the following software are required by this script: Apache 2 web server, debian package repository producer
+# eg. aptitude install apache2 reprepro
+# 
+#
+# Created using the following guide:
+# http://www.debian-administration.org/articles/286
+#
+# Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+
+distribution=debian
+
+cd ..
+llvmDir=$(pwd)
+
+cd /var/www/apt
+
+# includedeb automatically updates LLVM using the latest version found
+reprepro -Vb . includedeb $distribution $llvmDir/*.deb

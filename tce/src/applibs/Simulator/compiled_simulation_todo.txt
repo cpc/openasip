@@ -1,0 +1,62 @@
+things to do for the compiled simulation engine
+----------------------------------------
+
+build
+-----
+- required headers for compiling the simulation engine need to be
+  installed like OSAL headers are also with the 'install' rule, not
+  only with 'dev-install' (they are headers needed for using TCE tools)
+
+optimizations
+-------------
+- try to cope without memory advance clock, write values directly to
+  the memory array. This should work fine as the programmer expects
+  the values to be visible immediately anyways:
+
+     STW
+     LDW     
+
+  In any memory latency case, the programmer espects the LDW to see
+  the value written by STW, thus we can model the write to happen
+  immediately. The only problem is in case the access is parallel:
+
+    STW ; LDW
+
+  In this case the LDW should *not* see the new value written by
+  the STW. Thus, we could optimize this as a special case: in case
+  there is only reads or writes to memory, we can write directly
+  without advance clock, and only in case the memory is read
+  by a later move to a write move we need to delay the write
+  visibility to the clock advance and call advanceClock() once.  
+
+  The DirectAccessMemory is now in use, thus we should make sure
+  the ordering of loads and stores is safe for each cycle.
+
+usability
+---------
+- add support for interrupting simulation with ctrl-c
+- allow enabling the conflict detection (code is already in place) using
+  the simulator setting. Use AFSA always. By default disabled, in contrast
+  to the debug engine.
+- write about compiled simulation in TCE manual
+
+compiling
+---------
+- the final linkage consumes huge amounts of memory (over a gig sometimes)
+  - maybe we should link all functions to separate .so:s and load them 
+    directly to the JumpTable, not link them to the single engine.so.
+    This should save the additional linkage step.
+   
+limitations of the simulated architectures
+------------------------------------------
+List here the features of the target architectures the compiled
+simulator does not support, we'll create checks for them and
+fall-back to the old engine when using -q switch with an
+unsupported architecture.
+
+- operations with clocked state:
+  - clock advancing on every cycle is way too expensive and
+  defeates the purpose of compiled simulation (speed)
+
+
+

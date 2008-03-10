@@ -1,0 +1,10 @@
+#!/bin/bash
+CURDIR=${PWD}
+../../../src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/test
+../../../src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/debug
+../../../src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/MOVEoperations
+../../../src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/FFT_testcase
+../../../src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/operations_with_state
+chmod +x run_*.sh
+rm -f data/*.bustrace
+rm -f data/*.trace

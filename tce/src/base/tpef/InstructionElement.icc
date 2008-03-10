@@ -1,0 +1,154 @@
+/**
+ * @file InstructionElement.icc
+ *
+ * Inline definitions of InstructionElement and InstructionAnnotation classes.
+ *
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ *
+ * @note rating: yellow
+ */
+
+//////////////////////////////////////////////////////////////////////////////
+// InstructionAnnotation definition.
+//////////////////////////////////////////////////////////////////////////////
+
+namespace TPEF {
+
+/**
+ * Returns the code that identifies this annotation.
+ *
+ * This numeric code is used by applications to recognize annotations that
+ * are ment for it.
+ *
+ * @return Unique identification code.
+ */
+inline Word
+InstructionAnnotation::id() const {
+    assert (id_ < 0xFFFFFF); // only 16 million id's
+    return id_;
+}
+
+/**
+ * Gets requested byte of data from annotation.
+ *
+ * @param index Index of requested byte.
+ * @return Value of requested index.
+ */
+inline Byte
+InstructionAnnotation::byte(Byte index) const {
+    assert(index < size());
+    return payLoad_[index];
+}
+
+/**
+ * Returns a const reference to the payload byte bector.
+ *
+ * @returns A const reference to the payload byte vector.
+ */
+inline const std::vector<Byte>&
+InstructionAnnotation::payload() const {
+    return payLoad_;
+}
+
+/**
+ * Adds a byte to annotation.
+ *
+ * @praram aByte Byte to add.
+ */
+inline void
+InstructionAnnotation::addByte(Byte aByte) {
+    assert(size() <= MAX_ANNOTATION_BYTES);
+    payLoad_.push_back(aByte);
+}
+
+/**
+ * Returns size of data.
+ *
+ * @return Size of data.
+ */
+inline Byte
+InstructionAnnotation::size() const {
+    return payLoad_.size();
+}
+
+
+//////////////////////////////////////////////////////////////////////////////
+// InstructionElement definition.
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns true, if instruction element is the first element of instruction.
+ *
+ * @return True if instruction element is the first element of instruction.
+ */
+inline bool
+InstructionElement::begin() const {
+    return begin_;
+}
+
+/**
+ * Sets beginning status of instruction element.
+ *
+ * @param isBegin Value that is set to beginning status.
+ */
+inline void
+InstructionElement::setBegin(bool isBegin) {
+    begin_ = isBegin;
+}
+
+/**
+ * Returns true, if instruction element is move.
+ *
+ * @return True, if instruction element is move.
+ */
+inline bool
+InstructionElement::isMove() const {
+    return isMove_;
+}
+
+/**
+ * Returns true, if instruction element is immediate.
+ *
+ * @return True, if instruction element is immediate.
+ */
+inline bool
+InstructionElement::isImmediate() const {
+    return !isMove_;
+}
+
+/**
+ * Returns requested annotation.
+ *
+ * Returned reference to annotation may be edited.
+ *
+ * @param index Index of annotation to return.
+ * @return Pointer to requested annotation.
+ */
+inline InstructionAnnotation*
+InstructionElement::annotation(Word index) const {
+    assert(index < annotationCount());
+    return annotations_[index];
+}
+
+
+/**
+ * Adds an annotation to instruction.
+ *
+ * @param anAnnotation Annotation to add.
+ */
+inline void
+InstructionElement::addAnnotation(InstructionAnnotation *anAnnotation) {
+    annotations_.push_back(anAnnotation);
+}
+
+/**
+ * Returns number of annotations that are stored to instruction element.
+ *
+ * @return Number of annotations.
+ */
+inline Word
+InstructionElement::annotationCount() const {
+    return annotations_.size();
+}
+
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>OPTEST</name>
+    <inputs>3</inputs>
+    <outputs>2</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <in id="3" type="UIntWord"/>
+    <out id="4" type="UIntWord"/>
+    <out id="5" type="UIntWord"/>
+  </operation>
+
+</osal>

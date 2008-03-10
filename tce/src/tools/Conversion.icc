@@ -1,0 +1,407 @@
+/**
+ * @file Conversion.icc
+ *
+ * Conversion static class contains functions for converting between
+ * different types, e.g. from any (possible) type to a string.
+ *
+ * Definitions of conversion template functions.
+ *
+ * @author Pekka J‰‰skel‰inen 2003 (pjaaskel@cs.tut.fi)
+ *
+ */
+
+#include <sstream>
+#include <cctype>
+#include <iostream>
+#include <iomanip>
+
+#include <xercesc/util/XMLString.hpp>
+
+/**
+ * Converts the parameter to a string.
+ *
+ * If source type is string, the first character sequence which does
+ * not contain white spaces is returned.
+ *
+ * @param source Object to convert.
+ * @return String representation of source.
+ */
+template <typename T>
+std::string
+Conversion::toString(const T& source) {
+    std::string result = "";
+    convert<T, std::string, false>(source, result);
+    return result;
+}
+
+/**
+ * Converts boolean to a string.
+ *
+ * @param source Boolean to convert.
+ * @return String representation of source.
+ */
+
+inline std::string
+Conversion::toString(bool source) {
+    if (source) {
+        return "1";
+    } else {
+        return "0";
+    }
+}
+
+/**
+ * Converts an XMLCh* to C++ string.
+ *
+ * @param ch XMLCh* to be converted.
+ * @return The string.
+ */
+inline
+std::string
+Conversion::XMLChToString(const XMLCh* ch) {
+    char* sz = XMLString::transcode(ch);
+    std::string ret = sz;
+    delete[] sz;
+    return ret;
+}
+
+
+/**
+ * Converts a C++ string to an XMLCh*.
+ *
+ * The created XMLCh* must be deleted after use by calling the
+ * XMLString::release function.
+ *
+ * @param theString to be converted.
+ * @return The created XMLCh.
+ */
+inline
+XMLCh*
+Conversion::toXMLCh(const std::string& theString) {
+    return XMLString::transcode(theString.c_str());
+}
+
+/**
+ * Converts from one type to another.
+ *
+ * Allows spaces before and after the converted type (in case source is
+ * a string). Makes sure there's no garbage after the converted value.
+ *
+ * In addition, does not allow too large (greater than what the type
+ * can represent) or small (close to zero) values for numeric types.
+ *
+ * @param source Object to convert from.
+ * @param dest Destination object to convert to.
+ * @return Converted value.
+ * @exception NumberFormatException If source cannot be represented as target
+ *                                  type.
+ *
+ */
+template <typename SourceType, typename DestType, bool destIsNumeric>
+void
+Conversion::convert(const SourceType& source, DestType& dest)
+    throw (NumberFormatException) {
+
+    /// @todo: Figure out if the source type is larger than destination type
+    /// and throw. Conversion double -> float should be an error.
+    /// It could be handled with function template specializing, too bad
+    /// I couldn't get it working.
+
+    // stream used in removing the whitespace around the token
+    std::stringstream tempStream;
+    tempStream << source;
+
+    // remove leading whitespace from the string
+    std::string firstToken = "";
+    tempStream >> firstToken;
+
+    if (tempStream.fail()) {
+        throw NumberFormatException(
+            __FILE__, __LINE__, "convert()", "empty input");
+    }
+
+    if (!restWhiteSpace(tempStream)) {
+        throw NumberFormatException(
+            __FILE__, __LINE__, "convert()", "garbage at the end");
+    }
+
+    std::stringstream stream;
+    stream << firstToken;
+    firstToken = "";
+
+    if (destIsNumeric) {
+        // check that there is digit or negative sign at the beginning
+        if (!isdigit(stream.peek()) && stream.peek() != '-') {
+            throw NumberFormatException(
+                __FILE__, __LINE__, "convert()", "garbage at the beginning");
+        }
+    }
+
+    DestType destination;
+    stream >> destination;
+
+    if (stream.fail()) {
+        throw NumberFormatException(
+            __FILE__, __LINE__, "convert()", "illegal input format");
+    }
+
+    if (!restWhiteSpace(stream)) {
+        throw NumberFormatException(
+            __FILE__, __LINE__, "convert()", "garbage at the end");
+    }
+
+    dest = destination;
+}
+
+
+/**
+ * Converts the parameter to an int.
+ *
+ * Allows spaces before and after the number. Binary and hexadecimal
+ * formats are accepted as well. Binary format is indicated by
+ * extension 'b' and hexadecimal has '0x' in the beginning.
+ *
+ *
+ * @param source Object to convert.
+ * @return Int representation of source.
+ * @exception NumberFormatException If source cannot be represented as
+ *                                  int including overflow.
+ */
+template <typename T>
+int
+Conversion::toInt(const T& source)
+    throw (NumberFormatException) {
+
+    int theInt = 0;
+    try {
+        convert<T, int, true>(source, theInt);
+    } catch (const NumberFormatException& e) {
+
+        // check whether the source in an integer in hex or in binary format
+        std::stringstream hexStream;
+        hexStream << source;
+        std::string binary = toString(source);
+
+        char first = hexStream.get();
+        char second = hexStream.get();
+
+        if (first == '0' && second == 'x') {
+
+            // source is in hex format
+
+            // need to read into unsigned integer at first if the
+            // hexadecimal contains 8 characters, hence being larger
+            // than integer
+            unsigned int theUnsigned = 0;
+            hexStream >> std::hex >> theUnsigned;
+            theInt = static_cast<int>(theUnsigned);
+
+            if (!restWhiteSpace(hexStream)) {
+                throw NumberFormatException(
+                    __FILE__, __LINE__, __func__,
+                    "Unable to convert the argument to integer: illegal hex "\
+                    "string.");
+            }
+        } else if (binary.length() > 1 &&
+                   binary[binary.length() - 1] == 'b') {
+
+            // source is in binary format
+            if (binary.length() - 1 > sizeof(int) * 8) {
+                throw NumberFormatException(
+                    __FILE__, __LINE__, __func__,
+                    "Unable to convert the argument to integer: too long " \
+                    "binary number.");
+            }
+
+            for (unsigned int i = 0; i < binary.length() - 1; i++) {
+                int bin = 2;
+                if (binary[i] == '0') {
+                    bin = 0;
+                } else if (binary[i] == '1') {
+                    bin = 1;
+                } else {
+                    throw;
+                }
+
+                theInt = (theInt << 1) | bin;
+            }
+        } else {
+            throw NumberFormatException(
+                __FILE__, __LINE__, __func__,
+                "Unable to convert the argument to integer: " +
+                e.errorMessage() + ".");
+        }
+
+    }
+
+    return theInt;
+}
+
+/**
+ * Converts a double to an int.
+ *
+ * @todo Check for overflow (how?).
+ *
+ * @param source Object to convert.
+ * @return Int representation of source.
+ * @exception NumberFormatException If source cannot be represented as
+ *                                  int including overflow.
+ */
+inline int
+Conversion::toInt(const double& source)
+    throw (NumberFormatException) {
+    return static_cast<int>(source);
+}
+
+
+/**
+ * Converts the parameter to an unsigned int.
+ *
+ * Allows spaces before and after the number. Binary and hexadecimal
+ * formats are accepted as well. Binary format is indicated by
+ * extension 'b' and hexadecimal has '0x' in the beginning.
+ *
+ *
+ * @param source Object to convert.
+ * @return Int representation of source.
+ * @exception NumberFormatException If source cannot be represented as
+ *                                  int including overflow.
+ */
+template <typename T>
+unsigned int
+Conversion::toUnsignedInt(const T& source)
+    throw (NumberFormatException) {
+
+    const std::string procName = "Conversion::toUnsignedInt";
+
+    unsigned int theUnsignedInt = 0;
+    try {
+        convert<T, unsigned int, true>(source, theUnsignedInt);
+    } catch (NumberFormatException&) {
+
+        // check whether the source in an integer in hex or in binary format
+        std::stringstream hexStream;
+        hexStream << source;
+        std::string binary = toString(source);
+
+        char first = hexStream.get();
+        char second = hexStream.get();
+
+        if (first == '0' && second == 'x') {
+
+            // source is in hex format
+            hexStream >> std::hex >> theUnsignedInt;
+
+            if (!restWhiteSpace(hexStream)) {
+                throw NumberFormatException(
+                    __FILE__, __LINE__, procName, "garbage at the end");
+            }
+        } else if (binary.length() > 1 &&
+                   binary[binary.length() - 1] == 'b') {
+
+            // source is in binary format
+            if (binary.length() - 1 > sizeof(unsigned int) * 8) {
+                throw NumberFormatException(
+                    __FILE__, __LINE__, procName,
+                    "too long binary to convert");
+            }
+
+            for (unsigned int i = 0; i < binary.length() - 1; i++) {
+                int bin = 2;
+                if (binary[i] == '0') {
+                    bin = 0;
+                } else if (binary[i] == '1') {
+                    bin = 1;
+                } else {
+                    throw;
+                }
+
+                theUnsignedInt = (theUnsignedInt << 1) | bin;
+            }
+        } else {
+            throw;
+        }
+
+    }
+
+    // check if the source is signed
+    std::stringstream tempStream;
+    tempStream << source;
+    std::string firstToken = "";
+    tempStream >> firstToken;
+    if (firstToken[0] == '-') {
+        throw NumberFormatException(
+            __FILE__, __LINE__, procName, "signed input value");
+    }
+
+    return theUnsignedInt;
+}
+
+
+/**
+ * Converts the parameter to a double.
+ *
+ * Allows spaces before and after the number.
+ *
+ * @param source Object to convert.
+ * @return Double representation of source.
+ * @exception NumberFormatException If source cannot be represented as
+ *                                  double including overflow.
+ */
+template <typename T>
+double
+Conversion::toDouble(const T& source)
+    throw (NumberFormatException) {
+
+    double theDouble = 0.0;
+    convert<T, double, true>(source, theDouble);
+
+    return theDouble;
+}
+
+/**
+ * Converts the parameter to a float.
+ *
+ * Allows spaces before and after the number.
+ *
+ * @param source Object to convert.
+ * @return Double representation of source.
+ * @exception NumberFormatException If source cannot be represented as
+ *                                  float including overflow.
+ */
+template <typename T>
+float
+Conversion::toFloat(const T& source)
+    throw (NumberFormatException) {
+
+    float theFloat = 0.0;
+    convert<T, float, true>(source, theFloat);
+
+    return theFloat;
+}
+
+/**
+ * Converts an source to the string which is in hexadecimal format.
+ *
+ * Hexadecimal format contains lower case characters and includes '0x'
+ * literal at the beginning of the string.
+ *
+ * @param source An source to be converted into a hexadecimal string.
+ * @param digits Number of digits to display (default is no leading zeroes).
+ * @return Returns the binary string.
+ */
+template <typename T>
+std::string
+Conversion::toHexString(T source, std::size_t digits) {
+
+    std::stringstream str;
+    str << std::setw(digits) << std::setfill('0') << std::right << std::hex
+        << source;
+
+    std::string result = "";
+    str >> result;
+
+    result.insert(0, "0x");
+
+    return result;
+}

@@ -1,0 +1,33 @@
+mach data/multiple_output_latencies.adf
+prog data/multiple_output_latencies.tpef
+stepi 4
+puts "Executing the multilatency op"
+stepi 1
+puts "o1 == 1"
+info ports MULTI o1
+info ports MULTI o2
+info ports MULTI o3
+info ports MULTI o4
+stepi 1
+puts "o2 == 2"
+info ports MULTI o1
+info ports MULTI o2
+info ports MULTI o3
+info ports MULTI o4
+stepi 1
+puts "o3 == 3"
+info ports MULTI o1
+info ports MULTI o2
+info ports MULTI o3
+info ports MULTI o4
+stepi 1
+puts "o4 == 4"
+info ports MULTI o1
+info ports MULTI o2
+info ports MULTI o3
+info ports MULTI o4
+stepi 1
+info ports MULTI o1
+info ports MULTI o2
+info ports MULTI o3
+info ports MULTI o4

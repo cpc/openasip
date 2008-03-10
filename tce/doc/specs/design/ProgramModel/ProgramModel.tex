@@ -1,0 +1,3324 @@
+\documentclass[a4paper,twoside]{tce}
+\usepackage{pslatex}
+
+\begin{document}
+\author{Andrea Cilio, Ari Mets\"ahalme}
+\title{Program Object Model}
+\ver{0.13}
+\firstday{08.08.2004}
+\lastday{25.09.2006}
+% id number in S- sequence
+\docnum{017}
+% draft/complete/committed
+\state{draft}
+
+\maketitle
+
+
+\chapter*{Document History}
+
+\begin{HistoryTable}
+ 0.1    & 08.08.2004 & A. Cilio        &
+ Initial, incomplete revision.\\
+
+ 0.1.1  & 13.08.2004 &  P. J\"a\"askel\"ainen &
+ Moved \emph{MemoryContents} to memory module design doc.\\
+
+ 0.2    & 30.12.2004 & A. Cilio        &
+ Major rewrite. Added \emph{CodeSnippet}, \emph{DataDef}, symbolic
+ expressions, \emph{Terminal} classes, and much more.\\
+
+ 0.2.1 & 07.01.2005 & P. J\"a\"askel\"ainen &
+ Fixed a couple of typos and formatting issues. \\
+
+ 0.3   & 23.01.2005 & A. Cilio &
+ Corrections following review by A.\ Mets\"ahalme and  P. J\"a\"askel\"ainen.
+ Clarified merging of unit and global scopes.\\
+
+ 0.4   & 29.01.2005 & A. Cilio &
+ Added methods to retrieve the address of instructions.\\
+
+ 0.5   & 07.02.2005 & A. Cilio &
+ Corrected interface of move and terminal classes (error found by P.\
+ J\"a\"askel\"ainen).\\
+
+ 0.6 & 06.10.2005 & A. Mets\"ahalme &
+ Major update to current implementation status. Added classes for keeping
+ jump addresses up-to-date.\\
+
+ 0.6.1 & 08.10.2005 & A. Cilio &
+ Minor updates. Name change to a copy method.\\
+
+ 0.7    & 11.10.2005 & A. Cilio &
+ Partial update to planned implementation.\\
+
+ 0.8    & 12.10.2005 & A. Cilio &
+ Revised FU terminal ports, clarified ``pseudo-operation''.\\
+
+ 0.8.1  & 13.10.2005 & A. Cilio &
+ Renamed hint operation method of FU port terminal.\\
+
+ 0.8.2  & 14.10.2005 & A. Cilio &
+ Changed behaviour of operation methods of terminals.\\
+
+ 0.8.3  & 14.10.2005 & A. Cilio &
+ Added alternative design (pending) of move guards.\\
+
+ 0.9    & 21.12.2005 & A. Cilio &
+ Corrected wrong behaviour of \emph{Program} constructor.\\
+
+ 0.10   & 29.03.2006 & A. Cilio &
+ Added terminal method for accessing operation in/out indices.\\
+
+ 0.11   & 11.04.2006 & A. Cilio &
+ Revised \emph{Terminal} interface, changed access to address. \\
+
+ 0.12   & 13.04.2006 & A. Cilio &
+ \emph{ImmediateValue} replaces \emph{SimValue} in \emph{Immediate}.\\
+
+0.13   & 05.06.2006 & M. Lepist\"o &
+ Added design notes of data memory support.\\
+
+0.14  & 25.09.2006 & P. Jääskeläinen &
+ Added the annotation API. \\
+
+\end{HistoryTable}
+
+\tableofcontents
+
+
+\chapter{INTRODUCTION}
+
+\section{Purpose and Scope}
+
+This document describes the Program Object Model (POM) of TTA Codesign
+Environment (TCE). It describes how the Program Object Model is designed and
+the reasons behind the design.
+
+This document is a reference manual destined to developers and maintainers
+who need to know how Program Object Model is designed.
+
+This document is not the primary source of information for developers of
+client applications that use POM. This document provides a userful overview
+of the object model from this document, but the bulk of the interface
+documentation is found in the API reference hypertext manual.
+
+
+\section{Definitions}
+
+% Uncomment this to enable the ``term explanation box''
+\begin{description}
+\item[Inline Immediate]%
+  A constant number encoded in the source field of a TTA instruction slot
+  that is used to program a move.
+\item[Long Immediate]%
+  A constant number encoded in one or more slots of a TTA instruction.
+\item[Program]%
+  A TTA program destined to run on a TTA target processor.
+\item[Machine]%
+  A TTA target processor in the TCE environment.  A machine can be
+  represented as an XML file or as an object hierarchy in client
+  applications.
+\item[Move]%
+  A programmed data transport on a TTA processor.  Data transports are the
+  minimum amount of independent, programmable activity.
+\end{description}
+
+
+\section{Acronyms and Abbreviations}
+
+\begin{tabular}{p{0.10\textwidth}p{0.80\textwidth}}
+ADF   & Architecture Definition File\\
+GPR   & General-Purpose Register\\
+MAU   & Minimum Addressable Unit (of a memory address space)\\
+MOM   & Machine Object Model \\
+OSAL  & Operation Set Abstraction Layer \\
+PC    & Program Counter \\
+POM   & Program Object Model \\
+TCE   & TTA Codesign Environment \\
+TTA   & Transport Triggered Architectures \\
+XML   & eXtensible Markup Language \\
+\end{tabular}
+
+
+\chapter{MODULE ARCHITECTURE}
+
+This chapter describes the high-level architecture of the POM module.
+
+\section{``Philosophy of Design''}
+
+Programs for a TTA target processor are written in high-level language by
+TCE users and then compiled into TTA code.  Since the main goal of the TCE
+toolset is an efficient target application (or a set thereof) that runs on a
+target TTA processor, TTA programs are fundamental entities of the TCE
+toolset.
+
+The Program Object Model provides a model of target TTA programs for TCE
+applications that need to access and manipulate the TTA code of a target
+program.
+
+\subsection{High-Level Symbolic Information}
+
+The Program Model tries to preserve the symbolic and source-level
+information available; in particular:
+\begin{enumerate}
+\item Variable, label and procedure names.
+\item Binding between symbols and addresses.
+\item Scope of symbols.
+\end{enumerate}
+
+This information, usually lost and not available in low-level program
+representations, is extremely useful for effective code analysis and
+optimisations even in later, machine-dependent phases of code generation.
+
+\subsection{Minimal, Client-Neutral Design}
+
+The guiding principle of the POM is simplicity of design.  Another important
+attribute is client-neutrality, which can be stated as ``Only services of
+general use are provided''.  Client-specific services, no matter how simple
+or essential, are not provided in POM.
+
+A motivation for not supporting client-specific information is that the
+contents of information of POM should be always up to date.
+%
+\note{related: pending issue \ref{ch:pending:aux-sections}}
+%
+Any information that is only applicable or relevant to a specialised client
+(or the lack of such information) would have to be managed throught any POM
+instance extent, no matter if created by a client that does not need it.
+
+Another problem that arises when supporting client-specific information is
+that such support is open ended: it cannot be determined in advance what
+additional support is convenient for a new specialised client.  Whenever
+additional support is implemented, the interface needs extensions.
+
+\subsection{Dependencies among Model Parts}
+
+For efficiency reasons and to keep complexity of the design under control,
+the parts of the model (for example, instructions, moves, symbols) have
+minimal cross dependencies and require limited bookkeeping. For example: an
+instruction does not know its relative position within a sequence of
+instructions that forms a basic block or a procedure. Instead, instructions
+have a back pointer to their parent procedure.
+
+Model parts can always exist in isolation (that is, not registered within a
+higher-level part). The responsibility of efficiently figuring out relative
+positions of model parts (for example, previous and next instruction) lies
+on the parent objects.
+
+
+\section{External Modules}
+
+Figure~\ref{fig:ext-mod} depicts the dependencies of POM module with other
+domain modules and with external files. POM lies at the fundations of the
+domain library and depends only on two domain modules:
+OSAL~\cite{OSAL-specs} and MOM~\cite{MOM-design}. Like most domain modules,
+POM depends also on toolkit library services.
+
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/ExternalModules.eps,width=0.60\textwidth}}
+  \caption{Dependencies between POM and other modules and external files.}
+  \label{fig:ext-mod}
+\end{figure}
+
+This section describes the domain modules POM depends on.
+
+\subsection{TPEF Files}
+
+The primary data source of TTA programs is TPEF files. Typically, a
+\emph{Program} instance is built by a client module out of a TPEF object
+model. However, POM has no dependency with TPEF files and with their object
+model. The client (for example, a \emph{Builder} class) completely insulates
+POM from the TPEF interface.
+
+TPEF is by no means the only data source, and a builder is not the only way
+in which a program can be created. Client applications can implement other
+services that let one create TTA programs.
+
+\subsection{Machine Object Model}
+
+A scheduled TTA program necessarily contains information about the target
+architecture it is scheduled for. The Program Object Model contains
+references to objects of the Machine Object Model, and depends on the
+interfaces implemented by MOM classes.
+%
+\note{PENDING: \ref{ch:pending:MOM-api-dep}}
+
+Uncheduled TTA programs contain references to a special, \emph{Singleton}
+instance of the target architecture model, called Universal
+Machine~\cite{TCE-progTemplate}.
+
+\subsection{Operation Set Abstraction Layer}
+
+Although TTA programs are ultimately composed by data transports, or moves,
+POM retains a link to the actual operation that is performed as side effect
+of executing certain moves. POM relies on the Operation Set Abstraction
+Layer to represent any properties of the operations it contains.
+
+POM depends on the static properties of the operations in order to organise
+its internal representation of the TTA program. Thus, POM is a client of
+OSAL interface for accessing operation properties.
+
+\section{Architecture of Databases}
+
+The Program Object Model does not use any database proper. Instead, all
+information contents of a TTA program is encoded in a binary format (TPEF)
+and stored in an external file.
+
+Like traditional object file formats, TPEF is organised in file sections.
+TPEF is an extensible format: it is possible to define new special-purpose
+sections for specific TCE applications. Thus, the format of additional base
+of data that is logically attached to the program must ultimately conform to
+the TPEF file section framework. An example of such base of data is the
+execution profile data.
+
+The TPEF specification document~\cite{TPEF-specs} and the Binary Handling
+Module Design Notes~\cite{TPEF-design} describe TPEF and how the design of
+the corresponding used in TCE.
+
+
+\section{Module Communication}
+
+The Program Object Model is a monolithic software module.  Internal
+dependencies are at level of single class objects.
+
+
+\chapter{Module Design}
+
+%% This chapter is repeated for each module in case this design document
+%% describes a multi-module larger module (or application).
+
+
+\section{Overview}
+
+% Overview of the module design in concrete terms.
+
+The Program Object Model implements a model of target TTA applications at a
+symbolic level of abstraction. The main class of POM is \emph{Program}. The
+program model has a simple structure:
+\begin{enumerate}
+\item %
+  The program is seen as an ordered sequence of nonoverlapping procedures:
+  class \emph{Procedure}.
+\item %
+  Each procedure is a flat sequence of instructions: class
+  \emph{Instruction}.
+\item %
+  Each instruction is a nonordered set of moves: class \emph{Move}.
+\item %
+  An instruction can also hold slots that encode long immediate bits and
+  specify a destination for them: class \emph{Immediate}.
+\end{enumerate}
+
+This class hierarchy does not model control flow, data flow or intermediate
+data structures such as basic blocks. Client applications that need more
+sophisticated levels of abstractions must use the graph
+framework~\cite{graph-design} or define a specialised object model.
+
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/Overview.eps,width=0.35\textwidth}}
+  \caption{Fundamental classes of the Program Object Model and their main
+    relations.}
+  \label{fig:overview}
+\end{figure}
+
+Figure~\ref{fig:overview} shows the classes that represent the main entities
+of the Program Object Model (program, procedure and scopes) and their most
+important relations.
+%
+In addition to classes that model the code, POM comprises a number of helper
+classes that model important aspects of TTA programs, such as:
+\begin{enumerate}
+\item %
+  Symbolic expressions that represent memory addresses: classes
+  \emph{SymbolicExpr} and \emph{AddressTerm}.
+\item %
+  Program symbols: classes \emph{CodeLabel}, \emph{DataLabel}.
+\item %
+  Scope of program symbols: class \emph{Scope}.
+\end{enumerate}
+
+In POM, the contents of the \emph{data} memory used by variables is modeled
+with bit accuracy, whereas the \emph{instruction} memory is only modeled at
+a symbolic level, with the objects listed above.
+
+Contents of the \emph{data} memory are maintained in a \emph{MemoryContents}
+object \cite{MemoryModuleDesign}.
+
+When program and data are stored in the same memory, the word ``memory
+segment'' should be intended where ``memory'' is found. Throughout this
+document the word ``memory'' is sometimes used to mean either a memory
+address space or a segment thereof. For example ``a program symbol in a data
+memory'' should be intended ``a program symbol in a data segment of memory''
+when instruction and data are in the same memory.
+
+\section{Interfaces}
+
+\subsection{Program}
+\label{ssec:prog-if}
+
+A \emph{Program} instance represents a TTA program in a given area of the
+instruction memory.  \emph{Program} does not define the memory image
+corresponding to the program that should be downloaded into the target
+memory system.  For this, additional information from an instruction binary
+encoding map~\cite{ProGeSpecs} is required.
+
+The addresses of instructions are stored in the \emph{Program}
+representation. Addresses may have to be adjusted (relocated) as a side
+effect of, for example, adding a procedure or removing a number of
+instructions from the program. Relocation of instruction and data addresses
+requires a certain amount of automatic, internal bookkeeping.
+%
+Relocations need not occur only as side effects. \emph{Program} provides
+also an interface to explicitly relocate an entire data area in one of the
+target address spaces.
+%
+In some target TTA processors it may not even be possible to relocate
+parallel code without having to completely reschedule the program. This is
+because of the way long immediates are encoded. A program signals such cases
+by throwing an exception.
+
+\begin{description}
+\item[Program(space : AddressSpace, start: Address, entry: Address)]%
+  Constructor. Create an empty program in given address space. Automatically
+  create an empty global scope to store all program symbols with external
+  linkage. If the start address is not specified, the default value zero is
+  used instead. If neither start or entry address is specified, both default
+  to zero. If only the start address is specified, then the entry address
+  defaults to the start address value.
+
+\item[globalScope() : GlobalScope\&]%
+  Return the global scope of this program.
+
+\item[targetProcessor() : Machine\&]%
+  Return the target TTA processor (\emph{Machine} instance) of the program.
+
+\item[startAddress() : Address]%
+  Return the start (lowest) address of the program. The start address of the
+  program is not necessarily the lowest address of the instruction address
+  space.
+
+\item[entryAddress() : Address]%
+  Return the address of the program entry point. The entry point is not
+  necessarily the instruction  of the program with the lowest address.
+
+\item[setEntryAddress(address: Address)]
+  Set the entry address of the Program.
+
+\item[addProcedure(proc: Procedure*)]
+  Insert the given procedure as the last procedure of the program.
+  The ownership of the procedure will be passed to the program.
+
+\item[addInstruction(ins: Instruction*)]
+  Insert the given instruction as the last instruction of the last
+  procedure in the program.
+  The ownership of the instruction will be passed to that procedure.
+
+\item[relocate(proc: Procedure\&, howMuch: IntWord)]
+  Relocate all the procedures after the given procedure by \emph{howMuch}.
+
+\item[firstProcedure() : Procedure\&]
+  Return the first procedure of the program.
+
+  Throw \emph{InstanceNotFound} if there are no procedures.
+
+\item[lastProcedure() : Procedure\&]
+  Return the last procedure of the program.
+
+  Throw \emph{InstanceNotFound} if there are no procedures.
+
+\item[nextProcedure(proc: Procedure\&) : Procedure\&]
+  Return the procedure following the given procedure or a null
+  procedure, if the given procedure is the last procedure in the program.
+
+  Throw \emph{IllegalRegistration} if the given procedure does not
+  belong to the program.
+
+\item[procedureCount() : int]
+  Return the number of procedures in the program.
+
+\item[procedure(index: int) : Procedure\&]
+  Return the procedure at the given index.
+
+\item[procedure(name : const string\&) : Procedure\&]%
+  Return the procedure with given name. In case several procedures exist
+  with same name (from different compilation units), it returns one of the
+  procedures (it is undefined which one).
+
+  Throw \emph{KeyNotFound} exception if no procedure with given name is
+  defined in the entire program.
+
+\item[procedure(name : const string\&, index : const int) : Procedure\&]%
+  Return the procedure at position \emph{index} in the list of all
+  procedures of given name.
+
+  Throw \emph{OutOfRange} exception if given index exceeds the number of
+  procedures with given name.
+
+\item[firstInstruction() : Instruction\&]
+  Return the first instruction in the program.
+
+  Throw \emph{InstanceNotFound} if there are no instructions in the
+  program.
+
+\item[instructionAt(address : IntWord) : Instruction\&]%
+  Return the instruction at a given address. The address space of the
+  address is implied, since there is only one address space for
+  instructions.
+
+  Throw exception \emph{KeyNotFound} if given address is illegal.
+
+\item[nextInstruction(const Instruction\&) : Instruction\&] %
+  Return the next instruction in the instruction stream.
+
+  Return a special \emph{null instruction} if the given instruction is the
+  last instruction of the program.
+
+  Throw \emph{IllegalRegistration} exception if given instruction does
+  not belong to the program.
+
+\item[lastInstruction() : Instruction\&]
+  Return the last instruction in the program.
+
+  Throw \emph{InstanceNotFound} if there are no instructions in the
+  program.
+
+\item[instructionReferenceManager() : InstructionReferenceManager\&]
+  Return the instruction reference manager of the program.
+
+\end{description}
+
+\note{Following Methods not yet implemented}
+
+\begin{description}
+
+\item[procedure(name : const string\&, scope : const UnitScope) : Procedure\&]%
+  Return the procedure with given name in the compilation unit identified by
+  \emph{scope}.
+
+  Throw\note{
+%
+    DISCUSS: exception type}
+%
+  exception if no procedure with given name is defined in the unit scope.
+
+\item[procedureCount(name : const string\&) : int]%
+  Return the number of procedures (defined in different compilation units)
+  with the requested name.
+
+\item[previousInstruction(const Instruction\&) : Instruction\&] %
+  Return the previous instruction in the instruction stream.
+
+  Return a special \emph{null instruction} if the given instruction is the
+  first instruction of the program.
+
+  Throw \emph{IllegalRegistration} exception if given instruction does not
+  belong to the program.
+
+\item[relocate(space : AddressSpace, offset : int)]%
+  Relocate the memory address space \emph{space} by the given relative
+  offset. All references to addresses are updated by adding the
+  corresponding offset.
+
+\item[relocateProgram(offset : int)]%
+  Relocate the entire area of memory that contains the program code. If the
+  program data is stored in the same memory, also the data area is
+  relocated. All instruction addresses are shifted by given relative offset,
+  and all references to addresses (stored as immediates or as data
+  definitions) are updated correspondingly.
+
+  This method is just a shortcut for \verb|relocate()| with the address
+  space that contains the program given as parameter.
+
+\item[insertBefore(ins : const CodeSnippet\&, pos : const Instruction\&]%
+  Insert the sequence of instructions \emph{ins} before instruction
+  \emph{pos}. All instructions following \emph{pos} are relocated to make
+  room for the new instructions, and all references to relocated
+  instructions are updated.
+
+  Throw exception \emph{IllegalRegistration} if \emph{pos} does not belong
+  to the program, or if the instructions in the sequence \emph{ins} already
+  belong to a procedure.
+
+\item[insertAfter(ins : const CodeSnippet\&, pos : const Instruction\&)]%
+  Insert the sequence of instructions \emph{ins} after instruction
+  \emph{pos}. All instructions from \emph{pos} on are relocated to make
+  room for the new instructions, and all references to relocated
+  instructions are updated.
+
+  Throw exception \emph{IllegalRegistration} if \emph{pos} does not belong
+  to the program, or if the instructions in the sequence \emph{ins} already
+  belong to a procedure.
+
+\item[remove(inStart : const Instruction\&, inEnd : const Instruction\&) :
+  CodeSnippet]%
+  Remove from the program the instructions from \emph{inStart} to
+  \emph{inEnd}, both included. Return a code snippet with the instructions
+  removed. The end instruction can be omitted; in that case, only
+  \emph{inStart} is removed. The instructions become independent.  All
+  instructions that follow \emph{inEnd} are relocated so that the address
+  that was occupied by \emph{inStart} is occupied by the instruction that
+  immediately follows \emph{inEnd}. All references to relocated instructions
+  are updated.
+%
+  \note{DISCUSS: leak-prone IF. Return \textsl{CodeSnippet} to simplify
+    deallocation and prevent leaks?}
+%
+  Throw exception \emph{IllegalRegistration} if either of the given
+  instructions does not belong to the program.
+
+\item[insertProcedureBefore(proc : Procedure\&, pos : const
+  Procedure\&, scope : const UnitScope\&)]%
+  Insert procedure \emph{proc} before procedure \emph{pos}. All instructions
+  following \emph{proc} are relocated to make room for the new instructions.
+
+  Throw exception \emph{IllegalRegistration} if \emph{pos} does not belong
+  to the program, or if \emph{proc} belongs to another program.
+%
+  Throw [[exception]] \note{DISCUSS: exception type} if the unit scope is
+  not specified and the program owns more than one unit scope.
+%
+  Throw [[exception]] if any of the labels in the global or the unit scope
+  of \emph{proc} clashes with a label in the corresponding scope of the
+  program. See Section~\ref{ssec:proc-if} for details).
+
+\item[insertProcedureAfter(proc : Procedure\&, pos : const Procedure\&,
+  scope : const UnitScope\&)]%
+  Insert procedure \emph{proc} after procedure \emph{pos}. All instructions
+  following \emph{proc} are relocated to make room for the new instructions,
+  and all references to relocated instructions are updated. The symbols in
+  the local copy of the unit scope are copied into the given units scope,
+  \emph{scope}.
+
+  Throw \emph{IllegalRegistration} exception if \emph{pos} does not belong
+  to the program, or if \emph{proc} belongs to another program.
+%
+  Throw [[exception]] \note{DISCUSS: exception type} if the unit scope is
+  not specified and the program owns more than one unit scope.
+%
+  Throw [[exception]] if any of the labels in the global or the unit scope
+  of \emph{proc} clashes with a label in the corresponding scope of the
+  program. See Section~\ref{ssec:proc-if} for details).
+
+\item[removeProcedure(proc : Procedure\&)]%
+  Remove procedure \emph{proc} from the program. The procedure becomes
+  independent (see Section~\ref{ssec:proc-if} for details about independent
+  procedures). All instructions following \emph{proc} are relocated
+  appropriately.
+
+  Throw\note{
+%
+    DISCUSS: exception type}
+%
+  exception if \emph{proc} does not belong to the program.
+
+\item[addUnitScope(name : const string\&, prefix : const string\&)]%
+  Add a new unit scope to the program. A unit scope is uniquely identified
+  by the name of the compilation unit (typically, an object file) and a
+  prefix string (typically, the absolute path of the object file).
+
+  Throw exception \emph{ObjectAlreadyExists} if the program already contains
+  a unit scope with same identification strings.
+
+\end{description}
+
+\subsection{Procedure}
+\label{ssec:proc-if}
+
+When a procedure is created, it is \emph{independent}, that is, not
+registered to any program. However, such a procedure may contain code that
+refers to a global symbol, and global (or unit-scope) symbols belong to
+\emph{GlobalScope} and \emph{UnitScope}, which are managed by
+\emph{Program}. How to solve this conflict?
+%
+Direct references between a procedure and the objects that belong to a
+program must be avoided. An independent procedure, therefore, maintains its
+own copy of the global and the scope corresponding to the compilation unit
+it belongs to.
+
+Creating a new independent procedure is trivial, since the scopes are
+initially all empty. There are two cases, however, in which a completely
+nonempty, independent procedure is obtained:
+\begin{enumerate}
+\item %
+  When a procedure is removed from its program.
+\item %
+  When a procedure is copied.
+\end{enumerate}
+
+A procedure created by copying another procedure is always independent, even
+if the original procedure is registered in a program.  The scope tree rooted
+at the procedure scope is simply duplicated and passed to the copy. The
+outer scopes (unit and global), however, are treated differently. The
+\verb|copy()| method scans the original procedure and collects the global
+symbols referenced by the code. These symbols are all duplicated, and the
+duplicate is stored in the unit and global scopes that are managed by the
+copy.
+
+\begin{figure}[tb]
+  \begin{tabular*}{\textwidth}[h]{c@{\hspace{0.15\textwidth}}c}
+    \psfig{figure=eps/ProcedureCloningA.eps,width=0.25\textwidth} &
+    \psfig{figure=eps/ProcedureCloningB.eps,width=0.50\textwidth} \\
+    (a) & (b) \\
+  \end{tabular*}
+  \caption{Copying a registered procedure: (a) before copy; (b) after copy.}
+  \label{fig:proc-copy}
+\end{figure}
+
+Figure~\ref{fig:proc-copy} depicts the object diagram corresponding to a
+registered procedure before and after it is copied.  Unit scope $F'$ and
+global scope $G'$ are subsets of the unit and global scopes of the program
+that contains the copied procedure.  $F'$ and $G'$ contain only those
+symbols that are referenced within the copied procedure.
+
+The addresses of the procedure copy are unchanged, that is, they remain the
+same as the original procedure.  The procedure still belongs to the original
+address space.
+
+The procedure-owned global and unit scopes undergo an opposite process of
+merging when an independent procedure is inserted into a program. All labels
+contained in the procedure-owned global and unit scope are added into the
+corresponding scope of the program. If a label with the same name already
+exists in the corresponding scope of the program, two things can occur:
+\begin{enumerate}
+\item %
+  If the address of the equally-named labels is identical, the label of the
+  procedure-owned scope is simply discarded: all references to it will
+  correctly point to the label in the scopes owned by program.
+\item %
+  If the address or the address space of the equally named labels is
+  different, then the labels are clashing, and a [[exception]].
+  \note{DISCUSS: exception type} is thrown.
+\end{enumerate}
+
+POM makes no attempt to determine when two labels with the same name and
+different address refer to the same symbol that just happened to be
+relocated in the program.
+
+New procedures are created with an empty global scope and an empty, nameless
+unit scope. Once attached to a program, however, a procedure must be treated
+as coming from an actual compilation unit. This is necessary for the clients
+that construct the program object model from some external data source, like
+TPEF, in order to preserve information about the original compilation units.
+In other words, the symbols referenced inside the procedure code belong to a
+given unit scope. For this reason, the methods that insert a procedure into
+a \emph{Program} accept the destination unit scope of the procedure, as
+described in Section~\ref{ssec:prog-if}.
+%
+Conversely, when a procedure is removed from a program, its copy of the unit
+scope is turned into a nameless scope. In other words, procedures do not own
+any specific information about the actual compilation unit they come from.
+
+\begin{description}
+\item[Procedure(name: const string\&, space: AddressSpace, start: IntWord)]%
+  Constructor. Create an empty procedure in given address space. If the
+  start address is not specified, the default value zero is used instead.
+  Automatically create an empty procedure scope to store all program symbols
+  that are local to this procedure.
+
+\item[parent() : Program\&]%
+  Return the parent program of the procedure.  If the procedure is not
+  registered in a program,
+  %
+  \note{more specific exception, e.g., MissingRegistration?}
+  %
+  thow exception \emph{IllegalRegistration}.
+
+\item[setParent(prog : Program\&)]
+  Set a new parent for the procedure.
+
+\item[isInProgram() : bool] %
+  Return true if the procedure belongs to a program (it is registered).
+
+\item[name() : string]
+  Return the name of the procedure.
+
+\item[alignment() : int]
+  Return the alignment.
+
+\item[address(ins: Instruction\&) : Address]
+  Return the address of the given instruction.
+
+  Throw \emph{IllegalRegistration} if the instruction does not belong
+  to this procedure.
+
+\item[startAddress() : Address]%
+  Return the start (lowest) address of the procedure.
+
+\item[setStartAddress(start : Address)]
+  Set the start address of the procedure.
+
+\item[endAddress() : Address]
+  Return the end address of the procedure, that is, the next address
+  that doesn't belong to this procedure.
+
+\item[instructionCount() : int]
+  Return the number of instructions in the procedure.
+
+\item[instructionAt(address : IntWord) : Instruction\&]%
+  Return the instruction at a given address. The address space of the
+  address is implied, since there is only one address space for
+  instructions.
+
+  Throw \emph{KeyNotFound} if given address is illegal.
+
+\item[hasNextInstruction(ins: Instruction\&) : boolean]
+  Tell whether the given instruction is the last instruction of the procedure.
+
+\item[entryPointAddress(index : int) : Address]%
+  Return the address of the entry point at position \emph{index}. A
+  procedure can have several entry points. Entry points are stored in
+  ascending order by their address.
+
+\item[entryPointCount() : int]%
+  Return the number of known\footnote{
+  %
+    Due to limitations of program analysis, a procedure may have more entry
+    points than what the program model knows.}
+  %
+  entry points of the procedure.
+
+\item[nextInstruction(const Instruction\&) : Instruction\&]%
+  Return the next instruction in the instruction stream.
+%
+  Return a special \emph{null instruction} if the given instruction is the
+  last instruction of the procedure.  Compare this behaviour with that of
+  the method by the same name in \emph{Program}
+  (Section~\ref{ssec:prog-if}).
+
+  Throw \emph{IllegalRegistration} exception if given instruction does not
+  belong to the procedure.
+
+\item[lastInstruction() : Instruction\&]
+  Return the last instruction in the procedure.
+
+  Throw \emph{IllegalRegistration} if there are no instructions in the
+  procedure.
+
+\item[addInstruction(ins: Instruction*)]
+  Add an instruction as the last instruction in the procedure.
+  Remaining procedures in the parent program will be relocated as
+  needed. The ownership of the instruction will be passed to the procedure.
+
+\item[insertInstructionAfter(pos: Instruction\&, ins: Instruction*)]
+  Inserts \emph{ins} after \emph{pos}. Instructions from \emph{pos}
+  are relocated to make ``room'' for the new instruction.
+
+  Throw \emph{IllegalRegistration} if pos does not belong to the
+  procedure or ins already belongs to a procedure.
+
+\end{description}
+
+\note{Following methods not implemented yet}
+
+\begin{description}
+
+\item[previousInstruction(const Instruction\&) : Instruction\&] %
+  Return the previous instruction in the instruction stream.
+%
+  Return a special \emph{null instruction} if the given instruction is the
+  start instruction of the procedure.  Compare this behaviour with that of
+  the method by the same name in \emph{Program}
+  (Section~\ref{ssec:prog-if}).
+
+  Throw \emph{IllegalRegistration} exception if given instruction does not
+  belong to the procedure.
+
+\item[label(name : const string\&) : Label\&]%
+  Return the label with given name.  If no label with given name exists in
+  the scope of the procedure, returns the special \emph{null label}.
+
+\item[label(name : const string\&, scope : const Scope\&) : Label\&]%
+  Return the label with given name in the given scope.  The scope must be a
+  local scope of the procedure, or the procedure scope itself.  If the scope
+  is the scope of the procedure, this method is equivalent to the
+  one-argument variant.  If no label with given name exists in the scope of
+  the procedure, returns the special \emph{null label}.
+
+  Throw \emph{IllegalRegistration} if the given scope is not a scope that
+  belongs to this procedure.
+
+\item[insertBefore(ins : const CodeSnippet\&, pos : const Instruction\&)]%
+  Insert the sequence of instructions \emph{ins} before instruction
+  \emph{pos}. All instructions from \emph{pos} on are relocated to make room
+  for the new instructions.
+
+  Throw exception if \emph{pos} does not belong to the procedure, or if
+  \emph{ins} belongs to another procedure.
+
+\item[insertAfter(ins : const CodeSnippet\&, pos : const Instruction\&)]%
+  Insert the sequence of instructions \emph{ins} after instruction
+  \emph{pos}.  All instructions following \emph{pos} are relocated to make
+  room for the new instruction.
+
+  Throw \emph{IllegalRegistration} exception if \emph{pos} does not belong
+  to the procedure, or if \emph{ins} belongs to another procedure.
+
+\item[remove(inStart : const Instruction\&, inEnd : const Instruction\&) :
+  CodeSnippet]%
+  Remove from the procedure instructions from \emph{inStart} to
+  \emph{inEnd}, both included. Return a code snippet with the instructions
+  removed. The end instruction can be omitted; in that case, only
+  \emph{inStart} is removed. The instructions become independent.  All
+  instructions that follow \emph{inEnd} are relocated so that the address
+  that was occupied by \emph{inStart} is occupied by the instruction that
+  immediately followed \emph{inEnd}.
+
+  Throw \emph{IllegalRegistration} exception if \emph{ins} does not belong
+  to the procedure.
+
+\item[nearestLabel(addr : const Address\&) : CodeLabel\&]%
+  Return the label closest to address \emph{addr} with an address that is
+  not greater than \emph{addr}.  If several labels have the same instruction
+  address, return one of the labels.  The label is chosen arbitrarily, but
+  it is guaranteed that always the same label of a group of equivalent
+  labels is returned.
+
+\item[copy() : Procedure\&]%
+  Make a complete copy of the procedure. The instructions are copied one by
+  one (see section~\ref{ssec:ins-if}). The copy is identical, except that it
+  is not registered to the program of the original procedure. Therefore, any
+  address it refers to is not meaningful. Scopes are created and attached to
+  the copy, as explained above and depicted in Figure~\ref{fig:proc-copy}.
+\end{description}
+
+\subsection{Instruction}
+\label{ssec:ins-if}
+
+Class \emph{Instruction} represents a TTA instruction.  TTA instructions
+consist of two main parts: a set of data transports (represented by class
+\emph{Move}, described in Section~\ref{ssec:move-if}) and a set of long
+immediates (represented by class \emph{Immediate}, described in
+Section~\ref{ssec:longimm-if}).
+
+\emph{Instruction} class is not responsible for knowing:
+\begin{enumerate}
+\item %
+  The instruction address.
+\item %
+  The neighbouring instructions within a program (when applicable).
+\end{enumerate}
+
+The only way to obtain this information is through the parent procedure of
+the instruction.
+
+Instructions can be marked with code labels (section~\ref{ssec:clabel-if}).
+These labes are stored in the innermost scope that contains the instruction
+(it may be a procedure scope or a local scope).
+
+\begin{description}
+\item[parent() : Procedure\&] %
+  Return the parent procedure that contains the instruction.  If the
+  instruction is not registered anywhere,
+  %
+  \note{more specific exception, e.g., MissingRegistration?}
+  %
+  throw exception \emph{IllegalRegistration}.
+
+\item[setParent(proc: Procedure\&)]
+  Set a new parent for the instruction.
+
+\item[isInProcedure() : bool]%
+  Return true if the instruction belongs to a procedure (it is registered).
+
+\item[addMove(move: Move*)]
+  Add a move to the instruction.
+
+  Throw \emph{ObjectAlreadyExists} if the move has already been added
+  to this instruction.
+
+\item[moveCount() : int] %
+  Return the number of moves contained in this instruction.
+
+\item[move(i : const int) : Move\&] %
+  Return the move at position index \emph{i} in this instruction.  The order
+  of moves is arbitrary, no assumption should be made by clients.
+
+\item[immediateCount() : int] %
+  Return the number of immediate registers written by the instruction
+  template of this instruction.
+
+\item[immediate(i : const int) : Immediate\&]%
+  Return the immediate write action (\emph{Immediate} class, see
+  section~\ref{ssec:longimm-if}) at position index \emph{i} in this
+  instruction.  The order of immediates is arbitrary, no assumption should
+  be made by clients.
+
+\item[address() : Address]%
+  Return the address of the instruction.
+
+  Throw \emph{IllegalRegistration} if the instruction does not belong to a
+  procedure that is registered to a program.
+
+\item[copy() : Instruction\&]%
+  Make a complete copy of the instruction.  The moves and the immediates
+  containted in the instructions are copied one by one (see
+  sections~\ref{ssec:move-if} and~\ref{ssec:longimm-if}).  The copy is
+  identical, except that it is not registered to the procedure of the
+  original instruction (and therefore, any address it refers to is not
+  meaningful).
+
+\end{description}
+
+\note{Following methods not yet implemented}
+
+\begin{description}
+
+\item[moveCount(mb : Bus) : int]%
+  Return the number of moves programmed onto bus \emph{mb}. In architectures
+  without segmented busses, the move count can only be one or zero.
+
+\item[move(mb : const Bus\&) : Move\&] %
+  Return the move that programs bus \emph{mb} in this instruction.  Return
+  the special \emph{null move} object if the instruction does not program
+  \emph{mb}.\note{
+%
+    future extension: multiple moves on one segmented bus}
+
+\item[immediate(mb : const Bus\&) : Immediate\&] %
+  Return the immediate that is programmed on bus \emph{mb} in this
+  instruction. Return the special \emph{null immediate} object if the
+  instruction does not use the slot of \emph{mb} to store immediate
+  bits. Note that several bus slots may be used to store immediate
+  bits for the same immediate.
+
+\end{description}
+
+\subsection{Move}
+\label{ssec:move-if}
+
+Class \emph{Move} represents a data transport through the TTA programmable
+interconnection network, also called simply ``move''. A move has a source
+and a destination, and, optionally, a Boolean predicate.
+
+A move destination may represent an operand of an operation; at least one of
+the operands of any operation triggers the operation; thus, a move may start
+an operation as ``side effect'' of moving one of its operands. The
+destination of a move may be a GPR; in that case, the move simply copies the
+source value into a temporary storage for later, possibly repeated, use.
+
+\emph{Example: Moves.}
+The following moves: (1) write a constant into one of the operands of a
+multiply operation; (2) copy one of the results of a multiply operation into
+a GPR; (3) copy a GPR into another register of the same register file.
+\begin{verbatim}
+1:  0x78900 -> mul.1
+2:  mul.4 -> r9
+3:  r6 -> r7
+\end{verbatim}
+
+The source of certain moves represents the memory address of other TTA
+instructions.  Some of such moves (jumps and calls) perform a control
+transfer. Control transfer moves contain an indirect reference to the
+target instruction.
+
+When a move source represents an address expression (pointing to another
+instruction or a data location), it is possible to retrieve the instruction,
+respectively the data symbol, from the parent program or procedure.
+
+\begin{description}
+\item[Move(src : const Terminal\&, dst : const Terminal\&, bus : Bus\&,
+  guard : Guard\&)]%
+  Constructor. Create a move with \emph{src} and \emph{dst}, respectively,
+  as source and destination. The move is predicated by the Boolean
+  expression \emph{guard}. The transport is carried on the transport bus
+  \emph{bus}.
+
+\item[Move(src : const Terminal\&, dst : const Terminal\&, bus : Bus\&)]%
+  Constructor. Create an unguarded (unconditional) move with \emph{src} and
+  \emph{dst}, respectively, as source and destination. The transport is
+  carried on the transport bus \emph{bus}.
+
+\item[parent() : Instruction\&]%
+  Return the parent instruction of the move.  If the move is independent,
+  %
+  \note{more specific exception, e.g., MissingRegistration?}
+  %
+  throw exception \emph{IllegalRegistration}.
+
+\item[setParent(ins: Instruction\&)]
+  Set a new parent instruction for the move.
+
+\item[isInInstruction() : bool] %
+  Return true if this move belongs to an \emph{Instruction} instance.
+
+\item[isUnconditional() : bool] %
+  Return true if this move is not predicated.
+
+\item[source() : Terminal]%
+  Return the source of this move.
+
+\item[setSource(src: Terminal*)]
+  Set a new source for the move.
+
+\item[destination() : Terminal]%
+  Return the destination of this move.
+
+\item[setDestination(src: Terminal*)]
+  Set a new destination for the move.
+
+\item[guard() : Guard]%
+  Return the Boolean expression that guards this move.
+
+\item[setGuard(guard: MoveGuard*)]
+  Set a new guard for the move.
+
+\item[bus() : Bus]%
+  Return the transport bus programmed by this move.
+
+\item[setBus(bus: Bus\&)]
+  Set a new bus for the move.
+
+\item[copy() : Move\&]%
+  Make a copy of the move.  The copy is identical, except that it is not
+  registered to the instruction of the original move (and therefore, any
+  address it refers to is not meaningful).
+
+\end{description}
+
+\note{Following methods not yet implemented}
+
+\begin{description}
+
+\item[target() : Instruction\&] %
+  Return the target instruction of the move.  Return the special \emph{null
+  instruction} if the move represents and indirect control transfer (for
+  example, a computed jump or an indirect function call).
+%
+  Return a special \emph{null instruction} when the target instruction of
+  the move cannot be determined by static analysis. This is the case, for
+  example, of indirect jumps.
+
+  Throw \emph{WrongObject}
+  %
+  \note{DISCUSS: type of exception}
+  %
+  exception if the method is called on a move that does not perform a
+  control transfer.
+
+  A move can look up its target instruction automatically only if
+  registered. Throw \emph{IllegalRegistration} if the move is not registered
+  in a procedure, or if the move is not registered in a program and the
+  target instruction does not belong to the same procedure.
+
+\item[addressExpression() : SymbolicExpr]%
+  Return the symbolic address expression referenced by this move in symbolic
+  form (see Section~\ref{ssec:symexpr-if}).  Return a special \emph{null
+    expression} object if given move does not refer to an address.  Return a
+  special \emph{undefined expression} object if given move refers to an
+  address whose symbolic expression cannot be computed.
+
+\item[isSourceMemoryAddress() : bool]%
+  Return true if the source of this move is used as a memory address.
+
+\item[isDestinationMemoryAddress() : bool]%
+  Return true if the destination of this move can be used as a memory
+  address by some of the moves that read it.
+
+\end{description}
+
+\subsection{Immediate}
+\label{ssec:longimm-if}
+
+In addition to data transports programmed by moves
+(Section~\ref{ssec:move-if}), a TTA instruction (Section~\ref{ssec:ins-if})
+can specify also one or more special data transports. These data transports
+copy a constant value encoded in a TTA instruction (called long immediate)
+into a register that belongs to an immediate unit.
+
+Constant values are represented by instances of \emph{ImmediateValue}
+(Section~\ref{ssec:ImmediateValue}).
+
+The actual bit width of the instruction field(s) where the immediate bits
+are encoded is defined by the hardware resources assigned to the immediate;
+the overall width of the immediate value is implied by the slot widths.
+
+Class \emph{Immediate} represents the long immediate value and its transport
+into a dedicated register, and implements the following methods:
+\begin{description}
+\item[Immediate(value : ImmediateValue, dst : Terminal, template : const
+  InstructionTemplate\&)]%
+  Constructor. Create a long immediate with the specified integer value. The
+  destination register is given by \emph{dst} and the set of instruction
+  slots where the immediate bits are encoded is specified by the
+  \emph{template} argument.
+
+  Throw \emph{IllegalParameters} exception if the destination immediate unit
+  of \emph{dst} is not one of the destinations of the given template.
+
+\item[destination() : Terminal]%
+  Return the destination register of this immediate.
+
+\item[value() : ImmediateValue]%
+  Return the value of this immediate.
+
+\item[instructionTemplate() : InstructionTemplate\&]%
+  Return the instruction template used to encode the bits of this immediate.
+
+\item[copy() : Immediate\&]
+  Makes a copy of the immediate.
+
+  The copy is identical, except that it is not registered to the instruction
+  of the original immediate (and therefore, any address it refers to is not
+  meaningful).
+
+\end{description}
+
+Note that the value of an \emph{Immediate} object cannot be modified once
+created. Clients must simply create a new instance and replace the old
+instance if a change in immediate value is required.
+
+\subsection{ImmediateValue}
+\label{ssec:ImmediateValue-if}
+
+\emph{ImmediateValue} represents the actual value of an immediate, whether
+it is a long immediate encoded in instruction slots or an in-line immediate
+stored in the source field of a move.
+
+\emph{ImmediateValue} is a plain typedef to a 32-bit signed integer.
+%
+\note{could be a class in the future, with shortcut methods}
+%
+Typical operations performed on instances of this class are MathTools'
+\emph{RequiredBits} and \emph{RequiredBitsSigned}.
+%
+Furthermore, to ensure that the value actually stored in an
+\emph{ImmediateValue} fits into the destination (slot, source field),
+functions \emph{SignExtendTo} and \emph{ZeroExtendTo} are used.
+
+\subsection{MoveGuard}
+\label{ssec:guard-if}
+
+Guards are one-term Boolean expressions that represent execution
+predicates. Class \emph{MoveGuard} wraps in the \emph{Guard} class of
+the Machine Object Model, and implements the following methods:
+
+%
+\begin{description}
+\item[MoveGuard(guard : Guard\&)]%
+  Constructor.
+
+\item[isUnconditional() : bool]%
+  Return whether this guard is a constant true or false value. Return always
+  false.
+
+\item[isInverted() : bool]%
+  Return true if the Boolean value computed out of the contents of the
+  source register is inverted.
+
+\item[guard() : Guard\&]%
+  Return the guard object of the Machine Object Model.
+
+\end{description}
+
+\paragraph{Unconditional guards.}
+A specialised guard class, \emph{UnconditionalGuard}, models Boolean guard
+expressions with a constant value (either always true or always false).
+Unconditional guards do not read any register or port. If the invert flag is
+true, then the guard is always `false', and the guarded move is never
+executed. This case corresponds to a special type of ``no-operation''.
+Conversely, if the invert flag is false, the guard is always 'true'. This
+case applies to unconditional moves, including moves carried on busses that
+have no guard at all.
+
+Only methods \verb|isUnconditional()| and \verb|source()| of
+\emph{UnconditionalGuard} are redefined. The first returns `true', the
+second throws an exception.
+%
+\note{DISCUSS: exception of type \emph{IllegalOperation}?}
+
+
+\subsection{Terminal}
+\label{ssec:terminal-if}
+
+Class \emph{Terminal} models any possible source or destination of a
+move. A terminal can be one of the following:
+\begin{enumerate}
+\item%
+  An inline immediate: a constant number, represented by an instance of
+  \emph{ImmediateValue}. The immediate can represent an address, or even
+  more precisely, an instruction address.
+\item%
+  A GPR: a register of a register file.
+\item%
+  A long immediate: a register of an immediate unit.
+\item%
+  A function unit result: a port of a function unit.
+\item%
+  A function unit input: a port of a function unit.
+\end{enumerate}
+
+Class \emph{Terminal} provides the following interface:
+\begin{description}
+
+\item[isImmediate() : bool]%
+  Tell whether the terminal is an inline immediate value.
+
+\item[isAddress() : bool]
+  Tell whether the terminal is an inline immediate value that refers
+  to an address.
+
+\item[isInstructionAddress() : bool]
+  Tell whether the terminal is an inline immediate value that refers
+  to an instruction address.
+
+\item[isImmediateRegister() : bool]%
+  Tell whether the terminal is a long immediate register.
+
+\item[isGPR() : bool]%
+  Tell whether the terminal is a general-purpose register.
+
+\item[isFUPort() : bool]%
+  Tell whether the terminal is a function unit port (possibly, including an
+  operation code.
+
+\item[isOpcodeSetting() : bool]
+  Tell whether terminal transports an opcode to a function unit port.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[value() : ImmediateValue]%
+  Return the value of the inline immediate.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[address() : Address]%
+  Return the address of an immediate terminal which represents a memory
+  address.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[instructionReference() : InstructionReference\&]
+  Return a reference to the instruction at which the immediate points.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[registerFile() : RegisterFile\&]%
+  Return the register file of the general-purpose register.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[immediateUnit() : ImmediateUnit\&]%
+  Return the immediate unit of the long immediate register.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[functionUnit() : FunctionUnit\&]%
+  Return the function unit of the port.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[index() : IntWord]%
+  Return the index of the register (either a long immediate or a
+  general-purpose register).
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[operation() : Operation\&]%
+  Return the operation code transported into the function unit port.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+  Throw \emph{InvalidObject} if the terminal is of the the right class type,
+  but the FU port of the terminal is not opcode-setting.
+
+\item[port() : Port\&]%
+  Return the port. The port can belong to a register file, an immediate unit
+  or a function unit.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[setIndex(index : IntWord)]%
+  Change the register of the register file to the given index.
+
+  Throw \emph{OutOfRange} exception if \emph{index} is negative or is not
+  smaller than the size of the register file or immediate unit it belongs
+  to. Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[setOperation(operation : Operation\&)]%
+  Change the operation code transported into the function unit port to the
+  given operation.
+
+  Throw \emph{InstanceNotFound}
+%
+  \note{DISCUSS: more specific exception type?}
+%
+  exception if the function unit does not support the operation.
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type.
+
+\item[operationIndex() : int]%
+  Return the index that identifies the operation input or output that is
+  represented by this terminal.
+
+  Throw \emph{WrongSubclass} if the terminal is of wrong class type. Throw
+  \emph{InvalidObject} if the terminal is of the the right class type, but
+  the FU port of the terminal is not opcode-setting and bears no auxiliary
+  ``hint operation'' information.
+
+\item[copy() : Terminal\&]%
+  Create an exact copy of the terminal and return it. Every concrete class
+  implements a specific version of this method.
+\end{description}
+
+\paragraph{Restrictions on the implementation of the Terminal API.}
+Obviously, not all methods of the \emph{Terminal} interface can be used with
+all types of terminal. The following table shows which method applies (cell
+marked with `x') to which type of terminal. Terminal types are: \emph{ii}
+(inline immediate), \emph{gpr}, \emph{ir} (long immediate register),
+\emph{ifu} function unit input port, \emph{ofu} function unit output port.
+
+\begin{quote}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+ method & \emph{ii} & \emph{gpr} & \emph{ir} & \emph{ifu} & \emph{ofu} \\
+\hline
+ \verb|value|          & x & - & - & - & - \\
+\hline
+ \verb|index|          & - & x & x & - & - \\
+\hline
+ \verb|operation|      & - & - & - & x & x \\
+\hline
+ \verb|operationIndex| & - & - & - & x & x \\
+\hline
+ \verb|port|           & - & x & x & x & x \\
+\hline
+ \verb|registerFile|   & - & x & - & - & - \\
+\hline
+ \verb|immediateUnit|  & - & - & x & - & - \\
+\hline
+ \verb|functionUnit|   & - & - & - & x & x \\
+\hline
+\end{tabular}
+\end{quote}
+
+The setting methods for index and operation have the same restrictions of
+the corresponding inspecting method.
+
+The \emph{operationIndex} method is applicable to FU port terminals only if
+the port is opcode-setting, or if it bears auxiliary ``hint operation''
+information.
+
+\paragraph{Restriction in position of terminals.}
+Not all types of terminals can appear in both source and destination
+positions of a move. For example, in normal programs input ports of a
+function unit cannot be sources of moves. Inline immediates, on the other
+hand, can definitely be only move sources. When a terminal is used as guard
+source registers, the same restrictions of move destinations apply, except
+that the FU ports are usually output ports.
+
+The following sections describe in detail the concrete specialised
+\emph{Terminal} subclasses.
+
+\subsection{TerminalImmediate}
+
+Class \emph{TerminalImmediate} represents an inline immediate. This class
+redefines method \emph{isImmediate} and method \emph{value}. The latter
+returns the actual constant contained in the inline immediate field of the
+move. All other methods throw an exception of type \emph{WrongSubclass}.
+%
+\note{DISCUSS: more specific exception types?}
+
+The constructor is:
+\begin{description}
+\item[TerminalImmediate(value : ImmediateValue)]%
+  Create an inline immediate containing the constant \emph{value}.
+\end{description}
+
+\subsection{TerminalRegister}
+
+Class \emph{TerminalRegister} represents a reference to registers from
+general-purpose register files and immediate units. These types of terminals
+are characterised by the fact that multiple, functionally identical
+registers are accessed through the same port. Registers are identified by an
+index. This class redefines the following methods:
+\begin{description}
+\item[index() : IntWord]%
+\item[port() : Port\&]%
+\item[registerFile() : RegisterFile\&]%
+  Applicable only if the unit of the terminal is an instance of
+  \emph{RegisterFile}. Throw exception \emph{WrongSubclass} otherwise.
+\item[immediateUnit() : ImmediateUnit\&]%
+  Applicable only if the unit of the terminal is an instance of
+  \emph{ImmediateUnit}. Throw \emph{WrongSubclass} exception otherwise.
+\item[setIndex(index : IntWord)]%
+\end{description}
+
+See Section~\ref{ssec:terminal-if} for a description of these methods.
+
+The constructor is:
+\begin{description}
+\item[TerminalRegister(unit : const Unit\&, port : const Port\&, index :
+  IntWord)]%
+  Create a move terminal that represents a register in unit \emph{unit},
+  accessed through port \emph{port} and identified by \emph{index}.
+\end{description}
+
+All other methods throw an exception of type \emph{WrongSubclass}.
+%
+\note{DISCUSS: more specific exception types?}
+
+\subsection{TerminalFUPort}
+
+Class \emph{TerminalFUPort} represents an input or output port of a function
+unit and (when applicable) the operation code written into it. Notice that,
+in principle, operation codes can be written into FU output ports.\footnote{
+%
+  Opcode-setting output ports are a critical requirement for a general
+  support of trigger-on-result behaviour.}
+%
+This class redefines the following methods:
+\begin{description}
+\item[operation() : Operation\&]%
+\item[port() : Port\&]%
+\item[functionUnit() : FunctionUnit\&]%
+\item[setOperation(operation : Operation\&)]%
+\item[isOpcodeSetting() : bool]%
+\item[operationIndex() : int]%
+\end{description}
+
+See Section~\ref{ssec:terminal-if} for a description of these methods.
+
+There are three types of FU port terminals:
+\begin{enumerate}
+\item %
+  Opcode-setting FU port terminals, which, in addition to the port
+  represent also one of its opcodes.
+\item %
+  Normal FU port terminals, which represent any FU ports except the one that
+  sets the opcode. These ports do not carry any operation information, nor
+  does the terminal.
+\item %
+  Annotated FU port terminals, which represent any FU ports except the one
+  that sets the opcode. These ports do not carry any operation information,
+  but the terminal keeps a ``pseudo-operation'' code. This code, when
+  possible, is preserved for several reasons (readability, ease of
+  conversion, extra sanity checks).
+\end{enumerate}
+
+The constructors are of two kinds:
+\begin{description}
+\item[TerminalFUPort(op : HWOperation\&, index : const int)]%
+  Create a FU port terminal instance representing the FU port bound to the
+  input or output of operation \emph{op} that is identified by \emph{index}.
+
+  If the port is opcode-setting, then the terminal represents also the
+  opcode carried by the port and that corresponds to \emph{op}. If port does
+  not set the opcode, then the operation is just auxiliary information, and
+  the terminal represents an annotated FU port.
+\item[TerminalFUPort(port : const Port\&)]%
+  Create a FU port terminal instance representing the non-opcode-setting
+  port \emph{port}. Method \emph{operationIndex} cannot be called on this
+  type of terminal.
+
+  Throw \emph{WrongSubclass} if \emph{port} is opcode-setting.
+\end{description}
+
+All other methods, when applied to a \emph{TerminalFUPort}, throw an
+exception of type \emph{WrongSubclass}.
+
+This class provides a special method that is not part of the terminal
+interface to access, when present, pseudo-operation information:
+%
+\note{this solution forces downcasts, but putting the method in base IF
+  would ``pollute'' the real meaning of terminals}
+%
+\begin{description}
+\item[hintOperation() : Operation\&] %
+  Return the operation annotated into the terminal. If the FU port of the
+  terminal is opcode-setting, return the actual operation. Return the
+  \emph{NullOperation} if the port is not opcode-setting and no
+  pseudo-operation is associated with the terminal.
+\end{description}
+
+\paragraph{``Instability'' of operation indices.}
+Different operations can have different input or output indices bound to the
+same FU port, so it is possible for a \emph{setOperation} call to change
+also the operation index returned by subsequent invocations of
+\emph{operationIndex}, even if the FU port of the terminal is unchanged.
+
+\subsection{TerminalAddress}
+
+Class \emph{TerminalAddress} is a specialisation of \emph{TerminalImmediate}
+and represents an inline immediate that represents a memory address. It
+redefines the following method:
+\begin{description}
+\item[address() : Address]
+\end{description}
+
+The constructor is:
+\begin{description}
+\item[TerminalAddress(location : ImmediateValue, space : AddressSpace\&)]%
+  Using the immediate value given by \emph{location} and the reference to an
+  address space, it creates an \emph{Address} instance.
+\end{description}
+
+\subsection{TerminalInstructionAddress}
+
+Class \emph{TerminalInstructionAddress} is a specialisation of
+\emph{TerminalImmediate} and represents an inline immediate that
+refers to an instruction address (usually a jump target). It stores a
+reference to the instruction, and the value of the immediate is
+determined by the actual address of the referred instruction. This
+way, immediates that are jump targets are automatically updated, if
+the target instruction is relocated. The class redefines the
+following methods:
+
+\begin{description}
+\item[value() : ImmediateValue]
+\item[instructionReference() : InstructionReference\&]
+\end{description}
+
+\subsection{Address}
+\label{ssec:addr-if}
+
+\emph{Address} is a simple type that represents an address in the target
+memory system of the TTA program. An address consists of a number that
+identifies a memory location and a reference to an address space.
+
+An address may be illegal for two reasons. The first reason, which depends
+on the context (that is, the way the address is used), is that the address
+violates an alignment constraint. The second reason is that the address is
+out of the range of its address space. Even the second type of error is not
+automatically caught by \emph{Address}.
+
+The methods implemented by \emph{Address} are:
+\begin{description}
+\item[Address(location : IntWord, space : AddressSpace\&)]%
+  Create an address for a given location in given address space.
+\item[location() : IntWord]%
+  Return the location address.
+\item[space() : const AddressSpace\&]%
+  Return the address space of the address.
+\end{description}
+
+\subsection{Labels}
+\label{ssec:labels-if}
+
+Symbolic information is represented by means of \emph{labels}. Labels mark
+locations of code or data area of the program.  All labels have three basic
+attributes: (1) an address, (2) a name, (3) a scope.  The following API
+provides access to these attributes:
+\begin{description}
+\item[name() : string]%
+  Return the name of this label.
+\item[address() : Address\&]%
+  Return the address of the location corresponding to this label.
+\item[scope() : Scope\&]%
+  Return the innermost scope that contains this label.
+\end{description}
+
+Labels are owned by scopes, described in Section~\ref{ssec:scope-if}.
+Scopes do not provide methods to add new labels, because the labels are
+automatically registered to a scope by their constructor: a label cannot
+exist without its scope.
+
+A label must have a unique name within the owning scope. It does not matter
+if there are other labels with the same name in outer scopes, because the
+inner scope has precedence. As a result, all labels in global scope must
+have a unique name.
+
+\subsection{Code Label}
+\label{ssec:clabel-if}
+
+A code label, also simply called ``label'', is a symbolic name that stands
+for a location in the program. Class \emph{CodeLabel} models code labels and
+implements the following methods:
+\begin{description}
+\item[CodeLabel(ins : const InstructionReference\&, name : const string\&)]%
+  Create a new code label for given instruction, \emph{ins}.  The new label
+  is stored in the innermost scope that encloses \emph{ins}.  If the name of
+  the label, \emph{name} is not specified, a default name is assigned.  The
+  default name is created automatically, and is made unique within its scope
+  by appending a number to a base string `\verb|label_|'.
+
+  Throw an exception \emph{IllegalRegistration} if \emph{ins} does not
+  belong to a procedure.
+
+\item[instructionReference() : InstructionReference\&]%
+  Return a reference to the instruction corresponding to this label.
+
+\item[address() : Address\&]%
+  Return the address of the instruction corresponding to this label.
+
+\item[procedure() : Procedure\&]%
+  Return the procedure that contains this label.
+\end{description}
+
+Multiple labels can represent the same location, see
+Section~\ref{ssec:clabel-imp} for a discussion of how to handle multiple
+equivalent labels.
+
+\subsection{Data Label}
+\label{ssec:dlabel-if}
+
+A data label is a symbol that represents a location in the data area used by
+the program.  Usually, a data label is the starting address of a program
+variable.
+
+\begin{description}
+\item[DataLabel(address : Address, scope : Scope\&, name : constr string\&)]%
+  Create a new data label in given scope with name \emph{name}, at given
+  address.
+
+\item[address() : Address\&]%
+  Return the address of the program variable (or part thereof) corresponding
+  to this label.
+\end{description}
+
+\subsection{Symbolic Address Expressions}
+\label{ssec:symexpr-if}
+
+Class \emph{SymbolicExpr} represents memory addresses as expressions made of
+symbols, coefficients and constant offsets.
+%
+The symbolic expressions modelled by class \emph{SymbolicExpr} have a
+tree-like structure whose root node represents the entrire expression, and
+each branch node represents a subexpression.  \emph{SymbolicExpr} is an
+implementation of the \emph{Composite} design pattern described
+in~\cite{DesignPatterns}.
+
+A symbolic expression is made of one or more terms. Multiple terms are
+combined two by two, by an operator. Figure~\ref{fig:sym-expr} depicts the
+classes that implement simbolic address expressions. A complex symbolic
+expression consists of two terms combined by an operator. Each term can be a
+leaf of the expression (a label or a constant) or a complex sub-expression.
+
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/AddressExprClass.eps,width=0.70\textwidth}}
+  \caption{Class diagram of address expression and expression term.}
+  \label{fig:sym-expr}
+\end{figure}
+
+\emph{Exampe.} Expressions associated with a sequence of moves that stores
+the constant 500 to symbolic address $4L+52$, where \emph{L} is a data
+label.
+
+\begin{tabular}[h]{ll}
+  move                                         & symbolic address \\
+  \verb|4 -> mul.o|                            &  \\
+  \verb|0x8000 -> mul.t|                       & $L$ \\
+  \verb|mul.r -> r1|                           & $4L$ \\
+  \verb|52 -> add.o|                           &  \\
+  \verb|r1 -> add.t|                           & $4L$ \\
+  \verb|add.r -> r2|                           & $4L+52$ \\
+  \verb|500 -> st.o|                           &  \\
+  \verb|r2 -> st.t|                            & $4L+52$ \\
+\end{tabular}
+
+\emph{SymbolicExpr} defines the following interface:
+\begin{description}
+\item[isLeaf() : bool]%
+  Return whether the expression is a leaf or contains sub-expressions.
+\item[isConstant() : bool]%
+  Return whether the expression is a leaf expression representing a constant.
+\item[value() : IntWord]%
+  Return the numberic value of a constant expression. Undefined.
+\item[isLabel() : bool]%
+  Return whether the expression is a leaf expression representing a
+  reference to a label.
+\item[name() : IntWord]
+  Return the name of the a label expression. Undefined.
+\item[local() : bool]%
+  Return whether a label expression refers to a label that is located in the
+  innermost scope.\footnote{
+  %
+    This flag is necessary to support the global-scope operator of C++.  For
+    class and namespace scopes, instead, no special support is necessary,
+    since the compilers resolve name clashes by mangling the name strings
+    with the symbol's scope.}
+  %
+  Undefined.
+\end{description}
+
+\subsection{Constant Symbolic Expression}
+\label{ssec:const-expr-if}
+
+Class \emph{ConstantExpr} is a possible leaf of a complex expression
+(described in Section~\ref{ssec:complex-expr-if}). It represents a numeric
+integer constant.
+
+\emph{ConstantExpr} redefines the following methods:
+\begin{description}
+\item[isLeaf() : bool]%
+  Return always true.
+\item[isConstant() : bool]%
+  Return always true.
+\item[value() : IntWord]
+  Return the value of the constant.
+\end{description}
+
+In well-formed memory address expressions, a constant is always part (term)
+of a larger symbolic expression, and represents either a coefficient or an
+offset.
+
+\subsection{Label Symbolic Expression}
+\label{ssec:label-expr-if}
+
+Class \emph{LabelExpr} is a possible leaf of a complex expression (described
+in Section~\ref{ssec:complex-expr-if}) and represents a reference to a label
+(described in Section~\ref{ssec:labels-if} and following).
+
+\emph{LabelExpr} redefines the following methods:
+\begin{description}
+\item[isLeaf() : bool]%
+  Return always true.
+\item[isLabel() : bool]%
+  Return always true.
+\item[name() : IntWord]
+  Return the name of the label.
+\item[local() : bool]%
+  Return true if the symbol is located in the innermost scope, false if any
+  symbol in the innermost scope that matches the symbol name must be
+  ignored.
+\end{description}
+
+A \emph{LabelExpr} refers to a label object solely by name. To identify the
+label object, it is necessary to consider the scope of the object that
+contains the symbolic expression, and to apply a scoping rule. The default
+scoping rule is to give precedence to a label with matching name in the
+innermost scope starting from the scope of the object that contains the
+symbolic expression. When the label reference is marked as nonlocal, then
+the scoping rule is to skip local and procedure scopes and search starting
+from the parent unit scope.
+
+\subsection{Complex Symbolic (Sub-)Expression}
+\label{ssec:complex-expr-if}
+
+Class \emph{ComplexExpr} represents a symbolic expression consisting of two
+sub-expressions combined by an operator. Each sub-expression, in turn, can
+be a leaf of the expression tree (a constant or a label, see
+Sections~\ref{ssec:const-expr-if} and~\ref{ssec:label-expr-if}) or,
+recursively, another complex expression. This makes it possible to define
+arbitrary complex expressions in which leaf expressions are combined by a
+finite set of operators.
+
+The operators supported by a complex expression are:
+\begin{enumerate}
+\item %
+  Addition (operator EXPR::ADD).
+\item %
+  Subtraction (operator EXPR::SUB).
+\item %
+  Product (operator EXPR::MUL).
+\end{enumerate}
+
+\emph{ComplexExpr} redefines the following methods:
+\begin{description}
+\item[isLeaf() : bool]%
+  Return always false.
+\item[leftTerm() : SymbolicExpr\&]%
+  Return the left sub-expression.
+\item[rightTerm() : SymbolicExpr\&]%
+  Return the right sub-expression.
+\item[operator() : SymbolicExprOperator]%
+  Return the operator of this expression.
+\end{description}
+
+The purpose of \emph{ComplexExpr} is to support the type of symbolic memory
+address expressions that are amenable to typical disambiguation analysis.
+For this reason, and to make symbolic analysis by POM clients easier,
+expressions should satisfy certain constraints with respect to the position
+of constant terms (a symbolic expression of class \emph{ConstExpr}).
+%
+The left term of addition and subtraction operators must not be a constant.
+Even the right term of a subtraction subexpression should not be a constant:
+the minus sign can be ``moved into'' the constant, and the subtraction
+operator can be replaced by an addition. Finally, the product operator is
+allowed only if the left term is a constant.
+
+\subsection{Scopes}
+\label{ssec:scope-if}
+
+The \emph{Scope} classes represent parts of the program where a given set of
+symbols (label names, essentially) is visible. There 4 scope levels, from
+the outermost to the innermost:
+\begin{enumerate}
+\item %
+  Global scope: represents the scope of all symbols that have external
+  linkage.  Only symbols in this scope can be used across different
+  compilation units.
+\item %
+  Unit scope: represents the scope of a single compilation unit (usually, a
+  source file), and usually corresponds to an object file. Only procedures
+  defined within the same compilation units can access these symbols.
+\item %
+  Procedure scope: represents the scope of a procedure.  Symbols in this
+  scopes are local to the whole procedure and can be used throught its
+  extension.
+\item %
+  Local scope: represents the scope of a local block within a procedure.
+  Symbols in this scope (for example, symbols defined within a loop
+  construct) are only visible within the enclosing block.
+\end{enumerate}
+
+Local scopes can be nested, all other scopes cannot.\footnote{
+%
+  Nesting of procedure scope is allowed in some high level languages, but is
+  currently not supported by the program model.}
+
+Scopes can exist as independent objects or as parts of the program object
+tree (depicted in Figure~\ref{fig:overview}).
+
+All scope classes share the following basic interface:
+\begin{description}
+
+\item[isGlobal() : bool] %
+  Return true if this is a global scope.
+
+\item[isUnit() : bool] %
+  Return true if this is a global scope restricted to a compilation unit.
+
+\item[isProcedure() : bool] %
+  Return true if this the local scope of an entire procedure.
+
+\item[isLocal() : bool] %
+  Return true if this is the scope of a local block inside a procedure.
+
+\item[containsCodeLabel(name : const string\&) : bool]%
+  Return true if this scope contains a code label with given name.
+
+\item[containsDataLabel(name : const string\&) : bool]%
+  Return true if this scope contains a data label with given name.
+
+\item[codeLabel(name : const string\&) : CodeLabel\&]%
+  Lookup and return the code label with given name.
+
+  Throw \emph{KeyNotFound} exception if no code label with given
+  name exists in this scope.
+
+\item[dataLabel(name : const string\&) : DataLabel\&]%
+  Lookup and return the data label with given name.
+
+  Throw  \emph{KeyNotFound} exception if no code label with given
+  name exists in this scope.
+
+\item[codeLabelCount(address : Address) : int]
+  Return the number of code labels in the given address visible in
+  this scope.
+
+\item[codeLabel(address : Address, index : int) : CodeLabel\&]
+  Return a code label visible in this scope in the given address and index.
+
+  Throw \emph{OutOfRange} if the index is greater than or equal to the
+  count of code labels in the given address.
+
+  Throw \emph{KeyNotFound} if there are no code labels in the given
+  address.
+
+\item[dataLabelCount(address : Address) : int]
+  Return the number of data labels in the given address visible in
+  this scope.
+
+\item[dataLabel(address : Address, index : int) : DataLabel\&]
+  Return a data label visible in this scope in the given address and index.
+
+  Throw \emph{OutOfRange} if the index is greater than or equal to the
+  count of data labels in the given address.
+
+  Throw \emph{KeyNotFound} if there are no data labels in the given
+  address.
+
+\item[addCodeLabel(codeLabel : CodeLabel*)]
+  Add a code label to this scope.
+
+  Throw \emph{KeyAlreadyExists} if a code label of the same name
+  already exists.
+
+\item[addDataLabel(dataLabel : DataLabel*)]
+  Add a data label to this scope.
+
+  Throw \emph{KeyAlreadyExists} if a data label of the same name
+  already exists.
+
+\item[parent() : Scope\&] %
+  Return the parent scope, that is, the scope that contains this scope.
+
+  Throw exception \emph{WrongSubclass}
+  %
+  \note{DISCUSS: exception type appropriate?}
+  %
+  if this scope has no parent scope (it is the global scope).
+
+\item[child(i : int) : Scope\&] %
+  Return the child scope with index \emph{i}.
+
+  Throw \emph{OutOfRange} if the index exceeds the number of scopes
+  contained in this scope.
+
+\item[childCount() : int] %
+  Return the number of contained scopes.  Only scopes directly contained in
+  this scope are counted, not inner scopes inside one of the child scopes.
+
+\item[dataDefinition(label : const DataLabel\&, offset : IntWord) : DataDef\&]%
+  Lookup and return the data definition for the location defined by given
+  label and offset. Return a special \emph{null data definition} if no
+  symbolic data exists for the initialisation data at the specified
+  location.
+
+  Throw \emph{IllegalRegistration} exception if given label does not belong
+  to this scope.
+
+\end{description}
+
+Methods \verb|parent()| and \verb|child()| are not public.  These are basic
+building blocks for scope subclasses (see sections~\ref{ssec:gscope-if},
+\ref{ssec:fscope-if}, \ref{ssec:pscope-if}, \ref{ssec:lscope-if}).
+
+The symbols stored in a scope are of two main types:
+\begin{enumerate}
+\item %
+  Symbols that represent variables, \emph{DataLabel}.
+\item %
+  Code labels, \emph{CodeLabel}.
+\end{enumerate}
+
+\paragraph{Clients of Scope classes in POM.}
+When considered as part of a program object hierarchy, different types of
+scopes are managed by different parts of the object hierarchy:
+\begin{enumerate}
+\item %
+  Global and unit scopes are managed by \emph{Program} (see
+  Section~\ref{ssec:prog-if}) and, in a limited way, by \emph{Procedure}.
+\item %
+  Procedure and local scopes are managed by \emph{Procedure} (see
+  Section~\ref{ssec:proc-if}).
+\end{enumerate}
+
+\paragraph{Scopes, name spaces and address spaces.}
+Since a label represents a memory address, an address space can be
+associated to each label. In this sense, it can be said that ``a label
+belongs to an address space''. The address space does not keep labels apart.
+Label name does. A scope contains two label name spaces: one for data labels
+and one for code labels. This means that, for example, each data label in a
+scope is identified by a unique name, but a code label and a data label in
+the same scope can have the same name.
+
+Code labels all belong to the same address space, which is the address space
+of the instruction memory. (In some target memory systems, this address
+space can be shared with data.) Data labels, even if in the same scope, can
+have different address spaces.
+
+\subsection{GlobalScope}
+\label{ssec:gscope-if}
+
+The \emph{GlobalScope} class represents the scope of all symbols that have
+external linkage.
+%
+\note{PENDING: code label restrictions, \ref{ch:pending:clab-restrict}}
+
+\begin{description}
+\item[GlobalScope()]%
+  Constructor.  Create an empty global scope.  Called also automatically
+  inside a \emph{Program} instance at construction time, to create its
+  global scope.
+
+\item[globalCodeLabelCount(address : Address) : int]
+  Return the number of code labels at the given address. Applies to
+  all child scopes of this global scope.
+
+\item[globalCodeLabel(address : Address, index : int) : CodeLabel\&]
+  Return the code label in the given address. Applies to all child
+  scopes of this global scope.
+
+  Throw \emph{KeyNotFound} if no code labels in the given address were
+  found.
+
+\item[globalCodeLabelCount() : int]
+  Return the number of code labels in program. Applies to all child
+  scopes of this global scope.
+
+\item[globalCodeLabel(index : int) : CodeLabel\&]
+  Return the code label of requested index. Applies to all child
+  scopes of this global scope.
+
+  Throw \emph{KeyNotFound} if there are no code labels in the given
+  index.
+
+\item[globalDataLabelCount(address : Address) : int]
+  Return the number of data labels at the given address. Applies to
+  all child scopes of this global scope.
+
+\item[globalDataLabel(address : Address, index : int) : DataLabel\&]
+  Return the data label in the given address. Applies to all child
+  scopes of this global scope.
+
+  Throw \emph{KeyNotFound} if no data labels in the given address were
+  found.
+
+\item[globalDataLabelCount() : int]
+  Return the number of data labels in program. Applies to all child
+  scopes of this global scope.
+
+\item[globalDataLabel(index : int) : DataLabel\&]
+  Return the data label of requested index. Applies to all child
+  scopes of this global scope.
+
+  Throw \emph{KeyNotFound} if there are no data labels in the given
+  index.
+
+\end{description}
+
+\note{Following methods not yet implemented}
+
+\begin{description}
+
+\item[unitScopeCount() : int]%
+  Return the numer of unit scopes contained by this global scope.
+
+\item[unitScope(i : int) : UnitScope\&] %
+  Return the unit scope with index \emph{i} contained by this scope.
+
+  Throw \emph{OutOfRange} if the index exceeds the number of scopes
+  contained in this scope.
+
+\item[unitScope(name : const string\&) : UnitScope\&] %
+  Return the unit scope with given name. The name string may be the full
+  name of the scope (prefix and name) or just its name. In the latter case,
+  the prefix of the scopes is ignored. If no matching exists when the prefix
+  is ignored, and \emph{name} does not include an extension (a trailing
+  substring starting with `.'), then a match is searched using the base name
+  of the scopes. The base name is obtained by clipping any extension to the
+  name.
+
+  Throw \emph{KeyNotFound} exception if no unit scope with given name is
+  contained in this scope.
+%
+  Throw \note{DISCUSS exception type} exception if only the base name is
+  given and scopes with the same base name and different prefixes or
+  extensions are available.
+\end{description}
+
+\subsection{UnitScope}
+\label{ssec:fscope-if}
+
+The \emph{UnitScope} class represents the scope of symbols defined by a
+compilation unit and visible throughout, but not outside it.
+%
+\note{PENDING: code label restrictions, \ref{ch:pending:clab-restrict}}
+
+Unit scopes are identified by a pair of name strings. Usually, these strings
+identify the compilation unit of the scope. The first string is the ``base''
+name of the compilation unit, the second is a ``prefix'' (usually, but not
+necessarily, an absolute path) that makes the combination unique.
+
+\begin{description}
+\item[UnitScope(parent : const GlobalScope\&)]%
+  Constructor. Create an empty, nameless unit scope with parent scope
+  \emph{parent}.
+
+\item[UnitScope(parent : const GlobalScope\&, name : string, prefix : string)]%
+  Constructor. Create an empty unit scope with given name and prefix. The
+  parent scope is \emph{parent}. The prefix can be omitted.
+
+\item[name() : string] %
+  Return the name of the scope. Usually, the name of the scope is given by
+  the name of the compilation unit (or the resulting object file).
+
+\item[prefix() : string] %
+  Return the prefix of the scope name. Usually, the prefix of the scope name
+  is the absolute path to the source file that represents the compilation
+  unit.
+
+\item[parentScope() : GlobalScope\&] %
+  Return the parent (global) scope.
+
+\item[procedureScope(i : int) : ProcedureScope\&] %
+  Return the procedure scope with index \emph{i} contained by this scope.
+
+  Throw \emph{OutOfRange} if the index exceeds the number of scopes
+  contained in this scope.
+
+\item[procedureScope(name : const string\&) : ProcedureScope\&] %
+  Return the procedure scope of the procedure with given name contained in
+  this scope.
+
+  Throw \emph{KeyNotFound} if no procedure scope with given name is
+  contained in this scope.
+
+\end{description}
+
+
+\paragraph{Handling multiple compilation units.}
+
+How to support multiple compilation units defining variables or procedures
+with identical names? The methods that refer to program symbols by name must
+explicitly specify the scope of the symbol as a reference to a
+\emph{UnitScope} object.
+
+Only lookup of \emph{UnitScope} objects requires direct, explicit reference
+to the name of the unit scope (a file name and possibly a path name), see
+Section~\ref{ssec:gscope-if}.
+
+The motivation for this design is that it avoids direct use of file and path
+names when selecting a program symbol is not nice. File names and absolute
+path are a low-level detail in the context of POM.
+
+\subsection{ProcedureScope}
+
+\label{ssec:pscope-if}
+\begin{description}
+\item[ProcedureScope(parent : const UnitScope\&, name : string)]%
+  Constructor. Create an empty procedure scope with given name.
+  The parent scope is \emph{parent}.
+
+\item[name() : string] %
+  Return the name of the scope.  Usually, the name of the scope is given by
+  the name of the procedure that defines it.
+
+\item[parentScope() : UnitScope\&] %
+  Return the parent (unit) scope.
+
+\item[localScope(i : int) : LocalScope\&] %
+  Return the local scope with index \emph{i} directly contained in this
+  scope.
+
+  Throw \emph{OutOfRange} if the index exceeds the number of scopes
+  contained in this scope.
+\end{description}
+
+\subsection{LocalScope}
+\label{ssec:lscope-if}
+
+\begin{description}
+\item[LocalScope(parent : const ProcedureScope\&)] %
+  Constructor. Create an empty local scope. The parent scope is the
+  procedure scope \emph{parent}.
+
+\item[LocalScope(parent : const LocalScope\&)] %
+  Constructor. Create an empty local scope. The parent scope is the local
+  scope \emph{parent}.
+
+\item[procedureScope() : ProcedureScope\&] %
+  Return the parent procedure scope.  If nested, this method looks up the
+  procedure scope from its local parent scopes.
+
+\item[parentLocalScope() : LocalScope\&] %
+  If nested, return the parent local scope. Otherwise,
+  %
+  \note{DISCUSS: which exception? \emph{InstanceNotFound}, seems most
+    appropriate, but is derived from \emph{IllegalParameter}, not applicable
+    to this case.}
+  %
+  throw exception [[to define]].
+
+\item[isNested() : bool] %
+  Return true if the innermost parent scope is another local scope, false if
+  the parent scope is the scope of a procedure.
+
+\item[localScope(i : int) : LocalScope\&] %
+  Return the local scope with index \emph{i} directly contained in this
+  scope.
+
+  Throw \emph{OutOfRange} if the index exceeds the number of scopes
+  contained in this scope.
+
+\item[identifier() : int] %
+  Return a number that uniquely identifies this scope among all the scopes
+  of the enclosing scope.
+\end{description}
+
+\subsection{CodeSnippet}
+\label{ssec:code-snippet}
+
+\emph{CodeSnippet} is simple helper class to support efficient insertion of
+instructions into a TTA program. A code snippet is an ordered sequence of
+adjacent instruction that do not belong to a program (are independent) and
+are not assigned an address.
+
+\emph{CodeSnippet} implements the following simple interface:
+\begin{description}
+
+\item[CodeSnippet()]%
+  Constructor. Create an empty sequence of instructions.
+
+\item[addToBack(ins : const Instruction\&)]%
+  Append instruction \emph{ins} to the end of the code snippet.
+
+  Throw \emph{IllegalRegistration} exception if \emph{ins} is owned by
+  a procedure.
+
+  Throw \emph{ObjectAlreadyExists} if the given instruction is already
+  in the snippet.
+
+\item[removeLastInstruction()]%
+  Remove one instruction from the end of the code snippet. Nothing happens
+  if the code snippet is empty.
+
+\item[instruction(index : int) : Instruction\&]%
+  Return the instruction of the code snippet at position \emph{index}.
+
+  Throw \emph{OutOfRange} exception if \emph{index} is negative or is not
+  smaller than the number of instructions in this code snippet.
+
+\item[instructionCount() : int]%
+  Return the number of instructions that make up this code snippet.
+\end{description}
+
+\subsection{DataMemory}
+\label{ssec:data-mem}
+
+Class \emph{DataMemory} models the data of one data address space of a
+program. \emph{DataMemory} class contain all the data areas definitions that
+are used by the program. If there is an address stored in a data memory, that
+information is also stored in this class.
+
+\begin{description}
+\item[DataMemory(memory : AddressSpace\&)]%
+    Creates \emph{DataMemory} which defines the data of given address space.
+
+\item[addDataDefinition(dataDef : DataDefinition*)]%
+    Adds a \emph{DataDefinition} object to the class. \emph{DataDefinition}s
+    are automatically sorted to ascending order by start address of a data
+    defintion.
+
+\item[dataDefinition(addr : Address) : DataDefinition\&]%
+    Returns the \emph{DataDefinition} object, which covers the address in
+    parameter. A for example if a \emph{DataDefinition} object defines an area
+    starting from address 10 and its size is 30, then the that object is
+    returned when data definitions are requested for addresses 10-29.
+
+\item[dataDefinition(index : int) : DataDefinition\&]%
+    Returns the \emph{DataDefinition} by an index. \emph{DataDefinition}s are
+    sorted by the start address property of a \emph{DataDefinition} object, so
+    index of an object might change if \emph{DataDefinition}s are added to
+    a memory.
+
+\item[dataDefinitionCount() : int]%
+    Retuns the number of \emph{DataDefinitions} stored in the object.
+
+\item[addressSpace() : AddressSpace\&]%
+    Returns the address space whose data this class defines.
+
+\end{description}
+
+\subsection{DataDefinition}
+\label{ssec:data-def}
+
+Class \emph{DataDefinition} defines one or more MAUs in a data address
+space. Stored data can be either initialized or unititialized data. This
+class contains all needed interfaces for using different types of
+\emph{DataDefinitions}. E.g., \emph{DataAddressDef} or
+\emph{DataInstructionAddressDef} can be used through \emph{DataDefintion}
+interfaces.
+
+\begin{description}
+\item[DataDefinition(start : Address, size : int, initData = NULL :
+MinimumAddressableUnit*)]%
+    Creates area definition of given size starting from given address. Size
+    defines how many MAUs are defined. If initData parameter is given, then
+    the area contains initialized data. Otherwise created object defines an
+    uninitialized data area.
+
+\item[DataDefinition(start : Address, initData
+: vector<MinimumAddressableUnit>\&)]%
+    Creates initialized data area starting from given address. Data area size
+    is same that the size of the given vector of initialization data.
+
+\item[startAddress() : Address]%
+    Returns the address, where from the definition starts defining data.
+
+\item[isInitialized() : bool]%
+    Returns if the data definition contains initialization data.
+
+\item[MAU(index : int) : MinimumAddressableUnit]%
+    Returns an initialization data value of the index given in parameter.
+
+\item[size() : int]%
+    Returns the number of MAUs that are defined by this object.
+
+\item[isAddress() : bool]%
+    For this class always false. \emph{See DataAddressDef} and
+    \emph{DataInstructionAddressDef} classes.
+
+\item[isInstructionAddress() : bool]%
+    For this class always false. See \emph{DataInstructionAddressDef} class. 
+
+\item[destinationAddress(index : int) : DataDefinition\&]%
+    For this class always throws an InvalidSubclass exception.
+
+\end{description}
+
+\subsection{DataAddressDef}
+\label{ssec:data-addr-def}
+
+Defines an one or multiple MAUs in a data address space, which contains an
+address referring data memory. For data area that contain an
+address to an instruction see \emph{DataInstructionAddressDef}.
+
+\begin{description}
+\item[DataAddressDef(start : Address, size : int, dest : Address)]%
+    Creates \emph{DataAddressDef} starting from given address. Size parameter
+    defines how many MAUs are used to store the address. Dest parameter
+    defines the destination address which is stored in data definition.
+
+\item[startAddress() : Address]%
+    Returns the address where in the data memory the definition starts.
+
+\item[isInitialized() : bool]%
+    For this class returns always true, since there is always address stored.
+
+\item[MAU(index : int) : MinimumAddressableUnit]%
+    Returns one MAU of the initialized area.
+
+\item[size() : int]%
+    Returns number of MAUs that are used to store the destination address.
+
+\item[isAddress() : bool]%
+    Returns always true, because the class overloads the destinationAddress.
+
+\item[isInstructionAddress() : bool]%
+    Returns always false, because the destination address is not in
+    the instruction address space.
+
+\item[destinationAddress(index : int) : DataDefinition\&]%
+    Returns the destination address of stored data including the destination
+    address space.
+
+\end{description}
+
+\subsection{DataInstructionAddressDef}
+\label{ssec:data-instr-addr-def}
+
+Defines an one or multiple MAUs in a data address space, which contains an
+address referring an instruction.
+
+\begin{description}
+\item[DataInstructionAddressDef(start : Address, size : int, dest :
+InstructionReference\&*)]%
+    Creates an initialized data definition which stores an address of the
+    given instruction. Size and start address parameters defines where in
+    data memory the address is stored and how many MAUs are used to store
+    the value.
+
+\item[startAddress() : Address]%
+    Returns the address where in the data memory the definition starts.
+
+\item[isInitialized() : bool]%
+    For this class returns always true, since there is always address stored.
+
+\item[MAU(index : int) : MinimumAddressableUnit]%
+    Returns one MAU of the initialized area.
+
+\item[size() : int]%
+    Returns number of MAUs that are used to store the destination address.
+
+\item[isAddress() : bool]%
+    Returns always true, because the class overloads the destinationAddress.
+
+\item[isInstructionAddress() : bool]%
+    Returns always true, since the destinationAddress() always refers to
+    the instruction address space.
+
+\item[destinationAddress(index : int) : DataDefinition\&]%
+    Returns the destination address of stored data including the destination
+    address space.
+
+\end{description}
+
+\subsection{InstructionReferenceManager}
+
+Class \emph{InstructionReferenceManager} helps in keeping instruction
+addresses referenced in the Program Object Model
+up-to-date. Instructions are not referenced directly, but through an
+InstructionReference instance. The actual Instruction instance
+referred can be changed as needed.
+
+The class provides the following interface:
+
+\begin{description}
+\item[createReference(ins: Instruction\&) : InstructionReference\&]
+  Create a new reference to the given instruction. If one already
+  exists, it will be returned instead.
+\item[replace(insA: Instruction\&, insB: Instruction\&)]
+  Replace the referred instruction \emph{insA} with the instruction
+  \emph{insB}.
+
+  Throw \emph{InstanceNotFound} if the instruction to be replaced is not found.
+\end{description}
+
+\subsection{InstructionReference}
+
+Class \emph{InstructionReference} represents a reference to an
+Instruction instance. The target of the reference can be changed as
+needed.
+
+The class provides the following interface:
+
+\begin{description}
+\item[setInstruction(ins: Instruction\&)]
+  Set a new referred instruction.
+
+  Throw \emph{IllegalParameters} if the instruction is a null instruction.
+\item[instruction() : Instruction\&]
+  Return the referred instruction.
+\end{description}
+
+\subsection{AnnotatedInstructionElement}
+
+This interface is for classes in POM that can be augmented with
+"annotations", which is arbitrary data added to certain elements
+of the program. 
+
+This is the API required to support the annotation feature of the TPEF
+storage format. Currently two classes of POM inherit this interface,
+thus provide annotation services to clients: \emph{Move} and
+\emph{TerminalImmediate}. 
+
+The annotations are presented with class \emph{ProgramAnnotation}. 
+
+The details of the API can be seen in the API documentation.
+
+\section{Implementation}
+
+% Describe here important low-level details. Only details about complex
+% problems that require ``smart solution'' should be treated.  Do not
+% describe every single detail of the implementation when that follows from
+% the specification/design in a straightforward manner.
+
+\subsection{Program}
+\label{ssec:prog-imp}
+
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/ProcedureLookup.eps,width=0.55\textwidth}}
+  \caption{Efficient procedure lookup by means of procedure table.}
+  \label{fig:proc-table}
+\end{figure}
+
+\paragraph{Instruction lookup.}
+Instruction lookup by \verb|instructionAt()| is implemented by means of a
+simple helper structure.  This structure is a simple vector of
+address-procedure pairs (see Figure~\ref{fig:proc-table}).  A specialised
+binary search algorithm allows to lookup the procedure that \emph{should}
+contain the instruction at the requested address. This search algorithm
+doesn't look for a perfect match, but for the procedure with the highest
+start address that is smaller or equal to the requested address.  The
+request is then delegated to the procedure thus found.
+
+\paragraph{Delegations.}
+
+\emph{Program} delegates most of the work at level of single instructions to
+the \emph{Procedure} instance that is affected by the operation.  The
+program API is merely a convenience shortcut.
+
+\paragraph{Automatic Relocations.}
+
+Insert and remove
+%
+\note{PENDING: \ref{ch:pending:edit-prog}}
+%
+operations are very expensive.  They require adjustment of references to
+instructions (and, in some cases, symbols) throught the program code and
+data.
+
+\paragraph{Inserting and removing procedures.}
+
+When a procedure is removed from a program, it is unregistered from it.
+Unregistration is a complex operation:
+\begin{enumerate}
+\item %
+  All instruction following the removed procedures are relocated to ``fill
+  the empty area'' left by the removed procedure.  All references to
+  relocated instructions, in turn, are adjusted.  This work is not different
+  from what described for removing single instructions.
+
+\item %
+  All program symbols that are referenced by the unregistered procedure are
+  duplicated into a procedure-owned scope hierarchy tree.  Symbol
+  duplication involves a rather unusual step: the global and the unit scopes
+  (Section~\ref{ssec:scope-if}) are created and filled with a subset of the
+  original symbols owned by the program.  Thus, even if an independent
+  procedure defines only procedure and local scopes, it actually owns also a
+  copy of unit and global scopes.
+%
+  These duplications ensure that a procedure, once unregistered, is
+  completely independent from its original program.
+\end{enumerate}
+
+\subsection{Procedure}
+\label{ssec:proc-imp}
+
+\paragraph{Relocation workflow.}
+
+\emph{Procedure} is responsible for maintaining the instruction stream.
+This means that it must: (1) Relocate instructions as a consequence of
+insertion or removal; (2) Adjust addresses of references to relocated
+instructions.
+
+However, changes to instructions of a procedure affect the entire program.
+A procedure has no knowledge or control over other procedures.  Procedures
+are owned by \emph{Program}.  Thus, when a procedure modifies the
+instruction it owns, it must notify its program (if any) that other
+procedures should update their state according to the modifications.
+
+\paragraph{Instruction lookup.}
+
+Instruction lookup is implemented with a constant-time algorithm using a
+helper data structure.
+
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/InstructionLookup.eps,width=0.55\textwidth}}
+  \caption{Constant-time instruction lookup by means of instruction table. The table shown in the example applies to instruction words with  variable-length encoding: 5 or 10 MAU's.}
+  \label{fig:instr-table}
+\end{figure}
+
+The helper data structure is a table of instruction references (see
+Figure~\ref{fig:instr-table}).
+%
+Unlike for the procedure table used by \emph{Program}, the instruction is
+not looked up by a binary search algorithm.  Instead, the requested address
+is converted into a table index and the \emph{Instruction} is retrieved by
+direct access.
+
+The Address is converted to an index as follows:
+\begin{equation}
+  \label{eq:addr-to-index}
+  \textrm{index} = (\textrm{address} - \textrm{startAddr}) / m.
+\end{equation}
+
+Where \emph{m} the alignment of legal instruction addresses, expressed in
+MAU's.  In practice, \emph{m} is the minimal number of MAU's taken by a TTA
+instruction.
+
+\emph{Example.} Given an instruction memory addressed by 8-bit words (bytes)
+and fixed-size instruction words 134-bit long (17 bytes, aligned to 18), the
+value of \emph{m} is 18.
+
+This lookup mechanism supports even variable-length TTA instruction
+%
+\note{FUTURE EXTENSION}
+%
+encodings, at the price of reserving ``illegal'' table slots for all
+potentially legal instruction addresses that fall in the middle of a long
+instruction.  This price may be significant, when the maximum common
+denominator of the allowed instruction widths (in MAU's) is small.
+
+\emph{Example.} Given the instruction memory of previous example, suppose
+that now instructions are variably-encoded, and that three bit width are
+possible for instruction words: 40, 80 and 140 bits, that is, 5, 10, and 18
+bytes.  The mcd of 5, 10, 18 is 1, so \emph{m} is 18 times smaller than in
+the case of a fixed-size instruction 18 bytes long, and the lookup table is
+18 times bigger.
+
+In practice, cases of small mcd between different instruction word widths
+are unlikely, since variable-length encodings tend to be multiple of a large
+word.
+
+\paragraph{Address adjustment.}
+
+Address adjustment is the process of updating addresses that refer to
+relocated locations (instructions or data words).
+
+Address adjustment is split in two parts:
+\begin{enumerate}
+\item Adjustment of references in instructions.
+\item Adjustment of addresses stored in data words.
+\end{enumerate}
+
+\emph{Procedure} is responsible for adjusting the addresses contained in
+instructions.  For adjustment of addresses stored in data words, see
+Section~\ref{ssec:prog-imp}.
+
+An address stored in an instruction may point to another instruction or to a
+data addresses.
+
+\subsection{Instruction}
+\label{ssec:instr-imp}
+
+\emph{Program} and \emph{Procedure} appear to have the same control over the
+instruction stream that forms the program.
+%
+At level of implementation however, instructions are owned and directly
+controlled by procedures.  This requires some coordination between
+\emph{Program} and \emph{Procedure}, as described in
+Section~\ref{ssec:proc-imp}.
+
+
+\paragraph{Discussion.}
+
+Compared with an implementation whereby all instructions are directly
+managed by \emph{Program}, leaving ownership instructions to single
+procedures has several advantages: (1) more efficient object hierarchy (less
+expensive instruction lookups, for example); (2) possibility to define two
+levels of program update: one coarse-grained (entire procedure unaffected or
+relocated), one fine-grained (instruction stream locally modified); (3)
+simplified procedure cloning; (4) straightforward support for unregistered
+procedures; (5) supports ``empty areas'' between procedures gracefully.
+
+The only evident disadvantage of procedure ownership is that it makes
+implementation of the ``flat instruction list'' interface that a program
+provides to clients more expensive.
+
+\subsection{Move}
+\label{ssec:move-imp}
+
+\paragraph{Managing instruction references.}
+
+A crucial problem is managing cross references between moves and
+instructions.  When a move is removed from the containing program (for
+example, when an instruction is unregistered from its procedure), it is not
+anymore under the responsibility of it.  It is important that no reference
+between unregistered instruction and other object exist, since there is no
+efficient way to maintain these references up to date.
+
+To avoid bookkeeping activity whenever either the move containing the
+reference or the referenced instruction are removed from the program, all
+references are maintained in symbolic form.
+
+Moves and instructions contain indirect references to other instructions or
+data object, called address expressions (see \emph{AddresssExpression},
+section~\ref{ssec:symexpr-if}).
+
+When a move that contains a reference to another instruction (target of a
+control flow transfer) is removed from its procedure, no reference
+bookkeeping is necessary. The address expression that represents the target
+instruction contains only a symbolic reference to a code label (and its
+scope) by means of a name string and, optionally, an offset.
+
+When the move that contains a reference to a target instruction is
+registered, the \emph{Move} class allows to automatically lookup the
+instruction object from the symbolic reference.  Moves contain a pointer to
+the parent procedure, which in turn contains pointers to the scopes.  Thus,
+a move can search the parent scopes for the code label, and the parent
+program for the target instruction corresponding to such label.
+
+This design ensures that, if the move is registered back into the procedure,
+the instruction reference becomes valid again without any need for
+adjustment.
+
+\paragraph{Support for segmented busses.}
+
+The moves internally contain references to the first and the last bus
+segment used by the move. This makes it possible to later add full support
+for segmented busses without having to change the bulk of the
+implementation. The transport bus of a move is either stored in a separate
+data member (with invariant that the bus is always the parent of the source
+and destination segment) or simply retrieved from the segments. In the
+latter case, the API of MOM is used.
+
+\subsection{Labels}
+\label{ssec:label-imp}
+
+Label objects do not contain their address. The address of a label (and its
+address space) is stored in the owning \emph{Scope}. Labels are thus little
+more than strings. See Section~\ref{ssec:scope-imp} for details.
+
+\subsection{Code Labels}
+\label{ssec:clabel-imp}
+
+\paragraph{Managing multiple code labels.}
+Source program may contain several compiler-generated code labels that
+represents the same instruction address. POM handles multiple equivalent
+code labels as all valid alternatives for referring to the same instruction
+address. Clients can refer to an instruction by one of its labels, it does
+not matter which. When an instruction does not have a label, explicit
+construction is required.
+
+The main drawback of supporting multiple labels is that looking up all
+equivalent code labels is complicated. POM does not provide methods to
+lookup every code label pointing at a given instruction. Clients need to
+scan through scopes and search for labels. However, such functionality is
+needed very rarely, probably only by debugging tools.
+
+\subsection{Symbolic Expressions}
+\label{ssec:sym-expr-imp}
+
+For program models built out of TPEF files, the data for symbolic
+expressions comes from symbol tables and relocation tables. Symbolic memory
+addresses thus created are simple label references (base addresses) attached
+to immediate source fields of moves (inline immediates) or \emph{Immediate}
+objects (long immediates).
+
+After dataflow analysis, symbolic expressions can be propagated, as shown in
+the example in Section~\ref{ssec:symexpr-if}. As a result, the final
+symbolic expressions that represent address of memory operations are
+obtained, and can be used for memory analysis.
+
+Propagating symbolic expressions implies some knowledge about operations
+`ADD', `SUB' and `MUL', and precise assumptions about their behaviour (2's
+complement integer arithmetics with bit width sufficient for expressing any
+legal address of the target memory being accessed).
+
+The amount of symbolic information stored in POM depends on the needs of the
+client application. Clients that do not make use of symbolic expressions
+just maintain the simple label references created during POM construction.
+Maintenance requires little action, since the API of \emph{Move} and
+\emph{Immediate} automatically copies symbolic expressions. Clients that
+require extensive symbolic information, on the contrary, must propagate and
+then maintain symbolic expressions for intermediate subexpressions that
+occur during computation of a memory address.
+%
+\note{PENDING: TPEF support for complex symbolic expressions,
+  \ref{ch:pending:tpef-sym-expr}}
+
+\subsection{Scopes}
+\label{ssec:scope-imp}
+
+Scopes are basically specialised containers of labels and data definitions.
+
+\paragraph{Label lookup.}
+Labels are stored in containers indexed by the address of the label. This
+allows efficient relocation of labels.
+
+\note{if fast lookup of labels by name is also required, a helper map with
+  string names as keys and label references as ``payload'' could be used}
+
+A scope can contain data labels for locations in different address
+spaces. Since it is redundant and inefficient to store the address
+space reference for every label address in the same address space, the label
+containers are organised in a hierarchy and indexed by their address space.
+%
+\begin{figure}[tb]
+  \centerline{\psfig{figure=eps/LabelContainers.eps,width=0.60\textwidth}}
+  \caption{Hierarchy of label containers in a scope.}
+  \label{fig:label-containers}
+\end{figure}
+%
+Figure~\ref{fig:label-containers} illustrates the hierarchy of containers
+that stores and maintains the labels of a scope. The address space of the
+instruction memory is a special data member of the scope class.
+
+
+
+\section{Error Handling}
+
+% How are errors handled? What is considered internal and what is considered
+% external source of errors? What is handled by throwing exceptions and what
+% by assertions? What are the
+
+
+\chapter{PROGRAM INPUT OUTPUT MODULE}
+
+
+\section{Overview}
+
+The program object model is not read directly from the external TPEF file.
+Instead, it is constructed out of the TCE object model of a TPEF file
+created by the Binary Handling Module~\cite{TPEF-design}.  This is the task
+of the program builder.  Similarly, creating the binary file from the
+program is not a responsibility of the program model.  A client domain
+module \emph{ProgramWriter} scans the program objects and translates them
+into a \emph{Binary} object hierarchy.
+
+The input/output module is the only module of the domain library that
+depends from (and includes the headers of) both TPEF Binary Handling Module
+and Program Object Model.
+
+\section{Interfaces}
+
+\subsection{Program Input Module}
+
+The TPEF program builder \emph{TPEFProgramFactory} is the domain class
+responsible for translating a TPEF binary object model into a TTA program
+object model.
+
+The program builder is a client of TPEF binary module and scans only the
+following sections:
+\begin{enumerate}
+\item %
+  Code, Data and other program sections.
+\item %
+  Symbol sections and relocation sections (for symbolic information).
+\item %
+  Address space section.
+\item %
+  Machine resource section.
+\end{enumerate}
+
+All other TPEF sections are ignored.
+\note{PENDING: \ref{ch:pending:aux-sections}}
+
+In addition, the program builder depends also on the Machine Object Model
+(MOM) of the target processor of the application being scanned.
+
+Just like the program builder is not responsible for loading a TPEF file, it
+is not responsible for loading the target processor object model.  The
+client of program builder feds complete \emph{Machine} and \emph{Binary}
+(the root classes of MOM and Binary Handling Module, respectively) to the
+program builder.
+
+The \emph{Program} instance returned by the builder is owned by the client
+that requested construction and must be deallocated by it when out of use.
+
+The methods implemented by the program builder are:
+\begin{description}
+\item[build(machine : const Machine\&, binary : const Binary\&) : Program*]%
+  Construct and return the program object model for the TTA program
+  contained in given binary. The program is targeted for the TTA processor
+  defined by \emph{machine}.
+\item[build(binary : const Binary\&) : Program*]%
+  Construct and return the program object model for the TTA program
+  contained in given binary. The program is unscheduled. The target
+  architecture is an implied ``universal machine''.
+\end{description}
+
+\subsubsection{Limitations of Input TPEF Files}
+
+A program is uniquely defined by an address space and a nonoverlapping
+address range.  A program can be spread over several TPEF code sections.
+
+While TPEF does not force special restriction on the number of program
+sections, their address ranges and their address space, the TPEF program
+builder can only handle TPEF files that satisfy the following restrictions:
+\begin{enumerate}
+\item %
+  Code sections must all belong to the same address space.
+\item %
+  The address range of any code section must not overlap with the address
+  range of another code section (in fact, with any other program section).
+\end{enumerate}
+
+\subsection{Program Output Module}
+
+Output of a TTA program into external TPEF file is implemented by
+\emph{ProgramWriter}, a client module of POM and the Binary Handling Module.
+
+
+The sole method implemented by the program output module is:
+\begin{description}
+\item[Binary* build(prog : const Program\&)]
+\end{description}
+
+\chapter{REJECTED ALTERNATIVES}
+
+\begin{description}
+\item[14.08.2004 --- Impossible Program Relocation] %
+  When relocation of parallel TTA code in a program fails, the possibility
+  to return a failure Boolean flag true was rejected.  Returning a flag is
+  dangerous, because clients tend to ignore status flags when the successful
+  outcome is by far the most common.  A client may be designed at a time
+  when no relocation failure is possible at all.
+
+  The alternative, throwing an exception is rather safe, because a client
+  that does not make provision for relocation failures will safely abort.
+  On the other hand, relocation failure is not, conceptually speaking, an
+  exceptional condition.
+
+\item[14.08.2004 --- Managing Stray Labels] %
+  When a procedure is removed from a program, it is not safe to remove any
+  label unless a check is performed to verify that no other procedure refers
+  to the labels in question.  The choice of having the Program Object Model
+  actively maintaining the structures ``clean'' by removing the unused
+  labels is rejected because too expensive and even lossy.  POM is not
+  responsible to decide which labels should be removed, even if they are
+  unused.
+
+\item[06.12.2004 --- Management of Multiple Code Labels] %
+  A source program may contain several compiler-generated code labels that
+  refer to the same instruction address. Two possible strategies for
+  managing multiple labels for the same instruction have been rejected:
+  \begin{enumerate}
+  \item %
+    Program builder normalises label information by destroying all but one
+    label referring to the same instruction (and redirecting all references
+    to other labels to the ``survivor''. Advantage of this approach is that
+    it is guaranteed that there is only one label for each instruction.
+    Main disadvantage of this approach is that POM becomes ``lossy'', since
+    some source data may be lost forever.
+  \item%
+    POM handles multiple labels only internally, as debugging information
+    for users. Labels are completely banned from POM API: all methods that
+    refer to an instruction require an \emph{Instruction} reference, not a
+    code label. Advantage of this approach is that is does not require
+    explicit or automatic creation of labels. POM could even prohibit
+    creation of labels (probably not a good idea). The main disadvantage of
+    this approach is that lookup of any code label becomes awkward.
+  \end{enumerate}
+
+\item[07.12.2004 --- Automatic code label generation] %
+  Force every move that refers to a target instruction (contains an indirect
+  symbolic reference), to refer to a code label without offset.  If the
+  original program does not contain a label for a target instruction, it is
+  necessary to create it.
+
+  Rejected for two reasons: (1) the address expressions of moves provide
+  offsets, so support is present and creation of new labels is not strictly
+  necessary; (2) automatic creation of labels is expensive because it
+  requires to allocate and manage more small objects.
+\end{description}
+
+
+
+\chapter{IDEAS FOR FURTHER DEVELOPMENT}
+
+These ideas are not part of the design yet, but might be added in the
+future are listed here.
+
+\begin{description}
+
+\item[09.06.2004] --- Program builder support for multiple programs
+
+  \emph{TPEFProgramFactory} could be extended so as to support multiple
+  programs stored in a single TPEF file.  Currently, it seems unlikely that
+  such feature is really needed.
+
+  A possibilty could be to provide a method to build a program given a TPEF
+  \emph{CodeSection} instead of an entire \emph{Binary}.
+
+\item[14.08.2004] --- Interface for control-flow information
+
+  Even if POM does not organise the program abstraction at level of basic
+  blocks, some information about control flow (and thus basic blocks) is
+  readily available at the time the input data source is read.  This
+  information could be preserved and made available to clients by means of
+  two methods:
+  \begin{description}
+  \item[bool isLeader(const Instruction\&)]%
+    Return true if the given instruction is the entry point of a basic
+    block, false if it is inside a basic block.
+  \item[const Instruction\& leader(const Instruction\&)]%
+    Return the entry point of the basic block (leader) that contains given
+    instruction.  If the given instruction is the leader, return it.
+  \end{description}
+
+\item[25.11.2004] --- Support for nested procedure scopes
+
+  Certain high-level languages allow for procedure definitions to be nested.
+  Since each procedure defines its own scope, support for these languages
+  requires that \emph{ProcedureScope} can be nested.
+
+\item[23.12.2004] --- Instruction interface for segmented busses
+
+  A possible interface for supporting segmented busses is:
+  \begin{description}
+  \item[move(mb : Bus, index : int) : Move\&]%
+    Retrieve the move number \emph{index} in the list of moves programmed
+    onto the segments of bus \emph{mb}.
+  \end{description}
+
+\item[28.12.2004] --- Richer \emph{CodeSnippet} interface
+
+  The interface of \emph{CodeSnippet} is currently very simple. It could be
+  extended to let clients add and remove instructions in any position of the
+  sequence.
+
+\item[14.10.2005] --- Move guards treated as terminals
+
+  Extend the \emph{MoveGuard} class so that the term of the guard expression
+  can be treated as a register or (output) FU port terminal. There are many
+  details in this design idea that can vary. See
+  Section~\ref{ch:pending:move-guards} for possible variations.
+\end{description}
+
+\chapter{PENDING ISSUES}
+
+\section{Maintaining TPEF Sections not Directly Needed for Program}
+\label{ch:pending:aux-sections}
+
+Certain sections of TPEF files (for example, profile sections, debugging
+data sections, ADF section) are not necessary for Program Object Model.
+However, some of these sections may be affected by transformations that
+change the program.
+
+This means that there must be some coordinating entity that keeps track of
+TPEF auxiliary sections not directly used for building the program object
+model (and thus, not recreated by the program output module).  Such
+coordinator must either be able to update the information of such auxiliary
+sections or mark them as obsolete and prevent their storage on TPEF external
+file.
+
+Who is in charge for developing the section maintainers? The same persons
+who design the concrete specialisation of TPEF \emph{Section}.
+
+The main stumbling block for the design of a section maintainer framework is
+to define how information about the program model changes is conveyed to the
+maintainer. Information should make it possible to capture the following
+cases (in parenthesis, the cases that affect the control flow of the
+program):
+\begin{enumerate}
+\item%
+  Insertion of instructions (insertion of control flow transfers).
+\item%
+  Modification of instructions (modification of target addresses).
+\item%
+  Deletion of instructions (deletion of control flow transfers).
+\end{enumerate}
+Relocation of a piece of code could be treated as a deletion/insertion
+pair.
+
+\paragraph{Profile Section.}
+Profile section is an example of how much profitable and important section
+maintenance can be. Maintenance of a section profile as the program control
+flow is modified (due to code transformations or scheduling) is orders or
+magnitude faster than redoing a long simulation.
+
+\section{Efficiency of Inserting and Removing Instructions}
+\label{ch:pending:edit-prog}
+
+As currently described, operations that modify the instruction stream
+(insert or remove instructions) are very expensive.  All TTA instructions of
+the entire program are potentially affected.
+
+Instructions (and, if sharing the same address space, data words) that
+follow the point of the modification have their addresses relocated.  In
+turn, all references to such relocated addresses (both in program code and
+program data) need adjustment.
+
+If no elegant solution to this problem exists, then clients should be aware
+of efficiency and work consequently.  For example, a client that is building
+a new procedure should keep it unregistered from the destination program
+until the code modifications are completed.  This would minimise the work
+needed to update references throughout the program.
+
+\section{Handling of Addressing Modes}
+\label{ch:pending:addr-modes}
+
+Except for the trivial case of absolute addressing, the value of a constant
+operand (immediate) may bear no direct relation with the address of the
+target instruction.  For example, in the following piece of code containing
+a PC-relative jump
+\begin{verbatim}
+0x100   add.r -> r12;
+0x101   b1: -1 -> jumpr.t;  // if b1 then jump to PC - 1
+\end{verbatim}
+the immediate value $-1$ is not an address, and has only an indirect
+relation with the absolute address 0x100 of the target instruction.
+
+A simple and unflexible solution to this problem is to make the Program
+Object Model addressing-conscious, as far as that is required for computing
+effective addresses.  This means that, if a user devises a new control
+transfer operation, he must also update POM implementation, even if the new
+operation uses one of the existing addressing modes, simply because POM does
+not ``know'' about the new operation.  This solution destroys must of the
+flexibility offered by OSAL, and is unacceptable.
+
+Better solutions require to encapsulate addressing modes in special classes.
+The Program Object Model has no built-in knowledge about the addressing
+modes, all knowledge is stored in addressing mode classes and is accessible
+through the class API.  For example, given an object that represents
+PC-relative addressing mode,
+\begin{verbatim}
+  PCRel.effectiveAddress(-1, 0x101)
+\end{verbatim}
+gives (obviously) the address 0x100.
+
+The problems of this solutions are:
+\begin{enumerate}
+\item %
+  Who creates the addressing mode classes? Only single operations that have
+  operands that are addresses can know which specific addressing mode should
+  be instantiated. This creates and additional burden for the OSAL operation
+  designer.
+\item %
+  The API of addressing mode classes puts a clear limitation for what new
+  addressing modes can actually be defined.  For example, the API must
+  certainly require the PC value in order to correctly compute the effective
+  address of PC-relative jumps.  What if an addressing mode uses a given
+  register as base address?
+\end{enumerate}
+
+Notice that this problem is actually serious only for addressing modes that
+define static effective addresses, such as, for example, PC or page relative
+addressing modes.  Modes that use, for example, the value of a register as a
+base address
+\begin{verbatim}
+  0x500 -> setbase.t; // set base address of a special addressing mode
+  ...
+  72 -> ldbaserel.t;  // load word at address (base)+72
+\end{verbatim}
+are generally known only at run time, so the services of an
+addressing mode class are not required.
+
+A brutal solution of all these problems is to clearly restrict addressing to
+a predefined set including only absolute, PC and page relative modes.
+
+\section{Dependency on MOM API}
+\label{ch:pending:MOM-api-dep}
+
+POM should not depend on the API of MOM, but only contains references to MOM
+objects. For this POM methods as shortcuts of MOM methods must be ruled out.
+However, certain POM services may require, to be implemented, to internally
+use MOM objects. For example, \emph{Program} probably uses
+\emph{AddressSpace} to perform certain tests on the range of program's
+addresses. In that case, the dependency on MOM must be accepted.
+
+\section{Restrictions on the Scope of Code Label}
+\label{ch:pending:clab-restrict}
+
+Only a special type of \emph{CodeLabel}, the \emph{ProcedureLabel}, can be
+stored in a unit scope. Is this a reasonable restriction? It stems from
+typical use of jump target labels in high level languages, but nothing
+fundamental restricts a jump operation of a procedure from jumping into
+another procedure.
+
+\section{TPEF Support for Complex Symbolic Expressions}
+\label{ch:pending:tpef-sym-expr}
+
+TPEF supports simple symbolic expressions (in form of references to symbol
+table entries that label base addresses). However, computing intermediate
+and final symbolic address expressions for a memory access requires a
+nontrivial amount of work (dataflow analysis, expression propagation) and
+\emph{ad-hoc} knowledge (operations `ADD', `SUB', `MUL').
+%
+For this reason, it is profitable to provide TPEF support for storing and
+retrieving symbolic information about of intermediate sub-expressions and
+final expressions attached to memory addresses.
+
+TPEF annotations to elements of the code section are flexible and powerful
+enough to express symbolic expressions of arbitrary complexity. For example,
+symbolic expression: `$4\cdot S + 32$' could be stored as a stack of terms
+and operators in a 5-element annotation. The stack would consist of the
+following elements:
+
+\begin{tabular}[h]{cll}
+position & element  & description\\
+\hline
+ 1     & 4        & integer constant, stored ``as is''\\
+ 2     & \emph{S} & label `S', stored as reference to symbol table entry\\
+ 3     & MUL      & multiplication operator, stored as reserved code\\
+ 4     & 32       & integer constant, stored ``as is''\\
+ 5     & ADD      & sum operator, stored as reserved code\\
+\end{tabular}
+
+\section{Move Guards as Terminals}
+\label{ch:pending:move-guards}
+
+\emph{MoveGuard} design as an empty wrapper to \emph{Guard} provides only an
+objectified guard reference. However, move guards also represent a data use,
+just like the move source does. For this reason, it may be convenient for
+clients to be able to access guard expression terms as terminals.
+
+\paragraph{Example and motivation.}
+
+Let's assume we have a dataflow graph with methods for adding register use
+and definition points to itself, as new nodes. The methods take a
+\emph{Terminal} as input parameter. The following code adds any register use
+and definition points of a move to the dataflow graph `dflowGraph':
+%
+\begin{verbatim}
+    if (move.source().isRegister()) {
+        dflowGraph.addUseNode(move.source());
+    }
+    if (move.destination().isRegister()) {
+        dflowGraph.addDefNode(move.destination());
+    }
+    Guard& g = move.guard().guard(); // get Guard& from MoveGuard&
+    RegisterGuard& rg = dynamic_cast<RegisterGuard*>(&g);
+    if (rg != NULL) {
+        RegisterFile& gRf = rg.registerFile();
+        Port* gRfPort = NULL;
+        // find a valid output port
+        while (int n = 0; n < gRf.portCount()) {
+            if (gRf.port(n).outputSocket() != NULL) {
+                gRfPort = gRf.port(n);
+            }
+        }
+        assert(gRfPort != NULL);
+        // create a pseudo-terminal
+        RegisterTerminal* gTerm;
+        gTerm = new RegisterTerminal(gRfPort, gRf.registerIndex());
+        dflowGraph.addDefNode(*gTerm);
+        delete gTerm; // works assuming dflow graph makes local copies
+     }
+\end{verbatim}
+
+There are, at least sometimes, valid alternatives to this solution that do
+not require changes to move guard interface. For example, if the dataflow
+graph can be extended, it could provide another method for adding use
+points. The client code is then somewhat simplified. The part that processes
+the move guard becomes:
+%
+\begin{verbatim}
+    Guard& g = move.guard().guard(); // get Guard& from MoveGuard&
+    RegisterGuard& rg = dynamic_cast<RegisterGuard*>(&g);
+    if (rg != NULL) {
+        RegisterFile& gRf = rg.registerFile();
+        int gRegIndex = rg.registerIndex();
+        dflowGraph.addUseNode(gRf, gRegIndex);
+    }
+\end{verbatim}
+
+In any case, a downcast is necessary and client code is arguably awkward and
+less intuitive. Compare this with one client code for the equivalent task
+given one of the alternative designs described below:
+%
+\begin{verbatim}
+    if (move.source().isRegister()) {
+        dflowGraph.addUseNode(move.source());
+    }
+    if (move.destination().isRegister()) {
+        dflowGraph.addDefNode(move.destination());
+    }
+    if (move.guard().term().isRegister()) {
+        dflowGraph.addUseNode(move.guard().term());
+    }
+\end{verbatim}
+
+\paragraph{Pure terminal vs. additional member.}
+
+Terminal representation for move guard terms can be implemented in two ways:
+\begin{enumerate}
+\item %
+  The \emph{MoveGuard} is replaced by new types of terminals.
+\item %
+  Existing \emph{MoveGuard} is augmented with a terminal member. This member
+  provides access to all terminal-like properties of a guard expression
+  (term): register index or port, register file or function unit. The
+  invert bit property is either wrapped in \emph{MoveGuard} (forwarded from
+  \emph{Guard}) or simply left out.
+\end{enumerate}
+
+The main drawback of the first approach is that we heavily overload the
+terminal concept. We have to provide invert bit access and modification,
+which do not belong to the concept of terminal.
+
+\paragraph{New guard terminal types vs. reuse of existing terminals.}
+
+Using \emph{Terminal} as representation of guard expression terms in a
+program's moves leaves another open problem. Unlike in usual register and FU
+port terminals, registers and FU ports of a guard term are not read through
+a port and a socket of the programmable transport network. Thus, the port
+member of their terminal subclasses is not applicable. There are two main
+solutions to this problem:
+\begin{enumerate}
+\item %
+  Reuse and extend the meaning of \emph{TerminalRegister} and
+  \emph{TerminalFUPort} classes. When their port is undefined (null object),
+  it means that the port is not relevant (unassigned terminal in sequential
+  code) or not applicable (guard term).
+\item %
+  Define two further specialisations of \emph{TerminalRegister} and
+  \emph{TerminalFUPort} classes, respectively: \emph{TerminalGuardRegister}
+  and \emph{TerminalGuardFUPort}. These can be used as their immediate
+  parent classes, but override the port access members.
+\end{enumerate}
+
+The main drawback of the first solution is that it muddles the meaning of
+register and FU port terminals, and that it requires a new constructor for
+the port-less case. Another drawback is that returning a null object can
+create inconsistent program state and unexpected errors if client forgets to
+test for non-null condition and the port is null. This can lead to
+hard-to-track errors, occurring in parts of code seemingly unrelated with
+the place where the port of a terminal was accessed.
+
+The main drawback of the second solution is that it requires an
+\emph{isGuardTerm} method or it requires a downcast when a client must test
+whether a given terminal is a guard term or not.
+
+
+
+\chapter{MAINTENANCE}
+
+% This chapter treats the problem of extending the design with new
+% capabilities that fit in a predefined framework.
+
+% Remove this chapter no obvious and standardised way to extend the design
+% with new capabilities exists.
+
+
+% ------------------------------------------------------------------------
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: auto-fill
+%%% TeX-master: t
+%%% End:

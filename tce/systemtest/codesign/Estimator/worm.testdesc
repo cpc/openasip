@@ -1,0 +1,7 @@
+<?php
+// short test description
+$test_description="Estimation of costs of the simple Worm test case";
+
+// the binary being tested
+$test_bin="../../../src/codesign/Estimator/estimate -p data/worm.tpef -t data/worm.tpef.trace data/worm.adf data/worm.idf";
+?>

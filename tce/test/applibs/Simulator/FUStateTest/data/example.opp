@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<osal version="0.1">
+
+	<operation>
+		<name>TESTADD</name>
+		<inputs>2</inputs>
+		<outputs>1</outputs>
+	</operation>
+
+	<operation>
+		<name>TESTSUB</name>
+		<inputs>2</inputs>
+		<outputs>1</outputs>
+	</operation>
+
+	<operation>
+		<name>TESTMUL</name>
+		<inputs>2</inputs>
+		<outputs>1</outputs>
+	</operation>
+
+	<operation>
+		<name>TESTSTORE</name>
+		<inputs>2</inputs>
+		<outputs>0</outputs>
+	</operation>
+
+	<operation>
+		<name>TESTLOAD</name>
+		<inputs>1</inputs>
+		<outputs>1</outputs>
+	</operation>
+
+</osal>

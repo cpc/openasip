@@ -1,0 +1,357 @@
+//
+// TCE Baseopset instruction information.
+//
+// Author: Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel@cs.tut.fi)
+//
+
+
+include "TCEInstrFormats.td"
+
+
+// ----- Addressing modes. -----
+
+// base + offset (e.g. label + offset).
+def ADDRrr : ComplexPattern<i32, 2, "SelectADDRrr", [], []>;
+// frameindex + offset (simplifies some stack code generation).
+def ADDRri : ComplexPattern<i32, 2, "SelectADDRri", [frameindex], []>;
+
+def calltarget : Operand<i32>;
+
+def MEMrr : Operand<i32> {
+    let PrintMethod = "printMemOperand";
+    let MIOperandInfo = (ops I32Regs, I32Regs);
+}
+
+def MEMri : Operand<i32> {
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops I32Regs, i32imm);
+
+}
+
+
+
+
+// ----- Call pseudo instructions -----
+
+// These are target-independent nodes, but have target-specific formats.
+def SDT_TCECallSeq : SDTypeProfile<0, 1, [ SDTCisVT<0, i32> ]>;
+def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_TCECallSeq,
+                           [SDNPHasChain, SDNPOutFlag]>;
+
+def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_TCECallSeq,
+                           [SDNPHasChain, SDNPOutFlag]>;
+
+def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
+def call           : SDNode<"TCEISD::CALL", SDT_TCECall,
+                           [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
+
+
+
+// ==========================================================
+//  SELECT
+//  Selects between two values based on true/false condition
+//  and puts the selected value in result register.
+//  Expanded by the scheduler into a branch sequence.
+// ==========================================================
+
+def SDT_TCERetFlag : SDTypeProfile<0, 0, []>;
+def retflag : SDNode<"TCEISD::RET_FLAG", SDT_TCERetFlag,
+	             [SDNPHasChain, SDNPOptInFlag]>;
+
+def SDT_TCESelect : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
+                                         SDTCisSameAs<1, 2>,
+                                         SDTCisVT<3, i32>]>;
+
+def TCEselectI1 : SDNode<"TCEISD::SELECT_I1", SDT_TCESelect, []>;
+def TCEselectI8 : SDNode<"TCEISD::SELECT_I8", SDT_TCESelect, []>;
+def TCEselectI16 : SDNode<"TCEISD::SELECT_I16", SDT_TCESelect, []>;
+def TCEselectI32 : SDNode<"TCEISD::SELECT_I32", SDT_TCESelect, []>;
+def TCEselectI64 : SDNode<"TCEISD::SELECT_I64", SDT_TCESelect, []>;
+def TCEselectF32 : SDNode<"TCEISD::SELECT_F32", SDT_TCESelect, []>;
+def TCEselectF64 : SDNode<"TCEISD::SELECT_F64", SDT_TCESelect, []>;
+
+let usesCustomDAGSchedInserter = 1 in {    // Expanded by the scheduler.
+
+  def SELECT_I1 : Pseudo<"PSEUDO", (outs I1Regs:$dst),
+                          (ins I1Regs:$T, I1Regs:$F, I32Regs:$c),
+                          "# SELECT_I1 PSEUDO!",
+                          [(set I1Regs:$dst,
+                           (TCEselectI1 I1Regs:$T, I1Regs:$F, I32Regs:$c))
+                          ]>;
+
+  def SELECT_I8 : Pseudo<"PSEUDO", (outs I8Regs:$dst),
+                          (ins I8Regs:$T, I8Regs:$F, I32Regs:$c),
+                          "# SELECT_I8 PSEUDO!",
+                          [(set I8Regs:$dst,
+                           (TCEselectI8 I8Regs:$T, I8Regs:$F, I32Regs:$c))
+			  ]>;
+
+  def SELECT_I16 : Pseudo<"PSEUDO", (outs I16Regs:$dst),
+                          (ins I16Regs:$T, I16Regs:$F, I32Regs:$c),
+                          "# SELECT_I16 PSEUDO!",
+                          [(set I16Regs:$dst,
+                           (TCEselectI16 I16Regs:$T, I16Regs:$F, I32Regs:$c))
+                          ]>;
+
+  def SELECT_I32 : Pseudo<"PSEUDO", (outs I32Regs:$dst),
+                          (ins I32Regs:$T, I32Regs:$F, I32Regs:$c),
+                          "# SELECT_I32 PSEUDO!",
+                          [(set I32Regs:$dst,
+                           (TCEselectI32 I32Regs:$T, I32Regs:$F, I32Regs:$c))
+                          ]>;
+
+  def SELECT_I64 : Pseudo<"PSEUDO", (outs I64Regs:$dst),
+                          (ins I64Regs:$T, I64Regs:$F, I32Regs:$c),
+                          "# SELECT_I64 PSEUDO!",
+                          [(set I64Regs:$dst,
+                           (TCEselectI64 I64Regs:$T, I64Regs:$F, I32Regs:$c))
+                          ]>;
+
+  def SELECT_F32 : Pseudo<"PSEUDO", (outs F32Regs:$dst),
+                          (ins F32Regs:$T, F32Regs:$F, I32Regs:$c),
+                          "# SELECT_F32 PSEUDO!",
+                          [(set F32Regs:$dst,
+                           (TCEselectF32 F32Regs:$T, F32Regs:$F, I32Regs:$c))
+                          ]>;
+
+  def SELECT_F64 : Pseudo<"PSEUDO", (outs F64Regs:$dst),
+                          (ins F64Regs:$T, F64Regs:$F, I32Regs:$c),
+                          "# SELECT_F64 PSEUDO!",
+                          [(set F64Regs:$dst,
+                           (TCEselectF64 F64Regs:$T, F64Regs:$F, I32Regs:$c))
+                          ]>;
+
+}
+
+// =========================
+//  Pseudo instructions
+// =========================
+
+
+let Defs = [SP], Uses = [SP] in {
+
+def ADJCALLSTACKDOWN : Pseudo<"PSEUDO", (outs), (ins i32imm:$amt),
+                               "# ADJCALLSTACKDOWN $amt",
+                               [(callseq_start imm:$amt)]>;
+
+def ADJCALLSTACKUP : Pseudo<"PSEUDO", (outs), (ins i32imm:$amt),
+                            "# ADJCALLSTACKUP $amt",
+                            [(callseq_end imm:$amt)]>;
+
+}
+
+def IMPLICIT_DEF_I1 : Pseudo<"PSEUDO", (outs I1Regs:$dst),
+                              (ins),
+                              "# IMPLICIT_DEF $dst",
+                              [(set I1Regs:$dst, (undef))]>;
+
+def IMPLICIT_DEF_I8 : Pseudo<"PSEUDO", (outs I8Regs:$dst), (ins),
+                              "# IMPLICIT_DEF $dst",
+                              [(set I8Regs:$dst, (undef))]>;
+
+def IMPLICIT_DEF_I16 : Pseudo<"PSEUDO", (outs I16Regs:$dst), (ins),
+                              "# IMPLICIT_DEF $dst",
+                              [(set I16Regs:$dst, (undef))]>;
+
+def IMPLICIT_DEF_I32 : Pseudo<"PSEUDO", (outs I32Regs:$dst), (ins),
+                              "# IMPLICIT_DEF $dst",
+                              [(set I32Regs:$dst, (undef))]>;
+
+def IMPLICIT_DEF_I64 : Pseudo<"PSEUDO", (outs I64Regs:$dst), (ins),
+                              "# IMPLICIT_DEF $dst",
+                              [(set I64Regs:$dst, (undef))]>;
+
+def IMPLICIT_DEF_F32  : Pseudo<"PSEUDO", (outs F32Regs:$dst), (ins),
+                              "# IMPLICIT_DEF $dst",
+                              [(set F32Regs:$dst, (undef))]>;
+
+def IMPLICIT_DEF_F64  : Pseudo<"PSEUDO", (outs F64Regs:$dst), (ins),
+                              "# IMPLICIT_DEF $dst",
+                              [(set F64Regs:$dst, (undef))]>;
+
+
+// =========================
+//  Moves
+// =========================
+
+
+// Int -> Int register move.
+def MOVI1rr : InstTCE<"MOVE", (outs I1Regs:$dst), (ins I1Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI1ri : InstTCE<"MOVE", (outs I1Regs:$dst), (ins i1imm:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI8rr : InstTCE<"MOVE", (outs I8Regs:$dst), (ins I8Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI8ri : InstTCE<"MOVE", (outs I8Regs:$dst), (ins i8imm:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI16rr : InstTCE<"MOVE", (outs I16Regs:$dst), (ins I16Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI16ri : InstTCE<"MOVE", (outs I16Regs:$dst), (ins i16imm:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI32rr : InstTCE<"MOVE", (outs I32Regs:$dst), (ins I32Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI32ri : InstTCE<"MOVE", (outs I32Regs:$dst), (ins i32imm:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI64rr : InstTCE<"MOVE", (outs I64Regs:$dst), (ins I64Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVI64ri : InstTCE<"MOVE", (outs I64Regs:$dst), (ins i64imm:$src),
+	           "$src -> $dst;",
+                   []>;
+
+
+// --- Truncating integer register moves. ---
+def MOVI8I1rr : InstTCE<"MOVE", (outs I1Regs:$dst), (ins I8Regs:$src),
+                     "$src -> $dst;",
+                    [(set I1Regs:$dst, (trunc I8Regs:$src))]>;
+
+def MOVI16I1rr : InstTCE<"MOVE", (outs I1Regs:$dst), (ins I16Regs:$src),
+                     "$src -> $dst;",
+                    [(set I1Regs:$dst, (trunc I16Regs:$src))]>;
+
+def MOVI16I8rr : InstTCE<"MOVE", (outs I8Regs:$dst), (ins I16Regs:$src),
+                     "$src -> $dst;",
+                    [(set I8Regs:$dst, (trunc I16Regs:$src))]>;
+
+def MOVI32I1rr : InstTCE<"MOVE", (outs I1Regs:$dst), (ins I32Regs:$src),
+                     "$src -> $dst;",
+                    [(set I1Regs:$dst, (trunc I32Regs:$src))]>;
+
+def MOVI32I8rr : InstTCE<"MOVE", (outs I8Regs:$dst), (ins I32Regs:$src),
+                     "$src -> $dst;",
+                    [(set I8Regs:$dst, (trunc I32Regs:$src))]>;
+
+def MOVI32I16rr : InstTCE<"MOVE", (outs I16Regs:$dst), (ins I32Regs:$src),
+                     "$src -> $dst;",
+                    [(set I16Regs:$dst, (trunc I32Regs:$src))]>;
+
+def MOVI64I1rr : InstTCE<"MOVE", (outs I1Regs:$dst), (ins I64Regs:$src),
+                     "$src -> $dst;",
+                    [(set I1Regs:$dst, (trunc I64Regs:$src))]>;
+
+def MOVI64I8rr : InstTCE<"MOVE", (outs I8Regs:$dst), (ins I64Regs:$src),
+                     "$src -> $dst;",
+                    [(set I8Regs:$dst, (trunc I64Regs:$src))]>;
+
+def MOVI64I16rr : InstTCE<"MOVE", (outs I16Regs:$dst), (ins I64Regs:$src),
+                     "$src -> $dst;",
+                    [(set I16Regs:$dst, (trunc I64Regs:$src))]>;
+
+def MOVI64I32rr : InstTCE<"MOVE", (outs I32Regs:$dst), (ins I64Regs:$src),
+                     "$src -> $dst;",
+                    [(set I32Regs:$dst, (trunc I64Regs:$src))]>;
+
+def MOVFI32rr : InstTCE<"MOVE", (outs I32Regs:$dst), (ins F32Regs:$src),
+	           "$src -> $dst;",
+                   [(set I32Regs:$dst, (bitconvert F32Regs:$src))]>;
+
+def MOVIF32rr : InstTCE<"MOVE", (outs F32Regs:$dst), (ins I32Regs:$src),
+	           "$src -> $dst;",
+                   [(set F32Regs:$dst, (bitconvert I32Regs:$src))]>;
+
+
+def MOVF32rr : InstTCE<"MOVE", (outs F32Regs:$dst), (ins F32Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+	
+def MOVF32ri : InstTCE<"MOVE", (outs F32Regs:$dst), (ins i32imm:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVF64rr : InstTCE<"MOVE", (outs F64Regs:$dst), (ins F64Regs:$src),
+	           "$src -> $dst;",
+                   []>;
+
+def MOVF64ri : InstTCE<"MOVE", (outs F64Regs:$dst), (ins i64imm:$src),
+	           "$src -> $dst;",
+                   []>;
+
+
+def NOP : InstTCE<"NOP", (outs), (ins), "...;", []>;
+
+
+
+// ----- Immediates -----
+//def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;
+def : Pat<(i32 imm:$val), (MOVI32ri imm:$val)>;
+def : Pat<(i64 imm:$val), (MOVI64ri imm:$val)>;
+
+
+// ----- Global addresses, constant pool entries ------
+def TCEGlobalAddr : SDNode<"TCEISD::GLOBAL_ADDR", SDTIntUnaryOp>;
+def TCEConstPool : SDNode<"TCEISD::CONST_POOL", SDTIntUnaryOp>;
+def : Pat<(TCEGlobalAddr tglobaladdr:$in), (MOVI32ri tglobaladdr:$in)>;
+def : Pat<(TCEGlobalAddr tconstpool:$in), (MOVI32ri tconstpool:$in)>;
+def : Pat<(TCEConstPool tglobaladdr:$in), (MOVI32ri tglobaladdr:$in)>;
+def : Pat<(TCEConstPool tconstpool:$in), (MOVI32ri tconstpool:$in)>;
+
+
+// ============================
+//  Control flow
+// ============================
+
+// Return
+let isReturn = 1, isTerminator = 1, hasDelaySlot = 1 in {
+    def RETL: InstTCE<"jump", (outs), (ins),
+	"return-address -> jump.1; # RETURN", [(retflag)]>;
+}
+
+def : Pat<(ret), (RETL)>;
+
+// jump 
+let isTerminator = 1, isBranch = 1 in {
+    def TCEBRCOND : InstTCE<"?jump", (outs), (ins I32Regs:$gr, i32imm:$dst),
+        "$gr -> bool; ? $dst -> jump.1;", []>;
+
+    def TCEBR : InstTCE<"jump", (outs),
+                        (ins i32imm:$dst), "$dst -> jump.1;", []>;
+}
+
+include "GenInstrInfo.td"
+
+// anyextloads -> sextloads
+def : Pat<(i32 (extloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
+def : Pat<(i32 (extloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
+def : Pat<(i32 (extloadi8 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
+def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQi ADDRri:$src)>;
+def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
+def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
+
+//  bool load/store
+def : Pat<(i32 (zextloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
+def : Pat<(i32 (zextloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
+
+def : Pat<(truncstorei1 I32Regs:$src, ADDRrr:$addr),
+          (STQrr ADDRrr:$addr, I32Regs:$src)>;
+
+def : Pat<(truncstorei1 I32Regs:$src, ADDRri:$addr),
+          (STQir ADDRri:$addr, I32Regs:$src)>;
+
+def : Pat<(store F32Regs:$src, ADDRri:$addr),
+          (STWir ADDRri:$addr, (MOVFI32rr F32Regs:$src))>;
+
+def : Pat<(store F32Regs:$src, ADDRrr:$addr),
+          (STWrr ADDRrr:$addr, (MOVFI32rr F32Regs:$src))>;
+
+def : Pat<(f32 (load ADDRrr:$addr)),
+          (MOVIF32rr (LDWr ADDRrr:$addr))>;
+
+def : Pat<(f32 (load ADDRri:$addr)),
+          (MOVIF32rr (LDWr ADDRri:$addr))>;

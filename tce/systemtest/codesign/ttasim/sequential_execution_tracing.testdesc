@@ -1,0 +1,11 @@
+<?php
+// short test description
+$test_description="Execution tracing (sequential simulation)";
+
+// the binary being tested
+$test_bin="./run_sequential_execution_tracing.sh";
+
+// args given to program
+$bin_args="";
+
+?>

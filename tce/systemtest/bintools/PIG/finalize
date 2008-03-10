@@ -1,0 +1,13 @@
+#!/bin/bash
+rm -rf testbench
+rm -rf dpram_trace
+rm -rf work
+rm -rf proge-output
+rm -rf data_memory.img
+rm -rf func_ptr.img
+rm -rf printchar_output.txt
+rm -rf 1kr4ditfft.tce.img 
+rm -rf func_ptr_data_memory.img
+
+#renames the disables test back to normal
+rm -f *.disabled

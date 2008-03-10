@@ -1,0 +1,101 @@
+<html>
+<head><title>README file for the TCE Python bindings</title></head>
+<body>
+<h1>README file for the TCE Python bindings</h1>
+
+This directory contains the Python bindings for TCE libraries.
+
+<h2>Background</h2>
+
+The bindings use the <a
+href="http://www.boost.org/libs/python/doc/index.html">Boost.Python</a>
+library for exposing C++ classes to Python. The library makes it
+possible to manipulate objects created by C++ libraries as if they
+were Python objects.
+
+
+<h2>Loadable Python modules</h2>
+
+Boost.Python produces shared objects that the Python interpreter can
+load as if they were regular Python modules. Once loaded with
+<tt>import</tt>, the C++ classes and functions in a module are visible
+as Python classes and functions. For example:
+
+<pre>
+    $ python2.4
+    Python 2.4.4c1 (#2, Oct 11 2006, 21:51:02) 
+    [GCC 4.1.2 20060928 (prerelease) (Ubuntu 4.1.1-13ubuntu5)] on linux2
+    Type "help", "copyright", "credits" or "license" for more information.
+    >>> import TTAMachine
+    >>> b = TTAMachine.Bus("b1", 32, 16, TTAMachine.Machine.Extension.ZERO)
+    >>> b
+    &lt;TTAMachine.Bus object at 0xb7da2a54>
+    >>> m = TTAMachine.Machine()
+    >>> m
+    &lt;TTAMachine.Machine object at 0xb7da2a7c>
+    >>> m.addBus(b)
+</pre>
+
+You need to set PYTHONPATH to include the directory where the loadable
+modules are, and you also need to set LD_LIBRARY_PATH appropriately so
+that the TCE libraries referenced by the bindings can be found. The
+Python modules only provide the glue between C++ and Python.
+
+<h2>Scheduler Passes in Python</h2>
+
+See <a href="scheduler-pass-in-python.html">a separate document</a>
+for information on how to write scheduler passes in Python.
+
+
+<h2>Adding new bindings</h2>
+
+Adding new classes is relatively easy, and adding new methods in
+existing classes is even easier.  The <a
+href="http://www.boost.org/libs/python/doc/tutorial/doc/html/index.html">
+Boost.Python tutorial</a> gives a pretty clear idea what to do, and it
+is relatively safe just to copy and paste from the existing ones.
+The cases to be aware of are:
+<ul>
+  <li>function that returns a raw pointer, and
+  <li>function that takes a raw pointer <i>and retains ownership of
+  the pointer.</i>
+</ul>
+
+Both of these have to do with how C++ and Python manage objects. 
+<p>
+
+When a C++ function returns a pointer, Boost.Python needs to know
+whether it should take care of the pointer or not.  This is something
+that cannot be inferred from a function signature, so it needs to be
+explicitly stated by the programmer using a <i>call policy</i>, <a
+href="http://www.boost.org/libs/python/doc/tutorial/doc/html/python/functions.html#python.call_policies">
+as explained in the tutorial</a>. The two more common policies are
+<tt>return_internal_reference</tt> and
+<tt>return_value_policy&lt;manage_new_object&gt;</tt>.
+
+<p>
+If a C++ function (e.g. a member function) is passed a raw pointer,
+and the function takes ownership of the pointer, Python needs to be
+informed about the ownership transfer. This can be done using an
+<tt>auto_ptr</tt>, see the
+<a
+href="http://www.boost.org/libs/python/doc/v2/faq.html#ownership">Boost.Python
+FAQ</a>
+for details.
+
+
+
+<h2>Useful reading</h2>
+
+<ul>
+  <li>Article 
+  <a href="http://www.boost-consulting.com/writing/bpl.html"><i>Building
+  Hybrid Systems with Boost.Python<i></a>, also available as
+  <a href="http://www.boost-consulting.com/writing/bpl.pdf">PDF</a>
+  <li><a href="http://www.boost.org/libs/python/doc/tutorial/doc/html/index.html">
+  Boost.Python tutorial</a>
+</ul>
+<hr>
+Pertti Kellomäki, <tt>firstname.lastname@tut.fi</tt>
+</body>
+</html>

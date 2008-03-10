@@ -1,0 +1,6 @@
+12
+-26
+493
+0
+0
+Error:  DIV: Divide by zero.

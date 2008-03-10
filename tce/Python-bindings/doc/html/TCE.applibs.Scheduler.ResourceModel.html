@@ -1,0 +1,1891 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module TCE.applibs.Scheduler.ResourceModel</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="TCE.html"><font color="#ffffff">TCE</font></a>.<a href="TCE.applibs.html"><font color="#ffffff">applibs</font></a>.<a href="TCE.applibs.Scheduler.html"><font color="#ffffff">Scheduler</font></a>.ResourceModel</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/opt/tce/lib/python2.5/site-packages/TCE/applibs/Scheduler/ResourceModel.so">/opt/tce/lib/python2.5/site-packages/TCE/applibs/Scheduler/ResourceModel.so</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial">Boost.Python.instance(<a href="__builtin__.html#object">__builtin__.object</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#BusResource">BusResource</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#ExecutionPipelineResource">ExecutionPipelineResource</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#FUResource">FUResource</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#InputFUResource">InputFUResource</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#OutputFUResource">OutputFUResource</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#ITemplateResource">ITemplateResource</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#IUResource">IUResource</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#InputPSocketResource">InputPSocketResource</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#OutputPSocketResource">OutputPSocketResource</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#ShortImmPSocketResource">ShortImmPSocketResource</a>
+</font></dt></dl>
+</dd>
+</dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#SegmentResource">SegmentResource</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResourceSet">SchedulingResourceSet</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="BusResource">class <strong>BusResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#BusResource">BusResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="BusResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BusResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name,&nbsp;int&nbsp;width)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BusResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-assign">assign</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-assign">assign</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-assign">assign</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-assign">assign</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BusResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-canAssign">canAssign</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-canAssign">canAssign</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-canAssign">canAssign</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-canAssign">canAssign</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BusResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isAvailable">isAvailable</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isAvailable">isAvailable</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isAvailable">isAvailable</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isAvailable">isAvailable</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BusResource-isBusResource"><strong>isBusResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isBusResource">isBusResource</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isBusResource">isBusResource</a>(BusResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BusResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isInUse">isInUse</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isInUse">isInUse</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isInUse">isInUse</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-isInUse">isInUse</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BusResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-unassign">unassign</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-unassign">unassign</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-unassign">unassign</a>(<a href="#BusResource">BusResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-unassign">unassign</a>(BusResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;inputPSocket,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;outputPSocket)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BusResource-validateDependentGroups"><strong>validateDependentGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BusResource-validateDependentGroups">validateDependentGroups</a>(BusResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BusResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BusResource-validateRelatedGroups">validateRelatedGroups</a>(BusResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 76</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="BusResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BusResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BusResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BusResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BusResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="BusResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BusResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BusResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BusResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BusResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BusResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BusResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="BusResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BusResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BusResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BusResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#BusResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ExecutionPipelineResource">class <strong>ExecutionPipelineResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#ExecutionPipelineResource">ExecutionPipelineResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ExecutionPipelineResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ExecutionPipelineResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name,&nbsp;unsigned&nbsp;int&nbsp;maxLatency,&nbsp;unsigned&nbsp;int&nbsp;resNum)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-assign">assign</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-assign">assign</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-assign">assign</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;bool&nbsp;source)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-assign">assign</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;bool&nbsp;source)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-canAssign">canAssign</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-canAssign">canAssign</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-canAssign">canAssign</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#PSocketResource">PSocketResource</a>&nbsp;pSocket,&nbsp;bool&nbsp;triggering=False)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-canAssign">canAssign</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#PSocketResource">PSocketResource</a>&nbsp;pSocket,&nbsp;bool&nbsp;triggering=False)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-highestKnownCycle"><strong>highestKnownCycle</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ExecutionPipelineResource-highestKnownCycle">highestKnownCycle</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-isAvailable">isAvailable</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-isAvailable">isAvailable</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-isExecutionPipelineResource"><strong>isExecutionPipelineResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-isExecutionPipelineResource">isExecutionPipelineResource</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-isExecutionPipelineResource">isExecutionPipelineResource</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-isInUse">isInUse</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-isInUse">isInUse</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-nextResultCycle"><strong>nextResultCycle</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ExecutionPipelineResource-nextResultCycle">nextResultCycle</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-setResourceUse"><strong>setResourceUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ExecutionPipelineResource-setResourceUse">setResourceUse</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;std::string&nbsp;opName,&nbsp;int&nbsp;cycle,&nbsp;int&nbsp;resIndex)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-unassign">unassign</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-unassign">unassign</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-unassign">unassign</a>(<a href="#ExecutionPipelineResource">ExecutionPipelineResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;bool&nbsp;source)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-unassign">unassign</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;bool&nbsp;source)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ExecutionPipelineResource-validateRelatedGroups">validateRelatedGroups</a>(ExecutionPipelineResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 264</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="ExecutionPipelineResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ExecutionPipelineResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ExecutionPipelineResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ExecutionPipelineResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ExecutionPipelineResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#ExecutionPipelineResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="FUResource">class <strong>FUResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#FUResource">FUResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="FUResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#FUResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="FUResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-assign">assign</a>(<a href="#FUResource">FUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-assign">assign</a>(FUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="FUResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-canAssign">canAssign</a>(<a href="#FUResource">FUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-canAssign">canAssign</a>(FUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="FUResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-isAvailable">isAvailable</a>(<a href="#FUResource">FUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-isAvailable">isAvailable</a>(FUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="FUResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-isInUse">isInUse</a>(<a href="#FUResource">FUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-isInUse">isInUse</a>(FUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="FUResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-unassign">unassign</a>(<a href="#FUResource">FUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-unassign">unassign</a>(FUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 72</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="FUResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="FUResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="FUResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="FUResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#FUResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="FUResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="FUResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="FUResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="FUResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="FUResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="FUResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#FUResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="FUResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="FUResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="FUResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#FUResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#FUResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ITemplateResource">class <strong>ITemplateResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#ITemplateResource">ITemplateResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ITemplateResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ITemplateResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-assign">assign</a>(<a href="#ITemplateResource">ITemplateResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-assign">assign</a>(ITemplateResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-assign">assign</a>(<a href="#ITemplateResource">ITemplateResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-assign">assign</a>(ITemplateResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-canAssign">canAssign</a>(<a href="#ITemplateResource">ITemplateResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-canAssign">canAssign</a>(ITemplateResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-canAssign">canAssign</a>(<a href="#ITemplateResource">ITemplateResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-canAssign">canAssign</a>(ITemplateResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-isAvailable">isAvailable</a>(<a href="#ITemplateResource">ITemplateResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-isAvailable">isAvailable</a>(ITemplateResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-isITemplateResource"><strong>isITemplateResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-isITemplateResource">isITemplateResource</a>(<a href="#ITemplateResource">ITemplateResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-isITemplateResource">isITemplateResource</a>(ITemplateResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-isInUse">isInUse</a>(<a href="#ITemplateResource">ITemplateResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-isInUse">isInUse</a>(ITemplateResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-unassign">unassign</a>(<a href="#ITemplateResource">ITemplateResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-unassign">unassign</a>(ITemplateResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-unassign">unassign</a>(<a href="#ITemplateResource">ITemplateResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-unassign">unassign</a>(ITemplateResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-validateDependentGroups"><strong>validateDependentGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ITemplateResource-validateDependentGroups">validateDependentGroups</a>(ITemplateResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ITemplateResource-validateRelatedGroups">validateRelatedGroups</a>(ITemplateResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 96</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="ITemplateResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ITemplateResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ITemplateResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ITemplateResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ITemplateResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#ITemplateResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="IUResource">class <strong>IUResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#IUResource">IUResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="IUResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name,&nbsp;int&nbsp;registers,&nbsp;int&nbsp;width,&nbsp;int&nbsp;latency,&nbsp;bool&nbsp;signExtension)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="IUResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-assign">assign</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-assign">assign</a>(IUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-assign">assign</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;defCycle,&nbsp;int&nbsp;useCycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;int&nbsp;{lvalue}&nbsp;index)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-assign">assign</a>(IUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;defCycle,&nbsp;int&nbsp;useCycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node,&nbsp;int&nbsp;{lvalue}&nbsp;index)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="IUResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-canAssign">canAssign</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0,&nbsp;MoveNode&nbsp;arg1)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-canAssign">canAssign</a>(IUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0,&nbsp;MoveNode&nbsp;arg1)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-canAssign">canAssign</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;defCycle,&nbsp;int&nbsp;useCycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-canAssign">canAssign</a>(IUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;defCycle,&nbsp;int&nbsp;useCycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="IUResource-immediateValue"><strong>immediateValue</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-immediateValue">immediateValue</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue},&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;TTAProgram::Terminal*</tt></dd></dl>
+
+<dl><dt><a name="IUResource-immediateWriteCycle"><strong>immediateWriteCycle</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-immediateWriteCycle">immediateWriteCycle</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue},&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="IUResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-isAvailable">isAvailable</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-isAvailable">isAvailable</a>(IUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="IUResource-isIUResource"><strong>isIUResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-isIUResource">isIUResource</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-isIUResource">isIUResource</a>(IUResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="IUResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-isInUse">isInUse</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-isInUse">isInUse</a>(IUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="IUResource-registerCount"><strong>registerCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-registerCount">registerCount</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="IUResource-setRegisterCount"><strong>setRegisterCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-setRegisterCount">setRegisterCount</a>(IUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;registers)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="IUResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-unassign">unassign</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-unassign">unassign</a>(IUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="IUResource-validateDependentGroups"><strong>validateDependentGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-validateDependentGroups">validateDependentGroups</a>(IUResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="IUResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-validateRelatedGroups">validateRelatedGroups</a>(IUResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="IUResource-width"><strong>width</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-width">width</a>(<a href="#IUResource">IUResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 100</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="IUResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="IUResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="IUResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="IUResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="IUResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="IUResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="IUResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="IUResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="IUResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="IUResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#IUResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="IUResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="IUResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="IUResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#IUResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#IUResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="InputFUResource">class <strong>InputFUResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#FUResource">FUResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#InputFUResource">InputFUResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#FUResource">FUResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="InputFUResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputFUResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-assign">assign</a>(<a href="#InputFUResource">InputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-assign">assign</a>(InputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-canAssign">canAssign</a>(<a href="#InputFUResource">InputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-canAssign">canAssign</a>(InputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-canAssign">canAssign</a>(<a href="#InputFUResource">InputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#InputPSocketResource">InputPSocketResource</a>&nbsp;pSocket,&nbsp;bool&nbsp;triggers=False)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-canAssign">canAssign</a>(InputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#InputPSocketResource">InputPSocketResource</a>&nbsp;pSocket,&nbsp;bool&nbsp;triggers=False)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-isAvailable">isAvailable</a>(<a href="#InputFUResource">InputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-isAvailable">isAvailable</a>(InputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-isInUse">isInUse</a>(<a href="#InputFUResource">InputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-isInUse">isInUse</a>(InputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-isInputFUResource"><strong>isInputFUResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-isInputFUResource">isInputFUResource</a>(<a href="#InputFUResource">InputFUResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-isInputFUResource">isInputFUResource</a>(InputFUResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-unassign">unassign</a>(<a href="#InputFUResource">InputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-unassign">unassign</a>(InputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-validateDependentGroups"><strong>validateDependentGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputFUResource-validateDependentGroups">validateDependentGroups</a>(InputFUResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputFUResource-validateRelatedGroups">validateRelatedGroups</a>(InputFUResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 72</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="InputFUResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputFUResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputFUResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="InputFUResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputFUResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#InputFUResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="InputPSocketResource">class <strong>InputPSocketResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#InputPSocketResource">InputPSocketResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="InputPSocketResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputPSocketResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-isInputPSocketResource"><strong>isInputPSocketResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-isInputPSocketResource">isInputPSocketResource</a>(<a href="#InputPSocketResource">InputPSocketResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-isInputPSocketResource">isInputPSocketResource</a>(InputPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-validateDependentGroups"><strong>validateDependentGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputPSocketResource-validateDependentGroups">validateDependentGroups</a>(InputPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputPSocketResource-validateRelatedGroups">validateRelatedGroups</a>(InputPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 96</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a>:<br>
+<dl><dt><a name="InputPSocketResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-assign">assign</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-assign">assign</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-canAssign">canAssign</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-canAssign">canAssign</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-isAvailable">isAvailable</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-isAvailable">isAvailable</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-isInUse">isInUse</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-isInUse">isInUse</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-unassign">unassign</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-unassign">unassign</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="InputPSocketResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputPSocketResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#InputPSocketResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="InputPSocketResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#InputPSocketResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#InputPSocketResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="OutputFUResource">class <strong>OutputFUResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#FUResource">FUResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#OutputFUResource">OutputFUResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#FUResource">FUResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="OutputFUResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputFUResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-assign">assign</a>(<a href="#OutputFUResource">OutputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-assign">assign</a>(OutputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-canAssign">canAssign</a>(<a href="#OutputFUResource">OutputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-canAssign">canAssign</a>(OutputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-canAssign">canAssign</a>(<a href="#OutputFUResource">OutputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;pSocket)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-canAssign">canAssign</a>(OutputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;pSocket)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-isOutputFUResource"><strong>isOutputFUResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-isOutputFUResource">isOutputFUResource</a>(<a href="#OutputFUResource">OutputFUResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-isOutputFUResource">isOutputFUResource</a>(OutputFUResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-unassign">unassign</a>(<a href="#OutputFUResource">OutputFUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-unassign">unassign</a>(OutputFUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-validateDependentGroups"><strong>validateDependentGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputFUResource-validateDependentGroups">validateDependentGroups</a>(OutputFUResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputFUResource-validateRelatedGroups">validateRelatedGroups</a>(OutputFUResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 72</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#FUResource">FUResource</a>:<br>
+<dl><dt><a name="OutputFUResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-isAvailable">isAvailable</a>(<a href="#FUResource">FUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-isAvailable">isAvailable</a>(FUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-isInUse">isInUse</a>(<a href="#FUResource">FUResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-isInUse">isInUse</a>(FUResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="OutputFUResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputFUResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputFUResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="OutputFUResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputFUResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#OutputFUResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="OutputPSocketResource">class <strong>OutputPSocketResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#OutputPSocketResource">OutputPSocketResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="OutputPSocketResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputPSocketResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-assign">assign</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-assign">assign</a>(OutputPSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-canAssign">canAssign</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-canAssign">canAssign</a>(OutputPSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-isAvailable">isAvailable</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-isAvailable">isAvailable</a>(OutputPSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-isOutputPSocketResource"><strong>isOutputPSocketResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-isOutputPSocketResource">isOutputPSocketResource</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-isOutputPSocketResource">isOutputPSocketResource</a>(OutputPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-unassign">unassign</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-unassign">unassign</a>(OutputPSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-validateDependentGroups"><strong>validateDependentGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputPSocketResource-validateDependentGroups">validateDependentGroups</a>(OutputPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputPSocketResource-validateRelatedGroups">validateRelatedGroups</a>(OutputPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 120</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a>:<br>
+<dl><dt><a name="OutputPSocketResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-isInUse">isInUse</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-isInUse">isInUse</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="OutputPSocketResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputPSocketResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#OutputPSocketResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="OutputPSocketResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#OutputPSocketResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#OutputPSocketResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="PSocketResource">class <strong>PSocketResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="PSocketResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#PSocketResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-assign">assign</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-assign">assign</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-canAssign">canAssign</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-canAssign">canAssign</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-isAvailable">isAvailable</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-isAvailable">isAvailable</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-isInUse">isInUse</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-isInUse">isInUse</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-unassign">unassign</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-unassign">unassign</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 96</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="PSocketResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#PSocketResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#PSocketResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="PSocketResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#PSocketResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#PSocketResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="SchedulingResource">class <strong>SchedulingResource</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="SchedulingResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SchedulingResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-assign">assign</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-assign">assign</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int,&nbsp;MoveNode&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-canAssign">canAssign</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-canAssign">canAssign</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int,&nbsp;MoveNode)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SchedulingResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-isAvailable">isAvailable</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-isAvailable">isAvailable</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-isInUse">isInUse</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-isInUse">isInUse</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SchedulingResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-unassign">unassign</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-unassign">unassign</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int,&nbsp;MoveNode&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 72</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#SchedulingResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="SchedulingResourceSet">class <strong>SchedulingResourceSet</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResourceSet">SchedulingResourceSet</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="SchedulingResourceSet-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResourceSet-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SchedulingResourceSet-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResourceSet-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SchedulingResourceSet-assign">assign</a>(<a href="#SchedulingResourceSet">SchedulingResourceSet</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResourceSet">SchedulingResourceSet</a>&nbsp;newSet)&nbsp;-&gt;&nbsp;<a href="#SchedulingResourceSet">SchedulingResourceSet</a></tt></dd></dl>
+
+<dl><dt><a name="SchedulingResourceSet-count"><strong>count</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SchedulingResourceSet-count">count</a>(<a href="#SchedulingResourceSet">SchedulingResourceSet</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResourceSet-insert"><strong>insert</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SchedulingResourceSet-insert">insert</a>(<a href="#SchedulingResourceSet">SchedulingResourceSet</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResourceSet-remove"><strong>remove</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SchedulingResourceSet-remove">remove</a>(<a href="#SchedulingResourceSet">SchedulingResourceSet</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SchedulingResourceSet-resource"><strong>resource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SchedulingResourceSet-resource">resource</a>(<a href="#SchedulingResourceSet">SchedulingResourceSet</a>&nbsp;{lvalue},&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="SchedulingResourceSet-sort"><strong>sort</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SchedulingResourceSet-sort">sort</a>(<a href="#SchedulingResourceSet">SchedulingResourceSet</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 20</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#SchedulingResourceSet-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="SegmentResource">class <strong>SegmentResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SegmentResource">SegmentResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="SegmentResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SegmentResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-assign">assign</a>(<a href="#SegmentResource">SegmentResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-assign">assign</a>(SegmentResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-canAssign">canAssign</a>(<a href="#SegmentResource">SegmentResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-canAssign">canAssign</a>(SegmentResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-canAssign">canAssign</a>(<a href="#SegmentResource">SegmentResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;pSocket)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-canAssign">canAssign</a>(SegmentResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;pSocket)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-isAvailable">isAvailable</a>(<a href="#SegmentResource">SegmentResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-isAvailable">isAvailable</a>(SegmentResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-isInUse">isInUse</a>(<a href="#SegmentResource">SegmentResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-isInUse">isInUse</a>(SegmentResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-isSegmentResource"><strong>isSegmentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-isSegmentResource">isSegmentResource</a>(<a href="#SegmentResource">SegmentResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-isSegmentResource">isSegmentResource</a>(SegmentResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-unassign">unassign</a>(<a href="#SegmentResource">SegmentResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-unassign">unassign</a>(SegmentResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-validateDependentGroups"><strong>validateDependentGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SegmentResource-validateDependentGroups">validateDependentGroups</a>(SegmentResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SegmentResource-validateRelatedGroups">validateRelatedGroups</a>(SegmentResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 96</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="SegmentResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SegmentResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#SegmentResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="SegmentResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#SegmentResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#SegmentResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ShortImmPSocketResource">class <strong>ShortImmPSocketResource</strong></a>(<a href="TCE.applibs.Scheduler.ResourceModel.html#OutputPSocketResource">OutputPSocketResource</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#ShortImmPSocketResource">ShortImmPSocketResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#OutputPSocketResource">OutputPSocketResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ShortImmPSocketResource-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ShortImmPSocketResource-__init__">__init__</a>(_object*,&nbsp;std::string&nbsp;name,&nbsp;int&nbsp;immediateWidth,&nbsp;bool&nbsp;signExtends)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-immediateWidth"><strong>immediateWidth</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ShortImmPSocketResource-immediateWidth">immediateWidth</a>(<a href="#ShortImmPSocketResource">ShortImmPSocketResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-isShortImmPSocketResource"><strong>isShortImmPSocketResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-isShortImmPSocketResource">isShortImmPSocketResource</a>(<a href="#ShortImmPSocketResource">ShortImmPSocketResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-isShortImmPSocketResource">isShortImmPSocketResource</a>(ShortImmPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-signExtends"><strong>signExtends</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ShortImmPSocketResource-signExtends">signExtends</a>(<a href="#ShortImmPSocketResource">ShortImmPSocketResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-validateDependentGroups"><strong>validateDependentGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ShortImmPSocketResource-validateDependentGroups">validateDependentGroups</a>(ShortImmPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-validateRelatedGroups"><strong>validateRelatedGroups</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ShortImmPSocketResource-validateRelatedGroups">validateRelatedGroups</a>(ShortImmPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-zeroExtends"><strong>zeroExtends</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ShortImmPSocketResource-zeroExtends">zeroExtends</a>(<a href="#ShortImmPSocketResource">ShortImmPSocketResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 128</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#OutputPSocketResource">OutputPSocketResource</a>:<br>
+<dl><dt><a name="ShortImmPSocketResource-assign"><strong>assign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-assign">assign</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-assign">assign</a>(OutputPSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-canAssign"><strong>canAssign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-canAssign">canAssign</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-canAssign">canAssign</a>(OutputPSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;node)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-isAvailable"><strong>isAvailable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-isAvailable">isAvailable</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-isAvailable">isAvailable</a>(OutputPSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-isOutputPSocketResource"><strong>isOutputPSocketResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-isOutputPSocketResource">isOutputPSocketResource</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-isOutputPSocketResource">isOutputPSocketResource</a>(OutputPSocketResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-unassign"><strong>unassign</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-unassign">unassign</a>(<a href="#OutputPSocketResource">OutputPSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-unassign">unassign</a>(OutputPSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle,&nbsp;MoveNode&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#PSocketResource">PSocketResource</a>:<br>
+<dl><dt><a name="ShortImmPSocketResource-isInUse"><strong>isInUse</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-isInUse">isInUse</a>(<a href="#PSocketResource">PSocketResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-isInUse">isInUse</a>(PSocketResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;cycle)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ResourceModel.html#SchedulingResource">SchedulingResource</a>:<br>
+<dl><dt><a name="ShortImmPSocketResource-addToDependentGroup"><strong>addToDependentGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-addToDependentGroup">addToDependentGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-addToDependentGroup">addToDependentGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-addToRelatedGroup"><strong>addToRelatedGroup</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-addToRelatedGroup">addToRelatedGroup</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-addToRelatedGroup">addToRelatedGroup</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue}&nbsp;resource)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-decreaseUseCount"><strong>decreaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-decreaseUseCount">decreaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-decreaseUseCount">decreaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-dependentResource"><strong>dependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ShortImmPSocketResource-dependentResource">dependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-dependentResourceCount"><strong>dependentResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-dependentResourceCount">dependentResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-dependentResourceCount">dependentResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-dependentResourceGroupCount"><strong>dependentResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-dependentResourceGroupCount">dependentResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-hasDependentResource"><strong>hasDependentResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-hasDependentResource">hasDependentResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-hasDependentResource">hasDependentResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-hasRelatedResource"><strong>hasRelatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-hasRelatedResource">hasRelatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-hasRelatedResource">hasRelatedResource</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;<a href="#SchedulingResource">SchedulingResource</a>&nbsp;sResource)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-increaseUseCount"><strong>increaseUseCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-increaseUseCount">increaseUseCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-increaseUseCount">increaseUseCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-relatedResource"><strong>relatedResource</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ShortImmPSocketResource-relatedResource">relatedResource</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group,&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#SchedulingResource">SchedulingResource</a></tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-relatedResourceCount"><strong>relatedResourceCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-relatedResourceCount">relatedResourceCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-relatedResourceCount">relatedResourceCount</a>(SchedulingResource_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;group)&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-relatedResourceGroupCount"><strong>relatedResourceGroupCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-relatedResourceGroupCount">relatedResourceGroupCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ShortImmPSocketResource-useCount"><strong>useCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-useCount">useCount</a>(<a href="#SchedulingResource">SchedulingResource</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ShortImmPSocketResource-useCount">useCount</a>(SchedulingResource_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#ShortImmPSocketResource-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>

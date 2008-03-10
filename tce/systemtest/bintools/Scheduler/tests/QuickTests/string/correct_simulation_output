@@ -1,0 +1,15 @@
+strcmp: OK OK
+memcpy: OK
+memmove: OK
+strlen: OK OK
+strchr: OK OK OK
+isalpha: OK OK
+isupper: OK OK
+islower: OK OK
+tolower: OK
+toupper: OK
+memset: OK
+atoi: OK OK
+strpbrk: OK
+strcat: OK
+strstr: OK

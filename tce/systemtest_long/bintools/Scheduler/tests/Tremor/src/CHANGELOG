@@ -1,0 +1,45 @@
+*** 20020930: malloc/longlong-emulation ***
+
+  Patched by J.A. Bezemer <J.A.Bezemer@opensourcepartners.nl> to work
+  on the experimental MOVE processor platform that doesn't support 64-bit
+  long longs and has a broken alloca() (which is highly unportable BTW).
+  - Converted alloca to malloc/free.
+  - Added long long emulation based on wxWindows code and my own research/
+    optimization.
+
+  NOTE: This version DOES CONTAIN BUGS in "unimportant" parts of the code.
+  ivorbisfile_example was tested with exactly three .ogg files and
+  produced correct output, and that's all I need at this moment. Everything
+  else is untested; solving problems is left as an excercise to the reader.
+  Please excuse the quickly written and rather messy code.
+
+  USAGE: ivorbisfile_example now has input/output from files, see source.
+  New simple makefile to produce single binary, no library. Works on Linux.
+  Native long long is used by default, -DLONGLONGEMUL to turn on emulation.
+
+  LEGALESE: Inclusion of wxWindows code probably means that the new stuff
+  is licensed under LGPL. However, everything except 64-bit multiplication
+  and division is quite trivial. Multiplication has new versions by yours
+  truly, licensed under Tremor license. Division is free to use (see
+  source), but isn't used in ivorbisfile_example and so isn't tested at
+  all. Everything in here that's my code is licensed under Tremor license.
+
+*** 20020517: 1.0.2 ***
+
+  Playback bugfix to floor1; mode mistakenly used for sizing instead
+  of blockflag
+
+*** 20020515: 1.0.1 ***
+
+  Added complete API documentation to source tarball.  No code
+  changes.
+
+*** 20020412: 1.0.1 ***
+
+  Fixed a clipping bug that affected ARM processors; negative
+  overflows were being properly clipped, but then clobbered to
+  positive by the positive overflow chec (asm_arm.h:CLIP_TO_15)
+
+*** 20020403: 1.0.0 ***
+
+  Initial version

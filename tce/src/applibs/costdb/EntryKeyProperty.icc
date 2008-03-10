@@ -1,0 +1,20 @@
+/**
+ * @file EntryKeyProperty.icc
+ *
+ * Implementation of EntryKeyProperty class.
+ *
+ * @author Tommi Rantanen 2003 (tommi.rantanen@tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @note rating: red
+ */
+
+
+/**
+ * Returns entry type.
+ *
+ * @return Entry type.
+ */
+inline std::string
+EntryKeyProperty::name() const {
+    return name_;
+}

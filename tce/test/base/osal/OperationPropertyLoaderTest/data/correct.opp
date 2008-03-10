@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<osal version="0.1"> 
+     
+    <operation>
+        <name>oper1</name>
+        <inputs>2</inputs>
+        <outputs>1</outputs>
+	<reads-memory/>
+        <in id="1" type="UIntWord">
+            <mem-address/>
+            <can-swap>
+                <in id="1"/>
+            </can-swap>
+        </in>
+        <out id="3" type="UIntWord">
+            <mem-data/>
+        </out>
+    </operation>
+
+</osal>

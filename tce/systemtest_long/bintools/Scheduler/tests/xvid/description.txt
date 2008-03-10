@@ -1,0 +1,1 @@
+Decodes a mpeg4 stream.

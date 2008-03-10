@@ -1,0 +1,109 @@
+/**
+ * @file ContainerTools.icc
+ * @author Pekka J‰‰skel‰inen (pjaaskel@cs.tut.fi) 2003
+ *
+ * Tools for handling STL containers.
+ *
+ * Inline and template definitions.
+ *
+ */
+
+
+#include <algorithm>
+
+/**
+ *
+ * Returns true if given container contains the given value.
+ *
+ * @param aContainer The container to look in.
+ * @param aValue Value to look for.
+ */
+template <typename ContainerType, typename ElementType>
+bool
+ContainerTools::containsValue(
+    const ContainerType& aContainer, const ElementType& aValue) {
+
+    for (typename ContainerType::const_iterator iter = aContainer.begin();
+         iter != aContainer.end(); iter++) {
+
+        if (*iter == aValue) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ * Removes an element from a container, if its found.
+ *
+ * @param aContainer The container to look in.
+ * @param aKey The key to look for.
+ * @return True if the element was removed, otherwise false.
+ */
+template <typename ContainerType, typename ElementType>
+bool
+ContainerTools::removeValueIfExists(
+    ContainerType& aContainer,
+    const ElementType& aKey) {
+
+    for (typename ContainerType::iterator i = aContainer.begin();
+         i != aContainer.end(); i++) {
+        if (*i == aKey) {
+            aContainer.erase(i);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ * Removes a pointer from a container if it is found and destructs the
+ * object that it points to.
+ *
+ * @param aContainer The container to look in.
+ * @param aKey The key to look for.
+ * @return True if the element was removed, otherwise false.
+ */
+template <typename ContainerType, typename ElementType>
+bool
+ContainerTools::deleteValueIfExists(
+    ContainerType& aContainer,
+    const ElementType& aKey) {
+
+    for (typename ContainerType::iterator i = aContainer.begin();
+         i != aContainer.end(); i++) {
+        if (*i == aKey) {
+            aContainer.erase(i);
+            delete aKey;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
+/**
+ * Removes the values in the second container from the first container
+ * given.
+ *
+ * @param aContainer The container to remove values from.
+ * @param toRemove The container which contains the values to be removed.
+ */
+template <typename ContainerType>
+void
+ContainerTools::removeValues(
+    ContainerType& aContainer,
+    const ContainerType& toRemove) {
+
+    for (typename ContainerType::const_iterator iter = toRemove.begin();
+         iter != toRemove.end(); iter++) {
+        removeValueIfExists(aContainer, *iter);
+    }
+}
+
+

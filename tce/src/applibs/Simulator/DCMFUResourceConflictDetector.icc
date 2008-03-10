@@ -1,0 +1,40 @@
+/**
+ * @file DCMFUResourceConflictDetector.icc
+ *
+ * Inline implementations of DCMFUResourceConflictDetector class.
+ *
+ * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Issues an operation and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ *
+ * @param id The id of the operation to issue.
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+DCMFUResourceConflictDetector::issueOperationInline(OperationID id) {
+
+    if (globalCollisionMatrix_.bitAt(0, id))
+        return false;
+
+    const CollisionMatrix& issued = collisionMatrices_.at(id);
+    globalCollisionMatrix_.orWith(issued);
+    return true;
+}
+
+/**
+ * Simulates a cycle advance and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ *
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+DCMFUResourceConflictDetector::advanceCycleInline() {
+    globalCollisionMatrix_.shiftLeft();
+    return true;
+}

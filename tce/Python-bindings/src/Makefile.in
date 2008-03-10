@@ -1,0 +1,30 @@
+#
+# Makefile template for the Python bindings.
+# Pertti Kellomaki 2007, pertti.kellomaki@tut.fi
+#
+# Makefile.in is NOT a generated file
+# Do NOT delete it unless you provide a Makefile.am that generates a corresponding file.
+#
+
+CCSOURCES=ControlFlowGraph.cc mach.cc osal.cc program.cc ProgramDependenceGraph.cc \
+	ResourceManager.cc ResourceModel.cc tools.cc tpef.cc
+
+all: $(CCSOURCES)	
+
+	@PYTHON@ setup.py build
+
+install::
+	@PYTHON@ setup.py install --prefix=@prefix@
+
+clean::
+	/bin/rm -f $(CCSOURCES)
+	@PYTHON@ setup.py clean
+
+%.cc: %.pypp
+	export PYTHONPATH="../tools/pygccxml"; @PYTHON@ $<
+
+
+%.d: %.pypp
+	export PYTHONPATH="../tools/pygccxml"; @PYTHON@ $< --generate-dependences 
+
+include $(CCSOURCES:.cc=.d)

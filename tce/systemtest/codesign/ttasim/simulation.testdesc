@@ -1,0 +1,11 @@
+<?php
+// short test description
+$test_description="Sequential simulation";
+
+// the binary being tested
+$test_bin="../../../src/codesign/ttasim/ttasim";
+
+// args given to program
+// $bin_args="";
+
+?>

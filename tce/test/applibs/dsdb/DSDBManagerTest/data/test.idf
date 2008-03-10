@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>/home/vjaaskel/tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <hdb-file/>
+  </ic-decoder-plugin>
+
+  <fu name="alu">
+    <hdb-file>/home/vjaaskel/tce/hdb/base.hdb</hdb-file>
+    <fu-id>5</fu-id>
+  </fu>
+
+  <fu name="lsu">
+    <hdb-file>/home/vjaaskel/tce/hdb/base.hdb</hdb-file>
+    <fu-id>6</fu-id>
+  </fu>
+
+  <rf name="int">
+    <hdb-file>/home/vjaaskel/tce/hdb/base.hdb</hdb-file>
+    <rf-id>2</rf-id>
+  </rf>
+
+</adf-implementation>

@@ -1,0 +1,15 @@
+Reseting the real time clock.
+Clock value is 8.
+Clock value is 1980.
+Clock value is 4084.
+Clock value is 6188.
+Clock value is 8292.
+Clock value is 10396.
+Reseting accumulator.
+Accumulator value is 1.
+Accumulator value is 2.
+Accumulator value is 3.
+Accumulator value is 4.
+Accumulator value is 5.
+Accumulator value is 6.
+

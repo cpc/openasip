@@ -1,0 +1,426 @@
+/**
+ * @file AOutReader.icc
+ *
+ * Inline implementations of AOutReader.
+ *
+ * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
+ * @author Mikael Lepistö 18.12.2003 (tmlepist@cs.tut.fi)
+ * @note reviewed 7 October 2003 by jn, ml, tr, ll
+ *
+ * @note rating: yellow
+ */
+
+#include "SectionReader.hh"
+#include "InstructionElement.hh"
+
+namespace TPEF {
+
+//////////////////////////////////////////////////////////////////////////
+/// AOutReader class
+//////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns an instance of BinaryReader.
+ *
+ * Returns a.out binary reader instance, if called first time
+ * also creates instance.
+ *
+ * @return Binary reader instance of a.out binaries.
+ */
+inline BinaryReader*
+AOutReader::instance() {
+
+    if (proto_ == NULL) {
+        proto_ = new AOutReader();
+    }
+
+    return proto_;
+}
+
+/**
+ * Returns processors resource section of binary.
+ *
+ * @return Processors resource table of binary.
+ */
+inline ResourceSection*
+AOutReader::resourceTable() const {
+    return resourceTable_;
+}
+
+/**
+ * Returns null section of binary.
+ *
+ * @return Null section of binary.
+ */
+inline NullSection*
+AOutReader::nullSection() const {
+    return nullSection_;
+}
+
+/**
+ * Returns debug section of binary.
+ *
+ * @return Debug section of binary.
+ */
+inline DebugSection*
+AOutReader::debugSection() const {
+    return debugSection_;
+}
+
+/**
+ * Returns string section of binary.
+ *
+ * @return String section of binary.
+ */
+inline StringSection*
+AOutReader::stringSection() const {
+    return stringSection_;
+}
+
+/**
+ * Returns text section of binary.
+ *
+ * @return Text section of binary.
+ */
+inline CodeSection*
+AOutReader::textSection() const {
+    return textSection_;
+}
+
+/**
+ * Returns address space where where element reside.
+ *
+ * Memory map of a.out starts from instruction memory (text section) and
+ * continues by initialized data section. Finally uninitialized data
+ * (bss sectin) is found after initialized data.
+ *
+ * @param elem Element whose address space is returned.
+ * @return Address space where element resides.
+ * @exception OutOfRange If requested element is outside sections.
+ */
+inline ASpaceElement*
+AOutReader::aSpaceOfElement(SectionElement *elem) const
+    throw (OutOfRange) {
+
+    if (elem == NULL) {
+        return undefASpace_;
+    }
+
+    // Check if we need to return code or data address space
+    InstructionElement *instruction = dynamic_cast<InstructionElement*>(elem);
+    Chunk *chunk = dynamic_cast<Chunk*>(elem);
+
+    if (instruction != NULL) {
+        return codeASpace_;
+
+    } else if (chunk != NULL) {
+        return dataASpace_;
+
+    } else {
+        assert(false);
+    }
+
+    bool cantFindASpaceOfElement = false;
+    assert(cantFindASpaceOfElement);
+    return NULL;
+}
+
+/**
+ * Returns element's address in TPEF representation.
+ *
+ * In generated TPEF we have one instruction or MAU per address.
+ * Code section starts from 0x00 and after that is normal data
+ * section and uninitialised data is the last one.
+ *
+ * @param elem Element whose address is returned.
+ * @return Address where element resides in memory image.
+ * @exception OutOfRange If requested element is outside sections.
+ */
+inline AddressImage
+AOutReader::addressOfElement(SectionElement *elem) const
+    throw (OutOfRange) {
+
+    // Section offset and identification code of destination element to find
+    ReferenceManager::SectionOffsetKey elemSectionOffsetKey =
+        ReferenceManager::SafePointer::sectionOffsetKeyFor(elem);
+
+    // calculate memory address, abort if it's too big
+    Word address = elemSectionOffsetKey.offset();
+
+    if (elemSectionOffsetKey.sectionId() == AOutReader::ST_TEXT) {
+        assert(address < header_.sectionSizeText());
+
+        // code section conversion to 1 address / instruction if address
+        // points to code section
+        address = address / AOutReader::AOUT_INSTRUCTION_SIZE;
+
+    } else if (elemSectionOffsetKey.sectionId() == AOutReader::ST_DATA) {
+        assert(address < header_.sectionSizeData());
+        address += header_.sectionSizeText();
+
+    } else if (elemSectionOffsetKey.sectionId() == AOutReader::ST_UDATA) {
+        assert(address < header_.sectionSizeUData());
+        address += header_.sectionSizeText() + header_.sectionSizeData();
+
+    } else {
+        bool cantFindAddressForElement = false;
+        assert(cantFindAddressForElement);
+    }
+
+    return address;
+}
+
+/**
+ * Returns section offset of element in given memory address.
+ *
+ * @param address Memory address of object.
+ * @return The section offset of same object.
+ * @exception OutOfRange If address in not in binary file.
+ */
+inline SectionOffset
+AOutReader::sectionOffsetOfAddress(
+    AddressImage address) const
+    throw (OutOfRange) {
+
+    SectionOffset endOfText = header_.sectionSizeText();
+    SectionOffset endOfData = endOfText + header_.sectionSizeData();
+    SectionOffset endOfUData = endOfData + header_.sectionSizeUData();
+
+    if (address < endOfText) {
+        return address;
+
+    } else if (address < endOfData) {
+        return address - endOfText;
+
+    } else if (address < endOfUData) {
+        return address - endOfData;
+
+    } else {
+        std::string method = "AOutReader::sectionOffsetOfAddress";
+        std::string msg = "Section offset out of memory image";
+        throw OutOfRange(__FILE__, __LINE__, method, msg);
+    }
+}
+
+/**
+ * Returns header of A.out file.
+ *
+ * @return File header of last read a.out binary.
+ */
+inline const AOutReader::Header&
+AOutReader::header() {
+    return header_;
+}
+
+/**
+ * Reads section from stream.
+ *
+ * @param stream The stream to be read from.
+ * @param startPosition Position where reading begin.
+ * @param section The section to which data is stored.
+ * @param length The length of section.
+ * @exception InstanceNotFound If section reader for reading wasn't found.
+ * @exception UnreachableStream If reading of section fails.
+ * @exception KeyAlreadyExists Key was in use when trying to register object.
+ * @exception EndOfFile If end of file were reached while it shouldn't.
+ * @exception OutOfRange Some of read values were out of range.
+ * @exception WrongSubclass Some class couldn't do what it was asked for.
+ * @exception UnexpectedValue If there was unexpected value when reading.
+ */
+inline void
+AOutReader::readSection(
+    BinaryStream& stream,
+    FileOffset startPosition,
+    Section* section,
+    Length length) const
+    throw (InstanceNotFound, UnreachableStream, KeyAlreadyExists,
+           EndOfFile, OutOfRange, WrongSubclass, UnexpectedValue) {
+
+    stream.setReadPosition(startPosition);
+
+    if (length > 0) {
+        SectionReader::readSection(stream, section, proto_);
+    }
+}
+
+/**
+ * Adds section to binary, if section has elements inside.
+ *
+ * If section does not contain elements, section will be deleted.
+ *
+ * @param section Section to add or delete.
+ * @param bin Binary, where to add section.
+ */
+inline void
+AOutReader::addOrDeleteSection(Section* section, Binary* bin) const {
+    // if section is not empty
+    assert(section != NULL);
+    if (((section)->isChunkable() &&
+         dynamic_cast<RawSection*>(section)->length() > 0) ||
+        (!section->isChunkable() &&
+         section->elementCount() != 0)) {
+        bin->addSection(section);
+    } else {
+        delete section;
+        section = NULL;
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+/// Header class
+//////////////////////////////////////////////////////////////////////////
+
+
+/**
+ * Sets size for data section.
+ *
+ * @param size The size of the section.
+ */
+inline void
+AOutReader::Header::setSectionSizeData(Word size) {
+    sizes_.data_ = size;
+}
+
+
+/**
+ * Sets size for uninitialized data section.
+ *
+ * @param size The size of the section.
+ */
+inline void
+AOutReader::Header::setSectionSizeUData(Word size) {
+    sizes_.uData_ = size;
+}
+
+
+/**
+ * Sets size for text section.
+ *
+ * @param size The size of the section.
+ */
+inline void
+AOutReader::Header::setSectionSizeText(Word size) {
+    sizes_.text_ = size;
+}
+
+
+/**
+ * Sets size symbol table sections.
+ *
+ * @param size The size of the section.
+ */
+inline void
+AOutReader::Header::setSectionSizeSymbol(Word size) {
+    sizes_.symbol_ = size;
+}
+
+
+/**
+ * Sets size for text relocation section.
+ *
+ * @param size The size of the section.
+ */
+inline void
+AOutReader::Header::setSectionSizeTextReloc(Word size) {
+    sizes_.textReloc_ = size;
+}
+
+
+/**
+ * Sets size for data relocation sections.
+ *
+ * @param size The size of the section.
+ */
+inline void
+AOutReader::Header::setSectionSizeDataReloc(Word size) {
+    sizes_.dataReloc_ = size;
+}
+
+
+/**
+ * Sets size for data relocation sections.
+ *
+ * @param size The size of the section.
+ */
+inline void
+AOutReader::Header::setSectionSizeString(Word size) {
+    sizes_.string_ = size;
+}
+
+/**
+ * Returns the size of the data section.
+ *
+ * @return The size of the section in Bytes.
+ */
+inline Word
+AOutReader::Header::sectionSizeData() const {
+    return sizes_.data_;
+}
+
+
+/**
+ * Returns the size of the uninitialized data section.
+ *
+ * @return The size of the section in Bytes.
+ */
+inline Word
+AOutReader::Header::sectionSizeUData() const {
+    return sizes_.uData_;
+}
+
+
+/**
+ * Returns the size of the text section.
+ *
+ * @return The size of the section in Bytes.
+ */
+inline Word
+AOutReader::Header::sectionSizeText() const {
+    return sizes_.text_;
+}
+
+
+/**
+ * Returns the size of the symbol section.
+ *
+ * @return The size of the section in Bytes.
+ */
+inline Word
+AOutReader::Header::sectionSizeSymbol() const {
+    return sizes_.symbol_;
+}
+
+
+/**
+ * Returns the size of the text relocation section.
+ *
+ * @return The size of the section in Bytes.
+ */
+inline Word
+AOutReader::Header::sectionSizeTextReloc() const {
+    return sizes_.textReloc_;
+}
+
+
+/**
+ * Returns the size of the data relocation section.
+ *
+ * @return The size of the section in Bytes.
+ */
+inline Word
+AOutReader::Header::sectionSizeDataReloc() const {
+    return sizes_.dataReloc_;
+}
+
+
+/**
+ * Returns the size of the string section.
+ *
+ * @return The size of the section in Bytes.
+ */
+inline Word
+AOutReader::Header::sectionSizeString() const {
+    return sizes_.string_;
+}
+
+}

@@ -1,0 +1,64 @@
+/**
+ * @file LineNumElement.icc
+ *
+ * Inline definitions of LineNumElement class.
+ *
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Returns Line number which source line this element refers.
+ *
+ * @return Line number.
+ */
+inline HalfWord
+LineNumElement::lineNumber() const {
+    return lineNumber_;
+}
+
+/**
+ * Line number which source line this element refers.
+ *
+ * @param lineNum Line number.
+ */
+inline void
+LineNumElement::setLineNumber(HalfWord lineNum) {
+    lineNumber_ = lineNum;
+}
+
+/**
+ * Returns first instruction of the source line.
+ *
+ * @return First instruction of the source line.
+ */
+inline InstructionElement*
+LineNumElement::instruction() const {
+    return dynamic_cast<InstructionElement*>(instruction_->pointer());
+}
+
+/**
+ * First instruction of the source line.
+ *
+ * @param aRef Reference to set.
+ */
+inline void
+LineNumElement::setInstruction(ReferenceManager::SafePointer* aRef) {
+    instruction_ = aRef;
+}
+
+/**
+ * First instruction of the source line.
+ *
+ * @param aRef Reference to set.
+ */
+inline void
+LineNumElement::setInstruction(InstructionElement* aRef) {
+    instruction_ =
+	ReferenceManager::SafePointer::replaceReference(instruction_, aRef);
+}
+
+}

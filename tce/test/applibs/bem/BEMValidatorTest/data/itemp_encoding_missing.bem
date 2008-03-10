@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-encoding required-version="1.0" version="1.0">
+
+  <map-ports name="S2">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="add" name="P2">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="add" name="P3">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="S6">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="add_complex" name="P6">
+      <encoding>0</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="add_complex" name="P7">
+      <encoding>1</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="add_complex" name="P8">
+      <encoding>2</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="S7">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="add_complex" name="P4">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="add_complex" name="P8">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="S8">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="add_complex" name="P9">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <rf-port-code index-width="3" rf="integer">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </rf-port-code>
+  </map-ports>
+
+  <map-ports name="S9">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="3" rf="integer"/>
+  </map-ports>
+
+  <map-ports name="S10">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="3" rf="integer"/>
+  </map-ports>
+
+  <map-ports name="S11">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="gcu" name="ra">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <iu-port-code index-width="2" iu="imm1">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </iu-port-code>
+  </map-ports>
+
+  <map-ports name="S16">
+    <extra-bits>0</extra-bits>
+    <iu-port-code index-width="4" iu="imm2"/>
+  </map-ports>
+
+  <long-immediate-tag>
+    <pos>11</pos>
+    <extra-bits>0</extra-bits>
+    <map name="temp">0</map>
+  </long-immediate-tag>
+
+  <immediate-register-field>
+    <pos>9</pos>
+    <width>2</width>
+    <instruction-template name="temp">
+      <reg-index-of>imm1</reg-index-of>
+    </instruction-template>
+    <instruction-template name="temp2">
+      <reg-index-of>imm1</reg-index-of>
+    </instruction-template>
+  </immediate-register-field>
+
+  <immediate-register-field>
+    <pos>10</pos>
+    <width>4</width>
+    <instruction-template name="temp">
+      <reg-index-of>imm2</reg-index-of>
+    </instruction-template>
+    <instruction-template name="temp2">
+      <reg-index-of>imm2</reg-index-of>
+    </instruction-template>
+  </immediate-register-field>
+
+  <slot name="B1">
+    <pos>0</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="1" inv="false" rf="integer">0</reg-guard-code>
+      <port-guard-code fu="add" inv="true" port="P1">1</port-guard-code>
+      <always-true-guard-code>2</always-true-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="32">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="S8">
+        <map codes="S8" extra-bits="0">8</map>
+      </socket>
+      <socket name="S11">
+        <map codes="S11" extra-bits="0">18</map>
+      </socket>
+      <socket name="S7">
+        <map codes="S7" extra-bits="0">19</map>
+      </socket>
+      <socket name="S3">
+        <map extra-bits="0">21</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">20</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S10">
+        <map codes="S10" extra-bits="1">0</map>
+      </socket>
+      <socket name="S9">
+        <map codes="S9" extra-bits="1">1</map>
+      </socket>
+      <socket name="S6">
+        <map codes="S6" extra-bits="0">4</map>
+      </socket>
+      <socket name="S13">
+        <map extra-bits="0">21</map>
+      </socket>
+      <socket name="S12">
+        <map extra-bits="0">22</map>
+      </socket>
+      <socket name="S5">
+        <map extra-bits="0">23</map>
+      </socket>
+    </destination>
+  </slot>
+
+  <slot name="B2">
+    <pos>1</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="8">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="S3">
+        <map extra-bits="0">3</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">2</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S12">
+        <map extra-bits="0">1</map>
+      </socket>
+    </destination>
+  </slot>
+
+  <slot name="B3">
+    <pos>2</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="8">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="S8">
+        <map codes="S8" extra-bits="0">4</map>
+      </socket>
+      <socket name="S3">
+        <map extra-bits="0">81</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">80</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S9">
+        <map codes="S9" extra-bits="0">0</map>
+      </socket>
+      <socket name="S5">
+        <map extra-bits="0">3</map>
+      </socket>
+    </destination>
+  </slot>
+
+  <slot name="B4">
+    <pos>3</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="8">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="S11">
+        <map codes="S11" extra-bits="0">4</map>
+      </socket>
+      <bridge name="Br1">
+        <map extra-bits="0">41</map>
+      </bridge>
+      <no-operation>
+        <map extra-bits="0">40</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S13">
+        <map extra-bits="0">1</map>
+      </socket>
+    </destination>
+  </slot>
+
+  <slot name="B5">
+    <pos>4</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="8">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <bridge name="Br2">
+        <map extra-bits="0">3</map>
+      </bridge>
+      <no-operation>
+        <map extra-bits="0">2</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S2">
+        <map codes="S2" extra-bits="1">0</map>
+      </socket>
+      <socket name="S14">
+        <map extra-bits="1">3</map>
+      </socket>
+      <socket name="S1">
+        <map extra-bits="0">4</map>
+      </socket>
+    </destination>
+  </slot>
+
+  <slot name="B6">
+    <pos>5</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="8">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="S8">
+        <map codes="S8" extra-bits="0">4</map>
+      </socket>
+      <bridge name="Br3">
+        <map extra-bits="0">81</map>
+      </bridge>
+      <bridge name="Br4">
+        <map extra-bits="0">82</map>
+      </bridge>
+      <no-operation>
+        <map extra-bits="0">80</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S10">
+        <map codes="S10" extra-bits="0">0</map>
+      </socket>
+      <socket name="S6">
+        <map codes="S6" extra-bits="0">2</map>
+      </socket>
+      <socket name="S5">
+        <map extra-bits="0">13</map>
+      </socket>
+    </destination>
+  </slot>
+
+  <slot name="B7">
+    <pos>6</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="8">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="S16">
+        <map codes="S16" extra-bits="0">2</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">48</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S12">
+        <map extra-bits="0">1</map>
+      </socket>
+    </destination>
+  </slot>
+
+  <slot name="B8">
+    <pos>7</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="8">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="S8">
+        <map codes="S8" extra-bits="0">4</map>
+      </socket>
+      <socket name="S7">
+        <map codes="S7" extra-bits="0">40</map>
+      </socket>
+      <socket name="S3">
+        <map extra-bits="0">42</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">41</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S10">
+        <map codes="S10" extra-bits="1">0</map>
+      </socket>
+      <socket name="S9">
+        <map codes="S9" extra-bits="1">1</map>
+      </socket>
+      <socket name="S6">
+        <map codes="S6" extra-bits="0">4</map>
+      </socket>
+      <socket name="S4">
+        <map extra-bits="0">21</map>
+      </socket>
+      <socket name="S5">
+        <map extra-bits="0">22</map>
+      </socket>
+    </destination>
+  </slot>
+
+  <slot name="B9">
+    <pos>8</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="8">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="S11">
+        <map codes="S11" extra-bits="0">4</map>
+      </socket>
+      <bridge name="Br5">
+        <map extra-bits="0">41</map>
+      </bridge>
+      <no-operation>
+        <map extra-bits="0">40</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S13">
+        <map extra-bits="1">1</map>
+      </socket>
+      <socket name="S12">
+        <map extra-bits="0">2</map>
+      </socket>
+      <socket name="S15">
+        <map extra-bits="0">3</map>
+      </socket>
+    </destination>
+  </slot>
+
+</adf-encoding>

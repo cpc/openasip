@@ -1,0 +1,53 @@
+#
+# Makefile for test directories
+#
+
+BIN = $(wildcard *Test.hh)
+TOP_SRCDIR = ../../../..
+TESTDIR = $(TOP_SRCDIR)/test
+CXXDIR = $(TOP_SRCDIR)/test/cxxtest
+
+CURDIR = $(shell pwd)
+SUBSYS = $(shell cd ..; basename `pwd`)
+OBJDIR = ${TOP_SRCDIR}/src/base/$(SUBSYS)
+TOOLSDIR = ${TOP_SRCDIR}/src/tools
+
+ifeq "$(valgrind)" "yes"
+VALGRIND_OPTS = --leak-check=yes --quiet
+# --show-reachable=yes
+VALGRIND_BIN = valgrind
+VALGRIND_TEXT = ", using valgrind"
+endif
+
+include objects
+
+.PHONY: look_for_objects, build_objs
+
+all: ${BIN}
+
+%.hh: look_for_objects build_objs
+	@echo Running $@${VALGRIND_TEXT}:;
+	@(${CXXDIR}/cxxtestgen.pl --error-printer -o runner.cpp $@;\
+	${CXX} ${CPPFLAGS} -I ${CXXDIR} -I ${OBJDIR} -I ${TOP_SRCDIR} \
+	-I ${CXXDIR}/.. -I ${TOOLSDIR} -lxerces-c -lpthread -g -o runner \
+	runner.cpp \
+	${DIST_OBJECTS} || exit 1; \
+	${VALGRIND_BIN} ${VALGRIND_OPTS} ./runner;) 
+
+look_for_objects:
+	@if [ "${DIST_OBJECTS}" = "" ]; then \
+		echo;\
+		echo "Add the needed .o files to DIST_OBJECTS!";\
+		echo;\
+		echo "NOTE! Do not use *.o as it may cause problems caused ";\
+		echo "by other modules than the module to be tested.";\
+		echo;\
+		false;\
+	fi
+
+build_objs:
+	@(cd ${TOOLSDIR}; ${MAKE} || exit 1; cd ${CURDIR}) 
+	@(cd ${OBJDIR}; ${MAKE} || exit 1; cd ${CURDIR})
+
+clean:
+	rm -rf core* runner runner.cpp *~

@@ -1,0 +1,54 @@
+/**
+ * @file BasicElement.icc
+ *
+ * Inline definitions of BasicElement class.
+ *
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Adds byte of data into element.
+ *
+ * Method copies data that is given in parameter.
+ *
+ * @param data Byte that will be copied into the element.
+ */
+inline void
+BasicElement::addByte(const Byte& data) {
+    bytes_.push_back(data);
+}
+
+/**
+ * Returns one byte from section.
+ *
+ * @param index Index of byte which is returned.
+ * @exception OutOfRange If index is bigger than length of section.
+ */
+inline Byte
+BasicElement::byte(Word index) const
+    throw (OutOfRange) {
+
+    if (index >= length()) {
+        throw OutOfRange(
+            __FILE__, __LINE__, __func__, 
+            "Not enough data in element.");
+    }
+
+    return bytes_[index];
+}
+
+/**
+ * Returns length of section.
+ *
+ * @return Length of section in bytes.
+ */
+inline Word
+BasicElement::length() const {
+    return bytes_.size();
+}
+
+}

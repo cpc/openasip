@@ -1,0 +1,291 @@
+/**
+ * @file MoveElement.icc
+ *
+ * Inline definitions of MoveElement class.
+ *
+ * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
+ * @author Mikael Lepistö 18.12.2003 (tmlepist@cs.tut.fi)
+ * @note reviewed 21 October 2003 by ml, jn, rm, pj
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Returns true if move is emptyed.
+ *
+ * @return True if move is empty.
+ */
+inline bool
+MoveElement::isEmpty() const {
+    return isEmpty_;
+}
+
+
+/**
+ * Sets emptiness status of move.
+ *
+ * @param flag Status to set.
+ */
+inline void
+MoveElement::setEmpty(bool flag) {
+    isEmpty_ = flag;
+}
+
+/**
+ * Returns bus id.
+ *
+ * @return The bus id.
+ */
+inline Byte
+MoveElement::bus() const {
+    return bus_;
+}
+
+/**
+ * Sets the bus identification code.
+ *
+ * @param aBus The bus identification code to set.
+ */
+inline void
+MoveElement::setBus(Byte aBus) {
+    bus_ = aBus;
+}
+
+/**
+ * Returns source type.
+ *
+ * If source type is MVS_IMM it means that source refers to immediate
+ * element inside current instruction. Immediate element, which is
+ * may be determined by value of sourceUnit() and sourceIndex(). Referred
+ * Corresponding ImmediateElement, which has same values in destinationUnit()
+ * and destinationIndex() fields.
+ *
+ * @return The source type.
+ */
+inline MoveElement::FieldType
+MoveElement::sourceType() const {
+    return sourceType_;
+}
+
+/**
+ * Returns destination type.
+ *
+ * @return The destination type.
+ */
+inline MoveElement::FieldType
+MoveElement::destinationType() const {
+    return destinationType_;
+}
+
+/**
+ * Sets the type of the move source.
+ *
+ * @param aType The type of the source.
+ */
+inline void
+MoveElement::setSourceType(FieldType aType) {
+    sourceType_ = aType;
+}
+
+/**
+ * Sets the type of the move destination.
+ *
+ * @param aType The type of the destination.
+ */
+inline void
+MoveElement::setDestinationType(FieldType aType) {
+    destinationType_ = aType;
+}
+
+/**
+ * Returns the source register file or unit.
+ *
+ * See sourceType().
+ *
+ * @return The source register file or unit.
+ */
+inline Byte
+MoveElement::sourceUnit() const {
+    return sourceUnit_;
+}
+
+/**
+ * Sets source register file or unit.
+ *
+ * See sourceType().
+ *
+ * @param aSourceUnit The source register file or unit.
+ */
+inline void
+MoveElement::setSourceUnit(Byte aSourceUnit) {
+    sourceUnit_ = aSourceUnit;
+}
+
+/**
+ * Returns source register index.
+ *
+ * See sourceType().
+ *
+ * @return The source register index.
+ */
+inline HalfWord
+MoveElement::sourceIndex() const {
+    return sourceIndex_;
+}
+
+/**
+ * Sets source register index.
+ *
+ * See sourceType().
+ *
+ * @param aSourceIndex The source register index.
+ */
+inline void
+MoveElement::setSourceIndex(HalfWord aSourceIndex) {
+    sourceIndex_ = aSourceIndex;
+}
+
+/**
+ * Returns destination register file or unit.
+ *
+ * @return The destination register file or unit.
+ */
+inline Byte
+MoveElement::destinationUnit() const {
+    return destinationUnit_;
+}
+
+/**
+ * Sets destination register file or unit.
+ *
+ * @param aDestinationUnit The destination register file or unit.
+ */
+inline void
+MoveElement::setDestinationUnit(Byte aDestinationUnit) {
+    destinationUnit_ = aDestinationUnit;
+}
+
+/**
+ * Returns destination register index.
+ *
+ * @return The destination register index.
+ */
+inline HalfWord
+MoveElement::destinationIndex() const {
+    return destinationIndex_;
+}
+
+/**
+ * Sets destination register index.
+ *
+ * @param aDestinationIndex The destination register index.
+ */
+inline void
+MoveElement::setDestinationIndex(HalfWord aDestinationIndex) {
+    destinationIndex_ = aDestinationIndex;
+}
+
+/**
+ * Returns true if guard of instruction is enabled.
+ *
+ * @return True if guard is enabled.
+ */
+inline bool
+MoveElement::isGuarded() const {
+    return isGuarded_;
+}
+
+
+/**
+ * Sets guard enabled status of move.
+ *
+ * @param flag Status to set.
+ */
+inline void
+MoveElement::setGuarded(bool flag) {
+    isGuarded_ = flag;
+}
+
+/**
+ * Returns true if guard of move is inverted.
+ *
+ * @return True if guard is inverted.
+ */
+inline bool
+MoveElement::isGuardInverted() const {
+    return isGuardInverted_;
+}
+
+/**
+ * Sets inversion of guard register.
+ *
+ * @param flag Status to set.
+ */
+inline void
+MoveElement::setGuardInverted(bool flag) {
+    isGuardInverted_ = flag;
+}
+
+/**
+ * Returns type of referred guard register or port.
+ *
+ * @return Type of guard.
+ */
+inline MoveElement::FieldType
+MoveElement::guardType() const {
+    return guardType_;
+}
+
+/**
+ * Sets type of referred guard register or port.
+ *
+ * @param gType Type of guard.
+ */
+inline void
+MoveElement::setGuardType(FieldType gType) {
+    guardType_ = gType;
+}
+
+/**
+ * Returns the guard register file id
+ *
+ * @return The guard register file id.
+ */
+inline Byte
+MoveElement::guardUnit() const {
+    return guardUnit_;
+}
+
+/**
+ * Sets guard register file id.
+ *
+ * @param aGuard The guard register file id.
+ */
+inline void
+MoveElement::setGuardUnit(Byte aGuardUnit) {
+    guardUnit_ = aGuardUnit;
+}
+
+/**
+ * Returns guard register index.
+ *
+ * @return The guard register index.
+ */
+inline HalfWord
+MoveElement::guardIndex() const {
+    return guardIndex_;
+}
+
+/**
+ * Sets guard register index.
+ *
+ * @param aGuardIndex The guard register index.
+ */
+inline void
+MoveElement::setGuardIndex(HalfWord aGuardIndex) {
+    guardIndex_ = aGuardIndex;
+}
+
+}

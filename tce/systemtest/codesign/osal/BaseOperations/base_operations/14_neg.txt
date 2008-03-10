@@ -1,0 +1,5 @@
+neg 7
+neg -7
+neg 2345643
+neg -1002332
+!quit

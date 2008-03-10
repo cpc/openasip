@@ -1,0 +1,10 @@
+<?php
+// file: test_no_lsunits.testdesc
+
+// short test description
+$test_description="Generates a processor with no load store units and testbench/scripts for simulating it";
+// the binary being tested
+$test_bin="./run_no_lsunits_test.sh";
+// arguments given to the program
+$bin_args="";
+?>

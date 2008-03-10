@@ -1,0 +1,56 @@
+/**
+ * @file TemplateSlot.icc
+ *
+ * Inline implementation of TemplateSlot class.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @note rating: red
+ */
+
+#include "Application.hh"
+#include "Bus.hh"
+
+namespace TTAMachine {
+
+/**
+ * Returns the number of significant bits that can be encoded in this
+ * instruction field.
+ *
+ * @return The number of significant bits that can be encoded in this
+ *         instruction field.
+ */
+inline int
+TemplateSlot::width() const {
+    return width_;
+}
+
+
+/**
+ * Returns the name of the slot (bus or immediate slot) that normally 
+ * (that is, when this slot is not used to encode long immediate bits) is
+ * programmed by the instruction bit field of this template slot.
+ *
+ * @return The name of the slot that normally is programmed by the
+ *         instruction bit field of this template slot.
+ */
+inline std::string
+TemplateSlot::slot() const {
+    if (bus_ != NULL) {
+        return bus_->name();
+    } else {
+        assert(immSlot_ != NULL);
+        return immSlot_->name();
+    }
+}
+
+
+/**
+ * Returns the destination immediate unit of the slot.
+ *
+ * @return The destination immediate unit.
+ */
+inline ImmediateUnit*
+TemplateSlot::destination() const {
+    return destination_;
+}
+}

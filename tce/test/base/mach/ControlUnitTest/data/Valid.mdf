@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<adf version="1.3">
+
+<bus name="B1">
+    <width>32</width>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to>seg3</writes-to>
+    </segment>
+    <segment name="seg3">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<socket name="S1">
+    <writes-to>
+        <bus>B1</bus>
+        <segment>seg1</segment>
+    </writes-to>
+</socket>
+
+<socket name="S2">
+    <reads-from>
+        <bus>B1</bus>
+        <segment>seg2</segment>
+    </reads-from>
+</socket>
+
+<global-control-unit name="gcu">
+    <port name="control">
+        <connects-to>S2</connects-to>
+        <width>32</width>
+        <triggers/>
+        <sets-opcode/>
+    </port>
+    <special-port name="ra">
+        <connects-to>S1</connects-to>
+        <connects-to>S2</connects-to>
+        <width>32</width>
+    </special-port>
+    <return-address>ra</return-address>
+    <address-space/>
+    <delay-slots>2</delay-slots>
+    <guard-latency>1</guard-latency>
+</global-control-unit>
+
+</adf>

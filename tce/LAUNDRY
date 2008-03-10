@@ -1,0 +1,131 @@
+TCE Dirty Laundry
+=================
+
+This file lists spots in the TCE code base that could be improved somehow.
+They are sort of "dirty code" that should be cleaned at some point, but are 
+not critical in a sense that they are not bugs that break the functionality
+of TCE.
+
+Program Object Model
+--------------------
+Methods like hasRegisterAccesses() are too specialised and client
+specific for a domain object. I appreciate that is a good idea to cache
+those flags, but this stuff should be left to clients.
+
+This method was added by Pekka when he optimized simulation with register
+tracking on. This functionality should be moved to Simulator, to the
+ExecutableInstruction class. The info should be written while processing
+the program in SimProgramBuilder.
+
+Remove SimValue from the interface. Use regular integer variable to
+store immediates. Rest of the information can be derived from other
+POM objects.
+
+After this has been done, SimValue can be moved to 'src/base/osal' as it's
+the only base class that needs it (OperationBehavior). Otherwise it should
+be a totally simulator-specific structure.
+
+Simulator 
+---------
+Use a general "Options" class to pass options to Simulator Frontend.
+Currently there are setters and getters for everything which bloat
+the interface quite badly.
+
+Move more computation of ExecutableMove to compile time. Create a subclass
+ExecutableMoveTemplate which has certain properties as template parameters.
+For example, 'guard_' and 'inverted_' can be template parameters instead
+of member variables. This speeds up the simulation runtime as the template
+class gets those values as constants, thus compiler can optimize their
+uses with compile time constant propagation/precomputation. The 
+SimProgramBuilder just instantiates an object using correct template
+parameters for each move, rest is done by the compiler.
+
+TextGenerator
+-------------
+TextGenerator is a bad attempt in trying to gather all user interface texts
+to one place. The design is bad in many ways, and we should not use it in
+the future. If we have time and resources, we should try to apply a better
+way for storing the interface texts, or just use the strings directly in
+the code and remove the awful TextGenerator altogether. It's unlikely TCE 
+will be ever required to support multilanguage user interfaces anyways.
+
+IntWord/UIntWord/SIntWord
+-------------------------
+It's pretty confusing that IntWord is UIntWord (unsigned int). This is due
+to some mysterious idea to use INT() to mean unsigned int in OSAL and that
+way also IntWord would mean unsigned int. Now we have UINT() to mean
+unsigned int, so it would be much more intuitive if IntWord was changed to
+signed int so we don't need SIntWord.
+
+Machine Validation
+------------------
+There are some tests for machine validity from different aspects at 
+'applibs/mach'. There are no sensible class hierarchy for the tests,
+but they are executed as adhoc method calls. It would be better to have 
+a common class hierarchy for the tests. For example, each test could implement
+'MachineValidatorTest' interface which would provide the following methods:
+
+    void setMachine(Machine&);
+
+Sets the machine to be tested.
+
+    std::string title() const;
+
+Provides the title string for the test, e.g., "Check for global connection 
+register".
+
+    std::string description() const;
+
+Provides a longer description of the test.
+
+    bool runTest(std::vector<std::string>& errorMessages);
+
+Runs the tests, returns false if test failed, true if passed. The errorMessages
+container can be used to provide error message strings to the user.
+
+    void fixMachine();
+
+Modifies the machine in such a way that it passes the test.
+
+OSAL
+----
+
+Load/store operation naming. The current naming assumes a "word width" of
+32 bits. Then LDW is load word, LDH is half word (16 bits), LDQ is quarter
+word (8 bits). The actual target memory properties can be totally different,
+in which case LDQ accesses the MAU (minimum addressable unit). Better naming
+could be LD1, LD2, LD4. That is, operations that access single MAU, 2 MAUs,
+and 4 MAUs at once. Anyways, TCE v1.0 supports only byte-addressed data 
+memory in scheduler with 32 bit words (LDW). This can change in future
+release, but for now one has to ensure this kind of data memory addressing 
+is provided when scheduling sequential code against a real target. 
+
+
+HDB
+---
+
+Instead of using RowID as a type for IDs of all tables, HDB Manager should
+have different typedefs for each table ID type. This would prevent the
+common mistake of confusing IDs from different tables (such as
+implementation and entry).
+
+For example:
+
+RowID FUImplementation::id()
+HDB::fuImplementationByID(RowID id)
+RowID FUEntry::id()
+
+should be changed to:
+
+FUImplementationID FUImplementation::id()
+HDB::fuImplementationByID(FUImplementationID id)
+FUEntryID FUEntry::id()
+
+where FUImplementation is a type defined as RowID.
+
+GraphNodes
+----------
+
+Move idnumber generation to GraphNode base class, since all the node types 
+implements same functionality.
+

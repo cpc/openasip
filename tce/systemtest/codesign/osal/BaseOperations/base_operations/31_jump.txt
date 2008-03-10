@@ -1,0 +1,8 @@
+jump 1
+!register programcounter
+jump 1234567
+!register programcounter
+!output hex
+jump 0xdeadbeef
+!register programcounter
+!quit

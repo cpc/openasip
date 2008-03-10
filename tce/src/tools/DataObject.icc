@@ -1,0 +1,58 @@
+/**
+ * @file DataObject.icc
+ *
+ * Inline implementation of DataObject class.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ */
+
+/**
+ * Returns the original type of DataObject.
+ *
+ * @return The original type of DataObject.
+ */
+inline DataObject::OrigType
+DataObject::type() const {
+    return type_;
+}
+
+/**
+ * Returns true if int value is up-to-date.
+ *
+ * @return True if int value is up-to-date.
+ */
+inline bool
+DataObject::intFresh() const {
+    return intFresh_;
+}
+
+/**
+ * Returns true if string value is up-to-date.
+ *
+ * @return True if string value is up-to-date.
+ */
+inline bool
+DataObject::stringFresh() const {
+    return stringFresh_;
+}
+
+/**
+ * Returns true if double value is up-to-date.
+ *
+ * @return True if double value is up-to-date.
+ */
+inline bool
+DataObject::doubleFresh() const {
+    return doubleFresh_;
+}
+
+/**
+ * Returns true if float value is up-to-date.
+ *
+ * @return True if float value is up-to-date.
+ */
+inline bool
+DataObject::floatFresh() const {
+    return floatFresh_;
+}
+

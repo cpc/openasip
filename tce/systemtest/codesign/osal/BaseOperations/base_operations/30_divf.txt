@@ -1,0 +1,5 @@
+!output float
+divf 10.0f 5.0f
+divf 5.0f 2.0f
+divf 8247.32f 21.9836f
+!quit

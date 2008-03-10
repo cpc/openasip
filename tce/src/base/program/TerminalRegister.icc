@@ -1,0 +1,40 @@
+/**
+ * @file TerminalRegister.icc
+ *
+ * Inline implementations of TerminalRegister class members.
+ *
+ * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Tells whether the terminal is a long immediate register.
+ *
+ * @return true if the unit of the terminal is ImmediateUnit.
+ */
+inline bool
+TerminalRegister::isImmediateRegister() const {
+    return isImmUnit_;
+}
+
+/**
+ * Tells whether the terminal is a general-purpose register.
+ *
+ * @return true if the unit of the terminal is RegisterFile.
+ */
+inline bool
+TerminalRegister::isGPR() const {
+    return !isImmUnit_;
+}
+
+/**
+ * Return the index of the register (either a long immediate or a
+ * general-purpose register).
+ *
+ * @return The index of the register.
+ * @exception WrongSubclass never.
+ */
+inline int
+TerminalRegister::index() const throw (WrongSubclass) {
+    return index_;
+}

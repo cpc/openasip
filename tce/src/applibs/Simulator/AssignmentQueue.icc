@@ -1,0 +1,52 @@
+
+/**
+ * Adds a new delayed assignment to the queue
+ * 
+ * @param assignValue value to be assigned
+ * @param assignTarget pointer to the target of the assignment
+ * @param latency how long to wait in the queue until assignment can be done
+ * @note if the latency is zero, the assignment is done immediately
+ */
+void inline
+AssignmentQueue::addAssignment(
+    const SimValue& assignValue, SimValue* assignTarget, int latency) {
+    
+    if (maxLatency_ == 0) { // ring buffer with a size of zero! do nothing.
+        return;
+    }
+    
+    assert(latency >= 0  && latency <= maxLatency_);
+    
+    if (latency == 0) {
+        (*assignTarget) = assignValue;
+        return;
+    }
+    
+    int location = (position_ + latency) % maxLatency_;
+    assignmentQueue_[location].push_back(
+        Assignment(assignValue, assignTarget));
+}
+
+/**
+ * Advances the assign queue by one cycle.
+ * 
+ * Reduces delayed assignments wait time by one
+ */
+void inline
+AssignmentQueue::advanceClock() {
+    
+    if (maxLatency_ == 0) { // ring buffer with a size of zero! do nothing.
+        return;
+    }
+    
+    // Move to the next position in the ring buffer
+    position_ = (position_ + 1) % maxLatency_;
+    
+    while (!assignmentQueue_[position_].empty()) {        
+        // do the assignment and remove it
+        Assignment& a = assignmentQueue_[position_].front();
+        (*a.second) = a.first;
+        assignmentQueue_[position_].pop_front();
+    }
+}
+

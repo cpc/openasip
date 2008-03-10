@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<adf version="1.2">
+
+<address-space name="as1">
+    <width>32</width>
+    <min-address>20</min-address>
+    <max-address>23</max-address>
+</address-space>
+
+</adf>

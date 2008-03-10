@@ -1,0 +1,3 @@
+This directory holds sources copied from external projects.
+
+ext/llvm/            Sources from the LLVM project.

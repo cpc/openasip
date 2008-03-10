@@ -1,0 +1,3 @@
+#!/bin/bash
+rm -rf data/test.dsdb
+rm -rf 1.adf

@@ -1,0 +1,5 @@
+# Makes sure that the initialization script .ttasim-init
+# is executed. The misc.testdesc is responsible for
+# creating the .ttasim-init file before this test.
+setting bus_trace 
+quit

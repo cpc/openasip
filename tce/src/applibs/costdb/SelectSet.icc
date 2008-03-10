@@ -1,0 +1,121 @@
+/**
+ * @file SelectSet.icc
+ *
+ * Inline implementation of SelectSet class.
+ *
+ * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @note rating: red
+ */
+
+#include "Application.hh"
+
+
+/**
+ * Constructor.
+ *
+ * @param type Type of the field.&%
+ */
+template <bool (EntryKeyField::*select)(const EntryKeyField&) const,
+          bool (EntryKeyField::*unSelect)(const EntryKeyField&) const>
+SelectSet<select, unSelect>::SelectSet(const EntryKeyFieldProperty* type):
+    Matcher(type) {
+}
+
+/**
+ * Destructor.
+ */
+template <bool (EntryKeyField::*select)(const EntryKeyField&) const,
+          bool (EntryKeyField::*unSelect)(const EntryKeyField&) const>
+SelectSet<select, unSelect>::~SelectSet() {
+}
+
+/**
+ * Filters out entries which do not satisfy selection criteria.
+ *
+ * However, equal values are accepted.
+ *
+ * @param searchKey Search key.
+ * @param components Entries from which to find. Updated to contain
+ *                   entries that matched the search request.
+ */
+template <bool (EntryKeyField::*select)(const EntryKeyField&) const,
+          bool (EntryKeyField::*unSelect)(const EntryKeyField&) const>
+void
+SelectSet<select, unSelect>::quickFilter(
+    const CostDBEntryKey& searchKey,
+    CostDBTypes::EntryTable& components) {
+
+    CostDBTypes::EntryTable filtered;
+    EntryKeyField searchField = searchKey.keyFieldOfType(*fieldType());
+
+    for (CostDBTypes::EntryTable::iterator i = components.begin();
+         i != components.end(); i++) {
+
+        EntryKeyField field = (*i)->keyFieldOfType(*fieldType());
+	if (field.isEqual(searchField) || (field.*select)(searchField)) {
+	    filtered.push_back(*i);
+	}
+    }
+    components = filtered;
+}
+
+
+/**
+ * Searches for database entries that satisfies selection criteria.
+ *
+ * However, equal values are accepted.
+ *
+ * Filtering does not require a search key since QuickFilter()
+ * guarantees that unacceptable entries do not exist.
+ *
+ * Only the best matches are returned, i.e. if two entries has only
+ * the field to which search is applied different, closer one to the
+ * search key is chosen.
+ *
+ * @param components Entries from which to find. Updated to contain
+ *                   entries that matched the search request.
+ */
+template <bool (EntryKeyField::*select)(const EntryKeyField&) const,
+          bool (EntryKeyField::*unSelect)(const EntryKeyField&) const>
+void
+SelectSet<select, unSelect>::filter(
+    const CostDBEntryKey&,
+    CostDBTypes::EntryTable& components) {
+
+    CostDBTypes::EntryTable filtered;
+
+    for (CostDBTypes::EntryTable::iterator i1 = components.begin();
+         i1 != components.end(); i1++) {
+
+        EntryKeyField field1 = (*i1)->keyFieldOfType(*fieldType());
+
+	bool addEntry = true;
+
+	for (CostDBTypes::EntryTable::iterator i2 = filtered.begin();
+             i2 != filtered.end(); i2++) {
+
+	    if (!onlyThisFieldDiffers(fieldType(), *(*i1), *(*i2))) {
+		continue;
+	    }
+
+            EntryKeyField field2 = (*i2)->keyFieldOfType(*fieldType());
+
+	    if ((field1.*unSelect)(field2)) {
+                filtered.erase(i2);
+                i2--;
+	    } else if ((field1.*select)(field2)) {
+                addEntry = false;
+            } else if (field1.isEqual(field2)) {
+                assert(false);
+	    }
+	}
+
+        if (addEntry) {
+            filtered.push_back(*i1);
+        }
+        *i1 = 0;
+    }
+
+    components = filtered;
+}

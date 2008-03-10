@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf version="1.5">
+
+  <function-unit name="FU">
+    <port name="o1">
+      <width>32</width>
+    </port>
+    <port name="t1">
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="r1">
+      <width>32</width>
+    </port>
+    <operation>
+      <name>add</name>
+      <bind name="1">o1</bind>
+      <bind name="2">t1</bind>
+      <bind name="3">r1</bind>
+      <pipeline>
+        <resource name="res1">
+          <start-cycle>1</start-cycle>
+          <cycles>2</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>3</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sub</name>
+      <bind name="1">o1</bind>
+      <bind name="2">t1</bind>
+      <bind name="3">r1</bind>
+      <pipeline>
+        <resource name="res1">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+</adf>

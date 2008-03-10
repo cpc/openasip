@@ -1,0 +1,26 @@
+/**
+ * @file OperationState.icc
+ *
+ * Inline-definitions of OperationState class.
+ *
+ * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen@tut.fi)
+ * @note rating: red
+ * @note reviewed 7 September 2004 by pj, jn, jm, ao
+ */
+
+//////////////////////////////////////////////////////////////////////////////
+// NullOperationState
+//////////////////////////////////////////////////////////////////////////////
+
+/** 
+ * Returns an instance of NullOperationState class (singleton).
+ *
+ * @return Instance of NullOperationState class.
+ */
+inline NullOperationState*
+NullOperationState::instance() {
+    if (instance_ == NULL) {
+	instance_ = new NullOperationState();	
+    }
+    return instance_;
+}

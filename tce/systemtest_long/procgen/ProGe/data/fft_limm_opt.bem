@@ -1,0 +1,1026 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-encoding required-version="1.0" version="1.0">
+
+  <map-ports name="fu4_t">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="fu4" name="trigger" operation="add">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu4" name="trigger" operation="sub">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="fu6_t">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="fu6" name="trigger" operation="ld">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu6" name="trigger" operation="st">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="fu7_t">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="fu7" name="trigger" operation="ld">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu7" name="trigger" operation="st">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="fu8_t">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="fu8" name="trigger" operation="eq">
+      <encoding>0</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu8" name="trigger" operation="gt">
+      <encoding>1</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu8" name="trigger" operation="gtu">
+      <encoding>2</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="ri_i1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="2" rf="integer0"/>
+  </map-ports>
+
+  <map-ports name="ri_i2">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer1"/>
+  </map-ports>
+
+  <map-ports name="ri_i3">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer2"/>
+  </map-ports>
+
+  <map-ports name="ri_i4">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer3"/>
+  </map-ports>
+
+  <map-ports name="ri_i5">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer4"/>
+  </map-ports>
+
+  <map-ports name="ri_i6">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer5"/>
+  </map-ports>
+
+  <map-ports name="ri_i7">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer6"/>
+  </map-ports>
+
+  <map-ports name="ri_i8">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer7"/>
+  </map-ports>
+
+  <map-ports name="ri_i9">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer8"/>
+  </map-ports>
+
+  <map-ports name="ri_i10">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer9"/>
+  </map-ports>
+
+  <map-ports name="ri_i11">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer10"/>
+  </map-ports>
+
+  <map-ports name="ri_o1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="2" rf="integer0"/>
+  </map-ports>
+
+  <map-ports name="ri_o2">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer1"/>
+  </map-ports>
+
+  <map-ports name="ri_o3">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer2"/>
+  </map-ports>
+
+  <map-ports name="ri_o4">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer3"/>
+  </map-ports>
+
+  <map-ports name="ri_o5">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer4"/>
+  </map-ports>
+
+  <map-ports name="ri_o6">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer5"/>
+  </map-ports>
+
+  <map-ports name="ri_o7">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer6"/>
+  </map-ports>
+
+  <map-ports name="ri_o72">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer6"/>
+  </map-ports>
+
+  <map-ports name="ri_o8">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer7"/>
+  </map-ports>
+
+  <map-ports name="ri_o9">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer8"/>
+  </map-ports>
+
+  <map-ports name="ri_o10">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer9"/>
+  </map-ports>
+
+  <map-ports name="ri_o11">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer10"/>
+  </map-ports>
+
+  <map-ports name="b_i1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="boolean0"/>
+  </map-ports>
+
+  <long-immediate-tag>
+    <pos>18</pos>
+    <extra-bits>0</extra-bits>
+    <map name="empty">1</map>
+    <map name="template0">0</map>
+  </long-immediate-tag>
+
+  <slot name="m1">
+    <pos>0</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu8_r">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="b_i1">
+        <map codes="b_i1" extra-bits="0">0</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">1</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m3">
+    <pos>1</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_o5">
+        <map codes="ri_o5" extra-bits="1">0</map>
+      </socket>
+      <socket name="ri_o10">
+        <map codes="ri_o10" extra-bits="1">1</map>
+      </socket>
+      <socket name="fu4_r">
+        <map extra-bits="0">5</map>
+      </socket>
+      <socket name="fu7_r">
+        <map extra-bits="0">6</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">4</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu1_o">
+        <map extra-bits="2">1</map>
+      </socket>
+      <socket name="fu1_o2">
+        <map extra-bits="1">2</map>
+      </socket>
+      <socket name="fu4_o">
+        <map extra-bits="1">3</map>
+      </socket>
+      <socket name="fu6_o">
+        <map extra-bits="0">4</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="2">0</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m4">
+    <pos>2</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_o1">
+        <map codes="ri_o1" extra-bits="0">0</map>
+      </socket>
+      <socket name="ri_o6">
+        <map codes="ri_o6" extra-bits="0">2</map>
+      </socket>
+      <socket name="fu4_r">
+        <map extra-bits="0">7</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">6</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu1_o1">
+        <map extra-bits="2">1</map>
+      </socket>
+      <socket name="fu1_t">
+        <map extra-bits="1">2</map>
+      </socket>
+      <socket name="fu4_o">
+        <map extra-bits="1">3</map>
+      </socket>
+      <socket name="fu8_o">
+        <map extra-bits="0">4</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="2">0</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m5">
+    <pos>3</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_o1">
+        <map codes="ri_o1" extra-bits="1">0</map>
+      </socket>
+      <socket name="ri_o5">
+        <map codes="ri_o5" extra-bits="1">2</map>
+      </socket>
+      <socket name="ri_o6">
+        <map codes="ri_o6" extra-bits="1">3</map>
+      </socket>
+      <socket name="ri_o7">
+        <map codes="ri_o7" extra-bits="0">4</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">5</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu8_t">
+        <map codes="fu8_t" extra-bits="0">0</map>
+      </socket>
+      <socket name="fu4_t">
+        <map codes="fu4_t" extra-bits="0">2</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">3</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m6">
+    <pos>4</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_o5">
+        <map codes="ri_o5" extra-bits="0">0</map>
+      </socket>
+      <socket name="fu1_r0">
+        <map extra-bits="0">3</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">2</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu6_t">
+        <map codes="fu6_t" extra-bits="0">0</map>
+      </socket>
+      <socket name="fu5_o">
+        <map extra-bits="0">3</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">2</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m7">
+    <pos>5</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu1_r1">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu6_t">
+        <map codes="fu6_t" extra-bits="0">0</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">1</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m8">
+    <pos>6</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu1_r1">
+        <map extra-bits="1">1</map>
+      </socket>
+      <socket name="fu4_r">
+        <map extra-bits="0">2</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="1">0</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_i2">
+        <map codes="ri_i2" extra-bits="3">0</map>
+      </socket>
+      <socket name="ri_i3">
+        <map codes="ri_i3" extra-bits="3">1</map>
+      </socket>
+      <socket name="ri_i4">
+        <map codes="ri_i4" extra-bits="2">2</map>
+      </socket>
+      <socket name="ri_i5">
+        <map codes="ri_i5" extra-bits="2">3</map>
+      </socket>
+      <socket name="ri_i6">
+        <map codes="ri_i6" extra-bits="1">4</map>
+      </socket>
+      <socket name="ri_i7">
+        <map codes="ri_i7" extra-bits="1">5</map>
+      </socket>
+      <socket name="ri_i8">
+        <map codes="ri_i8" extra-bits="1">6</map>
+      </socket>
+      <socket name="ri_i9">
+        <map codes="ri_i9" extra-bits="1">7</map>
+      </socket>
+      <socket name="ri_i10">
+        <map codes="ri_i10" extra-bits="0">8</map>
+      </socket>
+      <socket name="ri_i11">
+        <map codes="ri_i11" extra-bits="0">9</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">10</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m9">
+    <pos>7</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu6_r">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu2_o">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m10">
+    <pos>8</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu5_r">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu2_t">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m11">
+    <pos>9</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu4_r">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu5_t">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m12">
+    <pos>10</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu2_r">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_i1">
+        <map codes="ri_i1" extra-bits="1">0</map>
+      </socket>
+      <socket name="ri_i3">
+        <map codes="ri_i3" extra-bits="1">2</map>
+      </socket>
+      <socket name="ri_i4">
+        <map codes="ri_i4" extra-bits="1">3</map>
+      </socket>
+      <socket name="fu3_o">
+        <map extra-bits="0">9</map>
+      </socket>
+      <socket name="fu3_o1">
+        <map extra-bits="0">10</map>
+      </socket>
+      <socket name="fu3_o2">
+        <map extra-bits="0">11</map>
+      </socket>
+      <socket name="fu3_o3">
+        <map extra-bits="0">12</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">8</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m13">
+    <pos>11</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_o6">
+        <map codes="ri_o6" extra-bits="2">0</map>
+      </socket>
+      <socket name="ri_o7">
+        <map codes="ri_o7" extra-bits="2">1</map>
+      </socket>
+      <socket name="ri_o8">
+        <map codes="ri_o8" extra-bits="1">2</map>
+      </socket>
+      <socket name="ri_o9">
+        <map codes="ri_o9" extra-bits="1">3</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">4</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu3_t">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m14">
+    <pos>12</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_o2">
+        <map codes="ri_o2" extra-bits="3">0</map>
+      </socket>
+      <socket name="ri_o3">
+        <map codes="ri_o3" extra-bits="3">1</map>
+      </socket>
+      <socket name="ri_o4">
+        <map codes="ri_o4" extra-bits="2">2</map>
+      </socket>
+      <socket name="ri_o5">
+        <map codes="ri_o5" extra-bits="2">3</map>
+      </socket>
+      <socket name="ri_o6">
+        <map codes="ri_o6" extra-bits="1">4</map>
+      </socket>
+      <socket name="ri_o72">
+        <map codes="ri_o72" extra-bits="1">5</map>
+      </socket>
+      <socket name="ri_o8">
+        <map codes="ri_o8" extra-bits="1">6</map>
+      </socket>
+      <socket name="ri_o9">
+        <map codes="ri_o9" extra-bits="1">7</map>
+      </socket>
+      <socket name="ri_o10">
+        <map codes="ri_o10" extra-bits="0">8</map>
+      </socket>
+      <socket name="ri_o11">
+        <map codes="ri_o11" extra-bits="0">9</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">10</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu7_o">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m15">
+    <pos>13</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu3_r">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu7_t">
+        <map codes="fu7_t" extra-bits="0">0</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">1</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m16">
+    <pos>14</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_o1">
+        <map codes="ri_o1" extra-bits="0">0</map>
+      </socket>
+      <socket name="fu4_r">
+        <map extra-bits="0">3</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">2</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu3_o">
+        <map extra-bits="1">1</map>
+      </socket>
+      <socket name="fu8_o">
+        <map extra-bits="0">2</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="1">0</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m17">
+    <pos>15</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_o3">
+        <map codes="ri_o3" extra-bits="1">0</map>
+      </socket>
+      <socket name="ri_o11">
+        <map codes="ri_o11" extra-bits="1">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">2</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu8_t">
+        <map codes="fu8_t" extra-bits="0">0</map>
+      </socket>
+      <socket name="fu3_o1">
+        <map extra-bits="0">3</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">2</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m18">
+    <pos>16</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_o4">
+        <map codes="ri_o4" extra-bits="0">0</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">1</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu3_o2">
+        <map extra-bits="0">1</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">0</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="m19">
+    <pos>17</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ra_o">
+        <map extra-bits="1">1</map>
+      </socket>
+      <socket name="ir_1">
+        <map extra-bits="0">2</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="1">0</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="ri_i1">
+        <map codes="ri_i1" extra-bits="2">0</map>
+      </socket>
+      <socket name="ri_i5">
+        <map codes="ri_i5" extra-bits="2">2</map>
+      </socket>
+      <socket name="ri_i6">
+        <map codes="ri_i6" extra-bits="2">3</map>
+      </socket>
+      <socket name="ri_i7">
+        <map codes="ri_i7" extra-bits="1">4</map>
+      </socket>
+      <socket name="ri_i8">
+        <map codes="ri_i8" extra-bits="1">5</map>
+      </socket>
+      <socket name="ri_i9">
+        <map codes="ri_i9" extra-bits="1">6</map>
+      </socket>
+      <socket name="ri_i10">
+        <map codes="ri_i10" extra-bits="1">7</map>
+      </socket>
+      <socket name="ri_i11">
+        <map codes="ri_i11" extra-bits="0">8</map>
+      </socket>
+      <socket name="pc">
+        <map extra-bits="0">10</map>
+      </socket>
+      <socket name="ra_i">
+        <map extra-bits="0">11</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">9</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+</adf-encoding>

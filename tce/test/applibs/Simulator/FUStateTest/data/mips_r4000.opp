@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>SQRTF</name>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="DoubleWord"/>
+    <out id="2 type="DoubleWord""/>
+  </operation>
+
+</osal>

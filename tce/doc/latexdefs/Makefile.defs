@@ -1,0 +1,143 @@
+
+# Template Makefile for all LaTeX documents in TCE project.
+#
+# Set following variables after including this Makefile (with include
+# command) to your own document's Makefile:
+#
+# DEFS            Relative path where these Makefile definitions and
+#                 shared latex/bibtex files are.
+# DOC_NAME_TEXT   Double-quoted document title (extended document name).
+# BUILD_DEFAULT   Default rule built by Makefile.
+# LATEX_OPTS      Options passed to latex command.
+# CLASS_PATH      name of the latex class file for this document with
+#                 relative path. Automatically created but you may
+#                 have to redefine it if the cls file does not
+#                 correspond to the name of the upper directory. For
+#                 example, in case of doc/specs/requirement/ProDe,
+#                 "requirement.cls" is chosen automatically. If you
+#                 use latex standard document style you should set
+#                 empty CLASS_PATH. The definition of the CLASS_PATH
+#                 MUST appear after this Makefile is included.
+
+
+LATEX2HTML = $(shell which latex2html)
+LATEX = $(shell which latex)
+DVIPS = $(shell which dvips)
+DVI2PDF = $(shell which dvipdfm)
+PS2PDF = $(shell which ps2pdf)
+BIBTEX = $(shell which bibtex)
+BBLFILE = $(shell\
+	if grep "^[^%]*[\]bibliography{" $(DOC_NAME).tex > /dev/null ; \
+	      then echo $(DOC_NAME).bbl ; \
+	fi)
+
+DOC_NAME = $(shell basename $(PWD))
+DOC_TYPE = $(shell cd ..; basename `pwd`)
+CLASS_PATH = $(DEFS)/$(DOC_TYPE).cls
+
+.PHONY: all html ps pdf fig clean veryclean
+
+${BUILD_DEFAULT}:
+
+all: ps html pdf
+
+## SHORTCUT RULES
+
+html: $(DOC_NAME).html
+
+ps: $(DOC_NAME).ps
+
+pdf: $(DOC_NAME).pdf
+
+## BUILD RULES
+
+$(DOC_NAME).ps: $(DOC_NAME).dvi
+	${DVIPS} $(DOC_NAME) -o $(DOC_NAME).ps
+
+$(DOC_NAME).html: $(DOC_NAME).dvi
+	rm -rf $(DOC_NAME)
+	${LATEX2HTML} \
+		-white -t $(DOC_NAME_TEXT) \
+		-show_section_numbers \
+		-split 4 -toc_depth 3\
+		-local_icons\
+		-no_footnode\
+		$(DOC_NAME).tex
+
+$(DOC_NAME).pdf: $(DOC_NAME).dvi
+	${DVI2PDF} -o $(DOC_NAME).pdf $(DOC_NAME).dvi
+
+$(DOC_NAME).dvi: tce.cls tcedocs.cls algorithm.sty algorithmic.sty \
+	fig $(BBLFILE) *.tex
+	${LATEX} $(LATEX_OPTS) $(DOC_NAME).tex > /dev/null
+	if grep "[\]makeindex" $(DOC_NAME).tex > /dev/null; \
+		then makeindex $(DOC_NAME).idx; \
+	fi
+	${LATEX} $(LATEX_OPTS) $(DOC_NAME).tex
+
+
+## be pedantic: if bibtex fails, make sure it will keep failing,
+## no matter how many times 'make' is invoked
+$(DOC_NAME).bbl: fig tce.cls Bibliography.bib
+	${LATEX} $(LATEX_OPTS) $(DOC_NAME).tex
+	${BIBTEX} $(DOC_NAME) || (make clean && exit 1)
+
+
+## LINK RULES
+
+Bibliography.bib:
+	ln -s $(DEFS)/$@ $@
+
+
+## Link the latex class file specific for a type of document (e.g.,
+## functional specifications, design notes, etc.) with the fixed class name
+## "tce.cls" used by all latex source files. This rule will be removed
+## when all .cls files are merged into a general parameterised file.
+tce.cls:
+	if test x$(CLASS_PATH) != x ; then \
+	    ln -s $(CLASS_PATH) $@ ; \
+	fi
+
+## Link the global latex class file with the style information.
+tcedocs.cls:
+	if test x$(DEFS)/tcedocs.cls != x ; then \
+	    ln -s $(DEFS)/tcedocs.cls $@ ; \
+	fi
+
+# Link the extra style file algorithm.sty.
+algorithm.sty:
+	if test x$(DEFS)/algorithm.sty != x ; then \
+	    ln -s $(DEFS)/algorithm.sty $@ ; \
+	fi
+
+# Link the extra style file algorithmic.sty.
+algorithmic.sty:
+	if test x$(DEFS)/algorithmic.sty != x ; then \
+	    ln -s $(DEFS)/algorithmic.sty $@ ; \
+	fi
+			    
+
+## RECURSIVE MAKE RULES
+fig:
+	-test -d fig && test ! -f fig/Makefile && \
+	    ln -s ../$(DEFS)/fig/Makefile fig/Makefile
+	-test -d fig && (cd fig; make)
+
+## CLEANUP RULES
+
+clean:
+	rm -fr *~ *.log *.aux *.dvi *.bbl *.blg *.toc *.ind *.idx *.ilg
+	if test -d fig ; \
+	    then (cd fig; make clean > /dev/null 2>&1) \
+	fi;
+
+
+veryclean: clean
+	rm -f $(DOC_NAME).ps $(DOC_NAME).pdf
+	rm -rf $(DOC_NAME)
+	rm -f tce.cls tcedocs.cls Bibliography.bib \
+	algorithmic.sty algorithm.sty
+	if test -d fig ; \
+	    then rm -f fig/Makefile; \
+	fi;
+

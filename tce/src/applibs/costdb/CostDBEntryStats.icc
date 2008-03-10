@@ -1,0 +1,30 @@
+/**
+ * @file CostDBEntryStats.icc
+ *
+ * Inline implementation of CostDBEntryStats class.
+ *
+ * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @note rating: red
+ */
+
+
+/**
+ * Returns area.
+ *
+ * @return Area.
+ */
+inline double
+CostDBEntryStats::area() const {
+    return area_;
+}
+
+/**
+ * Returns delay.
+ *
+ * @return Delay.
+ */
+inline double
+CostDBEntryStats::delay() const {
+    return delay_;
+}

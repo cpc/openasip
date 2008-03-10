@@ -1,0 +1,889 @@
+/**
+ * @file DataDependenceGraphTest.hh
+ *
+ * A test suite for Data Dependence Graph generation.
+ *
+ * @author Heikki Kultala 2006 (heikki.kultala@tut.fi)
+ * @note rating: red
+ */
+
+#ifndef FU_DATA_DEPENDENCE_GRAPH_TEST_HH
+#define FU_DATA_DEPENDENCE_GRAPH_TEST_HH
+
+#include <iostream>
+
+#include <TestSuite.h>
+#include "DataDependenceGraph.hh"
+#include "DataDependenceGraphBuilder.hh"
+#include "BinaryStream.hh"
+#include "TPEFProgramFactory.hh"
+#include "Program.hh"
+#include "BinaryReader.hh"
+#include "UniversalMachine.hh"
+#include "OperationPool.hh"
+#include "ControlFlowGraph.hh"
+#include "ADFSerializer.hh"
+#include "Instruction.hh"
+
+using TTAProgram::Move;
+
+int nodeCounts0[] = { 9,-1,6 };
+int nodeCounts1[] = { 13,-1,28,6 };
+int nodeCounts2[] = { 19,-1,9 };
+int edgeCounts0[] = { 13, -1,7 };
+int edgeCounts1[] = { 8, -1, 41, 7 };
+int edgeCounts2[] = { 26, -1, 12 };
+
+class DataDependenceGraphTest : public CxxTest::TestSuite {
+public:
+    void setUp();
+    void tearDown();
+
+    void testProcedureDDG();
+    void testBBDDG();
+
+    void testRallocatedDDG();
+    void testRallocatedBBDDG();
+
+    void testPathCalculation();
+
+    void testSWBypassing();
+
+    MoveNode& findMoveNodeById(DataDependenceGraph& ddg, int id);
+};
+
+
+void 
+DataDependenceGraphTest::setUp() {
+}
+
+void 
+DataDependenceGraphTest::tearDown() {
+}
+
+MoveNode&
+DataDependenceGraphTest::findMoveNodeById(DataDependenceGraph& ddg, int id) {
+
+    for (int i = 0; i < ddg.nodeCount(); ++i) {
+        if (ddg.node(i).nodeID() == id)
+            return ddg.node(i);
+    }
+    abortWithError("Not found??" + Conversion::toString(id));
+    // silence warning
+    throw 1;
+}
+
+/**
+ * Tests
+ *
+ * @todo
+ */
+void
+DataDependenceGraphTest::testProcedureDDG() {
+
+    OperationPool opool;
+    UniversalMachine umach(opool);
+    TPEF::BinaryStream binaryStream("data/arrmul.tpef");
+
+    // read to TPEF Handler Module
+    TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+
+    assert(tpef_ != NULL);
+
+    // convert the loaded TPEF to POM
+    TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
+    TTAProgram::Program* currentProgram = factory.build();
+    
+    ControlFlowGraph cfg(currentProgram->procedure(1));
+
+    DataDependenceGraph* ddg = NULL;
+
+    DataDependenceGraphBuilder builder;
+
+    ddg = builder.build(cfg,&umach);
+
+    TS_ASSERT_EQUALS(ddg->programOperationCount(), 18);
+    TS_ASSERT_EQUALS(ddg->nodeCount(), 48);
+    TS_ASSERT_EQUALS(ddg->edgeCount(), 91);
+
+    int first  = ddg->node(1).nodeID();
+    TS_ASSERT(
+        ddg->hasEdge(findMoveNodeById(*ddg, first), 
+                     findMoveNodeById(*ddg, first+2)));
+
+    TS_ASSERT(
+        ddg->hasEdge(findMoveNodeById(*ddg, first+1), 
+                     findMoveNodeById(*ddg, first+2)));
+
+    TS_ASSERT(
+        !ddg->hasEdge(findMoveNodeById(*ddg, first), 
+                      findMoveNodeById(*ddg, first+1)));
+
+    // check mem WARs
+    TS_ASSERT(
+        ddg->hasEdge(findMoveNodeById(*ddg,first+31),
+                     findMoveNodeById(*ddg,first+38)));
+
+    TS_ASSERT(
+        ddg->hasEdge(findMoveNodeById(*ddg,first+33),
+                     findMoveNodeById(*ddg,first+38)));
+
+    // RARs are not dependencies, no edge
+    TS_ASSERT(
+        !ddg->hasEdge(findMoveNodeById(*ddg,first+31),
+                     findMoveNodeById(*ddg,first+33)));
+    
+    // write it out to a .dot file, just check it does not crash or anything
+    // it's not feasible to verify the output as the node ids are the
+    // object addresses, thus change, etc.
+    ddg->writeToDotFile("/dev/null");
+
+    // Then try to do something with subgraphs
+    try {
+        for (int i = 0; i < cfg.nodeCount(); i++) {
+            BasicBlockNode& bbn = cfg.node(i);
+            if (bbn.isNormalBB()) {
+
+                DataDependenceGraph *sg = ddg->createSubgraph(
+                    bbn.basicBlock(), true);
+                DataDependenceGraph *sg2 = sg->createSubgraph(
+                    bbn.basicBlock(), false);
+
+                TS_ASSERT_EQUALS(sg2->nodeCount(), nodeCounts1[i]);
+                TS_ASSERT_EQUALS(sg->nodeCount(), nodeCounts1[i]);
+
+                // check that same nuber of edges that with only BB-ddg
+                TS_ASSERT_EQUALS(sg2->edgeCount(), edgeCounts1[i]);
+
+                // try to add some nodes to SG2
+
+                Move* move0 = 
+                    bbn.basicBlock().instructionAtIndex(0).move(0).copy();
+                Move* move1 = 
+                    bbn.basicBlock().instructionAtIndex(0).move(0).copy();
+                Move* move2 = 
+                    bbn.basicBlock().instructionAtIndex(0).move(0).copy();
+
+                MoveNode* mn0 = new MoveNode(move0);
+                MoveNode* mn1 = new MoveNode(move1);
+                MoveNode* mn2 = new MoveNode(move2);
+
+                sg2->addNode(*mn0);
+                sg2->addNode(*mn1);
+                sg2->addNode(*mn2);
+                TS_ASSERT_EQUALS(sg2->nodeCount(), nodeCounts1[i] +3);
+                TS_ASSERT_EQUALS(sg->nodeCount(), nodeCounts1[i] +3);
+                TS_ASSERT_EQUALS(ddg->nodeCount(), 48 + 3);
+
+                // TODO: remove added nodes
+                
+                sg2->removeNode(*mn0);
+                sg2->removeNode(*mn1);
+                sg2->removeNode(*mn2);
+
+                TS_ASSERT_EQUALS(sg2->nodeCount(), nodeCounts1[i]);
+                TS_ASSERT_EQUALS(sg->nodeCount(), nodeCounts1[i]);
+                TS_ASSERT_EQUALS(ddg->nodeCount(), 48);
+
+
+                sg->detachSubgraph(*sg2);
+                delete sg2;
+                ddg->detachSubgraph(*sg);
+                delete sg;
+            }
+
+       }
+    } catch ( Exception &e ) {
+        std::cerr << Exception::lastExceptionInfo () << std::endl;
+        TS_ASSERT(0);
+    }
+
+    delete ddg;
+    delete currentProgram;
+    currentProgram = NULL;
+
+}
+
+
+void
+DataDependenceGraphTest::testBBDDG() {
+
+    try {
+        OperationPool opool;
+        UniversalMachine umach(opool);
+        TPEF::BinaryStream binaryStream("data/arrmul.tpef");
+        
+        // read to TPEF Handler Module
+        TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+        
+        assert(tpef_ != NULL);
+    
+        // convert the loaded TPEF to POM
+        TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
+        TTAProgram::Program* currentProgram = factory.build();
+
+        ControlFlowGraph cfg0(currentProgram->procedure(0));
+        ControlFlowGraph cfg1(currentProgram->procedure(1));
+        ControlFlowGraph cfg2(currentProgram->procedure(2));
+
+        DataDependenceGraph* ddg0 = NULL;
+        DataDependenceGraph* ddg1 = NULL;
+        DataDependenceGraph* ddg1l = NULL;
+        DataDependenceGraph* ddg2 = NULL;
+    
+        DataDependenceGraphBuilder builder;
+
+        for (int i = 0; i < cfg0.nodeCount(); i++) {
+            BasicBlockNode& bb = cfg0.node(i);
+            if (bb.isNormalBB()) {
+                ddg0 = builder.build(bb.basicBlock(), &umach);
+
+                // check for edges to itself, should not be
+                for( int j = 0; j < ddg0->nodeCount(); j++ ) {
+                    TS_ASSERT(!(ddg0->hasEdge(ddg0->node(j),ddg0->node(j))));
+                }
+                TS_ASSERT_EQUALS(ddg0->nodeCount(), nodeCounts0[i]);
+                TS_ASSERT_EQUALS(ddg0->edgeCount(), edgeCounts0[i]);
+
+                delete ddg0; ddg0 = NULL;
+            }
+        }
+
+        for (int i = 0; i < cfg1.nodeCount(); i++) {
+            BasicBlockNode& bb = cfg1.node(i);
+            if (bb.isNormalBB()) {
+                ddg1 = builder.build(bb.basicBlock(), &umach);
+
+                // check for edges to itself, should not be
+                for( int j = 0; j < ddg1->nodeCount(); j++ ) {
+                    TS_ASSERT(!(ddg1->hasEdge(ddg1->node(j),ddg1->node(j))));
+                }
+                TS_ASSERT_EQUALS(ddg1->nodeCount(), nodeCounts1[i]);
+                TS_ASSERT_EQUALS(ddg1->edgeCount(), edgeCounts1[i]);
+
+                if (cfg1.hasEdge(bb,bb)) { // looping bb
+                    ddg1l = ddg1;
+                } else {
+                    delete ddg1; ddg1 = NULL;
+                }
+            }
+        }
+
+        for (int i = 0; i < cfg2.nodeCount(); i++) {
+            BasicBlockNode& bb = cfg2.node(i);
+            if (bb.isNormalBB()) {
+                ddg2 = builder.build(bb.basicBlock(), &umach);            
+
+                // check for edges to itself, should not be
+                for( int j = 0; j < ddg2->nodeCount(); j++ ) {
+                    TS_ASSERT(!(ddg2->hasEdge(ddg2->node(j),ddg2->node(j))));
+                }
+                TS_ASSERT_EQUALS(ddg2->nodeCount(), nodeCounts2[i]);
+                TS_ASSERT_EQUALS(ddg2->edgeCount(), edgeCounts2[i]);
+
+                delete ddg2; ddg2 = NULL;
+            }
+        }
+        
+        TS_ASSERT_EQUALS(ddg1l->programOperationCount(), 11);
+        TS_ASSERT_EQUALS(ddg1l->nodeCount(), 28);
+/* no more addresses here - need to update numbers from somewher
+        TS_ASSERT(
+            ddg1l->hasEdge(
+                findMoveNodeById(*ddg1l, 35), findMoveNodeById(*ddg1l, 36)));
+
+        TS_ASSERT(
+            !ddg1l->hasEdge(
+                findMoveNodeById(*ddg1l, 35), findMoveNodeById(*ddg1l, 37)));
+*/
+
+        delete currentProgram;
+        currentProgram = NULL;
+
+        delete ddg1l;
+
+    } catch (Exception &e) {
+        std::cerr << e.fileName() << ":" << e.lineNum()
+                  << " " << e.errorMessage() << std::endl;
+
+        assert(0);
+    }
+}
+
+void
+DataDependenceGraphTest::testRallocatedDDG() {
+    try {
+        UniversalMachine umach;
+        TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
+        
+        ADFSerializer adfSerializer;
+        adfSerializer.setSourceFile("data/10_bus_full_connectivity.adf");
+        
+        TTAMachine::Machine* machine = adfSerializer.readMachine();
+        
+        // read to TPEF Handler Module
+        TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+        
+        assert(tpef_ != NULL);
+    
+
+        // convert the loaded TPEF to POM
+        TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
+        TTAProgram::Program* currentProgram = factory.build();
+
+        ControlFlowGraph cfg(currentProgram->procedure(1));
+        
+        DataDependenceGraph* ddg = NULL;
+        
+        DataDependenceGraphBuilder builder;
+        ddg = builder.build(cfg);
+
+        TS_ASSERT_EQUALS(ddg->programOperationCount(), 14);
+        TS_ASSERT_EQUALS(ddg->nodeCount(), 38);
+        TS_ASSERT_EQUALS(ddg->edgeCount(), 66);
+        
+        int first = ddg->node(1).nodeID();
+
+        TS_ASSERT(
+            !ddg->hasEdge(
+                findMoveNodeById(*ddg, first), 
+                findMoveNodeById(*ddg, first+1)));
+
+        TS_ASSERT(
+            !ddg->hasEdge(
+                findMoveNodeById(*ddg, first+1), 
+                findMoveNodeById(*ddg, first+2)));
+
+        TS_ASSERT(
+            !ddg->hasEdge(
+                findMoveNodeById(*ddg, first+2), 
+                findMoveNodeById(*ddg, first+3)));
+
+        TS_ASSERT(
+            !ddg->hasEdge(
+                findMoveNodeById(*ddg, first+3), 
+                findMoveNodeById(*ddg, first+4)));
+
+        TS_ASSERT(
+            ddg->hasEdge(
+                findMoveNodeById(*ddg, first+4), 
+                findMoveNodeById(*ddg, first+6)));
+        
+        TS_ASSERT(
+            ddg->hasEdge(
+                findMoveNodeById(*ddg, first+5), 
+                findMoveNodeById(*ddg, first+6)));
+        
+        TS_ASSERT(
+            !ddg->hasEdge(
+                findMoveNodeById(*ddg, first+4), 
+                findMoveNodeById(*ddg, first+5)));
+        
+        // check mem WARs
+        TS_ASSERT(
+            ddg->hasEdge(findMoveNodeById(*ddg,first+21),
+                         findMoveNodeById(*ddg,first+28)));
+        
+        TS_ASSERT(
+            ddg->hasEdge(findMoveNodeById(*ddg,first+23),
+                         findMoveNodeById(*ddg,first+28)));
+        
+        // RARs are not dependencies, no edge
+        TS_ASSERT(
+            !ddg->hasEdge(findMoveNodeById(*ddg,first+21),
+                     findMoveNodeById(*ddg,first+23)));
+
+        delete currentProgram;
+        currentProgram = NULL;
+
+
+    } catch (Exception &e) {
+        std::cerr << e.fileName() << ":" << e.lineNum()
+                  << " " << e.errorMessage() << std::endl;
+
+        assert(0);
+    }
+}
+
+void
+DataDependenceGraphTest::testRallocatedBBDDG() {
+    
+    try {
+        
+        UniversalMachine umach;
+        TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
+        
+        ADFSerializer adfSerializer;
+        adfSerializer.setSourceFile("data/10_bus_full_connectivity.adf");
+        
+        TTAMachine::Machine* machine = adfSerializer.readMachine();
+        
+        // read to TPEF Handler Module
+        TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+        
+        assert(tpef_ != NULL);
+    
+        // convert the loaded TPEF to POM
+        TTAProgram::TPEFProgramFactory factory(*tpef_, *machine, umach);
+        TTAProgram::Program* currentProgram = factory.build();
+
+        ControlFlowGraph cfg0(currentProgram->procedure(0));
+        ControlFlowGraph cfg1(currentProgram->procedure(1));
+        ControlFlowGraph cfg2(currentProgram->procedure(2));
+
+        DataDependenceGraph* ddg0 = NULL;
+        DataDependenceGraph* ddg1 = NULL;
+        DataDependenceGraph* ddg1l = NULL;
+
+        DataDependenceGraph* ddg2 = NULL;
+    
+        DataDependenceGraphBuilder builder;
+
+        for( int i = 0; i < cfg0.nodeCount(); i++ ) {
+            BasicBlockNode& bb = cfg0.node(i);
+            if( bb.isNormalBB()) {
+                ddg0 = builder.build(bb.basicBlock());
+                delete ddg0; ddg0 = NULL;
+            }
+        }
+
+        for( int i = 0; i < cfg1.nodeCount(); i++ ) {
+            BasicBlockNode& bb = cfg1.node(i);
+            if( bb.isNormalBB()) {
+                ddg1 = builder.build(bb.basicBlock());
+                if(cfg1.hasEdge(bb,bb)) { // looping bb
+                    ddg1l = ddg1;
+                } else {
+                    delete ddg1; ddg1 = NULL;
+                }
+            }
+        }
+
+        for( int i = 0; i < cfg2.nodeCount(); i++ ) {
+            BasicBlockNode& bb = cfg2.node(i);
+            if( bb.isNormalBB()) {
+                ddg2 = builder.build(bb.basicBlock());            
+                delete ddg2; ddg2 = NULL;
+            }
+        }
+        
+        TS_ASSERT_EQUALS(ddg1l->programOperationCount(), 11);
+        TS_ASSERT_EQUALS(ddg1l->nodeCount(), 28);
+/* no more addresses here - need to update numbers from somewher
+        TS_ASSERT(
+            ddg1l->hasEdge(
+                findMoveNodeById(*ddg1l, 35), findMoveNodeById(*ddg1l, 36)));
+
+        TS_ASSERT(
+            !ddg1l->hasEdge(
+                findMoveNodeById(*ddg1l, 35), findMoveNodeById(*ddg1l, 37)));
+*/
+        delete currentProgram;
+        currentProgram = NULL;
+
+        if(ddg1l)
+            delete ddg1l;
+
+    } catch (Exception &e) {
+        std::cerr << e.fileName() << ":" << e.lineNum()
+                  << " " << e.errorMessage() << std::endl;
+
+        assert(0);
+    }
+}
+
+
+
+void
+DataDependenceGraphTest::testPathCalculation() {
+    int longestPathLengths0[] = { 12 ,-1,12 };
+    int longestPathLengths0M[] = { 12 ,-1,24 };
+    int longestPathLengths1[] = { 9, -1,24 ,6};
+    int longestPathLengths1M[] = { 9, -1,36 ,18};
+    int longestPathLengths2[] = { 18, -1,12};
+    int longestPathLengths2M[] = { 18, -1,18};
+    try {
+        UniversalMachine umach;
+        TPEF::BinaryStream binaryStream("data/arrmul.tpef");
+        
+        // read to TPEF Handler Module
+        TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+       
+        ADFSerializer adfSerializer;
+        adfSerializer.setSourceFile("data/10_bus_full_connectivity.adf");
+        
+        TTAMachine::Machine* machine = adfSerializer.readMachine();
+
+        assert(tpef_ != NULL);
+    
+        // convert the loaded TPEF to POM
+        TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
+        TTAProgram::Program* currentProgram = factory.build();
+
+        ControlFlowGraph cfg0(currentProgram->procedure(0));
+        ControlFlowGraph cfg1(currentProgram->procedure(1));
+        ControlFlowGraph cfg2(currentProgram->procedure(2));
+
+        DataDependenceGraph* ddg = NULL;
+        DataDependenceGraphBuilder builder;
+
+        for (int i = 0; i < cfg0.nodeCount(); i++) {
+
+            BasicBlockNode& bb = cfg0.node(i);
+            if (bb.isNormalBB()) {
+                Move* move0 = 
+                    bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                Move* move1 = 
+                    bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                Move* move2 = 
+                    bb.basicBlock().instructionAtIndex(0).move(0).copy();
+
+                ddg = builder.build(bb.basicBlock(), &umach);
+                TS_ASSERT_EQUALS(ddg->height(), longestPathLengths0[i]);
+
+                // test adding a new node into graph which forces a 
+                // recalculation.
+                bool sinkFound = false;
+                for (int j = 0; j < ddg->nodeCount(); j++ ) {
+                    MoveNode &node = ddg->node(j);
+                    if (ddg->maxSourceDistance(node) == ddg->height()) {
+                        
+                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
+                        
+                        MoveNode *mn0 = new MoveNode(*move0);
+                        MoveNode *mn1 = new MoveNode(*move1);
+                        MoveNode *mn2 = new MoveNode(*move2);
+                        ddg->addNode(*mn0,bb);
+                        ddg->addNode(*mn1,bb);
+                        ddg->addNode(*mn2,bb);
+
+                        DataDependenceEdge *e0 = new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER,
+                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+
+                        DataDependenceEdge *e1 = new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER,
+                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+
+                        DataDependenceEdge *e2 = new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER,
+                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+
+                        // add node to end.  should increase height
+                        ddg->connectNodes(node, *mn0,*e0);
+                        TS_ASSERT_EQUALS(ddg->height(),
+                                         longestPathLengths0[i]+3);
+
+                        // add another node to end. should increase height
+                        ddg->connectNodes(*mn0, *mn1,*e1);
+
+                        TS_ASSERT_EQUALS(ddg->height(),
+                                         longestPathLengths0[i]+6);
+
+                        // add node which has edge to last
+                        // should NOT increase height
+                        ddg->connectNodes(*mn2, *mn1,*e2);
+
+                        TS_ASSERT_EQUALS(ddg->height(),
+                                         longestPathLengths0[i]+6);
+
+                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),3);
+
+                        sinkFound = true;
+                        break;
+                    }
+                }
+                TS_ASSERT(sinkFound);
+
+                // check how path lengths change when we set a machine
+                ddg->setMachine(*machine);
+                
+                TS_ASSERT_EQUALS(ddg->height(),
+                                 longestPathLengths0M[i]+6);
+
+                delete ddg; ddg = NULL;
+                delete move0; delete move1; delete move2;
+            }
+        }
+
+        for (int i = 0; i < cfg1.nodeCount(); i++) {
+            BasicBlockNode& bb = cfg1.node(i);
+            if (bb.isNormalBB()) {
+                Move* move0 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                Move* move1 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                Move* move2 = bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                ddg = builder.build(bb.basicBlock());
+                TS_ASSERT_EQUALS(ddg->height(), longestPathLengths1[i]);
+
+
+                // test adding a new node into graph which forces a 
+                // recalculation.
+                bool sinkFound = false;
+                for (int j = 0; j < ddg->nodeCount(); j++ ) {
+                    MoveNode &node = ddg->node(j);
+                    if (ddg->maxSourceDistance(node) == ddg->height()) {
+                        
+                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
+                        
+                        MoveNode *mn0 = new MoveNode(*move0);
+                        MoveNode *mn1 = new MoveNode(*move1);
+                        MoveNode *mn2 = new MoveNode(*move2);
+                        ddg->addNode(*mn0,bb);
+                        ddg->addNode(*mn1,bb);
+                        ddg->addNode(*mn2,bb);
+
+                        DataDependenceEdge *e0 = new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER,
+                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+
+                        DataDependenceEdge *e1 = new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER,
+                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+
+                        DataDependenceEdge *e2 = new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER,
+                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+
+                        // add node to end. should increase height
+                        ddg->connectNodes(node, *mn0,*e0);
+                        TS_ASSERT_EQUALS(ddg->height(),
+                                         longestPathLengths1[i]+3);
+
+                        // add another node to end. should increase height
+                        ddg->connectNodes(*mn0, *mn1,*e1);
+
+                        TS_ASSERT_EQUALS(ddg->height(),
+                                         longestPathLengths1[i]+6);
+
+                        // add node which has edge to last
+                        // should NOT increase height
+                        ddg->connectNodes(*mn2, *mn1,*e2);
+
+                        TS_ASSERT_EQUALS(ddg->height(),
+                                         longestPathLengths1[i]+6);
+
+                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),3);
+
+                        sinkFound = true;
+                        break;
+                    }
+                }
+                TS_ASSERT(sinkFound);
+
+                // check how path lengths change when we set a machine
+                ddg->setMachine(*machine);
+                
+                TS_ASSERT_EQUALS(ddg->height(),
+                                 longestPathLengths1M[i]+6);
+
+                delete ddg; ddg = NULL;
+                delete move0; delete move1; delete move2;
+            }
+        }
+        
+        for (int i = 0; i < cfg2.nodeCount(); i++) {
+            BasicBlockNode& bb = cfg2.node(i);
+            if (bb.isNormalBB()) {
+                Move* move0 = 
+                    bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                Move* move1 = 
+                    bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                Move* move2 = 
+                    bb.basicBlock().instructionAtIndex(0).move(0).copy();
+                ddg = builder.build(bb.basicBlock());            
+                TS_ASSERT_EQUALS(ddg->height(), longestPathLengths2[i]);
+
+                // test adding a new node into graph which forces a 
+                // recalculation.
+                bool sinkFound = false;
+                for (int j = 0; j < ddg->nodeCount(); j++ ) {
+                    MoveNode &node = ddg->node(j);
+                    if (ddg->maxSourceDistance(node) == ddg->height()) {
+                        
+                        TS_ASSERT_EQUALS(ddg->outDegree(node), 0);
+                        
+                        MoveNode *mn0 = new MoveNode(*move0);
+                        MoveNode *mn1 = new MoveNode(*move1);
+                        MoveNode *mn2 = new MoveNode(*move2);
+
+                        ddg->addNode(*mn0, bb);
+                        ddg->addNode(*mn1, bb);
+                        ddg->addNode(*mn2, bb);
+
+                        DataDependenceEdge *e0 = new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER,
+                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+
+                        DataDependenceEdge *e1 = new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER,
+                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+
+                        DataDependenceEdge *e2 = new DataDependenceEdge(
+                            DataDependenceEdge::EDGE_REGISTER,
+                            DataDependenceEdge::DEP_UNKNOWN,false, false);
+
+                        // add node to end. should increase height
+                        ddg->connectNodes(node, *mn0, *e0);
+                        TS_ASSERT_EQUALS(ddg->height(),
+                                         longestPathLengths2[i]+3);
+
+                        // add another node to end. should increase height
+                        ddg->connectNodes(*mn0, *mn1, *e1);
+
+                        TS_ASSERT_EQUALS(ddg->height(),
+                                         longestPathLengths2[i]+6);
+
+                        // add node which has edge to last
+                        // should NOT increase height.
+                        // added node should have sink distance of 1
+                        ddg->connectNodes(*mn2, *mn1,*e2);
+
+                        TS_ASSERT_EQUALS(ddg->height(),
+                                         longestPathLengths2[i]+6);
+
+                        TS_ASSERT_EQUALS(ddg->maxSinkDistance(*mn2),3);
+
+                        sinkFound = true;
+                        break;
+                    }
+                }
+                TS_ASSERT(sinkFound);
+
+                // check how path lengths change when we set a machine
+                ddg->setMachine(*machine);
+                
+                TS_ASSERT_EQUALS(ddg->height(),
+                                 longestPathLengths2M[i]+6);
+
+                delete ddg; ddg = NULL;
+                delete move0; delete move1; delete move2;
+            }
+        }
+
+        delete currentProgram;
+        currentProgram = NULL;
+
+    } catch (Exception &e) {
+        std::cerr << e.fileName() << ":" << e.lineNum()
+                  << " " << e.errorMessage() << std::endl;
+
+        assert(0);
+    }
+}
+
+void
+DataDependenceGraphTest::testSWBypassing() {
+
+    UniversalMachine umach;
+    TPEF::BinaryStream binaryStream("data/arrmul.tpef");
+
+    // read to TPEF Handler Module
+    TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+
+    assert(tpef_ != NULL);
+
+    // convert the loaded TPEF to POM
+    TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
+    TTAProgram::Program* currentProgram = factory.build();
+    
+    ControlFlowGraph cfg(currentProgram->procedure(2));
+
+    DataDependenceGraph* ddg = NULL;
+
+    DataDependenceGraphBuilder builder;
+
+    ddg = builder.build(cfg,&umach);
+
+    // these do not exist at the beginning..
+    TS_ASSERT(!ddg->hasEdge(ddg->node(6), ddg->node(27)));
+    TS_ASSERT(!ddg->hasEdge(ddg->node(6), ddg->node(26)));
+
+    TS_ASSERT(!ddg->hasEdge(ddg->node(20), ddg->node(27)));
+    TS_ASSERT(!ddg->hasEdge(ddg->node(20), ddg->node(26)));
+
+    // do the bypassing...
+    MoveNode& res = ddg->node(24);
+    MoveNode& user = ddg->node(25);
+    MoveNode& warDest = ddg->node(27);
+
+    TS_ASSERT(ddg->hasEdge(user, warDest));
+
+    TS_ASSERT(ddg->resultUsed(res));
+    ddg->mergeAndKeep(res, user);
+
+    // new op edges
+    TS_ASSERT(ddg->hasEdge(ddg->node(22), user));
+    TS_ASSERT(ddg->hasEdge(ddg->node(23), user));
+    // and missing original edge
+    TS_ASSERT(!ddg->hasEdge(res, user));
+    // new WaW edge
+    TS_ASSERT(ddg->hasEdge(res, warDest));
+
+
+    // do DRE
+    TS_ASSERT(!ddg->resultUsed(res));
+    ddg->removeNode(res); // should fix WaW edge 
+/*
+    TTAProgram::Instruction& ins =  res.move().parent();
+    ins.removeMove(res.move());
+    if (ins.moveCount() == 0) {
+        ins.parent().remove(ins);
+    }
+    delete &res;
+*/
+    // updated WaW edge due node removal
+    TS_ASSERT(ddg->hasEdge(ddg->node(6), warDest)); //ddg->node(26))); 
+
+    // updated WaR edge due node removal
+    TS_ASSERT(ddg->hasEdge(ddg->node(20), warDest)); //ddg->node(26))); 
+
+    // try to do another bypass.. that cannot ne DRE'd.
+    MoveNode& res2 = ddg->node(6);
+    MoveNode& user2 = ddg->node(7);
+
+    TS_ASSERT(ddg->resultUsed(res2));
+    ddg->mergeAndKeep(res2, user2);
+    // result still alive
+    TS_ASSERT(ddg->resultUsed(res2));
+
+    // new op edges
+    TS_ASSERT(ddg->hasEdge(ddg->node(4), user2));
+    TS_ASSERT(ddg->hasEdge(ddg->node(5), user2));
+    // and missing original edge
+    TS_ASSERT(!ddg->hasEdge(res2, user2));
+
+    ddg->unMerge(res2,user2);
+
+    // new op edges should be removed 
+    TS_ASSERT(!ddg->hasEdge(ddg->node(4),user2));
+    TS_ASSERT(!ddg->hasEdge(ddg->node(5),user2));
+    // original edge should have returned
+    TS_ASSERT(ddg->hasEdge(res2,user2));
+
+    // try to undo DRE 
+
+    ddg->restoreNode(res); // also changes indeces? or not?
+
+    // are operation edges returned?
+    TS_ASSERT(ddg->hasEdge(ddg->node(22), res));
+    TS_ASSERT(ddg->hasEdge(ddg->node(23), res));
+    // WaW edge?
+    TS_ASSERT(ddg->hasEdge(res, warDest));
+
+    // try to unmerge the first bypass
+    ddg->unMerge(res,user);
+
+    // reg raw reappeared?
+    TS_ASSERT(ddg->hasEdge(res,user));
+    // and operation edges gone?
+    TS_ASSERT(!ddg->hasEdge(ddg->node(22),user));
+    TS_ASSERT(!ddg->hasEdge(ddg->node(23),user));
+
+    delete ddg;
+    delete currentProgram;
+    currentProgram = NULL;
+    
+}
+
+#endif
+

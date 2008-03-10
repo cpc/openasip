@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<osal version="0.1">
+
+    <operation>
+        <name>oper1</name>
+        <inputs>0</inputs>
+        <outputs>0</outputs>
+        <reads-memory/>
+        <writes-memory/>
+        <trap/>
+        <side-effects/>
+        <affected-by>
+            <operation name="oper2"/>
+        </affected-by>
+        <affects>
+            <operation name="oper3"/>
+        </affects>
+    </operation>
+
+    <operation>
+        <name>oper2</name>
+        <inputs>2</inputs>
+        <outputs>1</outputs>
+        <reads-memory/>
+        <writes-memory/>
+        <trap/>
+        <side-effects/>
+        <affected-by>
+            <operation name="oper1"/>
+        </affected-by>
+        <affects>
+            <operation name="oper1"/>
+        </affects>
+        <in id="1" type="SIntWord">
+            <mem-address/>
+            <can-swap>
+                <in id="2"/>
+            </can-swap>
+        </in>
+        <in id="2" type="SIntWord">
+            <mem-address/>
+            <mem-data/>
+            <can-swap>
+                <in id="1"/>
+            </can-swap>
+        </in>
+        <out id="1" type="SIntWord">
+            <mem-data/>
+        </out>
+    </operation>
+
+    <operation>
+        <name>oper3</name>
+        <inputs>2</inputs>
+        <outputs>2</outputs>
+        <reads-memory/>
+        <writes-memory/>
+        <trap/>
+        <side-effects/>
+        <affected-by>
+            <operation name="oper1"/>
+            <operation name="oper2"/>
+        </affected-by>
+        <affects>
+            <operation name="oper1"/>
+            <operation name="oper2"/>
+        </affects>
+        <in id="1" type="SIntWord">
+            <mem-address/>
+            <can-swap>
+                <in id="2"/>
+            </can-swap>
+        </in>
+        <in id="2" type="SIntWord">
+            <mem-address/>
+            <mem-data/>
+            <can-swap>
+                <in id="1"/>
+            </can-swap>
+        </in>
+        <out id="1" type="SIntWord">
+            <mem-data/>
+        </out>
+        <out id="2" type="SIntWord">
+            <mem-data/>
+        </out>
+    </operation>
+
+</osal>

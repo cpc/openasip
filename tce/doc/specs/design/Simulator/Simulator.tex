@@ -1,0 +1,3600 @@
+\documentclass[a4paper,twoside]{tce}
+\usepackage{pslatex}
+
+\begin{document}
+\author{Pekka Jääskeläinen, Andrea Cilio}
+\title{TTA Processor Simulator}
+\ver{0.25.1}
+
+\firstday{10.03.2004}
+
+\lastday{03.02.2006}
+
+% id number in S- sequence
+\docnum{013}
+% draft/complete/committed
+\state{draft}
+
+\maketitle
+
+
+\chapter*{Document History}
+
+\begin{HistoryTable}
+
+ 0.1    & 10.03.2004 & A. Cilio   &
+ First fragments.  API definitions from Simulator design notes. \\
+
+ 0.2    & 31.03.2004 & P. Jääskeläinen &
+ Added preliminary design of Interpreter module under command line
+ interface. \\
+
+ 0.2.1  & 01.04.2004 & P. Jääskeläinen &
+ Added the design of the Event Handler module. \\
+
+ 0.3    & 01.04.2004 & A. Cilio   &
+ Added draft implementation of instruction interpreter and pending issue on
+ read request identification. Minor changes.\\
+
+ 0.4    & 02.04.2004 & P. Jääskeläinen &
+ Preliminary design of BreakpointManager.\\
+
+ 0.4.1  & 05.04.2004 & A. Cilio   &
+ Revision of instruction interpreter chapter.\\
+
+ 0.4.2  & 05.04.2004 & P. Jääskeläinen &
+ Added the LineReader class to CLI module.\\
+
+ 0.4.3  & 06.04.2004 & P. Jääskeläinen &
+ Revision of interpreter design according to discussion with AC. Changed the
+ way custom commands are added to Tcl library.\\
+
+ 0.4.4  & 14.04.2004 & P. Jääskeläinen &
+ Added \emph{ConditionScript} helper class to interpreter.
+ \emph{BreakpointManager} does not depend on \emph{ScriptInterpreter};
+ instead, \emph{Breakpoint} contains \emph{ConditionScript} instances.\\
+
+ 0.5    & 21.04.2004 & P. Jääskeläinen &
+ Clarified interfaces of \emph{LineReader} and \emph{ScriptInterpreter}.
+ Changed \emph{ScriptInterpreter} abstract destructor. Changed error
+ handling methods. Added Tracking System chapter.\\
+
+ 0.5.1  & 26.04.2004 & P. Jääskeläinen &
+ Minor corrections to Interpreter following JN comments. Added
+ \emph{finalize} method to \emph{ScriptInterpreter}. Added note about
+ passing \emph{CustomCommand}.\\
+
+ 0.5.2  & 28.04.2004 & P. Jääskeläinen &
+ Renamed method for setting interpreter variables.\\
+
+ 0.5.3  & 31.5.2004  & Jussi Nykänen &
+ Pointer to \emph{LineReader} now in \emph{ScriptInterpreter}. Added support
+ for multiline commands. Revised \emph{LineReader}.\\
+
+ 0.5.4  & 26.7.2004  & P. Jääskeläinen &
+ Added method for sorting commands by name to \emph{ScriptInterpreter}.\\
+
+ 0.5.5  & 14.09.2004 & A. Cilio &
+ Added motivations for tracking memory, 8.1.1.\\
+
+ 0.5.6  & 15.09.2004 & P. Jääskeläinen &
+ Added a diagram on memory tracking. Renamed memory interface class. Changes
+ to memory tracking motivations, 8.1.1.\\
+
+ 0.6    & 14.10.2004 & P. Jääskeläinen &
+ Added machine state model chapter (incomplete), 5. \\
+
+ 0.6.1  & 15.10.2004 & P. Jääskeläinen &
+ Revision of machine state model after a read-through. Added examples with
+ template arguments.\\
+
+ 0.7    & 18.11.2004 & A. Cilio   &
+ Interim revision. Partial review of the document: 2, 4, 5.1, 5.2, 6, 7, 8.\\
+
+ 0.8    & 25.11.2004 & P. Jääskeläinen &
+ Major modifications and additions after discussions with Jussi and Andrea. \\
+
+ 0.9    & 03.12.2004 & P. Jääskeläinen &
+ Revised according to comments of Andrea. \\
+
+ 0.10   & 08.12.2004 & P. Jääskeläinen &
+ Added database schema for Execution Trace. \\
+
+ 0.11   & 09.12.2004 & A. Cilio &
+ Complete revision of MSM chapter. \\
+
+ 0.12   & 10.12.2004 & P. Jääskeläinen &
+ Updated \emph{SyscallEmulator} class diagram. Added \emph{TraceDB} class
+ and schema of execution trace. \\
+
+ 0.13   & 14.12.2004 & A. Cilio &
+ Revision of execution trace section, 8.2.\\
+
+ 0.13.1 & 14.12.2004 & A. Cilio &
+ Minor revision of section 8.2.\\
+
+ 0.13.2 & 15.12.2004 & A. Cilio &
+ Text revision of Simulator Controller, 4. \\
+
+ 0.14 & 22.12.2004 & P. Jääskeläinen &
+ Added Implementation chapter and sequence diagrams.\\
+
+ 0.14.1 & 23.12.2004 & P. Jääskeläinen &
+ Added method to find register by name to \emph{StateLocator}.\\
+
+ 0.14.2 & 05.01.2005 & P. Jääskeläinen &
+ Added methods to bind ports to \emph{FUState}.\\
+
+ 0.14.3 & 06.01.2005 & A. Cilio &
+ Text revision: Simulator controller and MSM.\\
+
+ 0.15   & 09.01.2005 & A. Cilio &
+ Moved binding methods to class \emph{OperationExecutor}. Changed design of FU
+ state object hierarchy.\\
+
+ 0.15.1 & 10.01.2005 & A. Cilio &
+ Minor change to method for adding binding information.\\
+
+ 0.16   & 11.01.2005 & A. Cilio &
+ Complete revision of \emph{FUState} and \emph{OperationExecutor}.\\
+
+ 0.17  & 11.01.2005 & P. Jääskeläinen &
+ Updated the \emph{MachineStateBuilder}, now a pure static class. Added
+ \emph{ProgramInterpreter}.  Minor cleanups.\\
+
+ 0.18  & 12.01.2005 & A. Cilio &
+ \emph{MachineStateBuilder} nonstatic again. Changes to \emph{StateLocator}
+ and \emph{MachineState} interfaces. Renamed \emph{ProgramInterpreter}, now
+ \emph{SimProgramBuilder}.\\
+
+ 0.19  & 12.01.2005 & P. Jääskeläinen &
+ Updated sequence diagrams and their descriptions. Moved \emph{EventHandler}
+ to TCE Tookit.\\
+
+ 0.20  & 13.01.2005 & P. Jääskeläinen &
+ Event handler. Added method for accessing register file state and
+ alternative implementation of break points (Further Development chapter).\\
+
+ 0.20.1 & 07.02.2005 & A. Cilio &
+ Minor corrections. Cleared whitespaces.\\
+
+ 0.20.2 & 21.03.2005 & P. Jääskeläinen &
+ Updated the implementation milestone plan. \\
+
+ 0.20.3 & 07.02.2005 & A. Cilio &
+ Fixed reference. Minor revision of tracking.\\
+
+ 0.20.4 & 05.08.2005 & P. Jääskeläinen &
+ Removed `bus\_name' table from TraceDB schema. Updated `bus\_activity'
+ table. \\
+
+ 0.21     & 11.08.2005 & P. Jääskeläinen &
+ Removed syscall emulation. Updated debugging system. \\
+
+ 0.22   & 02.11.2005 & P. Jääskeläinen &
+ Updated TraceDB tables. \\
+
+ 0.23   & 01.12.2005 & P. Jääskeläinen &
+ Added two new TraceDB tables for storing profile data. \\
+
+ 0.24   & 07.12.2005 & P. Jääskeläinen &
+ Added `procedure\_transfer' table to TraceDB. Removed tables that are not
+ going to be implemented soon. Removed detailed API of TraceDB classes.
+ Removed example queries (now in \emph{ttasim} user manual).\\
+
+ 0.25   & 03.02.2006 & P. Jääskeläinen &
+ Added `register\_access' table. Renamed table of RF accesses. \\
+
+ 0.25.1 & 03.02.2006 & A. Cilio &
+ Cleanup. Spell check. Minor error corrections. \\
+
+
+\end{HistoryTable}
+
+% Table of contents
+\tableofcontents
+
+% Document text
+\chapter{INTRODUCTION}
+
+\section{Purpose and Scope}
+
+This document describes in detail the design of the modules that make up the
+TTA processor simulator of the TCE toolset (Simulator).
+
+Intended readers of this documents are primarily the developers of the
+Simulator.  The level of detail level and the completeness of the design
+description is sufficient to make implementation straightforward.
+
+For a complete, implementation-level description of the API of the classes
+of the Simulator the reader is referred to the automatically-generated API
+reference document.
+
+This document is based on the function specifications defined
+in~\cite{SimulatorSpecs} and on the software architecture described
+in~\cite{SimulatorModDesign}.
+
+\section{Definitions}
+
+\begin{description}
+\item[Simulator]%
+  The target architecture simulator of the TTA templated architecture.
+\item[Template Method]%
+  Method that calls virtual methods that are supposed to be implemented by
+derived classes.
+\end{description}
+
+\section{Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+ADF   & Architecture Definition File.\\
+API   & Application Programming Interface.\\
+MSM   & Machine State Model.\\
+PC    & Program Counter (Register).\\
+RA    & Return Address (Register).\\
+RF    & Register File.\\
+SHAR  & Syscall Handler Address Register.\\
+SNR   & Syscall Number Register.\\
+TCE   & TTA Codesign Environment. \\
+TPEF  & TTA Program Exchange Format. \\
+TTA   & Transport Triggered Architectures. \\
+\end{tabular}
+\end{center}
+\end{table}
+
+
+\chapter{SYSTEM OVERVIEW}
+
+See~\cite{SimulatorModDesign} for an overview of the Simulator and a
+high-level description of its modular structure.
+
+%\section{``Philosophy of Design''}
+
+% Describe the principles behind this design and give an overview of
+% it. Motivate briefly the design if necessary.
+
+%% No description of the module purpose and motivation, that belongs to the
+%% functional specification document.
+
+
+%\section{External Modules/ Application Environment}
+
+% Overview of module from an external perspective:
+% - dependencies with external modules-subsystems
+% - IF of external modules that are used
+% - external (file) data formats used
+
+% Do not put here the interfaces provided to other modules.
+
+
+% \section{Architecture of Databases}
+
+% Describes the data types defined and used by the module and their
+% relations.  The description is at type-accurate level. For example, the
+% description may consist of UML class diagrams with the attributes and
+% interfaces of classes of the target program. Another example, the database
+% tables are defined precisely, at level of single fields.
+
+
+%\section{Module Communication}
+
+%% Remove this section if the design document describes just one module (or
+%% an application consisting of a single module).
+
+% This section describes the communication between modules of the
+% application or subsystem documented in this design document.
+
+\chapter{Simulator Front-end}
+
+
+\section{Overview}
+
+The Simulator Front-end provides a general programming interface for easy
+implementation of user interfaces. For example, a graphical or a text-based
+user interface can be implemented on top of the Simulator Front-end.
+
+\section{Interfaces}
+
+\subsection{Initialisation Methods}
+
+\begin{description}
+
+\item[machine() : const Machine\&]%
+  Returns the machine object model (MOM) currently under simulation. If
+  none, returns \emph{NullMachine}. MOM cannot be changed through this
+  reference.
+
+\item[program() : const Program\&]%
+  Returns the program object model (POM) currently under simulation. If
+  none, returns \emph{NullProgram}. POM cannot be changed through this
+  reference.
+
+\item[loadMachine(machine : Machine\&)]%
+  Sets the machine to be used in simulation. \emph{Simulator Frontend} does
+  not delete \emph{machine} when simulation terminates. Deletion is a
+  responsibility of the client.
+
+\item[loadMachine(fileName : const string\&)] %
+  Loads the machine object model from \emph{fileName} and uses it in the
+  next simulation. \emph{Simulator Frontend} becomes the owner of the
+  created \emph{Machine}. The created \emph{Machine} is deleted when the
+  simulation is killed.
+
+  Throw exception [[exception]]\note{DISCUSS:define exception type} if an old
+  simulation is still running.
+
+\item[loadProgram(program : Program\&)] %
+  Sets the program to be simulated. \emph{Simulator Frontend} does not
+  delete \emph{program} when simulation is terminated. Deletion is a
+  responsibility of the client.
+
+  Throw exception [[exception]]\note{DISCUSS:define exception type} if an old
+  simulation is still running.
+
+\item[loadProgram(fileName : const string\&)] %
+  Loads the program object model using a TPEF with \emph{fileName} and uses
+  it in the next simulation. \emph{Simulator Frontend} becomes the owner of
+  the created \emph{Program}. The created \emph{Program} is deleted when the
+  simulation is killed.
+
+  Throw exception [[exception]]\note{DISCUSS:define exception type} if an old
+  simulation is still running.
+\end{description}
+
+\subsection{Access to Machine and Machine State Model}
+
+The Simulator Frontend provides a uniform interface for gain access of the
+state of any visible processor resource. The front end identifies and refers
+to state objects by a name strings. State objects for different type of
+processor components are differentiated by the syntax of the string. The TCE
+Architecture Template Programming Interface~\cite{TCE-progTemplate} fully
+describes the syntax.
+
+
+\begin{description}
+\item[findRegisterByName(registerName : const string\&) : SimValue\&] %
+  Return the contents of the register identified by \emph{registerName}.
+  This method parses the input string and tries to interpret it as name of
+  a register or port of the target processor architecture. It then looks up
+  and returns the contents of the object that represents the state of the
+  register in Machine State Model (see Chapter~\ref{ch:msm}).
+\end{description}
+
+\section{Implementation}
+
+\subsection{Simulation Profile Data Base}
+\label{ssec:impl-prof}
+
+\paragraph{Profile Section Construction}
+The Simulator Frontend does not rely on TPEF API directly. The construction
+of a ProfileSection is hidden in a mini-module.  If construction of the
+ProfileSection from a Profile object is implemented directly inside the
+function (which seems reasonable), then the mini-module simply invokes the
+appropriate constructor:
+\begin{verbatim}
+  ProfileSection(Profile aSimProfile)
+\end{verbatim}
+
+\paragraph{Implementation requirements of execution count type}
+The primitive execution count type must retain, as much as possible, the
+precision of integer type: it must be that
+\begin{equation}
+  \label{eq:exec-count}
+  (\textrm{count} + 1) - \textrm{count} = 1
+\end{equation}
+
+Moreover, the range of the execution count must be larger than the range of
+integer types.  This condition rules out the usual 32-bit type, whereas
+condition (\ref{eq:exec-count}) rules out the single-precision floating
+point type.
+
+Two possibilities are to be discussed: using double-precision floating point
+type, which allows integer precision for a number up to $2^{53}$, assuming a
+53-bit mantissa,%
+\footnote{The double-precision 64-bit floating-point IEEE-754 type has a
+  53-bit mantissa.}
+%
+or, using a customized abstract type based on 32-bit integer (with
+possibility to expand to a more bits if the range limit is exceeded).
+
+
+\section{Error Handling}
+
+
+\chapter{Simulator Controller}
+\label{ch:sim-con}
+
+\section{Overview}
+
+The Simulator Controller controls the simulation running in stand-alone
+mode. It owns and is the main client of the Machine State Model. When the
+TCE Simulator is connected to a system level simulator, the Simulator
+Controller probably is replaced with an adapter that implements the
+interface expected by the system level simulator.
+
+\section{Interfaces}
+
+\subsection{High-Level Simulation Control}
+
+\begin{description}
+\item[step(int count)] %
+  Advance simulation by \emph{count} clock cycles.  If \emph{count} is
+  omitted, advance simulation by one cycle.  The Simulator Controller module
+  simulates the specified amount of cycles and then returns control to the
+  client.  The number of program instructions simulated may be smaller than
+  \emph{count} if the lock signal is activated (or already active).
+\item[run()] %
+  Advance simulation until either simulation terminates or a condition for
+  stopping is enabled.  Stopping conditions are handled by function
+  \verb|prepareToStop()|.
+\item[prepareToStop()] %
+  Get ready to return control to the client.  This method tells the
+  Simulator Controller that simulation must stop as soon as the cycle
+  currently being simulated is completed.
+\end{description}
+
+A simplified sequence diagram of a simulation clock cycle is shown
+in Figure~\ref{fig:msm_simple_simucycle}.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/MSM_simplified_cycle.eps,width=1.0\textwidth}}
+\caption{A Simulation Cycle (simplified).}
+\label{fig:msm_simple_simucycle}
+\end{figure}
+
+\subsection{Locking}
+
+There are two types of locks depending on the cause of the lock: internal
+and external locks. An internal global lock is active when a function unit
+cannot deliver its result in time or when the unit that implements the
+operation cannot accept a new trigger move. An external global lock
+originates from a request of an external module.
+
+\subsubsection{GlobalLock}
+\label{sec:msm_GlobalLock}
+
+Class \emph{GlobalLock} represents a lock signal. The Simulator Controller
+owns an instance of this class, which models the global lock signal of the
+target processor.
+
+Simulator Controller sets the lock to false before notifying each
+\emph{FUState} object of clock advancement. Any \emph{FUState} instance can
+raise the lock signal if needed.
+
+The following interface is provided for handling the lock.
+\begin{description}
+\item[lock()]%
+  Raise the global lock signal of the processor core.
+\item[unlock()]%
+  Lower the global lock signal of the processor core.
+\item[isLocked()]%
+  Returns `true' if the processor core is locked, `false' otherwise.
+\end{description}
+
+Simply locking or unlocking the processor at any request is not possible
+without precautions, see Section~\ref{ssec:multi-locks} for details.
+\note{PENDING: \ref{ch:pending:exo-locks}}
+
+\section{Implementation}
+
+This section describes implementation problems that require non-trivial
+solutions.
+
+\subsection{Offline Preprocessing of Program}
+
+The Simulation Controller is responsible for simulating TTA instructions.
+To avoid the run time overhead of finding the state objects (port, bus, or
+register states) the individual moves of the program accesses, \emph{Move}
+objects of the Program Object Model~\cite{POM-design} are converted into
+\emph{ExecutableMove} objects.
+
+\emph{ExecutableInstruction} owns and controls the \emph{ExecutableMove}
+instances of a TTA instruction. In turn, \emph{ExecutableInstruction}
+objects are controlled and accessed by the Simulation Controller using a
+container class \emph{InstructionMemory}.
+
+An \emph{ExecutableMove} instance refers to Machine State Model objects.
+The source and destination components and the bus assigned to the move are
+translated into their corresponding state object before starting simulation.
+
+In practice, \emph{ExecutableMove} contains pointers to Machine State Model
+higher abstractions (see Section~\ref{sec:msm-principles})
+\emph{ReadableState} (the source of the move), and \emph{WritableState} (the
+destinations of the move). Additionally, \emph{ExecutableMove} contains a
+state object that represents the state of the bus that transports the data.
+This \emph{BusState} object (see Section~\ref{sec:bus-state}) is both
+readable and writable.
+
+\subsection{ExecutableMove}
+
+\emph{ExecutableMove} represents an interpreted move. It contains direct
+pointers to the source and destination state components, and to the bus
+that is programmed by the move.
+
+In case the source of a move is an in-line immediate, it is modelled by an
+instance of class \emph{InlineImmediateValue}. This simple class implements
+the \emph{ReadableState} interface by always returning the value it was
+initialized with.
+
+\begin{description}
+
+\item[ExecutableMove(src : const ReadableState\&, bus : StateData\&, dst :
+  WritableState\&)]%
+  Constructor for unguarded moves (that is, with an ``always true'' guard).
+  The move reads the contents of \emph{src} and copies it into \emph{dst}
+  using \emph{bus} as transport means.
+
+\item[ExecutableMove(..., guardReg : SimValue\&, negated : bool)] %
+  Constructor for guarded moves. In addition to the arguments for the
+  unguarded move constructor, denoted by ``\ldots'', this constructor
+  requires a guard register \emph{guardReg} and a flag \emph{negated}. The
+  created move executes only if \emph{guardReg} is not zero. If flag
+  \emph{negated} is `true', then the condition is reversed, and the move
+  executes only if the \emph{guardReg} is zero.
+
+\item[executeRead()] %
+  Copies the value on the move source to the transport bus.
+
+\item[executeWrite()]%
+  Copies the value on the bus to the move destination.
+
+  If the move is guarded, the guard expression is tested before copying the
+  data on the bus to the destination. When the guard evaluates to false, the
+  move is ``squashed'' and this function returns without affecting the
+  machine state.
+
+  Note that the data is always written to the bus, even if the guard
+  expression evaluates to false. This is an arbitrary model that, depending
+  on the hardware implementation and the timing, may not reflect the actual
+  activity taking place on the target processor.
+\end{description}
+
+\subsection{ExecutableInstruction}
+\label{ssec:exec-ins}
+
+This class represents an interpreted TTA instruction. Its responsibility is
+to direct simulation of the \emph{ExecutableMove} and the
+\emph{LongImmUpdateAction} objects it owns. Class
+\emph{ExecutableInstruction} and its associations are illustrated in
+Figure~\ref{fig:msm_ExecutableInstrAndMove}.
+
+Instructions may contain the bits of long immediates and specify the
+destination registers for the immediates. A long immediate register can be
+read by moves of the same or following instructions.
+%
+Long immediate value update actions are a set of \emph{LongImmUpdateAction}
+objects. Each update action contains a \emph{SimValue} (the contents of the
+immediate encoded in the instruction) and a reference to the destination
+register, \emph{LongImmediateRegisterState}.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/MSM_exec_instr_and_move.eps,width=0.5\textwidth}}
+\caption{ExecutableInstruction and ExecutableMove.}
+\label{fig:msm_ExecutableInstrAndMove}
+\end{figure}
+
+Class \emph{ExecutableInstruction} implements the following interface:
+\begin{description}
+\item[execute()]%
+  Before executing any moves, the long immediate values are updated by
+  copying the value of long immediate (the \emph{SimValue}) to the target
+  long immediate register (the \emph{LongImmediateRegisterState*}) by
+  calling the \verb|execute()| method of \emph{LongImmUpdateAction}.
+
+  After updating the state of the immediate registers, \verb|executeRead()|
+  of each \emph{ExecutableMove} in the instruction is called, and finally
+  \verb|executeWrite()| of each \emph{ExecutableMove} is called.
+\end{description}
+
+\subsection{InstructionMemory}
+
+\emph{InstructionMemory} is a container of \emph{ExecutableInstructions}.
+
+\begin{description}
+\item[instructionAt(address : IntWord) : ExecutableInstruction\&] %
+  Returns a reference to instruction at given address.
+\end{description}
+
+\subsection{SimProgramBuilder}
+
+This builder class creates an object hierarchy that represents a TTA
+program and is specialised for fast simulation.
+
+The source data that models a TTA program is an instance of class
+\emph{Program}, the root class of the Program Object Model.
+
+The object hierarchy built by class \emph{SimProgramBuilder} is a flat list
+of preprocessed TTA instructions, \emph{ExecutableInstructions} (see
+Section~\ref{ins}).
+
+
+\begin{description}
+\item[build(prog : const Program\&, locator : const StateLocator\&) :
+  InstructionMemory*]%
+  Build and return a model of the instruction memory ready to be simulated,
+  loaded with preprocessed TTA instructions from program \emph{prog}. The
+  state locator \emph{locator} generated by \emph{MachineStateBuilder} (see
+  Section~\ref{sec:ms-builder}) is used to find the machine state components
+  referenced by POM objects.
+
+  The client owns and is responsible for deallocation of the constructed
+  InstructionMemory.
+
+  Throws \emph{IllegalProgram} exception if an error occurs while
+  preprocessing \emph{prog}. Errors my occur, for example, when the program
+  contains references to components that have state, but whose state is not
+  found by the given locator.
+
+\end{description}
+
+\subsection{How Locks Are Generated}
+\label{ssec:lock-generation}
+
+Data transports are emulated sequentially, thus an internal global lock will
+generally occur half-way during the execution of current
+instruction.\note{PENDING: \ref{ch:pending:locks}}
+
+\subsection{Simulation Overhead Due to Lock Support}
+\label{ssec:lock-state}
+
+Locking conditions are a concern only when simulating operations with
+dynamic latencies or external modules that communicate with the TTA
+processor. When simulation is run from a stand-alone application and uses no
+operations with dynamic latency, internal locks cannot occur and overhead of
+preparing for lock conditions should be minimized.
+
+\subsection{Locked State Activity}
+
+When lock signal is risen, the controller does not advance the program
+counter in following cycles until the signal is lowered again. Pipeline
+models that support operations with dynamic latencies, however, need to
+receive the notifications that the clock advances to next cycle, because
+they may have to receive results of pending operations. In general, Function
+units should always receive the clock signal and let their own pipeline
+model decide how to handle it.
+
+In fact, when the lock condition is caused by a result not being ready from
+an operation, the pipeline that contains that operation \emph{must} test for
+the pending result until it comes, because that is the only way the
+processor can unlock.
+
+\subsection{Multiple Locks}
+\label{ssec:multi-locks}
+
+When the simulator enters the locked state due to a result not ready, there
+can be several result moves causing a lock simultaneously. Thus, several
+independent lock requests can occur internally. Once processor is locked,
+pipelines do not advance (they can only update pending results), and so no
+new lock condition can be generated inside the processor core in following
+cycle. Every cycle in locked state, the pipelines that caused the lock will
+check for late-coming results and will confirm the lock condition until the
+result has been delivered. When all pipelines that caused a lock have their
+result delivered, the lock condition will simply not be set by any pipeline,
+and the processor simulation will proceed to next instruction.
+
+\chapter{Machine State Model}
+\label{ch:msm}
+
+\section{Overview}
+
+Machine State Model (MSM) is an object hierarchy that represents the visible
+state of the target TTA processor (the ``machine'') at any given simulation
+cycle. Just enough information to correctly simulate the program needs to be
+stored. MSM is implemented as application-specific object library. No domain
+module is aware of MSM.
+
+\section{Design Principles}
+\label{sec:msm-principles}
+
+\begin{enumerate}
+\item%
+  The MSM partially mirrors the Machine Object Model (MOM)~\cite{MOM-design}
+  object hierarchy, but it does not depend on MOM. Each instance of a
+  Machine State Model class depends only on the properties of the
+  corresponding MOM object.  These properties are necessary during
+  construction and are passed as independent parameters.
+  %
+  For example, \emph{BusState} does not need to own the list of supported
+  guard expressions, but only the bit width and the extension type of the
+  MOM \emph{Bus} object.
+
+\item%
+  The requirements of MSM do not affect or create dependencies to it in the
+  Program Object Model~\cite{POM-design} or MOM, which are fundamental
+  domain object hierarchies and should remain independent of specific client
+  needs. For example, there is no method in MOM components to retrieve the
+  state of the component.
+
+\item%
+  The only goal of Machine State Model is to support a fast simulator. To
+  simplify and speed up simulation, only the state of (sub)components that
+  is needed for correct simulation is modelled by a MSM state object. For
+  example, sockets don't have state, because the values on a socket can be
+  tracked cycle by cycle by combining information about bus state and source
+  or destination port of each move.
+
+  Any detail of the processor that cannot be accessed by a TTA program does
+  not have to be modelled. For example, it is not necessary (and in general,
+  not even possible) to know what values are stored in the internal stages
+  of an operation pipeline.
+
+\item%
+  Each state class of Machine State Model can be readable, writable or
+  clocked. A state class with one or more of these properties implements the
+  following interface (pure virtual) classes:
+  \begin{enumerate}
+  \item%
+    \emph{ReadableState}: the state object can be read.
+  \item%
+    \emph{WritableState}: the state object can be written.
+  \item%
+    \emph{ClockedState}: the state object is notified whenever the clock
+    advances.
+  \end{enumerate}
+  This high level abstraction of machine components simplifies access to
+  state during simulation.
+
+\item%
+  State objects should be independent from each other as much as possible.
+  Motivations for this are reusability, design simplicity. Moreover, if
+  states of components are not cross-related by ADF specs, this should be
+  reflected in MSM, too. For example, a function unit does not know whether
+  other function units have requested an access to the same memory location.
+
+  This rules out features like:
+  \begin{enumerate}
+  \item%
+    Hierarchical clock notification, in which bus state components notify
+    all connected sockets which in turn notify all connected input function
+    unit ports of clock advances.
+  \item%
+    Writing a value to a bus automatically triggers the destination input
+    port of the unit connected to it.
+  \end{enumerate}
+
+\item%
+  State objects offer just basic interface to modify or inspect the values
+  they contain. No high-level ``intelligence'' needed by a processor
+  simulator is implemented in MSM objects. It is responsibility of the
+  Simulator Controller (see Chapter~\ref{ch:sim-con}) to model the control
+  and activity that occurs while simulating the processor core.
+\end{enumerate}
+
+\section{WritableState}
+
+When a class of MSM models a piece of machine state that can be modified by
+clients, it must implement this interface. It provides a method to change
+the state data.
+\begin{description}
+\item[setValue(value: SimValue) : void]
+\end{description}
+
+\section{ReadableState}
+
+When a class of MSM models a piece of machine state that can be inspected by
+clients, it must implement this interface. It provides a method to inspect
+the state data.
+\begin{description}
+\item[value() : const SimValue\&]
+\end{description}
+
+\section{StateData}
+
+The \emph{StateData} interface combines \emph{WritableState} and
+\emph{ReadableState} interfaces. Each accessible object of MSM intended to
+model state that is visible to clients usually implements this interface.
+
+Even if a component is logically read-only from the point of view of some
+clients, it needs to be writable by some other clients, or vice versa. For
+example, the input ports of a function unit should be written only by
+objects of client class \emph{ExecutableMove}, but the values of the ports
+need to be read by the \emph{FUState} when an operation is triggered.  In
+addition, a client with debugging capabilities should be able to change and
+inspect the value of any state object in the model.
+
+\section{ClockedState}
+
+\emph{ClockedState} is the interface implemented by state classes that need
+to update their internal state whenever elapsing of a processor clock cycle
+is simulated. \emph{ClockedState} provides the following interface for
+implementing the simulation activity.
+
+\begin{description}
+\item[endClock() : void] %
+  Perform activity supposed to occur by the end of current clock cycle. At
+  this point all transports described in the current instruction are
+  guaranteed to be done.
+
+\item[advanceClock() : void] %
+  Perform activity supposed to occur in a clock cycle change. When this
+  method is called, it's guaranteed that the clock of memory models are
+  advanced, that is, memory has been notified that all requests of current
+  cycle have been sent.
+\end{description}
+
+\subsection{Motivation for Two-Phase Clock Simulation}
+
+The \emph{ClockedState} interface cannot present a simple interface based on
+a single method, \verb|advanceClock()|. Cycle-accurate simulation of target
+TTA processors requires that, as a clock cycle elapses, the machine state is
+updated in (at least) two phases.
+
+The reason why the single method is not adequate lies in the
+cross-dependency between the processor core and the memory models.
+%
+In particular, the functions that model the behaviour of operations that
+access memory must work with any kind of underlying memory model (described
+in Memory Model Design Document~\cite{MemoryModuleDesign}) and operation
+implementations. This includes memory operations with latency of one cycle,
+for which the following TTA code is valid:
+\begin{verbatim}
+ 0: ADDRESS -> ldw.1
+ 1: ldw.2 -> r1
+\end{verbatim}
+To be able to support these operations, the implementation of the memory
+model must return any result of an access request in any given cycle before
+the next clock cycle, when it could be already used.
+
+OSAL behavior language~\cite{OSAL-specs} implementation for a load operation
+that works for this kind of memory could be something like this:
+\begin{verbatim}
+OPERATION(LDW)
+
+TRIGGER
+    INITIATE_READ(INT(1), WWIDTH);
+    MEM_DATA(INT(2));
+    RETURN_READY;
+END_TRIGGER;
+
+END_OPERATION(LDW);
+\end{verbatim}
+
+The operation's trigger simulation function initiates the read request, and
+immediately stores the result into the output `2'.
+
+This is fine if the underlying memory model is capable of delivering results
+after one cycle, because we are sure that the result is correctly stored by
+macro \verb|MEM_DATA| into output `2'.  But, if the latency is higher, this
+operation behaviour definition does not work anymore, because the result is
+not ready. Since we cannot make assumptions about the memory model
+implementation, we cannot expect that the results from memory are available
+immediately. For this reason, to maintain generality, the results from
+memory must be returned by a late-result simulation function, as in the
+following operation definition:
+\begin{verbatim}
+OPERATION(LDW)
+
+TRIGGER
+    INITIATE_READ(INT(1), WWIDTH);
+    RETURN_NOT_READY;
+END_TRIGGER;
+
+LATE_RESULT
+    MEM_DATA(INT(2));
+    RETURN_UPDATED;
+END_LATE_RESULT;
+
+END_OPERATION(LDW);
+\end{verbatim}
+
+This operation definition works with any memory model implementation, but it
+is not sufficient if the \emph{ClockedState} interface provides only method
+\verb|advanceClock()|. It still does not work when the latency of memory
+operations is one cycle. In that case, the single method invocation can only
+initiate the memory access request. The requests affect memory only when
+memory is notified, with \verb|advanceClock()|, that all requests of current
+cycle have been simulated. Only after the memory model is notified the
+access requests the results from memory can be computed. So, the result will
+be available only at the end of the next simulation cycle, during following
+invocation of method \verb|advanceClock()|. Too late for a possible use of
+the result.
+
+The chosen solution to this problem is to add another method,
+\verb|endClock()| to \emph{ClockedState}. This method must be implemented by
+clients that must model the activity occurring after all data transports of
+current cycle have been simulated and before clock cycle is elapsed.
+Clients (such as \emph{OperationExecutor}, described in
+Section~\ref{sec:operation-executor}) can now proceed with any effects of
+the transports that are to be modelled before other clients are notified of
+clock cycle end. For example, \emph{OperationExecutor} can simulate
+triggering of a new operation. In case of memory operations,
+\emph{OperationExecutor} will send the memory requests of the current
+instruction to the memory model. The results from memory are read in
+\emph{OperationExecutor} implementation of method \verb|advanceClock()|,
+after the memory model is notified about the clock change by the same
+method.
+%
+\note{Warning: ugly sequential constraint between conceptually independent
+  invocations to same base interface method.}
+%
+This sequence works also for 1-cycle memory operations if
+\verb|lateResult()| is called within \verb|advanceClock()| for the
+operations triggered within method \verb|endClock()| of the same clock
+cycle.
+
+\section{MachineState}
+
+\emph{MachineState} is the root class of the machine state model, shown in
+Figure~\ref{fig:msm_MachineState}, and owns all the state objects.  Also, it
+provides methods for retrieving individual state objects. State objects are
+indexed by their name.
+
+\begin{description}
+\item[MachineState()]%
+  Constructor. Create an empty machine state root object, that contains no
+  state objects.
+
+\item[clone(ms : const MachineState\&)]%
+  Make this machine state an exact copy of the given machine state object,
+  \emph{ms}.
+
+  Throw [[exception]] \note{DISCUSS: exception type} if this machine state
+  is not empty.
+
+\item[GCUState() : GCUState\&]%
+  Return the global control unit state of this machine state model.
+
+\item[busState(name : string) : BusState\&]%
+  Return the \emph{BusState} with the given name, if found. Returns
+  \emph{NullBusState} if not found.
+
+\item[FUState(name : string) : FUState\&]%
+  Return the \emph{FUState} with the given name, if found. Returns
+  \emph{NullFUState} if not found.
+
+\item[portState(name : string) : PortState\&]%
+  Return the \emph{PortState} with the given name, if found. Returns
+  \emph{NullPortState} if not found.
+
+\item[registerFileState(name : string) : RegisterFileState\&]%
+  Return the \emph{RegisterFileState} with the given name, if found.
+  Returns \emph{NullRegisterFileState} if not found.
+
+\item[longImmediateUnitState(name : string) : LongImmediateUnitState\&]%
+  Return the \emph{LongImmediateUnitState} with the given name, if found.
+  Returns \emph{NullLongImmediateUnitState} if not found.
+
+\end{description}
+
+For construction, \emph{MachineState} provides methods (not listed in the
+method list below) for adding the different types of machine state objects
+to the model.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/MSM_machine_state.eps,width=0.7\textwidth}}
+\caption{\emph{MachineState} and its relations with \emph{FUState}
+  subclasses.}
+\label{fig:msm_MachineState}
+\end{figure}
+
+\section{MachineStateBuilder}
+\label{sec:ms-builder}
+
+Although this class is not part of the Machine State Model, but rather an
+external helper class that provides the connection between Machine Object
+Model, it's described here for convenience.
+%
+\emph{MachineStateBuilder} is responsible for creating the machine state
+object hierarchy corresponding to a given input \emph{Machine}. This class
+provides only build methods and has no state: each invocation of its methods
+creates a new machine state object hierarchy from scratch.
+
+While building the state object hierarchy, \emph{MachineStateBuilder}
+creates and maintains an index table for quick lookup of the state object
+corresponding to a given MOM object.
+%
+\emph{MachineStateBuilder} can return the index table to any client along
+with the built \emph{MachineState} instance.
+
+\begin{description}
+\item[MachineStateBuilder()] %
+  Empty constructor.
+
+\item[build(machine : const Machine\&, memSys : const MemorySystem\&)
+  : MachineState*] %
+  Create and return a machine state built from the given \emph{Machine}
+  instance and the given description of the memory system, \emph{memSym}
+  (see Section~\ref{ms-memsys} for details on class \emph{MemorySystem}).
+  The created \emph{MachineState} instance becomes property of the client
+  and should be deleted after use.
+
+\item[build(machine : const Machine\&, memSys : const MemorySystem\&,
+  locator : StateLocator\&) : MachineState*] %
+  In addition to creating and returning the machine state like previous
+  method, return the index table (\emph{locator}). The client should supply
+  a (possibly empty) \emph{StateLocator}, which is initialised as the
+  building process progresses.
+\end{description}
+
+\subsection{StateLocator}
+
+The index table used during construction of the machine state model is
+implemented by a helper class called \emph{StateLocator}. A new instance of
+\emph{StateLocator} is created whenever a new machine state is created.
+
+The locator that makes it possible to lookup state objects of a machine
+state corresponding to the \emph{Component} instances of the \emph{Machine}
+object used as data source to build the parent \emph{MachineState} of the
+state objects.
+
+The locator returns references to state objects of one particular
+\emph{MachineState} instance, but the same processor can have several
+different states, represented by as many \emph{MachineState} object
+hierarchies. It must be possible to have a locator for each instance of
+\emph{MachineState}.
+
+\emph{StateLocator} provides following methods:
+
+\begin{description}
+\item[state(momComponent : const Component\&) : StateData\&] %
+  Return the state object corresponding to the given component of the
+  machine object model.
+
+  Throws exception
+%
+  \note{\emph{IllegalParameter} subtype of exception?}
+%
+  if the given component (1) is unregistered; (2) does not belong to the
+  parent machine of the components stored in the locator; (3) is a component
+  for which no corresponding state object exists (for example, \emph{Socket}
+  objects); (4) is a component for which the corresponding state object has
+  not been created (yet).
+
+\item[copy(newLocator : StateLocator\&, m : const MachineState\&)]%
+  Copy the contents of this state locator into locator \emph{newLocator},
+  and redirect all references to state object to the equivalent state object
+  in the given machine state, \emph{m}. Two state objects owned by different
+  \emph{MachineState} instances are equivalent when they have the same name
+  and the same type.
+\end{description}
+
+\section{RegisterFileState}
+\label{sec:msm_RegisterFileState}
+
+\emph{RegisterFileState} is a simple container of \emph{RegisterState}
+objects. Register file state objects do not need to model the state of RF
+ports, because the state is the same of the transport bus that carries the
+data read from or written into the port, and the port involved (when
+multiple ports are available) can found by inspecting the source and
+destination socket of the move that reads or writes the register file.
+
+Class \emph{RegisterFileState} is needed only during preprocessing of POM
+moves into \emph{ExecutableMove} instances. The preprocessed moves used by
+the Simulation Controller access single \emph{RegisterState} objects (seen
+as \emph{ReadableState}) directly, not through class
+\emph{RegisterFileState}.
+
+The class diagram of \emph{RegisterFileState} and related classes is shown
+in Figure~\ref{fig:msm_regfilestate}.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/MSM_rfstate.eps,width=0.4\textwidth}}
+\caption{RegisterFileState.}
+\label{fig:msm_regfilestate}
+\end{figure}
+
+\begin{description}
+\item[RegisterFileState(size : int)] %
+  Creates a register file state object for \emph{size} registers. Registers
+  are modelled by class \emph{RegisterState} (see
+  Section~\ref{sec:msm_RegisterState}) and are created during construction.
+
+\item[register(index : int) : RegisterState\&] %
+  Returns a \emph{RegisterState} object representing the state of a register
+  at position \emph{index} in the register file.
+
+  Throws \emph{OutOfRange} exception if the given index is greater than the
+  register file size.
+\end{description}
+
+
+\subsection{UnboundedRegisterFileState}
+
+This class is a specialisation of \emph{RegisterFileState} whereby the size
+of the register file is not bounded. Its purpose is to model the infinite
+set of variables (treated as ``virtual registers'') that may be used in
+unscheduled TTA code (see the TCE Architecture Template Programming
+Interface~\cite{TCE-progTemplate} for details).
+
+The main difference between \emph{UnboundedRegisterFileState} and its base
+class is the way \emph{RegisterState} objects are constructed. Creation of
+\emph{RegisterState} objects happens only ``on demand'', whenever a register
+at a given index is requested by method \verb|register()| for the first
+time.
+%
+\note{PENDING: \ref{ch:pending:unbounded-rf}}
+
+The only difference in \emph{UnboundedRegisterFileState} lies in
+constructor, which does not accept a size parameter:
+
+\begin{description}
+\item[UnboundedRegisterFileState()] %
+  Creates a register file state object. Registers are modelled by class
+  \emph{RegisterState} (see Section~\ref{sec:msm_RegisterState}).
+\end{description}
+
+\section{RegisterState}
+\label{sec:msm_RegisterState}
+
+The \emph{RegisterState} class represents the contents of a register of the
+target TTA processor as a \emph{SimValue}. It implements the
+\emph{StateData} interface:
+
+\begin{description}
+\item[setValue(val : SimValue) : void]%
+  Copies the value given by parameter \emph{val} into the register.
+\item[value() : const SimValue\&]%
+  Returns a reference to the contents of the register (a \emph{SimValue}
+  instance).
+\end{description}
+
+\subsection{Implementation}
+
+\paragraph{Simplification of the register state model.}
+If the state of the GPR's were to be modelled realistically,
+\emph{RegisterState} should implement the \emph{ClockedState} interface. Its
+contents would get updated only upon invocation of \verb|advanceClock()|. To
+make the register state model simpler and more efficient,
+\emph{RegisterState} is updated immediately, in \verb|setValue()|.
+
+The implication of this simplification is that updating GPR state does not
+occur synchronously, and the state of \emph{RegisterState} objects may not
+reflect the actual machine state. The rest of the machine state model should
+be prepared for this.
+%
+For example, writing to a register by a move of an instruction in hardware
+means writing to a port of an register file. The register inside the
+register file gets updated in the rising clock edge. In MSM, a
+simplification is done for the sake of efficiency: the value is written
+directly to the correct register inside the register file. MSM works
+correctly if clients first read all registers that must be read in a cycle
+and then perform all write accesses. This is acceptable because in reality
+moves first write their values to the bus and only after that the values are
+written from the buses to the target ports.
+
+In case moves were simulated by writing directly the value at the source
+port into the destination port, a register connected to the source port
+could get overwritten before being read by another move in the same
+instruction. This situation occurs whenever an instruction contains moves
+that read and write the same register.
+
+The lack of a synchronous model of GPR state also implies that register
+files with latency are not supported. As they are not supported in
+ADF~\cite{ADF-specs} either, it's safe to do this kind of optimization. In
+future, if register files with latency will be supported, the implementation
+of \emph{RegisterFileState} will become more similar to that of the
+\emph{LongImmediateUnitState}, described in
+Section~\ref{sec:LongImmediateUnitState-if}.
+
+\section{LongImmediateUnitState}
+\label{sec:LongImmediateUnitState-if}
+
+This class represents the state of immediate units of a target TTA
+processor. Like for register files (see
+Section~\ref{sec:msm_RegisterFileState}), the ports of immediate units are
+not modelled. It is not necessary to model which instruction template (or
+other encoding mechanism) is used to write long immediate registers, because
+this information can be obtained from the program object model.
+%
+\emph{LongImmediateUnitState} is essentially a container of long immediate
+registers and provides a method for accessing the registers.  Unlike
+\emph{RegisterFileState}, this class implements the \emph{ClockedState}
+interface, thus it provides a synchronous model of immediate units. This is
+a necessity, because long immediate register updates can have a latency
+greater than one cycle.
+
+The class diagram of \emph{LongImmediateUnitState} and related classes is
+shown in Figure~\ref{fig:msm_immunitstate}.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/MSM_immunit_state.eps,width=0.5\textwidth}}
+\caption{LongImmediateUnitState.}
+\label{fig:msm_immunitstate}
+\end{figure}
+
+\begin{description}
+\item[registerValue(index : int) : SimValue]%
+  Returns the current contents of the long immediate register at position
+  given by argument \emph{index}.
+\item[setRegisterValue(index : int, value : SimValue)]%
+  Copies \emph{value} into the long immediate register at position given by
+  argument \emph{index}.
+\end{description}
+
+
+\subsection{Implementation}
+
+\paragraph{Immediate unit state controls its immediate registers.}
+The need to model latency affects how update and access of register contents
+is implemented. Register contents is updated always through the public
+interface of \emph{LongImmediateUnitState} class, in which the data is
+actually stored, not directly to the independent register classes like in
+\emph{RegisterFileState}.
+%
+\note{DISCUSS: inconsistent with RF interface, unnecessary (long imm
+  register could delegate their parent instead)}
+
+\paragraph{Implementation of long immediate unit latency}
+Internally, new values written into immediate registers are placed in a
+queue. The contents of the registers is actually updated with the values in
+the queue only after a number of clock cycles equal to the immediate unit
+latency has elapsed. Value queues are updated when \verb|advanceClock()| is
+invoked.
+
+\section{LongImmediateRegisterState}
+
+Class \emph{LongImmediateRegisterState} represents a register of a long
+immediate unit. Instances of \emph{LongImmediateRegisterState} are always
+owned by a long immediate unit, implemented by class
+\emph{LongImmediateUnitState} (see
+Section~\ref{sec:LongImmediateUnitState-if}).
+
+Long immediate registers implement the \emph{StateData} interface, like
+general purpose registers. Unlike \emph{RegisterState} class,
+\emph{LongImmediateRegisterState} performs extension the value stored into
+the register using method \verb|setValue()|.
+
+\begin{description}
+\item[setValue(value: SimValue) : void] %
+  Copies the value given by parameter \emph{val} into the register.
+
+\item[value() : const SimValue\&] %
+  Returns a reference to the contents of the register (a \emph{SimValue}
+  instance).
+\end{description}
+
+\subsection{Implementation}
+
+Unlike general purpose register state objects, class
+\emph{LongImmediateRegisterState} does not hold the contents of the
+register.  Instead, it refers to its actual contents (modeled as a
+\emph{SimValue}) by means of an index and a reference to the parent
+\emph{LongImmediateUnitState}, and delegates any access request to the
+parent. In particular, \verb|setValue()| calls method
+\verb|setRegisterValue()| of the parent \emph{LongImmediateUnitState}, and
+\verb|value()| calls \verb|registerValue()|.
+
+\section{BusState}
+\label{sec:bus-state}
+
+\emph{BusState} is implemented as \emph{RegisterState} (described in
+Section~\ref{sec:msm_RegisterState}). The main difference is that
+\emph{BusState} takes into account the extension mode of the transport bus
+and models extension whenever a value with bit width smaller than the bus
+bit width is stored into the bus.
+
+\section{BridgeState}
+\label{sec:bridge-state}
+
+Bridges can be sources of moves. Bridge state is modelled by class
+\emph{RegisterState}.
+
+\section{FUState}
+\label{sec:msm_FUState}
+
+Class \emph{FUState} models the state of a function unit of a target TTA
+processor. The class diagram in Figure~\ref{fig:msm_FUState} shows
+\emph{FUState} and the main classes related to it.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/MSM_FUState.eps,width=0.8\textwidth}}
+\caption{FUState.}
+\label{fig:msm_FUState}
+\end{figure}
+
+Function unit state is by far the most complex type of state object of MSM.
+An important distinction has to be made between two parts of function unit
+state:
+\begin{enumerate}
+\item State directly managed by the function unit objects.
+\item State managed by operations.
+\end{enumerate}
+
+Function unit state is modelled in the same way for all function units of
+the target processor and is completely managed inside class \emph{FUState}.
+
+Operation-managed state is modelled by means of special operation state
+classes defined in OSAL~\cite{OSAL-specs}. Each class is specific for a
+group of operations that share the same state data. Class \emph{FUState} is
+client of such operation-managed state classes, but does not need to know
+anything specific about the state data (it is all hidden inside the
+functions that model operation behaviour).
+
+Operation-specific state is ``private'' information shared between function
+unit state objects and OSAL behaviour model of operations. There is no
+public method of function unit state class for inspecting operation-specific
+state information.
+
+\emph{FUState} implements the \emph{ClockedState} interface and provides
+methods for changing its internal state. These methods, listed below, are
+used mainly by input port classes \emph{TriggeringInputPortState},
+\emph{OpcodeSettingVirtualInputPortState} to notify the owning function unit
+state object that a transport to the unit through them has occurred.
+
+\begin{description}
+\item[FUState(name : string)]%
+  Constructor. Create a function unit state object with given name.  The
+  object just created does not contain any port or operation executors.
+
+\item[addOperationExecutor(opExec : OperationExecutor, op : Operation\&)] %
+  Add operation executor \emph{opExec} to this function unit state and
+  register it for modelling execution of operation \emph{op}.
+%
+  If given operation has been already registered to another operation
+  executor,
+%
+  \note{DISCUSS: throw exception instead?}
+%
+  simply update it to \emph{opExec}.
+
+\item[addPort(fuPort : PortState\&)] %
+  Add given function unit port state to this function unit state.
+
+\item[setTriggered()] %
+  Notify the unit that an operation has been triggered in current simulation
+  cycle.
+
+\item[setOperation(operation : Operation\&)] %
+  Update the current operation being performed by the function unit to
+  \emph{operation}. This is the operation that will be performed as soon as
+  the unit is triggered.
+
+  Throw [[exception]] \note{IllegalParameter exception type?} if no
+  operation executor for given operation is registered.
+\end{description}
+
+\subsection{Implementation of ClockedState}
+
+\begin{description}
+\item[endClock() : void] %
+  Inform the unit that all possible transports to its input ports for
+  current cycle have been simulated. The unit can now safely read the new
+  values written into its input ports and possibly trigger a new operation
+  as a result.
+
+  If a new operation was triggered in the current cycle, the input port
+  values are passed to \emph{OperationExecutor} of the appropriate operation
+  by invoking method \verb|startOperation()|.
+
+\item[advanceClock() : void] %
+  Call \verb|advanceClock()| of the \emph{OperationExecutor} and reset the
+  triggered status flag (if it was set).
+\end{description}
+
+\subsection{MemoryAccessingFUState}
+
+A special type of function unit state class, \emph{MemoryAccessingFUState},
+models function units that access memory.  It's shown in
+Figure~\ref{fig:msm_MachineState}.
+
+Unlike \emph{FUState}, this class holds a reference to a memory interface
+(\emph{MemoryWrapper}) which is passed to the \emph{OperationContext} of the
+unit.
+
+\emph{MemoryAccessingFUState} instances check whether the state (in this
+case memory) is available in their \verb|advanceClock()| implementation. If
+OSAL's \verb|isAvailable()| returns false, the global lock is enabled by
+calling the \emph{GlobalLock} instance's \verb|set()| method.
+
+\subsection{Implementation}
+
+\paragraph{Managing operation-specific state.}
+
+\emph{FUState} manages operation-specific state without depending on
+type-specific information of the objects, and performs the following
+operations:
+\begin{enumerate}
+\item%
+  Delegate creation of operation-specific state objects within an operation
+  context to operations (OSAL behaviour model).
+\item%
+  Keep operation-specific objects (indirectly, via operation context) for
+  later references.
+\item%
+  Pass operation-specific state objects as arguments of operation behaviour
+  methods (indirectly, via operation context).
+\item%
+  Manage destruction (when deallocating operation context).
+\end{enumerate}
+
+\paragraph{Binding of operation inputs and outputs to ports.}
+
+The binding information in \emph{OperationExecutor} is a duplicate of
+information stored in MOM \emph{FunctionUnit}. This information is needed,
+internally, to retrieve the input values and store them in the input stage
+of operation executor. The order of input values must be correct, in order
+to make operation behaviour methods work correctly.
+
+The only need for accessing binding information directly from MSM objects is
+method \verb|loadState()| of \emph{OperationExecutor}, to reconstruct the
+contents of the queue of pending operations.
+
+\paragraph{Managing Operation Executors}
+
+Operation Executors are passed to \emph{FUState} by value. Both client and
+\emph{FUState} receiver remain responsible of their own copy of the
+operation executor.
+
+Before being registered to a parent \emph{FUState}, an operation executor
+does not contain direct references to port state objects. Such references
+would represent indirect references to the parent \emph{FUState} of the port
+state objects, which can be potentially conflicting references.
+
+\emph{FUState} may optimise the use of \emph{OperationExecutor} instances,
+and use the same instance for several operations.
+
+\note{DISCUSS}
+%
+If the \emph{OperationExecutor} instance passed to an \emph{FUState} belongs
+to another \emph{FUState} instance, \emph{FUState} invalidates the
+references to the other parent unit state and port states, and tries to
+lookup port state objects with the same name among the ports it owns.
+
+\note{PENDING: \ref{ch:pending:binding-cache}}
+
+\section{PortState}
+
+This class models ports of function units. Port state is treated as register
+state during simulation, thus it is derived (or typedef'd) from
+\emph{RegisterState}.
+
+\section{InputPortState}
+
+This class models the input ports of function units. Each \emph{FUState}
+object owns the input ports through which new data are sent to it. The
+operand values of operations are stored in input port state objects and read
+by the function unit when it starts to simulate a new operation.
+
+A special type of input port sets also the next operation that will be
+performed by the unit. Another type of input port causes the function unit
+to update its state (that is, triggers a new operation), whenever a value is
+written into it.
+%
+To avoid the overhead due to functionality that a type of ports does not
+have to provide, each special type of port is a refinement of
+\emph{InputPortState}. The base class \emph{InputPortState} models normal
+ports which do not trigger nor set the next operation to perform. The
+\emph{InputPortState} subclasses that model special types of input ports are
+shown in Figure~\ref{fig:msm_InputPortState}.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/MSM_input_port_states.eps,width=0.7\textwidth}}
+\caption{InputPortState and its subclasses.}
+\label{fig:msm_InputPortState}
+\end{figure}
+
+\subsection{TriggeringInputPortState}
+
+In addition to setting the contents of an function unit input port, method
+\verb|setValue()| of this class calls method \verb|setTriggered()| of its
+parent function unit.
+
+\subsection{OpcodeSettingVirtualInputPortState}
+
+In addition to setting the contents of an function unit input port, method
+\verb|setValue()| of this class calls method \verb|setNextOperation()| of
+its parent function unit.
+
+Each operation supported by a function unit requires a ``virtual port'',
+modeled by class \emph{OpcodeSettingVirtualInputPortState}. A virtual port
+is associated to an operation at construction time. Whenever a new value is
+written into a virtual port, it calls method \verb|setNextOperation()| of
+the parent \emph{FUState} with its operation as argument.
+
+For example, a \emph{FUState} instance which supports operations `add' and
+`sub' has two \emph{OpcodeSettingInputPortState} objects, one carrying `add'
+operation, one carrying `sub'. When either port is written to, the next
+operation to be performed by the unit is set correspondingly.
+
+\emph{OpcodeSettingVirtualInputPortState} does not model the real
+opcode-setting port of a function unit, which is where the data of a new
+input operand is actually stored. MSM models such ports as plain triggering
+ports, that is, \emph{TriggeringInputPortState} instances. Every instance of
+\emph{OpcodeSettingVirtualInputPortState} has a reference to the real data
+port and delegates value setting and its triggering side effect to it. The
+function unit and its \emph{OperationExecutor} instances read the input
+operand of the opcode-setting port from the \emph{TriggeringInputPortState}
+instance, not from the virtual port corresponding to the operation being
+triggered.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/MSM_executing_a_move.eps,width=1.0\textwidth}}
+\caption{Executing a move that triggers and sets opcode.}
+\label{fig:msm_exec_move}
+\end{figure}
+
+\section{OutputPortState}
+
+\emph{OutputPortState} models an output port of a function unit. The
+contents of the output ports is shared with the ``last stage'' of every
+\emph{OperationExecutor} instance owned by the function unit.  When an
+\emph{OperationExecutor} instance updates a value in its last stage, the
+change is immediately reflected by the \emph{OutputPortState} that shares
+the same value.
+
+\section{GCUState}
+\label{sec:msm_GCUState}
+
+\emph{GCUState} is a refinement \emph{FUState} class that models the Global
+Control Unit state. In addition to supporting a set of operations like other
+function units, \emph{GCUState} owns and manages the special registers
+\emph{Program Counter} (PC), \emph{Return Address} (RA), and the registers
+used to access syscall emulation functionality: \emph{Syscall Number
+  Register} (SNR) and \emph{Syscall Handler Address Register} (SHAR).
+
+\emph{GCUState} differs from the general \emph{FUState} also because, in
+addition to the \emph{OperationExecutor} objects that model the latency of
+supported operations, it models the visible effect of the transport pipeline
+of the processor.
+
+\emph{GCUState} provides an interface for accessing the state of all its
+special registers.
+
+\begin{description}
+\item[programCounter() : SimValue\&]%
+  Return the contents of the PC register.
+\item[returnAddress() : SimValue\&]%
+  Return the contents of the RA register.
+\end{description}
+
+\subsection{Implementation}
+
+\paragraph{Simulation of transport pipeline.}
+
+\emph{GCUState} models the transport pipeline of a TTA processor. The
+changes to the contents of special registers have a visible effect with a
+delay equal to the number of transport stages. The transport pipeline stores
+the special register values produced at each cycle in a FIFO. Each element
+of the FIFO, in addition to the data of each special register, contains
+information sufficient to determine how the state of special registers
+affects the processor.
+
+For example, when a jump operation is triggered, the new program counter
+address is stored in a transport pipeline slot. The actual program counter
+register, which determines the next instruction to execute, is actually
+updated with the address only after the transport pipeline latency has
+elapsed. The visible effect of the transport pipeline is a delayed control
+flow transfer and the presence of ``delay instruction slots'', which follow
+the control flow transfer, but logically occur before it.
+
+\section{OperationExecutor}
+\label{sec:operation-executor}
+
+This pure interface class models any implementation-specific aspect (mostly,
+timing and latency) of operation execution in a function unit.
+
+In simulator, the model of operation execution can be easily changed; this
+makes it possible to use faster models for operations implemented on a
+simple pipeline (or no pipeline at all).
+
+\emph{SimpleOperationExecutor} provides efficient modelling of operation
+execution timing. This class works with any operation pipeline. Its sole
+limitation is that it does not support operations that can have
+nondeterministic latency and late-coming results.
+
+\emph{OneCycleOperationExecutor} provides a low-overhead model of execution
+timing for operations with one-cycle latency. These operations produce
+results that are visible in the clock cycle following the cycle the
+operation is triggered.
+
+The class diagram in Figure~\ref{fig:msm_PipelineState} illustrates the
+different \emph{OperationExecutor} implementations.
+
+Despite its name, an operation executor does not contain any reference to
+the operations it models. Whenever an executor is requested simulation of an
+operation, the operation itself is specified.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/MSM_PipelineState.eps,width=0.7\textwidth}}
+\caption{Different OperationExecutor implemementations.}
+\label{fig:msm_PipelineState}
+\end{figure}
+
+\emph{OperationExecutor} interface contains following methods:
+
+\begin{description}
+\item[OperationExecutor()]%
+  Create an empty state and execution model for operations. No operation is
+  defined for this model, and no binding information is created.
+
+\item[startOperation(op : const Operation\&)]%
+  Copy the operand values in appropriate port state objects (as given by the
+  binding information) into the first stage of the executor and invoke
+  \verb|simulateTrigger()| of operation \emph{op}, passing the operand
+  values as argument.
+
+  Implementations of this method may throw [[exception]] \note{DISCUSS:
+    exception type} if the binding information of given operation is not
+  compatible with the binding information of this operation executor. (For
+  example, if index \emph{n} of executor is bound to an input port, whereas
+  the same index is an input index of operation \emph{op}.
+
+\item[readyValues() : vector<SimValue*>\&] %
+  Return the values in the last stage of executor, which represent the ready
+  results of one of the previous operations executed. The last stage of
+  \emph{OperationExecutor} may share its contents with the
+  \emph{OutputPortState} instances of the function unit. Thus, updating the
+  last stage has an immediate, automatic visible effect on the state of the
+  output ports. This method is solely provided for convenience, to let
+  clients inspect the ready stage.
+
+\item[advanceClock()] %
+  Perform activity that should happen as a clock cycle elapses. When the
+  processor is not globally locked, activity consists of testing for
+  late-coming results of pending operations, advancing the FIFO that models
+  operation timing and updating the ready stage (the visible results of the
+  most recent completed operation).
+
+\item[parent() : FUState\&] %
+  Return the state of the parent \emph{FUState} object.
+
+  Throw \emph{IllegalRegistration}
+%
+  \note{DISCUSS: specialised ``NotRegistered'' exception?}
+%
+  if the operation executor is not registered to a function unit state.
+
+\item[addBinding(io : int, portName : const string)]%
+  Bind the input or output \emph{io} of any operation that will be executed
+  on this executor to a function unit port identified by name string
+  \emph{portName}.
+
+\item[addBinding(io : int, port : PortState\&)]%
+  Bind the input or output \emph{io} of any operation that will be executed
+  on this executor to given function unit port.
+
+  Throw \emph{IllegalRegistration}
+%
+  \note{DISCUSS: exception type}
+%
+  exception if the parent function unit state of given port state is not the
+  same state of the operation executor.
+%
+  Throw [[exception]]
+%
+  \note{DISCUSS: exception type}
+%
+  exception if the input or output with given index has been already bound
+  to a port, or if the port has been already bound to another input or
+  output.
+
+\item[binding(io : int) : string] %
+  Return the name of the FU port bound to a given operation input or output,
+  \emph{io} or operation \emph{op}.
+
+\end{description}
+
+\subsection{SimpleOperationExecutor}
+
+In \emph{SimpleOperationExecutor}, the timing model is implemented with a
+ring buffer with fixed size determined at construction time equal to $L$,
+where $L$ is the latency of the operation. The ready stage is not a slot of
+the ring buffer.
+
+A buffer slot contains all the state necessary to simulate a pending
+operation. The state consists of the vector \emph{io} of inputs and outputs
+of the operation, a reference to the invoked operation, and a flag telling
+whether all the results of the operation are calculated or not.
+
+An index keeps track of the buffer slot position where the state of the next
+operation that will be invoked is going to be stored.
+
+When a new operation is triggered with \verb|startOperation()|, \emph{io}
+vector and the operation reference are copied to the buffer slot pointed at
+by the index, and the trigger simulation function of the operation is
+invoked.
+%
+The subsequent invocation of method \verb|advanceClock()| calls
+\verb|lateResult()| method of the operation just triggered if its result is
+not ready. Finally, \verb|advanceClock()| increments the index of buffer
+slot for next operation by one \emph{modulo} the buffer size.
+
+The ready stage usually shares its contents with the output ports of the
+function unit. The ready stage is updated only when the oldest slot (at
+position $(i + 1)$ modulo the size of the buffer, where $i$ is the current
+index,) contains a valid operation. The results from the slot are then
+copied to the ready stage. The ready stage is never overwritten with a slot
+that does not contain a valid operation.
+
+\subsection{OneCycleOperationExecutor}
+
+\emph{OneCycleOperationExecutor} is an implementation of the execution model
+suitable for operations with latency of one cycle. The results of the
+operations are always computed and stored in the ready stage by the end of
+the same simulation cycle in which the operation is triggered. In
+\emph{OneCycleOperationExecutor} there is only one operation at a time.
+
+The implementation of method \verb|startOperation()| is simple. The
+operation given as parameter is triggered and the results are placed
+directly into the ready stage. Like in \emph{SimpleOperationExecutor}, in
+\verb|advanceClock()|, \verb|lateResult()| is called for results that cannot
+be computed by the trigger simulation function.
+
+\subsection{ComplexOperationExecutor}
+
+This implementation of \emph{OperationExecutor} provides a model of
+operation execution that fully supports effects of operations with dynamic
+latencies, stalling, and the late results that come at nondeterministic
+times, possibly while the processor is globally locked.
+
+\subsection{Implementation}
+
+\paragraph{Locking}
+If during \verb|advanceClock()| an operation executor detects that the
+global lock signal is enabled, the FIFO that models the timing of the
+operation execution is not advanced. Simple operation executors do not do
+anything at all. Complex models, instead, check for late-coming results.
+
+\paragraph{Dynamic Latencies}
+
+Simple operation execution models such as \emph{SimpleOperationExecutor} and
+\emph{OneCycleOperationExecutor} assume that there are no operations with
+dynamic latency, therefore it is perfectly sane to assume that the results
+of the operation can be computed by the end of the same cycle in which the
+operation is triggered. If an operation does not produce ready results,
+simple execution models throw a \emph{InvalidObject}
+%
+\note{DISCUSS: type of exception}
+%
+exception with an error message that specifies which operation appears to
+have dynamic latency.
+
+\paragraph{Advancing the OperationExecutor FIFO}
+
+The result (ready) stage is overwritten only if the second last stage of the
+FIFO that models the execution timing contains a valid operation. The FIFO
+is always advanced unless the global lock signal is enabled. If the second
+last stage does not contain state of a valid operation, the ready stage
+keeps its previous value.
+
+Notice that, in general, the ready stage can be overwritten with the
+execution state of a valid operation with results that are not ready.
+
+\section{MemorySystem}
+\label{sec:ms-memsys}
+
+This class binds \emph{AddressSpace} instances of a MOM hierarchy to
+\emph{Memory} instances. The same address space can be bound to different
+\emph{Memory} objects in different \emph{MemorySystem} instances.
+
+\begin{description}
+\item[MemorySystem(machine : const Machine\&)]%
+  Constructor. Create an empty memory system descriptor for the target
+  processor \emph{machine}.
+\item[addAddressSpace(as : const AddressSpace\&, mem : Memory\&)]%
+  Bind address space \emph{as} to memory model \emph{mem}.
+
+  Throw \emph{IllegalRegistration} if the address space does not belong to
+  the target processor.
+
+\item[memory(as : const AddressSpace\&) : Memory\&]%
+  Return the memory model of address space \emph{as}.
+
+  Throw \emph{IllegalRegistration} if the address space does not belong to
+  the target processor. Throw [[exception]] \note{DISCUSS: exception type}
+  if the address space is not found.
+\end{description}
+
+\section{Machine State Snapshots}
+
+Machine state parts implement the \emph{Serializable} interface, thus the
+snapshot can be taken easily with calling \verb|saveState()| of the
+\emph{MachineState} which then constructs the \emph{ObjectState} tree of the
+other components recursively.
+
+The implementation of machine state snapshots implies that each machine
+state object needs to have its name (from MOM) as an attribute so they can
+be identified in the serialized form.
+
+\section{Tracking}
+
+Tracking of simulation activity can be implemented in the class
+that executes the instructions, that is, the client of MSM. This basically
+means \emph{SimulatorController}, \emph{ExecutableInstruction} and
+\emph{ExecutableMove} classes.
+
+
+\chapter{Simulation Event Handler}
+\label{ch:event-handler}
+
+\section{Overview}
+
+Simulation Event Handler is a derived \emph{Informer} from \emph{Event
+  Handler} toolkit module \cite{ToolkitDesign}. It mainly uses the
+functionality of the general \emph{Event Handler}, but adds some
+simulator-specific functionality. The main functionality added is
+simulator-specific event codes. The event codes are provided as a public
+enumeration in the derived \emph{SimulationEventHandler} class. Description
+of supported event codes can be seen in the header file or in API
+documentation.
+
+\chapter{Debugging System}
+\label{ch:debugging_system}
+
+\section{Overview}
+
+The Debugging System is a group of classes based on the Event Handler
+\cite{ToolkitDesign} that makes it possible to track the state of the
+simulation.
+
+\emph{StopPointManager} handles the break points entered by the user and
+makes sure that simulation is stopped at the point of the program required
+by the user. There are two kinds of break points. \emph{Watch} is watching
+an user-given expression script, and at the point its value changes,
+simulation is stopped. \emph{BreakPoint} watches the program counter, and
+the point the user-given instruction is reached, simulation is stopped.
+
+\emph{StopReason} is a helper class that stores information about reason to
+stop simulation. Instances of \emph{StopReason} are passed to Simulation
+Controller whenever it is asked to stop simulation. Reasons can be then
+queried from it and displayed to user in wanted format in user interfaces.
+
+\section{StopPointManager}
+\label{sec:breakpointmanager_class}
+
+\emph{StopPointManager} is a \emph{Listener} (see EventHandler of
+\cite{ToolkitDesign} that manages program break points.
+
+StopPointManager depends on following classes.
+
+\begin{enumerate}
+\item%
+  \emph{SimulationController}: to stop the simulation when a break point is
+  reached.
+\item%
+  \emph{SimulationEventHandler}: to (un)register listeners to
+  ``next-instruction'' events. When there are no break points, there is no
+  need to receive ``next-instruction'' event notifications.
+\end{enumerate}
+
+\subsection{StopPointManager class}
+
+BreakpointManager class provides public interface to add, remove and disable
+break points. Each new break point is given an integer index in range $[0,
+2^{32}-1]$ using which the break point can be later deleted or disabled.
+
+\paragraph{StopPointManager(simCon : const SimulationController\&, informer : SimulationEventHandler\&)}
+
+References to classes the BreakpointManager is dependent on are passed in
+construction phase.
+
+\paragraph{add(newBreakpoint : const StopPoint\&) : UInt32}
+
+Adds a new break point, returns integer handle for the break point.
+
+\paragraph{delete(handle : UInt32)}
+
+Delete a break point with handle.
+
+Throws if no break point with given handle is found.
+
+\paragraph{enable(handle : UInt32)}
+
+Disables the break point identified by given handle.
+
+Throws if no break point with given handle is found. Trying to enable a
+break point that is already disabled is not considered an error.
+
+\paragraph{disable(handle : UInt32)}
+
+Disables the break point identified by given handle.
+
+Throws if no break point with given handle is found. Trying to disable a
+break point that is already disabled is not considered an error.
+
+\paragraph{enableOnceAndDelete(handle : UInt32)}
+
+Enables a break point with handle and sets it to be deleted when it's
+invoked the next time. Error handling as in enable().
+
+\paragraph{enableOnceAndDisable(handle : UInt32)}
+
+Enables a break point with handle and sets it to be disabled when it's
+invoked the next time. Error handling as in enable().
+
+\paragraph{breakpoint(index : int) : Breakpoint}
+
+Returns the breakpoint at position \emph{index} in the list of break points
+owned by \emph{BreakpointManager}. The breakpoint returned is a copy.
+
+Throw an \emph{OutOfRange} exception if no breakpoint with given index
+exists.
+
+\paragraph{breakpointCount() : int}
+
+Returns the number of break points currently owned by
+\emph{BreakpointManager}.
+
+\paragraph{deleteAll()}
+
+Deletes all break points. Should never fail.
+
+\paragraph{enableAll()}
+
+Enables all break points. Should never fail.
+
+\paragraph{disableAll()}
+
+Disables all break points. Should never fail.
+
+\paragraph{setIgnore(handle : UInt32, count UInt32)}
+
+Sets the breakpoint with handle to be ignored count times before triggering
+the next time. If a breakpoint with handle is not found, an exception is
+thrown.
+
+\paragraph{handleEvent()}
+
+Implements the interface inherited from \emph{Listener}.
+
+Asks all contained and enabled \emph{StopPoints} whether they are triggered.
+If there are triggered \emph{StopPoints} and if their \verb|ignoreCount()|
+returns 0, then \emph{SimulationController} is instructed to stop simulation
+before next instruction by calling its \verb|prepareToStop()| method. The
+\emph{StopReason} object passed to simulation controller has
+\verb|reasonCode()| set to `RC\_BREAKPOINT'.
+
+\paragraph{setCondition(handle : UInt32, condition : ConditionScript)}
+
+Sets the condition for breakpoint with \emph{handle}. If breakpoint
+with \emph{handle} is not found, throws an exception.
+
+\subsection{StopPoint class}
+\label{subsec:breakpoint_class}
+
+Represents a parent class for different breakpoint types. \emph{Watch} and
+\emph{Breakpoint} are derived from this class. Used by the client to add
+program break points. \emph{StopPointManager} uses them to store information
+of each breakpoint.
+
+\begin{description}
+\item[isEnabled()]%
+  Returns true if the breakpoint is enabled.
+
+\item[enable()]%
+  Enables the breakpoint.
+
+\item[disable()]%
+  Disables the breakpoint.
+
+\item[condition() : ConditionScript]%
+  Returns the condition for this breakpoint to be fired, that is, to actually
+  stop simulation. If the breakpoint is unconditional, an empty condition
+  script is returned.
+
+  The condition is a line of interpreter script which is evaluated to figure
+  out if breakpoint should be fired when the address matches the current
+  program counter.
+
+\item[setCondition(condition : const ConditionScript\&)]%
+  Sets the condition of the breakpoint. The condition is a line of
+  interpreter script which is evaluated to figure out if breakpoint should
+  be fired when the address matches the current program counter.
+
+\item[isConditional() : bool]%
+  Returns true if the breakpoint is conditional, that is, its condition
+  script is not an empty script.
+
+  Even if the condition always evaluates to true Boolean value, it's still
+  considered as a conditional breakpoint, because it might be very hard to
+  detect all ``always true'' cases reliably.
+
+\item[ignoreCount() : int]%
+  Returns how many times this breakpoint should be ignored when the address
+  matches the current program counter. If it returns 0, the breakpoint
+  should be fired.
+
+\item[setIgnoreCount(count : int)]%
+  Sets the ignore count of this breakpoint. A null count implies that the
+  breakpoint will be fired when the address matches the current program
+  counter.
+
+\item[isDisabledAfterTriggered() : bool]%
+  Returns true if the breakpoint will be disabled after it's triggered next
+  time.
+
+\item[isDeletedAfterTriggered() : bool]%
+  Returns true if the breakpoint will be deleted after it's triggered next
+  time.
+
+\item[setDisabledAfterTriggered(bool)]%
+  Sets the property that determines whether the breakpoint will be disabled
+  after being triggered next time.
+
+\item[setDeletedAfterTriggered(bool)]%
+  Sets the property that determines whether the breakpoint will be deleted
+  after being triggered next time.
+
+\item[isTriggered() : bool (virtual)]%
+  This method is overridden in derived class to implement the check for
+  condition to stop simulation. \emph{Watch} implements this method to check
+  for the value change of its expression script, \emph{Breakpoint}
+  implements this method to check for program counter.
+\end{description}
+
+\subsection{StopReason class}
+
+Data storage class for storing a reason for simulation stop.
+
+\begin{description}
+\item[reasonCode() : ReasonCode]%
+  Returns the code for this reason. The \emph{ReasonCode} is an enumeration
+  type with values for each reason type like `RC\_BREAKPOINT' and
+  `RC\_WATCHPOINT'. Reason codes are listed in the API documentation.
+
+\item[reason() : string]%
+  Returns the textual explanation of the stop reason. This usually adds
+  specific information to the \emph{StopReason}. In case of `RC\_BREAKPOINT'
+  \emph{ReasonCode} the text describes the breakpoint reached. The text is
+  part of the user interface, and therefore is always retrieved from class
+  \emph{SimulatorTextGenerator}.
+\end{description}
+
+
+\chapter{Tracking System}
+
+The Tracking System module provides the capability of tracking memory access
+and program execution and store related data (profiling). Tracking is
+achieved using the Event Handler (Chapter~\ref{ch:event-handler}) and proxy
+classes. Proxy classes inform the Event Handler of events transparently.
+This means that an object causing the actions that trigger the events or a
+tracked object do not need to know about event notifications. Proxy
+``tracker'' classes also provide interface and functionality for passing
+information about events.
+
+\section{TrackedMemory}
+
+Tracking of memory accesses due to operations of the target architecture as
+defined by the Operation Set Abstraction Layer (OSAL) is achieved by
+defining a proxy \emph{Memory} implementation, \emph{TrackedMemory}.
+%
+\note{PENDING: \ref{ch:pending:proxy-code-dupl}.}
+%
+OSAL uses and sees a tracked memory as if it were a normal \emph{Memory}.
+\emph{TrackedMemory} just redirects the calls to its interface to the
+underlying \emph{Memory} instance and informs Event Handler of the events.
+This way neither OSAL nor the concrete \emph{Memory} implementation that is
+being tracked know that the communication is tracked.
+Figure~\ref{fig:memoryTracking} illustrates the classes, interfaces and
+relations involved in memory tracking.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/Memory_tracking.eps,width=0.8\textwidth}}
+\caption{Mechanism for tracking memory accesses.}
+\label{fig:memoryTracking}
+\end{figure}
+
+When memory tracking is disabled, OSAL will work with a plain (non-tracked)
+implementation of \emph{Memory}; the communication takes place directly with
+the concrete \emph{Memory} implementation instance instead of
+\emph{TrackedMemory}. This way there is no performance degradation in case
+tracking is not needed, because the proxy object --- and the overhead due to
+its functionality --- is not involved.
+
+Clients that are interested in memory access events probably want to know
+also which memory areas were accessed and how (read/write).
+\emph{TrackedMemory} provides an interface to store and access this
+information.
+
+\emph{TrackedMemory} can be implemented so that all memory accesses taking
+place in a clock cycle are stored and event information is sent to Event
+Handler only when the clock ``ticks''. In this way, clients can retrieve
+information of all memory accesses happened in a clock cycle with single
+call.
+
+\subsection{Motivations for Tracking Memory at Subject Level}
+
+Cases such as the coalescing of several identical memory access requests
+occurring in the same cycle into a single request are a strong case in favor
+of tracking event notification \emph{inside} the Memory Module itself.  Why?
+Because the exact behavior of the Memory Model for a given pattern of access
+requests is unknown to clients and yet it is needed to provide
+cycle-accurate simulation.
+
+A client simply cannot know whether multiple identical access requests in
+the same cycle result in a single memory access.  If notification takes
+place outside Memory Module, in client code, then the memory client will
+perform inexact tracking.  Even if knowledge of Memory Model properties is
+available to clients, notification is more expensive outside the Memory
+Module.  The client must perform redundant (and expensive) analysis to
+detect parallel, identical requests, and then decide, on basis of the
+properties, whether to skip tracking of the second (and following)
+notifications. This introduces a fair amount of code duplication.
+
+\section{Execution Trace Database}
+
+Execution Trace Database classes and database schema are described in
+this section.
+
+\subsection{Database Schema}
+\label{ssec:tracedb_tables}
+
+Execution Trace Database includes the following tables. The fields that must
+contain a unique value across all the entries of the table are marked with
+\textbf{bold} font. Optional fields are marked with \textit{italics}.
+
+When possible, a unique data field of table entries is used as key field.
+For example, in \emph{instruction\_execution} table, clock cycle field
+contains a unique value in each entry, so it is a suitable key field. There
+cannot be multiple different instruction executions in the same clock cycle,
+but the same instruction can be executed in different clock cycles.
+
+When no unique field is available, a special key field is used to uniquely
+identify a table entry. There cannot be be multiple entries in the database
+with exactly same key fields.
+
+\subsubsection{database\_info}
+
+This table contains meta-data of the database file. It includes the version
+number of the database format and the TPEF file name that contains the
+traced TTA program. This table contains only one row, created and inserted
+when the database is initialized.
+
+\begin{center}
+\begin{tabular}{|l|}
+\hline
+\textbf{database\_info} \\
+\hline
+\textbf{version : integer} \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{instruction\_execution}
+
+This table contains the sequence of instructions executed, cycle by cycle.
+Each row contains the clock cycle and the address of the executed
+instruction. The clock cycle numbering includes any wait cycles due to
+global lock of the TTA processor.
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{instruction\_execution}  & \\
+\hline
+\textbf{cycle : integer} & address : integer \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{instruction\_execution\_count}
+
+This table contains the execution counts for each instruction in the
+simulated program.
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{instruction\_execution\_count}  & \\
+\hline
+\textbf{address : integer} & count : REAL \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{procedure\_address\_range}
+
+This table contains the address ranges of procedures in the simulated program.
+Its main purpose is to allow more informative profile data queries (procedure
+execution times, etc.).
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{procedure\_address\_range}  & & \\
+\hline
+\textbf{first\_address : integer} & \textbf{last\_address : integer} & procedure\_name : TEXT \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{procedure\_transfer}
+
+Contains information of all procedure transfers during simulation of the
+program. A procedure transfer occurs when there's a control flow to another
+procedure. From each transfer following information are recorded: the cycle
+in which it happened, the address to which the transfer happened, and the
+type of the transfer. The type is an integer coded, value 0 means that the
+transfer was a procedure call (entry), value 1 means it was a return from
+procedure (exit).
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{procedure\_transfer}  & & \\
+\hline
+\textbf{cycle : real} & address : integer & type : integer \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\subsubsection{bus\_activity}
+
+This table contains a cycle-accurate trace of the activity performed on each
+transport bus. The \emph{cycle} field tells on which cycle the write
+happened, the \emph{bus\_id} field identifies the bus. \emph{segment\_id}
+identifies the segment in the bus (not supported currently).
+The squash field tells whether the Boolean expression guarding this
+transport evaluated to false, thus the data transfer was not delivered to
+the destination. \emph{data\_as\_int} and \emph{data\_as\_double} store
+the data in that bus (segment) in integer and double format, respectively.
+
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\textbf{bus\_activity}  & & & & &\\
+\hline
+cycle : integer & bus\_id : string & segment : string & squash : boolean &
+data\_as\_int : integer & data\_as\_double : real \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{concurrent\_register\_file\_access}
+
+This table contains counts of different types of concurrent register file
+accesses. That is, the count of times a register file was written W and read
+R times in the same clock cycle.
+
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{concurrent\_register\_file\_access}  & &  & \\
+\hline
+\textbf{register\_file : string} & reads : integer & writes : integer &
+count : integer \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{register\_access}
+
+This table contains counts of reads and writes to each register.
+
+\begin{center}
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{register\_access}  & & & \\
+\hline
+\textbf{register\_file : string} & \textbf{register\_index : integer} & reads : real & writes : real \\
+\hline
+\end{tabular}
+\end{center}
+
+
+\subsubsection{fu\_operation\_triggers}
+
+This table contains counts of operation triggers in each FU.
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{fu\_operation\_triggers}  & & \\
+\hline
+\textbf{function\_unit : string} & operation : string & count : integer \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{bus\_write\_counts}
+
+This table contains counts of bus writes.
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{bus\_write\_counts}  &  \\
+\hline
+\textbf{bus : string} & writes : integer \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{socket\_write\_counts}
+
+This table contains counts of socket writes.
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{socket\_write\_counts}  &  \\
+\hline
+\textbf{socket : string} & writes : integer \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{totals}
+
+This table contains name/value pairs for storing different total
+values. Currently only 'cycle\_count' value is used, which is the
+count of cycles simulation was executed to produce the TraceDB.
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{totals}  &  \\
+\hline
+value\_name : string & integer\_value : integer \\
+\hline
+\end{tabular}
+\end{center}
+
+
+
+
+\subsection{Classes}
+
+The classes described in this section provide an interface to the execution
+trace database. These classes make it possible to add data or inspect the
+execution trace.
+%
+note{New query methods will be added to the interface when needed.}
+%
+Figure~\ref{fig:msm_ExecutionTrace} shows the relations of classes that
+implement the execution trace interface to the Toolkit module for handling
+relational databases.
+
+\begin{figure}[htb]
+\centerline{\psfig{figure=eps/TraceDB_ExecutionTrace.eps,width=0.7\textwidth}}
+\caption{ExecutionTrace.}
+\label{fig:msm_ExecutionTrace}
+\end{figure}
+
+\subsubsection{ExecutionTrace}
+
+\emph{ExecutionTrace} is the main class and represents the execution trace
+database. Access to the execution trace database occurs through the
+interface of this class. Queries return ``handle'' objects like
+\emph{InstructionExecution}
+(Section~\ref{sec:TraceDB_InstructionExecution}).  These handles are used to
+navigate through the result set of the query.
+
+\subsubsection{InstructionExecution}
+\label{sec:TraceDB_InstructionExecution}
+
+Class \emph{InstructionExecution} is a ``handle'' to navigate through the
+list all execution cycles. This class is also used to access the actual data
+pointed by the navigation.  Motivation for the combined responsibility is
+simplicity as the accessed data is quite trivial.
+
+\chapter{Command Line Interface}
+
+The modular design of Simulator makes it possible to add various types of
+user interfaces.  One such interface is the command line interface, which is
+implemented in the first version of the Simulator.
+
+\section{Overview}
+
+Command Line Interface (CLI) module is structured in a few submodules.
+
+LineReader is a wrapper to \emph{editline} library, a BSD-licensed
+alternative to \emph{libreadline} used to read lines of input from the user.
+Libeditline offers convenient keyboard shortcuts for line editing. Without
+this kind of library, only limited keys would be available for line editing;
+for example, the user would not be able to use the cursor keys. Readline,
+which editline mimics, is a \emph{de facto} standard among GNU tools.
+
+The interpreter abstraction layer (Interpreter) encapsulates the interpreter
+library functionality and aims at providing an interface so generic that
+it's easy to change the interpreter implementation, or even the scripting
+language.  Changing the underlying interpreter library in Interpreter should
+not affect other parts of the system.  The first version of the Simulator
+supports Tcl interpreter library version~8.0 and above.
+
+The main loop of CLI simply reads a line of input from user via the
+LineReader and passes it, unchanged, to the Interpreter.  The interpreter
+executes any command contained in the line and returns the results.  The
+main loop prints the results. LineReader might also be called back by
+the Interpreter in case some commands require feedback, for example
+confirmation, from the user.
+
+\section{LineReader}
+
+Interface of LineReader consists of an initialization method and
+\verb|readLine()| method for reading user input.
+
+Concrete LineReaders should implement command history browsing functionality
+internally and this internal command history list they use for that
+functionality need not be accessed by LineReader's clients directly. If
+client of LineReader wants to save the command history, it has to do it by
+itself. This responsibility separation decision is motivated by the fact
+that LineReader itself needs the command history for browsing it with cursor
+keys and external library might need for example only the commands that were
+successful. In this example case, the client saves the commands after
+executing them to an internal database in case they were successful.
+
+Figure~\ref{fig:linereader_class} summarizes the interface of LineReader.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/LineReader.eps,width=1.0\textwidth}}
+\caption{LineReader interface.}
+\label{fig:linereader_class}
+\end{figure}
+
+\paragraph{initialize(string prompt = ``'', FILE* in = stdin, FILE* out = stdout, FILE* err = stderr)}
+This method *must* be called before starting to use the LineReader.
+
+initialize() method is included in the interface to ensure there exists a
+possibility to assign the file streams the LineReader uses to other than the
+standard ones. It is also possible to give an initial prompt to reader.
+
+
+\paragraph{string readLine(string prompt = ``'')}
+
+Reads a line of input from the user.
+
+Uses \emph{prompt} as the ``input prompt''. The prompt is used for reading
+only one line. Initial prompt is changed back before exiting this function.
+
+In case class is not initialized by calling initialize(), throws an
+exception.
+
+\paragraph{char charQuestion(string question, string allowedChars, bool caseSensitive = false, char default~=~'$\backslash$0')}
+
+Asks user a question and expects the answer to be given as a character.
+
+With \emph{question}, a question may be entered, and \emph{allowedChars} is
+a string with all possible legal input characters. In case \emph{default} is
+not given, question is repeated until user gives a valid input according to
+\emph{allowedChars}. If \emph{default} is given and user enters a character
+not in \emph{allowedChars}, the \emph{default} is returned.
+
+\emph{caseSensitive} flag allows switching the mode to case sensitive, in
+which e.g. characters 'y' and 'Y' are considered to be different answers.
+
+In case class is not initialized by calling initialize(), throws an
+exception.
+
+
+\paragraph{bool confirmation(string prompt, char default = 'n', char yesChar = 'y', char noChar = 'n')}
+
+Shortcut method for asking confirmation from the user.
+
+Because most of the questions asked with charQuestion() will probably be
+confirmations in which answer alternatives are 'y' (yes) or 'n' (no), it's
+nice to provide a shortcut method for it.
+
+This method calls charQuestion() with the arguments and returns true if
+the returned character is \emph{yesChar}.
+
+This is the only method implemented in the parent \emph{LineReader} class
+and acts as a ``template method'' which calls abstract methods implemented in
+derived classes.
+
+In case class is not initialized by calling initialize(), throws an
+exception.
+
+\subsection{Implementation}
+
+The first implementation of LineReader is based on editline library. Later
+on this libeditline implementation of LineReader class is referred to as
+``Editline''. Manual pages of the library (man editline 3el) should provide
+enough info to implement the functionality quite painlessly. Nevertheless, I
+already noticed couple of problem spots within the library.
+
+\paragraph{Multiple Editline Libraries}
+
+In Debian, two different editline libraries seem to be available. One is
+offered with a package name `libeditline0' and the other with `libedit2'. We
+should use the latter, which provides command line history. The library in
+`libeditline0' package is extremely simple and out-dated, and might not have
+complete history capabilities.
+
+\paragraph{Built-in Commands of Editline}
+
+Editline has some built-in commands which
+%
+\note{TO DO: confirm preprocessing of built-in commands}
+%
+are processed before passing the result to the client. We should find a way
+to switch these commands off, or just live with it and document this feature
+in the Simulator's requirements. If we decide to live with those commands
+(we might not have a choice), we must check the Simulator specs for
+conflicting commands and come up with new names for them. Quickly checking,
+there seems not to be too many that might be conflicting, maybe ``history''?
+
+Listing of the built-in commands can be read in ``man editrc 5''.
+
+\paragraph{Heavy Usage of Callback Functions}
+
+Most Unix-libraries are written using C, and it shows in this case in heavy
+usage of callback functions to provide customizable functionality. Because
+of usage of callback functions for things like printing the prompt and
+seeking the history, it is a little trickier to implement this class, but
+only a little.
+
+It seems that \emph{history()}, the default function that handles the
+command history can be used with multiple History instances returned
+by \emph{history\_init()}, therefore it causes no problems if we remember
+to create an unique History instance for each Editline instance.
+
+The prompt printing callback which should be defined for each instance of
+our class. This might be done with setting the prompt printing function to
+point to a member function of our Editline instance which prints the prompt
+wanted. The value the prompt returning method should return is set before
+calling the libeditline's \emph{el\_get()}.
+
+\section{Interpreter}
+
+Interpreter module consist of abstract classes \emph{ScriptInterpreter} and
+\emph{CustomCommand}, interface class \emph{InterpreterContext}, and
+\emph{DataObject} concrete class.  Refer to
+Figure~\ref{fig:interpreter_module} for a class diagram.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/interpreter.eps,width=1.0\textwidth}}
+\caption{Interpreter module.}
+\label{fig:interpreter_module}
+\end{figure}
+
+Return values of custom commands added to \emph{ScriptInterpreter} do not
+offer any particular support for lists. In case list return values are
+needed, they might be represented as a string with space separated values.
+
+\subsection{ScriptInterpreter}
+
+Class \emph{ScriptInterpreter} encapsulates the interpreter library
+functionality.  It is an abstract class: its pure virtual methods are
+implemented in a concrete interpreter class, such as \emph{TclInterpreter}
+described in~\ref{ssec:tcl-interp}.  The class interface was inspired by Tcl
+library API.  Still, the interface is so simple and general that it should
+be possible to implement support for any scripting language with it.
+
+
+\emph{ScriptInterpreter} provides an unique, consistent client interface for
+adding scripting support to the application.  The interface consists of
+following methods.  Methods that the derived classes are supposed to
+implement are marked with "[pure virtual]".
+
+\paragraph{addCustomCommand(command :  CustomCommand*)}
+Adds a new \emph{CustomCommand} to the interpreter. Simply copies and adds
+the custom command to a \verb|map<string, CustomCommand>|, where the name
+string is obtained by the \emph{CustomCommand} itself. Overwriting an
+existing \emph{CustomCommand} is not an error.
+
+The protected method
+\verb|addCustomCommandToInterpreter()| is called to ensure the new command
+is added to the internal structures of the interpreter implementation library.
+
+The parameter has to be a pointer to avoid splicing, that is the type info
+is not lost.
+
+\paragraph{removeCustomCommand(commandName : string)}
+Removes a \emph{CustomCommand} with \emph{commandName} key from
+ScriptInterpreter.
+
+The protected method
+\verb|removeCustomCommandFromInterpreter()| is called to ensure the command
+is removed from the internal structures of the interpreter implementation
+library.
+
+\paragraph{customCommand(commandName : string) : CustomCommand*}
+Returns the CustomCommand object associated with given name.
+
+A simple map lookup. NULL is returned in case CustomCommand with given
+name is not found.
+
+Bookkeeping of CustomCommands is required to be able to refer to other
+CustomCommands within a CustomCommand. For example the ``help''
+CustomCommand could be implemented using this feature.
+
+\paragraph{customCommandsSortedByName() : vector<string>}
+Returns a vector of custom command names registered in the
+ScriptInterpreter. The list is sorted by name, starting from 'a'. This is
+used at least by a custom command 'help' that prints a listing of available
+commands when it's called without any arguments.
+
+\paragraph{setResult(result : DataObject*)}
+Stores the result of the last executed command.
+
+Called by CustomCommands to set their result. After saving the result to an
+internal variable, this method calls \verb|setResultToInterpreter()| to set
+the result also to the concrete interpreter. To denote that the result is
+error information instead of real result, \verb|setInterpreterError()| is
+called.
+
+\paragraph{result() : string}
+Returns the result of last executed command as a string.
+
+
+\paragraph{setError(state : bool)}
+
+Sets the interpreter's error state.
+
+The error state implies that the result string obtained with a result() call
+is an error string instead of execution result.
+
+\paragraph{error() : bool}
+
+Returns the interpreter's error state. See above method for explanation.
+
+\paragraph{setVariable(interpreterVariableName : string, value : string)}
+Template method for setting the value of a variable of type string in
+interpreter.
+
+Creates a new \emph{DataObject} and calls virtual method
+\verb|setVariable()| with the \emph{DataObject} as a parameter.
+
+\paragraph{setVariable(interpreterVariableName : string, value : int)}
+Template method for setting the value of a variable of integer type in
+interpreter.  Creates a new \emph{DataObject} and calls virtual method
+\verb|setVariable()| with the \emph{DataObject} as a parameter.
+
+\paragraph{variableStringValue(interpreterVariableName : string) : string}
+Template method for accessing the value of a variable of the scripting
+language as a string.  Obtains the value for the variable as a
+\emph{DataObject} using \verb|variable()|, and returns its value interpreted
+as string.
+
+\paragraph{variableIntegerValue(interpreterVariableName : string) : int}
+Template method for accessing the value of a variable of the scripting
+language as an integer number.  Obtains the value for the variable as a
+\emph{DataObject} using \verb|variable()|, and returns its value interpreted
+as string.
+
+\paragraph{processScriptFile(scriptFileName : string) : Boolean}
+Processes a script file.  Returns false on script execution failure.
+Exceptions are thrown if the failure is not due to script errors, but to
+other causes, for example when the file is not found.  Template method that
+reads the file line-by-line and calls \verb|interpret()| with the read line.
+
+\paragraph{finalize()}
+
+This method should be called before deleting ScriptInterpreter derived
+class instance.
+
+Custom commands are deleted from the interpreter by calling
+\emph{removeCustomCommand()} for each custom command in the custom command
+map. This results in calling the \emph{removeCustomCommandFromInterpreter()}
+implemented by the concrete ScriptInterpreter which removes the references
+to the custom commands from the scripting library.
+
+Separate finalization method is provided because one cannot call abstract
+methods (removeCustomCommandFromInterpreter()) in destructor. Reason why
+they cannot be called is obvious: derived class part is destructed at the
+point the destructor of the parent class is run, therefore it doesn't make
+sense to call the abstract method which is implemented in the destructed
+derived class only.
+
+Destructor of ScriptInterpreter only checks that finalize() has been called.
+If it haven't been called, error log is written about it for helping in
+debugging the errors (and memory leaks) it might cause.
+
+\paragraph{setLineReader(reader : LineReader*)}
+
+Sets the LineReader for the interpreter. LineReader can be used for example
+for getting more input for ScriptInterpreter. CustomCommands may also need
+to access LineReader. They do it by asking it from ScriptInterpreter.
+
+\paragraph{lineReader() : LineReader*}
+
+Returns a pointer to LineReader instance.
+
+\paragraph{initialize(argc, argv, context : InterpreterContext*, reader : LineReader*) [pure virtual]}
+Initializes the interpreter. Interpreter library is initialized here.
+\emph{argc and argv} are possible command line arguments passed when
+starting the program. These variables can be set to the interpreter
+library's internal variables so they can be used in scripts. \emph{context}
+is used to pass arbitrary data to the Interpreter, this data is used by
+CustomCommands to do their job. \emph{reader} is a LineReader instance given
+to ScriptInterpreter.
+
+Separate initialization method is provided to make sure the concrete
+interpreter provides possibility to set command line arguments to interpreter
+variables in initialization.
+
+
+\paragraph{setVariableToInterpreter(name : string, value : const Logical View::DataObject\&) [pure virtual]}
+Sets the value of a variable in the interpreter.  Concrete interpreter
+implementations must provide this.
+
+\paragraph{variable(name : string) : DataObject [pure virtual]}
+Returns the value of a variable of the scripting language.
+
+\paragraph{interpret(commandLine : string) : Boolean [pure virtual]}
+Processes a line of script.  Returns `true' on success, `false' if a
+language error occurs.  On failure, interpreter is set to error state
+with \verb|setError(true)| and the error string is set with
+\verb|setResult()| which can be queried with \verb|result()| by the client.
+
+\paragraph{setResultToInterpreter(value : const DataObject\&) [pure virtual]}
+
+Sets the DataObject to be the return value of the last executed command in
+the concrete interpreter.
+
+\paragraph{addCustomCommandToInterpreter(command : CustomCommand*) [pure virtual]}
+Adds a single custom command to the interpreter. This method should be
+implemented with functionality that register the custom command to actual
+interpreter library. Bookkeeping of CustomCommand objects is responsibility of
+the addCustomCommand() which calls this method.
+
+The parameter has to be a pointer to avoid splicing, that is the type info
+is not lost.
+
+
+\paragraph{removeCustomCommandFromInterpreter(command : CustomCommand*) [pure virtual]}
+
+Unregisters the given CustomCommand from the scripting library to make sure
+the custom command is not recognized anymore by the scripting library and
+won't be called accidentally.
+
+\subsection{TclInterpreter}
+\label{ssec:tcl-interp}
+
+Tcl implementation of the ScriptInterpreter. Here are some thoughts on how
+the pure virtual methods could be implemented in case of Tcl library.
+Methods not covered here should be trivial to implement with Tcl API calls.
+
+\paragraph{\~{}TclInterpreter()}
+
+Finalization of the Tcl library should be done here.
+
+\paragraph{initialize()}
+Create a new Tcl interpreter instance with a call to
+\verb|Tcl_CreateInterp()|.
+
+The source of \verb|Tcl_Main()| is a good source for information on how to
+do this. The manual pages of Tcl (man \verb|Tcl_CreateInterp|) should
+provide valuable information, too. The interpreter is not initialized
+``conventionally'', by creating a custom \verb|Tcl_AppInit()| and then
+calling \verb|Tcl_Main()|. Instead, write our own code resembling the
+\verb|Tcl_Main()|. This makes it easier to have multiple instantiations of
+the ScriptInterpreter. You'll notice this when you dig into details more.
+
+\paragraph{setLastReturnValue()}
+
+Converts the DataObject instance to Tcl\_Obj and calls Tcl\_SetObjResult()
+with the converted object as an argument.
+
+\paragraph{addCustomCommandToInterpreter()}
+
+The implementation of this function is based on the fact that the
+\emph{Tcl\_CreateObjCommand()} allows entering custom data with
+the \emph{ClientData} parameter.
+
+When registering a new custom command to the Tcl library, a single
+static custom command handler function is used for all the registered
+CustomCommand objects.
+A pointer to the CustomCommand object is stored in ClientData field so the
+real functionality can be called in the ``redirector'' custom command function.
+The function consists of code similar to this:
+
+\begin{verbatim}
+  int
+  TclInterpreter::customCommandRedirector(ClientData cd, Tcl_Interp* interp,
+                                          int objc, Tcl_Obj *CONST objv[]) {
+     vector<DataObject> args;
+
+     // ...
+     // convert objc and objv[] to DataObjects in args vector here
+     // ...
+
+     CustomCommand* targetCommand = static_cast<CustomCommand*>(cd);
+     assert(cd != NULL);
+
+     if (targetCommand->execute(args)) {
+       setError(false);
+       return TCL_OK;
+     } else {
+       setError(true);
+       return TCL_ERROR;
+     }
+  }
+\end{verbatim}
+
+\subsection{CustomCommand}
+Custom commands are added to interpreter by defining new CustomCommand
+classes.  CustomCommand is an abstract class that implements only
+the simple access methods and rest of the methods are supposed to be
+implemented by concrete CustomCommands.
+
+
+\paragraph{string name()}
+
+Returns the name of the command.  The name is used to invoke the command,
+e.g., ``info'' or ``run''.  The name is hard-coded in the concrete custom
+command class: all instances of a class have the same name.  (Although
+multiple instances of the same class are not usually needed.)
+
+
+\paragraph{context() : InterpreterContext*}
+Returns a pointer to the InterpreterContext object.
+
+This is used by CustomCommand objects to access the "context" data. Context
+data is the "model" data, that is the data the CustomCommands access and
+modify. In Simulator's case the data is a SimulationFrontend instance.
+
+Because not all CustomCommands need the ``context'' data, having a
+\emph{InterpreterContext} pointer in a \emph{CustomCommand} is not
+mandatory. In case of a missing \emph{Interpreter} pointer this method
+returns NULL to indicate a possible programming error.
+
+\paragraph{setContext(context : InterpreterContext*)}
+
+Sets the \emph{InterpreterContext} pointer.
+
+\paragraph{setInterpreter(ScriptInterpreter* si)}
+
+Some CustomCommands need to access services provided by the
+ScriptInterpreter interface. For example ``help'' command may need to access
+other commands connected to the interpreter to get the help text assigned to
+commands. This method sets the \emph{ScriptInterpreter} instance which is
+used in these cases.
+
+\paragraph{ScriptInterpreter* interpreter()}
+
+Because not all CustomCommands need interpreter services, having a
+\emph{ScriptInterpreter} pointer in a \emph{CustomCommand} is not mandatory.
+In case of a missing \emph{ScriptInterpreter} pointer this method returns
+NULL to indicate a possible programming error.
+
+\addvspace{1cm}
+\emph{The rest of the methods are pure virtual and are implemented by the
+  concrete custom commands.}
+
+\paragraph{execute(arguments : const vector<DataObject>\&) : bool}
+This is the real beef of the whole class. In this function the
+functionality of the command is implemented. This is called from the
+implementation specific command handler function with the arguments
+converted to DataObjects.
+
+In case execution of a command fails, `false' is returned, `true' otherwise.
+The result of the command execution is set by calling \verb|setResult()| on
+the given interpreter before returning.
+
+\paragraph{helpText() : string}
+Returns a brief help message describing this command.  This method makes it
+possible to implement a special custom command that queries different
+commands for help text and shows it to the client.
+
+\subsection{InterpreterContext}
+Container for data that is handled by CustomCommands.
+SimulatorInterpreterContext holds a pointer to SimulatorFrontend* so
+CustomCommands may access it in their \verb|execute()|.
+
+\subsection{DataObject}
+Represents data of arbitrary type that can be manipulated by the scripting
+language.  Idea from \verb|Tcl_Obj|.  Does conversions ``on demand'' and
+stores the converted value, so conversion results are ``cached''.  In case
+conversion fails, an exception is thrown.
+
+\subsection{Script class}
+
+Script class is a helper class that contains lines of script that can
+be executed on demand. It is a base class for
+helper classes ConditionScript and ExpressionScript
+(see Figure~\ref{fig:script_helper_classes}).
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/ScriptHelperClasses.eps,width=1.0\textwidth}}
+\caption{Script helper classes.}
+\label{fig:script_helper_classes}
+\end{figure}
+
+\paragraph{Script(interpreter : ScriptInterpreter*, scriptLine : string)}
+
+Pointer to the interpreter that is supposed to execute the script is
+given in construction. \emph{scriptLine} is the line of script to be
+evaluated.
+
+\paragraph{Script(interpreter : ScriptInterpreter*, script : const vector<string>\&)}
+
+This constructor is like the previous, except it allows entering multiple
+lines of script with the \emph{script} parameter.
+
+
+\paragraph{execute() : DataObject}
+
+Executes the script and returns the result as a DataObject object. Also
+stores the result of the last execution to a member variable which can be
+retrieved with method described next.
+
+In case the script consist of multiple lines, each line is executed
+separately and the result of the last line is returned.
+
+If execution of script fails for unexpected reason (for example syntax
+error), an exception is thrown.
+
+\paragraph{lastResult() : DataObject}
+
+Returns the result of last execution, if any. If execute() was never
+called, throws an exception. This is a helper method used for caching
+the script execution result.
+
+\paragraph{script() : vector<string>}
+
+Returns the script as a string vector.
+
+\subsection{ConditionScript class}
+
+ConditionScript is derived from Script class to provide a helper class that
+contains a script that defines a condition for some action. The result of the
+execution of this script is considered to be only true or false. If execution
+of script produces any other result than integer 0, it is considered true.
+
+This class is used at least by break points that contain conditions
+(see \ref{subsec:breakpoint_class} for details).
+
+This class provides same type of constructors as the parent class.
+
+\paragraph{conditionOk() : bool}
+
+Returns true if the return value of execution is not integer zero. This means
+that even if the script returns a string, it is considered a ``true'' result.
+
+An empty condition script is considered a special case: when it's evaluated
+it's not passed to interpreter, but true is returned immediately instead. This
+kind of condition can be used as a ``default'' condition to signal that
+there is no condition (execute always).
+
+Possible exceptions from execute() call are spilled.
+
+\subsection{ExpressionScript}
+
+ExpressionScript is used to inspect changes in the result of script execution.
+This is used to implement watches.
+
+This class provides same type of constructors as the parent class.
+
+\paragraph{resultChanged() : bool}
+
+Returns true if result of script execution has changed since the last call to
+this function.
+
+Saves current last result value to a temporary variable, runs execute()
+and sees if the value differs. When this function is called the first time,
+that is there is no previous value to compare to, this function returns
+false.
+
+Possible exceptions from execute() call are spilled.
+
+\subsection{SimulatorInterpreter}
+
+A convenience subclass of \emph{TclInterpreter} that encapsulated all
+initialization activity required by the interpreter of Simulator. In the
+future, it could be optionally derived from other interpreter
+implementations, like a Python interpreter. \emph{SimulatorInterpreter}
+creates and holds the SimulatorInterpreterContext instance. Creates and
+deletes the CustomCommands of simulator and registers them to the
+interpreter.
+
+\chapter{IMPLEMENTATION}
+
+This chapter describes the implementation of the major features of the Simulator.
+Implementation descriptions are written in a way that they provide the minimal
+set of information needed to implement the features the intended way. No details are described.
+Additionally, a plan for the order of the implementation of the features is given in
+\emph{Implementation Milestones} section.
+
+\section{Implementation Descriptions}
+
+The features that are described are picked in such a way that after understanding how they are
+implemented, it should be trivial to understand the way to implement the rest of the features.
+For example, describing how to add each different type of breakpoint is not necessary, because they
+are special cases of the implementation description in Section~\ref{sec:impl_add_breakpoint}. On the
+other hand, it does not make sense to describe how to implement the command ``run'' as it's basically
+implemented by executing a sequence of ``step'' commands (Section~\ref{sec:impl_stepping}) with stop
+condition evaluation after each step.
+
+Most feature implementation descriptions contain sequence diagrams to illustrate
+the interactions between relevant objects.
+
+\subsection{Simulation Initialization}
+
+Simulation is initialized by registering the machine and the program to be simulated to
+the \emph{SimulatorFrontend}, as illustrated in the sequence diagram of Figure~\ref{fig:impl_init}.
+
+The \emph{CustomCommands} owned by the \emph{SimulatorInterpreter} that are responsible for executing
+commands ``prog'' and ``mach'' (or ``conf'') call the methods of the \emph{SimulatorFrontend} used for
+loading the program and the machine, respectively.
+
+When simulation is started by executing, for example, the ``run'' command, \emph{SimulatorFrontend}
+creates a new \emph{SimulatorController}, and gives the loaded program and machine (or an instance of
+\emph{UniversalMachine} in case a machine was not loaded) as arguments to its constructor.
+
+\emph{SimulatorController} uses \emph{MachineStateBuilder} to construct \emph{Machine State Model} from
+the given \emph{Machine Object Model}. What is missing from the diagram is that
+\emph{SimulatorController} is responsible for instantiating the \emph{Memory} models as
+described by the address space data in the \emph{Machine}. These memory
+instances are given to the \emph{MachineStateBuilder} when calling
+the \emph{build()} method to make it possible for the \emph{FUStates}
+that access memory to work.
+
+Finally, \emph{SimulatorController} preprocesses the program to simulate.
+Preprocessing converts a POM \emph{Program} instance to an
+\emph{InstructionMemory} containing \emph{ExecutableInstructions}.
+Preprocessing is delegated to \emph{SimProgramBuilder} which uses given
+\emph{StateLocator} instance to search the corresponding state objects for
+components of the Machine Object Model (\emph{Component} instances). During
+preprocessing, references to components contained in the program are
+replaced with references to state objects.
+
+\begin{figure}[!h]
+\centerline{\psfig{figure=eps/Seq_init_simulation.eps,width=1.0\textwidth}}
+\caption{Initializing Simulation}
+\label{fig:impl_init}
+\end{figure}
+
+\subsection{Stepping a Program}
+\label{sec:impl_stepping}
+
+Implementation of ``step'' command is illustrated in Figure~\ref{fig:impl_stepping}.
+
+Implementation is straightforward: the \emph{CustomCommand} instance that implements ``step''
+calls \emph{step()} of the \emph{SimulatorFrontend} which calls \emph{step()} of
+the \emph{SimulatorController} instance created for the running simulation.
+
+What happens inside \emph{SimulatorController} and \emph{Machine State Model} during a simulation
+cycle can be understood from Figure~\ref{fig:msm_simple_simucycle}.
+
+\begin{figure}[!h]
+\centerline{\psfig{figure=eps/Seq_stepping_program.eps,width=1.0\textwidth}}
+\caption{Stepping a Program}
+\label{fig:impl_stepping}
+\end{figure}
+
+\subsection{Execution Tracing}
+\label{sec:impl_exec_tracing}
+
+Tracing the execution (Figure~\ref{fig:impl_exec_tracing}) is implemented using the \textit{Observer}
+design pattern. \emph{Event Handler} module (Chapter~\ref{ch:event-handler}) is used to implement
+the \textit{Observer} pattern.
+The \emph{Informer} class of \emph{Event Handler} module relays event messages to
+interested parties (\emph{Listeners}). Objects that implement \emph{Listener} interface may receive
+event notifications by registering themselves to the \emph{Informer}.
+
+When simple execution tracing is enabled, \emph{SimulatorFrontend} creates an instance
+of \emph{ExecutionTracker}, and registers it to listen to clock cycle advance events.
+\emph{SimulatorController} informs the \emph{Informer} when such an event happens, which informs
+all \emph{Listeners} interested in that event. Among those listeners is the \emph{ExecutionTracker}
+instance the \emph{SimulatorFrontend} registered at the moment simple execution tracing was enabled.
+
+When the \emph{ExecutionTracker} is notified about the event by calling the \verb|handleEvent()| method,
+it writes the information it tracks to the execution trace database after retrieving the information
+from the classes (\textit{subjects} in the \textit{Observer} pattern) that have access to it. In this
+case \emph{SimulatorController} is asked about the count of clocks passed and the current program counter
+address.
+
+\begin{figure}[!h]
+\centerline{\psfig{figure=eps/Seq_execution_tracing.eps,width=1.0\textwidth}}
+\caption{Execution Tracing}
+\label{fig:impl_exec_tracing}
+\end{figure}
+
+\subsection{Adding a Breakpoint}
+\label{sec:impl_add_breakpoint}
+
+Break Points are added by using the \emph{Debugging System} module
+(Chapter~\ref{ch:debugging_system}). \emph{SimulatorFrontend} owns an
+instance of \emph{BreakpointManager} which keeps book of \emph{Breakpoints}.
+When a new breakpoint is added with method \verb|addBreakpoint()|,
+\emph{SimulatorFrontend} delegates the breakpoint to the
+\emph{BreakpointManager}, as illustrated in
+Figure~\ref{fig:impl_adding_breakpoint}.
+
+\begin{figure}[!h]
+\centerline{\psfig{figure=eps/Seq_adding_breakpoint.eps,width=1.0\textwidth}}
+\caption{Adding a Breakpoint}
+\label{fig:impl_adding_breakpoint}
+\end{figure}
+
+\subsection{Stopping Because of a Breakpoint}
+
+Stopping at breakpoint is implemented using the \emph{Event Handler}
+mechanism as briefly described in Section~\ref{sec:impl_exec_tracing}.
+\emph{BreakpointManager} listens to program counter change events and when
+it sees a program counter change to an instruction address watched by a
+breakpoint, it tells \emph{SimulatorController} to stop before executing the
+next instruction. \emph{Breakpoints} may be conditional, and because of
+this, the breakpoint watching the instruction address is asked whether the
+condition is true by calling its \verb|conditionOK()| method before
+triggering the breakpoint. Sequence of method calls is illustrated in
+Figure~\ref{fig:impl_stopping_breakpoint}.
+
+\begin{figure}[!h]
+\centerline{\psfig{figure=eps/Seq_stopping_because_of_breakpoint.eps,width=1.0\textwidth}}
+\caption{Stopping Because of a Breakpoint}
+\label{fig:impl_stopping_breakpoint}
+\end{figure}
+
+
+\section{Implementation Milestones}
+
+The plan for implementing the features of the processor simulator is
+represented in an implementation milestone list. The list is divided in
+pre 1.0 versions, each version representing a set of main features to be
+implemented in that version.
+
+% TODO: complete the list
+\begin{list}{version}{}
+\item 0.1 %
+Simulation of sequential code. The first commands of the CLI: ``prog'', ``run'',
+"until", "disassemble" and ``stepi''. The workings of sequential simulation is
+verified with printouts (by using a special "stdout" operation) in the simulated
+program. Detection of the last executed instruction.
+
+\item 0.2 (Demo for the steering group meeting of May, 2005)%
+Execution tracking, i.e., the minimal data needed by Estimator. Breakpoints.
+Stopping the simulation by hitting "Ctrl-C" in the command line client.
+
+\item 0.3 %
+Simulation of parallel code loaded from TPEF. Needs assembler, or any kind of
+parallelizing scheduler algorithm to verify.
+
+\end{list}
+
+\chapter{REJECTED ALTERNATIVES}
+
+% Rejected alternatives for (parts of) the design should be listed here with
+% the reasoning and date the alternative was dumped. For future reference.
+
+\begin{description}
+\item[17.11.2004 --- Semaphore for Lock Requests.]%
+  Use of semaphores or counters to handle multiple concurrent lock requests
+  has been rejected, because it is possible and safe to do without. Internal
+  locks are refreshed at every simulated clock cycle, so there is no need to
+  count the number of concurrent lock requests (see
+  Section~\ref{ssec:multi-locks}. External locks are handled basically as
+  signals coming from a line, therefore potential lock request generators
+  are responsible for avoiding concurrent lock requests (see pending issue
+  in Section~\ref{ch:pending:exo-locks}.
+
+\item[18.11.2004 --- MOM Inheritance or Composition for MSM.]%
+  MSM objects do not duplicate data that is already stored in the
+  corresponding MOM (sub)component. Either MSM objects are inherited from
+  the corresponding MOM objects, or MOM components could be members of
+  corresponding state objects. Inheritance is more logical and cleaner, as
+  it avoids delegation methods for each MOM attribute that is available in
+  MSM objects.
+
+  Both inheritance and composition have been rejected because they build
+  into MSM a strong dependence to MOM. The chosen design allows for MSM
+  object hierarchies completely independent from MOM.
+
+\item[07.12.2004 --- MSM Builder Owning Constructed MachineState.]%
+  The \emph{MachineStateBuilder} returns just a reference to the constructed
+  \emph{MachineState} object. This implies that the builder must be the
+  owner and responsible of destruction of the object. This creates potential
+  for hard-to-find memory bugs:
+  \begin{enumerate}
+  \item %
+    Creates a distinction between \emph{MachineState} instances created by
+    builder (and owned by it) and other instances (created, for example, by
+    copy method or by opposite of serialisation). Some must be deleted by
+    clients, some by builder.
+  \item %
+    Builder cannot be destroyed until the \emph{MachineState} object it
+    created is destroyed. It must be kept alive for no other good reason.
+  \item %
+    Clients must create one builder for every machine state object they need
+    to create from a \emph{Machine}. This is cumbersome.
+  \end{enumerate}
+
+\item[31.12.2004 --- Optimised implementation of \emph{ExecutableMove}]%
+  Redefine \emph{ExecutableMove} as a class hierarchy in which each concrete
+  subclass accesses only concrete class types instead of the interfaces
+  \emph{ReadableState} and \emph{WritableState}. This implementation avoid a
+  chain of virtual calls: for example, one in \verb|executeRead()| and one
+  in \verb|value()| of \emph{ReadableState}.
+
+  Rejected because the alternative (\emph{ExecutableMove} without virtual
+  methods, model every source and destination as \emph{ReadableState} and
+  \emph{WritableState}, respectively) also avoids one of the two virtual
+  calls and seems more regular.
+
+\item[12.01.2005 --- MSM State Object Locator]%
+  \emph{MachineStateBuilder} can return a copy of the state locator used
+  during construction of machine state to any client.  A possible method to
+  provide public state locators outside state builder:
+  \begin{description}
+  \item[locator(state : const MachineState\&) : StateLocator] %
+  \end{description}
+
+  Returning a state locator by means of an independent method has several
+  technical problems.
+
+  One possible way to create new copies of a locator with an alternative
+  target \emph{MachineState} instance is a \emph{MachineStateBuilder}
+  method:
+  \begin{description}
+  \item[copyLocator(state : const MachineState\&) : StateLocator\&]
+  \end{description}
+\end{description}
+
+\chapter{IDEAS FOR FURTHER DEVELOPMENT}
+
+% Ideas that are not part of the design yet but that might be added in the
+% future are listed here. This is to have ideas written down somewhere.
+% This list should contain the date of addition, the idea described briefly
+% and the inventor of the idea.
+\begin{description}
+
+\item[22.11.2004 --- Support for segmented busses.]%
+  Segments are modeled as several concurrent moves assigned to the same bus.
+  TPEF provides base support for segmented busses, it simply accepts several
+  moves assigned to the same bus in a single TTA instruction.
+%
+  One possible solution is to refer in MSM to ``virtual busses'' that are
+  generated for each segment.  --- P. Jääskeläinen.
+
+  Another solution, closer to the machine structure, is to implement bus
+  state as a fixed-length list of \emph{SimValue} objects. Each list element
+  corresponds to a segment. --- A. Cilio
+
+\item[14.12.2004 --- Table of syscall names in trace database.]%
+  The name of the system calls could be stored in a separate table of the
+  trace database. It is questionable, however, the status if this name
+  information. The system call number is what matters, and different syscall
+  emulators could all produce correct results in response to the same
+  syscall number. The name attached to such syscall is irrelevant and
+  perhaps should be queried directly to the emulation system (or the
+  simulator). Alternatively, the name of the syscall could be stored in
+  TPEF.  --- A. Cilio
+
+\item[13.01.2005 --- Implementation of break points.]%
+  Currently break points will be implemented using the event handler
+  mechanism. Break points watch program counter changes, and when it changes
+  to the address the breakpoint is set to, simulation is stopped. It's a
+  quite inefficient way to implement break points.
+
+  Maybe in a future version we could mimic one usual way to implement
+  break points in native environments: instruction injection. We "inject" an
+  instruction to the breakpoint address (a software interrupt call). The
+  handler executes the replaced instruction and stops simulation. This could
+  be implemented with a special \emph{ExecutableInstruction}, which contains
+  the replaced \emph{ExecutableInstruction}, and of which \emph{execute()}
+  does what I described in the previous sentences. --- P. Jääskeläinen
+
+\end{description}
+
+
+\chapter{PENDING ISSUES}
+
+\section{Relation between Requests and Late Results}
+\label{ch:pending:request-result}
+
+Problem: how to tell apart late-coming results from different requests? For
+example, how to tell what was the access request of a late-coming result
+from memory?
+
+In the case of memory, one of the complicating factors is the (important)
+requirement that the results delivered by memory do not need to be in the
+same order of the read access requests.  The only exception is for access
+requests to the same address, which are satisfied in order.
+
+The problem seems solvable for all but one case.  Solvable cases are:
+\begin{enumerate}
+\item \label{item:many-addr}%
+  When different requests have different addresses, the distinction should
+  be trivial, since reading late results requires to specify the address of
+  the result.
+\item \label{item:one-addr}%
+  When different requests have the same target address and are sent in
+  different cycles, the earliest request is satisfied first, and so on until
+  the last access request to the address.
+\end{enumerate}
+
+Case (\ref{item:many-addr}) still leaves the problem of where to keep the
+address that needs to be passed when the client (OSAL) tests memory for
+late-coming results.  The address is not passed by OSAL client via the OSAL
+API \verb|lateResult()|.  It could be stored in the object state instance,
+but then load operation behavior model becomes significantly less
+efficient, and the burden on the operation designer is greater.  Moreover,
+having a model with state may imply less efficient code optimization and
+scheduling.
+
+Case (\ref{item:one-addr}) is even more problematic, because the memory does
+not allow, with its current interface, to tell which was the request of the
+current late result that it returns.  On the other hand, the clients of OSAL
+that generate such memory requests should be independent from each other.
+
+These problems are treated in greater detail in the Memory Model Module
+Design Notes~\cite{MemoryModuleDesign}.
+
+Another difficult case is when different function units send a read access
+request to the \emph{same} address in the \emph{same} cycle.  Possible
+solutions:
+\begin{enumerate}
+\item \label{item:strict-order} %
+  The client must perform test for late coming results exactly in the same
+  order of the memory requests that were sent in the same clock cycle.
+\item \label{item:all-or-none}%
+  The order of test for late coming results from requests that were sent in
+  the same clock cycle can be relaxed, on condition that the memory module
+  returns a valid result for all read access requests to the same address
+  that were sent.
+\end{enumerate}
+
+Case (\ref{item:strict-order}) still leaves the same problem described above
+for access requests to the same address in different cycles.
+
+The condition stated in case (\ref{item:all-or-none}) is further explained
+in the Memory Model Module Design Notes.
+
+
+\section{Implementation of Instruction Simulation}
+\label{ch:pending:core-control}
+
+The key responsibility of Simulation Controller is to interpret TTA
+instructions, that is, to simulate fetch-decode-execution.
+
+The most complex part is the execution simulation.  A possible
+implementation is described below.
+%
+\note{Most probably something different (even radically different) will be
+implemented, and this should be moved to rejected alternatives.}
+
+\paragraph{Overview.}
+The execution function receives the fetched TTA instruction to be simulated.
+Decoding is actually performed during execution, and really consists of
+looking up the objects referred to by the fields of the moves contained in
+the instruction.  Simulation of a cycle is split in two phases, transport
+simulation and clock advancing:
+\begin{verbatim}
+execute(instruction);
+nextClock();
+\end{verbatim}
+
+In turn, transport simulation (execution proper) is split in two phases:
+\begin{verbatim}
+moveOnBus(instruction);
+moveToDestination(instruction);
+\end{verbatim}
+
+The first phase copies data from the sources specified by the moves of the
+given \emph{instruction} into the busses (that is, updates the BusState
+objects).
+
+The second phase copies the values loaded on the busses into the
+destinations.  When the destination is a triggering port of a function unit,
+a new operation is simulated inside the \emph{FUState} object corresponding
+to the function unit.
+
+The machine state objects are stored in a data member of the SimCon class.
+
+The following paragraphs describe each phase in detail.
+
+\paragraph{Reading source values into busses.}
+%
+\begin{verbatim}
+for each move m do
+    if m.isImmediate() then
+        result = m.srcValue()
+    else
+        SUnit = m.srcUnit()
+        SUnit.readPort(m, result)
+        if SUnit.isLocking() then
+            globalLock = true
+            pendingSourceTransports.insert(m)
+        endif
+    endif
+    get busState, the state object of m.bus()
+    busState.setValue(result)
+end foreach
+\end{verbatim}
+
+\paragraph{Writing bus values into destinations.}
+%
+\begin{verbatim}
+for each move m do
+    get busState, the state object of m.bus()
+    result = busState.value()
+    destUnit = m.destUnit()
+    // operation execution is triggered inside destUnit
+    destUnit.writePort(m, result)
+    if destUnit.isLocking() then
+        globalLock = true
+        pendingDestinationTransports.insert(m)
+    endif
+end foreach
+\end{verbatim}
+
+\paragraph{Clock advancing.}
+%
+\begin{verbatim}
+for each function unit u do
+    u.advanceClock(globalLock)
+end foreach
+\end{verbatim}
+
+When clock advances, all function units are notified that a clock cycle is
+completed.
+
+When the processor is locked, the function units are informed that a clock
+cycle has elapsed, but that no pipeline advancing must take place.  Units
+that contain operations with simple, deterministic model, in this case,
+return immediately.  If a unit contain any operations with complex model, it
+should call the late-coming result method of such operations and update the
+results stored in its pipeline model.  This is the only way to ensure that,
+even when the processor is locked, results coming from an external module
+are not lost.
+
+\paragraph{Handling global locks.}
+The splitting of transport simulation in two phases is probably needed for
+cycle-accurate simulation.  It seems reasonable that at least some system
+models will require that all read-locks of a TTA processor are resolved
+before any write-lock can occur.
+
+The code of the two execution phases (as well as the fetching of a new
+instruction) is not run at all if the processor is locked:
+\begin{verbatim}
+if globalLock == true then
+    waitForPendingTransports(instruction, globalLock)
+else
+    execute(instruction);
+endif
+\end{verbatim}
+
+\paragraph{Interface details.}
+The details of these interfaces may change.  For example, the way a state
+object of a processor component is looked up given a move that uses that
+component, is not indicated in the pseudocode above.  There are two main
+possibilities.  If \emph{instruction} is the ``plain'' object of the Program
+Object Model, then its references to Machine Object Model components must be
+used as keys to lookup the corresponding state object in MSM:
+\begin{verbatim}
+// looks up bus state in msm_ private member of SimCon
+BusState& bState = lookup(instruction->bus());
+\end{verbatim}
+
+Alternatively, if \emph{instruction} belongs to a Simulator-specific object
+model of the program, then the component state lookup could be as simple as
+a pointer indirection:
+\begin{verbatim}
+BusState& bState = instruction->busState();
+\end{verbatim}
+
+
+\section{Code Duplication in Tracked Memory Proxies}
+\label{ch:pending:proxy-code-dupl}
+
+It is possible that certain Proxy implementations (such as the
+\emph{TrackedMemory} contain some amount of code duplication with respect to
+the class they are clients of.
+
+\section{Processor State on Lock Condition}
+\label{ch:pending:locks}
+
+Lock-inducing transports ``split'' the state of the processor in two:
+\begin{enumerate}
+\item %
+  If the lock occurs while reading the transport source, all data transports
+  simulated before the lock-inducing transport have their source value
+  already copied onto the transport bus.  All data transports after the
+  lock-inducing transport are not yet executed.
+\item %
+  If the lock occurs while writing the transport destination, all data
+  transports simulated before the lock-inducing transport are completed.
+  The data transports after the lock-inducing transport have only their
+  source value copied onto the transport bus.
+\end{enumerate}
+
+The main nuisance of this implementation is that the Simulator Controller
+must know which transports must be completed when the lock is deactivated.
+This means that a set of pending transports must be maintained.  There are
+several variations to this approach.  A possible variant is that upon
+triggering a lock condition, the Simulator Controller completes all
+remaining data transports before actually entering the locked state.  This
+approach minimises the number of pending transports, but does not guarantee
+that there is only one pending transport, because several operations may
+lock the processor simultaneously.
+
+\section{External Locks}
+\label{ch:pending:exo-locks}
+
+Can external locks be generated via the same Simulator Controller interface
+used by clients that generate internal locks (mostly, MSM) or should they
+use a different interface? If external locks use the same interface, then
+this can only work if:
+\begin{enumerate}
+\item%
+  External modules always test whether the processor is already in a locked
+  state before rising the lock signal themselves.
+\item%
+  External modules don't rise the lock signal until the processor is in
+  unlocked state.
+\item%
+  Once active, the lock remains active until the source of the lock request
+  lowers the signal. The source of the lock doesn't need to repeat the
+  request at every clock cycle (as it is for the internal locks).
+\end{enumerate}
+
+A sequence of lock-unlock-lock requests might be the following:
+
+\begin{tabular}[h]{|r|p{0.85\textwidth}|}
+\hline
+ cycle &   event  \\
+\hline
+  0    &  \textbf{step()} \\
+\hline
+  1    &  \textbf{lock()}: lock request from an internal source (for
+          example, a load-store unit) \\
+  1    &  \textbf{step()} \\
+\hline
+  2    &  an external source wants to request a lock but sees that the
+          processor is already locked, and waits \\
+  2    &  \textbf{step()} \\
+\hline
+  3    &  the lock condition of the internal source expires (for example,
+          because the result waited for has arrived from an external
+          module) \\
+  3    &  \textbf{unlock()}: the internal source unlocks the processor \\
+  3    &  the external source is notified that the signal at the lock port
+          of the core processor has changed \\
+  3    &  \textbf{lock()}: the external source sees that the processor is
+          not locked, and sends a lock request to it \\
+\hline
+  4    &  \textbf{step()}: for any other potential source of locks
+          (internal or external), it appears as if the processor had been
+          locked all the time \\
+\hline
+\end{tabular}
+
+Races can occur if multiple lock requests from different external modules
+arrive at the same cycle. One one of the should be allowed to rise the
+signal, and the others should wait. [[This part needs to be clarified!]]
+
+\section{Multicast}
+\label{ch:pending:multicast}
+
+Currently, support for moves that multi-cast their data in not fully worked
+out. In TPEF~\cite{TPEF-specs}, multicast should be easy to add.
+
+In simulator design support for multicasts could require a new composite
+type of writable state object. This means that a single \emph{WritableState}
+of an \emph{ExecutableMove} instance actually contains a set of
+destinations, each modelled by a separate instance of \emph{WritableState}.
+
+\section{Implementation of Unbounded RF State}
+\label{ch:pending:unbounded-rf}
+
+For realistic uses of a pool of program variables or virtual registers, it
+is reasonable to assume that when a register at index \emph{i} is used in
+the program most registers at lower index numbers are also used.
+
+Thus, a possible optimisation for realistic uses of unbounded RF is to
+create all registers between requested index and previous maximum index
+whenever a register at a new highest index is requested.
+
+A related, realistic optimisation is to actually create a minimum set of
+registers at construction time.
+
+\section{Caching Binding Data of OperationExecutor}
+\label{ch:pending:binding-cache}
+
+To speedup normal binding operation, references to port state objects could
+be looked up once at the time an operation executor is added to the
+\emph{FUState}. Alternatively, references to the \emph{FUPortState} objects
+could be found and cached only the first time the port is looked up.
+
+
+\chapter{MAINTENANCE}
+
+% This chapter treats the problem of extending the design with new
+% capabilities that fit in a predefined framework.
+
+% Remove this chapter no obvious and standardised way to extend the design
+% with new capabilities exists.
+
+
+% ------------------------------------------------------------------------
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+%% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

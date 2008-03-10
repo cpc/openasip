@@ -1,0 +1,5 @@
+mach data/bus_wider_than_port.adf
+prog data/bus_wider_than_port.tpef
+stepi 6
+info ports LSU P2
+quit

@@ -1,0 +1,457 @@
+/**
+ * @file Machine.icc
+ *
+ * Inline implementation of Machine class.
+ *
+ * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @note reviewed 16 Jun 2004 by ml, tr, jm, ll
+ * @note rating: red
+ */
+
+#include "Application.hh"
+#include "Socket.hh"
+#include "AddressSpace.hh"
+#include "Bus.hh"
+#include "FunctionUnit.hh"
+#include "Bridge.hh"
+#include "ImmediateUnit.hh"
+#include "InstructionTemplate.hh"
+#include "RegisterFile.hh"
+#include "ImmediateSlot.hh"
+#include "ContainerTools.hh"
+
+namespace TTAMachine {
+
+/**
+ * Template method which adds the given component to machine into the given
+ * container.
+ *
+ * This method is used for components that can be independently without
+ * machine.
+ *
+ * @param container The container of the machine to which the component is
+ *                  inserted.
+ * @param toAdd The component to add.
+ * @exception ComponentAlreadyExists If there is already another component
+ *                                   by the same name in the container.
+ */
+template <typename ContainerType, typename ComponentType>
+void
+Machine::addComponent(ContainerType& container, ComponentType& toAdd)
+    throw (ComponentAlreadyExists) {
+
+    if (container.item(toAdd.name()) != NULL) {
+        const std::string procName = "Machine::addComponent";
+        throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
+    }
+
+    if (toAdd.machine() == NULL) {
+        toAdd.setMachine(*this);
+    } else {
+        container.addComponent(&toAdd);
+    }
+}
+
+
+/**
+ * Template method which adds the given component to machine into the given
+ * container.
+ *
+ * This method is used for components that cannot be independently without
+ * machine.
+ *
+ * @param container The container of the machine to which the component is
+ *                  inserted.
+ * @param toAdd The component to add.
+ * @exception ComponentAlreadyExists If there is already another component
+ *                                   by the same name in the container.
+ */
+template <typename ContainerType, typename ComponentType>
+void
+Machine::addRegisteredComponent(
+    ContainerType& container,
+    ComponentType& toAdd)
+    throw (ComponentAlreadyExists) {
+
+    if (container.item(toAdd.name()) != NULL) {
+        const std::string procName = "Machine::addRegisteredComponent";
+        throw ComponentAlreadyExists(__FILE__, __LINE__, procName);
+    }
+
+    // run time check to verify that this is called from the constructor
+    // of the component only
+    assert(toAdd.machine() == NULL);
+    container.addComponent(&toAdd);
+}
+
+
+/**
+ * Template method which removes the given component from machine from the
+ * given container.
+ *
+ * @param container The container of the machine from which the component is
+ *                  removed
+ * @param toRemove The component to remove.
+ * @exception InstanceNotFound If the given component does not exist in the
+ *                             given container.
+ */
+template <typename ContainerType, typename ComponentType>
+void
+Machine::removeComponent(
+    ContainerType& container,
+    ComponentType& toRemove)
+    throw (InstanceNotFound) {
+
+    if (container.item(toRemove.name()) != &toRemove) {
+        std::string procName = "Machine::removeComponent";
+        throw InstanceNotFound(__FILE__, __LINE__, procName);
+    }
+
+    if (toRemove.machine() == NULL) {
+        container.removeComponent(&toRemove);
+    } else {
+        toRemove.unsetMachine();
+    }
+}
+
+
+/**
+ * Template method which deletes the given component from machine from the
+ * given container.
+ *
+ * @param container The container of the machine from which the component is
+ *                  deleted
+ * @param toDelete The component to deleted.
+ * @exception InstanceNotFound If the given component does not exist in the
+ *                             given container.
+ */
+template <typename ContainerType, typename ComponentType>
+void Machine::deleteComponent(
+    ContainerType& container,
+    ComponentType& toDelete)
+    throw (InstanceNotFound) {
+
+    std::string componentName = toDelete.name();
+    if (container.item(componentName) != &toDelete) {
+        std::string procName = "Machine::deleteComponent";
+        throw InstanceNotFound(__FILE__, __LINE__, procName);
+    }
+
+    if (toDelete.machine() == NULL) {
+        container.removeComponent(&toDelete);
+    } else {
+        delete &toDelete;
+    }
+}
+
+
+/**
+ * Saves the state of each component in the given container and add the
+ * created ObjectStates as children of the given parent ObjectState.
+ *
+ * @param container The container.
+ * @param parent The parent ObjectState.
+ */
+template <typename ContainerType>
+void
+Machine::saveComponentStates(ContainerType& container, ObjectState* parent) {
+    for (int i = 0; i < container.count(); i++) {
+        Serializable* component = container.item(i);
+        parent->addChild(component->saveState());
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Machine::Navigator
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Constructor.
+ *
+ * @param container The container which the navigator handles.
+ */
+template <typename ComponentType>
+Machine::Navigator<ComponentType>::Navigator(
+    const Machine::ComponentContainer<ComponentType>& container) :
+    container_(&container) {
+}
+
+
+/**
+ * Destructor.
+ */
+template <typename ComponentType>
+Machine::Navigator<ComponentType>::~Navigator() {
+}
+
+
+/**
+ * Copy constructor.
+ *
+ * @param old The old Navigator from which a copy is taken.
+ */
+template <typename ComponentType>
+Machine::Navigator<ComponentType>::Navigator(const Navigator& old) :
+    container_(old.container_) {
+}
+
+
+/**
+ * Assignment operator.
+ *
+ * @param old The Navigator which is assigned to this Navigator.
+ * @return Reference to this navigator.
+ */
+template <typename ComponentType>
+Machine::Navigator<ComponentType>&
+Machine::Navigator<ComponentType>::operator=(const Navigator& old) {
+    if (this != &old) {
+        container_ = old.container_;
+    }
+    return *this;
+}
+
+
+/**
+ * Returns an item with the given index in the container.
+ *
+ * @param index The index of the returned item.
+ * @return An item with the given index in the container.
+ * @exception OutOfRange If the given index is less than 0 or greater or
+ *                       equal to the number of items in the navigator.
+ */
+template <typename ComponentType>
+ComponentType*
+Machine::Navigator<ComponentType>::item(int index) const
+    throw (OutOfRange) {
+
+    if (index < 0 || index >= count()) {
+        const std::string procName = "Machine::Navigator::item";
+        throw OutOfRange(__FILE__, __LINE__, procName);
+    }
+    return container_->item(index);
+}
+
+
+/**
+ * Returns an item with the given name.
+ *
+ * @param name The name of the returned item.
+ * @return An item with the given name.
+ * @exception InstanceNotFound If an item is not found by the given name.
+ */
+template <typename ComponentType>
+ComponentType*
+Machine::Navigator<ComponentType>::item(const std::string& name) const
+    throw (InstanceNotFound) {
+
+    ComponentType* component = container_->item(name);
+    if (component != NULL) {
+        return component;
+    } else {
+        std::string procName = "Machine::Navigator<ComponentType>::item";
+        throw InstanceNotFound(__FILE__, __LINE__, procName);
+    }
+}
+
+
+/**
+ * Returns true if a component with the given name is found,
+ * otherwise false.
+ *
+ * @param name Name of the component.
+ * @return True if a component with the given name is found.
+ */
+template <typename ComponentType>
+bool
+Machine::Navigator<ComponentType>::hasItem(const std::string& name) const {
+    return (container_->item(name) != NULL);
+}
+
+
+/**
+ * Returns the item count in the container.
+ *
+ * @return Item count in the container.
+ */
+template <typename ComponentType>
+int
+Machine::Navigator<ComponentType>::count() const {
+    return container_->count();
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Machine::ComponentContainer
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Constructor.
+ */
+template <typename ComponentType>
+Machine::ComponentContainer<ComponentType>::ComponentContainer() {
+}
+
+
+/**
+ * Destructor.
+ */
+template <typename ComponentType>
+Machine::ComponentContainer<ComponentType>::~ComponentContainer() {
+    deleteAll();
+}
+
+
+/**
+ * Adds component into the container.
+ *
+ * @param component Component to be added.
+ */
+template <typename ComponentType>
+void
+Machine::ComponentContainer<ComponentType>::addComponent(
+    ComponentType* component) {
+
+    components_.push_back(component);
+}
+
+
+/**
+ * Removes component from the container.
+ *
+ * @param component Component to be removed.
+ */
+template <typename ComponentType>
+void
+Machine::ComponentContainer<ComponentType>::removeComponent(
+    ComponentType* component) {
+
+    typename ComponentTable::iterator iter = components_.begin();
+    while (iter != components_.end()) {
+        if (*iter == component) {
+            components_.erase(iter);
+            return;
+        }
+        iter++;
+    }
+
+    assert(false);
+}
+
+
+/**
+ * Deletes all the components in the container.
+ *
+ * Calls each component's destructor.
+ */
+template <typename ComponentType>
+void
+Machine::ComponentContainer<ComponentType>::deleteAll() {
+    // vector size is reduced when the code in component's destructor is
+    // executed
+    while (count() > 0) {
+        delete components_[0];
+    }
+}
+
+
+/**
+ * Searches component from the container by name.
+ *
+ * Returns null pointer if the requested component was not found.
+ *
+ * @param name Name of the component.
+ * @return Component with the given name.
+ */
+template <typename ComponentType>
+ComponentType*
+Machine::ComponentContainer<ComponentType>::item(
+    const std::string& name) const {
+
+    typename ComponentTable::const_iterator iter = components_.begin();
+    while (iter != components_.end()) {
+        if ((*iter)->name() == name) {
+            return *iter;
+        }
+        iter++;
+    }
+    return NULL;
+}
+
+
+/**
+ * Searches component from the container by index.
+ *
+ * Returns null pointer if the requested component was not found.
+ *
+ * @param index Index of the component in the container.
+ * @return Component with the given index.
+ */
+template <typename ComponentType>
+ComponentType*
+Machine::ComponentContainer<ComponentType>::item(int index) const {
+
+    if (static_cast<size_t>(index) >= components_.size() || index < 0) {
+        return NULL;
+    } else {
+        return components_[index];
+    }
+}
+
+
+/**
+ * Returns the number of components in the container.
+ *
+ * @return Number of components in the container.
+ */
+template <typename ComponentType>
+int
+Machine::ComponentContainer<ComponentType>::count() const {
+    return components_.size();
+}
+
+
+/**
+ * Moves the given component to the given position in the container.
+ *
+ * @param component The component to be moved.
+ * @param position The new position.
+ * @exception InstanceNotFound If the given component does not exist in the 
+ *                             container.
+ * @exception OutOfRange If the given position is less than 0 or not smaller
+ *                       than the number of components in the container.
+ */
+template <typename ComponentType>
+void
+Machine::ComponentContainer<ComponentType>::moveToPosition(
+    const ComponentType* component,
+    int position)
+    throw (InstanceNotFound, OutOfRange) {
+
+    const std::string procName = 
+        "Machine::ComponentContainer::moveToPosition";
+
+    if (!ContainerTools::containsValue(components_, component)) {
+        throw InstanceNotFound(__FILE__, __LINE__, procName);
+    }
+    if (position < 0 || 
+        static_cast<size_t>(position) >= components_.size()) {
+        throw OutOfRange(__FILE__, __LINE__, procName);
+    }
+
+    // remove the component from the container
+    for (typename ComponentTable::iterator iter = components_.begin(); 
+         iter != components_.end(); iter++) {
+        if (*iter == component) {
+            components_.erase(iter);
+            break;
+        }
+    }
+        
+    // add the component again to the correct place
+    typename ComponentTable::iterator addIter = components_.begin();
+    addIter += position;
+    components_.insert(addIter, const_cast<ComponentType*>(component));
+}
+}

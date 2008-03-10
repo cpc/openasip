@@ -1,0 +1,23 @@
+/**
+ * @file Chunk.icc
+ *
+ * Inline definitions of Chunk class.
+ *
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Returns offset to data where chunk is pointing.
+ *
+ * @return Offset to data where chunk is pointing.
+ */
+inline SectionOffset
+Chunk::offset() const {
+    return offset_;
+}
+
+}

@@ -1,0 +1,77 @@
+/**
+ * @file CmdLineParser.icc
+ *
+ * Definitions of inline methods for CmdLineParser class.
+ *
+ * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
+ * @author Jari Mäntyneva 2006 (jari.mantyneva@tut.fi)
+ * @note reviewed 3 December 2003 by jn, kl, ao
+ * @note rating: green
+ */
+
+/**
+ * Add a new option to option data base.
+ *
+ * Option name must differ from any prefix.
+ *
+ * @param opt The option to be added.
+ */
+inline void
+CmdLineParser::addOption(CmdLineOptionParser* opt) {
+
+    assert(!isPrefix(opt->longName()));
+
+    optionLongNames_.insert(valType(opt->longName(), opt));
+
+    // if option has shorter alias, also it is added
+    if (opt->shortName() != "") {
+        optionShortNames_.insert(valType(opt->shortName(), opt));
+    }
+}
+
+/**
+ * Returns the number of command line arguments.
+ *
+ * @return The number of command line arguments.
+ */
+inline int
+CmdLineParser::numberOfArguments() const {
+    return arguments_.size();
+}
+
+/**
+ * Returns a particular command line argument.
+ *
+ * @param index The index of wanted command line argument.
+ * @return The particular command line argument.
+ * @exception OutOfRange Throws if argument index is out of range.
+ */
+inline std::string
+CmdLineParser::argument(int index) const
+    throw (OutOfRange) {
+
+    if (index < 1 || (unsigned)index > arguments_.size()) {
+        std::string message = "Argument index out of range.";
+        throw OutOfRange(__FILE__, __LINE__, __func__, message);
+    } else {
+        return arguments_[index - 1];
+    }
+}
+
+/**
+ * Checks whether a particular string is a prefix.
+ *
+ * @param name The name to be checked.
+ * @return True if string to be checked is a prefix.
+ */
+inline bool
+CmdLineParser::isPrefix(std::string name) const {
+    for (unsigned int i = 0; i < prefixes_.size(); i++) {
+        if (prefixes_[i] == name) {
+            return true;
+        }
+    }
+    return false;
+}
+
+

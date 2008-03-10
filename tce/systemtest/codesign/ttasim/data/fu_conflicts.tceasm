@@ -1,0 +1,11 @@
+################################################################
+# Simple test program that produces a FU resource conflict.
+# Should be executed with machine_for_resource_conflict_test.adf
+################################################################
+	
+CODE ; 
+
+    1 -> complex.P2.addf;
+    1 -> complex.P2.addf; # Should conflict.
+    1 -> complex.P2.divf; # Should not get here.
+

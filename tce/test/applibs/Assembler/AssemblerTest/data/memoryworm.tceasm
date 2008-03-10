@@ -1,0 +1,135 @@
+##########################################################
+#
+# TTA paraller assembler test file.
+#
+# Brainless worm tries to find way out
+# from the room without exit.
+#
+# ADD function unit is normal 5bit adder that is used as 
+#     counter to keep track which should be the next
+#     direction where to worm will try to go.
+#
+# ALU function unit is used for address calculating
+#     when necessary.
+#
+##########################################################
+
+CODE ; 
+    
+:global main;
+:global loopforever ;
+:global trynextdirection;
+    
+:procedure main;
+main:
+	# initial worm position		
+    map+18 -> RF.0, map+19 -> RF.1 [IMM.0=1] {0x1 4:1} {0x3} [ IMM1.0 = map+20 ] ; 
+    IMM1.0 -> RF.2, map+21 -> RF.3 ;
+    
+loopforever:
+    # write 0x00 to ass piece of worm
+    RF.0 -> LSU.stq.1 {0x0011 2:trynextdirection 5:13}, 0 -> LSU.stq.2 ;
+    
+    # find next direction to move 
+    
+    # test if next direction in try sequence is ok
+    trysequence -> ALU.P1{0x4 -1},       # fu.port and fu.port.opcode syntax tests
+    ADD.P3      -> ALU.P2.add{0x5 4:-1};   # calculate address where next direction can be read
+	
+    ALU.add.3   -> LSU.ldq.1{0x6 5:-65536}, # ldq.2 got offset to next position in map where we go
+	RF.3 -> ALU.add.1{0x7 5:-65537} ;	    # worm head position address to adder
+    
+	LSU.ldq.2 -> ALU.add.2, ... ; # calculate next address to map (read as signed to adder)
+    
+trynextdirection: 
+    ALU.add.3 -> LSU.ldq.1, ... ; # get piece of map
+    
+    ? LSU.ldq.2 trynextdirection -> GCU.jump.1,  # jump to try next direction if there was not floor(0x00) in map 
+	? LSU.ldq.2 1 -> ADD.add.2 ;                 # increment direction test counter
+    
+	? LSU.ldq.2 trysequence -> ALU.add.1,    
+	? LSU.ldq.2 ADD.add.3   -> ALU.add.2 ;   # calculate address where next direction can be read 
+	
+	? LSU.ldq.2 ALU.add.3 -> LSU.ldq.1,      # ldq.2 got offset to next position in map where we try to go
+ 	? LSU.ldq.2 RF.3 -> ALU.add.1 ;	         # worm head address 
+    
+	? LSU.ldq.2 LSU.ldq.2 -> ALU.add.2,  # get next piece of map
+	? LSU.ldq.2 ADD.add.3 -> ADD.add.1 ; # calculate next address to map
+    
+	# we found good direction for next move, map position where to go is now stored in ALU.add.3
+	
+	# move worm and jump back to start 
+	loopforever -> GCU.jump.1, ... ;       # jump to start
+	RF.1 -> RF.0, RF.2 -> RF.1 ;	       # move body
+	RF.3 -> RF.2, ALU.add.3 -> RF.3 ;      # move body
+	RF.3 -> LSU.stq.1, 0x88 -> LSU.stq.2 ; # write 0x88 to new head piece of worm
+    
+	# some empty instruction just for testing
+	. . . ; 
+	. . . ; 
+	. . . ; 
+	. . . ;
+	
+DATA datamemory ;
+    
+:global trysequence ;	
+:global map;
+:global datatocodereloc;
+:global datatodatareloc;
+	
+trysequence: 
+    DA 32 
+    -1   1 -16  16   1 -16   1  16 -16   1  -1   1  16  -1  16   1 
+	-16  1  -1  16  -1   1 -16  -1  16   1  16 -16  -1  1  -16  16 ; 
+    
+map: DA 256
+	 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+	 -1 00 00 00 -1 00 00 00 00 00 00 00 00 00 00 -1
+	 -1 00 00 00 00 00 00 00 00 00 00 00 00 00 00 -1
+	 -1 00 00 -1 -1 -1 -1 -1 -1 -1 00 -1 -1 -1 00 -1
+	 -1 -1 00 00 -1 00 00 -1 00 00 00 00 00 00 00 -1
+	 -1 00 00 00 -1 00 00 -1 00 00 00 -1 -1 00 -1 -1
+	 -1 00 00 00 -1 00 00 -1 00 00 00 00 00 00 00 -1
+	 -1 00 00 00 -1 00 00 -1 -1 -1 00 -1 -1 -1 00 -1
+	 -1 -1 00 00 00 00 00 -1 00 00 00 00 00 00 00 -1
+	 -1 -1 00 00 00 00 00 00 00 00 00 00 00 00 00 -1
+	 -1 00 00 -1 00 00 00 -1 -1 00 -1 -1 -1 00 00 -1
+	 -1 00 -1 -1 -1 00 00 -1 -1 00 00 00 -1 00 -1 -1
+	 -1 00 00 -1 00 00 00 00 00 00 -1 00 00 00 -1 -1
+	 -1 00 00 00 00 00 00 00 00 -1 -1 -1 00 00 00 -1
+	 -1 00 00 00 00 00 -1 00 00 00 00 00 00 00 00 -1
+	 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 ; 
+     
+datatocodereloc:
+	DA 4 4:main ; 
+    
+datatodatareloc:
+	DA 4 4:map ;
+    
+# using different sizes for relocation elements 32 bits is maximum for now 
+differentsizerelocs:     
+    DA 15 4:loopforever
+          3:trynextdirection # was written OK in tpef 
+          2:map  	
+          1:loopforever ;
+          
+    # test to create 3 more data sections
+	DA 10 ;
+	DA 10 ;
+    
+	DA 4 4:31173 ;
+    DA 4 4:1337 ; 
+    DA 32 ; 
+
+# test string literals
+DATA datamemory 371 ;
+#	DA 33 "yes, the par\ser seems to \"work\"." 0x0;
+
+DATA datamemory 371 ;
+#invalid-blabel:
+data_label: 
+    DA 4 ;
+    
+DATA datamemory 400;
+data_label2: 
+    DA 8;

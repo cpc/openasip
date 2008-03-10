@@ -1,0 +1,2631 @@
+\documentclass[a4paper,twoside]{tce}
+
+\usepackage{pslatex}
+
+\begin{document}
+\author{Ari Mets‰halme, Andrea Cilio, VladimÌr Guzma}
+\title{TTA Instruction Scheduler}
+\ver{0.18.1}
+\firstday{03.09.2004}
+\lastday{09.03.2006}
+% id number in S- sequence
+\docnum{015}
+% draft/complete/committed
+\state{draft}
+\maketitle
+
+% highlighted style for parameters/variables or otherwise non-fixed parts
+% of a command syntax or of lines of text displayed by the application
+\newcommand{\parm}[1]{\textsl{#1\/}}
+
+
+\chapter*{Version History}
+
+\begin{HistoryTable}
+
+ 0.1    & 03.09.2004 & A. Mets‰halme &
+ Initial draft.\\
+ 0.2    & 08.09.2004 & A. Mets‰halme &
+ Wrote Chapters 1 and 2.\\
+ 0.2.1  & 21.09.2004 & A. Mets‰halme &
+ Fixes to Chapters 1 and 2.\\
+ 0.2.2  & 15.10.2004 & V. Guzma &
+ First words in Chapter 4, Appendix B.\\
+ 0.2.3  & 17.10.2004 & A. Cilio &
+ Cosmetic changes.\\
+ 0.2.4  & 02.11.2004 & V. Guzma &
+ Fixed some of the issues pointed out by Andrea.\\
+ 0.2.5  & 04.11.2004 & A. Cilio &
+ Added pending issues: configuration file, compression. More corrections
+ after discussion with V.\ Guzma. \\
+ 0.2.6  & 05.11.2004 & V. Guzma &
+ Added information on SSA form. Corrections and comments.\\
+ 0.2.7  & 23.11.2004 & V. Guzma &
+ Configuration file now part of requirements. Various corrections.\\
+ 0.3    & 24.11.2004 & V. Guzma &
+ Added part of notes from last scheduler meetings: rejected ideas, required
+ features, pending issues.\\
+ 0.3.1  & 02.12.2004 & V. Guzma &
+ Added more pending issues. Rejected alignment. Added references.\\
+ 0.3.2  & 08.12.2004 & V. Guzma &
+ Moved trigger-on-result to required features. Added relative jump support.
+ Reorganised pending issues.\\
+ 0.3.3  & 05.01.2005 & V. Guzma &
+ Compression moved from pending issues to future research.\\
+ 0.3.4  & 10.01.2005 & V. Guzma &
+ Added use cases. Separated early from later requirements.\\
+ 0.3.5  & 27.01.2005 & V. Guzma &
+ Added details on configuration file and command line options.\\
+ 0.3.6  & 31.01.2005 & V. Guzma &
+ Changes according to comments from J.\ Takala. \\
+ 0.3.7  & 31.01.2005 & V. Guzma &
+ Resolved issue: interrupt support.\\
+ 0.3.8  & 31.01.2005 & A. Cilio &
+ Minor corrections throughout the document.\\
+ 0.3.9  & 03.02.2005 & V. Guzma &
+ Minor corrections. Added instruction replacement issue. Scheduler also as
+ a module of Explorer.\\
+ 0.3.10 & 03.02.2005 & A. Cilio &
+ Clarified compression-scheduling interaction.\\
+ 0.3.11 & 22.03.2005 & V. Guzma &
+ Added compulsory functionality to configuration file.\\
+ 0.4    & 26.06.2005 & A. Cilio &
+ Major update according to last discussions, 1--4. Rejected
+ compression-unaware scheduler and instruction encoding size. Many
+ corrections and extensions.\\
+ 0.5    & 28.06.2005 & A. Cilio &
+ Major update according to last discussions, 5--8. Added chapter ``Helper
+ Tools''. Revised configuration file. Solved instruction replacement
+ issue.\\
+ 0.6    & 04.07.2005 & A. Cilio &
+ Solved, corrected or extended various pending issues. Rejected script
+ language for configuration file.\\
+ 0.7    & 08.07.2005 & A. Cilio &
+ Extensive changes. Extended interrupt support. Added pending issues,
+ ``Usage'' section, log file and interactivity specifications.\\
+ 0.8    & 10.07.2005 & A. Cilio &
+ Added specification of configuration file format.\\
+ 0.8.1  & 12.07.2005 & A. Cilio &
+ Minor change to software pipelining appendix.\\
+ 0.8.2  & 19.07.2005 & A. Cilio &
+ Reorganisation of text (interactivity), corrections.\\
+ 0.9    & 20.07.2005 & A. Cilio &
+ Changed configuration file specification.\\
+ 0.10   & 21.07.2005 & A. Cilio &
+ Document reorganisation, moved material to other documents.\\
+ 0.10.1 & 01.08.2005 & A. Cilio &
+ Added few Scheduler options and default search paths.\\
+ 0.11   & 18.08.2005 & A. Cilio &
+ Rejected pass ordering constraints and ``minimal'' sequence of passes.
+ Spelling corrections.\\
+ 0.12   & 19.08.2005 & A. Cilio &
+ Added incomplete list of ``optimisations''. Added documentation chapter, 6.
+ Revised Chapters~1,2,3. Moved text to other documents.\\
+ 0.12.1 & 22.08.2005 & L. Laasonen &
+ Removed a paragraph from section 3.1.1.\\
+ 0.12.2 & 23.08.2005 & A. Cilio &
+ Added definition section, 1.2. Minor changes.\\
+ 0.13   & 27.09.2005 & A. Cilio &
+ Added a number of command line options.\\
+ 0.14   & 30.09.2005 & A. Cilio &
+ Added command line options and intermediate output files.\\
+ 0.15   & 05.10.2005 & A. Cilio &
+ Clarified module options and configuration file utilisation.\\
+ 0.15.1 & 10.10.2005 & V. Guzma &
+ Added SSA tracing points, comments on some pending issues. Spelling
+ corrections.\\
+ 0.15.2 & 10.10.2005 & A. Mets‰halme &
+ Added future extension: module-specific options in command line.\\
+ 0.15.3 & 10.10.2005 & A. Cilio &
+ Added logging levels. Other minor changes.\\
+ 0.16   & 19.10.2005 & A. Cilio &
+ Defined structure of log file.\\
+ 0.17   & 11.11.2005 & A. Cilio &
+ Added module file name in configuration file.\\
+ 0.17.1 & 14.11.2005 & A. Cilio &
+ Cleanup of configuration file description.\\
+ 0.18   & 15.11.2005 & A. Cilio &
+ Clarified: compare and auto-increment operations.\\
+ 0.18.1 & 09.03.2006 & A. Cilio &
+ Added necessary pass: node splitting.\\
+\end{HistoryTable}
+
+
+\tableofcontents
+
+
+
+\chapter{INTRODUCTION}
+
+\section{Purpose}
+
+This document describes the functional requirements of the TTA instruction
+scheduler of the TCE toolset, and gives an overview of the scheduler
+application.
+
+\section{Product Idea}
+
+The TTA instruction scheduler is a fundamental part of the TCE compiler
+backend. It reads unscheduled (or ``sequential'') TTA code, the description
+of the target architecture and possible support data (execution profile,
+access trace, etc.), and translates the sequential code to parallel TTA code
+for target architecture, exploiting available ILP as well as possible.
+
+The user of the scheduler is given full control of the scheduling process:
+he/she is able to plug in new scheduling algorithms and configure the type
+and
+number of pre- and post-scheduling code analysis and transformation phases.
+
+Scheduling can also be carried out in interactive mode, which can take
+several forms from step-by-step scheduling of each move to a minimal request
+for user interaction in case of difficult decisions.
+
+\section{Product Overview}
+
+The scheduler is the main step of the TCE backend compiler; transforms
+sequential code as produced by the TCE front-end
+compiler~\cite{TCE-frontend} into parallel and ``optimised'' TTA code.
+
+The scheduler is implemented as an application controlled via a command-line
+interface, and takes the following inputs:
+\begin{enumerate}
+\item%
+  Description of the target architecture.
+\item%
+  Target application as sequential, partially scheduled or fully scheduled
+  parallel TTA code.
+\item%
+  Auxiliary information, such as program profiling information and memory
+  access trace data.
+\item%
+  Scheduler configuration file and command line options.
+\end{enumerate}
+
+From the given inputs the scheduler produces as outputs:
+\begin{enumerate}
+\item%
+  The full or partially scheduled target application.
+\item%
+  Feedback from the scheduling process, such as a trace of the scheduling
+  process, a list of resources that were not used, information on how well
+  jump delay slots were filled, how much if-conversion was done in a given
+  spot of the program or what was the highest register pressure.
+\item%
+  Processed auxiliary information.  For example, execution profile adjusted
+  for the scheduled code.
+\end{enumerate}
+
+\section{Definitions}
+
+\begin{description}
+\item[Move]%
+  Programmed data transport on a transport triggered architecture.
+\item[Node]%
+  The minimum program element in the program representation (a move, in case
+  of a bus-programed TTA) that the Scheduler handles as an atomic unit.
+\item[Resource]%
+  A hardware component of the target TTA processor that can be used to carry
+  out part of the program's activity.
+\item[Resource Allocation]%
+  Determining whether a resource can be assigned to a program element.
+\item[Resource Assignment]%
+  Reserving a resource to a program element (move, variable, operation,
+  \ldots) for a given number of cycles.
+\item[Result Move]%
+  Move that reads the result of an operation from a port of a function unit.
+\item[Scheduler]%
+  The retargettable TTA instruction scheduler of the TTA templated
+  architecture.
+\item[Scheduling (general)]%
+  The process of mapping a program to a given target architecture.
+\item[Scheduling (proper)]%
+  Placing instruction elements (in a bus-programmed TTA, moves) into
+  instruction slots.
+\item[(scheduling) Scope]%
+  A part of the program whose moves are evaluated, processed and scheduled
+  in the same phase. During scheduling, moves are not moved across scope
+  boundaries.
+\item[Trigger Move]%
+  Move that writes a port of a function unit and thereby initiates a
+  new operation on that unit.
+\end{description}
+
+\section{Acronyms and Abbreviations}
+
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+SCP   & Singe Copy on a Path (rule).\\
+SSA   & Static Single Assignment.\\
+ILP   & Instruction-Level Parallelism.\\
+ISR   & Interrupt Service Routine.\\
+FIFO  & First-In First-Out (queues).\\
+MAU   & Minimum Addressable Unit (of a memory address space). \\
+PDG   & Program Dependence Graph. \\
+SSA   & Static Single Assignment. \\
+TCE   & TTA Codesign Environment. \\
+TPEF  & TTA Program Exchange Format. \\
+TTA   & Transport Triggered Architectures. \\
+\end{tabular}
+\end{center}
+
+
+
+\chapter{USER DESCRIPTION}
+
+\section{User Profile}
+
+The basic user uses scheduler as a part of design space exploration, he
+experiments with different scheduling parameters and plug-in algorithms, and
+tries to come up with the most suitable combination for his needs.
+%
+As a standalone application, the scheduler is used to map the target
+application into the target TTA processor. Common users may also experiment
+with different scheduling algorithms and optimisation techniques to come up
+with most effective combinations for a given target architecture.
+%
+A more advanced type of user is one who develops new scheduling algorithms
+and techniques.
+
+\section{Key User Needs}
+
+\begin{enumerate}
+\item%
+  Translate sequential TTA code to parallel TTA code for a target TTA.
+\item%
+  Translate partially scheduled TTA code to parallel TTA code.
+\item%
+  Evaluate the effects of different parameters that control the scheduling
+  process on target application performance.
+\item%
+  Evaluate the effects of different scheduling algorithms and code
+  transformations on target application performance, and select the
+  best-performing combination of algorithm and heuristic
+  parameters.\footnote{%
+    Users are encouraged to try different scheduling algorithms and
+    experiment with heuristic parameters on a per-procedure basis, possibly
+    even per basic block.}
+\end{enumerate}
+
+\section{Use Cases}
+
+This section describes the typical use cases of the Scheduler backend. The
+main use of scheduler is to translate sequential TTA code to parallel TTA
+code.
+\subsection{Scheduling as part of Architecture Exploration}
+
+The user of the framework in this case does not work with the Scheduler as a
+stand-alone application. Instead, the Scheduler is part of design space
+exploration.
+
+After the exploration, preferred target architectures are selected from
+those found. Then, the user may try to improve the application performance
+by means described in Section~\ref{sec:UseCase:GivenTarget}.
+
+\subsection{Scheduling for a Given Target}
+\label{sec:UseCase:GivenTarget}
+
+The target architecture is known and fixed, and the user wants to compile
+and schedule the target program as efficiently as possible in order to
+improve given objective functions, which are usually based on clock count,
+energy consumption, and code size.
+
+The Scheduler reads a TTA program in TPEF and the configuration file, and
+also parses any command line parameters. Usually, the Scheduler is
+configured so as to perform several code analysis and transformation passes
+that try to improve the target program and improve the result of the
+subsequent instruction scheduling process.
+
+Afterwards, the user evaluates the performance of the scheduled program
+(with the Estimator) and, if needed, repeats the whole process with
+different scheduling parameters, different analysis and code transformation
+passes, or different scheduling algorithms.
+
+This process iterates until the user is satisfied with the performance
+of the program on the target architecture.
+
+\paragraph{Alternative scenario: exploiting profile and trace data.}
+Profile and trace data (such as execution counts and memory access traces)
+stored in TPEF for the given input application are used to improve the
+scheduling process. When possible, the scheduler adjusts part of the
+auxiliary data sets (for example, the execution counts) so as to keep them
+consistent and (within approximation error) correct for the scheduled
+program. If this is not possible, the scheduler invalidates
+%
+[[just remove?]]\note{DISCUSS}
+%
+the auxiliary data which is made wrong by the scheduling process.
+%
+Scheduling applications using auxiliary data collected from simulation runs
+makes it possible to obtain ``perfect'' schedules (upper bounds) with
+respect to certain scheduling techniques. For example, memory access traces
+make it possible to compute memory-carried dependencies between all memory
+operations of the program.  On condition that the program will be run on the
+same input data set used to collect the trace data, this gives the scheduler
+the equivalent of an ``oracle'' to determine memory dependencies. This is a
+useful feature to estimate the effectiveness of the scheduling techniques
+under examination.
+
+\paragraph{Alternative scenario: interactive scheduling.}
+When in interactive mode, the scheduler prompts the user for scheduling
+decisions. The regions of the programs that are scheduled in interactive
+mode, the level of interactivity (how much the scheduler prompts the user)
+and the type of questions asked are controlled by parameters and may vary.
+
+Whenever certain predefined conditions on the scheduling process state are
+met, the scheduling algorithm halts and prompts the user for decisions or
+hints. Different levels of interaction with users are possible: from a
+step-by-step guidance of the entire scheduling process (a useful teaching
+tool) to requests of interactions restricted to the most difficult
+decisions, when the heuristics employed by the scheduling algorithm are
+stymied.
+
+\subsection{Developing a New Instruction Scheduling Algorithm}
+
+In this case, an advanced user develops or modifies a scheduling algorithm
+or a code transformation pass and verifies its correctness.
+
+Any new pass implements a standard interface and is loadable at run time.
+%
+When developing a new scheduling algorithm, the developer can also choose to
+implement a set of predefined interfaces for scheduling subtasks defined by
+the scheduling software framework.
+%
+A number of software utilities (in form of helper objects) are also
+available to simplify the development process.
+
+The user can verify the correctness of new passes using the TTA Processor
+Simulator~\cite{SimulatorSpecs}.
+
+
+
+\chapter{PRODUCT OVERVIEW}
+
+\section{Product Perspective}
+
+TTA instruction scheduling is one of the most complex and critical
+functionality offered by TCE. A powerful TTA processor and a highly
+optimised target application are nothing without effective instruction
+scheduling. The Scheduler is the application that implements instruction
+scheduling. It can be used as a stand-alone tool, or as a module under
+control of the design space explorer.
+
+The main input to Scheduler consists of two data files: an unscheduled or
+partially scheduled (for the same target architecture) TTA program and a
+complete specification of the target architecture which the program has to
+be mapped to.
+%
+Additional data files and command line parameters provide more input data.
+
+Unscheduled TTA code is usually generated by the compiler front-end. This
+code is targeted for special transport triggered architecture, an
+abstraction that corresponds to TTA code where the data transports have not
+been assigned to components of the target processor.
+See~\cite{TCE-progTemplate} for details.
+
+\subsection{Scheduler's Interaction with Code Compression}
+
+Code compression is a post-scheduling process that applies to binary
+parallel code. The instruction scheduler cannot always be unaware of the
+code compression applied to the scheduled code. Some code compression
+methods do not work at all if the scheduler does not take into account their
+effect on the code.  Other compression methods are less demanding, they may
+just produce better results if scheduler is aware of the compression
+mechanism.  See~\ref{ch:future:compression} for a further discussion of this
+issue.  Since code compression can be architecturally visible, a
+compression-aware scheduler will not work in case the expected compression
+algorithm is not applied.
+
+While compressing program, the target address of jumps will change.
+Independent of the scheduled algorithm, compressors usually recompute the
+addresses of compressed instructions that are target of control flow
+operations (jump targets, jump table slot initialisation values). Certain
+compressors will rely on run-time hardware control to adjust instruction
+addresses while the program runs (typically, during the fetch-decode
+stage). Other compressors, however, may have to update the addresses of
+compressed instruction at the time of compression, when the compressed
+binary code is emitted.
+
+\section{Product Position Statement}
+
+Map an application expressed in a low-level, processor-oriented format (the
+unscheduled TTA code) into parallel TTA code for a specific target TTA
+processor.
+
+\section{Summary of Capabilities}
+
+\begin{center}
+\begin{longtable}{p{0.45\textwidth}p{0.55\textwidth}}
+  User Benefit                 &       Supporting Feature \\
+
+ handle unforeseen code information &
+ system to annotate instructions and moves\\
+
+ high-performance scheduling   &
+ list-based, operation-based, heuristic scheduling approach\\
+
+ experiment with options and parameters &
+ uniform system based on options specified in a configuration file\\
+
+ experiment with different code transformation and scheduling passes &
+ configuration file where it is possible to add, remove and reorder passes\\
+
+ flexible and extensible scheduling infrastructure &
+ standard module interface for pass implementations, possibility to develop
+ and use new modules, module linkage at run time\\
+
+\end{longtable}
+\end{center}
+
+%\section{Assumptions and Dependencies}
+
+% (portability)
+% (PJ: design constraints)
+
+%  Assumed environment, third-party applications or library assumed to be
+%  present. External services (like OS services) that are required.
+
+% PEKKA:
+% For example "the GUI should use wxWindows GUI library to ease portability
+% to other operating systems and environments" or "XML should be used for
+% all clear text persistent data storage".
+
+%  In case of functional specifications of most modules, it's sufficient to
+%  specify what is required in addition to assumption/dependencies given in
+%  main functional specifications document of TCE Project, and refer to it
+%  for the rest.
+
+%\section{Distribution}
+
+% (IPR and copyrights)
+
+%%  Remove this section (not needed) for most modules and applications,
+%%  because the conditions of the whole project apply.
+
+
+
+\chapter{PRODUCT FEATURES}
+
+% This chapter describes the functionality of the product in detail.
+
+% In case of an application, all command line arguments and user interface
+% screens (GUI) are described in detail.  Also, all tasks the module or tool
+% must be able to accomplish are described here.
+
+\section{Main modules}
+In order to generate parallel TTA code, the instruction scheduler has to
+implement at least following operations:
+\begin{enumerate}
+\item%
+  Process command line parameters and configuration file.
+\item%
+  Read a description of the target architecture and generate a Machine
+  Object Model (MOM).
+\item%
+  Read TTA program data from a TPEF file~\cite{TPEF-specs}, and generate a
+  Program Object Model (POM).
+\item%
+  Perform pre-scheduling code analysis and code transformation passes on the
+  program. The program representation is not fixed. It may be the Program
+  Object Model itself, or a scheduler-specific object model (for example, a
+  data dependency and control flow graph). The user can insert new passes.
+  The exact number and type of passes is not fixed; some of the passes may
+  be:
+  \begin{enumerate}
+  \item%
+    Controlled node splitting, to ensure reducible control flow graphs.
+  \item%
+    Control-flow analysis.
+  \item%
+    Dataflow analysis.
+  \item%
+    Memory dependence analysis.
+  \item%
+    Interprocedural data and memory dependence analysis.
+  \item%
+    Control-flow transformations (loop unrolling, loop peeling, function
+    inlining, dead code elimination, and so on). See
+    Appendix~\ref{app:optimisations} for an extended list.
+  \item%
+    Dataflow code transformations (constant propagation, constant folding,
+    value numbering, SSA conversion, vectorisation\footnote{
+%
+      Vectorisation is loop transformation that detects operation happening
+      on multiple array elements and packs the data into vector registers
+      allowing to execute such operation in vector unit (MultiVec in PPC,
+      SSE, SSE2, SSE3 in Intel).}
+%
+    and so on). See Appendix~\ref{app:optimisations} for an extended list.
+  \end{enumerate}
+\item%
+  Instruction scheduling proper and resource assignment. The scheduling
+  scope, the scheduling algorithm, the resource assignment strategies and
+  their supporting data structures may vary.
+\item%
+  Post-scheduling and post-resource assignment code transformations. These
+  transformations are of such type that are not possible or very difficult
+  until the entire program has been scheduled. For example, importing moves
+  into function call delay slots may be an effective strategy to fill call
+  delay slots and speed up function calls.
+\item%
+  Write the newly generated program (POM format) out as a TPEF file.
+\end{enumerate}
+
+\subsection{Scheduling Algorithm}
+
+There are several aspects of the scheduling algorithm that can vary within
+the framework: the scope, the resource allocation strategy, the operation
+selection algorithm, the action taken when an attempt to schedule an
+operation or a node thereof fails.
+
+The scheduling scope may be one basic block or a group of basic blocks
+(trace, superblock, decision tree, region).
+%
+\note{initial scheduling scope that will be delivered: single basic block}
+%
+Also, the scheduling scope may be cyclic or acyclic. The cyclic scope has a
+deep effect on the entire scheduling algorithm and on resource assignment.
+See Appendix~\ref{ap:SW-pipelining} for a discussion on a possible cyclic
+scheduling algorithm.
+
+Resource assignment defines which components of the target processor (called
+resources) are used to carry out moves. It is tightly connected with the
+scheduling algorithm and may be performed (partly) before, during or after
+scheduling.
+
+\section{``First Milestone'' Capabilities}
+
+The following capabilities are expected to be supported early on in TCE
+Scheduler framework.
+
+\subsection{Multiple Instances of Operations with State}
+
+In order to support programs that use multiple instances (that is, hardware
+implementations) of the same operation with state, the
+backend must determine which operations with state in the program belong to
+the same dependency chain and which are independent.
+%
+\note{PENDING: \ref{ch:pending:state-operation}}
+%
+In practise, the dataflow dependencies are carried by internal state, not by
+explicit program variables.  The state is indeed internal storage in
+operation hardware, and can be considered a specialised variable.
+
+The scheduler thus can determine the
+number of operations with state needed at same time (number of independent,
+overlapping dependency chains).
+
+For practical purposes,\note{Implementation detail!} it is recommended to
+use special type of node dependencies.\footnote{
+%
+  Such dependencies can tie all operations in a dependency chain that use or
+  define the same internal state, thus creating a ``live range'' of the
+  operation state.}
+%
+The dependencies, determined by properties \emph{affected-by} and
+\emph{affect}, can be confirmed or rejected only when decision about FU
+assignment is made.
+
+The dependency does not assume any assignment, it only shows that the state
+used or defined by two operations implies one of the following conditions:
+\begin{enumerate}
+\item%
+  The two operations share the same instance of state. The operations must
+  be assigned to the function unit that implements the state instance.
+\item%
+  The two operations access two unrelated instances of the same state type
+  that are data-live at the same time. The operations must be assigned to
+  independent function units (that implement the same operation state).
+\item%
+  The two operations access two completely unrelated instances of the same
+  state type. The operations may be assigned to the same function unit, on
+  condition that the live ranges of the two state variables are
+  nonoverlapping.
+\end{enumerate}
+
+Significant implication
+%
+\note{see pending issue \ref{ch:pending:state-interprocedural} for
+  additional problems of inter-procedure live state}
+%
+of operations with state is that the function units that implement
+operations with state can not be allocated interchangeably. This is a major
+restriction to resource function unit assignment.
+
+\subsection{Support for Custom Operations that Access Memory}
+
+All operations in TCE framework have memory-related properties (\emph{use
+  memory}, \emph{mem-data}, \emph{mem-address}). This allows user-defined
+operations to access memory same way as standard load/store operations.
+Properties \emph{mem-data}, \emph{mem-address} indicate that an operand (or
+result) is derived or used to compute, respectively, a data word transferred
+between processor and memory or a memory address. This definition is
+intentionally vague. The exact meaning of inputs and outputs marked by these
+properties is completely dependent from the specific operation. Therefore,
+any memory-related analysis requires specific and precise knowledge of the
+operation (and ultimately of its addressing mode).
+
+\subsection{Extensible Instruction Annotations}
+The file format used throughout the TCE framework (TPEF) to store TTA
+programs supports variable number of data words that encode tool-dependent
+information about the instructions in a TTA program. A group of data words
+form an annotation and is a mechanism for extending a TPEF code description
+with additional information.
+
+\subsection{Interactive Scheduling}
+\label{ssec:interactive-mode}
+
+The Scheduler can interact with users. Depending on the scheduling algorithm
+modules, the amount of interactivity can vary, but a minimum level should be
+offered by any scheduling algorithm.
+%
+Scheduling algorithms do not control interactivity, but have an influence on
+it.
+
+The Scheduler supports three levels of interactivity:
+\begin{enumerate}
+\item %
+  Level 0: no interaction at all. All practical scheduling algorithms should
+  work without requiring user interaction. If a scheduling algorithm needs
+  user interaction, it will abort when this level (the default) is selected.
+%
+  \note{alternative: allow plug-ins to set default values for Scheduler
+    global parameters}
+
+\item %
+  Level 1: on-request (algorithm-controlled) interactivity. Interaction in
+  this case is under control of scheduling algorithms. Some algorithms may
+  prompt users only in a limited set of cases, other may never need user
+  interaction. If and only if a scheduling algorithm offers optional
+  ``prompt points'', this level will make the algorithm stop and prompt the
+  user for confirmation or alternative input. In this mode, algorithms
+  should always propose a default choice when prompting the user.
+%
+  Usually, prompt point enabled by level 1 interactive move are concerning
+  the most difficult decisions, such as:
+  \begin{enumerate}
+  \item%
+    Whether to increase the size of a basic block and favour scheduling
+    freedom (move importing) or restrict code motion and keep basic blocks
+    compact.
+  \item%
+    Whether to overcome a violation of the single-copy-on-a-path rule by
+    control flow transformation, and favour scheduling freedom or restrict
+    code motion.
+  \end{enumerate}
+
+\item %
+  Level 2: forced interaction mode. Every algorithm must stop at every
+  standard ``prompt point'' of the scheduler framework. Such points are:
+  \begin{enumerate}
+  \item %
+    Upon selecting a new procedure or scheduling scope.
+  \item %
+    Upon selecting a candidate node (group) for scheduling.
+  \item %
+    Upon defining the minimum cycle in which scheduling is tried for a node.
+  \item %
+    For assigning all required processor resources to the current candidate
+    node.
+  \item %
+    Upon applying various scheduling optimisations: bypassing, operand
+    sharing, move motion across control flow, code duplication, block
+    duplication (to overcome SCP rule), and so on.
+  \end{enumerate}
+  Those algorithms that normally do not need to prompt the user will provide
+  a list of choices and a default choice (which is what the algorithm would
+  have selected had interactivity not been forced).
+\end{enumerate}
+
+Interactivity applies to core modules exclusively. Interactive scheduling
+mode is an optional capability expressly requested by the user. No
+scheduling algorithm should, by default, require interactivity. However,
+there could be algorithms that simply work by prompting user for data and
+decisions (intrinsically interactive algorithms). Such algorithms, mostly
+for teaching purposes or experimental, should simply abort when the
+Scheduler is invoked without enabling interactive mode.
+
+\subsection{Tracking System}
+\label{ssec:tracking}
+
+The Tracking System consists of a single class that defines methods for
+tracking the scheduling process.
+
+Tracking can be configured along three different lines:
+\begin{enumerate}
+\item %
+  Space: tracing of the scheduling process can be enabled or disabled
+  independently for each procedure or scheduling scope (even single basic
+  blocks).
+\item %
+  Phases: tracing of the scheduling process can be enabled or disabled at
+  level of single macro-phases of the scheduling process such as scope
+  selection, scheduling proper, post-scheduling compaction.
+\item %
+  Detail: the amount of detail (data) to be logged at each tracing point can
+  be tuned from a minimum (which corresponds to no logging at all) to a
+  maximum (all the data available).
+\end{enumerate}
+
+\paragraph{Scheduling macro-phases.}
+The following macro-phases of scheduling are considered for independent
+logging enabling/disabling:
+\begin{enumerate}
+\item %
+  Control flow analysis.
+\item %
+  Dataflow analysis.
+\item %
+  SSA form analysis (when applicable).
+\item %
+  Scope selection.
+\item %
+  (Node) selection.
+\item %
+  Resource assignment (to the extent it is implemented as a separate pass).
+\item %
+  Scheduling proper (including resource assignment to the extent it is
+  integrated into scheduling proper).
+\item %
+  Post-scheduling code transformations (for example, filling of call delay
+  slots).
+\end{enumerate}
+
+Additional passes can register themselves as macro-phases that allow
+independent control of logging.
+
+\paragraph{Scheduling tracing points.}
+Below is an incomplete list of the steps of the scheduling process that can
+be logged and the type of data that should be recorded in the log file:
+\begin{enumerate}
+\item %
+  \emph{Control flow analysis.} Detection of basic blocks, entry and exit
+  points. Computation of (post)dominance relations between every basic block
+  (square array).
+\item %
+  \emph{Dataflow analysis.} Liveness analysis: Computation of generate,
+  kill, in and out liveness sets\footnote{%
+    Assuming a standard algorithm for liveness analysis is used.},
+%
+  propagation of liveness information between basic blocks. Memory data
+  dependency analysis. Stack layout analysis.
+\item %
+  \emph{SSA form analysis.} Construction phase: Computation of dominance
+  frontiers (if implemented, other methods exists), where are phi functions
+  added (and variables involved). Reverse phase: register register
+  copies.
+%
+  \note{more details when applicable}
+\item %
+  \emph{Scope selection.} Build phase: detection of scheduling scopes (sets
+  of basic blocks). Scheduling phase: logging of procedure and scope
+  selection.
+\item %
+  \emph{Selection.} Data ready set at each scheduling step. List of
+  candidate node groups (each group may relate to a single operation).
+  Selected candidate. Possible heuristic details (such as internal priority
+  used for selection).
+\item %
+  \emph{Resource assignment.} Every attempt failure and success in
+  allocating a resource type to a program element. Reasons for failure
+  (conflicting resources). Possible choices between multiple legal
+  assignments, with possible heuristic details (such as internal priority
+  for choosing one resource over another).
+\item %
+  \emph{Scheduling proper.} Order in which single nodes (of a selected
+  group) are scheduled. Possible rejections of selections. Failures in
+  scheduling attempts. Delays or anticipations of scheduling cycle.
+\item %
+  \emph{Post-scheduling code transformations.} Delay slots successfully,
+  partially or not filled. Which target instructions are used to fill the
+  slots.
+\end{enumerate}
+
+\subsection{Instruction Selection and Replacement}
+
+The TCE front-end generates sequential code using a very rich basic operation
+set. In practise, all complex operations that can be known to front-end are
+used by it.
+
+Although unlikely, it is possible that in target parallel architecture,
+there could be function units supporting additional base operations not well
+exploited by the front-end.\footnote{
+%
+  For example, some versions of gcc-front-end do not recognise as a
+  ``minimum'' operation the pattern \texttt{a>b?b:a} but only
+  \texttt{a<b?a:b}.}
+
+More generally, the instruction selector and replacer must identify single
+operations or patterns of sequential code that could be replaced by a
+sequence of simpler operations supported by target architecture, or, in case
+such sequence would be too complex, by function invocations.
+
+\emph{Example}: Replacement of divide operations. The sequential divide
+operation
+\begin{verbatim}
+  r12 -> div.1
+  r13 -> div.2
+  div.3 -> r14
+\end{verbatim}
+is replaced by
+\begin{verbatim}
+  r12 -> r2
+  r13 -> r3
+  __divSI3 -> call.1
+  r0 -> r14
+\end{verbatim}
+
+Instruction selection and replacement is a simple peephole optimisation
+pass; it is not intended as a pass for identifying operation patterns to be
+replaced by complex (compound) operations or user-defined operations.
+
+The operation replacer must take place early in the code transformation and
+scheduling chain, so that the resulting operations can be further optimised
+by subsequent passes.
+
+The selector and replacer is very important, because it is what ensures that
+target architectures that do not support the entire base operation set used
+by the TTA front-end compiler can still be scheduled for.
+
+\subsection{Support for Code Generation During Scheduling}
+\label{ssec:fundamental-operations}
+
+TTA instruction scheduling cannot be limited to reordering moves. In certain
+situations, a scheduling algorithm (especially if sophisticated) will have
+to generate or replace operations of the target program: for example, insert
+save and restore code around function calls and register spilling to memory.
+
+In order to correctly handle the semantics of the program, any scheduler
+algorithm must be aware of a minimal, fundamental operation set. Below is a
+list of operations for which scheduler specific knowledge is required:
+\begin{enumerate}
+\item %
+  CALL (and similar). Motivation: handle save and restore code, mark certain
+  registers as clobbered by the callee.\footnote{%
+    As many call-specific aspects as possible should however be captured by
+    pre-computed data dependencies and not be managed by scheduler as part
+    of call-specific activity.}
+\item %
+  JUMP (and similar). Motivation: handle optimising control flow code
+  transformations and if-conversion.
+\item %
+  ADD. Motivation: compute memory addresses for save and restore code, for
+  arguments passed on the stack and for spilling.
+\item %
+  LDW, STW. Motivation: generate save and restore code (around calls and for
+  spilled registers), recognise function arguments saved on the stack. The
+  word size is defined as the size of the (most numerous) integer GPR's and
+  (most numerous) function units.
+\item %
+  EQ, GT, GTU. Motivation: handle if-conversion and optimising code
+  transformations related to control flow.
+\item %
+  AND, OR. Motivation: (optionally) generate complex guards for optimising
+  control flow code transformations and if-conversion.
+\end{enumerate}
+
+\note{more fundamental operations may be necessary}
+
+Custom, user-defined operations cannot require specific knowledge from the
+scheduling algorithms.\footnote{%
+  This would require updating all existing algorithms whenever a new custom
+  operation requiring scheduler awareness is added!}
+%
+\note{PENDING \ref{ch:pending:custom-awareness}}
+
+\paragraph{Semantics of Compare Operations}
+
+The predefined compare operations of the base operation repertoire are
+assumed to have a well-defined behaviour. These operations generate only two
+possible values, independent of the bit width of their result: 1 (which
+usually stands for condition \emph{true}) and 0 (which usually stands for
+condition \emph{false}). Notice that, usually, any value different from zero
+is treated as a \emph{true} condition.
+
+\section{Additional Capabilities}
+
+This section lists noncritical capabilities to be implemented in later
+versions of Scheduler.
+
+\subsection{Trigger On Result}
+
+For practical purposes, trigger-on-result operations make sense only if they
+have an internal state. This means that the state must be initialised before
+the first trigger is executed, so trigger-on-result operations need a
+support operation to initialise the state. There is need for control and
+data dependency between such initialisation operation and following trigger
+on result operations.
+%
+\note{"affects property"}
+%
+\note{This feature may be implemented later, if time allows.}
+
+This is very similar to operations with state as such. Difference is that
+result move triggers next execution of unit. The main problems are:
+\begin{enumerate}
+\item%
+  The operand moves are related to the result move of previous operation.
+  This result move is different from the result move that will read outcome
+  of operation started with operand.\footnote{%
+    While the possibility of operand moves with operations triggered on
+    results may be retained out of orthogonality reasons, it is very
+    impractical to define trigger-on-result operations with any operands at
+    all. These could be turned into conventional input-triggered operations,
+    which are much less problematic.}
+\item%
+  If operand is also triggering, then there is a time limit within which the
+  result has to be read before it is overwritten. In practise this is not
+  much more difficult than in a normal input trigger move, except that now
+  the trigger and the result move of the previous operation are compound in
+  one.
+\end{enumerate}
+
+\subsection{Multiple Memory Banks}
+
+Memory of TTA processor may consist of several address spaces.
+%
+\note{specification of address space in source code not considered/solved.
+  For start, multiported shared memory space is sufficient.}
+%
+Each space can be accessed by one or more load-store units. Each load-store
+unit can however access only one memory address space (the address space is
+a parameter associated with each instance of load-store unit).
+
+\subsection{Relative Instruction Addressing Modes}
+
+Relative jumps are a required feature of TCE.
+
+Computing the address of forward jumps is a well-known problem. Probably
+first solution to this problem was by Grace Murray Hopper, in her A-0
+compiler (only single pass compiler built). Solution as presented by her
+words:
+\begin{quote}
+  ``And here comes in the curious fact that sometimes something totally
+  extraneous to what you are doing will lead you to an answer. It so
+  happened that when I was an undergraduate at college I played basketball
+  under the old women's rules which divided the court into two halves, and
+  there were six on a team; we had both a center and a side center, and I
+  was the side center. Under the rules, you could dribble only once and you
+  couldn't take a step while you had the ball in your hands. Therefore, if
+  you got the ball and you wanted to get down there under the basket, you
+  used what we called a `forward pass.' You looked for a member of your
+  team, threw the ball over, ran like the dickens up ahead, and she threw
+  the ball back to you. So it seemed to me that this was an appropriate way
+  of solving the problem I was facing of the forward jumps! I tucked a
+  little section down at the end of the memory which I called the `neutral
+  corner.' At the time I wanted to jump forward from the routine I was
+  working on, I jumped to a spot in the `neutral corner.' I then set up a
+  flag for the [forward operation] which said, `I've got a message for you.'
+  This meant that each routine, as I processed it, had to look and see if it
+  had a flag; if it did, it put a second jump from the neutral corner to the
+  beginning of the routine, and it was possible to make a single-pass
+  compiler and the concept did come from playing basketball.''\footnote{%
+    This solution is added for completeness and educational purposes. There
+    were days when debugging code meant finding longest hall in building and
+    unroll pile of paper to see what is happening to program. This solution
+    doubles jump latency for forward jumps, which is only acceptable if
+    single pass compiler is necessary!}
+\end{quote}
+
+\subsection{Interrupt Support}
+
+Support for interrupts in TTA processors is a complicated problem. Before
+final decision is made, it is necessary to confirm that such support is
+really needed. This feature is not considered for early versions of TCE
+framework, perhaps never.\note{%
+  Jarmo Takala: ``It might be good to have the interrupts but it's not high
+  priority yet''.}
+%
+It seems necessary to find out what are possible ways how to implement
+interrupts in future.
+
+One solution proposed by J. Takala is to have reserved word which indicates
+that procedure is an ISR. Front-end then generates sequential code for saving
+and restoring context. Scheduler will schedule moves, without necessarily
+knowing that procedure is ISR.
+
+\paragraph{Known problems.}
+The main problem of interrupt support for TTA's is that the processor state
+is larger and less ``regular'' than in an equivalent operation-triggered
+processor architecture. Irregularity is due to the fact that, in addition to
+GPR's, part of the FU inputs and outputs can be machine state. Worse yet,
+also internal pipeline stages may be part of the state.
+
+Depending on the level of hardware support for interrupts, interrupt support
+can have a varying impact on code generation and instruction scheduling,
+from no effect at all to some (or all) the effects listed below.
+\begin{enumerate}
+\item %
+  Additional scheduling constraints (such as, maximum distance between
+  operation inputs and opcode-setting input).
+\item %
+  Knowledge of ``can throw'' property of operations. The scheduler uses this
+  property to adjust or limit code motion.
+\item %
+  Specific code patterns to fulfil. For example, creation of context save
+  and restore around interrupt handlers, code to flush and restore execution
+  pipelines.
+\item %
+  Specific scheduling patterns to fulfil. For example, forced software
+  bypassing of save and restore code around interrupt handlers; restricted
+  availability of GPR's; schedule to flush execution pipelines.
+\end{enumerate}
+
+\paragraph{Possible solutions.}
+\begin{enumerate}
+\item \emph{Partial Unit Locking} (P. J‰‰skel‰inen) %
+  Some kind of partial locking of the unused parts of the processor, partial
+  context saving of the parts needed by the interrupt handler, could help.
+
+  This means that the interrupt handler code could run on a subset of the
+  processor resources. The interesting property of this type of solutions is
+  that it leaves a degree of freedom: the trade-off between fast and cheap
+  state save and restore (in general, context switching) and the performance
+  at which exception handler code can run. This solution could be completely
+  unacceptable if exception handler code needs to meet stringent speed
+  requirements.
+
+\item \emph{Complete Hardware-based Save-restore} (A. Cilio) %
+  The brute-force approach is, of course, to simply save the part of the
+  processor state that is not directly accessible (FU inputs, pipeline
+  stages and outputs) in hardware. The rest of the processor state,
+  consisting of GPR's contents, could be saved in software.
+
+  This approach could be a suitable candidate for those units that are not
+  locked in the ``Partial Unit Locking'' method sketched above.
+
+\item \emph{Busflashing} (H. Corporaal~\cite{HCorp97}) %
+  This approach consists in saving in a FIFO (the \emph{busflash}) any
+  signal that crosses the transport busses for a finite number of cycles.
+  Upon interrupt triggering, the busflash is frozen. After the processor
+  returns from interrupt handling, the contents of the busflash is
+  ``replayed'' onto the transport busses, thus recreating the state at the
+  time the interrupt was triggered.
+
+  There are many variants, improvements or details to this approach:
+  \begin{enumerate}
+  \item %
+    Operations with side-effects (such as store) or with state (such as, in
+    a broad sense, load from memory) cannot be simply replayed. The busflash
+    must be managed by logic prevent triggering these operations during
+    busflash replay. The logic could invalidate triggering inputs and
+    restore the operation results only.
+  \item %
+    The length of the busflash must be at least as long as the latency of
+    the slowest operation in the target operation set.
+  \item %
+    There is a trade-off between the length of the busflash (and thus the
+    cost of control logic) and the scheduling freedom. This is a positive
+    property that allows to trade-off performance potential with hardware
+    cost.
+  \item %
+    Optimisations are possible. For example, the busflash could avoid
+    recording those transports for which software save-restore is trivial.
+    Probably, complete avoidance is impossible, but the busflash could
+    optimise away certain transports. For example, GPR writes that are
+    data-killed by a subsequent write to same GPR recorded in the busflash
+    could be just ejected from the busflash. Similarly, the last GPR write
+    still live could be always ignored during replay, since the software
+    save-restore can be used instead.
+  \end{enumerate}
+\end{enumerate}
+
+\section{Usage}
+\label{sec:usage}
+
+In addition to the standard command line options accepted by every
+application of the TCE toolset [[document to define]], the CLI-based
+Scheduler accepts the command line options listed below. All command line
+options are prepended by two hyphens: `\verb|--|'. For each option, the
+second column indicates the type of argument (if any) of the option:
+\emph{i} (integer number), \emph{k} (keyword), \emph{s} (string), \emph{f}
+(fractional number), \emph{b} (no option, that is, boolean). A Boolean
+option disables the flag it controls if prepended by `\verb|no-|'. Unless
+otherwise stated, other option types cannot be prepended by the `\verb|no-|'
+prefix.
+
+\begin{center}
+\begin{longtable}[htb]{@{}p{.20\textwidth}@{}p{.05\textwidth}%
+                     @{}p{.75\textwidth}}
+
+\verb|target| (\verb|t|)  & \emph{s} &
+%
+Define the name of the target architecture description file. If not
+specified, a default file called `target.adf' is searched in current
+directory. If no file is found, Scheduler can only run target-independent
+passes (passes that simply restructure the code).\\
+
+\verb|output| (\verb|o|)  & \emph{s} &
+%
+Define the output TPEF file name. By default, the Scheduler creates a file
+with the name `\emph{basename}-sched\emph{ext}', where \emph{basename} is
+the base name of the input file, and \emph{ext}, if present, it the
+extension of the input file name (prepended by `.'). If a file with the
+same name exists, it will be overwritten.\\
+
+\verb|proc| (\verb|p|)    & \emph{s} &
+%
+Select procedure for scheduling. If `no-' is prepended, exclude procedure.
+This option can be repeated, as long as versions with and without `no-'
+prefix are mixed in the same command line. See
+Section~\ref{ssec:proc-selection} for details on the format of procedure's
+names.\\
+
+\verb|interactive| (\verb|i|) & \emph{i} &
+%
+Set interactivity level: no interaction at all (0), interaction only if
+requested by scheduling algorithm (1), forced interaction, turn algorithm
+decisions into user prompts (2). All values
+greater than 2 are treated as 2.\\
+
+\verb|config| (\verb|c|) & \emph{s} &
+%
+Define the configuration file name. If not specified, the default file name
+is used. See Section~\ref{ssec:files:config} for details.\\
+
+\verb|log| (\verb|l|) & \emph{i} &
+%
+Set logging verbosity. Level 0 disables any logging of scheduling activity.
+Passes should react differently at least to levels 1--3.\\
+
+\verb|logfile|        & \emph{s} &
+%
+Define the log file name. If not specified, a default log file name is
+created (see Section~\ref{ssec:files:log} for details). If logging is not
+enabled, this option has no effect.\\
+
+\verb|ignore-missing| & \emph{b} &
+%
+Do not abort if any of the plug-in modules specified in the configuration
+file is missing. By default, the Scheduler must abort with error message. \\
+
+\verb|timeout| & \emph{i} &
+%
+Define the maximum total run time (in seconds) permitted. If the limit is
+exceeded, Scheduler terminates with an error condition. The run time is
+implementation- and system-dependent, and should be (with approximation) the
+real clock time. Thus it could include the time spent on other processes by
+the host system. By default, the Scheduler runs without time limits.\\
+
+\verb|warning| (\verb|w|) & \emph{w} &
+%
+Enable printing of warnings. By default, Scheduler does not output any
+warning messages.\\
+
+\verb|save-temps| & \emph{s} &
+%
+Save the target program as TPEF file each time a pass of the code
+transformation and scheduling chain completes. See
+Section~\ref{ssec:files:intermediates} for the naming scheme of these
+intermediate files.\\
+\end{longtable}
+\end{center}
+
+\note{DISCUSS: warnings to stdout or to file? Command line choice?}
+\note{DISCUSS: warnings, logging, tracing - how do they relate to each other,
+how are they distinct?}
+
+\subsection{Code Selection}
+\label{ssec:proc-selection}
+
+Selection of code can be applied at level of procedures. Procedures are
+usually identified by their name. In some cases, however, the name is not
+sufficient, because multiple procedures with the same name are linked from
+different object files. In that case, the name of the object file (with or
+without extension), followed by a colon `:', should be prepended to the
+procedure's name.
+
+The name of the procedure, in case of C++ code, must be the actual symbol's
+name, which is ``mangled'' by the frontend compiler.
+%
+\note{DISCUSS: possible extension}
+
+In addition to plain procedure's names, a number of special shortcuts are
+supported to make selection of code easier. All shortcuts consist of a
+string enclosed in `(', ')' characters, to prevent any possibility of name
+conflicts with existing procedures.
+\begin{description}
+\item[(\emph{number})] %
+  Select (or exclude) the first \emph{number} most executed procedures. This
+  option causes an error if the input program is not profiled.
+\item[(\emph{number}\%)] %
+  Select (or exclude) the minimum set of procedures that together cover no
+  less than \emph{number}\% of the total cycle count. Since the set must be
+  minimum, only the most executed procedures are considered. This option
+  causes an error if the input program is not profiled.
+\item[(executed)] %
+  Select (or exclude) all procedures that have been executed. If the input
+  program is not profiled, this option has no effect.
+\item[(application)] %
+  Select (or exclude) all procedures that belong to user code. As a result,
+  all procedures linked from standard libraries are excluded (or selected).
+\end{description}
+
+
+
+\chapter{DATABASES}
+
+%\section{Contents of Information}
+
+\section{Intensity of Use}
+
+The Scheduler is the single most crucial application of the TCE toolset. Its
+task is, generally, complex and time-consuming.
+
+The typical use of Scheduler is a single invocation by user, therefore some
+speed can be traded off for efficiency of parallel code. However,the core
+modules of the scheduling algorithm can be invoked automatically and
+repeatedly by the Design Space Explorer~\cite{} or
+Estimator~\cite{EstimatorSpecs}, even thousands of times for a single
+exploration run. For this reason, efficient and reasonably fast scheduling
+algorithms are an important requirement.
+
+\section{Files and Configuration}
+
+The Scheduler is highly configurable. First of all, the
+scheduling process can be carried out by different algorithms for code
+selection, resource assignment and scheduling (move placement). In addition,
+a vast set of quantitative parameters affect the heuristics that guide the
+algorithms.
+
+The algorithms that perform instruction scheduling and the parameters that
+regulate the algorithms are defined by means of a configuration file.
+%
+The instruction scheduler reads and processes the configuration file. Since
+any kind of code analysis and transformation pass can be added to the
+configuration file, the Scheduler really becomes a backend, and scheduling
+proper can be considered as just one pass.
+
+\subsection{Scheduler Configuration File}
+\label{ssec:files:config}
+
+A configuration file controls the process of instruction scheduling and all
+the auxiliary phases of code analysis and code transformation.
+
+The configuration file specifies which (plug-in) modules form the ``code
+transformation and scheduling chain''. Modules can cooperate and form a
+hierarchy. A module implementing an optimisation pass may, internally,
+invoke other modules repeatedly to carry out part of its work. Even
+different modules in different phases of the code generation and scheduling
+process may invoke the same module as part of their activity.
+
+The configuration file defines:
+\begin{enumerate}
+\item%
+  Which code analysis and transformation passes (including scheduling) to
+  apply and in which order.
+\item%
+  Custom parameters (even data files with parameters) for specific modules.
+\end{enumerate}
+
+Since it is impossible to anticipate all future configurations of the
+scheduling chain nor the interaction between future passes, the format of
+the configuration file does not provide any mechanism to force or verify the
+order of passes. Even if it does not make much sense to perform certain
+passes before others, (for example, register assignment before by loop
+unrolling and dead code elimination), this type of ordering problem are left
+to the users and the developers of pass modules. A pass will simply fail or
+(in the worst case) work incorrectly if applied in the wrong order with
+respect to another pass.
+%
+Modules should be implemented so that when they cannot carry out their work
+normally they can let the client decide whether to skip or stop with error.
+
+The configuration file has XML format. In its simplest, trivial form, the
+configuration file is completely empty and defines a ``null scheduler'',
+which simply outputs the same target program it received as input.
+%
+Generally, the configuration file consists of a list of pass declarations:
+\begin{verbatim}
+  <pass> . . . </pass>
+\end{verbatim}
+
+Each pass consists of one or more dynamically linked modules (plug-ins). The
+actual activity performed by a pass can be anything. For example: resource
+allocation, instruction scheduling, code analysis and annotation, optimising
+code transformations. There are no restrictions in what a single pass of the
+chain can do, except that it works on an input target program and (usually)
+modified it. A single module (for example, an integrated scheduler and
+register allocator) can implement operations that are usually separated in
+two or more passes.
+
+The plug-in modules that implement a given pass are declared by the
+mandatory (empty passes are not allowed) \emph{module} element:
+\begin{verbatim}
+  <module> . . . </module>
+\end{verbatim}
+
+
+When a pass declaration contains two or more module declarations, it means
+that the pass is implemented by means of a group of cooperating objects
+implemented in different modules. One and only one of the modules in a pass
+declaration, called the main module, takes care of coordinating the activity
+of the other modules (called helper modules). The main module is the only
+module of a pass that can be started \emph{independently}.
+
+Each module is identified by a name, given by the mandatory \emph{name}
+element. The file that contains the module implementation is independent of
+the module name and is given by the mandatory \emph{file} element.
+Optionally, a module can accept a set of run time options, which are given
+as strings by means of the \emph{options} element:
+\begin{verbatim}
+  <name> string </name>
+  <file> string </file>
+  <options> string </options>
+  <options> string </options>
+  . . .
+\end{verbatim}
+
+Module options are processed as follows. First, all whitespace before the
+first and after the last non-blank character are removed from the string of
+each \emph{options} element. Then, the strings are concatenated and a blank
+is inserted between a string and the next. The string obtained is then
+pre-parsed and split into tokens with the usual rules applied to command
+lines, which are:
+\begin{enumerate}
+\item %
+  The backslash followed by a blank `\verb|\|\ ' defines a hard space that
+  is part of the current token.
+\item %
+  All characters enclosed in a pair of double quotes `"', including blanks,
+  belong to the same token.
+\end{enumerate}
+The list of tokens obtained by pre-parsing is then passed on to the module
+for parsing proper.
+
+\emph{Example.} Specification of passes and tasks for register and bus
+allocation.
+\begin{verbatim}
+<pass>
+  <module>
+    <name>EarlyRegisterAllocator</name>
+    <file>ERA_simple_01</file>
+    <options>--import-aggressiveness=12</options>
+    <options>--scp-optimize --optimize-leaf-calls</options>
+  </module>
+</pass>
+\end{verbatim}
+%
+The plug-in module called ``\verb|EarlyRegisterAllocator|'' is loaded and
+initialised with the command line options represented by the following
+tokens: ``\verb|--import-aggressiveness=12|'', ``\verb|--scp-optimize|'',
+``\verb|--optimize-leaf-calls|''.
+
+If the configuration file is not specified in the command line option, the
+Scheduler runs with an empty scheduling chain, with no modules at all, and
+does not modify the input TTA program.
+
+When the given configuration file does not have an absolute path, the
+Scheduler searches for the file name (and its relative path, if present) in
+the following paths:
+\begin{enumerate}
+\item %
+  Current directory
+\item %
+  \texttt{\parm{HOME}/.tce/conf}
+\item %
+  \texttt{\parm{ROOT}/share/tce/conf}
+\end{enumerate}
+
+The parameter \emph{ROOT} contains the path where the toolset is installed
+and \emph{HOME} contains the path to the home directory of the user who is
+running the toolset applications.
+
+\subsection{Scheduler Log File}
+\label{ssec:files:log}
+
+The scheduling algorithms can optionally log the activities performed.
+Logging stores in an output stream information such as:
+\begin{enumerate}
+\item %
+  The ordered list of which candidate moves are selected.
+\item %
+  Which scheduling attempts succeed, in which cycle that happens, which
+  resources are assigned.
+\item %
+  Which scheduling attempts fail, in which cycle and for what reason (which
+  hardware resources are unavailable).
+\end{enumerate}
+
+\paragraph{Log file name.}
+
+By default, the scheduler log file is created in the current directory and
+is given a name created as follows:
+\begin{quote}\tt
+  \parm{basename}.schedlog.\parm{nn}
+\end{quote}
+where \emph{basename} is the name (without extensions) of the input TPEF
+file (the TTA application), \emph{nn} is a 2-digit number assigned to ensure
+that the file name is unique (up to 99 unique logs are possible). When a new
+log file with default name is created, the lowest number not yet assigned to
+another file name is assigned.
+
+\paragraph{Log file format.}
+
+The scheduling log file does not have a format.
+%
+\note{DISCUSS: format details}
+%
+Every client can log its textual messages in a free format. There is,
+however, a minimal structure in the log. The file is divided in sections.
+Each section contains one or more messages coming from the same client (pass
+module) and is introduced by a section header with the following format:
+\begin{quote}\tt
+  [\parm{pass}] \parm{module}
+\end{quote}
+%
+where \emph{pass} is a 3-digit number that identifies the pass currently run
+and \emph{module} is the name of the module that implements the pass. If the
+same module is run multiple times during the scheduling process, each time
+the section header will show a different \emph{pass} number.
+
+Optionally, each module can organise its messages in sub-sections.
+Presumably, each sub-section represents a different phase of the activity
+implemented by the module. For example, a module could define a sub-section
+for each major class or component. Sub-sections can be interleaved. Each
+sub-section is introduced by a header with the following format:
+\begin{quote}\tt
+  [\parm{pass}:\parm{index}] \parm{subsection-tag}
+\end{quote}
+%
+where \emph{index} is a unique 10-digit integer that identifies the current
+sub-section, and \emph{subsection-tag} is a string that describes or
+identifies the component that generated the message.
+
+\emph{Example. Log text.} The following text shows a possible example of log
+messages generated by three components of module ``Integrated Register
+Allocator On-demand'' that cooperate to assign registers. One component is
+responsible for finding free registers for program variables, and identified
+by the string ``register assignment''; another is responsible for spilling
+registers to memory; the last component is given the task of adding or
+removing code.
+%
+\begin{verbatim}
+  [005] Integrated Register Allocator On-demand
+   . . .
+  [005:0000000341] register assignment
+  Assigned register to program variable r.355: RFa.12.
+  No register available for program variable: r.367, trying spilling.
+  [005:0000000342] register spilling
+  Selecting program variable to spill.
+  Spill candidate found: r.355. Spill cost: 506 (heuristic: minimize
+  loop spilling).
+  [005:0000000343] code factory
+  Adding save and restore points for program variable: r.355.
+  Stack location assigned: +8.
+  Save point for definition at cycle 13: add.3 -> r.355.
+  Restore point for use at cycle 38: r.355 -> eq.2.
+  [005:0000000343] register assignment
+  Assigned register to program variable  r.367: RFa.12.
+  . . .
+\end{verbatim}
+
+\subsection{Scheduler Command Line Parameters}
+
+The purpose of command line options is to control how the scheduler behaves
+with respect to the outside world.  Command line options are not meant for
+controlling the scheduling process (algorithms used, heuristic parameters,
+iteration of analysis and transformation passes).
+
+The command line parameters includes:
+\begin{enumerate}
+\item %
+  Verbosity, how much of the information about its work scheduler shows to
+  the user. There are different levels of verbosity, depending on amount of
+  information about internal workings of scheduler required.
+\item %
+  Configuration file, the location of file to be used to control
+  scheduling.  See Section~\ref{ssec:files:config} for details.
+%
+  In case no configuration file is specified, the scheduler reads a default
+  configuration file.  Stored in a standard location of the toolset
+  installation, the default configuration file contains the most ``common''
+  basic configuration options.
+\item %
+  Architecture description file (ADF) defining a target architecture.
+\item %
+  Target TTA program to schedule, possibly including auxiliary data such as
+  memory access trace and execution profile.
+\item%
+  Enabling interactive mode, level of interactivity.  See
+  Section~\ref{ssec:interactive-mode} for details.
+\item %
+  Tracing and logging.  Level of detail, selection of what to trace, output
+  stream.  The scheduler \emph{never} outputs any information (except during
+  user interaction) to standard output. See Section~\ref{ssec:tracking} for
+  details.
+\end{enumerate}
+
+\subsection{Intermediate Output Files}
+\label{ssec:files:intermediates}
+
+The Scheduler can optionally save a copy of the target application after
+each pass of the code transformation and scheduling chain is completed. The
+name of each intermediate TPEF file is defined as follows:
+\begin{quote}\tt
+  \parm{basename}-\parm{num}-\parm{pass}\parm{ext}
+\end{quote}
+where \emph{basename} is the base name of the input TPEF file, \emph{num} is
+the two-digit ordinal number of the pass (starting from `01'), \emph{pass}
+is the name of the pass, and \emph{ext}, if present, is the extension of the
+input TPEF file, prepended by `.'.
+
+
+
+%\chapter{OTHER PRODUCT REQUIREMENTS}
+
+%\section{Applicable Standards}
+
+%% Remove this section (not needed) if no extra standards in addition to
+%% those specified in the main functional specification document of the
+%% project.
+
+%\section{System Requirements}
+
+%% Remove this section (not needed) for most modules of a larger project.
+%% May be required in some critical applications if requirements are
+%% significantly different from those of the rest of the system.
+
+%  Memory space
+%  Disk space
+%  Processor Performance
+
+%\section{Performance Requirements}
+
+%% Remove this section (redundant) for most modules and applications of a
+%% larger project.
+
+%  response times to user
+
+%\section{Environment Requirements}
+
+%% Remove this section (not needed) for functional specifications of
+%% modules or applications of a larger project.
+
+%  Requirements in terms of computer environment, administrator rights for
+%  installation, level of expertise - only for complete products.
+
+%\section{Security, Recovery, Usability}
+
+%% Remove this section (not needed) for functional specifications of
+%% modules or applications of a larger project.
+
+
+
+\chapter{DOCUMENTATION}
+
+\section{User Manual}
+
+The Scheduler is fully documented by a users' manual. The user manual
+describes the general command line options of the Scheduler, the graphical
+elements, the definition of the configuration file.
+
+Detailed description of passes of the code transformation and scheduling
+chain [[to define: single document, separate documents, appendix of users'
+manual]]
+
+\section{Online Help}
+
+The GUI-based Scheduler front-end is complete with a built-in browser for
+on-line help documentation. The documentation is integrated within the
+Scheduler.
+
+The CLI-based Scheduler provides an on-screen summary of the command line
+options and, when applicable, their default values.
+
+\section{Installation and Configuration}
+
+The installation of the Scheduler is an integral part of the TCE system, and
+is documented in the TCE Installation and Configuration
+Guide~\cite{ProjectPlan}.
+
+
+\section{System Reference and Developer's Guide}
+
+System Reference of the Scheduler consists of two parts. In the fist part,
+an introductory document (based on the design notes written during
+development) gives an overview of the Scheduler design and a developer's
+guide instructs users who want to develop new Scheduler passes and integrate
+them into the Scheduler system. This part contains developer-level, accurate
+documentation of all software utilities and interfaces that for the
+scheduling framework. The second part documents the application programming
+interface (API); it is automatically generated in hypertext form and is
+integrated within the TCE API documentation.%
+\note{DISCUSS: better separate API docs of each application?}
+
+The developer's guide is completed with a tutorial that teaches how to build
+and integrate a new pass into the Scheduler, and how to use it.
+
+%\chapter{KNOWN PROBLEMS AND RISKS}
+
+
+
+\chapter{HELPER TOOLS}
+
+This chapter describes standalone applications that are required in order to
+help scheduler operation.
+
+\section{Execution Profile Editor}
+
+The execution profile editor gives users complete control on profile data,
+and makes it possible to modify, create from scratch or merge execution
+profiles. As a result of every modification of an execution count, the
+profile editor should update the execution counts according to control flow
+information so as to keep the profile consistent.
+
+The interface of this tool should be graphical. The tool should provide
+convenient navigation through program procedures and control flow graph.
+
+Updating of definition of execution counts should be provided in two main
+ways: direct definition of a basic block execution count or definition of
+the frequency (fraction of overall execution count) of each path of a branch
+point.
+
+[[add more]]
+
+
+
+\chapter{REJECTED OR ABANDONED IDEAS}
+
+\section{Ideas related to Hardware}
+
+\subsection{Optional Operands}
+Optional operands are not supported by TCE framework.
+\begin{enumerate}
+\item%
+  Optional operands imply that operation has a state.
+\item%
+  Property \emph{affected-by} could be different depending on presence of
+  optional operand.
+\end{enumerate}
+
+In practical cases, optional operands can be ``simulated'' by two operations:
+\begin{enumerate}
+\item%
+  An operation that initialises or sets the state defined by the optional
+  operand.
+\item%
+  An operation that carries out the ordinary action on the state.
+\end{enumerate}
+
+\subsection{Register Files Local to Function Units}
+
+Support for local operand and result register files in function units
+implies that a trigger destination specifies a RISC operation (which
+registers in input register file holds the values to be used and to which
+registers in output register file the results will be written). Unit ``looks
+like'' complete independent RISC processor.
+
+\subsection{Hardware Loops}
+
+A new type of control flow operation is introduced. From the point of view
+of hardware implementation and instruction scheduling, loop operations are
+is difficult to support. A loop operation defines a control flow transfer
+that occurs several cycles away, in a place in the code not immediately
+predictable from the position of the loop operation.
+
+Hardware loops are even harder to implement in processors that support
+exceptions.
+
+\subsection{Architecturally visible alignment}
+
+No alignment restrictions apply to instruction addresses. Instruction
+addresses are anyway not handled by the Scheduler (which works with
+instruction indices or references).
+
+In any case, alignment of instructions is rejected for following reasons:
+\begin{enumerate}
+\item%
+  It makes scheduling harder.
+\item%
+  It requires architectural support for encoding padding MAU's of
+  instruction memory.
+\item%
+  It detracts from instruction compression methods based on variable-length
+  encoding because it adds padding bytes.
+\end{enumerate}
+
+\subsection{Operation-level Abstraction for Program Representation}
+
+The reasons to prefer a representation of the program at level of operation
+rather than single moves are the following:
+\begin{enumerate}
+\item%
+  Smaller graph representing program.
+\item%
+  Easier on unscheduled ``well-behaved'' code
+\item%
+  Reflects close relation of moves of particular operation.
+\end{enumerate}
+
+The decision is to prefer the move-level of abstraction. In practical
+implementation, operations may still exist as helper objects that capture
+properties shared by a group of moves referring to the same operation.  For
+example, moves are picked up from the ready set based on the operation they
+belong to.
+
+\subsection{Support for Combined Compare and Logic Operation}
+
+Direct support for combined compare and logic operations comes in two kinds:
+3-input operations and operations with state (see blow).
+%
+In both cases, defining the operations is of little use unless the
+scheduling algorithm is aware that such operations exist and is capable of
+exploiting them effectively.
+
+Support can be added as a custom operation subset or as a part of base
+operation set. Only in the latter case can the operations be expected to be
+exploited by any scheduling algorithms.
+
+Both styles of combined operations are rejected. It seems much cleaner to
+support these operations in the general framework of complex (compound)
+operations (see Section~\ref{ch:pending:compound-operations}). A scheduling
+algorithm that can handle compound operations can also exploit this class of
+combined operations.
+
+\paragraph{3-Input combined compare and logic operations.}
+A combined operation of this kind takes three inputs: the two operands to be
+compared and the intermediate result to be logically combined with the
+result of the comparison:
+\begin{verbatim}
+  r1 -> eq-and.1, r2-> eq-and.2, b -> eq-and.3;
+  eq-and.4 -> b;
+\end{verbatim}
+
+This style of operation is simple because it has no state and all inputs are
+explicit. It makes it possible to combine an intermediate result stored in a
+register different from the final result's. On the other hand, this type of
+operations requires the value of the intermediate result to be ready earlier
+and requires and extra move. This can result in longer critical paths if,
+for example, the intermediate result is only defined in the same cycle in
+which the result move of the combined operation.
+
+\paragraph{Combined compare and logic operations with state.}
+A combined operation of this kind does not overwrite the result (Boolean)
+register. Instead, it applies a binary logic operation (\emph{and} or
+\emph{or}) to the result register and overwrites the result:
+\begin{verbatim}
+  r1 -> eq-and.1, r2-> eq-and.2;
+  eq-and.3 -> b;
+\end{verbatim}
+
+This style of operation is completely unusual (where the result implies also
+which state is going to be used ---the result register itself is treated as
+operation state). In practise, the result register resides outside the logic
+that implements the combined operation, but from the scheduler point of view
+it is as if it were part of the operation's state.
+
+Practical implication of adding this kind of operations to base operation
+set is that base operation set will include operations with state. When
+added as a custom operation, such a feature is of no interest from a point
+of view of this document (simple operation with state).
+%
+However, the scheduler is not expected to be aware of custom
+operations.\note{%
+  see PENDING \ref{ch:pending:custom-awareness}}
+%
+In that case, a separate pre-pass (or a plug-in module that can be invoked
+during scheduling) must be responsible for exploiting this kind of
+operations.
+
+\paragraph{Conclusion.}
+The 3-input alternative has the following advantages:
+\begin{enumerate}
+\item %
+  More dataflow freedom (possibility to use different registers for
+  intermediate and final result).
+\item %
+  Easier to analyse the code (no operation state).
+\end{enumerate}
+%
+The operations with state have the following advantages:
+\begin{enumerate}
+\item %
+  Efficiency: one extra move is avoided (the destination of the result move
+  implies the state/input).
+\item %
+  Efficiency: in some cases, it is possible to trigger the operation
+  earlier and reduce the critical path.
+\end{enumerate}
+
+\section{Ideas Related to Schedule Design}
+
+\subsection{Concurrent Scheduling Runs and Configuration File}
+
+The idea is to support parallel scheduling runs at level of configuration
+file. Several scheduling runs on the same code in parallel can be specified
+by entries of the configuration file. Each run can use different parameters
+and the same scheduling algorithm or different algorithms for one or more
+scheduling subtasks. The scheduler controller chooses the ``best'' result
+from possible alternatives. The meaning of ``best'' is also to be defined
+(smallest number of instructions, smallest average number of moves per
+instruction, and so on).
+
+This alternative is superseded by the hierarchical scheduling algorithms.
+Also, it is not clear in this alternative what exactly is the task of the
+scheduler controller and how does it work in the simpler case of a single
+scheduling algorithm.
+
+\subsection{Alternative Scheduling Runs and Configuration File}
+
+The scheduling sub-modules and the code transformation passes, their order
+or choice may be different for different scopes.
+%
+The idea is that the configuration may specify different settings of
+submodules and passes for individual program scopes. For example, the kernel
+of a program may be optimised more then the rest of program.
+
+This alternative is superseded by the hierarchical scheduling algorithms,
+limited to the scheduling algorithm proper (and its sub-modules). General
+selection of code transformation passes for individual program scopes is not
+supported at all (too complicated).
+
+\subsection{Full-blown Scripting for Scheduler Configuration File}
+
+Define a simple scripting language for the Scheduler configuration file. Such
+language would entail simple control flow and hierarchical pass declarations
+(that is, passes that invoke other passes). For example, a complex pass
+could be declared as follows:
+\begin{verbatim}
+  pass_const_propagate [parameters]{
+  while(do_const_propagate() == 1 ())
+      pass_const_fold;
+      pass_clear_dead_code;
+  do
+  }
+\end{verbatim}
+%
+where \verb|do_const_propagate() == 1| indicates that something was changed
+during the constant propagation pass. The constant folding and dead code
+elimination passes are invoked internally by the constant propagation pass.
+
+This type of functionality has been replaced by internal hierarchical
+invocation by code analysis and transformation passes.
+
+\subsection{Simple Text Format for Scheduler Configuration File}
+
+The configuration file format consists of multiple declaration entries. Each
+entry can span multiple physical lines and has the following format:
+\begin{quote}\tt
+  \parm{type}/\parm{task} = \parm{module-name}
+      \verb|{| \parm{options}\ldots \verb|}|
+\end{quote}
+%
+where \emph{type}, \emph{task} and \emph{module-name} indicate,
+respectively, the name of the type of pass, the (sub)task of the pass and
+the plug-in module that implements such subtask.
+%
+The task can be omitted. If not present, it is implied that all tasks of the
+pass are implemented in the given plug-in module.
+
+The module name can be replaced by another type/task pair. It means that the
+declared task is implemented by a separate, independent plugin-module, but
+is rather integrated together with another pass' task.
+
+This alternative format was rejected in favour of an equivalent XML-based
+format because XML can be verified and parsed automatically with existing
+code base, it is (in this case) terse enough for manual editing, and is
+easier to expand in the future.
+
+\subsection{Formal Declarations of Module-Pass Dependencies}
+
+The Scheduler models and enforces explicitly declared dependencies,
+anti-dependencies and preconditions that define the minimal ordering
+constraints between passes of the code transformation and scheduling chain.
+
+The passes and cooperating plug-in modules declarations include explicit
+dependencies. For example, a scheduling algorithm that requires certain data
+structures to be built will declare this explicitly, and so will a pass that
+is capable of constructing these data structures.
+
+This framework controls correctness of the configuration file with respect
+to modules that are mutually exclusive (incompatible in the same scheduling
+chain), the number of parameters (additional input files, for example) for
+specific modules, and so on.
+
+This functionality is completely rejected because:
+\begin{enumerate}
+\item %
+  It cannot anticipate dependencies with future modules and predict complex
+  ordering conditions.
+\item %
+  It is fragile. Explicit declarations rely on user being respectful of this
+  mechanism and declare dependencies correctly. This increases the chances
+  of inconsistencies with respect to the actual module behaviour (forgotten
+  or wrong dependencies).
+\item %
+  It is hard to maintain ordering constraints when passes are updated. An
+  ordering can be rejected even if a newer module implementation tolerates
+  it. Conversely, an ordering may be allowed even if the module has changed
+  and is now dependent on something it didn't depend on.
+\end{enumerate}
+
+\section{Ideas Related to Overall System Design}
+
+\subsection{Additional Instruction Encoding Algorithm}
+
+The Scheduler accepts an instruction encoding algorithm as parameter of
+scheduler configuration (see~\ref{ssec:files:config}). Such algorithm object
+defines the size of each TTA instruction in the target architecture when the
+instruction encoding is of variable length.
+
+This solution has been rejected in favour of post-scheduling address
+adjustment. The encoding algorithm is left unspecified during instruction
+scheduling. From the scheduler point of view, instruction encoding is
+assumed to be of fixed length, and instructions have constant size equal to
+1 MAU.
+
+\subsection{Configuration File as Backend Driver Input}
+
+Instead of a simple configuration file for the Scheduler application, the
+configuration file lists and launches any type of standalone applications
+(code analysis and transformation, possibly even profiling runs of
+simulation) related to code generation. In practise, such file is read by a
+backend equivalent to the usual compiler drivers.
+%
+In this case, an actual backend driver application is needed. This
+application should operate similarly to common compiler drivers (such as
+GCC): scan the configuration file, select and run the compilation passes as
+necessary. This would possibly allow future extensions, as for instance
+specifying in configuration file which of available front end compilers to
+use.
+
+This idea is rejected in favour of an application-specific (Scheduler)
+configuration file that control only dynamically linked modules that form
+the code transformation and scheduling chain.
+
+
+
+\chapter{IDEAS FOR FURTHER DEVELOPMENT}
+
+% Ideas that are not part of the specifications yet but that might be
+% required in future are listed here.
+
+\begin{description}
+\item[27.06.2005] -- scheduling without a target architecture definition.
+
+  This could be an alternative use case scenario for scheduling with a given
+  and fixed target architecture. Instead of reading an architecture
+  definition and setting up the support structures for scheduling and
+  resource assignment, the scheduler works assuming infinite (or loosely
+  bound) resources. This scheduling mode could be useful to replace an
+  arbitrary initial target architecture for design exploration or to
+  estimate a practical ILP upper bound of the target application.
+%
+  ---A.~Cilio
+\item[27.06.2005] -- feedback-guided scheduling.
+
+  The scheduler could read back statistical information and the scheduling
+  trace generated during a previous scheduling run, and use such information
+  as a guidance for heuristics that control the scheduling algorithm.  This
+  process could be iterated several times.
+%
+  This is an open issue for future research. A major challenge is probably
+  finding stable and reliable correlations between feedback data and
+  heuristic-based decisions.
+%
+  ---A.~Cilio
+\item[04.07.2005] -- Re-schedule fully scheduled TTA code.
+
+  In practise, this requirement leads to solving a problem (re-scheduling)
+  that is radically different from ``pure scheduling'' of sequential code.
+  Re-scheduling is a much harder problem.
+%
+  ---A.~Cilio
+
+\item[20.07.2005] -- Vectorisation.
+
+  Support for vector operations and vectorisation requires fundamental
+  extensions to the framework. The Machine Object Model must be extended
+  with the introduction of vector registers and vector function units.
+  Possibly, also the Program Object Model needs to be extended (TPEF less
+  likely so, thanks to its extensible annotation system). At very least,
+  some standard annotation seems necessary in order to represent vector
+  storage elements and operations in the target program. Finally, it's very
+  likely that additional operations for packing and unpacking will be needed
+  for convenient support of vectors.
+%
+  ---A.~Cilio, V.~Guzma
+\item[19.08.2005] -- User control on scheduling at scope level.
+
+  \note{DISCUSS: maybe allow user control at level of procedures, not
+    scopes. Per-scope selection of algorithms and parameters could be
+    automatically handled by sophisticated scheduling passes}
+%
+  The user can specify different code transformations and scheduling
+  algorithms for different scopes of program (for example, per procedure or
+  basic block). This feature is useful to perform the strongest
+  optimisations on the most critical parts of the program (kernel of
+  application).
+\item[27.09.2005] -- Support for C++ demangling.
+
+  It would be user-friendlier to support demangled names when using option
+  `-p' of Scheduler. However, the mangling scheme is highly dependent on the
+  frontend compiler, and it is not quite clear how such information could go
+  down to Scheduler.
+%
+  ---A.~Cilio
+\item[10.10.2005] -- Module-specific options in command line.
+
+  Currently, the user needs to edit the scheduler configuration file
+  whenever he wants to change options specific to a single pass module. To
+  improve usability, the Scheduler could give the possibility to enter
+  module options in its command line. These options would take priority over
+  the options specified in the configuration file.
+
+  A possible syntax: ``\verb|--modoption|
+  \texttt{\parm{module}:\parm{option}}'', where \emph{module} is the module
+  name, and \emph{option} is the option given to module. Double quotes may
+  be needed when the option contains spaces, or \emph{modoption} may be
+  repeated.
+%
+  ---A.~Mets‰halme
+\item[10.10.2005] -- Changing log level while the scheduler is running.
+
+  Problem is how to let users interact to change the level. One possibility
+  is to ``hijack'' the prompts from interaction points. For example, a
+  yes/no prompt string from the scheduler could be: ``Proceed with register
+  spilling? (Y/n/h/o)'', where `h' stands for help, and `o' brings to a menu
+  for changing global scheduler options.
+%
+  ---V.~Guzma
+
+\end{description}
+
+\section{Concurrent Scheduling Runs}
+
+The Scheduler uses heuristic-based algorithms that can be tuned by means of
+parameters. Users may set the boundary values for those parameters.
+Scheduler then create copies of a scope/program and run scheduling algorithm
+on each copy with different heuristic parameters. After all schedules are
+finished, scheduler/user will choose the most suitable result.
+
+This would be possible to implement as distributed computation on several
+computers.
+
+This feature is internal to hierarchical scheduling algorithms. At a higher
+level, external client applications (such as Explorer) can, in turn, handle
+multiple distributed scheduling processes (each one with a different target
+architecture or possibly a different parameter and pass set).
+
+\section{Cyclic Scheduling}
+
+Cyclic scheduling (software pipelining) is not likely to be implemented in
+early version of scheduler.  However, it should be kept in mind while
+designing modules that such a method is to be implemented in future.
+
+It could be advisable to investigate different cyclic scheduling methods
+other than the most popular and tested, which is Modulo Scheduling.
+
+\section{Compression-Aware Scheduling}
+\label{ch:future:compression}
+
+Some code compression methods may produce better results if scheduler is
+aware of their presence. A compression-aware scheduler may try to increase
+the potential for compression and thus improve the performance of the
+compressor.
+
+An example is offered by compression methods based on instruction templates.
+The scheduler can try to make similar instructions use the same move slots,
+and therefore the same instruction template. This may reduce the number of
+templates and the ``entropy'' of template occurrence, and therefore increase
+the potential compression.
+
+It seems that the two parts of the scheduler most affected by compression
+effects are the selection heuristic and the resource assignment heuristic.
+%
+\note{left for future research}
+
+Code compression may also have a visible, restricting effect on the target
+architecture.  Unless special mechanism to escape compression is provided,
+dictionary-based compression methods, once the dictionary is built, limit
+quite heavily the programmability of a processor. For example, if the
+dictionary is built at level of single move slots, a compressed program can
+be modified only if all the moves of the modified code are in the dictionary
+built for the original version of the code.
+
+A compression-aware scheduler could be informed about what kind of moves are
+allowed/not allowed so that it could compile code for the processor that
+executing compressed instructions. The performance would decrease, but the
+processor could still be programmed. This kind of a feedback mechanism would
+be good to be supported.
+
+This type of restriction, however, could be modelled as a generic set of
+scheduling restrictions that are added to the base architecture definition
+found in ADF. A possible design would be a separate file that specifies
+architectural constraints not due to the hardware structure, much in the
+same way ADF specify the architecture for a plain instruction encoding
+algorithm.
+
+This approach can become very complicated due to complex restriction
+relations between moves and processor resources (mutual exclusive,
+``2-out-of-3'' types of relations, etcetera).
+
+
+
+\chapter{PENDING ISSUES}
+
+\section{Scheduler application}
+
+This section lists issues related to Scheduler application itself.
+
+\subsection{Custom Operation Semantics}
+\label{ch:pending:custom-awareness}
+
+Few operations, as explained in Section~\ref{ssec:fundamental-operations},
+are so fundamental that require that the scheduling algorithms be aware of
+their precise behaviour.
+
+It may occur that new custom operations (user-defined or anyway not handled
+by front-end compiler) would profit considerably by a scheduling algorithm
+that is aware of their behaviour. Some operations may not even be utilised
+outside the scheduling algorithm. However, the scheduling algorithms cannot
+anticipate behaviour of yet-to-define custom operations, nor we can ask a
+toolset user to extend all existing scheduling algorithms with awareness of
+the new custom operations.
+
+Still, a (perhaps limited) form of modular scheduler-awareness of custom
+operations would be very useful.
+
+\section{Software algorithms}
+
+This section lists open issues related to algorithms implemented in
+Scheduler.
+
+\subsection{Multiple Instances of Operations with State}
+\label{ch:pending:state-operation}
+
+In sequential code, a mechanism to specify when multiple operations with
+internal state are related (that is, are expected to access the same
+instance of operation state) and when not. Such mechanism must somehow
+convey the information about the state usage implied by an operation with
+state.
+
+In addition, this mechanism should be completely independent and unrelated
+with the properties of the target architecture. For example, identification
+of state instances cannot be implemented as a partial assignment to
+predefined function units of the target architecture.
+
+\subsection{Operations with State and Function Calls}
+\label{ch:pending:state-interprocedural}
+
+The live range of operation state may cross scheduling barriers.  A
+programmer may wish to use operation with state across function calls.
+\emph{Example}:
+\begin{quote}
+OPSTATE - operation with state, scheduler assigns it to unit S1\\
+CALL X  - function call, function X uses or changes operation with state,
+scheduler assumes that it will use unit S1\\
+OPSTATE     - another operation with state in caller procedure, uses
+unit S1 if there was no dataflow break\\
+...\\
+// Another procedure that contains a call to X\\
+OPSTATE     - procedure contains a call to X, and X is already marked to
+be using unit S1, thus this operation also has to use unit S1\\
+CALL X  - Already marked to be using unit S1\\
+\end{quote}
+
+Possible solutions to this problem are:
+\begin{enumerate}
+\item %
+  Interprocedural propagation of state assignment to units. Once a unit is
+  assigned to an operation with state in a procedure which does not
+  initialise the state, the assignment must be back-propagated to every call
+  site of the procedure. This approach leads to efficient scheduling, but
+  may fail in some complicated cases (for example, when assignment to a
+  given unit is impossible in one of the call sites because the same unit is
+  already assigned to another operation with state).
+\item %
+  Additional support for operation state and restore across call.  This
+  solution could be implemented as additional operation properties that mark
+  operations that provide means to read state data from program variables
+  (GPR's, immediate values or FU outputs) and to write it back to program
+  variables. The problem is, how can the system --- should it at all? ---
+  force users to define state initialiser and state saver support operations
+  for every variable of a given operation with state. This solution will
+  work always when the support save/restore operations are available, but
+  such operations probably cannot be assumed to be always present.
+\end{enumerate}
+
+It seems that a combinations of both solutions is necessary and, in the
+worse cases, even this combination cannot warrant scheduling. A simpler and
+rougher solution is to pre-assign operation state across function calls
+before scheduling.
+
+\section{Supported Hardware}
+
+This section lists open issues related to hardware (FU's) supported by
+Scheduler.
+
+\subsection{Compound (Complex) Operations}
+\label{ch:pending:compound-operations}
+
+Compound operations are operation patterns made of two or more (base or even
+custom) operations. Such operations do not exist in the TTA operation
+repertoire, but are synthesised by TCE toolset in combination with ADF
+data.\note{%
+  ADF support for compound operations not yet defined}
+
+Scheduling algorithms or pre-scheduling passes (such as peephole
+optimisation passes) may be aware and take advantage of available compound
+operations.
+
+\subsection{Autoincrement Load and Store Operations}
+
+In its most efficient and specialised form, an auto-increment operation
+(load, for example) looks like this:
+\begin{quote}
+\begin{verbatim}
+ldwi.1 -> r.5
+\end{verbatim}
+\end{quote}
+
+This one-move operation will write the value loaded from memory by previous
+load operation into register `r.5', and at the same time will (1) begin to
+update the internal memory address for next load operation, adding a fixed
+increment to it, (2) initiate a new load request from current internal
+memory address. Alternatively, steps (1) and (2) above can be swapped,
+creating one more stage in the operation: (a) increment, (b) initiate load,
+(c) read the loaded value.
+
+This type of operations requires support for operations with state (for the
+internal memory address) and trigger-on-result.
+%
+\note{left for future development}
+%
+Since optional operands are not supported (rejected feature), this type of
+operations requires a special ``helper'' operation for setting the internal
+state and trigger the first operation, so that the result is ready for the
+first triggering result move:
+\begin{quote}
+\begin{verbatim}
+0x100 -> sbai.1 # set auto-incremented base address
+\end{verbatim}
+\end{quote}
+
+In a more general version of the auto-increment load of above example, the
+increment can be a parameter (and treated as internal operation state) set
+by a special ``helper'' operation:
+\begin{quote}
+\begin{verbatim}
+2 -> slinc.1 # set auto-increment value for load operation
+\end{verbatim}
+\end{quote}
+
+In this version, the auto-increment operations are harder to analyse, but
+may be very useful in loops that access memory with regular but not fixed
+patterns.
+%
+The increment value may change within a chain of auto-increment load
+operations.\footnote{
+%
+  Many applications access memory in regular pattern more complex then
+  simple increment. However, Steven Pekarich suggested that use of
+  auto-increment load-store is less beneficial than expected.}
+
+A less efficient version of the auto-increment load could avoid
+trigger-on-result and require an explicit operand move to specify the
+increment of the next address.
+%
+There are two versions, identically-looking but very different, of this
+operation: pre-increment and post-increment.
+
+With a pre-increment, the
+operation:
+\begin{quote}
+\begin{verbatim}
+2 -> ldwi.1
+ldwi.2 -> r.5 
+\end{verbatim}
+\end{quote}
+is equivalent to a compound operation (see
+Section~\ref{ch:pending:compound-operations}): an add operation that
+computes the memory address followed by a load operation. This version of
+auto-increment load defeats the main purpose of auto-increment: to pre-load
+the next memory word so that its latency can be hidden.
+
+With post-increment, the first move triggers an increment of the internal
+memory address and, after the new address is computed, a load from memory,
+while the result move reads the result of \emph{previous} load-increment
+operation. In fact, the two moves are not related from dataflow point of
+view, and their order can even be reversed:
+\begin{quote}
+\begin{verbatim}
+ldwi.2 -> r.5 
+2 -> ldwi.1
+\end{verbatim}
+\end{quote}
+
+Any of the versions of auto-increment operations shown above cannot be
+replaced by a standard load-store unit and a custom function unit that
+modifies or computes the memory address.\footnote{
+%
+  As suggested by Jarmo Takala.}
+%
+The reason is simple: if the address is computed externally, it must be move
+through the programmable transport network, so there is no significant gain
+in term of efficiency (power consumption, reduced number of moves, reduced
+register pressure).
+
+Compare:
+\begin{quote}
+\begin{verbatim}
+0x300 -> ldw-base.1 # set base address to increment (state)
+. . .
+0 -> ldw-incr.1     # dummy trigger
+ldw-incr.1 -> r3    # triggering result
+\end{verbatim}
+\end{quote}
+with the less efficient:
+\begin{quote}
+\begin{verbatim}
+ 0x300 -> incr-base.1 # set base address to increment (state)
+ 0 -> incr.1          # dummy trigger
+ incr.2 -> ldw.1
+ ldw.2 -> r3
+\end{verbatim}
+\end{quote}
+which costs at least one more move, and maybe two (if software bypassing is
+not applied). (Note that in both versions the dummy trigger is avoided if
+trigger-on-result is applied.) The second version has all the requirements
+of the load-increment version (operation state, a separate base-setting
+operation, trigger-on-result if applicable) but little of its benefits.
+
+\subsection{Custom Operations Cannot be Affected by Base Operations}
+
+This rule applies to operations with state\footnote{This is design
+decision in a way.}. The rule needs to be also
+extended other way around, so no base operations can be affected by custom
+operations. Reason is that support for combined compare and logic
+operations will add operations with state to basic operation set.
+
+% ------------------------------------------------------------------------
+
+\appendix
+
+
+\chapter{OPTIMISATIONS}
+\label{app:optimisations}
+
+This chapter describes the set of code-improving transformations
+(``optimisations'' in short) for which the Scheduler provides at leas one
+implementation. Some of these optimisations may be implemented as separate
+independent passes. Since many optimisations benefit from or even require
+other optimisations in order to deliver any code improvement, it is not
+unusual that several optimisations are grouped into a single pass.
+
+\section{Loop Peeling}
+\label{sec:opt:loop-peel}
+
+Loop peeling is a code transformation that replaces one or more iterations
+from a loop with an equal number of copies of the loop body. The code thus
+created form a loop preamble (if the first iterations are peeled) or a loop
+post-amble (if the last iterations are peeled).
+
+\paragraph{Benefit:}
+More aggressive optimisations can be applied on the peeled copies of the
+loop body (acyclic code). Under certain conditions (minimum number of
+iterations guaranteed) the control flow between the peeled copies of the
+loop body can be removed.
+
+\paragraph{Drawbacks:}
+Code increase, higher resource pressure.
+
+\paragraph{Requires or benefits from:}
+Loop pre-conditioning.
+
+\section{Loop Pre-conditioning}
+\label{sec:opt:loop-condition}
+
+\paragraph{Benefit:}
+
+\paragraph{Drawbacks:}
+
+\paragraph{Required by or useful for:}
+Loop peeling.
+
+\section{Loop Unrolling}
+\label{sec:opt:loop-unroll}
+
+\paragraph{Benefit:}
+
+\paragraph{Drawbacks:}
+
+\paragraph{Requires or benefits from:}
+Loop pre-conditioning.
+
+\section{Loop Merging}
+\label{sec:opt:loop-merge}
+
+\section{Loop Fission}
+\label{sec:opt:loop-fission}
+
+\section{Dead Code Elimination}
+\label{sec:opt:dead-code}
+
+\paragraph{Benefit:}
+Removed potential execution of useless code and wasted resource usage (by
+predication). Code size reduction. Reduced instruction cache pressure.
+
+\paragraph{Drawbacks:}
+This is one of the few architecture-independent and nearly-always profitable
+optimisations. However, in some cases, the rearrangement of instructions
+could increase the instruction cache miss ration.
+
+\paragraph{Requires or benefits from:}
+Many optimisations create dead code as a side effect, and therefore require
+dead code elimination to fully express their benefit.
+
+\section{Function inlining}
+\label{sec:opt:inlining}
+
+\paragraph{Benefit:}
+Elimination of the function call overhead (control transfers, stack pointer
+setup, argument passing. Potential reduction of register save-restore
+overhead.
+
+\paragraph{Drawbacks:}
+Increased code size and, on rare occasions, even cycle count increase.
+Higher resource pressure, especially register pressure, since inlined code
+does not benefit from the save-restore convention.
+
+\paragraph{Useful for:}
+Inlined code is often amenable to new and increasingly effective
+optimisation opportunities, such as constant folding and propagation, dead
+code elimination, etc. For this reason, it is usually beneficial to apply
+function inlining before other optimisations (or repeat the optimisations
+after function inlining).
+
+\section{Constant Propagation}
+\label{sec:opt:const-propagate}
+
+\paragraph{Benefit:}
+Reduced register pressure.
+
+\paragraph{Drawbacks:}
+Since it replaces usage of a resource such as a GPR with an immediate,
+constant propagation results in less efficient resource utilization and
+slower code in every situation in which immediate-related resources are more
+critical than the alternative.
+
+\paragraph{Required by or useful for:}
+Constant folding.
+
+\section{Constant Folding}
+\label{sec:opt:const-fold}
+
+\paragraph{Benefit:}
+Elimination of an operation and all associated resources. Reduced register
+pressure when the result of the operation is not bypassed.
+
+\paragraph{Drawbacks:}
+Since it replaces usage of a function unit with an immediate, constant
+folding results in less efficient resource utilization and slower code in
+those (fairly rare) situations in which immediate-related resources are more
+critical than all the resources taken up by the operation that it removes.
+
+\paragraph{Required by or useful for:}
+Constant propagation.
+
+\section{Value Numbering}
+\label{sec:opt:value-numbering}
+
+Value numbering is the process of assigning a unique identifier (or
+``number'') to each variable (or live range) of the program.
+
+Value numbering is not, properly speaking, an optimising code
+transformation. If the program representation allows to mark variables or
+GPR's with a unique identifier, value numbering may not even modify the
+code.
+
+\paragraph{Benefit:}
+After value numbering every variable or live range of the program is
+uniquely identified, and the code is more amenable to certain dataflow
+analysis and code transformations.
+
+\paragraph{Drawbacks:}
+If value numbering is applied by actually assigning a different register to
+each variable, it must be undone. It unlikely that a processor can even run
+a program with such high register demands as those required by value
+numbering.
+
+\paragraph{Required by or useful for:}
+SSA analysis and conversion, nearly any dataflow analysis.
+
+\section{SSA Form Conversion}
+\label{sec:opt:ssa-conversion}
+
+Static Single Assignment (SSA) form conversion consists in two actions: (1)
+assigning a new, unique variable or value identifier to each point in the
+program were a program variable is defined; (2) inserting a merge node (the
+phi-function) wherever, due to control flow merge points, two or more values
+coming from different definitions come to be used as the same variable. The
+new value produced by an instance of the phi function is also assigned a new
+unique identifier.
+
+\paragraph{Benefit:}
+After SSA conversion every value used in the program comes from one and only
+one definition point (possibly a phi node), and the code is more amenable to
+certain dataflow analysis and code transformations.
+
+\paragraph{Drawbacks:}
+SSA conversion creates a large number of unique values (in fact, the maximum
+possible number in any give program). This increased the complexity of the
+register allocation problem. In some cases, phi nodes cannot be absorbed by
+register assignment, and result in code overhead (register copies).
+
+\section{Name of Optimisation}
+\label{sec:opt:name-optimisation}
+
+\paragraph{Benefit:}
+
+\paragraph{Drawbacks:}
+
+\paragraph{Useful for:}
+
+
+\chapter {SOFTWARE PIPELINING}
+\label{ap:SW-pipelining}
+
+Normally, the operation reordering performed by the instruction scheduler
+is limited to forward control flow paths. In other words, the backward
+control flow paths of a loop are scheduling barriers.
+
+Software pipelining is method for scheduling instructions of loops without
+this barrier.  When effectively applied, software pipelining delivers
+results similar to loop unrolling without the corresponding increase in code
+size.
+
+Instruction scheduling algorithms that implement software pipelining are
+called ``cyclic'' and have a strong influence on several parts of scheduler.
+One of such cyclic scheduling algorithms is \emph{Modulo
+  Scheduling}~\cite{Rau94}. In the rest of this section only Modulo
+Scheduling will be considered.
+
+First of all, a modulo scheduler needs to be informed about an initiation
+interval, that is, the number of cycles between the start of two consecutive
+iterations of the same loop. This requires a pre-scheduling analysis phase
+that estimates the initial, tentative initiation interval.\footnote{
+%
+  The initiation interval computed is based on data flow in loop and depends
+  on the latency of operations. However, operation latency depends on the
+  function unit assigned to the operation. This means that resource
+  assignment affects the initiation interval.}
+
+%% REMOVED UNTIL MISS SYNTAX MAKES PEACE WITH VLADO AGAIN
+%% ------------------------------------------------------
+% A cyclic scheduling algorithm manages resource assignment and bookkeeping
+% in a special way. It must control the resource check and test if the
+% result will not appear after end of basic block [[clarify]]. In such a
+% case, with use of modulo operation and initiation interval, the new
+% position of result has to be calculated, in following iteration of loop.
+
+The resource manager may not need to know about initiation interval. The
+modulo scheduler may do the necessary tests.
+%
+\note{VERIFY}
+
+In cyclic scheduler, the consumer of a definition may appear before (in an
+earlier cycle) than the producer. The scheduler must take this into account.
+Also, in cyclic scheduling an operation may be scheduled before the
+operations it depends on. In this case, the scheduler needs to test if the
+cycle in which the definition is scheduled does not exceed cycle of earliest
+consumer. Simply speaking, while in acyclic scheduling algorithms, we deal
+with data dependencies that go ``forward'', in modulo scheduler we also
+have loop carried dependencies, and we need to deal with loop carried
+operation latencies.
+
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+%% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% mode: auto-fill
+%%% TeX-master: t
+%%% End:

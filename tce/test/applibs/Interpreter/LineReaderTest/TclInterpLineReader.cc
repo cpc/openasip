@@ -1,0 +1,111 @@
+/**
+ * @file TclInterpLineReader.cc
+ *
+ * A little test program for TclInterpreter and LineReader.
+ *
+ * @author Jussi Nyk‰nen 2004 (nykanen@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ */
+
+#include <string>
+using std::string;
+#include <iostream>
+using std::cout;
+using std::endl;
+#include <vector>
+using std::vector;
+
+#include "TclInterpreter.hh"
+#include "EditLineReader.hh"
+#include "BaseLineReader.hh"
+#include "LineReaderFactory.hh"
+#include "CustomCommand.hh"
+#include "DataObject.hh"
+#include "Exception.hh"
+
+/**
+ * Test CustomCommand that asks user for confirmation.
+ */
+class TestCmd : public CustomCommand {
+public:
+    TestCmd();
+    virtual ~TestCmd();
+
+    virtual bool execute(const vector<DataObject>& arguments)
+        throw (NumberFormatException);
+    virtual string helpText() const;
+};
+
+/**
+ * Constructor.
+ */
+TestCmd::TestCmd() : CustomCommand("foo") {
+}
+
+/**
+ * Destructor.
+ */
+TestCmd::~TestCmd() {
+}
+
+/**
+ * Executes foo command.
+ *
+ * @return True, if execution is succesfull, false otherwise.
+ * @exception NumberFormatException Can not throw.
+ */
+bool
+TestCmd::execute(const vector<DataObject>&) 
+    throw (NumberFormatException) {
+    
+    ScriptInterpreter* interp = interpreter();
+    LineReader* reader = interp->lineReader();
+    DataObject* obj = new DataObject();
+    
+    if (reader->confirmation("Are you sure? ")) {
+        obj->setString("foo executed");
+        interp->setResult(obj);
+        return true;
+    } else {
+        obj->setString("foo is not executed");
+        interp->setResult(obj);
+        return false;
+    }
+}
+
+/**
+ * Returns help string of the command.
+ *
+ * @return The help string.
+ */
+string
+TestCmd::helpText() const {
+    return "Useless test command";
+}
+
+/**
+ * Test program for LineReader and TclInterpreter.
+ *
+ * Reads user inputs and interprets them until "quit" command is given.
+ */
+int main(int argc, char* argv[]) {
+    TclInterpreter interpreter;
+    LineReader* linereader = LineReaderFactory::lineReader();
+    TestCmd* cmd = new TestCmd();
+    interpreter.initialize(argc, argv, NULL, linereader);
+    interpreter.addCustomCommand(cmd);
+    linereader->initialize("(test) ");
+    string command = "";
+    bool cont = true;
+    while (cont) {
+        command = linereader->readLine();
+        if (command == "quit\n") {
+            cont = false;
+        } else {
+            interpreter.interpret(command);
+            cout << interpreter.result() << endl;
+        }
+    }
+    delete linereader;
+    interpreter.finalize();
+}

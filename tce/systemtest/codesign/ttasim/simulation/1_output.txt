@@ -1,0 +1,19 @@
+Hello TTA world!
+Yeah!Yeah!Yeah!Yeah!Yeah!Bye!
+
+
+_crt0:
+0:		sp -> stw.1 ;
+1:		ra -> stw.2 ;
+2:		sp -> add.1 ;
+3:		-4 -> add.2 ;
+4:		add.3 -> sp ;
+5:		16777216 -> sp ;
+6:		_main -> call.1 ;
+7:		sp -> add.1 ;
+8:		4 -> add.2 ;
+9:		add.3 -> sp ;
+10:		sp -> ldw.1 ;
+11:		ldw.2 -> ra ;
+12:		ra -> jump.1 ;
+

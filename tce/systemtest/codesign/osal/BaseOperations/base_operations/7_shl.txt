@@ -1,0 +1,7 @@
+shl 2 2
+shl 10 3
+shl 1000000 1
+shl 6 5
+!output bin
+shl 100001b 5
+!quit

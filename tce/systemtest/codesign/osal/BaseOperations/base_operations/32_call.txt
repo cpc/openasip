@@ -1,0 +1,9 @@
+!register programcounter
+call 100
+!register returnaddress
+!register programcounter
+call 0xabba
+!register returnaddress
+!output hex
+!register programcounter
+!quit

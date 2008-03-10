@@ -1,0 +1,2 @@
+Tests a simple for-loop.
+

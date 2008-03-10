@@ -1,0 +1,35 @@
+About autotools
+===============
+
+Motivation for the use of autotools is to ease the maintanence of Makefiles 
+as well as to ease the building and installation the project on the many 
+different platforms.
+
+configure.ac is configuration file placed in the root directory of the project.
+configure.ac checks for certain things, eg. C++ compiler, header files, or
+functions. Based on these checkings a header file named config.h is generated.
+config.h can then be included in source code files where it is needed.
+configure.ac is given as a input to autoconf, which generates configure 
+script that can then be executed.
+
+Makefile.am is an input file for automake. Usually every project directory
+contains its own Makefile.am. In Makefile.am you can specify what programs
+you want to build. You can place there also regular Makefile rules if
+necessary.
+
+Usage
+=====
+
+Every time you have edited one of the Makefile.am's or configure.ac, you need 
+to update generated files (configure, Makefile.in's). The easiest way to do
+that is to go to the root directory of the project and type
+
+autoreconf -v        (-v prints a little information)
+
+To generate Makefile's and config.h, you need to type
+
+./configure
+
+Then you can build everything just by typing
+
+make

@@ -1,0 +1,26 @@
+/**
+ * @file Script.icc
+ *
+ * Inline implementation of Script class.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ */
+
+/**
+ * Returns the last result as a DataObject.
+ *
+ * @return Last result.
+ * @exception InvalidData If script has never been executed.
+ */
+inline DataObject
+Script::lastResult() 
+    throw (InvalidData) {
+  
+    if (!executeCalled_) {
+        std::string method = "Script::lastResult()";
+        std::string message = "execute() never called";
+        throw InvalidData(__FILE__, __LINE__, method, message);
+    }
+    return result_;
+}
+

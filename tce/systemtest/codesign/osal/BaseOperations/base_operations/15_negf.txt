@@ -1,0 +1,6 @@
+!output float
+negf 1.234f
+negf -1.234f
+negf 234.345f
+negf -234.345f
+!quit

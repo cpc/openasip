@@ -1,0 +1,217 @@
+/**
+ * @file FileSystem.icc
+ *
+ * Inline definitions of FileSystem class.
+ *
+ * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen@tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta@tut.fi)
+ */
+
+#include <boost/filesystem/operations.hpp>
+#include <boost/filesystem/convenience.hpp>
+#include <boost/filesystem/exception.hpp>
+#include <boost/version.hpp>
+#include <boost/regex.hpp>
+
+#include "Environment.hh"
+
+// following includes are needed for fileIsDirectory's stat()
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+/**
+ * Tests if a file or directory exists.
+ *
+ * @param fileName The file or directory to test.
+ * @return True if file or directory exists.
+ *
+ */
+inline bool
+FileSystem::fileExists(const std::string fileName) {
+    return (access(fileName.c_str(), F_OK) == 0);
+}
+
+/**
+ * Tests if a file or directory is writable by user.
+ *
+ * @param fileName The file or directory to test.
+ * @return True if file or directory is writable.
+ *
+ */
+inline bool
+FileSystem::fileIsWritable(const std::string fileName) {
+    return (access(fileName.c_str(), W_OK) == 0);
+}
+
+/**
+ * Tests if a file or directory is readable by user.
+ *
+ * @param fileName The file or directory to test.
+ * @return True if file or directory is readable.
+ *
+ */
+inline bool
+FileSystem::fileIsReadable(const std::string fileName) {
+    return (access(fileName.c_str(), R_OK) == 0);
+}
+
+/**
+ * Tests if the given file is a directory.
+ *
+ * @param fileName The file to test.
+ * @return True if the file is a directory.
+ *
+ */
+inline bool
+FileSystem::fileIsDirectory(const std::string fileName) {
+    struct stat buf;
+    if (stat(fileName.c_str(), &buf) != 0) {
+        return false;
+    }
+    return S_ISDIR(buf.st_mode);
+}
+
+/**
+ * Executes a shell command.
+ *
+ * @param command Command to be executed.
+ * @return True if the command was executed successfully, otherwise false.
+ */
+inline bool
+FileSystem::runShellCommand(const std::string command) {
+    int returnValue = system(command.c_str());
+    if (returnValue == 0) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+/**
+ * Returns the home directory of the current user.
+ *
+ * @return The home directory of the current user.
+ */
+inline std::string
+FileSystem::homeDirectory() {
+    std::string home = Environment::environmentVariable("HOME");
+    Path homePath(home);
+    return homePath.native_directory_string();
+}
+
+/** 
+ * Finds regex matching files and directories from a directory.
+ * 
+ * Finds files and directories that match given regular expression (perl
+ * format and case is ignored). Subdirectories are not recursively checked.
+ * Found file and directory names are appended to the given STL type 
+ * container. push_back() and empty() functions are expected to exists as
+ * member functions for the STL type class.
+ * True boolean value is returned if something was found, otherwise false is
+ * returned.
+ *
+ * @param regex Perl style regular expression.
+ * @param directory Directory where to search. 
+ * @param found Container where search results will be stored. 
+ * 
+ * @return True if something was found, otherwise false.
+ *
+ * @exception FileNotFound If the given directory does not exist.
+ */
+template <typename STLCONT>
+bool
+FileSystem::findFromDirectory(
+    const std::string& regex,
+    const std::string& directory,
+    STLCONT& found) 
+    throw (FileNotFound) {
+    
+    static const boost::regex re(regex, 
+         boost::regex::perl|boost::regex::icase);
+
+    std::vector<std::string> dirCont;
+    try {
+        dirCont = directoryContents(directory);
+    } catch (const FileNotFound& e) {
+        FileNotFound error(
+            __FILE__, __LINE__, __func__,
+            e.errorMessage());
+
+        error.setCause(e);
+        throw error;
+    }
+
+    std::vector<std::string>::iterator it = dirCont.begin();
+    while (it != dirCont.end()) {
+        if (regex_match(*it, re)) {
+            found.push_back(*it);
+        }
+        ++it;
+    } 
+     
+    return !found.empty();
+}
+
+/** 
+ * Finds regex matching files and directories from a directory recursively.
+ * 
+ * Finds files and directories that match given regular expression (perl
+ * format and case is ignored). Found file and directory names are appended 
+ * to the given STL type container as strings. push_back() and empty() 
+ * functions are expected to exists as member functions for the STL type 
+ * class. True boolean value is returned if something was found, otherwise
+ * false is returned.
+ *
+ * @param regex Perl style regular expression.
+ * @param directory Directory where to search. 
+ * @param found Container where search results will be stored. 
+ * 
+ * @return True if something was found, otherwise false.
+ */
+template <typename STLCONT>
+bool 
+FileSystem::findFromDirectoryRecursive(
+    const std::string& regex,
+    const std::string& directory,
+    STLCONT& found) {
+
+    using namespace boost::filesystem;
+
+    static const boost::regex re(regex, 
+         boost::regex::perl|boost::regex::icase);
+
+#if BOOST_VERSION < 103302
+    static const boost::regex reb("^\\..*|.*/\\..*", 
+        boost::regex::perl|boost::regex::icase);
+    if (regex_match(directory, reb)) {
+        return false;
+    }   
+#endif
+
+    if (!exists(Path(directory))) {
+        return false;
+    }
+
+    directory_iterator dirIt(directory);
+    directory_iterator endIt;
+    while (dirIt != endIt) {
+#if BOOST_VERSION < 103302
+        if (regex_match((*dirIt).string(), reb)) {
+            ++dirIt;
+            continue;
+        }   
+#endif
+        if (regex_match((*dirIt).string(), re)) {
+            found.push_back((*dirIt).string());
+        }
+        if (is_directory(*dirIt)) {
+            std::string dir = (*dirIt).string();
+            findFromDirectoryRecursive(regex, dir, found);
+        }
+        ++dirIt;
+    } 
+
+    return found.empty() ? false : true;
+}
+

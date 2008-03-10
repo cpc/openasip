@@ -1,0 +1,5 @@
+#!/bin/bash
+rm -rf simple_test.dsdb
+rm -rf ttasim_output
+rm -rf 2.adf
+rm -rf 3.adf

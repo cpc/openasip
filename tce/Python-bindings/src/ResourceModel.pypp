@@ -1,0 +1,34 @@
+from binding_generator import *
+
+prefix = "../../src/applibs/Scheduler/ResourceModel/"
+
+
+bg = binding_generator_t(
+    module_name = "ResourceModel",
+    call_policies = (('SchedulingResource',
+                      [('dependentResource', return_internal_reference()),
+                       ('relatedResource', return_internal_reference())]),
+                     ('IUResource',
+                      [('immediateValue', return_internal_reference())]),
+                     ('SchedulingResourceSet',
+                      [('resource', return_internal_reference())]),
+                     ), 
+    headers = [prefix + "BusResource.hh",
+               prefix + "ExecutionPipelineResource.hh",
+               prefix + "FUResource.hh",
+               prefix + "InputFUResource.hh",
+               prefix + "InputPSocketResource.hh",
+               prefix + "ITemplateResource.hh",
+               prefix + "IUResource.hh",
+               prefix + "OutputFUResource.hh",
+               prefix + "OutputPSocketResource.hh",
+               prefix + "PSocketResource.hh",
+               prefix + "SchedulingResource.hh",
+               prefix + "SegmentResource.hh",
+               prefix + "ShortImmPSocketResource.hh"],
+    excluded_members = [('ExecutionPipelineResource',
+                         ['validateDependentGroups',
+                          'size'])],
+    )
+
+bg.run()

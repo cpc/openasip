@@ -1,0 +1,102 @@
+/**
+ * @file FSAFUResourceConflictDetector.icc
+ *
+ * Inline implementations of FSAFUResourceConflictDetector class.
+ *
+ * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Issues an operation and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ * All states are assumed initialized. For lazily initialized FSA, use
+ * issueOperationLazyInline(). This version has about balanced runtime for
+ * conflict and no-conflict cases for sensible benchmarking with random
+ * operation sequences.
+ *
+ * @param id The id of the operation to issue.
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+FSAFUResourceConflictDetector::issueOperationInline(OperationID id) {
+
+    nextState_ = fsa_.transitions_[currentState_][id];
+    if (nextState_ == FiniteStateAutomaton::ILLEGAL_STATE) {
+        nextState_ = 0;
+        return false;
+    }
+    return true;    
+}
+
+/**
+ * Issues an operation and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ * For lazily initialized FSA. Checks if a state is missing and constructs
+ * it if needed.
+ *
+ * @param id The id of the operation to issue.
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+FSAFUResourceConflictDetector::issueOperationLazyInline(OperationID id) {
+
+    nextState_ = fsa_.transitions_[currentState_][id];
+    if (nextState_ == FiniteStateAutomaton::UNKNOWN_STATE) {
+        nextState_ = fsa_.resolveState(currentState_, id);
+    }    
+    if (nextState_ == FiniteStateAutomaton::ILLEGAL_STATE) {
+        nextState_ = 0;
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Simulates a cycle advance and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ *
+ * @note Do not call this in case the last operation issue transfered
+ * the FSA to the illegal state! That is, returned false. No checking is
+ * done to get fastest possible simulation.
+ *
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+FSAFUResourceConflictDetector::advanceCycleInline() {
+
+    // assert(nextState_ != FiniteStateAutomaton::ILLEGAL_STATE);
+    currentState_ = nextState_;
+    // issue NOP transition at the next cycle in case there are no other
+    // operation issues
+    nextState_ = fsa_.transitions_[currentState_][NOP];
+    return true;
+}
+
+/**
+ * Simulates a cycle advance and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ *
+ * @note Do not call this in case the last operation issue transfered
+ * the FSA to the illegal state! That is, returned false. No checking is
+ * done to get fastest possible simulation.
+ *
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+FSAFUResourceConflictDetector::advanceCycleLazyInline() {
+
+    // assert(nextState_ != FiniteStateAutomaton::ILLEGAL_STATE);
+    currentState_ = nextState_;
+    // issue NOP transition at the next cycle in case there are no other
+    // operation issues
+    nextState_ = fsa_.transitions_[currentState_][NOP];
+    if (nextState_ == FiniteStateAutomaton::UNKNOWN_STATE) {
+        nextState_ = fsa_.resolveState(currentState_, NOP);
+    }    
+    return true;
+}

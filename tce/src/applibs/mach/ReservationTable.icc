@@ -1,0 +1,65 @@
+/**
+ * @file ReservationTable.icc
+ *
+ * Inline implementation of ReservationTable class.
+ *
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @note rating: red
+ */
+
+#include "BaseType.hh"
+
+/**
+ * Answers the contention query.
+ *
+ * Both reservation tables must be of same size. This implementation is
+ * quite slow.
+ *
+ * @param anotherReservationTable The resource table of the issued operation.
+ * @param cycle The column offset at which the another table is matched.
+ */
+inline bool
+ReservationTable::conflictsWith(
+    const ReservationTable& anotherReservationTable, int cycle) const {
+
+    BitMatrix shifted(*this);
+    for (int i = 0; i < cycle; ++i) {
+        shifted.shiftLeft();
+    }
+    return anotherReservationTable.conflictsWith(shifted);
+}
+
+/**
+ * Issues an operation.
+ *
+ * Merges the operation's resource table to this one.
+ *
+ * @param anotherReservationTable The resource table of the merged.
+ */
+inline void
+ReservationTable::issueOperation(ReservationTable& anotherReservationTable) {
+    BitMatrix::orWith(anotherReservationTable);
+}
+
+/**
+ * Advances the simulation cycle count.
+ *
+ * The reservation table is shifted left once.
+ *
+ * @todo Check if the table is all zeros (idle), thus nothing needs to be done.
+ */
+inline void
+ReservationTable::advanceCycle() {    
+    BitMatrix::shiftLeft();
+}
+
+/**
+ * Checks if the given resource is reserved at the given cycle.
+ *
+ * @param resource The resource row.
+ * @param cycle The cycle column.
+ */
+inline bool
+ReservationTable::isReserved(ResourceID resource, int cycle) const {
+    return BitMatrix::bitAt(cycle, resource);
+}

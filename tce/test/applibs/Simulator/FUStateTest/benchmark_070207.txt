@@ -1,0 +1,41 @@
+### Benchmarking initialization of the conflict detection model 'none'
+Initializing mul 100000 times...5.68s 5.69s 5.68s  best=5.68 average=5.68e-05
+Initializing alu 100000 times...38.26s 38.26s 38.25s  best=38.25 average=0.0003825
+Initializing fpu 100000 times...115.95s 116.2s 116.74s  best=115.95 average=0.0011595
+
+### Benchmarking initialization of the conflict detection model 'resource vectors'
+Initializing mul 100000 times...7.5s 7.5s 7.5s  best=7.5 average=7.5e-05
+Initializing alu 100000 times...55.49s 55.49s 55.52s  best=55.49 average=0.0005549
+Initializing fpu 100000 times...158.08s 156.93s 157.32s  best=156.93 average=0.0015693
+
+### Benchmarking initialization of the conflict detection model 'active FSA'
+Initializing mul 100000 times...9.81s 9.8s 9.8s  best=9.8 average=9.8e-05
+Initializing alu 100000 times...124.46s 124.44s 124.42s  best=124.42 average=0.0012442
+Initializing fpu 100000 times...379.67s 379.6s 379.42s  best=379.42 average=0.0037942
+
+### Benchmarking initialization of the conflict detection model 'lazy FSA'
+Initializing mul 100000 times...8.89s 8.9s 8.89s  best=8.89 average=8.89e-05
+Initializing alu 100000 times...101.78s 101.78s 101.79s  best=101.78 average=0.0010178
+Initializing fpu 100000 times...291.17s 290.64s 291.56s  best=290.64 average=0.0029064
+
+
+### Benchmarking simulation with the conflict detection model 'none'
+Executing operations in mul 10000000 times...2.09s 2.1s 1.99s  best=1.99 average=1.99e-07
+Executing operations in alu 10000000 times...2.17s 2.17s 2.18s  best=2.17 average=2.17e-07
+Executing operations in fpu 10000000 times...5.79s 5.8s 5.76s  best=5.76 average=5.76e-07
+
+### Benchmarking simulation with the conflict detection model 'resource vectors'
+Executing operations in mul 10000000 times...21.32s 21.32s 21.37s  best=21.32 average=2.132e-06
+Executing operations in alu 10000000 times...16.27s 16.15s 16.31s  best=16.15 average=1.615e-06
+Executing operations in fpu 10000000 times...56.21s 56.15s 56.18s  best=56.15 average=5.615e-06
+
+### Benchmarking simulation with the conflict detection model 'active FSA'
+Executing operations in mul 10000000 times...2.88s 2.79s 2.8s  best=2.79 average=2.79e-07
+Executing operations in alu 10000000 times...2.95s 2.9s 3.07s  best=2.9 average=2.9e-07
+Executing operations in fpu 10000000 times...9.34s 9.34s 9.26s  best=9.26 average=9.26e-07
+
+### Benchmarking simulation with the conflict detection model 'lazy FSA'
+Executing operations in mul 10000000 times...2.79s 2.78s 2.84s  best=2.78 average=2.78e-07
+Executing operations in alu 10000000 times...3.08s 2.92s 2.96s  best=2.92 average=2.92e-07
+Executing operations in fpu 10000000 times...9.21s 9.25s 9.28s  best=9.21 average=9.21e-07
+

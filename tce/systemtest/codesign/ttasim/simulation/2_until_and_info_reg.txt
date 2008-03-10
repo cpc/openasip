@@ -1,0 +1,9 @@
+prog data/hello
+until 49
+info registers r2
+stepi
+info registers r2
+nexti 2
+info program
+info registers
+quit

@@ -1,0 +1,35 @@
+/**
+ * @file Connection.icc
+ *
+ * Inline implementation of Connection class.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @note reviewed 11 Jun 2004 by am, pj, jn, ll
+ * @note rating: red
+ */
+
+namespace TTAMachine {
+
+/**
+ * Returns the segment of a bus which is connected via this Connection
+ * object.
+ *
+ * @return The segment of a bus which is connected via this Connection
+ *         object.
+ */
+inline Segment*
+Connection::bus() const {
+    return bus_;
+}
+
+
+/**
+ * Returns the socket which is connected via this Connection object.
+ *
+ * @return The socket which is connected via this Connection object.
+ */
+inline Socket*
+Connection::socket() const {
+    return socket_;
+}
+}

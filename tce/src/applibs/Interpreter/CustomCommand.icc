@@ -1,0 +1,70 @@
+/**
+ * @file CustomCommand.icc
+ *
+ * Inline implementation of CustomCommand class.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @note reviewed 27 May 2004 by pj, jn, vpj, ll
+ * @note rating: green
+ */
+
+
+/**
+ * Returns the name of the command.
+ *
+ * @return The name of the command.
+ */
+inline std::string
+CustomCommand::name() const {
+    return name_;
+}
+
+
+/**
+ * Sets the context.
+ *
+ * Context data is the data that CustomCommands access and modifies. In
+ * Simulator's case it is a SimulationFrontend instance.
+ *
+ * @param context The context.
+ */
+inline void
+CustomCommand::setContext(InterpreterContext* context) {
+    context_ = context;
+}
+
+
+/**
+ * Returns the context.
+ *
+ * @return The context.
+ */
+inline InterpreterContext*
+CustomCommand::context() const {
+    return context_;
+}
+
+
+/**
+ * Sets the interpreter.
+ *
+ * Some CustomCommands needs to access the services of ScriptInterpreter
+ * (for example, to fetch another CustomCommand).
+ *
+ * @param si The interpreter.
+ */
+inline void
+CustomCommand::setInterpreter(ScriptInterpreter* si) {
+    interpreter_ = si;
+}
+
+
+/**
+ * Returns the interpreter.
+ *
+ * @return The interpreter.
+ */
+inline ScriptInterpreter*
+CustomCommand::interpreter() const {
+    return interpreter_;
+}

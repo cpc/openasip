@@ -1,0 +1,4 @@
+minu -1 1
+minu 24567 2345
+minu -4 -7
+!quit

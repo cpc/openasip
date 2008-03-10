@@ -1,0 +1,5 @@
+mach data/64_256_1024FFTTA.proc.adf
+prog data/1024pointFFT.tpef
+run
+x /a iodata /n 1024 /u w 4096
+quit

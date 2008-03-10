@@ -1,0 +1,75 @@
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, SimValue& arg0) {
+    SimValue* params[] = {&arg0};    
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, SimValue& arg0, SimValue& arg1) {
+    SimValue* params[] = {&arg0, &arg1};    
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2) {
+    SimValue* params[] = {&arg0, &arg1, &arg2};    
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3};    
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3, 
+    SimValue& arg4) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3, &arg4};
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3, 
+    SimValue& arg4, SimValue& arg5) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5};
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3, 
+    SimValue& arg4, SimValue& arg5, SimValue& arg6) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6};
+    behavior.simulateTrigger(params, context);
+}
+
+inline static void 
+executeOperation(
+    OperationBehavior& behavior,
+    OperationContext& context, 
+    SimValue& arg0, SimValue& arg1, SimValue& arg2, SimValue& arg3, 
+    SimValue& arg4, SimValue& arg5, SimValue& arg6, SimValue& arg7) {
+    SimValue* params[] = {&arg0, &arg1, &arg2, &arg3, &arg4, &arg5, &arg6, &arg7};
+    behavior.simulateTrigger(params, context);
+}
+
+

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-encoding required-version="1.0" version="1.0">
+
+  <map-ports name="S1_1">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="alu" name="P2" operation="add">
+      <encoding>0</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="alu" name="P2" operation="eq">
+      <encoding>1</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="alu" name="P2" operation="gt">
+      <encoding>2</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="S1_5">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="ldst" name="P2" operation="stw">
+      <encoding>0</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ldst" name="P2" operation="ldq">
+      <encoding>1</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="ldst" name="P2" operation="ldw">
+      <encoding>2</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="S1_6">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="3" rf="boolean"/>
+  </map-ports>
+
+  <map-ports name="S1_7">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="gcu" name="pc" operation="jump">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="gcu" name="pc" operation="call">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="S1_7_1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="7" rf="integer1"/>
+  </map-ports>
+
+  <map-ports name="S2_3">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="7" rf="integer1"/>
+  </map-ports>
+
+  <long-immediate-tag>
+    <pos>1</pos>
+    <extra-bits>0</extra-bits>
+    <map name="no_limm">0</map>
+  </long-immediate-tag>
+
+  <slot name="B1">
+    <pos>0</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean">2</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean">3</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean">5</reg-guard-code>
+      <reg-guard-code index="2" inv="false" rf="boolean">6</reg-guard-code>
+      <reg-guard-code index="3" inv="false" rf="boolean">7</reg-guard-code>
+      <reg-guard-code index="4" inv="false" rf="boolean">8</reg-guard-code>
+      <reg-guard-code index="5" inv="false" rf="boolean">9</reg-guard-code>
+      <reg-guard-code index="2" inv="true" rf="boolean">10</reg-guard-code>
+      <reg-guard-code index="3" inv="true" rf="boolean">11</reg-guard-code>
+      <reg-guard-code index="4" inv="true" rf="boolean">12</reg-guard-code>
+      <reg-guard-code index="5" inv="true" rf="boolean">13</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="32">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="S2_3">
+        <map codes="S2_3" extra-bits="0">8</map>
+      </socket>
+      <socket name="S2">
+        <map extra-bits="0">10</map>
+      </socket>
+      <socket name="S2_2">
+        <map extra-bits="0">11</map>
+      </socket>
+      <socket name="S2_4">
+        <map extra-bits="0">12</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">9</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="S1_7_1">
+        <map codes="S1_7_1" extra-bits="0">0</map>
+      </socket>
+      <socket name="S1_6">
+        <map codes="S1_6" extra-bits="0">16</map>
+      </socket>
+      <socket name="S1_1">
+        <map codes="S1_1" extra-bits="0">17</map>
+      </socket>
+      <socket name="S1_5">
+        <map codes="S1_5" extra-bits="0">18</map>
+      </socket>
+      <socket name="S1_7">
+        <map codes="S1_7" extra-bits="0">19</map>
+      </socket>
+      <socket name="S1">
+        <map extra-bits="0">21</map>
+      </socket>
+      <socket name="S1_4">
+        <map extra-bits="0">22</map>
+      </socket>
+      <socket name="S1_8">
+        <map extra-bits="0">23</map>
+      </socket>
+      <socket name="S1_6_1">
+        <map extra-bits="0">24</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">20</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+</adf-encoding>

@@ -1,0 +1,305 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module TCE.applibs.Scheduler.ProgramRepresentations.ProgramDependenceGraph</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="TCE.html"><font color="#ffffff">TCE</font></a>.<a href="TCE.applibs.html"><font color="#ffffff">applibs</font></a>.<a href="TCE.applibs.Scheduler.html"><font color="#ffffff">Scheduler</font></a>.<a href="TCE.applibs.Scheduler.ProgramRepresentations.html"><font color="#ffffff">ProgramRepresentations</font></a>.ProgramDependenceGraph</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/opt/tce/lib/python2.5/site-packages/TCE/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph.so">/opt/tce/lib/python2.5/site-packages/TCE/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph.so</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial">Boost.Python.instance(<a href="__builtin__.html#object">__builtin__.object</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ProgramDependenceGraph.html#MoveNode">MoveNode</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ProgramDependenceGraph.html#ProgramOperation">ProgramOperation</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ProgramDependenceGraph.html#Scope">Scope</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="MoveNode">class <strong>MoveNode</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ProgramDependenceGraph.html#MoveNode">MoveNode</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="MoveNode-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-__init__">__init__</a>(_object*,&nbsp;TTAProgram::Move&nbsp;{lvalue}&nbsp;newmove)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-__init__">__init__</a>(_object*,&nbsp;TTAProgram::Move*&nbsp;newmove)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-copy"><strong>copy</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-copy">copy</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#MoveNode">MoveNode</a>*</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-cycle"><strong>cycle</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-cycle">cycle</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-destinationOperation"><strong>destinationOperation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-destinationOperation">destinationOperation</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#ProgramOperation">ProgramOperation</a></tt></dd></dl>
+
+<dl><dt><a name="MoveNode-dotString"><strong>dotString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-dotString">dotString</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-dotString">dotString</a>(MoveNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-earliestResultReadCycle"><strong>earliestResultReadCycle</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-earliestResultReadCycle">earliestResultReadCycle</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-inSameOperation"><strong>inSameOperation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-inSameOperation">inSameOperation</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue},&nbsp;<a href="#MoveNode">MoveNode</a>&nbsp;other)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isAssigned"><strong>isAssigned</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isAssigned">isAssigned</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isBypass"><strong>isBypass</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isBypass">isBypass</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isDestinationOperation"><strong>isDestinationOperation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isDestinationOperation">isDestinationOperation</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isDestinationVariable"><strong>isDestinationVariable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isDestinationVariable">isDestinationVariable</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isMove"><strong>isMove</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isMove">isMove</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isMoveOwned"><strong>isMoveOwned</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isMoveOwned">isMoveOwned</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isOperationMove"><strong>isOperationMove</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isOperationMove">isOperationMove</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isPlaced"><strong>isPlaced</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isPlaced">isPlaced</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isRegisterMove"><strong>isRegisterMove</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isRegisterMove">isRegisterMove</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isScheduled"><strong>isScheduled</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isScheduled">isScheduled</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isSourceConstant"><strong>isSourceConstant</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isSourceConstant">isSourceConstant</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isSourceImmediateRegister"><strong>isSourceImmediateRegister</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isSourceImmediateRegister">isSourceImmediateRegister</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isSourceOperation"><strong>isSourceOperation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isSourceOperation">isSourceOperation</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-isSourceVariable"><strong>isSourceVariable</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-isSourceVariable">isSourceVariable</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-move"><strong>move</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-move">move</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;TTAProgram::Move<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-move">move</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;TTAProgram::Move</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-scope"><strong>scope</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-scope">scope</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#Scope">Scope</a></tt></dd></dl>
+
+<dl><dt><a name="MoveNode-setCycle"><strong>setCycle</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-setCycle">setCycle</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue},&nbsp;int&nbsp;newcycle)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-setDestinationOperation"><strong>setDestinationOperation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-setDestinationOperation">setDestinationOperation</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue},&nbsp;<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue}&nbsp;po)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-setMoveOwned"><strong>setMoveOwned</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-setMoveOwned">setMoveOwned</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-setSourceOperation"><strong>setSourceOperation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-setSourceOperation">setSourceOperation</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue},&nbsp;<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue}&nbsp;po)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-sourceOperation"><strong>sourceOperation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-sourceOperation">sourceOperation</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#ProgramOperation">ProgramOperation</a></tt></dd></dl>
+
+<dl><dt><a name="MoveNode-toString"><strong>toString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-toString">toString</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#MoveNode-toString">toString</a>(MoveNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-type"><strong>type</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-type">type</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-unsetCycle"><strong>unsetCycle</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-unsetCycle">unsetCycle</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-unsetDestinationOperation"><strong>unsetDestinationOperation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-unsetDestinationOperation">unsetDestinationOperation</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-unsetMoveOwned"><strong>unsetMoveOwned</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-unsetMoveOwned">unsetMoveOwned</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="MoveNode-unsetSourceOperation"><strong>unsetSourceOperation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#MoveNode-unsetSourceOperation">unsetSourceOperation</a>(<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 44</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#MoveNode-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ProgramOperation">class <strong>ProgramOperation</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ProgramDependenceGraph.html#ProgramOperation">ProgramOperation</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ProgramOperation-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ProgramOperation-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ProgramOperation-__init__">__init__</a>(_object*,&nbsp;Operation&nbsp;{lvalue}&nbsp;operation)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ProgramOperation-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-addInputNode"><strong>addInputNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-addInputNode">addInputNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-addNode"><strong>addNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-addNode">addNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-addOutputNode"><strong>addOutputNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-addOutputNode">addOutputNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-areInputsAssigned"><strong>areInputsAssigned</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-areInputsAssigned">areInputsAssigned</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-hasInputNode"><strong>hasInputNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-hasInputNode">hasInputNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;int&nbsp;in)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-hasOutputNode"><strong>hasOutputNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-hasOutputNode">hasOutputNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;int&nbsp;out)&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-inputMove"><strong>inputMove</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-inputMove">inputMove</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#MoveNode">MoveNode</a></tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-inputMoveCount"><strong>inputMoveCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-inputMoveCount">inputMoveCount</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-inputNode"><strong>inputNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-inputNode">inputNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;int&nbsp;in)&nbsp;-&gt;&nbsp;MoveNodeSet</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-isAssigned"><strong>isAssigned</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-isAssigned">isAssigned</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-isComplete"><strong>isComplete</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-isComplete">isComplete</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-isMultinode"><strong>isMultinode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-isMultinode">isMultinode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-isReady"><strong>isReady</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-isReady">isReady</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-opcodeSettingNode"><strong>opcodeSettingNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-opcodeSettingNode">opcodeSettingNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#MoveNode">MoveNode</a></tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-operation"><strong>operation</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-operation">operation</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;Operation</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-outputMove"><strong>outputMove</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-outputMove">outputMove</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;int&nbsp;index)&nbsp;-&gt;&nbsp;<a href="#MoveNode">MoveNode</a></tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-outputMoveCount"><strong>outputMoveCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-outputMoveCount">outputMoveCount</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-outputNode"><strong>outputNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-outputNode">outputNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;int&nbsp;out)&nbsp;-&gt;&nbsp;MoveNodeSet</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-removeInputNode"><strong>removeInputNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-removeInputNode">removeInputNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-removeOutputNode"><strong>removeOutputNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-removeOutputNode">removeOutputNode</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue},&nbsp;<a href="#MoveNode">MoveNode</a>&nbsp;{lvalue}&nbsp;node)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-toString"><strong>toString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-toString">toString</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="ProgramOperation-triggeringMove"><strong>triggeringMove</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ProgramOperation-triggeringMove">triggeringMove</a>(<a href="#ProgramOperation">ProgramOperation</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#MoveNode">MoveNode</a></tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 84</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#ProgramOperation-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="Scope">class <strong>Scope</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ProgramDependenceGraph.html#Scope">Scope</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="Scope-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#Scope-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 12</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#Scope-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>

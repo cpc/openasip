@@ -1,0 +1,7 @@
+!output bin
+xor 111111100010110101001b 10011001001100010010b
+!output hex
+xor 0x45fea231 0x12b32487
+!output signed
+xor 23485499 6758332
+!quit

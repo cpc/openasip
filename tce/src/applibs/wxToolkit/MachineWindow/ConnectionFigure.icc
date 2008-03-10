@@ -1,0 +1,49 @@
+/**
+ * @file ConnectionFigure.icc
+ *
+ * Inline implementation of ConnectionFigure class.
+ *
+ * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 27 2004 by ml, pj, am
+ */
+
+/**
+ * Sets the source of the connection.
+ *
+ * @param figure New source.
+ */
+inline void
+ConnectionFigure::setSource(Figure* figure) {
+    source_ = figure;
+}
+
+/**
+ * Sets the target of the connection.
+ *
+ * @param figure New target.
+ */
+inline void
+ConnectionFigure::setTarget(Figure* figure) {
+    target_ = figure;
+}
+
+/**
+ * Returns the source of the connection.
+ *
+ * @return The source of the connection.
+ */
+inline Figure*
+ConnectionFigure::source() const {
+    return source_;
+}
+
+/**
+ * Returns the target of the connection.
+ *
+ * @return The target of the connection.
+ */
+inline Figure*
+ConnectionFigure::target() const {
+    return target_;
+}

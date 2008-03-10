@@ -1,0 +1,36 @@
+#
+# Template Makefile for directories that contain unit tests directories.
+# Runs Makefiles of all subdirectories with name pattern "*Test".
+#
+
+SUBDIRS = $(wildcard *Test)
+
+
+# After running the tests, we'll clean up the test directory to save
+# space because those runner executables are huge these days.
+all:
+	@@(for dname in ${SUBDIRS}; do \
+		cd $$dname; \
+		test -s Makefile && ${MAKE} && ${MAKE} clean; \
+		cd .. ; \
+	done)
+
+
+test: all
+
+distclean: clean
+
+clean:
+	@@(for dname in ${SUBDIRS}; do \
+		cd $$dname; \
+		test -s Makefile && ${MAKE} clean; \
+		cd .. ; \
+	done)
+
+clean_gcov:
+	@@(for dname in ${SUBDIRS}; do \
+		cd $$dname; \
+		test -s Makefile && ${MAKE} clean_gcov; \
+		cd .. ; \
+	done)
+

@@ -1,0 +1,40 @@
+/**
+ * @file ReservationTableResourceConflictDetector.icc
+ *
+ * Inline implementations of ReservationTableResourceConflictDetector class.
+ *
+ * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Issues an operation and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ *
+ * @param id The id of the operation to issue.
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+ReservationTableFUResourceConflictDetector::issueOperationInline(
+    OperationID id) {
+
+    const ReservationTable& issued = reservationTables_.at(id);
+    if (globalReservationTable_.conflictsWith(issued))
+        return false;
+    globalReservationTable_.orWith(issued);
+    return true;
+}
+
+/**
+ * Simulates a cycle advance and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ *
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+ReservationTableFUResourceConflictDetector::advanceCycleInline() {
+    globalReservationTable_.shiftLeft();
+    return true;    
+}

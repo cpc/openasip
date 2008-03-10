@@ -1,0 +1,276 @@
+Binary Encoding Map: complex.bem
+
+X = unused bit
+I = immediate bit
+S = socket code bit
+R = register index bit
+
+Total instruction width: 199
+
+| limm cntrl: 1 | dst reg field: 4 | dst reg field: 2 | move slot B9: 11 | move slot B8: 32 | move slot B7: 10 | move slot B6: 32 | move slot B5: 12 | move slot B4: 10 | move slot B3: 13 | move slot B2: 32 | move slot B1: 40 |
+
+------------------------------------------------------------
+Immediate Control Field
+
+Position: 198
+Width: 1
+Encodings:
+0 : temp
+1 : temp2
+
+------------------------------------------------------------
+Long Immediate Destination Register Field
+
+Position: 192
+Width: 2
+
+Usage
+temp: imm1
+temp2: imm1
+
+------------------------------------------------------------
+Long Immediate Destination Register Field
+
+Position: 194
+Width: 4
+
+Usage
+temp: imm2
+temp2: imm2
+
+------------------------------------------------------------
+Move Slot: B1
+
+Position: 0
+Width: 40
+
+| grd field: 2 | src field: 33 | dst field: 5 |
+
+Guard field encodings:
+10 : always-true
+00 : non-inverted GPR 1 of RF integer
+01 : inverted port P1 of FU add
+
+Source field encodings:
+1011XXXXXXXXXXXXXXXXXXXXXXXXXXXXX : NOP
+1000XXXXXXXXXXXXXXXXXXXXXXXXXSSSS : socket S8
+                             0RRR : RF: integer
+                             1XXX : FU port: add_complex, P9
+1001XXXXXXXXXXXXXXXXXXXXXXXXXXSSS : socket S11
+                              0RR : IU: imm1
+                              1XX : FU port: gcu, ra
+1010XXXXXXXXXXXXXXXXXXXXXXXXXXXXS : socket S7
+                                0 : FU port: add_complex, P4
+                                1 : FU port: add_complex, P8
+1100XXXXXXXXXXXXXXXXXXXXXXXXXXXXX : socket S3
+0IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII : short immediate
+
+Destination field encodings:
+1010X : NOP
+00SSS : socket S9
+  RRR : RF: integer
+01SSS : socket S10
+  RRR : RF: integer
+100SS : socket S6
+   00 : FU port: add_complex, P6
+   01 : FU port: add_complex, P7
+   10 : FU port: add_complex, P8
+1011X : socket S5
+1100X : socket S13
+1101X : socket S12
+
+------------------------------------------------------------
+Move Slot: B2
+
+Position: 40
+Width: 32
+
+| grd field: 22 | src field: 9 | dst field: 1 |
+
+Guard field encodings:
+
+Source field encodings:
+10XXXXXXX : NOP
+11XXXXXXX : socket S3
+0IIIIIIII : short immediate
+
+Destination field encodings:
+0 : NOP
+1 : socket S12
+
+------------------------------------------------------------
+Move Slot: B3
+
+Position: 72
+Width: 13
+
+| grd field: 0 | src field: 9 | dst field: 4 |
+
+Guard field encodings:
+
+Source field encodings:
+101XXXXXX : NOP
+100XXSSSS : socket S8
+     0RRR : RF: integer
+     1XXX : FU port: add_complex, P9
+110XXXXXX : socket S3
+0IIIIIIII : short immediate
+
+Destination field encodings:
+10XX : NOP
+0SSS : socket S9
+ RRR : RF: integer
+11XX : socket S5
+
+------------------------------------------------------------
+Move Slot: B4
+
+Position: 85
+Width: 10
+
+| grd field: 0 | src field: 9 | dst field: 1 |
+
+Guard field encodings:
+
+Source field encodings:
+101XXXXXX : NOP
+100XXXSSS : socket S11
+      0RR : IU: imm1
+      1XX : FU port: gcu, ra
+0IIIIIIII : short immediate
+110XXXXXX : bridge Br1
+
+Destination field encodings:
+0 : NOP
+1 : socket S13
+
+------------------------------------------------------------
+Move Slot: B5
+
+Position: 95
+Width: 12
+
+| grd field: 0 | src field: 9 | dst field: 3 |
+
+Guard field encodings:
+
+Source field encodings:
+10XXXXXXX : NOP
+0IIIIIIII : short immediate
+11XXXXXXX : bridge Br2
+
+Destination field encodings:
+010 : NOP
+00S : socket S2
+  0 : FU port: add, P2
+  1 : FU port: add, P3
+011 : socket S1
+100 : socket S14
+
+------------------------------------------------------------
+Move Slot: B6
+
+Position: 107
+Width: 32
+
+| grd field: 19 | src field: 9 | dst field: 4 |
+
+Guard field encodings:
+
+Source field encodings:
+101XXXXXX : NOP
+100XXSSSS : socket S8
+     0RRR : RF: integer
+     1XXX : FU port: add_complex, P9
+0IIIIIIII : short immediate
+110XXXXXX : bridge Br3
+111XXXXXX : bridge Br4
+
+Destination field encodings:
+110X : NOP
+0SSS : socket S10
+ RRR : RF: integer
+10SS : socket S6
+  00 : FU port: add_complex, P6
+  01 : FU port: add_complex, P7
+  10 : FU port: add_complex, P8
+111X : socket S5
+
+------------------------------------------------------------
+Move Slot: B7
+
+Position: 139
+Width: 10
+
+| grd field: 0 | src field: 9 | dst field: 1 |
+
+Guard field encodings:
+
+Source field encodings:
+11XXXXXXX : NOP
+10XXXSSSS : socket S16
+     RRRR : IU: imm2
+0IIIIIIII : short immediate
+
+Destination field encodings:
+0 : NOP
+1 : socket S12
+
+------------------------------------------------------------
+Move Slot: B8
+
+Position: 149
+Width: 32
+
+| grd field: 18 | src field: 9 | dst field: 5 |
+
+Guard field encodings:
+
+Source field encodings:
+110XXXXXX : NOP
+100XXSSSS : socket S8
+     0RRR : RF: integer
+     1XXX : FU port: add_complex, P9
+101XXXXXS : socket S7
+        0 : FU port: add_complex, P4
+        1 : FU port: add_complex, P8
+111XXXXXX : socket S3
+0IIIIIIII : short immediate
+
+Destination field encodings:
+101XX : NOP
+00SSS : socket S10
+  RRR : RF: integer
+01SSS : socket S9
+  RRR : RF: integer
+100SS : socket S6
+   00 : FU port: add_complex, P6
+   01 : FU port: add_complex, P7
+   10 : FU port: add_complex, P8
+110XX : socket S5
+111XX : socket S4
+
+------------------------------------------------------------
+Move Slot: B9
+
+Position: 181
+Width: 11
+
+| grd field: 0 | src field: 9 | dst field: 2 |
+
+Guard field encodings:
+
+Source field encodings:
+101XXXXXX : NOP
+100XXXSSS : socket S11
+      0RR : IU: imm1
+      1XX : FU port: gcu, ra
+0IIIIIIII : short immediate
+110XXXXXX : bridge Br5
+
+Destination field encodings:
+00 : NOP
+01 : socket S12
+10 : socket S13
+11 : socket S15
+

@@ -1,0 +1,51 @@
+/**
+ * @file LineReader.icc
+ *
+ * Inline implementation of LineReader class.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @note reviewed 2 June 2004 by jm, pj, tr, jn
+ * @note rating: green
+ */
+
+
+/**
+ * Sets LineReader as initialized.
+ */
+inline void 
+LineReader::setInitialized() {
+    initialized_ = true;
+}
+
+
+/**
+ * Returns true if LineReader is initialized.
+ *
+ * @return True, if LineReader is initialized, false otherwise.
+ */
+inline bool
+LineReader::initialized() const {
+    return initialized_;
+}
+
+
+/**
+ * Returns true, if the input history is saved to a log file.
+ *
+ * @return True, if the input is logged to a file.
+ */
+inline bool
+LineReader::saveInputHistoryToFile() const {
+    return saveHistoryToFile_;
+}
+
+
+/**
+ * Returns maximum length of the input history log.
+ *
+ * @return Input history maximum length.
+ */
+inline size_t
+LineReader::inputHistoryMaxLength() const {
+    return inputHistorySize_;
+}

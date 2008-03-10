@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# Script to build a explorer plugin.
+
+if test $# -lt 2
+then
+    echo "Usage: buildexplorerplugin <plugin file> <source files>"
+else
+    tceconf=$(which tce-config 2>/dev/null)
+    if [ -e "../src/codesign/Explorer/buildexplorerplugin" ]
+    then       
+		
+        echo "Assuming that we are working with an uninstalled TCE. "
+		
+        TCE_ROOT=${PWD}/..
+        SRC_BASE=${TCE_ROOT}/src
+        BASE=${SRC_BASE}/base
+        APPLIBS=${SRC_BASE}/applibs
+        PROGE="${SRC_BASE}/applibs/ProGe"
+        TRACEDB="${SRC_BASE}/applibs/TraceDB"        
+        SIMULATOR="${SRC_BASE}/applibs/Simulator"
+	HDB="${SRC_BASE}/applibs/hdb"
+	COSTDB="${SRC_BASE}/applibs/costdb"
+        EXPLORER="${SRC_BASE}/applibs/Explorer"	
+	DSDB="${SRC_BASE}/applibs/dsdb"	
+	SCHEDULER_APPLIBS="${SRC_BASE}/applibs/Scheduler"	
+	OSAL="${SRC_BASE}/base/osal"
+	UMACH="${SRC_BASE}/base/umach"
+	INTERPRETER="${SRC_BASE}/applibs/Interpreter"
+	MEMORY="${SRC_BASE}/base/memory"
+	MACH_APPLIBS="${APPLIBS}/mach"
+	PROGRAM_APPLIBS="${APPLIBS}/program"
+	ESTIMATOR_APPLIBS="${APPLIBS}/Estimator"
+
+        compiler=gcc
+        libdir=
+        includedir="\
+-I ${SRC_BASE}/tools -I ${SRC_BASE}/applibs/Estimator -I ${SRC_BASE}/base/idf \
+-I ${PROGE} -I ${BASE}/mach -I ${BASE}/program \
+-I ${TCE_ROOT} -I ${TRACEDB} -I ${SIMULATOR} -I ${HDB} -I ${COSTDB} \
+-I ${EXPLORER} -I ${DSDB} -I ${SCHEDULER_APPLIBS} -I ${OSAL} -I ${UMACH} \
+-I ${INTERPRETER} -I ${MEMORY} -I ${MACH_APPLIBS} -I ${PROGRAM_APPLIBS} \
+-I ${ESTIMATOR}"
+        soflags="-lgcc -shared -fPIC -o"
+	cxxflags="-g -O3"
+		
+        else
+		
+        compiler=$(tce-config --c++-compiler)
+        libdir=$(tce-config --libs) 
+        includedir=$(tce-config --includes)
+        soflags="$(tce-config --so-flags) -o"
+	cxxflags=$(tce-config --cxxflags)
+		
+    fi
+    objectfile=$1
+    shift
+    $compiler $libdir $includedir $soflags $objectfile $* && \
+        echo "Compilation successful." || echo "Compilation failed." >&2
+fi

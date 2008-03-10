@@ -1,0 +1,65 @@
+/**
+ * @file OperationIndex.icc
+ *
+ * Inline implementations of OperationIndex class.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @note rating: yellow
+ * @note reviewed 19 August 2004 by pj, jn, ao, ac
+ */
+
+/**
+ * Returns the path by the given index in the search path list.
+ *
+ * @param i The index of wanted search path.
+ * @return The search path by the given index or empty string.
+ * @exception OutOfRange If index i is out of range.
+ */
+inline std::string
+OperationIndex::path(int i) const 
+    throw (OutOfRange) {
+
+    if (i < 0 || static_cast<unsigned>(i) > paths_.size() - 1) {
+        std::string msg = "Index out of range";
+        throw OutOfRange(__FILE__, __LINE__, __func__, msg);
+    }
+    return paths_[i];
+}
+
+/**
+ * Returns the number of search paths.
+ *
+ * @return The number of search paths.
+ */
+inline int
+OperationIndex::pathCount() const {
+    return paths_.size();
+}
+
+/**
+ * Returns the number of OperationModules.
+ *
+ * @return The number of OperationModules.
+ */
+inline int
+OperationIndex::moduleCount() const {
+    return modules_.size();
+}
+
+/**
+ * Returns the module by the given index.
+ *
+ * @param i The index of wanted OperationModule.
+ * @return The module by the given index or if not found, null module.
+ * @exception OutOfRange If index i is out of range.
+ */
+inline OperationModule&
+OperationIndex::module(int i) 
+    throw (OutOfRange) {
+ 
+    if (i < 0 || static_cast<unsigned>(i) > modules_.size() - 1) {
+        std::string msg = "index out of range";
+        throw OutOfRange(__FILE__, __LINE__, __func__, msg);
+    }
+    return *modules_[i];
+}

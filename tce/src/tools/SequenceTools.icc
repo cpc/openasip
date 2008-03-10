@@ -1,0 +1,36 @@
+/**
+ * @file SequenceTools.icc
+ * @author Pekka J‰‰skel‰inen (pekka.jaaskelainen@tut.fi) 2004
+ *
+ * Tools for inspecting and manipulating STL Sequences.
+ *
+ * Inline and template definitions.
+ *
+ */
+
+
+/**
+ *
+ * Deletes all objects in a sequence container and clears it.
+ *
+ * Calls delete for all items in container and clears it.
+ *
+ * @param aContainer The container to delete all objects from.
+ */
+template <typename SequenceType>
+void
+SequenceTools::deleteAllItems(SequenceType& aContainer) {
+
+    // Copy the container to another container to avoid problems when the
+    // destructor of an object erases element from the same container we
+    // are traversing.
+    SequenceType backupContainer = aContainer;
+    for (typename SequenceType::iterator i = backupContainer.begin();
+	 i != backupContainer.end(); ++i) {
+	delete (*i);
+    }
+
+    aContainer.clear();
+    backupContainer.clear();
+}
+

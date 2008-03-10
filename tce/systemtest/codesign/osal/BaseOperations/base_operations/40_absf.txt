@@ -1,0 +1,4 @@
+!output float
+absf -12.12f
+absf 34.34f
+!quit

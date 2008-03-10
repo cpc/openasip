@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf version="1.5">
+
+  <function-unit name="fu15">
+    <port name="trigger">
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="o0">
+      <width>32</width>
+    </port>
+    <port name="r0">
+      <width>32</width>
+    </port>
+    <operation>
+      <name>add</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mul</name>
+      <bind name="1">o0</bind>
+      <bind name="2">trigger</bind>
+      <bind name="3">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+</adf>

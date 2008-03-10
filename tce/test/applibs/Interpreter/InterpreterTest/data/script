@@ -1,0 +1,10 @@
+set foo 3
+proc truth {} {
+  set ret_value "Jussi rules"
+  return $ret_value
+}
+proc calc { number } {
+  set ret_value [expr 3 * $number]
+  return $ret_value
+}
+

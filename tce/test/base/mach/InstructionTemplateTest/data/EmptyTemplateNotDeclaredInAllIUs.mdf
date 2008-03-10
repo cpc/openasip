@@ -1,0 +1,22 @@
+<mdf version="0.1">
+
+<immediate-unit name="iu1">
+    <type>normal</type>
+    <size>16</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <extension>sign</extension>
+    <template name="emptyTemp"/>
+</immediate-unit>
+
+<immediate-unit name="iu2">
+    <type>normal</type>
+    <size>16</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <extension>sign</extension>
+</immediate-unit>
+
+</mdf>

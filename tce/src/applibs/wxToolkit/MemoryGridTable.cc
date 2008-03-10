@@ -1,0 +1,381 @@
+/**
+ * @file MemoryGridTable.cc
+ *
+ * Implementation of MemoryGridTable class.
+ *
+ * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include <string>
+#include "MemoryGridTable.hh"
+#include "Conversion.hh"
+#include "WxConversion.hh"
+#include "TargetMemory.hh"
+
+using std::string;
+
+const int MemoryGridTable::MAX_ROWS = 4000000;
+const string MemoryGridTable::NOT_AVAILABLE = "N/A";
+
+/**
+ * The Constructor.
+ *
+ * @param memory Memory to display in the grid.
+ * @param start Start address of the memory range to display.
+ * @param end End address of the memory range to display.
+ * @param mauSize Size of MAU.
+ */
+MemoryGridTable::MemoryGridTable(
+    TargetMemory* memory, Word start, Word end, int mauSize):
+    wxGridTableBase(),
+    memory_(memory),
+    start_(start),
+    end_(end),
+    dataMode_(DATA_HEX),
+    sizeMode_(SIZE_MAU),
+    mauSize_(mauSize),
+    numberOfColumns_(8) {
+
+    // Kludge to avoid overflow with some calculations when the AS size = 2^32.
+    // The grid-widget is not capable of displaying enough rows,
+    // so the last address wouldn't be displayed anyway.
+    if (start_ == 0 && end_ == 0xffffffff) end_ = 0xfffffffe;
+}
+
+
+/**
+ * The Destructor.
+ */
+MemoryGridTable::~MemoryGridTable() {
+}
+
+
+/**
+ * Returns row count of the grid.
+ *
+ * The row count is limited to MAX_ROWS due to limtiations of wxGrid.
+ *
+ * @return Number of rows in the table.
+ */
+int
+MemoryGridTable::GetNumberRows() {
+
+    Word size = end_ - start_ + 1;
+    int cells = size / sizeOfCell();
+    int rows = cells / numberOfColumns_;
+    if ((cells % numberOfColumns_) != 0) {
+        rows++;
+    }
+    if (rows > MAX_ROWS) {
+	rows = MAX_ROWS;
+    }
+    return rows;
+}
+
+/**
+ * Returns column count of the grid.
+ *
+ * @return Number of coulmns in the table.
+ */
+int
+MemoryGridTable::GetNumberCols() {
+    return numberOfColumns_;
+}
+
+
+/**
+ * Returns true, if the given cell is empty, false otherwise.
+ *
+ * @param row Row of the cell.
+ * @param col Column of the cell.
+ * @return True, if the column is empty.
+ */
+bool
+MemoryGridTable::IsEmptyCell(int /* row UNUSED */, int /* col UNUSED */) {
+    return false;
+}
+
+
+/**
+ * Returns cell value as a wxString.
+ *
+ * Returns memory contents corresponding to the cell coordinates. The
+ * memory value is formatted to the string depending on the size and
+ * type modes set.
+ *
+ * @param row Row of the cell.
+ * @param col Column of the cell.
+ * @return Cell contents as a wxString.
+ */
+wxString
+MemoryGridTable::GetValue(int row, int col) {
+
+    unsigned addr =
+	start_ + (row * numberOfColumns_ * sizeOfCell()) +
+	(col * sizeOfCell());
+
+    if ((addr + sizeOfCell()) > (end_ + 1)) {
+        return WxConversion::toWxString(NOT_AVAILABLE);
+    }
+
+    wxString value = memoryContents(addr);
+    return value;
+}
+
+
+/**
+ * Returns row label of a grid row.
+ *
+ * The label is the memory address of the first cell in the row.
+ *
+ * @param row Row number.
+ * @return Label for the grid row.
+ */
+wxString
+MemoryGridTable::GetRowLabelValue(int row) {
+
+    string address = Conversion::toHexString(
+        start_ + row * numberOfColumns_ * sizeOfCell());
+
+    return WxConversion::toWxString(address);
+}
+
+
+/**
+ * Returns column label of a grid column.
+ *
+ * The label is the offset of the column compared to the first cell in the
+ * row.
+ *
+ * @param col Column number.
+ * @return Label for the grid column.
+ */
+wxString
+MemoryGridTable::GetColLabelValue(int col) {
+    string offset = Conversion::toHexString(col * sizeOfCell());
+    return WxConversion::toWxString(offset);
+}
+
+
+/**
+ * Not implemented, use setCellValue() instead.
+ */
+void
+MemoryGridTable::SetValue(int, int, const wxString&) {
+    // Do nothing.
+}
+
+
+/**
+ * Returns contents of the given memory contents as a wxString.
+ *
+ * The string formatting depends on the current sizeMode_ and dataMode_ set.
+ *
+ * @param addr Memory address to return.
+ * @return Memory contents as a wxString.
+ */
+wxString
+MemoryGridTable::memoryContents(Word addr) {
+
+    unsigned size = sizeOfCell();
+    string dataString = NOT_AVAILABLE;
+    unsigned int cellSize = sizeOfCell() * mauSize_;
+
+    if ((size * mauSize_) <= sizeof(SIntWord) * BYTE_BITWIDTH) {
+
+        // read one word
+        SIntWord data = 0;
+
+        if (addr < start_ || addr > end_) {
+            // memory not available
+            return WxConversion::toWxString(NOT_AVAILABLE);
+        } else {
+            std::vector<UIntWord> dv;
+            dv.resize(1);
+            memory_->readBlock(addr, dv, cellSize);
+            data = dv[0];            
+            //memory_->initiateRead(addr, size, 1);
+            //memory_->readData(data, 1);
+        }
+
+
+        if (dataMode_ == DATA_BIN) {
+            dataString =
+                Conversion::toBinary(static_cast<int>(data), cellSize);
+        } else if (dataMode_ == DATA_HEX) {
+            unsigned digits = cellSize / 4;
+            if ((cellSize % 4) != 0) {
+                cellSize++;
+            }
+            dataString = Conversion::toHexString(data, digits);
+        } else if (dataMode_ == DATA_SIGNED_INT) {
+            int extendedValue = data;
+            extendedValue =
+                extendedValue <<
+                ((sizeof(extendedValue)*BYTE_BITWIDTH) - cellSize);
+            extendedValue =
+                extendedValue >>
+                ((sizeof(extendedValue)*BYTE_BITWIDTH) - cellSize);
+            dataString = Conversion::toString(extendedValue);
+        } else if (dataMode_ == DATA_UNSIGNED_INT) {
+            dataString = Conversion::toString(data);
+        } else if (dataMode_ == DATA_FLOAT &&
+                   cellSize == sizeof(FloatWord) * BYTE_BITWIDTH) {
+
+            FloatWord flt = *(reinterpret_cast<FloatWord*>(&data));
+            dataString = Conversion::toString(flt);
+        }
+
+    } else if ((size * mauSize_) <= sizeof(DoubleWord) * BYTE_BITWIDTH) {
+
+        // Only double display is available due to the limitations of
+        // stringstream hex/bin conversion.
+        if (dataMode_ == DATA_DOUBLE
+            && cellSize == sizeof(DoubleWord) * BYTE_BITWIDTH) {
+
+            // read one double word
+            DoubleWord data = 0;
+            if (addr < start_ || addr > end_) {
+                // memory not available
+                return WxConversion::toWxString(NOT_AVAILABLE);
+            } else {
+                std::vector<DoubleWord> dv;
+                dv.resize(1);
+                memory_->readBlock(addr, dv, cellSize);
+                //memory_->initiateRead(addr, size, 1);
+                //memory_->readData(data, 1);
+                data = dv[0];
+            }
+
+            dataString = Conversion::toString(data);
+        }
+    }
+    return WxConversion::toWxString(dataString);
+}
+
+
+
+/**
+ * Sets the number of columns to display.
+ *
+ * @param columns New table width.
+ */
+void
+MemoryGridTable::setNumberOfColumns(unsigned columns) {
+    numberOfColumns_ = columns;
+}
+
+
+/**
+ * Sets the data display mode of the table.
+ *
+ * @param mode Data display mode to set.
+ */
+void
+MemoryGridTable::setDataMode(DataMode mode) {
+    dataMode_ = mode;
+}
+
+
+/**
+ * Sets the memory size per cell.
+ *
+ * @param mode Size mode to set.
+ */
+void
+MemoryGridTable::setSizeMode(SizeMode mode) {
+    sizeMode_ = mode;
+}
+
+
+/**
+ * Sets the memory value correspoding to a cell.
+ *
+ * @param row Row of the cell.
+ * @param column Column of the cell.
+ * @param memoryValue Value to set.
+ */
+void
+MemoryGridTable::writeValue(int row, int column, UIntWord memoryValue) {
+    Word address = start_;
+    address += cellAddress(row, column);
+    int size = sizeOfCell();
+    if (address < end_) {
+	memory_->initiateWrite(address, size, memoryValue, 1);
+	memory_->advanceClock();
+    }
+}
+
+
+/**
+ * Sets the memory value correspoding to a cell.
+ *
+ * @param row Row of the cell.
+ * @param column Column of the cell.
+ * @param memoryValue Value to set.
+ */
+void
+MemoryGridTable::writeValue(int row, int column, DoubleWord memoryValue) {
+    Word address = start_;
+    address += cellAddress(row, column);
+    int size = sizeOfCell();
+    if (address < end_) {
+	memory_->initiateWrite(address, size, memoryValue, 1);
+	memory_->advanceClock();
+    }
+}
+
+
+
+/**
+ * Calculates the address of given cell.
+ *
+ * @param row The selected row.
+ * @param colummn The selected column.
+ * @return Address of the cell.
+ */
+Word
+MemoryGridTable::cellAddress(int row, int column) const {
+    Word address = 0;
+    unsigned size = sizeOfCell();
+    address += column * size;
+    address += row * numberOfColumns_ * size;
+    return address;
+}
+
+
+/**
+ * Returns row and column nubmer of the address in the table.
+ *
+ * @param address Memory address to find.
+ * @param row Variable to set the row to.
+ * @param col Variable to set the column to.
+ */
+void
+MemoryGridTable::findAddress(Word addr, int& row, int& col) {
+    unsigned cellSize = sizeOfCell();
+    row = addr / ((unsigned)numberOfColumns_ * cellSize);
+    col = (addr % ((unsigned)numberOfColumns_ * cellSize)) / cellSize;
+}
+
+
+/**
+ * Returns size of memory displayed in a single cell.
+ *
+ * @return Memory size of a cell.
+ */
+unsigned
+MemoryGridTable::sizeOfCell() const {
+    if (sizeMode_ == SIZE_MAU) {
+	return 1;
+    } else if (sizeMode_ == SIZE_TWO_MAUS) {
+	return 2;
+    } else if (sizeMode_ == SIZE_FOUR_MAUS) {
+	return 4;
+    } else if (sizeMode_ == SIZE_EIGHT_MAUS) {
+	return 8;
+    }
+    assert(false);
+    return 0;
+}

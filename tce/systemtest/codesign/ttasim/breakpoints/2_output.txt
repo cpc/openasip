@@ -1,0 +1,5 @@
+     1: watch for expression 'info registers sp' 
+      5                      <_crt0+5>: 16777216 -> sp ;
+Stopped at breakpoint 1.
+      6                      <_crt0+6>: _main -> call.1 ;
+Stopped at breakpoint 1.

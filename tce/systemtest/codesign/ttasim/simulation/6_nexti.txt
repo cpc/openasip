@@ -1,0 +1,11 @@
+prog data/hello
+nexti 6
+stepi
+nexti 14
+stepi
+nexti 8
+until 37
+nexti
+quit
+
+

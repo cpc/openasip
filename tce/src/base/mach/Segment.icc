@@ -1,0 +1,68 @@
+/**
+ * @file Segment.icc
+ *
+ * Inline implementation of Segment class.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @note reviewed 14 Jun 2004 by am, tr, ao, ll
+ * @note rating: red
+ */
+
+namespace TTAMachine {
+
+/**
+ * Returns the name of the segment.
+ *
+ * @return Name of the segment.
+ */
+inline std::string
+Segment::name() const {
+    return name_;
+}
+
+
+/**
+ * Returns the number of connections to sockets in this segment.
+ *
+ * @return The number of connections.
+ */
+inline int
+Segment::connectionCount() const {
+    return connections_.size();
+}
+
+
+/**
+ * Returns the parent bus of the segment.
+ *
+ * @return Parent bus of the segment.
+ */
+inline Bus*
+Segment::parentBus() const {
+    return parent_;
+}
+
+
+/**
+ * Returns the source segment or NULL if source segment does not exist.
+ *
+ * @return The source segment or NULL if source segment does not exist.
+ */
+inline Segment*
+Segment::sourceSegment() const {
+    return sourceSegment_;
+}
+
+
+/**
+ * Returns the destination segment or NULL if destination segment does not
+ * exist.
+ *
+ * @return The destination segment or NULL if destination segment does not
+ *         exist.
+ */
+inline Segment*
+Segment::destinationSegment() const {
+    return destinationSegment_;
+}
+}

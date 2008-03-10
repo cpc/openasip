@@ -1,0 +1,18 @@
+mach data/worm.adf
+prog data/worm.tpef
+bp 8
+stepi
+info funits
+info busses
+info segments bus1
+info regfiles
+condition 1
+[info ports ADD P3] == -16
+resume
+info registers RF 1
+info registers RF
+info registers 
+info ports ADD
+info ports ADD P1
+info ports
+quit

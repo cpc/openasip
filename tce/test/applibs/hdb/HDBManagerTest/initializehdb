@@ -1,0 +1,146 @@
+#!/bin/sh
+hdbfile=$1
+sqlite3 $hdbfile <<EOF
+BEGIN;
+
+INSERT INTO operation VALUES(1, "ADD");
+INSERT INTO operation VALUES(2, "SUB");
+INSERT INTO operation VALUES(3, "LDW");
+INSERT INTO operation VALUES(4, "LDQ");
+INSERT INTO operation VALUES(5, "LDH");
+INSERT INTO operation VALUES(6, "LDD");
+INSERT INTO operation VALUES(7, "STW");
+INSERT INTO operation VALUES(8, "STQ");
+INSERT INTO operation VALUES(9, "STH");
+INSERT INTO operation VALUES(10, "STD");
+INSERT INTO operation VALUES(11, "EQ");
+INSERT INTO operation VALUES(12, "GT");
+INSERT INTO operation VALUES(13, "GTU");
+INSERT INTO operation VALUES(14, "SHL");
+INSERT INTO operation VALUES(15, "SHR");
+INSERT INTO operation VALUES(16, "SHRU");
+INSERT INTO operation VALUES(17, "AND");
+INSERT INTO operation VALUES(18, "IOR");
+INSERT INTO operation VALUES(19, "XOR");
+INSERT INTO operation VALUES(20, "SYS");
+INSERT INTO operation VALUES(21, "JUMP");
+INSERT INTO operation VALUES(22, "CALL");
+INSERT INTO operation VALUES(23, "MIN");
+INSERT INTO operation VALUES(24, "MAX");
+INSERT INTO operation VALUES(25, "MINU");
+INSERT INTO operation VALUES(26, "MAXU");
+INSERT INTO operation VALUES(27, "SXQW");
+INSERT INTO operation VALUES(28, "SXHW");
+INSERT INTO operation VALUES(29, "NEG");
+INSERT INTO operation VALUES(30, "NEGF");
+INSERT INTO operation VALUES(31, "MUL");
+INSERT INTO operation VALUES(32, "DIV");
+INSERT INTO operation VALUES(33, "DIVU");
+INSERT INTO operation VALUES(34, "MOD");
+INSERT INTO operation VALUES(35, "MODU");
+INSERT INTO operation VALUES(36, "ADDF");
+INSERT INTO operation VALUES(37, "SUBF");
+INSERT INTO operation VALUES(38, "MULF");
+INSERT INTO operation VALUES(39, "DIVF");
+INSERT INTO operation VALUES(40, "EQF");
+INSERT INTO operation VALUES(41, "GTF");
+INSERT INTO operation VALUES(42, "CFI");
+INSERT INTO operation VALUES(43, "CIF");
+INSERT INTO operation VALUES(44, "ROTL");
+INSERT INTO operation VALUES(45, "ROTR");
+INSERT INTO operation VALUES(46, "ABSF");
+INSERT INTO operation VALUES(47, "LDQU");
+INSERT INTO operation VALUES(48, "LDHU");
+
+INSERT INTO fu_architecture VALUES(1);
+INSERT INTO fu_architecture VALUES(2);
+
+INSERT INTO operation_pipeline VALUES(1, 1, 1);
+INSERT INTO operation_pipeline VALUES(2, 1, 2);
+INSERT INTO operation_pipeline VALUES(3, 2, 3);
+INSERT INTO operation_pipeline VALUES(4, 2, 7);
+
+INSERT INTO pipeline_resource VALUES(1, 1);
+INSERT INTO pipeline_resource VALUES(2, 2);
+
+INSERT INTO pipeline_resource_usage VALUES(1, 1, 1, 1);
+INSERT INTO pipeline_resource_usage VALUES(2, 1, 1, 2);
+INSERT INTO pipeline_resource_usage VALUES(3, 1, 2, 3); 
+INSERT INTO pipeline_resource_usage VALUES(4, 2, 2, 3);
+INSERT INTO pipeline_resource_usage VALUES(5, 1, 2, 4);
+INSERT INTO pipeline_resource_usage VALUES(6, 2, 2, 4);
+
+INSERT INTO io_usage VALUES(1, 0, 1, 1, 1);
+INSERT INTO io_usage VALUES(2, 0, 2, 1, 1);
+INSERT INTO io_usage VALUES(3, 2, 3, 0, 1);
+INSERT INTO io_usage VALUES(4, 0, 1, 0, 2);
+INSERT INTO io_usage VALUES(5, 0, 2, 1, 2);
+INSERT INTO io_usage VALUES(6, 2, 3, 0, 2);
+INSERT INTO io_usage VALUES(7, 0, 1, 1, 3);
+INSERT INTO io_usage VALUES(8, 3, 2, 0, 3);
+INSERT INTO io_usage VALUES(9, 0, 1, 1, 4);
+INSERT INTO io_usage VALUES(10, 0, 2, 1, 4);
+
+INSERT INTO fu_data_port VALUES(1, 0, 0, 0, 32, 1);
+INSERT INTO fu_data_port VALUES(2, 1, 1, 0, 32, 1);
+INSERT INTO fu_data_port VALUES(3, 0, 0, 1, 32, 1);
+INSERT INTO fu_data_port VALUES(4, 0, 0, 0, 32, 2);
+INSERT INTO fu_data_port VALUES(5, 1, 1, 0, 32, 2);
+INSERT INTO fu_data_port VALUES(6, 0, 0, 0, 32, 2);
+
+INSERT INTO io_binding VALUES(1, 1, 1, 1);
+INSERT INTO io_binding VALUES(2, 2, 2, 1);
+INSERT INTO io_binding VALUES(3, 3, 3, 1);
+INSERT INTO io_binding VALUES(4, 1, 1, 2);
+INSERT INTO io_binding VALUES(5, 2, 2, 2);
+INSERT INTO io_binding VALUES(6, 3, 3, 2);
+INSERT INTO io_binding VALUES(7, 1, 5, 3);
+INSERT INTO io_binding VALUES(8, 2, 6, 3);
+INSERT INTO io_binding VALUES(9, 1, 4, 7);
+INSERT INTO io_binding VALUES(10, 2, 5, 7); 
+
+INSERT INTO fu VALUES(1, 1, 1);
+INSERT INTO fu VALUES(2, 2, NULL);
+
+INSERT INTO fu_implementation VALUES(1, 'addsub', 'opc', 'clk', 'rst', 'glock', NULL, 1);
+
+INSERT INTO opcode_map VALUES(1, 0, 1, 1);
+INSERT INTO opcode_map VALUES(2, 1, 2, 1);
+
+INSERT INTO fu_port_map (id, name, width_formula, load_port, guard_port, fu_impl, arch_port) VALUES(1, 'o1', '32', 'o1_ld', NULL, 1, 1);
+INSERT INTO fu_port_map (id, name, width_formula, load_port, guard_port, fu_impl, arch_port) VALUES(2, 't1', '32', 't1_ld', NULL, 1, 2);
+INSERT INTO fu_port_map (id, name, width_formula, load_port, guard_port, fu_impl, arch_port) VALUES(3, 'r1', '32', 'r1_ld', 'guard', 1, 3);
+
+INSERT INTO block_source_file VALUES(1, '/home/tce/addsub.vhdl', 1);
+INSERT INTO block_source_file VALUES(2, '/home/tce/rf_8_16.vhdl', 1);
+
+INSERT INTO fu_source_file VALUES(1, 1, 1);
+
+INSERT INTO rf_architecture(id,size,width,read_ports,write_ports,bidir_ports,latency,max_reads,max_writes,guard_support,guard_latency) VALUES(1, 8, 16, 1, 1, 0, 1, 1, 0, 1, 0);
+
+INSERT INTO rf VALUES(1, 1, NULL);
+
+INSERT INTO rf_implementation VALUES(1, 'rf_8x16', NULL, NULL, 'clk', 'rst', 'glock', 'guard', 1);
+
+INSERT INTO rf_data_port (id, name, direction, load_port, opcode_port, opcode_port_width_formula, rf_impl) VALUES(1, 'rd', 'OUT', 'rd_ld', 'rd_opc', '16', 1);
+INSERT INTO rf_data_port (id, name, direction, load_port, opcode_port, opcode_port_width_formula, rf_impl) VALUES(2, 'wr', 'IN', 'wr_ld', 'wr_opc', '16', 1);
+
+INSERT INTO rf_source_file VALUES(1, 1, 2);
+
+INSERT INTO cost_function_plugin 
+VALUES(1, 'jepjep', 'StrictMatchFUEstimator', 
+       '../../../cost_estimator_plugins/fu/StrictMatchFUEstimator.so', 
+       'fu');
+
+INSERT INTO cost_function_plugin 
+VALUES(2, 'jepjep', 'DefaultICDecoder', 
+       '../../../icdecoder_plugins/DefaultICDecoderPlugin.so', 'icdec');
+
+INSERT INTO cost_estimation_data(
+              plugin_reference, socket_reference, name, value) 
+VALUES(2, 7, 'delay', '520.0');
+
+COMMIT;
+.quit
+EOF
+

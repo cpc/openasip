@@ -1,0 +1,231 @@
+from binding_generator import *
+
+prefix = "../../src/base/program/"
+
+
+move_constructor_declarations = """
+/**
+ * Constructor that plays nicely with Python.
+ * See http://www.boost.org/libs/python/doc/v2/faq.html#ownership
+ * and http://www.boost.org/libs/python/doc/v2/make_function.html#make_constructor-spec
+ */
+
+static TTAProgram::Move* Move_constructor1(std::auto_ptr<TTAProgram::Terminal> src,
+                                           std::auto_ptr<TTAProgram::Terminal> dst,
+                                           TTAMachine::Bus& bus,
+                                           std::auto_ptr<TTAProgram::MoveGuard> guard) {
+    TTAProgram::Terminal* src_p = src.get();
+    TTAProgram::Terminal* dst_p = dst.get();
+    TTAProgram::MoveGuard* guard_p = guard.get();
+    src.release();
+    dst.release();
+    guard.release();
+    return new TTAProgram::Move(src_p, dst_p, bus, guard_p);
+}
+
+/**
+ * Constructor that plays nicely with Python.
+ * See http://www.boost.org/libs/python/doc/v2/faq.html#ownership
+ * and http://www.boost.org/libs/python/doc/v2/make_function.html#make_constructor-spec
+ */
+
+static TTAProgram::Move* Move_constructor2(std::auto_ptr<TTAProgram::Terminal> src,
+                                           std::auto_ptr<TTAProgram::Terminal> dst,
+                                           TTAMachine::Bus& bus) {
+    TTAProgram::Terminal* src_p = src.get();
+    TTAProgram::Terminal* dst_p = dst.get();
+    src.release();
+    dst.release();
+    return new TTAProgram::Move(src_p, dst_p, bus);
+}
+
+"""
+
+bg = binding_generator_t(
+    module_name = "program",
+    call_policies = (('*',
+                      [('instance', return_value_policy(reference_existing_object)),
+                       ('copy', return_value_policy(manage_new_object))]),
+                     ('Address', []),
+                     ('CodeLabel', []),
+                     ('CodeSnippet',
+                      [('firstInstruction', return_internal_reference()),
+                       ('instructionAt', return_internal_reference()),
+                       ('instructionAtIndex', return_internal_reference()),
+                       ('lastInstruction', return_internal_reference()),
+                       ('nextInstruction', return_internal_reference()),
+                       ('previousInstruction', return_internal_reference()),
+                       ('parent', return_internal_reference())]),
+                     ('DataLabel', []),
+                     ('GlobalScope',
+                      [('copyAndRelocate', return_value_policy(manage_new_object))]),
+                     ('Immediate',
+                      [('value', return_internal_reference())]),
+                     ('Instruction',
+                      [('immediate', return_internal_reference()),
+                       ('move', return_internal_reference()),
+                       ('parent', return_internal_reference())]),
+                     ('InstructionReference',
+                      [('instruction', return_internal_reference())]),
+                     ('InstructionReferenceManager',
+                      [('createReference', return_internal_reference()),
+                       ('reference', return_internal_reference()),
+                       ('replace', return_internal_reference())]),
+                     ('Label', []),
+                     ('Move',
+                      [('bus', return_internal_reference()),
+                       ('destination', return_internal_reference()),
+                       ('destinationSocket', return_internal_reference()),
+                       ('guard', return_internal_reference()),
+                       ('parent', return_internal_reference()),
+                       ('source', return_internal_reference()),
+                       ('sourceSocket', return_internal_reference())]),
+                     ('MoveGuard',
+                      [('guard', return_internal_reference())]),
+                     ('NullAddress', []),
+                     ('NullGlobalScope', []),
+                     ('NullImmediate',
+                      [('destination', return_internal_reference()),
+                       ('value', return_internal_reference())]),
+                     ('NullInstruction',
+                      [('address', return_internal_reference()),
+                       ('immediate', return_internal_reference()),
+                       ('parent', return_internal_reference())]),
+                     ('NullInstructionReferenceManager', []),
+                     ('NullMove',
+                      [('bus', return_internal_reference()),
+                       ('destination', return_internal_reference()),
+                       ('destinationSocket', return_internal_reference()),
+                       ('guard', return_internal_reference()),
+                       ('parent', return_internal_reference()),
+                       ('source', return_internal_reference()),
+                       ('sourceSocket', return_internal_reference())]),
+                     ('NullMoveGuard',
+                      [('guard', return_internal_reference())]),
+                     ('NullProcedure',
+                      [('firstInstruction', return_internal_reference()),
+                       ('instructionAt', return_internal_reference()),
+                       ('lastInstruction', return_internal_reference()),
+                       ('nextInstruction', return_internal_reference()),
+                       ('parent', return_internal_reference()),
+                       ('previousInstruction', return_internal_reference())]),
+                     ('NullProgram',
+                      [('firstInstruction', return_internal_reference()),
+                       ('firstProcedure', return_internal_reference()),
+                       ('globalScope', return_internal_reference()),
+                       ('instructionReferenceManager', return_internal_reference()),
+                       ('lastInstruction', return_internal_reference()),
+                       ('lastProcedure', return_internal_reference()),
+                       ('nextProcedure', return_internal_reference()),
+                       ('procedure', return_internal_reference()),
+                       ('targetProcessor', return_internal_reference())]),
+                     ('NullTerminal',
+                      [('operation', return_internal_reference())]),
+                     ('Procedure', []),
+                     ('Program',
+                      [('dataMemory', return_internal_reference()),
+                       ('firstInstruction', return_internal_reference()),
+                       ('firstProcedure', return_internal_reference()),
+                       ('globalScope', return_internal_reference()),
+                       ('instructionAt', return_internal_reference()),
+                       ('instructionReferenceManager', return_internal_reference()),
+                       ('lastInstruction', return_internal_reference()),
+                       ('lastProcedure', return_internal_reference()),
+                       ('loadFromTPEF', return_value_policy(manage_new_object)),
+                       ('nextInstruction', return_internal_reference()),
+                       ('nextProcedure', return_internal_reference()),
+                       ('procedure', return_internal_reference()),
+                       ('targetProcessor', return_internal_reference())]),
+                     ('ProgramWriter',
+                      [('createBinary', return_value_policy(manage_new_object))]),
+                     ('Scope',
+                      [('parent', return_internal_reference())]),
+                     ('Terminal',
+                      [('hintOperation', return_internal_reference()),
+                       ('instructionReference', return_internal_reference()),
+                       ('operation', return_internal_reference()),
+                       ('registerFile', return_internal_reference())]),
+                     ('TerminalAddress', []),
+                     ('TerminalFUPort',
+                      [('hintOperation', return_internal_reference()),
+                       ('functionUnit', return_internal_reference()),
+                       ('port', return_internal_reference()),
+                       ('operation', return_internal_reference()),
+                       ('hwOperation', return_internal_reference())]),
+                     ('TerminalImmediate', []),
+                     ('TerminalInstructionAddress',
+                      [('instructionReference', return_internal_reference())]),
+                     ('TerminalRegister',
+                      [('port', return_internal_reference()),
+                       ('registerFile', return_internal_reference())])),
+    headers = [prefix + "Address.hh",
+               prefix + "CodeLabel.hh",
+               prefix + "CodeSnippet.hh",
+               prefix + "DataLabel.hh",
+               prefix + "GlobalScope.hh",
+               prefix + "Immediate.hh",
+               prefix + "Instruction.hh",
+               prefix + "InstructionReference.hh",
+               prefix + "InstructionReferenceManager.hh",
+               prefix + "Label.hh",
+               prefix + "Move.hh",
+               prefix + "MoveGuard.hh",
+               prefix + "NullAddress.hh",
+               prefix + "NullGlobalScope.hh",
+               prefix + "NullImmediate.hh",
+               prefix + "NullInstruction.hh",
+               prefix + "NullInstructionReferenceManager.hh",
+               prefix + "NullMove.hh",
+               prefix + "NullMoveGuard.hh",
+               prefix + "NullProcedure.hh",
+               prefix + "NullProgram.hh",
+               prefix + "NullTerminal.hh",
+               prefix + "Procedure.hh",
+               prefix + "Program.hh",
+               prefix + "ProgramWriter.hh",
+               prefix + "Scope.hh",
+               prefix + "Terminal.hh",
+               prefix + "TerminalAddress.hh",
+               prefix + "TerminalFUPort.hh",
+               prefix + "TerminalImmediate.hh",
+               prefix + "TerminalInstructionAddress.hh",
+               prefix + "TerminalRegister.hh"
+               ],
+    extra_headers = ["Exception.hh",
+                     "CodeLabel.hh",
+                     "DataLabel.hh",
+                     "Guard.hh",
+                     "Machine.hh",
+                     "UniversalMachine.hh",
+                     "DataMemory.hh",
+                     "Move.hh",
+                     "Operation.hh",
+                     "HWOperation.hh",
+                     "ResourceSection.hh",
+                     "Program.hh",
+                     "Procedure.hh",
+                     "Terminal.hh",
+                     "TerminalImmediate.hh",
+                     "Immediate.hh",
+                     "InstructionReference.hh"],
+    excluded_classes = ['TPEFResourceUpdater'],
+    excluded_constructors = [('Move', ['TTAProgram::Terminal *',
+                                       'TTAProgram::Terminal *',
+                                       'TTAMachine::Bus &',
+                                       'TTAProgram::MoveGuard *']),
+                             ('Move', ['TTAProgram::Terminal *',
+                                       'TTAProgram::Terminal *',
+                                       'TTAMachine::Bus &'])],
+    held_types = [('Terminal', 'std::auto_ptr< Terminal_wrapper >'),
+                  ('MoveGuard', 'std::auto_ptr< TTAProgram::MoveGuard >')
+                  ],
+    ownership_transfers = [('Move', 'setSource', ['src']),
+                           ('Move', 'setDestination', ['dst']),
+                           ('Move', 'setGuard', ['guard'])],
+    extra_declarations = [move_constructor_declarations],
+    extra_member_registrations = 
+    [('Move', ['def("__init__", bp::make_constructor(Move_constructor1))'
+               '.def("__init__", bp::make_constructor(Move_constructor2))'])]
+    )
+
+bg.run()

@@ -1,0 +1,4 @@
+if LLVM
+SUBDIRS = $(LLVM_VERSION)
+endif
+

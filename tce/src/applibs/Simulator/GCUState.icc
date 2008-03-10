@@ -1,0 +1,77 @@
+/**
+ * @file GCUState.icc
+ *
+ * Inline definitions of GCUState class.
+ *
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include "SimulatorConstants.hh"
+#include "SimValue.hh"
+
+/**
+ * Returns the current program counter value.
+ *
+ * @return Program counter value.
+ */
+inline InstructionAddress&
+GCUState::programCounter() {
+    return programCounter_;
+}
+
+
+/**
+ * Returns the return address register.
+ *
+ * @return Return address register as SimValue.
+ */
+inline SimValue&
+GCUState::returnAddressRegister() {
+    return returnAddressRegister_;
+}
+
+/**
+ * Sets new value to program counter.
+ *
+ * The value is updated after the delay set by control stages.
+ *
+ * @param value New value.
+ */
+inline void
+GCUState::setProgramCounter(const InstructionAddress& value) {    
+    if (operationPending_ && latency_ != operationPendingTime_) {
+        throw Exception(
+            __FILE__, __LINE__, __func__,
+            "Cannot have jumps in delay slots.");
+    }
+    newProgramCounter_ = value;
+    operationPending_ = true;
+    operationPendingTime_ = latency_;
+}
+
+/**
+ * Sets new value to return address.
+ *
+ * The value is updated immediately. Takes in account the delay slot
+ * length.
+ */
+inline void
+GCUState::setReturnAddress() {
+    returnAddressRegister_ = 
+        programCounter_ + static_cast<SIntWord>(latency_);
+}
+
+/**
+ * Sets a wanted value to return address register immediately.
+ *
+ * The value is updated immediately. This is basically used to
+ * initialize GCUState return address register to different value
+ * than 0.
+ *
+ * @param value Address to set to return address register.
+ */
+inline void
+GCUState::setReturnAddress(const InstructionAddress& value) {
+    returnAddressRegister_ = value;
+}

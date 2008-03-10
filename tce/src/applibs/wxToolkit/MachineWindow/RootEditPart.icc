@@ -1,0 +1,19 @@
+/**
+ * @file RootEditPart.icc
+ *
+ * Inline implementation of RootEditPart class.
+ *
+ * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 13 2004 by vpj, ll, jn, am
+ */
+
+/**
+ * Returns the contents EditPart of the whole view.
+ *
+ * @return The contents EditPart of the whole view.
+ */
+inline EditPart*
+RootEditPart::contents() const {
+    return contents_;
+}

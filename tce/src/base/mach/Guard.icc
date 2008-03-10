@@ -1,0 +1,76 @@
+/**
+ * @file Guard.icc
+ *
+ * Inline implementation of Guard classes.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ */
+
+namespace TTAMachine {
+
+/**
+ * Returns the parent bus of the guard.
+ *
+ * @return The parent bus of the guard.
+ */
+inline Bus*
+Guard::parentBus() const {
+    return parent_;
+}
+
+
+/**
+ * Returns true if the guard is inverted, otherwise false.
+ *
+ * @return True if the guard is inverted, otherwise false.
+ */
+inline bool
+Guard::isInverted() const {
+    return inverted_;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// PortGuard
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the port from which the condition term is taken.
+ *
+ * @return The port from which the condition term is taken.
+ */
+inline FUPort*
+PortGuard::port() const {
+    return port_;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// RegisterGuard
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the register file which contains the register from which the
+ * condition term is taken.
+ *
+ * @return The register file which contains the register from which the
+ *         condition term is taken.
+ */
+inline RegisterFile*
+RegisterGuard::registerFile() const {
+    return regFile_;
+}
+
+
+/**
+ * Returns the index of the register in register file from which the
+ * condition term is taken.
+ *
+ * @return The index of the register in register file from which the
+ *         condition term is taken.
+ */
+inline int
+RegisterGuard::registerIndex() const {
+    return registerIndex_;
+}
+}

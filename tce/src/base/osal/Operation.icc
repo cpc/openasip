@@ -1,0 +1,36 @@
+/**
+ * @file Operation.icc
+ *
+ * The inline definition of Operation class.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @note rating: yellow
+ * @note reviewed 17 August 2004 by jn, ll, tr, pj
+ */
+
+//////////////////////////////////////////////////////////////////////////////
+// Operation
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns true in case the Operation is a null object.
+ */
+inline bool
+Operation::isNull() const {
+    return this == &NullOperation::instance();
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// NullOperation
+//////////////////////////////////////////////////////////////////////////////
+
+/** 
+ * Returns an instance of NullOperation class (singleton).
+ *
+ * @return Singleton instance of NullOperation class.
+ */
+inline NullOperation&
+NullOperation::instance() {
+    return instance_;
+}
+

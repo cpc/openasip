@@ -1,0 +1,54 @@
+/**
+ * @file Address.icc
+ *
+ * Inline implementations of Address class.
+ *
+ * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @note rating: red
+ */
+
+
+/**
+ * Constructor.
+ *
+ * Creates an address for a given location in given address space.
+ *
+ * @param location The location of the address.
+ * @param space The address space of the address.
+ */
+inline
+Address::Address(
+    InstructionAddress location,
+    const TTAMachine::AddressSpace& space):
+    location_(location), space_(&space) {
+}
+
+
+/**
+ * Destructor.
+ */
+inline
+Address::~Address() {
+}
+
+
+/**
+ * Returns the location of the address.
+ *
+ * @return the location identified by the address.
+ */
+inline InstructionAddress
+Address::location() const {
+    return location_;
+}
+
+
+/**
+ * Returns the address space of the address.
+ *
+ * @return the address space of the address.
+ */
+inline const TTAMachine::AddressSpace&
+Address::space() const {
+    return *space_;
+}

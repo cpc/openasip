@@ -1,0 +1,221 @@
+/**
+ * @file PagedArray.icc
+ *
+ * Template definitions of PagedArray class. 
+ *
+ * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen@tut.fi)
+ * @note rating: red
+ */
+
+#include "Application.hh"
+
+#include <cmath>
+
+/**
+ * Constructor.
+ *
+ * Initializes the page table.
+ *
+ * @param size The count of elements in the array.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+PagedArray<ValueType, PageSize, DefaultValue>::PagedArray(std::size_t size) {
+    pageTableSize_ =
+        static_cast<std::size_t>(
+            std::ceil(static_cast<double>(size) / PageSize));
+
+    pageTable_ = new ValueType*[pageTableSize_];
+    for (std::size_t i = 0; i < pageTableSize_; ++i) {
+        pageTable_[i] = NULL;
+    }
+}
+
+
+/**
+ * Destructor. 
+ *
+ * Deallocates tables and cleans up the page table.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+PagedArray<ValueType, PageSize, DefaultValue>::~PagedArray() {
+    deletePages();
+    delete[] pageTable_;
+    pageTable_ = NULL;
+}
+
+
+/**
+ * Deletes all allocated memory chunks, thus effectively sets all memory
+ * locations to zero.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+void
+PagedArray<ValueType, PageSize, DefaultValue>::deletePages() {
+    for (std::size_t i = 0; i < pageTableSize_; ++i) {
+        if (pageTable_[i] != NULL) {
+            delete[] pageTable_[i];
+            pageTable_[i] = NULL;
+        }
+    }
+}
+
+/**
+ * Reads data to a vector.
+ *
+ * If the number of values exceeds the size of the given container, 
+ * then the container is resized.
+ *
+ * @param index Index to be read from.
+ * @param data Container where read data is stored.
+ * @param size Number of minimum addressable units to read.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+void
+PagedArray<ValueType, PageSize, DefaultValue>::read(
+    IndexType index, 
+    ValueVector& data, 
+    std::size_t size) {
+
+    if (data.size() != size) {
+        data.resize(size);
+    }
+
+    for (size_t i = index; i < index + size; i++) {
+        data[i - index] = readData(i);
+    }
+}
+
+/**
+ * Returns the amount of allocated memory by the array pages.
+ *
+ * This is used for debugging the implementation.
+ *
+ * @return The amount of allocated memory in bytes.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+size_t
+PagedArray<ValueType, PageSize, DefaultValue>::allocatedMemory() const {
+
+    size_t countOfChunks = 0;
+
+    for (std::size_t i = 0; i < sizeof(pageTable_); ++i) {
+        if (pageTable_[i] != NULL)
+            ++countOfChunks;
+    }
+    return countOfChunks*PageSize*sizeof(ValueType);
+}
+
+/**
+ * Fills the whole array with the default value.
+ *
+ * This is needed due to some buggy simulated programs which expect
+ * uninitialized data to be zero.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+void
+PagedArray<ValueType, PageSize, DefaultValue>::clear() {
+    deletePages();
+}
+
+
+/**
+ * Stores data to the array.
+ *
+ * Does not perform bounds-checking.
+ *
+ * @param index The index of the data.
+ * @param data Data to be stored in a traditional table.
+ * @param size Size of the data to store.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+inline void
+PagedArray<ValueType, PageSize, DefaultValue>::write(
+    IndexType index,
+    ValueTable data,
+    std::size_t size) {
+    for (size_t i = index; i < index + size; ++i) {
+        writeData(i, data[i - index]);
+    }
+}
+
+/**
+ * Writes a value to the given index.
+ *
+ * @param index Target index.
+ * @param data Data to write.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+inline void
+PagedArray<ValueType, PageSize, DefaultValue>::writeData(
+    IndexType index, 
+    const ValueType& data) {
+
+    ValueType* page = pageTable_[index / PageSize];
+    if (page == NULL) {
+        page = new ValueType[PageSize];
+        std::memset(page, 0, PageSize*sizeof(ValueType));
+        pageTable_[index / PageSize] = page;
+    }
+    page[index % PageSize] = data;
+}
+
+/**
+ * Reads a value from a given index.
+ *
+ * If the page to be read is not yet allocated, doesn't allocate it,
+ * but returns the default value instead. This way we avoid memory consumption 
+ * explosion for example in simulator/debugger when user wants to browse 
+ * through the memory space (which is mostly uninitialized at least in 
+ * sequential code) in the memory window.
+ *
+ * @param index Target index.
+ * @return data 
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+inline ValueType
+PagedArray<ValueType, PageSize, DefaultValue>::readData(IndexType index) {
+    ValueType* page = pageTable_[index / PageSize];
+    if (page == NULL) {
+        return DefaultValue;
+    }
+    return page[index % PageSize];
+}
+
+/**
+ * Reads data to an array.
+ *
+ * A more efficient version. 
+ *
+ * @param index Index to read from.
+ * @param data Pointer to array in which the data should stored. Must have
+ *             enough space!
+ * @param size Size of chunk to read.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+inline void
+PagedArray<ValueType, PageSize, DefaultValue>::read(
+    IndexType index, 
+    ValueTable data, 
+    std::size_t size) {
+    for (size_t i = index; i < index + size; i++) {
+        data[i - index] = readData(i);
+    }
+}
+
+
+/**
+ * Reads data to a vector.
+ *
+ * The number of minimum addressable units that are read is equal to the
+ * size of the container.
+ *
+ * @param address Memory address to be read from.
+ * @param data Container where read data is stored.
+ */
+template <typename ValueType, int PageSize, ValueType DefaultValue>
+inline void
+PagedArray<ValueType, PageSize, DefaultValue>::read(
+    Word address, 
+    ValueVector& data) {
+    read(address, data, data.size());
+}

@@ -1,0 +1,7 @@
+eq 35 35
+eq 3 -3
+eq -3 -3
+eq -122 -123
+eq -1 1
+eq 0xffffffff -1
+!quit

@@ -1,0 +1,13 @@
+<?php
+// file errortester.testdesc
+
+// short test description
+$test_description="OSALTester erronous command handling";
+
+// the binary being tested
+$test_bin="../../../../src/codesign/osal/OSALTester/testosal";
+
+// args given to program
+$bin_args="";
+
+?>

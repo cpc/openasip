@@ -1,0 +1,579 @@
+/**
+ * @file SimValue.icc
+ *
+ * Inline definitions of SimValue class.
+ *
+ * @author Pekka Jääskeläinen 2004 (pjaaskel@cs.tut.fi)
+ */
+
+#include "MathTools.hh"
+
+/**
+ * Default constructor.
+ *
+ * To allow creation of SimValue arrays. Constructs a SimValue with
+ * width of SIMULATOR_MAX_INTWORD_BITWIDTH (32) bits.
+ */
+inline SimValue::SimValue() :
+    bitWidth_(SIMULATOR_MAX_INTWORD_BITWIDTH), active_(false),
+    mask_(~UIntWord(0)) {
+
+    value_.sIntWord = 0;
+    value_.uIntWord = 0;
+    value_.floatWord = 0;
+    value_.doubleWord = 0;
+}
+
+/**
+ * Constructor.
+ *
+ * @param width The bit width of the created SimValue.
+ */
+inline SimValue::SimValue(int width) :
+    bitWidth_(width), active_(false), mask_(~UIntWord(0)) {
+
+    value_.uIntWord = 0;
+    value_.sIntWord = 0;
+    value_.floatWord = 0;
+    value_.doubleWord = 0;
+
+    if (8*sizeof(mask_) > static_cast<unsigned>(width)) {
+        mask_ = ~((~UIntWord(0)) << bitWidth_);
+    }
+}
+
+/**
+ * Constructor.
+ *
+ * @param value The numeric value of this SimValue.
+ * @param width The bit width of the created SimValue.
+ */
+inline SimValue::SimValue(int value, int width) :
+    bitWidth_(width), active_(false), mask_(~UIntWord(0)) {
+
+    value_.sIntWord = value;
+
+    if (8*sizeof(mask_) > static_cast<unsigned>(width)) {
+        mask_ = ~((~UIntWord(0)) << bitWidth_);
+    }
+}
+
+
+/**
+ * Copy constructor.
+ *
+ * @param source The source object from which to copy data.
+ */
+inline
+SimValue::SimValue(const SimValue& source) {
+    bitWidth_ = source.bitWidth_;
+    value_ = Value(source.value_);
+    active_ = source.active_;
+    mask_ = source.mask_;
+}
+
+/**
+ * Returns the bit width of the SimValue.
+ *
+ * @return The bit width.
+ */
+inline int
+SimValue::width() const {
+    return bitWidth_;
+}
+
+/**
+ * Returns the active status of the SimValue.
+ *
+ * @return The active status.
+ */
+inline bool
+SimValue::isActive() const {
+    return active_;
+}
+
+/**
+ * Sets the active status of the SimValue to true.
+ *
+ * @todo This should be inlined because it's called every time SimValue
+ *       is assigned a value.
+ */
+inline void
+SimValue::setActive() {
+    active_ = true;
+}
+
+/**
+ * Sets the active status of the SimValue to false.
+ *
+ */
+inline void
+SimValue::clearActive() {
+    active_ = false;
+}
+
+/**
+ * Assignment operator for source value of type int.
+ *
+ * @param source The source value.
+ * @return Reference to itself.
+ */
+inline SimValue&
+SimValue::operator=(const SIntWord& source) {
+    value_.sIntWord = source;
+    setActive();
+    return (*this);
+}
+
+/**
+ * Assignment operator for source value of type IntWord.
+ *
+ * @param source The source value.
+ * @return Reference to itself.
+ */
+inline SimValue&
+SimValue::operator=(const UIntWord& source) {
+    value_.uIntWord = source;
+    setActive();
+    return (*this);
+}
+
+/**
+ * Assignment operator for source value of type FloatWord.
+ *
+ * @param source The source value.
+ * @return Reference to itself.
+ */
+inline SimValue&
+SimValue::operator=(const FloatWord& source) {
+    value_.floatWord = source;
+    setActive();
+    return (*this);
+}
+
+/**
+ * Assignment operator for source value of type DoubleWord.
+ *
+ * @param source The source value.
+ * @return Reference to itself.
+ */
+inline SimValue&
+SimValue::operator=(const DoubleWord& source) {
+    value_.doubleWord = source;
+    setActive();
+    return (*this);
+}
+
+/**
+ * Assignment operator for source value of type SimValue.
+ *
+ * In case the bit widths don't match, sign extension is done to the target
+ * at the highest bit of the narrower value. This models dropping the extra
+ * most significant bits of the target value in case the widths don't match
+ * in a way  that signed values keep their original meaning in signed
+ * calculations. That is, a 1-bit "-1" is still "-1" when written to a
+ * 4-bit SimValue, and vice versa.
+ *
+ * @param source The source value.
+ * @return Reference to itself.
+ */
+inline SimValue&
+SimValue::operator=(const SimValue& source) {
+    value_ = Value(source.value_);
+    active_ = source.isActive();
+    return *this;
+}
+
+/**
+ * Explicit addition operator to SIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator+(const SIntWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.sIntWord + rightHand;
+    return copy;
+}
+
+/**
+ * Explicit addition operator to IntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator+(const UIntWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.uIntWord + rightHand;
+    return copy;
+}
+
+/**
+ * Explicit addition operator to FloatWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator+(const FloatWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.floatWord + rightHand;
+    return copy;
+}
+
+/**
+ * Explicit addition operator to DoubleWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator+(const DoubleWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.doubleWord + rightHand;
+    return copy;
+}
+
+
+/**
+ * Explicit subtraction operator to SIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator-(const SIntWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.sIntWord - rightHand;
+    return copy;
+}
+
+/**
+ * Explicit subtraction operator to UIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator-(const UIntWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.uIntWord - rightHand;
+    return copy;
+}
+
+/**
+ * Explicit subtraction operator to FloatWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator-(const FloatWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.floatWord - rightHand;
+    return copy;
+}
+
+/**
+ * Explicit subtraction operator to DoubleWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator-(const DoubleWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.doubleWord - rightHand;
+    return copy;
+}
+
+/**
+ * Explicit division operator to SIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator/(const SIntWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.sIntWord / rightHand;
+    return copy;
+}
+
+/**
+ * Explicit division operator to UIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator/(const UIntWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.uIntWord / rightHand;
+    return copy;
+}
+
+/**
+ * Explicit division operator to FloatWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator/(const FloatWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.floatWord / rightHand;
+    return copy;
+}
+
+/**
+ * Explicit division operator to DoubleWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator/(const DoubleWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.doubleWord / rightHand;
+    return copy;
+}
+
+/**
+ * Explicit multiplication operator to SIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator*(const SIntWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.sIntWord * rightHand;
+    return copy;
+}
+
+/**
+ * Explicit multiplication operator to UIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator*(const UIntWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.uIntWord * rightHand;
+    return copy;
+}
+
+/**
+ * Explicit multiplication operator to FloatWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator*(const FloatWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.floatWord * rightHand;
+    return copy;
+}
+
+/**
+ * Explicit multiplication operator to DoubleWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the addition.
+ * @return The SimValue with the result of the operation.
+ */
+inline const SimValue
+SimValue::operator*(const DoubleWord& rightHand) {
+    SimValue copy = *this;
+    copy = value_.doubleWord * rightHand;
+    return copy;
+}
+
+/**
+ * Explicit equality operator for SimValue type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the comparison.
+ * @return Reference to itself.
+ *
+ */
+inline int
+SimValue::operator==(const SimValue& rightHand) const {
+    return value_.uIntWord == rightHand.value_.uIntWord;
+}
+
+/**
+ * Explicit equality operator for SIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the comparison.
+ * @return Reference to itself.
+ *
+ */
+inline int
+SimValue::operator==(const SIntWord& rightHand) const {
+    return value_.sIntWord == rightHand;
+}
+
+/**
+ * Explicit equality operator for UIntWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the comparison.
+ * @return Reference to itself.
+ *
+ */
+inline int
+SimValue::operator==(const UIntWord& rightHand) const {
+    return value_.uIntWord == rightHand;
+}
+
+/**
+ * Explicit equality operator for FloatWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the comparison.
+ * @return Reference to itself.
+ *
+ */
+inline int
+SimValue::operator==(const FloatWord& rightHand) const {
+    return value_.floatWord == rightHand;
+}
+
+/**
+ * Explicit equality operator for DoubleWord type.
+ *
+ * These operators are defined to avoid ambiguous overload because of built-in
+ * operators.
+ *
+ * @param rightHand The right hand side of the comparison.
+ * @return Reference to itself.
+ *
+ */
+inline int
+SimValue::operator==(const DoubleWord& rightHand) const {
+    return value_.doubleWord == rightHand;
+}
+
+/**
+ * Returns the value as a signed integer.
+ *
+ * @return Signed integer value of the SimValue.
+ */
+inline int
+SimValue::intValue() const {
+    int bitWidth = (bitWidth_ > 32) ? 32 : bitWidth_;
+    return MathTools::fastSignExtendTo(value_.sIntWord, bitWidth);
+}
+
+/**
+ * Returns the value as a signed integer.
+ *
+ * @return Unsigned integer value of the SimValue.
+ */
+inline unsigned int
+SimValue::unsignedValue() const {
+    int bitWidth = (bitWidth_ > 32) ? 32 : bitWidth_;
+    return MathTools::fastZeroExtendTo(value_.uIntWord, bitWidth);
+}
+
+/**
+ * Returns the IntWord member of the Value union.
+ *
+ * @return SIntWord value of the SimValue.
+ */
+inline SIntWord
+SimValue::sIntWordValue() const {
+    return mask_ & value_.sIntWord;
+}
+
+/**
+ * Returns unsigned integer value of the SimValue.
+ *
+ * @return Unsigned value of the SimValue.
+ */
+inline UIntWord
+SimValue::uIntWordValue() const {
+    return mask_ & value_.uIntWord;
+}
+
+/**
+ * Returns the DoubleWord member of the Value union.
+ *
+ * @return DoubleWord value of the SimValue.
+ */
+inline DoubleWord
+SimValue::doubleWordValue() const {
+    return value_.doubleWord;
+}
+
+/**
+ * Returns the FloatWord member of the Value union.
+ *
+ * @return FloatWord value of the SimValue.
+ */
+inline FloatWord
+SimValue::floatWordValue() const {
+    return value_.floatWord;
+}

@@ -1,0 +1,36 @@
+/**
+ * @file GraphUtilities.icc
+ *
+ * Implementation of miscellaneous generic graph utility functions for the
+ * prototype graph class. Probably these functions won't be needed once the
+ * boost and TCE framework applib-specific functions are fully utilised.
+ *
+ * @author Andrea Cilio 2005 (cilio@cs.tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @note rating: red
+ */
+
+
+template<typename Graph, typename GraphNode>
+void
+doOnAllNodes(
+    Graph& pGraph,
+    const GraphNodeFunctor<Graph, GraphNode>& functor) {
+
+    for (int i = 0; i < pGraph.nodeCount(); i++) {
+        functor(pGraph.node(i));
+    }
+}
+
+
+template<typename Graph, typename GraphEdge>
+void
+doOnAllEdges(
+    Graph& pGraph,
+    const GraphEdgeFunctor<Graph, GraphEdge>& functor) {
+
+    for (int i = 0; i < pGraph.edgeCount(); i++) {
+        GraphEdge& mi = pGraph.edge(i);
+        functor(mi);
+    }
+}

@@ -1,0 +1,33 @@
+/**
+ * @file Bridge.icc
+ *
+ * Inline implementation of Bridge class.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @note reviewed 10 Jun 2004 by vpj, am, tr, ll
+ * @note rating: red
+ */
+
+namespace TTAMachine {
+
+/**
+ * Returns the source bus.
+ *
+ * @return Source bus.
+ */
+inline Bus*
+Bridge::sourceBus() const {
+    return sourceBus_;
+}
+
+
+/**
+ * Returns the destination bus.
+ *
+ * @return Destination bus.
+ */
+inline Bus*
+Bridge::destinationBus() const {
+    return destinationBus_;
+}
+}

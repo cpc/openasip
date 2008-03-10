@@ -1,0 +1,659 @@
+
+<!doctype html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong><a href="TCE.html"><font color="#ffffff">TCE</font></a>.<a href="TCE.applibs.html"><font color="#ffffff">applibs</font></a>.<a href="TCE.applibs.Scheduler.html"><font color="#ffffff">Scheduler</font></a>.<a href="TCE.applibs.Scheduler.ProgramRepresentations.html"><font color="#ffffff">ProgramRepresentations</font></a>.ControlFlowGraph</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/opt/tce/lib/python2.5/site-packages/TCE/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph.so">/opt/tce/lib/python2.5/site-packages/TCE/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph.so</a></font></td></tr></table>
+    <p></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial">Boost.Python.instance(<a href="__builtin__.html#object">__builtin__.object</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#BasicBlock">BasicBlock</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#BasicBlockStatistics">BasicBlockStatistics</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#CFGStatistics">CFGStatistics</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#ControlFlowGraph">ControlFlowGraph</a>
+</font></dt><dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphEdge">GraphEdge</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#ControlFlowEdge">ControlFlowEdge</a>
+</font></dt></dl>
+</dd>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphNode">GraphNode</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#BasicBlockNode">BasicBlockNode</a>
+</font></dt></dl>
+</dd>
+</dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="BasicBlock">class <strong>BasicBlock</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#BasicBlock">BasicBlock</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="BasicBlock-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlock-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlock-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlock-clear"><strong>clear</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlock-clear">clear</a>(<a href="#BasicBlock">BasicBlock</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlock-clear">clear</a>(BasicBlock_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlock-copy"><strong>copy</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlock-copy">copy</a>(<a href="#BasicBlock">BasicBlock</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#BasicBlock">BasicBlock</a>*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlock-copy">copy</a>(BasicBlock_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#BasicBlock">BasicBlock</a>*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlock-disassemble"><strong>disassemble</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlock-disassemble">disassemble</a>(<a href="#BasicBlock">BasicBlock</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="BasicBlock-skipFirstInstructions"><strong>skipFirstInstructions</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlock-skipFirstInstructions">skipFirstInstructions</a>(<a href="#BasicBlock">BasicBlock</a>&nbsp;{lvalue},&nbsp;int&nbsp;count)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlock-skippedFirstInstructions"><strong>skippedFirstInstructions</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlock-skippedFirstInstructions">skippedFirstInstructions</a>(<a href="#BasicBlock">BasicBlock</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BasicBlock-statistics"><strong>statistics</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlock-statistics">statistics</a>(<a href="#BasicBlock">BasicBlock</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#BasicBlockStatistics">BasicBlockStatistics</a></tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 68</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#BasicBlock-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="BasicBlockNode">class <strong>BasicBlockNode</strong></a>(<a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphNode">GraphNode</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#BasicBlockNode">BasicBlockNode</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphNode">GraphNode</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="BasicBlockNode-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-__init__">__init__</a>(_object*,&nbsp;unsigned&nbsp;int&nbsp;originalStartAddress,&nbsp;unsigned&nbsp;int&nbsp;originalEndAddress,&nbsp;bool&nbsp;entry=False,&nbsp;bool&nbsp;exit=False)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-__init__">__init__</a>(_object*,&nbsp;unsigned&nbsp;int&nbsp;originalStartAddress,&nbsp;unsigned&nbsp;int&nbsp;originalEndAddress,&nbsp;bool&nbsp;entry=False)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-__init__">__init__</a>(_object*,&nbsp;unsigned&nbsp;int&nbsp;originalStartAddress,&nbsp;unsigned&nbsp;int&nbsp;originalEndAddress)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-__init__">__init__</a>(_object*,&nbsp;<a href="#BasicBlock">BasicBlock</a>&nbsp;{lvalue}&nbsp;bb)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-basicBlock"><strong>basicBlock</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-basicBlock">basicBlock</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#BasicBlock">BasicBlock</a><br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-basicBlock">basicBlock</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#BasicBlock">BasicBlock</a></tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-hasOriginalAddress"><strong>hasOriginalAddress</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlockNode-hasOriginalAddress">hasOriginalAddress</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-isBasicBlockNode"><strong>isBasicBlockNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlockNode-isBasicBlockNode">isBasicBlockNode</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-isEntryBB"><strong>isEntryBB</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlockNode-isEntryBB">isEntryBB</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-isExitBB"><strong>isExitBB</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlockNode-isExitBB">isExitBB</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-isNormalBB"><strong>isNormalBB</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlockNode-isNormalBB">isNormalBB</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-originalEndAddress"><strong>originalEndAddress</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlockNode-originalEndAddress">originalEndAddress</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;unsigned&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-originalStartAddress"><strong>originalStartAddress</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlockNode-originalStartAddress">originalStartAddress</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;unsigned&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-statistics"><strong>statistics</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#BasicBlockNode-statistics">statistics</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#BasicBlockStatistics">BasicBlockStatistics</a></tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-toString"><strong>toString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-toString">toString</a>(<a href="#BasicBlockNode">BasicBlockNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-toString">toString</a>(BasicBlockNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 40</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphNode">GraphNode</a>:<br>
+<dl><dt><a name="BasicBlockNode-clone"><strong>clone</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-clone">clone</a>(<a href="#GraphNode">GraphNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#GraphNode">GraphNode</a>*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-clone">clone</a>(GraphNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#GraphNode">GraphNode</a>*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-dotString"><strong>dotString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-dotString">dotString</a>(<a href="#GraphNode">GraphNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-dotString">dotString</a>(GraphNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockNode-nodeID"><strong>nodeID</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-nodeID">nodeID</a>(<a href="#GraphNode">GraphNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockNode-nodeID">nodeID</a>(GraphNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data and other attributes inherited from <a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphNode">GraphNode</a>:<br>
+<dl><dt><strong>Comparator</strong> = &lt;class 'TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.Comparator'&gt;</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#BasicBlockNode-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="BasicBlockStatistics">class <strong>BasicBlockStatistics</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#BasicBlockStatistics">BasicBlockStatistics</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="BasicBlockStatistics-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockStatistics-bypassedCount"><strong>bypassedCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-bypassedCount">bypassedCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-bypassedCount">bypassedCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockStatistics-immediateCount"><strong>immediateCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-immediateCount">immediateCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-immediateCount">immediateCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockStatistics-instructionCount"><strong>instructionCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-instructionCount">instructionCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-instructionCount">instructionCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockStatistics-moveCount"><strong>moveCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-moveCount">moveCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-moveCount">moveCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockStatistics-setBypassedCount"><strong>setBypassedCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-setBypassedCount">setBypassedCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-setBypassedCount">setBypassedCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockStatistics-setImmediateCount"><strong>setImmediateCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-setImmediateCount">setImmediateCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-setImmediateCount">setImmediateCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockStatistics-setInstructionCount"><strong>setInstructionCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-setInstructionCount">setInstructionCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-setInstructionCount">setInstructionCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="BasicBlockStatistics-setMoveCount"><strong>setMoveCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-setMoveCount">setMoveCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#BasicBlockStatistics-setMoveCount">setMoveCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 32</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#BasicBlockStatistics-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="CFGStatistics">class <strong>CFGStatistics</strong></a>(<a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#BasicBlockStatistics">BasicBlockStatistics</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#CFGStatistics">CFGStatistics</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#BasicBlockStatistics">BasicBlockStatistics</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="CFGStatistics-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-maxBypassedCount"><strong>maxBypassedCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-maxBypassedCount">maxBypassedCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-maxBypassedCount">maxBypassedCount</a>(CFGStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-maxImmediateCount"><strong>maxImmediateCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-maxImmediateCount">maxImmediateCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-maxImmediateCount">maxImmediateCount</a>(CFGStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-maxInstructionCount"><strong>maxInstructionCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-maxInstructionCount">maxInstructionCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-maxInstructionCount">maxInstructionCount</a>(CFGStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-maxMoveCount"><strong>maxMoveCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-maxMoveCount">maxMoveCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-maxMoveCount">maxMoveCount</a>(CFGStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-normalBBCount"><strong>normalBBCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-normalBBCount">normalBBCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-normalBBCount">normalBBCount</a>(CFGStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-setMaxBypassedCount"><strong>setMaxBypassedCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMaxBypassedCount">setMaxBypassedCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMaxBypassedCount">setMaxBypassedCount</a>(CFGStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-setMaxImmediateCount"><strong>setMaxImmediateCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMaxImmediateCount">setMaxImmediateCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMaxImmediateCount">setMaxImmediateCount</a>(CFGStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-setMaxInstructionCount"><strong>setMaxInstructionCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMaxInstructionCount">setMaxInstructionCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMaxInstructionCount">setMaxInstructionCount</a>(CFGStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-setMaxMoveCount"><strong>setMaxMoveCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMaxMoveCount">setMaxMoveCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMaxMoveCount">setMaxMoveCount</a>(CFGStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-setNormalBBCount"><strong>setNormalBBCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setNormalBBCount">setNormalBBCount</a>(<a href="#CFGStatistics">CFGStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setNormalBBCount">setNormalBBCount</a>(CFGStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 52</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#BasicBlockStatistics">BasicBlockStatistics</a>:<br>
+<dl><dt><a name="CFGStatistics-bypassedCount"><strong>bypassedCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-bypassedCount">bypassedCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-bypassedCount">bypassedCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-immediateCount"><strong>immediateCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-immediateCount">immediateCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-immediateCount">immediateCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-instructionCount"><strong>instructionCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-instructionCount">instructionCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-instructionCount">instructionCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-moveCount"><strong>moveCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-moveCount">moveCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-moveCount">moveCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-setBypassedCount"><strong>setBypassedCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setBypassedCount">setBypassedCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setBypassedCount">setBypassedCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-setImmediateCount"><strong>setImmediateCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setImmediateCount">setImmediateCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setImmediateCount">setImmediateCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-setInstructionCount"><strong>setInstructionCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setInstructionCount">setInstructionCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setInstructionCount">setInstructionCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="CFGStatistics-setMoveCount"><strong>setMoveCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMoveCount">setMoveCount</a>(<a href="#BasicBlockStatistics">BasicBlockStatistics</a>&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#CFGStatistics-setMoveCount">setMoveCount</a>(BasicBlockStatistics_wrapper&nbsp;{lvalue},&nbsp;int&nbsp;arg0)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#CFGStatistics-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ControlFlowEdge">class <strong>ControlFlowEdge</strong></a>(<a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphEdge">GraphEdge</a>)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#ControlFlowEdge">ControlFlowEdge</a></dd>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphEdge">GraphEdge</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ControlFlowEdge-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-__init__">__init__</a>(_object*,&nbsp;int&nbsp;edgeID,&nbsp;<a href="#ControlFlowEdge">ControlFlowEdge</a>::CFGEdgePredicate&nbsp;edgePredicate=0,&nbsp;bool&nbsp;isJumpEdge=True)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-__init__">__init__</a>(_object*,&nbsp;int&nbsp;edgeID,&nbsp;<a href="#ControlFlowEdge">ControlFlowEdge</a>::CFGEdgePredicate&nbsp;edgePredicate=0)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-__init__">__init__</a>(_object*,&nbsp;int&nbsp;edgeID)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-isCallPassEdge"><strong>isCallPassEdge</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowEdge-isCallPassEdge">isCallPassEdge</a>(<a href="#ControlFlowEdge">ControlFlowEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-isControlFlowEdge"><strong>isControlFlowEdge</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowEdge-isControlFlowEdge">isControlFlowEdge</a>(<a href="#ControlFlowEdge">ControlFlowEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-isFalseEdge"><strong>isFalseEdge</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowEdge-isFalseEdge">isFalseEdge</a>(<a href="#ControlFlowEdge">ControlFlowEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-isJumpEdge"><strong>isJumpEdge</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowEdge-isJumpEdge">isJumpEdge</a>(<a href="#ControlFlowEdge">ControlFlowEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-isLoopBreakEdge"><strong>isLoopBreakEdge</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowEdge-isLoopBreakEdge">isLoopBreakEdge</a>(<a href="#ControlFlowEdge">ControlFlowEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-isNormalEdge"><strong>isNormalEdge</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowEdge-isNormalEdge">isNormalEdge</a>(<a href="#ControlFlowEdge">ControlFlowEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-isTrueEdge"><strong>isTrueEdge</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowEdge-isTrueEdge">isTrueEdge</a>(<a href="#ControlFlowEdge">ControlFlowEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;bool</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-toString"><strong>toString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-toString">toString</a>(<a href="#ControlFlowEdge">ControlFlowEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-toString">toString</a>(ControlFlowEdge_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>CFGEdgePredicate</strong> = &lt;class 'TCE.applibs.Scheduler.ProgramRepresentat...presentations.ControlFlowGraph.CFGEdgePredicate'&gt;</dl>
+
+<dl><dt><strong>CFLOW_EDGE_FALSE</strong> = TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.CFGEdgePredicate.CFLOW_EDGE_FALSE</dl>
+
+<dl><dt><strong>CFLOW_EDGE_LOOP_BREAK</strong> = TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.CFGEdgePredicate.CFLOW_EDGE_LOOP_BREAK</dl>
+
+<dl><dt><strong>CFLOW_EDGE_NORMAL</strong> = TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.CFGEdgePredicate.CFLOW_EDGE_NORMAL</dl>
+
+<dl><dt><strong>CFLOW_EDGE_TRUE</strong> = TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.CFGEdgePredicate.CFLOW_EDGE_TRUE</dl>
+
+<dl><dt><strong>__instance_size__</strong> = 28</dl>
+
+<hr>
+Methods inherited from <a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphEdge">GraphEdge</a>:<br>
+<dl><dt><a name="ControlFlowEdge-clone"><strong>clone</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-clone">clone</a>(<a href="#GraphEdge">GraphEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#GraphEdge">GraphEdge</a>*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-clone">clone</a>(GraphEdge_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#GraphEdge">GraphEdge</a>*</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-dotString"><strong>dotString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-dotString">dotString</a>(<a href="#GraphEdge">GraphEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-dotString">dotString</a>(GraphEdge_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowEdge-edgeID"><strong>edgeID</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-edgeID">edgeID</a>(<a href="#GraphEdge">GraphEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#ControlFlowEdge-edgeID">edgeID</a>(GraphEdge_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<hr>
+Data and other attributes inherited from <a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphEdge">GraphEdge</a>:<br>
+<dl><dt><strong>Comparator</strong> = &lt;class 'TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.Comparator'&gt;</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#ControlFlowEdge-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ControlFlowGraph">class <strong>ControlFlowGraph</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#ControlFlowGraph">ControlFlowGraph</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="ControlFlowGraph-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowGraph-__init__">__init__</a>(_object*,&nbsp;TTAProgram::Procedure)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowGraph-alignment"><strong>alignment</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowGraph-alignment">alignment</a>(<a href="#ControlFlowGraph">ControlFlowGraph</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowGraph-entryNode"><strong>entryNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowGraph-entryNode">entryNode</a>(<a href="#ControlFlowGraph">ControlFlowGraph</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#BasicBlockNode">BasicBlockNode</a></tt></dd></dl>
+
+<dl><dt><a name="ControlFlowGraph-exitNode"><strong>exitNode</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowGraph-exitNode">exitNode</a>(<a href="#ControlFlowGraph">ControlFlowGraph</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#BasicBlockNode">BasicBlockNode</a></tt></dd></dl>
+
+<dl><dt><a name="ControlFlowGraph-nodeCount"><strong>nodeCount</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowGraph-nodeCount">nodeCount</a>(<a href="#ControlFlowGraph">ControlFlowGraph</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowGraph-printStatistics"><strong>printStatistics</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowGraph-printStatistics">printStatistics</a>(<a href="#ControlFlowGraph">ControlFlowGraph</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowGraph-procedureName"><strong>procedureName</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowGraph-procedureName">procedureName</a>(<a href="#ControlFlowGraph">ControlFlowGraph</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowGraph-program"><strong>program</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowGraph-program">program</a>(<a href="#ControlFlowGraph">ControlFlowGraph</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;TTAProgram::Program*</tt></dd></dl>
+
+<dl><dt><a name="ControlFlowGraph-statistics"><strong>statistics</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+<a href="#ControlFlowGraph-statistics">statistics</a>(<a href="#ControlFlowGraph">ControlFlowGraph</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#CFGStatistics">CFGStatistics</a></tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>__instance_size__</strong> = 196</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#ControlFlowGraph-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="GraphEdge">class <strong>GraphEdge</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphEdge">GraphEdge</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="GraphEdge-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-__init__">__init__</a>(_object*,&nbsp;int&nbsp;edgeID)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="GraphEdge-clone"><strong>clone</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-clone">clone</a>(<a href="#GraphEdge">GraphEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#GraphEdge">GraphEdge</a>*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-clone">clone</a>(GraphEdge_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#GraphEdge">GraphEdge</a>*</tt></dd></dl>
+
+<dl><dt><a name="GraphEdge-dotString"><strong>dotString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-dotString">dotString</a>(<a href="#GraphEdge">GraphEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-dotString">dotString</a>(GraphEdge_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="GraphEdge-edgeID"><strong>edgeID</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-edgeID">edgeID</a>(<a href="#GraphEdge">GraphEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-edgeID">edgeID</a>(GraphEdge_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="GraphEdge-toString"><strong>toString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-toString">toString</a>(<a href="#GraphEdge">GraphEdge</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphEdge-toString">toString</a>(GraphEdge_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>Comparator</strong> = &lt;class 'TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.Comparator'&gt;</dl>
+
+<dl><dt><strong>__instance_size__</strong> = 20</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#GraphEdge-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="GraphNode">class <strong>GraphNode</strong></a>(Boost.Python.instance)</font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.html#GraphNode">GraphNode</a></dd>
+<dd>Boost.Python.instance</dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="GraphNode-__init__"><strong>__init__</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-__init__">__init__</a>(_object*,&nbsp;int&nbsp;nodeID)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-__init__">__init__</a>(_object*)&nbsp;-&gt;&nbsp;void*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-__init__">__init__</a>(_object*,&nbsp;<a href="#GraphNode">GraphNode</a>&nbsp;other)&nbsp;-&gt;&nbsp;void*</tt></dd></dl>
+
+<dl><dt><a name="GraphNode-clone"><strong>clone</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-clone">clone</a>(<a href="#GraphNode">GraphNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#GraphNode">GraphNode</a>*<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-clone">clone</a>(GraphNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;<a href="#GraphNode">GraphNode</a>*</tt></dd></dl>
+
+<dl><dt><a name="GraphNode-dotString"><strong>dotString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-dotString">dotString</a>(<a href="#GraphNode">GraphNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-dotString">dotString</a>(GraphNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<dl><dt><a name="GraphNode-nodeID"><strong>nodeID</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-nodeID">nodeID</a>(<a href="#GraphNode">GraphNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-nodeID">nodeID</a>(GraphNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;int</tt></dd></dl>
+
+<dl><dt><a name="GraphNode-toString"><strong>toString</strong></a>(...)</dt><dd><tt>C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-toString">toString</a>(<a href="#GraphNode">GraphNode</a>&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string<br>
+C++&nbsp;signature:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<a href="#GraphNode-toString">toString</a>(GraphNode_wrapper&nbsp;{lvalue})&nbsp;-&gt;&nbsp;std::string</tt></dd></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>Comparator</strong> = &lt;class 'TCE.applibs.Scheduler.ProgramRepresentations.ControlFlowGraph.Comparator'&gt;</dl>
+
+<dl><dt><strong>__instance_size__</strong> = 20</dl>
+
+<hr>
+Data descriptors inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+</dl>
+<hr>
+Data and other attributes inherited from Boost.Python.instance:<br>
+<dl><dt><strong>__new__</strong> = &lt;built-in method __new__ of Boost.Python.class object at 0x40c1a320&gt;<dd><tt>T.<a href="#GraphNode-__new__">__new__</a>(S,&nbsp;...)&nbsp;-&gt;&nbsp;a&nbsp;new&nbsp;object&nbsp;with&nbsp;type&nbsp;S,&nbsp;a&nbsp;subtype&nbsp;of&nbsp;T</tt></dl>
+
+</td></tr></table></td></tr></table>
+</body></html>

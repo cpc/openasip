@@ -1,0 +1,228 @@
+/**
+ * @file ReferenceKey.icc
+ *
+ * Inline and template functions for ReferenceKey classes.
+ *
+ * @author Pekka J‰‰skel‰inen 2003 (pjaaskel@cs.tut.fi)
+ * @note reviewed 17 Oct 2003 by am, rm, kl
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+namespace ReferenceManager {
+///////////////////////////////////////////////////////////////////////////////
+// SectionIndexKey
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the section identification code for this key.
+ *
+ * @return Section identification code.
+ */
+inline SectionId
+SectionIndexKey::sectionId() const {
+    return sectionId_;
+}
+
+/**
+ * Returns the index this key is set to.
+ *
+ * @return Index.
+ */
+inline SectionIndex
+SectionIndexKey::index() const {
+    return index_;
+}
+
+/**
+ * Equality operator for SectionIndexKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys have same data.
+ */
+inline bool
+SectionIndexKey::operator==(const SectionIndexKey& other) const {
+    return sectionId_ == other.sectionId_ && index_ == other.index_;
+}
+
+/**
+ * Inequality operator for SectionIndexKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys don't have same data.
+ */
+inline bool
+SectionIndexKey::operator!=(const SectionIndexKey& other) const {
+    return !(*this == other);
+}
+
+/**
+ * Smaller than operator for SectionIndexKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys don't have same data.
+ */
+inline bool
+SectionIndexKey::operator<(const SectionIndexKey& other) const {
+    return (sectionId_ < other.sectionId_) ||
+            (sectionId_ == other.sectionId_ &&
+             index_ < other.index_);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// SectionOffsetKey
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the section identification code for this key.
+ *
+ * @return Section identification code.
+ */
+inline SectionId
+SectionOffsetKey::sectionId() const {
+    return sectionId_;
+}
+
+/**
+ * Returns the offset this key is set to.
+ *
+ * @return Offset.
+ */
+inline SectionOffset
+SectionOffsetKey::offset() const {
+    return offset_;
+}
+
+/**
+ * Equality operator for SectionOffsetKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys have same data.
+ */
+inline bool
+SectionOffsetKey::operator==(const SectionOffsetKey& other) const {
+    return sectionId_ == other.sectionId_ && offset_ == other.offset_;
+}
+
+/**
+ * Inequality operator for SectionOffsetKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys don't have same data.
+ */
+inline bool
+SectionOffsetKey::operator!=(const SectionOffsetKey& other) const {
+    return !(*this == other);
+}
+
+/**
+ * Smaller than operator for SectionOffsetKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys don't have same data.
+ */
+inline bool
+SectionOffsetKey::operator<(const SectionOffsetKey& other) const {
+    return (sectionId_ < other.sectionId_) ||
+        (sectionId_ == other.sectionId_ &&
+         offset_ < other.offset_);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// FileOffsetKey
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the file offset this key is set to.
+ *
+ * @return File offset.
+ */
+inline FileOffset
+FileOffsetKey::fileOffset() const {
+    return fileOffset_;
+}
+
+/**
+ * Equality operator for FileOffsetKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys have same data.
+ */
+inline bool
+FileOffsetKey::operator==(const FileOffsetKey& other) const {
+    return fileOffset_ == other.fileOffset_;
+}
+
+/**
+ * Inequality operator for FileOffsetKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys don't have same data.
+ */
+inline bool
+FileOffsetKey::operator!=(const FileOffsetKey& other) const {
+    return !(*this == other);
+}
+
+/**
+ * Smaller than operator for FileOffsetKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys don't have same data.
+ */
+inline bool
+FileOffsetKey::operator<(const FileOffsetKey& other) const {
+    return (fileOffset_ < other.fileOffset_);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// SectionKey
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the section identification code for this key.
+ *
+ * @return Section identification code.
+ */
+inline SectionId
+SectionKey::sectionId() const {
+    return sectionId_;
+}
+
+/**
+ * Equality operator for SectionKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys have same data.
+ */
+inline bool
+SectionKey::operator==(const SectionKey& other) const {
+    return sectionId_ == other.sectionId_;
+}
+
+/**
+ * Inequality operator for SectionKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys don't have same data.
+ */
+inline bool
+SectionKey::operator!=(const SectionKey& other) const {
+    return !(*this == other);
+}
+
+/**
+ * Smaller than operator for SectionKey.
+ *
+ * @param other Another key to compare to.
+ * @return True if the keys don't have same data.
+ */
+inline bool
+SectionKey::operator<(const SectionKey& other) const {
+    return sectionId_ < other.sectionId_;
+}
+
+} // namespace ReferenceManager
+
+}

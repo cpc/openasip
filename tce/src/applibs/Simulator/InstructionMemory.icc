@@ -1,0 +1,61 @@
+/**
+ * @file InstructionMemory.icc
+ *
+ * Inline definitions of InstructionMemory class.
+ *
+ * @author Pekka Jääskeläinen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include "Conversion.hh"
+
+/**
+ * Returns executable instruction at given address.
+ *
+ * @param address The instruction memory address to fetch instruction from.
+ * @return ExecutableInstruction at given address.
+ * @exception OutOfRange If the instruction address is out of range.
+ */
+inline ExecutableInstruction&
+InstructionMemory::instructionAt(InstructionAddress address) 
+    throw (OutOfRange) {
+
+    const std::size_t index = address - startAddress_;
+
+    /// @note This assumes that there are no "holes" in instruction memory.
+    if (index >= instructions_.size()) {
+        throw OutOfRange(
+            __FILE__, __LINE__, __func__, 
+            "Illegal instruction address " + 
+            Conversion::toString(address) + ".");
+    }
+
+    return *instructions_[index];
+}
+
+/**
+ * Returns executable instruction at given address.
+ *
+ * Const version.
+ *
+ * @param address The instruction memory address to fetch instruction from.
+ * @return ExecutableInstruction at given address.
+ * @exception OutOfRange If the instruction address is out of range.
+ */
+inline const ExecutableInstruction&
+InstructionMemory::instructionAtConst(InstructionAddress address) const
+    throw (OutOfRange) {
+
+    const std::size_t index = address - startAddress_;
+
+    /// @note This assumes that there are no "holes" in instruction memory.
+    if (index >= instructions_.size()) {
+        throw OutOfRange(
+            __FILE__, __LINE__, __func__, 
+            "Illegal instruction address " + 
+            Conversion::toString(address) + ".");
+    }
+
+    return *instructions_[index];
+}
+

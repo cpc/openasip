@@ -1,0 +1,43 @@
+/**
+ * @file CmdLineOptionParser.icc
+ *
+ * Inline method implementations of CmdLineOptionParser classes.
+ *
+ * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @note reviewed 3 December 2003 by jn, kl, ao
+ */
+
+//////////////////////////////////////////////////////////////////////////////
+// CmdLineOptionParser
+//////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the long name.
+ *
+ * @return The long name.
+ */
+inline std::string
+CmdLineOptionParser::longName() const {
+    return longName_;
+}
+
+/**
+ * Returns the short name.
+ *
+ * @return The short name.
+ */
+inline std::string
+CmdLineOptionParser::shortName() const {
+    return shortName_;
+}
+
+/**
+ * Returns the description.
+ *
+ * @return The description.
+ */
+inline std::string
+CmdLineOptionParser::description() const {
+    return desc_;
+}

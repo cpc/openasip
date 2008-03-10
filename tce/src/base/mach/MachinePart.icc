@@ -1,0 +1,42 @@
+/**
+ * @file MachinePart.icc
+ *
+ * Inline implementation of Component class.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @note reviewed 17 Jun 2004 by jn, pj, jm, ll
+ * @note rating: red
+ */
+
+#include "Application.hh"
+
+namespace TTAMachine {
+
+/**
+ * Sets the machine for this component.
+ *
+ * Helper function. Called by setMachine() as part of the registration
+ * process. Brings component and given machine into a transient state of
+ * incomplete registration.
+ *
+ * @param machine Machine to which the component is going to be registered.
+ */
+inline void
+Component::internalSetMachine(Machine& machine) {
+    assert(machine_ == NULL);
+    machine_ = &machine;
+}
+
+
+/**
+ * Unsets the machine for this component.
+ *
+ * Helper function. Called by unsetMachine() as part of the registration
+ * removal process.
+ */
+inline void
+Component::internalUnsetMachine() {
+    assert(machine_ != NULL);
+    machine_ = NULL;
+}
+}

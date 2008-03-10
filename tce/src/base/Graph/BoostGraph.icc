@@ -1,0 +1,1592 @@
+/**
+ * @file BoostGraph.icc
+ *
+ * Boost-based templated implementation of graph base class.
+ * In-line implementation of templated methods.
+ *
+ * @author Andrea Cilio 2005 (cilio@cs.tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @note rating: red
+ */
+
+#include <map>
+#include <string>
+#include <algorithm>
+#include <boost/format.hpp>
+
+#include "AssocTools.hh"
+#include "Application.hh"
+
+using std::string;
+
+
+/**
+ * Constructor
+ *
+ */
+template <typename GraphNode, typename GraphEdge>
+BoostGraph<GraphNode, GraphEdge>::BoostGraph() :
+    height_(-1), parentGraph_(NULL) {}
+
+/**
+ * Copy constructor
+ *
+ */
+template <typename GraphNode, typename GraphEdge>
+BoostGraph<GraphNode, GraphEdge>::BoostGraph(
+    const BoostGraph<GraphNode, GraphEdge>& other) :
+    GraphBase<GraphNode, GraphEdge>(), height_(other.height_), 
+    parentGraph_(NULL) {
+
+    // table which node of other 
+    std::map<GraphNode*, GraphNode*> nodeMap;
+
+    for (int i = 0; i < other.nodeCount(); i++) {
+        GraphNode& currNode = other.node(i);        
+        if (nodeMap.find(&currNode) == nodeMap.end()){            
+            nodeMap[&currNode] = 
+                dynamic_cast<GraphNode*>(currNode.clone());
+            addNode(*nodeMap[&currNode]);
+        }
+        
+        GraphNode* ourTail = nodeMap[&currNode];
+        
+        // copy all out edges of the node
+        EdgeSet outs = other.outEdges(currNode);        
+        typename EdgeSet::iterator iter;
+        for (iter = outs.begin(); iter != outs.end(); iter++) {            
+            GraphEdge* outEdge = *iter;            
+            GraphNode& headNode = other.headNode(*outEdge);
+            
+            if (nodeMap.find(&headNode) == nodeMap.end()){            
+                nodeMap[&headNode] = 
+                    dynamic_cast<GraphNode*>(headNode.clone());
+                addNode(*nodeMap[&headNode]);
+            }
+            
+            GraphNode* ourHead = nodeMap[&headNode];            
+            GraphEdge* ourEdge = dynamic_cast<GraphEdge*>(outEdge->clone());
+            
+            connectNodes(*ourTail, *ourHead, *ourEdge);
+        }
+    }    
+}
+
+/** 
+ * Destructor
+ */
+template <typename GraphNode, typename GraphEdge>
+BoostGraph<GraphNode, GraphEdge>::~BoostGraph() {
+    if (parentGraph_ != NULL) {
+        parentGraph_->detachSubgraph(*this);
+    }
+}
+
+/**
+ * Adds a node to the graph.
+ *
+ * Once added, a node is owned and managed by the graph.
+ *
+ * Adding a node does not add it to the subgraphs of a graph,
+ * but does add into the parent graph.
+ *
+ * @param node Node to be added.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::addNode(GraphNode& node)
+    throw (ObjectAlreadyExists) {
+    if (hasNode(node)) {
+        string procName("BoostGraph::addNode");
+        string errorMsg("Node already belongs to this graph.");
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName, errorMsg);
+    }
+    boost::add_vertex(&node, graph_);
+
+    // add node also to parent graph
+    if (parentGraph_ != NULL) {
+        parentGraph_->addNode(node);
+    }
+}
+
+/**
+ * Returns the number of nodes contained in this graph.
+ *
+ * @returns The number of nodes.
+ */
+template <typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::nodeCount() const {
+    return boost::num_vertices(graph_);
+}
+
+/**
+ * Returns the number of edges contained in this graph.
+ *
+ * @returns The number of edges.
+ */
+template <typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::edgeCount() const {
+    return boost::num_edges(graph_);
+}
+
+/**
+ * Returns the node of the graph identified by the given index.
+ *
+ * Notice that the index is not constant. If nodes are added or removed from
+ * the graph, the index of an untouched node may change.
+ *
+ * @param index Index of a node of the graph.
+ * @returns The node currently identified by the given index.
+ * @exception OutOfRange If the given index is negative, or is not smaller
+ *     than the number of nodes of the graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+GraphNode&
+BoostGraph<GraphNode, GraphEdge>::node(
+    const int index) const
+    throw (OutOfRange) {
+    return node(index,true);
+}
+
+/**
+ * Returns the node of the graph identified by the given index.
+ *
+ * Notice that the index is not constant. If nodes are added or removed from
+ * the graph, the index of an untouched node may change.
+ *
+ * @param index Index of a node of the graph.
+ * @returns The node currently identified by the given index.
+ * @exception OutOfRange If the given index is negative, or is not smaller
+ *     than the number of nodes of the graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+GraphNode&
+BoostGraph<GraphNode, GraphEdge>::node(
+    const int index, bool cacheResult) const
+    throw (OutOfRange) {
+    if (index < 0 || index >=  nodeCount()) {
+        string procName("BoostGraph::node");
+        boost::format errorMsg("Node index %1% out of range [0, %2%).");
+        errorMsg % index % nodeCount();
+        throw OutOfRange(__FILE__, __LINE__, procName, errorMsg.str());
+    }
+    NodeDescriptor nd = boost::vertex(index, graph_);
+    Node* n = graph_[nd];
+    if (cacheResult) {
+        nodeDescriptors_[n] = nd;
+    }
+    return *n;
+}
+
+/**
+ * Returns the edge of the graph identified by the given index.
+ *
+ * Notice that the index is not constant. If edges are added or removed from
+ * the graph, the index of an untouched edge may change.
+ *
+ * Running time of this function is O(n) where n is the number of edges.
+ *
+ * @param index Index of an edge of the graph.
+ * @returns The edge currently identified by the given index.
+ * @exception OutOfRange If the given index is negative, or is not smaller
+ *     than the number of edges of the graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+GraphEdge&
+BoostGraph<GraphNode, GraphEdge>::edge(const int index) const
+    throw (OutOfRange) {
+
+    if (index < 0 || index >=  edgeCount()) {
+        string procName("BoostGraph::edge");
+        boost::format errorMsg("Edge index %1% out of range [0, %2%).");
+        errorMsg % index % edgeCount();
+        throw OutOfRange(__FILE__, __LINE__, procName, errorMsg.str());
+    }
+
+    typedef std::pair<EdgeIter, EdgeIter> EdgeIterPair;
+    EdgeIterPair edges = boost::edges(graph_);
+    int counter = 0;
+    for (EdgeIter i = edges.first; i != edges.second; i++) {
+        if (counter == index) {
+            GraphEdge* theEdge = graph_[*i];
+            return *theEdge;
+        }
+        counter++;
+    }
+    assert(false);
+    // keep pedantic compilers quiet
+    return *graph_[*edges.second];
+}
+
+/**
+ * Returns the n:th outgoing edge from a given node.
+ *
+ * Warning: this function is slow. When iterating over all outgoing edges
+ * of a node, use outEdges instead.
+ *
+ * @param node Node whose outgoing edges we are searching
+ * @param index index of outgoing edge being asked
+ * @return The edge.
+ */
+template <typename GraphNode, typename GraphEdge>
+GraphEdge&
+BoostGraph<GraphNode, GraphEdge>::outEdge(
+    const GraphNode& node,
+    const int index) const
+    throw (OutOfRange, InstanceNotFound) {
+
+    const string procName("BoostGraph::outEdge");
+
+    if (outDegree(node) <= index) {
+        boost::format errorMsg(
+            "Outgoing edge at index %1% is out of range. The node "
+            "out-degree is %2%.");
+        errorMsg % index % outDegree(node);
+        throw OutOfRange(__FILE__, __LINE__, procName, errorMsg.str());
+    }
+
+    std::pair<OutEdgeIter, OutEdgeIter> edges = 
+        boost::out_edges(descriptor(node), graph_);
+    if (edges.first == edges.second) {
+        string errorMsg("Node does not belong to this graph.");
+        throw InstanceNotFound(__FILE__, __LINE__, procName, errorMsg);
+    }
+
+    GraphEdge* result = NULL;
+    int n = 0;
+    for (OutEdgeIter ei = edges.first; ei != edges.second; ei++) {
+        if (n == index) {
+            result = graph_[(*ei)];
+            break;
+        } else {
+            n++;
+        }
+    }
+    assert(result != NULL);
+
+    return *result;
+}
+
+/**
+ * Returns the n:th incoming edge to a given node.
+ *
+ * Warning: this function is slow. When iterating over all incoming edges
+ * of a node, use inEdges instead.
+ *
+ * @param node Node whose incoming edges we are searching
+ * @param index index of incoming edge being asked
+ * @return The edge.
+ */
+template <typename GraphNode, typename GraphEdge>
+GraphEdge&
+BoostGraph<GraphNode, GraphEdge>::inEdge(
+    const GraphNode& node,
+    const int index) const
+    throw (OutOfRange, InstanceNotFound) {
+
+    const string procName("BoostGraph::inEdge");
+
+    if (inDegree(node) <= index) {
+        boost::format errorMsg(
+            "Incoming edge at index %1% is out of range. The node "
+            "in-degree is %2%.");
+        errorMsg % index % inDegree(node);
+        throw OutOfRange(__FILE__, __LINE__, procName, errorMsg.str());
+    }
+
+    std::pair<InEdgeIter, InEdgeIter> edges =
+        boost::in_edges(descriptor(node), graph_);
+    if (edges.first == edges.second) {
+        string errorMsg("Node does not belong to this graph.");
+        throw InstanceNotFound(__FILE__, __LINE__, procName, errorMsg);
+    }
+
+    GraphEdge* result = NULL;
+    int n = 0;
+    for (InEdgeIter ei = edges.first; ei != edges.second; ei++) {
+        if (n == index) {
+            result = graph_[(*ei)];
+            break;
+        } else {
+            n++;
+        }
+    }
+    assert(result != NULL);
+
+    return *result;
+}
+
+/**
+ * Returns the outgoing edges of a node.
+ *
+ * @param node A node of the graph.
+ * @returns A set of edges.
+ */
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::EdgeSet
+BoostGraph<GraphNode, GraphEdge>::outEdges(const GraphNode& node) const
+    throw (InstanceNotFound) {
+
+    typedef typename GraphTraits::out_edge_iterator outEdgeIter;
+    std::pair<outEdgeIter, outEdgeIter> edges = boost::out_edges(
+        descriptor(node), graph_);
+    EdgeSet result;
+    for (outEdgeIter ei = edges.first; ei != edges.second; ei++) {
+        GraphEdge* edge = graph_[(*ei)];
+        // add to descriptor cache.
+        edgeDescriptors_[edge] = *ei;
+        result.insert(edge);
+    }
+    return result;
+}
+
+/**
+ * Returns the outgoing edges of a node in the root graph of the 
+ * subgraph tree.
+ *
+ * @param node A node of the graph.
+ * @returns A set of edges.
+ */
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::EdgeSet
+BoostGraph<GraphNode, GraphEdge>::rootGraphOutEdges(
+    const GraphNode& node) const
+    throw (InstanceNotFound) {
+
+    if (parentGraph_ == NULL) {
+        return outEdges(node);
+    } else {
+        return parentGraph_->rootGraphOutEdges(node);
+    }
+}
+
+/**
+ * Returns the ingoing edges of a node.
+ *
+ * @param node A node of the graph.
+ * @returns A set of edges.
+ */
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::EdgeSet
+BoostGraph<GraphNode, GraphEdge>::inEdges(const GraphNode& node) const
+    throw (InstanceNotFound) {
+
+    typedef typename GraphTraits::in_edge_iterator InEdgeIter;
+    std::pair<InEdgeIter, InEdgeIter> edges = boost::in_edges(
+        descriptor(node), graph_);
+    EdgeSet result;
+    for (InEdgeIter ei = edges.first; ei != edges.second; ++ei) {
+        GraphEdge* edge = graph_[(*ei)];
+        edgeDescriptors_[edge] = *ei;
+        result.insert(edge);
+    }
+    return result;
+}
+
+/**
+ * Returns the ingoing edges of a node in the root graph of the subgraph tree.
+ *
+ * @param node A node of the graph.
+ * @returns A set of edges.
+ */
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::EdgeSet
+BoostGraph<GraphNode, GraphEdge>::rootGraphInEdges(const GraphNode& node) const
+    throw (InstanceNotFound) {
+    
+    if (parentGraph_ == NULL) {
+        return inEdges(node);
+    } else {
+        return parentGraph_->rootGraphOutEdges(node);
+    }
+}
+
+
+/**
+ * Returns the output degree of a node, that is, the number of outgoing edges
+ * of a node.
+ *
+ * @param node A node of the graph.
+ * @returns A set of edges.
+ * @exception InstanceNotFound if the node does not belong to this graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::outDegree(const GraphNode& node) const
+    throw (InstanceNotFound) {
+    return boost::out_degree(descriptor(node), graph_);
+}
+
+/**
+ * Returns the input degree of a node, that is, the number of incoming edges
+ * of a node.
+ *
+ * @param node A node of the graph.
+ * @returns A set of edges.
+ * @exception InstanceNotFound if the node does not belong to this graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::inDegree(const GraphNode& node) const
+    throw (InstanceNotFound) {
+    return boost::in_degree(descriptor(node), graph_);
+}
+
+/**
+ * Returns the output degree of a node, that is, the number of outgoing edges
+ * of a node in the root graph of the subgraph tree
+ *
+ * @param node A node of the graph.
+ * @returns A set of edges.
+ * @exception InstanceNotFound if the node does not belong to this graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::rootGraphOutDegree(
+    const GraphNode& node) const
+    throw (InstanceNotFound) {
+    return parentGraph_ == NULL ? 
+        boost::out_degree(descriptor(node), graph_) :
+        parentGraph_->rootGraphOutDegree(node);
+}
+
+/**
+ * Returns the input degree of a node, that is, the number of incoming edges
+ * of a node in the root graph of the subgraph tree
+ *
+ * @param node A node of the graph.
+ * @returns A set of edges.
+ * @exception InstanceNotFound if the node does not belong to this graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::rootGraphInDegree(
+    const GraphNode& node) const
+    throw (InstanceNotFound) {
+    return parentGraph_ == NULL ? 
+        boost::in_degree(descriptor(node), graph_) :
+        parentGraph_->rootGraphInDegree(node);
+}
+
+
+/**
+ * Returns the tail node of a edge.
+ *
+ * Warning: this function is slow, O(n) to number of edges in the graph.
+ *
+ * @param edge Edge whose tail node we are asking
+ * @return The tail node of the given edge
+ */
+template <typename GraphNode, typename GraphEdge>
+GraphNode&
+BoostGraph<GraphNode, GraphEdge>::tailNode(const GraphEdge& edge) const
+    throw (InstanceNotFound) {
+    EdgeDescriptor ed = descriptor(edge);
+    NodeDescriptor nd = boost::source(ed, graph_);
+    GraphNode* nn = graph_[nd];
+    nodeDescriptors_[nn] = nd;
+    return *nn;
+}
+
+/**
+ * Returns the tail node of a edge.
+ *
+ * This is faster but uglier version of the function.
+ *
+ * @param edge Edge whose tail node we are asking
+ * @return The tail node of the given edge
+ */
+template <typename GraphNode, typename GraphEdge>
+GraphNode&
+BoostGraph<GraphNode, GraphEdge>::tailNode(
+    const GraphEdge& edge, const NodeDescriptor& headNode) const
+    throw (InstanceNotFound) {
+    EdgeDescriptor ed = edgeDescriptor(edge, headNode);
+    NodeDescriptor nd = boost::source(ed, graph_);
+    GraphNode* nn = graph_[nd];
+    nodeDescriptors_[nn] = nd;
+    return *nn;
+}
+
+/**
+ * Returns the head node of a edge.
+ *
+ * Warning: this function is slow, O(n) to number of edges in the graph.
+ *
+ * @param edge Edge whose head node we are asking
+ * @return The head node of the given edge
+ */
+template <typename GraphNode, typename GraphEdge>
+GraphNode&
+BoostGraph<GraphNode, GraphEdge>::headNode(const GraphEdge& edge) const
+    throw (InstanceNotFound) {
+    EdgeDescriptor ed = descriptor(edge);
+    NodeDescriptor nd = boost::target(ed, graph_);
+    GraphNode* node = graph_[nd];
+    nodeDescriptors_[node] = nd;
+    return *node;
+}
+
+/**
+ * Returns the head node of a edge.
+ *
+ * This is faster but uglier version of the function.
+ *
+ * @param edge Edge whose head node we are asking
+ * @return The head node of the given edge
+ */
+template <typename GraphNode, typename GraphEdge>
+GraphNode&
+BoostGraph<GraphNode, GraphEdge>::headNode(
+    const GraphEdge& edge, const NodeDescriptor& tailNode) const
+    throw (InstanceNotFound) {
+
+    EdgeDescriptor ed = edgeDescriptor(tailNode,edge);
+    NodeDescriptor nd = boost::target(ed, graph_);
+    GraphNode* node = graph_[nd];
+    nodeDescriptors_[node] = nd;
+    return *node;
+}
+
+/**
+ * Connects two nodes and attaches the given properties to the new graph
+ * edge connecting the nodes.
+ *
+ * Once registered into a graph connection, the edge properties are owned
+ * and managed by the graph. This method can be invoked repeatedly on the
+ * same pair of nodes; each time it will create a new (parallel) edge.
+ *
+ * @param nTail Tail node of the connection.
+ * @param nHead Head node of the connection.
+ * @param e Properties of the connecting edge.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::connectNodes(
+    GraphNode& nTail, GraphNode& nHead, GraphEdge& e)
+    throw (ObjectAlreadyExists) {
+    connectNodes(nTail, nHead, e, NULL);
+}
+
+/**
+ * Connects two nodes and attaches the given properties to the new graph
+ * edge connecting the nodes.
+ *
+ * Once registered into a graph connection, the edge properties are owned
+ * and managed by the graph. This method can be invoked repeatedly on the
+ * same pair of nodes; each time it will create a new (parallel) edge.
+ *
+ * @param nTail Tail node of the connection.
+ * @param nHead Head node of the connection.
+ * @param e Properties of the connecting edge.
+ * @param modifier sub-or parent Graph which caused this procedure to be called
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::connectNodes(
+    GraphNode& nTail, GraphNode& nHead, GraphEdge& e, 
+    GraphBase<GraphNode, GraphEdge>* modifier)
+    throw (ObjectAlreadyExists) {
+
+    // not add if invalid params
+    if (!hasNode(nTail) || !hasNode(nHead)) {
+        // for sub graphs silently skip it
+        if (parentGraph_ != NULL) {
+            return;
+        } else {
+            assert(false && "Trying to Connect nodes not on the graph");
+        }
+    }
+
+    if (hasEdge(nTail, nHead, e)) {
+        string procName("BoostGraph::addEdge");
+        string errorMsg("Edge already belongs to this graph.");
+        throw ObjectAlreadyExists(__FILE__, __LINE__, procName, errorMsg);
+    }
+
+    boost::add_edge(descriptor(nTail), descriptor(nHead), &e, graph_);
+
+    // If we have calculated path lenght data, keep it in sync.
+    if (height_ != -1) {
+
+        int eWeight = edgeWeight(e, nHead); 
+        
+        typename std::map<GraphNode*,int>::iterator headIter = 
+            sinkDistances_.find(&nHead);
+        typename std::map<GraphNode*,int>::iterator tailIter =
+            sourceDistances_.find(&nTail);
+        
+        if( headIter == sinkDistances_.end()) {
+            sinkDistances_[&nHead] = 0; 
+            calculateSinkDistance(nTail, eWeight );
+        } else {
+            calculateSinkDistance(
+                nTail, sinkDistances_[&nHead] + eWeight);
+        }
+        
+        if( tailIter == sourceDistances_.end()) {
+            sourceDistances_[&nTail] = 0;
+            calculateSourceDistance(nHead, eWeight );
+        } else {
+            calculateSourceDistance(
+                nHead, sourceDistances_[&nTail] + eWeight);
+        }
+    }
+
+    if (parentGraph_ != NULL && parentGraph_ != modifier) {
+        parentGraph_->connectNodes(nTail, nHead, e, this);
+    }
+
+    for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+        if ( childGraphs_[i] != modifier ) {
+            childGraphs_[i]->connectNodes(nTail, nHead, e, this);
+        }
+    }
+}
+
+
+/**
+ * Disconnects two nodes.
+ *
+ * All edges between the given nodes are deleted. It is not an error to
+ * invoke this method on a pair of nodes that are not connected.
+ *
+ * @param nTail Tail node of the connection.
+ * @param nHead Head node of the connection.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::disconnectNodes(
+    GraphNode& nTail,
+    GraphNode& nHead) {
+
+    while (hasEdge(nTail, nHead)) {
+        EdgeDescriptor e = connectingEdge(nTail, nHead);
+        GraphEdge* theEdge = graph_[e];
+        removeEdge(*theEdge);
+        delete theEdge;
+    }
+
+    // removing a node invalidates path length data
+    height_ = -1;
+    sourceDistances_.clear();
+    sinkDistances_.clear();
+}
+
+/**
+ * Moves all incoming edges from a node to another node.
+ *
+ * This reuses the origial Edge objects, thus should retain the original
+ * properties (even if defined in a derived class).
+ *
+ * @param source The node to move the incoming edges from.
+ * @param destination The node to move the incoming edges to.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::moveInEdges(
+    const GraphNode& source,
+    const GraphNode& destination) 
+    throw (NotAvailable) {
+    moveInEdges(source, destination, NULL);
+}
+
+/**
+ * Moves all incoming edges from a node to another node.
+ *
+ * This reuses the origial Edge objects, thus should retain the original
+ * properties (even if defined in a derived class).
+ *
+ * @param source The node to move the incoming edges from.
+ * @param destination The node to move the incoming edges to.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::moveInEdges(
+    const GraphNode& source,
+    const GraphNode& destination,
+    BoostGraph* modifierGraph)
+    throw (NotAvailable) {
+    if (!hasNode(source)) {
+        if (hasNode(destination)) {
+            std::string msg = "Illegal Graph update: "
+                "copying edges from outside of the graph";
+            throw NotAvailable(__FILE__,__LINE__,__func__, msg);
+        } else {
+            return; // no need to do anything
+        }
+
+    } else {
+        EdgeSet edges = inEdges(source);
+        for (typename EdgeSet::iterator i = edges.begin(); 
+             i != edges.end(); ++i) {
+            Edge& e = **i;
+            const GraphNode& tail = tailNode(e);
+            const GraphNode& head = destination;
+            boost::remove_edge(descriptor(e), graph_);
+            
+            typename EdgeDescMap::iterator
+                edIter = edgeDescriptors_.find(&e);
+            if (edIter != edgeDescriptors_.end()) {
+                edgeDescriptors_.erase(edIter);
+            }
+
+            // if dest not in this graph, just remove
+            if (hasNode(destination)) {
+                std::pair<EdgeDescriptor,bool> tmpPair = 
+                boost::add_edge(
+                    descriptor(tail), descriptor(head), &e, graph_);
+                edgeDescriptors_[&e] = tmpPair.first;
+            }
+        }
+        
+        // update parent- and childgraphs
+        if (parentGraph_ != NULL && parentGraph_ != modifierGraph) {
+            parentGraph_->moveInEdges(source, destination, this);
+        }
+
+        for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+            if (childGraphs_.at(i) != modifierGraph ) {
+                childGraphs_.at(i)->moveInEdges(source, destination, this);
+            }
+        }
+    }
+}
+
+/**
+ * Moves all outgoing edges from a node to another node.
+ *
+ * This reuses the origial Edge objects, thus should retain the original
+ * properties (even if defined in a derived class).
+ *
+ * @param source The node to move the outgoing edges from.
+ * @param destination The node to move the outgoing edges to.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
+    const GraphNode& source,
+    const GraphNode& destination) 
+    throw (NotAvailable) {    
+    moveOutEdges(source, destination, this);
+}
+
+/**
+ * Moves all outgoing edges from a node to another node.
+ *
+ * This reuses the origial Edge objects, thus should retain the original
+ * properties (even if defined in a derived class).
+ *
+ * @param source The node to move the outgoing edges from.
+ * @param destination The node to move the outgoing edges to.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
+    const GraphNode& source,
+    const GraphNode& destination,
+    BoostGraph* modifierGraph) throw (NotAvailable) {
+    
+    if (!hasNode(source)) {
+        if (hasNode(destination)) {
+            std::string msg = "Illegal Graph update: "
+                "copying edges from outside of the graph";
+            throw NotAvailable(__FILE__,__LINE__,__func__, msg);
+        } else {
+            return; // no need to do anything
+        }
+
+    } else {
+
+        EdgeSet edges = outEdges(source);
+        for (typename EdgeSet::iterator i = edges.begin(); 
+             i != edges.end(); ++i) {
+            Edge& e = **i;
+            const GraphNode& tail = destination;
+            const GraphNode& head = headNode(e);
+            boost::remove_edge(descriptor(e), graph_);
+
+            typename EdgeDescMap::iterator
+                edIter = edgeDescriptors_.find(&e);
+            if (edIter != edgeDescriptors_.end()) {
+                edgeDescriptors_.erase(edIter);
+            }
+
+            if (hasNode(destination)) {
+                std::pair<EdgeDescriptor,bool> tmpPair = 
+                boost::add_edge(
+                    descriptor(tail), descriptor(head), &e, graph_);
+                edgeDescriptors_[&e] = tmpPair.first;
+
+            }
+        }
+
+
+        // update parent- and childgraphs
+        if (parentGraph_ != NULL && parentGraph_ != modifierGraph) {
+            parentGraph_->moveOutEdges(source, destination, this);
+        }
+
+        for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+            if (childGraphs_.at(i) != modifierGraph ) {
+                childGraphs_.at(i)->moveOutEdges(source, destination, this);
+            }
+        }
+
+    }
+}
+
+/**
+ * Removes a node of the graph, without deleting the associated properties.
+ *
+ * The connection between the given nodes and other nodes are removed from
+ * the graph. The property object is not managed by the graph anymore.
+ *
+ * @param node Properties of the node to be removed.
+ * @exception InstanceNotFound If the node propertes are not registered to a
+ *     node of the graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::removeNode(
+    GraphNode& node, BoostGraph* modifierGraph)
+    throw (InstanceNotFound) {
+    
+    if (hasNode(node)) {
+        if ( parentGraph_ == NULL) {
+            // first, record all edges of the node
+            EdgeSet edges;
+            
+            typedef std::pair<InEdgeIter, InEdgeIter> InEdgeIterPair;
+            typedef std::pair<OutEdgeIter, OutEdgeIter> OutEdgeIterPair;
+
+            NodeDescriptor nd = descriptor(node);
+            OutEdgeIterPair outEdges = 
+                boost::out_edges(nd, graph_);
+            for (OutEdgeIter i = outEdges.first; i != outEdges.second; i++) {
+                EdgeDescriptor ed = *i;
+                GraphEdge* buu = graph_[ed];
+                if (boost::target(ed, graph_) != nd) {
+                    delete buu;
+                }
+            }
+            InEdgeIterPair inEdges = boost::in_edges(descriptor(node), graph_);
+            for (InEdgeIter i = inEdges.first; i != inEdges.second; i++) {
+                delete graph_[*i];
+            }
+
+            // second, detach edges from node to delete
+            boost::clear_vertex(descriptor(node), graph_);
+
+        } else {
+            // second, detach edges from node to delete
+            boost::clear_vertex(descriptor(node), graph_);
+        }
+        
+        boost::remove_vertex(descriptor(node), graph_);
+        // edge and node descriptors are invalidated when vertex is removed.
+        edgeDescriptors_.clear();
+        nodeDescriptors_.clear();
+
+        if (parentGraph_ != NULL && parentGraph_ != modifierGraph) {
+            parentGraph_->removeNode(node, this);
+        }
+        
+        for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+            if (childGraphs_.at(i) != modifierGraph ) {
+                childGraphs_.at(i)->removeNode(node, this);
+            }
+        }
+    } else {
+        if (parentGraph_ == NULL) {
+            string msg = "Node not found in graph, cannot remove";
+            throw InstanceNotFound(__FILE__,__LINE__,__func__, msg);
+        }
+    }
+}
+
+/**
+ * Removes a node of the graph, without deleting the associated properties.
+ *
+ * The connection between the given nodes and other nodes are removed from
+ * the graph. The property object is not managed by the graph anymore.
+ *
+ * @param node Properties of the node to be removed.
+ * @exception InstanceNotFound If the node propertes are not registered to a
+ *     node of the graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::removeNode(GraphNode& node)
+    throw (InstanceNotFound) {
+    removeNode(node, NULL);
+}
+
+
+/**
+ * Removes a node of the subgraph, leaving it to the parent graph.
+ *
+ * Drops node also from all child graphs.
+ *
+ * @param node Properties of the node to be removed.
+ * @exception InstanceNotFound If the node propertes are not registered to a
+ *     node of the graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::dropNode(GraphNode& node)
+    throw (InstanceNotFound) {
+
+    if (!hasNode(node)) {
+        return;
+    }
+
+    // second, detach edges from node to delete
+    boost::clear_vertex(descriptor(node), graph_);
+
+    boost::remove_vertex(descriptor(node), graph_);
+    // edge descriptors are incalidated when vertex is removed.
+    edgeDescriptors_.clear();
+    nodeDescriptors_.clear();
+
+    for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+        childGraphs_.at(i)->dropNode(node);
+    }
+
+}
+
+/**
+ * Removes the edge connecting two nodes of the graph, without deleting the
+ * associated properties.
+ *
+ * The connection between the head and tail nodes corresponding to the given
+ * property object is removed from the graph. The property object is not
+ * managed by the graph anymore.
+ *
+ * @param e Properties of the connecting edge to be removed.
+ * @exception InstanceNotFound If the edge propertes are not registered to a
+ *     connection of the graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::removeEdge(GraphEdge& e)
+    throw (InstanceNotFound) {
+    removeEdge(e, NULL);
+}
+
+/**
+ * Removes the edge connecting two nodes of the graph from a subgraph,
+ * but leaves it into the original graph
+ *
+ * @param e Properties of the connecting edge to be removed.
+ * @exception InstanceNotFound If the edge propertes are not registered to a
+ *     connection of the graph.
+
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::dropEdge(GraphEdge& e)
+    throw (InstanceNotFound) {
+
+    boost::remove_edge(descriptor(e), graph_);
+
+    typename EdgeDescMap::iterator
+        edIter = edgeDescriptors_.find(&e);
+    if (edIter != edgeDescriptors_.end()) {
+        edgeDescriptors_.erase(edIter);
+    }
+
+    for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+        childGraphs_.at(i)->dropEdge(e);
+    }    
+}
+
+/**
+ * Removes the edge connecting two nodes of the graph, without deleting the
+ * associated properties.
+ *
+ * The connection between the head and tail nodes corresponding to the given
+ * property object is removed from the graph. The property object is not
+ * managed by the graph anymore.
+ *
+ * @param e Properties of the connecting edge to be removed.
+ * @exception InstanceNotFound If the edge propertes are not registered to a
+ *     connection of the graph.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::removeEdge(
+    GraphEdge& e, BoostGraph* modifierGraph)
+    throw (InstanceNotFound) {
+    if (hasEdge(e)) {
+        boost::remove_edge(descriptor(e), graph_);
+
+        typename EdgeDescMap::iterator
+            edIter = edgeDescriptors_.find(&e);
+        if (edIter != edgeDescriptors_.end()) {
+            edgeDescriptors_.erase(edIter);
+        }
+        
+        if (parentGraph_ != NULL && parentGraph_ != modifierGraph) {
+            parentGraph_->removeEdge(e, this);
+        }
+        
+        for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+            if (childGraphs_.at(i) != modifierGraph ) {
+                childGraphs_.at(i)->removeEdge(e, this);
+            }
+        }    
+    }
+}
+
+/**
+ * Returns the parent graph of this subgraph.
+ * If the graph has no parent, returns NULL.
+ *
+ * @return parent graph of this subgraph or NULL if is not subgraph.
+ */
+template <typename GraphNode, typename GraphEdge>
+BoostGraph<GraphNode, GraphEdge>*
+BoostGraph<GraphNode, GraphEdge>::parentGraph() {
+    return parentGraph_;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Subgraph related public methods 
+//////////////////////////////////////////////////////////////////////////////
+/**
+ * Creates a subgraph from this graph.
+ *
+ * This procedure is suposed to be called from derived class's 
+ * createSubGraph method which also wold create the new object.
+ */
+template <typename GraphNode, typename GraphEdge>
+void 
+BoostGraph<GraphNode, GraphEdge>::constructSubGraph(
+    BoostGraph& subGraph, NodeSet& nodes) {
+    // first add nodes
+    for( typename NodeSet::iterator i = nodes.begin();
+         i != nodes.end(); i++ ) {
+        GraphNode& gn = *(*i);
+        subGraph.addNode(gn);
+    }
+    // then edges
+    for( typename NodeSet::iterator i = nodes.begin();
+         i != nodes.end(); i++ ) {
+        GraphNode& gn = *(*i);
+        NodeDescriptor nd = descriptor(gn);
+        EdgeSet oEdges = outEdges(gn);
+        for ( typename EdgeSet::iterator j = oEdges.begin();
+              j != oEdges.end(); j++) {
+            GraphEdge& edge = **j;
+            GraphNode& hn = headNode(edge,nd);
+            for ( typename NodeSet::iterator k = nodes.begin();
+                  k != nodes.end(); k++) {
+                if ( &hn == *k) {
+                    subGraph.connectNodes(gn, hn, edge);
+                }
+            }
+        }
+    }
+    subGraph.parentGraph_ = this;
+    childGraphs_.push_back(&subGraph);
+}
+
+/*
+ * Detach a subgraph from this graph.
+ *
+ * After this the subgraph is no longer updated when the graph is changed.
+ * Does NOT remove parent_ of the subgraph, ie. leaves the subgraph in
+ * non-functional stage. Should be used only just before deleting subgraph.
+ *
+ * @param subGraph subgraph to remove from the graph
+ */
+template <typename GraphNode, typename GraphEdge>
+void 
+BoostGraph<GraphNode, GraphEdge>::detachSubgraph(BoostGraph& subGraph) {
+    for (typename std::vector<BoostGraph<GraphNode, GraphEdge>*>::iterator
+             iter = childGraphs_.begin(); iter != childGraphs_.end();iter++) {
+        if ( *iter == &subGraph ) {
+            childGraphs_.erase(iter);
+            return;
+        } 
+    }
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Private helper methods
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * 
+ * Checks whether the given node belongs to the graph
+ *
+ * @param node node being tested
+ * @return whether the ndoe belongs to the graph
+ */
+template <typename GraphNode, typename GraphEdge>
+bool
+BoostGraph<GraphNode, GraphEdge>::hasNode(const GraphNode& node) const {
+
+    if (AssocTools::containsKey(nodeDescriptors_,&node)) {
+        return true;
+    }
+
+    typedef std::pair<NodeIter, NodeIter> NodeIterPair;
+    NodeIterPair nodes = boost::vertices(graph_);
+    for (NodeIter i = nodes.first; i != nodes.second; i++) {
+        if (graph_[*i] == &node) {
+            nodeDescriptors_[&node] = *i;
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * 
+ * Checks whether there exists and edge between the given nodes
+ *
+ * @param nTail tail node of the edge
+ * @param nHead head node of the edge
+ * @return whether there is an edge from nTail to nHead
+ */
+template <typename GraphNode, typename GraphEdge>
+bool
+BoostGraph<GraphNode, GraphEdge>::hasEdge(
+    const GraphNode& nTail,
+    const GraphNode& nHead) const {
+
+    typedef std::pair<EdgeDescriptor, bool> EdgeReturned;
+    EdgeReturned er = boost::edge(
+        descriptor(nTail), descriptor(nHead), graph_);
+    if (er.second == true) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * 
+ * Checks whether the given edge connects the given nodes
+ *
+ * @param nTail tail node of the edge
+ * @param nHead head node of the edge
+ * @param edge edge which may connect the nodes
+ * @return whether the given edge does from nTail to nHead
+ */
+template <typename GraphNode, typename GraphEdge>
+bool
+BoostGraph<GraphNode, GraphEdge>::hasEdge(
+    const GraphNode& nTail,
+    const GraphNode& nHead,
+    const GraphEdge& edge) const {
+
+    typedef std::pair<OutEdgeIter, OutEdgeIter> OutEdgeIterPair;
+
+    OutEdgeIterPair edges = boost::out_edges(descriptor(nTail), graph_);
+
+    for (OutEdgeIter i = edges.first; i != edges.second; i++) {
+        if (graph_[*i] == &edge && target(*i, graph_) == descriptor(nHead)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * 
+ * Checks whether the given edge belongs to the graph
+ *
+ * @param edge edge being tested
+ * @return whether the edge belongs to the graph
+ */
+template <typename GraphNode, typename GraphEdge>
+bool
+BoostGraph<GraphNode, GraphEdge>::hasEdge(
+    const GraphEdge& e) const {
+
+    if (AssocTools::containsKey(edgeDescriptors_,&e)) {
+        return true;
+    }
+        
+    typedef std::pair<EdgeIter, EdgeIter> EdgeIterPair;
+    EdgeIterPair edges = boost::edges(graph_);
+
+    for (EdgeIter i = edges.first; i != edges.second; i++) {
+        if (graph_[*i] == &e) {
+            edgeDescriptors_[&e] = *i;
+            return true;
+        }
+    }
+    return false;
+}
+
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::EdgeDescriptor
+BoostGraph<GraphNode, GraphEdge>::descriptor(const GraphEdge& e) const {
+
+    if (AssocTools::containsKey(edgeDescriptors_,&e)) {
+        return edgeDescriptors_[&e];
+    }
+
+    typedef std::pair<EdgeIter, EdgeIter> EdgeIterPair;
+    EdgeIterPair edges = boost::edges(graph_);
+
+    for (EdgeIter i = edges.first; i != edges.second; i++) {
+        if (graph_[*i] == &e) {
+            edgeDescriptors_[&e] = *i;
+            return *i;
+        }
+    }
+    assert(false);
+    return *edges.second;
+}
+
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::EdgeDescriptor
+BoostGraph<GraphNode, GraphEdge>::edgeDescriptor(
+    const GraphEdge& e, const NodeDescriptor& headNode) const {
+
+    typedef std::pair<InEdgeIter, InEdgeIter> EdgeIterPair;
+    EdgeIterPair edges = boost::in_edges(headNode,graph_);
+
+    for (InEdgeIter i = edges.first; i != edges.second; i++) {
+        if (graph_[*i] == &e) {
+            return *i;
+        }
+    }
+    assert(false);
+    return *edges.second;
+}
+
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::EdgeDescriptor
+BoostGraph<GraphNode, GraphEdge>::edgeDescriptor(
+    const NodeDescriptor& tailNode, const GraphEdge& e) const {
+
+    typedef std::pair<OutEdgeIter, OutEdgeIter> EdgeIterPair;
+    EdgeIterPair edges = boost::out_edges(tailNode,graph_);
+
+    for (OutEdgeIter i = edges.first; i != edges.second; i++) {
+        if (graph_[*i] == &e) {
+            return *i;
+        }
+    }
+    assert(false);
+    return *edges.second;
+}
+
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::NodeDescriptor
+BoostGraph<GraphNode, GraphEdge>::descriptor(const GraphNode& n) const {
+
+    if (AssocTools::containsKey(nodeDescriptors_,&n)) {
+        return nodeDescriptors_[&n];
+    }
+
+    typedef std::pair<NodeIter, NodeIter> NodeIterPair;
+    NodeIterPair nodes = boost::vertices(graph_);
+
+    for (NodeIter i = nodes.first; i != nodes.second; i++) {
+        if (graph_[*i] == &n) {
+            nodeDescriptors_[&n] = *i;
+            return *i;
+        }
+    }
+    assert(false);
+    return *nodes.second;
+}
+
+
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::EdgeDescriptor
+BoostGraph<GraphNode, GraphEdge>::connectingEdge(
+    const GraphNode& nTail,
+    const GraphNode& nHead) const {
+
+    typedef std::pair<EdgeDescriptor, bool> EdgeReturned;
+
+    EdgeReturned edges = boost::edge(
+        descriptor(nTail), descriptor(nHead), graph_);
+    if (edges.second == false) {
+        abortWithError("Connecting edge not found!");
+    }
+    return edges.first;
+}
+
+/**
+ * Returns all the root nodes of the graph.
+ *
+ * Root nodes are nodes of which input degree is 0 (no edges entering, only
+ * leaving). Also known as 'source nodes'.
+ *
+ * @return Set of root nodes, can be empty. 
+ */
+template<typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::NodeSet
+BoostGraph<GraphNode, GraphEdge>::rootNodes() const {
+    
+    NodeSet rootNodes;
+    for (int nodeIndex = 0; nodeIndex < nodeCount(); ++nodeIndex) {
+        GraphNode& nod = node(nodeIndex);
+        if (inDegree(nod) == 0)
+            rootNodes.insert(&nod);
+    }
+    return rootNodes;
+}
+
+/**
+ * Returns all the successors of the given node.
+ *
+ * If node has no successors, an empty set is returned. Note: the node can
+ * also be a successor of itself.
+ *
+ * @param node The node of which successors to find.
+ * @return Set of root nodes, can be empty. 
+ */
+template<typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::NodeSet
+BoostGraph<GraphNode, GraphEdge>::successors(const Node& node) const {
+    
+    NodeSet succ;
+
+    NodeDescriptor nd = descriptor(node);
+    EdgeSet out = outEdges(node);
+    typedef typename EdgeSet::iterator EdgeIterator;
+
+    for (EdgeIterator i = out.begin(); i != out.end(); ++i) {
+        succ.insert(&headNode(**i, nd));
+    }
+    
+    return succ;
+}
+
+/**
+ * Returns all the predecessors of the given node.
+ *
+ * If node has no predecessors, an empty set is returned. Note: the node can
+ * also be a predecessor of itself.
+ *
+ * @param node The node of which predecessors to find.
+ * @return Set of root nodes, can be empty. 
+ */
+template<typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::NodeSet
+BoostGraph<GraphNode, GraphEdge>::predecessors(const Node& node) const {
+    
+    NodeSet pred;
+
+    NodeDescriptor nd = descriptor(node);
+    EdgeSet in = inEdges(node);
+    typedef typename EdgeSet::iterator EdgeIterator;
+
+    for (EdgeIterator i = in.begin(); i != in.end(); ++i) {
+        pred.insert(&tailNode(**i, nd));
+    }
+    return pred;
+}
+
+
+
+/**
+ * Calculates maximum path lengths from sinks and sources to all nodes.
+ *
+ * This procedure is called internally when this information is needed
+ */
+template<typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::calculatePathLengths() const {
+
+    for (int i = 0; i < nodeCount(); i++ ) {
+        if (inDegree(node(i)) == 0) {
+            calculateSourceDistance(node(i),0);
+        }
+    }
+
+    for (int i = 0; i < nodeCount(); i++ ) {
+        if (outDegree(node(i)) == 0) {
+            calculateSinkDistance(node(i),0);
+        }
+    }
+}
+
+/**
+ * Recursively calculates path lenght from source nodes to sink nodes
+ * Loops.
+ *
+ * @param node Node curently being processed
+ * @param len Current lenght from source
+ */
+template<typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::calculateSourceDistance( 
+    Node& node, int len ) const {
+    if (sourceDistances_.find(&node) == sourceDistances_.end() || 
+        sourceDistances_[&node] < len ) {
+        sourceDistances_[&node] = len;
+
+        if (len > height_) {
+            height_ = len;
+        }
+        
+        NodeDescriptor nd = descriptor(node);
+        EdgeSet out = outEdges(node);
+        for (typename EdgeSet::iterator i = out.begin(); 
+             i != out.end(); i++) {
+            Edge* edge = *i;
+            Node& hNode = headNode(*edge,nd);
+            int eWeight = edgeWeight(*edge, hNode);
+
+            calculateSourceDistance( hNode, len + eWeight );
+        }
+    }
+}
+
+/**
+ * Recursively calculates path lenght from sinks to sources.
+ *
+ * @param node Node curently being processed
+ * @param len Current lenght from sink.
+ */
+template<typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::calculateSinkDistance( 
+    Node& node, int len ) const {
+    if (sinkDistances_.find(&node) == sinkDistances_.end() || 
+        sinkDistances_[&node] < len ) {
+        sinkDistances_[&node] = len;
+        
+        if (len > height_) {
+            height_ = len;
+        }
+        
+        NodeDescriptor nd = descriptor(node);
+        EdgeSet in = inEdges(node);
+        for (typename EdgeSet::iterator i = in.begin(); 
+             i != in.end(); i++) {
+            int eWeight = edgeWeight(**i, node);
+            calculateSinkDistance(tailNode(**i,nd), len + eWeight);
+        }
+    }
+}
+
+/**
+ * Gives the lenght of a longest path a node belongs in a graph.
+ *
+ * If the path lenghts are not calculated calculates them.
+ * If the graph is a cyclic graph, the function may never return.
+ *
+ * @param node Node belonging to a path.
+ *
+ * @return length of the longest path where given node belongs to
+ */
+template<typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::maxPathLength(GraphNode& node) const {
+    return maxSinkDistance(node) + maxSourceDistance(node);
+}
+
+/**
+ * Gives the lenght of a longest path from any source node to given node.
+ *
+ * If the path lenghts are not calculated calculates them.
+ * If the graph is a cyclic graph, the function may never return.
+ *
+ * @param node Node belonging to a path.
+ *
+ * @return length of the longest path where given node belongs to
+ */
+template<typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::maxSourceDistance(GraphNode& node) const {
+
+    typename std::map<GraphNode*,int>::iterator iter = 
+        sourceDistances_.find(&node);
+    if (iter == sourceDistances_.end()) {
+        calculatePathLengths();
+        iter = sourceDistances_.find(&node);
+    }
+    return iter->second;
+}
+
+/**
+ * Gives the lenght of a longest path from the given node to any sink node.
+ *
+ * If the path lenghts are not calculated calculates them.
+ * If the graph is a cyclic graph, the function may never return.
+ *
+ * @param node Node belonging to a path.
+ *
+ * @return length of the longest path where given node belongs to
+ */
+template<typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::maxSinkDistance(GraphNode& node) const {
+
+    typename std::map<GraphNode*,int>::iterator iter = 
+        sinkDistances_.find(&node);
+    if (iter == sinkDistances_.end()) {
+        calculatePathLengths();
+        iter = sinkDistances_.find(&node);
+    }
+    return iter->second;
+}
+
+/**
+ * Gives the longest path in acyclic graph.
+ *
+ * If the path lenghts are not calculated calculates them.
+ * If the graph is a cyclic graph, the function may never return.
+ *
+ * @return Longst path in acyclic graph.
+ */
+template<typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::height() const {
+
+    if (height_ == -1) {
+        calculatePathLengths();
+    }
+
+    return height_;
+}
+
+/**
+ * Gives weight of a one edge in a graph.
+ *
+ * Derived class should overrider this with real implementation
+ * which does the actual node weight calculation.
+ *
+ * This base class implementation always returns 1.
+ *
+ * @return The weight of an edge.
+ */
+template <typename GraphNode, typename GraphEdge>
+int
+BoostGraph<GraphNode, GraphEdge>::edgeWeight(
+    GraphEdge&,GraphNode&) const {
+    return 1;
+}
+
+/**
+ * Returns all edges that connect two nodes.
+ *
+ * @param nTail source node
+ * @param nHead destination node
+ * @return a set containing all edges from nTail to nHead
+ */
+template <typename GraphNode, typename GraphEdge>
+typename BoostGraph<GraphNode, GraphEdge>::EdgeSet
+BoostGraph<GraphNode, GraphEdge>::connectingEdges(
+    const GraphNode& nTail, const GraphNode& nHead) const {
+    
+    EdgeSet headIn = inEdges(nHead);
+    EdgeSet tailOut = outEdges(nTail);
+    EdgeSet intersection;
+    AssocTools::intersection(headIn, tailOut, intersection);
+    return intersection;
+}

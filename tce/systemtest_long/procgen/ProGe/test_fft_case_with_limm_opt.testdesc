@@ -1,0 +1,10 @@
+<?php
+// file: test_fft_case_with_limm_opt.testdesc
+
+// short test description
+$test_description="generate a processor and simulate it with an FFT case that uses optimised long immediates";
+// the binary being tested
+$test_bin="./run_fft_limm_opt_test.sh";
+// arguments given to the program
+$bin_args="";
+?>

@@ -1,0 +1,1293 @@
+\documentclass[a4paper,twoside]{tce}
+\usepackage{pslatex}
+
+\begin{document}
+\author{Pekka J‰‰skel‰inen}
+\title{TCE Toolkit Library}
+\ver{0.12}
+\firstday{05.04.2004}
+\lastday{23.01.2006}
+% id number in S- sequence
+\docnum{029}
+% draft/complete/committed
+\state{draft}
+
+\maketitle
+
+
+\chapter*{Document History}
+
+\begin{HistoryTable}
+
+ 0.1    & 05.04.2004 & P. J‰‰skel‰inen &
+ Initial version. PluginTools design.\\
+
+ 0.1.1  & 13.04.2004 & P. J‰‰skel‰inen &
+ PluginTools: change to search path list. Minor cleanups.\\
+
+ 0.2    & 16.04.2004 & P. J‰‰skel‰inen &
+ Chapter about \emph{TextGenerator}.\\
+
+ 0.2.1  & 21.04.2004 & J. Nyk‰nen      &
+ Chapter about \emph{CmdLineOption} and \emph{CmdLineOptions}.\\
+
+ 0.2.2  & 22.04.2004 & A. Cilio        &
+ General review. Restructured 2.4, 4. Corrected several minor errors in
+ command line option framework.\\
+
+ 0.2.3  & 29.04.2004 & A. Cilio        &
+ Minor corrections in command line options and PluginTools (renamed
+ method).\\
+
+ 0.2.4  & 19.05.2004 & P. J‰‰skel‰inen &
+ PluginTools now uses RTLD\_LOCAL instead of RTLD\_GLOBAL.\\
+
+ 0.3    & 19.05.2004 & A. Oksman       &
+ Added chapters ``XMLSerializer'' and ``IDEAS FOR FUTURE DEVELOPMENT''.\\
+
+ 0.3.1  & 20.05.2004 & A. Oksman       &
+ Added a bit more information on the implementation of a new serializer.\\
+
+ 0.3.2  & 26.05.2004 & J. Nyk‰nen      &
+ Updated the chapter about \emph{TextGenerator}, now implemented with boost
+ library.\\
+
+ 0.4    & 12.01.2005 & P. J‰‰skel‰inen &
+ Moved \emph{EventHandler} from Simulator design.\\
+
+ 0.4.1  & 28.09.2005 & A. Cilio        &
+ Assigned document number. Minor corrections.\\
+
+ 0.5    & 28.09.2005 & A. Cilio        &
+ Updated obsolete parts, 2, 5. Corrected PluginTools.\\
+
+ 0.5.1  & 30.09.2005 & A. Cilio        &
+ Corrections in PluginTools.\\
+
+ 0.6    & 05.10.2005 & A. Cilio        &
+ Corrections to PluginTools visible behaviour.\\
+
+ 0.7    & 13.10.2005 & A. Cilio        &
+ Added stub chapter ``Application Services''.\\
+
+ 0.8    & 13.10.2005 & A. Cilio        &
+ Added chapter ``Text Logger Server''.\\
+
+ 0.9    & 21.10.2005 & A. Cilio        &
+ Reorganised and cleaned up option system.\\
+
+ 0.10   & 30.10.2005 & A. Cilio        &
+ Revised text generator (old design deprecated). Complete redesign of
+ logger.\\
+
+ 0.11   & 24.11.2005 & A. Cilio        &
+ Added support for late symbol resolution to plug-in tools.\\
+
+ 0.12 & 23.01.2006 & A. Cilio &
+ Complete redesign of option system by J. M‰ntyneva.\\
+\end{HistoryTable}
+
+
+\tableofcontents
+
+
+
+\chapter{INTRODUCTION}
+
+\section{Purpose and Scope}
+
+This document describes the design of non-trivial modules in the TCE Toolkit
+library.  Purpose of this document is to provide enough detail about the
+library to make implementation of the modules straightforward.  Also, this
+document may be used as a reference manual for developers of code that uses
+the services provided by the toolkit.
+
+\section{Definitions}
+
+%\begin{description}
+%\item[term]%
+%  term definition
+%\end{description}
+
+\section{Acronyms and Abbreviations}
+
+\begin{table}[htb]
+\begin{center}
+\begin{tabular}{p{0.15\textwidth}p{0.85\textwidth}}
+ API  & Application Programming Interface\\
+ DOM  & Document Object Model\\
+ ADF  & Architecture Description File\\
+ SAX  & Simple API for XML\\
+ TCE  & TTA Codesign Environment\\
+ TTA  & Transport Triggered Achitecture\\
+ UI   & User Interface\\
+ XML  & eXtensible Markup Language\\
+\end{tabular}
+\end{center}
+\end{table}
+
+
+
+\chapter{PluginTools}
+
+The module PluginTools provides a convenient API for accessing dynamic
+modules, which are often used for providing runtime loaded, ``plug-in''
+functionality to programs. PluginTools acts as a ``portability layer'' to
+system dependent function calls that handle dynamic libraries. PluginTools
+is also the name of the only class provided by this module, which is not
+static and must be instantiated at least once by clients that want to gain
+access to its services.
+
+\section{Main Design Ideas}
+
+Using the PluginTools module should be as easy as possible. The module
+provides templated convenience methods to handle the casting of imported
+symbols to correct types and also a ``registry'' of opened plugin modules to
+make it possible to request new symbols from already opened plugin modules.
+In addition, the module provides methods to add search paths for plugin
+modules. Search paths are used when loading a plugin module without an
+absolute path.
+%
+Using the search path mechanism, clients of PluginTools can load a plugin
+module without knowing its absolute path and referring to it using only the
+module name.
+
+The search path list is only used when registering dynamic modules.  Symbols
+are only searched in modules that are in the registry.  This avoids
+confusion and nasty errors when there are multiple modules with the same
+file name.
+
+\subsection{Symbol Resolution and Binding}
+
+By default, all symbol references inside a plug-in module are resolved as
+soon as the module is opened, and the symbol space searched for the
+resolution does not include any symbols that will be available in modules to
+be linked later.
+
+An alternative behaviour is: symbol resolution occurs later (lazy
+resolution), usually either when the symbols that contains unresolved
+references is imported or when the code containing the unresolved references
+is run, and takes into account all dynamic modules (global resolution) that
+have been linked so far.
+
+When
+%
+\note{DISCUSS: construction time or run-time method?}
+%
+clients need to link several dynamic modules in any order and the modules
+can contain references to each other's symbols, lazy and global resolution
+may be enabled at construction time.
+%
+The default behaviour is preferred because it makes error detection easier
+and errors more predictable. Lazy resolution can cause missing symbol errors
+later, when the symbol imported from the module is used.
+
+\section{Interface}
+
+PluginTools provides a public interface to register and unregister dynamic
+modules, load symbols from registered modules and manage the path list used
+to search modules.
+
+\begin{description}
+\item[PluginTools(modeLazyGlobal : bool)] %
+  Contructor. Create an instance of plug-in loader with the given resolution
+  and binding mode (local and immediate versus global and lazy). If the mode
+  flag is not specified, the default is local and immediate.
+\end{description}
+
+\paragraph{addSearchPath(searchPath : string)}
+Add a new search path to PluginTools search path list. This search path
+list is gone through from the first added path to the last when a plugin
+module without absolute path is registered. When the given path is relative,
+the search path is expanded to an absolute path starting with the current
+working directory.
+
+Exception is thrown if the path does not exist.
+
+\paragraph{removeSearchPath(searchPath : string)}
+Remove a search path from PluginTools path list.
+
+Trying to remove a path that does not exist in the path list is not
+considered an error.
+
+\paragraph{clearSearchPaths()}
+Delete all search paths from the path list. Should never fail.
+
+\paragraph{registerModule(module : string)}
+Register a plugin module into the PluginTools registry. If the module name
+\emph{module} does not have an absolute path, then the module is searched in
+the list of search paths. When found, the module is opened and inserted into
+a map where the key is the absolute path of the module file, and the value
+is the handle to the opened dynamic module, which is the \emph{void*}
+pointer returned by dlopen() call.
+
+In case dynamic module file is not found or dlopen() fails (for example,
+because of unresolved symbols), an exception is thrown. In case dlopen()
+fails, an error string is retrieved from dlerror() and copied to the
+exception's error string. Multiple registration attempts of the same module
+are just ignored and not considered an error condition.
+
+\paragraph{unregisterModule(module : string)}
+Unregister a plugin module from the PluginTools registry. If the module
+name \emph{module} does not have an absolute path, but a relative path, then
+the registry is scanned for any absolute path that contains the module name
+in the given relative path. If only one absolute path is found, it's
+unregistered from the registry. The search path list is not used in this
+method to look for the module: only the keys in the registry map are
+scanned.
+
+Unregistration means removing the entry from the registry (map) and 
+calling dlclose() with the dynamic module handle in that entry.
+
+In case dlclose() fails for some reason, an exception is thrown with
+dlerror() contents in it. Exception is thrown also if no absolute path is
+given as \emph{module} and either several modules with different absolute
+paths or no module at all are found in the registry.
+
+It is not possible to use symbols imported from a module after it is
+unregistered!
+
+\paragraph{unregisterAllModules()}
+Unregister all modules in the registry. See previous method for definition
+of unregistration. This is also called in the destructor.
+
+\paragraph{importSymbol(symbolName : string, target : TypeName*, module :
+string)}
+\paragraph{importSymbol(symbolName : string, target : TypeName*)}
+Templated methods to import a symbol. 
+
+The first version of this method requires explicit definition of the module
+the symbol should be loaded from, while the latter uses the registry to look
+up the symbol.
+
+The first module found in the registry providing the symbol with 
+given \emph{symbolName} is chosen in the latter case. Note that
+the order of modules in the registry is not the same as the order in which
+they were registered. Latter method is practically a convenience method for
+cases where there are only a few registered modules and user is sure that
+right one is always picked for the symbol.
+
+In the explicit \emph{module} version, an exception is thrown 
+in case no absolute path is given as \emph{module} and multiple 
+registrations for that name with different absolute paths are found in the 
+map of registered modules. If the module is not found in registry, it's first 
+registered using the registerModule() (thus its exceptions may leak from
+this function too), and then symbol is returned.
+
+In case dlsym() call fails for some reason, exception is thrown with dlerror()
+contents in it.
+
+\verb|TypeName| is a type and is the template parameter.  These templated
+methods are convenience methods that call a protected method which does the
+actual dlsym() call.  These methods cast the \verb|void*| from dlsym() to
+the \verb|TypeName*| type.
+
+\section{Implementation}
+
+\subsection{External Library}
+\label{ssec:extern-lib}
+
+The current implementation of the module depends on \emph{dlopen},
+\emph{dlsym}, \emph{dlerror} and \emph{dlclose} functions declared in
+`dlfcn.h' header. These functions are defined in a standard library that
+should be availabe in Solaris and Linux operating systems.
+
+By default, when opening a dynamic module with \emph{dlopen}, flags
+`RTLD\_LOCAL' and `RTLD\_NOW' are used. The first flag prevents symbols
+imported from the dynamic module to be used by dynamic modules loaded after
+it. The second flag indicates that any symbols that are referred to by a
+symbol (a function) of the dynamic module must be resolved as the plugin
+module is opened. On the contrary, the opposite flag, `RTLD\_LAZY', resolves
+symbols later. How late depends on the implementation of the run-time
+linkage mechanism.
+
+\subsection{Templated importSymbol() vs. the Real importSymbol()}
+
+The templated importSymbol() methods consist only of the
+\verb|reinterpret_cast| operation on the pointer to the linked symbol.  The
+real symbol-loading functionality resides in a non-templated member
+function.  This is to hide the ugly casting syntax from clients.
+
+Most of the symbol-loading functionality should reside in a normal function
+to avoid code bloat because of the nature of the template mechanism.
+
+\subsection{Multiple Instances of PluginTools and dlclose()}
+
+It is possible for dlclose() to ``fail'' in case there are multiple
+instances of PluginTools class in use at the same time and multiple
+instances have opened the same plugin module. dlclose() does reference
+counting, which means that dlclose() call might not actually close the
+module but only decrement its reference counter on every call.  When
+reference counter reaches zero the module is finally closed. This
+functionality should be realized and handled without producing an error.  A
+unit test should be written to test this feature.
+
+\subsection{dlsym() and Symbols with NULL Value}
+
+From the manual pages of \emph{dlopen}:
+\begin{quote}
+  Since the value of the symbol could actually be NULL (so that a NULL
+  return from dlsym() need not indicate an error), the correct way to test
+  for an error is to call dlerror() to clear any old error conditions, then
+  call dlsym(), and then call dlerror() again, saving its return value into
+  a variable, and check whether this saved value is not NULL.
+\end{quote}
+
+\subsection{Portable Implementation of Search Paths}
+
+By default, the library function \emph{dlopen} of Solaris and Linux uses
+LD\_LIBRARY\_PATH to search for dynamic libraries. This variable, however,
+cannot be exploited by PluginTools, because it is not generally portable.
+%
+For this reason, PluginTools should look up only the custom search paths
+defined by the client when a relative path is given.
+%
+The absolute path is detected when the string representing the path starts
+with a directory separator character (in Unix, `/').
+
+\section{Error Handling}
+
+All errors caused by a non-existing file, invalid path or error in dl* calls 
+etc. are signalled with exceptions.
+
+
+
+\chapter{TextGenerator}
+
+This chapter describes a facility to generate the user interface (UI) texts
+displayed in applications. This kind of system is motivated with the need to
+easily locate UI texts within the source code.
+
+\begin{quote}\it
+  \textbf{Warning} --- The original text generation toolkit facility is
+  deprecated and is going to be phased out. Do not use the old API for new
+  applications.
+\end{quote}
+
+\section{Main Design Ideas}
+
+TextGenerator provides a database of text template strings which are
+requested using text ids. Text template strings are processed with
+a boost::format function.  This makes it possible to translate texts with
+variable parts to texts displayed to user. 
+
+An example of a string template:
+
+\begin{verbatim}
+Your query "%s" returned %d result(s).
+\end{verbatim}
+
+This string template is formatted to a string by providing the values
+to the `\%s' and `\%d' parameters of the template to produce a result
+of something like:
+
+\begin{verbatim}
+Your query "SELECT * FROM trace_data" returned 493 result(s).
+\end{verbatim}
+
+Base class \emph{TextGenerator} includes the basic database and formatting
+functionality, and some general text templates. Instead of using
+TextGenerator directly, each application defines a subclass of TextGenerator
+with application-specific capabilities. For example, the Simulator could
+define SimulatorTextGenerator, and augments the database with application
+specific text messages. Application-specific TextGenerator subclasses may
+also provide extensions to the template formatting function for convenience.
+For example, a subclass could provide a format string `\%M' to print the
+contents of a Move class in human readable format.
+
+\section{Interface}
+
+\emph{TextGenerator} provides a method for converting a given input string
+into a template string that can be formatted with a predefined number of
+input parameters.
+
+\begin{description}
+\item[text(s : const string\&) : boost::format] %
+  Convert the given string template into a form ready to be instantiated
+  with input parameters, as shown below.
+\end{description}
+
+\emph{Example. Using \emph{TextGenerator}.}
+\begin{verbatim}
+  const string& TXT_HELLO_USER = "Hello, %s!";
+  boost::format fmt = generator.text(Text::TXT_HELLO_USER);
+  fmt % currentUser.firstName();
+  std::cout << fmt.str() << endl;
+\end{verbatim}
+given a current user with name ``George'', will produce the message ``Hello,
+George!''.
+
+\begin{quote}\it
+  \textbf{Warning} --- This part of the interface is deprecated and left for
+  maintenance of legacy code.
+\end{quote}
+
+\emph{TextGenerator} provides functions for adding text templates to
+database and for returning boost::format object which contains such a text
+template.
+
+\paragraph{void addText(int textId, const std::string\& templateString)}
+Adds a text template to the database and associates it to a integer
+identification code \emph{textId}.  Text codes are enumerated values defined
+in namespace \emph{Texts}.
+
+\paragraph{boost::format text(int textId) throw (KeyNotFound)}
+Retrieves the text template with code \emph{textId} from database and
+creates a boost::format object that contains the text template.
+
+\section{Using TextGenerator}
+\label{sec:textgen-use}
+
+When a subclass of TextGenerator adds its own text codes to the namespace in
+its constructor, it must make sure that no existing text codes are
+conflicting with the new codes (that is, have the same numeric value).  To
+this purpose, TextGenerator provides a special code \verb|LAST__| that marks
+the first numeric code that is not used by any text message of the base
+class.
+
+Example:
+\begin{verbatim}
+// TextGenerator.cc:
+namespace Text {
+  enum {
+    TXT_HELLO_WORLD = 1;
+    ...
+    LAST__;   
+  }; 
+};
+
+// SimulatorTexts.cc:
+namespace Text {
+  enum {
+     TXT_WELCOME = LAST__;
+     ...  
+  }; 
+};
+\end{verbatim}
+
+
+
+\chapter{Options Framework}
+
+This chapter describes the framework for implementing application-wide setup
+parameters and command line option parsing.
+
+\section{Overview}
+
+The options framework provides a uniform set of interfaces and services to
+manage the setup values (parameters) that control the way standalone
+applications work.
+%
+In addition, the framework provides support for a specialised form of setup
+parameter, the command line option, including option parsing parsing for all
+applications of the project that require it.
+
+Other features of the framework are:
+\begin{enumerate}
+\item %
+  Default options.
+\item %
+  Built-in support for option prefixes.
+\item %
+  Built-in support for brief and long option names.
+\end{enumerate}
+
+\subsection{Motivation}
+\label{ssec:motivation}
+
+The options framework allows all applications of the toolset to reuse a
+common set of services (increased productivity) and provides a consistent
+and uniform interface (syntax rules for parsing options, default options,
+automatic self-documentation of each single option).
+
+\subsection{Object Architecture}
+
+At the root of the framework lies the \emph{Options} class, a container of
+parameters. Each parameter has a name and a value, which is modeled by the
+\emph{OptionValue} interface. There are many types of option values
+(Boolean, real numbers, integer numbers, strings) and more can be added by
+re-implementing the interface.
+
+The \emph{CmdLineParser} class implements a parser of strings. Parsing
+results in a set of options and their value, which can be stored in an
+\emph{Options} instance. Internally, parsing is parcelled into
+option-specific mini-parsers, which are implementations of
+\emph{CmdLineOptionParser} interface. Each implementation class is specific
+to a type of option values.
+
+The \emph{CmdLineOptions} is a specialisation of the parser destined to
+command lines coming from interactive shells. It has the additional
+functionality of handling default command line switches, which are present
+in all applications of the toolset.
+
+\subsection{Command Line Options}
+\label{ssec:cmdline-options}
+
+Option parsing adheres to a number of conventions.
+\begin{enumerate}
+\item %
+  All options have a (long) name and are introduced by a double hyphen,
+  `\verb|--|'. The option parameter, when present, is given either like
+  this: `\verb|--foo=2|' or like this: `\verb|--foo 2|'.
+\item %
+  Options may also have a short, one-character alias. When they are referred
+  to by their short name, options are introduced by a single hyphen,
+  `\verb|-|'. The option parameter, when present, is given like this:
+  `\verb|-f 2|'. The blank between the short option name and the parameter
+  may be omitted. `\verb|-f=2|' is illegal.
+\item %
+  Options may have at most one parameter (or argument). If an argument
+  consists of several words, the blank characters must be escaped using
+  double quotes (`\verb|"|') or backslashes (`\verb|\|').
+\item %
+  A command line may contain one or more arguments (free arguments).
+\item %
+  Free arguments must follow options.
+\item %
+  An isolated `\verb|--|' in the command line marks the end of the options.
+  The rest in the line will be treated as command line arguments.
+\item %
+  The the relative order of options in the command line is free.
+\item %
+  Switches (Boolean options) do not take parameters. Several switches may be
+  grouped if they are expressed with their short name. For example,
+  ``\verb|-abc|'' is equivalent to ``\verb|-a -b -c|''. It is \emph{not}
+  allowed to group together switches and an option with parameter.
+\end{enumerate}
+
+\subsection{Default Options for Command Lines}
+\label{ssec:default-opts}
+
+The options framework provides two default (that is, automatically defined)
+options, destined to applications run from a command line:
+
+\begin{enumerate}
+\item %
+  \verb|--help| or \verb|-h| %
+  Display the help page of the application: a brief description of the
+  application and an automatically-built list of options accepted and their
+  usage.
+\item %
+  \verb|--version|%
+  Display the version number of the application.
+%
+  \note{EXTENSION: version number of the toolset}
+\end{enumerate}
+
+\subsection{Option Prefixes: Negation}
+\label{ssec:prefixes-negation}
+
+Boolean flag options can be specified in two forms: plain and negated.
+Negated form is `\verb|--no-|' followed by the option name. Notice that
+negated form applies only to the long name. Negation is supported only
+boolean options.
+%
+\note{EXTENSION: support negation for any option}
+
+\section{Interface}
+
+\subsection{Options}
+\label{ssec:Options-if}
+
+The \emph{Options} base class is a generic container of option values
+(concrete implementations of \emph{OptionValue} class). Each option is
+identified by a unique name within the container. The interface of
+\emph{Options} allows for:
+\begin{enumerate}
+\item %
+  Adding (or setting again) a new option value to a given option.
+\item %
+  Accessing values of a given option.
+\item %
+  Counting the number of items of options that can have multiple items
+  (lists of values).
+\end{enumerate}
+
+\subsection{OptionValue}
+
+\emph{OptionValue} is an abstract interface for representing any possible
+value (argument) of a setup parameter or option. An option value does not
+bear any link with the parameter or option it defines a value for.
+
+There are as many implementations of the \emph{OptionValue} interface as
+data types for option values. The following types are defined: Boolean,
+integer, real (double-precision floating-point), string.
+
+The interface of \emph{OptionValue} provides setter and accessor methods for
+every supported concrete type.
+
+\begin{quote}
+  \textbf{Warning.} This design does not allow seamless system
+  extensibility. Any new concrete option value type requires interface
+  changes to the toolkit.
+\end{quote}
+
+While every concrete option value type implies a domain of valid values
+\emph{per se}, any further semantic restrictions of option value types that
+depend on specific option types must be dealt with within the parsers (Sections~\ref{ssec:CmdLineParser}, \ref{ssec:CmdLineOptionParser}).
+
+\subsection{CmdLineParser}
+\label{ssec:CmdLineParser}
+
+Class \emph{CmdLineParser} provides functionality to parse strings of
+options (in the style of shell command line options).
+%
+A legal string consists of a variety of options and arguments. Command line
+options have a mandatory long name, like `foo', and an optional short name,
+like `f'.
+
+\begin{description}
+\item[CmdLineParser(string description)]%
+  Constructor. The description of the application is given as parameter.
+  Initialize the legal prefixes of options. Currently the only legal prefix
+  is ``no-''.
+
+\item[parse(options : vector<string>)]%
+  Parse the string vector \emph{options}. The first element of the vector is
+  treated as the name of the command and is stored.
+
+  Throw \emph{IllegalCommandLine} exception if the command line is malformed
+  (causes parsing errors). Throw \emph{ParserStopRequest} exception if one
+  of the parsed options requests termination of execution.
+
+\item[parse(argv : (char*){[ ]}, argc : int)]%
+  Parse the command line \emph{argv}. The first element of vector
+  \emph{argv} is treated as the name of the command and is stored.
+
+  Throw \emph{IllegalCommandLine} exception if the command line is malformed
+  (causes parsing errors). Throw \emph{ParserStopRequest} exception if one
+  of the parsed options requests termination of execution.
+
+\item[numberOfArguments() : int]%
+  Return the number of independent arguments in command line.
+
+\item[argument(int index) : string]%
+  Return the independent argument at position \emph{index}, where 1 is the
+  position of the first argument.
+
+  Abort if \emph{index} is less than 1 or greater than the number of
+  arguments.
+%
+  \note{TO DO: change to exception}
+\item[storeOptions(options : Options\&)]%
+  Store the parsed option values into an object that implements
+  \emph{Options} interface.
+
+
+\item[addOption(option : CmdLineOption*)]%
+  Add a new command line option to command line option data base. This
+  method is protected; only concrete options classes can use it to create
+  the set of recognised options.
+\end{description}
+
+\subsection{CmdLineOptions}
+
+Class \emph{CmdLineOptions} extends the command line parser
+(Section~\ref{ssec:CmdLineParser}) with functionality specific to
+interactive command-line shells: default, system-wide command line options
+and output to a stream.
+
+\begin{quote}
+  \textbf{Warning.} This class is mainly meant for backward compatibility.
+  It should not be used for new applications.
+\end{quote}
+
+\begin{description}
+\item[printHelp()]%
+  Print the help text that describes the application and its command line
+  options.
+
+\item[printVersion()]%
+  Print the version of the program. Derived classes must implement this
+  method.
+\end{description}
+
+\subsection{CmdLineOptionParser}
+\label{ssec:CmdLineOptionParser}
+
+\emph{CmdLineOptionParser} is an abstract base class for all different types
+of option parsers. Each concrete implementation implements a mini-parser of
+a specific type of option values. In addition to Boolean values, which have
+no argument, the framework defines implementations for options that accept
+arguments of the following types: integer, string, real, and integer list.
+
+\begin{description}
+\item[CmdLineOptionParser(name : string, description : string desc, alias :
+  string)]%
+  Constructor. Create a new command line option and set its name,
+  description, and optional alias (short name). If no alias string is given,
+  then the option can only be referred to by its (long) name.
+
+\item[longName() : string]%
+  Return the (long) name of the option.
+
+\item[shortName() : string]%
+  Returns the alias short name of the option. Return an empty string if the
+  option does not have an alias.
+%
+  \note{DISCUSS: safer to throw?}
+
+\item[description() : string]%
+  Return the description of an option.
+
+\item[parseValue(arguments : string, prefix : string) : bool]%
+  Parse the option name. It this method is invoked repeatedly for the same
+  option, two things can occur: if the option type is a scalar, the new
+  value overwrites the preexisting value; if the option type is an
+  aggregate, then the new value is added.
+
+  Throw \emph{IllegalCommandLine} exception if the arguments or the prefix
+  of the option are not valid and cause a parsing error.
+
+\item[integer(index : int) : int]%
+  Return the integer value of the option. Can only be used for options which
+  expect an integer parameter. If the option parameter is an integer list,
+  the list elements can be accessed by the optional \emph{index} parameter.
+
+  Abort if \emph{index} is less than 1 or greater than the number of
+  arguments.
+%
+  \note{TO DO: change to exception}
+
+\item[String() : string]%
+  Return the string value of the option. Can be only used for options which
+  expect a string parameter.
+%
+  \note{TO DO: rename to ``stringValue''}
+
+\item[real() : double]%
+  Return the floating point value of option. Can be only used for options
+  which expect a floating point number as parameter.
+
+\item[isFlagOn() : bool]%
+  Returns true if the option is set. Can only be used with Boolean options.
+
+\item[isFlagOff() : bool]%
+  Returns true if the option is not set. Can only be used with Boolean
+  options.
+
+\item[listSize() : int]%
+  Return the number of elements in the (list) argument of the option. Can
+  only be used for which expect a comma-separated list of elements as
+  parameter.
+\end{description}
+
+\section{Usage of Command Line Option Framework}
+
+The options framework can parse command lines options either by adding new
+\emph{CmdLineOptionParser} concrete objects to a \emph{CmdLineParser}. The
+resulting option values must be stored in an instance of \emph{Options}
+class or of an application-specific subclass.
+
+Alternatively, it is possible to subclass the legacy \emph{CmdLineOptions}.
+In this case, the application-specific options should be added inside the
+constructor, during initialisation. The subclass can be a complete wrapper
+around the option set, providing specific methods for accessing the value of
+each option. Using the application-specific command line class includes
+creation of options, parsing of command line and obtaining the values of
+different options and arguments.
+
+\subsection{Usage Example}
+
+Example of usage of the option system with the base command line parser and
+an application-specific option container (subclass of \emph{Options}).
+
+\begin{verbatim}
+CmdLineParser cmdLineParser;
+
+// Set the command line "grammar" to the parser. Here it is done manually,
+// but it is possible to derive a specialised CmdLineOptions parser that
+// will add the supported parameters automatically in its constructor.
+
+cmdLineParser.addOption(new StringCmdLineOptionParser(
+    ADF_PARAM_NAME, "The ADF file of the target architecture", "t");
+
+// parse command line and store options
+
+SchedulerOptions options;
+cmdLineParser.parseCommandLine(cmdLine); // cmdLine may be a string vector
+cmdLineParser.storeOptions(options);
+
+// get the value of an option via base Options interface
+cout << options.optionValue(ADF_PARAM_NAME).stringValue();
+
+// get the value of an option via a specialised accessor
+cout << options.targetADFFileName();
+\end{verbatim}
+
+\subsection{Alternative Usage Example}
+
+Eaxample of usage with application-specific subclassing of the legacy class
+\emph{CmdLineOptions}.
+
+\begin{verbatim}
+// FooCmdLineOptions.cc:
+FooCmdLineOptions::FooCmdLineOptions() : 
+    CmdLineOptions("Usage: foo [OPTION]...") {
+
+    BoolCmdLineOptionParser* binMode =
+        new BoolCommandLineOptionParser(
+            "binmode", "sets the output mode to binary", "b");
+    addOption(binMode);
+
+    StringCmdLineOptionParser* fooName =
+        new StringCmdLineOptionParser("name", "name of the foo", "n");
+    addOption(fooName);
+
+    IntegerCmdLineOptionParser* fooSize =
+        new StringCmdLineOptionParser("size", "size of the foo", "s");
+    addOption(fooSize);
+}
+
+bool FooCmdLineOptions::binMode() {
+    return findOption("binmode")->isFlagOn();
+}
+
+string FooCmdLineOptions::fooName() {
+    return findOption("name")->String();
+}
+
+int FooCmdLineOptions::fooSize() {
+    return findOption("size")->integer();
+}
+
+// main.cc
+int main(int argc, char* argv[]) {
+    FooCmdLineOptions options;
+
+    if(!options.parseCommandLine(argv, argc)) {
+        return EXIT_FAILURE;
+    }
+
+    int arguments = options.numberOfArguments();
+    string input1 = "";
+    string input2 = "";
+    if (arguments == 0 || arguments > 2) {
+        options.printHelp();
+        return EXIT_FAILURE;
+    } else if (arguments == 1) {
+        input1 = options.argument(1);
+    } else {
+        input1 = options.argument(1);
+        input2 = options.argument(2);
+    }
+
+    string name = options.fooName();
+    if (name == "pelle") {
+        input1 += "pelle";
+        input2 += "pelle";
+    }
+
+    if (options.binMode()) {
+        cout << Conversion::toBinString(options.fooSize()) << endl;
+    } else {
+        cout << options.fooSize() << endl;
+    }
+}
+\end{verbatim}
+
+
+
+\chapter{XMLSerializer}
+
+Many of the modules in TCE use some kind of data files, either to read
+information or to store (temporary) information to a permanent support. Many
+of the data files used in this project are in XML format~\cite{XMLSpec}. XML
+is a way to represent data in plain text format using a tree-like structure
+to markup the text in various ways.
+
+Since all modules need their own kinds of data files they all need their own
+ways to read and/or write the data. \emph{XMLSerializer} together with
+\emph{ObjectState} objects provide a generic way to handle XML files.
+
+\section{Main Design Ideas}
+
+\emph{XMLSerializer} is a general XML reader-writer application for the TCE
+project. It uses objects of the ObjectState class to represent the XML
+element tree in the XML file. ObjectState is a class whose instances can be
+used as nodes of a tree structure or as single data holders. An object of
+the ObjectState class can have attributes and the actual payload text data.
+
+\emph{XMLSerializer} uses Xerces C++ Parser~\cite{Xerces} to parse and write
+the actual XML format. When reading an XML document Xerces creates a DOM
+tree~\cite{DOM} that represents the XML element tree in the original file.
+\emph{XMLSerializer} then converts the DOM tree to \emph{ObjectState} tree
+that has the same structure as the original XML file, i.e. one element in
+the file is one object in the \emph{ObjectState} tree. When writing an XML
+file the \emph{XMLSerializer} uses Xerces to first create a DOM tree from a
+\emph{ObjectState} tree and then to write the DOM tree to the file.
+
+\section{External Library Dependencies}
+
+\emph{XMLSerializer} uses the Xerces C++ Parser to read and parse as well as
+to write the actual XML format.
+
+\section{Interface}
+
+\emph{XMLSerializer} provides a public interface to read and write XML
+files. The interface includes the following functions.
+
+\paragraph{writeState (model : Serializable\&, fileName : const string\&)}
+Writes the given serializable model into the given XML file.
+
+\paragraph{readState (fileName : const string\&, schemaFile : const
+  string\&) : ObjectState*}
+Reads the given XML file and creates an \emph{ObjectState} tree according to
+it. The XML file is validated with the given Schema~\cite{Schema} file. If
+the Schema file is not given the XML file is not validated. Returns the root
+node of the created \emph{ObjectState} tree.
+
+\paragraph{writeState(rootState : ObjectState*, fileName : const string\&)}
+Writes the given \emph{ObjectState} tree into the given XML file.
+
+\section{Implementation}
+
+\emph{XMLSerializer} is the generic application when handling XML files. It
+creates an \emph{ObjectState} tree that mirrors the element structure in the
+XML file. When someone wants to create a more application specific XML file
+handler (i.e. the needed \emph{ObjectState} tree is something else than the
+one \emph{XMLSerializer} produces) one must use the \emph{XMLSerializer}
+class as a base class and inherit a new serializer from it.
+
+The inherited serializer's task is to restructure the \emph{ObjectState}
+tree \emph{XMLSerializer} creates into a tree that is suitable for the
+application at hand. The inherited serializer should still use the
+\emph{XMLSerializer}'s interface to read and write XML files and define the
+\emph{readState} and \emph{writeState} functions again overloading them. It
+can also create its own (private) methods it needs to restructure and
+otherwise handle the \emph{ObjectState} tree.
+
+The objects created by the \emph{ObjectState} tree must implement the
+\emph{Serializable} interface.
+
+\subsection{Already Implemented Serializers}
+
+The following serializers have already been implemented in TCE. Some hints
+on the implementation of a new serializer may be found in their
+documentation.
+
+\subsubsection{ADFSerializer}
+
+\emph{ADFSerializer} restructures the \emph{ObjectState} tree created by
+\emph{XMLSerializer} from an ADF file~\cite{ADF-specs} so that mirrors the
+internal machine object model~\cite{MOM-design}. After restructuring, one
+node (object) in the modified \emph{ObjectState} tree represents one object
+in the machine.
+
+Naturally, \emph{ADFSerializer} also provides methods to create an
+\emph{ObjectState} tree from the internal machine. The \emph{ObjectState}
+tree representing the machine is constructed by the machine itself, but
+\emph{ADFSerializer} restructures the tree so that it can be written to an
+XML of the ADF format. The actual writing of the XML file is again done by
+\emph{XMLSerializer}.
+
+\subsubsection{ProDeOptionsSerializer}
+
+\emph{ProDeOptionsSerializer} is used to read and write
+ProDe~\cite{ProDeReq,ProDeDes} options from or to an XML file. It
+restructures the \emph{ObjectState} tree between the \emph{XMLSerializer}
+and the ProDe program.
+
+\section{Error Handling}
+
+All errors are signalled by exceptions.
+
+
+
+\chapter{Event Handler}
+\label{ch:event-handler}
+
+\section{Overview}
+
+Event Handler is an event handling system consisting of two main roles as
+illustrated in Figure~\ref{fig:event_handler_module}.  \emph{Informer} is a
+class that notifies \emph{Listener} instances when an event that an instance
+registered for takes place. Events are notified to \emph{Informer} by a
+client, and passes on the notification to interested \emph{Listener}
+objects.
+
+\begin{figure}[tb]
+\centerline{\psfig{figure=eps/EventHandler.eps,width=0.8\textwidth}}
+\caption{Event Handler module.}
+\label{fig:event_handler_module}
+\end{figure}
+
+\section{Classes}
+
+\subsection{Informer}
+
+Informer is a class which keeps a registry of events connected
+to listeners interested in them. Informing \emph{Informer} about new events
+and (un)registering \emph{Listeners} for events is done using following
+methods.
+
+\paragraph{handleEvent(event : int)}
+Looks up all \emph{Listeners} from the registry and calls
+\verb|handleEvent()| for each of them.
+
+\paragraph{registerListener(event: int, listener : Listener*)}
+Registers a \emph{Listener} instance to listen for \emph{event} type of
+events. Values of \emph{event} are from application specific enumeration
+types. After registration, the \emph{Listener} starts to receive event
+notifications when the specific \emph{event} occurs.
+
+\paragraph{unregisterListener(event : int, listener : Listener*)}
+Unregisters a \emph{Listener} instance from a specific \emph{event}. 
+After unregistration, the \emph{Listener} stops receiving event notifications
+for that specific event type.
+
+\subsection{Listener}
+
+The \emph{Listener} interface class provides the base interface implemented
+by all event handlers. With this interface the \emph{Listener} is informed
+that an event has taken place.  The listener checks whether it is its
+responsibility to handle such event and, if that is the case, takes
+appropriate action.
+
+With the event notification to \emph{Listener} objects no additional
+information about the event is sent. It is responsibility of the
+\emph{Listener}, by checking the registered objects (its event context), to
+determine further actions.
+
+\paragraph{handleEvent()}
+This method is called by \emph{Informer} when an event the \emph{Listener}
+is interested in happens. It's then up to the listener to take appropriate
+action. For example, some listeners may listen to clock cycle events and
+write tracing data to database.
+
+
+
+\chapter{Application Services}
+
+\section{Overview}
+
+Application services consists mainly of an \emph{Application} class, which
+provides project-wide basic application services. These services include
+assertion, debugging aid, running system (shell) commands, managing signal
+handlers, and so on.
+
+Application services include also a few macro definitions that are generally
+useful thoughout the toolset code.
+
+
+
+\chapter{Text Logger Server}
+
+This chapter describes the module that provides logging to output stream.
+
+\section{Overview}
+
+The architecture of the logging system of any application of the project is
+subdivided in two parts: the client side and the server side. While the
+client side is completely application specific and must be designed and
+implemented case-by-case, the server side is a service offered by the
+toolkit. The responsibility of the logging server is also called ''logging
+proper'', since it consists of sending data to an output stream.
+
+The main class that encapsulate the logging machinery is \emph{TextLogger}.
+This class provides few simple services:
+\begin{enumerate}
+\item %
+  Define an output stream where messages are stored (possibly: a void
+  stream, meaning that the log data is discarded).
+\item %
+  Provide simple text formatting capabilities, like indentation, automatic
+  line breaking and automatic message numbering.
+\end{enumerate}
+
+\section{Interfaces}
+
+\subsection{TextLogger}
+\label{ssec:TextLogger-if}
+
+Provides the basic interface for clients that need to log messages.
+
+\begin{description}
+\item[log(message : const string\&)]%
+  Log a message to the output stream. If necessary, open or create the
+  output stream. Internally, this method may format and augment the given
+  message.
+
+  Throw appropriate \emph{IOException} subclass when the message cannot be
+  written to the output stream.
+
+\item[setLineWidth(width : int)]%
+  Set a new maximum line width. The logger will try to break all text lines
+  of following messages to ensure they are not longer than \emph{width}. It
+  the shortest sequence of characters delimited by white space is longer
+  than \emph{width} characters, then the line will be broken at the end of
+  the sequence.
+
+  Throw \emph{OutOfRange} if the given width is smaller than 1.
+\end{description}
+
+\subsection{StreamTextLogger}
+
+Implements logging servers that write to output streams.
+
+\begin{description}
+\item[TextLogger(output : const string\&)]%
+  Constructor. Create a text logger and prepare to write to an output stream
+  with given name. The constructor does not fail if the output stream cannot
+  be opened or written to.
+
+\item[TextLogger(output : std::ostream\&)]%
+  Constructor. Create a text logger and prepare to write to given output
+  stream. The constructor does not fail if the output stream cannot be
+  opened or written to.
+
+\item[$\sim$TextLogger()]%
+  Destructor. Flush and close the output stream if open.
+
+\end{description}
+
+\section{Usage of the Logging Server}
+
+Clients of the logging system will usually access only the basic interface
+\emph{TextLogger}.
+
+The following example shows a controller that creates a server logger and
+sends to two separate clients (Scheduler pass modules, in this case) the
+request to record the logger server.
+\begin{verbatim}
+  StreamTextLogger server(logFileName);
+  clientA.setLogger(server);
+  clientB.setLogger(server);
+\end{verbatim}
+
+Inside the clients, loggers should not be used directly. Instead, the client
+should construct an object that implements the client-side of logging
+activity (in particular, formatting the string and testing for the verbosity
+level) and send all requests to this object (the logger client).
+
+In the following example, the module that implements the register allocation
+pass (client) constructs the logger client object automatically when the
+server logger is registered:
+
+\begin{verbatim}
+  setLogger(TextLogger& server) {
+      int logVerbosity = globalOptions_.verbosity();
+      if (logVerbosity == 0) {
+          // leave current empty logger client, logging disabled
+      } else {
+          delete clientLogger_;
+          clientLogger_ = new ConcreteClientLogger(server, this, logVerbosity);
+      }
+  }
+\end{verbatim}
+
+The concrete logger client class \emph{ConcreteClientLogger} provides
+methods to log context- and data-dependent messages. Inside these methods,
+the message to log is composed and the logging request is forwarded to the
+server:\footnote{
+%
+  Note that the example show just one possible implementation of the client
+  logger. Many alternatives (some significantly more efficient) are
+  possible.}
+
+\begin{verbatim}
+  logSpillRegister(Node& node, int cost) {
+      if (verbosity_ < SPILL_NODE_FOUND_VERBOSITY) {
+          return;
+      }
+      // "Spill candidate found: %1%. Spill cost heuristic: %2%.
+      boost::format message = gen.text(Text::RA_SPILL_NODE_FOUND);
+      message % node->destination() % cost;
+      server_.log(message, id());
+  }
+\end{verbatim}
+
+A run of this logging system could produce a line of log text like the
+following:
+\begin{verbatim}
+  Spill candidate found: r.567. Spill cost heuristic: 234.
+\end{verbatim}
+
+
+
+\chapter{REJECTED ALTERNATIVES}
+
+\begin{description}
+\item[22.04.2004] --- Complex plugin module registry.
+
+  The plugin module registry could be augmented with two features.  First,
+  the order of registration of the modules is the same order in which
+  modules are searched for symbols.  Second, it is not an error to search
+  several modules with the same name, all registered in the registry.  A
+  releated helper service for these features is the possibility to register
+  with a single call all modules with a given name that are found in any of
+  the paths in the search list.
+
+  This feature has been rejected due to the increased complexity and the
+  potential loss of generality.  It is relatively easy to implement above
+  described features on top of \emph{PluginTools}.
+
+\item[29.10.2005] --- Extra capabilities of logger server.
+  \begin{enumerate}
+  \item %
+    Support for multiple streams.
+  \item %
+    Automatic support for a minimalistic log files structure, with headers
+    defining sections and sub-sections.
+  \end{enumerate}
+  Multiple log streams can be generated in parallel by instantiate multiple
+  loggers. Log file structure can be created (with more effort, but more
+  flexibly) by clients themselves.
+\end{description}
+
+
+
+\chapter{IDEAS FOR FURTHER DEVELOPMENT}
+
+\begin{description}
+\item[19.05.2004] --- XMLSerializer: Using SAX instead of DOM with Xerces.
+
+  DOM is quite a heavy representation of an XML file. It might be possible
+  to use SAX instead of DOM with Xerces to read and write XML files.
+%
+  -- L.~Laasonen
+
+\item[20.10.2005] --- TextGenerator: Support for multiple streams.
+
+  Instead of mapping all log requests to the same output stream, the logger
+  server could also provide support for multiple streams. Each client would
+  be linked to a single stream. Several clients can share the same stream.
+%
+  -- A.~Cilio
+
+\item[23.01.2006] --- Version number of the main libraries of the toolset.
+
+  In addition to the application-specific version number, the version option
+  of the options framework could display also the version number of the
+  toolset base infrastructure (the domain and the toolkit library versions).
+%
+  -- A.~Cilio
+\end{description}
+
+
+
+% \chapter{PENDING ISSUES}
+
+% Pending issues concerning this design, a sort of TODO list.
+% This chapter should be empty when implementation of this module/subsystem
+% is completed.
+
+
+% ------------------------------------------------------------------------
+
+
+%  References are generated with BibTeX from a bibtex file.
+\bibliographystyle{alpha}
+\cleardoublepage
+%% Equivalent to a chapter in the table of contents
+\addcontentsline{toc}{chapter}{BIBLIOGRAPHY}
+\bibliography{Bibliography}
+
+
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 

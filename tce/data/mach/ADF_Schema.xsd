@@ -1,0 +1,483 @@
+<?xml version="1.0"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:annotation>
+    <xs:documentation xml:lang="en">
+
+        Architecture Definition File Schema for the TCE
+        (TTA Codesign Environment) project at Tampere University of Technology.
+
+    </xs:documentation>
+</xs:annotation>
+
+
+<!-- ===== GENERAL TYPES ================================================== -->
+
+<xs:complexType name="empty-type">
+    <!-- empty content -->
+</xs:complexType>
+
+<xs:simpleType name="attribute-type">
+    <xs:restriction base="xs:string">
+        <xs:pattern value="[a-zA-Z]([0-9a-zA-Z_:])*"/>
+    </xs:restriction>
+</xs:simpleType>
+
+
+<!-- ===== BUS ============================================================ -->
+
+<xs:complexType name="bool-type">
+    <xs:all>
+        <xs:element name="name" type="xs:string"/>
+        <xs:element name="index" type="xs:nonNegativeInteger"/>
+    </xs:all>
+</xs:complexType>
+
+<xs:complexType name="unit-type">
+    <xs:all>
+        <xs:element name="name" type="xs:string"/>
+        <xs:element name="port" type="xs:string"/>
+    </xs:all>
+</xs:complexType>
+
+<xs:complexType name="simple-inverted-expr-type">
+    <xs:choice>
+        <xs:element name="bool" type="bool-type"/>
+        <xs:element name="unit" type="unit-type"/>
+    </xs:choice>
+</xs:complexType>
+
+<xs:group name="simple-inverted-expr-group">
+    <xs:choice>
+        <xs:element name="simple-expr" type="simple-inverted-expr-type"/>
+        <xs:element name="inverted-expr" type="simple-inverted-expr-type"/>
+    </xs:choice>
+</xs:group>
+
+<xs:complexType name="and-or-expr-type">
+    <xs:sequence>
+        <xs:group ref="simple-inverted-expr-group"
+                  minOccurs="2" maxOccurs="2"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="guard-type">
+    <xs:choice>
+        <xs:element name="simple-expr" type="simple-inverted-expr-type"/>
+        <xs:element name="inverted-expr" type="simple-inverted-expr-type"/>
+        <xs:element name="and-expr" type="and-or-expr-type"/>
+        <xs:element name="or-expr" type="and-or-expr-type"/>
+        <xs:element name="always-true" type="empty-type"/>
+        <xs:element name="always-false" type="empty-type"/>
+    </xs:choice>
+</xs:complexType>
+
+<xs:complexType name="segment-type">
+    <xs:all>
+        <xs:element name="writes-to" nillable="true"/>
+    </xs:all>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+<xs:simpleType name="extension-type">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="sign"/>
+        <xs:enumeration value="zero"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:complexType name="short-immediate-type">
+    <xs:all>
+        <xs:element name="extension" type="extension-type"/>
+        <xs:element name="width" type="xs:nonNegativeInteger"/>
+    </xs:all>
+</xs:complexType>
+
+<xs:complexType name="bus-type">
+    <xs:sequence>
+        <xs:element name="width" type="xs:positiveInteger"/>
+        <xs:element name="guard" type="guard-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="segment" type="segment-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="short-immediate" type="short-immediate-type"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+
+<!-- ===== SOCKET ========================================================= -->
+
+<xs:complexType name="reads-writes-type">
+    <xs:sequence>
+        <xs:element name="bus"/>
+        <xs:element name="segment"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:group name="reads-from-group">
+    <xs:sequence>
+        <xs:element name="reads-from" type="reads-writes-type"
+                    maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+</xs:group>
+
+<xs:group name="writes-to-group">
+    <xs:sequence>
+        <xs:element name="writes-to" type="reads-writes-type"
+                    maxOccurs="unbounded" minOccurs="0"/>
+    </xs:sequence>
+</xs:group>
+
+<xs:complexType name="socket-type">
+    <xs:choice>
+        <xs:group ref="reads-from-group"/>
+        <xs:group ref="writes-to-group"/>
+    </xs:choice>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+
+<!-- ===== BRIDGE ========================================================= -->
+
+<xs:complexType name="bridge-type">
+    <xs:sequence>
+        <xs:element name="reads-from" type="xs:string"/>
+        <xs:element name="writes-to" type="xs:string"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>        
+
+
+<!-- ===== FUNCTION UNIT ================================================== -->
+
+<xs:complexType name="function-unit-port-type">
+    <xs:sequence>
+        <xs:element name="connects-to" type="xs:string"
+                    minOccurs="0" maxOccurs="2"/>
+        <xs:element name="width" type="xs:positiveInteger"/>
+        <xs:element name="triggers" type="empty-type" minOccurs="0"/>
+        <xs:element name="sets-opcode" type="empty-type" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+<xs:simpleType name="operation-name-type">
+    <xs:restriction base="xs:string">
+        <xs:pattern value="[a-z_]([0-9a-z_])*"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:complexType name="bind-type">
+    <xs:simpleContent>
+        <xs:extension base="xs:string">
+            <xs:attribute name="name" type="xs:integer" use="required"/>
+        </xs:extension>
+    </xs:simpleContent>
+</xs:complexType>
+
+<xs:complexType name="resource-type">
+    <xs:sequence>
+        <xs:element name="start-cycle" type="xs:nonNegativeInteger"/>
+        <xs:element name="cycles" type="xs:positiveInteger"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="pipeline-type">
+    <xs:sequence>
+        <xs:element name="resource" type="resource-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="reads" type="resource-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="writes" type="resource-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="function-unit-operation-type">
+    <xs:sequence>
+        <xs:element name="name" type="operation-name-type"/>
+        <xs:element name="bind" type="bind-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="pipeline" type="pipeline-type" nillable="true"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="funtion-unit-type">
+    <xs:sequence>
+        <xs:element name="port" type="function-unit-port-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="operation" type="function-unit-operation-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="address-space" type="xs:string"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+
+<!-- ===== REGISTER FILE ================================================== -->
+
+<xs:simpleType name="type-type">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="normal"/>
+        <xs:enumeration value="volatile"/>
+        <xs:enumeration value="reserved"/>
+    </xs:restriction>
+</xs:simpleType>
+
+<xs:complexType name="register-file-port-type">
+    <xs:sequence>
+        <xs:element name="connects-to" type="xs:string"
+                    minOccurs="0" maxOccurs="2"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="register-file-type">
+    <xs:sequence>
+        <xs:element name="type" type="type-type"/>
+        <xs:element name="size" type="xs:positiveInteger"/>
+        <xs:element name="width" type="xs:positiveInteger"/>
+        <xs:element name="max-reads" type="xs:nonNegativeInteger"/>
+        <xs:element name="max-writes" type="xs:nonNegativeInteger"/>
+        <xs:element name="guard-latency" type="xs:positiveInteger"
+                    minOccurs="0"/>     
+        <xs:element name="port" type="register-file-port-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+
+<!-- ===== ADDRESS SPACE ================================================== -->
+
+<xs:complexType name="address-space-type">
+    <xs:all>
+        <xs:element name="width" type="xs:positiveInteger"/>
+        <xs:element name="min-address" type="xs:nonNegativeInteger"/>
+        <xs:element name="max-address" type="xs:positiveInteger"/>
+    </xs:all>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+
+<!-- ===== GLOBAL CONTROL UNIT ============================================ -->
+
+<xs:complexType name="special-port-type">
+    <xs:sequence>
+        <xs:element name="connects-to" type="xs:string"
+                    minOccurs="0" maxOccurs="2"/>
+        <xs:element name="width" type="xs:positiveInteger"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="global-control-unit-type">
+    <xs:sequence>
+        <xs:element name="port" type="function-unit-port-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="special-port" type="special-port-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="return-address" type="xs:string" nillable="true"/>
+        <xs:element name="ctrl-operation" type="function-unit-operation-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="address-space" type="xs:string" nillable="true"/>
+        <xs:element name="delay-slots" type="xs:nonNegativeInteger"/>
+        <xs:element name="guard-latency" type="xs:nonNegativeInteger"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+
+<!-- ===== IMMEDIATE UNIT ================================================= -->
+
+<xs:complexType name="immediate-unit-port-type">
+    <xs:sequence>
+        <xs:element name="connects-to" type="xs:string"
+                    minOccurs="0" maxOccurs="2"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="slot-type">
+    <xs:sequence>
+        <xs:element name="name" type="xs:string"/>
+        <xs:element name="width" type="xs:positiveInteger"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="template-type">
+    <xs:sequence>
+        <xs:element name="slot" type="slot-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="immediate-unit-type">
+    <xs:sequence>
+        <xs:element name="type" type="type-type"/>
+        <xs:element name="size" type="xs:positiveInteger"/>
+        <xs:element name="width" type="xs:positiveInteger"/>
+        <xs:element name="max-reads" type="xs:nonNegativeInteger"/>
+        <xs:element name="max-writes" type="xs:nonNegativeInteger"/>
+        <xs:element name="guard-latency" type="xs:positiveInteger"
+                    minOccurs="0"/>     
+        <xs:element name="extension" type="extension-type"/>
+        <xs:element name="port" type="immediate-unit-port-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="template" type="template-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="attribute-type" use="required"/>    
+</xs:complexType>
+
+<!-- ===== IMMEDIATE SLOT ================================================= -->
+
+<xs:complexType name="immediate-slot-type">
+    <xs:attribute name="name" type="attribute-type" use="required"/>
+</xs:complexType>
+
+<!-- ===== MDF ============================================================ -->
+
+<xs:element name="adf">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="bus" type="bus-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="socket" type="socket-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="bridge" type="bridge-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="function-unit" type="funtion-unit-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="register-file" type="register-file-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="address-space" type="address-space-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="global-control-unit"
+                        type="global-control-unit-type"
+                        minOccurs="0"/>
+            <xs:element name="immediate-unit" type="immediate-unit-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+            <xs:element name="immediate-slot" type="immediate-slot-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="version" type="xs:decimal" use="required"/>
+        <xs:attribute name="required-version" type="xs:decimal"/>
+    </xs:complexType>
+
+
+    <!-- === UNIQUE DECLARATIONS === -->
+    <xs:unique name="bus-name-unique">
+        <xs:selector xpath="bus | immediate-slot"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="socket-name-unique">
+        <xs:selector xpath="socket"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="bridge-name-unique">
+        <xs:selector xpath="bridge"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="function-unit-name-unique">
+        <xs:selector xpath="function-unit | control-unit"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="register-file-name-unique">
+        <xs:selector xpath="register-file"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="address-space-name-unique">
+        <xs:selector xpath="address-space"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="immediate-unit-name-unique">
+        <xs:selector xpath="immediate-unit"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+
+    <!-- === KEY DECLARATIONS === -->
+    <xs:key name="bus-name-key">
+        <xs:selector xpath="bus"/>
+        <xs:field    xpath="@name"/>
+    </xs:key>
+    <xs:key name="slot-name-key">
+        <xs:selector xpath="bus | immediate-slot"/>
+        <xs:field    xpath="@name"/>
+    </xs:key>
+    <xs:key name="socket-name-key">
+        <xs:selector xpath="socket"/>
+        <xs:field    xpath="@name"/>
+    </xs:key>
+    <xs:key name="function-unit-name-key">
+        <xs:selector xpath="function-unit"/>
+        <xs:field    xpath="@name"/>
+    </xs:key>
+    <xs:key name="register-file-name-key">
+        <xs:selector xpath="register-file"/>
+        <xs:field    xpath="@name"/>
+    </xs:key>
+    <xs:key name="address-space-name-key">
+        <xs:selector xpath="address-space"/>
+        <xs:field    xpath="@name"/>
+    </xs:key>
+
+
+    <!-- === KEYREF DECLARATIONS === -->
+    <xs:keyref name="register-file-name-keyref-1"
+               refer="register-file-name-key">
+        <xs:selector xpath="bus/guard/*/bool"/>
+        <xs:field    xpath="name"/>
+    </xs:keyref>
+    <xs:keyref name="register-file-name-keyref-2"
+               refer="register-file-name-key">
+        <xs:selector xpath="bus/guard/*/*/bool"/>
+        <xs:field    xpath="name"/>
+    </xs:keyref>
+
+    <xs:keyref name="function-unit-name-keyref-1"
+               refer="function-unit-name-key">
+        <xs:selector xpath="bus/guard/*/unit"/>
+        <xs:field    xpath="name"/>
+    </xs:keyref>
+    <xs:keyref name="function-unit-name-keyref-2"
+               refer="function-unit-name-key">
+        <xs:selector xpath="bus/guard/*/*/unit"/>
+        <xs:field    xpath="name"/>
+    </xs:keyref>
+
+    <xs:keyref name="bus-name-keyref-1"
+               refer="bus-name-key">
+        <xs:selector xpath="socket/*"/>
+        <xs:field    xpath="bus"/>
+    </xs:keyref>
+    <xs:keyref name="bus-name-keyref-2"
+               refer="bus-name-key">
+        <xs:selector xpath="bridge"/>
+        <xs:field    xpath="reads-from"/>
+    </xs:keyref>
+    <xs:keyref name="bus-name-keyref-3"
+               refer="bus-name-key">
+        <xs:selector xpath="bridge"/>
+        <xs:field    xpath="writes-to"/>
+    </xs:keyref>
+
+    <xs:keyref name="slot-name-keyref-1"
+               refer="slot-name-key">
+        <xs:selector xpath="immediate-unit/template/slot"/>
+        <xs:field    xpath="name"/>
+    </xs:keyref>
+
+    <xs:keyref name="socket-name-keyref-1"
+               refer="socket-name-key">
+        <xs:selector xpath="immediate-unit/port"/>
+        <xs:field    xpath="connects-to"/>
+    </xs:keyref>
+
+</xs:element>
+
+</xs:schema>

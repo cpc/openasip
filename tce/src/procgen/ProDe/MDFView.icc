@@ -1,0 +1,42 @@
+/**
+ * @file MDFView.icc
+ *
+ * Inline implementation of MDFView class.
+ *
+ * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Returns pointer to the canvas of the view.
+ *
+ * @return Canvas of the view.
+ */
+/*
+inline Canvas*
+MDFView::canvas() const {
+    return canvas_;
+}
+
+*/
+/**
+ * Return RootEditPart of the view.
+ *
+ * @return Root edit part of the view.
+ */
+/*
+inline RootEditPart*
+MDFView::root() const {
+    return root_;
+}
+*/
+
+/**
+ * Marks the view as dirty, forcing relayout when it's drawn again.
+ */
+/*
+inline void
+MDFView::setDirty() {
+    dirty_ = true;
+}
+*/

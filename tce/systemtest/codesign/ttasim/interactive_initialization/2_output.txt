@@ -1,0 +1,4 @@
+File data/foo.adf not found.
+Illegal machine file.Illegal file: data/brokenadf.pcf
+No ADF defined in the processor configuration file.
+

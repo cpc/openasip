@@ -1,0 +1,50 @@
+<adf version="1.5">
+
+<bus name="B1">
+    <width>32</width>
+    <segment name="seg1">
+        <writes-to>seg2</writes-to>
+    </segment>
+    <segment name="seg2">
+        <writes-to>seg3</writes-to>
+    </segment>
+    <segment name="seg3">
+        <writes-to></writes-to>
+    </segment>
+    <short-immediate>
+        <extension>sign</extension>
+        <width>8</width>
+    </short-immediate>
+</bus>
+
+<immediate-unit name="iu1">
+    <type>normal</type>
+    <size>16</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <extension>sign</extension>
+    <template name="temp1">
+        <slot>
+            <name>B1</name>
+            <width>16</width>
+        </slot>
+    </template>
+</immediate-unit>
+
+<immediate-unit name="iu2">
+    <type>normal</type>
+    <size>16</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <extension>sign</extension>
+    <template name="temp1">
+        <slot>
+            <name>B1</name>
+            <width>16</width>
+        </slot>
+    </template>
+</immediate-unit>
+
+</adf>

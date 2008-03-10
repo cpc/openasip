@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>STDOUT</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>PRINT_INT_AS_HEX</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <in id="1" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>OUTPUTDATA</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <in id="1" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>PRINT_INT</name>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <in id="1" type="SIntWord"/>
+  </operation>
+
+</osal>

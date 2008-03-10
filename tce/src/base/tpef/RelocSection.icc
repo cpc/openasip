@@ -1,0 +1,74 @@
+/**
+ * @file RelocSection.icc
+ *
+ * Inline definitions of RelocSection class.
+ *
+ * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ * @note reviewed 22 October 2003 by ml, jn, ao, tr
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Returns referenced section whose relocated values this section concerns.
+ *
+ * All location elements of relocation elements of this sections are found
+ * from the referenced section.
+ *
+ * @return The referenced section.
+ */
+inline Section*
+RelocSection::referencedSection() const {
+
+    Section* refSec = 
+        dynamic_cast<Section*>(refSection_->pointer());
+    
+    if (refSec->type() == ST_DATA || refSec->type() == ST_CODE) {
+        return refSec;
+    }
+    
+    throw WrongSubclass(
+        __FILE__, __LINE__, __func__,
+        "Referenced section of RelocSection "
+        "have to be either DATA or CODE.");
+    
+}
+
+/**
+ * Sets referenced section.
+ *
+ * See referencedSection() method.
+ *
+ * @param section The section from which relocations are done.
+ */
+inline void
+RelocSection::setReferencedSection(Section* section) {
+    if (section->type() == ST_DATA || section->type() == ST_CODE) {        
+        refSection_ =
+            ReferenceManager::SafePointer::replaceReference(
+                refSection_, section);
+    } else {
+        throw WrongSubclass(
+            __FILE__, __LINE__, __func__,
+            "Referenced section of RelocSection "
+            "have to be either DATA or CODE.");
+    }
+}
+
+/**
+ * Sets referenced section.
+ *
+ * See referencedSection() method.
+ *
+ * @param section The section from which relocations are done.
+ */
+inline void
+RelocSection::setReferencedSection(
+    const ReferenceManager::SafePointer* section) {
+    refSection_ = section;
+}
+
+}

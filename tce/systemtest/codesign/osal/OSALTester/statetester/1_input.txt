@@ -1,0 +1,7 @@
+accadd 2
+accadd 2
+!reset mul2
+accadd 2
+!reset accadd
+accadd 2
+!quit

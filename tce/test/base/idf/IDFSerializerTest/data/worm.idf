@@ -1,0 +1,39 @@
+<adf-implementation>
+  <ic-decoder-plugin>
+    <name>exampleIcDecoderPlugin</name>
+    <file>exampleIcDecoderPlugin.so</file>
+    <hdb-file>icdecoderdata.hdb</hdb-file>
+    <parameter name="param1">
+      <value>Testi 1</value>      
+    </parameter>
+    <parameter name="param2">
+      <value>123</value>      
+    </parameter>
+  </ic-decoder-plugin>
+
+  <decompressor-file>decompressor.vhdl</decompressor-file>
+
+  <fu name="LSU">
+    <hdb-file>data/test.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="ADD">
+    <hdb-file>data/test.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>data/test.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+  <bus name="BUS1">
+    <hdb-file>data/test.hdb</hdb-file>
+    <bus-id>1</bus-id>
+  </bus>
+
+  <socket name="SOCKET1">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>1</socket-id>
+  </socket>
+</adf-implementation>

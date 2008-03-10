@@ -1,0 +1,3 @@
+prog data/hello
+x /n 1000 /u b 0
+quit

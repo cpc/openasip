@@ -1,0 +1,52 @@
+
+# NOTE: with older gcc's (as in MOVE), any -O >=2 will produce faulty code
+#       UNLESS accompanied by -fno-strength-reduce and/or -funroll-loops.
+#       (Or don't "inline" MULT32 in misc.h)
+CFLAGS += -Wall -O9 -funroll-loops -g -I. -fsigned-char -DLONGLONGEMUL \
+	-DUSE_TCE_MALLOC -DMEMORY_IO \
+ -DDUMP_MEMORY_BUFFER_TO_STDOUT \
+#	 -pg
+
+#LDFLAGS = -pg
+
+#LF     = -mno-multiply -mno-divide -mno-sign-extend -mno-ldst-byte \
+#         -mno-floating-point -mno-insert-extract -mint32bits -Wall
+
+#LF     = -mno-multiply -mno-divide -mno-sign-extend -mno-ldst-byte \
+#                             -mno-insert-extract -mint32bits -Wall
+
+#CC = /home/costar/src/move.CS2/bin/gcc-move ${LF}
+
+
+SRC =	bitwise.c block.c codebook.c floor0.c floor1.c framing.c info.c \
+	ivorbisfile_example.c mapping0.c mdct.c registry.c res012.c \
+	sharedbook.c synthesis.c vorbisfile.c window.c \
+    TCE/tcemalloc.c 
+
+.PHONY: makesymlink example clean
+
+all: makesymlink tremor_40kB tremor_full
+
+example: all
+
+makesymlink:
+	rm -f vorbis
+	ln -dfs . vorbis
+
+tremor_40kB: $(SRC:.c=.o) initial_data_40kB.o 
+	$(CC) $(CFLAGS) $(SRC:.c=.o) initial_data_40kB.o -o  tremor_40kB
+
+tremor_full: $(SRC:.c=.o) initial_data_full.o 
+	$(CC) $(CFLAGS) $(SRC:.c=.o) initial_data_full.o -o  tremor_full
+
+initial_data_full.c: tests-pekka/The_Clash_-_The_Guns_of_Brixton.ogg \
+tests-pekka/generate
+	tests-pekka/generate 33502976 <tests-pekka/The_Clash_-_The_Guns_of_Brixton.ogg >initial_data_full.c
+
+initial_data_40kB.c: tests-heikki/40kB.ogg TCE/Makefile tests-pekka/generate
+	tests-pekka/generate 460032 <tests-heikki/40kB.ogg >initial_data_40kB.c
+
+clean:
+	rm -f $(SRC:.c=.o) tremor_full tremor_40kB \
+initial_data_40kB.* initial_data_full.* \
+

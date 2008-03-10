@@ -1,0 +1,164 @@
+/**
+ * @file CostEstimationData.icc
+ *
+ * Inline implementation of CostEstimationData class.
+ *
+ * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Sets the cost estimation data name.
+ *
+ * @param name Name of the data.
+ */
+inline void
+CostEstimationData::setName(const std::string& name) {
+    name_ = name;
+    hasName_ = true;
+}
+
+/**
+ * Returns true if the name attribute is set.
+ *
+ * @return True, if the name attribute is set.
+ */
+inline bool
+CostEstimationData::hasName() const {
+    return hasName_;
+}
+    
+
+/**
+ * Sets the cost estimation data value.
+ *
+ * @param name Value of the data.
+ */
+inline void
+CostEstimationData::setValue(const DataObject& value) {
+    value_ = value;
+    hasValue_ = true;
+}
+
+
+/**
+ * Returns true if the value attribute is set.
+ *
+ * @return True, if the value attribute is set.
+ */
+inline bool
+CostEstimationData::hasValue() const {
+    return hasValue_;
+}
+
+
+/**
+ * Sets the FU reference
+ *
+ * @param fuEntryID ID of the FU entry.
+ */
+inline void
+CostEstimationData::setFUReference(RowID fuEntryID) {
+    fuReference_ = fuEntryID;
+    hasFUReference_ = true;
+}
+
+
+/**
+ * Returns true if the data references an FU Entry.
+ *
+ * @return True, if the data references an FU entry.
+ */
+inline bool
+CostEstimationData::hasFUReference() const {
+    return hasFUReference_;
+}
+
+
+/**
+ * Sets the RF reference
+ *
+ * @param rfEntryID ID of the RF entry.
+ */
+inline void
+CostEstimationData::setRFReference(RowID rfEntryID) {
+    rfReference_ = rfEntryID;
+    hasRFReference_ = true;
+}
+
+
+/**
+ * Returns true if the data references an RF Entry.
+ *
+ * @return True, if the data references an RF entry.
+ */
+inline bool
+CostEstimationData::hasRFReference() const {
+    return hasRFReference_;
+}
+
+/**
+ * Sets the socket reference
+ *
+ * @param socketEntryID ID of the socket entry.
+ */
+inline void
+CostEstimationData::setSocketReference(RowID socketEntryID) {
+    socketReference_ = socketEntryID;
+    hasSocketReference_ = true;
+}
+
+
+/**
+ * Returns true if the data references an socket Entry.
+ *
+ * @return True, if the data references an socketentry.
+ */
+inline bool
+CostEstimationData::hasSocketReference() const {
+    return hasSocketReference_;
+}
+
+/**
+ * Sets the bus reference
+ *
+ * @param busEntryID ID of the bus entry.
+ */
+inline void
+CostEstimationData::setBusReference(RowID busEntryID) {
+    busReference_ = busEntryID;
+    hasBusReference_ = true;
+}
+
+
+/**
+ * Returns true if the data references an bus Entry.
+ *
+ * @return True, if the data references an busentry.
+ */
+inline bool
+CostEstimationData::hasBusReference() const {
+    return hasBusReference_;
+}
+
+/**
+ * Sets the data plugin.
+ *
+ * @param pluginID ID of the cost function plugin.
+ */
+inline void
+CostEstimationData::setPluginID(RowID pluginID) {
+    pluginID_ = pluginID;
+    hasPluginID_ = true;
+}
+
+
+/**
+ * Returns true if the data has a plugin ID set.
+ *
+ * @return True, if the data has a plugin ID set.
+ */
+inline bool
+CostEstimationData::hasPluginID() const {
+    return hasPluginID_;
+}

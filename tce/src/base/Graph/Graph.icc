@@ -1,0 +1,64 @@
+/**
+ * @file Graph.icc
+ *
+ * Inline and template implementations of GraphBase.
+ *
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @note rating: red
+ */
+
+#include <fstream>
+#include <sstream>
+
+/**
+ * Returns the graph as a string formatted in GraphViz Dot format.
+ *
+ * The default implementation returns a plain string by traversing through
+ * all the nodes and edges and querying calling their dotString().
+ *
+ * @return Graph represented as a Dot string.
+ */
+template<typename GraphNode, typename GraphEdge>
+std::string
+GraphBase<GraphNode, GraphEdge>::dotString() const {
+
+    std::ostringstream s;
+    s << "digraph G {" << std::endl;
+
+    // first print all the nodes and their properties
+    for (int i = 0; i < nodeCount(); ++i) {
+        Node& n = node(i);
+        s << "\tn" << n.nodeID()
+          << " [" << n.dotString() << "]; " 
+          << std::endl;
+    }
+
+    // edges
+    for (int i = 0; i < edgeCount(); ++i) {
+        Edge& e = edge(i);
+        Node& tail = tailNode(e);
+        Node& head = headNode(e);
+
+        s << "\tn" << tail.nodeID() << " -> n" 
+          << head.nodeID() << "[" 
+          << e.dotString() << "];" << std::endl;
+    }
+    s << "}" << std::endl;   
+    return s.str();    
+}
+
+/**
+ * Prints the graph as a string formatted in GraphViz Dot format to a text file.
+ *
+ * @param fileName The filename to print the graph to.
+ */
+template<typename GraphNode, typename GraphEdge>
+void
+GraphBase<GraphNode, GraphEdge>::writeToDotFile(
+    const std::string& fileName) const {
+
+    std::ofstream output(fileName.c_str());
+    output << dotString();
+    output.close();
+}
+

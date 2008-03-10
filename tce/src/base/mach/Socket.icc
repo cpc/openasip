@@ -1,0 +1,44 @@
+/**
+ * @file Socket.icc
+ *
+ * Inline implementation of Socket class.
+ *
+ * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @note rating: red
+ * @note reviewed 22 Jun 2004 by ao, ml, vpj, ll
+ */
+
+namespace TTAMachine {
+
+/**
+ * Returns the direction of the socket.
+ *
+ * @return Direction of the socket.
+ */
+inline Socket::Direction
+Socket::direction() const {
+    return direction_;
+}
+
+
+/**
+ * Returns the number of ports attached to the socket.
+ *
+ * @return The number of ports attached to the socket.
+ */
+inline int
+Socket::portCount() const {
+    return ports_.size();
+}
+
+
+/**
+ * Returns the number of segments to which the socket is connected.
+ *
+ * @return The number of segments to which the socket is connected.
+ */
+inline int
+Socket::segmentCount() const {
+    return busses_.size();
+}
+}

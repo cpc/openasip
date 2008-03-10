@@ -1,0 +1,59 @@
+prog data/hello
+bp 1
+info breakpoints
+tbp 2
+info breakpoints
+run
+info breakpoints
+puts "mark 1"
+info breakpoints 1
+disablebp 1
+puts "mark 2"
+info breakpoints
+enablebp 1
+puts "mark 3"
+info breakpoints
+deletebp 1
+info breakpoints
+puts "mark 4"
+resume
+info breakpoints
+info program
+puts "mark 5"
+bp 4 if
+[info proc cycles] > 1
+bp 5
+condition 4
+[info proc cycles] < 1
+puts "mark 7: conditions set"
+bp 6
+resume
+info program
+info breakpoints
+puts "executing 'kill'"
+kill
+n
+kill
+y
+info breakpoints
+run
+info program
+deletebp
+n
+info breakpoints
+deletebp
+y
+info breakpoints
+puts "testing the ignore count feature"
+bp 20
+ignore 6 3
+resume
+info breakpoints
+resume
+info breakpoints
+resume
+deletebp 6
+resume
+info program
+bp wernwewerw_
+quit

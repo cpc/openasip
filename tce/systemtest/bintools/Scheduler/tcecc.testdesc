@@ -1,0 +1,10 @@
+<?php
+// short test description
+$test_description="Compiling short test cases with tcecc";
+$test_bin = "./tcecc.sh";
+$bin_args = "-vrx ".
+    "-a ti64x_subset.adf ".
+    "-a huge.adf ".    
+    "-a RF_constrained.adf ".    
+    "-a FU_constrained.adf ";
+?>

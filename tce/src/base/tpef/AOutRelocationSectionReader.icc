@@ -1,0 +1,30 @@
+/**
+ * @file AOutRelocationSectionReader.icc
+ *
+ * Inline functions implementation of AOutRelocationSectionReader.
+ *
+ * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
+ * @author Mikael Lepistö 18.12.2003 (tmlepist@cs.tut.fi)
+ * @note reviewed 7 October 2003 by jn, ml, tr, ll
+ *
+ * @note rating: yellow
+ */
+
+#include "Conversion.hh"
+#include "SymbolElement.hh"
+#include "AOutSymbolSectionReader.hh"
+
+namespace TPEF {
+
+/**
+ * Checks if the 8th least significant bit is 1 (extern bit).
+ *
+ * @param word The word that contains extern bit.
+ * @return True if extern bit is set, otherwise false.
+ */
+inline bool
+AOutRelocationSectionReader::checkIfExtern(Word word) const {
+    return ((word&0x00000080) != 0);
+}
+
+}

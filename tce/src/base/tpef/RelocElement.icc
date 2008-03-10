@@ -1,0 +1,230 @@
+/**
+ * @file RelocElement.icc
+ *
+ * Inline definitions of RelocElement class.
+ *
+ * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ * @note reviewed 22 October 2003 by ml, jn, ao, tr
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Returns the type of relocation.
+ *
+ * @return The type of relocation.
+ */
+inline RelocElement::RelocType
+RelocElement::type() const {
+    return type_;
+}
+
+/**
+ * Sets the type of relocation.
+ *
+ * @param aType The type of relocation.
+ */
+inline void
+RelocElement::setType(RelocType aType) {
+    type_ = aType;
+}
+
+/**
+ * Returns the element where is the location to be relocated.
+ *
+ * @return The element where is the location to be relocated.
+ */
+inline SectionElement*
+RelocElement::location() const {
+    return dynamic_cast<SectionElement*>(location_->pointer());
+}
+
+/**
+ * Sets the element where is the location to be relocated.
+ *
+ * @param aLocation The element where is the location to be relocated.
+ */
+inline void
+RelocElement::setLocation(SectionElement* aLocation) {
+    location_ =
+        ReferenceManager::SafePointer::replaceReference(location_, aLocation);
+}
+
+/**
+ * Sets the element where is the location to be relocated.
+ *
+ * @param aLocation The element where is the location to be relocated.
+ */
+inline void
+RelocElement::setLocation(
+    const ReferenceManager::SafePointer* aLocation) {
+    location_ = aLocation;
+}
+
+/**
+ * Returns the element where is the destination of the location to relocate.
+ *
+ * @return The element where is the destination of the location to relocate.
+ */
+inline SectionElement*
+RelocElement::destination() const {
+    return dynamic_cast<SectionElement*>(destination_->pointer());
+}
+
+/**
+ * Sets the element where is the destination of the location to relocate.
+ *
+ * @param aDestination  The destination of the location to relocate.
+ */
+inline void
+RelocElement::setDestination(SectionElement* aDestination) {
+    destination_ = ReferenceManager::SafePointer::replaceReference(
+        destination_, aDestination);
+}
+
+/**
+ * Sets the element where is the destination of the location to relocate.
+ *
+ * @param aDestination  The destination of the location to relocate.
+ */
+inline void
+RelocElement::setDestination(
+    const ReferenceManager::SafePointer* aDestination) {
+    destination_ = aDestination;
+}
+
+/**
+ * Returns the bit width of value to be relocated.
+ *
+ * @return The bit width of value to be relocated.
+ */
+inline Byte
+RelocElement::size() const {
+    return size_;
+}
+
+/**
+ * Sets the bit width of value to be relocated.
+ *
+ * @param aSize The bit width of value to be relocated.
+ */
+inline void
+RelocElement::setSize(Byte aSize) {
+    size_ = aSize;
+}
+
+/**
+ * Returns the bit offset where bits of this chunk are in the whole value.
+ *
+ * This property applies only for chunked relocations. If destination
+ * address is stored in many immediate elements (chunked address), 
+ * this offset tells which part of the destination address are stored 
+ * in the location() immediate of this relocation  element.
+ *
+ * @return The bit offset where bits of this chunk are in the whole value.
+ */
+inline Byte
+RelocElement::bitOffset() const {
+    return bitOffset_;
+}
+
+/**
+ * Sets the bit offset where bits of this chunk should be in whole value.
+ *
+ * See bitOffset() method.
+ *
+ * @param anOffset Where bits of this chunk should be in whole value.
+ */
+inline void
+RelocElement::setBitOffset(Byte anOffset) {
+    bitOffset_ = anOffset;
+}
+
+/**
+ * Returns The symbol of relocation.
+ *
+ * @return The symbol of relocation.
+ */
+inline SymbolElement*
+RelocElement::symbol() const {
+    return dynamic_cast<SymbolElement*>(symbol_->pointer());
+}
+
+/**
+ * Sets the symbol of relocation.
+ *
+ * @param aSymbol The symbol of relocation.
+ */
+inline void
+RelocElement::setSymbol(SymbolElement* aSymbol) {
+    symbol_ = 
+        ReferenceManager::SafePointer::replaceReference(symbol_, aSymbol);
+}
+
+/**
+ * Sets the symbol of relocation.
+ *
+ * @param aSymbol The symbol of relocation.
+ */
+inline void
+RelocElement::setSymbol(const ReferenceManager::SafePointer* aSymbol) {
+    symbol_ = aSymbol;
+}
+
+/**
+ * Returns the address space of destination element.
+ *
+ * @return The address space of destination element.
+ */
+inline ASpaceElement*
+RelocElement::aSpace() const {
+    return dynamic_cast<ASpaceElement*>(aSpace_->pointer());
+}
+
+/**
+ * Sets the address space of destination element.
+ *
+ * @param anASpace The address space of relocated element.
+ */
+inline void
+RelocElement::setASpace(ASpaceElement* anASpace) {
+    aSpace_ = 
+        ReferenceManager::SafePointer::replaceReference(aSpace_, anASpace);
+}
+
+/**
+ * Sets the address space of destination element.
+ *
+ * @param anASpace The address space of destination element.
+ */
+inline void
+RelocElement::setASpace(const ReferenceManager::SafePointer* anASpace) {
+    aSpace_ = anASpace;
+}
+
+/**
+ * Returns true if relocation applies to chunked address.
+ *
+ * This property is probably never needed...
+ *
+ * @return True if relocation applies to chunked address.
+ */
+inline bool
+RelocElement::chunked() const {
+    return chunked_;
+}
+
+/**
+ * Sets wether the relocation applies to chunked or complete address.
+ *
+ * @param isChunked True if reloacation applies to chunked address.
+ */
+inline void
+RelocElement::setChunked(bool isChunked) {
+    chunked_ = isChunked;
+}
+
+}

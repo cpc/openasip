@@ -1,0 +1,97 @@
+/**
+ * @file CompiledSimulation.icc
+ *
+ * Inline definitions of CompiledSimulation class.
+ *
+ * @author Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+ * @note rating: red
+ */
+
+
+/**
+ * Adds a SimValue to the FU's results list; Used to simulate the FU latency
+ * 
+ * @param results The FU results list
+ * @param cycleCount # of cycles at the time of the addition
+ * @param value value to be added
+ * @param latency Latency of the FU
+ */
+void inline
+CompiledSimulation::addFUResult(
+    FUResultType& results, 
+    ClockCycleCount cycleCount,
+    const SimValue& value, 
+    int latency) {
+        
+    // Find the next empty slot and put the result there
+    for (int i = 0; i < results.size; ++i) {
+        FUResultElementType& result = results.data[i];
+        if (!result.used) {
+            result.cycles = cycleCount + latency;
+            result.value = value;
+            result.used = true;
+            return;
+        }
+    }
+}
+
+/**
+ * Adds a UIntWord value to the FU's results; Used to simulate the FU latency
+ * 
+ * @param results The FU results list
+ * @param cycleCount # of cycles at the time of the addition
+ * @param value value to be added
+ * @param latency Latency of the FU
+ */
+void inline
+CompiledSimulation::addFUResult(
+    FUResultType& results, 
+    ClockCycleCount cycleCount,
+    const UIntWord& value, 
+    int latency) {
+        
+    // Find the next empty slot and put the result there
+    for (int i = 0; i < results.size; ++i) {
+        FUResultElementType& result = results.data[i];
+        if (!result.used) {
+            result.cycles = cycleCount + latency;
+            result.value.value_.uIntWord = value;
+            result.used = true;
+            return;
+        }
+    }
+}
+
+
+/**
+ * Grabs values from the FU results list
+ * 
+ * @param target Target of the assignment
+ * @param results The FU results to be checked for
+ * @param cycles The current cyclecount
+ */
+void inline
+CompiledSimulation::FUResult(
+    SimValue& target, FUResultType& results, ClockCycleCount cycles) {
+    
+    int maxDiff = INT_MIN;
+    
+    for (int i = 0; i < results.size; ++i) {
+        FUResultElementType& result = results.data[i];
+        
+        if (!result.used) {
+            continue;
+        }
+        
+        int diff = static_cast<int>(result.cycles - cycles);
+        if (diff <= 0) {
+            if (diff >= maxDiff) {
+                maxDiff = diff;
+                target = result.value;
+            }
+            result.used = false;
+        } else {
+             //i++;
+        }
+    }
+}

@@ -1,0 +1,18 @@
+# Test the FU resource conflict detection.
+mach data/machine_for_resource_conflict_test.adf
+prog data/fu_conflicts.tpef
+stepi
+stepi
+# Resource conflict should have happened.
+#
+# Let's try without the conflict detection.
+
+setting fu_conflict_detection 0
+
+# Reload the machine.
+mach data/machine_for_resource_conflict_test.adf
+prog data/fu_conflicts.tpef
+run
+# No resource conflict should have happened.
+quit
+

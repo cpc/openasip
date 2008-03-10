@@ -1,0 +1,5 @@
+mach data/guard_latencies.adf
+prog data/guard_latencies.tpef
+run
+info registers RF 1
+quit

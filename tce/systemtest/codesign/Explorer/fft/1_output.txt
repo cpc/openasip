@@ -1,0 +1,3 @@
+Best result configurations:
+ 1
+Written ADF file of configuration 1

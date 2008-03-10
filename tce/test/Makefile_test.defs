@@ -1,0 +1,140 @@
+#
+# Template Makefile for unit test directories.
+#
+# Define following variables in your unit test Makefile before
+# including this:
+#
+# TOP_SRCDIR          Relative path to the top level directory of source code
+#                     base, i.e. the directory where 'configure' is found.
+#
+# One can also enter follwing variables:
+#
+# EXTRA_LINKER_FLAGS  Extra flags which should be added to the linker
+#                     command of the test. This variable is usually used for
+#                     library definitions, e.g., -lxercesc.
+#
+# EXTRA_COMPILER_FLAGS Extra flags which should be added to the compile
+#                      command of the test. This variable is usually 
+#                      used for include definitions.
+#
+# INITIALIZATION      Rules defined in this variable are executed before the 
+#                     rest. One can for example create a rule in which the test
+#                     data is initialized. NOTE: you have to add your custom
+#                     rules in our Makefile *after* including this template 
+#                     because make seems to run the first found rule in the 
+#                     file as the default rule thus only the custom rule is 
+#                     run in case the included rules are not found first.
+#
+# disable_watchdog    When set to "yes", watchdog is not used. Useful for
+#                     run long benchmarks.
+#
+# valgrind            When set to "yes", valgrind is used to detect memory
+#                     leaks from the executed test.
+
+# How long to run a test before killing it. 5 mins = 300s
+MAXIMUM_TEST_RUNTIME = 300
+
+TESTS = $(wildcard *Test.hh)
+TESTDIR = $(TOP_SRCDIR)/test
+
+WATCHDOG_CMD = $(TOP_SRCDIR)/tools/scripts/exec_max_time ${MAXIMUM_TEST_RUNTIME}
+
+ifeq "$(disable_watchdog)" "yes"
+    WATCHDOG_CMD = /bin/bash -c
+endif
+
+
+CXXDIR = $(TOP_SRCDIR)/test/cxxtest
+CURDIR = $(shell pwd)
+SUBSYSDIR = $(shell cd ..; echo `pwd`)
+
+TEST_COMPILE_LOG = ${CURDIR}/compile_result.log
+
+ifeq "$(gcov)" "yes"
+  ifeq "$(GCOV)" ""
+    GCOV = $(shell which gcov)
+  endif
+
+  GCOV_TEST = clean_gcov
+  GCOV_TEST2 = gcov
+endif
+
+ifeq "$(SUBSYS2)" "test"
+SUBSYS2=""
+endif
+
+#OBJDIR = $(TOP_SRCDIR)/src/$(SUBSYS2)/$(SUBSYS)
+OBJDIR = $(shell echo ${SUBSYSDIR} | sed -e "s/\/test\//\/src\//")
+
+ifeq "$(valgrind)" "yes"
+VALGRIND_OPTS = --leak-check=yes --num-callers=10
+VALGRIND_BIN = valgrind
+VALGRIND_TEXT = " using valgrind"
+endif
+
+TCE_INCLUDE_DIRS = \
+    $(shell find ${TOP_SRCDIR}/src -type d | egrep -v "\\.libs|\\.deps|\\.svn")
+
+TCE_INCLUDES = $(addprefix -I,${TCE_INCLUDE_DIRS})
+TCE_INCLUDES += -I ${TOP_SRCDIR}
+
+# Link the TCE libraries dynamically. Ensure that we link against the
+# libs in the source dir, not the (possibly) installed libs in the system.
+# This is done by the LIB_MAGIC switch set below. It's copied from the
+# message in 'make install' produced by libtool. It injects the absolute
+# library paths to the linked binaries, so when the 'runner' is executed,
+# the TCE .libs directories are checked first for the dynamic libraries,
+# the system directories are checked only in case not found in these.
+TCE_LIB_DIRS = \
+    $(shell find ${TOP_SRCDIR}/src -name .libs)
+LIB_MAGIC = -Wl,--rpath -Wl,
+TCE_LIB_FLAGS = $(addprefix ${LIB_MAGIC},${TCE_LIB_DIRS})
+TCE_LIBS = $(shell find ${TOP_SRCDIR}/src -name "*.so")
+
+include ${TOP_SRCDIR}/test/Makefile_configure_settings
+
+LIB_FLAGS = ${TCL_LD_FLAGS} ${EDITLINE_LD_FLAGS}
+
+.PHONY: build_src, dummy
+
+all: ${GCOV_TEST} ${INITIALIZATION} ${TESTS} ${GCOV_TEST2}
+
+%.hh: dummy
+	@echo Running $@${VALGRIND_TEXT}:;
+	@(${CXXDIR}/cxxtestgen.pl --error-printer -o runner.cpp $@;\
+	${CXX} ${CPPFLAGS} ${CXXFLAGS} ${TCE_INCLUDES} \
+        ${EDITLINE_INCLUDES} ${BOOST_INCLUDES} -I ${CXXDIR} -I ${CXXDIR}/.. \
+        ${EXTRA_COMPILER_FLAGS} \
+	    -g -c runner.cpp || exit 1; \
+	${CXX} ${LDFLAGS} ${EXTRA_LINKER_FLAGS} ${TCE_LIB_FLAGS} ${TCE_LIBS} \
+        ${CPPFLAGS} ${LIB_FLAGS} ${CXXFLAGS} runner.o -g -o runner || exit 1; \
+	${WATCHDOG_CMD} "${VALGRIND_BIN} ${VALGRIND_OPTS} ./runner")
+
+
+# This has to be there otherwise %.hh won't get called for each *Test.hh
+dummy:
+	@echo -n;
+
+build_src:
+	@(cd ${OBJDIR}; \
+	  ${MAKE} -j2 2>> ${TEST_COMPILE_LOG} 1>/dev/null || exit 1; \
+	  cd ${CURDIR})
+
+# Removes .da files from OBJDIR to avoid accumulative results
+clean_gcov:
+	@cd ${OBJDIR} && rm -f *.da 
+
+# runs gcov to all files found in DIST_OBJECTS and outputs the coverage
+# result to coverage.txt
+gcov:
+	@date +%D\ %H:%M:%S >> coverage.txt
+	@cd ${OBJDIR}; \
+	$(foreach file,$(patsubst %.o, %.cc, \
+	${DIST_OBJECTS}),$(GCOV) $(file) 2> /dev/null\
+	| grep $(file)$$ >> ${CURDIR}/coverage.txt;)
+	@echo "" >> coverage.txt
+
+distclean: clean
+
+clean:
+	rm -rf core* runner runner.o runner.cpp *~ coverage.txt ${TEST_COMPILE_LOG} ${CLEAN_FILES}

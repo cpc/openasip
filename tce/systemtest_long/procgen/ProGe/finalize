@@ -1,0 +1,10 @@
+#!/bin/bash
+rm -rf testbench
+rm -rf bus.dump
+rm -rf dpram_trace
+rm -rf work
+rm -rf data/decompressor.vhdl
+
+# renames the disabled tests back to normal
+rm -f test_fft_case_with_limm.testdesc.disabled
+rm -f test_fft_case_with_simm.testdesc.disabled

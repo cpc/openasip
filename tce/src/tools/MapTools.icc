@@ -1,0 +1,206 @@
+/**
+ * @file MapTools.icc
+ * @author Pekka J‰‰skel‰inen (pekka.jaaskelainen@tut.fi) 2004
+ *
+ * Tools for handling STL Pair Associative Containers (usually map).
+ *
+ * Inline and template definitions.
+ *
+ */
+
+/**
+ *
+ * Returns true if given container contains the given value.
+ *
+ * @param aMap The map to look in.
+ * @param aValue Value to compare to.
+ */
+template <typename ContainerType, typename ValueType>
+bool
+MapTools::containsValue(const ContainerType& aMap, const ValueType& aValue) {
+
+    for (typename ContainerType::const_iterator i = aMap.begin();
+         i != aMap.end(); i++) {
+        if ((*i).second == aValue)
+            return true;
+    }
+    return false;
+}
+
+/**
+ *
+ * Returns the (first) key found connected to given value.
+ *
+ * @return The key.
+ * @param aMap The map to look in.
+ * @param aValue Value to compare to.
+ * @exception KeyNotFound if key wasn't found in the map.
+ */
+template <typename KeyType, typename ContainerType, typename ValueType>
+KeyType
+MapTools::keyForValue(const ContainerType& aMap, const ValueType& aValue)
+    throw (KeyNotFound) {
+
+    for (typename ContainerType::const_iterator i = aMap.begin();
+         i != aMap.end(); i++) {
+        if ((*i).second == aValue)
+            return (*i).first;
+    }
+
+    throw KeyNotFound(
+        __FILE__, __LINE__, "MapTools::keyForValue()", "Key was not found.");
+}
+
+/**
+ *
+ * Returns true if given map contains the given key.
+ *
+ * @param aMap The map to look in.
+ * @param aKey Value to compare to.
+ */
+template <typename ContainerType, typename KeyType>
+bool
+MapTools::containsKey(const ContainerType& aMap, const KeyType& aKey) {
+    return (aMap.find(aKey) != aMap.end());
+}
+
+/**
+ * Returns value requested by key.
+ *
+ * Does not create a new cell in case key was not found. Useful for methods
+ * that want to access a map in a const method.
+ *
+ * @param aMap The map to look in.
+ * @param aKey Key of to use for finding value.
+ * @return Value of requested key.
+ */
+template <typename ValueType, typename MapType, typename KeyType>
+ValueType
+MapTools::valueForKey(const MapType& aMap, const KeyType& aKey)
+    throw (KeyNotFound) {
+
+    typename MapType::const_iterator valueToFind = aMap.find(aKey);
+
+    if (valueToFind == aMap.end()) {
+        throw KeyNotFound(
+            __FILE__, __LINE__,
+            "MapTools::valueForKey()", "Key was not found.");
+    }
+
+    return (*valueToFind).second;
+}
+
+/**
+ *
+ * Deletes all values in a map and clears it.
+ *
+ * Calls delete for all values in map and clears it.
+ *
+ * @param aMap The map to delete all values from.
+ */
+template <typename ContainerType>
+void
+MapTools::deleteAllValues(ContainerType& aMap) {
+
+    typename ContainerType::iterator next;
+    for (typename ContainerType::iterator i = aMap.begin();
+         i != aMap.end(); ) {
+
+        // This trick is necessary because this same container can be
+        // modified (element erased) in the destructor of the deleted
+        // object. It would render the iterator faulty. Note that this
+        // works only for associative containers, with vectors the
+        // next iterator would get corrupted too.
+        next = i;
+        next++;
+        delete (*i).second;
+        i = next;
+    }
+
+    aMap.clear();
+}
+
+/**
+ * Deletes all keys in a map and clears it.
+ *
+ * @param aMap Map in which keys are deleted.
+ */
+template<typename MapType>
+void
+MapTools::deleteAllKeys(MapType& aMap) {
+
+    typename MapType::iterator next;
+    for (typename MapType::iterator i = aMap.begin(); i != aMap.end(); ) {
+        next = i;
+        next++;
+        delete (*i).first;
+        i = next;
+    }
+
+    aMap.clear();
+}
+
+/**
+ * Deletes and erases item from a map by a given key
+ * 
+ * @param aMap Map to delete the item from
+ * @param aKey Key to the item to be deleted
+ */
+template <typename MapType, typename KeyType>
+void 
+MapTools::deleteByKey(MapType& aMap, const KeyType& aKey) {
+    delete aMap[aKey];
+    aMap.erase(aKey);
+}
+
+/**
+ * Removes all the items that has the given value from the map.
+ *
+ * @param aMap The map to remove the items from.
+ * @param aValue The value to be removed.
+ * @return True, if at least one item was removed, otherwise false.
+ */
+template <typename MapType, typename ValueType>
+bool
+MapTools::removeItemsByValue(MapType& aMap, const ValueType& aValue) {
+
+    bool erased = false;
+
+    for (typename MapType::iterator iter = aMap.begin();
+         iter != aMap.end();) {
+
+        typename MapType::iterator next = iter;
+        next++;
+
+        if ((*iter).second == aValue) {
+            aMap.erase(iter);
+            erased = true;
+        }
+
+        iter = next;
+    }
+
+    return erased;
+}
+
+
+/**
+ * Returns a set of keys that exists in the given map.
+ *
+ * @param aMap The map to look the keys for.
+ * @return A set of keys.
+ */
+template <typename KeyType, typename MapType>
+std::set<KeyType>
+MapTools::keys(const MapType& aMap) {
+
+    std::set<KeyType> keySet;
+
+    for (typename MapType::const_iterator iter = aMap.begin();
+         iter != aMap.end(); iter++) {
+        keySet.insert((*iter).first);
+    }
+
+    return keySet;
+}
+

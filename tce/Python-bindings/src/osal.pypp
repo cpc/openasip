@@ -1,0 +1,34 @@
+import sys
+from binding_generator import *
+
+prefix = "../../src/base/osal/"
+
+bg = binding_generator_t(
+    module_name = "osal",
+    call_policies = (('Operation',
+                      [('behavior', return_internal_reference()),
+                       ('dag', return_internal_reference()),
+                       ('expandedDag', return_internal_reference()),
+                       ('input', return_internal_reference()),
+                       ('output', return_internal_reference()),
+                       ('operand', return_internal_reference()),
+                       ('saveState', return_value_policy(manage_new_object)),
+                       ]),
+                     ('NullOperation',
+                      [('behavior', return_internal_reference()),
+                       ('dag', return_internal_reference()),
+                       ('expandedDag', return_internal_reference()),
+                       ('input', return_internal_reference()),
+                       ('output', return_internal_reference()),
+                       ('operand', return_internal_reference()),
+                       ('saveState', return_value_policy(manage_new_object)),
+                       ]),
+                     ),
+    headers = [prefix + 'Operation.hh'
+               ],
+    extra_headers = ['OperationDAG.hh',
+                     'OperationContext.hh',
+                     ],
+    )
+
+bg.run()

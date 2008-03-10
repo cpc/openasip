@@ -1,0 +1,29 @@
+/**
+ * @file ConnectionEditPart.icc
+ *
+ * Inline implementation of ConnectionEditPart class.
+ *
+ * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 13 2004 by vpj, ll, jn, am
+ */
+
+/**
+ * Returns the connection source.
+ *
+ * @return The source of the connection.
+ */
+inline EditPart*
+ConnectionEditPart::source() const {
+    return source_;
+}
+
+/**
+ * Returns the connection target.
+ *
+ * @return The target of the connection.
+ */
+inline EditPart*
+ConnectionEditPart::target() const {
+    return target_;
+}

@@ -1,0 +1,12 @@
+#!/bin/bash
+rm -rf *.disabled
+ghdl_bin=$(which ghdl 2> /dev/null)
+if [ "x${ghdl_bin}" != "x" ]; then
+    cd ../../../icdecoder_plugins
+    ../src/procgen/ProGe/buildicdecoderplugin DefaultICDecoderPlugin.so \
+    DefaultICDecoderPlugin.cc DefaultDecoderGenerator.cc \
+    DefaultICGenerator.cc CentralizedControlICGenerator.cc > /dev/null
+else
+    touch function_pointer.testdesc.disabled
+fi
+

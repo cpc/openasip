@@ -1,0 +1,144 @@
+<html>
+<head><title>Writing a TCE scheduler pass in Python</title></head>
+<body>
+<h1>Writing a TCE scheduler pass in Python</h1>
+
+The TCE schefuler front end has support for passes written in Python. If
+the name of the file in a scheduler configuration file ends with
+<i>.py</i>, the scheduler front end runs the pass using a Python
+interprepter embedded in the scheduler.
+<p>
+Ideally, the passes written in Python should be completely isolated
+from each other. Unfortunately this does not seem to be possible with
+current Python and current Boost.Python (i.e. Python 2.5 and Boost
+1.33.1). The Python C API has a promising
+function <tt>Py_Finalize()</tt>, which, according to its documentation,
+releases all resources held by the Python interpreter. This is not
+quite true, though, and repeated sequences
+of <tt>Py_Initialize()</tt> ... <tt>Py_Finalize()</tt> leak
+memory. Boost.Python also does not work nicely
+with <tt>Py_Initialize()</tt>.
+<p>
+In the current design, the Python interpreter is initialized exactly
+once when it is first needed, and <tt>Py_Finalize()</tt> is not
+called at all. Thus, the resources held by the Python interpreter are not
+released while the scheduler is running.
+
+<p>
+The main effect this has on writing scheduler passes in Python is that
+all the passes share the same name space, and all the global state left
+behind by one pass is there when the next one starts. This should not
+really matter unless perhaps if you do serious metaprogramming in Python.
+
+<h2>Interface</h2>
+
+The scheduler frontend communicates with a pass written in Python
+using the following interface. 
+<p>
+The name of the Python class implementing the pass is derived from the
+name of the Python source file. If the pass is in
+file <tt>MyCleverPass.py</tt>, the frontend attempts to instantiate an
+object of class <tt>MyCleverPass</tt>. 
+<p>
+The class implementing a scheduler pass should implement the
+following methods.
+<ul>
+<li><tt>__init__(<i>self</i>)</tt>
+<p>Constructor, should do nothing. 
+</li>
+<li><tt>needsTarget(<i>self</i>)</tt>
+<p>Return true/false depending on whether the pass needs the target or not.
+</li>
+<li><tt>needsProgram(<i>self</i>)</tt>
+<p>Return true/false depending on whether the pass needs the program (POM) or not.
+</li>
+<li><tt>needsProgramRepresentation(<i>self</i>)</tt>
+<p>Return true/false depending on whether the pass needs the program
+  in another representation. This is redundant for now, as the
+  scheduler front end only passes the program in POM.
+</li>
+<li><tt>setTarget(<i>self, target</i>)</tt>
+<p>This method is called by the scheduler front end
+  if <tt>needsTarget()</tt> returned true. The parameter <i>target</i>
+  is a <tt>TTAMachine::Machine</tt> object wrapped so that it can be
+  used from Python. The method should store it somewhere for later
+  use, for example assign it to <tt>self.target</tt>.
+</li>
+<li><tt>setProgram(<i>self, program</i>)</tt>
+<p>This method is called by the scheduler front end
+  if <tt>needsProgram()</tt> returned true. The parameter <i>program</i>
+  is a <tt>TTAProgram::Program</tt> object wrapped so that it can be
+  used from Python. The method should store it somewhere for later
+  use, for example assign it to <tt>self.program</tt>.
+</li>
+<li><tt>start(<i>self</i>)</tt>
+<p>This method is called by the scheduler front end to start the
+  actual pass.
+</li>
+</ul>
+
+<h2>Example</h2>
+
+For example, if you want to run the pass <i>NoOpPass</i>, written in Python,
+the scheduler configuration file would contain the following:
+<p>
+<pre>
+&lt;scheduler-configuration&gt;
+	&lt;pass&gt;
+		&lt;module&gt;
+			&lt;name&gt;NoOpPass&lt;/name&gt;
+			&lt;file&gt;NoOpPass.py&lt;/file&gt;
+		&lt;/module&gt;
+	&lt;/pass&gt;
+&lt;/scheduler-configuration&gt;
+</pre>
+
+<p>
+The scheduler front end would then load <tt>NoOpPass.py</tt>, and
+create an instance of the Python class <tt>NoOpPass</tt>. An example
+implementation of the class is given below.
+<p>
+
+<pre>
+#
+# A scheduler pass that does nothing.
+#
+
+import TTAMachine
+import TTAProgram
+
+#
+# This class will be instantiated by the scheduler frontend.
+#
+
+class NoOpPass:
+    def __init__(self):
+        print "NoOpPass instantiated"
+
+    def needsTarget(self):
+        print "needsTarget() called"
+        return True
+
+    def needsProgram(self):
+        print "needsProgram() called"
+        return True
+
+    def needsProgramRepresentation(self):
+        print "needsProgramRepresentation() called"
+        return False
+
+    def setTarget(self, target):
+        print "setTarget() called with", target
+        self.target = target
+
+    def setProgram(self, program):
+        print "setProgram() called with", program
+        self.program = program
+
+    def start(self):
+        print "Running NoOpPass.py"
+</pre>
+<hr>
+Pertti Kellomäki, <tt>firstname.lastname@tut.fi</tt>
+</body>
+</html>

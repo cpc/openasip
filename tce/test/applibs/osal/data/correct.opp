@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<osal version="0.1">
+
+    <operation>
+        <name>test</name>
+        <inputs>2</inputs>
+        <outputs>1</outputs>
+       	<in id="1" type="SIntWord"/>
+       	<in id="2" type="SIntWord"/>
+       	<out id="3" type="SIntWord"/>
+
+        <trigger-semantics>
+            SimValue tmp1, tmp2;
+            EXEC_OPERATION(addsub, IO(1), IO(2), tmp1, tmp2);
+            EXEC_OPERATION(mul, tmp1, tmp2, IO(3));
+        </trigger-semantics>
+
+        <trigger-semantics>
+            SimValue tmp1, tmp2;
+            EXEC_OPERATION(addsub, IO(1), IO(2), tmp1, tmp2);
+            EXEC_OPERATION(sub, tmp1, tmp2, IO(3));
+        </trigger-semantics>
+
+        <trigger-semantics>
+            SimValue tmp1, tmp2;
+            EXEC_OPERATION(sub, IO(1), IO(2), tmp2);
+            EXEC_OPERATION(mul, tmp2, tmp2, IO(3));
+        </trigger-semantics>
+
+    </operation>
+
+    <operation>
+        <name>test2</name>
+        <inputs>2</inputs>
+        <outputs>1</outputs>
+       	<in id="1" type="SIntWord"/>
+       	<in id="2" type="SIntWord"/>
+       	<out id="3" type="SIntWord"/>
+
+        <trigger-semantics>
+            SimValue tmp1, tmp2;
+            EXEC_OPERATION(addsub, IO(1), IO(2), tmp1, tmp2);
+            EXEC_OPERATION(mul, tmp1, tmp2, IO(3));
+        </trigger-semantics>
+
+        <trigger-semantics>
+            SimValue tmp1, tmp2;
+            EXEC_OPERATION(addsub, IO(1), IO(2), tmp1, tmp2);
+            EXEC_OPERATION(sub, tmp1, tmp2, IO(3));
+        </trigger-semantics>
+
+        <trigger-semantics>
+            SimValue tmp1, tmp2;
+            EXEC_OPERATION(add, IO(1), IO(2), tmp1);
+            EXEC_OPERATION(sub, tmp1, tmp1, tmp2);
+            EXEC_OPERATION(mul, tmp2, tmp2, IO(3));
+        </trigger-semantics>
+
+    </operation>
+
+        
+</osal>

@@ -1,0 +1,36 @@
+
+********* tcecc *********
+
+- when starting from .bc, no need to generate the customop.h
+- No need to write/read mixed code TPEF, but schedule to the parallel
+  code directly from POM. For large programs this should speed up 
+  compilation quite a lot.
+- switch for cleaning the plugin cache (like ccache -C)
+
+********* LLVM **********
+
+- Install llvm/lib/Target/*.td files and use the installed
+  files in tcecc so the llvm source tree is no longer needed for
+  plugin builds.
+
+********* Build scripts **********
+
+- Newlib generates libstdc++.a and installs it to PREFIX/lib. Thus, next time
+  one tries to compile LLVM, it fails because it thinks that the libstdc++.a
+  is the native one to use for compiling itself and it's really a .bc
+  or something? Workaround is to delete the .a from PREFIX. This is actually
+  quite serious bug as it might overwrite the system's native libstdc++.a
+  with the newlib one?
+
+******** Code generator optimization / created code performance *****
+
+- Currently does not write directly from FU's to boolean registers.
+  Causes at least 2 extra operations & cycles on dependence chain
+  on branches; (c & 1) and operation to do zero extension before putting
+  the value on int reg, and write from int reg to boolean reg.
+
+- Loop endings are handled suboptimally; currently does not jump directly to 
+  the beginning of loop on condition, and fall-thru if exiting loop.
+  Instead first creates exit jump, and after this unconditional jump to the 
+  beginning of the loop if not exiting. This causes the most common case
+  (going to next iteration of the loop) to be slower, usually 1-5 cycles. 

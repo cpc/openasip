@@ -1,0 +1,5 @@
+!output hex
+mul 100000 100000
+mul -2 20
+mul -100000 100000
+!quit

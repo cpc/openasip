@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<osal version="0.1">
+
+    <operation>
+        <name>addsubmul</name>
+        <inputs>2</inputs>
+        <outputs>1</outputs>
+       	<in id="1" type="SIntWord"/>
+       	<in id="2" type="SIntWord"/>
+       	<out id="3" type="SIntWord"/>
+
+        <trigger-semantics>
+            SimValue tmp1, tmp2;
+            EXEC_OPERATION(addsub, IO(1), IO(2), tmp1, tmp2);
+            EXEC_OPERATION(mul, tmp1, tmp2, IO(3));
+        </trigger-semantics>
+    </operation>
+
+    <operation>
+        <name>addsubmuldivdivu</name>
+        <inputs>3</inputs>
+        <outputs>1</outputs>
+       	<in id="1" type="SIntWord"/>
+       	<in id="2" type="SIntWord"/>
+       	<in id="3" type="SIntWord"/>
+       	<out id="4" type="SIntWord"/>
+
+        <trigger-semantics>
+            SimValue tmp1, tmp2, tmp3, tmp4, tmp5;
+            EXEC_OPERATION(addsub, IO(1), IO(2), tmp1, tmp2);
+            EXEC_OPERATION(div, tmp1, tmp2, tmp3);
+            EXEC_OPERATION(addsubmul, tmp3, IO(3), tmp5);
+            EXEC_OPERATION(divu, tmp3, tmp5, IO(4));
+        </trigger-semantics>
+    </operation>
+
+    <operation>
+        <name>cannotsimulate</name>
+        <inputs>3</inputs>
+        <outputs>1</outputs>
+       	<in id="1" type="SIntWord"/>
+       	<in id="2" type="SIntWord"/>
+       	<in id="3" type="SIntWord"/>
+       	<out id="4" type="SIntWord"/>
+    
+        <trigger-semantics>
+            EXEC_OPERATION(cannotsimulate, IO(1), IO(2), IO(3), IO(4));
+        </trigger-semantics>
+    </operation>
+
+    <operation>
+        <name>cannotsimulate2</name>
+        <inputs>3</inputs>
+        <outputs>1</outputs>
+       	<in id="1" type="SIntWord"/>
+       	<in id="2" type="SIntWord"/>
+       	<in id="3" type="SIntWord"/>
+       	<out id="4" type="SIntWord"/>
+    
+        <trigger-semantics>
+            SimValue temp1;
+            EXEC_OPERATION(add, IO(1), IO(2), temp1);            
+            EXEC_OPERATION(cannotsimulate, temp1, IO(2), IO(3), IO(4));
+        </trigger-semantics>
+    </operation>
+
+    <operation>
+        <name>megadag</name>
+        <inputs>2</inputs>
+        <outputs>1</outputs>
+       	<in id="1" type="SIntWord"/>
+       	<in id="2" type="SIntWord"/>
+       	<out id="3" type="SIntWord"/>
+
+        <trigger-semantics>
+            SimValue tmp1, tmp2;
+            EXEC_OPERATION(add, IO(1), IO(2), tmp1);
+            EXEC_OPERATION(sub, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(mul, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(div, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(divu, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(eq,tmp1, tmp1, tmp1);
+            EXEC_OPERATION(gt, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(gtu, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(shl, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(shr, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(shru,tmp1, tmp1, tmp1);
+            EXEC_OPERATION(and, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(ior, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(xor, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(neg, tmp1, tmp1);
+            EXEC_OPERATION(negf, tmp1, tmp1);
+            EXEC_OPERATION(addf, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(subf, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(mulf, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(divf, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(eqf, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(gtf, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(cfi, tmp1, tmp1);
+            EXEC_OPERATION(cif, tmp1, tmp1);
+            EXEC_OPERATION(cfd, tmp1, tmp1);
+            EXEC_OPERATION(cdf, tmp1, tmp1);
+            EXEC_OPERATION(mod, tmp1, tmp1, tmp1);
+            EXEC_OPERATION(modu, tmp1, tmp1, IO(3));
+        </trigger-semantics>
+    </operation>
+        
+</osal>

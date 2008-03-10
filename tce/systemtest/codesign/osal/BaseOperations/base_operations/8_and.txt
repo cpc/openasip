@@ -1,0 +1,7 @@
+!output bin
+and 100111001b 11011b
+!output hex
+and 0xf0 0xee
+!output signed
+and 2548 3512
+!quit

@@ -1,0 +1,3 @@
+prog data/broken.tpf
+prog foobar.tpf
+prog data/broken.tpf

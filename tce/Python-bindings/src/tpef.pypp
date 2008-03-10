@@ -1,0 +1,17 @@
+from binding_generator import *
+
+prefix = "../../src/base/tpef/"
+
+
+bg = binding_generator_t(
+    module_name = "tpef",
+    call_policies = (('BinaryReader',
+                      [('readBinary', return_value_policy(manage_new_object)),
+                       ('readData', return_value_policy(manage_new_object))]),
+                     ),
+    headers = [prefix + "Binary.hh",
+               prefix + "BinaryReader.hh",
+               prefix + "BinaryStream.hh"],
+    )
+
+bg.run()

@@ -1,0 +1,11 @@
+<?php
+// short test description
+$test_description="Operations with state (also clocked operations)";
+
+// the binary being tested
+$test_bin="../../../src/codesign/ttasim/ttasim";
+
+// args given to program
+$bin_args="--no-debugmode -p data/operations_with_state_test_program"
+
+?>

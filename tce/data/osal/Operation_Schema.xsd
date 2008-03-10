@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:annotation>
+    <xs:documentation xml:lang="en">
+
+        Static operation properties file schema for Operation Set Abstraction Layer.
+
+    </xs:documentation>
+</xs:annotation>
+
+<xs:complexType name="empty-type">
+    <!-- no content -->
+</xs:complexType>
+
+<xs:complexType name="affect-type">
+    <xs:sequence>
+        <xs:element name="operation" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+                <!-- empty element -->
+                <xs:attribute name="name" type="xs:string" use="required"/>
+            </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="can-swap-type">
+    <xs:sequence>
+        <xs:element name="in" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+                <!-- empty element -->
+                <xs:attribute name="id" type="xs:integer" use="required"/>
+            </xs:complexType>
+        </xs:element>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:complexType name="in-type">
+    <xs:sequence>
+        <xs:element name="mem-address" type="empty-type" minOccurs="0"/>
+        <xs:element name="mem-data" type="empty-type" minOccurs="0"/>
+        <xs:element name="can-swap" type="can-swap-type" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:integer" use="required"/>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="out-type">
+    <xs:sequence>
+        <xs:element name="mem-data" type="empty-type" minOccurs="0"/>
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:integer" use="required"/>
+    <xs:attribute name="type" type="xs:string" use="required"/>
+</xs:complexType>
+
+<xs:complexType name="operation-type">
+    <xs:sequence>
+        <xs:element name="name" type="xs:string"/>
+        <xs:element name="description" type="xs:string" minOccurs="0"/>
+        <xs:element name="inputs" type="xs:integer"/>
+        <xs:element name="outputs" type="xs:integer"/>
+        <xs:element name="reads-memory" type="empty-type" minOccurs="0"/>
+        <xs:element name="writes-memory" type="empty-type" minOccurs="0"/>
+        <xs:element name="trap" type="empty-type" minOccurs="0"/>
+        <xs:element name="side-effects" type="empty-type" minOccurs="0"/>
+	<!-- True in case the operation is a control flow operation -->
+	<xs:element name="control-flow" type="empty-type" minOccurs="0"/>
+        <xs:element name="affected-by" type="affect-type" minOccurs="0"/>
+        <xs:element name="affects" type="affect-type" minOccurs="0"/>
+        <xs:element name="in" type="in-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="out" type="out-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element name="trigger-semantics" type="xs:string" 
+                    minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+</xs:complexType>
+
+<xs:element name="osal">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="operation" type="operation-type"
+                        minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+        <xs:attribute name="version" type="xs:decimal" use="required"/>
+        <xs:attribute name="required-version" type="xs:decimal"/>
+    </xs:complexType>
+</xs:element>
+
+</xs:schema>

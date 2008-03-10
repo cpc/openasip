@@ -1,0 +1,186 @@
+/**
+ * @file MathTools.icc
+ *
+ * Inline implementations.
+ *
+ * @author Ari Mets‰halme 2005 (ari.metsahalme@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen@tut.fi)
+ */
+
+#include <cmath>
+#include <ctime>
+#include "MathTools.hh"
+#include "BaseType.hh"
+
+/**
+ * Returns the number of bits required to represent the given number as
+ * an unsigned number.
+ *
+ * @note assumes that integers are stored as 2's complement.
+ *
+ * @param number The number.
+ * @return The number of bits required to represent the given number.
+ */
+inline int
+MathTools::requiredBits(long unsigned int number) {
+    if (number == 0) {
+        return 1;
+    } else {
+        unsigned int bits = 0;
+        while (number != 0) {
+            number = number >> 1;
+            bits++;
+        }
+        return bits;
+    }
+}
+
+/**
+ * Returns the number of bits required to represent the given number as
+ * a signed integer.
+ *
+ * @note assumes that integers are stored as 2's complement.
+ *
+ * @param number The number.
+ * @return The number of bits required to represent the given number.
+ */
+inline int
+MathTools::requiredBitsSigned(long int number) {
+
+    int bits = 1;
+    while (number != -1 && number != 0) {
+        number = number >> 1;
+        bits++;
+    }
+    return bits;
+}
+
+
+/**
+ * Returns the value of the bit at a given position in an integer.
+ *
+ * @param integer The integer.
+ * @param index Indicates which bit should be returned (0 = LSB).
+ * @return The value of the bit indicated by the given index.
+ */
+inline bool
+MathTools::bit(unsigned int integer, unsigned int index) {
+    return (integer & (1 << index)) != 0;
+}
+
+
+/**
+ * Chops a signed integer number to a given bit width.
+ *
+ * Overwrites all bits that do not fit in the given bit width with the sign
+ * bit (the bit at position width - 1).
+ *
+ * This operation corresponds to reinterpreting the given number as a signed
+ * word of given bit width.
+ *
+ * @param value A signed integer.
+ * @param width Number of meaningful bits in the given integer.
+ * @return The sign-extended value of the integer.
+ */
+inline int
+MathTools::signExtendTo(int value, int width)
+    throw (OutOfRange) {
+
+    int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
+    if (width > bitsInInt) {
+        throw OutOfRange(__FILE__, __LINE__, __func__);
+    }
+
+    value = value << (bitsInInt - width);
+    value = value >> (bitsInInt - width);
+
+    return value;
+}
+
+
+/**
+ * Chops an unsigned integer number to a given bit width.
+ *
+ * Overwrites all bits that do not fit in the given bit width with zero.
+ *
+ * This operation corresponds to reinterpreting the given number as an
+ * unsigned word of given bit width.
+ *
+ * @param value An unsigned integer.
+ * @param width Number of meaningful bits in the given integer.
+ * @return The zero-extended value of the integer.
+ */
+inline int
+MathTools::zeroExtendTo(int value, int width)
+    throw (OutOfRange) {
+
+    int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
+    if (width > bitsInInt) {
+        throw OutOfRange(__FILE__, __LINE__, __func__);
+    }
+
+    // and with a mask with only the lower 'width' bits '1'
+    value = value & (~0u >> (bitsInInt - width));
+
+    return value;
+}
+
+
+/**
+ * Same as signExtendTo, except without additional overhead of exceptions
+ *
+ * @param value A signed integer.
+ * @param width Number of meaningful bits in the given integer.
+ * @note width must not exceed int bitwidth!
+ * @return The sign-extended value of the integer.
+ */
+inline int
+MathTools::fastSignExtendTo(int value, int width) {
+
+    const int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
+    
+    value = value << (bitsInInt - width);
+    value = value >> (bitsInInt - width);
+
+    return value;
+}
+
+
+/**
+ * Same as zeroExtendTo, except without additional overhead of exceptions
+ *
+ * @param value An unsigned integer.
+ * @param width Number of meaningful bits in the given integer.
+ * @note width must not exceed int bitwidth!
+ * @return The zero-extended value of the integer.
+ */
+inline int
+MathTools::fastZeroExtendTo(int value, int width) {
+
+    const int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
+
+    // and with a mask with only the lower 'width' bits '1'
+    value = value & (~0u >> (bitsInInt - width));
+
+    return value;
+}
+
+
+/**
+ * Returns a random number between range min..max
+ * 
+ * @param min minimum value
+ * @param max maximum value
+ * @return The generated pseudo-random number
+ */
+inline int
+MathTools::random(int min, int max) {
+    static bool initialized = false;
+    if (!initialized) {
+        srand(std::time(0)); 
+        initialized = true;
+    }
+    return (rand() % (max - min + 1)) + min;
+}
+
+

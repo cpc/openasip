@@ -1,0 +1,132 @@
+Building and installation
+=========================
+
+Building and installation with the help of autotools should be very easy. 
+First, to create Makefiles you have to run configure as follows:
+
+	./configure --prefix=INSTALLATION_DIRECTORY
+
+If you don't give prefix, the software will be installed in /usr/local/.
+In that case you have to install TCE as root. 
+
+Be sure to set CXXFLAGS environment variable to include aggressive 
+optimization flags (e.g., "export CXXFLAGS=-O3") before running 
+the configure script. This results in much more efficient TCE toolset, 
+most notably the simulator is often more than 10x faster when compiled 
+with aggressive compiler flags.
+
+After running configure, it should be enough to just type
+
+make
+make install
+
+Building the development version
+================================
+
+The development version does not ship with a pregenerated 'configure' script.
+In order to build the development version, one needs to generate the
+configure script by running 'autoreconf' in the TCE root directory.
+Autoreconf is part of autotools, thus you need to install packages 
+'automake1.9' and 'autoconf'.
+
+Experimental Python bindings
+============================
+
+The distribution contains experimental Python bindings for some of the
+TCE libraries. The bindings are not built by default, you have to give
+the "--enable-python" flag to ./configure.
+
+The bindings require the Boost.Python library and the Python
+development headers and libraries. On Debian based Linux distributions
+installing the libboost-python-dev package should be sufficient.
+
+Library and tools version prerequisites
+=======================================
+
+These are the current prerequisites for libraries and tools used by TCE:
+
+Compiler              minimum version
+-----------------     ----------------
+GCC                   3.2.2 
+or
+Intel C++ Compiler    8.0
+
+Library               minimum version                      library licence
+-----------------     ----------------                     ---------------
+Xerces                2.3.0                                Apache v2.0
+wxWidgets             2.6.0                                wxWidgets
+Tcl                   8.0                                  BSD-style
+Boost                 1.32.0                               very permissive
+sqlite3               3.0.0 (v2 not supported)             public domain
+
+optional:
+
+Editline              2.9                                  BSD-style
+
+	To get line editing capabilities to the command line interface of the simulator.
+
+	You can download the sources here: http://www.thrysoee.dk/editline/
+
+	Note: this library might require 'termcap' library in some distributions. 
+	The package is named 'libedit-dev' in Debian and Ubuntu.
+
+Python                2.4                                  very permissive
+
+	The Python interpreter and its headers and libraries are
+	needed for the optional Python bindings.
+
+The development files of the following Boost libraries are required by TCE:
+. regexp,
+. spirit,
+. filesystem,
+. format,
+. graph,
+. tuple,
+. python  (optional, required for the Python bindings).
+
+Some distributions, like Fedora Core, include all Boost libraries in a 
+single package, but some, like Debian and Ubuntu, have separated them in 
+several packages. 
+
+Remember to install the '-dev' versions of the packages in order to get
+the library headers which are need to compile client code against them.
+You also need a version of "GNU Make" to build TCE.
+
+For example, to install the required libraries and tools for Ubuntu 6.06 
+using its package manager 'apt-get', you need to execute the following command
+as root: 
+
+apt-get install libwxgtk2.6-dev libboost-{filesystem,graph,regex}-dev \
+                tcl8.0-dev libedit-dev libsqlite3-dev sqlite3 \
+                libxerces27-dev g++ make latex2html
+
+Officially supported Linux distributions
+========================================
+
+TCE is compiled and tested automatically in several Linux distribution 
+environments on every week day. These distributions are 'officially
+supported distributions' which are guaranteed to carry majority of 
+packages required by TCE and also pass automated tests. Some distributions
+may require installing packages not found in distribution's official
+repositories.
+
+The environments are as follows.
+
+Debian Sid on Pentium 3
+Debian Etch on AMD Athlon 1GHz
+Debian Etch on HP-PA
+
+Semi-supported Linux distributions
+==================================
+
+These distributions are used by developers or active users of TCE, but 
+might not be included in the "compiletest farm" which compiles and tests 
+TCE automatically.
+
+Arch 0.8		    [Esa M., Tero]
+Kubuntu 6.10                [Perttu]
+Kubuntu 7.04                [Veli-Pekka, Teemu]
+Kubuntu 7.10		    [Pekka]
+Ubuntu 7.10		    [Viljami]
+Fedora Core 8		    [Otto]
+

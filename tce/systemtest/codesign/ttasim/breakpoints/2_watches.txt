@@ -1,0 +1,6 @@
+prog data/hello
+watch
+info registers sp
+run
+resume
+quit

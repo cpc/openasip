@@ -1,0 +1,96 @@
+/**
+ * @file ProGeScriptGenerator.icc
+ *
+ * Implementation of ProGeScriptGenerator class template part.
+ *
+ * @author Esa Määttä 2007 (esa.maatta@tut.fi)
+ * @note rating: red
+ */
+
+#include <boost/regex.hpp>
+
+#include "FileSystem.hh"
+
+/** 
+ * Finds regex matching strings from a container.
+ *
+ * Finds std::string entries from containers that match given regex.
+ * Case is ignored when matching.
+ * 
+ * @param perlre Perl syntax regex.
+ * @param files Container for strings to match against.
+ * @param found Strings that matched are appended to this list. 
+ */
+template <typename T>
+void ProGeScriptGenerator::findFiles(
+    const std::string& perlre,
+    T files,
+    std::list<std::string>& found) {
+
+    static const boost::regex re(perlre, 
+         boost::regex::perl|boost::regex::icase);
+
+    typename T::const_iterator iter = files.begin();
+    while (iter != files.end()) {
+        if (regex_match(*iter, re)) {
+            found.push_back(*iter);
+        } 
+        ++iter;
+    }
+}
+
+/** 
+ * Removes regex matching strings from a container.
+ *
+ * Finds std::string entries from containers that don't match given regex.
+ * Case is ignored when matching. Strings that do not match are removed from
+ * container. 
+ * 
+ * @param perlre Perl syntax regex.
+ * @param files Container of strings.
+ */
+template <typename T>
+void ProGeScriptGenerator::findFiles(
+    const std::string& perlre,
+    T& files) {
+
+    static const boost::regex re(perlre, 
+         boost::regex::perl|boost::regex::icase);
+
+    typename T::iterator iter = files.begin();
+    while (iter != files.end()) {
+        if (!regex_match(*iter, re)) {
+            iter = files.erase(iter);
+        } else {
+            ++iter;
+        }
+    }
+}
+
+/** 
+ * Removes duplicate filenames considering their path from a container.
+ * 
+ * @param files Container holding the filenames.
+ * @param rootDirectory Base directory for relative paths in files container.
+ */
+template <typename CONT>
+void ProGeScriptGenerator::uniqueFileNames(
+    CONT& files,
+    const std::string& rootDirectory) {
+    
+    typename CONT::iterator ito = files.begin();
+    typename CONT::iterator iti;
+    while (ito != files.end()) {
+        iti = files.begin();
+        while (iti != files.end()) {
+            if (iti != ito &&
+                FileSystem::compareFileNames(*ito, *iti, rootDirectory)) {
+                iti = files.erase(iti);
+            } else {
+                ++iti;
+            }
+        }
+        ++ito;
+    }
+}
+

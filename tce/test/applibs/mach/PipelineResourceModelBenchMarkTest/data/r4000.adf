@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf version="1.5">
+
+  <function-unit name="r4000">
+    <port name="P1">
+      <width>32</width>
+    </port>
+    <port name="t">
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="P3">
+      <width>32</width>
+    </port>
+    <operation>
+      <name>addf</name>
+      <bind name="1">P1</bind>
+      <bind name="2">t</bind>
+      <bind name="3">P3</bind>
+      <pipeline>
+        <resource name="U">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="S">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="A">
+          <start-cycle>1</start-cycle>
+          <cycles>2</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>2</start-cycle>
+          <cycles>2</cycles>
+        </resource>
+        <resource name="S">
+          <start-cycle>3</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>3</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>mulf</name>
+      <bind name="1">P1</bind>
+      <bind name="2">t</bind>
+      <bind name="3">P3</bind>
+      <pipeline>
+        <resource name="U">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="E">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="M">
+          <start-cycle>1</start-cycle>
+          <cycles>4</cycles>
+        </resource>
+        <resource name="N">
+          <start-cycle>5</start-cycle>
+          <cycles>2</cycles>
+        </resource>
+        <resource name="A">
+          <start-cycle>6</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>7</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>7</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>divf</name>
+      <bind name="1">P1</bind>
+      <bind name="2">t</bind>
+      <bind name="3">P3</bind>
+      <pipeline>
+        <resource name="U">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="A">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="D">
+          <start-cycle>3</start-cycle>
+          <cycles>32</cycles>
+        </resource>
+        <resource name="A">
+          <start-cycle>31</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>32</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="A">
+          <start-cycle>33</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>34</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="A">
+          <start-cycle>35</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>36</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>35</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>subf</name>
+      <bind name="1">P1</bind>
+      <bind name="2">t</bind>
+      <bind name="3">P3</bind>
+      <pipeline>
+        <resource name="U">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="S">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="A">
+          <start-cycle>1</start-cycle>
+          <cycles>2</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>2</start-cycle>
+          <cycles>2</cycles>
+        </resource>
+        <resource name="S">
+          <start-cycle>3</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>3</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sqrtf</name>
+      <bind name="1">t</bind>
+      <bind name="2">P3</bind>
+      <pipeline>
+        <resource name="U">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="E">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>2</start-cycle>
+          <cycles>108</cycles>
+        </resource>
+        <resource name="A">
+          <start-cycle>2</start-cycle>
+          <cycles>109</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>111</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="1">
+          <start-cycle>50</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>111</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>negf</name>
+      <bind name="1">t</bind>
+      <bind name="2">P3</bind>
+      <pipeline>
+        <resource name="U">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="S">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>absf</name>
+      <bind name="1">P1</bind>
+      <bind name="2">t</bind>
+      <pipeline>
+        <resource name="U">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="S">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>eqf</name>
+      <bind name="1">P1</bind>
+      <bind name="2">t</bind>
+      <bind name="3">P3</bind>
+      <pipeline>
+        <resource name="U">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="A">
+          <start-cycle>1</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <resource name="R">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </resource>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
+</adf>

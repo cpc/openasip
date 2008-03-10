@@ -1,0 +1,5 @@
+!output unsigned
+divu 10 5
+divu 3 2
+divu 69850 814
+!quit

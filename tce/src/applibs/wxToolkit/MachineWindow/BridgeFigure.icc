@@ -1,0 +1,29 @@
+/**
+ * @file BridgeFigure.icc
+ *
+ * Inline implementation of BridgeFigure class.
+ *
+ * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 27 2004 by ml, pj, am
+ */
+
+/**
+ * Sets the direction of the bridge.
+ *
+ * @param direction New direction.
+ */
+inline void
+BridgeFigure::setDirection(BridgeFigure::Direction direction) {
+    direction_ = direction;
+}
+
+/**
+ * Returns the direction of the bridge.
+ *
+ * @return The direction of the bridge.
+ */
+inline BridgeFigure::Direction
+BridgeFigure::direction() const {
+    return direction_;
+}

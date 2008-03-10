@@ -1,0 +1,39 @@
+#!/bin/bash
+# Creates a Debian apt repository for the TCE .deb using apache web server
+#
+# Note: the following programs are required by this script: Apache 2 web server, debian package repository producer
+# eg. aptitude install apache2 reprepro
+# 
+#
+# Created using the following guide:
+# http://www.debian-administration.org/articles/286
+#
+# (c) Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+
+
+cd ../../../
+tceRoot=$(pwd)
+distribution=debian
+version=6.10
+
+
+# Create some new folders for apt in /www/
+cd /var/www
+mkdir -p apt
+mkdir -p apt/conf
+mkdir -p apt/incoming
+cd apt
+
+cat > conf/distributions <<EOF
+Origin: Viljami Korhonen
+Label: TCE Repository
+Suite: stable
+Codename: $distribution
+Version: $version
+Architectures: i386
+Components: main non-free contrib
+Description: A repository for the TCE project (http://tce.cs.tut.fi/)
+EOF
+
+# This command actually creates the apt repository using any .deb files found in the /tce directory!
+reprepro -Vb . includedeb $distribution $tceRoot/*.deb

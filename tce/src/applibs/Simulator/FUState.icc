@@ -1,0 +1,62 @@
+/**
+ * @file FUState.icc
+ *
+ * Inline definition of FUState class.
+ *
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Set function unit to triggered state.
+ *
+ * It means that an operation was triggered in the current clock cycle.
+ */
+inline void
+FUState::setTriggered() {
+    trigger_ = true;
+    idle_ = false;
+}
+
+/**
+ * Set next triggered operation.
+ *
+ * We do not check that executor for the operation is found, it is left
+ * for client's responsibility. Executor is searched for in endClock().
+ *
+ * @param operation Operation to be triggered next.
+ */
+inline void
+FUState::setOperation(Operation& operation) {
+    nextOperation_ = &operation;
+    nextExecutor_ = NULL;
+}
+
+/**
+ * Set next triggered operation.
+ *
+ * Version in which the client has searched in advance the executor to be 
+ * used for the operation.
+ *
+ * @param operation Operation to be triggered next.
+ * @param executor The executor to be used.
+ */
+inline void
+FUState::setOperation(Operation& operation, OperationExecutor& executor) {
+    nextOperation_ = &operation;
+    nextExecutor_ = &executor;
+}
+
+/**
+ * A function for checking whether the FU is in idle state.
+ *
+ * If an FU is in idle state, its endClock() or advanceClock() need not
+ * be called. This saves some time in simulation loop.
+ *
+ * @return True in case the FU is in idle state, that is, no operations are
+ *         pending and there are no operations with clocked state.
+ */
+inline bool
+FUState::isIdle() {
+    return idle_ && context().isEmpty();
+}

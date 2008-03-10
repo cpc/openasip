@@ -1,0 +1,5 @@
+This file is an initialization script.
+The only purpose of this test is to ensure 
+that all the lines of the init script
+are executed and they take effect.
+1

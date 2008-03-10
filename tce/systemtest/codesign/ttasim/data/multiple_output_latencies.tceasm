@@ -1,0 +1,20 @@
+##########################################################
+# Simple test program that uses a multioutput operation with
+# different latencies for outputs.
+##########################################################
+	
+CODE ; 
+	
+	0 -> MULTI.I1, 0 -> MULTI.I2, 0 -> MULTI.I3, 0 -> MULTI.I4.id;
+	..., ..., ..., ...;
+	..., ..., ..., ...;
+	..., ..., ..., ...;
+	..., ..., ..., ...;
+	# Now all outputs should be zero for sure.
+	1 -> MULTI.I1, 2 -> MULTI.I2, 3 -> MULTI.I3, 4 -> MULTI.I4.id;
+	..., ..., ..., ...; # o1 = 1
+	..., ..., ..., ...; # o2 = 2
+	..., ..., ..., ...; # o3 = 3
+	..., ..., ..., ...; # o4 = 4
+
+

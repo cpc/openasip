@@ -1,0 +1,29 @@
+/**
+ * @file EditPolicy.icc
+ *
+ * Inline implementation of EditPolicy class.
+ *
+ * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 20 2004 by vpj, jn, am
+ */
+
+/**
+ * Returns the host EditPart of this EditPolicy.
+ *
+ * @return The host EditPart of this EditPolicy.
+ */
+inline EditPart*
+EditPolicy::host() const {
+    return host_;
+}
+
+/**
+ * Sets the host EditPart of this EditPolicy.
+ *
+ * @param host New host.
+ */
+inline void
+EditPolicy::setHost(EditPart* host) {
+    host_ = host;
+}

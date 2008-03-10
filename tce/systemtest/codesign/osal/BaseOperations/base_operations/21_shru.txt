@@ -1,0 +1,7 @@
+!output bin
+shru 11111111111111111111111111111111b 2
+shru 101010101b 5
+!output signed
+shru 8 1
+shru 200200 4
+!quit

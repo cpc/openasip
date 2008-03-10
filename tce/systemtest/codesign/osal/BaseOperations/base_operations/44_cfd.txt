@@ -1,0 +1,5 @@
+!output double
+cfd 6.23589f
+cfd 0.0f
+cfd 70000.2f
+!quit

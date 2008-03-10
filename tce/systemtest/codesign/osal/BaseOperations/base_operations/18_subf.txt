@@ -1,0 +1,6 @@
+!output float
+subf 32.34f 12.35f
+subf -234.23f 45.43f
+subf -235.45f -342.34f
+subf 456.76f -234.45f
+!quit

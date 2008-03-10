@@ -1,0 +1,96 @@
+/**
+ * @file MachineState.icc
+ *
+ * Inline definitions of MachineState class.
+ *
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include "FUState.hh"
+#include "BusState.hh"
+#include "GuardState.hh"
+#include "LongImmediateUnitState.hh"
+
+/**
+ * Returns the number of FUStates.
+ *
+ * @return The number of FUStates.
+ */
+inline int
+MachineState::FUStateCount() const {
+    return FUStates_.size();
+}
+
+/**
+ * Advances the clocks of all FUStates.
+ *
+ * Skips idle FUs.
+ */
+inline void 
+MachineState::advanceClockOfAllFUStates() {
+    const size_t count = fuCache_.size();    
+    for (size_t i = 0; i < count; ++i) {
+        FUState* fu = fuCache_[i];
+        if (fu->isIdle()) {
+            continue;
+        }
+        fu->advanceClock();
+    }
+}
+
+/**
+ * Advances the clocks of all LongImmediateUnitStates.
+ *
+ */
+inline void 
+MachineState::advanceClockOfAllLongImmediateUnitStates() {
+    const size_t count = longImmediateCache_.size(); 
+    for (size_t i = 0; i < count; ++i) {
+        LongImmediateUnitState* unit = longImmediateCache_[i];
+        unit->advanceClock();
+    }
+}
+
+
+/**
+ * Ends the clocks of all FUStates.
+ *
+ * Skips idle FUs.
+ */
+inline void 
+MachineState::endClockOfAllFUStates() {
+    const size_t count = fuCache_.size(); 
+    for (size_t i = 0; i < count; ++i) {
+        FUState* fu = fuCache_[i];
+        if (fu->isIdle()) {
+            continue;
+        }
+        fu->endClock();
+    }
+}
+
+/**
+ * Advances the clocks of all GuardStates.
+ */
+inline void 
+MachineState::advanceClockOfAllGuardStates() {
+    const size_t count = guardCache_.size();
+    for (size_t i = 0; i < count; ++i) {
+        GuardState* guard = guardCache_[i];
+        guard->advanceClock();
+    }
+}
+
+/**
+ * Clears all the buses by setting their value to zero.
+ */
+inline void 
+MachineState::clearBuses() {
+    const size_t count = busCache_.size();
+    for (size_t i = 0; i < count; ++i) {
+        BusState* bus = busCache_[i];
+        bus->clear();
+    }
+}
+

@@ -1,0 +1,5 @@
+!output float
+addf 1.23f 2.34f
+addf -143.34f 23.45f
+addf 245.12f 564.3f
+!quit

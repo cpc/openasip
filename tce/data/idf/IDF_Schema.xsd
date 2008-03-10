@@ -1,0 +1,135 @@
+<?xml version="1.0"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+<xs:annotation>
+    <xs:documentation xml:lang="en">
+
+        Implementation Definition File Schema for the TCE
+        (TTA Codesign Environment) project at Tampere University of 
+        Technology.
+
+        Author: Lasse Laasonen 2005 (lasse.laasonen@tut.fi)
+
+    </xs:documentation>
+</xs:annotation>
+
+
+<!-- ==== IC&decoder parameters ==========================================-->
+<xs:complexType name="icdec-plugin-parameter-type">
+    <!-- Value of the parameter. -->
+    <xs:sequence>
+        <xs:element name="value" type="xs:string"
+                    minOccurs="0" maxOccurs="1" />
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+
+<!-- ===== IC&decoder plugin ============================ =============== -->
+
+<xs:complexType name="icdec-plugin-type">
+    <xs:sequence>
+        <!-- The name of the plugin, also used to identify plugin's data
+             in a possible HDB. -->
+        <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1" />
+        <!-- The filesystem path of the plugin. -->
+        <xs:element name="file" type="xs:string" minOccurs="0" maxOccurs="1" />
+        <!-- The HDB from which the plugin gets its data, if any. This is
+             used in case the estimator part of the plugin needs estimation
+             data. -->
+        <xs:element name="hdb-file" type="xs:string" 
+                    minOccurs="0" maxOccurs="1" />
+        <xs:element name="parameter" type="icdec-plugin-parameter-type"
+                    minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<!-- ===== FU =========================================== =============== -->
+
+<xs:complexType name="fu-type">
+    <xs:sequence>
+        <xs:element name="hdb-file" type="xs:string"/>
+        <xs:element name="fu-id" type="xs:integer"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<!-- ===== RF =========================================================== -->
+
+<xs:complexType name="rf-type">
+    <xs:sequence>
+        <xs:element name="hdb-file" type="xs:string"/>
+        <xs:element name="rf-id" type="xs:integer"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<!-- ===== BUS ========================================================== -->
+
+<xs:complexType name="bus-type">
+    <xs:sequence>
+        <xs:element name="hdb-file" type="xs:string"/>
+        <xs:element name="bus-id" type="xs:integer"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<!-- ===== SOCKET ======================================================= -->
+
+<xs:complexType name="socket-type">
+    <xs:sequence>
+        <xs:element name="hdb-file" type="xs:string"/>
+        <xs:element name="socket-id" type="xs:integer"/>
+    </xs:sequence>
+    <xs:attribute name="name" type="xs:string"/>
+</xs:complexType>
+
+<!-- ===== ADF-IMPLEMENTATION =========================================== -->
+
+<xs:element name="adf-implementation">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element name="ic-decoder-plugin" type="icdec-plugin-type" 
+                        minOccurs="0" maxOccurs="1"/>
+            <xs:element name="decompressor-file" type="xs:string"
+                        minOccurs="0" maxOccurs="1"/>
+            <xs:element name="fu" type="fu-type" minOccurs="0" 
+                        maxOccurs="unbounded"/>
+            <xs:element name="rf" type="rf-type" minOccurs="0" 
+                        maxOccurs="unbounded"/>
+            <xs:element name="iu" type="rf-type" minOccurs="0" 
+                        maxOccurs="unbounded"/>
+            <xs:element name="bus" type="bus-type" minOccurs="0" 
+                        maxOccurs="unbounded"/>
+            <xs:element name="socket" type="socket-type" minOccurs="0" 
+                        maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <!-- === UNIQUE DECLARATIONS === -->
+    <xs:unique name="fu-name-unique">
+        <xs:selector xpath="fu"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="rf-name-unique">
+        <xs:selector xpath="rf"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="iu-name-unique">
+        <xs:selector xpath="iu"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="bus-name-unique">
+        <xs:selector xpath="bus"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+    <xs:unique name="socket-name-unique">
+        <xs:selector xpath="socket"/>
+        <xs:field    xpath="@name"/>
+    </xs:unique>
+
+</xs:element>
+
+</xs:schema>

@@ -1,0 +1,78 @@
+/**
+ * @file ExecutableInstruction.icc
+ *
+ * Inline method definitions of ExecutableInstruction class.
+ *
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+#include "ExecutableInstruction.hh"
+#include "ExecutableMove.hh"
+#include "LongImmUpdateAction.hh"
+#include "SequenceTools.hh"
+
+/**
+ * Executes the instruction.
+ *
+ * First all long immediate update actions are executed. 
+ * Next, guards are evaluated to decide which moves will be squashed and
+ * which not. Finally, data transports of the unsquashed moves are 
+ * executed.
+ */
+inline void
+ExecutableInstruction::execute() {
+
+    // have to evaluate the guards before either a long immediate
+    // or a register transport overwrites it
+    for (std::size_t i = 0; i < moves_.size(); ++i) {
+        moves_[i]->evaluateGuard();
+    }
+    for (std::size_t i = 0; i < moves_.size(); ++i) {
+        moves_[i]->executeRead();
+    }
+    for (std::size_t i = 0; i < moves_.size(); ++i) {
+        moves_[i]->executeWrite();
+    }
+    // long immediate latency is fixed to 1, zero latency is not
+    // supported, thus the updates are not visible to the moves
+    // in the same instruction
+    for (std::size_t i = 0; i < updateActions_.size(); ++i) {
+        updateActions_[i]->execute();
+    }
+    executionCount_++;
+}
+
+/**
+ * Returns true in case the move with the given index was squashed the last 
+ * time the instruction was executed.
+ *
+ * Being squashed means that the move is guarded and the guard expression
+ * evaluated to false.
+ *
+ * @param moveIndex Index of the move to query.
+ * @return True in case move was squashed.
+ */
+inline bool 
+ExecutableInstruction::moveSquashed(std::size_t moveIndex) const {
+    return moves_[moveIndex]->squashed();
+}
+
+/**
+ * Returns true in case this instruction is considered a program
+ * exit point: the simulation should stop *after* executing this instruction.
+ */
+inline bool
+ExecutableInstruction::isExitPoint() const {
+    return exitPoint_;
+}
+
+/**
+ * Sets the instruction's exit point status.
+ *
+ * @see isExitPoint()
+ */
+inline void
+ExecutableInstruction::setExitPoint(bool b) {
+    exitPoint_ = b;
+}

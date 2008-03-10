@@ -1,0 +1,8 @@
+add 35 34
+add 3 -3
+add -3 3
+add 2 -123
+add -123 2
+add 0xffffffff 1
+add -3 -3
+!quit

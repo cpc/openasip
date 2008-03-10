@@ -1,0 +1,11 @@
+<?php
+// short test description
+$test_description="parallel simulation and debugging features";
+
+// the binary being tested
+$test_bin="../../../src/codesign/ttasim/ttasim";
+
+// args given to program
+// $bin_args="";
+
+?>

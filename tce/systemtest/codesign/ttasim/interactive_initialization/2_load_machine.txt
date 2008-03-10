@@ -1,0 +1,5 @@
+conf data/adfnotfound.pcf
+conf data/brokenadf.pcf
+conf data/noadf.pcf
+mach data/working.adf
+conf data/working.pcf

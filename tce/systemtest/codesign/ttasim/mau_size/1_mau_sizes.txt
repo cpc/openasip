@@ -1,0 +1,4 @@
+mach data/mau_size.adf
+prog data/mau_size.tpef
+run
+info registers RF1

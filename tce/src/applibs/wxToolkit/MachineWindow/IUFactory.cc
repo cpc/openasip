@@ -1,0 +1,96 @@
+/**
+ * @file IUFactory.cc
+ *
+ * Definition of IUFactory class.
+ *
+ * @author Ari Metsähalme 2003 (ari.metsahalme@tut.fi)
+ * @note rating: yellow
+ * @note reviewed Jul 14 2004 by jm, ll, jn, am
+ */
+
+#include <string>
+#include <vector>
+
+#include "IUFactory.hh"
+#include "UnitPortFactory.hh"
+#include "ImmediateUnit.hh"
+#include "EditPart.hh"
+#include "UnitFigure.hh"
+#include "FUPort.hh"
+#include "WxConversion.hh"
+#include "EditPolicyFactory.hh"
+
+using std::vector;
+using namespace TTAMachine;
+
+/**
+ * The Constructor.
+ */
+IUFactory::IUFactory(EditPolicyFactory& editPolicyFactory):
+    EditPartFactory(editPolicyFactory) {
+
+    registerFactory(new UnitPortFactory(editPolicyFactory));
+}
+
+/**
+ * The Destructor.
+ */
+IUFactory::~IUFactory() {
+}
+
+/**
+ * Returns an EditPart corresponding to a immediate unit.
+ *
+ * @param component Immediate unit of which to create the EditPart.
+ * @return NULL if the parameter is not an instance of the
+ *         ImmediateUnit class.
+ */
+EditPart*
+IUFactory::createEditPart(MachinePart* component) {
+
+    ImmediateUnit* imm = dynamic_cast<ImmediateUnit*>(component);
+
+    if (imm != NULL) {
+	EditPart* immEditPart = new EditPart();
+	immEditPart->setModel(imm);
+
+	UnitFigure* fig = new UnitFigure();
+	wxString name = WxConversion::toWxString(imm->name());
+	name.Prepend(_T("IMM: "));
+	fig->setName(name);
+	immEditPart->setFigure(fig);
+
+	for (int i = 0; i < imm->portCount(); i++) {
+	    vector<Factory*>::const_iterator iter;
+	    for (iter = factories_.begin(); iter != factories_.end(); iter++) {
+		EditPart* portEditPart =
+		    (*iter)->createEditPart(imm->port(i));
+		if (portEditPart != NULL) {
+		    EditPolicy* editPolicy =
+			editPolicyFactory_.createIUPortEditPolicy();
+		    if (editPolicy != NULL) {
+			portEditPart->installEditPolicy(editPolicy);
+		    }
+		    immEditPart->addChild(portEditPart);
+		}
+	    }
+	}
+
+
+        wxString info = WxConversion::toWxString(imm->numberOfRegisters());
+        info.Append(_T("x"));
+        info.Append(WxConversion::toWxString(imm->width()));
+        fig->setInfo(info);
+	immEditPart->setSelectable(true);
+
+	EditPolicy* editPolicy = editPolicyFactory_.createIUEditPolicy();
+	if (editPolicy != NULL) {
+	    immEditPart->installEditPolicy(editPolicy);
+	}
+
+	return immEditPart;
+
+    } else {
+	return NULL;
+    } 
+}

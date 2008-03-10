@@ -1,0 +1,115 @@
+/**
+ * @file SymbolElement.icc
+ *
+ * Inline definitions of SymbolElement class.
+ *
+ * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
+ * @author Mikael Lepistö 18.12.2003 (tmlepist@cs.tut.fi)
+ * @note reviewed 22 October 2003 by ml, jn, ao, tr
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Returns is the element absolute or relocating.
+ *
+ * @return Is the element absolute or relocating.
+ */
+inline bool
+SymbolElement::absolute() const {
+    return absolute_;
+}
+
+/**
+ * Sets is the element absolute or relocating.
+ *
+ * @param anAbsoluteness True if absolute,
+ */
+inline void
+SymbolElement::setAbsolute(bool anAbsoluteness) {
+    absolute_ = anAbsoluteness;
+}
+
+/**
+ * Returns the binding type.
+ *
+ * @return The binding type.
+ */
+inline SymbolElement::SymbolBinding
+SymbolElement::binding() const {
+    return bind_;
+}
+
+/**
+ * Sets the binding type.
+ *
+ * @param aBind The binding type.
+ */
+inline void
+SymbolElement::setBinding(SymbolBinding aBind) {
+    bind_ = aBind;
+}
+
+/**
+ * Returns the name.
+ *
+ * @return The name.
+ */
+inline Chunk*
+SymbolElement::name() const {
+    return dynamic_cast<Chunk*>(name_->pointer());
+}
+
+/**
+ * Sets the name.
+ *
+ * @param aName The name.
+ */
+inline void
+SymbolElement::setName(const ReferenceManager::SafePointer* aName) {
+    name_ = aName;
+}
+
+/**
+ * Sets the name.
+ *
+ * @param aName The name.
+ */
+inline void
+SymbolElement::setName(Chunk* aName) {
+    name_ = ReferenceManager::SafePointer::replaceReference(name_, aName);
+}
+
+/**
+ * Returns the section to which the symbol belong.
+ *
+ * @return The section to which the symbol belong.
+ */
+inline Section*
+SymbolElement::section() const {
+    return dynamic_cast<Section*>(section_->pointer());
+}
+
+/**
+ * Sets the section to which the symbol belong.
+ *
+ * @param aSect The section to which symbol belong.
+ */
+inline void
+SymbolElement::setSection(const ReferenceManager::SafePointer* aSect) {
+    section_ = aSect;
+}
+
+/**
+ * Sets the section to which the symbol belong.
+ *
+ * @param aSect The section to which symbol belong.
+ */
+inline void
+SymbolElement::setSection(Section* aSect) {
+    section_ = ReferenceManager::SafePointer::replaceReference(section_, aSect);
+}
+
+}

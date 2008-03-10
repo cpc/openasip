@@ -1,0 +1,710 @@
+\NeedsTeXFormat{LaTeX2e}
+\documentclass[a4paper,twoside]{tce}
+\usepackage{pslatex}
+
+\begin{document}
+\author{Mikael Lepistö}
+\title{TCE v1 Frontend Compiler}
+\ver{0.3.3}
+\firstday{27.09.2004}
+\lastday{17.01.2005}
+% id number in S- sequence
+\docnum{\#\#\#}
+% draft/complete/committed
+\state{draft}
+
+\maketitle
+
+\chapter*{Document History}
+
+\begin{HistoryTable}
+
+ 0.1    & 04.10.2004 &
+ M. Lepistö   & Initial version.\\
+
+ 0.1.1  & 04.10.2004 & P. Jääskeläinen &
+ Small corrections found in review.\\
+
+ 0.2    & 05.10.2004 & M. Lepistö &
+ Lots of updates to file format specification.\\
+
+ 0.3    & 06.10.2004 & M. Lepistö &
+ Fixed tables to look nicer. Clarified symbol information and completed
+ structure of document. Added text to missing sections.\\
+
+ 0.3.1  & 28.10.2004 & M. Lepistö &
+ Updated compiling instructions. Now TCE\_HOME\_PATH must be set before
+ running make.\\
+
+ 0.3.2  & 25.12.2004 & M. Lepistö &
+ Added information about assembler-generated stabs that identify processor
+ resources used in program.\\
+
+ 0.3.3  & 17.01.2005 & A. Cilio &
+ Corrected \LaTeX{} compilation error. Minor style changes.\\
+
+\end{HistoryTable}
+
+\chapter {Installing And Using Compiler}
+
+TCE v1 Frontend Compiler does not need to be installed. One has to do two
+things to make the compiler work:
+
+\begin{itemize}
+\item Set TCE\_HOME\_PATH enviroment variable to point to the frontend
+      base directory.
+\item Compile tools and libraries.
+\end{itemize}
+ 
+\section {Compiling TCE v1 Frontend Compiler}
+
+Compilation should be successfull with any gcc compiler newer than 2.95.0.
+
+First you have to set TCE\_HOME\_PATH environment variable, before you are 
+able to compile anything with the TCE v1 Frontend Compiler. TCE\_HOME\_PATH 
+should be set the absolute path pointing to the  same directory where you 
+have copied the Frontend directory hierarchy. It's the same directory that 
+contains, e.g., TCE-Changes.txt and README-gcc-tce file.
+
+In \textit{bash} setting environment variable may be done like this:
+\begin{quote}
+\texttt{export TCE\_HOME\_PATH="/home/username/\textsl{frontend-path}"}
+\end{quote}
+%
+where \emph{frontend-path} is the path where the frontend complier is
+located.
+
+Run `configure':
+\begin{verbatim}
+    cd $TCE_HOME_PATH
+    ./configure
+\end{verbatim}%$
+
+Call `make' to compile compilers and libraries:
+\begin{verbatim}
+    make
+\end{verbatim}
+
+\section {Using compiler}
+
+You have successfully compiled tools and libraries and have your
+TCE\_HOME\_PATH set.  Next you might want to add the TCE v1 Frontend
+Compiler to your PATH environment variable, so you don't have to invoke the
+compiler always using its full path. If you do so, you should add
+\${TCE\_HOME\_PATH}/bin to the END of PATH environment variable:
+
+\begin{verbatim}
+  export PATH="${PATH}:${TCE_HOME_PATH}/bin"
+\end{verbatim}
+
+If binary path is added to start of \$PATH, your normal system compiler 
+probably will stop working because some GNU tools of the TCE v1 Frontend 
+Compiler may interfere with your system's native compiler. The compiler 
+can be run using command \textit{gcc-tce}, after the \$TCE\_HOME\_PATH 
+variable is set.
+
+\chapter {Main Changes to Original Gcc-move}
+
+\begin{itemize}
+\item All architecture dependent optimizations are removed. Only 
+      optimizations that are done in higher level are allowed.
+\item Streamlined instruction set. Created static instruction set, which 
+      is used always. Instructions that are not supported by the target machine
+      are replaced with emulation code by an another TCE application.
+\item Expanded register set to 1024 floating point and 1024 integer registers.
+\item Changed assembler syntax to use dot instead of underscore as a 
+      register separator mark from, e.g., add\_o was replaced with add.o.
+\item Cleaned up code in all files that were touched while doing the previous
+      modifications. 
+\item Added generation of stabs for finding name for each used register.
+\end{itemize}
+
+\textbf{Changed files:}
+\begin{itemize}
+\item tce-frontend/gcc-2.7.0/config/move/local.h
+\item tce-frontend/gcc-2.7.0/config/move/move.c
+\item tce-frontend/gas-move/move.c
+\item tce-frontend/include/syscall.h
+\item tce-frontend/include/annotate.h
+\item tce-frontend/lib/src/libc/setjmp.c
+\end{itemize}
+
+Detailed information of changes can be found in \${TCE\_HOME\_PATH}/TCE-Changes.txt.
+Test information about code generation is found from 
+\${TCE\_HOME\_PATH}/test/TestInfo.txt where is told what is tested and 
+what were the results. There one can found for example how to create C code 
+which generates min, max or abs instructions.
+
+\chapter{TCE A.out File Format}
+
+A.out file contains two parts. File header and section bodies. In file header 
+is stored sizes of each section and some other information about which kind
+of data binary contains (does binary contain object data or something else).
+
+In a.out binary first comes file header after that comes bodies of each
+section. There is no separate section headers. Sections are organized in a way 
+that program sections comes (TEXT, DATA and BSS which are the sections 
+that contains program instructions, initialised data and uninitialised 
+data areas that program uses when executed) comes first then comes 
+rest of the sections.
+
+\begin{table}[h]
+  \centering  
+  \caption{A.out binary file}
+  \begin{tabular}{|c|}
+    \hline
+    File header \\
+    \hline
+    TEXT section \\
+    \hline
+    DATA section \\
+    \hline
+    Symbol section \\
+    \hline
+    TEXT Relocation section \\
+    \hline
+    DATA Relocation section \\
+    \hline
+    String section \\
+    \hline
+  \end{tabular}
+\end{table}
+
+BSS section (uninitialised data section) does not contain any data. It exists only 
+in file header and does not have body stored.
+
+\newpage
+
+\section{A.out File Header}
+
+File header of TCE a.out is 32 bytes long. The meaning of the bytes is 
+explained in the following list. \textbf{Word} in this listing means a value 
+of 4 bytes in size, and \textbf{Halfword} naturally a value of 2 bytes in size.
+
+\begin{center}
+  \begin{longtable}{|p{0.08\textwidth}|p{0.12\textwidth}|
+                    p{0.16\textwidth}|p{0.50\textwidth}|}
+    \caption{TCE a.out file header.}\\
+    \hline
+    \textbf{Offset} & \textbf{Field Size} & \textbf{Name} & \textbf{Description} \\
+    \hline
+    \hline
+    0  & Byte & Flags & 
+    Not used with TCE a.out (info about file type)? \\
+    \hline
+    1  & Byte & MachineType & 
+    Not used with TCE a.out ?\\
+    \hline
+    2  & HalfWord & Magic & 
+    Magic number and version information. For TCE a.out this is 0x0107. \\
+    \hline
+    4  & Word & TextSize & Size of the TEXT section. \\
+    \hline
+    8  & Word & DataSize & Size of the DATA section. \\
+    \hline
+    12 & Word & BssSize & Size of the BSS section. \\
+    \hline
+    16 & Word & SymtabSize & Size of the Symbol section. \\
+    \hline
+    20 & Word & EntryAddress & 
+    Virtual address of the entry point of the program. TCE Frontend 
+    writes zero to this. \\
+    \hline
+    24 & Word & TextRelocSize & Size of the TEXT Relocation section. \\
+    \hline
+    28 & Word & DataRelocSize & Size of the DATA Relocation section. \\
+    \hline
+  \end{longtable}
+\end{center}
+
+String section is the last section in the a.out file. It starts straight 
+after DATA Relocation section and continues to the end of file. Size of 
+String section is not stored in the file header, but it can be calculated 
+from file size and other section sizes. 
+
+\section{TEXT Section}
+
+Instructions in the TTA a.out format are stored in a fixed size entries of 
+8 bytes of width.
+
+\begin{center}
+  \begin{longtable}{|p{0.08\textwidth}|p{0.12\textwidth}|
+                    p{0.16\textwidth}|p{0.50\textwidth}|}
+    \caption{TEXT section entry.}\\
+    \hline
+    \textbf{Offset} & \textbf{Field Size} & \textbf{Name} & \textbf{Description} \\
+    \hline
+    \hline
+    0  & Byte & Guard & Defines if the guard is conditional.\\
+    \hline
+    1  & Byte & Flags & Flag byte of the move. \\
+    \hline
+    2  & HalfWord & Destination & Type and index of destination register.\\
+    \hline
+    4  & Word & Source & 
+    Either an immediate value or type and index of source register.\\
+    \hline
+  \end{longtable}
+\end{center}
+
+\subsection{Guard}
+
+Guard is one character which tells that if move is conditional. Guard may have
+three different values: 
+
+\begin{itemize}
+\item zero (0x00) means that move is not conditional and it's always executed.
+\item '?' (0x3F) means that move is executed if value of boolean register is true.
+\item '!' (0x21) means that move is executed if value of boolean register is false.
+\end{itemize}
+
+\subsection{Flags}
+
+Bit 0x01 means that move contains immediate value in the source field.
+
+\subsection{Destination}
+
+Register that is the destination of move. Values 0..1023 are integer registers,
+1024..2047 are floating point registers, 2048 is boolean register and the rest 
+are operation registers.
+
+\subsection{Source}
+
+If Flags byte's 0x01 bit is not set, then field is coded same way that 
+Destination field. If 0x01 bit is set in Flag field then the Destination 
+field contains an immediate value. 
+
+\section{DATA Section}
+Contains all initialized data that is needed in TEXT section. 
+
+\section{BSS Section}
+BSS section is uninitialized data section. BSS section doesn't actually 
+exist in a.out file (except in file header) i.e. BSS section doesn't have 
+body, it's needed only for a.out memory image.
+
+\section{Symbol Section}
+
+In a.out, symbols are indexed starting from zero. Symbol entries are fixed 
+size fields of 12 bytes of width. 
+
+\begin{center}
+  \begin{longtable}{|p{0.08\textwidth}|p{0.12\textwidth}|
+                    p{0.16\textwidth}|p{0.50\textwidth}|}
+    \caption{Symbol section entry.}\\
+    \hline
+    \textbf{Offset} & \textbf{Field Size} & \textbf{Name} & \textbf{Description} \\
+    \hline
+    \hline
+    0  & Word & Name & Section offset to string table.\\
+    \hline
+    4  & Byte & Type & Type of the symbol.\\
+    \hline
+    5  & Byte & Other & Not used.\\
+    \hline
+    6  & HalfWord & Desc & Description of symbol. Reserved for debugger use.\\
+    \hline
+    8  & Word & Value & Value of symbol.\\ 
+    \hline
+  \end{longtable}
+\end{center}
+
+\subsection{Name}
+
+Zero if symbol name is not available.
+
+\subsection{Type}
+
+N\_TYPE is used to mask all symbols that concern linker. N\_EXT mask can be 
+used for masking external bit of symbol.
+
+\subsection{Value}
+
+For text, data and bss symbols field contains the address of the symbol or 
+zero if symbol is unresolved. Meaning depends on the type of the symbol.
+
+\subsection{Symbol Types And Symbol Bit Masks}
+
+Symbols might have external bit set, which can be tested by masking symbol 
+value with N\_EXT mask. If external bit is set, symbol is defined also outside 
+from currently read file. In other words, a symbol with an external bit set is 
+a global symbol.
+
+All symbols whose id is bigger than N\_TYPE are called as stab symbols. Linker
+doesn't care much about these symbols, but it does resolve also stab symbols.
+Linker handles resolving stabs, same way that it resolves normal symbols, so
+for example N\_PRTAB symbol is resolved same way that N\_ABS symbol because
+(N\_PRTAB \& N\_TYPE) == N\_ABS.
+
+\begin{center}
+  \begin{longtable}{|p{0.15\textwidth}|p{0.10\textwidth}|
+                    p{0.55\textwidth}|}
+  \caption{TCE a.out symbols, symbol masks and descriptions.}\\
+    \hline
+    \textbf{Name} & \textbf{Value} & \textbf{Description} \\
+    \hline
+    \hline
+    N\_UNDF & 0x0 & Undefined symbol\\
+    \hline
+    N\_ABS & 0x2 & Absolute\\ 
+    \hline
+    N\_TEXT & 0x4 & TEXT\\ 
+    \hline
+    N\_DATA & 0x6 & DATA\\ 
+    \hline
+    N\_BSS & 0x8 & BSS\\ 
+    \hline
+    N\_COMM & 0x12 & Common (internal to ld)\\
+    \hline
+    N\_FN & 0x1e & File name\\
+    \hline
+    N\_EXT & 0x1 & External mask\\ 
+    \hline
+    N\_TYPE & 0x1e & Symbol type mask\\ 
+    \hline
+    N\_TJ   & 0x76 & Table jump\\
+    \hline
+    N\_JTE  & 0x96 & Jump table entry\\
+    \hline
+    N\_MEM  & 0xb6 & Memory reference\\
+    \hline
+    N\_FC   & 0xd6 & Function call\\
+    \hline
+    N\_STAB & 0xe0 & Mask for stabs\\
+    \hline
+    N\_GSYM & 0x20 & Global\\
+    \hline
+    N\_FNAME& 0x22 & Procedure name (f77)\\
+    \hline
+    N\_FUN  & 0x24 & Procedure\\
+    \hline
+    N\_STSYM& 0x26 & Static\\
+    \hline
+    N\_LCSYM& 0x28 & .lcomm\\
+    \hline
+    N\_MAIN & 0x2a & Name of main rutine\\
+    \hline
+    N\_RSYM & 0x40 & Register\\
+    \hline
+    N\_SLINE& 0x44 & Source line\\
+    \hline
+    N\_SSYM & 0x60 & Structure\\
+    \hline
+    N\_SO   & 0x64 & Source file name\\
+    \hline
+    N\_LSYM & 0x80 & Local\\
+    \hline
+    N\_BINCL& 0x82 & Header file\\
+    \hline
+    N\_SOL  & 0x84 & \#included file name\\
+    \hline
+    N\_PSYM & 0xa0 & Parameter\\
+    \hline
+    N\_EINCL& 0xa2 & End of include file\\
+    \hline
+    N\_ENTRY& 0xa4 & Alternate entry\\
+    \hline
+    N\_LBRAC& 0xc0 & Left bracket\\
+    \hline
+    N\_EXCL & 0xc2 & Excluded include file\\
+    \hline
+    N\_RBRAC& 0xe0 & Right bracket\\
+    \hline
+    N\_BCOMM& 0xe2 & Begin common\\
+    \hline
+    N\_ECOMM& 0xe4 & End common\\
+    \hline
+    N\_ECOML& 0xe8 & End common (local name)\\
+    \hline
+    N\_PRTAB & 0xd2 & TPEF processors resource table entry\\
+    \hline
+    N\_LENG & 0xfe & Second symbol table entry with length\\
+    \hline
+    N\_PC   & 0x30 & Global pascal symbol\\
+    \hline
+    N\_M2C  & 0x42 & Compilation unit symbol table entry\\
+    \hline
+    N\_SCOPE& 0xc4 & Scope information\\
+    \hline
+    N\_BROWS& 0x48  & Sun source code browser\\
+    \hline
+  \end{longtable}
+\end{center}
+
+\subsubsection{Undefined symbol}
+This symbol is used if there are unresolved references to other object files.
+Value field is not used (usually zero). If this kind of symbols exist then
+Symbol section should not be stripped.
+
+\subsubsection{Absolute}
+I have not found any symbols of this type from TCE a.out files.
+
+\subsubsection{TEXT symbol}
+Value of this symbol is an address to memory image. 
+Address should point to TEXT section.
+
+\subsubsection{DATA symbol}
+Value of this symbol is an address to memory image. 
+Address should point to DATA section.
+
+\subsubsection{BSS symbol}
+Value of this symbol is an address to memory image. 
+Address should point to BSS section.
+
+\subsubsection{Common (internal to ld)}
+
+\subsubsection{File name}
+I have not found any symbols of this type from TCE a.out files.
+
+\subsubsection{External mask}
+Mask for resolving if symbol is global or local.
+
+\subsubsection{Symbol type mask}
+Every symbol with type greater than N\_TYPE is a stab symbol. 
+Stab symbols are symbols which are not needed by linker, but can 
+contain useful information like info about line numbers.
+
+\subsubsection{TPEF processors resource table entry}
+Front end generates for N\_PRTAB symbol for each register that is
+used in assembled a.out files. Value of symbol is id that is used
+to refer register and string of symbol is name for register.
+
+\section{Relocation Sections}
+
+There can be up to two relocation sections in every a.out file, one for 
+data and one for code. Only difference between these sections is the section
+to which section Offset field of element refers. Relocation elements are not 
+referred to, so there is no need to know how elements are indexed. Anyways, 
+usually elements are indexed starting from zero in a.out and objdump indecies 
+these entries from zero.
+
+Every relocation entry has a fixed size of 12 bytes.
+
+\begin{center}
+  \begin{longtable}{|p{0.08\textwidth}|p{0.12\textwidth}|
+                    p{0.16\textwidth}|p{0.50\textwidth}|}
+    \caption{Relocation section entry.}\\
+    \hline
+    \textbf{Offset} & \textbf{Field Size} & \textbf{Name} & \textbf{Description}\\
+    \hline
+    \hline
+    0  & Word & Offset & 
+    Section offset to a location that contains a value to be relocated.\\
+    \hline
+    4  & Word & Info & 
+    Contains three values, symbol index or section id, external flag 
+    and relocation type.\\
+    \hline
+    8  & Word & Addend & 
+    Contains a copy of value that is referred by the Offset field.\\
+    \hline
+  \end{longtable}
+\end{center}
+
+\subsection{Offset}
+
+Section offset to a location which contains a value to be relocated.
+Offset to either text section (to immediate value of move) or data section, 
+depending which one of the relocation sections is read. After linking value 
+of the location pointed by Offset may not be valid anymore (linker updates 
+only Addend field while resolving relocations).
+
+\subsection{Info}
+
+First 24 bits of field is symbol index which is referred from relocation 
+element or section id of the section, which is referred by Addend. If external 
+flag is set then symbol index is stored. Otherwise symbol index field contains 
+section id of the section that is referred by address in Addend. 
+
+External flag is in the bit whose mask is 0x00000080. 
+
+Relocation type given by the 5 least significant bits. It seems to be 
+always RELOC\_32, a TCE-specific relocation type. See below for details. 
+After full linking there is never symbols referred from relocation table.
+
+For resolved relocations (relocations of which external bit is not set), 
+symbol number tells section id of the object pointed by addend. This value 
+can be used as an sanity check for the memory address in Addend field. 
+
+\begin{center}
+  \begin{longtable}{|p{0.25\textwidth}|p{0.30\textwidth}|}
+    \caption{Symbol index field for resolved relocations.}\\
+    \hline
+    \textbf{Symbol Index} & \textbf{Section}\\
+    \hline
+    \hline
+    0x04 & TEXT section. \\
+    \hline
+    0x06 & DATA section. \\
+    \hline
+    0x08 & BSS section. \\
+    \hline
+  \end{longtable}
+\end{center}
+
+\subsection{Addend}
+
+If binary file is object file which is not linked yet then Addend  is same 
+that value of element referred by Offset field. Addend contains always correct 
+memory image address to element, which is destination of relocation 
+(with linked binary value pointed by Offset field is not valid anymore).
+
+It appears that TCE defines only 4 relocation types and actually uses only
+two (or maybe just one) of them. The types are declared in gas-move/move.h:
+
+\begin{verbatim}
+enum reloc_type
+{
+        RELOC_8, RELOC_16, RELOC_32, NO_RELOC
+};
+\end{verbatim}
+
+Only RELOC\_32 (=2) was ever found from test programs compiled to TCE a.out 
+code. It's still good thing to implement other relocation types as well.
+
+\subsection{Addend And The Value Referenced by Offset field}
+
+Generally Addend field in a.out is processor dependent. In many a.out formats
+there is no addend field at all. In TCE a.out addend field is used to store 
+the same value that should be stored in the location pointed by Offset field 
+of relocation entry. 
+
+Addend and the value in location pointed by the Offset is same for compiled, 
+but not for linked TCE a.out files. After linking, only the value in Addend field 
+is valid, because the TCE linker does not update the value in a location pointed 
+by Offset. The value in a location pointed by the Offset is left to hold the same 
+value that there was before linking. In other words, the value in the Addend 
+field of relocation entry is the one that can always be trusted and value 
+referred by Offset might be wrong.
+
+\section{String section}
+String section is similair to DATA section but contains only zero ending 
+strings. This section might be stripped from binary file.
+
+\section {TCE a.out Memory Image}
+
+There is need to refer offsets of TEXT section, DATA section and BSS section
+from TEXT and DATA sections (e.g., when we load and store values to memory
+in program code). So we have different memory image representation of TCE
+a.out file for handling references to memory image. Also relocation sections
+addend field refers this memory image (since it's copy of value in DATA or
+TEXT section).
+
+Memory image of a.out is similiar to binary file representation of file. 
+
+Memory image starts from address defined in file header (in TCE a.out it
+should be always zero) and first section in image is TEXT section. In image
+all section data is represented in same form that in binary file.
+
+\begin{center}
+  \begin{longtable}{|p{0.30\textwidth}|p{0.55\textwidth}|}
+    \caption{TCE a.out Memory Image.}\\
+    \hline
+    \textbf{Start Offset} & \textbf{Data That Memory Area Contains}\\
+    \hline
+    \hline
+    0x0000 & 
+    Nothing unless EntryAddress is zero. \\
+    \hline
+    EntryAddress & 
+    Start Of TEXT section. \\
+    \hline
+    EntryAddress + TextSize & 
+    Start of DATA section. \\
+    \hline
+    EntryAddress + TextSize + DataSize & 
+    Start of BSS section. \\
+    \hline
+    EntryAddress + TextSize + DataSize + BssSize & 
+    First memory address after memory image 
+    (Should not be referred from program).\\
+    \hline
+  \end{longtable}
+\end{center}
+   
+All values are gathered from a.out file header.
+
+EntryAddress = Virtual address of the entry point of the program.
+
+TextSize = Size of the TEXT section in bytes.
+
+DataSize = Size of the DATA section in bytes.
+
+BssSize = Size of the BSS section in bytes.
+
+
+\chapter{Things to notice}
+\section {Gcc Code Generation}
+\subsection{Min And Max}
+Compiler supports min and max instructions, but format of C code pattern
+is quite restrictive for generating these instructions. Min and max function calls
+doesn't generate code with min and max instruction used, but a function calls to 
+min and max functions.
+
+It's good idea to write macros for these patterns.
+
+\textbf{Valid code patterns for min}
+\begin{itemize}
+\item minOfVariablesI1AndI2 = (i1 < i2) ? (i1) : (i2);   
+\item minOfVariablesI1AndI2 = (i1 <= i2) ? (i1) : (i2); 
+\end{itemize}
+                                   
+\textbf{Valid code patterns for max}
+\begin{itemize}
+\item maxOfVariablesI1AndI2 = (i1 > i2) ? (i1) : (i2);   
+\item maxOfVariablesI1AndI2 = (i1 >= i2) ? (i1) : (i2); 
+\end{itemize}
+                                   
+\subsection{Absolute}
+For absolute code patterns are almost as restricted that for min and max. One
+difference with abs was that abs function call actually generates abs instruction
+to assembler code.
+
+\textbf{Valid code patterns for abs}
+\begin{itemize}
+\item absoluteValue = (i > 0) ? (i) : -(i); 
+\item absoluteValue = (i >= 0) ? (i) : -(i);
+\end{itemize}
+
+Absolute patterns for floating point values doesn't work same way. You have
+to use builtin fabs() (NOT absf()) function if you want to absf instructions to
+be generated.
+
+\subsection{Multiplication, Modulus and Division}
+Most of these operations are generated fine, but for example when we
+are operating with small (e.g., 1000 is quite small) constant values these 
+operations might be replaced with series of shifts, sub and add instructions.
+
+\subsection{Rotate}
+Rotate patterns are defined, but I was able to create C code pattern only
+for rotate with constant. 
+
+\textbf{Valid code pattern for rotate with constant}
+\begin{itemize}
+\item valueToRotate = (valueToRotate >> 1) | (valueToRotate << 31);
+\end{itemize}
+
+\subsection{Truncating Double to Float}
+Truncating double to float is done just by register move. It probably shouldn't 
+be that way?
+
+\subsection{Parameter Passing And Return Values}
+When there is not enough registers to pass arguments then stack will be 
+used for rest of them. There is 4 integer and 4 floating point registers 
+reserved for argument passing. If struct is passed as argument, all 
+arguments that after struct in argument list are passed in stack. All 
+structures, which contained one integer variable (byte, half word or word) 
+inside  were returned in register. If there is more than one variable or 
+table of 2-4 bytes then value is returned in memory even if it would fit 
+to one register.
+
+\chapter{Further development}
+
+\section{Open Ended Instruction Set}
+This feature is already implemented to assembler of frontend. When assembler 
+faces on register string whose id is not already defined, assembler generates
+new stab and id for that register name. Because of this property same 
+registers may have different id, in different files. 
+
+\section{Stabs For Save And Restore Code}
+
+\end{document}

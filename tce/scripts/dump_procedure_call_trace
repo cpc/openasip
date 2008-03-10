@@ -1,0 +1,20 @@
+#!/bin/sh
+# Dumps the procedure execution trace of the program.
+#
+# Input:  The TraceDB file (produced with procedure_transfer_tracking on).
+# Output: Listing of procedures in order of execution.
+
+
+needSQLite=1
+
+. tce_scripts_settings.sh
+
+${TCE_SQLITE_BIN} -header -column $1 <<EOF
+SELECT procedure_transfer.cycle AS cycle,
+       procedure_address_range.procedure_name AS procedure,
+       procedure_transfer.type AS is_return
+FROM procedure_transfer, procedure_address_range
+WHERE procedure_transfer.address >= procedure_address_range.first_address AND
+      procedure_transfer.address <= procedure_address_range.last_address
+ORDER BY cycle ASC;
+EOF

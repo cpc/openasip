@@ -1,0 +1,7 @@
+<osal>
+    <operation>
+        <name>foo</name>
+        <inputs>2
+        <outputs>1</outputs>
+        </inputs>
+</osal>

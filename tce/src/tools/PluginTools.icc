@@ -1,0 +1,63 @@
+/**
+ * @file PluginTools.icc
+ *
+ * Template method definitions of PluginTools.
+ *
+ * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @note reviewed 19 May 2004 by ml, jn, ao, am
+ * @note rating: green
+ */
+
+
+/**
+ * Loads a symbol from a module.
+ *
+ * The target symbol is cast to void* to make it possible to assign the
+ * loaded symbol to it.
+ *
+ * @param symbolName The symbol being loaded.
+ * @param target The target for loaded symbol.
+ * @param module The module where symbol is loaded from.
+ * @exception MultipleInstancesFound If multiple instances of module are
+ *                                   found.
+ * @exception FileNotFound If module is not found.
+ * @exception DynamicLibraryException If occurs problems with dynamic
+ *                                    libraries.
+ * @exception SymbolNotFound If symbol is not found.
+ */
+template <typename T>
+void
+PluginTools::importSymbol(
+    const std::string& symbolName,
+    T*& target,
+    const std::string& module)
+    throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
+           SymbolNotFound) {
+
+    *reinterpret_cast<void**>(&target) = loadSym(symbolName, module);
+}
+
+
+/**
+ * Loads a symbol.
+ *
+ * The target symbol is cast to void* to make it possible to assign the
+ * loaded symbol to it.
+ *
+ * @param symbolName The symbol being loaded.
+ * @param target The target where symbol is stored.
+ * @exception MultipleInstancesFound If multiple instances of module are
+ *                                   found.
+ * @exception FileNotFound If module is not found.
+ * @exception DynamicLibraryException If occurs problems with dynamic
+ *                                    libraries.
+ * @exception SymbolNotFound If symbol is not found.
+ */
+template <typename T>
+void
+PluginTools::importSymbol(const std::string& symbolName, T*& target)
+    throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
+           SymbolNotFound) {
+
+    *reinterpret_cast<void**>(&target) = loadSym(symbolName);
+}

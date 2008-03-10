@@ -1,0 +1,104 @@
+/**
+ * @file ResourceElement.icc
+ *
+ * Inline definitions of ResourceElement class.
+ *
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Returns type of the resource.
+ *
+ * @return Type of the resource.
+ */
+inline ResourceElement::ResourceType
+ResourceElement::type() const {
+    return type_;
+}
+    
+/**
+ * Sets type of the resource.
+ *
+ * @param Type of the resource.
+ */
+inline void
+ResourceElement::setType(ResourceType aType) {
+    type_ = aType;
+}
+    
+/**
+ * Returns unique identification code of the resource.
+ *
+ * @return Identification code.
+ */
+inline HalfWord
+ResourceElement::id() const {
+    return id_;
+}
+
+/**
+ * Sets the identification code field.
+ *
+ * @param aId Identification numerical code to set.
+ */
+inline void
+ResourceElement::setId(HalfWord aId) {
+    id_ = aId;
+}
+
+/**
+ * Returns info of the resource.
+ *
+ * @return Info of the resource.
+ */
+inline Word
+ResourceElement::info() const {
+    return info_;
+}
+
+/**
+ * Sets info field.
+ *
+ * @param aInfo Info to set.
+ */
+inline void
+ResourceElement::setInfo(Word aInfo) {
+    info_ = aInfo;
+}
+
+/**
+ * Returns name of the element.
+ *
+ * @return Name of the element.
+ */
+inline Chunk*
+ResourceElement::name() const {
+    return dynamic_cast<Chunk*>(name_->pointer());
+}
+
+/**
+ * Sets name for the resource.
+ *
+ * @param aName Name for the resource.
+ */
+inline void
+ResourceElement::setName(ReferenceManager::SafePointer* aName) {
+    name_ = aName;
+}
+
+
+/**
+ * Sets name for the resource.
+ *
+ * @param aName Name for resource.
+ */
+inline void
+ResourceElement::setName(Chunk* aName) {
+    name_ = ReferenceManager::SafePointer::replaceReference(name_, aName);
+}
+
+}

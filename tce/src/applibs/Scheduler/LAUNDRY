@@ -1,0 +1,13 @@
+Dirty pieces of code related to Scheduler which should be cleaned up
+at some point.
+
+Location of MoveNode and ProgramOperation
+-----------------------------------------
+
+Is it wise to keep them in PDG? Shouldn't this be a generic
+wrapper over POM Move and operation to ease scheduling with graph-based
+methods? Thus, own directory should be created for this and
+maybe a container class for bookkeeping, etc.
+
+--Pekka
+

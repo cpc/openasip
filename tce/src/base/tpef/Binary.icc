@@ -1,0 +1,159 @@
+/**
+ * @file Binary.icc
+ *
+ * Inline definitions of Binary class.
+ *
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ *
+ * @note rating: yellow
+ */
+
+namespace TPEF {
+
+/**
+ * Adds any section to the binary.
+ *
+ * @param section Section to add.
+ */
+inline void
+Binary::addSection(Section* section) {
+    assert(section != NULL);
+    sections_.push_back(section);
+}
+
+/**
+ * Returns section from given index.
+ *
+ * @param index Number of section to be returned.
+ * @return Section in requested index or NULL if out of range.
+ */
+inline Section*
+Binary::section(Word index) const {
+    if (index < sections_.size()) {
+        return sections_[index];
+    } else {
+        assert(false);
+        return NULL;
+    }
+}
+
+/**
+ * Returns section of requested type by it's ordinal number.
+ *
+ * @param type Type of sections which are looked for.
+ * @param number Ordinal number of section to be returned.
+ * @return Section of requested number or NULL if out of range.
+ */
+inline Section*
+Binary::section(Section::SectionType type, Word number) const {
+    Word foundSections = 0;
+    for (Word i = 0; i < sectionCount(); i++) {
+        if (section(i)->type() == type) {
+            if (foundSections  == number) {
+                return section(i);
+            }
+            foundSections++;
+        }
+    }
+    assert(false);
+    return NULL;
+}
+
+/**
+ * Returns how many sections are stored in Binary.
+ *
+ * @return Number of sections stored in Binary.
+ */
+inline Word
+Binary::sectionCount() const {
+    return sections_.size();
+}
+
+/**
+ * Returns how many sections of requested type is stored in Binary.
+ *
+ * @return Number of sections of requested type.
+ */
+inline Word
+Binary::sectionCount(Section::SectionType type) const {
+    Word sectionCountByType = 0;
+    for (Word i = 0; i < sectionCount(); i++) {
+        if (section(i)->type() == type) {
+            sectionCountByType++;
+        }
+    }
+    return sectionCountByType;
+}
+
+/**
+ * Returns string table section that holds section names.
+ *
+ * @return Section that contain section names.
+ */
+inline StringSection*
+Binary::strings() const {
+    return dynamic_cast<StringSection*>(strings_->pointer());
+}
+
+/**
+ * Sets string table which holds sections' names.
+ *
+ * @param strTable String table of section names.
+ */
+inline void
+Binary::setStrings(StringSection* strTable) {
+    strings_ = 
+        ReferenceManager::SafePointer::replaceReference(strings_, strTable);
+}
+
+/**
+ * Sets string table which holds sections' names.
+ *
+ * @param strTable String table of section names.
+ */
+inline void
+Binary::setStrings(const ReferenceManager::SafePointer* strTable) {
+    strings_ = strTable;
+}
+
+/**
+ * Sets encoding of program sections.
+ *
+ * @param arch Architecture of encoding of program sections.
+ */
+inline void
+Binary::setArch(FileArchitecture arch) {
+    fileArch_ = arch;
+}
+
+/**
+ * Sets file type of TTA code.
+ *
+ * @param type File type of TTA code.
+ */
+inline void
+Binary::setType(FileType type) {
+    fileType_ = type;
+}
+
+/**
+ * Returns encoding of program sections.
+ *
+ * @return Encoding of program sections.
+ */
+inline Binary::FileArchitecture
+Binary::arch() const {
+    return fileArch_;
+}
+
+/**
+ * Returns file type of binary.
+ *
+ * @return File type of binary.
+ */
+inline Binary::FileType
+Binary::type() const {
+    return fileType_;
+}
+
+}

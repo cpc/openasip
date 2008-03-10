@@ -1,0 +1,331 @@
+/**
+ * @file Section.icc
+ *
+ * Inline definitions of Section and RawSection classes.
+ *
+ * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ *
+ * @note rating: yellow
+ */
+
+/////////////////////////////////////////////////////////////////////////////
+// Section
+/////////////////////////////////////////////////////////////////////////////
+
+namespace TPEF {
+
+/**
+ * Returns an element from index given in parameter.
+ *
+ * @param index Index of requested element.
+ * @return An element of requested index.
+ */
+inline SectionElement*
+Section::element(Word index) const {
+    return elements_[index];
+}
+
+/**
+ * Returns number of elements in section.
+ *
+ * @return Number of elements in section.
+ */
+inline Word
+Section::elementCount() const {
+    return elements_.size();
+}
+
+/**
+ * Sets NOBITS flag.
+ *
+ * If this is set, section data is not written to file.
+ * There should be undefined element in those sections
+ * that provides it, if this flag is set.
+ */
+inline void
+Section::setFlagNoBits() {
+    setFlag(SF_NOBITS);
+}
+
+/**
+ * Unsets NOBITS flag.
+ *
+ * If this is set, section data is not written to file.
+ * There should be undefined element in those sections
+ * that provides it, if this flag is set.
+ */
+inline void
+Section::unsetFlagNoBits() {
+    unsetFlag(SF_NOBITS);
+}
+
+/**
+ * Sets VLEN flag.
+ *
+ * If this is set, the section contains elements
+ * with variable length.
+ */
+inline void
+Section::setFlagVLen() {
+    setFlag(SF_VLEN);
+}
+
+/**
+ * Unsets VLEN flag.
+ */
+inline void
+Section::unsetFlagVLen() {
+    unsetFlag(SF_VLEN);
+}
+
+/**
+ * Tests if NOBITS flag is set.
+ *
+ * If this is set, section data is not written to file.
+ * There should be undefined element in those sections
+ * that provides it, if this flag is set.
+ *
+ * @return True if NOBITS is on, otherwise false.
+ */
+inline bool
+Section::noBits() const {
+    return flag(SF_NOBITS);
+}
+
+/**
+ * Tests if VLEN flag is set.
+ *
+ * @return True if VLEN is on, otherwise false.
+ */
+inline bool
+Section::vLen() const {
+    return flag(SF_VLEN);
+}
+
+/**
+ * Returns whole flag byte.
+ *
+ * @return Flag byte.
+ */
+inline Byte
+Section::flags() const {
+    return flags_;
+}
+
+/**
+ * Sets whole flag byte.
+ *
+ * @param flagByte Value that is set to section flags.
+ */
+inline void
+Section::setFlags(Byte flagByte) {
+    flags_ = flagByte;
+}
+
+
+/**
+ * Returns true if flag is set.
+ *
+ * @param aFlag Flag that is tested.
+ * @return True if flag is set.
+ */
+inline bool
+Section::flag(SectionFlag aFlag) const {
+    return flags_ & aFlag;
+}
+
+/**
+ * Sets a flag.
+ *
+ * @param aFlag Flag that is set.
+ */
+inline void
+Section::setFlag(SectionFlag aFlag) {
+    flags_ = flags_ | aFlag;
+}
+
+/**
+ * Unsets a flag.
+ *
+ * @param aFlag Flag that is unset.
+ */
+inline void
+Section::unsetFlag(SectionFlag aFlag) {
+    flags_ = flags_ & (~aFlag);
+}
+
+/**
+ * Sets starting memory address.
+ *
+ * @param address Memory address to set.
+ */
+inline void
+Section::setStartingAddress(AddressImage address) {
+    startingAddress_ = address;
+}
+
+/**
+ * Returns an address where from the section begins.
+ *
+ * @return An address where from the section begins.
+ */
+inline AddressImage
+Section::startingAddress() const {
+    return startingAddress_;
+}
+
+/**
+ * Sets pointer to some other section that is connected to this one somehow.
+ *
+ * See Section header from TPEF format specification for more information.
+ *
+ * @param aLink Section which we want to set to link field.
+ */
+inline void
+Section::setLink(const ReferenceManager::SafePointer* aLink) {
+    link_ = aLink;
+}
+
+/**
+ * Sets pointer to some other section that is connected to this one somehow.
+ *
+ * See Section header from TPEF format specification for more information.
+ *
+ * @param aLink Section which we want to set to link field.
+ */
+inline void
+Section::setLink(Section* aLink) {
+    link_ = ReferenceManager::SafePointer::replaceReference(link_,aLink);
+}
+
+/**
+ * Returns link section.
+ *
+ * Each section may contain link to another section. Link section for
+ * every section type is listed in TPEF format specification.
+ *
+ * @return Link section.
+ */
+inline Section*
+Section::link() const {
+    return dynamic_cast<Section*>(link_->pointer());
+}
+
+/**
+ * Sets pointer to the address space entry or program section.
+ *
+ * See Section header from TPEF format specification for more information.
+ *
+ * @param addrSpace Address space entry or program section.
+ */
+inline void
+Section::setASpace(const ReferenceManager::SafePointer* addrSpace) {
+    aSpace_ = addrSpace;
+}
+
+/**
+ * Sets pointer to the address space of a section.
+ *
+ * See Section header from TPEF format specification for more information.
+ *
+ * @param addrSpace Address space to set.
+ */
+inline void
+Section::setASpace(ASpaceElement* addrSpace) {
+    aSpace_ = ReferenceManager::SafePointer::replaceReference(aSpace_, addrSpace);
+}
+
+/**
+ * Returns the address space of a section.
+ *
+ * @return the address space of a section.
+ */
+inline ASpaceElement*
+Section::aSpace() const {
+    return dynamic_cast<ASpaceElement*>(aSpace_->pointer());
+}
+
+/**
+ * Sets name of the section.
+ *
+ * @param sectionName String table element of section name.
+ */
+inline void
+Section::setName(const ReferenceManager::SafePointer* sectionName) {
+    name_ = sectionName;
+}
+
+/**
+ * Sets name of the section.
+ *
+ * @param sectionName String table element of section name.
+ */
+inline void
+Section::setName(Chunk* sectionName) {
+    name_ = 
+        ReferenceManager::SafePointer::replaceReference(name_, sectionName);
+}
+
+/**
+ * Returns section's name.
+ *
+ * @return String table element of section name.
+ */
+inline Chunk*
+Section::name() const {
+    return dynamic_cast<Chunk*>(name_->pointer());
+}
+
+/**
+ * Checks if section type is auxiliary section.
+ *
+ * Auxiliary section means, that the section does not contain
+ * instructions or data.
+ *
+ * @return True if section is auxiliary section otherwise false.
+ */
+inline bool
+Section::isAuxSection() const {
+    return ((type() & PROGRAM_SECTION_MASK) == 0x00);
+}
+
+/**
+ * Checks if section is program section.
+ *
+ * Program sections are those sections, which contain program or data.
+ *
+ * @return True if section is program section otherwise false.
+ */
+inline bool
+Section::isProgramSection() const {
+    return isProgramSection(type());
+}
+
+/**
+ * Checks if section type is program section type.
+ *
+ * Program sections are those sections, which contain program or data.
+ *
+ * @param type Section type to check.
+ * @return True if section is program section otherwise false.
+ */
+inline bool
+Section::isProgramSection(SectionType type) {
+    return ((type & PROGRAM_SECTION_MASK) == PROGRAM_SECTION_MASK);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// RawSection
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Tells if section has data.
+ *
+ * @return True if raw section has no data.
+ */
+inline bool
+RawSection::empty() const {
+    return length() == 0;
+}
+
+}

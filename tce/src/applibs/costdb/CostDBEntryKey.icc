@@ -1,0 +1,30 @@
+/**
+ * @file CostDBEntryKey.icc
+ *
+ * Inline implementation of CostDBEntryKey class.
+ *
+ * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @note rating: red
+ */
+
+
+/**
+ * Returns type of the entry.
+ *
+ * @return Type of the entry key.
+ */
+inline const EntryKeyProperty*
+CostDBEntryKey::type() const {
+    return type_;
+}
+
+/**
+ * Returns the number of fields in an entry key.
+ *
+ * @return The number of fields in an entry key.
+ */
+inline int
+CostDBEntryKey::fieldCount() const {
+    return fields_.size();
+}

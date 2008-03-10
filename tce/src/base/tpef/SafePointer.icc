@@ -1,0 +1,419 @@
+/**
+ * @file SafePointer.icc
+ *
+ * Inline and template functions of the SafePointer class.
+ *
+ * @author Pekka J‰‰skel‰inen 2003 (pjaaskel@cs.tut.fi)
+ * @note reviewed 29 Aug 2003 by rm, ml, ac, tr
+ *
+ * @note rating: yellow
+ */
+#include <set>
+#include <algorithm>
+
+#include "SafePointable.hh"
+#include "AssocTools.hh"
+#include "MapTools.hh"
+#include "Application.hh"
+#include "Conversion.hh"
+
+namespace TPEF {
+namespace ReferenceManager {
+
+///////////////////////////////////////////////////////////////////////////////
+// SafePointerList
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the object all SafePointers in the list are pointing to.
+ *
+ * @return The pointer to the object all SafePointers in the list
+ * are pointing to.
+ *
+ */
+inline
+SafePointable*
+SafePointerList::reference() const {
+    return reference_;
+}
+
+/**
+ * Returns the count of SafePointers in the list.
+ *
+ * @return Count of SafePointers in the list.
+ */
+inline
+SafePointerList::LengthType
+SafePointerList::length() const {
+    return list_.size();
+}
+
+/**
+ * Returns first element from the list.
+ *
+ * @return First from the list.
+ */
+inline
+SafePointer*
+SafePointerList::front() const {
+    return list_.front();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// SafePointer
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Returns the pointer to the referenced object (can be NULL if unresolved).
+ *
+ * @return Pointer to the object (can be NULL).
+ */
+inline
+SafePointable*
+SafePointer::pointer() const {
+    return object_;
+}
+
+/**
+ * Sets the pointer to the real referenced object.
+ *
+ * @param object Pointer to the object.
+ */
+inline
+void
+SafePointer::setPointer(SafePointable* object) {
+    object_ = object;
+}
+
+#ifndef NDEBUG
+
+/**
+ * Creates pointer with debug data.
+ *
+ * See SafePointer constructors for more information of
+ * possible ObjTypes.
+ *
+ * @param obj ReferenceKey or SafePointable pointer.
+ * @param file File where pointer is created.
+ * @param line Line where pointer is created.
+ * @return Pointer to created the pointer.
+ */
+template <typename ObjType>
+SafePointer*
+SafePointer::debugCreate(ObjType obj, const char *file, int line) {
+    std::stringstream debugMsg;
+    debugMsg << file << " at line: " << line;
+    SafePointer *pointer = new SafePointer(obj);
+    pointer->setDebugString(debugMsg.str());
+    return pointer;
+}
+
+#endif
+
+/**
+ * Creates pointer without debug data.
+ *
+ * See SafePointer constructors for more information of
+ * possible ObjTypes.
+ *
+ * @param obj ReferenceKey or SafePointable pointer.
+ * @return Pointer to created the pointer.
+ */
+template <typename ObjType>
+SafePointer*
+SafePointer::genericCreate(ObjType obj) {
+    return new SafePointer(obj);
+}
+
+/**
+ * Template function, allows registering SafePointers with different
+ * key types.
+ *
+ * @param key Key to use while registering the reference.
+ * @param destinationMap Map to update the reference to.
+ * @param newSafePointer The SafePointer to register.
+ */
+template <typename KeyType, typename MapType>
+void
+SafePointer::genericRegisterPointer(
+    const KeyType& key,
+    MapType& destinationMap,
+    SafePointer* newSafePointer) {
+
+    SafePointerList* pointerList = NULL;
+
+    if (!MapTools::containsKey(destinationMap, key)) {
+        pointerList = new ReferenceManager::SafePointerList();
+        destinationMap[key] = pointerList;
+    } else {
+        typename MapType::iterator oldList = destinationMap.find(key);
+        pointerList = (*oldList).second;
+    }
+
+    if (pointerList->reference() == NULL &&
+        newSafePointer->pointer() != NULL) {
+        pointerList->setReference(newSafePointer->pointer());
+    }
+
+    pointerList->append(newSafePointer);
+    (*aliveSafePointers_).insert(newSafePointer);
+}
+
+
+/**
+ * Template function, registers connection between an object and a key.
+ *
+ * @param key Key to use while registering the connection.
+ * @param keyMap Map where to update the connection in.
+ * @param obj The object reference to set the key to point to.
+ * @exception KeyAlreadyExists If entry with given key already exists.
+ * @exception ObjectAlreadyRegistered If key was already connected.
+ */
+template <typename KeyType, typename MapType>
+void
+SafePointer::genericAddObjectReference(
+    const KeyType& key,
+    MapType& keyMap,
+    const SafePointable* obj) throw (KeyAlreadyExists) {
+
+    assert(obj != NULL);
+
+    typename MapType::iterator oldKeyListPos = keyMap.find(key);
+    typename ReferenceMap::iterator oldRefListPos = (*referenceMap_).find(obj);
+
+    bool oldKeyListFound = oldKeyListPos != keyMap.end();
+    bool oldRefListFound = oldRefListPos != (*referenceMap_).end();
+
+    SafePointerList* oldKeyList = NULL;
+    if (oldKeyListFound) {
+        oldKeyList = (*oldKeyListPos).second;
+    }
+
+    SafePointerList* oldRefList = NULL;
+    if (oldRefListFound) {
+        oldRefList = (*oldRefListPos).second;
+    }
+
+    SafePointerList* mergedList = NULL;
+
+    bool tryingToChangeReference = (oldKeyList != NULL &&
+                                    oldKeyList->reference() != NULL &&
+                                    oldKeyList->reference() != obj);
+
+    bool tryingToReregister = (oldKeyListFound && oldRefListFound &&
+                               oldKeyList == oldRefList);
+
+    if (tryingToChangeReference || tryingToReregister) {
+        // key already registered, this is an error condition
+        // we don't allow changing the reference at this point
+        throw KeyAlreadyExists(__FILE__, __LINE__,
+                               "SafePointer::"
+                               "genericAddObjectReference()",
+                               "Multiple references for a key.");
+
+    }
+
+    if (oldKeyListFound && oldRefListFound) {
+
+        //  combine old SafePointer list in reference map to the list in
+        //  keyMap
+        assert(oldKeyList != NULL);
+        assert(oldRefList != NULL);
+
+        oldRefList->append(oldKeyList);
+        mergedList = oldRefList;
+        delete oldKeyList;
+        oldKeyList = NULL;
+
+    } else {
+        if (oldKeyListFound) {
+            mergedList = oldKeyList;
+        } else if (oldRefListFound) {
+            mergedList = oldRefList;
+        } else {
+            // create empty list to maintain the link between the key and obj
+            mergedList = new SafePointerList();
+        }
+    }
+    assert(mergedList != NULL);
+
+    keyMap[key] = mergedList;
+    (*referenceMap_)[obj] = mergedList;
+
+    mergedList->setReference(obj);
+}
+
+/**
+ * Template function, returns the key of given type for given object.
+ *
+ * Function contains internal cache that is cleared every time when the
+ * keytables are. Cache speeds up significantly reading of a.out files
+ * and writing of TPEF.
+ *
+ * @param obj Object to look the key for.
+ * @param sourceMap Map where to look the key for.
+ * @return Key for the object.
+ * @exception KeyNotFound If key cannot be found for the object.
+ */
+template <typename KeyType, typename MapType>
+KeyType
+SafePointer::genericKeyFor(const SafePointable* obj, MapType& sourceMap)
+    throw (KeyNotFound) {
+
+    if (!MapTools::containsKey(*referenceMap_, obj)) {
+        throw KeyNotFound(__FILE__, __LINE__,
+                          "SafePointer::genericKeyFor()",
+                          "Object not in reference table.");
+    }
+
+    KeyForCacheKey cacheKey(obj, &sourceMap);
+
+    // add stuff of requested map to cache if necessary
+    if (!MapTools::containsKey(keyForCache_, cacheKey)) {
+
+        // add resolved source map elements to cache
+        typename MapType::const_iterator i = sourceMap.begin();
+
+        while (i != sourceMap.end()) {
+            SafePointerList *spList = (*i).second;
+
+	    if (spList != NULL &&
+            spList->reference() != NULL) {
+
+            KeyForCacheKey addKey(spList->reference(), &sourceMap);
+            keyForCache_[addKey] = &(*i).first;
+
+            // keys are connected to the object with the SafePointerList
+            //		SafePointerList* theList =
+            //		    MapTools::valueForKey<SafePointerList*>(*referenceMap_,obj);
+            // MapTools::keyForValue<KeyType>(sourceMap, theList);
+	    }
+
+	    i++;
+        }
+    }
+
+    const KeyType *returnKey =
+        dynamic_cast<const KeyType*>(
+            MapTools::valueForKey<const ReferenceKey*>(keyForCache_, cacheKey));
+
+    return *returnKey;
+
+}
+
+/**
+ * Returns true if the map has unresolved references, that is SafePointers
+ * that are pointing to NULL.
+ *
+ * @param mapToCheck The map to look in.
+ * @param unresolvedKey If there was unresolvedReferences pointer to key.
+ * @return True if map has unresolved references.
+ */
+template <typename MapType>
+bool
+SafePointer::unresolvedReferences(const MapType& mapToCheck,
+				  const ReferenceKey **unresolvedKey) {
+
+    for (typename MapType::const_iterator i = mapToCheck.begin();
+         i != mapToCheck.end(); i++) {
+
+        SafePointerList* listToCheck = (*i).second;
+
+        if (listToCheck != NULL && listToCheck->length() > 0) {
+            // reference to pointer was not allowed,
+            // so this is not very beautiful
+            *unresolvedKey = &((*i).first);
+            return (listToCheck->reference() == NULL);
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Helper function which deletes old SafePointer (if defined) and returns
+ * a new one pointing to given object.
+ *
+ * Replaces one reference to new one (by creating new SafePointer,  but do
+ * not change references else where.
+ *
+ * @param old The old SafePointer.
+ * @param obj The object to set the new SafePointer to point to.
+ * @return The new SafePointer.
+ */
+inline const SafePointer*
+SafePointer::replaceReference(const SafePointer* old, SafePointable* obj) {
+    
+    assert(old != NULL);
+    if (old != &null) {
+        delete old;
+        old = NULL;
+    }
+
+    if (obj != NULL) {
+        return new SafePointer(obj);
+    } else {
+        return &null;
+    }
+}
+
+/**
+ * Replaces all references to oldObj to referer newObj.
+ *
+ * After this function call there will be no references to oldObj.
+ *
+ * @param oldObj The old SafePointable object.
+ * @param newObj The new SafePointable object.
+ */
+inline void
+SafePointer::replaceAllReferences(SafePointable *newObj, SafePointable* oldObj) {
+    SafePointerList* listToModify =
+        MapTools::valueForKey<SafePointerList*>(*referenceMap_, oldObj);
+    
+    assert(listToModify != NULL);
+
+    (*referenceMap_)[newObj] = listToModify;
+    
+    listToModify->setReference(newObj);
+    
+    referenceMap_->erase(oldObj);
+}
+
+
+/**
+ * Safely cleans up key map's SafePointerLists.
+ *
+ * Adds lists that can be deleted safely (lists that are not found in
+ * the reference map) to the given set.
+ *
+ * @param sourceMap Map to clean.
+ * @param listsToDelete Set to add lists that are not found in reference map.
+ */
+template <typename MapType>
+void
+SafePointer::safelyCleanupKeyTable(
+    MapType& sourceMap,
+    std::set<SafePointerList*>& listsToDelete) {
+    
+    for (typename MapType::iterator i = sourceMap.begin();
+         i != sourceMap.end(); i++) {
+        
+        SafePointerList* listToCheck = (*i).second;
+        assert(listToCheck != NULL);
+        
+        SafePointable* obj = listToCheck->reference();
+        
+        if (obj == NULL || !MapTools::containsKey(*referenceMap_, obj)) {
+            
+            listsToDelete.insert(listToCheck);
+            listToCheck->cleanup();
+        }
+        
+    }
+    sourceMap.clear();
+}
+    
+} // namespace ReferenceManager
+
+}
