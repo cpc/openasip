@@ -477,7 +477,7 @@ function run_long_system_tests {
 
 function echo_broken_unittest_info {
     if [[ "x${errors}" == "xno" && "x${last_tested_rev}" != "x${rev_to_up}" ]]; then
-        bad_coder="$(svn info -r ${last_tested_rev} | grep -E 'Author:' | grep -Eio '[[:alnum:]]+$')"
+        bad_coder="$(bzr revno)"
         echo "Unit tests OK! in revision: ${rev_to_up}."
         echo -e "\t Breaking revision was ${last_tested_rev} commited by ${bad_coder}.\n"
     fi 
@@ -546,7 +546,7 @@ function compile_test {
     cd $1 1> /dev/null 2>&1
 
     # compile test started with revision
-    START_REV="$(svn info | grep 'Revision: ' | grep -Eo '[0-9]+$')"
+    START_REV="$(bzr revno)"
     echo "Current revision of $(basename $(pwd)) is ${START_REV}." 
 
     errors="no"
@@ -652,7 +652,7 @@ function run_tests {
 
 # excepts that cwd is tce root dir
 function update_tce_to_last_changed_rev {
-    last_tested_rev="$(svn info | grep 'Revision: ' | grep -Eo '[0-9]+$')"
+    last_tested_rev="$(bzr revno)"
     rev_to_up="$(svn info -r "$(expr ${last_tested_rev} - 1)" | grep 'Last Changed Rev: ' | grep -Eo '[0-9]+$')"
     # quick fix for unit test svn screwage
     rm -rf "test/base"
