@@ -51,8 +51,8 @@ dynamic_modules: data/TestExplorerPlugin.so data/debug.opb
 
 data/TestExplorerPlugin.so: data/TestExplorerPlugin.cc
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/TestExplorerPlugin.cc \
-	${SHARED_CXX_FLAGS} data/TestExplorerPlugin.so
+	${SHARED_CXX_FLAGS} -o data/TestExplorerPlugin.so
 
 data/debug.opb: data/debug.cc
-	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/debug.cc ${SHARED_CXX_FLAGS} \
+	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/debug.cc ${SHARED_CXX_FLAGS} -o \
 	data/debug.opb
