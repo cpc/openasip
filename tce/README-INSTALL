@@ -58,6 +58,9 @@ wxWidgets             2.6.0                                wxWidgets
 Tcl                   8.0                                  BSD-style
 Boost                 1.32.0                               very permissive
 sqlite3               3.0.0 (v2 not supported)             public domain
+Python                >= 2.4                               very permissive
+LLVM		      only 2.1 supported	      	   LLVM License
+
 
 optional:
 
@@ -70,7 +73,7 @@ Editline              2.9                                  BSD-style
 	Note: this library might require 'termcap' library in some distributions. 
 	The package is named 'libedit-dev' in Debian and Ubuntu.
 
-Python                2.4                                  very permissive
+Python headers               2.4                                  very permissive
 
 	The Python interpreter and its headers and libraries are
 	needed for the optional Python bindings.
