@@ -236,20 +236,6 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         footprints["LEF.i1"].push_back("i1.fcmp.ule.f32.f32");
         footprints["GTF.i1"].push_back("i1.fcmp.ugt.f32.f32");
         footprints["GEF.i1"].push_back("i1.fcmp.uge.f32.f32");
-
-        footprints["EQF.i32"].push_back("i32.fcmp.oeq.f32.f32");
-        footprints["NEF.i32"].push_back("i32.fcmp.one.f32.f32");
-        footprints["LTF.i32"].push_back("i32.fcmp.olt.f32.f32");
-        footprints["LEF.i32"].push_back("i32.fcmp.ole.f32.f32");
-        footprints["GTF.i32"].push_back("i32.fcmp.ogt.f32.f32");
-        footprints["GEF.i32"].push_back("i32.fcmp.oge.f32.f32");
-
-        footprints["EQF.i32"].push_back("i32.fcmp.ueq.f32.f32");
-        footprints["NEF.i32"].push_back("i32.fcmp.une.f32.f32");
-        footprints["LTF.i32"].push_back("i32.fcmp.ult.f32.f32");
-        footprints["LEF.i32"].push_back("i32.fcmp.ule.f32.f32");
-        footprints["GTF.i32"].push_back("i32.fcmp.ugt.f32.f32");
-        footprints["GEF.i32"].push_back("i32.fcmp.uge.f32.f32");
         
         init = false;                
     }
