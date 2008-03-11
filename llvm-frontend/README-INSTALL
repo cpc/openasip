@@ -22,10 +22,6 @@ Library and tools version prerequisites
 You need 'flex' or 'bison' to build LLVM. They should be found in all
 Linux distributions.
 
-Library/tool            Supported versions   Notes
---------------------------------------------------------------------------
-Python                  >= 2.4               Required by the 'tcecc' script.
-
 Troubleshooting
 ===============
 

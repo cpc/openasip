@@ -1170,10 +1170,10 @@ AC_CONFIG_FILES([
   src/ext/llvm/2.1/Makefile
   src/ext/llvm/2.1/TableGen/Makefile
   src/applibs/LLVMBackend/Makefile
-  src/bintools/BCCompiler/Makefile
-  src/bintools/BCCompiler/tceopgen/Makefile
-  src/bintools/BCCompiler/tceplugingen/Makefile
-  src/bintools/BCCompiler/llvm-tce/Makefile
+  src/bintools/Compiler/Makefile
+  src/bintools/Compiler/tceopgen/Makefile
+  src/bintools/Compiler/tceplugingen/Makefile
+  src/bintools/Compiler/llvm-tce/Makefile
 ])
 
 # Generate config.status and launch it. config.status then
