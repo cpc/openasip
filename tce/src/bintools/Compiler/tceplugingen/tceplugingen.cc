@@ -786,9 +786,8 @@ TDGen::writeInstrInfo(std::ostream& os) {
         }
         Operation& op = opPool.operation(*iter);
         if (&op == &NullOperation::instance()) {
-            throw NotAvailable(
-                __FILE__,__LINE__,__func__,
-                "Cannot find operation definition for operation " + *iter);
+            // Unknown operation: skip
+            continue;
         }
         writeOperationDef(os, op);
     }
