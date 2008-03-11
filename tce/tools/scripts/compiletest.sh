@@ -484,6 +484,7 @@ function echo_broken_unittest_info {
 }
 
 function echo_broken_systemtest_info {
+    echo "UPDATE THIS FOR bzr!."; exit 1;
     testdesc="$(grep -E ' [0-9]+$' broken_system_tests.temp)"
     cd .. # to tce root dir from systemtest dir
     if [[ "x${testdesc}" != "x" && "x${last_tested_rev}" != "x" && "x${rev_to_up}" != "x" ]]; then
@@ -652,6 +653,7 @@ function run_tests {
 
 # excepts that cwd is tce root dir
 function update_tce_to_last_changed_rev {
+    echo "UPDATE THIS FOR bzr!."; exit 1;
     last_tested_rev="$(bzr revno)"
     rev_to_up="$(svn info -r "$(expr ${last_tested_rev} - 1)" | grep 'Last Changed Rev: ' | grep -Eo '[0-9]+$')"
     # quick fix for unit test svn screwage
@@ -674,6 +676,7 @@ function update_tce_to_last_changed_rev {
 
 # this function can be used to easily test this script when using option -b
 function break_tests {
+    echo "UPDATE THIS FOR bzr!."; exit 1;
     # first revision
     rev_to_up=${rev_to_up:="3398"}
 
@@ -801,9 +804,9 @@ function compile_test_with_all_compilers {
 	push_dir
 	cd $1 > /dev/null 2>&1
         if [ "${last_tested_rev}x" == "x" ]; then
-            svn info | grep "Last Changed" >> $ERROR_LOG_FILE 2>&1
+            bzr log --short -l 1 >> $ERROR_LOG_FILE 2>&1
         else    
-            svn info -r ${last_tested_rev} | grep "Last Changed" >> $ERROR_LOG_FILE 2>&1
+            bzr log --short -r ${last_tested_rev} >> $ERROR_LOG_FILE 2>&1
         fi
 	pop_dir 
 	
@@ -828,7 +831,7 @@ function compile_test_with_all_compilers {
 
 	push_dir
 	cd $1 > /dev/null 2>&1
-        svn info | grep "Last Changed" > $lastOkRevisionFile 2>&1
+        bzr log --short -l 1 > $lastOkRevisionFile 2>&1
 	pop_dir
 
         if [ "${goodRuns}" -ge "${goodRunsBeforeEmail}" ];
