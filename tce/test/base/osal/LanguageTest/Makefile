@@ -31,18 +31,18 @@ COMPILE_FLAGS = ${CPPFLAGS} -I${TOP_SRCDIR} -I${TOOLS_DIR} -I${OSAL_DIR} \
 # flag. Symbols needed by tests are in object files listed in ${MISC_OBJ}.
 dynamic_modules:
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/clockedOperation.cc \
-	${SHARED_CXX_FLAGS} data/clockedOperation.so
+	${SHARED_CXX_FLAGS} -o data/clockedOperation.so
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/simple.cc \
-	${SHARED_CXX_FLAGS} data/simple.so
+	${SHARED_CXX_FLAGS} -o data/simple.so
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/operationsWithState.cc \
-	${SHARED_CXX_FLAGS} data/operationsWithState.so
+	${SHARED_CXX_FLAGS} -o data/operationsWithState.so
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/bwidth.cc \
-	${SHARED_CXX_FLAGS} data/bwidth.so
+	${SHARED_CXX_FLAGS} -o data/bwidth.so
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/control.cc \
-	${SHARED_CXX_FLAGS} data/control.so
+	${SHARED_CXX_FLAGS} -o data/control.so
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/complex.cc \
-	${SHARED_CXX_FLAGS} data/complex.so
+	${SHARED_CXX_FLAGS} -o data/complex.so
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/extend.cc \
-	${SHARED_CXX_FLAGS} data/extend.so
+	${SHARED_CXX_FLAGS} -o data/extend.so
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/memory.cc \
-	${SHARED_CXX_FLAGS} data/memory.so
+	${SHARED_CXX_FLAGS} -o data/memory.so

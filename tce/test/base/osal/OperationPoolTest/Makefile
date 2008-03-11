@@ -25,4 +25,4 @@ COMPILE_FLAGS = ${CPPFLAGS} -I${TOP_SRCDIR} -I${TOOLS_DIR} -I${OSAL_DIR} \
 
 dynamic_modules:
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/correct.cc \
-	${SHARED_CXX_FLAGS} data/correct.opb
+	${SHARED_CXX_FLAGS} -o data/correct.opb
