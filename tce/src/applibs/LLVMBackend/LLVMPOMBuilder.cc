@@ -47,6 +47,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetLowering.h"
+#include "llvm/Support/Debug.h"
 
 #include "MapTools.hh"
 #include "StringTools.hh"
@@ -872,8 +873,8 @@ LLVMPOMBuilder::emitInstruction(
         TTAProgram::Terminal* dst = NULL;
         if (!mo.isRegister() || mo.isUse()) {
             if (useOps.empty()) {
-                std::cerr << " WARNING: Skipping input operand "
-                          << o << " for " << opName << std::endl;
+                DOUT << " WARNING: Skipping input operand "
+                     << o << " for " << opName << std::endl;
                 continue;
             }
             int opNum = *useOps.begin();
@@ -895,8 +896,8 @@ LLVMPOMBuilder::emitInstruction(
 
         } else {
             if (defOps.empty()) {
-                std::cerr << " WARNING: Skipping output operand "
-                          << o << " for " << opName << std::endl;
+                DOUT << " WARNING: Skipping output operand "
+                     << o << " for " << opName << std::endl;
                 continue;
             }
             int opNum = *defOps.begin();

@@ -32,6 +32,11 @@ public:
     bool isSchedulerConfigFileDefined() const;
     std::string schedulerConfigFile() const;
 
+    bool isOptLevelDefined() const;
+    int optLevel() const;
+
+    bool debugFlag() const;
+
     virtual void printVersion() const {
         std::cout << "llvmtce - TCE LLVM compiler " << VERSION
                   << std::endl;
@@ -45,6 +50,9 @@ private:
     static const std::string SWS_OUTPUT_FILE;
     static const std::string SWL_SCHEDULER_CONFIG;
     static const std::string SWS_SCHEDULER_CONFIG;
+    static const std::string SWL_DEBUG_FLAG;
+    static const std::string SWL_OPT_LEVEL;
+    static const std::string SWS_OPT_LEVEL;
 
     static const std::string USAGE;
 

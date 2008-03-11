@@ -14,8 +14,6 @@
 #include "Exception.hh"
 #include "PluginTools.hh"
 
-#define DEFAULT_OPT_LEVEL 2
-
 namespace TTAProgram {
     class Program;
 }
@@ -41,7 +39,7 @@ public:
     TTAProgram::Program* compile(
         const std::string& bytecodeFile,
         TTAMachine::Machine& target,
-	int optLevel = DEFAULT_OPT_LEVEL,
+	int optLevel,
         bool debug = false)
         throw (Exception);
 
@@ -49,7 +47,7 @@ public:
         llvm::Module& module,
         llvm::TCETargetMachinePlugin& plugin,
         TTAMachine::Machine& target,
-        int optLevel = DEFAULT_OPT_LEVEL,
+        int optLevel,
         bool debug = false)
         throw (Exception);
 

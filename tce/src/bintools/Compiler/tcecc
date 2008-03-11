@@ -344,6 +344,10 @@ p.add_option('--clear-plugin-cache', action="store_true",
              dest="clear_cache", default=False,
              help="Clear plugin cache completely.")
 
+p.add_option('--debug', action="store_true",
+             dest="debug", default=False,
+             help="Print LLVM debug data.")
+
 
 # get commandline arguments
 options, inFiles = p.parse_args()
@@ -455,11 +459,14 @@ if options.adf_file != "":
         options.scheduler_config = output + "/share/tce/scheduler/passes/default_tcecc_scheduler.conf"
 
     #### Compile to unscheduled mixed code for the target architecture
-    command = ("llvmtce" +
-               " -a " + options.adf_file +
-               " -c " + options.scheduler_config +
-               " -o " + outFile +
-               " " + emulationLinkedFileName)
+    command = ("llvmtce")
+    if options.debug is True:
+        command += " --debug"
+
+    command += (" -a " + options.adf_file +
+                " -c " + options.scheduler_config +
+                " -o " + outFile +\
+                " " + emulationLinkedFileName)
     
     (exitCode, output) = runCommand(command, options.verbose)
     if exitCode != 0:

@@ -15,6 +15,9 @@ const std::string LLVMTCECmdLineOptions::SWL_OUTPUT_FILE = "output";
 const std::string LLVMTCECmdLineOptions::SWS_OUTPUT_FILE = "o";
 const std::string LLVMTCECmdLineOptions::SWL_SCHEDULER_CONFIG = "config";
 const std::string LLVMTCECmdLineOptions::SWS_SCHEDULER_CONFIG = "c";
+const std::string LLVMTCECmdLineOptions::SWL_DEBUG_FLAG = "debug";
+const std::string LLVMTCECmdLineOptions::SWL_OPT_LEVEL = "optimize";
+const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -41,6 +44,14 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() :
             SWL_SCHEDULER_CONFIG, "Scheduler configuration file.",
             SWS_SCHEDULER_CONFIG));
 
+    addOption(
+        new IntegerCmdLineOptionParser(
+            SWL_OPT_LEVEL, "Optimization level (0-2)",
+            SWS_OPT_LEVEL));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_DEBUG_FLAG, "Print LLVM debug data."));
 }
 
 /**
@@ -112,4 +123,40 @@ LLVMTCECmdLineOptions::isOutputFileDefined() const {
     return findOption(SWS_OUTPUT_FILE)->isDefined();
 }
 
+/**
+ * Returns true if optimization level switch was given.
+ *
+ * @return True, if optimization level was given on command line.
+ */
+bool
+LLVMTCECmdLineOptions::isOptLevelDefined() const {
+    return findOption(SWS_OPT_LEVEL)->isDefined();
+}
 
+
+/**
+ * Returns optimization level defined with the -O switch.
+ *
+ * @return Optimization level.
+ */
+int
+LLVMTCECmdLineOptions::optLevel() const {
+    return findOption(SWS_OPT_LEVEL)->integer();
+}
+
+
+/**
+ * Returns true if the debug flag option was given.
+ *
+ * @return True, if debug mode switch was given.
+ */
+bool
+LLVMTCECmdLineOptions::debugFlag() const {
+
+    if (findOption(SWL_DEBUG_FLAG)->isDefined() &&
+        findOption(SWL_DEBUG_FLAG)->isFlagOn()) {
+
+        return true;
+    }
+    return false;
+}

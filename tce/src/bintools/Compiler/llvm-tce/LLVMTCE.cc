@@ -17,6 +17,7 @@
 #include "SchedulerFrontend.hh"
 
 const std::string DEFAULT_OUTPUT_FILENAME = "out.tpef";
+const int DEFAULT_OPT_LEVEL = 2;
 
 /**
  * Main function of the CLI.
@@ -94,15 +95,21 @@ main(int argc, char* argv[]) {
         outputFileName = options.outputFile();
     }
 
+    // --- optimization level ---
+    int optLevel = DEFAULT_OPT_LEVEL;
+    if (options.isOptLevelDefined()) {
+        optLevel = options.optLevel();
+    }
+
     std::string bytecodeFile = options.argument(1);
 
-
+    bool debug = options.debugFlag();
 
     // ---- Run compiler ----
     try {
         LLVMBackend compiler;
         TTAProgram::Program* seqProg =
-            compiler.compile(bytecodeFile, *mach);
+            compiler.compile(bytecodeFile, *mach, optLevel, debug);
 
         if (schedule) {
             SchedulerFrontend scheduler;
