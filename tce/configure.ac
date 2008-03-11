@@ -1224,19 +1224,18 @@ else
   echo "NOTE: libedit might require 'libtermcap' in some systems."
 fi
 
-if test x"$PYTHON_VERSION" = x
-then
-  echo "Python not enabled or not found, Python bindings to TCE libraries will not be built."
-else
-  echo "Found Python version $PYTHON_VERSION"
-fi
-
-
 if test x"$LLVM_VERSION" = x
 then
   echo "NOTE! LLVM not found. Compiling C programs is disabled."
 else
   echo "Found LLVM version $LLVM_VERSION"
+fi
+
+if test x"$PYTHON_VERSION" = x
+then
+  echo "Python not enabled or not found, Python bindings to TCE libraries will not be built."
+else
+  echo "Found Python version $PYTHON_VERSION"
 fi
 
 echo "***************************************"
