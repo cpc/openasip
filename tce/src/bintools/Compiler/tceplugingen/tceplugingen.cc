@@ -820,13 +820,8 @@ TDGen::writeInstrInfo(std::ostream& os) {
         }
     }
 
-    // Missing operations.
+    // TODO: Handle missing operations.
     /*
-    os << std::endl
-       << "//**********************" << std::endl
-       << "//  MISSING OPERATIONS" << std::endl
-       << "//**********************" << std::endl;
-
     iter = requiredOps.begin();
     for (; iter != requiredOps.end(); iter++) {
         Operation& op = opPool.operation(*iter);
