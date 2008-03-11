@@ -53,8 +53,6 @@ LLVMBackend::LLVMBackend(bool useCache):
     useCache_(useCache) {
 
     cachePath_ = Environment::llvmtceCachePath();
-
-    llvm::DebugFlag = true;
 }
 
 /**
@@ -69,12 +67,15 @@ LLVMBackend::~LLVMBackend() {
  *
  * @param bytecodeFile Full path to the llvm bytecode file to compile.
  * @param target Target machine to compile the bytecode for.
+ * @param optLevel Optimization level.
+ * @param debug If true, enable LLVM debug printing.
  */
 TTAProgram::Program*
 LLVMBackend::compile(
     const std::string& bytecodeFile,
     TTAMachine::Machine& target,
-    int optLevel) throw (Exception){
+    int optLevel,
+    bool debug) throw (Exception){
 
     // Load bytecode file.
     std::string errorMessage;
@@ -96,7 +97,8 @@ LLVMBackend::compile(
     TCETargetMachinePlugin* plugin = createPlugin(target);
 
     // Compile.
-    TTAProgram::Program* result = compile(*m.get(), *plugin, target, optLevel);
+    TTAProgram::Program* result =
+        compile(*m.get(), *plugin, target, optLevel, debug);
 
     delete plugin;
     plugin = NULL;
@@ -113,6 +115,7 @@ LLVMBackend::compile(
  * @param plugin Target architecture compiler plugin.
  * @param target Target architecture as Machine object.
  * @param optLevel Optimization level.
+ * @param debug If true, enable LLVM debug printing.
  * @return Module compiled to program for the target architecture.
  */
 TTAProgram::Program*
@@ -120,9 +123,11 @@ LLVMBackend::compile(
     llvm::Module& module,
     TCETargetMachinePlugin& plugin,
     TTAMachine::Machine& target,
-    int optLevel)
+    int optLevel,
+    bool debug)
     throw (Exception) {
 
+    llvm::DebugFlag = debug;
     bool fast = false;
     std::string fs = "";
     TCETargetMachine targetMachine(module, fs, plugin);

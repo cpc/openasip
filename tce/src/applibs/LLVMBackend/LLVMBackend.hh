@@ -41,14 +41,16 @@ public:
     TTAProgram::Program* compile(
         const std::string& bytecodeFile,
         TTAMachine::Machine& target,
-	int optLevel = DEFAULT_OPT_LEVEL)
+	int optLevel = DEFAULT_OPT_LEVEL,
+        bool debug = false)
         throw (Exception);
 
     TTAProgram::Program* compile(
         llvm::Module& module,
         llvm::TCETargetMachinePlugin& plugin,
         TTAMachine::Machine& target,
-        int optLevel = DEFAULT_OPT_LEVEL)
+        int optLevel = DEFAULT_OPT_LEVEL,
+        bool debug = false)
         throw (Exception);
 
     llvm::TCETargetMachinePlugin* createPlugin(
