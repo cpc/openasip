@@ -63,7 +63,8 @@ DirectAccessMemory::~DirectAccessMemory() {
  * @param address Address where data is loaded.
  * @param size Size of the data area to be loaded.
  * @param id Id of the request.
- * @exception OutOfRange if the requested address is out of range.
+ * @exception OutOfRange Never thrown. Address is assumed to be in range!
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void
 DirectAccessMemory::initiateRead(Word address, int size, Memory::URC)
@@ -93,6 +94,7 @@ DirectAccessMemory::loadData(URC) {
  *
  * @param data The storage for the read data.
  * @param id Id of the request.
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void
 DirectAccessMemory::loadData(Memory::MAUVector& data, Memory::URC id) {
@@ -111,7 +113,7 @@ DirectAccessMemory::loadData(Memory::MAUVector& data, Memory::URC id) {
  * For direct access memory, results are immediately readable.
  *
  * @param id The id of the request.
- * @return True if result is ready.
+ * @return Always true.
  */
 bool
 DirectAccessMemory::resultReady(Memory::URC) {
@@ -127,7 +129,8 @@ DirectAccessMemory::resultReady(Memory::URC) {
  * @param data Data to be written.
  * @param size Size of data to be written.
  * @param id Id of the request.
- * @exception OutOfRange if the requested address is out of range.
+ * @exception OutOfRange Never thrown. Address is assumed to be in range!
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void
 DirectAccessMemory::initiateWrite(
@@ -146,6 +149,7 @@ DirectAccessMemory::initiateWrite(
  *
  * @param address The address which data is read from.
  * @param data Container in which data is read.
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void
 DirectAccessMemory::readBlock(Word address, Memory::MAUVector& data) {
@@ -160,7 +164,7 @@ DirectAccessMemory::readBlock(Word address, Memory::MAUVector& data) {
  *
  * @param address Address to write to.
  * @param data Data to be written.
- * @exception OutOfRange If memory boundaries are exceeded.
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void
 DirectAccessMemory::writeBlock(Word address, Memory::MAUVector data) {
