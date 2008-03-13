@@ -58,7 +58,7 @@ TRIGGER
         RUNTIME_ERROR("Memory access alignment error.")
 
     UIntWord data;
-    READ_MEM(UINT(1), data, 4);
+    MEMORY.read(UINT(1), 4, data);
     IO(2) = data;
 END_TRIGGER;
 
@@ -71,7 +71,7 @@ OPERATION(LDQ)
 
 TRIGGER
     UIntWord data;
-    READ_MEM(UINT(1), data, 1);
+    MEMORY.read(UINT(1), 1, data);
     IO(2) = SIGN_EXTEND(data, MAU_SIZE);
 END_TRIGGER;
 
@@ -86,7 +86,7 @@ TRIGGER
     if (UINT(1) % 2 != 0) 
         RUNTIME_ERROR("Memory access alignment error.")
     UIntWord data;
-    READ_MEM(UINT(1), data, 2);
+    MEMORY.read(UINT(1), 2, data);
     IO(2) = SIGN_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;
 
@@ -95,35 +95,18 @@ END_OPERATION(LDH)
 //////////////////////////////////////////////////////////////////////////////
 // LDD - load double word (64 bits) from memory
 //
-// NOTE: NOT TESTED PROPERLY!
-//
+// @todo: needs a proper implementation for different MAUs. Currently only
+//        works with byte addressed memory in the target.
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(LDD)
 
 TRIGGER
-    if (UINT(1) % 8 != 0) 
+    if (UINT(1) % 4 != 0) 
         RUNTIME_ERROR("Memory access alignment error.");
 
-    // hackish way to read DoubleWord relatively portably with different MAU 
-    // sizes
-    union castUnion {
-        DoubleWord d;
-        UIntWord maus[64];
-    };
-
-    castUnion cast;
-
-    const std::size_t MAUS = sizeof(DoubleWord) / MAU_SIZE;
-
-    for (std::size_t i = 0; i < MAUS; ++i) {
-        // Byte order must be reversed if host is not bigendian.
-        #if WORDS_BIGENDIAN == 1
-        READ_MEM(UINT(1) + i, cast.maus[i], 1);
-        #else
-        READ_MEM(UINT(1) + i, cast.maus[MAUS - 1 - i], 1);
-        #endif
-    }
-    IO(2) = cast.d;
+    DoubleWord d;
+    MEMORY.read(UINT(1), d);
+    IO(2) = d;
 END_TRIGGER;
 
 END_OPERATION(LDD)
@@ -137,7 +120,7 @@ TRIGGER
     if (UINT(1) % 4 != 0) 
         RUNTIME_ERROR("Memory access alignment error.");
 
-    WRITE_MEM(UINT(1), UINT(2), 4);
+    MEMORY.write(UINT(1), 4, UINT(2));
 END_TRIGGER;
 
 END_OPERATION(STW)
@@ -148,7 +131,7 @@ END_OPERATION(STW)
 OPERATION(STQ)
 
 TRIGGER
-    WRITE_MEM(UINT(1), UINT(2), 1);
+    MEMORY.write(UINT(1), 1, UINT(2));
 END_TRIGGER;
 
 END_OPERATION(STQ)
@@ -161,7 +144,7 @@ OPERATION(STH)
 TRIGGER
     if (UINT(1) % 2 != 0) 
         RUNTIME_ERROR("Memory access alignment error.");
-    WRITE_MEM(UINT(1), UINT(2), 2);
+    MEMORY.write(UINT(1), 2, UINT(2));
 END_TRIGGER;
 
 END_OPERATION(STH)
@@ -169,15 +152,19 @@ END_OPERATION(STH)
 //////////////////////////////////////////////////////////////////////////////
 // STD  - store double word (64 bits) to memory
 //
-// @todo the bytes should be swapped from TCE/TTA double byte order to the
-//       host byte order!
+// @todo: needs a proper implementation for different MAUs. Currently only
+//        works with byte addressed memory in the target.
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(STD)
 
 TRIGGER
     if (UINT(1) % 4 != 0) 
         RUNTIME_ERROR("Memory access alignment error.");
-    WRITE_MEM(UINT(1), UINT(2), 8);
+
+    assert(MAU_SIZE == sizeof(Byte)*8 && 
+           "STD works only with byte sized MAU at the moment.");
+
+    MEMORY.write(UINT(1), DBL(2));
 END_TRIGGER;
 
 END_OPERATION(STD)
@@ -877,7 +864,7 @@ OPERATION(LDQU)
 
 TRIGGER
     UIntWord data;
-    READ_MEM(UINT(1), data, 1);
+    MEMORY.read(UINT(1), 1, data);
     IO(2) = ZERO_EXTEND(data, MAU_SIZE);
 END_TRIGGER;
 
@@ -894,7 +881,7 @@ TRIGGER
         RUNTIME_ERROR("Memory access alignment error.")
 
     UIntWord data;
-    READ_MEM(UINT(1), data, 2);
+    MEMORY.read(UINT(1), 2, data);
     IO(2) = ZERO_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;
 

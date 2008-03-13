@@ -7,9 +7,7 @@ sth 0xfe 0000000010010010b
 !advanceclock
 !mem halfword 0xfe
 ldh 0xfe
-!result ldh 0xfe
 sth 0xfe 0010000010010010b
 !advanceclock
 ldh 0xfe
-!result ldh 0xfe
 !quit

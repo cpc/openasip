@@ -2,5 +2,4 @@ sth 100 1000
 !advanceclock
 !output bin
 ldhu 100
-!result ldhu 100
 !quit

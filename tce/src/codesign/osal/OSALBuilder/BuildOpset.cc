@@ -177,16 +177,16 @@ int main(int argc, char* argv[]) {
 
         // install data file, if destination directory is different
         // than the current directory of data file
-	if (installDir != path) {
-	    if(!builder.installDataFile(path, moduleName + ".opp",
-		installDir)) {
-		string errorMessage = "Cannot install property data file\n'";
-		errorMessage += path + FileSystem::DIRECTORY_SEPARATOR
-		    + moduleName + ".opp" + "'\n" + "into path\n"
-		    + "'" + installDir + "'";
-		cerr << errorMessage << endl;
-		return EXIT_FAILURE;
-	    }
+        if (installDir != path) {
+            if(!builder.installDataFile(path, moduleName + ".opp",
+                                        installDir)) {
+                string errorMessage = "Cannot install property data file\n'";
+                errorMessage += path + FileSystem::DIRECTORY_SEPARATOR
+                    + moduleName + ".opp" + "'\n" + "into path\n"
+                    + "'" + installDir + "'";
+                cerr << errorMessage << endl;
+                return EXIT_FAILURE;
+            }
         }
 
         // find the behavior source file and check if it should be ignored

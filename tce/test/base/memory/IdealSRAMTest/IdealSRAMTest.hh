@@ -22,9 +22,7 @@ public:
     void setUp();
     void tearDown();
 
-    void testLoad();
-    void testMultipleLoadRequests();
-    void testReadWriteBlock();
+    void testBasicInterface();
 
 private:
     /// Starting point of the memory.
@@ -62,121 +60,40 @@ IdealSRAMTest::tearDown() {
 }
 
 /**
- * Tests that load works.
+ * Tests that the basic interface works and that the writes are commited
+ * at the cycle advance.
  */
 void
-IdealSRAMTest::testLoad() {
+IdealSRAMTest::testBasicInterface() {
     
-    IdealSRAM memory(START, END, MAUSIZE, WORDSIZE, ALIGNMENT);
+    IdealSRAM memory(START, END, MAUSIZE);
 
-    memory.initiateRead(200, 8, 1);
+    UIntWord result;
 
-    // Memory should be first all zeros
-    Memory::MAUVector result;
-    
-    memory.loadData(result, 1);
-    TS_ASSERT_EQUALS(static_cast<int>(result.size()), 8);
-    TS_ASSERT_EQUALS(result[0], 0);
-    TS_ASSERT_EQUALS(result[7], 0);
+    memory.read(200, 1, result);
 
-    result.clear();
+    TS_ASSERT_EQUALS(result, static_cast<UIntWord>(0));
 
     // write data to memory
-    Memory::MAU data[5];
     for (std::size_t i = 0; i < 5; ++i) {
-        data[i] = 128;
+        memory.write(100 + i, 1, 128);
     }
-   
-    memory.initiateWrite(200, data, 5, 1);
 
+    // assert the data is not yet commited to the memory
+    for (std::size_t i = 0; i < 5; ++i) {
+        memory.read(100 + i, 1, result);
+        TS_ASSERT_EQUALS(result, static_cast<UIntWord>(0));
+    }
+
+    // now it should be commited
     memory.advanceClock();
 
-    memory.initiateRead(200, 5, 1);
-    memory.loadData(result, 1);
-    TS_ASSERT_EQUALS(static_cast<int>(result.size()), 5);
-    TS_ASSERT_EQUALS(result[0], 128);
-    TS_ASSERT_EQUALS(result[1], 128);
-    TS_ASSERT_EQUALS(result[2], 128);
-    TS_ASSERT_EQUALS(result[3], 128);
-    TS_ASSERT_EQUALS(result[4], 128);
+    // assert the data is commited to the memory
+    for (std::size_t i = 0; i < 5; ++i) {
+        memory.read(100 + i, 1, result);
+        TS_ASSERT_EQUALS(result, static_cast<UIntWord>(128));
+    }
 }
 
-/**
- * Test that multiple load requests work.
- */
-void
-IdealSRAMTest::testMultipleLoadRequests() {
-    
-    IdealSRAM memory(START, END, MAUSIZE, WORDSIZE, ALIGNMENT);
-
-    // let's write things to memory
-    Memory::MAU data1[10];
-    for (std::size_t i = 0; i < 10; ++i) {
-        data1[i] = 10;
-    }
-
-    Memory::MAU data2[10];
-    for (std::size_t i = 0; i < 10; ++i) {
-        data2[i] = 20;
-    }
-
-    Memory::MAU data3[10];
-    for (std::size_t i = 0; i < 10; ++i) {
-        data3[i] = 30;
-    }
-
-
-    TS_ASSERT_EQUALS(memory.resultReady(1), false);
-
-    memory.initiateWrite(100, data1, 10, 1);
-    memory.initiateWrite(200, data2, 10, 2);
-    memory.initiateWrite(300, data3, 10, 3);
-
-    memory.advanceClock();
-
-    memory.initiateRead(100, 1, 1);
-    memory.initiateRead(200, 1, 2);
-    memory.initiateRead(300, 1, 3);
-
-    TS_ASSERT_EQUALS(memory.resultReady(1), true);
-
-    Memory::MAUVector result;
-    memory.loadData(result, 1);
-    TS_ASSERT_EQUALS(static_cast<int>(result.size()), 1);
-    TS_ASSERT_EQUALS(result[0], 10);
-    result.clear();
-    
-    memory.loadData(result, 2);
-    TS_ASSERT_EQUALS(static_cast<int>(result.size()), 1);
-    TS_ASSERT_EQUALS(result[0], 20);
-    result.clear();
-
-    memory.loadData(result, 3);
-    TS_ASSERT_EQUALS(static_cast<int>(result.size()), 1);
-    TS_ASSERT_EQUALS(result[0], 30);
-}
-
-/**
- * Test that reading and writing the block succeeds.
- */
-void
-IdealSRAMTest::testReadWriteBlock() {
-    IdealSRAM memory(START, END, MAUSIZE, WORDSIZE, ALIGNMENT);
-
-    Memory::MAUVector data(5, 648);
-    memory.writeBlock(200, data);
-
-    Memory::MAUVector result;
-    result.resize(5);
-
-    memory.readBlock(200, result);
-
-    TS_ASSERT_EQUALS(static_cast<int>(result.size()), 5);
-    TS_ASSERT_EQUALS(result[0], 648);
-    TS_ASSERT_EQUALS(result[1], 648);
-    TS_ASSERT_EQUALS(result[2], 648);
-    TS_ASSERT_EQUALS(result[3], 648);
-    TS_ASSERT_EQUALS(result[4], 648);
-}
 
 #endif

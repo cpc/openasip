@@ -83,8 +83,7 @@ Memory::read(Word address) {
 }
 
 /**
- * A convenience method for writing units of data to
- * the memory.
+ * A convenience method for writing units of data to the memory.
  *
  * The data is stored in an UIntWord. 
  *
@@ -105,6 +104,89 @@ Memory::write(Word address, int count, UIntWord data)
     std::memcpy(request->data_, MAUData, count*sizeof(MAU));
     request->size_ = count;
     request->address_ = address;
+    writeRequests_.push_back(request);
+}
+
+/**
+ * A convenience method for reading data from the memory and 
+ * interpreting it as a DoubleWord.
+ *
+ * @note Currently works only if MAU == 8 bits. asserts otherwise.
+ *
+ * @param address The address to read.
+ * @param data The data to write.
+ * @exception OutOfRange in case the address is out of range of the memory.
+ */
+void
+Memory::read(Word address, DoubleWord& data)
+    throw (OutOfRange) {
+
+    assert(MAUSize() == sizeof(Byte)*8 && 
+           "LDD works only with byte sized MAU at the moment.");
+
+    union castUnion {
+        DoubleWord d;
+        Byte maus[8];
+    };
+
+    castUnion cast;
+
+    const std::size_t MAUS = 8;
+
+    for (std::size_t i = 0; i < MAUS; ++i) {
+        UIntWord data;
+        read(address + i, 1, data);
+        // Byte order must be reversed if host is not bigendian.
+        #if WORDS_BIGENDIAN == 1
+        cast.maus[i] = data;
+        #else
+        cast.maus[MAUS - 1 - i] = data;
+        #endif        
+    }
+    data = cast.d;
+}
+
+/**
+ * A convenience method for writing a DoubleWord to the memory.
+ *
+ * @note Currently works only if MAU == 8 bits. asserts otherwise.
+ *
+ * @param address The address to write.
+ * @param data The data to write.
+ * @exception OutOfRange in case the address is out of range of the memory.
+ */
+void
+Memory::write(Word address, DoubleWord data)
+    throw (OutOfRange) {
+
+    assert(MAUSize() == sizeof(Byte)*8 && 
+           "LDD works only with byte sized MAU at the moment.");
+
+    union castUnion {
+        DoubleWord d;
+        Byte maus[8];
+    };
+
+    castUnion cast;
+    cast.d = data;
+
+    const std::size_t MAUS = 8;
+
+    WriteRequest* request = new WriteRequest();
+    request->data_ = new MAU[8];
+    request->size_ = 8;
+    request->address_ = address;
+
+    for (std::size_t i = 0; i < MAUS; ++i) {
+        UIntWord data;
+        // Byte order must be reversed if host is not bigendian.
+        #if WORDS_BIGENDIAN == 1
+        data = cast.maus[i];
+        #else
+        data = cast.maus[MAUS - 1 - i];
+        #endif
+        request->data_[i] = data;
+    }
     writeRequests_.push_back(request);
 }
 

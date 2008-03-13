@@ -5,9 +5,7 @@ std 0 1.4
 std 0xf8 123.123
 !advanceclock
 ldd 0xf8
-!result ldd 0xf8
 std 1000 77834.3498
 !advanceclock
 ldd 1000
-!result ldd 1000
 !quit

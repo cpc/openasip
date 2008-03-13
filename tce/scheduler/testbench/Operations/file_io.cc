@@ -20,13 +20,8 @@ TRIGGER
 std::string fileName = "";
 char c = 'x';
 for (int addr = INT(1); c != 0; ++addr) {
-    INITIATE_READ(addr, 1);
-    // make sure even slow memories have enough time to get the data for us
-    context.memory().advanceClock();
-    context.memory().advanceClock();
-    context.memory().advanceClock();
     UIntWord temp = 0;
-    MEM_DATA(temp);
+    MEMORY.read(addr, 1, temp);
     c = (char)temp;
     fileName += c;
 }
@@ -81,12 +76,8 @@ TRIGGER
 std::string data = "";
 
 for (unsigned addr = UINT(2); addr < UINT(2) + UINT(3); ++addr) {
-    INITIATE_READ(addr, 1);
-    context.memory().advanceClock();
-    context.memory().advanceClock();
-    context.memory().advanceClock();
     UIntWord temp = 0;
-    MEM_DATA(temp);
+    MEMORY.read(addr, 1, temp);
     data += (char)temp;
 }
 
@@ -121,10 +112,7 @@ IO(4) = read(INT(1), buf, INT(3));
 
 // write the data to memory
 for (unsigned i = 0; i < UINT(4); ++i) {
-    INITIATE_WRITE(INT(2) + i, 1, (UIntWord)buf[i]);
-    context.memory().advanceClock();
-    context.memory().advanceClock();
-    context.memory().advanceClock();
+    MEMORY.write(INT(2) + i, 1, (UIntWord)buf[i]);
 }
 
 delete[] buf;

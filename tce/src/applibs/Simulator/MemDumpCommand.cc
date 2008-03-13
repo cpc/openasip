@@ -179,12 +179,12 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
 
     MAUsToDisplay = newMAUCount;
     DataObject* result = new DataObject("");
+    // read the wanted number (given with /n) of chunks of data to the result 
     while (newDisplayedCount > 0) {
 
-        Memory::MAU mau = 0;
-
+        UIntWord data = 0;
         try {
-            mau = memory->read(newDisplayedAddress);
+            memory->read(newDisplayedAddress, MAUsToDisplay, data);
         } catch (const OutOfRange&) {
             interpreter()->setResult(
                 SimulatorToolbox::textGenerator().text(
@@ -193,8 +193,9 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
             return false;        
         }
 
+        const int HEX_DIGITS = MAUSize*newMAUCount/4;
         result->setString(
-            result->stringValue() + Conversion::toHexString(mau, 2));
+            result->stringValue() + Conversion::toHexString(data, HEX_DIGITS));
 
         newDisplayedCount--;
         newDisplayedAddress += MAUsToDisplay;

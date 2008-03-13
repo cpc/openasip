@@ -7,5 +7,4 @@ stq 0xff 10010010b
 !advanceclock
 !mem byte 0xff
 ldq 0xff
-!result ldq 0xff
 !quit

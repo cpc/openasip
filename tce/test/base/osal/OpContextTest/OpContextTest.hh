@@ -33,14 +33,14 @@ private:
 
     class MyDummyState : public OperationState {
     public:
-	MyDummyState(string n) : name_(n), advanced_(false) {};
-	string name() { return name_; };
-	void advanceClock(OperationContext&) { advanced_ = true; };
-	bool isAvailable(const OperationContext&) const { return false; };
-	bool advanced() { return advanced_; };
+        MyDummyState(string n) : name_(n), advanced_(false) {};
+        string name() { return name_; };
+        void advanceClock(OperationContext&) { advanced_ = true; };
+        bool isAvailable(const OperationContext&) const { return false; };
+        bool advanced() { return advanced_; };
     private:
-	string name_;
-	bool advanced_;
+        string name_;
+        bool advanced_;
     };
 };
 
@@ -72,10 +72,8 @@ OpContextTest::testStateStoring() {
     context.registerState(&state1);
     context.registerState(&state2);
     context.registerState(&state3);
-    context.setMemory(NULL, 4);
-
-    TS_ASSERT_EQUALS(context.naturalWordWidth(), 4);
-
+    context.setMemory(NULL);
+    
     TS_ASSERT_EQUALS((context.state("myDummy1")).name(), "myDummy1");
     TS_ASSERT_EQUALS((context.state("myDummy2")).name(), "myDummy2");
     TS_ASSERT_EQUALS((context.state("myDummy3")).name(), "myDummy3");
@@ -118,8 +116,6 @@ OpContextTest::testAdvanceClock() {
     TS_ASSERT_EQUALS(s2.advanced(), true);
     TS_ASSERT_EQUALS(s3.advanced(), true);
     TS_ASSERT_EQUALS(s4.advanced(), true);
-
-    TS_ASSERT_EQUALS(con.isAvailable(), false);
 }
 
 

@@ -2,5 +2,4 @@
 stq 100 60
 !advanceclock
 ldqu 100
-!result ldqu 100
 !quit

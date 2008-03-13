@@ -1,13 +1,10 @@
 !mem word 0x64
 ldw 0x64
-!result ldw 0x64
 stw 0x64 100
 !advanceclock
 !mem word 0x64
 ldw 0x64
-!result ldw 0x64
 stw 0x64 -2000000000
 !advanceclock
 ldw 0x64
-!result ldw 0x64
 !quit

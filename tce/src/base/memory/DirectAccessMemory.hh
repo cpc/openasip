@@ -74,6 +74,9 @@ public:
     virtual void reset() {}
     virtual void fillWithZeros();
 
+    using Memory::write;
+    using Memory::read;
+
 private:
     /// Copying not allowed.
     DirectAccessMemory(const DirectAccessMemory&);

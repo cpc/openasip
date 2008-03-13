@@ -96,30 +96,6 @@ OperationContext::advanceClock() {
 }
 
 /**
- * Returns the availability status of operation context.
- *
- * Returns true if all OperationState instances registered in OperationContext 
- * are available or if there are no OperationStates registered at all. If
- * false is returned, no operations should be triggered and processor should
- * be locked in case of simulation.
- *
- * @return The availability status of operation context.
- */
-bool
-OperationContext::isAvailable() const {
-  
-    StateRegistry::const_iterator i = stateRegistry_.begin();
-
-    while (i != stateRegistry_.end()) {
-        if (!(*i).second->isAvailable(*this)) {
-            return false;
-        }
-        ++i;
-    }
-    return true;
-}
-
-/**
  * Registers the operation state for given name.
  *
  * Called in the createState() of the custom OperationBehavior classes.

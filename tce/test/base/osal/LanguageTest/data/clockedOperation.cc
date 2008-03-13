@@ -11,19 +11,9 @@
 
 /// This operation is a clock counter. The trigger returns the current
 /// clock count stored in state. ADVANCE_CLOCK increases the counter.
-/// To test the AVAILABLE macro set, this operation returns true for
-/// even cycleCounts and false for odd.
 DEFINE_STATE(CLOCK_COUNTER)
 
     UIntWord cycleCount;
-
-    AVAILABLE
-        if (cycleCount % 2 == 0) {
-	    RETURN_AVAILABLE;
-	} else {
-	    RETURN_NOT_AVAILABLE;
-	}
-    END_AVAILABLE;
 
     INIT_STATE(CLOCK_COUNTER)
         cycleCount = 0;

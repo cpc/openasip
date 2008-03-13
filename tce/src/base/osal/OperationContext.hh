@@ -48,7 +48,6 @@ public:
     SimValue& returnAddress();
 
     void advanceClock();
-    bool isAvailable() const;
     bool isEmpty() const;
     bool hasMemoryModel() const;
 

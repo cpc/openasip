@@ -78,7 +78,7 @@ MachineStateBuilderTest::testBuildMachineState() {
     AddressSpace* as1 = navigator.item("AS1");
 
     MemorySystem memSys(*machine);
-    IdealSRAM* sram = new IdealSRAM(as1->start(), as1->end(), 8, 4, 4);
+    IdealSRAM* sram = new IdealSRAM(as1->start(), as1->end(), 8);
     TS_ASSERT_THROWS_NOTHING(memSys.addAddressSpace(*as1, sram));
 
     MachineStateBuilder builder;
@@ -170,7 +170,7 @@ MachineStateBuilderTest::testBuildFromUniversalMachine() {
     Machine::AddressSpaceNavigator aNavigator = um.addressSpaceNavigator();
     AddressSpace* as = aNavigator.item(UM_DMEM_NAME);
     MemorySystem memSys(um);
-    IdealSRAM* sram = new IdealSRAM(as->start(), as->end(), 8, 4, 4);
+    IdealSRAM* sram = new IdealSRAM(as->start(), as->end(), 8);
 
     memSys.addAddressSpace(*as, sram);
     MachineStateBuilder builder;

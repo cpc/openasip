@@ -40,9 +40,5 @@ dynamic_modules:
 	${SHARED_CXX_FLAGS} -o data/bwidth.so
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/control.cc \
 	${SHARED_CXX_FLAGS} -o data/control.so
-	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/complex.cc \
-	${SHARED_CXX_FLAGS} -o data/complex.so
 	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/extend.cc \
 	${SHARED_CXX_FLAGS} -o data/extend.so
-	${CXX} ${COMPILE_FLAGS} ${MISC_OBJ} data/memory.cc \
-	${SHARED_CXX_FLAGS} -o data/memory.so

@@ -29,7 +29,6 @@ using std::vector;
 #include "OperationContext.hh"
 #include "OSAL.hh"
 #include "Exception.hh"
-#include "TargetMemory.hh"
 #include "Operation.hh"
 #include "ObjectState.hh"
 #include "IdealSRAM.hh"
@@ -52,7 +51,6 @@ public:
     void testContextId();
     void testClockedOperation();
     void testExtend();
-    void testMemoryMacros();
 
 private:
     OperationBehavior* loadBehavior( 
@@ -413,9 +411,7 @@ LanguageTest::testControl() {
     InstructionAddress PC = 0;
     SimValue returnAddress(32);
 
-    OperationContext context(
-        NULL, 4, PC, returnAddress, NullSimValue::instance(),
-        NullSimValue::instance());
+    OperationContext context(NULL, PC, returnAddress);
 
     SimValue callTarget(32);
     callTarget = 500;
@@ -479,13 +475,9 @@ LanguageTest::testClockedOperation() {
 
     clocked->createState(context);
 
-    TS_ASSERT_EQUALS(context.isAvailable(), true);
     context.advanceClock();
-    TS_ASSERT_EQUALS(context.isAvailable(), false);
     context.advanceClock();
-    TS_ASSERT_EQUALS(context.isAvailable(), true);
     context.advanceClock();
-    TS_ASSERT_EQUALS(context.isAvailable(), false);
 
     simulateTrigger(clocked, outputs, context);
 
@@ -530,54 +522,6 @@ LanguageTest::testExtend() {
 
     deleteBehavior("extend", "S_EXTEND", sign_extend);
     deleteBehavior("extend", "Z_EXTEND", zero_extend);
-}
-
-/**
- * Test that memory macros works.
- */
-inline void
-LanguageTest::testMemoryMacros() {
-    
-    IdealSRAM memory(0, 1000, 8, 4, 1);
-    TargetMemory target(memory, false, 8);
-    
-    OperationContext context;
-    context.setMemory(&target, 4);
-
-    SimValue** arguments = new SimValue*[2];
-    
-    SimValue input1(32);
-    SimValue input2(32);
-
-    input1 = 100;
-    input2 = 50;
-    
-    arguments[0] = &input1;
-    arguments[1] = &input2;
-
-    OperationBehavior* store = loadBehavior("memory", "STORE");    
-    store->simulateTrigger(arguments, context);
-
-    target.advanceClock();
-
-    SimValue input(32);
-    input = 100;
-    arguments[0] = &input;
-    
-    SimValue result(32);
-    arguments[1] = &result;
-
-    OperationBehavior* load = loadBehavior("memory", "LOAD");
-    load->simulateTrigger(arguments, context);
-    target.advanceClock();
-    
-    TS_ASSERT_EQUALS(load->lateResult(arguments, context), true);
-    TS_ASSERT_EQUALS(result.intValue(), 50);
-
-    deleteBehavior("memory", "STORE", store);
-    deleteBehavior("memory", "LOAD", load);
-    delete[] arguments;
-    arguments = NULL;
 }
 
 #endif

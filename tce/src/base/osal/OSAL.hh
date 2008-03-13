@@ -330,27 +330,9 @@ bool simulateTrigger( \
 #define MAU_SIZE (context.memory().MAUSize())
 
 /**
- * Writes one or more MAUs to memory.
- *
- * Arguments are the memory address that should contain the first  
- * location to be written, the data to write, and the number of units to write 
- * starting from the ADDRESS address.
+ * Accesses the memory instance connected to the operation's FU.
  */
-#define WRITE_MEM(ADDRESS, DATA_TO_WRITE, COUNT_OF_MAUS)  \
-    do { context.memory().write(ADDRESS, COUNT_OF_MAUS, DATA_TO_WRITE); \
-    } while(false)
-
-/**
- * Reads one or more MAUs from memory.
- *
- * Initiates a memory read. Arguments are the memory address
- * that should contain the first minimum addressable unit wanted to be read,
- * the variable to read the data to, and the number of MAUs to read starting 
- * from that address.
- */
-#define READ_MEM(ADDRESS, DATA, COUNT_OF_MAUS)                  \
-    do { context.memory().read(ADDRESS, COUNT_OF_MAUS, DATA); \
-    } while(false)
+#define MEMORY context.memory()
          
 /**
  * Sign extends the given integer.

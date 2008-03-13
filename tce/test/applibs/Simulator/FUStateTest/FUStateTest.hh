@@ -357,9 +357,9 @@ FUStateTest::testMemoryAccessingFUState() {
     Operation& load = pool.operation("TESTLOAD");
     Operation& store = pool.operation("TESTSTORE");
 
-    IdealSRAM sram(0, 1000, 8, 4, 4);
+    IdealSRAM sram(0, 1000, 8);
     GlobalLock lock;
-    MemoryAccessingFUState fu(sram, 8, lock);
+    MemoryAccessingFUState fu(sram, lock);
     OneCycleOperationExecutor loadExecutor(fu);
     OneCycleOperationExecutor storeExecutor(fu);
 

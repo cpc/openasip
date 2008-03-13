@@ -36,6 +36,9 @@ public:
     virtual void write(Word address, MAU data);
     virtual Memory::MAU read(Word address);
 
+    using Memory::write;
+    using Memory::read;
+
     virtual void fillWithZeros();
 
 private:

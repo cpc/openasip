@@ -64,7 +64,11 @@ public:
 
     virtual void write(Word address, int size, UIntWord data)
         throw (OutOfRange);
+    virtual void write(Word address, DoubleWord data)
+        throw (OutOfRange);
     virtual void read(Word address, int size, UIntWord& data)
+        throw (OutOfRange);
+    virtual void read(Word address, DoubleWord& data)
         throw (OutOfRange);
 
     virtual void reset();
@@ -76,24 +80,6 @@ public:
     virtual Word start() { return start_; }
     virtual Word end() { return end_; }
     virtual Word MAUSize() { return MAUSize_; }
-
-#if 0
-    // To be removed:
-    bool isIdle() const;
-    virtual bool isAvailable() = 0;
-    virtual void read(Word address, int size, URC id)
-        throw (OutOfRange) = 0;
-    virtual void loadData(MAUVector& data, URC id) = 0;
-    virtual std::pair<MAUTable, std::size_t> loadData(URC id) = 0;
-    virtual bool resultReady(URC id) = 0;
-
-    virtual void initiateWrite(
-        Word address,
-        Memory::MAUTable data,
-        std::size_t size,
-        URC id)
-        throw (OutOfRange) = 0;
-#endif
 
 private:
     /// Copying not allowed.

@@ -754,35 +754,42 @@ CmdMem::execute(const std::vector<DataObject>& arguments)
         return false;
     }
 
-    UIntWord resultInt = 0;
+    SimValue resultValue(32);
+
     try {
         if (size == MEM_BYTE) {
+            UIntWord resultInt = 0;
             memory.read(address, 1, resultInt);
 
             // sign extension, if necessary
             if (context.outputFormat() == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
                 resultInt = (((int)(resultInt << 24)) >> 24);
             }
+            resultValue = resultInt;
         } else if (size == MEM_HALF_WORD) {
+            UIntWord resultInt = 0;
             memory.read(address, 2, resultInt);
 
             // sign extension, if necessary
             if (context.outputFormat() == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
                 resultInt = (((int)(resultInt << 16)) >> 16);
             }
+            resultValue = resultInt;
         } else if (size == MEM_WORD) {
+            UIntWord resultInt = 0;
             memory.read(address, 4, resultInt);
-        } 
+            resultValue = resultInt;
+        } else if (size == MEM_DOUBLE_WORD) {
+            DoubleWord result = 0.0;
+            memory.read(address, result);
+            resultValue = result;
+        }
     } catch (const OutOfRange& o) {
         string addressString = Conversion::toString(address);
         result->setString("address " + addressString + " out of memory bounds");
         interp->setResult(result);
         return false;
     }
-
-    SimValue resultValue(32);
-    resultValue = resultInt;
-
     string output = context.toOutputFormat(&resultValue);
     result->setString(output);
     interp->setResult(result);
