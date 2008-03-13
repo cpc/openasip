@@ -35,17 +35,12 @@ OperationSerializer* OperationContainer::serializer_ = NULL;
 PluginTools OperationContainer::tools_;
 InstructionAddress OperationContainer::programCounter_;
 SimValue OperationContainer::returnAddress_;
-SimValue OperationContainer::sysCallHandler_(32);
-SimValue OperationContainer::sysCallNumber_(32);
 
 IdealSRAM* OperationContainer::memory_ = 
-new IdealSRAM(MEMORY_START, MEMORY_END, MAUSIZE, 4, 2);
-
-TargetMemory OperationContainer::memoryWrapper_(*memory_, true, MAUSIZE);
+    new IdealSRAM(MEMORY_START, MEMORY_END, MAUSIZE);
 
 OperationContext OperationContainer::context_(
-    &memoryWrapper_, 4, programCounter_, returnAddress_,
-    sysCallHandler_, sysCallNumber_);
+    memory_, programCounter_, returnAddress_);
 
 /**
  * Constructor.
@@ -100,13 +95,13 @@ OperationContainer::operationContext() {
 }
 
 /**
- * Returns the memory wrapper.
+ * Returns the memory model instance.
  *
- * @return Memory wrapper.
+ * @return Memory model instance.
  */
-TargetMemory&
-OperationContainer::memoryWrapper() {
-    return memoryWrapper_;
+Memory&
+OperationContainer::memory() {
+    return *memory_;
 }
 
 /**

@@ -24,27 +24,64 @@
 /**
  * Memory Model interface provides methods for emulating memory access.
  *
- * Interface provides methods for emulating the cycle-accurate behaviour of
- * accesses to data memory due to operations of the target architecture such
- * as load and store.
+ * The interface provides methods for emulating the access to data memory by 
+ * operations of the target architecture such as load and store. In addition,
+ * an interface is implemented for direct access to the memory storage for
+ * the debugging user interfaces.
+ *
+ * The abstract base class Memory implements all functionality except for
+ * the actual write() and read() methods which write and read a single unit 
+ * to the memory storage as efficiently as possible. That is left for the 
+ * derived classes to implement, as it depends on the storage data structure 
+ * used, etc.
+ *
+ * Memory base class implements the correct ordering of loads and stores within
+ * the same cycle: loads in the same cycle do not see the values of 
+ * the writes in that cycle. That is, the writes are committed to the memory 
+ * array at cycleAdvance() call. Derived classes may loosen this behavior
+ * and let the client take care of the correct ordering of the memory
+ * accesses, as is the case with the compiled simulation engine and the
+ * DirectAccessMemory implementation it uses for simulating data memory.
+ *
+ * The Memory abstraction deals with MAUs (commonly bytes). The client can
+ * access the Memory for storing writing doubles and floats in case it 
+ * implements floating point memory operations. Interface for those is
+ * out of the abstraction level of this interface.
  */
 class Memory {
 public:
-
-    /// Unique request code for identifying requests.
-    typedef unsigned int URC;
-
-    /// Minimum addressable unit of the memory.
-    typedef int MAU;
-    /// A data area for the memory.
+    typedef MinimumAddressableUnit MAU;
     typedef MAU* MAUTable;
-    /// A data area for the memory.
     typedef std::vector<MAU> MAUVector;
 
-    Memory();
+    Memory(Word start, Word end, Word MAUSize);
     virtual ~Memory();
 
-    virtual void initiateRead(Word address, int size, URC id)
+    virtual void advanceClock();
+
+    virtual void write(Word address, MAU data) = 0;
+    virtual Memory::MAU read(Word address) = 0;
+
+    virtual void write(Word address, int size, UIntWord data)
+        throw (OutOfRange);
+    virtual void read(Word address, int size, UIntWord& data)
+        throw (OutOfRange);
+
+    virtual void reset();
+    virtual void fillWithZeros();
+
+    virtual void writeBlock(Word address, Memory::MAUVector data);
+    virtual void readBlock(Word address, Memory::MAUVector& data);
+
+    virtual Word start() { return start_; }
+    virtual Word end() { return end_; }
+    virtual Word MAUSize() { return MAUSize_; }
+
+#if 0
+    // To be removed:
+    bool isIdle() const;
+    virtual bool isAvailable() = 0;
+    virtual void read(Word address, int size, URC id)
         throw (OutOfRange) = 0;
     virtual void loadData(MAUVector& data, URC id) = 0;
     virtual std::pair<MAUTable, std::size_t> loadData(URC id) = 0;
@@ -56,25 +93,49 @@ public:
         std::size_t size,
         URC id)
         throw (OutOfRange) = 0;
-
-    virtual void advanceClock() = 0;
-    virtual bool isAvailable() = 0;
-    virtual void readBlock(Word address, MAUVector& data) = 0;
-    virtual void writeBlock(Word address, MAUVector data) = 0;
-    virtual void reset() = 0;
-    virtual void fillWithZeros() = 0;
-    bool isIdle() const;
-
-protected:
-    /// Flag telling whether tere are pending write requests.
-    bool idle_;
+#endif
 
 private:
     /// Copying not allowed.
     Memory(const Memory&);
     /// Assignment not allowed.
     Memory& operator=(const Memory&);
+
+    void pack(const Memory::MAUTable data, int size, UIntWord& value);
+    void unpack(const UIntWord& value, std::size_t size, Memory::MAUTable data);
+
+    /// Starting point of the address space.
+    Word start_;
+    /// End point of the address space.
+    Word end_;
+    /// Size of the minimum adressable unit.
+    Word MAUSize_;
+
+    /**
+     * Models an uncommitted write request.
+     */
+    struct WriteRequest {
+        WriteRequest() :
+            data_(NULL), dataSize_(0), address_(0), size_(0) {}
+        /// Data to be written.
+        Memory::MAUTable data_;
+        /// Data table size.
+        std::size_t dataSize_;
+        /// Address to be written to.
+        Word address_;
+        /// Size of the data to be read/written.
+        int size_;
+    };
+    typedef std::vector<WriteRequest*> RequestQueue;
+    /// The uncommited write requests.
+    RequestQueue writeRequests_;
+    /// Mask bit pattern for unpacking IntWord to MAUs.
+    int mask_;
+
 };
+
+/// Maximum number of MAUs in a single request supported by the interface.
+#define MAX_ACCESS_SIZE 64
 
 #include "Memory.icc"
 
@@ -93,26 +154,8 @@ public:
 
     static NullMemory& instance();
 
-    virtual void initiateRead(Word address, int size, URC id)
-        throw (OutOfRange);
-
-    virtual void loadData(Memory::MAUVector& data, URC id);
-    virtual std::pair<Memory::MAUTable, std::size_t> loadData(URC id);
-    virtual bool resultReady(URC id);
-
-    virtual void initiateWrite(
-        Word address,
-        Memory::MAUTable data,
-        std::size_t size,
-        URC id)
-        throw (OutOfRange);
-
-    virtual void advanceClock();
-    virtual bool isAvailable();
-    virtual void readBlock(Word address, Memory::MAUVector& data);
-    virtual void writeBlock(Word address, Memory::MAUVector data);
-    virtual void reset();
-    virtual void fillWithZeros();
+    virtual void write(Word address, MAU data);
+    virtual Memory::MAU read(Word address);
 
 protected:
     NullMemory();

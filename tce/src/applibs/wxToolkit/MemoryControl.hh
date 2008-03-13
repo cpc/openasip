@@ -19,7 +19,7 @@
 #include "Exception.hh"
 
 class MemoryGridTable;
-class TargetMemory;
+class Memory;
 
 /**
  * Widget for showing the contents of the memory.
@@ -31,10 +31,7 @@ class MemoryControl : public wxPanel {
 public:
     MemoryControl(
         wxWindow* parent,
-        TargetMemory* wrapper,
-        int MAUSizeInBits,
-        Word start,
-        Word end,
+        Memory* memory,
         wxWindowID id = -1,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
@@ -42,8 +39,7 @@ public:
 
     virtual ~MemoryControl();
     void updateView();
-    void setMemory(
-	TargetMemory* memory, int mauSizeInBits, Word start, Word end);
+    void setMemory(Memory* memory);
 
     void clearHighlights();
     void highlight(Word address, unsigned count, const wxColour& colour)
@@ -97,7 +93,7 @@ private:
     void copySelection();
 
     /// Used for access to memory contents.
-    TargetMemory* memory_;
+    Memory* memory_;
     /// Size of the minimum addressable unit.
     int MAUSize_;
     /// Start point of memory.

@@ -33,7 +33,6 @@ OPERATION(ADD)
 
 TRIGGER
     IO(3) = UINT(1) + UINT(2);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(ADD)
@@ -45,12 +44,6 @@ OPERATION(SUB)
 
 TRIGGER
     IO(3) = UINT(1) - UINT(2);
-// Testing EXEC_OPERATION macro
-//    SimValue temp, temp2;
-//    temp = -UINT(2); 
-//    EXEC_OPERATION(ADD, IO(1), temp, temp2);   
-//    IO(3) = temp2;
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(SUB)
@@ -62,22 +55,12 @@ OPERATION(LDW)
 
 TRIGGER
     if (UINT(1) % 4 != 0) 
-        RUNTIME_ERROR("Bus error.")
+        RUNTIME_ERROR("Memory access alignment error.")
 
-    INITIATE_READ(UINT(1), 4);
-    RETURN_NOT_READY;
+    UIntWord data;
+    READ_MEM(UINT(1), data, 4);
+    IO(2) = data;
 END_TRIGGER;
-
-LATE_RESULT
-    if (MEM_RESULT_READY()) {
-        UIntWord data;
-        MEM_DATA(data);
-        IO(2) = data;
-        RETURN_UPDATED;
-    } else {
-        RETURN_NOT_UPDATED;
-    }
-END_LATE_RESULT;
 
 END_OPERATION(LDW)
 
@@ -87,20 +70,10 @@ END_OPERATION(LDW)
 OPERATION(LDQ)
 
 TRIGGER
-    INITIATE_READ(UINT(1), 1);
-    RETURN_NOT_READY;
+    UIntWord data;
+    READ_MEM(UINT(1), data, 1);
+    IO(2) = SIGN_EXTEND(data, MAU_SIZE);
 END_TRIGGER;
-
-LATE_RESULT
-    if (MEM_RESULT_READY()) {
-        UIntWord result;
-        MEM_DATA(result);
-        IO(2) = SIGN_EXTEND(result, MAU_SIZE);
-        RETURN_UPDATED;
-    } else {
-        RETURN_NOT_UPDATED; 
-    }
-END_LATE_RESULT;
 
 END_OPERATION(LDQ)
 
@@ -111,51 +84,47 @@ OPERATION(LDH)
 
 TRIGGER
     if (UINT(1) % 2 != 0) 
-        RUNTIME_ERROR("Bus error.")
-
-    INITIATE_READ(UINT(1), 2);
-    RETURN_NOT_READY;
+        RUNTIME_ERROR("Memory access alignment error.")
+    UIntWord data;
+    READ_MEM(UINT(1), data, 2);
+    IO(2) = SIGN_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;
-
-LATE_RESULT
-    if (MEM_RESULT_READY()) {
-        UIntWord result;
-        MEM_DATA(result);
-        IO(2) = SIGN_EXTEND(result, MAU_SIZE*2);
-        RETURN_UPDATED;
-    } else {
-        RETURN_NOT_UPDATED;
-    }
-END_LATE_RESULT;
 
 END_OPERATION(LDH)
 
 //////////////////////////////////////////////////////////////////////////////
 // LDD - load double word (64 bits) from memory
 //
-// @todo the bytes should be swapped from TCE/TTA double byte order to the
-//       host byte order!
+// NOTE: NOT TESTED PROPERLY!
+//
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(LDD)
 
 TRIGGER
-    if (UINT(1) % 4 != 0) 
-        RUNTIME_ERROR("Bus error.")
+    if (UINT(1) % 8 != 0) 
+        RUNTIME_ERROR("Memory access alignment error.");
 
-    INITIATE_READ(UINT(1), 8); 
-    RETURN_NOT_READY;
-END_TRIGGER;
+    // hackish way to read DoubleWord relatively portably with different MAU 
+    // sizes
+    union castUnion {
+        DoubleWord d;
+        UIntWord maus[64];
+    };
 
-LATE_RESULT
-    if (MEM_RESULT_READY()) {
-        DoubleWord data;
-        MEM_DATA(data);
-        IO(2) = data;
-        RETURN_UPDATED;
-    } else {
-        RETURN_NOT_UPDATED;
+    castUnion cast;
+
+    const std::size_t MAUS = sizeof(DoubleWord) / MAU_SIZE;
+
+    for (std::size_t i = 0; i < MAUS; ++i) {
+        // Byte order must be reversed if host is not bigendian.
+        #if WORDS_BIGENDIAN == 1
+        READ_MEM(UINT(1) + i, cast.maus[i], 1);
+        #else
+        READ_MEM(UINT(1) + i, cast.maus[MAUS - 1 - i], 1);
+        #endif
     }
-END_LATE_RESULT;
+    IO(2) = cast.d;
+END_TRIGGER;
 
 END_OPERATION(LDD)
 
@@ -166,10 +135,9 @@ OPERATION(STW)
 
 TRIGGER
     if (UINT(1) % 4 != 0) 
-        RUNTIME_ERROR("Bus error.")
+        RUNTIME_ERROR("Memory access alignment error.");
 
-    INITIATE_WRITE(UINT(1), 4, UINT(2));
-    RETURN_READY;
+    WRITE_MEM(UINT(1), UINT(2), 4);
 END_TRIGGER;
 
 END_OPERATION(STW)
@@ -180,8 +148,7 @@ END_OPERATION(STW)
 OPERATION(STQ)
 
 TRIGGER
-    INITIATE_WRITE(UINT(1), 1, UINT(2));
-    RETURN_READY;
+    WRITE_MEM(UINT(1), UINT(2), 1);
 END_TRIGGER;
 
 END_OPERATION(STQ)
@@ -193,10 +160,8 @@ OPERATION(STH)
 
 TRIGGER
     if (UINT(1) % 2 != 0) 
-        RUNTIME_ERROR("Bus error.")
-
-    INITIATE_WRITE(UINT(1), 2, UINT(2));
-    RETURN_READY;
+        RUNTIME_ERROR("Memory access alignment error.");
+    WRITE_MEM(UINT(1), UINT(2), 2);
 END_TRIGGER;
 
 END_OPERATION(STH)
@@ -211,10 +176,8 @@ OPERATION(STD)
 
 TRIGGER
     if (UINT(1) % 4 != 0) 
-        RUNTIME_ERROR("Bus error.")
-
-    INITIATE_WRITE(UINT(1), 8, DBL(2));
-    RETURN_READY;
+        RUNTIME_ERROR("Memory access alignment error.");
+    WRITE_MEM(UINT(1), UINT(2), 8);
 END_TRIGGER;
 
 END_OPERATION(STD)
@@ -230,7 +193,6 @@ TRIGGER
     } else {
         IO(3) = 0;
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(EQ)
@@ -244,7 +206,6 @@ TRIGGER
     SIntWord in1 = static_cast<SIntWord>(UINT(1));
     SIntWord in2 = static_cast<SIntWord>(UINT(2));
     IO(3) = (in1 > in2) ? 1 : 0;
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(GT)
@@ -256,7 +217,6 @@ OPERATION(GTU)
 
 TRIGGER
     IO(3) = (UINT(1) > UINT(2)) ? 1 : 0;
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(GTU)
@@ -269,7 +229,6 @@ OPERATION(SHL)
 
 TRIGGER
     IO(3) = UINT(1) << UINT(2);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(SHL)
@@ -287,12 +246,11 @@ TRIGGER
             static_cast<SIntWord>(BWIDTH(1)), 
             static_cast<SIntWord>(OSAL_WORD_WIDTH))) {
         IO(3) = 0;
-        RETURN_READY;
+        return true;
     }
     
     SIntWord int3 = int1 >> int2;
     IO(3) = static_cast<SIntWord>(int3);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(SHR)
@@ -310,11 +268,10 @@ TRIGGER
             static_cast<UIntWord>(BWIDTH(1)), 
             static_cast<UIntWord>(OSAL_WORD_WIDTH))) {
         IO(3) = 0;
-        RETURN_READY;
+        return true;
     }
     
     IO(3) = in1 >> in2;
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(SHRU)
@@ -326,7 +283,6 @@ OPERATION(AND)
 
 TRIGGER
     IO(3) = UINT(1) & UINT(2);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(AND)
@@ -338,7 +294,6 @@ OPERATION(IOR)
 
 TRIGGER
     IO(3) = UINT(1) | UINT(2);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(IOR)
@@ -350,22 +305,9 @@ OPERATION(XOR)
 
 TRIGGER
     IO(3) = UINT(1) ^ UINT(2);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(XOR)
-
-//////////////////////////////////////////////////////////////////////////////
-// SYS - software interrupt (trap)
-//////////////////////////////////////////////////////////////////////////////
-OPERATION(SYS)
-
-TRIGGER
-    Application::abortWithError("syscall emulation not implemented");
-    RETURN_READY;
-END_TRIGGER;
-
-END_OPERATION(SYS)
 
 //////////////////////////////////////////////////////////////////////////////
 // JUMP - absolute jump
@@ -374,7 +316,6 @@ OPERATION(JUMP)
 
 TRIGGER
     PROGRAM_COUNTER = UINT(1);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(JUMP)
@@ -388,7 +329,6 @@ TRIGGER
     // save the address of the instruction to return to
     SAVE_RETURN_ADDRESS;
     PROGRAM_COUNTER = UINT(1);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(CALL)
@@ -403,7 +343,6 @@ TRIGGER
     SIntWord in2 = static_cast<SIntWord>(INT(2));
     SIntWord in3 = (in1 < in2) ? in1 : in2;
     IO(3) = static_cast<SIntWord>(in3);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(MIN)
@@ -418,7 +357,6 @@ TRIGGER
     SIntWord in2 = static_cast<SIntWord>(INT(2));
     SIntWord in3 = (in1 > in2) ? in1 : in2;
     IO(3) = static_cast<SIntWord>(in3);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(MAX)
@@ -437,7 +375,6 @@ TRIGGER
     } else {
         IO(3) = in2;
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(MINU)
@@ -456,7 +393,6 @@ TRIGGER
     } else {
         IO(3) = in2;
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(MAXU)
@@ -468,7 +404,6 @@ OPERATION(SXQW)
 
 TRIGGER
     IO(2) = SIGN_EXTEND(UINT(1), 8);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(SXQW)
@@ -480,7 +415,6 @@ OPERATION(SXHW)
 
 TRIGGER
     IO(2) = SIGN_EXTEND(UINT(1), 16);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(SXHW)
@@ -494,7 +428,6 @@ TRIGGER
     SIntWord in1 = static_cast<SIntWord>(UINT(1));
     in1 = -in1;
     IO(2) = static_cast<SIntWord>(in1);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(NEG)
@@ -508,7 +441,6 @@ TRIGGER
     SIntWord in1 = static_cast<SIntWord>(UINT(1));
     in1 = ~in1;
     IO(2) = static_cast<SIntWord>(in1);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(NOT)
@@ -523,16 +455,13 @@ TRIGGER
         FloatWord in = FLT(1);
         in = -in;
         IO(2) = in;
-        RETURN_READY;
     } else if (BWIDTH(1) == DBL_WORD_SIZE) {
         DoubleWord in = DBL(1);
         in = -in;
         IO(2) = in;
-        RETURN_READY;
     } else {
         abortWithError("bit width of operand erronous");
     }
-    RETURN_READY; 
 END_TRIGGER;
 
 END_OPERATION(NEGF)
@@ -544,7 +473,6 @@ OPERATION(MUL)
 
 TRIGGER
     IO(3) = UINT(1)*UINT(2);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(MUL)
@@ -560,7 +488,6 @@ TRIGGER
 
     IO(3) = static_cast<SIntWord>(
 	(static_cast<SIntWord>(UINT(1)) / static_cast<SIntWord>(UINT(2))));
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(DIV)
@@ -575,7 +502,6 @@ TRIGGER
          RUNTIME_ERROR("Divide by zero.")
 
     IO(3) = UINT(1) / UINT(2);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(DIVU)
@@ -590,7 +516,6 @@ TRIGGER
     SIntWord in2 = static_cast<SIntWord>(UINT(2));
     SIntWord out1 = in1 % in2;
     IO(3) = static_cast<SIntWord>(out1);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(MOD)
@@ -610,7 +535,6 @@ TRIGGER
     unsigned int out1 = in1 % in2;
 
     IO(3) = static_cast<UIntWord>(out1);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(MODU)
@@ -629,7 +553,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(ADDF)
@@ -647,7 +570,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(SUBF)
@@ -665,7 +587,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(MULF)
@@ -683,7 +604,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(DIVF)
@@ -701,7 +621,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(EQF)
@@ -719,7 +638,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(NEF)
@@ -737,7 +655,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(GTF)
@@ -755,7 +672,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(GEF)
@@ -773,7 +689,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(LTF)
@@ -791,7 +706,6 @@ TRIGGER
     } else {
         abortWithError("bit widths of operands erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(LEF)
@@ -805,7 +719,6 @@ TRIGGER
     FloatWord in = FLT(1);
     SIntWord out = static_cast<SIntWord>(in);
     IO(2) = out;
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(CFI)
@@ -819,7 +732,6 @@ TRIGGER
     FloatWord in = FLT(1);
     UIntWord out = static_cast<UIntWord>(in);
     IO(2) = out;
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(CFIU)
@@ -833,7 +745,6 @@ OPERATION(CIF)
 TRIGGER
     SIntWord in = INT(1);
     IO(2) = static_cast<FloatWord>(in);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(CIF)
@@ -847,7 +758,6 @@ OPERATION(CIFU)
 TRIGGER
     UIntWord in = UINT(1);
     IO(2) = static_cast<FloatWord>(in);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(CIFU)
@@ -860,7 +770,6 @@ OPERATION(CFD)
 TRIGGER
     FloatWord in = FLT(1);
     IO(2) = static_cast<Double>(in);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(CFD)
@@ -873,7 +782,6 @@ OPERATION(CDF)
 TRIGGER
     DoubleWord in = DBL(1);
     IO(2) = static_cast<FloatWord>(in);
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(CDF)
@@ -895,7 +803,6 @@ TRIGGER
                                  static_cast<UIntWord>(BWIDTH(1)), 
                                  static_cast<UIntWord>(OSAL_WORD_WIDTH)) - 
                               in2));
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(ROTL)
@@ -916,7 +823,6 @@ TRIGGER
                                          static_cast<UIntWord>(BWIDTH(1)), 
                                          static_cast<UIntWord>(OSAL_WORD_WIDTH))
                                      - in2));
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(ROTR)
@@ -933,7 +839,6 @@ TRIGGER
         temp = -temp;
     }
     IO(2) = temp;
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(ABS)
@@ -960,7 +865,6 @@ TRIGGER
     } else { 
         abortWithError("bit width of operand erronous");
     }
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(ABSF)
@@ -972,20 +876,10 @@ END_OPERATION(ABSF)
 OPERATION(LDQU)
 
 TRIGGER
-    INITIATE_READ(UINT(1), 1);
-    RETURN_NOT_READY;
+    UIntWord data;
+    READ_MEM(UINT(1), data, 1);
+    IO(2) = ZERO_EXTEND(data, MAU_SIZE);
 END_TRIGGER;
-
-LATE_RESULT
-    if (MEM_RESULT_READY()) {
-        UIntWord result;
-        MEM_DATA(result);
-        IO(2) = ZERO_EXTEND(result, MAU_SIZE);
-        RETURN_UPDATED;
-    } else {
-        RETURN_NOT_UPDATED;
-    }
-END_LATE_RESULT;
 
 END_OPERATION(LDQU)
 
@@ -997,22 +891,12 @@ OPERATION(LDHU)
 
 TRIGGER
     if (UINT(1) % 2 != 0) 
-        RUNTIME_ERROR("Bus error.")
+        RUNTIME_ERROR("Memory access alignment error.")
 
-    INITIATE_READ(UINT(1), 2);
-    RETURN_NOT_READY;
+    UIntWord data;
+    READ_MEM(UINT(1), data, 2);
+    IO(2) = ZERO_EXTEND(data, MAU_SIZE*2);
 END_TRIGGER;
-
-LATE_RESULT
-    if (MEM_RESULT_READY()) {
-        UIntWord result;
-        MEM_DATA(result);
-        IO(2) = ZERO_EXTEND(result, MAU_SIZE*2);
-        RETURN_UPDATED;
-    } else {
-        RETURN_NOT_UPDATED;
-    }
-END_LATE_RESULT;
 
 END_OPERATION(LDHU)
 
@@ -1024,7 +908,6 @@ OPERATION(STDOUT)
 
 TRIGGER
     OUTPUT_STREAM << static_cast<char>(INT(1));
-    RETURN_READY;
 END_TRIGGER;
 
 END_OPERATION(STDOUT)

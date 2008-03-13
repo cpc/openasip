@@ -17,8 +17,8 @@
 #include "BaseType.hh"
 #include "Exception.hh"
 #include "OperationState.hh"
-#include "TargetMemory.hh"
 #include "SimValue.hh"
+#include "Memory.hh"
 
 /**
  * OperationContext is used to store any implementation and context dependent 
@@ -32,27 +32,20 @@ public:
 
     OperationContext();
     OperationContext(
-        TargetMemory* memory,
-        int nww,
+        Memory* memory,
         InstructionAddress& programCounter,
-        SimValue& returnAddress,
-        SimValue& syscallHandler,
-        SimValue& syscallNumber);
+        SimValue& returnAddress);
 
     virtual ~OperationContext();
 
-    TargetMemory& memory();
-    void setMemory(TargetMemory* memory, int naturalWordWidth);
-    int naturalWordWidth() const;
+    Memory& memory();
+    void setMemory(Memory* memory);
     int contextId() const;
 
     InstructionAddress& programCounter();
     void setSaveReturnAddress(bool value);
     bool saveReturnAddress();
     SimValue& returnAddress();
-
-    SimValue& syscallHandler();
-    SimValue& syscallNumber();
 
     void advanceClock();
     bool isAvailable() const;
@@ -74,12 +67,9 @@ private:
     bool hasState(const std::string& name) const;
     void initializeContextId();
 
-    /// The Memory Model wrapper.
-    TargetMemory* memory_;
+    /// The Memory model instance.
+    Memory* memory_;
 
-    /// The natural word width of the memory in minimum addressable units.
-    int naturalWordWidth_;
-    
     /// Unique number that identifies a context instance.
     int contextId_;
 
@@ -92,19 +82,11 @@ private:
     /// Simulates the procedure return address. 
     SimValue& returnAddress_;    
 
-    ///  The syscall handler register. Used to enforce syscall invocations.
-    SimValue& syscallHandler_;
-
-    /// The syscall handler code register. Used to store the syscall numeric
-    /// code that identifies a syscall.
-    SimValue& syscallNumber_;
-
     /// The state registry.
     StateRegistry stateRegistry_;
 
     /// Should the return address be saved?
     bool saveReturnAddress_;
-
 };
 
 #include "OperationContext.icc"

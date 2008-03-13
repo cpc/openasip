@@ -22,7 +22,6 @@
 #include "InterpreterContext.hh"
 #include "OperationSimulator.hh"
 #include "IdealSRAM.hh"
-#include "TargetMemory.hh"
 #include "BaseType.hh"
 #include "config.h"
 
@@ -146,116 +145,6 @@ CmdTrigger::execute(const std::vector<DataObject>& arguments)
 string
 CmdTrigger::helpText() const {
     return "trigger <operation> <operand>...";
-}
-
-//////////////////////////////////////////////////////////////////////////////
-// CmdResult
-//////////////////////////////////////////////////////////////////////////////
-
-/**
- * Constructor.
- */
-CmdResult::CmdResult() : CustomCommand("result") {
-}
-
-/**
- * Copy constructor.
- *
- * @param cmd Command to be copied.
- */
-CmdResult::CmdResult(const CmdResult& cmd) : CustomCommand(cmd) {
-}
-
-/**
- * Destructor.
- */
-CmdResult::~CmdResult() {
-}
-
-/**
- * Executes the command.
- *
- * @param arguments The arguments for the command.
- * @return True if execution is successful, false otherwise.
- * @exception NumberFormatException If data object conversion fails.
- */
-bool
-CmdResult::execute(const std::vector<DataObject>& arguments)
-    throw (NumberFormatException) {
-
-    ScriptInterpreter* scriptInterp = interpreter();
-    OsalInterpreter* interp = dynamic_cast<OsalInterpreter*>(scriptInterp);
-    DataObject* result = new DataObject();
-
-    if (arguments.size() < 2) {
-        result->setString("too few arguments");
-        interp->setResult(result);
-        return false;
-    }
-
-    string opName = arguments[1].stringValue();
-
-    Operation& op = interp->operation(opName);
-
-    if (&op == &NullOperation::instance()) {
-        result->setString("unknown operation \"" + opName + "\"");
-        interp->setResult(result);
-        return false;
-    }
-
-    vector<DataObject> inputs;
-    for (size_t i = 2; i < arguments.size(); i++) {
-        inputs.push_back(arguments[i]);
-    }
-
-    vector<SimValue*> outputs;
-    TesterContext& context = *dynamic_cast<TesterContext*>(&interp->context());
-    unsigned int bitWidth = context.bitWidth();
-    OperationContext& opContext = context.operationContext();
-
-    string resultString = "";
-
-    OperationSimulator& simulator = OperationSimulator::instance();
-    if (!simulator.lateResult(
-            op, inputs, outputs, opContext, bitWidth, resultString)) {
-
-        for (size_t i = 0; i < outputs.size(); i++) {
-            delete outputs[i];
-        }
-        result->setString(resultString);
-        interp->setResult(result);
-        return false;
-    } else {
-
-        for (int i = 0; i < op.numberOfOutputs(); i++) {
-            SimValue* current = outputs[op.numberOfInputs() + i];
-            string output = context.toOutputFormat(current);
-            resultString += output;
-            if (i < op.numberOfOutputs() - 1) {
-                resultString += " ";
-            }
-        }
-
-        for (size_t i = 0; i < outputs.size(); i++) {
-            delete outputs[i];
-        }
-
-        result->setString(resultString);
-        interp->setResult(result);
-        return true;
-    }
-}
-
-/**
- * Returns the help string of the command.
- *
- * @return Help string of the command.
- */
-string
-CmdResult::helpText() const {
-    return "Executes late result command\n"
-        "!result <operation> <operand>..";
-
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -492,8 +381,7 @@ TesterContext::TesterContext() :
     InterpreterContext(), continue_(true), programCounterStorage_(0),
     outputFormat_(CmdOutput::OUTPUT_FORMAT_INT_SIGNED),
     bitWidth_(32),
-    opContext_(NULL, 4, programCounterStorage_, returnAddressStorage_,
-               *(new SimValue(32)), *(new SimValue(32))) {
+    opContext_(NULL, programCounterStorage_, returnAddressStorage_) {
 
 }
 
@@ -625,25 +513,6 @@ TesterContext::returnAddress() {
     return opContext_.returnAddress();
 }
 
-/**
- * Returns the syscall handler as SimValue.
- *
- * @return Syscall handler as SimValue.
- */
-SimValue&
-TesterContext::syscallHandler() {
-    return opContext_.syscallHandler();
-}
-
-/**
- * Returns the syscall number as SimValue.
- *
- * @return Syscall number as SimValue.
- */
-SimValue&
-TesterContext::syscallNumber() {
-    return opContext_.syscallNumber();
-}
 
 //////////////////////////////////////////////////////////////////////////////
 // CmdQuit
@@ -717,8 +586,6 @@ CmdQuit::helpText() const {
 
 const string CmdRegister::REGISTER_PROGRAM_COUNTER = "programcounter";
 const string CmdRegister::REGISTER_RETURN_ADDRESS = "returnaddress";
-const string CmdRegister::REGISTER_SYSCALL_HANDLER = "syscallhandler";
-const string CmdRegister::REGISTER_SYSCALL_NUMBER = "syscallnumber";
 
 /**
  * Constructor.
@@ -781,12 +648,6 @@ CmdRegister::execute(const std::vector<DataObject>& arguments)
         SimValue value(32);
         value = addr;
         output = context.toOutputFormat(&value);
-    } else if (registerValue == REGISTER_SYSCALL_HANDLER) {
-        SimValue& value = context.syscallHandler();
-        output = context.toOutputFormat(&value);
-    } else if (registerValue == REGISTER_SYSCALL_NUMBER) {
-        SimValue& value = context.syscallNumber();
-        output = context.toOutputFormat(&value);
     } else {
         result->setString("illegal register name \"" +
                           registerValue + "\"");
@@ -810,8 +671,7 @@ CmdRegister::helpText() const {
         "Prints the contents of the register. Register is one of the "
         "following:\n{" +
         REGISTER_PROGRAM_COUNTER + "|" +
-        REGISTER_RETURN_ADDRESS + "|" + REGISTER_SYSCALL_HANDLER + "|" +
-        REGISTER_SYSCALL_NUMBER + "}";
+        REGISTER_RETURN_ADDRESS + "}";
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -881,7 +741,7 @@ CmdMem::execute(const std::vector<DataObject>& arguments)
     TesterContext& context =
         *(dynamic_cast<TesterContext*>(&interp->context()));
 
-    TargetMemory& memory = context.operationContext().memory();
+    Memory& memory = context.operationContext().memory();
 
     Word address = 0;
     string addressString = arguments[2].stringValue();
@@ -895,31 +755,24 @@ CmdMem::execute(const std::vector<DataObject>& arguments)
     }
 
     UIntWord resultInt = 0;
-    DoubleWord resultDouble = 0;
     try {
         if (size == MEM_BYTE) {
-            memory.initiateRead(address, sizeof(Byte), 1);
-            memory.readData(resultInt, 1);
+            memory.read(address, 1, resultInt);
 
             // sign extension, if necessary
             if (context.outputFormat() == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
                 resultInt = (((int)(resultInt << 24)) >> 24);
             }
         } else if (size == MEM_HALF_WORD) {
-            memory.initiateRead(address, sizeof(HalfWord), 1);
-            memory.readData(resultInt, 1);
+            memory.read(address, 2, resultInt);
 
             // sign extension, if necessary
             if (context.outputFormat() == CmdOutput::OUTPUT_FORMAT_INT_SIGNED) {
                 resultInt = (((int)(resultInt << 16)) >> 16);
             }
         } else if (size == MEM_WORD) {
-            memory.initiateRead(address, sizeof(Word), 1);
-            memory.readData(resultInt, 1);
-        } else if (size == MEM_DOUBLE_WORD) {
-            memory.initiateRead(address, sizeof(DoubleWord), 1);
-            memory.readData(resultDouble, 1);
-        }
+            memory.read(address, 4, resultInt);
+        } 
     } catch (const OutOfRange& o) {
         string addressString = Conversion::toString(address);
         result->setString("address " + addressString + " out of memory bounds");
@@ -928,11 +781,7 @@ CmdMem::execute(const std::vector<DataObject>& arguments)
     }
 
     SimValue resultValue(32);
-    if (size == MEM_DOUBLE_WORD) {
-        resultValue = resultDouble;
-    } else {
-        resultValue = resultInt;
-    }
+    resultValue = resultInt;
 
     string output = context.toOutputFormat(&resultValue);
     result->setString(output);
@@ -1006,7 +855,7 @@ CmdAdvanceClock::execute(const std::vector<DataObject>& arguments)
     TesterContext& context =
         *(dynamic_cast<TesterContext*>(&interp->context()));
 
-    TargetMemory& memory = context.operationContext().memory();
+    Memory& memory = context.operationContext().memory();
     memory.advanceClock();
     context.operationContext().advanceClock();
     result->setString("");
@@ -1157,7 +1006,6 @@ int main(int argc, char* argv[]) {
     CmdRegister* reg = new CmdRegister();
     CmdMem* mem = new CmdMem();
     CmdAdvanceClock* clock = new CmdAdvanceClock();
-    CmdResult* result = new CmdResult();
     CmdBitWidth* bitWidth = new CmdBitWidth();
 
     interpreter.initialize(argc, argv, &context, reader);
@@ -1169,14 +1017,12 @@ int main(int argc, char* argv[]) {
     interpreter.addCustomCommand(reg);
     interpreter.addCustomCommand(mem);
     interpreter.addCustomCommand(clock);
-    interpreter.addCustomCommand(result);
     interpreter.addCustomCommand(bitWidth);
     reader->initialize(">> ");
 
     // memory is 64k bytes
-    IdealSRAM* memory = new IdealSRAM(0, 65535, 8, 4, 2);
-    TargetMemory* wrapper = new TargetMemory(*memory, true, 8);
-    context.operationContext().setMemory(wrapper, 4);
+    IdealSRAM* memory = new IdealSRAM(0, 65535, 8);
+    context.operationContext().setMemory(memory);
 
     if (options.numberOfArguments() > 0) {
         // batch mode
@@ -1218,7 +1064,6 @@ int main(int argc, char* argv[]) {
     }
     delete reader;
     delete memory;
-    delete wrapper;
     interpreter.finalize();
     return EXIT_SUCCESS;
 }

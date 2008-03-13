@@ -30,17 +30,13 @@ using std::string;
  * @param align Alignment of natural words, expressed in number of MAUs.
  */
 DirectAccessMemory::DirectAccessMemory(
-    Word start,
-    Word end,
-    Word MAUSize,
-    Word wordSize,
-    int align) : Memory(), start_(start), end_(end), MAUSize_(MAUSize),
-                 MAUSize3_(MAUSize_ * 3), MAUSize2_(MAUSize_ * 2),
-                 wordSize_(wordSize), mask_(~(~0 << MAUSize_)), 
-                 alignment_(align) {
+    Word start, Word end, Word MAUSize) : 
+    Memory(start, end, MAUSize), 
+    start_(start), end_(end), MAUSize_(MAUSize),
+    MAUSize3_(MAUSize_ * 3), MAUSize2_(MAUSize_ * 2),
+    mask_(~(~0 << MAUSize_)) {
 
     data_ = new MemoryContents(end_ - start_);
-    lastReadRequest_.data_ = new MAU[MAX_REQUEST_SIZE];
 }
 
 
@@ -50,124 +46,6 @@ DirectAccessMemory::DirectAccessMemory(
 DirectAccessMemory::~DirectAccessMemory() {
     delete data_;
     data_ = NULL;
-    delete lastReadRequest_.data_;
-    lastReadRequest_.data_ = NULL;
-}
-
-
-/**
- * Initiates a load request.
- *
- * If address is out of range, OutOfRange exception is thrown.
- *
- * @param address Address where data is loaded.
- * @param size Size of the data area to be loaded.
- * @param id Id of the request.
- * @exception OutOfRange if the requested address is out of range.
- */
-void
-DirectAccessMemory::initiateRead(Word address, int size, Memory::URC)
-    throw (OutOfRange) {
-    lastReadRequest_.address_ = address;
-    lastReadRequest_.size_ = size;
-    data_->read(
-        address - start_, lastReadRequest_.data_, lastReadRequest_.size_);
-}
-
-/**
- * Loads data for the request identified by given id.
- *
- * If id is not found, returns [NULL, 0]. Returned MAUTable is not property
- * of the caller, and should NOT be deleted after use.
- *
- * @param id Id of the request.
- * @return The table of MAUs.
- */
-std::pair<Memory::MAUTable, std::size_t>
-DirectAccessMemory::loadData(URC) {
-    return std::make_pair(lastReadRequest_.data_, lastReadRequest_.size_);
-}
-
-/**
- * Loads data for the request identified by given id.
- *
- * @param data The storage for the read data.
- * @param id Id of the request.
- */
-void
-DirectAccessMemory::loadData(Memory::MAUVector& data, Memory::URC id) {
-    std::pair<Memory::MAUTable, std::size_t> readData = loadData(id);
-    if (data.size() != readData.second) {
-        data.resize(readData.second);
-    }
-    for (size_t i = 0; i < data.size(); ++i) {
-        data.at(i) = readData.first[i];
-    }
-}
-
-/**
- * Returns true if result is ready.
- *
- * For direct access memory, results are immediately readable.
- *
- * @param id The id of the request.
- * @return True if result is ready.
- */
-bool
-DirectAccessMemory::resultReady(Memory::URC) {
-    return true;
-}
-
-/**
- * Initiates a write request.
- *
- * Writes are updated directly to the memory.
- *
- * @param address Address to be written.
- * @param data Data to be written.
- * @param size Size of data to be written.
- * @param id Id of the request.
- * @exception OutOfRange if the requested address is out of range.
- */
-void
-DirectAccessMemory::initiateWrite(
-    Word address,
-    Memory::MAUTable data,
-    std::size_t size,
-    Memory::URC)
-    throw (OutOfRange) {
-    data_->write(address - start_, data, size);
-}
-
-/**
- * Reads a block of data from the memory.
- *
- * If address is out of range, it is recalculated.
- *
- * @param address The address which data is read from.
- * @param data Container in which data is read.
- */
-void
-DirectAccessMemory::readBlock(Word address, Memory::MAUVector& data) {
-    int size = data.size();
-    data_->read(address - start_, data, size);
-}
-
-/**
- * Writes a block of data in memory.
- *
- * If address is out of range, it is recalculated.
- *
- * @param address Address to write to.
- * @param data Data to be written.
- * @exception OutOfRange If memory boundaries are exceeded.
- */
-void
-DirectAccessMemory::writeBlock(Word address, Memory::MAUVector data) {
-    for (std::size_t i = 0; i < data.size(); ++i) {
-        Memory::MAU temp = data[i];
-        data_->write(address - start_ + i, &temp, 1);
-    }
 }
 
 /**
@@ -179,4 +57,28 @@ DirectAccessMemory::writeBlock(Word address, Memory::MAUVector data) {
 void
 DirectAccessMemory::fillWithZeros() {
     data_->clear();
+}
+
+/**
+ * Writes a single MAU using the fastest possible method.
+ *
+ * @param address The address.
+ * @param data The data.
+ */
+void
+DirectAccessMemory::write(Word address, Memory::MAU data) {
+    fastWriteMAU(address, data);
+}
+
+/**
+ * Reads a single MAU using the fastest possible method.
+ *
+ * @param address The address.
+ * @return Data.
+ */
+Memory::MAU 
+DirectAccessMemory::read(Word address) {
+    UIntWord data = 0;
+    fastReadMAU(address, data);
+    return data;
 }

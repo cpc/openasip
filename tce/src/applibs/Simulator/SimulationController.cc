@@ -26,7 +26,6 @@
 #include "UniversalFunctionUnit.hh"
 #include "IdealSRAM.hh"
 #include "DirectAccessMemory.hh"
-#include "SequentialMemory.hh"
 #include "Memory.hh"
 #include "MemorySystem.hh"
 #include "FunctionUnit.hh"
@@ -255,28 +254,14 @@ SimulationController::initializeMemorySystem(
             continue;
         Memory* mem = NULL;
 
-        if (sequentialSimulation_) {
-            /// use a special optimized memory model for the sequential 
-            /// simulation
-            mem = new SequentialMemory(
-                space.start(), space.end(), space.width(), 4, 1);
+        if (directAccessMemory_) {
+            mem = new DirectAccessMemory(
+                space.start(), space.end(), space.width());
         } else {
-            /// @todo The last two arguments to this constructor are
-            /// currently bogus: where to get information of word width and
-            /// alignment? That is, data memory addressing. Isn't it
-            /// the problem of the load/store unit to chop the incoming
-            /// data to smaller pieces? Thus, only information needed 
-            /// is alignment and width.
-
-            if (directAccessMemory_) {
-                mem = new DirectAccessMemory(
-                    space.start(), space.end(), space.width(), 4, 1);
-            } else {
-                mem = new IdealSRAM(
-                    space.start(), space.end(), space.width(), 4, 1);
-            }
+            mem = new IdealSRAM(
+                space.start(), space.end(), space.width());
         }
-
+            
         // If memory tracking is enabled, memories are wrapped by a proxy
         // that tracks memory access.
         if (memoryTracking_) {

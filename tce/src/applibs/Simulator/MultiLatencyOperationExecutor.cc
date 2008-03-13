@@ -70,11 +70,7 @@ MultiLatencyOperationExecutor::startOperation(Operation& op) {
         iovec_[i - 1] = &res->resultValue();
         pendingResults_.push_back(res);
     }
-    if (!op.simulateTrigger(iovec_, *context_)) {
-        /// @todo lateResult() is going to be removed and the memory
-        /// access API of OSAL simplified, this is a temporary hack
-        while (!op.lateResult(iovec_, *context_));
-    }
+    op.simulateTrigger(iovec_, *context_);
     hasPendingOperations_ = true;
 }
 

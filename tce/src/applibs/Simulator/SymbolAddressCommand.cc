@@ -12,7 +12,6 @@
 #include "MemorySystem.hh"
 #include "SimulatorToolbox.hh"
 #include "Memory.hh"
-#include "TargetMemory.hh"
 #include "StringTools.hh"
 #include "Address.hh"
 #include "NullAddressSpace.hh"

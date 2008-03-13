@@ -108,12 +108,12 @@ const Byte HALFWORD_BITWIDTH = 8*sizeof(HalfWord);
 const Byte WORD_BITWIDTH = 8*sizeof(Word);
 
 /**
- * Unsigned integer used in simulation.
+ * Maximum sized unsigned integer used in simulation.
  */
 typedef Word UIntWord;
 
 /**
- * Signed integer used in simulation.
+ * Maximum sized signed integer used in simulation.
  */
 typedef SignedWord SIntWord;
 
@@ -146,8 +146,10 @@ typedef UInt32 InstructionAddress;
 /// Type for storing addresses to memory image.
 typedef UInt32 AddressImage;
 
-/// Type for MAU (must be unsigned type!)
-typedef UInt32 MinimumAddressableUnit;
+/// Type for storing a MAU (must be unsigned type!). This limits
+/// the maximum size of the simulated minimum addressable unit in
+/// the target's data memory.
+typedef Word MinimumAddressableUnit;
 
 
 #endif

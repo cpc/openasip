@@ -202,8 +202,7 @@ MachineStateBuilder::buildMachineState(
         if (unit->addressSpace() != NULL) {
             try {
                 Memory& memory = memSys.memory(*unit->addressSpace());
-                Word mau = unit->addressSpace()->width();
-                state = new MemoryAccessingFUState(memory, mau, lock);
+                state = new MemoryAccessingFUState(memory, lock);
             } catch (const Exception& i) {
                 string msg = "Problems building machine state: " +
                     i.errorMessage();

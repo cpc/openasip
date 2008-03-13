@@ -112,9 +112,7 @@ MemoryDialog::createContents(
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
  
     memoryWindow_ = new MemoryControl(
-        parent, &OperationContainer::memoryWrapper(), 8,
-        OperationContainer::memoryStart(), OperationContainer::memoryEnd(), 
-        ID_CONTROL_MEMORY);
+        parent, &OperationContainer::memory(), MemoryDialog::ID_CONTROL_MEMORY);
 
     item0->Add(memoryWindow_, 1, wxGROW|wxALIGN_CENTER|wxALL, 5);
 

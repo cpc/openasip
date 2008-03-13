@@ -19,7 +19,7 @@
  *
  * @return The Memory instance.
  */
-inline TargetMemory& 
+inline Memory& 
 OperationContext::memory() {
     return *memory_;
 }
@@ -31,24 +31,10 @@ OperationContext::memory() {
  * simulation methods to simulate memory access.
  *
  * @param memory The Memory instance.
- * @param naturalWordWidth The natural word width of the memory in minimum
- *                         addressable units.
  */
 inline void
-OperationContext::setMemory(TargetMemory* memory, int naturalWordWidth) {
+OperationContext::setMemory(Memory* memory) {
     memory_ = memory;
-    naturalWordWidth_ = naturalWordWidth;
-}
-
-/**
- * Returns the natural word width of the memory of this context in minimum
- * addressable units.
- *
- * @return Natural word width in MAUs.
- */
-inline int
-OperationContext::naturalWordWidth() const {
-    return naturalWordWidth_;
 }
 
 /**
@@ -120,33 +106,6 @@ inline void
 OperationContext::initializeContextId() {
     contextId_ = nextContextId_;
     ++nextContextId_;
-}
-
-/**
- * Returns a reference to the syscall handler register.
- *
- * The value of the register can be changed through this reference. This
- * register is used to enforce syscall invocations.
- *
- * @return The syscall handler register as a reference.
- */
-inline SimValue&
-OperationContext::syscallHandler() {
-    return syscallHandler_;
-}
-
-/**
- * Returns a reference to the syscall handler code register.
- *
- * The value of the register can be changed through this reference. This
- * register is used to tell which syscall should be invoced 
- * (e.g., read, write) when syscall handler is invoced.
- * 
- * @return The syscall code register as a reference.
- */
-inline SimValue&
-OperationContext::syscallNumber() {
-    return syscallNumber_;
 }
 
 /**

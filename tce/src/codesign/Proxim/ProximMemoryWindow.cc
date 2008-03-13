@@ -16,7 +16,6 @@
 #include "MemoryControl.hh"
 #include "WxConversion.hh"
 #include "MemorySystem.hh"
-#include "TargetMemory.hh"
 #include "Proxim.hh"
 #include "TracedSimulatorFrontend.hh"
 #include "ProximSimulationThread.hh"
@@ -74,17 +73,16 @@ ProximMemoryWindow::loadMemory(const AddressSpace& as) {
 
     MemorySystem& memorySystem = simulator_->memorySystem();
 
-    TargetMemory* tmem = NULL;
-    tmem = new TargetMemory(memorySystem.memory(as), true, as.width());
+    Memory& mem = memorySystem.memory(as);
 
     if (memoryControl_ == NULL) {
-	memoryControl_ =
-	    new MemoryControl(this, tmem, as.width(), as.start(), as.end());
-	sizer_->Add(memoryControl_, 1, wxGROW);
-	sizer_->Layout();
-	Fit();
+        memoryControl_ =
+            new MemoryControl(this, &mem);
+        sizer_->Add(memoryControl_, 1, wxGROW);
+        sizer_->Layout();
+        Fit();
     } else {
-	memoryControl_->setMemory(tmem, as.width(), as.start(), as.end());
+        memoryControl_->setMemory(&mem);
     }
     
     wxString asInfo = WxConversion::toWxString(as.name());

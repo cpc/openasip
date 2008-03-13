@@ -31,9 +31,7 @@ GCUState::GCUState(
     programCounter_(0), newProgramCounter_(0), latency_(latency), 
     operationPending_(false), operationPendingTime_(0),
     operationContext_(
-        NULL, naturalWordWidth_, programCounter_, 
-        returnAddressRegister_,
-        NullSimValue::instance(), NullSimValue::instance()) {
+        NULL, programCounter_, returnAddressRegister_) {
     programCounter_ = 0;
     returnAddressRegister_ = 0;
 }

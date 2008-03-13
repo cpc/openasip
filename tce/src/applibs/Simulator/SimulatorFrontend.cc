@@ -382,12 +382,10 @@ SimulatorFrontend::initializeDataMemories()
                 if (!def.isInitialized()) {
                     continue;
                 }
-                std::vector<int> maus;
-                for (int m = 0; m < def.size(); m++) {
-                    maus.push_back(def.MAU(m));
-                }
                 Word startAddress = def.startAddress().location();
-                dataMem.writeBlock(startAddress, maus);
+                for (int m = 0; m < def.size(); m++) {
+                    dataMem.write(startAddress + m, def.MAU(m));
+                }
             }
         } else {
             for (int i = 0; i < dataSections; ++i) {
@@ -410,12 +408,8 @@ SimulatorFrontend::initializeDataMemories()
                         if (!def.isInitialized()) {
                             continue;
                         }
-                        std::vector<int> maus;
-                        for (int m = 0; m < def.size(); m++) {
-                            maus.push_back(def.MAU(m));
-                        }
-                        Address startAddress = def.startAddress();
 
+                        Address startAddress = def.startAddress();
                         // Check that the defined data is inside the address
                         // space.
                         if (def.startAddress().space().name() !=
@@ -430,8 +424,10 @@ SimulatorFrontend::initializeDataMemories()
                                 addressSpace.name() +
                                 " is out of address space bounds.");
                         } 
-                        dataMemory.writeBlock(
-                            static_cast<Word>(startAddress.location()), maus);
+                        for (int m = 0; m < def.size(); m++) {
+                            dataMemory.write(
+                                startAddress.location() + m, def.MAU(m));
+                        }
                     }
 
                 } catch (const InstanceNotFound& inf) {

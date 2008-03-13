@@ -88,14 +88,8 @@ OneCycleOperationExecutor::startOperation(Operation& op) {
  */
 void
 OneCycleOperationExecutor::advanceClock() {
-
-    if (!ready_ && operation_ != NULL) {
-        ready_ = operation_->lateResult(io_, *context_);
-        if (ready_) {
-            operation_ = NULL;
-        }
-    }
-    hasPendingOperations_ = !ready_;
+    operation_ = NULL;
+    hasPendingOperations_ = false;
 }
 
 /**

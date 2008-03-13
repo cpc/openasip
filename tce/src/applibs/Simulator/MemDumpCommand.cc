@@ -12,7 +12,6 @@
 #include "MemorySystem.hh"
 #include "SimulatorToolbox.hh"
 #include "Memory.hh"
-#include "TargetMemory.hh"
 #include "StringTools.hh"
 #include "Address.hh"
 #include "NullAddressSpace.hh"
@@ -133,7 +132,7 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
     displayedCount = newDisplayedCount;
     lastDisplayedAddress = newDisplayedAddress;
 
-    TargetMemory* memory = NULL;
+    Memory* memory = NULL;
 
     size_t MAUSize = 8;
 
@@ -145,8 +144,7 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
     } else if (simulatorFrontend().memorySystem().memoryCount() == 1) {
         MAUSize = 
             simulatorFrontend().memorySystem().addressSpace(0).width();
-        memory = new TargetMemory(
-            simulatorFrontend().memorySystem().memory(0), true, MAUSize);
+        memory = &simulatorFrontend().memorySystem().memory(0);
     } else {
         /// must have the address space defined
         if (addressSpaceName == "") {
@@ -160,9 +158,8 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
                 simulatorFrontend().memorySystem().
                 addressSpace(addressSpaceName).width();
 
-            memory = new TargetMemory(
-                simulatorFrontend().memorySystem().memory(addressSpaceName),
-                true, MAUSize);
+            memory = 
+                &simulatorFrontend().memorySystem().memory(addressSpaceName);
         } catch (const InstanceNotFound&) {
             interpreter()->setError(
                 SimulatorToolbox::textGenerator().text(
@@ -184,27 +181,22 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
     DataObject* result = new DataObject("");
     while (newDisplayedCount > 0) {
 
-        std::vector<UIntWord> res;
-        res.resize(1);
+        Memory::MAU mau = 0;
 
         try {
-            memory->readBlock(
-                newDisplayedAddress, res, MAUsToDisplay * MAUSize);
-
+            mau = memory->read(newDisplayedAddress);
         } catch (const OutOfRange&) {
             interpreter()->setResult(
                 SimulatorToolbox::textGenerator().text(
                     Texts::TXT_ADDRESS_OUT_OF_RANGE).str());
             interpreter()->setError(true);
-            delete memory;
             return false;        
         }
 
         result->setString(
-            result->stringValue() +
-	    Conversion::toHexString(res[0], MAUsToDisplay*2));
-        
-        newDisplayedCount -= 1;
+            result->stringValue() + Conversion::toHexString(mau, 2));
+
+        newDisplayedCount--;
         newDisplayedAddress += MAUsToDisplay;
 
         if (newDisplayedCount > 0) {
@@ -213,7 +205,6 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
     }
 
     interpreter()->setResult(result);
-    delete memory;
     return true;
 }
 

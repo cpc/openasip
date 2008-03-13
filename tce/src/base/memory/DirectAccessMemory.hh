@@ -38,26 +38,11 @@ public:
     DirectAccessMemory(
         Word start,
         Word end,
-        Word MAUSize,
-        Word wordSize,
-        int align);
+        Word MAUSize);
 
     virtual ~DirectAccessMemory();
 
-    virtual void initiateRead(Word address, int size, Memory::URC id)
-        throw (OutOfRange);
-
-    virtual void loadData(Memory::MAUVector& data, URC id);
-    virtual std::pair<Memory::MAUTable, std::size_t> loadData(URC id);
-
-    virtual bool resultReady(Memory::URC id);
-
-    virtual void initiateWrite(
-        Word address,
-        Memory::MAUTable value,
-        std::size_t size,
-        Memory::URC)
-        throw (OutOfRange);
+    void write(Word address, Memory::MAU data);
     
     void inline fastWriteMAU(
         Word address,
@@ -70,6 +55,8 @@ public:
     void inline fastWrite4MAUs(
         Word address,
         UIntWord data);
+
+    Memory::MAU read(Word address);
     
     void inline fastReadMAU(
         Word address,
@@ -84,9 +71,6 @@ public:
         UIntWord& data);
 
     virtual void advanceClock() {}
-    virtual bool isAvailable() { return true; }
-    virtual void readBlock(Word address, Memory::MAUVector& data);
-    virtual void writeBlock(Word address, Memory::MAUVector data);
     virtual void reset() {}
     virtual void fillWithZeros();
 
@@ -96,26 +80,6 @@ private:
     /// Assignment not allowed.
     DirectAccessMemory& operator=(const DirectAccessMemory&);
 
-    /**
-     * Models an access request.
-     *
-     * There can be only one read request pending in DirectAccessMemory.
-     * Writes are updated immediately.
-     */
-    struct Request {
-        Request() :
-            data_(NULL), dataSize_(0), address_(0), size_(0) {}
-        /// Data to be written.
-        Memory::MAUTable data_;
-        /// Data table size.
-        std::size_t dataSize_;
-        /// Address to be written to.
-        Word address_;
-        /// Size of the data to be read.
-        int size_;
-    };
-    /// The write request
-    Request lastReadRequest_;
     /// Starting point of the address space.
     Word start_;
     /// End point of the address space.
@@ -135,8 +99,6 @@ private:
     /// Contains MAUs of the memory model, that is, the actual data of the
     /// memory.
     MemoryContents* data_;
-    /// The supported maximum access size (with initiate{Read,Write}) in MAUs.
-    static const std::size_t MAX_ACCESS_SIZE = 16;
 };
 
 #include "DirectAccessMemory.icc"

@@ -88,46 +88,6 @@ OperationSimulator::simulateTrigger(
 }
 
 /**
- * Execute the late result command.
- *
- * @param op Operation to be simulated.
- * @param inputs Inputs of the operation.
- * @param outputs Output values of the operation.
- * @param context Context for the operation.
- * @param bitWidth Bit width of the operands.
- * @param result Possible error string.
- * @return True if execution is successful.
- */
-bool
-OperationSimulator::lateResult(
-    Operation& op,
-    std::vector<DataObject> inputs,
-    std::vector<SimValue*>& outputs,
-    OperationContext& context,
-    unsigned int bitWidth,
-    std::string& result) {
-
-    if (static_cast<unsigned>(op.numberOfInputs()) != inputs.size()) {
-        result = "wrong number of arguments";
-        return false;
-    }
-
-    if (!initializeOutputs(op, inputs, outputs, bitWidth, result)) {
-        return false;
-    }
-
-
-    SimValue** io_ = new SimValue*[outputs.size()];
-    for (std::size_t i = 0; i < outputs.size(); ++i) {
-        io_[i] = outputs.at(i);
-    }
-    const bool ready = op.lateResult(io_, context);
-    delete[] io_;
-    io_ = NULL;
-    return ready;
-}
-
-/**
  * Initializes one SimValue.
  *
  * @param value Value.

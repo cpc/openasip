@@ -25,8 +25,7 @@
 #include "OperationBehavior.hh"
 #include "Operation.hh"
 #include "Application.hh"
-#include "TargetMemory.hh"
-
+#include "Memory.hh"
 #include "OperationPool.hh"
 
 #include "SimulateTriggerWrappers.icc"
@@ -188,16 +187,6 @@ public:
  * name of the state as a string. Rest of the class, which are usually public 
  * member variables, are entered by the user.
  *
- * @todo The possibility to enter LATE_RESULT in state definition should
- * be reconsidered. Firstable, is it sensible to pass output operands to it?
- * Secondly, the automatic return value evaluation does not work without
- * knowing the parent operation (for the count of outputs) which the state of 
- * course does not have. Finally, because lateResult() is declared const, it
- * cannot change the object data, thus STATE cannot be used and no member 
- * variables can be accessed --> makes no sense. Solution suggestion: remove 
- * const from defineTrigger() (both from OperationState and OperationBehavior),
- * and disable automatic return value evaluation in LATE_RESULT of 
- * DEFINE_STATE.
  */
 #define DEFINE_STATE(STATE_NAME) \
 class STATE_NAME##_State : public OperationState { \
@@ -259,39 +248,7 @@ bool simulateTrigger( \
 /**
  * Ends the definition block for trigger simulation function.
  */
-#define END_TRIGGER } 
-
-/**
- * Starts the definition block for late-coming result simulation function.
- *
- * In addition to fetching the state instance, the initial active outputs
- * are counted. The count is saved to a variable which is used in the end of
- * the simulation function to figure out if more outputs were assigned to 
- * during simulation function.
- */
-#define LATE_RESULT \
-bool lateResult( \
-    SimValue** io, \
-    OperationContext& context) const { \
-        if (&context == NULL) {}
-
-
-/**
- * Ends the definition block for late-coming result simulation function.
- */
-#define END_LATE_RESULT } 
-
-/**
- * Starts the definition block for the method to check the availability
- * of the operation state.
- */
-#define AVAILABLE \
-    bool isAvailable(const OperationContext& context) const {
-
-/**
- * Ends the definition block for AVAILABLE.
- */
-#define END_AVAILABLE }
+#define END_TRIGGER return true; } 
 
 /**
  * Starts the definition block for the state clock advancing simulation 
@@ -305,7 +262,6 @@ bool lateResult( \
     void advanceClock(OperationContext& context) { \
         if (&context == NULL) { }
 
-
 /**
  * Ends the definition block for the clock advancing simulation function.
  */
@@ -313,42 +269,12 @@ bool lateResult( \
 
 /** 
  * Explicit return statements for simulation function definitions.
- *
- * No extra measures has been taken to assure that each statement is not used 
- * in a simulation function that it was not supposed to be used in. For 
- * example, RETURN_UPDATED, which is supposed to be used only in LATE_RESULT 
- * definitions, can be used in TRIGGER definition without error being
- * produced.
  */
 
 /**
- * Return statements meant for TRIGGER definitions.
- *
- * The RETURN_* macros are part of a code trick, see comments of TRIGGER and
- * END_TRIGGER for thorough explanation.
+ * RETURN_READY is not needed anymore, macro is deprecated.
  */
-#define RETURN_READY return true
-#define RETURN_NOT_READY return false
-
-/**
- * Return statements meant for LATE_RESULT definitions.
- * 
- * RETURN_UPDATED signals that at least one new result value has been computed
- * RETURN_NO_UPDATED signals that none of the pending results has been computed
- */
-#define RETURN_UPDATED return true
-#define RETURN_NOT_UPDATED return false
-
-/**
- * Return statements for AVAILABLE definitions.
- *
- * RETURN_AVAILABLE signals that operation is in such a state that new 
- * operations can be triggered.
- * RETURN_NOT_AVAILABLE signals that operation is in such a state that new
- * operations cannot be triggered.
- */
-#define RETURN_AVAILABLE return true
-#define RETURN_NOT_AVAILABLE return false
+#define RETURN_READY 
 
 /**
  * Operand value accessor macros for different types.
@@ -365,14 +291,9 @@ bool lateResult( \
 /**
  * Operand accessor macro.
  *
- * This macro must be used as lvalue when assigning values to operands.
+ * This macro must be used as lvalue when assigning values to output operands.
  */
 #define IO(OPERAND) (*io[(OPERAND) - 1])
-
-/**
- * Sets the active (valid) bit of given operand.
- */
-#define SET_DONE(OPERAND) (io[(OPERAND) - 1]->setActive())
 
 /**
  * Macro for obtaining the bit width of the port the operand is bound to.
@@ -406,52 +327,31 @@ bool lateResult( \
 /**
  * Get the width of the minimum addressable unit of the memory.
  */ 
-#define MAU_SIZE (context.memory().mauWidth())
+#define MAU_SIZE (context.memory().MAUSize())
 
 /**
- * Initiates a memory write. Arguments are the memory address
- * that should contain the first minimum addressable unit to be written,
- * the number of MAUs to write starting from that address, and finally
- * the data to be written in a base type.
+ * Writes one or more MAUs to memory.
+ *
+ * Arguments are the memory address that should contain the first  
+ * location to be written, the data to write, and the number of units to write 
+ * starting from the ADDRESS address.
  */
-#define INITIATE_WRITE(ADDRESS, COUNT_OF_MAUS, DATA_TO_WRITE) \
-    do { TargetMemory& mem = context.memory(); \
-         mem.initiateWrite(ADDRESS, COUNT_OF_MAUS, DATA_TO_WRITE, CONTEXT_ID); \
+#define WRITE_MEM(ADDRESS, DATA_TO_WRITE, COUNT_OF_MAUS)  \
+    do { context.memory().write(ADDRESS, COUNT_OF_MAUS, DATA_TO_WRITE); \
     } while(false)
 
 /**
+ * Reads one or more MAUs from memory.
+ *
  * Initiates a memory read. Arguments are the memory address
  * that should contain the first minimum addressable unit wanted to be read,
- * and the number of MAUs to read starting from that address.
+ * the variable to read the data to, and the number of MAUs to read starting 
+ * from that address.
  */
-#define INITIATE_READ(ADDRESS, COUNT_OF_MAUS) \
-    do { context.memory().initiateRead(ADDRESS, COUNT_OF_MAUS, CONTEXT_ID); \
-    } while(false)
-
-/**
- * Checks whether new result for this operation context is waiting in the
- * memory's result queue.
- */
-#define MEM_RESULT_READY() context.memory().isResultReady(CONTEXT_ID)
-
-/**
- * Reads data from the memory.
- */
-#define MEM_DATA(DATA) \
-    do { TargetMemory& mem = context.memory(); \
-        mem.readData(DATA, CONTEXT_ID); \
+#define READ_MEM(ADDRESS, DATA, COUNT_OF_MAUS)                  \
+    do { context.memory().read(ADDRESS, COUNT_OF_MAUS, DATA); \
     } while(false)
          
-
-/**
- * Checks whether memory is available for more requests.
- *
- * If memory is not available, it means that some requests in previous
- * cycles could not be calculated. This means that processor should get 
- * into locked state until memory becomes available again.
- */
-#define MEM_AVAILABLE() context.memory().isAvailable()
-
 /**
  * Sign extends the given integer.
  *
@@ -490,8 +390,6 @@ bool lateResult( \
  */
 #define ZERO_EXTEND(VALUE, WIDTH) \
     ((VALUE << (sizeof(SIntWord)*8-(WIDTH))) >> (sizeof(SIntWord)*8-(WIDTH)))   
-
-
 
 /**
  * Provides access to the output stream which can be used to print out debug 

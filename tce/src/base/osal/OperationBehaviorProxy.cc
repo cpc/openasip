@@ -78,27 +78,6 @@ OperationBehaviorProxy::simulateTrigger(
  * After initializing the operation with imported operation behavior model
  * proxy has done its job.
  *
- * @param io The input and output operands.
- * @param context The operation context.
- * @return True if at least one new result of the operation could be computed,
- *         false otherwise.
- */
-bool
-OperationBehaviorProxy::lateResult(
-    SimValue** io,
-    OperationContext& context) const {
-
-    initializeBehavior();
-    return target_->lateResult(io, context);
-}
-
-/**
- * Imports operation behavior model for the operation that owns this proxy
- * and then delegates the work to that imported model.
- *
- * After initializing the operation with imported operation behavior model
- * proxy has done its job.
- *
  * @param context The operation context to add the state in.
  */
 void

@@ -81,9 +81,6 @@ SimpleOperationExecutor::startOperation(Operation& op) {
 
         assert(operandCount <= EXECUTOR_MAX_OPERAND_COUNT);
         // let the operation access the input port values directly,
-        // this makes them possibly change for lateResult() call, 
-        // but it's OK as operation should not trust that the inputs
-        // are saved between simulateTrigger() and lateResult() call anyways
         for (std::size_t i = 1; i <= inputOperands; ++i) {
             /// @todo create valueConst() and value() to avoid these uglies
             nextSlot.io_[i - 1] = &(const_cast<SimValue&>(binding(i).value()));
@@ -116,13 +113,7 @@ void
 SimpleOperationExecutor::advanceClock() {
 
     BufferCell& nextSlot = buffer_[nextSlot_];
-
-    if (!nextSlot.ready_ && nextSlot.operation_ != NULL) {
-        
-        nextSlot.ready_ = nextSlot.operation_->lateResult(
-            nextSlot.io_, *context_);
-    }
-    
+   
     int index = (nextSlot_ + 1) % buffer_.size();
     
     BufferCell& oldestEntry = buffer_[index];

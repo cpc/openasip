@@ -7,14 +7,3 @@
  * @note rating: red
  */
 
-
-/**
- * Returns true if the memory is idle, that is, there's no
- * pending write request waiting to be commited.
- *
- * @return True if memory is idle.
- */
-inline bool
-Memory::isIdle() const {
-    return idle_;
-}

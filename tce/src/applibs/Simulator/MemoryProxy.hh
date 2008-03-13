@@ -18,41 +18,38 @@ class SimulatorFrontend;
 /**
  * MemoryProxy is a memory access tracker for simulator.
  *
- * MemoryProxy tracks calls to initiate reads and writes.
+ * MemoryProxy tracks calls to reads and writes.
  * Memory accesses on the last clock cycle can be listed
  * with readAccessCount(), readAccess(idx), writeAccessCount()
  * and writeAccess(idx) functions. Memory access information is
- * stored for only one cycle.
+ * stored for only one cycle. Tracks only single memory accesses, not
+ * those made with the block methods.
  */
 class MemoryProxy : public Memory {
 public:
 
     typedef std::pair<Word, int> MemoryAccess;
 
-    MemoryProxy(SimulatorFrontend & frontend, Memory*
-memory);
+    MemoryProxy(SimulatorFrontend& frontend, Memory* memory);
     virtual ~MemoryProxy();
-
-    virtual void initiateRead(Word address, int size, URC id)
-        throw (OutOfRange);
-    
-    virtual void initiateWrite(
-        Word address,
-        Memory::MAUTable data,
-        std::size_t size,
-        URC id)
-        throw (OutOfRange);
 
     virtual void advanceClock();
     virtual void reset();
 
-    virtual void loadData(MAUVector& data, URC id);
-    virtual std::pair<MAUTable, std::size_t> loadData(URC id);
-    virtual bool resultReady(URC id);
-    virtual bool isAvailable();
-    virtual void readBlock(Word address, MAUVector& data);
-    virtual void writeBlock(Word address, MAUVector data);
-    virtual void fillWithZeros();
+    virtual void write(Word address, MAU data);
+    virtual Memory::MAU read(Word address);
+
+    virtual void writeBlock(Word address, Memory::MAUVector data)
+        { memory_->writeBlock(address, data); }
+    virtual void readBlock(Word address, Memory::MAUVector& data)
+        { memory_->readBlock(address, data); }
+
+    virtual void write(Word address, int size, UIntWord data)
+        throw (OutOfRange) { memory_->write(address, size, data); }
+    virtual void read(Word address, int size, UIntWord& data)
+        throw (OutOfRange) { memory_->write(address, size, data); }
+
+    virtual void fillWithZeros() { memory_->fillWithZeros(); }
 
     unsigned int readAccessCount() const;
     unsigned int writeAccessCount() const;

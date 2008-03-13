@@ -26,7 +26,7 @@ class OperationBehaviorLoader;
 /**
  * This class is used to create a behavior model of an operation.
  *
- * A first time operation calls simulateTrigger(), lateResult()... etc.
+ * A first time operation calls simulateTrigger()
  * proxy creates the appropriate operation behavior model for the operation.
  * Proxy replaces itself in the operation with the newly created behavior 
  * model. That new model then executes all simulation functions.
@@ -40,9 +40,6 @@ public:
     virtual ~OperationBehaviorProxy();
 
     virtual bool simulateTrigger(
-        SimValue** io,
-        OperationContext& context) const;
-    virtual bool lateResult(
         SimValue** io,
         OperationContext& context) const;
 

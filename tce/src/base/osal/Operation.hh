@@ -105,9 +105,6 @@ public:
     virtual bool simulateTrigger(
         SimValue**,
         OperationContext& context) const;
-    virtual bool lateResult(
-        SimValue**,
-        OperationContext& context) const;
 
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;
@@ -228,9 +225,6 @@ public:
         SimValue**,
         OperationContext& context) const
         throw (Exception);
-    virtual bool lateResult(
-        SimValue**,
-        OperationContext& context) const;
 
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;

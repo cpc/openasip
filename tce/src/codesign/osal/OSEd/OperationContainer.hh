@@ -15,7 +15,6 @@
 #include "PluginTools.hh"
 #include "OperationContext.hh"
 #include "BaseType.hh"
-#include "TargetMemory.hh"
 
 class Operation;
 class OperationIndex;
@@ -36,7 +35,7 @@ public:
     static OperationIndex& operationIndex();
     static OperationSerializer& operationSerializer();
     static OperationContext& operationContext();
-    static TargetMemory& memoryWrapper();
+    static Memory& memory();
 
     static void destroy();
 	
@@ -100,8 +99,6 @@ private:
     static SimValue sysCallNumber_;
     /// Memory used througout the execution of the program.
     static IdealSRAM* memory_;
-    /// AddressSpace of the memory (this is temporal only, I guess).
-    static TargetMemory memoryWrapper_;
     /// PluginTools used by OperationContainer;
     static PluginTools tools_;
 };

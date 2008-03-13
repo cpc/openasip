@@ -20,10 +20,9 @@
  *
  * @param memory Tracked memory.
  */
-MemoryProxy::MemoryProxy(SimulatorFrontend & frontend, Memory* memory):
-    Memory(),
-    frontend_(frontend),
-    memory_(memory) {
+MemoryProxy::MemoryProxy(SimulatorFrontend& frontend, Memory* memory) :
+    Memory(memory->start(), memory->end(), memory->MAUSize()), 
+    frontend_(frontend), memory_(memory) {
 }
 
 
@@ -37,43 +36,37 @@ MemoryProxy::~MemoryProxy() {
 }
 
 /**
- * Tracks initiate read calls.
+ * Tracks read calls.
  *
  * Passes the call to the wrapped memory.
  */
-void
-MemoryProxy::initiateRead(Word address, int size, URC id)
-    throw (OutOfRange) {
+Memory::MAU
+MemoryProxy::read(Word address) {
 
     frontend_.eventHandler().handleEvent(
         SimulationEventHandler::SE_MEMORY_ACCESS);
 
-    newReads_.push_back(std::make_pair(address, size));
-    memory_->initiateRead(address, size, id);
+    newReads_.push_back(std::make_pair(address, 1));
+    return memory_->read(address);
 }
 
 /**
- * Tracks initiate write calls.
+ * Tracks write calls.
  *
  * Passes the call to the wrapped memory.
  */
 void
-MemoryProxy::initiateWrite(
-    Word address,
-    Memory::MAUTable data,
-    std::size_t size,
-    URC id)
-    throw (OutOfRange) {
+MemoryProxy::write(
+    Word address, MAU data) {
 
     frontend_.eventHandler().handleEvent(
         SimulationEventHandler::SE_MEMORY_ACCESS);
 
-    newWrites_.push_back(std::make_pair(address, size));
-    memory_->initiateWrite(address, data, size, id);
+    newWrites_.push_back(std::make_pair(address, 1));
+    memory_->write(address, data);
 }
 
 /**
- *
  * Resets the memory access information for the last cycle when
  * wrapped memory clock is advanced.
  */
@@ -147,58 +140,3 @@ MemoryProxy::writeAccess(unsigned idx) const
     return writes_[idx];
 }
 
-/**
- * Passes load data calls to the wrapped memory.
- */
-void
-MemoryProxy::loadData(MAUVector& data, URC id) {
-    memory_->loadData(data, id);
-}
-
-/**
- * Passes load data calls to the wrapped memory.
- */
-std::pair<Memory::MAUTable, std::size_t>
-MemoryProxy::loadData(URC id) {
-    return memory_->loadData(id);
-}
-
-/**
- * Passes resultReady calls to the wrapped memory.
- */
-bool
-MemoryProxy::resultReady(URC id) {
-    return memory_->resultReady(id);
-}
-
-/**
- * Passes isAvailable calls to the wrapped memory.
- */
-bool
-MemoryProxy::isAvailable() {
-    return memory_->isAvailable();
-}
-
-/**
- * Passes readBlock calls to the wrapped memory.
- */
-void
-MemoryProxy::readBlock(Word address, MAUVector& data) {
-    memory_->readBlock(address, data);
-}
-
-/**
- * Passes readBlock calls to the wrapped memory.
- */
-void
-MemoryProxy::writeBlock(Word address, MAUVector data) {
-    memory_->writeBlock(address, data);
-}
-
-/**
- * Passes fillWithZeros calls to the wrapped memory.
- */
-void
-MemoryProxy::fillWithZeros() {
-    memory_->fillWithZeros();
-}

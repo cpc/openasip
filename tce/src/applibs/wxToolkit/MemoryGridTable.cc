@@ -11,7 +11,7 @@
 #include "MemoryGridTable.hh"
 #include "Conversion.hh"
 #include "WxConversion.hh"
-#include "TargetMemory.hh"
+#include "Memory.hh"
 
 using std::string;
 
@@ -22,20 +22,17 @@ const string MemoryGridTable::NOT_AVAILABLE = "N/A";
  * The Constructor.
  *
  * @param memory Memory to display in the grid.
- * @param start Start address of the memory range to display.
- * @param end End address of the memory range to display.
- * @param mauSize Size of MAU.
  */
-MemoryGridTable::MemoryGridTable(
-    TargetMemory* memory, Word start, Word end, int mauSize):
+MemoryGridTable::MemoryGridTable(Memory& memory):
     wxGridTableBase(),
     memory_(memory),
-    start_(start),
-    end_(end),
     dataMode_(DATA_HEX),
     sizeMode_(SIZE_MAU),
-    mauSize_(mauSize),
     numberOfColumns_(8) {
+
+    start_ = memory.start();
+    end_ = memory.end();
+    mauSize_ = memory.MAUSize();
 
     // Kludge to avoid overflow with some calculations when the AS size = 2^32.
     // The grid-widget is not capable of displaying enough rows,
@@ -191,12 +188,7 @@ MemoryGridTable::memoryContents(Word addr) {
             // memory not available
             return WxConversion::toWxString(NOT_AVAILABLE);
         } else {
-            std::vector<UIntWord> dv;
-            dv.resize(1);
-            memory_->readBlock(addr, dv, cellSize);
-            data = dv[0];            
-            //memory_->initiateRead(addr, size, 1);
-            //memory_->readData(data, 1);
+            data = memory_.read(addr);
         }
 
 
@@ -220,10 +212,17 @@ MemoryGridTable::memoryContents(Word addr) {
             dataString = Conversion::toString(extendedValue);
         } else if (dataMode_ == DATA_UNSIGNED_INT) {
             dataString = Conversion::toString(data);
-        } else if (dataMode_ == DATA_FLOAT &&
+        } 
+    }
+
+#if 0
+// FLOAT and DOUBLE mode not supported at the moment: TODO: redo after proper
+// float support has been implemented
+        else if (dataMode_ == DATA_FLOAT &&
                    cellSize == sizeof(FloatWord) * BYTE_BITWIDTH) {
 
-            FloatWord flt = *(reinterpret_cast<FloatWord*>(&data));
+            FloatWord flt;
+            memory_.read(addr, flt);
             dataString = Conversion::toString(flt);
         }
 
@@ -240,17 +239,13 @@ MemoryGridTable::memoryContents(Word addr) {
                 // memory not available
                 return WxConversion::toWxString(NOT_AVAILABLE);
             } else {
-                std::vector<DoubleWord> dv;
-                dv.resize(1);
-                memory_->readBlock(addr, dv, cellSize);
-                //memory_->initiateRead(addr, size, 1);
-                //memory_->readData(data, 1);
-                data = dv[0];
+                memory_.read(addr, data);
             }
 
             dataString = Conversion::toString(data);
         }
     }
+#endif
     return WxConversion::toWxString(dataString);
 }
 
@@ -302,8 +297,8 @@ MemoryGridTable::writeValue(int row, int column, UIntWord memoryValue) {
     address += cellAddress(row, column);
     int size = sizeOfCell();
     if (address < end_) {
-	memory_->initiateWrite(address, size, memoryValue, 1);
-	memory_->advanceClock();
+        memory_.write(address, size, memoryValue);
+        memory_.advanceClock();
     }
 }
 
@@ -321,11 +316,10 @@ MemoryGridTable::writeValue(int row, int column, DoubleWord memoryValue) {
     address += cellAddress(row, column);
     int size = sizeOfCell();
     if (address < end_) {
-	memory_->initiateWrite(address, size, memoryValue, 1);
-	memory_->advanceClock();
+        memory_.write(address, memoryValue);
+        memory_.advanceClock();
     }
 }
-
 
 
 /**

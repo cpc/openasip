@@ -129,23 +129,6 @@ SimulationInfoDialog::updateList() {
     infoList_->SetItem(
         1, 1,
         WxConversion::toWxString(context_->returnAddress().uIntWordValue()));
-
-
-    if (&context_->syscallHandler() == &NullSimValue::instance()) {
-        infoList_->SetItem(2, 1, WxConversion::toWxString(0));
-    } else {
-        SimValue& value = context_->syscallHandler();
-        string valueString = parent_->formattedValue(&value);
-        infoList_->SetItem(2, 1, WxConversion::toWxString(valueString));
-    }
-    
-    if (&context_->syscallNumber() == &NullSimValue::instance()) {
-        infoList_->SetItem(3, 1, WxConversion::toWxString(0));
-    } else {
-        SimValue& value = context_->syscallNumber();
-        string valueString = parent_->formattedValue(&value);
-        infoList_->SetItem(3, 1, WxConversion::toWxString(valueString));
-    }
 }
 
 /**
@@ -165,8 +148,6 @@ SimulationInfoDialog::handleEvent(OSEdInformer::EventId id) {
     case OSEdInformer::EVENT_RESET:
         context_->programCounter() = 0;
         context_->returnAddress() = 0;
-        context_->syscallHandler() = 0;
-        context_->syscallNumber() = 0;
         updateList();
         break;
     default:

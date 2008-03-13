@@ -762,23 +762,6 @@ Operation::simulateTrigger(
 }
 
 /**
- * Models the behavior of operations for which it is not always possible
- * to compute all results at the time the operation is initiated.
- *
- * @param io The input and output operands.
- * @param context The operation context.
- * @return True if at least one new result of the operation could be computed,
- *         false otherwise.
- */
-bool
-Operation::lateResult(
-    SimValue** io,
-    OperationContext& context) const {
-    
-    return behavior_->lateResult(io, context);
-}
-
-/**
  * Creates an instance of operation state for this operation and adds it to
  * the operation context.
  *
@@ -1121,20 +1104,6 @@ NullOperation::simulateTrigger(
     throw (Exception) {
     
     abortWithError("simulateTrigger()");
-    return false;
-}
-
-/**
- * Aborts program with error log message.
- *
- * @return False.
- */
-bool
-NullOperation::lateResult(
-    SimValue**,
-    OperationContext&) const {
-    
-    abortWithError("lateResult()");
     return false;
 }
 

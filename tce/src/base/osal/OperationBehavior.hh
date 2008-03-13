@@ -36,9 +36,6 @@ public:
     virtual bool simulateTrigger(
         SimValue** io,
         OperationContext& context) const = 0;
-    virtual bool lateResult(
-        SimValue** io,
-        OperationContext& context) const;
 
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;

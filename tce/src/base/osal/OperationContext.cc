@@ -29,11 +29,9 @@ InstructionAddress dummyInstructionAddress;
  */
 OperationContext::OperationContext() : 
     memory_(NULL), 
-    naturalWordWidth_(SOME_ILLEGAL_NATURAL_WORD_WIDTH),
     programCounter_(dummyInstructionAddress), 
     returnAddress_(NullSimValue::instance()),
-    syscallHandler_(NullSimValue::instance()),
-    syscallNumber_(NullSimValue::instance()), saveReturnAddress_(false)  {
+    saveReturnAddress_(false)  {
     initializeContextId();
 }
 
@@ -49,15 +47,11 @@ OperationContext::OperationContext() :
  *
  */
 OperationContext::OperationContext(
-    TargetMemory* memory,
-    int nww,
+    Memory* memory,
     InstructionAddress& programCounter,
-    SimValue& returnAddress,
-    SimValue& syscallHandler,
-    SimValue& syscallNumber) :
-    memory_(memory), naturalWordWidth_(nww), programCounter_(programCounter), 
-    returnAddress_(returnAddress), syscallHandler_(syscallHandler), 
-    syscallNumber_(syscallNumber), saveReturnAddress_(false) {
+    SimValue& returnAddress) :
+    memory_(memory), programCounter_(programCounter), 
+    returnAddress_(returnAddress), saveReturnAddress_(false) {
     initializeContextId();
 }
 

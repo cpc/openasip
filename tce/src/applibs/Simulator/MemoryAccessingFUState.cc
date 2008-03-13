@@ -9,7 +9,7 @@
  */
 
 #include "MemoryAccessingFUState.hh"
-#include "TargetMemory.hh"
+#include "Memory.hh"
 #include "OperationContext.hh"
 #include "Memory.hh"
 #include "GlobalLock.hh"
@@ -24,19 +24,16 @@
  */
 MemoryAccessingFUState::MemoryAccessingFUState(
     Memory& memory,
-    Word MAUSize,
     GlobalLock& lock) : 
-    FUState(lock), memory_(new TargetMemory(memory, false, MAUSize)),
-    operationContext_() {
+    FUState(lock), memory_(memory), operationContext_() {
        
-    operationContext_.setMemory(memory_, 4);
+    operationContext_.setMemory(&memory_);
 }
 
 /**
  * Destructor.
  */
 MemoryAccessingFUState::~MemoryAccessingFUState() {
-    delete memory_;
 }
 
 /**

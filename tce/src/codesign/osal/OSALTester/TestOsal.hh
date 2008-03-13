@@ -41,24 +41,6 @@ public:
 };
 
 //////////////////////////////////////////////////////////////////////////////
-// CmdResult
-//////////////////////////////////////////////////////////////////////////////
-
-/**
- * Custom command that executes the late result command of the operation.
- */
-class CmdResult : public CustomCommand {
-public:
-    CmdResult();
-    explicit CmdResult(const CmdResult& cmd);
-    virtual ~CmdResult();
-
-    virtual bool execute(const std::vector<DataObject>& arguments)
-        throw (NumberFormatException);
-    virtual std::string helpText() const;
-};
-
-//////////////////////////////////////////////////////////////////////////////
 // CmdReset
 //////////////////////////////////////////////////////////////////////////////
 
@@ -132,16 +114,14 @@ public:
 /**
  * Custom command for showing register values.
  *
- * There are currently four register values which can asked:
- * program counter, return address, syscall handler, and syscall number.
+ * There are currently two register values which can asked:
+ * program counter and return address.
  */
 class CmdRegister : public CustomCommand {
 public:
 
     static const std::string REGISTER_PROGRAM_COUNTER;
     static const std::string REGISTER_RETURN_ADDRESS;
-    static const std::string REGISTER_SYSCALL_HANDLER;
-    static const std::string REGISTER_SYSCALL_NUMBER;
 
     CmdRegister();
     explicit CmdRegister(const CmdRegister& cmd);

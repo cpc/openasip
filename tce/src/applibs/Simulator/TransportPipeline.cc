@@ -32,9 +32,7 @@ using std::string;
  */
 TransportPipeline::TransportPipeline(GCUState& parent) : 
     OperationExecutor(parent), operation_(NULL), 
-    context_(NULL), tempContext_(
-        NULL, 0, PC_, RA_, NullSimValue::instance(), 
-        NullSimValue::instance()), parent_(parent) {
+    context_(NULL), tempContext_(NULL, PC_, RA_), parent_(parent) {
 }
 
 /**

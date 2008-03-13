@@ -11,7 +11,6 @@
 #include <string>
 #include <wx/clipbrd.h>
 #include "MemoryControl.hh"
-#include "TargetMemory.hh"
 #include "config.h"
 #include "WxConversion.hh"
 #include "Conversion.hh"
@@ -19,6 +18,7 @@
 #include "MemoryValueDialog.hh"
 #include "NumberControl.hh"
 #include "MemoryGridTable.hh"
+#include "Memory.hh"
 
 using std::string;
 
@@ -58,7 +58,7 @@ END_EVENT_TABLE()
  * Constructor.
  *
  * @param parent Parent window.
- * @param memoryWrapper Wrapper class that offers access to memory.
+ * @param memory The memory.
  * @param start The start point of memory.
  * @param end The end point of memory.
  * @param id Id of the widget.
@@ -68,16 +68,14 @@ END_EVENT_TABLE()
  */
 MemoryControl::MemoryControl(
     wxWindow* parent,
-    TargetMemory* memoryWrapper,
-    int MAUSizeInBits,
-    Word start,
-    Word end,
+    Memory* memory,
     wxWindowID id,
     const wxPoint& pos,
     const wxSize& size,
     const wxString& name) :
     wxPanel(parent, id, pos, size, wxTAB_TRAVERSAL, name),
-    memory_(memoryWrapper), MAUSize_(MAUSizeInBits), start_(start), end_(end),
+    memory_(memory), MAUSize_(memory->MAUSize()), 
+    start_(memory->start()), end_(memory->end()),
     grid_(NULL),
     goToAddress_(_T("0")),
     table_(NULL),
@@ -170,7 +168,7 @@ MemoryControl::createContents() {
 
     sizer_ = new wxBoxSizer(wxVERTICAL);
 
-    table_ = new MemoryGridTable(memory_, start_, end_, MAUSize_);
+    table_ = new MemoryGridTable(*memory_);
     grid_ = new wxGrid(this, ID_GRID, wxDefaultPosition, wxDefaultSize);
     grid_->SetTable(table_);
 
@@ -451,21 +449,17 @@ MemoryControl::clearMemory() {
  * Sets the memory to display in the window.
  *
  * @param memory Memory to display.
- * @param mauSizeInBits MAU size.
- * @param start Start of the address range to display.
- * @param end End of the address range to display.
  */
 void
-MemoryControl::setMemory(
-    TargetMemory* memory, int mauSizeInBits, Word start, Word end) {
+MemoryControl::setMemory(Memory* memory) {
 
     clearHighlights();
-    MAUSize_ = mauSizeInBits;
+    MAUSize_ = memory->MAUSize();
     memory_ = memory;
-    start_ = start;
-    end_ = end;
+    start_ = memory->start();
+    end_ = memory->end();
 
-    table_ = new MemoryGridTable(memory_, start_, end_, MAUSize_);
+    table_ = new MemoryGridTable(*memory_);
     grid_->SetTable(table_);
 
     updateView();

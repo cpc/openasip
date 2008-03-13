@@ -54,24 +54,6 @@ OperationBehavior::simulateTrigger(
 }
 
 /**
- * Checks whether any of the pending results of an operation initiated in
- * earlier cycle is ready.
- * 
- * @param io The results of the operation.
- * @param context The operation context affecting the operation results.
- * @return bool True if at least one new result of the operation could be
- * computed, false otherwise. Returns false when all results are already
- * computed. 
- */
-bool 
-OperationBehavior::lateResult(
-    SimValue**,
-    OperationContext&) const {
-    
-    return false;
-}
-
-/**
  * Returns the output stream which can be used by the OperationBehavior
  * definitions to print out debug information to simulator console, or to 
  * simulate output from the TTA.

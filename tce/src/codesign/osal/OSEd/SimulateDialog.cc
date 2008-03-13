@@ -51,7 +51,6 @@ BEGIN_EVENT_TABLE(SimulateDialog, wxDialog)
 
     EVT_BUTTON(ID_BUTTON_UPDATE, SimulateDialog::onUpdateValue)
     EVT_BUTTON(ID_BUTTON_TRIGGER, SimulateDialog::onTrigger)
-    EVT_BUTTON(ID_BUTTON_LATE_RESULT, SimulateDialog::onLateResult)
     EVT_BUTTON(ID_BUTTON_ADVANCE_LOCK, SimulateDialog::onAdvanceClock)
     EVT_BUTTON(ID_BUTTON_RESET, SimulateDialog::onReset)
     EVT_BUTTON(ID_BUTTON_SHOW_HIDE_REGISTERS, SimulateDialog::showOrHideRegisters)
@@ -353,42 +352,13 @@ SimulateDialog::onTrigger(wxCommandEvent&) {
 }
 
 /**
- * Handles the event when Late result button is pushed.
- */
-void
-SimulateDialog::onLateResult(wxCommandEvent&) {
-    OperationSimulator& simulator = OperationSimulator::instance();
-    vector<SimValue*> outputs;
-    vector<DataObject> inputs;
-    for (size_t i = 0; i < inputs_.size(); i++) {
-        inputs.push_back(*inputs_[i]);
-    }
-    string result = "";
-    createState();
-    OperationContext& context = OperationContainer::operationContext();
-    if (simulator.lateResult(
-            *operation_, inputs, outputs, context, 32, result)) {
-		
-        lateResultBM_->SetBitmap(createBitmap(1));
-        setOutputValues(outputs);
-        updateLists();
-    } else {
-        lateResultBM_->SetBitmap(createBitmap(0));
-    }
-    SequenceTools::deleteAllItems(outputs);
-    OSEdInformer* informer = wxGetApp().mainFrame()->informer();
-    informer->handleEvent(OSEdInformer::EVENT_REGISTER);
-    informer->handleEvent(OSEdInformer::EVENT_MEMORY);
-}
-
-/**
  * Handles the event when advance clock button is pushed.
  */
 void
 SimulateDialog::onAdvanceClock(wxCommandEvent&) {    
     createState();
     OperationContainer::operationContext().advanceClock();
-    OperationContainer::memoryWrapper().advanceClock();
+    OperationContainer::memory().advanceClock();
     clock_++;
     FindWindow(ID_TEXT_CLOCK_VALUE)->SetLabel(WxConversion::toWxString(clock_));
     OSEdInformer* informer = wxGetApp().mainFrame()->informer();

@@ -15,7 +15,6 @@
 #include "CompiledSimCompiler.hh"
 #include "FileSystem.hh"
 #include "MemorySystem.hh"
-#include "TargetMemory.hh"
 #include "SimulatorToolbox.hh"
 #include "CompiledSimulation.hh"
 #include "POMValidator.hh"

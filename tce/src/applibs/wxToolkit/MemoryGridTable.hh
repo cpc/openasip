@@ -15,7 +15,7 @@
 #include <wx/grid.h>
 #include "BaseType.hh"
 
-class TargetMemory;
+class Memory;
 
 /**
  * Grid table class which allows wxGrid to access TargetMemory contents
@@ -23,7 +23,7 @@ class TargetMemory;
  */
 class MemoryGridTable : public wxGridTableBase {
 public:
-    MemoryGridTable(TargetMemory* memory, Word start, Word end, int mauSize);
+    MemoryGridTable(Memory& memory);
     virtual ~MemoryGridTable();
     virtual int GetNumberRows();
     virtual int GetNumberCols();
@@ -64,7 +64,7 @@ private:
     wxString memoryContents(Word addr);
 
     /// Memory to access.
-    TargetMemory* memory_;
+    Memory& memory_;
     /// Start address of the memory range to display.
     Word start_;
     /// End address of the memory range to display.

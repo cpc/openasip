@@ -14,7 +14,6 @@
 #include "FUState.hh"
 
 class Memory;
-class TargetMemory;
 class GlobalLock;
 
 /**
@@ -24,7 +23,6 @@ class MemoryAccessingFUState : public FUState {
 public:
     MemoryAccessingFUState(
         Memory& memory, 
-        Word MAUSize,
         GlobalLock& lock);
     virtual ~MemoryAccessingFUState();
 
@@ -38,7 +36,7 @@ private:
     MemoryAccessingFUState& operator=(const MemoryAccessingFUState&);
 
     /// Memory wrapper instance.
-    TargetMemory* memory_;
+    Memory& memory_;
 
     /// The operation context for this FU.
     OperationContext operationContext_;
