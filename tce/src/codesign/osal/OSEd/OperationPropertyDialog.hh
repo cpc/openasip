@@ -66,6 +66,8 @@ private:
     void onMoveOutputUp(wxCommandEvent& event);
     void onMoveOutputDown(wxCommandEvent& event);
     void onOpen(wxCommandEvent& event);
+    void onOpenDAG(wxCommandEvent& event);
+
     void onSaveDAG(wxCommandEvent& event);
     void onUndoDAG(wxCommandEvent& event);
     void onDeleteDAG(wxCommandEvent& event);
@@ -116,17 +118,11 @@ private:
         ID_OUTPUT_MODIFY_BUTTON,
         ID_OUTPUT_DELETE_BUTTON,
         ID_OPEN_BUTTON,
+        ID_DAG_BUTTON,
         ID_OK_BUTTON,
         ID_TEXT_CTRL,
         ID_TEXT_OPEN,
-        ID_EDIT_DAG,
-        ID_SAVE_DAG_BUTTON,
-        ID_UNDO_DAG_BUTTON,
-        ID_DELETE_DAG_BUTTON,
-        ID_NEW_DAG_BUTTON,
-        ID_EDIT_DESCRIPTION,
-        ID_DAG_IMAGE,
-        ID_INDEX_DAG
+        ID_EDIT_DESCRIPTION
     };
 
     /// Input operand sizer.
@@ -180,21 +176,8 @@ private:
     /// Can operation can change program flow.
     bool controlFlow_;
 
-    // Text box for editing dag
-    wxTextCtrl* editDAG_;
-    //
     // Text box for editing operation description
     wxTextCtrl* editDescription_;
-
-    // ComboBox for selectind dag
-    wxChoice* indexDAG_;
-
-    // Dot generated image
-    //wxImage* dotImage_;
-    wxBitmap* dotImage_;
-
-    // Bitmap for holding the dot image
-    wxStaticBitmap* dagStaticBitmap_;
 
     /// Input operands.
     std::vector<Operand*> inputOperands_;

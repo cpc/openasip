@@ -27,7 +27,8 @@ osed_SOURCES = OSEd.cc OSEdMainFrame.cc OSEdTreeView.cc OSEdInfoView.cc \
 	OSEdModifyBehaviorCmd.cc DropDownMenu.cc CommandThread.cc \
 	DialogPosition.cc OSEdRemoveOperationCmd.cc \
 	SimulationInfoDialog.cc MemoryDialog.cc OSEdMemoryCmd.cc \
-	OSEdInformer.cc OSEdListener.cc OSEdAboutDialog.cc
+	OSEdInformer.cc OSEdListener.cc OSEdAboutDialog.cc \
+	OperationDAGDialog.cc
 
 osed_LDFLAGS = ${GUI_LIBS} ${SQLITE_LIBDIR} ${BOOST_LIBDIR}
 osed_LDADD = ${LIB_UM_DIR}/libuniversalmachine.la ${LIB_BASE_DIR}/libttabase.la \
