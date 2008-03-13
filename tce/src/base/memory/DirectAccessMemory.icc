@@ -1,9 +1,19 @@
 /**
+ * @file DirectAccessMemory.icc
+ *
+ * Template method definitions of DirectAccessMemory.
+ *
+ * @author Viljami Korhonen 2008 (viljami.korhonen@tut.fi)
+ * @note rating: red
+ */
+
+/**
  * Writes 1 MAU to the memory as fast as possible
  * 
  * @param address address to write
  * @param data data to be written
- * @note No bounds checking is made so the address is expected to be valid!
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void inline
 DirectAccessMemory::fastWriteMAU(Word address, UIntWord data) {  
@@ -15,7 +25,8 @@ DirectAccessMemory::fastWriteMAU(Word address, UIntWord data) {
  * 
  * @param address address to write
  * @param data data to be written
- * @note No bounds checking is made so the address is expected to be valid!
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void inline
 DirectAccessMemory::fastWrite2MAUs(Word address, UIntWord data) {  
@@ -29,7 +40,8 @@ DirectAccessMemory::fastWrite2MAUs(Word address, UIntWord data) {
  * 
  * @param address address to write
  * @param data data to be written
- * @note No bounds checking is made so the address is expected to be valid!
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void inline
 DirectAccessMemory::fastWrite4MAUs(Word address, UIntWord data) {  
@@ -45,7 +57,8 @@ DirectAccessMemory::fastWrite4MAUs(Word address, UIntWord data) {
  * 
  * @param address address to read
  * @param data reference to the read data
- * @note No bounds checking is made so the address is expected to be valid!
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void inline
 DirectAccessMemory::fastReadMAU(Word address, UIntWord& data) {
@@ -57,7 +70,8 @@ DirectAccessMemory::fastReadMAU(Word address, UIntWord& data) {
  * 
  * @param address address to read
  * @param data reference to the read data
- * @note No bounds checking is made so the address is expected to be valid!
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void inline
 DirectAccessMemory::fastRead2MAUs(Word address, UIntWord& data) {
@@ -71,7 +85,8 @@ DirectAccessMemory::fastRead2MAUs(Word address, UIntWord& data) {
  * 
  * @param address address to read
  * @param data reference to the read data
- * @note No bounds checking is made so the address is expected to be valid!
+ * @note No bounds checking is made so the address is assumed to be in range.
+ * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void inline
 DirectAccessMemory::fastRead4MAUs(Word address, UIntWord& data) {
@@ -81,4 +96,3 @@ DirectAccessMemory::fastRead4MAUs(Word address, UIntWord& data) {
     data |= data_->readData(index + 2) << MAUSize_;
     data |= data_->readData(index + 3);
 }
-

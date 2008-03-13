@@ -16,6 +16,7 @@
 #include <string>
 
 #include "OperationPropertyDialog.hh"
+#include "OperationDAGDialog.hh"
 #include "OperationContainer.hh"
 #include "WxConversion.hh"
 #include "WidgetTools.hh"
@@ -80,16 +81,8 @@ BEGIN_EVENT_TABLE(OperationPropertyDialog, wxDialog)
     EVT_BUTTON(ID_OUTPUT_DOWN_BUTTON, OperationPropertyDialog::onMoveOutputDown)
 
     EVT_BUTTON(ID_OPEN_BUTTON, OperationPropertyDialog::onOpen)
+    EVT_BUTTON(ID_DAG_BUTTON, OperationPropertyDialog::onOpenDAG)
     EVT_BUTTON(ID_OK_BUTTON, OperationPropertyDialog::onOk)
-
-    EVT_BUTTON(ID_SAVE_DAG_BUTTON, OperationPropertyDialog::onSaveDAG)
-    EVT_BUTTON(ID_UNDO_DAG_BUTTON, OperationPropertyDialog::onUndoDAG)
-    EVT_BUTTON(ID_DELETE_DAG_BUTTON, OperationPropertyDialog::onDeleteDAG)
-    EVT_BUTTON(ID_NEW_DAG_BUTTON, OperationPropertyDialog::onNewDAG)
-
-    EVT_TEXT(ID_EDIT_DAG, OperationPropertyDialog::onDAGChange)
-
-    EVT_CHOICE(ID_INDEX_DAG, OperationPropertyDialog::onComboBoxChange)
 
 END_EVENT_TABLE()
 
@@ -131,11 +124,7 @@ END_EVENT_TABLE()
     sideEffectsCB_ =
         dynamic_cast<wxCheckBox*>(FindWindow(ID_HAS_SIDE_EFFECTS));
     
-    editDAG_ = dynamic_cast<wxTextCtrl*>(FindWindow(ID_EDIT_DAG));
     editDescription_ = dynamic_cast<wxTextCtrl*>(FindWindow(ID_EDIT_DESCRIPTION));
-
-    indexDAG_ =
-        dynamic_cast<wxChoice*>(FindWindow(ID_INDEX_DAG));
 
     FindWindow(ID_NAME)->SetValidator(
         wxTextValidator(wxFILTER_ASCII, &name_));
@@ -182,14 +171,6 @@ END_EVENT_TABLE()
     orig_ = operation_->saveState(); // save original operation's state
 
     setTexts();
-
-    FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
-    FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
-    FindWindow(ID_DELETE_DAG_BUTTON)->Disable();
-    FindWindow(ID_NEW_DAG_BUTTON)->Disable();
-
-    updateIndex();
-    updateDAG();
 }
 
 /**
@@ -282,14 +263,6 @@ OperationPropertyDialog::setTexts() {
     WidgetTools::setLabel(&osedText, FindWindow(ID_OPEN_BUTTON),
                               OSEdTextGenerator::TXT_BUTTON_OPEN);
 
-    WidgetTools::setLabel(&osedText, FindWindow(ID_SAVE_DAG_BUTTON),
-                              OSEdTextGenerator::TXT_BUTTON_SAVE);
-    WidgetTools::setLabel(&osedText, FindWindow(ID_UNDO_DAG_BUTTON),
-                              OSEdTextGenerator::TXT_BUTTON_UNDO);
-    WidgetTools::setLabel(&osedText, FindWindow(ID_DELETE_DAG_BUTTON),
-                              OSEdTextGenerator::TXT_BUTTON_DELETE);
-    WidgetTools::setLabel(&osedText, FindWindow(ID_NEW_DAG_BUTTON),
-                              OSEdTextGenerator::TXT_BUTTON_NEW);
 	
     setBehaviorLabel();
 
@@ -429,121 +402,6 @@ OperationPropertyDialog::updateOperands() {
 
     wxListEvent dummy;
     onSelection(dummy);
-}
-
-/**
- * Updates the DAG list.
- */
-void
-OperationPropertyDialog::updateIndex() {
-
-    indexDAG_->Clear();
-
-    if (operation_ == NULL) {
-        return;
-    }
-
-    if (operation_->dagCount() > 0) {
-        for (int i = 0; i < operation_->dagCount(); i++) {
-            wxString oper = WxConversion::toWxString(i+1);
-            indexDAG_->Append(oper);
-        }
-    }
-    else
-    {
-    }
-
-    // last item is "New Dag"-option
-    wxString oper = wxT("New DAG");
-    indexDAG_->Append(oper);
-    indexDAG_->SetSelection(0);
-
-}
-
-/**
- * Updates TextCtrl for DAG
- */
-void
-OperationPropertyDialog::updateDAG() {
-
-    editDAG_->Clear();
-
-    // get selected item from ComboBox
-    int index = indexDAG_->GetSelection();
-    
-    // check that index is legal
-    if (operation_ != NULL && index < operation_->dagCount()) {
-        std::string code = operation_->dagCode(index);
-        std::ostream dagCode(editDAG_);
-        dagCode << code;
-        dagCode.flush();
-
-        FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
-        FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
-        FindWindow(ID_DELETE_DAG_BUTTON)->Enable();
-        FindWindow(ID_NEW_DAG_BUTTON)->Enable();
-
-        OperationDAG& currentDAG = operation_->dag(index);
-
-        std::string temp = FileSystem::createTempDirectory();
-        std::string pngDag = temp + "/dag.png";
-        std::string dotDag = temp + "/dag.dot";
-
-        if (currentDAG.isNull() == true) { // compile error
-
-            std::string errText = operation_->dagError(index);
-            
-            // strip carriage returns from errText
-            while (true) {
-                const int pos = errText.find('\n');
-                if (pos == -1) {
-                    break;
-                }
-                errText.replace(pos, 1,"\\n");
-            }
-
-            // command to generate error message
-            std::string dotCmd = "echo 'digraph G {n140545368 [label=\"" + errText + "\", shape=ellipse, fontsize=12]; }' | dot -Tpng > " + pngDag;
-
-            system(dotCmd.c_str());
-
-            delete dotImage_;
-            dotImage_ = new wxBitmap(100,100);
-            wxString wxTemp(wxString::FromAscii(pngDag.c_str()));
-            dotImage_->LoadFile(wxTemp, wxBITMAP_TYPE_PNG);
-            dagStaticBitmap_->SetBitmap(*dotImage_);
-        }
-        else // show graph
-        {
-            // generate dot
-            currentDAG.writeToDotFile(dotDag);
-
-            // generate png from dot
-            std::string dotCmd = "dot -Tpng " + dotDag + " > " + pngDag;
-            system(dotCmd.c_str());
-
-            delete dotImage_;
-            dotImage_ = new wxBitmap(100,100);
-            wxString wxTemp(wxString::FromAscii(pngDag.c_str()));
-            dotImage_->LoadFile(wxTemp, wxBITMAP_TYPE_PNG);
-            dagStaticBitmap_->SetBitmap(*dotImage_);
-        }
-        FileSystem::removeFileOrDirectory(temp);
-    }
-    else // new dag => do not update, just disable the buttons
-    {
-        FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
-        FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
-        FindWindow(ID_DELETE_DAG_BUTTON)->Disable();
-        FindWindow(ID_NEW_DAG_BUTTON)->Disable();
-        wxImage *temp = new wxImage(100, 100, true);
-
-        delete dotImage_;
-        dotImage_ = new wxBitmap(*temp);
-        dagStaticBitmap_->SetBitmap(*dotImage_);
-
-    }
-
 }
 
 /**
@@ -992,123 +850,13 @@ OperationPropertyDialog::onOpen(wxCommandEvent&) {
 }
 
 /**
- * Handles the event when Save button is pushed.
+ * Handles the event when Open DAG button is pushed.
  */
 void
-OperationPropertyDialog::onSaveDAG(wxCommandEvent&)
-{
-    if(operation_ == NULL) {
-        return;
-    }
-
-    int index = indexDAG_->GetSelection();
-
-    std::string code("");
-    wxString wxTemp;
-
-    for (int i = 0; i < editDAG_->GetNumberOfLines(); ++i) {
-        wxTemp = editDAG_->GetLineText(i);
-
-#if wxCHECK_VERSION(2, 6, 0)
-        std::string stdTemp(wxTemp.mb_str());
-#else
-        std::string stdTemp(wxTemp.c_str());
-#endif
-
-        code += stdTemp;
-        code += "\n";
-    }
-
-    if (operation_->dagCount() == index) {
-        operation_->addDag(code);
-    }
-    else {
-        operation_->setDagCode(index, code);
-    }
-
-    updateIndex();
-    indexDAG_->SetSelection(index);
-    updateDAG();
-    FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
-    FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
-    FindWindow(ID_DELETE_DAG_BUTTON)->Enable();
-}
-
-/**
- * Handles the event when Undo button is pushed.
- */
-void
-OperationPropertyDialog::onUndoDAG(wxCommandEvent&)
-{
-    std::iostream dagCode(editDAG_);
-
-    int index = indexDAG_->GetSelection();
-    if (operation_->dagCount() == index) { // new operation
-        editDAG_->Clear();
-        FindWindow(ID_DELETE_DAG_BUTTON)->Disable();
-    }
-    else {
-        updateDAG();
-        FindWindow(ID_DELETE_DAG_BUTTON)->Enable();
-    }
-    FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
-    FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
-}
-
-/**
- * Handles the event when Delete button is pushed.
- */
-void
-OperationPropertyDialog::onDeleteDAG(wxCommandEvent&)
-{
-    int index = indexDAG_->GetSelection();
-    if (operation_->dagCount() > index) {
-        editDAG_->Clear();
-        operation_->removeDag(index);
-    }
-
-    updateIndex();
-
-    if (index > 0) {
-        index--;
-    }
-
-    indexDAG_->SetSelection(index);
-    updateDAG();
-}
-
-/**
- * Handles the event when New button is pushed.
- */
-void
-OperationPropertyDialog::onNewDAG(wxCommandEvent&)
-{
-    int index = operation_->dagCount();
-    editDAG_->Clear();
-    indexDAG_->SetSelection(index);
-    FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
-    FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
-    FindWindow(ID_DELETE_DAG_BUTTON)->Disable();
-    FindWindow(ID_NEW_DAG_BUTTON)->Disable();
-}
-
-/**
- * Handles the event when DAG is changed
- */
-void
-OperationPropertyDialog::onDAGChange(wxCommandEvent&)
-{
-    FindWindow(ID_UNDO_DAG_BUTTON)->Enable();
-    FindWindow(ID_SAVE_DAG_BUTTON)->Enable();
-}
-
-/**
- * Handles the event when ComboBox is changed
- */
-void
-OperationPropertyDialog::onComboBoxChange(wxCommandEvent&)
-{
-    updateDAG();
+OperationPropertyDialog::onOpenDAG(wxCommandEvent&) {
+    OperationDAGDialog dialog(this, operation_);
+    //ObjectState* orig = op->saveState();
+    dialog.ShowModal();
 }
 
 /**
@@ -1583,53 +1331,10 @@ OperationPropertyDialog::createContents(
 
     item8->Add(item34, 0, wxALIGN_CENTER|wxALL, 5);
 
-    wxStaticBox *dagStaticBox = new wxStaticBox(parent, -1, wxT("Code"));
-    wxStaticBoxSizer *dagStaticBoxSizer = new wxStaticBoxSizer(dagStaticBox, wxVERTICAL);
-
-    // DAG editor
-    wxTextCtrl* editDAG = new wxTextCtrl(parent, ID_EDIT_DAG, wxT(""), wxDefaultPosition, wxSize(250,365), wxTE_MULTILINE);
-
-    wxStaticBox *dagCodeStaticBox = new wxStaticBox(parent, -1, wxT("DAG"));
-    wxStaticBoxSizer *dagCodeStaticBoxSizer = new wxStaticBoxSizer(dagCodeStaticBox, wxVERTICAL);
-
-    dotImage_ = new wxBitmap(100,100);
-    dagStaticBitmap_ = new wxStaticBitmap(parent, ID_DAG_IMAGE, *dotImage_);
-    dagStaticBoxSizer->Add(editDAG, 0, wxALIGN_TOP|wxALL|wxGROW, 5);
-    dagCodeStaticBoxSizer->Add(dagStaticBitmap_, 5, wxALIGN_TOP|wxALL|wxGROW, 5);
-
     wxBoxSizer *pageSizer = new wxBoxSizer(wxHORIZONTAL);
     pageSizer->Add(item8, 0, wxALIGN_TOP|wxALL, 5);
-    pageSizer->Add(dagStaticBoxSizer, 0, wxALIGN_TOP|wxTOP, 10);
-    pageSizer->Add(dagCodeStaticBoxSizer, 5, wxALIGN_TOP|wxTOP, 10);
 
     item0->Add(pageSizer, 0, wxALIGN_CENTER|wxALL, 5);
-
-    wxString strs9[] = 
-        {
-            wxT("id: 1")
-        };
-
-    // ComboBox for choosing DAG
-    //wxComboBox *indexDAG = new wxComboBox(parent, ID_INDEX_DAG, wxT(""), wxDefaultPosition, wxSize(150,-1), 1, strs9, wxCB_DROPDOWN);
-    wxChoice *indexDAG = new wxChoice(parent, ID_INDEX_DAG, wxDefaultPosition, wxSize(150,-1), 1, strs9);
-    wxButton *saveDAG = new wxButton(parent, ID_SAVE_DAG_BUTTON, wxT("Save"), wxDefaultPosition, wxDefaultSize, 0);
-    wxButton *undoDAG = new wxButton(parent, ID_UNDO_DAG_BUTTON, wxT("Undo"), wxDefaultPosition, wxDefaultSize, 0);
-    wxButton *deleteDAG = new wxButton(parent, ID_DELETE_DAG_BUTTON, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0);
-    wxButton *newDAG = new wxButton(parent, ID_NEW_DAG_BUTTON, wxT("New"), wxDefaultPosition, wxDefaultSize, 0);
-
-    wxBoxSizer *dagToolsSizer = new wxBoxSizer(wxHORIZONTAL);
-    dagToolsSizer->Add(indexDAG, 0, wxALIGN_CENTER|wxALL, 5);
-
-    wxGridSizer *dagButtonSizer = new wxGridSizer(2, 0, 0);
-
-    dagButtonSizer->Add(saveDAG, 0, wxALIGN_CENTER|wxALL, 5);
-    dagButtonSizer->Add(undoDAG, 0, wxALIGN_CENTER|wxALL, 5);
-    dagButtonSizer->Add(deleteDAG, 0, wxALIGN_CENTER|wxALL, 5);
-    dagButtonSizer->Add(newDAG, 0, wxALIGN_CENTER|wxALL, 5);
-
-    dagToolsSizer->Add(dagButtonSizer, 0, wxALIGN_CENTER|wxALL, 5);
-
-    dagStaticBoxSizer->Add(dagToolsSizer, 0, wxALIGN_TOP|wxALL, 5);
 
     wxGridSizer *item45 = new wxGridSizer(2, 0, 0);
 
@@ -1645,6 +1350,9 @@ OperationPropertyDialog::createContents(
 
     wxButton *item48 = new wxButton(parent, ID_OPEN_BUTTON, wxT("Open"), wxDefaultPosition, wxDefaultSize, 0);
     item46->Add(item48, 0, wxALIGN_CENTER|wxALL, 5);
+
+    wxButton *OpenDAG = new wxButton(parent, ID_DAG_BUTTON, wxT("Open DAG"), wxDefaultPosition, wxDefaultSize, 0);
+    item46->Add(OpenDAG, 0, wxALIGN_CENTER|wxALL, 5);
 
     item45->Add(item46, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 

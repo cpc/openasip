@@ -10,7 +10,8 @@ tceopgen_LDADD = ${LIB_BASE_DIR}/libttabase.la \
 ${LIB_TCETOOLS_DIR}/libtcetools.la ${LIB_APPLIBS_MACH_DIR}/libapplibsmach.la
 
 AM_CPPFLAGS = -I${OSAL_DIR} -I${LIB_TCETOOLS_DIR}
-AM_LDFLAGS =
+AM_LDFLAGS = ${BOOST_LIBDIR} ${BOOST_PYTHON_LIB} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} \
+	   ${XERCES_LIBS} ${EDITLINE_LD_FLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
