@@ -197,7 +197,6 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
          << "#define _AUTO_GENERATED_COMPILED_SIMULATION_H_" << endl
          << "#include \"tce/SimValue.hh\"" << endl
          << "#include \"tce/Program.hh\"" << endl
-         << "#include \"tce/TargetMemory.hh\"" << endl
          << "#include \"tce/MemorySystem.hh\"" << endl
          << "#include \"tce/DirectAccessMemory.hh\"" << endl
          << "#include \"tce/SimulationEventHandler.hh\"" << endl
@@ -208,7 +207,6 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
          << "#include \"tce/OperationContext.hh\"" << endl
          << "#include \"tce/Conversion.hh\"" << endl
          << "#include \"tce/Exception.hh\"" << endl
-         << "#include \"tce/AssignmentQueue.hh\"" << endl
          << "#include \"tce/CompiledSimulation.hh\"" << endl
          << "#include \"tce/Instruction.hh\"" << endl 
          << conflictDetectionGenerator_.includes() << endl
@@ -256,9 +254,6 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
         
         // Declare address spaces
         if (fu.addressSpace() != NULL) {
-            *os_ << "\t" << "TargetMemory " 
-                 << SymbolGenerator::targetMemorySymbol(*fus.item(i)) << ";" << endl;
-            
              *os_ << "\t" << "DirectAccessMemory& " 
                  << SymbolGenerator::DAMemorySymbol(*fus.item(i)) << ";" << endl;
         }
@@ -383,9 +378,6 @@ CompiledSimCodeGenerator::generateConstructorCode() {
             const Word MAUSize = fu.addressSpace()->width();
 
             *os_ << "," << endl;
-            *os_ << "\t" << SymbolGenerator::targetMemorySymbol(fu) << "(FUMemory(\""
-                 << fu.name() << "\"), false, " << MAUSize << ")," << endl;
-            
             *os_ << "\t" << SymbolGenerator::DAMemorySymbol(fu) 
                  << "(dynamic_cast<DirectAccessMemory&>(FUMemory(\""
                  << fu.name() << "\")))";
@@ -397,14 +389,6 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     
     for (int i = 0; i < fus.count(); i++) {
         const FunctionUnit& fu = *fus.item(i);
-        if (fu.addressSpace() != NULL) {
-            const Word MAUSize = fu.addressSpace()->width();
-            string name = SymbolGenerator::targetMemorySymbol(*fus.item(i));
-            *os_ << "\t" << SymbolGenerator::operationContextSymbol(fu)
-               << ".setMemory(&" << name << ", "
-               << MAUSize << ");" << endl;
-        }
-        
         // Create state for each operation
         for (int j = 0; j < fu.operationCount(); ++j) {
             *os_ << "\t" << SymbolGenerator::operationSymbol(fu.operation(j)->name(), fu)
