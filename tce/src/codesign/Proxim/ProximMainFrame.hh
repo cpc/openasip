@@ -45,7 +45,6 @@ public:
     void createToolbar();
     void createMenubar();
     void reset();
-
 private:
     void initialize();
     void dockWindow(wxWindow* window);
@@ -61,6 +60,7 @@ private:
     void updateCommand(wxUpdateUIEvent& event);
     void updateToggleItem(wxUpdateUIEvent& event);
     void updateSimulationStatus();
+    void updateMemoryWindowMenuItem();
     wxString menuAccelerator(int id);
 
     /// Toplevel sizer of the window managing the basic layout.
