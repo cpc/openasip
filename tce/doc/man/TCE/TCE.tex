@@ -5,10 +5,10 @@
 \makeindex
 
 \begin{document}
-\title{TTA Codesign Environment v1.0-beta1}
-\ver{5}
+\title{TTA Codesign Environment v1.0}
+\ver{6}
 \firstday{25.10.2006}
-\lastday{04.03.2008}
+\lastday{14.03.2008}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committed
@@ -440,23 +440,6 @@ An emulation function is expected to read all the inputs of its operation
 and to update the operation outputs with any new result value that can be
 computed before returning.
 
-\paragraph{Late-coming operation results.}
-If the model of an operation, either by intrinsic characteristics of the
-operation or due to the model implementation, does not allow to return the
-results of the operation at the time the emulation function is called,
-another function must be defined.  This function models the fact that the
-computation of one or more results takes several cycles to complete even in
-the OSAL model of the operation.
-
-The function that models late-coming operation results is introduced by the
-statement \verb#LATE_RESULT# and is terminated by the statement
-\verb#END_LATE_RESULT;#.
-
-Similar to the main emulation function, this function is expected to update
-the operation outputs with any new result for which computation can be
-completed before returning.  Unlike the main emulation function, this
-function cannot access to the operation inputs.
-
 \subsubsection{Behavior Description language}
 \label{ssec:behaviour-commands}
 
@@ -634,15 +617,6 @@ The state model provides two special definition blocks to support emulation
 of operation behaviour.
 
 \begin{description}
-\item[AVAILABLE \ldots END\_AVAILABLE]%
-  In this definition user is allowed to enter conditional for availability
-  of operation state. In case operation state is available for new
-  operations to be triggered, this method should return true
-  (RETURN\_AVAILABLE). On the other hand, if operation state is unavailable,
-  no further operations should be triggered (and processor should be locked
-  in simulation situation). Unavailability is signalled with a return
-  statement RETURN\_NOT\_AVAILABLE.
-
 \item[ADVANCE\_CLOCK \ldots END\_ADVANCE\_CLOCK]%
   In case the model of operations state is synchronous, this definition can
   be used to specif activity that occurs ``in the raising edge of the clock
@@ -689,164 +663,25 @@ can be accessed with \verb#CONTEXT_ID#.
 \paragraph{Returning from operation behavior emulation functions.}
 Normally, an emulation function returns control to the caller when control
 flows out of the definition body.  To return immediately, from an arbitrary
-point in the definition body, the following statements must be used:
-\begin{description}
-\item[RETURN\_READY] %
-  Returns from a simulation function declared by \verb#TRIGGER#
-  statement signal ling that all the results have been computed.
-\item[RETURN\_NOT\_READY] %
-  Returns from a simulation function declared by \verb#TRIGGER#
-  statement signalling that not all the results have been computed.  In
-this
-  case, the operations is pending and the client must call the function that
-  simulates late-coming results in the following cycles.
-\item[RETURN\_UPDATED] %
-  Returns from a simulation function declared by \verb#LATE_RESULT#
-  statement signal ling that at least one pending result has been computed.
-  Other results may be still pending.
-\item[RETURN\_NOT\_UPDATED] %
-  Returns from a simulation function declared by \verb#LATE_RESULT#
-  signal ling that none of the pending results has been computed.
-\end{description}
-
-Each return statement is specific for one and only one type of emulation
-function.  It is an error to use a return statement in other types of
-emulation functions.
-
-Unlike \verb#LATE_RESULT#, \verb#TRIGGER# definition \emph{requires} return 
-statement. When the return statement is discarded in \verb#LATE_RESULT#
-block,
-return value is computed automatically. In case at least one of the
-operation
-outputs that was previously not computed has been computed in the function 
-body, true is returned, false otherwise.
-
-It is highly recommended that the user explicitly leave the function with
-the appropriate return statement, because the automatic computation of the
-return value requires relatively expensive computation.
+point in the definition body, the following normal C return 
+statement can be used. The return value is boolean indicating the success
+of the operation execution. In pratice, 'true' is always returned:
+\verb|return true;|.
 
 \paragraph{Memory Interface.}
 
-Following expressions are used to access the memory model associated with
-the operation context.
+The memory interface of OSAL is very simplified allowing easy modeling of
+data memory accessing operations. The following keywords are used
+to define the memory access behavior:
 
 \begin{description}
-\item[MEM\_AVAILABLE()]%
-  Used to check if memory is available for new requests, meaning that all 
-  requests initiated in the previous clock cycle were accepted immediately.
-\item[INITIATE\_READ(\emph{address}, \emph{count})]%
-  Initiates a memory read operation of \emph{count} MAUs, 
-  at \emph{address}.
-\item[INITIATE\_WRITE(\emph{address}, \emph{count}, \emph{data})]%
-  Initiates a memory write operation of \emph{count} MAUs, 
-  at \emph{address}. Also \emph{data} to be written is provided.
-\item[MEM\_RESULT\_READY()]%
-  Checks whether new result is waiting to be read. Returns true if 
-  ``data bus'' contains valid data to be read.
-\item[MEM\_DATA(variable)]%
-  Assigns the data in ``data bus'' to given operand variable (e.g. IntWord,
-DoubleWord).
-\item[WWIDTH] %
-  The natural word width of the memory model of the context.
+\item[MEMORY.read(address, count, target)]%
+  Reads \emph{count} units of data from the \emph{address} to the variable
+  \emph{target}.
+\item[MEMORY.write(address, count, data)]%
+  Writes \emph{count} units of data in variable \emph{data} to 
+  the \emph{address}.
 \end{description}
-
-\paragraph{Example Implementation of a Load Operation}
-
-Because the interface to Memory model is handled as a special case in
-OSAL, it's good to describe example implementations of load and store 
-operations here.
-
-Load word operation could be implemented with a behavior definition similar
-to following. In this example, \verb|UINT(1)| gives the address for the load
-and \verb|INT(2)| is the operand in which the operation result is stored.
-
-First, a state for this operation family is defined:
-%
-\begin{verbatim}
-  DEFINE_STATE(LOADSTATE)
-      AVAILABLE
-          return MEM_AVAILABLE();
-      END_AVAILABLE;
-  END_DEFINE_STATE;
-\end{verbatim}
-
-In the LATE\_RESULT implementation, the data from the data bus is written
-to 
-the output operand of the operation in case the result is ready. AVAILABLE 
-function tells whether the operation context is in such state that it can 
-accept new operations. New memory operations can be accepted in case memory 
-is not busy.
-
-Next, the operation itself is defined.  In this example we show only
-operation `LDW' (load natural word). The family could also provide
-implementations for load operations of different width, such as, for
-example, load byte and load half-word.
-
-\begin{verbatim}
-  OPERATION_WITH_STATE(LDW, LOADSTATE)
-      LATE_RESULT
-          if (MEM_RESULT_READY()) 
-              IntWord data;
-              MEM_DATA(data);
-              IO(2) = data;
-      END_LATE_RESULT;
-      TRIGGER
-           INITIATE_READ(INT(1), WWIDTH);
-      END_TRIGGER;
-  END_OPERATION_WITH_STATE(LDW);
-\end{verbatim}
-
-As one can see, the trigger functionality is very simple in case of a load
-operation; simply, the read is initiated. Initiation of read is analogous
-to writing to the address bus and setting the read bit of memory. It's
-the responsibility of the state definition to later check whether the
-result 
-has arrived to the data bus.
-
-The first argument of INITIATE\_READ is the memory address from which the
-data is to be read, the second argument is the number of minimum addressable
-units to read. The special macro WWIDTH tells the amount of minimum
-addressable units in the natural word of the memory in use. This definition
-of memory access request works as expected regardless of the properties of
-the used Memory Module implementation and the actual bit width of the
-natural word.
-
-\paragraph{Example Implementation of a Store Operation}
-
-Operations that write memory are even simpler than load operations, because
-there is no need to define late result functionality in the state. This is
-because the data to store is given when the request is initiated. From OSAL
-point of view, there's no need to wait until the data is really written to
-the memory. AVAILABLE function is used to check whether new operations
-can be initiated, or if the client should stop because the previous
-operation invocation put the operation state into busy state.
-
-This roughly reflects the writing the address of write operation to the 
-address bus, writing the data to be written to the data bus, and setting 
-the write flag.
-
-In this example, \verb|UINT(1)| provides the address and \verb|INT(2)| the
-data to write.
-
-\begin{verbatim}
-  DEFINE_STATE(STORESTATE)
-
-      AVAILABLE
-          return MEM_AVAILABLE();
-      END_AVAILABLE;
-
-  END_DEFINE_STATE;
-\end{verbatim}
-
-\begin{verbatim}
-  OPERATION_WITH_STATE(STW, STORESTATE)
-
-      TRIGGER
-           INITIATE_WRITE(UINT(1), WWIDTH, UINT(2));
-      END_TRIGGER;
-
-  END_OPERATION_WITH_STATE(LDW);
-\end{verbatim}
 
 \subsection{Hardware Database (HDB)}
 \label{section:hdb}
@@ -1092,12 +927,12 @@ The behavior of operation can be simulated using the dialog in
 Figure~\ref{fig:osed_simulate_dialog}. Input values can be edited by selecting
 a input from the input list and typing the new value in a text field below
 the input list. Change can be committed by pushing \emph{Update} button.
-Trigger command, late result command, and advance clock command are executed 
-by pushing \emph{Trigger}, \emph{Late Result}, and \emph{Advance clock} buttons.
+Trigger command and advance clock command are executed 
+by pushing \emph{Trigger} and \emph{Advance clock} buttons.
 Virtual leds on the right side of the dialog shows the result of the execution.
 Green led implies successful execution, whereas red led shows error in execution.
 The format of the inputs and outputs can be modified by selecting a new format
-from the choice list above \emph{Trigger} and \emph{Late Result} buttons.
+from the choice list above the \emph{Trigger} button.
 
 \begin{figure}[tb]
 \centerline{\psfig{figure=eps/osed/Simulate.eps,width=0.85\textwidth}}
@@ -4258,7 +4093,6 @@ code in the editor window:
 OPERATION(ADD4)
 TRIGGER
     IO(5) = INT(1) + INT(2) + INT(3) + INT(4);
-    RETURN_READY;
 END_TRIGGER
 END_OPERATION(ADD4)
 \end{verbatim}
@@ -5006,7 +4840,7 @@ operation. In order to do this open the operation set editor:
 
  IO(3) = static_cast<unsigned> (reflection);
 
- RETURN_READY;
+ return true;
  END_TRIGGER;
  END_OPERATION(REFLECT)
  \end{verbatim}

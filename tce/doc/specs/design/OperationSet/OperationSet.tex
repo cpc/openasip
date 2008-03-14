@@ -150,6 +150,10 @@
  0.12.0      & 18.12.2007 & M. Lepist\"o &
  Added section about Operation DAG.\\
 
+ 0.13.0      & 14.03.2008 & P. J. &
+ Removed lateResult() and the syscall methods due to the OSAL and Memory
+ model cleanup.
+
 \end{HistoryTable}
 
 
@@ -744,24 +748,6 @@ doxygen documentation.
   A version of this method without operation context argument is available
   for operations that do not have state.
 
-\item[lateResult(inouts : SimValue**, OperationContext\& context) : bool] %
-
-  This method models the behavior of operations for which it is not always
-  possible to compute all results at the time the operation is started.
-
-  When a pending result value is computed, this method writes the result
-  value, and signals that a new result is ready. The first argument of this
-  method is a vector of input and output values, including the values of
-  already computed results. The second argument gives the operation context,
-  described in Section~\ref{sec:context-if}.
-
-  This method returns a flag that tells whether at least one of the
-  operation results that were previously pending has been computed and its
-  value is stored in the output vector (value \emph{true}).
-
-  If this method is not reimplemented for a given operation behaviour model,
-  the predefined version of this method returns always false.
-
 \item[void createState(OperationContext\&)]%
   Create a new instance of operation state and register it into given
   operation context.
@@ -1152,12 +1138,6 @@ this information can affect unrelated operations in the same function unit
 or even in different function units. Special state is directly handled by
 the function unit state model and not by operations.
 
-TCE supports emulated syscalls by means of two dedicated registers that are
-part of the special state. The syscall handler register contains the vector
-to the handler code. The syscall number register is used to select which
-syscall to invoke, and is an operand of the syscall operation. The remaining
-arguments of a syscall are passed exactly like in procedure invocations.
-
 The following methods let the clients access special state:
 \begin{description}
 \item[memory() : Memory\&]%
@@ -1165,17 +1145,9 @@ The following methods let the clients access special state:
   Return a pointer to the Memory Module that can be accessed by the
   function unit and behavior simulation methods. 
   
-\item[setMemory(memory : Memory\&, naturalWordWidth : int)]%
+\item[setMemory(memory : Memory\&)]%
 
-  Set the Memory Module pointer. Additionally, sets the natural word width
-  (NWW) of the memory in minimum addressable units (MAU). This argument was
-  added to make it possible to retrieve this value from MDF and not from
-  Memory implementation.
-
-\item[naturalWordWidth() : int]%
-
-  Return the width of the natural word of the memory of this context. Value is
-  in minimum addressable units. 
+  Set the Memory Module pointer. 
 
 \item[programCounter() : SimValue\&]%
 
@@ -1197,16 +1169,6 @@ The following methods let the clients access special state:
   for example, to make memory access requests from different operation
   implementations unique.  No two instances of \emph{OperationContext} have
   the same value in execution time. 
-
-\item[syscallHandler() : SimValue\&] %
-  
-  Return the syscall handler register. This is used to enforce syscall
-  invocations.
-
-\item[syscallNumber() : SimValue\&] %
-  
-  Return the syscall handler code register, which defines the numeric code
-  that that identifies a syscall.
 
 \end{description}
 
