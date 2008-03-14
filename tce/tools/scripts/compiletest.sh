@@ -434,7 +434,7 @@ function run_system_tests {
     if [ "x${findBreakingRev}" == "xyes" ]; then
         STPARAM="-bo"
     else
-        STPARAM=""
+        STPARAM="-o"
     fi
 
     cd $SYSTEMTEST_DIR
@@ -458,7 +458,7 @@ function run_long_system_tests {
     if [ "x${findBreakingRev}" == "xyes" ]; then
         STPARAM="-bo"
     else
-        STPARAM=""
+        STPARAM="-o"
     fi
 
     cd $SYSTEMTEST_LONG_DIR
