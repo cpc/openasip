@@ -204,8 +204,13 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     std::string tmpDir = FileSystem::createTempDirectory();
 
     if (useCache_) {
+        // Create cache directory if it doesn't exist.
+        if (!FileSystem::fileIsDirectory(cachePath_)) {
+            FileSystem::createDirectory(cachePath_);
+        }
         pluginFileName = cachePath_ + FileSystem::DIRECTORY_SEPARATOR +
             pluginFile;
+
     } else {
         pluginFileName = tmpDir + FileSystem::DIRECTORY_SEPARATOR +
             pluginFile;

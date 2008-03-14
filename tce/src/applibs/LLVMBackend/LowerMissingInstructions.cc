@@ -479,7 +479,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
     return retVal;
 }
 
-bool LowerMissingInstructions::doFinalization(Module &M) {
+bool LowerMissingInstructions::doFinalization(Module& /* M */) {
 //     if (NumLowered != 0) {
 //         bool retVal = linkEmulationLib();
 //         assert(retVal && "Emulation functions could not be linked");                

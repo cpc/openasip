@@ -24,6 +24,6 @@ const int ModelConstants::DEFAULT_IU_MAX_WRITES = 1;
 const int ModelConstants::DEFAULT_IU_GUARD_LATENCY = 0;
 const int ModelConstants::DEFAULT_AS_MAU_WIDTH = 8;
 const int ModelConstants::DEFAULT_AS_MIN_ADDRESS = 0;
-const int ModelConstants::DEFAULT_AS_MAX_ADDRESS = 32;
+const int ModelConstants::DEFAULT_AS_MAX_ADDRESS = 1048576;
 const int ModelConstants::DEFAULT_AS_INTERLEAVING_FACTOR = 1;
 

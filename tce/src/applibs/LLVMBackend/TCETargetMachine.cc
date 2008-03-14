@@ -87,7 +87,7 @@ TCETargetMachine::getModuleMatchQuality(const Module &M) {
  * Creates an instruction selector instance.
  */
 bool
-TCETargetMachine::addInstSelector(FunctionPassManager& pm, bool fast) {
+TCETargetMachine::addInstSelector(FunctionPassManager& pm, bool /* fast */) {
     FunctionPass* isel = plugin_.createISelPass(this);
     pm.add(isel);
     return false;
@@ -103,7 +103,7 @@ TCETargetMachine::addInstSelector(FunctionPassManager& pm, bool fast) {
  */
 bool
 TCETargetMachine::addAssemblyEmitter(
-    FunctionPassManager& pm, bool fast, std::ostream& out) {
+    FunctionPassManager& pm, bool /* fast */, std::ostream& out) {
 
     // Output assembly language.
     pm.add(plugin_.createAsmPrinterPass(out, this));

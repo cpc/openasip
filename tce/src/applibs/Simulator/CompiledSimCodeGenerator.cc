@@ -881,8 +881,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     bool endGuardBracket = false;
     
     // Do moves
-    std::set<std::string> gotResults;
-    std::vector<CompiledSimMove> lateMoves;
+    std::set<std::string> gotResults; // used to get FU results only once/instr.
+    std::vector<CompiledSimMove> lateMoves; // moves with buses
     for (int i = 0; i < instruction.moveCount(); ++i) {
         const Move& move = instruction.move(i);
         string moveSource = SymbolGenerator::moveOperandSymbol(move.source(), move);
@@ -911,8 +911,6 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         for (int j = instruction.moveCount() - 1; j > 0 && i != j; --j) {
             if (moveDestination == SymbolGenerator::moveOperandSymbol(
                 instruction.move(j).source(), move)) {
-                //std::cout << "FOUND MATCH: " << instruction.address().location();
-                //std::cout << " " << moveDestination << endl;
                 dependingMove = true;
                 CompiledSimMove lateMove(move, lastGuardBool_);
                 lateMoves.push_back(lateMove);
@@ -920,7 +918,6 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             }
         }
         
-
         // Assign the values directly instead of through 
         // the SimValue assignment in case:
         if ((move.source().isGPR() || move.source().isFUPort() 

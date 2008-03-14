@@ -57,6 +57,8 @@
 #include "ProximCmdHistoryWindow.hh"
 #include "TracedSimulatorFrontend.hh"
 #include "ProximStopDialog.hh"
+#include "ProximSimulationThread.hh"
+#include "MemorySystem.hh"
 
 BEGIN_EVENT_TABLE(ProximMainFrame, wxFrame)
     EVT_KEY_DOWN(ProximMainFrame::onKeyEvent)
@@ -242,7 +244,7 @@ ProximMainFrame::createMenubar() {
     viewMenu->AppendCheckItem(
         ProximConstants::COMMAND_TOGGLE_MEMORY_WIN,
         _T("&Memory Window"));
-
+    
     viewMenu->AppendCheckItem(
         ProximConstants::COMMAND_TOGGLE_CONTROL_WIN,
         _T("Simulator &Control"));
@@ -372,6 +374,8 @@ ProximMainFrame::createMenubar() {
     menuBar->Append(helpMenu, _T("&Help"));
 
     SetMenuBar(menuBar);
+    
+    updateMemoryWindowMenuItem();
 }
 
 /**
@@ -571,6 +575,7 @@ ProximMainFrame::onSimulatorEvent(SimulatorEvent& event) {
     if (eventType == SimulatorEvent::EVT_SIMULATOR_PROGRAM_LOADED) {
         wxString message = _T("Program loaded.");
         GetStatusBar()->SetStatusText(message);
+        updateMemoryWindowMenuItem();
     }
 
     // Loading machine.
@@ -908,6 +913,28 @@ ProximMainFrame::updateSimulationStatus() {
     cyclesStr.Prepend(_T("Cycles: "));
     statusBar->SetStatusText(cyclesStr, 2);
 }
+
+
+/**
+ * Updates "Memory Window" menu item depending on if memory is available
+ */
+void 
+ProximMainFrame::updateMemoryWindowMenuItem() {
+    if (!wxGetApp().simulation()->frontend() ||
+        !wxGetApp().simulation() ||
+        wxGetApp().simulation()->frontend()->memorySystem().
+        memoryCount() == 0) {
+        GetMenuBar()->Enable(ProximConstants::COMMAND_TOGGLE_MEMORY_WIN, false);
+        wxWindow* memoryWindow = FindWindow(ProximConstants::ID_MEMORY_WINDOW);
+        if (memoryWindow != NULL) {
+            memoryWindow->Destroy();
+            memoryWindow = NULL;
+        }
+    } else {
+        GetMenuBar()->Enable(ProximConstants::COMMAND_TOGGLE_MEMORY_WIN, true);
+    }
+}
+
 
 /**
  * Event handler for the simulator reset event.

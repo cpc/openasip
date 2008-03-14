@@ -82,6 +82,8 @@ SimulatorInterpreter::SimulatorInterpreter(
     addCustomCommand(new WatchCommand());
     addCustomCommand(new CommandsCommand());
     addCustomCommand(new SymbolAddressCommand());
+    
+    context.simulatorFrontend().setOutputStream(lineReader()->outputStream());
 }
 
 /**

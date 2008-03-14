@@ -295,38 +295,31 @@ POMValidator::checkSimulatability(POMValidatorResults& results) {
 }
 
 /**
- * Checks if the program can be simulated with the compiled simulator
+ * Checks if the program can be simulated with the compiled simulator.
+ * 
  * 
  * @param results POMValidator results where the error messages are added.
  * 
  */
 void 
-POMValidator::checkCompiledSimulatability(POMValidatorResults& results) {
-    checkSimulatability(results);
-    return;
-    /// @TODO FIX!
-    /*
+POMValidator::checkCompiledSimulatability(POMValidatorResults& results) {    
     Instruction* instruction = &program_.firstInstruction();
     while (instruction != &NullInstruction::instance()) {
-
         for (int i = 0; i < instruction->moveCount(); i++) {
             Move& move = instruction->move(i);
             Terminal* destination = &move.destination();
-            if (move.source().isGPR() && dynamic_cast<ControlUnit*>(
-                destination->port().parentUnit()) != 0 && 
-                dynamic_cast<TerminalFUPort*>(&destination->port()) != 0 ) {
-                    InstructionAddress address =
-                        instruction->address().location();
+            if (move.source().isGPR() && move.isControlFlowMove()) {
+                InstructionAddress address = instruction->address().location();
                     
-                    std::string errorMessage =
-                        "Instruction at address: " + 
-                        Conversion::toHexString(address) +
-                        "' cannot be simulated with compiled simulator.";
+                std::string errorMessage =
+                    "Instruction at address: " + 
+                    Conversion::toHexString(address) +
+                    "' cannot be simulated with the compiled simulator.";
                     
-                    results.addError(COMPILED_SIMULATION_NOT_POSSIBLE, 
-                        errorMessage);
+                results.addError(COMPILED_SIMULATION_NOT_POSSIBLE,
+                    errorMessage);
             }
-        }
+        } // end for
         instruction = &(program_.nextInstruction(*instruction));
-    }*/
+    }
 }

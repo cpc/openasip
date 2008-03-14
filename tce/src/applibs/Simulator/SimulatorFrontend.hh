@@ -13,6 +13,7 @@
 #include <fstream>
 #include <string>
 #include <iostream>
+#include <ostream>
 #include <ctime>
 
 #include <boost/timer.hpp>
@@ -127,6 +128,7 @@ public:
     const RFAccessTracker& rfAccessTracker() const
         throw (InstanceNotFound);
 
+    void setCompiledSimulation(bool value);
     void setExecutionTracing(bool value);
     void setBusTracing(bool value);
     void setRFAccessTracing(bool value);
@@ -134,6 +136,9 @@ public:
     void setProfileDataSaving(bool value);
     void setUtilizationDataSaving(bool value);
     void setTraceDBFileName(const std::string& fileName);
+    
+    std::ostream& outputStream();
+    void setOutputStream(std::ostream& stream);
 
     std::string disassembleInstruction(UIntWord instructionAddress) const;
 
@@ -229,7 +234,7 @@ protected:
     /// Is this sequential simulation, that is, is the currentMachine_
     /// an UniversalMachine or not?
     bool sequentialSimulation_;
-    /// Is this a compiled simulation or note
+    /// Is this a compiled simulation or not
     bool compiledSimulation_;
     /// The disassembler used to print out instructions. This is
     /// initialized on demand.
@@ -281,6 +286,8 @@ protected:
     bool printSimulationTimeStatistics_;
     /// Flag that indicates is the trace file name set by user.
     bool traceFileNameSetByUser_;
+    /// Default output stream
+    std::ostream* outputStream_;
     
     /// If this is enabled before initialization, memory access tracking is
     /// enabled. (slows down simulation)

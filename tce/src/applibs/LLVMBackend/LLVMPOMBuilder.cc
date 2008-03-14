@@ -658,7 +658,7 @@ LLVMPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
  * Fixes dummy code references to point the actual instructions. 
  */
 bool
-LLVMPOMBuilder::doFinalization(Module& m) {
+LLVMPOMBuilder::doFinalization(Module& /* m */) {
 
     // Create data initializers.
     for (unsigned i = 0; i < data_.size(); i++) {
@@ -1127,7 +1127,7 @@ LLVMPOMBuilder::emitMove(
  */
 TTAProgram::Instruction*
 LLVMPOMBuilder::emitReturn(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+    const MachineInstr* /* mi */, TTAProgram::Procedure* proc) {
 
     Bus& bus = umach_->universalBus();
     TTAProgram::TerminalFUPort* src = new TTAProgram::TerminalFUPort(

@@ -89,8 +89,9 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     stopPointManager_(NULL),  utilizationStats_(NULL), tpef_(NULL),
     fuResourceConflictDetection_(true),
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
-    traceFileNameSetByUser_(false), memoryAccessTracking_(false), 
-    eventHandler_(NULL), lastRunCycleCount_(0), lastRunTime_(0.0) {
+    traceFileNameSetByUser_(false), outputStream_(0),
+    memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0), 
+    lastRunTime_(0.0) {
     if (compiledSimulation_) {
         setFUResourceConflictDetection(false); // disabled by default
     }
@@ -298,21 +299,39 @@ SimulatorFrontend::loadProgram(const std::string& fileName)
     checks.insert(POMValidator::CONNECTION_MISSING);
     checks.insert(POMValidator::LONG_IMMEDIATE_NOT_SUPPORTED);
     checks.insert(POMValidator::SIMULATION_NOT_POSSIBLE);
-    POMValidatorResults* results = validator.validate(checks);
+    if (isCompiledSimulation()) {
+        checks.insert(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
+    }
+
+    std::auto_ptr<POMValidatorResults> results(validator.validate(checks));
     if (results->errorCount() > 0) {
-        delete tpef_;
-        tpef_ = NULL;
-        delete simCon_;
-        simCon_ = NULL;
-        std::string errorMsg = textGen.text(
+        if (isCompiledSimulation()) {
+            // Attempt without compiled simulator
+            setCompiledSimulation(false);
+            checks.erase(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
+            results.reset(validator.validate(checks));
+        }
+            
+        std::string errorMsg;
+        if (results->errorCount() > 0) {
+            delete tpef_;
+            tpef_ = NULL;
+            delete simCon_;
+            simCon_ = NULL;
+            std::string errorMsg = textGen.text(
             Texts::TXT_UNABLE_TO_LOAD_PROGRAM).str();
 
-        for (int i = 0; i < results->errorCount(); i++) {
-            errorMsg += "\n" + results->error(i).second;
-        }
+            for (int i = 0; i < results->errorCount(); i++) {
+                errorMsg += "\n" + results->error(i).second;
+            }
 
-        delete results;
-        throw IllegalProgram(__FILE__, __LINE__, __func__, errorMsg);   
+            throw IllegalProgram(__FILE__, __LINE__, __func__, errorMsg);   
+        } else {
+            outputStream()
+                << errorMsg << std::endl
+                << "Warning! Reverting to interpretive simulation engine." 
+                << std::endl;
+        }
     }
 
     if (programOwnedByFrontend_) {
@@ -1680,6 +1699,15 @@ SimulatorFrontend::rfAccessTracker() const
     return *rfAccessTracker_;
 }
 
+/**
+ * Sets compiled simulation on or off
+ *
+ * @param value Is compiled simulation enabled or not.
+ */
+void
+SimulatorFrontend::setCompiledSimulation(bool value) {
+    compiledSimulation_ = value;
+}
 
 /**
  * Sets the execution tracing on or off.
@@ -1742,6 +1770,26 @@ SimulatorFrontend::setTraceDBFileName(const std::string& fileName) {
     traceFileNameSetByUser_ = true;
 }
 
+/**
+ * Returns the output stream
+ * 
+ * @return the output stream
+ */
+std::ostream&
+SimulatorFrontend::outputStream() {
+    assert(outputStream_ != 0);
+    return *outputStream_;
+}
+
+/**
+ * Sets the default output stream
+ * 
+ * @param stream the output stream
+ */
+void 
+SimulatorFrontend::setOutputStream(std::ostream& stream) {
+    outputStream_ = &stream;
+}
 
 /**
  * Sets the utilization data saving on or off.

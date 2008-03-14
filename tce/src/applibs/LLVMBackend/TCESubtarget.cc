@@ -24,7 +24,7 @@ BackendPluginFile(
 /**
  * The Constructor.
  */
-TCESubtarget::TCESubtarget(const Module& m, const std::string& fs) :
+TCESubtarget::TCESubtarget(const Module& /* m */, const std::string& /* fs */) :
     pluginFile_(BackendPluginFile) {
 
 }
