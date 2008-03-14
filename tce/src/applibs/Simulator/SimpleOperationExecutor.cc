@@ -112,8 +112,6 @@ SimpleOperationExecutor::startOperation(Operation& op) {
 void
 SimpleOperationExecutor::advanceClock() {
 
-    BufferCell& nextSlot = buffer_[nextSlot_];
-   
     int index = (nextSlot_ + 1) % buffer_.size();
     
     BufferCell& oldestEntry = buffer_[index];

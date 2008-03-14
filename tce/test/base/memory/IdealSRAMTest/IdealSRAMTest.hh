@@ -39,7 +39,7 @@ private:
 
 const Word IdealSRAMTest::START = 100;
 const Word IdealSRAMTest::END = 1000;
-const Word IdealSRAMTest::MAUSIZE = 16;
+const Word IdealSRAMTest::MAUSIZE = 8;
 const Word IdealSRAMTest::WORDSIZE = 2;
 const int IdealSRAMTest::ALIGNMENT = 2;
 
@@ -93,6 +93,14 @@ IdealSRAMTest::testBasicInterface() {
         memory.read(100 + i, 1, result);
         TS_ASSERT_EQUALS(result, static_cast<UIntWord>(128));
     }
+
+    // test the FloatWord and DoubleWord interface
+    DoubleWord d = 123.123;
+    memory.write(100, d);
+    memory.advanceClock();
+
+    memory.read(100, d);
+    TS_ASSERT_DELTA(d, 123.123, 0.1);
 }
 
 

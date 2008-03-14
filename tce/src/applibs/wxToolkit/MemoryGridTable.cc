@@ -182,13 +182,13 @@ MemoryGridTable::memoryContents(Word addr) {
     if ((size * mauSize_) <= sizeof(SIntWord) * BYTE_BITWIDTH) {
 
         // read one word
-        SIntWord data = 0;
+        UIntWord data = 0;
 
         if (addr < start_ || addr > end_) {
             // memory not available
             return WxConversion::toWxString(NOT_AVAILABLE);
         } else {
-            data = memory_.read(addr);
+            memory_.read(addr, size, data);
         }
 
 
@@ -212,20 +212,13 @@ MemoryGridTable::memoryContents(Word addr) {
             dataString = Conversion::toString(extendedValue);
         } else if (dataMode_ == DATA_UNSIGNED_INT) {
             dataString = Conversion::toString(data);
-        } 
-    }
-
-#if 0
-// FLOAT and DOUBLE mode not supported at the moment: TODO: redo after proper
-// float support has been implemented
-        else if (dataMode_ == DATA_FLOAT &&
+        } else if (dataMode_ == DATA_FLOAT &&
                    cellSize == sizeof(FloatWord) * BYTE_BITWIDTH) {
 
             FloatWord flt;
             memory_.read(addr, flt);
             dataString = Conversion::toString(flt);
         }
-
     } else if ((size * mauSize_) <= sizeof(DoubleWord) * BYTE_BITWIDTH) {
 
         // Only double display is available due to the limitations of
@@ -245,7 +238,6 @@ MemoryGridTable::memoryContents(Word addr) {
             dataString = Conversion::toString(data);
         }
     }
-#endif
     return WxConversion::toWxString(dataString);
 }
 
@@ -314,7 +306,6 @@ void
 MemoryGridTable::writeValue(int row, int column, DoubleWord memoryValue) {
     Word address = start_;
     address += cellAddress(row, column);
-    int size = sizeOfCell();
     if (address < end_) {
         memory_.write(address, memoryValue);
         memory_.advanceClock();

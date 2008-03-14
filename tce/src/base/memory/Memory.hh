@@ -64,9 +64,13 @@ public:
 
     virtual void write(Word address, int size, UIntWord data)
         throw (OutOfRange);
+    virtual void write(Word address, FloatWord data)
+        throw (OutOfRange);
     virtual void write(Word address, DoubleWord data)
         throw (OutOfRange);
     virtual void read(Word address, int size, UIntWord& data)
+        throw (OutOfRange);
+    virtual void read(Word address, FloatWord& data)
         throw (OutOfRange);
     virtual void read(Word address, DoubleWord& data)
         throw (OutOfRange);
@@ -89,6 +93,9 @@ private:
 
     void pack(const Memory::MAUTable data, int size, UIntWord& value);
     void unpack(const UIntWord& value, std::size_t size, Memory::MAUTable data);
+
+    void checkRange(Word startAddress, int numberOfMAUs)
+        throw (OutOfRange);
 
     /// Starting point of the address space.
     Word start_;

@@ -9,6 +9,7 @@
 
 #include <cstddef>
 
+#include <boost/format.hpp>
 #include "Memory.hh"
 #include "MemoryContents.hh"
 #include "Application.hh"
@@ -44,7 +45,6 @@ Memory::Memory(Word start, Word end, Word MAUSize) :
         mask_ = ~0 << MAUSize_;
         mask_ = ~mask_;
     }
-
 }
 
 /**
@@ -96,6 +96,8 @@ void
 Memory::write(Word address, int count, UIntWord data)
     throw (OutOfRange) {
 
+    checkRange(address, count);
+
     Memory::MAU MAUData[MAX_ACCESS_SIZE];
     unpack(data, count, MAUData);
 
@@ -106,6 +108,94 @@ Memory::write(Word address, int count, UIntWord data)
     request->address_ = address;
     writeRequests_.push_back(request);
 }
+
+/**
+ * A convenience method for reading data from the memory and 
+ * interpreting it as a FloatWord.
+ *
+ * @note Currently works only if MAU == 8 bits. asserts otherwise.
+ *
+ * @param address The address to read.
+ * @param data The data to write.
+ * @exception OutOfRange in case the address is out of range of the memory.
+ */
+void
+Memory::read(Word address, FloatWord& data)
+    throw (OutOfRange) {
+
+    assert(MAUSize() == sizeof(Byte)*8 && 
+           "Loading FloatWords works only with byte sized MAU at the moment.");
+
+    const std::size_t MAUS = 4;
+
+    checkRange(address, MAUS);
+
+    union castUnion {
+        FloatWord d;
+        Byte maus[MAUS];
+    };
+
+    castUnion cast;
+
+    for (std::size_t i = 0; i < MAUS; ++i) {
+        UIntWord data;
+        read(address + i, 1, data);
+        // Byte order must be reversed if host is not bigendian.
+        #if WORDS_BIGENDIAN == 1
+        cast.maus[i] = data;
+        #else
+        cast.maus[MAUS - 1 - i] = data;
+        #endif        
+    }
+    data = cast.d;
+}
+
+/**
+ * A convenience method for writing a FloatWord to the memory.
+ *
+ * @note Currently works only if MAU == 8 bits. asserts otherwise.
+ *
+ * @param address The address to write.
+ * @param data The data to write.
+ * @exception OutOfRange in case the address is out of range of the memory.
+ */
+void
+Memory::write(Word address, FloatWord data)
+    throw (OutOfRange) {
+
+    assert(MAUSize() == sizeof(Byte)*8 && 
+           "Writing FloatWords works only with byte sized MAU at the moment.");
+
+    const std::size_t MAUS = 4;
+
+    checkRange(address, MAUS);
+
+    union castUnion {
+        FloatWord d;
+        Byte maus[MAUS];
+    };
+
+    castUnion cast;
+    cast.d = data;
+
+    WriteRequest* request = new WriteRequest();
+    request->data_ = new MAU[MAUS];
+    request->size_ = MAUS;
+    request->address_ = address;
+
+    for (std::size_t i = 0; i < MAUS; ++i) {
+        UIntWord data;
+        // Byte order must be reversed if host is not bigendian.
+        #if WORDS_BIGENDIAN == 1
+        data = cast.maus[i];
+        #else
+        data = cast.maus[MAUS - 1 - i];
+        #endif
+        request->data_[i] = data;
+    }
+    writeRequests_.push_back(request);
+}
+
 
 /**
  * A convenience method for reading data from the memory and 
@@ -124,14 +214,13 @@ Memory::read(Word address, DoubleWord& data)
     assert(MAUSize() == sizeof(Byte)*8 && 
            "LDD works only with byte sized MAU at the moment.");
 
+    const std::size_t MAUS = 8;
     union castUnion {
         DoubleWord d;
-        Byte maus[8];
+        Byte maus[MAUS];
     };
 
     castUnion cast;
-
-    const std::size_t MAUS = 8;
 
     for (std::size_t i = 0; i < MAUS; ++i) {
         UIntWord data;
@@ -162,19 +251,21 @@ Memory::write(Word address, DoubleWord data)
     assert(MAUSize() == sizeof(Byte)*8 && 
            "LDD works only with byte sized MAU at the moment.");
 
+    const std::size_t MAUS = 8;
+
+    checkRange(address, MAUS);
+
     union castUnion {
         DoubleWord d;
-        Byte maus[8];
+        Byte maus[MAUS];
     };
 
     castUnion cast;
     cast.d = data;
 
-    const std::size_t MAUS = 8;
-
     WriteRequest* request = new WriteRequest();
-    request->data_ = new MAU[8];
-    request->size_ = 8;
+    request->data_ = new MAU[MAUS];
+    request->size_ = MAUS;
     request->address_ = address;
 
     for (std::size_t i = 0; i < MAUS; ++i) {
@@ -203,6 +294,9 @@ Memory::write(Word address, DoubleWord data)
 void
 Memory::read(Word address, int size, UIntWord& data)
     throw (OutOfRange) {
+
+    checkRange(address, size);
+
     data = 0;
     int shiftCount = MAUSize_ * (size - 1);
     for (int i = 0; i < size; i++) {
@@ -335,6 +429,25 @@ Memory::writeBlock(Word address, Memory::MAUVector data) {
         Memory::MAU temp = data[i];
         write(address - start_ + i, temp);
     }
+}
+
+/**
+ * Helper for checking the legality of the memory access address range.
+ *
+ * Does nothing in case the address range is legal, throws otherwise.
+ *
+ * @exception OutOfRange in case the range is illegal.
+ */
+void
+Memory::checkRange(Word startAddress, int numberOfMAUs)
+    throw (OutOfRange) {
+
+    if (startAddress < start() || startAddress + numberOfMAUs > end())
+        throw OutOfRange(
+            __FILE__, __LINE__, __func__,
+            (boost::format(
+                "Memory access at %d of size %d is out of the address space.")
+             % startAddress % numberOfMAUs).str());
 }
 
 //////////////////////////////////////////////////////////////////////////////
