@@ -4,7 +4,7 @@
 # This should help noticing uncommitted source files.
 #
 # (c) 2005 pekka.jaaskelainen@tut.fi
-svn status | egrep -v \
+bzr status | egrep -v \
 "^[^MC].*("\
 ".*\.cls$|.*\.sty$|.*\.bib$|.*\.log$|.*\.toc$|.*\.blg$|.*\.pdf$|.*\.ps$|"\
 ".*\.dvi$|.*\.aux$|.*\.bbl$|.*/fig|.*/eps|.*\.so|.*\.ind|.*\.idx|.*Makefile$|"\
@@ -40,5 +40,6 @@ svn status | egrep -v \
 ".*\.dot|.*Explorer/explore|.*connectivity.tpef|"\
 ".*Python-bindings/src/setup.py|.*\.pyc|.*/registers_read|.*/registers_written|"\
 ".*/operations_executed|.*\.vhdbak|systemtest_long/procgen/ProGe/.*\.sh|"\
+".*\.l[oa]$|"\
 ".*\.bak|doc/man/html|.*/conflicting_fsa.txt|.*/dot.txt|systemtest/bintools/PIG/.*\.sh|.*/results.tex"\
 ")"
