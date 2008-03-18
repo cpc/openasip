@@ -10,7 +10,7 @@ CFG_DIR = ${SCHED_DIR}/ProgramRepresentations/ControlFlowGraph
 DDG_DIR = ${SCHED_DIR}/ProgramRepresentations/DataDependenceGraph
 
 basedir = ${prefix}/share/tce/scheduler/passes/BasicBlockScheduler
-nobase_base_DATA = BasicBlockSchedulerPass.so
+nobase_base_DATA = BasicBlockSchedulerPass.so CLBBypasserModule.so CopyingDSFillerModule.so
 
 .PHONY: ${nobase_base_DATA}
 
