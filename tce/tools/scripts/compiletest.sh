@@ -26,94 +26,100 @@ goodRunsBeforeEmail=10
 lastOkRevisionFile=~/tce_last_ok_revision
 
 # Process command line arguments (from Advanced Bash-Scripting Guide).
-while getopts "vhngqckmbsu" Option
+while getopts "vhngqckmbsui" Option
 do
-  case $Option in
-    v     ) 
+    case $Option in
+        v     ) 
 
-	  testWithValgrind=yes;;
+        testWithValgrind=yes;;
 
-    s     ) 
+        s     ) 
 
-	  skipSystemTests=yes;;
+        skipSystemTests=yes;;
 
-    g     )
+        g     )
 
-	  gcovTest=yes;;      
+        gcovTest=yes;;      
 
-    c     )
+        c     )
 
-	  cleanupBeforeCompile=no;;      
+        cleanupBeforeCompile=no;;      
 
-    m     )
+        m     )
 
-	  useMutt=yes;;      
+        useMutt=yes;;      
 
-    b     )
+        b     )
 
-          findBreakingRev=yes;;      
+        findBreakingRev=yes;;      
 
-    q     ) 
+        q     ) 
 
-	  quickTest=yes;;      
+        quickTest=yes;;      
 
-    u     ) 
+        u     ) 
 
-	  skipUnitTests=yes;;      
+        skipUnitTests=yes;;      
 
-    n     ) 
+        n     ) 
 
-	  skipCompileTest=yes;;
+        skipCompileTest=yes;;
 
-    k     )
+        k     )
 
-          kdialogNotifications=yes;;
-  
-    h     ) 
-	  
-	  echo "TCE Compile Test (c) 2003-2006 Pekka J‰‰skel‰inen";
-	  echo
-	  echo "switches: ";
-	  echo
-	  echo "-v  After compile testing, run unit tests with Valgrind.";
-	  echo "    The last compile test environment is used, no ";
-	  echo "    recompilation is done before running the tests.";
-	  echo
-	  echo "-s  Skip system tests.";
-	  echo
-	  echo "-u  Skip unit tests.";
-	  echo
-	  echo "-m  Use mutt as mailer.";
-	  echo
-	  echo "-g  After compile testing, run the Gcov test (gcov.php).";
-	  echo "    Gcov test is run in compiler environment defined in";
-	  echo "    file gcov_env.";
-	  echo
-	  echo "-n  Skip over normal compile testing and run only Valgrind";
-	  echo "    and/or Gcov test if -v and/or -g is given. Note that";
-	  echo "    the Valgrind test expects to find a fully configured ";
-	  echo "    and compiled code base for the Valgrind unit tests.";
-	  echo
-	  echo "-q  Use only the current environment for compile testing.";
-	  echo "    Do not use any env_* files. Can be used for quick compile ";
-      echo "    testing before committing changes. Does not configure ";
-      echo "    the code base before compiling! Does not run the long ";
-      echo "    running test suite.";
-      echo
-      echo "-c  Does not clean the code base after running configure. ";
-      echo "    This allows speeding up the compilation when using '-q' ";
-      echo "    and having compiled the code base already. Tests are ";
-      echo "    executed normally. This allows even quicker testing of ";
-      echo "    code base before committing. It only makes sure that ";
-      echo "    the code base builds (no errors) and tests pass.";
-      echo
-      echo "-k  Use KDialog to show GUI notifications of the compile test ";
-      echo "    progress.";
+        kdialogNotifications=yes;;
 
-	  exit 0;;
+        i     ) 
 
-    *     ) exit 2;; # Unknown switch given.
-  esac
+        installaftercompile=yes;;
+
+        h     ) 
+
+        echo "TCE Compile Test (c) 2003-2006 Pekka J‰‰skel‰inen";
+        echo
+        echo "switches: ";
+        echo
+        echo "-v  After compile testing, run unit tests with Valgrind.";
+        echo "    The last compile test environment is used, no ";
+        echo "    recompilation is done before running the tests.";
+        echo
+        echo "-s  Skip system tests.";
+        echo
+        echo "-u  Skip unit tests.";
+        echo
+        echo "-m  Use mutt as mailer.";
+        echo
+        echo "-g  After compile testing, run the Gcov test (gcov.php).";
+        echo "    Gcov test is run in compiler environment defined in";
+        echo "    file gcov_env.";
+        echo
+        echo "-n  Skip over normal compile testing and run only Valgrind";
+        echo "    and/or Gcov test if -v and/or -g is given. Note that";
+        echo "    the Valgrind test expects to find a fully configured ";
+        echo "    and compiled code base for the Valgrind unit tests.";
+        echo
+        echo "-q  Use only the current environment for compile testing.";
+        echo "    Do not use any env_* files. Can be used for quick compile ";
+        echo "    testing before committing changes. Does not configure ";
+        echo "    the code base before compiling! Does not run the long ";
+        echo "    running test suite.";
+        echo
+        echo "-c  Does not clean the code base after running configure. ";
+        echo "    This allows speeding up the compilation when using '-q' ";
+        echo "    and having compiled the code base already. Tests are ";
+        echo "    executed normally. This allows even quicker testing of ";
+        echo "    code base before committing. It only makes sure that ";
+        echo "    the code base builds (no errors) and tests pass.";
+        echo
+        echo "-k  Use KDialog to show GUI notifications of the compile test ";
+        echo "    progress.";
+        echo
+        echo "-i  Install tce after compile.";
+
+        exit 0;;
+
+        *     ) exit 2;; # Unknown switch given.
+    esac
 done
 
 if [ "x$quickTest" = "xyes" ]; then
@@ -222,7 +228,7 @@ else
     fi
     if [ ! "$ERROR_MAIL_ADDRESS" ]; then
         ERROR_MAIL_ADDRESS="$USER"
-    fi							
+    fi                          
     LOG_DIR="$PWD"
 fi
 
@@ -289,7 +295,7 @@ function debug_print {
 
 function debug_print_noendl {
     if [ "$DEBUG_OUTPUT" == "yes" ]; then
-	echo -n "$*"
+        echo -n "$*"
     fi
 
     if [ "$kdialogNotifications" == "yes" ]; then
@@ -327,10 +333,10 @@ function log_failure {
             echo -e "</$1 errors with $running_compiler. ${_rev_info}>" >> $ERROR_LOG_FILE
             echo >> $ERROR_LOG_FILE
         fi
-	errors="yes"
-	debug_print_noendl PROBLEMS.
+        errors="yes"
+        debug_print_noendl PROBLEMS.
     else
-	debug_print_noendl OK.
+        debug_print_noendl OK.
     fi
 }
 
@@ -370,6 +376,19 @@ function compile {
     pop_dir
 }
 
+# make install
+function install {
+    push_dir
+
+    {
+        make install 2>&1 | grep -Ex $WARNINGS | grep -vEx $WARNING_FILTERS
+    } 1> $TEMP_FILE 2>&1
+    
+    log_failure installation
+
+    pop_dir
+}
+
 # "Pretty prints" elapsed time (e.g. 12d4h1m23s).
 # 
 # 1: time in seconds
@@ -380,17 +399,15 @@ function prettyPrintTime {
 
     seconds=`echo $seconds - $hours \* 3600 | bc`
 
-    if [ $hours != "0" ]; 
-	then
-	echo -n ${hours}h
+    if [ $hours != "0" ]; then
+        echo -n ${hours}h
     fi
 
     minutes=`expr $seconds / 60`
     seconds=`echo $seconds - $minutes \* 60 | bc`
 
-    if [ $hours != "0" -o $minutes != "0" ]; 
-	then
-	echo -n ${minutes}m
+    if [ $hours != "0" -o $minutes != "0" ]; then
+        echo -n ${minutes}m
     fi
 
     echo ${seconds}s
@@ -439,7 +456,7 @@ function run_system_tests {
 
     cd $SYSTEMTEST_DIR
     {
-	../tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure system_testing
@@ -463,7 +480,7 @@ function run_long_system_tests {
 
     cd $SYSTEMTEST_LONG_DIR
     {
-	../tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure long_testing
@@ -564,10 +581,15 @@ function compile_test {
     # compilation
     run_tests "compile: " "compile"
 
+    if [ "x$installaftercompile" == "xyes" ]; then
+        # install after compile
+        run_tests "install: " "install"
+    fi
+
     if [ "x${errors}" == "xyes" -a "x${RETURN_IF_ERRORS}" == "xyes" ]; then
         pop_dir
         return
-    fi	
+    fi  
     errors="no"
 
     # remove broken test temp lists written by systemtest.php
@@ -699,21 +721,21 @@ function getLines {
     count=$1
     lines=""
     while `expr $count \> 0 > /dev/null`;
-      do
-      lines="$lines-"
-      count=`expr $count - 1`
+    do
+        lines="$lines-"
+        count=`expr $count - 1`
     done;
     echo $lines
 }
 
 function handleError {
     if [ "x$errors" == "xno" ]; then
-	# Get the testing time.
-	testing_time=`stopTimer`
-	echo "OK ($testing_time)" >> $LOG_FILE
-	debug_print " ($testing_time)"
+        # Get the testing time.
+        testing_time=`stopTimer`
+        echo "OK ($testing_time)" >> $LOG_FILE
+        debug_print " ($testing_time)"
     else
-	echo "FAILED!";
+        echo "FAILED!";
     fi
 }
 
@@ -727,21 +749,21 @@ function compile_test_with_all_compilers {
     echo -n "$LOG_TIMESTAMP: " >> $LOG_FILE
 
     if [ "x$COMPILER_ENVIRONMENTS" == "x" ]; then
-	    COMPILER_ENVIRONMENTS=/dev/null
-	    ENV_DESC="Current shell environment"
+        COMPILER_ENVIRONMENTS=/dev/null
+        ENV_DESC="Current shell environment"
     fi
 
     if [ "x$skipCompileTest" != "xyes" ]; then
 
         for COMPILER in $COMPILER_ENVIRONMENTS
-          do
-          change_compiler_env $COMPILER
-          line=`getLines $lineLength`
-          echo $line 
-          debug_print $ENV_DESC. 
-          echo $line 
-          compile_test $1 `basename $COMPILER`
-          echo -n "$SPACER: " >> $LOG_FILE
+        do
+            change_compiler_env $COMPILER
+            line=`getLines $lineLength`
+            echo $line 
+            debug_print $ENV_DESC. 
+            echo $line 
+            compile_test $1 `basename $COMPILER`
+            echo -n "$SPACER: " >> $LOG_FILE
         done;
 
     fi
@@ -757,7 +779,7 @@ function compile_test_with_all_compilers {
         errors="no"
         startTimer
         run_tests_with_valgrind
-	
+
         handleError
 
         echo -n "$SPACER: " >> $LOG_FILE
@@ -768,12 +790,12 @@ function compile_test_with_all_compilers {
     # The Gcov test.
     if [ "x$gcovTest" = "xyes" ]; then
 
-	# Change to the gcov compiler environment.
+        # Change to the gcov compiler environment.
         source ${GCOV_ENV} || exit 3;
         running_compiler=gcov_env
 
         push_dir
-        cd $1 1> /dev/null 2>&1	
+        cd $1 1> /dev/null 2>&1 
  
         debug_print_noendl "      gcov: "
         echo -n "gcov: " >> $LOG_FILE
@@ -800,16 +822,16 @@ function compile_test_with_all_compilers {
         debug_print Errors were found during testing.
         echo "FAILED!" >> $LOG_FILE
         echo 0 > $goodRunCountFile
-	
-	push_dir
-	cd $1 > /dev/null 2>&1
+    
+        push_dir
+        cd $1 > /dev/null 2>&1
         if [ "${last_tested_rev}x" == "x" ]; then
             bzr log --short -l 1 >> $ERROR_LOG_FILE 2>&1
         else    
             bzr log --short -r ${last_tested_rev} >> $ERROR_LOG_FILE 2>&1
         fi
-	pop_dir 
-	
+        pop_dir 
+    
         echo "Last passed revision:" >> $ERROR_LOG_FILE
         cat $lastOkRevisionFile >> $ERROR_LOG_FILE 2>&1
 
@@ -819,8 +841,7 @@ function compile_test_with_all_compilers {
     else
         echo "OK." >> $LOG_FILE
         debug_print No errors were found during testing.
-        if [ -e $goodRunCountFile ];
-            then
+        if [ -e $goodRunCountFile ]; then
             goodRuns=$(cat $goodRunCountFile)
         else
             goodRuns=0
@@ -829,18 +850,15 @@ function compile_test_with_all_compilers {
         goodRuns=$(expr $goodRuns + 1)
         echo -n $goodRuns > $goodRunCountFile
 
-	push_dir
-	cd $1 > /dev/null 2>&1
+        push_dir
+        cd $1 > /dev/null 2>&1
         bzr log --short -l 1 > $lastOkRevisionFile 2>&1
-	pop_dir
+        pop_dir
 
-        if [ "${goodRuns}" -ge "${goodRunsBeforeEmail}" ];
-            then
+        if [ "${goodRuns}" -ge "${goodRunsBeforeEmail}" ]; then
 
-            if [ "x$ERROR_MAIL" == "xyes" ];
-                then
-
-            # send e-mail that states that everything has been OK for n runs
+            if [ "x$ERROR_MAIL" == "xyes" ]; then
+                # send e-mail that states that everything has been OK for n runs
                 eval echo "Good work, guys!" | $MAIL_BIN -s \
 "GREAT! Compiletest @ ${HOSTNAME} has been successful $goodRuns times since "\
 "the last e-mail." $ERROR_MAIL_ADDRESS 
