@@ -7,6 +7,8 @@
  * @note rating: red
  */
 
+#include <climits>
+
 #include "MoveNodeGroup.hh"
 #include "Application.hh"
 #include "DataDependenceGraph.hh"

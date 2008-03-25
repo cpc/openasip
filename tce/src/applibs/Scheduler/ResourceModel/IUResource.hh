@@ -11,7 +11,7 @@
 #ifndef TTA_IURESOURCE_HH
 #define TTA_IURESOURCE_HH
 
-#include<string>
+#include <string>
 #include <vector>
 
 #include "SchedulingResource.hh"
