@@ -307,7 +307,6 @@ POMValidator::checkCompiledSimulatability(POMValidatorResults& results) {
     while (instruction != &NullInstruction::instance()) {
         for (int i = 0; i < instruction->moveCount(); i++) {
             Move& move = instruction->move(i);
-            Terminal* destination = &move.destination();
             if (move.source().isGPR() && move.isControlFlowMove()) {
                 InstructionAddress address = instruction->address().location();
                     
