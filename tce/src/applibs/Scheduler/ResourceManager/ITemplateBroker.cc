@@ -8,6 +8,8 @@
  * @note rating: red
  */
 
+#include <boost/lexical_cast.hpp>
+
 #include "ITemplateBroker.hh"
 #include "ITemplateResource.hh"
 #include "Machine.hh"
