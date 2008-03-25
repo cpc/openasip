@@ -8,6 +8,8 @@
  * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi) 
  */
 
+#include <algorithm>
+
 /**
  *
  * Deletes all items in a map and clears it.

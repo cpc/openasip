@@ -10,6 +10,8 @@
 #ifndef TTA_BIT_MATRIX_HH
 #define TTA_BIT_MATRIX_HH
 
+#include <string>
+
 /**
  * Models a bit matrix.
  *
