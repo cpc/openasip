@@ -372,7 +372,7 @@ LLVM_VERSION=
 AC_ARG_WITH(llvm,
 [AC_HELP_STRING([--with-llvm], [absolute path to an LLVM installation])],
 [llvmDir="${withval}"
- llvmConf="$llvm/bin/llvm-config"
+ llvmConf="$llvmDir/bin/llvm-config"
 ],
 [llvmDir=""
  llvmConf="$(which llvm-config)"
