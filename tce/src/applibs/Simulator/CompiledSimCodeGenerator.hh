@@ -187,7 +187,7 @@ private:
     
     // Compiled Simulator Code Generator constants:
     /// Maximum amount of instructions per code file
-    static const int MAX_INSTRUCTIONS_PER_FILE = 500;
+    static const int MAX_INSTRUCTIONS_PER_FILE = 1000;
 };
 
 

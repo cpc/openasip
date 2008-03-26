@@ -28,11 +28,8 @@
  *
  * Note that all range checking is disabled for fastest possible simulation
  * model. In case you are unsure of your simulated input correctness, use
- * the old simulation engine for verification. The size of a single access
- * is limited to 64 MAUs.
+ * the old simulation engine for verification.
  */
-#define MAX_REQUEST_SIZE 64
-
 class DirectAccessMemory : public Memory {
 public:
     DirectAccessMemory(

@@ -299,28 +299,37 @@ SimulatorFrontend::loadProgram(const std::string& fileName)
     checks.insert(POMValidator::CONNECTION_MISSING);
     checks.insert(POMValidator::LONG_IMMEDIATE_NOT_SUPPORTED);
     checks.insert(POMValidator::SIMULATION_NOT_POSSIBLE);
+
+    #if 0
     if (isCompiledSimulation()) {
         checks.insert(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
     }
+    #endif
 
     std::auto_ptr<POMValidatorResults> results(validator.validate(checks));
     if (results->errorCount() > 0) {
+        std::string errorMsg = textGen.text(
+            Texts::TXT_UNABLE_TO_LOAD_PROGRAM).str();
+        
+        for (int i = 0; i < results->errorCount(); i++) {
+            errorMsg += "\n" + results->error(i).second;
+        }
+        
+        #if 0
         if (isCompiledSimulation()) {
             // Attempt without compiled simulator
             setCompiledSimulation(false);
             checks.erase(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
             results.reset(validator.validate(checks));
         }
-            
-        std::string errorMsg;
+        #endif
+              
         if (results->errorCount() > 0) {
             delete tpef_;
             tpef_ = NULL;
             delete simCon_;
             simCon_ = NULL;
-            std::string errorMsg = textGen.text(
-            Texts::TXT_UNABLE_TO_LOAD_PROGRAM).str();
-
+            
             for (int i = 0; i < results->errorCount(); i++) {
                 errorMsg += "\n" + results->error(i).second;
             }
@@ -351,7 +360,7 @@ SimulatorFrontend::loadProgram(const std::string& fileName)
     programFileName_ = fileName;
     // tracing can be enabled before loading program so try to initialize
     // the tracing after program is loaded
-    initializeTracing();   
+    initializeTracing();
 }
 
 /**

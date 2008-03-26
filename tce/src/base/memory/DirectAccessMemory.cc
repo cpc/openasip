@@ -26,8 +26,6 @@ using std::string;
  * @param start First address of the memory.
  * @param end Last address of the memory.
  * @param MAUSize Bit width of the minimum addressable unit of the memory.
- * @param wordSize Number of MAUs that make up a natural word.
- * @param align Alignment of natural words, expressed in number of MAUs.
  */
 DirectAccessMemory::DirectAccessMemory(
     Word start, Word end, Word MAUSize) : 

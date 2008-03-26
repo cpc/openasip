@@ -295,8 +295,9 @@ POMValidator::checkSimulatability(POMValidatorResults& results) {
 }
 
 /**
- * Checks if the program can be simulated with the compiled simulator.
+ * Checks for problems specific to compiled simulation only.
  * 
+ * Used to check if the program cannot be simulated with the compiled simulator.
  * 
  * @param results POMValidator results where the error messages are added.
  * 
@@ -312,7 +313,7 @@ POMValidator::checkCompiledSimulatability(POMValidatorResults& results) {
                     
                 std::string errorMessage =
                     "Instruction at address: " + 
-                    Conversion::toHexString(address) +
+                    Conversion::toString(address) +
                     "' cannot be simulated with the compiled simulator.";
                     
                 results.addError(COMPILED_SIMULATION_NOT_POSSIBLE,

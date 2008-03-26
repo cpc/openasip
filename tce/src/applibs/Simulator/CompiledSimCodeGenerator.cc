@@ -123,29 +123,36 @@ CompiledSimCodeGenerator::generateMakefile() {
         << "objects = $(patsubst %.cpp,%.o,$(sources))" << endl
         << "dobjects = $(patsubst %.cpp,%.so,$(sources))" << endl
         << "includes = $(shell tce-config --includes)" << endl
-        << "soflags = -g -shared -fpic" << endl 
+        << "soflags = -shared -fpic" << endl 
             
         // use because ccache doesn't like changing directory paths
         // (in a preprocessor comment)
-        << "cppflags = -fno-working-directory" << endl << endl
+        << "cppflags = -fno-working-directory -fno-enforce-eh-specs -fno-threadsafe-statics -fno-access-control" << endl << endl
         
         << "all: engine.so" << endl << endl
 
-        << "engine.so: $(dobjects) CompiledSimulationEngine.cc" << endl
+        << "engine.so: CompiledSimulationEngine.hh.gch $(dobjects) CompiledSimulationEngine.cc" << endl
         << "\t#@echo Compiling engine.so" << endl
         << "\t$(CC) $(soflags) $(cppflags) -O0 $(includes) CompiledSimulationEngine.cc "
         << "-c -o engine.o" << endl 
         << "\t$(CC) $(soflags) engine.o -o engine.so" << endl << endl
-        << "$(dobjects): %.so: %.cpp" << endl
+            
+        << "$(dobjects): %.so: %.cpp CompiledSimulationEngine.hh.gch" << endl
 
         // compile and link phases separately to allow distributed compilation
         // thru distcc
-        << "\t$(CC) -c $(soflags) $(cppflags) $(opt_flags) $(includes) $< -o $@.o" << endl
+        << "\t$(CC) -c $(soflags) $(cppflags) $(opt_flags) -fvisibility-inlines-hidden -fno-rtti $(includes) $< -o $@.o" << endl
         << "\t$(CC) $(soflags) $(opt_flags) -lgcc $@.o -o $@" << endl
         << "\t@rm -f $@.so.o" << endl
-        << ""
+        << endl
+            
+        // use precompiled headers for more speed
+        << "CompiledSimulationEngine.hh.gch:" << endl
+        << "\t$(CC) $(soflags) $(cppflags) $(opt_flags) $(includes) CompiledSimulationEngine.hh" << endl
+        << endl
+            
         << "clean:" << endl
-        << "\t@rm -f $(dobjects) engine.so" << endl;
+        << "\t@rm -f $(dobjects) engine.so CompiledSimulationEngine.hh.gch" << endl;
     
     makefile.close();
 }
@@ -375,8 +382,6 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     for (int i = 0; i < fus.count(); i++) {
         const FunctionUnit & fu = *fus.item(i);
         if (fu.addressSpace() != NULL) {
-            const Word MAUSize = fu.addressSpace()->width();
-
             *os_ << "," << endl;
             *os_ << "\t" << SymbolGenerator::DAMemorySymbol(fu) 
                  << "(dynamic_cast<DirectAccessMemory&>(FUMemory(\""

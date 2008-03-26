@@ -217,23 +217,7 @@ CompiledSimController::reset() {
     clockCount_ = 0;
     
     deleteGeneratedFiles();
-    
-    POMValidator validator(sourceMachine_, program_);
-    std::set<POMValidator::ErrorCode> errorsToCheck;
-    errorsToCheck.insert(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
-    POMValidatorResults* results = validator.validate(errorsToCheck);
-    if (results->errorCount() > 0) {
-        std::string errorMsg;
-        for (int i = 0; i < results->errorCount(); i++) {
-            errorMsg += "\n" + results->error(i).second;
-        }
-
-        delete results;
-        Application::logStream() 
-            << "Cannot simulate given program: " << errorMsg << endl;
-        return;  
-    }
-    
+        
     compiledSimulationPath_ = FileSystem::createTempDirectory();
     if (compiledSimulationPath_ == "") {
         Application::logStream() 
@@ -250,7 +234,7 @@ CompiledSimController::reset() {
     
     basicBlocks_ = generator.basicBlocks();
 
-    std::string flags = "-O3";
+    std::string flags = "-O0";
     const char* fl = std::getenv("TTASIM_COMPILER_FLAGS");
     if (fl != NULL)
         flags = std::string(fl);
