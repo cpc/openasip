@@ -336,9 +336,9 @@ p.add_option('--no-plugin-cache', action="store_true",
              dest="no_cache", default=False,
              help="Do not cache generated llvm target plugins.")
 
-p.add_option('--rebuild-plugin', action="store_true",
-             dest="rebuild_plugin", default=False,
-             help="Rebuild plugin in the cache.")
+p.add_option('--no-schedule', action="store_true",
+             dest="no_schedule", default=False,
+             help="Do not call scheduler.")
 
 p.add_option('--clear-plugin-cache', action="store_true",
              dest="clear_cache", default=False,
@@ -450,7 +450,7 @@ if options.adf_file != "":
     emulationLinkedFileName = linkEmulationFuncs(
         optimizedFileName, namePrefix, options.verbose, llvmprefix)
 
-    if options.scheduler_config is None:
+    if options.no_schedule is False and options.scheduler_config is None:
         (exitCode, output) = runCommand("tce-config --prefix", False)
         if exitCode != 0:
             sys.stderr.write("Error determining tce install location: \n")
@@ -463,8 +463,10 @@ if options.adf_file != "":
     if options.debug is True:
         command += " --debug"
 
+    if options.no_schedule is False:
+        command += " -c " + options.scheduler_config
+
     command += (" -a " + options.adf_file +
-                " -c " + options.scheduler_config +
                 " -o " + outFile +\
                 " " + emulationLinkedFileName)
     
