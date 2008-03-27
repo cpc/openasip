@@ -138,9 +138,6 @@ LLVMBackend::compile(
     llvm::PassManager pm;
     pm.add(new TargetData(*targetMachine.getTargetData()));
 
-    //pm.add(createLowerMissingInstructionsPass());
-
-
     // TODO:
     // Loop strength reduction pass?
     // Garbage collection?

@@ -715,6 +715,12 @@
     <trigger-semantics>
       EXEC_OPERATION(nef, IO(1), IO(2), IO(3));
     </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(gtf, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtf, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
   </operation>
 
   <operation>
@@ -739,6 +745,12 @@
     <trigger-semantics>
       EXEC_OPERATION(gef, IO(1), IO(2), IO(3));
     </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(gtf, IO(1), IO(2), t1);
+      EXEC_OPERATION(eqf, IO(1), IO(2), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
   </operation>
 
   <operation>
@@ -751,6 +763,9 @@
     <trigger-semantics>
       EXEC_OPERATION(ltf, IO(1), IO(2), IO(3));
     </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(gtf, IO(2), IO(1), IO(3));
+    </trigger-semantics>
   </operation>
 
   <operation>
@@ -762,6 +777,122 @@
     <out id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(lef, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(eqf, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtf, IO(2), IO(1), t2);
+      EXEC_OPERATIOM(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+
+  <operation>
+    <name>EQUF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(eqf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>NEUF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord">
+      <can-swap>
+        <in id="2"/>
+      </can-swap>
+    </in>
+    <in id="2" type="FloatWord">
+      <can-swap>
+        <in id="1"/>
+      </can-swap>
+    </in>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(nef, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(gtf, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtf, IO(2), IO(1), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GTUF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gtf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>GEUF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(gef, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(gtf, IO(1), IO(2), t1);
+      EXEC_OPERATION(eqf, IO(1), IO(2), t2);
+      EXEC_OPERATION(ior, t1, t2, IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LTUF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(ltf, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      EXEC_OPERATION(gtf, IO(2), IO(1), IO(3));
+    </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LEUF</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <in id="2" type="FloatWord"/>
+    <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      EXEC_OPERATION(lef, IO(1), IO(2), IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1,t2;
+      EXEC_OPERATION(eqf, IO(1), IO(2), t1);
+      EXEC_OPERATION(gtf, IO(2), IO(1), t2);
+      EXEC_OPERATIOM(ior, t1, t2, IO(3));
     </trigger-semantics>
   </operation>
 

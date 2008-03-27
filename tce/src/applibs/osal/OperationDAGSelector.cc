@@ -74,12 +74,21 @@ OperationDAGSelector::llvmRequiredOpset() {
     requiredOps.insert("CIF");
     requiredOps.insert("CIFU");
 
+    // Ordered FP comparison operations
     requiredOps.insert("EQF");
     requiredOps.insert("NEF");
     requiredOps.insert("LTF");
     requiredOps.insert("LEF");
     requiredOps.insert("GTF");
     requiredOps.insert("GEF");
+
+    // Unordered FP comparison operations
+    requiredOps.insert("EQUF");
+    requiredOps.insert("NEUF");
+    requiredOps.insert("LTUF");
+    requiredOps.insert("LEUF");
+    requiredOps.insert("GTUF");
+    requiredOps.insert("GEUF");
 
     return requiredOps;
 }

@@ -721,49 +721,8 @@ TDGen::checkRequiredRegisters() {
 void
 TDGen::writeInstrInfo(std::ostream& os) {
 
-    std::set<std::string> requiredOps;
     std::set<std::string> opNames;
-
-    requiredOps.insert("ADD");
-    requiredOps.insert("SUB");
-    requiredOps.insert("MUL");
-    requiredOps.insert("DIV");
-    requiredOps.insert("DIVU");
-    requiredOps.insert("DIV");
-    requiredOps.insert("MOD");
-    requiredOps.insert("MODU");
-
-    requiredOps.insert("LDW");
-    requiredOps.insert("LDH");
-    requiredOps.insert("LDHU");
-    requiredOps.insert("LDQ");
-    requiredOps.insert("LDQU");
-    requiredOps.insert("STW");
-    requiredOps.insert("STH");
-    requiredOps.insert("STQ");
-
-    requiredOps.insert("SXHW");
-    requiredOps.insert("SXQW");
-
-    requiredOps.insert("AND");
-    requiredOps.insert("XOR");
-    requiredOps.insert("IOR");
-
-    requiredOps.insert("SHL");
-    requiredOps.insert("SHR");
-    requiredOps.insert("SHRU");
-
-    requiredOps.insert("EQ");
-    requiredOps.insert("NE");
-    requiredOps.insert("LT");
-    requiredOps.insert("LTU");
-    requiredOps.insert("LE");
-    requiredOps.insert("LEU");
-    requiredOps.insert("GT");
-    requiredOps.insert("GTU");
-    requiredOps.insert("GE");
-    requiredOps.insert("GEU");
-
+    OperationDAGSelector::OperationSet requiredOps = OperationDAGSelector::llvmRequiredOpset();
 
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
@@ -798,7 +757,6 @@ TDGen::writeInstrInfo(std::ostream& os) {
     os << std::endl;
 
     // Emulated operations,
-
     iter = requiredOps.begin();
     for (; iter != requiredOps.end(); iter++) {
 
@@ -1136,12 +1094,19 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
     if (opName == "gtu") return "setugt %1%, %2%";
     if (opName == "geu") return "setuge %1%, %2%";
 
-    if (opName == "eqf") return "seteq %1%, %2%";
-    if (opName == "nef") return "setne %1%, %2%";
-    if (opName == "ltf") return "setlt %1%, %2%";
-    if (opName == "lef") return "setle %1%, %2%";
-    if (opName == "gtf") return "setgt %1%, %2%";
-    if (opName == "gef") return "setge %1%, %2%";
+    if (opName == "eqf") return "setoeq %1%, %2%";
+    if (opName == "nef") return "setone %1%, %2%";
+    if (opName == "ltf") return "setolt %1%, %2%";
+    if (opName == "lef") return "setole %1%, %2%";
+    if (opName == "gtf") return "setogt %1%, %2%";
+    if (opName == "gef") return "setoge %1%, %2%";
+
+    if (opName == "equf") return "setueq %1%, %2%";
+    if (opName == "neuf") return "setune %1%, %2%";
+    if (opName == "ltuf") return "setult %1%, %2%";
+    if (opName == "leuf") return "setule %1%, %2%";
+    if (opName == "gtuf") return "setugt %1%, %2%";
+    if (opName == "geuf") return "setuge %1%, %2%";
 
     if (opName == "addf") return "fadd %1%, %2%";
     if (opName == "subf") return "fsub %1%, %2%";
@@ -1152,6 +1117,8 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
 
     if (opName == "cif") return "sint_to_fp %1%";
     if (opName == "cfi") return "fp_to_sint %1%";
+    if (opName == "cifu") return "uint_to_fp %1%";
+    if (opName == "cfiu") return "fp_to_uint %1%";
 
     if (opName == "ldq") return "sextloadi8 %1%";
     if (opName == "ldqu") return "zextloadi8 %1%";
