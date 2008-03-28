@@ -382,7 +382,7 @@ function install {
     push_dir
 
     {
-        make install 2>&1 | grep -Ex $WARNINGS | grep -vEx $WARNING_FILTERS
+        make dev-install 2>&1 | grep -Ex $WARNINGS | grep -vEx $WARNING_FILTERS
     } 1> $TEMP_FILE 2>&1
     
     log_failure installation
