@@ -176,6 +176,7 @@ runner.cpp.*|\
 .*MemoryGridTable.cc.*warning.*dereferencing.type.punned.*|\
 .*TestSuite.h:.*warning.*comparison.between.signed.and.unsigned.*|\
 /usr/include/wx-2.8/.*warning.*|\
+.*install:.warning:.relinking.*|\
 Inconsistency.detected.by.ld\.so:.*Assertion.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
