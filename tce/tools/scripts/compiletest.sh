@@ -15,6 +15,7 @@ skipSystemTests=no
 useMutt=no
 findBreakingRev=no
 skipUnitTests=no
+installAfterCompile=no
 
 # These are used by the script to figure out how many successive compile test
 # runs have been executed successfully. After the given count of executions,
@@ -71,7 +72,7 @@ do
 
         i     ) 
 
-        installaftercompile=yes;;
+        installAfterCompile=yes;;
 
         h     ) 
 
@@ -582,7 +583,7 @@ function compile_test {
     # compilation
     run_tests "compile: " "compile"
 
-    if [ "x$installaftercompile" == "xyes" ]; then
+    if [ "x$installAfterCompile" == "xyes" ]; then
         # install after compile
         run_tests "install: " "install"
     fi
