@@ -468,6 +468,7 @@ if options.adf_file != "":
 
     command += (" -a " + options.adf_file +
                 " -o " + outFile +\
+                " -O" + str(options.optimization_level) +\
                 " " + emulationLinkedFileName)
     
     (exitCode, output) = runCommand(command, options.verbose)
