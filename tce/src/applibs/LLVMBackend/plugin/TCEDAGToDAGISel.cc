@@ -156,6 +156,7 @@ TCEDAGToDAGISel::SelectADDRri(
                addr.getOpcode() == ISD::TargetGlobalAddress) {
 
         return false;  // direct calls.
+        /*
     } else if (addr.getOpcode() == ISD::ADD) {
 
         if (ConstantSDNode* cn =
@@ -169,6 +170,7 @@ TCEDAGToDAGISel::SelectADDRri(
                 return true;
             }
         }
+        */
     }
     base = addr;
     offset = CurDAG->getTargetConstant(0, MVT::i32);
