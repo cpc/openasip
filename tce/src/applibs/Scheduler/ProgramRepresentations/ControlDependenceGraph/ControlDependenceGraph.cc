@@ -48,7 +48,6 @@ ControlDependenceGraph::ControlDependenceGraph(
     
     program_ = cGraph.program();
     alignment_ = cGraph.alignment();
-    procedureName_ = cGraph.procedureName();
     cGraph_ = &const_cast<ControlFlowGraph&>(cGraph);
     computeDependence();
 }
@@ -526,15 +525,6 @@ ControlDependenceGraph::detectControlDependencies(
             BBCD, nodes[i]);
         cdNodes.push_back(cdNode);
     }
-}
-
-/**
- * Return the name of procedure graph represents.
- * @return The name of procedure
- */
-std::string
-ControlDependenceGraph::procedureName() const {
-    return procedureName_;
 }
 
 /**

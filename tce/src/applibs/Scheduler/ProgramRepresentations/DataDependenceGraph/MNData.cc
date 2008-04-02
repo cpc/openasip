@@ -51,7 +51,7 @@ MNData::MNData(
         for (int i = REG_SP; i < REG_IPARAM+4; i++) {
             std::map<int,TTAProgram::TerminalRegister*>::iterator iter =
                 registers.find(i);
-            if (iter != registers.end()) {
+            if (iter != registers.end() && iter->second != NULL) {
                 regWrites_.push_back(
                     dynamic_cast<TerminalRegister*>(iter->second->copy()));
             }
@@ -81,13 +81,13 @@ MNData::MNData(
         if (isCall()) {
             std::map<int,TTAProgram::TerminalRegister*>::iterator iter =
                 registers.find(0);
-            if (iter != registers.end()) {
+            if (iter != registers.end() && iter->second != NULL) {
                 pseudoRegWrites_.push_back(
                     dynamic_cast<TerminalRegister*>(iter->second->copy()));
             }
             
             iter = registers.find(1);
-            if (iter != registers.end()) {
+            if (iter != registers.end() && iter->second != NULL) {
                 pseudoRegReads_.push_back(
                     dynamic_cast<TerminalRegister*>(iter->second->copy()));
             }
@@ -95,7 +95,7 @@ MNData::MNData(
             for (int i = REG_IPARAM; i < REG_IPARAM+4; i++) {
                 std::map<int,TTAProgram::TerminalRegister*>::iterator iter =
                     registers.find(i);
-                if (iter != registers.end()) {
+                if (iter != registers.end() & iter->second != NULL) {
                     pseudoRegReads_.push_back(
                         dynamic_cast<TerminalRegister*>(iter->second->copy()));
                 }
@@ -105,7 +105,7 @@ MNData::MNData(
                 for (int i = REG_RV; i < REG_IPARAM; i++) {
                     std::map<int,TTAProgram::TerminalRegister*>::iterator 
                         iter = registers.find(i);
-                    if (iter != registers.end()) {
+                    if (iter != registers.end() && iter->second != NULL) {
                         pseudoRegReads_.push_back(
                             dynamic_cast<TerminalRegister*>(
                                 iter->second->copy()));

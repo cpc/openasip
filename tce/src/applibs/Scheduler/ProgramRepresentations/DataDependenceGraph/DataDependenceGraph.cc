@@ -86,8 +86,8 @@ DataDependenceGraph::addNode(MoveNode& moveNode, MoveNode& relatedNode) {
  */
 DataDependenceGraph::DataDependenceGraph(
     const std::string& name, bool containsProcedure) : 
-    name_(name), cycleGrouping_(true), machine_(NULL), delaySlots_(0),
-    procedureDDG_(containsProcedure) {
+    BoostGraph<MoveNode, DataDependenceEdge>(name), cycleGrouping_(true), 
+    machine_(NULL), delaySlots_(0), procedureDDG_(containsProcedure) {
 }
 
 /**
@@ -191,16 +191,6 @@ DataDependenceGraph::onlyRegisterEdgeOut(MoveNode& mn) {
         }
     }
     return result;
-}
-
-/** 
- * Returns the name of the ddg.
- *
- * @return name of the ddg
- */
-std::string 
-DataDependenceGraph::name() const {
-    return name_;
 }
 
 /**
@@ -617,7 +607,7 @@ DataDependenceGraph::dotString() const {
     }
 
     // edges
-    for (int i = 0; i < edgeCount(); ++i) {
+    for (int i = 0, count = edgeCount(); i < count; ++i) {
         Edge& e = edge(i);
         Node& tail = tailNode(e);
         Node& head = headNode(e);
@@ -1054,7 +1044,7 @@ void DataDependenceGraph::restoreNode(MoveNode& node) {
  * @return weigth of the edge.
  */
 int
-DataDependenceGraph::edgeWeight(DataDependenceEdge& e, MoveNode& n) const {
+DataDependenceGraph::edgeWeight(DataDependenceEdge& e, const MoveNode& n) const {
     
     switch (e.edgeReason()) {
     case DataDependenceEdge::EDGE_OPERATION: {
@@ -1197,7 +1187,7 @@ DataDependenceGraph::getOperationLatency(Operation& op) const {
  */
 bool
 DataDependenceGraph::hasEqualEdge(
-    MoveNode& tailNode, MoveNode& headNode, const DataDependenceEdge& edge) 
+    const MoveNode& tailNode, const MoveNode& headNode, const DataDependenceEdge& edge) 
     const {
     
     typedef GraphTraits::out_edge_iterator outEdgeIter;
@@ -1223,14 +1213,18 @@ DataDependenceGraph::hasEqualEdge(
  * @param tailNode tail node of edge
  * @param headNode head node of edge
  * @param edge edge which is added to graph or deleted.
+ * @return true if connected, false if already existed.
  */
-void
+bool
 DataDependenceGraph::connectOrDeleteEdge(        
-    MoveNode& tailNode, MoveNode& headNode, DataDependenceEdge* edge) {
+    const MoveNode& tailNode, const MoveNode& headNode, 
+    DataDependenceEdge* edge) {
     if (hasEqualEdge(tailNode, headNode, *edge)) {
         delete edge;
+        return false;
     } else {
         connectNodes(tailNode, headNode, *edge);
+        return true;
     }
 }
 /**

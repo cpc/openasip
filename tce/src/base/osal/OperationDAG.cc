@@ -21,7 +21,7 @@ OperationDAG OperationDAG::null("NULL_DAG");
  * @param name The graph can be named for debugging purposes.
  */
 OperationDAG::OperationDAG(const std::string& name) : 
-     BoostGraph<OperationDAGNode,OperationDAGEdge>(), name_(name) {
+     BoostGraph<OperationDAGNode,OperationDAGEdge>(name) {
 }
 
 /**
@@ -30,8 +30,7 @@ OperationDAG::OperationDAG(const std::string& name) :
  * @param name The graph can be named for debugging purposes.
  */
 OperationDAG::OperationDAG(const OperationDAG& other) : 
-     BoostGraph<OperationDAGNode,OperationDAGEdge>(other), 
-     name_(other.name()) {
+    BoostGraph<OperationDAGNode,OperationDAGEdge>(other) {
 }
 
 /**
@@ -67,11 +66,6 @@ OperationDAG::~OperationDAG() {
     for (int i = 0; i < nodeCount(); i++) {
         delete &node(i);
     }
-}
-
-std::string 
-OperationDAG::name() const {
-    return name_;
 }
 
 /**

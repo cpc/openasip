@@ -27,7 +27,8 @@ public:
     virtual void initProcedure(TTAProgram::Procedure&) {}
 
     virtual AliasingResult analyze(
-        DataDependenceGraph& ddg, MoveNode& node1, MoveNode& node2) = 0;
+        DataDependenceGraph& ddg, const MoveNode& node1, 
+        const MoveNode& node2) = 0;
 
     /**
      * Checks whether the analyzer knows anything about the address.
@@ -38,7 +39,7 @@ public:
      * @return true if analyzer can know something about the address.
      */
     virtual bool addressTraceable(
-        MoveNode& mn) = 0;
+        const MoveNode& mn) = 0;
 
     virtual ~MemoryAliasAnalyzer() {}
 };

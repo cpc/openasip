@@ -46,8 +46,6 @@ public:
         const std::string& name="", bool containsProcedure=false);
     virtual ~DataDependenceGraph();    
 
-    std::string name() const;
-
     /* Gets the BB in which this move belongs. This should be moved to
        a better place: DDG API should not deal with basic blocks. Correct
        place BasicBlockNode? */
@@ -97,12 +95,12 @@ public:
     void restoreNode(MoveNode& node);
     void deleteNode(MoveNode& node);
 
-    int edgeWeight(DataDependenceEdge& e, MoveNode& hNode) const;
+    int edgeWeight(DataDependenceEdge& e, const MoveNode& hNode) const;
     bool predecessorsReady(MoveNode& node) const;
     void setMachine(const TTAMachine::Machine& machine);
 
-    void connectOrDeleteEdge(        
-        MoveNode& tailNode, MoveNode& headNode, 
+    bool connectOrDeleteEdge(        
+        const MoveNode& tailNode, const MoveNode& headNode, 
         DataDependenceEdge* edge);
 
     DataDependenceGraph* createSubgraph(
@@ -147,12 +145,10 @@ private:
     std::map<MoveNode*,RemovedNodeData*> removedNodes_;
     
     bool hasEqualEdge(
-        MoveNode& tailNode, MoveNode& headNode, 
+        const MoveNode& tailNode, const MoveNode& headNode, 
         const DataDependenceEdge& edge) const;
     
     int getOperationLatency(Operation& op) const;
-
-    std::string name_;
 
     // own all the programoperations
     POList programOperations_;

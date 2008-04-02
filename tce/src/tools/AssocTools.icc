@@ -8,8 +8,6 @@
  * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi) 
  */
 
-#include <algorithm>
-
 /**
  *
  * Deletes all items in a map and clears it.
@@ -150,4 +148,15 @@ AssocTools::pairs(
         }
     }
     return combinations;
+}
+
+/**
+ * Appends all data from the first container to the second.
+ */
+template <typename ContainerType>
+void AssocTools::append(const ContainerType& src, ContainerType &dest) {
+    for (typename ContainerType::const_iterator i = src.begin(); 
+         i != src.end(); i++) {
+        dest.insert(*i);
+    }
 }

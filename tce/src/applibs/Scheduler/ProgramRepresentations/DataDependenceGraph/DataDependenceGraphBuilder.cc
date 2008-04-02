@@ -24,6 +24,8 @@
 #include "UniversalMachine.hh"
 #include "Exception.hh"
 #include "UnboundedRegisterFile.hh"
+#include "MoveGuard.hh"
+#include "Guard.hh"
 
 #include "ControlFlowGraph.hh"
 #include "ControlFlowEdge.hh"
@@ -54,16 +56,17 @@ class BasicBlockNode;
  * Constructor of Data Dependence graph builder
  */
 DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
-    processOrder_(0), entryNode_(NULL), entryData_(NULL) {
+    processOrder_(0), entryNode_(NULL) {
     addAliasAnalyzer(new ConstantAliasAnalyzer);
-//    addAliasAnalyzer(new FalseAliasAnalyzer); 
+    // uncommenting the following line results in faster but
+    // broken code. just for testing theoritical benefits.
+    // addAliasAnalyzer(new FalseAliasAnalyzer); 
 }
 
 /**
  * Destructor of DataDependenceGraphBuilder
  */
 DataDependenceGraphBuilder::~DataDependenceGraphBuilder() {
-    AssocTools::deleteAllValues(specialRegisters_);
     for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
         delete(aliasAnalyzers_.at(i));
     }
@@ -72,8 +75,6 @@ DataDependenceGraphBuilder::~DataDependenceGraphBuilder() {
 /**
  * Adds a memory alias analyzer to the DDG builder.
  * 
- * Currently not yet used.
- *
  * @param analyzer object which will analyze memory accesses.
  */
 void
@@ -90,13 +91,13 @@ DataDependenceGraphBuilder::addAliasAnalyzer(MemoryAliasAnalyzer* analyzer) {
 */
 void
 DataDependenceGraphBuilder::changeState(
-    list<BBData*> (&blocksByState)[BB_STATES], BBData* bbd, BBState newState) {
+    BBData& bbd, BBState2 newState) {
 
-    BBState oldState = bbd->state_;
+    BBState2 oldState = bbd.state2_;
     if (newState != oldState) {
-        ContainerTools::removeValueIfExists(blocksByState[oldState], bbd);
-        bbd->state_ = newState;
-        blocksByState[newState].push_back(bbd);
+        ContainerTools::removeValueIfExists(blocksByState_[oldState], &bbd);
+        bbd.state2_ = newState;
+        blocksByState_[newState].push_back(&bbd);
     }
 }
 
@@ -133,200 +134,87 @@ DataDependenceGraphBuilder::build(
 }
 
 /**
- * Creates new data dependence graph of a control flow graph.
- *
- * Client has to delete the graph when it is not anymore used.
- *
- * @param cGraph controlFlowGraph of procedure whose DDG is built.
- * @return new DataDependence Graph.
- *
- */
+   Builds a DDG from a CFG.
+*/
+
 DataDependenceGraph*
 DataDependenceGraphBuilder::build(
-    ControlFlowGraph& cGraph, const UniversalMachine* um) {
-
+    ControlFlowGraph& cfg, const UniversalMachine* um) {
     singleBBMode_ = false;
+
+//    std::cout << "Procedure: " << cfg.procedureName() << std::endl;
 
     // @TODO: when CFG subgraphs are in use, 2nd param not always true
     DataDependenceGraph* ddg = new DataDependenceGraph(
-        cGraph.procedureName(), true);
+        cfg.procedureName(), true);
     
     if (um != NULL) {
         getStaticRegisters(*um, specialRegisters_);
     } else {
-        getStaticRegisters(cGraph, specialRegisters_);
+        getStaticRegisters(cfg, specialRegisters_);
     }
 
     currentDDG_ = ddg;
-    list<BBData*> blocksByState[BB_STATES];
 
     entryNode_ = new MoveNode();
-    entryData_ = new MNData(entryNode_, specialRegisters_, true);
+    currentDDG_->addNode(*entryNode_, cfg.entryNode());
 
-    currentDDG_->addNode(*entryNode_, cGraph.entryNode());
-
-    for (int bbi = 0; bbi < cGraph.nodeCount(); bbi++) {
-        currentBB_ = &(cGraph.node(bbi));
+    // initialize state lists
+    for (int bbi = 0; bbi < cfg.nodeCount(); bbi++) {
+        currentBB_ = &(cfg.node(bbi));
         BBData* bbd = new BBData(*currentBB_);
         bbData_[currentBB_] = bbd;
+        // in the beginning all are unreached
         if (currentBB_->isNormalBB()) {
-            blocksByState[BB_UNREACHABLE].push_back(bbd);
+            blocksByState_[BB_UNREACHED2].push_back(bbd);
         }
     }
 
-    BBNodeSet firstBBs = cGraph.successors(cGraph.entryNode());
+    // get first BB where to start
+    BBNodeSet firstBBs = cfg.successors(cfg.entryNode());
     assert(firstBBs.size() == 1);
     BasicBlockNode* firstBB = *firstBBs.begin();
+    changeState(*(bbData_[firstBB]), BB_QUEUED2);
 
-    changeState(blocksByState, bbData_[firstBB], BB_QUEUED);
-    bbData_[firstBB]->loopDepth_ = 0;
-    bbData_[firstBB]->ownRegWrites_.insert(*entryData_);
+    // current data need to be set for entry node processing
+    currentData_ = bbData_[firstBB];
+    // set entry deps. ( procedure parameter edges )
+    processEntryNode(*entryNode_);
 
-    // Goes thru all basic blocks in the procedure.
-    // Loops as long as there are basic blocks on states waiting to be 
-    // processed.
-    while (!blocksByState[BB_QUEUED].empty() ||
-           !blocksByState[BB_REACHABLE].empty() || 
-           !blocksByState[BB_UNREACHABLE].empty()) {
+    // iterate over BB's. Loop as long as there are queued BB's.
 
-        if (blocksByState[BB_QUEUED].empty()) {
-            // If no queued BB's available, we have to jump
-            // into a loop by selecting a reachable BB.
+    while (!blocksByState_[BB_QUEUED2].empty()) {
+        std::list<BBData*>::iterator bbIter = 
+            blocksByState_[BB_QUEUED2].begin();
+        BBData& bbd = **bbIter;
 
-            // but if none reachable, we have some unreachable BB. 
-            // select one with no inputs
-            if (blocksByState[BB_REACHABLE].empty()) {
-                std::list<BBData*>& unreachables = 
-                    blocksByState[BB_UNREACHABLE];
-                bool orphanBBfound = false;
-                for (std::list<BBData*>::iterator iter = 
-                         unreachables.begin(); iter != unreachables.end();
-                     iter++) {
-                    BBData* bbd = *iter;
-                    if (cGraph.inDegree(*bbd->bblock_) == 0) {
-                        currentData_ = bbd;
-                        unreachables.erase(iter);
-                        orphanBBfound = true;
-                        break;
-                    }
-                }
-                assert(orphanBBfound);
-            } else {
-                currentData_ = *(blocksByState[BB_REACHABLE].begin());
-            }
+        // construct or update BB
+        if (bbd.constructed_) {
+//            std::cout << "updating BB at: " << reinterpret_cast<int>
+//                (&bbd) << std::endl;
+            updateBB(bbd);
         } else {
-            // Goes thru list of QUEUED basic blocks, 
-            // searching for the one with smallest loop depth.
-            // If there are many with same loop depth, selects the first.
-            int smallestLD = INT_MAX;
-            list<BBData*>::iterator si;
-            for (list<BBData*>::iterator it = blocksByState[BB_QUEUED].begin();
-                 it != blocksByState[BB_QUEUED].end(); it++) {
-                if ((*it)->loopDepth_ < smallestLD) {
-                    si = it;
-                    smallestLD = (*it)->loopDepth_ ;
-                } 
-                assert((*it)->loopDepth_ != INT_MAX);
-            }
-            // reachable is unreachable, internal error?
-            assert(smallestLD != INT_MAX);
-            currentData_ = *si;
+//            std::cout << "creating BB at: " << reinterpret_cast<int>
+//                (&bbd) << ", data at:" << 
+//                reinterpret_cast<int>(&bbd) << std::endl;                
+
+            constructIndividualBB(bbd);
         }
-        currentBB_ = currentData_->bblock_;
+        // mark as ready
+        changeState(bbd, BB_READY2);
 
-        // preceeding blocks
-        BBNodeSet inputBBs = cGraph.predecessors(*currentBB_);
-
-        if (currentBB_->isNormalBB()) {
-            if (currentData_->processedCount_ > 0) {
-                // DDG for this BB Already constructed, 
-                // so do not construct again, only add dependencies to input
-                // BB's that were constructed later.
-                updateBB(inputBBs); 
-            } else {
-                // First time processing this BB so construct the DDG.
-                constructBB(inputBBs); 
-            }
-        } else {
-            // skip entry and exit nodes
+        // create deps after and update that to succeeding BBs.
+        // succeeding BB's are also queued to be scheduled here.
+        // queue succeeding BB's in case either
+        // * their input data has changed
+        // * current BB was processed for the first time
+        if (updateAliveAfter(bbd) || (!bbd.constructed_)) {
+            setSucceedingPredeps(bbd, cfg,(!bbd.constructed_));
         }
-
-        if (currentData_->loopDepth_ == 0) {
-            // This BB is ready.
-            changeState(blocksByState, currentData_, BBState(BB_PROCESSED));
-        } else {
-            // This BB is not fully processed because it is in a loop.
-            // Make it wait for it's missing predecessor.
-            changeState(blocksByState, currentData_, BBState(BB_NOT_READY));
-        }
-
-        // search all successors of the processed bb.
-        for (int i = 0; i < cGraph.outDegree(*currentBB_); i++) {
-            ControlFlowEdge& e = cGraph.outEdge(*currentBB_, i);
-            BBData* outputBB = bbData_[&cGraph.headNode(e)];
-
-            // only BB's in states under BB_PROCESSED 
-            // may still need some processing
-            if (outputBB->state_ < BB_PROCESSED) {
-                bool ready = true;
-                outputBB->predCount_ = cGraph.inDegree(*outputBB->bblock_);
-
-                for (int j = 0; j < outputBB->predCount_; j++) {
-
-                    ControlFlowEdge& e = cGraph.inEdge(*outputBB->bblock_, j);
-                    BBData* inputBB = bbData_[&cGraph.tailNode(e)];
-                    if (inputBB->processedCount_ == 0)
-                        ready = false;
-
-                    // following BB of handled BB are also in loop
-                    if (inputBB->loopDepth_ < outputBB->loopDepth_)
-                        outputBB->loopDepth_ = inputBB->loopDepth_;
-                }
-
-                if (ready) {
-                    if (outputBB->maxLoopDepth_ < outputBB->loopDepth_)
-                        outputBB->maxLoopDepth_ = outputBB->loopDepth_;
-
-                    if (outputBB->processedCount_ + outputBB->loopDepth_
-                            <= outputBB->maxLoopDepth_) {
-                        changeState(blocksByState, outputBB, BB_QUEUED);
-                    } 
-
-                } else {
-                    outputBB->loopDepth_++;
-
-                    if (outputBB->maxLoopDepth_ < outputBB->loopDepth_)
-                        outputBB->maxLoopDepth_ = outputBB->loopDepth_;
-
-                    if (outputBB->processedCount_ < outputBB->maxLoopDepth_)
-
-                        changeState(blocksByState, outputBB, BB_REACHABLE);
-                }
-            }
-        }
-
-
-        // check that "sister BB's" are procedded. if they are, data related to
-        // input BB's can be deleted as it's no longer needed.
-        for (BBNodeSet::iterator i = inputBBs.begin(); i != inputBBs.end(); i++) {
-            bool allReady = true;
-            BBData* inputBB = bbData_[*i];
-            if (inputBB->state_ == BB_PROCESSED) {
-                for (int j = 0;j < cGraph.outDegree(*inputBB->bblock_); j++) {
-                    ControlFlowEdge& e2 = cGraph.outEdge(*inputBB->bblock_, j);
-                    BBData* outputBB = bbData_[&cGraph.headNode(e2)];
-                    if (outputBB->state_ < BB_PROCESSED) {
-                        allReady = false;
-                        break;
-                    }
-                }
-                if (allReady) {
-                    inputBB->clear();
-                }
-            }
-        }
-
+        bbd.constructed_ = true;
     }
+
+    // all done, then cleanup.
 
     // free bb data
     AssocTools::deleteAllValues(bbData_);
@@ -334,262 +222,182 @@ DataDependenceGraphBuilder::build(
     return ddg;
 }
 
-/** 
- * Inserts contest of one MoveNodeData list to another
+/**
+ * This appends the data from one RegisterUseMapSet to another.
+ * 
+ * it traverses the map, and for every string, set pair it 
+ * finds or creates the corresponging set in the destination and appends
+ * the set to that set.
+ * This is used for copying alive definitions.
  *
- * @param dst Destination list. Appends to this list.
- * @param src Source. Inset contents of this list to another
+ * @param srcMap source where to copy from
+ * @param dstMap destination where to copy to.
+ * @return true if destination changed (needs updating)
  */
-void
-DataDependenceGraphBuilder::copyMNDList(MNDList& dst, MNDList& src) {
-    for (MNDIter mni = src.begin(); mni != src.end(); mni++) {
-        dst.insert(MNData(*mni));
+bool DataDependenceGraphBuilder::appendUseMapSets(
+    const RegisterUseMapSet& srcMap, RegisterUseMapSet& dstMap) {
+    bool changed = false;
+    for (RegisterUseMapSet::const_iterator srcIter = srcMap.begin();
+         srcIter != srcMap.end(); srcIter++) {
+        std::string reg = srcIter->first;
+        const RegisterUseSet& srcSet = srcIter->second;
+        RegisterUseSet& dstSet = dstMap[reg];
+        // dest set size before appending.
+        size_t size = dstSet.size();
+        AssocTools::append(srcSet, dstSet);
+        // if size has changed, dest is changed.
+        if (dstSet.size() > size) {
+//            std::cout << "\t\tSomething changed due reg:" << reg << std::endl;
+            for (RegisterUseSet::iterator i = dstSet.begin();
+                 i != dstSet.end(); i++) {
+//                std::cout << "\t\t\t" << i->mn_->toString() << std::endl;
+            }
+            changed = true;
+        }
     }
+    return changed;
 }
 
 
 /**
- * Initializes dependencies between blocks by copying live registers,
- * mem writes etc. from preceeding blocks to block being processed
+ * Sets outgoing data from this BB to incoming data of successors.
+ * Also queues them to be reprocessed if they are changed.
  *
- * @param inputBlocks Set containing the preceeding blocks where to copy
- * the incoming data.
+ * @param bbd BBD whose successors will be updated.
+ * @param cfg Control flow graph where to find those successors
+ * @param queueAll. If true, queues all successors even if they do not change.
  */
-void
-DataDependenceGraphBuilder::setPreDependencies(
-    BBNodeSet& inputBlocks) {
+void DataDependenceGraphBuilder::setSucceedingPredeps(
+    BBData& bbd, ControlFlowGraph& cfg, bool queueAll) {
+    BasicBlockNode& bbn = *bbd.bblock_;
+    BBNodeSet successors = cfg.successors(bbn);
+    for (BBNodeSet::iterator succIter = successors.begin(); 
+         succIter != successors.end(); succIter++) {
+        BasicBlockNode* succ = *succIter;
+        BBData& succData = *bbData_[succ];
+//        std::cout << "Updating successor: "
+//                  << reinterpret_cast<int> (&succData) << std::endl;
+//        std::cout << "\tCopying reg def after to def reaches.." << 
+//                std::endl;
+        bool changed = appendUseMapSets(
+            bbd.regDefAfter_, succData.regDefReaches_);
 
-    for (BBNodeSet::iterator biter = inputBlocks.begin();
-            biter != inputBlocks.end(); biter++) {
-        if (*biter != currentBB_) {
-            if (currentData_->predCount_ > 1) {
+//            std::cout << "\tCopying reg use after to use reaches.." <<
+//                std::endl;
+            
+        changed |= appendUseMapSets(bbd.regUseAfter_, succData.regUseReaches_);
 
-                // reg writes of prev blocks
-                copyMNDList(currentData_->preRegWrites_,
-                            (*bbData_[*biter]).ownRegWrites_);
+        // mem deps + fu state deps
 
-                // mem writes of prev blocks
-                copyMNDList(currentData_->preMemWrites_,
-                            (*bbData_[*biter]).memWrites_);
+        // size at beginning.
+        size_t size = succData.memDefReaches_.size() + 
+            succData.memUseReaches_.size() + succData.fuDepReaches_.size();
+        
+        AssocTools::append(
+            bbd.memDefAfter_, succData.memDefReaches_);
+        AssocTools::append(
+            bbd.memUseAfter_, succData.memUseReaches_);
+        AssocTools::append(
+            bbd.fuDepAfter_, succData.fuDepReaches_);
 
-                // mem reads of prec blocks for antidep
-                copyMNDList(currentData_->preMemReads_,
-                            (*bbData_[*biter]).memReads_);
-
-                copyMNDList(currentData_->preFuStates_,
-                            (*bbData_[*biter]).fuStateWrites_);
-
-            } else { // pred as owns
-
-                // reg writes of prev blocks
-                copyMNDList(currentData_->ownRegWrites_,
-                            (*bbData_[*biter]).ownRegWrites_);
-
-                // mem writes of prev blocks
-                copyMNDList(currentData_->memWrites_,
-                            (*bbData_[*biter]).memWrites_);
-
-                // mem reads of prev blocks for antidep
-                copyMNDList(currentData_->memReads_,
-                            (*bbData_[*biter]).memReads_);
-
-                copyMNDList(currentData_->fuStateWrites_,
-                            (*bbData_[*biter]).fuStateWrites_);
-
+        // if size increased, something is changed.
+        if (succData.memDefReaches_.size() + 
+            succData.memUseReaches_.size() + 
+            succData.fuDepReaches_.size() > size) {
+            changed = true;
+//            std::cout << "\t\tSuccessor changed due mem deps!" << 
+//                std::endl;
+        }
+        // need to queue successor for update?
+        if (changed || queueAll) {
+            if (succData.state2_ != BB_QUEUED2) {
+                changeState(succData, BB_QUEUED2);
             }
-
-            // reg writes of prev blocks of prev blocks
-            copyMNDList(currentData_->preRegWrites_,
-                        (*bbData_[*biter]).preRegWrites_);
-
-            // mem reads of prev blocks of prev blocks ( for antidep )
-            copyMNDList(currentData_->preMemReads_,
-                        (*bbData_[*biter]).preMemReads_);
-
-            // mem writes ow prev blocks of prev blocks
-            copyMNDList(currentData_->preMemWrites_,
-                        (*bbData_[*biter]).preMemWrites_);
-
-            copyMNDList(currentData_->preFuStates_,
-                        (*bbData_[*biter]).preFuStates_);
-
-            if ((*bbData_[*biter]).raWrite_ != 0)
-                currentData_->raWrite_ =
-                    new MNData(*((*bbData_[*biter]).raWrite_));
         }
     }
 }
 
 /**
- * Does a second pass on a basic block in order to get dependencies from
- * Basic blocks which are processed later( due loops in program )
+ * Reprocesses a basic block which has already once been processed.
+ * 
+ * Checks dependencies to first uses and definitions of registers,
+ * does not recreate edges inside the basic block.
  *
- * @param inputBlocks set containing the preceeding blocks.
- */
+ * @param bbd BBData for basic block which is being reprocessed.
+  */
 void
-DataDependenceGraphBuilder::updateBB(BBNodeSet& inputBlocks) {
+DataDependenceGraphBuilder::updateBB(BBData& bbd) {
+//    std::cout << "Running updateBB for:" << 
+//        reinterpret_cast<int>(&bbd) << std::endl;                
+    currentData_ = &bbd;
+    currentBB_ = bbd.bblock_;
 
-    MNDList oldOwnRegWrites;
-    MNDList oldOwnMemWrites;
-    MNDList oldFuStateWrites;
-
-    // block itself not found from predecessors
-    if (inputBlocks.find(currentBB_) == inputBlocks.end()) {
-        // clear them temprorarily but restore at end of fn
-        oldOwnRegWrites = currentData_->ownRegWrites_;
-        oldOwnMemWrites = currentData_->memWrites_;
-        oldFuStateWrites = currentData_->fuStateWrites_;
-        currentData_->ownRegWrites_.clear();
-        currentData_->memWrites_.clear();
-        currentData_->fuStateWrites_.clear();
+    //loop all regs having ext deps and create reg edges
+    for (RegisterUseMapSet::iterator firstUseIter = bbd.regFirstUses_.begin();
+         firstUseIter != bbd.regFirstUses_.end(); firstUseIter++) {
+        std::string reg = firstUseIter->first;
+//        std::cout << "\t\tfirst use of reg: " << reg << std::endl;
+        std::set<MNData2>& firstUseSet = firstUseIter->second;
+        for (std::set<MNData2>::iterator iter2 = firstUseSet.begin();
+             iter2 != firstUseSet.end(); iter2++) {
+//            std::cout << "\t\t\tfirst use: " << iter2->mn_->toString()
+//                      << std::endl;
+            updateRegUse(*iter2, reg);
+        }
     }
 
-    setPreDependencies(inputBlocks);
-
-    // this is heavy.
-    // create copies of these lists
-    MNDList oldExtRegDeps = currentData_->extDepRegList_;
-    MNDList oldExtMemDepReads = currentData_->extDepMemReads_;
-    MNDList oldExtMemDepWrites = currentData_->extDepMemWrites_;
-
-    // process everything on those copies.
-    // can not loop thru originals as the originals may change during
-    // this processing.
-    /*
-        cout << "\town reg wr size at begin:"
-             << currentData_->ownRegWrites_.size()<<endl;
-        cout << "\tpre reg wr size at begin:"
-             << currentData_->preRegWrites_.size()<<endl;
-
-        cout << "mem wr size at begin:"
-             << currentData_->memWrites_.size() << endl;
-
-        cout << "mem reads size at begin:"
-             << currentData_->memReads_.size() << endl;
-
-        cout << "\town reg rd size at begin:"
-             << currentData_->ownRegReads_.size()<<endl;
-
-        cout << "\tpre reg rd size at begin:"
-             << currentData_->preRegReads_.size()<<endl;
-
-        cout << "\tpre mem rd size at begin:"
-             << currentData_->preMemReads_.size()<<endl;
-
-        cout << "\tpre mem wr size at begin:"
-             << currentData_->preMemWrites_.size()<<endl;
-
-        cout << "extdepsRegs size at b:" << oldExtRegDeps.size() << endl;
-        cout << "extdepsMems size at b:" << oldExtMemDepReads.size() << endl;
-        cout << "extdepsMemWr size at b:" << oldExtMemDepWrites.size() << endl;
-
-        cout << "\t\t\t---" << endl;
-    */
-    for (MNDIter iter = oldExtRegDeps.begin();
-            iter != oldExtRegDeps.end(); iter = oldExtRegDeps.begin()) {
-        processRegRead(*iter);
-        oldExtRegDeps.erase(iter);
+    // antidependencies to registers
+    for (RegisterUseMapSet::iterator firstDefineIter = 
+             bbd.regFirstDefines_.begin();
+         firstDefineIter != bbd.regFirstDefines_.end(); firstDefineIter++) {
+        std::string reg = firstDefineIter->first;
+//        std::cout << "\t\tfirst define: " << reg << std::endl;
+        std::set<MNData2>& firstDefineSet = firstDefineIter->second;
+        for (std::set<MNData2>::iterator iter2 = firstDefineSet.begin();
+             iter2 != firstDefineSet.end(); iter2++) {
+            updateRegWrite(*iter2, reg);
+        }
     }
 
-    for (MNDIter iter = oldExtMemDepReads.begin();
-         iter != oldExtMemDepReads.end() ; iter = oldExtMemDepReads.begin()) {
-        processMemRead(*iter);
-        oldExtMemDepReads.erase(iter);
+    // then memory deps.. use
+    for (RegisterUseSet::iterator firstUseIter = bbd.memFirstUses_.begin();
+         firstUseIter != bbd.memFirstUses_.end(); firstUseIter++) {
+//        std::cout << "\t\t mem use(raw)?" << std::endl;
+        updateMemUse(*firstUseIter);
     }
-
-    for (MNDIter iter = oldExtMemDepWrites.begin();
-         iter != oldExtMemDepWrites.end();iter = oldExtMemDepWrites.begin()) {
-        processMemWrite(*iter);
-        oldExtMemDepWrites.erase(iter);
+    // and defs for memory antideps
+    for (RegisterUseSet::iterator firstDefIter = bbd.memFirstDefines_.begin();
+         firstDefIter != bbd.memFirstDefines_.end(); firstDefIter++) {
+//        std::cout << "\t\t mem def(war/waw)?" << std::endl;
+        updateMemWrite(*firstDefIter);
     }
-
-    // restore these
-    copyMNDList(currentData_->ownRegWrites_, oldOwnRegWrites);
-    copyMNDList(currentData_->memWrites_, oldOwnMemWrites);
-    copyMNDList(currentData_->fuStateWrites_, oldFuStateWrites);
-
-    currentData_->processedCount_++;
-    /*
-        cout << "\town reg wr size at end:"
-             << currentData_->ownRegWrites_.size()<<endl;
-        cout << "\tpre reg wr size at end:"
-             << currentData_->preRegWrites_.size()<<endl;
-        cout << "mem wr size at end:"
-             << currentData_->memWrites_.size() << endl;
-
-        cout << "mem reads size at end:"
-             << currentData_->memWrites_.size() << endl;
-    */
-
+    // and fu state deps
+    for (RegisterUseSet::iterator iter = bbd.fuDeps_.begin();
+         iter != bbd.fuDeps_.end(); iter++) {
+//        std::cout << "\t\t fudep?" << std::endl;
+        Terminal& dest = iter->mn_->move().destination();
+        TerminalFUPort& tfpd = dynamic_cast<TerminalFUPort&>(dest);
+        Operation &dop = tfpd.hintOperation();
+        createSideEffectEdges(
+            currentData_->fuDepReaches_, *iter->mn_, dop);
+    }
 }
 
-
 /**
- * Adds a basic block into multi-BB Data Dependence Graph.
+ * Constructs a Data Dependence Graph for a single basic block.
  *
- * Analyzes all moves inside the basic block,
+ * Goes thru all moves in the basic block and analyzes their dependencies,
  * creates their ProgramOperations, MoveNodes and Edges,
  * and adds the nodes and edges to the graph.
- * Implementation justs sets the preceeding basic blocks and calls
- * constructIndividualBB() to do the actual work.
- * 
- * @param inputBlocks set containing the preceeding blocks.
- */
-/**
- * @todo remove commented out code
+ * Also used inside implementation of multi-BB-DDG-code.
+ * BB being analyzed has to be already set in member variable currentBB_,
+ * and the graph created and set into member variable currentBB_.
  */
 void
-DataDependenceGraphBuilder::constructBB(BBNodeSet& inputBlocks) 
-    throw (IllegalProgram) {
-
-    currentData_->processOrder_ = processOrder_++;
-
-    setPreDependencies(inputBlocks);
-
-    /*
-        cout << "\town reg wr size at begin:"
-             << currentData_->ownRegWrites_.size()<<endl;
-        cout << "\tpre reg wr size at begin:"
-             << currentData_->preRegWrites_.size()<<endl;
-
-        cout << "\tmem wr size at begin:"
-             << currentData_->memWrites_.size() << endl;
-
-        cout << "\tmem reads size at begin:"
-             << currentData_->memReads_.size() << endl;
-
-        cout << "\town reg rd size at begin:"
-             << currentData_->ownRegReads_.size()<<endl;
-
-        cout << "\tpre reg rd size at begin:"
-             << currentData_->preRegReads_.size()<<endl;
-
-        cout << "\tpre mem rd size at begin:"
-             << currentData_->preMemReads_.size()<<endl;
-
-        cout << "\tpre mem wr size at begin:"
-             << currentData_->preMemWrites_.size()<<endl;
-
-        cout << "\t\t\t---" << endl;
-    */
-
+DataDependenceGraphBuilder::constructIndividualBB(BBData& bbd) {
+    currentData_ = &bbd;
+    currentBB_ = bbd.bblock_;
     constructIndividualBB();
-
-    currentData_->processedCount_ = 1;
-
-    /*
-        cout << "\town reg wr size at end:"
-             << currentData_->ownRegWrites_.size()<<endl;
-        cout << "\tpre reg wr size at end:"
-             << currentData_->preRegWrites_.size()<<endl;
-
-        cout << "\tmem wr size at end:"
-             << currentData_->memWrites_.size() << endl;
-
-        cout << "\tmem reads size at end:"
-             << currentData_->memWrites_.size() << endl;
-    */
-
 }
 
 /**
@@ -612,14 +420,13 @@ DataDependenceGraphBuilder::constructIndividualBB()
             Move& move = ins.move(i);
 
             MoveNode* moveNode = new MoveNode(move);
-            MNData mnData(moveNode, specialRegisters_, false);
             currentDDG_->addNode(*moveNode, *currentBB_);
 
-            if (!(move.isUnconditional()))
-                processGuard(mnData);
+            if (!(move.isUnconditional())) 
+                processGuard(*moveNode);
 
-            processSource(mnData);
-            processDestination(mnData);
+            processSource(*moveNode);
+            processDestination(*moveNode);
         }
     }
 
@@ -644,17 +451,109 @@ DataDependenceGraphBuilder::constructIndividualBB()
             + std::string(", probably an operation without result move?");
 
         for (unsigned int i = 0; i < currentData_->readPending_.size(); i++) {
-            msg += "\n\tmissing read: " + currentData_->readPending_[i]->operation().name();
+            msg += "\n\tmissing read: " + 
+                currentData_->readPending_[i]->operation().name();
         }
 
         for (unsigned int i = 0; i < currentData_->destPending_.size(); i++) {
-            msg += "\n\tmissing dest: " + currentData_->destPending_[i]->operation().name();
+            msg += "\n\tmissing dest: " + 
+                currentData_->destPending_[i]->operation().name();
         }
 
         throw IllegalProgram(__FILE__,__LINE__,__func__, msg);
     }
 
 }
+
+/**
+ * Updates live register lists after a basic block has been processed.
+ * Copies use and define definitions from the basic block and
+ * it's prodecessors to the after alive data structures.
+ *
+ * @param bbd BBData for bb being processed
+ * @return true if the after alive data structures have been changed
+ */
+
+bool DataDependenceGraphBuilder::updateAliveAfter(BBData& bbd) {
+    bool changed = false;
+//    std::cout << "Updating alive after" << std::endl;
+
+//    std::cout << "\tCopying reg def reaches to def afters" << std::endl;
+    // copy reg definitions that are alive
+    for (RegisterUseMapSet::iterator iter =
+             bbd.regDefReaches_.begin(); iter != bbd.regDefReaches_.end(); 
+         iter++) {
+        std::string reg = iter->first;
+        std::set<MNData2>& preDefs = iter->second;
+        // todo: clear or not?
+        std::set<MNData2>& defAfter = bbd.regDefAfter_[reg];
+        size_t size = defAfter.size();
+
+        if (bbd.regKills_.find(reg) == bbd.regKills_.end()) {
+            for (std::set<MNData2>::iterator i = preDefs.begin();
+                 i != preDefs.end(); i++ ) {
+                defAfter.insert(*i);
+            }
+        } else {
+//            std::cout << "\t\tkill to reg " << reg << std::endl;
+        }
+        // if size increased, the data has changed
+        if (size < defAfter.size()) {
+            changed = true;
+        }
+    }
+    // own deps. need to do only once but now does after every.
+//    std::cout << "\tCopying own reg defs to def afters" << std::endl;
+    changed |= appendUseMapSets(bbd.regDefines_, bbd.regDefAfter_);
+
+//    std::cout << "\tCopying reg use reaches to use afters" << std::endl;
+    // copy uses that are alive
+    for (RegisterUseMapSet::iterator iter =
+             bbd.regUseReaches_.begin(); iter != bbd.regUseReaches_.end(); 
+         iter++) {
+        std::string reg = iter->first;
+        std::set<MNData2>& preUses = iter->second;
+        std::set<MNData2>& useAfter = bbd.regUseAfter_[reg];
+        size_t size = useAfter.size();
+        if (bbd.regKills_.find(reg) == bbd.regKills_.end()) {
+            for (std::set<MNData2>::iterator i = preUses.begin();
+                 i != preUses.end(); i++ ) {
+                useAfter.insert(*i);
+            }
+        }
+        // if size increased, the data has changed
+        if (size < useAfter.size()) {
+            changed = true;
+        }
+    }
+
+    // own deps. need to do only once but now does after every.
+//    std::cout << "\tCopying own reg uses to use afters" << std::endl;
+    changed |= appendUseMapSets(bbd.regLastUses_, bbd.regUseAfter_);
+
+    // mem deps and fu state deps
+
+    size_t size = bbd.memDefAfter_.size() + bbd.memUseAfter_.size() +
+        bbd.fuDepAfter_.size();
+    // no killing write? then copy pre-deps.
+    if (bbd.memKill_.mn_ == NULL) {
+//        std::cout << "\tNo killing write, copying old mem deps" << std::endl;
+        AssocTools::append(bbd.memDefReaches_, bbd.memDefAfter_);
+        AssocTools::append(bbd.memUseReaches_, bbd.memUseAfter_);
+    } else {
+//        std::cout << "\tKilling write, not copying old mem deps" << std::endl;
+    }
+    AssocTools::append(bbd.memDefines_, bbd.memDefAfter_);
+    AssocTools::append(bbd.memLastUses_, bbd.memUseAfter_);
+    AssocTools::append(bbd.fuDeps_, bbd.fuDepAfter_);
+    
+    if (  bbd.memDefAfter_.size() + bbd.memUseAfter_.size() +
+          bbd.fuDepAfter_.size() > size) {
+        changed = true;
+    }
+    return changed;
+}
+
 
 /**
  * Creates operand edges between intput and output moves of a
@@ -709,37 +608,6 @@ void DataDependenceGraphBuilder::createOperationEdges(
 }
 
 /**
- * Compares a guard use against one previous reg write and
- * creates dependence if same reg
- *
- * @param prev Previous Memory write movenode
- * @param mn Current memory read movenode
- * @param pseudo create pseudo flag in the DD edge.
- * @return true if true edge created.
- */
-bool
-DataDependenceGraphBuilder::checkAndCreateGuardRAW(
-    const MNData& prev, const MNData& current) {
-    if (current.isRawToGuard(prev)) {
-
-        bool tailPseudo = prev.node().move().isCall();
-        
-        // create dependency edge
-        DataDependenceEdge* dde =
-            new DataDependenceEdge(
-                DataDependenceEdge::EDGE_REGISTER,
-                DataDependenceEdge::DEP_RAW, true, false, tailPseudo);
-
-        // add edge to the graph
-        currentDDG_->connectOrDeleteEdge(
-            prev.node(), current.node(), dde);
-        return true;
-    }
-    return false;
-}
-
-
-/**
  * Analyzes dependencies related to guard usage.
  *
  * Finds the guard register used for the guard and the move
@@ -749,25 +617,21 @@ DataDependenceGraphBuilder::checkAndCreateGuardRAW(
  * @param moveNode MNData of move containing guarded move.
  */
 void
-DataDependenceGraphBuilder::processGuard(const MNData& moveNode) {
+DataDependenceGraphBuilder::processGuard(MoveNode& moveNode) {
 
-    bool writeFound = false;
-    for (MNDIter rwi = currentData_->ownRegWrites_.begin();
-         rwi != currentData_->ownRegWrites_.end(); rwi++) {
-  
-        if (checkAndCreateGuardRAW(*rwi, moveNode)) {
-            writeFound = true;
-        }
+    // new code
+    Guard& g = moveNode.move().guard().guard();
+    RegisterGuard* rg = dynamic_cast<RegisterGuard*>(&g);
+    if (rg != NULL) {
+        string regName = rg->registerFile()->name() + 
+            Conversion::toString(rg->registerIndex());
+        processRegUse(MNData2(moveNode, true),regName);
+    } else {
+        throw IllegalProgram(
+            __FILE__,__LINE__,__func__,
+            "Analysis for port guards not supported! used in: "
+            + moveNode.toString());
     }
-
-    if (!writeFound) {
-        for (MNDIter rwi = currentData_->preRegWrites_.begin();
-             rwi != currentData_->preRegWrites_.end(); rwi++) {
-            checkAndCreateGuardRAW(*rwi, moveNode);
-        }
-        currentData_->extDepRegList_.insert(MNData(moveNode));
-    }
-    currentData_->ownRegReads_.insert(MNData(moveNode));
 }
 
 /**
@@ -775,22 +639,32 @@ DataDependenceGraphBuilder::processGuard(const MNData& moveNode) {
  * and if it's a result read then also participates in ProgramOperation
  * creation.
  * 
- * @param moveNode MNData of the Move being analyzed.
+ * @param moveNode Movenode being analyzed.
  */
 void
-DataDependenceGraphBuilder::processSource(const MNData& moveNode) {
-    Terminal& source = moveNode.node().move().source();
+DataDependenceGraphBuilder::processSource(MoveNode& moveNode) {
+    Terminal& source = moveNode.move().source();
 
     // is this result move of an operation?
     if (source.isFUPort()) {
         if (!(dynamic_cast<const SpecialRegisterPort*>(&source.port()))) {
             processResultRead(moveNode);
         } else {
-            processRARead(moveNode);
+            // new code
+            processRegUse(MNData2(moveNode,false,true), RA_NAME);
+            
+            if (moveNode.move().isReturn()) {
+                processReturn(moveNode);
+            }
         }
     } else {
         if (source.isGPR()) {
-            processRegRead(moveNode);
+            // new code
+            TerminalRegister& tr = dynamic_cast<TerminalRegister&>(source);
+            string regName = trName(tr);
+                /* tr.registerFile().name() + 
+                   Conversion::toString(tr.index());*/
+            processRegUse(MNData2(moveNode), regName);
         }
     }
 }
@@ -800,12 +674,12 @@ DataDependenceGraphBuilder::processSource(const MNData& moveNode) {
  * Analyzes a source of a result read. Handles program operation creation 
  * and operation dependence creation.
  *
- * @param moveNode MNData related to move being analyzed.
+ * @param moveNode MoveNode of the move being analyzed.
  */
 void
-DataDependenceGraphBuilder::processResultRead(const MNData& moveNode) {
-
-    Terminal& source = moveNode.node().move().source();
+DataDependenceGraphBuilder::processResultRead(MoveNode& moveNode) {
+ 
+    Terminal& source = moveNode.move().source();
 
     Operation* sop = NULL;
     TerminalFUPort& tfps = dynamic_cast<TerminalFUPort&>(source);
@@ -815,8 +689,8 @@ DataDependenceGraphBuilder::processResultRead(const MNData& moveNode) {
             poli != currentData_->readPending_.end(); poli++) {
         ProgramOperation* po = *poli;
         if (sop == &po->operation()) {
-            po->addOutputNode(moveNode.node());
-            moveNode.node().setSourceOperation(*po);
+            po->addOutputNode(moveNode);
+            moveNode.setSourceOperation(*po);
 
             // if this PO is ready, remove from list of uncomplete ones
             if (po->isComplete())   {
@@ -833,91 +707,203 @@ DataDependenceGraphBuilder::processResultRead(const MNData& moveNode) {
         __FILE__, __LINE__, __func__, "Result move without operands");
 }
 
-void 
+/**
+ * Helper function to create register raw dependence edge
+ * 
+ * @param source MNData2 containing the source movenode of the edge
+ * @param current MNData2 containing the destination movenode of the edge
+ */
+void
 DataDependenceGraphBuilder::createRegRaw(
-    MoveNode& source, MoveNode& current, bool tailPseudo, bool headPseudo) {
-
+    const MNData2& source, const MNData2& current) {
     DataDependenceEdge* dde =
         new DataDependenceEdge(
+            current.ra_ ? DataDependenceEdge::EDGE_RA :
             DataDependenceEdge::EDGE_REGISTER,
-            DataDependenceEdge::DEP_RAW, false, false, 
-            tailPseudo, headPseudo);
-
-    currentDDG_->connectOrDeleteEdge(source, current, dde);
-}
-
-void 
-DataDependenceGraphBuilder::createRegWar(
-    MoveNode& source, MoveNode& current, bool tailPseudo, bool headPseudo) {
-
-    DataDependenceEdge* dde =
-        new DataDependenceEdge(
-            DataDependenceEdge::EDGE_REGISTER,
-            DataDependenceEdge::DEP_WAR, false, false, 
-            tailPseudo, headPseudo);
-
-    currentDDG_->connectOrDeleteEdge(source, current, dde);
-}
-
-void 
-DataDependenceGraphBuilder::createRegWaw(
-    MoveNode& source, MoveNode& current, bool tailPseudo, bool headPseudo) {
-    if (source.isMove()) {
-        DataDependenceEdge* dde =
-            new DataDependenceEdge(
-                DataDependenceEdge::EDGE_REGISTER,
-                DataDependenceEdge::DEP_WAW, false, false, 
-                tailPseudo, headPseudo);
-        
+            DataDependenceEdge::DEP_RAW, current.guard_, false, 
+            source.pseudo_, current.pseudo_);
+    
         // create dependency edge
-        currentDDG_->connectOrDeleteEdge(source, current, dde);
-    }
+    currentDDG_->connectOrDeleteEdge(*source.mn_, *current.mn_, dde);
 }
 
 /**
- * Analyzes dependencies for register read.
+ * Helper function to create register raw antidependence edge
+ * 
+ * @param source MNData2 containing the source movenode of the edge
+ * @param current MNData2 containing the destination movenode of the edge
+ */
+void 
+DataDependenceGraphBuilder::createRegWar(
+    const MNData2& source, const MNData2& current) {
+    DataDependenceEdge* dde =
+        new DataDependenceEdge(
+            current.ra_ ? DataDependenceEdge::EDGE_RA :
+            DataDependenceEdge::EDGE_REGISTER,
+            DataDependenceEdge::DEP_WAR, source.guard_, false, 
+            source.pseudo_, current.pseudo_);
+    
+        // create dependency edge
+    currentDDG_->connectOrDeleteEdge(*source.mn_, *current.mn_, dde);
+}
 
- * Finds the move or moves 
- * which have written the data into the register and creates dependence
- * edges between them.
+/**
+ * Helper function to create register waw output dependence edge
  *
- * @param moveNode MNData related to move being analyzed.
+ * Does not create WaW's from the entry node.
+ * 
+ * @param source MNData2 containing the source movenode of the edge
+ * @param current MNData2 containing the destination movenode of the edge
+ */
+void 
+DataDependenceGraphBuilder::createRegWaw(
+    const MNData2& source, const MNData2& current) {
+    if (source.mn_->isMove()) {
+        DataDependenceEdge* dde =
+            new DataDependenceEdge(
+            current.ra_ ? DataDependenceEdge::EDGE_RA :
+            DataDependenceEdge::EDGE_REGISTER,
+                DataDependenceEdge::DEP_WAW, false, false, 
+                source.pseudo_, current.pseudo_);
+        
+        // create dependency edge
+        currentDDG_->connectOrDeleteEdge(
+            *source.mn_, *current.mn_, dde);
+    }
+}
+
+/** 
+ * Processes the pseudo deps from entry node.
+ * This procedure must be called when currentBB is the first real
+ * BB of the procedure.
+ */
+void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
+    
+    // initializes RA
+    currentData_->regDefReaches_[RA_NAME].insert(mn);
+
+    // sp 
+    MNData2 mnd2(mn);
+    std::string sp = specialRegisters_[REG_SP];
+    if (sp != "") {
+        currentData_->regDefReaches_[sp].insert(mnd2);
+    }
+
+    // params
+    for (int i = 0; i < 4;i++) {
+        std::string paramReg = specialRegisters_[REG_IPARAM+i];
+        if(paramReg != "") {
+            currentData_->regDefReaches_[paramReg].insert(mnd2);
+        }
+    }
+}
+
+
+/**
+ * Creates dependencies from incoming definitions to a reg use.
+ * 
+ * @param mnd 
+ */
+void DataDependenceGraphBuilder::updateRegUse(
+    MNData2 mnd, const std::string& reg) {
+
+    // create RAW's from definitions in previous BBs.
+    std::set<MNData2>& defReaches = currentData_->regDefReaches_[reg];
+    for (std::set<MNData2>::iterator i = defReaches.begin();
+         i != defReaches.end(); i++) {
+//        std::cout << "\t\t\t\tPrev def: " << i->mn_->toString() << std::endl;
+        createRegRaw(*i,mnd);
+    }
+}
+
+void DataDependenceGraphBuilder::processRegUse(
+    MNData2 mnd, const std::string& reg) {
+
+    // writes in previous BB's killed or not?
+    if (currentData_->regKills_.find(reg) == currentData_->regKills_.end()) {
+        currentData_->regFirstUses_[reg].insert(mnd);
+        // deps from previous BB's
+        updateRegUse(mnd, reg);
+    } 
+    // can be multiple if some write predicated
+    std::set<MNData2>& defines_ = currentData_->regDefines_[reg];
+    for (std::set<MNData2>::iterator i = defines_.begin();
+         i != defines_.end(); i++) {
+        createRegRaw(*i,mnd);
+    }
+    // add this read to list of uses
+    currentData_->regLastUses_[reg].insert(mnd);
+}
+
+/**
+ * Creates dependencies to MN's in other BBs
  */
 void
-DataDependenceGraphBuilder::processRegRead(const MNData& moveNode) {
+DataDependenceGraphBuilder::updateRegWrite(
+    MNData2 mnd, const std::string& reg) {
 
-    MNData mnDataCopy(moveNode);
-    int regsLeft = 1; 
-
-    for (MNDIter wri = currentData_->ownRegWrites_.begin();
-         wri != currentData_->ownRegWrites_.end(); wri++) {
-        if (moveNode.isRaw(*wri)) {
-            createRegRaw(wri->node(), moveNode.node());
-            regsLeft = mnDataCopy.removeReadsOtherWrites(*wri);
-        }
-        if(moveNode.isRawToPseudo(*wri)) {
-            createRegRaw(wri->node(), moveNode.node(), false, true);
-            regsLeft = mnDataCopy.removeReadsOtherWrites(*wri);
-        }
+    // WaWs
+    std::set<MNData2>& defReaches_ = currentData_->regDefReaches_[reg];
+    for (std::set<MNData2>::iterator i = defReaches_.begin();
+         i != defReaches_.end(); i++) {
+        createRegWaw(*i,mnd);
     }
-
-    if (regsLeft) {
-        for (MNDIter wri = currentData_->preRegWrites_.begin();
-             wri != currentData_->preRegWrites_.end(); wri++) {
-            if (mnDataCopy.isRaw(*wri)) {
-                createRegRaw(wri->node(), moveNode.node());
-            }
-            
-            if (mnDataCopy.isRawToPseudo(*wri)) {
-                createRegRaw(wri->node(), moveNode.node(), false, true);
-            }
-        }
-        // create external data dependency
-        currentData_->extDepRegList_.insert(mnDataCopy);
+    
+    // WaRs
+    std::set<MNData2>& useReaches_ = currentData_->regUseReaches_[reg];
+    for (std::set<MNData2>::iterator i = useReaches_.begin();
+         i != useReaches_.end(); i++) {
+        createRegWar(*i,mnd);
     }
-    // for later WAR's
-    currentData_->ownRegReads_.insert(MNData(moveNode));
 }
+
+void
+DataDependenceGraphBuilder::processRegWrite(
+    MNData2 mnd, const std::string& reg) {
+
+    std::set<MNData2>& lastUses_ = currentData_->regLastUses_[reg];
+    std::set<MNData2>& defines_ = currentData_->regDefines_[reg];
+
+    // if no kills to this reg this one kills it.
+    if (currentData_->regKills_.find(reg) == currentData_->regKills_.end()) {
+
+        // is this one a barrier.
+        if (mnd.mn_->move().isUnconditional()) {
+            currentData_->regKills_[reg] = mnd; 
+        }
+        // may have incoming WaW's / WaRs to this
+        currentData_->regFirstDefines_[reg].insert(mnd);
+
+        // deps from other BB.
+        updateRegWrite(mnd, reg);
+    } 
+
+    // create WaW to another in own bb
+    // Can be multiple if predication used.
+    for (std::set<MNData2>::iterator i = defines_.begin();
+         i != defines_.end(); i++) {
+        createRegWaw(*i,mnd);
+    }
+    
+    // create WaR to reads in same bb
+    for (std::set<MNData2>::iterator i = lastUses_.begin();
+         i != lastUses_.end(); i++) {
+        createRegWar(*i,mnd);
+    }
+
+    // if unconditional , this kills previous deps.
+    if (mnd.mn_->move().isUnconditional()) {
+        currentData_->regDefines_[reg].clear();
+        currentData_->regLastKills_[reg] = mnd;
+    }
+
+    currentData_->regDefines_[reg].insert(mnd);
+
+    // clear reads to given reg.
+    lastUses_.clear();
+}
+
+
 
 /**
  * Analyzes destination of a move. 
@@ -930,9 +916,9 @@ DataDependenceGraphBuilder::processRegRead(const MNData& moveNode) {
  * is being processed.
  */
 void
-DataDependenceGraphBuilder::processDestination(const MNData& moveNode) {
+DataDependenceGraphBuilder::processDestination(MoveNode& moveNode) {
 
-    Terminal& dest = moveNode.node().move().destination();
+    Terminal& dest = moveNode.move().destination();
 
     // is this a operand to an operation?
     if (dest.isFUPort()) {
@@ -948,271 +934,137 @@ DataDependenceGraphBuilder::processDestination(const MNData& moveNode) {
                 processOperand(moveNode, dop);
             }
         } else {  // RA write
-            processRAWrite(moveNode);
+            processRegWrite(MNData2(moveNode,false,true), RA_NAME);
         }
     } else {
         if (dest.isGPR()) {
-            processRegWrite(moveNode);
+            // new code
+            TerminalRegister& tr = dynamic_cast<TerminalRegister&>(dest);
+            string regName = trName(tr);
+            //tr.registerFile().name() + 
+//                Conversion::toString(tr.index());
+            processRegWrite(MNData2(moveNode), regName);
+            
         } else { // somwthing else
-
+            throw IllegalProgram(__FILE__,__LINE__,__func__,
+                                 "Move has illegal destination" +
+                                 moveNode.toString());
         }
     }
 }
 
+/*
+ * Method for getting name of a register to be used in bookkeeping.
+ * There propably is already a method for this in somewhere,
+ * so this could maybe be replaced with usafe of that function.
+ */
+std::string
+DataDependenceGraphBuilder::trName(TerminalRegister& tr) {
+    return tr.registerFile().name() + 
+        Conversion::toString(tr.index());
+}
+
+
 /**
- * Compares a memory write against one previous memory write and
+ * Compares a memory op against one previous memory ops and
  * creates dependence if may alias.
  *
  * @param prev Previous Memory write movenode
  * @param mn Current memory write movenode
  * @param pseudo create pseudo flag in the DD edge.
- * @return true if true edge created.
+ * @return true if true alias.
  */
 bool
-DataDependenceGraphBuilder::checkAndCreateMemWAW(MoveNode& prev, MoveNode& mn, bool pseudo) {
-    
-    
-    MemoryAliasAnalyzer::AliasingResult aliasResult =
-        analyzeMemoryAlias(prev, mn);
-    
-    if (aliasResult != MemoryAliasAnalyzer::ALIAS_FALSE) {
-        bool certainAlias = 
-            (aliasResult == MemoryAliasAnalyzer::ALIAS_TRUE);
-
-        bool tailPseudo = prev.move().isCall();
+DataDependenceGraphBuilder::checkAndCreateMemDep(
+    MNData2 prev, MNData2 mnd, DataDependenceEdge::DependenceType depType) {
         
-        ProgramOperation& po = prev.destinationOperation();
-        for (int i = 0; i < po.inputMoveCount(); i++) {
-            
+    MemoryAliasAnalyzer::AliasingResult aliasResult = 
+        MemoryAliasAnalyzer::ALIAS_UNKNOWN;
+    if (!prev.pseudo_ && !mnd.pseudo_) {
+        aliasResult = analyzeMemoryAlias(*prev.mn_, *mnd.mn_);
+    }
+        
+    if (aliasResult != MemoryAliasAnalyzer::ALIAS_FALSE) {
+        bool trueAlias = (aliasResult == MemoryAliasAnalyzer::ALIAS_TRUE);
+        ProgramOperation& prevPo = prev.mn_->destinationOperation();
+        for (int i = 0; i < prevPo.inputMoveCount(); i++) {
             DataDependenceEdge* dde2 =
                 new DataDependenceEdge(
-                    DataDependenceEdge::EDGE_MEMORY,
-                    DataDependenceEdge::DEP_WAW, false, certainAlias, 
-                    tailPseudo, pseudo);
+                    DataDependenceEdge::EDGE_MEMORY, depType, false, 
+                    trueAlias, prev.pseudo_, mnd.pseudo_);
             currentDDG_->connectOrDeleteEdge(
-                po.inputMove(i), mn, dde2);
+                prevPo.inputMove(i), *mnd.mn_, dde2);
         }
-        return certainAlias;
+        return trueAlias;
     }
     return false;
+}
+
+/**
+ * Checks memory write against uses and defs in incoming basic blocks.
+ * Creates the needed dependence edges.
+ *
+ * @param mnd MNData2 of movenode being processed.
+*/
+void
+DataDependenceGraphBuilder::updateMemWrite(
+    MNData2 mnd) {
+    for (RegisterUseSet::iterator iter = currentData_->memDefReaches_.begin();
+         iter != currentData_->memDefReaches_.end(); iter++) {
+        checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAW);
+    }
+
+    for (RegisterUseSet::iterator iter = currentData_->memUseReaches_.begin();
+         iter != currentData_->memUseReaches_.end(); iter++) {
+        checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAR);
+    }
 }
 
 /**
  * Updates memory operation bookkeeping and creates WaR and WaW 
  * memory dependencies.
  *
- * @param moveNode MNData related to Move whose memory write to are
+ * @param moveNode MNData2 related to Move whose memory write to are
  * processing.
  */
 void
 DataDependenceGraphBuilder::processMemWrite(
-    const MNData& moveNode, bool pseudo) throw (Exception) {
-
-    // write which cannot be analyzed. no edges over it
-    bool hasBarrierWrite = false;
-    bool aliasWriteFound = false;
-    for (MNDIter mwi = currentData_->memWrites_.begin();
-         mwi != currentData_->memWrites_.end(); mwi++) {
-        if (checkAndCreateMemWAW(mwi->node(), moveNode.node(), pseudo)) {
-            aliasWriteFound = true;
-        }
-        // if non-analyzable write found, no deps over it to prev BB's
-        if (!addressTraceable(mwi->node())) {
-            hasBarrierWrite = true;
-        }
-    }
-
-    // Nothing overwrites in this BB, search for WaW sources from previous
-    // BB's.
-    if (!hasBarrierWrite && !aliasWriteFound) {
-        for (MNDIter mwi = currentData_->preMemWrites_.begin();
-             mwi != currentData_->preMemWrites_.end(); mwi++) {
-            checkAndCreateMemWAW(mwi->node(), moveNode.node(), pseudo);
-        }
-    }
+    MNData2 mnd) {
     
-    // this cannot be analyzed, so no edges over this.
-    if (!addressTraceable(moveNode.node())) {
-        currentData_->memWrites_.clear();
-        currentData_->preMemWrites_.clear();
-    }
-
-    // WAR dependencies
-    if (!currentData_->memReads_.empty()) {
-        for (MNDIter mri = currentData_->memReads_.begin();
-             mri != currentData_->memReads_.end(); mri++) {
-
-            MoveNode& prevNode = mri->node();
-
-            MemoryAliasAnalyzer::AliasingResult aliasResult =
-                analyzeMemoryAlias(prevNode, moveNode.node());
-    
-            if (aliasResult != MemoryAliasAnalyzer::ALIAS_FALSE) {
-                bool certainAlias = 
-                    (aliasResult == MemoryAliasAnalyzer::ALIAS_TRUE);
-        
-                bool tailPseudo = mri->node().move().isCall();
-            
-                DataDependenceEdge* dde =
-                    new DataDependenceEdge(
-                        DataDependenceEdge::EDGE_MEMORY,
-                        DataDependenceEdge::DEP_WAR, false, certainAlias,
-                        tailPseudo, pseudo);
-                currentDDG_->connectOrDeleteEdge((*mri).node(),
-                                                 moveNode.node(), dde);
-            }
+    // no kills to this one.
+    if (currentData_->memKill_.mn_ == NULL) {
+        // is this a kill?
+        if (mnd.mn_->move().isUnconditional() &&
+            !addressTraceable(*mnd.mn_)) {
+            currentData_->memKill_ = mnd;
         }
+        // may have incoming WaW's / WaRs to this
+        currentData_->memFirstDefines_.insert(mnd);
+        updateMemWrite(mnd);
     }
-    // mem dep may always come from before now.. if no barrier write
-    if (!hasBarrierWrite && !aliasWriteFound) {
-        currentData_->extDepMemWrites_.insert(MNData(moveNode));
+    // create WaW to another in own bb
+    for (RegisterUseSet::iterator iter = currentData_->memDefines_.begin();
+         iter != currentData_->memDefines_.end(); iter++) {
+        checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAW);
     }
-    currentData_->memWrites_.insert(MNData(moveNode));
+
+    // create WaR to reads in same bb
+    for (RegisterUseSet::iterator iter = currentData_->memLastUses_.begin();
+         iter != currentData_->memLastUses_.end(); iter++) {
+        checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAR);
+    }
+
+    // does this kill previous deps?
+    if (mnd.mn_->move().isUnconditional() &&
+        !addressTraceable(*mnd.mn_)) {
+        currentData_->memLastKill_ = mnd;
+        currentData_->memDefines_.clear();
+    }
+
+    currentData_->memDefines_.insert(mnd);
+    currentData_->memLastUses_.clear();
 }
 
-/**
- * Analyzes a write to RA. Updates bookkeeping and creates WaW edge if 
- * previous RA write occurs.
- */
-void
-DataDependenceGraphBuilder::processRAWrite(const MNData& moveNode) {
-
-    if (currentData_->raWrite_ != 0) {
-        DataDependenceEdge* dde =
-            new DataDependenceEdge(
-                DataDependenceEdge::EDGE_RA,
-                DataDependenceEdge::DEP_WAW);
-        currentDDG_->connectOrDeleteEdge(currentData_->raWrite_->node(),
-                                         moveNode.node(), dde);
-    }
-
-    if (!currentData_->raReads_.empty()) {
-        for (MNDIter rri = currentData_->raReads_.begin();
-             rri != currentData_->raReads_.end(); rri++) {
-            DataDependenceEdge* dde =
-                new DataDependenceEdge(
-                    DataDependenceEdge::EDGE_RA,
-                    DataDependenceEdge::DEP_WAR);
-            currentDDG_->connectOrDeleteEdge((*rri).node(),
-                                             moveNode.node(), dde);
-        }
-        currentData_->raReads_.empty();
-    }
-    currentData_->raWrite_ = new MNData(moveNode);
-}
-
-/**
- * Analyzes read from RA. 
- *
- * Creates RA RAW dependence edge and also checks function return-related 
- * dependencies.
- *
- * @param moveNode MNData related to the move which reads RA.
- */
-void
-DataDependenceGraphBuilder::processRARead(const MNData& moveNode) {
-    
-    if (currentData_->raWrite_ != 0) {
-        DataDependenceEdge* dde =
-            new DataDependenceEdge(
-                DataDependenceEdge::EDGE_RA, 
-                DataDependenceEdge::DEP_RAW);
-        currentDDG_->connectOrDeleteEdge(
-            currentData_->raWrite_->node(), moveNode.node(), dde);
-    } else {
-        // if single-BB-mode, we have no entry nodes. 
-        // then we need no dependence for RA.
-        if (!singleBBMode_) {
-            DataDependenceEdge* dde =
-                new DataDependenceEdge(
-                    DataDependenceEdge::EDGE_RA,DataDependenceEdge::DEP_RAW);
-            currentDDG_->connectOrDeleteEdge(
-                *entryNode_, moveNode.node(), dde);
-        }
-    }
-
-    currentData_->raReads_.insert(MNData(moveNode));
-    if (moveNode.isReturn())
-        processRegRead(moveNode);
-
-}
-
-/**
- * Analyzes write to a register.
- *
- * Updates bookkeeping and creates WaW and WaR dependence edges.
- * 
- * @param moveNode MNData related to move whose whose register write
- * is being analyzed.
-*/
-void
-DataDependenceGraphBuilder::processRegWrite(const MNData& moveNode) {
-
-    // check WAW's with previous reg writes in same BB 
-    for (MNDIter wri = currentData_->ownRegWrites_.begin();
-            wri != currentData_->ownRegWrites_.end();) {
-        /* update latest write to this reg */
-        if (moveNode.isWaw(*wri)) {
-            // create antidependence
-            // do not create antidependencies for initalizing param regs
-            createRegWaw(wri->node(), moveNode.node());
-
-            MNData mnd(*wri);
-            currentData_->ownRegWrites_.erase(wri);
-            int writesLeft = mnd.removeWritesOnWAW(moveNode);
-            if (writesLeft) {
-                currentData_->ownRegWrites_.insert(mnd);
-            }
-            
-            // Code above has deleted an item from ownRegWrites_ 
-            // so reset the iterator to beginning to be sure the iterator
-            // is still valid and we do not jump over anything. 
-            wri = currentData_->ownRegWrites_.begin();
-        } else {
-            wri++;
-        }
-    }
-
-    // check WAW's with previous reg writes in preceeding BB's
-    for (MNDIter wri = currentData_->preRegWrites_.begin();
-            wri != currentData_->preRegWrites_.end();) {
-        // update latest write to this reg 
-        if (moveNode.isWaw(*wri)) {   
-            // create antidependence
-            createRegWaw(wri->node(), moveNode.node());
-            MNData mndata(*wri);
-            currentData_->preRegWrites_.erase(wri);
-            int writesLeft = mndata.removeWritesOnWAW(moveNode);
-            if (writesLeft) {
-                currentData_->preRegWrites_.insert(mndata);
-            }
-            wri = currentData_->preRegWrites_.begin();
-        } else {
-            wri++;
-        }
-    }
-
-    // WAR for variables read in current BB
-    for (MNDIter rri = currentData_->ownRegReads_.begin();
-            rri != currentData_->ownRegReads_.end();) {
-
-        // create antidependence
-        if (moveNode.isWar((*rri))) {
-            createRegWar(rri->node(), moveNode.node());
-            MNData mndata(*rri);
-            currentData_->ownRegReads_.erase(rri);
-            int readsLeft = mndata.removeReadsOtherWrites(moveNode);
-            if (readsLeft) {
-                currentData_->ownRegReads_.insert(mndata);
-            }
-            rri = currentData_->ownRegReads_.begin();
-
-        } else {
-            rri++;
-        }
-    }
-    currentData_->ownRegWrites_.insert(MNData(moveNode));
-}
 
 /**
  * Analyze write to a trigger of an operation.
@@ -1228,7 +1080,7 @@ DataDependenceGraphBuilder::processRegWrite(const MNData& moveNode) {
  */
 void
 DataDependenceGraphBuilder::processTrigger(
-    const MNData& moveNode, Operation &dop) 
+    MoveNode& moveNode, Operation &dop) 
     throw (IllegalProgram) {
 
     createTriggerDependencies(moveNode, dop);
@@ -1239,8 +1091,8 @@ DataDependenceGraphBuilder::processTrigger(
         ProgramOperation* po = *poli;
 
         if (&dop == &po->operation()) {
-            po->addInputNode(moveNode.node());
-            moveNode.node().setDestinationOperation(*po);
+            po->addInputNode(moveNode);
+            moveNode.setDestinationOperation(*po);
             if (po->isReady()) {
                 currentData_->destPending_.erase(poli);
                 if (dop.numberOfOutputs()) {
@@ -1258,8 +1110,8 @@ DataDependenceGraphBuilder::processTrigger(
     // only one triggering input?
     if (dop.numberOfInputs() == 1) {
         ProgramOperation *po = new ProgramOperation(dop);
-        moveNode.node().setDestinationOperation(*po);
-        po->addInputNode(moveNode.node());
+        moveNode.setDestinationOperation(*po);
+        po->addInputNode(moveNode);
         if (dop.numberOfOutputs()) {
             currentData_->readPending_.push_back(po);
         } else {
@@ -1267,98 +1119,103 @@ DataDependenceGraphBuilder::processTrigger(
         }
     } else { // trigger came too early
         const std::string moveDisasm = 
-            POMDisassembler::disassemble(moveNode.node().move());
+            POMDisassembler::disassemble(moveNode.move());
         throw IllegalProgram(
             __FILE__,__LINE__, __func__, 
             std::string("Trigger without operand in ") + moveDisasm);
     }
-    if (moveNode.isCall()) {
-
-        // calls mess up RA.
-        processRAWrite(moveNode);
-
-        processRegRead(moveNode); // params
-        processRegWrite(moveNode); // sp, rv
-
-        // call uses mem
-        processMemWrite(moveNode, true);
+    if (moveNode.move().isCall()) {
+        processCall(moveNode);
     }
 }
 
-
-
-/**
- * Compares a memory read against one previous memory write and
- * creates dependence if may alias.
- *
- * @param prev Previous Memory write movenode
- * @param mn Current memory read movenode
- * @param pseudo create pseudo flag in the DD edge.
- * @return true if true edge created.
+/** 
+ * Processes a return from a function.
+ * Creates pseudo-read-deps to SP and RV registers.
+ * 
+ * @param moveNode moveNode containg the return move.
  */
-bool
-DataDependenceGraphBuilder::checkAndCreateMemRAW(
-    MoveNode& prev, MoveNode& mn, bool pseudo) {
-    
-    MemoryAliasAnalyzer::AliasingResult aliasResult =
-        analyzeMemoryAlias(prev, mn);
-    
-    if (aliasResult != MemoryAliasAnalyzer::ALIAS_FALSE) {
-        bool certainAlias = 
-            (aliasResult == MemoryAliasAnalyzer::ALIAS_TRUE);
-        
-        bool tailPseudo = prev.move().isCall();
-    
-        ProgramOperation& po = prev.destinationOperation();
-    
-        for (int i = 0; i < po.inputMoveCount(); i++) {
-            DataDependenceEdge* dde2 =
-                new DataDependenceEdge(
-                    DataDependenceEdge::EDGE_MEMORY,
-                    DataDependenceEdge::DEP_RAW, false, certainAlias, 
-                    tailPseudo, pseudo);
-            currentDDG_->connectOrDeleteEdge(
-                po.inputMove(i), mn, dde2);
-        }
-        return certainAlias;
+void DataDependenceGraphBuilder::processReturn(MoveNode& moveNode) {
+    std::string sp = specialRegisters_[REG_SP];
+    if (sp != "") {
+        processRegUse(MNData2(moveNode,false,false,true),sp);
     }
-    return false;
+    std::string rv = specialRegisters_[REG_RV];
+    if (rv != "") {
+        processRegUse(MNData2(moveNode,false,false,true),rv);
+    }
 }
 
 /**
- * Analyzes read from memory.
- * Creates RAW memory dependencies and updates bookkeeping.
+ * Processes a call of a function.
+ * Pseudo-reads from parameter registers and SP, writes to RV and RA.
  *
- * @param moveNode MNData related to a move that reads from memory.
+ * @param mn MoveNode containg the function call move.
  */
-void
-DataDependenceGraphBuilder::processMemRead(
-    const MNData& moveNode, bool pseudo) throw (Exception) {
+void DataDependenceGraphBuilder::processCall(MoveNode& mn) {
 
-    bool hasBarrierWrite = false;
-    bool aliasFound = false;
+    // calls mess up RA. But immediately, not after delay slots?
+    processRegWrite(MNData2(mn,false,true, false), RA_NAME);
 
-    for (MNDIter mwi = currentData_->memWrites_.begin();
-         mwi != currentData_->memWrites_.end(); mwi++) {
-        
-        if (checkAndCreateMemRAW(mwi->node(), moveNode.node(), pseudo)) {
-            aliasFound = true;
-        }
-        if (!addressTraceable(mwi->node())) {
-            hasBarrierWrite = true;
+    // sp and rv
+    MNData2 mnd2(mn, false,false, true);
+    std::string sp = specialRegisters_[REG_SP];
+    if (sp != "") {
+        processRegUse(mnd2,sp);
+    }
+
+    std::string rv = specialRegisters_[REG_RV];
+    if (rv != "") {
+        processRegWrite(mnd2,rv);
+    }
+
+    // params
+    for (int i = 0; i < 4;i++) {
+        std::string paramReg = specialRegisters_[REG_IPARAM+i];
+        if(paramReg != "") {
+            processRegUse(mnd2, paramReg);
         }
     }
-    /* Check if this may depend from some write ini a previous BB */
-    if (!hasBarrierWrite && !aliasFound) {
-        for (MNDIter mwi = currentData_->preMemWrites_.begin();
-             mwi != currentData_->preMemWrites_.end(); mwi++) {
+    processMemWrite(mnd2);
+}
 
-            checkAndCreateMemRAW(mwi->node(), moveNode.node(), pseudo);
-        }
-        currentData_->extDepMemReads_.insert(MNData(moveNode));
+/**
+ * Checks memory read against uses and defs in incoming basic blocks.
+ * Creates the needed dependence edges.
+ *
+ * @param mnd MNData2 of movenode being processed.
+*/
+void DataDependenceGraphBuilder::updateMemUse(MNData2 mnd) {
+    
+    for (RegisterUseSet::iterator iter = currentData_->memDefReaches_.begin();
+         iter != currentData_->memDefReaches_.end(); iter++) {
+        checkAndCreateMemDep(*iter, mnd,DataDependenceEdge::DEP_RAW);
     }
-    /* All this read to bookkeeping for WAR dependence handling */
-    currentData_->memReads_.insert(moveNode);
+}
+
+/**
+ * Processes a memory read.
+ *
+ * Creates dependence edges and updates bookkeeping.
+ * 
+ * @param mnd MNData2 of MoveNode being processed.
+ */
+void DataDependenceGraphBuilder::processMemUse(MNData2 mnd) {
+    
+    // no kills to this one.
+    if (currentData_->memKill_.mn_ == NULL) {
+        currentData_->memFirstUses_.insert(mnd);
+        // so create deps from previous BB's
+        updateMemUse(mnd);
+    }
+    
+    // create deps from writes in this BB.
+    for (RegisterUseSet::iterator iter = currentData_->memDefines_.begin();
+         iter != currentData_->memDefines_.end(); iter++) {
+        checkAndCreateMemDep(*iter, mnd,DataDependenceEdge::DEP_RAW);
+    }
+    // update bookkeeping.
+    currentData_->memLastUses_.insert(mnd);
 }
 
 /**
@@ -1371,52 +1228,24 @@ DataDependenceGraphBuilder::processMemRead(
  *
  */
 void DataDependenceGraphBuilder::createTriggerDependencies(
-    const MNData& moveNode, Operation& dop) {
+    MoveNode& moveNode, Operation& dop) {
 
-    // this is here as we have data as trigger
+    // TODO: move memory write handling here.
+    // currently causes a slight problem with subgraphs, 
+    // so not yet moved here.
 
     if (dop.readsMemory()) {
-        processMemRead(moveNode);
+        processMemUse(MNData2(moveNode));
     }
 
-    const int affectedCount = dop.affectedByCount();
-    if (affectedCount || dop.hasSideEffects()) {
-        for (MNDIter fui = currentData_->fuStateWrites_.begin();
-                fui != currentData_->fuStateWrites_.end(); fui++) {
-            Operation& o = (*fui).node().destinationOperation().operation();
+    // new code
+    createSideEffectEdges(currentData_->fuDeps_, moveNode, dop);
+    createSideEffectEdges(currentData_->fuDepReaches_, moveNode, dop);
 
-            // mem writes are handled by memory deps so exclude here
-            if ((&dop == &o && o.hasSideEffects() && !o.writesMemory()) || 
-                dop.dependsOn(o)) {
-                DataDependenceEdge* dde =
-                    new DataDependenceEdge(
-                        DataDependenceEdge::EDGE_FUSTATE,
-                        DataDependenceEdge::DEP_UNKNOWN);
-                currentDDG_->connectOrDeleteEdge(
-                    (*fui).node(), moveNode.node(), dde);
-            }
-        }
-
-        for (MNDIter fui = currentData_->preFuStates_.begin();
-                fui != currentData_->preFuStates_.end(); fui++) {
-            Operation& o = (*fui).node().destinationOperation().operation();
-
-            // mem writes are handled by memory deps so exclude here
-            if ((&dop == &o && o.hasSideEffects() && !o.writesMemory()) || 
-                dop.dependsOn(o)) {
-                DataDependenceEdge* dde =
-                    new DataDependenceEdge(
-                        DataDependenceEdge::EDGE_FUSTATE,
-                        DataDependenceEdge::DEP_UNKNOWN);
-                currentDDG_->connectOrDeleteEdge(
-                    (*fui).node(), moveNode.node(), dde);
-            }
-        }
+    if (dop.hasSideEffects() || dop.affectsCount() != 0) {
+        currentData_->fuDeps_.insert(MNData2(moveNode));
     }
 
-    if (dop.hasSideEffects()) {
-        currentData_->fuStateWrites_.insert(MNData(moveNode));
-    }
 }
 
 /**
@@ -1429,13 +1258,10 @@ void DataDependenceGraphBuilder::createTriggerDependencies(
  */
 void
 DataDependenceGraphBuilder::processOperand(
-    const MNData& moveNode, Operation &dop) {
+    MoveNode& moveNode, Operation &dop) {
 
-
-    /* Only check memory operations between addresses,
-       not data. */
     if (dop.writesMemory()) {
-        processMemWrite(moveNode);
+        processMemWrite(MNData2(moveNode));
     }
 
     for (POLIter poli = currentData_->destPending_.begin();
@@ -1452,17 +1278,53 @@ DataDependenceGraphBuilder::processOperand(
             // does not yet exist
 
             // TBD: check for inconsistent input code
-            po.addInputNode(moveNode.node());
-            moveNode.node().setDestinationOperation(po);
+            po.addInputNode(moveNode);
+            moveNode.setDestinationOperation(po);
             return;
         }
     }
     // create new ProgramOperation
     ProgramOperation* po = new ProgramOperation(dop);
-    moveNode.node().setDestinationOperation(*po);
-    po->addInputNode(moveNode.node());
+    moveNode.setDestinationOperation(*po);
+    po->addInputNode(moveNode);
     currentData_->destPending_.push_back(po);
 }
+
+/*
+ * Creates operation side effect.
+ * 
+ * Checks the given MoveNode against list of possible side effect
+ * dependence sources, and creates side effect edges if there is 
+ * a side effect/fu state dependence.
+ * 
+ * @param prevMoves moves to check side effects against.
+ * @param mn moveNode that is the destination of the dependencies.
+ * @param dop Operation that mn triggers.
+ */
+void DataDependenceGraphBuilder::createSideEffectEdges(
+    RegisterUseSet& prevMoves, const MoveNode& mn, Operation& dop) {
+    
+    const int affectedCount = dop.affectedByCount();
+    if (affectedCount || dop.hasSideEffects()) {
+        for (RegisterUseSet::iterator i = prevMoves.begin();
+             i != prevMoves.end(); i++) {
+            Operation& o = i->mn_->destinationOperation().operation();
+            
+            // mem writes are handled by memory deps so exclude here
+            if ((&dop == &o && o.hasSideEffects() && !o.writesMemory()) || 
+                dop.dependsOn(o)) {
+                
+                DataDependenceEdge* dde =
+                    new DataDependenceEdge(
+                        DataDependenceEdge::EDGE_FUSTATE,
+                        DataDependenceEdge::DEP_UNKNOWN);
+                currentDDG_->connectOrDeleteEdge(
+                    *(i->mn_), mn, dde);
+            }
+        }
+    }
+}
+
 
 /**
  * Delegates call to all registered memory address alias analyzers.
@@ -1473,7 +1335,7 @@ DataDependenceGraphBuilder::processOperand(
  */
 MemoryAliasAnalyzer::AliasingResult
 DataDependenceGraphBuilder::analyzeMemoryAlias(
-    MoveNode& mn1, MoveNode& mn2) {
+    const MoveNode& mn1, const MoveNode& mn2) {
 
     MemoryAliasAnalyzer::AliasingResult result = 
         MemoryAliasAnalyzer::ALIAS_UNKNOWN;
@@ -1494,46 +1356,20 @@ DataDependenceGraphBuilder::analyzeMemoryAlias(
  * Constructor
  */
 DataDependenceGraphBuilder::BBData::BBData(BasicBlockNode& bb) :
-    raWrite_(0), state_(BB_UNREACHABLE), processedCount_(0),
-    loopDepth_(INT_MAX-1), maxLoopDepth_(0), predCount_(0), bblock_(&bb) {
+    state2_(BB_UNREACHED2), constructed_(false), bblock_(&bb) {
 }
 
 /**
  * Destructor. 
  */
 DataDependenceGraphBuilder::BBData::~BBData() {
-    clear();
-}
-
-/**
- * Clears all data.
- */
-void
-DataDependenceGraphBuilder::BBData::clear() {
-    ownRegReads_.clear();
-    preRegReads_.clear();
-    ownRegWrites_.clear();
-    preRegWrites_.clear();
-    extDepRegList_.clear();
-
-    memWrites_.clear();
-    memReads_.clear();
-    preMemWrites_.clear();
-    preMemReads_.clear();
-
-    extDepMemReads_.clear();
-    extDepMemWrites_.clear();
-
-    if (raWrite_) {
-        delete raWrite_;
-        raWrite_ = 0;
-    }
+//    clear();
 }
 
 void
 DataDependenceGraphBuilder::getStaticRegisters(
     TTAProgram::Program& prog, 
-    std::map<int,TerminalRegister*>& registers) {
+    std::map<int,std::string>& registers) {
     for (int i = 0; i < prog.procedureCount(); i++) {
         getStaticRegisters(prog, registers);
     }
@@ -1542,7 +1378,7 @@ DataDependenceGraphBuilder::getStaticRegisters(
 void
 DataDependenceGraphBuilder::getStaticRegisters(
     TTAProgram::CodeSnippet& cs, 
-    std::map<int,TerminalRegister*>& registers) {
+    std::map<int,std::string>& registers) {
     for (int i = 0; i < cs.instructionCount(); i++) {
         Instruction& ins = cs.instructionAtIndex(i);
         getStaticRegisters(ins, registers);
@@ -1552,7 +1388,7 @@ DataDependenceGraphBuilder::getStaticRegisters(
 void
 DataDependenceGraphBuilder::getStaticRegisters(
     ControlFlowGraph& cfg,
-    std::map<int,TerminalRegister*>& registers) {
+    std::map<int,std::string>& registers) {
     for (int i = 0; i < cfg.nodeCount(); i++) {
         BasicBlockNode& bbn = cfg.node(i);
         if (bbn.isNormalBB()) {
@@ -1564,41 +1400,60 @@ DataDependenceGraphBuilder::getStaticRegisters(
 void
 DataDependenceGraphBuilder::getStaticRegisters(
     TTAProgram::Instruction& ins, 
-    std::map<int,TerminalRegister*>& registers) {
-    for (int i = 0; i < ins.moveCount(); i++) {
-        Move& move = ins.move(i);
-        for (int j = 0; j < move.annotationCount(); j++) {
-            ProgramAnnotation anno = move.annotation(i);
-            switch (anno.id()) {
-            case ProgramAnnotation::ANN_REGISTER_RV_READ:
-                registers[REG_RV] = dynamic_cast<TerminalRegister*>(
-                    move.source().copy());
-                break;
-            case ProgramAnnotation::ANN_REGISTER_RV_SAVE:
-                registers[REG_RV] = dynamic_cast<TerminalRegister*>(
-                    move.destination().copy());
-                break;
-            case ProgramAnnotation::ANN_REGISTER_SP_READ:
-                registers[REG_SP] = dynamic_cast<TerminalRegister*>(
-                    move.source().copy());
-                break;
-            case ProgramAnnotation::ANN_REGISTER_SP_SAVE:
-                registers[REG_SP] = dynamic_cast<TerminalRegister*>(
-                    move.destination().copy());
-                break;
-            case ProgramAnnotation::ANN_REGISTER_IPARAM_READ:
-                registers[REG_IPARAM+Conversion::toInt(anno.stringValue())] =
-                    dynamic_cast<TerminalRegister*>(move.source().copy());
-                break;
-            case ProgramAnnotation::ANN_REGISTER_IPARAM_SAVE:
-                registers[REG_IPARAM+Conversion::toInt(anno.stringValue())] = 
-                    dynamic_cast<TerminalRegister*>(
-                        move.destination().copy());
-            default:
-                //TODO: frame pointer, not yet implemented
-                break;
+    std::map<int,std::string>& registers) {
+    try {
+        for (int i = 0; i < ins.moveCount(); i++) {
+            Move& move = ins.move(i);
+            for (int j = 0; j < move.annotationCount(); j++) {
+                ProgramAnnotation anno = move.annotation(i);
+                switch (anno.id()) {
+                case ProgramAnnotation::ANN_REGISTER_RV_READ: {
+                    TerminalRegister& tr = 
+                        dynamic_cast<TerminalRegister&>(move.source());
+                    registers[REG_RV] = trName(tr);
+                    break;
+                }
+                case ProgramAnnotation::ANN_REGISTER_RV_SAVE: {
+                    TerminalRegister& tr = 
+                        dynamic_cast<TerminalRegister&>(move.destination());
+                    registers[REG_RV] = trName(tr);
+                    break;
+                }
+                case ProgramAnnotation::ANN_REGISTER_SP_READ: {
+                    TerminalRegister& tr = 
+                        dynamic_cast<TerminalRegister&>(move.source());
+                    registers[REG_SP] = trName(tr);
+                    break;
+                }
+                case ProgramAnnotation::ANN_REGISTER_SP_SAVE: {
+                    TerminalRegister& tr = 
+                        dynamic_cast<TerminalRegister&>(move.destination());
+                    registers[REG_SP] = trName(tr);
+                    break;
+                }
+                case ProgramAnnotation::ANN_REGISTER_IPARAM_READ: {
+                    TerminalRegister& tr = 
+                        dynamic_cast<TerminalRegister&>(move.source());
+                    registers[
+                        REG_IPARAM+Conversion::toInt(anno.stringValue())] = 
+                        trName(tr);
+                    break;
+                }
+                case ProgramAnnotation::ANN_REGISTER_IPARAM_SAVE: {
+                    TerminalRegister& tr = 
+                        dynamic_cast<TerminalRegister&>(move.destination());
+                    registers[
+                        REG_IPARAM+Conversion::toInt(anno.stringValue())] = 
+                        trName(tr);
+                }
+                default:
+                    //TODO: frame pointer, not yet implemented
+                    break;
+                }
             }
         }
+    } catch (std::bad_cast& e) {
+        throw IllegalProgram(__FILE__,__LINE__, __func__, "Illegal annotation");
     }
 }
 
@@ -1612,12 +1467,12 @@ DataDependenceGraphBuilder::getStaticRegisters(
  */
 void
 DataDependenceGraphBuilder::getStaticRegisters(
-    const UniversalMachine& um, std::map<int,TerminalRegister*>& registers) {
+    const UniversalMachine& um, std::map<int,std::string>& registers) {
     RegisterFile& rf = um.integerRegisterFile();
     
     for (int i = 0; i < 6; i++) {
-        registers[i] = 
-            new TerminalRegister(*rf.port(0), i);
+        TerminalRegister tr(*rf.port(0), i);
+        registers[i] = trName(tr);
     }
 }
 
@@ -1628,7 +1483,7 @@ DataDependenceGraphBuilder::getStaticRegisters(
  * @return true if some alias analyzer knows something about the address.
  */
 bool 
-DataDependenceGraphBuilder::addressTraceable(MoveNode& mn) {
+DataDependenceGraphBuilder::addressTraceable(const MoveNode& mn) {
     for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
         if (aliasAnalyzers_.at(i)->addressTraceable(mn)) {
             return true;
@@ -1636,3 +1491,8 @@ DataDependenceGraphBuilder::addressTraceable(MoveNode& mn) {
     }
     return false;
 }
+
+/**
+ * Internal constant for the name of the return address port 
+ */
+const std::string DataDependenceGraphBuilder::RA_NAME = "RA";

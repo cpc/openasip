@@ -26,7 +26,6 @@ public:
         ControlDependenceGraph& cdg,
         DataDependenceGraph& ddg);
     virtual ~ProgramDependenceGraph();
-    std::string name() const;
     
 private:
     typedef std::map<ControlDependenceNode*, ProgramDependenceNode*> 
@@ -37,7 +36,6 @@ private:
         ProgramDependenceNode&, 
         ControlDependenceNode&);
     
-    std::string procedureName_;
     ControlDependenceGraph* cdg_;
     DataDependenceGraph* ddg_;
     

@@ -3,6 +3,6 @@
 $test_description="Scheduling long test cases";
 $test_bin = "../../../scheduler/testbench/scheduler_tester.py";
 $bin_args = 
-    "-c ../../../scheduler/passes/default_scheduler.conf -vrq ".
+    "-c ../../../scheduler/passes/default_scheduler.conf -vr ".
     "-a 3_bus_short_immediate_fields_and_reduced_connectivity.adf";
 ?>

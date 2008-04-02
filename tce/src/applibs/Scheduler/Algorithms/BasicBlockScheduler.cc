@@ -35,6 +35,7 @@
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
 //#define CFG_SNAPSHOTS
+//#define BIG_DDG_SNAPSHOTS
 //#define DDG_SNAPSHOTS
 //#define SW_BYPASSING_STATISTICS
 
@@ -82,7 +83,7 @@ BasicBlockScheduler::handleDDG(
 #ifdef DDG_SNAPSHOTS
     static int bbCounter = 0;
     ddg_->writeToDotFile(
-        (boost::format("bb_%.4d_0_before_scheduling.dot") % bbCounter).str());
+        (boost::format("bb_%s_0_before_scheduling.dot") % ddg_->name()).str());
     Application::logStream() << "\nBB " << bbCounter << std::endl;
 #endif
     
@@ -138,7 +139,7 @@ BasicBlockScheduler::handleDDG(
     }
 #ifdef DDG_SNAPSHOTS
     ddg_->writeToDotFile(
-        (boost::format("bb_%.4d_0_after_scheduling.dot") % bbCounter).str());
+        (boost::format("bb_%s_0_after_scheduling.dot") % ddg_->name()).str());
     Application::logStream() << "\nBB " << bbCounter << std::endl;
     bbCounter++;
 #endif
@@ -191,7 +192,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
 #ifdef DEBUG_REG_COPY_ADDER
     ddg_->setCycleGrouping(true);
     ddg_->writeToDotFile(
-        (boost::format("%d_before_ddg.dot") % graphCount).str());
+        (boost::format("%s_before_ddg.dot") % ddg_->name()).str());
 #endif
 
     RegisterCopyAdder regCopyAdder(BasicBlockPass::interPassData(), *rm_);
@@ -205,7 +206,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
 #ifdef DEBUG_REG_COPY_ADDER
     if (tempsAdded > 0) {
         ddg_->writeToDotFile(
-            (boost::format("%d_after_regcopy_ddg.dot") % graphCount).str());
+            (boost::format("%s_after_regcopy_ddg.dot") % ddg_->name()).str());
     }
     ddg_->sanityCheck();
 #endif
@@ -333,20 +334,21 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
     static int failedCounter = 0;
     if (resultsFailed || operandsFailed) {
         ddg_->writeToDotFile(
-            (boost::format("bb_%.4d_2_failed_scheduling.dot")
-                % failedCounter).str());        
+            (boost::format("bb_%s_2_failed_scheduling.dot")
+             % ddg_->name()).str());        
         throw ModuleRunTimeError(
             __FILE__, __LINE__, __func__, 
-            (boost::format("Bad BB %.4d") % failedCounter).str());
+            (boost::format("Bad BB %s") % ddg_->name()).str());
     }
 #endif
 
 #ifdef DEBUG_REG_COPY_ADDER
     if (tempsAdded > 0) {
         ddg_->writeToDotFile(
-            (boost::format("%d_after_scheduler_ddg.dot") % graphCount).str());
+            (boost::format("%s_after_scheduler_ddg.dot") % 
+             ddg_->name()).str());
         Application::logStream()
-            << "(operation fix #" << graphCount << ")" << std::endl
+            << "(operation fix #" << ddg_->name() << ")" << std::endl
             << std::endl;
 
         ++graphCount;
@@ -1021,12 +1023,15 @@ BasicBlockScheduler::handleProcedure(
     ControlFlowGraph cfg(procedure);
 
 #ifdef CFG_SNAPSHOTS
-    cfg.writeToDotFile(procedure.name() + ".dot");    
+    cfg.writeToDotFile(procedure.name() + "_cfg.dot");    
 #endif
     // create the procedure-wide ddg.
     DataDependenceGraphBuilder ddgBuilder;
     bigDDG_ = ddgBuilder.build(cfg);
 
+#ifdef BIG_DDG_SNAPSHOTS
+    bigDDG_->writeToDotFile(bigDDG_->name() + "_ddg.dot");
+#endif
     UniversalMachine um;
 
     handleControlFlowGraph(cfg, targetMachine);

@@ -42,6 +42,7 @@ public:
     typedef GraphEdge Edge;
 
     BoostGraph();
+    BoostGraph(const std::string& name);
     BoostGraph(const BoostGraph& other);
 
     ~BoostGraph();
@@ -92,10 +93,10 @@ public:
         throw (InstanceNotFound);
 
     virtual void connectNodes(
-        Node& nTail, Node& nHead, Edge& e)
+        const Node& nTail, const Node& nHead, Edge& e)
         throw (ObjectAlreadyExists);
 
-    virtual void disconnectNodes(Node& nTail, Node& nHead);
+    virtual void disconnectNodes(const Node& nTail, const Node& nHead);
 
     virtual void moveInEdges(const Node& source, const Node& destination)
         throw (NotAvailable);
@@ -124,9 +125,9 @@ public:
     virtual NodeSet predecessors(const Node& node) const;
 
     // critical path-related functions
-    int maxPathLength(GraphNode& node) const;
-    int maxSinkDistance(GraphNode& node) const;
-    int maxSourceDistance(GraphNode& node) const;
+    int maxPathLength(const GraphNode& node) const;
+    int maxSinkDistance(const GraphNode& node) const;
+    int maxSourceDistance(const GraphNode& node) const;
     int height() const;
 
     void detachSubgraph(BoostGraph& subGraph);
@@ -134,6 +135,8 @@ public:
     BoostGraph* parentGraph();
 
     bool hasNode(const Node&) const;
+
+    virtual const std::string& name() const;
 
 private:
     /// Assignment forbidden.
@@ -210,14 +213,14 @@ protected:
     
     // internal implementation of path-length-related things.
     void calculatePathLengths() const;
-    void calculateSourceDistance(GraphNode& node, int len) const;
-    void calculateSinkDistance(GraphNode& node, int len) const;
+    void calculateSourceDistance(const GraphNode& node, int len) const;
+    void calculateSinkDistance(const GraphNode& node, int len) const;
     
-    virtual int edgeWeight( GraphEdge& e, GraphNode& n) const;
+    virtual int edgeWeight( GraphEdge& e, const GraphNode& n) const;
     
     // Calculated path lengths
-    mutable std::map<GraphNode*,int> sourceDistances_;
-    mutable std::map<GraphNode*,int> sinkDistances_;
+    mutable std::map<const GraphNode*,int> sourceDistances_;
+    mutable std::map<const GraphNode*,int> sinkDistances_;
     
     mutable int height_;
 
@@ -246,7 +249,7 @@ protected:
         throw (InstanceNotFound);    
 
     virtual void connectNodes(
-        Node& nTail, Node& nHead, Edge& e,
+        const Node& nTail, const Node& nHead, Edge& e,
         GraphBase<GraphNode, GraphEdge>* modifier)
         throw (ObjectAlreadyExists);
 
@@ -258,6 +261,9 @@ protected:
         throw (NotAvailable);
     void constructSubGraph(
         BoostGraph& subGraph, NodeSet& nodes);
+
+    std::string name_;
+    int sgCounter_;
 };
 
 #include "BoostGraph.icc"

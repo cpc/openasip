@@ -2,6 +2,6 @@
 // short test description
 $test_description="Compiling long test cases with tcecc";
 $test_bin = "./tcecc.sh";
-$bin_args = "-vxrq ".
+$bin_args = "-vxr ".
     "-a 3_bus_short_immediate_fields_and_reduced_connectivity.adf";
 ?>

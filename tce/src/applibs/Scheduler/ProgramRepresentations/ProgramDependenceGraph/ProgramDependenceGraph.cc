@@ -26,11 +26,10 @@ ProgramDependenceGraph::~ProgramDependenceGraph() {}
  * @param ddg Data Dependence Graph of procedure
  */
 ProgramDependenceGraph::ProgramDependenceGraph(
-    ControlDependenceGraph& cdg,
-    DataDependenceGraph& ddg) : cdg_(&cdg), ddg_(&ddg) {
+    ControlDependenceGraph& cdg, DataDependenceGraph& ddg) : 
+    BoostGraph<ProgramDependenceNode, ProgramDependenceEdge>(cdg.name()), 
+    cdg_(&cdg), ddg_(&ddg) {
 
-    procedureName_ = cdg.procedureName();
-    
     ControlToProgram cNodePNode;
     std::map<BasicBlockNode*, ControlDependenceNode*> BBNodeCDNode;
     std::map<MoveNode*, ProgramDependenceNode*> movePD;
@@ -257,13 +256,4 @@ ProgramDependenceGraph::removeGuardedJump(
                 " Region nodes as control dependent!");
         }
     }    
-}
-
-/**
- *  Returns the name of procedure PDG was build for
- * @return The name of procedure 
- */
-std::string 
-ProgramDependenceGraph::name() const {
-    return procedureName_;
 }

@@ -35,8 +35,6 @@ public:
     ControlDependenceGraph(const ControlFlowGraph& cGraph);
     virtual ~ControlDependenceGraph();
 
-
-    std::string procedureName() const;
     int alignment() const;
     TTAProgram::Program* program() const;
     ControlDependenceNode& entryNode();
@@ -72,7 +70,6 @@ private:
             ControlDependenceEdge::CDEP_EDGE_NORMAL);
 
     // Data saved from original procedure object
-    std::string procedureName_;
     TTAProgram::Program* program_;
     TTAProgram::Address startAddress_;
     int alignment_;

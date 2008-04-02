@@ -27,14 +27,12 @@ public:
     OperationDAG(const std::string& name="");
     OperationDAG(const OperationDAG& other);
     virtual ~OperationDAG();    
-    std::string name() const;
     bool isTrivial() const;
 
     int stepsToRoot(const OperationDAGNode& node) const;
     const std::set<OperationDAGNode*>& endNodes() const;
 
 private:    
-    std::string name_;   
     /// Map of known step counts, if dag is changed this must be cleared.
     mutable std::map<const OperationDAGNode*, int> stepMap_;    
     /// Set of root nodes of DAG, must be cleared if dag is changed.

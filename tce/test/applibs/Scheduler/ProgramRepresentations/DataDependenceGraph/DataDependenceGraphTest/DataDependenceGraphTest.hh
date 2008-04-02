@@ -104,7 +104,7 @@ DataDependenceGraphTest::testProcedureDDG() {
 
     TS_ASSERT_EQUALS(ddg->programOperationCount(), 18);
     TS_ASSERT_EQUALS(ddg->nodeCount(), 48);
-    TS_ASSERT_EQUALS(ddg->edgeCount(), 91);
+    TS_ASSERT_EQUALS(ddg->edgeCount(), 108);
 
     int first  = ddg->node(1).nodeID();
     TS_ASSERT(
@@ -121,17 +121,18 @@ DataDependenceGraphTest::testProcedureDDG() {
 
     // check mem WARs
     TS_ASSERT(
-        ddg->hasEdge(findMoveNodeById(*ddg,first+31),
-                     findMoveNodeById(*ddg,first+38)));
+        ddg->hasEdge(findMoveNodeById(*ddg,first+25),
+                     findMoveNodeById(*ddg,first+32)));
 
     TS_ASSERT(
-        ddg->hasEdge(findMoveNodeById(*ddg,first+33),
-                     findMoveNodeById(*ddg,first+38)));
+        ddg->hasEdge(findMoveNodeById(*ddg,first+27),
+                     findMoveNodeById(*ddg,first+32)));
+
 
     // RARs are not dependencies, no edge
     TS_ASSERT(
-        !ddg->hasEdge(findMoveNodeById(*ddg,first+31),
-                     findMoveNodeById(*ddg,first+33)));
+        !ddg->hasEdge(findMoveNodeById(*ddg,first+25),
+                     findMoveNodeById(*ddg,first+27)));
     
     // write it out to a .dot file, just check it does not crash or anything
     // it's not feasible to verify the output as the node ids are the
@@ -338,9 +339,11 @@ DataDependenceGraphTest::testRallocatedDDG() {
         DataDependenceGraphBuilder builder;
         ddg = builder.build(cfg);
 
+        ddg->writeToDotFile("/dev/null");
+
         TS_ASSERT_EQUALS(ddg->programOperationCount(), 14);
         TS_ASSERT_EQUALS(ddg->nodeCount(), 38);
-        TS_ASSERT_EQUALS(ddg->edgeCount(), 66);
+        TS_ASSERT_EQUALS(ddg->edgeCount(), 81);
         
         int first = ddg->node(1).nodeID();
 
@@ -381,17 +384,17 @@ DataDependenceGraphTest::testRallocatedDDG() {
         
         // check mem WARs
         TS_ASSERT(
-            ddg->hasEdge(findMoveNodeById(*ddg,first+21),
-                         findMoveNodeById(*ddg,first+28)));
+            ddg->hasEdge(findMoveNodeById(*ddg,first+20),
+                         findMoveNodeById(*ddg,first+27)));
         
         TS_ASSERT(
-            ddg->hasEdge(findMoveNodeById(*ddg,first+23),
-                         findMoveNodeById(*ddg,first+28)));
+            ddg->hasEdge(findMoveNodeById(*ddg,first+22),
+                         findMoveNodeById(*ddg,first+27)));
         
         // RARs are not dependencies, no edge
         TS_ASSERT(
-            !ddg->hasEdge(findMoveNodeById(*ddg,first+21),
-                     findMoveNodeById(*ddg,first+23)));
+            !ddg->hasEdge(findMoveNodeById(*ddg,first+20),
+                     findMoveNodeById(*ddg,first+22)));
 
         delete currentProgram;
         currentProgram = NULL;

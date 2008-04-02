@@ -34,7 +34,7 @@ GraphBase<GraphNode, GraphEdge>::dotString() const {
     }
 
     // edges
-    for (int i = 0; i < edgeCount(); ++i) {
+    for (int count = edgeCount(), i = 0; i < count ; ++i) {
         Edge& e = edge(i);
         Node& tail = tailNode(e);
         Node& head = headNode(e);

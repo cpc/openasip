@@ -19,7 +19,7 @@
 
 #include "MemoryAliasAnalyzer.hh"
 
-#include "MNData.hh"
+//#include "MNData.hh"
 
 namespace TTAProgram {
     class Program;
@@ -51,6 +51,9 @@ public:
     DataDependenceGraph* build(
         ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
 
+//    DataDependenceGraph* build2(
+//        ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
+
     DataDependenceGraph* build(
         BasicBlock& bb, const UniversalMachine* um = NULL) 
         throw (IllegalProgram);    
@@ -61,31 +64,52 @@ private:
     typedef DataDependenceGraph::NodeSet MNodeSet;
 
     /**
-     * BB_UNREACHABLE means basic block we have not yet encountered.
-     * BB_NOT_READY means basic block which we have processed for at least
-     * one time, but have to be handled multiple times and input BB for
-     * later block is not yet processed.
-     * BB_REACHABLE means basic block which has some of it's input BB's
-     * processed but some not.
-     * BB_QUEUED means basic block whose all predecessors have been
-     * processed and the BB is ready to be processed.
-     * BB_PROCESSSED means basic block which has been processed for the
-     * last time, ie. it is completely ready.
-     * Only values under this may need some processing.
-     * BB_FORGOTTEN means basic block whose successors are ready,
-     * so that all extra data about this basic block have been deleted 
-     * as it's not needed anymore.
+     * BB_UNREACHED2 means basic block we have not yet encountered.
+     * BB_QUEUED means a BB which is queued to be processed
+     * BB_READY2 means BB which is already processed. May however change state to
+     * BB_QUEUED 
      */
-    enum BBState { BB_UNREACHABLE    = 0,
-                   BB_NOT_READY      = 1,
-                   BB_REACHABLE      = 2,
-                   BB_QUEUED         = 3, // all pred const.
-                   BB_PROCESSED      = 4,
-                   BB_FORGOTTEN      = 5,
-                   BB_STATES}; ///< the count of basic block states
+    enum BBState2 {
+        BB_UNREACHED2 = 0,
+        BB_QUEUED2 = 1,
+        BB_READY2 = 2,
+        BB_STATES2};
+    
+    struct MNData2 {
+        MNData2() : mn_(NULL) {} // just because STL sucks. there is always = after this.
+        MNData2(const MoveNode& mn, bool guard = false, bool ra = false, bool pseudo = false) :
+            mn_(&mn), guard_(guard), ra_(ra), pseudo_(pseudo) {}
+        // TODO: should be deterministic - this is not!
+        bool operator< (const MNData2& other) const {
+            if ((mn_ == NULL) && (other.mn_ != NULL)) return true;
+            if ((mn_ != NULL) < (other.mn_ != NULL)) return true;
+            if ((mn_ != NULL) > (other.mn_ != NULL)) return false;
+            if (mn_ != NULL) {
+                if (mn_->nodeID() < other.mn_->nodeID()) return true;
+                if (mn_->nodeID() > other.mn_->nodeID()) return false;
+            }
+            if (guard_ < other.guard_) return true;
+            if (guard_ > other.guard_) return false;
+            
+            if (ra_ < other.ra_) return true;
+            if (ra_ > other.ra_) return false;
 
-    typedef std::set<class MNData> MNDList;
-    typedef MNDList::iterator MNDIter;
+            if (pseudo_ < other.pseudo_) return true;
+            if (pseudo_ > other.pseudo_) return false;
+            return false;
+        }
+        const MoveNode* mn_;
+        bool guard_;
+        bool ra_;
+        bool pseudo_;
+    };
+
+    typedef std::set<MNData2 > RegisterUseSet;
+    typedef std::map<std::string, RegisterUseSet > RegisterUseMapSet;
+    typedef std::map<std::string, MNData2 > RegisterUseMap;
+
+    typedef std::pair<std::string, RegisterUseSet > RegisterUseSetPair;
+    typedef std::pair<std::string, MNData2> RegisterUsePair;
 
     /**
      * This class stores all the basic-block related information needed by
@@ -96,139 +120,165 @@ private:
         BBData(BasicBlockNode& bb);
         virtual ~BBData();
 
-        void clear();
         POList destPending_; // operations lacking operands
         POList readPending_;  // operations lacking result read
 
-        MNDList ownRegReads_; // these two are for antidep tracking
-        MNDList preRegReads_;
-
-        MNDList ownRegWrites_;
-        MNDList preRegWrites_;
-        MNDList extDepRegList_;
-
-        MNDList memWrites_; // own mem writes
-        MNDList memReads_; // own mem reads
-        MNDList preMemWrites_; // prev block mem writes
-
-        /* to be added for antidependencies and between BB deps */
-
-        MNDList preMemReads_; // if last ops of prev BB's are reads
-        MNDList extDepMemReads_; // first if set of reads
-        MNDList extDepMemWrites_; // first if write
-
-
-        MNDList fuStateWrites_;
-        MNDList preFuStates_;
-
-        MNData* raWrite_;
-        MNDList raReads_;
-        BBState state_;
-
-        int processedCount_;
-        int processOrder_;
-        int loopDepth_;
-        int maxLoopDepth_;
-        int predCount_;
+        BBState2 state2_;
+        bool constructed_;
 
         BasicBlockNode* bblock_;
+
+        // dependencies out from this BB
+        RegisterUseMapSet regDefines_;
+        RegisterUseMapSet regLastUses_;
+        RegisterUseMap regLastKills_;
+
+        // dependencies in to this BB
+        RegisterUseMap regKills_;
+        RegisterUseMapSet regFirstUses_;
+        RegisterUseMapSet regFirstDefines_;
+
+        // dependencies from previous BBs.
+        RegisterUseMapSet regDefReaches_;
+        RegisterUseMapSet regUseReaches_;
+
+        // all alive after this BB.
+        RegisterUseMapSet regDefAfter_;
+        RegisterUseMapSet regUseAfter_;
+
+        // dependencies not used in this or after this.
+        // colleced afterwards, currently not yet implemented.
+        std::set<std::string> regExpires_;
+
+        // dependencies out from this BB
+        RegisterUseSet memDefines_;
+        RegisterUseSet memLastUses_;
+        MNData2 memLastKill_;
+
+        // dependencies into this one
+        MNData2 memKill_;
+        RegisterUseSet memFirstUses_;
+        RegisterUseSet memFirstDefines_;
+
+        // deps from previous BBs
+        RegisterUseSet memDefReaches_;
+        RegisterUseSet memUseReaches_;
+
+        // all alive after this
+        RegisterUseSet memDefAfter_;
+        RegisterUseSet memUseAfter_;
+        
+        // fu state deps
+        RegisterUseSet fuDepReaches_;
+        RegisterUseSet fuDeps_;
+        RegisterUseSet fuDepAfter_;
     };
 
-    void setPreDependencies(BBNodeSet& inputBlocks);
+    bool updateAliveAfter(BBData& bbd);
 
-    void updateBB(BBNodeSet& inputBlocks);
+    void setSucceedingPredeps(
+        BBData& bbd, ControlFlowGraph& cfg, bool queueAll);
+    bool appendUseMapSets(
+        const RegisterUseMapSet& srcMap, RegisterUseMapSet& dstMap);
+        
+    void updateBB(BBData& bbd);
 
     void constructIndividualBB() throw (IllegalProgram);
+    void constructIndividualBB(BBData& bbd);
     
     void constructBB(BBNodeSet& inputBlocks) 
         throw (IllegalProgram);
 
     void createOperationEdges(ProgramOperation& po);
 
-    void processGuard(const class MNData& moveNode);
+    void processGuard(class MoveNode& moveNode);
 
-    void processSource(const class MNData& moveNode);
+    void processSource(class MoveNode& moveNode);
 
-    void processResultRead(const class MNData& moveNode);
+    void processResultRead(class MoveNode& moveNode);
+    void processCall(MoveNode& mn);
+    void processReturn(MoveNode& moveNode);
 
-    void processRARead(const class MNData& moveNode);
-    void processRegRead(const class MNData& moveNode);
+    void processEntryNode(MoveNode& mn);
 
-    void processDestination(const class MNData& moveNode);
+    void processDestination(class MoveNode& moveNode);
 
-    void processRAWrite(const class MNData& moveNode);
-    void processRegWrite(const class MNData& moveNode);
+    void processRegUse(MNData2 mn, const std::string& reg);
+    void updateRegUse(MNData2 mn, const std::string& reg);
+    void updateMemUse(MNData2 mnd);
 
-    void processTrigger(const class MNData& moveNode,
+    void processRegWrite(MNData2 mn, const std::string& reg);
+    void updateRegWrite(MNData2 mn, const std::string& reg);
+    void updateMemWrite(MNData2 mnd);
+
+    void processTrigger(class MoveNode& moveNode,
                         class Operation &dop) throw (IllegalProgram);
 
-    void createTriggerDependencies(const class MNData& moveNode,
+    void createTriggerDependencies(class MoveNode& moveNode,
                                    class Operation& dop);
 
-    void processMemRead(const class MNData& moveNode, bool pseudo = false)
-        throw (Exception);
+    void createSideEffectEdges(    
+        RegisterUseSet& prevMoves, const MoveNode& mn, Operation& dop);
 
-    void processMemWrite(const class MNData& moveNode, bool pseudo = false)
-        throw (Exception);
+    void processMemWrite(MNData2 mnd);
+    void processMemUse(MNData2 mnd);
 
     void processOperand(
-        const class MNData& moveNode,
+        class MoveNode& moveNode,
         Operation &dop);
 
     MemoryAliasAnalyzer::AliasingResult analyzeMemoryAlias(
-        MoveNode& mn1, MoveNode& mn2);
+        const MoveNode& mn1, const MoveNode& mn2);
 
-    bool addressTraceable(MoveNode& mn);
+    bool addressTraceable(const MoveNode& mn);
     
     bool checkAndCreateMemWAW(
-        MoveNode& prev, MoveNode& mn, bool pseudo);
+        const MoveNode& prev, const MoveNode& mn, bool pseudo = false);
 
     bool checkAndCreateMemRAW(
-        MoveNode& prev, MoveNode& mn, bool pseudo);
+        const MoveNode& prev, const MoveNode& mn, bool pseudo = false);
 
-    bool checkAndCreateGuardRAW(const MNData& prev, const MNData& current);
+    bool checkAndCreateMemDep(
+        MNData2 prev, MNData2 mnd, DataDependenceEdge::DependenceType depType);
 
-    void createRegRaw(
-        MoveNode& current, MoveNode& source, 
-        bool tailPseudo = false, bool headPseudo = false);
-
-    void createRegWaw(
-        MoveNode& current, MoveNode& source, 
-        bool tailPseudo = false, bool headPseudo = false);
-
-    void createRegWar(
-        MoveNode& current, MoveNode& source, 
-        bool tailPseudo = false, bool headPseudo = false);
+    void createRegRaw(const MNData2& current, const MNData2& source);
+    void createRegWar(const MNData2& current, const MNData2& source);
+    void createRegWaw(const MNData2& current, const MNData2& source);
 
     // functions related to iterating over basic blocks 
 
-    void processParameters(BBData& bbd);
+//    void processParameters(BBData& bbd);
 
-    void changeState(
-        std::list<BBData*> (&blocksByState)[BB_STATES],
-        BBData* bbd, BBState newState);
+    void changeState(BBData& bbd, BBState2 newState);
+//    void queueBB(BBData& bbData);
 
-    void copyMNDList(MNDList& dst, MNDList& src);
+    static std::string trName(TTAProgram::TerminalRegister& tr);
+
+//    void copyMNDList(MNDList& dst, MNDList& src);
 
     void getStaticRegisters(
         TTAProgram::Program& prog, 
-        std::map<int,TTAProgram::TerminalRegister*>& registers);
+        std::map<int,std::string>& registers);
 
     void getStaticRegisters(
         TTAProgram::CodeSnippet& cs, 
-        std::map<int,TTAProgram::TerminalRegister*>& registers);
+        std::map<int,std::string>& registers);
 
     void getStaticRegisters(
         ControlFlowGraph& cfg, 
-        std::map<int,TTAProgram::TerminalRegister*>& registers);
+        std::map<int,std::string>& registers);
 
     void getStaticRegisters(
         TTAProgram::Instruction& ins, 
-        std::map<int,TTAProgram::TerminalRegister*>& registers);
+        std::map<int,std::string>& registers);
 
     void getStaticRegisters(
         const UniversalMachine& um, 
-        std::map<int,TTAProgram::TerminalRegister*>& registers);
+        std::map<int,std::string>& registers);
+
+
+    std::list<BBData*> blocksByState_[BB_STATES2];
+
     
     std::map <BasicBlockNode*, BBData*> bbData_;
     BasicBlockNode* currentBB_;
@@ -241,10 +291,13 @@ private:
 
     bool singleBBMode_;
     MoveNode* entryNode_;
-    MNData* entryData_;
 
     // contains stack pointer, RV and parameter registers.
-    std::map<int, TTAProgram::TerminalRegister*> specialRegisters_;
+    std::map<int, std::string> specialRegisters_;
+
+    static const std::string RA_NAME;
+
+            
 };
 
 #endif

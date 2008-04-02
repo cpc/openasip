@@ -15,7 +15,7 @@
  * @return always returns true
  */
 bool 
-FalseAliasAnalyzer::addressTraceable(MoveNode&) {
+FalseAliasAnalyzer::addressTraceable(const MoveNode&) {
     return true;
 }
 
@@ -25,7 +25,7 @@ FalseAliasAnalyzer::addressTraceable(MoveNode&) {
  */
 MemoryAliasAnalyzer::AliasingResult
 FalseAliasAnalyzer::analyze(
-    DataDependenceGraph&, MoveNode&, MoveNode&) {
+    DataDependenceGraph&, const MoveNode&, const MoveNode&) {
     return ALIAS_FALSE;
 }
 

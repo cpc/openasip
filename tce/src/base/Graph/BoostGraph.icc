@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <boost/format.hpp>
 
+#include "Conversion.hh"
 #include "AssocTools.hh"
 #include "Application.hh"
 
@@ -26,7 +27,15 @@ using std::string;
  */
 template <typename GraphNode, typename GraphEdge>
 BoostGraph<GraphNode, GraphEdge>::BoostGraph() :
-    height_(-1), parentGraph_(NULL) {}
+    height_(-1), parentGraph_(NULL), sgCounter_(0) {}
+
+/**
+ * Constructor
+ *
+ */
+template <typename GraphNode, typename GraphEdge>
+BoostGraph<GraphNode, GraphEdge>::BoostGraph(const std::string& name) :
+    height_(-1), parentGraph_(NULL), name_(name), sgCounter_(0) {}
 
 /**
  * Copy constructor
@@ -36,7 +45,7 @@ template <typename GraphNode, typename GraphEdge>
 BoostGraph<GraphNode, GraphEdge>::BoostGraph(
     const BoostGraph<GraphNode, GraphEdge>& other) :
     GraphBase<GraphNode, GraphEdge>(), height_(other.height_), 
-    parentGraph_(NULL) {
+    parentGraph_(NULL) , name_(other.name()), sgCounter_(0) {
 
     // table which node of other 
     std::map<GraphNode*, GraphNode*> nodeMap;
@@ -565,7 +574,7 @@ BoostGraph<GraphNode, GraphEdge>::headNode(
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::connectNodes(
-    GraphNode& nTail, GraphNode& nHead, GraphEdge& e)
+    const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e)
     throw (ObjectAlreadyExists) {
     connectNodes(nTail, nHead, e, NULL);
 }
@@ -586,7 +595,7 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::connectNodes(
-    GraphNode& nTail, GraphNode& nHead, GraphEdge& e, 
+    const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e, 
     GraphBase<GraphNode, GraphEdge>* modifier)
     throw (ObjectAlreadyExists) {
 
@@ -613,9 +622,9 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
 
         int eWeight = edgeWeight(e, nHead); 
         
-        typename std::map<GraphNode*,int>::iterator headIter = 
+        typename std::map<const GraphNode*,int>::iterator headIter = 
             sinkDistances_.find(&nHead);
-        typename std::map<GraphNode*,int>::iterator tailIter =
+        typename std::map<const GraphNode*,int>::iterator tailIter =
             sourceDistances_.find(&nTail);
         
         if( headIter == sinkDistances_.end()) {
@@ -659,8 +668,8 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::disconnectNodes(
-    GraphNode& nTail,
-    GraphNode& nHead) {
+    const GraphNode& nTail,
+    const GraphNode& nHead) {
 
     while (hasEdge(nTail, nHead)) {
         EdgeDescriptor e = connectingEdge(nTail, nHead);
@@ -1092,6 +1101,7 @@ BoostGraph<GraphNode, GraphEdge>::constructSubGraph(
     }
     subGraph.parentGraph_ = this;
     childGraphs_.push_back(&subGraph);
+    subGraph.name_ = name() + "_" + Conversion::toString(++sgCounter_);
 }
 
 /*
@@ -1424,7 +1434,7 @@ BoostGraph<GraphNode, GraphEdge>::calculatePathLengths() const {
 template<typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::calculateSourceDistance( 
-    Node& node, int len ) const {
+    const Node& node, int len ) const {
     if (sourceDistances_.find(&node) == sourceDistances_.end() || 
         sourceDistances_[&node] < len ) {
         sourceDistances_[&node] = len;
@@ -1455,7 +1465,7 @@ BoostGraph<GraphNode, GraphEdge>::calculateSourceDistance(
 template<typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::calculateSinkDistance( 
-    Node& node, int len ) const {
+    const Node& node, int len ) const {
     if (sinkDistances_.find(&node) == sinkDistances_.end() || 
         sinkDistances_[&node] < len ) {
         sinkDistances_[&node] = len;
@@ -1486,7 +1496,7 @@ BoostGraph<GraphNode, GraphEdge>::calculateSinkDistance(
  */
 template<typename GraphNode, typename GraphEdge>
 int
-BoostGraph<GraphNode, GraphEdge>::maxPathLength(GraphNode& node) const {
+BoostGraph<GraphNode, GraphEdge>::maxPathLength(const GraphNode& node) const {
     return maxSinkDistance(node) + maxSourceDistance(node);
 }
 
@@ -1502,9 +1512,10 @@ BoostGraph<GraphNode, GraphEdge>::maxPathLength(GraphNode& node) const {
  */
 template<typename GraphNode, typename GraphEdge>
 int
-BoostGraph<GraphNode, GraphEdge>::maxSourceDistance(GraphNode& node) const {
+BoostGraph<GraphNode, GraphEdge>::maxSourceDistance(const GraphNode& node) 
+    const {
 
-    typename std::map<GraphNode*,int>::iterator iter = 
+    typename std::map<const GraphNode*,int>::iterator iter = 
         sourceDistances_.find(&node);
     if (iter == sourceDistances_.end()) {
         calculatePathLengths();
@@ -1525,9 +1536,10 @@ BoostGraph<GraphNode, GraphEdge>::maxSourceDistance(GraphNode& node) const {
  */
 template<typename GraphNode, typename GraphEdge>
 int
-BoostGraph<GraphNode, GraphEdge>::maxSinkDistance(GraphNode& node) const {
+BoostGraph<GraphNode, GraphEdge>::maxSinkDistance(const GraphNode& node) 
+    const {
 
-    typename std::map<GraphNode*,int>::iterator iter = 
+    typename std::map<const GraphNode*,int>::iterator iter = 
         sinkDistances_.find(&node);
     if (iter == sinkDistances_.end()) {
         calculatePathLengths();
@@ -1568,7 +1580,7 @@ BoostGraph<GraphNode, GraphEdge>::height() const {
 template <typename GraphNode, typename GraphEdge>
 int
 BoostGraph<GraphNode, GraphEdge>::edgeWeight(
-    GraphEdge&,GraphNode&) const {
+    GraphEdge&,const GraphNode&) const {
     return 1;
 }
 
@@ -1589,4 +1601,10 @@ BoostGraph<GraphNode, GraphEdge>::connectingEdges(
     EdgeSet intersection;
     AssocTools::intersection(headIn, tailOut, intersection);
     return intersection;
+}
+
+template <typename GraphNode, typename GraphEdge>
+const std::string&
+BoostGraph<GraphNode, GraphEdge>::name() const {
+    return name_;
 }

@@ -19,11 +19,11 @@ using namespace TTAProgram;
 using namespace TTAMachine;
 
 bool 
-ConstantAliasAnalyzer::addressTraceable(MoveNode& mn) {
+ConstantAliasAnalyzer::addressTraceable(const MoveNode& mn) {
     if (mn.isMove()) {
-        Move& move = mn.move();
+        const Move& move = mn.move();
         if (!move.isCall()) {
-            Terminal& src = move.source();
+            const Terminal& src = move.source();
             if (src.isImmediate()) {
                 return true;
             }
@@ -35,7 +35,7 @@ ConstantAliasAnalyzer::addressTraceable(MoveNode& mn) {
 // TODO: does not handle unaligned 64-bit memory operations well.
 MemoryAliasAnalyzer::AliasingResult
 ConstantAliasAnalyzer::analyze(
-    DataDependenceGraph&, MoveNode& node1, MoveNode& node2) {
+    DataDependenceGraph&, const MoveNode& node1, const MoveNode& node2) {
 
     if (addressTraceable(node1) && addressTraceable(node2)) {
         int addr1 = node1.move().source().value().intValue();

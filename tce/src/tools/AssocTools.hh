@@ -48,6 +48,8 @@ public:
         ContainerType1& firstContainer,
         ContainerType2& secondContainer);
         
+    template <typename ContainerType>
+    static void append(const ContainerType& src, ContainerType &dest);
 };
 
 #include "AssocTools.icc"

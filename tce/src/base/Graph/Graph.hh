@@ -85,9 +85,9 @@ public:
     virtual void removeEdge(Edge& e)
         throw (InstanceNotFound) = 0;
 
-    virtual void connectNodes(Node& nTail, Node& nHead, Edge& e)
+    virtual void connectNodes(const Node& nTail, const Node& nHead, Edge& e)
         throw (ObjectAlreadyExists) = 0;
-    virtual void disconnectNodes(Node& nTail, Node& nHead) = 0;
+    virtual void disconnectNodes(const Node& nTail, const Node& nHead) = 0;
 protected:
     virtual bool hasNode(const Node&) const = 0;
 };
