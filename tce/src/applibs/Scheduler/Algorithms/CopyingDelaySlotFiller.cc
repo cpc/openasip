@@ -95,14 +95,14 @@ void CopyingDelaySlotFiller::fillDelaySlots(
             // address comes from LIMM, search the write to limm reg.
             jumpImm = findJumpImmediate(jumpIndex, *jumpMove);
             if (jumpImm == NULL) {
-//                cout << "Imm source not found, aborting" << std::endl;
+                //Imm source not found, aborting
                 return;
             }
         }
     }
 
     RegisterFile* grFile = NULL;
-    unsigned int grIndex = -1;
+    unsigned int grIndex = 0;
 
     // lets be aggressive, fill more than just slots?
     int maxFillCount = std::min(delaySlots+3, thisBB.instructionCount());
@@ -115,6 +115,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
         }
     }
 
+    // if we have conditional jump, find the predicate register
     if (!jumpMove->isUnconditional()) {
         Guard& g = jumpMove->guard().guard();
         RegisterGuard* rg = dynamic_cast<RegisterGuard*>(&g);
