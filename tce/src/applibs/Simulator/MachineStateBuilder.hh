@@ -102,8 +102,6 @@ private:
         FUState& state,
         TTAMachine::FunctionUnit& unit)
         throw (IllegalMachine);
-    
-    bool FUNeedsConflictDetection(TTAMachine::FunctionUnit& unit) const;
 
     /// The FU resource conflict detectors. They are needed while building
     /// the machine state model.

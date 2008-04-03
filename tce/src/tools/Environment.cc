@@ -289,13 +289,27 @@ Environment::errorLogFilePath() {
 std::vector<std::string>
 Environment::includeDirPaths() {
     vector<string> includes;
-    string DS = FileSystem::DIRECTORY_SEPARATOR;
-    string ROOT = string(TCE_SRC_ROOT);
-    includes.push_back(ROOT);
-    includes.push_back(ROOT + DS + "src" + DS + "tools");
-    includes.push_back(ROOT + DS + "src" + DS + "base" + DS + "osal");
-    includes.push_back(ROOT + DS + "src" + DS + "base" + DS + "memory");
-    includes.push_back(string(TCE_INSTALLATION_ROOT) + DS + "include");
+    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+    const std::string ROOT = string(TCE_SRC_ROOT);
+    const std::string BASE = ROOT + DS + "src" + DS + "base";
+    const std::string APPLIBS = ROOT + DS + "src" + DS + "applibs";
+    
+    if (!DISTRIBUTED_VERSION) {
+        includes.push_back(ROOT);
+        includes.push_back(ROOT + DS + "src" + DS + "tools");
+        includes.push_back(BASE + DS + "osal");
+        includes.push_back(BASE + DS + "memory");
+        includes.push_back(BASE + DS + "bem");
+        includes.push_back(BASE + DS + "Graph");
+        includes.push_back(BASE + DS + "idf");
+        includes.push_back(BASE + DS + "mach");
+        includes.push_back(BASE + DS + "program");
+        includes.push_back(BASE + DS + "tpef");
+        includes.push_back(BASE + DS + "umach");
+        includes.push_back(APPLIBS + DS + "Simulator");
+    } else {
+        includes.push_back(string(TCE_INSTALLATION_ROOT) + DS + "include");
+    }
     return includes;
 }
 

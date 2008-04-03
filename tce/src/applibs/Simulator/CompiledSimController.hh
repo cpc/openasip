@@ -10,7 +10,7 @@
 #ifndef COMPILED_SIM_CONTROLLER_HH
 #define COMPILED_SIM_CONTROLLER_HH
 
-#include "SimulationController.hh"
+#include "TTASimulationController.hh"
 #include "PluginTools.hh"
 #include <boost/shared_ptr.hpp>
 #include "CompiledSimCodeGenerator.hh"
@@ -20,7 +20,7 @@ class CompiledSimulation;
 /**
  * A Simulation controller that uses the compiled simulation techniques.
  */
-class CompiledSimController : public SimulationController {
+class CompiledSimController : public TTASimulationController {
 public:
     CompiledSimController(
         SimulatorFrontend& frontend,

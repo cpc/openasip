@@ -125,7 +125,7 @@ PluginTools::registerModule(const std::string& module)
 
     const string DIR_SEP = FileSystem::DIRECTORY_SEPARATOR;
 
-    string path = module;
+    string path = module;                     
     if (!FileSystem::isAbsolutePath(module)) {
 
         bool moduleFound = false;
@@ -134,7 +134,7 @@ PluginTools::registerModule(const std::string& module)
         for (unsigned int i = 0; i < searchPaths_.size(); i++) {
             path = searchPaths_[i] + DIR_SEP + module;
             if (FileSystem::fileExists(path)) {
-                moduleFound = true;
+                moduleFound = true;                   
                 break;
             }
         }

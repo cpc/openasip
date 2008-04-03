@@ -26,6 +26,19 @@ using std::time_t;
  * The constructor
  */
 CompiledSimCompiler::CompiledSimCompiler() {
+    
+    // Get number of threads and the default compiler
+    threadCount_ = 3;
+    const char* USER_THREAD_COUNT = std::getenv("TTASIM_COMPILER_THREADS");
+    if (USER_THREAD_COUNT != NULL) {
+        threadCount_ = Conversion::toInt(string(USER_THREAD_COUNT));
+    }
+    
+    compiler_ = "gcc";
+    const char* USER_COMPILER = std::getenv("TTASIM_COMPILER");
+    if (USER_COMPILER != NULL) {
+        compiler_ = string(USER_COMPILER);
+    }    
 }
 
 /**
@@ -51,26 +64,12 @@ CompiledSimCompiler::compileDirectory(
     const string& dirName,
     const string& flags) const {
 
-    int threadCount = 3;
-    const char* USER_THREAD_COUNT = std::getenv("TTASIM_COMPILER_THREADS");
-    if (USER_THREAD_COUNT != NULL) {
-        threadCount = Conversion::toInt(string(USER_THREAD_COUNT));
-    }
-    
-    string COMPILER = "gcc";
-    const char* USER_COMPILER = std::getenv("TTASIM_COMPILER");
-    if (USER_COMPILER != NULL) {
-        COMPILER = string(USER_COMPILER);
-    }
-
     string command = 
-        "make -sC " + dirName + " CC=\"" + COMPILER + "\" opt_flags=\"" + 
-        flags + "\" -j" + Conversion::toString(threadCount);
+        "make -sC " + dirName + " CC=\"" + compiler_ + "\" opt_flags=\"" + 
+        flags + "\" -j" + Conversion::toString(threadCount_);
 
-#if 1
     Application::logStream()
-        << "compiling the simulation engine with command " << command << endl;
-#endif
+        << "Compiling the simulation engine with command " << command << endl;
 
     time_t startTime = std::time(NULL);
     int retval = system(command.c_str());
@@ -79,9 +78,31 @@ CompiledSimCompiler::compileDirectory(
     time_t elapsed = endTime - startTime;
 
     Application::logStream()
-        << "compiling the simulation engine with opt. switches '" << flags 
+        << "Compiling the simulation engine with opt. switches '" << flags 
         << "' took " << elapsed / 60 << "m " << (elapsed % 60) << "s " 
         << endl;
 
     return retval;
+}
+
+/**
+ * Compiles a single C++ file using the set flags, outputs a .so file
+ * 
+ * Used for generating .so files needed for dynamic compiled simulation
+ * 
+ * @param filePath path to the file to be compiled
+ * @param flags flags to be used for compiling
+ */
+int
+CompiledSimCompiler::compileFile(
+    const std::string& filePath,
+    const std::string& flags) const {
+
+    string command = 
+        compiler_ + " " + "`tce-config --includes`" + " -shared -fpic "
+            + "-fno-working-directory -fno-enforce-eh-specs -fno-rtti "
+            + "-fno-threadsafe-statics -fno-access-control"
+            + flags;
+    
+    return system(command.c_str());
 }

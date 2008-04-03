@@ -12,22 +12,32 @@
 
 #include <string>
 
-class CompiledSimCodeGenerator;
-
+/**
+ * A class for compiling the dynamic libraries used by the compiled simulator
+ */
 class CompiledSimCompiler {
 public:
     CompiledSimCompiler();
-    ~CompiledSimCompiler();
+    virtual ~CompiledSimCompiler();
     
     int compileDirectory(
         const std::string& dirName, 
-        const std::string& flags = "-O3") const;
+        const std::string& flags = "-O0") const;
+    
+    int compileFile(
+        const std::string& filePath,
+        const std::string& flags = "-O0") const;
     
 private:
     /// Copying not allowed.
     CompiledSimCompiler(const CompiledSimCompiler&);
     /// Assignment not allowed.
-    CompiledSimCompiler& operator=(const CompiledSimCompiler&); 
+    CompiledSimCompiler& operator=(const CompiledSimCompiler&);
+    
+    /// Number of threads to use while compiling through a Makefile
+    int threadCount_;
+    /// The compiler to use
+    std::string compiler_;
 };
 
 #endif

@@ -64,26 +64,17 @@ using namespace TTAProgram;
  * are thrown forward.
  */
 SimulationController::SimulationController(
-    SimulatorFrontend & frontend,
+    SimulatorFrontend& frontend,
     const Machine& machine, 
     const Program& program,
     bool fuResourceConflictDetection,
     bool memoryAccessTracking,
     bool directAccessMemory) :
-    frontend_(frontend),
-    sourceMachine_(machine), program_(program), machineState_(NULL),
-    instructionMemory_(NULL), gcu_(NULL), stopRequested_(false),
-    state_(STA_INITIALIZING), clockCount_(0), 
-    automaticFinishImpossible_(true), memoryTracking_(memoryAccessTracking),
-    sequentialSimulation_(false), firstIllegalInstructionIndex_(UINT_MAX),
-    directAccessMemory_(directAccessMemory) {
+    TTASimulationController(frontend, machine, program, memoryAccessTracking, 
+        directAccessMemory),
+    machineState_(NULL), gcu_(NULL) {
 
     MachineStateBuilder builder;
-    
-    initializeMemorySystem(machine);
-
-    sequentialSimulation_ = 
-        dynamic_cast<const UniversalMachine*>(&machine) != NULL;
 
     if (fuResourceConflictDetection && !sequentialSimulation_)
         buildFUResourceConflictDetectors(machine);
@@ -109,10 +100,7 @@ SimulationController::SimulationController(
         throw IllegalProgram(__FILE__, __LINE__, __func__, e.errorMessage());
     }
 
-    initialPC_ = program.entryAddress().location();
-
-    findProgramExitPoints(program, machine);
-
+    findExitPoints(program, machine);
     reset();
 }
 
@@ -123,152 +111,9 @@ SimulationController::~SimulationController() {
 
     delete machineState_;
     machineState_ = NULL;
-    delete instructionMemory_;
-    instructionMemory_ = NULL;
-    delete memorySystem_;
-    memorySystem_ = NULL;
 
     AssocTools::deleteAllValues(fuConflictDetectors_);
     conflictDetectorVector_.clear();
-}
-
-/**
- * Initializes the variables that are used in programEnded() to evaluate 
- * whether the simulated program has simulated to its end.
- *
- * @param program The simulated program.
- * @param machine The simulated machine.
- */
-void
-SimulationController::findProgramExitPoints(
-    const TTAProgram::Program& program,
-    const TTAMachine::Machine& machine) {
-  
-    /* Set return points to be all the returns from the first executed
-       procedure. When control returns from that (usually the crt0(),
-       start(), or main()), we should stop simulation. This is for
-       convenience of simulating unmodified benchmark programs without 
-       having infinite loops etc. */
-          
-    // find the entry procedure
-    Address entryAddr = program.entryAddress();
-    Procedure* entryProc = NULL;
-    for(int i = 0; i < program.procedureCount(); i++) {
-        Procedure &currProc = program.procedure(i);
-        
-        if (currProc.startAddress().location() <= entryAddr.location() &&
-            currProc.endAddress().location() > entryAddr.location()) {
-            entryProc = &currProc;
-            break;
-        }          
-    }
-   
-    // If __exit procedure exists, the first instruction in it is set
-    // as an exit point.
-    for(int i = 0; i < program.procedureCount(); i++) {
-        Procedure &currProc = program.procedure(i);
-        if (currProc.name() == "__exit") {
-   	        instructionMemory_->instructionAt(
-                currProc.firstInstruction().address().location()).setExitPoint(
-                    true);
-            automaticFinishImpossible_ = false;
-       }
-    }
-
-    if (entryProc == NULL)
-        throw IllegalProgram(
-            __FILE__, __LINE__, __func__,
-            "The entry point of the program does not point to a procedure.");
-        
-    const int delaySlots = machine.controlUnit()->delaySlots();
-    // check instructions of entry procedure if they are "ra ->jump.1"
-    for (InstructionAddress i = entryProc->startAddress().location(); 
-         i < entryProc->endAddress().location(); i++) {
-        
-        const Instruction& currInstr = program.instructionAt(i);
-
-        // check if the instruction has a return move
-        for (int m = 0; m < currInstr.moveCount(); ++m) {
-
-            const Move& currMove = currInstr.move(m);
-
-            if (currMove.isReturn()) {
-
-                // set an exit point at the return + delay slots to allow
-                // executing the delay slot code of the final return
-                if (i + machine.controlUnit()->delaySlots() <=
-                    entryProc->endAddress().location()) {
-                    instructionMemory_->instructionAt(i + delaySlots).
-                        setExitPoint(true);
-                    automaticFinishImpossible_ = false;
-                }
-                break; // check the next instruction
-            }
-        }
-    }
-
-    /*  In case the last instruction of the first procedure is *not*
-        a jump and it's the last procedure in the program, set it as an exit 
-        point too (after executing the instruction we should stop simulation
-        because there's nothing sensible to execute next). This is to allow
-        simulating some obscure assembler programs that do not loop
-        forever but just fall through the first procedure after done.
-
-        The detection in that case is done by comparing the PC+1 to
-        firstIllegalInstructionIndex_. */
-    
-    if (program.procedureCount() == 1) {
-        // such assembly programs are usually stored in one procedure
-        automaticFinishImpossible_ = false;
-    }
-    firstIllegalInstructionIndex_ = 
-        program.lastInstruction().address().location() + 1;
-}
-
-/**
- * Initializes the memory system according to the address spaces in the
- * given machine.
- *
- * @param machine Machine of which memory system to initialize.
- */
-void 
-SimulationController::initializeMemorySystem(
-    const TTAMachine::Machine& machine) {
-
-    memorySystem_ = new MemorySystem(machine);
-    // create a memory system for the loaded machine by going
-    // through all address spaces in the machine and create a memory model 
-    // for each of them, except for the one of GCU's
-    Machine::AddressSpaceNavigator nav = machine.addressSpaceNavigator();
-
-    
-    std::string controlUnitASName = "";
-    if (machine.controlUnit()->hasAddressSpace()) {
-        controlUnitASName = machine.controlUnit()->addressSpace()->name();
-    }
-
-    for (int i = 0; i < nav.count(); ++i) {
-        const AddressSpace& space = *nav.item(i);
-
-        if (space.name() == controlUnitASName)
-            continue;
-        Memory* mem = NULL;
-
-        if (directAccessMemory_) {
-            mem = new DirectAccessMemory(
-                space.start(), space.end(), space.width());
-        } else {
-            mem = new IdealSRAM(
-                space.start(), space.end(), space.width());
-        }
-            
-        // If memory tracking is enabled, memories are wrapped by a proxy
-        // that tracks memory access.
-        if (memoryTracking_) {
-            mem = new MemoryProxy(frontend(), mem);
-        }
-        memorySystem_->addAddressSpace(space, mem);
-    }
 }
 
 /**
@@ -280,17 +125,6 @@ MachineState&
 SimulationController::machineState() {
     assert(machineState_ != NULL);
     return *machineState_;
-}
-
-/**
- * Returns a reference to the memory system.
- *
- * @return A reference to the memory system.
- */
-MemorySystem&
-SimulationController::memorySystem() {
-    assert(memorySystem_ != NULL);
-    return *memorySystem_;
 }
 
 /**
@@ -514,22 +348,6 @@ SimulationController::runUntil(UIntWord address)
 }
 
 /**
- * Get ready to return control to the client.
- *
- * Functions name is has "prepare" in its name even though it always
- * is able to stop the simulation. The reason for this is that it does not
- * stop the simulation in the middle of simulating a clock cycle, but after
- * the current clock cycle is simulated.
- *
- * @param reason The reason why simulation should be stopped.
- */
-void
-SimulationController::prepareToStop(StopReason reason) {
-    stopRequested_ = true;
-    stopReasons_.insert(reason);
-}
-
-/**
  * Builds the FU resource conflict detectors for each FU in the given machine.
  *
  * Uses the "lazy FSA" detection model.
@@ -549,6 +367,19 @@ SimulationController::buildFUResourceConflictDetectors(
             new FSAFUResourceConflictDetector(fu);
         fuConflictDetectors_[fu.name()] = detector;
         conflictDetectorVector_.push_back(detector);
+    }
+}
+
+void 
+SimulationController::findExitPoints(
+    const TTAProgram::Program& program,
+    const TTAMachine::Machine& machine) {
+    std::set<InstructionAddress> exitPoints_ = findProgramExitPoints(
+        program, machine);
+    
+    for (std::set<InstructionAddress>::iterator it = exitPoints_.begin(); 
+         it != exitPoints_.end(); ++it) {
+             instructionMemory_->instructionAt(*it).setExitPoint(true);
     }
 }
 
@@ -610,74 +441,6 @@ SimulationController::programCounter() const {
 }
 
 /**
- * Returns the address of the last executed instruction.
- *
- * @return Address of the last executed instruction.
- */
-InstructionAddress
-SimulationController::lastExecutedInstruction() const {
-    return lastExecutedInstruction_;
-}
-
-
-/**
- * Returns the count of clock cycles simulated.
- *
- * @return Count of simulated clock cycles.
- */
-ClockCycleCount
-SimulationController::clockCount() const {
-    return clockCount_;
-}
-
-/**
- * Returns the state of the simulation.
- *
- * @return The state of the simulation.
- */
-SimulationController::SimulationStatus 
-SimulationController::state() const {
-    return state_;
-}
-
-/**
- * Returns the count of stop reasons.
- *
- * @return The count of stop reasons.
- */
-unsigned int 
-SimulationController::stopReasonCount() const {
-    return stopReasons_.size();
-}
-
-/**
- * Returns the stop reason with the given index.
- *
- * @param index The wanted index.
- * @return The stop reason at the given index.
- * @exception OutOfRange If the given index is out of range.
- */
-StopReason 
-SimulationController::stopReason(unsigned int index) const 
-    throw (OutOfRange) {
-    if (index >= stopReasonCount()) {
-        throw OutOfRange(
-            __FILE__, __LINE__, __func__, "Stop reason index out of range.");
-    }
-    StopReasonContainer::const_iterator i = stopReasons_.begin();
-    unsigned int count = 0;
-    while (i != stopReasons_.end()) {
-        if (index == count) {
-            return (*i);
-        }
-        ++count;
-        ++i;
-    }
-    // dummy to stop compiler from warning
-    throw 0;
-}
-
-/**
  * Returns the instruction memory instance.
  *
  * This is mainly used by clients to fetch instruction execution counts
@@ -689,33 +452,6 @@ const InstructionMemory&
 SimulationController::instructionMemory() const {
     return *instructionMemory_;
 }
-
-/**
- * Returns the simulator frontend.
- * 
- * @return A reference to the simulator frontend.
- */
-SimulatorFrontend& 
-SimulationController::frontend() {
-    return frontend_;
-}
-
-/**
- * Returns true in case simulation cannot be finished automatically.
- *
- * In order for this method to return false, it means that while initializing
- * the SimulationController, a *probable* ending point in the program was 
- * detected and it is possible that when running the simulation it is possible 
- * to finish it automatically at that position. If this method returns true
- * it is *impossible* to finish simulation automatically.
- *
- * @return True if it's not possible to end simulation automatically.
- */
-bool
-SimulationController::automaticFinishImpossible() const {
-    return automaticFinishImpossible_;
-}
-
 
 /**
  * Returns a string containing the value(s) of the register file
@@ -733,7 +469,8 @@ SimulationController::registerFileValue(
 
     if (registerIndex >= 0) {
         stringValue += Conversion::toString(
-            frontend_.findRegister(rfName, registerIndex, sequentialSimulation_).value().intValue());
+            frontend_.findRegister(rfName, registerIndex, 
+                sequentialSimulation_).value().intValue());
     } else {
         Machine::RegisterFileNavigator navigator = 
             sourceMachine_.registerFileNavigator();
@@ -745,7 +482,8 @@ SimulationController::registerFileValue(
                 stringValue += "\n";
             const std::string registerName = 
                 rfName + "." + Conversion::toString(i);
-            SimValue value = frontend_.findRegister(rfName, i, sequentialSimulation_).value();
+            SimValue value = frontend_.findRegister(rfName, i, 
+                sequentialSimulation_).value();
             stringValue += registerName + " " + Conversion::toHexString(
                 static_cast<unsigned int>(MathTools::zeroExtendTo(
                     value.uIntWordValue(), value.width()))) + " " 

@@ -57,6 +57,7 @@
 #include "RFAccessTracker.hh"
 #include "LongImmediateUnitState.hh"
 #include "LongImmediateRegisterState.hh"
+#include "NullImmediateUnit.hh"
 
 using std::string;
 
@@ -338,23 +339,20 @@ public:
         }
         
         const std::string unitName = arguments[2].stringValue();
-        MachineState& machineState = 
-            parent().simulatorFrontend().machineState();
-        LongImmediateUnitState& unitState = 
-            machineState.longImmediateUnitState(unitName);
-
-        if (argumentCount == 1) {
-            if (&unitState == &NullLongImmediateUnitState::instance()) {
+        const TTAMachine::Machine::ImmediateUnitNavigator navigator = 
+                parent().simulatorFrontend().machine().immediateUnitNavigator();
+        if (!navigator.hasItem(unitName)) {
                 parent().interpreter()->setError(
                     SimulatorToolbox::textGenerator().text(
                         Texts::TXT_IMMEDIATE_UNIT_NOT_FOUND).str());
                 return false;                    
             }
-
+            
+        if (argumentCount == 1) {
             std::string output = "";
             bool firstReg = true;
-            for (int i = 0; i < unitState.immediateRegisterCount(); 
-                 ++i) {
+            
+            for (int i = 0; i < navigator.count(); ++i) {
 
                 if (!firstReg) 
                     output += "\n";
@@ -373,14 +371,6 @@ public:
             return true;
 
         } else if (argumentCount == 2) {
-
-            if (&unitState == &NullLongImmediateUnitState::instance()) {
-                parent().interpreter()->setError(
-                    SimulatorToolbox::textGenerator().text(
-                        Texts::TXT_IMMEDIATE_UNIT_NOT_FOUND).str());
-                return false;                    
-            }
-            
             // prints out the register in the given register file
             if (!parent().checkPositiveIntegerArgument(arguments[3])) {
                 return false;
@@ -391,7 +381,7 @@ public:
                     immediateUnitRegisterValue(unitName, registerIndex);
                 parent().interpreter()->setResult(value.intValue());
                 return true;     
-            } catch (const OutOfRange&) {
+            } catch (const Exception& e) {
                 parent().interpreter()->setError(
                     SimulatorToolbox::textGenerator().text(
                         Texts::TXT_REGISTER_NOT_FOUND).str());
@@ -665,8 +655,6 @@ public:
             return false;
         }
 
-        MachineState& state = parent().simulatorFrontend().machineState();
-
         if (argumentCount == 1) {
             std::string result = "";
             bool isFirst = true;
@@ -685,16 +673,17 @@ public:
             return true;
         } else if (argumentCount == 2) {
             const std::string portName = arguments.at(3).stringValue();
-            PortState& data = state.portState(portName, functionUnit);
-            if (&data == &NullPortState::instance()) {
+
+            SimValue portValue;
+            try {
+                portValue = parent().simulatorFrontend().FUPortValue(
+                functionUnit, portName);
+            } catch (const Exception& e) {
                 parent().interpreter()->setError(
                     SimulatorToolbox::textGenerator().text(
                         Texts::TXT_FUPORT_NOT_FOUND).str());
                 return false;
             }
-
-            SimValue portValue = parent().simulatorFrontend().FUPortValue(
-                functionUnit, portName);
 
             // @todo printing of double values (size > 32)
             parent().interpreter()->setResult(portValue.intValue());

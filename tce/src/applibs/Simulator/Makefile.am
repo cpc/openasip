@@ -34,7 +34,7 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	ConflictDetectingOperationExecutor.cc MemoryProxy.cc \
 	MultiLatencyOperationExecutor.cc SymbolAddressCommand.cc \
 	CompiledSimCodeGenerator.cc CompiledSimController.cc \
-	CompiledSimCompiler.cc \
+	CompiledSimCompiler.cc TTASimulationController.cc \
         CompiledSimulation.cc AssignmentQueue.cc \
 	SymbolGenerator.cc ConflictDetectionCodeGenerator.cc \
 	CompiledSimMove.cc CompiledSimInterpreter.cc CompiledSimSettingCommand.cc

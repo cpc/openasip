@@ -401,7 +401,7 @@ MachineStateBuilder::addVirtualOpcodeSettingPortsToFU(
                     }
 
                     bool conflictDetection = false;
-                    if (detectors_ != NULL && FUNeedsConflictDetection(unit)) {
+                    if (detectors_ != NULL && unit.needsConflictDetection()) {
                         FUConflictDetectorIndex::iterator detectorI =
                             detectors_->find(unit.name());
 
@@ -675,32 +675,4 @@ MachineStateBuilder::bindPortsToOperands(
             throw IllegalMachine(__FILE__, __LINE__, __func__, msg);
         }
     }
-}
-
-/**
- * Checks if all the operations in the FU have the same latency and there are 
- * no shared resources.
- * 
- * @return True if the FU needs conflict detection
- */
-bool 
-MachineStateBuilder::FUNeedsConflictDetection(FunctionUnit& unit) const {
-        
-    if (unit.operationCount() == 0) {
-        return false;
-    }
-    
-    // same latency for all FUs?
-    const int latency = unit.operation(0)->latency();    
-    for (int i = 1; i < unit.operationCount(); ++i) {
-        if (latency != unit.operation(i)->latency()) {
-            return true;
-        }
-    }
-    
-    if (unit.pipelineElementCount() == 0) {
-        return false;
-    }      
-    
-    return true;
 }

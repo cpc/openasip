@@ -92,6 +92,8 @@ public:
     virtual bool isArchitectureEqual(
         const FunctionUnit* fu, const bool checkPortWidths = true) const;
 
+    bool needsConflictDetection() const;
+
     /// ObjectState name for function unit.
     static const std::string OSNAME_FU;
     /// ObjectState attribute key for name of the address space.

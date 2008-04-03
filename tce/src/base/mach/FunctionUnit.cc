@@ -773,6 +773,35 @@ FunctionUnit::isArchitectureEqual(
 
 
 /**
+ * Checks if all the operations in the FU have the same latency and there are 
+ * no shared resources.
+ * 
+ * @return True if the FU needs conflict detection
+ */
+bool 
+FunctionUnit::needsConflictDetection() const {
+        
+    if (operationCount() == 0) {
+        return false;
+    }
+    
+    // same latency for all operations?
+    const int latency = operation(0)->latency();
+    for (int i = 1; i < operationCount(); ++i) {
+        if (latency != operation(i)->latency()) {
+            return true;
+        }
+    }
+    
+    if (pipelineElementCount() == 0) {
+        return false;
+    }
+    
+    return true;
+}
+
+
+/**
  * Cleans up the guards that refer to a port of this function unit.
  */
 void

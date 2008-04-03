@@ -12,7 +12,7 @@
 
 #include "Listener.hh"
 
-class SimulationController;
+class TTASimulationController;
 class ExecutionTrace;
 
 /**
@@ -23,7 +23,7 @@ class ExecutionTrace;
 class ExecutionTracker : public Listener {
 public:
     ExecutionTracker(
-        SimulationController& subject, 
+        TTASimulationController& subject, 
         ExecutionTrace& traceDB);
     virtual ~ExecutionTracker();
 
@@ -31,7 +31,7 @@ public:
     
 private:
     /// the tracked SimulationController instance
-    SimulationController& subject_;
+    TTASimulationController& subject_;
     /// the trace database to store the trace to
     ExecutionTrace& traceDB_;
 };

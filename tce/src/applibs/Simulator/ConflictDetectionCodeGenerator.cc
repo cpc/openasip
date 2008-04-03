@@ -84,8 +84,12 @@ ConflictDetectionCodeGenerator::ConflictDetectionCodeGenerator(
         machine_.functionUnitNavigator();
     for (int i = 0; i < fus.count(); ++i) {
         const FunctionUnit& fu = *fus.item(i);
-        conflictDetectors_[fu.name()] =
-            SymbolGenerator::conflictDetectorSymbol(fu);
+        if (!fu.needsConflictDetection()) { // no need for conflict detection?
+            continue;
+        } else {
+            conflictDetectors_[fu.name()] =
+                SymbolGenerator::conflictDetectorSymbol(fu);
+        }
     }
 }
 

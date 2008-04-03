@@ -47,8 +47,7 @@ namespace TTAProgram {
 }
 
 class SimulatorFrontend;
-class SimulationController;
-
+class TTASimulationController;
 
 
 /**
@@ -67,7 +66,7 @@ public:
     CompiledSimCodeGenerator(
         const TTAMachine::Machine& machine,
         const TTAProgram::Program& program,
-        const SimulationController& controller,
+        const TTASimulationController& controller,
         bool sequentialSimulation,
         bool fuResourceConflictDetection);
 
@@ -124,7 +123,7 @@ private:
     /// The simulated program
     const TTAProgram::Program& program_;
     /// The simulator frontend
-    const SimulationController& simController_;    
+    const TTASimulationController& simController_;
     /// GCU
     const TTAMachine::ControlUnit& gcu_;
     
@@ -163,6 +162,8 @@ private:
     std::string lastGuardBool_;
     /// Temporary list of the used guard bool symbols per instruction
     std::map<std::string, std::string> usedGuardSymbols_;
+    /// Program exit point addresses
+    std::set<InstructionAddress> exitPoints_;
 
     /// The basic block map referred by start of the block as a key
     mutable BasicBlocks bbStarts_;

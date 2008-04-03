@@ -221,7 +221,7 @@ protected:
     MachineState* machineState_;
     /// If simulation is initialized, this contains a pointer to the
     /// simulation controller.
-    SimulationController* simCon_;
+    TTASimulationController* simCon_;
     /// Is the machine owned by SimulatorFrontend or by the client?
     bool machineOwnedByFrontend_;
     /// Program to be simulated.

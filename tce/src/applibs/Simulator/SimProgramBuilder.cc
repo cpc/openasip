@@ -468,8 +468,7 @@ SimProgramBuilder::build(
                            "(with moves %s): %s") 
              % currentInstruction->address().location()
              % POMDisassembler::disassemble(*currentInstruction) 
-             % e.errorMessage()).
-            str());
+             % e.errorMessage()).str());
     }
 
     return memory;

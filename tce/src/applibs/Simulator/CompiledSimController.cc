@@ -34,7 +34,7 @@ using namespace TTAMachine;
 CompiledSimController::CompiledSimController(
     SimulatorFrontend& frontend, const TTAMachine::Machine& machine, 
     const TTAProgram::Program& program) : 
-    SimulationController(frontend, machine, program, false, false, true),
+    TTASimulationController(frontend, machine, program, false, true),
     pluginTools_(true), compiledSimulationPath_(""), leaveDirty_(false) {
     reset();
 }
@@ -396,8 +396,7 @@ CompiledSimController::registerFileValue(
 SimValue
 CompiledSimController::immediateUnitRegisterValue(
 const std::string& iuName, int index) {
-    return compiledSimulation()->immediateUnitRegisterValue(
-        iuName, index);
+    return compiledSimulation()->immediateUnitRegisterValue(iuName, index);
 }
 
 /**

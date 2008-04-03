@@ -10,7 +10,7 @@
 #include "ExecutionTracker.hh"
 #include "ExecutionTrace.hh"
 #include "Application.hh"
-#include "SimulationController.hh"
+#include "TTASimulationController.hh"
 #include "SimulatorToolbox.hh"
 #include "SimulationEventHandler.hh"
 #include "SimulatorFrontend.hh"
@@ -24,7 +24,7 @@
  *                for writing.
  */
 ExecutionTracker::ExecutionTracker(
-    SimulationController& subject,
+    TTASimulationController& subject,
     ExecutionTrace& traceDB) : Listener(),
     subject_(subject), traceDB_(traceDB) {
     subject.frontend().eventHandler().registerListener(

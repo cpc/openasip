@@ -15,7 +15,7 @@
 #include <cstdlib>
 
 #include "SimulatorFrontend.hh"
-#include "SimulationController.hh"
+#include "TTASimulationController.hh"
 #include "CompiledSimCodeGenerator.hh"
 #include "Machine.hh"
 #include "FunctionUnit.hh"
@@ -24,7 +24,6 @@
 #include "Program.hh"
 #include "Procedure.hh"
 #include "Instruction.hh"
-#include "InstructionMemory.hh"
 #include "ExecutableInstruction.hh"
 #include "NullInstruction.hh"
 #include "NullRegisterFile.hh"
@@ -69,7 +68,7 @@ using std::vector;
 CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     const TTAMachine::Machine& machine,
     const TTAProgram::Program& program,
-    const SimulationController& controller,
+    const TTASimulationController& controller,
     bool sequentialSimulation,
     bool fuResourceConflictDetection) :
     machine_(machine), program_(program), simController_(controller),
@@ -117,17 +116,24 @@ CompiledSimCodeGenerator::generateMakefile() {
         targetDirectory_ + FileSystem::DIRECTORY_SEPARATOR + "Makefile";
 
     std::ofstream makefile(fileName.c_str());
+    std::vector<std::string> includePaths = Environment::includeDirPaths();
+    std::string includes;
+    for (std::vector<std::string>::iterator it = includePaths.begin(); 
+        it != includePaths.end(); ++it) {
+        includes += "-I" + *it + " ";
+    }
 
     makefile 
         << "sources = $(wildcard *.cpp)" << endl
         << "objects = $(patsubst %.cpp,%.o,$(sources))" << endl
         << "dobjects = $(patsubst %.cpp,%.so,$(sources))" << endl
-        << "includes = $(shell tce-config --includes)" << endl
+        << "includes = " << includes << endl
         << "soflags = -shared -fpic" << endl 
             
         // use because ccache doesn't like changing directory paths
         // (in a preprocessor comment)
-        << "cppflags = -fno-working-directory -fno-enforce-eh-specs -fno-threadsafe-statics -fno-access-control" << endl << endl
+        << "cppflags = -fno-working-directory -fno-enforce-eh-specs -fno-rtti "
+        << "-fno-threadsafe-statics -fno-access-control" << endl << endl
         
         << "all: engine.so" << endl << endl
 
@@ -141,14 +147,15 @@ CompiledSimCodeGenerator::generateMakefile() {
 
         // compile and link phases separately to allow distributed compilation
         // thru distcc
-        << "\t$(CC) -c $(soflags) $(cppflags) $(opt_flags) -fvisibility-inlines-hidden -fno-rtti $(includes) $< -o $@.o" << endl
+        << "\t$(CC) -c $(soflags) $(cppflags) $(opt_flags) $(includes) $< -o $@.o" << endl
         << "\t$(CC) $(soflags) $(opt_flags) -lgcc $@.o -o $@" << endl
         << "\t@rm -f $@.so.o" << endl
         << endl
             
         // use precompiled headers for more speed
         << "CompiledSimulationEngine.hh.gch:" << endl
-        << "\t$(CC) $(soflags) $(cppflags) $(opt_flags) $(includes) CompiledSimulationEngine.hh" << endl
+        << "\t$(CC) $(soflags) $(cppflags) $(opt_flags) $(includes) "
+        << "-xc++-header CompiledSimulationEngine.hh" << endl
         << endl
             
         << "clean:" << endl
@@ -202,26 +209,22 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     *os_ << "// " << fileName_ << " Generated automatically by ttasim" << endl
          << "#ifndef _AUTO_GENERATED_COMPILED_SIMULATION_H_" << endl
          << "#define _AUTO_GENERATED_COMPILED_SIMULATION_H_" << endl
-         << "#include \"tce/SimValue.hh\"" << endl
-         << "#include \"tce/Program.hh\"" << endl
-         << "#include \"tce/MemorySystem.hh\"" << endl
-         << "#include \"tce/DirectAccessMemory.hh\"" << endl
-         << "#include \"tce/SimulationEventHandler.hh\"" << endl
+         << "#include \"SimValue.hh\"" << endl
+         << "#include \"Program.hh\"" << endl
+         << "#include \"MemorySystem.hh\"" << endl
+         << "#include \"DirectAccessMemory.hh\"" << endl
+         << "#include \"SimulationEventHandler.hh\"" << endl
          << "#include \"SimulatorFrontend.hh\"" << endl
-         << "#include \"tce/OSAL.hh\"" << endl
-         << "#include \"tce/Operation.hh\"" << endl
-         << "#include \"tce/OperationPool.hh\"" << endl
-         << "#include \"tce/OperationContext.hh\"" << endl
-         << "#include \"tce/Conversion.hh\"" << endl
-         << "#include \"tce/Exception.hh\"" << endl
-         << "#include \"tce/CompiledSimulation.hh\"" << endl
-         << "#include \"tce/Instruction.hh\"" << endl 
+         << "#include \"OSAL.hh\"" << endl
+         << "#include \"Operation.hh\"" << endl
+         << "#include \"OperationPool.hh\"" << endl
+         << "#include \"OperationContext.hh\"" << endl
+         << "#include \"Conversion.hh\"" << endl
+         << "#include \"Exception.hh\"" << endl
+         << "#include \"CompiledSimulation.hh\"" << endl
+         << "#include \"Instruction.hh\"" << endl 
          << conflictDetectionGenerator_.includes() << endl
-         << "#include <iostream>" << endl
          << "#include <map>" << endl
-         << endl
-         << "using std::cout;" << endl
-         << "using std::endl;" << endl
          << endl;
     
     // Open up class declaration and define some extra member variables
@@ -415,6 +418,8 @@ void
 CompiledSimCodeGenerator::generateSimulationCode() {
     
     findBasicBlocks();
+    
+    exitPoints_ = simController_.findProgramExitPoints(program_, machine_);
 
     // generate code for all procedures
     for (int i = 0; i < program_.procedureCount(); ++i) {
@@ -466,8 +471,8 @@ CompiledSimCodeGenerator::findBasicBlocks() const {
  * @exception InstanceNotFound if the first instruction wasn't found
  */
 void
-CompiledSimCodeGenerator::generateProcedureCode(const Procedure& proc) {        
-    const Instruction* instruction = &proc.firstInstruction();   
+CompiledSimCodeGenerator::generateProcedureCode(const Procedure& proc) {
+    const Instruction* instruction = &proc.firstInstruction();
     while (instruction != &NullInstruction::instance()) {
         generateInstruction(*instruction);
         instruction = &(proc.nextInstruction(*instruction));
@@ -729,15 +734,7 @@ CompiledSimCodeGenerator::handleOperationOld(
            << ".simulateTrigger(operandTable_, "
            << SymbolGenerator::operationContextSymbol(*op.parentUnit())
            << "); ";
-        
-        // Call lateResult() for memory accessing operations
-        if (operationPool_.operation(op.name()).readsMemory()) {
-            ss << SymbolGenerator::operationSymbol(op.name(), *op.parentUnit())
-               << ".lateResult(operandTable_, "
-               << SymbolGenerator::operationContextSymbol(*op.parentUnit())
-               << "); ";
-        }
-        
+               
         // add output values as delayed assignments
         for (int i = 1; op.port(i) != NULL; ++i) {
             if (op.port(i)->isOutput()) {
@@ -1005,9 +1002,9 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     // No operation?
     //if (instruction.moveCount() == 0 && instruction.immediateCount() == 0) {
         //ss << "cout << \" NOP \" << endl;" << endl;
-    //}        
+    //}
 
-#ifdef DEBUG_SIMULATION    
+#ifdef DEBUG_SIMULATION
     *os_ << "lastExecutedInstruction_ = programCounter_;" << endl;
     *os_ << "programCounter_++;" << endl;
     *os_ << "frontend().eventHandler().handleEvent(SimulationEventHandler::SE_CYCLE_END);" << endl;    
@@ -1017,9 +1014,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     BasicBlocks::iterator bbEnd = bbEnds_.find(address);
     
     // generate exit code if this is a return instruction
-    const InstructionMemory& instrMem = simController_.instructionMemory();
-    const ExecutableInstruction& instr = instrMem.instructionAtConst(address);
-    if (instr.isExitPoint()) {
+    if (exitPoints_.find(address) != exitPoints_.end()) {
         generateShutdownCode(address);
     }
 
@@ -1157,7 +1152,7 @@ CompiledSimCodeGenerator::generateLoadTrigger(
     string MAUSize = Conversion::toString(fu.addressSpace()->width());
     string method;
     string extensionMode="SIGN_EXTEND";
-    string lateResultSignExtend;
+    string resultSignExtend;
     
     if (op.name() == "ldqu" || op.name() == "ldhu") {
         extensionMode = "ZERO_EXTEND";
@@ -1165,11 +1160,11 @@ CompiledSimCodeGenerator::generateLoadTrigger(
     
     if (op.name() == "ldq" || op.name() == "ldqu") {
         method = "fastReadMAU";
-        lateResultSignExtend = "read_data_tmp = " + extensionMode 
+        resultSignExtend = "read_data_tmp = " + extensionMode 
             + "(read_data_tmp, " + MAUSize + ");";
     } else if (op.name() == "ldh" || op.name() == "ldhu") {
         method = "fastRead2MAUs";
-        lateResultSignExtend = "read_data_tmp = " + extensionMode 
+        resultSignExtend = "read_data_tmp = " + extensionMode 
             + "(read_data_tmp, (" + MAUSize + "*2));";
     } else if (op.name() == "ldw") {
         method = "fastRead4MAUs";
@@ -1178,7 +1173,7 @@ CompiledSimCodeGenerator::generateLoadTrigger(
     ss << " { static UIntWord read_data_tmp; " << memory + "." << method << "("
        << address << ", read_data_tmp); ";
 
-    ss << lateResultSignExtend << " ";
+    ss << resultSignExtend << " ";
 
     ss << "addFUResult(" << SymbolGenerator::FUResultSymbol(*op.port(2)) 
        << ", " << "cycleCount_, read_data_tmp, " << op.latency() << "); }";

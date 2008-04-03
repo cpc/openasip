@@ -604,12 +604,13 @@ SimulatorFrontend::initializeSimulation() {
         simCon_ = new SimulationController(*this,
         *currentMachine_, *currentProgram_, fuResourceConflictDetection_,
         memoryAccessTracking_);
+        machineState_ = &(dynamic_cast<SimulationController*>(
+            simCon_)->machineState());
+        
+        delete stopPointManager_;
+        stopPointManager_ = new StopPointManager(
+        *dynamic_cast<SimulationController*>(simCon_), eventHandler());
     }
-
-    machineState_ = &simCon_->machineState();
-    delete stopPointManager_;
-    stopPointManager_ = new StopPointManager(
-        *simCon_, eventHandler());
 }
 
 /**
@@ -672,7 +673,6 @@ SimValue
 SimulatorFrontend::immediateUnitRegisterValue(
     const std::string& iuName, int index) {
     assert(currentMachine_ != NULL);
-    assert(machineState_ != NULL);
 
     return simCon_->immediateUnitRegisterValue(iuName, index);
 }
@@ -688,7 +688,6 @@ SimValue
 SimulatorFrontend::FUPortValue(
     const std::string& fuName, const std::string& portName) {
     assert(currentMachine_ != NULL);
-    assert(machineState_ != NULL);
 
     return simCon_->FUPortValue(fuName, portName);
 }
@@ -1034,7 +1033,8 @@ SimulatorFrontend::disassembleInstruction(UIntWord instructionAddress) const {
 
     const Instruction& theInstruction =
         currentProgram_->instructionAt(instructionAddress);
-    const Procedure& currentProc = dynamic_cast<const Procedure&>(theInstruction.parent());
+    const Procedure& currentProc = dynamic_cast<const Procedure&>(
+        theInstruction.parent());
 
     bool firstInstructionInProcedure = 
         (currentProc.startAddress().location() == instructionAddress);
@@ -1401,7 +1401,7 @@ SimulatorFrontend::initializeTracing()
 
         if (rfAccessTracing_) {
             rfAccessTracker_ = new RFAccessTracker(
-                *this, simCon_->instructionMemory());
+                *this, dynamic_cast<SimulationController*>(simCon_)->instructionMemory());
         }
         if (procedureTransferTracing_) {
             assert(traceDB_ != NULL);
@@ -1569,7 +1569,7 @@ SimulatorFrontend::finishSimulation() {
 
             // save the instruction execution counts (profile data)
             const InstructionMemory& instructions = 
-                simCon_->instructionMemory();
+                dynamic_cast<SimulationController*>(simCon_)->instructionMemory();
 
             InstructionAddress firstAddress = 
                 InstructionAddress(currentProgram_->startAddress().location());
@@ -1948,7 +1948,8 @@ SimulatorFrontend::utilizationStatistics() {
     if (utilizationStats_ == NULL) {
         utilizationStats_ = new UtilizationStats();
         SimulationStatistics stats(
-            *currentProgram_, simCon_->instructionMemory());
+            *currentProgram_, dynamic_cast<SimulationController*>(
+                simCon_)->instructionMemory());
         stats.addStatistics(*utilizationStats_);
         stats.calculate();
     }
@@ -1964,7 +1965,8 @@ SimulatorFrontend::utilizationStatistics() {
 const ExecutableInstruction&
 SimulatorFrontend::lastExecInstruction() const {
     assert(simCon_ != NULL);
-    const InstructionMemory& memory = simCon_->instructionMemory();
+    const InstructionMemory& memory = dynamic_cast<SimulationController*>(
+        simCon_)->instructionMemory();
     return memory.instructionAtConst(lastExecutedInstruction());
 }
 
@@ -1979,7 +1981,8 @@ SimulatorFrontend::executableInstructionAt(
     InstructionAddress address) const {
 
     assert(simCon_ != NULL);
-    const InstructionMemory& memory = simCon_->instructionMemory();
+    const InstructionMemory& memory = dynamic_cast<SimulationController*>(
+        simCon_)->instructionMemory();
     return memory.instructionAtConst(address);
 }
 

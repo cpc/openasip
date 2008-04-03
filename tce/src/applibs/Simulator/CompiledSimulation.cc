@@ -206,7 +206,8 @@ SimValue
 CompiledSimulation::immediateUnitRegisterValue(
     const std::string& iuName, int index) {  
     ImmediateUnit& iu = *machine_.immediateUnitNavigator().item(iuName);
-    std::string immediateUnit = SymbolGenerator::portSymbol(*iu.port(index));
+    std::string immediateUnit = SymbolGenerator::immediateRegisterSymbol(
+        iu, index);
     
     Symbols::iterator iuIterator = symbols_.find(immediateUnit);
     if (iuIterator != symbols_.end()) {
