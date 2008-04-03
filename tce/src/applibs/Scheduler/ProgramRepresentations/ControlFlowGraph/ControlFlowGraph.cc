@@ -86,7 +86,8 @@ ControlFlowGraph::~ControlFlowGraph() {
  */
 
 ControlFlowGraph::ControlFlowGraph(
-    const TTAProgram::Procedure& procedure) :
+    const TTAProgram::Procedure& procedure) : 
+    BoostGraph<BasicBlockNode, ControlFlowEdge>(procedure.name()),
     program_(&TTAProgram::NullProgram::instance()),
     startAddress_(TTAProgram::NullAddress::instance()),
     endAddress_(TTAProgram::NullAddress::instance()) {

@@ -43,7 +43,9 @@ ControlDependenceGraph::~ControlDependenceGraph() {
  */
 
 ControlDependenceGraph::ControlDependenceGraph(
-    const ControlFlowGraph& cGraph)  :
+    const ControlFlowGraph& cGraph)  : 
+    BoostGraph<ControlDependenceNode, ControlDependenceEdge>(
+        cGraph.name()) , 
     startAddress_(TTAProgram::NullAddress::instance()) {
     
     program_ = cGraph.program();
