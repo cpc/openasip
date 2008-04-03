@@ -397,12 +397,22 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     
     for (int i = 0; i < fus.count(); i++) {
         const FunctionUnit& fu = *fus.item(i);
-        // Create state for each operation
+        std::string context = SymbolGenerator::operationContextSymbol(fu);
+        // Create a state for each operation
         for (int j = 0; j < fu.operationCount(); ++j) {
-            *os_ << "\t" << SymbolGenerator::operationSymbol(fu.operation(j)->name(), fu)
-                << ".createState(" << SymbolGenerator::operationContextSymbol(fu) << ");"
+            std::string operation = SymbolGenerator::operationSymbol(
+                fu.operation(j)->name(), fu);
+            
+            *os_ << "\t" << operation
+                << ".createState(" << context << ");"
                 << endl;
         }
+
+        // Set a Memory for the context
+        if (fu.addressSpace() != NULL) {
+                 *os_ << "\t" << context << ".setMemory(&" 
+                      << SymbolGenerator::DAMemorySymbol(fu) << ");" << endl;
+            }
     }
     
     generateJumpTableCode();
