@@ -142,8 +142,6 @@ DataDependenceGraphBuilder::build(
     ControlFlowGraph& cfg, const UniversalMachine* um) {
     singleBBMode_ = false;
 
-//    std::cout << "Procedure: " << cfg.procedureName() << std::endl;
-
     // @TODO: when CFG subgraphs are in use, 2nd param not always true
     DataDependenceGraph* ddg = new DataDependenceGraph(
         cfg.procedureName(), true);
@@ -190,14 +188,8 @@ DataDependenceGraphBuilder::build(
 
         // construct or update BB
         if (bbd.constructed_) {
-//            std::cout << "updating BB at: " << reinterpret_cast<int>
-//                (&bbd) << std::endl;
             updateBB(bbd);
         } else {
-//            std::cout << "creating BB at: " << reinterpret_cast<int>
-//                (&bbd) << ", data at:" << 
-//                reinterpret_cast<int>(&bbd) << std::endl;                
-
             constructIndividualBB(bbd);
         }
         // mark as ready
@@ -247,10 +239,8 @@ bool DataDependenceGraphBuilder::appendUseMapSets(
         AssocTools::append(srcSet, dstSet);
         // if size has changed, dest is changed.
         if (dstSet.size() > size) {
-//            std::cout << "\t\tSomething changed due reg:" << reg << std::endl;
             for (RegisterUseSet::iterator i = dstSet.begin();
                  i != dstSet.end(); i++) {
-//                std::cout << "\t\t\t" << i->mn_->toString() << std::endl;
             }
             changed = true;
         }
@@ -275,16 +265,9 @@ void DataDependenceGraphBuilder::setSucceedingPredeps(
          succIter != successors.end(); succIter++) {
         BasicBlockNode* succ = *succIter;
         BBData& succData = *bbData_[succ];
-//        std::cout << "Updating successor: "
-//                  << reinterpret_cast<int> (&succData) << std::endl;
-//        std::cout << "\tCopying reg def after to def reaches.." << 
-//                std::endl;
         bool changed = appendUseMapSets(
             bbd.regDefAfter_, succData.regDefReaches_);
-
-//            std::cout << "\tCopying reg use after to use reaches.." <<
-//                std::endl;
-            
+        
         changed |= appendUseMapSets(bbd.regUseAfter_, succData.regUseReaches_);
 
         // mem deps + fu state deps
@@ -305,8 +288,6 @@ void DataDependenceGraphBuilder::setSucceedingPredeps(
             succData.memUseReaches_.size() + 
             succData.fuDepReaches_.size() > size) {
             changed = true;
-//            std::cout << "\t\tSuccessor changed due mem deps!" << 
-//                std::endl;
         }
         // need to queue successor for update?
         if (changed || queueAll) {
@@ -327,8 +308,6 @@ void DataDependenceGraphBuilder::setSucceedingPredeps(
   */
 void
 DataDependenceGraphBuilder::updateBB(BBData& bbd) {
-//    std::cout << "Running updateBB for:" << 
-//        reinterpret_cast<int>(&bbd) << std::endl;                
     currentData_ = &bbd;
     currentBB_ = bbd.bblock_;
 
@@ -336,12 +315,9 @@ DataDependenceGraphBuilder::updateBB(BBData& bbd) {
     for (RegisterUseMapSet::iterator firstUseIter = bbd.regFirstUses_.begin();
          firstUseIter != bbd.regFirstUses_.end(); firstUseIter++) {
         std::string reg = firstUseIter->first;
-//        std::cout << "\t\tfirst use of reg: " << reg << std::endl;
         std::set<MNData2>& firstUseSet = firstUseIter->second;
         for (std::set<MNData2>::iterator iter2 = firstUseSet.begin();
              iter2 != firstUseSet.end(); iter2++) {
-//            std::cout << "\t\t\tfirst use: " << iter2->mn_->toString()
-//                      << std::endl;
             updateRegUse(*iter2, reg);
         }
     }
@@ -351,7 +327,6 @@ DataDependenceGraphBuilder::updateBB(BBData& bbd) {
              bbd.regFirstDefines_.begin();
          firstDefineIter != bbd.regFirstDefines_.end(); firstDefineIter++) {
         std::string reg = firstDefineIter->first;
-//        std::cout << "\t\tfirst define: " << reg << std::endl;
         std::set<MNData2>& firstDefineSet = firstDefineIter->second;
         for (std::set<MNData2>::iterator iter2 = firstDefineSet.begin();
              iter2 != firstDefineSet.end(); iter2++) {
@@ -362,19 +337,16 @@ DataDependenceGraphBuilder::updateBB(BBData& bbd) {
     // then memory deps.. use
     for (RegisterUseSet::iterator firstUseIter = bbd.memFirstUses_.begin();
          firstUseIter != bbd.memFirstUses_.end(); firstUseIter++) {
-//        std::cout << "\t\t mem use(raw)?" << std::endl;
         updateMemUse(*firstUseIter);
     }
     // and defs for memory antideps
     for (RegisterUseSet::iterator firstDefIter = bbd.memFirstDefines_.begin();
          firstDefIter != bbd.memFirstDefines_.end(); firstDefIter++) {
-//        std::cout << "\t\t mem def(war/waw)?" << std::endl;
         updateMemWrite(*firstDefIter);
     }
     // and fu state deps
     for (RegisterUseSet::iterator iter = bbd.fuDeps_.begin();
          iter != bbd.fuDeps_.end(); iter++) {
-//        std::cout << "\t\t fudep?" << std::endl;
         Terminal& dest = iter->mn_->move().destination();
         TerminalFUPort& tfpd = dynamic_cast<TerminalFUPort&>(dest);
         Operation &dop = tfpd.hintOperation();
@@ -476,9 +448,6 @@ DataDependenceGraphBuilder::constructIndividualBB()
 
 bool DataDependenceGraphBuilder::updateAliveAfter(BBData& bbd) {
     bool changed = false;
-//    std::cout << "Updating alive after" << std::endl;
-
-//    std::cout << "\tCopying reg def reaches to def afters" << std::endl;
     // copy reg definitions that are alive
     for (RegisterUseMapSet::iterator iter =
              bbd.regDefReaches_.begin(); iter != bbd.regDefReaches_.end(); 
@@ -488,25 +457,22 @@ bool DataDependenceGraphBuilder::updateAliveAfter(BBData& bbd) {
         // todo: clear or not?
         std::set<MNData2>& defAfter = bbd.regDefAfter_[reg];
         size_t size = defAfter.size();
-
+        
+        // only copy incomin dep if this has no unconditional writes
         if (bbd.regKills_.find(reg) == bbd.regKills_.end()) {
             for (std::set<MNData2>::iterator i = preDefs.begin();
                  i != preDefs.end(); i++ ) {
                 defAfter.insert(*i);
             }
-        } else {
-//            std::cout << "\t\tkill to reg " << reg << std::endl;
-        }
+        } 
         // if size increased, the data has changed
         if (size < defAfter.size()) {
             changed = true;
         }
     }
     // own deps. need to do only once but now does after every.
-//    std::cout << "\tCopying own reg defs to def afters" << std::endl;
     changed |= appendUseMapSets(bbd.regDefines_, bbd.regDefAfter_);
 
-//    std::cout << "\tCopying reg use reaches to use afters" << std::endl;
     // copy uses that are alive
     for (RegisterUseMapSet::iterator iter =
              bbd.regUseReaches_.begin(); iter != bbd.regUseReaches_.end(); 
@@ -528,7 +494,6 @@ bool DataDependenceGraphBuilder::updateAliveAfter(BBData& bbd) {
     }
 
     // own deps. need to do only once but now does after every.
-//    std::cout << "\tCopying own reg uses to use afters" << std::endl;
     changed |= appendUseMapSets(bbd.regLastUses_, bbd.regUseAfter_);
 
     // mem deps and fu state deps
@@ -537,12 +502,10 @@ bool DataDependenceGraphBuilder::updateAliveAfter(BBData& bbd) {
         bbd.fuDepAfter_.size();
     // no killing write? then copy pre-deps.
     if (bbd.memKill_.mn_ == NULL) {
-//        std::cout << "\tNo killing write, copying old mem deps" << std::endl;
         AssocTools::append(bbd.memDefReaches_, bbd.memDefAfter_);
         AssocTools::append(bbd.memUseReaches_, bbd.memUseAfter_);
-    } else {
-//        std::cout << "\tKilling write, not copying old mem deps" << std::endl;
-    }
+    } 
+
     AssocTools::append(bbd.memDefines_, bbd.memDefAfter_);
     AssocTools::append(bbd.memLastUses_, bbd.memUseAfter_);
     AssocTools::append(bbd.fuDeps_, bbd.fuDepAfter_);
@@ -811,7 +774,6 @@ void DataDependenceGraphBuilder::updateRegUse(
     std::set<MNData2>& defReaches = currentData_->regDefReaches_[reg];
     for (std::set<MNData2>::iterator i = defReaches.begin();
          i != defReaches.end(); i++) {
-//        std::cout << "\t\t\t\tPrev def: " << i->mn_->toString() << std::endl;
         createRegRaw(*i,mnd);
     }
 }
