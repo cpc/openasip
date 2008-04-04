@@ -64,6 +64,7 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
 TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     TargetLowering(tm), tm_(tm) {
 
+    addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
     addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);
     addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
 
@@ -104,7 +105,7 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     // SELECT is used instead of SELECT_CC
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
 
-    setSetCCResultType(MVT::i32);
+    setSetCCResultType(MVT::i1);
 
     setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
 

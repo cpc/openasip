@@ -317,8 +317,10 @@ def : Pat<(ret), (RETL)>;
 
 // jump 
 let isTerminator = 1, isBranch = 1 in {
-    def TCEBRCOND : InstTCE<"?jump", (outs), (ins I32Regs:$gr, i32imm:$dst),
-        "$gr -> bool; ? $dst -> jump.1;", []>;
+    def TCEBRCOND : InstTCE<"?jump", (outs), (ins I1Regs:$gr, i32imm:$dst),
+    "? $gr $dst -> jump.1;", []>;
+
+//        "$gr -> bool; ? $dst -> jump.1;", []>;
 
     def TCEBR : InstTCE<"jump", (outs),
                         (ins i32imm:$dst), "$dst -> jump.1;", []>;

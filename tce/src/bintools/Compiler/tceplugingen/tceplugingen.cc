@@ -427,8 +427,16 @@ TDGen::analyzeRegisters() {
 
             if (currentIdx < lastIdx) {
                 RegInfo reg = { rf->name(), currentIdx };
-                if (guardedRegs_.find(reg) == guardedRegs_.end()) {
-                    // Skip registers with guard.
+                if (width != 1) {
+                    // if has guard, set as 1-bit reg
+                    if (guardedRegs_.find(reg) == guardedRegs_.end()) {
+                        ri->push_back(reg);
+                    } else {
+                        regs1bit_.push_back(reg);
+                    }
+                }
+                // if it is 1-bit, it has to have guard.
+                if (!(guardedRegs_.find(reg) == guardedRegs_.end())) {
                     ri->push_back(reg);
                 }
                 regsFound = true;
