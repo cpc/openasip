@@ -1170,6 +1170,7 @@ AC_CONFIG_FILES([
   src/ext/llvm/2.1/Makefile
   src/ext/llvm/2.1/TableGen/Makefile
   src/applibs/LLVMBackend/Makefile
+  src/applibs/LLVMBackend/passes/Makefile
   src/bintools/Compiler/Makefile
   src/bintools/Compiler/tceopgen/Makefile
   src/bintools/Compiler/tceplugingen/Makefile
