@@ -100,8 +100,7 @@ public:
 
     void prepareToStop(StopReason reason);
     unsigned int stopReasonCount() const;
-    StopReason stopReason(unsigned int index) const
-        throw (OutOfRange);
+    StopReason stopReason(unsigned int index) const throw (OutOfRange);
     bool stoppedByUser() const;
     virtual void killSimulation();
 
@@ -153,7 +152,8 @@ public:
         int registerIndex = -1);
     
     virtual SimValue immediateUnitRegisterValue(
-    const std::string& iuName, int index = -1);
+        const std::string& iuName,
+        int index = -1);
     
     virtual SimValue FUPortValue(
         const std::string& fuName, 

@@ -72,10 +72,11 @@ struct FUResultType {
  */
 class CompiledSimulation {
 public:
-    CompiledSimulation(const TTAMachine::Machine& machine,
-                       const TTAProgram::Program& program,
-                       SimulatorFrontend& frontend,
-                       MemorySystem& memorySystem);
+    CompiledSimulation(
+        const TTAMachine::Machine& machine,
+        const TTAProgram::Program& program,
+        SimulatorFrontend& frontend,
+        MemorySystem& memorySystem);
     virtual ~CompiledSimulation();
     
     virtual void simulateCycle() = 0;
@@ -95,7 +96,7 @@ public:
         int registerIndex);
     
     virtual SimValue immediateUnitRegisterValue(
-    const std::string& iuName, int index);
+        const std::string& iuName, int index);
     
     virtual SimValue FUPortValue(
         const std::string& fuName,
@@ -180,7 +181,7 @@ private:
     CompiledSimulation& operator=(const CompiledSimulation&);
     
     /// The memory system
-    MemorySystem * memorySystem_;
+    MemorySystem* memorySystem_;
     /// The simulator frontend
     SimulatorFrontend& frontend_;
 };

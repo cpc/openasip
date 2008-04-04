@@ -673,21 +673,18 @@ public:
             return true;
         } else if (argumentCount == 2) {
             const std::string portName = arguments.at(3).stringValue();
-
-            SimValue portValue;
             try {
-                portValue = parent().simulatorFrontend().FUPortValue(
-                functionUnit, portName);
+                // @todo printing of double values (size > 32)
+                SimValue portValue = parent().simulatorFrontend().FUPortValue(
+                    functionUnit, portName);
+                parent().interpreter()->setResult(portValue.intValue());
+                return true;
             } catch (const Exception& e) {
                 parent().interpreter()->setError(
                     SimulatorToolbox::textGenerator().text(
                         Texts::TXT_FUPORT_NOT_FOUND).str());
                 return false;
-            }
-
-            // @todo printing of double values (size > 32)
-            parent().interpreter()->setResult(portValue.intValue());
-            return true;
+            }   
         }
         return false;
     }
