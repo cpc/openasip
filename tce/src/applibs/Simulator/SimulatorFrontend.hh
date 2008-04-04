@@ -135,6 +135,7 @@ public:
     void setProfileDataSaving(bool value);
     void setUtilizationDataSaving(bool value);
     void setTraceDBFileName(const std::string& fileName);
+    void setTimeout(unsigned int value);
     
     std::ostream& outputStream();
     void setOutputStream(std::ostream& stream);
@@ -213,6 +214,8 @@ protected:
 
     void startTimer();
     void stopTimer();
+    
+    void timeoutThread(unsigned int timeout);
 
     /// Machine to run simulation with.
     const TTAMachine::Machine* currentMachine_;
@@ -302,5 +305,7 @@ protected:
     std::time_t startTime_;
     /// The cycle count when the latest simulation was started. Used to compute simulation speed.
     CycleCount startCycleCount_;
+    /// Simulation timeout in seconds
+    unsigned int simulationTimeout_;
 };
 #endif

@@ -68,6 +68,8 @@ public:
     virtual SimValue FUPortValue(
         const std::string& fuName, 
         const std::string& portName);
+    
+    virtual void prepareToStop(StopReason reason);
         
 private:
     /// Copying not allowed.

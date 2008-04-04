@@ -253,6 +253,11 @@ SimControlLanguageCommand::printStopReasons() {
                 << SimulatorToolbox::textGenerator().text(
                     Texts::TXT_STOPREASON_UNTIL).str() << std::endl;
             break;
+        case SRE_AFTER_TIMEOUT:
+            outputStream()
+                << SimulatorToolbox::textGenerator().text(
+                    Texts::TXT_STOPREASON_TIMEOUT).str() << std::endl;
+            break;
         case SRE_USER_REQUESTED:
             outputStream() 
                 << SimulatorToolbox::textGenerator().text(

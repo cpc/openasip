@@ -293,6 +293,46 @@ public:
 };
 
 /**
+ * Setting action that sets the simulation timeout
+ * 
+ */
+class SetSimulationTimeout {
+public:
+    /** Sets the simulation timeout in seconds
+     * 
+     * @param simFront SimulatorFrontend to set the timeout for.
+     * @param newValue Value to setting
+     * @return True if setting was successful.
+     */ 
+    static bool execute(
+        SimulatorInterpreter&, 
+        SimulatorFrontend& simFront, 
+        unsigned int newValue) {
+        simFront.setTimeout(newValue);
+        return true;
+    }
+                            
+    /**
+     * Returns the default value of this setting.
+     *
+     * @return The default value.
+     */
+    static const DataObject& defaultValue() {
+        static const DataObject defaultValue_("0");
+        return defaultValue_;
+    }
+    
+    /**
+     * Should the action warn if program & machine exist and value was changed
+     * 
+     * @return boolean value on whether or not to warn
+     */
+    static bool warnOnExistingProgramAndMachine() {
+        return false;
+    }
+};
+
+/**
  * Setting action that sets the utilization data saving.
  */
 class SetUtilizationSaving {
@@ -626,6 +666,12 @@ SettingCommand::SettingCommand() :
             BooleanSetting, SetSimulationTimeStatistics>(
                 SimulatorToolbox::textGenerator().text(
                     Texts::TXT_SIMULATION_TIME_STATISTICS).str());
+                
+    settings_["simulation_timeout"] =
+        new TemplatedSimulatorSetting<
+            PositiveIntegerSetting, SetSimulationTimeout>(
+                SimulatorToolbox::textGenerator().text(
+                    Texts::TXT_SIMULATION_TIMEOUT).str());                
 }
 
 /**

@@ -102,6 +102,7 @@ public:
         const std::string& fuName,
         const std::string& portName);
     
+    virtual void requestToStop();
     virtual bool stopRequested() const;
     virtual bool isFinished() const;
         

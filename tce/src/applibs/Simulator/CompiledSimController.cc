@@ -76,11 +76,9 @@ CompiledSimController::step(double count)
     
     prepareToStop(SRE_AFTER_STEPPING);
 
-    if (simulation_->isFinished()) {
+    if (simulation_->isFinished()) { 
         state_ = STA_FINISHED;
-    }
-    
-    if (state_ != STA_FINISHED) {
+    } else {
         state_ = STA_STOPPED;
     }
 
@@ -118,7 +116,11 @@ CompiledSimController::next(int count)
     
     prepareToStop(SRE_AFTER_STEPPING);
 
-    state_ = STA_STOPPED;
+    if (simulation_->isFinished()) { 
+        state_ = STA_FINISHED;
+    } else {
+        state_ = STA_STOPPED;
+    }
 
     frontend_.eventHandler().handleEvent(
         SimulationEventHandler::SE_SIMULATION_STOPPED);
@@ -152,7 +154,11 @@ CompiledSimController::run() throw (SimulationExecutionError) {
         return;
     }
 
-    state_ = STA_FINISHED;
+    if (simulation_->isFinished()) { 
+        state_ = STA_FINISHED;
+    } else {
+        state_ = STA_STOPPED;
+    }
 
     frontend_.eventHandler().handleEvent(
         SimulationEventHandler::SE_SIMULATION_STOPPED);
@@ -192,11 +198,9 @@ CompiledSimController::runUntil(UIntWord address)
     
     prepareToStop(SRE_AFTER_UNTIL);
 
-    if (simulation_->isFinished()) {
+    if (simulation_->isFinished()) { 
         state_ = STA_FINISHED;
-    }
-    
-    if (state_ != STA_FINISHED) {
+    } else {
         state_ = STA_STOPPED;
     }
 
@@ -411,4 +415,15 @@ CompiledSimController::FUPortValue(
     const std::string& fuName, 
     const std::string& portName) {
     return compiledSimulation()->FUPortValue(fuName, portName);
+}
+
+/**
+ * Sends a stop request to the simulation controller and compiled simulation
+ * 
+ * @param reason The stop reason
+ */
+void
+CompiledSimController::prepareToStop(StopReason reason) {
+    TTASimulationController::prepareToStop(reason);
+    compiledSimulation()->requestToStop();
 }

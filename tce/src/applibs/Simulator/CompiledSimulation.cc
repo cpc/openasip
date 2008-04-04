@@ -109,7 +109,7 @@ void
 CompiledSimulation::run() {
     cyclesToSimulate_ = MAX_CYCLES;
     stopRequested_ = false;
-    while (!isFinished_) {
+    while (!isFinished_ && !stopRequested_) {
         simulateCycle();
         #ifndef DEBUG_SIMULATION
         frontend_.eventHandler().handleEvent(
@@ -241,6 +241,14 @@ CompiledSimulation::FUPortValue(
         throw InstanceNotFound(__FILE__, __LINE__, __func__, 
             "FU port " + fuPort + " not found.");
     }
+}
+
+/**
+ * Sets the simulation to be requested to stop
+ */
+void
+CompiledSimulation::requestToStop() {
+    stopRequested_ = true;
 }
 
 /** 

@@ -127,6 +127,8 @@ namespace Texts {
         ///< Description of the execution trace setting.
         TXT_SIMULATION_TIME_STATISTICS,
         ///< Description of the simulation time statistics setting
+        TXT_SIMULATION_TIMEOUT,
+        ///< Simulation timeout in seconds
         TXT_INTERP_HELP_COMMANDS_AVAILABLE,
         ///< Description of the execution trace setting.
         TXT_STATUS_STOPPED,
@@ -143,6 +145,8 @@ namespace Texts {
         ///< Stop reason: temporary breakpoint.
         TXT_STOPREASON_UNTIL,
         ///< Stop reason: until.
+        TXT_STOPREASON_TIMEOUT,
+        ///< Stop reason: timeout                
         TXT_STOPREASON_STEPPING,
         ///< Stop reason: stepping. 
         TXT_STOPREASON_USERREQUEST,

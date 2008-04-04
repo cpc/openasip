@@ -42,6 +42,7 @@ typedef ClockCycleCount CycleCount;
 enum StopReason {
     SRE_AFTER_STEPPING, ///< Stopped after stepping the given count.
     SRE_AFTER_UNTIL,    ///< Stopped after running to the wanted 
+    SRE_AFTER_TIMEOUT,  ///< Stopped after simulation timeout
     ///  instruction.
     SRE_BREAKPOINT,     ///< Stopped because of at least one breakpoint
     SRE_USER_REQUESTED, ///< User requested the simulation to stop 
