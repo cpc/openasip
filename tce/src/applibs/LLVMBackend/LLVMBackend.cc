@@ -123,7 +123,7 @@ LLVMBackend::compile(
     llvm::Module& module,
     TCETargetMachinePlugin& plugin,
     TTAMachine::Machine& target,
-    int optLevel,
+    int /* optLevel */,
     bool debug)
     throw (Exception) {
 
@@ -143,15 +143,14 @@ LLVMBackend::compile(
     // Garbage collection?
     // lower invoke/unwind
 
-    // LOWER MISSING?
+    // LOWER MISSING
     pm.add(createLowerMissingInstructionsPass());
 
-    if (optLevel > 0) {
-        // DCE
-        pm.add(createUnreachableBlockEliminationPass());
-        // Global DCE
-        pm.add(createGlobalDCEPass());
-    }
+    // DCE
+    pm.add(createUnreachableBlockEliminationPass());
+
+    // Global DCE
+    pm.add(createGlobalDCEPass());
 
     // Instruction selection.
     targetMachine.addInstSelector(fpm, fast);
