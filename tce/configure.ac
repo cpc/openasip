@@ -1203,7 +1203,6 @@ AC_CONFIG_FILES([
   src/applibs/LLVMBackend/passes/Makefile
   src/bintools/Compiler/Makefile
   src/bintools/Compiler/tceopgen/Makefile
-  src/bintools/Compiler/tceplugingen/Makefile
   src/bintools/Compiler/llvm-tce/Makefile
 ])
 
