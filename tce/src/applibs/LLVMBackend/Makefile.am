@@ -4,7 +4,7 @@ lib_LTLIBRARIES = libtcellvmbackend.la
 
 libtcellvmbackend_la_SOURCES = TCESubtarget.cc  TCETargetAsmInfo.cc \
     TCETargetMachine.cc  LLVMPOMBuilder.cc LLVMBackend.cc \
-    LowerMissingInstructions.cc
+    LowerMissingInstructions.cc TDGen.cc
 
 PROJECT_ROOT = ../../..
 SRC_ROOT = ../..
