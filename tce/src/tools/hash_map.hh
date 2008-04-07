@@ -14,7 +14,12 @@
 
 #include "config.h"
 
-#ifdef HASHMAP_GNU_EXT
+#ifdef UNORDERED_MAP
+
+#include <unordered_map>
+#define hash_map unordered_map
+
+#elif HASHMAP_GNU_EXT
 
 #include <ext/hash_map>
 

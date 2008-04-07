@@ -56,9 +56,9 @@ OperationDAGConverter::createDAG(std::string sourceCode) {
     } else {
         for (unsigned int i = 0; i < skip.strippedParts.size(); i++) {      
             skip.strippedParts[i].second -= 
-                reinterpret_cast<int>(skip.strippedParts[i].first);
+                reinterpret_cast<long int>(skip.strippedParts[i].first);
             
-            skip.strippedParts[i].first -= reinterpret_cast<int>(orig);
+            skip.strippedParts[i].first -= reinterpret_cast<long int>(orig);
       
             //std::cerr << "Skipped " << int(skip.strippedParts[i].second)
             //<< " chars at pos " << int(skip.strippedParts[i].first) 
@@ -72,9 +72,10 @@ OperationDAGConverter::createDAG(std::string sourceCode) {
         for (unsigned int i = 0; i < result.length ; i++) {
       
             for (unsigned int j = 0; j < skip.strippedParts.size(); j++) {
-                if ((unsigned int)skip.strippedParts[j].first == charsToPos) {
+                if ((unsigned long int)skip.strippedParts[j].first
+                    == charsToPos) {
                     charsToPos += 
-                        reinterpret_cast<int>(skip.strippedParts[j].second);
+                        reinterpret_cast<long int>(skip.strippedParts[j].second);
 	  
                     //std::cerr << std::endl << "Added at position: " 
                     //<<  int(skip.strippedParts[j].first) 

@@ -45,15 +45,64 @@ MathTools::requiredBits(long unsigned int number) {
  * @param number The number.
  * @return The number of bits required to represent the given number.
  */
+
 inline int
 MathTools::requiredBitsSigned(long int number) {
-
     int bits = 1;
     while (number != -1 && number != 0) {
         number = number >> 1;
         bits++;
     }
     return bits;
+}
+
+/**
+ * Returns the number of bits required to represent the given number as
+ * a signed integer.
+ *
+ * @note assumes that integers are stored as 2's complement.
+ *
+ * @param number The number.
+ * @return The number of bits required to represent the given number.
+ */
+
+inline int
+MathTools::requiredBitsSigned(UInt32 number) {
+    
+    // first cast to a signed type
+    int32_t numberSigned = static_cast<int32_t>(number);
+    return requiredBitsSigned(static_cast<long int>(numberSigned));
+}
+
+/**
+ * Returns the number of bits required to represent the given number as
+ * a signed integer.
+ *
+ * @note assumes that integers are stored as 2's complement.
+ *
+ * @param number The number.
+ * @return The number of bits required to represent the given number.
+ */
+
+inline int
+MathTools::requiredBitsSigned(int number) {
+    
+    return requiredBitsSigned(static_cast<long int>(number));
+}
+
+/**
+ * Returns the number of bits required to represent the given number as
+ * a signed integer.
+ *
+ * @note assumes that integers are stored as 2's complement.
+ *
+ * @param number The number.
+ * @return The number of bits required to represent the given number.
+ */
+
+inline int
+MathTools::requiredBitsSigned(unsigned long number) {
+    return requiredBitsSigned(static_cast<long int>(number));
 }
 
 

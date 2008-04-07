@@ -221,7 +221,7 @@ ProGeTestBenchGenerator::generate(
                         log(AS->end()) / log(2))) - 1; // ceil - 2
                 } else {
                     const string plus = "plus_";
-                    unsigned int place = param.name.find(plus);
+                    string::size_type place = param.name.find(plus);
                     if (string::npos != place) {
                         string pvalue = param.name.substr(place + plus.length());
                         addrWidth = Conversion::toInt(param.value) - 

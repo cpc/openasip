@@ -21,6 +21,7 @@
 #include <llvm/ModuleProvider.h>
 #include <llvm/Support/Debug.h>
 #include "LLVMBackend.hh"
+#include "TDGen.hh"
 
 #include "config.h" // CXX, SHARED_CXX_FLAGS, LLVM LD&CPP flags
 
@@ -40,7 +41,6 @@ volatile TargetLowering dummy(TargetMachine());
 Pass* createLowerMissingInstructionsPass();
 extern const PassInfo* LowerMissingInstructionsID;
 
-const std::string LLVMBackend::TCEPLUGINGEN_BIN = "tceplugingen";
 const std::string LLVMBackend::TBLGEN_BIN = "tblgen";
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
@@ -246,28 +246,26 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
             return creator();
         } catch(Exception& e) {
-            std::cerr << "ERROR: Unable to load plugin file: "
-                      << pluginFileName << std::endl;
+            std::string msg = "Unable to load plugin file '" +
+                pluginFileName + "'.";
 
-            std::cerr << e.errorMessage() << std::endl;
-            assert(false);
+            IOException ne(__FILE__, __LINE__, __func__, msg);
+            ne.setCause(e);
+            throw ne;
         }
     }
 
-
     // Create target instruciton and register definitions in .td files.
-    std::string adf = tmpDir + "/mach.adf";
-    ADFSerializer serializer;
-    serializer.setDestinationFile(adf);
-    serializer.writeMachine(target);
-   
-    std::string cmd = TCEPLUGINGEN_BIN + " " + adf + " " + tmpDir;
-    int ret = system(cmd.c_str());
-    if (ret) {
-        std::string msg = "Failed to build compiler plugin for " + adf +
-            ".\n Failed command was: " + cmd;
+    TDGen plugingen(target);
+    try {
+        plugingen.generateBackend(tmpDir);
+    } catch(Exception& e) {
+        std::string msg =
+            "Failed to build compiler plugin for target architecture.";
 
-        throw CompileError(__FILE__, __LINE__, __func__, msg);
+        CompileError ne(__FILE__, __LINE__, __func__, msg);
+        ne.setCause(e);
+        throw ne;
     }
 
     // Generate TCEGenRegisterNames.inc
@@ -278,14 +276,15 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     tblgenCmd += pluginIncludeFlags;
     tblgenCmd += " " + tmpDir + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";
 
-    cmd = tblgenCmd + " -gen-register-enums" +
+    std::string cmd = tblgenCmd + " -gen-register-enums" +
         " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
         "TCEGenRegisterNames.inc";
 
-    ret = system(cmd.c_str());
+    int ret = system(cmd.c_str());
     if (ret) {
-        std::string msg = "Failed to build compiler plugin for " + adf +
-            ".\n Failed command was: " + cmd;
+        std::string msg = std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
@@ -298,8 +297,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        std::string msg = "Failed to build compiler plugin for " + adf +
-            ".\n Failed command was: " + cmd;
+        std::string msg = std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
@@ -312,8 +312,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        std::string msg = "Failed to build compiler plugin for " + adf +
-            ".\n Failed command was: " + cmd;
+        std::string msg = std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
@@ -326,8 +327,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        std::string msg = "Failed to build compiler plugin for " + adf +
-            ".\n Failed command was: " + cmd;
+        std::string msg = std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
@@ -340,8 +342,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        std::string msg = "Failed to build compiler plugin for " + adf +
-            ".\n Failed command was: " + cmd;
+        std::string msg = std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
@@ -354,8 +357,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        std::string msg = "Failed to build compiler plugin for " + adf +
-            ".\n Failed command was: " + cmd;
+        std::string msg = std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
@@ -368,8 +372,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        std::string msg = "Failed to build compiler plugin for " + adf +
-            ".\n Failed command was: " + cmd;
+        std::string msg = std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
@@ -392,12 +397,11 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         " " + pluginSources +
         " -o " + pluginFileName;
 
-    std::cerr << cmd << std::endl;
-
     ret = system(cmd.c_str());
     if (ret) {
-        std::string msg = "Failed to build compiler plugin for " + adf +
-            ".\n Failed command was: " + cmd;
+        std::string msg = std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
 
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
@@ -412,11 +416,12 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
         
     } catch(Exception& e) {
-        std::cerr << "ERROR: Unable to load plugin file: "
-                  << pluginFileName << std::endl;
-        
-        std::cerr << e.errorMessage() << std::endl;
-        assert(false);
+        std::string msg = std::string() +
+            "Unable to load plugin file '" +
+            pluginFileName + "'.";
+
+        IOException ne(__FILE__, __LINE__, __func__, msg);
+        throw ne;
     }
 
     FileSystem::removeFileOrDirectory(tmpDir);

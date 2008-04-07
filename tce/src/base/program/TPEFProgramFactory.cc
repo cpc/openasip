@@ -1380,8 +1380,8 @@ TPEFProgramFactory::findGuard(
             "or RF index.");
     }
 
-    assert (reinterpret_cast<int>(guardPort) != 
-            reinterpret_cast<int>(guardRF));
+    assert (reinterpret_cast<long int>(guardPort) != 
+            reinterpret_cast<long int>(guardRF));
 
     for (int i = 0; i < bus.guardCount(); i++) {
         Guard* currGuard = bus.guard(i);

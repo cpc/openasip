@@ -132,7 +132,7 @@ NumberControl::create(const wxSize& size) {
     if ((style_ & NO_MODE_CHOICER) == 0) {
         // Create base choicer.
         modeChoice_ = new wxChoice(this, ID_BASE, wxDefaultPosition,
-                                   wxSize(CHOICER_WIDTH, -1), 0, NULL);
+                                   wxSize(CHOICER_WIDTH, -1));
 
         // append base choices
         if ((style_ & MODE_BINARY) != 0) {

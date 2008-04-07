@@ -537,13 +537,22 @@ class TestCase:
                             " -a " + archFilename + \
                             " " + seqProgFileName
         else:
-            schedulingCommand = 'tcecc ' + \
-                            " --scheduler-binary=" + schedulerExe + \
-                            " -o " + dstProgFileName + \
-                            " -s " + configFileName + \
-                            " -a " + archFilename + \
-                            " " + seqProgFileName
-        
+            if (leaveDirty):
+                schedulingCommand = 'tcecc -d' + \
+                                    " --scheduler-binary=" + schedulerExe + \
+                                    " -o " + dstProgFileName + \
+                                    " -s " + configFileName + \
+                                    " -a " + archFilename + \
+                                    " " + seqProgFileName
+            else:
+                schedulingCommand = 'tcecc ' + \
+                                    " --scheduler-binary=" + schedulerExe + \
+                                    " -o " + dstProgFileName + \
+                                    " -s " + configFileName + \
+                                    " -a " + archFilename + \
+                                    " " + seqProgFileName
+                
+                
         exitOk, stdoutContents, stderrContents = runWithTimeout(schedulingCommand, schedulingTimeoutSec)
 
         if not exitOk:

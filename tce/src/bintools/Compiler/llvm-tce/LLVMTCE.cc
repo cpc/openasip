@@ -15,6 +15,7 @@
 #include "ADFSerializer.hh"
 #include "SchedulingPlan.hh"
 #include "SchedulerFrontend.hh"
+#include "FileSystem.hh"
 
 const std::string DEFAULT_OUTPUT_FILENAME = "out.tpef";
 const int DEFAULT_OPT_LEVEL = 2;
@@ -61,6 +62,18 @@ main(int argc, char* argv[]) {
 
     TTAMachine::Machine* mach = NULL;
     std::string targetADF = options.machineFile();
+
+    if (!FileSystem::fileExists(targetADF) ||
+        !FileSystem::fileIsReadable(targetADF) ||
+        FileSystem::fileIsDirectory(targetADF)) {
+
+        std::cerr << "ERROR: Target architecture file '"
+                  << targetADF << "' doesn't exist or isn't readable."
+                  << std::endl;
+
+        return EXIT_FAILURE;
+    }
+
     try {
         ADFSerializer serializer;
         serializer.setSourceFile(targetADF);
