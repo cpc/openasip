@@ -10,7 +10,7 @@ else
     llvmlibs="-lLLVMCodeGen"
     llvmldflags=$(llvm-config --ldflags)
     llvmcppflags=$(llvm-config --cppflags)
-    soflags="-O2 -lgcc -shared -static -g -fPIC -o"
+    soflags="-O2 -lgcc -shared -g -fPIC -o"
     objectfile=$1
     shift
     $compiler $llvmcppflags $llvmldflags $llvmlibs $soflags $objectfile $* && \
