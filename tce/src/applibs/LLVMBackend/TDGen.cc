@@ -6,11 +6,10 @@
  * @note rating: red
  */
 
-#include <iostream>
-#include <vector>
-#include <map>
 #include <fstream>
 #include <algorithm>
+
+#include "TDGen.hh"
 #include "Machine.hh"
 #include "ADFSerializer.hh"
 #include "ControlUnit.hh"
@@ -30,184 +29,8 @@
 #include "OperationDAGEdge.hh"
 #include "OperationDAGSelector.hh"
 
-/**
- * TCE Backend plugin source code generator.
- */
-class TDGen {
-public:
-    TDGen(const TTAMachine::Machine& mach);
-    void generateBackend(std::string& path);
 
-private:
-    bool writeRegisterInfo(std::ostream& o);
-    void writeInstrInfo(std::ostream& o);
-    void writeBackendCode(std::ostream& o);
-    void writeTopLevelTD(std::ostream& o);
-   
-   
-    enum RegType {
-        GPR = 0,
-        RESERVED,
-        ARGUMENT,
-        RESULT
-    };
-
-    struct TerminalDef {
-        std::string registerPat;
-        std::string registerDag;
-        std::string immPat;
-        std::string immDag;
-    };
-
-    struct RegInfo {
-        std::string rf;
-        unsigned idx;
-
-        // Comparison operator for ordering in set.
-        bool operator<(const RegInfo& other) const {
-            if (rf < other.rf ||
-                (rf == other.rf && idx < other.idx)) {
-
-                return true;
-            }
-
-            return false;
-        }
-    };
-
-    bool checkRequiredRegisters();
-    void analyzeRegisters();
-
-    void writeRegisterDef(
-        std::ostream& o,
-        const RegInfo& reg,
-        const std::string regName,
-        const std::string regTemplate,
-        const std::string aliases,
-        RegType type
-        );
-
-    void write64bitRegisterInfo(std::ostream& o);
-    void write32bitRegisterInfo(std::ostream& o);
-    void write16bitRegisterInfo(std::ostream& o);
-    void write8bitRegisterInfo(std::ostream& o);
-    void write1bitRegisterInfo(std::ostream& o);
-    void writeRARegisterInfo(std::ostream& o);
-
-    void writeOperationDef(std::ostream& o, Operation& op);
-    void writeEmulationPattern(
-        std::ostream& o,
-        const Operation& op,
-        const OperationDAG& dag);
-
-    void writeCallDef(std::ostream& o);
-
-    std::string llvmOperationPattern(const std::string& osalOperationName);
-
-    std::string patOutputs(const Operation& op);
-    std::string patInputs(const Operation& op, int immOp);
-
-    std::string operandToString(
-        const Operand& operand,
-        bool match,
-        bool immediate);
-
-
-    std::string operationNodeToString(
-        const Operation& op,
-        const OperationDAG& dag,
-        const OperationNode& node,
-        int immOp,
-        bool emulationPattern) throw (InvalidData);
-
-    std::string dagNodeToString(
-        const Operation& op,
-        const OperationDAG& dag,
-        const OperationDAGNode& node,
-        int immOp,
-        bool emulationPattern) throw (InvalidData);
-
-    std::string operationPattern(
-        const Operation& op,
-        const OperationDAG& dag,
-        int immOp);
-
-    OperationDAG* createTrivialDAG(Operation& op);
-    bool canBeImmediate(const OperationDAG& dag, const TerminalNode& node);
-
-    const TTAMachine::Machine& mach_;
-
-    // Current dwarf register number.
-    unsigned dregNum_;
-
-    // List of 1-bit registers in the target machine.
-    std::vector<RegInfo> regs1bit_;
-    // List of 8-bit registers in the target machine.
-    std::vector<RegInfo> regs8bit_;
-    // List of 16-bit registers in the target machine.
-    std::vector<RegInfo> regs16bit_;
-    // List of 32-bit registers in the target machine.
-    std::vector<RegInfo> regs32bit_;
-    // List of 64-bit registers in the target machine.
-    std::vector<RegInfo> regs64bit_;
-
-    ///  Map of generated llvm register names to
-    /// physical register in the machine.
-    std::map<std::string, RegInfo> regs_;
-
-    std::vector<std::string> argRegNames_;
-    std::vector<std::string> resRegNames_;
-    std::vector<std::string> gprRegNames_;
-
-    std::vector<std::pair<std::string, std::string> > opcodes_;
-
-    unsigned static const REQUIRED_I32_REGS;
-
-    std::set<RegInfo> guardedRegs_;
-    bool fullyConnected_;
-};
-
-
-/**
- * tceplugingen main function.
- *
- * Generates plugin sourcecode files using TDGen.
- */
-int main(int argc, char* argv[]) {
-    
-    if (argc != 3) {
-        std::cout << "Usage: tceplugingen <adf> <path>" << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    char* adf = argv[1];
-    std::string path = argv[2];
-
-    TTAMachine::Machine* mach = NULL;
-
-    try {
-        mach = TTAMachine::Machine::loadFromADF(adf);
-    } catch (Exception& e) {
-        std::cerr << "Error loading " << adf << ":" << std::endl;
-        std::cerr << e.errorMessage() << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    TDGen tg(*mach);
-    try {
-        tg.generateBackend(path);
-    }
-    catch (Exception e) {
-        std::cerr << "Error occured while creating tce plugin: " 
-            + e.errorMessage() << std::endl;
-        return EXIT_FAILURE;
-    }
-    delete mach;
-}
-
-
-
-// SP, RES, KLUDGE, 3 operands?
+// SP, RES, KLUDGE, 2 GPRs?
 unsigned const TDGen::REQUIRED_I32_REGS = 5;
 
 
@@ -763,16 +586,15 @@ TDGen::writeInstrInfo(std::ostream& os) {
         const Operation& op = opPool.operation(*iter);       
 
         if (&op == &NullOperation::instance()) {
-            std::cerr << "Required OP not found: " << *iter << std::endl;
-            assert(false);
+            std::string msg = "Required OP '" + *iter + "' not found.";
+            throw InvalidData(__FILE__, __LINE__, __func__, msg);
         }
 
         const OperationDAGSelector::OperationDAGList emulationDAGs =
             OperationDAGSelector::findDags(op.name(), opNames);
 
         if (emulationDAGs.empty()) {
-            std::cerr << "WARNING: Operation '" << *iter << "' not supported."
-                      << std::endl;
+            warnings_.push_back("Operation '" + *iter + "' not supported.");
         } else {
             writeEmulationPattern(os, op, emulationDAGs.smallestNodeCount());
         }
@@ -910,10 +732,8 @@ TDGen::writeBackendCode(std::ostream& o) {
     }
 
     if (asName == "") {
-        std::cerr << "ERROR: Couldn't determine data address space."
-                  << std::endl;
-
-        assert(false);
+        std::string msg = "Couldn't determine data address space.";
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
     o << "std::string" << std::endl
       << "GeneratedTCEPlugin::dataASName() {" << std::endl;
@@ -954,10 +774,8 @@ TDGen::writeOperationDef(
     Operation& op) {
 
     if (op.numberOfOutputs() > 1) {
-        std::cerr << "WARNING: skipping operation '" << op.name()
-                  << "' more than 1 output operands not yet supported."
-                  << std::endl;
-
+        // Ignore operations with multiple inputs.
+        // TODO: Separate patterns for each output?
         return;
     }
 

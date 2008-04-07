@@ -144,7 +144,7 @@ parseParameter(
     std::string& paramValue)
     throw (InvalidData) {
 
-    unsigned int separatorPos = param.find("=", 0);
+    string::size_type separatorPos = param.find("=", 0);
     if (separatorPos == string::npos) {
         string errorMsg = 
             "Compressor parameters must be in form "

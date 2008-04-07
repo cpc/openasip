@@ -86,7 +86,7 @@ Application::logStream() << "write(" << INT(1) << "," << INT(2)
     << "," << INT(3) << ") = ";
 #endif
 
-    IO(4) = write(INT(1), data.c_str(), INT(3));
+IO(4) = static_cast<SimValue>(write(INT(1), data.c_str(), INT(3)));
 
 #ifdef DEBUG_FILE_IO_EMU
 Application::logStream() << INT(4) << std::endl;
@@ -108,7 +108,7 @@ Application::logStream() << "read(" << INT(1) << "," << INT(2)
 
 char* buf = new char[INT(3)];
 
-IO(4) = read(INT(1), buf, INT(3));
+IO(4) = static_cast<SimValue>(read(INT(1), buf, INT(3)));
 
 // write the data to memory
 for (unsigned i = 0; i < UINT(4); ++i) {

@@ -671,7 +671,7 @@ ProgramWriter::ProgramWriter(
  */
 Binary*
 ProgramWriter::createBinary() const
-    throw (NotAvailable) {
+    throw (Exception) {
     
     Binary* newBin = new Binary();
         

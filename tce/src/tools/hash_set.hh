@@ -14,8 +14,14 @@
 
 #include "config.h"
 
+// if unordered_map is available, should also be unordered_set
+#ifdef UNORDERED_MAP
+
+#include <unordered_set>
+#define hash_set unordered_set
+
 // if hash_map is available, should also be hash_set
-#ifdef HASHMAP_GNU_EXT
+#elif HASHMAP_GNU_EXT
 
 #include <ext/hash_set>
 

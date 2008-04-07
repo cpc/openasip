@@ -120,7 +120,7 @@ public:
     ProgramWriter(const Program& prog);
 
     TPEF::Binary* createBinary() const
-        throw (NotAvailable);
+        throw (Exception);
 
 private:
     /**

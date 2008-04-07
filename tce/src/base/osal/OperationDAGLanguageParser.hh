@@ -267,7 +267,7 @@ public:
      */ 
     class Token {
     public:
-        Token(unsigned start, unsigned end, std::string& strValue) : 
+        Token(unsigned long start, unsigned long end, std::string& strValue) : 
             start_(start), end_(end), strValue_(strValue),
             type_(INVALID_TOKEN),
             isIdentifier_(false),
@@ -327,8 +327,8 @@ public:
             type_ = id;
         }
         
-        unsigned start_;
-        unsigned end_;
+        unsigned long start_;
+        unsigned long end_;
         std::string strValue_;
         OperationID type_;
         
@@ -555,7 +555,7 @@ public:
     void addToken(const char* start, const char* end, 
                   OperationID id, std::string strVal) {
         
-        unsigned startPos, endPos;
+        unsigned long startPos, endPos;
         
         if (parsedTokens_.empty()) {
             startPos = 0;
@@ -565,18 +565,20 @@ public:
             // (-start) of first parsed token. So we can add it to current 
             // start address for getting relative end and start positions.
             startPos = 
-                reinterpret_cast<unsigned>(start) + 
-                reinterpret_cast<unsigned>(parsedTokens_.begin()->first.second);
+                reinterpret_cast<unsigned long>(start) + 
+                reinterpret_cast<unsigned long>(
+                    parsedTokens_.begin()->first.second);
             
             endPos = 
-                reinterpret_cast<unsigned>(end) + 
-                reinterpret_cast<unsigned>(parsedTokens_.begin()->first.second);
+                reinterpret_cast<unsigned long>(end) + 
+                reinterpret_cast<unsigned long>(
+                    parsedTokens_.begin()->first.second);
         }
                
         // key for map is selected (end, -start) for automatically organizase
         // tokens
         std::pair<const char*, const char*> 
-            tokenKey(end, (const char*)(-reinterpret_cast<unsigned>(start)));
+            tokenKey(end, (const char*)(-reinterpret_cast<unsigned long>(start)));
         
         if (parsedTokens_.find(tokenKey) == parsedTokens_.end()) {
             parsedTokens_[tokenKey] = new Token(startPos, endPos, strVal);
