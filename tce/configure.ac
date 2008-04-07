@@ -322,6 +322,13 @@ AC_MSG_ERROR(
 [boost_regex library not found. Install it or use --with-boost-regex switch])
 fi
 
+AX_BOOST_THREAD
+if test -z "$BOOST_THREAD_LIB"
+then
+AC_MSG_ERROR(
+[boost_thread library not found. Install it or use --with-boost-thread switch])
+fi
+
 # this uses ax_python.m4 script so... ac_python_devel is unnecessary...
 AX_BOOST_PYTHON
 if $enablepython && test -z "$BOOST_PYTHON_LIB"
@@ -333,7 +340,7 @@ fi
 # set variables, which were used by old system...
 AC_SUBST([BOOST_INCLUDES], ["$BOOST_CPPFLAGS"] )
 AC_SUBST([BOOST_LIBDIR], ["$BOOST_LDFLAGS"])
-BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_FILESYSTEM_LIB"
+BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB $BOOST_FILESYSTEM_LIB"
 BOOST_PYTHON_LDFLAGS="$BOOST_PYTHON_LIB"
 
 ##########################################################################
@@ -1170,6 +1177,7 @@ AC_CONFIG_FILES([
   src/ext/llvm/2.1/Makefile
   src/ext/llvm/2.1/TableGen/Makefile
   src/applibs/LLVMBackend/Makefile
+  src/applibs/LLVMBackend/passes/Makefile
   src/bintools/Compiler/Makefile
   src/bintools/Compiler/tceopgen/Makefile
   src/bintools/Compiler/tceplugingen/Makefile

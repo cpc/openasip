@@ -60,7 +60,7 @@ def retflag : SDNode<"TCEISD::RET_FLAG", SDT_TCERetFlag,
 
 def SDT_TCESelect : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
                                          SDTCisSameAs<1, 2>,
-                                         SDTCisVT<3, i32>]>;
+                                         SDTCisVT<3, i1>]>;
 
 def TCEselectI1 : SDNode<"TCEISD::SELECT_I1", SDT_TCESelect, []>;
 def TCEselectI8 : SDNode<"TCEISD::SELECT_I8", SDT_TCESelect, []>;
@@ -73,52 +73,52 @@ def TCEselectF64 : SDNode<"TCEISD::SELECT_F64", SDT_TCESelect, []>;
 let usesCustomDAGSchedInserter = 1 in {    // Expanded by the scheduler.
 
   def SELECT_I1 : Pseudo<"PSEUDO", (outs I1Regs:$dst),
-                          (ins I1Regs:$T, I1Regs:$F, I32Regs:$c),
+                          (ins I1Regs:$T, I1Regs:$F, I1Regs:$c),
                           "# SELECT_I1 PSEUDO!",
                           [(set I1Regs:$dst,
-                           (TCEselectI1 I1Regs:$T, I1Regs:$F, I32Regs:$c))
+                           (TCEselectI1 I1Regs:$T, I1Regs:$F, I1Regs:$c))
                           ]>;
 
   def SELECT_I8 : Pseudo<"PSEUDO", (outs I8Regs:$dst),
-                          (ins I8Regs:$T, I8Regs:$F, I32Regs:$c),
+                          (ins I8Regs:$T, I8Regs:$F, I1Regs:$c),
                           "# SELECT_I8 PSEUDO!",
                           [(set I8Regs:$dst,
-                           (TCEselectI8 I8Regs:$T, I8Regs:$F, I32Regs:$c))
+                           (TCEselectI8 I8Regs:$T, I8Regs:$F, I1Regs:$c))
 			  ]>;
 
   def SELECT_I16 : Pseudo<"PSEUDO", (outs I16Regs:$dst),
-                          (ins I16Regs:$T, I16Regs:$F, I32Regs:$c),
+                          (ins I16Regs:$T, I16Regs:$F, I1Regs:$c),
                           "# SELECT_I16 PSEUDO!",
                           [(set I16Regs:$dst,
-                           (TCEselectI16 I16Regs:$T, I16Regs:$F, I32Regs:$c))
+                           (TCEselectI16 I16Regs:$T, I16Regs:$F, I1Regs:$c))
                           ]>;
 
   def SELECT_I32 : Pseudo<"PSEUDO", (outs I32Regs:$dst),
-                          (ins I32Regs:$T, I32Regs:$F, I32Regs:$c),
+                          (ins I32Regs:$T, I32Regs:$F, I1Regs:$c),
                           "# SELECT_I32 PSEUDO!",
                           [(set I32Regs:$dst,
-                           (TCEselectI32 I32Regs:$T, I32Regs:$F, I32Regs:$c))
+                           (TCEselectI32 I32Regs:$T, I32Regs:$F, I1Regs:$c))
                           ]>;
 
   def SELECT_I64 : Pseudo<"PSEUDO", (outs I64Regs:$dst),
-                          (ins I64Regs:$T, I64Regs:$F, I32Regs:$c),
+                          (ins I64Regs:$T, I64Regs:$F, I1Regs:$c),
                           "# SELECT_I64 PSEUDO!",
                           [(set I64Regs:$dst,
-                           (TCEselectI64 I64Regs:$T, I64Regs:$F, I32Regs:$c))
+                           (TCEselectI64 I64Regs:$T, I64Regs:$F, I1Regs:$c))
                           ]>;
 
   def SELECT_F32 : Pseudo<"PSEUDO", (outs F32Regs:$dst),
-                          (ins F32Regs:$T, F32Regs:$F, I32Regs:$c),
+                          (ins F32Regs:$T, F32Regs:$F, I1Regs:$c),
                           "# SELECT_F32 PSEUDO!",
                           [(set F32Regs:$dst,
-                           (TCEselectF32 F32Regs:$T, F32Regs:$F, I32Regs:$c))
+                           (TCEselectF32 F32Regs:$T, F32Regs:$F, I1Regs:$c))
                           ]>;
 
   def SELECT_F64 : Pseudo<"PSEUDO", (outs F64Regs:$dst),
-                          (ins F64Regs:$T, F64Regs:$F, I32Regs:$c),
+                          (ins F64Regs:$T, F64Regs:$F, I1Regs:$c),
                           "# SELECT_F64 PSEUDO!",
                           [(set F64Regs:$dst,
-                           (TCEselectF64 F64Regs:$T, F64Regs:$F, I32Regs:$c))
+                           (TCEselectF64 F64Regs:$T, F64Regs:$F, I1Regs:$c))
                           ]>;
 
 }
@@ -289,7 +289,7 @@ def NOP : InstTCE<"NOP", (outs), (ins), "...;", []>;
 
 
 // ----- Immediates -----
-//def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;
+def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;
 def : Pat<(i32 imm:$val), (MOVI32ri imm:$val)>;
 def : Pat<(i64 imm:$val), (MOVI64ri imm:$val)>;
 

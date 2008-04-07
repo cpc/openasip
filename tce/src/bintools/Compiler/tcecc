@@ -179,7 +179,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 ####
 # Optimizes linked bc. Returns name of the optimized file.
 ###
-def optimizeBytecode(inFile, fileNamePrefix, verbose):
+def optimizeBytecode(inFile, fileNamePrefix, verbose, tceprefix):
 
     defOptimization = ""
     
@@ -204,8 +204,11 @@ def optimizeBytecode(inFile, fileNamePrefix, verbose):
 
     outputName = fileNamePrefix + "_optimized.bc"
         
+    lowerintrinsicsplugin = tceprefix + "/share/tce/llvm/passes/LowerIntrinsics.so"
     command = "opt -f " + inFile + " -o " +\
-              outputName + " " + optSwitches
+              outputName +\
+              " -load=" + lowerintrinsicsplugin + " -lowerintrinsics " +\
+              optSwitches
 
     (exitCode, output) = runCommand(command, verbose)
     if exitCode != 0:
@@ -217,7 +220,7 @@ def optimizeBytecode(inFile, fileNamePrefix, verbose):
 ####
 # Link emulation function bytecode to program.
 ###
-def linkEmulationFuncs(inFile, fileNamePrefix, verbose, llvmprefix):
+def linkEmulationFuncs(inFile, fileNamePrefix, verbose, llvmprefix, tceprefix):
 
     # if software floatingpoint should be lowered
     emulationLib = llvmprefix + "/tce-llvm/lib/emulation_functions.o "
@@ -233,7 +236,9 @@ def linkEmulationFuncs(inFile, fileNamePrefix, verbose, llvmprefix):
         exitWithError(1, verbose, output)
 
     outputName = fileNamePrefix + "_emul_internalized.bc"
-    command = ("opt " + linkedName + " -f -internalize -internalize-public-api-list=_start -o " + outputName)
+    lowerintrinsicsplugin = tceprefix + "/share/tce/llvm/passes/LowerIntrinsics.so"
+    command = ("opt " + linkedName + " -load=" + lowerintrinsicsplugin +\
+    " -lowerintrinsics -f -internalize -internalize-public-api-list=_start -o " + outputName)
 
     (exitCode, output) = runCommand(command, verbose)
 
@@ -433,7 +438,7 @@ else:
 
     # optimize
     optimizedFileName = optimizeBytecode(
-        linkedFileName, namePrefix, options.verbose)
+        linkedFileName, namePrefix, options.verbose, tceprefix)
 
     if (options.adf_file == ""):
         (exitCode, output) = runCommand(
@@ -448,15 +453,10 @@ if options.adf_file != "":
 
     # optimize and lower flaotingpoint
     emulationLinkedFileName = linkEmulationFuncs(
-        optimizedFileName, namePrefix, options.verbose, llvmprefix)
+        optimizedFileName, namePrefix, options.verbose, llvmprefix, tceprefix)
 
     if options.no_schedule is False and options.scheduler_config is None:
-        (exitCode, output) = runCommand("tce-config --prefix", False)
-        if exitCode != 0:
-            sys.stderr.write("Error determining tce install location: \n")
-            exitWithError(1, options.verbose, output)
-
-        options.scheduler_config = output + "/share/tce/scheduler/passes/default_tcecc_scheduler.conf"
+        options.scheduler_config = tceprefix + "/share/tce/scheduler/passes/default_tcecc_scheduler.conf"
 
     #### Compile to unscheduled mixed code for the target architecture
     command = ("llvmtce")

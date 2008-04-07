@@ -94,7 +94,8 @@ private:
     void write1bitRegisterInfo(std::ostream& o);
     void writeRARegisterInfo(std::ostream& o);
 
-    void writeOperationDef(std::ostream& o, Operation& op);
+    void writeOperationDef(
+        std::ostream& o, Operation& op, bool outputIntToBool = false);
     void writeEmulationPattern(
         std::ostream& o,
         const Operation& op,
@@ -104,13 +105,14 @@ private:
 
     std::string llvmOperationPattern(const std::string& osalOperationName);
 
-    std::string patOutputs(const Operation& op);
+    std::string patOutputs(const Operation& op, bool intToBool = false);
     std::string patInputs(const Operation& op, int immOp);
 
     std::string operandToString(
         const Operand& operand,
         bool match,
-        bool immediate);
+        bool immediate,
+        bool intToBool = false);
 
 
     std::string operationNodeToString(
@@ -118,19 +120,22 @@ private:
         const OperationDAG& dag,
         const OperationNode& node,
         int immOp,
-        bool emulationPattern) throw (InvalidData);
+        bool emulationPattern,
+        bool outputIntToBool = false) throw (InvalidData);
 
     std::string dagNodeToString(
         const Operation& op,
         const OperationDAG& dag,
         const OperationDAGNode& node,
         int immOp,
-        bool emulationPattern) throw (InvalidData);
+        bool emulationPattern,
+        bool outputIntToBool = false) throw (InvalidData);
 
     std::string operationPattern(
         const Operation& op,
         const OperationDAG& dag,
-        int immOp);
+        int immOp,
+        bool outputIntToBool = false);
 
     OperationDAG* createTrivialDAG(Operation& op);
     bool canBeImmediate(const OperationDAG& dag, const TerminalNode& node);
@@ -757,6 +762,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
             continue;
         }
         writeOperationDef(os, op);
+        writeOperationDef(os, op, true);
     }
     
 
@@ -959,7 +965,7 @@ TDGen::writeTopLevelTD(std::ostream& o) {
 void
 TDGen::writeOperationDef(
     std::ostream& o,
-    Operation& op) {
+    Operation& op, bool outputIntToBool) {
 
     if (op.numberOfOutputs() > 1) {
         std::cerr << "WARNING: skipping operation '" << op.name()
@@ -967,6 +973,19 @@ TDGen::writeOperationDef(
                   << std::endl;
 
         return;
+    }
+    
+    // only create boolean-returning version of operations with int ret value
+    if (outputIntToBool) {
+        if (op.numberOfOutputs() < 1) {
+            return;
+        }
+        // TODO: these are a mess.
+        Operand& operand = op.operand(op.numberOfInputs()+1);
+        if (operand.type() != Operand::UINT_WORD || 
+            operand.type() != Operand::SINT_WORD) {
+            return;
+        }
     }
 
     std::string attrs;
@@ -976,13 +995,16 @@ TDGen::writeOperationDef(
 
 
     std::string suffix(op.numberOfInputs(), 'r');
+    if (outputIntToBool) {
+        suffix+='b';
+    }
 
     for (int immInput = 0;
          immInput < (op.numberOfInputs() + 1); immInput++) {
 
         std::string outputs, inputs, asmstr, pattern, patSuffix;
         try {
-            outputs = "(outs" + patOutputs(op) + ")";
+            outputs = "(outs" + patOutputs(op, outputIntToBool) + ")";
             inputs = "(ins " + patInputs(op, immInput) + ")";
             asmstr = "\"\"";
             patSuffix = suffix;
@@ -992,10 +1014,12 @@ TDGen::writeOperationDef(
 
             if (llvmOperationPattern(op.name()) != "" || op.dagCount() == 0) {
                 OperationDAG* trivial = createTrivialDAG(op);
-                pattern = operationPattern(op, *trivial, immInput);
+                pattern = operationPattern(
+                    op, *trivial, immInput, outputIntToBool);
                 delete trivial;
             } else {
-                pattern = operationPattern(op, op.dag(0), immInput);
+                pattern = operationPattern(
+                    op, op.dag(0), immInput, outputIntToBool);
             }
         } catch (InvalidData& e) {
             //std::cerr << "ERROR: " << e.errorMessage() << std::endl;
@@ -1164,10 +1188,11 @@ std::string
 TDGen::operationPattern(
     const Operation& op,
     const OperationDAG& dag,
-    int immOp) {
+    int immOp,
+    bool outputIntToBool) {
 
     const OperationDAGNode& res = **(dag.endNodes().begin());
-    return dagNodeToString(op, dag, res, immOp, false);
+    return dagNodeToString(op, dag, res, immOp, false, outputIntToBool);
 }
 
 /**
@@ -1187,14 +1212,16 @@ TDGen::dagNodeToString(
     const OperationDAG& dag,
     const OperationDAGNode& node,
     int immOp,
-    bool emulationPattern) throw (InvalidData) {
+    bool emulationPattern,
+    bool outputIntToBool) throw (InvalidData) {
 
     const OperationNode* oNode = dynamic_cast<const OperationNode*>(&node);
     if (oNode != NULL) {
         assert( dag.inDegree(*oNode) ==
                 oNode->referencedOperation().numberOfInputs());
 
-        return operationNodeToString(op, dag, *oNode, immOp, emulationPattern);
+        return operationNodeToString(op, dag, *oNode, immOp, emulationPattern,
+            outputIntToBool);
     }
 
     const TerminalNode* tNode = dynamic_cast<const TerminalNode*>(&node);
@@ -1226,12 +1253,23 @@ TDGen::dagNodeToString(
             // of dag:
             assert(dag.outDegree(srcNode) == 1);
 
-            std::string pattern =
-                "(set " + operandToString(operand, false, imm) + ", " +
-                dagNodeToString(op, dag, srcNode, immOp, emulationPattern) +
-                ")";
-            
-            return pattern;
+            if (outputIntToBool) {
+                std::string pattern =
+                    "(set " + operandToString(
+                        operand, false, imm, outputIntToBool) + ", (trunc" +
+                    dagNodeToString(
+                        op, dag, srcNode, immOp, emulationPattern, true)
+                    + "))";
+                return pattern;
+            } else {
+                std::string pattern =
+                    "(set " + operandToString(
+                        operand, false, imm, outputIntToBool) + ", " +
+                    dagNodeToString(
+                        op, dag, srcNode, immOp, emulationPattern)
+                    + ")";
+                return pattern;
+            }
         }
     }
 
@@ -1254,7 +1292,8 @@ TDGen::operationNodeToString(
     const OperationDAG& dag,
     const OperationNode& node,
     int immOp,
-    bool emulationPattern) throw (InvalidData) {
+    bool emulationPattern,
+    bool outputIntToBool) throw (InvalidData) {
 
     const Operation& operation = node.referencedOperation();
 
@@ -1299,7 +1338,7 @@ TDGen::operationNodeToString(
                 ok = true;
                 const OperationDAGNode& in = dag.tailNode(edge);
                 pattern % dagNodeToString(
-                    op, dag, in, immOp, emulationPattern);
+                    op, dag, in, immOp, emulationPattern, outputIntToBool);
             }
         }
     }
@@ -1318,7 +1357,8 @@ std::string
 TDGen::operandToString(
     const Operand& operand,
     bool match,
-    bool immediate) {
+    bool immediate,
+    bool intToBool) {
 
     int idx = operand.index();
 
@@ -1346,7 +1386,8 @@ TDGen::operandToString(
                 return "imm:$op" + Conversion::toString(idx);
             }
         } else {
-            return "I32Regs:$op" + Conversion::toString(idx);
+            return (intToBool ? "I1Regs:$op" : "I32Regs:$op") + 
+                Conversion::toString(idx);
         }
     } else if (operand.type() == Operand::FLOAT_WORD) {
         if (immediate) {
@@ -1398,7 +1439,7 @@ TDGen::patInputs(const Operation& op, int immOp) {
  * @return String defining operation outputs in llvm .td format.
  */
 std::string
-TDGen::patOutputs(const Operation& op) {
+TDGen::patOutputs(const Operation& op, bool intToBool) {
     std::string outs;
     if (op.numberOfOutputs() == 0) {
         return "";
@@ -1406,7 +1447,7 @@ TDGen::patOutputs(const Operation& op) {
         assert(op.operand(op.numberOfInputs() + 1).isOutput());
         outs += " ";
         outs += operandToString(
-            op.operand(op.numberOfInputs() + 1), true, false);
+            op.operand(op.numberOfInputs() + 1), true, false, intToBool);
 
     } else {
         assert(false);

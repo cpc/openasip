@@ -15,6 +15,7 @@
 #include "SimulatorFrontend.hh"
 #include "SimulationEventHandler.hh"
 #include "SymbolGenerator.hh"
+#include "DirectAccessMemory.hh"
 
 using namespace TTAMachine;
 
@@ -109,7 +110,7 @@ void
 CompiledSimulation::run() {
     cyclesToSimulate_ = MAX_CYCLES;
     stopRequested_ = false;
-    while (!isFinished_) {
+    while (!isFinished_ && !stopRequested_) {
         simulateCycle();
         #ifndef DEBUG_SIMULATION
         frontend_.eventHandler().handleEvent(
@@ -243,6 +244,14 @@ CompiledSimulation::FUPortValue(
     }
 }
 
+/**
+ * Sets the simulation to be requested to stop
+ */
+void
+CompiledSimulation::requestToStop() {
+    stopRequested_ = true;
+}
+
 /** 
  * Returns true if the simulation is requested to stop
  * 
@@ -283,11 +292,12 @@ CompiledSimulation::functionUnit(const std::string& name) const
  * @return memory object of the given function unit
  * @exception InstanceNotFound If an item is not found
  */
-Memory& 
+DirectAccessMemory& 
 CompiledSimulation::FUMemory(const std::string& FUName) const 
     throw (InstanceNotFound) {
     assert (fuNavigator_.item(FUName)->addressSpace() != NULL);
-    return memorySystem()->memory(*fuNavigator_.item(FUName)->addressSpace());
+    return dynamic_cast<DirectAccessMemory&>(memorySystem()->memory(
+        *fuNavigator_.item(FUName)->addressSpace()));
 }
 
 /**

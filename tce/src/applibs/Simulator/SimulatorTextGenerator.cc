@@ -452,15 +452,15 @@ SimulatorTextGenerator::SimulatorTextGenerator() {
         Texts::TXT_INTERP_HELP_COMMANDS_AVAILABLE, 
         "Simulator control language commands available "
         "(use help [command] to get command specific help):");
-    
-    addText(
-        Texts::TXT_SIMULATION_TIME_STATISTICS,
-        "Printing of the time statistics for the last simulation command.");
 
     addText(
         Texts::TXT_SIMULATION_TIME_STATISTICS,
         "Printing of the time statistics for the last command ran "
         "(run, until, nexti)."); 
+    
+    addText(
+        Texts::TXT_SIMULATION_TIMEOUT,
+        "Simulation timeout in seconds. Use zero to disable this setting.");
 
     addText(Texts::TXT_STATUS_STOPPED, "Program stopped at address %d.");
     addText(Texts::TXT_STATUS_FINISHED, "Simulation finished.");            
@@ -478,6 +478,10 @@ SimulatorTextGenerator::SimulatorTextGenerator() {
         Texts::TXT_STOPREASON_UNTIL, 
         "Stopped after reaching the address defined with "
         "an 'until' or a 'nexti' commmand.");
+    
+    addText(
+        Texts::TXT_STOPREASON_TIMEOUT,
+        "Stopped after simulation timeout.");
 
     addText(
         Texts::TXT_INTERP_HELP_KILL,

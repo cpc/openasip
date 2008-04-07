@@ -1044,19 +1044,11 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
                   << std::endl;
         assert(false);
     } else if (mo.isExternalSymbol()) {
-        std::cerr << " WARNING: External symbol operand '"
-                  << mo.getSymbolName() << "'->";
+        std::cerr << "*** ERROR: External symbol reference '"
+                  << mo.getSymbolName() << "'. ***" << std::endl
+                  << "Module must be fully linked w/o external symbol references!" << std::endl;
 
-        static unsigned jei = ~0;
-        jei--;
-        std::cerr << jei << std::endl;
-
-        SimValue val(jei, 32);
-        return new TTAProgram::TerminalImmediate(val);
-        
-        //std::cerr << " ERROR: "
-        //<< "External symbol operand NOT IMPLEMENTED!" << std::endl;
-        //assert(false);
+        assert(false && "External symbol reference in POM Builder pass.");
     } else {
         std::cerr << "Unknown src operand type!" << std::endl;
         assert(false);

@@ -14,7 +14,9 @@
 #include <iomanip>
 #include <ctime>
 
-#include "boost/regex.hpp"
+#include <boost/regex.hpp>
+#include <boost/thread.hpp>
+#include <boost/bind.hpp>
 
 #include "Binary.hh"
 #include "BinaryReader.hh"
@@ -71,6 +73,7 @@ using namespace TTAMachine;
 using namespace TTAProgram;
 using namespace TPEF;
 
+
 /**
  * Constructor.
  */
@@ -91,10 +94,10 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
     traceFileNameSetByUser_(false), outputStream_(0),
     memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0), 
-    lastRunTime_(0.0) {
+    lastRunTime_(0.0), simulationTimeout_(0) {
     if (compiledSimulation_) {
         setFUResourceConflictDetection(false); // disabled by default
-    }
+    } 
 }
 
 /**
@@ -935,6 +938,27 @@ SimulatorFrontend::stopTimer() {
 }
 
 /**
+ * A thread function for handling simulation timeout
+ * 
+ * @param timeout timeout in seconds
+ */
+void 
+SimulatorFrontend::timeoutThread(unsigned int timeout) {
+    if (timeout == 0) {
+        return;
+    }
+      
+    boost::xtime xt; 
+    boost::xtime_get(&xt, boost::TIME_UTC);
+    xt.sec += timeout; 
+    boost::thread::sleep(xt);
+    
+    if (!hasSimulationEnded()) {
+        prepareToStop(SRE_AFTER_TIMEOUT);
+    }
+}
+
+/**
  * Run simulation until it's stopped for some reason.
  *
  * @exception SimulationExecutionError If a runtime error occurs in 
@@ -944,8 +968,10 @@ SimulatorFrontend::stopTimer() {
 void
 SimulatorFrontend::run() 
     throw (SimulationExecutionError) {
-
+ 
     startTimer();
+    boost::thread timeout(boost::bind(&SimulatorFrontend::timeoutThread, 
+        this, simulationTimeout_));
     simCon_->run();
     stopTimer();
     // invalidate utilization statistics (they are not fresh anymore)
@@ -965,6 +991,8 @@ SimulatorFrontend::runUntil(UIntWord address)
     throw (SimulationExecutionError) {
 
     startTimer();
+    boost::thread timeout(boost::bind(&SimulatorFrontend::timeoutThread, 
+        this, simulationTimeout_));
     simCon_->runUntil(address);
     stopTimer();
     // invalidate utilization statistics (they are not fresh anymore)
@@ -988,6 +1016,8 @@ SimulatorFrontend::step(double count)
     assert(simCon_ != NULL);
 
     startTimer();
+    boost::thread timeout(boost::bind(&SimulatorFrontend::timeoutThread, 
+        this, simulationTimeout_));
     simCon_->step(count);
     stopTimer();
     // invalidate utilization statistics (they are not fresh anymore)
@@ -1011,6 +1041,8 @@ SimulatorFrontend::next(int count)
     assert(simCon_ != NULL);
 
     startTimer();
+    boost::thread timeout(boost::bind(&SimulatorFrontend::timeoutThread, 
+        this, simulationTimeout_));
     simCon_->next(count);
     stopTimer();
     
@@ -1777,6 +1809,16 @@ void
 SimulatorFrontend::setTraceDBFileName(const std::string& fileName) {
     traceFileName_ = fileName;
     traceFileNameSetByUser_ = true;
+}
+
+/**
+ * Sets the simulation timeout in seconds. Use zero for no timeout.
+ * 
+ * @param value Simulation timeout in seconds.
+ */
+void 
+SimulatorFrontend::setTimeout(unsigned int value) {
+    simulationTimeout_ = value;
 }
 
 /**

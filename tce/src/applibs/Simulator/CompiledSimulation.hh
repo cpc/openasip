@@ -28,6 +28,7 @@ namespace TTAProgram {
 }
 
 class SimulatorFrontend;
+class DirectAccessMemory;
 
 
 /**
@@ -72,10 +73,11 @@ struct FUResultType {
  */
 class CompiledSimulation {
 public:
-    CompiledSimulation(const TTAMachine::Machine& machine,
-                       const TTAProgram::Program& program,
-                       SimulatorFrontend& frontend,
-                       MemorySystem& memorySystem);
+    CompiledSimulation(
+        const TTAMachine::Machine& machine,
+        const TTAProgram::Program& program,
+        SimulatorFrontend& frontend,
+        MemorySystem& memorySystem);
     virtual ~CompiledSimulation();
     
     virtual void simulateCycle() = 0;
@@ -95,12 +97,13 @@ public:
         int registerIndex);
     
     virtual SimValue immediateUnitRegisterValue(
-    const std::string& iuName, int index);
+        const std::string& iuName, int index);
     
     virtual SimValue FUPortValue(
         const std::string& fuName,
         const std::string& portName);
     
+    virtual void requestToStop();
     virtual bool stopRequested() const;
     virtual bool isFinished() const;
         
@@ -108,7 +111,8 @@ protected:
     TTAMachine::FunctionUnit& functionUnit(const std::string& name)
         const throw (InstanceNotFound);
     
-    Memory& FUMemory(const std::string& FUName) const throw (InstanceNotFound);
+    DirectAccessMemory& FUMemory(const std::string& FUName) 
+        const throw (InstanceNotFound);
     MemorySystem* memorySystem() const;
     SimulatorFrontend& frontend() { return frontend_; }
     void msg(const std::string& msg) const;
@@ -180,7 +184,7 @@ private:
     CompiledSimulation& operator=(const CompiledSimulation&);
     
     /// The memory system
-    MemorySystem * memorySystem_;
+    MemorySystem* memorySystem_;
     /// The simulator frontend
     SimulatorFrontend& frontend_;
 };

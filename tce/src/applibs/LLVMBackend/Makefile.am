@@ -1,4 +1,4 @@
-SUBDIRS =
+SUBDIRS = passes
 
 lib_LTLIBRARIES = libtcellvmbackend.la
 

@@ -100,8 +100,7 @@ public:
 
     void prepareToStop(StopReason reason);
     unsigned int stopReasonCount() const;
-    StopReason stopReason(unsigned int index) const
-        throw (OutOfRange);
+    StopReason stopReason(unsigned int index) const throw (OutOfRange);
     bool stoppedByUser() const;
     virtual void killSimulation();
 
@@ -136,6 +135,7 @@ public:
     void setProfileDataSaving(bool value);
     void setUtilizationDataSaving(bool value);
     void setTraceDBFileName(const std::string& fileName);
+    void setTimeout(unsigned int value);
     
     std::ostream& outputStream();
     void setOutputStream(std::ostream& stream);
@@ -153,7 +153,8 @@ public:
         int registerIndex = -1);
     
     virtual SimValue immediateUnitRegisterValue(
-    const std::string& iuName, int index = -1);
+        const std::string& iuName,
+        int index = -1);
     
     virtual SimValue FUPortValue(
         const std::string& fuName, 
@@ -213,6 +214,8 @@ protected:
 
     void startTimer();
     void stopTimer();
+    
+    void timeoutThread(unsigned int timeout);
 
     /// Machine to run simulation with.
     const TTAMachine::Machine* currentMachine_;
@@ -302,5 +305,7 @@ protected:
     std::time_t startTime_;
     /// The cycle count when the latest simulation was started. Used to compute simulation speed.
     CycleCount startCycleCount_;
+    /// Simulation timeout in seconds
+    unsigned int simulationTimeout_;
 };
 #endif
