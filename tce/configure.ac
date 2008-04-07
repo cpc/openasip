@@ -133,53 +133,76 @@ fi
 
 rm -rf $VECTORTEST
 
-# Checks whether hash_map is available somewhere.
-# First check for GNU. In that case it's available in ext/hash_map
-# in namespace __gnu_cxx.
+
+# === CHECK for unordered_map/hash_map ===
+# First check whether unordered_map exists.
+# now using unordered_map/set needs gcc flag -std=c++0x
+# later when hash_map/set are removed compiling without c++0x flag should work
 AC_LANG(C++)
-AC_MSG_CHECKING([whether hash_map is available])
+AC_MSG_CHECKING([whether unordered_map/hash_map is available])
 AC_LANG_CONFTEST(
-[AC_LANG_PROGRAM(
-  [[#include <ext/hash_map>]
-  [using __gnu_cxx::hash_map;]],
-  [],
-  [[hash_map<const char*, int> foo;]])
-])
+                 [AC_LANG_PROGRAM(
+                  [[#include <unordered_map>]
+                   [using std::unordered_map;]],
+                   [[]])
+                  ])
 
 # temporary file
 HASHMAP_TEST=hashmaptest123456
 rm -f $HASHMAP_TEST
-$CXX conftest.c 2> $HASHMAP_TEST
+$CXX conftest.cpp 2> $HASHMAP_TEST
 
-if test -s $HASHMAP_TEST
-then
-# Let's look if it's in std namespace.
+# if failed then
+if test -s ${HASHMAP_TEST}; then
+  # Checks whether hash_map is available somewhere.
+  # First check for GNU. In that case it's available in ext/hash_map
+  # in namespace __gnu_cxx.
   AC_LANG_CONFTEST(
-    [AC_LANG_PROGRAM(
-    [[#include <hash_map>]
-    [using std::hash_map;]],
-    [])
-  ])
+                   [AC_LANG_PROGRAM(
+                    [[#include <ext/hash_map>]
+                     [using __gnu_cxx::hash_map;]],
+                    [[hash_map<const char*, int> foo;]])
+                   ])
 
   rm -f $HASHMAP_TEST
-  $CXX conftest.C 2> $HASHMAP_TEST
+  $CXX -Wno-deprecated conftest.cpp 2> $HASHMAP_TEST
 
-  if test -s $HASHMAP_TEST
-  then
-     AC_MSG_RESULT([no])
+  # if failed again
+  if test -s ${HASHMAP_TEST}; then
+    # Let's look if it's in std namespace.
+    AC_LANG_CONFTEST(
+                     [AC_LANG_PROGRAM(
+                      [[#include <hash_map>]
+                      [using std::hash_map;]],
+                      [])
+                     ])
+
+    rm -f $HASHMAP_TEST
+    $CXX -Wno-deprecated conftest.cpp 2> $HASHMAP_TEST
+
+    # if failed again
+    if test -s ${HASHMAP_TEST}; then
+      AC_MSG_RESULT([no])
+    else
+        AC_MSG_RESULT([yes (namespace std)])
+        AC_DEFINE(HASHMAP_STD, 1, 
+                  [defines whether hash map is provided in namespace std])
+    fi
+
   else
-     AC_MSG_RESULT([yes (namespace std)])
-     AC_DEFINE(HASHMAP_STD, 1, 
-         [defines whether hash map is provided in namespace std])
+    AC_MSG_RESULT([yes (GNU extension)])
+    AC_DEFINE(HASHMAP_GNU_EXT, 1, 
+              [defines whether hash map is provided as a GNU extension])
   fi
 
 else
-  AC_MSG_RESULT([yes (GNU extension)])
-  AC_DEFINE(HASHMAP_GNU_EXT, 1, 
-    [defines whether hash map is provided as a GNU extension])
+    AC_MSG_RESULT([yes (unordered map)])
+    AC_DEFINE(UNORDERED_MAP, 1, 
+              [defines whether unordered map is provided])
 fi
 
 rm -f $HASHMAP_TEST
+
 
 # CXXFLAGS is set if gcc is in use and user has not given CXXFLAGS.
 if test x$CXXFLAGS_GIVEN = xno
@@ -194,7 +217,7 @@ then
 
   AC_MSG_CHECKING([whether compiler understands -Wno-system-headers flag])
 
-  $CXX -Wno-system-headers conftest.c 2> $FLAGTEST
+  $CXX -Wno-system-headers conftest.cpp 2> $FLAGTEST
 
   if test -s $FLAGTEST
   then
@@ -214,7 +237,7 @@ AC_LANG_CONFTEST(
 ])
 
 RDYNAMICTEST=rdynamictest13224
-$CXX -rdynamic conftest.c 2> $RDYNAMICTEST
+$CXX -rdynamic conftest.cpp 2> $RDYNAMICTEST
 
 AC_MSG_CHECKING([whether compiler supports -rdynamic])
 if test -s $RDYNAMICTEST
