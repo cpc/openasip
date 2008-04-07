@@ -798,7 +798,7 @@ TDGen::writeOperationDef(
     // now works for 1 and 0 outputs. Need changes when multiple
     // output become supported.
     int intOutCount = 0;
-    if (op.numberOfOutputs() == 1) {
+    if (op.numberOfOutputs() == 1 && !op.readsMemory()) {
 
         // These are a mess in Operation class.
         Operand& operand = op.operand(op.numberOfInputs()+1);
@@ -806,6 +806,13 @@ TDGen::writeOperationDef(
             operand.type() == Operand::SINT_WORD) {
             intOutCount = 1;
         }
+        if (op.name() == "CFI") {
+            intOutCount = 0;
+        }
+        if (op.name().substr(0,3) == "ROT" || op.name().substr(0,2) == "SH") {
+            intOutCount = 0;
+        }
+
     }
 
     for (int boolOut = 0; boolOut <= intOutCount; boolOut++) {
@@ -1051,7 +1058,7 @@ TDGen::dagNodeToString(
                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
             }
 
-            return operandToString(operand, false, imm, boolOut);
+            return operandToString(operand, false, imm, false);
         } else {
 
             // Output operand for the whole operation.
@@ -1067,19 +1074,24 @@ TDGen::dagNodeToString(
             // of dag:
             assert(dag.outDegree(srcNode) == 1);
             
+            std::string dnString = dagNodeToString(
+                op, dag, srcNode, immOp, emulationPattern, false);
+            bool needTrunc = boolOut;
             if (boolOut) {
+                if (dnString.substr(0,4) == "(set") {
+                    needTrunc = false;
+                }
+            }
+
+            if (needTrunc) {
                 std::string pattern =
-                    "(set " + operandToString(operand, false, imm, true)
-                    + ", (trunc " + dagNodeToString(
-                        op, dag, srcNode, immOp, emulationPattern, true) 
-                    + "))";
+                    "(set " + operandToString(operand, false, imm, boolOut)
+                    + ", (trunc " + dnString + "))";
                 return pattern;
             } else {
                 std::string pattern =
-                    "(set " + operandToString(operand, false, imm, false) 
-                    + ", " + dagNodeToString(
-                        op, dag, srcNode, immOp, emulationPattern, false)
-                    + ")";
+                    "(set " + operandToString(operand, false, imm, boolOut) 
+                    + ", " + dnString + ")";
                 return pattern;
             }
         }
