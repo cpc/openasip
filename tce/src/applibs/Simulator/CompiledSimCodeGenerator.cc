@@ -387,8 +387,7 @@ CompiledSimCodeGenerator::generateConstructorCode() {
         if (fu.addressSpace() != NULL) {
             *os_ << "," << endl;
             *os_ << "\t" << SymbolGenerator::DAMemorySymbol(fu) 
-                 << "(dynamic_cast<DirectAccessMemory&>(FUMemory(\""
-                 << fu.name() << "\")))";
+                 << "(FUMemory(\"" << fu.name() << "\"))";
         }
     }
     

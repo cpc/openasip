@@ -15,6 +15,7 @@
 #include "SimulatorFrontend.hh"
 #include "SimulationEventHandler.hh"
 #include "SymbolGenerator.hh"
+#include "DirectAccessMemory.hh"
 
 using namespace TTAMachine;
 
@@ -291,11 +292,12 @@ CompiledSimulation::functionUnit(const std::string& name) const
  * @return memory object of the given function unit
  * @exception InstanceNotFound If an item is not found
  */
-Memory& 
+DirectAccessMemory& 
 CompiledSimulation::FUMemory(const std::string& FUName) const 
     throw (InstanceNotFound) {
     assert (fuNavigator_.item(FUName)->addressSpace() != NULL);
-    return memorySystem()->memory(*fuNavigator_.item(FUName)->addressSpace());
+    return dynamic_cast<DirectAccessMemory&>(memorySystem()->memory(
+        *fuNavigator_.item(FUName)->addressSpace()));
 }
 
 /**

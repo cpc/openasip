@@ -28,6 +28,7 @@ namespace TTAProgram {
 }
 
 class SimulatorFrontend;
+class DirectAccessMemory;
 
 
 /**
@@ -110,7 +111,8 @@ protected:
     TTAMachine::FunctionUnit& functionUnit(const std::string& name)
         const throw (InstanceNotFound);
     
-    Memory& FUMemory(const std::string& FUName) const throw (InstanceNotFound);
+    DirectAccessMemory& FUMemory(const std::string& FUName) 
+        const throw (InstanceNotFound);
     MemorySystem* memorySystem() const;
     SimulatorFrontend& frontend() { return frontend_; }
     void msg(const std::string& msg) const;
