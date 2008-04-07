@@ -1197,7 +1197,8 @@ TDGen::operandToString(
                 return "imm:$op" + Conversion::toString(idx);
             }
         } else {
-            return "I32Regs:$op" + Conversion::toString(idx);
+            return (intToBool ? "I1Regs:$op" : "I32Regs:$op") + 
+                Conversion::toString(idx);
         }
     } else if (operand.type() == Operand::FLOAT_WORD) {
         if (immediate) {
