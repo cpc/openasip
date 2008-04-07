@@ -798,17 +798,17 @@ TDGen::writeOperationDef(
     // now works for 1 and 0 outputs. Need changes when multiple
     // output become supported.
     int intOutCount = 0;
-    if (op.numberOfOperands() == 1) {
+    if (op.numberOfOutputs() == 1) {
 
         // These are a mess in Operation class.
         Operand& operand = op.operand(op.numberOfInputs()+1);
         if (operand.type() == Operand::UINT_WORD || 
             operand.type() == Operand::SINT_WORD) {
-            intOutCountCount = 1;
+            intOutCount = 1;
         }
     }
 
-    for (int boolOut = 0; boolOut =< intOutCount; boolOut++) {
+    for (int boolOut = 0; boolOut <= intOutCount; boolOut++) {
         if ( boolOut != 0) {
             suffix += 'b';
         }
@@ -891,11 +891,11 @@ TDGen::writeEmulationPattern(
 
     boost::format match(llvmPat);
     for (int i = 0; i < op.numberOfInputs(); i++) {
-        match % operandToString(op.operand(i + 1), true, 0);
+        match % operandToString(op.operand(i + 1), true, 0, false);
     }
 
     o << "def : Pat<(" << match.str() << "), "
-      << dagNodeToString(op, dag, *res, 0, true)
+      << dagNodeToString(op, dag, *res, 0, true, false)
       << ">;" << std::endl;
 }
 
@@ -1051,7 +1051,7 @@ TDGen::dagNodeToString(
                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
             }
 
-            return operandToString(operand, false, imm);
+            return operandToString(operand, false, imm, boolOut);
         } else {
 
             // Output operand for the whole operation.
@@ -1169,7 +1169,7 @@ std::string
 TDGen::operandToString(
     const Operand& operand,
     bool match,
-    bool immediate) {
+    bool immediate, bool boolOut) {
 
     int idx = operand.index();
 
@@ -1197,7 +1197,7 @@ TDGen::operandToString(
                 return "imm:$op" + Conversion::toString(idx);
             }
         } else {
-            return (intToBool ? "I1Regs:$op" : "I32Regs:$op") + 
+            return (boolOut ? "I1Regs:$op" : "I32Regs:$op") + 
                 Conversion::toString(idx);
         }
     } else if (operand.type() == Operand::FLOAT_WORD) {
@@ -1237,7 +1237,7 @@ TDGen::patInputs(const Operation& op, int immOp) {
             ins += ",";
         }
         bool imm = (op.operand(i+1).index() == immOp);
-        ins += operandToString(op.operand(i + 1), true, imm);
+        ins += operandToString(op.operand(i + 1), true, imm, false);
     }
     return ins;
 }
@@ -1250,7 +1250,7 @@ TDGen::patInputs(const Operation& op, int immOp) {
  * @return String defining operation outputs in llvm .td format.
  */
 std::string
-TDGen::patOutputs(const Operation& op) {
+TDGen::patOutputs(const Operation& op, bool boolOut) {
     std::string outs;
     if (op.numberOfOutputs() == 0) {
         return "";
@@ -1258,7 +1258,7 @@ TDGen::patOutputs(const Operation& op) {
         assert(op.operand(op.numberOfInputs() + 1).isOutput());
         outs += " ";
         outs += operandToString(
-            op.operand(op.numberOfInputs() + 1), true, false);
+            op.operand(op.numberOfInputs() + 1), true, false, boolOut);
 
     } else {
         assert(false);

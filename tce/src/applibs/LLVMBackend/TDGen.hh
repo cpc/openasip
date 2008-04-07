@@ -104,13 +104,13 @@ private:
 
     std::string llvmOperationPattern(const std::string& osalOperationName);
 
-    std::string patOutputs(const Operation& op);
+    std::string patOutputs(const Operation& op, bool boolOut);
     std::string patInputs(const Operation& op, int immOp);
 
     std::string operandToString(
         const Operand& operand,
         bool match,
-        bool immediate);
+        bool immediate, bool boolOut);
 
 
     std::string operationNodeToString(
