@@ -11,7 +11,7 @@
 
 #include <TestSuite.h>
 #include <cstdlib>
-
+#include <time.h>
 #include "MemoryContents.hh"
 
 /**
@@ -56,7 +56,7 @@ MemoryContentsTest::testStressTest() {
 
     MemoryContents mem(addressSpaceSize);
     /// A geeky hack to produce a somewhat random seed ;)
-    std::srand(reinterpret_cast<unsigned int>(this));
+    std::srand(time(NULL));
     
     for (size_t i = 0; i < accessCount; ++i) {
         const size_t address = 

@@ -453,10 +453,11 @@ AssemblerTest::testErrorHandling() {
     machineReader.setSourceFile(ERROR_GENERATOR_MACH_FILE);
     Machine* mach = machineReader.readMachine();
 
-    for (unsigned int i = 0; i < sizeof(ERROR_GENERATION_CODES) / 4; i++) {
+    for (unsigned int i = 0; i < sizeof(ERROR_GENERATION_CODES) / sizeof(void*)
+             ; i++) {
         BinaryStream stream("data/temp.tceasm");
         const std::string& asmCode = ERROR_GENERATION_CODES[i];
-
+  
         for (unsigned int j = 0; j < asmCode.length(); j++) {
             stream.writeByte(asmCode.at(j));
         }
@@ -464,12 +465,12 @@ AssemblerTest::testErrorHandling() {
         Assembler assembler(stream, *mach);
 
         // uncomment this to see which case failed
-        //        try {
-        //           assembler.compile();
-        //        } catch (CompileError& e) {
-        //            std::cerr << e.errorMessage()
-        //                      << std::endl << std::endl;
-        //        }
+        // try {
+//             assembler.compile();
+//         } catch (CompileError& e) {
+//             std::cerr << e.errorMessage()
+//                       << std::endl << std::endl;
+//         }
 
         TS_ASSERT_THROWS(assembler.compile(), CompileError);
     }

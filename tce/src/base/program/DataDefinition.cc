@@ -25,6 +25,7 @@ namespace TTAProgram {
  * @exception OutOfRange In case the initialization data contains data that
  * do not fit in a MAU.
  */
+
 DataDefinition::DataDefinition(
     Address start, int size, MinimumAddressableUnit *initData) 
     throw (OutOfRange) :
@@ -35,7 +36,6 @@ DataDefinition::DataDefinition(
         for (int i = 0 ; i < size; i++) {
             const int mauBits = start.space().width();
             const MinimumAddressableUnit mau = initData[i];
-
             if (MathTools::requiredBits(mau) > mauBits) {
                 if (MathTools::requiredBitsSigned(mau) > mauBits) {
                     throw OutOfRange(
@@ -70,8 +70,9 @@ DataDefinition::DataDefinition(
     for (std::size_t i = 0 ; i < initData.size(); i++) {
         const int mauBits = start.space().width();
         const MinimumAddressableUnit mau = initData[i];
-
+        
         if (MathTools::requiredBits(mau) > mauBits) {
+            
             if (MathTools::requiredBitsSigned(mau) > mauBits) {
                 throw OutOfRange(
                     __FILE__, __LINE__, __func__,

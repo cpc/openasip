@@ -31,6 +31,7 @@ public:
     void testRequiredBitsSigned();
     void testSignExtendTo();
     void testZeroExtendTo();
+    void testRequiredBitsSignWithNeg();
 };
 
 
@@ -86,5 +87,10 @@ MathToolsTest::testZeroExtendTo() {
     TS_ASSERT_EQUALS(MathTools::zeroExtendTo(-2, 2), 2);
 }
 
+void
+MathToolsTest::testRequiredBitsSignWithNeg() {
+    UInt32 temp = static_cast<UInt32>(-10);
+    TS_ASSERT_EQUALS(MathTools::requiredBitsSigned(temp), 5);
+}
 
 #endif
