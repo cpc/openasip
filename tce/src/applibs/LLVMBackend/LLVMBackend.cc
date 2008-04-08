@@ -424,7 +424,8 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         throw ne;
     }
 
-    FileSystem::removeFileOrDirectory(tmpDir);
+    // TODO: temporary hack to see the TD file
+//    FileSystem::removeFileOrDirectory(tmpDir);
     return creator();
 }
 
