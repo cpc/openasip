@@ -39,7 +39,7 @@ Section: devel
 Priority: optional
 Architecture: i386
 Essential: no
-Depends: libwxgtk2.6-0, libboost-filesystem1.33.1, libboost-graph1.33.1, libboost-regex1.33.1, tcl8.4, libedit2, libsqlite3-0, libxerces27, g++
+Depends: libwxgtk2.6-0, libboost-filesystem1.33.1, libboost-graph1.33.1, libboost-regex1.33.1, libboost-thread1.33.1, tcl8.4, libedit2, libsqlite3-0, libxerces27, g++
 Pre-Depends: perl 
 Suggests: kpdf | acroread | evince, sqlite3
 Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
