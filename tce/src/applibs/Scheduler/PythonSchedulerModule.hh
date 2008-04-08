@@ -28,6 +28,7 @@
 #define TTA_PYTHON_SCHEDULER_MODULE_HH
 
 #include "StartableSchedulerModule.hh"
+#include "HelperSchedulerModule.hh"
 
 #ifdef PYTHON_ENABLED
 #include <boost/python.hpp>
@@ -54,6 +55,9 @@ public:
     // TODO: these should be inherited from BaseSchedulerModule
     void setTarget(const TTAMachine::Machine& target);
     void setProgram(TTAProgram::Program& program);
+
+    virtual void registerHelperModule(HelperSchedulerModule& module)
+        throw (IllegalRegistration);
 
 private:
     string pythonFile_;
