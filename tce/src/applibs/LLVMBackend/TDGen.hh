@@ -104,13 +104,13 @@ private:
 
     std::string llvmOperationPattern(const std::string& osalOperationName);
 
-    std::string patOutputs(const Operation& op, bool boolOut);
-    std::string patInputs(const Operation& op, int immOp);
+    std::string patOutputs(const Operation& op, bool intToBool);
+    std::string patInputs(const Operation& op, int immOp, bool intToBool);
 
     std::string operandToString(
         const Operand& operand,
         bool match,
-        bool immediate, bool boolOut);
+        bool immediate, int intToBool);
 
 
     std::string operationNodeToString(
@@ -119,19 +119,19 @@ private:
         const OperationNode& node,
         int immOp,
         bool emulationPattern,
-        bool boolOut) throw (InvalidData);
+        int intToBool) throw (InvalidData);
 
     std::string dagNodeToString(
         const Operation& op,
         const OperationDAG& dag,
         const OperationDAGNode& node,
         int immOp,
-        bool emulationPattern, bool boolOut) throw (InvalidData);
+        bool emulationPattern, int intToBool) throw (InvalidData);
 
     std::string operationPattern(
         const Operation& op,
         const OperationDAG& dag,
-        int immOp, bool boolOut);
+        int immOp, int intToBool);
 
     OperationDAG* createTrivialDAG(Operation& op);
     bool canBeImmediate(const OperationDAG& dag, const TerminalNode& node);
