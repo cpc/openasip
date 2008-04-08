@@ -276,26 +276,24 @@ AOutReaderTest::compareBinaries(Binary* first, Binary* second) {
 		second->section(secondIter)->type() &&
 		first->section(firstIter)->elementCount() == 
 		second->section(secondIter)->elementCount()) {
-		
-		// and still some extra checking for relocation sections
-		if (first->section(firstIter)->type() == Section::ST_RELOC &&
-
-		    dynamic_cast<RelocSection*>
-		    (first->section(
-			firstIter))->referencedSection()->type() ==
-		    dynamic_cast<RelocSection*>
-		    (second->section(
-			secondIter))->referencedSection()->type() ||
-		    
-		    first->section(firstIter)->type() != Section::ST_RELOC) {
-		    
-		    compareSections(first->section(firstIter), 
-				    second->section(secondIter));
-		    break;
-		}
+                
+        // and still some extra checking for relocation sections
+        if ((first->section(firstIter)->type() == Section::ST_RELOC &&
+            dynamic_cast<RelocSection*>
+            (first->section(
+            firstIter))->referencedSection()->type() ==
+            dynamic_cast<RelocSection*>
+            (second->section(
+            secondIter))->referencedSection()->type()) ||
+            first->section(firstIter)->type() != Section::ST_RELOC) {
+            
+            compareSections(first->section(firstIter), 
+                    second->section(secondIter));
+            break;
+        }
             }
         }
-	
+
         TS_ASSERT_DIFFERS(secondIter, second->sectionCount());
     }
 }

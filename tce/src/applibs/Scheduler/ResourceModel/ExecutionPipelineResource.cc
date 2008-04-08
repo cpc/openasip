@@ -715,7 +715,7 @@ ExecutionPipelineResource::setResourceUse(
     }
 
     if (!MapTools::containsKey(operationSupported_, opName)) {
-        ResourceTable newOp(maximalLatency_, numberOfResources_);
+        ResourceTable newOp(maximalLatency_, std::vector<bool>(numberOfResources_, false));
         operationPipelines_.push_back(newOp);
         operationSupported_[opName] = operationPipelines_.size() - 1;
     }

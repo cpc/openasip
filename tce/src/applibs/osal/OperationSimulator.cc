@@ -102,8 +102,8 @@ OperationSimulator::initializeSimValue(
 
     bool is_int = value.find(".") == string::npos;
     bool is_float = value.find(".") != string::npos &&
-        value.find("f") != string::npos ||
-        value.find("F") != string::npos;
+        (value.find("f") != string::npos ||
+        value.find("F") != string::npos);
 
     try {
         if (is_int && !is_float) {
