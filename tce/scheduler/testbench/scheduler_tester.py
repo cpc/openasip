@@ -12,6 +12,7 @@ from pprint import pformat
 # of this script.
 
 schedulerExe = "../../src/bintools/Scheduler/schedule"
+tceccExe = "../../src/bintools/Compiler/tcecc"
 simulatorExe = "../../src/codesign/ttasim/ttasim"
 
 # How long the scheduling can run without getting killed?
@@ -84,6 +85,7 @@ ADFDir = rootDir + "/ADF"
 operationDir = rootDir + "/Operations"
 schedulerExe = rootDir + "/" + schedulerExe
 simulatorExe = rootDir + "/" + simulatorExe
+tceccExe = rootDir + "/" + tceccExe
 schedulerConfDir = rootDir + "/../passes"
 
 # LLVM compiler can be enabled with switch '-x'
@@ -537,20 +539,15 @@ class TestCase:
                             " -a " + archFilename + \
                             " " + seqProgFileName
         else:
+            schedulingCommand = tceccExe + ' '
             if (leaveDirty):
-                schedulingCommand = 'tcecc -d' + \
-                                    " --scheduler-binary=" + schedulerExe + \
-                                    " -o " + dstProgFileName + \
-                                    " -s " + configFileName + \
-                                    " -a " + archFilename + \
-                                    " " + seqProgFileName
-            else:
-                schedulingCommand = 'tcecc ' + \
-                                    " --scheduler-binary=" + schedulerExe + \
-                                    " -o " + dstProgFileName + \
-                                    " -s " + configFileName + \
-                                    " -a " + archFilename + \
-                                    " " + seqProgFileName
+                schedulingCommand += '-d '
+            
+            schedulingCommand += " --scheduler-binary=" + schedulerExe + \
+                                " -o " + dstProgFileName + \
+                                " -s " + configFileName + \
+                                " -a " + archFilename + \
+                                " " + seqProgFileName
                 
                 
         exitOk, stdoutContents, stderrContents = runWithTimeout(schedulingCommand, schedulingTimeoutSec)
