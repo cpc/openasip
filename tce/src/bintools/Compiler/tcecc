@@ -379,7 +379,7 @@ else:
 ### llvm-gcc install prefix
 (exitCode, output) = runCommand("dirname `which tce-llvm-gcc`", False)
 if exitCode != 0:
-    sys.stderr.write("Error while determining llvm prefix flags: \n")
+    sys.stderr.write("Could not find 'tce-llvm-gcc'. Have you installed it in PATH?\n")
     exitWithError(1, options.verbose, output)
 llvmprefix = output + "/.."
 

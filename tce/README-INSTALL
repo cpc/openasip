@@ -126,12 +126,12 @@ These distributions are used by developers or active users of TCE, but
 might not be included in the "compiletest farm" which compiles and tests 
 TCE automatically.
 
-Arch 0.8		    [Esa M., Tero]
-Kubuntu 6.10                [Perttu]
-Kubuntu 7.04                [Veli-Pekka, Teemu]
-Kubuntu 7.10		    [Pekka]
-Ubuntu 7.10		    [Viljami]
-Fedora Core 8		    [Otto]
+Arch 0.8          [Esa M., Tero]
+Kubuntu 7.04      [Veli-Pekka, Teemu]
+Kubuntu 7.10      [Pekka]
+Kubuntu 8.04      [Pekka@laptop]
+Ubuntu 7.10       [Viljami]
+Fedora Core 8     [Otto]
 
 TCE on 64-bit distributions
 ===========================
