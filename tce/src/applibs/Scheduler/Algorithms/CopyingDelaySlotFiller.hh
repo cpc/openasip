@@ -13,6 +13,7 @@
 #include <map>
 #include <vector>
 #include <list>
+#include "Exception.hh"
 
 class BasicBlockNode;
 class BasicBlock;
