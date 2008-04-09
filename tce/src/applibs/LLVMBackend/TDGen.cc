@@ -798,8 +798,8 @@ TDGen::writeOperationDef(
     // now works for 1 and 0 outputs. Need changes when multiple
     // output become supported.
     int intOutCount = 0;
-    if (op.numberOfOutputs() == 1 /* && !op.readsMemory() */) {
-
+    if (op.numberOfOutputs() == 1 && !op.readsMemory() ) {
+        
         // These are a mess in Operation class.
         Operand& operand = op.operand(op.numberOfInputs()+1);
         if (operand.type() == Operand::UINT_WORD || 
@@ -810,10 +810,16 @@ TDGen::writeOperationDef(
         if (op.name() == "CFI") {
             intOutCount = 0;
         }
-
-        if (op.name().substr(0,3) == "ROT" || op.name().substr(0,2) == "SH"
-            || op.name().substr(0,2) == "SX" || 
-            op.name().substr(0,3) == "LDH" || op.name().substr(0,3) == "LDQ") {
+        
+        if (op.name().substr(0,3) == "ROT" || 
+            op.name().substr(0,2) == "SH" ||
+            op.name().substr(0,2) == "SX" ) {
+/*
+||
+            op.name().substr(0,3) == "LDH" ||
+            op.name().substr(0,3) == "LDW") 
+            op.name() == "LD{
+*/
             intOutCount = 0;
         }
         if (op.name() == "XOR" || op.name() == "IOR") {
@@ -822,7 +828,7 @@ TDGen::writeOperationDef(
         if (op.readsMemory() && intOutCount == 2 ) {
             intOutCount = 1; // 1bit addresses not reasonable
         }
-    }
+}
     
 
     for (int boolOut = 0; boolOut <= intOutCount; boolOut++) {
@@ -1125,6 +1131,7 @@ TDGen::dagNodeToString(
             // handle setcc's without trunc
             if (needTrunc) {
                 if (dnString.substr(0,4) == "(set" ||
+                    dnString.substr(0,5) == "(zext" ||
                     dnString.substr(0,5) == "(load") {
                     needTrunc = false;
                 }

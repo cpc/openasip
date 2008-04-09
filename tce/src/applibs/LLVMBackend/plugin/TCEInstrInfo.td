@@ -283,10 +283,13 @@ def MOVF64ri : InstTCE<"MOVE", (outs F64Regs:$dst), (ins i64imm:$src),
 	           "$src -> $dst;",
                    []>;
 
-
 def NOP : InstTCE<"NOP", (outs), (ins), "...;", []>;
 
+// zero extending moves
 
+def MOVI1I32rr : InstTCE<"MOVE", (outs I32Regs:$dst), (ins I1Regs:$src),
+                    "$src -> $dst;",
+                    [(set I32Regs:$dst, (zext I1Regs:$src))]>;
 
 // ----- Immediates -----
 def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;
@@ -326,6 +329,19 @@ let isTerminator = 1, isBranch = 1 in {
                         (ins i32imm:$dst), "$dst -> jump.1;", []>;
 }
 
+let isLoad = 1 in {
+// hardcoded boolean loads.
+    def LDQUb : InstTCE <"LDQU", (outs I1Regs:$dst), (ins MEMrr:$src), "", [(set I1Regs:$dst, (load ADDRrr:$src))]>;
+    def LDQUib : InstTCE<"LDQU", (outs I1Regs:$dst), (ins MEMri:$src), "", [(set I1Regs:$dst, (load ADDRri:$src))]>;
+}
+
+// and stores
+let isStore = 1 in {
+    def STQib : InstTCE<"STQ", (outs), (ins MEMri:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRri:$addr)]>;
+
+    def STQrb : InstTCE<"STQ", (outs), (ins MEMrr:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRrr:$addr)]>;
+}
+
 include "GenInstrInfo.td"
 
 // anyextloads -> sextloads
@@ -336,7 +352,7 @@ def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQi ADDRri:$src)>;
 def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
 def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
 
-//  bool load/store
+//  old bool load/store - need to be changed - or not used anymore?
 def : Pat<(i32 (zextloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
 def : Pat<(i32 (zextloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
 
