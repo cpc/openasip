@@ -7,7 +7,7 @@
 #
 
 CCSOURCES=ControlFlowGraph.cc mach.cc osal.cc program.cc ProgramDependenceGraph.cc \
-	ResourceManager.cc ResourceModel.cc tools.cc tpef.cc
+	ResourceManager.cc ResourceModel.cc tools.cc tpef.cc Algorithms.cc SchedulerModules.cc
 
 all: $(CCSOURCES)	
 

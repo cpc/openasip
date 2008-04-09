@@ -507,14 +507,14 @@ GUI_INCLUDES="$GUI_INCLUDES $($wxwindowsBin --cxxflags)"
 # if wx-config is found and the version is 2.4.*, conditional
 # WX is set.
 case "$($wxwindowsBin --version)" in
-     2.4.* | 2.5.* | 2.6.* | 2.8.*)
+     2.6.* | 2.8.*)
    DO_WX_COMPILE=true
    ;;
      *)
    DO_WX_COMPILE=false
    AC_MSG_NOTICE(
    [
-    wxWidgets version must be 2.4.*, 2.5.* or 2.6.* 2.8.* in order to
+    wxWidgets version must be 2.6.* or 2.8.* in order to
     build graphical user interfaces.
    ])
    ;;
@@ -1199,6 +1199,8 @@ AC_CONFIG_FILES([
   src/ext/llvm/Makefile
   src/ext/llvm/2.1/Makefile
   src/ext/llvm/2.1/TableGen/Makefile
+  src/ext/llvm/2.2/Makefile
+  src/ext/llvm/2.2/TableGen/Makefile
   src/applibs/LLVMBackend/Makefile
   src/applibs/LLVMBackend/passes/Makefile
   src/bintools/Compiler/Makefile

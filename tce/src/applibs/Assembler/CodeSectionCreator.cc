@@ -641,7 +641,7 @@ CodeSectionCreator::addAnnotationes(InstructionElement& instrElem,
             if (initData.litOrExpr.isSigned) {
                 while (temp.size() > 1 && temp[0] == 0xff && 
                        temp.size() > initData.width &&
-                       temp[1] & 0x80 != 0) {
+                       (temp[1] & 0x80) != 0) {
 
                     temp.pop_front();
                 }                

@@ -8,6 +8,8 @@
  * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi) 
  */
 
+#include <algorithm>
+
 /**
  *
  * Deletes all items in a map and clears it.
@@ -22,17 +24,17 @@ AssocTools::deleteAllItems(ContainerType& aMap) {
 
     typename ContainerType::iterator next;
     for (typename ContainerType::iterator i = aMap.begin();
-	 i != aMap.end(); ) {
+        i != aMap.end(); ) {
 
-	// This trick is necessary because this same container can be
-	// modified (element erased) in the destructor of the deleted
-	// object. It would render the iterator faulty. Note that this
-	// works only for associative containers, with vectors the
-	// next iterator would get corrupted too.
-	next = i;
-	next++;
-	delete (*i);
-	i = next;
+        // This trick is necessary because this same container can be
+        // modified (element erased) in the destructor of the deleted
+        // object. It would render the iterator faulty. Note that this
+        // works only for associative containers, with vectors the
+        // next iterator would get corrupted too.
+        next = i;
+        next++;
+        delete (*i);
+        i = next;
     }
 
     aMap.clear();

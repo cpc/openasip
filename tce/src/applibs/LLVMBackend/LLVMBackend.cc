@@ -41,7 +41,8 @@ volatile TargetLowering dummy(TargetMachine());
 Pass* createLowerMissingInstructionsPass();
 extern const PassInfo* LowerMissingInstructionsID;
 
-const std::string LLVMBackend::TBLGEN_BIN = "tblgen";
+// TODO: LLVM version from config.h?
+const std::string LLVMBackend::LLVM_VERSION = "2.1";
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
@@ -53,6 +54,7 @@ LLVMBackend::LLVMBackend(bool useCache):
     useCache_(useCache) {
 
     cachePath_ = Environment::llvmtceCachePath();
+
 }
 
 /**
@@ -195,6 +197,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     std::string pluginFile = pluginFilename(target);
     std::string pluginFileName;
+    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     // Create temp directory for building the target machine plugin.
     std::string tmpDir = FileSystem::createTempDirectory();
@@ -204,32 +207,29 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         if (!FileSystem::fileIsDirectory(cachePath_)) {
             FileSystem::createDirectory(cachePath_);
         }
-        pluginFileName = cachePath_ + FileSystem::DIRECTORY_SEPARATOR +
-            pluginFile;
+        pluginFileName = cachePath_ + DS + pluginFile;
 
     } else {
-        pluginFileName = tmpDir + FileSystem::DIRECTORY_SEPARATOR +
-            pluginFile;
+        pluginFileName = tmpDir + DS + pluginFile;
     }
 
     // Static plugin source files path.
     std::string srcsPath;
     std::string pluginIncludeFlags;
     if (DISTRIBUTED_VERSION) {
-        srcsPath = std::string(TCE_INSTALLATION_ROOT) + "/include/";
+        srcsPath = std::string(TCE_INSTALLATION_ROOT) +  DS + "include" + DS;
         pluginIncludeFlags = " -I" + srcsPath;
     } else {
-        srcsPath = std::string(TCE_SRC_ROOT) +
-            "/src/applibs/LLVMBackend/plugin/";
+        srcsPath = std::string(TCE_SRC_ROOT) + DS +
+            "src" + DS + "applibs" + DS + "LLVMBackend" + DS + "plugin" + DS;
 
 
-        // FIXME: LLVM version from config.h?
         pluginIncludeFlags =
             " -I" + srcsPath +
-            " -I" + std::string(TCE_SRC_ROOT) +
-            "/src/ext/llvm/2.1/TableGen/td/" +
-            " -I" + std::string(TCE_SRC_ROOT) +
-            "/src/applibs/LLVMBackend/";
+            " -I" + std::string(TCE_SRC_ROOT) + DS +
+            "src" + DS + "ext" + DS + "llvm" + DS + LLVM_VERSION + DS + "TableGen" + DS +
+ 	    "td" + DS + " -I" + std::string(TCE_SRC_ROOT) + DS +
+            "src" + DS + "applibs" + DS + "LLVMBackend" + DS;
 
     }
 
@@ -268,9 +268,17 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         throw ne;
     }
 
+    std::string tblgenbin;
+    if (DISTRIBUTED_VERSION) {
+       tblgenbin = std::string(TCE_INSTALLATION_ROOT) + DS + "bin" + DS + "tblgen";
+    } else {
+       tblgenbin = std::string(TCE_SRC_ROOT) + DS +
+           "src" + DS + "ext" + DS + "llvm" + DS + LLVM_VERSION + DS + "TableGen" + DS + "tblgen";
+    }
+       
     // Generate TCEGenRegisterNames.inc
     std::string tblgenCmd =
-        TBLGEN_BIN + " " + TBLGEN_INCLUDES +
+	tblgenbin + " " + TBLGEN_INCLUDES +
         " -I" + tmpDir + " -I" + LLVM_INCLUDEDIR;
 
     tblgenCmd += pluginIncludeFlags;

@@ -84,16 +84,24 @@ PythonSchedulerModule::start()
         throw ObjectNotInitialized(__FILE__, __LINE__, method, msg);
     }
 
-    // Initialize the target and program if needed
-    if (needsProgram_) {
-	call_method<void>(passInstance.ptr(), "setProgram", ptr(program_));
-    }
-    if (needsTarget_) {
-	call_method<void>(passInstance.ptr(), "setTarget", ptr(target_));
-    }
-
-    // Start the pass
-    call_method<bool>(passInstance.ptr(), "start");
+    try 
+	{
+	  // Initialize the target and program if needed
+	  if (needsProgram_) {
+	      call_method<void>(passInstance.ptr(), "setProgram", ptr(program_));
+	  }
+	  if (needsTarget_) {
+	      call_method<void>(passInstance.ptr(), "setTarget", ptr(target_));
+	  }
+	  
+	  // Start the pass
+	  call_method<bool>(passInstance.ptr(), "start");
+	}
+    catch(error_already_set const &)
+	{
+	    // Print out the Python exception information
+	    PyErr_Print();
+	}
 #endif
 }
 
@@ -120,6 +128,22 @@ PythonSchedulerModule::setTarget(const TTAMachine::Machine& target) {
 void
 PythonSchedulerModule::setProgram(TTAProgram::Program& program) {
     program_ = &program;
+}
+
+void
+PythonSchedulerModule::registerHelperModule(HelperSchedulerModule& module)
+    throw (IllegalRegistration) {
+#ifdef PYTHON_ENABLED
+    try 
+	{
+	    call_method<void>(passInstance.ptr(), "registerHelperModule", ptr(&module));
+	}
+    catch(error_already_set const &)
+	{
+	    // Print out the Python exception information
+	    PyErr_Print();
+	}
+#endif
 }
 
 bool PythonSchedulerModule::isPythonInitialized = false;

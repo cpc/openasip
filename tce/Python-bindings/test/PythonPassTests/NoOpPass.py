@@ -8,6 +8,7 @@ import TCE.base.tpef
 import TCE.applibs.Scheduler.ProgramRepresentations.ProgramDependenceGraph
 import TCE.applibs.Scheduler.ResourceManager
 import TCE.applibs.Scheduler.ResourceModel
+import TCE.applibs.Scheduler.SchedulerModules
 
 
 #
@@ -37,6 +38,9 @@ class NoOpPass:
     def setProgram(self, program):
         print "setProgram() called with", program
         self.program = program
+
+    def registerHelperModule(self, module):
+        print "registerHelperModule() called"
 
     def start(self):
         print "Running NoOpPass.py"

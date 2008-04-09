@@ -2,6 +2,7 @@ NoOpPass instantiated
 needsTarget() called
 needsProgram() called
 needsProgramRepresentation() called
+registerHelperModule() called
 setProgram() called with <TCE.base.program.Program object at 0x........>
 setTarget() called with <TCE.base.mach.Machine object at 0x........>
 Running NoOpPass.py

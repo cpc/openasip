@@ -7,10 +7,10 @@
 
 cd ..
 
-# Grab the svn revision number
-version=$(svn info | grep "Last Changed Rev" | awk '{print $4}')
+# Grab the bzr revision number
+version="$(bzr revno)"
 
-echo "Creating a .deb for LLVM frontend version svn${version}."
+echo "Creating a .deb for LLVM frontend version bzr ${version}."
 
 tempDir=$(mktemp -d)
 echo "Temporary directory for the package: ${tempDir}"
@@ -22,9 +22,14 @@ echo "Building and installing LLVM into temp dir."
 
 mkdir llvm-gcc-build
 cd llvm-gcc-build
-../configure
-make
-make DESTDIR=$tempDir install
+export MAKEFLAGS=-j2
+export CXX=g++
+export CXXFLAGS="-03"
+export CFLAGS="-O2"
+export CC=gcc
+../configure || exit 1
+make || exit 1
+make DESTDIR=$tempDir install || exit 1
 
 cd ..
 
@@ -49,10 +54,9 @@ EOF
 rm *.deb
 
 # create the new .deb
-package=llvm_tce_svn${version}_i386.deb
+package=llvm_tce_bzr${version}_i386.deb
 
 rm -f $package
 dpkg -b $tempDir $package || exit 3
 
 rm -fr $tempDir
-

@@ -17,6 +17,7 @@
 
 #include <string>
 #include <vector>
+#include <cstdlib>
 #include "llvm/CodeGen/ValueTypes.h"
 
 namespace llvm {

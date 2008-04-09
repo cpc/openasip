@@ -12,10 +12,15 @@ include_paths = ['../..',
                  '../../src/base/umach',
                  '../../src/base/osal',
                  '../../src/base/Graph',
+                 '../../src/applibs/Scheduler',
+                 '../../src/applibs/Scheduler/Algorithms',
                  '../../src/applibs/Scheduler/ResourceManager',
                  '../../src/applibs/Scheduler/ResourceModel',
+                 '../../src/applibs/Scheduler/Selector',
                  '../../src/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph',
-                 '../../src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph'
+                 '../../src/applibs/Scheduler/ProgramRepresentations/DataDependenceGraph',
+                 '../../src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph',
+                 '../../scheduler/passes/BasicBlockScheduler',
                  ]
 
 class binding_generator_t(object):

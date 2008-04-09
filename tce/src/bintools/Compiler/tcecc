@@ -4,6 +4,7 @@
 #
 
 import os, sys, commands, optparse, shutil, glob
+import os.path
 
 from tempfile import mkdtemp
 from optparse import OptionParser
@@ -179,7 +180,11 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 ####
 # Optimizes linked bc. Returns name of the optimized file.
 ###
-def optimizeBytecode(inFile, fileNamePrefix, verbose, tceprefix):
+def optimizeBytecode(inFile, fileNamePrefix):
+
+    global options, lowerintrinsicsplugin
+
+    verbose = options.verbose
 
     defOptimization = ""
     
@@ -204,7 +209,6 @@ def optimizeBytecode(inFile, fileNamePrefix, verbose, tceprefix):
 
     outputName = fileNamePrefix + "_optimized.bc"
         
-    lowerintrinsicsplugin = tceprefix + "/share/tce/llvm/passes/LowerIntrinsics.so"
     command = "opt -f " + inFile + " -o " +\
               outputName +\
               " -load=" + lowerintrinsicsplugin + " -lowerintrinsics " +\
@@ -220,14 +224,17 @@ def optimizeBytecode(inFile, fileNamePrefix, verbose, tceprefix):
 ####
 # Link emulation function bytecode to program.
 ###
-def linkEmulationFuncs(inFile, fileNamePrefix, verbose, llvmprefix, tceprefix):
+def linkEmulationFuncs(inFile, fileNamePrefix):
 
-    # if software floatingpoint should be lowered
-    emulationLib = llvmprefix + "/tce-llvm/lib/emulation_functions.o "
+    global llvmGccPrefix, llvmprefix, tceprefix, options, lowerintrinsicsplugin
+
+    verbose = options.verbose
+
+    # if software floatingpoint should be lowered, link the emulation functions in
+    emulationLib = llvmGccPrefix + "/tce-llvm/lib/emulation_functions.o "
     linkedName = fileNamePrefix + "_libemul.bc"
         
-    command = ("llvm-link -f " + inFile + " " + emulationLib +
-               " -o " + linkedName)
+    command = ("llvm-link -f " + inFile + " " + emulationLib + " -o " + linkedName)
 
     (exitCode, output) = runCommand(command, verbose)
 
@@ -236,7 +243,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix, verbose, llvmprefix, tceprefix):
         exitWithError(1, verbose, output)
 
     outputName = fileNamePrefix + "_emul_internalized.bc"
-    lowerintrinsicsplugin = tceprefix + "/share/tce/llvm/passes/LowerIntrinsics.so"
+    
     command = ("opt " + linkedName + " -load=" + lowerintrinsicsplugin +\
     " -lowerintrinsics -f -internalize -internalize-public-api-list=_start -o " + outputName)
 
@@ -379,17 +386,39 @@ else:
 ### llvm-gcc install prefix
 (exitCode, output) = runCommand("dirname `which tce-llvm-gcc`", False)
 if exitCode != 0:
-    sys.stderr.write("Error while determining llvm prefix flags: \n")
+    sys.stderr.write("Could not find 'tce-llvm-gcc'. Have you installed it in PATH?\n")
     exitWithError(1, options.verbose, output)
-llvmprefix = output + "/.."
+llvmGccPrefix = output + "/.."
 
 ### tce install prefix
 (exitCode, output) = runCommand("tce-config --prefix", False)
 if exitCode != 0:
-    sys.stderr.write("Error while determining tce prefix: \n")
-    exitWithError(1, options.verbose, output)
-tceprefix = output
+    tceInstalled = False
+else:
+    tceInstalled = True
+    tceprefix = output
 
+## check if we are running from the TCE source tree in which case use only
+## source tree libraries and binaries
+scriptDir = os.path.normpath(os.path.dirname(sys.argv[0]))
+runningInstalled = 'src/bintools/Compiler' not in scriptDir
+
+if not runningInstalled:
+    srcRoot = scriptDir.split('bintools/Compiler')[0]
+else:
+    srcRoot = None
+
+if options.verbose:
+    if not runningInstalled:
+        print "Running from a TCE source tree rooted at '%s'." % srcRoot
+    else:
+        print "Running installed TCE from PATH."    
+    
+if not runningInstalled:
+    lowerintrinsicsplugin = srcRoot + "/applibs/LLVMBackend/passes/LowerIntrinsics.so"
+else:
+    lowerintrinsicsplugin = tceprefix + "/share/tce/llvm/passes/LowerIntrinsics.so"
+    
 namePrefix = tempDir + "/" + os.path.basename(outputName)
 
 if options.compile_only and options.output_name != "" and len(inFiles) > 1:
@@ -397,18 +426,21 @@ if options.compile_only and options.output_name != "" and len(inFiles) > 1:
     sys.exit(1)
 
 elif len(inFiles) == 1 and inFiles[0][-3:] == ".bc":
-    # Only one .bc inputfile given. No need to compile,
-    # link or optimize anything.
+    # Only one .bc inputfile given. No need to compile, link or optimize anything.
     # Note: Already linked bytecode can't be linked or optimized
     # with -lowermissing again anyway!
     optimizedFileName = inFiles[0]
-
 else:
     # Compile, link and optimize input files.
     
     # generate tceops.h
+    if runningInstalled:
+        tceopgen = "tceopgen"
+    else:
+        tceopgen = srcRoot + "/bintools/Compiler/tceopgen/tceopgen"
+        
     (exitCode, output) = runCommand(
-        "tceopgen -o " + tempDir + "/tceops.h" , options.verbose)
+        tceopgen + " -o " + tempDir + "/tceops.h" , options.verbose)
     
     if exitCode != 0:
         sys.stderr.write("Error while generating custom operation macros:\n")
@@ -437,8 +469,7 @@ else:
     linkedFileName = linkBytecode(linkList, namePrefix, options.verbose)
 
     # optimize
-    optimizedFileName = optimizeBytecode(
-        linkedFileName, namePrefix, options.verbose, tceprefix)
+    optimizedFileName = optimizeBytecode(linkedFileName, namePrefix)
 
     if (options.adf_file == ""):
         (exitCode, output) = runCommand(
@@ -452,14 +483,22 @@ if options.adf_file != "":
     seqFile = tempDir + "/" + os.path.basename(outFile) + ".seq"
 
     # optimize and lower flaotingpoint
-    emulationLinkedFileName = linkEmulationFuncs(
-        optimizedFileName, namePrefix, options.verbose, llvmprefix, tceprefix)
+    emulationLinkedFileName = linkEmulationFuncs(optimizedFileName, namePrefix)
 
     if options.no_schedule is False and options.scheduler_config is None:
-        options.scheduler_config = tceprefix + "/share/tce/scheduler/passes/default_tcecc_scheduler.conf"
+        if runningInstalled:
+            options.scheduler_config = \
+                tceprefix + "/share/tce/scheduler/passes/default_tcecc_scheduler.conf"
+        else:
+            options.scheduler_config = \
+                os.path.normpath(srcRoot + "../scheduler/passes/default_tcecc_scheduler.conf")
 
     #### Compile to unscheduled mixed code for the target architecture
-    command = ("llvmtce")
+    if not runningInstalled:
+        command = srcRoot + "/bintools/Compiler/llvm-tce/llvmtce"
+    else:
+        command = "llvmtce"
+        
     if options.debug is True:
         command += " --debug"
 
