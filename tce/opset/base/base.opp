@@ -1080,4 +1080,18 @@
     <out id="2" type="UIntWord"/>
   </operation>
 
+  <operation>
+    <name>ANDN</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+    <trigger-semantics>
+	SimValue negResult;
+	EXEC_OPERATION(not, IO(2), negResult);
+	EXEC_OPERATION(and, IO(1), negResult, IO(3));
+    </trigger-semantics>
+  </operation>
+
 </osal>
