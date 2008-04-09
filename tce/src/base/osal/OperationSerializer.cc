@@ -379,7 +379,7 @@ OperationSerializer::toOperation(const ObjectState* state)
                 root->stringAttribute(Operation::OPRN_NAME)));
         
         if (!root->hasAttribute(Operation::OPRN_DESCRIPTION)) {
-            root->setAttribute(Operation::OPRN_DESCRIPTION, "");
+            root->setAttribute(Operation::OPRN_DESCRIPTION, std::string(""));
         }
 
         if (!root->hasAttribute(Operation::OPRN_READS_MEMORY)) {

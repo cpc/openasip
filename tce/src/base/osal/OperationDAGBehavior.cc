@@ -280,7 +280,7 @@ OperationDAGBehavior::stateName() const {
 bool 
 OperationDAGBehavior::canBeSimulated() const {
 
-    if (cycleFound_ or dag_.isNull()) {
+    if (cycleFound_ || dag_.isNull()) {
         cycleFound_ = false;
         return false;
     }
