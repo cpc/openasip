@@ -83,6 +83,7 @@ The development files of the following Boost libraries are required by TCE:
 . spirit,
 . filesystem,
 . format,
+. thread,
 . graph,
 . tuple,
 . python  (optional, required for the Python bindings).
@@ -95,12 +96,12 @@ Remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
-For example, to install the required libraries and tools for Ubuntu 6.06 
+For example, to install the required libraries and tools for Ubuntu 7.10
 using its package manager 'apt-get', you need to execute the following command
 as root: 
 
-apt-get install libwxgtk2.6-dev libboost-{filesystem,graph,regex}-dev \
-                tcl8.0-dev libedit-dev libsqlite3-dev sqlite3 \
+apt-get install libwxgtk2.6-dev libboost-{filesystem,graph,regex,thread}-dev \
+                tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 \
                 libxerces27-dev g++ make latex2html
 
 Officially supported Linux distributions
