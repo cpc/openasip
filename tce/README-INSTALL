@@ -17,8 +17,11 @@ with aggressive compiler flags.
 
 After running configure, it should be enough to just type
 
-make
-make install
+      make
+      make install
+
+In order to compile C code you need to also compile the C frontend,
+tce-llvm-gcc. It has its own README-INSTALL.
 
 Building the development version
 ================================
@@ -59,7 +62,7 @@ Tcl                   8.0                                  BSD-style
 Boost                 1.32.0                               very permissive
 sqlite3               3.0.0 (v2 not supported)             public domain
 Python                >= 2.4                               very permissive
-LLVM		      only 2.1 supported	      	   LLVM License
+LLVM                  only 2.1 supported                   LLVM Release License
 
 
 optional:
@@ -103,6 +106,14 @@ as root:
 apt-get install libwxgtk2.6-dev libboost-{filesystem,graph,regex,thread}-dev \
                 tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 \
                 libxerces27-dev g++ make latex2html
+
+NOTE! In order to compile programs from C, you need to install LLVM. There
+is no decent Debian packages available, so the best way is to install it
+from sources. 
+
+You can download LLVM sources from here: http://www.llvm.org/releases/
+Remember to download a supported LLVM version, as listed above.
+
 
 Officially supported Linux distributions
 ========================================
