@@ -41,8 +41,6 @@ volatile TargetLowering dummy(TargetMachine());
 Pass* createLowerMissingInstructionsPass();
 extern const PassInfo* LowerMissingInstructionsID;
 
-// TODO: LLVM version from config.h?
-const std::string LLVMBackend::LLVM_VERSION = "2.1";
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";

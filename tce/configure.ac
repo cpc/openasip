@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting. 
-AC_INIT(tce, 1.0-beta1, tce-users@cs.tut.fi)
+AC_INIT(tce, 1.0-alpha1, tce-users@cs.tut.fi)
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -427,13 +427,18 @@ LLVM_LIBDIR=$($llvmConf --libdir)
 # if wx-config is found and the version is 2.4.*, conditional
 # WX is set.
 case "$LLVM_VERSION" in
-     2.1 )
+     2.1)
+     AC_DEFINE([LLVM_2_1], [], "Using LLVM v2.1")
+   ;;
+     2.2)
+     AC_DEFINE([LLVM_2_2], [], "Using LLVM v2.2")
    ;;
      *)
    AC_MSG_NOTICE(
    [
-    Unsupported LLVM version. Only LLVM 2.1 is supported.
+Unsupported LLVM version. Only LLVM versions 2.1 to 2.2 are supported.
    ])
+   LLVM_VERSION=
    ;;
 esac
 ],
@@ -443,8 +448,11 @@ AC_MSG_NOTICE([
   You have to install LLVM to be able to compile from C.])
 ])
 
-# test if $wxwindowsBin is empty string
+# test if $llvmConf is empty string
 fi
+
+AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"], 
+"The LLVM version string.")
 
 AC_SUBST([LLVM_VERSION], ["$LLVM_VERSION"])
 AC_SUBST([LLVM_CPPFLAGS], ["$LLVM_CPPFLAGS"])
@@ -471,7 +479,7 @@ AM_CONDITIONAL(LLVM, test x$LLVM_VERSION != x)
 # wxWidgets is a cross-platform GUI library used in TCE.
 #
 # It's not required but without it any GUIs of the project won't
-# compile. Version 2.4.x or 2.5.x is required.
+# compile. 
 #
 # GUI_LIBS and GUI_INCLUDES are set to point to wxWidgets
 # installation and DO_WX_COMPILE is set to "yes" if
@@ -1258,7 +1266,7 @@ fi
 
 if test x"$LLVM_VERSION" = x
 then
-  echo "NOTE! LLVM not found. Compiling C programs is disabled."
+  echo "NOTE! Supported LLVM version not found. Compiling C programs is disabled."
 else
   echo "Found LLVM version $LLVM_VERSION"
 fi

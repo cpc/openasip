@@ -99,7 +99,7 @@ TDGen::writeRegisterDef(
     o << "def " << regName << " : " << regTemplate
        << "<\"" << reg.rf << "." << reg.idx
        << "\", [" << aliases << "]>, DwarfRegNum<"
-       << dregNum_ << ">;" << std::endl;
+      << "[" << dregNum_ << "]>;" << std::endl;
 
 
     if (type == GPR) {
@@ -506,7 +506,7 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
 void
 TDGen::writeRARegisterInfo(std::ostream& o) {
     o << "class Rra<string n> : TCEReg<n, []>;" << std::endl;
-    o << "def RA : Rra<\"return-address\">, DwarfRegNum<513>;" << std::endl;
+    o << "def RA : Rra<\"return-address\">, DwarfRegNum<[513]>;" << std::endl;
     o << "def RAReg : RegisterClass<\"TCE\", [i32], 32, [RA]>;" << std::endl;
 }
 
