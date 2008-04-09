@@ -1,0 +1,45 @@
+from binding_generator import *
+
+prefix1 = "../../src/applibs/Scheduler/"
+prefix2 = "../../src/applibs/Scheduler/Algorithms/"
+prefix3 = "../../scheduler/passes/BasicBlockScheduler/"
+
+
+bg = binding_generator_t(
+    module_name = "SchedulerModules",
+    call_policies = (('BaseSchedulerModule',
+                      [('interPassData', return_internal_reference())]),
+                     ('HelperSchedulerModule',
+                      [('parent', return_internal_reference()),]),
+                     ('BypasserModule',
+                      [('bypasser', return_internal_reference())]),
+                     ('CLBBypasserModule',
+                      [('bypasser', return_internal_reference())]),
+                     ('DSFillerModule',
+                      [('filler', return_internal_reference())]),
+                     ('CopyingDSFillerModule',
+                      [('filler', return_internal_reference())]),
+                     ),
+    headers = [prefix1 + "BaseSchedulerModule.hh",
+               prefix1 + "HelperSchedulerModule.hh",
+               prefix2 + "BypasserModule.hh",
+               prefix3 + "CLBBypasserModule.hh",
+               prefix2 + "CopyingDelaySlotFiller.hh",
+               prefix2 + "DSFillerModule.hh",
+               prefix3 + "CopyingDSFillerModule.hh"
+               ],
+    extra_headers = ["ObjectState.hh",
+                     "DataDependenceGraph.hh",
+                     "Machine.hh",
+                     "SchedulerPluginLoader.hh",
+                     "Program.hh",
+                     "InterPassData.hh",
+                     "SoftwareBypasser.hh",
+                     "ResourceManager.hh",
+                     "BasicBlock.hh",
+                     "UniversalMachine.hh",
+                     "ControlFlowGraph.hh",
+                     ],
+    )
+
+bg.run()

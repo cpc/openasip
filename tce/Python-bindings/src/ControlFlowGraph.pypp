@@ -3,48 +3,30 @@ from binding_generator import *
 prefix="../../src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph/"
 prefix2="../../src/base/Graph/"
 
-# Py++ has problems exposing ControlFlowGraph, so it is
-# done by hand here.
-extra_registrations = ["""
-    bp::class_< ControlFlowGraph, boost::noncopyable >("ControlFlowGraph", bp::init < const TTAProgram::Procedure & >())
-	  .def("procedureName", &ControlFlowGraph::procedureName)
-	  .def("alignment", &ControlFlowGraph::alignment)
-	  .def("program", &ControlFlowGraph::program, bp::return_internal_reference<1>())
-	  .def("entryNode", &ControlFlowGraph::entryNode, bp::return_internal_reference<1>())
-	  .def("exitNode", &ControlFlowGraph::exitNode, bp::return_internal_reference<1>())
-	  .def("printStatistics", &ControlFlowGraph::printStatistics)
-	  .def("statistics", &ControlFlowGraph::statistics, bp::return_internal_reference<1>())
-	  .def("nodeCount", &ControlFlowGraph::nodeCount)
-	  .def("writeToDotFile", &ControlFlowGraph::writeToDotFile)
-	  ;
-"""]
-
 bg = binding_generator_t(
     module_name = "ControlFlowGraph",
     call_policies = (('BasicBlock',
                       [('copy', return_value_policy(manage_new_object))]),
                      ('BasicBlockNode',
                       [('basicBlock', return_internal_reference())]),
-                      ('GraphNode',
-                      [('clone', return_value_policy(manage_new_object))]),
-                      ('GraphEdge',
-                      [('clone', return_value_policy(manage_new_object))])),
+                     ('ControlFlowGraph',
+                      [('entryNode', return_value_policy(reference_existing_object)),
+                       ('exitNode', return_value_policy(reference_existing_object)),
+                       ('program', return_value_policy(reference_existing_object))]),
+                     ),
+
     headers = [prefix + "BasicBlock.hh",
                prefix + "BasicBlockNode.hh",
                prefix + "ControlFlowEdge.hh",
                prefix + "CFGStatistics.hh",
-               prefix2 + "BoostGraph.hh",
-               prefix2 + "GraphNode.hh",
-               prefix2 + "GraphEdge.hh",
-               prefix2 + "Graph.hh",                
-               # ControlFlowGraph.hh results in partial template
-               # instantiations, which pygccxml cannot handle.
-               # prefix + "ControlFlowGraph.hh"
+               #prefix2 + "BoostGraph.hh",
+               #prefix2 + "GraphNode.hh",
+               #prefix2 + "GraphEdge.hh",
+               #prefix2 + "Graph.hh",                
+               prefix + "ControlFlowGraph.hh"
                ],
-    extra_registrations = extra_registrations,
-    extra_headers = ["Procedure.hh",
-                     "CodeSnippet.hh",
-                     "ControlFlowGraph.hh"],
+   extra_headers = ["Procedure.hh",
+                    ]
     )
 
 bg.run()

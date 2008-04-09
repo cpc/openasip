@@ -6,8 +6,9 @@
 # it, run "python setup.py --help".
 
 from distutils.core import setup, Extension
+import os
 
-project_root='../..'
+project_root = os.path.abspath('../..')
 
 def maybe(str):
     if str == '':
@@ -33,10 +34,14 @@ TCE_includes=([filename % project_root
                                 '%s/src/applibs/Interpreter',
                                 '%s/src/applibs/TraceDB',
                                 '%s/src/applibs/Scheduler',
+                                '%s/src/applibs/Scheduler/Algorithms',
+                                '%s/src/applibs/Scheduler/ProgramRepresentations/DataDependenceGraph',
                                 '%s/src/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph',
                                 '%s/src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph',
                                 '%s/src/applibs/Scheduler/ResourceModel',
-                                '%s/src/applibs/Scheduler/ResourceManager']]
+                                '%s/src/applibs/Scheduler/ResourceManager',
+                                '%s/src/applibs/Scheduler/Selector',
+                                '%s/scheduler/passes/BasicBlockScheduler']]
               + maybe(strip2("@TCL_INCLUDES@"))
               + maybe(strip2("@BOOST_INCLUDES@"))
               + maybe(strip2("@SQLITE_INCLUDES@"))
@@ -212,6 +217,27 @@ setup(name='TCE Python bindings',
                                         '../../src/base/Graph/GraphNode.hh',
                                         '../../src/base/mach/AddressSpace.hh',
                                         '../../src/base/program/Procedure.hh'],
+                             define_macros=TCE_define_macros,
+                             include_dirs=TCE_includes,
+                             library_dirs=TCE_library_dirs,
+                             libraries=TCE_libraries),                             
+                   Extension('TCE.applibs.Scheduler.SchedulerModules',
+                             ['SchedulerModules.cc'],
+                             depends = ['../../src/applibs/Scheduler/BaseSchedulerModule.hh',
+                                        '../../src/applibs/Scheduler/HelperSchedulerModule.hh'],
+                             define_macros=TCE_define_macros,
+                             include_dirs=TCE_includes,
+                             library_dirs=TCE_library_dirs,
+                             extra_link_args=['%s/scheduler/passes/BasicBlockScheduler/CLBBypasserModule.so'
+                                              % project_root,
+                                              '%s/scheduler/passes/BasicBlockScheduler/CopyingDSFillerModule.so'
+                                              % project_root,
+                                              ],
+                             libraries=TCE_libraries),                             
+                   Extension('TCE.applibs.Scheduler.Algorithms',
+                             ['Algorithms.cc'],
+                             depends = [
+                                        ],
                              define_macros=TCE_define_macros,
                              include_dirs=TCE_includes,
                              library_dirs=TCE_library_dirs,
