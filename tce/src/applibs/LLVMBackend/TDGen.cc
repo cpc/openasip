@@ -99,7 +99,13 @@ TDGen::writeRegisterDef(
     o << "def " << regName << " : " << regTemplate
        << "<\"" << reg.rf << "." << reg.idx
        << "\", [" << aliases << "]>, DwarfRegNum<"
-      << "[" << dregNum_ << "]>;" << std::endl;
+#if defined(LLVM_2_1)
+       << dregNum_ << ">;"
+#else
+       // LLVM 2.2 uses list<int> for DwarfRegNum
+       << "[" << dregNum_ << "]>;"
+#endif
+     << std::endl;
 
 
     if (type == GPR) {
