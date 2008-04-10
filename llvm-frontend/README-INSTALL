@@ -36,10 +36,10 @@ It may also break if CXXFLAGS or CFLAGS are multi-words enclosed in
 
 The safest bet is to use the following compiler flags:
 
-CC=gcc
-CXX=g++
-CFLAGS=-O2
-CXXFLAGS=-O2
+export CC=gcc
+export CXX=g++
+export CFLAGS=-O2
+export CXXFLAGS=-O2
 
 * The following warning can be ignored: 
 
