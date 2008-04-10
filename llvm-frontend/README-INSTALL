@@ -1,15 +1,18 @@
 Building and installation
 =========================
 
-Before building the LLVM/TCE compiler you need to have TCE installed along
-with its headers somewhere in PATH so 'tce-config' script can be executed to
-find the required header paths, etc. 
+It is recommend you install the tce-llvm-gcc to the same prefix you installed
+the TCE in. The following uses the 'tce-config' script to figure out the
+prefix of TCE.
 
-TCE and its headers can be installed after building TCE with 'make' by 
-executing command 'make dev-install' instead of 'make install'. 
+Ensure that the script is found by executing the following command:
 
-After you have installed TCE and its headers, build and install 
-the LLVM/TCE as follows:
+    tce-config --prefix
+
+In case the result is empty, you should add TCE's bin directory to your 
+PATH environment variable before continuing.
+
+Next, build and install the tce-llvm-gcc as follows:
 
 	autoreconf
 	mkdir build && cd build
@@ -19,13 +22,12 @@ the LLVM/TCE as follows:
 Library and tools version prerequisites
 =======================================
 
-You need 'flex' or 'bison' to build LLVM. They should be found in all
-Linux distributions.
+You need 'flex' or 'bison'. They should be found in all Linux distributions.
 
 Troubleshooting
 ===============
 
-* Compiling llvm-gcc fails when your CXX or CC has a compilation command with
+* Compiling fails when your CXX or CC has a compilation command with
 multiple words, e.g., "ccache g++". A workaround is to use a script which
 wraps the compilation commands, or in case of ccache use the symlink
 trick (see man ccache). Actually what breaks it are " -quotation marks. 
