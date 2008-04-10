@@ -59,12 +59,12 @@ Architecture: i386
 Essential: no
 Depends: binfmt-support, libc6, libgcc1, libstdc++6
 Pre-Depends: perl 
-Conflicts: llvm
 Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
 Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen@tut.fi>
 Provides: tce-frontend
 Description: Low-Level Virtual Machine (LLVM) C/C++ compiler for TCE
 EOF
+#Conflicts: llvm
 
 # delete the old .deb files
 rm *.deb
