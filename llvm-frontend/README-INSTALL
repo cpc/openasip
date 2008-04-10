@@ -25,24 +25,20 @@ Linux distributions.
 Troubleshooting
 ===============
 
-Compiling llvm-gcc fails when your CXX or CC has a compilation command with
+* Compiling llvm-gcc fails when your CXX or CC has a compilation command with
 multiple words, e.g., "ccache g++". A workaround is to use a script which
 wraps the compilation commands, or in case of ccache use the symlink
 trick (see man ccache). Actually what breaks it are " -quotation marks. 
 It may also break if CXXFLAGS or CFLAGS are multi-words enclosed in
 "-quotation marks.
 
-Linker complains about missing libtce.so.0? You probably forgot to add
-the /lib of your TCE installation to LD_LIBRARY_PATH environment variable.
-Run 'export LD_LIBRARY_PATH=$(tce-config --prefix)/lib' and try again.
-
-Make or configure fails at some point? Try with following known working
-compiler settings:
+The safest bet is to use the following compiler flags:
 
 CC=gcc
 CXX=g++
 CFLAGS=-O2
 CXXFLAGS=-O2
 
-Especially the llvm-gcc compilation is known to be picky about the 
-CFLAGS.
+* The following warning can be ignored: 
+
+ config.status: WARNING:  /home/(...)/llvm-gcc4-2.0/Makefile.in seems to ignore the --datarootdir setting
