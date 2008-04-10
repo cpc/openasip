@@ -6,9 +6,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.0}
-\ver{6}
+\ver{7}
 \firstday{25.10.2006}
-\lastday{14.03.2008}
+\lastday{10.04.2008}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committed
@@ -3806,18 +3806,23 @@ of the C code.
 \subsection{Starting Point Processor Architecture}
 
 Next we will use so called minimal architecture as our starting point. The
-minimal adf is a minimalistic architecture containing function units for basic
-operations  and it is capable of executing valid C coded programs. Function
-units in the minimal adf are selected from the hardware database (HDB,
+minimal.adf is a minimalistic architecture containing minimal number of
+resources the TCE compiler need to compile programs for. Function
+units in the minimal.adf are selected from the hardware database (HDB,
 Section~\ref{section:hdb}) so we are able to generate a VHDL implementation
 of the processor automatically later in the tutorial. It is also possible to
 design all the components from scratch in order to evaluate the architecture
 without actually implementing the components in VHDL.
 
-Take a look at the starting point architecture using the graphical Processor
-Designer (Section~\ref{sec:prode}) tools. Start the Processor Designer with:
+Copy the minimal.adf included in TCE distribution to a new ADF file which
+is your starting point architecture:
 
-\textit{prode minimal.adf \&}
+\textit{cp \$(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf}
+
+Take a look at the starting point architecture using the graphical Processor
+Designer (ProDe, Section~\ref{sec:prode}) tool. Start ProDe with:
+
+\textit{prode start.adf \&}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preserved this. Maybe there should be a tutorial for building an
@@ -3921,20 +3926,20 @@ to the parallel architecture we examined in the previous section. This can be
 done by compiling the bytecode program against the processor architectire
 with this command:
 
-\textit{tcecc -a minimal.adf -o additions.tpef additions.bc}
+\textit{tcecc -a start.adf -o additions.tpef additions.bc}
 
 This will produce a parallel program called ``additions.tpef'' that can be
-executed with our processor design ``minimal.adf''. Notice that the parallel
+executed with our processor design ``start.adf''. Notice that the parallel
 program is now tied to a specified architecture so it is no longer
 architecture independent like the bytecode program.
 
 After successfully compiling the program we can now simulate it. Lets use
 the command line based simulator called ttasim. Start the simulator with:
 
-\textit{ttasim -a minimal.adf -p additions.tpef}
+\textit{ttasim -a start.adf -p additions.tpef}
 
 The simulator will load the architecture definition and the program and
-executed it. After this you should see ttasim prompt: \textit{(ttasim)}.
+executes it. After this you should see ttasim prompt: \textit{(ttasim)}.
 Ttasim can show various information about the execution of the program and
 utilization of processor resources.
 
@@ -3956,9 +3961,9 @@ it next.
 First copy the original adf (using another terminal window could be
 useful):
 
-\textit{cp minimal.adf optimized.adf}
+\textit{cp start.adf optimized.adf}
 
-and open prode:
+and open ProDe:
 
 \textit{prode optimized.adf \&}
 
@@ -3988,7 +3993,7 @@ we'll use the graphical user interface of the simulator called Proxim
 
 Start it with:
 
-\textit{proxim first.adf additions.tpef \&}
+\textit{proxim optimized.adf additions.tpef \&}
 
 Run the simulation and check the final cycle count it took to execute the
 program. The cycle count is written in the bottom bar of the simulator. Cycle
