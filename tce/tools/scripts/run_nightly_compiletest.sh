@@ -31,7 +31,7 @@ function install_llvm-frontend {
 
     export MAKEFLAGS=-j1
     export CXX=g++
-    export CXXFLAGS="-02"
+    export CXXFLAGS="-O2"
     export CFLAGS="-O2"
     export CC=gcc
 
