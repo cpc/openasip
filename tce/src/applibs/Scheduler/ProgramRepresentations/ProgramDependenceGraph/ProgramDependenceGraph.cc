@@ -78,7 +78,7 @@ ProgramDependenceGraph::ProgramDependenceGraph(
             targetNode = MapTools::valueForKey<ProgramDependenceNode*>(
                 cNodePNode, headNode);
             ProgramDependenceEdge* pEdge;
-            pEdge = new ProgramDependenceEdge(edge, edgeCount());
+            pEdge = new ProgramDependenceEdge(edge);
             connectNodes(*sourceNode, *targetNode, *pEdge);
         }
     }
@@ -132,7 +132,7 @@ ProgramDependenceGraph::ProgramDependenceGraph(
                 __FILE__, __LINE__, __func__, e.errorMessageStack());
         }        
         ProgramDependenceEdge* pEdge;
-        pEdge = new  ProgramDependenceEdge(edge, edgeCount());
+        pEdge = new  ProgramDependenceEdge(edge);
         connectNodes(*pSource, *pTarget, *pEdge);
     }
 
@@ -171,7 +171,7 @@ ProgramDependenceGraph::ProgramDependenceGraph(
             if (source->isRegionNode() || source->isEntryNode()) {
                 ProgramDependenceEdge* pEdge;
                 pEdge = new
-                    ProgramDependenceEdge(cdg.inEdge(*cNode, j), edgeCount());
+                    ProgramDependenceEdge(cdg.inEdge(*cNode, j));
                 ProgramDependenceNode* pSource = NULL;
                 try {
                     pSource = MapTools::valueForKey<ProgramDependenceNode*>(
@@ -238,7 +238,7 @@ ProgramDependenceGraph::removeGuardedJump(
             if (isInverted) {
                 newEdge->invertEdgePredicate();                
             }            
-            pEdge = new ProgramDependenceEdge(*newEdge, edgeCount());
+            pEdge = new ProgramDependenceEdge(*newEdge);
             ProgramDependenceNode* pTarget;
             try { 
                 pTarget = MapTools::valueForKey<ProgramDependenceNode*>(

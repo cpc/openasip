@@ -18,11 +18,10 @@
 class ProgramDependenceEdge : public GraphEdge {
 public:
     ProgramDependenceEdge(
-        ControlDependenceEdge& cEdge,
-        int edgeID);
+        ControlDependenceEdge& cEdge);
+
     ProgramDependenceEdge(
-        DataDependenceEdge& cEdge,
-        int edgeID);
+        DataDependenceEdge& cEdge);
 
     virtual ~ProgramDependenceEdge();
 
