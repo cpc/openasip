@@ -49,7 +49,7 @@ TDGen::TDGen(const TTAMachine::Machine& mach):
  * (excluding static plugin code included from include/llvm/TCE/).
  */
 void
-TDGen::generateBackend(std::string& path) {
+TDGen::generateBackend(std::string& path) throw (Exception) {
 
     MachineCheckResults res;
     FullyConnectedCheck fc;
@@ -125,7 +125,7 @@ TDGen::writeRegisterDef(
  * @return True, if the definitions were succesfully generated.
  */
 bool
-TDGen::writeRegisterInfo(std::ostream& o) {
+TDGen::writeRegisterInfo(std::ostream& o) throw (Exception) {
 
     analyzeRegisters();
 
@@ -236,8 +236,8 @@ TDGen::analyzeRegisters() {
             else if (width == 8) ri = &regs8bit_;
             else if (width == 1) ri = &regs1bit_;
             else {
-            std::cout << "Warning: ignoring " << width
-                      << " bit rf '" << rf->name() << "'." << std::endl;
+                //std::cout << "Warning: ignoring " << width
+                //<< " bit rf '" << rf->name() << "'." << std::endl;
             }
 
             int lastIdx = rf->size();
@@ -518,18 +518,17 @@ TDGen::writeRARegisterInfo(std::ostream& o) {
  * @return True if required registers were found, false if not.
  */
 bool
-TDGen::checkRequiredRegisters() {
+TDGen::checkRequiredRegisters() throw (Exception) {
 
     if (regs32bit_.size() < REQUIRED_I32_REGS) {
-        std::cout << "Architecture doesn't meet the minimal requirements."
-                  << std::endl;
+        std::string msg =
+            "Architecture doesn't meet the minimal requirements. ";
 
-        std::cout << regs32bit_.size()
-                  << " 32 bit registers found." << std::endl;
+        msg += regs32bit_.size() + " 32 bit registers found. ";
+        msg += "At least " + Conversion::toString(REQUIRED_I32_REGS) +
+            " 32bit registers are needed.";
 
-        std::cout << "At least " << REQUIRED_I32_REGS
-                  << " 32bit registers are needed for integers."
-                  << std::endl;
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
 
         return false;
     }

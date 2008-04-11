@@ -32,6 +32,8 @@
 #include "LLVMPOMBuilder.hh"
 #include "ADFSerializer.hh"
 
+#include "MachineValidator.hh"
+#include "MachineValidatorResults.hh"
 
 using namespace llvm;
 
@@ -78,6 +80,24 @@ LLVMBackend::compile(
     TTAMachine::Machine& target,
     int optLevel,
     bool debug) throw (Exception){
+
+    // Check target machine
+    MachineValidator validator(target);
+    std::set<MachineValidator::ErrorCode> checks;
+    checks.insert(MachineValidator::GCU_MISSING);
+    checks.insert(MachineValidator::GCU_AS_MISSING);
+    checks.insert(MachineValidator::USED_IO_NOT_BOUND);
+    checks.insert(MachineValidator::PC_PORT_MISSING);
+    checks.insert(MachineValidator::RA_PORT_MISSING);
+    MachineValidatorResults* res = validator.validate(checks);
+
+    if (res->errorCount() > 0) {
+        std::string msg;
+        for (int i = 0; i < res->errorCount(); i++) {
+            msg += res->error(i).second + "\n";
+        }
+        throw CompileError(__FILE__, __LINE__, __func__, msg);
+    }
 
     // Load bytecode file.
     std::string errorMessage;
