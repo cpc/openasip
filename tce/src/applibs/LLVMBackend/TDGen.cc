@@ -769,10 +769,14 @@ TDGen::writeOperationDef(
     }
 
     std::string attrs;
+
+#if defined(LLVM_2_1)
     if (op.readsMemory()) attrs += " isLoad = 1";
     if (op.writesMemory()) attrs += " isStore = 1";
-
-
+#else
+    if (op.readsMemory()) attrs += " mayLoad = 1";
+    if (op.writesMemory()) attrs += " mayStore = 1";
+#endif
 
     std::string suffix(op.numberOfInputs(), 'r');
 
