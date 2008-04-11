@@ -812,12 +812,8 @@ LLVMPOMBuilder::emitInstruction(
         return emitReturn(mi, proc);
     }
 
-    //MachineOpCode opc = mi->getInstrDescriptor()->Opcode;
-#if defined(LLVM_2_1)
-    std::string opName = mi->getInstrDescriptor()->Name;
-#else
-    std::string opName = mi->getDesc().Name;
-#endif
+    MachineOpCode opc = mi->getInstrDescriptor()->Opcode;
+    std::string opName = tm_.operationName(opc);
 
     // Pseudo instructions don't require any actual instructions.
     if (opName == "PSEUDO") {

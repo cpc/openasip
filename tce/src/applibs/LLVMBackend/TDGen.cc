@@ -512,7 +512,15 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
 void
 TDGen::writeRARegisterInfo(std::ostream& o) {
     o << "class Rra<string n> : TCEReg<n, []>;" << std::endl;
-    o << "def RA : Rra<\"return-address\">, DwarfRegNum<[513]>;" << std::endl;
+    o << "def RA : Rra<\"return-address\">, ";
+#if defined(LLVM_2_1)
+    // LLVM 2.1
+    o << "DwarfRegNum<513>;";
+#else
+    // LLVM 2.2
+    o << "DwarfRegNum<[513]>;";
+#endif
+    o  << std::endl;
     o << "def RAReg : RegisterClass<\"TCE\", [i32], 32, [RA]>;" << std::endl;
 }
 
@@ -551,7 +559,8 @@ void
 TDGen::writeInstrInfo(std::ostream& os) {
 
     std::set<std::string> opNames;
-    OperationDAGSelector::OperationSet requiredOps = OperationDAGSelector::llvmRequiredOpset();
+    OperationDAGSelector::OperationSet requiredOps =
+        OperationDAGSelector::llvmRequiredOpset();
 
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
@@ -638,15 +647,13 @@ TDGen::writeCallDef(std::ostream& o) {
         o << ", " << gprRegNames_[i];
     }
     o << "] in {" << std::endl;
-    o << "def CALL : InstTCE<\"call\", (outs), (ins calltarget:$dst),";
+    o << "def CALL : InstTCE<(outs), (ins calltarget:$dst),";
     o << "\"$dst -> call.1;\", []>;" << std::endl;
 
-    o << "def CALL_MEMrr : InstTCE<";
-    o << "\"call\", (outs), (ins MEMrr:$ptr),";
+    o << "def CALL_MEMrr : InstTCE<(outs), (ins MEMrr:$ptr),";
     o << "\"$ptr -> call.1;\", [(call ADDRrr:$ptr)]>;" << std::endl;
     
-    o << "def CALL_MEMri : InstTCE<";
-    o << "\"call\", (outs), (ins MEMri:$ptr),";
+    o << "def CALL_MEMri : InstTCE<(outs), (ins MEMri:$ptr),";
     o << "\"$ptr -> call.1;\", [(call ADDRri:$ptr)]>;" << std::endl;
     o << "}" << std::endl;
 
@@ -666,44 +673,41 @@ TDGen::writeCallDef(std::ostream& o) {
 void
 TDGen::writeBackendCode(std::ostream& o) {
 
-    // --- rfName() ---
-    o << "std::string" << std::endl
-      << "GeneratedTCEPlugin::rfName(unsigned dwarfRegNum) {" << std::endl;
-    std::map<std::string, RegInfo>::const_iterator iter =
-        regs_.begin();
 
-    for (; iter != regs_.end(); iter++) {
-        o << "  if (dwarfRegNum == TCE::" << (*iter).first
-          << ") return \"" << (*iter).second.rf
+    // Register & operation info table initialization
+
+    o << "void" << std::endl
+      << "GeneratedTCEPlugin::initialize() {" << std::endl;
+
+    // operation names
+    std::map<std::string, std::string>::const_iterator iter =
+        opNames_.begin();
+    for (; iter != opNames_.end(); iter++) {
+        o << "    opNames_[TCE::" << (*iter).first
+          << "] = \"" << (*iter).second
           << "\";" << std::endl;
     }
-    o << "  assert (false);" << std::endl
-      << "  return \"\";" << std::endl
-      << "}" << std::endl;
 
+    // Register names & indices
+    std::map<std::string, RegInfo>::const_iterator rIter = regs_.begin();
+    rIter = regs_.begin();
+    for (; rIter != regs_.end(); rIter++) {
+        o << "    regNames_[TCE::" << (*rIter).first
+          << "] = \"" << (*rIter).second.rf
+          << "\";" << std::endl;
 
-    // --- registerIndex() ---
-    o << "unsigned" << std::endl
-      << "GeneratedTCEPlugin::registerIndex(unsigned dwarfRegNum) {"
-      << std::endl;
-
-    iter = regs_.begin();
-    for (; iter != regs_.end(); iter++) {
-        o << "  if (dwarfRegNum == TCE::" << (*iter).first
-          << ") return " << (*iter).second.idx
+        o << "    regIndices_[TCE::" << (*rIter).first
+          << "] = " << (*rIter).second.idx
           << ";" << std::endl;
     }
-    o << "  assert(false);" << std::endl
-      << "  return 0;" << std::endl
-      << "}" << std::endl;
 
-    // --- createMachine() ---
+
+    // Target machine .adf XML string.
     std::string adfXML;
     ADFSerializer serializer;
     serializer.setDestinationString(adfXML);
     serializer.writeMachine(mach_);
-    o << "const std::string" << std::endl
-      << "GeneratedTCEPlugin::adfXML_ =" << std::endl << "\"";
+    o << "    adfXML_ = \"";
     for (unsigned int i = 0; i < adfXML.length(); i++) {
         if (adfXML[i] == '"') o << "\\\"";
         else if (adfXML[i] == '\n') o << "\"\n\"";
@@ -711,22 +715,8 @@ TDGen::writeBackendCode(std::ostream& o) {
     }
     o << "\";" << std::endl;
 
-    // --- dataASName() ---
 
-#if 0
-    const TTAMachine::Machine::AddressSpaceNavigator& nav =
-        mach_.addressSpaceNavigator();
-
-    std::string asName = "";
-    for (int i = 0; i < nav.count(); i++) {
-        if (mach_.controlUnit() == NULL ||
-            nav.item(i) != mach_.controlUnit()->addressSpace()) {
-
-            asName = nav.item(i)->name();
-            break;
-        }
-    }
-#endif
+    // data address space
     const TTAMachine::Machine::FunctionUnitNavigator& nav =
         mach_.functionUnitNavigator();
     std::string asName = "";
@@ -741,14 +731,8 @@ TDGen::writeBackendCode(std::ostream& o) {
         std::string msg = "Couldn't determine data address space.";
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
-    o << "std::string" << std::endl
-      << "GeneratedTCEPlugin::dataASName() {" << std::endl;
-    o << "  return \"" << asName << "\";" << std::endl;
-    o << "}" << std::endl;
+    o << "    dataASName_ = \"" << asName << "\";" << std::endl;
 
-    // --- raPortDRegNum() ---
-    o << "unsigned GeneratedTCEPlugin::raPortDRegNum() {" << std::endl;
-    o << "  return TCE::RA;" << std::endl;
     o << "}" << std::endl;
 }
 
@@ -822,9 +806,11 @@ TDGen::writeOperationDef(
             o << "let" << attrs << " in { " << std::endl;
         }
 
-        o << "def " << StringTools::stringToUpper(op.name())
-          << patSuffix << " : "
-          << "InstTCE<\""<< op.name() << "\", "
+        std::string opcEnum = 
+            StringTools::stringToUpper(op.name()) + patSuffix;
+
+        o << "def " << opcEnum << " : "
+          << "InstTCE<"
           << outputs << ", "
           << inputs << ", "
           << asmstr << ", "
@@ -833,7 +819,9 @@ TDGen::writeOperationDef(
 
         if (attrs != "") {
             o << "}" << std::endl;
-        }        
+        }
+
+        opNames_[opcEnum] = op.name();
     }
 }
 
