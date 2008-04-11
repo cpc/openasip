@@ -70,58 +70,48 @@ def TCEselectI64 : SDNode<"TCEISD::SELECT_I64", SDT_TCESelect, []>;
 def TCEselectF32 : SDNode<"TCEISD::SELECT_F32", SDT_TCESelect, []>;
 def TCEselectF64 : SDNode<"TCEISD::SELECT_F64", SDT_TCESelect, []>;
 
-let usesCustomDAGSchedInserter = 1 in {    // Expanded by the scheduler.
+//let usesCustomDAGSchedInserter = 0 in {    // Expanded by the scheduler.
 
-  def SELECT_I1 : Pseudo<"PSEUDO", (outs I1Regs:$dst),
-                          (ins I1Regs:$T, I1Regs:$F, I1Regs:$c),
+  def SELECT_I1 : InstTCE<"SELECT", (outs I1Regs:$dst),
+                          (ins I1Regs:$c, I1Regs:$T, I1Regs:$F),
                           "# SELECT_I1 PSEUDO!",
-                          [(set I1Regs:$dst,
-                           (TCEselectI1 I1Regs:$T, I1Regs:$F, I1Regs:$c))
-                          ]>;
+                          [(set I1Regs:$dst, 
+    (select I1Regs:$c, I1Regs:$T, I1Regs:$F))]>;
 
-  def SELECT_I8 : Pseudo<"PSEUDO", (outs I8Regs:$dst),
-                          (ins I8Regs:$T, I8Regs:$F, I1Regs:$c),
+  def SELECT_I8 : InstTCE<"SELECT", (outs I8Regs:$dst),
+                          (ins I1Regs:$c, I8Regs:$T, I8Regs:$F),
                           "# SELECT_I8 PSEUDO!",
                           [(set I8Regs:$dst,
-                           (TCEselectI8 I8Regs:$T, I8Regs:$F, I1Regs:$c))
-			  ]>;
+                            (select I1Regs:$c, I8Regs:$T, I8Regs:$F))]>;
 
-  def SELECT_I16 : Pseudo<"PSEUDO", (outs I16Regs:$dst),
-                          (ins I16Regs:$T, I16Regs:$F, I1Regs:$c),
+  def SELECT_I16 : InstTCE<"SELECT", (outs I16Regs:$dst),
+                          (ins I1Regs:$c, I16Regs:$T, I16Regs:$F),
                           "# SELECT_I16 PSEUDO!",
                           [(set I16Regs:$dst,
-                           (TCEselectI16 I16Regs:$T, I16Regs:$F, I1Regs:$c))
+                           (select I1Regs:$c, I16Regs:$T, I16Regs:$F))
                           ]>;
 
-  def SELECT_I32 : Pseudo<"PSEUDO", (outs I32Regs:$dst),
-                          (ins I32Regs:$T, I32Regs:$F, I1Regs:$c),
+  def SELECT_I32 : InstTCE<"SELECT", (outs I32Regs:$dst),
+                          (ins I1Regs:$c, I32Regs:$T, I32Regs:$F),
                           "# SELECT_I32 PSEUDO!",
-                          [(set I32Regs:$dst,
-                           (TCEselectI32 I32Regs:$T, I32Regs:$F, I1Regs:$c))
-                          ]>;
+                          [(set I32Regs:$dst, 
+                            (select I1Regs:$c, I32Regs:$T, I32Regs:$F))]>;
 
-  def SELECT_I64 : Pseudo<"PSEUDO", (outs I64Regs:$dst),
-                          (ins I64Regs:$T, I64Regs:$F, I1Regs:$c),
-                          "# SELECT_I64 PSEUDO!",
-                          [(set I64Regs:$dst,
-                           (TCEselectI64 I64Regs:$T, I64Regs:$F, I1Regs:$c))
-                          ]>;
+    // 64-bit ints not supported.
 
-  def SELECT_F32 : Pseudo<"PSEUDO", (outs F32Regs:$dst),
-                          (ins F32Regs:$T, F32Regs:$F, I1Regs:$c),
+  def SELECT_F32 : InstTCE<"SELECT", (outs F32Regs:$dst),
+                          (ins I1Regs:$c, F32Regs:$T, F32Regs:$F),
                           "# SELECT_F32 PSEUDO!",
-                          [(set F32Regs:$dst,
-                           (TCEselectF32 F32Regs:$T, F32Regs:$F, I1Regs:$c))
-                          ]>;
+                          [(set F32Regs:$dst, 
+                            (select I1Regs:$c, F32Regs:$T, F32Regs:$F))]>;
 
-  def SELECT_F64 : Pseudo<"PSEUDO", (outs F64Regs:$dst),
-                          (ins F64Regs:$T, F64Regs:$F, I1Regs:$c),
+  def SELECT_F64 : InstTCE<"SELECT", (outs F64Regs:$dst),
+                          (ins I1Regs:$c, F64Regs:$T, F64Regs:$F),
                           "# SELECT_F64 PSEUDO!",
                           [(set F64Regs:$dst,
-                           (TCEselectF64 F64Regs:$T, F64Regs:$F, I1Regs:$c))
-                          ]>;
+                            (select I1Regs:$c, F64Regs:$T, F64Regs:$F))]>;
 
-}
+//}
 
 // =========================
 //  Pseudo instructions
@@ -373,3 +363,7 @@ def : Pat<(f32 (load ADDRrr:$addr)),
 
 def : Pat<(f32 (load ADDRri:$addr)),
           (MOVIF32rr (LDWr ADDRri:$addr))>;
+
+
+//def SELECTINT : Pat<(select I1Regs:$which, I32Regs:$src1, I32Regs:$src2),
+//          (CMOV I1Regs:$which, (MOV GR:$src2), GR:$src1)>; // note order!

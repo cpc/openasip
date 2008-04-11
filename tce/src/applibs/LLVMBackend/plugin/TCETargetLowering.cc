@@ -94,6 +94,7 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
 
     // Selects are custom lowered to a pseudo instruction that
     // is later converted to a diamond control flow pattern.
+/*
     setOperationAction(ISD::SELECT, MVT::i1, Promote);
     setOperationAction(ISD::SELECT, MVT::i8, Promote);
     setOperationAction(ISD::SELECT, MVT::i16, Promote);
@@ -101,7 +102,7 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     setOperationAction(ISD::SELECT, MVT::i64, Custom);
     setOperationAction(ISD::SELECT, MVT::f32, Custom);
     setOperationAction(ISD::SELECT, MVT::f64, Custom);
-
+*/
     // SELECT is used instead of SELECT_CC
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
 
@@ -775,6 +776,8 @@ MachineBasicBlock*
 TCETargetLowering::InsertAtEndOfBasicBlock(
     MachineInstr* mi, MachineBasicBlock* mbb) {
 
+    assert("should not be needed");
+/*
     // TODO CHECK THIS
     // ---------------------------------------
     //  Copied from PPCISelLowering
@@ -849,7 +852,10 @@ TCETargetLowering::InsertAtEndOfBasicBlock(
 
     delete mi;   // The pseudo instruction is gone now.
     return mbb;    
+*/
 }
+
+
 
 /**
  * Converts SELECT nodes to TCE-specific pseudo instructions.

@@ -118,13 +118,16 @@ namespace llvm {
         TTAProgram::Instruction* emitInlineAsm(
             const MachineInstr* mi, TTAProgram::Procedure* proc);
 
+        TTAProgram::Instruction* emitSelect(
+            const MachineInstr* mi, TTAProgram::Procedure* proc);
+
         std::string mbbName(const MachineBasicBlock& mbb);
         bool isInitialized(const Constant* cv);
 
         void emitSPInitialization();
         
         TTAProgram::MoveGuard* createGuard(
-            const TTAProgram::Terminal* guardReg, bool inverted);
+            const TTAProgram::Terminal* guardReg, bool trueOrFalse);
 
         TTAProgram::Move* createMove(
             TTAProgram::Terminal* src,

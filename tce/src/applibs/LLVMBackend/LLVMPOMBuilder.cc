@@ -799,6 +799,10 @@ LLVMPOMBuilder::emitInstruction(
         return emitInlineAsm(mi, proc);
     }
 
+    if (opName == "SELECT") {
+        return emitSelect(mi, proc);
+    }
+
     Bus& bus = umach_->universalBus();
     const TTAMachine::FunctionUnit* fu = NULL;
 
@@ -850,7 +854,7 @@ LLVMPOMBuilder::emitInstruction(
             // which is used by the guard.
             TTAProgram::Terminal *t = createTerminal(mo);
             // inv guards not yet supported
-            guard = createGuard(t,false);
+            guard = createGuard(t,true);
             delete t;
             assert(guard != NULL);
             continue;
@@ -1128,6 +1132,53 @@ LLVMPOMBuilder::emitReturn(
     proc->add(instr);
     return instr;
 }
+
+
+
+/**
+ * Creates POM instructions for a select.
+ *
+ * @param mi select machine instruction.
+ * @param proc POM procedure to add the select to.
+ * @return First of the emitted POM instructions.
+ */
+TTAProgram::Instruction*
+LLVMPOMBuilder::emitSelect(
+    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+
+// 0 = dest?
+
+    const MachineOperand& guardMo = mi->getOperand(1);
+
+    // Create move from the condition operand register to bool register
+    // which is used by the guard.
+    TTAProgram::Terminal *t = createTerminal(guardMo);
+    TTAProgram::MoveGuard* trueGuard = createGuard(t,true);
+    TTAProgram::MoveGuard* falseGuard = createGuard(t,false);
+    delete t;
+    assert(trueGuard != NULL && falseGuard != NULL);
+
+    TTAProgram::Terminal* dst = createTerminal(mi->getOperand(0));
+    TTAProgram::Terminal* srcT = createTerminal(mi->getOperand(2));
+    TTAProgram::Terminal* srcF = createTerminal(mi->getOperand(3));
+
+    Bus& bus = umach_->universalBus();
+    TTAProgram::Move* trueMove = createMove(srcT, dst, bus, trueGuard);
+    TTAProgram::Move* falseMove = createMove(srcF, dst, bus, falseGuard);
+
+    TTAProgram::Instruction *trueIns = new TTAProgram::Instruction;
+    trueIns->addMove(trueMove);
+    proc->add(trueIns);
+
+    TTAProgram::Instruction *falseIns = new TTAProgram::Instruction;
+    trueIns->addMove(falseMove);
+    proc->add(falseIns);
+
+    return falseIns;
+}
+
+
+
 
 
 /**
@@ -1447,7 +1498,7 @@ LLVMPOMBuilder::result() throw (NotAvailable) {
  * Creates a registergaurd to given guard register.
  */
 TTAProgram::MoveGuard* LLVMPOMBuilder::createGuard(
-    const TTAProgram::Terminal* terminal, bool inverted) {
+    const TTAProgram::Terminal* terminal, bool trueOrFalse) {
     const TTAProgram::TerminalRegister* guardReg = 
         dynamic_cast<const TTAProgram::TerminalRegister*>(terminal);
     if ( guardReg == NULL) {
@@ -1463,7 +1514,7 @@ TTAProgram::MoveGuard* LLVMPOMBuilder::createGuard(
             if (regGuard != NULL &&
                 regGuard->registerFile() == &guardReg->registerFile() &&
                 regGuard->registerIndex() == (int)guardReg->index() &&
-                regGuard->isInverted() == inverted) {
+                regGuard->isInverted() != trueOrFalse) {
                 return new TTAProgram::MoveGuard(*regGuard);
             }
         }

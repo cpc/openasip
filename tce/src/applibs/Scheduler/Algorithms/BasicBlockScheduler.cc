@@ -36,7 +36,7 @@
 //#define DEBUG_REG_COPY_ADDER
 //#define CFG_SNAPSHOTS
 //#define BIG_DDG_SNAPSHOTS
-#define DDG_SNAPSHOTS
+//#define DDG_SNAPSHOTS
 //#define SW_BYPASSING_STATISTICS
 
 /**
