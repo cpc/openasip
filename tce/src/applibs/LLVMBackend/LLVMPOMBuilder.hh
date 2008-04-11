@@ -21,6 +21,7 @@ namespace TTAProgram {
     class Program;
     class Procedure;
     class Terminal;
+    class TerminalRegister;
     class TerminalInstructionAddress;
     class Instruction;
     class DataMemory;
@@ -121,6 +122,9 @@ namespace llvm {
         bool isInitialized(const Constant* cv);
 
         void emitSPInitialization();
+        
+        TTAProgram::MoveGuard* createGuard(
+            const TTAProgram::Terminal* guardReg, bool inverted);
 
         TTAProgram::Move* createMove(
             TTAProgram::Terminal* src,

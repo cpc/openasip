@@ -837,6 +837,8 @@ LLVMPOMBuilder::emitInstruction(
 
     std::vector<TTAProgram::Instruction*> operandMoves;
     std::vector<TTAProgram::Instruction*> resultMoves;
+
+    TTAProgram::MoveGuard* guard = NULL;
     for (unsigned o = 0; o < mi->getNumOperands(); o++) {
         
         const MachineOperand& mo = mi->getOperand(o);
@@ -846,26 +848,11 @@ LLVMPOMBuilder::emitInstruction(
         if (o == 0 && hasGuard) {
             // Create move from the condition operand register to bool register
             // which is used by the guard.
-            TTAMachine::Port* brfPort = NULL;
-            const TTAMachine::RegisterFile& brf =
-                umach_->booleanRegisterFile();
-
-            for (int i = 0; i < brf.portCount(); i++) {
-                if (brf.port(i)->isInput()) {
-                    brfPort = brf.port(i);
-                    break;
-                }
-            }
-            TTAProgram::Terminal* guarded = createTerminal(mo);
-            TTAProgram::Terminal* boolreg =
-                new TTAProgram::TerminalRegister(*brfPort, 0);
-
-            TTAProgram::Move* gmove =
-                createMove(guarded, boolreg, bus);
-
-            TTAProgram::Instruction* instr = new TTAProgram::Instruction();
-            instr->addMove(gmove);
-            operandMoves.push_back(instr);
+            TTAProgram::Terminal *t = createTerminal(mo);
+            // inv guards not yet supported
+            guard = createGuard(t,false);
+            delete t;
+            assert(guard != NULL);
             continue;
         }
 
@@ -911,7 +898,8 @@ LLVMPOMBuilder::emitInstruction(
 
         }
 
-        TTAProgram::Move* move = createMove(src, dst, bus);
+        TTAProgram::Move* move = createMove(src, dst, bus, guard);
+/*
         if (hasGuard) {
             TTAMachine::Guard* nonInvGuard = NULL;
             for (int g = 0; g < bus.guardCount(); g++) {
@@ -922,10 +910,11 @@ LLVMPOMBuilder::emitInstruction(
             assert(nonInvGuard != NULL);
             TTAProgram::MoveGuard* guard =
                 new TTAProgram::MoveGuard(*nonInvGuard);
-            
+
+        if (guard != NULL) {
             move->setGuard(guard);        
         }
-
+*/
         TTAProgram::Instruction* instr = new TTAProgram::Instruction();
         instr->addMove(move);
 
@@ -975,6 +964,10 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
         std::string rfName = tm_.rfName(dRegNum);
         int idx = tm_.registerIndex(dRegNum);
+        if (!mach_->registerFileNavigator().hasItem(rfName)) {
+            std::cerr << "regfile: " << rfName << " not found!" << std::endl;
+        }
+
         assert(mach_->registerFileNavigator().hasItem(rfName));
         const RegisterFile* rf = mach_->registerFileNavigator().item(rfName);
         assert(idx >= 0 && idx < rf->size());
@@ -1084,7 +1077,7 @@ LLVMPOMBuilder::emitConstantPool(const MachineConstantPool& mcp) {
 /**
  * Creates POM instruction for a move.
  *
- * @param mi Moce machine instruction.
+ * @param mi Move machine instruction.
  * @param proc POM procedure to add the move to.
  * @return Emitted POM instruction.
  */
@@ -1446,4 +1439,34 @@ LLVMPOMBuilder::result() throw (NotAvailable) {
     programReady_ = false;
 
     return result;
+}
+
+
+
+/**
+ * Creates a registergaurd to given guard register.
+ */
+TTAProgram::MoveGuard* LLVMPOMBuilder::createGuard(
+    const TTAProgram::Terminal* terminal, bool inverted) {
+    const TTAProgram::TerminalRegister* guardReg = 
+        dynamic_cast<const TTAProgram::TerminalRegister*>(terminal);
+    if ( guardReg == NULL) {
+        return NULL;
+    }
+    
+    Machine::BusNavigator busNav = mach_->busNavigator();
+    for (int i = 0; i < busNav.count(); i++) {
+        Bus* bus = busNav.item(i);
+        for (int i = 0; i < bus->guardCount(); i++) {
+            RegisterGuard* regGuard = dynamic_cast<RegisterGuard*>(
+                bus->guard(i));
+            if (regGuard != NULL &&
+                regGuard->registerFile() == &guardReg->registerFile() &&
+                regGuard->registerIndex() == (int)guardReg->index() &&
+                regGuard->isInverted() == inverted) {
+                return new TTAProgram::MoveGuard(*regGuard);
+            }
+        }
+    }
+    return NULL;
 }

@@ -241,7 +241,8 @@ TDGen::analyzeRegisters() {
             }
 
             int lastIdx = rf->size();
-            if (!fullyConnected_) {
+            // todo: find a good solution to use just one big rf for this.
+            if (!fullyConnected_&& width >1) {
                 // If the machine is not fully connected,
                 // preserve last register
                 // of all registers for bypassing values.
@@ -278,8 +279,9 @@ void
 TDGen::write1bitRegisterInfo(std::ostream& o) {
 
     std::string i1regs;
+
     if (regs1bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy1", 0 };
         std::string name = "I1DUMMY";
         writeRegisterDef(o, reg, name, "Ri1", "", RESERVED);
         i1regs += name;
@@ -310,7 +312,7 @@ TDGen::write8bitRegisterInfo(std::ostream& o) {
 
     std::string i8regs;
     if (regs8bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy8", 0 };
         std::string name = "I8DUMMY";
         writeRegisterDef(o, reg, name, "Ri8", "", RESERVED);
         i8regs += name;
@@ -338,7 +340,7 @@ TDGen::write16bitRegisterInfo(std::ostream& o) {
 
     std::string i16regs;
     if (regs16bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy16", 0 };
         std::string name = "I16DUMMY";
         writeRegisterDef(o, reg, name, "Ri16", "", RESERVED);
         i16regs += name;
@@ -440,12 +442,14 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
 
     // --- Hardcoded reserved registers. ---
     std::string i64regs;
+
     if (regs64bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy64", 0 };
         writeRegisterDef(o, reg, "DIRES0", "Ri64", "", RESERVED);
         i64regs = "DIRES0";
     } else {
-        writeRegisterDef(o, regs64bit_[0], "DIRES0", "Ri64", "", RESERVED);
+  
+      writeRegisterDef(o, regs64bit_[0], "DIRES0", "Ri64", "", RESERVED);
         for (unsigned i = 1; i < regs64bit_.size(); i++) {
             std::string regName = "DI" + Conversion::toString(i);
             i64regs += regName;
@@ -474,8 +478,9 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
       << "}" << std::endl;
 
     std::string f64regs;
+
     if (regs64bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy64", 0 };
         writeRegisterDef(o, reg, "DRES0", "Rf64", "", RESERVED);
         f64regs = "DRES0";
     } else {
@@ -935,7 +940,7 @@ TDGen::writeEmulationPattern(
         op.name() == "NE" || op.name() == "EQF" || op.name() == "LE" ||
         op.name() == "LEF" || op.name() == "NEF" || op.name() == "GEU" ||
         op.name() == "LEU" || op.name() == "LEUF" || op.name() == "GEUF" ||
-        op.name() == "LT") {
+        op.name() == "LT" || op.name() == "LTU") {
 
         // todo: b versions of those
         o << "def : Pat<(" << match1.str() << "), "

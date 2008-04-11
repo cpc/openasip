@@ -41,6 +41,8 @@ SimpleGuardAllocatorCore::allocateGuards(
     InterPassData& interPassData) throw (Exception) {
 
     RegisterMap regMap(mach, interPassData);
+/*
+
 
     for (int insi = 0; insi < proc.instructionCount(); insi++) {
         Instruction& ins = proc.instructionAtIndex(insi);
@@ -77,6 +79,8 @@ SimpleGuardAllocatorCore::allocateGuards(
 
         }                
     }
+*/
+
 }
 
 void

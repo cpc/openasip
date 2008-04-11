@@ -353,14 +353,14 @@ def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
 def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
 
 //  old bool load/store - need to be changed - or not used anymore?
-def : Pat<(i32 (zextloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
-def : Pat<(i32 (zextloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
+//def : Pat<(i32 (zextloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
+//def : Pat<(i32 (zextloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
 
-def : Pat<(truncstorei1 I32Regs:$src, ADDRrr:$addr),
-          (STQrr ADDRrr:$addr, I32Regs:$src)>;
+//def : Pat<(truncstorei1 I32Regs:$src, ADDRrr:$addr),
+//          (STQrr ADDRrr:$addr, I32Regs:$src)>;
 
-def : Pat<(truncstorei1 I32Regs:$src, ADDRri:$addr),
-          (STQir ADDRri:$addr, I32Regs:$src)>;
+//def : Pat<(truncstorei1 I32Regs:$src, ADDRri:$addr),
+//          (STQir ADDRri:$addr, I32Regs:$src)>;
 
 def : Pat<(store F32Regs:$src, ADDRri:$addr),
           (STWir ADDRri:$addr, (MOVFI32rr F32Regs:$src))>;
