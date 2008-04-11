@@ -13,6 +13,9 @@
 #include "OperationIndex.hh"
 #include "OperationSerializer.hh"
 #include "Operation.hh"
+#include "OperationIndex.hh"
+#include "OperationBehaviorLoader.hh"
+#include "OperationBehaviorProxy.hh"
 #include "Application.hh"
 #include "PluginTools.hh"
 #include "StringTools.hh"
@@ -153,9 +156,19 @@ OperationContainer::operation(
         ObjectState* root = serializer.readState();
         for (int i = 0; i < root->childCount(); i++) {
             if (root->child(i)->stringAttribute("name") == oper) {
+
+                OperationIndex* index = new OperationIndex;
+                index->addPath(path);
+
                 Operation* op = 
                     new Operation(oper, NullOperationBehavior::instance());
                 op->loadState(root->child(i));
+
+                OperationBehaviorLoader* behaviorLoader = new OperationBehaviorLoader(*index);
+                OperationBehaviorProxy* behaviorProxy = new OperationBehaviorProxy(*op, *behaviorLoader);
+
+                op->setBehavior(*behaviorProxy);
+
                 delete root;
                 return op;
             }
@@ -226,54 +239,6 @@ OperationContainer::isEffective(
     // never should come here
     assert(false);
     return false;
-}
-
-/**
- * Test whether operation can be simulated.
- *
- * Operation can be simulated if its behavior can be loaded.
- *
- * @param op Operation to be tested.
- * @param module Module in which operation belongs to.
- * @return True if operation has behavior model, false otherwise.
- */
-bool
-OperationContainer::hasBehavior(Operation& op, OperationModule& module) {
-    
-    OperationBehavior& beh = loadBehavior(op, module);
-    op.setBehavior(beh);
-            
-    if (&beh != &NullOperationBehavior::instance()) {
-        freeBehavior(op, module);
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/**
- * Loads behavior for an operation.
- *
- * @param op Operation for which behavior is loaded.
- * @param module The module in which operation belongs to.
- * @return The loaded operation behavior.
- */
-OperationBehavior&
-OperationContainer::loadBehavior(Operation& op, OperationModule& module) {
-
-    try {
-        // the previously loaded modules are first erased
-        tools_.unregisterAllModules();
-        string func_name = CREATE_FUNCTION + 
-            StringTools::stringToUpper(op.name());
-        string mod = module.behaviorModule();
-        OperationBehavior* (*function)(const Operation&);
-        tools_.importSymbol(func_name, function, mod);
-        OperationBehavior* behavior = function(op);
-        return *behavior;
-    } catch (const Exception& e) {
-        return NullOperationBehavior::instance();
-    }
 }
 
 /**

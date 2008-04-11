@@ -84,7 +84,8 @@ OptionsDialog::OptionsDialog(
     wxWindow* parent,
     GUIOptions& options,
     CommandRegistry& commandRegistry):
-    wxDialog(parent, -1, _T(""), wxDefaultPosition),
+    wxDialog(parent, -1, _T(""), wxDefaultPosition, wxSize(500, 300),
+             (wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER)),
     parent_(parent), options_(options), shortcutList_(NULL),
     toolbarList_(NULL), commandList_(NULL), commandRegistry_(commandRegistry) {
 
@@ -92,6 +93,9 @@ OptionsDialog::OptionsDialog(
 
     readCommands();
     readOptions();
+    SetMinSize(wxSize(420, 300));
+
+    notebook_ = dynamic_cast<wxNotebook*>(FindWindow(ID_NOTEBOOK));
 }
 
 
@@ -721,25 +725,26 @@ wxSizer*
 OptionsDialog::createContents(
     wxWindow *parent, bool call_fit, bool set_sizer) {
 
-    wxBoxSizer* item0 = new wxBoxSizer( wxVERTICAL );
-    notebook_ = new wxNotebook(
-        parent, ID_NOTEBOOK, wxDefaultPosition, wxSize(400,300), 0 );
+    wxFlexGridSizer *item0 = new wxFlexGridSizer( 1, 0, 0 );
+    item0->AddGrowableCol( 0 );
+    item0->AddGrowableRow( 0 );
 
-#if !wxCHECK_VERSION(2, 5, 2)
-    wxNotebookSizer *item1 = new wxNotebookSizer(notebook_);
+    wxNotebook *item2 = new wxNotebook( parent, ID_NOTEBOOK, wxDefaultPosition, wxDefaultSize, 0 );
+#if !wxCHECK_VERSION(2,5,2)
+    wxNotebookSizer *item1 = new wxNotebookSizer( item2 );
 #else
-    wxWindow* item1 = notebook_;
+    wxWindow *item1 = item2;
 #endif
 
-    wxPanel *item4 = new wxPanel(notebook_, -1);
-    createKBShortcutPage(item4, FALSE, true);
-    addPage(item4, wxT("Keyboard Shortcuts"));
+    wxPanel *item4 = new wxPanel( item2, -1 );
+    OptionsDialog::createKBShortcutPage( item4, true, true );
+    item2->AddPage( item4, wxT("Keyboard Shortcuts") );
 
-    wxPanel *item5 = new wxPanel(notebook_, -1);
-    createToolbarPage(item5, FALSE, true);
-    addPage( item5, wxT("Toolbar") );
+    wxPanel *item5 = new wxPanel( item2, -1 );
+    OptionsDialog::createToolbarPage( item5, true, true );
+    item2->AddPage( item5, wxT("Toolbar") );
 
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
 
     wxGridSizer *item6 = new wxGridSizer( 2, 0, 0 );
 
@@ -782,10 +787,12 @@ wxSizer*
 OptionsDialog::createKBShortcutPage(
     wxWindow *parent, bool call_fit, bool set_sizer) {
 
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+    wxFlexGridSizer *item0 = new wxFlexGridSizer( 1, 0, 0 );
+    item0->AddGrowableCol( 0 );
+    item0->AddGrowableRow( 0 );
 
-    wxListCtrl *item1 = new wxListCtrl( parent, ID_KB_SC_LIST, wxDefaultPosition, wxSize(360,200), wxLC_REPORT|wxSUNKEN_BORDER );
-    item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxListCtrl *item1 = new wxListCtrl( parent, ID_KB_SC_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxSUNKEN_BORDER );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item2 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -807,6 +814,7 @@ OptionsDialog::createKBShortcutPage(
     return item0;
 }
 
+
 /**
  * Creates the 'Toolbar' page for the dialog.
  * 
@@ -821,26 +829,33 @@ wxSizer*
 OptionsDialog::createToolbarPage(
     wxWindow *parent, bool call_fit, bool set_sizer) {
 
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+    wxFlexGridSizer *item0 = new wxFlexGridSizer( 1, 0, 0 );
+    item0->AddGrowableCol( 0 );
+    item0->AddGrowableRow( 0 );
 
-    wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
+    wxFlexGridSizer *item1 = new wxFlexGridSizer( 3, 0, 0 );
+    item1->AddGrowableCol( 0 );
+    item1->AddGrowableCol( 2 );
+    item1->AddGrowableRow( 0 );
 
-    wxBoxSizer *item2 = new wxBoxSizer( wxVERTICAL );
+    wxFlexGridSizer *item2 = new wxFlexGridSizer( 1, 0, 0 );
+    item2->AddGrowableCol( 0 );
+    item2->AddGrowableRow( 0 );
 
-    wxListCtrl *item3 = new wxListCtrl( parent, ID_TOOLBAR_LIST, wxDefaultPosition, wxSize(200,150), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
-    item2->Add( item3, 0, wxALIGN_CENTER|wxALL, 5 );
+    wxListCtrl *item3 = new wxListCtrl( parent, ID_TOOLBAR_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    item2->Add( item3, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item4 = new wxBoxSizer( wxHORIZONTAL );
 
-    wxButton *item5 = new wxButton( parent, ID_TOOL_UP, wxT("&Up"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item5 = new wxButton( parent, ID_TOOL_UP, wxT("&Up"), wxDefaultPosition, wxSize(50,-1), 0 );
     item4->Add( item5, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxButton *item6 = new wxButton( parent, ID_TOOL_DOWN, wxT("&Down"), wxDefaultPosition, wxDefaultSize, 0 );
+    wxButton *item6 = new wxButton( parent, ID_TOOL_DOWN, wxT("&Down"), wxDefaultPosition, wxSize(50,-1), 0 );
     item4->Add( item6, 0, wxALIGN_CENTER|wxALL, 5 );
 
     item2->Add( item4, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    item1->Add( item2, 0, wxALIGN_CENTER|wxALL, 5 );
+    item1->Add( item2, 0, wxGROW|wxALL, 5 );
 
     wxBoxSizer *item7 = new wxBoxSizer( wxVERTICAL );
 
@@ -852,14 +867,16 @@ OptionsDialog::createToolbarPage(
 
     item1->Add( item7, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
+    wxFlexGridSizer *item10 = new wxFlexGridSizer( 1, 0, 0 );
+    item10->AddGrowableCol( 0 );
+    item10->AddGrowableRow( 0 );
 
-    wxListCtrl *item11 = new wxListCtrl( parent, ID_COMMAND_LIST, wxDefaultPosition, wxSize(200,150), wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
+    wxListCtrl *item11 = new wxListCtrl( parent, ID_COMMAND_LIST, wxDefaultPosition, wxDefaultSize, wxLC_REPORT|wxLC_SINGLE_SEL|wxSUNKEN_BORDER );
     item10->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( item10, 0, wxGROW|wxALIGN_CENTER_HORIZONTAL|wxALL, 5 );
+    item1->Add( item10, 0, wxGROW|wxALL, 5 );
 
-    item0->Add( item1, 0, wxALIGN_CENTER|wxLEFT|wxRIGHT|wxTOP, 5 );
+    item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxLEFT|wxRIGHT|wxTOP, 5 );
 
     wxBoxSizer *item12 = new wxBoxSizer( wxHORIZONTAL );
 

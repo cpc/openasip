@@ -51,11 +51,6 @@ public:
     static bool operationExists(const std::string& name);
 
     static bool isEffective(OperationModule& module, const std::string& name);
-    static bool hasBehavior(Operation& op, OperationModule& module);
-    
-    static OperationBehavior& loadBehavior(
-        Operation& op, 
-        OperationModule& module);
     
     static void freeBehavior(Operation& op, OperationModule& module);
     

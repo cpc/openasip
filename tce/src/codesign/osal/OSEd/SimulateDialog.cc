@@ -184,9 +184,6 @@ SimulateDialog::setTexts() {
     WidgetTools::setLabel(&osedText, FindWindow(ID_BUTTON_TRIGGER),
                           OSEdTextGenerator::TXT_BUTTON_TRIGGER);
 
-    WidgetTools::setLabel(&osedText, FindWindow(ID_BUTTON_LATE_RESULT),
-                          OSEdTextGenerator::TXT_BUTTON_LATE_RESULT);
-
     WidgetTools::setLabel(&osedText, FindWindow(ID_BUTTON_ADVANCE_LOCK),
                           OSEdTextGenerator::TXT_BUTTON_ADVANCE_LOCK);
 
@@ -622,9 +619,6 @@ SimulateDialog::createContents(
 
     wxButton *item23 = new wxButton( parent, ID_BUTTON_TRIGGER, wxT("Trigger"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
-
-    wxButton *item24 = new wxButton( parent, ID_BUTTON_LATE_RESULT, wxT("Late Result"), wxDefaultPosition, wxDefaultSize, 0 );
-    item21->Add( item24, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxButton *item25 = new wxButton( parent, ID_BUTTON_ADVANCE_LOCK, wxT("Advance Clock"), wxDefaultPosition, wxDefaultSize, 0 );
     item21->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );

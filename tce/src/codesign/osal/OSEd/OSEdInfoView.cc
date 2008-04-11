@@ -330,10 +330,8 @@ OSEdInfoView::operationPropertyView(
 
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_HAS_BEHAVIOR);
     InsertItem(i, WxConversion::toWxString(fmt.str()));
-    OperationModule& module = OperationContainer::module(pathName, modName);
     
-    // operation behavior module
-    if (OperationContainer::hasBehavior(*op, module)) {
+    if (op->canBeSimulated()) {
         SetItem(i, 1, WxConversion::toWxString(yesFmt.str()));
     } else {
         SetItem(i, 1, WxConversion::toWxString(noFmt.str()));
