@@ -53,6 +53,7 @@ public:
     static std::vector<std::string> estimatorPluginPaths();
 
     static std::string pdfManual();
+    static std::string minimalADF();
     static std::string defaultSchedulerConf();
 
     static std::string llvmtceCachePath();
@@ -116,6 +117,11 @@ private:
     static const std::string PDF_MANUAL_INSTALLED;
     /// Relative path to the TCE .pdf manual in source tree.
     static const std::string PDF_MANUAL_SRC;
+    /// Relative path to the installed minimal.adf.
+    static const std::string MINIMAL_ADF_INSTALLED;
+    /// Relative path to the minimal.adf in source tree.
+    static const std::string MINIMAL_ADF_SRC;
+
 };
 
 #endif

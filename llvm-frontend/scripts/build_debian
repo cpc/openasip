@@ -5,6 +5,13 @@
 # Good starting point for information:
 # http://www.ibm.com/developerworks/linux/library/l-debpkg.html
 
+function eexit {
+    echo "${1}"
+    rm -rf "$tempDir"
+    exit 1
+}
+
+
 cd ..
 
 # Grab the bzr revision number
@@ -22,14 +29,23 @@ echo "Building and installing LLVM into temp dir."
 
 mkdir llvm-gcc-build
 cd llvm-gcc-build
-export MAKEFLAGS=-j2
+
+export MAKEFLAGS=-j1
 export CXX=g++
-export CXXFLAGS="-03"
+export CXXFLAGS="-O2"
 export CFLAGS="-O2"
 export CC=gcc
-../configure || exit 1
-make || exit 1
-make DESTDIR=$tempDir install || exit 1
+
+export INSTALLATION_PATH=$HOME/tce-installation
+export LLVM_BIN_DIR=${HOME}/llvm/bin
+export LLVM_FRONTEND_INSTALL_DIR=${HOME}/llvm-frontend
+
+export PATH="$INSTALLATION_PATH/bin:${LLVM_BIN_DIR}:${INSTALLATION_PATH}/bin:${LLVM_FRONTEND_INSTALL_DIR}/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin"
+export LD_LIBRARY_PATH=$INSTALLATION_PATH/lib
+
+../configure || eexit "Configure failed."
+make || eexit "Make failed."
+make DESTDIR=$tempDir install || eexit "Make install failed."
 
 cd ..
 
@@ -43,12 +59,12 @@ Architecture: i386
 Essential: no
 Depends: binfmt-support, libc6, libgcc1, libstdc++6
 Pre-Depends: perl 
-Conflicts: llvm
 Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
 Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen@tut.fi>
 Provides: tce-frontend
 Description: Low-Level Virtual Machine (LLVM) C/C++ compiler for TCE
 EOF
+#Conflicts: llvm
 
 # delete the old .deb files
 rm *.deb
@@ -57,6 +73,6 @@ rm *.deb
 package=llvm_tce_bzr${version}_i386.deb
 
 rm -f $package
-dpkg -b $tempDir $package || exit 3
+dpkg -b $tempDir $package || eexit "dpkg -b $tempDir failed." 
 
 rm -fr $tempDir

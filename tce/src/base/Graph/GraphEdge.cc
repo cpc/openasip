@@ -16,6 +16,8 @@ GraphEdge::~GraphEdge() { }
 
 GraphEdge::GraphEdge() : edgeID_(edgeCounter_++) {}
 
+GraphEdge::GraphEdge(const GraphEdge& edge) : edgeID_(edgeCounter_++) {}
+
 /**
  * Clones edge. Needed for dynamic binding, when copying 
  * instances through the base class.

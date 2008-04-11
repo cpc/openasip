@@ -17,9 +17,8 @@
  * @param edgeID unique ID of and edge
  */
 ProgramDependenceEdge::ProgramDependenceEdge(
-    ControlDependenceEdge& cEdge,
-    int edgeID)
-    : GraphEdge(edgeID), cEdge_(&cEdge), dEdge_(NULL) {
+    ControlDependenceEdge& cEdge)
+    : cEdge_(&cEdge), dEdge_(NULL) {
 }
 
 /**
@@ -29,9 +28,8 @@ ProgramDependenceEdge::ProgramDependenceEdge(
  * @param edgeID unique ID of and edge
  */
 ProgramDependenceEdge::ProgramDependenceEdge(
-    DataDependenceEdge& dEdge,
-    int edgeID)
-    : GraphEdge(edgeID), cEdge_(NULL), dEdge_(&dEdge) {
+    DataDependenceEdge& dEdge)
+    : cEdge_(NULL), dEdge_(&dEdge) {
 }
 
 /**

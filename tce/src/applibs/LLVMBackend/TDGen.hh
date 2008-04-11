@@ -36,10 +36,10 @@ namespace TTAMachine {
 class TDGen {
 public:
     TDGen(const TTAMachine::Machine& mach);
-    void generateBackend(std::string& path);
+    void generateBackend(std::string& path) throw (Exception);
 
 private:
-    bool writeRegisterInfo(std::ostream& o);
+    bool writeRegisterInfo(std::ostream& o) throw (Exception);
     void writeInstrInfo(std::ostream& o);
     void writeBackendCode(std::ostream& o);
     void writeTopLevelTD(std::ostream& o);
@@ -75,7 +75,7 @@ private:
         }
     };
 
-    bool checkRequiredRegisters();
+    bool checkRequiredRegisters() throw (Exception);
     void analyzeRegisters();
 
     void writeRegisterDef(

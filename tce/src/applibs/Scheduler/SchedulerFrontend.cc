@@ -96,20 +96,6 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
             ioe.setCause(e);
             throw ioe;
         }
-        // validate the loaded MOM, so we don't even try to schedule to
-        // "broken" machines with design errors such as units that are
-        // not connected, etc.
-        BasicMachineCheckSuite checks;
-        MachineCheckResults results;
-        if (!checks.run(*target, results)) {
-            std::string errorMessage = "Cannot compile for the machine:\n";
-            for (int i = 0; i < results.errorCount(); ++i) {
-                MachineCheckResults::Error error = results.error(i);
-                errorMessage += 
-                    (boost::format("%d: %s\n") % i % error.second).str();
-            }
-            throw IllegalMachine(__FILE__, __LINE__, __func__, errorMessage);
-        }
     } else {
         // no target adf defined, keep target as NULL.
         // delete &NullMachine::instance() is an very evil thing to do.
@@ -255,6 +241,22 @@ SchedulerFrontend::schedule(
     const TTAProgram::Program& source, const TTAMachine::Machine& target,
     const SchedulingPlan& schedulingPlan) 
     throw (Exception) {
+
+    // validate the loaded MOM, so we don't even try to schedule to
+    // "broken" machines with design errors such as units that are
+    // not connected, etc.
+    BasicMachineCheckSuite checks;
+    MachineCheckResults results;
+    if (!checks.run(target, results)) {
+        std::string errorMessage = "Cannot compile for the machine:\n";
+        for (int i = 0; i < results.errorCount(); ++i) {
+            MachineCheckResults::Error error = results.error(i);
+            errorMessage += 
+                (boost::format("%d: %s\n") % i % error.second).str();
+        }
+        throw IllegalMachine(__FILE__, __LINE__, __func__, errorMessage);
+    }
+
 
     TTAProgram::Program* sourceCopy = source.copy();
 
