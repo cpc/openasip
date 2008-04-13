@@ -60,10 +60,10 @@ BoostGraphTest::BoostGraphTest() {
     nodes_.insert(nodeC);
     nodes_.insert(nodeD);
 
-    GraphEdge* edgeAB = new GraphEdge(0);
-    GraphEdge* edgeAC = new GraphEdge(1);
-    GraphEdge* edgeBC = new GraphEdge(2);
-    GraphEdge* edgeDC = new GraphEdge(3);
+    GraphEdge* edgeAB = new GraphEdge;
+    GraphEdge* edgeAC = new GraphEdge;
+    GraphEdge* edgeBC = new GraphEdge;
+    GraphEdge* edgeDC = new GraphEdge;
 
     edges_.insert(edgeAB);
     edges_.insert(edgeAC);
