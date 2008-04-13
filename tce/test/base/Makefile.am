@@ -1,4 +1,4 @@
-SUBDIRS = program tpef mach memory bem idf umach
+SUBDIRS = program tpef mach memory bem idf umach Graph
 
 if HAVE_RDYNAMIC
 SUBDIRS += osal
