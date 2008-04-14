@@ -26,7 +26,7 @@ dist-hook:
 	tools/Doxygen/doxygen.config > \
 	$(distdir)/tools/Doxygen/doxygen.config)
 
-include_HEADERS = config.h
+include_HEADERS = tce_config.h
 
 .PHONY: doc linecount
 

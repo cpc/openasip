@@ -17,7 +17,7 @@
 #ifndef TTA_BASETYPE_HH
 #define TTA_BASETYPE_HH
 
-#include <config.h>
+#include "tce_config.h"
 
 #if SIZEOF_FLOAT == 4
 
