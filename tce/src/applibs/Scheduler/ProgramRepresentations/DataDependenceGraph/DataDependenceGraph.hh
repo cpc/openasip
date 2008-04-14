@@ -127,6 +127,8 @@ public:
     void copyDependencies(MoveNode& src, MoveNode& dst) 
         throw (InstanceNotFound); 
 
+    DataDependenceEdge* onlyIncomingGuard(const MoveNode& mn);
+    
 private:
     int rWarEdgesOut(MoveNode& mn);
     int rWawRawEdgesOut(MoveNode& mn);

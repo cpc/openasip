@@ -819,6 +819,53 @@ DataDependenceGraphBuilder::updateRegWrite(
     }
 }
 
+
+/* 
+ * Checks whether two movenodes have exclusive guard, ie
+ * same guard but inverted on one of them.
+ *
+ * If not sure returns false
+ * 
+ * @param mn1 first movenode to check.
+ * @param mn2 second movenode to check.
+ * @return true if they have same guard inverted, false otherwise.
+ */
+bool
+DataDependenceGraphBuilder::exclusingGuards(
+    const MoveNode& mn1, const MoveNode& mn2) {
+    if (!mn1.isMove() || !mn2.isMove()) {
+        return false;
+    }
+    const Move& move1 = mn1.move();
+    const Move& move2 = mn2.move();
+    if (!move1.isUnconditional() && !move2.isUnconditional()) {
+        MoveGuard& mg1 = move1.guard();
+        MoveGuard& mg2 = move2.guard();
+        if (mg1.isInverted() != mg2.isInverted()) {
+
+            DataDependenceEdge* guardEdge1 = 
+                currentDDG_->onlyIncomingGuard(mn1);
+            DataDependenceEdge* guardEdge2 = 
+                currentDDG_->onlyIncomingGuard(mn2);
+
+            if (guardEdge1 != NULL && guardEdge2 != NULL) {
+                if (&currentDDG_->tailNode(*guardEdge1) ==
+                    &currentDDG_->tailNode(*guardEdge2)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Analyzes a write to a register.
+ * 
+ * Creates dependence edges and updates bookkeeping.
+ * @param mnd MNData2 containing MoveNode that writes a register
+ * @param reg register being written by the given movenode.
+ */
 void
 DataDependenceGraphBuilder::processRegWrite(
     MNData2 mnd, const std::string& reg) {
@@ -844,7 +891,10 @@ DataDependenceGraphBuilder::processRegWrite(
     // Can be multiple if predication used.
     for (std::set<MNData2>::iterator i = defines_.begin();
          i != defines_.end(); i++) {
-        createRegWaw(*i,mnd);
+        // Do not create mem WaW if writes have excluding guards(select op)
+        if (!exclusingGuards(*(i->mn_), *(mnd.mn_))) {
+            createRegWaw(*i,mnd);
+        }
     }
     
     // create WaR to reads in same bb
@@ -874,8 +924,7 @@ DataDependenceGraphBuilder::processRegWrite(
  * Checks whether destination is operation or register and calls other
  * functions to do the actual dependence checks etc.
  *
- * @param moveNode MNData related to move whose destination 
- * is being processed.
+ * @param moveNode MoveNode whose destination is being processed.
  */
 void
 DataDependenceGraphBuilder::processDestination(MoveNode& moveNode) {
@@ -903,8 +952,6 @@ DataDependenceGraphBuilder::processDestination(MoveNode& moveNode) {
             // new code
             TerminalRegister& tr = dynamic_cast<TerminalRegister&>(dest);
             string regName = trName(tr);
-            //tr.registerFile().name() + 
-//                Conversion::toString(tr.index());
             processRegWrite(MNData2(moveNode), regName);
             
         } else { // somwthing else
@@ -915,10 +962,13 @@ DataDependenceGraphBuilder::processDestination(MoveNode& moveNode) {
     }
 }
 
-/*
+/**
  * Method for getting name of a register to be used in bookkeeping.
  * There propably is already a method for this in somewhere,
  * so this could maybe be replaced with usafe of that function.
+ *
+ * @param tr TerminalRegister of register whose name we are querying
+ * @return name of a register.
  */
 std::string
 DataDependenceGraphBuilder::trName(TerminalRegister& tr) {
