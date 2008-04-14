@@ -445,7 +445,8 @@ private:
         } else {
             int bLimit = busNav.count();
             // round up
-            widthPart = (static_cast<float>(width_) / bLimit) + 0.5;
+            widthPart = static_cast<int>(
+                    (static_cast<float>(width_) / bLimit) + 0.5);
         }
 
         TTAMachine::Bus* busP = NULL;
