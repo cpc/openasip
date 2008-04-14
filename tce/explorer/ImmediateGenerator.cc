@@ -97,7 +97,11 @@ public:
             }
 
             if (!addInsTemplateName_.empty()) {
-                addInsTemplate(*mach, addInsTemplateName_);
+                if (split_) {
+                    addSplitInsTemplate(*mach, addInsTemplateName_);    
+                } else {
+                    addInsTemplate(*mach, addInsTemplateName_);
+                }
             }
 
             // print immediate info if print parameter given
@@ -157,12 +161,9 @@ private:
     unsigned int width_;
     /// make evenly bus/slot wise splitted template.
     bool split_;
+    /// destination immediate unit name
+    std::string dstImmUnitName_;
      
-    /// short-immediate length
-    //int length_;
-    /// short-immediate extension mode
-    //Machine::Extension extension_; 
-
     /**
      * Reads the parameters given to the plugin.
      */
@@ -173,6 +174,7 @@ private:
         const std::string modInsTemplateName = "modify_it_name";
         const std::string width = "width";
         const std::string split = "split";
+        const std::string dstImmUnitName = "dst_imm_unit";
 
         const unsigned int widthDefault_ = 32;
         createNewConfig_ = false; // by default don't create a new config
@@ -244,27 +246,16 @@ private:
             split_ = false;
         }   
         
-        /*
-                length_ = Conversion::toInt(parameterValue(length));
-        if (hasParameter(extension)) {
+        if (hasParameter(dstImmUnitName)) {
             try {
-                std::string eTemp;
-                eTemp = parameterValue(extension);
-                if (eTemp == "sign") {
-                    extension_ = Machine::SIGN;
-                }
-                if (eTemp == "zero") {
-                    extension_ = Machine::ZERO;
-                }
+                dstImmUnitName_ = parameterValue(dstImmUnitName);
             } catch (const Exception& e) {
-                parameterError(extension, "String");
-                extension_ = extensionDefault;
-            }
+                parameterError(dstImmUnitName, "string");
+                dstImmUnitName_ = "";
+            }   
         } else {
-            // set defaut value to extension mode
-            extension_ = extensionDefault;
-        }
-        */
+            dstImmUnitName_ = "";
+        }   
     }
     
     /**
@@ -282,7 +273,7 @@ private:
     }
 
     /**
-     * Print (long) immediate templates of a given machine.
+     * Print info about instruction templates of a given machine.
      *
      * @param mach Machine which instruction templates are to be printed.
      */
@@ -359,7 +350,6 @@ private:
 
         try {
             insTemplate = new InstructionTemplate(name, mach);
-            //mach.addInstructionTemplate(*insTemplate);
         } catch (ComponentAlreadyExists& e) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using ImmediateGenerator:" << endl
@@ -379,26 +369,94 @@ private:
     }
 
     /**
-     * XXX: not sane. just a stupid example.
-     * Add short-immediates to busses (move slots).
+     * Adds instruction template with a name given as parameter and add
+     * bus wise splitted slots to the template.
      *
-     * @param mach Machine to which busses short immediates are added.
+     * @param mach Target machine.
+     * @param name Instruction template name to be added.
      */
-    /*
-    void addShortImmediates(TTAMachine::Machine& mach) {
-        Machine::BusNavigator busNav = mach.busNavigator();
+    void addSplitInsTemplate(TTAMachine::Machine& mach, std::string name) {
+        TTAMachine::InstructionTemplate* insTemplate = NULL; 
 
+        // find target immediate unit for the instruction template slots
+        Machine::ImmediateUnitNavigator IUNav = 
+            mach.immediateUnitNavigator();
+        
+        TTAMachine::ImmediateUnit* immUnit = NULL;
+        TTAMachine::ImmediateUnit* dstImmUnit = NULL;
+        if (dstImmUnitName_.empty()) {
+            // if no destination immediate unit specified take one if exists
+            if (IUNav.count() > 0) {
+                dstImmUnit = IUNav.item(0);
+            } else {
+                std::ostringstream msg(std::ostringstream::out);
+                msg << "Error while using ImmediateGenerator:" << endl
+                    << "No immediate units." << endl;
+                errorOuput(msg.str());
+                return;
+            }
+        } else {
+            for (int iu = 0; iu < IUNav.count(); iu++) {
+                immUnit = IUNav.item(iu);     
+                if (immUnit->name() == dstImmUnitName_) {
+                    dstImmUnit = immUnit; 
+                } 
+            }
+            if (dstImmUnit == NULL) {
+                std::ostringstream msg(std::ostringstream::out);
+                msg << "Error while using ImmediateGenerator:" << endl
+                    << "Given destination immediate unit \"" 
+                    << dstImmUnitName_ << "\" was not found." << endl;
+                errorOuput(msg.str());
+                return;
+            }
+        }
+        
+        // add instruction template
+        try {
+            insTemplate = new InstructionTemplate(name, mach);
+        } catch (ComponentAlreadyExists& e) {
+            std::ostringstream msg(std::ostringstream::out);
+            msg << "Error while using ImmediateGenerator:" << endl
+                << e.errorMessage() << endl;
+            errorOuput(msg.str());
+            delete insTemplate;
+            return;
+        } catch (InvalidName& e) {
+            std::ostringstream msg(std::ostringstream::out);
+            msg << "Error while using ImmediateGenerator:" << endl
+                << e.errorMessage() << endl;
+            errorOuput(msg.str());
+            delete insTemplate;
+            return;
+        }
+
+        // now add slots splitted among all busses
+        // TODO: split among immediate slots also?
+
+        Machine::BusNavigator busNav = mach.busNavigator();
+        
         // round up
-        int lengthPart = (static_cast<float>(length_) / busNav.count()) + 0.5;
+        int widthPart = (static_cast<float>(width_) / busNav.count()) + 0.5;
+        // XXX: what to do if so many busses that widthpart becomes 1?
+        // XXX: set max number of busses to split?
 
         TTAMachine::Bus* busP = NULL;
         for (int bus = 0; bus < busNav.count(); bus++) {
             busP = busNav.item(bus);
-            busP->setImmediateWidth(lengthPart);
-            busP->setExtensionMode(extension_);
+            try {
+                insTemplate->addSlot(busP->name(), widthPart, *dstImmUnit);
+            } catch (const Exception& e) {
+                std::ostringstream msg(std::ostringstream::out);
+                msg << "Error while using ImmediateGenerator:" << endl
+                    << e.errorMessage() << endl;
+                errorOuput(msg.str());
+                return;
+            }
         }
+        
+        createNewConfig_ = true;
     }
-    */
 };
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ImmediateGenerator);
