@@ -1163,18 +1163,31 @@ LLVMPOMBuilder::emitSelect(
     TTAProgram::Terminal* srcF = createTerminal(mi->getOperand(3));
 
     Bus& bus = umach_->universalBus();
-    TTAProgram::Move* trueMove = createMove(srcT, dst, bus, trueGuard);
-    TTAProgram::Move* falseMove = createMove(srcF, dst, bus, falseGuard);
+    TTAProgram::Instruction *lastIns = NULL;
 
-    TTAProgram::Instruction *trueIns = new TTAProgram::Instruction;
-    trueIns->addMove(trueMove);
-    proc->add(trueIns);
-
-    TTAProgram::Instruction *falseIns = new TTAProgram::Instruction;
-    trueIns->addMove(falseMove);
-    proc->add(falseIns);
-
-    return falseIns;
+    // do no create X -> X moves.
+    if (dst->equals(*srcT)) {
+        delete srcT;
+    } else {
+        TTAProgram::Move* trueMove = createMove(srcT, dst, bus, trueGuard);
+        TTAProgram::Instruction *trueIns = new TTAProgram::Instruction;
+        trueIns->addMove(trueMove);
+        proc->add(trueIns);
+        lastIns = trueIns;
+    }
+    
+    // do no create X -> X moves.
+    if (dst->equals(*srcF)) {
+        delete srcF;
+    } else {
+        TTAProgram::Move* falseMove = createMove(srcF, dst, bus, falseGuard);
+        TTAProgram::Instruction *falseIns = new TTAProgram::Instruction;
+        falseIns->addMove(falseMove);
+        proc->add(falseIns);
+        lastIns = falseIns;
+    }
+    assert(lastIns != NULL);
+    return lastIns;
 }
 
 
