@@ -281,6 +281,10 @@ def MOVI1I32rr : InstTCE<"MOVE", (outs I32Regs:$dst), (ins I1Regs:$src),
                     "$src -> $dst;",
                     [(set I32Regs:$dst, (zext I1Regs:$src))]>;
 
+// for some reason it cannot automatically use zext for anyext,
+// so pattern here for it.
+def : Pat <(i32 (anyext I1Regs:$src)),(MOVI1I32rr I1Regs:$src)>;
+
 // ----- Immediates -----
 def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;
 def : Pat<(i32 imm:$val), (MOVI32ri imm:$val)>;
@@ -343,8 +347,8 @@ def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
 def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
 
 //  old bool load/store - need to be changed - or not used anymore?
-//def : Pat<(i32 (zextloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
-//def : Pat<(i32 (zextloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
+def : Pat<(i32 (zextloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
+def : Pat<(i32 (zextloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
 
 //def : Pat<(truncstorei1 I32Regs:$src, ADDRrr:$addr),
 //          (STQrr ADDRrr:$addr, I32Regs:$src)>;
