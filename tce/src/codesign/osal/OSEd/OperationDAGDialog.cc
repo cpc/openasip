@@ -51,6 +51,7 @@ BEGIN_EVENT_TABLE(OperationDAGDialog, wxDialog)
     EVT_BUTTON(ID_DELETE_DAG_BUTTON, OperationDAGDialog::onDeleteDAG)
     EVT_BUTTON(ID_NEW_DAG_BUTTON, OperationDAGDialog::onNewDAG)
     EVT_BUTTON(ID_OK_BUTTON, OperationDAGDialog::onOK)
+    EVT_BUTTON(wxID_CANCEL, OperationDAGDialog::onCancel)
     EVT_TEXT(ID_EDIT_DAG, OperationDAGDialog::onDAGChange)
     EVT_CHOICE(ID_INDEX_DAG, OperationDAGDialog::onComboBoxChange)
 
@@ -77,9 +78,9 @@ END_EVENT_TABLE()
     createContents(this, true, true);
 
     
-    editDAG_ = dynamic_cast<wxTextCtrl*>(FindWindow(ID_EDIT_DAG));
+    dagEdit_ = dynamic_cast<wxTextCtrl*>(FindWindow(ID_EDIT_DAG));
 
-    indexDAG_ =
+    dagIndex_ =
         dynamic_cast<wxChoice*>(FindWindow(ID_INDEX_DAG));
 
     //FindWindow(ID_NAME)->SetValidator(
@@ -87,10 +88,6 @@ END_EVENT_TABLE()
 
     // set OK button as default choice
     // FindWindow(ID_OK_BUTTON)->SetFocus();
-
-    if (operation_ != NULL) {
-    } else {
-    }
 
     orig_ = operation_->saveState(); // save original operation's state
 
@@ -103,7 +100,6 @@ END_EVENT_TABLE()
 
     updateIndex();
     updateDAG();
-    this->Fit();
 }
 
 /**
@@ -146,14 +142,18 @@ OperationDAGDialog::setTexts() {
     format fmt = osedText.text(OSEdTextGenerator::TXT_PROPERTY_DIALOG_TITLE);
     SetTitle(WxConversion::toWxString(fmt.str()));
 
-    WidgetTools::setLabel(&osedText, FindWindow(ID_SAVE_DAG_BUTTON),
-                              OSEdTextGenerator::TXT_BUTTON_SAVE);
-    WidgetTools::setLabel(&osedText, FindWindow(ID_UNDO_DAG_BUTTON),
-                              OSEdTextGenerator::TXT_BUTTON_UNDO);
-    WidgetTools::setLabel(&osedText, FindWindow(ID_DELETE_DAG_BUTTON),
-                              OSEdTextGenerator::TXT_BUTTON_DELETE);
-    WidgetTools::setLabel(&osedText, FindWindow(ID_NEW_DAG_BUTTON),
-                              OSEdTextGenerator::TXT_BUTTON_NEW);
+    WidgetTools::setLabel(
+        &osedText, FindWindow(ID_SAVE_DAG_BUTTON),
+        OSEdTextGenerator::TXT_BUTTON_SAVE);
+    WidgetTools::setLabel(
+        &osedText, FindWindow(ID_UNDO_DAG_BUTTON),
+        OSEdTextGenerator::TXT_BUTTON_UNDO);
+    WidgetTools::setLabel(
+        &osedText, FindWindow(ID_DELETE_DAG_BUTTON),
+        OSEdTextGenerator::TXT_BUTTON_DELETE);
+    WidgetTools::setLabel(
+        &osedText, FindWindow(ID_NEW_DAG_BUTTON),
+        OSEdTextGenerator::TXT_BUTTON_NEW);
 	
 }
 
@@ -164,12 +164,6 @@ OperationDAGDialog::setTexts() {
  */
 bool
 OperationDAGDialog::TransferDataToWindow() {
-    if (operation_ != NULL) {
-        //name_ = WxConversion::toWxString(operation_->name());
-    } else {
-        // no operation
-    }
-
     return wxWindow::TransferDataToWindow();
 }
 
@@ -179,7 +173,7 @@ OperationDAGDialog::TransferDataToWindow() {
 void
 OperationDAGDialog::updateIndex() {
 
-    indexDAG_->Clear();
+    dagIndex_->Clear();
 
     if (operation_ == NULL) {
         return;
@@ -188,17 +182,14 @@ OperationDAGDialog::updateIndex() {
     if (operation_->dagCount() > 0) {
         for (int i = 0; i < operation_->dagCount(); i++) {
             wxString oper = WxConversion::toWxString(i+1);
-            indexDAG_->Append(oper);
+            dagIndex_->Append(oper);
         }
-    }
-    else
-    {
     }
 
     // last item is "New Dag"-option
     wxString oper = wxT("New DAG");
-    indexDAG_->Append(oper);
-    indexDAG_->SetSelection(0);
+    dagIndex_->Append(oper);
+    dagIndex_->SetSelection(0);
 
 }
 
@@ -208,15 +199,15 @@ OperationDAGDialog::updateIndex() {
 void
 OperationDAGDialog::updateDAG() {
 
-    editDAG_->Clear();
+    dagEdit_->Clear();
 
     // get selected item from ComboBox
-    int index = indexDAG_->GetSelection();
+    int index = dagIndex_->GetSelection();
     
     // check that index is legal
     if (operation_ != NULL && index < operation_->dagCount()) {
         std::string code = operation_->dagCode(index);
-        std::ostream dagCode(editDAG_);
+        std::ostream dagCode(dagEdit_);
         dagCode << code;
         dagCode.flush();
 
@@ -230,6 +221,16 @@ OperationDAGDialog::updateDAG() {
         std::string temp = FileSystem::createTempDirectory();
         std::string pngDag = temp + "/dag.png";
         std::string dotDag = temp + "/dag.dot";
+
+        if (system("which dot > /dev/null 2>&1") != 0) {
+            wxString caption(wxString::FromAscii("Warning"));
+            wxString message(
+                    wxString::FromAscii(
+                        "You must have dot installed to display DAGs."));
+            wxMessageBox(message, caption);
+            dagImageStaticBoxSizer_->Show(false);
+            return; // cannot display DAG without dot
+        }
 
         if (currentDAG.isNull() == true) { // compile error
 
@@ -245,7 +246,10 @@ OperationDAGDialog::updateDAG() {
             }
 
             // command to generate error message
-            std::string dotCmd = "echo 'digraph G {n140545368 [label=\"" + errText + "\", shape=ellipse, fontsize=12]; }' | dot -Tpng > " + pngDag;
+            std::string dotCmd = 
+                std::string("echo 'digraph G {n140545368 [label=\"") + errText + 
+                "\", shape=plaintext, fontsize=12]; }' | dot -Tpng > " + 
+                pngDag;
 
             system(dotCmd.c_str());
 
@@ -254,9 +258,10 @@ OperationDAGDialog::updateDAG() {
             wxString wxTemp(wxString::FromAscii(pngDag.c_str()));
             dotImage_->LoadFile(wxTemp, wxBITMAP_TYPE_PNG);
             dagStaticBitmap_->SetBitmap(*dotImage_);
-        }
-        else // show graph
-        {
+            dagImageStaticBoxSizer_->Show(true);
+
+        } else {
+
             // generate dot
             currentDAG.writeToDotFile(dotDag);
 
@@ -265,15 +270,27 @@ OperationDAGDialog::updateDAG() {
             system(dotCmd.c_str());
 
             delete dotImage_;
-            dotImage_ = new wxBitmap(100,100);
+            dotImage_ = new wxBitmap(300,100);
             wxString wxTemp(wxString::FromAscii(pngDag.c_str()));
             dotImage_->LoadFile(wxTemp, wxBITMAP_TYPE_PNG);
             dagStaticBitmap_->SetBitmap(*dotImage_);
+            dagImageStaticBoxSizer_->Show(true);
+
+            unsigned int width = dotImage_->GetWidth();
+            unsigned int height = dotImage_->GetHeight();
+            
+            // calculate virtual area and rounding the result up
+            width = float(width) / 20 + 0.5;
+            height = float(height) / 20 + 0.5;
+
+            dagWindow_->SetSize(-1, -1, 50, 50);
+            dagWindow_->SetScrollbars(20, 20, width, height);
         }
         FileSystem::removeFileOrDirectory(temp);
-    }
-    else // new dag => do not update, just disable the buttons
-    {
+
+    } else {
+
+        // new dag => do not update, just disable the buttons
         FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
         FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
         FindWindow(ID_DELETE_DAG_BUTTON)->Disable();
@@ -283,36 +300,45 @@ OperationDAGDialog::updateDAG() {
         delete dotImage_;
         dotImage_ = new wxBitmap(*temp);
         dagStaticBitmap_->SetBitmap(*dotImage_);
+        dagImageStaticBoxSizer_->Show(false);
 
     }
-
 }
+
 /**
  * Handles the event when OK button is pushed.
  */
 void 
-OperationDAGDialog::onOK(wxCommandEvent&)
-{
+OperationDAGDialog::onOK(wxCommandEvent&) {
     EndModal(wxID_OK);
+}
+
+
+/**
+ * Handles the event when Cancel button is pushed.
+ */
+void 
+OperationDAGDialog::onCancel(wxCommandEvent&) {
+    operation_->loadState(orig_);
+    EndModal(wxID_CANCEL);
 }
 
 /**
  * Handles the event when Save button is pushed.
  */
 void
-OperationDAGDialog::onSaveDAG(wxCommandEvent&)
-{
+OperationDAGDialog::onSaveDAG(wxCommandEvent&) {
     if(operation_ == NULL) {
         return;
     }
 
-    int index = indexDAG_->GetSelection();
+    int index = dagIndex_->GetSelection();
 
     std::string code("");
     wxString wxTemp;
 
-    for (int i = 0; i < editDAG_->GetNumberOfLines(); ++i) {
-        wxTemp = editDAG_->GetLineText(i);
+    for (int i = 0; i < dagEdit_->GetNumberOfLines(); ++i) {
+        wxTemp = dagEdit_->GetLineText(i);
 
 #if wxCHECK_VERSION(2, 6, 0)
         std::string stdTemp(wxTemp.mb_str());
@@ -326,13 +352,12 @@ OperationDAGDialog::onSaveDAG(wxCommandEvent&)
 
     if (operation_->dagCount() == index) {
         operation_->addDag(code);
-    }
-    else {
+    } else {
         operation_->setDagCode(index, code);
     }
 
     updateIndex();
-    indexDAG_->SetSelection(index);
+    dagIndex_->SetSelection(index);
     updateDAG();
     FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
     FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
@@ -343,16 +368,14 @@ OperationDAGDialog::onSaveDAG(wxCommandEvent&)
  * Handles the event when Undo button is pushed.
  */
 void
-OperationDAGDialog::onUndoDAG(wxCommandEvent&)
-{
-    std::iostream dagCode(editDAG_);
+OperationDAGDialog::onUndoDAG(wxCommandEvent&) {
+    std::iostream dagCode(dagEdit_);
 
-    int index = indexDAG_->GetSelection();
+    int index = dagIndex_->GetSelection();
     if (operation_->dagCount() == index) { // new operation
-        editDAG_->Clear();
+        dagEdit_->Clear();
         FindWindow(ID_DELETE_DAG_BUTTON)->Disable();
-    }
-    else {
+    } else {
         updateDAG();
         FindWindow(ID_DELETE_DAG_BUTTON)->Enable();
     }
@@ -364,11 +387,10 @@ OperationDAGDialog::onUndoDAG(wxCommandEvent&)
  * Handles the event when Delete button is pushed.
  */
 void
-OperationDAGDialog::onDeleteDAG(wxCommandEvent&)
-{
-    int index = indexDAG_->GetSelection();
+OperationDAGDialog::onDeleteDAG(wxCommandEvent&) {
+    int index = dagIndex_->GetSelection();
     if (operation_->dagCount() > index) {
-        editDAG_->Clear();
+        dagEdit_->Clear();
         operation_->removeDag(index);
     }
 
@@ -378,7 +400,7 @@ OperationDAGDialog::onDeleteDAG(wxCommandEvent&)
         index--;
     }
 
-    indexDAG_->SetSelection(index);
+    dagIndex_->SetSelection(index);
     updateDAG();
 }
 
@@ -386,23 +408,23 @@ OperationDAGDialog::onDeleteDAG(wxCommandEvent&)
  * Handles the event when New button is pushed.
  */
 void
-OperationDAGDialog::onNewDAG(wxCommandEvent&)
-{
+OperationDAGDialog::onNewDAG(wxCommandEvent&) {
     int index = operation_->dagCount();
-    editDAG_->Clear();
-    indexDAG_->SetSelection(index);
+    dagEdit_->Clear();
+    dagIndex_->SetSelection(index);
     FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
     FindWindow(ID_UNDO_DAG_BUTTON)->Disable();
     FindWindow(ID_DELETE_DAG_BUTTON)->Disable();
     FindWindow(ID_NEW_DAG_BUTTON)->Disable();
+    dagImageStaticBoxSizer_->Show(false);
+    this->Fit();
 }
 
 /**
  * Handles the event when DAG is changed
  */
 void
-OperationDAGDialog::onDAGChange(wxCommandEvent&)
-{
+OperationDAGDialog::onDAGChange(wxCommandEvent&) {
     FindWindow(ID_UNDO_DAG_BUTTON)->Enable();
     FindWindow(ID_SAVE_DAG_BUTTON)->Enable();
 }
@@ -411,8 +433,7 @@ OperationDAGDialog::onDAGChange(wxCommandEvent&)
  * Handles the event when ComboBox is changed
  */
 void
-OperationDAGDialog::onComboBoxChange(wxCommandEvent&)
-{
+OperationDAGDialog::onComboBoxChange(wxCommandEvent&) {
     updateDAG();
 }
 
@@ -430,27 +451,49 @@ OperationDAGDialog::createContents(
     bool call_fit, 
     bool set_sizer) {
 
+    // Window for scrolling DAG image
+    wxSize size(300, 400);
+    dagWindow_ = new wxScrolledWindow(parent, -1, wxDefaultPosition, size);
+
+    // Window sizers
     wxBoxSizer *item0 = new wxBoxSizer(wxVERTICAL);
 
+    // Static box for DAG code
     wxStaticBox *dagStaticBox = new wxStaticBox(parent, -1, wxT("Code"));
-    wxStaticBoxSizer *dagStaticBoxSizer = new wxStaticBoxSizer(dagStaticBox, wxVERTICAL);
+    wxStaticBoxSizer *dagStaticBoxSizer =
+        new wxStaticBoxSizer(dagStaticBox, wxVERTICAL);
 
     // DAG editor
-    wxTextCtrl* editDAG = new wxTextCtrl(parent, ID_EDIT_DAG, wxT(""), wxDefaultPosition, wxSize(250,365), wxTE_MULTILINE);
+    wxTextCtrl* editDAG =
+        new wxTextCtrl(
+                parent, ID_EDIT_DAG, wxT(""), wxDefaultPosition,
+                wxSize(250,365), wxTE_MULTILINE);
 
-    wxStaticBox *dagCodeStaticBox = new wxStaticBox(parent, -1, wxT("DAG"));
-    wxStaticBoxSizer *dagCodeStaticBoxSizer = new wxStaticBoxSizer(dagCodeStaticBox, wxVERTICAL);
+    // Static box for DAG image
+    wxStaticBox *dagImageStaticBox = new wxStaticBox(parent, -1, wxT("DAG"));
+    dagImageStaticBoxSizer_ =
+        new wxStaticBoxSizer(dagImageStaticBox, wxVERTICAL);
 
-    dotImage_ = new wxBitmap(100,100);
-    dagStaticBitmap_ = new wxStaticBitmap(parent, ID_DAG_IMAGE, *dotImage_);
+    dagImageStaticBoxSizer_->Add(dagWindow_, 5, wxALIGN_TOP|wxALL|wxGROW, 5);
+    dagImageStaticBoxSizer_->SetDimension(-1, -1, 550, 550);
+
+    // DAG image
+    dotImage_ = new wxBitmap(300,100);
+    dagStaticBitmap_ =
+        new wxStaticBitmap(dagWindow_, ID_DAG_IMAGE, *dotImage_);
+    
+    dagWindow_->SetSize(-1, -1, 50, 50);
+    dagWindow_->SetScrollbars(20, 20, 20, 20);
+
+    // Add DAG editor to DAG code sizer
     dagStaticBoxSizer->Add(editDAG, 0, wxALIGN_TOP|wxALL|wxGROW, 5);
-    dagCodeStaticBoxSizer->Add(dagStaticBitmap_, 5, wxALIGN_TOP|wxALL|wxGROW, 5);
-
+    
+    // Add DAG code to page sizer
     wxBoxSizer *pageSizer = new wxBoxSizer(wxHORIZONTAL);
-    //pageSizer->Add(item8, 0, wxALIGN_TOP|wxALL, 5);
     pageSizer->Add(dagStaticBoxSizer, 0, wxALIGN_TOP|wxTOP, 10);
-    pageSizer->Add(dagCodeStaticBoxSizer, 5, wxALIGN_TOP|wxTOP, 10);
+    pageSizer->Add(dagImageStaticBoxSizer_, 0, wxALIGN_TOP|wxTOP, 10);
 
+    // Add page sizer to window sizer
     item0->Add(pageSizer, 0, wxALIGN_CENTER|wxALL, 5);
 
     wxString strs9[] = 
@@ -458,13 +501,28 @@ OperationDAGDialog::createContents(
             wxT("id: 1")
         };
 
+
     // ComboBox for choosing DAG
-    //wxComboBox *indexDAG = new wxComboBox(parent, ID_INDEX_DAG, wxT(""), wxDefaultPosition, wxSize(150,-1), 1, strs9, wxCB_DROPDOWN);
-    wxChoice *indexDAG = new wxChoice(parent, ID_INDEX_DAG, wxDefaultPosition, wxSize(150,-1), 1, strs9);
-    wxButton *saveDAG = new wxButton(parent, ID_SAVE_DAG_BUTTON, wxT("Save"), wxDefaultPosition, wxDefaultSize, 0);
-    wxButton *undoDAG = new wxButton(parent, ID_UNDO_DAG_BUTTON, wxT("Undo"), wxDefaultPosition, wxDefaultSize, 0);
-    wxButton *deleteDAG = new wxButton(parent, ID_DELETE_DAG_BUTTON, wxT("Delete"), wxDefaultPosition, wxDefaultSize, 0);
-    wxButton *newDAG = new wxButton(parent, ID_NEW_DAG_BUTTON, wxT("New"), wxDefaultPosition, wxDefaultSize, 0);
+    wxChoice *indexDAG =
+        new wxChoice(
+                parent, ID_INDEX_DAG, wxDefaultPosition, wxSize(150,-1), 1,
+                strs9);
+    wxButton *saveDAG = 
+        new wxButton(
+                parent, ID_SAVE_DAG_BUTTON, wxT("Save"), wxDefaultPosition,
+                wxDefaultSize, 0);
+    wxButton *undoDAG = 
+        new wxButton(
+                parent, ID_UNDO_DAG_BUTTON, wxT("Undo"), wxDefaultPosition,
+                wxDefaultSize, 0);
+    wxButton *deleteDAG = 
+        new wxButton(
+                parent, ID_DELETE_DAG_BUTTON, wxT("Delete"), wxDefaultPosition,
+                wxDefaultSize, 0);
+    wxButton *newDAG = 
+        new wxButton(
+                parent, ID_NEW_DAG_BUTTON, wxT("New"), wxDefaultPosition,
+                wxDefaultSize, 0);
 
     wxBoxSizer *dagToolsSizer = new wxBoxSizer(wxHORIZONTAL);
     dagToolsSizer->Add(indexDAG, 0, wxALIGN_CENTER|wxALL, 5);
@@ -477,23 +535,31 @@ OperationDAGDialog::createContents(
     dagButtonSizer->Add(newDAG, 0, wxALIGN_CENTER|wxALL, 5);
 
     dagToolsSizer->Add(dagButtonSizer, 0, wxALIGN_CENTER|wxALL, 5);
-
-    wxButton *OK = new wxButton(parent, ID_OK_BUTTON, wxT("Ok"), wxDefaultPosition, wxDefaultSize, 0);
-    dagToolsSizer->Add(OK, 0, wxALIGN_CENTER|wxALL, 5);
-
-
     dagStaticBoxSizer->Add(dagToolsSizer, 0, wxALIGN_TOP|wxALL, 5);
 
+    wxBoxSizer *controlButtonSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxButton *OK =
+        new wxButton(
+                parent, ID_OK_BUTTON, wxT("Ok"), wxDefaultPosition,
+                wxDefaultSize, 0);
+    wxButton *Cancel =
+        new wxButton(
+                parent, wxID_CANCEL, wxT("Cancel"), wxDefaultPosition,
+                wxDefaultSize, 0);
 
+    controlButtonSizer->Add(OK, 0, wxALIGN_RIGHT|wxALL, 5);
+    controlButtonSizer->Add(Cancel, 0, wxALIGN_RIGHT|wxALL, 5);
+    item0->Add(
+            controlButtonSizer, 0,
+            wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
-
-
-    if (set_sizer)
-    {
+    if (set_sizer) {
         parent->SetSizer(item0);
-        if (call_fit)
+        if (call_fit) {
             item0->SetSizeHints(parent);
+        }
     }
+
     
     return item0;
 }

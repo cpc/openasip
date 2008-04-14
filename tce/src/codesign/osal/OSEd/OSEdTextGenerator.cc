@@ -36,7 +36,6 @@ OSEdTextGenerator::OSEdTextGenerator() {
     addText(TXT_BUTTON_MODIFY, "Modify...");
     addText(TXT_BUTTON_OPEN, "Open");
     addText(TXT_BUTTON_TRIGGER, "Trigger");
-    addText(TXT_BUTTON_LATE_RESULT, "Late Result");
     addText(TXT_BUTTON_ADVANCE_LOCK, "Advance Clock");
     addText(TXT_BUTTON_SAVE, "Save");
     addText(TXT_BUTTON_UNDO, "Undo");

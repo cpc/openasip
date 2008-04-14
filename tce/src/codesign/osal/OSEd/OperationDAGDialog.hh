@@ -3,8 +3,8 @@
  *
  * Declaration of OperationDAGDialog class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen@cs.tut.fi)
- * @author Tero Ryyn‰nen 2008 (tero.ryynanen@tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen@cs.tut.fi)
+ * @author Tero Ryyn√§nen 2008 (tero.ryynanen@tut.fi)
  * @note rating: red
  */
 
@@ -46,6 +46,7 @@ private:
     void updateDAG();
 
     void onOK(wxCommandEvent& event);
+    void onCancel(wxCommandEvent& event);
 
     void onSaveDAG(wxCommandEvent& event);
     void onUndoDAG(wxCommandEvent& event);
@@ -56,6 +57,7 @@ private:
     void onComboBoxChange(wxCommandEvent& event);
 
     ObjectState* saveOperation();
+
     void setTexts();
     void setBehaviorLabel();
 
@@ -70,7 +72,8 @@ private:
         ID_NEW_DAG_BUTTON,
         ID_DAG_IMAGE,
         ID_INDEX_DAG,
-        ID_OK_BUTTON
+        ID_OK_BUTTON,
+        ID_CANCEL_BUTTON
     };
 
     /// Operation to be created or to be modified.
@@ -79,20 +82,24 @@ private:
     ObjectState* orig_;
     
     // Text box for editing dag
-    wxTextCtrl* editDAG_;
+    wxTextCtrl* dagEdit_;
     //
     // Text box for editing operation description
     wxTextCtrl* editDescription_;
 
     // ComboBox for selectind dag
-    wxChoice* indexDAG_;
+    wxChoice* dagIndex_;
 
     // Dot generated image
     wxBitmap* dotImage_;
 
     // Bitmap for holding the dot image
     wxStaticBitmap* dagStaticBitmap_;
+    wxStaticBoxSizer *dagImageStaticBoxSizer_;
     
+    // Scrolled window for DAG
+    wxScrolledWindow *dagWindow_;
+
     bool operationWasCreatedHere_;
     DECLARE_EVENT_TABLE()
 };

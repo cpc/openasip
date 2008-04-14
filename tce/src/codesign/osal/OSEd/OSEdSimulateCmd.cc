@@ -71,9 +71,6 @@ OSEdSimulateCmd::Do() {
     string pathName = treeView->pathOfModule(modId);
 
     OperationModule& module = OperationContainer::module(pathName, modName);
-    OperationBehavior& behavior = 
-        OperationContainer::loadBehavior(*op, module);
-    op->setBehavior(behavior);
 
     SimulateDialog* dialog = 
         new SimulateDialog(parentWindow(), op, pathName, modName);
@@ -94,21 +91,7 @@ OSEdSimulateCmd::isEnabled() {
     Operation* op = treeView->selectedOperation();
 
     if (treeView->isOperationSelected() &&  op != NULL) {
-        wxTreeItemId opId = treeView->selectedOperationId();
-        string modName = treeView->moduleOfOperation(opId);
-        wxTreeItemId modId = treeView->moduleIdOfOperation(opId);
-        string pathName = treeView->pathOfModule(modId);
-        OperationModule& module = 
-            OperationContainer::module(pathName, modName);
-        assert(&module != &NullOperationModule::instance());
-
-        if (OperationContainer::hasBehavior(*op, module)) {
-            delete op;
-            return true;
-        } else {
-            delete op;
-            return false;
-        }
+        return op->canBeSimulated();
     }
     return false;
 }

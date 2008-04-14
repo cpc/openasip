@@ -3,7 +3,7 @@
  *
  * Implementation of BrokerDirector class.
  *
- * @author Ari Metsï¿½halme 2006 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2006 (ari.metsahalme@tut.fi)
  * @author Vladimir Guzma 2007 (vladimir.guzma@tut.fi)
  * @note rating: red
  */

@@ -49,6 +49,9 @@ string Environment::newErrorLogFileDir_ = "";
 const string Environment::PDF_MANUAL_INSTALLED = "manual/TCE_manual.pdf";
 const string Environment::PDF_MANUAL_SRC = "doc/man/TCE/TCE.pdf";
 
+const string Environment::MINIMAL_ADF_INSTALLED = "data/mach/minimal.adf";
+const string Environment::MINIMAL_ADF_SRC = "data/mach/minimal.adf";
+
 // macro definitions (maybe relocated later to config.h)
 #define INSTALLATION_DIR "/share/tce/"
 
@@ -760,6 +763,32 @@ Environment::pdfManual() {
         "Installation broken, manual not found");
     return path;
 }
+
+/**
+ * Returns the full path to the minimal.adf.
+ */
+string
+Environment::minimalADF() {
+
+    if (!DISTRIBUTED_VERSION) {
+        // first find from the src tree
+        std::string srcPath =
+            string(TCE_SRC_ROOT) + FileSystem::DIRECTORY_SEPARATOR +
+            MINIMAL_ADF_SRC;
+
+        if (FileSystem::fileExists(srcPath))
+            return srcPath;
+    } 
+    std::string path =
+        string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
+        MINIMAL_ADF_INSTALLED;
+
+    assert(
+        FileSystem::fileExists(path) && 
+        "Installation broken, minimal.adf not found");
+    return path;
+}
+
 
 /**
  * Returns full path to the default scheduler pass configuration file.

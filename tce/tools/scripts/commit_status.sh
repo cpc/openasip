@@ -40,8 +40,8 @@ bzr status | egrep -v \
 ".*\.dot|.*Explorer/explore|.*connectivity.tpef|"\
 ".*Python-bindings/src/setup.py|.*\.pyc|.*/registers_read|.*/registers_written|"\
 ".*/operations_executed|.*\.vhdbak|systemtest_long/procgen/ProGe/.*\.sh|"\
-".*tce/cscope.*|"\
-".*tce/tags|"\
-".*\.l[oa]$|"\
+".*tce/cscope.*|llvm-frontend/build/|.*\@|"\
+".*tce/tags|.*doc/man/TCE/TCE/|.*/llvm-tce/llvmtce|.*/tceopgen/tceopgen|"\
+".*\.l[oa]$|.*/TableGen/tblgen|tce/systemtest/bintools/Scheduler/.*\.tpef|"\
 ".*\.bak|doc/man/html|.*/conflicting_fsa.txt|.*/dot.txt|systemtest/bintools/PIG/.*\.sh|.*/results.tex"\
 ")"
