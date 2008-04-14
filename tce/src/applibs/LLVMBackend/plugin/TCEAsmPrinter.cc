@@ -28,6 +28,7 @@
 
 #include "TCEAsmPrinter.hh"
 #include "TCEInstrInfo.hh"
+#include "tce_config.h"
 
 
 using namespace llvm;
@@ -130,12 +131,20 @@ TCEAsmPrinter::printOperand(const MachineInstr* mi, int opNum) {
         break;
     }
     case MachineOperand::MO_Immediate: {
+#ifdef LLVM_2_1
         O << (int)mo.getImmedValue();
+#else
+        O << (int)mo.getImm();
+#endif
         break;
     }
 
     case MachineOperand::MO_MachineBasicBlock:
+#ifdef LLVM_2_1
         printBasicBlockLabel(mo.getMachineBasicBlock(), false, false);
+#else
+        printBasicBlockLabel(mo.getMBB(), false, false);
+#endif
         return;
     case MachineOperand::MO_GlobalAddress: {
         O << Mang->getValueName(mo.getGlobal());
@@ -147,7 +156,11 @@ TCEAsmPrinter::printOperand(const MachineInstr* mi, int opNum) {
     case MachineOperand::MO_ConstantPoolIndex:
         O << TAI->getPrivateGlobalPrefix()
           << "CPI" << getFunctionNumber() << "_"
+#ifdef LLVM_2_1
           << mo.getConstantPoolIndex();
+#else
+          << mo.getIndex();
+#endif
         break;
     default:
         O << "<unknown operand type>";
@@ -218,7 +231,11 @@ TCEAsmPrinter::doFinalization(Module& m) {
 
                 SwitchToDataSection(".data", i);
                 O << "\t.comm ";
+#ifdef LLVM_2_1
                 O << name << ", " << td->getTypeSize(c->getType());
+#else
+                O << name << ", " << td->getTypeSizeInBits(c->getType()) / 8;
+#endif
                 O << std::endl;
             } else {
                 switch (i->getLinkage()) {

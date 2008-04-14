@@ -83,11 +83,17 @@ TCEInstrInfo::isLoadFromStackSlot(
         //mi->getOpcode() == TCE::LDHri ||
         mi->getOpcode() == TCE::LDWi) {
 
+#if defined(LLVM_2_1)
         if (mi->getOperand(1).isFrameIndex() &&
             mi->getOperand(2).isImmediate() &&
             mi->getOperand(2).getImmedValue() == 0) {
-
             frameIndex = mi->getOperand(1).getFrameIndex();
+#else
+        if (mi->getOperand(1).isFrameIndex() &&
+            mi->getOperand(2).isImmediate() &&
+            mi->getOperand(2).getImm() == 0) {
+            frameIndex = mi->getOperand(1).getIndex();
+#endif
             return mi->getOperand(0).getReg();
         }
     }
@@ -105,10 +111,18 @@ TCEInstrInfo::isStoreToStackSlot(MachineInstr* mi, int& frameIndex) const {
         //mi->getOpcode() == TCE::STHri ||
         mi->getOpcode() == TCE::STWir) {
 
+#if defined(LLVM_2_1)
        if (mi->getOperand(0).isFrameIndex() &&
-            mi->getOperand(1).isImmediate() &&
-            mi->getOperand(1).getImmedValue() == 0) {
-            frameIndex = mi->getOperand(1).getFrameIndex();
+           mi->getOperand(1).isImmediate() &&
+           mi->getOperand(1).getImmedValue() == 0) {
+           frameIndex = mi->getOperand(1).getFrameIndex();
+#else
+       if (mi->getOperand(0).isFrameIndex() &&
+           mi->getOperand(1).isImmediate() &&
+           mi->getOperand(1).getImm() == 0) {
+           frameIndex = mi->getOperand(1).getIndex();
+#endif
+
             return mi->getOperand(2).getReg();
         }
     }
