@@ -436,13 +436,20 @@ private:
 
         Machine::BusNavigator busNav = mach.busNavigator();
         
-        // round up
-        int widthPart = (static_cast<float>(width_) / busNav.count()) + 0.5;
-        // XXX: what to do if so many busses that widthpart becomes 1?
-        // XXX: set max number of busses to split?
+        // minimum widthPart is 1
+        int bLimit = 0;
+        int widthPart = 0;
+        if (busNav.count() > width_) {
+            bLimit = width_;
+            widthPart = 1;
+        } else {
+            int bLimit = busNav.count();
+            // round up
+            widthPart = (static_cast<float>(width_) / bLimit) + 0.5;
+        }
 
         TTAMachine::Bus* busP = NULL;
-        for (int bus = 0; bus < busNav.count(); bus++) {
+        for (int bus = 0; bus < bLimit; bus++) {
             busP = busNav.item(bus);
             try {
                 insTemplate->addSlot(busP->name(), widthPart, *dstImmUnit);
