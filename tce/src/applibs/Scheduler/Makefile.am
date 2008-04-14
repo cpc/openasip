@@ -6,7 +6,7 @@ lib_LTLIBRARIES = libscheduler.la
 libscheduler_la_SOURCES = SchedulerFrontend.cc SchedulerCmdLineOptions.cc \
 	BaseSchedulerModule.cc StartableSchedulerModule.cc \
 	HelperSchedulerModule.cc SchedulerConfigurationSerializer.cc \
-	SchedulingPlan.cc SchedulerPluginLoader.cc PythonSchedulerModule.cc 
+	SchedulingPlan.cc SchedulerPluginLoader.cc 
 
 libscheduler_la_LIBADD = ProgramRepresentations/libprogramrepresentations.la \
 	ResourceModel/libresourcemodel.la \
@@ -31,6 +31,8 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I ${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${APPLIBS_DIR}/mach -I${MACH_DIR} -I${UM_DIR} ${PYTHON_CPPFLAGS} \
 	-DPYTHON_ENABLED
 AM_LDFLAGS = ${BOOST_PYTHON_LDFLAGS} ${PYTHON_LDFLAGS} ${PYTHON_EXTRA_LDFLAGS} ${PYTHON_EXTRA_LIBS}
+
+libscheduler_la_SOURCES += PythonSchedulerModule.cc
 
 else
 
