@@ -102,7 +102,7 @@ CompiledSimCompiler::compileFile(
         compiler_ + " " + "`tce-config --includes`" + " -shared -fpic "
             + "-fno-working-directory -fno-enforce-eh-specs -fno-rtti "
             + "-fno-threadsafe-statics -fno-access-control"
-            + flags;
+            + flags + " " + filePath;
     
     return system(command.c_str());
 }
