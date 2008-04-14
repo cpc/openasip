@@ -13,7 +13,7 @@
 #include "TCEInstrInfo.hh"
 #include "TCEPlugin.hh"
 
-#include "tce-config.h"
+#include "tce_config.h"
 
 // Include code generated with tceplugingen:
 #include "TCEGenInstrInfo.inc"
