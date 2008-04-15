@@ -1588,7 +1588,8 @@ DataDependenceGraph::onlyIncomingGuard(
     for (DataDependenceGraph::EdgeSet::iterator i = iEdges.begin();
          i != iEdges.end(); i++) {
         DataDependenceEdge* edge = *i;
-        if (edge->guardUse()) {
+        if (edge->guardUse() && edge->dependenceType() == 
+            DataDependenceEdge::DEP_RAW) {
             if (guard == NULL) {
                 guard = edge;
             } else {

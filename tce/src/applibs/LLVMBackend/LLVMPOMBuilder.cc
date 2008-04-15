@@ -1152,11 +1152,7 @@ LLVMPOMBuilder::emitSelect(
 
     // Create move from the condition operand register to bool register
     // which is used by the guard.
-    TTAProgram::Terminal *t = createTerminal(guardMo);
-    TTAProgram::MoveGuard* trueGuard = createGuard(t,true);
-    TTAProgram::MoveGuard* falseGuard = createGuard(t,false);
-    delete t;
-    assert(trueGuard != NULL && falseGuard != NULL);
+    TTAProgram::Terminal *guardTerminal = createTerminal(guardMo);
 
     TTAProgram::Terminal* dst = createTerminal(mi->getOperand(0));
     TTAProgram::Terminal* srcT = createTerminal(mi->getOperand(2));
@@ -1169,6 +1165,8 @@ LLVMPOMBuilder::emitSelect(
     if (dst->equals(*srcT)) {
         delete srcT;
     } else {
+        TTAProgram::MoveGuard* trueGuard = createGuard(guardTerminal, true);
+        assert(trueGuard != NULL);
         TTAProgram::Move* trueMove = createMove(srcT, dst, bus, trueGuard);
         TTAProgram::Instruction *trueIns = new TTAProgram::Instruction;
         trueIns->addMove(trueMove);
@@ -1180,12 +1178,17 @@ LLVMPOMBuilder::emitSelect(
     if (dst->equals(*srcF)) {
         delete srcF;
     } else {
+        TTAProgram::MoveGuard* falseGuard = createGuard(guardTerminal, false);
+        assert(falseGuard != NULL);
         TTAProgram::Move* falseMove = createMove(srcF, dst, bus, falseGuard);
         TTAProgram::Instruction *falseIns = new TTAProgram::Instruction;
         falseIns->addMove(falseMove);
         proc->add(falseIns);
         lastIns = falseIns;
     }
+    // guardTerminal was just temporary used as helper when creating guards.
+    delete guardTerminal;
+
     assert(lastIns != NULL);
     return lastIns;
 }

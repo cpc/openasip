@@ -907,12 +907,12 @@ DataDependenceGraphBuilder::processRegWrite(
     if (mnd.mn_->move().isUnconditional()) {
         currentData_->regDefines_[reg].clear();
         currentData_->regLastKills_[reg] = mnd;
+
+        // clear reads to given reg.
+        lastUses_.clear();
     }
 
     currentData_->regDefines_[reg].insert(mnd);
-
-    // clear reads to given reg.
-    lastUses_.clear();
 }
 
 
