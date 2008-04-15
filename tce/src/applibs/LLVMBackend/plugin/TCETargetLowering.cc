@@ -142,6 +142,11 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     setOperationAction(ISD::ConstantFP, MVT::f64, Expand);
     setOperationAction(ISD::ConstantFP, MVT::f32, Expand);
 
+    setOperationAction(ISD::SMUL_LOHI, MVT::i32, Expand);
+    setOperationAction(ISD::UMUL_LOHI, MVT::i32, Expand);
+    setOperationAction(ISD::SMUL_LOHI, MVT::i64, Expand);
+    setOperationAction(ISD::UMUL_LOHI, MVT::i64, Expand);
+
     setStackPointerRegisterToSaveRestore(TCE::SP);
 
     computeRegisterProperties();
