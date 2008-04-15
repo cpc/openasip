@@ -12,8 +12,8 @@
 #include <llvm/DerivedTypes.h>
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/CodeGen/SelectionDAG.h>
-#include <llvm/CodeGen/SSARegMap.h>
 #include <llvm/CodeGen/MachineFrameInfo.h>
+#include <llvm/CodeGen/MachineRegisterInfo.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/ADT/VectorExtras.h>
 #include <llvm/Intrinsics.h>
@@ -26,8 +26,6 @@
 #include "tce_config.h"
 
 #include <iostream> // DEBUG
-
-#define USE_ARG_REGS false
 
 using namespace llvm;
 
@@ -267,10 +265,8 @@ std::vector<SDOperand>
 TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
  
     MachineFunction& mf = dag.getMachineFunction();
-    SSARegMap* regMap = mf.getSSARegMap();
-    std::vector<SDOperand> argValues;
-
     unsigned argOffset = 0;
+    std::vector<SDOperand> argValues;
 
     static const unsigned iArgRegs[] = {
        0//TCE::IARG1, TCE::IARG2, TCE::IARG3, TCE::IARG4
@@ -279,9 +275,6 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
     const unsigned* curIArgReg = iArgRegs;
     const unsigned* iArgRegEnd = iArgRegs + 0;
     SDOperand root = dag.getRoot();
-
-    std::vector<unsigned> argVRegs;
-    std::vector<unsigned> argPRegs;
 
     Function::arg_iterator iter = f.arg_begin();
     for (; iter != f.arg_end(); iter++) {
@@ -299,170 +292,86 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
         case MVT::i16:
             // fall through
         case MVT::i32: {
-            if (USE_ARG_REGS && iter->use_empty()) {
-                // Argument is dead.
-                if (curIArgReg < iArgRegEnd) ++curIArgReg;
-                argValues.push_back(dag.getNode(ISD::UNDEF, objectVT));
-            } else if (USE_ARG_REGS && curIArgReg < iArgRegEnd) {
-
-                // Argument in register.
-                unsigned vreg = regMap->createVirtualRegister(
-                    &TCE::I32RegsRegClass);
-
-                //mf.addLiveIn(*curIArgReg++, vreg);
-                argVRegs.push_back(vreg);
-                argPRegs.push_back(*curIArgReg);
-                curIArgReg++;
-
-                SDOperand arg = dag.getCopyFromReg(root, vreg, MVT::i32);
-                if (objectVT != MVT::i32) {
-                    unsigned assertOp = ISD::AssertSext;
-                    arg = dag.getNode(assertOp, MVT::i32, arg,
-                                      dag.getValueType(objectVT));
-
-                    arg = dag.getNode(ISD::TRUNCATE, objectVT, arg);
-
-                }
-                argValues.push_back(arg);
+            // Argument always in stack.
+            int frameIdx =
+                mf.getFrameInfo()->CreateFixedObject(4, argOffset);
+            SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
+            SDOperand load;
+            if (objectVT == MVT::i32) {
+                load = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
             } else {
-
-                // Argument in stack.
-                int frameIdx =
-                    mf.getFrameInfo()->CreateFixedObject(4, argOffset);
-                SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
-                SDOperand load;
-                if (objectVT == MVT::i32) {
-                    load = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
-                } else {
-                    ISD::LoadExtType loadOp = ISD::SEXTLOAD;
-                    unsigned offset = 0;
-                    if (objectVT == MVT::i1 || objectVT == MVT::i8) {
-                        offset = 3;
+                ISD::LoadExtType loadOp = ISD::SEXTLOAD;
+                unsigned offset = 0;
+                if (objectVT == MVT::i1 || objectVT == MVT::i8) {
+                    offset = 3;
                     } else if (objectVT == MVT::i16) {
-                        offset = 2;
-                    } else {
-                        assert(false);
-                    }
-                    fiPtr = dag.getNode(
-                        ISD::ADD, MVT::i32, fiPtr,
-                        dag.getConstant(offset, MVT::i32));
-                    
-                    load = dag.getExtLoad(loadOp, MVT::i32, root, fiPtr,
-                                          NULL, 0, objectVT);
-                    
-                    load = dag.getNode(ISD::TRUNCATE, objectVT, load);
+                    offset = 2;
+                } else {
+                    assert(false);
                 }
-                argValues.push_back(load);
-                argOffset += 4;
+                fiPtr = dag.getNode(
+                    ISD::ADD, MVT::i32, fiPtr,
+                    dag.getConstant(offset, MVT::i32));
+                    
+                load = dag.getExtLoad(loadOp, MVT::i32, root, fiPtr,
+                                      NULL, 0, objectVT);
+                    
+                load = dag.getNode(ISD::TRUNCATE, objectVT, load);
             }
+            argValues.push_back(load);
+            argOffset += 4;
             break;
         }
         case MVT::i64: {
             // Following sparc example: i64 is split into lo/hi parts.
-            if (USE_ARG_REGS && iter->use_empty()) { // Argument is dead.
+            SDOperand loVal, hiVal;
 
-                if (curIArgReg < iArgRegEnd) ++curIArgReg;
-                if (curIArgReg < iArgRegEnd) ++curIArgReg;
-                argValues.push_back(dag.getNode(ISD::UNDEF, objectVT));
-            } else {
-                SDOperand hiVal;
-                if (USE_ARG_REGS && curIArgReg < iArgRegEnd) {
+            int frameIdx = mf.getFrameInfo()->CreateFixedObject(4, argOffset);
+            SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
+            hiVal = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
 
-                    // Lives in an incoming GPR
-                    unsigned vRegHi =
-                        regMap->createVirtualRegister(&TCE::I32RegsRegClass);
+            frameIdx = mf.getFrameInfo()->CreateFixedObject(4, argOffset+4);
+            fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
+            loVal = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
 
-                    //mf.addLiveIn(*curIArgReg++, vRegHi);
-                    argVRegs.push_back(vRegHi);
-                    argPRegs.push_back(*curIArgReg);
-                    curIArgReg++;
+            // Compose the two halves together into an i64 unit.
+            SDOperand wholeValue =
+                dag.getNode(ISD::BUILD_PAIR, MVT::i64, loVal, hiVal);
 
-                    hiVal = dag.getCopyFromReg(root, vRegHi, MVT::i32);
-                } else {
-
-                    int frameIdx =
-                        mf.getFrameInfo()->CreateFixedObject(4, argOffset);
-
-                    SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
-
-                    hiVal = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
-                }
-
-                SDOperand loVal;
-                if (USE_ARG_REGS && curIArgReg < iArgRegEnd) {
-
-                    // Lives in an incoming GPR
-                    unsigned vRegLo =
-                        regMap->createVirtualRegister(&TCE::I32RegsRegClass);
-
-                    //mf.addLiveIn(*curIArgReg++, vRegLo);
-                    argVRegs.push_back(vRegLo);
-                    argPRegs.push_back(*curIArgReg);
-                    curIArgReg++;
-
-                    loVal = dag.getCopyFromReg(root, vRegLo, MVT::i32);
-                } else {
-
-                    int frameIdx =
-                        mf.getFrameInfo()->CreateFixedObject(4, argOffset+4);
-
-                    SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
-                    loVal = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
-                }
-
-                // Compose the two halves together into an i64 unit.
-                SDOperand wholeValue =
-                    dag.getNode(ISD::BUILD_PAIR, MVT::i64, loVal, hiVal);
-
-                argValues.push_back(wholeValue);
-                argOffset += 8;
-            }
+            argValues.push_back(wholeValue);
+            argOffset += 8;
             break;
         }
         case MVT::f32: {
-            if (USE_ARG_REGS && iter->use_empty()) {
-                // Argument is dead.
-                argValues.push_back(dag.getNode(ISD::UNDEF, objectVT));
-            } else {
-                // For now, f32s are always passed in the stack.
-                int frameIdx =
-                    mf.getFrameInfo()->CreateFixedObject(4, argOffset);
-
-                SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
-                SDOperand load = dag.getLoad(MVT::f32, root, fiPtr, NULL, 0);
-                argValues.push_back(load);
-                argOffset += 4;
-                break;
-            }
+            // For now, f32s are always passed in the stack.
+            int frameIdx = mf.getFrameInfo()->CreateFixedObject(4, argOffset);
+            SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
+            SDOperand load = dag.getLoad(MVT::f32, root, fiPtr, NULL, 0);
+            argValues.push_back(load);
+            argOffset += 4;
+            break;
         }
         case MVT::f64:
-            if (USE_ARG_REGS && iter->use_empty()) {
-                // Argument is dead.
-                argValues.push_back(dag.getNode(ISD::UNDEF, objectVT));
-	    } else {
-	       SDOperand hiVal;
-	       SDOperand loVal;
+            SDOperand loVal, hiVal;
 
-	       int frameIdxHi =
-		 mf.getFrameInfo()->CreateFixedObject(4, argOffset);
+            int frameIdxHi =
+                mf.getFrameInfo()->CreateFixedObject(4, argOffset);
 
-	       SDOperand hiFiPtr = dag.getFrameIndex(frameIdxHi, MVT::i32);
-
-	       hiVal = dag.getLoad(MVT::i32, root, hiFiPtr, NULL, 0);
+            SDOperand hiFiPtr = dag.getFrameIndex(frameIdxHi, MVT::i32);
+            hiVal = dag.getLoad(MVT::i32, root, hiFiPtr, NULL, 0);
 	       
-	       int frameIdxLo =
-		 mf.getFrameInfo()->CreateFixedObject(4, argOffset+4);
+            int frameIdxLo =
+                mf.getFrameInfo()->CreateFixedObject(4, argOffset+4);
 
-	       SDOperand loFiPtr = dag.getFrameIndex(frameIdxLo, MVT::i32);
-	       loVal = dag.getLoad(MVT::i32, root, loFiPtr, NULL, 0);
+            SDOperand loFiPtr = dag.getFrameIndex(frameIdxLo, MVT::i32);
+            loVal = dag.getLoad(MVT::i32, root, loFiPtr, NULL, 0);
 
-	       // Compose the two halves together into an i64 unit.
-	       SDOperand wholeValue =
-		 dag.getNode(ISD::BUILD_PAIR, MVT::f64, loVal, hiVal);
+            // Compose the two halves together into an i64 unit.
+            SDOperand wholeValue =
+                dag.getNode(ISD::BUILD_PAIR, MVT::f64, loVal, hiVal);
 
-	       argValues.push_back(wholeValue);
-	       argOffset += 8;
-            }
+            argValues.push_back(wholeValue);
+            argOffset += 8;
 	    break;
         }
     }
@@ -474,32 +383,6 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
             mf.getFrameInfo()->CreateFixedObject(4, argOffset);
     }
 
-    // Copy vregs to physical argument registers.
-    if (USE_ARG_REGS) {
-        const TargetInstrInfo* tii = getTargetMachine().getInstrInfo();
-        MachineBasicBlock& bb = mf.front();
-        for (unsigned i = 0; i < argVRegs.size(); ++i) {
-            BuildMI(&bb, tii->get(TCE::MOVI32rr), argVRegs[i])
-                .addReg(argPRegs[i]);
-
-            //TODO: Save arg regs if this is a vararg function?
-            /*
-              MachineFrameInfo* mfi = mf.getFrameInfo();
-              if(f.isVarArg()) {
-              // if this is a varargs function,
-              // we copy the input registers to the stack
-              std::cerr << " store @offset: " << argOffset;
-              int fi = mfi->CreateFixedObject(4, argOffset);
-              argOffset+=4;
-              BuildMI(&bb, tii->get(TCE::MOVI32ri), TCE::KLUDGE_REGISTER)
-              .addFrameIndex(fi);
-              
-              BuildMI(&bb, tii->get(TCE::STWrr))
-              .addReg(TCE::KLUDGE_REGISTER).addImm(0).addReg(argPRegs[i]);
-            */
-        }
-    }
-
     switch (getValueType(f.getReturnType())) {
     default: assert(0 && "Unknown type!");
     case MVT::isVoid: break;
@@ -507,15 +390,19 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
     case MVT::i8:
     case MVT::i16:
     case MVT::i32:
-        mf.addLiveOut(TCE::IRES0);
+        //mf.addLiveOut(TCE::IRES0);
+        mf.getRegInfo().addLiveOut(TCE::IRES0);
         break;
     case MVT::f32:
-        mf.addLiveOut(TCE::FRES0);
+        //mf.addLiveOut(TCE::FRES0);
+        mf.getRegInfo().addLiveOut(TCE::FRES0);
         break;
     case MVT::i64:
     case MVT::f64: {
-        mf.addLiveOut(TCE::IRES0);
-        mf.addLiveOut(TCE::KLUDGE_REGISTER);
+        //mf.addLiveOut(TCE::IRES0);
+        //mf.addLiveOut(TCE::KLUDGE_REGISTER);
+        mf.getRegInfo().addLiveOut(TCE::IRES0);
+        mf.getRegInfo().addLiveOut(TCE::KLUDGE_REGISTER);
         break;
     }
     }
@@ -567,15 +454,6 @@ TCETargetLowering::LowerCallTo(
         }
     }
 
-    if (USE_ARG_REGS) {
-        if (argsSize > 16) {
-            argsSize -= 16; // Values in registers.
-        } else {
-            argsSize = 0;
-        }
-    }
-
-
     // Keep stack frames 4-byte aligned.
     argsSize = (argsSize+3) & ~3;
 
@@ -612,47 +490,19 @@ TCETargetLowering::LowerCallTo(
         }
         case MVT::i32: {
             objSize = 4;
-            if (USE_ARG_REGS && iRegValuesToPass.size() < numIArgRegs) {
-                iRegValuesToPass.push_back(val);
-            } else {
-                valToStore = val;
-            }
+            valToStore = val;
             break;
         }
         case MVT::i64: {
-            // Following sparc example: split i64 to low/hi parts.
             objSize = 8;
-            if (!USE_ARG_REGS && iRegValuesToPass.size() >= numIArgRegs) {
-                valToStore = val;    // Pass in stack.
-                break;
-            }
-
-            // Split the value into top and bottom part.
-            // Top part goes in a reg.
-            SDOperand hi = dag.getNode(
-                ISD::EXTRACT_ELEMENT, getPointerTy(), val,
-                dag.getConstant(1, MVT::i32));
-
-            SDOperand lo = dag.getNode(
-                ISD::EXTRACT_ELEMENT, getPointerTy(), val,
-                dag.getConstant(0, MVT::i32));
-
-            iRegValuesToPass.push_back(hi);
-
-            if (USE_ARG_REGS && iRegValuesToPass.size() >= numIArgRegs) {
-                valToStore = lo;
-                argOffset += 4;
-                objSize = 4;
-            } else {
-                iRegValuesToPass.push_back(lo);
-            }
+            valToStore = val;    // Pass in stack.
             break;
         }
         case MVT::f32: {
             objSize = 4;
             valToStore = val;
             break;
-            }
+        }
         case MVT::f64: {
             objSize = 8;
             valToStore = val;

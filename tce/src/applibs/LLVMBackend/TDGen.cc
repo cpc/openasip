@@ -99,13 +99,8 @@ TDGen::writeRegisterDef(
     o << "def " << regName << " : " << regTemplate
        << "<\"" << reg.rf << "." << reg.idx
        << "\", [" << aliases << "]>, DwarfRegNum<"
-#if defined(LLVM_2_1)
-       << dregNum_ << ">;"
-#else
-       // LLVM 2.2 uses list<int> for DwarfRegNum
        << "[" << dregNum_ << "]>;"
-#endif
-     << std::endl;
+      << std::endl;
 
 
     if (type == GPR) {
@@ -513,14 +508,8 @@ void
 TDGen::writeRARegisterInfo(std::ostream& o) {
     o << "class Rra<string n> : TCEReg<n, []>;" << std::endl;
     o << "def RA : Rra<\"return-address\">, ";
-#if defined(LLVM_2_1)
-    // LLVM 2.1
-    o << "DwarfRegNum<513>;";
-#else
-    // LLVM 2.2
     o << "DwarfRegNum<[513]>;";
-#endif
-    o  << std::endl;
+    o << std::endl;
     o << "def RAReg : RegisterClass<\"TCE\", [i32], 32, [RA]>;" << std::endl;
 }
 
@@ -770,13 +759,8 @@ TDGen::writeOperationDef(
 
     std::string attrs;
 
-#if defined(LLVM_2_1)
-    if (op.readsMemory()) attrs += " isLoad = 1";
-    if (op.writesMemory()) attrs += " isStore = 1";
-#else
     if (op.readsMemory()) attrs += " mayLoad = 1";
     if (op.writesMemory()) attrs += " mayStore = 1";
-#endif
 
     std::string suffix(op.numberOfInputs(), 'r');
 

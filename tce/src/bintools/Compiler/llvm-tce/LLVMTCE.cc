@@ -141,8 +141,10 @@ main(int argc, char* argv[]) {
         seqProg = NULL;
 
     } catch (Exception& e) {
-        std::cerr << "Error compiling '" << bytecodeFile << "':" << std::endl
-                  << e.errorMessage() << std::endl;
+        std::cerr << e.errorMessage() << std::endl;
+        if (e.hasCause()) {
+            std::cerr << e.cause().errorMessage() << std::endl;
+        }
 
         return EXIT_FAILURE;
     }
