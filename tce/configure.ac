@@ -313,6 +313,9 @@ fi
 # AM_PATH_PYTHON sets PYTHON_VERSION if Python is found
 AM_CONDITIONAL([PYTHON_ENABLED], test x$PYTHON_VERSION != x)
 
+AC_DEFINE([PYTHON_ENABLED], [], "Python support enabled.")
+
+
 
 ########################
 # CHECKS FOR LIBRARIES #
