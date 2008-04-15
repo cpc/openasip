@@ -16,7 +16,7 @@
 
 #include "FileSystem.hh"
 #include "ContainerTools.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using std::string;
 using std::vector;

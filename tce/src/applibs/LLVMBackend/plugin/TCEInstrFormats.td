@@ -6,17 +6,16 @@
 // Author: Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel@cs.tut.fi)
 //
 
-class InstTCE<string opstr, dag outOps, dag inOps, string asmstr,
+class InstTCE<dag outOps, dag inOps, string asmstr,
               list<dag> pattern> : Instruction {
 
     let Namespace = "TCE";
-    let Name = opstr;
     dag InOperandList = inOps;
     dag OutOperandList = outOps;
     let AsmString = asmstr;
     let Pattern = pattern;
 }
 
-class Pseudo<string opstr, dag outOps, dag inOps,
+class Pseudo<dag outOps, dag inOps,
              string asmstr, list<dag> pattern>
-   : InstTCE<opstr, outOps, inOps, asmstr, pattern>;
+   : InstTCE<outOps, inOps, asmstr, pattern>;

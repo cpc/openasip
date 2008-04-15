@@ -217,7 +217,8 @@ def ParseCommandLine():
         return access(filename, R_OK)
             
 # Cleanup the target plugin cache.
-    exitOk, stdoutContents, stderrContents = runWithTimeout('tcecc --clear-plugin-cache', 50)
+    exitOk, stdoutContents, stderrContents = \
+            runWithTimeout(tceccExe + ' --clear-plugin-cache', 50)
     #print exitOk, stdoutContents, stderrContents
     if not configFileDefined:
         # Use the default scheduling configuration of the 'tcecc'.
@@ -789,7 +790,8 @@ close $f
             
             command = ("cd src;" +
                        makeCommand + 'clean;' +
-                       'SCHEDULER_TESTER_FLAGS="'  + extraFlags + '" ' + makeCommand + compileRule)
+                       'SCHEDULER_TESTER_FLAGS="'  + extraFlags + '" ' +                       
+                       makeCommand + " GCCLLVM=" + tceccExe + " " + compileRule)
             
             command += ";cp " + seqProgramName + " .."
 

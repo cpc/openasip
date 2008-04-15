@@ -14,7 +14,11 @@
 #include "SchedulerPluginLoader.hh"
 #include "StartableSchedulerModule.hh"
 #include "HelperSchedulerModule.hh"
+
+#ifdef PYTHON_ENABLED
 #include "PythonSchedulerModule.hh"
+#endif
+
 #include "ObjectState.hh"
 #include "Application.hh"
 #include "SchedulerConfigurationSerializer.hh"
@@ -88,6 +92,7 @@ SchedulingPlan::build(const ObjectState& conf)
 
             // See if the file name ends with ".py"
             if (fileName.length() >= 3 && fileName.rfind(".py") == fileName.length() - 3) {
+#ifdef PYTHON_ENALBED
               // This is a Python pass
               base = new PythonSchedulerModule(fileName);
               if (mainModule != NULL) {
@@ -98,6 +103,11 @@ SchedulingPlan::build(const ObjectState& conf)
                                                   __FILE__, __LINE__, method, msg);
               }
               mainModule = base;
+#else
+              Application::logStream() 
+                  << "Tried to load a .py module without the Python support."
+                  << std::endl;
+#endif
 
             } else {
               // This is a loadable plugin

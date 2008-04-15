@@ -13,6 +13,7 @@
 #include <map>
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/Support/Mangler.h"
+#include "llvm/Constant.h"
 #include "Exception.hh"
 #include "BaseType.hh"
 #include "TCETargetMachine.hh"

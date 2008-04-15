@@ -45,6 +45,9 @@ namespace llvm {
        /// to a generated register ID.
        virtual unsigned registerIndex(unsigned dwarfRegNum) = 0;
 
+       /// Returns operation name corresponding to llvm target opcode.
+       virtual std::string operationName(unsigned opc) = 0;
+
        /// Returns pointer to xml string of the target machine .adf
        virtual const std::string* adfXML() = 0;
        /// Returns name of the data address space.

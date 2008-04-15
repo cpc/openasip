@@ -12,7 +12,7 @@
  * for hash_set available in the system.
  */
 
-#include "config.h"
+#include "tce_config.h"
 
 // if unordered_map is available, should also be unordered_set
 #ifdef UNORDERED_MAP
