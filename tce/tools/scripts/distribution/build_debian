@@ -41,6 +41,7 @@ Architecture: i386
 Essential: no
 Depends: libwxgtk (>= 2.6-0), libboost-filesystem (>= 1.33.1), libboost-graph (>= 1.33.1), libboost-regex (>= 1.33.1), libboost-thread (>= 1.33.1), tcl (>= 8.4), libedit2, libsqlite (>= 3-0), libxerces27, g++, tce-frontend
 Pre-Depends: perl 
+Recommends: llvm (=2.1)
 Suggests: kpdf | acroread | evince, sqlite3
 Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
 Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen@tut.fi>
