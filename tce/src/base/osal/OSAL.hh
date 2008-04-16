@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "config.h"
+#include "tce_config.h"
 #include "Exception.hh"
 #include "OperationContext.hh"
 #include "SimValue.hh"

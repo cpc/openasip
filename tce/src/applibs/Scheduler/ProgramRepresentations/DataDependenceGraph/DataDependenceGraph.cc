@@ -1141,8 +1141,12 @@ DataDependenceGraph::predecessorsReady(MoveNode& node) const {
         const bool resultMoveOfSameOperation = 
             (node.isSourceOperation() && m.isSourceOperation() &&
              &node.sourceOperation() == &m.sourceOperation());
-
-        if (operandMoveOfSameOperation || resultMoveOfSameOperation) {
+        const bool operandsOfSameOperation =
+            (node.isDestinationOperation() && m.isDestinationOperation() &&
+             &node.destinationOperation() == &m.destinationOperation());
+        
+        if (operandMoveOfSameOperation || resultMoveOfSameOperation ||
+            operandsOfSameOperation) {
             continue;
         } 
         if (!m.isScheduled()) {
@@ -1397,7 +1401,15 @@ void DataDependenceGraph::dropBackEdges() {
             dropEdge(e);
             i--;
             eCount--;
-        }
+        } else {
+            if (e.edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
+                e.dependenceType() == DataDependenceEdge::DEP_WAW &&
+                (&hn.destinationOperation() == &tn.destinationOperation())) {
+                dropEdge(e);
+                i--;
+                eCount--;
+            }
+        }    
     }
 }
 

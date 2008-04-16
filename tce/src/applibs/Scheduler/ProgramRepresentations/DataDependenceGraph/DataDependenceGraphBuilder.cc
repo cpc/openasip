@@ -57,7 +57,11 @@ class BasicBlockNode;
  */
 DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
     processOrder_(0), entryNode_(NULL) {
-    addAliasAnalyzer(new ConstantAliasAnalyzer);
+
+    // temporarily disabled  because of fix for bug 471 breaks this.
+    // re-enabled when better fix available
+//    addAliasAnalyzer(new ConstantAliasAnalyzer);
+
     // uncommenting the following line results in faster but
     // broken code. just for testing theoritical benefits.
     // addAliasAnalyzer(new FalseAliasAnalyzer); 
@@ -976,7 +980,6 @@ DataDependenceGraphBuilder::trName(TerminalRegister& tr) {
         Conversion::toString(tr.index());
 }
 
-
 /**
  * Compares a memory op against one previous memory ops and
  * creates dependence if may alias.
@@ -990,13 +993,16 @@ bool
 DataDependenceGraphBuilder::checkAndCreateMemDep(
     MNData2 prev, MNData2 mnd, DataDependenceEdge::DependenceType depType) {
         
+    // TODO: this should be done for addresses always.
     MemoryAliasAnalyzer::AliasingResult aliasResult = 
         MemoryAliasAnalyzer::ALIAS_UNKNOWN;
+/* temporary woraround for buggy for of bug471. 
     if (!prev.pseudo_ && !mnd.pseudo_) {
         aliasResult = analyzeMemoryAlias(*prev.mn_, *mnd.mn_);
     }
         
     if (aliasResult != MemoryAliasAnalyzer::ALIAS_FALSE) {
+*/
         bool trueAlias = (aliasResult == MemoryAliasAnalyzer::ALIAS_TRUE);
         ProgramOperation& prevPo = prev.mn_->destinationOperation();
         for (int i = 0; i < prevPo.inputMoveCount(); i++) {
@@ -1007,8 +1013,8 @@ DataDependenceGraphBuilder::checkAndCreateMemDep(
             currentDDG_->connectOrDeleteEdge(
                 prevPo.inputMove(i), *mnd.mn_, dde2);
         }
-        return trueAlias;
-    }
+//        return trueAlias;
+//    }
     return false;
 }
 
@@ -1246,10 +1252,15 @@ void DataDependenceGraphBuilder::createTriggerDependencies(
     // currently causes a slight problem with subgraphs, 
     // so not yet moved here.
 
-    if (dop.readsMemory()) {
-        processMemUse(MNData2(moveNode));
-    }
 
+    if (dop.writesMemory()) {
+        processMemWrite(MNData2(moveNode));
+    }
+    else {
+        if (dop.readsMemory()) {
+            processMemUse(MNData2(moveNode));
+        }
+    }
     // new code
     createSideEffectEdges(currentData_->fuDeps_, moveNode, dop);
     createSideEffectEdges(currentData_->fuDepReaches_, moveNode, dop);
@@ -1271,10 +1282,6 @@ void DataDependenceGraphBuilder::createTriggerDependencies(
 void
 DataDependenceGraphBuilder::processOperand(
     MoveNode& moveNode, Operation &dop) {
-
-    if (dop.writesMemory()) {
-        processMemWrite(MNData2(moveNode));
-    }
 
     for (POLIter poli = currentData_->destPending_.begin();
          poli != currentData_->destPending_.end(); poli++) {

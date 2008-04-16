@@ -160,7 +160,7 @@ private:
     std::vector<std::string> resRegNames_;
     std::vector<std::string> gprRegNames_;
 
-    std::vector<std::pair<std::string, std::string> > opcodes_;
+    std::map<std::string, std::string> opNames_;
 
     /// Minimum number of 32 bit registers.
     unsigned static const REQUIRED_I32_REGS;

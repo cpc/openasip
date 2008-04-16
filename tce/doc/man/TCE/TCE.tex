@@ -6,9 +6,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.0}
-\ver{7}
+\ver{8}
 \firstday{25.10.2006}
-\lastday{10.04.2008}
+\lastday{15.04.2008}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committed
@@ -30,9 +30,9 @@ design flows in the form of tutorials.
 It is recommended to start reading this user manual from the
 Chapter~\ref{chapter:tceFlow} that provides an overview to the TCE
 processor design flow, and then jump to Chapter~\ref{chapter:tutorials} that
-contains tutorials for several specific use cases. Rest of the chapters that
-describe the use of each tool separately can be refered to in case of
-wanting to learn the advanced usage of each of the tool.
+contains tutorials for several common TCE use cases. Rest of the chapters that
+describe the use of each tool separately can be referred to if
+wanting to learn to learn the advanced usage of each of the tool.
 
 \section{Acronyms, Abbreviations and Definitions}
 \begin{tabular}[h]{p{0.15\textwidth}p{0.80\textwidth}}
@@ -84,36 +84,46 @@ XML & Extensible Markup Language. \\
 
 \section{Overview}
 
-The purpose of the TTA Codesign Environment (TCE) is to provide a reliable
-and effective toolset for designing programmable, customized microprocessors
-and generate machine code for them from applications written in high-level
-languages.
+The main goal for the TTA Codesign Environment (TCE) is to provide a reliable
+and effective toolset for designing programmable application specific
+processors, and generate machine code for them from applications written 
+in high-level languages.
 
-In addition, TCE is an extensible research platform for experimenting with
-new ideas for Transport Triggered Architectures (TTAs), generating code
-which exploits Instruction Level Parallelism (ILP), processor design and
-design space exploration.
+In addition, TCE provides for an extensible research platform for 
+experimenting with new ideas for Transport Triggered Architectures (TTAs), 
+retargetable code ILP code generation, and application specific processor 
+design methodology, among others.
 
-TCE design flow starts from a sequential TTA program. The program is
-produced by a frontend compiler that processes programs in
-high-level languages and generates a generic sequential TTA program. Thus,
-the software development phase is intended to be separate
-from the actual codesign flow of TCE. Nevertheless, for convenience, TCE
-distribution ships with a frontend compiler that supports (most of) the 
-ANSI C standard to be used to generate sequential TTA programs for the 
-rest of the TCE design flow.
+TCE design flow starts from a program described in a high level
+language (HLL). The program is processed by a compiler that 
+inputs programs in high-level languages (currently only the C language 
+is supported officially) and generates a intermediate
+representation that can be rescheduled to multiple TTA processors. 
+The compiler framework used is the LLVM and the intermediate representation
+is its bytecode format 'bitcode'.
+
+It should be noted that the actual software development phase is intended 
+to be separate from the actual codesign flow of TCE. That is, the program is 
+expected to be implemented and tested natively (on a workstation PC) before 
+``porting it'' to the TTA/TCE platform. The ``porting'' includes ensuring
+the TTA/TCE runs the program correctly and optimizing the hardware along
+with the software by adding useful resources for the application
+at hand to the processor architecture -- a process called hardware/software 
+co-design.
+
 % ISO C99 if LLVM/TCE is used
 
 The main phases in the design flow of TCE are illustrated in the following
 figures. Figure~\ref{fig:design_flow_initial} depicts the initial
-inputs to TCE, Figure~\ref{fig:design_flow_exploration} the exploration
-phase, Figure~\ref{fig:design_flow_selection} the configuration selection
-phase, Figure~\ref{fig:design_flow_codegen} the code generation and analysis
-phase, and Figure~\ref{fig:design_flow_generation} the generation of the
-final outputs: the processor description and the program bit image.
+inputs to TCE, Figure~\ref{fig:design_flow_exploration} the design space 
+exploration phase, Figure~\ref{fig:design_flow_selection} the processor 
+configuration selection phase, Figure~\ref{fig:design_flow_codegen} the 
+code generation and analysis phase, and Figure~\ref{fig:design_flow_generation} 
+the generation of the final outputs: the processor description and the 
+program bit image.
 
 \begin{figure}[p]
-\centerline{\psfig{figure=eps/design_flow_initial.eps,width=0.5\textwidth}}
+\centerline{\psfig{figure=eps/design_flow_initial.eps,width=0.2\textwidth}}
 \caption{The Initial Inputs for TCE Design Flow.}
 \label{fig:design_flow_initial}
 \end{figure}
@@ -121,7 +131,7 @@ final outputs: the processor description and the program bit image.
 \begin{figure}[p]
 \centerline{\psfig{figure=eps/design_flow_exploration.eps,
 width=1.0\textwidth}}
-\caption{Exploration.}
+\caption{Design Space Exploration.}
 \label{fig:design_flow_exploration}
 \end{figure}
 
@@ -145,7 +155,6 @@ width=0.85\textwidth}}
 \label{fig:design_flow_generation}
 \end{figure}
 
-% TODO: move contents from TCE requirement specs
 
 \section{Main File Formats}
 \label{section:fileFormats}
@@ -163,6 +172,23 @@ for defining target processor architectures.  ADF is a minimal specification
 of the target processor architecture, meaning that only the information
 needed  to generate valid programs for the processor is stored, nothing
 else. 
+
+\subsection{Hardware Database (HDB)}
+\label{section:hdb}
+% Describe what is shipped by default in TCE
+Filename extension: .hdb
+
+Hardware Database (HDB) is the main database used by the
+Processor Generator and the Cost Estimator.  The data stored in HDB consist
+of hardware description language definitions (HDL) of TTA components
+(function units, register files, buses and sockets) and ``meta-data'' that
+describe certain parameters used in implementations. In addition, HDB may
+include data of each implementation needed by the cost estimation
+algorithms.
+
+TCE ships with an example HDB that includes implementations for several
+function units and register files and cost data for the default
+interpolating cost estimation plugin.
 
 \subsection{Implementation Definition File (IDF)}
 \label{sec:idf}
@@ -683,22 +709,6 @@ to define the memory access behavior:
   the \emph{address}.
 \end{description}
 
-\subsection{Hardware Database (HDB)}
-\label{section:hdb}
-% Describe what is shipped by default in TCE
-Filename extension: .hdb
-
-Hardware Database (HDB) is the main database used by the
-Processor Generator and the Cost Estimator.  The data stored in HDB consist
-of hardware description language definitions (HDL) of TTA components
-(function units, register files, buses and sockets) and ``meta-data'' that
-describe certain parameters used in implementations. In addition, HDB may
-include data of each implementation needed by the cost estimation
-algorithms.
-
-TCE ships with an example HDB that includes implementations for several
-function units and register files and cost data for the default
-interpolating cost estimation plugin.
 
 \subsection{Simulation Trace Database}
 \label{sec:tracedb}
@@ -717,6 +727,102 @@ their characteristics. Files that define each tested configuration (ADF and
 IDF) are stored in the database as well. 
 
 
+\section{Notes About the Processor Template of TCE}
+\label{section:template}
+
+The processor template from which the application specific processors
+designed with TCE are defined from is called Transport Triggered 
+Architecture (TTA). For a detailed description behind the TTA philosophy, 
+refer to \cite{HCorp97}.
+This section describes certain aspects of the TTA template version TCE
+uses in the toolset that might not be very clear.
+
+\subsection{Immediates/Constants in the TTAs of TCE}
+
+The TTA template supports two ways of transporting program constants in the 
+instructions. \textit{Short immediates} are encoded in the move slot's
+source field, thus consume part of a single move slot. The constants
+transported in the source field are often limited in size. 
+Wider constants can be transported by means of so called \textit{long 
+immediates}. Long immediates can be defined using a 
+parameter called \textit{instruction template}. The idea is that
+each TTA instruction is connected to a single instruction template which 
+defines the move slots that contain pieces of a long immediate, if any. 
+Such pieces consume whole move slots, thus the slot cannot be used for
+a regular data transport in case it's used for transporting (a piece of)
+a long immediate. Instruction containing a long immediate also provides
+a target to which the long immediate must be transported. The target is so 
+called \textit{immediate unit} which is written directly from the control 
+unit, not through the transport buses. \textit{Immediate unit} is like
+a register file expect that it contains only read ports and is written
+only by the control unit's instruction decoder when it detects an 
+instruction with a long immediate.
+
+\subsection{Operations, Function Units, and Operand Bindings}
+
+Due to the way TCE abstracts operations and function units, an
+additional concept of \textit{operand binding} is needed to 
+connect the two in processor designs.
+
+Operations in TCE are defined in a separate database 
+(OSAL, Section~\ref{section:osal}) in order to allow defining a reusable
+database of ``operation semantics''. The operations are
+used in processor designs by adding \textit{function units} (FU) that implement
+the wanted operations. Operands of the operations can be
+mapped to different ports of the implementing FU, and affects 
+the programming of the designed processor. Mapping of operation operands
+to the FU ports must be therefore described by the processor designer
+explicitly.
+
+\textbf{Example.} Designer adds an FU called 'ALU' which implements
+operations 'ADD', 'SUB', and 'NOT'. ALU has two input ports called 'in1' and 
+'in2t' (triggering), and an output port called 'out'. A logical binding of 
+the 'ADD' and 'SUB' operands to ALU ports is the following:
+
+\begin{verbatim}
+ ADD.1 (the first input operand) bound to ALU.in1
+ ADD.2 (the second input operand) bound to ALU.in2t
+ ADD.3 (the output operand) bound to ALU.out
+
+ SUB.1 (the first input operand) bound to ALU.in1
+ SUB.2 (the second input operand) bound to ALU.in2t
+ SUB.3 (the output operand) bound to ALU.out
+\end{verbatim}
+
+However, operation 'NOT', that is, the bitwise negation has only one input
+thus it must be bound to port 'FU.in2t' so it can be triggered:
+
+\begin{verbatim}
+ NOT.1 bound to ALU.in2t
+ NOT.2 (the output operand) bound to ALU.out
+\end{verbatim}
+
+Because we have a choice in how we bind the 'ADD' and 'SUB' input operands,
+the binding has to be explicit in the architecture definition. The operand
+binding described above defines architecturally different TTA function unit
+from the following:
+
+\begin{verbatim}
+ SUB.2 bound to ALU.in1
+ SUB.1 bound to ALU.in2t
+ SUB.3 bound to ALU.out
+\end{verbatim}
+
+With the rest of the operands bound similarly as in the first example.
+
+Due to the differing 'SUB' input bindings one cannot run code scheduled
+for the previous processor on a machine with an ALU with the latter 
+alternative operand bindings. This small detail is important to understand when 
+designing more complex FUs with multiple operations with different number of 
+operands with varying size, but is usually transparent to the basic user of 
+TCE.
+
+Reasons for wanting to fine tune the operand bindings might include using
+a smaller width input ports for some operation operands. For example, the 
+width of the address operands in memory accessing operations of a load store 
+unit is often smaller than the data width. Similarly, the second operand of
+a shift operation that defines the number of bits to shift requires less
+bits than the shifted data operand.
 
 % !!!!!!! FOR EACH TOOL DESCRIBE:
 % The main purpose of existence. The main use cases.
@@ -4483,30 +4589,41 @@ implementation of the processor with a VHDL simulator and synthesize it.
 % a parallel TTA program. How to compile it (refer to assembler section) and
 % how to simulate and estimate it, etc.
 
+\subsection{Preparations}
+
 For this tutorial you need to download file package from
 \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} and unpack it
-to a working directory.
+to a working directory. Then cd to parallal\_assembly-directory.
 
+First thing to do is to compile the custom operation set calles cos16 shipped
+within the parallal\_assembly-directory. Easiest way to do this is:
 
-Next you will be introduced to TCE assembler language and assembler usage.
+\textit{buildopset cos16}
+
+This should create a file named cos16.opb in the directory.
+
+\subsection{Introduction to DCT}
+
+Now you will be introduced to TCE assembler language and assembler usage.
 Your task is to write TCE assembly code for 2-Dimensional 8 times 8 point 
 Discrete Cosine Transform(DCT\_8x8).
 First take a look at the C code of DCT\_8x8
 \textit{dct\_8x8\_16\_bit\_with\_sfus.c}.  
-The code is written to support fixed point datatype with sign plus 15 fragment bits,
-which means coverage from $-1\ to\ 1-2^{15}$. The fixed point multiplier,
-function \textit{mul\_16\_fix},
-and fixed point adder, function \textit{add\_16\_fix},  used in the code scale inputs
-automatically to prevent overflow. 
-Function \textit{cos16} takes $x(2i+1)$ as 
-input and returns corresponding cosine value $\frac{cos(x(2i+1)\pi)}{16}$.
-The code calculates following equations:
+The code is written to support fixed point datatype with sign plus 15 fragment
+bits, which means coverage from $-1\ to\ 1-2^{15}$. The fixed point
+multiplier, function \textit{mul\_16\_fix}, and fixed point adder, function
+\textit{add\_16\_fix},  used in the code scale inputs automatically to prevent
+overflow. Function \textit{cos16} takes $x(2i+1)$ as input and returns
+corresponding cosine value $\frac{cos(x(2i+1)\pi)}{16}$. The code calculates
+following equations:
 
 \begin{equation}
-F(x) = \frac{C(x)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{x\left(2i+1\right)\pi}{16}\right)\right] \nonumber
+F(x) = \frac{C(x)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{x
+\left(2i+1\right)\pi}{16}\right)\right] \nonumber
 \end{equation}
 \begin{equation}
-F(y) = \frac{C(y)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{y\left(2i+1\right)\pi}{16}\right)\right] \nonumber
+F(y) = \frac{C(y)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{y
+\left(2i+1\right)\pi}{16}\right)\right] \nonumber
 \end{equation}
 
 \begin{equation}
@@ -4522,65 +4639,83 @@ C(i) =
 F(x,y) = F(x)F(y) \nonumber
 \end{equation}
 
+\subsection{Introduction to TCE assembly}
 
 First take a look at assembly example in file $example.tceasm$
-to get familiar with syntax. More help can be found at
-\ref{section:TCEAsm}
+to get familiar with syntax. More help can be found from
+section \ref{section:TCEAsm}
 
 Compilation of the example code is done by command:
 
-\textit{tceasm \ -o \ example.tpef \ dct\_8x8\_16\_bit\_with\_sfus.adf \  example.tceasm}
+\textit{tceasm \ -o \ example.tpef \ dct\_8x8\_16\_bit\_with\_sfus.adf \
+example.tceasm}
 
-and the compiled tceasm code can be simulated with TCE
+Notice that the assembler will give some warnings saying that ``Source is
+wider than destination.'' but these can be ignored.
+
+The compiled tceasm code can be simulated with TCE
 simulator, ttasim or proxim(GUI).
- 
-\textit{ttasim -a \ dct\_8x8\_16\_bit\_with\_sfus.adf -p example.tpef} , or  
+
+\textit{ttasim -a \ dct\_8x8\_16\_bit\_with\_sfus.adf -p example.tpef} , or
 
 \textit{proxim \ dct\_8x8\_16\_bit\_with\_sfus.adf example.tpef}
 
-Check the result of example code with command:
+It is recommended to use proxim because it is more illustrating to track the
+execution with it. Especially if you open the Machine Window (View -> Machine
+Window) and step through the program.
+
+Check the result of example code with command (you can also write this in
+proxim's command line at the bottom of the main window):
 
 \textit{x /a IODATA /n 1 /u b 2}. 
 
 the output of x should be 0x40.
 
+\subsection{Implementing DCT on TCE assembly}
 
 Next try to write assembly code which does the same functionality as the
-C code. The assembly code must be functional with the given
-machine \textit{dct\_8x8\_16\_bit\_with\_sfus.adf}. 
+C code. The assembly code must be functional with the given machine
+\textit{dct\_8x8\_16\_bit\_with\_sfus.adf}.
 The machine has 3 16-bit buses, which means maximum of
 3 concurrent transports. Each bus can contain 8-bit short immediate. 
-Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix}, 
-add, \textit{add\_16\_fix}, \textit{ldq}, \textit{stq}, \textit{shr}, \textit{shl}
-, \textit{eq}, \textit{gt}, \textit{gtu}, \textit{jump} and \textit{immediate
-transport}. Machine contains 4 register files, which each
-have 4 16-bit registers, leading to total of 16 16-bit registers. 
-The data memory is 16-bit wide and contains 128 memory slots and the MAU
-of data memory is 16-bits.
-The intruction memory has 1024 memory slots which means that the maximum 
-number of instructions of 1024.
-The jump latency is four cycles and load latency is three cycles.
+Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix},
+\textit{add}, \textit{add\_16\_fix}, \textit{ldq}, \textit{ldw}, \textit{stq},
+\textit{stw}, \textit{shr}, \textit{shl}, \textit{eq}, \textit{gt},
+\textit{gtu}, \textit{jump} and \textit{immediate transport}. Machine
+contains 4 register files, which each have 4 16-bit registers, leading to
+total of 16 16-bit registers. Notice that the first register file has 2 read
+ports.
+
+The data memory is 16-bit containing 128 memory slots and the MAU of data
+memory is 16-bits. The intruction memory has 1024 memory slots which
+means that the maximum number of instructions of 1024.
+
+You also need to take account in operation latencies. The \textit{jump}
+latency is four clock cycles and load latencies (\textit{ldq} and
+\textit{ldw}) are three cycles. Latency for multiplications (\textit{mul}
+and \textit{mul\_16\_fix}) are two clock cycles.
 
 The initial input is given in \textit{initial\_input}. You have to put the
 initial input to end of your assembly code. Or you can use
 the file \textit{assembler\_tutorial.tceasm} where the initial values are
-already introduced to memory locations 0-63.
+already placed in memory locations 0-63.
 
-The SFU's used in C code are must be imported to operation set as shown in 
-~\ref{section:customOperations}. ($cos16.opb$)
+\subsubsection{Verifying the assembly program}
 
-The reference output is given in \textit{reference\_output}, you need to
-compare you simulation result's of assembly code to this reference
-output. Comparision can be done by dumping the memory contents 
-of the TCE simulator with following command:
-\textit{x /a IODATA /n 64 /u b 0} , the command assumes that output data
-is stored to memory locations 0-63.
+The reference output is given in \textit{reference\_output}. You need to
+compare your assembly program's simulation result to this reference
+output. Comparision can be done by first dumping the memory contents in the
+TCE simulator with following command:
 
-The easiest way of dumping memory is to execute ttasim with the following
-command:
+\textit{x /a IODATA /n 64 /u b 0}
 
-\textit{ttasim -a dct\_8x8\_16\_bit\_with\_sfus.adf -p assembler\_tutorial.tpef
-< input\_command.txt > dump.txt}
+The command assumes that output data is stored to memory locations 0-63.
+
+The easiest way to dump the memory into a text file is to execute ttasim with
+the following command:
+
+\textit{ttasim -a dct\_8x8\_16\_bit\_with\_sfus.adf -p
+assembler\_tutorial.tpef < input\_command.txt > dump.txt}
 
 After this you should use sed to divide the memory dump into separete lines
 to help comparison between your output and the reference output. Use the
@@ -4595,7 +4730,7 @@ And then compare the result with reference:
 When the TCE simulator memory dump is same as the reference output your
 assembly code works and you have completed this tutorial. Of
 cource you might wish to improve your assembly code to minimize cycle
-count or/and instruction count. 
+count or/and instruction count.
 
 
 If it is too hard to visualize the whole program in parallel assembly

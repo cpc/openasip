@@ -17,6 +17,7 @@
 
 #include "TCEPlugin.hh"
 #include "TCERegisterInfo.hh"
+#include "tce_config.h"
 
 #include <iostream> // DEBUG
 
@@ -202,7 +203,12 @@ TCERegisterInfo::eliminateFrameIndex(
         i++;
         assert(i < mi.getNumOperands() && ("No FrameIndex operand found!"));
     }
+
+#if defined(LLVM_2_1)
     int frameIndex = mi.getOperand(i).getFrameIndex();
+#else
+    int frameIndex = mi.getOperand(i).getIndex();
+#endif
 
     //unsigned baseRegister = fp ? TCE::FP : TCE::SP;
     assert(!fp);
@@ -372,15 +378,19 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
         assert (false && "TODO FP support.");
 
         MachineInstr& mi = *i;
-       int sz =  mi.getOperand(0).getImmedValue();
-       if (mi.getOpcode() == TCE::ADJCALLSTACKDOWN) {
-	  std::cerr << "TCE::ADJCALLSTACKDOWN" << std::endl;
-	  sz = -sz;
-       } else if (mi.getOpcode() == TCE::ADJCALLSTACKUP) {
-	  std::cerr << "TCE::ADJCALLSTACKUP" << std::endl;
-       } else {
-        assert(false && "Unknown call frame pseudo instruction!");
-       }
+#ifdef LLVM_2_1
+        int sz =  mi.getOperand(0).getImmedValue();
+#else
+        int sz =  mi.getOperand(0).getImm();
+#endif
+        if (mi.getOpcode() == TCE::ADJCALLSTACKDOWN) {
+            std::cerr << "TCE::ADJCALLSTACKDOWN" << std::endl;
+            sz = -sz;
+        } else if (mi.getOpcode() == TCE::ADJCALLSTACKUP) {
+            std::cerr << "TCE::ADJCALLSTACKUP" << std::endl;
+        } else {
+            assert(false && "Unknown call frame pseudo instruction!");
+        }
     
         std::cerr << "sz: " << sz << std::endl;
         if (sz) {

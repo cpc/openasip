@@ -23,7 +23,7 @@
 #include "LLVMBackend.hh"
 #include "TDGen.hh"
 
-#include "config.h" // CXX, SHARED_CXX_FLAGS, LLVM LD&CPP flags
+#include "tce_config.h" // CXX, SHARED_CXX_FLAGS, LLVM LD&CPP flags
 
 #include "Environment.hh"
 #include "FileSystem.hh"
@@ -43,8 +43,6 @@ volatile TargetLowering dummy(TargetMachine());
 Pass* createLowerMissingInstructionsPass();
 extern const PassInfo* LowerMissingInstructionsID;
 
-// TODO: LLVM version from config.h?
-const std::string LLVMBackend::LLVM_VERSION = "2.1";
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
@@ -243,13 +241,14 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         srcsPath = std::string(TCE_SRC_ROOT) + DS +
             "src" + DS + "applibs" + DS + "LLVMBackend" + DS + "plugin" + DS;
 
-
         pluginIncludeFlags =
             " -I" + srcsPath +
+            " -I" + std::string(TCE_SRC_ROOT) + DS + " " +
             " -I" + std::string(TCE_SRC_ROOT) + DS +
             "src" + DS + "ext" + DS + "llvm" + DS + LLVM_VERSION + DS + "TableGen" + DS +
- 	    "td" + DS + " -I" + std::string(TCE_SRC_ROOT) + DS +
-            "src" + DS + "applibs" + DS + "LLVMBackend" + DS;
+            "td" + DS + " -I" + std::string(TCE_SRC_ROOT) + DS +
+            "src" + DS + "applibs" + DS + "LLVMBackend" + DS + " " +
+            " -I" + std::string(TCE_INSTALLATION_ROOT) +  DS + "include" + DS;
 
     }
 
@@ -416,7 +415,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         srcsPath + "TCETargetMachinePlugin.cc";
 
     // Compile plugin to cache.
-    // CXX and SHARED_CXX_FLAGS defined in config.h
+    // CXX and SHARED_CXX_FLAGS defined in tce_config.h
     cmd = std::string(CXX) +
         " -I" + tmpDir +
         pluginIncludeFlags +

@@ -23,6 +23,7 @@
 #include "TCETargetMachine.hh"
 #include "TCESubtarget.hh"
 #include "TCETargetLowering.hh"
+#include "tce_config.h"
 
 #include <iostream> // DEBUG
 

@@ -25,8 +25,19 @@ bg = binding_generator_t(
                #prefix2 + "Graph.hh",                
                prefix + "ControlFlowGraph.hh"
                ],
-   extra_headers = ["Procedure.hh",
-                    ]
+    extra_headers = ["Procedure.hh",
+                    ],
+    extra_member_registrations =
+    [('ControlFlowGraph',
+      ["""def("node"
+      , (::BasicBlockNode & ( ::ControlFlowGraph::* )( int const ) const)(&::ControlFlowGraph::node),
+      ( bp::arg("index") ),
+            bp::return_internal_reference<1>())""",
+       """def("node"
+       , (::BasicBlockNode & ( ::ControlFlowGraph::* )( int const,bool ) const)( &::ControlFlowGraph::node )
+       , ( bp::arg("index"), bp::arg("cacheResult") ),
+       bp::return_internal_reference<1>())"""])]
+
     )
 
 bg.run()

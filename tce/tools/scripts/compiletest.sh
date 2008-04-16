@@ -838,6 +838,9 @@ function compile_test_with_all_compilers {
         cat $lastOkRevisionFile >> $ERROR_LOG_FILE 2>&1
 
         if [ "x$ERROR_MAIL" == "xyes" ]; then
+            echo "---" >> ${ERROR_LOG_FILE}
+            echo "Testing started at: ${LOG_TIMESTAMP}" >> ${ERROR_LOG_FILE}
+            echo "This error log was sent at: $(date +"%d.%m.%y %H:%M")" >> ${ERROR_LOG_FILE}
             tail -n ${LINES_FROM_ERROR_LOG} $ERROR_LOG_FILE | eval $MAILER 
         fi
     else

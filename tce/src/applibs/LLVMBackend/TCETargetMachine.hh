@@ -46,7 +46,7 @@ namespace llvm {
 	}
 
         virtual const MRegisterInfo *getRegisterInfo() const {
-	   return plugin_.getRegisterInfo();
+            return plugin_.getRegisterInfo();
         }
 
         virtual const TargetData* getTargetData() const {
@@ -59,14 +59,11 @@ namespace llvm {
         virtual bool addAssemblyEmitter(
             FunctionPassManager& pm, bool fast, std::ostream& out);
 
-       /*
-        virtual FileModel::Model addPassesToEmitFile(
-            FunctionPassManager& pm,
-            std::ostream& out,
-            CodeGenFileType type,
-            bool fast);
-*/
         static unsigned getModuleMatchQuality(const Module &M);
+
+        std::string operationName(unsigned opc) {
+            return plugin_.operationName(opc);
+        }
 
         std::string rfName(unsigned dwarfRegNum) {
             return plugin_.rfName(dwarfRegNum);
