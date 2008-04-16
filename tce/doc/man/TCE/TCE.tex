@@ -4589,6 +4589,8 @@ implementation of the processor with a VHDL simulator and synthesize it.
 % a parallel TTA program. How to compile it (refer to assembler section) and
 % how to simulate and estimate it, etc.
 
+\subsection{Preparations}
+
 For this tutorial you need to download file package from
 \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} and unpack it
 to a working directory. Then cd to parallal\_assembly-directory.
@@ -4600,25 +4602,28 @@ within the parallal\_assembly-directory. Easiest way to do this is:
 
 This should create a file named cos16.opb in the directory.
 
+\subsection{Introduction to DCT}
+
 Now you will be introduced to TCE assembler language and assembler usage.
 Your task is to write TCE assembly code for 2-Dimensional 8 times 8 point 
 Discrete Cosine Transform(DCT\_8x8).
 First take a look at the C code of DCT\_8x8
 \textit{dct\_8x8\_16\_bit\_with\_sfus.c}.  
-The code is written to support fixed point datatype with sign plus 15 fragment bits,
-which means coverage from $-1\ to\ 1-2^{15}$. The fixed point multiplier,
-function \textit{mul\_16\_fix},
-and fixed point adder, function \textit{add\_16\_fix},  used in the code scale inputs
-automatically to prevent overflow. 
-Function \textit{cos16} takes $x(2i+1)$ as 
-input and returns corresponding cosine value $\frac{cos(x(2i+1)\pi)}{16}$.
-The code calculates following equations:
+The code is written to support fixed point datatype with sign plus 15 fragment
+bits, which means coverage from $-1\ to\ 1-2^{15}$. The fixed point
+multiplier, function \textit{mul\_16\_fix}, and fixed point adder, function
+\textit{add\_16\_fix},  used in the code scale inputs automatically to prevent
+overflow. Function \textit{cos16} takes $x(2i+1)$ as input and returns
+corresponding cosine value $\frac{cos(x(2i+1)\pi)}{16}$. The code calculates
+following equations:
 
 \begin{equation}
-F(x) = \frac{C(x)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{x\left(2i+1\right)\pi}{16}\right)\right] \nonumber
+F(x) = \frac{C(x)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{x
+\left(2i+1\right)\pi}{16}\right)\right] \nonumber
 \end{equation}
 \begin{equation}
-F(y) = \frac{C(y)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{y\left(2i+1\right)\pi}{16}\right)\right] \nonumber
+F(y) = \frac{C(y)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{y
+\left(2i+1\right)\pi}{16}\right)\right] \nonumber
 \end{equation}
 
 \begin{equation}
@@ -4634,22 +4639,24 @@ C(i) =
 F(x,y) = F(x)F(y) \nonumber
 \end{equation}
 
+\subsection{Introduction to TCE assembly}
 
 First take a look at assembly example in file $example.tceasm$
-to get familiar with syntax. More help can be found at
-\ref{section:TCEAsm}
+to get familiar with syntax. More help can be found from
+section \ref{section:TCEAsm}
 
 Compilation of the example code is done by command:
 
-\textit{tceasm \ -o \ example.tpef \ dct\_8x8\_16\_bit\_with\_sfus.adf \  example.tceasm}
+\textit{tceasm \ -o \ example.tpef \ dct\_8x8\_16\_bit\_with\_sfus.adf \
+example.tceasm}
 
 Notice that the assembler will give some warnings saying that ``Source is
 wider than destination.'' but these can be ignored.
 
 The compiled tceasm code can be simulated with TCE
 simulator, ttasim or proxim(GUI).
- 
-\textit{ttasim -a \ dct\_8x8\_16\_bit\_with\_sfus.adf -p example.tpef} , or  
+
+\textit{ttasim -a \ dct\_8x8\_16\_bit\_with\_sfus.adf -p example.tpef} , or
 
 \textit{proxim \ dct\_8x8\_16\_bit\_with\_sfus.adf example.tpef}
 
@@ -4664,43 +4671,51 @@ proxim's command line at the bottom of the main window):
 
 the output of x should be 0x40.
 
+\subsection{Implementing DCT on TCE assembly}
 
 Next try to write assembly code which does the same functionality as the
-C code. The assembly code must be functional with the given
-machine \textit{dct\_8x8\_16\_bit\_with\_sfus.adf}. 
+C code. The assembly code must be functional with the given machine
+\textit{dct\_8x8\_16\_bit\_with\_sfus.adf}.
 The machine has 3 16-bit buses, which means maximum of
 3 concurrent transports. Each bus can contain 8-bit short immediate. 
-Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix}, 
-add, \textit{add\_16\_fix}, \textit{ldq}, \textit{stq}, \textit{shr}, \textit{shl}
-, \textit{eq}, \textit{gt}, \textit{gtu}, \textit{jump} and \textit{immediate
-transport}. Machine contains 4 register files, which each
-have 4 16-bit registers, leading to total of 16 16-bit registers. 
-The data memory is 16-bit wide and contains 128 memory slots and the MAU
-of data memory is 16-bits.
-The intruction memory has 1024 memory slots which means that the maximum 
-number of instructions of 1024.
-The jump latency is four cycles and load latency is three cycles.
+Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix},
+\textit{add}, \textit{add\_16\_fix}, \textit{ldq}, \textit{ldw}, \textit{stq},
+\textit{stw}, \textit{shr}, \textit{shl}, \textit{eq}, \textit{gt},
+\textit{gtu}, \textit{jump} and \textit{immediate transport}. Machine
+contains 4 register files, which each have 4 16-bit registers, leading to
+total of 16 16-bit registers. Notice that the first register file has 2 read
+ports.
+
+The data memory is 16-bit containing 128 memory slots and the MAU of data
+memory is 16-bits. The intruction memory has 1024 memory slots which
+means that the maximum number of instructions of 1024.
+
+You also need to take account in operation latencies. The \textit{jump}
+latency is four clock cycles and load latencies (\textit{ldq} and
+\textit{ldw}) are three cycles. Latency for multiplications (\textit{mul}
+and \textit{mul\_16\_fix}) are two clock cycles.
 
 The initial input is given in \textit{initial\_input}. You have to put the
 initial input to end of your assembly code. Or you can use
 the file \textit{assembler\_tutorial.tceasm} where the initial values are
-already introduced to memory locations 0-63.
+already placed in memory locations 0-63.
 
-The SFU's used in C code are must be imported to operation set as shown in 
-~\ref{section:customOperations}. ($cos16.opb$)
+\subsubsection{Verifying the assembly program}
 
-The reference output is given in \textit{reference\_output}, you need to
-compare you simulation result's of assembly code to this reference
-output. Comparision can be done by dumping the memory contents 
-of the TCE simulator with following command:
-\textit{x /a IODATA /n 64 /u b 0} , the command assumes that output data
-is stored to memory locations 0-63.
+The reference output is given in \textit{reference\_output}. You need to
+compare your assembly program's simulation result to this reference
+output. Comparision can be done by first dumping the memory contents in the
+TCE simulator with following command:
 
-The easiest way of dumping memory is to execute ttasim with the following
-command:
+\textit{x /a IODATA /n 64 /u b 0}
 
-\textit{ttasim -a dct\_8x8\_16\_bit\_with\_sfus.adf -p assembler\_tutorial.tpef
-< input\_command.txt > dump.txt}
+The command assumes that output data is stored to memory locations 0-63.
+
+The easiest way to dump the memory into a text file is to execute ttasim with
+the following command:
+
+\textit{ttasim -a dct\_8x8\_16\_bit\_with\_sfus.adf -p
+assembler\_tutorial.tpef < input\_command.txt > dump.txt}
 
 After this you should use sed to divide the memory dump into separete lines
 to help comparison between your output and the reference output. Use the
@@ -4715,7 +4730,7 @@ And then compare the result with reference:
 When the TCE simulator memory dump is same as the reference output your
 assembly code works and you have completed this tutorial. Of
 cource you might wish to improve your assembly code to minimize cycle
-count or/and instruction count. 
+count or/and instruction count.
 
 
 If it is too hard to visualize the whole program in parallel assembly
