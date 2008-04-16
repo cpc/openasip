@@ -536,11 +536,18 @@ TDGen::checkRequiredRegisters() throw (Exception) {
 
     if (regs32bit_.size() < REQUIRED_I32_REGS) {
         std::string msg =
-            "Architecture doesn't meet the minimal requirements. ";
+            (boost::format(
+                "Architecture doesn't meet the minimal requirements. "
+                "Only %d 32 bit general purpose registers found. At least %d "
+                "needed. ")
+             % regs32bit_.size() % REQUIRED_I32_REGS)
+            .str();
 
-        msg += regs32bit_.size() + " 32 bit registers found. ";
-        msg += "At least " + Conversion::toString(REQUIRED_I32_REGS) +
-            " 32bit registers are needed.";
+        if (!fullyConnected_) {
+            msg += "Your machine is not fully connected, thus one register "
+                "from each register file are reserved for temp moves and "
+                "not used as general purpose registers.";
+        }
 
         throw InvalidData(__FILE__, __LINE__, __func__, msg);
 
@@ -1013,7 +1020,9 @@ TDGen::dagNodeToString(
             assert(operand.isInput());
 
             if (imm && !canBeImmediate(dag, *tNode)) {
-                std::string msg = "Invalid immediate operand.";
+                dag.writeToDotFile("invalid_immediate_operand.dot");
+                std::string msg = 
+                    "Invalid immediate operand. DAG printed to a .dot file.";
                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
             }
 

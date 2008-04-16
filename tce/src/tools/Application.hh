@@ -65,6 +65,11 @@
     catch ( ... ) { debugLog("Unknown exception"); }
 
 
+// provide an easy way to print out the contents of a variable
+#define PRINT_VAR(VARIABLE__) \
+    Application::logStream() << #VARIABLE__ << " == " \
+    << VARIABLE__ << std::endl
+
 /// default value of maximum amount of output lines saved from popen() output
 /// in runShellCommandAndGetOutput()
 const int DEFAULT_MAX_OUTPUT_LINES = 200;
