@@ -6,4 +6,5 @@ function simulate {
         --no-debugmode
 }
 
+simulate
 simulate -q
