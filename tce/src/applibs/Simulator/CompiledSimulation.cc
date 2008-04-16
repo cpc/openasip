@@ -8,9 +8,7 @@
  */
 
 #include "CompiledSimulation.hh"
-#include "CompiledSimCodeGenerator.hh"
 #include "Machine.hh"
-#include "Program.hh"
 #include "Instruction.hh"
 #include "SimulatorFrontend.hh"
 #include "SimulationEventHandler.hh"
@@ -36,13 +34,14 @@ static const ClockCycleCount MAX_CYCLES =
  */
 CompiledSimulation::CompiledSimulation(
     const TTAMachine::Machine& machine, 
-    const TTAProgram::Program& program,
+    InstructionAddress entryAddress,
+    InstructionAddress lastInstruction,
     SimulatorFrontend& frontend,
     MemorySystem& memorySystem) :
     cycleCount_(0),
     basicBlockCount_(0),
-    jumpTarget_(program.entryAddress().location()),
-    programCounter_(program.entryAddress().location()),
+    jumpTarget_(entryAddress),
+    programCounter_(entryAddress),
     lastExecutedInstruction_(0),
     cyclesToSimulate_(MAX_CYCLES),                  
     stopRequested_(false),
@@ -50,7 +49,8 @@ CompiledSimulation::CompiledSimulation(
     fuNavigator_(machine.functionUnitNavigator()),
     conflictDetected_(false),
     machine_(machine),
-    program_(program),    
+    entryAddress_(entryAddress),
+    lastInstruction_(lastInstruction), 
     memorySystem_(&memorySystem), frontend_(frontend) {
 }
 

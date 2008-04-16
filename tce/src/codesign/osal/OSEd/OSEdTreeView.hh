@@ -82,7 +82,7 @@ private:
     /// Modules of the operation data base.
     std::multimap<std::string, wxTreeItemId> modules_;
     /// Operations of operation data base.
-    std::map<std::string, wxTreeItemId> operations_; 
+    std::multimap<std::string, wxTreeItemId> operations_; 
     
     DECLARE_EVENT_TABLE()
 };

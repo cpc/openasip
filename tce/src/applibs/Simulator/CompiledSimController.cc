@@ -19,6 +19,7 @@
 #include "CompiledSimulation.hh"
 #include "POMValidator.hh"
 #include "POMValidatorResults.hh"
+#include "Instruction.hh"
 
 using std::endl;
 using namespace TTAMachine;
@@ -263,7 +264,9 @@ CompiledSimController::reset() {
     pluginTools_.registerModule("engine.so");
     pluginTools_.importSymbol("getSimulation", simulationGetter);
     simulation_.reset(
-        simulationGetter(sourceMachine_, program_, frontend_, memorySystem()));
+        simulationGetter(sourceMachine_, program_.entryAddress().location(),
+            program_.lastInstruction().address().location(),
+            frontend_, memorySystem()));
     
     state_ = STA_INITIALIZED;
 }

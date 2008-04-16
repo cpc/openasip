@@ -121,7 +121,8 @@ OSEdTreeView::constructTree() {
                 wxTreeItemId oper =
                     AppendItem(module, WxConversion::toWxString(opName));
 
-                operations_[opIndex.operationName(k, mod)] = oper;
+                //operations_[opIndex.operationName(k, mod)] = oper;
+                operations_.insert(std::pair<std::string, wxTreeItemId>(opIndex.operationName(k, mod), oper));
             }
             
         }
@@ -245,7 +246,7 @@ OSEdTreeView::onDropDownMenu(wxMouseEvent& event) {
         menu = new DropDownMenu(DropDownMenu::MENU_OPERATION);
         PopupMenu(menu, pos);
     } else {
-        mainFrame->statusBar()->SetStatusText(_T(""));
+        mainFrame->statusBar()->SetStatusText(_T("Cannot open"));
     }
     delete menu;
 }
@@ -352,17 +353,6 @@ OSEdTreeView::selectedOperationId()
             return (*it).second;
         }
         it++;
-    }
-    
-    // then from info view
-    string opName = infoView_->selectedOperation();
-    if (opName != "") {
-        try {
-            wxTreeItemId id = operations_[opName];
-            return id;
-        } catch (const KeyNotFound& k) {
-            assert(false);
-        }
     }
 
     throw NotAvailable(__FILE__, __LINE__, __func__);
@@ -550,7 +540,8 @@ OSEdTreeView::addItem(wxTreeItemId parent, std::string item) {
     if (isPath(parent)) {
         modules_.insert(std::pair<std::string, wxTreeItemId>(item, id));
     } else if (isModule(parent)) {
-        operations_[item] = id;
+        operations_.insert(std::pair<std::string, wxTreeItemId>(item, id));
+        //operations_[item] = id;
     } else {
         assert(false);
     }
@@ -569,7 +560,8 @@ OSEdTreeView::changeText(wxTreeItemId id, const std::string& text) {
         string key = MapTools::keyForValue<string>(operations_, id);
         Iter it = operations_.find(key);
         operations_.erase(it);
-        operations_[text] = id;
+        operations_.insert(std::pair<std::string, wxTreeItemId>(text, id));
+        //operations_[text] = id;
     } else if (isModule(id)) {
         string key = MapTools::keyForValue<string>(modules_, id);
         IterM it = modules_.find(key);
