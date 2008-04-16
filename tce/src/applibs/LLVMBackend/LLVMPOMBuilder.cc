@@ -463,7 +463,7 @@ LLVMPOMBuilder::createFPDataDefinition(
 
         u.d = val;
         for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(u.bytes[i - sz - 1]);
+            maus.push_back(u.bytes[sz - i - 1]);
         }
         def = new TTAProgram::DataDefinition(start, maus);
     } else if (type->getTypeID() == Type::FloatTyID) {
@@ -477,7 +477,7 @@ LLVMPOMBuilder::createFPDataDefinition(
 
         u.f = val;
         for (unsigned i = 0; i < sz; i++) {
-            maus.push_back(u.bytes[i - sz - 1]);
+            maus.push_back(u.bytes[sz - i - 1]);
         }
         def = new TTAProgram::DataDefinition(start, maus);
     } else {
