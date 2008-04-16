@@ -469,7 +469,7 @@ Operation::loadState(const ObjectState* state)
 
         inputs_ = state->intAttribute(OPRN_INPUTS);
         outputs_ = state->intAttribute(OPRN_OUTPUTS);
-        
+
         canTrap_ = state->boolAttribute(OPRN_TRAP);
         hasSideEffects_ = state->boolAttribute(OPRN_SIDE_EFFECTS);
         controlFlowOperation_ = state->boolAttribute(OPRN_CONTROL_FLOW);
@@ -528,30 +528,18 @@ Operation::loadState(const ObjectState* state)
         //       properly
         
         // add operands that are not defined in XML nor can-swap..
-		unsigned int inputs = inputOperands_.size();
-        unsigned int outputs = outputOperands_.size();
-		int opIndex = 1;
-
-        for (unsigned int i = 0; 
-             i < static_cast<unsigned>(inputs_) - inputs; i++) {
-            
-            while (&operand(opIndex) != &NullOperand::instance()) {
-                opIndex++;
+        for (int i = 1; i <= inputs_; ++i) {
+            if (&operand(i) == &NullOperand::instance()) {
+                Operand* operand = new Operand(true, i, Operand::SINT_WORD);
+                insertOperand(operand, inputOperands_);
             }
-                
-            Operand* operand = new Operand(true, opIndex, Operand::SINT_WORD);
-            insertOperand(operand, inputOperands_);
         }
 
-        for (unsigned int i = 0; 
-             i < static_cast<unsigned>(outputs_) - outputs; i++) {
-            
-            while (&operand(opIndex) != &NullOperand::instance()) {
-                opIndex++;
+        for (int i = 1; i <= outputs_; ++i) {
+            if (&operand(i) == &NullOperand::instance()) {
+                Operand* operand = new Operand(true, i, Operand::SINT_WORD);
+                insertOperand(operand, outputOperands_);
             }
-            
-            Operand* operand = new Operand(true, opIndex, Operand::SINT_WORD);
-            insertOperand(operand, outputOperands_);
         }
 
     } catch (const Exception& e) {
@@ -683,11 +671,14 @@ Operation::operand(int id) const {
 Operand&
 Operation::fetchOperand(int id, const std::vector<Operand*>& ops) const {
     assert(id != 0);
-    for (unsigned int i = 0; i < ops.size(); i++) {
-        if (ops[i]->index() == id) {
-            return *ops[i];
+
+    for (std::vector<Operand*>::const_iterator i = ops.begin(); i != ops.end();
+        ++i) {
+        if ((*i)->index() == id) {
+            return **i;
         }
     }
+
     return NullOperand::instance();
 }
 

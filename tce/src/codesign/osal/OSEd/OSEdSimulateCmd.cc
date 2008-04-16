@@ -70,7 +70,7 @@ OSEdSimulateCmd::Do() {
     wxTreeItemId modId = treeView->moduleIdOfOperation(opId);
     string pathName = treeView->pathOfModule(modId);
 
-    OperationModule& module = OperationContainer::module(pathName, modName);
+    //OperationModule& module = OperationContainer::module(pathName, modName);
 
     SimulateDialog* dialog = 
         new SimulateDialog(parentWindow(), op, pathName, modName);
