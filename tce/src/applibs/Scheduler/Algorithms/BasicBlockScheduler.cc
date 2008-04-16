@@ -402,6 +402,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
         int earliestDDG = ddg_->earliestCycle(moves.node(i));
 
         if (earliestDDG == INT_MAX) {
+            ddg_->writeToDotFile("failed_bb.dot");
             unscheduleInputOperandTempMoves(moves.node(i));
             throw InvalidData(
                 __FILE__, __LINE__, __func__,

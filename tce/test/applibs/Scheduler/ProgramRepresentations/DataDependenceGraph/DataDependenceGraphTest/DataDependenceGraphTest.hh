@@ -122,11 +122,11 @@ DataDependenceGraphTest::testProcedureDDG() {
     // check mem WARs
     TS_ASSERT(
         ddg->hasEdge(findMoveNodeById(*ddg,first+25),
-                     findMoveNodeById(*ddg,first+32)));
+                     findMoveNodeById(*ddg,first+33)));
 
     TS_ASSERT(
         ddg->hasEdge(findMoveNodeById(*ddg,first+27),
-                     findMoveNodeById(*ddg,first+32)));
+                     findMoveNodeById(*ddg,first+33)));
 
 
     // RARs are not dependencies, no edge
@@ -385,11 +385,11 @@ DataDependenceGraphTest::testRallocatedDDG() {
         // check mem WARs
         TS_ASSERT(
             ddg->hasEdge(findMoveNodeById(*ddg,first+20),
-                         findMoveNodeById(*ddg,first+27)));
+                         findMoveNodeById(*ddg,first+28)));
         
         TS_ASSERT(
             ddg->hasEdge(findMoveNodeById(*ddg,first+22),
-                         findMoveNodeById(*ddg,first+27)));
+                         findMoveNodeById(*ddg,first+28)));
         
         // RARs are not dependencies, no edge
         TS_ASSERT(
