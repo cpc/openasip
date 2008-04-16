@@ -6,7 +6,4 @@ function simulate {
         --no-debugmode
 }
 
-simulate
-
-# Compiled simulator segfaults with this test, enabled when fixed.
-# simulate -q 
+simulate -q

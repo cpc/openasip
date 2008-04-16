@@ -210,7 +210,6 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
          << "#ifndef _AUTO_GENERATED_COMPILED_SIMULATION_H_" << endl
          << "#define _AUTO_GENERATED_COMPILED_SIMULATION_H_" << endl
          << "#include \"SimValue.hh\"" << endl
-         << "#include \"Program.hh\"" << endl
          << "#include \"MemorySystem.hh\"" << endl
          << "#include \"DirectAccessMemory.hh\"" << endl
          << "#include \"SimulationEventHandler.hh\"" << endl
@@ -220,7 +219,6 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
          << "#include \"OperationPool.hh\"" << endl
          << "#include \"OperationContext.hh\"" << endl
          << "#include \"Conversion.hh\"" << endl
-         << "#include \"Exception.hh\"" << endl
          << "#include \"CompiledSimulation.hh\"" << endl
          << "#include \"Instruction.hh\"" << endl 
          << conflictDetectionGenerator_.includes() << endl
@@ -353,7 +351,8 @@ void
 CompiledSimCodeGenerator::generateConstructorParameters() {
     *os_ << className_ 
          << "(const TTAMachine::Machine& machine," << endl
-         << "const TTAProgram::Program& program," << endl
+         << "InstructionAddress entryAddress," << endl
+         << "InstructionAddress lastInstruction," << endl
          << "SimulatorFrontend& frontend," << endl
          << "MemorySystem& memorySystem)";
 }
@@ -375,7 +374,8 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     generateConstructorParameters();
         
     *os_ << " : " << endl         
-         << "CompiledSimulation(machine, program, frontend, memorySystem), "
+         << "CompiledSimulation(machine, entryAddress, lastInstruction, "
+         << "frontend, memorySystem), "
          << endl;
     
     updateDeclaredSymbolsList();
@@ -512,11 +512,12 @@ CompiledSimCodeGenerator::generateSimulationGetter() {
     *os_ << "/* Class getter function */" << endl
          << "extern \"C\" CompiledSimulation* getSimulation("
          << "const TTAMachine::Machine& machine," << endl
-         << "const TTAProgram::Program& program," << endl
+         << "InstructionAddress entryAddress," << endl
+         << "InstructionAddress lastInstruction," << endl
          << "SimulatorFrontend& frontend," << endl
          << "MemorySystem& memorySystem) {" << endl
          << "return new " << className_
-         << "(machine, program, frontend, memorySystem);" 
+         << "(machine, entryAddress, lastInstruction, frontend, memorySystem);" 
          << endl << "}" << endl << endl; // 2x end-of-line in the end of file
 }
 
@@ -617,8 +618,7 @@ CompiledSimCodeGenerator::generateSymbolDeclarations() {
 void
 CompiledSimCodeGenerator::generateJumpTableCode() {    
 
-    *os_ << "\t" << "jumpTable_.resize(program_.lastInstruction().address()." 
-         << "location() + 1, NULL);" << endl;
+    *os_ << "\t" << "jumpTable_.resize(lastInstruction_ + 1, NULL);" << endl;
 
     for (BasicBlocks::iterator it = bbStarts_.begin(); it != bbStarts_.end();
         ++it) {
@@ -645,9 +645,7 @@ CompiledSimCodeGenerator::addDeclaredSymbol(
  */
 void 
 CompiledSimCodeGenerator::addUsedRFSymbols() {
-    if (!isSequentialSimulation_) {
-        return;
-    }
+    assert (isSequentialSimulation_);
     
     // Loop all moves of the program and find the used RFs
     const Instruction* instruction = &program_.firstInstruction();
@@ -681,9 +679,9 @@ CompiledSimCodeGenerator::handleJump(const TTAMachine::HWOperation& op) {
     pendingJumpDelay_ = gcu_.delaySlots() + 1;
     ss << "jumpTarget_ = " 
        << SymbolGenerator::portSymbol(*op.port(1)) << ".value_.sIntWord;";
-    if (op.name() == "call") {
+    if (op.name() == "call") { // save return address
         ss << SymbolGenerator::returnAddressSymbol(gcu_) << ".value_.uIntWord = " 
-           << instructionNumber_ + gcu_.delaySlots() + 1 << "u;" << endl;
+           << instructionNumber_ + pendingJumpDelay_ << "u;" << endl;
     }
     return ss.str();
 }
@@ -701,14 +699,14 @@ CompiledSimCodeGenerator::handleOperation(const TTAMachine::HWOperation& op) {
     if (op.name() != "jump" && op.name() != "call") {
         string simCode = generateTriggerCode(op);
         
-        ss << endl << "{ " << endl;
+        ss << endl;
         ss << "#define context "                
            << SymbolGenerator::operationContextSymbol(*op.parentUnit()) << endl;
         ss << "#define opPool_ operationPool_" << endl;
         ss << simCode << endl;
         ss << "#undef context" << endl;
         ss << "#undef opPool_" << endl;
-        ss << "}" << endl;
+        ss << endl;
     } else { // simulate a jump
         ss << handleJump(op);
     }
@@ -747,10 +745,9 @@ CompiledSimCodeGenerator::handleOperationOld(
         // add output values as delayed assignments
         for (int i = 1; op.port(i) != NULL; ++i) {
             if (op.port(i)->isOutput()) {
-                ss << "addFUResult("
-                   << SymbolGenerator::FUResultSymbol(*op.port(i)) 
-                   << ", cycleCount_, outOperands_[" << i - 1 << "], "
-                   << op.latency() << ");";
+                ss << generateAddFUResult(*op.port(i), 
+                    "outOperands_[" + Conversion::toString(i - 1) + "]",
+                    op.latency(), false);
             }
         }
                 
@@ -793,7 +790,7 @@ CompiledSimCodeGenerator::handleGuard(
         lastGuardBool_ = SymbolGenerator::guardBoolSymbol();        
         usedGuardSymbols_[guardSymbolName] = lastGuardBool_;
         
-        ss << "bool " << lastGuardBool_ << " = !(" 
+        ss << "const bool " << lastGuardBool_ << " = !(" 
            << guardSymbolName << ".value_.uIntWord == 0u);";
         if (isJumpGuard) {
             lastJumpGuardBool_ = "";
@@ -816,7 +813,7 @@ CompiledSimCodeGenerator::handleGuard(
 }
 
 /**
- * Generates code from the given instruction
+ * Generates simulation code from the given instruction
  * 
  * @param instruction instruction to generate the code from
  * @return a std::string containing the generated code
@@ -850,6 +847,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         *os_ << endl << "void " << className_ 
              << "::" << SymbolGenerator::basicBlockSymbol(address) << "() {"
              << endl;
+        
+        lastFUWrites_.clear();
     }
     
     *os_ << endl << "/* Instruction " << instructionNumber_ << " */" << endl;
@@ -861,29 +860,41 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     
     // Do immediate assignments per instruction for FU ports
     for (int i = 0; i < instruction.immediateCount(); ++i) {
-            const Immediate& immediate = instruction.immediate(i);
+        const Immediate& immediate = instruction.immediate(i);
             
-            if (!immediate.destination().isFUPort()) {
-                continue;
-            }
+        if (!immediate.destination().isFUPort()) {
+            continue;
+        }
             
-            *os_ << "\t"
-                 << SymbolGenerator::immediateRegisterSymbol(immediate.destination());
-            int value = immediate.value().value().unsignedValue();
-            *os_  << ".value_.uIntWord = " << value << "u;";
+        *os_ << "\t"
+             << SymbolGenerator::immediateRegisterSymbol(immediate.destination());
+        int value = immediate.value().value().unsignedValue();
+        *os_  << ".value_.uIntWord = " << value << "u;";
+    }
+    
+    // Get FU Results if there are any ready
+    std::set<std::string> gotResults; // used to get FU results only once/instr.
+    DelayedAssignments::iterator it= delayedFUResultWrites_.find(
+        instructionNumber_);
+    while (it != delayedFUResultWrites_.end()) {
+        *os_ << "clearFUResults(" << it->second.fuResultSymbol << ");" << endl;
+        *os_ << it->second.targetSymbol << " = " << it->second.sourceSymbol 
+             << ";" << std::endl;        
+        gotResults.insert(it->second.targetSymbol);
+        delayedFUResultWrites_.erase(it);
+        it = delayedFUResultWrites_.find(instructionNumber_);
     }
     
     bool endGuardBracket = false;
     
     // Do moves
-    std::set<std::string> gotResults; // used to get FU results only once/instr.
     std::vector<CompiledSimMove> lateMoves; // moves with buses
     for (int i = 0; i < instruction.moveCount(); ++i) {
         const Move& move = instruction.move(i);
         string moveSource = SymbolGenerator::moveOperandSymbol(move.source(), move);
         string moveDestination = SymbolGenerator::moveOperandSymbol(move.destination(), move);
         
-        lastGuardBool_ = "";
+        lastGuardBool_.clear();
         if (!move.isUnconditional()) { // has a guard?
             *os_ << handleGuard(move.guard().guard(), move.isControlFlowMove());
             endGuardBracket = true;
@@ -894,10 +905,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         
         if (move.source().isFUPort() && gotResults.find(moveSource) == gotResults.end() &&  
             dynamic_cast<const ControlUnit*>(&move.source().functionUnit()) == NULL) {
-            *os_ <<
-            "FUResult(" << moveSource << ", " 
-             << SymbolGenerator::FUResultSymbol(move.source().port())
-             << ", cycleCount_);" << endl;
+            *os_ << generateFUResultRead(moveSource,
+                SymbolGenerator::FUResultSymbol(move.source().port())) << endl;
             gotResults.insert(moveSource);
         }
         
@@ -950,44 +959,32 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         if (move.source().isFUPort() && gotResults.find(SymbolGenerator::moveOperandSymbol(move.source(), move)) == gotResults.end() &&
             dynamic_cast<const ControlUnit*>(&move.source().functionUnit()) == NULL) {
             *os_ <<
-            "FUResult(" << SymbolGenerator::moveOperandSymbol(move.destination(), move) << ", " 
-             << SymbolGenerator::FUResultSymbol(move.source().port()) << ", "
-             << "cycleCount_);" << endl;
-            gotResults.insert(SymbolGenerator::moveOperandSymbol(move.source(), move));
+            generateFUResultRead(
+                SymbolGenerator::moveOperandSymbol(move.destination(), move),
+                SymbolGenerator::FUResultSymbol(move.source().port()))
+                 << endl;        
+
+            gotResults.insert(SymbolGenerator::moveOperandSymbol(move.source(),
+                move));
         }
         
         const TerminalFUPort& tfup = 
             dynamic_cast<const TerminalFUPort&>(move.destination());
+        HWOperation& hwOperation = *tfup.hwOperation();
+
+        if (operationPool_.operation(hwOperation.name()).dagCount() > 0) {
+            *os_ << handleOperation(hwOperation);
+        } else {
+            *os_ << handleOperationOld(hwOperation);
+        }
             
-        /// @NOTE broken operations are commented out
-        /// disabled until the additional overhead of this code has been
-        /// fixed, now the simulation slowed down dramatically, probably
-        /// due to the additional copies (which probably cause dcache misses)
-        if ((tfup.hwOperation()->name() == "add" || tfup.hwOperation()->name() == "sub" || tfup.hwOperation()->name() == "shl"
-            || tfup.hwOperation()->name() == "shr" || tfup.hwOperation()->name() == "stdout" || tfup.hwOperation()->name() == "gt"
-            || tfup.hwOperation()->name() == "gtu" || tfup.hwOperation()->name() == "std" || tfup.hwOperation()->name() == "stq" 
-            || tfup.hwOperation()->name() == "div" || tfup.hwOperation()->name() == "divu" || tfup.hwOperation()->name() == "addf" 
-            || tfup.hwOperation()->name() == "subf" || tfup.hwOperation()->name() == "mod" || tfup.hwOperation()->name() == "modu"
-            || tfup.hwOperation()->name() == "neg" || tfup.hwOperation()->name() == "mul" || tfup.hwOperation()->name() == "ldw"
-            || tfup.hwOperation()->name() == "ldq" || tfup.hwOperation()->name() == "sth" || tfup.hwOperation()->name() == "ior"
-            || tfup.hwOperation()->name() == "min" || tfup.hwOperation()->name() == "max" || tfup.hwOperation()->name() == "call"
-            || tfup.hwOperation()->name() == "jump" || tfup.hwOperation()->name() == "cfi" || tfup.hwOperation()->name() == "cif"
-            || tfup.hwOperation()->name() == "cfd" || tfup.hwOperation()->name() == "cdf" || tfup.hwOperation()->name() == "eqf"
-            || tfup.hwOperation()->name() == "xor" || tfup.hwOperation()->name() == "eq" || tfup.hwOperation()->name() == "stw"
-            || tfup.hwOperation()->name() == "ldh" || tfup.hwOperation()->name() == "ldqu" || tfup.hwOperation()->name() == "ldhu" 
-            || tfup.hwOperation()->name() == "and" || tfup.hwOperation()->name() == "or") 
-            && operationPool_.operation(tfup.hwOperation()->name()).dagCount() > 0) {
-                *os_ << handleOperation(*tfup.hwOperation());
-            } else {
-                *os_ << handleOperationOld(*tfup.hwOperation());
-            }
-                *os_ << conflictDetectionGenerator_.detectConflicts(
-                        *tfup.hwOperation());
+        *os_ << conflictDetectionGenerator_.detectConflicts(hwOperation);
+        
         if (endGuardBracket) {
             *os_ << "}";
             endGuardBracket = false;
         }
-    }
+    } // end for
     
     // Do immediate assignments for everything else
     for (int i = 0; i < instruction.immediateCount(); ++i) {
@@ -999,7 +996,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             
             *os_ << "\t"
                 << SymbolGenerator::immediateRegisterSymbol(immediate.destination());
-                int value = immediate.value().value().unsignedValue();
+                unsigned int value = immediate.value().value().unsignedValue();
             *os_  << ".value_.uIntWord = " << value << "u;";
     }
     
@@ -1092,31 +1089,28 @@ CompiledSimCodeGenerator::generateTriggerCode(
     string simCode = OperationDAGConverter::createSimulationCode(*dag, &operands);
         
     // add output values as delayed assignments
-    std::vector<Port*> outPorts = fuOutputPorts(*op.parentUnit());
-    int portIndex = 0;
     while (simCode.find("outputvalue = ") != string::npos) {
-        string ioSymbol = "outputvalue = ";
-        string adderCode = "addFUResult(" 
-            + SymbolGenerator::FUResultSymbol(*outPorts.at(portIndex))
-            + ", cycleCount_, ";
-            
-        string::iterator it = simCode.begin() + simCode.find(ioSymbol);
-            simCode.replace(it, it + ioSymbol.length(), adderCode);
-        portIndex++;
+        std::size_t begin = simCode.find("outputvalue = ");
+        std::size_t end = simCode.find(";", begin);
+        simCode.erase(begin, end);
     }
     
     for (int i = 1, tmp=1; op.port(i) != NULL; ++i) {
         if (op.port(i)->isOutput()) {
-            string ioSymbol = ", tmp" + Conversion::toString(tmp) + ";";
-            string newSymbol = ", tmp" + Conversion::toString(tmp) + ", " 
-                + Conversion::toString(op.latency()) + ");";
-                
+            string tempVariable = SymbolGenerator::generateTempVariable();
+            string ioSymbol = "tmp" + Conversion::toString(tmp);
+            
             if (simCode.find(ioSymbol) == string::npos) {
-                break;
+                continue;
             }
-                
-            string::iterator it = simCode.begin() + simCode.find(ioSymbol);
-            simCode.replace(it, it + ioSymbol.length(), newSymbol);
+
+            while (simCode.find(ioSymbol) != string::npos) {
+                string::iterator it = simCode.begin() + simCode.find(ioSymbol);
+                simCode.replace(it, it + ioSymbol.length(), tempVariable);
+            }
+            
+            simCode.append("\n" + generateAddFUResult(*op.port(i), 
+                tempVariable, op.latency()));
             tmp++;
         } // end isOutput
     } // end for
@@ -1131,8 +1125,8 @@ CompiledSimCodeGenerator::generateTriggerCode(
 string 
 CompiledSimCodeGenerator::generateStoreTrigger(
     const TTAMachine::HWOperation& op) {
-    string address = SymbolGenerator::portSymbol(*op.port(1)) + ".value_.uIntWord";
-    string dataToWrite = SymbolGenerator::portSymbol(*op.port(2)) + ".value_.uIntWord";
+    string address = SymbolGenerator::portSymbol(*op.port(1)) + ".uIntWordValue()";
+    string dataToWrite = SymbolGenerator::portSymbol(*op.port(2)) + ".uIntWordValue()";
     string memory = SymbolGenerator::DAMemorySymbol(op.parentUnit()->name());
     string method;
     
@@ -1156,12 +1150,13 @@ CompiledSimCodeGenerator::generateLoadTrigger(
     const TTAMachine::HWOperation& op) {
     const FunctionUnit& fu = *op.parentUnit();
     std::stringstream ss;
-    string address = SymbolGenerator::portSymbol(*op.port(1)) + ".value_.uIntWord";
+    string address = SymbolGenerator::portSymbol(*op.port(1)) + ".uIntWordValue()";
     string memory = SymbolGenerator::DAMemorySymbol(op.parentUnit()->name());
     string MAUSize = Conversion::toString(fu.addressSpace()->width());
     string method;
     string extensionMode="SIGN_EXTEND";
     string resultSignExtend;
+    string temp = SymbolGenerator::generateTempVariable();
     
     if (op.name() == "ldqu" || op.name() == "ldhu") {
         extensionMode = "ZERO_EXTEND";
@@ -1169,23 +1164,124 @@ CompiledSimCodeGenerator::generateLoadTrigger(
     
     if (op.name() == "ldq" || op.name() == "ldqu") {
         method = "fastReadMAU";
-        resultSignExtend = "read_data_tmp = " + extensionMode 
-            + "(read_data_tmp, " + MAUSize + ");";
+        resultSignExtend = temp + " = " + extensionMode 
+            + "(" + temp + ", " + MAUSize + ");";
     } else if (op.name() == "ldh" || op.name() == "ldhu") {
         method = "fastRead2MAUs";
-        resultSignExtend = "read_data_tmp = " + extensionMode 
-            + "(read_data_tmp, (" + MAUSize + "*2));";
+        resultSignExtend = temp + " = " + extensionMode 
+            + "(" + temp + ", (" + MAUSize + "*2));";
     } else if (op.name() == "ldw") {
         method = "fastRead4MAUs";
     }
     
-    ss << " { static UIntWord read_data_tmp; " << memory + "." << method << "("
-       << address << ", read_data_tmp); ";
+    ss << "static UIntWord " << temp << "; " << memory + "." << method << "("
+       << address << ", " << temp << "); ";
 
     ss << resultSignExtend << " ";
 
-    ss << "addFUResult(" << SymbolGenerator::FUResultSymbol(*op.port(2)) 
-       << ", " << "cycleCount_, read_data_tmp, " << op.latency() << "); }";
+    ss << generateAddFUResult(*op.port(2), temp, op.latency());
+    
+    return ss.str();
+}
+
+/**
+ * Generates code for adding a result to FU's output port
+ * 
+ * Handles static latency simulation in case it is possible, otherwise
+ * reverts back to older dynamic model.
+ * 
+ * The case this function tracks is the following:
+ * 
+ * 1) Instruction address > basic block start + latency
+ * 2) Trigger not inside a guard
+ * 3) Result must be ready in the same basic block
+ * 4) No overlapping writes of any kind
+ * 
+ * @param resultPort FU result port to set the value to
+ * @param value value to set as a result
+ * @param latency latency of the operation
+ * @param attemptStaticLatencySimulation Attempt static latency simulation?
+ * @return the generated code for putting the results.
+ */
+std::string 
+CompiledSimCodeGenerator::generateAddFUResult(
+    const TTAMachine::FUPort& resultPort,
+    const std::string& value,  
+    int latency,
+    bool attemptStaticLatencySimulation) {
+        
+    std::stringstream ss;
+    const FunctionUnit& fu = *resultPort.parentUnit();
+    const int writeTime = instructionNumber_ + latency;
+    
+    BasicBlocks::iterator bbEnd = bbEnds_.lower_bound(instructionNumber_);
+    
+    const bool resultInSameBasicBlock = bbEnd->first ==
+        bbEnds_.lower_bound(writeTime)->first;
+    
+    const int bbStart = bbEnd->second;
+    bool staticSimulationPossible = false;
+    const std::string destination = SymbolGenerator::portSymbol(resultPort);
+    
+    int lastWrite = 0;
+    if (lastFUWrites_.find(destination) != lastFUWrites_.end()) {
+        lastWrite = lastFUWrites_[destination];
+    }
+
+    // If no more pending results are coming outside or inside the basic block,
+    // no guard of any kind and result will be ready in the same basic block,
+    // then static latency simulation can be done.
+    if ((instructionNumber_ > bbStart + fu.maxLatency())
+        && lastGuardBool_.empty() && resultInSameBasicBlock 
+        && (writeTime > lastWrite) && attemptStaticLatencySimulation) {
+        staticSimulationPossible = true;
+        
+        for (int i = instructionNumber_ + 1; i < writeTime 
+             && staticSimulationPossible; ++i) {
+
+            Instruction& instr = program_.instructionAt(i);
+            for (int j = 0; j < instr.moveCount(); ++j) {
+                if ((instr.move(j).isTriggering() && fu.name() 
+                    == instr.move(j).destination().functionUnit().name()) || 
+                     (instr.move(j).source().isGPR() && 
+                     instr.move(j).source().port().name()==resultPort.name())) {
+                    staticSimulationPossible = false;
+                    break;
+                }
+            }
+        }
+    }   
+
+    if (staticSimulationPossible) { // Add a new delayed assignment
+        DelayedAssignment assignment = { value, destination, 
+            SymbolGenerator::FUResultSymbol(resultPort) };
+        delayedFUResultWrites_.insert(std::make_pair(writeTime, assignment));
+    } else { // revert to old dynamic FU result model
+        ss << "addFUResult(" << SymbolGenerator::FUResultSymbol(resultPort)
+           << ", " << "cycleCount_, " << value << ", " << latency << ");";
+        if (writeTime > lastWrite) {
+            lastFUWrites_[destination] = writeTime;
+        }
+    }
+    
+    return ss.str();
+}
+
+/**
+ * Generates code for reading FU results from result symbol to result port
+ * 
+ * @param destination destination port symbol
+ * @param resultSymbol results symbol
+ * @return generated code for getting the result
+ */
+std::string
+CompiledSimCodeGenerator::generateFUResultRead(
+    const std::string& destination, 
+    const std::string& resultSymbol) {
+    std::stringstream ss;
+    
+    ss << "FUResult(" << destination << ", "
+       << resultSymbol << ", cycleCount_);" << endl;
     
     return ss.str();
 }
