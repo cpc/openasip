@@ -1,0 +1,1 @@
+Bug 445: RegisterCopyAdder might fail in case there is no IU connection to the destination
