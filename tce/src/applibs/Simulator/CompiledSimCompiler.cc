@@ -57,19 +57,24 @@ CompiledSimCompiler::~CompiledSimCompiler() {
  *
  * @param dirName a source directory containing the .cpp files and the Makefile
  * @param flags additional compile flags given by the user. for instance, "-O3"
+ * @param verbose Print information of the simulation progress.
  * @return Return value given by system(). 0 on success. !=0 on failure
  */
 int
 CompiledSimCompiler::compileDirectory(
     const string& dirName,
-    const string& flags) const {
+    const string& flags,
+    bool verbose) const {
 
     string command = 
         "make -sC " + dirName + " CC=\"" + compiler_ + "\" opt_flags=\"" + 
         flags + "\" -j" + Conversion::toString(threadCount_);
 
-    Application::logStream()
-        << "Compiling the simulation engine with command " << command << endl;
+    if (verbose) {
+        Application::logStream()
+            << "Compiling the simulation engine with command " 
+            << command << endl;
+    }
 
     time_t startTime = std::time(NULL);
     int retval = system(command.c_str());
@@ -77,10 +82,12 @@ CompiledSimCompiler::compileDirectory(
 
     time_t elapsed = endTime - startTime;
 
-    Application::logStream()
-        << "Compiling the simulation engine with opt. switches '" << flags 
-        << "' took " << elapsed / 60 << "m " << (elapsed % 60) << "s " 
-        << endl;
+    if (verbose) {
+        Application::logStream()
+            << "Compiling the simulation engine with opt. switches '" << flags 
+            << "' took " << elapsed / 60 << "m " << (elapsed % 60) << "s " 
+            << endl;
+    }
 
     return retval;
 }
