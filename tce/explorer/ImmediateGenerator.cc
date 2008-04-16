@@ -50,9 +50,17 @@ public:
     
     /**
      * Explorer plugin that creates or modifies machine instruction templates.
+     * TODO: add some modifying functionality.
      *
      * Supported parameters:
-     * - print, print information about machines instruction templates.
+     * - print, boolean, print information about machines instruction templates.
+     * - remove_it_name, string, remove instruction template with a given name.
+     * - add_it_name, string, add empty instruction template with a given name.
+     * - modify_it_name, string, modify instruction template with a given name.
+     * - width, int, instruction template supported width.
+     * - width_part, int, minimum size of width per slot. Default 8.
+     * - split, boolean, split immediate among slots.
+     * - dst_imm_unit, string, destination immediate unit.
      *
      * @param startPointConfigurationID Configuration to optimize.
      */
