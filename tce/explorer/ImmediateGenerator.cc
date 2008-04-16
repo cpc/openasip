@@ -159,6 +159,8 @@ private:
     std::string modInsTemplateName_;
     /// width of the target template
     unsigned int width_;
+    /// minimum width on long instruction slot when splitting the template. 
+    unsigned int widthPart_;
     /// make evenly bus/slot wise splitted template.
     bool split_;
     /// destination immediate unit name
@@ -173,10 +175,12 @@ private:
         const std::string addInsTemplateName = "add_it_name";
         const std::string modInsTemplateName = "modify_it_name";
         const std::string width = "width";
+        const std::string widthPart = "width_part";
         const std::string split = "split";
         const std::string dstImmUnitName = "dst_imm_unit";
 
         const unsigned int widthDefault_ = 32;
+        const unsigned int widthPartDefault_ = 8;
         createNewConfig_ = false; // by default don't create a new config
         
         if (hasParameter(print)) {
@@ -233,6 +237,18 @@ private:
         } else {
             // set defaut value to width
             width_ = widthDefault_;
+        }   
+
+        if (hasParameter(widthPart)) {
+            try {
+                widthPart_ = Conversion::toUnsignedInt(parameterValue(widthPart));
+            } catch (const Exception& e) {
+                parameterError(widthPart, "Integer");
+                widthPart_ = widthPartDefault_;
+            }   
+        } else {
+            // set defaut value to widthPart
+            widthPart_ = widthPartDefault_;
         }   
 
         if (hasParameter(split)) {
@@ -421,6 +437,7 @@ private:
                 << e.errorMessage() << endl;
             errorOuput(msg.str());
             delete insTemplate;
+            insTemplate = NULL;
             return;
         } catch (InvalidName& e) {
             std::ostringstream msg(std::ostringstream::out);
@@ -428,41 +445,64 @@ private:
                 << e.errorMessage() << endl;
             errorOuput(msg.str());
             delete insTemplate;
+            insTemplate = NULL;
             return;
         }
 
-        // now add slots splitted among all busses
         // TODO: split among immediate slots also?
-
         Machine::BusNavigator busNav = mach.busNavigator();
-        
-        // minimum widthPart is 1
-        int bLimit = 0;
-        int widthPart = 0;
-        if (busNav.count() > width_) {
-            bLimit = width_;
-            widthPart = 1;
-        } else {
-            int bLimit = busNav.count();
-            // round up
-            widthPart = static_cast<int>(
-                    (static_cast<float>(width_) / bLimit) + 0.5);
+
+        int slotCount = (width_/widthPart_);
+
+        // if too few busses to make even one widthPart_ length template slot
+        if (busNav.count() < slotCount) {
+            slotCount = busNav.count();
         }
 
+        int overSpill = width_ - (slotCount * widthPart_);
+        int widthAdd = 0;
         TTAMachine::Bus* busP = NULL;
-        for (int bus = 0; bus < bLimit; bus++) {
+        for (int bus = 0; bus < slotCount; bus++) {
             busP = busNav.item(bus);
+
+            if (overSpill > 0) {
+                if (overSpill < (busP->width() - widthPart_)) {
+                    widthAdd = overSpill;
+                    overSpill = -1; // all spilled
+                } else {
+                    widthAdd = busP->width() - widthPart_;
+                    overSpill = overSpill - widthAdd;
+                }
+            } else {
+                widthAdd = 0;
+            }
+
             try {
-                insTemplate->addSlot(busP->name(), widthPart, *dstImmUnit);
+                insTemplate->addSlot(busP->name(), widthPart_ + widthAdd, 
+                        *dstImmUnit);
             } catch (const Exception& e) {
                 std::ostringstream msg(std::ostringstream::out);
                 msg << "Error while using ImmediateGenerator:" << endl
                     << e.errorMessage() << endl;
                 errorOuput(msg.str());
+                delete insTemplate;
+                insTemplate = NULL;
                 return;
             }
         }
-        
+
+        // check if all spilled
+        if (overSpill > 0) {
+            std::ostringstream msg(std::ostringstream::out);
+            msg << "Error while using ImmediateGenerator:" << endl
+                << "Immediate template generation failed, width=\"" << width_
+                << "\" too great by: \"" << overSpill << "\"" << endl;
+            errorOuput(msg.str());
+            delete insTemplate;
+            insTemplate = NULL;
+            return;
+        }
+
         createNewConfig_ = true;
     }
 };

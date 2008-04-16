@@ -1,0 +1,8 @@
+#!/bin/bash
+rm -rf test{3b{ne,},4b}.dsdb {2,3}.adf
+
+# Compile the initial machine generator estimator plugin.
+pushd . > /dev/null
+cd ../../../../explorer/ && rm -f *.so
+../src/codesign/Explorer/buildexplorerplugin ImmediateGenerator.so ImmediateGenerator.cc > /dev/null
+popd > /dev/null
