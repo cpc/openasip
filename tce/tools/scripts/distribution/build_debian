@@ -30,6 +30,8 @@ cp DEBIAN/* $tempDir/DEBIAN
 echo "Building and installing TCE."
 
 cd $tceRoot
+export CXX="ccache g++"
+export CC="ccache gcc"
 CXXFLAGS="-O3 -g" ./configure && make DESTDIR=$tempDir install || exit 2
 
 cat > $tempDir/DEBIAN/control <<EOF
@@ -39,7 +41,10 @@ Section: devel
 Priority: optional
 Architecture: i386
 Essential: no
-Depends: libwxgtk (>= 2.6-0), libboost-filesystem (>= 1.33.1), libboost-graph (>= 1.33.1), libboost-regex (>= 1.33.1), libboost-thread (>= 1.33.1), tcl (>= 8.4), libedit2, libsqlite (>= 3-0), libxerces27, g++, tce-frontend
+Depends: libwxgtk2.6-0, libboost-filesystem1.33.1,
+         libboost-graph1.33.1, libboost-regex1.33.1, \
+         libboost-thread1.33.1, tcl8.4, libedit2, \
+         libsqlite3-0, libxerces27, g++, tce-frontend
 Pre-Depends: perl 
 Recommends: llvm (=2.1)
 Suggests: kpdf | acroread | evince, sqlite3
