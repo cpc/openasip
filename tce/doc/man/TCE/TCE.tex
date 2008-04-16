@@ -4591,10 +4591,16 @@ implementation of the processor with a VHDL simulator and synthesize it.
 
 For this tutorial you need to download file package from
 \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} and unpack it
-to a working directory.
+to a working directory. Then cd to parallal\_assembly-directory.
 
+First thing to do is to compile the custom operation set calles cos16 shipped
+within the parallal\_assembly-directory. Easiest way to do this is:
 
-Next you will be introduced to TCE assembler language and assembler usage.
+\textit{buildopset cos16}
+
+This should create a file named cos16.opb in the directory.
+
+Now you will be introduced to TCE assembler language and assembler usage.
 Your task is to write TCE assembly code for 2-Dimensional 8 times 8 point 
 Discrete Cosine Transform(DCT\_8x8).
 First take a look at the C code of DCT\_8x8
@@ -4637,14 +4643,22 @@ Compilation of the example code is done by command:
 
 \textit{tceasm \ -o \ example.tpef \ dct\_8x8\_16\_bit\_with\_sfus.adf \  example.tceasm}
 
-and the compiled tceasm code can be simulated with TCE
+Notice that the assembler will give some warnings saying that ``Source is
+wider than destination.'' but these can be ignored.
+
+The compiled tceasm code can be simulated with TCE
 simulator, ttasim or proxim(GUI).
  
 \textit{ttasim -a \ dct\_8x8\_16\_bit\_with\_sfus.adf -p example.tpef} , or  
 
 \textit{proxim \ dct\_8x8\_16\_bit\_with\_sfus.adf example.tpef}
 
-Check the result of example code with command:
+It is recommended to use proxim because it is more illustrating to track the
+execution with it. Especially if you open the Machine Window (View -> Machine
+Window) and step through the program.
+
+Check the result of example code with command (you can also write this in
+proxim's command line at the bottom of the main window):
 
 \textit{x /a IODATA /n 1 /u b 2}. 
 
