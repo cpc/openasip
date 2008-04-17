@@ -27,7 +27,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>32</width>
+      <width>2</width>
     </short-immediate>
   </bus>
 
@@ -38,7 +38,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>32</width>
+      <width>2</width>
     </short-immediate>
   </bus>
 
@@ -49,18 +49,34 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>32</width>
+      <width>2</width>
     </short-immediate>
   </bus>
 
   <bus name="B1_3">
     <width>32</width>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>bool</name>
+          <index>0</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>bool</name>
+          <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
     <segment name="seg1">
       <writes-to/>
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>32</width>
+      <width>2</width>
     </short-immediate>
   </bus>
 
@@ -130,14 +146,6 @@
       <bus>B1_1</bus>
       <segment>seg1</segment>
     </reads-from>
-    <reads-from>
-      <bus>B1_2</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_3</bus>
-      <segment>seg1</segment>
-    </reads-from>
   </socket>
 
   <socket name="alu_comp_i2">
@@ -149,14 +157,6 @@
       <bus>B1_1</bus>
       <segment>seg1</segment>
     </reads-from>
-    <reads-from>
-      <bus>B1_2</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_3</bus>
-      <segment>seg1</segment>
-    </reads-from>
   </socket>
 
   <socket name="alu_comp_o1">
@@ -166,14 +166,6 @@
     </writes-to>
     <writes-to>
       <bus>B1_1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_2</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_3</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -636,38 +628,22 @@
 
   <socket name="RF_i1">
     <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_1</bus>
+      <bus>B1_3</bus>
       <segment>seg1</segment>
     </reads-from>
     <reads-from>
       <bus>B1_2</bus>
-      <segment>seg1</segment>
-    </reads-from>
-    <reads-from>
-      <bus>B1_3</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
   <socket name="RF_o1">
     <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_1</bus>
+      <bus>B1_3</bus>
       <segment>seg1</segment>
     </writes-to>
     <writes-to>
       <bus>B1_2</bus>
-      <segment>seg1</segment>
-    </writes-to>
-    <writes-to>
-      <bus>B1_3</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
@@ -784,6 +760,43 @@
       <bus>B1_3</bus>
       <segment>seg1</segment>
     </reads-from>
+  </socket>
+
+  <socket name="IMM_o1">
+    <writes-to>
+      <bus>B1_3</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="S1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="S2">
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <function-unit name="lsu">
@@ -1532,12 +1545,12 @@
     <address-space/>
   </function-unit>
 
-  <register-file name="RF">
+  <register-file name="RF1">
     <type>normal</type>
-    <size>5</size>
+    <size>6</size>
     <width>32</width>
-    <max-reads>2</max-reads>
-    <max-writes>2</max-writes>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
     <port name="wr">
       <connects-to>RF_i1</connects-to>
     </port>
@@ -1557,6 +1570,20 @@
     </port>
     <port name="rd">
       <connects-to>bool_o1</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="RF2">
+    <type>normal</type>
+    <size>6</size>
+    <width>32</width>
+    <max-reads>2</max-reads>
+    <max-writes>2</max-writes>
+    <port name="wr">
+      <connects-to>S2</connects-to>
+    </port>
+    <port name="rd">
+      <connects-to>S1</connects-to>
     </port>
   </register-file>
 
@@ -1609,5 +1636,36 @@
     <delay-slots>3</delay-slots>
     <guard-latency>1</guard-latency>
   </global-control-unit>
+
+  <immediate-unit name="IMM">
+    <type>normal</type>
+    <size>1</size>
+    <width>32</width>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
+    <extension>zero</extension>
+    <port name="out">
+      <connects-to>IMM_o1</connects-to>
+    </port>
+    <template name="no_limm"/>
+    <template name="limm">
+      <slot>
+        <name>B1</name>
+        <width>8</width>
+      </slot>
+      <slot>
+        <name>B1_1</name>
+        <width>8</width>
+      </slot>
+      <slot>
+        <name>B1_2</name>
+        <width>8</width>
+      </slot>
+      <slot>
+        <name>B1_3</name>
+        <width>8</width>
+      </slot>
+    </template>
+  </immediate-unit>
 
 </adf>

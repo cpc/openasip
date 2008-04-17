@@ -4,14 +4,10 @@
  * Compile the .bc with -O0.
  */
 
-#include <assert.h>
-
 volatile int b = 0x00AAAAAA;
+volatile int res = 0;
 
 int main() {
-    int a, res;
-    a = 0x0000FFFF;
-    res = a & b;
-    printf("res == %d\n", res);
-    return 0;
+    res = b & 0x0000FFFF;
+    return res;
 }

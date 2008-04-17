@@ -76,17 +76,21 @@ Options:
                        -x switch *is* set.		       
   sequential_program   Universal tpef binary, if wanted that test is ran
                        when -x switch *is not* set.
+  simulate.ttasim      Lines to feed into ttasim to simulate and dump
+                       verification output. If exists, no run command is given
+		       by the tester but only the commands from this file
+		       are executed.
   ----------------------------------------------------------------------------
 """
 
 # Access the options globally from everywhere.
 rootDir = os.path.dirname(os.path.abspath(sys.argv[0]))
-ADFDir = rootDir + "/ADF"
-operationDir = rootDir + "/Operations"
-schedulerExe = rootDir + "/" + schedulerExe
-simulatorExe = rootDir + "/" + simulatorExe
-tceccExe = rootDir + "/" + tceccExe
-schedulerConfDir = rootDir + "/../passes"
+ADFDir = os.path.normpath(rootDir + "/ADF")
+operationDir = os.path.normpath(rootDir + "/Operations")
+schedulerExe = os.path.normpath(rootDir + "/" + schedulerExe)
+simulatorExe = os.path.normpath(rootDir + "/" + simulatorExe)
+tceccExe = os.path.normpath(rootDir + "/" + tceccExe)
+schedulerConfDir = os.path.normpath(rootDir + "/../passes")
 
 # LLVM compiler can be enabled with switch '-x'
 useLLVM = False
