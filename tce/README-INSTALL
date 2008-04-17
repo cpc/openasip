@@ -152,5 +152,5 @@ Fedora Core 8     [Otto]
 TCE on 64-bit distributions
 ===========================
 If you compile LLVM 2.1 from sources you should give --enable-pic option for
-the configure script. Otherwise compilation of TCE might fail.
+the LLVM's configure script. Otherwise compilation of TCE might fail.
 
