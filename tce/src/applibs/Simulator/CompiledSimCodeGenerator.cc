@@ -1231,7 +1231,7 @@ CompiledSimCodeGenerator::generateAddFUResult(
     // If no more pending results are coming outside or inside the basic block,
     // no guard of any kind and result will be ready in the same basic block,
     // then static latency simulation can be done.
-    if ((instructionNumber_ > bbStart + fu.maxLatency())
+    if ((writeTime >= bbStart + fu.maxLatency())
         && lastGuardBool_.empty() && resultInSameBasicBlock 
         && (writeTime > lastWrite) && attemptStaticLatencySimulation) {
         staticSimulationPossible = true;
