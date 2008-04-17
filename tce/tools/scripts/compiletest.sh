@@ -183,6 +183,9 @@ Inconsistency.detected.by.ld\.so:.*Assertion.*"
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*"
 
+MAIL_FILTER="\
+Differences.found.in.inputs.and.outputs.are.stored.into.*"
+
 UNIT_TEST_WARNINGS="\
 $WARNINGS|\
 .*failed.*|\
@@ -841,7 +844,7 @@ function compile_test_with_all_compilers {
             echo "---" >> ${ERROR_LOG_FILE}
             echo "Testing started at: ${LOG_TIMESTAMP}" >> ${ERROR_LOG_FILE}
             echo "This error log was sent at: $(date +"%d.%m.%y %H:%M")" >> ${ERROR_LOG_FILE}
-            tail -n ${LINES_FROM_ERROR_LOG} $ERROR_LOG_FILE | eval $MAILER 
+            tail -n ${LINES_FROM_ERROR_LOG} $ERROR_LOG_FILE | grep -vEx "${MAIL_FILTER}" | eval $MAILER 
         fi
     else
         echo "OK." >> $LOG_FILE

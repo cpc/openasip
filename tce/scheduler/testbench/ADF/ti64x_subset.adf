@@ -121,7 +121,7 @@
     </segment>
     <short-immediate>
       <extension>zero</extension>
-      <width>16</width>
+      <width>0</width>
     </short-immediate>
   </bus>
 

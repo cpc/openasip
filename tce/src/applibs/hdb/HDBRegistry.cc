@@ -118,8 +118,9 @@ HDBRegistry::hdbCount() {
 }
 
 /*
- * Searches and loads all HDB:s found in Environment paths. Stores erros
- * caught in loading HDBs.
+ * Searches and loads all HDB:s found in Environment paths. 
+ *
+ * Stores erros caught in loading HDBs.
  */
 void
 HDBRegistry::loadFromSearchPaths() {

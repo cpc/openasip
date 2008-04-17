@@ -127,9 +127,13 @@ repositories.
 
 The environments are as follows.
 
-Debian Sid on Pentium 3
 Debian Etch on AMD Athlon 1GHz
-Debian Etch on HP-PA
+Debian Sid on Intel Core 2 Duo
+CentOS 5 on Intel Core 2 Duo
+Fedora Core 8 on Pentium D
+Ubuntu 6.06 (Dapper Drake) on Intel Core 2 Duo
+Ubuntu 8.04 (Hardy Heron) on Intel Core 2 Duo
+
 
 Semi-supported Linux distributions
 ==================================
@@ -148,4 +152,5 @@ Fedora Core 8     [Otto]
 TCE on 64-bit distributions
 ===========================
 If you compile LLVM 2.1 from sources you should give --enable-pic option for
-the configure script. Otherwise compilation of TCE might fail.
+the LLVM's configure script. Otherwise compilation of TCE might fail.
+
