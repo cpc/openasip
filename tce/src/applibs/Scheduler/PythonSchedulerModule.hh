@@ -30,6 +30,8 @@
 #include "StartableSchedulerModule.hh"
 #include "HelperSchedulerModule.hh"
 
+#include "tce_config.h"
+
 #ifdef PYTHON_ENABLED
 #include <boost/python.hpp>
 #endif
