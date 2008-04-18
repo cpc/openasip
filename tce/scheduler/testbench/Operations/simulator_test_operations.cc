@@ -11,7 +11,7 @@
 #include <ios>
 
 #include "OSAL.hh"
-
+#include "OperationGlobals.hh"
 
 //////////////////////////////////////////////////////////////////////////////
 // STDOUT - treats the only input as a char and prints it to the output stream

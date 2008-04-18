@@ -65,7 +65,7 @@ TerminalFUPort::TerminalFUPort(HWOperation &operation, int opIndex)
     // opcode is NullOperation instance if operation for that name was not
     // found
     try {
-        opcode_ = &pool.operation(operation_->name());
+        opcode_ = &pool.operation(operation_->name().c_str());
     } catch (const Exception& e) {
         IllegalParameters ip(
             __FILE__, __LINE__, __func__, 

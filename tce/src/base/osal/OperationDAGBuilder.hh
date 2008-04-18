@@ -33,7 +33,7 @@ private:
     typedef std::pair<TerminalNode*, int> TerminalBinding;
     
     void parseNode(const TokenizerData::TokenTreeNode* node);
-    void createOperationNode(std::string operation);
+    void createOperationNode(const std::string& operation);
 
     void connectOperandToNode(
         const TokenizerData::TokenTreeNode* var, int operandIndex);

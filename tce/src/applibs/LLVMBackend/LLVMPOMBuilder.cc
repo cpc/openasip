@@ -871,7 +871,7 @@ LLVMPOMBuilder::emitInstruction(
     }
 
     OperationPool pool;
-    const Operation& operation = pool.operation(opName);
+    const Operation& operation = pool.operation(opName.c_str());
     HWOperation* op = fu->operation(opName);
 
     ExecutionPipeline::OperandSet useOps = op->pipeline()->readOperands();

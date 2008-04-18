@@ -90,7 +90,7 @@ OperationPool::cleanupCache() {
  * @return The wanted operation.
  */
 Operation&
-OperationPool::operation(const std::string& name) {
+OperationPool::operation(const char* name) {
   
     OperationTable::iterator it = 
         operationCache_.find(StringTools::stringToLower(name));

@@ -30,6 +30,7 @@
 #include "SimulatorToolbox.hh"
 #include "SimulatorFrontend.hh"
 #include "SimulatorInterpreter.hh"
+#include "OperationGlobals.hh"
 
 using std::set;
 using std::vector;
@@ -47,7 +48,7 @@ DesignSpaceExplorer::DesignSpaceExplorer() {
     schedulingPlan_ = 
         SchedulingPlan::loadFromFile(Environment::defaultSchedulerConf());
     oStream_ = new std::ostringstream;
-    OperationBehavior::setOutputStream(*oStream_);
+    OperationGlobals::setOutputStream(*oStream_);
 }
 
 /**

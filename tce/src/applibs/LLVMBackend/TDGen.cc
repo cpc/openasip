@@ -587,7 +587,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
         if (r != requiredOps.end()) {
             requiredOps.erase(r);
         }
-        Operation& op = opPool.operation(*iter);
+        Operation& op = opPool.operation((*iter).c_str());
         if (&op == &NullOperation::instance()) {
             // Unknown operation: skip
             continue;
@@ -604,7 +604,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
     iter = requiredOps.begin();
     for (; iter != requiredOps.end(); iter++) {
 
-        const Operation& op = opPool.operation(*iter);       
+        const Operation& op = opPool.operation((*iter).c_str());       
 
         if (&op == &NullOperation::instance()) {
             std::string msg = "Required OP '" + *iter + "' not found.";

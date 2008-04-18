@@ -280,8 +280,8 @@ OperationDAGDialog::updateDAG() {
             unsigned int height = dotImage_->GetHeight();
             
             // calculate virtual area and rounding the result up
-            width = float(width) / 20 + 0.5;
-            height = float(height) / 20 + 0.5;
+            width = static_cast<unsigned int>(float(width) / 20 + 0.5);
+            height = static_cast<unsigned int>(float(height) / 20 + 0.5);
 
             dagWindow_->SetSize(-1, -1, 50, 50);
             dagWindow_->SetScrollbars(20, 20, width, height);

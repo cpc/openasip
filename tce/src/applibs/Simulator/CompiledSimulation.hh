@@ -10,17 +10,15 @@
 #ifndef COMPILED_SIMULATION_HH
 #define COMPILED_SIMULATION_HH
 
-#include "Machine.hh"
-#include "MemorySystem.hh"
 #include "SimulatorConstants.hh"
 #include "SimValue.hh"
 #include "OperationPool.hh"
 
 #include <map>
 
-
 namespace TTAMachine {
     class Machine;
+    class FunctionUnit;
 }
 
 namespace TTAProgram {
@@ -29,6 +27,7 @@ namespace TTAProgram {
 
 class SimulatorFrontend;
 class DirectAccessMemory;
+class MemorySystem;
 
 
 /**
@@ -165,9 +164,6 @@ protected:
     /// Is the simulation finished?
     bool isFinished_;
 
-    /// Function unit navigator
-    const TTAMachine::Machine::FunctionUnitNavigator fuNavigator_;
-    
     /// A flag for FU conflict detection
     bool conflictDetected_;
 

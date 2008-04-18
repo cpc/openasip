@@ -59,7 +59,7 @@ public:
     typedef std::set<std::string> OperationSet;
 
     static OperationDAGList findDags(
-        std::string opName, OperationSet opSet);
+        const std::string& opName, OperationSet opSet);
     
     static OperationDAG* createExpandedDAG(
         const Operation& op, OperationSet& opSet);

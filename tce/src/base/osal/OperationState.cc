@@ -66,7 +66,7 @@ const std::string NULL_ERROR_MESSAGE =
  *
  * @return Empty string.
  */
-std::string
+const char*
 NullOperationState::name() {
     return "";
 }

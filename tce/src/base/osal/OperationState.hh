@@ -11,9 +11,6 @@
 #ifndef TTA_OPERATION_STATE_HH
 #define TTA_OPERATION_STATE_HH
 
-#include <string>
-#include <vector>
-
 class OperationContext;
 class SimValue;
 
@@ -28,7 +25,7 @@ public:
     OperationState();
     virtual ~OperationState();
 
-    virtual std::string name() = 0;
+    virtual const char* name() = 0;
     virtual bool isAvailable(const OperationContext& context) const;
     virtual void advanceClock(OperationContext& context);
 };
@@ -44,7 +41,7 @@ class NullOperationState : public OperationState {
 public:
     static NullOperationState* instance();
 
-    virtual std::string name();
+    virtual const char* name();
     virtual bool isAvailable(const OperationContext& context) const;
     virtual void advanceClock(OperationContext& context);
 

@@ -67,7 +67,8 @@ public:
         const TTAProgram::Program& program,
         const TTASimulationController& controller,
         bool sequentialSimulation,
-        bool fuResourceConflictDetection);
+        bool fuResourceConflictDetection,
+        bool basicBlockPerFile);
 
     virtual ~CompiledSimCodeGenerator();
     
@@ -154,7 +155,10 @@ private:
     const TTAMachine::ControlUnit& gcu_;
     
     /// Is the simulation sequential code or not
-    bool isSequentialSimulation_;    
+    bool isSequentialSimulation_;
+    /// Should the generator generate only one basic block per code file
+    bool basicBlockPerFile_;
+    
     /// Name of the class to be created
     std::string className_;
 

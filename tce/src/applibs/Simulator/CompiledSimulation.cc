@@ -14,6 +14,7 @@
 #include "SimulationEventHandler.hh"
 #include "SymbolGenerator.hh"
 #include "DirectAccessMemory.hh"
+#include "MemorySystem.hh"
 
 using namespace TTAMachine;
 
@@ -46,7 +47,6 @@ CompiledSimulation::CompiledSimulation(
     cyclesToSimulate_(MAX_CYCLES),                  
     stopRequested_(false),
     isFinished_(false),
-    fuNavigator_(machine.functionUnitNavigator()),
     conflictDetected_(false),
     machine_(machine),
     entryAddress_(entryAddress),
@@ -282,7 +282,7 @@ bool CompiledSimulation::isFinished() const {
 TTAMachine::FunctionUnit& 
 CompiledSimulation::functionUnit(const std::string& name) const
     throw (InstanceNotFound) {
-    return *fuNavigator_.item(name);
+    return *machine_.functionUnitNavigator().item(name);
 }
 
 /**
@@ -295,9 +295,10 @@ CompiledSimulation::functionUnit(const std::string& name) const
 DirectAccessMemory& 
 CompiledSimulation::FUMemory(const std::string& FUName) const 
     throw (InstanceNotFound) {
-    assert (fuNavigator_.item(FUName)->addressSpace() != NULL);
+    assert (machine_.functionUnitNavigator().item(FUName)->addressSpace() 
+        != NULL);
     return dynamic_cast<DirectAccessMemory&>(memorySystem()->memory(
-        *fuNavigator_.item(FUName)->addressSpace()));
+        *machine_.functionUnitNavigator().item(FUName)->addressSpace()));
 }
 
 /**
