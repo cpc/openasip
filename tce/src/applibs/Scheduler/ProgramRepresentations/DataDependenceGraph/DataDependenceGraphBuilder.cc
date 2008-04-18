@@ -11,6 +11,7 @@
 
 #include "AssocTools.hh"
 #include "ContainerTools.hh"
+#include "StringTools.hh"
 
 #include "Program.hh"
 #include "Procedure.hh"
@@ -26,6 +27,7 @@
 #include "UnboundedRegisterFile.hh"
 #include "MoveGuard.hh"
 #include "Guard.hh"
+#include "MoveNodeSet.hh"
 
 #include "ControlFlowGraph.hh"
 #include "ControlFlowEdge.hh"
@@ -58,9 +60,7 @@ class BasicBlockNode;
 DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
     processOrder_(0), entryNode_(NULL) {
 
-    // temporarily disabled  because of fix for bug 471 breaks this.
-    // re-enabled when better fix available
-//    addAliasAnalyzer(new ConstantAliasAnalyzer);
+    addAliasAnalyzer(new ConstantAliasAnalyzer);
 
     // uncommenting the following line results in faster but
     // broken code. just for testing theoritical benefits.
@@ -980,6 +980,51 @@ DataDependenceGraphBuilder::trName(TerminalRegister& tr) {
         Conversion::toString(tr.index());
 }
 
+
+/**
+ * Gets the address-writing move of a move which is a trigger or operand
+ * to a memory operation.
+ *
+ * If none found, return null
+ *
+ * @param mn moveNode whose address write move is being searched.
+ * @return MoveNode which writes address to a mem operation or NULL.
+ */
+MoveNode* DataDependenceGraphBuilder::addressMove(const MoveNode& mn) {
+    if (mn.isDestinationOperation()) {
+        return addressOperandMove(mn.destinationOperation());
+    }
+    return NULL;
+}
+
+/**
+ * Gets the address-writing move of a ProgramOperation which is a memory
+ * operation.
+ *
+ * If none found, return null
+ *
+ * @param po programOperation whose address write move is being searched.
+ * @return MoveNode which writes address to a mem operation or NULL.
+ */
+
+MoveNode* DataDependenceGraphBuilder::addressOperandMove(
+    ProgramOperation&po) {
+    std::string opName = StringTools::stringToUpper(po.operation().name());
+    if (opName == "STW" || opName == "STH" || opName == "STHU" || 
+        opName == "STQ" || opName == "STHU" || opName == "STQU" ||
+        opName == "LDW" || opName == "LDH" || opName == "LDHU" ||
+        opName == "LDQ" || opName == "LDQU") {
+        MoveNodeSet& mns = po.inputNode(1);
+        if (mns.count() > 1) {
+            return NULL;
+        } else {
+            return &mns.at(0);
+        }
+    }
+    return NULL;
+}
+
+
 /**
  * Compares a memory op against one previous memory ops and
  * creates dependence if may alias.
@@ -996,13 +1041,18 @@ DataDependenceGraphBuilder::checkAndCreateMemDep(
     // TODO: this should be done for addresses always.
     MemoryAliasAnalyzer::AliasingResult aliasResult = 
         MemoryAliasAnalyzer::ALIAS_UNKNOWN;
-/* temporary woraround for buggy for of bug471. 
+
+    // only for true stores and loads
     if (!prev.pseudo_ && !mnd.pseudo_) {
-        aliasResult = analyzeMemoryAlias(*prev.mn_, *mnd.mn_);
+        MoveNode* currentAddress = addressMove(*mnd.mn_);
+        MoveNode* prevAddress = addressMove(*prev.mn_);
+        
+        if (currentAddress != NULL && prevAddress != NULL) {
+            aliasResult = analyzeMemoryAlias(prevAddress, currentAddress);
+        }
     }
         
     if (aliasResult != MemoryAliasAnalyzer::ALIAS_FALSE) {
-*/
         bool trueAlias = (aliasResult == MemoryAliasAnalyzer::ALIAS_TRUE);
         ProgramOperation& prevPo = prev.mn_->destinationOperation();
         for (int i = 0; i < prevPo.inputMoveCount(); i++) {
@@ -1013,8 +1063,8 @@ DataDependenceGraphBuilder::checkAndCreateMemDep(
             currentDDG_->connectOrDeleteEdge(
                 prevPo.inputMove(i), *mnd.mn_, dde2);
         }
-//        return trueAlias;
-//    }
+        return trueAlias;
+    }
     return false;
 }
 
@@ -1053,7 +1103,7 @@ DataDependenceGraphBuilder::processMemWrite(
     if (currentData_->memKill_.mn_ == NULL) {
         // is this a kill?
         if (mnd.mn_->move().isUnconditional() &&
-            !addressTraceable(*mnd.mn_)) {
+            !addressTraceable(addressMove(*mnd.mn_))) {
             currentData_->memKill_ = mnd;
         }
         // may have incoming WaW's / WaRs to this
@@ -1074,7 +1124,7 @@ DataDependenceGraphBuilder::processMemWrite(
 
     // does this kill previous deps?
     if (mnd.mn_->move().isUnconditional() &&
-        !addressTraceable(*mnd.mn_)) {
+        !addressTraceable(addressMove(*mnd.mn_))) {
         currentData_->memLastKill_ = mnd;
         currentData_->memDefines_.clear();
     }
@@ -1085,27 +1135,13 @@ DataDependenceGraphBuilder::processMemWrite(
 
 
 /**
- * Analyze write to a trigger of an operation.
- *
- * Participates in ProgramOperation building.
- * Calls createTriggerDependencies(moveNode, dop) to create 
- * the dependence egdes of the operation.
- * Checks if operation is call and if it is, processes the call-related
- * register dependencies.
- * 
- * @param moveNode mnData related to a move which triggers an operation
- * @param dop Operation being triggered
+ * Handles ProgramOperation creation for a triggering mvoe.
  */
-void
-DataDependenceGraphBuilder::processTrigger(
-    MoveNode& moveNode, Operation &dop) 
-    throw (IllegalProgram) {
-
-    createTriggerDependencies(moveNode, dop);
-
+void DataDependenceGraphBuilder::processTriggerPO(
+    MoveNode& moveNode, Operation &dop) throw (IllegalProgram) {
     for (POLIter poli = currentData_->destPending_.begin();
-            poli != currentData_->destPending_.end();
-            poli++) {
+         poli != currentData_->destPending_.end();
+         poli++) {
         ProgramOperation* po = *poli;
 
         if (&dop == &po->operation()) {
@@ -1142,6 +1178,29 @@ DataDependenceGraphBuilder::processTrigger(
             __FILE__,__LINE__, __func__, 
             std::string("Trigger without operand in ") + moveDisasm);
     }
+}
+
+/**
+ * Analyze write to a trigger of an operation.
+ *
+ * Participates in ProgramOperation building.
+ * Calls createTriggerDependencies(moveNode, dop) to create 
+ * the dependence egdes of the operation.
+ * Checks if operation is call and if it is, processes the call-related
+ * register dependencies.
+ * 
+ * @param moveNode mnData related to a move which triggers an operation
+ * @param dop Operation being triggered
+ */
+void
+DataDependenceGraphBuilder::processTrigger(
+    MoveNode& moveNode, Operation &dop) 
+    throw (IllegalProgram) {
+
+    processTriggerPO(moveNode, dop);
+
+    createTriggerDependencies(moveNode, dop);
+
     if (moveNode.move().isCall()) {
         processCall(moveNode);
     }
@@ -1354,14 +1413,17 @@ void DataDependenceGraphBuilder::createSideEffectEdges(
  */
 MemoryAliasAnalyzer::AliasingResult
 DataDependenceGraphBuilder::analyzeMemoryAlias(
-    const MoveNode& mn1, const MoveNode& mn2) {
+    const MoveNode* mn1, const MoveNode* mn2) {
 
     MemoryAliasAnalyzer::AliasingResult result = 
         MemoryAliasAnalyzer::ALIAS_UNKNOWN;
-    for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
-        result = aliasAnalyzers_[i]->analyze(*currentDDG_, mn1, mn2);
-        if (result != MemoryAliasAnalyzer::ALIAS_UNKNOWN) {
-            return result;
+
+    if (mn1 != NULL && mn2 != NULL) {
+        for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
+            result = aliasAnalyzers_[i]->analyze(*currentDDG_, *mn1, *mn2);
+            if (result != MemoryAliasAnalyzer::ALIAS_UNKNOWN) {
+                return result;
+            }
         }
     }
     return result;
@@ -1375,7 +1437,8 @@ DataDependenceGraphBuilder::analyzeMemoryAlias(
  * Constructor
  */
 DataDependenceGraphBuilder::BBData::BBData(BasicBlockNode& bb) :
-    state2_(BB_UNREACHED2), constructed_(false), bblock_(&bb) {
+    state2_(BB_UNREACHED2), constructed_(false), bblock_(&bb) , memLastKill_(),
+    memKill_() {
 }
 
 /**
@@ -1502,9 +1565,14 @@ DataDependenceGraphBuilder::getStaticRegisters(
  * @return true if some alias analyzer knows something about the address.
  */
 bool 
-DataDependenceGraphBuilder::addressTraceable(const MoveNode& mn) {
+DataDependenceGraphBuilder::addressTraceable(const MoveNode* mn) {
+
+    if (mn == NULL) {
+        return false;
+    }
+
     for (unsigned int i = 0; i < aliasAnalyzers_.size(); i++) {
-        if (aliasAnalyzers_.at(i)->addressTraceable(mn)) {
+        if (aliasAnalyzers_.at(i)->addressTraceable(*mn)) {
             return true;
         }
     }
