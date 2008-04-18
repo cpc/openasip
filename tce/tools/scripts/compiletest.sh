@@ -184,7 +184,8 @@ SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*"
 
 MAIL_FILTER="\
-Differences.found.in.inputs.and.outputs.are.stored.into.*"
+Differences.found.in.inputs.and.outputs.are.stored.into.*|\
+$"
 
 UNIT_TEST_WARNINGS="\
 $WARNINGS|\
