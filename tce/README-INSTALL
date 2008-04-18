@@ -128,11 +128,11 @@ repositories.
 The environments are as follows.
 
 Debian Etch on AMD Athlon 1GHz
-Debian Sid on Intel Core 2 Duo
+Debian Sid x86-64 on Intel Core 2 Duo
 CentOS 5 on Intel Core 2 Duo
 Fedora Core 8 on Pentium D
 Ubuntu 6.06 (Dapper Drake) on Intel Core 2 Duo
-Ubuntu 8.04 (Hardy Heron) on Intel Core 2 Duo
+Ubuntu 8.04 (Hardy Heron) x86-64 on Intel Core 2 Duo
 
 
 Semi-supported Linux distributions

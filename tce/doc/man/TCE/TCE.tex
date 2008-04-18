@@ -4719,7 +4719,8 @@ assembler\_tutorial.tpef < input\_command.txt > dump.txt}
 
 After this you should use sed to divide the memory dump into separete lines
 to help comparison between your output and the reference output. Use the
-following command to do this:
+following command to do this (notice that there is an empty space between the
+first two slashes of the sed expression):
 
 \textit{cat dump.txt | sed 's/ /$\backslash$n/g' > output.txt}
 
