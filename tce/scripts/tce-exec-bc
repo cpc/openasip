@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# Schedules the given LLVM bitcode (2nd argument) to the target (1st argument)
+# and simulates it with ttasim. 3rd argument is a simulation script.
+tempTarget=$(mktemp /tmp/llvm-tce.tpef.XXXXXXXX)
+llvm-tce -O0 -a $1 -o $tempTarget $2
+ttasim -a $1 -p $tempTarget #< simulate.ttasim
+rm -f $tempTarget

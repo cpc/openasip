@@ -1,8 +1,8 @@
 <?php
 // short test description
-$test_description="Scheduling short test cases with default_scheduler.conf";
+$test_description="Scheduling short test cases with old_gcc.conf";
 $test_bin = "../../../scheduler/testbench/scheduler_tester.py";
-$bin_args = "-c ../../../scheduler/passes/default_scheduler.conf -vr ".
+$bin_args = "-c ../../../scheduler/passes/old_gcc.conf -vr ".
     "-a 3_bus_short_immediate_fields_and_reduced_connectivity.adf ".
     "-a 10_bus_full_connectivity.adf";							    
 ?>

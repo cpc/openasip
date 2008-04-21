@@ -495,9 +495,9 @@ if options.adf_file != "":
 
     #### Compile to unscheduled mixed code for the target architecture
     if not runningInstalled:
-        command = srcRoot + "/bintools/Compiler/llvm-tce/llvmtce"
+        command = srcRoot + "/bintools/Compiler/llvm-tce/llvm-tce"
     else:
-        command = "llvmtce"
+        command = "llvm-tce"
         
     if options.debug is True:
         command += " --debug"
