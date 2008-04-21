@@ -503,14 +503,28 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
     const int immediateBitWidth = 
         MachineConnectivityCheck::requiredImmediateWidth(false, immediate);
 
-    // try to find a RF which is connected to the bus with immediate 
-    // capabilities and the destination port
-    const TTAMachine::RegisterFile* connectionRF = NULL;
-    const TTAMachine::RegisterFile* fallBackRF = NULL;
-    const TTAMachine::RegisterFile* sourceConnectedRF = NULL;
-    int connectionIndex = -1;
-    int sourceConnectedIndex = -1;
-    int fallBackIndex = -1;
+
+    /* Find out an RF that is connected to the target (targetConnectedRF) and
+       an RF that can read the immediate.
+
+       Always do at least a single temp move to a temp RF. 
+
+       In case there is no immediate slot to the RF and the machine has
+       an IU, it will be converted to 
+
+       IMM ->IU -> RF -> DEST during resource assignment. 
+       
+       In case there is an RF than can read the IMM but not write to dest,
+       and there is no IU, we need additional temp reg, thus producing:
+
+       IMM -> RF1 -> RF2 -> DEST
+    */
+
+    const TTAMachine::RegisterFile* immediateTargetRF = NULL;
+    int immediateTargetIndex = -1;
+
+    const TTAMachine::RegisterFile* targetConnectedRF = NULL;
+    int targetConnectedIndex = -1;
 
     int correctSizeTempsFound = 0;
     for (std::size_t i = 0; i < tempRegs.size(); ++i) {
@@ -520,92 +534,69 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
         }
         ++correctSizeTempsFound;
         if (MachineConnectivityCheck::canTransportImmediate(immediate, rf)) {
-            sourceConnectedRF = &rf;
-            sourceConnectedIndex = tempRegs.at(i).second;
-            if (MachineConnectivityCheck::isConnected(rf, destinationPort)) {
-                /// @todo check that the buses support the guard of the
-                /// original move
-                connectionRF = &rf;
-                connectionIndex = tempRegs.at(i).second;
+            immediateTargetRF = &rf;
+            immediateTargetIndex = tempRegs.at(i).second;
+        }
+        if (MachineConnectivityCheck::isConnected(rf, destinationPort)) {
+            /// @todo check that the buses support the guard of the
+            /// original move
+            targetConnectedRF = &rf;
+            targetConnectedIndex = tempRegs.at(i).second;
+            if (immediateTargetRF == targetConnectedRF) {
+                // found a RF that can take in immediate and write to the
+                // destination
                 break;
             }
-        } else {
-            fallBackRF = &rf;
-            fallBackIndex = tempRegs.at(i).second;
-        }
+        }        
     }
 
     assert(
         correctSizeTempsFound > 0 && 
         "Register allocator didn't reserve a large enough temp reg!");
 
-    /* In case no RF was found, it is possible that there was no bus
-       that could transfer the given immediate, thus it does not really
-       matter which RF choose here, as the immediate will be transferred
-       to the IU first anyways, thus IMM -> dst will be converted to
-       IU -> dst, from IU there should be a connection to all RFs, due to
-       the TCE connectivity restriction. */
-    if (sourceConnectedRF == NULL) {
-        sourceConnectedRF = fallBackRF;
-        connectionRF = fallBackRF;
-        connectionIndex = fallBackIndex;
-        sourceConnectedIndex = fallBackIndex;
-    }
+    const bool machineHasIU = 
+        destinationPort.parentUnit()->machine()->
+        immediateUnitNavigator().count() > 0;
 
-    // the RF for the first temp reg copy
-    const TTAMachine::RegisterFile* tempRF1 = NULL;
-    // the RF for the (optional) second temp reg copy
-    const TTAMachine::RegisterFile* tempRF2 = NULL;
+    if (targetConnectedRF == NULL) {
+        if (countOnly) {
+            return INT_MAX;
+        } else {
+            throw IllegalMachine(
+                __FILE__, __LINE__, __func__,
+                (boost::format(
+                    "%s is not connected to any register file, unable to "
+                    "schedule.") % 
+                 destinationPort.parentUnit()->name()).str());
+        }
+    }
 
     int tempRegisterIndex1 = -1;
     int tempRegisterIndex2 = -1;
 
-    if (connectionRF != NULL) {
-        // found a RF for the temporary register (src -> temp1 -> dst)
-        tempRF1 = connectionRF;
-        tempRegisterIndex1 = connectionIndex;
-    } else if (sourceConnectedRF != NULL) {
-        // need two register copies, first add the temp reg copy to the
-        // first RF
-        tempRF1 = sourceConnectedRF;
-        tempRegisterIndex1 = sourceConnectedIndex;
-        // find the second temporary RF (temp1 -> temp2 -> dst)
-        for (std::size_t i = 0; i < tempRegs.size(); i++) {
-            const TTAMachine::RegisterFile& rf = *tempRegs.at(i).first;
-            if (rf.width() < immediateBitWidth) 
-                continue;
-            if (MachineConnectivityCheck::isConnected(*tempRF1, rf) &&
-                MachineConnectivityCheck::isConnected(rf, destinationPort)) {
-                tempRF2 = &rf;
-                tempRegisterIndex2 = tempRegs.at(i).second;
-                break;
-            }
-        }
-    } 
-
-    if (tempRF1 == NULL || (connectionRF == NULL && tempRF2 == NULL)) {
-        if (countOnly)
-            return INT_MAX;
-        else
-            throw IllegalMachine(
-                __FILE__, __LINE__, __func__, 
-                std::string("Cannot schedule ") + originalMove.toString() + 
-                " ensure that all FUs are connected to at least one RF and " +
-                "all RFs are connected to each other. " + 
-                destinationPort.parentUnit()->name() + " cannot be reached.");
-    }
-
     int regsRequired = INT_MAX;
-
-    if (tempRF2 != NULL) {
-        regsRequired = 2;
-    } else {
+    // the RF for the first temp reg copy
+    const TTAMachine::RegisterFile* tempRF1 = NULL;
+    // the RF for the (optional) second temp reg copy
+    const TTAMachine::RegisterFile* tempRF2 = NULL;
+    if (targetConnectedRF == immediateTargetRF || machineHasIU) {
+        // enough to just add a IMM -> TEMPRF -> DEST which
+        // gets converted to IMM -> IU -> TEMPRF -> DEST during resource
+        // assignment in case there is no immediate slots to the TEMPRF
+        tempRF1 = targetConnectedRF;
+        tempRegisterIndex1 = targetConnectedIndex;
         regsRequired = 1;
+    } else {
+        // IMM -> TEMPRF1 -> TEMPRF2 -> DEST
+        tempRF1 = immediateTargetRF;
+        tempRegisterIndex1 = immediateTargetIndex;
+        tempRF2 = targetConnectedRF;
+        tempRegisterIndex2 = targetConnectedIndex;
+        regsRequired = 2;
     }
 
-    if (countOnly) {
+    if (countOnly)
         return regsRequired;
-    }
 
     BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);
 
@@ -633,7 +624,6 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
     // create the first temporary move 'src -> temp1'
     // find a connected port in the temp reg file
     const TTAMachine::RFPort* dstRFPort = NULL;
-    const TTAMachine::RFPort* fallBackRFPort = NULL;
     for (int p = 0; p < tempRF1->portCount(); ++p) {
         const TTAMachine::RFPort* RFport = tempRF1->port(p);
         if (MachineConnectivityCheck::canTransportImmediate(
@@ -641,15 +631,11 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
             dstRFPort = RFport;
             break;
         } else {
-            fallBackRFPort = RFport;
+            // any port will do if there is no immediate slots: IU
+            // conversion takes care of the connectivity in that case
+            dstRFPort = RFport;
         }
     }
-    // see comment for the "fall back RF" above, same applies here
-    if (dstRFPort == NULL) {
-        dstRFPort = fallBackRFPort;
-    }
-
-    assert(dstRFPort != NULL);
 
     TTAProgram::TerminalRegister* temp1 =  
         new TTAProgram::TerminalRegister(*dstRFPort, tempRegisterIndex1);

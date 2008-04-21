@@ -357,7 +357,7 @@ OsalInterpreter::operation(const std::string& name) {
 
     if (operation_ == &NullOperation::instance() ||
         operation_->name() != name) {
-        operation_ = &(pool_->operation(name));
+        operation_ = &(pool_->operation(name.c_str()));
     }
 
     TesterContext& testCont = *dynamic_cast<TesterContext*>(&context());

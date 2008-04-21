@@ -81,7 +81,7 @@ main(int argc, char* argv[]) {
     } catch (Exception& e) {
         std::cerr << "Error loading target architecture file '"
                   << targetADF << "':" << std::endl
-                  << e.errorMessage() << std::endl;
+                  << e.errorMessageStack() << std::endl;
 
         return EXIT_FAILURE;
     }
@@ -95,7 +95,7 @@ main(int argc, char* argv[]) {
         } catch (Exception& e) {
             std::cerr << "Error loading scheduler configuration file '"
                       << schedulerConf << "':" << std::endl
-                      << e.errorMessage() << std::endl;
+                      << e.errorMessageStack() << std::endl;
 
             return EXIT_FAILURE;
         }
@@ -141,10 +141,8 @@ main(int argc, char* argv[]) {
         seqProg = NULL;
 
     } catch (Exception& e) {
-        std::cerr << e.errorMessage() << std::endl;
-        if (e.hasCause()) {
-            std::cerr << e.cause().errorMessage() << std::endl;
-        }
+        std::cerr << "Error compiling '" << bytecodeFile << "':" << std::endl
+                  << e.errorMessageStack() << std::endl;
 
         return EXIT_FAILURE;
     }

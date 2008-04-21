@@ -372,7 +372,7 @@ MachineStateBuilder::addVirtualOpcodeSettingPortsToFU(
                 OperationPool& pool = SimulatorToolbox::operationPool();
                 Operation* operation = NULL;
                 try {
-                    operation = &pool.operation(hwOp.name());
+                    operation = &pool.operation(hwOp.name().c_str());
                 } catch (const DynamicLibraryException& e) {
                     throw IllegalMachine(
                         __FILE__, __LINE__, __func__, e.errorMessage());
@@ -648,7 +648,7 @@ MachineStateBuilder::bindPortsToOperands(
     FunctionUnit& unit) throw (IllegalMachine) {
     
     OperationPool& pool = SimulatorToolbox::operationPool();
-    Operation& op = pool.operation(hwOperation.name());
+    Operation& op = pool.operation(hwOperation.name().c_str());
 
     if (&op == &NullOperation::instance()) {
         const string msg = 

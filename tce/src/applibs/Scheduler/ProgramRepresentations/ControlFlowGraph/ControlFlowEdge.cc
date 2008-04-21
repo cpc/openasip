@@ -14,15 +14,13 @@
 /**
  * Constructor creates Control Flow Edge of given type
  *
- * @param edgeID The numerical ID the edge will have
  * @param edgePredicate The truth value of edge (or normal)
  * @param isJump Define if edge represents jump, if false the it is call
  */
 ControlFlowEdge::ControlFlowEdge(
-    const int edgeID,
     CFGEdgePredicate edgePredicate,
     bool isJump) :
-    GraphEdge(edgeID), edgePredicate_(edgePredicate), isJumpEdge_(isJump) {
+    edgePredicate_(edgePredicate), isJumpEdge_(isJump) {
 }
 
 /**

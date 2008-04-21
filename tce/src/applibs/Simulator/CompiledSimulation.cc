@@ -8,14 +8,13 @@
  */
 
 #include "CompiledSimulation.hh"
-#include "CompiledSimCodeGenerator.hh"
 #include "Machine.hh"
-#include "Program.hh"
 #include "Instruction.hh"
 #include "SimulatorFrontend.hh"
 #include "SimulationEventHandler.hh"
 #include "SymbolGenerator.hh"
 #include "DirectAccessMemory.hh"
+#include "MemorySystem.hh"
 
 using namespace TTAMachine;
 
@@ -36,21 +35,22 @@ static const ClockCycleCount MAX_CYCLES =
  */
 CompiledSimulation::CompiledSimulation(
     const TTAMachine::Machine& machine, 
-    const TTAProgram::Program& program,
+    InstructionAddress entryAddress,
+    InstructionAddress lastInstruction,
     SimulatorFrontend& frontend,
     MemorySystem& memorySystem) :
     cycleCount_(0),
     basicBlockCount_(0),
-    jumpTarget_(program.entryAddress().location()),
-    programCounter_(program.entryAddress().location()),
+    jumpTarget_(entryAddress),
+    programCounter_(entryAddress),
     lastExecutedInstruction_(0),
     cyclesToSimulate_(MAX_CYCLES),                  
     stopRequested_(false),
     isFinished_(false),
-    fuNavigator_(machine.functionUnitNavigator()),
     conflictDetected_(false),
     machine_(machine),
-    program_(program),    
+    entryAddress_(entryAddress),
+    lastInstruction_(lastInstruction), 
     memorySystem_(&memorySystem), frontend_(frontend) {
 }
 
@@ -282,7 +282,7 @@ bool CompiledSimulation::isFinished() const {
 TTAMachine::FunctionUnit& 
 CompiledSimulation::functionUnit(const std::string& name) const
     throw (InstanceNotFound) {
-    return *fuNavigator_.item(name);
+    return *machine_.functionUnitNavigator().item(name);
 }
 
 /**
@@ -295,9 +295,10 @@ CompiledSimulation::functionUnit(const std::string& name) const
 DirectAccessMemory& 
 CompiledSimulation::FUMemory(const std::string& FUName) const 
     throw (InstanceNotFound) {
-    assert (fuNavigator_.item(FUName)->addressSpace() != NULL);
+    assert (machine_.functionUnitNavigator().item(FUName)->addressSpace() 
+        != NULL);
     return dynamic_cast<DirectAccessMemory&>(memorySystem()->memory(
-        *fuNavigator_.item(FUName)->addressSpace()));
+        *machine_.functionUnitNavigator().item(FUName)->addressSpace()));
 }
 
 /**

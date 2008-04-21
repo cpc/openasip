@@ -29,9 +29,8 @@ public:
         CDEP_EDGE_FALSE};
 
     ControlDependenceEdge(
-        const int edgeID,
         CDGEdgeType edgeType = CDEP_EDGE_NORMAL) :
-        GraphEdge(edgeID) , edgeType_(edgeType) {}
+        edgeType_(edgeType) {}
 
     virtual ~ControlDependenceEdge();
 

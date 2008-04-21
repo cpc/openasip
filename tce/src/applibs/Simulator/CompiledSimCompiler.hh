@@ -22,7 +22,8 @@ public:
     
     int compileDirectory(
         const std::string& dirName, 
-        const std::string& flags = "-O0") const;
+        const std::string& flags = "-O0",
+        bool verbose = false) const;
     
     int compileFile(
         const std::string& filePath,

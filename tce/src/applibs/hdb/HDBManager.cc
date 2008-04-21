@@ -1890,7 +1890,8 @@ HDBManager::fuArchitectureIDsByOperationSet(
                         "GROUP BY fu_architecture.id ORDER BY "
                         "fu_architecture.id;"));
     } catch (const Exception& e) {
-        debugLog(e.errorMessage());
+        std::string eMsg = ", HDB file where error occurred was: " + hdbFile_;
+        debugLog(e.errorMessage() + eMsg);
         assert(false);
     }
 

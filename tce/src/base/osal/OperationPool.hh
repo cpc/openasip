@@ -15,10 +15,10 @@
 #include <map>
 
 #include "OperationSerializer.hh"
-#include "OperationBehaviorLoader.hh"
-#include "OperationIndex.hh"
 
+class OperationBehaviorLoader;
 class OperationBehaviorProxy;
+class OperationIndex;
 class Operation;
 
 /**
@@ -30,7 +30,7 @@ public:
     OperationPool();
     virtual ~OperationPool();
 
-    Operation& operation(const std::string& name);
+    Operation& operation(const char* name);
     OperationIndex& index();
 
     static void cleanupCache();

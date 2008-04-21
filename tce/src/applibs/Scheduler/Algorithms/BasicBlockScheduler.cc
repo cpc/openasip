@@ -402,6 +402,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
         int earliestDDG = ddg_->earliestCycle(moves.node(i));
 
         if (earliestDDG == INT_MAX) {
+            ddg_->writeToDotFile("failed_bb.dot");
             unscheduleInputOperandTempMoves(moves.node(i));
             throw InvalidData(
                 __FILE__, __LINE__, __func__,
@@ -409,7 +410,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
                 "successfully for '%s' ") % moves.node(i).toString()).str());
         }
 
-        // passed argument could be larger then what DDG thinks is earliest
+        // passed argument could be larger than what DDG thinks is earliest
         earliestDDG = std::max(earliestDDG, cycle);
         int earliest = rm_->earliestCycle(earliestDDG, moves.node(i));
         if (earliest == -1) {
@@ -446,6 +447,12 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
             trigger = firstToSchedule;
         }
         lastOperandCycle = std::max(lastOperandCycle, startCycle);
+    } else {
+        throw InvalidData(
+            __FILE__, __LINE__, __func__,
+            (boost::format(
+                "Unable to schedule '%s' is there enough resources?") 
+             % moves.toString()).str());
     }
 
     minCycle = std::max(minCycle, cycle);
@@ -473,7 +480,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
 
             // in case the operand move requires register copies due to
             // missing connectivity, schedule them first
-            scheduleInputOperandTempMoves(moveNode);
+            scheduleInputOperandTempMoves(moveNode);            
             scheduleMove(moveNode, minCycle);
 
             if (moveNode.isScheduled()) {
@@ -724,21 +731,6 @@ BasicBlockScheduler::scheduleMove(
             moveNode.move().setAnnotation(annotation);    
         }
     } 
-/* SimpleResourceManager.hasConnection() was kludgy, do not use it.
-else if ((!moveNode.isSourceOperation() &&
-        !moveNode.isDestinationOperation())
-        && !rm_->hasConnection(tempSet)) {
-        // Test for connectivity only in case move is register register
-        // All moveNodes of Program Operation are tested at once earlier
-        // Moves with source constant are tester earlier
-        throw InvalidData(
-            __FILE__, __LINE__, __func__,
-            (boost::format("No connection available for move '%s', "
-            "temporary move adder seems to be broken!") % 
-            moveNode.toString()).str());
-    }
-*/
-    
     // annotate the return move otherwise it might get undetected in the
     // simulator after the short to long immediate conversion and thus
     // stopping simulation automatically might not work
@@ -750,8 +742,7 @@ else if ((!moveNode.isSourceOperation() &&
         moveNode.move().setAnnotation(annotation);
     }
     
-    minCycle =
-        rm_->earliestCycle(minCycle, moveNode);
+    minCycle = rm_->earliestCycle(minCycle, moveNode);
     if (minCycle == -1 || minCycle == INT_MAX) {
         if (moveNode.isSourceConstant() &&
             !moveNode.isDestinationOperation() &&

@@ -482,7 +482,7 @@ ControlFlowGraph::createBlock(
     if (leader.address().location() == startAddress_.location()){
         BasicBlockNode* entry = new BasicBlockNode(0, 0, true);
         addNode(*entry);
-        ControlFlowEdge* edge = new ControlFlowEdge(edgeCount());
+        ControlFlowEdge* edge = new ControlFlowEdge;//(edgeCount());
         connectNodes(*entry, *node, *edge);
     }
     blocks_[blockStart] = node;
@@ -534,12 +534,11 @@ ControlFlowGraph::createControlFlowEdge(
             edgePredicate != ControlFlowEdge::CFLOW_EDGE_NORMAL) {
             disconnectNodes(blockSource, blockTarget);
             theEdge = new ControlFlowEdge(
-                edgeCount(), edgePredicate, isJumpEdge);
+                edgePredicate, isJumpEdge);
             connectNodes(blockSource, blockTarget, *theEdge);
         }
     } else {
-        theEdge = new ControlFlowEdge(
-            edgeCount(), edgePredicate, isJumpEdge);
+        theEdge = new ControlFlowEdge(edgePredicate, isJumpEdge);
         connectNodes(blockSource, blockTarget, *theEdge);
     }
     return *theEdge;
@@ -742,7 +741,7 @@ ControlFlowGraph::addExit() {
     for (int i = 0; i < nodeCount(); i++) {
         BasicBlockNode& block(static_cast<BasicBlockNode&>(node(i)));
         if (outDegree(block) == 0 && exit != &block) {
-            ControlFlowEdge* edge = new ControlFlowEdge(edgeCount());
+            ControlFlowEdge* edge = new ControlFlowEdge;
             connectNodes(block, *exit, *edge);
         }
     }
@@ -865,11 +864,11 @@ ControlFlowGraph::addEntryExitEdge() {
     for (unsigned int i = 0; i < fromEntry.size(); i++) {
         disconnectNodes(entry, *(fromEntry[i].first));
         ControlFlowEdge* edge = new ControlFlowEdge(
-            fromEntry[i].second, ControlFlowEdge::CFLOW_EDGE_TRUE);
+            /*fromEntry[i].second,*/ ControlFlowEdge::CFLOW_EDGE_TRUE);
         connectNodes(entry, *(fromEntry[i].first), *edge);
     }
     ControlFlowEdge* edge = new ControlFlowEdge(
-        edgeCount(), ControlFlowEdge::CFLOW_EDGE_FALSE);
+        ControlFlowEdge::CFLOW_EDGE_FALSE);
     connectNodes(entryNode(), exitNode(), *edge);
 }
 
@@ -892,7 +891,7 @@ ControlFlowGraph::removeEntryExitEdge() {
     }
     for (unsigned int i = 0; i < fromEntry.size(); i++) {
         disconnectNodes(entry, *(fromEntry[i].first));
-        ControlFlowEdge* edge = new ControlFlowEdge(fromEntry[i].second);
+        ControlFlowEdge* edge = new ControlFlowEdge; //(fromEntry[i].second);
         connectNodes(entry, *(fromEntry[i].first), *edge);
     }
     disconnectNodes(entryNode(), exitNode());

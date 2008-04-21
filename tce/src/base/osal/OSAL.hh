@@ -27,6 +27,7 @@
 #include "Application.hh"
 #include "Memory.hh"
 #include "OperationPool.hh"
+#include "OperationState.hh"
 
 #include "SimulateTriggerWrappers.icc"
 
@@ -155,7 +156,7 @@ public: \
          context.unregisterState(#STATE_NAME);\
     }\
 \
-    std::string stateName() const {\
+    const char* stateName() const {\
         return #STATE_NAME;\
     }\
 private: \
@@ -191,7 +192,7 @@ public:
 #define DEFINE_STATE(STATE_NAME) \
 class STATE_NAME##_State : public OperationState { \
     public: \
-        std::string name() { return #STATE_NAME; };
+        const char* name() { return #STATE_NAME; };
 
 #define END_DEFINE_STATE };
 
@@ -380,7 +381,7 @@ bool simulateTrigger( \
  *
  * Default output stream is std::cout. 
  */
-#define OUTPUT_STREAM OperationBehavior::outputStream()
+#define OUTPUT_STREAM OperationGlobals::outputStream()
 
 /**
  * Maximum bit width of the inputs and outputs currently fully supported by

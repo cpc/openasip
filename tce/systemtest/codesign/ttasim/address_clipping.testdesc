@@ -1,0 +1,11 @@
+<?php
+// short test description
+$test_description = "Test that data memory address is clipped by the FU port";
+
+// the binary being tested
+$test_bin = "./run_address_clipping_test.sh";
+
+// args given to program
+// $bin_args="";
+
+?>

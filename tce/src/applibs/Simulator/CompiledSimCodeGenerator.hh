@@ -49,7 +49,6 @@ namespace TTAProgram {
 class SimulatorFrontend;
 class TTASimulationController;
 
-
 /**
  * A class that generates C/C++ code from the given POM and MOM
  * 
@@ -68,7 +67,8 @@ public:
         const TTAProgram::Program& program,
         const TTASimulationController& controller,
         bool sequentialSimulation,
-        bool fuResourceConflictDetection);
+        bool fuResourceConflictDetection,
+        bool basicBlockPerFile);
 
     virtual ~CompiledSimCodeGenerator();
     
@@ -82,8 +82,24 @@ private:
     /// Assignment not allowed.
     CompiledSimCodeGenerator& operator=(const CompiledSimCodeGenerator&);
     
+    /**
+    * A struct for handling delayed assignments for the FU results
+    */
+    struct DelayedAssignment {
+        /// The source symbol
+        std::string sourceSymbol;
+        /// The target symbol
+        std::string targetSymbol;
+        /// The FU result symbol
+        std::string fuResultSymbol;
+    };
+    
     /// A type for operation symbol declarations: 1=op.name 2=op.symbol
     typedef std::multimap<std::string, std::string> OperationSymbolDeclarations;
+    
+    /// FU Result writes
+    typedef std::multimap<int, DelayedAssignment> DelayedAssignments;
+    typedef std::map<std::string, int> FUResultWrites;
 
     void generateConstructorParameters();
     void generateHeaderAndMainCode();
@@ -114,7 +130,18 @@ private:
     std::string generateStoreTrigger(const TTAMachine::HWOperation& op);
     std::string generateLoadTrigger(const TTAMachine::HWOperation& op);
     
+    std::string generateAddFUResult(
+        const TTAMachine::FUPort& resultPort, 
+        const std::string& value, 
+        int latency,
+        bool attemptStaticLatencySimulation = true);
+    
+    std::string generateFUResultRead(
+        const std::string& destination, 
+        const std::string& resultSymbol);
+    
     int maxLatency() const;
+    
     std::vector<TTAMachine::Port*> fuOutputPorts(
         const TTAMachine::FunctionUnit& fu) const;
                 
@@ -128,7 +155,10 @@ private:
     const TTAMachine::ControlUnit& gcu_;
     
     /// Is the simulation sequential code or not
-    bool isSequentialSimulation_;    
+    bool isSequentialSimulation_;
+    /// Should the generator generate only one basic block per code file
+    bool basicBlockPerFile_;
+    
     /// Name of the class to be created
     std::string className_;
 
@@ -169,6 +199,10 @@ private:
     mutable BasicBlocks bbStarts_;
     /// The basic block map referred by end of the block as a key
     mutable BasicBlocks bbEnds_;
+    /// Delayed FU Result assignments
+    DelayedAssignments delayedFUResultWrites_;
+    /// Last known FU result writes
+    FUResultWrites lastFUWrites_;
 
     /// The operation pool
     OperationPool operationPool_;

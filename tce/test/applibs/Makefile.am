@@ -1,5 +1,5 @@
 SUBDIRS = Simulator Disassembler bem Assembler hdb FSA \
-Interpreter Scheduler costdb Explorer dsdb TraceDB Graph mach osal
+Interpreter Scheduler costdb Explorer dsdb TraceDB mach osal
 
 if WX
 

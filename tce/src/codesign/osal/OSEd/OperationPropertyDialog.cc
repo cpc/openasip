@@ -970,7 +970,7 @@ OperationPropertyDialog::onOk(wxCommandEvent&) {
         //ObjectState* mod = operation_->saveState();                
         ObjectState* mod = saveOperation(); // load modified operation's settings from gui
         ObjectState* orig = orig_;
-        
+
         if (*orig != *mod) {
             format fmt = texts.text(
                 OSEdTextGenerator::TXT_QUESTION_SAVE_PROPERTIES);
@@ -1008,8 +1008,8 @@ OperationPropertyDialog::onOk(wxCommandEvent&) {
 ObjectState*
 OperationPropertyDialog::saveOperation() {
 	
-    //ObjectState* root = new ObjectState(Operation::OPRN_OPERATION);
-    ObjectState* root = operation_->saveState();
+    ObjectState* root = new ObjectState(Operation::OPRN_OPERATION);
+    //ObjectState* root = operation_->saveState();
     root->setAttribute(Operation::OPRN_NAME, WxConversion::toString(name_));
 
     std::string description("");
@@ -1030,6 +1030,7 @@ OperationPropertyDialog::saveOperation() {
 
     int inputs = inputOperands_.size();
     int outputs = outputOperands_.size();
+
     root->setAttribute(Operation::OPRN_INPUTS, inputs);
     root->setAttribute(Operation::OPRN_OUTPUTS, outputs);
 
@@ -1079,6 +1080,13 @@ OperationPropertyDialog::saveOperation() {
         std::string type = outputOperands_.at(i)->typeString();
         operand->setAttribute(Operand::OPRND_TYPE, type);
         root->addChild(operand);
+    }
+
+    // copy dags from operation to objectState tree
+    for (int i = 0; i < operation_->dagCount(); i++) {     
+        ObjectState* trigger = new ObjectState(Operation::OPRN_TRIGGER);
+        trigger->setValue(operation_->dagCode(i));
+        root->addChild(trigger);
     }
 
     return root;

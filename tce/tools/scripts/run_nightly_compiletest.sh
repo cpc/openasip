@@ -12,12 +12,12 @@
 # global variables
 export REPO_DIR="${HOME}/repo"
 export BRANCH_DIR="${REPO_DIR}/trunk"
-export INSTALLATION_PATH=$HOME/tce-installation
 export LLVM_BIN_DIR=${HOME}/llvm/bin
 export LLVM_FRONTEND_INSTALL_DIR=${HOME}/llvm-frontend
+#export INSTALLATION_PATH=$HOME/tce-installation
 
-export PATH="$INSTALLATION_PATH/bin:${LLVM_BIN_DIR}:${INSTALLATION_PATH}/bin:${LLVM_FRONTEND_INSTALL_DIR}/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin"
-export LD_LIBRARY_PATH=$INSTALLATION_PATH/lib
+export PATH="${LLVM_BIN_DIR}:${LLVM_FRONTEND_INSTALL_DIR}/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin"
+#export LD_LIBRARY_PATH=$INSTALLATION_PATH/lib
 
 function eexit {
     echo $1 >&2
@@ -62,7 +62,8 @@ function start_compiletest {
     export CXX="ccache g++"
     export CC="ccache gcc"
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros"
-    export TCE_CONFIGURE_SWITCHES="--prefix=$INSTALLATION_PATH --disable-python"
+    #export TCE_CONFIGURE_SWITCHES="--prefix=$INSTALLATION_PATH --disable-python"
+    export TCE_CONFIGURE_SWITCHES="--disable-python"
 
     tools/scripts/compiletest.sh $@
 

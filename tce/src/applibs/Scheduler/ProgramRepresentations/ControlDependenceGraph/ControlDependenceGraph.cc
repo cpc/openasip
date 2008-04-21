@@ -250,7 +250,7 @@ ControlDependenceGraph::createControlDependenceEdge(
         if (hasEdge(bTail, bHead)) {
             theEdge = graph_[connectingEdge(bTail, bHead)];
         } else {
-            theEdge = new ControlDependenceEdge(edgeCount(), edgeValue);
+            theEdge = new ControlDependenceEdge(edgeValue);
             connectNodes(bTail, bHead, *theEdge);
         }
     } catch (const ObjectAlreadyExists& e) {
@@ -315,7 +315,7 @@ ControlDependenceGraph::createPostDominanceTree(
                 if (!postZero[i]->isEntryBB()) {
                     ControlFlowEdge* edge = new
                     ControlFlowEdge(
-                        cGraph_->edgeCount(),
+//                        cGraph_->edgeCount(),
                         ControlFlowEdge::CFLOW_EDGE_LOOP_BREAK,true);
                     cGraph_->connectNodes(
                         *postZero[i], cGraph_->exitNode(), *edge);

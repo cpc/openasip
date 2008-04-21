@@ -23,6 +23,7 @@
 #include "OperationModule.hh"
 #include "OperationBehavior.hh"
 #include "IdealSRAM.hh"
+#include "SimValue.hh"
 
 using std::string;
 using std::vector;

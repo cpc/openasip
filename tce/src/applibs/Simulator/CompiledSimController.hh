@@ -54,7 +54,8 @@ public:
     /// Function type for the getSimulation() function
     typedef CompiledSimulation* (SimulationGetterFunction)(
         const TTAMachine::Machine& machine, 
-        const TTAProgram::Program& program,
+        InstructionAddress entryAddress,
+        InstructionAddress lastInstruction,
         SimulatorFrontend& frontend,
         MemorySystem& memorySystem);
     

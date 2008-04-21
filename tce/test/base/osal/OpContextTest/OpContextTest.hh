@@ -16,6 +16,7 @@ using std::string;
 
 #include "OperationContext.hh"
 #include "OperationState.hh"
+#include "Exception.hh"
 
 
 class OpContextTest : public CxxTest::TestSuite {
@@ -34,7 +35,7 @@ private:
     class MyDummyState : public OperationState {
     public:
         MyDummyState(string n) : name_(n), advanced_(false) {};
-        string name() { return name_; };
+        const char* name() { return name_.c_str(); };
         void advanceClock(OperationContext&) { advanced_ = true; };
         bool isAvailable(const OperationContext&) const { return false; };
         bool advanced() { return advanced_; };
@@ -74,9 +75,9 @@ OpContextTest::testStateStoring() {
     context.registerState(&state3);
     context.setMemory(NULL);
     
-    TS_ASSERT_EQUALS((context.state("myDummy1")).name(), "myDummy1");
-    TS_ASSERT_EQUALS((context.state("myDummy2")).name(), "myDummy2");
-    TS_ASSERT_EQUALS((context.state("myDummy3")).name(), "myDummy3");
+    TS_ASSERT_EQUALS((context.state("myDummy1")).name(), std::string("myDummy1"));
+    TS_ASSERT_EQUALS((context.state("myDummy2")).name(), std::string("myDummy2"));
+    TS_ASSERT_EQUALS((context.state("myDummy3")).name(), std::string("myDummy3"));
 
     context.unregisterState("myDummy3");
     TS_ASSERT_THROWS(context.state("myDummy3"), KeyNotFound);

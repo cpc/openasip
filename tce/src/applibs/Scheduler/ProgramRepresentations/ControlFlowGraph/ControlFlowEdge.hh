@@ -32,7 +32,6 @@ public:
     };
 
     ControlFlowEdge(
-        const int edgeID,
         CFGEdgePredicate edgePredicate = CFLOW_EDGE_NORMAL,
         bool isJumpEdge = true);
 

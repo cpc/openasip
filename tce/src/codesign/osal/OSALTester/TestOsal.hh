@@ -20,6 +20,7 @@
 #include "SimpleScriptInterpreter.hh"
 #include "CmdLineOptions.hh"
 #include "OperationContext.hh"
+#include "SimValue.hh"
 
 //////////////////////////////////////////////////////////////////////////////
 // CmdTrigger

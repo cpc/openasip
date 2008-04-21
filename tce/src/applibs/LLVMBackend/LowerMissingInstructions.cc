@@ -395,7 +395,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
         if (opSet.find(*i) == opSet.end() && 
             OperationDAGSelector::findDags(*i, opSet).empty()) {
 
-            Operation& op = osal.operation(*i);
+            Operation& op = osal.operation((*i).c_str());
             
             if (&op == &NullOperation::instance()) {
                 std::cerr << "Error: Cant find operation: " << *i 

@@ -104,9 +104,9 @@ OperationDAGBuilder::parseNode(
  * @exception IllegalParameters Operation by requested name doesn't exist.
  */
 void 
-OperationDAGBuilder::createOperationNode(std::string operation) {
+OperationDAGBuilder::createOperationNode(const std::string& operation) {
     OperationPool opPool;
-    Operation& op = opPool.operation(operation);
+    Operation& op = opPool.operation(operation.c_str());
   
     if (&op == &NullOperation::instance()) {
         throw IllegalParameters(__FILE__, __LINE__, __func__,

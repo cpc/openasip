@@ -10,17 +10,15 @@
 #ifndef COMPILED_SIMULATION_HH
 #define COMPILED_SIMULATION_HH
 
-#include "Machine.hh"
-#include "MemorySystem.hh"
 #include "SimulatorConstants.hh"
 #include "SimValue.hh"
 #include "OperationPool.hh"
 
 #include <map>
 
-
 namespace TTAMachine {
     class Machine;
+    class FunctionUnit;
 }
 
 namespace TTAProgram {
@@ -29,6 +27,7 @@ namespace TTAProgram {
 
 class SimulatorFrontend;
 class DirectAccessMemory;
+class MemorySystem;
 
 
 /**
@@ -55,10 +54,14 @@ struct FUResultType {
     const int size;
     /// array of result elements
     FUResultElementType* data;
+    /// Number of active elements in the buffer
+    int numberOfElements;
     
-    /// A constructor that initializes the ring buffer
+    /// A constructor that resets the variables
     FUResultType(int maxLatency) 
-        : size(maxLatency), data(new FUResultElementType[size]) {}
+        : size(maxLatency), 
+          data(new FUResultElementType[size]),
+          numberOfElements(0) {}
     /// The destructor. Frees all memory
     ~FUResultType() { delete[] data; data = NULL; }
 };   
@@ -75,7 +78,8 @@ class CompiledSimulation {
 public:
     CompiledSimulation(
         const TTAMachine::Machine& machine,
-        const TTAProgram::Program& program,
+        InstructionAddress entryAddress,
+        InstructionAddress lastInstruction,
         SimulatorFrontend& frontend,
         MemorySystem& memorySystem);
     virtual ~CompiledSimulation();
@@ -133,6 +137,9 @@ protected:
         SimValue& target,
         FUResultType& results,
         ClockCycleCount cycles);
+    
+    static void inline clearFUResults(
+        FUResultType& results);
         
     /// Number of cycles simulated so far
     ClockCycleCount cycleCount_;
@@ -157,16 +164,16 @@ protected:
     /// Is the simulation finished?
     bool isFinished_;
 
-    /// Function unit navigator
-    const TTAMachine::Machine::FunctionUnitNavigator fuNavigator_;
-    
     /// A flag for FU conflict detection
     bool conflictDetected_;
 
     /// The simulated machine
     const TTAMachine::Machine& machine_;
-    /// The simulated program
-    const TTAProgram::Program& program_;
+    
+    /// Entry address of the program
+    const InstructionAddress entryAddress_;
+    /// Last instruction of the program
+    const InstructionAddress lastInstruction_;
 
     /// Maximum possible number of operands
     static const int OPERAND_TABLE_SIZE = 256;

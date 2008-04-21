@@ -11,7 +11,7 @@
 #include "OperationPool.hh"
 #include "Operation.hh"
 #include "Conversion.hh"
-
+#include "OperationIndex.hh"
 
 /**
  * Writes _tce_customop_OPNAME macros to a header file.
@@ -28,7 +28,7 @@ writeCustomOpMacros(std::ostream& os) {
         for (int o = 0; o < index.operationCount(mod); o++) {
 
             std::string opName = index.operationName(o, mod);
-            const Operation& op = pool.operation(opName);
+            const Operation& op = pool.operation(opName.c_str());
             if (operations.count(opName) > 0) {
                 continue;
             }

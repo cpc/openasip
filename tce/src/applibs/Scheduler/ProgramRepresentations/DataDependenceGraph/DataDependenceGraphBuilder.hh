@@ -211,6 +211,9 @@ private:
     void updateRegWrite(MNData2 mn, const std::string& reg);
     void updateMemWrite(MNData2 mnd);
 
+    void processTriggerPO(
+        class MoveNode& moveNode, Operation &dop) throw (IllegalProgram);
+
     void processTrigger(class MoveNode& moveNode,
                         class Operation &dop) throw (IllegalProgram);
 
@@ -228,9 +231,9 @@ private:
         Operation &dop);
 
     MemoryAliasAnalyzer::AliasingResult analyzeMemoryAlias(
-        const MoveNode& mn1, const MoveNode& mn2);
+        const MoveNode* mn1, const MoveNode* mn2);
 
-    bool addressTraceable(const MoveNode& mn);
+    bool addressTraceable(const MoveNode* mn);
     
     bool checkAndCreateMemWAW(
         const MoveNode& prev, const MoveNode& mn, bool pseudo = false);
@@ -255,6 +258,9 @@ private:
     static std::string trName(TTAProgram::TerminalRegister& tr);
 
 //    void copyMNDList(MNDList& dst, MNDList& src);
+
+    MoveNode* addressOperandMove(ProgramOperation&po);
+    MoveNode* addressMove(const MoveNode&mn);
 
     void getStaticRegisters(
         TTAProgram::Program& prog, 
