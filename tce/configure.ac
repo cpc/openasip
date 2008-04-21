@@ -356,11 +356,15 @@ AC_MSG_ERROR(
 fi
 
 # this uses ax_python.m4 script so... ac_python_devel is unnecessary...
+# boost_python can be used only if python is enabled
+if $enablepython
+then
 AX_BOOST_PYTHON
-if $enablepython && test -z "$BOOST_PYTHON_LIB"
+if test -z "$BOOST_PYTHON_LIB"
 then
 AC_MSG_ERROR(
 [boost_python library not found. Install it or use --with-boost-python switch])
+fi
 fi
 
 # set variables, which were used by old system...
