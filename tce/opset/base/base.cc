@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "OSAL.hh"
+#include "OperationGlobals.hh"
 #include "Application.hh"
 
 // A macro to obtain maximum value that can be represented with 'x' bits.

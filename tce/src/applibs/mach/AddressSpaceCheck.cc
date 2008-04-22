@@ -57,7 +57,7 @@ AddressSpaceCheck::check(
         
         for (int j = 0; j < unit->operationCount(); ++j) {
             Operation& op = 
-                operationPool_.operation(unit->operation(j)->name());
+                operationPool_.operation(unit->operation(j)->name().c_str());
 
             // skip any Nulloperations because the check is done elsewhere
             if (&op == &NullOperation::instance()) {

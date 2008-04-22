@@ -41,7 +41,7 @@ public:
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;
 
-    virtual std::string stateName() const;
+    virtual const char* stateName() const;
 
     virtual bool canBeSimulated() const;
 

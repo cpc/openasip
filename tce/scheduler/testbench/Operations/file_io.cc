@@ -4,6 +4,7 @@
  */
 
 #include "OSAL.hh"
+#include "OperationGlobals.hh"
 
 #include <fcntl.h>
 #include <unistd.h>

@@ -61,19 +61,26 @@ using std::vector;
 /**
  * The constructor
  * 
+ * Gets the settings for compiled simulation code generation.
+ * 
  * @param machine The machine to run the simulation on
  * @param program The simulated program
- * @param frontend The simulator frontend
+ * @param controller Compiled Simulation controller
+ * @param sequentialSimulation Is it a sequential simulation?
+ * @param fuResourceConflictDetection is the conflict detection on?
+ * @param basicBlockPerFile Should we generate only one BB per code file?
  */
 CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     const TTAMachine::Machine& machine,
     const TTAProgram::Program& program,
     const TTASimulationController& controller,
     bool sequentialSimulation,
-    bool fuResourceConflictDetection) :
+    bool fuResourceConflictDetection,
+    bool basicBlockPerFile) :
     machine_(machine), program_(program), simController_(controller),
     gcu_(*machine.controlUnit()),
     isSequentialSimulation_(sequentialSimulation),
+    basicBlockPerFile_(basicBlockPerFile),                            
     className_("CompiledSimulationEngine"),
     instructionNumber_(0), instructionCounter_(0),
     pendingJumpDelay_(0), lastInstructionOfBB_(0), 
@@ -218,11 +225,9 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
          << "#include \"Operation.hh\"" << endl
          << "#include \"OperationPool.hh\"" << endl
          << "#include \"OperationContext.hh\"" << endl
-         << "#include \"Conversion.hh\"" << endl
          << "#include \"CompiledSimulation.hh\"" << endl
-         << "#include \"Instruction.hh\"" << endl 
+         << "#include \"BaseType.hh\"" << endl
          << conflictDetectionGenerator_.includes() << endl
-         << "#include <map>" << endl
          << endl;
     
     // Open up class declaration and define some extra member variables
@@ -232,8 +237,6 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     
     *os_ << "class " << className_ << " : public CompiledSimulation {" << endl
          << "public:" << endl
-         << "/// Type for the Jump map. 1: given target address  2: target function" << endl
-         << "typedef std::map<InstructionAddress, SimulateFunction> JumpMap;" << endl
          << "/// Type for the faster jump table:: index is the target address, returns target func" 
          << endl
          << "typedef std::vector<SimulateFunction> JumpTable;" << endl
@@ -826,7 +829,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     
     // Are we at the start of a new basic block?
     if (bbStarts_.find(address) != bbStarts_.end()) {
-        if (instructionCounter_ <= 0) { // Should we start with a new file?
+        // Should we start with a new file?
+        if (instructionCounter_ <= 0 || basicBlockPerFile_) {
             instructionCounter_ = MAX_INSTRUCTIONS_PER_FILE;
             currentFile_.close();
             const string DS = FileSystem::DIRECTORY_SEPARATOR;
@@ -972,7 +976,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             dynamic_cast<const TerminalFUPort&>(move.destination());
         HWOperation& hwOperation = *tfup.hwOperation();
 
-        if (operationPool_.operation(hwOperation.name()).dagCount() > 0) {
+        if (operationPool_.operation(hwOperation.name().c_str()).dagCount() > 0) {
             *os_ << handleOperation(hwOperation);
         } else {
             *os_ << handleOperationOld(hwOperation);
@@ -1085,7 +1089,7 @@ CompiledSimCodeGenerator::generateTriggerCode(
         || op.name() == "ldhu" || op.name() == "ldqu") {
         return generateLoadTrigger(op);
     }
-    OperationDAG* dag = &operationPool_.operation(op.name()).dag(0);
+    OperationDAG* dag = &operationPool_.operation(op.name().c_str()).dag(0);
     string simCode = OperationDAGConverter::createSimulationCode(*dag, &operands);
         
     // add output values as delayed assignments

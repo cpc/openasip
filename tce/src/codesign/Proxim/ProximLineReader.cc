@@ -15,6 +15,7 @@
 #include "ProximSimulationThread.hh"
 #include "Conversion.hh"
 #include "OperationBehavior.hh"
+#include "OperationGlobals.hh"
 
 const std::string ProximLineReader::DEFAULT_LOG_FILE_NAME = ".proximHistory";
 
@@ -56,7 +57,7 @@ ProximLineReader::initialize(
     setInitialized();
 
     // Set the linereader output stream as OSAL output stream.
-    OperationBehavior::setOutputStream(outputStream());
+    OperationGlobals::setOutputStream(outputStream());
 }
 
 

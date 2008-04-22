@@ -12,16 +12,8 @@
 #ifndef TTA_OPERATION_BEHAVIOR_HH
 #define TTA_OPERATION_BEHAVIOR_HH
 
-#include <vector>
-#include <string>
-#include <iostream>
-
-#include "Exception.hh"
-
 class SimValue;
 class OperationContext;
-
-
 
 /**
  * Interface to access the behavior model of TTA operations.
@@ -40,18 +32,14 @@ public:
     virtual void createState(OperationContext& context) const;
     virtual void deleteState(OperationContext& context) const;
 
-    virtual std::string stateName() const;
+    virtual const char* stateName() const;
 
     virtual bool canBeSimulated() const;
 
-    static std::ostream& outputStream();
-    static void setOutputStream(std::ostream& newOutputStream);
+    virtual void writeOutput(const char* text) const;
 
     OperationBehavior();
     virtual ~OperationBehavior();
-
-private:
-    static std::ostream* outputStream_;
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -66,32 +54,21 @@ private:
  */
 class NullOperationBehavior : public OperationBehavior {
 public:
-    static NullOperationBehavior& instance();
-
+    static NullOperationBehavior& instance() { return instance_; }
+    
     virtual bool simulateTrigger(
         SimValue**,
         OperationContext& context) const;
     virtual bool lateResult(
         SimValue**,
         OperationContext& context) const;
-
-    virtual void createState(OperationContext& context) const;
-    virtual void deleteState(OperationContext& context) const;
-
-    virtual std::string stateName() const;
-
-    virtual ~NullOperationBehavior();
-
-    virtual bool canBeSimulated() const;
-
+    
 protected:
-    NullOperationBehavior();
+    NullOperationBehavior() { }
 
 private: 
     static NullOperationBehavior instance_;
 
 };
-
-#include "OperationBehavior.icc"
 
 #endif

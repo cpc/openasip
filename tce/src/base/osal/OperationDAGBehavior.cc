@@ -264,7 +264,7 @@ OperationDAGBehavior::deleteState(OperationContext&) const {
  *
  * @return The state name for this operation behavior.
  */
-std::string 
+const char* 
 OperationDAGBehavior::stateName() const {
     return "";
 }

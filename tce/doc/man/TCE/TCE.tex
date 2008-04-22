@@ -1701,6 +1701,23 @@ physical line.  Comments are ignored by the syntax.  A line that contains
 only a comment (and possibly whitespaces before the hash character) is
 completely removed before interpreting the program.
 
+\subsection{Allowed characters}
+\label{sec:names}
+
+Names (labels, procedures, function units etc.) used in assembly code must
+obey the following format:
+
+\begin{verbatim}
+ [a-zA-Z_][a-zA-z0-9_]*
+\end{verbatim}
+
+Basically this means is that a name must begin with a letter from range
+a-z or A-Z or with an underscore. After the first character numbers can also
+be used.
+
+Upper case and lower case letters are treated as different characters.
+For example labels \textbf{main:} and \textbf{Main:} are both unique.
+
 \subsection{Literals}
 \label{ssec:literals}
 
@@ -4719,7 +4736,8 @@ assembler\_tutorial.tpef < input\_command.txt > dump.txt}
 
 After this you should use sed to divide the memory dump into separete lines
 to help comparison between your output and the reference output. Use the
-following command to do this:
+following command to do this (notice that there is an empty space between the
+first two slashes of the sed expression):
 
 \textit{cat dump.txt | sed 's/ /$\backslash$n/g' > output.txt}
 
@@ -4786,7 +4804,7 @@ algorithm optimization.
 Compile the C code and simulate the program. You can use the following
 instructions to do this:
 
-\textit{tcecc -O2 -o initial.tpef -a crcInit.adf --keep-symbols=main,result
+\textit{tcecc -O2 -o initial.tpef -a crcInit.adf -k main,result
 main.c crc.c}
 
 \textit{ttasim -a crcInit.adf -p initial.tpef}
@@ -4826,15 +4844,21 @@ recompile the code and simulate it again. Verify the result and check cycle
 count as done earlier. This time you should see a huge drop in the cycle
 count. Mark up this cycle count for future acceleration calculations.
 
-Tcecc also supports printf(). To use printf the target machine must have a
-function unit containing operation STDOUT. To test this you can recompile
-the code with:
-
-\textit{tcecc -D\_DEBUG -O2 -a crcInit.adf -o print.tpef -k main,result
-main.c crc.c}
-
-and simulate like earlier. Note that this will increase cycle count quite a
-lot so it is not very handy when calculating speed up.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Doesn't currently work with tcecc:
+% Cannot yet select: 0x9f80858: i32 = setcc 0x9f80ec8, 0x9f81018, 0x9f81488
+%
+% Uncomment when this issue is fixed
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Tcecc also supports printf(). To use printf the target machine must have a
+%function unit containing operation STDOUT. To test this you can recompile
+%the code with:
+%
+%\textit{tcecc -D\_DEBUG -O2 -a crcInit.adf -o print.tpef -k main,result
+%main.c crc.c}
+%
+%and simulate like earlier. Note that this will increase cycle count quite a
+%lot so it is not very handy when calculating speed up.
 
 \subsection{Evaluate custom operation candidates}
 First of all it is quite simple and efficient to implement crc calculation
@@ -5087,7 +5111,7 @@ And now we're ready. Remember to save the file.
 We can compile the program just like earlier but we must define \_USE\_REFLECT
 in order to use the custom operation. And of course use the new machine.
 
-\textit{tcecc -O2 -D\_USE\_REFLECT -o crcCustom.tpef -a crcCustom.adf -k 
+\textit{tcecc -O2 -D\_USE\_REFLECT -o crcCustom.tpef -a crcCustom.adf -k
 main,result main.c crc.c}
 
 Then simulate the program and verify the result:

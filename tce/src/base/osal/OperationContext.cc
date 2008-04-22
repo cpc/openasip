@@ -13,6 +13,8 @@
 #include "OperationContext.hh"
 #include "Application.hh"
 #include "Memory.hh"
+#include "OperationState.hh"
+#include "SimValue.hh"
 
 using std::string;
 
@@ -69,8 +71,7 @@ OperationContext::~OperationContext() {
  * @exception KeyNotFound If state by name couldn't be found.
  */
 OperationState&
-OperationContext::state(const std::string& name) const
-    throw (KeyNotFound) {
+OperationContext::state(const char* name) const {
 
     StateRegistry::const_iterator i = stateRegistry_.find(name);
 
@@ -112,7 +113,7 @@ OperationContext::registerState(OperationState* stateToRegister) {
     // RegisterState() and unregisterState() are supposed to be used
     // only internally, they are not part of the "client IF", therefore
     // it's reasonable to assert.
-    assert(!hasState(stateName));
+    assert(!hasState(stateName.c_str()));
     stateRegistry_[stateName] = stateToRegister;	
 }
 
@@ -126,7 +127,7 @@ OperationContext::registerState(OperationState* stateToRegister) {
  * Aborts if there's no state with given identifier in the context.
  */    
 void 
-OperationContext::unregisterState(const std::string& name) {
+OperationContext::unregisterState(const char* name) {
     // RegisterState() and unregisterState() are supposed to be used
     // only internally, they are not part of the "client IF", therefore
     // it's reasonable to assert.
@@ -141,7 +142,7 @@ OperationContext::unregisterState(const std::string& name) {
  * @return True if the state is found.
  */
 bool 
-OperationContext::hasState(const std::string& name) const {
+OperationContext::hasState(const char* name) const {
     try {
         state(name);
     } catch (const KeyNotFound&) {

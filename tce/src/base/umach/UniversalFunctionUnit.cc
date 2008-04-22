@@ -61,7 +61,7 @@ UniversalFunctionUnit::~UniversalFunctionUnit() {
  */
 bool
 UniversalFunctionUnit::hasOperation(const std::string& name) const {
-    return &opPool_.operation(name) != &NullOperation::instance();
+    return &opPool_.operation(name.c_str()) != &NullOperation::instance();
 }
 
 
@@ -89,7 +89,7 @@ UniversalFunctionUnit::operation(const std::string& name) const
         assert(smartOp != NULL);
         return smartOp;
     } else {
-        Operation& oper = opPool_.operation(name);
+        Operation& oper = opPool_.operation(name.c_str());
 
         if (&oper == &NullOperation::instance()) {
             throw InstanceNotFound(__FILE__, __LINE__, procName);

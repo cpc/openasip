@@ -15,10 +15,10 @@
 #include <map>
 
 #include "BaseType.hh"
-#include "Exception.hh"
-#include "OperationState.hh"
-#include "SimValue.hh"
-#include "Memory.hh"
+
+class OperationState;
+class SimValue;
+class Memory;
 
 /**
  * OperationContext is used to store any implementation and context dependent 
@@ -54,16 +54,15 @@ public:
     // These methods are only for internal use. Used by the macro definitions
     // of OSAL.hh.
     void registerState(OperationState* state);
-    void unregisterState(const std::string& name);
-    OperationState& state(const std::string& name) const
-	throw (KeyNotFound);
+    void unregisterState(const char* name);
+    OperationState& state(const char* name) const;
 
 private:
 
     /// Type of state registry.
     typedef std::map<std::string, OperationState*> StateRegistry;
 
-    bool hasState(const std::string& name) const;
+    bool hasState(const char* name) const;
     void initializeContextId();
 
     /// The Memory model instance.

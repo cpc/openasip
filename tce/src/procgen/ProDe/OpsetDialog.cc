@@ -15,6 +15,7 @@
 #include "FunctionUnit.hh"
 #include "OperationPool.hh"
 #include "OperationModule.hh"
+#include "OperationIndex.hh"
 #include "WxConversion.hh"
 #include "ErrorDialog.hh"
 #include "FUPort.hh"
@@ -131,7 +132,7 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
     }
 
     OperationPool pool;
-    const Operation& op = pool.operation(operation_);
+    const Operation& op = pool.operation(operation_.c_str());
     
     HWOperation* operation = new HWOperation(operation_, fu);
 

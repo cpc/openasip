@@ -103,11 +103,11 @@ OperationDAGSelector::llvmRequiredOpset() {
  * @return List of DAGs which comply the search parameters.
  */
 OperationDAGSelector::OperationDAGList
-OperationDAGSelector::findDags(std::string opName, OperationSet opSet) {
+OperationDAGSelector::findDags(const std::string& opName, OperationSet opSet) {
 
     OperationDAGList retDags;
     OperationPool opPool;
-    Operation& op = opPool.operation(opName);
+    Operation& op = opPool.operation(opName.c_str());
 
     for (int i = 0; i < op.dagCount(); i++) {
         OperationDAG& currDag = op.dag(i);        

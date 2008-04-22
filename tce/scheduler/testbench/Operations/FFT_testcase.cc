@@ -7,6 +7,7 @@
  */
 
 #include "OSAL.hh"
+#include "OperationGlobals.hh"
 
 // **************************************************
 // Operation definitions for radix-4 DIT FFT

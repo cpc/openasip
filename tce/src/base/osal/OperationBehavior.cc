@@ -16,10 +16,10 @@
 #include "OperationState.hh"
 #include "OperationContext.hh"
 #include "OperationPool.hh"
+#include "OperationGlobals.hh"
 
 using std::string;
 
-std::ostream* OperationBehavior::outputStream_(NULL);
 
 /**
  * Constructor.
@@ -54,34 +54,14 @@ OperationBehavior::simulateTrigger(
 }
 
 /**
- * Returns the output stream which can be used by the OperationBehavior
- * definitions to print out debug information to simulator console, or to 
- * simulate output from the TTA.
- *
- * Default output stream is std::cout.
- *
- * @return the output stream.
+ * Writes text to the output stream specified
+ * 
+ * @param text text to be written to the output stream
  */
-std::ostream&
-OperationBehavior::outputStream() {
-    if (outputStream_ == NULL) {
-        outputStream_ = &std::cout;
-    }
-    return *outputStream_;
-}
-
-/**
- * Sets the output stream which can be used by the OperationBehavior
- * definitions to print out debug information to simulator console, or to 
- * simulate output from the TTA.
- *
- * Default output stream is std::cout.
- *
- * @param newOutputStream the output stream to use.
- */
-void
-OperationBehavior::setOutputStream(std::ostream& newOutputStream) {
-    outputStream_ = &newOutputStream;
+void 
+OperationBehavior::writeOutput(
+    const char* text) const {
+    OperationGlobals::outputStream() << text;
 }
 
 
@@ -120,7 +100,7 @@ OperationBehavior::deleteState(OperationContext&) const {
  *
  * @return The state name for this operation behavior.
  */
-std::string 
+const char* 
 OperationBehavior::stateName() const {
     return "";
 }
@@ -142,18 +122,6 @@ OperationBehavior::canBeSimulated() const {
 NullOperationBehavior NullOperationBehavior::instance_;
 const char* ERROR_MESSAGE =
     "Attempted to use a NULL OperationBehavior object.";
-
-/**
- * Constructor.
- */
-NullOperationBehavior::NullOperationBehavior() {
-}
-
-/**
- * Destructor.
- */
-NullOperationBehavior::~NullOperationBehavior() {
-}
 
 /**
  * Writes an error message to error log and aborts the program.
@@ -187,39 +155,3 @@ NullOperationBehavior::lateResult(
     return true;
 }
 
-/**
- * Writes an error message to error log and aborts the program.
- */
-void
-NullOperationBehavior::createState(OperationContext&) const {
-    abortWithError(ERROR_MESSAGE);
-}
-
-/**
- * Writes an error message to error log and aborts the program.
- */
-void
-NullOperationBehavior::deleteState(OperationContext&) const {
-    abortWithError(ERROR_MESSAGE);
-}
-
-/**
- * Writes an error message to error log and aborts the program.
- *
- * @return Never returns.
- */
-std::string 
-NullOperationBehavior::stateName() const {
-    abortWithError(ERROR_MESSAGE);
-    return "";
-}
-
-/**
- * If behavior can be simulated.
- *
- * @return true If simulation of behavior is possible.
- */
-bool 
-NullOperationBehavior::canBeSimulated() const {
-    return false;
-}
