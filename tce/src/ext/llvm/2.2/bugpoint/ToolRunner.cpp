@@ -50,7 +50,7 @@ static int RunProgramWithTimeout(const sys::Path &ProgramPath,
   redirects[1] = &StdOutFile;
   redirects[2] = &StdErrFile;
                                    
-  if (1) {
+  if (0) {
     std::cerr << "RUN:";
     for (unsigned i = 0; Args[i]; ++i)
       std::cerr << " " << Args[i];
