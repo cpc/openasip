@@ -1,8 +1,66 @@
-#!/bin/sh
+#!/usr/bin/env python
 #
 # Schedules the given LLVM bitcode (2nd argument) to the target (1st argument)
-# and simulates it with ttasim. 3rd argument is a simulation script.
-tempTarget=$(mktemp /tmp/llvm-tce.tpef.XXXXXXXX)
-llvm-tce -O0 -a $1 -o $tempTarget $2
-ttasim -a $1 -p $tempTarget #< simulate.ttasim
-rm -f $tempTarget
+# and simulates it with ttasim. 
+#
+import optparse
+import tempfile
+import os.path
+import commands
+import sys
+
+usage = "usage: %prog [options] adf bitcode"
+
+p = optparse.OptionParser(usage)
+
+p.add_option('-e', '--execute-script', type="string", action="store",
+             default=None,
+             help="executes the given string as a script in the simulator")
+
+options, files = p.parse_args()
+
+if len(files) != 2:
+    p.print_help()
+    sys.exit(1)
+
+adf = files[0]
+bc = files[1]
+    
+scriptDir = os.path.normpath(os.path.dirname(sys.argv[0]))
+runningInstalled = 'tce/scripts' not in scriptDir
+
+if not runningInstalled:
+    srcRoot = scriptDir.split('tce/scripts')[0] + "tce/src"
+    llvmTce = srcRoot + "/bintools/Compiler/llvm-tce/llvm-tce"
+    ttasim = srcRoot + "/codesign/ttasim/ttasim"
+else:
+    llvmTce = "llvm-tce"
+    ttasim = "ttasim"
+        
+def runCommand(command):
+    """Runs a command."""
+
+    (exitCode, output) = commands.getstatusoutput(command)
+    return (exitCode, output)
+
+tempHandle, tempFile = tempfile.mkstemp(".tpef")
+
+(code, out) = \
+       runCommand(llvmTce + " -O0 -a " + adf + " -o " + tempFile + " " + bc)
+
+print out,
+
+cmd = ttasim
+
+if options.execute_script is not None:
+    cmd += ' -e "' + options.execute_script + '" '
+else:
+    cmd += ' -e "quit;" '
+
+cmd += " -a " + adf + " -p " + tempFile
+
+(code, out) = runCommand(cmd)
+
+print out,
+
+os.unlink(tempFile)

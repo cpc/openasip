@@ -212,8 +212,6 @@ int CustomExecutor::ExecuteProgram(const std::string &Bitcode,
 
   std::vector<const char*> ProgramArgs;
   ProgramArgs.push_back(ExecutionCommand.c_str());
-  ProgramArgs.push_back( 
-    "/home/visit0r/trunk/tce/scheduler/testbench/ADF/FU_constrained.adf");
 
   for (std::size_t i = 0; i < ExecutorArgs.size(); ++i)
     ProgramArgs.push_back(ExecutorArgs.at(i).c_str());
