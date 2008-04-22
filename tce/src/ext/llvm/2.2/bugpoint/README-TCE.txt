@@ -50,10 +50,15 @@ miscompilation bug with DSPstone/adpcm:
                 -mlimit=0 \
                 -timeout=0 \
                 -check-exit-code=0 \
-                -find-bugs adpcm.bc
+                [OPT SWITCHES HERE] adpcm.bc
 
-   This instructions the Bugpoint to try random passes on the bitcode and
-   run the resulting bitcode with the tce-exec-bc script identically to
-   how we produced the reference.txt in the previous text. It compares
-   the output to the produced reference and yells if it finds a miscompilation
-   with some optimization pass.
+   You should replace [OPT SWITCHES HERE] with the set of optimization
+   switches that break the compile. For example, the switches from the
+   command 
+
+   opt --debug-pass=Arguments --std-compile-opts foo.bc   
+
+   This instructs Bugpoint to do a binary search on the optimization
+   passes to find the pass the produces the broken end result, hopefully
+   reducing the list of passes to a single one.
+
