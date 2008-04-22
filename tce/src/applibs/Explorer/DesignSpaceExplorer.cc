@@ -46,7 +46,7 @@ DesignSpaceExplorer::pluginTool_;
 DesignSpaceExplorer::DesignSpaceExplorer() {
     
     schedulingPlan_ = 
-        SchedulingPlan::loadFromFile(Environment::defaultSchedulerConf());
+        SchedulingPlan::loadFromFile(Environment::oldGccSchedulerConf());
     oStream_ = new std::ostringstream;
     OperationGlobals::setOutputStream(*oStream_);
 }
