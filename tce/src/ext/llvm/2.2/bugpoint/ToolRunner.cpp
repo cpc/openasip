@@ -239,7 +239,13 @@ AbstractInterpreter *AbstractInterpreter::createCustom(
   std::vector<std::string> Args;
   std::string delimiters = " ";
 
-  // tokenize the ExecCommandLine to the command and the args
+  // Tokenize the ExecCommandLine to the command and the args to allow
+  // defining a full command line as the command instead of just the
+  // executed program. We cannot just pass the whole string after the command
+  // as a single argument because then program sees only a single
+  // command line argument (with spaces in it: "foo bar" instead 
+  // of "foo" and "bar").
+
   // code borrowed from: 
   // http://oopweb.com/CPP/Documents/CPPHOWTO/Volume/C++Programming-HOWTO-7.html
   std::string::size_type lastPos = 
