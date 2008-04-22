@@ -1403,11 +1403,18 @@ void DataDependenceGraph::dropBackEdges() {
             eCount--;
         } else {
             if (e.edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
-                e.dependenceType() == DataDependenceEdge::DEP_WAW &&
-                (&hn.destinationOperation() == &tn.destinationOperation())) {
-                dropEdge(e);
-                i--;
-                eCount--;
+                e.dependenceType() == DataDependenceEdge::DEP_WAW) {
+                if (!hn.isDestinationOperation()) {
+                    continue;
+                } 
+                if (!tn.isDestinationOperation()) {
+                    continue;
+                } 
+                if (&hn.destinationOperation() == &tn.destinationOperation()) {
+                    dropEdge(e);
+                    i--;
+                    eCount--;
+                }
             }
         }    
     }
