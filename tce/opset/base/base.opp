@@ -3,6 +3,7 @@
 
   <operation>
     <name>ADDSUB</name>
+    <description>Add and sub the inputs and store results to 3 and 4, respectively.</description>
     <inputs>2</inputs>
     <outputs>2</outputs>
     <in id="1" type="SIntWord"/>
@@ -17,6 +18,7 @@
 
   <operation>
     <name>ADD</name>
+    <description>Integer addition.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -37,6 +39,7 @@
 
   <operation>
     <name>SUB</name>
+    <description>Integer subtraction.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -49,6 +52,7 @@
 
   <operation>
     <name>LDW</name>
+    <description>Loads 4 minimum addressable units from memory. Address must be aligned to 4.</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -65,6 +69,7 @@
 
   <operation>
     <name>STW</name>
+    <description>Stores 4 minimum addressable units to memory. Address must be aligned to 4.</description>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -82,6 +87,7 @@
 
   <operation>
     <name>EQ</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -102,6 +108,7 @@
 
   <operation>
     <name>GT</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -114,6 +121,7 @@
 
   <operation>
     <name>GTU</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
@@ -126,6 +134,7 @@
 
   <operation>
     <name>LT</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -138,6 +147,7 @@
 
   <operation>
     <name>LTU</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
@@ -150,6 +160,7 @@
 
   <operation>
     <name>NE</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -173,6 +184,7 @@
 
   <operation>
     <name>GE</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -188,6 +200,7 @@
 
   <operation>
     <name>GEU</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
@@ -203,6 +216,7 @@
 
   <operation>
     <name>LE</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -218,6 +232,7 @@
 
   <operation>
     <name>LEU</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
@@ -233,6 +248,7 @@
 
   <operation>
     <name>SHL</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -245,6 +261,7 @@
 
   <operation>
     <name>SHR</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -257,6 +274,7 @@
 
   <operation>
     <name>SHRU</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -266,6 +284,7 @@
 
   <operation>
     <name>AND</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -286,6 +305,7 @@
 
   <operation>
     <name>IOR</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -306,6 +326,7 @@
 
   <operation>
     <name>XOR</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -326,6 +347,7 @@
 
   <operation>
     <name>JUMP</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
@@ -337,6 +359,7 @@
 
   <operation>
     <name>CALL</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <control-flow/>
@@ -348,6 +371,7 @@
 
   <operation>
     <name>MIN</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -368,6 +392,7 @@
 
   <operation>
     <name>MAX</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -388,6 +413,7 @@
 
   <operation>
     <name>MINU</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -408,6 +434,7 @@
 
   <operation>
     <name>MAXU</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -428,6 +455,7 @@
 
   <operation>
     <name>LDQ</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -444,6 +472,7 @@
 
   <operation>
     <name>LDH</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -460,6 +489,7 @@
 
   <operation>
     <name>LDD</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -476,6 +506,7 @@
 
   <operation>
     <name>STQ</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -493,6 +524,7 @@
 
   <operation>
     <name>STH</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -510,6 +542,7 @@
 
   <operation>
     <name>STD</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
@@ -527,6 +560,7 @@
 
   <operation>
     <name>SXQW</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -538,6 +572,7 @@
 
   <operation>
     <name>SXHW</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -549,6 +584,7 @@
 
   <operation>
     <name>NEG</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -560,6 +596,7 @@
 
   <operation>
     <name>NEGF</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -571,6 +608,7 @@
 
   <operation>
     <name>MUL</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord">
@@ -591,6 +629,7 @@
 
   <operation>
     <name>DIV</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -603,6 +642,7 @@
 
   <operation>
     <name>DIVU</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
@@ -615,6 +655,7 @@
 
   <operation>
     <name>ADDF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord">
@@ -635,6 +676,7 @@
 
   <operation>
     <name>SUBF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -647,6 +689,7 @@
 
   <operation>
     <name>MULF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord">
@@ -667,6 +710,7 @@
 
   <operation>
     <name>DIVF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -679,6 +723,7 @@
 
   <operation>
     <name>EQF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord">
@@ -699,6 +744,7 @@
 
   <operation>
     <name>NEF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord">
@@ -725,6 +771,7 @@
 
   <operation>
     <name>GTF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -737,6 +784,7 @@
 
   <operation>
     <name>GEF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -755,6 +803,7 @@
 
   <operation>
     <name>LTF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -770,6 +819,7 @@
 
   <operation>
     <name>LEF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -786,9 +836,9 @@
     </trigger-semantics>
   </operation>
 
-
   <operation>
     <name>EQUF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord">
@@ -809,6 +859,7 @@
 
   <operation>
     <name>NEUF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord">
@@ -835,6 +886,7 @@
 
   <operation>
     <name>GTUF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -847,6 +899,7 @@
 
   <operation>
     <name>GEUF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -865,6 +918,7 @@
 
   <operation>
     <name>LTUF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -880,6 +934,7 @@
 
   <operation>
     <name>LEUF</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -898,6 +953,7 @@
 
   <operation>
     <name>CFI</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -909,6 +965,7 @@
 
   <operation>
     <name>CFIU</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -920,6 +977,7 @@
 
   <operation>
     <name>CIF</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -931,6 +989,7 @@
 
   <operation>
     <name>CIFU</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
@@ -942,6 +1001,7 @@
 
   <operation>
     <name>CFD</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -953,6 +1013,7 @@
 
   <operation>
     <name>CDF</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="DoubleWord"/>
@@ -964,6 +1025,7 @@
 
   <operation>
     <name>ROTL</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -973,6 +1035,7 @@
 
   <operation>
     <name>ROTR</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -985,6 +1048,7 @@
 
   <operation>
     <name>ABS</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -996,6 +1060,7 @@
 
   <operation>
     <name>ABSF</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
@@ -1007,6 +1072,7 @@
 
   <operation>
     <name>LDQU</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -1023,6 +1089,7 @@
 
   <operation>
     <name>LDHU</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <reads-memory/>
@@ -1039,6 +1106,7 @@
 
   <operation>
     <name>MOD</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -1051,6 +1119,7 @@
 
   <operation>
     <name>MODU</name>
+    <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
@@ -1063,6 +1132,7 @@
 
   <operation>
     <name>STDOUT</name>
+    <description>Writes a single 8bit char to "standard output" which is platform dependent. In simulator outputs the character to simulator console. Used for debugging. printf() uses this by default.</description>
     <inputs>1</inputs>
     <outputs>0</outputs>
     <side-effects/>
@@ -1074,6 +1144,7 @@
 
   <operation>
     <name>NOT</name>
+    <description/>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
@@ -1082,6 +1153,7 @@
 
   <operation>
     <name>ANDN</name>
+    <description>Does a bitwise negation (NOT) on the 2nd input followed by AND of the 1st input and the negated 2nd output. Special instruction in TI C64X.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -1092,6 +1164,16 @@
 	EXEC_OPERATION(not, IO(2), negResult);
 	EXEC_OPERATION(and, IO(1), negResult, IO(3));
     </trigger-semantics>
+  </operation>
+
+  <operation>
+    <name>LMBD</name>
+    <description>Leftmost Bit Detection (from TI C64X). Counts the number of 0's or 1's in the bit representation of operand 1 before the first 1 or 0. 2nd operand is used to tell whether to search for a 0 or 1.</description>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
   </operation>
 
 </osal>

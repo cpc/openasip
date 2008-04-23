@@ -1,4 +1,10 @@
-ti64x_subset.adf,/home/visit0r/svnroot/trunk/tce/scheduler/testbench/../passes/default_tcecc_scheduler.conf,05.02.08 19:36,21
-huge.adf,/home/visit0r/svnroot/trunk/tce/scheduler/testbench/../passes/default_tcecc_scheduler.conf,05.02.08 19:36,20
-RF_constrained.adf,/home/visit0r/svnroot/trunk/tce/scheduler/testbench/../passes/default_tcecc_scheduler.conf,05.02.08 19:36,20
-FU_constrained.adf,/home/visit0r/svnroot/trunk/tce/scheduler/testbench/../passes/default_tcecc_scheduler.conf,05.02.08 19:36,20
+1_bus_full_connectivity.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,176
+huge.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,75
+3_bus_reduced_connectivity_shortimms.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,99
+ti64x_subset.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,121
+10_bus_full_connectivity.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,65
+RF_constrained.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,81
+FU_constrained.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,76
+3_bus_short_immediate_fields.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,105
+3_bus_reduced_connectivity.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,173
+3_bus_short_immediate_fields_and_reduced_connectivity.adf,/home/hkultala/src/trunk/tce/scheduler/passes/default_tcecc_scheduler.conf,22.04.08 12:04,188
