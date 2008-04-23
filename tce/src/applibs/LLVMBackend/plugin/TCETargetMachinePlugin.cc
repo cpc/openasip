@@ -118,15 +118,16 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     const std::string PSEUDO = "PSEUDO";
     const std::string NOP = "NOP";
     const std::string INLINEASM = "INLINEASM";
+    const std::string SELECT = "SELECT";
 
     // Pseudo operations
-    if (opc == TCE::SELECT_I1) return PSEUDO;
-    else if (opc == TCE::SELECT_I8) return PSEUDO;
-    else if (opc == TCE::SELECT_I16) return PSEUDO;
-    else if (opc == TCE::SELECT_I32) return PSEUDO;
-    else if (opc == TCE::SELECT_I64) return PSEUDO;
-    else if (opc == TCE::SELECT_F32) return PSEUDO;
-    else if (opc == TCE::SELECT_F64) return PSEUDO;
+    if (opc == TCE::SELECT_I1) return SELECT;
+    else if (opc == TCE::SELECT_I8) return SELECT;
+    else if (opc == TCE::SELECT_I16) return SELECT;
+    else if (opc == TCE::SELECT_I32) return SELECT;
+    else if (opc == TCE::SELECT_I64) return SELECT;
+    else if (opc == TCE::SELECT_F32) return SELECT;
+    else if (opc == TCE::SELECT_F64) return SELECT;
     else if (opc == TCE::IMPLICIT_DEF_I1) return PSEUDO;
     else if (opc == TCE::IMPLICIT_DEF_I8) return PSEUDO;
     else if (opc == TCE::IMPLICIT_DEF_I16) return PSEUDO;
@@ -168,8 +169,15 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::MOVFI32rr) return MOVE;
     if (opc == TCE::MOVIF32rr) return MOVE;
 
+    if (opc == TCE::MOVI1I32rr) return MOVE;
+
     if (opc == TCE::INLINEASM) return INLINEASM;
 
+    if (opc == TCE::STQib) return "stq";
+    if (opc == TCE::STQrb) return "stq";
+    if (opc == TCE::LDQUb) return "ldqu";
+    if (opc == TCE::LDQUib) return "ldqu";
+    
     if (opc == TCE::TCEBRCOND) return "?jump";
     if (opc == TCE::TCEBR) return "jump";
     if (opc == TCE::CALL) return "call";

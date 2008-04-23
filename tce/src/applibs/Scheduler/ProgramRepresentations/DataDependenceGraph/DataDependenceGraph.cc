@@ -1573,7 +1573,7 @@ int DataDependenceGraph::rWawRawEdgesOut(MoveNode& mn) {
 /**
  * Counts all incoming antidependence edges to a movenode.
  *
- * @param mn MoevNode whose edges we are counting
+ * @param mn MoveNode whose edges we are counting
  * @return number of incoming antidependence edges.
  */
 int DataDependenceGraph::rAntiEdgesIn(MoveNode& mn) {
@@ -1590,4 +1590,31 @@ int DataDependenceGraph::rAntiEdgesIn(MoveNode& mn) {
     return count;
 }
  
- 
+/**
+ * Returns the only incoming guard edge to given node
+ *
+ * if there are multiple incoming guard edges, return NULL.
+ * 
+ * @param mn MoveNode whose incoming edges we are searching.
+ * @return only guard edge to mn or NULL if no or multiple.
+ */
+DataDependenceEdge* 
+DataDependenceGraph::onlyIncomingGuard(
+    const MoveNode& mn) {
+    DataDependenceEdge* guard = NULL;
+    DataDependenceGraph::EdgeSet iEdges = inEdges(mn);
+
+    for (DataDependenceGraph::EdgeSet::iterator i = iEdges.begin();
+         i != iEdges.end(); i++) {
+        DataDependenceEdge* edge = *i;
+        if (edge->guardUse() && edge->dependenceType() == 
+            DataDependenceEdge::DEP_RAW) {
+            if (guard == NULL) {
+                guard = edge;
+            } else {
+                return NULL; // too complicated guard
+            }
+        }
+    }
+    return guard;
+}

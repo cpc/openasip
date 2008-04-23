@@ -10,8 +10,11 @@
 #ifndef TTA_MACHINE_CONNECTIVITY_CHECK_HH
 #define TTA_MACHINE_CONNECTIVITY_CHECK_HH
 
+#include <set>
+
 #include "MachineCheckResults.hh"
 #include "MachineCheck.hh"
+
 
 namespace TTAMachine {
     class Port;

@@ -43,7 +43,7 @@ main(int argc, char* argv[]) {
     } catch (ParserStopRequest) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& e) {
-        std::cerr << e.errorMessage() << std::endl;
+        std::cerr << e.errorMessageStack() << std::endl;
         return EXIT_FAILURE;
     }
 

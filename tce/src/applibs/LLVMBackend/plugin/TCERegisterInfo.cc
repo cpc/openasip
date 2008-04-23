@@ -55,11 +55,14 @@ TCERegisterInfo::storeRegToStackSlot(
     if (rc == TCE::I32RegsRegisterClass) {
         BuildMI(mbb, mbbi, tii_.get(TCE::STWir))
             .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, true);
-        //} else if (rc == TCE::I1RegsRegisterClass) {
+        } else if (rc == TCE::I1RegsRegisterClass) {
         // TODO: STQBri assumes src reg is bool.
         //assert(srcReg == TCE::BOOL);
         //BuildMI(mbb, mbbi, tii_.get(TCE::STQbri))
         //.addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, true);
+        // uses full 32 bits for also 1-bit values.
+        BuildMI(mbb, mbbi, tii_.get(TCE::STWir))
+            .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, true);
     } else if (rc == TCE::F32RegsRegisterClass) {
         BuildMI(mbb, mbbi, tii_.get(TCE::STWir))
             .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, true);
@@ -97,11 +100,13 @@ TCERegisterInfo::loadRegFromStackSlot(
             mbb, mbbi, tii_.get(TCE::LDWi),
             destReg).addFrameIndex(fi).addImm(0);
 
-        //} else if (rc == TCE::I1RegsRegisterClass) {
-        //BuildMI(
-        //mbb, mbbi, tii_.get(TCE::LDQbri),
-        ///destReg).addFrameIndex(fi).addImm(0);
-
+    } else if (rc == TCE::I1RegsRegisterClass) {
+        BuildMI(
+            //mbb, mbbi, tii_.get(TCE::LDQbri),
+            ///destReg).addFrameIndex(fi).addImm(0);
+        mbb, mbbi, tii_.get(TCE::LDWi),
+        destReg).addFrameIndex(fi).addImm(0);
+        
     } else if (rc == TCE::F32RegsRegisterClass) {
         BuildMI(
             mbb, mbbi, tii_.get(TCE::LDWi),

@@ -65,12 +65,13 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
 TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     TargetLowering(tm), tm_(tm) {
 
+    addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
     addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);
     addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
 
     //setLoadXAction(ISD::EXTLOAD, MVT::f32, Expand);
-    setLoadXAction(ISD::EXTLOAD, MVT::i1   , Promote);
-    setLoadXAction(ISD::ZEXTLOAD, MVT::i1   , Expand);
+//    setLoadXAction(ISD::EXTLOAD, MVT::i1   , Promote);
+//    setLoadXAction(ISD::ZEXTLOAD, MVT::i1   , Expand);
 
     setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
     setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);
@@ -94,6 +95,7 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
 
     // Selects are custom lowered to a pseudo instruction that
     // is later converted to a diamond control flow pattern.
+/*
     setOperationAction(ISD::SELECT, MVT::i1, Promote);
     setOperationAction(ISD::SELECT, MVT::i8, Promote);
     setOperationAction(ISD::SELECT, MVT::i16, Promote);
@@ -101,11 +103,11 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     setOperationAction(ISD::SELECT, MVT::i64, Custom);
     setOperationAction(ISD::SELECT, MVT::f32, Custom);
     setOperationAction(ISD::SELECT, MVT::f64, Custom);
-
+*/
     // SELECT is used instead of SELECT_CC
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
 
-    setSetCCResultType(MVT::i32);
+    setSetCCResultType(MVT::i1);
 
     setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
 
@@ -775,6 +777,8 @@ MachineBasicBlock*
 TCETargetLowering::InsertAtEndOfBasicBlock(
     MachineInstr* mi, MachineBasicBlock* mbb) {
 
+    assert("should not be needed");
+/*
     // TODO CHECK THIS
     // ---------------------------------------
     //  Copied from PPCISelLowering
@@ -849,7 +853,10 @@ TCETargetLowering::InsertAtEndOfBasicBlock(
 
     delete mi;   // The pseudo instruction is gone now.
     return mbb;    
+*/
 }
+
+
 
 /**
  * Converts SELECT nodes to TCE-specific pseudo instructions.
