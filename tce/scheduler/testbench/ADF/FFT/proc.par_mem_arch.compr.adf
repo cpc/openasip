@@ -7097,6 +7097,89 @@
     </writes-to>
   </socket>
 
+  <socket name="boolean_out">
+    <writes-to>
+      <bus>bus01</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus02</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus03</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus04</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus05</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus06</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus07</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus08</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus09</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus10</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus11</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus12</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus13</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus14</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus15</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus16</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus17</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus18</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>bus19</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
   <function-unit name="fu1">
     <port name="trigger">
       <connects-to>fu1_t</connects-to>
@@ -8089,10 +8172,13 @@
     <type>normal</type>
     <size>2</size>
     <width>1</width>
-    <max-reads>0</max-reads>
-    <max-writes>0</max-writes>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
     <port name="wr0">
       <connects-to>b_i1</connects-to>
+    </port>
+    <port name="rd0">
+      <connects-to>boolean_out</connects-to>
     </port>
   </register-file>
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<adf version="1.5">
+<adf version="1.7">
 
   <bus name="m7">
     <width>32</width>
@@ -19,6 +19,22 @@
         <bool>
           <name>boolean0</name>
           <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>1</index>
         </bool>
       </inverted-expr>
     </guard>
@@ -49,6 +65,22 @@
         <bool>
           <name>boolean0</name>
           <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>1</index>
         </bool>
       </inverted-expr>
     </guard>
@@ -1916,10 +1948,10 @@
 
   <register-file name="boolean0">
     <type>normal</type>
-    <size>1</size>
+    <size>2</size>
     <width>1</width>
-    <max-reads>0</max-reads>
-    <max-writes>0</max-writes>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
     <port name="wr0">
       <connects-to>b_i2</connects-to>
     </port>

@@ -10,12 +10,12 @@ CFG_DIR = ${SCHED_DIR}/ProgramRepresentations/ControlFlowGraph
 DDG_DIR = ${SCHED_DIR}/ProgramRepresentations/DataDependenceGraph
 
 basedir = ${prefix}/share/tce/scheduler/passes/BasicBlockScheduler
-nobase_base_DATA = BasicBlockSchedulerPass.so CLBBypasserModule.so CopyingDSFillerModule.so
+nobase_base_DATA = BasicBlockSchedulerPass.so CLBBypasserModule.so CopyingDSFillerModule.so TempRegisterFinderPass.so
 
 .PHONY: ${nobase_base_DATA}
 
 all-local: BasicBlockSchedulerPass.so CLBBypasserModule.so \
-	CopyingDSFillerModule.so
+	CopyingDSFillerModule.so TempRegisterFinderPass.so
 
 BasicBlockSchedulerPass.so: BasicBlockSchedulerPass.cc \
 	BasicBlockSchedulerPass.hh ${ALGO_DIR}/DSFillerModule.hh \
@@ -29,6 +29,9 @@ CLBBypasserModule.so:  CLBBypasserModule.cc CLBBypasserModule.hh \
 CopyingDSFillerModule.so: CopyingDSFillerModule.cc CopyingDSFillerModule.hh \
 	${ALGO_DIR}/DSFillerModule.hh 
 	${BUILD_PASS} CopyingDSFillerModule.so CopyingDSFillerModule.cc
+
+TempRegisterFinderPass.so: TempRegisterFinderPass.cc TempRegisterFinderPass.hh
+	${BUILD_PASS} TempRegisterFinderPass.so TempRegisterFinderPass.cc
 
 clean:
 	rm -f *.so *~

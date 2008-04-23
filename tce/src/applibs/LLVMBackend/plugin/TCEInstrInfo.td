@@ -60,7 +60,7 @@ def retflag : SDNode<"TCEISD::RET_FLAG", SDT_TCERetFlag,
 
 def SDT_TCESelect : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
                                          SDTCisSameAs<1, 2>,
-                                         SDTCisVT<3, i32>]>;
+                                         SDTCisVT<3, i1>]>;
 
 def TCEselectI1 : SDNode<"TCEISD::SELECT_I1", SDT_TCESelect, []>;
 def TCEselectI8 : SDNode<"TCEISD::SELECT_I8", SDT_TCESelect, []>;
@@ -70,58 +70,56 @@ def TCEselectI64 : SDNode<"TCEISD::SELECT_I64", SDT_TCESelect, []>;
 def TCEselectF32 : SDNode<"TCEISD::SELECT_F32", SDT_TCESelect, []>;
 def TCEselectF64 : SDNode<"TCEISD::SELECT_F64", SDT_TCESelect, []>;
 
-let usesCustomDAGSchedInserter = 1 in {    // Expanded by the scheduler.
+//let usesCustomDAGSchedInserter = 0 in {    // Expanded by the scheduler.
 
-  def SELECT_I1 : Pseudo<(outs I1Regs:$dst),
-                          (ins I1Regs:$T, I1Regs:$F, I32Regs:$c),
+  def SELECT_I1 : InstTCE<(outs I1Regs:$dst),
+                          (ins I1Regs:$c, I1Regs:$T, I1Regs:$F),
                           "# SELECT_I1 PSEUDO!",
-                          [(set I1Regs:$dst,
-                           (TCEselectI1 I1Regs:$T, I1Regs:$F, I32Regs:$c))
-                          ]>;
+                          [(set I1Regs:$dst, 
+    (select I1Regs:$c, I1Regs:$T, I1Regs:$F))]>;
 
-  def SELECT_I8 : Pseudo<(outs I8Regs:$dst),
-                          (ins I8Regs:$T, I8Regs:$F, I32Regs:$c),
+  def SELECT_I8 : InstTCE<(outs I8Regs:$dst),
+                          (ins I1Regs:$c, I8Regs:$T, I8Regs:$F),
                           "# SELECT_I8 PSEUDO!",
                           [(set I8Regs:$dst,
-                           (TCEselectI8 I8Regs:$T, I8Regs:$F, I32Regs:$c))
-			  ]>;
+                            (select I1Regs:$c, I8Regs:$T, I8Regs:$F))]>;
 
-  def SELECT_I16 : Pseudo<(outs I16Regs:$dst),
-                          (ins I16Regs:$T, I16Regs:$F, I32Regs:$c),
+  def SELECT_I16 : InstTCE<(outs I16Regs:$dst),
+                          (ins I1Regs:$c, I16Regs:$T, I16Regs:$F),
                           "# SELECT_I16 PSEUDO!",
                           [(set I16Regs:$dst,
-                           (TCEselectI16 I16Regs:$T, I16Regs:$F, I32Regs:$c))
+                           (select I1Regs:$c, I16Regs:$T, I16Regs:$F))
                           ]>;
 
-  def SELECT_I32 : Pseudo<(outs I32Regs:$dst),
-                          (ins I32Regs:$T, I32Regs:$F, I32Regs:$c),
+  def SELECT_I32 : InstTCE<(outs I32Regs:$dst),
+                          (ins I1Regs:$c, I32Regs:$T, I32Regs:$F),
                           "# SELECT_I32 PSEUDO!",
-                          [(set I32Regs:$dst,
-                           (TCEselectI32 I32Regs:$T, I32Regs:$F, I32Regs:$c))
-                          ]>;
+                          [(set I32Regs:$dst, 
+                            (select I1Regs:$c, I32Regs:$T, I32Regs:$F))]>;
 
-  def SELECT_I64 : Pseudo<(outs I64Regs:$dst),
-                          (ins I64Regs:$T, I64Regs:$F, I32Regs:$c),
-                          "# SELECT_I64 PSEUDO!",
-                          [(set I64Regs:$dst,
-                           (TCEselectI64 I64Regs:$T, I64Regs:$F, I32Regs:$c))
-                          ]>;
 
-  def SELECT_F32 : Pseudo<(outs F32Regs:$dst),
-                          (ins F32Regs:$T, F32Regs:$F, I32Regs:$c),
+  def SELECT_I64 : InstTCE<(outs I64Regs:$dst),
+                          (ins I1Regs:$c, I64Regs:$T, I64Regs:$F),
+                          "# SELECT_I32 PSEUDO!",
+                          [(set I64Regs:$dst, 
+                            (select I1Regs:$c, I64Regs:$T, I64Regs:$F))]>;
+
+  def SELECT_F32 : InstTCE<(outs F32Regs:$dst),
+                          (ins I1Regs:$c, F32Regs:$T, F32Regs:$F),
                           "# SELECT_F32 PSEUDO!",
-                          [(set F32Regs:$dst,
-                           (TCEselectF32 F32Regs:$T, F32Regs:$F, I32Regs:$c))
-                          ]>;
+                          [(set F32Regs:$dst, 
+                            (select I1Regs:$c, F32Regs:$T, F32Regs:$F))]>;
 
-  def SELECT_F64 : Pseudo<(outs F64Regs:$dst),
-                          (ins F64Regs:$T, F64Regs:$F, I32Regs:$c),
+  // 64-bit ints not supported.
+
+
+  def SELECT_F64 : InstTCE<(outs F64Regs:$dst),
+                          (ins I1Regs:$c, F64Regs:$T, F64Regs:$F),
                           "# SELECT_F64 PSEUDO!",
                           [(set F64Regs:$dst,
-                           (TCEselectF64 F64Regs:$T, F64Regs:$F, I32Regs:$c))
-                          ]>;
+                            (select I1Regs:$c, F64Regs:$T, F64Regs:$F))]>;
 
-}
+//}
 
 // =========================
 //  Pseudo instructions
@@ -266,7 +264,6 @@ def MOVIF32rr : InstTCE<(outs F32Regs:$dst), (ins I32Regs:$src),
 	           "$src -> $dst;",
                    [(set F32Regs:$dst, (bitconvert I32Regs:$src))]>;
 
-
 def MOVF32rr : InstTCE<(outs F32Regs:$dst), (ins F32Regs:$src),
 	           "$src -> $dst;",
                    []>;
@@ -283,13 +280,20 @@ def MOVF64ri : InstTCE<(outs F64Regs:$dst), (ins i64imm:$src),
 	           "$src -> $dst;",
                    []>;
 
-
 def NOP : InstTCE<(outs), (ins), "...;", []>;
 
+// zero extending moves
 
+def MOVI1I32rr : InstTCE<(outs I32Regs:$dst), (ins I1Regs:$src),
+                    "$src -> $dst;",
+                    [(set I32Regs:$dst, (zext I1Regs:$src))]>;
+
+// for some reason it cannot automatically use zext for anyext,
+// so pattern here for it.
+def : Pat <(i32 (anyext I1Regs:$src)),(MOVI1I32rr I1Regs:$src)>;
 
 // ----- Immediates -----
-//def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;
+def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;
 def : Pat<(i32 imm:$val), (MOVI32ri imm:$val)>;
 def : Pat<(i64 imm:$val), (MOVI64ri imm:$val)>;
 
@@ -317,11 +321,24 @@ def : Pat<(ret), (RETL)>;
 
 // jump 
 let isTerminator = 1, isBranch = 1 in {
-    def TCEBRCOND : InstTCE<(outs), (ins I32Regs:$gr, i32imm:$dst),
-        "$gr -> bool; ? $dst -> jump.1;", []>;
+    def TCEBRCOND : InstTCE<(outs), (ins I1Regs:$gr, i32imm:$dst),
+        "? $gr $dst -> jump.1;", []>;
 
     def TCEBR : InstTCE<(outs),
                         (ins i32imm:$dst), "$dst -> jump.1;", []>;
+}
+
+let isLoad = 1 in {
+// hardcoded boolean loads.
+    def LDQUb : InstTCE <(outs I1Regs:$dst), (ins MEMrr:$src), "", [(set I1Regs:$dst, (load ADDRrr:$src))]>;
+    def LDQUib : InstTCE<(outs I1Regs:$dst), (ins MEMri:$src), "", [(set I1Regs:$dst, (load ADDRri:$src))]>;
+}
+
+// and stores
+let isStore = 1 in {
+    def STQib : InstTCE<(outs), (ins MEMri:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRri:$addr)]>;
+
+    def STQrb : InstTCE<(outs), (ins MEMrr:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRrr:$addr)]>;
 }
 
 include "GenInstrInfo.td"
@@ -334,15 +351,15 @@ def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQi ADDRri:$src)>;
 def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
 def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
 
-//  bool load/store
+//  old bool load/store - need to be changed - or not used anymore?
 def : Pat<(i32 (zextloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
 def : Pat<(i32 (zextloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
 
-def : Pat<(truncstorei1 I32Regs:$src, ADDRrr:$addr),
-          (STQrr ADDRrr:$addr, I32Regs:$src)>;
+//def : Pat<(truncstorei1 I32Regs:$src, ADDRrr:$addr),
+//          (STQrr ADDRrr:$addr, I32Regs:$src)>;
 
-def : Pat<(truncstorei1 I32Regs:$src, ADDRri:$addr),
-          (STQir ADDRri:$addr, I32Regs:$src)>;
+//def : Pat<(truncstorei1 I32Regs:$src, ADDRri:$addr),
+//          (STQir ADDRri:$addr, I32Regs:$src)>;
 
 def : Pat<(store F32Regs:$src, ADDRri:$addr),
           (STWir ADDRri:$addr, (MOVFI32rr F32Regs:$src))>;
@@ -355,3 +372,7 @@ def : Pat<(f32 (load ADDRrr:$addr)),
 
 def : Pat<(f32 (load ADDRri:$addr)),
           (MOVIF32rr (LDWr ADDRri:$addr))>;
+
+
+//def SELECTINT : Pat<(select I1Regs:$which, I32Regs:$src1, I32Regs:$src2),
+//          (CMOV I1Regs:$which, (MOV GR:$src2), GR:$src1)>; // note order!

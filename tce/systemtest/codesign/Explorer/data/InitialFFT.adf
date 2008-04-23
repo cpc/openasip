@@ -22,6 +22,22 @@
         </bool>
       </inverted-expr>
     </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean</name>
+          <index>1</index>
+        </bool>
+      </inverted-expr>
+    </guard>
     <segment name="segment">
       <writes-to/>
     </segment>
@@ -49,6 +65,22 @@
         <bool>
           <name>boolean</name>
           <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean</name>
+          <index>1</index>
         </bool>
       </inverted-expr>
     </guard>
@@ -82,6 +114,22 @@
         </bool>
       </inverted-expr>
     </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean</name>
+          <index>1</index>
+        </bool>
+      </inverted-expr>
+    </guard>
     <segment name="segment">
       <writes-to/>
     </segment>
@@ -109,6 +157,22 @@
         <bool>
           <name>boolean</name>
           <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean</name>
+          <index>1</index>
         </bool>
       </inverted-expr>
     </guard>
@@ -1434,7 +1498,7 @@
 
   <register-file name="boolean">
     <type>normal</type>
-    <size>1</size>
+    <size>2</size>
     <width>1</width>
     <max-reads>1</max-reads>
     <max-writes>1</max-writes>
