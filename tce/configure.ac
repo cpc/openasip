@@ -310,13 +310,6 @@ fi
 
 fi
 
-# AM_PATH_PYTHON sets PYTHON_VERSION if Python is found
-AM_CONDITIONAL([PYTHON_ENABLED], test x$PYTHON_VERSION != x)
-
-AC_DEFINE([PYTHON_ENABLED], [], "Python support enabled.")
-
-
-
 ########################
 # CHECKS FOR LIBRARIES #
 ########################
@@ -355,6 +348,7 @@ AC_MSG_ERROR(
 [boost_thread library not found. Install it or use --with-boost-thread switch])
 fi
 
+AM_CONDITIONAL([PYTHON_ENABLED], false)
 # this uses ax_python.m4 script so... ac_python_devel is unnecessary...
 # boost_python can be used only if python is enabled
 if $enablepython
@@ -362,8 +356,15 @@ then
 AX_BOOST_PYTHON
 if test -z "$BOOST_PYTHON_LIB"
 then
-AC_MSG_ERROR(
+# AM_PATH_PYTHON sets PYTHON_VERSION if Python is found
+AC_MSG_NOTICE(
 [boost_python library not found. Install it or use --with-boost-python switch])
+else
+    if test x$PYTHON_VERSION != x
+    then
+       AM_CONDITIONAL([PYTHON_ENABLED], true)
+       AC_DEFINE([PYTHON_ENABLED], [], "Python bindings enabled.")
+    fi
 fi
 fi
 

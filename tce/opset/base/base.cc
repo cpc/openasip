@@ -899,3 +899,26 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(STDOUT)
+
+//////////////////////////////////////////////////////////////////////////////
+// LMBD - Leftmost bit detection.
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LMBD)
+
+TRIGGER
+    int foundBits = 0;
+    UIntWord word = UINT(1);
+    const UIntWord bitToSearch = INT(2);
+    if (bitToSearch > 1)
+        RUNTIME_ERROR("LMDB's 2nd operand must be 0 or 1!");
+    const int BITS_IN_WORD = sizeof(UIntWord)*8;
+    for (; foundBits <= BITS_IN_WORD; ++foundBits) {
+        // check the top bit: is the searched bit?
+        if (word >> (BITS_IN_WORD - 1) == bitToSearch)
+            break; // found the bit
+        word <<= 1;
+    }
+    IO(3) = foundBits;
+END_TRIGGER;
+
+END_OPERATION(LMBD)
