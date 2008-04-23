@@ -435,16 +435,13 @@ LLVM_LIBDIR=$($llvmConf --libdir)
 # if wx-config is found and the version is 2.4.*, conditional
 # WX is set.
 case "$LLVM_VERSION" in
-     2.1)
-     AC_DEFINE([LLVM_2_1], [], "Using LLVM v2.1")
-   ;;
      2.2)
      AC_DEFINE([LLVM_2_2], [], "Using LLVM v2.2")
    ;;
      *)
    AC_MSG_NOTICE(
    [
-Unsupported LLVM version. Only LLVM versions 2.1 to 2.2 are supported.
+Unsupported LLVM version. Only LLVM version 2.2 is supported.
    ])
    LLVM_VERSION=
    ;;
@@ -1213,8 +1210,6 @@ AC_CONFIG_FILES([
   Python-bindings/test/RunPythonFileTests/Makefile
   src/ext/Makefile
   src/ext/llvm/Makefile
-  src/ext/llvm/2.1/Makefile
-  src/ext/llvm/2.1/TableGen/Makefile
   src/ext/llvm/2.2/Makefile
   src/ext/llvm/2.2/TableGen/Makefile
   src/ext/llvm/2.2/bugpoint/Makefile
