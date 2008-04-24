@@ -22,6 +22,22 @@
         </bool>
       </inverted-expr>
     </guard>
+    <guard>
+      <simple-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>1</index>
+        </bool>
+      </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean0</name>
+          <index>1</index>
+        </bool>
+      </inverted-expr>
+    </guard>
     <segment name="seg1">
       <writes-to/>
     </segment>
@@ -1331,10 +1347,10 @@
 
   <register-file name="boolean0">
     <type>normal</type>
-    <size>1</size>
+    <size>2</size>
     <width>1</width>
-    <max-reads>0</max-reads>
-    <max-writes>0</max-writes>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
     <port name="wr0">
       <connects-to>b_i2</connects-to>
     </port>

@@ -242,7 +242,8 @@ TDGen::analyzeRegisters() {
             }
 
             int lastIdx = rf->size();
-            if (!fullyConnected_) {
+            // todo: find a good solution to use just one big rf for this.
+            if (!fullyConnected_&& width >1) {
                 // If the machine is not fully connected,
                 // preserve last register
                 // of all registers for bypassing values.
@@ -251,9 +252,18 @@ TDGen::analyzeRegisters() {
 
             if (currentIdx < lastIdx) {
                 RegInfo reg = { rf->name(), currentIdx };
-                if (guardedRegs_.find(reg) == guardedRegs_.end()) {
-                    // Skip registers with guard.
-                    ri->push_back(reg);
+                if (width != 1) {
+                    // if has guard, set as 1-bit reg
+                    if (guardedRegs_.find(reg) == guardedRegs_.end()) {
+                        ri->push_back(reg);
+                    } else {
+                        regs1bit_.push_back(reg);
+                    }
+                } else {
+                    // if it is 1-bit, it has to have guard.
+                    if (!(guardedRegs_.find(reg) == guardedRegs_.end())) {
+                        ri->push_back(reg);
+                    }
                 }
                 regsFound = true;
             }
@@ -270,8 +280,9 @@ void
 TDGen::write1bitRegisterInfo(std::ostream& o) {
 
     std::string i1regs;
+
     if (regs1bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy1", 0 };
         std::string name = "I1DUMMY";
         writeRegisterDef(o, reg, name, "Ri1", "", RESERVED);
         i1regs += name;
@@ -288,7 +299,7 @@ TDGen::write1bitRegisterInfo(std::ostream& o) {
       << "def I1Regs : RegisterClass<\"TCE\", [i1], 8, ["
       << i1regs << "]> {" << std::endl;
     o << " let Size=8;" << std::endl;
-    o << " let Alignment=8;" << std::endl;
+    o << " let Alignment=32;" << std::endl;
     o << "}" << std::endl;
 
 }
@@ -302,7 +313,7 @@ TDGen::write8bitRegisterInfo(std::ostream& o) {
 
     std::string i8regs;
     if (regs8bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy8", 0 };
         std::string name = "I8DUMMY";
         writeRegisterDef(o, reg, name, "Ri8", "", RESERVED);
         i8regs += name;
@@ -330,7 +341,7 @@ TDGen::write16bitRegisterInfo(std::ostream& o) {
 
     std::string i16regs;
     if (regs16bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy16", 0 };
         std::string name = "I16DUMMY";
         writeRegisterDef(o, reg, name, "Ri16", "", RESERVED);
         i16regs += name;
@@ -432,12 +443,14 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
 
     // --- Hardcoded reserved registers. ---
     std::string i64regs;
+
     if (regs64bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy64", 0 };
         writeRegisterDef(o, reg, "DIRES0", "Ri64", "", RESERVED);
         i64regs = "DIRES0";
     } else {
-        writeRegisterDef(o, regs64bit_[0], "DIRES0", "Ri64", "", RESERVED);
+  
+      writeRegisterDef(o, regs64bit_[0], "DIRES0", "Ri64", "", RESERVED);
         for (unsigned i = 1; i < regs64bit_.size(); i++) {
             std::string regName = "DI" + Conversion::toString(i);
             i64regs += regName;
@@ -466,8 +479,9 @@ TDGen::write64bitRegisterInfo(std::ostream& o) {
       << "}" << std::endl;
 
     std::string f64regs;
+
     if (regs64bit_.size() < 1) {
-        RegInfo reg = { "dummy", 0 };
+        RegInfo reg = { "dummy64", 0 };
         writeRegisterDef(o, reg, "DRES0", "Rf64", "", RESERVED);
         f64regs = "DRES0";
     } else {
@@ -769,53 +783,97 @@ TDGen::writeOperationDef(
     if (op.readsMemory()) attrs += " mayLoad = 1";
     if (op.writesMemory()) attrs += " mayStore = 1";
 
-    std::string suffix(op.numberOfInputs(), 'r');
+    // now works for 1 and 0 outputs. Need changes when multiple
+    // output become supported.
+    int intOutCount = 0;
+    if (op.numberOfOutputs() == 1 && !op.readsMemory() ) {
+        
+        // These are a mess in Operation class.
+        Operand& operand = op.operand(op.numberOfInputs()+1);
+        if (operand.type() == Operand::UINT_WORD || 
+            operand.type() == Operand::SINT_WORD) {
+            intOutCount = 2;
+        }
+        // no bool outs for some operatios
+        if (op.name() == "CFI") {
+            intOutCount = 0;
+        }
+        
+        if (op.name().substr(0,3) == "ROT" || 
+            op.name().substr(0,2) == "SH" ||
+            op.name().substr(0,2) == "SX" ) {
+            intOutCount = 0;
+        }
+        if (op.name() == "XOR" || op.name() == "IOR") {
+            intOutCount = 2;
+        }
+        if (op.readsMemory() && intOutCount == 2 ) {
+            intOutCount = 1; // 1bit addresses not reasonable
+        }
+    }
+    
 
-    for (int immInput = 0;
-         immInput < (op.numberOfInputs() + 1); immInput++) {
+    for (int boolOut = 0; boolOut <= intOutCount; boolOut++) {
+        char regInputChar = boolOut != 2 ? 'r' : 'b';
+        std::string suffix(op.numberOfInputs(), regInputChar);
 
-        std::string outputs, inputs, asmstr, pattern, patSuffix;
-        try {
-            outputs = "(outs" + patOutputs(op) + ")";
-            inputs = "(ins " + patInputs(op, immInput) + ")";
-            asmstr = "\"\"";
-            patSuffix = suffix;
-            if (immInput > 0) {
-                patSuffix[immInput - 1] = 'i';
+        if ( boolOut == 1) {
+            suffix += 'b';
+        }
+        
+        int inputCount = op.numberOfInputs();
+        for (int immInput = 0;
+             immInput <= inputCount; immInput++) {
+            
+            std::string outputs, inputs, asmstr, pattern, patSuffix;
+            try {
+                outputs = "(outs" + patOutputs(op, boolOut!=0) + ")";
+                inputs = "(ins " + patInputs(op, immInput, boolOut==2) + ")";
+                asmstr = "\"\"";
+                patSuffix = suffix;
+                if (immInput > 0) {
+                    if (boolOut != 2) {
+                        patSuffix[immInput - 1] = 'i';
+                    } else {
+                        patSuffix[immInput -1] = 'j';
+                    }
+                }
+                
+                if (llvmOperationPattern(op.name()) != "" || 
+                    op.dagCount() == 0) {
+                    OperationDAG* trivial = createTrivialDAG(op);
+                    pattern = operationPattern(
+                        op, *trivial, immInput, boolOut);
+                    delete trivial;
+                } else {
+                    pattern = operationPattern(
+                        op, op.dag(0), immInput, boolOut);
+                }
+            } catch (InvalidData& e) {
+                //std::cerr << "ERROR: " << e.errorMessage() << std::endl;
+                continue;
             }
-
-            if (llvmOperationPattern(op.name()) != "" || op.dagCount() == 0) {
-                OperationDAG* trivial = createTrivialDAG(op);
-                pattern = operationPattern(op, *trivial, immInput);
-                delete trivial;
-            } else {
-                pattern = operationPattern(op, op.dag(0), immInput);
+            
+            if (attrs != "") {
+                o << "let" << attrs << " in { " << std::endl;
             }
-        } catch (InvalidData& e) {
-            //std::cerr << "ERROR: " << e.errorMessage() << std::endl;
-            continue;
+            
+            std::string opcEnum = 
+                StringTools::stringToUpper(op.name()) + patSuffix;
+
+            o << "def " << opcEnum << " : " 
+              << "InstTCE<"
+              << outputs << ", "
+              << inputs << ", "
+              << asmstr << ", "
+              << "[" << pattern << "]>;"
+              << std::endl;
+            
+            if (attrs != "") {
+                o << "}" << std::endl;
+            }        
+            opNames_[opcEnum] = op.name();
         }
-
-        if (attrs != "") {
-            o << "let" << attrs << " in { " << std::endl;
-        }
-
-        std::string opcEnum = 
-            StringTools::stringToUpper(op.name()) + patSuffix;
-
-        o << "def " << opcEnum << " : "
-          << "InstTCE<"
-          << outputs << ", "
-          << inputs << ", "
-          << asmstr << ", "
-          << "[" << pattern << "]>;"
-          << std::endl;
-
-        if (attrs != "") {
-            o << "}" << std::endl;
-        }
-
-        opNames_[opcEnum] = op.name();
     }
 }
 
@@ -847,14 +905,35 @@ TDGen::writeEmulationPattern(
         assert(res != NULL);
     }
 
-    boost::format match(llvmPat);
+    boost::format match1(llvmPat);
+    boost::format match2(llvmPat);
     for (int i = 0; i < op.numberOfInputs(); i++) {
-        match % operandToString(op.operand(i + 1), true, 0);
+        match1 % operandToString(op.operand(i + 1), true, 0, false);
+        match2 % operandToString(op.operand(i + 1), true, 0, true);
     }
 
-    o << "def : Pat<(" << match.str() << "), "
-      << dagNodeToString(op, dag, *res, 0, true)
+    o << "def : Pat<(" << match1.str() << "), "
+      << dagNodeToString(op, dag, *res, 0, true, false)
       << ">;" << std::endl;
+
+    if (op.name() == "GE" || op.name() == "GEF" || op.name() == "LTF" ||
+        op.name() == "NE" || op.name() == "EQF" || op.name() == "LE" ||
+        op.name() == "LEF" || op.name() == "NEF" || op.name() == "GEU" ||
+        op.name() == "LEU" || op.name() == "LEUF" || op.name() == "GEUF" ||
+        op.name() == "LT" || op.name() == "LTU") {
+
+        // todo: b versions of those
+        o << "def : Pat<(" << match1.str() << "), "
+          << dagNodeToString(op, dag, *res, 0, true, 1)
+          << ">;" << std::endl;
+
+        // todo: b versions of those
+        o << "def : Pat<(" << match2.str() << "), "
+          << dagNodeToString(op, dag, *res, 0, true, 2)
+          << ">;" << std::endl;
+        
+        
+    }
 }
 
 
@@ -962,10 +1041,10 @@ std::string
 TDGen::operationPattern(
     const Operation& op,
     const OperationDAG& dag,
-    int immOp) {
+    int immOp, int intToBool) {
 
     const OperationDAGNode& res = **(dag.endNodes().begin());
-    return dagNodeToString(op, dag, res, immOp, false);
+    return dagNodeToString(op, dag, res, immOp, false, intToBool);
 }
 
 /**
@@ -985,14 +1064,15 @@ TDGen::dagNodeToString(
     const OperationDAG& dag,
     const OperationDAGNode& node,
     int immOp,
-    bool emulationPattern) throw (InvalidData) {
+    bool emulationPattern, int intToBool) throw (InvalidData) {
 
     const OperationNode* oNode = dynamic_cast<const OperationNode*>(&node);
     if (oNode != NULL) {
         assert( dag.inDegree(*oNode) ==
                 oNode->referencedOperation().numberOfInputs());
 
-        return operationNodeToString(op, dag, *oNode, immOp, emulationPattern);
+        return operationNodeToString(
+            op, dag, *oNode, immOp, emulationPattern, intToBool);
     }
 
     const TerminalNode* tNode = dynamic_cast<const TerminalNode*>(&node);
@@ -1010,7 +1090,7 @@ TDGen::dagNodeToString(
                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
             }
 
-            return operandToString(operand, false, imm);
+            return operandToString(operand, false, imm, intToBool==2);
         } else {
 
             // Output operand for the whole operation.
@@ -1025,13 +1105,38 @@ TDGen::dagNodeToString(
             // Multiple-output operation nodes not supported in the middle
             // of dag:
             assert(dag.outDegree(srcNode) == 1);
-
-            std::string pattern =
-                "(set " + operandToString(operand, false, imm) + ", " +
-                dagNodeToString(op, dag, srcNode, immOp, emulationPattern) +
-                ")";
             
-            return pattern;
+            std::string dnString = 
+                (intToBool != 2) ? 
+                dagNodeToString(
+                    op, dag, srcNode, immOp, emulationPattern, 0) :
+                dagNodeToString(
+                    op, dag, srcNode, immOp, emulationPattern, 2);
+            
+            bool needTrunc = (intToBool == 1);
+
+            // handle setcc's without trunc
+            if (needTrunc) {
+                if (dnString.substr(0,4) == "(set" ||
+                    dnString.substr(0,5) == "(zext" ||
+                    dnString.substr(0,5) == "(load") {
+                    needTrunc = false;
+                }
+            }
+
+            if (needTrunc) {
+                std::string pattern =
+                    "(set " + operandToString(
+                        operand, false, imm, intToBool!=0)
+                    + ", (trunc " + dnString + "))";
+                return pattern;
+            } else {
+                std::string pattern =
+                    "(set " + operandToString(
+                        operand, false, imm, intToBool !=0) 
+                    + ", " + dnString + ")";
+                return pattern;
+            }
         }
     }
 
@@ -1054,7 +1159,8 @@ TDGen::operationNodeToString(
     const OperationDAG& dag,
     const OperationNode& node,
     int immOp,
-    bool emulationPattern) throw (InvalidData) {
+    bool emulationPattern,
+    int intToBool) throw (InvalidData) {
 
     const Operation& operation = node.referencedOperation();
 
@@ -1062,8 +1168,14 @@ TDGen::operationNodeToString(
 
     if (emulationPattern) {
         // FIXME: UGLYhhh
+        char regInputChar = (intToBool != 2) ? 'r' : 'b';
+
         operationPat = StringTools::stringToUpper(operation.name()) +
-            string(operation.numberOfInputs(), 'r');
+            string(operation.numberOfInputs(), regInputChar);
+
+        if (intToBool==1) {
+            operationPat += 'b';
+        }
 
         for (int i = 0; i < operation.numberOfInputs(); i++) {
             if (i > 0) {
@@ -1099,7 +1211,7 @@ TDGen::operationNodeToString(
                 ok = true;
                 const OperationDAGNode& in = dag.tailNode(edge);
                 pattern % dagNodeToString(
-                    op, dag, in, immOp, emulationPattern);
+                    op, dag, in, immOp, emulationPattern, intToBool==2?2:0);
             }
         }
     }
@@ -1118,7 +1230,7 @@ std::string
 TDGen::operandToString(
     const Operand& operand,
     bool match,
-    bool immediate) {
+    bool immediate, int intToBool) {
 
     int idx = operand.index();
 
@@ -1141,12 +1253,14 @@ TDGen::operandToString(
 
         if (immediate) {
             if (match) {
-                return "i32imm:$op" + Conversion::toString(idx);
+                return (intToBool != 0 ? "i1imm:$op" : "i32imm:$op") + 
+                    Conversion::toString(idx);
             } else {
                 return "imm:$op" + Conversion::toString(idx);
             }
         } else {
-            return "I32Regs:$op" + Conversion::toString(idx);
+            return (intToBool != 0 ? "I1Regs:$op" : "I32Regs:$op") + 
+                Conversion::toString(idx);
         }
     } else if (operand.type() == Operand::FLOAT_WORD) {
         if (immediate) {
@@ -1178,14 +1292,14 @@ TDGen::operandToString(
  * @return String defining operation inputs in llvm .td format.
  */
 std::string
-TDGen::patInputs(const Operation& op, int immOp) {
+TDGen::patInputs(const Operation& op, int immOp, bool intToBool) {
     std::string ins;
     for (int i = 0; i < op.numberOfInputs(); i++) {
         if (i > 0) {
             ins += ",";
         }
         bool imm = (op.operand(i+1).index() == immOp);
-        ins += operandToString(op.operand(i + 1), true, imm);
+        ins += operandToString(op.operand(i + 1), true, imm, intToBool);
     }
     return ins;
 }
@@ -1198,7 +1312,7 @@ TDGen::patInputs(const Operation& op, int immOp) {
  * @return String defining operation outputs in llvm .td format.
  */
 std::string
-TDGen::patOutputs(const Operation& op) {
+TDGen::patOutputs(const Operation& op, bool intToBool) {
     std::string outs;
     if (op.numberOfOutputs() == 0) {
         return "";
@@ -1206,7 +1320,7 @@ TDGen::patOutputs(const Operation& op) {
         assert(op.operand(op.numberOfInputs() + 1).isOutput());
         outs += " ";
         outs += operandToString(
-            op.operand(op.numberOfInputs() + 1), true, false);
+            op.operand(op.numberOfInputs() + 1), true, false, intToBool);
 
     } else {
         assert(false);

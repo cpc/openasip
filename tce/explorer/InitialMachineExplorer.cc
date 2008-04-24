@@ -573,7 +573,7 @@ private:
             }
             // add boolean register
             TTAMachine::RegisterFile* booleanRF = new TTAMachine::RegisterFile(
-                "boolean", 1, 1, 1, 1, 0, TTAMachine::RegisterFile::NORMAL);
+                "boolean", 2, 1, 1, 1, 0, TTAMachine::RegisterFile::NORMAL);
             TTAMachine::RFPort* booleanWritePort = new TTAMachine::RFPort(
                 "write1", *booleanRF);
             TTAMachine::RFPort* booleanReadPort = new TTAMachine::RFPort(
@@ -624,10 +624,15 @@ private:
             TTAMachine::Machine::BusNavigator busNav = mach->busNavigator();
             for (int i = 0; i < busNav.count(); i++) {
                 Bus* bus = busNav.item(i);
-                RegisterGuard* guard = 
+                RegisterGuard* guard0 = 
                     new RegisterGuard(false, *booleanRF, 0, *bus);
-                RegisterGuard* invGuard = 
+                RegisterGuard* invGuard0 = 
                     new RegisterGuard(true, *booleanRF, 0, *bus);
+                RegisterGuard* guard1 = 
+                    new RegisterGuard(false, *booleanRF, 1, *bus);
+                RegisterGuard* invGuard1 = 
+                    new RegisterGuard(true, *booleanRF, 1, *bus);
+
             }
 
             // add immediate units if needed

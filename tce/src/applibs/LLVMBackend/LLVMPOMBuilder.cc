@@ -48,15 +48,10 @@
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Support/Debug.h"
-
-#if !defined(LLVM_2_1)
-
 #include "llvm/Target/TargetInstrDesc.h"
 
 // this class was renamed in LLVM 2.2
 typedef llvm::TargetInstrDesc TargetInstrDescriptor;
-
-#endif
 
 #include "MapTools.hh"
 #include "StringTools.hh"
@@ -198,11 +193,9 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.name = name;
         def.address = 0;
         def.alignment = td->getABITypeAlignment(type);
-#if defined(LLVM_2_1)
-        def.size = td->getTypeSize(type);
-#else
-        def.size = td->getTypeSizeInBits(type) / 8;
-#endif
+        def.size = td->getTypeStoreSize(type);
+        assert(def.size != 0 && def.alignment != 0);
+
         if (isInitialized(initializer)) {
             def.initialize = true;
             data_.push_back(def);
@@ -325,11 +318,7 @@ LLVMPOMBuilder::createDataDefinition(
     unsigned& addr, const Constant* cv) {
 
     const TargetData* td = tm_.getTargetData();
-#if defined(LLVM_2_1)
-    unsigned sz = td->getTypeSize(cv->getType());
-#else
-    unsigned sz = td->getTypeSizeInBits(cv->getType()) / 8;
-#endif
+    unsigned sz = td->getTypeStoreSize(cv->getType());
     unsigned align = td->getABITypeAlignment(cv->getType());
     unsigned pad = 0;
     while ((addr + pad) % align != 0) pad++;
@@ -445,11 +434,7 @@ LLVMPOMBuilder::createFPDataDefinition(
     std::vector<MinimumAddressableUnit> maus;
 
     const Type* type = cfp->getType();
-#if defined(LLVM_2_1)
-    unsigned sz = tm_.getTargetData()->getTypeSize(type);
-#else
-    unsigned sz = tm_.getTargetData()->getTypeSizeInBits(type) / 8;
-#endif
+    unsigned sz = tm_.getTargetData()->getTypeStoreSize(type);
     TTAProgram::DataDefinition* def = NULL;
 
     if (type->getTypeID() == Type::DoubleTyID) {
@@ -503,11 +488,7 @@ LLVMPOMBuilder::createGlobalValueDataDefinition(
 
     const Type* type = gv->getType();
 
-#if defined(LLVM_2_1)
-    unsigned sz = tm_.getTargetData()->getTypeSize(type);
-#else
-    unsigned sz = tm_.getTargetData()->getTypeSizeInBits(type) / 8;
-#endif
+    unsigned sz = tm_.getTargetData()->getTypeStoreSize(type);
     
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
     std::string label = mang_->getValueName(gv);
@@ -826,6 +807,10 @@ LLVMPOMBuilder::emitInstruction(
         return emitInlineAsm(mi, proc);
     }
 
+    if (opName == "SELECT") {
+        return emitSelect(mi, proc);
+    }
+
     Bus& bus = umach_->universalBus();
     const TTAMachine::FunctionUnit* fu = NULL;
 
@@ -862,6 +847,8 @@ LLVMPOMBuilder::emitInstruction(
 
     std::vector<TTAProgram::Instruction*> operandMoves;
     std::vector<TTAProgram::Instruction*> resultMoves;
+
+    TTAProgram::MoveGuard* guard = NULL;
     for (unsigned o = 0; o < mi->getNumOperands(); o++) {
         
         const MachineOperand& mo = mi->getOperand(o);
@@ -871,26 +858,11 @@ LLVMPOMBuilder::emitInstruction(
         if (o == 0 && hasGuard) {
             // Create move from the condition operand register to bool register
             // which is used by the guard.
-            TTAMachine::Port* brfPort = NULL;
-            const TTAMachine::RegisterFile& brf =
-                umach_->booleanRegisterFile();
-
-            for (int i = 0; i < brf.portCount(); i++) {
-                if (brf.port(i)->isInput()) {
-                    brfPort = brf.port(i);
-                    break;
-                }
-            }
-            TTAProgram::Terminal* guarded = createTerminal(mo);
-            TTAProgram::Terminal* boolreg =
-                new TTAProgram::TerminalRegister(*brfPort, 0);
-
-            TTAProgram::Move* gmove =
-                createMove(guarded, boolreg, bus);
-
-            TTAProgram::Instruction* instr = new TTAProgram::Instruction();
-            instr->addMove(gmove);
-            operandMoves.push_back(instr);
+            TTAProgram::Terminal *t = createTerminal(mo);
+            // inv guards not yet supported
+            guard = createGuard(t,true);
+            delete t;
+            assert(guard != NULL);
             continue;
         }
 
@@ -936,7 +908,8 @@ LLVMPOMBuilder::emitInstruction(
 
         }
 
-        TTAProgram::Move* move = createMove(src, dst, bus);
+        TTAProgram::Move* move = createMove(src, dst, bus, guard);
+/*
         if (hasGuard) {
             TTAMachine::Guard* nonInvGuard = NULL;
             for (int g = 0; g < bus.guardCount(); g++) {
@@ -947,10 +920,11 @@ LLVMPOMBuilder::emitInstruction(
             assert(nonInvGuard != NULL);
             TTAProgram::MoveGuard* guard =
                 new TTAProgram::MoveGuard(*nonInvGuard);
-            
+
+        if (guard != NULL) {
             move->setGuard(guard);        
         }
-
+*/
         TTAProgram::Instruction* instr = new TTAProgram::Instruction();
         instr->addMove(move);
 
@@ -1000,6 +974,10 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
         std::string rfName = tm_.rfName(dRegNum);
         int idx = tm_.registerIndex(dRegNum);
+        if (!mach_->registerFileNavigator().hasItem(rfName)) {
+            std::cerr << "regfile: " << rfName << " not found!" << std::endl;
+        }
+
         assert(mach_->registerFileNavigator().hasItem(rfName));
         const RegisterFile* rf = mach_->registerFileNavigator().item(rfName);
         assert(idx >= 0 && idx < rf->size());
@@ -1109,7 +1087,7 @@ LLVMPOMBuilder::emitConstantPool(const MachineConstantPool& mcp) {
 /**
  * Creates POM instruction for a move.
  *
- * @param mi Moce machine instruction.
+ * @param mi Move machine instruction.
  * @param proc POM procedure to add the move to.
  * @return Emitted POM instruction.
  */
@@ -1160,6 +1138,69 @@ LLVMPOMBuilder::emitReturn(
     proc->add(instr);
     return instr;
 }
+
+
+
+/**
+ * Creates POM instructions for a select.
+ *
+ * @param mi select machine instruction.
+ * @param proc POM procedure to add the select to.
+ * @return First of the emitted POM instructions.
+ */
+TTAProgram::Instruction*
+LLVMPOMBuilder::emitSelect(
+    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+
+// 0 = dest?
+
+    const MachineOperand& guardMo = mi->getOperand(1);
+
+    // Create move from the condition operand register to bool register
+    // which is used by the guard.
+    TTAProgram::Terminal *guardTerminal = createTerminal(guardMo);
+
+    TTAProgram::Terminal* dst = createTerminal(mi->getOperand(0));
+    TTAProgram::Terminal* srcT = createTerminal(mi->getOperand(2));
+    TTAProgram::Terminal* srcF = createTerminal(mi->getOperand(3));
+
+    Bus& bus = umach_->universalBus();
+    TTAProgram::Instruction *lastIns = NULL;
+
+    // do no create X -> X moves.
+    if (dst->equals(*srcT)) {
+        delete srcT;
+    } else {
+        TTAProgram::MoveGuard* trueGuard = createGuard(guardTerminal, true);
+        assert(trueGuard != NULL);
+        TTAProgram::Move* trueMove = createMove(srcT, dst, bus, trueGuard);
+        TTAProgram::Instruction *trueIns = new TTAProgram::Instruction;
+        trueIns->addMove(trueMove);
+        proc->add(trueIns);
+        lastIns = trueIns;
+    }
+    
+    // do no create X -> X moves.
+    if (dst->equals(*srcF)) {
+        delete srcF;
+    } else {
+        TTAProgram::MoveGuard* falseGuard = createGuard(guardTerminal, false);
+        assert(falseGuard != NULL);
+        TTAProgram::Move* falseMove = createMove(srcF, dst, bus, falseGuard);
+        TTAProgram::Instruction *falseIns = new TTAProgram::Instruction;
+        falseIns->addMove(falseMove);
+        proc->add(falseIns);
+        lastIns = falseIns;
+    }
+    // guardTerminal was just temporary used as helper when creating guards.
+    delete guardTerminal;
+
+    assert(lastIns != NULL);
+    return lastIns;
+}
+
+
+
 
 
 /**
@@ -1471,4 +1512,34 @@ LLVMPOMBuilder::result() throw (NotAvailable) {
     programReady_ = false;
 
     return result;
+}
+
+
+
+/**
+ * Creates a registergaurd to given guard register.
+ */
+TTAProgram::MoveGuard* LLVMPOMBuilder::createGuard(
+    const TTAProgram::Terminal* terminal, bool trueOrFalse) {
+    const TTAProgram::TerminalRegister* guardReg = 
+        dynamic_cast<const TTAProgram::TerminalRegister*>(terminal);
+    if ( guardReg == NULL) {
+        return NULL;
+    }
+    
+    Machine::BusNavigator busNav = mach_->busNavigator();
+    for (int i = 0; i < busNav.count(); i++) {
+        Bus* bus = busNav.item(i);
+        for (int i = 0; i < bus->guardCount(); i++) {
+            RegisterGuard* regGuard = dynamic_cast<RegisterGuard*>(
+                bus->guard(i));
+            if (regGuard != NULL &&
+                regGuard->registerFile() == &guardReg->registerFile() &&
+                regGuard->registerIndex() == (int)guardReg->index() &&
+                regGuard->isInverted() != trueOrFalse) {
+                return new TTAProgram::MoveGuard(*regGuard);
+            }
+        }
+    }
+    return NULL;
 }

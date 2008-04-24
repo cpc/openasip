@@ -331,7 +331,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
     }
 
 #ifdef DDG_SNAPSHOTS
-    static int failedCounter = 0;
+//    static int failedCounter = 0;
     if (resultsFailed || operandsFailed) {
         ddg_->writeToDotFile(
             (boost::format("bb_%s_2_failed_scheduling.dot")

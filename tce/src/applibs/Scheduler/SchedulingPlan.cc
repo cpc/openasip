@@ -14,6 +14,7 @@
 #include "SchedulerPluginLoader.hh"
 #include "StartableSchedulerModule.hh"
 #include "HelperSchedulerModule.hh"
+#include "tce_config.h"
 
 #ifdef PYTHON_ENABLED
 #include "PythonSchedulerModule.hh"
@@ -92,7 +93,7 @@ SchedulingPlan::build(const ObjectState& conf)
 
             // See if the file name ends with ".py"
             if (fileName.length() >= 3 && fileName.rfind(".py") == fileName.length() - 3) {
-#ifdef PYTHON_ENALBED
+#ifdef PYTHON_ENABLED
               // This is a Python pass
               base = new PythonSchedulerModule(fileName);
               if (mainModule != NULL) {
