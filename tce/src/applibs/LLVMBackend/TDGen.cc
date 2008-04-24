@@ -795,7 +795,7 @@ TDGen::writeOperationDef(
             intOutCount = 2;
         }
         // no bool outs for some operatios
-        if (op.name() == "CFI") {
+        if (op.name() == "CFI" || op.name() == "CFIU") {
             intOutCount = 0;
         }
         
