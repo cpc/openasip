@@ -156,7 +156,7 @@ BOOT_LANGUAGES = c @all_boot_languages@
 # XCFLAGS is used for most compilations but not when using the GCC just built.
 # TCFLAGS is used for compilations with the GCC just built.
 XCFLAGS =
-TCFLAGS =
+TCFLAGS = --emit-llvm
 CFLAGS = @CFLAGS@
 LDFLAGS = @LDFLAGS@
 STAGE1_CFLAGS = -g @stage1_cflags@
@@ -377,7 +377,7 @@ UNWIND_H = $(srcdir)/unwind-generic.h
 # The GCC to use for compiling libgcc.a and crt*.o.
 # Usually the one we just built.
 # Don't use this as a dependency--use $(GCC_PASSES) or $(GCC_PARTS).
-GCC_FOR_TARGET = $(STAGE_CC_WRAPPER) ./xgcc -B./ -B$(build_tooldir)/bin/ -isystem $(build_tooldir)/include -isystem $(build_tooldir)/sys-include -L$(objdir)/../ld
+GCC_FOR_TARGET = $(STAGE_CC_WRAPPER) ./xgcc --emit-llvm -B./ -B$(build_tooldir)/bin/ -isystem $(build_tooldir)/include -isystem $(build_tooldir)/sys-include -L$(objdir)/../ld
 
 # This is used instead of ALL_CFLAGS when compiling with GCC_FOR_TARGET.
 # It omits XCFLAGS, and specifies -B./.
@@ -613,8 +613,10 @@ LIBGCC2_CFLAGS = -O2 $(LIBGCC2_INCLUDES) $(GCC_CFLAGS) $(TARGET_LIBGCC2_CFLAGS) 
 # Some targets override this to -isystem include
 LIBGCC2_INCLUDES =
 
-# Additional target-dependent options for compiling libgcc2.a.
-TARGET_LIBGCC2_CFLAGS =
+# Additional target-dependent options for compiling libgcc2.a. 
+#TARGET_LIBGCC2_CFLAGS =
+# TCE patch we like to compile libgcc2 to bytecode as well
+TARGET_LIBGCC2_CFLAGS = --emit-llvm
 
 # Options to use when compiling crtbegin/end.
 CRTSTUFF_CFLAGS = -O2 $(GCC_CFLAGS) $(INCLUDES) $(MULTILIB_CFLAGS) -g0 \
@@ -1138,6 +1140,8 @@ LLVMTARGETCOMPONENT := \
     sparc-*-*) echo sparc;; \
     sparcv9-*-*) echo sparc;; \
     spu-*-*) echo cellspu;; \
+    mips-*-*) echo mips;; \
+    tce-*-*) echo mips;; \
    esac
 LLVMTARGETOBJ := $(shell $(LLVMTARGETCOMPONENT))
 

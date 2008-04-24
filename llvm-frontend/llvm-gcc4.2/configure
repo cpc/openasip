@@ -1640,6 +1640,9 @@ case "${target}" in
   spu-*-*)
     skipdirs="target-libiberty target-libssp"
     ;;
+  tce*-*-llvm*)
+    noconfigdirs="$noconfigdirs target-libiberty target-libstdc++-v3"
+    ;;
   v810-*-*)
     noconfigdirs="$noconfigdirs bfd binutils gas gcc gdb ld target-libstdc++-v3 opcodes target-libgloss ${libgcj}"
     ;;
@@ -6870,7 +6873,7 @@ else
   
   if test $ok = yes; then
     # An in-tree tool is available and we can use it
-    CC_FOR_TARGET='$$r/$(HOST_SUBDIR)/gcc/xgcc -B$$r/$(HOST_SUBDIR)/gcc/'
+    CC_FOR_TARGET='$$r/$(HOST_SUBDIR)/gcc/xgcc --emit-llvm -B$$r/$(HOST_SUBDIR)/gcc/'
     echo "$ac_t""just compiled" 1>&6
   elif expr "x$CC_FOR_TARGET" : "x/" > /dev/null; then
     # We already found the complete path
@@ -7008,7 +7011,7 @@ else
   
   if test $ok = yes; then
     # An in-tree tool is available and we can use it
-    GCC_FOR_TARGET='$$r/$(HOST_SUBDIR)/gcc/xgcc -B$$r/$(HOST_SUBDIR)/gcc/'
+    GCC_FOR_TARGET='$$r/$(HOST_SUBDIR)/gcc/xgcc --emit-llvm -B$$r/$(HOST_SUBDIR)/gcc/'
     echo "$ac_t""just compiled" 1>&6
   elif expr "x$GCC_FOR_TARGET" : "x/" > /dev/null; then
     # We already found the complete path

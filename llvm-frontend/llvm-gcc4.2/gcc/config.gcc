@@ -2369,6 +2369,17 @@ strongarm-*-kaos*)
 	md_file=arm/arm.md
 	extra_modes=arm/arm-modes.def
 	;;
+tce*-llvm*)
+	use_fixproto=yes
+	use_collect2=no
+
+# this didnt have any effect tce.md was still needed
+#   md_file=""
+
+	tm_p_file=""
+	tmake_file=""
+   	tm_file="dbxelf.h elfos.h svr4.h ${tm_file}"
+	;;
 v850e1-*-*)
 	target_cpu_default="TARGET_CPU_v850e1"
 	tm_file="dbxelf.h elfos.h svr4.h v850/v850.h"

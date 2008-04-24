@@ -157,6 +157,14 @@ void llvm_initialize_backend(void) {
       TargetTriple = Arch + TargetTriple.substr(DashPos);
   }
 #endif
+
+  // !!! TCE !!! hardcorecode to set target machine to be mips... 
+  // to be able to use the compiler... 
+  // cerr << "original triplet: " << TargetTriple << std::endl;    
+  TargetTriple = "mips-linux";
+  // cerr << "new triplet: " << TargetTriple << std::endl;    
+    
+
   TheModule->setTargetTriple(TargetTriple);
   
   TheTypeConverter = new TypeConverter();
