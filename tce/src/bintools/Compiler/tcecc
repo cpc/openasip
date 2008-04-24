@@ -102,13 +102,13 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # even thoug it does it very bad, it shorten optimizetime)
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":                    
-                    command = "tce-llvm-gcc -O2 -ffreestanding "\
+                    command = "tce-llvm-gcc --emit-llvm -O2 -ffreestanding "\
                               "-fno-unit-at-a-time -c -I" + tmpDir + " " +\
                               compileFlags + baseName + suffix + " -o " +\
                               outFileName
 
                 elif suffix == ".cpp" or suffix == ".cc":
-                    command = "tce-llvm-g++ -O2 -ffreestanding "\
+                    command = "tce-llvm-g++ --emit-llvm -O2 -ffreestanding "\
                               "-fno-unit-at-a-time -c -I" + tmpDir + " " +\
                               compileFlags + baseName + suffix + " -o " +\
                               outFileName
@@ -161,7 +161,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     linkedFileName = fileNamePrefix + "_linked"
     #### Link all binary code together
-    command = "tce-llvm-gcc -O2 -o " + linkedFileName
+    command = "tce-llvm-gcc --emit-llvm -O2 -o " + linkedFileName
     for name in linkList:
         command += " " + name
 
