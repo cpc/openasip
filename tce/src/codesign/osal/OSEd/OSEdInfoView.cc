@@ -233,7 +233,7 @@ OSEdInfoView::operationPropertyView(
     
     // input operands
     for (int j = 1; j <= op->numberOfInputs(); j++) {
-        Operand& operand = op->input(j);
+        Operand& operand = op->operand(j);
         InsertItem(i, _T(""));
         wxString index = WxConversion::toWxString(j);
         fmt = texts.text(OSEdTextGenerator::TXT_ROW_ID);
@@ -301,7 +301,7 @@ OSEdInfoView::operationPropertyView(
     for (int j = op->numberOfInputs() + 1;
          j <= op->numberOfOutputs() + op->numberOfInputs(); j++) {
 		
-        Operand& operand = op->output(j);
+        Operand& operand = op->operand(j);
         InsertItem(i, _T(""));
         wxString opId = WxConversion::toWxString(j);
         fmt = texts.text(OSEdTextGenerator::TXT_ROW_ID);

@@ -23,7 +23,12 @@ SequenceTools::deleteAllItems(SequenceType& aContainer) {
     for (typename SequenceType::iterator i = aContainer.begin();
 	   i != aContainer.end(); i = aContainer.begin()) {
 	   delete (*i);
-       aContainer.erase(i);
+
+       // the destructor of the deleted object could have removed itself
+       // from its container, thus we must ensure the iterator is still
+       // valid
+       if (i == aContainer.begin() && i != aContainer.end()) 
+           aContainer.erase(i);
     }
 
     aContainer.clear();

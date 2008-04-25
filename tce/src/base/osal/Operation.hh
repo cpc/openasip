@@ -91,8 +91,8 @@ public:
         throw (OutOfRange);
     virtual bool canSwap(int id1, int id2) const;
 
-    virtual Operand& input(int id) const;
-    virtual Operand& output(int id) const;
+    virtual Operand& input(int index) const;
+    virtual Operand& output(int index) const;
     virtual Operand& operand(int id) const;
 
     virtual void setBehavior(OperationBehavior& behavior);

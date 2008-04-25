@@ -140,17 +140,18 @@ OpsetDialog::createOperation(FunctionUnit& fu) {
     std::set<int> inputs;
     std::set<int> outputs;
     for (int i = 1; i <= op.numberOfInputs() + op.numberOfOutputs(); i++) {
-        if (&(op.input(i)) != &NullOperand::instance()) {
-            inputs.insert(op.input(i).index());
-            operation->pipeline()->addPortRead(op.input(i).index(), 0, 1);
-        } else if (&(op.output(i)) != &NullOperand::instance()) {
-            outputs.insert(op.output(i).index());
+        const Operand& oper = op.operand(i);
+
+        if (oper.isInput()) {
+            inputs.insert(oper.index());
+            operation->pipeline()->addPortRead(oper.index(), 0, 1);
+        } else if (oper.isOutput()) {
+            outputs.insert(oper.index());
             if (!inputs.empty()) {
                 // 0 and 1 latency means that the output operand is written
                 // on cycle 0.
                 int latency = (latency_ > 0) ? latency_ - 1 : latency_;
-                operation->pipeline()->addPortWrite(
-                    op.output(i).index(), latency, 1);
+                operation->pipeline()->addPortWrite(oper.index(), latency, 1);
             }
         }
     }

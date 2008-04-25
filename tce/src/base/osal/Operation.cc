@@ -184,15 +184,6 @@ Operation::dag(int index) const {
             dags_[index].compilationFailed = true;
         }
     }
-
-//     std::cerr << "Returning DAG of operation: " << name() 
-//               << " DAG address:" << (unsigned int)(dags_[index].dag) 
-//               << " code: " << dags_[index].code 
-//               << " error: " << dags_[index].error 
-//               << " compilationFailed: " << dags_[index].compilationFailed
-//               << " is null dag: " << dags_[index].dag->isNull() 
-//               << std::endl;
-
     return *dags_[index].dag;
 }
 
@@ -616,35 +607,37 @@ Operation::saveState() const {
 }
 
 /**
- * Returns the input Operand if found, otherwise null Operand.
+ * Returns the input Operand with the given index.
  *
- * @todo Remove method or fix the function to take index of output or input
- *       instead id. Now functionality is basically same than operand() 
+ * This method can be used to traverse the list of output operands
+ * (the max index is numberOfOutput() - 1).
  *
- * @param id The id of Operand.
- * @return Operand if it is found, null Operand otherwise.
+ * @param index The id of Operand.
  */
 Operand&
-Operation::input(int id) const {
-    return fetchOperand(id, inputOperands_);
+Operation::input(int index) const {
+    return *inputOperands_.at(index);
 }
 
 /**
- * Returns the output Operand if found, otherwise null Operand.
+ * Returns the output Operand with the given index.
  *
- * @todo Remove method or fix the function to take index of output or input
- *       instead id. Now functionality is basically same than operand() 
+ * This method can be used to traverse the list of output operands
+ * (the max index is numberOfOutput() - 1).
  *
- * @param id The id of Operand.
- * @return Operand if it is found, null Operand otherwise.
+ * @param index The index of Operand.
  */
 Operand&
-Operation::output(int id) const {
-    return fetchOperand(id, outputOperands_);
+Operation::output(int index) const {
+    return *outputOperands_.at(index);
 }
 
 /**
- * Returns Operand if found, otherwise null Operand.
+ * Returns the Operand with the given id if found, otherwise null Operand.
+ *
+ * @note This method is used to fetch operands with their 'id', the number
+ * which identifies it to the programmer. That is, output ids start from
+ * the last input id + 1, etc.
  *
  * @param id The id of Operand.
  * @return Operand if found, null Operand otherwise.
