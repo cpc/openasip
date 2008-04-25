@@ -22,6 +22,7 @@
 using namespace llvm;
 
 #include <iostream>
+#include <map>
 
 namespace {
     class VISIBILITY_HIDDEN LowerIntrinsics : public BasicBlockPass {
@@ -39,6 +40,7 @@ namespace {
        
      private:
        Module* currentModule_;
+       std::map<unsigned, std::string> replace_;
     };
 
     char LowerIntrinsics::ID = 0;
@@ -54,6 +56,11 @@ namespace {
 LowerIntrinsics::LowerIntrinsics() :
 BasicBlockPass((intptr_t)&ID), currentModule_(NULL) {
 
+    // Intrinsics to replace and corresponding function names.
+    replace_[Intrinsic::memcpy_i32] = "memcpy";
+    replace_[Intrinsic::memcpy_i64] = "memcpy";
+    replace_[Intrinsic::memset_i32] = "memset";
+    replace_[Intrinsic::memset_i64] = "memset";   
 }
 
 /**
@@ -98,12 +105,11 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
         if (callee == NULL) {
             continue;
         } else if (callee->isIntrinsic()) {
-	    // LLVM Intrinsic!
 
-            if (callee->getIntrinsicID() == Intrinsic::memcpy_i32 ||
-                callee->getIntrinsicID() == Intrinsic::memcpy_i64) {
-		
-	        // memcpy intrinsic
+	    // LLVM Intrinsic!
+	    if (replace_.find(callee->getIntrinsicID()) != replace_.end())  {
+
+	        std::string funcName = replace_[callee->getIntrinsicID()];
 	        std::vector<Value*> args;
 	       
 	        for (unsigned j = 1; j < I->getNumOperands(); j++)  {
@@ -111,13 +117,14 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
 	        }
 
 	        // replace intrinsic with function call to memcpy
-	        Constant* f = currentModule_->getOrInsertFunction("memcpy", callee->getFunctionType());
+	        Constant* f = currentModule_->getOrInsertFunction(funcName, callee->getFunctionType());
 	        CallInst* call = new CallInst(f, args.begin(), args.end(), "", I);
 	        I->replaceAllUsesWith(call);
 	        I->eraseFromParent();
 	        changed = true;
             }
-        }
+	}
+       
     }
     return changed;
 }
