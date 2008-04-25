@@ -41,9 +41,9 @@ Section: devel
 Priority: optional
 Architecture: i386
 Essential: no
-Depends: libwxgtk2.6-0, libboost-filesystem1.33.1,
-         libboost-graph1.33.1, libboost-regex1.33.1, \
-         libboost-thread1.33.1, tcl8.4, libedit2, \
+Depends: libwxgtk2.6-0, libboost-filesystem1.34.1,
+         libboost-graph1.34.1, libboost-regex1.34.1, \
+         libboost-thread1.34.1, tcl8.5, libedit2, \
          libsqlite3-0, libxerces27, g++, tce-frontend
 Pre-Depends: perl 
 Recommends: llvm (=2.1)
