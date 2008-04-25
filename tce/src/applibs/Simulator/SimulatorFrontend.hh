@@ -201,6 +201,8 @@ public:
     SimulationEventHandler& eventHandler();
 
     double lastRunTime() const;
+    
+    friend void timeoutThread(unsigned int timeout, SimulatorFrontend* simFE);
 
 protected:
     virtual void initializeSimulation();
@@ -215,8 +217,6 @@ protected:
     void startTimer();
     void stopTimer();
     
-    void timeoutThread(unsigned int timeout);
-
     /// Machine to run simulation with.
     const TTAMachine::Machine* currentMachine_;
     /// If simulation is initialized, this contains a pointer to the machine

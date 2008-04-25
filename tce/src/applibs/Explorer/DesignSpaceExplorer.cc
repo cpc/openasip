@@ -271,6 +271,9 @@ DesignSpaceExplorer::simulate(
     // initialize the simulator
     SimulatorFrontend simulator;
     
+    // setting simulator timeout in seconds
+    simulator.setTimeout(480);
+
     // use memory file in sqlite
     const string traceFile = ":memory:";
     simulator.setTraceDBFileName(traceFile);
