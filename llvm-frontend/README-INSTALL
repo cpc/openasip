@@ -44,3 +44,9 @@ export CXXFLAGS=-O2
 * The following warning can be ignored: 
 
  config.status: WARNING:  /home/(...)/llvm-gcc4-2.0/Makefile.in seems to ignore the --datarootdir setting
+
+LLVM-TCE on 64-bit distributions
+================================
+If you compile LLVM 2.1 from sources you should give --enable-pic option for
+the LLVM's configure script. Otherwise compilation of LLVM-TCE might fail.
+
