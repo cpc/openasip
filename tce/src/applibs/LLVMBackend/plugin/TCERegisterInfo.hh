@@ -56,24 +56,6 @@ namespace llvm {
                                  int adj, RegScavenger *RS = NULL) const;
 
         int getDwarfRegNum(unsigned regNum, bool isEH) const;
-    
-        void storeRegToStackSlot(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock::iterator mbbi,
-            unsigned srcReg, int fi,
-            const TargetRegisterClass* rc) const;
-
-        void loadRegFromStackSlot(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock::iterator mbbi,
-            unsigned destReg, int fi,
-            const TargetRegisterClass* rc) const;
-
-        void copyRegToReg(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock::iterator mbbi,
-            unsigned destReg, unsigned srcReg,
-            const TargetRegisterClass* rc) const;
 
     private:
         const TargetInstrInfo& tii_;

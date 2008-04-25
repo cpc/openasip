@@ -170,7 +170,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     linkedFileName = fileNamePrefix + "_linked"
     #### Link all binary code together
-    command = "llvm-ld -O2 -o " + linkedFileName + " " + llvmGccStartFiles
+    command = "llvm-ld -disable-opt -o " + linkedFileName + " " + llvmGccStartFiles
     for name in linkList:
         command += " " + name
 
