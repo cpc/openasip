@@ -61,7 +61,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
         compileFlags += "-I" + i + " "
 
     # list of valid suffixes
-    knownSuffices = [".cpp", ".cc", ".c", ".bc", ".o"]
+    knownSuffices = [".cpp", ".cc", ".c", ".bc", ".o", ".a"]
 
     linkList = []
 
@@ -121,6 +121,9 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
                 elif suffix == ".o":
                     outFileName =  fName
+
+		elif suffix == ".a":
+		    outFileName = fName
 
                 # add all files to list for linkage
                 linkList += [outFileName]
