@@ -64,6 +64,32 @@ CLBBypasserModule::bypasser() {
     }
     return *clbs_;
 }
+/**
+ * A short description of the module, usually the module name,
+ * in this case "CLBBypasserModule".
+ *
+ * @return The description as a string.
+ */   
+std::string
+CLBBypasserModule::shortDescription() const {
+    return "Helper: CLBBypasserModule";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+CLBBypasserModule::longDescription() const {
+    std::string answer ="Helper: CLBBypasserModule. ";
+    answer += "Implements Cycle look back software bypassing.";
+    answer += " Accepts parameter \"swb-lookback-distance\"=<uint>, default is 1.";    
+    return answer;
+}
 
 const std::string CLBBypasserModule::LOOKBACK_DISTANCE_OPTION = "swb-lookback-distance";
 SCHEDULER_PASS(CLBBypasserModule)

@@ -1,3 +1,12 @@
+/**
+ * @file TempRegisterFinderPass.hh
+ *
+ * Class which finds free regs for temp reg copier.
+ * 
+ * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
+ * @note rating: red
+ */
+
 #include <set>
 
 #include "TempRegisterFinderPass.hh"
@@ -26,4 +35,29 @@ void TempRegisterFinderPass::start() throw (Exception) {
     interPassData().setDatum("SCRATCH_REGISTERS", tempRegData);
 }
 
+/**
+ * A short description of the module, usually the module name,
+ * in this case "TempRegisterFinderPass".
+ *
+ * @return The description as a string.
+ */   
+std::string
+TempRegisterFinderPass::shortDescription() const {
+    return "Startable: TempRegisterFinderPass";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+TempRegisterFinderPass::longDescription() const {
+    std::string answer ="Startable: TempRegisterFinderPass";    
+    answer += " Finds free regs for temporary register copier.";
+    return answer;
+}
 SCHEDULER_PASS(TempRegisterFinderPass)

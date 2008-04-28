@@ -3,7 +3,7 @@
  *
  * Declaration of DirectMappingRegisterAllocator class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -69,6 +69,8 @@ public:
         throw (Exception);
     virtual bool needsTarget() const;
     virtual bool needsProgram() const;
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
 
 private:
     void addSrcAnnotation(const std::string& var, TTAProgram::Move& move);

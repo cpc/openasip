@@ -5,7 +5,7 @@
  *
  * Basic block scheduler.
  *
- * @author Pekka Jääskeläinen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2007 (pekka.jaaskelainen@tut.fi)
  * @note rating: red
  */
 
@@ -75,4 +75,30 @@ BasicBlockSchedulerPass::registerHelperModule(HelperSchedulerModule& module)
     if (dsfModule != NULL) {
         fillerModule_ = dsfModule;
     }
+}
+
+/**
+ * A short description of the module, usually the module name,
+ * in this case "BasicBlockSchedulerPass".
+ *
+ * @return The description as a string.
+ */   
+std::string
+BasicBlockSchedulerPass::shortDescription() const {
+    return "Startable: BasicBlockSchedulerPass";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+BasicBlockSchedulerPass::longDescription() const {
+    std::string answer = "Startable:  BasicBlockSchedulerPass\n";
+    answer += "accepts: BypasserModule and DSFillerModule as parameters.";
+    return answer;
 }

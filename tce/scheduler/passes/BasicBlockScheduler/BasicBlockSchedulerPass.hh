@@ -5,7 +5,7 @@
  * 
  * Basic block scheduler.
  *
- * @author Pekka Jääskeläinen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2007 (pekka.jaaskelainen@tut.fi)
  * @note rating: red
  */
 
@@ -38,6 +38,10 @@ public:
 
     void registerHelperModule(HelperSchedulerModule& module) 
         throw (IllegalRegistration);
+
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
+    
     BypasserModule* bypasserModule_;
     DSFillerModule* fillerModule_;
 };
