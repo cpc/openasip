@@ -12,6 +12,7 @@
 #include "Operation.hh"
 #include "FUPort.hh"
 #include "ExecutionPipeline.hh"
+#include "TCEString.hh"
 
 using std::string;
 using namespace TTAMachine;

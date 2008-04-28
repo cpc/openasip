@@ -11,6 +11,7 @@
 
 #include "FUGuardEncoding.hh"
 #include "GuardField.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

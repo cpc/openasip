@@ -11,7 +11,6 @@
 #define COMPILED_SIM_CODE_GENERATOR_HH
 
 #include <iostream>
-#include <sstream>
 #include <fstream>
 #include <string>
 #include <set>

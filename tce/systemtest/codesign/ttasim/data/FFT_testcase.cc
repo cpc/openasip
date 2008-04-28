@@ -6,7 +6,9 @@
  * @author Risto Mäkinen 2006 (rmmakine@cs.tut.fi)
  */
 
+#include <cassert>
 #include "OSAL.hh"
+#include "Application.hh"
 
 // **************************************************
 // Operation definitions for radix-4 DIT FFT

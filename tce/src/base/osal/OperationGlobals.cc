@@ -7,8 +7,12 @@
  * @note rating: red
  */
 
+#include "Operation.hh"
 #include "OperationGlobals.hh"
+#include "Exception.hh"
 #include <iostream>
+#include <string>
+#include "TCEString.hh"
 
 std::ostream* OperationGlobals::outputStream_ = &std::cout;
 
@@ -31,4 +35,23 @@ OperationGlobals::outputStream() {
 void
 OperationGlobals::setOutputStream(std::ostream& newOutputStream) {
     outputStream_ = &newOutputStream;
+}
+
+/**
+ * Throws an exception with a message
+ * 
+ * @param message Message
+ * @param file __FILE__
+ * @param line __LINE__
+ * @param parent parent operation
+ * @exception SimulationExecutionError thrown always.
+ */
+void
+OperationGlobals::runtimeError(
+    const char* message, 
+    const char* file, 
+    int line,
+    const Operation& parent) {
+    throw SimulationExecutionError(std::string(file), line,
+        parent.name(), std::string(" ") + parent.name() + ": " + message);
 }

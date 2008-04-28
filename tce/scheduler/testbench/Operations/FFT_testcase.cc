@@ -6,6 +6,7 @@
  * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
  */
 
+#include <cassert>
 #include "OSAL.hh"
 #include "OperationGlobals.hh"
 

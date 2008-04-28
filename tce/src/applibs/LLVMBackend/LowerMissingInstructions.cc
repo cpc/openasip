@@ -42,6 +42,7 @@
 #include "MachineInfo.hh"
 #include "Operand.hh"
 #include "OperationPool.hh"
+#include "TCEString.hh"
 using TTAMachine::Machine;
 
 using namespace llvm;

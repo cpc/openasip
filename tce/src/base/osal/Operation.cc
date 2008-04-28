@@ -9,37 +9,28 @@
  * @note rating: yellow
  * @note reviewed 17 August 2004 by jn, ll, tr, pj
  */
-
-#include <string>
-
 #include "Operation.hh"
-#include "OperationDAG.hh"
-#include "OperationDAGConverter.hh"
-#include "SequenceTools.hh"
-#include "ContainerTools.hh"
-#include "StringTools.hh"
+#include "OperationPimpl.hh"
+#include "TCEString.hh"
 #include "Application.hh"
-#include "OperationPool.hh"
+#include "Exception.hh"
+#include "Operand.hh"
 
-using std::string;
-using std::vector;
-using std::set;
-
-const string Operation::OPRN_OPERATION = "operation";
-const string Operation::OPRN_NAME = "name";
-const string Operation::OPRN_DESCRIPTION = "description";
-const string Operation::OPRN_INPUTS = "inputs";
-const string Operation::OPRN_OUTPUTS = "outputs";
-const string Operation::OPRN_TRAP = "trap";
-const string Operation::OPRN_SIDE_EFFECTS = "side-effects";
-const string Operation::OPRN_CONTROL_FLOW = "control-flow";
-const string Operation::OPRN_READS_MEMORY = "reads-memory";
-const string Operation::OPRN_WRITES_MEMORY = "writes-memory";
-const string Operation::OPRN_AFFECTS = "affects";
-const string Operation::OPRN_AFFECTED_BY = "affected-by";
-const string Operation::OPRN_IN = "in";
-const string Operation::OPRN_OUT = "out";
-const string Operation::OPRN_TRIGGER = "trigger-semantics";
+const char* Operation::OPRN_OPERATION = "operation";
+const char* Operation::OPRN_NAME = "name";
+const char* Operation::OPRN_DESCRIPTION = "description";
+const char* Operation::OPRN_INPUTS = "inputs";
+const char* Operation::OPRN_OUTPUTS = "outputs";
+const char* Operation::OPRN_TRAP = "trap";
+const char* Operation::OPRN_SIDE_EFFECTS = "side-effects";
+const char* Operation::OPRN_CONTROL_FLOW = "control-flow";
+const char* Operation::OPRN_READS_MEMORY = "reads-memory";
+const char* Operation::OPRN_WRITES_MEMORY = "writes-memory";
+const char* Operation::OPRN_AFFECTS = "affects";
+const char* Operation::OPRN_AFFECTED_BY = "affected-by";
+const char* Operation::OPRN_IN = "in";
+const char* Operation::OPRN_OUT = "out";
+const char* Operation::OPRN_TRIGGER = "trigger-semantics";
 
 /**
  * Constructor.
@@ -47,10 +38,8 @@ const string Operation::OPRN_TRIGGER = "trigger-semantics";
  * @param name The name of the Operation.
  * @param behavior The behavior of the Operation.
  */
-Operation::Operation(const std::string& name, OperationBehavior& behavior) : 
-    behavior_(&behavior), name_(name), description_(""),
-    inputs_(0), outputs_(0), readsMemory_(false), writesMemory_(false), 
-    canTrap_(false), hasSideEffects_(false), controlFlowOperation_(false) {
+Operation::Operation(const TCEString& name, OperationBehavior& behavior) : 
+    pimpl_(new OperationPimpl(name, behavior)) {
 }
 
 /**
@@ -59,36 +48,8 @@ Operation::Operation(const std::string& name, OperationBehavior& behavior) :
  * Operands are destroyed.
  */ 
 Operation::~Operation() {
-    
-	clear();
-}
-
-/**
- * Clears the operation.
- */
-void
-Operation::clear() {
-    
-    for (int i = 0; i < dagCount(); i++) {
-        if (!dags_[i].dag->isNull()) {
-            delete dags_[i].dag;
-        }
-    }   
-    dags_.clear();
-    
-    SequenceTools::deleteAllItems(inputOperands_);
-    SequenceTools::deleteAllItems(outputOperands_);
-    inputOperands_.clear();
-    outputOperands_.clear();
-    affects_.clear();
-    affectedBy_.clear();
-    name_ = "";
-    inputs_ = 0;
-    outputs_ = 0;
-    readsMemory_ = false;
-    writesMemory_ = false;
-    canTrap_ = false;
-    hasSideEffects_ = false;
+	delete pimpl_;
+    pimpl_ = NULL;
 }
 
 /**
@@ -96,9 +57,9 @@ Operation::clear() {
  *
  * @return The name of the Operation.
  */
-string
+TCEString
 Operation::name() const {
-    return name_;
+    return pimpl_->name();
 }
 
 /**
@@ -106,9 +67,9 @@ Operation::name() const {
  *
  * @return The description of the Operation.
  */
-string
+TCEString
 Operation::description() const {
-    return description_;
+    return pimpl_->description();
 }
 
 /**
@@ -116,12 +77,8 @@ Operation::description() const {
  *
  * @param code Source code written in DAG language.
  */
-void Operation::addDag(std::string code) {
-    OperationDAGInfo newDag;
-    newDag.code = code;
-    newDag.dag = &OperationDAG::null;
-    newDag.compilationFailed = false;
-    dags_.push_back(newDag);
+void Operation::addDag(const TCEString& code) {
+    pimpl_->addDag(code);
 }
 
 /**
@@ -131,14 +88,7 @@ void Operation::addDag(std::string code) {
  */
 void 
 Operation::removeDag(int index) {
-    DAGContainer::iterator i = dags_.begin() + index;
-    
-    if (!i->dag->isNull()) {
-        delete i->dag;
-        i->dag = &OperationDAG::null;
-    }
-    
-    dags_.erase(i);
+    pimpl_->removeDag(index);
 }
 
 
@@ -149,7 +99,7 @@ Operation::removeDag(int index) {
  */
 int 
 Operation::dagCount() const {
-    return dags_.size();
+    return pimpl_->dagCount();
 }
 
 /**
@@ -163,37 +113,7 @@ Operation::dagCount() const {
  */
 OperationDAG& 
 Operation::dag(int index) const {       
-
-    // if dag is not up to date, try to compile it, if compilation failed and
-    // dag code has not been changed don't try to compile again
-    if (dags_[index].dag->isNull() && !dags_[index].compilationFailed) {
-        
-        try {
-            dags_[index].dag = 
-                OperationDAGConverter::createDAG(dags_[index].code);
-            dags_[index].compilationFailed = false;
-            
-        } catch (const IllegalParameters &e) {
-            dags_[index].dag = &OperationDAG::null;
-            dags_[index].error = e.errorMessage();
-            dags_[index].compilationFailed = true;
-
-        } catch (const Exception &e) {
-            dags_[index].dag = &OperationDAG::null;
-            dags_[index].error = "UNEXPECTED ERROR: " + e.errorMessage();
-            dags_[index].compilationFailed = true;
-        }
-    }
-
-//     std::cerr << "Returning DAG of operation: " << name() 
-//               << " DAG address:" << (unsigned int)(dags_[index].dag) 
-//               << " code: " << dags_[index].code 
-//               << " error: " << dags_[index].error 
-//               << " compilationFailed: " << dags_[index].compilationFailed
-//               << " is null dag: " << dags_[index].dag->isNull() 
-//               << std::endl;
-
-    return *dags_[index].dag;
+    return pimpl_->dag(index);
 }
 
 /**
@@ -202,9 +122,9 @@ Operation::dag(int index) const {
  * @param index Index of DAG whose source code is requested.
  * @return The source code set for DAG.
  */
-std::string 
+TCEString 
 Operation::dagCode(int index) const {
-    return dags_[index].code;
+    return pimpl_->dagCode(index);
 }
 
 /**
@@ -215,13 +135,8 @@ Operation::dagCode(int index) const {
  * @param code New source code in DAG Osal Language.
  */ 
 void 
-Operation::setDagCode(int index, std::string& code) {    
-    dags_[index].code = code;
-    if (!dags_[index].dag->isNull()) {
-        delete dags_[index].dag;
-        dags_[index].dag = &OperationDAG::null;
-    }
-    dags_[index].compilationFailed = false;
+Operation::setDagCode(int index, const TCEString& code) {    
+    pimpl_->setDagCode(index, code);
 }
 
 /**
@@ -230,9 +145,9 @@ Operation::setDagCode(int index, std::string& code) {
  * @param index Index of DAG whose error is returned.
  * @return Error message, empty string if DAG was compiles successfully.
  */
-std::string 
+TCEString 
 Operation::dagError(int index) const {
-    return dags_[index].error;
+    return pimpl_->dagError(index);
 }
 
 /**
@@ -242,7 +157,7 @@ Operation::dagError(int index) const {
  */
 int 
 Operation::numberOfInputs() const {
-    return inputs_;
+    return pimpl_->numberOfInputs();
 }
 
 /**
@@ -252,7 +167,7 @@ Operation::numberOfInputs() const {
  */
 int
 Operation::numberOfOutputs() const {
-    return outputs_;
+    return pimpl_->numberOfOutputs();
 }
 
 /**
@@ -262,7 +177,7 @@ Operation::numberOfOutputs() const {
  */
 bool
 Operation::usesMemory() const {
-    return readsMemory_ || writesMemory_;
+    return pimpl_->usesMemory();
 }
 
 /**
@@ -272,7 +187,7 @@ Operation::usesMemory() const {
  */
 bool
 Operation::readsMemory() const {
-    return readsMemory_;
+    return pimpl_->readsMemory();
 }
 
 /**
@@ -282,7 +197,7 @@ Operation::readsMemory() const {
  */
 bool
 Operation::writesMemory() const {
-    return writesMemory_;
+    return pimpl_->writesMemory();
 }
 
 /**
@@ -292,7 +207,7 @@ Operation::writesMemory() const {
  */
 bool
 Operation::canTrap() const {
-    return canTrap_;
+    return pimpl_->canTrap();
 }
 
 /**
@@ -302,7 +217,7 @@ Operation::canTrap() const {
  */
 bool
 Operation::hasSideEffects() const {
-    return hasSideEffects_;
+    return pimpl_->hasSideEffects();
 }
 
 /**
@@ -314,7 +229,7 @@ Operation::hasSideEffects() const {
  */
 bool
 Operation::isControlFlowOperation() const {
-    return controlFlowOperation_;
+    return pimpl_->isControlFlowOperation();
 }
 
 /**
@@ -324,7 +239,7 @@ Operation::isControlFlowOperation() const {
  */
 void
 Operation::setBehavior(OperationBehavior& behavior) {
-    behavior_ = &behavior;
+    pimpl_->setBehavior(behavior);
 }
 
 /**
@@ -334,7 +249,7 @@ Operation::setBehavior(OperationBehavior& behavior) {
  */
 OperationBehavior&
 Operation::behavior() const {
-    return *behavior_;
+    return pimpl_->behavior();
 }
 
 /**
@@ -344,7 +259,7 @@ Operation::behavior() const {
  */
 int
 Operation::affectsCount() const {
-    return affects_.size();
+    return pimpl_->affectsCount();
 }
 
 /**
@@ -354,7 +269,7 @@ Operation::affectsCount() const {
  */
 int
 Operation::affectedByCount() const {
-    return affectedBy_.size();
+    return pimpl_->affectedByCount();
 }
 
 /**
@@ -363,23 +278,9 @@ Operation::affectedByCount() const {
  * @param i The index of the operation.
  * @return The name of the operation.
  */
-string
-Operation::affects(unsigned int i) const 
-    throw (OutOfRange) {
-    
-    if (i >= affects_.size()) {
-        string method = "Operation::affects()";
-        string msg = "Index out of range.";
-        throw OutOfRange(__FILE__, __LINE__, method, msg);
-    }
-    
-    set<string>::const_iterator it = affects_.begin();
-    unsigned int count = 0;
-    while (count < i) {
-        it++;
-        count++;
-    }
-    return *it;
+TCEString
+Operation::affects(unsigned int i) const {
+    return pimpl_->affects(i);
 }
 
 /**
@@ -389,23 +290,9 @@ Operation::affects(unsigned int i) const
  * @exception OutOfRange If index is illegal.
  * @return The name of the operation. 
  */
-string
-Operation::affectedBy(unsigned int i) const 
-    throw (OutOfRange) {
-
-    if (i >= affectedBy_.size()) {
-        string method = "Operation::affectedBy()";
-        string msg = "Index out of range.";
-        throw OutOfRange(__FILE__, __LINE__, method, msg);
-    }
-
-    set<string>::const_iterator it = affectedBy_.begin();
-    unsigned int count = 0;
-    while (count < i) {
-        it++;
-        count++;
-    }
-    return *it;
+TCEString
+Operation::affectedBy(unsigned int i) const {
+    return pimpl_->affectedBy(i);
 }
 
 /**
@@ -416,17 +303,7 @@ Operation::affectedBy(unsigned int i) const
  */
 bool 
 Operation::dependsOn(const Operation& op) const {
-    set<string>::const_iterator it = affects_.find(op.name());
-    if (it != affects_.end()) {
-        return true;
-    } else {
-        it = affectedBy_.find(op.name());
-        if (it != affectedBy_.end()) {
-            return true;
-        }
-    }
-    
-    return false;
+    return pimpl_->dependsOn(op);
 }
 
 /**
@@ -438,15 +315,7 @@ Operation::dependsOn(const Operation& op) const {
  */
 bool
 Operation::canSwap(int id1, int id2) const {
-
-    Operand& op1 = fetchOperand(id1);
-    Operand& op2 = fetchOperand(id2);
-    
-    if (&op1 == &NullOperand::instance() || 
-        &op2 == &NullOperand::instance()) {
-        return false;
-    }
-    return op1.canSwap(op2);
+    return pimpl_->canSwap(id1, id2);
 }
 
 /**
@@ -455,99 +324,8 @@ Operation::canSwap(int id1, int id2) const {
  * @param state The state of the Operation.
  */
 void
-Operation::loadState(const ObjectState* state) 
-    throw (ObjectStateLoadingException) {
-
-	clear();
-
-    string method = "Operation::loadState()";
-    
-    try {
-        name_ = StringTools::stringToUpper(state->stringAttribute(OPRN_NAME));
-
-        description_ = state->stringAttribute(OPRN_DESCRIPTION);
-
-        inputs_ = state->intAttribute(OPRN_INPUTS);
-        outputs_ = state->intAttribute(OPRN_OUTPUTS);
-
-        canTrap_ = state->boolAttribute(OPRN_TRAP);
-        hasSideEffects_ = state->boolAttribute(OPRN_SIDE_EFFECTS);
-        controlFlowOperation_ = state->boolAttribute(OPRN_CONTROL_FLOW);
-        readsMemory_ = state->boolAttribute(OPRN_READS_MEMORY);
-        writesMemory_ = state->boolAttribute(OPRN_WRITES_MEMORY);
-
-        for (int i = 0; i < state->childCount(); i++) {
-            ObjectState* child = state->child(i);
-           
-            if (child->name() == OPRN_IN) {
-                Operand* operand = new Operand(true);
-                operand->loadState(child);
-                if (operand->index() < 1 || operand->index() > inputs_) {
-                    string msg = "Input operand index illegal";
-                    throw Exception(__FILE__, __LINE__, method, msg);
-                }
-                insertOperand(operand, inputOperands_);
-
-            } else if (child->name() == OPRN_OUT) {
-                Operand* operand = new Operand(false);
-                operand->loadState(child);
-                if (operand->index() <= inputs_ || 
-                    operand->index() > inputs_ + outputs_) {
-                    string msg = "Output operand index illegal";
-                    throw Exception(__FILE__, __LINE__, method, msg);
-                }
-                insertOperand(operand, outputOperands_);
-
-            } else if (child->name() == OPRN_AFFECTS) {
-                for (int j = 0; j < child->childCount(); j++) {
-                    ObjectState* affects = child->child(j);
-                    affects_.insert(
-                        StringTools::stringToUpper(
-                            affects->stringAttribute(OPRN_NAME)));
-                }
-
-            } else if (child->name() == OPRN_AFFECTED_BY) {            
-                for (int j = 0; j < child->childCount(); j++) {
-                    ObjectState* affectedBy = child->child(j);
-                    affectedBy_.insert(
-                        StringTools::stringToUpper(
-                            affectedBy->stringAttribute(OPRN_NAME)));
-                }
-
-            } else if (child->name() == OPRN_TRIGGER) {                
-                addDag(child->stringValue());
-                
-            } else {
-                // no other childs should be possible
-                string msg = "Unknown child: " + child->name();
-                throw Exception(__FILE__, __LINE__, method, msg);
-            }
-        }
-		
-        // TODO: check can-swap operands and verify that they are created
-        //       properly
-        
-        // add operands that are not defined in XML nor can-swap..
-        for (int i = 1; i <= inputs_; ++i) {
-            if (&operand(i) == &NullOperand::instance()) {
-                Operand* operand = new Operand(true, i, Operand::SINT_WORD);
-                insertOperand(operand, inputOperands_);
-            }
-        }
-
-        for (int i = 1; i <= outputs_; ++i) {
-            if (&operand(i) == &NullOperand::instance()) {
-                Operand* operand = new Operand(true, i, Operand::SINT_WORD);
-                insertOperand(operand, outputOperands_);
-            }
-        }
-
-    } catch (const Exception& e) {
-        string msg = "Problems loading Operation: " + e.errorMessage();
-        ObjectStateLoadingException error(__FILE__, __LINE__, method, msg);
-        error.setCause(e);
-		throw error;
-    }
+Operation::loadState(const ObjectState* state) {
+    pimpl_->loadState(state);
 }
 
 /**
@@ -557,182 +335,48 @@ Operation::loadState(const ObjectState* state)
  */
 ObjectState*
 Operation::saveState() const {
-    
-    ObjectState* root = new ObjectState(OPRN_OPERATION);
-    root->setAttribute(OPRN_NAME, name_);
-    root->setAttribute(OPRN_DESCRIPTION, description_);
-    root->setAttribute(OPRN_INPUTS, inputs_);
-    root->setAttribute(OPRN_OUTPUTS, outputs_);
-    
-    root->setAttribute(OPRN_TRAP, canTrap_);
-    root->setAttribute(OPRN_SIDE_EFFECTS, hasSideEffects_);
-    root->setAttribute(OPRN_CONTROL_FLOW, controlFlowOperation_);
-    root->setAttribute(OPRN_READS_MEMORY, readsMemory_);
-    root->setAttribute(OPRN_WRITES_MEMORY, writesMemory_);
-
-    if (affectedBy_.size() > 0) {
-            ObjectState* affectedBy = new ObjectState(OPRN_AFFECTED_BY);
-            set<string>::const_iterator it = affectedBy_.begin();
-            while (it != affectedBy_.end()) {
-                ObjectState* affectedByChild = new ObjectState(OPRN_OPERATION);
-                affectedByChild->setAttribute(OPRN_NAME, *it);
-                affectedBy->addChild(affectedByChild);
-                it++;
-            }
-        root->addChild(affectedBy);
-    }
-   
-    if (affects_.size() > 0) {
-        ObjectState* affects = new ObjectState(OPRN_AFFECTS);
-        set<string>::const_iterator it = affects_.begin();
-        while (it != affects_.end()) {
-            ObjectState* affectsChild = new ObjectState(OPRN_OPERATION);
-            affectsChild->setAttribute(OPRN_NAME, *it);
-            affects->addChild(affectsChild);
-            it++;
-        }
-        root->addChild(affects);
-    }
-
-    for (unsigned int i = 0; i < inputOperands_.size(); i++) {
-        ObjectState* operand = inputOperands_[i]->saveState();
-        operand->setName(OPRN_IN);
-        root->addChild(operand);
-    }
-    
-    for (unsigned int i = 0; i < outputOperands_.size(); i++) {
-        ObjectState* operand = outputOperands_[i]->saveState();
-        operand->setName(OPRN_OUT);
-        root->addChild(operand);
-    }
-
-    for (int i = 0; i < dagCount(); i++) {     
-        ObjectState* trigger = new ObjectState(OPRN_TRIGGER);
-        trigger->setValue(dagCode(i));
-        root->addChild(trigger);
-    }
-
-    return root;
+    return pimpl_->saveState();
 }
 
 /**
- * Returns the input Operand if found, otherwise null Operand.
+ * Returns the input Operand with the given index.
  *
- * @todo Remove method or fix the function to take index of output or input
- *       instead id. Now functionality is basically same than operand() 
+ * This method can be used to traverse the list of output operands
+ * (the max index is numberOfOutput() - 1).
  *
- * @param id The id of Operand.
- * @return Operand if it is found, null Operand otherwise.
+ * @param index The id of Operand.
  */
 Operand&
-Operation::input(int id) const {
-    return fetchOperand(id, inputOperands_);
+Operation::input(int index) const {
+    return pimpl_->input(index);
 }
 
 /**
- * Returns the output Operand if found, otherwise null Operand.
+ * Returns the output Operand with the given index.
  *
- * @todo Remove method or fix the function to take index of output or input
- *       instead id. Now functionality is basically same than operand() 
+ * This method can be used to traverse the list of output operands
+ * (the max index is numberOfOutput() - 1).
  *
- * @param id The id of Operand.
- * @return Operand if it is found, null Operand otherwise.
+ * @param index The index of Operand.
  */
 Operand&
-Operation::output(int id) const {
-    return fetchOperand(id, outputOperands_);
+Operation::output(int index) const {
+    return pimpl_->output(index);
 }
 
 /**
- * Returns Operand if found, otherwise null Operand.
+ * Returns the Operand with the given id if found, otherwise null Operand.
+ *
+ * @note This method is used to fetch operands with their 'id', the number
+ * which identifies it to the programmer. That is, output ids start from
+ * the last input id + 1, etc.
  *
  * @param id The id of Operand.
  * @return Operand if found, null Operand otherwise.
  */
 Operand&
 Operation::operand(int id) const {
-    assert(id != 0);
-    Operand& op = fetchOperand(id, inputOperands_);
-    if (&op == &NullOperand::instance()) {
-        return fetchOperand(id, outputOperands_);
-    }
-    return op;
-}
-
-/**
- * Returns an operand with a certain id if it exists.
- *
- * If operand is not found, a null operand is returned.
- *
- * @param id The id of an operand.
- * @param ops Vector where operand is searched.
- * @return Operand with a certain id.
- */
-Operand&
-Operation::fetchOperand(int id, const std::vector<Operand*>& ops) const {
-    assert(id != 0);
-
-    for (std::vector<Operand*>::const_iterator i = ops.begin(); i != ops.end();
-        ++i) {
-        if ((*i)->index() == id) {
-            return **i;
-        }
-    }
-
-    return NullOperand::instance();
-}
-
-/**
- * Returns an operand with a certain id if it exists.
- *
- * If operand is not found, NullOperand is returned.
- *
- * @param id Id of the operand.
- * @return Operand with a certain id.
- */
-Operand&
-Operation::fetchOperand(int id) const {
-    assert(id != 0);
-
-    for (unsigned int i = 0; i < inputOperands_.size(); i++) {
-        if (inputOperands_[i]->index() == id) {
-            return *inputOperands_[i];
-        }
-    }
-
-    for (unsigned int i = 0; i < outputOperands_.size(); i++) {
-        if (outputOperands_[i]->index() == id) {
-            return *outputOperands_[i];
-        }
-    }
-
-    return NullOperand::instance();
-}
-
-/**
- * Inserts operand to the right place.
- *
- * Operands are inserted according to their indexes.
- *
- * @param operand Operand to be inserted.
- * @param ops Vector in which operand is inserted.
- */
-void
-Operation::insertOperand(Operand* operand, std::vector<Operand*>& ops) {
-	
-	vector<Operand*>::iterator it = ops.begin();
-	bool inserted = false;
-	while (it != ops.end()) {
-		if ((*it)->index() > operand->index()) {
-			inserted = true;
-			ops.insert(it, operand);
-			break;
-		}
-		it++;
-	}
-	if (!inserted) {
-		ops.push_back(operand);
-	}
+    return pimpl_->operand(id);
 }
 
 /**
@@ -749,7 +393,7 @@ Operation::simulateTrigger(
     SimValue** io,
     OperationContext& context) const {
    
-    return behavior_->simulateTrigger(io, context);
+    return pimpl_->simulateTrigger(io, context);
 }
 
 /**
@@ -760,7 +404,7 @@ Operation::simulateTrigger(
  */
 void
 Operation::createState(OperationContext& context) const {
-    behavior_->createState(context);
+    pimpl_->createState(context);
 }
 
 /**
@@ -771,7 +415,7 @@ Operation::createState(OperationContext& context) const {
  */
 void
 Operation::deleteState(OperationContext& context) const {
-    behavior_->deleteState(context);
+    pimpl_->deleteState(context);
 }
 
 /**
@@ -782,24 +426,7 @@ Operation::deleteState(OperationContext& context) const {
  */
 bool
 Operation::canBeSimulated() const {    
-    return behavior_->canBeSimulated();
-}
-
-
-std::string 
-llvmOperandType(Operand::OperandType type) {
-    switch (type) {
-    case Operand::SINT_WORD:
-        return "i32";
-    case Operand::UINT_WORD:
-        return "i32";
-    case Operand::FLOAT_WORD:
-        return "f32";
-    case Operand::DOUBLE_WORD:
-        return "f64";
-    default:
-        return "Unknown";
-    }
+    return pimpl_->canBeSimulated();
 }
 
 /**
@@ -808,26 +435,11 @@ llvmOperandType(Operand::OperandType type) {
  *
  * @return Name of emulation function of the instruction.
  */
-std::string 
+TCEString
 Operation::emulationFunctionName() const {
-    std::string functionName; 
-
-    functionName = "__emulate_" + name() + 
-        "_" + Conversion::toString(numberOfInputs()) +
-        "_" + Conversion::toString(numberOfOutputs());
-    
-    for (int i = 1; i <= numberOfInputs(); i++) {
-        Operand& oper = operand(i);
-        functionName += "_" + llvmOperandType(oper.type());
-    }
-    
-    for (int i = 1; i <= numberOfOutputs(); i++) {
-        Operand& oper = operand(numberOfInputs() + i);
-        functionName += "_" + llvmOperandType(oper.type());        
-    }    
-    
-    return functionName;
+    return pimpl_->emulationFunctionName();
 }
+    
 
 //////////////////////////////////////////////////////////////////////////////
 // NullOperation
@@ -887,9 +499,8 @@ NullOperation::affectedByCount() const {
  * @exception Nothing.
  * @return Empty string.
  */
-string
-NullOperation::affects(unsigned int) const 
-    throw (OutOfRange) {
+TCEString
+NullOperation::affects(unsigned int) const {
     
     abortWithError("affects()");
     return "";
@@ -901,9 +512,8 @@ NullOperation::affects(unsigned int) const
  * @exception Nothing.
  * @return Empty string.
  */
-string
-NullOperation::affectedBy(unsigned int) const 
-    throw (OutOfRange) {
+TCEString
+NullOperation::affectedBy(unsigned int) const {
     
     abortWithError("affectedBy()");
     return "";
@@ -977,7 +587,7 @@ NullOperation::setBehavior(OperationBehavior&) {
  *
  * @return An empty string.
  */
-std::string
+TCEString
 NullOperation::name() const {
     abortWithError("name()");
     return "";
@@ -988,7 +598,7 @@ NullOperation::name() const {
  *
  * @return An empty string.
  */
-std::string
+TCEString
 NullOperation::description() const {
     abortWithError("description()");
     return "";
@@ -1091,8 +701,7 @@ NullOperation::isControlFlowOperation() const {
 bool
 NullOperation::simulateTrigger(
     SimValue**,
-    OperationContext&) const 
-    throw (Exception) {
+    OperationContext&) const {
     
     abortWithError("simulateTrigger()");
     return false;

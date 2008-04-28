@@ -12,7 +12,6 @@
 #ifndef TTA_MATH_TOOLS_HH
 #define TTA_MATH_TOOLS_HH
 
-#include "Exception.hh"
 #include "BaseType.hh"
 
 class MathTools {
@@ -22,8 +21,8 @@ public:
     static int requiredBitsSigned(int number);
     static int requiredBitsSigned(UInt32 number);
     static int requiredBitsSigned(unsigned long number);
-    static int signExtendTo(int value, int width) throw (OutOfRange);
-    static int zeroExtendTo(int value, int width) throw (OutOfRange);
+    static int signExtendTo(int value, int width);
+    static int zeroExtendTo(int value, int width);
     
     static int fastSignExtendTo(int value, int width);
     static int fastZeroExtendTo(int value, int width);

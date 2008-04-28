@@ -55,6 +55,7 @@
 #include "TerminalImmediate.hh"
 #include "Move.hh"
 #include "MoveGuard.hh"
+#include "TCEString.hh"
 
 #include "Operation.hh"
 

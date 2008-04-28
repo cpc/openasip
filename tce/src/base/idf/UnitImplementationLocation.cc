@@ -13,6 +13,7 @@
 #include "UnitImplementationLocation.hh"
 #include "MachineImplementation.hh"
 #include "FileSystem.hh"
+#include "ObjectState.hh"
 
 using std::string;
 using std::vector;

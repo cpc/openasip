@@ -20,6 +20,7 @@
 #include "OperationDAGEdge.hh"
 #include "TerminalNode.hh"
 #include "Operation.hh"
+#include "TCEString.hh"
 
 /**
  * Creates OperationDAG out of OSAL DAG language source code.
@@ -355,7 +356,7 @@ OperationDAGConverter::writeNode(
                     " = " + rightSide + ";\n";
 
             } else {
-                retVal += "{ EXEC_OPERATION(" + refOp.name();
+                retVal += "{ EXEC_OPERATION(" + std::string(refOp.name());
                 for (unsigned int i = 0; i < operandVec.size(); i++) {
                     retVal += ", " + operandVec[i];
                 }            

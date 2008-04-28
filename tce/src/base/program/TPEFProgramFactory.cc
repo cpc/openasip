@@ -57,6 +57,7 @@
 #include "ProgramAnnotation.hh"
 #include "BinaryStream.hh"
 #include "BinaryReader.hh"
+#include "MathTools.hh"
 
 using namespace TTAMachine;
 using namespace TPEF;

@@ -31,6 +31,7 @@
 #include "UnboundedRegisterFile.hh"
 #include "Guard.hh"
 #include "Machine.hh"
+#include "TCEString.hh"
 
 #include "DisassemblyMove.hh"
 #include "DisassemblyRegister.hh"
@@ -49,6 +50,7 @@
 #include "DisassemblyNOP.hh"
 #include "DisassemblySequentialGuard.hh"
 #include "NullInstructionTemplate.hh"
+
 
 using std::string;
 using namespace TTAMachine;

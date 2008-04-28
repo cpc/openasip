@@ -14,6 +14,7 @@
 #include "MemoryContents.hh"
 #include "Application.hh"
 #include "Conversion.hh"
+#include "WriteRequest.hh"
 
 //////////////////////////////////////////////////////////////////////////////
 // Memory
@@ -29,7 +30,8 @@
  * @param MAUSize Bit width of the minimum addressable unit of the memory.
  */
 Memory::Memory(Word start, Word end, Word MAUSize) : 
-    start_(start), end_(end), MAUSize_(MAUSize) {
+    start_(start), end_(end), MAUSize_(MAUSize),
+    writeRequests_(new RequestQueue()) {
 
     const std::size_t maxMAUSize =
         static_cast<int>(sizeof(MinimumAddressableUnit) * BYTE_BITWIDTH);
@@ -51,6 +53,8 @@ Memory::Memory(Word start, Word end, Word MAUSize) :
  * Destructor.
  */
 Memory::~Memory() {
+    delete writeRequests_;
+    writeRequests_ = NULL;
 }
 
 /**
@@ -93,8 +97,7 @@ Memory::read(Word address) {
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::write(Word address, int count, UIntWord data)
-    throw (OutOfRange) {
+Memory::write(Word address, int count, UIntWord data) {
 
     checkRange(address, count);
 
@@ -106,7 +109,7 @@ Memory::write(Word address, int count, UIntWord data)
     std::memcpy(request->data_, MAUData, count*sizeof(MAU));
     request->size_ = count;
     request->address_ = address;
-    writeRequests_.push_back(request);
+    writeRequests_->push_back(request);
 }
 
 /**
@@ -120,8 +123,7 @@ Memory::write(Word address, int count, UIntWord data)
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::read(Word address, FloatWord& data)
-    throw (OutOfRange) {
+Memory::read(Word address, FloatWord& data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "Loading FloatWords works only with byte sized MAU at the moment.");
@@ -160,8 +162,7 @@ Memory::read(Word address, FloatWord& data)
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::write(Word address, FloatWord data)
-    throw (OutOfRange) {
+Memory::write(Word address, FloatWord data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "Writing FloatWords works only with byte sized MAU at the moment.");
@@ -193,7 +194,7 @@ Memory::write(Word address, FloatWord data)
         #endif
         request->data_[i] = data;
     }
-    writeRequests_.push_back(request);
+    writeRequests_->push_back(request);
 }
 
 
@@ -208,8 +209,7 @@ Memory::write(Word address, FloatWord data)
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::read(Word address, DoubleWord& data)
-    throw (OutOfRange) {
+Memory::read(Word address, DoubleWord& data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "LDD works only with byte sized MAU at the moment.");
@@ -245,8 +245,7 @@ Memory::read(Word address, DoubleWord& data)
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::write(Word address, DoubleWord data)
-    throw (OutOfRange) {
+Memory::write(Word address, DoubleWord data) {
 
     assert(MAUSize() == sizeof(Byte)*8 && 
            "LDD works only with byte sized MAU at the moment.");
@@ -278,7 +277,7 @@ Memory::write(Word address, DoubleWord data)
         #endif
         request->data_[i] = data;
     }
-    writeRequests_.push_back(request);
+    writeRequests_->push_back(request);
 }
 
 /**
@@ -292,8 +291,7 @@ Memory::write(Word address, DoubleWord data)
  * @exception OutOfRange in case the address is out of range of the memory.
  */
 void
-Memory::read(Word address, int size, UIntWord& data)
-    throw (OutOfRange) {
+Memory::read(Word address, int size, UIntWord& data) {
 
     checkRange(address, size);
 
@@ -327,14 +325,14 @@ Memory::fillWithZeros() {
  */
 void
 Memory::reset() {
-    RequestQueue::iterator iter = writeRequests_.begin();
-    while (iter != writeRequests_.end()) {
+    RequestQueue::iterator iter = writeRequests_->begin();
+    while (iter != writeRequests_->end()) {
         delete[] (*iter)->data_;
         (*iter)->data_ = NULL;
         delete (*iter);
         ++iter;
     }
-    writeRequests_.clear();
+    writeRequests_->clear();
 }
 
 /**
@@ -370,10 +368,10 @@ Memory::pack(const Memory::MAUTable data, int size, UIntWord& value) {
 inline void
 Memory::unpack(
     const UIntWord& value,
-    std::size_t size,
+    int size,
     Memory::MAUTable data) {
     int shiftCount = MAUSize_ * (size - 1);
-    for(std::size_t i = 0; i < size; ++i) {
+    for(int i = 0; i < size; ++i) {
         data[i] = ((value >> shiftCount) & mask_);
         shiftCount -= MAUSize_;
     }
@@ -389,8 +387,8 @@ Memory::unpack(
 void
 Memory::advanceClock() {
 
-    RequestQueue::iterator iter = writeRequests_.begin();
-    while (iter != writeRequests_.end()) {
+    RequestQueue::iterator iter = writeRequests_->begin();
+    while (iter != writeRequests_->end()) {
         WriteRequest* req = (*iter);
         for (int i = 0; i < req->size_; ++i) {
             write(req->address_ + i, req->data_[i]);
@@ -401,34 +399,7 @@ Memory::advanceClock() {
         ++iter;
     }
 
-    writeRequests_.clear();
-}
-
-/**
- * Reads a block of data from the memory.
- *
- * @param address The address which data is read from.
- * @param data Container in which data is read.
- */
-void
-Memory::readBlock(Word address, Memory::MAUVector& data) {
-    for (std::size_t i = 0; i < data.size(); ++i) {
-        data[i] = read(address - start_ + i);
-    }
-}
-
-/**
- * Writes a block of data in memory.
- *
- * @param address Address to write to.
- * @param data Data to be written.
- */
-void
-Memory::writeBlock(Word address, Memory::MAUVector data) {
-    for (std::size_t i = 0; i < data.size(); ++i) {
-        Memory::MAU temp = data[i];
-        write(address - start_ + i, temp);
-    }
+    writeRequests_->clear();
 }
 
 /**
@@ -439,8 +410,7 @@ Memory::writeBlock(Word address, Memory::MAUVector data) {
  * @exception OutOfRange in case the range is illegal.
  */
 void
-Memory::checkRange(Word startAddress, int numberOfMAUs)
-    throw (OutOfRange) {
+Memory::checkRange(Word startAddress, int numberOfMAUs) {
 
     if (startAddress < start() || startAddress + numberOfMAUs > end())
         throw OutOfRange(
@@ -492,4 +462,3 @@ NullMemory::instance() {
     }
     return *instance_;
 }
-

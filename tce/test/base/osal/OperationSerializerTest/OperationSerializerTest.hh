@@ -20,6 +20,8 @@
 #include "OperationBehavior.hh"
 #include "FileSystem.hh"
 #include "StringTools.hh"
+#include "TCEString.hh"
+#include "Operand.hh"
 
 using std::string;
 using std::cout;
@@ -97,15 +99,15 @@ OperationSerializerTest::testReadAndWriteState() {
         TS_ASSERT_EQUALS(operation2.hasSideEffects(), true);
         TS_ASSERT_EQUALS(operation2.dependsOn(operation1), true);
 
-        Operand& op1 = operation2.input(1);
+        Operand& op1 = operation2.operand(1);
         TS_ASSERT_DIFFERS(&op1, &NullOperand::instance()); 
-        Operand& op2 = operation2.input(2);
+        Operand& op2 = operation2.operand(2);
         TS_ASSERT_DIFFERS(&op2, &NullOperand::instance()); 
-        Operand& op3 = operation2.input(3);
+        Operand& op3 = operation2.operand(3);
         TS_ASSERT_DIFFERS(&op3, &NullOperand::instance()); 
-        Operand& op4 = operation2.input(4);
+        Operand& op4 = operation2.operand(4);
         TS_ASSERT_DIFFERS(&op4, &NullOperand::instance()); 
-        Operand& op5 = operation2.output(5);
+        Operand& op5 = operation2.operand(5);
         TS_ASSERT_DIFFERS(&op5, &NullOperand::instance()); 
 
         TS_ASSERT_EQUALS(op2.canSwap(op4), true);

@@ -15,52 +15,47 @@
 #include "Memory.hh"
 #include "OperationState.hh"
 #include "SimValue.hh"
+#include "OperationContextPimpl.hh"
 
 using std::string;
-
-/// Id given for the next created OperationContext instance.
-int OperationContext::nextContextId_ = 0;
-
-/// Integer used to represent an illegal natural word width.
-const int SOME_ILLEGAL_NATURAL_WORD_WIDTH = -1;
-
-InstructionAddress dummyInstructionAddress;
 
 /**
  * Constructor for contexts suitable for basic operations.
  */
-OperationContext::OperationContext() : 
-    memory_(NULL), 
-    programCounter_(dummyInstructionAddress), 
-    returnAddress_(NullSimValue::instance()),
-    saveReturnAddress_(false)  {
-    initializeContextId();
+OperationContext::OperationContext() : pimpl_(new OperationContextPimpl()) {
 }
 
 /**
  * Constructor for contexts suitable for any kinds of operations.
  *
  * @param memory The memory model instance.
- * @param nww The natural word width of the memory model.
  * @param programCounter The program counter register.
  * @param returnAddress The return address register.
- * @param syscallHandler The syscall handler register.
- * @param syscallNumber The syscall code register.
  *
  */
 OperationContext::OperationContext(
     Memory* memory,
     InstructionAddress& programCounter,
     SimValue& returnAddress) :
-    memory_(memory), programCounter_(programCounter), 
-    returnAddress_(returnAddress), saveReturnAddress_(false) {
-    initializeContextId();
+    pimpl_(new OperationContextPimpl(
+        memory, programCounter, returnAddress)) {
 }
 
 /**
- * Destructor.
+ * A copy constructor that performs a deep copy for the pimpl_
+ * 
+ * @param context OperationContext
+ */
+OperationContext::OperationContext(const OperationContext& context) : 
+    pimpl_(new OperationContextPimpl(*context.pimpl_)) {
+}
+
+/**
+ * Destructor. Deletes the pimpl object
  */
 OperationContext::~OperationContext() {
+    delete pimpl_;
+    pimpl_ = NULL;
 }
 
 /**
@@ -72,14 +67,7 @@ OperationContext::~OperationContext() {
  */
 OperationState&
 OperationContext::state(const char* name) const {
-
-    StateRegistry::const_iterator i = stateRegistry_.find(name);
-
-    if (i == stateRegistry_.end()) {
-        throw KeyNotFound(__FILE__, __LINE__, __func__, "State not found.");
-    }
-
-    return *(*i).second;
+    return pimpl_->state(name);
 }
 
 /**
@@ -87,13 +75,7 @@ OperationContext::state(const char* name) const {
  */
 void 
 OperationContext::advanceClock() {
-
-    StateRegistry::iterator i = stateRegistry_.begin();
-
-    while (i != stateRegistry_.end()) {
-        (*i).second->advanceClock(*this);
-        ++i;
-    }
+    pimpl_->advanceClock(*this);
 }
 
 /**
@@ -109,12 +91,7 @@ OperationContext::advanceClock() {
  */
 void 
 OperationContext::registerState(OperationState* stateToRegister) {
-    string stateName = stateToRegister->name();
-    // RegisterState() and unregisterState() are supposed to be used
-    // only internally, they are not part of the "client IF", therefore
-    // it's reasonable to assert.
-    assert(!hasState(stateName.c_str()));
-    stateRegistry_[stateName] = stateToRegister;	
+    pimpl_->registerState(stateToRegister);
 }
 
 /**
@@ -128,25 +105,107 @@ OperationContext::registerState(OperationState* stateToRegister) {
  */    
 void 
 OperationContext::unregisterState(const char* name) {
-    // RegisterState() and unregisterState() are supposed to be used
-    // only internally, they are not part of the "client IF", therefore
-    // it's reasonable to assert.
-    assert(hasState(name));
-    stateRegistry_.erase(name);
+    pimpl_->unregisterState(name);
 }
 
 /**
- * Checks if state with given name can be found in the context.
+ * Returns a reference to the current value of the program counter register.
  *
- * @param name Name of the state.
- * @return True if the state is found.
+ * The value of the program counter can be changed through this reference. 
+ * This is used to implement control transfer operations like jumps and calls 
+ * to subroutines. 
+ *
+ * @return The program counter value as a reference.
+ */
+InstructionAddress& OperationContext::programCounter() {
+    return pimpl_->programCounter();
+}
+        
+/**
+ * Makes the return address to be saved in the RA register.
+ *
+ * This is used by CALL instruction to save the RA before jumping.
+ *
+ * @param value Value to set to.
+ * @return The return address value as a reference.
+ */
+void 
+OperationContext::setSaveReturnAddress(bool value) {
+    pimpl_->setSaveReturnAddress(value);
+}   
+
+/**
+ * Returns true if RA should saved before executing next control flow 
+ * operation.
+ *
+ * @return The return address value as a reference.
  */
 bool 
-OperationContext::hasState(const char* name) const {
-    try {
-        state(name);
-    } catch (const KeyNotFound&) {
-        return false;
-    }
-    return true;    
+OperationContext::saveReturnAddress() {
+    return pimpl_->saveReturnAddress();
+}  
+
+/**
+ * Returns a reference to the current value of the return address register.
+ *
+ * The value of the return address can be changed through this reference. 
+ * This is used in implementing calls to subroutines.
+ *
+ * @return The return address value as a reference.
+ */
+SimValue& 
+OperationContext::returnAddress() {
+    return pimpl_->returnAddress();
+} 
+
+/**
+ * Returns true if there are no operation state objects stored in the
+ * context.
+ *
+ * @return True if there are no operation state objects stored in the
+ * context.
+ */
+bool 
+OperationContext::isEmpty() const {
+    return pimpl_->isEmpty();
 }
+        
+        
+/**
+ * Sets the reference to a Memory Module instance.
+ *
+ * This instance can be accessed by the function unit and behavior 
+ * simulation methods to simulate memory access.
+ *
+ * @param memory The Memory instance.
+ */
+void
+OperationContext::setMemory(Memory* memory) {
+    pimpl_->setMemory(memory);
+}
+
+/**
+ * Returns a reference to a Memory Module wrapper instance.
+ *
+ * This instance can be accessed by the function unit and behavior 
+ * simulation methods to simulate memory access.
+ *
+ * @return The Memory instance.
+ */
+Memory& 
+OperationContext::memory() {
+    return pimpl_->memory();
+}
+
+/**
+ * Returns the unique id of the OperationContext instance.
+ *
+ * @return The unique id for the OperationContext instance.
+ */
+int 
+OperationContext::contextId() const {
+    return pimpl_->contextId();
+}
+
+
+

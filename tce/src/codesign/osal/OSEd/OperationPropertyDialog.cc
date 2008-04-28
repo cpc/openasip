@@ -39,7 +39,7 @@
 #include "ObjectState.hh"
 #include "WarningDialog.hh"
 #include "OperationDAG.hh"
-
+#include "TCEString.hh"
 #include "FileSystem.hh"
 
 using std::string;

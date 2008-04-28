@@ -14,6 +14,7 @@
 #include <vector>
 #include "SimulatorConstants.hh"
 #include "Exception.hh"
+#include "BaseType.hh"
 
 class ExecutableInstruction;
 

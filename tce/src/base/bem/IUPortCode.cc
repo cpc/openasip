@@ -11,6 +11,7 @@
 
 #include "IUPortCode.hh"
 #include "SocketCodeTable.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

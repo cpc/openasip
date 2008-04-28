@@ -17,6 +17,7 @@
 #include "OperationBehavior.hh"
 #include "Operation.hh"
 #include "OperationModule.hh"
+#include "TCEString.hh"
 
 using std::string;
 

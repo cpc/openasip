@@ -48,6 +48,7 @@
 #include "MemoryProxy.hh"
 #include "UnboundedRegisterFile.hh"
 #include "RegisterFileState.hh"
+#include "MathTools.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

@@ -8,6 +8,7 @@
  */
 
 #include "OSEdOptions.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

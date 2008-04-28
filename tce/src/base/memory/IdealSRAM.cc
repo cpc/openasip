@@ -15,6 +15,7 @@
 #include "MemoryContents.hh"
 #include "Conversion.hh"
 #include "Application.hh"
+#include "MemoryContents.hh"
 
 using std::string;
 

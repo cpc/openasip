@@ -29,6 +29,7 @@
 #include "InterPassData.hh"
 #include "Exception.hh"
 #include "BusBroker.hh"
+#include "TCEString.hh"
 
 /**
  * Constructor.

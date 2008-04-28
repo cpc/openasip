@@ -51,6 +51,7 @@
 #include "GuardState.hh"
 #include "Guard.hh"
 #include "AddressSpaceCheck.hh"
+#include "TCEString.hh"
 
 using namespace TTAMachine;
 using std::string;

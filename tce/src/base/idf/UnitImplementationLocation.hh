@@ -11,6 +11,7 @@
 #define TTA_UNIT_IMPLEMENTATION_HH
 
 #include "Serializable.hh"
+#include "Exception.hh"
 
 namespace IDF {
 

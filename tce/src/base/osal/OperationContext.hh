@@ -11,14 +11,13 @@
 #ifndef TTA_OPERATION_CONTEXT_HH
 #define TTA_OPERATION_CONTEXT_HH
 
-#include <string>
-#include <map>
-
 #include "BaseType.hh"
 
 class OperationState;
 class SimValue;
 class Memory;
+class OperationContextPimpl;
+
 
 /**
  * OperationContext is used to store any implementation and context dependent 
@@ -35,7 +34,9 @@ public:
         Memory* memory,
         InstructionAddress& programCounter,
         SimValue& returnAddress);
-
+    
+    OperationContext(const OperationContext&);
+    
     virtual ~OperationContext();
 
     Memory& memory();
@@ -58,35 +59,10 @@ public:
     OperationState& state(const char* name) const;
 
 private:
-
-    /// Type of state registry.
-    typedef std::map<std::string, OperationState*> StateRegistry;
-
-    bool hasState(const char* name) const;
-    void initializeContextId();
-
-    /// The Memory model instance.
-    Memory* memory_;
-
-    /// Unique number that identifies a context instance.
-    int contextId_;
-
-    /// Context id for the next created context instance.
-    static int nextContextId_;
-
-    /// Simulates the program counter value. 
-    InstructionAddress& programCounter_;
-
-    /// Simulates the procedure return address. 
-    SimValue& returnAddress_;    
-
-    /// The state registry.
-    StateRegistry stateRegistry_;
-
-    /// Should the return address be saved?
-    bool saveReturnAddress_;
+    /// Assignment not allowed
+    OperationContext& operator=(const OperationContext&);
+    /// Implementation in separate source file to speed up compiling.
+    OperationContextPimpl* pimpl_;
 };
-
-#include "OperationContext.icc"
 
 #endif

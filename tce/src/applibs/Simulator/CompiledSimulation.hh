@@ -14,8 +14,6 @@
 #include "SimValue.hh"
 #include "OperationPool.hh"
 
-#include <map>
-
 namespace TTAMachine {
     class Machine;
     class FunctionUnit;
@@ -28,6 +26,13 @@ namespace TTAProgram {
 class SimulatorFrontend;
 class DirectAccessMemory;
 class MemorySystem;
+class SimulatorFrontend;
+class CompiledSimulationEngine;
+class CompiledSimulationPimpl;
+
+
+/// Type for the simulateXXXXX basic block functions
+typedef void (CompiledSimulationEngine::*SimulateFunction)();
 
 
 /**
@@ -63,8 +68,8 @@ struct FUResultType {
           data(new FUResultElementType[size]),
           numberOfElements(0) {}
     /// The destructor. Frees all memory
-    ~FUResultType() { delete[] data; data = NULL; }
-};   
+    ~FUResultType() { delete[] data; data = 0; }
+};
 
 
 /**
@@ -97,29 +102,27 @@ public:
     virtual ClockCycleCount cycleCount() const;
     
     virtual SimValue registerFileValue(
-        const std::string& rfName, 
+        const char* rfName, 
         int registerIndex);
     
     virtual SimValue immediateUnitRegisterValue(
-        const std::string& iuName, int index);
+        const char* iuName, int index);
     
     virtual SimValue FUPortValue(
-        const std::string& fuName,
-        const std::string& portName);
+        const char* fuName,
+        const char* portName);
     
     virtual void requestToStop();
     virtual bool stopRequested() const;
     virtual bool isFinished() const;
         
 protected:
-    TTAMachine::FunctionUnit& functionUnit(const std::string& name)
-        const throw (InstanceNotFound);
+    TTAMachine::FunctionUnit& functionUnit(const char* name) const;
     
-    DirectAccessMemory& FUMemory(const std::string& FUName) 
-        const throw (InstanceNotFound);
+    DirectAccessMemory& FUMemory(const char* FUName) const;
     MemorySystem* memorySystem() const;
-    SimulatorFrontend& frontend() { return frontend_; }
-    void msg(const std::string& msg) const;
+    SimulatorFrontend& frontend() const;
+    void msg(const char* msg) const;
     
     static void inline addFUResult(
         FUResultType& results,
@@ -140,7 +143,14 @@ protected:
     
     static void inline clearFUResults(
         FUResultType& results);
-        
+    
+    void resizeJumpTable(int newSize);
+    SimulateFunction getJumpTargetFunction(InstructionAddress address);
+    void setJumpTargetFunction(InstructionAddress address, SimulateFunction fp);
+    
+    SimValue* getSymbolValue(const char* symbolName);
+    void addSymbol(const char* symbolName, SimValue& value);
+
     /// Number of cycles simulated so far
     ClockCycleCount cycleCount_;
     /// Number of basic blocks gone through
@@ -153,11 +163,6 @@ protected:
     InstructionAddress lastExecutedInstruction_;    
     /// Number of cycles left to simulate until the execution returns
     ClockCycleCount cyclesToSimulate_;
-    
-    /// Type for symbol map: string = symbolname, SimValue* = value location
-    typedef std::map<std::string, SimValue*> Symbols;
-    /// A Symbol map for easily getting the SimValues out of the simulation
-    Symbols symbols_;    
 
     /// Should the simulation stop or not?
     bool stopRequested_;  
@@ -183,6 +188,8 @@ protected:
     SimValue outOperands_[OPERAND_TABLE_SIZE];
     /// The operation pool
     OperationPool operationPool_;
+    /// Next jump target as a function pointer" << endl
+    SimulateFunction jumpTargetFunc_;
 
 private:
     /// Copying not allowed.
@@ -190,11 +197,10 @@ private:
     /// Assignment not allowed.
     CompiledSimulation& operator=(const CompiledSimulation&);
     
-    /// The memory system
-    MemorySystem* memorySystem_;
-    /// The simulator frontend
-    SimulatorFrontend& frontend_;
+    /// Private implementation in a separate source file
+    CompiledSimulationPimpl* pimpl_;
 };
+
 
 #include "CompiledSimulation.icc"
 

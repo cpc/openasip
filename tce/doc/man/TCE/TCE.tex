@@ -3600,7 +3600,7 @@ remains loaded and the simulation can be restarted from the begining.
 The disassembly window displays the
 machine code of the simulated program. The machine code is displayed
 one instruction per line. Instruction address and instruction
-moves are displayed for each line. T
+moves are displayed for each line.
 Clicking right mouse button on an instruction displays a context menu with the
 following items:
 \begin{itemize}
@@ -4612,7 +4612,7 @@ For this tutorial you need to download file package from
 \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} and unpack it
 to a working directory. Then cd to parallal\_assembly-directory.
 
-First thing to do is to compile the custom operation set calles cos16 shipped
+First thing to do is to compile the custom operation set called cos16 shipped
 within the parallal\_assembly-directory. Easiest way to do this is:
 
 \textit{buildopset cos16}
@@ -4692,30 +4692,49 @@ the output of x should be 0x40.
 
 Next try to write assembly code which does the same functionality as the
 C code. The assembly code must be functional with the given machine
-\textit{dct\_8x8\_16\_bit\_with\_sfus.adf}.
-The machine has 3 16-bit buses, which means maximum of
-3 concurrent transports. Each bus can contain 8-bit short immediate. 
+\textit{dct\_8x8\_16\_bit\_with\_sfus.adf}. Take a look at the processer by
+using prode:
+
+\textit{prode dct\_8x8\_16\_bit\_with\_sfus.adf \&}
+
+Processor's specifications are the following:
+
+\textbf{Supported operations} \\
 Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix},
 \textit{add}, \textit{add\_16\_fix}, \textit{ldq}, \textit{ldw}, \textit{stq},
 \textit{stw}, \textit{shr}, \textit{shl}, \textit{eq}, \textit{gt},
-\textit{gtu}, \textit{jump} and \textit{immediate transport}. Machine
-contains 4 register files, which each have 4 16-bit registers, leading to
-total of 16 16-bit registers. Notice that the first register file has 2 read
-ports.
+\textit{gtu}, \textit{jump} and \textit{immediate transport}.
 
-The data memory is 16-bit containing 128 memory slots and the MAU of data
-memory is 16-bits. The intruction memory has 1024 memory slots which
-means that the maximum number of instructions of 1024.
+Notice that when you program using TTA assembly you need to take account in
+operation latencies. The \textit{jump} latency is four clock cycles and load
+latencies (\textit{ldq} and \textit{ldw}) are three cycles. Latency for
+multiplications (\textit{mul} and \textit{mul\_16\_fix}) are two clock cycles.
 
-You also need to take account in operation latencies. The \textit{jump}
-latency is four clock cycles and load latencies (\textit{ldq} and
-\textit{ldw}) are three cycles. Latency for multiplications (\textit{mul}
-and \textit{mul\_16\_fix}) are two clock cycles.
+\textbf{Address spaces} \\
+The machine has two separate address spaces, one for data and another for
+instructions. The data memory is 16-bit containing 128 memory slots and the
+MAU of data memory is 16-bits. The intruction memory has 1024 memory slots
+which means that the maximum number of instructions of 1024.
 
-The initial input is given in \textit{initial\_input}. You have to put the
-initial input to end of your assembly code. Or you can use
-the file \textit{assembler\_tutorial.tceasm} where the initial values are
-already placed in memory locations 0-63.
+\textbf{Register files} \\
+Machine contains 4 register files, which each have 4 16-bit registers,
+leading to total of 16 16-bit registers. Notice that the first register file
+has 2 read ports.
+
+\textbf{Transport buses} \\
+The machine has 3 16-bit buses, which means maximum of 3 concurrent
+transports. Each bus can contain 8-bit short immediate.
+
+\textbf{Immediates} \\
+Because the transport buses can only contain 8-bit short immediates you must
+use the immediate unit if you want to use longer immediates. Immediate unit
+can hold a 16-bit immediate. There is an example of immediate unit usage in
+the immediate\_example.tceasm. Basically you need to transfer the value to the
+immediate register. The value of immediate register can be read on the next
+cycle.
+
+The initial input data is written to memory locations 0-63 in the file
+\textit{assembler\_tutorial.tceasm}. Write your assembly code in that file.
 
 \subsubsection{Verifying the assembly program}
 

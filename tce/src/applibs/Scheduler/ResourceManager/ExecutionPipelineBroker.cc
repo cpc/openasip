@@ -20,6 +20,7 @@
 #include "MapTools.hh"
 #include "StringTools.hh"
 #include "PSocketResource.hh"
+#include "TCEString.hh"
 
 using namespace TTAMachine;
 using std::pair;

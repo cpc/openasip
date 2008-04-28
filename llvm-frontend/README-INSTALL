@@ -24,3 +24,7 @@ Library and tools version prerequisites
 
 You need 'flex' or 'bison'. They should be found in all Linux distributions.
 
+LLVM-TCE on 64-bit distributions
+================================
+If you compile LLVM 2.1 from sources you should give --enable-pic option for
+the LLVM's configure script. Otherwise compilation of LLVM-TCE might fail.

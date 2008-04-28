@@ -23,6 +23,8 @@
 #include "POMDisassembler.hh"
 #include "MoveNode.hh"
 #include "TerminalInstructionAddress.hh"
+#include "MathTools.hh"
+
 using std::string;
 using namespace TTAMachine;
 using namespace TTAProgram;

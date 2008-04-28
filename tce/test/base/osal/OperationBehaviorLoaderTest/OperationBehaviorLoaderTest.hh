@@ -22,6 +22,7 @@
 #include "Operation.hh"
 #include "Application.hh"
 #include "SimValue.hh"
+#include "TCEString.hh"
 
 using std::string;
 using std::vector;

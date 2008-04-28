@@ -15,6 +15,7 @@
 #include "OperationDAGEdge.hh"
 #include "TerminalNode.hh"
 #include "Operation.hh"
+#include "Operand.hh"
 
 /**
  * Constructor.

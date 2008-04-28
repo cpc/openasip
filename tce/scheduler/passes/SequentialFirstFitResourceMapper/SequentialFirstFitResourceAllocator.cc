@@ -42,7 +42,8 @@ using std::endl;
 #include "MoveNode.hh"
 #include "ProgramOperation.hh"
 #include "POMDisassembler.hh"
-
+#include "TCEString.hh"
+                 
 using std::vector;
 using std::list;
 using std::string;
