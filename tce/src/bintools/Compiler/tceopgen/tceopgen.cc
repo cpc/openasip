@@ -9,6 +9,7 @@
 #include <iostream>
 #include <fstream>
 #include <set>
+#include <assert.h>
 #include "OperationPool.hh"
 #include "Operation.hh"
 #include "Conversion.hh"
