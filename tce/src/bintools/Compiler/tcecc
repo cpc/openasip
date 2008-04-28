@@ -501,6 +501,9 @@ if options.adf_file != "":
         command = srcRoot + "/bintools/Compiler/llvm-tce/llvmtce"
     else:
         command = "llvmtce"
+
+    if options.verbose is True:
+        command += " -v"
         
     if options.debug is True:
         command += " --debug"
