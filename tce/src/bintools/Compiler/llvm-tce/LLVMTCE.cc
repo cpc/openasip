@@ -90,7 +90,7 @@ main(int argc, char* argv[]) {
     SchedulingPlan* plan = NULL;
     std::string schedulerConf = Environment::defaultSchedulerConf();
     if (options.isSchedulerConfigFileDefined()) {
-        std::string schedulerConf = options.schedulerConfigFile();
+        schedulerConf = options.schedulerConfigFile();
     }
 
     try {
