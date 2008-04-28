@@ -23,6 +23,7 @@
 #include "OperationIndex.hh"
 #include "OperationModule.hh"
 #include "Operation.hh"
+#include "TCEString.hh"
 
 using std::string;
 

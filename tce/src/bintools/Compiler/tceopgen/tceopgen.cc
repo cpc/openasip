@@ -8,10 +8,12 @@
 
 #include <iostream>
 #include <fstream>
+#include <set>
 #include "OperationPool.hh"
 #include "Operation.hh"
 #include "Conversion.hh"
 #include "OperationIndex.hh"
+#include "Operand.hh"
 
 /**
  * Writes _tce_customop_OPNAME macros to a header file.

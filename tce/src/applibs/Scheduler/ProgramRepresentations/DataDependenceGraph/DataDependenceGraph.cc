@@ -24,6 +24,7 @@
 #include "Instruction.hh"
 #include "POMDisassembler.hh"
 #include "BasicBlockNode.hh"
+#include "TCEString.hh"
 
 /**
  * Sets bookkeeping that the given movende belongs to the given basic block.

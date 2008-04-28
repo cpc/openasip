@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <ctime>
+#include "Exception.hh"
 #include "MathTools.hh"
 #include "BaseType.hh"
 
@@ -131,10 +132,10 @@ MathTools::bit(unsigned int integer, unsigned int index) {
  * @param value A signed integer.
  * @param width Number of meaningful bits in the given integer.
  * @return The sign-extended value of the integer.
+ * @exception OutOfRange If width > integer size
  */
 inline int
-MathTools::signExtendTo(int value, int width)
-    throw (OutOfRange) {
+MathTools::signExtendTo(int value, int width) {
 
     int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
     if (width > bitsInInt) {
@@ -159,10 +160,10 @@ MathTools::signExtendTo(int value, int width)
  * @param value An unsigned integer.
  * @param width Number of meaningful bits in the given integer.
  * @return The zero-extended value of the integer.
+ * @exception OutOfRange If width > integer size
  */
 inline int
-MathTools::zeroExtendTo(int value, int width)
-    throw (OutOfRange) {
+MathTools::zeroExtendTo(int value, int width) {
 
     int bitsInInt = sizeof(int) * BYTE_BITWIDTH;
     if (width > bitsInInt) {

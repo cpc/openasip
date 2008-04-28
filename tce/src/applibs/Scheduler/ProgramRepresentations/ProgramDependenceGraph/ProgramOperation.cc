@@ -26,6 +26,7 @@
 #include "Terminal.hh"
 #include "BaseFUPort.hh"
 #include "FunctionUnit.hh"
+#include "TCEString.hh"
 
 namespace TTAProgram{
     class NullMove;

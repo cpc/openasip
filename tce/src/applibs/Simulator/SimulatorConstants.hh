@@ -12,7 +12,7 @@
 #define HH_SIMULATOR_CONSTANTS
 
 #include "BaseType.hh"
-#include <stdint.h>
+//#include <stdint.h>
 
 /// The command prompt of the simulator interpreter.
 #define SIM_COMMAND_PROMPT "(ttasim) "
@@ -33,7 +33,8 @@
 #define SIM_CLI_TITLE "ttasim - TCE Simulator command line interface"
 
 /// A type for storing clock cycle counts.
-typedef uint64_t ClockCycleCount;
+/// @note was uint64_t, changed due to unnecessary header overhead
+typedef long long ClockCycleCount;
 
 /// Alias for ClockCycleCount.
 typedef ClockCycleCount CycleCount;

@@ -11,11 +11,10 @@
 #ifndef TTA_MEMORY_MODEL_HH
 #define TTA_MEMORY_MODEL_HH
 
-#include <vector>
-#include <map>
-
 #include "BaseType.hh"
-#include "Exception.hh"
+
+struct WriteRequest;
+struct RequestQueue;
 
 //////////////////////////////////////////////////////////////////////////////
 // Memory
@@ -52,7 +51,6 @@ class Memory {
 public:
     typedef MinimumAddressableUnit MAU;
     typedef MAU* MAUTable;
-    typedef std::vector<MAU> MAUVector;
 
     Memory(Word start, Word end, Word MAUSize);
     virtual ~Memory();
@@ -62,24 +60,15 @@ public:
     virtual void write(Word address, MAU data) = 0;
     virtual Memory::MAU read(Word address) = 0;
 
-    virtual void write(Word address, int size, UIntWord data)
-        throw (OutOfRange);
-    virtual void write(Word address, FloatWord data)
-        throw (OutOfRange);
-    virtual void write(Word address, DoubleWord data)
-        throw (OutOfRange);
-    virtual void read(Word address, int size, UIntWord& data)
-        throw (OutOfRange);
-    virtual void read(Word address, FloatWord& data)
-        throw (OutOfRange);
-    virtual void read(Word address, DoubleWord& data)
-        throw (OutOfRange);
+    virtual void write(Word address, int size, UIntWord data);
+    virtual void write(Word address, FloatWord data);
+    virtual void write(Word address, DoubleWord data);
+    virtual void read(Word address, int size, UIntWord& data);
+    virtual void read(Word address, FloatWord& data);
+    virtual void read(Word address, DoubleWord& data);
 
     virtual void reset();
     virtual void fillWithZeros();
-
-    virtual void writeBlock(Word address, Memory::MAUVector data);
-    virtual void readBlock(Word address, Memory::MAUVector& data);
 
     virtual Word start() { return start_; }
     virtual Word end() { return end_; }
@@ -92,10 +81,9 @@ private:
     Memory& operator=(const Memory&);
 
     void pack(const Memory::MAUTable data, int size, UIntWord& value);
-    void unpack(const UIntWord& value, std::size_t size, Memory::MAUTable data);
+    void unpack(const UIntWord& value, int size, Memory::MAUTable data);
 
-    void checkRange(Word startAddress, int numberOfMAUs)
-        throw (OutOfRange);
+    void checkRange(Word startAddress, int numberOfMAUs);
 
     /// Starting point of the address space.
     Word start_;
@@ -104,24 +92,8 @@ private:
     /// Size of the minimum adressable unit.
     Word MAUSize_;
 
-    /**
-     * Models an uncommitted write request.
-     */
-    struct WriteRequest {
-        WriteRequest() :
-            data_(NULL), dataSize_(0), address_(0), size_(0) {}
-        /// Data to be written.
-        Memory::MAUTable data_;
-        /// Data table size.
-        std::size_t dataSize_;
-        /// Address to be written to.
-        Word address_;
-        /// Size of the data to be read/written.
-        int size_;
-    };
-    typedef std::vector<WriteRequest*> RequestQueue;
     /// The uncommited write requests.
-    RequestQueue writeRequests_;
+    RequestQueue* writeRequests_;
     /// Mask bit pattern for unpacking IntWord to MAUs.
     int mask_;
 

@@ -24,6 +24,7 @@
 #include "OperationBehavior.hh"
 #include "IdealSRAM.hh"
 #include "SimValue.hh"
+#include "TCEString.hh"
 
 using std::string;
 using std::vector;

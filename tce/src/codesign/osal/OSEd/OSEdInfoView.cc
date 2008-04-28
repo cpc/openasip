@@ -24,6 +24,8 @@
 #include "OSEd.hh"
 #include "Operation.hh"
 #include "OperationIndex.hh"
+#include "TCEString.hh"
+#include "Operand.hh"
 
 using std::string;
 using std::vector;

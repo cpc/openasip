@@ -14,7 +14,8 @@
 #include "StringTools.hh"
 #include "DataMemory.hh"
 #include "DataDefinition.hh"
-
+#include "TCEString.hh"
+#include "MathTools.hh"
 
 using namespace TTAProgram;
 

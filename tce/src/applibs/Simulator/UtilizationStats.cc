@@ -24,6 +24,7 @@
 #include "MoveGuard.hh"
 #include "hash_set.hh"
 #include "Application.hh"
+#include "TCEString.hh"
 
 /**
  * Constructor.

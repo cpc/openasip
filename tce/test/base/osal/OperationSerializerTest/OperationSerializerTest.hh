@@ -20,6 +20,8 @@
 #include "OperationBehavior.hh"
 #include "FileSystem.hh"
 #include "StringTools.hh"
+#include "TCEString.hh"
+#include "Operand.hh"
 
 using std::string;
 using std::cout;

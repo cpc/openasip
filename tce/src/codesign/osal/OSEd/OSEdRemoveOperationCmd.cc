@@ -23,6 +23,7 @@
 #include "Operation.hh"
 #include "OperationIndex.hh"
 #include "OSEdInfoView.hh"
+#include "TCEString.hh"
 
 using std::string;
 using boost::format;

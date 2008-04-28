@@ -217,10 +217,7 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
          << "#ifndef _AUTO_GENERATED_COMPILED_SIMULATION_H_" << endl
          << "#define _AUTO_GENERATED_COMPILED_SIMULATION_H_" << endl
          << "#include \"SimValue.hh\"" << endl
-         << "#include \"MemorySystem.hh\"" << endl
          << "#include \"DirectAccessMemory.hh\"" << endl
-         << "#include \"SimulationEventHandler.hh\"" << endl
-         << "#include \"SimulatorFrontend.hh\"" << endl
          << "#include \"OSAL.hh\"" << endl
          << "#include \"Operation.hh\"" << endl
          << "#include \"OperationPool.hh\"" << endl
@@ -232,18 +229,11 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     
     // Open up class declaration and define some extra member variables
     *os_ << "class " << className_ << ";" << endl
-         << "typedef void (" << className_ << "::*SimulateFunction)();" 
+         //<< "typedef void (" << className_ << "::*SimulateFunction)();" 
          << endl << endl;
     
     *os_ << "class " << className_ << " : public CompiledSimulation {" << endl
-         << "public:" << endl
-         << "/// Type for the faster jump table:: index is the target address, returns target func" 
-         << endl
-         << "typedef std::vector<SimulateFunction> JumpTable;" << endl
-         << "/// The jump table" << endl
-         << "JumpTable jumpTable_;" << endl
-         << "/// Next jump target as a function pointer" << endl
-         << "SimulateFunction jumpTargetFunc_;" << endl;
+         << "public:" << endl;
 
     // Declare all FUs
     const Machine::FunctionUnitNavigator& fus = machine_.functionUnitNavigator();
@@ -382,13 +372,18 @@ CompiledSimCodeGenerator::generateConstructorCode() {
          << endl;
     
     updateDeclaredSymbolsList();
-    *os_ << "\t" << "jumpTargetFunc_(0)" << endl;
     
     const Machine::FunctionUnitNavigator& fus = machine_.functionUnitNavigator();
+    bool first = true;
     for (int i = 0; i < fus.count(); i++) {
         const FunctionUnit & fu = *fus.item(i);
         if (fu.addressSpace() != NULL) {
-            *os_ << "," << endl;
+            if (first) {
+                first = false;
+            } else {
+                *os_ << "," << endl;
+            }
+                
             *os_ << "\t" << SymbolGenerator::DAMemorySymbol(fu) 
                  << "(FUMemory(\"" << fu.name() << "\"))";
         }
@@ -444,7 +439,7 @@ CompiledSimCodeGenerator::generateSimulationCode() {
 
     // Create a jump dispatcher for accessing each basic block start
     *os_ << "// jump dispatcher" << endl
-         << "\tjumpTargetFunc_ = jumpTable_[jumpTarget_];" << endl
+         << "\tjumpTargetFunc_ = getJumpTargetFunction(jumpTarget_);" << endl
          << "\t(this->*jumpTargetFunc_)();" << endl << endl;
     
     *os_ << conflictDetectionGenerator_.notifyOfConflicts()
@@ -590,8 +585,8 @@ CompiledSimCodeGenerator::updateSymbolsMap() {
     for (SimValueSymbolDeclarations::const_iterator it =
         declaredSymbols_.begin(); it != declaredSymbols_.end(); ++it) {
         string symbolName = it->first;
-        *os_ << "\t" << "symbols_[\"" << symbolName << "\"] = &" 
-             << symbolName << ";" << endl;
+        *os_ << "\t" << "addSymbol(\"" << symbolName << "\", " 
+             << symbolName << ");" << endl;
     }
 }
 
@@ -621,13 +616,13 @@ CompiledSimCodeGenerator::generateSymbolDeclarations() {
 void
 CompiledSimCodeGenerator::generateJumpTableCode() {    
 
-    *os_ << "\t" << "jumpTable_.resize(lastInstruction_ + 1, NULL);" << endl;
+    *os_ << "\t" << "resizeJumpTable(lastInstruction_ + 1);" << endl;
 
     for (BasicBlocks::iterator it = bbStarts_.begin(); it != bbStarts_.end();
         ++it) {
-        *os_ << "\t" << "jumpTable_[" << it->first << "] = &" << className_ 
+        *os_ << "\t" << "setJumpTargetFunction(" << it->first << ", &" << className_ 
              << "::" << SymbolGenerator::basicBlockSymbol(it->first) 
-             << ";" << endl;
+             << ");" << endl;
     }
 }
 

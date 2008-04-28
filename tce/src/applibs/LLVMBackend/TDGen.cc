@@ -28,7 +28,8 @@
 #include "OperationDAG.hh"
 #include "OperationDAGEdge.hh"
 #include "OperationDAGSelector.hh"
-
+#include "TCEString.hh"
+#include "Operand.hh"
 
 // SP, RES, KLUDGE, 2 GPRs?
 unsigned const TDGen::REQUIRED_I32_REGS = 5;
@@ -1207,7 +1208,8 @@ TDGen::operationNodeToString(
     }
 
     if (operationPat == "") {
-        std::string msg = "Unknown operation node in dag: " + operation.name();
+        std::string msg("Unknown operation node in dag: " + 
+            std::string(operation.name()));
         throw (InvalidData(__FILE__, __LINE__, __func__, msg));
     }
 

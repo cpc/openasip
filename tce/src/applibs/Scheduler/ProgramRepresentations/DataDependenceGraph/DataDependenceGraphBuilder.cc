@@ -41,6 +41,7 @@
 
 #include "ConstantAliasAnalyzer.hh"
 #include "FalseAliasAnalyzer.hh"
+#include "TCEString.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;
@@ -428,12 +429,12 @@ DataDependenceGraphBuilder::constructIndividualBB()
 
         for (unsigned int i = 0; i < currentData_->readPending_.size(); i++) {
             msg += "\n\tmissing read: " + 
-                currentData_->readPending_[i]->operation().name();
+                std::string(currentData_->readPending_[i]->operation().name());
         }
 
         for (unsigned int i = 0; i < currentData_->destPending_.size(); i++) {
             msg += "\n\tmissing dest: " + 
-                currentData_->destPending_[i]->operation().name();
+                std::string(currentData_->destPending_[i]->operation().name());
         }
 
         throw IllegalProgram(__FILE__,__LINE__,__func__, msg);

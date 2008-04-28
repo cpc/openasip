@@ -71,6 +71,8 @@
 #include "SectionElement.hh"
 #include "ProgramAnnotation.hh"
 #include "InstructionElement.hh"
+#include "TCEString.hh"
+#include "MathTools.hh"
 
 using TPEF::Binary;
 using TPEF::NullBinary;

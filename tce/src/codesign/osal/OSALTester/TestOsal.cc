@@ -23,6 +23,7 @@
 #include "OperationSimulator.hh"
 #include "IdealSRAM.hh"
 #include "BaseType.hh"
+#include "TCEString.hh"
 #include "config.h"
 
 using std::string;

@@ -106,8 +106,7 @@ MemoryProxy::readAccessCount() const {
  * @exception OutOfRange If the index is invalid.
  */
 MemoryProxy::MemoryAccess
-MemoryProxy::readAccess(unsigned idx) const
-    throw (OutOfRange) {
+MemoryProxy::readAccess(unsigned idx) const {
 
     if (idx > reads_.size()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);
@@ -131,8 +130,7 @@ MemoryProxy::writeAccessCount() const {
  * @exception OutOfRange If the index is invalid.
  */
 MemoryProxy::MemoryAccess
-MemoryProxy::writeAccess(unsigned idx) const
-    throw (OutOfRange) {
+MemoryProxy::writeAccess(unsigned idx) const {
 
     if (idx > writes_.size()) {
         throw OutOfRange(__FILE__, __LINE__, __func__);

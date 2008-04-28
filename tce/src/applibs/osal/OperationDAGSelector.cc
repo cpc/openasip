@@ -11,6 +11,7 @@
 #include "OperationPool.hh"
 #include "Operation.hh"
 #include "OperationNode.hh"
+#include "TCEString.hh"
 
 /**
  * Returns minimum opset that is required by llvm.

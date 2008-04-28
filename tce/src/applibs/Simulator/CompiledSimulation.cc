@@ -7,6 +7,7 @@
  * @note rating: red
  */
 
+#include <string>
 #include "CompiledSimulation.hh"
 #include "Machine.hh"
 #include "Instruction.hh"
@@ -15,6 +16,7 @@
 #include "SymbolGenerator.hh"
 #include "DirectAccessMemory.hh"
 #include "MemorySystem.hh"
+#include "CompiledSimulationPimpl.hh"
 
 using namespace TTAMachine;
 
@@ -50,14 +52,17 @@ CompiledSimulation::CompiledSimulation(
     conflictDetected_(false),
     machine_(machine),
     entryAddress_(entryAddress),
-    lastInstruction_(lastInstruction), 
-    memorySystem_(&memorySystem), frontend_(frontend) {
+    lastInstruction_(lastInstruction), pimpl_(new CompiledSimulationPimpl()) {
+    pimpl_->memorySystem_ = &memorySystem;
+    pimpl_->frontend_ = &frontend;
 }
 
 /**
  * The destructor
  */
 CompiledSimulation::~CompiledSimulation() {
+    delete pimpl_;
+    pimpl_ = NULL;
 }
 
 /**
@@ -76,7 +81,7 @@ CompiledSimulation::step(double count) {
     while (!stopRequested_ && !isFinished_) {
         simulateCycle();
         #ifndef DEBUG_SIMULATION
-        frontend_.eventHandler().handleEvent(
+        pimpl_->frontend_->eventHandler().handleEvent(
             SimulationEventHandler::SE_CYCLE_END);
         #endif
     }
@@ -113,7 +118,7 @@ CompiledSimulation::run() {
     while (!isFinished_ && !stopRequested_) {
         simulateCycle();
         #ifndef DEBUG_SIMULATION
-        frontend_.eventHandler().handleEvent(
+        pimpl_->frontend_->eventHandler().handleEvent(
             SimulationEventHandler::SE_CYCLE_END);
         #endif
     }
@@ -136,7 +141,7 @@ CompiledSimulation::runUntil(UIntWord address) {
         (jumpTarget_ != address || cycleCount_ == 0))) {
         simulateCycle();
         #ifndef DEBUG_SIMULATION
-        frontend_.eventHandler().handleEvent(
+        pimpl_->frontend_->eventHandler().handleEvent(
             SimulationEventHandler::SE_CYCLE_END);
         #endif
     }
@@ -182,16 +187,17 @@ ClockCycleCount CompiledSimulation::cycleCount() const {
  */
 SimValue 
 CompiledSimulation::registerFileValue(
-    const std::string& rfName, int registerIndex) {  
+    const char* rfName, int registerIndex) {  
     RegisterFile& rf = *machine_.registerFileNavigator().item(rfName);
     std::string registerFile = SymbolGenerator::registerSymbol(rf, registerIndex);
     
-    Symbols::iterator rfIterator = symbols_.find(registerFile);
-    if (rfIterator != symbols_.end()) {
+    CompiledSimulationPimpl::Symbols::const_iterator rfIterator = 
+        pimpl_->symbols_.find(registerFile);
+    if (rfIterator != pimpl_->symbols_.end()) {
         return *(rfIterator->second);
     } else {
         throw InstanceNotFound(__FILE__, __LINE__, __func__, 
-            "Register file " + rfName + " not found.");
+            "Register file " + std::string(rfName) + " not found.");
     }
 }
 
@@ -205,17 +211,18 @@ CompiledSimulation::registerFileValue(
  */
 SimValue 
 CompiledSimulation::immediateUnitRegisterValue(
-    const std::string& iuName, int index) {  
+    const char* iuName, int index) {  
     ImmediateUnit& iu = *machine_.immediateUnitNavigator().item(iuName);
     std::string immediateUnit = SymbolGenerator::immediateRegisterSymbol(
         iu, index);
     
-    Symbols::iterator iuIterator = symbols_.find(immediateUnit);
-    if (iuIterator != symbols_.end()) {
+    CompiledSimulationPimpl::Symbols::const_iterator iuIterator =
+        pimpl_->symbols_.find(immediateUnit);
+    if (iuIterator != pimpl_->symbols_.end()) {
         return *(iuIterator->second);
     } else {
         throw InstanceNotFound(__FILE__, __LINE__, __func__, 
-            "Immediate unit " + iuName + " not found.");
+            "Immediate unit " + std::string(iuName) + " not found.");
     }
 }
 
@@ -229,18 +236,19 @@ CompiledSimulation::immediateUnitRegisterValue(
  */
 SimValue 
 CompiledSimulation::FUPortValue(
-    const std::string& fuName, 
-    const std::string& portName) {
+    const char* fuName, 
+    const char* portName) {
     
     FunctionUnit& fu = *machine_.functionUnitNavigator().item(fuName);
     std::string fuPort = SymbolGenerator::portSymbol(*fu.port(portName));
     
-    Symbols::iterator fuPortIterator = symbols_.find(fuPort);
-    if (fuPortIterator != symbols_.end()) {
+    CompiledSimulationPimpl::Symbols::const_iterator fuPortIterator = 
+        pimpl_->symbols_.find(fuPort);
+    if (fuPortIterator != pimpl_->symbols_.end()) {
         return *(fuPortIterator->second);
     } else {
         throw InstanceNotFound(__FILE__, __LINE__, __func__, 
-            "FU port " + fuPort + " not found.");
+            "FU port " + std::string(fuPort) + " not found.");
     }
 }
 
@@ -280,8 +288,7 @@ bool CompiledSimulation::isFinished() const {
  * @exception InstanceNotFound If a function unit is not found
  */
 TTAMachine::FunctionUnit& 
-CompiledSimulation::functionUnit(const std::string& name) const
-    throw (InstanceNotFound) {
+CompiledSimulation::functionUnit(const char* name) const {
     return *machine_.functionUnitNavigator().item(name);
 }
 
@@ -293,8 +300,7 @@ CompiledSimulation::functionUnit(const std::string& name) const
  * @exception InstanceNotFound If an item is not found
  */
 DirectAccessMemory& 
-CompiledSimulation::FUMemory(const std::string& FUName) const 
-    throw (InstanceNotFound) {
+CompiledSimulation::FUMemory(const char* FUName) const {
     assert (machine_.functionUnitNavigator().item(FUName)->addressSpace() 
         != NULL);
     return dynamic_cast<DirectAccessMemory&>(memorySystem()->memory(
@@ -308,8 +314,18 @@ CompiledSimulation::FUMemory(const std::string& FUName) const
  */
 MemorySystem *
 CompiledSimulation::memorySystem() const {
-    assert (memorySystem_ != NULL);
-    return memorySystem_;
+    assert (pimpl_->memorySystem_ != NULL);
+    return pimpl_->memorySystem_;
+}
+
+/**
+ * Returns a reference to the simulator frontend
+ * 
+ * @return a reference to the simulator frontend
+ */
+SimulatorFrontend& 
+CompiledSimulation::frontend() const { 
+    return *(pimpl_->frontend_); 
 }
 
 /**
@@ -318,6 +334,49 @@ CompiledSimulation::memorySystem() const {
  * @param msg The message string to be shown on the log stream
  */
 void
-CompiledSimulation::msg(const std::string& msg) const {
+CompiledSimulation::msg(const char* msg) const {
     Application::logStream() << msg << std::endl;
+}
+
+
+/**
+ * Resizes the jump table
+ * 
+ * @param newSize New size
+ */
+void
+CompiledSimulation::resizeJumpTable(int newSize) {
+    pimpl_->jumpTable_.resize(newSize, 0);
+}
+
+/**
+ * Gets a jump target for given address from the jump table
+ * 
+ * @return Jump target for given address from the jump table
+ */
+SimulateFunction 
+CompiledSimulation::getJumpTargetFunction(InstructionAddress address) {
+    return pimpl_->jumpTable_[address];
+}
+
+/**
+ * Sets a jump target for given address at the jump table
+ * 
+ * @param address address to set a jump function for
+ * @param fp function pointer to the address
+ */
+void 
+CompiledSimulation::setJumpTargetFunction(
+    InstructionAddress address,
+    SimulateFunction fp) {
+    pimpl_->jumpTable_[address] = fp;
+}
+
+SimValue* CompiledSimulation::getSymbolValue(const char* symbolName) {
+    return pimpl_->symbols_[std::string(symbolName)];
+}
+
+void 
+CompiledSimulation::addSymbol(const char* symbolName, SimValue& value) {
+    pimpl_->symbols_[std::string(symbolName)] = &value;
 }

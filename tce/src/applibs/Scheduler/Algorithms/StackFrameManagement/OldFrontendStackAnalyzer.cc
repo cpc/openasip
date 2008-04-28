@@ -23,6 +23,7 @@
 
 #include "DataMemory.hh"
 #include "AddressSpace.hh"
+#include "TCEString.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;

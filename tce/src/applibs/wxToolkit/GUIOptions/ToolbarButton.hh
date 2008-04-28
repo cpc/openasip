@@ -13,6 +13,7 @@
 #include <string>
 
 #include "Serializable.hh"
+#include "Exception.hh"
 
 /**
  * This class repsesents a toolbar button. It contains information

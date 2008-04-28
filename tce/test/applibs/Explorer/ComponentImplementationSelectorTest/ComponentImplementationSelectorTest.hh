@@ -27,6 +27,7 @@
 #include "Machine.hh"
 #include "ContainerTools.hh"
 #include "CostEstimates.hh"
+#include "TCEString.hh"
 
 using namespace TTAMachine;
 using namespace HDB;

@@ -35,6 +35,7 @@
 
 #include "InterPassDatum.hh"
 #include "InterPassData.hh"
+#include "TCEString.hh"
 
 //using std::set;
 using std::list;

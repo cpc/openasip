@@ -10,12 +10,10 @@
 #ifndef TTA_DIRECT_ACCESS_MEMORY_HH
 #define TTA_DIRECT_ACCESS_MEMORY_HH
 
-#include <vector>
-#include <map>
-
 #include "Memory.hh"
-#include "MemoryContents.hh"
 #include "BaseType.hh"
+
+class MemoryContents;
 
 /**
  * Class that models an "ideal" memory to which updates are visible
@@ -41,29 +39,29 @@ public:
 
     void write(Word address, Memory::MAU data);
     
-    void inline fastWriteMAU(
+    void fastWriteMAU(
         Word address,
         UIntWord data);
     
-    void inline fastWrite2MAUs(
+    void fastWrite2MAUs(
         Word address,
         UIntWord data);
     
-    void inline fastWrite4MAUs(
+    void fastWrite4MAUs(
         Word address,
         UIntWord data);
 
     Memory::MAU read(Word address);
     
-    void inline fastReadMAU(
+    void fastReadMAU(
         Word address,
         UIntWord& data);
     
-    void inline fastRead2MAUs(
+    void fastRead2MAUs(
         Word address,
         UIntWord& data);
     
-    void inline fastRead4MAUs(
+    void fastRead4MAUs(
         Word address,
         UIntWord& data);
 
@@ -100,7 +98,5 @@ private:
     /// memory.
     MemoryContents* data_;
 };
-
-#include "DirectAccessMemory.icc"
 
 #endif

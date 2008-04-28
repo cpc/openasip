@@ -14,7 +14,8 @@
 #include <map>
 
 #include "Memory.hh"
-#include "MemoryContents.hh"
+
+class MemoryContents;
 
 /**
  * Class that models an "ideal" memory.

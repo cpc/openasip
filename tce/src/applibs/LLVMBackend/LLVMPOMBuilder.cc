@@ -37,6 +37,7 @@
 #include "BinaryStream.hh"
 #include "LLVMPOMBuilder.hh"
 #include "NullTerminal.hh"
+#include "Operand.hh"
 
 #include "llvm/Constants.h"
 #include "llvm/DerivedTypes.h"

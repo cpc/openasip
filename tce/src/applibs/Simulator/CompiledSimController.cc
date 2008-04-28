@@ -20,6 +20,7 @@
 #include "POMValidator.hh"
 #include "POMValidatorResults.hh"
 #include "Instruction.hh"
+#include "MathTools.hh"
 
 using std::endl;
 using namespace TTAMachine;
@@ -245,7 +246,7 @@ CompiledSimController::reset() {
         flags = std::string(fl);
 
     CompiledSimCompiler compiler;
-    if (compiler.compileDirectory(compiledSimulationPath_, flags) != 0) {
+    if (compiler.compileDirectory(compiledSimulationPath_, flags, false) != 0) {
         Application::logStream() << "Failed to compile the program!" << endl;
         return;
     }
@@ -265,7 +266,7 @@ CompiledSimController::reset() {
     pluginTools_.importSymbol("getSimulation", simulationGetter);
     simulation_.reset(
         simulationGetter(sourceMachine_, program_.entryAddress().location(),
-            program_.lastInstruction().address().location(),
+            program_.lastInstruction().address().location(), 
             frontend_, memorySystem()));
     
     state_ = STA_INITIALIZED;
@@ -366,7 +367,7 @@ CompiledSimController::registerFileValue(
     if (registerIndex >= 0) {
         stringValue += Conversion::toString(
             compiledSimulation()->
-                registerFileValue(rfName, registerIndex).intValue());
+                registerFileValue(rfName.c_str(), registerIndex).intValue());
     } else {
         Machine::RegisterFileNavigator navigator = 
             sourceMachine_.registerFileNavigator();
@@ -380,7 +381,7 @@ CompiledSimController::registerFileValue(
                 rfName + "." + Conversion::toString(i);
             
             SimValue value = compiledSimulation()->
-                registerFileValue(rfName, i);
+                registerFileValue(rfName.c_str(), i);
             stringValue += registerName + " " + Conversion::toHexString(
                 static_cast<unsigned int>(MathTools::zeroExtendTo(
                     value.uIntWordValue(), value.width()))) + " " 
@@ -403,7 +404,8 @@ CompiledSimController::registerFileValue(
 SimValue
 CompiledSimController::immediateUnitRegisterValue(
 const std::string& iuName, int index) {
-    return compiledSimulation()->immediateUnitRegisterValue(iuName, index);
+    return compiledSimulation()->immediateUnitRegisterValue(iuName.c_str(),
+        index);
 }
 
 /**
@@ -417,7 +419,7 @@ SimValue
 CompiledSimController::FUPortValue(
     const std::string& fuName, 
     const std::string& portName) {
-    return compiledSimulation()->FUPortValue(fuName, portName);
+    return compiledSimulation()->FUPortValue(fuName.c_str(), portName.c_str());
 }
 
 /**

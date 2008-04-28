@@ -33,6 +33,7 @@ using std::vector;
 #include "ObjectState.hh"
 #include "IdealSRAM.hh"
 #include "BaseType.hh"
+#include "TCEString.hh"
 
 /**
  * Class for testing the OSAL language.

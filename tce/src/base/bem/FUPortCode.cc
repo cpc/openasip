@@ -10,6 +10,7 @@
 #include "FUPortCode.hh"
 #include "SocketCodeTable.hh"
 #include "MathTools.hh"
+#include "ObjectState.hh"
 
 using std::string;
 

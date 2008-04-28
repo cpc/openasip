@@ -26,6 +26,7 @@
 #include "AssocTools.hh"
 #include "FUPort.hh"
 #include "HWOperation.hh"
+#include "TCEString.hh"
 
 using namespace TTAMachine;
 

@@ -21,6 +21,7 @@
 #include "MapTools.hh"
 #include "AssocTools.hh"
 #include "ProgramAnnotation.hh"
+#include "TCEString.hh"
 
 using std::string;
 using namespace TTAMachine;

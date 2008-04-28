@@ -12,6 +12,8 @@
 #define TTA_MEMORY_PROXY_HH
 
 #include "Memory.hh"
+#include <utility>
+#include <vector>
 
 class SimulatorFrontend;
 
@@ -39,26 +41,19 @@ public:
     virtual void write(Word address, MAU data);
     virtual Memory::MAU read(Word address);
 
-    virtual void writeBlock(Word address, Memory::MAUVector data)
-        { memory_->writeBlock(address, data); }
-    virtual void readBlock(Word address, Memory::MAUVector& data)
-        { memory_->readBlock(address, data); }
-
     virtual void write(Word address, int size, UIntWord data)
-        throw (OutOfRange) { memory_->write(address, size, data); }
+        { memory_->write(address, size, data); }
     virtual void read(Word address, int size, UIntWord& data)
-        throw (OutOfRange) { memory_->write(address, size, data); }
+        { memory_->write(address, size, data); }
 
     virtual void fillWithZeros() { memory_->fillWithZeros(); }
 
     unsigned int readAccessCount() const;
     unsigned int writeAccessCount() const;
 
-    MemoryAccess readAccess(unsigned int idx) const
-        throw (OutOfRange);
+    MemoryAccess readAccess(unsigned int idx) const;
 
-    MemoryAccess writeAccess(unsigned int idx) const
-        throw (OutOfRange);
+    MemoryAccess writeAccess(unsigned int idx) const;
 
 private:
     SimulatorFrontend & frontend_;

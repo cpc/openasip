@@ -18,6 +18,7 @@
 #include "Operation.hh"
 #include "OperationContext.hh"
 #include "StringTools.hh"
+#include "TCEString.hh"
 
 using std::vector;
 

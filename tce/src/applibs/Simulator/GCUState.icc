@@ -9,6 +9,7 @@
 
 #include "SimulatorConstants.hh"
 #include "SimValue.hh"
+#include "Exception.hh"
 
 /**
  * Returns the current program counter value.

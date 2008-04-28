@@ -20,6 +20,7 @@
 #include "ErrorDialog.hh"
 #include "FUPort.hh"
 #include "ExecutionPipeline.hh"
+#include "Operand.hh"
 
 using namespace TTAMachine;
 

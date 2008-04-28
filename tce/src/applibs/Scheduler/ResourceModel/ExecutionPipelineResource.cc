@@ -21,6 +21,8 @@
 #include "OutputPSocketResource.hh"
 #include "InputPSocketResource.hh"
 #include "FunctionUnit.hh"
+#include "TCEString.hh"
+
 /**
  * Constructor.
  *

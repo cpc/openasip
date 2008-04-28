@@ -15,6 +15,7 @@
 #include "FileSystem.hh"
 #include "StringTools.hh"
 #include "OperationModule.hh"
+#include "TCEString.hh"
 
 using std::string;
 

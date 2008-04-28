@@ -13,6 +13,7 @@
 #include <string>
 
 #include "Serializable.hh"
+#include "Exception.hh"
 
 /**
  * Class that represents the OSEd options.
