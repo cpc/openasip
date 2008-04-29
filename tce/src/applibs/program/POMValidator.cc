@@ -23,6 +23,8 @@
 #include "Operation.hh"
 #include "ContainerTools.hh"
 #include "ControlUnit.hh"
+#include "TCEString.hh"
+#include "MathTools.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

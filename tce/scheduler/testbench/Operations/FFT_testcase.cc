@@ -6,6 +6,7 @@
  * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
  */
 
+#include <cassert>
 #include "OSAL.hh"
 #include "OperationGlobals.hh"
 
@@ -574,7 +575,8 @@ OPERATION(R4AG)
 
 TRIGGER
    // Local variables for input permutation.
-   unsigned int bit_pair0, bit_pair1, bit_pair2, bit_pair3, bit_pair4, permuted_idx;
+    unsigned int bit_pair0, bit_pair1, bit_pair2, bit_pair3, bit_pair4;
+    unsigned int permuted_idx = 0; // warning fix
    // Local variables for operand access.
    unsigned int upper_part = 0; unsigned int rotated_part = 0;
    unsigned int rotated_MSB = 0; unsigned int rotated_LSB_part = 0;

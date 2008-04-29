@@ -3,7 +3,7 @@
  *
  * Declaration of StartableSchedulerModule class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -20,6 +20,9 @@ public:
     virtual ~StartableSchedulerModule();
 
     virtual bool isStartable() const;
+
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
 
 protected:
     StartableSchedulerModule();

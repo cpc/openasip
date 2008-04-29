@@ -15,6 +15,7 @@
 #include "Terminal.hh"
 #include "SpecialRegisterPort.hh"
 #include "Move.hh"
+#include "MathTools.hh"
 
 #include <string>
 #include <ctime>

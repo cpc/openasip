@@ -21,6 +21,7 @@
 #include "Machine.hh"
 #include "ControlUnit.hh"
 #include "SpecialRegisterPort.hh"
+#include "TCEString.hh"
 
 using namespace TTAMachine;
 

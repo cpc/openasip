@@ -3,7 +3,7 @@
  *
  * Implementation of StartableSchedulerModule class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -33,4 +33,27 @@ StartableSchedulerModule::~StartableSchedulerModule() {
 bool
 StartableSchedulerModule::isStartable() const {
     return true;
+}
+
+/**
+ * A short description of the module.
+ *
+ * @return The description as a string.
+ */   
+std::string
+StartableSchedulerModule::shortDescription() const {
+    return "Generic startable module. Detailed description is missing.";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+StartableSchedulerModule::longDescription() const {
+    return "Generic startable module. Detailed description is missing.";
 }

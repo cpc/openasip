@@ -11,8 +11,6 @@
 #ifndef TTA_MEMORY_CONTENTS_HH
 #define TTA_MEMORY_CONTENTS_HH
 
-#include <vector>
-
 #include "PagedArray.hh"
 #include "Memory.hh"
 
@@ -22,6 +20,11 @@
 /**
  * Models the data contained in memory.
  */
-typedef PagedArray<Memory::MAU, MEM_CHUNK_SIZE, 0> MemoryContents;
+class MemoryContents : public PagedArray<Memory::MAU, MEM_CHUNK_SIZE, 0> {
+public:
+    MemoryContents(int size) : PagedArray<Memory::MAU, MEM_CHUNK_SIZE, 0>(
+        size) { }
+    ~MemoryContents() { }
+};
 
 #endif

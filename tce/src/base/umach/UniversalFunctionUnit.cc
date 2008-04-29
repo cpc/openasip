@@ -14,6 +14,7 @@
 #include "HWOperation.hh"
 #include "OperationPool.hh"
 #include "Operation.hh"
+#include "TCEString.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -239,7 +240,7 @@ UniversalFunctionUnit::addOperation(const Operation& operation) {
         const string procName = "UniversalFunctionUnit::addOperation";
         const string errorMsg =
             "Operation pool contained an operation with illegal"
-            "name: " + operation.name();
+            "name: " + string(operation.name());
         Application::writeToErrorLog(__FILE__, __LINE__, procName, errorMsg);
         Application::abortProgram();
     } catch (...) {

@@ -6,7 +6,8 @@ prefix2="../../src/base/Graph/"
 bg = binding_generator_t(
     module_name = "ControlFlowGraph",
     call_policies = (('BasicBlock',
-                      [('copy', return_value_policy(manage_new_object))]),
+                      [('copy', return_value_policy(manage_new_object)),
+                       ('statistics', return_internal_reference())]),
                      ('BasicBlockNode',
                       [('basicBlock', return_internal_reference())]),
                      ('ControlFlowGraph',
@@ -36,8 +37,8 @@ bg = binding_generator_t(
        """def("node"
        , (::BasicBlockNode & ( ::ControlFlowGraph::* )( int const,bool ) const)( &::ControlFlowGraph::node )
        , ( bp::arg("index"), bp::arg("cacheResult") ),
-       bp::return_internal_reference<1>())"""])]
-
+       bp::return_internal_reference<1>())""",
+       """def("nodeCount", &::ControlFlowGraph::nodeCount)"""])]
     )
 
 bg.run()

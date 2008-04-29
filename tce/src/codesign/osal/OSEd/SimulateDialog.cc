@@ -33,6 +33,7 @@
 #include "OperationContainer.hh"
 #include "OSEd.hh"
 #include "OSEdInformer.hh"
+#include "TCEString.hh"
 
 using boost::format;
 using std::string;

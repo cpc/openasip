@@ -6,7 +6,7 @@ libtcetools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
 	PluginTools.cc Conversion.cc StringTools.cc DataObject.cc SimValue.cc \
 	ConfigurationFile.cc ProcessorConfigurationFile.cc Listener.cc \
 	Informer.cc Options.cc OptionValue.cc CmdLineParser.cc MathTools.cc \
-	BitMatrix.cc
+	BitMatrix.cc TCEString.cc
 
 if HAVE_SQLITE
   libtcetools_la_SOURCES += SQLiteConnection.cc RelationalDBQueryResult.cc \
@@ -21,7 +21,7 @@ AM_CXXFLAGS = -UNDEBUG
 
 include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseType.hh \
 	SimValue.hh SimValue.icc Serializable.hh ObjectState.icc Conversion.hh \
-	Conversion.icc MathTools.hh MathTools.icc
+	Conversion.icc MathTools.hh MathTools.icc TCEString.hh
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

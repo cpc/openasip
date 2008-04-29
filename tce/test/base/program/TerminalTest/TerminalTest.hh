@@ -22,6 +22,7 @@
 #include "RegisterFile.hh"
 #include "Machine.hh"
 #include "FUPort.hh"
+#include "TCEString.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;

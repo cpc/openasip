@@ -18,6 +18,7 @@
 #include "FileSystem.hh"
 #include "Environment.hh"
 #include "StringTools.hh"
+#include "Operand.hh"
 
 using std::string;
 

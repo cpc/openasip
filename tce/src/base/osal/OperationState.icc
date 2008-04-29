@@ -19,7 +19,7 @@
  */
 inline NullOperationState*
 NullOperationState::instance() {
-    if (instance_ == NULL) {
+    if (instance_ == 0) {
 	instance_ = new NullOperationState();	
     }
     return instance_;

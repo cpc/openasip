@@ -244,6 +244,8 @@ private:
     bool checkAndCreateMemDep(
         MNData2 prev, MNData2 mnd, DataDependenceEdge::DependenceType depType);
 
+    bool exclusingGuards(const MoveNode& mn1, const MoveNode& mn2);
+
     void createRegRaw(const MNData2& current, const MNData2& source);
     void createRegWar(const MNData2& current, const MNData2& source);
     void createRegWaw(const MNData2& current, const MNData2& source);

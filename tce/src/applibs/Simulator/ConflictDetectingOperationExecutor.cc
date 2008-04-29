@@ -12,6 +12,7 @@
 #include "ConflictDetectingOperationExecutor.hh"
 #include "Exception.hh"
 #include "Operation.hh"
+#include "TCEString.hh"
 
 using std::vector;
 using std::string;

@@ -9,8 +9,8 @@
 #ifndef TTA_SERIALIZABLE_HH
 #define TTA_SERIALIZABLE_HH
 
-#include "Exception.hh"
-#include "ObjectState.hh"
+class ObjectState;
+
 
 /**
  * Objects which are going to be serialized using XMLSerializer or any
@@ -24,8 +24,7 @@ public:
      * @param state ObjectState object from which (and the children of
      *              which) the state is loaded.
      */
-    virtual void loadState(const ObjectState* state)
-        throw (ObjectStateLoadingException) = 0;
+    virtual void loadState(const ObjectState* state) = 0;
 
     /**
      * Saves the objects state into an ObjectState object and maybe its

@@ -6,8 +6,6 @@
  * @author Pekka Jääskeläinen 2004 (pjaaskel@cs.tut.fi)
  */
 
-#include "MathTools.hh"
-
 /**
  * Default constructor.
  *
@@ -514,28 +512,6 @@ SimValue::operator==(const FloatWord& rightHand) const {
 inline int
 SimValue::operator==(const DoubleWord& rightHand) const {
     return value_.doubleWord == rightHand;
-}
-
-/**
- * Returns the value as a signed integer.
- *
- * @return Signed integer value of the SimValue.
- */
-inline int
-SimValue::intValue() const {
-    int bitWidth = (bitWidth_ > 32) ? 32 : bitWidth_;
-    return MathTools::fastSignExtendTo(value_.sIntWord, bitWidth);
-}
-
-/**
- * Returns the value as a signed integer.
- *
- * @return Unsigned integer value of the SimValue.
- */
-inline unsigned int
-SimValue::unsignedValue() const {
-    int bitWidth = (bitWidth_ > 32) ? 32 : bitWidth_;
-    return MathTools::fastZeroExtendTo(value_.uIntWord, bitWidth);
 }
 
 /**

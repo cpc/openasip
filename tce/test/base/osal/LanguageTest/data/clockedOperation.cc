@@ -8,7 +8,6 @@
 
 #include "OSAL.hh"
 
-
 /// This operation is a clock counter. The trigger returns the current
 /// clock count stored in state. ADVANCE_CLOCK increases the counter.
 DEFINE_STATE(CLOCK_COUNTER)

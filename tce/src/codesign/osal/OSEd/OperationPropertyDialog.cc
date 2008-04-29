@@ -39,7 +39,7 @@
 #include "ObjectState.hh"
 #include "WarningDialog.hh"
 #include "OperationDAG.hh"
-
+#include "TCEString.hh"
 #include "FileSystem.hh"
 
 using std::string;
@@ -1023,7 +1023,7 @@ OperationPropertyDialog::saveOperation() {
 #else
         std::string stdTemp(wxTemp.c_str());
 #endif
-        description += stdTemp;
+        description += stdTemp + '\n';
     }
 
     root->setAttribute(Operation::OPRN_DESCRIPTION, description);
@@ -1185,7 +1185,7 @@ OperationPropertyDialog::createContents(
     opPropertiesContainer->Add(item1, 0, wxGROW, 5);
 
     wxStaticBox *opDescription = new wxStaticBox(parent, -1, wxT("Operation description"));
-    wxTextCtrl* editDescription = new wxTextCtrl(parent, ID_EDIT_DESCRIPTION, wxT(""), wxDefaultPosition, wxSize(150,50), wxTE_MULTILINE);
+    wxTextCtrl* editDescription = new wxTextCtrl(parent, ID_EDIT_DESCRIPTION, wxT(""), wxDefaultPosition, wxSize(250,50), wxTE_MULTILINE);
     wxStaticBoxSizer *opDescriptionContainer = new wxStaticBoxSizer(opDescription, wxGROW);
 
     opDescriptionContainer->Add(editDescription, 0, wxALL|wxEXPAND, 5);

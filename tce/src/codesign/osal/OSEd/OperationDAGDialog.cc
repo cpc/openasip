@@ -36,7 +36,7 @@
 #include "ObjectState.hh"
 #include "WarningDialog.hh"
 #include "OperationDAG.hh"
-
+#include "TCEString.hh"
 #include "FileSystem.hh"
 
 using std::string;
@@ -73,7 +73,8 @@ END_EVENT_TABLE()
          DialogPosition::getPosition(DialogPosition::DIALOG_PROPERTIES), 
          wxDefaultSize, wxRESIZE_BORDER),
      operation_(op), 
-     operationWasCreatedHere_(false) {
+     operationWasCreatedHere_(false),
+     dotInstalled_(false) {
     
     createContents(this, true, true);
 
@@ -99,6 +100,9 @@ END_EVENT_TABLE()
     FindWindow(ID_NEW_DAG_BUTTON)->Disable();
 
     updateIndex();
+
+    dotInstalled_ = hasDot();
+
     updateDAG();
 }
 
@@ -194,6 +198,28 @@ OperationDAGDialog::updateIndex() {
 }
 
 /**
+ * Tests whether user has program dot is installed.
+ *
+ * @return True if dot is installed.
+ */
+bool
+OperationDAGDialog::hasDot() {
+
+    if (system("which dot > /dev/null 2>&1") != 0) {
+        wxString caption(wxString::FromAscii("Warning"));
+        wxString message(
+                wxString::FromAscii(
+                    "You must have dot installed to display DAGs."));
+        wxMessageBox(message, caption);
+        dagImageStaticBoxSizer_->Show(false);
+        Layout();
+        return false; // cannot display DAG without dot
+    } else {
+        return true;
+    }
+}
+
+/**
  * Updates TextCtrl for DAG
  */
 void
@@ -222,14 +248,12 @@ OperationDAGDialog::updateDAG() {
         std::string pngDag = temp + "/dag.png";
         std::string dotDag = temp + "/dag.dot";
 
-        if (system("which dot > /dev/null 2>&1") != 0) {
-            wxString caption(wxString::FromAscii("Warning"));
-            wxString message(
-                    wxString::FromAscii(
-                        "You must have dot installed to display DAGs."));
-            wxMessageBox(message, caption);
+        if( !dotInstalled_ )
+        {
+            // cannot show DAG without dot
             dagImageStaticBoxSizer_->Show(false);
-            return; // cannot display DAG without dot
+            Layout();
+            return;
         }
 
         if (currentDAG.isNull() == true) { // compile error
@@ -248,8 +272,7 @@ OperationDAGDialog::updateDAG() {
             // command to generate error message
             std::string dotCmd = 
                 std::string("echo 'digraph G {n140545368 [label=\"") + errText + 
-                "\", shape=plaintext, fontsize=12]; }' | dot -Tpng > " + 
-                pngDag;
+                "\", shape=plaintext, fontsize=12]; }' | dot -Tpng > " + pngDag;
 
             system(dotCmd.c_str());
 
@@ -258,6 +281,16 @@ OperationDAGDialog::updateDAG() {
             wxString wxTemp(wxString::FromAscii(pngDag.c_str()));
             dotImage_->LoadFile(wxTemp, wxBITMAP_TYPE_PNG);
             dagStaticBitmap_->SetBitmap(*dotImage_);
+
+            unsigned int width = dotImage_->GetWidth();
+            unsigned int height = dotImage_->GetHeight();
+            
+            // calculate virtual area and rounding the result up
+            width = static_cast<unsigned int>(float(width) / 20 + 0.5);
+            height = static_cast<unsigned int>(float(height) / 20 + 0.5);
+
+            dagWindow_->SetSize(-1, -1, width, height);
+            dagWindow_->SetScrollbars(20, 20, -1, -1);
             dagImageStaticBoxSizer_->Show(true);
 
         } else {
@@ -283,7 +316,7 @@ OperationDAGDialog::updateDAG() {
             width = static_cast<unsigned int>(float(width) / 20 + 0.5);
             height = static_cast<unsigned int>(float(height) / 20 + 0.5);
 
-            dagWindow_->SetSize(-1, -1, 50, 50);
+            dagWindow_->SetSize(50, 50);
             dagWindow_->SetScrollbars(20, 20, width, height);
         }
         FileSystem::removeFileOrDirectory(temp);
@@ -295,14 +328,10 @@ OperationDAGDialog::updateDAG() {
         FindWindow(ID_SAVE_DAG_BUTTON)->Disable();
         FindWindow(ID_DELETE_DAG_BUTTON)->Disable();
         FindWindow(ID_NEW_DAG_BUTTON)->Disable();
-        wxImage *temp = new wxImage(100, 100, true);
 
-        delete dotImage_;
-        dotImage_ = new wxBitmap(*temp);
-        dagStaticBitmap_->SetBitmap(*dotImage_);
         dagImageStaticBoxSizer_->Show(false);
-
     }
+    Layout();
 }
 
 /**
@@ -347,13 +376,13 @@ OperationDAGDialog::onSaveDAG(wxCommandEvent&) {
 #endif
 
         code += stdTemp;
-        code += "\n";
+        code += '\n';
     }
 
     if (operation_->dagCount() == index) {
         operation_->addDag(code);
     } else {
-        operation_->setDagCode(index, code);
+        operation_->setDagCode(index, code.c_str());
     }
 
     updateIndex();
@@ -417,7 +446,6 @@ OperationDAGDialog::onNewDAG(wxCommandEvent&) {
     FindWindow(ID_DELETE_DAG_BUTTON)->Disable();
     FindWindow(ID_NEW_DAG_BUTTON)->Disable();
     dagImageStaticBoxSizer_->Show(false);
-    this->Fit();
 }
 
 /**
@@ -484,6 +512,7 @@ OperationDAGDialog::createContents(
     
     dagWindow_->SetSize(-1, -1, 50, 50);
     dagWindow_->SetScrollbars(20, 20, 20, 20);
+    dagImageStaticBoxSizer_->Show(true);
 
     // Add DAG editor to DAG code sizer
     dagStaticBoxSizer->Add(editDAG, 0, wxALIGN_TOP|wxALL|wxGROW, 5);

@@ -3,7 +3,7 @@
  *
  * Declaration of SchedulingPlan class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -27,14 +27,16 @@ public:
     SchedulingPlan();
     virtual ~SchedulingPlan();
 
-    void build(const ObjectState& conf)
+    void build(const ObjectState& conf, bool verbose = false)
         throw (ObjectStateLoadingException, DynamicLibraryException);
     int passCount() const;
     StartableSchedulerModule& pass(int index) const throw (OutOfRange);
     int helperCount(int index) const throw (OutOfRange);
     HelperSchedulerModule& helper(int passIndex, int helperIndex) const
         throw (OutOfRange);
-    static SchedulingPlan* loadFromFile(const std::string& configurationFile)
+    static SchedulingPlan* loadFromFile(
+        const std::string& configurationFile,
+        bool verbose = false)
         throw (Exception);
 
 private:

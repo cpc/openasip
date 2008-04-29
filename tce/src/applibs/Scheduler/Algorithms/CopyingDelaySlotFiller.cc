@@ -35,6 +35,7 @@
 
 #include "InterPassDatum.hh"
 #include "InterPassData.hh"
+#include "TCEString.hh"
 
 //using std::set;
 using std::list;
@@ -147,6 +148,9 @@ void CopyingDelaySlotFiller::fillDelaySlots(
             if (fillFallThru && cfg_->inDegree(nextBBN) != 1) {
                 continue;
             }
+
+            // register copy added leaves some inter-bb edges..
+            ddg_->fixInterBBAntiEdges(jumpingBB, nextBBN);
 
             // also try to fill into jump instruction.
             // fillSize = delaySlots still adpcm-3-full-fails, should be +1

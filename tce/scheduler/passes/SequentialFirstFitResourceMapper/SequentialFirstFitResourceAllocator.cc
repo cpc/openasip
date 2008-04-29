@@ -42,7 +42,8 @@ using std::endl;
 #include "MoveNode.hh"
 #include "ProgramOperation.hh"
 #include "POMDisassembler.hh"
-
+#include "TCEString.hh"
+                 
 using std::vector;
 using std::list;
 using std::string;
@@ -502,6 +503,33 @@ SequentialFirstFitResourceAllocator::createMoveNodes() {
         proc = &program_->nextProcedure(*proc);
     }
     return moveNodes;
+}
+
+/**
+ * A short description of the module, usually the module name,
+ * in this case "SequentialFirstFitResourceAllocator".
+ *
+ * @return The description as a string.
+ */   
+std::string
+SequentialFirstFitResourceAllocator::shortDescription() const {
+    return "Startable: SequentialFirstFitResourceAllocator";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+SequentialFirstFitResourceAllocator::longDescription() const {
+    std::string answer = "Startable: SequentialFirstFitResourceAllocator.";
+    answer += " Simple mapping of operations to target architecture, no \
+	instruction scheduling performed.";
+    return answer;
 }
 
 SCHEDULER_PASS(SequentialFirstFitResourceAllocator)

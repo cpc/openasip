@@ -33,6 +33,9 @@ public:
 
     bool needsProgram() const { return true; }
     bool needsTarget() const { return true; }
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
+
 private:
     void allocateGuard(TTAProgram::Move& move, RegisterMap& regMap);
 };

@@ -3,7 +3,7 @@
  *
  * Declaration of BaseSchedulerModule class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -72,6 +72,10 @@ public:
 
     virtual void setOptions(
         const std::vector<ObjectState*>& options);
+
+    virtual std::string shortDescription() const = 0;
+    virtual std::string longDescription() const;
+    
 protected:
     BaseSchedulerModule();
 

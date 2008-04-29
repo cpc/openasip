@@ -3,7 +3,7 @@
  *
  * Implementation of LLVMTCECmdLineOptions class.
  *
- * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2008 (vjaaskel@cs.tut.fi)
  * @note rating: red
  */
 
@@ -18,6 +18,7 @@ const std::string LLVMTCECmdLineOptions::SWS_SCHEDULER_CONFIG = "c";
 const std::string LLVMTCECmdLineOptions::SWL_DEBUG_FLAG = "debug";
 const std::string LLVMTCECmdLineOptions::SWL_OPT_LEVEL = "optimize";
 const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
+const std::string LLVMTCECmdLineOptions::VERBOSE_SWITCH = "verbose";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -52,6 +53,11 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() :
     addOption(
         new BoolCmdLineOptionParser(
             SWL_DEBUG_FLAG, "Print LLVM debug data."));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            VERBOSE_SWITCH, "The verbose switch", "v"));
+
 }
 
 /**
@@ -159,4 +165,14 @@ LLVMTCECmdLineOptions::debugFlag() const {
         return true;
     }
     return false;
+}
+
+/**
+ * Return true if the verbose switch was defined in the command line.
+ *
+ * @return True if the verbose switch was defined in the command line.
+ */
+bool
+LLVMTCECmdLineOptions::isVerboseSwitchDefined() const {
+    return findOption(VERBOSE_SWITCH)->isDefined();
 }

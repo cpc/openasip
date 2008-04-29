@@ -27,32 +27,18 @@
 #include "StringTools.hh"
 #include "Application.hh"
 #include "OperationIndex.hh"
+#include "OperationPoolPimpl.hh"
 
 using std::string;
 using std::vector;
 
-OperationPool::OperationTable OperationPool::operationCache_;
-std::vector<OperationBehaviorProxy*> OperationPool::proxies_;
-OperationIndex* OperationPool::index_(NULL);
-OperationBehaviorLoader* OperationPool::loader_(NULL);
 
 /**
  * Constructor.
  *
  * Records the search paths of the operation modules.
  */
-OperationPool::OperationPool() {
-
-    // if this is a first created instance of OperationPool,
-    // initialize the OperationIndex instance with the search paths
-    if (index_ == NULL) {
-        index_ = new OperationIndex();
-        vector<string> paths = Environment::osalPaths();
-        for (unsigned int i = 0; i < paths.size(); i++) {
-            index_->addPath(paths[i]);
-        }
-        loader_ = new OperationBehaviorLoader(*index_);
-    }
+OperationPool::OperationPool() : pimpl_(new OperationPoolPimpl()) {
 }
 
 /**
@@ -61,6 +47,8 @@ OperationPool::OperationPool() {
  * Cleans proxies and operations.
  */
 OperationPool::~OperationPool() {
+    delete pimpl_;
+    pimpl_ = NULL;
 }
 
 /**
@@ -71,12 +59,7 @@ OperationPool::~OperationPool() {
  */
 void 
 OperationPool::cleanupCache() {
-    AssocTools::deleteAllValues(operationCache_);
-    SequenceTools::deleteAllItems(proxies_);
-    delete index_;
-    index_ = NULL;
-    delete loader_;
-    loader_ = NULL;
+    OperationPoolPimpl::cleanupCache();
 }
 
 
@@ -91,60 +74,15 @@ OperationPool::cleanupCache() {
  */
 Operation&
 OperationPool::operation(const char* name) {
-  
-    OperationTable::iterator it = 
-        operationCache_.find(StringTools::stringToLower(name));
-    if (it != operationCache_.end()) {
-        return *((*it).second);
-    }
-    
-    OperationModule& module = index_->moduleOf(name);
-    if (&module == &NullOperationModule::instance()) {
-        return NullOperation::instance();
-    }
-    
-    Operation* found = NULL;
+    return pimpl_->operation(name);
+}
 
-    serializer_.setSourceFile(module.propertiesModule());
-    ObjectState* root = serializer_.readState();
-    ObjectState* child = NULL;
-    
-    // load operations
-    for (int i = 0; i < root->childCount(); i++) {
-        child = root->child(i);
-        const std::string operName = 
-            root->child(i)->stringAttribute(Operation::OPRN_NAME);
-      
-        Operation* oper = 
-            new Operation(operName, NullOperationBehavior::instance());
-      
-        oper->loadState(child);
-        operationCache_[StringTools::stringToLower(operName)] = oper;
-      
-        if (StringTools::ciEqual(operName, name)) {
-            found = oper;
-        }            
-    }
-    
-    // add behaviours
-    for (std::map<std::string, Operation*>::iterator 
-             iter = operationCache_.begin();
-         iter != operationCache_.end(); iter++) {
-      
-        Operation* oper = iter->second;
-      
-        OperationBehaviorProxy* proxy = 
-            new OperationBehaviorProxy(*oper, *loader_);
-        proxies_.push_back(proxy);
-        oper->setBehavior(*proxy);
-    }
-    
-    delete root;
-    root = NULL;
-
-    if (found != NULL) {
-        return *found;
-    } else {
-        return NullOperation::instance();            
-    }
+/**
+ * Returns the operation index of operation pool.
+ *
+ * @return The operation index.
+ */
+OperationIndex&
+OperationPool::index() {
+    return pimpl_->index();
 }

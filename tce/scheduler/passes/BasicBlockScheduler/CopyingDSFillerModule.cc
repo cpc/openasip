@@ -31,4 +31,30 @@ CopyingDSFillerModule::filler() {
     return *filler_;
 }
 
+/**
+ * A short description of the module, usually the module name,
+ * in this case "CopyingDSFillerModule".
+ *
+ * @return The description as a string.
+ */   
+std::string
+CopyingDSFillerModule::shortDescription() const {
+    return "Helper: CopyingDSFillerModule";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+CopyingDSFillerModule::longDescription() const {
+    std::string answer ="Helper: CopyingDSFillerModule.";    
+    answer += " Implements delay slot filling algorithm.";
+    return answer;
+}
+
 SCHEDULER_PASS(CopyingDSFillerModule)

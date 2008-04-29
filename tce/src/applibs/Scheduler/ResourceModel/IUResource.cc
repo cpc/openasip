@@ -14,6 +14,7 @@
 #include "Move.hh"
 #include "SequenceTools.hh"
 #include "MoveNode.hh"
+#include "MathTools.hh"
 
 /**
  * Constructor defining resource name, register count and register width

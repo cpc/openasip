@@ -7,7 +7,6 @@
  * @note rating: red
  */
 
-
 /**
  * Adds a SimValue to the FU's results list; Used to simulate the FU latency
  * 
@@ -76,7 +75,7 @@ void inline
 CompiledSimulation::FUResult(
     SimValue& target, FUResultType& results, ClockCycleCount cycles) {
     
-    int maxDiff = INT_MIN;
+    int maxDiff = -2147483647;
         
     for (int i = 0; results.numberOfElements != 0 && i < results.size; ++i) {
         FUResultElementType& result = results.data[i];

@@ -15,6 +15,7 @@
 #include "SequenceTools.hh"
 #include "OperationModule.hh"
 #include "Operation.hh"
+#include "TCEString.hh"
 
 using std::string;
 using std::vector;
@@ -80,7 +81,7 @@ OperationPropertyLoader::loadOperationProperties(
     }
 
     if (!operationFound) {
-        string msg = "Properties for operation " + operation.name() + 
+        string msg = string("Properties for operation ") + operation.name() + 
             " not found";
         throw InstanceNotFound(__FILE__, __LINE__, __func__, msg);
     }

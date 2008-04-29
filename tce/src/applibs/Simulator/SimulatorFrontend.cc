@@ -943,18 +943,35 @@ SimulatorFrontend::stopTimer() {
  * @param timeout timeout in seconds
  */
 void 
-SimulatorFrontend::timeoutThread(unsigned int timeout) {
+timeoutThread(unsigned int timeout, SimulatorFrontend* simFE) {
     if (timeout == 0) {
         return;
     }
       
+    TTASimulationController* simCon = simFE->simCon_;
     boost::xtime xt; 
+    boost::xtime xtPoll; 
     boost::xtime_get(&xt, boost::TIME_UTC);
+    unsigned int pollTime = 5; // poll time in seconds
+    xtPoll = xt;
     xt.sec += timeout; 
+
+    xtPoll.sec += pollTime;
+    while (xt.sec > xtPoll.sec) {
+        boost::thread::sleep(xtPoll);
+        xtPoll.sec += pollTime;
+        if (simCon != simFE->simCon_) {
+            return;
+        }
+    }
     boost::thread::sleep(xt);
-    
-    if (!hasSimulationEnded()) {
-        prepareToStop(SRE_AFTER_TIMEOUT);
+
+    if (simCon != simFE->simCon_) {
+        return;
+    }
+
+    if (!simFE->hasSimulationEnded()) {
+        simFE->prepareToStop(SRE_AFTER_TIMEOUT);
     }
 }
 
@@ -970,8 +987,8 @@ SimulatorFrontend::run()
     throw (SimulationExecutionError) {
  
     startTimer();
-    boost::thread timeout(boost::bind(&SimulatorFrontend::timeoutThread, 
-        this, simulationTimeout_));
+    boost::thread timeout(boost::bind(timeoutThread, 
+        simulationTimeout_, this));
     simCon_->run();
     stopTimer();
     // invalidate utilization statistics (they are not fresh anymore)
@@ -991,8 +1008,8 @@ SimulatorFrontend::runUntil(UIntWord address)
     throw (SimulationExecutionError) {
 
     startTimer();
-    boost::thread timeout(boost::bind(&SimulatorFrontend::timeoutThread, 
-        this, simulationTimeout_));
+    boost::thread timeout(boost::bind(timeoutThread, 
+        simulationTimeout_, this));
     simCon_->runUntil(address);
     stopTimer();
     // invalidate utilization statistics (they are not fresh anymore)
@@ -1016,8 +1033,8 @@ SimulatorFrontend::step(double count)
     assert(simCon_ != NULL);
 
     startTimer();
-    boost::thread timeout(boost::bind(&SimulatorFrontend::timeoutThread, 
-        this, simulationTimeout_));
+    boost::thread timeout(boost::bind(timeoutThread, 
+        simulationTimeout_, this));
     simCon_->step(count);
     stopTimer();
     // invalidate utilization statistics (they are not fresh anymore)
@@ -1041,8 +1058,8 @@ SimulatorFrontend::next(int count)
     assert(simCon_ != NULL);
 
     startTimer();
-    boost::thread timeout(boost::bind(&SimulatorFrontend::timeoutThread, 
-        this, simulationTimeout_));
+    boost::thread timeout(boost::bind(timeoutThread, 
+        simulationTimeout_, this));
     simCon_->next(count);
     stopTimer();
     

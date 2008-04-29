@@ -62,3 +62,29 @@ LinearScanAllocatorPass::start()
     }
 //    AddressSpaceMapper::mapAddressSpace(*program_,*target_);
 }
+
+/**
+ * A short description of the module, usually the module name,
+ * in this case "LinearScanAllocatorPass".
+ *
+ * @return The description as a string.
+ */   
+std::string
+LinearScanAllocatorPass::shortDescription() const {
+    return "Startable: LinearScanAllocatorPass";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+LinearScanAllocatorPass::longDescription() const {
+    std::string answer = "Startable: LinearScanAllocatorPass.";
+    answer += " Implements Linear scan register allocator.";
+    return answer;
+}

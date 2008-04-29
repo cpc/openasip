@@ -43,6 +43,7 @@ private:
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
     virtual bool TransferDataToWindow();
     void updateIndex();
+    bool hasDot();
     void updateDAG();
 
     void onOK(wxCommandEvent& event);
@@ -101,6 +102,8 @@ private:
     wxScrolledWindow *dagWindow_;
 
     bool operationWasCreatedHere_;
+    bool dotInstalled_;
+
     DECLARE_EVENT_TABLE()
 };
 

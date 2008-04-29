@@ -13,6 +13,7 @@
 #include "InstructionField.hh"
 #include "NullInstructionField.hh"
 #include "Application.hh"
+#include "ObjectState.hh"
 
 using boost::format;
 using std::string;

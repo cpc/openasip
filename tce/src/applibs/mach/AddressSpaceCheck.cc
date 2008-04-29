@@ -15,6 +15,7 @@
 #include "Machine.hh"
 #include "Operation.hh"
 #include "OperationPool.hh"
+#include "TCEString.hh"
 
 using namespace TTAMachine;
 

@@ -50,3 +50,28 @@ SimpleGuardAllocatorPass::start()
             program_->procedure(i), *target_,interPassData());
     }
 }
+
+/**
+ * A short description of the module, usually the module name,
+ * in this case "SimpleGuardAllocatorPass".
+ *
+ * @return The description as a string.
+ */   
+std::string
+SimpleGuardAllocatorPass::shortDescription() const {
+    return "Startable: SimpleGuardAllocatorPass";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+SimpleGuardAllocatorPass::longDescription() const {
+    std::string answer = "Startable: SimpleGuardAllocatorPass";
+    return answer;
+}

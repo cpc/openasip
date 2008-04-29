@@ -3,13 +3,14 @@
  *
  * Implementation of SchedulerFrontend class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
 #include <string>
 #include <vector>
 #include <boost/format.hpp>
+#include <ctime>
 
 #include "SchedulerFrontend.hh"
 #include "SchedulerCmdLineOptions.hh"
@@ -167,7 +168,6 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
     }
 
     // set up scheduling chain from the scheduler configuration file
-
     string confFile = options.configurationFile();
     if (options.isConfigurationFileDefined()) {
         confFile = options.configurationFile();
@@ -176,7 +176,11 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
     }
 
     try {
-        schedulingPlan = SchedulingPlan::loadFromFile(confFile);
+        if (options.isVerboseSwitchDefined()) {
+            schedulingPlan = SchedulingPlan::loadFromFile(confFile, true);
+        } else {
+            schedulingPlan = SchedulingPlan::loadFromFile(confFile, false);
+        }
     } catch (const DynamicLibraryException& e) {
         delete target;
         delete tpefBin;
@@ -187,14 +191,34 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
         delete target;
         delete tpefBin;
         delete source;
-        
+
         string msg = e.errorMessage();
         throw IOException(__FILE__, __LINE__, __func__, msg);
+    }
+    // Test if user defined outputfile can be created
+    if (options.isOutputFileDefined()) {
+        string outputFile = options.outputFile();
+        FILE* out = fopen(outputFile.c_str(),"w");
+        if (out == NULL) {
+            string msg=  "Output file " + outputFile;
+            msg +=  " can not be open for writing.";
+            delete target;
+            delete tpefBin;
+            delete source;
+            delete schedulingPlan;
+            Application::logStream() << msg << std::endl;
+            throw IOException(__FILE__, __LINE__, __func__, msg);
+        }
+        fclose(out);
     }
 
     TTAProgram::Program* scheduled = NULL;
     try {
-        scheduled = schedule(*source, *target, *schedulingPlan);
+        if (options.isVerboseSwitchDefined()) {
+            scheduled = schedule(*source, *target, *schedulingPlan, true);
+        } else {
+            scheduled = schedule(*source, *target, *schedulingPlan, false);
+        }
     } catch (const Exception& e) {
         delete target;
         delete tpefBin;
@@ -231,6 +255,8 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
  * @param source The source sequential program.
  * @param target The target machine.
  * @param schedulingPlan The scheduling plan (configuration of passes).
+ * @param verbose Indicates if scheduler should print details on workings
+ * of particular modules
  * @return Returns the scheduled program.
  * @exception IOException if module needs target machine but it is not
  * defined. ModuleRunTimeError if an run-time error occurs in scheduler
@@ -239,7 +265,8 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
 TTAProgram::Program*
 SchedulerFrontend::schedule(
     const TTAProgram::Program& source, const TTAMachine::Machine& target,
-    const SchedulingPlan& schedulingPlan) 
+    const SchedulingPlan& schedulingPlan,
+    bool verbose) 
     throw (Exception) {
 
     // validate the loaded MOM, so we don't even try to schedule to
@@ -278,9 +305,7 @@ SchedulerFrontend::schedule(
     // run passes
     InterPassData interPassData;
     for (int i = 0; i < schedulingPlan.passCount(); i++) {
-            
         StartableSchedulerModule& pass = schedulingPlan.pass(i);
-        
         try {
             if (!pass.isStartable()) {
                 delete sourceCopy;
@@ -290,7 +315,24 @@ SchedulerFrontend::schedule(
                 throw Exception(__FILE__, __LINE__, __func__, message);
             }
             pass.setInterPassData(interPassData);
+        if (verbose) {
+            /// Prints out info about modules starting and their execution
+            /// times
+            Application::logStream() << "Starting module: "
+                << pass.shortDescription() << std::endl;
+            clock_t start = clock();
+            /// Start actual module execution
             pass.start();
+
+            clock_t end = clock();
+            long seconds = (end - start) / CLOCKS_PER_SEC;
+            Application::logStream() << "    Module finished in "
+                << seconds/60 << " minutes "
+                << "and " << seconds % 60 << " seconds" << std::endl;
+        } else {
+            pass.start();
+        }
+
         } catch (const ObjectNotInitialized& e) {
             delete sourceCopy;
             string message = 

@@ -11,6 +11,7 @@
 #include "OperationNode.hh"
 #include "OperationDAG.hh"
 #include "Operation.hh"
+#include "TCEString.hh"
 
 /**
  * Constructor.

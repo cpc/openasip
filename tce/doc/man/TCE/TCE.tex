@@ -1701,6 +1701,23 @@ physical line.  Comments are ignored by the syntax.  A line that contains
 only a comment (and possibly whitespaces before the hash character) is
 completely removed before interpreting the program.
 
+\subsection{Allowed characters}
+\label{sec:names}
+
+Names (labels, procedures, function units etc.) used in assembly code must
+obey the following format:
+
+\begin{verbatim}
+ [a-zA-Z_][a-zA-z0-9_]*
+\end{verbatim}
+
+Basically this means is that a name must begin with a letter from range
+a-z or A-Z or with an underscore. After the first character numbers can also
+be used.
+
+Upper case and lower case letters are treated as different characters.
+For example labels \textbf{main:} and \textbf{Main:} are both unique.
+
 \subsection{Literals}
 \label{ssec:literals}
 
@@ -3583,7 +3600,7 @@ remains loaded and the simulation can be restarted from the begining.
 The disassembly window displays the
 machine code of the simulated program. The machine code is displayed
 one instruction per line. Instruction address and instruction
-moves are displayed for each line. T
+moves are displayed for each line.
 Clicking right mouse button on an instruction displays a context menu with the
 following items:
 \begin{itemize}
@@ -4595,7 +4612,7 @@ For this tutorial you need to download file package from
 \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} and unpack it
 to a working directory. Then cd to parallal\_assembly-directory.
 
-First thing to do is to compile the custom operation set calles cos16 shipped
+First thing to do is to compile the custom operation set called cos16 shipped
 within the parallal\_assembly-directory. Easiest way to do this is:
 
 \textit{buildopset cos16}
@@ -4675,30 +4692,49 @@ the output of x should be 0x40.
 
 Next try to write assembly code which does the same functionality as the
 C code. The assembly code must be functional with the given machine
-\textit{dct\_8x8\_16\_bit\_with\_sfus.adf}.
-The machine has 3 16-bit buses, which means maximum of
-3 concurrent transports. Each bus can contain 8-bit short immediate. 
+\textit{dct\_8x8\_16\_bit\_with\_sfus.adf}. Take a look at the processer by
+using prode:
+
+\textit{prode dct\_8x8\_16\_bit\_with\_sfus.adf \&}
+
+Processor's specifications are the following:
+
+\textbf{Supported operations} \\
 Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix},
 \textit{add}, \textit{add\_16\_fix}, \textit{ldq}, \textit{ldw}, \textit{stq},
 \textit{stw}, \textit{shr}, \textit{shl}, \textit{eq}, \textit{gt},
-\textit{gtu}, \textit{jump} and \textit{immediate transport}. Machine
-contains 4 register files, which each have 4 16-bit registers, leading to
-total of 16 16-bit registers. Notice that the first register file has 2 read
-ports.
+\textit{gtu}, \textit{jump} and \textit{immediate transport}.
 
-The data memory is 16-bit containing 128 memory slots and the MAU of data
-memory is 16-bits. The intruction memory has 1024 memory slots which
-means that the maximum number of instructions of 1024.
+Notice that when you program using TTA assembly you need to take account in
+operation latencies. The \textit{jump} latency is four clock cycles and load
+latencies (\textit{ldq} and \textit{ldw}) are three cycles. Latency for
+multiplications (\textit{mul} and \textit{mul\_16\_fix}) are two clock cycles.
 
-You also need to take account in operation latencies. The \textit{jump}
-latency is four clock cycles and load latencies (\textit{ldq} and
-\textit{ldw}) are three cycles. Latency for multiplications (\textit{mul}
-and \textit{mul\_16\_fix}) are two clock cycles.
+\textbf{Address spaces} \\
+The machine has two separate address spaces, one for data and another for
+instructions. The data memory is 16-bit containing 128 memory slots and the
+MAU of data memory is 16-bits. The intruction memory has 1024 memory slots
+which means that the maximum number of instructions of 1024.
 
-The initial input is given in \textit{initial\_input}. You have to put the
-initial input to end of your assembly code. Or you can use
-the file \textit{assembler\_tutorial.tceasm} where the initial values are
-already placed in memory locations 0-63.
+\textbf{Register files} \\
+Machine contains 4 register files, which each have 4 16-bit registers,
+leading to total of 16 16-bit registers. Notice that the first register file
+has 2 read ports.
+
+\textbf{Transport buses} \\
+The machine has 3 16-bit buses, which means maximum of 3 concurrent
+transports. Each bus can contain 8-bit short immediate.
+
+\textbf{Immediates} \\
+Because the transport buses can only contain 8-bit short immediates you must
+use the immediate unit if you want to use longer immediates. Immediate unit
+can hold a 16-bit immediate. There is an example of immediate unit usage in
+the immediate\_example.tceasm. Basically you need to transfer the value to the
+immediate register. The value of immediate register can be read on the next
+cycle.
+
+The initial input data is written to memory locations 0-63 in the file
+\textit{assembler\_tutorial.tceasm}. Write your assembly code in that file.
 
 \subsubsection{Verifying the assembly program}
 
@@ -4787,7 +4823,7 @@ algorithm optimization.
 Compile the C code and simulate the program. You can use the following
 instructions to do this:
 
-\textit{tcecc -O2 -o initial.tpef -a crcInit.adf --keep-symbols=main,result
+\textit{tcecc -O2 -o initial.tpef -a crcInit.adf -k main,result
 main.c crc.c}
 
 \textit{ttasim -a crcInit.adf -p initial.tpef}
@@ -4827,15 +4863,21 @@ recompile the code and simulate it again. Verify the result and check cycle
 count as done earlier. This time you should see a huge drop in the cycle
 count. Mark up this cycle count for future acceleration calculations.
 
-Tcecc also supports printf(). To use printf the target machine must have a
-function unit containing operation STDOUT. To test this you can recompile
-the code with:
-
-\textit{tcecc -D\_DEBUG -O2 -a crcInit.adf -o print.tpef -k main,result
-main.c crc.c}
-
-and simulate like earlier. Note that this will increase cycle count quite a
-lot so it is not very handy when calculating speed up.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Doesn't currently work with tcecc:
+% Cannot yet select: 0x9f80858: i32 = setcc 0x9f80ec8, 0x9f81018, 0x9f81488
+%
+% Uncomment when this issue is fixed
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Tcecc also supports printf(). To use printf the target machine must have a
+%function unit containing operation STDOUT. To test this you can recompile
+%the code with:
+%
+%\textit{tcecc -D\_DEBUG -O2 -a crcInit.adf -o print.tpef -k main,result
+%main.c crc.c}
+%
+%and simulate like earlier. Note that this will increase cycle count quite a
+%lot so it is not very handy when calculating speed up.
 
 \subsection{Evaluate custom operation candidates}
 First of all it is quite simple and efficient to implement crc calculation
@@ -5088,7 +5130,7 @@ And now we're ready. Remember to save the file.
 We can compile the program just like earlier but we must define \_USE\_REFLECT
 in order to use the custom operation. And of course use the new machine.
 
-\textit{tcecc -O2 -D\_USE\_REFLECT -o crcCustom.tpef -a crcCustom.adf -k 
+\textit{tcecc -O2 -D\_USE\_REFLECT -o crcCustom.tpef -a crcCustom.adf -k
 main,result main.c crc.c}
 
 Then simulate the program and verify the result:

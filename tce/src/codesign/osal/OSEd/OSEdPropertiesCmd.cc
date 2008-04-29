@@ -25,6 +25,7 @@
 #include "OperationIndex.hh"
 #include "Operation.hh"
 #include "OperationModule.hh"
+#include "TCEString.hh"
 
 using boost::format;
 using std::string;

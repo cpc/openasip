@@ -29,6 +29,7 @@
 #include "InterPassData.hh"
 #include "Exception.hh"
 #include "BusBroker.hh"
+#include "TCEString.hh"
 
 /**
  * Constructor.
@@ -864,13 +865,16 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
 
     if (!originalMove.move().isUnconditional()) {
         // copy the guard RAW edge to all nodes
-        ddg.connectNodes(*guardDef, *firstMove, *guardEdge);
-        ddg.connectNodes(
-            *guardDef, *lastMove, *(new DataDependenceEdge(*guardEdge)));
-        if (regToRegCopy != NULL) {
+        // TODO: breaks if guard comes outside of the BB.
+        if (guardEdge != NULL) {
+            ddg.connectNodes(*guardDef, *firstMove, *guardEdge);
             ddg.connectNodes(
-                *guardDef, *regToRegCopy, 
-                *(new DataDependenceEdge(*guardEdge)));
+                *guardDef, *lastMove, *(new DataDependenceEdge(*guardEdge)));
+            if (regToRegCopy != NULL) {
+                ddg.connectNodes(
+                    *guardDef, *regToRegCopy, 
+                    *(new DataDependenceEdge(*guardEdge)));
+            }
         }
     }
 }

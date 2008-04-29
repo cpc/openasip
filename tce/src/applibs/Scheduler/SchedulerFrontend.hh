@@ -3,7 +3,7 @@
  *
  * Declaration of SchedulerFrontend class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -45,7 +45,8 @@ public:
         throw (Exception);
     TTAProgram::Program* schedule(
         const TTAProgram::Program& source, const TTAMachine::Machine& target,
-        const SchedulingPlan& schedulingPlan)
+        const SchedulingPlan& schedulingPlan,
+        bool verbose = false)
         throw (Exception);
 private:    
     /// Copying forbidden.

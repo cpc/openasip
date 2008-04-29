@@ -13,6 +13,7 @@
 #include "BaseType.hh"
 #include "SimValue.hh"
 #include "Address.hh"
+#include "Exception.hh"
 
 class Operation;
 

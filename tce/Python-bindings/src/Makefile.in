@@ -13,7 +13,7 @@ all: $(CCSOURCES)
 
 	@PYTHON@ setup.py build
 
-install::
+install: $(CCSOURCES)
 	@PYTHON@ setup.py install --prefix=@prefix@
 
 clean::

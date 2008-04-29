@@ -3,7 +3,7 @@
  *
  * Declaration of SequentialFirstFitResourceAllocator class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -46,6 +46,8 @@ public:
         throw (Exception);
     virtual bool needsTarget() const;
     virtual bool needsProgram() const;
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
 
 private:
     typedef std::list<MoveNode*> MoveNodeList;

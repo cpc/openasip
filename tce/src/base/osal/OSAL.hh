@@ -16,20 +16,17 @@
 #ifndef TTA_OSAL_LANGUAGE_DEFINITIONS_HH
 #define TTA_OSAL_LANGUAGE_DEFINITIONS_HH
 
-#include <string>
-
 #include "tce_config.h"
-#include "Exception.hh"
 #include "OperationContext.hh"
 #include "SimValue.hh"
 #include "OperationBehavior.hh"
 #include "Operation.hh"
-#include "Application.hh"
 #include "Memory.hh"
 #include "OperationPool.hh"
 #include "OperationState.hh"
 
 #include "SimulateTriggerWrappers.icc"
+
 
 /**
  * OPERATION and OPERATION_WITH_STATE start a definition block for operation
@@ -166,7 +163,7 @@ private: \
     bool stateExists(OperationContext& context) const {\
          try {\
              context.state(#STATE_NAME);\
-         } catch (const KeyNotFound&) {\
+         } catch (...) {\
       	     return false;\
          }\
 	 return true;\
@@ -185,7 +182,7 @@ public:
  *
  * Macro expands to a class structure which derives itself from OperationState
  * and implements the pure virtual method name() trivially by returning the
- * name of the state as a string. Rest of the class, which are usually public 
+ * name of the state as a C string. Rest of the class, which are usually public 
  * member variables, are entered by the user.
  *
  */
@@ -238,7 +235,7 @@ class STATE_NAME##_State : public OperationState { \
 bool simulateTrigger( \
     SimValue** io, \
     OperationContext& context) const { \
-        if (&context == NULL || io == NULL) { }
+        if (&context == 0 || io == 0) { }
 
 /**
  * Fetches the state instance.
@@ -261,7 +258,7 @@ bool simulateTrigger( \
  */
 #define ADVANCE_CLOCK \
     void advanceClock(OperationContext& context) { \
-        if (&context == NULL) { }
+        if (&context == 0) { }
 
 /**
  * Ends the definition block for the clock advancing simulation function.
@@ -395,10 +392,8 @@ bool simulateTrigger( \
  *
  * Can be used to abort simulation in case of illegal operands etc.
  */
-#define RUNTIME_ERROR(MESSAGE) \
-    throw SimulationExecutionError( \
-        __FILE__, __LINE__, \
-        parent_.name(), std::string(" ") + parent_.name() + ": " + MESSAGE);
+#define RUNTIME_ERROR(MESSAGE) OperationGlobals::runtimeError(\
+    MESSAGE, __FILE__, __LINE__, parent_);
 
 /**
  * Executes operation.
