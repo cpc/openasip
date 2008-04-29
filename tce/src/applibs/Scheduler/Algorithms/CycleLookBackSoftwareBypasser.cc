@@ -5,6 +5,7 @@
  *
  * @author Pekka Jääskeläinen 2007 (pjaaskel@cs.tut.fi)
  * @author Vladmír Guzma 2008 (vg@cs.tut.fi)
+ * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
  * @note rating: red
  */
 
@@ -36,6 +37,112 @@ CycleLookBackSoftwareBypasser::CycleLookBackSoftwareBypasser(
  * Empty destructor.
  */
 CycleLookBackSoftwareBypasser::~CycleLookBackSoftwareBypasser() {
+}
+
+/**
+ * Tries to bypass a MoveNode.
+ *
+ * @param moveNode MoveNode to bypass.
+ * @param lastOperandCycle in which contains last cycle of operands of the
+ *        operation
+ * @param ddg The data dependence grap in which the movenodes belong to.
+ * @param rm The resource manager which is used to check for resource
+ *        availability.
+ * @return -1 if failed and need fixup, 1 is succeeded, 0 if did not bypass.
+ */
+int
+CycleLookBackSoftwareBypasser::bypassNode(
+    MoveNode& moveNode,
+    int& lastOperandCycle,
+    DataDependenceGraph& ddg,
+    ResourceManager& rm) {
+
+        // result value or already bypassed - don't bypass this
+    if (moveNode.isSourceOperation()) {
+        TTAProgram::TerminalFUPort& src =
+            dynamic_cast<TTAProgram::TerminalFUPort&>(
+                moveNode.move().source());
+        
+        return 0;
+    }
+
+    if (!moveNode.isDestinationOperation()){
+        throw InvalidData(__FILE__, __LINE__, __func__, 
+                          "Bypassed move is not Operand move!");
+    }
+    DataDependenceGraph::EdgeSet edges= ddg.inEdges(moveNode);
+    DataDependenceGraph::EdgeSet::iterator edgeIter = edges.begin();
+    DataDependenceEdge* bypassEdge = NULL;
+    
+    // find one incoming raw edge. if multiple, cannot bypass.
+    while(edgeIter != edges.end()) {
+        
+        DataDependenceEdge& edge = *(*edgeIter);
+        if (edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER ||
+            edge.dependenceType() != DataDependenceEdge::DEP_RAW ||
+            edge.headPseudo()) {
+            edgeIter++;
+            continue;
+        }
+        
+        if (bypassEdge == NULL) {
+            bypassEdge = &edge;
+        } else {
+            // cannot bypass if multiple inputs
+            return 0;
+        }
+        edgeIter++;
+    }
+    
+    // if no bypassable edge found, cannot bypass
+    if (bypassEdge == NULL) {
+        return 0;
+    }
+
+    MoveNode& source = ddg.tailNode(*bypassEdge);
+            
+    // source node is too far for our purposes
+    ; // do not bypass this operand
+    if (cyclesToLookBack_ != INT_MAX &&
+        source.cycle() + cyclesToLookBack_ < moveNode.cycle()) {
+        return 0;
+    }
+
+    // do no bypass from reg-reg moves - antidependencies not handled
+    if (source.isSourceOperation() || source.isSourceConstant()) {
+#ifdef MOVE_BYPASSER
+        int originalCycle = moveNode.cycle();
+#endif
+        rm.unassign(moveNode);
+        storedSources_.insert(
+            std::pair<MoveNode*,MoveNode*>(&moveNode, &source));
+        
+        ddg.mergeAndKeep(source, moveNode);
+        int ddgCycle = ddg.earliestCycle(moveNode);
+        if (ddgCycle != INT_MAX) {
+#ifdef MOVE_BYPASSER
+            ddgCycle = originalCycle;
+#endif
+            int cycle = rm.earliestCycle(ddgCycle, moveNode);
+            if (cycle != -1) {
+                rm.assign(cycle, moveNode);
+                if (!moveNode.isScheduled()){
+                    throw InvalidData(
+                        __FILE__, __LINE__, __func__, 
+                        "Move assignment failed");
+                }                                               
+                lastOperandCycle = std::max(lastOperandCycle, cycle);
+                // only one bypass per operand is possible, no point to
+                // test other edges of same moveNode
+                return 1;
+            }
+        }
+        // if node could not be bypassed, we return -1 and let
+        // BBScheduler call removeBypass
+        return -1;
+    }
+    // nothing bypassed
+    return 0;
 }
 
 /**
@@ -71,99 +178,24 @@ CycleLookBackSoftwareBypasser::bypass(
     for (int i = 0; i < candidates.nodeCount(); i++) {
         MoveNode& moveNode = candidates.node(i);
 
-        if (moveNode.isSourceOperation()) {
-            TTAProgram::TerminalFUPort& src =
-                dynamic_cast<TTAProgram::TerminalFUPort&>(
-                    moveNode.move().source());
+        // find the trigger
+        if (moveNode.move().isTriggering()) {
+            trigger = &moveNode;
+        }
 
-            if (dynamic_cast<const TTAMachine::SpecialRegisterPort*>(
-                &src.port()) != NULL) {
-                // this is gcu.ra read
-                if (moveNode.move().isTriggering()) {
-                    trigger = &moveNode;
-                }
-            }
-            continue;
-        }
-        if (!moveNode.isSourceVariable()) {
-            // Keep constant/IMMRegister moves, only find a cycle
-            if (moveNode.move().isTriggering()) {
-                trigger = &moveNode;
-            }
-            continue;
-        }
         if (moveNode.move().isControlFlowMove()) {
             // don't try to bypass control flow moves, they have lot
             // of pseudo dependencies because of return values
-            trigger = &moveNode;
             break;
         }
 
-        if (!moveNode.isDestinationOperation()){
-            throw InvalidData(__FILE__, __LINE__, __func__, 
-                "Bypassed move is not Operand move!");
-        }
-        DataDependenceGraph::EdgeSet edges= ddg.inEdges(moveNode);
-        DataDependenceGraph::EdgeSet::iterator edgeIter = edges.begin();
-        while(edgeIter != edges.end()) {
+        // bypass here
+        int rv = bypassNode(moveNode, lastOperandCycle, ddg, rm);
 
-            DataDependenceEdge& edge = *(*edgeIter);
-            if (edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER) {
-                edgeIter++;
-                continue;
-            }            
-            MoveNode& source = ddg.tailNode(edge);
-            if (cyclesToLookBack_ != INT_MAX &&
-                source.cycle() + cyclesToLookBack_ < moveNode.cycle()) {
-                // source node is too far for our purposes
-                break;
-            }
-
-            if (source.isSourceOperation() || source.isSourceConstant()) {
-                if (moveNode.move().isTriggering()) {
-                    trigger = &moveNode;
-                }
-#ifdef MOVE_BYPASSER
-                int originalCycle = moveNode.cycle();
-#endif
-                rm.unassign(moveNode);
-                storedSources_.insert(
-                    std::pair<MoveNode*,MoveNode*>(&moveNode, &source));
-
-                ddg.mergeAndKeep(source, moveNode);
-                int ddgCycle = ddg.earliestCycle(moveNode);
-                if (ddgCycle != INT_MAX) {
-#ifdef MOVE_BYPASSER
-                    ddgCycle = originalCycle;
-#endif
-                    int cycle = rm.earliestCycle(ddgCycle, moveNode);
-                    if (cycle != -1) {
-                        rm.assign(cycle, moveNode);
-                        if (!moveNode.isScheduled()){
-                            throw InvalidData(
-                                __FILE__, __LINE__, __func__, 
-                                "Move assignment failed");
-                        }                                               
-                        lastOperandCycle = std::max(lastOperandCycle, cycle);
-                        bypassCounter++;
-                    // only one bypass per operand is possible, no point to
-                    // test other edges of same moveNode
-                        break;
-                    }
-                }
-                // if node could not be bypassed, we return -1 and let
-                // BBScheduler call removeBypass
-                return -1;
-            }
-            edgeIter++;
-        }
-        if (!moveNode.isBypass()) {
-            // bypass was not possible, for example input register was
-            // passed as a parameter to basic block and did not have
-            // the move which is defining it known
-            if (moveNode.move().isTriggering()) {
-                trigger = &moveNode;
-            }
+        if (rv == -1) {
+            return -1;
+        }  else {
+            bypassCounter += rv; 
         }
     }
 

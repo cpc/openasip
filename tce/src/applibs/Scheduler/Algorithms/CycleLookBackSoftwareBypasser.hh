@@ -50,6 +50,12 @@ private:
     // whether dead resutls should be killed.
     bool killDeadResults_;
 
+    int bypassNode(
+        MoveNode& nodeToBypass,
+        int& lastOperandCycle,
+        DataDependenceGraph& ddg,
+        ResourceManager& rm);
+        
     /// Stores sources and bypassed moves in case they
     /// have to be unassigned (case when operands are scheduled
     /// and bypassed but result can not be scheduled with such operands
