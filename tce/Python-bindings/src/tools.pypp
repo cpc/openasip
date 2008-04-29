@@ -9,6 +9,7 @@ bg = binding_generator_t(
                       [('instance', return_value_policy(reference_existing_object))]),
                      ),
     headers = [prefix + "SimValue.hh"],
+    extra_headers = ["Exception.hh"],
 
     excluded_members = [('SimValue', ['Value', 'value_'])],
 

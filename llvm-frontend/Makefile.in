@@ -129,7 +129,7 @@ sbindir = @sbindir@
 sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
-SUBDIRS = llvm-gcc4-2.0
+SUBDIRS = llvm-gcc4.2
 all: all-recursive
 
 .SUFFIXES:

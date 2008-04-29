@@ -42,11 +42,6 @@ class binding_generator_t(object):
         self.module_name = module_name
         self.headers = headers
         hh = map(os.path.basename, headers)
-        self.module_builder = module_builder.module_builder_t(
-            hh
-            , gccxml_path=r"/usr/bin/gccxml" 
-            , include_paths=include_paths
-            , define_symbols=['TCE_PYTHON_BINDINGS'] )
         self.call_policies = call_policies
         self.function_call_policies = function_call_policies
         self.excluded_classes = excluded_classes
@@ -59,6 +54,19 @@ class binding_generator_t(object):
         self.extra_registrations = extra_registrations
         self.held_types = held_types
         self.ownership_transfers = ownership_transfers
+
+
+        # If only generating the list of dependences, do not create
+        # the module builder, because it would compile all the headers
+        # with gccxml.
+        if len(sys.argv) == 2 and sys.argv[1] == '--generate-dependences':
+            pass
+	else:
+            self.module_builder = module_builder.module_builder_t(
+                hh
+                , gccxml_path=r"/usr/bin/gccxml" 
+                , include_paths=include_paths
+                , define_symbols=['TCE_PYTHON_BINDINGS'] )
 
     def exclude_classes(self):
         for class_name in self.excluded_classes:
@@ -153,8 +161,6 @@ class binding_generator_t(object):
 
     def generate(self):
         mb = self.module_builder
-        for eh in self.extra_headers:
-            mb.add_declaration_code("#include<%s>" % eh)
         for ed in self.extra_declarations:
             mb.add_declaration_code(ed)
         for er in self.extra_registrations:
@@ -171,6 +177,8 @@ class binding_generator_t(object):
         self.set_held_types()
         self.handle_ownership_transfers()
         mb.build_code_creator( module_name=self.module_name )
+        for eh in self.extra_headers:
+            mb.code_creator.add_include(eh)
         mb.write_module('./%s.cc' % self.module_name)
 
     def generate_dependences(self):

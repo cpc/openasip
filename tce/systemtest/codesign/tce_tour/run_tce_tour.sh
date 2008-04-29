@@ -2,7 +2,7 @@
 # Script to run tce tour test
 
 BUILDOPSET=../../../src/codesign/osal/OSALBuilder/buildopset
-SCHEDULE=../../../src/bintools/Scheduler/schedule
+SCHEDULE="../../../src/bintools/Scheduler/schedule -c ../../../scheduler/passes/old_gcc.conf"
 TTASIM=../../../src/codesign/ttasim/ttasim
 SIMCMD=data/simulator_commands
 CREATEBEM=../../../src/bintools/BEMGenerator/createbem

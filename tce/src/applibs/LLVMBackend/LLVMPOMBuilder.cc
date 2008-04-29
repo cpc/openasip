@@ -49,15 +49,10 @@
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Support/Debug.h"
-
-#if !defined(LLVM_2_1)
-
 #include "llvm/Target/TargetInstrDesc.h"
 
 // this class was renamed in LLVM 2.2
 typedef llvm::TargetInstrDesc TargetInstrDescriptor;
-
-#endif
 
 #include "MapTools.hh"
 #include "StringTools.hh"
@@ -199,11 +194,9 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.name = name;
         def.address = 0;
         def.alignment = td->getABITypeAlignment(type);
-#if defined(LLVM_2_1)
-        def.size = td->getTypeSize(type);
-#else
-        def.size = td->getTypeSizeInBits(type) / 8;
-#endif
+        def.size = td->getTypeStoreSize(type);
+        assert(def.size != 0 && def.alignment != 0);
+
         if (isInitialized(initializer)) {
             def.initialize = true;
             data_.push_back(def);
@@ -326,11 +319,7 @@ LLVMPOMBuilder::createDataDefinition(
     unsigned& addr, const Constant* cv) {
 
     const TargetData* td = tm_.getTargetData();
-#if defined(LLVM_2_1)
-    unsigned sz = td->getTypeSize(cv->getType());
-#else
-    unsigned sz = td->getTypeSizeInBits(cv->getType()) / 8;
-#endif
+    unsigned sz = td->getTypeStoreSize(cv->getType());
     unsigned align = td->getABITypeAlignment(cv->getType());
     unsigned pad = 0;
     while ((addr + pad) % align != 0) pad++;
@@ -446,11 +435,7 @@ LLVMPOMBuilder::createFPDataDefinition(
     std::vector<MinimumAddressableUnit> maus;
 
     const Type* type = cfp->getType();
-#if defined(LLVM_2_1)
-    unsigned sz = tm_.getTargetData()->getTypeSize(type);
-#else
-    unsigned sz = tm_.getTargetData()->getTypeSizeInBits(type) / 8;
-#endif
+    unsigned sz = tm_.getTargetData()->getTypeStoreSize(type);
     TTAProgram::DataDefinition* def = NULL;
 
     if (type->getTypeID() == Type::DoubleTyID) {
@@ -504,11 +489,7 @@ LLVMPOMBuilder::createGlobalValueDataDefinition(
 
     const Type* type = gv->getType();
 
-#if defined(LLVM_2_1)
-    unsigned sz = tm_.getTargetData()->getTypeSize(type);
-#else
-    unsigned sz = tm_.getTargetData()->getTypeSizeInBits(type) / 8;
-#endif
+    unsigned sz = tm_.getTargetData()->getTypeStoreSize(type);
     
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
     std::string label = mang_->getValueName(gv);
@@ -799,25 +780,13 @@ TTAProgram::Instruction*
 LLVMPOMBuilder::emitInstruction(
     const MachineInstr* mi, TTAProgram::Procedure* proc) {
 
-#if defined(LLVM_2_1)
-    const TargetInstrDescriptor* opDesc = mi->getInstrDescriptor();
-#else
     const TargetInstrDescriptor* opDesc = &mi->getDesc();
-#endif
 
-#if defined(LLVM_2_1)
-    if (opDesc->Flags & M_RET_FLAG) {
-#else
     if (opDesc->isReturn()) {
-#endif
         return emitReturn(mi, proc);
     }
 
-#if defined(LLVM_2_1)
-    MachineOpCode opc = mi->getInstrDescriptor()->Opcode;
-#else
     unsigned opc = mi->getDesc().getOpcode();
-#endif
     std::string opName = tm_.operationName(opc);
 
     // Pseudo instructions don't require any actual instructions.
@@ -846,12 +815,7 @@ LLVMPOMBuilder::emitInstruction(
     Bus& bus = umach_->universalBus();
     const TTAMachine::FunctionUnit* fu = NULL;
 
-#if defined(LLVM_2_1)
-    if ((opDesc->Flags & M_CALL_FLAG) ||
-        (opDesc->Flags & M_BRANCH_FLAG)) {
-#else
     if ((opDesc->isCall() || opDesc->isBranch())) {
-#endif
         // Control flow operations.
         fu = umach_->controlUnit();
     } else {
@@ -1030,11 +994,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
     } else if (mo.isImmediate()) {
         int width = 32; // FIXME
-#if defined(LLVM_2_1)
-        SimValue val(mo.getImmedValue(), width);
-#else
         SimValue val(mo.getImm(), width);
-#endif
         return new TTAProgram::TerminalImmediate(val);
     } else if (mo.isMBB()) {
 
@@ -1055,11 +1015,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         assert(false); 
     } else if (mo.isConstantPoolIndex()) {
         int width = 32; // FIXME
-#if defined(LLVM_2_1)
-        unsigned idx = mo.getConstantPoolIndex();
-#else
         unsigned idx = mo.getIndex();
-#endif
         assert(currentFnCP_.find(idx) != currentFnCP_.end() &&
                "CPE not found!");
 
@@ -1260,11 +1216,7 @@ LLVMPOMBuilder::createAddrTerminal(
     const MachineOperand& base, const MachineOperand& offset) {
 
     assert(offset.isImmediate());
-#if defined(LLVM_2_1)
-    assert(offset.getImmedValue() == 0);
-#else
     assert(offset.getImm() == 0);
-#endif
     return createTerminal(base);
 }
 

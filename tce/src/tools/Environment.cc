@@ -815,6 +815,35 @@ Environment::defaultSchedulerConf() {
     return path;
 }
 
+/**
+ * Returns full path to the old gcc scheduler pass configuration file.
+ *
+ * This is the scheduler conf that is used to schedule code from the
+ * old gcc compiler.
+ *
+ * @return Full path to the old_gcc.conf
+ */
+string
+Environment::oldGccSchedulerConf() {
+
+    if (!DISTRIBUTED_VERSION) {
+        // first find from the src tree
+        std::string srcPath =
+            string(TCE_SRC_ROOT) + "/scheduler/passes/old_gcc.conf";
+
+        if (FileSystem::fileExists(srcPath))
+            return srcPath;
+    } 
+    std::string path =
+        string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
+        "/scheduler/passes/old_gcc.conf";
+    assert(
+        FileSystem::fileExists(path) &&
+        "Installation broken, old_gcc.conf not found.");
+    return path;
+}
+
+
 
 /**
  * Returns full path to llvmtce plugin cache directory.

@@ -1,1 +1,1 @@
-SUBDIRS = llvm-gcc4-2.0
+SUBDIRS = llvm-gcc4.2

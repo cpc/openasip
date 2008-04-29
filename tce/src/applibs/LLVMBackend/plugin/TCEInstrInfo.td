@@ -328,18 +328,15 @@ let isTerminator = 1, isBranch = 1 in {
                         (ins i32imm:$dst), "$dst -> jump.1;", []>;
 }
 
-let isLoad = 1 in {
 // hardcoded boolean loads.
-    def LDQUb : InstTCE <(outs I1Regs:$dst), (ins MEMrr:$src), "", [(set I1Regs:$dst, (load ADDRrr:$src))]>;
-    def LDQUib : InstTCE<(outs I1Regs:$dst), (ins MEMri:$src), "", [(set I1Regs:$dst, (load ADDRri:$src))]>;
-}
+def LDQUb : InstTCE <(outs I1Regs:$dst), (ins MEMrr:$src), "", [(set I1Regs:$dst, (load ADDRrr:$src))]>;
+def LDQUib : InstTCE<(outs I1Regs:$dst), (ins MEMri:$src), "", [(set I1Regs:$dst, (load ADDRri:$src))]>;
+
 
 // and stores
-let isStore = 1 in {
-    def STQib : InstTCE<(outs), (ins MEMri:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRri:$addr)]>;
+def STQib : InstTCE<(outs), (ins MEMri:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRri:$addr)]>;
+def STQrb : InstTCE<(outs), (ins MEMrr:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRrr:$addr)]>;
 
-    def STQrb : InstTCE<(outs), (ins MEMrr:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRrr:$addr)]>;
-}
 
 include "GenInstrInfo.td"
 

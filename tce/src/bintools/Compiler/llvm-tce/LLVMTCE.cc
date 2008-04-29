@@ -86,26 +86,22 @@ main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    bool schedule = false;
+    bool schedule = true;
     SchedulingPlan* plan = NULL;
+    std::string schedulerConf = Environment::defaultSchedulerConf();
     if (options.isSchedulerConfigFileDefined()) {
-        std::string schedulerConf = options.schedulerConfigFile();
-        try {
-            if (options.isVerboseSwitchDefined()) {
-                plan = SchedulingPlan::loadFromFile(schedulerConf, true);
-            } else {
-                plan = SchedulingPlan::loadFromFile(schedulerConf, false);
-            }
-        } catch (Exception& e) {
-            std::cerr << "Error loading scheduler configuration file '"
-                      << schedulerConf << "':" << std::endl
-                      << e.errorMessageStack() << std::endl;
-
-            return EXIT_FAILURE;
-        }
-        schedule = true;
+        schedulerConf = options.schedulerConfigFile();
     }
 
+    try {
+        plan = SchedulingPlan::loadFromFile(schedulerConf);
+    } catch (Exception& e) {
+        std::cerr << "Error loading scheduler configuration file '"
+                  << schedulerConf << "':" << std::endl
+                  << e.errorMessageStack() << std::endl;
+        
+        return EXIT_FAILURE;
+    }
     // --- Output file name ---
     std::string outputFileName = DEFAULT_OUTPUT_FILENAME;
     if (options.isOutputFileDefined()) {

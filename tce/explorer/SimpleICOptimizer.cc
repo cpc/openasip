@@ -112,7 +112,7 @@ public:
                                 testApp.applicationPath(), *uMach);
                         SchedulingPlan* plan = 
                             SchedulingPlan::loadFromFile(
-                                Environment::defaultSchedulerConf());;
+                                Environment::oldGccSchedulerConf());;
 
                         program = 
                             scheduler.schedule(*seqProg, *origMach, *plan);
