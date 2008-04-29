@@ -24,10 +24,12 @@ bg = binding_generator_t(
                        ('saveState', return_value_policy(manage_new_object)),
                        ]),
                      ),
-    headers = [prefix + 'Operation.hh'
+    headers = [prefix + 'Operation.hh',
                ],
     extra_headers = ['OperationDAG.hh',
                      'OperationContext.hh',
+                     'TCEString.hh',
+                     'Operand.hh',
                      ],
     )
 
