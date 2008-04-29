@@ -24,10 +24,12 @@
  *
  * @param cyclesToLookBack How many cycles to look back for the producer of
  *        result when bypassing the operand writes.
+ * @param killDeadResults Whether dead results should be killed.
  */
 CycleLookBackSoftwareBypasser::CycleLookBackSoftwareBypasser(
-    int cyclesToLookBack) : 
-    cyclesToLookBack_(cyclesToLookBack) , selector_(NULL) {
+    int cyclesToLookBack, bool killDeadResults) : 
+    cyclesToLookBack_(cyclesToLookBack),
+    killDeadResults_(killDeadResults), selector_(NULL) {
 }
 
 /**
@@ -276,12 +278,17 @@ CycleLookBackSoftwareBypasser::removeBypass(
  * @param ddg The data dependence grap in which the movenodes belong to.
  * @param rm The resource manager which is used to check for resource
  *        availability.
+ * @return number of dead results killed
  */
 int
 CycleLookBackSoftwareBypasser::removeDeadResults(
     MoveNodeGroup& candidates,
     DataDependenceGraph& ddg,
     ResourceManager& rm) {
+
+    if (!killDeadResults_) {
+        return 0;
+    }
 
     for (int i = 0; i < candidates.nodeCount(); i++) {
         // For now, this version is called after operands AND results

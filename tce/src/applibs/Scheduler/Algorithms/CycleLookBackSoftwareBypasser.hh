@@ -22,7 +22,8 @@ class MoveNode;
  */
 class CycleLookBackSoftwareBypasser : public SoftwareBypasser {
 public:
-    CycleLookBackSoftwareBypasser(int cyclesToLookBack=1);
+    CycleLookBackSoftwareBypasser(int cyclesToLookBack=1,
+                                  bool killDeadResult=true);
     virtual ~CycleLookBackSoftwareBypasser();
 
     virtual int bypass(
@@ -45,6 +46,9 @@ private:
     /// count of cycles before the operand write to look for the producer
     /// of the read value
     int cyclesToLookBack_;
+
+    // whether dead resutls should be killed.
+    bool killDeadResults_;
 
     /// Stores sources and bypassed moves in case they
     /// have to be unassigned (case when operands are scheduled
