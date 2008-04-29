@@ -10,6 +10,8 @@ class CopyingDSFillerModule : public DSFillerModule {
 public:
     CopyingDSFillerModule();
     ~CopyingDSFillerModule();
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
 
     CopyingDelaySlotFiller& filler();
 private:

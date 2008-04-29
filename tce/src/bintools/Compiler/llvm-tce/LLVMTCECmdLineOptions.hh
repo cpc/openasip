@@ -3,7 +3,7 @@
  *
  * Declaration of LLVMTCECmdLineOptions class.
  *
- * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2008 (vjaaskel@cs.tut.fi)
  * @note rating: red
  */
 
@@ -35,6 +35,7 @@ public:
     bool isOptLevelDefined() const;
     int optLevel() const;
 
+    bool isVerboseSwitchDefined() const;
     bool debugFlag() const;
 
     virtual void printVersion() const {
@@ -53,6 +54,8 @@ private:
     static const std::string SWL_DEBUG_FLAG;
     static const std::string SWL_OPT_LEVEL;
     static const std::string SWS_OPT_LEVEL;
+    /// Switch for verbose output listing scheduler modules
+    static const std::string VERBOSE_SWITCH;
 
     static const std::string USAGE;
 

@@ -3,7 +3,7 @@
  *
  * Implementation of BaseSchedulerModule class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -154,4 +154,29 @@ BaseSchedulerModule::interPassData() {
  * @param options vector of all parameters given to the scheduler pass.
  */
 void
-BaseSchedulerModule::setOptions(const std::vector<ObjectState*>&) {}
+BaseSchedulerModule::setOptions(const std::vector<ObjectState*>&) {
+}
+
+/**
+ * A short description of the module, usually the module name,
+ * such as "LinearScanRegisterAllocator".
+ *
+ * @return The description as a string.
+ */   
+std::string
+BaseSchedulerModule::shortDescription() const {
+    return "";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+BaseSchedulerModule::longDescription() const {
+    return "";
+}

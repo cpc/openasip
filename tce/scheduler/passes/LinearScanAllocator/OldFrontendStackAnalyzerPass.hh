@@ -36,6 +36,8 @@ public:
     void start() 
         throw (Exception);
     bool needsProgram() const;
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
 
 private:
 

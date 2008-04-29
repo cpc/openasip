@@ -36,3 +36,31 @@ bool
 OldFrontendStackAnalyzerPass::needsProgram() const {
     return true;
 }
+
+/**
+ * A short description of the module, usually the module name,
+ * in this case "OldFrontendStackAnalyzerPass".
+ *
+ * @return The description as a string.
+ */   
+std::string
+OldFrontendStackAnalyzerPass::shortDescription() const {
+    return "Startable: OldFrontendStackAnalyzerPass";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+OldFrontendStackAnalyzerPass::longDescription() const {
+    std::string answer = "Startable: OldFrontendStackAnalyzerPass.";
+    answer += " Inserts the annotations to the stack frame initialization\
+        and deinitialization code so that it can easily be \
+        removed and recreated later.";
+    return answer;
+}

@@ -3,7 +3,7 @@
  *
  * Implementation of SchedulerPluginLoader class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -63,6 +63,7 @@ SchedulerPluginLoader::instance() {
  *
  * @param modName Name of the plug-in pass module.
  * @param fileName Name of the file that contains the plug-in module.
+ * @param verbose Print out short description of module when loading
  * @return A handle to the loaded plug-in module.
  * @exception DynamicLibraryException If an error occurs loading the
  * requested plug-in module.
@@ -70,7 +71,8 @@ SchedulerPluginLoader::instance() {
 BaseSchedulerModule&
 SchedulerPluginLoader::loadModule(
     const std::string& modName, const std::string& fileName, 
-    const std::vector<ObjectState*>& options) 
+    const std::vector<ObjectState*>& options,
+    bool verbose) 
     throw (DynamicLibraryException) {
 
     try {
@@ -90,6 +92,12 @@ SchedulerPluginLoader::loadModule(
         pluginTool_.importSymbol(
             SCHEDULER_MODULE_DESTRUCTOR + modName, pluginDestructor,
             moduleName);
+
+    if (verbose) {
+        Application::logStream() << "Loading module: " <<
+        module->shortDescription() << std::endl;
+    }
+
         loadedPlugins_.insert(
             pair<BaseSchedulerModule*, SchedulerPluginDestructor*>(
                 module, pluginDestructor));

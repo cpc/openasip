@@ -3,7 +3,7 @@
  *
  * Implementation of SchedulerConfigurationSerializer class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -42,6 +42,8 @@ SchedulerConfigurationSerializer::readState()
  * Reads the current configuration file set and creates a SchedulingPlan
  * according to it.
  *
+ * @param verbose Indicates that module descriptions should be
+ * written out during loading of modules
  * @return The newly created SchedulingPlan.
  * @exception SerializerException If an error occurs while reading the
  * configuration file.
@@ -49,12 +51,12 @@ SchedulerConfigurationSerializer::readState()
  * the SchedulingPlan.
  */
 SchedulingPlan*
-SchedulerConfigurationSerializer::readConfiguration() 
+SchedulerConfigurationSerializer::readConfiguration(bool verbose) 
     throw (SerializerException, ObjectStateLoadingException) {
     
     ObjectState* configuration = readState();
     SchedulingPlan* schedulingPlan = new SchedulingPlan();
-    schedulingPlan->build(*configuration);
+    schedulingPlan->build(*configuration, verbose);
     delete configuration;
     return schedulingPlan;
 }

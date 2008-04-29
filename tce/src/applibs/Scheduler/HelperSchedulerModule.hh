@@ -3,7 +3,7 @@
  *
  * Declaration of HelperSchedulerModule class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -26,6 +26,8 @@ public:
     bool isRegistered() const;
     void setParent(BaseSchedulerModule& parent);
     BaseSchedulerModule& parent() const throw (IllegalRegistration);
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
 
 protected:
     HelperSchedulerModule();

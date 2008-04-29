@@ -83,3 +83,27 @@ SimpleGuardAllocator::allocateGuard(Move& move,RegisterMap& regMap) {
         }
     }
 }
+/**
+ * A short description of the module, usually the module name,
+ * in this case "SimpleGuardAllocator".
+ *
+ * @return The description as a string.
+ */   
+std::string
+SimpleGuardAllocator::shortDescription() const {
+    return "Startable: SimpleGuardAllocator";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+SimpleGuardAllocator::longDescription() const {
+    std::string answer = "Startable: SimpleGuardAllocator";
+    return answer;
+}

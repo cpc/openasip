@@ -19,6 +19,8 @@ public:
 
     SoftwareBypasser& bypasser();
     void setOptions(const std::vector<ObjectState*>& options);
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
 
 private:
     static const std::string LOOKBACK_DISTANCE_OPTION;

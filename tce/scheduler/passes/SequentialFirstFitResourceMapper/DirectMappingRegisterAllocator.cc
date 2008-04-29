@@ -3,7 +3,7 @@
  *
  * Implementation of DirectMappingRegisterAllocator class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -549,4 +549,30 @@ DirectMappingRegisterAllocator::createStackInitialization() {
     crt0.insertBefore(oldFirstIns, ins);
     InstructionReferenceManager &irm = program_->instructionReferenceManager();
     irm.replace(oldFirstIns, *ins);
+}
+
+/**
+ * A short description of the module, usually the module name,
+ * in this case "DirectMappingRegisterAllocator".
+ *
+ * @return The description as a string.
+ */   
+std::string
+DirectMappingRegisterAllocator::shortDescription() const {
+    return "Startable: DirectMappingRegisterAllocator";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+DirectMappingRegisterAllocator::longDescription() const {
+    std::string answer = "Startable: DirectMappingRegisterAllocator.";
+    answer += " May fail if there are not enough register in adf.";
+    return answer;
 }

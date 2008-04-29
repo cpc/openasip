@@ -3,7 +3,7 @@
  *
  * Implementation of SchedulerCmdLineOptions class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -17,6 +17,7 @@ using std::endl;
 const std::string SchedulerCmdLineOptions::ADF_PARAM_NAME = "adf";
 const std::string SchedulerCmdLineOptions::CONF_PARAM_NAME = "config";
 const std::string SchedulerCmdLineOptions::OUTPUT_PARAM_NAME = "output";
+const std::string SchedulerCmdLineOptions::VERBOSE_SWITCH = "verbose";
 const std::string SchedulerCmdLineOptions::USAGE =
     "Usage: schedule [OPTION]... SOURCE\n"
     "Schedule SOURCE binary with the given options\n"
@@ -32,6 +33,9 @@ SchedulerCmdLineOptions::SchedulerCmdLineOptions(): CmdLineOptions(USAGE) {
     StringCmdLineOptionParser* confFile = new StringCmdLineOptionParser(
         CONF_PARAM_NAME, "The configuration file", "c");
     addOption(confFile);
+    BoolCmdLineOptionParser* verboseSwitch = new BoolCmdLineOptionParser(
+        VERBOSE_SWITCH, "The verbose switch", "v");
+    addOption(verboseSwitch);
     StringCmdLineOptionParser* outputFile = new StringCmdLineOptionParser(
         OUTPUT_PARAM_NAME, "The output file", "o");
     addOption(outputFile);
@@ -72,6 +76,16 @@ SchedulerCmdLineOptions::targetADF() const {
 bool
 SchedulerCmdLineOptions::isConfigurationFileDefined() const {
     return findOption(CONF_PARAM_NAME)->isDefined();
+}
+
+/**
+ * Return true if the verbose switch was defined in the command line.
+ *
+ * @return True if the verbose switch was defined in the command line.
+ */
+bool
+SchedulerCmdLineOptions::isVerboseSwitchDefined() const {
+    return findOption(VERBOSE_SWITCH)->isDefined();
 }
 
 /**

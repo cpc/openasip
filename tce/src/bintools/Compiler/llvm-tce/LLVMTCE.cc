@@ -3,7 +3,7 @@
  *
  * LLVM/TCE compiler command line interface.
  *
- * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2008 (vjaaskel@cs.tut.fi)
  * @note rating: red
  */
 
@@ -105,7 +105,16 @@ main(int argc, char* argv[]) {
     // --- Output file name ---
     std::string outputFileName = DEFAULT_OUTPUT_FILENAME;
     if (options.isOutputFileDefined()) {
+        // Test if output file can be opened 
         outputFileName = options.outputFile();
+        FILE* out = fopen(outputFileName.c_str(),"w");
+        if (out == NULL) {
+            std::cerr << "Output file '"
+                << outputFileName << "' can not be opened for writing!"
+                << std::endl;
+            return EXIT_FAILURE;
+        }
+        fclose(out);
     }
 
     // --- optimization level ---
@@ -126,9 +135,12 @@ main(int argc, char* argv[]) {
 
         if (schedule) {
             SchedulerFrontend scheduler;
-            TTAProgram::Program* prog =
-                scheduler.schedule(*seqProg, *mach, *plan);
-
+            TTAProgram::Program* prog;
+            if (options.isVerboseSwitchDefined()) {
+                prog = scheduler.schedule(*seqProg, *mach, *plan, true);
+            } else {
+                prog = scheduler.schedule(*seqProg, *mach, *plan, false);
+            }
             TTAProgram::Program::writeToTPEF(*prog, outputFileName);
 
             delete prog;

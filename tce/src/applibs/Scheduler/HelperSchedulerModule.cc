@@ -3,7 +3,7 @@
  *
  * Implementation of HelperSchedulerModule class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -87,4 +87,27 @@ HelperSchedulerModule::parent() const throw (IllegalRegistration) {
     } else {
         return *parent_;
     }
+}
+
+/**
+ * A short description of the module
+ *
+ * @return The description as a string.
+ */   
+std::string
+HelperSchedulerModule::shortDescription() const {
+    return "Generic helper module. Detailed description is missing.";
+}
+
+/**
+ * Optional longer description of the Module.
+ *
+ * This description can include usage instructions, details of choice of
+ * helper modules, etc.
+ *
+ * @return The description as a string.
+ */
+std::string
+HelperSchedulerModule::longDescription() const {
+    return "Generic helper module. Detailed description is missing.";
 }

@@ -3,7 +3,7 @@
  *
  * Declaration of SchedulerCmdLineOptions class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -28,7 +28,7 @@ public:
     std::string configurationFile() const;
     bool isOutputFileDefined() const;
     std::string outputFile() const;
-
+    bool isVerboseSwitchDefined() const;
     virtual void printVersion() const;
 
 private:
@@ -45,6 +45,8 @@ private:
     static const std::string OUTPUT_PARAM_NAME;
     /// Description of the command line usage of the Scheduler.
     static const std::string USAGE;
+    /// Switch for verbose output listing scheduler modules
+    static const std::string VERBOSE_SWITCH;
 };
 
 #endif

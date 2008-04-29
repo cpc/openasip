@@ -31,6 +31,9 @@ public:
         throw (Exception);
     bool needsProgram() const { return false; }
     bool needsTarget() const { return true; }
+    virtual std::string shortDescription() const;
+    virtual std::string longDescription() const;
+
 private:
 };
 

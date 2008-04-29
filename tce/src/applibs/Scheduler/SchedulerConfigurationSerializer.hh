@@ -3,7 +3,7 @@
  *
  * Declaration of SchedulerConfigurationSerializer class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsï¿½halme 2005 (ari.metsahalme@tut.fi)
  * @note rating: red
  */
 
@@ -20,10 +20,11 @@ class SchedulerConfigurationSerializer : public XMLSerializer {
 public:
     SchedulerConfigurationSerializer();
     virtual ~SchedulerConfigurationSerializer();
-    
+
     ObjectState* readState()
         throw (SerializerException);
-    SchedulingPlan* readConfiguration()
+    SchedulingPlan* readConfiguration(
+        bool verbose = false)
         throw (SerializerException, ObjectStateLoadingException);
 
 private:
