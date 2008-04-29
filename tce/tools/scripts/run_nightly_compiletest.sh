@@ -94,7 +94,9 @@ function update_repo {
 ##############################################################
 
 if [ ! -e "${LLVM_BIN_DIR}" ]; then
-    eexit "LLVM bin directory: ${LLVM_BIN_DIR}, was not found."
+    if [ "$(whereis llvm-config 2>/dev/null | awk '{print $2}')x" == "x" ]; then 
+        eexit "LLVM bin directory: ${LLVM_BIN_DIR}, was not found and no llvm was installed system wide."
+    fi
 fi
 
 # output to a debug log
