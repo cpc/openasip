@@ -1,7 +1,7 @@
-bin_PROGRAMS = llvmtce
+bin_PROGRAMS = llvm-tce
 
-llvmtce_SOURCES = LLVMTCE.cc LLVMTCECmdLineOptions.cc
-llvmtce_LDADD =
+llvm_tce_SOURCES = LLVMTCE.cc LLVMTCECmdLineOptions.cc
+llvm_tce_LDADD =
 
 BASE_DIR = ../../../base
 OSAL_DIR = ../../../base/osal

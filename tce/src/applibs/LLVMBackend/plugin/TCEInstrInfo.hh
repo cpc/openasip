@@ -14,10 +14,12 @@
 
 namespace llvm {
 
-    class TCEInstrInfo : public TargetInstrInfo {
+    class TCEInstrInfo : public TargetInstrInfoImpl {
 
     public:
         TCEInstrInfo();
+        virtual ~TCEInstrInfo();
+
         virtual const MRegisterInfo& getRegisterInfo() const { return ri_; }
 
         virtual bool isMoveInstr(
@@ -39,6 +41,25 @@ namespace llvm {
 
         virtual bool BlockHasNoFallThrough(
             MachineBasicBlock& mbb) const;
+
+        virtual void storeRegToStackSlot(
+            MachineBasicBlock& mbb,
+            MachineBasicBlock::iterator mbbi,
+            unsigned srcReg, bool isKill, int frameIndex,
+            const TargetRegisterClass* rc) const;
+
+        virtual void loadRegFromStackSlot(
+            MachineBasicBlock& mbb,
+            MachineBasicBlock::iterator mbbi,
+            unsigned destReg, int frameIndex,
+            const TargetRegisterClass* rc) const;
+
+        virtual void copyRegToReg(
+            MachineBasicBlock& mbb,
+            MachineBasicBlock::iterator mbbi,
+            unsigned destReg, unsigned srcReg,
+            const TargetRegisterClass* dstRC,
+            const TargetRegisterClass* srcRC) const;
 
     private:
         const TCERegisterInfo ri_;

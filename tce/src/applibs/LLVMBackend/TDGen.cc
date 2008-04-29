@@ -98,15 +98,10 @@ TDGen::writeRegisterDef(
     ) {
 
     o << "def " << regName << " : " << regTemplate
-       << "<\"" << reg.rf << "." << reg.idx
-       << "\", [" << aliases << "]>, DwarfRegNum<"
-#if defined(LLVM_2_1)
-       << dregNum_ << ">;"
-#else
-       // LLVM 2.2 uses list<int> for DwarfRegNum
-       << "[" << dregNum_ << "]>;"
-#endif
-     << std::endl;
+      << "<\"" << reg.rf << "." << reg.idx
+      << "\", [" << aliases << "]>, DwarfRegNum<"
+      << "[" << dregNum_ << "]>;"
+      << std::endl;
 
 
     if (type == GPR) {
@@ -163,7 +158,6 @@ TDGen::writeRegisterInfo(std::ostream& o) throw (Exception) {
 
     o << "class Ri8<string n, list<Register> aliases> : TCEReg<n, aliases> {"
       << std::endl;
-    o << "  let Aliases = aliases;" << std::endl;
     o << "}" << std::endl;
 
     o << "class Ri16<string n, list<Register> aliases> : TCEReg<n, aliases> {"
@@ -528,14 +522,8 @@ void
 TDGen::writeRARegisterInfo(std::ostream& o) {
     o << "class Rra<string n> : TCEReg<n, []>;" << std::endl;
     o << "def RA : Rra<\"return-address\">, ";
-#if defined(LLVM_2_1)
-    // LLVM 2.1
-    o << "DwarfRegNum<513>;";
-#else
-    // LLVM 2.2
     o << "DwarfRegNum<[513]>;";
-#endif
-    o  << std::endl;
+    o << std::endl;
     o << "def RAReg : RegisterClass<\"TCE\", [i32], 32, [RA]>;" << std::endl;
 }
 
@@ -785,20 +773,25 @@ TDGen::writeOperationDef(
     Operation& op) {
 
     if (op.numberOfOutputs() > 1) {
-        // Ignore operations with multiple inputs.
+        // Ignore operations with multiple outputs.
         // TODO: Separate patterns for each output?
         return;
     }
 
     std::string attrs;
 
-#if defined(LLVM_2_1)
-    if (op.readsMemory()) attrs += " isLoad = 1";
-    if (op.writesMemory()) attrs += " isStore = 1";
-#else
-    if (op.readsMemory()) attrs += " mayLoad = 1";
-    if (op.writesMemory()) attrs += " mayStore = 1";
-#endif
+    // These white listed operations have mayLoad/mayStore flag
+    // inferred from the llvm pattern and declaring it
+    // explicitly will display warning in tablegen.
+    if (op.name() != "LDQ" && op.name() != "LDQU" &&
+        op.name() != "LDH" && op.name() != "LDHU" &&
+        op.name() != "LDW" && op.name() != "LDD" &&
+        op.name() != "STQ" && op.name() != "STH" &&
+        op.name() != "STW" && op.name() != "STD") {
+
+        if (op.readsMemory()) attrs += " mayLoad = 1";
+        if (op.writesMemory()) attrs += " mayStore = 1";
+    }
 
     // now works for 1 and 0 outputs. Need changes when multiple
     // output become supported.
@@ -1274,7 +1267,8 @@ TDGen::operandToString(
                 return (intToBool != 0 ? "i1imm:$op" : "i32imm:$op") + 
                     Conversion::toString(idx);
             } else {
-                return "imm:$op" + Conversion::toString(idx);
+                std::string s = (intToBool != 0 ? "(i1" : "(i32");
+                return s + " imm:$op" + Conversion::toString(idx) + ")";
             }
         } else {
             return (intToBool != 0 ? "I1Regs:$op" : "I32Regs:$op") + 
@@ -1420,18 +1414,6 @@ TDGen::canBeImmediate(
 
         // No stores with immediate value to store.
         if (edge.dstOperand() == 2 && operation.writesMemory()) {
-            return false;
-        }
-
-        // FIXME: shifts and rotates require 8-bit immediate for shift amount
-        // operand.
-        if (edge.dstOperand() == 2 &&
-            (StringTools::stringToLower(operation.name()) == "shr" ||
-             StringTools::stringToLower(operation.name()) == "shru" ||
-             StringTools::stringToLower(operation.name()) == "shl" ||
-             StringTools::stringToLower(operation.name()) == "rotl" ||
-             StringTools::stringToLower(operation.name()) == "rotr")) {
-
             return false;
         }
     }

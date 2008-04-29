@@ -1,1 +1,2 @@
-bin_SCRIPTS = tce_scripts_settings.sh dump_procedure_call_trace dump_instruction_execution_trace
+bin_SCRIPTS = tce_scripts_settings.sh dump_procedure_call_trace dump_instruction_execution_trace tce-exec-bc
+

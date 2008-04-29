@@ -24,29 +24,7 @@ Library and tools version prerequisites
 
 You need 'flex' or 'bison'. They should be found in all Linux distributions.
 
-Troubleshooting
-===============
-
-* Compiling fails when your CXX or CC has a compilation command with
-multiple words, e.g., "ccache g++". A workaround is to use a script which
-wraps the compilation commands, or in case of ccache use the symlink
-trick (see man ccache). Actually what breaks it are " -quotation marks. 
-It may also break if CXXFLAGS or CFLAGS are multi-words enclosed in
-"-quotation marks.
-
-The safest bet is to use the following compiler flags:
-
-export CC=gcc
-export CXX=g++
-export CFLAGS=-O2
-export CXXFLAGS=-O2
-
-* The following warning can be ignored: 
-
- config.status: WARNING:  /home/(...)/llvm-gcc4-2.0/Makefile.in seems to ignore the --datarootdir setting
-
 LLVM-TCE on 64-bit distributions
 ================================
 If you compile LLVM 2.1 from sources you should give --enable-pic option for
 the LLVM's configure script. Otherwise compilation of LLVM-TCE might fail.
-

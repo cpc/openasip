@@ -27,5 +27,8 @@ if test ! "${srcdir}" = "." ; then
 # configure llvm-gcc with special switches for TCE target
 abssrcroot=`cd $srcdir;pwd`
 echo "ABS: $abssrcroot"
-mkdir -p llvm-gcc4-2.0;cd llvm-gcc4-2.0;$abssrcroot/llvm-gcc4-2.0/configure --prefix=$prefix --enable-llvm=`llvm-config --prefix` --enable-languages=c,c++ --disable-shared --disable-multilib --build=i686-pc-linux-gnu --target=tce-llvm --with-as=llvm-as --with-ld=llvm-ld --with-rablib=llvm-ranlib --with-ar=llvm-ar --with-nm=llvm-nm --with-newlib --with-libgloss --disable-libstdcxx-pch --disable-newlib-io-long-long --enable-newlib-io-pos-args --disable-newlib-io-long-double --enable-newlib-hw-fp 
+#mkdir -p llvm-gcc4-2.0;cd llvm-gcc4-2.0;$abssrcroot/llvm-gcc4-2.0/configure --prefix=$prefix --enable-llvm=`llvm-config --prefix` --enable-languages=c,c++ --disable-shared --disable-multilib --build=i686-pc-linux-gnu --target=tce-llvm --with-as=llvm-as --with-ld=llvm-ld --with-rablib=llvm-ranlib --with-ar=llvm-ar --with-nm=llvm-nm --with-newlib --with-libgloss --disable-libstdcxx-pch --disable-newlib-io-long-long --enable-newlib-io-pos-args --disable-newlib-io-long-double --enable-newlib-hw-fp 
+
+mkdir -p llvm-gcc4.2;cd llvm-gcc4.2;$abssrcroot/llvm-gcc4.2/configure --prefix=$prefix --enable-llvm=`llvm-config --prefix` --enable-languages=c --target=tce-llvm --disable-libssp --disable-multilib --with-build-time-tools=$abssrcroot/fake-binutils --with-newlib --with-libgloss --disable-libstdcxx-pch --disable-newlib-io-long-long --enable-newlib-io-pos-args --disable-newlib-io-long-double --enable-newlib-hw-fp 
+
 fi

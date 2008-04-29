@@ -1,6 +1,8 @@
 #!/bin/bash
 EXPLORE_BIN="../../../../src/codesign/Explorer/explore"
 SCHEDULE_BIN="../../../../src/bintools/Scheduler/schedule"
+SCHEDULER_CONF=../../../../scheduler/passes/old_gcc.conf
+SCHEDULE="${SCHEDULE_BIN} -c ${SCHEDULER_CONF} "
 TTASIM_BIN="../../../../src/codesign/ttasim/ttasim"
 
 # TODO: fu/rf/bus count check
@@ -12,9 +14,9 @@ TTASIM_BIN="../../../../src/codesign/ttasim/ttasim"
 "${EXPLORE_BIN}" -w 2 growmachine.dsdb 1>/dev/null
 "${EXPLORE_BIN}" -w 3 growmachine.dsdb 1>/dev/null
 
-"${SCHEDULE_BIN}" -o 1.tpef -a 1.adf data/sequential_program 1>/dev/null
-"${SCHEDULE_BIN}" -o 2.tpef -a 2.adf data/sequential_program 1>/dev/null
-"${SCHEDULE_BIN}" -o 3.tpef -a 3.adf data/sequential_program 1>/dev/null
+${SCHEDULE} -o 1.tpef -a 1.adf data/sequential_program 1>/dev/null
+${SCHEDULE} -o 2.tpef -a 2.adf data/sequential_program 1>/dev/null
+${SCHEDULE} -o 3.tpef -a 3.adf data/sequential_program 1>/dev/null
 
 CYCLECOUNT_1=$(
 ${TTASIM_BIN} <<EOF

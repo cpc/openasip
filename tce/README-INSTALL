@@ -62,7 +62,7 @@ Tcl                   8.0                                  BSD-style
 Boost                 1.32.0                               very permissive
 sqlite3               3.0.0 (v2 not supported)             public domain
 Python                >= 2.4                               very permissive
-LLVM                  only 2.1 supported                   LLVM Release License
+LLVM                  only 2.2 supported                   LLVM Release License
 
 
 optional:
@@ -103,15 +103,15 @@ For example, to install the required libraries and tools for Ubuntu 7.10
 using its package manager 'apt-get', you need to execute the following command
 as root: 
 
-apt-get install libwxgtk2.6-dev libboost-{filesystem,graph,regex,thread}-dev \
+apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
                 tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 \
                 libxerces27-dev g++ make latex2html
 
 NOTE! In order to compile programs from C, you need to install LLVM. There
-is no decent Debian packages available, so the best way is to install it
-from sources. 
+are no decent Debian packages available for older Debian/Ubuntu versions, 
+so the best way is to install it from sources. 
 
-You can download LLVM sources from here: http://www.llvm.org/releases/
+You can download the LLVM sources from here: http://www.llvm.org/releases/
 Remember to download a supported LLVM version, as listed above.
 
 
@@ -121,7 +121,7 @@ Officially supported Linux distributions
 TCE is compiled and tested automatically in several Linux distribution 
 environments on every week day. These distributions are 'officially
 supported distributions' which are guaranteed to carry majority of 
-packages required by TCE and also pass automated tests. Some distributions
+the packages required by TCE and also pass automated tests. Some distributions
 may require installing packages not found in distribution's official
 repositories.
 
@@ -142,12 +142,11 @@ These distributions are used by developers or active users of TCE, but
 might not be included in the "compiletest farm" which compiles and tests 
 TCE automatically.
 
-Arch 0.8          [Esa M., Tero]
+Arch 0.8          [Esa, Tero]
 Kubuntu 7.04      [Veli-Pekka, Teemu]
 Kubuntu 7.10      [Pekka]
 Kubuntu 8.04      [Pekka@laptop]
 Ubuntu 7.10       [Viljami]
-Fedora Core 8     [Otto]
 
 TCE on 64-bit distributions
 ===========================

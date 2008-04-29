@@ -1,1 +1,2 @@
-SUBDIRS = TableGen
+SUBDIRS = TableGen bugpoint
+

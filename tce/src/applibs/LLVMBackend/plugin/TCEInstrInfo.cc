@@ -25,11 +25,19 @@ using namespace llvm;
  * Constructor.
  */
 TCEInstrInfo::TCEInstrInfo() :
-    TargetInstrInfo(TCEInsts, sizeof(TCEInsts) / sizeof(TCEInsts[0])),
+    //TargetInstrInfo(TCEInsts, sizeof(TCEInsts) / sizeof(TCEInsts[0])),
+    TargetInstrInfoImpl(TCEInsts, sizeof(TCEInsts) / sizeof(TCEInsts[0])),
     ri_(*this) {
 
 }
 
+/**
+ * Destructor.
+ */
+TCEInstrInfo:: ~TCEInstrInfo() {   
+}
+
+			       
 /**
  * Returns true if the instruction is a register to register move.
  */
@@ -85,17 +93,11 @@ TCEInstrInfo::isLoadFromStackSlot(
         //mi->getOpcode() == TCE::LDHri ||
         mi->getOpcode() == TCE::LDWi) {
 
-#if defined(LLVM_2_1)
-        if (mi->getOperand(1).isFrameIndex() &&
-            mi->getOperand(2).isImmediate() &&
-            mi->getOperand(2).getImmedValue() == 0) {
-            frameIndex = mi->getOperand(1).getFrameIndex();
-#else
         if (mi->getOperand(1).isFrameIndex() &&
             mi->getOperand(2).isImmediate() &&
             mi->getOperand(2).getImm() == 0) {
+            
             frameIndex = mi->getOperand(1).getIndex();
-#endif
             return mi->getOperand(0).getReg();
         }
     }
@@ -113,35 +115,133 @@ TCEInstrInfo::isStoreToStackSlot(MachineInstr* mi, int& frameIndex) const {
         //mi->getOpcode() == TCE::STHri ||
         mi->getOpcode() == TCE::STWir) {
 
-#if defined(LLVM_2_1)
-       if (mi->getOperand(0).isFrameIndex() &&
-           mi->getOperand(1).isImmediate() &&
-           mi->getOperand(1).getImmedValue() == 0) {
-           frameIndex = mi->getOperand(1).getFrameIndex();
-#else
        if (mi->getOperand(0).isFrameIndex() &&
            mi->getOperand(1).isImmediate() &&
            mi->getOperand(1).getImm() == 0) {
-           frameIndex = mi->getOperand(1).getIndex();
-#endif
-
-            return mi->getOperand(2).getReg();
+           
+           frameIndex = mi->getOperand(0).getIndex();
+           return mi->getOperand(2).getReg();
         }
     }
     return 0;
 }
 
+/**
+ * Returns true if program control can't fall through the last instruction
+ * in the basic block, false otherwise.
+ */
 bool
 TCEInstrInfo::BlockHasNoFallThrough(MachineBasicBlock& mbb) const {
-
-    std::cerr << "BlochHasNoFallThrough(): ";
 
     if (mbb.empty()) return false;
 
     if (mbb.back().getOpcode() ==  TCE::TCEBR) {
-        std::cerr << "TRUE" << std::endl;
         return true; // Unconditional branch.
     }
-    std::cerr << "false" << std::endl;
+
     return false;
+}
+
+
+/**
+ * Creates instructions for storing value from a register to stack slot.
+ *
+ * @param mbb Basic block where the store is done.
+ * @param mbbi Iterator to the place where the store instruction is added.
+ * @param srcReg Register to store.
+ * @param fi Frame index of the stack slot.
+ * @param rc Class of the register to store.
+ */
+void
+TCEInstrInfo::storeRegToStackSlot(
+    MachineBasicBlock& mbb,
+    MachineBasicBlock::iterator mbbi,
+    unsigned srcReg, bool isKill, int fi,
+    const TargetRegisterClass* rc) const {
+
+    if (rc == TCE::I32RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::STWir))
+            .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
+    } else if (rc == TCE::F32RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::STWir))
+            .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
+    } else if (rc == TCE::I1RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::STWir))
+            .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
+    } else {
+        assert(0 && "Can't store this register to stack slot");
+    }
+}
+
+/**
+ * Creates instructions for loading value from a stack slot to a register.
+ *
+ * @param mbb Basic block where the load is done.
+ * @param mbbi Iterator to the place where the load instruction is added.
+ * @param destReg Register where the value is loaded.
+ * @param fi Frame index of the stack slot.
+ * @param rc Class of the register to load.
+ */
+void
+TCEInstrInfo::loadRegFromStackSlot(
+    MachineBasicBlock& mbb,
+    MachineBasicBlock::iterator mbbi,
+    unsigned destReg, int fi,
+    const TargetRegisterClass* rc) const {
+
+    if (rc == TCE::I32RegsRegisterClass) {
+        BuildMI(
+            mbb, mbbi, get(TCE::LDWi),
+            destReg).addFrameIndex(fi).addImm(0);
+    } else if (rc == TCE::F32RegsRegisterClass) {
+        BuildMI(
+            mbb, mbbi, get(TCE::LDWi),
+            destReg).addFrameIndex(fi).addImm(0);
+    } else if (rc == TCE::I1RegsRegisterClass) {
+        BuildMI(
+            mbb, mbbi, get(TCE::LDWi),
+        destReg).addFrameIndex(fi).addImm(0);
+    } else {
+
+        assert(0 && "Can't load this register from stack slot");
+    }  
+}
+
+/**
+ * Creates instruction for copying value from a register to another.
+ *
+ * @param mbb Basic block where the copy is done.
+ * @param mbbi Iterator to the place where the copy instruction is added.
+ * @param srcReg Register where the value is copied from.
+ * @param destReg Register where the value is copied to.
+ * @param rc Class of the register to copy.
+ */
+void
+TCEInstrInfo::copyRegToReg(
+    MachineBasicBlock& mbb,
+    MachineBasicBlock::iterator mbbi,
+    unsigned destReg, unsigned srcReg,
+    const TargetRegisterClass* dstRC,
+    const TargetRegisterClass* srcRC) const {
+
+    assert(srcRC == dstRC && "not yet implemented");
+
+    if (srcRC == TCE::I1RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::MOVI1rr), destReg).addReg(srcReg);
+    } else if (srcRC == TCE::I8RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::MOVI8rr), destReg).addReg(srcReg);
+    } else if (srcRC == TCE::I16RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::MOVI16rr), destReg).addReg(srcReg);
+    } else if (srcRC == TCE::I32RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::MOVI32rr), destReg).addReg(srcReg);
+    } else if (srcRC == TCE::I64RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::MOVI64rr), destReg).addReg(srcReg);
+    } else if (srcRC == TCE::F32RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::MOVF32rr), destReg).addReg(srcReg);
+    } else if (srcRC == TCE::F64RegsRegisterClass) {
+        BuildMI(mbb, mbbi, get(TCE::MOVF64rr), destReg).addReg(srcReg);
+    } else {
+        assert(
+            false && "TCERegisterInfo::copyRegToReg(): Can't copy register");
+    }
 }

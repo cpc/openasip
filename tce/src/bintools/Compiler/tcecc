@@ -102,13 +102,13 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # even thoug it does it very bad, it shorten optimizetime)
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":                    
-                    command = "tce-llvm-gcc -O2 -ffreestanding "\
+                    command = "tce-llvm-gcc --emit-llvm -O2 -ffreestanding "\
                               "-fno-unit-at-a-time -c -I" + tmpDir + " " +\
                               compileFlags + baseName + suffix + " -o " +\
                               outFileName
 
                 elif suffix == ".cpp" or suffix == ".cc":
-                    command = "tce-llvm-g++ -O2 -ffreestanding "\
+                    command = "tce-llvm-g++ --emit-llvm -O2 -ffreestanding "\
                               "-fno-unit-at-a-time -c -I" + tmpDir + " " +\
                               compileFlags + baseName + suffix + " -o " +\
                               outFileName
@@ -155,6 +155,15 @@ def exitWithError(status, alreadyVerbose, output):
 ##
 def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
+    global llvmGccPrefix
+
+    llvmGccStartFiles = llvmGccPrefix + "/tce-llvm/lib/crt0.o "
+
+    llvmGccEndFiles = (llvmGccPrefix + "/tce-llvm/lib/libc.a " +
+                       llvmGccPrefix + "/tce-llvm/lib/libnosys.a " +
+                       llvmGccPrefix + "/tce-llvm/lib/libm.a " +
+                       llvmGccPrefix + "/tce-llvm/lib/crtend.o ")
+
     LINKFLAGS=""
     for i in options.lib_dirs:
         LINKFLAGS += "-L" + i + " "
@@ -164,11 +173,11 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     linkedFileName = fileNamePrefix + "_linked"
     #### Link all binary code together
-    command = "tce-llvm-gcc -O2 -o " + linkedFileName
+    command = "llvm-ld -disable-opt -o " + linkedFileName + " " + llvmGccStartFiles
     for name in linkList:
         command += " " + name
 
-    command += " " + LINKFLAGS
+    command += " " + llvmGccEndFiles + LINKFLAGS
 
     (exitCode, output) = runCommand(command, options.verbose)
     if exitCode != 0:
@@ -498,9 +507,9 @@ if options.adf_file != "":
 
     #### Compile to unscheduled mixed code for the target architecture
     if not runningInstalled:
-        command = srcRoot + "/bintools/Compiler/llvm-tce/llvmtce"
+        command = srcRoot + "/bintools/Compiler/llvm-tce/llvm-tce"
     else:
-        command = "llvmtce"
+        command = "llvm-tce"
 
     if options.verbose is True:
         command += " -v"

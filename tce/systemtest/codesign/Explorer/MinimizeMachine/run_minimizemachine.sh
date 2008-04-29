@@ -1,6 +1,8 @@
 #!/bin/bash
 EXPLORE_BIN="../../../../src/codesign/Explorer/explore"
 SCHEDULE_BIN="../../../../src/bintools/Scheduler/schedule"
+SCHEDULER_CONF=../../../../scheduler/passes/old_gcc.conf
+SCHEDULE="${SCHEDULE_BIN} -c ${SCHEDULER_CONF} "
 TTASIM_BIN="../../../../src/codesign/ttasim/ttasim"
 
 "${EXPLORE_BIN}" -a ./data/1_added_fu_and_rf.adf testi.dsdb &>/dev/null
@@ -26,7 +28,7 @@ if [ "${RFS}" -gt 6 ]; then
     echo "No rfs removed."
 fi
 
-"${SCHEDULE_BIN}" -o sim.tpef -a ${NEW_CONFIG}.adf data/sequential_program 1>/dev/null
+${SCHEDULE} -o sim.tpef -a ${NEW_CONFIG}.adf data/sequential_program 1>/dev/null
 
 # simulate output
 ttasim="../../../../src/codesign/ttasim/ttasim"

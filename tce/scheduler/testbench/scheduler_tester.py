@@ -227,7 +227,7 @@ def ParseCommandLine():
     if not configFileDefined:
         # Use the default scheduling configuration of the 'tcecc'.
         if useLLVM == True:
-            defaultLLVMConf = schedulerConfDir + '/default_tcecc_scheduler.conf'
+            defaultLLVMConf = schedulerConfDir + '/default_scheduler.conf'
             if not file_readable(defaultLLVMConf):
                 print "Cannot open the scheduler conf for LLVM/TCE in '%s'" % defaultLLVMConf
                 sys.exit(3)
@@ -235,7 +235,7 @@ def ParseCommandLine():
                 configFileName = defaultLLVMConf
                 configFileDefined = True
         else:
-            defaultConf = schedulerConfDir + '/default_scheduler.conf'
+            defaultConf = schedulerConfDir + '/old_gcc.conf'
             if not file_readable(defaultConf):
                 print "Cannot open the default scheduler conf for old gcc frontend in '%s'" % defaultConf
                 sys.exit(3)
