@@ -20,7 +20,7 @@
 #include "llvm/DerivedTypes.h"
 #include "llvm/Instructions.h"
 #include "llvm/Constants.h"
-#include "llvm/Pass.h"
+// #include "llvm/Pass.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Support/Compiler.h"
@@ -70,12 +70,12 @@ namespace {
     ///
     class VISIBILITY_HIDDEN LowerMissingInstructions : public BasicBlockPass {
         std::map< std::string, Constant*> replaceFunctions;        
-        TTAMachine::Machine* mach_;
+        const TTAMachine::Machine* mach_;
         Module* dstModule_;
         
     public:
         static char ID; // Pass ID, replacement for typeid       
-        LowerMissingInstructions();
+        LowerMissingInstructions(const TTAMachine::Machine& mach);
 
         virtual void getAnalysisUsage(AnalysisUsage &AU) const {
             AU.addRequired<TargetData>();
@@ -96,8 +96,6 @@ namespace {
         bool doInitialization(Module &M);
         bool doFinalization (Module &M);
 
-        bool linkEmulationLib();
-
         virtual bool doInitialization(Function &F) {
             return BasicBlockPass::doInitialization(F);
         }
@@ -114,22 +112,21 @@ namespace {
     };
 
     char LowerMissingInstructions::ID = 0;    
-    RegisterPass<LowerMissingInstructions>
-    X("lowermissing", "Lower missing instructions to libcalls");
-}
-
-LowerMissingInstructions::LowerMissingInstructions() : 
-    BasicBlockPass((intptr_t)&ID), mach_(NULL) {
+//    RegisterPass<LowerMissingInstructions>
+//    X("lowermissing", "Lower missing instructions to libcalls");
 }
 
 // Publically exposed interface to pass...
-const PassInfo* LowerMissingInstructionsID = X.getPassInfo();
+// const PassInfo* LowerMissingInstructionsID = X.getPassInfo();
+
 // - Interface to this file...
-Pass* createLowerMissingInstructionsPass() {
-    return new LowerMissingInstructions();
+Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach) {
+    return new LowerMissingInstructions(mach);
 }
 
-
+LowerMissingInstructions::LowerMissingInstructions(const TTAMachine::Machine& mach) : 
+    BasicBlockPass((intptr_t)&ID), mach_(&mach) {
+}
 
 // convert type name to string
 std::string stringType(const Type* type) {
@@ -156,9 +153,6 @@ std::string stringType(const Type* type) {
     }
 }
 
-// doInitialization - For the lower allocations pass, this ensures that a
-// module contains a declaration for a malloc and a free function.
-
 const Type* getLLVMType(
     Operand::OperandType type, const Type* llvmIntegerType) {
     switch (type) {
@@ -176,7 +170,6 @@ const Type* getLLVMType(
 }
 
 const std::vector<std::string>& llvmFootprints(std::string tceOp) {
-
     static bool init = true;
     static std::map<std::string, std::vector<std::string> > footprints;
     
@@ -343,46 +336,31 @@ void LowerMissingInstructions::addFunctionForFootprints(
         footprints = llvmFootprints(op.name() + suffix);
                        
     for (unsigned int j = 0; j < footprints.size(); j++) {                
-        replaceFunctions[footprints[j]] = 
-            M.getOrInsertFunction(op.emulationFunctionName(), fType);
-        
-        // set some properties for the function
-//        Function* func = M.getFunction(op.emulationFunctionName());
-//        func->setLinkage(GlobalValue::InternalLinkage);        
+        Function* func = M.getFunction(op.emulationFunctionName());
+        replaceFunctions[footprints[j]] = func;
+
+//        replaceFunctions[footprints[j]] = 
+//            M.getOrInsertFunction(op.emulationFunctionName(), fType);
 
         std::cerr << "Operation: " << op.name()
                   << " is emulated with: " << op.emulationFunctionName() 
                   << " footprint: " << footprints[j]
-                  << std::endl;                        
+                  << std::endl;
+
+        if (replaceFunctions[footprints[j]] == NULL) {
+            std::cerr << " DIDNT FOUND SUITABLE FUNCTION" << std::endl;
+        }
     }
 }
 
-bool LowerMissingInstructions::doInitialization(Module &M) {
+bool LowerMissingInstructions::doInitialization(Module &M) {        
+    
     dstModule_ = &M;    
 
     bool retVal = true;
 
-// NOTE emulation lib is not linked for now NOTE 
-// retVal = linkEmulationLib();
-//    assert(retVal && "Emulation functions could not be linked");                
-
-    // Start creating replacement functions..    
-    if (!ADFFile.empty()) {
-        try {
-            mach_ = Machine::loadFromADF(ADFFile);
-        } catch ( ... ) {
-            std::cerr << "Error in LowerMissing. " 
-                      << "Could not read adf file: " << ADFFile << std::endl;
-            return false;
-        }
-    } else {
-        return false;
-    }    
-    
     OperationDAGSelector::OperationSet 
         opSet = MachineInfo::getOpset(*mach_);
-    
-    delete mach_;
     
     OperationDAGSelector::OperationSet
         requiredSet = OperationDAGSelector::llvmRequiredOpset();
@@ -495,88 +473,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
 }
 
 bool LowerMissingInstructions::doFinalization(Module& /* M */) {
-//     if (NumLowered != 0) {
-//         bool retVal = linkEmulationLib();
-//         assert(retVal && "Emulation functions could not be linked");                
-//     }
-
-    // go through replaceFunctions map and remove empty declarations
-//     Module::FunctionListType::iterator i;
-    
-//     for (i = M.getFunctionList().begin(); 
-//          i != M.getFunctionList().end(); i++) {
-                
-//         Function& func = *i;
-
-//         if (func.isDeclaration()) {
-//             std::cerr << "Erased: " << func.getName() << std::endl; 
-//             func.removeFromParent();
-//         } else {
-//             std::cerr << "Kept: " << func.getName() << std::endl; 
-//         }
-//     }    
-    
     return true;
-}
-
-bool LowerMissingInstructions::linkEmulationLib() {
-    // Link emulation functions to program if --emulation-lib bytecode
-    // is given.
-
-    // check if already initialized
-    Module &M = *dstModule_;
-    if (dstModule_ == NULL) {
-        return true;
-    }
-    dstModule_ = NULL;
-
-    bool retVal = true;
-    const sys::Path fName(EmulationFunctionsFile);
-    if (fName.exists()) {
-        
-        Module* Result = 0;
-        std::string ErrorMessage;
-        
-        if (MemoryBuffer *Buffer =
-            MemoryBuffer::getFileOrSTDIN(fName.toString(),
-                                         &ErrorMessage)) {
-            
-            Result = ParseBitcodeFile(Buffer, &ErrorMessage);
-            delete Buffer;
-        }
-        
-        if (Linker::LinkModules(&M, Result, &ErrorMessage)) {
-            
-            cerr << "link error in '" 
-                 << EmulationFunctionsFile
-                 << "': " << ErrorMessage << "\n";
-            
-            retVal = false;
-        } else {
-            cerr << "Linked succesfully: " 
-                 << EmulationFunctionsFile << "\n";
-        }
-        
-        
-//         Linker linkModule = Linker::Linker("lowermissing", &M, 0);
-        
-//         bool isNative = false;
-//         if (linkModule.LinkInFile(fName, isNative)) {
-            
-//             cerr << "link error in '" 
-//                  << EmulationFunctionsFile
-//                  << "': " << linkModule.getLastError() << "\n";
-            
-//             retVal = false;
-//         } else {
-// //             cerr << "Linked succesfully: " 
-// //                  << EmulationFunctionsFile << "\n";
-//         }
-        
-//         linkModule.releaseModule();
-    }
-    
-    return retVal;
 }
 
 // runOnBasicBlock - This method does the actual work of converting
@@ -586,9 +483,6 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
     bool Changed = false;
     
     BasicBlock::InstListType &BBIL = BB.getInstList();
-
-    //    const TargetData &TD = getAnalysis<TargetData>();
-    //    const Type* IntPtrTy = TD.getIntPtrType();
 
     // Loop over all of the instructions, looking for instructions to lower
     // instructions
@@ -615,6 +509,11 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
             
             NewCall->setTailCall();    
             
+//            std::cerr << "Replacing: " << footPrint 
+//                      << " I->getType():" << stringType(I->getType()) 
+//                      << " NewCall->getType():" << stringType(NewCall->getType()) 
+//                      << std::endl;
+           
             Value *MCast;
             if (NewCall->getType() != Type::VoidTy)
                 MCast = new BitCastInst(NewCall, I->getType(), "", I);
@@ -624,16 +523,11 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
             // Replace all uses of the instruction with the cast inst
             I->replaceAllUsesWith(MCast);
             
-//            std::cerr << "Replaced: " + footPrint + " nodes" << std::endl;
-           
             I = --BBIL.erase(I);
             Changed = true;
             
             NumLowered++;
         }
-        
-//        std::cerr << "Runned lower missing lowered: " 
-//                  << NumLowered << std::endl;
     }
 
     return Changed;

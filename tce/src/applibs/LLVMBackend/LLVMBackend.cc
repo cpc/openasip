@@ -40,7 +40,7 @@ using namespace llvm;
 #include <llvm/Target/TargetLowering.h>
 volatile TargetLowering dummy(TargetMachine());
 
-Pass* createLowerMissingInstructionsPass();
+Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
 extern const PassInfo* LowerMissingInstructionsID;
 
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
@@ -164,7 +164,7 @@ LLVMBackend::compile(
     // lower invoke/unwind
 
     // LOWER MISSING
-    pm.add(createLowerMissingInstructionsPass());
+    pm.add(createLowerMissingInstructionsPass(target));
 
     // DCE
     pm.add(createUnreachableBlockEliminationPass());
