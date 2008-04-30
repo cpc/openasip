@@ -500,10 +500,10 @@ if options.adf_file != "":
     if options.no_schedule is False and options.scheduler_config is None:
         if runningInstalled:
             options.scheduler_config = \
-                tceprefix + "/share/tce/scheduler/passes/default_tcecc_scheduler.conf"
+                tceprefix + "/share/tce/scheduler/passes/default_scheduler.conf"
         else:
             options.scheduler_config = \
-                os.path.normpath(srcRoot + "../scheduler/passes/default_tcecc_scheduler.conf")
+                os.path.normpath(srcRoot + "../scheduler/passes/default_scheduler.conf")
 
     #### Compile to unscheduled mixed code for the target architecture
     if not runningInstalled:
