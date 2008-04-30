@@ -348,7 +348,7 @@ void LowerMissingInstructions::addFunctionForFootprints(
                   << std::endl;
 
         if (replaceFunctions[footprints[j]] == NULL) {
-            std::cerr << " DIDNT FOUND SUITABLE FUNCTION" << std::endl;
+            std::cerr << " ERROR: suitable function wasn't found" << std::endl;
         }
     }
 }
@@ -509,19 +509,27 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
             
             NewCall->setTailCall();    
             
-//            std::cerr << "Replacing: " << footPrint 
-//                      << " I->getType():" << stringType(I->getType()) 
-//                      << " NewCall->getType():" << stringType(NewCall->getType()) 
-//                      << std::endl;
-           
-            Value *MCast;
-            if (NewCall->getType() != Type::VoidTy)
-                MCast = new BitCastInst(NewCall, I->getType(), "", I);
-            else
-                MCast = Constant::getNullValue(I->getType());
+            std::cerr << "Replacing: " << footPrint 
+                      << " I->getType():" << stringType(I->getType()) 
+                      << " NewCall->getType():" << stringType(NewCall->getType()) 
+                      << std::endl;
             
-            // Replace all uses of the instruction with the cast inst
-            I->replaceAllUsesWith(MCast);
+            
+            // Replace all uses of the instruction with call instruction
+            if (I->getType() != NewCall->getType()) {
+                assert(llvm::CastInst::isCastable(NewCall->getType(), I->getType()));
+                Value *MCast;                
+                Instruction::CastOps castOps =
+                    llvm::CastInst::getCastOpcode(
+                        NewCall, false, I->getType(), false);
+                MCast = llvm::CastInst::create(
+                    castOps ,NewCall, I->getType(), "", I);
+                I->replaceAllUsesWith(MCast);                                
+
+            } else {
+                I->replaceAllUsesWith(NewCall);
+            }
+                        
             
             I = --BBIL.erase(I);
             Changed = true;
