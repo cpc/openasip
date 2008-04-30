@@ -129,8 +129,9 @@ HDBRegistry::loadFromSearchPaths() {
     std::vector<std::string>::const_iterator hdbIter = hdbPaths.begin();
     for(; hdbIter != hdbPaths.end(); hdbIter++) {
         if (!FileSystem::fileExists(*hdbIter) ||
-            !FileSystem::fileIsDirectory(*hdbIter)) {
-            // Directory doesn't exist.
+            !FileSystem::fileIsDirectory(*hdbIter) ||
+            !FileSystem::fileIsReadable(*hdbIter)) {
+            // Directory doesn't exist or can't be read.
             continue;
         }
         std::vector<std::string> dir = 

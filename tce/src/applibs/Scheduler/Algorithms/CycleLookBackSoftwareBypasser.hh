@@ -22,7 +22,8 @@ class MoveNode;
  */
 class CycleLookBackSoftwareBypasser : public SoftwareBypasser {
 public:
-    CycleLookBackSoftwareBypasser(int cyclesToLookBack=1);
+    CycleLookBackSoftwareBypasser(int cyclesToLookBack=1,
+                                  bool killDeadResult=true);
     virtual ~CycleLookBackSoftwareBypasser();
 
     virtual int bypass(
@@ -46,6 +47,15 @@ private:
     /// of the read value
     int cyclesToLookBack_;
 
+    // whether dead resutls should be killed.
+    bool killDeadResults_;
+
+    int bypassNode(
+        MoveNode& nodeToBypass,
+        int& lastOperandCycle,
+        DataDependenceGraph& ddg,
+        ResourceManager& rm);
+        
     /// Stores sources and bypassed moves in case they
     /// have to be unassigned (case when operands are scheduled
     /// and bypassed but result can not be scheduled with such operands

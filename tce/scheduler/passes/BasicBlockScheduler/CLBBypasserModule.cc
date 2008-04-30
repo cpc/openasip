@@ -21,8 +21,9 @@
 // default value when nothing given as parameter or environment variable.
 #define BYPASS_DISTANCE 1
 
-CLBBypasserModule::CLBBypasserModule() : clbs_(NULL) {
-    bypassDistance_ = BYPASS_DISTANCE;
+CLBBypasserModule::CLBBypasserModule() : clbs_(NULL), 
+                                         bypassDistance_(BYPASS_DISTANCE),
+                                         killDeadResults_(true) {
 }
 
 CLBBypasserModule::~CLBBypasserModule() {
@@ -43,8 +44,24 @@ void CLBBypasserModule::setOptions(
 
     for (std::vector<ObjectState*>::const_iterator iter = 
              options.begin(); iter != options.end(); iter++) {
-        if ((*iter)->hasAttribute("name") && (*iter)->stringAttribute("name") == LOOKBACK_DISTANCE_OPTION) {
+        if ((*iter)->hasAttribute("name") && 
+            (*iter)->stringAttribute("name") == LOOKBACK_DISTANCE_OPTION) {
             bypassDistance_ = (*iter)->intValue();
+        }
+        if ((*iter)->hasAttribute("name") && 
+            (*iter)->stringAttribute("name") == KILL_DEAD_RESULTS_OPTION) {
+            if ( (*iter)->stringValue() == "true" ) {
+                killDeadResults_ = true;
+                continue;
+            }
+            if ( (*iter)->stringValue() == "false" ) {
+                killDeadResults_ = false;
+                continue;
+            }
+            throw IllegalParameters(
+                __FILE__,__LINE__,__func__, 
+                "only true or false value allowed for " +
+                KILL_DEAD_RESULTS_OPTION);
         }
     }
 }
@@ -53,14 +70,27 @@ SoftwareBypasser&
 CLBBypasserModule::bypasser() {
 
     const char* ENVIRONMENT_LBD = getenv("TCE_BYPASS_LBD");
+    const char* ENVIRONMENT_KDR = getenv("TCE_BYPASS_DRE");
     
     if (clbs_ == NULL) {
-        if (ENVIRONMENT_LBD == NULL) {
-            clbs_ = new CycleLookBackSoftwareBypasser(bypassDistance_);
-        } else {
-           const int lbd = Conversion::toInt(ENVIRONMENT_LBD);
-           clbs_ = new CycleLookBackSoftwareBypasser(lbd);
+        if (ENVIRONMENT_LBD != NULL && *ENVIRONMENT_LBD != 0) {
+            bypassDistance_ = Conversion::toInt(ENVIRONMENT_LBD); 
         }
+        if (ENVIRONMENT_KDR != NULL && *ENVIRONMENT_KDR != 0) {
+            if (!strcmp(ENVIRONMENT_KDR,"true")) {
+                killDeadResults_ = true;
+            } else if (!strcmp(ENVIRONMENT_KDR,"false")) {
+                killDeadResults_ = false;
+            } else {
+                throw IllegalParameters(
+                    __FILE__,__LINE__,__func__,"Illegal value in "
+                    "TCE_BYPASS_DRE environment variable. "
+                    "Only true/false allowed");
+            }
+        }
+
+        clbs_ = new CycleLookBackSoftwareBypasser(
+            bypassDistance_,killDeadResults_);
     }
     return *clbs_;
 }
@@ -92,4 +122,7 @@ CLBBypasserModule::longDescription() const {
 }
 
 const std::string CLBBypasserModule::LOOKBACK_DISTANCE_OPTION = "swb-lookback-distance";
+const std::string CLBBypasserModule::KILL_DEAD_RESULTS_OPTION = "kill-dead-results";
+
+
 SCHEDULER_PASS(CLBBypasserModule)
