@@ -14,12 +14,10 @@ BUILD_DEFAULT = pdf
 
 include $(DEFS)/Makefile.defs
 
-
-# Copies the generated PDF to the user manual installation directory
-# and to the download page of the public web pages (also HTML generated there).
-# Be sure to export WEBHOTEL_LOGIN to your login at the webhotel.cs.tut.fi.
 publish: TCE.dvi html
 	# dvipdfm seems to produce a better PDF 
 	dvipdfm -o TCE_manual.pdf TCE.dvi
 	cp TCE_manual.pdf ../../../manual/
 
+publish_to_web: TCE.pdf TCE.ps html
+	scp -r TCE.pdf TCE.ps TCE pjaaskel@webhotel.cs.tut.fi:/export/services/tce.cs.tut.fi/public_html/user_manual

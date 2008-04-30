@@ -452,6 +452,35 @@ OperationDialog::setOperandType(int operand, bool read) {
 
 
 /**
+ * Warns if pipeline resources without usages exist
+ */
+void 
+OperationDialog::warnOnResourcesWithoutUsages() {
+    ExecutionPipeline* pipeline = operation_->pipeline();
+    ProDeTextGenerator* prodeTexts = ProDeTextGenerator::instance();
+    for (std::list<string>::const_iterator iter = newResources_.begin();
+        iter != newResources_.end(); iter++) {
+            
+        bool warn = true;
+        for (int cycle = 0; cycle < pipeline->latency(); cycle++) {
+            if (pipeline->isResourceUsed(*iter, cycle)) {
+                warn = false;
+                break;
+            }
+        }
+        
+        if (warn) {
+            format fmt = prodeTexts->text(
+                ProDeTextGenerator::MSG_WARN_RES_WITHOUT_USAGES);
+            WarningDialog warning(this, WxConversion::toWxString(fmt.str() 
+                + *iter));
+            warning.ShowModal();
+        }
+    }
+}
+
+
+/**
  * Returns row nubmer of the operand in the resource usage grid.
  *
  * Returns -1 if the operand is not found.
@@ -1011,6 +1040,9 @@ OperationDialog::onOK(wxCommandEvent&) {
         dialog.ShowModal();
         return;
     }
+    
+    warnOnResourcesWithoutUsages();
+    
     EndModal(wxID_OK);
 }
 

@@ -926,11 +926,18 @@ TDGen::writeEmulationPattern(
       << dagNodeToString(op, dag, *res, 0, true, false)
       << ">;" << std::endl;
 
-    if (op.name() == "GE" || op.name() == "GEF" || op.name() == "LTF" ||
-        op.name() == "NE" || op.name() == "EQF" || op.name() == "LE" ||
-        op.name() == "LEF" || op.name() == "NEF" || op.name() == "GEU" ||
-        op.name() == "LEU" || op.name() == "LEUF" || op.name() == "GEUF" ||
-        op.name() == "LT" || op.name() == "LTU") {
+    if (op.name() == "EQ" ||
+        op.name() == "EQF" || op.name() == "EQUF" ||
+        op.name() == "GE" ||op.name() == "GEU" ||
+        op.name() == "GEF" || op.name() == "GEUF" || 
+        op.name() == "GT" || op.name() == "GTU" ||
+        op.name() == "GTF" || op.name() == "GTUF" ||
+        op.name() == "LE" || op.name() == "LEU" ||
+        op.name() == "LEF" || op.name() == "LEUF" ||
+        op.name() == "LT" || op.name() == "LTU" ||
+        op.name() == "LTF" || op.name() == "LTUF" ||
+        op.name() == "NE" ||
+        op.name() == "NEF" || op.name() == "NEUF") {
 
         // todo: b versions of those
         o << "def : Pat<(" << match1.str() << "), "

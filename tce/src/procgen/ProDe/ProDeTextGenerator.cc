@@ -258,7 +258,10 @@ ProDeTextGenerator::ProDeTextGenerator() {
 
     addText(MSG_ERROR_NO_IMMEDIATE_UNITS,
             "There are no immediate units in the machine architecture.\n");
-
+    
+    addText(MSG_WARN_RES_WITHOUT_USAGES, 
+            "Resources without usages found.\n"
+            "Removing resource: ");
 
     addText(MSG_CONFIRM_OPERAND_DELETION,
             "The operand '%1%' is in use. Do you want to clear the operand "

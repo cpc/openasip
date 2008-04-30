@@ -59,10 +59,6 @@ CycleLookBackSoftwareBypasser::bypassNode(
 
         // result value or already bypassed - don't bypass this
     if (moveNode.isSourceOperation()) {
-        TTAProgram::TerminalFUPort& src =
-            dynamic_cast<TTAProgram::TerminalFUPort&>(
-                moveNode.move().source());
-        
         return 0;
     }
 
@@ -78,8 +74,10 @@ CycleLookBackSoftwareBypasser::bypassNode(
     while(edgeIter != edges.end()) {
         
         DataDependenceEdge& edge = *(*edgeIter);
+        // if the edge is not a real reg/ra raw edge , skip to net edge
         if (edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER ||
             edge.dependenceType() != DataDependenceEdge::DEP_RAW ||
+            edge.guardUse() ||
             edge.headPseudo()) {
             edgeIter++;
             continue;
@@ -189,11 +187,11 @@ CycleLookBackSoftwareBypasser::bypass(
             break;
         }
 
-        // bypass here
+        // bypass this node.
         int rv = bypassNode(moveNode, lastOperandCycle, ddg, rm);
 
         if (rv == -1) {
-            return -1;
+            return -1; // failed, need cleanup
         }  else {
             bypassCounter += rv; 
         }

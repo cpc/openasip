@@ -143,9 +143,8 @@ might not be included in the "compiletest farm" which compiles and tests
 TCE automatically.
 
 Arch 0.8          [Esa, Tero]
-Kubuntu 7.04      [Veli-Pekka, Teemu]
-Kubuntu 7.10      [Pekka]
-Kubuntu 8.04      [Pekka@laptop]
+Kubuntu 7.04      [Teemu]
+Kubuntu 8.04      [Pekka, Veli-Pekka]
 Ubuntu 8.04       [Viljami]
 
 TCE on 64-bit distributions
