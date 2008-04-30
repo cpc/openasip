@@ -203,6 +203,8 @@ public:
         MSG_ERROR_UNKNOWN_COMMAND_ID,   ///< Error: Unknown command ID.
         MSG_ERROR_LOADING_FILE,         ///< Error: File loading failed.
         MSG_ERROR_NO_IMMEDIATE_UNITS,   ///< Error: No IUs for a template slot.
+        
+        MSG_WARN_RES_WITHOUT_USAGES,    ///< Warning: Resources without usages
 
         MSG_CONFIRM_OPERAND_DELETION,   ///< Confirm: operand deletion.
 

@@ -39,6 +39,7 @@ private:
     void updateUsageGrid();
     void updateLatency();
     void setOperandType(int operand, bool read);
+    void warnOnResourcesWithoutUsages();
 
     void onAddOperand(wxCommandEvent& event);
     void onDeleteOperand(wxCommandEvent& event);
