@@ -1,8 +1,8 @@
 /**
- * @file TempRegisterFinderPass.hh
+ * @file TempRegisterFinderPass.cc
  *
  * Class which finds free regs for temp reg copier.
- * 
+ *
  * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
  * @note rating: red
  */
@@ -17,15 +17,15 @@
 #include "InterPassData.hh"
 
 void TempRegisterFinderPass::start() throw (Exception) {
-    
+
     bool allConnected = true;
-    std::vector<TTAMachine::RegisterFile*> tempRegRFs = 
+    std::vector<TTAMachine::RegisterFile*> tempRegRFs =
         MachineConnectivityCheck::tempRegisterFiles(*target_);
 
     typedef SimpleInterPassDatum<
     std::vector<std::pair<TTAMachine::RegisterFile*,int> > > TempRegData;
     TempRegData* tempRegData = new TempRegData;
-    
+
     for (unsigned int i = 0; i < tempRegRFs.size(); i++) {
         tempRegData->push_back(
             std::pair<TTAMachine::RegisterFile*,int>(
@@ -40,7 +40,7 @@ void TempRegisterFinderPass::start() throw (Exception) {
  * in this case "TempRegisterFinderPass".
  *
  * @return The description as a string.
- */   
+ */
 std::string
 TempRegisterFinderPass::shortDescription() const {
     return "Startable: TempRegisterFinderPass";
@@ -56,7 +56,7 @@ TempRegisterFinderPass::shortDescription() const {
  */
 std::string
 TempRegisterFinderPass::longDescription() const {
-    std::string answer ="Startable: TempRegisterFinderPass";    
+    std::string answer ="Startable: TempRegisterFinderPass";
     answer += " Finds free regs for temporary register copier.";
     return answer;
 }
