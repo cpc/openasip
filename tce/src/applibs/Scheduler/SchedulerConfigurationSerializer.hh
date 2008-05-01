@@ -3,7 +3,8 @@
  *
  * Declaration of SchedulerConfigurationSerializer class.
  *
- * @author Ari Mets�halme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Vladimír Guzma 2008 (vladimir.guzma@tut.fi)
  * @note rating: red
  */
 
@@ -23,8 +24,7 @@ public:
 
     ObjectState* readState()
         throw (SerializerException);
-    SchedulingPlan* readConfiguration(
-        bool verbose = false)
+    SchedulingPlan* readConfiguration()
         throw (SerializerException, ObjectStateLoadingException);
 
 private:

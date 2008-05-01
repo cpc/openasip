@@ -3,14 +3,15 @@
  *
  * Implementation of SchedulerFrontend class.
  *
- * @author Ari Mets�halme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Vladimír Guzma 2008 (vladimir.guzma@tut.fi)
  * @note rating: red
  */
 
 #include <string>
 #include <vector>
 #include <boost/format.hpp>
-#include <ctime>
+#include <boost/timer.hpp>
 
 #include "SchedulerFrontend.hh"
 #include "SchedulerCmdLineOptions.hh"
@@ -31,6 +32,7 @@
 #include "BasicMachineCheckSuite.hh"
 #include "Algorithms/InterPassData.hh"
 #include "MachineCheckResults.hh"
+#include "FileSystem.hh"
 
 using std::string;
 using std::vector;
@@ -83,11 +85,11 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
     }
 
     // read target adf (if defined)
-    
+
     if (targetADF != "") {
         ADFSerializer adfSerializer;
         adfSerializer.setSourceFile(targetADF);
-        
+
         try {
             target = adfSerializer.readMachine();
         } catch (const Exception& e) {
@@ -101,12 +103,12 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
         // no target adf defined, keep target as NULL.
         // delete &NullMachine::instance() is an very evil thing to do.
     }
-    
+
     // read source program
     try {
         BinaryStream sourceBin(sourceProgram);
         tpefBin = BinaryReader::readBinary(sourceBin);
-        
+
         TPEFProgramFactory* progFactory = NULL;
 
         if (tpefBin->type() == Binary::FT_OBJSEQ ||
@@ -172,15 +174,15 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
     if (options.isConfigurationFileDefined()) {
         confFile = options.configurationFile();
     } else {
-        confFile = Environment::defaultSchedulerConf();
+        confFile = Environment::oldGccSchedulerConf();
     }
 
+    if (options.isVerboseSwitchDefined()) {
+        Application::setVerboseLevel(Application::VERBOSE_LEVEL_INCREASED);
+    }
     try {
-        if (options.isVerboseSwitchDefined()) {
-            schedulingPlan = SchedulingPlan::loadFromFile(confFile, true);
-        } else {
-            schedulingPlan = SchedulingPlan::loadFromFile(confFile, false);
-        }
+
+        schedulingPlan = SchedulingPlan::loadFromFile(confFile);
     } catch (const DynamicLibraryException& e) {
         delete target;
         delete tpefBin;
@@ -195,44 +197,36 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
         string msg = e.errorMessage();
         throw IOException(__FILE__, __LINE__, __func__, msg);
     }
-    // Test if user defined outputfile can be created
-    if (options.isOutputFileDefined()) {
-        string outputFile = options.outputFile();
-        FILE* out = fopen(outputFile.c_str(),"w");
-        if (out == NULL) {
-            string msg=  "Output file " + outputFile;
-            msg +=  " can not be open for writing.";
-            delete target;
-            delete tpefBin;
-            delete source;
-            delete schedulingPlan;
-            Application::logStream() << msg << std::endl;
-            throw IOException(__FILE__, __LINE__, __func__, msg);
-        }
-        fclose(out);
-    }
 
-    TTAProgram::Program* scheduled = NULL;
-    try {
-        if (options.isVerboseSwitchDefined()) {
-            scheduled = schedule(*source, *target, *schedulingPlan, true);
-        } else {
-            scheduled = schedule(*source, *target, *schedulingPlan, false);
-        }
-    } catch (const Exception& e) {
-        delete target;
-        delete tpefBin;
-        delete source;
-        delete schedulingPlan;        
-        throw;
-    }
-
-    // write out scheduled program
-    
     string outputFile = options.argument(1) + ".scheduled.tpef";
     if (options.isOutputFileDefined()) {
         outputFile = options.outputFile();
     }
+
+    if (!FileSystem::fileIsWritable(outputFile) &&
+        !FileSystem::fileIsCreatable(outputFile)) {
+        string msg=  "Output file '" + outputFile;
+        msg +=  "' can not be open for writing.";
+        delete target;
+        delete tpefBin;
+        delete source;
+        delete schedulingPlan;
+        Application::logStream() << msg << std::endl;
+        throw IOException(__FILE__, __LINE__, __func__, msg);
+    }
+
+    TTAProgram::Program* scheduled = NULL;
+    try {
+        scheduled = schedule(*source, *target, *schedulingPlan);
+    } catch (const Exception& e) {
+        delete target;
+        delete tpefBin;
+        delete source;
+        delete schedulingPlan;
+        throw;
+    }
+
+    // write out scheduled program
 
     BinaryStream tpefOut(outputFile);
 
@@ -246,7 +240,7 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
     delete tpefBin;
     delete source;
     delete schedulingPlan;
-    delete scheduled;    
+    delete scheduled;
 }
 
 /**
@@ -255,8 +249,6 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
  * @param source The source sequential program.
  * @param target The target machine.
  * @param schedulingPlan The scheduling plan (configuration of passes).
- * @param verbose Indicates if scheduler should print details on workings
- * of particular modules
  * @return Returns the scheduled program.
  * @exception IOException if module needs target machine but it is not
  * defined. ModuleRunTimeError if an run-time error occurs in scheduler
@@ -265,8 +257,7 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
 TTAProgram::Program*
 SchedulerFrontend::schedule(
     const TTAProgram::Program& source, const TTAMachine::Machine& target,
-    const SchedulingPlan& schedulingPlan,
-    bool verbose) 
+    const SchedulingPlan& schedulingPlan)
     throw (Exception) {
 
     // validate the loaded MOM, so we don't even try to schedule to
@@ -278,7 +269,7 @@ SchedulerFrontend::schedule(
         std::string errorMessage = "Cannot compile for the machine:\n";
         for (int i = 0; i < results.errorCount(); ++i) {
             MachineCheckResults::Error error = results.error(i);
-            errorMessage += 
+            errorMessage +=
                 (boost::format("%d: %s\n") % i % error.second).str();
         }
         throw IllegalMachine(__FILE__, __LINE__, __func__, errorMessage);
@@ -288,7 +279,7 @@ SchedulerFrontend::schedule(
     TTAProgram::Program* sourceCopy = source.copy();
 
     // prepare passes and helpers
-    
+
     try {
         for (int i = 0; i < schedulingPlan.passCount(); i++) {
             prepareModule(schedulingPlan.pass(i), *sourceCopy, target);
@@ -309,39 +300,37 @@ SchedulerFrontend::schedule(
         try {
             if (!pass.isStartable()) {
                 delete sourceCopy;
-                string message = 
+                string message =
                     "Internal error: Tried to start non-startable plugin "
                     "module.";
                 throw Exception(__FILE__, __LINE__, __func__, message);
             }
             pass.setInterPassData(interPassData);
-        if (verbose) {
+        if (Application::verboseLevel() >=
+            Application::VERBOSE_LEVEL_INCREASED) {
             /// Prints out info about modules starting and their execution
             /// times
             Application::logStream() << "Starting module: "
                 << pass.shortDescription() << std::endl;
-            clock_t start = clock();
-            /// Start actual module execution
+            boost::timer timer;
             pass.start();
-
-            clock_t end = clock();
-            long seconds = (end - start) / CLOCKS_PER_SEC;
-            Application::logStream() << "    Module finished in "
-                << seconds/60 << " minutes "
-                << "and " << seconds % 60 << " seconds" << std::endl;
+            long elapsed = static_cast<unsigned long>(timer.elapsed());
+            Application::logStream() << "  Module finished in "
+                << elapsed/60 << " minutes "
+                << "and " << elapsed % 60 << " seconds" << std::endl;
         } else {
             pass.start();
         }
 
         } catch (const ObjectNotInitialized& e) {
             delete sourceCopy;
-            string message = 
+            string message =
                 "Plugin not properly initialized: " + e.errorMessage() +
                 " Error in pass configuration?";
             throw Exception(__FILE__, __LINE__, __func__, message);
         } catch (const WrongSubclass& e) {
             delete sourceCopy;
-            string message = 
+            string message =
                 "Main module of a pass could not be started independently. "
                 "Possible error in plugin implementation.";
             Exception newExcp(__FILE__, __LINE__, __func__, message);
@@ -355,8 +344,8 @@ SchedulerFrontend::schedule(
             delete sourceCopy;
           /// @todo the pass name
             ModuleRunTimeError mre(
-                __FILE__, __LINE__, __func__, 
-                "The pass number " + Conversion::toString(i) + " could not finish successfully."); 
+                __FILE__, __LINE__, __func__,
+                "The pass number " + Conversion::toString(i) + " could not finish successfully.");
             mre.setCause(e);
             throw mre;
         } catch (...) {

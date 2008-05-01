@@ -3,7 +3,8 @@
  *
  * Declaration of SchedulerPluginLoader class.
  *
- * @author Ari Mets�halme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Vladimír Guzma 2008 (vladimir.guzma@tut.fi)
  * @note rating: red
  */
 
@@ -35,8 +36,7 @@ public:
 
     BaseSchedulerModule& loadModule(
         const std::string& modName, const std::string& fileName,
-        const std::vector<ObjectState*>& options = emptyOptions_,
-        bool verbose = false)
+        const std::vector<ObjectState*>& options = emptyOptions_)
         throw (DynamicLibraryException);
 protected:
     SchedulerPluginLoader();
