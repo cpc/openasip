@@ -1036,8 +1036,8 @@
     <type>normal</type>
     <size>5</size>
     <width>32</width>
-    <max-reads>2</max-reads>
-    <max-writes>2</max-writes>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
     <port name="wr">
       <connects-to>RF_i1</connects-to>
     </port>
