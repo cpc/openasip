@@ -1,4 +1,4 @@
-#!/usr/bin/php -qC
+#!/usr/bin/php5 -qC
 <?php
 
 error_reporting(E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR);

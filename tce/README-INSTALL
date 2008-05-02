@@ -114,41 +114,8 @@ so the best way is to install it from sources.
 You can download the LLVM sources from here: http://www.llvm.org/releases/
 Remember to download a supported LLVM version, as listed above.
 
-
-Officially supported Linux distributions
-========================================
-
-TCE is compiled and tested automatically in several Linux distribution 
-environments on every week day. These distributions are 'officially
-supported distributions' which are guaranteed to carry majority of 
-the packages required by TCE and also pass automated tests. Some distributions
-may require installing packages not found in distribution's official
-repositories.
-
-The environments are as follows.
-
-Debian Etch on AMD Athlon 1GHz
-Debian Sid x86-64 on Intel Core 2 Duo
-CentOS 5 on Intel Core 2 Duo
-Fedora Core 8 on Pentium D
-Ubuntu 6.06 (Dapper Drake) on Intel Core 2 Duo
-Ubuntu 8.04 (Hardy Heron) x86-64 on Intel Core 2 Duo
-
-
-Semi-supported Linux distributions
-==================================
-
-These distributions are used by developers or active users of TCE, but 
-might not be included in the "compiletest farm" which compiles and tests 
-TCE automatically.
-
-Arch 0.8          [Esa, Tero]
-Kubuntu 7.04      [Teemu]
-Kubuntu 8.04      [Pekka, Veli-Pekka]
-Ubuntu 8.04       [Viljami]
-
 TCE on 64-bit distributions
 ===========================
-If you compile LLVM 2.1 from sources you should give --enable-pic option for
+If you compile LLVM from sources you should give --enable-pic option for
 the LLVM's configure script. Otherwise compilation of TCE might fail.
 
