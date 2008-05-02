@@ -243,20 +243,6 @@
     </writes-to>
   </socket>
 
-  <socket name="fpu_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="fpu_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
   <socket name="RF_i1">
     <reads-from>
       <bus>B1</bus>
@@ -981,50 +967,6 @@
         </reads>
         <writes name="3">
           <start-cycle>6</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="fpu">
-    <port name="in">
-      <connects-to>fpu_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="out">
-      <connects-to>fpu_o1</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>cfiu</name>
-      <bind name="1">in</bind>
-      <bind name="2">out</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>cifu</name>
-      <bind name="1">in</bind>
-      <bind name="2">out</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>
