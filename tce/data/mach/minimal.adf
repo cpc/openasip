@@ -667,13 +667,13 @@
   <function-unit name="shifter">
     <port name="in1t">
       <connects-to>shifter_i1</connects-to>
-      <width>5</width>
+      <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in2">
       <connects-to>shifter_i2</connects-to>
-      <width>32</width>
+      <width>5</width>
     </port>
     <port name="out1">
       <connects-to>shifter_o1</connects-to>
