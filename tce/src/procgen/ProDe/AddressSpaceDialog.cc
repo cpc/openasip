@@ -35,6 +35,8 @@ BEGIN_EVENT_TABLE(AddressSpaceDialog, wxDialog)
     EVT_BUTTON(wxID_OK, AddressSpaceDialog::onOK)
     EVT_TEXT(ID_MIN_ADDRESS, AddressSpaceDialog::onMinAddress)
     EVT_TEXT(ID_MAX_ADDRESS, AddressSpaceDialog::onMaxAddress)
+    EVT_TEXT(ID_BIT_WIDTH, AddressSpaceDialog::onBitWidthText)
+    EVT_SPINCTRL(ID_BIT_WIDTH, AddressSpaceDialog::onBitWidth)
 END_EVENT_TABLE()
 
 
@@ -70,6 +72,8 @@ AddressSpaceDialog::AddressSpaceDialog(
     // set min and max adress spin button ranges
     minControl_ = dynamic_cast<NumberControl*>(FindWindow(ID_MIN_ADDRESS));
     maxControl_ = dynamic_cast<NumberControl*>(FindWindow(ID_MAX_ADDRESS));
+
+    bitWidthSpinCtrl_ = dynamic_cast<wxSpinCtrl*>(FindWindow(ID_BIT_WIDTH));
 
     // set widget texts
     setTexts();
@@ -250,13 +254,38 @@ AddressSpaceDialog::onMinAddress(wxCommandEvent&) {
 
 
 /**
- * Sets the range of the MinAddress spin-button.
+ * Sets the range of the MaxAddress spin-button.
  */
 void
 AddressSpaceDialog::onMaxAddress(wxCommandEvent&) {
     if (maxControl_->unsignedValue() <= minControl_->unsignedValue()) {
         maxControl_->setValue(minControl_->unsignedValue() + 1);
     }
+    int bitWidth = int(ceil((log(maxControl_->unsignedValue()) / log(2))));
+    bitWidthSpinCtrl_->SetValue(bitWidth);
+}
+
+/**
+ * Reads the range from bitWidth spin-button and updates min- and max ranges.
+ */
+void
+AddressSpaceDialog::onBitWidthText(wxCommandEvent&) {
+    //wxSpinEvent dummy;
+    //onBitWidth(dummy);
+}
+
+/**
+ * Reads the range from bitWidth spin-button and updates min- and max ranges.
+ */
+void
+AddressSpaceDialog::onBitWidth(wxSpinEvent&) {
+
+    int maxAddress = pow(2, bitWidthSpinCtrl_->GetValue()) - 1;
+    maxControl_->setValue(maxAddress);
+
+    wxCommandEvent dummy;
+    onMaxAddress(dummy);
+    onMinAddress(dummy);
 }
 
 /**
@@ -282,7 +311,7 @@ AddressSpaceDialog::createContents(
     wxStaticBoxSizer *item2 = new wxStaticBoxSizer( item3, wxVERTICAL );
     nameSizer_ = item2;
 
-    wxTextCtrl *item4 = new wxTextCtrl( parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(160,-1), 0 );
+    wxTextCtrl *item4 = new wxTextCtrl(parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(160,-1), 0);
     item2->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -301,7 +330,7 @@ AddressSpaceDialog::createContents(
     wxStaticBoxSizer *item8 = new wxStaticBoxSizer( item9, wxVERTICAL );
     widthSizer_ = item8;
 
-    wxSpinCtrl *item10 = new wxSpinCtrl( parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1 );
+    wxSpinCtrl *item10 = new wxSpinCtrl(parent, ID_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1, wxT("Spin"));
     item8->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item8, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -313,6 +342,16 @@ AddressSpaceDialog::createContents(
     NumberControl* item13 = new NumberControl(parent, ID_MAX_ADDRESS, wxDefaultPosition, wxSize(140, 20), (NumberControl::MODE_UNSIGNED | NumberControl::MODE_HEXADECIMAL));
     wxASSERT( item13 );
     item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+
+    wxBoxSizer *bitSizer = new wxBoxSizer(wxHORIZONTAL);
+
+    wxStaticText *bitText = new wxStaticText(parent, -1, wxT("Bits:"));
+    bitSizer->Add( bitText, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxSpinCtrl *bitWidth = new wxSpinCtrl( parent, ID_BIT_WIDTH, wxT("1"), wxDefaultPosition, wxSize(100,-1), 0, 1, 10000, 1);
+    bitSizer->Add( bitWidth, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    item11->Add( bitSizer, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item1->Add( item11, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

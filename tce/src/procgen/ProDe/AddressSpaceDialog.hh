@@ -42,6 +42,8 @@ private:
     void onMinToHex(wxCommandEvent& event);
     void onMaxToDec(wxCommandEvent& event);
     void onMaxToHex(wxCommandEvent& event);
+    void onBitWidth(wxSpinEvent& event);
+    void onBitWidthText(wxCommandEvent& event);
     void setTexts();
 
     /// Address space to modify with the dialog.
@@ -67,6 +69,8 @@ private:
     wxStaticBoxSizer* maxAddressSizer_;
     /// Boxsizer containing the width widget.
     wxStaticBoxSizer* widthSizer_;
+    /// SpinCtrl containing the bit width of the max-address.
+    wxSpinCtrl *bitWidthSpinCtrl_;
 
     // IDs for dialog controls
     enum {
@@ -74,6 +78,7 @@ private:
         ID_WIDTH,
         ID_MIN_ADDRESS,
         ID_MAX_ADDRESS,
+        ID_BIT_WIDTH,
         ID_RADIO_MIN_DEC,
         ID_RADIO_MIN_HEX,
         ID_RADIO_MAX_DEC,

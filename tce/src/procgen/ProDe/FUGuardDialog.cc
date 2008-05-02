@@ -21,6 +21,7 @@
 #include "WidgetTools.hh"
 #include "GUITextGenerator.hh"
 #include "ProDeTextGenerator.hh"
+#include "ProDeConstants.hh"
 
 using std::string;
 using boost::format;
@@ -157,6 +158,12 @@ FUGuardDialog::TransferDataToWindow() {
 
     // add function unit ports and set selection
     for (int i = 0; i < port_->parentUnit()->portCount(); i++) {
+
+        // port must be output port
+        if (port_->parentUnit()->port(i)->outputSocket() == NULL) {
+            continue;
+        }
+
         wxString name =
             WxConversion::toWxString(port_->parentUnit()->port(i)->name());
 

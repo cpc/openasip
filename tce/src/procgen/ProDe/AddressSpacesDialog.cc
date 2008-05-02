@@ -56,7 +56,7 @@ END_EVENT_TABLE()
 AddressSpacesDialog::AddressSpacesDialog(
     wxWindow* parent,
     Machine* machine):
-    wxDialog(parent, -1, _T(""), wxDefaultPosition),
+    wxDialog(parent, -1, _T(""), wxDefaultPosition, wxSize(400,300)),
     machine_(machine) {
 
     createContents(this, true, true);
@@ -117,16 +117,19 @@ AddressSpacesDialog::setTexts() {
         dynamic_cast<wxListCtrl*>(FindWindow(ID_LIST));
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_NAME);
     portList->InsertColumn(0, WxConversion::toWxString(fmt.str()),
-                           wxLIST_FORMAT_LEFT, 140);
+                           wxLIST_FORMAT_LEFT, 100);
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_MAU);
     portList->InsertColumn(1, WxConversion::toWxString(fmt.str()),
-                           wxLIST_FORMAT_LEFT, 50);
+                           wxLIST_FORMAT_LEFT, 40);
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_MIN_ADDRESS);
     portList->InsertColumn(2, WxConversion::toWxString(fmt.str()),
-                           wxLIST_FORMAT_LEFT, 100);
+                           wxLIST_FORMAT_LEFT, 90);
     fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_MAX_ADDRESS);
     portList->InsertColumn(3, WxConversion::toWxString(fmt.str()),
-                           wxLIST_FORMAT_LEFT, 100);
+                           wxLIST_FORMAT_LEFT, 90);
+    fmt = prodeTexts->text(ProDeTextGenerator::TXT_COLUMN_BIT_WIDTH);
+    portList->InsertColumn(4, WxConversion::toWxString(fmt.str()),
+                           wxLIST_FORMAT_LEFT, 80);
 }
 
 /**
@@ -272,11 +275,13 @@ AddressSpacesDialog::updateASList() {
     asList_->DeleteAllItems();
 
     for (int i = 0; i < asNavigator.count(); i++) {
-	AddressSpace* as = asNavigator.item(i);
-	asList_->InsertItem(i, WxConversion::toWxString(as->name()));
-	asList_->SetItem(i, 1, WxConversion::toWxString(as->width()));
-	asList_->SetItem(i, 2, WxConversion::toWxString(as->start()));
-	asList_->SetItem(i, 3, WxConversion::toWxString(as->end()));
+        AddressSpace* as = asNavigator.item(i);
+        int bitWidth = int(ceil((log(as->end()) / log(2))));
+        asList_->InsertItem(i, WxConversion::toWxString(as->name()));
+        asList_->SetItem(i, 1, WxConversion::toWxString(as->width()));
+        asList_->SetItem(i, 2, WxConversion::toWxString(as->start()));
+        asList_->SetItem(i, 3, WxConversion::toWxString(as->end()));
+        asList_->SetItem(i, 4, WxConversion::toWxString(bitWidth));
     }
 }
 
