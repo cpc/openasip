@@ -70,6 +70,7 @@ ProDeTextGenerator::ProDeTextGenerator() {
     addText(TXT_COLUMN_NAME, "Name");
     addText(TXT_COLUMN_WIDTH, "Width");
     addText(TXT_COLUMN_MAU, "MAU");
+    addText(TXT_COLUMN_BIT_WIDTH, "Bit Width");
     addText(TXT_COLUMN_INVERTED, "Inv");
     addText(TXT_COLUMN_INDEX, "Index");
     addText(TXT_COLUMN_PORT, "Port");

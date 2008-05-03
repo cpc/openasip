@@ -93,28 +93,31 @@ main(int argc, char* argv[]) {
         schedulerConf = options.schedulerConfigFile();
     }
 
+    if (options.isVerboseSwitchDefined()) {
+        Application::setVerboseLevel(Application::VERBOSE_LEVEL_INCREASED);
+    }
+
     try {
         plan = SchedulingPlan::loadFromFile(schedulerConf);
     } catch (Exception& e) {
         std::cerr << "Error loading scheduler configuration file '"
                   << schedulerConf << "':" << std::endl
                   << e.errorMessageStack() << std::endl;
-        
+
         return EXIT_FAILURE;
     }
     // --- Output file name ---
     std::string outputFileName = DEFAULT_OUTPUT_FILENAME;
     if (options.isOutputFileDefined()) {
-        // Test if output file can be opened 
+        // Test if output file can be opened
         outputFileName = options.outputFile();
-        FILE* out = fopen(outputFileName.c_str(),"w");
-        if (out == NULL) {
-            std::cerr << "Output file '"
-                << outputFileName << "' can not be opened for writing!"
-                << std::endl;
-            return EXIT_FAILURE;
-        }
-        fclose(out);
+    }
+    if (!FileSystem::fileIsWritable(outputFileName) &&
+        !FileSystem::fileIsCreatable(outputFileName)) {
+        std::cerr << "Output file '"
+            << outputFileName << "' can not be opened for writing!"
+            << std::endl;
+        return EXIT_FAILURE;
     }
 
     // --- optimization level ---
@@ -136,11 +139,8 @@ main(int argc, char* argv[]) {
         if (schedule) {
             SchedulerFrontend scheduler;
             TTAProgram::Program* prog;
-            if (options.isVerboseSwitchDefined()) {
-                prog = scheduler.schedule(*seqProg, *mach, *plan, true);
-            } else {
-                prog = scheduler.schedule(*seqProg, *mach, *plan, false);
-            }
+            prog = scheduler.schedule(*seqProg, *mach, *plan);
+
             TTAProgram::Program::writeToTPEF(*prog, outputFileName);
 
             delete prog;

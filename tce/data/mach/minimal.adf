@@ -243,20 +243,6 @@
     </writes-to>
   </socket>
 
-  <socket name="fpu_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="fpu_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
   <socket name="RF_i1">
     <reads-from>
       <bus>B1</bus>
@@ -681,13 +667,13 @@
   <function-unit name="shifter">
     <port name="in1t">
       <connects-to>shifter_i1</connects-to>
-      <width>5</width>
+      <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in2">
       <connects-to>shifter_i2</connects-to>
-      <width>32</width>
+      <width>5</width>
     </port>
     <port name="out1">
       <connects-to>shifter_o1</connects-to>
@@ -988,56 +974,12 @@
     <address-space/>
   </function-unit>
 
-  <function-unit name="fpu">
-    <port name="in">
-      <connects-to>fpu_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="out">
-      <connects-to>fpu_o1</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>cfiu</name>
-      <bind name="1">in</bind>
-      <bind name="2">out</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>cifu</name>
-      <bind name="1">in</bind>
-      <bind name="2">out</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
   <register-file name="RF">
     <type>normal</type>
     <size>5</size>
     <width>32</width>
-    <max-reads>2</max-reads>
-    <max-writes>2</max-writes>
+    <max-reads>1</max-reads>
+    <max-writes>1</max-writes>
     <port name="wr">
       <connects-to>RF_i1</connects-to>
     </port>

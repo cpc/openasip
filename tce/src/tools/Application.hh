@@ -9,7 +9,7 @@
  * exceptions, "control-c" signal handling.
  *
  * @author Atte Oksman 2003 (oksman@cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel@cs.tut.fi)
  */
 
 #ifndef TTA_APPLICATION_HH
@@ -113,6 +113,10 @@ public:
 
     static std::ostream& logStream();
 
+    static int verboseLevel() {return verboseLevel_;}
+    static void setVerboseLevel(const int level = VERBOSE_LEVEL_DEFAULT)
+        {verboseLevel_ = level;}
+
     /**
      * An interface for classes that can receive notification when a Unix
      * signal occurs.
@@ -131,6 +135,12 @@ public:
     static void setCtrlcHandler(UnixSignalHandler& handler);
     static void restoreCtrlcHandler();
 
+
+    /// Default verbose level - do not print anything unnecessary
+    static const int VERBOSE_LEVEL_DEFAULT = 0;
+    /// Increased verbose level - print information about modules etc
+    static const int VERBOSE_LEVEL_INCREASED = 1;
+
 private:
     static void ctrlcSignalRedirector(int data);
     /// True when initialize() is called. Ensures that initialization is
@@ -146,6 +156,8 @@ private:
     /// The original signal handler of the signal produced by ctrl-c.
     static sig_t originalCtrlcHandler_;
 
+    /// Verbose level directs how much output will be printed to console
+    static int verboseLevel_;
 
 };
 

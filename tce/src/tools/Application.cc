@@ -9,7 +9,7 @@
  * exceptions, "control-c" signal handling.
  *
  * @author Atte Oksman 2003 (oksman@cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel@cs.tut.fi)
  */
 
 #include <string>
@@ -48,6 +48,7 @@ bool Application::initialized_ = false;
 std::ostream* Application::logStream_ = NULL;
 Application::UnixSignalHandler* Application::ctrlcHandler_(NULL);
 sig_t Application::originalCtrlcHandler_(NULL);
+int Application::verboseLevel_ = Application::VERBOSE_LEVEL_DEFAULT;
 
 /**
  * Initializes the state data needed by the application services.
@@ -74,7 +75,7 @@ Application::initialize() {
             logStream_ = fileLog;
         }
     }
-    
+
     // set the unexpected exception callback
     set_unexpected(Application::unexpectedExceptionHandler);
 

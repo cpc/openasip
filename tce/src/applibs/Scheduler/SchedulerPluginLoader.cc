@@ -3,7 +3,8 @@
  *
  * Implementation of SchedulerPluginLoader class.
  *
- * @author Ari Mets�halme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Vladimír Guzma 2008 (vladimir.guzma@tut.fi)
  * @note rating: red
  */
 
@@ -63,16 +64,14 @@ SchedulerPluginLoader::instance() {
  *
  * @param modName Name of the plug-in pass module.
  * @param fileName Name of the file that contains the plug-in module.
- * @param verbose Print out short description of module when loading
  * @return A handle to the loaded plug-in module.
  * @exception DynamicLibraryException If an error occurs loading the
  * requested plug-in module.
  */
 BaseSchedulerModule&
 SchedulerPluginLoader::loadModule(
-    const std::string& modName, const std::string& fileName, 
-    const std::vector<ObjectState*>& options,
-    bool verbose) 
+    const std::string& modName, const std::string& fileName,
+    const std::vector<ObjectState*>& options)
     throw (DynamicLibraryException) {
 
     try {
@@ -93,10 +92,11 @@ SchedulerPluginLoader::loadModule(
             SCHEDULER_MODULE_DESTRUCTOR + modName, pluginDestructor,
             moduleName);
 
-    if (verbose) {
-        Application::logStream() << "Loading module: " <<
-        module->shortDescription() << std::endl;
-    }
+        if (Application::verboseLevel() >=
+            Application::VERBOSE_LEVEL_INCREASED) {
+            Application::logStream() << "Loading module: " <<
+                module->shortDescription() << std::endl;
+        }
 
         loadedPlugins_.insert(
             pair<BaseSchedulerModule*, SchedulerPluginDestructor*>(
@@ -130,5 +130,3 @@ SchedulerPluginLoader::loadModule(
 }
 
 const std::vector<ObjectState*> SchedulerPluginLoader::emptyOptions_;
-
-

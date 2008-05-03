@@ -3,7 +3,8 @@
  *
  * Declaration of SchedulerFrontend class.
  *
- * @author Ari Mets�halme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Vladimír Guzma 2008 (vladimir.guzma@tut.fi)
  * @note rating: red
  */
 
@@ -45,10 +46,9 @@ public:
         throw (Exception);
     TTAProgram::Program* schedule(
         const TTAProgram::Program& source, const TTAMachine::Machine& target,
-        const SchedulingPlan& schedulingPlan,
-        bool verbose = false)
+        const SchedulingPlan& schedulingPlan)
         throw (Exception);
-private:    
+private:
     /// Copying forbidden.
     SchedulerFrontend(const SchedulerFrontend&);
     /// Assignment forbidden.

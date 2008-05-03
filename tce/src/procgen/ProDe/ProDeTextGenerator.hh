@@ -81,6 +81,7 @@ public:
         TXT_COLUMN_NAME,                ///< Label for name column in a list.
         TXT_COLUMN_WIDTH,               ///< Label for width column in a list.
         TXT_COLUMN_MAU,                 ///< Label for MAU column in a list.
+        TXT_COLUMN_BIT_WIDTH,           ///< Label for bit width column in a list.
         TXT_COLUMN_INVERTED,            ///< Label for inv column in a list.
         TXT_COLUMN_INDEX,               ///< Label for index column in a list.
         TXT_COLUMN_PORT,                ///< Label for port column in a list.

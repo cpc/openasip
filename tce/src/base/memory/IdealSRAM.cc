@@ -3,8 +3,8 @@
  *
  * Definition of IdealSRAM class.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen@cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Jussi Nyk√§nen 2004 (nykanen@cs.tut.fi)
+ * @author Pekka J√§√§skel√§inen 2005 (pjaaskel@cs.tut.fi)
  * @note rating: red
  */
 
@@ -15,7 +15,6 @@
 #include "MemoryContents.hh"
 #include "Conversion.hh"
 #include "Application.hh"
-#include "MemoryContents.hh"
 
 using std::string;
 
@@ -31,7 +30,7 @@ using std::string;
  * @param wordSize Number of MAUs that make up a natural word.
  * @param align Alignment of natural words, expressed in number of MAUs.
  */
-IdealSRAM::IdealSRAM(Word start, Word end, Word MAUSize) : 
+IdealSRAM::IdealSRAM(Word start, Word end, Word MAUSize) :
     Memory(start, end, MAUSize), start_(start), end_(end), MAUSize_(MAUSize) {
     data_ = new MemoryContents(end_ - start_);
 }
