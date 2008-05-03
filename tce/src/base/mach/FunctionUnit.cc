@@ -312,6 +312,7 @@ FunctionUnit::deleteOperation(HWOperation& operation)
 }
 
 
+
 /**
  * Returns true if the requested operation exists in the function unit.
  *
@@ -320,17 +321,26 @@ FunctionUnit::deleteOperation(HWOperation& operation)
  */
 bool
 FunctionUnit::hasOperation(const std::string& name) const {
-    string lowerName = StringTools::stringToLower(name);
+    return hasOperationLowercase(StringTools::stringToLower(name));
+}
+
+/**
+ * Returns true if the requested operation exists in the function unit.
+ *
+ * @param operation Name of the operation which MUST be in lowercase.
+ * @return True if the requested operation exists in the function unit.
+ */
+bool
+FunctionUnit::hasOperationLowercase(const std::string& name) const {
     OperationTable::const_iterator iter = operations_.begin();
     while (iter != operations_.end()) {
-        if ((*iter)->name() == lowerName) {
+        if ((*iter)->name() == name) {
             return true;
         }
         iter++;
     }
     return false;
 }
-
 
 /**
  * Returns operation by the given name.
@@ -345,12 +355,25 @@ FunctionUnit::hasOperation(const std::string& name) const {
 HWOperation*
 FunctionUnit::operation(const string& name) const
     throw (InstanceNotFound) {
+    return operationLowercase(StringTools::stringToLower(name));
+}
 
-    string lowerName = StringTools::stringToLower(name);
-
+/**
+ * Returns operation by the given name.
+ *
+ * The requested operation must exist, otherwise assertion fails.
+ *
+ * @param name Name of the operation.
+ * @return Operation by the given name which MUST be in lowercase.
+ * @exception InstanceNotFound If an operation is not found by the given
+ *                             name.
+ */
+HWOperation*
+FunctionUnit::operationLowercase(const string& name) const
+    throw (InstanceNotFound) {
     OperationTable::const_iterator iter = operations_.begin();
     while (iter != operations_.end()) {
-        if ((*iter)->name() == lowerName) {
+        if ((*iter)->name() == name) {
             return *iter;
         }
         iter++;

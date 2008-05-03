@@ -31,6 +31,8 @@
 using std::string;
 using namespace TTAProgram;
 
+#define SCHEDULING_WINDOW_SIZE 140
+
 /**
  * Constructor.
  *
@@ -293,6 +295,12 @@ SimpleBrokerDirector::earliestCycle(MoveNode& move) const
 int
 SimpleBrokerDirector::earliestCycle(int cycle, MoveNode& node) const
     throw (Exception) {
+
+    // limit the scheduling window. 
+    // makes code for minimal.adf schedule in reasonable time
+    if (cycle < knownMaxCycle_ - SCHEDULING_WINDOW_SIZE) {
+        cycle = knownMaxCycle_ - SCHEDULING_WINDOW_SIZE;
+    }
 
     int minCycle = executionPipelineBroker().earliestCycle(cycle, node);
 

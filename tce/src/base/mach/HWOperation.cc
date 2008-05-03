@@ -117,7 +117,7 @@ HWOperation::~HWOperation() {
  *
  * @return The name of the operation.
  */
-string
+const string&
 HWOperation::name() const {
     return name_;
 }
