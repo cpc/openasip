@@ -131,27 +131,6 @@
     </writes-to>
   </socket>
 
-  <socket name="rotator_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="rotator_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="rotator_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
   <socket name="ext1_i1">
     <reads-from>
       <bus>B1</bus>
@@ -265,27 +244,6 @@
   </socket>
 
   <socket name="gcu_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
-  <socket name="shifter_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="shifter_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="shifter_o1">
     <writes-to>
       <bus>B1</bus>
       <segment>seg1</segment>
