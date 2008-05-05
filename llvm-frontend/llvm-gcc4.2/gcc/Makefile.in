@@ -261,9 +261,12 @@ LLVMSRCDIR := $(shell echo "$(LLVMSRCDIR)" | sed -e 's,;,,')
 endif
 
 ifeq ($(LLVMOBJDIR),)
-LLVMINCLUDEDIR = $(LLVMSRCDIR)
+LLVMINCLUDEDIR = $(LLVMSRCDIR)/include
 else
 LLVMINCLUDEDIR = $(shell $(LLVMBINPATH)/llvm-config --includedir)
+ifeq ($(LLVMINCLUDEDIR),/usr/include/llvm)
+LLVMINCLUDEDIR = /usr/include
+endif
 endif
 
 ifdef LLVM_VERSION_INFO
