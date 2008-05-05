@@ -6,7 +6,7 @@
 -- Author     : Teemu Pitkänen
 -- Company    : 
 -- Created    : 2006/07/03
--- Last update: 2007/06/12
+-- Last update: 2008/05/05
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: rotator left and rigth functional unit
@@ -40,11 +40,12 @@ entity rotl_rotr_arith is
   generic (
     gen_opc_rotl : integer := 0;
     gen_opc_rotr : integer := 1;    
-    dataw : integer := 32);
+    dataw : integer := 32;
+    shiftw : integer := 5);
   port(
     A             : in  std_logic_vector(dataw-1 downto 0);
     opc           : in  std_logic_vector(0 downto 0);
-    rot_amount   : in  std_logic_vector(bit_width(dataw)-1 downto 0);
+    rot_amount   : in  std_logic_vector(shiftw-1 downto 0);
     Y             : out std_logic_vector(dataw-1 downto 0));
 end rotl_rotr_arith;
 
@@ -54,7 +55,7 @@ end rotl_rotr_arith;
 -------------------------------------------------------------------------------
 
 architecture comb_if of rotl_rotr_arith is
-  constant max_rot : integer := bit_width(dataw);
+  constant max_rot : integer := shiftw;
 begin
 
   process(A, rot_amount, opc)
@@ -163,15 +164,15 @@ use work.util.all;
 entity fu_rotl_rotr_always_1 is
   generic (
     dataw : integer := 32;              -- Operand Width
-    busw  : integer := 32);             -- Bus Width
+    shiftw  : integer := 5);             -- Bus Width
 
   port(
-    t1data   : in  std_logic_vector(bit_width(dataw)-1 downto 0);
+    t1data   : in  std_logic_vector(shiftw-1 downto 0);
     t1opcode : in  std_logic_vector(0 downto 0);
     t1load   : in  std_logic;
     o1data   : in  std_logic_vector(dataw-1 downto 0);
     o1load   : in  std_logic;
-    r1data   : out std_logic_vector(busw-1 downto 0);
+    r1data   : out std_logic_vector(dataw-1 downto 0);
     glock      : in std_logic;
     rstx     : in  std_logic;
     clk      : in  std_logic);
@@ -181,15 +182,18 @@ architecture rtl of fu_rotl_rotr_always_1 is
   
   component rotl_rotr_arith
     generic (
-      dataw : integer := 32);
+      gen_opc_rotl : integer := 0;
+      gen_opc_rotr : integer := 1;    
+      dataw : integer := 32;
+      shiftw : integer := 5);
     port(
       A             : in  std_logic_vector(dataw-1 downto 0);
-      rot_amount   : in  std_logic_vector(bit_width(dataw)-1 downto 0);
+      rot_amount   : in  std_logic_vector(shiftw-1 downto 0);
       opc           : in  std_logic_vector(0 downto 0);
       Y             : out std_logic_vector(dataw-1 downto 0));
   end component;
 
-  signal t1reg     : std_logic_vector(bit_width(dataw)-1 downto 0);
+  signal t1reg     : std_logic_vector(dataw-1 downto 0);
   signal t1opc_reg : std_logic_vector(0 downto 0);
   signal o1reg     : std_logic_vector(dataw-1 downto 0);
   signal o1temp    : std_logic_vector(dataw-1 downto 0);
@@ -200,7 +204,10 @@ begin
   
   fu_arch : rotl_rotr_arith
     generic map (
-      dataw => dataw)
+      gen_opc_rotl => 0,
+      gen_opc_rotr => 1,
+      dataw => dataw,
+      shiftw => shiftw)
     port map(
       A           => o1reg,
       rot_amount => t1reg,
@@ -239,7 +246,7 @@ begin
     end if;
   end process regs;
   
-  r1data <= sxt(r1, busw);
+  r1data <= r1;
   
 end rtl;
 
@@ -256,15 +263,15 @@ use work.util.all;
 entity fu_rotl_rotr_always_2 is
   generic (
     dataw : integer := 32;              -- Operand Width
-    busw  : integer := 32);             -- Bus Width
+    shiftw  : integer := 5);             -- Bus Width
 
   port(
-    t1data      : in  std_logic_vector(bit_width(dataw)-1 downto 0);
+    t1data      : in  std_logic_vector(shiftw-1 downto 0);
     t1opcode    : in  std_logic_vector(0 downto 0);
     t1load      : in  std_logic;
     o1data      : in  std_logic_vector(dataw-1 downto 0);
     o1load      : in  std_logic;
-    r1data      : out std_logic_vector(busw-1 downto 0);
+    r1data      : out std_logic_vector(dataw-1 downto 0);
      glock : in  std_logic;
     rstx        : in  std_logic;
     clk         : in  std_logic);
@@ -274,15 +281,18 @@ architecture rtl of fu_rotl_rotr_always_2 is
   
   component rotl_rotr_arith
     generic (
-      dataw : integer := 32);
+      gen_opc_rotl : integer := 0;
+      gen_opc_rotr : integer := 1;    
+      dataw : integer := 32;
+      shiftw : integer := 5);
     port(
-      A           : in  std_logic_vector(dataw-1 downto 0);
-      rot_amount : in  std_logic_vector(bit_width(dataw)-1 downto 0);
-      opc         : in  std_logic_vector(0 downto 0);
-      Y           : out std_logic_vector(dataw-1 downto 0));
+      A             : in  std_logic_vector(dataw-1 downto 0);
+      rot_amount   : in  std_logic_vector(shiftw-1 downto 0);
+      opc           : in  std_logic_vector(0 downto 0);
+      Y             : out std_logic_vector(dataw-1 downto 0));
   end component;
 
-  signal t1reg     : std_logic_vector(bit_width(dataw)-1 downto 0);
+  signal t1reg     : std_logic_vector(shiftw-1 downto 0);
   signal t1opc_reg : std_logic_vector(0 downto 0);
   signal o1reg     : std_logic_vector(dataw-1 downto 0);
   signal r1        : std_logic_vector(dataw-1 downto 0);
@@ -295,12 +305,16 @@ begin
   
   fu_arch : rotl_rotr_arith
     generic map (
-      dataw => dataw)
+      gen_opc_rotl => 0,
+      gen_opc_rotr => 1,
+      dataw => dataw,
+      shiftw => shiftw)
     port map(
       A           => o1reg,
       rot_amount => t1reg,
       opc         => t1opc_reg,
       Y           => r1);
+
 
   control <= o1load&t1load;
 
@@ -340,7 +354,7 @@ begin
     end if;
   end process regs;
 
-  r1data <= sxt(r1reg, busw);
+  r1data <= r1reg;
   --r1data <= r1;
   
 end rtl;

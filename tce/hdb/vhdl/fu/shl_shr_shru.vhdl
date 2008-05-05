@@ -6,7 +6,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-07-01
--- Last update: 2003-08-28
+-- Last update: 2008/05/05
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Shift Functional unit for signed and unsigned numbers
@@ -40,9 +40,10 @@ entity shl_shr_shru_arith is
     gen_opc_shl  : integer := 0;
     gen_opc_shr  : integer := 1;
     gen_opc_shru : integer := 2;
-    dataw        : integer := 32);
+    dataw        : integer := 32;
+    shiftw       : integer := 5);
   port(
-    shft_amount : in  std_logic_vector(bit_width(dataw)-1 downto 0);
+    shft_amount : in  std_logic_vector(shiftw-1 downto 0);
     opc         : in  std_logic_vector(1 downto 0);
     A           : in  std_logic_vector(dataw-1 downto 0);
     Y           : out std_logic_vector(dataw-1 downto 0));
@@ -55,7 +56,7 @@ end shl_shr_shru_arith;
 
 
 architecture comb of shl_shr_shru_arith is
-  constant max_shift : integer := bit_width(dataw);
+  constant max_shift : integer := shiftw;
 begin
 
 
@@ -138,9 +139,10 @@ use work.util.all;
 
 entity fu_shl_shr_shru_always_1 is
   generic(
-    dataw : integer := 32);
+    dataw : integer := 32;
+    shiftw : integer := 5);
   port(
-    t1data   : in  std_logic_vector(bit_width(dataw)-1 downto 0);
+    t1data   : in  std_logic_vector(shiftw-1 downto 0);
     t1opcode : in  std_logic_vector(1 downto 0);
     t1load   : in  std_logic;
     o1data   : in  std_logic_vector(dataw-1 downto 0);
@@ -158,15 +160,16 @@ architecture rtl of fu_shl_shr_shru_always_1 is
       gen_opc_shl  : integer := 0;
       gen_opc_shr  : integer := 1;
       gen_opc_shru : integer := 2;
-      dataw        : integer := 32);
+      dataw        : integer := 32;
+      shiftw       : integer := 5);
     port (
-      shft_amount : in  std_logic_vector(bit_width(dataw)-1 downto 0);
+      shft_amount : in  std_logic_vector(shiftw-1 downto 0);
       opc         : in  std_logic_vector(1 downto 0);
       A           : in  std_logic_vector(dataw-1 downto 0);
       Y           : out std_logic_vector(dataw-1 downto 0));
   end component;
 
-  signal t1reg   : std_logic_vector(bit_width(dataw)-1 downto 0);
+  signal t1reg   : std_logic_vector(shiftw-1 downto 0);
   signal o1reg   : std_logic_vector(dataw-1 downto 0);
   signal o1temp  : std_logic_vector(dataw-1 downto 0);
   signal r1      : std_logic_vector(dataw-1 downto 0);
@@ -180,7 +183,8 @@ begin
       gen_opc_shl  => OPC_SHL,
       gen_opc_shr  => OPC_SHR,
       gen_opc_shru => OPC_SHRU,
-      dataw        => dataw)
+      dataw        => dataw,
+      shiftw       => shiftw)
     port map(
       shft_amount => t1reg,
       opc         => opc1reg,
@@ -234,9 +238,10 @@ use work.util.all;
 
 entity fu_shl_shr_shru_always_2 is
   generic(
-    dataw : integer := 32);
+    dataw : integer := 32;
+    shiftw : integer := 32);
   port(
-    t1data   : in  std_logic_vector(bit_width(dataw)-1 downto 0);
+    t1data   : in  std_logic_vector(shiftw-1 downto 0);
     t1opcode : in  std_logic_vector(1 downto 0);
     t1load   : in  std_logic;
     o1data   : in  std_logic_vector(dataw-1 downto 0);
@@ -255,15 +260,16 @@ architecture rtl of fu_shl_shr_shru_always_2 is
       gen_opc_shl  : integer := 0;
       gen_opc_shr  : integer := 1;
       gen_opc_shru : integer := 2;
-      dataw        : integer := 32);
+      dataw        : integer := 32;
+      shiftw       : integer := 5);
     port (
-      shft_amount : in  std_logic_vector(bit_width(dataw)-1 downto 0);
+      shft_amount : in  std_logic_vector(shiftw-1 downto 0);
       opc         : in  std_logic_vector(1 downto 0);
       A           : in  std_logic_vector(dataw-1 downto 0);
       Y           : out std_logic_vector(dataw-1 downto 0));
   end component;
 
-  signal t1reg   : std_logic_vector(bit_width(dataw)-1 downto 0);
+  signal t1reg   : std_logic_vector(shiftw-1 downto 0);
   signal o1reg   : std_logic_vector(dataw-1 downto 0);
   signal r1      : std_logic_vector(dataw-1 downto 0);
   signal r1reg   : std_logic_vector(dataw-1 downto 0);
@@ -279,7 +285,8 @@ begin
       gen_opc_shl  => OPC_SHL,
       gen_opc_shr  => OPC_SHR,
       gen_opc_shru => OPC_SHRU,
-      dataw        => dataw)
+      dataw        => dataw,
+      shiftw       => shiftw)
     port map(
       shft_amount => t1reg,
       opc         => opc1reg,
