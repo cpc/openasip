@@ -508,11 +508,13 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                              args.begin(), args.end(), "", I);
             
             NewCall->setTailCall();    
-            
+
+#if 0            
             std::cerr << "Replacing: " << footPrint 
                       << " I->getType():" << stringType(I->getType()) 
                       << " NewCall->getType():" << stringType(NewCall->getType()) 
                       << std::endl;
+#endif
             
             
             // Replace all uses of the instruction with call instruction

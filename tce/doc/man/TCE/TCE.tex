@@ -3896,6 +3896,7 @@ database.dsdb}\\
 \chapter{TUTORIALS}
 \label{chapter:tutorials}
 
+
 \section{TCE Tour}
 
 This tutorial goes through most of the tools in TCE using a fairly simple
@@ -4791,6 +4792,72 @@ files and see how they affect the performance.
 %\label{section:automatedExploration}
 % Add requirements and sequential programs, 
 % Click, click, *wait a couple of weeks*, done! ;-)
+
+
+\section{Hello TTA World!}
+
+What would a tutorial section be without the traditional ``Hello World!''
+example? Interestingly enough, printing out ``Hello World'' in a
+standalone (operating system free) platform like the TTA of TCE is not 
+totally straightforward. That's the reason this tutorial is not the first 
+one in this tutorial chapter.
+
+The first question arises: where should I print the string? Naturally 
+it's easy to answer that question while working with the simulator: to
+the simulator console, of course. However, when implementing the final
+hardware of the TTA, the output is platform dependent. It can be a
+debugging interface, serial port output, etc.
+
+In order to make printing (usually readable) data easier from TTAs designed
+with TCE, we have added an operation called STDOUT to the ``base operation 
+set'' that is installed with the TCE. The simulation behavior of this 
+operation reads its input, expects it to be a 8bit char and writes the char
+verbatim to the simulator host's standard output. Of course, in case the 
+designer wants to use this operation in his final system he must provide the 
+platform specific implementation for the function unit (FU) implementing the 
+operation, or just remove the FU after the design is fully debugged and
+verified.
+
+The default implementation of \textit{printf()} in TCE uses the STDOUT
+operation to print out data. Therefore, implementing a ``Hello World''
+application with TCE is as simple as adding an FU that implements
+the STDOUT to the processor design and then call \textit{printf()} in
+the simulated program. The simulator should print out the greeting
+as expected.
+
+Here is a simple C code (hello.c) that prints the magic string:
+
+\begin{verbatim}
+#include <stdio.h>
+
+int main() {
+    printf("Hello TTA World!");
+    return 0;
+}
+\end{verbatim}
+
+Next, compile it to an architecture that implements the
+STDOUT. In this case we have added an FU with STDOUT (see the previous
+tutorial for instructions on adding FUs to your designs) to the minimal.adf, 
+after copying it to minimalWithStdout.adf:
+
+\begin{verbatim}
+tcecc -O0 hello.c -a minimalWithStdout.adf -o hello.tpf
+\end{verbatim}
+
+It should compile without errors. Beware: the compilation can take
+a couple of minutes on a slower machine! This is because \textit{printf()} 
+is actually quite a large function and the compiler is not yet optimized for 
+speed.
+
+Finally, simulate the program to get the greeting:
+
+\begin{verbatim}
+ttasim -a minimalWithStdout.adf -p hello.tpf --no-debugmode
+Hello TTA World!
+\end{verbatim}
+
+That's it. Happy debugging!
 
 
 %%%%%%%%%%%%%%%%%%%%
