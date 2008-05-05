@@ -342,10 +342,12 @@ void LowerMissingInstructions::addFunctionForFootprints(
 //        replaceFunctions[footprints[j]] = 
 //            M.getOrInsertFunction(op.emulationFunctionName(), fType);
 
+#if 0
         std::cerr << "Operation: " << op.name()
                   << " is emulated with: " << op.emulationFunctionName() 
                   << " footprint: " << footprints[j]
                   << std::endl;
+#endif
 
         if (replaceFunctions[footprints[j]] == NULL) {
             std::cerr << " ERROR: suitable function wasn't found" << std::endl;

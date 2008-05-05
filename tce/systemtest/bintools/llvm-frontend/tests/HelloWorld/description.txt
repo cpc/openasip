@@ -1,1 +1,1 @@
-Simple testcase using automatic software floating point emulation.
+Tests the Hello World tutorial example from TCE User Manual.

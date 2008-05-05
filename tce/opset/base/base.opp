@@ -1176,4 +1176,91 @@
     <out id="3" type="UIntWord"/>
   </operation>
 
+  <operation>
+    <name>STREAM_IN</name>
+    <description>The "default streaming" operation for input.
+
+Reads one sample of input from the data stream. The width of the sample is defined by the function unit output port width. 
+
+When triggered with 0 writes a new sample to the output, if there are one ore more samples to be read in the buffer, otherwise causes a global lock.
+
+
+
+
+</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_IN_STATUS"/>
+    </affects>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT</name>
+    <description>The "default streaming" operation for output.
+
+Writes one sample to the output data stream. The width of the sample is
+defined by the function unit input port width.
+
+In case no room is available in the output buffer, causes a global lock.
+
+</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <side-effects/>
+    <affects>
+      <operation name="STREAM_OUT_STATUS"/>
+    </affects>
+    <in id="1" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_IN_STATUS</name>
+    <description>The "default streaming" operation for querying input buffer status.
+
+Trigger with 0.
+
+Return an integer with the following meanings:
+
+0 = buffer empty
+1 = not empty nor full (implies a buffer size &gt; 1 sample and that there is at least one sample in the buffer)
+2 = buffer full
+
+This operation allows handling stream buffer underflow without a global lock, thus allows doing something useful (run another thread, for example) while the buffer is empty.
+
+</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <affected-by>
+      <operation name="STREAM_IN"/>
+    </affected-by>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>STREAM_OUT_STATUS</name>
+    <description>The "default streaming" operation for querying output buffer status.
+
+Trigger with 0.
+
+Return an integer with the following meanings:
+
+0 = buffer empty
+1 = not empty nor full (implies a buffer size &gt; 1 sample and that there is at least one sample in the buffer)
+2 = buffer full
+
+This operation allows handling stream buffer overflow without a global lock, thus allows doing something useful (run another thread, for example) while the
+buffer is full.
+</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
 </osal>

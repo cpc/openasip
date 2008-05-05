@@ -9,6 +9,7 @@
  */
 
 #include <iostream>
+#include <fstream>
 
 #include "OSAL.hh"
 #include "OperationGlobals.hh"
@@ -922,3 +923,152 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION(LMBD)
+
+//////////////////////////////////////////////////////////////////////////////
+// INPUT_STREAM - State definition for the STREAM_IN.
+//
+// Opens a file simulating the input stream. Default filename is tta_stream.in,
+// and can be changed with the environment variable TTASIM_STREAM_IN_FILE.
+//////////////////////////////////////////////////////////////////////////////
+
+DEFINE_STATE(INPUT_STREAM)
+    std::ifstream inputFile;
+
+INIT_STATE(INPUT_STREAM)
+    const char* fileNameFromEnv = getenv("TTASIM_STREAM_IN_FILE");
+    std::string fileName = "";
+    if (fileNameFromEnv == NULL) {
+        fileName = "tta_stream.in";
+    } else {
+        fileName = fileNameFromEnv;
+    }
+    inputFile.open(fileName.c_str());
+    if (!inputFile.is_open()) {
+        OUTPUT_STREAM 
+            << "Cannot open input stream file " 
+            << fileName << std::endl;
+    }
+END_INIT_STATE;
+
+FINALIZE_STATE(INPUT_STREAM)
+    inputFile.close();
+END_FINALIZE_STATE;
+
+END_DEFINE_STATE
+
+//////////////////////////////////////////////////////////////////////////////
+// STREAM_IN - Reads a sample from the default input stream.
+//
+// @todo: Support for other sample sizes than 8.
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION_WITH_STATE(STREAM_IN, INPUT_STREAM)
+
+TRIGGER
+    assert(BWIDTH(2) == 8 && "STREAM_IN works with bytes only at the moment.");
+    char input;
+    STATE.inputFile >> input;
+    IO(2) = static_cast<int>(input);
+END_TRIGGER;
+
+END_OPERATION_WITH_STATE(STREAM_IN)
+
+//////////////////////////////////////////////////////////////////////////////
+// STREAM_IN_STATUS - Reads the status of the input buffer.
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION_WITH_STATE(STREAM_IN_STATUS, INPUT_STREAM)
+
+TRIGGER
+
+    /*
+        0 = buffer empty
+        1 = not empty nor full 
+        2 = buffer full (the simulated input buffer is never full)
+    */
+
+    // test if there's more data to read
+    char input;
+    STATE.inputFile >> input;    
+    if (STATE.inputFile.eof()) {
+        IO(2) = 0;
+    } else {
+        IO(2) = 1;
+    }
+    STATE.inputFile.putback(input);
+END_TRIGGER;
+
+END_OPERATION_WITH_STATE(STREAM_IN_STATUS)
+
+//////////////////////////////////////////////////////////////////////////////
+// OUTPUT_STREAM - State definition for the STREAM_OUT.
+//
+// Opens a file simulating the output stream. Default filename is 
+// tta_stream.out, and can be changed with the environment variable 
+// TTASIM_STREAM_IN_FILE.
+//////////////////////////////////////////////////////////////////////////////
+
+DEFINE_STATE(OUTPUT_STREAM)
+    std::ofstream outputFile;
+
+INIT_STATE(OUTPUT_STREAM)
+ 
+    const char* fileNameFromEnv = getenv("TTASIM_STREAM_OUT_FILE");
+    std::string fileName = "";
+    if (fileNameFromEnv == NULL) {
+        fileName = "tta_stream.out";
+    } else {
+        fileName = fileNameFromEnv;
+    }
+    outputFile.open(
+        fileName.c_str(), 
+        std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+    if (!outputFile.is_open()) {
+        OUTPUT_STREAM 
+            << "Cannot open output file!" 
+            << fileName << std::endl;
+    }
+END_INIT_STATE;
+
+FINALIZE_STATE(OUTPUT_STREAM)
+    outputFile.close();
+END_FINALIZE_STATE;
+
+END_DEFINE_STATE
+
+//////////////////////////////////////////////////////////////////////////////
+// STREAM_OUT - Writes a sample to the default output stream.
+//
+// @todo: Support for other sample sizes than 8.
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION_WITH_STATE(STREAM_OUT, OUTPUT_STREAM)
+
+TRIGGER
+
+    assert(BWIDTH(1) == 8 && 
+           "STREAM_OUT works with bytes only at the moment.");
+
+    STATE.outputFile << static_cast<char>(INT(1)) << std::flush;
+
+    if (STATE.outputFile.fail()) {
+        OUTPUT_STREAM << "error while writing the output file" << std::endl;
+    }
+END_TRIGGER;
+
+END_OPERATION_WITH_STATE(STREAM_OUT)
+
+//////////////////////////////////////////////////////////////////////////////
+// STREAM_OUT_STATUS - Reads the status of the output buffer.
+//
+// This simulation behavior always returns 0, which means output buffer
+// is empty and can be written to.
+//////////////////////////////////////////////////////////////////////////////
+
+OPERATION_WITH_STATE(STREAM_OUT_STATUS, OUTPUT_STREAM)
+
+TRIGGER
+    IO(2) = 0;
+END_TRIGGER;
+
+END_OPERATION_WITH_STATE(STREAM_OUT_STATUS)
