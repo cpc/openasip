@@ -260,6 +260,15 @@ LLVMSRCDIR := $(shell \
 LLVMSRCDIR := $(shell echo "$(LLVMSRCDIR)" | sed -e 's,;,,')
 endif
 
+ifeq ($(LLVMOBJDIR),)
+LLVMINCLUDEDIR = $(LLVMSRCDIR)/include
+else
+LLVMINCLUDEDIR = $(shell $(LLVMBINPATH)/llvm-config --includedir)
+ifeq ($(LLVMINCLUDEDIR),/usr/include/llvm)
+LLVMINCLUDEDIR = /usr/include
+endif
+endif
+
 ifdef LLVM_VERSION_INFO
 CPPFLAGS += -DLLVM_VERSION_INFO='"$(LLVM_VERSION_INFO)"'
 endif
@@ -933,12 +942,12 @@ INCLUDES = -I. -I$(@D) -I$(srcdir) -I$(srcdir)/$(@D) \
 
 # LLVM LOCAL begin
 ifneq ($(LLVMOBJDIR),)
-INCLUDES += -I$(LLVMSRCDIR)/include
+INCLUDES += -I$(LLVMINCLUDEDIR)
 
 # If LLVM is built srcdir != objdir, include the objdir headers for configured
 # headers, like DataTypes.h.
 ifneq (($LLVMOBJDIR),$(LLVMSRCDIR))
-INCLUDES += -I$(LLVMOBJDIR)/include
+INCLUDES += -I$(LLVMINCLUDEDIR)
 endif
 endif
 # LLVM LOCAL end
@@ -2907,15 +2916,15 @@ errors.o : errors.c $(CONFIG_H) $(SYSTEM_H) errors.h $(BCONFIG_H)
 # LLVM LOCAL begin
 llvm-main.o : llvm-main.cpp $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) toplev.h
 llvm-symbol-stubs.o : llvm-symbol-stubs.cpp
-LLVM_HEADERS := $(wildcard $(LLVMSRCDIR)/include/llvm/*) \
-                $(wildcard $(LLVMSRCDIR)/include/llvm/*/*)
+LLVM_HEADERS := $(wildcard $(LLVMINCLUDEDIR)/llvm/*) \
+                $(wildcard $(LLVMINCLUDEDIR)/llvm/*/*)
 
 ALL_HEADERS := $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) \
             llvm.h llvm-internal.h llvm-file-ostream.h llvm-abi.h llvm-debug.h \
             $(LLVM_HEADERS)
 llvm-backend.o : llvm-backend.cpp $(ALL_HEADERS)
 llvm-convert.o : llvm-convert.cpp $(ALL_HEADERS) \
-                 $(LLVMSRCDIR)/include/llvm/Intrinsics.gen
+                 $(LLVMINCLUDEDIR)/llvm/Intrinsics.gen
 llvm-types.o : llvm-types.cpp $(ALL_HEADERS)
 llvm-debug.o : llvm-debug.cpp $(ALL_HEADERS)
 # LLVM LOCAL end
