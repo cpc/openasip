@@ -10,6 +10,7 @@
 
 #include <string>
 #include <utility>
+#include <limits>
 
 #include "DirectAccessMemory.hh"
 #include "MemoryContents.hh"
@@ -32,8 +33,17 @@ DirectAccessMemory::DirectAccessMemory(
     Word start, Word end, Word MAUSize) : 
     Memory(start, end, MAUSize), 
     start_(start), end_(end), MAUSize_(MAUSize),
-    MAUSize3_(MAUSize_ * 3), MAUSize2_(MAUSize_ * 2),
-    mask_(~(~0 << MAUSize_)) {
+    MAUSize3_(MAUSize_ * 3), MAUSize2_(MAUSize_ * 2) {
+        
+    /// @note In C++, when shifting more bits than there are in integer, the
+    /// result is undefined. Thus, we just set the mask to ~0 in this case.
+    /// We should probably give user a warning if MAUSize is larger than 
+    /// the integer size!
+    if (MAUSize_ >= static_cast<Word>(std::numeric_limits<Word>::digits)) {
+        mask_ = ~0;
+    } else {
+        mask_ = ~(~0 << MAUSize_);
+    }
 
     data_ = new MemoryContents(end_ - start_);
 }
@@ -91,7 +101,7 @@ DirectAccessMemory::read(Word address) {
  * @note On a cycle with read and write, make sure the read is done *first* !
  */
 void 
-DirectAccessMemory::fastWriteMAU(Word address, UIntWord data) {  
+DirectAccessMemory::fastWriteMAU(Word address, UIntWord data) {
     data_->writeData(address - start_, (int)(data & mask_));
 }
 
