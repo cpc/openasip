@@ -57,8 +57,13 @@ public:
         throw (InstanceNotFound);
 
     virtual bool hasOperation(const std::string& name) const;
+    virtual bool hasOperationLowercase(const std::string& name) const;
+
     virtual HWOperation* operation(const std::string& name) const
         throw (InstanceNotFound);
+    virtual HWOperation* operationLowercase(const std::string& name) const
+        throw (InstanceNotFound);
+
     virtual HWOperation* operation(int index) const
         throw (OutOfRange);
     virtual int operationCount() const;

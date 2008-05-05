@@ -25,6 +25,7 @@
 #include "ProgramAnnotation.hh"
 #include "AssocTools.hh"
 #include "TCEString.hh"
+#include "StringTools.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -87,6 +88,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
 
     int opIndex = dst.operationIndex();
     Operation& op = dst.hintOperation();
+    std::string opName = StringTools::stringToLower(op.name());
 
     // check if a unit has already been assigned to some node
     // of the same operation and use it.
@@ -115,7 +117,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
                                     resourceOf(fu));
                             // Find what is the port on a new FU for given
                             // operation index. Find a socket for testing.
-                            HWOperation* hwOp = fu.operation(op.name());
+                            HWOperation* hwOp = fu.operationLowercase(opName);
                             Socket* soc = hwOp->port(opIndex)->inputSocket();
 
                             FUPort* tempPort =
@@ -160,7 +162,7 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
                             dynamic_cast<InputFUResource&>(resourceOf(fu));
                         // Find what is the port on a new FU for given
                         // operation index. Find a socket for testing.
-                        HWOperation* hwOp = fu.operation(op.name());
+                        HWOperation* hwOp = fu.operationLowercase(opName);
                         Socket* soc = hwOp->port(opIndex)->inputSocket();
 
                         FUPort* tempPort =
@@ -235,8 +237,8 @@ InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
         if (res.isInputFUResource()) {
             const InputFUResource& fuRes =
                 dynamic_cast<InputFUResource&>(resourceOf(*unit));
-            if (unit->hasOperation(op.name())) {
-                HWOperation* hwOp = unit->operation(op.name());
+            if (unit->hasOperationLowercase(opName)) {
+                HWOperation* hwOp = unit->operationLowercase(opName);
                 Socket* soc = hwOp->port(opIndex)->inputSocket();
 
                 FUPort* tempPort =

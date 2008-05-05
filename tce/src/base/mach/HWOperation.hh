@@ -34,7 +34,7 @@ public:
         throw (ObjectStateLoadingException);
     ~HWOperation();
 
-    std::string name() const;
+    const std::string& name() const;
     virtual void setName(const std::string& name)
         throw (ComponentAlreadyExists, InvalidName);
 

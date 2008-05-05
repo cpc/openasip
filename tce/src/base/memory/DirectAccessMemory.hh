@@ -91,9 +91,7 @@ private:
     /// Size of the natural word as MAUs.
     Word wordSize_;
     /// Mask bit pattern for unpacking IntWord to MAUs.
-    int mask_;
-    /// Alignment contstraint of the natural word.
-    int alignment_;
+    Word mask_;
     /// Contains MAUs of the memory model, that is, the actual data of the
     /// memory.
     MemoryContents* data_;
