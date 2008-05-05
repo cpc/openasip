@@ -327,7 +327,7 @@ std::string getFootprint(Instruction& I) {
 }
 
 void LowerMissingInstructions::addFunctionForFootprints(
-    Module& M, FunctionType* fType, Operation& op, std::string suffix) {
+    Module& M, FunctionType* /*fType*/, Operation& op, std::string suffix) {
     
     // set replace footprints for operations to emulate
     // (there might be multiple different footprints for the same 
