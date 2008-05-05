@@ -163,7 +163,8 @@ use work.util.all;
 
 entity fu_rotl_rotr_always_1 is
   generic (
-    dataw : integer := 32;              -- Operand Width
+    dataw : integer := 32;
+    busw : integer := 32;               -- Operand Width
     shiftw  : integer := 5);             -- Bus Width
 
   port(
@@ -172,7 +173,7 @@ entity fu_rotl_rotr_always_1 is
     t1load   : in  std_logic;
     o1data   : in  std_logic_vector(dataw-1 downto 0);
     o1load   : in  std_logic;
-    r1data   : out std_logic_vector(dataw-1 downto 0);
+    r1data   : out std_logic_vector(busw-1 downto 0);
     glock      : in std_logic;
     rstx     : in  std_logic;
     clk      : in  std_logic);
@@ -245,8 +246,15 @@ begin
        end if;
     end if;
   end process regs;
-  
-  r1data <= r1;
+
+  process (r1)
+  begin  -- process
+    if busw >= dataw then
+      r1data <= sxt(r1,busw);
+    else
+      r1data <= r1(busw-1 downto 0);
+    end if;
+  end process;
   
 end rtl;
 
@@ -263,6 +271,7 @@ use work.util.all;
 entity fu_rotl_rotr_always_2 is
   generic (
     dataw : integer := 32;              -- Operand Width
+    busw  : integer := 32;
     shiftw  : integer := 5);             -- Bus Width
 
   port(
@@ -271,7 +280,7 @@ entity fu_rotl_rotr_always_2 is
     t1load      : in  std_logic;
     o1data      : in  std_logic_vector(dataw-1 downto 0);
     o1load      : in  std_logic;
-    r1data      : out std_logic_vector(dataw-1 downto 0);
+    r1data      : out std_logic_vector(busw-1 downto 0);
      glock : in  std_logic;
     rstx        : in  std_logic;
     clk         : in  std_logic);
@@ -354,7 +363,15 @@ begin
     end if;
   end process regs;
 
-  r1data <= r1reg;
+  process (r1reg)
+  begin  -- process
+    if busw >= dataw then
+      r1data <= sxt(r1reg,busw);
+    else
+      r1data <= r1reg(busw-1 downto 0);
+    end if;
+  end process;
+  --r1data <= r1reg;
   --r1data <= r1;
   
 end rtl;
