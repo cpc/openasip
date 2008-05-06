@@ -1,7 +1,7 @@
 import sys
 from binding_generator import *
 
-prefix = "../../src/base/osal/"
+prefix = "./TCE-include/"
 
 bg = binding_generator_t(
     module_name = "osal",
@@ -19,12 +19,17 @@ bg = binding_generator_t(
                        ('dag', return_internal_reference()),
                        ('expandedDag', return_internal_reference()),
                        ('input', return_internal_reference()),
+                       ('instance', return_value_policy(reference_existing_object)),
                        ('output', return_internal_reference()),
                        ('operand', return_internal_reference()),
                        ('saveState', return_value_policy(manage_new_object)),
                        ]),
+                     ('NullOperationBehavior',
+                      [('instance', return_value_policy(reference_existing_object)),
+                       ]),
                      ),
-    headers = [prefix + 'Operation.hh',
+    headers = [prefix + 'OperationBehavior.hh',
+               prefix + 'Operation.hh',
                ],
     extra_headers = ['OperationDAG.hh',
                      'OperationContext.hh',

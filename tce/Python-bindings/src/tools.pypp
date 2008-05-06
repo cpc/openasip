@@ -1,15 +1,49 @@
 from binding_generator import *
 
-prefix = "../../src/tools/"
+prefix = "./TCE-include/"
 
+TCEString_converter_declaration =  """
+#include <boost/python/module.hpp>
+#include <boost/python/def.hpp>
+#include <boost/python/to_python_converter.hpp>
+
+namespace sandbox { namespace {
+
+  struct TCEString_to_python_str
+  {
+    static PyObject* convert(TCEString const& s)
+    {
+      return boost::python::incref(boost::python::object((std::string)s).ptr());
+    }
+  };
+
+  void register_converters()
+  {
+    using namespace boost::python;
+
+    boost::python::to_python_converter<
+      TCEString,
+      TCEString_to_python_str>();
+  };
+
+}} // namespace sandbox::<anonymous>
+
+"""
 
 bg = binding_generator_t(
     module_name = "tools",
     call_policies = (('NullSimValue',
                       [('instance', return_value_policy(reference_existing_object))]),
                      ),
-    headers = [prefix + "SimValue.hh"],
+    headers = [prefix + "SimValue.hh",
+               prefix + "TCEString.hh"
+               ],
     extra_headers = ["Exception.hh"],
+
+    extra_declarations = [TCEString_converter_declaration],
+
+    extra_registrations = ["sandbox::register_converters();"],
+
 
     excluded_members = [('SimValue', ['Value', 'value_'])],
 

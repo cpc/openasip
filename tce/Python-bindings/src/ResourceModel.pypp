@@ -1,6 +1,6 @@
 from binding_generator import *
 
-prefix = "../../src/applibs/Scheduler/ResourceModel/"
+prefix = "./TCE-include/"
 
 
 bg = binding_generator_t(

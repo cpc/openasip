@@ -4,24 +4,26 @@ from pyplusplus import module_builder
 from pyplusplus.module_builder.call_policies import *
 from pyplusplus import function_transformers as FT
 
-include_paths = ['../..',
-                 '../../src/base/mach',
-                 '../../src/base/program',
-                 '../../src/tools',
-                 '../../src/base/tpef',
-                 '../../src/base/umach',
-                 '../../src/base/osal',
-                 '../../src/base/Graph',
-                 '../../src/applibs/Scheduler',
-                 '../../src/applibs/Scheduler/Algorithms',
-                 '../../src/applibs/Scheduler/ResourceManager',
-                 '../../src/applibs/Scheduler/ResourceModel',
-                 '../../src/applibs/Scheduler/Selector',
-                 '../../src/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph',
-                 '../../src/applibs/Scheduler/ProgramRepresentations/DataDependenceGraph',
-                 '../../src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph',
-                 '../../scheduler/passes/BasicBlockScheduler',
-                 ]
+include_paths = map(os.path.abspath,
+                    ['.',
+                     '../..',
+                     '../../src/base/mach',
+                     '../../src/base/program',
+                     '../../src/tools',
+                     '../../src/base/tpef',
+                     '../../src/base/umach',
+                     '../../src/base/osal',
+                     '../../src/base/Graph',
+                     '../../src/applibs/Scheduler',
+                     '../../src/applibs/Scheduler/Algorithms',
+                     '../../src/applibs/Scheduler/ResourceManager',
+                     '../../src/applibs/Scheduler/ResourceModel',
+                     '../../src/applibs/Scheduler/Selector',
+                     '../../src/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph',
+                     '../../src/applibs/Scheduler/ProgramRepresentations/DataDependenceGraph',
+                     '../../src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph',
+                     '../../scheduler/passes/BasicBlockScheduler',
+                     ])
 
 class binding_generator_t(object):
     def __init__(self,
@@ -41,7 +43,6 @@ class binding_generator_t(object):
                  ownership_transfers = []):
         self.module_name = module_name
         self.headers = headers
-        hh = map(os.path.basename, headers)
         self.call_policies = call_policies
         self.function_call_policies = function_call_policies
         self.excluded_classes = excluded_classes
@@ -62,8 +63,14 @@ class binding_generator_t(object):
         if len(sys.argv) == 2 and sys.argv[1] == '--generate-dependences':
             pass
 	else:
+            hh = map(os.path.abspath, headers)
+            header_file_name = "%s_headers.hh" % self.module_name
+            f = open(header_file_name, 'w')
+            for h in hh:
+                f.write('#include <%s>\n'% h)
+            f.close()
             self.module_builder = module_builder.module_builder_t(
-                hh
+                [os.path.abspath(header_file_name)]
                 , gccxml_path=r"/usr/bin/gccxml" 
                 , include_paths=include_paths
                 , define_symbols=['TCE_PYTHON_BINDINGS'] )
@@ -109,6 +116,7 @@ class binding_generator_t(object):
                                 member.call_policies = policy
                         except RuntimeError:
                             print "Failed to set policy of %s %s to %s" % (class_name, member_name, policy)
+                            # import pdb; pdb.set_trace()
                             # member_functions raises RuntimeError for zero matches
                             pass
                 except RuntimeError:
@@ -166,6 +174,24 @@ class binding_generator_t(object):
         for er in self.extra_registrations:
             mb.add_registration_code(er)
         mb.calldefs().create_with_signature = True
+
+        # Filter out declarations that do not come directly from the
+        # header files or the associated .icc files.
+        hhs = map(os.path.basename, self.headers)
+        headers = []
+        for h in hhs:
+            headers.append(h)
+            headers.append(h.replace(".hh", ".icc"))
+        for decl in mb.decls():
+            if decl.location:
+                #print "DECLARATION %s in %s" % (decl, decl.location.file_name)
+                if os.path.basename(decl.location.file_name) not in headers:
+                    decl.exclude()
+                    #print "EXCLUDE %s in %s" % (decl, decl.location.file_name)
+                else:
+                    #print "INCLUDE %s in %s" % (decl, decl.location.file_name)
+                    decl.include()
+
         self.set_member_call_policies()
         self.set_function_call_policies()
         self.add_extra_members()
@@ -176,6 +202,7 @@ class binding_generator_t(object):
         self.add_exception_translation()
         self.set_held_types()
         self.handle_ownership_transfers()
+
         mb.build_code_creator( module_name=self.module_name )
         for eh in self.extra_headers:
             mb.code_creator.add_include(eh)
