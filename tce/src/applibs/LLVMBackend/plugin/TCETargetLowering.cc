@@ -91,17 +91,6 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
     setOperationAction(ISD::RET,           MVT::Other, Custom);
 
-    // Selects are custom lowered to a pseudo instruction that
-    // is later converted to a diamond control flow pattern.
-/*
-    setOperationAction(ISD::SELECT, MVT::i1, Promote);
-    setOperationAction(ISD::SELECT, MVT::i8, Promote);
-    setOperationAction(ISD::SELECT, MVT::i16, Promote);
-    setOperationAction(ISD::SELECT, MVT::i32, Custom);
-    setOperationAction(ISD::SELECT, MVT::i64, Custom);
-    setOperationAction(ISD::SELECT, MVT::f32, Custom);
-    setOperationAction(ISD::SELECT, MVT::f64, Custom);
-*/
     // SELECT is used instead of SELECT_CC
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
 
@@ -274,13 +263,6 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
     MachineFunction& mf = dag.getMachineFunction();
     unsigned argOffset = 0;
     std::vector<SDOperand> argValues;
-
-    static const unsigned iArgRegs[] = {
-       0//TCE::IARG1, TCE::IARG2, TCE::IARG3, TCE::IARG4
-    };
-
-    const unsigned* curIArgReg = iArgRegs;
-    const unsigned* iArgRegEnd = iArgRegs + 0;
     SDOperand root = dag.getRoot();
 
     Function::arg_iterator iter = f.arg_begin();
@@ -469,10 +451,7 @@ TCETargetLowering::LowerCallTo(
 
     SDOperand stackPtr;
     std::vector<SDOperand> stores;
-    std::vector<SDOperand> iRegValuesToPass;
-    std::vector<SDOperand> fpRegValuesToPass;
     unsigned argOffset = 0;
-    unsigned numIArgRegs = 0; // Number of available integer arg regs.
 
     for (unsigned i = 0; i < args.size(); i++) {
         SDOperand val = args[i].Node;
@@ -536,20 +515,7 @@ TCETargetLowering::LowerCallTo(
         chain = dag.getNode(
             ISD::TokenFactor, MVT::Other, &stores[0], stores.size());
 
-    // Outgoing args in int registers
-    static const unsigned iArgRegs[] = {
-       0//TCE::IARG1, TCE::IARG2, TCE::IARG3, TCE::IARG4
-    };
-
     SDOperand inFlag;
-    for (unsigned i = 0; i < iRegValuesToPass.size(); i++) {
-       assert(false);
-        chain =
-            dag.getCopyToReg(chain, iArgRegs[i], iRegValuesToPass[i], inFlag);
-
-        inFlag = chain.getValue(1);
-
-    }
 
     // Turn global addressses to target global adresses.
     if (GlobalAddressSDNode* g = dyn_cast<GlobalAddressSDNode>(callee))
@@ -621,97 +587,6 @@ TCETargetLowering::LowerCallTo(
     return std::make_pair(retVal, chain);
 }
 
-/**
- * Handles TCE SELECT nodes by inserting a diamond control flow pattern.
- *
- * @param mbb Machine basic block containing the SELECT node.
- * @param mi SELECT instruction.
- * @return Machine basic block with the SELECT pseudo instruction replaced.
- */
-MachineBasicBlock*
-TCETargetLowering::InsertAtEndOfBasicBlock(
-    MachineInstr* mi, MachineBasicBlock* mbb) {
-
-    assert("should not be needed");
-/*
-    // TODO CHECK THIS
-    // ---------------------------------------
-    //  Copied from PPCISelLowering
-    // ---------------------------------------
-
-    const TargetInstrInfo* tii = getTargetMachine().getInstrInfo();
-    assert((mi->getOpcode() == TCE::SELECT_I1 ||
-            mi->getOpcode() == TCE::SELECT_I8 ||
-            mi->getOpcode() == TCE::SELECT_I16 ||
-            mi->getOpcode() == TCE::SELECT_I32 ||
-            mi->getOpcode() == TCE::SELECT_I64 ||
-            mi->getOpcode() == TCE::SELECT_F32 ||
-            mi->getOpcode() == TCE::SELECT_F64) &&
-           "Unexpected instr type to insert");
-  
-    //assert(false);
-    // To "insert" a SELECT instruction, we actually have to insert
-    // the diamond
-    // control-flow pattern.  The incoming instruction knows the
-    // destination vreg
-    // to set, the condition code register to branch on,
-    // the true/false values to
-    // select between, and a branch opcode to use.
-    const BasicBlock* LLVM_BB = mbb->getBasicBlock();
-    ilist<MachineBasicBlock>::iterator It = mbb;
-    ++It;
-  
-    //  thisMBB:
-    //  ...
-    //   TrueVal = ...
-    //   cmpTY ccX, r1, r2
-    //   bCC copy1MBB
-    //   fallthrough --> copy0MBB
-    MachineBasicBlock* thisMBB = mbb;
-    MachineBasicBlock* copy0MBB = new MachineBasicBlock(LLVM_BB);
-    MachineBasicBlock* sinkMBB = new MachineBasicBlock(LLVM_BB);
-    //unsigned SelectPred = mi->getOperand(4).getImm();
-    BuildMI(mbb, tii->get(TCE::TCEBRCOND))
-        .addReg(mi->getOperand(3).getReg()).addMBB(sinkMBB);
-
-    MachineFunction* F = mbb->getParent();
-    F->getBasicBlockList().insert(It, copy0MBB);
-    F->getBasicBlockList().insert(It, sinkMBB);
-    // Update machine-CFG edges by first adding all successors of the current
-    // block to the new block which will contain the Phi node for the select.
-    for(MachineBasicBlock::succ_iterator i = mbb->succ_begin(), 
-            e = mbb->succ_end(); i != e; ++i)
-        sinkMBB->addSuccessor(*i);
-    // Next, remove all successors of the current block, and add the true
-    // and fallthrough blocks as its successors.
-    while(!mbb->succ_empty())
-        mbb->removeSuccessor(mbb->succ_begin());
-
-    mbb->addSuccessor(copy0MBB);
-    mbb->addSuccessor(sinkMBB);
-    
-    //  copy0MBB:
-    //   %FalseValue = ...
-    //   # fallthrough to sinkMBB
-    mbb = copy0MBB;
-    
-    // Update machine-CFG edges
-    mbb->addSuccessor(sinkMBB);
-    
-    //  sinkMBB:
-    //   %Result = phi [ %FalseValue, copy0MBB ], [ %TrueValue, thisMBB ]
-    //  ...
-    mbb = sinkMBB;
-    BuildMI(mbb, tii->get(TCE::PHI), mi->getOperand(0).getReg())
-        .addReg(mi->getOperand(2).getReg()).addMBB(copy0MBB)
-        .addReg(mi->getOperand(1).getReg()).addMBB(thisMBB);
-
-    delete mi;   // The pseudo instruction is gone now.
-    return mbb;    
-*/
-}
-
-
 
 /**
  * Converts SELECT nodes to TCE-specific pseudo instructions.
@@ -771,32 +646,17 @@ TCETargetLowering::getRegForInlineAsmConstraint(
     const std::string& constraint,
     MVT::ValueType vt) const {
 
-    if (constraint == "r" && vt == MVT::i32) {
+    if (constraint == "r") {
         return std::make_pair(0U, TCE::I32RegsRegisterClass);
     }
 
-    if (constraint == "f" && vt == MVT::f32) {
-        return std::make_pair(0U, TCE::F32RegsRegisterClass);
+    if (constraint == "f") {
+        if (vt == MVT::f32) {
+            return std::make_pair(0U, TCE::F32RegsRegisterClass);
+        } else if (vt == MVT::f64) {
+            return std::make_pair(0U, TCE::F64RegsRegisterClass);
+        }
     }
 
     return TargetLowering::getRegForInlineAsmConstraint(constraint, vt);
 }
-
-/*
-std::vector<unsigned>
-TCETargetLowering::getRegClassForInlineAsmConstraint(
-    const std::string& constraint,
-    MVT::ValueType vt) const {
-
-    std::cerr << "getRegClassForInlineAsmConstraing(" << constraint << ", "
-              << vt << ")"<<  std::endl;
-
-    if (constraint == "r" && vt == MVT::i32) {
-        std::vector<unsigned> rc;
-        rc.push_back(TCE::I32RegsRegisterClass);
-        return rc;
-    }
-
-    return std::vector<unsigned>();
-}
-*/
