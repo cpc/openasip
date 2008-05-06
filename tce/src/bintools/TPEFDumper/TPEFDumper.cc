@@ -202,6 +202,86 @@ TPEFDumper::sectionHeaders() {
 }
 
 /**
+ * Prints information about needed data address space sizes for 
+ * initialized and uninitialized data.
+ */
+void
+TPEFDumper::memoryInfo() {
+    
+    out_ << "Minumum sizes for address spaces:" << std::endl << std::endl;
+
+    // map of used address spaces
+    std::map<ASpaceElement*, std::pair<int, int> > neededMAUsOfASpace;
+    
+    for (Word i = 0; i < tpef_.sectionCount(); i++) {
+        Section& currSect = *tpef_.section(actualIndex(i));
+
+        if (currSect.isProgramSection()) {
+            
+            // init new address space limits to 0,0
+            if (neededMAUsOfASpace.find(currSect.aSpace()) == 
+                neededMAUsOfASpace.end()) {
+                
+                neededMAUsOfASpace[currSect.aSpace()] = std::pair<int,int>(0,0);
+            }
+            
+            std::pair<int,int> currentLimits = neededMAUsOfASpace[currSect.aSpace()];
+            int currMin = currSect.startingAddress();
+            int currMax = currMin;
+            
+            if (currSect.type() == Section::ST_CODE) {
+                
+                currMax += dynamic_cast<const CodeSection*>
+                    (&currSect)->instructionCount();
+                                                              
+            } else if (currSect.type() == Section::ST_DATA ||
+                       currSect.type() == Section::ST_UDATA) {
+
+                currMax += dynamic_cast<const UDataSection*>(
+                    &currSect)->lengthInMAUs();
+                
+            } else {
+                assert(false && "Unknown program section type");
+            }
+            
+            // update limits to map
+            if (currMin < currentLimits.first) {
+                currentLimits.first = currMin;
+            }
+
+            if (currMax > currentLimits.second) {
+                currentLimits.second = currMax;
+            }
+
+            neededMAUsOfASpace[currSect.aSpace()] = currentLimits;
+        }
+    }
+    
+    // print out in ASpace order...
+    Section* aSpaces = tpef_.section(Section::ST_ADDRSP, 0);
+    
+    for (Word i = 0; i < aSpaces->elementCount(); i++) {
+        ASpaceElement* aSpace = 
+            dynamic_cast<ASpaceElement*>(aSpaces->element(i));
+        
+        if (neededMAUsOfASpace.find(aSpace) != neededMAUsOfASpace.end()) {
+            int aSpaceSize =  
+                neededMAUsOfASpace[aSpace].second - 
+                neededMAUsOfASpace[aSpace].first;
+
+            out_ << "Address space index: " << i << " have to be at least: " 
+                 <<  aSpaceSize << " MAU(s)" << std::endl;
+
+        } else {
+            out_ << "Address space index: " << i << " not used for data nor instructions." 
+                 << std::endl;
+        }
+    }
+
+    out_ << std::endl;
+}
+
+/**
  * Prints full information of every relocation table in tpef.
  */
 void

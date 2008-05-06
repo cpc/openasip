@@ -60,28 +60,15 @@ namespace llvm {
                 llvm::TargetLowering::ArgListTy& args,
                 llvm::SelectionDAG& dag);
 
-        virtual llvm::MachineBasicBlock* InsertAtEndOfBasicBlock(
-            llvm::MachineInstr* mi,
-            llvm::MachineBasicBlock* mbb);
-
         virtual const char* getTargetNodeName(unsigned opcode) const;
 
         llvm::SDOperand LowerRET(llvm::SDOperand op, llvm::SelectionDAG& dag);
-
-        //virtual ConstraintType getConstraintType(
-        //    char ConstraintLetter) const;
 
         virtual std::pair<unsigned, const TargetRegisterClass*>
             getRegForInlineAsmConstraint(
                 const std::string& constraint,
                 MVT::ValueType vt) const;
 
-        /*
-        virtual std::vector<unsigned>
-            getRegClassForInlineAsmConstraint(
-                const std::string& constraint,
-                MVT::ValueType vt) const;
-        */
         SDOperand lowerSELECT(SDOperand op, SelectionDAG& dag);
                 
     private:
