@@ -1101,9 +1101,8 @@ TDGen::dagNodeToString(
             assert(operand.isInput());
 
             if (imm && !canBeImmediate(dag, *tNode)) {
-                dag.writeToDotFile("invalid_immediate_operand.dot");
                 std::string msg = 
-                    "Invalid immediate operand. DAG printed to a .dot file.";
+                    "Invalid immediate operand. ";
                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
             }
 
