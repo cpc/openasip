@@ -95,11 +95,17 @@ public:
             new BoolCmdLineOptionParser("syms", "Print symbol tables.", "t");
         addOption(symbolTablesFlag);
 
+        BoolCmdLineOptionParser* memoryInfoFlag =
+            new BoolCmdLineOptionParser(
+                "mem", "Print information about memory usage of reserved sections.", "m");
+        addOption(memoryInfoFlag);
+
         BoolCmdLineOptionParser* logicalInfoFlag =
             new BoolCmdLineOptionParser(
                 "logical", "Print only logical information. "
                 "Can be used for checking if two files contains same program "
-                "and data and connections even if it's in different order.",
+                "and data and connections even if it's in different order in "
+                "tpef file.",
                 "l");
         addOption(logicalInfoFlag);
     }
@@ -118,6 +124,10 @@ public:
 
     bool printRelocations() {
         return findOption("reloc")->isDefined();
+    }
+
+    bool printMemoryInfo() {
+        return findOption("mem")->isDefined();
     }
 
     bool onlyLogicalInfo() {
@@ -190,6 +200,10 @@ int main(int argc, char* argv[]) {
 
     if (options.printSectionHeaders()) {
         dumper.sectionHeaders();
+    }
+
+    if (options.printMemoryInfo()) {
+        dumper.memoryInfo();
     }
 
     if (options.printSymbols()) {

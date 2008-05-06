@@ -36,6 +36,7 @@ public:
 
     void fileHeaders();
     void sectionHeaders();
+    void memoryInfo();
     void relocationTables();
     void symbolTables();
     void section(Word sectionIndex);
