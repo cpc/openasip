@@ -1255,10 +1255,14 @@ Return an integer with the following meanings:
 
 This operation allows handling stream buffer overflow without a global lock, thus allows doing something useful (run another thread, for example) while the
 buffer is full.
+
 </description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <side-effects/>
+    <affected-by>
+      <operation name="STREAM_OUT"/>
+    </affected-by>
     <in id="1" type="UIntWord"/>
     <out id="2" type="UIntWord"/>
   </operation>
