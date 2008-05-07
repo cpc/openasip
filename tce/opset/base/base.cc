@@ -989,7 +989,7 @@ TRIGGER
 
     // test if there's more data to read
     char input;
-    STATE.inputFile >> input;    
+    STATE.inputFile.read(&input, 1);
     if (STATE.inputFile.eof()) {
         IO(2) = 0;
     } else {
