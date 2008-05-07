@@ -965,7 +965,10 @@ END_DEFINE_STATE
 OPERATION_WITH_STATE(STREAM_IN, INPUT_STREAM)
 
 TRIGGER
-//assert(BWIDTH(2) == 8 && "STREAM_IN works with bytes only at the moment.");
+    if (BWIDTH(2) != 8) 
+        Application::logStream() 
+            << "STREAM_IN works with bytes only at the moment." 
+            << std::endl;
     char input;
     STATE.inputFile.read(&input, 1);
     IO(2) = static_cast<int>(input);
@@ -1046,8 +1049,10 @@ OPERATION_WITH_STATE(STREAM_OUT, OUTPUT_STREAM)
 
 TRIGGER
 
-//    assert(BWIDTH(1) == 8 && 
-//           "STREAM_OUT works with bytes only at the moment.");
+    if (BWIDTH(2) != 8) 
+        Application::logStream() 
+            << "STREAM_OUT works with bytes only at the moment." 
+            << std::endl;
 
     char data = static_cast<char>(UINT(1));
     STATE.outputFile.write(&data, 1);
