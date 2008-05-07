@@ -809,12 +809,15 @@ TDGen::writeOperationDef(
             intOutCount = 0;
         }
         
-        if (op.name().substr(0,3) == "ROT" || 
-            op.name().substr(0,2) == "SH" ||
-            op.name().substr(0,2) == "SX" ) {
+        // rotations are olways n x n -> n bits.
+        if (op.name() == "ROTL" || op.name() == "ROTR" ||
+            op.name() == "SHL" || op.name() == "SHR" || op.name() == "SHRU" ||
+            op.name() == "SXHW" || op.name() == "SXQW") {
             intOutCount = 0;
         }
-        if (op.name() == "XOR" || op.name() == "IOR") {
+        
+        // these can have 1-bit inputs
+        if (op.name() == "XOR" || op.name() == "IOR" || op.name() == "IAND") {
             intOutCount = 2;
         }
         if (op.readsMemory() && intOutCount == 2 ) {
@@ -822,11 +825,16 @@ TDGen::writeOperationDef(
         }
     }
     
-
+    // boolout = 0 means n x n -> n bits operation defs
+    // boolout = 1 means n x n -> 1 bit operation defs
+    // boolout = 2 means 1 x 1 -> 1 bit operation defs
     for (int boolOut = 0; boolOut <= intOutCount; boolOut++) {
+        // for fully 1-bit ops use postfix letter b instead of r
+        // meaning registers
         char regInputChar = boolOut != 2 ? 'r' : 'b';
         std::string suffix(op.numberOfInputs(), regInputChar);
 
+        // for n x n -> 1 bit ops postfix another b letter to the name
         if ( boolOut == 1) {
             suffix += 'b';
         }
@@ -845,6 +853,7 @@ TDGen::writeOperationDef(
                     if (boolOut != 2) {
                         patSuffix[immInput - 1] = 'i';
                     } else {
+                        // for 1 bit immediates use j instead of i
                         patSuffix[immInput -1] = 'j';
                     }
                 }
@@ -1132,6 +1141,7 @@ TDGen::dagNodeToString(
             bool needTrunc = (intToBool == 1);
 
             // handle setcc's without trunc
+            // also loads and extends.
             if (needTrunc) {
                 if (dnString.substr(0,4) == "(set" ||
                     dnString.substr(0,5) == "(zext" ||
