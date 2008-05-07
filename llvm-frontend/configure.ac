@@ -8,7 +8,7 @@ AC_PROG_INSTALL
 AC_PROG_YACC
 
 if test "`which llvm-config`" = ""; then
-   AC_MSG_ERROR([llvm-config was not found from PATH, please install llvm-2.1.])
+   AC_MSG_ERROR([llvm-config was not found from PATH, please install llvm-2.2.])
 fi
 
 if test "$ac_cv_prog_YACC" = ""; then

@@ -243,7 +243,6 @@ CodeSectionCreator::addMove(const ParserMove& move)
                 newElement.guardIndex = resID->index;
             }
 
-
             if (isDestinationAlreadyWritten(newElement)) {
                 parent_->addWarning(
                     move.asmLineNumber,
@@ -264,13 +263,17 @@ CodeSectionCreator::addMove(const ParserMove& move)
             // all parsed moves
             try {
                 // if source is wider than bus
-                if (resources_.findBusWidth(newMove->slot) < srcWidth) {
+                UValue busWidth = resources_.findBusWidth(newMove->slot);
+                if ( busWidth < srcWidth) {
 
                     parent_->addWarning(
                         move.asmLineNumber,
-                        "Bus width is smaller than source.");
+                        "Bus width: " + 
+                        Conversion::toString(busWidth) + 
+                        " is smaller than source: " + 
+                        Conversion::toString(srcWidth));
                 }
-
+                
                 // if source or destination is wider than bus
                 if (dstWidth < srcWidth) {
                     parent_->addWarning(

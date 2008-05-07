@@ -221,6 +221,9 @@ public:
  */
 class LiteralOrExpression {
 public:
+    
+    LiteralOrExpression() : value(0) {}
+    
     /// Does object contain expression or literal.
     bool isExpression;
     /// If expression the expression, Otherwise not used.

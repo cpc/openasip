@@ -40,7 +40,7 @@ typedef rule <scanner_t>        rule_t;
  * it to right place.
  */
 struct ParserTemp {
-    ParserTemp() : lineNumber(1), codeLineCount(0) {}
+    ParserTemp() : lastNumber(0), lineNumber(1), codeLineCount(0) {}
 
     // Last parsed string literal.
     std::string sLiteral;
