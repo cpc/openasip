@@ -942,7 +942,7 @@ INIT_STATE(INPUT_STREAM)
     } else {
         fileName = fileNameFromEnv;
     }
-    inputFile.open(fileName.c_str());
+    inputFile.open(fileName.c_str(), std::ios_base::binary);
     if (!inputFile.is_open()) {
         OUTPUT_STREAM 
             << "Cannot open input stream file " 
@@ -965,9 +965,9 @@ END_DEFINE_STATE
 OPERATION_WITH_STATE(STREAM_IN, INPUT_STREAM)
 
 TRIGGER
-    assert(BWIDTH(2) == 8 && "STREAM_IN works with bytes only at the moment.");
+//assert(BWIDTH(2) == 8 && "STREAM_IN works with bytes only at the moment.");
     char input;
-    STATE.inputFile >> input;
+    STATE.inputFile.read(&input, 1);
     IO(2) = static_cast<int>(input);
 END_TRIGGER;
 
@@ -1046,10 +1046,12 @@ OPERATION_WITH_STATE(STREAM_OUT, OUTPUT_STREAM)
 
 TRIGGER
 
-    assert(BWIDTH(1) == 8 && 
-           "STREAM_OUT works with bytes only at the moment.");
+//    assert(BWIDTH(1) == 8 && 
+//           "STREAM_OUT works with bytes only at the moment.");
 
-    STATE.outputFile << static_cast<char>(INT(1)) << std::flush;
+    char data = static_cast<char>(UINT(1));
+    STATE.outputFile.write(&data, 1);
+    STATE.outputFile << std::flush;
 
     if (STATE.outputFile.fail()) {
         OUTPUT_STREAM << "error while writing the output file" << std::endl;
