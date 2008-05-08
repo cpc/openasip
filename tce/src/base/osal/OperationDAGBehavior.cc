@@ -18,6 +18,7 @@
 #include "SimValue.hh"
 #include "OperationNode.hh"
 #include "TerminalNode.hh"
+#include "ConstantNode.hh"
 
 /**
  * Constructor.
@@ -33,9 +34,9 @@ OperationDAGBehavior::OperationDAGBehavior(
     std::set<OperationDAGNode*> addedNodes;
     
     // organize all the nodes calculation levels, in first level we calculate
-    // nodes whose inputs are read straight from TerminalNodes, in the
-    // second are added nodes whose inputs are read from TerminalNodes or
-    // first level nodes etc.
+    // nodes whose inputs are read straight from TerminalNodes or 
+    // ConstantNodes, in the second are added nodes whose inputs are read 
+    // from TerminalNodes or first level nodes etc.
     while (static_cast<int>(addedNodes.size()) < dag_.nodeCount()) {
         std::set<OperationDAGNode*> currSet;
                        
@@ -111,11 +112,22 @@ OperationDAGBehavior::OperationDAGBehavior(
                     OperationNode* operNode = 
                         dynamic_cast<OperationNode*>(paramNode);
                     
+                    ConstantNode* constNode = 
+                        dynamic_cast<ConstantNode*>(paramNode);
+                    
                     if (termNode != NULL) {
                         // if terminal node, read stuff from ios_ table
                         step.params[currEdge->dstOperand() - 1] = 
                             &ios_[termNode->operandIndex() - 1];
-
+                        
+                    } else if (constNode != NULL) {
+                        // if constant node, read constant to SimValue
+                        // and give it to operation
+                        SimValue* newVal = new SimValue();
+                        *newVal = constNode->value();
+                        cleanUpTable_.push_back(newVal);
+                        step.params[currEdge->dstOperand() - 1] = newVal;
+                        
                     } else if (operNode != NULL) {
                         // if normal operation, read stuff from parent operand
                         SimulationStep &refStep = 
@@ -123,7 +135,7 @@ OperationDAGBehavior::OperationDAGBehavior(
                         
                         step.params[currEdge->dstOperand() - 1] = 
                             refStep.params[currEdge->srcOperand() - 1];
-                    
+
                     } else {
                         assert(false && "Invalid node type");
                     }
@@ -150,7 +162,7 @@ OperationDAGBehavior::OperationDAGBehavior(
                         SimValue* newVal = new SimValue();
                         cleanUpTable_.push_back(newVal);
                         step.params[currEdge->srcOperand() - 1] = newVal;
-
+                    
                     } else {
                         assert(false && "Invalid node type");
                     }

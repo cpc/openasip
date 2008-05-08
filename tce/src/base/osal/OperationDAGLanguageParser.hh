@@ -397,6 +397,51 @@ public:
         }
         
         /**
+         * Returns true if node contain integer value.
+         *
+         * leafs must be: none, or (+|-, isIntegerLiteral)
+         *
+         * @return true if node is integer value.
+         */ 
+        bool isInteger() const {
+            if (
+                // if two part integer e.g. -1 or +1 
+                (leafCount() == 2 && 
+                 leaf(1).token().isIntegerLiteral() &&                  
+                 (leaf(0).token().isPlusOperator() || 
+                  leaf(0).token().isMinusOperator())) ||
+                
+                // or if just number without prefix
+                (leafCount() == 0 && token().isIntegerLiteral()) 
+                ) {
+                
+                return true;
+            }
+
+            return false;
+        }
+        
+        int intValue() const {
+            if (!isInteger()) {
+                // TODO: throw exception
+                assert(false && "Node is not integer.");
+            }                        
+
+            int retVal = 0;
+
+            if (leafCount() == 2) {
+                retVal = leaf(1).token().intValue();
+                if (leaf(0).token().isMinusOperator()) {
+                    retVal = -retVal;
+                }
+            } else {
+                retVal = token().intValue();
+            }
+
+            return retVal;
+        }
+
+        /**
          * Adds newly parsed token to tree under this token tree node.
          *
          * @param token Token to add token tree.         

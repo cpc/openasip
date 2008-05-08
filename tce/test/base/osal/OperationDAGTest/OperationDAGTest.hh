@@ -108,6 +108,7 @@ void
 OperationDAGTest::testIfCanSimulate() {
     OperationPool opPool;
     Operation& okOp = opPool.operation("addsubmuldivdivu");    
+    Operation& okOpWithConstant = opPool.operation("neg2");
 
     Operation& noSimOp1 = opPool.operation("cannotsimulate");
     Operation& noSimOp2 = opPool.operation("cannotsimulate2");
@@ -144,11 +145,12 @@ OperationDAGTest::testIfCanSimulate() {
 //                << std::endl;
     
 //     okOp.expandedDag().writeToDotFile("expanded.dot");
-//     okOp.dag().writeToDotFile("normal.dot");
+//    okOp.dag(0).writeToDotFile("normal.dot");
        
     TS_ASSERT_EQUALS(noSimOp1.canBeSimulated(), false);
     TS_ASSERT_EQUALS(noSimOp2.canBeSimulated(), false);
     TS_ASSERT_EQUALS(okOp.canBeSimulated(), true);
+    TS_ASSERT_EQUALS(okOpWithConstant.canBeSimulated(), true);
     TS_ASSERT_EQUALS(allSimulationCodeOperations.canBeSimulated(), true);
 }
 

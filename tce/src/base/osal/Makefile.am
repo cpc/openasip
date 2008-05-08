@@ -7,7 +7,7 @@ libosal_la_SOURCES = OperationBehavior.cc OperationContext.cc \
 	OperationDAGNode.cc OperationNode.cc TerminalNode.cc \
 	OperationDAGEdge.cc OperationDAGBehavior.cc OperationDAGConverter.cc \
 	OperationDAGBuilder.cc OperationGlobals.cc OperationPoolPimpl.cc \
-	OperationContextPimpl.cc OperationPimpl.cc
+	OperationContextPimpl.cc OperationPimpl.cc ConstantNode.cc
 
 PROJECT_ROOT = ../../..
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config

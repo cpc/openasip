@@ -28,11 +28,11 @@ public:
     TerminalNode(const TerminalNode& other);
 
     virtual ~TerminalNode() {}
-    
+
     virtual GraphNode* clone() const; 
 
     virtual int operandIndex() const;
-
+    
     virtual std::string toString() const;
 
 private:

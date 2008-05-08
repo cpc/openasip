@@ -3,6 +3,18 @@
 <osal version="0.1">
 
     <operation>
+        <name>neg2</name>
+        <inputs>1</inputs>
+        <outputs>1</outputs>
+       	<in id="1" type="SIntWord"/>
+       	<out id="2" type="SIntWord"/>
+
+        <trigger-semantics>
+            EXEC_OPERATION(sub, 0x0, IO(1), IO(2));
+        </trigger-semantics>
+    </operation>
+
+    <operation>
         <name>addsubmul</name>
         <inputs>2</inputs>
         <outputs>1</outputs>

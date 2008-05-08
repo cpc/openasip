@@ -14,6 +14,7 @@
 #include "OperationNode.hh"
 #include "OperationDAGEdge.hh"
 #include "TerminalNode.hh"
+#include "ConstantNode.hh"
 #include "Operation.hh"
 #include "Operand.hh"
 
@@ -33,6 +34,10 @@ OperationDAGBuilder::OperationDAGBuilder(
  */
 void 
 OperationDAGBuilder::parse() {
+    
+    // Print out tokenized dag form...
+    // std::cerr << rootNode_.toStr() << std::endl;
+
     // Loop through all leafs of root node and call finalization.        
     for (int i = 0; i < rootNode_.leafCount();i++) {
         const TokenizerData::TokenTreeNode* currNode = 
@@ -118,7 +123,7 @@ OperationDAGBuilder::createOperationNode(const std::string& operation) {
 }
 
 /**
- * Connects given variable to requested operand index currently created
+ * Connects a variable node to given operand index of last created
  * operation node.
  *
  * @param var Variable to connect to operand of created operation node.
@@ -133,7 +138,7 @@ OperationDAGBuilder::connectOperandToNode(
     Operation& currOp = currentOperation_->referencedOperation();        
     
     if (currOp.operand(operandIndex).isInput()) {
-        VariableBinding* srcNode = &getBinding(var);            
+        VariableBinding* srcNode = &getBinding(var);
         OperationDAGEdge* newEdge = 
             new OperationDAGEdge(srcNode->second, operandIndex);
         dag_->connectNodes(*srcNode->first, *currentOperation_, *newEdge);
@@ -262,7 +267,8 @@ OperationDAGBuilder::getVariableName(
 }
 
 /**
- * Returns node and operand index of any existing variable or IO() call.
+ * Returns node and operand index of any existing variable, IO() call or 
+ * constant.
  *
  * @param var Funcion call or single identifier type of token tree node.
  * @return Node and operand index of any existing variable or IO() call.
@@ -273,13 +279,16 @@ OperationDAGBuilder::getBinding(const TokenizerData::TokenTreeNode* var) {
     
     // check if variable is function IO(2) or normal var
     if (var->isFunctionCall()) {
-        int srcOperand = getIOOperand(var);                
+        int srcOperand = getIOOperand(var);
         return getBinding(srcOperand);
         
     } else if (var->token().isIdentifier()) {
         std::string varName = getVariableName(var);
         return getBinding(varName);
         
+    } else if (var->isInteger()) {
+        return getConstantBinding(var->intValue());
+
     } else {
         throw IllegalParameters(
             __FILE__, __LINE__, __func__, 
@@ -303,6 +312,24 @@ OperationDAGBuilder::getBinding(std::string varName) {
             "Trying to use uninitialized variable: " + varName);
     }
     return variableBindings_[varName];
+}
+
+/**
+ * Returns node and operand index of any existing variable. 
+ *
+ * @param varName Name of the variable whose current binding is requested.
+ * @return Node and operand index where variable is currently assigned. 
+ * @exception IllegalParameters Variable is not declared.
+ */
+OperationDAGBuilder::VariableBinding& 
+OperationDAGBuilder::getConstantBinding(int value) {
+    if (constantBindings_.find(value) ==  constantBindings_.end()) {
+        ConstantNode* newNode = new ConstantNode(value);
+        constantBindings_[value] = VariableBinding(newNode, 1);
+        dag_->addNode(*newNode);
+    }
+
+    return constantBindings_[value];
 }
 
 /**

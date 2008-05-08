@@ -1,5 +1,5 @@
 /**
- * @file TerminaNode.cc
+ * @file TerminalNode.cc
  *
  * Implementation of TerminalNode class.
  *
@@ -17,7 +17,7 @@ TerminalNode::TerminalNode(int operandIndex) :
     OperationDAGNode(), operandIndex_(operandIndex) {}
 
 /**
- * Cpoy constructor.
+ * Copoy constructor.
  */
 TerminalNode::TerminalNode(const TerminalNode& other) :
     OperationDAGNode(), operandIndex_(other.operandIndex()) {}
