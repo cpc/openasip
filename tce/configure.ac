@@ -1067,11 +1067,34 @@ $EDITLINE_INCLUDES $XERCES_INCLUDES $TCL_INCLUDES $GUI_INCLUDES"
 #	fi
 #fi
 
-AC_DEFINE(DISTRIBUTED_VERSION, false,
-[This macro is defined to 'true'  in case the build is going to be \
-distributed to be used in non-developer systems. This results in debug logs \
-etc. being printed to different files, search paths do not include the TCE \
-source directory, etc.])
+# Enable DISTRIBUTED_VERSION
+AC_ARG_ENABLE(distributed,
+              [AC_HELP_STRING([--enable-distributed], [Build TCE as distributed version])],
+[ case "${enableval}" in
+  yes) 
+  AC_DEFINE(DISTRIBUTED_VERSION, true,
+            [This macro is defined to 'true'  in case the build is going to be \
+             distributed to be used in non-developer systems. This results in debug logs \
+             etc. being printed to different files, search paths do not include the TCE \
+             source directory, etc.])
+    ;;
+  no) 
+  AC_DEFINE(DISTRIBUTED_VERSION, false,
+            [This macro is defined to 'true'  in case the build is going to be \
+             distributed to be used in non-developer systems. This results in debug logs \
+             etc. being printed to different files, search paths do not include the TCE \
+             source directory, etc.])
+    ;;
+  *) 
+    AC_MSG_ERROR(bad value ${enableval for --enable-distributed}) 
+    ;;
+  esac], 
+  [AC_DEFINE(DISTRIBUTED_VERSION, false,
+            [This macro is defined to 'true'  in case the build is going to be \
+             distributed to be used in non-developer systems. This results in debug logs \
+             etc. being printed to different files, search paths do not include the TCE \
+             source directory, etc.])]
+)
 
 # Write out a file with flags for unit test Makefiles.
 FILENAME=test/Makefile_configure_settings
