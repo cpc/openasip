@@ -35,7 +35,7 @@ export CC="ccache gcc"
 CXXFLAGS="-O3 -g" ./configure --enable-distributed && make DESTDIR=$tempDir dev-install || exit 2
 
 cat > $tempDir/DEBIAN/control <<EOF
-Package: tce
+Package: tce1.0
 Version: ${version}
 Section: devel 
 Priority: optional
@@ -44,13 +44,13 @@ Essential: no
 Depends: libwxgtk2.6-0, libboost-filesystem1.34.1,
          libboost-graph1.34.1, libboost-regex1.34.1, \
          libboost-thread1.34.1, tcl8.5, libedit2, \
-         libsqlite3-0, libxerces27, g++, tce-frontend
+         libsqlite3-0, libxerces27, g++, tce-frontend1.0
 Pre-Depends: perl 
 Recommends: llvm (=2.1)
 Suggests: kpdf | acroread | evince, sqlite3
 Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
 Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen@tut.fi>
-Provides: tce
+Provides: tce1.0
 Description: TTA Co-design Environment. A toolset for designing TTA-based systems.
 EOF
 
@@ -58,7 +58,7 @@ EOF
 rm *.deb
 
 # create the new .deb
-package=tce_bzr${version}_i386.deb
+package=tce-1.0-${version}_i386.deb
 
 rm -f $package
 dpkg -b $tempDir $package || exit 3
