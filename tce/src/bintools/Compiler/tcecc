@@ -103,14 +103,14 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":                    
                     command = "tce-llvm-gcc --emit-llvm -O2 -ffreestanding "\
-                              "-fno-unit-at-a-time -c -I" + tmpDir + " " +\
-                              compileFlags + baseName + suffix + " -o " +\
+                              "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\ 
+                              " " + compileFlags + baseName + suffix + " -o " +\
                               outFileName
 
                 elif suffix == ".cpp" or suffix == ".cc":
                     command = "tce-llvm-g++ --emit-llvm -O2 -ffreestanding "\
-                              "-fno-unit-at-a-time -c -I" + tmpDir + " " +\
-                              compileFlags + baseName + suffix + " -o " +\
+                              "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\ 
+                              " " + compileFlags + baseName + suffix + " -o " +\
                               outFileName
 
                 elif suffix == ".bc":
