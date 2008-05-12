@@ -40,7 +40,7 @@ else
 -I ${TCE_ROOT} -I ${TRACEDB} -I ${SIMULATOR} -I ${HDB} -I ${COSTDB} \
 -I ${EXPLORER} -I ${DSDB} -I ${SCHEDULER_APPLIBS} -I ${OSAL} -I ${UMACH} \
 -I ${INTERPRETER} -I ${MEMORY} -I ${MACH_APPLIBS} -I ${PROGRAM_APPLIBS} \
--I ${ESTIMATOR}"
+-I ${ESTIMATOR} ${CPPFLAGS}"
         soflags="-lgcc -shared -fPIC -o"
 	cxxflags="-g -O3"
 		
