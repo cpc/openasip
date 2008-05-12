@@ -8,10 +8,10 @@
 \title{TTA Codesign Environment v1.0}
 \ver{8}
 \firstday{25.10.2006}
-\lastday{06.05.2008}
+\lastday{12.05.2008}
 % id number in P- sequence
 \docnum{1000}
-% draft/complete/committed
+% draft/complete/committedt
 \state{review}
 \maketitle
 
@@ -4943,9 +4943,72 @@ Hello TTA World!
 That's it. Happy debugging!
 
 
-%%%%%%%%%%%%%%%%%%%%
-% Assembly tutorial
-%%%%%%%%%%%%%%%%%%%%
+\section{Streaming I/O}
+\label{section:streamIO}
+
+Because TTA/TCE is an environment without operating system, there is also
+no file system available for implementing file-based I/O. Therefore, one
+popular way to get input and output to/from the TTA is using shared memory
+for communicating the data. For stream processing type of applications,
+one can also use an I/O function unit that implements the required 
+operations for streaming.
+
+TCE ships with example operations for implementing stream type input/output. 
+These operations can be used to read and write samples from streams in the
+designed TTA processor. The basic interface of the operations allows reading and 
+writing samples from the streams and querying the input or output stream's 
+status (buffer full/empty, etc.). The status operations are provided to
+allow the software running in the TTA to do something useful while the
+buffer is empty or full, for example switch to another thread. Otherwise,
+in case on tries to read/write a sample from/to a stream of which buffer is 
+empty/full, the TTA is locked and the cycles until the situation resolves
+are wasted.
+
+The example streaming operations in the base operation set are 
+called STREAM\_IN, STREAM\_OUT, STREAM\_IN\_STATUS, and STREAM\_OUT\_STATUS.
+These operations have a simulation behavior definition which simulates the
+stream I/O by reading/writing from/to files stored in the file system of 
+the simulator host. The files are called \textit{ttasim\_stream.in} for 
+the input stream and \textit{ttasim\_stream.out} for the output stream and
+should reside in the directory where the simulator is started. 
+The file names can be customized using environment variables 
+TTASIM\_STREAM\_OUT\_FILE and TTASIM\_STREAM\_IN\_FILE, respectively.
+
+Here is an example C code that implements streaming I/O with the operations:
+
+\begin{verbatim}
+#include "tceops.h"
+
+int main()
+{
+    char byte;
+    int status;
+
+    while (1)
+    {
+        _TCE_STREAM_IN_STATUS(0, status);
+
+        if (status == 0)
+            break;
+
+        _TCE_STREAM_IN(0, byte);
+        _TCE_STREAM_OUT(byte);
+    }
+
+    return 0;
+}
+\end{verbatim}
+
+This code uses the TCE operation invokation macros from \textit{tceops.h}
+to read bytes from the input stream and write the same bytes to the
+output stream until there is no more data left. This situation is indicated
+with the status code 0 queried with the STREAM\_IN\_STATUS operation. The
+value means the stream buffer is empty, which means the file simulating the
+input buffer has reached the end of file.
+
+You can test this code by creating a file \textit{ttasim\_stream.in}
+with some test data. The code should create a copy of that file to the
+stream output file \textit{ttasim\_stream.out}.
 
 \section{Implementing Programs in Parallel Assembly Code}
 \label{section:parallelAssemblyCoding}

@@ -62,7 +62,7 @@
 
 \newcommand{\theproject}[0]{TTA Codesign Environment}
 \newcommand{\theschool}[0]{Tampere University of Technology}
-\newcommand{\theinstitute}[0]{Institute of Digital and Computer Systems}
+\newcommand{\theinstitute}[0]{Department of Computer Systems}
 
 \newcommand{\note}[1]{\marginpar[\scriptsize\sf #1]{\scriptsize\sf #1}}
 \newcommand{\texttilde}{{\large\raisebox{-0.75ex}{\~{}}}}

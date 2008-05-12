@@ -1,3 +1,17 @@
+1.0-x         2008-xx-xx
+
+New features
+------------
+
+- Added example stream operations to the base opset and documented them in
+  the TCE User Manual's tutorial section.
+- Constant support for the OSAL DAG language.
+
+Bug fixes
+---------
+- Workaround for an ICE that happened with LLVM-GCC inlining.
+
+
 1.0-alpha1    2008-05-06
 
 The first preview release for co-op universities and companies.
