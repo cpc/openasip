@@ -17,27 +17,25 @@
 # 1|2|3: "full"     rebuild and install llvm-frontend from scratch
 # 1..n:  *          parameters to be passed for compiletests.sh
 
+# parameters taken as inported variables:
+#
+#  REPO_DIR                     Repository root directory
+#  BRANCH_NAME                  Branch name
+#  LLVM_BIN_DIR                 llvm binary directory
+#  LLVM_FRONTEND_INSTALL_DIR    llvm-frontend install directory
 
-# global variables
-export REPO_DIR="${HOME}/repo"
-export BRANCH_DIR="${REPO_DIR}/trunk"
-export LLVM_BIN_DIR=${HOME}/llvm/bin
-export LLVM_FRONTEND_INSTALL_DIR=${HOME}/llvm-frontend
-#export INSTALLATION_PATH=$HOME/tce-installation
-
-export PATH="${LLVM_BIN_DIR}:${LLVM_FRONTEND_INSTALL_DIR}/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin"
-#export LD_LIBRARY_PATH=$INSTALLATION_PATH/lib
-
-# default output for make and autotools
-OUTPUT="/dev/null"
-DEBUG_LOG="$HOME/rnc-early.debug"
-
-# alternative GCC version used with parameter altgcc
-ALT_GCC_VERSION="4.3"
 
 function eexit {
     echo $1 >&2
     exit 1
+}
+
+# adds the $1 param to the end of PATH variable
+function addToPath {
+    local re='[:\n]{1}'
+    if [ -z "$(echo "$PATH" | grep -E "${1}${re}")" ]; then
+        export PATH="${PATH}:${1}"
+    fi  
 }
 
 # $1: full, do full rebuild
@@ -71,14 +69,13 @@ function install_llvm-frontend {
 
 function start_compiletest {
     cd "${BRANCH_DIR}/tce"
-    autoreconf >${OUTPUT} 2>&1
+    autoreconf >>${OUTPUT} 2>&1
 
     export ERROR_MAIL=yes
     export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
     export CXX="ccache g++${ALTGCC}"
     export CC="ccache gcc${ALTGCC}"
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros"
-    #export TCE_CONFIGURE_SWITCHES="--prefix=$INSTALLATION_PATH --disable-python"
     export TCE_CONFIGURE_SWITCHES="--disable-python"
 
     tools/scripts/compiletest.sh $@
@@ -93,14 +90,33 @@ function update_repo {
 
 ##############################################################
 
+# global variables
+export REPO_DIR=${REPO_DIR:-$HOME/repo}
+export BRANCH_NAME=${BRANCH_NAME:-trunk}
+export BRANCH_DIR="${REPO_DIR}/${BRANCH_NAME}"
+export LLVM_BIN_DIR=${LLVM_BIN_DIR:-$HOME/llvm/bin}
+export LLVM_FRONTEND_INSTALL_DIR=${LLVM_FRONTEND_INSTALL_DIR:-$HOME/llvm-frontend}
+
+addToPath "${LLVM_BIN_DIR}"
+addToPath "${LLVM_FRONTEND_INSTALL_DIR}"
+
+# default output for make and autotools
+OUTPUT="/dev/null"
+DEBUG_LOG="$HOME/rnc-early.debug"
+
+# alternative GCC version used with parameter altgcc
+ALT_GCC_VERSION="4.3"
+
+##############################################################
+
 if [ ! -e "${LLVM_BIN_DIR}" ]; then
     if [ "$(whereis llvm-config 2>/dev/null | awk '{print $2}')x" == "x" ]; then 
         eexit "LLVM bin directory: ${LLVM_BIN_DIR}, was not found and no llvm was installed system wide."
     fi
 fi
 
-# output to a debug log
-[ "${1}x" == "debugx" ] && { shift; OUTPUT="${DEBUG_LOG}"; }
+# output to a debug log, also empty the log file first.
+[ "${1}x" == "debugx" ] && { shift; OUTPUT="${DEBUG_LOG}"; :>"${OUTPUT}"; }
 
 # use alternative gcc version
 [ "${1}x" == "altgccx" ] && { shift; ALTGCC="-${ALT_GCC_VERSION}"; } || ALTGCC=""
@@ -108,11 +124,11 @@ fi
 ##############################################################
 
 # first update repository
-update_repo &>${OUTPUT} || eexit "Updating bzr repository failed."
+update_repo >>${OUTPUT} 2>&1 || eexit "Updating bzr repository failed."
 
 # now compile and install tce llvm-frontend from trunk branch
 # llvm is expected to be intalled
-install_llvm-frontend "${1}" &>${OUTPUT} || eexit "Compiling/installing llvm-frontend failed."
+install_llvm-frontend "${1}" >>${OUTPUT} 2>&1 || eexit "Compiling/installing llvm-frontend failed."
 
 # shift parameters belonging to install_llvm-frontend
 [ "${1}x" == "fullx" ] && shift
