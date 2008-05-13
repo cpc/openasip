@@ -1,7 +1,6 @@
 from binding_generator import *
 
-prefix="../../src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph/"
-prefix2="../../src/base/Graph/"
+prefix="./TCE-include/"
 
 bg = binding_generator_t(
     module_name = "ControlFlowGraph",
@@ -20,10 +19,6 @@ bg = binding_generator_t(
                prefix + "BasicBlockNode.hh",
                prefix + "ControlFlowEdge.hh",
                prefix + "CFGStatistics.hh",
-               #prefix2 + "BoostGraph.hh",
-               #prefix2 + "GraphNode.hh",
-               #prefix2 + "GraphEdge.hh",
-               #prefix2 + "Graph.hh",                
                prefix + "ControlFlowGraph.hh"
                ],
     extra_headers = ["Procedure.hh",

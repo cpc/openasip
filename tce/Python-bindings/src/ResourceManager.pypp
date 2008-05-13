@@ -1,6 +1,6 @@
 from binding_generator import *
 
-prefix = "../../src/applibs/Scheduler/ResourceManager/"
+prefix = "./TCE-include/"
 
 
 bg = binding_generator_t(
@@ -8,11 +8,24 @@ bg = binding_generator_t(
     call_policies = (('SimpleResourceManager',
                       [('instruction', return_internal_reference()),
                        ('immediateValue', return_internal_reference())]),
+                     ('AssignmentPlan',
+                      [('broker', return_internal_reference()),
+                       ('currentBroker', return_internal_reference()),
+                       ('firstBroker', return_internal_reference()),
+                       ('lastBroker', return_internal_reference()),
+                       ('nextBroker', return_internal_reference()),
+                       ]),
+                     ('SimpleBrokerDirector',
+                      [('instruction', return_internal_reference()),
+                       ('immediateValue', return_internal_reference()),
+                       ]),
                      ),
+    excluded_classes = ['ResourceMapper'],
     headers = [prefix + "SimpleResourceManager.hh"],
     extra_headers = ["Instruction.hh",
                      "MoveNode.hh",
-                     "MoveNodeSet.hh"]
+                     "MoveNodeSet.hh",
+                     "ResourceBroker.hh"]
     )
 
 bg.run()

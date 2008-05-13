@@ -17,7 +17,7 @@ install: $(CCSOURCES)
 	@PYTHON@ setup.py install --prefix=@prefix@
 
 clean::
-	/bin/rm -f $(CCSOURCES) $(CCSOURCES:.cc=.d)
+	/bin/rm -f $(CCSOURCES) $(CCSOURCES:.cc=.d) TCE-includes/*.hh TCE-includes/*.icc
 	@PYTHON@ setup.py clean
 
 %.cc: %.pypp
@@ -26,5 +26,11 @@ clean::
 
 %.d: %.pypp
 	export PYTHONPATH="../tools/pygccxml"; @PYTHON@ $< --generate-dependences 
+
+%.hh:
+	(cd TCE-include; ./make-link.sh $@)
+
+%.icc:
+	(cd TCE-include; ./make-link.sh $@)
 
 include $(CCSOURCES:.cc=.d)

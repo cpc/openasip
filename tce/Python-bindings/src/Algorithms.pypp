@@ -1,6 +1,6 @@
 from binding_generator import *
 
-prefix="../../src/applibs/Scheduler/Algorithms/"
+prefix="./TCE-include/"
 
 bg = binding_generator_t(
     module_name = "Algorithms",

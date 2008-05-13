@@ -1,6 +1,6 @@
 from binding_generator import *
 
-prefix = "../../src/base/program/"
+prefix = "./TCE-include/"
 
 
 move_constructor_declarations = """

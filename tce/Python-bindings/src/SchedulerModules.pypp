@@ -1,8 +1,6 @@
 from binding_generator import *
 
-prefix1 = "../../src/applibs/Scheduler/"
-prefix2 = "../../src/applibs/Scheduler/Algorithms/"
-prefix3 = "../../scheduler/passes/BasicBlockScheduler/"
+prefix = "./TCE-include/"
 
 
 bg = binding_generator_t(
@@ -20,13 +18,13 @@ bg = binding_generator_t(
                      ('CopyingDSFillerModule',
                       [('filler', return_internal_reference())]),
                      ),
-    headers = [prefix1 + "BaseSchedulerModule.hh",
-               prefix1 + "HelperSchedulerModule.hh",
-               prefix2 + "BypasserModule.hh",
-               prefix3 + "CLBBypasserModule.hh",
-               prefix2 + "CopyingDelaySlotFiller.hh",
-               prefix2 + "DSFillerModule.hh",
-               prefix3 + "CopyingDSFillerModule.hh"
+    headers = [prefix + "BaseSchedulerModule.hh",
+               prefix + "HelperSchedulerModule.hh",
+               prefix + "BypasserModule.hh",
+               prefix + "CLBBypasserModule.hh",
+               prefix + "CopyingDelaySlotFiller.hh",
+               prefix + "DSFillerModule.hh",
+               prefix + "CopyingDSFillerModule.hh"
                ],
     extra_headers = ["ObjectState.hh",
                      "DataDependenceGraph.hh",
