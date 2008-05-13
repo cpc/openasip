@@ -32,7 +32,7 @@ echo "Building and installing TCE."
 cd $tceRoot
 export CXX="ccache g++"
 export CC="ccache gcc"
-CXXFLAGS="-O3 -g" ./configure && make DESTDIR=$tempDir install || exit 2
+CXXFLAGS="-O3 -g" ./configure --enable-distributed && make DESTDIR=$tempDir dev-install || exit 2
 
 cat > $tempDir/DEBIAN/control <<EOF
 Package: tce
