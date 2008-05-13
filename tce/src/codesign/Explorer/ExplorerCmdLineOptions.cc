@@ -167,7 +167,7 @@ ExplorerCmdLineOptions::printHelp() const {
               << std::endl
               << "Example: -e InitialMachineExplorer "
               << "-a data/newApplication "
-              << "-p bus_count=5 -p build_idf=true test.dsdb"
+              << "-u bus_count=5 -u build_idf=true test.dsdb"
               << std::endl
               << std::endl
               << "DSDB file is required always and new is created if not found."
