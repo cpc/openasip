@@ -41,7 +41,7 @@ then
 fi
 
 
-DESTINATION=${TCE_ROOT}/include/tce
+DESTINATION=${DESTDIR}${TCE_ROOT}/include/tce
 mkdir -p $DESTINATION
 cp `find src/ -name *.icc` $DESTINATION
 cp `find src/ -name *.hh` $DESTINATION
