@@ -172,7 +172,7 @@ runner.cpp.*|\
 .*unrecognized[[:space:]]*#pragma.*|\
 .*boost_1_31_0-gcc_2.95.4.*|\
 .*Unknown.compiler.version.-.please.run.the.configure.tests.and.report.the.results.*|\
-.*/usr/include/wx-2.6/wx/.*warning.*dereferencing.type.punned.*|\
+.*/usr/.*/wx-2\.[[:digit:]]/wx/.*warning.*dereferencing.type.punned.*|\
 .*TargetMemory.cc.*warning.*dereferencing.type.punned.*|\
 .*MemoryGridTable.cc.*warning.*dereferencing.type.punned.*|\
 .*TestSuite.h:.*warning.*comparison.between.signed.and.unsigned.*|\
