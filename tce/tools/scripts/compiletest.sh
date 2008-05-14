@@ -24,7 +24,15 @@ installAfterCompile=no
 goodRunCountFile=~/compile_test_ok_run_count
 goodRunsBeforeEmail=10
 
-lastOkRevisionFile=~/tce_last_ok_revision
+# check the branch of tce
+if [ -z "${BRANCH_NAME}" ]; then
+    # set branch name, some better heuristics, for example checking
+    # .bzr/branch might be in place
+    BRANCH_NAME="$(pwd | awk 'BEGIN {FS="/"} {print $(NF-1)}')"
+fi
+
+lastOkRevisionFile="${HOME}/tce_last_ok_revision_${BRANCH_NAME}"
+touch -a "${lastOkRevisionFile}"
 
 # Process command line arguments (from Advanced Bash-Scripting Guide).
 while getopts "vhngqckmbsui" Option
@@ -571,7 +579,7 @@ function compile_test {
 
     # compile test started with revision
     START_REV="$(bzr revno)"
-    echo "Current revision of $(basename $(pwd)) is ${START_REV}." 
+    echo "Current revision of ${BRANCH_NAME}:$(basename $(pwd)) is ${START_REV}." 
 
     errors="no"
 
@@ -843,6 +851,7 @@ function compile_test_with_all_compilers {
 
         if [ "x$ERROR_MAIL" == "xyes" ]; then
             echo "---" >> ${ERROR_LOG_FILE}
+            echo "Branch tested was ${BRANCH_NAME}." >> ${ERROR_LOG_FILE}
             echo "Testing started at: ${LOG_TIMESTAMP}" >> ${ERROR_LOG_FILE}
             echo "This error log was sent at: $(date +"%d.%m.%y %H:%M")" >> ${ERROR_LOG_FILE}
             tail -n ${LINES_FROM_ERROR_LOG} $ERROR_LOG_FILE | grep -vEx "${MAIL_FILTER}" | eval $MAILER 
@@ -884,6 +893,6 @@ function compile_test_with_all_compilers {
 #
 
 echo " Temp: $TEMP_FILE"
-echo "[ === Starting compile test ===]" >> $LOG_FILE
+echo "[ === Starting compile test for branch ${BRANCH_NAME} ===]" >> $LOG_FILE
 compile_test_with_all_compilers tce .
 
