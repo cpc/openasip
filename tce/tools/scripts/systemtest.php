@@ -1,4 +1,4 @@
-#!/usr/bin/php5 -qC
+#!/usr/bin/php -qC
 <?php
 
 error_reporting(E_COMPILE_ERROR | E_ERROR | E_CORE_ERROR);
@@ -159,20 +159,24 @@ class Test {
                 $output = "1_output.txt";
                 $command = 
                     "cd ".$wdir.";".$this->watchdog." '"
-                    .$test_bin." ".$bin_args." "
-                    ." &> ".$this->tempfile.";diff "
-                    .$this->tempfile." ".$testdir."/".$output."'";
+                    .$test_bin." ".$bin_args
+                    ." > ".$this->tempfile." 2>&1';diff "
+                    .$this->tempfile." ".$testdir."/".$output;
             } else {
                 // normal case when inputs exists
                 $command = 
                     "cd ".$wdir.";".$this->watchdog." '"
                     .$test_bin." ".$bin_args." < ".$testdir."/"
-                    .$inputs[$i]." &> ".$this->tempfile.";diff -u "
-                    .$this->tempfile." ".$testdir."/".$output."'";
+                    .$inputs[$i]." > ".$this->tempfile." 2>&1';diff -u "
+                    .$this->tempfile." ".$testdir."/".$output;
             }
+
             // output of diff command is saved in $out array
             unset($out);
+            // echo $command."\n";
             exec($command, $out, $return_val);
+            //echo "output:".$out."\n";
+            //echo "retval:".$return_val."\n";
             
             // if diff returns other than zero a difference is found
             if ($out) {

@@ -212,7 +212,16 @@ OperationDAGBuilder::declareVariable(
 void 
 OperationDAGBuilder::assignVariable(
     const TokenizerData::TokenTreeNode* dst, VariableBinding& src) {
-    std::string dstName = getVariableName(dst);        
+    std::string dstName = getVariableName(dst);
+
+    if (variableBindings_.find(dstName) == variableBindings_.end() && 
+        ioVariables_.find(dstName) == ioVariables_.end()) {
+        throw IllegalParameters(
+            __FILE__, __LINE__, __func__,
+            "Variable \"" + dst->token().stringValue() + 
+            "\" was not declared.");
+    }
+
     variableBindings_[dstName] = src;
 }     
 

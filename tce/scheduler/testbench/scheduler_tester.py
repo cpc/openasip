@@ -274,35 +274,56 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
         print "Could not create process"
         sys.exit(1)
 
-    if inputStream != "":
-        for line in inputStream:
-            process.stdin.write(line)
-            process.stdin.flush()
+    try:
+        if inputStream != "":
+            for line in inputStream:
+                process.stdin.write(line)
+                process.stdin.flush()
 
-    while True:
-        status = process.poll()
-        if status != None:
-            # Process terminated succesfully.            
-            stdoutSize = os.lseek(stdoutFD, 0, 2)
-            stderrSize = os.lseek(stderrFD, 0, 2)
+        while True:
+            status = process.poll()
+            if status != None:
+                # Process terminated succesfully.            
+                stdoutSize = os.lseek(stdoutFD, 0, 2)
+                stderrSize = os.lseek(stderrFD, 0, 2)
 
-            os.lseek(stdoutFD, 0, 0)
-            os.lseek(stderrFD, 0, 0)
+                os.lseek(stdoutFD, 0, 0)
+                os.lseek(stderrFD, 0, 0)
 
-            stdoutContents = os.read(stdoutFD, stdoutSize)
-            stderrContents = os.read(stderrFD, stderrSize)
+                stdoutContents = os.read(stdoutFD, stdoutSize)
+                stderrContents = os.read(stderrFD, stderrSize)
 
-            os.close(stdoutFD)
-            os.close(stderrFD)
+                os.close(stdoutFD)
+                os.close(stderrFD)
 
-            return (True, stdoutContents, stderrContents)
+                return (True, stdoutContents, stderrContents)
         
-        if timePassed < timeoutSecs:
-            time.sleep(increment)
-            timePassed = timePassed + increment
+            if timePassed < timeoutSecs:
+                time.sleep(increment)
+                timePassed = timePassed + increment
 
+            else:
+                # Simulation time out, kill the simulated process.
+                stdoutSize = os.lseek(stdoutFD, 0, 2)
+                stderrSize = os.lseek(stderrFD, 0, 2)
 
-        else:
+                os.lseek(stdoutFD, 0, 0)
+                os.lseek(stderrFD, 0, 0)
+
+                stdoutContents = os.read(stdoutFD, stdoutSize)
+                stderrContents = os.read(stderrFD, stderrSize)
+
+                os.close(stdoutFD)
+                os.close(stderrFD)
+            
+                os.kill(process.pid, signal.SIGTSTP)
+            
+                return (False, stdoutContents, stderrContents)
+    except:
+        # if something threw exception (e.g. ctrl-c)
+        os.kill(process.pid, signal.SIGTSTP)
+
+        try:
             # Simulation time out, kill the simulated process.
             stdoutSize = os.lseek(stdoutFD, 0, 2)
             stderrSize = os.lseek(stderrFD, 0, 2)
@@ -315,10 +336,10 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
 
             os.close(stdoutFD)
             os.close(stderrFD)
-            
-            os.kill(process.pid, signal.SIGKILL)
-            
-            return (False, stdoutContents, stderrContents)
+        except:
+            pass
+        
+        return (False, stdoutContents, stderrContents)
 
 def callSilent(command):
     schedProc = Popen(command, shell=True, stdin=None, stdout=None, stderr=None, close_fds=True)
