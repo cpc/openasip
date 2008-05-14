@@ -69,6 +69,7 @@ BlockImplementationDialog::BlockImplementationDialog(
     list_->InsertColumn(3, _T("param width"), wxLIST_FORMAT_LEFT, 100);
 
     HDBRegistry& registry = HDBRegistry::instance();
+    registry.loadFromSearchPaths();
     for (int i = 0; i < registry.hdbCount(); i++) {
         hdbs_.insert(registry.hdbPath(i));
     }

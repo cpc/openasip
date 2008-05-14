@@ -76,10 +76,10 @@ EditPart::find(wxPoint point) {
 
     // first check if a child is in point
     for (unsigned int i = 0; i < children_.size(); i++) {
-	found = children_[i]->find(point);
-	if (found != NULL) {
-	    return found;
-	}
+        found = children_[i]->find(point);
+        if (found != NULL) {
+            return found;
+        }
     }
     
     // if no children were in located in the point, check self

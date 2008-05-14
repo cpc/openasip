@@ -147,6 +147,9 @@ BusDialog::BusDialog(
     TransferDataToWindow();
 
     FindWindow(ID_BUS_NAME)->SetFocus();
+
+    // Editing segments is unsupported feature => hide segment ui
+    segmentSizer_->Show(false);
 }
 
 

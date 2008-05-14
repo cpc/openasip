@@ -93,6 +93,10 @@ ProcessorImplementationWindow::ProcessorImplementationWindow(
     createContents(this, true, true);
     SetMinSize(wxSize(600, 500));
 
+    // Plugin name is always fixed, thus disable editing
+    dynamic_cast<wxTextCtrl*>(FindWindow(ID_IC_DEC_PLUGIN_NAME))->
+       Enable(false);
+
     fuList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_FU_LIST));
     rfList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_RF_LIST));
     iuList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_IU_LIST));
@@ -121,6 +125,15 @@ ProcessorImplementationWindow::ProcessorImplementationWindow(
     FindWindow(ID_SELECT_IU_IMPL)->Disable();
     FindWindow(ID_SELECT_FU_IMPL)->Disable();
     FindWindow(ID_SET_VALUE)->Disable();
+
+    // Load default plugin
+    std::string pluginFile = Environment::defaultICDecoderPlugin();
+    std::string pluginName = FileSystem::fileNameBody(pluginFile);
+    assert(pluginName.length() > 6);
+    pluginName = pluginName.substr(0, pluginName.length() - 6);
+
+    loadICDecoderPlugin(pluginName, pluginFile);
+
 }
 
 

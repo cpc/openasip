@@ -107,7 +107,9 @@ SelectTool::onMouseEvent(wxMouseEvent& event, wxDC& dc) {
     Request* request = new Request(Request::STATUS_REQUEST);
     if (part != NULL && part->canHandle(request)) {
         ComponentCommand* command = part->performRequest(request);
-        command->Do();
+        if (command != NULL) {
+            command->Do();
+        }
     } else {
         frame_->setStatus(_T(""));
     }

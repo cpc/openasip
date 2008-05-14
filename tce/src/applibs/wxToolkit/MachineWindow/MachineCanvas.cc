@@ -307,7 +307,7 @@ EditPart*
 MachineCanvas::findEditPart(int x, int y) {
     EditPart* part = NULL;
     if (root_ != NULL && root_->contents() != NULL) {
-	part = root_->contents()->find(wxPoint(x, y));
+        part = root_->contents()->find(wxPoint(x, y));
     }
     return part;
 }
@@ -316,14 +316,14 @@ MachineCanvas::findEditPart(int x, int y) {
 /**
  * Finds an edit part corresponding the given machine part.
  *
- * @param x X-coordinate of the position to search.
+ * @param model MachinePart to find
  * @return Pointer to the found edit part, or NULL if no edit part was found.
  */
 EditPart*
 MachineCanvas::findEditPart(const TTAMachine::MachinePart* model) {
     EditPart* part = NULL;
     if (root_ != NULL && root_->contents() != NULL) {
-	part = root_->contents()->find(model);
+        part = root_->contents()->find(model);
     }
     return part;
 }
@@ -355,12 +355,12 @@ MachineCanvas::highlight(
     TTAMachine::MachinePart* component, const wxColour& colour) {
 
     if (root_->contents() == NULL) {
-	return;
+        return;
     }
 
     EditPart* editPart = root_->contents()->find(component);
     if (editPart != NULL && editPart->figure() != NULL) {
-	editPart->figure()->highlight(colour);
+        editPart->figure()->highlight(colour);
     }
 }
 

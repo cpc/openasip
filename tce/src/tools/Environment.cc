@@ -843,7 +843,24 @@ Environment::oldGccSchedulerConf() {
     return path;
 }
 
+/**
+ * Returns full path to the default IC/Decoder plugin file.
+ *
+ * @return Full path to the defaultICDecoderPlugin.so
+ */
+string
+Environment::defaultICDecoderPlugin() {
 
+    try {
+        std::string file = "DefaultICDecoderPlugin.so";
+        vector<std::string> paths = icDecoderPluginPaths();
+        std::string path = FileSystem::findFileInSearchPaths(paths, file);
+
+        return path;
+    } catch(FileNotFound e) {
+        assert(false && "Installation broken, DefaultICDecoderPlugin.so not found.");
+    }
+}
 
 /**
  * Returns full path to llvmtce plugin cache directory.

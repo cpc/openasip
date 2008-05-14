@@ -352,7 +352,7 @@ BridgeDialog::onName(wxCommandEvent&) {
     wxString trimmedOppositeName = oppositeName.Trim(false).Trim(true);
 
     if (trimmedName == _T("") ||
-        bidirectional_ && trimmedOppositeName == _T("")) {
+        (bidirectional_ && trimmedOppositeName == _T(""))) {
 
         FindWindow(wxID_OK)->Disable();
     } else {

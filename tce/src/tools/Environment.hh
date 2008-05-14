@@ -56,6 +56,7 @@ public:
     static std::string minimalADF();
     static std::string defaultSchedulerConf();
     static std::string oldGccSchedulerConf();
+    static std::string defaultICDecoderPlugin();
 
     static std::string llvmtceCachePath();
 

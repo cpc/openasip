@@ -63,19 +63,19 @@ BusFactory::createEditPart(MachinePart* component) {
 	BusFigure* fig = new BusFigure(bus->position());
 	busEditPart->setFigure(fig);
 
-        for (int i = 0; i < bus->segmentCount(); i++) {
-            vector<Factory*>::const_iterator iter = factories_.begin();
-            while (iter != factories_.end()) {
-                EditPart* segEditPart =
-                    (*iter)->createEditPart((MachinePart*)bus->segment(i));
-                if (segEditPart != NULL) {
-                    busEditPart->addChild(segEditPart);
-                    segEditPart->setSelectable(true);
-                    segEditPart->setParent(busEditPart);
-                }
-		iter++;
+    for (int i = 0; i < bus->segmentCount(); i++) {
+        vector<Factory*>::const_iterator iter = factories_.begin();
+        while (iter != factories_.end()) {
+            EditPart* segEditPart =
+                (*iter)->createEditPart((MachinePart*)bus->segment(i));
+            if (segEditPart != NULL) {
+                busEditPart->addChild(segEditPart);
+                segEditPart->setSelectable(true);
+                segEditPart->setParent(busEditPart);
             }
+            iter++;
         }
+    }
 	
 	busEditPart->setSelectable(true);
 

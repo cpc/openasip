@@ -47,6 +47,8 @@ ProDeSegmentEditPolicy::~ProDeSegmentEditPolicy() {
  */
 ComponentCommand*
 ProDeSegmentEditPolicy::getCommand(Request* request) {
+
+
     Request::RequestType type = request->type();
     if (type == Request::CONNECT_REQUEST) {
         return createConnectCmd(request);
@@ -55,6 +57,8 @@ ProDeSegmentEditPolicy::getCommand(Request* request) {
     } else if (type == Request::DELETE_REQUEST) {
         return new DeleteSegmentCmd(host_);
     } else if (type == Request::STATUS_REQUEST) {
+        // Editing segments is unsupported feature => return empty command
+        return NULL;
         Segment* segment = dynamic_cast<Segment*>(host_->model());
         ProDeTextGenerator* generator = ProDeTextGenerator::instance();
         format fmt = generator->text(ProDeTextGenerator::STATUS_SEGMENT);
