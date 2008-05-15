@@ -34,8 +34,8 @@ cp DEBIAN/* $tempDir/DEBIAN
 echo "Building and installing TCE."
 
 cd $tceRoot
-export CXX="ccache g++"
-export CC="ccache gcc"
+export CXX="g++"
+export CC="gcc"
 export CXXFLAGS="-O3 -g" 
 ./configure --enable-distributed || eexit "configure failed."
 make DESTDIR=$tempDir dev-install || eexit "make failed."
