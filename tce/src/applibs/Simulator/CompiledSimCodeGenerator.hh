@@ -20,8 +20,6 @@
 #include "SimulatorConstants.hh"
 #include "ConflictDetectionCodeGenerator.hh"
 
-//#define DEBUG_SIMULATION 1
-
 namespace TTAMachine {
     class Machine;
     class FunctionUnit;
@@ -67,6 +65,7 @@ public:
         const TTASimulationController& controller,
         bool sequentialSimulation,
         bool fuResourceConflictDetection,
+        bool handleCycleEnd,
         bool basicBlockPerFile);
 
     virtual ~CompiledSimCodeGenerator();
@@ -108,7 +107,7 @@ private:
     void generateProcedureCode(const TTAProgram::Procedure& proc);
     void generateShutdownCode(InstructionAddress address);
     void generateSimulationGetter();
-    void generateHaltCode(const std::string& message="");
+    std::string generateHaltCode(const std::string& message="");
     void generateAdvanceClockCode();
     void updateDeclaredSymbolsList();
     void updateSymbolsMap();
@@ -121,7 +120,7 @@ private:
         
     std::string handleJump(const TTAMachine::HWOperation& op);
     std::string handleOperation(const TTAMachine::HWOperation& op);
-    std::string handleOperationOld(const TTAMachine::HWOperation& op);
+    std::string handleOperationWithoutDag(const TTAMachine::HWOperation& op);
     std::string detectConflicts(const TTAMachine::HWOperation& op);
     std::string handleGuard(const TTAMachine::Guard& guard, bool isJumpGuard);
     void generateInstruction(const TTAProgram::Instruction& instruction);
@@ -132,8 +131,7 @@ private:
     std::string generateAddFUResult(
         const TTAMachine::FUPort& resultPort, 
         const std::string& value, 
-        int latency,
-        bool attemptStaticLatencySimulation = true);
+        int latency);
     
     std::string generateFUResultRead(
         const std::string& destination, 
@@ -155,14 +153,10 @@ private:
     
     /// Is the simulation sequential code or not
     bool isSequentialSimulation_;
+    /// Should we let frontend handle each cycle end
+    bool handleCycleEnd_;
     /// Should the generator generate only one basic block per code file
     bool basicBlockPerFile_;
-    
-    /// Name of the class to be created
-    std::string className_;
-
-    /// Directory where to write the source files of the engine.
-    std::string targetDirectory_;    
     
     /// Type for SimValue symbol declarations: string=symbolname, int=width
     typedef std::map<std::string, int> SimValueSymbolDeclarations;
@@ -185,7 +179,7 @@ private:
     int pendingJumpDelay_;
     /// last instruction of the current basic block
     InstructionAddress lastInstructionOfBB_;
-    /// name of the bool variable used for guard check - needed for guarded jumps with latency
+    /// last bool used for guard check. needed for guarded jumps with latency
     std::string lastJumpGuardBool_;
     /// name of the last used guard variable
     std::string lastGuardBool_;
@@ -205,15 +199,18 @@ private:
 
     /// The operation pool
     OperationPool operationPool_;
-    /// File to generate the code
-    std::string fileName_;   
+    
+    /// Directory where to write the source files of the engine.
+    std::string targetDirectory_;    
+    /// Name of the class to be created
+    std::string className_;
     /// Header filename
     std::string headerFile_;
     /// Main source filename. This includes the constructor and the simulateCycle().
     std::string mainFile_;
     /// Current file being processed
     std::fstream currentFile_;
-    /// Current output stream (usually the above file)
+    /// Current output stream i.e. the above file
     std::ostream* os_;
 
     /// Conflict detection code generator
@@ -223,7 +220,6 @@ private:
     /// Maximum amount of instructions per code file
     static const int MAX_INSTRUCTIONS_PER_FILE = 1000;
 };
-
 
 #endif // include once
 

@@ -26,6 +26,7 @@ public:
 
     void testText();
     void testAddText();
+    void testReplace();
     
 private:
     static const string helloText_;
@@ -86,6 +87,23 @@ void TextGeneratorTest::testAddText() {
         TS_ASSERT_EQUALS(fmt.str(), "Jussi is 26 years old");
         TS_ASSERT_THROWS(gen.text(666), KeyNotFound);
     } catch (const KeyNotFound& k) {
+        TS_FAIL("Unexpected exception thrown");
+    }
+}
+
+/**
+ * Tests that replace works correctly.
+ */
+void TextGeneratorTest::testReplace() {
+    TextGenerator gen;
+    gen.addText(Id_, testText_);
+    
+    try {
+        gen.replaceText(Id_, "Is that so?");
+        format fmt = gen.text(Id_);
+        TS_ASSERT_EQUALS(fmt.str(), "Is that so?");
+        TS_ASSERT_THROWS(gen.replaceText(666, "darn"), KeyNotFound);
+    } catch (...) {
         TS_FAIL("Unexpected exception thrown");
     }
 }

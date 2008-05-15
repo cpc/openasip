@@ -180,6 +180,10 @@ OperationSerializer::toXMLFormat(const ObjectState* state)
         if (state->boolAttribute(Operation::OPRN_SIDE_EFFECTS)) {
             oper->addChild(new ObjectState(Operation::OPRN_SIDE_EFFECTS));
         }
+        
+        if (state->boolAttribute(Operation::OPRN_CLOCKED)) {
+            oper->addChild(new ObjectState(Operation::OPRN_CLOCKED));
+        }
 
         if (state->boolAttribute(Operation::OPRN_CONTROL_FLOW)) {
             oper->addChild(new ObjectState(Operation::OPRN_CONTROL_FLOW));
@@ -313,6 +317,8 @@ OperationSerializer::toOperation(const ObjectState* state)
                 root->setAttribute(Operation::OPRN_TRAP, true);
             } else if (child->name() == Operation::OPRN_SIDE_EFFECTS) {
                 root->setAttribute(Operation::OPRN_SIDE_EFFECTS, true);
+            } else if (child->name() == Operation::OPRN_CLOCKED) {
+                root->setAttribute(Operation::OPRN_CLOCKED, true);
             } else if (child->name() == Operation::OPRN_CONTROL_FLOW) {
                 root->setAttribute(Operation::OPRN_CONTROL_FLOW, true);
 
@@ -397,6 +403,10 @@ OperationSerializer::toOperation(const ObjectState* state)
         
         if (!root->hasAttribute(Operation::OPRN_SIDE_EFFECTS)) {
             root->setAttribute(Operation::OPRN_SIDE_EFFECTS, false);
+        }
+        
+        if (!root->hasAttribute(Operation::OPRN_CLOCKED)) {
+            root->setAttribute(Operation::OPRN_CLOCKED, false);
         }
 
         if (!root->hasAttribute(Operation::OPRN_CONTROL_FLOW)) {

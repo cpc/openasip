@@ -9,9 +9,9 @@
 
 #include <cstdlib>
 
+#include "SimulatorFrontend.hh"
 #include "CompiledSimController.hh"
 #include "CompiledSimCodeGenerator.hh"
-#include "CompiledSimFrontend.hh"
 #include "CompiledSimCompiler.hh"
 #include "FileSystem.hh"
 #include "MemorySystem.hh"
@@ -231,11 +231,12 @@ CompiledSimController::reset() {
             << "for the generated simulation code!" << endl;
         return;
     }
-
+    
     // Compile the program
     CompiledSimCodeGenerator generator(sourceMachine_, program_, *this,
         frontend_.isSequentialSimulation(),
-        frontend_.fuResourceConflictDetection(), false);
+        frontend_.fuResourceConflictDetection(), frontend_.executionTracing(), 
+        false);
     CATCH_ANY(generator.generateToDirectory(compiledSimulationPath_));
     
     basicBlocks_ = generator.basicBlocks();
@@ -247,7 +248,7 @@ CompiledSimController::reset() {
 
     CompiledSimCompiler compiler;
     if (compiler.compileDirectory(compiledSimulationPath_, flags, false) != 0) {
-        Application::logStream() << "Failed to compile the program!" << endl;
+        Application::logStream() << "Compilation aborted." << endl;
         return;
     }
     

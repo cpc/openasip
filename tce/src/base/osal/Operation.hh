@@ -40,6 +40,8 @@ public:
     static const char* OPRN_TRAP;
     /// Object state name for side effects.
     static const char* OPRN_SIDE_EFFECTS;
+    /// Object state name for clockedness
+    static const char* OPRN_CLOCKED;
     /// Object state name for control flow property.
     static const char* OPRN_CONTROL_FLOW;
     /// Object state name for reads memory.
@@ -78,6 +80,7 @@ public:
     virtual bool writesMemory() const;
     virtual bool canTrap() const;
     virtual bool hasSideEffects() const;
+    virtual bool isClocked() const;
     virtual bool isControlFlowOperation() const;
     virtual bool dependsOn(const Operation& op) const;
     virtual int affectsCount() const;
@@ -140,6 +143,7 @@ public:
     virtual bool writesMemory() const;
     virtual bool canTrap() const;
     virtual bool hasSideEffects() const;
+    virtual bool isClocked() const;
     virtual bool isControlFlowOperation() const;
     virtual bool dependsOn(const Operation& op) const;
     virtual int affectsCount() const;

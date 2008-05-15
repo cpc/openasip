@@ -17,6 +17,7 @@
 #include "DirectAccessMemory.hh"
 #include "MemorySystem.hh"
 #include "CompiledSimulationPimpl.hh"
+#include "ControlUnit.hh"
 
 using namespace TTAMachine;
 
@@ -66,6 +67,17 @@ CompiledSimulation::~CompiledSimulation() {
 }
 
 /**
+ * Handles a single cycle end. Used for example, when generating traces
+ */
+void 
+CompiledSimulation::cycleEnd() {
+    lastExecutedInstruction_ = programCounter_;
+    programCounter_++;
+    pimpl_->frontend_->eventHandler().handleEvent(
+        SimulationEventHandler::SE_CYCLE_END);
+}
+
+/**
  * Advance the simulation by a given amout of cycles. 
  * 
  * @note Advances only at an accuracy of a one basic block!
@@ -80,10 +92,6 @@ CompiledSimulation::step(double count) {
     stopRequested_ = false;
     while (!stopRequested_ && !isFinished_) {
         simulateCycle();
-        #ifndef DEBUG_SIMULATION
-        pimpl_->frontend_->eventHandler().handleEvent(
-            SimulationEventHandler::SE_CYCLE_END);
-        #endif
     }
 }
 
@@ -117,10 +125,6 @@ CompiledSimulation::run() {
     stopRequested_ = false;
     while (!isFinished_ && !stopRequested_) {
         simulateCycle();
-        #ifndef DEBUG_SIMULATION
-        pimpl_->frontend_->eventHandler().handleEvent(
-            SimulationEventHandler::SE_CYCLE_END);
-        #endif
     }
 }
 
@@ -140,10 +144,6 @@ CompiledSimulation::runUntil(UIntWord address) {
     while ((!stopRequested_ && !isFinished_ &&
         (jumpTarget_ != address || cycleCount_ == 0))) {
         simulateCycle();
-        #ifndef DEBUG_SIMULATION
-        pimpl_->frontend_->eventHandler().handleEvent(
-            SimulationEventHandler::SE_CYCLE_END);
-        #endif
     }
 }
 
@@ -210,8 +210,7 @@ CompiledSimulation::registerFileValue(
  * @exception InstanceNotFound If the immediate unit cannot be found
  */
 SimValue 
-CompiledSimulation::immediateUnitRegisterValue(
-    const char* iuName, int index) {  
+CompiledSimulation::immediateUnitRegisterValue(const char* iuName, int index) {  
     ImmediateUnit& iu = *machine_.immediateUnitNavigator().item(iuName);
     std::string immediateUnit = SymbolGenerator::immediateRegisterSymbol(
         iu, index);
@@ -235,12 +234,16 @@ CompiledSimulation::immediateUnitRegisterValue(
  * @exception InstanceNotFound If the FU port cannot be found
  */
 SimValue 
-CompiledSimulation::FUPortValue(
-    const char* fuName, 
-    const char* portName) {
+CompiledSimulation::FUPortValue(const char* fuName, const char* portName) {
     
-    FunctionUnit& fu = *machine_.functionUnitNavigator().item(fuName);
-    std::string fuPort = SymbolGenerator::portSymbol(*fu.port(portName));
+    FunctionUnit* fu = NULL;
+    try {
+        fu = &functionUnit(fuName);
+    } catch(InstanceNotFound& e) {
+        fu = machine_.controlUnit();
+    }
+    
+    std::string fuPort = SymbolGenerator::portSymbol(*fu->port(portName));
     
     CompiledSimulationPimpl::Symbols::const_iterator fuPortIterator = 
         pimpl_->symbols_.find(fuPort);
@@ -331,11 +334,27 @@ CompiledSimulation::frontend() const {
 /**
  * A short cut for printing debugging info from the compiled code.
  * 
- * @param msg The message string to be shown on the log stream
+ * @param message The message string to be shown on the log stream
  */
 void
-CompiledSimulation::msg(const char* msg) const {
-    Application::logStream() << msg << std::endl;
+CompiledSimulation::msg(const char* message) const {
+    Application::logStream() << message << std::endl;
+}
+
+
+/**
+ * Halts simulation by throwing an exception with a message attached to it
+ * 
+ * @param message message to attach
+ * @exception SimulationExecutionError thrown always
+ */
+void 
+CompiledSimulation::haltSimulation(
+    const char* file,
+    int line,
+    const char* procedure,
+    const char* message) const {
+    throw SimulationExecutionError(file, line, procedure, message);
 }
 
 

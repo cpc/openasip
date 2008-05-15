@@ -23,6 +23,7 @@ const char* Operation::OPRN_INPUTS = "inputs";
 const char* Operation::OPRN_OUTPUTS = "outputs";
 const char* Operation::OPRN_TRAP = "trap";
 const char* Operation::OPRN_SIDE_EFFECTS = "side-effects";
+const char* Operation::OPRN_CLOCKED = "clocked";
 const char* Operation::OPRN_CONTROL_FLOW = "control-flow";
 const char* Operation::OPRN_READS_MEMORY = "reads-memory";
 const char* Operation::OPRN_WRITES_MEMORY = "writes-memory";
@@ -218,6 +219,16 @@ Operation::canTrap() const {
 bool
 Operation::hasSideEffects() const {
     return pimpl_->hasSideEffects();
+}
+
+/**
+ * Returns true if the operation is clocked.
+ * 
+ * @return True if the operation is clocked.
+ */
+bool
+Operation::isClocked() const {
+    return pimpl_->isClocked();
 }
 
 /**
@@ -678,6 +689,17 @@ NullOperation::canTrap() const {
 bool
 NullOperation::hasSideEffects() const {
     abortWithError("hasSideEffects()");
+    return false;
+}
+
+/**
+ * Aborts program with error log message.
+ *
+ * @return False.
+ */
+bool
+NullOperation::isClocked() const {
+    abortWithError("isClocked()");
     return false;
 }
 

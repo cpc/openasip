@@ -173,7 +173,6 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
             (boost::format("Maximum printable integer size %d.") %
              SIMULATOR_MAX_INTWORD_BITWIDTH).str());
         interpreter()->setError(true);
-        delete memory;
         return false;        
     }
 

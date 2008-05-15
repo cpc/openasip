@@ -1578,9 +1578,9 @@ InfoCommand::InfoCommand(bool isCompiledSimulation) :
         subCommands_["breakpoints"] = new InfoBreakpointsCommand(*this);
         subCommands_["busses"] = new InfoBussesCommand(*this);
         subCommands_["segments"] = new InfoSegmentsCommand(*this);
+        subCommands_["stats"] = new InfoStatsCommand(*this);
     }
     
-    subCommands_["stats"] = new InfoStatsCommand(*this);
     subCommands_["registers"] = new InfoRegistersCommand(*this);
     subCommands_["proc"] = new InfoProcCommand(*this);
     subCommands_["program"] = new InfoProgramCommand(*this);

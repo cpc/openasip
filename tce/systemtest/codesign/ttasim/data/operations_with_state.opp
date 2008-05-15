@@ -6,6 +6,7 @@
     <inputs>1</inputs>
     <outputs>1</outputs>
     <side-effects/>
+    <clocked/>
     <in id="1" type="SIntWord"/>
     <out id="2" type="SIntWord"/>
   </operation>

@@ -97,6 +97,7 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     lastRunTime_(0.0), simulationTimeout_(0) {
     if (compiledSimulation_) {
         setFUResourceConflictDetection(false); // disabled by default
+        SimulatorToolbox::textGenerator().generateCompiledSimTexts();
     } 
 }
 
@@ -303,11 +304,11 @@ SimulatorFrontend::loadProgram(const std::string& fileName)
     checks.insert(POMValidator::LONG_IMMEDIATE_NOT_SUPPORTED);
     checks.insert(POMValidator::SIMULATION_NOT_POSSIBLE);
 
-    #if 0
+    //#if 0
     if (isCompiledSimulation()) {
         checks.insert(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
     }
-    #endif
+    //#endif
 
     std::auto_ptr<POMValidatorResults> results(validator.validate(checks));
     if (results->errorCount() > 0) {
@@ -318,14 +319,14 @@ SimulatorFrontend::loadProgram(const std::string& fileName)
             errorMsg += "\n" + results->error(i).second;
         }
         
-        #if 0
+        //#if 0
         if (isCompiledSimulation()) {
             // Attempt without compiled simulator
             setCompiledSimulation(false);
             checks.erase(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
             results.reset(validator.validate(checks));
         }
-        #endif
+        //#endif
               
         if (results->errorCount() > 0) {
             delete tpef_;
@@ -609,11 +610,10 @@ SimulatorFrontend::initializeSimulation() {
         memoryAccessTracking_);
         machineState_ = &(dynamic_cast<SimulationController*>(
             simCon_)->machineState());
-        
-        delete stopPointManager_;
-        stopPointManager_ = new StopPointManager(
-        *dynamic_cast<SimulationController*>(simCon_), eventHandler());
     }
+        
+    delete stopPointManager_;
+    stopPointManager_ = new StopPointManager(*simCon_, eventHandler());
 }
 
 /**

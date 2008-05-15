@@ -77,8 +77,7 @@ ConflictDetectionCodeGenerator::ConflictDetectionCodeGenerator(
 
     // initialize the detectors
     Application::logStream() 
-        << "Using conflict detector " << conflictDetectorType_
-        << std::endl;
+        << "Using conflict detector " << conflictDetectorType_ << std::endl;
     
     const Machine::FunctionUnitNavigator& fus = 
         machine_.functionUnitNavigator();
@@ -110,12 +109,7 @@ ConflictDetectionCodeGenerator::includes() {
         return "";
     
     std::stringstream ss;
-    ss << "#include \"tce/ReservationTableFUResourceConflictDetector.hh\"" 
-       << endl
-       << "#include \"tce/DCMFUResourceConflictDetector.hh\"" << endl
-       << "#include \"tce/FSAFUResourceConflictDetector.hh\"" << endl
-       << "#include \"tce/ReservationTableFUResourceConflictDetector.hh\"" 
-       << endl;
+    ss << "#include \"FSAFUResourceConflictDetector.hh\"" << endl << endl;
     return ss.str();
 }
 
@@ -128,9 +122,9 @@ ConflictDetectionCodeGenerator::includes() {
 string 
 ConflictDetectionCodeGenerator::symbolDeclaration(const FunctionUnit& fu) {
     
-    if (!conflictDetectionEnabled_)
+    if (!conflictDetectionEnabled_ || !fu.needsConflictDetection())
         return "";
-    
+
     std::stringstream ss;
     ss << "\t" << conflictDetectorType_ << " " 
        << SymbolGenerator::conflictDetectorSymbol(fu) << ";" << endl;
@@ -170,13 +164,9 @@ ConflictDetectionCodeGenerator::notifyOfConflicts() {
     std::stringstream ss;
     ss << endl 
        << "\tif (conflictDetected_) {" << endl
-// TODO: some problem throwing exception from a plugin to the loader again...
-// simulation crashed when this was thrown
-//           << "\t\tthrow SimulationExecutionError(0, 0, \"\", "
-//           << "\"FU resource conflict detected.\");" << endl
-             << "\t\tmsg(\"Conflict detected\");" << endl
-             << "\t}"
-             << endl;
+       << "\thaltSimulation(__FILE__, __LINE__, __FUNCTION__,"
+       << "\"Conflict detected!\");" << endl
+       << "\t}" << endl;
     
     return ss.str();
 }
@@ -195,8 +185,8 @@ ConflictDetectionCodeGenerator::updateSymbolDeclarations() {
 
     for (ConflictDetectorObjectNameMap::const_iterator i = 
         conflictDetectors_.begin(); i != conflictDetectors_.end(); ++i) {
-    ss << "\t" << i->second
-       << "(*fuNavigator_.item(\"" << i->first << "\")),"
+    ss << "\t," << i->second
+       << "(functionUnit(\"" << i->first << "\"))"
        << endl;
     }
     return ss.str();

@@ -42,8 +42,8 @@ public:
     CompiledSimMove(const CompiledSimMove&);
     CompiledSimMove& operator=(const CompiledSimMove&);
     
-    std::string copyToBusCode();
-    std::string copyFromBusCode();
+    std::string copyToBusCode() const;
+    std::string copyFromBusCode() const;
 private:
     const TTAProgram::Move* move_;
     const TTAProgram::Terminal* source_;

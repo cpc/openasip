@@ -31,3 +31,9 @@ TCEString::TCEString(const char* text) : std::string(text) {
  */
 TCEString::TCEString(const std::string& text) : std::string(text) {
 }
+
+/**
+ * Default destructor
+ */
+TCEString::~TCEString() {
+}

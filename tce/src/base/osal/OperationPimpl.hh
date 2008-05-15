@@ -55,6 +55,7 @@ private:
     bool writesMemory() const;
     bool canTrap() const;
     bool hasSideEffects() const;
+    bool isClocked() const;
     bool isControlFlowOperation() const;
     bool dependsOn(const Operation& op) const;
     int affectsCount() const;
@@ -131,6 +132,8 @@ private:
     bool canTrap_;
     /// Flag indicating if Operation has side effects.
     bool hasSideEffects_;
+    /// Flag indicating if Operation is clocked and needs AdvanceClock.
+    bool isClocked_;
     /// Flag indicating if the Operation can change program flow.
     bool controlFlowOperation_;
     /// Operations that affects this Operation.

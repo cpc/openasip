@@ -310,16 +310,34 @@ POMValidator::checkCompiledSimulatability(POMValidatorResults& results) {
     while (instruction != &NullInstruction::instance()) {
         for (int i = 0; i < instruction->moveCount(); i++) {
             Move& move = instruction->move(i);
-            if (move.source().isGPR() && move.isControlFlowMove()) {
-                InstructionAddress address = instruction->address().location();
-                    
+            Terminal* destination = &move.destination();
+            InstructionAddress address = instruction->address().location();
+#if 0
+            // jump or call to a possibly unknown target
+            if (move.source().isGPR() && move.isControlFlowMove()) {                    
                 std::string errorMessage =
                     "Instruction at address: " + 
                     Conversion::toString(address) +
-                    "' cannot be simulated with the compiled simulator.";
+                    "' cannot be simulated with the compiled simulator. ";
                     
                 results.addError(COMPILED_SIMULATION_NOT_POSSIBLE,
                     errorMessage);
+            }
+#endif
+            // clocked operations
+            if (destination->isFUPort()) {
+                if (destination->isOpcodeSetting() && 
+                    destination->operation().isClocked()) {
+                    std::string errorMessage =
+                        "Instruction at address: " +
+                        Conversion::toString(address) +
+                        "' cannot be simulated with the compiled simulator. "
+                        "(Operation " + destination->operation().name() + 
+                        " is a clocked operation).";
+                    
+                    results.addError(COMPILED_SIMULATION_NOT_POSSIBLE,
+                    errorMessage);
+                }
             }
         } // end for
         instruction = &(program_.nextInstruction(*instruction));

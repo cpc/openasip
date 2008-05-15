@@ -31,7 +31,7 @@ using std::make_pair;
  *                   stop the simulation.
  */
 StopPointManager::StopPointManager(
-    SimulationController& controller, 
+    TTASimulationController& controller, 
     SimulationEventHandler& eventHandler) :
     handleCount_(0), lastStopCycle_(0), controller_(controller),
     eventHandler_(eventHandler) {

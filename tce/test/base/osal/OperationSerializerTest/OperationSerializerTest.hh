@@ -97,6 +97,7 @@ OperationSerializerTest::testReadAndWriteState() {
         TS_ASSERT_EQUALS(operation2.writesMemory(), true);
         TS_ASSERT_EQUALS(operation2.canTrap(), true);
         TS_ASSERT_EQUALS(operation2.hasSideEffects(), true);
+        TS_ASSERT_EQUALS(operation2.isClocked(), true);
         TS_ASSERT_EQUALS(operation2.dependsOn(operation1), true);
 
         Operand& op1 = operation2.operand(1);

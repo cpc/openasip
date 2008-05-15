@@ -59,6 +59,8 @@ CompiledSimSettingCommand::CompiledSimSettingCommand() :
     // Remove unsupported settings
     MapTools::deleteByKey(settings_, "rf_tracking");
     MapTools::deleteByKey(settings_, "bus_trace");
+    MapTools::deleteByKey(settings_, "profile_data_saving");
+    MapTools::deleteByKey(settings_, "utilization_data_saving");
     
     // Replace FU conflict detection setting
     MapTools::deleteByKey(settings_, "fu_conflict_detection");

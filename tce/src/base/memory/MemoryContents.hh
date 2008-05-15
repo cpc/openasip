@@ -26,7 +26,7 @@ class MemoryContents : public PagedArray<Memory::MAU, MEM_CHUNK_SIZE, 0> {
 public:
     MemoryContents(std::size_t size) :
         PagedArray<Memory::MAU, MEM_CHUNK_SIZE, 0>(size) { }
-    ~MemoryContents() { }
+    virtual ~MemoryContents() { }
 };
 
 #endif

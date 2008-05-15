@@ -64,6 +64,7 @@
         <xs:element name="writes-memory" type="empty-type" minOccurs="0"/>
         <xs:element name="trap" type="empty-type" minOccurs="0"/>
         <xs:element name="side-effects" type="empty-type" minOccurs="0"/>
+        <xs:element name="clocked" type="empty-type" minOccurs="0"/>
 	<!-- True in case the operation is a control flow operation -->
 	<xs:element name="control-flow" type="empty-type" minOccurs="0"/>
         <xs:element name="affected-by" type="affect-type" minOccurs="0"/>

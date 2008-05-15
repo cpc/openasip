@@ -22,8 +22,8 @@ public:
     TCEString();
     TCEString(const char* text);
     TCEString(const std::string& text);
+    virtual ~TCEString();
 private:
 };
-
 
 #endif

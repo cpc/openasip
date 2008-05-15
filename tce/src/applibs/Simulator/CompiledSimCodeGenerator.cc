@@ -68,6 +68,7 @@ using std::vector;
  * @param controller Compiled Simulation controller
  * @param sequentialSimulation Is it a sequential simulation?
  * @param fuResourceConflictDetection is the conflict detection on?
+ * @param handleCycleEnd should we let frontend handle each cycle end
  * @param basicBlockPerFile Should we generate only one BB per code file?
  */
 CompiledSimCodeGenerator::CompiledSimCodeGenerator(
@@ -76,15 +77,18 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     const TTASimulationController& controller,
     bool sequentialSimulation,
     bool fuResourceConflictDetection,
+    bool handleCycleEnd,
     bool basicBlockPerFile) :
     machine_(machine), program_(program), simController_(controller),
     gcu_(*machine.controlUnit()),
     isSequentialSimulation_(sequentialSimulation),
-    basicBlockPerFile_(basicBlockPerFile),                            
-    className_("CompiledSimulationEngine"),
+    handleCycleEnd_(handleCycleEnd),
+    basicBlockPerFile_(basicBlockPerFile),
     instructionNumber_(0), instructionCounter_(0),
-    pendingJumpDelay_(0), lastInstructionOfBB_(0), 
-    conflictDetectionGenerator_(machine_, 
+    pendingJumpDelay_(0), lastInstructionOfBB_(0),
+    className_("CompiledSimulationEngine"),
+    os_(NULL),
+    conflictDetectionGenerator_(machine_,
     fuResourceConflictDetection) {
 }
 
@@ -103,12 +107,10 @@ CompiledSimCodeGenerator::~CompiledSimCodeGenerator() {
 void
 CompiledSimCodeGenerator::generateToDirectory(const string& directory) {
     targetDirectory_ = directory;
-    fileName_ = className_;
     headerFile_ = className_ + ".hh";
     mainFile_ = className_ + ".cc";
 
-    CATCH_ANY(generateMakefile());
-    
+    generateMakefile();
     generateSimulationCode();
     generateHeaderAndMainCode();
 }
@@ -213,7 +215,7 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     os_ = &currentFile_;
     
     // Generate includes
-    *os_ << "// " << fileName_ << " Generated automatically by ttasim" << endl
+    *os_ << "// " << className_ << " Generated automatically by ttasim" << endl
          << "#ifndef _AUTO_GENERATED_COMPILED_SIMULATION_H_" << endl
          << "#define _AUTO_GENERATED_COMPILED_SIMULATION_H_" << endl
          << "#include \"SimValue.hh\"" << endl
@@ -228,10 +230,7 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
          << endl;
     
     // Open up class declaration and define some extra member variables
-    *os_ << "class " << className_ << ";" << endl
-         //<< "typedef void (" << className_ << "::*SimulateFunction)();" 
-         << endl << endl;
-    
+    *os_ << "class " << className_ << ";" << endl << endl;
     *os_ << "class " << className_ << " : public CompiledSimulation {" << endl
          << "public:" << endl;
 
@@ -246,20 +245,23 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
             addDeclaredSymbol(SymbolGenerator::portSymbol(port), port.width());    
         }                
     
+        // Conflict detectors
         if (conflictDetectionGenerator_.conflictDetectionEnabled()) {
             *os_ << conflictDetectionGenerator_.symbolDeclaration(fu);
         }
 
+        // Operation contexts
         *os_ << "\t" << "OperationContext " 
              << SymbolGenerator::operationContextSymbol(fu) << ";" << endl;
         
-        // Declare address spaces
+        // Address spaces
         if (fu.addressSpace() != NULL) {
              *os_ << "\t" << "DirectAccessMemory& " 
-                 << SymbolGenerator::DAMemorySymbol(*fus.item(i)) << ";" << endl;
+                  << SymbolGenerator::DAMemorySymbol(*fus.item(i)) << ";" 
+                  << endl;
         }
         
-        // Declare all operations of the FU
+        // All operations of the FU
         for (int j = 0; j < fu.operationCount(); ++j) {
             string opName = fu.operation(j)->name();
             *os_ << "\t" << "Operation& " 
@@ -293,21 +295,25 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     }
     
     // Declare all IUs    
-    const Machine::ImmediateUnitNavigator& ius = machine_.immediateUnitNavigator();
+    const Machine::ImmediateUnitNavigator& ius = 
+        machine_.immediateUnitNavigator();
     for (int i = 0; i < ius.count(); ++i) {
         const ImmediateUnit& iu = *ius.item(i);
         for (int j = 0; j < iu.numberOfRegisters(); ++j) {
-            addDeclaredSymbol(SymbolGenerator::immediateRegisterSymbol(iu, j), iu.width());
+            addDeclaredSymbol(SymbolGenerator::immediateRegisterSymbol(iu, j), 
+                iu.width());
         }
     }
     
     // Register files
     if (!isSequentialSimulation_) {
-        const Machine::RegisterFileNavigator& rfs = machine_.registerFileNavigator();
+        const Machine::RegisterFileNavigator& rfs = 
+            machine_.registerFileNavigator();
         for (int i = 0; i < rfs.count(); ++i) {
             const RegisterFile& rf = *rfs.item(i);
             for (int j = 0; j < rf.numberOfRegisters(); ++j) {
-                addDeclaredSymbol(SymbolGenerator::registerSymbol(rf, j), rf.width());
+                addDeclaredSymbol(SymbolGenerator::registerSymbol(rf, j), 
+                    rf.width());
             }
         }
     } else {
@@ -332,6 +338,7 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
 
     // header written
     currentFile_.close();
+    os_ = NULL;
     
     // write implementations to the main functions
     generateConstructorCode();
@@ -366,50 +373,33 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     
     generateConstructorParameters();
         
-    *os_ << " : " << endl         
+    *os_ << " : " << endl
          << "CompiledSimulation(machine, entryAddress, lastInstruction, "
          << "frontend, memorySystem), "
          << endl;
     
     updateDeclaredSymbolsList();
-    
-    const Machine::FunctionUnitNavigator& fus = machine_.functionUnitNavigator();
-    bool first = true;
-    for (int i = 0; i < fus.count(); i++) {
-        const FunctionUnit & fu = *fus.item(i);
-        if (fu.addressSpace() != NULL) {
-            if (first) {
-                first = false;
-            } else {
-                *os_ << "," << endl;
-            }
-                
-            *os_ << "\t" << SymbolGenerator::DAMemorySymbol(fu) 
-                 << "(FUMemory(\"" << fu.name() << "\"))";
-        }
-    }
-    
-    *os_ << " {" << endl;
     updateSymbolsMap();
     
+    const Machine::FunctionUnitNavigator& fus = machine_.functionUnitNavigator();    
     for (int i = 0; i < fus.count(); i++) {
         const FunctionUnit& fu = *fus.item(i);
         std::string context = SymbolGenerator::operationContextSymbol(fu);
+        
         // Create a state for each operation
         for (int j = 0; j < fu.operationCount(); ++j) {
             std::string operation = SymbolGenerator::operationSymbol(
                 fu.operation(j)->name(), fu);
             
-            *os_ << "\t" << operation
-                << ".createState(" << context << ");"
-                << endl;
+            *os_ << "\t" << operation << ".createState(" << context << ");" 
+                 << endl;
         }
 
         // Set a Memory for the context
         if (fu.addressSpace() != NULL) {
-                 *os_ << "\t" << context << ".setMemory(&" 
-                      << SymbolGenerator::DAMemorySymbol(fu) << ");" << endl;
-            }
+            *os_ << "\t" << context << ".setMemory(&" 
+                 << SymbolGenerator::DAMemorySymbol(fu) << ");" << endl;
+        }
     }
     
     generateJumpTableCode();
@@ -419,13 +409,15 @@ CompiledSimCodeGenerator::generateConstructorCode() {
 }
 
 /**
- * Generates the simulateCycle() code that is called outside the .so file
+ * Generates the simulateCycle() function that is called outside the .so file
+ * 
+ * The generated function simulates one basic block at a time by calling 
+ * the according basic block methods.
  */
 void
 CompiledSimCodeGenerator::generateSimulationCode() {
     
     findBasicBlocks();
-    
     exitPoints_ = simController_.findProgramExitPoints(program_, machine_);
 
     // generate code for all procedures
@@ -433,19 +425,19 @@ CompiledSimCodeGenerator::generateSimulationCode() {
         generateProcedureCode(program_.procedure(i));
     }
     
-    // Create the simulateCycle() function 
+    // Create the simulateCycle() function
     *os_ << "// Simulation code:" << endl
          << "void " << className_  << "::simulateCycle() {" << endl << endl;
 
     // Create a jump dispatcher for accessing each basic block start
-    *os_ << "// jump dispatcher" << endl
+    *os_ << "\t// jump dispatcher" << endl
          << "\tjumpTargetFunc_ = getJumpTargetFunction(jumpTarget_);" << endl
          << "\t(this->*jumpTargetFunc_)();" << endl << endl;
     
     *os_ << conflictDetectionGenerator_.notifyOfConflicts()
          << "}" << endl << endl;
 
-    generateSimulationGetter(); // generate getter in the last file
+    generateSimulationGetter(); // generate simulation getter in the last file
     
     // Close the last file
     currentFile_.close();
@@ -508,27 +500,27 @@ void
 CompiledSimCodeGenerator::generateSimulationGetter() {
     // use C-style functions only! (C++ name mangling complicates stuff)
     *os_ << "/* Class getter function */" << endl
-         << "extern \"C\" CompiledSimulation* getSimulation("
-         << "const TTAMachine::Machine& machine," << endl
-         << "InstructionAddress entryAddress," << endl
-         << "InstructionAddress lastInstruction," << endl
-         << "SimulatorFrontend& frontend," << endl
-         << "MemorySystem& memorySystem) {" << endl
-         << "return new " << className_
-         << "(machine, entryAddress, lastInstruction, frontend, memorySystem);" 
+         << "extern \"C\" CompiledSimulation* getSimulation(" << endl
+         << "\tconst TTAMachine::Machine& machine," << endl
+         << "\tInstructionAddress entryAddress," << endl
+         << "\tInstructionAddress lastInstruction," << endl
+         << "\tSimulatorFrontend& frontend," << endl
+         << "\tMemorySystem& memorySystem) {" << endl
+         << "\treturn new " << className_
+         << "(machine, entryAddress, lastInstruction, frontend, memorySystem); " 
          << endl << "}" << endl << endl; // 2x end-of-line in the end of file
 }
 
 /**
  * Generates code for halting the simulation
  * 
- * @param message a message describing the reason for the halt
+ * @param message Reason for the halt
+ * @return generated code for halting the simulation
  */
-void
+string
 CompiledSimCodeGenerator::generateHaltCode(const string& message) {
-    *os_ << "\t"
-       << "throw SimulationExecutionError(__FILE__, __LINE__, __func__, \""
-       << message << "\");" << endl;
+    return std::string("\thaltSimulation(__FILE__, __LINE__, __FUNCTION__, \""
+       + message + "\");\n");
 }
 
 /**
@@ -543,38 +535,61 @@ void CompiledSimCodeGenerator::generateAdvanceClockCode() {
 /**
  * Updates the declared symbols list after the program code is generated.
  * 
- * At this point, we know what registers are used and what are not. We only
- * declare the used registers.
+ * Generates constructor calls for each declared symbol.
  */
 void 
 CompiledSimCodeGenerator::updateDeclaredSymbolsList() {
-
+    
+    // Constructor calls for SimValues
     for (SimValueSymbolDeclarations::iterator it = declaredSymbols_.begin();
-         it != declaredSymbols_.end(); ++it) {
-        *os_ << "\t" << it->first
-             << "(" << Conversion::toString(it->second) << ")," << endl;
+        it != declaredSymbols_.end(); ++it) {
+        *os_ << "\t";
+        if (it != declaredSymbols_.begin()) {
+            *os_ << ",";
+        }
+        *os_ << it->first << "(" << Conversion::toString(it->second) 
+             << ")" << endl;
     }
-    *os_ << endl;
-        
+    if (!declaredSymbols_.empty()) {
+        *os_ << endl;
+    }
+
+    // Operations
     for (OperationSymbolDeclarations::iterator it = usedOperations_.begin();
          it != usedOperations_.end(); ++it) {
-        *os_ << "\t" << it->second
-             << "(operationPool_.operation(\"" << it->first << "\"))," 
-             << endl;
+        *os_ << "\t," << it->second
+             << "(operationPool_.operation(\"" << it->first << "\"))" << endl;
     }
-    *os_ << endl;
+    if (!usedOperations_.empty()) {
+        *os_ << endl;
+    }
     
+    // FU result symbols
     const Machine::FunctionUnitNavigator& fus = machine_.functionUnitNavigator();    
     for (int i = 0; i < fus.count(); ++i) {
         const FunctionUnit& fu = *fus.item(i);
         std::vector<Port*> outPorts = fuOutputPorts(fu);
         for (size_t j = 0; j < outPorts.size(); ++j) {
-            *os_ << "\t" << SymbolGenerator::FUResultSymbol(*outPorts.at(j)) 
-                << "(" << Conversion::toString(fu.maxLatency()) << ")," << endl;
+            *os_ << "\t," << SymbolGenerator::FUResultSymbol(*outPorts.at(j)) 
+                 << "(" << Conversion::toString(fu.maxLatency()) << ")";
+            *os_ << endl;
         }
     }
-    *os_ << endl
-         << conflictDetectionGenerator_.updateSymbolDeclarations() << endl;
+    if (fus.count() > 0) {
+        *os_ << endl;
+    }
+    // Conflict detectors
+    *os_ << conflictDetectionGenerator_.updateSymbolDeclarations() << endl;
+
+    // DirectAccessMemories
+    for (int i = 0; i < fus.count(); i++) {
+        const FunctionUnit & fu = *fus.item(i);
+        if (fu.addressSpace() != NULL) {
+            *os_ << "\t," << SymbolGenerator::DAMemorySymbol(fu) 
+                 << "(FUMemory(\"" << fu.name() << "\"))" << endl;
+        }
+    }
+    *os_ << " {" << endl;
 }
 
 /**
@@ -597,11 +612,10 @@ CompiledSimCodeGenerator::updateSymbolsMap() {
  */
 void 
 CompiledSimCodeGenerator::generateSymbolDeclarations() {
-    for (SimValueSymbolDeclarations::const_iterator it = declaredSymbols_.begin();
-         it != declaredSymbols_.end(); ++it) {
-             *os_ << "\t" << "SimValue " << it->first << ";" << endl;
+    for (SimValueSymbolDeclarations::const_iterator it = 
+        declaredSymbols_.begin(); it != declaredSymbols_.end(); ++it) {
+            *os_ << "\t" << "SimValue " << it->first << ";" << endl;
     }
-    
     *os_ << endl;
     
     for (StringSet::const_iterator it = declaredFunctions_.begin();
@@ -614,32 +628,31 @@ CompiledSimCodeGenerator::generateSymbolDeclarations() {
  * Generates code that updates the jump table and finds out all the basic blocks
  */
 void
-CompiledSimCodeGenerator::generateJumpTableCode() {    
+CompiledSimCodeGenerator::generateJumpTableCode() {
 
     *os_ << "\t" << "resizeJumpTable(lastInstruction_ + 1);" << endl;
 
-    for (BasicBlocks::iterator it = bbStarts_.begin(); it != bbStarts_.end();
-        ++it) {
-        *os_ << "\t" << "setJumpTargetFunction(" << it->first << ", &" << className_ 
-             << "::" << SymbolGenerator::basicBlockSymbol(it->first) 
-             << ");" << endl;
+    for (BasicBlocks::const_iterator it = bbStarts_.begin();
+        it != bbStarts_.end(); ++it) {
+        *os_ << "\t" << "setJumpTargetFunction(" << it->first << ", &"
+             << className_  << "::"
+             << SymbolGenerator::basicBlockSymbol(it->first) << ");" << endl;
     }
 }
 
 /**
- * Updates the declared symbols list if needed
+ * Adds a new declared symbol to the map
  * 
  * @param name name of the symbol
  * @param width SimValue width
  */
 void 
-CompiledSimCodeGenerator::addDeclaredSymbol(
-    const string& name, int width) {
+CompiledSimCodeGenerator::addDeclaredSymbol(const string& name, int width) {
     declaredSymbols_[name] = width;
 }
 
 /**
- * Finds the used RF symbols from the sequential simulation
+ * Finds the used RF symbols in sequential simulation
  */
 void 
 CompiledSimCodeGenerator::addUsedRFSymbols() {
@@ -652,11 +665,11 @@ CompiledSimCodeGenerator::addUsedRFSymbols() {
             const Move& move = instruction->move(i);
             if (move.source().isGPR()) {
                 addDeclaredSymbol(SymbolGenerator::registerSymbol(
-                move.source()), move.source().port().width());
+                    move.source()), move.source().port().width());
             }
             if (move.destination().isGPR()) {
                 addDeclaredSymbol(SymbolGenerator::registerSymbol(
-                move.destination()), move.destination().port().width());
+                    move.destination()), move.destination().port().width());
             }
         }
         instruction = &(program_.nextInstruction(*instruction));
@@ -687,72 +700,91 @@ CompiledSimCodeGenerator::handleJump(const TTAMachine::HWOperation& op) {
 /**
  * Generates code for a triggered operation.
  * 
- * @param op the triggered operation
+ * @param op The triggered operation
  * @return A std::string containing generated code for the operation call
  */
 string
 CompiledSimCodeGenerator::handleOperation(const TTAMachine::HWOperation& op) {
     std::stringstream ss;
                      
-    if (op.name() != "jump" && op.name() != "call") {
-        string simCode = generateTriggerCode(op);
-        
-        ss << endl;
-        ss << "#define context "                
-           << SymbolGenerator::operationContextSymbol(*op.parentUnit()) << endl;
-        ss << "#define opPool_ operationPool_" << endl;
-        ss << simCode << endl;
-        ss << "#undef context" << endl;
-        ss << "#undef opPool_" << endl;
-        ss << endl;
-    } else { // simulate a jump
-        ss << handleJump(op);
-    }
+    ss << endl << "/* Operation: " << op.name() << ", latency: "
+       << op.latency() << " */" << endl;
     
-    ss << "/* trigger " << op.name() << " : " << op.latency() << " */" << endl;
-
+    if (operationPool_.operation(op.name().c_str()).dagCount() <= 0) {
+        ss << handleOperationWithoutDag(op);
+    } else {
+        /// @todo maybe use IsCall & IsControlFlowOperation.
+        if (op.name() != "jump" && op.name() != "call") {
+            ss << "#define context "
+               << SymbolGenerator::operationContextSymbol(*op.parentUnit())
+               << endl
+               << "#define opPool_ operationPool_" << endl
+               << generateTriggerCode(op) << endl
+               << "#undef context" << endl
+               << "#undef opPool_" << endl
+               << endl;
+        } else { // simulate a jump
+            ss << handleJump(op);
+        }
+    }
     return ss.str();
 }
 
-/// @TODO GET RID OF THIS!
+/**
+ * Generates code for a triggered operation that has no DAG available
+ * 
+ * @param op The triggered operation
+ * @return A std::string containing generated code for the operation call
+ */
 string
-CompiledSimCodeGenerator::handleOperationOld(
+CompiledSimCodeGenerator::handleOperationWithoutDag(
     const TTAMachine::HWOperation& op) {
     std::stringstream ss;        
+
+    std::vector<string> operandSymbols;
+    string operandTable = SymbolGenerator::generateTempVariable();
     
-    // grab all operands and initialize them to the operand table
+    // Generate symbols for each operand, and temporaries for output operands
     for (int i = 1; op.port(i) != NULL; ++i) {
-        if (op.port(i)->isInput()) {
-            ss << "operandTable_[" << i - 1 << "] = " << "&"
-               << SymbolGenerator::portSymbol(*op.port(i)) << "; ";
-        } else {
-            // output operands' values are stored temporarily in here
-            ss << "operandTable_[" << i - 1 << "] = " << "&"
-               << "outOperands_[" << i - 1 << "]; ";
+        if (op.port(i)->isOutput()) {
+            string outputSymbol = SymbolGenerator::generateTempVariable();
+            operandSymbols.push_back(outputSymbol);
+            ss << "static SimValue " << outputSymbol << ";" << endl;
+        } else { // input port
+            string inputSymbol = SymbolGenerator::portSymbol(*op.port(i));
+            operandSymbols.push_back(inputSymbol);
         }
     }
     
-    // call simulateTrigger
+    // Add operand symbols to the operand table
+    ss << "SimValue* " << operandTable << "[] = {";
+    for (size_t i = 0; i < operandSymbols.size(); ++i) {
+      ss << "&" << operandSymbols.at(i);
+      if (i < operandSymbols.size() - 1) {
+          ss << ",";
+      }
+      ss << " ";
+    }
+    ss << "};";
+    
+    // call simulateTrigger with the previously generated operand table
     /// @todo maybe use IsCall & IsControlFlowOperation.
     if (op.name() != "jump" && op.name() != "call") {
         ss << SymbolGenerator::operationSymbol(op.name(), *op.parentUnit())
-           << ".simulateTrigger(operandTable_, "
+           << ".simulateTrigger(" << operandTable << ", "
            << SymbolGenerator::operationContextSymbol(*op.parentUnit())
            << "); ";
                
         // add output values as delayed assignments
         for (int i = 1; op.port(i) != NULL; ++i) {
             if (op.port(i)->isOutput()) {
-                ss << generateAddFUResult(*op.port(i), 
-                    "outOperands_[" + Conversion::toString(i - 1) + "]",
-                    op.latency(), false);
+                ss << generateAddFUResult(*op.port(i), operandSymbols.at(i - 1), 
+                    op.latency());
             }
         }
-                
     } else { // simulate a jump
         ss << handleJump(op);
     }
-    ss << "/* trigger " << op.name() << " : " << op.latency() << " */" << endl;
 
     return ss.str();
 }
@@ -771,6 +803,7 @@ CompiledSimCodeGenerator::handleGuard(
     std::stringstream ss;
     string guardSymbolName;
     
+    // Find out the guard type
     if (dynamic_cast<const RegisterGuard*>(&guard) != NULL) {
         const RegisterGuard& rg = dynamic_cast<const RegisterGuard&>(guard);
         RegisterFile& rf = *rg.registerFile();
@@ -784,8 +817,9 @@ CompiledSimCodeGenerator::handleGuard(
     
     lastGuardBool_ = "";
         
+    // Make sure to create only one bool per guard read and store the symbol
     if (usedGuardSymbols_.find(guardSymbolName) == usedGuardSymbols_.end()) {
-        lastGuardBool_ = SymbolGenerator::guardBoolSymbol();        
+        lastGuardBool_ = SymbolGenerator::guardBoolSymbol();
         usedGuardSymbols_[guardSymbolName] = lastGuardBool_;
         
         ss << "const bool " << lastGuardBool_ << " = !(" 
@@ -801,6 +835,7 @@ CompiledSimCodeGenerator::handleGuard(
         lastGuardBool_ = usedGuardSymbols_[guardSymbolName];
     }
             
+    // Handle inverted guards
     ss << endl << "if (";
     if (guard.isInverted()) {
         lastGuardBool_ = "!" + lastGuardBool_;
@@ -811,10 +846,9 @@ CompiledSimCodeGenerator::handleGuard(
 }
 
 /**
- * Generates simulation code from the given instruction
+ * Generates simulation code of the given instruction
  * 
  * @param instruction instruction to generate the code from
- * @return a std::string containing the generated code
  */
 void
 CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
@@ -827,14 +861,18 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         // Should we start with a new file?
         if (instructionCounter_ <= 0 || basicBlockPerFile_) {
             instructionCounter_ = MAX_INSTRUCTIONS_PER_FILE;
-            currentFile_.close();
+            
+            if (currentFile_.is_open()) {
+                currentFile_.close();
+            }
+            
             const string DS = FileSystem::DIRECTORY_SEPARATOR;
             string fileName = targetDirectory_ + DS 
                 + SymbolGenerator::basicBlockSymbol(address) + ".cpp";
             currentFile_.open(fileName.c_str(), fstream::out);
             createdFiles_.insert(fileName);
             os_ = &currentFile_;
-            *os_ << "// " << fileName_ 
+            *os_ << "// " << className_ 
                  << " Generated automatically by ttasim" << endl
                  << "#include \"" << headerFile_ << "\"" << endl << endl;
         }
@@ -865,8 +903,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             continue;
         }
             
-        *os_ << "\t"
-             << SymbolGenerator::immediateRegisterSymbol(immediate.destination());
+        *os_ << SymbolGenerator::immediateRegisterSymbol(immediate.destination());
         int value = immediate.value().value().unsignedValue();
         *os_  << ".value_.uIntWord = " << value << "u;";
     }
@@ -890,18 +927,17 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     std::vector<CompiledSimMove> lateMoves; // moves with buses
     for (int i = 0; i < instruction.moveCount(); ++i) {
         const Move& move = instruction.move(i);
-        string moveSource = SymbolGenerator::moveOperandSymbol(move.source(), move);
-        string moveDestination = SymbolGenerator::moveOperandSymbol(move.destination(), move);
+        string moveSource = SymbolGenerator::moveOperandSymbol(
+            move.source(), move);
+        string moveDestination = SymbolGenerator::moveOperandSymbol(
+            move.destination(), move);
         
         lastGuardBool_.clear();
         if (!move.isUnconditional()) { // has a guard?
             *os_ << handleGuard(move.guard().guard(), move.isControlFlowMove());
             endGuardBracket = true;
         }
-        if (move.isControlFlowMove()) {
-            *os_ << "\t" << "/*control flow move*/";
-        }
-        
+
         if (move.source().isFUPort() && gotResults.find(moveSource) == gotResults.end() &&  
             dynamic_cast<const ControlUnit*>(&move.source().functionUnit()) == NULL) {
             *os_ << generateFUResultRead(moveSource,
@@ -909,7 +945,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             gotResults.insert(moveSource);
         }
         
-        // Find all moves that depend on others
+        // Find all moves that depend on others i.e. those moves that have to
+        // be done last.
         bool dependingMove = false;
         for (int j = instruction.moveCount() - 1; j > 0 && i != j; --j) {
             if (moveDestination == SymbolGenerator::moveOperandSymbol(
@@ -931,10 +968,10 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
                 moveSource += ".value_.uIntWord";
             } else if (move.source().isImmediate()) {
                 moveDestination += ".value_.uIntWord";
-            }        
+            }
 
         if (!dependingMove) {
-            *os_ << "\t" << moveDestination << " = " << moveSource << "; ";
+            *os_ << moveDestination << " = " << moveSource << "; ";
         }
         
         if (endGuardBracket) {
@@ -944,24 +981,30 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     }
     
     endGuardBracket = false;
+    
     // Do moves with triggers
     for (int i = 0; i < instruction.moveCount(); ++i) {
         const Move& move = instruction.move(i);
         if (!move.isTriggering()) {
             continue;
         }
+        
+        string moveSource = SymbolGenerator::moveOperandSymbol(
+            move.source(), move);
+        string moveDestination = SymbolGenerator::moveOperandSymbol(
+            move.destination(), move);
+        
         if (!move.isUnconditional()) { // has a guard?
             *os_ << handleGuard(move.guard().guard(), move.isControlFlowMove());
             endGuardBracket = true;
         }
         
-        if (move.source().isFUPort() && gotResults.find(SymbolGenerator::moveOperandSymbol(move.source(), move)) == gotResults.end() &&
-            dynamic_cast<const ControlUnit*>(&move.source().functionUnit()) == NULL) {
-            *os_ <<
-            generateFUResultRead(
-                SymbolGenerator::moveOperandSymbol(move.destination(), move),
+        if (move.source().isFUPort() && gotResults.find(moveSource) == 
+            gotResults.end() && dynamic_cast<const ControlUnit*>(
+                &move.source().functionUnit()) == NULL) {
+            *os_ << generateFUResultRead(moveDestination,
                 SymbolGenerator::FUResultSymbol(move.source().port()))
-                 << endl;        
+                 << endl;
 
             gotResults.insert(SymbolGenerator::moveOperandSymbol(move.source(),
                 move));
@@ -971,14 +1014,9 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             dynamic_cast<const TerminalFUPort&>(move.destination());
         HWOperation& hwOperation = *tfup.hwOperation();
 
-        if (operationPool_.operation(hwOperation.name().c_str()).dagCount() > 0) {
-            *os_ << handleOperation(hwOperation);
-        } else {
-            *os_ << handleOperationOld(hwOperation);
-        }
-            
-        *os_ << conflictDetectionGenerator_.detectConflicts(hwOperation);
-        
+        *os_ << handleOperation(hwOperation)
+             << conflictDetectionGenerator_.detectConflicts(hwOperation);
+
         if (endGuardBracket) {
             *os_ << "}";
             endGuardBracket = false;
@@ -987,33 +1025,33 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     
     // Do immediate assignments for everything else
     for (int i = 0; i < instruction.immediateCount(); ++i) {
-            const Immediate& immediate = instruction.immediate(i);
+        const Immediate& immediate = instruction.immediate(i);
+           
+        if (immediate.destination().isFUPort()) {
+            continue;
+        }
             
-            if (immediate.destination().isFUPort()) {
-                continue;
-            }
-            
-            *os_ << "\t"
-                << SymbolGenerator::immediateRegisterSymbol(immediate.destination());
-                unsigned int value = immediate.value().value().unsignedValue();
-            *os_  << ".value_.uIntWord = " << value << "u;";
+        *os_ << SymbolGenerator::immediateRegisterSymbol(immediate.destination());
+        unsigned int value = immediate.value().value().unsignedValue();
+        *os_  << ".value_.uIntWord = " << value << "u;";
     }
     
-    for (std::vector<CompiledSimMove>::iterator it = lateMoves.begin();
+    // Do bus moves
+    for (std::vector<CompiledSimMove>::const_iterator it = lateMoves.begin();
         it != lateMoves.end(); ++it) {
-            *os_ << it->copyFromBusCode();        
+            *os_ << it->copyFromBusCode();
     }
 
     // No operation?
-    //if (instruction.moveCount() == 0 && instruction.immediateCount() == 0) {
-        //ss << "cout << \" NOP \" << endl;" << endl;
-    //}
+    if (instruction.moveCount() == 0 && instruction.immediateCount() == 0) {
+        *os_ << "/* NOP */" << endl;
+    }
+    
+    // Let frontend handle cycle end?
+    if (handleCycleEnd_) {
+        *os_ << "cycleEnd();" << endl;
+    }
 
-#ifdef DEBUG_SIMULATION
-    *os_ << "lastExecutedInstruction_ = programCounter_;" << endl;
-    *os_ << "programCounter_++;" << endl;
-    *os_ << "frontend().eventHandler().handleEvent(SimulationEventHandler::SE_CYCLE_END);" << endl;    
-#endif
     *os_ << "cycleCount_++;" << endl;
     
     BasicBlocks::iterator bbEnd = bbEnds_.find(address);
@@ -1048,7 +1086,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         *os_ << "jumpTarget_ = " << address + 1 << ";" << endl
              << "lastExecutedInstruction_ = " << address << ";" << endl;
         
-        // Generate some additional code after the last instruction
+        // Generate shutdown code after the last instruction
         if (address == program_.lastInstruction().address().location()) {
             generateShutdownCode(address);
         }
@@ -1059,6 +1097,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
 
 /**
  * Generates code for calling triggered operations
+ * 
  * @param op The operation to be triggered
  * @return A string containing the generated C++ code
  */
@@ -1199,15 +1238,13 @@ CompiledSimCodeGenerator::generateLoadTrigger(
  * @param resultPort FU result port to set the value to
  * @param value value to set as a result
  * @param latency latency of the operation
- * @param attemptStaticLatencySimulation Attempt static latency simulation?
  * @return the generated code for putting the results.
  */
 std::string 
 CompiledSimCodeGenerator::generateAddFUResult(
     const TTAMachine::FUPort& resultPort,
     const std::string& value,  
-    int latency,
-    bool attemptStaticLatencySimulation) {
+    int latency) {
         
     std::stringstream ss;
     const FunctionUnit& fu = *resultPort.parentUnit();
@@ -1232,7 +1269,7 @@ CompiledSimCodeGenerator::generateAddFUResult(
     // then static latency simulation can be done.
     if ((writeTime >= bbStart + fu.maxLatency())
         && lastGuardBool_.empty() && resultInSameBasicBlock 
-        && (writeTime > lastWrite) && attemptStaticLatencySimulation) {
+        && (writeTime > lastWrite)) {
         staticSimulationPossible = true;
         
         for (int i = instructionNumber_ + 1; i < writeTime 
@@ -1279,8 +1316,8 @@ CompiledSimCodeGenerator::generateFUResultRead(
     const std::string& resultSymbol) {
     std::stringstream ss;
     
-    ss << "FUResult(" << destination << ", "
-       << resultSymbol << ", cycleCount_);" << endl;
+    ss << "FUResult(" << destination << ", " << resultSymbol
+       << ", cycleCount_);" << endl;
     
     return ss.str();
 }

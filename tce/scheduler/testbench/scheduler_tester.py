@@ -626,25 +626,26 @@ flush $cycle_file
 close $cycle_file
 }
 '''
-        simulationScript += '''
-if ![file exists operations_executed] {
-set f [open operations_executed w] ; puts $f "[info stats executed_operations]"
-flush $f
-close $f
-}
-
-if ![file exists registers_written] {
-set f [open registers_written w] ; puts $f "[info stats register_writes]"
-flush $f
-close $f
-}
-
-if ![file exists registers_read] {
-set f [open registers_read w] ; puts $f "[info stats register_reads]"
-flush $f
-close $f
-}
-'''       
+	if not compiledSimulation:
+	        simulationScript += '''
+		if ![file exists operations_executed] {
+		set f [open operations_executed w] ; puts $f "[info stats executed_operations]"
+		flush $f
+		close $f
+		}
+		
+		if ![file exists registers_written] {
+		set f [open registers_written w] ; puts $f "[info stats register_writes]"
+		flush $f
+		close $f
+		}
+		
+		if ![file exists registers_read] {
+		set f [open registers_read w] ; puts $f "[info stats register_reads]"
+		flush $f
+		close $f
+		}
+		'''
         simulationScript = simulationScript + "quit\n"
 
         simulationCommand = simulatorExe

@@ -57,11 +57,16 @@ SymbolGenerator::portSymbol(const TTAMachine::Port& port) {
     Unit* unit = port.parentUnit();    
     if (dynamic_cast<const FunctionUnit*>(unit) != NULL) {
         symbolName = "FU";
+        if (dynamic_cast<const ControlUnit*>(unit) != NULL) {
+            symbolName = "GCU";
+        }
     } else if (dynamic_cast<const RegisterFile*>(unit) != NULL) {
         symbolName = "RF";
         if (dynamic_cast<const ImmediateUnit*>(unit) != NULL) {
             symbolName = "IU";
         }
+    } else {
+        symbolName = "unknown";
     }
 
     symbolName += "_" + unit->name() + "_" + port.name();
@@ -260,7 +265,7 @@ SymbolGenerator::operationSymbol(
  */
 std::string 
 SymbolGenerator::FUResultSymbol(const TTAMachine::Port& port) {
-    return port.parentUnit()->name() + "_" + port.name() + "_results";
+    return portSymbol(port) + "_results";
 }
 
 /**

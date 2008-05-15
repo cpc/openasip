@@ -18,7 +18,7 @@
 #include "SimulatorConstants.hh"
 #include "Listener.hh"
 
-class SimulationController;
+class TTASimulationController;
 class SimulationEventHandler;
 
 /**
@@ -27,7 +27,7 @@ class SimulationEventHandler;
 class StopPointManager : public Listener {
 public:
     StopPointManager(
-        SimulationController& controller, 
+        TTASimulationController& controller, 
         SimulationEventHandler& eventHandler);
 
     virtual ~StopPointManager();
@@ -87,7 +87,7 @@ private:
     /// The clock cycle in which simulation was stopped last.
     ClockCycleCount lastStopCycle_;
     /// The simulation controller to use to stop the simulation.
-    SimulationController& controller_;
+    TTASimulationController& controller_;
     /// The event handler to use to register stop points to.
     SimulationEventHandler& eventHandler_;
     

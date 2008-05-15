@@ -538,3 +538,16 @@ SimulatorTextGenerator::~SimulatorTextGenerator() {
 }
 
 
+/**
+ * Replaces and generates texts specific to compiled simulation only.
+ */
+void
+SimulatorTextGenerator::generateCompiledSimTexts() {
+    replaceText(
+        Texts::TXT_INTERP_HELP_STEPI,
+        "Attempts to simulate program by given number of instructions.\n\n"
+        "The count argument gives the number of machine instructions "
+        "to attempt to simulate. Default is to step one instruction, "
+        "which means executing to the end of the current basic block.");
+}
+

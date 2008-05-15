@@ -99,3 +99,25 @@ Texts::TextGenerator::addText(int textId, const std::string& templateString) {
     string* toBeAdded = new string(templateString);
     dataBase_.insert(ValType(textId, toBeAdded));
 }
+
+
+/**
+ * Replaces existing text with a new one.
+ * 
+ * @param textID ID of the text to be replaced
+ * @param newString new string to be set
+ * @exception KeyNotFound Thrown if a text of given ID couldn't be found.
+ */
+void 
+Texts::TextGenerator::replaceText(int textId, const std::string& newString) {
+    if (!MapTools::containsKey(dataBase_, textId)) {
+        string message("Requested message (code ");
+        message += Conversion::toString(textId) + ") does not exist.";
+        throw KeyNotFound(__FILE__, __LINE__, __FUNCTION__, message);
+    }
+
+    delete dataBase_[textId];
+    string* toBeAdded = new string(newString);
+    dataBase_.insert(ValType(textId, toBeAdded));
+}
+

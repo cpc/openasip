@@ -62,6 +62,7 @@ namespace Texts {
         virtual boost::format text(int textId)
             throw (KeyNotFound);
         virtual void addText(int textId, const std::string& templateString);
+        virtual void replaceText(int textId, const std::string& newString);
 
     private:
         /// value_type for map.

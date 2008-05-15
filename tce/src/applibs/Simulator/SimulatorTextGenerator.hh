@@ -19,6 +19,7 @@ class SimulatorTextGenerator : public Texts::TextGenerator {
 public:
     SimulatorTextGenerator();
     virtual ~SimulatorTextGenerator();
+    virtual void generateCompiledSimTexts();
 };
 
 namespace Texts {

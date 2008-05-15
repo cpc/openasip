@@ -90,6 +90,7 @@ public:
     virtual ~CompiledSimulation();
     
     virtual void simulateCycle() = 0;
+    virtual void cycleEnd();
     
     virtual void step(double count);
     virtual void next(int count);
@@ -122,7 +123,12 @@ protected:
     DirectAccessMemory& FUMemory(const char* FUName) const;
     MemorySystem* memorySystem() const;
     SimulatorFrontend& frontend() const;
-    void msg(const char* msg) const;
+    void msg(const char* message) const;
+    void haltSimulation(
+        const char* file,
+        int line,
+        const char* procedure,
+        const char* message) const;
     
     static void inline addFUResult(
         FUResultType& results,
@@ -180,12 +186,6 @@ protected:
     /// Last instruction of the program
     const InstructionAddress lastInstruction_;
 
-    /// Maximum possible number of operands
-    static const int OPERAND_TABLE_SIZE = 256;
-    /// Operand table used for simulateTrigger()
-    SimValue* operandTable_[OPERAND_TABLE_SIZE];
-    /// Output operands as SimValues, again used for simulateTrigger()
-    SimValue outOperands_[OPERAND_TABLE_SIZE];
     /// The operation pool
     OperationPool operationPool_;
     /// Next jump target as a function pointer" << endl

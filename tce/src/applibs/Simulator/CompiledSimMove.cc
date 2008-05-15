@@ -65,7 +65,7 @@ CompiledSimMove::operator=(const CompiledSimMove& move) {
  * @return The generated code
  */
 std::string
-CompiledSimMove::copyToBusCode() {
+CompiledSimMove::copyToBusCode() const {
     string source = SymbolGenerator::moveOperandSymbol(*source_, *move_);
     string bus = SymbolGenerator::busSymbol(*bus_);
     return bus + " = " + source + ";";
@@ -77,7 +77,7 @@ CompiledSimMove::copyToBusCode() {
  * @return The generated code
  */
 std::string 
-CompiledSimMove::copyFromBusCode() {
+CompiledSimMove::copyFromBusCode() const {
     string destination = SymbolGenerator::moveOperandSymbol(*destination_,
         *move_);
     string bus = SymbolGenerator::busSymbol(*bus_);

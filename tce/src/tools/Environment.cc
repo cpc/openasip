@@ -310,6 +310,8 @@ Environment::includeDirPaths() {
         includes.push_back(BASE + DS + "tpef");
         includes.push_back(BASE + DS + "umach");
         includes.push_back(APPLIBS + DS + "Simulator");
+        includes.push_back(APPLIBS + DS + "mach");
+        includes.push_back(APPLIBS + DS + "FSA");
     } else {
         includes.push_back(string(TCE_INSTALLATION_ROOT) + DS + "include");
     }

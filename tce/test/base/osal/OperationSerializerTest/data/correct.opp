@@ -33,7 +33,8 @@
         <writes-memory/>
         <trap/>
         <side-effects/>
-
+        <clocked/>
+ 
         <affected-by>
             <operation name="oper1"/>
         </affected-by>

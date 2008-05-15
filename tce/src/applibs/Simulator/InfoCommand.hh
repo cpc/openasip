@@ -30,7 +30,7 @@ public:
     virtual bool execute(const std::vector<DataObject>& arguments)
         throw (NumberFormatException);
     virtual std::string helpText() const;
-private:
+protected:
     /// container type for subcommands indexed by name
     typedef std::map<std::string, SimControlLanguageSubCommand*> SubCommandMap;
     /// storage for subcommands

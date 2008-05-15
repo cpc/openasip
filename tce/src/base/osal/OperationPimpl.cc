@@ -34,7 +34,8 @@ OperationPimpl::OperationPimpl(
     OperationBehavior& behavior) : 
     behavior_(&behavior), name_(name), description_(""),
     inputs_(0), outputs_(0), readsMemory_(false), writesMemory_(false), 
-    canTrap_(false), hasSideEffects_(false), controlFlowOperation_(false) {
+    canTrap_(false), hasSideEffects_(false), isClocked_(false),
+    controlFlowOperation_(false) {
 }
 
 /**
@@ -281,6 +282,16 @@ OperationPimpl::hasSideEffects() const {
 }
 
 /**
+ * Returns true if the operation is clocked.
+ * 
+ * @return True if the operation is clocked.
+ */
+bool
+OperationPimpl::isClocked() const {
+    return isClocked_;
+}
+
+/**
  * Return true if the operation can change control flow.
  *
  * Branches and calls of different type have this property set.
@@ -445,6 +456,7 @@ OperationPimpl::loadState(const ObjectState* state) {
 
         canTrap_ = state->boolAttribute(Operation::OPRN_TRAP);
         hasSideEffects_ = state->boolAttribute(Operation::OPRN_SIDE_EFFECTS);
+        isClocked_ = state->boolAttribute(Operation::OPRN_CLOCKED);
         controlFlowOperation_ = state->boolAttribute(Operation::OPRN_CONTROL_FLOW);
         readsMemory_ = state->boolAttribute(Operation::OPRN_READS_MEMORY);
         writesMemory_ = state->boolAttribute(Operation::OPRN_WRITES_MEMORY);
@@ -539,6 +551,7 @@ OperationPimpl::saveState() const {
     
     root->setAttribute(Operation::OPRN_TRAP, canTrap_);
     root->setAttribute(Operation::OPRN_SIDE_EFFECTS, hasSideEffects_);
+    root->setAttribute(Operation::OPRN_CLOCKED, isClocked_);
     root->setAttribute(Operation::OPRN_CONTROL_FLOW, controlFlowOperation_);
     root->setAttribute(Operation::OPRN_READS_MEMORY, readsMemory_);
     root->setAttribute(Operation::OPRN_WRITES_MEMORY, writesMemory_);

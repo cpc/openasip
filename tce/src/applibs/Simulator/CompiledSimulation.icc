@@ -111,4 +111,3 @@ CompiledSimulation::clearFUResults(FUResultType& results) {
     }
     results.numberOfElements = 0;
 }
-
