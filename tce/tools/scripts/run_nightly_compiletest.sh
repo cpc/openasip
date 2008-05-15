@@ -98,7 +98,7 @@ export LLVM_BIN_DIR=${LLVM_BIN_DIR:-$HOME/llvm/bin}
 export LLVM_FRONTEND_INSTALL_DIR=${LLVM_FRONTEND_INSTALL_DIR:-$HOME/llvm-frontend}
 
 addToPath "${LLVM_BIN_DIR}"
-addToPath "${LLVM_FRONTEND_INSTALL_DIR}"
+addToPath "${LLVM_FRONTEND_INSTALL_DIR}/bin"
 
 # default output for make and autotools
 OUTPUT="/dev/null"
