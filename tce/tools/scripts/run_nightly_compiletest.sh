@@ -17,12 +17,12 @@
 # 1|2|3: "full"     rebuild and install llvm-frontend from scratch
 # 1..n:  *          parameters to be passed for compiletests.sh
 
-# parameters taken as inported variables:
-#
-#  REPO_DIR                     Repository root directory
-#  BRANCH_NAME                  Branch name
-#  LLVM_BIN_DIR                 llvm binary directory
-#  LLVM_FRONTEND_INSTALL_DIR    llvm-frontend install directory
+# parameters taken as variables set before calling:
+#                                                                Defaults:
+#  REPO_DIR                     Repository root directory        $HOME/repo
+#  BRANCH_NAME                  Branch name                      trunk
+#  LLVM_BIN_DIR                 llvm binary directory            $HOME/llvm/bin
+#  LLVM_FRONTEND_INSTALL_DIR    llvm-frontend install directory  $HOME/llvm-frontend
 
 
 function eexit {
