@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
 
         for (; iter != definitions.end(); iter++) {
             const TTAProgram::DataDefinition* def = (*iter).second;
-            *output << endl << "DA " << def->size();
+            *output << endl << "DA " << std::dec << def->size();
             if (def->isInitialized())  {
                 for (int mau = 0; mau < def->size(); mau++) {
                     *output << endl << "1:0x" << std::hex << def->MAU(mau);
