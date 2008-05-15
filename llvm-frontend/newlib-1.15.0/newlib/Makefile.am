@@ -56,8 +56,12 @@ AM_MAKEFLAGS = \
 	"LIBCFLAGS=$(LIBCFLAGS)" \
 	"NM=$(LLVM_PREFIX)/bin/llvm-nm" \
 	"PICFLAG=$(PICFLAG)" \
-	"RANLIB=$(LLVM_PREFIX)/bin/llvm-ranlib" \
+	"RANLIB=touch" \
 	"DESTDIR=$(DESTDIR)"
+
+# replaced llvm-ranlib with touch, to not mess up file rights... TODO: remove the hack after llvm-ar and stuff works.. (in llvm-2.3 or 2.4)
+#	"RANLIB=$(LLVM_PREFIX)/bin/llvm-ranlib" \
+#	"DESTDIR=$(DESTDIR)"
 
 FLAGS_TO_PASS=$(AM_MAKEFLAGS)
 
@@ -161,6 +165,7 @@ libc.a: libc/libc.a libm.a
 	 $(AR) x ../libc/libc.a ; \
 	 $(AR) $(AR_FLAGS) ../$@ *.o
 	$(RANLIB) libc.a
+	chmod gou+r *.a # TODO: remove chmod hack line because llvm-ar and llvm-ranlib creates wrong file access rights.. should be fixed in 2.3 or 2.4
 	ln libc.a libg.a >/dev/null 2>/dev/null || cp libc.a libg.a
 	rm -rf tmp
 

@@ -46,8 +46,8 @@ DIST_COMMON = $(srcdir)/../config.guess $(srcdir)/../config.sub NEWS \
 	$(srcdir)/../config.sub
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/libtool.m4 \
-	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
+	$(top_srcdir)/configure.in
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
@@ -89,11 +89,11 @@ depcomp =
 am__depfiles_maybe =
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) \
+LTCOMPILE = $(LIBTOOL) --tag=CC --mode=compile $(CC) $(DEFS) \
 	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
 	$(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
-LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
+LINK = $(LIBTOOL) --tag=CC --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = libc.c libm.c $(libc_la_SOURCES) $(libm_la_SOURCES)
 RECURSIVE_TARGETS = all-recursive check-recursive dvi-recursive \
@@ -136,17 +136,26 @@ CCDEPMODE = @CCDEPMODE@
 CC_FOR_BUILD = @CC_FOR_BUILD@
 CC_FOR_NEWLIB = @CC_FOR_NEWLIB@
 CFLAGS = @CFLAGS@
+CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CRT0 = @CRT0@
 CRT0_DIR = @CRT0_DIR@
 CRT1 = @CRT1@
 CRT1_DIR = @CRT1_DIR@
+CXX = @CXX@
+CXXCPP = @CXXCPP@
+CXXDEPMODE = @CXXDEPMODE@
+CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
+DLLTOOL = @DLLTOOL@
+DSYMUTIL = @DSYMUTIL@
+ECHO = @ECHO@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
+EGREP = @EGREP@
 ELIX_LEVEL_0_FALSE = @ELIX_LEVEL_0_FALSE@
 ELIX_LEVEL_0_TRUE = @ELIX_LEVEL_0_TRUE@
 ELIX_LEVEL_1_FALSE = @ELIX_LEVEL_1_FALSE@
@@ -159,6 +168,9 @@ ELIX_LEVEL_4_FALSE = @ELIX_LEVEL_4_FALSE@
 ELIX_LEVEL_4_TRUE = @ELIX_LEVEL_4_TRUE@
 EXEEXT = @EXEEXT@
 EXTRA_DIRS = @EXTRA_DIRS@
+F77 = @F77@
+FFLAGS = @FFLAGS@
+GREP = @GREP@
 HAVE_DOC_FALSE = @HAVE_DOC_FALSE@
 HAVE_DOC_TRUE = @HAVE_DOC_TRUE@
 INSTALL_DATA = @INSTALL_DATA@
@@ -182,6 +194,8 @@ MAY_SUPPLY_SYSCALLS_TRUE = @MAY_SUPPLY_SYSCALLS_TRUE@
 NEWLIB_CFLAGS = @NEWLIB_CFLAGS@
 NEWLIB_HW_FP_FALSE = @NEWLIB_HW_FP_FALSE@
 NEWLIB_HW_FP_TRUE = @NEWLIB_HW_FP_TRUE@
+NMEDIT = @NMEDIT@
+OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
@@ -193,6 +207,7 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 POSIX_OBJECTLIST = @POSIX_OBJECTLIST@
 RANLIB = @RANLIB@
 READELF = @READELF@
+SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SIGNAL_OBJECTLIST = @SIGNAL_OBJECTLIST@
@@ -206,9 +221,13 @@ USE_LIBTOOL_FALSE = @USE_LIBTOOL_FALSE@
 USE_LIBTOOL_TRUE = @USE_LIBTOOL_TRUE@
 VERSION = @VERSION@
 ac_ct_CC = @ac_ct_CC@
+ac_ct_CXX = @ac_ct_CXX@
+ac_ct_F77 = @ac_ct_F77@
 aext = @aext@
 am__fastdepCC_FALSE = @am__fastdepCC_FALSE@
 am__fastdepCC_TRUE = @am__fastdepCC_TRUE@
+am__fastdepCXX_FALSE = @am__fastdepCXX_FALSE@
+am__fastdepCXX_TRUE = @am__fastdepCXX_TRUE@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -308,9 +327,13 @@ AM_MAKEFLAGS = \
 	"LIBCFLAGS=$(LIBCFLAGS)" \
 	"NM=$(LLVM_PREFIX)/bin/llvm-nm" \
 	"PICFLAG=$(PICFLAG)" \
-	"RANLIB=$(LLVM_PREFIX)/bin/llvm-ranlib" \
+	"RANLIB=touch" \
 	"DESTDIR=$(DESTDIR)"
 
+
+# replaced llvm-ranlib with touch, to not mess up file rights... TODO: remove the hack after llvm-ar and stuff works.. (in llvm-2.3 or 2.4)
+#	"RANLIB=$(LLVM_PREFIX)/bin/llvm-ranlib" \
+#	"DESTDIR=$(DESTDIR)"
 FLAGS_TO_PASS = $(AM_MAKEFLAGS)
 @HAVE_DOC_FALSE@DOCDIR = 
 @HAVE_DOC_TRUE@DOCDIR = doc
@@ -815,6 +838,7 @@ uninstall-info: uninstall-info-recursive
 @USE_LIBTOOL_FALSE@	 $(AR) x ../libc/libc.a ; \
 @USE_LIBTOOL_FALSE@	 $(AR) $(AR_FLAGS) ../$@ *.o
 @USE_LIBTOOL_FALSE@	$(RANLIB) libc.a
+@USE_LIBTOOL_FALSE@	chmod gou+r *.a # TODO: remove chmod hack line because llvm-ar and llvm-ranlib creates wrong file access rights.. should be fixed in 2.3 or 2.4
 @USE_LIBTOOL_FALSE@	ln libc.a libg.a >/dev/null 2>/dev/null || cp libc.a libg.a
 @USE_LIBTOOL_FALSE@	rm -rf tmp
 
