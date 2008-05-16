@@ -186,6 +186,7 @@ runner.cpp.*|\
 .*MemoryGridTable.cc.*warning.*dereferencing.type.punned.*|\
 .*TestSuite.h:.*warning.*comparison.between.signed.and.unsigned.*|\
 .*install:.warning:.relinking.*|\
+.*/llvm/include/llvm/.*warning:.*|\
 Inconsistency.detected.by.ld\.so:.*Assertion.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
