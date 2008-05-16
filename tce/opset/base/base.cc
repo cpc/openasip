@@ -1049,7 +1049,7 @@ OPERATION_WITH_STATE(STREAM_OUT, OUTPUT_STREAM)
 
 TRIGGER
 
-    if (BWIDTH(2) != 8) 
+    if (BWIDTH(1) != 8) 
         Application::logStream() 
             << "STREAM_OUT works with bytes only at the moment." 
             << std::endl;

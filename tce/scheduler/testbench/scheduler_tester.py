@@ -672,7 +672,9 @@ close $cycle_file
         if len(self.simStdErr) > 0:
             verbose = verbose + "stderr: "
             verbose = verbose + self.simStdErr
-
+            self.testFailed("simulation error, stderr: " + self.simStdErr );
+            return False
+        
         def getStat(fileName):
             if access(fileName, R_OK):
                 f = __builtin__.open(fileName, "r")
