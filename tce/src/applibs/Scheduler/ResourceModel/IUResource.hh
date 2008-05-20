@@ -66,7 +66,7 @@ protected:
 private:
     // Stores first and last cycle register is marked for use
     // also the actual value of constant to be stored in register
-    typedef struct ResourceRecordType{
+    struct ResourceRecordType{
         ResourceRecordType();
         ~ResourceRecordType();
         int         definition_;

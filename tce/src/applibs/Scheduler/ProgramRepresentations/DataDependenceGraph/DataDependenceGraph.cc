@@ -1563,8 +1563,8 @@ int DataDependenceGraph::rWawRawEdgesOut(MoveNode& mn) {
     for (EdgeSet::iterator iter = 
              oEdges.begin(); iter != oEdges.end(); iter++) {
         if ((*iter)->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
-            ((*iter)->dependenceType() == DataDependenceEdge::DEP_RAW) ||
-            ((*iter)->dependenceType() == DataDependenceEdge::DEP_WAW)) {
+            (((*iter)->dependenceType() == DataDependenceEdge::DEP_RAW) ||
+            ((*iter)->dependenceType() == DataDependenceEdge::DEP_WAW))) {
             count++;
         }
     }
@@ -1583,8 +1583,8 @@ int DataDependenceGraph::rAntiEdgesIn(MoveNode& mn) {
     for (EdgeSet::iterator iter = 
              iEdges.begin(); iter != iEdges.end(); iter++) {
         if ((*iter)->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
-            ((*iter)->dependenceType() == DataDependenceEdge::DEP_WAR) ||
-            ((*iter)->dependenceType() == DataDependenceEdge::DEP_WAW)) {
+            (((*iter)->dependenceType() == DataDependenceEdge::DEP_WAR) ||
+            ((*iter)->dependenceType() == DataDependenceEdge::DEP_WAW))) {
             count++;
         }
     }

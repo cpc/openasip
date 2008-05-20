@@ -394,8 +394,8 @@ MachineEditPartFactory::connected(
     const Bus* bus1,
     const Bus* bus2) {
 
-    return bridge->sourceBus() == bus1 &&
-	bridge->destinationBus() == bus2 ||
-	bridge->destinationBus() == bus1 &&
-	bridge->sourceBus() == bus2;
+    return (bridge->sourceBus() == bus1 &&
+    bridge->destinationBus() == bus2) ||
+    (bridge->destinationBus() == bus1 &&
+    bridge->sourceBus() == bus2);
 }

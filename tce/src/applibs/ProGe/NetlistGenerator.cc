@@ -1106,15 +1106,15 @@ NetlistGenerator::addBaseRFToNetlist(
             for (int i = 0; i < regFile.portCount(); i++) {
                 RFPort* rfPort = regFile.port(i);
                 if (!MapTools::containsKey(portCorrespondenceMap_, rfPort)) {
-                    if (port.direction() == HDB::IN &&
+                    if ((port.direction() == HDB::IN &&
                         rfPort->inputSocket() != NULL &&
-                        rfPort->outputSocket() == NULL ||
-                        port.direction() == HDB::OUT &&
+                        rfPort->outputSocket() == NULL) ||
+                        (port.direction() == HDB::OUT &&
                         rfPort->outputSocket() != NULL &&
-                        rfPort->inputSocket() == NULL ||
-                        port.direction() == HDB::BIDIR &&
+                        rfPort->inputSocket() == NULL) ||
+                        (port.direction() == HDB::BIDIR &&
                         rfPort->outputSocket() != NULL &&
-                        rfPort->inputSocket() != NULL) {
+                        rfPort->inputSocket() != NULL)) {
                         assert(
                             !MapTools::containsValue(
                                 portCorrespondenceMap_, newPort));

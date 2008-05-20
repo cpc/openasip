@@ -831,11 +831,11 @@ bool
                     break; // avoid arguement with pekka, goto better here
                 }
             }
-            if (found = true) { // as with goto this if not needed
+            if (found == true) { // as with goto this if not needed
                 break;
             }
         }
-        if (found = false) {
+        if (found == false) {
             return false;
         }
     }

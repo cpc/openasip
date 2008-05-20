@@ -761,8 +761,8 @@ FunctionUnit::isArchitectureEqual(
         if (addressSpace()->name() != fu->addressSpace()->name()) {
             return false;
         }
-    } else if (addressSpace() == NULL && fu->addressSpace() != NULL ||
-               addressSpace() != NULL && fu->addressSpace() == NULL) {
+    } else if ((addressSpace() == NULL && fu->addressSpace() != NULL) ||
+               (addressSpace() != NULL && fu->addressSpace() == NULL)) {
         return false;
     }
     for (int i = 0; i < fuPipelineElementCount; i++) {

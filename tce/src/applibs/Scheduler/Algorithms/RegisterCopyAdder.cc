@@ -174,11 +174,12 @@ RegisterCopyAdder::addRegisterCopies(
     for (int input = 0; input < programOperation.inputMoveCount(); ++input) {
         MoveNode& m = programOperation.inputMove(input);                
         const int copies = addConnectionRegisterCopies(m, fu, ddg);
-        if (copies == INT_MAX)
+        if (copies == INT_MAX) {
             if (countOnly)
                 return INT_MAX;
             else
                 assert(false && "Temp moves not possible for the FU.");
+        }
         
         registerCopies += copies;
     }
@@ -187,11 +188,12 @@ RegisterCopyAdder::addRegisterCopies(
          ++output) {
         MoveNode& m = programOperation.outputMove(output);
         const int copies = addConnectionRegisterCopies(m, fu, ddg);
-        if (copies == INT_MAX)
+        if (copies == INT_MAX) {
             if (countOnly)
                 return INT_MAX;
             else
                 assert(false && "Temp moves not possible for the FU.");
+        }
         registerCopies += copies;        
     }
     return registerCopies;
@@ -805,11 +807,11 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
         DataDependenceEdge& edge = **i;
         MoveNode& source = ddg.tailNode(edge);
         if (edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
-            (originalMove.move().isJump() && 
+            ((originalMove.move().isJump() && 
              !source.move().destination().equals(
                  firstMove->move().source()) && 
              !source.move().destination().isFUPort()) ||
-            edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) {
+            edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY)) {
             DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
             ddg.removeEdge(edge);
             ddg.connectNodes(source, originalMove, *edgeCopy);

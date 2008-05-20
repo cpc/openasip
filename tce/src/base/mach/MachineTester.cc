@@ -124,8 +124,8 @@ MachineTester::canConnect(const Socket& socket, const Port& port) {
         return false;
     }
 
-    if (inputSocket != NULL && socket.direction() == Socket::INPUT ||
-        outputSocket != NULL && socket.direction() == Socket::OUTPUT) {
+    if ((inputSocket != NULL && socket.direction() == Socket::INPUT) ||
+        (outputSocket != NULL && socket.direction() == Socket::OUTPUT)) {
         wrongSocketDirection_ = true;
         return false;
     }

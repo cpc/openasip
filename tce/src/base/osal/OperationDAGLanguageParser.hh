@@ -828,7 +828,7 @@ struct OperationDAGLanguageGrammar :
 	    IDENTIFIER =
 	      (lexeme_d[
                     ((alpha_p | '_' | '$') >> *(alnum_p | '_' | '$'))
-                    - (keywords >> anychar_p - (alnum_p | '_' | '$'))
+                    - (keywords >> (anychar_p - (alnum_p | '_' | '$')))
                     ])
                 [TokenizerActor(self.tokenData_, 
                           TokenizerData::IDENTIFIER)]
@@ -839,7 +839,7 @@ struct OperationDAGLanguageGrammar :
             STRING_LITERAL_PART =
                 lexeme_d[
                     !chlit<>('L') >> chlit<>('\"') >>
-                    *( strlit<>("\\\"") | anychar_p - chlit<>('\"') ) >>
+                    *( strlit<>("\\\"") | ( anychar_p - chlit<>('\"') )) >>
                     chlit<>('\"')
                     ]
                 ;
