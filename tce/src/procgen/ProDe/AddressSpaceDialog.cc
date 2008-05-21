@@ -280,7 +280,7 @@ AddressSpaceDialog::onBitWidthText(wxCommandEvent&) {
 void
 AddressSpaceDialog::onBitWidth(wxSpinEvent&) {
 
-    int maxAddress = pow(2, bitWidthSpinCtrl_->GetValue()) - 1;
+    int maxAddress = static_cast<int> (pow(2, bitWidthSpinCtrl_->GetValue()) - 1);
     maxControl_->setValue(maxAddress);
 
     wxCommandEvent dummy;
