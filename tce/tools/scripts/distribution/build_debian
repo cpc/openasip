@@ -15,6 +15,14 @@ function cleanup {
     rm -fr $tempDir
 }
 
+# adds the $1 param to the end of PATH variable
+function addToPath {
+    local re='[:\n]{1}'
+    if [ -z "$(echo "$PATH" | grep -E "${1}${re}")" ]; then
+        export PATH="${PATH}:${1}"
+    fi  
+}
+
 tceRoot=../../../
 
 # Grab the tce bzr revision number
@@ -33,7 +41,13 @@ cp DEBIAN/* $tempDir/DEBIAN
 
 echo "Building and installing TCE."
 
+export LLVM_BIN_DIR=${LLVM_BIN_DIR:-$HOME/llvm/bin}
+export LLVM_FRONTEND_INSTALL_DIR=${LLVM_FRONTEND_INSTALL_DIR:-$HOME/llvm-frontend}
+addToPath "${LLVM_BIN_DIR}"
+addToPath "${LLVM_FRONTEND_INSTALL_DIR}/bin"
+
 cd $tceRoot
+./src/bintools/Compiler/tcecc --clear-plugin-cache 1>/dev/null
 export CXX="g++"
 export CC="gcc"
 export CXXFLAGS="-O3 -g" 
