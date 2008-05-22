@@ -138,6 +138,8 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     setOperationAction(ISD::SMUL_LOHI, MVT::i64, Expand);
     setOperationAction(ISD::UMUL_LOHI, MVT::i64, Expand);
 
+    setOperationAction(ISD::BSWAP, MVT::i32, Expand);
+
     setStackPointerRegisterToSaveRestore(TCE::SP);
 
     computeRegisterProperties();
