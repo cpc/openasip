@@ -1454,7 +1454,7 @@ DataDependenceGraphBuilder::getStaticRegisters(
     TTAProgram::Program& prog, 
     std::map<int,std::string>& registers) {
     for (int i = 0; i < prog.procedureCount(); i++) {
-        getStaticRegisters(prog, registers);
+        getStaticRegisters(prog.procedure(i), registers);
     }
 }
 
@@ -1488,7 +1488,7 @@ DataDependenceGraphBuilder::getStaticRegisters(
         for (int i = 0; i < ins.moveCount(); i++) {
             Move& move = ins.move(i);
             for (int j = 0; j < move.annotationCount(); j++) {
-                ProgramAnnotation anno = move.annotation(i);
+                ProgramAnnotation anno = move.annotation(j);
                 switch (anno.id()) {
                 case ProgramAnnotation::ANN_REGISTER_RV_READ: {
                     TerminalRegister& tr = 
