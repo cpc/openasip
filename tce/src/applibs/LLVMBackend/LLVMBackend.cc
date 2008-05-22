@@ -289,16 +289,35 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     std::string tblgenbin;
     if (DISTRIBUTED_VERSION) {
-       tblgenbin = std::string(TCE_INSTALLATION_ROOT) + DS + "bin" + DS + "tblgen";
+       tblgenbin = std::string(TCE_INSTALLATION_ROOT) + DS + "bin" + DS +
+           "tblgen";
     } else {
        tblgenbin = std::string(TCE_SRC_ROOT) + DS +
-           "src" + DS + "ext" + DS + "llvm" + DS + LLVM_VERSION + DS + "TableGen" + DS + "tblgen";
+           "src" + DS + "ext" + DS + "llvm" + DS + LLVM_VERSION + DS +
+           "TableGen" + DS + "tblgen";
     }
        
     // Generate TCEGenRegisterNames.inc
-    std::string tblgenCmd =
-	tblgenbin + " " + TBLGEN_INCLUDES +
-        " -I" + tmpDir + " -I" + LLVM_INCLUDEDIR;
+    std::string tblgenCmd;
+    
+    if (DISTRIBUTED_VERSION) {
+        // This is quite ugly. LLVM include dir is determined by
+        // executing llvm-config in the commandline. This doesn't
+        // work if llvm-config is not found in path.
+        // First check that llvm-config is found in path.
+        if (system("llvm-config --version")) {
+            std::string msg = "Unable to determine llvm include dir. "
+                "llvm-config not found in path";
+
+            throw CompileError(__FILE__, __LINE__, __func__, msg);
+        }
+
+        tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
+            " -I" + tmpDir + " -I`llvm-config --includedir` ";
+    } else {
+	tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
+            " -I" + tmpDir + " -I" + LLVM_INCLUDEDIR;
+    }
 
     tblgenCmd += pluginIncludeFlags;
     tblgenCmd += " " + tmpDir + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";
