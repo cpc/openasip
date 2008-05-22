@@ -47,7 +47,6 @@ addToPath "${LLVM_BIN_DIR}"
 addToPath "${LLVM_FRONTEND_INSTALL_DIR}/bin"
 
 cd $tceRoot
-./src/bintools/Compiler/tcecc --clear-plugin-cache 1>/dev/null
 export CXX="g++"
 export CC="gcc"
 export CXXFLAGS="-O3 -g" 
