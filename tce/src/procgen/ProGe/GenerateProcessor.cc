@@ -69,8 +69,14 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     try {
 
         options.parse(argv, argc);
-
+        
         getOutputDir(options, outputDirectory);
+        
+        if(FileSystem::fileExists(outputDirectory)) {
+            cerr << "Error: Output directory " << outputDirectory
+                      << " already exists." << endl;
+            return false;
+        }
         
         std::string pluginParamQuery = options.pluginParametersQuery();
         if (pluginParamQuery != "") {
@@ -114,7 +120,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             cerr << "Unknown HDL given: " << hdl << endl;
             return false;
         }
-
+        
         ProGeUI::generateProcessor(
             imemWidthInMAUs, language, outputDirectory, std::cout);
     } catch (ParserStopRequest) {

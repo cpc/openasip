@@ -308,8 +308,7 @@ ProGeUI::generateProcessor(
 void
 ProGeUI::generateTestBench(
     const std::string& dstDir, 
-    const std::string& progeOutDir)
-    throw (InvalidData) {
+    const std::string& progeOutDir) {
 
     checkIfNull(machine_, "ADF not loaded");
     checkIfNull(idf_, "IDF not loaded");

@@ -63,8 +63,7 @@ protected:
                InvalidData, IllegalMachine, OutOfRange, InstanceNotFound);
     void generateTestBench(
         const std::string& dstDir, 
-        const std::string& progeOutDir)
-        throw (InvalidData);
+        const std::string& progeOutDir);
     void generateScripts(
         const std::string& dstDir,
         const std::string& progeOutDir,
