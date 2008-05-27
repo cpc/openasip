@@ -15,6 +15,8 @@
 #include "Conversion.hh"
 #include "config.h"
 #include "Application.hh"
+#include "Environment.hh"
+#include "FileSystem.hh"
 
 using std::string;
 using std::endl;
@@ -22,23 +24,43 @@ using std::vector;
 using std::time_t;
 
 
+// Initialize statics
+
+// the most important one is "fno-working-directory" which is used because 
+// ccache doesn't like changing directory paths. Rest is just minor tweaks.
+const char* CompiledSimCompiler::COMPILED_SIM_CPP_FLAGS = 
+    " -fno-working-directory "
+    "-fno-enforce-eh-specs "
+    "-fno-rtti "
+    "-fno-threadsafe-statics "
+    "-fno-access-control ";
+
+const char* CompiledSimCompiler::COMPILED_SIM_SO_FLAGS = " -shared -fpic ";
+
 /**
  * The constructor
  */
 CompiledSimCompiler::CompiledSimCompiler() {
     
-    // Get number of threads and the default compiler
+    // Get number of threads
     threadCount_ = 3;
     const char* USER_THREAD_COUNT = std::getenv("TTASIM_COMPILER_THREADS");
     if (USER_THREAD_COUNT != NULL) {
         threadCount_ = Conversion::toInt(string(USER_THREAD_COUNT));
     }
     
+    // Get compiler
     compiler_ = "gcc";
     const char* USER_COMPILER = std::getenv("TTASIM_COMPILER");
     if (USER_COMPILER != NULL) {
         compiler_ = string(USER_COMPILER);
-    }    
+    }
+    
+    // Get global compile flags
+    globalCompileFlags_ = " -O0 ";
+    const char* fl = std::getenv("TTASIM_COMPILER_FLAGS");
+    if (fl != NULL)
+        globalCompileFlags_ = std::string(fl);
 }
 
 /**
@@ -57,7 +79,7 @@ CompiledSimCompiler::~CompiledSimCompiler() {
  *
  * @param dirName a source directory containing the .cpp files and the Makefile
  * @param flags additional compile flags given by the user. for instance, "-O3"
- * @param verbose Print information of the simulation progress.
+ * @param verbose Print information of the compilation progress.
  * @return Return value given by system(). 0 on success. !=0 on failure
  */
 int
@@ -67,8 +89,9 @@ CompiledSimCompiler::compileDirectory(
     bool verbose) const {
 
     string command = 
-        "make -sC " + dirName + " CC=\"" + compiler_ + "\" opt_flags=\"" + 
-        flags + "\" -j" + Conversion::toString(threadCount_);
+        "make -sC " + dirName + " CC=\"" + compiler_ + "\" opt_flags=\"" +
+        globalCompileFlags_ + " " + flags + " \" -j" +
+        Conversion::toString(threadCount_);
 
     if (verbose) {
         Application::logStream()
@@ -84,7 +107,8 @@ CompiledSimCompiler::compileDirectory(
 
     if (verbose) {
         Application::logStream()
-            << "Compiling the simulation engine with opt. switches '" << flags 
+            << "Compiling the simulation engine with opt. switches '"
+            << globalCompileFlags_ << " " << flags 
             << "' took " << elapsed / 60 << "m " << (elapsed % 60) << "s " 
             << endl;
     }
@@ -93,23 +117,63 @@ CompiledSimCompiler::compileDirectory(
 }
 
 /**
- * Compiles a single C++ file using the set flags, outputs a .so file
+ * Compiles a single C++ file using the set flags
  * 
- * Used for generating .so files needed for dynamic compiled simulation
- * 
- * @param filePath path to the file to be compiled
- * @param flags flags to be used for compiling
+ * @param path Path to the file
+ * @param flags custom flags to be used for compiling
+ * @param outputExtension extension to append to the filename. default is ".o"
+ * @param verbose Print information of the compilation progress.
+ * @return Return value given by system() call. 0 on success. !=0 on failure
  */
 int
 CompiledSimCompiler::compileFile(
-    const std::string& filePath,
-    const std::string& flags) const {
+    const std::string& path,
+    const string& flags,
+    const string& outputExtension,
+    bool verbose) const {
 
-    string command = 
-        compiler_ + " " + "`tce-config --includes`" + " -shared -fpic "
-            + "-fno-working-directory -fno-enforce-eh-specs -fno-rtti "
-            + "-fno-threadsafe-statics -fno-access-control"
-            + flags + " " + filePath;
+    std::string directory = FileSystem::directoryOfPath(path);
+    std::string fileNameBody = FileSystem::fileNameBody(path);
+    std::string fileName = FileSystem::fileOfPath(path);   
+    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+    
+    // Get includes
+    vector<string> includePaths = Environment::includeDirPaths();
+    string includes;
+    for (vector<string>::const_iterator it = includePaths.begin(); 
+        it != includePaths.end(); ++it) {
+        includes += "-I" + *it + " ";
+    }
+
+    if (verbose) {
+        Application::logStream() << "Compiling simulation file " 
+            << path << endl;
+    }
+    
+    string command = compiler_ + " " + includes + COMPILED_SIM_CPP_FLAGS
+        + globalCompileFlags_ + " " + flags + " " 
+        + path + " -o " + directory + DS + fileNameBody + outputExtension;
     
     return system(command.c_str());
 }
+
+/**
+ * Compiles a single C++ file to a shared library (.so)
+ * 
+ * Used for generating .so files in dynamic compiled simulation
+ * 
+ * @param path Path to the file
+ * @param flags custom flags to be used for compiling
+ * @param verbose Print information of the compilation progress.
+ * @return Return value given by system() call. 0 on success. !=0 on failure
+ */
+int
+CompiledSimCompiler::compileToSO(
+    const std::string& path,
+    const string& flags,
+    bool verbose) const {
+
+    return compileFile(path, COMPILED_SIM_SO_FLAGS + flags, ".so", verbose);
+}
+
+                               

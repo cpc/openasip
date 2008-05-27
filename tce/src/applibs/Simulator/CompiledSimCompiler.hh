@@ -26,8 +26,21 @@ public:
         bool verbose = false) const;
     
     int compileFile(
-        const std::string& filePath,
-        const std::string& flags = "-O0") const;
+        const std::string& path,
+        const std::string& flags = "",
+        const std::string& outputExtension = ".o",
+        bool verbose = false) const;
+    
+    int compileToSO(
+        const std::string& path,
+        const std::string& flags = "",
+        bool verbose = false) const;
+    
+    /// cpp flags used for compiled simulation
+    static const char* COMPILED_SIM_CPP_FLAGS;
+    
+    /// flags used when compiling .so files
+    static const char* COMPILED_SIM_SO_FLAGS;
     
 private:
     /// Copying not allowed.
@@ -39,6 +52,8 @@ private:
     int threadCount_;
     /// The compiler to use
     std::string compiler_;
+    /// Global compile flags (from env variable)
+    std::string globalCompileFlags_;
 };
 
 #endif

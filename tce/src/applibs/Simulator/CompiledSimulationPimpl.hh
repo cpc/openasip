@@ -15,6 +15,8 @@
 #include <vector>
 
 #include "CompiledSimulation.hh"
+#include "CompiledSimCompiler.hh"
+#include "PluginTools.hh"
 
 class MemorySystem;
 class SimulatorFrontend;
@@ -41,6 +43,11 @@ private:
     Symbols symbols_;
     /// The jump table
     JumpTable jumpTable_;
+    
+    /// The Compiled Simulation compiler
+    CompiledSimCompiler compiler_;
+    /// Plugintools used to load the compiled .so files
+    PluginTools pluginTools_;
 };
 
 

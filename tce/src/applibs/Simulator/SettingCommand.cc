@@ -333,6 +333,46 @@ public:
 };
 
 /**
+ * Setting action that sets the static compilation flag
+ * 
+ */
+class SetStaticCompilation {
+public:
+    /** Sets the static compilation flag
+     * 
+     * @param simFront SimulatorFrontend to set the flag for.
+     * @param newValue Value to setting
+     * @return True if setting was successful.
+     */ 
+    static bool execute(
+        SimulatorInterpreter&, 
+        SimulatorFrontend& simFront, 
+        unsigned int newValue) {
+        simFront.setStaticCompilation(newValue);
+        return true;
+    }
+                            
+    /**
+     * Returns the default value of this setting.
+     *
+     * @return The default value.
+     */
+    static const DataObject& defaultValue() {
+        static const DataObject defaultValue_("0");
+        return defaultValue_;
+    }
+    
+    /**
+     * Should the action warn if program & machine exist and value was changed
+     * 
+     * @return boolean value on whether or not to warn
+     */
+    static bool warnOnExistingProgramAndMachine() {
+        return true;
+    }
+};
+
+/**
  * Setting action that sets the utilization data saving.
  */
 class SetUtilizationSaving {
@@ -671,7 +711,13 @@ SettingCommand::SettingCommand() :
         new TemplatedSimulatorSetting<
             PositiveIntegerSetting, SetSimulationTimeout>(
                 SimulatorToolbox::textGenerator().text(
-                    Texts::TXT_SIMULATION_TIMEOUT).str());                
+                    Texts::TXT_SIMULATION_TIMEOUT).str());
+                
+    settings_["static_compilation"] =
+        new TemplatedSimulatorSetting<
+            BooleanSetting, SetStaticCompilation>(
+                SimulatorToolbox::textGenerator().text(
+                    Texts::TXT_STATIC_COMPILATION).str());            
 }
 
 /**

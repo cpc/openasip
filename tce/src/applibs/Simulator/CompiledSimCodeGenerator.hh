@@ -46,6 +46,23 @@ namespace TTAProgram {
 class SimulatorFrontend;
 class TTASimulationController;
 
+
+/// A struct for tracking basic blocks and their relation to their procedures
+struct ProcedureBBRelations {
+    /// Procedure start per basic block starts
+    std::map<InstructionAddress, InstructionAddress> procedureStart;
+    
+    typedef std::multimap<InstructionAddress, InstructionAddress> 
+        BasicBlockStarts;
+        
+    /// All basic block start addresses per procedure start
+    BasicBlockStarts basicBlockStarts;
+    
+    /// Basic block starts and their corresponding .cpp files
+    std::map<InstructionAddress, std::string> basicBlockFiles;
+};
+
+
 /**
  * A class that generates C/C++ code from the given POM and MOM
  * 
@@ -56,8 +73,8 @@ class CompiledSimCodeGenerator {
 public:
     /// A type for std::string sets
     typedef std::set<std::string> StringSet;
-    /// A type for storing basic block entries and exits
-    typedef std::map<InstructionAddress, InstructionAddress> BasicBlocks;
+    /// A type for storing address-to-address combinations
+    typedef std::map<InstructionAddress, InstructionAddress> AddressMap;
 
     CompiledSimCodeGenerator(
         const TTAMachine::Machine& machine,
@@ -66,13 +83,16 @@ public:
         bool sequentialSimulation,
         bool fuResourceConflictDetection,
         bool handleCycleEnd,
-        bool basicBlockPerFile);
+        bool dynamicCompilation,
+        bool basicBlockPerFile = false,
+        bool functionPerFile = true);
 
     virtual ~CompiledSimCodeGenerator();
     
     virtual void generateToDirectory(const std::string& dirName);
     virtual StringSet createdFiles() const;
-    virtual BasicBlocks basicBlocks() const;
+    virtual AddressMap basicBlocks() const;
+    virtual ProcedureBBRelations procedureBBRelations() const;
 
 private:
     /// Copying not allowed.
@@ -104,7 +124,7 @@ private:
     void generateConstructorCode();
     void generateSimulationCode();
     void findBasicBlocks() const;
-    void generateProcedureCode(const TTAProgram::Procedure& proc);
+    void generateProcedureCode(const TTAProgram::Procedure& procedure);
     void generateShutdownCode(InstructionAddress address);
     void generateSimulationGetter();
     std::string generateHaltCode(const std::string& message="");
@@ -155,8 +175,12 @@ private:
     bool isSequentialSimulation_;
     /// Should we let frontend handle each cycle end
     bool handleCycleEnd_;
+    /// Is this a dynamic compiled simulation?
+    bool dynamicCompilation_;
     /// Should the generator generate only one basic block per code file
     bool basicBlockPerFile_;
+    /// Should the generator start with a new file after function end
+    bool functionPerFile_;
     
     /// Type for SimValue symbol declarations: string=symbolname, int=width
     typedef std::map<std::string, int> SimValueSymbolDeclarations;
@@ -174,6 +198,10 @@ private:
     int instructionNumber_;
     /// Istruction counter for checking how many instructions to put per file
     int instructionCounter_;
+    /// Are we at the beginning of a new procedure?
+    bool isProcedureBegin_;
+    /// Pointer to the current Procedure being processed
+    const TTAProgram::Procedure* currentProcedure_;
     
     /// number of cycles after jump-code is to be generated
     int pendingJumpDelay_;
@@ -189,9 +217,11 @@ private:
     std::set<InstructionAddress> exitPoints_;
 
     /// The basic block map referred by start of the block as a key
-    mutable BasicBlocks bbStarts_;
+    mutable AddressMap bbStarts_;
     /// The basic block map referred by end of the block as a key
-    mutable BasicBlocks bbEnds_;
+    mutable AddressMap bbEnds_;
+    /// Basic blocks relations to procedures and vice versa.
+    ProcedureBBRelations procedureBBRelations_;
     /// Delayed FU Result assignments
     DelayedAssignments delayedFUResultWrites_;
     /// Last known FU result writes
@@ -210,6 +240,8 @@ private:
     std::string mainFile_;
     /// Current file being processed
     std::fstream currentFile_;
+    /// Name of the current file being processed
+    std::string currentFileName_;
     /// Current output stream i.e. the above file
     std::ostream* os_;
 

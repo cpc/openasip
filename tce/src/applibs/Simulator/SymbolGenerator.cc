@@ -279,3 +279,8 @@ SymbolGenerator::generateTempVariable() {
     return "_tmp_variable_" + Conversion::toString(counter++);
 }
 
+std::string 
+SymbolGenerator::jumpTargetSetterSymbol(InstructionAddress address) {
+    return "setJumpTargetFor_" + Conversion::toString(address);
+}
+

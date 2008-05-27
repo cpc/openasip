@@ -18,11 +18,28 @@
 #include "MemorySystem.hh"
 #include "CompiledSimulationPimpl.hh"
 #include "ControlUnit.hh"
+#include "CompiledSimCodeGenerator.hh"
+#include "CompiledSimCompiler.hh"
+#include "PluginTools.hh"
+#include "FileSystem.hh"
 
 using namespace TTAMachine;
 
 static const ClockCycleCount MAX_CYCLES =
     std::numeric_limits<ClockCycleCount>::max();
+    
+/**
+ * A C wrapper function for setting a jump target outside compiled simulation
+ * 
+ * @param address address to set a jump function for
+ * @param fp function pointer to set at the address
+ */
+void setJumpTargetFunction(
+    CompiledSimulation& compiledSimulation,
+    InstructionAddress address,
+    SimulateFunction fp) {
+    compiledSimulation.setJumpTargetFunction(address, fp);
+}    
 
 /**
  * The constructor
@@ -41,7 +58,9 @@ CompiledSimulation::CompiledSimulation(
     InstructionAddress entryAddress,
     InstructionAddress lastInstruction,
     SimulatorFrontend& frontend,
-    MemorySystem& memorySystem) :
+    MemorySystem& memorySystem,
+    bool dynamicCompilation,
+    ProcedureBBRelations& procedureBBRelations) :
     cycleCount_(0),
     basicBlockCount_(0),
     jumpTarget_(entryAddress),
@@ -51,6 +70,8 @@ CompiledSimulation::CompiledSimulation(
     stopRequested_(false),
     isFinished_(false),
     conflictDetected_(false),
+    dynamicCompilation_(dynamicCompilation),
+    procedureBBRelations_(procedureBBRelations),
     machine_(machine),
     entryAddress_(entryAddress),
     lastInstruction_(lastInstruction), pimpl_(new CompiledSimulationPimpl()) {
@@ -59,7 +80,7 @@ CompiledSimulation::CompiledSimulation(
 }
 
 /**
- * The destructor
+ * The destructor. Frees private implementation
  */
 CompiledSimulation::~CompiledSimulation() {
     delete pimpl_;
@@ -67,7 +88,9 @@ CompiledSimulation::~CompiledSimulation() {
 }
 
 /**
- * Handles a single cycle end. Used for example, when generating traces
+ * Lets the simulator frontend handle a single cycle end.
+ * 
+ * Used for example when generating traces.
  */
 void 
 CompiledSimulation::cycleEnd() {
@@ -90,6 +113,7 @@ void
 CompiledSimulation::step(double count) {
     cyclesToSimulate_ = cycleCount_ + static_cast<ClockCycleCount>(count);
     stopRequested_ = false;
+    
     while (!stopRequested_ && !isFinished_) {
         simulateCycle();
     }
@@ -186,8 +210,7 @@ ClockCycleCount CompiledSimulation::cycleCount() const {
  * @exception InstanceNotFound If the RF cannot be found
  */
 SimValue 
-CompiledSimulation::registerFileValue(
-    const char* rfName, int registerIndex) {  
+CompiledSimulation::registerFileValue(const char* rfName, int registerIndex) {  
     RegisterFile& rf = *machine_.registerFileNavigator().item(rfName);
     std::string registerFile = SymbolGenerator::registerSymbol(rf, registerIndex);
     
@@ -341,10 +364,12 @@ CompiledSimulation::msg(const char* message) const {
     Application::logStream() << message << std::endl;
 }
 
-
 /**
  * Halts simulation by throwing an exception with a message attached to it
  * 
+ * @param file file where the exception happened, i.e. __FILE__
+ * @param line line where the exception happened, i.e. __LINE__
+ * @param procedure function where the exception happened, i.e. __FUNCTION__
  * @param message message to attach
  * @exception SimulationExecutionError thrown always
  */
@@ -357,7 +382,6 @@ CompiledSimulation::haltSimulation(
     throw SimulationExecutionError(file, line, procedure, message);
 }
 
-
 /**
  * Resizes the jump table
  * 
@@ -369,20 +393,41 @@ CompiledSimulation::resizeJumpTable(int newSize) {
 }
 
 /**
- * Gets a jump target for given address from the jump table
+ * Gets the simulate function of given address from the jump table.
  * 
- * @return Jump target for given address from the jump table
+ * If this is a dynamic compiled simulation, it'll first check if the simulate-
+ * function is available. If not, it will compile the required files first and
+ * then loads the simulate function symbols.
+ * 
+ * @param address address to get the simulate function for
+ * @return Simulate Function of given address from the jump table
+ * @exception SimulationExecutionError If the jump function couldn't be gotten
  */
 SimulateFunction 
-CompiledSimulation::getJumpTargetFunction(InstructionAddress address) {
-    return pimpl_->jumpTable_[address];
+CompiledSimulation::getSimulateFunction(InstructionAddress address) {
+    
+    // Is there an already existing simulate function in the given address?
+    if (pimpl_->jumpTable_[address] != 0) {
+            return pimpl_->jumpTable_[address];
+    }
+    
+    if (dynamicCompilation_) {
+        compileAndLoadFunction(address);
+        if (pimpl_->jumpTable_[address] != 0) {
+            return pimpl_->jumpTable_[address];
+        }
+    }
+    
+    throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__,
+        "Cannot simulate jump to address " + Conversion::toString(address) + 
+        ". Please try with the interpretive simulation engine." );
 }
 
 /**
- * Sets a jump target for given address at the jump table
+ * Sets a jump target function for given address at the jump table
  * 
  * @param address address to set a jump function for
- * @param fp function pointer to the address
+ * @param fp function pointer to set at the address
  */
 void 
 CompiledSimulation::setJumpTargetFunction(
@@ -391,10 +436,73 @@ CompiledSimulation::setJumpTargetFunction(
     pimpl_->jumpTable_[address] = fp;
 }
 
-SimValue* CompiledSimulation::getSymbolValue(const char* symbolName) {
-    return pimpl_->symbols_[std::string(symbolName)];
+/**
+ * Compiles and loads all simulate functions belonging to a procedure 
+ * containing the given address.
+ * 
+ * @param address (any) address of a procedure to compile
+ */
+void
+CompiledSimulation::compileAndLoadFunction(InstructionAddress address) {
+    
+    InstructionAddress procedureStart =
+        procedureBBRelations_.procedureStart[address];
+    
+    // Files compiled so far
+    std::set<std::string> compiledFiles;
+    
+    // Get basic blocks of a procedure
+    typedef ProcedureBBRelations::BasicBlockStarts::iterator BBIterator;
+    std::pair<BBIterator, BBIterator> equalRange = 
+        procedureBBRelations_.basicBlockStarts.equal_range(procedureStart);
+
+    // Loop all basic blocks of a procedure, then compile all its files
+    for (BBIterator it = equalRange.first; it != equalRange.second; ++it) {
+        std::string file = procedureBBRelations_.basicBlockFiles[it->second];
+        
+        // Compile the file if it hasn't been already
+        if (compiledFiles.find(file) == compiledFiles.end()) {
+            pimpl_->compiler_.compileToSO(file);
+            std::string soPath = FileSystem::directoryOfPath(file) 
+                + FileSystem::DIRECTORY_SEPARATOR 
+                + FileSystem::fileNameBody(file) + ".so";
+            pimpl_->pluginTools_.registerModule(soPath);
+            compiledFiles.insert(file);
+        }
+
+        // Use setJumpTargetFor_* C-function to load the generated C++ functions
+        // for the current CompiledSimulation.
+        void (*fn)(CompiledSimulation& compiledSimulation);
+        pimpl_->pluginTools_.importSymbol(
+            SymbolGenerator::jumpTargetSetterSymbol(it->second), fn);
+        fn(*this);
+    }
 }
 
+/**
+ * Returns value of the given symbol (be it RF, FU, or IU)
+ * 
+ * @param symbolName Symbol name in the generated code
+ * @return a pointer to the symbol's SimValue or 0 if the symbol wasn't found
+ */
+SimValue*
+CompiledSimulation::getSymbolValue(const char* symbolName) {
+
+    CompiledSimulationPimpl::Symbols::iterator it = pimpl_->symbols_.find(
+        std::string(symbolName));
+    
+    if (it != pimpl_->symbols_.end()) {
+        return it->second;
+    } else {
+        return 0;
+    }
+}
+
+/**
+ * Adds a new symbol name -> SimValue pair to the symbols map
+ * @param symbolName the symbol name
+ * @param value the SimValue
+ */
 void 
 CompiledSimulation::addSymbol(const char* symbolName, SimValue& value) {
     pimpl_->symbols_[std::string(symbolName)] = &value;

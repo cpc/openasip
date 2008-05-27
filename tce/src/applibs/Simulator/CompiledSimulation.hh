@@ -29,6 +29,8 @@ class MemorySystem;
 class SimulatorFrontend;
 class CompiledSimulationEngine;
 class CompiledSimulationPimpl;
+class CompiledSimulation;
+struct ProcedureBBRelations;
 
 
 /// Type for the simulateXXXXX basic block functions
@@ -71,6 +73,10 @@ struct FUResultType {
     ~FUResultType() { delete[] data; data = 0; }
 };
 
+void setJumpTargetFunction(
+    CompiledSimulation& compiledSimulation,
+    InstructionAddress address,
+    SimulateFunction fp);
 
 /**
  * An abstract class that is used as a base for all the compiled simulations
@@ -81,12 +87,19 @@ struct FUResultType {
  */
 class CompiledSimulation {
 public:
+    friend void setJumpTargetFunction(
+        CompiledSimulation& compiledSimulation,
+        InstructionAddress address,
+        SimulateFunction fp);
+    
     CompiledSimulation(
         const TTAMachine::Machine& machine,
         InstructionAddress entryAddress,
         InstructionAddress lastInstruction,
         SimulatorFrontend& frontend,
-        MemorySystem& memorySystem);
+        MemorySystem& memorySystem,
+        bool dynamicCompilation,
+        ProcedureBBRelations& procedureBBRelations);
     virtual ~CompiledSimulation();
     
     virtual void simulateCycle() = 0;
@@ -151,8 +164,9 @@ protected:
         FUResultType& results);
     
     void resizeJumpTable(int newSize);
-    SimulateFunction getJumpTargetFunction(InstructionAddress address);
+    SimulateFunction getSimulateFunction(InstructionAddress address);
     void setJumpTargetFunction(InstructionAddress address, SimulateFunction fp);
+    void compileAndLoadFunction(InstructionAddress address);
     
     SimValue* getSymbolValue(const char* symbolName);
     void addSymbol(const char* symbolName, SimValue& value);
@@ -177,6 +191,12 @@ protected:
 
     /// A flag for FU conflict detection
     bool conflictDetected_;
+    
+    /// Is this a dynamic compiled simulation?
+    bool dynamicCompilation_;
+    
+    /// A struct for finding out procedure begins from procedure's basic blocks
+    ProcedureBBRelations& procedureBBRelations_;
 
     /// The simulated machine
     const TTAMachine::Machine& machine_;

@@ -16,6 +16,7 @@
 #include "CompiledSimCodeGenerator.hh"
 
 class CompiledSimulation;
+struct ProcedureBBRelations;
 
 /**
  * A Simulation controller that uses the compiled simulation techniques.
@@ -57,7 +58,9 @@ public:
         InstructionAddress entryAddress,
         InstructionAddress lastInstruction,
         SimulatorFrontend& frontend,
-        MemorySystem& memorySystem);
+        MemorySystem& memorySystem,
+        bool dynamicCompilation,
+        ProcedureBBRelations& procedureBBRelations);
     
     virtual std::string registerFileValue(
         const std::string& rfName, 
@@ -93,7 +96,9 @@ private:
     bool leaveDirty_;
     
     /// A map containing the basic blocks' start..end pairs
-    CompiledSimCodeGenerator::BasicBlocks basicBlocks_;
+    CompiledSimCodeGenerator::AddressMap basicBlocks_;
+    /// A struct for tracking basic blocks and their relation to their procedures
+    ProcedureBBRelations procedureBBRelations_;
 };
 
 #endif

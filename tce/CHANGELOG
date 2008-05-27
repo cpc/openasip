@@ -6,6 +6,9 @@ Notable new features
 - Added example stream operations to the base opset and documented them in
   the TCE User Manual's tutorial section.
 - Constant support for the OSAL DAG language.
+- Added support for dynamic compiled simulation and made it default when
+  using the compiled simulation. Static compiled simulation is still supported
+  through a simulator setting.
 
 Bug fixes worth mentioning
 --------------------------

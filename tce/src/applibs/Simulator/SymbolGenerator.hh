@@ -89,6 +89,8 @@ public:
     
     static std::string generateTempVariable();
     
+    static std::string jumpTargetSetterSymbol(InstructionAddress address);
+    
 private:
     /// Copying not allowed.
     SymbolGenerator(const SymbolGenerator&);

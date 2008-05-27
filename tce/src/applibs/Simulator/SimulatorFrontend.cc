@@ -92,7 +92,7 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     stopPointManager_(NULL),  utilizationStats_(NULL), tpef_(NULL),
     fuResourceConflictDetection_(true),
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
-    traceFileNameSetByUser_(false), outputStream_(0),
+    staticCompilation_(false), traceFileNameSetByUser_(false), outputStream_(0),
     memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0), 
     lastRunTime_(0.0), simulationTimeout_(0) {
     if (compiledSimulation_) {
@@ -1740,6 +1740,16 @@ SimulatorFrontend::utilizationDataSaving() const {
     return saveUtilizationData_;
 }
 
+/**
+ * Returns true if the compiled simulation uses static compilation
+ * 
+ * @return true if the compiled simulation uses static compilation
+ */
+bool
+SimulatorFrontend::staticCompilation() const {
+    return staticCompilation_;
+}
+
 
 /**
  * Returns the register file access tracker.
@@ -1836,6 +1846,18 @@ SimulatorFrontend::setTraceDBFileName(const std::string& fileName) {
 void 
 SimulatorFrontend::setTimeout(unsigned int value) {
     simulationTimeout_ = value;
+}
+
+/**
+ * Sets the compiled simulator to use static or dynamic compilation.
+ * 
+ * Has no effect when running interpretive simulation.
+ * 
+ * @param value new value to be set
+ */
+void
+SimulatorFrontend::setStaticCompilation(bool value) {
+    staticCompilation_ = value;
 }
 
 /**

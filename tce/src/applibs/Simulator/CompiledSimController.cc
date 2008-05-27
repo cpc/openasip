@@ -232,43 +232,54 @@ CompiledSimController::reset() {
         return;
     }
     
-    // Compile the program
+    // Generate all simulation code at once
     CompiledSimCodeGenerator generator(sourceMachine_, program_, *this,
         frontend_.isSequentialSimulation(),
         frontend_.fuResourceConflictDetection(), frontend_.executionTracing(), 
-        false);
-    CATCH_ANY(generator.generateToDirectory(compiledSimulationPath_));
+        !frontend_.staticCompilation(), false, true);
+    generator.generateToDirectory(compiledSimulationPath_);
     
     basicBlocks_ = generator.basicBlocks();
-
-    std::string flags = "-O0";
-    const char* fl = std::getenv("TTASIM_COMPILER_FLAGS");
-    if (fl != NULL)
-        flags = std::string(fl);
+    procedureBBRelations_ = generator.procedureBBRelations();
 
     CompiledSimCompiler compiler;
-    if (compiler.compileDirectory(compiledSimulationPath_, flags, false) != 0) {
-        Application::logStream() << "Compilation aborted." << endl;
-        return;
-    }
     
+    // Compile everything when using static compiled simulation
+    if (frontend_.staticCompilation()) {
+        if (compiler.compileDirectory(compiledSimulationPath_, "", false) 
+            != 0) {
+            Application::logStream() << "Compilation aborted." << endl;
+            return;
+        }
+    } else { // Compile main engine file
+        compiler.compileToSO(compiledSimulationPath_ 
+            + FileSystem::DIRECTORY_SEPARATOR + "CompiledSimulationEngine.cc");
+        
+        // Precompile the simulation header
+        compiler.compileFile(compiledSimulationPath_ 
+            + FileSystem::DIRECTORY_SEPARATOR + "CompiledSimulationEngine.hh", 
+            "-xc++-header", ".gch");
+    }
+
     SimulationGetterFunction* simulationGetter = NULL;
     pluginTools_.addSearchPath(compiledSimulationPath_);
-    // register the individual simulation functions
+
+    // register individual simulation functions
     std::vector<std::string> sos;
     FileSystem::globPath(compiledSimulationPath_ + "/simulate_*.so", sos);
     for (std::size_t i = 0; i < sos.size(); ++i) {
         const std::string& so = FileSystem::fileOfPath(sos.at(i));
-        //Application::logStream() << "registering " << so << std::endl;
         pluginTools_.registerModule(so);
     }
 
-    pluginTools_.registerModule("engine.so");
+    // register simulation getter function symbol
+    pluginTools_.registerModule("CompiledSimulationEngine.so");
     pluginTools_.importSymbol("getSimulation", simulationGetter);
     simulation_.reset(
         simulationGetter(sourceMachine_, program_.entryAddress().location(),
             program_.lastInstruction().address().location(), 
-            frontend_, memorySystem()));
+            frontend_, memorySystem(), !frontend_.staticCompilation(), 
+            procedureBBRelations_));
     
     state_ = STA_INITIALIZED;
 }
@@ -335,22 +346,13 @@ CompiledSimController::deleteGeneratedFiles() {
 /**
  * Returns the start of the basic block containing address
  * 
+ * @param address
  * @return instruction address of the basic block start
  */
 InstructionAddress 
 CompiledSimController::basicBlockStart(InstructionAddress address) const {
-    InstructionAddress start = 0;
-    for (CompiledSimCodeGenerator::BasicBlocks::const_iterator it = 
-        basicBlocks_.begin(); it != basicBlocks_.end(); ++it) {
-        start = it->first;
-        if (address>= it->first && address <= it->second) {
-            break;
-        }
-    }
-    
-    return start;
+    return basicBlocks_.lower_bound(address)->first;
 }
-
 
 /**
  * Returns a string containing the value(s) of the register file
@@ -404,7 +406,8 @@ CompiledSimController::registerFileValue(
  */
 SimValue
 CompiledSimController::immediateUnitRegisterValue(
-const std::string& iuName, int index) {
+    const std::string& iuName, 
+    int index) {
     return compiledSimulation()->immediateUnitRegisterValue(iuName.c_str(),
         index);
 }

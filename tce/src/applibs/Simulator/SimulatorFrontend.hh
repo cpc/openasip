@@ -123,6 +123,7 @@ public:
     bool procedureTransferTracing() const;
     bool profileDataSaving() const;
     bool utilizationDataSaving() const;
+    bool staticCompilation() const;
 
     const RFAccessTracker& rfAccessTracker() const
         throw (InstanceNotFound);
@@ -136,6 +137,7 @@ public:
     void setUtilizationDataSaving(bool value);
     void setTraceDBFileName(const std::string& fileName);
     void setTimeout(unsigned int value);
+    void setStaticCompilation(bool value);
     
     std::ostream& outputStream();
     void setOutputStream(std::ostream& stream);
@@ -287,6 +289,8 @@ protected:
     bool printNextInstruction_;
     /// True if the simulation time statistics should be printed out
     bool printSimulationTimeStatistics_;
+    /// True if the compiled simulation should use static compilation
+    bool staticCompilation_;
     /// Flag that indicates is the trace file name set by user.
     bool traceFileNameSetByUser_;
     /// Default output stream

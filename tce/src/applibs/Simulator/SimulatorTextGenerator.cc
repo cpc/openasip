@@ -461,6 +461,10 @@ SimulatorTextGenerator::SimulatorTextGenerator() {
     addText(
         Texts::TXT_SIMULATION_TIMEOUT,
         "Simulation timeout in seconds. Use zero to disable this setting.");
+    
+    addText(
+        Texts::TXT_STATIC_COMPILATION,
+        "Use static compilation when running compiled simulation. ");
 
     addText(Texts::TXT_STATUS_STOPPED, "Program stopped at address %d.");
     addText(Texts::TXT_STATUS_FINISHED, "Simulation finished.");            
@@ -526,8 +530,8 @@ SimulatorTextGenerator::SimulatorTextGenerator() {
     addText(Texts::TXT_AUTOMATIC_FINISH_IMPOSSIBLE,
             "Unable to detect the program exit point. Simulation cannot be "
             "finished automatically. Use 'until' instead of 'run'.");
-    addText(Texts::TXT_TRACE_SETTINGS_CHANGED_WARNING,
-            "Warning! Trace settings have been changed. "
+    addText(Texts::TXT_STARTUP_SETTINGS_CHANGED_WARNING,
+            "Warning! Settings affecting simulation startup have been changed. "
             "Please reload the program and/or the machine.");
 }
 

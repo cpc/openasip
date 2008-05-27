@@ -62,7 +62,7 @@ public:
                (simFront.isProgramLoaded() || simFront.isMachineLoaded()) &&
                (newValue != value_)) {
                     interpreter.setError(SimulatorToolbox::textGenerator().text(
-                        Texts::TXT_TRACE_SETTINGS_CHANGED_WARNING).str());
+                        Texts::TXT_STARTUP_SETTINGS_CHANGED_WARNING).str());
                     
                     value_ = newValue;
                     return false;

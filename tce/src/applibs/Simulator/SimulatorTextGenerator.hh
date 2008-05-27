@@ -130,6 +130,8 @@ namespace Texts {
         ///< Description of the simulation time statistics setting
         TXT_SIMULATION_TIMEOUT,
         ///< Simulation timeout in seconds
+        TXT_STATIC_COMPILATION,
+        ///< Use static compilation when using compiled simulator
         TXT_INTERP_HELP_COMMANDS_AVAILABLE,
         ///< Description of the execution trace setting.
         TXT_STATUS_STOPPED,
@@ -174,7 +176,7 @@ namespace Texts {
         TXT_INTERP_SETTING_PROFILE_SAVING,
         TXT_NO_PROGRAM_LOADED,
         TXT_AUTOMATIC_FINISH_IMPOSSIBLE,
-        TXT_TRACE_SETTINGS_CHANGED_WARNING
+        TXT_STARTUP_SETTINGS_CHANGED_WARNING
     };
 
 }

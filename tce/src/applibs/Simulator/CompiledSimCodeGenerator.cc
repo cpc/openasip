@@ -50,6 +50,7 @@
 #include "BaseType.hh"
 #include "SymbolGenerator.hh"
 #include "CompiledSimMove.hh"
+#include "CompiledSimCompiler.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -78,13 +79,18 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     bool sequentialSimulation,
     bool fuResourceConflictDetection,
     bool handleCycleEnd,
-    bool basicBlockPerFile) :
+    bool dynamicCompilation,
+    bool basicBlockPerFile,
+    bool functionPerFile) :
     machine_(machine), program_(program), simController_(controller),
     gcu_(*machine.controlUnit()),
     isSequentialSimulation_(sequentialSimulation),
     handleCycleEnd_(handleCycleEnd),
+    dynamicCompilation_(dynamicCompilation),
     basicBlockPerFile_(basicBlockPerFile),
+    functionPerFile_(functionPerFile),
     instructionNumber_(0), instructionCounter_(0),
+    isProcedureBegin_(true), currentProcedure_(0),
     pendingJumpDelay_(0), lastInstructionOfBB_(0),
     className_("CompiledSimulationEngine"),
     os_(NULL),
@@ -121,10 +127,10 @@ CompiledSimCodeGenerator::generateToDirectory(const string& directory) {
 void
 CompiledSimCodeGenerator::generateMakefile() {
 
-    const string fileName =
+    currentFileName_ =
         targetDirectory_ + FileSystem::DIRECTORY_SEPARATOR + "Makefile";
 
-    std::ofstream makefile(fileName.c_str());
+    std::ofstream makefile(currentFileName_.c_str());
     std::vector<std::string> includePaths = Environment::includeDirPaths();
     std::string includes;
     for (std::vector<std::string>::iterator it = includePaths.begin(); 
@@ -137,20 +143,21 @@ CompiledSimCodeGenerator::generateMakefile() {
         << "objects = $(patsubst %.cpp,%.o,$(sources))" << endl
         << "dobjects = $(patsubst %.cpp,%.so,$(sources))" << endl
         << "includes = " << includes << endl
-        << "soflags = -shared -fpic" << endl 
+        << "soflags = " << CompiledSimCompiler::COMPILED_SIM_SO_FLAGS << endl 
             
         // use because ccache doesn't like changing directory paths
         // (in a preprocessor comment)
-        << "cppflags = -fno-working-directory -fno-enforce-eh-specs -fno-rtti "
-        << "-fno-threadsafe-statics -fno-access-control" << endl << endl
+        << "cppflags = " << CompiledSimCompiler::COMPILED_SIM_CPP_FLAGS << endl
+        << endl
         
-        << "all: engine.so" << endl << endl
+        << "all: CompiledSimulationEngine.so" << endl << endl
 
-        << "engine.so: CompiledSimulationEngine.hh.gch $(dobjects) CompiledSimulationEngine.cc" << endl
-        << "\t#@echo Compiling engine.so" << endl
+        << "CompiledSimulationEngine.so: CompiledSimulationEngine.hh.gch $(dobjects) CompiledSimulationEngine.cc" << endl
+        << "\t#@echo Compiling CompiledSimulationEngine.so" << endl
         << "\t$(CC) $(soflags) $(cppflags) -O0 $(includes) CompiledSimulationEngine.cc "
-        << "-c -o engine.o" << endl 
-        << "\t$(CC) $(soflags) engine.o -o engine.so" << endl << endl
+        << "-c -o CompiledSimulationEngine.o" << endl 
+        << "\t$(CC) $(soflags) CompiledSimulationEngine.o -o CompiledSimulationEngine.so"
+        << endl << endl
             
         << "$(dobjects): %.so: %.cpp CompiledSimulationEngine.hh.gch" << endl
 
@@ -168,9 +175,10 @@ CompiledSimCodeGenerator::generateMakefile() {
         << endl
             
         << "clean:" << endl
-        << "\t@rm -f $(dobjects) engine.so CompiledSimulationEngine.hh.gch" << endl;
+        << "\t@rm -f $(dobjects) CompiledSimulationEngine.so CompiledSimulationEngine.hh.gch" << endl;
     
     makefile.close();
+    currentFileName_.clear();
 }
 
 /**
@@ -188,12 +196,22 @@ CompiledSimCodeGenerator::createdFiles() const {
  * 
  * @return a list of basic blocks of the program
  */
-CompiledSimCodeGenerator::BasicBlocks 
+CompiledSimCodeGenerator::AddressMap 
 CompiledSimCodeGenerator::basicBlocks() const {
     if (bbStarts_.empty()) {
         findBasicBlocks();
     }
     return bbStarts_;
+}
+
+/**
+ * Returns a struct of basic blocks and their corresponding code files
+ * 
+ * @return a struct of basic blocks and their corresponding code files
+ */
+ProcedureBBRelations 
+CompiledSimCodeGenerator::procedureBBRelations() const {
+    return procedureBBRelations_;
 }
 
 /**
@@ -211,7 +229,8 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
 
     // Open a new file for the header
     const string DS = FileSystem::DIRECTORY_SEPARATOR;
-    currentFile_.open((targetDirectory_ + DS + headerFile_).c_str(), fstream::out);
+    currentFileName_ = targetDirectory_ + DS + headerFile_; 
+    currentFile_.open(currentFileName_.c_str(), fstream::out);
     os_ = &currentFile_;
     
     // Generate includes
@@ -332,12 +351,16 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     *os_ << ";" << endl;
 
     generateAdvanceClockCode();
+    
+    // Generate dummy destructor
+    *os_ << "virtual ~" << className_ << "() { }" << endl << endl;
 
-    *os_ << "void simulateCycle();" << endl << endl << "}; // end class" 
+    *os_ << "virtual void simulateCycle();" << endl << endl << "}; // end class"
          << endl << endl << "#endif // include once" << endl << endl;
 
     // header written
     currentFile_.close();
+    currentFileName_.clear();
     os_ = NULL;
     
     // write implementations to the main functions
@@ -354,7 +377,9 @@ CompiledSimCodeGenerator::generateConstructorParameters() {
          << "InstructionAddress entryAddress," << endl
          << "InstructionAddress lastInstruction," << endl
          << "SimulatorFrontend& frontend," << endl
-         << "MemorySystem& memorySystem)";
+         << "MemorySystem& memorySystem," << endl
+         << "bool dynamicCompilation,"
+         << "ProcedureBBRelations& procedureBBRelations)";
 }
 
 /**
@@ -375,7 +400,7 @@ CompiledSimCodeGenerator::generateConstructorCode() {
         
     *os_ << " : " << endl
          << "CompiledSimulation(machine, entryAddress, lastInstruction, "
-         << "frontend, memorySystem), "
+         << "frontend, memorySystem, dynamicCompilation, procedureBBRelations),"
          << endl;
     
     updateDeclaredSymbolsList();
@@ -406,6 +431,20 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     
     *os_ << conflictDetectionGenerator_.extraInitialization()
          << "}" << endl << endl;
+    
+    // generate simulateCycle() method
+    *os_ << "// Simulation code:" << endl
+         << "void " << className_  << "::simulateCycle() {" << endl << endl;
+
+    // Create a jump dispatcher for accessing each basic block start
+    *os_ << "\t// jump dispatcher" << endl
+         << "\tjumpTargetFunc_ = getSimulateFunction(jumpTarget_);" << endl
+         << "\t(this->*jumpTargetFunc_)();" << endl << endl;
+    
+    *os_ << conflictDetectionGenerator_.notifyOfConflicts()
+         << "}" << endl << endl;
+    
+    generateSimulationGetter(); // generate the simulation getter
 }
 
 /**
@@ -424,23 +463,10 @@ CompiledSimCodeGenerator::generateSimulationCode() {
     for (int i = 0; i < program_.procedureCount(); ++i) {
         generateProcedureCode(program_.procedure(i));
     }
-    
-    // Create the simulateCycle() function
-    *os_ << "// Simulation code:" << endl
-         << "void " << className_  << "::simulateCycle() {" << endl << endl;
 
-    // Create a jump dispatcher for accessing each basic block start
-    *os_ << "\t// jump dispatcher" << endl
-         << "\tjumpTargetFunc_ = getJumpTargetFunction(jumpTarget_);" << endl
-         << "\t(this->*jumpTargetFunc_)();" << endl << endl;
-    
-    *os_ << conflictDetectionGenerator_.notifyOfConflicts()
-         << "}" << endl << endl;
-
-    generateSimulationGetter(); // generate simulation getter in the last file
-    
     // Close the last file
     currentFile_.close();
+    currentFileName_.clear();
     os_ = NULL;
 }
 
@@ -466,17 +492,20 @@ CompiledSimCodeGenerator::findBasicBlocks() const {
 /** 
  * Generates code for each instruction in a procedure
  * 
- * @param proc the procedure to generate code from
+ * @param procedure the procedure to generate code from
  * @exception InstanceNotFound if the first instruction wasn't found
  */
 void
-CompiledSimCodeGenerator::generateProcedureCode(const Procedure& proc) {
-    const Instruction* instruction = &proc.firstInstruction();
+CompiledSimCodeGenerator::generateProcedureCode(const Procedure& procedure) {
+    const Instruction* instruction = &procedure.firstInstruction();
+    currentProcedure_ = &procedure;
+    isProcedureBegin_ = true;
     while (instruction != &NullInstruction::instance()) {
         generateInstruction(*instruction);
-        instruction = &(proc.nextInstruction(*instruction));
+        instruction = &(procedure.nextInstruction(*instruction));
         instructionNumber_++;
         instructionCounter_--;
+        isProcedureBegin_ = false;
     }
 }
 
@@ -505,9 +534,12 @@ CompiledSimCodeGenerator::generateSimulationGetter() {
          << "\tInstructionAddress entryAddress," << endl
          << "\tInstructionAddress lastInstruction," << endl
          << "\tSimulatorFrontend& frontend," << endl
-         << "\tMemorySystem& memorySystem) {" << endl
+         << "\tMemorySystem& memorySystem," << endl
+         << "\tbool dynamicCompilation," << endl
+         << "\tProcedureBBRelations& procedureBBRelations) {" << endl
          << "\treturn new " << className_
-         << "(machine, entryAddress, lastInstruction, frontend, memorySystem); " 
+         << "(machine, entryAddress, lastInstruction, frontend, memorySystem, "
+         << "dynamicCompilation, procedureBBRelations); " 
          << endl << "}" << endl << endl; // 2x end-of-line in the end of file
 }
 
@@ -527,7 +559,7 @@ CompiledSimCodeGenerator::generateHaltCode(const string& message) {
  * Generates code for advancing clocks of various items per cycle
  */
 void CompiledSimCodeGenerator::generateAdvanceClockCode() {
-    *os_ << "void inline advanceClocks() {" << endl
+    *os_ << endl << "void inline advanceClocks() {" << endl
          << conflictDetectionGenerator_.advanceClockCode()
          << endl << "}" << endl;
 }
@@ -629,14 +661,16 @@ CompiledSimCodeGenerator::generateSymbolDeclarations() {
  */
 void
 CompiledSimCodeGenerator::generateJumpTableCode() {
-
     *os_ << "\t" << "resizeJumpTable(lastInstruction_ + 1);" << endl;
 
-    for (BasicBlocks::const_iterator it = bbStarts_.begin();
-        it != bbStarts_.end(); ++it) {
-        *os_ << "\t" << "setJumpTargetFunction(" << it->first << ", &"
-             << className_  << "::"
-             << SymbolGenerator::basicBlockSymbol(it->first) << ");" << endl;
+    // If static simulation, set all jump targets in the constructor.
+    if (!dynamicCompilation_) {
+        for (AddressMap::const_iterator it = bbStarts_.begin();
+            it != bbStarts_.end(); ++it) {
+            *os_ << "\t" << "setJumpTargetFunction(" << it->first << ", &"
+                << className_  << "::"
+                << SymbolGenerator::basicBlockSymbol(it->first) << ");" << endl;
+        }
     }
 }
 
@@ -859,18 +893,20 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     // Are we at the start of a new basic block?
     if (bbStarts_.find(address) != bbStarts_.end()) {
         // Should we start with a new file?
-        if (instructionCounter_ <= 0 || basicBlockPerFile_) {
+        if (instructionCounter_ <= 0 || basicBlockPerFile_ ||
+            (functionPerFile_ && isProcedureBegin_)) {
             instructionCounter_ = MAX_INSTRUCTIONS_PER_FILE;
             
             if (currentFile_.is_open()) {
                 currentFile_.close();
             }
             
+            // Generate a new file to begin to work with
             const string DS = FileSystem::DIRECTORY_SEPARATOR;
-            string fileName = targetDirectory_ + DS 
+            currentFileName_ = targetDirectory_ + DS 
                 + SymbolGenerator::basicBlockSymbol(address) + ".cpp";
-            currentFile_.open(fileName.c_str(), fstream::out);
-            createdFiles_.insert(fileName);
+            currentFile_.open(currentFileName_.c_str(), fstream::out);
+            createdFiles_.insert(currentFileName_);
             os_ = &currentFile_;
             *os_ << "// " << className_ 
                  << " Generated automatically by ttasim" << endl
@@ -878,16 +914,36 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         }
         
         lastInstructionOfBB_ = bbStarts_.find(address)->second;
+        declaredFunctions_.insert(SymbolGenerator::basicBlockSymbol(address));
+        
+        // Save basic block<->procedure related information
+        InstructionAddress procedureStart = currentProcedure_->
+            firstInstruction().address().location();
+        procedureBBRelations_.procedureStart[address] = procedureStart;
+        procedureBBRelations_.basicBlockFiles[address] = currentFileName_;
+        procedureBBRelations_.basicBlockStarts.insert(std::make_pair(
+            procedureStart, address));
+        
+        // Setup a jump target setter function
+        *os_ << endl << "extern \"C\" void "
+             << SymbolGenerator::jumpTargetSetterSymbol(address)
+             << "(CompiledSimulation& compiledSimulation) {" << endl
+             << "\tsetJumpTargetFunction(compiledSimulation, " << address 
+             << ", &" << className_ << "::" 
+             << SymbolGenerator::basicBlockSymbol(address) << ");"
+             << endl << "}" << endl;
         
         // Start a new C++ function for the basic block
-        declaredFunctions_.insert(SymbolGenerator::basicBlockSymbol(address));
-        *os_ << endl << "void " << className_ 
-             << "::" << SymbolGenerator::basicBlockSymbol(address) << "() {"
-             << endl;
+        if (isProcedureBegin_) {
+            *os_ << "/* Procedure " << currentProcedure_->name() 
+                 << " */" << endl;
+        }
+        *os_ << endl << "void " << className_ << "::" 
+             << SymbolGenerator::basicBlockSymbol(address) << "() {" << endl;
         
         lastFUWrites_.clear();
     }
-    
+
     *os_ << endl << "/* Instruction " << instructionNumber_ << " */" << endl;
     
     // Advance clocks of the conflict detectors
@@ -902,7 +958,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         if (!immediate.destination().isFUPort()) {
             continue;
         }
-            
+
         *os_ << SymbolGenerator::immediateRegisterSymbol(immediate.destination());
         int value = immediate.value().value().unsignedValue();
         *os_  << ".value_.uIntWord = " << value << "u;";
@@ -1054,7 +1110,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
 
     *os_ << "cycleCount_++;" << endl;
     
-    BasicBlocks::iterator bbEnd = bbEnds_.find(address);
+    AddressMap::iterator bbEnd = bbEnds_.find(address);
     
     // generate exit code if this is a return instruction
     if (exitPoints_.find(address) != exitPoints_.end()) {
@@ -1250,7 +1306,7 @@ CompiledSimCodeGenerator::generateAddFUResult(
     const FunctionUnit& fu = *resultPort.parentUnit();
     const int writeTime = instructionNumber_ + latency;
     
-    BasicBlocks::iterator bbEnd = bbEnds_.lower_bound(instructionNumber_);
+    AddressMap::iterator bbEnd = bbEnds_.lower_bound(instructionNumber_);
     
     const bool resultInSameBasicBlock = bbEnd->first ==
         bbEnds_.lower_bound(writeTime)->first;
