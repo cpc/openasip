@@ -24,8 +24,9 @@ END_EVENT_TABLE()
  * @param mainFrame ProximMainFrame parent of the window.
  */
 ProximSimulatorWindow::ProximSimulatorWindow(
-    ProximMainFrame* mainFrame, wxWindowID id, wxPoint pos, wxSize size) :
-    wxPanel(mainFrame, id, pos, size) {
+    ProximMainFrame* mainFrame, wxWindowID id, wxPoint pos, wxSize size,
+        long style) :
+    wxPanel(mainFrame, id, pos, size, style) {
 
     mainFrame->addSubWindow(this);
 }

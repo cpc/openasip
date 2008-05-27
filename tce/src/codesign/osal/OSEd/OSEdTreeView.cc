@@ -356,6 +356,14 @@ OSEdTreeView::selectedOperationId()
         it++;
     }
 
+    string name = infoView_->selectedOperation();
+    it = operations_.begin();
+    while (it != operations_.end()) {
+        if ((*it).first == name) {
+            return (*it).second;
+        }
+        it++;
+    }
     throw NotAvailable(__FILE__, __LINE__, __func__);
 }
 

@@ -65,6 +65,7 @@ public:
         TXT_CHECKBOX_WRITES_MEMORY,       ///< Writes memory label.
         TXT_CHECKBOX_CAN_TRAP,            ///< Can trap label.
         TXT_CHECKBOX_HAS_SIDE_EFFECTS,    ///< Has side effects label.
+        TXT_CHECKBOX_CLOCKED,             ///< Clocked label.
         TXT_CHECKBOX_MEM_DATA,            ///< Memory data label.
         TXT_CHECKBOX_MEM_ADDRESS,         ///< Memory address label.
 
@@ -155,6 +156,7 @@ public:
 
         // row texts
         TXT_ROW_NAME,                     ///< Name row label.
+        TXT_ROW_DESCRIPTION,              ///< Description row label.
         TXT_ROW_INPUTS,                   ///< Inputs row label.
         TXT_ROW_OUTPUTS,                  ///< Outputs row label.
         TXT_ROW_READS_MEMORY,             ///< Reads memory row label.
@@ -163,6 +165,7 @@ public:
         TXT_ROW_WRITES_MEMORY,            ///< Writes memory row label.
         TXT_ROW_CAN_TRAP,                 ///< Can trap row label.
         TXT_ROW_HAS_SIDE_EFFECTS,         ///< Has side effects row label.
+        TXT_ROW_CLOCKED,                  ///< Clocked row label.
         TXT_ROW_AFFECTED_BY,              ///< Affected by row label.
         TXT_ROW_AFFECTS,                  ///< Affects row label.
         TXT_ROW_INPUT_OPERANDS,           ///< Input operands row label.

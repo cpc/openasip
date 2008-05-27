@@ -56,7 +56,7 @@ END_EVENT_TABLE()
  */
 ProximBreakpointWindow::ProximBreakpointWindow(
     ProximMainFrame* parent, wxWindowID id):
-    ProximSimulatorWindow(parent, id),
+    ProximSimulatorWindow(parent, id, wxDefaultPosition, wxDefaultSize, 0),
     breakpointList_(NULL),
     watchList_(NULL) {
 
@@ -413,7 +413,7 @@ ProximBreakpointWindow::createContents(
 
     wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
-    wxNotebook *item2 = new wxNotebook( parent, ID_NOTEBOOK, wxDefaultPosition, wxSize(200,160), 0 );
+    wxNotebook *item2 = new wxNotebook( parent, ID_NOTEBOOK, wxDefaultPosition, wxSize(600,450), 0 );
 #if !wxCHECK_VERSION(2,5,2)
     wxNotebookSizer *item1 = new wxNotebookSizer( item2 );
 #else

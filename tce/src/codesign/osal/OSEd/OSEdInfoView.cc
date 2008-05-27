@@ -201,7 +201,7 @@ OSEdInfoView::operationPropertyView(
     writeStaticPropertiesOfOperation(op);
     
     // counter for the row
-    int i = 7;
+    int i = 8;
     
     format fmt;
     
@@ -377,56 +377,84 @@ OSEdInfoView::writeStaticPropertiesOfOperation(Operation* op) {
 
     format trueFmt = texts.text(OSEdTextGenerator::TXT_ROW_TRUE);
     format falseFmt = texts.text(OSEdTextGenerator::TXT_ROW_FALSE);
+
+    // row counter
+    int i = 0;
+    
     // name of the operation
     format fmt = texts.text(OSEdTextGenerator::TXT_ROW_NAME);
-    InsertItem(0, WxConversion::toWxString(fmt.str()));
-    SetItem(0, 1, WxConversion::toWxString(op->name()));
+    InsertItem(i, WxConversion::toWxString(fmt.str()));
+    SetItem(i, 1, WxConversion::toWxString(op->name()));
+    i++;
+    
+    // description of the operation
+    fmt = texts.text(OSEdTextGenerator::TXT_ROW_DESCRIPTION);
+    InsertItem(i, WxConversion::toWxString(fmt.str()));
+    SetItem(i, 1, WxConversion::toWxString(op->description()));
+    i++;
 	
     // number of inputs
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_INPUTS);
-    InsertItem(1, WxConversion::toWxString(fmt.str()));
-    SetItem(1, 1, WxConversion::toWxString(op->numberOfInputs()));
+    InsertItem(i, WxConversion::toWxString(fmt.str()));
+    SetItem(i, 1, WxConversion::toWxString(op->numberOfInputs()));
+    i++;
 	
     // number of outputs
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_OUTPUTS);
-    InsertItem(2, WxConversion::toWxString(fmt.str()));
-    SetItem(2, 1, WxConversion::toWxString(op->numberOfOutputs()));
+    InsertItem(i, WxConversion::toWxString(fmt.str()));
+    SetItem(i, 1, WxConversion::toWxString(op->numberOfOutputs()));
+    i++;
 
     // reads memory
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_READS_MEMORY);
-    InsertItem(3, WxConversion::toWxString(fmt.str()));
+    InsertItem(i, WxConversion::toWxString(fmt.str()));
     if (op->readsMemory()) {
-        SetItem(3, 1, WxConversion::toWxString(trueFmt.str()));
+        SetItem(i, 1, WxConversion::toWxString(trueFmt.str()));
     } else {
-        SetItem(3, 1, WxConversion::toWxString(falseFmt.str()));
+        SetItem(i, 1, WxConversion::toWxString(falseFmt.str()));
     }
+    i++;
 	
     // writes memory
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_WRITES_MEMORY);
-    InsertItem(4, WxConversion::toWxString(fmt.str()));
+    InsertItem(i, WxConversion::toWxString(fmt.str()));
     if (op->writesMemory()) {
-        SetItem(4, 1, WxConversion::toWxString(trueFmt.str()));
+        SetItem(i, 1, WxConversion::toWxString(trueFmt.str()));
     } else {
-        SetItem(4, 1, WxConversion::toWxString(falseFmt.str()));
+        SetItem(i, 1, WxConversion::toWxString(falseFmt.str()));
     }
+    i++;
 	
     // can trap
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_CAN_TRAP);
-    InsertItem(5, WxConversion::toWxString(fmt.str()));
+    InsertItem(i, WxConversion::toWxString(fmt.str()));
     if (op->canTrap()) {
-        SetItem(5, 1, WxConversion::toWxString(trueFmt.str()));
+        SetItem(i, 1, WxConversion::toWxString(trueFmt.str()));
     } else {
-        SetItem(5, 1, WxConversion::toWxString(falseFmt.str()));
+        SetItem(i, 1, WxConversion::toWxString(falseFmt.str()));
     }
+    i++;
 	
     // has side effects
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_HAS_SIDE_EFFECTS);
-    InsertItem(6, WxConversion::toWxString(fmt.str()));
+    InsertItem(i, WxConversion::toWxString(fmt.str()));
     if (op->hasSideEffects()) {
-        SetItem(6, 1, WxConversion::toWxString(trueFmt.str()));
+        SetItem(i, 1, WxConversion::toWxString(trueFmt.str()));
     } else {
-        SetItem(6, 1, WxConversion::toWxString(falseFmt.str()));
+        SetItem(i, 1, WxConversion::toWxString(falseFmt.str()));
     }
+    i++;
+    
+    // has side effects
+    fmt = texts.text(OSEdTextGenerator::TXT_ROW_CLOCKED);
+    InsertItem(i, WxConversion::toWxString(fmt.str()));
+    if (op->isClocked()) {
+        SetItem(i, 1, WxConversion::toWxString(trueFmt.str()));
+    } else {
+        SetItem(i, 1, WxConversion::toWxString(falseFmt.str()));
+    }
+    i++;
+
 }
 
 /**

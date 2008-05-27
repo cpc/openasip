@@ -123,6 +123,8 @@ END_EVENT_TABLE()
     canTrapCB_ = dynamic_cast<wxCheckBox*>(FindWindow(ID_CAN_TRAP));
     sideEffectsCB_ =
         dynamic_cast<wxCheckBox*>(FindWindow(ID_HAS_SIDE_EFFECTS));
+    clockedCB_ =
+        dynamic_cast<wxCheckBox*>(FindWindow(ID_CLOCKED));
     
     editDescription_ = dynamic_cast<wxTextCtrl*>(FindWindow(ID_EDIT_DESCRIPTION));
 
@@ -139,6 +141,9 @@ END_EVENT_TABLE()
 
     FindWindow(ID_HAS_SIDE_EFFECTS)->SetValidator(
         wxGenericValidator(&hasSideEffects_));
+
+    FindWindow(ID_CLOCKED)->SetValidator(
+        wxGenericValidator(&clocked_));
 
     // set OK button as default choice
     FindWindow(ID_OK_BUTTON)->SetFocus();
@@ -313,6 +318,9 @@ OperationPropertyDialog::setTexts() {
 
     WidgetTools::setLabel(&osedText, FindWindow(ID_HAS_SIDE_EFFECTS),
                           OSEdTextGenerator::TXT_CHECKBOX_HAS_SIDE_EFFECTS);
+
+    WidgetTools::setLabel(&osedText, FindWindow(ID_CLOCKED),
+                          OSEdTextGenerator::TXT_CHECKBOX_CLOCKED);
 	
     // box sizers
     fmt = osedText.text(OSEdTextGenerator::TXT_BOX_AFFECTS);
@@ -360,6 +368,7 @@ OperationPropertyDialog::TransferDataToWindow() {
         writeMemory_ = operation_->writesMemory();
         canTrap_ = operation_->canTrap();
         hasSideEffects_ = operation_->hasSideEffects();
+        clocked_ = operation_->isClocked();
         controlFlow_ = operation_->isControlFlowOperation();	
         updateOperands();
         updateAffected();	
@@ -368,6 +377,7 @@ OperationPropertyDialog::TransferDataToWindow() {
         writeMemory_ = false;
         canTrap_ = false;
         hasSideEffects_ = false;
+        clocked_ = false;
         controlFlow_ = false;
     }
 
@@ -1036,6 +1046,7 @@ OperationPropertyDialog::saveOperation() {
 
     root->setAttribute(Operation::OPRN_TRAP, canTrap_);
     root->setAttribute(Operation::OPRN_SIDE_EFFECTS, hasSideEffects_);
+    root->setAttribute(Operation::OPRN_CLOCKED, clocked_);
     root->setAttribute(Operation::OPRN_READS_MEMORY, readMemory_);
     root->setAttribute(Operation::OPRN_WRITES_MEMORY, writeMemory_);
     root->setAttribute(Operation::OPRN_CONTROL_FLOW, controlFlow_);
@@ -1207,6 +1218,9 @@ OperationPropertyDialog::createContents(
 
     wxCheckBox *item7 = new wxCheckBox(parent, ID_HAS_SIDE_EFFECTS, wxT("Has side effects"), wxDefaultPosition, wxDefaultSize, 0);
     item1->Add(item7, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+    wxCheckBox *clocked = new wxCheckBox(parent, ID_CLOCKED, wxT("Clocked"), wxDefaultPosition, wxDefaultSize, 0);
+    item1->Add(clocked, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     item0->Add(opHeaderSizer, 0, wxALIGN_CENTER|wxALL, 5);
 

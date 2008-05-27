@@ -52,6 +52,7 @@ OSEdTextGenerator::OSEdTextGenerator() {
     addText(TXT_CHECKBOX_WRITES_MEMORY, "Writes memory");
     addText(TXT_CHECKBOX_CAN_TRAP, "Can trap");
     addText(TXT_CHECKBOX_HAS_SIDE_EFFECTS, "Has side effects");
+    addText(TXT_CHECKBOX_CLOCKED, "Clocked");
     addText(TXT_CHECKBOX_MEM_DATA, "Memory data");
     addText(TXT_CHECKBOX_MEM_ADDRESS, "Memory address");
 
@@ -126,6 +127,7 @@ OSEdTextGenerator::OSEdTextGenerator() {
     addText(TXT_MENU_MEMORY, "Memo&ry");
 
     addText(TXT_ROW_NAME, "name");
+    addText(TXT_ROW_DESCRIPTION, "description");
     addText(TXT_ROW_INPUTS, "inputs");
     addText(TXT_ROW_OUTPUTS, "outputs");
     addText(TXT_ROW_READS_MEMORY, "reads memory");
@@ -134,6 +136,7 @@ OSEdTextGenerator::OSEdTextGenerator() {
     addText(TXT_ROW_FALSE, "false");
     addText(TXT_ROW_CAN_TRAP, "can trap");
     addText(TXT_ROW_HAS_SIDE_EFFECTS, "has side effects");
+    addText(TXT_ROW_CLOCKED, "clocked");
     addText(TXT_ROW_AFFECTED_BY, "affected by");
     addText(TXT_ROW_AFFECTS, "affects");
     addText(TXT_ROW_INPUT_OPERANDS, "input operands");

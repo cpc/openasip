@@ -29,7 +29,8 @@ protected:
         ProximMainFrame* mainFrame,
         wxWindowID id = -1,
         wxPoint pos = wxDefaultPosition,
-        wxSize size = wxDefaultSize);
+        wxSize size = wxDefaultSize,
+        long style = wxTAB_TRAVERSAL);
     virtual ~ProximSimulatorWindow();
 private:
     virtual void onSimulatorBusy(SimulatorEvent& event);

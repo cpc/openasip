@@ -97,9 +97,10 @@ SimulateDialog::SimulateDialog(
     outputList_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_OUTPUT_LIST));
     updateValue_ = dynamic_cast<NumberControl*>(FindWindow(ID_VALUE));
     format_ = dynamic_cast<wxChoice*>(FindWindow(ID_FORMAT));
-    triggerBM_ = dynamic_cast<wxStaticBitmap*>(FindWindow(ID_BITMAP_READY));
-    lateResultBM_ = 
-        dynamic_cast<wxStaticBitmap*>(FindWindow(ID_BITMAP_UPDATE));
+    //triggerBM_ = dynamic_cast<wxStaticBitmap*>(FindWindow(ID_BITMAP_READY));
+
+    //lateResultBM_ = 
+    //    dynamic_cast<wxStaticBitmap*>(FindWindow(ID_BITMAP_UPDATE));
        
     FindWindow(wxID_OK)->SetFocus();
 
@@ -163,11 +164,11 @@ SimulateDialog::setTexts() {
     SetTitle(WxConversion::toWxString(fmt.str()));
 
     // static texts
-    WidgetTools::setLabel(&osedText, FindWindow(ID_TEXT_READY),
-                          OSEdTextGenerator::TXT_LABEL_READY);
+    //WidgetTools::setLabel(&osedText, FindWindow(ID_TEXT_READY),
+    //                      OSEdTextGenerator::TXT_LABEL_READY);
 	
-    WidgetTools::setLabel(&osedText, FindWindow(ID_TEXT_UPDATE),
-                          OSEdTextGenerator::TXT_LABEL_UPDATE);
+    //WidgetTools::setLabel(&osedText, FindWindow(ID_TEXT_UPDATE),
+    //                      OSEdTextGenerator::TXT_LABEL_UPDATE);
 
     WidgetTools::setLabel(&osedText, FindWindow(ID_TEXT_CLOCK),
                           OSEdTextGenerator::TXT_LABEL_CLOCK);
@@ -580,17 +581,17 @@ SimulateDialog::createContents(
 
     wxGridSizer *item11 = new wxGridSizer( 2, 0, 0 );
 
-    wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_READY, wxT("Ready"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
+    //wxStaticText *item12 = new wxStaticText( parent, ID_TEXT_READY, wxT("Ready"), wxDefaultPosition, wxDefaultSize, 0 );
+    //item11->Add( item12, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticBitmap *item13 = new wxStaticBitmap( parent, ID_BITMAP_READY, createBitmap( 2 ), wxDefaultPosition, wxDefaultSize );
-    item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
+    //wxStaticBitmap *item13 = new wxStaticBitmap( parent, ID_BITMAP_READY, createBitmap( 2 ), wxDefaultPosition, wxDefaultSize );
+    //item11->Add( item13, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticText *item14 = new wxStaticText( parent, ID_TEXT_UPDATE, wxT("Update"), wxDefaultPosition, wxDefaultSize, 0 );
-    item11->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
+    //wxStaticText *item14 = new wxStaticText( parent, ID_TEXT_UPDATE, wxT("Update"), wxDefaultPosition, wxDefaultSize, 0 );
+    //item11->Add( item14, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxStaticBitmap *item15 = new wxStaticBitmap( parent, ID_BITMAP_UPDATE, createBitmap( 2 ), wxDefaultPosition, wxDefaultSize );
-    item11->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
+    //wxStaticBitmap *item15 = new wxStaticBitmap( parent, ID_BITMAP_UPDATE, createBitmap( 2 ), wxDefaultPosition, wxDefaultSize );
+    //item11->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
     wxStaticText *item16 = new wxStaticText( parent, ID_TEXT_CLOCK, wxT("Clock count:"), wxDefaultPosition, wxDefaultSize, 0 );
     item11->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );

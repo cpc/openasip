@@ -97,6 +97,7 @@ private:
         ID_WRITES_MEMORY,
         ID_CAN_TRAP,
         ID_HAS_SIDE_EFFECTS,
+        ID_CLOCKED,
         ID_AFFECTED_BY,
         ID_OPERATION_AFFECTED_BY,
         ID_AFFECTED_ADD_BUTTON,
@@ -154,6 +155,8 @@ private:
     wxCheckBox* canTrapCB_;
     /// Has side effects check box.
     wxCheckBox* sideEffectsCB_;
+    /// Clocked check box.
+    wxCheckBox* clockedCB_;
     /// Operation to be created or to be modified.
     Operation* operation_;
     /// Original operation's ObjectState tree
@@ -173,6 +176,8 @@ private:
     bool canTrap_;
     /// Does operation has side effects?
     bool hasSideEffects_;
+    /// Is operation clocked?
+    bool clocked_;
     /// Can operation can change program flow.
     bool controlFlow_;
 
