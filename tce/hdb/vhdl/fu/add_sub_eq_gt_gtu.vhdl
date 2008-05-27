@@ -6,7 +6,7 @@
 -- Author     : Teemu Pitkänen <teemu.pitkanen@tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2008/01/29
+-- Last update: 2008/05/06
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- OPCODES
@@ -30,19 +30,19 @@ library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;
 
-package opcodes is
+package opcodes_add_sub_eq_gt_gtu is
 
   constant ADD_OPC : std_logic_vector(2 downto 0) := "000";
   constant SUB_OPC : std_logic_vector(2 downto 0) := "001";
   constant EQ_OPC  : std_logic_vector(2 downto 0) := "010";
   constant GT_OPC  : std_logic_vector(2 downto 0) := "011";
   constant GTU_OPC : std_logic_vector(2 downto 0) := "100";
-end opcodes;
+end opcodes_add_sub_eq_gt_gtu;
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;
-use work.opcodes.all;
+use work.opcodes_add_sub_eq_gt_gtu.all;
 
 entity add_sub_eq_gt_gtu_arith is
   generic (

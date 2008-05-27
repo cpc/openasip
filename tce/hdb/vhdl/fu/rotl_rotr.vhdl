@@ -6,7 +6,7 @@
 -- Author     : Teemu Pitkänen
 -- Company    : 
 -- Created    : 2006/07/03
--- Last update: 2008/05/05
+-- Last update: 2008/05/06
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: rotator left and rigth functional unit
@@ -194,7 +194,7 @@ architecture rtl of fu_rotl_rotr_always_1 is
       Y             : out std_logic_vector(dataw-1 downto 0));
   end component;
 
-  signal t1reg     : std_logic_vector(dataw-1 downto 0);
+  signal t1reg     : std_logic_vector(shiftw-1 downto 0);
   signal t1opc_reg : std_logic_vector(0 downto 0);
   signal o1reg     : std_logic_vector(dataw-1 downto 0);
   signal o1temp    : std_logic_vector(dataw-1 downto 0);

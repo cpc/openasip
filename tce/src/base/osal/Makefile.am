@@ -17,8 +17,9 @@ AM_CXXFLAGS = -UNDEBUG
 
 include_HEADERS = OSAL.hh OperationContext.hh OperationBehavior.hh \
 	Operation.hh OperationState.hh Operand.hh OperationState.icc \
-	OperationBehavior.icc Operand.icc Operation.icc OperationGlobals.hh
-
+	OperationBehavior.icc Operand.icc Operation.icc OperationGlobals.hh \
+	OperationPool.hh OperationPool.icc SimulateTriggerWrappers.icc
+	
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 

@@ -74,7 +74,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         
         if(FileSystem::fileExists(outputDirectory)) {
             cerr << "Error: Output directory " << outputDirectory
-                      << " already exists." << endl;
+                 << " already exists." << endl;
             return false;
         }
         

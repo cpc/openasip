@@ -6,7 +6,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2007/12/18
+-- Last update: 2008/05/06
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Load Store functional unit
@@ -87,6 +87,8 @@ architecture rtl of fu_ldw_ldq_ldh_stw_stq_sth_ldqu_ldhu_always_3 is
 
   signal status_addr_reg : reg_array(1 downto 0);
 
+  signal t1data_lower_2 : std_logic_vector(1 downto 0);
+
   -- information on the word (lsw/msw) needed in register
   signal o1shadow_reg           : std_logic_vector(dataw-1 downto 0);
   signal r1_reg                 : std_logic_vector(dataw-1 downto 0);
@@ -114,9 +116,11 @@ architecture rtl of fu_ldw_ldq_ldh_stw_stq_sth_ldqu_ldhu_always_3 is
   constant SIZE_OF_BYTE : integer := 8;
 begin
 
+  t1data_lower_2 <= t1data(1 downto 0);
+  
   seq : process (clk, rstx)
     variable opc : integer;
-
+    variable idx : integer;
   begin  -- process seq
 
     --byte_spec_o1shadow_reg <= o1shadow_reg(1 downto 0);
@@ -129,8 +133,8 @@ begin
       wr_en_x_reg(0)   <= '1';
       mem_en_x_reg(0)  <= '1';
       wr_mask_x_reg <= (others => '1');
-
-      for idx in (status_addr_reg'length-1) downto 0 loop
+      idx := 1;-- status_addr_reg'length-1;
+      for idx in 1 downto 0 loop --(status_addr_reg'length-1) downto 0 loop
         status_addr_reg(idx) <= (others => '0');
       end loop;  -- idx
 
@@ -144,27 +148,27 @@ begin
           opc := conv_integer(unsigned(t1opcode));
           case opc is
             when OPC_LDW =>
-              status_addr_reg(0) <= LDW & t1data(1 downto 0);
+              status_addr_reg(0) <= LDW & t1data_lower_2;
               addr_reg           <= t1data(addrw+1 downto 2);
               mem_en_x_reg(0)    <= '0';
               wr_en_x_reg(0)     <= '1';
             when OPC_LDQ =>
-              status_addr_reg(0) <= LDQ & t1data(1 downto 0);
+              status_addr_reg(0) <= LDQ & t1data_lower_2;
               addr_reg           <= t1data(addrw+1 downto 2);
               mem_en_x_reg(0)    <= '0';
               wr_en_x_reg(0)     <= '1';
             when OPC_LDH =>
-              status_addr_reg(0) <= LDH & t1data(1 downto 0);
+              status_addr_reg(0) <= LDH & t1data_lower_2;
               addr_reg           <= t1data(addrw+1 downto 2);
               mem_en_x_reg(0)    <= '0';
               wr_en_x_reg(0)     <= '1';
             when OPC_LDQU =>
-              status_addr_reg(0) <= LDQU & t1data(1 downto 0);
+              status_addr_reg(0) <= LDQU & t1data_lower_2;
               addr_reg           <= t1data(addrw+1 downto 2);
               mem_en_x_reg(0)    <= '0';
               wr_en_x_reg(0)     <= '1';
             when OPC_LDHU =>
-              status_addr_reg(0) <= LDHU & t1data(1 downto 0);
+              status_addr_reg(0) <= LDHU & t1data_lower_2;
               addr_reg           <= t1data(addrw+1 downto 2);
               mem_en_x_reg(0)    <= '0';
               wr_en_x_reg(0)     <= '1';
@@ -217,7 +221,7 @@ begin
               --        |0|1|2|3|
               addr_reg <= t1data(addrw+1 downto 2);
               if o1load = '1' then
-                case t1data(1 downto 0) is
+                case t1data_lower_2 is
                   -- endianes dependent code                            
                   when "00" =>
                     wr_mask_x_reg <= ZEROS&ONES&ONES&ONES;
@@ -233,7 +237,7 @@ begin
                     data_out_reg  <= ZEROS&ZEROS&ZEROS&o1data(SIZE_OF_BYTE-1 downto 0);
                 end case;
               else
-                case t1data(1 downto 0) is
+                case t1data_lower_2 is
                   -- endianes dependent code                            
                   when "00" =>
                     wr_mask_x_reg <= ZEROS&ONES&ONES&ONES;
