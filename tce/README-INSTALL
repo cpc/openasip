@@ -48,17 +48,17 @@ Library and tools version prerequisites
 
 These are the current prerequisites for libraries and tools used by TCE:
 
-Compiler              minimum version
+Compiler              supported versions
 -----------------     ----------------
-GCC                   3.2.2 
+GCC                   3.2.2+
 or
-Intel C++ Compiler    8.0
+Intel C++ Compiler    8.0+
 
-Library               minimum version                      library licence
------------------     ----------------                     ---------------
-Xerces                2.3.0                                Apache v2.0
-wxWidgets             2.6.0                                wxWidgets
-Tcl                   8.0                                  BSD-style
+Library               supported versions                   library licence
+-----------------     ------------------                   ---------------
+Xerces                2.3.0+                               Apache v2.0
+wxWidgets             2.6.0+                               wxWidgets
+Tcl                   8.0-8.4                              BSD-style
 Boost                 1.32.0                               very permissive
 sqlite3               3.0.0 (v2 not supported)             public domain
 Python                >= 2.4                               very permissive
@@ -113,6 +113,13 @@ so the best way is to install it from sources.
 
 You can download the LLVM sources from here: http://www.llvm.org/releases/
 Remember to download a supported LLVM version, as listed above.
+
+Tcl 8.5 has a bug with stack size detection which causes Proxim's interpreter
+to not work at all with it, therefore it's not supported by TCE at the moment.
+
+See the TCE Bug report for more info.
+
+  http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=14
 
 TCE on 64-bit distributions
 ===========================

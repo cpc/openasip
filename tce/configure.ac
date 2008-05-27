@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting. 
-AC_INIT(tce, 1.0-alpha1, tce-users@cs.tut.fi)
+AC_INIT(tce, 1.0-beta1, tce-users@cs.tut.fi)
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -686,7 +686,7 @@ AC_ARG_WITH(tcl-headers,
   AC_SUBST([TCL_INCLUDES], ["-I$tcl_headers"] )
 ], 
 [
-  tcl_headers=`find /usr/include -maxdepth 1 -type d -name "tcl8*"|tail -n 1`
+  tcl_headers=`ls -1d /usr/include/tcl{,8.4,8.3,8.2,8.1,8.0} 2>/dev/null|head -n 1`
 ]
 )
 
@@ -695,8 +695,8 @@ if test -n "$tcl_headers"; then
   AC_SUBST([TCL_INCLUDES], ["-I$tcl_headers"] )
 fi
 
-# Check Tcl version. It must be higher than or equal to 8.0.
-AC_MSG_CHECKING([if tcl version is 8.0 or higher])
+# Check Tcl version. 
+AC_MSG_CHECKING([if tcl version is one from 8.0 to 8.4])
 AC_PREPROC_IFELSE(
 [[
 #include <tcl.h>
@@ -744,7 +744,7 @@ AC_PREPROC_IFELSE(
   LIBS=$TEMP_LIBS
 ],
 [
-  AC_MSG_ERROR([TCE requires a path to the header files of tcl library 8.0 or higher. Either install the header files or provide their location.])
+  AC_MSG_ERROR([TCE requires a path to the header files of tcl library (v8.0-8.4). Either install the header files or provide their location.])
 ])
 
 AM_CONDITIONAL(HAVE_TCL, test x$TCL = xtrue)

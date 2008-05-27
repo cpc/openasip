@@ -1,16 +1,18 @@
-1.0-x         2008-xx-xx
+1.0-beta1     2008-xx-xx
 
-New features
-------------
+Notable new features
+--------------------
 
 - Added example stream operations to the base opset and documented them in
   the TCE User Manual's tutorial section.
 - Constant support for the OSAL DAG language.
 
-Bug fixes
----------
+Bug fixes worth mentioning
+--------------------------
 - Workaround for an ICE that happened with LLVM-GCC inlining.
-
+- Bug #14: Tcl 8.5 has a problem with stack size detection which caused Proxim's
+  script interpreter to fail (see Bug #14). Removed support for Tcl 8.5 for
+  now. Use Tcl 8.0-8.4 until Tcl 8.5 has fixed this issue properly.
 
 1.0-alpha1    2008-05-06
 
