@@ -304,8 +304,8 @@ SimulateDialog::onReset(wxCommandEvent&) {
         outputs_[i]->setString("0");
     }
 
-    triggerBM_->SetBitmap(createBitmap(2));
-    lateResultBM_->SetBitmap(createBitmap(2));
+    //triggerBM_->SetBitmap(createBitmap(2));
+    //lateResultBM_->SetBitmap(createBitmap(2));
     clock_ = 0;
     FindWindow(ID_TEXT_CLOCK_VALUE)->
         SetLabel(WxConversion::toWxString(clock_));
@@ -334,11 +334,11 @@ SimulateDialog::onTrigger(wxCommandEvent&) {
     if (simulator.simulateTrigger(
             *operation_, inputs, outputs, context, 32, result)) {
 		
-        triggerBM_->SetBitmap(createBitmap(1));
+        //triggerBM_->SetBitmap(createBitmap(1));
         setOutputValues(outputs);
         updateLists();
     } else {
-        triggerBM_->SetBitmap(createBitmap(0));
+        //triggerBM_->SetBitmap(createBitmap(0));
         if (result != "") {
             ErrorDialog dialog(this, WxConversion::toWxString(result));
             dialog.ShowModal();

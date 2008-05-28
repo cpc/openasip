@@ -115,9 +115,9 @@ private:
     /// Choice list of possible output formats.
     wxChoice* format_;
     /// Bitmap for Trigger result.
-    wxStaticBitmap* triggerBM_;
+    //wxStaticBitmap* triggerBM_;
     /// Bitmap for Late Result result.
-    wxStaticBitmap* lateResultBM_;
+    //wxStaticBitmap* lateResultBM_;
     /// Operation to be simulated.
     Operation* operation_;
     /// Path in which operation module belongs to.
