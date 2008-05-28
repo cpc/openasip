@@ -3,31 +3,31 @@
 
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
-    <file>/home/otski/release/tce-1.0/tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <file>../../../../icdecoder_plugins/DefaultICDecoderPlugin.so</file>
   </ic-decoder-plugin>
 
   <fu name="ALU">
-    <hdb-file>/home/otski/release/tce-1.0/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>260</fu-id>
   </fu>
 
   <fu name="LSU">
-    <hdb-file>/home/otski/release/tce-1.0/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../hdb/asic_130nm_1.5V.hdb</hdb-file>
     <fu-id>99</fu-id>
   </fu>
 
   <fu name="add4">
-    <hdb-file>/home/otski/release/tce-1.0/tce/systemtest/codesign/tce_tour/data/tour.hdb</hdb-file>
+    <hdb-file>data/tour.hdb</hdb-file>
     <fu-id>1</fu-id>
   </fu>
 
   <rf name="RF">
-    <hdb-file>/home/otski/release/tce-1.0/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>96</rf-id>
   </rf>
 
   <rf name="boolRF">
-    <hdb-file>/home/otski/release/tce-1.0/tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <hdb-file>../../../../hdb/asic_130nm_1.5V.hdb</hdb-file>
     <rf-id>96</rf-id>
   </rf>
 
