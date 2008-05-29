@@ -1035,8 +1035,6 @@ a input from the input list and typing the new value in a text field below
 the input list. Change can be committed by pushing \emph{Update} button.
 Trigger command and advance clock command are executed 
 by pushing \emph{Trigger} and \emph{Advance clock} buttons.
-Virtual leds on the right side of the dialog shows the result of the execution.
-Green led implies successful execution, whereas red led shows error in execution.
 The format of the inputs and outputs can be modified by selecting a new format
 from the choice list above the \emph{Trigger} button.
 
@@ -2808,6 +2806,7 @@ f & file-headers & Prints the file headers. \\
 l & logical & Prints only logical information. Can be used for
 checking if two files contain the same program and data and connections even if
 it's in different order. \\
+m & mem & Print information about memory usage of reserved sections. \\
 r & reloc & Prints the relocation tables. \\
 j & section & Prints the elements of section by section index. \\
 s & section-headers & Prints the section headers. \\
@@ -4391,8 +4390,7 @@ behavior definition can be tested.
   \emph{Update} button next to the field. In this case it's handy to choose
   the format to be binary.
 \item%
-  Press the \emph{Trigger} button. The \emph{Ready} LED should change to
-  green and the value of the output should be updated.
+  Press the \emph{Trigger} button. The value of the output should be updated.
 \item%
   The format of the displayed input and output values can be modified by
   selecting different formats from the choice list next to the label
@@ -4581,11 +4579,10 @@ for-loop.
 
 In the for-loop the input data of reflect function is read from message[].
 Let's modify this so that at the beginning of the loop the input data is
-read to the input variable (remember to modify the right crcFast-function!).
-Then we will use the \_TCE\_REFLECT-macro to run the custom operations 
-and finally replace the REFLECT\_DATA-macro with our output variable. 
-So after these modifications the body of the for-loop should look 
-like this:
+read to the input variable. Then we will use the \_TCE\_REFLECT-macro to run
+the custom operations and finally replace the REFLECT\_DATA-macro with our
+output variable. So after these modifications the body of the for-loop should
+look like this:
 
 \begin{verbatim}
  input = message[byte];
@@ -4736,8 +4733,8 @@ can get the required size of instruction memory for this program.
 \subsection{Final Words}
 
 This tutorial is now finished. Now you should know
-how to make and user your own custom operations and generate the
-processor implementation along with its instruction memory bit image. 
+how to make and use your own custom operations and generate the
+processor implementation along with its instruction memory bit image.
 
 If given a functional testbench you could simulate the generated 
 VHDL implementation of the processor with a VHDL
@@ -4754,7 +4751,7 @@ they affect the performance.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TODO: Uncomment and fix this when the initial adf is available
+% TODO: Esa will remake this when Explorer is usable
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \section{From C to VHDL as Quickly as Possible}
 % \label{section:fromCtoVHDL}
@@ -4925,7 +4922,7 @@ after copying it to minimalWithStdout.adf:
 cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf minimalWithStdout.adf
 prode minimalWithStdout.adf &
 ... add the IO function unit with the STDOUT operation to the ADF ...
-tcecc -O0 hello.c -a minimalWithStdout.adf -o hello.tpf
+tcecc -O0 hello.c -a minimalWithStdout.adf -o hello.tpef
 \end{verbatim}
 
 It should compile without errors. Beware: the compilation can take
@@ -4936,7 +4933,7 @@ speed.
 Finally, simulate the program to get the greeting:
 
 \begin{verbatim}
-ttasim -a minimalWithStdout.adf -p hello.tpf --no-debugmode
+ttasim -a minimalWithStdout.adf -p hello.tpef --no-debugmode
 Hello TTA World!
 \end{verbatim}
 
