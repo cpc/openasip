@@ -5,6 +5,7 @@
  * user interfaces.
  *
  * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */
 

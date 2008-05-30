@@ -31,6 +31,10 @@ public:
     ~CompiledSimulationPimpl();
 private:
     CompiledSimulationPimpl();
+    /// Copying not allowed.
+    CompiledSimulationPimpl(const CompiledSimulationPimpl&);
+    /// Assignment not allowed.
+    CompiledSimulationPimpl& operator=(const CompiledSimulationPimpl&);
     
     /// The memory system
     MemorySystem* memorySystem_;

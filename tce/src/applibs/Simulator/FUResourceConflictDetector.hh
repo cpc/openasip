@@ -10,13 +10,11 @@
 #ifndef TTA_FU_RESOURCE_CONFLICT_DETECTOR_HH
 #define TTA_FU_RESOURCE_CONFLICT_DETECTOR_HH
 
-#include <map>
-#include <string>
-
-#include "Exception.hh"
 #include "ClockedState.hh"
 
 class Operation;
+class OperationIDIndex;
+class TCEString;
 
 /**
  * Interface for classes used for detecting FU resource conflicts.
@@ -40,14 +38,11 @@ public:
 
     virtual void reset();
 
-    virtual OperationID operationID(const std::string& operationName) const
-        throw (KeyNotFound);
+    virtual OperationID operationID(const TCEString& operationName) const;
 
 protected:
-    /// Type for mapping Operations to OperationIDs.
-    typedef std::map<std::string, OperationID> OperationIDIndex;
     /// Map for finding indices for operations quickly.
-    OperationIDIndex operationIndices_;
+    OperationIDIndex* operationIndices_;
 
 };
 

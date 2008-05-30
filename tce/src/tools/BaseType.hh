@@ -1,6 +1,7 @@
 /**
  * @file BaseType.hh
  * @author Pekka J‰‰skel‰inen (pjaaskel@cs.tut.fi) 2003
+ * @note This file is used in compiled simulation. Keep dependencies *clean*
  *
  * This file contains definitions of base data types such as Word, HalfWord,
  * Byte. These types have fixed, machine-independent bit width. If no

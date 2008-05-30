@@ -9,11 +9,15 @@
 
 #include "FUResourceConflictDetector.hh"
 #include "StringTools.hh"
+#include "OperationIDIndex.hh"
+#include "TCEString.hh"
+#include "Exception.hh"
 
 /**
  * Constructor.
  */
-FUResourceConflictDetector::FUResourceConflictDetector() {
+FUResourceConflictDetector::FUResourceConflictDetector() :
+    operationIndices_(new OperationIDIndex()) {
     reset();
 }
 
@@ -21,6 +25,8 @@ FUResourceConflictDetector::FUResourceConflictDetector() {
  * Destructor.
  */
 FUResourceConflictDetector::~FUResourceConflictDetector() {
+    delete operationIndices_;
+    operationIndices_ = NULL;
 }
 
 /**
@@ -84,14 +90,14 @@ FUResourceConflictDetector::isIdle() {
  *
  * @param operation The OSAL Operation to find ID for.
  * @return The operation ID.
+ * @exception KeyNotFound if the operation of given name couldn't be found
  */
 FUResourceConflictDetector::OperationID 
-FUResourceConflictDetector::operationID(const std::string& operationName) const
-    throw (KeyNotFound) {
-
+FUResourceConflictDetector::operationID(const TCEString& operationName) const
+{
     OperationIDIndex::const_iterator i = 
-        operationIndices_.find(StringTools::stringToLower(operationName));
-    if (i == operationIndices_.end())
+        operationIndices_->find(StringTools::stringToLower(operationName));
+    if (i == operationIndices_->end())
         throw KeyNotFound(
             __FILE__, __LINE__, __func__, "Operation not found.");
     return (*i).second;

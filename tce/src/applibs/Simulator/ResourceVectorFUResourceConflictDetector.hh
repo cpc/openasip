@@ -39,8 +39,7 @@ public:
 
     virtual void reset();
 
-    virtual OperationID operationID(const std::string& operationName) const
-        throw (KeyNotFound);
+    virtual OperationID operationID(const TCEString& operationName) const;
 
 private:
     /// The resource vectors of operations.

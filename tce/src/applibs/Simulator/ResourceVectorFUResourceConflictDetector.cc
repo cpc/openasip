@@ -12,7 +12,7 @@
 #include "ResourceVectorFUResourceConflictDetector.hh"
 #include "StringTools.hh"
 #include "ResourceVectorSet.hh"
-
+#include "TCEString.hh"
 
 /**
  * Constructor.
@@ -72,8 +72,7 @@ ResourceVectorFUResourceConflictDetector::advanceCycle() {
  */
 ResourceVectorFUResourceConflictDetector::OperationID 
 ResourceVectorFUResourceConflictDetector::operationID(
-    const std::string& operationName) const
-    throw (KeyNotFound) {
+    const TCEString& operationName) const {
 
     return vectors_.operationIndex(StringTools::stringToUpper(operationName));
 }

@@ -4,6 +4,7 @@
  * Declaration of OperationContext class.
  *
  * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen@tut.fi)
+ * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: yellow
  * @note reviewed 7 September 2004 by pj, jn, jm, ao
  */

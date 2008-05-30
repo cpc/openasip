@@ -11,6 +11,7 @@
 #define TTA_FU_CONFLICT_DETECTOR_INDEX_HH
 
 #include "FUResourceConflictDetector.hh"
+#include <map>
 
 /**
  * An index for FUResourceConflictDetectors

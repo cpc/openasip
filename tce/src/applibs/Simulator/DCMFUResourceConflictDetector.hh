@@ -20,6 +20,7 @@
 #include "CollisionMatrix.hh"
 
 class Operation;
+class TCEString;
 
 namespace TTAMachine {
     class FunctionUnit;
@@ -45,8 +46,7 @@ public:
     bool issueOperationInline(OperationID id);
     bool advanceCycleInline();
 
-    virtual OperationID operationID(const std::string& operationName) const
-        throw (KeyNotFound);
+    virtual OperationID operationID(const TCEString& operationName) const;
 
 private:
     /// The reservation tables of operations.

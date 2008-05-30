@@ -4,6 +4,7 @@
  * Declaration of OperationBehavior class.
  *
  * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen@tut.fi)
+ * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  * @note reviewed 19 August 2004 by pj, jn, ao, ac
  */

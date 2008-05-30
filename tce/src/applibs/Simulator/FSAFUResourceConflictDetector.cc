@@ -7,11 +7,14 @@
  * @note rating: red
  */
 
-#include <fstream>
-
 #include "FSAFUResourceConflictDetector.hh"
 #include "StringTools.hh"
 #include "ResourceVectorSet.hh"
+#include "FSAFUResourceConflictDetectorPimpl.hh"
+#include "Machine.hh"
+#include "TCEString.hh"
+#include <fstream>
+#include <string>
 
 /**
  * Constructor.
@@ -24,18 +27,18 @@
  * @exception InvalidData If the model could not be built from the given FU.
  */
 FSAFUResourceConflictDetector::FSAFUResourceConflictDetector(
-    const TTAMachine::FunctionUnit& fu) throw (InvalidData) :
-    FUResourceConflictDetector(), fsa_(fu, true),
-    currentState_(fsa_.startState()),  
-    operationIssued_(false), NOP(fsa_.transitionIndex("[NOP]")), 
-    fuName_(fu.name()) {
-    issueOperation(NOP);
+    const TTAMachine::FunctionUnit& fu) :
+    FUResourceConflictDetector(), 
+    pimpl_(new FSAFUResourceConflictDetectorPimpl(fu)) {
+    issueOperation(pimpl_->NOP);
 }
 
 /**
  * Destructor.
  */
 FSAFUResourceConflictDetector::~FSAFUResourceConflictDetector() {
+    delete pimpl_;
+    pimpl_ = NULL;
 }
 
 /**
@@ -46,7 +49,7 @@ FSAFUResourceConflictDetector::~FSAFUResourceConflictDetector() {
  */
 void
 FSAFUResourceConflictDetector::initializeAllStates() {
-    fsa_.buildStateMachine();
+    pimpl_->fsa_.buildStateMachine();
 }
 
 /**
@@ -56,10 +59,10 @@ FSAFUResourceConflictDetector::initializeAllStates() {
  */
 void
 FSAFUResourceConflictDetector::writeToDotFile(
-    const std::string& fileName) const {
+    const TCEString& fileName) const {
 
     std::ofstream dot(fileName.c_str());
-    dot << fsa_.toDotString() << std::endl;
+    dot << pimpl_->fsa_.toDotString() << std::endl;
     dot.close();
 }
 
@@ -80,9 +83,9 @@ FSAFUResourceConflictDetector::issueOperation(OperationID id) {
  * @param id The transition id.
  * @return The name of the operation.
  */
-std::string
+const char*
 FSAFUResourceConflictDetector::operationName(OperationID id) const {
-    return fsa_.transitionName(id);
+    return pimpl_->fsa_.transitionName(id).c_str();
 }
 
 /**
@@ -106,10 +109,10 @@ FSAFUResourceConflictDetector::advanceCycle() {
  */
 FSAFUResourceConflictDetector::OperationID 
 FSAFUResourceConflictDetector::operationID(
-    const std::string& operationName) const
-    throw (KeyNotFound) {
+    const TCEString& operationName) const {
 
-    return fsa_.transitionIndex(StringTools::stringToUpper(operationName));
+    return pimpl_->fsa_.transitionIndex(
+        StringTools::stringToUpper(operationName));
 }
 
 /**
@@ -119,8 +122,8 @@ FSAFUResourceConflictDetector::operationID(
  */
 void
 FSAFUResourceConflictDetector::reset() {
-    currentState_ = fsa_.startState();
-    issueOperation(NOP);
+    pimpl_->currentState_ = pimpl_->fsa_.startState();
+    issueOperation(pimpl_->NOP);
 }
 
 /**
@@ -129,5 +132,112 @@ FSAFUResourceConflictDetector::reset() {
  */
 bool
 FSAFUResourceConflictDetector::isIdle() {
-    return currentState_ == fsa_.startState() && currentState_ == nextState_;
+    return pimpl_->currentState_ == pimpl_->fsa_.startState() 
+        && pimpl_->currentState_ == pimpl_->nextState_;
 }
+
+/**
+ * @file FSAFUResourceConflictDetector.icc
+ *
+ * Inline implementations of FSAFUResourceConflictDetector class.
+ *
+ * @author Pekka Jääskeläinen 2007 (pjaaskel@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Issues an operation and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ * All states are assumed initialized. For lazily initialized FSA, use
+ * issueOperationLazyInline(). This version has about balanced runtime for
+ * conflict and no-conflict cases for sensible benchmarking with random
+ * operation sequences.
+ *
+ * @param id The id of the operation to issue.
+ * @return False in case a conflict is detected, otherwise true.
+ */
+bool
+FSAFUResourceConflictDetector::issueOperationInline(OperationID id) {
+
+    pimpl_->nextState_ = pimpl_->fsa_.transitions_[pimpl_->currentState_][id];
+    if (pimpl_->nextState_ == FiniteStateAutomaton::ILLEGAL_STATE) {
+        pimpl_->nextState_ = 0;
+        return false;
+    }
+    return true;    
+}
+
+/**
+ * Issues an operation and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ * For lazily initialized FSA. Checks if a state is missing and constructs
+ * it if needed.
+ *
+ * @param id The id of the operation to issue.
+ * @return False in case a conflict is detected, otherwise true.
+ */
+bool
+FSAFUResourceConflictDetector::issueOperationLazyInline(OperationID id) {
+
+    pimpl_->nextState_ = pimpl_->fsa_.transitions_[pimpl_->currentState_][id];
+    if (pimpl_->nextState_ == FiniteStateAutomaton::UNKNOWN_STATE) {
+        pimpl_->nextState_ = pimpl_->fsa_.resolveState(pimpl_->currentState_, id);
+    }    
+    if (pimpl_->nextState_ == FiniteStateAutomaton::ILLEGAL_STATE) {
+        pimpl_->nextState_ = 0;
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Simulates a cycle advance and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ *
+ * @note Do not call this in case the last operation issue transfered
+ * the FSA to the illegal state! That is, returned false. No checking is
+ * done to get fastest possible simulation.
+ *
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+FSAFUResourceConflictDetector::advanceCycleInline() {
+
+    // assert(nextState_ != FiniteStateAutomaton::ILLEGAL_STATE);
+    pimpl_->currentState_ = pimpl_->nextState_;
+    // issue NOP transition at the next cycle in case there are no other
+    // operation issues
+    pimpl_->nextState_ = pimpl_->
+        fsa_.transitions_[pimpl_->currentState_][pimpl_->NOP];
+    return true;
+}
+
+/**
+ * Simulates a cycle advance and reports a conflict if detected.
+ *
+ * Inlineable optimized version for compiled simulation and benchmarking.
+ *
+ * @note Do not call this in case the last operation issue transfered
+ * the FSA to the illegal state! That is, returned false. No checking is
+ * done to get fastest possible simulation.
+ *
+ * @return False in case a conflict is detected, otherwise true.
+ */
+inline bool
+FSAFUResourceConflictDetector::advanceCycleLazyInline() {
+
+    // assert(nextState_ != FiniteStateAutomaton::ILLEGAL_STATE);
+    pimpl_->currentState_ = pimpl_->nextState_;
+    // issue NOP transition at the next cycle in case there are no other
+    // operation issues
+    pimpl_->nextState_ = pimpl_->fsa_.transitions_[pimpl_->currentState_][pimpl_->NOP];
+    if (pimpl_->nextState_ == FiniteStateAutomaton::UNKNOWN_STATE) {
+        pimpl_->nextState_ = pimpl_->fsa_.resolveState(
+            pimpl_->currentState_, pimpl_->NOP);
+    }    
+    return true;
+}
+

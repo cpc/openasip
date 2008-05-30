@@ -5,6 +5,7 @@
  *
  * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
  * @author Mikael Lepistö 2007 (tmlepist@cs.tut.fi)
+ * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: yellow
  * @note reviewed 17 August 2004 by jn, ll, tr, pj
  */

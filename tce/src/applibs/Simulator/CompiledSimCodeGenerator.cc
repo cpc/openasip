@@ -353,17 +353,16 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     generateAdvanceClockCode();
     
     // Generate dummy destructor
-    *os_ << "virtual ~" << className_ << "() { }" << endl << endl;
+    *os_ << "EXPORT virtual ~" << className_ << "() { }" << endl << endl;
 
-    *os_ << "virtual void simulateCycle();" << endl << endl << "}; // end class"
+    *os_ << "EXPORT virtual void simulateCycle();" << endl << endl << "}; // end class"
          << endl << endl << "#endif // include once" << endl << endl;
 
     // header written
     currentFile_.close();
     currentFileName_.clear();
     os_ = NULL;
-    
-    // write implementations to the main functions
+
     generateConstructorCode();
 }
 
@@ -394,7 +393,7 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     os_ = &currentFile_;
 
     *os_ << "#include \"" << headerFile_ << "\"" << endl << endl;
-    *os_ << className_ << "::";
+    *os_ << "EXPORT " << className_ << "::";
     
     generateConstructorParameters();
         
@@ -434,7 +433,7 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     
     // generate simulateCycle() method
     *os_ << "// Simulation code:" << endl
-         << "void " << className_  << "::simulateCycle() {" << endl << endl;
+         << "EXPORT void " << className_  << "::simulateCycle() {" << endl << endl;
 
     // Create a jump dispatcher for accessing each basic block start
     *os_ << "\t// jump dispatcher" << endl
@@ -529,7 +528,7 @@ void
 CompiledSimCodeGenerator::generateSimulationGetter() {
     // use C-style functions only! (C++ name mangling complicates stuff)
     *os_ << "/* Class getter function */" << endl
-         << "extern \"C\" CompiledSimulation* getSimulation(" << endl
+         << "extern \"C\" EXPORT CompiledSimulation* getSimulation(" << endl
          << "\tconst TTAMachine::Machine& machine," << endl
          << "\tInstructionAddress entryAddress," << endl
          << "\tInstructionAddress lastInstruction," << endl
@@ -925,7 +924,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             procedureStart, address));
         
         // Setup a jump target setter function
-        *os_ << endl << "extern \"C\" void "
+        *os_ << endl << "extern \"C\" EXPORT void "
              << SymbolGenerator::jumpTargetSetterSymbol(address)
              << "(CompiledSimulation& compiledSimulation) {" << endl
              << "\tsetJumpTargetFunction(compiledSimulation, " << address 
@@ -938,7 +937,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             *os_ << "/* Procedure " << currentProcedure_->name() 
                  << " */" << endl;
         }
-        *os_ << endl << "void " << className_ << "::" 
+        *os_ << endl << "EXPORT void " << className_ << "::" 
              << SymbolGenerator::basicBlockSymbol(address) << "() {" << endl;
         
         lastFUWrites_.clear();

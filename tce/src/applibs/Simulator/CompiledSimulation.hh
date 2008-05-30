@@ -4,6 +4,7 @@
  * Declaration of CompiledSimulation abstract class.
  *
  * @author Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+ * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */
 
@@ -35,6 +36,9 @@ struct ProcedureBBRelations;
 
 /// Type for the simulateXXXXX basic block functions
 typedef void (CompiledSimulationEngine::*SimulateFunction)();
+
+// Used to set export symbols visible
+#define EXPORT __attribute__((visibility("default")))
 
 
 /**

@@ -11,6 +11,7 @@
 #include "StringTools.hh"
 #include "FunctionUnit.hh"
 #include "HWOperation.hh"
+#include "TCEString.hh"
 
 /**
  * Constructor.
@@ -61,11 +62,11 @@ ReservationTableFUResourceConflictDetector::advanceCycle() {
  *
  * @param operation The OSAL Operation to find ID for.
  * @return The operation ID.
+ * @exception KeyNotFound if the operation of given name couldn't be found
  */
 ReservationTableFUResourceConflictDetector::OperationID 
 ReservationTableFUResourceConflictDetector::operationID(
-    const std::string& operationName) const
-    throw (KeyNotFound) {
+    const TCEString& operationName) const {
 
     // find the index of the operation in the FU, it corresponds to the
     // operation ID

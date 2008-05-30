@@ -21,10 +21,10 @@ public:
     virtual ~CompiledSimCompiler();
     
     int compileDirectory(
-        const std::string& dirName, 
-        const std::string& flags = "-O0",
+        const std::string& dirName,
+        const std::string& flags = "",
         bool verbose = false) const;
-    
+
     int compileFile(
         const std::string& path,
         const std::string& flags = "",

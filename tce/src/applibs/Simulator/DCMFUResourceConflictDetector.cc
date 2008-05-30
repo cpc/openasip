@@ -13,6 +13,7 @@
 #include "HWOperation.hh"
 #include "FUReservationTableIndex.hh"
 #include "FUCollisionMatrixIndex.hh"
+#include "TCEString.hh"
 
 /**
  * Constructor.
@@ -68,8 +69,7 @@ DCMFUResourceConflictDetector::advanceCycle() {
  */
 DCMFUResourceConflictDetector::OperationID 
 DCMFUResourceConflictDetector::operationID(
-    const std::string& operationName) const
-    throw (KeyNotFound) {
+    const TCEString& operationName) const {
 
     // find the index of the operation in the FU, it corresponds to the
     // operation ID
