@@ -358,7 +358,7 @@ public:
      * @return The default value.
      */
     static const DataObject& defaultValue() {
-        static const DataObject defaultValue_("0");
+        static const DataObject defaultValue_("1");
         return defaultValue_;
     }
     

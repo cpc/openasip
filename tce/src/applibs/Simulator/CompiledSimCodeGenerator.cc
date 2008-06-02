@@ -782,7 +782,7 @@ CompiledSimCodeGenerator::handleOperationWithoutDag(
         if (op.port(i)->isOutput()) {
             string outputSymbol = SymbolGenerator::generateTempVariable();
             operandSymbols.push_back(outputSymbol);
-            ss << "static SimValue " << outputSymbol << ";" << endl;
+            ss << "SimValue " << outputSymbol << ";" << endl;
         } else { // input port
             string inputSymbol = SymbolGenerator::portSymbol(*op.port(i));
             operandSymbols.push_back(inputSymbol);
@@ -1267,7 +1267,7 @@ CompiledSimCodeGenerator::generateLoadTrigger(
         method = "fastRead4MAUs";
     }
     
-    ss << "static UIntWord " << temp << "; " << memory + "." << method << "("
+    ss << "UIntWord " << temp << "; " << memory + "." << method << "("
        << address << ", " << temp << "); ";
 
     ss << resultSignExtend << " ";

@@ -305,7 +305,7 @@ OperationDAGConverter::writeNode(
                 tempVarCount++;
                 std::string tempVarName = "tmp" + 
                     Conversion::toString(tempVarCount);
-                retVal = "static SimValue " + tempVarName + ";\n" + retVal;
+                retVal = "SimValue " + tempVarName + ";\n" + retVal;
                 varBindings[operandKey] = tempVarName;
                 
                 DEBUG_CODE(std::cerr << recursion_level 

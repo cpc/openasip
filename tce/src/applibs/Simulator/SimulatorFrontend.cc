@@ -92,7 +92,7 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     stopPointManager_(NULL),  utilizationStats_(NULL), tpef_(NULL),
     fuResourceConflictDetection_(true),
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
-    staticCompilation_(false), traceFileNameSetByUser_(false), outputStream_(0),
+    staticCompilation_(true), traceFileNameSetByUser_(false), outputStream_(0),
     memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0), 
     lastRunTime_(0.0), simulationTimeout_(0) {
     if (compiledSimulation_) {
