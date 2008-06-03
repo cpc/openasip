@@ -673,7 +673,7 @@
     </port>
     <port name="out1">
       <connects-to>ext1_o1</connects-to>
-      <width>16</width>
+      <width>32</width>
     </port>
     <operation>
       <name>sxhw</name>
