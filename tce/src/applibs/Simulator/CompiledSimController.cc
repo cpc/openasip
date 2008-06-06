@@ -236,7 +236,7 @@ CompiledSimController::reset() {
     CompiledSimCodeGenerator generator(sourceMachine_, program_, *this,
         frontend_.isSequentialSimulation(),
         frontend_.fuResourceConflictDetection(), frontend_.executionTracing(), 
-        !frontend_.staticCompilation(), false, true);
+        !frontend_.staticCompilation(), false, !frontend_.staticCompilation());
     generator.generateToDirectory(compiledSimulationPath_);
     
     basicBlocks_ = generator.basicBlocks();

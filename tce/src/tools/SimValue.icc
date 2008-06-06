@@ -49,7 +49,7 @@ inline SimValue::SimValue(int width) :
  * @param width The bit width of the created SimValue.
  */
 inline SimValue::SimValue(int value, int width) :
-    bitWidth_(width), active_(false), mask_(~UIntWord(0)) {
+    bitWidth_(width), active_(true), mask_(~UIntWord(0)) {
 
     value_.sIntWord = value;
 
@@ -65,11 +65,11 @@ inline SimValue::SimValue(int value, int width) :
  * @param source The source object from which to copy data.
  */
 inline
-SimValue::SimValue(const SimValue& source) {
-    bitWidth_ = source.bitWidth_;
-    value_ = Value(source.value_);
-    active_ = source.active_;
-    mask_ = source.mask_;
+SimValue::SimValue(const SimValue& source) :
+    value_(source.value_),
+    bitWidth_(source.bitWidth_),
+    active_(source.active_),
+    mask_(source.mask_) {
 }
 
 /**
@@ -179,8 +179,8 @@ SimValue::operator=(const DoubleWord& source) {
  */
 inline SimValue&
 SimValue::operator=(const SimValue& source) {
-    value_ = Value(source.value_);
-    active_ = source.isActive();
+    value_ = source.value_;
+    active_ = source.active_;
     return *this;
 }
 
@@ -195,7 +195,7 @@ SimValue::operator=(const SimValue& source) {
  */
 inline const SimValue
 SimValue::operator+(const SIntWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.sIntWord + rightHand;
     return copy;
 }
@@ -211,7 +211,7 @@ SimValue::operator+(const SIntWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator+(const UIntWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.uIntWord + rightHand;
     return copy;
 }
@@ -227,7 +227,7 @@ SimValue::operator+(const UIntWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator+(const FloatWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.floatWord + rightHand;
     return copy;
 }
@@ -243,7 +243,7 @@ SimValue::operator+(const FloatWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator+(const DoubleWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.doubleWord + rightHand;
     return copy;
 }
@@ -260,7 +260,7 @@ SimValue::operator+(const DoubleWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator-(const SIntWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.sIntWord - rightHand;
     return copy;
 }
@@ -276,7 +276,7 @@ SimValue::operator-(const SIntWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator-(const UIntWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.uIntWord - rightHand;
     return copy;
 }
@@ -292,7 +292,7 @@ SimValue::operator-(const UIntWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator-(const FloatWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.floatWord - rightHand;
     return copy;
 }
@@ -308,7 +308,7 @@ SimValue::operator-(const FloatWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator-(const DoubleWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.doubleWord - rightHand;
     return copy;
 }
@@ -324,7 +324,7 @@ SimValue::operator-(const DoubleWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator/(const SIntWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.sIntWord / rightHand;
     return copy;
 }
@@ -340,7 +340,7 @@ SimValue::operator/(const SIntWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator/(const UIntWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.uIntWord / rightHand;
     return copy;
 }
@@ -356,7 +356,7 @@ SimValue::operator/(const UIntWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator/(const FloatWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.floatWord / rightHand;
     return copy;
 }
@@ -372,7 +372,7 @@ SimValue::operator/(const FloatWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator/(const DoubleWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.doubleWord / rightHand;
     return copy;
 }
@@ -388,7 +388,7 @@ SimValue::operator/(const DoubleWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator*(const SIntWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.sIntWord * rightHand;
     return copy;
 }
@@ -404,7 +404,7 @@ SimValue::operator*(const SIntWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator*(const UIntWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.uIntWord * rightHand;
     return copy;
 }
@@ -420,7 +420,7 @@ SimValue::operator*(const UIntWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator*(const FloatWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.floatWord * rightHand;
     return copy;
 }
@@ -436,7 +436,7 @@ SimValue::operator*(const FloatWord& rightHand) {
  */
 inline const SimValue
 SimValue::operator*(const DoubleWord& rightHand) {
-    SimValue copy = *this;
+    SimValue copy(*this);
     copy = value_.doubleWord * rightHand;
     return copy;
 }

@@ -1,13 +1,13 @@
 /**
- * @file SymbolGenerator.hh
+ * @file CompiledSimSymbolGenerator.hh
  *
- * Definition of SymbolGenerator class.
+ * Definition of CompiledSimSymbolGenerator class.
  *
  * @author Viljami Korhonen 2008 (viljami.korhonen@tut.fi)
  * @note rating: red
  */
 
-#include "SymbolGenerator.hh"
+#include "CompiledSimSymbolGenerator.hh"
 #include "FunctionUnit.hh"
 #include "RegisterFile.hh"
 #include "ImmediateUnit.hh"
@@ -27,6 +27,36 @@ using namespace TTAProgram;
 
 
 /**
+ * Default constructor
+ */
+CompiledSimSymbolGenerator::CompiledSimSymbolGenerator() {
+}
+
+/**
+ * Default destructor
+ */
+CompiledSimSymbolGenerator::~CompiledSimSymbolGenerator() {
+}
+
+/**
+ * Sets a new prefix to be used for generated variable symbols
+ * 
+ * @param prefix new prefix to be set
+ */
+void 
+CompiledSimSymbolGenerator::enablePrefix(const std::string& prefix) {
+    prefix_ = prefix;
+}
+
+/**
+ * Disables the usage of prefix.
+ */
+void 
+CompiledSimSymbolGenerator::disablePrefix() {
+    prefix_ = "";
+}
+
+/**
  * Generates a timestamp
  * 
  * @note Should not be printed to the simulation sources as this makes
@@ -35,7 +65,8 @@ using namespace TTAProgram;
  *
  * @return a string containing the timestamp
  */
-std::string SymbolGenerator::timeStamp() {
+std::string
+CompiledSimSymbolGenerator::timeStamp() const {
     time_t rawTime;
     time(&rawTime);    
     return string(ctime(&rawTime));
@@ -51,7 +82,7 @@ std::string SymbolGenerator::timeStamp() {
  * @return A string containing the generated symbol name
  */
 std::string 
-SymbolGenerator::portSymbol(const TTAMachine::Port& port) {
+CompiledSimSymbolGenerator::portSymbol(const TTAMachine::Port& port) const {
     string symbolName;
     
     Unit* unit = port.parentUnit();    
@@ -70,7 +101,7 @@ SymbolGenerator::portSymbol(const TTAMachine::Port& port) {
     }
 
     symbolName += "_" + unit->name() + "_" + port.name();
-    return symbolName;
+    return prefix_ + symbolName;
 }
 
 /**
@@ -80,7 +111,8 @@ SymbolGenerator::portSymbol(const TTAMachine::Port& port) {
  * @return A string containing the generated symbol name
  */
 std::string
-SymbolGenerator::registerSymbol(const TTAProgram::Terminal& terminal) {
+CompiledSimSymbolGenerator::registerSymbol(
+    const TTAProgram::Terminal& terminal) const {
     return registerSymbol(terminal.registerFile(), terminal.index());
 }
 
@@ -92,8 +124,10 @@ SymbolGenerator::registerSymbol(const TTAProgram::Terminal& terminal) {
  * @return A string containing the generated symbol name
  */
 std::string 
-SymbolGenerator::registerSymbol(const TTAMachine::RegisterFile& rf, int index) {  
-    return "RF_" + rf.name() + "_" + Conversion::toString(index);
+CompiledSimSymbolGenerator::registerSymbol(
+    const TTAMachine::RegisterFile& rf, 
+    int index) const {  
+    return prefix_ + "RF_" + rf.name() + "_" + Conversion::toString(index);
 }
 
 
@@ -104,7 +138,8 @@ SymbolGenerator::registerSymbol(const TTAMachine::RegisterFile& rf, int index) {
  * @return A string containing the generated symbol name
  */
 std::string
-SymbolGenerator::immediateRegisterSymbol(const TTAProgram::Terminal& terminal) {
+CompiledSimSymbolGenerator::immediateRegisterSymbol(
+    const TTAProgram::Terminal& terminal) const {
     return immediateRegisterSymbol(terminal.immediateUnit(), terminal.index());
 }
 
@@ -116,10 +151,10 @@ SymbolGenerator::immediateRegisterSymbol(const TTAProgram::Terminal& terminal) {
  * @return A string containing the generated symbol name
  */
 std::string 
-SymbolGenerator::immediateRegisterSymbol(
+CompiledSimSymbolGenerator::immediateRegisterSymbol(
     const TTAMachine::ImmediateUnit& iu, 
-    int index) {  
-    return "IU_" + iu.name() + "_" + Conversion::toString(index);
+    int index) const {  
+    return prefix_ + "IU_" + iu.name() + "_" + Conversion::toString(index);
 }
 
 /**
@@ -129,8 +164,8 @@ SymbolGenerator::immediateRegisterSymbol(
  * @return A string containing the generated symbol name
  */
 std::string 
-SymbolGenerator::busSymbol(const TTAMachine::Bus& bus) {
-    return "bus_" + bus.name();
+CompiledSimSymbolGenerator::busSymbol(const TTAMachine::Bus& bus) const {
+    return prefix_ + "bus_" + bus.name();
 }
 
 /**
@@ -139,7 +174,8 @@ SymbolGenerator::busSymbol(const TTAMachine::Bus& bus) {
  * @return A symbol name for the GCU's return address
  */
 std::string
-SymbolGenerator::returnAddressSymbol(const TTAMachine::ControlUnit& gcu) {
+CompiledSimSymbolGenerator::returnAddressSymbol(
+    const TTAMachine::ControlUnit& gcu) const {
     return portSymbol(*gcu.returnAddressPort());
 }
 
@@ -151,9 +187,9 @@ SymbolGenerator::returnAddressSymbol(const TTAMachine::ControlUnit& gcu) {
  * @return a string containing the generated symbol name
  */
 std::string
-SymbolGenerator::moveOperandSymbol(                                  
+CompiledSimSymbolGenerator::moveOperandSymbol(                                  
     const TTAProgram::Terminal& terminal, 
-    const TTAProgram::Move & move) {
+    const TTAProgram::Move & move) const {
             
     if (terminal.isGPR()) {
         return registerSymbol(terminal);
@@ -173,7 +209,7 @@ SymbolGenerator::moveOperandSymbol(
         return portSymbol(terminal.port());
     }    
 }
-    
+
 /**
  * Generates an unique symbol name for a given operation context
  * 
@@ -181,10 +217,11 @@ SymbolGenerator::moveOperandSymbol(
  * @return a string containing the generated symbol name
  */
 std::string 
-SymbolGenerator::operationContextSymbol(const TTAMachine::FunctionUnit& fu) {
-    return "FU_" + fu.name() + "_context";
+CompiledSimSymbolGenerator::operationContextSymbol(
+    const TTAMachine::FunctionUnit& fu) const {
+    return prefix_ + "FU_" + fu.name() + "_context";
 }
-    
+
 /**
  * Generates an unique symbol name for a given FU conflict detector.
  * 
@@ -192,8 +229,9 @@ SymbolGenerator::operationContextSymbol(const TTAMachine::FunctionUnit& fu) {
  * @return std::string containing the generated symbol name
  */
 std::string 
-SymbolGenerator::conflictDetectorSymbol(const TTAMachine::FunctionUnit& fu) {
-    return "FU_" + fu.name() + "_conflict_detector";
+CompiledSimSymbolGenerator::conflictDetectorSymbol(
+    const TTAMachine::FunctionUnit& fu) const {
+    return prefix_ + "FU_" + fu.name() + "_conflict_detector";
 } 
      
 /**
@@ -203,8 +241,9 @@ SymbolGenerator::conflictDetectorSymbol(const TTAMachine::FunctionUnit& fu) {
  * @return A string containing the generated symbol name
  */
 std::string 
-SymbolGenerator::targetMemorySymbol(const TTAMachine::FunctionUnit& fu) {
-    return fu.name() + "_target_memory";
+CompiledSimSymbolGenerator::targetMemorySymbol(
+    const TTAMachine::FunctionUnit& fu) const {
+    return prefix_ + fu.name() + "_target_memory";
 }
 
 /**
@@ -214,8 +253,9 @@ SymbolGenerator::targetMemorySymbol(const TTAMachine::FunctionUnit& fu) {
  * @return A string containing the generated symbol name
  */
 std::string
-SymbolGenerator::DAMemorySymbol(const TTAMachine::FunctionUnit& fu) {
-    return fu.name() + "_direct_access_memory";
+CompiledSimSymbolGenerator::DAMemorySymbol(const TTAMachine::FunctionUnit& fu) 
+    const {
+    return prefix_ + fu.name() + "_direct_access_memory";
 }
 
 /**
@@ -224,7 +264,7 @@ SymbolGenerator::DAMemorySymbol(const TTAMachine::FunctionUnit& fu) {
  * @return A string containing the generated symbol name
  */
 std::string
-SymbolGenerator::guardBoolSymbol() {
+CompiledSimSymbolGenerator::guardBoolSymbol() const {
     static int guardNumber = 0;
     return "guard_" + Conversion::toString(guardNumber++);
 }
@@ -239,7 +279,8 @@ SymbolGenerator::guardBoolSymbol() {
  * @return A string containing the generated symbol name
  */
 std::string 
-SymbolGenerator::basicBlockSymbol(InstructionAddress startAddress) {
+CompiledSimSymbolGenerator::basicBlockSymbol(InstructionAddress startAddress) 
+    const {
     return "simulate_" + Conversion::toString(startAddress);
 }
 
@@ -251,10 +292,10 @@ SymbolGenerator::basicBlockSymbol(InstructionAddress startAddress) {
  * @return The generated operation symbol string
  */
 std::string 
-SymbolGenerator::operationSymbol(
+CompiledSimSymbolGenerator::operationSymbol(
     const std::string& operationName,
-    const TTAMachine::FunctionUnit& fu) {
-    return "op_" + fu.name() + "_" + operationName;
+    const TTAMachine::FunctionUnit& fu) const {
+    return prefix_ + "op_" + fu.name() + "_" + operationName;
 }
 
 /**
@@ -264,7 +305,7 @@ SymbolGenerator::operationSymbol(
  * @return A string containing the generated FU results symbol
  */
 std::string 
-SymbolGenerator::FUResultSymbol(const TTAMachine::Port& port) {
+CompiledSimSymbolGenerator::FUResultSymbol(const TTAMachine::Port& port) const {
     return portSymbol(port) + "_results";
 }
 
@@ -274,13 +315,19 @@ SymbolGenerator::FUResultSymbol(const TTAMachine::Port& port) {
  * @return The generated temporary variable name
  */
 std::string 
-SymbolGenerator::generateTempVariable() {
+CompiledSimSymbolGenerator::generateTempVariable() const {
     static int counter = 0;
     return "_tmp_variable_" + Conversion::toString(counter++);
 }
 
+/**
+ * Generates name for jump target setting function
+ * 
+ * @param address address of the simulate function to be set
+ */
 std::string 
-SymbolGenerator::jumpTargetSetterSymbol(InstructionAddress address) {
+CompiledSimSymbolGenerator::jumpTargetSetterSymbol(
+    InstructionAddress address) const {
     return "setJumpTargetFor_" + Conversion::toString(address);
 }
 

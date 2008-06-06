@@ -27,13 +27,13 @@
  */
 class SimValue {
 public:
-    SimValue();
-    explicit SimValue(int width);
-    explicit SimValue(int value, int width);
+    inline SimValue();
+    inline explicit SimValue(int width);
+    inline explicit SimValue(int value, int width);
 
-    virtual ~SimValue();
-
-    SimValue(const SimValue& source);
+    inline ~SimValue() {}
+    
+    inline SimValue(const SimValue& source);
 
     int width() const;
     bool isActive() const;

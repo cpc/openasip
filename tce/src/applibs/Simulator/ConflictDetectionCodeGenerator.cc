@@ -8,7 +8,7 @@
  */
 
 #include "ConflictDetectionCodeGenerator.hh"
-#include "SymbolGenerator.hh"
+#include "CompiledSimSymbolGenerator.hh"
 #include "Application.hh"
 #include "Machine.hh"
 #include "FunctionUnit.hh"
@@ -31,8 +31,11 @@ using namespace TTAMachine;
  * 
  */
 ConflictDetectionCodeGenerator::ConflictDetectionCodeGenerator(
-    const TTAMachine::Machine& machine, bool conflictDetectionEnabled) :
-    machine_(machine), conflictDetectionEnabled_(conflictDetectionEnabled) {
+    const TTAMachine::Machine& machine,
+    const CompiledSimSymbolGenerator& symbolGenerator, 
+    bool conflictDetectionEnabled) :
+    machine_(machine), conflictDetectionEnabled_(conflictDetectionEnabled),
+    symbolGen_(symbolGenerator) {
     
     if (!conflictDetectionEnabled) {
         return;
@@ -87,7 +90,7 @@ ConflictDetectionCodeGenerator::ConflictDetectionCodeGenerator(
             continue;
         } else {
             conflictDetectors_[fu.name()] =
-                SymbolGenerator::conflictDetectorSymbol(fu);
+                symbolGen_.conflictDetectorSymbol(fu);
         }
     }
 }
@@ -127,7 +130,7 @@ ConflictDetectionCodeGenerator::symbolDeclaration(const FunctionUnit& fu) {
 
     std::stringstream ss;
     ss << "\t" << conflictDetectorType_ << " " 
-       << SymbolGenerator::conflictDetectorSymbol(fu) << ";" << endl;
+       << symbolGen_.conflictDetectorSymbol(fu) << ";" << endl;
 
     return ss.str();
 }

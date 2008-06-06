@@ -19,6 +19,7 @@
 #include "OperationPool.hh"
 #include "SimulatorConstants.hh"
 #include "ConflictDetectionCodeGenerator.hh"
+#include "CompiledSimSymbolGenerator.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -247,6 +248,9 @@ private:
 
     /// Conflict detection code generator
     ConflictDetectionCodeGenerator conflictDetectionGenerator_;
+    
+    /// The symbol generator
+    CompiledSimSymbolGenerator symbolGen_;
     
     // Compiled Simulator Code Generator constants:
     /// Maximum amount of instructions per code file

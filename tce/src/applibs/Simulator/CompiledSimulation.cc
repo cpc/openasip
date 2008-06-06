@@ -13,7 +13,7 @@
 #include "Instruction.hh"
 #include "SimulatorFrontend.hh"
 #include "SimulationEventHandler.hh"
-#include "SymbolGenerator.hh"
+#include "CompiledSimSymbolGenerator.hh"
 #include "DirectAccessMemory.hh"
 #include "MemorySystem.hh"
 #include "CompiledSimulationPimpl.hh"
@@ -27,19 +27,6 @@ using namespace TTAMachine;
 
 static const ClockCycleCount MAX_CYCLES =
     std::numeric_limits<ClockCycleCount>::max();
-    
-/**
- * A C wrapper function for setting a jump target outside compiled simulation
- * 
- * @param address address to set a jump function for
- * @param fp function pointer to set at the address
- */
-void setJumpTargetFunction(
-    CompiledSimulation& compiledSimulation,
-    InstructionAddress address,
-    SimulateFunction fp) {
-    compiledSimulation.setJumpTargetFunction(address, fp);
-}    
 
 /**
  * The constructor
@@ -210,9 +197,11 @@ ClockCycleCount CompiledSimulation::cycleCount() const {
  * @exception InstanceNotFound If the RF cannot be found
  */
 SimValue 
-CompiledSimulation::registerFileValue(const char* rfName, int registerIndex) {  
+CompiledSimulation::registerFileValue(const char* rfName, int registerIndex) {
+      
+    CompiledSimSymbolGenerator symbolGen;
     RegisterFile& rf = *machine_.registerFileNavigator().item(rfName);
-    std::string registerFile = SymbolGenerator::registerSymbol(rf, registerIndex);
+    std::string registerFile = symbolGen.registerSymbol(rf, registerIndex);
     
     CompiledSimulationPimpl::Symbols::const_iterator rfIterator = 
         pimpl_->symbols_.find(registerFile);
@@ -234,8 +223,10 @@ CompiledSimulation::registerFileValue(const char* rfName, int registerIndex) {
  */
 SimValue 
 CompiledSimulation::immediateUnitRegisterValue(const char* iuName, int index) {  
+    
+    CompiledSimSymbolGenerator symbolGen;
     ImmediateUnit& iu = *machine_.immediateUnitNavigator().item(iuName);
-    std::string immediateUnit = SymbolGenerator::immediateRegisterSymbol(
+    std::string immediateUnit = symbolGen.immediateRegisterSymbol(
         iu, index);
     
     CompiledSimulationPimpl::Symbols::const_iterator iuIterator =
@@ -259,6 +250,7 @@ CompiledSimulation::immediateUnitRegisterValue(const char* iuName, int index) {
 SimValue 
 CompiledSimulation::FUPortValue(const char* fuName, const char* portName) {
     
+    CompiledSimSymbolGenerator symbolGen;
     FunctionUnit* fu = NULL;
     try {
         fu = &functionUnit(fuName);
@@ -266,7 +258,7 @@ CompiledSimulation::FUPortValue(const char* fuName, const char* portName) {
         fu = machine_.controlUnit();
     }
     
-    std::string fuPort = SymbolGenerator::portSymbol(*fu->port(portName));
+    std::string fuPort = symbolGen.portSymbol(*fu->port(portName));
     
     CompiledSimulationPimpl::Symbols::const_iterator fuPortIterator = 
         pimpl_->symbols_.find(fuPort);
@@ -451,6 +443,8 @@ CompiledSimulation::compileAndLoadFunction(InstructionAddress address) {
     // Files compiled so far
     std::set<std::string> compiledFiles;
     
+    CompiledSimSymbolGenerator symbolGen;
+    
     // Get basic blocks of a procedure
     typedef ProcedureBBRelations::BasicBlockStarts::iterator BBIterator;
     std::pair<BBIterator, BBIterator> equalRange = 
@@ -470,12 +464,11 @@ CompiledSimulation::compileAndLoadFunction(InstructionAddress address) {
             compiledFiles.insert(file);
         }
 
-        // Use setJumpTargetFor_* C-function to load the generated C++ functions
-        // for the current CompiledSimulation.
-        void (*fn)(CompiledSimulation& compiledSimulation);
+        // Load the generated simulate function
+        SimulateFunction fn;
         pimpl_->pluginTools_.importSymbol(
-            SymbolGenerator::jumpTargetSetterSymbol(it->second), fn);
-        fn(*this);
+            symbolGen.basicBlockSymbol(it->second), fn);        
+        setJumpTargetFunction(it->second, fn);
     }
 }
 

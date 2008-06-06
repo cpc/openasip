@@ -35,7 +35,7 @@ struct ProcedureBBRelations;
 
 
 /// Type for the simulateXXXXX basic block functions
-typedef void (CompiledSimulationEngine::*SimulateFunction)();
+typedef void (*SimulateFunction)(CompiledSimulationEngine& engine);
 
 // Used to set export symbols visible
 #define EXPORT __attribute__((visibility("default")))
@@ -77,10 +77,6 @@ struct FUResultType {
     ~FUResultType() { delete[] data; data = 0; }
 };
 
-void setJumpTargetFunction(
-    CompiledSimulation& compiledSimulation,
-    InstructionAddress address,
-    SimulateFunction fp);
 
 /**
  * An abstract class that is used as a base for all the compiled simulations
@@ -90,12 +86,7 @@ void setJumpTargetFunction(
  * 
  */
 class CompiledSimulation {
-public:
-    friend void setJumpTargetFunction(
-        CompiledSimulation& compiledSimulation,
-        InstructionAddress address,
-        SimulateFunction fp);
-    
+public:    
     CompiledSimulation(
         const TTAMachine::Machine& machine,
         InstructionAddress entryAddress,
@@ -133,19 +124,36 @@ public:
     virtual void requestToStop();
     virtual bool stopRequested() const;
     virtual bool isFinished() const;
-        
-protected:
-    TTAMachine::FunctionUnit& functionUnit(const char* name) const;
     
-    DirectAccessMemory& FUMemory(const char* FUName) const;
-    MemorySystem* memorySystem() const;
-    SimulatorFrontend& frontend() const;
-    void msg(const char* message) const;
-    void haltSimulation(
-        const char* file,
-        int line,
-        const char* procedure,
-        const char* message) const;
+    
+    // Variables are defined public because of external C functions...
+    /// Number of cycles simulated so far
+    ClockCycleCount cycleCount_;
+    /// Number of basic blocks gone through
+    int basicBlockCount_;
+    /// The jump target. Allows jumping to different addresses in the code
+    InstructionAddress jumpTarget_;
+    /// The program counter. i.e. which address the simulation is currently at
+    InstructionAddress programCounter_;
+    /// Last executed instruction
+    InstructionAddress lastExecutedInstruction_;    
+    /// Number of cycles left to simulate until the execution returns
+    ClockCycleCount cyclesToSimulate_;
+    /// Should the simulation stop or not?
+    bool stopRequested_;  
+    /// Is the simulation finished?
+    bool isFinished_;
+    
+    /// The operation pool
+    OperationPool operationPool_;
+    /// Next jump target as a function pointer" << endl
+    SimulateFunction jumpTargetFunc_;
+
+    /// A flag for FU conflict detection
+    bool conflictDetected_;
+    
+    static void inline clearFUResults(
+        FUResultType& results);
     
     static void inline addFUResult(
         FUResultType& results,
@@ -163,9 +171,19 @@ protected:
         SimValue& target,
         FUResultType& results,
         ClockCycleCount cycles);
+        
+protected:
+    TTAMachine::FunctionUnit& functionUnit(const char* name) const;
     
-    static void inline clearFUResults(
-        FUResultType& results);
+    DirectAccessMemory& FUMemory(const char* FUName) const;
+    MemorySystem* memorySystem() const;
+    SimulatorFrontend& frontend() const;
+    void msg(const char* message) const;
+    void haltSimulation(
+        const char* file,
+        int line,
+        const char* procedure,
+        const char* message) const;    
     
     void resizeJumpTable(int newSize);
     SimulateFunction getSimulateFunction(InstructionAddress address);
@@ -175,27 +193,6 @@ protected:
     SimValue* getSymbolValue(const char* symbolName);
     void addSymbol(const char* symbolName, SimValue& value);
 
-    /// Number of cycles simulated so far
-    ClockCycleCount cycleCount_;
-    /// Number of basic blocks gone through
-    int basicBlockCount_;
-    /// The jump target. Allows jumping to different addresses in the code
-    InstructionAddress jumpTarget_;
-    /// The program counter. i.e. which address the simulation is currently at
-    InstructionAddress programCounter_;
-    /// Last executed instruction
-    InstructionAddress lastExecutedInstruction_;    
-    /// Number of cycles left to simulate until the execution returns
-    ClockCycleCount cyclesToSimulate_;
-
-    /// Should the simulation stop or not?
-    bool stopRequested_;  
-    /// Is the simulation finished?
-    bool isFinished_;
-
-    /// A flag for FU conflict detection
-    bool conflictDetected_;
-    
     /// Is this a dynamic compiled simulation?
     bool dynamicCompilation_;
     
@@ -209,11 +206,6 @@ protected:
     const InstructionAddress entryAddress_;
     /// Last instruction of the program
     const InstructionAddress lastInstruction_;
-
-    /// The operation pool
-    OperationPool operationPool_;
-    /// Next jump target as a function pointer" << endl
-    SimulateFunction jumpTargetFunc_;
 
 private:
     /// Copying not allowed.

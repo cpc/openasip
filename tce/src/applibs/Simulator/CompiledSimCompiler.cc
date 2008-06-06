@@ -33,9 +33,9 @@ const char* CompiledSimCompiler::COMPILED_SIM_CPP_FLAGS =
     "-fno-enforce-eh-specs "
     "-fno-rtti "
     "-fno-threadsafe-statics "
-    "-fno-access-control "
     "-fno-stack-protector "
-    "-fvisibility=hidden ";
+    "-fvisibility=hidden "
+    "-fvisibility-inlines-hidden ";
 
 // Flags when compiling shared libraries
 const char* CompiledSimCompiler::COMPILED_SIM_SO_FLAGS = " -shared -fpic ";

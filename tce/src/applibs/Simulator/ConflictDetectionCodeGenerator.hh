@@ -33,6 +33,8 @@ namespace TTAProgram {
     class Move;
 }
 
+class CompiledSimSymbolGenerator;
+
 /**
  * A class that generates C/C++ code for FU conflict detection cases
  * 
@@ -43,6 +45,7 @@ class ConflictDetectionCodeGenerator {
 public:
     ConflictDetectionCodeGenerator(
         const TTAMachine::Machine& machine,
+        const CompiledSimSymbolGenerator&,
         bool conflictDetectionEnabled = false);
     virtual ~ConflictDetectionCodeGenerator();
     
@@ -83,6 +86,9 @@ private:
     typedef std::map<std::string, std::string> ConflictDetectorObjectNameMap;
     /// The resource conflict detector object name for each FU if any.
     ConflictDetectorObjectNameMap conflictDetectors_;
+    
+    /// Symbol generator
+    const CompiledSimSymbolGenerator& symbolGen_;
 };
 
 #endif

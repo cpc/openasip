@@ -11,7 +11,7 @@
 #include "Move.hh"
 #include "Machine.hh"
 #include "Program.hh"
-#include "SymbolGenerator.hh"
+#include "CompiledSimSymbolGenerator.hh"
 #include <string>
 
 using std::string;
@@ -23,13 +23,16 @@ using std::endl;
  * @param move The original move
  * @param guardSymbol Symbolname of the guard or "" if no guard is used
  */
-CompiledSimMove::CompiledSimMove(const TTAProgram::Move& move,
-    const std::string& guardSymbol) :
+CompiledSimMove::CompiledSimMove(
+    const TTAProgram::Move& move,
+    const std::string& guardSymbol,
+    const CompiledSimSymbolGenerator& symbolGenerator) :
     move_(&move),
     source_(&move.source()),
     destination_(&move.destination()),
     bus_(&move.bus()),
-    guardSymbol_(guardSymbol) {
+    guardSymbol_(guardSymbol),
+    symbolGenerator_(symbolGenerator) {
 }
     
 /**
@@ -37,11 +40,12 @@ CompiledSimMove::CompiledSimMove(const TTAProgram::Move& move,
  * 
  * @param move the move
  */
-CompiledSimMove::CompiledSimMove(const CompiledSimMove& move) {
-    this->source_ = move.source_;
-    this->destination_ = move.destination_;
-    this->bus_ = move.bus_;
-    this->guardSymbol_ = move.guardSymbol_;
+CompiledSimMove::CompiledSimMove(const CompiledSimMove& move) :
+    source_(move.source_),
+    destination_ (move.destination_),
+    bus_(move.bus_),
+    guardSymbol_(move.guardSymbol_),
+    symbolGenerator_(move.symbolGenerator_) {
 }
 
 /**
@@ -66,8 +70,8 @@ CompiledSimMove::operator=(const CompiledSimMove& move) {
  */
 std::string
 CompiledSimMove::copyToBusCode() const {
-    string source = SymbolGenerator::moveOperandSymbol(*source_, *move_);
-    string bus = SymbolGenerator::busSymbol(*bus_);
+    string source = symbolGenerator_.moveOperandSymbol(*source_, *move_);
+    string bus = symbolGenerator_.busSymbol(*bus_);
     return bus + " = " + source + ";";
 }
 
@@ -78,9 +82,9 @@ CompiledSimMove::copyToBusCode() const {
  */
 std::string 
 CompiledSimMove::copyFromBusCode() const {
-    string destination = SymbolGenerator::moveOperandSymbol(*destination_,
+    string destination = symbolGenerator_.moveOperandSymbol(*destination_,
         *move_);
-    string bus = SymbolGenerator::busSymbol(*bus_);
+    string bus = symbolGenerator_.busSymbol(*bus_);
     string code = destination + " = " + bus + ";";
     if (guardSymbol_ != "") {
         code = "if (" + guardSymbol_ + ") {" + code + " } ";
