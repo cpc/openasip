@@ -569,16 +569,6 @@ Bit width of the operands can be extended using two different expressions.
 
 \end{description}
 
-Output values are by default in ``invalid'' state, meaning that the value
-they contain is not considered to be a ``stable'' value. To set output
-operand to ``valid'' state, user is expected to use following expression.
-
-\begin{description}
-\item[SET\_DONE(\emph{number})]%
-  Sets the given operand to ``valid'' state. This is used to signal that
-  certain output operand is now ``done'', that is, its value is calculated.
-\end{description}
-
 \emph{Example.} The following code implements the behavior of an accumulate
 operation with one input and one output, where the result value is saturated
 to the ``all 1's'' bit pattern if it exceeds the range that can be expressed
