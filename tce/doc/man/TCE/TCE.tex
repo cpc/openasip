@@ -2993,7 +2993,7 @@ simulation behavior: \\
 \textbf{Environment variable} &\textbf{Description} &\textbf{Default value} \\
 \hline
 TTASIM\_COMPILER & Specifies the used compiler. & ``gcc'' \\
-TTASIM\_COMPILER\_FLAGS & Compile flags given to the compiler. & ``-O3'' \\
+TTASIM\_COMPILER\_FLAGS & Compile flags given to the compiler. & ``-O0'' \\
 TTASIM\_COMPILER\_THREADS & Number of threads used to compile. & ``3'' \\
 
 \end{tabular}\\
@@ -3123,6 +3123,16 @@ Save program profile data to trace database after simulation.
 makes the simulation
  speed much worse, so it is not enabled by default. The produced statistics can
 be browsed after simulation by using the command 'info proc stats'.
+
+\item[simulation\_time\_statistics {\emph{boolean}}]%
+Prints time statistics for the last command ran (run, until, nexti, stepi).
+
+\item[simulation\_timeout {\emph{integer}}]%
+Stops the simulation after specified timeout. Value of zero means no timeout.
+
+\item[static\_compilation {\emph{boolean}}]%
+Switch between static and dynamic compilation when running compiled simulation. 
+
 
 \item[utilization\_data\_saving {\emph{boolean}}]%
 Save processor utilization data to trace database after simulation.
