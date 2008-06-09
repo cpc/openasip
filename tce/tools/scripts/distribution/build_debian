@@ -50,6 +50,7 @@ cd $tceRoot
 export CXX="g++"
 export CC="gcc"
 export CXXFLAGS="-O3 -g" 
+make clean
 ./configure --enable-distributed || eexit "configure failed."
 make DESTDIR=$tempDir dev-install || eexit "make failed."
 
