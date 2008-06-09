@@ -252,11 +252,13 @@ properties of the implementation, and are not defined in OSAL module.
 The following properties define a TTA operation:
 \begin{itemize}
 \item name (unique string)
+\item description (string)
 \item number of inputs (integer)
 \item number of outputs (integer)
 \item accesses memory (yes/no)
 %\item can cause trap (yes/no)
 \item has side effects (yes/no)
+\item clocked (yes/no)
 \item affected-by (set of operations)
 \item affects (set of operations)
 \end{itemize}
@@ -266,6 +268,9 @@ The operation name is a string of characters starting with a character in
 set [A-Z\_] and followed by one or more character in set [0-9A-Z\_].  All
 names of operations of the database must be unique. Different data bases 
 can contain operations with equal names. 
+
+\paragraph{operation description}
+Optional description of the operation.
 
 \paragraph{inputs}
 Number of inputs of the operation. The number of inputs is an integer
@@ -305,12 +310,15 @@ processor.  Side-effect is implied if the `affected-by' or the `affects'
 lists are not empty. Side-effect is also implied by the fact that any of the
 inputs is optional, see section on input declaration.
 
+\paragraph{clocked}
+Clocked attribute indicates that the operation can change its state
+synchronously with clock signal and independently from its input.
+
 \paragraph{affected-by}
 Optional. A list of operation names. If an operation is listed, it means
 that it may affect the outcome of this operation.  The order in which the
 two operations are executed cannot be swapped.  An operation where
 `affected-by' list is not empty is also a side-effect operation.
-
 
 \paragraph{affects}
 Optional. A list of operation names.  If an operation is listed, it means
@@ -986,6 +994,30 @@ button. If the operation doesn't have behavior source file, clicking
 be defined in the options dialog. All changes to operation properties are 
 committed by clicking \emph{OK} button and canceled by clicking \emph{Cancel} 
 button.
+
+\paragraph{Operation Directed Acyclic Graph}
+
+By treating each operation as a node and each input-output pair as an directed
+arc, it is possible to construct operation's Directed Acyclic Graph (DAG)
+presentation. For primitive operations which do not call any other operations,
+this graph is trivial; one node (operation itself) with input arcs from root
+nodes and output arcs to leafs. With OSAL DAG language, it is possible to
+define operation behavior model by composing it from multiple operations'
+respective models.
+
+Operation's OSAL DAG code sections can be edited by pressing \emph{Open DAG}
+button, which opens the DAG editor window. Code section shows the currently
+selected DAG code from the list box below. A new DAG section can be created
+either by selecting \emph{New DAG} list box item or pressing \emph{New} button.
+By pressing \emph{Undo} button, it is possible to revert changes to current
+code from the last saved position. DAG can be saved to operation's definition
+file by pressing \emph{Save} button. Unneccessary DAG sections can be deleted
+by pressing \emph{Delete} button.
+
+If code section contains valid OSAL DAG code, then the editor window shows
+a DAG presentation of that code. Note that in order to view this graph, a
+program called 'dot' must be installed. This is included in Graphviz graph
+visualization software package and can be obtained from www.graphviz.org. 
 
 \paragraph{Operation Modules}
 
