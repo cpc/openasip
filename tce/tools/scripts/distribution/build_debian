@@ -61,17 +61,18 @@ Section: devel
 Priority: optional
 Architecture: i386
 Essential: no
-Depends: libwxgtk2.6-0, libboost-filesystem1.34.1,
-         libboost-graph1.34.1, libboost-regex1.34.1, \
-         libboost-thread1.34.1, tcl8.5, libedit2, \
-         libsqlite3-0, libxerces27, g++, tce-frontend1.0
+Depends: libwxgtk2.6-0, libboost-filesystem1.34.1, \
+libboost-graph1.34.1, libboost-regex1.34.1, \
+libboost-thread1.34.1, tcl8.5, libedit2, \
+libsqlite3-0, libxerces27, g++, \
+tce-frontend1.0
 Pre-Depends: perl 
-Recommends: llvm (=2.1)
+Recommends: llvm (=2.2)
 Suggests: kpdf | acroread | evince, sqlite3
 Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
-Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen@tut.fi>
+Maintainer: Esa Määttä <esa.maatta@tut.fi>
 Provides: tce1.0
-Description: TTA Co-design Environment. A toolset for designing TTA-based systems.
+Description: TTA Co-design Environment. A toolset for designing TTA-based application specific processors.
 EOF
 
 # delete the old .deb files
