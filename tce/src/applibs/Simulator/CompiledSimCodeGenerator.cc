@@ -869,17 +869,19 @@ CompiledSimCodeGenerator::handleGuard(
         
         ss << "const bool " << lastGuardBool_ << " = !(" 
            << guardSymbolName << ".value_.uIntWord == 0u);";
-        if (isJumpGuard) {
+    } else {
+        lastGuardBool_ = usedGuardSymbols_[guardSymbolName];
+    }
+    
+    // Setup a "last known" jump guard in case of guarded jumps
+    if (isJumpGuard) {
             lastJumpGuardBool_ = "";
             if (guard.isInverted()) { 
                 lastJumpGuardBool_ = "!";
             }
             lastJumpGuardBool_ += lastGuardBool_;
-        }
-    } else {
-        lastGuardBool_ = usedGuardSymbols_[guardSymbolName];
     }
-            
+
     // Handle inverted guards
     ss << endl << "if (";
     if (guard.isInverted()) {

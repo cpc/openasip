@@ -138,7 +138,7 @@ ConflictDetectionCodeGenerator::symbolDeclaration(const FunctionUnit& fu) {
 /**
  * Generates exra initialization call for conflict detectors that require a one
  * 
- * @return The generated code for extra nitialization call
+ * @return The generated code for extra initialization call
  */
 string 
 ConflictDetectionCodeGenerator::extraInitialization() {
