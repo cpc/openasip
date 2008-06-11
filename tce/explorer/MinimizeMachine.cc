@@ -303,7 +303,13 @@ private:
                 modifier.reduceBuses(
                         amountOfBusesToReduce, *newMach, removedBusNames);
                 DSDBManager::MachineConfiguration newConfiguration;
-                lastArchID = dsdb.addArchitecture(*newMach);
+                try {
+                    lastArchID = dsdb.addArchitecture(*newMach);
+                } catch (const RelationalDBException& e) {
+                    // Error occurred while adding adf to the dsdb, adf
+                    // probably too big
+                    break;
+                }
                 newConfiguration.architectureID = lastArchID;
                 newConfiguration.hasImplementation = false;
                 lastConfID = dsdb.addConfiguration(newConfiguration);

@@ -79,7 +79,8 @@ public:
 
     std::string dsdbFile() const;
 
-    RowID addArchitecture(const TTAMachine::Machine& mom);
+    RowID addArchitecture(const TTAMachine::Machine& mom) 
+        throw (RelationalDBException);
     RowID addImplementation(
         const IDF::MachineImplementation& impl,
         double longestPathDelay,

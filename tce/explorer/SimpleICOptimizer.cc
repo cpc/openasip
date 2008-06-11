@@ -106,10 +106,9 @@ public:
                     std::set<RowID>::const_iterator iter = appIDs.begin();
                     for (; iter != appIDs.end(); iter++) {
                         TestApplication testApp(dsdb.applicationPath(*iter));
-                        const UniversalMachine* uMach = new UniversalMachine();
                         Program* seqProg = 
-                            Program::loadFromTPEF(
-                                testApp.applicationPath(), *uMach);
+                            Program::loadFromUnscheduledTPEF(
+                                testApp.applicationPath());
                         SchedulingPlan* plan = 
                             SchedulingPlan::loadFromFile(
                                 Environment::oldGccSchedulerConf());;
@@ -162,7 +161,16 @@ public:
             } else {
                 newConf.hasImplementation = false;
             }
-            newConf.architectureID = dsdb.addArchitecture(*mach);
+
+            try {
+                newConf.architectureID = dsdb.addArchitecture(*mach);
+            } catch (const RelationalDBException& e) {
+                std::ostringstream msg(std::ostringstream::out);
+                msg << "Error while adding ADF to the dsdb. "
+                    << "ADF probably too big." << endl;
+                errorOuput(msg.str());
+                return result;
+            }
             CostEstimates estimates;
 
             if (evaluateResult_) {

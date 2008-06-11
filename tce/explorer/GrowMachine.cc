@@ -125,7 +125,13 @@ public:
                 // @TODO immediate unit addition
 
                 DSDBManager::MachineConfiguration newConfiguration;
-                newConfiguration.architectureID = dsdb.addArchitecture(*adf);
+                try {
+                    newConfiguration.architectureID = dsdb.addArchitecture(*adf);
+                } catch (const RelationalDBException& e) {
+                    // Error occurred while adding adf to the dsdb, adf
+                    // probably too big
+                    break;
+                }
                 newConfiguration.hasImplementation = false;
                 RowID confID = dsdb.addConfiguration(newConfiguration);
                 CostEstimates newEstimates;

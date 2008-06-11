@@ -154,16 +154,30 @@ DSDBManager::dsdbFile() const {
  * @return RowID of the added architecture.
  */
 RowID
-DSDBManager::addArchitecture(const TTAMachine::Machine& mom) {
+DSDBManager::addArchitecture(const TTAMachine::Machine& mom) 
+    throw (RelationalDBException) {
 
-    RowID id = -1;
+    string adf = "";
     try {
         dbConnection_->beginTransaction();
         ADFSerializer serializer;
-        string adf = "";
         serializer.setDestinationString(adf);
         serializer.writeState(mom.saveState());
+        
+        // limit the size of the adf
+        if (adf.size() >= 5000000) {
+            RelationalDBException error(
+                    __FILE__, __LINE__, __func__,
+                    "ADF size too big.");
+            throw error;
+        }
+    } catch (const SerializerException& e) {
+        debugLog(e.errorMessage());
+        assert(false);
+    }
 
+    RowID id = -1;
+    try {
         dbConnection_->updateQuery(
             std::string(
                 "INSERT INTO architecture(id, adf_xml) VALUES"
