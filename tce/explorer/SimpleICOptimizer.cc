@@ -106,9 +106,10 @@ public:
                     std::set<RowID>::const_iterator iter = appIDs.begin();
                     for (; iter != appIDs.end(); iter++) {
                         TestApplication testApp(dsdb.applicationPath(*iter));
+                        const UniversalMachine* uMach = new UniversalMachine();
                         Program* seqProg = 
-                            Program::loadFromUnscheduledTPEF(
-                                testApp.applicationPath());
+                            Program::loadFromTPEF(
+                                testApp.applicationPath(), *uMach);
                         SchedulingPlan* plan = 
                             SchedulingPlan::loadFromFile(
                                 Environment::oldGccSchedulerConf());;
