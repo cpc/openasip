@@ -13,6 +13,7 @@
 #include <string>
 #include "Exception.hh"
 #include "PluginTools.hh"
+#include "SchedulingPlan.hh"
 
 namespace TTAProgram {
     class Program;
@@ -39,7 +40,7 @@ public:
     TTAProgram::Program* compile(
         const std::string& bytecodeFile,
         TTAMachine::Machine& target,
-	int optLevel,
+        int optLevel,
         bool debug = false)
         throw (Exception);
 
@@ -49,6 +50,14 @@ public:
         TTAMachine::Machine& target,
         int optLevel,
         bool debug = false)
+        throw (Exception);
+
+    TTAProgram::Program* schedule(
+        const std::string& bytecodeFile,
+        TTAMachine::Machine& target,
+        int optLevel = 2,
+        bool debug = false,
+        SchedulingPlan* plan = NULL)
         throw (Exception);
 
     llvm::TCETargetMachinePlugin* createPlugin(
@@ -71,7 +80,6 @@ private:
     static const std::string LLVM_CXX_FLAGS;
     static const std::string LLVM_LD_FLAGS;
     static const std::string LLVM_INCLUDE_DIR;
-    static const std::string LLVM_VERSION;
 
     static const std::string PLUGIN_PREFIX;
     static const std::string PLUGIN_SUFFIX;
