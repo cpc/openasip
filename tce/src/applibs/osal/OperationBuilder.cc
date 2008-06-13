@@ -127,10 +127,21 @@ OperationBuilder::buildObject(
         const string CXXCOMPILER = Environment::environmentVariable("CXX");
         vector<string> includes = Environment::includeDirPaths();
 
-        string INCLUDES = "";
-        for (size_t i = 0; i < includes.size(); i++) {
-            INCLUDES += "-I" + includes[i] + " ";
-        }
+        string INCLUDES = makeIncludeString(includes);
+        
+        // Ugly fix. When compiling TCE the base opset is compiled in the 
+        // source directory. When distributed version is enabled buildopset
+        // needs to know some include paths from the source tree because these
+        // headers aren't resident in places that includeDirPaths() returns.
+        if (DISTRIBUTED_VERSION) {
+            string cwd = FileSystem::currentWorkingDir();
+            string DS = FileSystem::DIRECTORY_SEPARATOR;
+            string srcOpsetDir = TCE_SRC_ROOT + DS + "opset" + DS + "base";
+            if (cwd == srcOpsetDir) {
+                vector<string> extraIncludes = Environment::opsetIncludeDir();
+                INCLUDES += makeIncludeString(extraIncludes);
+            }
+         }
 
         string COMPILE_FLAGS = CXXFLAGS + " " + CPPFLAGS + " " + INCLUDES;
 
@@ -216,4 +227,19 @@ OperationBuilder::verifyXML(const std::string file) {
         return false;
     }
     return true;
+}
+
+/**
+ * Makes an include string for compiler (-I<path1> -I<path2> etc) from the
+ * paths in the vector
+ *
+ * @param Vector containing the include paths
+ */
+string
+OperationBuilder::makeIncludeString(const vector<string>& paths) {
+    string includes = "";
+    for (size_t i = 0; i < paths.size(); i++) {
+        includes += "-I" + paths.at(i) + " ";
+    }
+    return includes;
 }

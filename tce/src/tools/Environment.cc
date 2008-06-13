@@ -319,6 +319,26 @@ Environment::includeDirPaths() {
 }
 
 /**
+ * Returns the include dir needed to build base opset in compiling the
+ * distributed version of TCE
+ *
+ */
+vector<string>
+Environment::opsetIncludeDir() {
+    string DS = FileSystem::DIRECTORY_SEPARATOR;
+    string BASE = TCE_SRC_ROOT + DS + "src" + DS + "base";
+    
+    vector<string> includePaths;   
+    includePaths.push_back(BASE + DS + "osal ");
+    includePaths.push_back(BASE + DS + "tpef ");
+    includePaths.push_back(BASE + DS + "memory ");
+    includePaths.push_back(TCE_SRC_ROOT + DS + "src" + DS +  "tools");
+    includePaths.push_back(TCE_SRC_ROOT);
+
+    return includePaths;
+}
+
+/**
  * Returns the value of the given environment variable.
  *
  * An empty string is returned if the variable does not exist.

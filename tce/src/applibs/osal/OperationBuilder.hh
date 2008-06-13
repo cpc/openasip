@@ -41,6 +41,8 @@ private:
     OperationBuilder();
     virtual ~OperationBuilder();
 
+    std::string makeIncludeString(const std::vector<std::string>& paths);
+
     /// Static unique instance.
     static OperationBuilder* instance_;
 };

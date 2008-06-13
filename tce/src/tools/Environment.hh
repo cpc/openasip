@@ -32,6 +32,7 @@ public:
     static std::string errorLogFilePath();
     static std::string iconDirPath();
     static std::vector<std::string> includeDirPaths();
+    static std::vector<std::string> opsetIncludeDir();
 
     static void setNewSchemaFileDir(const std::string& path);
     static void setNewDataFileDir(const std::string& path);
