@@ -53,22 +53,22 @@ ConflictDetectionCodeGenerator::ConflictDetectionCodeGenerator(
     if (conflictDetectionSetting == "CRT") {
         conflictDetectorType_ = "ReservationTableFUResourceConflictDetector";
         conflictDetectorMethod_ = "issueOperationInline";
-        conflictDetectorAdvanceCycle_ = "advanceCycleInline";
+        conflictDetectorAdvanceCycle_ = "advanceCycle";
         conflictDetectorExtraInitMethod_ = "";
     } else if (conflictDetectionSetting == "AFSA") {
         conflictDetectorType_ = "FSAFUResourceConflictDetector";
         conflictDetectorMethod_ = "issueOperationInline";
-        conflictDetectorAdvanceCycle_ = "advanceCycleInline";
+        conflictDetectorAdvanceCycle_ = "advanceCycle";
         conflictDetectorExtraInitMethod_ = "initializeAllStates";
     } else if (conflictDetectionSetting == "LFSA") {
         conflictDetectorType_ = "FSAFUResourceConflictDetector";
         conflictDetectorMethod_ = "issueOperationLazyInline";
-        conflictDetectorAdvanceCycle_ = "advanceCycleLazyInline";
+        conflictDetectorAdvanceCycle_ = "advanceCycle";
         conflictDetectorExtraInitMethod_ = "";
     } else if (conflictDetectionSetting == "DCM") {
         conflictDetectorType_ = "DCMFUResourceConflictDetector";
         conflictDetectorMethod_ = "issueOperationInline";
-        conflictDetectorAdvanceCycle_ = "advanceCycleInline";
+        conflictDetectorAdvanceCycle_ = "advanceCycle";
         conflictDetectorExtraInitMethod_ = "";
     } else {
         Application::logStream()
@@ -92,6 +92,11 @@ ConflictDetectionCodeGenerator::ConflictDetectionCodeGenerator(
             conflictDetectors_[fu.name()] =
                 symbolGen_.conflictDetectorSymbol(fu);
         }
+    }
+    
+    // No conflict detection is needed
+    if (conflictDetectors_.empty()) {
+        conflictDetectionEnabled_ = false;
     }
 }
 
@@ -244,7 +249,7 @@ ConflictDetectionCodeGenerator::detectConflicts(
     }
     std::stringstream ss;
     std::string detector = conflictDetectors_[fu.name()];
-    ss << "conflictDetected_ |= !" << detector << "." 
+    ss << "engine.conflictDetected_ |= !engine." << detector << "." 
        << conflictDetectorMethod_ << "(" << operationID << ");" << endl;
     return ss.str();
 }

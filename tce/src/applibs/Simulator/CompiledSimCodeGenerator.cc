@@ -94,6 +94,7 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     pendingJumpDelay_(0), lastInstructionOfBB_(0),
     className_("CompiledSimulationEngine"),
     os_(NULL),
+    symbolGen_(),
     conflictDetectionGenerator_(
         machine_, symbolGen_, fuResourceConflictDetection) {
 }
@@ -571,9 +572,11 @@ CompiledSimCodeGenerator::generateHaltCode(const string& message) {
  * Generates code for advancing clocks of various items per cycle
  */
 void CompiledSimCodeGenerator::generateAdvanceClockCode() {
-    *os_ << endl << "void inline advanceClocks() {" << endl
-         << conflictDetectionGenerator_.advanceClockCode()
-         << endl << "}" << endl;
+    *os_ << endl << "void inline advanceClocks() {" << endl;
+            
+    *os_ << conflictDetectionGenerator_.advanceClockCode();
+         
+    *os_ << endl << "}" << endl;
 }
 
 /**
@@ -875,11 +878,11 @@ CompiledSimCodeGenerator::handleGuard(
     
     // Setup a "last known" jump guard in case of guarded jumps
     if (isJumpGuard) {
-            lastJumpGuardBool_ = "";
-            if (guard.isInverted()) { 
-                lastJumpGuardBool_ = "!";
-            }
-            lastJumpGuardBool_ += lastGuardBool_;
+        lastJumpGuardBool_ = "";
+        if (guard.isInverted()) { 
+            lastJumpGuardBool_ = "!";
+        }
+        lastJumpGuardBool_ += lastGuardBool_;
     }
 
     // Handle inverted guards
@@ -887,7 +890,7 @@ CompiledSimCodeGenerator::handleGuard(
     if (guard.isInverted()) {
         lastGuardBool_ = "!" + lastGuardBool_;
     }
-    ss << lastGuardBool_ << ") { ";   
+    ss << lastGuardBool_ << ") { ";
     
     return ss.str();
 }

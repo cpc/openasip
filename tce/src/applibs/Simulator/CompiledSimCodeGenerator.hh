@@ -245,12 +245,12 @@ private:
     std::string currentFileName_;
     /// Current output stream i.e. the above file
     std::ostream* os_;
-
-    /// Conflict detection code generator
-    ConflictDetectionCodeGenerator conflictDetectionGenerator_;
     
     /// The symbol generator
     CompiledSimSymbolGenerator symbolGen_;
+
+    /// Conflict detection code generator
+    ConflictDetectionCodeGenerator conflictDetectionGenerator_;
     
     // Compiled Simulator Code Generator constants:
     /// Maximum amount of instructions per code file

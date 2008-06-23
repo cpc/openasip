@@ -47,7 +47,8 @@ using std::set_unexpected;
 bool Application::initialized_ = false;
 std::ostream* Application::logStream_ = NULL;
 Application::UnixSignalHandler* Application::ctrlcHandler_(NULL);
-sig_t Application::originalCtrlcHandler_(NULL);
+Application::UnixSignalHandler* Application::fpeHandler_(NULL);
+
 int Application::verboseLevel_ = Application::VERBOSE_LEVEL_DEFAULT;
 
 /**
@@ -241,18 +242,46 @@ Application::runShellCommandAndGetOutput(
 void
 Application::setCtrlcHandler(UnixSignalHandler& handler) {
     ctrlcHandler_ = &handler;
-    originalCtrlcHandler_ = signal(SIGINT, ctrlcSignalRedirector);
-    assert(originalCtrlcHandler_ != SIG_ERR);
+    
+    struct sigaction action;
+    action.sa_flags = SA_SIGINFO; 
+    action.sa_sigaction = ctrlcSignalRedirector;
+ 
+    sigaction(SIGINT, &action, NULL);
 }
 
 /**
- * Restores the previous ctrl-c handler.
+ * Restores the original ctrl-c handler.
  */
 void
 Application::restoreCtrlcHandler() {
-    originalCtrlcHandler_ = signal(SIGINT, originalCtrlcHandler_);
-    assert(originalCtrlcHandler_ != SIG_ERR);
-    ctrlcHandler_ = NULL;
+    signal(SIGINT, SIG_DFL);
+}
+
+/**
+ * Sets handler for signal SIGFPE
+ *
+ * The previous handler is saved.
+ *
+ * @param handler The handler instance to use.
+ */
+void
+Application::setFpeHandler(UnixSignalHandler& handler) {
+    fpeHandler_ = &handler;
+    
+    struct sigaction action;
+    action.sa_flags = SA_SIGINFO; 
+    action.sa_sigaction = fpeSignalRedirector;
+ 
+    sigaction(SIGFPE, &action, NULL);
+}
+
+/**
+ * Restores the original SIGFPE handler.
+ */
+void
+Application::restoreFpeHandler() {
+    signal(SIGFPE, SIG_DFL);
 }
 
 /**
@@ -260,10 +289,26 @@ Application::restoreCtrlcHandler() {
  * wrapper.
  *
  * @param data Data from the signal.
+ * @param info signal information struct
+ * @param context signal context
  */
 void
-Application::ctrlcSignalRedirector(int data) {
+Application::ctrlcSignalRedirector(int data, siginfo_t *info, void *context) {
     assert(ctrlcHandler_ != NULL);
-    ctrlcHandler_->execute(data);
+    if (context) {}
+    ctrlcHandler_->execute(data, info);
 }
 
+/**
+ * Redirects the received signal SIGFPE to the user defined wrapper.
+ *
+ * @param data Data from the signal.
+ * @param info signal information struct
+ * @param context signal context
+ */
+void
+Application::fpeSignalRedirector(int data, siginfo_t *info, void *context) {
+    assert(fpeHandler_ != NULL);
+    if (context) {}
+    fpeHandler_->execute(data, info);
+}

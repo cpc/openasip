@@ -48,8 +48,61 @@ public:
     /**
      * Stops the simulation.
      */
-    virtual void execute(int) {
+    virtual void execute(int data, siginfo_t *info) {
         target_.prepareToStop(SRE_USER_REQUESTED);
+        if (data || info) {}
+    }
+private:
+    /// Simulator frontend to use when stopping the simulation.
+    SimulatorFrontend& target_;
+};
+
+/**
+ * A handler class for SIGFPE signal
+ *
+ * Stops the simulation (if it's running).
+ */
+class SimulationFPEHandler : public Application::UnixSignalHandler {
+public:
+    /**
+     * Constructor.
+     *
+     * @param target The target SimulatorFrontend instance.
+     */
+    SimulationFPEHandler(SimulatorFrontend& target) : target_(target) {
+    }
+
+    /**
+     * Terminates the simulation.
+     */
+    virtual void execute(int data, siginfo_t *info) {
+        if (data) {}
+        std::string msg("Unknown floating point exception");
+        
+        if (info->si_code == FPE_INTDIV || info->si_code == FPE_FLTDIV) {
+            msg = "division by zero";
+        } else if (info->si_code == FPE_INTOVF) {
+            msg = "integer overflow";
+        } else if (info->si_code == FPE_FLTOVF) {
+            msg = "floating-point overflow";
+        } else if (info->si_code == FPE_FLTUND) {
+            msg = "floating-point underflow";
+        } else if (info->si_code == FPE_FLTRES) {
+            msg = "floating-point inexact result";
+        } else if (info->si_code == FPE_FLTINV) {
+            msg = "invalid floating-point operation";
+        } else if (info->si_code == FPE_FLTSUB) {
+            msg = " Subscript out of range";
+        }
+        
+        msg += "\n" + target_.programLocationDescription();
+             
+        target_.prepareToStop(SRE_USER_REQUESTED);
+        SimulatorToolbox::reportSimulatedProgramError(
+            target_.eventHandler(),
+            SimulatorToolbox::RES_FATAL, msg);
+       
+        throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__, msg);
     }
 private:
     /// Simulator frontend to use when stopping the simulation.
@@ -214,7 +267,9 @@ int main(int argc, char* argv[]) {
     RuntimeErrorReporter errorReporter(*simFront);
 
     SimulationStopper ctrlcHandler(*simFront);
+    SimulationFPEHandler fpeHandler(*simFront);
     Application::setCtrlcHandler(ctrlcHandler);
+    Application::setFpeHandler(fpeHandler);
 
     if (machineToLoad != "") {
         interpreteAndPrintResults(
@@ -257,6 +312,8 @@ int main(int argc, char* argv[]) {
 
     delete reader;
     reader = NULL;
+    Application::restoreFpeHandler();
     Application::restoreCtrlcHandler();
+    
     return EXIT_SUCCESS;
 }

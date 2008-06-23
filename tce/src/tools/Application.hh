@@ -128,12 +128,14 @@ public:
          *
          * @param data Data of the signal.
          */
-        virtual void execute(int data) = 0;
+        virtual void execute(int data, siginfo_t *info) = 0;
         virtual ~UnixSignalHandler() {}
     };
 
     static void setCtrlcHandler(UnixSignalHandler& handler);
     static void restoreCtrlcHandler();
+    static void setFpeHandler(UnixSignalHandler& handler);
+    static void restoreFpeHandler();
 
 
     /// Default verbose level - do not print anything unnecessary
@@ -142,7 +144,8 @@ public:
     static const int VERBOSE_LEVEL_INCREASED = 1;
 
 private:
-    static void ctrlcSignalRedirector(int data);
+    static void ctrlcSignalRedirector(int data, siginfo_t *info, void *context);
+    static void fpeSignalRedirector(int data, siginfo_t *info, void *context);
     /// True when initialize() is called. Ensures that initialization is
     /// done only once.
     static bool initialized_;
@@ -150,11 +153,14 @@ private:
     /// The stream for error logging.
     static std::ostream* logStream_;
 
+    ///* @note if more signals need to be handled, refactor the following into a
+    /// std::map<int, UnixSignalHandler*> or similar.
+    
     /// The handler for signal produced by user pressing ctrl-c.
     static UnixSignalHandler* ctrlcHandler_;
 
-    /// The original signal handler of the signal produced by ctrl-c.
-    static sig_t originalCtrlcHandler_;
+    /// The handler for signal SIGFPE.
+    static UnixSignalHandler* fpeHandler_;
 
     /// Verbose level directs how much output will be printed to console
     static int verboseLevel_;

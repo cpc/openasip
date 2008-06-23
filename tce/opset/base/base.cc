@@ -501,6 +501,9 @@ END_OPERATION(DIVU)
 OPERATION(MOD)
 
 TRIGGER
+    if (UINT(2) == 0)
+         RUNTIME_ERROR("Divide by zero.")
+            
     SIntWord in1 = static_cast<SIntWord>(UINT(1));
     SIntWord in2 = static_cast<SIntWord>(UINT(2));
     SIntWord out1 = in1 % in2;
@@ -515,6 +518,8 @@ END_OPERATION(MOD)
 OPERATION(MODU)
 
 TRIGGER
+    if (UINT(2) == 0)
+         RUNTIME_ERROR("Divide by zero.")    
 
     UIntWord tempIn1 = UINT(1);
     UIntWord tempIn2 = UINT(2);

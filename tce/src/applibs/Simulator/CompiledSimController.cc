@@ -237,7 +237,7 @@ CompiledSimController::reset() {
         frontend_.isSequentialSimulation(),
         frontend_.fuResourceConflictDetection(), frontend_.executionTracing(), 
         !frontend_.staticCompilation(), false, !frontend_.staticCompilation());
-    generator.generateToDirectory(compiledSimulationPath_);
+    CATCH_ANY(generator.generateToDirectory(compiledSimulationPath_));
     
     basicBlocks_ = generator.basicBlocks();
     procedureBBRelations_ = generator.procedureBBRelations();
