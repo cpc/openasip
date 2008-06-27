@@ -63,12 +63,14 @@ public:
     void resetExecutionCount();
 
 protected:
+    ExecutableMove();
+    
     /// Source of the move.
-    const ReadableState& src_;
+    const ReadableState* src_;
     /// Bus of the move.
-    BusState& bus_;
+    BusState* bus_;
     /// Destination of the move.
-    WritableState& dst_;
+    WritableState* dst_;
     /// Guard of the move.
     const ReadableState* guardReg_;
     /// True if this is a guarded move.
@@ -88,6 +90,15 @@ private:
     /// If the move source is an inline immediate, the instance
     /// is stored here so it can be deleted in the destructor.
     InlineImmediateValue* inlineImmediate_;
+};
+
+/**
+ * Extremely simple wrapper for ExecutableMove, takes no params but exec count.
+ */
+class DummyExecutableMove : public ExecutableMove {
+public:
+    DummyExecutableMove(ClockCycleCount executionCount);
+private:
 };
 
 #endif

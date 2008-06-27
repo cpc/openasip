@@ -423,6 +423,30 @@ Program::lastInstruction() const throw (InstanceNotFound) {
 }
 
 /**
+ * Returns a move at given location, counting from beginning, zero
+ * @param number zero-beginning count of move's location
+ * @return a reference to the found move
+ * @exception KeyNotFound if the move wasn't found at the given location
+ */
+const TTAProgram::Move& 
+Program::moveAt(int number) const throw (KeyNotFound) {
+    if (number < 0 || number >= static_cast<int>(moves_.size())) {
+        throw KeyNotFound(__FILE__, __LINE__, __FUNCTION__,
+            "Move not found at location: " + Conversion::toString(number));
+    }
+    return *moves_.at(number);
+}
+
+/**
+ * Returns the total count of moves used in the program
+ * @return the total count of moves used in the program
+ */
+int 
+Program::moveCount() const {
+    return static_cast<int>(moves_.size());
+}
+
+/**
  * Returns the procedure at a given index in the container of procedures.
  *
  * This method is for quickly traversing through all the procedures within
@@ -485,6 +509,11 @@ Program::addInstruction(Instruction* ins) throw (IllegalRegistration) {
         throw IllegalRegistration(
             __FILE__, __LINE__, __func__,
             "No procedures in the program.");
+    }
+    
+    // add all moves of an instruction to the move list
+    for (int i = 0; i < ins->moveCount(); ++i) {
+        moves_.push_back(&ins->move(i));
     }
 
     if (!ins->isInProcedure()) {

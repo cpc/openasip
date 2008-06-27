@@ -31,7 +31,7 @@ ExecutableMove::ExecutableMove(
     const ReadableState& src,
     BusState& bus,
     WritableState& dst) : 
-    src_(src), bus_(bus), dst_(dst), 
+    src_(&src), bus_(&bus), dst_(&dst), 
     guardReg_(NULL), guarded_(false), negated_(false), 
     executionCount_(0), squashed_(false),
     inlineImmediate_(NULL) {
@@ -52,7 +52,7 @@ ExecutableMove::ExecutableMove(
     WritableState& dst,
     const ReadableState& guardReg,
     bool negated) : 
-    src_(src), bus_(bus), dst_(dst), guardReg_(&guardReg),
+    src_(&src), bus_(&bus), dst_(&dst), guardReg_(&guardReg),
     guarded_(true), negated_(negated), 
     executionCount_(0), squashed_(false),
     inlineImmediate_(NULL) {
@@ -77,7 +77,7 @@ ExecutableMove::ExecutableMove(
     WritableState& dst,
     const ReadableState& guardReg,
     bool negated) : 
-    src_(*immediateSource), bus_(bus), dst_(dst), guardReg_(&guardReg),
+    src_(immediateSource), bus_(&bus), dst_(&dst), guardReg_(&guardReg),
     guarded_(true), negated_(negated), 
     executionCount_(0), squashed_(false),
     inlineImmediate_(immediateSource) {
@@ -100,7 +100,7 @@ ExecutableMove::ExecutableMove(
     InlineImmediateValue* immediateSource,
     BusState& bus,
     WritableState& dst) : 
-    src_(*immediateSource), bus_(bus), dst_(dst), 
+    src_(immediateSource), bus_(&bus), dst_(&dst), 
     guardReg_(NULL), guarded_(false), negated_(false),
     executionCount_(0), squashed_(false),
     inlineImmediate_(immediateSource) {
@@ -129,9 +129,9 @@ ExecutableMove::evaluateGuard() {
         const SimValue& regValue = guardReg_->value();
         squashed_ = !((!negated_ && regValue.sIntWordValue() != 0) ||
                       (negated_ && regValue.sIntWordValue() == 0));
-        bus_.setSquashed(squashed_);
+        bus_->setSquashed(squashed_);
     } else {
-        bus_.setSquashed(false);
+        bus_->setSquashed(false);
     }
 }
 
@@ -143,7 +143,7 @@ ExecutableMove::executeRead() {
 
     if (guarded_ && GUARD_BLOCKS_BUS_WRITE && squashed_) 
         return;
-    bus_.setValueInlined(src_.value());
+    bus_->setValueInlined(src_->value());
 }
 
 /**
@@ -159,7 +159,7 @@ ExecutableMove::executeWrite() {
     if (guarded_ && squashed_) 
         return;
 
-    dst_.setValue(bus_.value());
+    dst_->setValue(bus_->value());
     executionCount_++;
 }
 
@@ -198,3 +198,25 @@ ExecutableMove::squashed() const {
     return squashed_;
 }
 
+/**
+ * A dummy constructor for being used with DummyExecutableMove
+ */
+ExecutableMove::ExecutableMove() :
+    src_(0),
+    bus_(&NullBusState::instance()), 
+    dst_(0),
+    guarded_(false), 
+    negated_(false) {
+    inlineImmediate_ = NULL;
+} 
+        
+
+
+/**
+ * Constructor for SimpleExecutableMove that sets the execution count
+ * 
+ * @param executionCount the execution count
+ */
+DummyExecutableMove::DummyExecutableMove(ClockCycleCount executionCount) {
+    executionCount_ = executionCount;
+}

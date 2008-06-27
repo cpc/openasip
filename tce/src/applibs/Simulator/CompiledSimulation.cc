@@ -12,6 +12,7 @@
 #include "Machine.hh"
 #include "Instruction.hh"
 #include "SimulatorFrontend.hh"
+#include "CompiledSimController.hh"
 #include "SimulationEventHandler.hh"
 #include "CompiledSimSymbolGenerator.hh"
 #include "DirectAccessMemory.hh"
@@ -22,8 +23,11 @@
 #include "CompiledSimCompiler.hh"
 #include "PluginTools.hh"
 #include "FileSystem.hh"
+#include "Program.hh"
+#include "Move.hh"
 
 using namespace TTAMachine;
+using namespace TTAProgram;
 
 static const ClockCycleCount MAX_CYCLES =
     std::numeric_limits<ClockCycleCount>::max();
@@ -45,6 +49,7 @@ CompiledSimulation::CompiledSimulation(
     InstructionAddress entryAddress,
     InstructionAddress lastInstruction,
     SimulatorFrontend& frontend,
+    CompiledSimController& controller,
     MemorySystem& memorySystem,
     bool dynamicCompilation,
     ProcedureBBRelations& procedureBBRelations) :
@@ -64,14 +69,39 @@ CompiledSimulation::CompiledSimulation(
     lastInstruction_(lastInstruction), pimpl_(new CompiledSimulationPimpl()) {
     pimpl_->memorySystem_ = &memorySystem;
     pimpl_->frontend_ = &frontend;
+    pimpl_->controller_ = &controller;
+    
+    // Allocate memory for calculating move and basic block execution counts
+    int moveCount = pimpl_->controller_->program().moveCount();
+    moveExecCounts_ = new ClockCycleCount[moveCount];
+    for (int i = 0; i < moveCount; ++i) {
+        moveExecCounts_[i] = 0;
+    }
+    
+    int bbCount = lastInstruction - entryAddress + 1;
+    bbExecCounts_ = new ClockCycleCount[bbCount];
+    for (int i = 0; i < bbCount; ++i) {
+        bbExecCounts_[i] = 0;
+    }
+    
+    // Find program exit points
+    pimpl_->exitPoints_ = pimpl_->controller_->findProgramExitPoints(
+        pimpl_->controller_->program(), machine_);
 }
 
 /**
  * The destructor. Frees private implementation
  */
 CompiledSimulation::~CompiledSimulation() {
+    delete[] bbExecCounts_;
+    bbExecCounts_ = NULL;
+    
+    delete[] moveExecCounts_;
+    moveExecCounts_ = NULL;
+    
     delete pimpl_;
     pimpl_ = NULL;
+    
 }
 
 /**
@@ -286,7 +316,8 @@ CompiledSimulation::requestToStop() {
  * 
  * @return true if the simulation should stop
  */
-bool CompiledSimulation::stopRequested() const {
+bool 
+CompiledSimulation::stopRequested() const {
     return stopRequested_;
 }
 
@@ -294,8 +325,43 @@ bool CompiledSimulation::stopRequested() const {
  * 
  * @return true if the simulation is finished
  */
-bool CompiledSimulation::isFinished() const {
+bool 
+CompiledSimulation::isFinished() const {
     return isFinished_;
+}
+
+/**
+ * Returns move execution count for move #moveNumber
+ * @param moveNumber move number as in POM 
+ * @return move execution count
+ */
+ClockCycleCount
+CompiledSimulation::moveExecutionCount(
+    int moveNumber,
+    InstructionAddress address) const {
+    const Program& program = pimpl_->controller_->program();
+    InstructionAddress programStartAddress = program.startAddress().location();
+    const Move& move = program.moveAt(moveNumber);
+    
+    if (move.isUnconditional() && pimpl_->exitPoints_.find(address) == 
+        pimpl_->exitPoints_.end()) {
+        // Grab the whole basic block execution count
+        InstructionAddress bbStart = basicBlockStart(address - 
+            programStartAddress);
+        return bbExecCounts_[bbStart];
+    } else { // guarded move or an exit point, grab single move execution count
+        return moveExecCounts_[moveNumber];
+    }
+}
+
+/**
+ * Returns start of the basic block for given address of a basic block
+ * @param address address of a basic block
+ * @return start address of the basic block
+ */
+InstructionAddress 
+CompiledSimulation::basicBlockStart(InstructionAddress address) const {
+    return pimpl_->controller_->basicBlockStart(address);
 }
 
 /**

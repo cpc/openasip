@@ -143,7 +143,7 @@ private:
     std::string handleOperation(const TTAMachine::HWOperation& op);
     std::string handleOperationWithoutDag(const TTAMachine::HWOperation& op);
     std::string detectConflicts(const TTAMachine::HWOperation& op);
-    std::string handleGuard(const TTAMachine::Guard& guard, bool isJumpGuard);
+    std::string handleGuard(const TTAProgram::Move& move, bool isJumpGuard);
     void generateInstruction(const TTAProgram::Instruction& instruction);
     std::string generateTriggerCode(const TTAMachine::HWOperation& op);
     std::string generateStoreTrigger(const TTAMachine::HWOperation& op);
@@ -157,7 +157,7 @@ private:
     std::string generateFUResultRead(
         const std::string& destination, 
         const std::string& resultSymbol);
-    
+
     int maxLatency() const;
     
     std::vector<TTAMachine::Port*> fuOutputPorts(
@@ -199,6 +199,8 @@ private:
     int instructionNumber_;
     /// Istruction counter for checking how many instructions to put per file
     int instructionCounter_;
+    /// How many moves have we been through with?
+    int moveCounter_;
     /// Are we at the beginning of a new procedure?
     bool isProcedureBegin_;
     /// Pointer to the current Procedure being processed

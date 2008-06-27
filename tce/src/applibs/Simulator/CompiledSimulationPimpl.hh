@@ -13,6 +13,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <set>
 
 #include "CompiledSimulation.hh"
 #include "CompiledSimCompiler.hh"
@@ -20,6 +21,7 @@
 
 class MemorySystem;
 class SimulatorFrontend;
+class CompiledSimController;
 
 /// Type for the jump table
 typedef std::vector<SimulateFunction> JumpTable;
@@ -40,6 +42,8 @@ private:
     MemorySystem* memorySystem_;
     /// The simulator frontend
     SimulatorFrontend* frontend_;
+    /// Simulation controller
+    CompiledSimController* controller_;
     
     /// Type for symbol map: string = symbolname, SimValue* = value location
     typedef std::map<std::string, SimValue*> Symbols;
@@ -47,6 +51,9 @@ private:
     Symbols symbols_;
     /// The jump table
     JumpTable jumpTable_;
+    
+    /// Program exit points in a set
+    std::set<InstructionAddress> exitPoints_;
     
     /// The Compiled Simulation compiler
     CompiledSimCompiler compiler_;

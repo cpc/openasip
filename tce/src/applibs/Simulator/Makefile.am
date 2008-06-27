@@ -39,7 +39,7 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	CompiledSimSymbolGenerator.cc ConflictDetectionCodeGenerator.cc \
 	CompiledSimMove.cc CompiledSimInterpreter.cc CompiledSimSettingCommand.cc \
 	CompiledSimulationPimpl.cc FSAFUResourceConflictDetectorPimpl.cc \
-	OperationIDIndex.cc
+	OperationIDIndex.cc CompiledSimUtilizationStats.cc
 
 SRC_ROOT_DIR = ../../
 BASE_DIR = ${SRC_ROOT_DIR}/base

@@ -25,6 +25,7 @@ namespace TTAProgram {
 }
 
 class SimulatorFrontend;
+class CompiledSimController;
 class DirectAccessMemory;
 class MemorySystem;
 class SimulatorFrontend;
@@ -92,6 +93,7 @@ public:
         InstructionAddress entryAddress,
         InstructionAddress lastInstruction,
         SimulatorFrontend& frontend,
+        CompiledSimController& controller,
         MemorySystem& memorySystem,
         bool dynamicCompilation,
         ProcedureBBRelations& procedureBBRelations);
@@ -125,7 +127,13 @@ public:
     virtual bool stopRequested() const;
     virtual bool isFinished() const;
     
+    virtual ClockCycleCount moveExecutionCount(
+        int moveNumber,
+        InstructionAddress address) const;
+    virtual InstructionAddress basicBlockStart(InstructionAddress address)
+        const;
     
+   
     // Variables are defined public because of external C functions...
     /// Number of cycles simulated so far
     ClockCycleCount cycleCount_;
@@ -151,6 +159,14 @@ public:
 
     /// A flag for FU conflict detection
     bool conflictDetected_;
+    
+    /// Move execution counts in a C style table
+    // Moves must be ordered in the same way as in POM!
+    // Also, only guarded move executions are stored here.
+    ClockCycleCount* moveExecCounts_;
+    /// Basic block execution counts in a C style table
+    // Basic blocks are referred by their start addresses. 
+    ClockCycleCount* bbExecCounts_;
     
     static void inline clearFUResults(
         FUResultType& results);

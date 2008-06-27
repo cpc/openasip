@@ -18,6 +18,10 @@
 class CompiledSimulation;
 struct ProcedureBBRelations;
 
+namespace TTAProgram {
+    class Program;
+}
+
 /**
  * A Simulation controller that uses the compiled simulation techniques.
  */
@@ -58,6 +62,7 @@ public:
         InstructionAddress entryAddress,
         InstructionAddress lastInstruction,
         SimulatorFrontend& frontend,
+        CompiledSimController& controller,
         MemorySystem& memorySystem,
         bool dynamicCompilation,
         ProcedureBBRelations& procedureBBRelations);
@@ -74,14 +79,15 @@ public:
         const std::string& portName);
     
     virtual void prepareToStop(StopReason reason);
+    
+    InstructionAddress basicBlockStart(InstructionAddress address) const;
+    const TTAProgram::Program& program() const;
         
 private:
     /// Copying not allowed.
     CompiledSimController(const CompiledSimController&);
     /// Assignment not allowed.
     CompiledSimController& operator=(const CompiledSimController&);
-        
-    InstructionAddress basicBlockStart(InstructionAddress address) const;
       
     /// Used for loading the compiled simulation plugin
     PluginTools pluginTools_;    

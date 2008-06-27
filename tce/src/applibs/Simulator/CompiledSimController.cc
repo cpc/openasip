@@ -21,6 +21,7 @@
 #include "POMValidatorResults.hh"
 #include "Instruction.hh"
 #include "MathTools.hh"
+#include "Program.hh"
 
 using std::endl;
 using namespace TTAMachine;
@@ -278,7 +279,7 @@ CompiledSimController::reset() {
     simulation_.reset(
         simulationGetter(sourceMachine_, program_.entryAddress().location(),
             program_.lastInstruction().address().location(), 
-            frontend_, memorySystem(), !frontend_.staticCompilation(), 
+            frontend_, *this, memorySystem(), !frontend_.staticCompilation(), 
             procedureBBRelations_));
     
     state_ = STA_INITIALIZED;
@@ -351,9 +352,18 @@ CompiledSimController::deleteGeneratedFiles() {
  */
 InstructionAddress 
 CompiledSimController::basicBlockStart(InstructionAddress address) const {
-    return basicBlocks_.lower_bound(address)->first;
+    return basicBlocks_.lower_bound(address)->second;
 }
 
+/**
+ * Returns the program model
+ * @return the program model
+ */
+const TTAProgram::Program&
+CompiledSimController::program() const {
+    return program_;
+}
+       
 /**
  * Returns a string containing the value(s) of the register file
  * 

@@ -29,6 +29,7 @@ namespace TTAProgram {
 class Procedure;
 class Instruction;
 class DataMemory;
+class Move;
 
 /**
  * Represents a TTA program.
@@ -70,6 +71,9 @@ public:
     Instruction& firstInstruction() const throw (InstanceNotFound);
     Instruction& instructionAt(InstructionAddress address) const
         throw (KeyNotFound);
+    
+    const Move& moveAt(int number) const throw (KeyNotFound);
+    int moveCount() const;
 
     const Procedure& procedureAtIndex(int index) const;
 
@@ -120,6 +124,8 @@ private:
     typedef ProcList::const_iterator ProcIter;
     /// List for data memories.
     typedef std::vector<DataMemory*> DataMemList;
+    /// List for moves
+    typedef std::vector<Move*> MoveList;
 
     /// Copying not allowed.
     Program(const Program&);
@@ -139,6 +145,9 @@ private:
 
     /// The data memories in the program.
     DataMemList dataMems_;
+    
+    /// List of all the moves of the program.
+    MoveList moves_;
 
     /// The start address of the program.
     Address start_;

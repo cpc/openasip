@@ -90,6 +90,7 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     basicBlockPerFile_(basicBlockPerFile),
     functionPerFile_(functionPerFile),
     instructionNumber_(0), instructionCounter_(0),
+    moveCounter_(0),                      
     isProcedureBegin_(true), currentProcedure_(0),
     pendingJumpDelay_(0), lastInstructionOfBB_(0),
     className_("CompiledSimulationEngine"),
@@ -202,7 +203,7 @@ CompiledSimCodeGenerator::basicBlocks() const {
     if (bbStarts_.empty()) {
         findBasicBlocks();
     }
-    return bbStarts_;
+    return bbEnds_;
 }
 
 /**
@@ -379,6 +380,7 @@ CompiledSimCodeGenerator::generateConstructorParameters() {
          << "InstructionAddress entryAddress," << endl
          << "InstructionAddress lastInstruction," << endl
          << "SimulatorFrontend& frontend," << endl
+         << "CompiledSimController& controller," << endl
          << "MemorySystem& memorySystem," << endl
          << "bool dynamicCompilation,"
          << "ProcedureBBRelations& procedureBBRelations)";
@@ -413,7 +415,8 @@ CompiledSimCodeGenerator::generateConstructorCode() {
         
     *os_ << " : " << endl
          << "CompiledSimulation(machine, entryAddress, lastInstruction, "
-         << "frontend, memorySystem, dynamicCompilation, procedureBBRelations),"
+         << "frontend, controller, memorySystem, dynamicCompilation, "
+         << "procedureBBRelations),"
          << endl;
     
     updateDeclaredSymbolsList();
@@ -547,12 +550,13 @@ CompiledSimCodeGenerator::generateSimulationGetter() {
          << "\tInstructionAddress entryAddress," << endl
          << "\tInstructionAddress lastInstruction," << endl
          << "\tSimulatorFrontend& frontend," << endl
+         << "\tCompiledSimController& controller," << endl
          << "\tMemorySystem& memorySystem," << endl
          << "\tbool dynamicCompilation," << endl
          << "\tProcedureBBRelations& procedureBBRelations) {" << endl
          << "\treturn new " << className_
-         << "(machine, entryAddress, lastInstruction, frontend, memorySystem, "
-         << "dynamicCompilation, procedureBBRelations); " 
+         << "(machine, entryAddress, lastInstruction, frontend, controller, "
+         << "memorySystem, dynamicCompilation, procedureBBRelations); "
          << endl << "}" << endl << endl; // 2x end-of-line in the end of file
 }
 
@@ -840,16 +844,19 @@ CompiledSimCodeGenerator::handleOperationWithoutDag(
 /**
  * Generates code for a guard
  * 
- * @param guard the guard
+ * @param move guarded move
  * @param isJumpGuard Is this a guard with jump or call instruction in it?
  * @return a std::string containing generated code for the guard check
  */
 string 
 CompiledSimCodeGenerator::handleGuard(
-    const TTAMachine::Guard& guard,
+    const TTAProgram::Move& move,
     bool isJumpGuard) {
+        
     std::stringstream ss;
     string guardSymbolName;
+    
+    TTAMachine::Guard& guard = move.guard().guard();
     
     // Find out the guard type
     if (dynamic_cast<const RegisterGuard*>(&guard) != NULL) {
@@ -989,7 +996,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     
     // Do moves
     std::vector<CompiledSimMove> lateMoves; // moves with buses
-    for (int i = 0; i < instruction.moveCount(); ++i) {
+    for (int i = 0; i < instruction.moveCount(); ++i, moveCounter_++) {
         const Move& move = instruction.move(i);
         string moveSource = symbolGen_.moveOperandSymbol(
             move.source(), move);
@@ -997,9 +1004,16 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             move.destination(), move);
         
         lastGuardBool_.clear();
+        
         if (!move.isUnconditional()) { // has a guard?
-            *os_ << handleGuard(move.guard().guard(), move.isControlFlowMove());
+            *os_ << handleGuard(move, move.isControlFlowMove());
             endGuardBracket = true;
+        }
+        
+        // increase move count if the move is guarded or it is an exit point
+        if (!move.isUnconditional() || exitPoints_.find(
+            instruction.address().location()) != exitPoints_.end()) {
+            *os_ << " ++engine.moveExecCounts_[" << moveCounter_ << "]; ";
         }
 
         if (move.source().isFUPort() && gotResults.find(moveSource) == gotResults.end() &&  
@@ -1059,7 +1073,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             move.destination(), move);
         
         if (!move.isUnconditional()) { // has a guard?
-            *os_ << handleGuard(move.guard().guard(), move.isControlFlowMove());
+            *os_ << handleGuard(move, move.isControlFlowMove());
             endGuardBracket = true;
         }
         
@@ -1082,7 +1096,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
              << conflictDetectionGenerator_.detectConflicts(hwOperation);
 
         if (endGuardBracket) {
-            *os_ << "}";
+            *os_ << "}" << endl;
             endGuardBracket = false;
         }
     } // end for
@@ -1120,6 +1134,13 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     
     AddressMap::iterator bbEnd = bbEnds_.find(address);
     
+    // Increase basic block execution count
+    if (bbEnd != bbEnds_.end()) {
+        InstructionAddress bbStart = bbEnds_.lower_bound(
+            instructionNumber_)->second;
+        *os_ << "++engine.bbExecCounts_[" << bbStart << "];" << endl;
+    }
+    
     // generate exit code if this is a return instruction
     if (exitPoints_.find(address) != exitPoints_.end()) {
         generateShutdownCode(address);
@@ -1129,7 +1150,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     if (bbEnd != bbEnds_.end()) {
         *os_ << "if (engine.cycleCount_ >= engine.cyclesToSimulate_) {" << endl
            << "\t" << "engine.programCounter_ = " << bbEnd->first + 1 << "; "
-           << "engine.stopRequested_ = true;" << endl << "}" << endl;
+           << "engine.stopRequested_ = true;" << endl << "}" << endl; 
     }
     
     // Is there a jump waiting for execution?
@@ -1350,7 +1371,7 @@ CompiledSimCodeGenerator::generateAddFUResult(
                 }
             }
         }
-    }   
+    }
 
     if (staticSimulationPossible) { // Add a new delayed assignment
         DelayedAssignment assignment = { value, destination, 

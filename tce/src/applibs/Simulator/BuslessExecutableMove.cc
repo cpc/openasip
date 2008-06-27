@@ -119,6 +119,6 @@ BuslessExecutableMove::executeWrite() {
     }
 
     squashed_ = false;
-    dst_.setValue(src_.value());
+    dst_->setValue(src_->value());
     executionCount_++;
 }

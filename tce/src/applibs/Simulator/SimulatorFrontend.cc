@@ -68,6 +68,7 @@
 #include "DataMemory.hh"
 #include "DataDefinition.hh"
 #include "CompiledSimController.hh"
+#include "CompiledSimUtilizationStats.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -2027,12 +2028,23 @@ SimulatorFrontend::machineState() {
 const UtilizationStats& 
 SimulatorFrontend::utilizationStatistics() {
     if (utilizationStats_ == NULL) {
-        utilizationStats_ = new UtilizationStats();
-        SimulationStatistics stats(
-            *currentProgram_, dynamic_cast<SimulationController*>(
-                simCon_)->instructionMemory());
-        stats.addStatistics(*utilizationStats_);
-        stats.calculate();
+        // stats calculation differs slightly for compiled & interpretive sims.
+        if (!compiledSimulation_) {
+            utilizationStats_ = new UtilizationStats();
+            SimulationStatistics stats(
+                *currentProgram_, dynamic_cast<SimulationController*>(
+                    simCon_)->instructionMemory());
+            stats.addStatistics(*utilizationStats_);
+            stats.calculate();
+        } else {
+            CompiledSimUtilizationStats* compiledSimUtilizationStats =
+                new CompiledSimUtilizationStats();
+            CompiledSimController& compiledSimCon = dynamic_cast<
+                CompiledSimController&>(*simCon_);
+            compiledSimUtilizationStats->calculate(program(), 
+                *compiledSimCon.compiledSimulation());
+            utilizationStats_ = compiledSimUtilizationStats;
+        }
     }
     return *utilizationStats_;
 }
