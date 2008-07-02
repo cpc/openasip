@@ -58,8 +58,7 @@ class BasicBlockNode;
 /**
  * Constructor of Data Dependence graph builder
  */
-DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
-    processOrder_(0), entryNode_(NULL) {
+DataDependenceGraphBuilder::DataDependenceGraphBuilder() { 
 
     addAliasAnalyzer(new ConstantAliasAnalyzer);
 
@@ -96,12 +95,12 @@ DataDependenceGraphBuilder::addAliasAnalyzer(MemoryAliasAnalyzer* analyzer) {
 */
 void
 DataDependenceGraphBuilder::changeState(
-    BBData& bbd, BBState2 newState) {
+    BBData& bbd, BBState newState) {
 
-    BBState2 oldState = bbd.state2_;
+    BBState oldState = bbd.state_;
     if (newState != oldState) {
         ContainerTools::removeValueIfExists(blocksByState_[oldState], &bbd);
-        bbd.state2_ = newState;
+        bbd.state_ = newState;
         blocksByState_[newState].push_back(&bbd);
     }
 }
@@ -120,7 +119,6 @@ DataDependenceGraphBuilder::build(
     BasicBlock& bb, const UniversalMachine* um) 
     throw (IllegalProgram) {
 
-    singleBBMode_ = true;
     currentDDG_ = new DataDependenceGraph();
     // GRR, start and end addresses are lost..
     currentBB_ = new BasicBlockNode(bb); 
@@ -145,7 +143,6 @@ DataDependenceGraphBuilder::build(
 DataDependenceGraph*
 DataDependenceGraphBuilder::build(
     ControlFlowGraph& cfg, const UniversalMachine* um) {
-    singleBBMode_ = false;
 
     // @TODO: when CFG subgraphs are in use, 2nd param not always true
     DataDependenceGraph* ddg = new DataDependenceGraph(
@@ -159,8 +156,8 @@ DataDependenceGraphBuilder::build(
 
     currentDDG_ = ddg;
 
-    entryNode_ = new MoveNode();
-    currentDDG_->addNode(*entryNode_, cfg.entryNode());
+    MoveNode* entryNode = new MoveNode();
+    currentDDG_->addNode(*entryNode, cfg.entryNode());
 
     // initialize state lists
     for (int bbi = 0; bbi < cfg.nodeCount(); bbi++) {
@@ -169,7 +166,7 @@ DataDependenceGraphBuilder::build(
         bbData_[currentBB_] = bbd;
         // in the beginning all are unreached
         if (currentBB_->isNormalBB()) {
-            blocksByState_[BB_UNREACHED2].push_back(bbd);
+            blocksByState_[BB_UNREACHED].push_back(bbd);
         }
     }
 
@@ -177,18 +174,38 @@ DataDependenceGraphBuilder::build(
     BBNodeSet firstBBs = cfg.successors(cfg.entryNode());
     assert(firstBBs.size() == 1);
     BasicBlockNode* firstBB = *firstBBs.begin();
-    changeState(*(bbData_[firstBB]), BB_QUEUED2);
+    changeState(*(bbData_[firstBB]), BB_QUEUED);
 
     // current data need to be set for entry node processing
     currentData_ = bbData_[firstBB];
     // set entry deps. ( procedure parameter edges )
-    processEntryNode(*entryNode_);
+    processEntryNode(*entryNode);
 
     // iterate over BB's. Loop as long as there are queued BB's.
 
-    while (!blocksByState_[BB_QUEUED2].empty()) {
+    iterateBBs(cfg);
+
+    // all should be constructed, but if there are unreachable BB's
+    // we might want to handle those also
+    while (!blocksByState_[BB_UNREACHED].empty()) {
+        Application::logStream() << "Warning: Unreachable Basic Block!" << std::endl;
+        changeState(**blocksByState_[BB_UNREACHED].begin(), BB_QUEUED);
+        iterateBBs(cfg);
+    }
+
+    // all done, then cleanup.
+
+    // free bb data
+    AssocTools::deleteAllValues(bbData_);
+
+    return ddg;
+}
+
+void DataDependenceGraphBuilder::iterateBBs(ControlFlowGraph& cfg) {
+
+    while (!blocksByState_[BB_QUEUED].empty()) {
         std::list<BBData*>::iterator bbIter = 
-            blocksByState_[BB_QUEUED2].begin();
+            blocksByState_[BB_QUEUED].begin();
         BBData& bbd = **bbIter;
 
         // construct or update BB
@@ -198,7 +215,7 @@ DataDependenceGraphBuilder::build(
             constructIndividualBB(bbd);
         }
         // mark as ready
-        changeState(bbd, BB_READY2);
+        changeState(bbd, BB_READY);
 
         // create deps after and update that to succeeding BBs.
         // succeeding BB's are also queued to be scheduled here.
@@ -211,12 +228,7 @@ DataDependenceGraphBuilder::build(
         bbd.constructed_ = true;
     }
 
-    // all done, then cleanup.
 
-    // free bb data
-    AssocTools::deleteAllValues(bbData_);
-
-    return ddg;
 }
 
 /**
@@ -296,8 +308,8 @@ void DataDependenceGraphBuilder::setSucceedingPredeps(
         }
         // need to queue successor for update?
         if (changed || queueAll) {
-            if (succData.state2_ != BB_QUEUED2) {
-                changeState(succData, BB_QUEUED2);
+            if (succData.state_ != BB_QUEUED) {
+                changeState(succData, BB_QUEUED);
             }
         }
     }
@@ -1438,7 +1450,7 @@ DataDependenceGraphBuilder::analyzeMemoryAlias(
  * Constructor
  */
 DataDependenceGraphBuilder::BBData::BBData(BasicBlockNode& bb) :
-    state2_(BB_UNREACHED2), constructed_(false), bblock_(&bb) , memLastKill_(),
+    state_(BB_UNREACHED), constructed_(false), bblock_(&bb) , memLastKill_(),
     memKill_() {
 }
 

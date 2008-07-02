@@ -51,9 +51,6 @@ public:
     DataDependenceGraph* build(
         ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
 
-//    DataDependenceGraph* build2(
-//        ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
-
     DataDependenceGraph* build(
         BasicBlock& bb, const UniversalMachine* um = NULL) 
         throw (IllegalProgram);    
@@ -69,15 +66,17 @@ private:
      * BB_READY2 means BB which is already processed. May however change state to
      * BB_QUEUED 
      */
-    enum BBState2 {
-        BB_UNREACHED2 = 0,
-        BB_QUEUED2 = 1,
-        BB_READY2 = 2,
-        BB_STATES2};
+    enum BBState {
+        BB_UNREACHED = 0,
+        BB_QUEUED = 1,
+        BB_READY = 2,
+        BB_STATES};
     
     struct MNData2 {
         MNData2() : mn_(NULL) {} // just because STL sucks. there is always = after this.
-        MNData2(const MoveNode& mn, bool guard = false, bool ra = false, bool pseudo = false) :
+        MNData2(
+            const MoveNode& mn, bool guard = false, bool ra = false, 
+            bool pseudo = false) :
             mn_(&mn), guard_(guard), ra_(ra), pseudo_(pseudo) {}
         // TODO: should be deterministic - this is not!
         bool operator< (const MNData2& other) const {
@@ -123,7 +122,7 @@ private:
         POList destPending_; // operations lacking operands
         POList readPending_;  // operations lacking result read
 
-        BBState2 state2_;
+        BBState state_;
         bool constructed_;
 
         BasicBlockNode* bblock_;
@@ -145,10 +144,6 @@ private:
         // all alive after this BB.
         RegisterUseMapSet regDefAfter_;
         RegisterUseMapSet regUseAfter_;
-
-        // dependencies not used in this or after this.
-        // colleced afterwards, currently not yet implemented.
-        std::set<std::string> regExpires_;
 
         // dependencies out from this BB
         RegisterUseSet memDefines_;
@@ -175,6 +170,8 @@ private:
     };
 
     bool updateAliveAfter(BBData& bbd);
+
+    void iterateBBs(ControlFlowGraph& cfg);
 
     void setSucceedingPredeps(
         BBData& bbd, ControlFlowGraph& cfg, bool queueAll);
@@ -252,17 +249,16 @@ private:
 
     // functions related to iterating over basic blocks 
 
-//    void processParameters(BBData& bbd);
-
-    void changeState(BBData& bbd, BBState2 newState);
-//    void queueBB(BBData& bbData);
+    void changeState(BBData& bbd, BBState newState);
 
     static std::string trName(TTAProgram::TerminalRegister& tr);
 
-//    void copyMNDList(MNDList& dst, MNDList& src);
+    // related to mem operation addresses
 
     MoveNode* addressOperandMove(ProgramOperation&po);
     MoveNode* addressMove(const MoveNode&mn);
+
+    // get special register data from old frontend code
 
     void getStaticRegisters(
         TTAProgram::Program& prog, 
@@ -284,21 +280,16 @@ private:
         const UniversalMachine& um, 
         std::map<int,std::string>& registers);
 
+    // then member variables.
 
-    std::list<BBData*> blocksByState_[BB_STATES2];
+    std::list<BBData*> blocksByState_[BB_STATES];
 
-    
     std::map <BasicBlockNode*, BBData*> bbData_;
     BasicBlockNode* currentBB_;
     BBData* currentData_;
     DataDependenceGraph* currentDDG_;
 
-    int processOrder_;
-
     std::vector<MemoryAliasAnalyzer*> aliasAnalyzers_;
-
-    bool singleBBMode_;
-    MoveNode* entryNode_;
 
     // contains stack pointer, RV and parameter registers.
     std::map<int, std::string> specialRegisters_;
