@@ -25,6 +25,7 @@
 #include "POMDisassembler.hh"
 #include "BasicBlockNode.hh"
 #include "TCEString.hh"
+#include "Guard.hh"
 
 /**
  * Sets bookkeeping that the given movende belongs to the given basic block.
@@ -1481,6 +1482,28 @@ DataDependenceGraph::fixInterBBAntiEdges(
                                     DataDependenceEdge::EDGE_REGISTER,
                                     DataDependenceEdge::DEP_WAW);
                             connectNodes(mn1, mn2, *edge);
+                        }
+                        // antideps also for guards
+                        if (!mn1.move().isUnconditional()) {
+                            TTAMachine::Guard& g = mn1.move().guard().guard();
+                            TTAMachine::RegisterGuard* rg = 
+                                dynamic_cast<TTAMachine::RegisterGuard*>(&g);
+                            if (rg != NULL && 
+                                mn2.move().destination().isGPR()) {
+                                TTAProgram::TerminalRegister& tr = 
+                                    dynamic_cast<
+                                    TTAProgram::TerminalRegister&>(
+                                        mn2.move().destination());
+                                if (rg->registerFile() == &tr.registerFile() &&
+                                    rg->registerIndex() == tr.index()) {
+                                    
+                                    DataDependenceEdge* edge = 
+                                        new DataDependenceEdge(
+                                            DataDependenceEdge::EDGE_REGISTER,
+                                            DataDependenceEdge::DEP_WAR,true);
+                                    connectNodes(mn1, mn2, *edge);
+                                }
+                            }
                         }
                     }
                 }

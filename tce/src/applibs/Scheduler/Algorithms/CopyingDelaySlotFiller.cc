@@ -506,21 +506,75 @@ CopyingDelaySlotFiller::tryToFillSlots(
                 assert(mn.isScheduled());
                 assert(mn.cycle() == currentCycle);
 
-                // check that result scheduling is possible
+                // check that result and other operand scheduling is possible
+                // if not, this can not be scheuduled either.
+                // even though alone would be possible
                 if (mn.isDestinationOperation()) {
                     ProgramOperation& po = mn.destinationOperation();
+                    // if all inputs scheduled, try immediately results
                     if (po.areInputsAssigned()) {
                         for (int j = 0; j < po.outputMoveCount(); j++) {
-                            MoveNode& mn = po.outputMove(j);
+                            MoveNode& resMn = po.outputMove(j);
                             int mnCycle = 
-                                firstToFill + oldMoveNodes_[&mn]->cycle();
-                            if (!rm.canAssign(mnCycle, mn)) {
+                                firstToFill + oldMoveNodes_[&resMn]->cycle();
+                            assert(resMn.isSourceOperation());
+                            if (!rm.canAssign(mnCycle, resMn)) {
                                 failed = true;
                             }
                         }
-                        if (failed) {
-                            break;
+                    } else {
+                        // need to assign all inputs and then
+                        // try to assign result read
+                        std::list<MoveNode*> tempAssigns;
+                        for (int j = 0; j < po.inputMoveCount(); j++) {
+                            MoveNode& operMn = po.inputMove(j);
+                            // schedule only those not scheduled
+                            if (!operMn.isScheduled()) {
+                                int mnCycle = 
+                                    firstToFill + 
+                                    oldMoveNodes_[&operMn]->cycle();
+                                assert(operMn.isDestinationOperation());
+
+                                if (!rm.canAssign(mnCycle, operMn)) {
+                                    failed = true;
+                                    break;
+                                } else {
+                                    rm.assign(mnCycle, operMn);
+                                    // need to be removed at end
+                                    tempAssigns.push_back(&operMn);
+                                }
+                            }
+                        } // end for
+
+                        // all operands could be scheduled,
+                        // then test results.
+                        if (!failed) {
+                            assert(po.areInputsAssigned());
+                            // allnputs scheduled, then outputs
+                            for (int j = 0; j < po.outputMoveCount(); j++) {
+                                MoveNode& resMn = po.outputMove(j);
+                                assert(!resMn.isScheduled());
+                                int mnCycle = 
+                                    firstToFill + 
+                                    oldMoveNodes_[&resMn]->cycle();
+                                assert(resMn.isSourceOperation());
+
+                                if (!rm.canAssign(mnCycle, resMn)) {
+                                    failed = true;
+                                    break;
+                                }
+                            }
                         }
+                        // now we have to unassign all temporarily assigned
+                        // movenodes.
+                        for (std::list<MoveNode*>::iterator iter =
+                                 tempAssigns.begin(); 
+                             iter != tempAssigns.end(); iter++) {
+                            rm.unassign(**iter);
+                        }
+                    }
+                    if (failed) {
+                        break;
                     }
                 }
             } else {
@@ -555,7 +609,8 @@ CopyingDelaySlotFiller::tryToFillSlots(
          iter != poOwned_.end(); iter++) {
         ProgramOperation* po = iter->first;
         if (wholePOMoved(*po, moves)) {
-            iter->second = false;
+            // will be owned by ddg
+            iter->second = false; 
             ddg_->addProgramOperation(po);
         }
     }
@@ -574,6 +629,7 @@ CopyingDelaySlotFiller::tryToFillSlots(
                 ProgramOperation& po = mn.sourceOperation();
                 // whole PO not copied, set to old PO
                 if (poOwned_[&po] == true) {
+                    po.removeOutputNode(mn);
                     ProgramOperation* oldPO = oldProgramOperations_[&po];
                     mn.setSourceOperation(*oldPO);
                     oldPO->addOutputNode(mn);
@@ -583,6 +639,7 @@ CopyingDelaySlotFiller::tryToFillSlots(
                 ProgramOperation& po = mn.destinationOperation();
                 // whole PO not copied, set to old PO
                 if (poOwned_[&po] == true) {
+                    po.removeInputNode(mn);
                     ProgramOperation* oldPO = oldProgramOperations_[&po];
                     mn.setDestinationOperation(*oldPO);
                     oldPO->addInputNode(mn);
@@ -619,10 +676,12 @@ CopyingDelaySlotFiller::getMoveNode(MoveNode& old) {
         if (old.isSourceOperation()) {
             newMN->setSourceOperation(
                 getProgramOperation(old.sourceOperation()));
+            assert(newMN->isSourceOperation());
         }
         if (old.isDestinationOperation()) {
             newMN->setDestinationOperation(
                 getProgramOperation(old.destinationOperation()));
+            assert(newMN->isDestinationOperation());
         }
         return *newMN;
     }    
@@ -647,10 +706,12 @@ CopyingDelaySlotFiller::getProgramOperation(ProgramOperation& old) {
         oldProgramOperations_[po] = &old;
         for (int i = 0; i < old.inputMoveCount();i++) {
             MoveNode& mn = old.inputMove(i);
+            assert(mn.isDestinationOperation());
             po->addInputNode(getMoveNode(mn));
         }
         for (int j = 0; j < old.outputMoveCount();j++) {
             MoveNode& mn = old.outputMove(j);
+            assert(mn.isSourceOperation());
             po->addOutputNode(getMoveNode(mn));
         }
         return *po;
@@ -708,7 +769,13 @@ CopyingDelaySlotFiller::getMove(Move& old) {
         }            
 
         moves_[&old] = newMove;
-        // todo: guard?
+
+        // set guard of new move to be same as old move.
+        if (!old.isUnconditional()) {
+            TTAProgram::MoveGuard* g = old.guard().copy();
+            newMove->setGuard(g);
+        }
+
         moveOwned_[newMove] = true;
         return *newMove;
     }
