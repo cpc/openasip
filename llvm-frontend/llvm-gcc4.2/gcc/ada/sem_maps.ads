@@ -64,14 +64,16 @@ package Sem_Maps is
    --  Retrieve image of E under M, Empty if undefined
 
    procedure Add_Association
-     (M    : in out Map;
+   --  LLVM local
+     (M    : Map;
       O_Id : Entity_Id;
       N_Id : Entity_Id;
       Kind : Scope_Kind := S_Local);
    --  Update M in place. On entry M (O_Id) must not be defined
 
    procedure Update_Association
-     (M    : in out Map;
+   --  LLVM local
+     (M    : Map;
       O_Id : Entity_Id;
       N_Id : Entity_Id;
       Kind : Scope_Kind := S_Local);

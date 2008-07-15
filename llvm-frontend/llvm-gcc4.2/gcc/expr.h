@@ -752,7 +752,12 @@ extern void init_all_optabs (void);
 extern rtx init_one_libfunc (const char *);
 /* LLVM LOCAL begin */
 /* Call this to initialize an optab function tree.  */
-extern tree llvm_init_one_libfunc (const char *);
+#ifdef ENABLE_LLVM
+extern tree llvm_init_one_libfunc_impl (const char *);
+#define llvm_init_one_libfunc	llvm_init_one_libfunc_impl
+#else
+#define llvm_init_one_libfunc	init_one_libfunc
+#endif
 /* LLVM LOCAL end */
 
 extern int vector_mode_valid_p (enum machine_mode);

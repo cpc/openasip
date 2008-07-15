@@ -25,7 +25,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* APPLE LOCAL begin mainline */
 #undef  TARGET_64BIT
+/* APPLE LOCAL begin 5612787 mainline sse4 */
 #define TARGET_64BIT (target_flags & MASK_64BIT)
+/* APPLE LOCAL end 5612787 mainline sse4 */
 
 #ifdef IN_LIBGCC2
 #undef TARGET_64BIT
@@ -255,7 +257,8 @@ extern void darwin_x86_file_end (void);
 #undef FUNCTION_PROFILER
 #define FUNCTION_PROFILER(FILE, LABELNO)				\
     do {								\
-      if (MACHOPIC_INDIRECT && !TARGET_64BIT)				\
+      /* APPLE LOCAL axe stubs 5571540 */				\
+      if (darwin_stubs && MACHOPIC_INDIRECT && !TARGET_64BIT)		\
 	{								\
 	  const char *name = machopic_mcount_stub_name ();		\
 	  fprintf (FILE, "\tcall %s\n", name+1);  /*  skip '&'  */	\
@@ -283,6 +286,22 @@ extern int flag_iasm_blocks;
 	if (MACHO_DYNAMIC_NO_PIC_P)				\
 	  target_flags &= ~MASK_MACHO_DYNAMIC_NO_PIC;		\
       }								\
+    /* APPLE LOCAL begin fix this for mainline */		\
+    /* For mainline this needs to be fixed to have every	\
+       cpu architecture feature as an isa mask.	 Every		\
+       cpu we've shipped supports all of these features.	\
+       This includes all ix86_arch cpu features currently	\
+       defined except x86_cmove which is turned on for		\
+       TARGET_SSE anyhow.  */					\
+    if (!ix86_arch_string)					\
+      {								\
+	x86_cmpxchg = ~(0);					\
+	x86_cmpxchg8b = ~(0);					\
+	x86_cmpxchg16b = ~(0);					\
+	x86_xadd = ~(0);					\
+	x86_bswap = ~(0);					\
+      }								\
+    /* APPLE LOCAL end fix this for mainline */			\
   } while (0)
 
 /* True, iff we're generating fast turn around debugging code.  When
@@ -384,11 +403,3 @@ extern void ix86_darwin_init_expanders (void);
    used in Mach-O.  */
 #undef MACHO_SYMBOL_FLAG_VARIABLE
 #define MACHO_SYMBOL_FLAG_VARIABLE ((SYMBOL_FLAG_MACH_DEP) << 3)
-/* LLVM LOCAL begin */
-#ifdef ENABLE_LLVM
-
-/* Add general target specific stuff */
-#include "llvm-i386-target.h"
-
-/* LLVM LOCAL end */
-#endif

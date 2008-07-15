@@ -1565,8 +1565,9 @@ package body Sem_Cat is
          --  If we have a true dereference that comes from source and that
          --  is a controlling argument for a dispatching call, accept it.
 
-         if K = N_Explicit_Dereference
-           and then Is_Actual_Parameter (N)
+         --  LLVM local begin
+         if Is_Actual_Parameter (N)
+         --  LLVM local end
            and then Is_Controlling_Actual (N)
          then
             return;

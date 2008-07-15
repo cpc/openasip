@@ -12969,6 +12969,8 @@ value_dependent_expression_p (tree expression)
 
     case SIZEOF_EXPR:
     case ALIGNOF_EXPR:
+    /* APPLE LOCAL radar 5619052 */
+    case AT_ENCODE_EXPR:
       /* A `sizeof' expression is value-dependent if the operand is
 	 type-dependent.  */
       expression = TREE_OPERAND (expression, 0);
@@ -13058,7 +13060,10 @@ type_dependent_expression_p (tree expression)
       || TREE_CODE (expression) == TYPEID_EXPR
       || TREE_CODE (expression) == DELETE_EXPR
       || TREE_CODE (expression) == VEC_DELETE_EXPR
-      || TREE_CODE (expression) == THROW_EXPR)
+      /* APPLE LOCAL begin radar 5619052 */
+      || TREE_CODE (expression) == THROW_EXPR
+      || TREE_CODE (expression) == AT_ENCODE_EXPR)
+      /* APPLE LOCAL end radar 5619052 */
     return false;
 
   /* The types of these expressions depends only on the type to which

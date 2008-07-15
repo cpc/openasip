@@ -2667,7 +2667,11 @@ dbxout_type_xref (tree type)
       gcc_unreachable ();
     }
 
-  if (TYPE_NAME (type) != 0)
+  /* APPLE LOCAL begin 5597292 */
+  if (TYPE_NAME (type) != 0
+      && (TREE_CODE (TYPE_NAME (type)) != TYPE_DECL
+	  || DECL_NAME (TYPE_NAME (type)) != 0))
+  /* APPLE LOCAL end 5597292 */
     dbxout_type_name (type);
   else
     {

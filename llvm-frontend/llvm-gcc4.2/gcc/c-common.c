@@ -268,6 +268,12 @@ int flag_short_wchar;
 int flag_lvalue_cast_assign = 1;
 /* APPLE LOCAL end lvalue cast */
 
+/* APPLE LOCAL begin 5612787 mainline sse4 */
+/* Nonzero means allow implicit conversions between vectors with
+   differing numbers of subparts and/or differing element types.  */
+int flag_lax_vector_conversions = 1;
+/* APPLE LOCAL end 5612787 mainline sse4 */
+
 /* Nonzero means allow Microsoft extensions without warnings or errors.  */
 int flag_ms_extensions;
 
@@ -727,7 +733,8 @@ const struct attribute_spec c_common_attribute_table[] =
 			      handle_cleanup_attribute },
   { "warn_unused_result",     0, 0, false, true, true,
 			      handle_warn_unused_result_attribute },
-  { "sentinel",               0, 1, false, true, true,
+  /* APPLE LOCAL two arg sentinel 5631180 */
+  { "sentinel",               0, 2, false, true, true,
 			      handle_sentinel_attribute },
   /* LLVM LOCAL begin */
   #ifdef ENABLE_LLVM
@@ -1161,19 +1168,44 @@ constant_fits_type_p (tree c, tree type)
   return !TREE_OVERFLOW (c);
 }
 
+/* APPLE LOCAL begin 5612787 mainline sse4 */
 /* Nonzero if vector types T1 and T2 can be converted to each other
    without an explicit cast.  */
 int
-vector_types_convertible_p (tree t1, tree t2)
+vector_types_convertible_p (tree t1, tree t2, bool emit_lax_note)
 {
-  return targetm.vector_opaque_p (t1)
-	 || targetm.vector_opaque_p (t2)
-	 || (tree_int_cst_equal (TYPE_SIZE (t1), TYPE_SIZE (t2))
-	     && (TREE_CODE (TREE_TYPE (t1)) != REAL_TYPE ||
-		 TYPE_PRECISION (t1) == TYPE_PRECISION (t2))
-	     && INTEGRAL_TYPE_P (TREE_TYPE (t1))
-		== INTEGRAL_TYPE_P (TREE_TYPE (t2)));
+  static bool emitted_lax_note = false;
+  bool convertible_lax;
+
+  if ((targetm.vector_opaque_p (t1) || targetm.vector_opaque_p (t2))
+      && tree_int_cst_equal (TYPE_SIZE (t1), TYPE_SIZE (t2)))
+    return true;
+
+  convertible_lax =
+    (tree_int_cst_equal (TYPE_SIZE (t1), TYPE_SIZE (t2))
+     && (TREE_CODE (TREE_TYPE (t1)) != REAL_TYPE ||
+	 TYPE_PRECISION (t1) == TYPE_PRECISION (t2))
+     && (INTEGRAL_TYPE_P (TREE_TYPE (t1))
+	 == INTEGRAL_TYPE_P (TREE_TYPE (t2))));
+
+  if (!convertible_lax || flag_lax_vector_conversions)
+    return convertible_lax;
+
+  if (TYPE_VECTOR_SUBPARTS (t1) == TYPE_VECTOR_SUBPARTS (t2)
+      && comptypes (TREE_TYPE (t1), TREE_TYPE (t2)))
+    return true;
+
+  if (emit_lax_note && !emitted_lax_note)
+    {
+      emitted_lax_note = true;
+      inform ("use -flax-vector-conversions to permit "
+              "conversions between vectors with differing "
+              "element types or numbers of subparts");
+    }
+
+  return false;
 }
+/* APPLE LOCAL end 5612787 mainline sse4 */
 
 /* APPLE LOCAL begin mainline */
 /* Produce warnings after a conversion.  RESULT is the result of
@@ -2082,7 +2114,8 @@ min_precision (tree value, int unsignedp)
    CODE.  */
 
 void
-binary_op_error (enum tree_code code)
+/* APPLE LOCAL 5612787 mainline sse4 */
+binary_op_error (enum tree_code code, tree type0, tree type1)
 {
   const char *opname;
 
@@ -2133,7 +2166,10 @@ binary_op_error (enum tree_code code)
     default:
       gcc_unreachable ();
     }
-  error ("invalid operands to binary %s", opname);
+  /* APPLE LOCAL begin 5612787 mainline sse4 */
+  error ("invalid operands to binary %s (have %qT and %qT)", opname,
+	 type0, type1);
+  /* APPLE LOCAL end 5612787 mainline sse4 */
 }
 
 /* Subroutine of build_binary_op, used for comparison operations.
@@ -5795,11 +5831,32 @@ check_function_sentinel (tree attrs, tree params, tree typelist)
 
   if (attr)
     {
+      /* APPLE LOCAL begin two arg sentinel 5631180 */
+      unsigned null_pos = 0;
+      tree val;
+      
+      if (TREE_VALUE (attr)
+	  && (val=TREE_CHAIN (TREE_VALUE (attr)))
+	  && (val=TREE_VALUE (val)))
+	{
+	  if (TREE_CODE (val) != INTEGER_CST
+	      || (TREE_INT_CST_LOW (val) > 1))
+	    error ("invalid argument, requires 0 or 1");
+	  else
+	    null_pos = TREE_INT_CST_LOW (val);
+	}
+      /* APPLE LOCAL end two arg sentinel 5631180 */
+
       /* Skip over the named arguments.  */
       while (typelist && params)
       {
 	typelist = TREE_CHAIN (typelist);
-	params = TREE_CHAIN (params);
+	/* APPLE LOCAL begin two arg sentinel 5631180 */
+	if (null_pos > 0)
+	  --null_pos;
+	else
+	  params = TREE_CHAIN (params);
+	/* APPLE LOCAL end two arg sentinel 5631180 */
       }
 
       if (typelist || !params)

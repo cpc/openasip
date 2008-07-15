@@ -8342,7 +8342,8 @@ package body Exp_Dist is
                                  Build_From_Any_Call (Etype (Field),
                                    Build_Get_Aggregate_Element (Loc,
                                      Any => Any,
-                                     Tc  => Build_TypeCode_Call (Loc,
+                           --  LLVM local
+                                     TC  => Build_TypeCode_Call (Loc,
                                               Etype (Field), Decls),
                                      Idx => Make_Integer_Literal (Loc,
                                               Counter)),
@@ -8382,7 +8383,8 @@ package body Exp_Dist is
                                       Parameter_Associations => New_List (
                                         Build_Get_Aggregate_Element (Loc,
                                           Any => Any,
-                                          Tc  => Make_Function_Call (Loc,
+                                          --  LLVM local
+                                          TC  => Make_Function_Call (Loc,
                                             Name => New_Occurrence_Of (
                                               RTE (RE_Any_Member_Type), Loc),
                                             Parameter_Associations =>
@@ -8461,7 +8463,8 @@ package body Exp_Dist is
                                     Build_From_Any_Call (Etype (Disc),
                                       Build_Get_Aggregate_Element (Loc,
                                         Any => Any_Parameter,
-                                        Tc  => Build_TypeCode_Call
+                              --  LLVM local
+                                        TC  => Build_TypeCode_Call
                                                  (Loc, Etype (Disc), Decls),
                                         Idx => Make_Integer_Literal
                                                  (Loc, Component_Counter)),
@@ -8544,7 +8547,8 @@ package body Exp_Dist is
                      Element_Any : constant Node_Id :=
                        Build_Get_Aggregate_Element (Loc,
                          Any => Any,
-                         Tc  => Build_TypeCode_Call (Loc,
+                     --  LLVM local
+                         TC  => Build_TypeCode_Call (Loc,
                                   Etype (Datum), Decls),
                          Idx => New_Occurrence_Of (Counter, Loc));
 
@@ -8633,7 +8637,8 @@ package body Exp_Dist is
                                    Indt,
                                    Build_Get_Aggregate_Element (Loc,
                                      Any => Any_Parameter,
-                                     Tc  => Build_TypeCode_Call (Loc,
+                           --  LLVM local
+                                     TC  => Build_TypeCode_Call (Loc,
                                               Indt, Decls),
                                      Idx => Make_Integer_Literal (Loc, J - 1)),
                                    Decls)));

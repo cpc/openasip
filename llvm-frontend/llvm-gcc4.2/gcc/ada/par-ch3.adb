@@ -4334,6 +4334,8 @@ package body Ch3 is
 
    procedure Skip_Declaration (S : List_Id) is
       Dummy_Done : Boolean;
+      --  LLVM local
+      pragma Warnings (Off, Dummy_Done);
 
    begin
       P_Declarative_Items (S, Dummy_Done, False);

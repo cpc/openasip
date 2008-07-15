@@ -5138,7 +5138,7 @@ init_intraclass_conv_libfuncs (convert_optab tab, const char *opname,
 
 /* LLVM local begin */
 tree
-llvm_init_one_libfunc (const char *name)
+llvm_init_one_libfunc_impl (const char *name)
 {
   /* Create a FUNCTION_DECL that can be passed to
      targetm.encode_section_info.  */
@@ -5169,7 +5169,7 @@ init_one_libfunc (const char *name)
   return NULL_RTX;
 #endif
 
-  decl = llvm_init_one_libfunc (name);
+  decl = llvm_init_one_libfunc_impl (name);
   /* LLVM local end */
 
   symbol = XEXP (DECL_RTL (decl), 0);

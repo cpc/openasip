@@ -948,6 +948,17 @@ tree_ssa_useless_type_conversion_1 (tree outer_type, tree inner_type)
 	      != TYPE_VOLATILE (TREE_TYPE (inner_type)))
     return false;
 
+  /* APPLE LOCAL begin mainline */
+  /* Do not lose casts from const qualified to non-const                                 
+     qualified.  */
+  else if (POINTER_TYPE_P (inner_type)
+           && POINTER_TYPE_P (outer_type)
+	   && (TYPE_READONLY (TREE_TYPE (outer_type))
+	       != TYPE_READONLY (TREE_TYPE (inner_type)))
+	   && TYPE_READONLY (TREE_TYPE (inner_type)))
+    return false;
+  /* APPLE LOCAL end mainline */
+
   /* Pointers/references are equivalent if their pointed to types
      are effectively the same.  This allows to strip conversions between
      pointer types with different type qualifiers.  */

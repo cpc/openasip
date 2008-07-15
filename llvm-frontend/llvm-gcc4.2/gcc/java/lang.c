@@ -139,7 +139,7 @@ int flag_deprecated = 1;
 /* int flag_optimize_sci = 0;  */
 
 /* Don't attempt to verify invocations.  */
-int flag_verify_invocations = 0; 
+int flag_verify_invocations = 0;
 
 /* When nonzero, print extra version information.  */
 static int v_flag = 0;
@@ -342,7 +342,7 @@ java_handle_option (size_t scode, const char *arg, int value)
     case OPT_version:
       v_flag = 1;
       break;
-      
+
     default:
       if (cl_options[code].flags & CL_Java)
 	break;
@@ -798,102 +798,8 @@ lang_build_type_variant (tree type, int constp ATTRIBUTE_UNUSED, int volatilep A
 }
 /* APPLE LOCAL end AltiVec */
 
-/* APPLE LOCAL begin constant cfstrings */
-enum { blabla } c_language;
-const char *constant_string_class_name = "die die";
-int flag_weak = 1;
-int parse_in = 0;
-void build_stmt (void);
-void build_stmt (void) { abort (); }
-void store_init_value(void);
-void store_init_value(void) { abort (); }
-/* APPLE LOCAL end constant cfstrings */
-
 /* APPLE LOCAL disable_typechecking_for_spec_flag */
 int disable_typechecking_for_spec_flag = 0;
-
-/* APPLE LOCAL begin CW asm blocks */
-/* Dummies needed because we use them from cpplib, yuck.  */
-int flag_iasm_blocks;
-int iasm_state;
-bool iasm_in_operands;
-void build_modify_expr (void);
-void iasm_addr (void);
-void iasm_build_bracket (void);
-void build_function_call (void);
-void iasm_get_register_var (void);
-bool iasm_is_pseudo (void);
-void iasm_for_constraint (void);
-void iasm_print_operand (void);
-void iasm_force_constraint (void);
-void pointer_int_sum (void);
-tree decl_attributes (tree *tp, tree p, int s);
-void build_modify_expr (void) { abort (); }
-void iasm_addr (void) { abort (); }
-void iasm_build_bracket (void) { abort (); }
-void build_function_call (void) { abort (); }
-void iasm_get_register_var (void) { abort (); }
-bool iasm_is_pseudo (void) { abort (); }
-void iasm_for_constraint (void) { abort (); }
-void iasm_print_operand (void) { abort (); }
-void iasm_force_constraint (void) { abort (); }
-void pointer_int_sum (void) { abort (); }
-tree decl_attributes (tree *ARG_UNUSED (tp),
-		      tree ARG_UNUSED (p),
-		      int ARG_UNUSED (s))
-{
-  abort ();
-}
-/* APPLE LOCAL end CW asm blocks */
-
-/* APPLE LOCAL begin 4174833 */
-tree objc_is_class_name (tree);
-
-tree
-objc_is_class_name (tree ARG_UNUSED (arg))
-{
-  return 0;
-}
-
-bool objc_method_decl (enum tree_code ARG_UNUSED (opcode));
-bool 
-objc_method_decl (enum tree_code ARG_UNUSED (opcode))
-{
-  return false;
-}
-/* APPLE LOCAL end 4174833 */
-/* APPLE LOCAL begin radar 4441049 */
-tree objc_v2_bitfield_ivar_bitpos (tree);
-
-tree
-objc_v2_bitfield_ivar_bitpos (tree ARG_UNUSED (exp))
-{
-  return 0;
-}
-
-tree objc_v2_component_ref_field_offset (tree);
-
-tree
-objc_v2_component_ref_field_offset (tree ARG_UNUSED (exp))
-{
-  return 0;
-}
-/* APPLE LOCAL end radar 4441049 */ 
-/* APPLE LOCAL begin fariborz 2996215 */
-tree objc_create_init_utf16_var (void);
-tree
-objc_create_init_utf16_var (void)
-{
-  return NULL;
-}
-
-bool objc_anonymous_local_objc_name (const char * ARG_UNUSED (name));
-bool
-objc_anonymous_local_objc_name (const char * ARG_UNUSED (name))
-{
-  return false;
-}
-/* APPLE LOCAL end fariborz 2996215 */
 
 /* Every call to a static constructor has an associated boolean
    variable which is in the outermost scope of the calling method.

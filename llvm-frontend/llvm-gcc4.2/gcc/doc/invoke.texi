@@ -178,8 +178,10 @@ in the following sections.
 @gccoptlist{-c  -S  -E  -o @var{file}  -combine -pipe  -pass-exit-codes  @gol
 @c APPLE LOCAL -ObjC 2001-08-03 --sts **
 -ObjC (APPLE ONLY) -ObjC++ (APPLE ONLY) @gol
-@c APPLE LOCAL fat builds
+@c APPLE LOCAL begin fat builds
 -arch @var{arch} (APPLE ONLY) @gol
+-Xarch_@var{arch} @var{option} (APPLE ONLY) @gol
+@c APPLE LOCAL end fat builds
 @c APPLE LOCAL ss2
 -fsave-repository=@var{file} @gol
 -x @var{language}  -v  -###  --help  --target-help  --version @@@var{file}}
@@ -195,7 +197,8 @@ in the following sections.
 -fno-asm  -fno-builtin  -fno-builtin-@var{function} @gol
 -fhosted  -ffreestanding -fopenmp -fms-extensions @gol
 -trigraphs  -no-integrated-cpp  -traditional  -traditional-cpp @gol
--fallow-single-precision  -fcond-mismatch @gol
+@c APPLE LOCAL 5612787 sse4
+-fallow-single-precision  -fcond-mismatch -flax-vector-conversions @gol
 @c APPLE LOCAL constant cfstrings --mrs
 -fconstant-cfstrings (APPLE ONLY) @gol
 @c APPLE LOCAL non lvalue assign
@@ -544,7 +547,10 @@ Objective-C and Objective-C++ Dialects}.
 -whatsloaded -F -gused -gfull -mmacosx-version-min=@var{version} @gol
 @c APPLE LOCAL pascal strings
 -mpascal-strings (APPLE ONLY) @gol
--mkernel -mone-byte-bool}
+@c APPLE LOCAL begin fat builds
+-mkernel -mone-byte-bool @gol
+-Xarch_@var{arch}}
+@c APPLE LOCAL end fat builds
 
 @c APPLE LOCAL prune man page
 @ignore
@@ -611,8 +617,9 @@ Objective-C and Objective-C++ Dialects}.
 -mno-fp-ret-in-387  -msoft-float  -msvr3-shlib @gol
 -mno-wide-multiply  -mrtd  -malign-double @gol
 -mpreferred-stack-boundary=@var{num} @gol
-@c APPLE LOCAL mainline
--mmmx  -msse  -msse2 -msse3 -mssse3 -m3dnow @gol
+@c APPLE LOCAL begin 5612787 sse4
+-mmmx  -msse  -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -msse4 -msse4a @gol
+@c APPLE LOCAL end 5612787 sse4
 -mthreads  -mno-align-stringops  -minline-all-stringops @gol
 -mpush-args  -maccumulate-outgoing-args  -m128bit-long-double @gol
 -m96bit-long-double  -mregparm=@var{num}  -msseregparm @gol
@@ -1079,6 +1086,12 @@ produce ``universal'' binaries including object code for each
 architecture specified with @option{-arch}.  This option only works if
 assembler and libraries are available for each architecture specified.
 (APPLE ONLY)
+
+@item -Xarch_@var{arch} @var{option}
+@opindex Xarch
+Apply @var{option} to the command line for architecture @var{arch}.
+This is useful for specifying an option that should only apply to
+one architecture when building a ``universal'' binary.  (APPLE ONLY)
 @c APPLE LOCAL end fat builds
 
 @c APPLE LOCAL begin ss2
@@ -1565,6 +1578,14 @@ To disallow lvalue casts and lvalue conditional expressions altogether,
 specify @option{-fno-non-lvalue-assign}; lvalue casts and lvalue conditional
 expressions will be disallowed in future versions of Apple's GCC.
 @c APPLE LOCAL end non lvalue assign
+
+@c APPLE LOCAL begin 5612787 sse4
+@item -flax-vector-conversions
+@opindex flax-vector-conversions
+Allow implicit conversions between vectors with differing numbers of
+elements and/or incompatible element types.  This option should not be
+used for new code.
+@c APPLE LOCAL end 5612787 sse4
 
 @item -funsigned-char
 @opindex funsigned-char
@@ -5587,8 +5608,10 @@ helps machines that have slow floating point or memory load instructions
 by allowing other instructions to be issued until the result of the load
 or floating point instruction is required.
 
-@c APPLE LOCAL 4231761 -Oz
-Enabled at levels @option{-O2}, @option{-O3}, @option{-Os}, @option{-Oz} (APPLE ONLY).
+@c APPLE LOCAL begin 4231761 5591571
+Enabled at levels @option{-O2}, @option{-O3}, @option{-Os}, @option{-Oz} for PPC targets;
+ignored for x86 targets (APPLE ONLY).
+@c APPLE LOCAL end 4231761 5591571
 
 @item -fschedule-insns2
 @opindex fschedule-insns2
@@ -5597,8 +5620,10 @@ instruction scheduling after register allocation has been done.  This is
 especially useful on machines with a relatively small number of
 registers and where memory load instructions take more than one cycle.
 
-@c APPLE LOCAL 4231761 -Oz
-Enabled at levels @option{-O2}, @option{-O3}, @option{-Os}, @option{-Oz} (APPLE ONLY).
+@c APPLE LOCAL begin 4231761 5591571
+Enabled at levels @option{-O2}, @option{-O3}, @option{-Os}, @option{-Oz} for PPC targets;
+ignored for x86 targets (APPLE ONLY).
+@c APPLE LOCAL end 4231761 5591571
 
 @item -fno-sched-interblock
 @opindex fno-sched-interblock
@@ -8837,12 +8862,18 @@ are compatible with as many systems and code bases as possible.
 @item -mkernel
 @opindex mkernel
 Enable kernel development mode.  The @option{-mkernel} option sets
-@option{-static}, @option{-fno-common}, @option{-fno-cxa-atexit},
-@option{-fno-exceptions}, @option{-fno-non-call-exceptions},
+@c APPLE LOCAL 5731065
+@option{-static}, @option{-fno-common}, @option{-fno-builtin}, @option{-fno-cxa-atexit},
+@c APPLE LOCAL 5628030
+@option{-fno-exceptions}, @option{-fno-non-call-exceptions}, @option{-fno-asynchronous-unwind-tables},
 @option{-fapple-kext}, @option{-fno-weak} and @option{-fno-rtti} where
 applicable.  This mode also sets @option{-mno-altivec},
-@option{-msoft-float}, @option{-fno-builtin} and
-@option{-mlong-branch} for PowerPC targets.
+@c APPLE LOCAL begin 5731065
+@option{-msoft-float} and @option{-mlong-branch} for PowerPC targets
+and @option{-mno-red-zone} on x86_64.  Of these, only -msoft-float can
+be changed which is useful in a kext that wishes to use the hardware
+floating point unit.
+@c APPLE LOCAL end 5731065
 
 @item -mone-byte-bool
 @opindex mone-byte-bool
@@ -8882,17 +8913,17 @@ are provided for backwards compatibility.
 @opindex fterminated-vtables
 @c APPLE LOCAL begin KEXT
 Alter vtables, destructors, and other implementation details to more
-closely resemble the GCC 2.95 ABI.  This is to make kernel extensions
-loadable by Darwin kernels, and is required to build any Darwin kernel
-extension.  In addition, virtual calls are not made directly, instead,
-code is generated to always go through the virtual table, as virtual
-tables can be patched by the kernel module loader.  Vtables are
-altered by adding a zero word at the end of every vtable.
-@option{-fno-exceptions} and @option{-static} must also be used with
-this flag.  @option{-findirect-virtual-calls} and
+closely resemble the GCC 2.95 ABI for PowerPC and 32-bit i386.  This
+is to make kernel extensions loadable by Darwin kernels, and is
+required to build any Darwin kernel extension.  In addition, virtual
+calls are not made directly, instead, code is generated to always go
+through the virtual table, as virtual tables can be patched by the
+kernel module loader.  Vtables are altered by adding a zero word at
+the end of every vtable.  @option{-findirect-virtual-calls} and
 @option{-fterminated-vtables} are accepted for backwards compatibility
-but will be removed in the future.
-(APPLE ONLY)
+but will be removed in the future.  Additionally implies
+most of @option{-mkernel} except for @option{-msoft-float} and
+@option{-mlong-branch} for PowerPC targets.  (APPLE ONLY)
 @c APPLE LOCAL end KEXT
 
 @c APPLE LOCAL begin pascal strings
@@ -10374,6 +10405,16 @@ preferred alignment to @option{-mpreferred-stack-boundary=2}.
 @item -mssse3
 @itemx -mno-ssse3
 @c APPLE LOCAL end mainline
+@c APPLE LOCAL begin 5612787 sse4
+@item -msse4.1
+@itemx -mno-sse4.1
+@item -msse4.2
+@itemx -mno-sse4.2
+@item -msse4
+@itemx -mno-sse4
+@item -msse4a
+@item -mno-sse4a
+@c APPLE LOCAL end 5612787 sse4
 @item -m3dnow
 @itemx -mno-3dnow
 @opindex mmmx
@@ -10383,7 +10424,10 @@ preferred alignment to @option{-mpreferred-stack-boundary=2}.
 @opindex m3dnow
 @opindex mno-3dnow
 These switches enable or disable the use of instructions in the MMX,
-SSE, SSE2 or 3DNow! extended instruction sets.  These extensions are
+@c APPLE LOCAL begin 5612787 sse4
+SSE, SSE2, SSE3, SSSE3, 3Dnow, SSE4.1, SSE4.2, and SSE4A extended
+instruction sets.  These extensions are
+@c APPLE LOCAL end 5612787 sse4
 also available as built-in functions: see @ref{X86 Built-in Functions},
 for details of the functions enabled and disabled by these switches.
 

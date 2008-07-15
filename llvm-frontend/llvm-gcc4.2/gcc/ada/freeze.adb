@@ -1086,7 +1086,8 @@ package body Freeze is
          New_N :=
            Make_Object_Declaration (Loc,
              Defining_Identifier => Temp,
-             Object_definition => New_Occurrence_Of (Typ, Loc),
+         --  LLVM local
+             Object_Definition => New_Occurrence_Of (Typ, Loc),
              Expression => Relocate_Node (E));
          Insert_Before (Parent (E), New_N);
          Analyze (New_N);
@@ -4707,8 +4708,11 @@ package body Freeze is
             return True;
          end;
 
-      else return not Is_Private_Type (T)
-        or else Present (Full_View (Base_Type (T)));
+      --  LLVM local begin
+      else
+         return not Is_Private_Type (T)
+           or else Present (Full_View (Base_Type (T)));
+      --  LLVM local end
       end if;
    end Is_Fully_Defined;
 

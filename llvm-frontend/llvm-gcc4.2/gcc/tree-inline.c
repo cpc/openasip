@@ -1267,7 +1267,7 @@ declare_return_variable (copy_body_data *id, tree return_slot_addr,
     /* The return node can suddenly become multiple assignment.  Because of this
      * conservatively don't consider this thing for SSA form anymore.
     */
-    if (DECL_P (var))
+    if (TREE_CODE (var) == VAR_DECL)
       DECL_GIMPLE_FORMAL_TEMP_P (var) = 0;
 #endif
     /* LLVM LOCAL end */

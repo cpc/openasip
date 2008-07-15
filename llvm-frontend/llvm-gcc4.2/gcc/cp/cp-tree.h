@@ -4645,5 +4645,7 @@ extern bool cp_objc_protocol_id_list (tree);
 extern void cp_cpp_error			(cpp_reader *, int,
 						 const char *, va_list *)
      ATTRIBUTE_GCC_CXXDIAG(3,0);
+/* APPLE LOCAL radar 5741070  */
+extern tree c_return_interface_record_type (tree);
 
 #endif /* ! GCC_CP_TREE_H */

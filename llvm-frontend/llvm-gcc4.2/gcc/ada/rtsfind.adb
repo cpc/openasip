@@ -1062,7 +1062,8 @@ package body Rtsfind is
          --  Bump count of violations if we are in configurable run-time
          --  mode and this is not a continuation message.
 
-         if Configurable_Run_Time_Mode and then Msg (1) /= '\' then
+         --  LLVM local
+         if Configurable_Run_Time_Mode and then Msg (Msg'First) /= '\' then
             Configurable_Run_Time_Violations :=
               Configurable_Run_Time_Violations + 1;
          end if;

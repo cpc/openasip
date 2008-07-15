@@ -29,7 +29,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/Constants.h"
 #include "llvm/DerivedTypes.h"
 #include "llvm/Module.h"
-#include "llvm/ParameterAttributes.h"
 #include "llvm/TypeSymbolTable.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetMachine.h"
@@ -47,6 +46,9 @@ extern "C" {
 }
 #include "llvm-abi.h"
 
+void llvm_compute_type(tree X) {
+  ConvertType(X);
+}
 
 //===----------------------------------------------------------------------===//
 //                   Matching LLVM types with GCC trees
@@ -232,6 +234,10 @@ static FunctionType *GetFunctionType(const PATypeHolder &Res,
 // type should be passed in by invisible reference.
 //
 bool isPassedByInvisibleReference(tree Type) {
+  // Don't crash in this case.
+  if (Type == error_mark_node)
+    return false;
+
   // FIXME: Search for TREE_ADDRESSABLE in calls.c, and see if there are other
   // cases that make arguments automatically passed in by reference.
   return TREE_ADDRESSABLE(Type) || TYPE_SIZE(Type) == 0 ||
@@ -242,11 +248,12 @@ bool isPassedByInvisibleReference(tree Type) {
 /// the specified type.
 static std::string GetTypeName(const char *Prefix, tree type) {
   const char *Name = "anon";
-  if (TYPE_NAME(type))
+  if (TYPE_NAME(type)) {
     if (TREE_CODE(TYPE_NAME(type)) == IDENTIFIER_NODE)
       Name = IDENTIFIER_POINTER(TYPE_NAME(type));
     else if (DECL_NAME(TYPE_NAME(type)))
       Name = IDENTIFIER_POINTER(DECL_NAME(TYPE_NAME(type)));
+  }
   
   std::string ContextStr;
   tree Context = TYPE_CONTEXT(type);
@@ -739,24 +746,6 @@ const Type *TypeConverter::ConvertType(tree orig_type) {
     type = orig_type;
   case INTEGER_TYPE:
     if (const Type *Ty = GET_TYPE_LLVM(type)) return Ty;
-
-    // FIXME: eliminate this when 128-bit integer types in LLVM work.
-    switch (TREE_INT_CST_LOW(TYPE_SIZE(type))) {
-    case 1:
-    case 8:
-    case 16:
-    case 32:
-    case 64:
-    //case 128:  Waiting for PR1462 etc.
-      break;
-    default:
-      static bool Warned = false;
-      if (!Warned)
-        fprintf(stderr, "WARNING: %d-bit integers not supported!\n",
-                (int)TREE_INT_CST_LOW(TYPE_SIZE(type)));
-      Warned = true;
-      return Type::Int64Ty;
-    }
     return SET_TYPE_LLVM(type, 
                          IntegerType::get(TREE_INT_CST_LOW(TYPE_SIZE(type))));
   case REAL_TYPE:
@@ -777,9 +766,8 @@ const Type *TypeConverter::ConvertType(tree orig_type) {
              return SET_TYPE_LLVM(type, Type::FP128Ty);
 #else
       // 128-bit long doubles map onto { double, double }.
-      const Type *Ty = Type::DoubleTy;
-      Ty = StructType::get(std::vector<const Type*>(2, Ty), false);
-      return SET_TYPE_LLVM(type, Ty);
+      return SET_TYPE_LLVM(type, StructType::get(Type::DoubleTy, Type::DoubleTy,
+                                                 NULL));
 #endif
     }
     
@@ -787,8 +775,7 @@ const Type *TypeConverter::ConvertType(tree orig_type) {
     if (const Type *Ty = GET_TYPE_LLVM(type)) return Ty;
     const Type *Ty = ConvertType(TREE_TYPE(type));
     assert(!Ty->isAbstract() && "should use TypeDB.setType()");
-    Ty = StructType::get(std::vector<const Type*>(2, Ty), false);
-    return SET_TYPE_LLVM(type, Ty);
+    return SET_TYPE_LLVM(type, StructType::get(Ty, Ty, NULL));
   }
   case VECTOR_TYPE: {
     if (const Type *Ty = GET_TYPE_LLVM(type)) return Ty;
@@ -878,8 +865,7 @@ const Type *TypeConverter::ConvertType(tree orig_type) {
       
     // No declaration to pass through, passing NULL.
     unsigned CallingConv;
-    const ParamAttrsList *PAL;
-
+    PAListPtr PAL;
     return TypeDB.setType(type, ConvertFunctionType(type, NULL, NULL,
                                                     CallingConv, PAL));
   }
@@ -947,49 +933,69 @@ namespace {
     PATypeHolder &RetTy;
     std::vector<PATypeHolder> &ArgTypes;
     unsigned &CallingConv;
-    bool isStructRet;
+    bool isShadowRet;
     bool KNRPromotion;
   public:
     FunctionTypeConversion(PATypeHolder &retty, std::vector<PATypeHolder> &AT,
                            unsigned &CC, bool KNR)
       : RetTy(retty), ArgTypes(AT), CallingConv(CC), KNRPromotion(KNR) {
       CallingConv = CallingConv::C;
-      isStructRet = false;
+      isShadowRet = false;
     }
 
-    bool isStructReturn() const { return isStructRet; }
-    
+    bool isShadowReturn() const { return isShadowRet; }
+
     /// HandleScalarResult - This callback is invoked if the function returns a
     /// simple scalar result value.
     void HandleScalarResult(const Type *RetTy) {
       this->RetTy = RetTy;
     }
-    
+
     /// HandleAggregateResultAsScalar - This callback is invoked if the function
     /// returns an aggregate value by bit converting it to the specified scalar
     /// type and returning that.
     void HandleAggregateResultAsScalar(const Type *ScalarTy) {
       RetTy = ScalarTy;
     }
-    
-    /// HandleAggregateShadowArgument - This callback is invoked if the function
-    /// returns an aggregate value by using a "shadow" first parameter.  If 
-    /// RetPtr is set to true, the pointer argument itself is returned from 
-    /// the function.
-    void HandleAggregateShadowArgument(const PointerType *PtrArgTy,
-                                       bool RetPtr) {
-      // If this function returns a structure by value, it either returns void
-      // or the shadow argument, depending on the target.
-      this->RetTy = RetPtr ? PtrArgTy : Type::VoidTy;
-      
+
+    /// HandleAggregateResultAsAggregate - This callback is invoked if the function
+    /// returns an aggregate value using multiple return values.
+    void HandleAggregateResultAsAggregate(const Type *AggrTy) {
+      RetTy = AggrTy;
+    }
+
+    /// HandleShadowArgument - Handle an aggregate or scalar shadow argument.
+    void HandleShadowArgument(const PointerType *PtrArgTy, bool RetPtr) {
+      // This function either returns void or the shadow argument,
+      // depending on the target.
+      RetTy = RetPtr ? PtrArgTy : Type::VoidTy;
+
       // In any case, there is a dummy shadow argument though!
       ArgTypes.push_back(PtrArgTy);
-      
-      // Also, switch the to C Struct Return.
-      isStructRet = true;
+
+      // Also, note the use of a shadow argument.
+      isShadowRet = true;
     }
-    
-    void HandleScalarArgument(const llvm::Type *LLVMTy, tree type) {
+
+    /// HandleAggregateShadowArgument - This callback is invoked if the function
+    /// returns an aggregate value by using a "shadow" first parameter, which is
+    /// a pointer to the aggregate, of type PtrArgTy.  If RetPtr is set to true,
+    /// the pointer argument itself is returned from the function.
+    void HandleAggregateShadowArgument(const PointerType *PtrArgTy,
+                                       bool RetPtr) {
+      HandleShadowArgument(PtrArgTy, RetPtr);
+    }
+
+    /// HandleScalarShadowArgument - This callback is invoked if the function
+    /// returns a scalar value by using a "shadow" first parameter, which is a
+    /// pointer to the scalar, of type PtrArgTy.  If RetPtr is set to true,
+    /// the pointer argument itself is returned from the function.
+    void HandleScalarShadowArgument(const PointerType *PtrArgTy, bool RetPtr) {
+      HandleShadowArgument(PtrArgTy, RetPtr);
+    }
+
+    void HandleScalarArgument(const llvm::Type *LLVMTy, tree type,
+                              unsigned RealSize = 0) {
       if (KNRPromotion) {
         if (LLVMTy == Type::FloatTy)
           LLVMTy = Type::DoubleTy;
@@ -998,6 +1004,12 @@ namespace {
           LLVMTy = Type::Int32Ty;
       }
       ArgTypes.push_back(LLVMTy);
+    }
+
+    /// HandleByInvisibleReferenceArgument - This callback is invoked if a pointer
+    /// (of type PtrTy) to the argument is passed rather than the argument itself.
+    void HandleByInvisibleReferenceArgument(const llvm::Type *PtrTy, tree type) {
+      ArgTypes.push_back(PtrTy);
     }
 
     /// HandleByValArgument - This callback is invoked if the aggregate function
@@ -1010,7 +1022,7 @@ namespace {
 }
 
 
-static uint16_t HandleArgumentExtension(tree ArgTy) {
+static ParameterAttributes HandleArgumentExtension(tree ArgTy) {
   if (TREE_CODE(ArgTy) == BOOLEAN_TYPE) {
     if (TREE_INT_CST_LOW(TYPE_SIZE(ArgTy)) < INT_TYPE_SIZE)
       return ParamAttr::ZExt;
@@ -1033,30 +1045,34 @@ static uint16_t HandleArgumentExtension(tree ArgTy) {
 /// specified result type for the function.
 const FunctionType *TypeConverter::
 ConvertArgListToFnType(tree ReturnType, tree Args, tree static_chain,
-                       unsigned &CallingConv, const ParamAttrsList *&PAL) {
+                       unsigned &CallingConv, PAListPtr &PAL) {
   std::vector<PATypeHolder> ArgTys;
   PATypeHolder RetTy(Type::VoidTy);
   
   FunctionTypeConversion Client(RetTy, ArgTys, CallingConv, true /*K&R*/);
   TheLLVMABI<FunctionTypeConversion> ABIConverter(Client);
   
-  ABIConverter.HandleReturnType(ReturnType);
+  // Builtins are always prototyped, so this isn't one.
+  ABIConverter.HandleReturnType(ReturnType, current_function_decl, false);
 
-  ParamAttrsVector Attrs;
+  SmallVector<ParamAttrsWithIndex, 8> Attrs;
 
   // Compute whether the result needs to be zext or sext'd.
-  uint16_t RAttributes = HandleArgumentExtension(ReturnType);
+  ParameterAttributes RAttributes = HandleArgumentExtension(ReturnType);
+
   if (RAttributes != ParamAttr::None)
     Attrs.push_back(ParamAttrsWithIndex::get(0, RAttributes));
 
-  // If this is a struct-return function, the dest loc is passed in as a
-  // pointer.  Mark that pointer as structret.
-  if (ABIConverter.isStructReturn())
+  // If this function returns via a shadow argument, the dest loc is passed
+  // in as a pointer.  Mark that pointer as struct-ret and noalias.
+  if (ABIConverter.isShadowReturn())
     Attrs.push_back(ParamAttrsWithIndex::get(ArgTys.size(),
-                                             ParamAttr::StructRet));
+                                    ParamAttr::StructRet | ParamAttr::NoAlias));
+
+  std::vector<const Type*> ScalarArgs;
   if (static_chain) {
     // Pass the static chain as the first parameter.
-    ABIConverter.HandleArgument(TREE_TYPE(static_chain));
+    ABIConverter.HandleArgument(TREE_TYPE(static_chain), ScalarArgs);
     // Mark it as the chain argument.
     Attrs.push_back(ParamAttrsWithIndex::get(ArgTys.size(),
                                              ParamAttr::Nest));
@@ -1066,9 +1082,9 @@ ConvertArgListToFnType(tree ReturnType, tree Args, tree static_chain,
     tree ArgTy = TREE_TYPE(Args);
 
     // Determine if there are any attributes for this param.
-    uint16_t Attributes = ParamAttr::None;
+    ParameterAttributes Attributes = ParamAttr::None;
 
-    ABIConverter.HandleArgument(ArgTy, &Attributes);
+    ABIConverter.HandleArgument(ArgTy, ScalarArgs, &Attributes);
 
     // Compute zext/sext attributes.
     Attributes |= HandleArgumentExtension(ArgTy);
@@ -1077,23 +1093,21 @@ ConvertArgListToFnType(tree ReturnType, tree Args, tree static_chain,
       Attrs.push_back(ParamAttrsWithIndex::get(ArgTys.size(), Attributes));
   }
 
-  PAL = 0;
-  if (!Attrs.empty())
-    PAL = ParamAttrsList::get(Attrs);
-
+  PAL = PAListPtr::get(Attrs.begin(), Attrs.end());
   return GetFunctionType(RetTy, ArgTys, false);
 }
 
 const FunctionType *TypeConverter::
 ConvertFunctionType(tree type, tree decl, tree static_chain,
-                    unsigned &CallingConv, const ParamAttrsList *&PAL) {
+                    unsigned &CallingConv, PAListPtr &PAL) {
   PATypeHolder RetTy = Type::VoidTy;
   std::vector<PATypeHolder> ArgTypes;
   bool isVarArg = false;
   FunctionTypeConversion Client(RetTy, ArgTypes, CallingConv, false/*not K&R*/);
   TheLLVMABI<FunctionTypeConversion> ABIConverter(Client);
   
-  ABIConverter.HandleReturnType(TREE_TYPE(type));
+  ABIConverter.HandleReturnType(TREE_TYPE(type), current_function_decl,
+                                decl ? DECL_BUILT_IN(decl) : false);
   
   // Allow the target to set the CC for things like fastcall etc.
 #ifdef TARGET_ADJUST_LLVM_CC
@@ -1101,8 +1115,8 @@ ConvertFunctionType(tree type, tree decl, tree static_chain,
 #endif
 
   // Compute attributes for return type (and function attributes).
-  ParamAttrsVector Attrs;
-  uint16_t RAttributes = ParamAttr::None;
+  SmallVector<ParamAttrsWithIndex, 8> Attrs;
+  ParameterAttributes RAttributes = ParamAttr::None;
 
   int flags = flags_from_decl_or_type(decl ? decl : type);
 
@@ -1131,24 +1145,32 @@ ConvertFunctionType(tree type, tree decl, tree static_chain,
 
   // Since they write the return value through a pointer,
   // 'sret' functions cannot be 'readnone' or 'readonly'.
-  if (ABIConverter.isStructReturn())
+  if (ABIConverter.isShadowReturn())
     RAttributes &= ~(ParamAttr::ReadNone|ParamAttr::ReadOnly);
-  
+
+  // Demote 'readnone' nested functions to 'readonly' since
+  // they may need to read through the static chain.
+  if (static_chain && (RAttributes & ParamAttr::ReadNone)) {
+    RAttributes &= ~ParamAttr::ReadNone;
+    RAttributes |= ParamAttr::ReadOnly;
+  }
+
   // Compute whether the result needs to be zext or sext'd.
   RAttributes |= HandleArgumentExtension(TREE_TYPE(type));
 
   if (RAttributes != ParamAttr::None)
     Attrs.push_back(ParamAttrsWithIndex::get(0, RAttributes));
-  
-  // If this is a struct-return function, the dest loc is passed in as a
-  // pointer.  Mark that pointer as structret.
-  if (ABIConverter.isStructReturn())
+
+  // If this function returns via a shadow argument, the dest loc is passed
+  // in as a pointer.  Mark that pointer as struct-ret and noalias.
+  if (ABIConverter.isShadowReturn())
     Attrs.push_back(ParamAttrsWithIndex::get(ArgTypes.size(),
-                                             ParamAttr::StructRet));
-    
+                                    ParamAttr::StructRet | ParamAttr::NoAlias));
+
+  std::vector<const Type*> ScalarArgs;
   if (static_chain) {
     // Pass the static chain as the first parameter.
-    ABIConverter.HandleArgument(TREE_TYPE(static_chain));
+    ABIConverter.HandleArgument(TREE_TYPE(static_chain), ScalarArgs);
     // Mark it as the chain argument.
     Attrs.push_back(ParamAttrsWithIndex::get(ArgTypes.size(),
                                              ParamAttr::Nest));
@@ -1157,8 +1179,9 @@ ConvertFunctionType(tree type, tree decl, tree static_chain,
   // If the target has regparam parameters, allow it to inspect the function
   // type.
   int local_regparam = 0;
+  int local_fp_regparam = 0;
 #ifdef LLVM_TARGET_ENABLE_REGPARM
-  LLVM_TARGET_INIT_REGPARM(local_regparam, type);
+  LLVM_TARGET_INIT_REGPARM(local_regparam, local_fp_regparam, type);
 #endif // LLVM_TARGET_ENABLE_REGPARM
   
   // Keep track of whether we see a byval argument.
@@ -1185,9 +1208,9 @@ ConvertFunctionType(tree type, tree decl, tree static_chain,
     }
     
     // Determine if there are any attributes for this param.
-    uint16_t Attributes = ParamAttr::None;
+    ParameterAttributes Attributes = ParamAttr::None;
     
-    ABIConverter.HandleArgument(ArgTy, &Attributes);
+    ABIConverter.HandleArgument(ArgTy, ScalarArgs, &Attributes);
 
     // Compute zext/sext attributes.
     Attributes |= HandleArgumentExtension(ArgTy);
@@ -1204,10 +1227,11 @@ ConvertFunctionType(tree type, tree decl, tree static_chain,
     
 #ifdef LLVM_TARGET_ENABLE_REGPARM
     // Allow the target to mark this as inreg.
-    if (TREE_CODE(ArgTy) == INTEGER_TYPE || TREE_CODE(ArgTy) == POINTER_TYPE)
-      LLVM_ADJUST_REGPARM_ATTRIBUTE(Attributes,
+    if (TREE_CODE(ArgTy) == INTEGER_TYPE || TREE_CODE(ArgTy) == POINTER_TYPE ||
+        TREE_CODE(ArgTy) == REAL_TYPE)
+      LLVM_ADJUST_REGPARM_ATTRIBUTE(Attributes, ArgTy,
                                     TREE_INT_CST_LOW(TYPE_SIZE(ArgTy)),
-                                    local_regparam);
+                                    local_regparam, local_fp_regparam);
 #endif // LLVM_TARGET_ENABLE_REGPARM
     
     if (Attributes != ParamAttr::None) {
@@ -1224,8 +1248,8 @@ ConvertFunctionType(tree type, tree decl, tree static_chain,
   // write to struct arguments passed by value, but in LLVM this becomes a
   // write through the byval pointer argument, which LLVM does not allow for
   // readonly/readnone functions.
-  if (HasByVal && Attrs[0].index == 0) {
-    uint16_t &RAttrs = Attrs[0].attrs;
+  if (HasByVal && Attrs[0].Index == 0) {
+    ParameterAttributes &RAttrs = Attrs[0].Attrs;
     RAttrs &= ~(ParamAttr::ReadNone | ParamAttr::ReadOnly);
     if (RAttrs == ParamAttr::None)
       Attrs.erase(Attrs.begin());
@@ -1235,12 +1259,8 @@ ConvertFunctionType(tree type, tree decl, tree static_chain,
   isVarArg = (Args == 0);
   assert(RetTy && "Return type not specified!");
 
-  // Only instantiate the parameter attributes if we got some.
-  PAL = 0;
-  if (!Attrs.empty())
-    PAL = ParamAttrsList::get(Attrs);
-
-  // Finally, make the function type
+  // Finally, make the function type and result attributes.
+  PAL = PAListPtr::get(Attrs.begin(), Attrs.end());
   return GetFunctionType(RetTy, ArgTypes, isVarArg);
 }
 
@@ -1275,6 +1295,8 @@ struct StructTypeConversionInfo {
   void extraBitsAvailable (unsigned E) {
     ExtraBitsAvailable = E;
   }
+
+  bool isPacked() { return Packed; }
 
   void markAsPacked() {
     Packed = true;
@@ -1523,36 +1545,8 @@ struct StructTypeConversionInfo {
 
   void addNewBitField(unsigned Size, unsigned FirstUnallocatedByte);
 
-  void convertToPacked();
-  
   void dump() const;
 };
-
-// LLVM disagrees as to where to put field natural field ordering.
-// ordering.  Therefore convert to a packed struct.
-void StructTypeConversionInfo::convertToPacked() {
-  assert (!Packed && "Packing a packed struct!");
-  Packed = true;
-  
-  // Fill the padding that existed from alignment restrictions
-  // with byte arrays to ensure the same layout when converting
-  // to a packed struct.
-  for (unsigned x = 1; x < ElementOffsetInBytes.size(); ++x) {
-    if (ElementOffsetInBytes[x-1] + ElementSizeInBytes[x-1]
-        < ElementOffsetInBytes[x]) {
-      uint64_t padding = ElementOffsetInBytes[x]
-        - ElementOffsetInBytes[x-1] - ElementSizeInBytes[x-1];
-      const Type *Pad = Type::Int8Ty;
-      Pad = ArrayType::get(Pad, padding);
-      ElementOffsetInBytes.insert(ElementOffsetInBytes.begin() + x,
-                                  ElementOffsetInBytes[x-1] +
-                                  ElementSizeInBytes[x-1]);
-      ElementSizeInBytes.insert(ElementSizeInBytes.begin() + x, padding);
-      Elements.insert(Elements.begin() + x, Pad);
-      PaddingElement.insert(PaddingElement.begin() + x, true);
-    }
-  }
-}
 
 // Add new element which is a bit field. Size is not the size of bit filed,
 // but size of bits required to determine type of new Field which will be
@@ -1597,13 +1591,13 @@ void StructTypeConversionInfo::dump() const {
   }
 }
 
-std::map<const Type *, StructTypeConversionInfo *> StructTypeInfoMap;
+std::map<tree, StructTypeConversionInfo *> StructTypeInfoMap;
 
 /// Return true if and only if field no. N from struct type T is a padding
 /// element added to match llvm struct type size and gcc struct type size.
-bool isPaddingElement(const Type *Ty, unsigned index) {
+bool isPaddingElement(tree type, unsigned index) {
   
-  StructTypeConversionInfo *Info = StructTypeInfoMap[Ty];
+  StructTypeConversionInfo *Info = StructTypeInfoMap[type];
 
   // If info is not available then be conservative and return false.
   if (!Info)
@@ -1620,10 +1614,10 @@ bool isPaddingElement(const Type *Ty, unsigned index) {
 /// structs then adjust their PaddingElement bits. Padding
 /// field in one struct may not be a padding field in another
 /// struct.
-void adjustPaddingElement(const Type *OldTy, const Type *NewTy) {
+void adjustPaddingElement(tree oldtree, tree newtree) {
 
-  StructTypeConversionInfo *OldInfo = StructTypeInfoMap[OldTy];
-  StructTypeConversionInfo *NewInfo = StructTypeInfoMap[NewTy];
+  StructTypeConversionInfo *OldInfo = StructTypeInfoMap[oldtree];
+  StructTypeConversionInfo *NewInfo = StructTypeInfoMap[newtree];
 
   if (!OldInfo || !NewInfo)
     return;
@@ -1681,6 +1675,7 @@ static tree FixBaseClassField(tree Field) {
     TYPE_SIZE(newTy) = DECL_SIZE(Field);
     TYPE_SIZE_UNIT(newTy) = DECL_SIZE_UNIT(Field);
     TYPE_MAIN_VARIANT(newTy) = newTy;
+    TYPE_STUB_DECL(newTy) = TYPE_STUB_DECL(oldTy);
     // Change the name.
     if (TYPE_NAME(oldTy)) {
       const char *p = "anon";
@@ -1712,7 +1707,8 @@ static tree FixBaseClassField(tree Field) {
 // node for it, but not when A is a nonvirtual base class.  So we can't
 // use that.)
 static void FixBaseClassFields(tree type) {
-  assert(TREE_CODE(type)==RECORD_TYPE);
+  if (TREE_CODE(type)!=RECORD_TYPE)
+    return;
   for (tree Field = TYPE_FIELDS(type); Field; Field = TREE_CHAIN(Field)) {
     if (TREE_CODE(Field)==FIELD_DECL && 
         !DECL_BIT_FIELD_TYPE(Field) &&
@@ -1723,8 +1719,10 @@ static void FixBaseClassFields(tree type) {
         TREE_CODE(DECL_SIZE(Field))==INTEGER_CST &&
         TREE_CODE(TYPE_SIZE(TREE_TYPE(Field)))==INTEGER_CST &&
         TREE_INT_CST_LOW(DECL_SIZE(Field)) < 
-              TREE_INT_CST_LOW(TYPE_SIZE(TREE_TYPE(Field))))
+              TREE_INT_CST_LOW(TYPE_SIZE(TREE_TYPE(Field)))) {
       TREE_TYPE(Field) = FixBaseClassField(Field);
+      DECL_FIELD_REPLACED(Field) = 1;
+    }
   }
   // Size of the complete type will be a multiple of its alignment.
   // In some cases involving empty C++ classes this is not true coming in.
@@ -1758,38 +1756,52 @@ static void FixBaseClassFields(tree type) {
 // code continues to work (there are pointers stashed away in there).
 
 static void RestoreBaseClassFields(tree type) {
-  assert(TREE_CODE(type)==RECORD_TYPE);
+  if (TREE_CODE(type)!=RECORD_TYPE)
+    return;
   for (tree Field = TYPE_FIELDS(type); Field; Field = TREE_CHAIN(Field)) {
-    if (TREE_CODE(Field)==FIELD_DECL && 
-        !DECL_BIT_FIELD_TYPE(Field) &&
-        TREE_CODE(DECL_FIELD_OFFSET(Field))==INTEGER_CST &&
-        TREE_CODE(TREE_TYPE(Field))==RECORD_TYPE &&
-        TYPE_SIZE(TREE_TYPE(Field)) &&
-        DECL_SIZE(Field) &&
-        TREE_CODE(DECL_SIZE(Field))==INTEGER_CST &&
-        TREE_CODE(TYPE_SIZE(TREE_TYPE(Field)))==INTEGER_CST) {
+    if (TREE_CODE(Field) == FIELD_DECL && DECL_FIELD_REPLACED(Field)) {
       tree &oldTy = BaseTypesMap[TREE_TYPE(Field)];
-      if (oldTy)
-        TREE_TYPE(Field) = oldTy;
+      assert(oldTy);
+      TREE_TYPE(Field) = oldTy;
+      DECL_FIELD_REPLACED(Field) = 0;
     }
   }
 }
 
 
-
 /// DecodeStructFields - This method decodes the specified field, if it is a
 /// FIELD_DECL, adding or updating the specified StructTypeConversionInfo to
-/// reflect it.  
-void TypeConverter::DecodeStructFields(tree Field,
+/// reflect it.  Return tree if field is decoded correctly. Otherwise return
+/// false.
+bool TypeConverter::DecodeStructFields(tree Field,
                                        StructTypeConversionInfo &Info) {
   if (TREE_CODE(Field) != FIELD_DECL ||
       TREE_CODE(DECL_FIELD_OFFSET(Field)) != INTEGER_CST)
-    return;
+    return true;
 
   // Handle bit-fields specially.
   if (isBitfield(Field)) {
+    // If this field is forcing packed llvm struct then retry entire struct
+    // layout.
+    if (!Info.isPacked()) {
+      // Unnamed bitfield type does not contribute in struct alignment
+      // computations. Use packed llvm structure in such cases.
+      if (!DECL_NAME(Field))
+        return false;
+      // If this field is packed then the struct may need padding fields
+      // before this field.
+      if (DECL_PACKED(Field))
+        return false;
+      // If Field has user defined alignment and it does not match Ty alignment
+      // then convert to a packed struct and try again.
+      if (TYPE_USER_ALIGN(DECL_BIT_FIELD_TYPE(Field))) {
+        const Type *Ty = ConvertType(getDeclaredType(Field));
+        if (TYPE_ALIGN_UNIT(DECL_BIT_FIELD_TYPE(Field)) != Info.getTypeAlignment(Ty))
+          return false;
+      }
+    }
     DecodeStructBitField(Field, Info);
-    return;
+    return true;
   }
 
   Info.allFieldsAreNotBitFields();
@@ -1801,18 +1813,29 @@ void TypeConverter::DecodeStructFields(tree Field,
 
   const Type *Ty = ConvertType(getDeclaredType(Field));
 
+  // If this field is packed then the struct may need padding fields
+  // before this field.
+  if (DECL_PACKED(Field) && !Info.isPacked())
+    return false;
   // Pop any previous elements out of the struct if they overlap with this one.
   // This can happen when the C++ front-end overlaps fields with tail padding in
   // C++ classes.
-  if (!Info.ResizeLastElementIfOverlapsWith(StartOffsetInBytes, Field, Ty)) {
+  else if (!Info.ResizeLastElementIfOverlapsWith(StartOffsetInBytes, Field, Ty)) {
     // LLVM disagrees as to where this field should go in the natural field
     // ordering.  Therefore convert to a packed struct and try again.
-    Info.convertToPacked();
-    DecodeStructFields(Field, Info);
-  } else 
+    return false;
+  } 
+  else if (TYPE_USER_ALIGN(TREE_TYPE(Field))
+           && (unsigned)DECL_ALIGN_UNIT(Field) != Info.getTypeAlignment(Ty)
+           && !Info.isPacked()) {
+    // If Field has user defined alignment and it does not match Ty alignment
+    // then convert to a packed struct and try again.
+    return false;
+  } else
     // At this point, we know that adding the element will happen at the right
     // offset.  Add it.
     Info.addElement(Ty, StartOffsetInBytes, Info.getTypeSize(Ty));
+  return true;
 }
 
 /// DecodeStructBitField - This method decodes the specified bit-field, adding
@@ -1827,10 +1850,6 @@ void TypeConverter::DecodeStructFields(tree Field,
 void TypeConverter::DecodeStructBitField(tree_node *Field, 
                                          StructTypeConversionInfo &Info) {
   unsigned FieldSizeInBits = TREE_INT_CST_LOW(DECL_SIZE(Field));
-
-  if (DECL_PACKED(Field))
-    // Individual fields can be packed.
-    Info.markAsPacked();
 
   if (FieldSizeInBits == 0)   // Ignore 'int:0', which just affects layout.
     return;
@@ -1990,8 +2009,24 @@ const Type *TypeConverter::ConvertRECORD(tree type, tree orig_type) {
   FixBaseClassFields(type);
                                 
   // Convert over all of the elements of the struct.
-  for (tree Field = TYPE_FIELDS(type); Field; Field = TREE_CHAIN(Field))
-    DecodeStructFields(Field, *Info);
+  bool retryAsPackedStruct = false;
+  for (tree Field = TYPE_FIELDS(type); Field; Field = TREE_CHAIN(Field)) {
+    if (DecodeStructFields(Field, *Info) == false) {
+      retryAsPackedStruct = true;
+      break;
+    }
+  }
+  
+  if (retryAsPackedStruct) {
+    delete Info;
+    Info = new StructTypeConversionInfo(*TheTarget, TYPE_ALIGN_UNIT(type), 
+                                        true);
+    for (tree Field = TYPE_FIELDS(type); Field; Field = TREE_CHAIN(Field)) {
+      if (DecodeStructFields(Field, *Info) == false) {
+        assert(0 && "Unable to decode struct fields.");
+      }
+    }
+  }
 
   // If the LLVM struct requires explicit tail padding to be the same size as
   // the GCC struct, insert tail padding now.  This handles, e.g., "{}" in C++.
@@ -2057,6 +2092,11 @@ const Type *TypeConverter::ConvertRECORD(tree type, tree orig_type) {
         // because the FieldOffsetInBits can be lower than it was in the
         // previous iteration.
         CurFieldNo = 0;
+
+        // Skip 'int:0', which just affects layout.
+        unsigned FieldSizeInBits = TREE_INT_CST_LOW(DECL_SIZE(Field));
+        if (FieldSizeInBits == 0)
+          continue;
       }
 
       // Figure out if this field is zero bits wide, e.g. {} or [0 x int].  Do
@@ -2074,7 +2114,7 @@ const Type *TypeConverter::ConvertRECORD(tree type, tree orig_type) {
   RestoreBaseClassFields(type);  
 
   const Type *ResultTy = Info->getLLVMType();
-  StructTypeInfoMap[ResultTy] = Info;
+  StructTypeInfoMap[type] = Info;
   
   const OpaqueType *OldTy = cast_or_null<OpaqueType>(GET_TYPE_LLVM(type));
   TypeDB.setType(type, ResultTy);
@@ -2138,10 +2178,17 @@ const Type *TypeConverter::ConvertUNION(tree type, tree orig_type) {
   // match union size.
   const TargetData &TD = getTargetData();
   const Type *UnionTy = 0;
+  tree GccUnionTy = 0;
   unsigned MaxSize = 0, MaxAlign = 0;
   for (tree Field = TYPE_FIELDS(type); Field; Field = TREE_CHAIN(Field)) {
     if (TREE_CODE(Field) != FIELD_DECL) continue;
-    assert(getFieldOffsetInBits(Field) == 0 && "Union with non-zero offset?");
+//    assert(getFieldOffsetInBits(Field) == 0 && "Union with non-zero offset?");
+    // Workaround to get Fortran EQUIVALENCE working.
+    // TODO: Unify record and union logic and handle this optimally.
+    if (getFieldOffsetInBits(Field) != 0) {
+      ConvertingStruct = OldConvertingStruct;
+      return ConvertRECORD(type, orig_type);
+    }
 
     // Set the field idx to zero for all fields.
     SetFieldIndex(Field, 0);
@@ -2151,20 +2198,49 @@ const Type *TypeConverter::ConvertUNION(tree type, tree orig_type) {
         integer_zerop(DECL_QUALIFIER(Field)))
       continue;
 
-    const Type *TheTy = ConvertType(TREE_TYPE(Field));
-    bool isPacked = false;
+    tree TheGccTy = TREE_TYPE(Field);
+#ifdef TARGET_POWERPC
+    // Normally gcc reduces the size of bitfields to the size necessary
+    // to hold the bits, e.g. a 1-bit field becomes QI.  It does not do
+    // this for bool, which is no problem on most targets because
+    // sizeof(bool)==1.  On darwin ppc32, however, sizeof(bool)==4, so
+    // we can have field types bigger than the union type here.  Evade
+    // this by creating an appropriate int type here.
+    //
+    // It's possible this issue is not specific to ppc, but I doubt it.
+
+    if (TREE_CODE(TheGccTy) == BOOLEAN_TYPE &&
+        TYPE_SIZE_UNIT(TheGccTy) &&
+        DECL_SIZE_UNIT(Field) && 
+        TREE_CODE(DECL_SIZE_UNIT(Field)) == INTEGER_CST &&
+        TREE_CODE(TYPE_SIZE_UNIT(TheGccTy)) == INTEGER_CST &&
+        TREE_INT_CST_LOW(TYPE_SIZE_UNIT(TheGccTy)) >
+        TREE_INT_CST_LOW(DECL_SIZE_UNIT(Field))) {
+      bool sign = DECL_UNSIGNED(Field);
+      switch(TREE_INT_CST_LOW(DECL_SIZE_UNIT(Field))) {
+        case 1: TheGccTy = sign ? intQI_type_node : unsigned_intQI_type_node;
+                break;
+        case 2: TheGccTy = sign ? intHI_type_node : unsigned_intHI_type_node;
+                break;
+        case 4: TheGccTy = sign ? intSI_type_node : unsigned_intSI_type_node;
+                break;
+        case 8: TheGccTy = sign ? intDI_type_node : unsigned_intDI_type_node;
+                break;
+        default: assert(0 && "Unexpected field size"); break;
+      }
+    }
+#endif
+    const Type *TheTy = ConvertType(TheGccTy);
     unsigned Size  = TD.getABITypeSize(TheTy);
     unsigned Align = TD.getABITypeAlignment(TheTy);
-    if (const StructType *STy = dyn_cast<StructType>(TheTy)) 
-      if (STy->isPacked())
-        isPacked = true;
     
-    adjustPaddingElement(UnionTy, TheTy);
+    adjustPaddingElement(GccUnionTy, TheGccTy);
 
     // Select TheTy as union type if it meets one of the following criteria
     // 1) UnionTy is 0
     // 2) TheTy alignment is more then UnionTy
-    // 3) TheTy size is greater than UnionTy size and TheTy alignment is equal to UnionTy
+    // 3) TheTy size is greater than UnionTy size and TheTy alignment is 
+    //    equal to UnionTy
     // 4) TheTy size is greater then UnionTy size and TheTy is packed
     bool useTheTy = false;
     if (UnionTy == 0)
@@ -2173,11 +2249,12 @@ const Type *TypeConverter::ConvertUNION(tree type, tree orig_type) {
       useTheTy = true;
     else if (MaxAlign == Align && Size > MaxSize)
       useTheTy = true;
-    else if (isPacked && Size > MaxSize)
+    else if (Size > MaxSize)
       useTheTy = true;
 
     if (useTheTy) {
       UnionTy = TheTy;
+      GccUnionTy = TheGccTy;
       MaxSize = MAX(MaxSize, Size);
       MaxAlign = Align;
     }

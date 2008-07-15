@@ -75,19 +75,12 @@ If building for Darwin/PPC:
     TRIPLE=powerpc-apple-darwin8
   
 If building for Darwin/X86 (32- and 64-bit support):
-    TARGETOPTIONS=--with-arch=nocona --with-tune=generic
+    TARGETOPTIONS='--with-arch=nocona --with-tune=generic'
     TRIPLE=i686-apple-darwin8
     
 If building for Darwin/X86 (32-bit support only):
-    TARGETOPTIONS=--with-arch=pentium-m --with-tune=prescott --disable-multilib
-    TRIPLE=i686-apple-darwin8
-
-Building for Darwin/Mac OS X is significantly different than building for other
-targets.  Darwin considers libstdc++ to be part of the operating system, not as
-part of the compiler.  As such, you should *remove* the libstdc++-v3 directory
-from the llvm-gcc4 source directory before configuring it:
-
-  rm -rf llvm-gcc4-x.y.source/libstdc++-v3
+   TARGETOPTIONS='--with-arch=pentium-m --with-tune=prescott --disable-multilib'
+   TRIPLE=i686-apple-darwin8
 
 In addition, you *must* specify the following options to configure:
 
@@ -105,9 +98,9 @@ Version Identifier:
 
   If you want LLVM to include an identifying marker in the --version output,
   build llvm-gcc with LLVM_VERSION_INFO=XXX.  For example, to build the LLVM
-  1.9 Release front-end, use 'make LLVM_VERSION_INFO=1.9'.  This will cause the
-  front-end to print: "gcc (GCC) 4.0.1 LLVM (Apple Computer, Inc. build 1.9)"
-  as the version number.
+  2.3 Release front-end, use 'make LLVM_VERSION_INFO=2.3'.  This will cause the
+  front-end to print: "gcc version 4.2.1 (Based on Apple Inc. build 5555) 
+  (LLVM build 2.3)" as the version number.
   
   BUILDOPTIONS=LLVM_VERSION_INFO=whatever
   
@@ -122,11 +115,12 @@ llvm-gcc source directory, and build and install llvm-gcc:
 $ mkdir obj
 $ mkdir install
 $ cd obj
-$ ../llvm-gcc4-x.y.source/configure --prefix=`pwd`/../install \
+$ ../llvm-gcc4-x.y.source/configure --prefix=`pwd`/../install --program-prefix=llvm- \
     --enable-llvm=$LLVMOBJDIR --enable-languages=c,c++$EXTRALANGS $TARGETOPTIONS
 $ make $BUILDOPTIONS
 $ make install
 $ ln -sf /usr/lib/libstdc++.6.dylib `pwd`/../install/lib
+$ ln -sf /usr/lib/libstdc++.6.dylib `pwd`/../install/lib/libstdc++.dylib
 
 That last step, "ln -sf ..." is required so that the linker (collect2) can find
 libstdc++ ('-lstdc++') and subsequently link C++ executables correctly.
@@ -135,20 +129,11 @@ Note that if you prefer to bootstrap llvm-gcc (so that the final llvm-gcc
 executables have been compiled with llvm-gcc itself), replace "make" with
 "make bootstrap".
 
-Finally, add symlinks for llvm-gcc and llvm-g++ to your path:
-
-$ su
-$ cd /usr/local/bin
-$ ln -s <llvmgccdir>/install/bin/gcc llvm-gcc
-$ ln -s <llvmgccdir>/install/bin/g++ llvm-g++
-$ exit
-
 You should now have something like:
 
 $ llvm-gcc -v
 ...
-gcc version 4.0.1 LLVM (Apple Computer, Inc. build 5400)
-
+gcc version 4.2.1 (Based on Apple Inc. build 5555) (LLVM build)
 
 ** NOTE: If the -v line above doesn't include "LLVM", you probably mistyped the
 --enable-llvm=xxx line and have a normal gcc, not an llvm-gcc.

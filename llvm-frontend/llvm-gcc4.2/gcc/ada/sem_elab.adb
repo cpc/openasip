@@ -2824,7 +2824,7 @@ package body Sem_Elab is
          end if;
       end loop;
 
-      raise Program_Error;
+      --  LLVM local deleted unreachable line
    end Within;
 
    --------------------------

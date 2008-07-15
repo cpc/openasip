@@ -70,9 +70,13 @@
 ;; Take {ym->y} into account for register allocation
 (define_insn "*mov<mode>_internal_rex64"
   [(set (match_operand:MMXMODEI 0 "nonimmediate_operand"
-				"=rm,r,*y,y ,m ,*y,Y ,x,x ,m,r,x")
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+				"=rm,r,*y,*y ,m ,*y,Yt,x,x ,m,r,x")
+;; APPLE LOCAL end mainline 2007-06-05 5103201
 	(match_operand:MMXMODEI 1 "vector_move_operand"
-				"Cr ,m,C ,ym,*y,Y ,*y,C,xm,x,x,r"))]
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+				"Cr ,m,C ,*ym,*y,Yt,*y,C,xm,x,x,r"))]
+;; APPLE LOCAL end mainline 2007-06-05 5103201
   "TARGET_64BIT && TARGET_MMX
    && (GET_CODE (operands[0]) != MEM || GET_CODE (operands[1]) != MEM)"
   "@
@@ -96,9 +100,13 @@
 (define_insn "*mov<mode>_internal"
 ;; APPLE LOCAL begin radar 4043818
   [(set (match_operand:MMXMODEI 0 "nonimmediate_operand"
-			"=*y,y ,m ,*y,*Y,*Y,*Y ,m ,*x,*x,*x,m ,?r ,?m")
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+			"=*y,y ,m ,*y ,*Yt,*Yt,*Yt ,m  ,*x,*x,*x,m ,?r ,?m")
+;; APPLE LOCAL end mainline 2007-06-05 5103201
 	(match_operand:MMXMODEI 1 "vector_move_operand"
-			"C  ,ym,*y,*Y,*y,C ,*Ym,*Y,C ,*x,m ,*x,irm,r"))]
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+			"C  ,*ym,*y,*Yt,*y ,C  ,*Ytm,*Yt,C ,*x,m ,*x,irm,r"))]
+;; APPLE LOCAL end mainline 2007-06-05 5103201
 ;; APPLE LOCAL end radar 4043818
   "TARGET_MMX
    && (GET_CODE (operands[0]) != MEM || GET_CODE (operands[1]) != MEM)"
@@ -132,9 +140,13 @@
 
 (define_insn "*movv2sf_internal_rex64"
   [(set (match_operand:V2SF 0 "nonimmediate_operand"
-				"=rm,r,*y ,*y ,m ,*y,Y ,x,x,x,m,r,x")
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+	 			"=rm,r,*y ,*y ,m ,*y,Yt,x,x,x,m,r,x")
+;; APPLE LOCAL end mainline 2007-06-05 5103201
         (match_operand:V2SF 1 "vector_move_operand"
-				"Cr ,m ,C ,*ym,*y,Y ,*y,C,x,m,x,x,r"))]
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+				"Cr ,m ,C ,*ym,*y,Yt,*y,C,x,m,x,x,r"))]
+;; APPLE LOCAL end mainline 2007-06-05 5103201
   "TARGET_64BIT && TARGET_MMX
    && (GET_CODE (operands[0]) != MEM || GET_CODE (operands[1]) != MEM)"
   "@
@@ -157,9 +169,13 @@
 
 (define_insn "*movv2sf_internal"
   [(set (match_operand:V2SF 0 "nonimmediate_operand"
-					"=*y,*y ,m,*y,*Y,*x,*x,*x,m ,?r ,?m")
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+					"=*y,*y ,m,*y ,*Yt,*x,*x,*x,m ,?r ,?m")
+;; APPLE LOCAL end mainline 2007-06-05 5103201
         (match_operand:V2SF 1 "vector_move_operand"
-					"C ,*ym,*y,*Y,*y,C ,*x,m ,*x,irm,r"))]
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+					"C ,*ym,*y,*Yt,*y ,C ,*x,m ,*x,irm,r"))]
+;; APPLE LOCAL end mainline 2007-06-05 5103201
   "TARGET_MMX
    && (GET_CODE (operands[0]) != MEM || GET_CODE (operands[1]) != MEM)"
   "@
@@ -1187,9 +1203,13 @@
 ;; APPLE LOCAL end 4684674
 
 (define_insn "*vec_extractv2si_1"
-  [(set (match_operand:SI 0 "nonimmediate_operand"     "=y,Y,Y,x,frxy")
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+  [(set (match_operand:SI 0 "nonimmediate_operand"     "=y,Yt,Yt,x,frxy")
+;; APPLE LOCAL end mainline 2007-06-05 5103201
 	(vec_select:SI
-	  (match_operand:V2SI 1 "nonimmediate_operand" " 0,0,Y,0,o")
+;; APPLE LOCAL begin mainline 2007-06-05 5103201
+	  (match_operand:V2SI 1 "nonimmediate_operand" " 0,0 ,Yt,0,o")
+;; APPLE LOCAL end mainline 2007-06-05 5103201
 	  (parallel [(const_int 1)])))]
   "TARGET_MMX && !(MEM_P (operands[0]) && MEM_P (operands[1]))"
   "@

@@ -735,7 +735,9 @@ finish_record_type (tree record_type, tree fieldlist, bool has_rep,
     for (i = 0, field = fieldlist; field; field = TREE_CHAIN (field), i++)
       gnu_arr[i] = field;
 
-    qsort (gnu_arr, len, sizeof (tree), compare_field_bitpos);
+    /* The order of fields in a qualified union does matter.  */
+    if (code != QUAL_UNION_TYPE)
+      qsort (gnu_arr, len, sizeof (tree), compare_field_bitpos);
 
     /* Put the fields in the list in order of increasing position, which
        means we start from the end.  */

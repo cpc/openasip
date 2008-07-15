@@ -127,6 +127,10 @@ struct arch_config_guess_map arch_config_map [] =
 const char **new_argv;
 int new_argc;
 
+/* For each of the options in new_argv, specifies an architecture to
+   which the option applies (or if NULL, the option applies to all).  */
+const char **arch_conditional;
+
 /* Argument list for 'lipo'.  */
 const char **lipo_argv;
 
@@ -166,6 +170,8 @@ static void do_lipo (int, const char *);
 static void do_compile (const char **, int);
 static void do_compile_separately (void);
 static void do_lipo_separately (void);
+static int filter_args_for_arch (const char **, int, const char **,
+				 const char *);
 static int add_arch_options (int, const char **, int);
 static int remove_arch_options (const char**, int);
 static void add_arch (const char *);
@@ -399,6 +405,13 @@ initialize (void)
   if (!new_argv)
     abort ();
 
+  arch_conditional = (const char **) malloc ((total_argc + 6) * sizeof (const char *));
+  if (!arch_conditional)
+    abort ();
+
+  for (i = 0; i < total_argc + 6; i++)
+    arch_conditional[i] = NULL;
+
   /* First slot, new_argv[0] is reserved for the driver name.  */
   new_argc = 1;
 
@@ -533,6 +546,10 @@ do_compile (const char **current_argv, int current_argc)
   int of_index = current_argc + 1;
   int argc_count = current_argc + 2;
 
+  const char **arch_specific_argv;
+
+  int arch_specific_argc;
+
   while (index < num_arches)
     {
       int additional_arch_options = 0;
@@ -550,16 +567,24 @@ do_compile (const char **current_argv, int current_argc)
       additional_arch_options = add_arch_options (index, current_argv, argc_count);
       argc_count += additional_arch_options;
 
-      commands[index].prog = current_argv[0];
-      commands[index].argv = current_argv;
-
       current_argv[argc_count] = NULL;
 
+      arch_specific_argv =
+	(const char **) malloc ((argc_count + 1) * sizeof (const char *));
+
+      arch_specific_argc = filter_args_for_arch (current_argv,
+						 argc_count,
+						 arch_specific_argv,
+						 get_arch_name (arches[index]));
+
+      commands[index].prog = arch_specific_argv[0];
+      commands[index].argv = arch_specific_argv;
+
 #ifdef DEBUG
-      debug_command_line (current_argv, argc_count);
+      debug_command_line (arch_specific_argv, arch_specific_argc);
 #endif
-      commands[index].pid = pexecute (current_argv[0],
-				      (char *const *)current_argv,
+      commands[index].pid = pexecute (arch_specific_argv[0],
+				      (char *const *)arch_specific_argv,
 				      progname, NULL,
 				      &errmsg_fmt,
 				      &errmsg_arg,
@@ -575,6 +600,7 @@ do_compile (const char **current_argv, int current_argc)
       if (additional_arch_options)
 	argc_count -= remove_arch_options (current_argv, argc_count);
       index++;
+      free (arch_specific_argv);
     }
 }
 
@@ -604,6 +630,7 @@ do_compile_separately (void)
       struct input_filename *ifn = in_files;
       int go_back = 0;
       new_new_argc = 1;
+      bool ifn_found = false;
 
       for (i = 1; i < new_argc; i++)
 	{
@@ -614,9 +641,15 @@ do_compile_separately (void)
 
  	      if (!strcmp (new_argv[i], current_ifn->name))
 		{
+		  if (ifn_found)
+		    fatal ("file %s specified more than once on the command line", current_ifn->name);
+
 		  /* If it is current input file name then add it in the new
 		     list.  */
-		  new_new_argv[new_new_argc++] = new_argv[i];
+		  new_new_argv[new_new_argc] = new_argv[i];
+		  arch_conditional[new_new_argc] = arch_conditional[i];
+		  new_new_argc++;
+		  ifn_found = true;
 		}
 	      /* This input file can  not appear in
 		 again on the command line so next time look for next input
@@ -627,7 +660,9 @@ do_compile_separately (void)
 	    {
 	      /* This argument is not a input file name. Add it into new
 		 list.  */
-	      new_new_argv[new_new_argc++] = new_argv[i];
+	      new_new_argv[new_new_argc] = new_argv[i];
+	      arch_conditional[new_new_argc] = arch_conditional[i];
+	      new_new_argc++;
 	    }
 	}
 
@@ -648,6 +683,26 @@ do_lipo_separately (void)
        ifn_index++, ifn = ifn->next)
     do_lipo (ifn_index * num_arches,
 	     strip_path_and_suffix (ifn->name, ".o"));
+}
+
+/* Remove all options which are architecture-specific and are not for the
+   current architecture (arch).  */
+static int
+filter_args_for_arch (const char **orig_argv, int orig_argc,
+		      const char **new_argv, const char *arch)
+{
+  int new_argc = 0;
+  int i;
+
+  for (i = 0; i < orig_argc; i++)
+    if (arch_conditional[i] == NULL
+	|| *arch_conditional[i] == '\0'
+	|| ! strcmp (arch_conditional[i], arch))
+      new_argv[new_argc++] = orig_argv[i];
+
+  new_argv[new_argc] = NULL;
+
+  return new_argc; 
 }
 
 /* Replace -arch <blah> options with appropriate "-mcpu=<blah>" OR
@@ -1388,6 +1443,12 @@ main (int argc, const char **argv)
 	  i++;
 	  new_argv[new_argc++] = argv[i];
 	}
+      else if (! strncmp (argv[i], "-Xarch_", 7))
+	{
+	  arch_conditional[new_argc] = get_arch_name (argv[i] + 7);
+	  i++;
+	  new_argv[new_argc++] = argv[i];
+	}
       else if (argv[i][0] == '-' && argv[i][1] != 0)
 	{
 	  const char *p = &argv[i][1];
@@ -1461,6 +1522,8 @@ main (int argc, const char **argv)
 
   if (num_arches == 0 || num_arches == 1)
     {
+      int arch_specific_argc;
+      const char **arch_specific_argv;
 
       /* If no -arch is specified than use host compiler driver.  */
       if (num_arches == 0)
@@ -1488,17 +1551,25 @@ main (int argc, const char **argv)
       /* Add the NULL.  */
       new_argv[new_argc] = NULL;
 
+      arch_specific_argv =
+	(const char **) malloc ((new_argc + 1) * sizeof (const char *));
+      arch_specific_argc = filter_args_for_arch (new_argv,
+						 new_argc,
+						 arch_specific_argv,
+						 get_arch_name (arches[0]));
+
 #ifdef DEBUG
-      debug_command_line (new_argv, new_argc);
+      debug_command_line (arch_specific_argv, arch_specific_argc);
 #endif
 
-      pid = pexecute (new_argv[0], (char *const *)new_argv, progname, NULL,
-		      &errmsg_fmt, &errmsg_arg, PEXECUTE_SEARCH | PEXECUTE_ONE);
+      pid = pexecute (arch_specific_argv[0], (char *const *)arch_specific_argv,
+		      progname, NULL, &errmsg_fmt, &errmsg_arg,
+		      PEXECUTE_SEARCH | PEXECUTE_ONE);
 
       if (pid == -1)
 	pfatal_pexecute (errmsg_fmt, errmsg_arg);
 
-      do_wait (pid, new_argv[0]);
+      do_wait (pid, arch_specific_argv[0]);
     }
   else
     {

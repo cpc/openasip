@@ -611,7 +611,7 @@ expand_builtin_return_addr (enum built_in_function fndecl_code, int count)
     }
   else
     current_function_calls_builtin_ret_addr = 1;
-  /* APPLE LOCAL begin ARM reliable backtraces */
+  /* APPLE LOCAL end ARM reliable backtraces */
 
   /* For __builtin_return_address, get the return address from that frame.  */
 #ifdef RETURN_ADDR_RTX
@@ -8843,7 +8843,8 @@ fold_builtin_classify (tree fndecl, tree arglist, int builtin_index)
   switch (builtin_index)
     {
     case BUILT_IN_ISINF:
-      if (!MODE_HAS_INFINITIES (TYPE_MODE (TREE_TYPE (arg))))
+      /* APPLE LOCAL mainline 5675014 */
+      if (!HONOR_INFINITIES (TYPE_MODE (TREE_TYPE (arg))))
 	return omit_one_operand (type, integer_zero_node, arg);
 
       if (TREE_CODE (arg) == REAL_CST)
@@ -8859,9 +8860,11 @@ fold_builtin_classify (tree fndecl, tree arglist, int builtin_index)
       return NULL_TREE;
 
     case BUILT_IN_FINITE:
-      if (!MODE_HAS_NANS (TYPE_MODE (TREE_TYPE (arg)))
-	  && !MODE_HAS_INFINITIES (TYPE_MODE (TREE_TYPE (arg))))
+      /* APPLE LOCAL begin mainline 5675014 */
+      if (!HONOR_NANS (TYPE_MODE (TREE_TYPE (arg)))
+	  && !HONOR_INFINITIES (TYPE_MODE (TREE_TYPE (arg))))
 	return omit_one_operand (type, integer_zero_node, arg);
+      /* APPLE LOCAL end mainline 5675014 */
 
       if (TREE_CODE (arg) == REAL_CST)
 	{
@@ -8873,7 +8876,8 @@ fold_builtin_classify (tree fndecl, tree arglist, int builtin_index)
       return NULL_TREE;
 
     case BUILT_IN_ISNAN:
-      if (!MODE_HAS_NANS (TYPE_MODE (TREE_TYPE (arg))))
+      /* APPLE LOCAL mainline 5675014 */
+      if (!HONOR_NANS (TYPE_MODE (TREE_TYPE (arg))))
 	return omit_one_operand (type, integer_zero_node, arg);
 
       if (TREE_CODE (arg) == REAL_CST)
@@ -8956,12 +8960,14 @@ fold_builtin_unordered_cmp (tree fndecl, tree arglist,
 
   if (unordered_code == UNORDERED_EXPR)
     {
-      if (!MODE_HAS_NANS (TYPE_MODE (TREE_TYPE (arg0))))
+      /* APPLE LOCAL mainline 5675014 */
+      if (!HONOR_NANS (TYPE_MODE (TREE_TYPE (arg0))))
 	return omit_two_operands (type, integer_zero_node, arg0, arg1);
       return fold_build2 (UNORDERED_EXPR, type, arg0, arg1);
     }
 
-  code = MODE_HAS_NANS (TYPE_MODE (TREE_TYPE (arg0))) ? unordered_code
+  /* APPLE LOCAL mainline 5675014 */
+  code = HONOR_NANS (TYPE_MODE (TREE_TYPE (arg0))) ? unordered_code
 						      : ordered_code;
   return fold_build1 (TRUTH_NOT_EXPR, type,
 		      fold_build2 (code, type, arg0, arg1));
@@ -11343,7 +11349,6 @@ init_target_chars (void)
 }
 
 /* APPLE LOCAL begin 3399553 */
-
 /* Evaluate FLT_ROUNDS, whose value is dependent upon the current
    rounding mode and which may be changed by a call to fesetround.  */
 
@@ -11363,4 +11368,3 @@ expand_builtin_flt_rounds (void)
   return const1_rtx;
 }
 /* APPLE LOCAL end 3399553 */
-

@@ -40,6 +40,9 @@ procedure Krunch
    No_Predef : Boolean)
 
 is
+   --  LLVM local
+   pragma Assert (Buffer'First = 1);
+
    B1       : Character renames Buffer (1);
    Curlen   : Natural;
    Krlen    : Natural;

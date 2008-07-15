@@ -85,6 +85,20 @@
   (and (match_code "reg")
        (match_test "REGNO (op) == FLAGS_REG")))
 
+;; APPLE LOCAL begin 5612787 mainline sse4
+;; Return true if op is not xmm0 register.
+(define_predicate "reg_not_xmm0_operand"
+   (and (match_operand 0 "register_operand")
+	(match_test "GET_CODE (op) != REG
+		     || REGNO (op) != FIRST_SSE_REG")))
+
+;; As above, but allow nonimmediate operands.
+(define_predicate "nonimm_not_xmm0_operand"
+   (and (match_operand 0 "nonimmediate_operand")
+	(match_test "GET_CODE (op) != REG
+		     || REGNO (op) != FIRST_SSE_REG")))
+;; APPLE LOCAL end 5612787 mainline sse4
+
 ;; Return 1 if VALUE can be stored in a sign extended immediate field.
 (define_predicate "x86_64_immediate_operand"
   (match_code "const_int,symbol_ref,label_ref,const")
@@ -614,6 +628,13 @@
   (and (match_code "const_int")
        (match_test "INTVAL (op) >= 4 && INTVAL (op) <= 7")))
 
+;; APPLE LOCAL begin 5612787 mainline sse4
+;; Match exactly one bit in 2-bit mask.
+(define_predicate "const_pow2_1_to_2_operand"
+  (and (match_code "const_int")
+       (match_test "INTVAL (op) == 1 || INTVAL (op) == 2")))
+;; APPLE LOCAL end 5612787 mainline sse4
+
 ;; Match exactly one bit in 4-bit mask.
 (define_predicate "const_pow2_1_to_8_operand"
   (match_code "const_int")
@@ -629,6 +650,16 @@
   unsigned int log = exact_log2 (INTVAL (op));
   return log <= 7;
 })
+
+;; APPLE LOCAL begin 5612787 mainline sse4
+;; Match exactly one bit in 16-bit mask.
+(define_predicate "const_pow2_1_to_32768_operand"
+  (match_code "const_int")
+{
+  unsigned int log = exact_log2 (INTVAL (op));
+  return log <= 15;
+})
+;; APPLE LOCAL end 5612787 mainline sse4
 
 ;; True if this is a constant appropriate for an increment or decrement.
 (define_predicate "incdec_operand"

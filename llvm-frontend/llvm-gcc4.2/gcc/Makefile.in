@@ -617,6 +617,8 @@ LIBGCC2_CFLAGS = -O2 $(LIBGCC2_INCLUDES) $(GCC_CFLAGS) $(TARGET_LIBGCC2_CFLAGS) 
 		 $(LIBGCC2_DEBUG_CFLAGS) $(GTHREAD_FLAGS) \
 		 -DIN_LIBGCC2 -D__GCC_FLOAT_NOT_NEEDED \
 		 $(INHIBIT_LIBC_CFLAGS)
+# APPLE LOCAL gcov 5573505
+LIBGCC2_STATIC_CFLAGS = $(TARGET_LIBGCC2_STATIC_CFLAGS)
 
 # Additional options to use when compiling libgcc2.a.
 # Some targets override this to -isystem include
@@ -626,6 +628,9 @@ LIBGCC2_INCLUDES =
 #TARGET_LIBGCC2_CFLAGS =
 # TCE patch we like to compile libgcc2 to bytecode as well
 TARGET_LIBGCC2_CFLAGS = --emit-llvm
+
+# APPLE LOCAL gcov 5573505
+TARGET_LIBGCC2_STATIC_CFLAGS = --emit-llvm
 
 # Options to use when compiling crtbegin/end.
 CRTSTUFF_CFLAGS = -O2 $(GCC_CFLAGS) $(INCLUDES) $(MULTILIB_CFLAGS) -g0 \
@@ -994,6 +999,8 @@ export INCLUDES
 export INSTALL_DATA
 export LIB1ASMSRC
 export LIBGCC2_CFLAGS
+# APPLE LOCAL gcov 5573505
+export LIBGCC2_STATIC_CFLAGS
 export LIPO_FOR_TARGET
 export MACHMODE_H
 export NM_FOR_TARGET
@@ -1539,7 +1546,7 @@ ifdef BUILD_LLVM_INTO_A_DYLIB
 cc1-exported-symbol-list.txt:
 	echo "_main" > $@
 LIBDEPS += cc1-exported-symbol-list.txt
-LINKCC += -dead_strip -exported_symbols_list cc1-exported-symbol-list.txt -L/usr/lib/gcc/$(build)/4.0.1/
+LINKCC += -dead_strip -exported_symbols_list cc1-exported-symbol-list.txt
 endif
 else
 LINKCC := $(CC)
@@ -1656,6 +1663,12 @@ xlimits.h: glimits.h limitx.h limity.h
 LIB2ADD = $(LIB2FUNCS_EXTRA)
 LIB2ADD_ST = $(LIB2FUNCS_STATIC_EXTRA)
 
+# LLVM LOCAL begin libcc_kext
+ifneq (,$(findstring darwin,$(target)))
+APPLE_EXTRA_MULTI := static;@static@fno-pic kext;@Dmalloc=kern_os_malloc@Dfree=kern_os_free@DLIBCC_KEXT@static@fno-pic@fno-exceptions@fno-non-call-exceptions$(KEXT_EXTRA_FLAGS) $(if $(findstring i686,$(target)),kext64;@mkernel@m64@Dmalloc=kern_os_malloc@Dfree=kern_os_free@DLIBCC_KEXT$(KEXT_EXTRA_FLAGS))
+endif
+# LLVM LOCAL end libcc_kext
+
 libgcc.mk: config.status Makefile mklibgcc $(LIB2ADD) $(LIB2ADD_ST) specs \
 		xgcc$(exeext) stamp-as stamp-collect-ld stamp-nm
 	objext='$(objext)' \
@@ -1690,7 +1703,7 @@ libgcc.mk: config.status Makefile mklibgcc $(LIB2ADD) $(LIB2ADD_ST) specs \
 	D128PBIT='$(D128PBIT)' \
 	D128PBIT_FUNCS='$(D128PBIT_FUNCS)' \
 	APPLE_LOCAL='APPLE LOCAL libcc_kext' \
-	MULTILIBS="`$(GCC_FOR_TARGET) --print-multi-lib` static;@static@fno-pic kext;@Dmalloc=kern_os_malloc@Dfree=kern_os_free@DLIBCC_KEXT@static@fno-pic@fno-exceptions@fno-non-call-exceptions$(KEXT_EXTRA_FLAGS)" \
+	MULTILIBS="`$(GCC_FOR_TARGET) --print-multi-lib` $(APPLE_EXTRA_MULTI)" \
 	EXTRA_MULTILIB_PARTS='$(EXTRA_MULTILIB_PARTS)' \
 	SHLIB_LINK='$(SHLIB_LINK)' \
 	SHLIB_INSTALL='$(SHLIB_INSTALL)' \
@@ -4526,7 +4539,7 @@ stage1_build:
 		CFLAGS="$(STAGE1_CFLAGS) $(STAGE1_CHECKING_CFLAGS)" \
 		MAKEINFO="$(MAKEINFO)" MAKEINFOFLAGS="$(MAKEINFOFLAGS)" \
 		COVERAGE_FLAGS= OBJS-onestep="$(OBJS)" \
-! 	        LLVM_STAGE="-stage1"
+	        LLVM_STAGE="-stage1"
 	$(STAMP) stage1_build
 	echo stage1_build > stage_last
 

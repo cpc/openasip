@@ -30,3 +30,18 @@ winnt-stubs.o: $(srcdir)/config/i386/winnt-stubs.c $(CONFIG_H) $(SYSTEM_H) coret
 	$(srcdir)/config/i386/winnt-stubs.c
 
 STMP_FIXINC=stmp-fixinc
+
+# LLVM LOCAL begin mainline 125696
+# Effectively disable the crtbegin/end rules using crtstuff.c
+T = disable
+
+CRTSTUFF_T_CFLAGS = -fno-omit-frame-pointer
+
+crtbegin.o: $(srcdir)/config/i386/cygming-crtbegin.c $(GCC_PASSES)
+	$(GCC_FOR_TARGET) $(CRTSTUFF_CFLAGS) -c -o crtbegin.o \
+	$(srcdir)/config/i386/cygming-crtbegin.c
+
+crtend.o: $(srcdir)/config/i386/cygming-crtend.c $(GCC_PASSES)
+	$(GCC_FOR_TARGET) $(CRTSTUFF_CFLAGS) -c -o crtend.o  \
+	$(srcdir)/config/i386/cygming-crtend.c
+# LLVM LOCAL end mainline 125696

@@ -167,6 +167,8 @@ static const unsigned int_reg_class_contents[N_REG_CLASSES][N_REG_INTS]
 
 unsigned int reg_class_size[N_REG_CLASSES];
 
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
 /* For each reg class, table listing all the containing classes.  */
 
 static enum reg_class reg_class_superclasses[N_REG_CLASSES][N_REG_CLASSES];
@@ -174,6 +176,8 @@ static enum reg_class reg_class_superclasses[N_REG_CLASSES][N_REG_CLASSES];
 /* For each reg class, table listing all the classes contained in it.  */
 
 static enum reg_class reg_class_subclasses[N_REG_CLASSES][N_REG_CLASSES];
+/* LLVM LOCAL */
+#endif
 
 /* For each pair of reg classes,
    a largest reg class contained in their union.  */
@@ -312,9 +316,13 @@ init_reg_sets_1 (void)
   /* This macro allows the fixed or call-used registers
      and the register classes to depend on target flags.  */
 
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
 #ifdef CONDITIONAL_REGISTER_USAGE
   CONDITIONAL_REGISTER_USAGE;
 #endif
+#endif
+/* LLVM LOCAL end */
 
   /* Compute number of hard regs in each class.  */
 
@@ -324,6 +332,8 @@ init_reg_sets_1 (void)
       if (TEST_HARD_REG_BIT (reg_class_contents[i], j))
 	reg_class_size[i]++;
 
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   /* Initialize the table of subunions.
      reg_class_subunion[I][J] gets the largest-numbered reg-class
      that is contained in the union of classes I and J.  */
@@ -471,6 +481,8 @@ init_reg_sets_1 (void)
       else if (CALL_REALLY_USED_REGNO_P (i))
 	SET_HARD_REG_BIT (regs_invalidated_by_call, i);
     }
+#endif
+/* LLVM LOCAL end */
 
   memset (have_regs_of_mode, 0, sizeof (have_regs_of_mode));
   memset (contains_reg_of_mode, 0, sizeof (contains_reg_of_mode));
@@ -486,6 +498,8 @@ init_reg_sets_1 (void)
 	       break;
 	     }
 
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   /* Initialize the move cost table.  Find every subset of each class
      and take the maximum cost of moving any subset to any other.  */
 
@@ -542,6 +556,8 @@ init_reg_sets_1 (void)
 		may_move_out_cost[m][i][j] = 65536;
 	      }
       }
+#endif
+/* LLVM LOCAL end */
 }
 
 /* Compute the table of register modes.

@@ -51,8 +51,11 @@ Boston, MA 02110-1301, USA.  */
 #include "c-pragma.h"
 #include "tree-dump.h"
 #include "intl.h"
+/* APPLE LOCAL elide global inits 3814991 */
+#include "tree-iterator.h"
 /* LLVM LOCAL */
 #include "llvm.h"
+
 extern cpp_reader *parse_in;
 
 /* This structure contains information about the initializations
@@ -75,7 +78,8 @@ static tree start_static_storage_duration_function (unsigned);
 static void finish_static_storage_duration_function (tree);
 static priority_info get_priority_info (int);
 static void do_static_initialization_or_destruction (tree, bool);
-static void one_static_initialization_or_destruction (tree, tree, bool);
+/* APPLE LOCAL elide global inits 5642351 */
+static void one_static_initialization_or_destruction (tree, tree, bool, priority_info);
 static void generate_ctor_or_dtor_function (bool, int, location_t *);
 static int generate_ctor_and_dtor_functions_for_priority (splay_tree_node,
 							  void *);
@@ -2615,12 +2619,129 @@ get_priority_info (int priority)
 							    ||  DECL_TEMPLATE_SPECIALIZATION (decl)))))
 /* APPLE LOCAL end Radar 4539933 */
 
+/* APPLE LOCAL begin elide global inits 3814991 */
+/* Return true if the tree is proved to do nothing (have no lasting
+   side effects).
+
+   Ideally, we'd like for the backend to obviate most of this code,
+   such as folding and empty statement lists inside BIND_EXPRs and so
+   on, but until they do, we should handle them here.  */
+
+static bool
+does_nothing_p (tree exp)
+{
+  tree_stmt_iterator i;
+  
+  if (exp == NULL_TREE)
+    return true;
+  if (TREE_CODE (exp) == STATEMENT_LIST)
+    {
+      for (i = tsi_start (exp); !tsi_end_p (i); tsi_next (&i))
+	{
+	  if (!does_nothing_p (*tsi_stmt_ptr (i)))
+	    return false;
+	}
+      return true;
+    }
+  else if (TREE_CODE (exp) == CALL_EXPR)
+    {
+      tree decl = NULL_TREE;
+      if (TREE_CODE (TREE_OPERAND (exp, 0)) == ADDR_EXPR
+	  && (TREE_CODE (decl = TREE_OPERAND (TREE_OPERAND (exp, 0), 0))
+	      == FUNCTION_DECL))
+	{
+	  if (TREE_OPERAND (exp, 1))
+	    {
+	      if (TREE_CODE (TREE_OPERAND (exp, 1)) != TREE_LIST)
+		return false;
+	      if (TREE_CHAIN (TREE_OPERAND (exp, 1)))
+		return false;
+	      if (TREE_SIDE_EFFECTS (TREE_VALUE (TREE_OPERAND (exp, 1))))
+		return false;
+	    }	      	    
+
+	  if (DECL_UNINLINABLE (decl))
+	    return false;
+
+	  /* Avoid inlining if -fno-inline is in effect when
+	     optimiing, unless of course always_inline is given.  */
+	  if (!((flag_inline_trees || !flag_no_inline) && !flag_really_no_inline)
+	      && !lookup_attribute ("always_inline", DECL_ATTRIBUTES (decl)))
+	    return false;
+
+	  exp = DECL_SAVED_TREE (decl);
+
+	  if (!exp)
+	    return false;
+
+	  return does_nothing_p (exp);
+	}
+
+      /* Other forms of CALL_EXPRs.  */
+      return false;
+    }
+  else if (TREE_CODE (exp) == EXPR_STMT)
+    return does_nothing_p (TREE_OPERAND (exp, 0));
+  else if (TREE_CODE (exp) == BIND_EXPR)
+    return does_nothing_p (BIND_EXPR_BODY (exp));
+  else if (TREE_CODE (exp) == MODIFY_EXPR)
+    {
+      bool was_set_zero = (integer_zerop (TREE_OPERAND (exp, 1))
+			   || real_zerop (TREE_OPERAND (exp, 1)));
+
+      if (TREE_SIDE_EFFECTS (TREE_OPERAND (exp, 1)))
+	return false;
+      exp = TREE_OPERAND (exp, 0);
+      if (TREE_SIDE_EFFECTS (exp))
+	return false;
+      if (TREE_CODE (exp) != VAR_DECL)
+	{
+	  /* Modifications of this object with zero don't count either
+	     as all objects initialized by file scope constructors are
+	     required to be zero initialized first.  */
+	  if (was_set_zero
+	      && TREE_CODE (exp) == COMPONENT_REF
+	      && !TREE_SIDE_EFFECTS (exp)
+	      && TREE_CODE (TREE_OPERAND (exp, 1)) == FIELD_DECL
+	      && TREE_CODE (exp=TREE_OPERAND (exp, 0)) == INDIRECT_REF
+	      && TREE_CODE (exp=TREE_OPERAND (exp, 0)) == PARM_DECL
+	      && DECL_NAME (exp) == this_identifier)
+	    return true;
+	    
+	  return false;
+	}
+      if (TREE_STATIC (exp))
+	return false;
+
+      /* Modifications of stack variables without side-effects don't
+	 count as side effects.  */
+      return true;
+    }
+  else if (TREE_CODE (exp) == COND_EXPR)
+    {
+      tree cond = TREE_OPERAND (exp, 0);
+      cond = fold (cond);
+      if (integer_onep (cond))
+	return does_nothing_p (TREE_OPERAND (exp, 1));
+      else if (integer_zerop (cond))
+	return does_nothing_p (TREE_OPERAND (exp, 2));
+    }
+  else if (TREE_CODE (exp) == TRY_CATCH_EXPR)
+    return does_nothing_p (TREE_OPERAND (exp, 0));
+
+  return false;
+}
+/* APPLE LOCAL end elide global inits 3814991 */
+
 /* Set up to handle the initialization or destruction of DECL.  If
    INITP is nonzero, we are initializing the variable.  Otherwise, we
    are destroying it.  */
 
 static void
-one_static_initialization_or_destruction (tree decl, tree init, bool initp)
+/* APPLE LOCAL begin elide global inits 5642351 */
+one_static_initialization_or_destruction (tree decl, tree init, bool initp,
+					  priority_info pi)
+/* APPLE LOCAL end elide global inits 5642351 */
 {
   tree guard_if_stmt = NULL_TREE;
   tree guard;
@@ -2667,6 +2788,14 @@ one_static_initialization_or_destruction (tree decl, tree init, bool initp)
 
       guard = get_guard (decl);
 
+      /* APPLE LOCAL begin elide global inits 5642351 */
+      /* We can't avoid running the guard code.  */
+      if (initp)
+	pi->initializations_p = 1;
+      else
+	pi->destructions_p = 1;
+      /* APPLE LOCAL end elide global inits 5642351 */
+
       /* When using __cxa_atexit, we just check the GUARD as we would
 	 for a local static.  */
       if (flag_use_cxa_atexit)
@@ -2712,15 +2841,33 @@ one_static_initialization_or_destruction (tree decl, tree init, bool initp)
   if (initp)
     {
       if (init)
-	finish_expr_stmt (init);
+	/* APPLE LOCAL begin elide global inits 3814991 5642351 */
+	{
+	  if (!does_nothing_p (init))
+	    {
+	      pi->initializations_p = 1;
+	      finish_expr_stmt (init);
+	    }
+	}
+	/* APPLE LOCAL end elide global inits 3814991 5642351 */
 
       /* If we're using __cxa_atexit, register a function that calls the
 	 destructor for the object.  */
       if (flag_use_cxa_atexit)
-	finish_expr_stmt (register_dtor_fn (decl));
+	/* APPLE LOCAL begin elide global inits 5642351 */
+	{
+	  pi->initializations_p = 1;
+	  finish_expr_stmt (register_dtor_fn (decl));
+	}
+      /* APPLE LOCAL end global inits 5642351 */
     }
   else
-    finish_expr_stmt (build_cleanup (decl));
+    /* APPLE LOCAL begin elide global inits 5642351 */
+    {
+      pi->destructions_p = 1;
+      finish_expr_stmt (build_cleanup (decl));
+    }
+  /* APPLE LOCAL end global inits 5642351 */
 
   /* Finish the guard if-stmt, if necessary.  */
   if (guard)
@@ -2771,10 +2918,9 @@ do_static_initialization_or_destruction (tree vars, bool initp)
        priority.  */
     priority = DECL_EFFECTIVE_INIT_PRIORITY (decl);
     pi = get_priority_info (priority);
-    if (initp)
-      pi->initializations_p = 1;
-    else
-      pi->destructions_p = 1;
+    /* APPLE LOCAL begin elide global inits 5642351 */
+    /* removed pi->initializations_p and destructions_p setting */
+    /* APPLE LOCAL end elide global inits 5642351 */
 
     /* Conditionalize this initialization on being in the right priority
        and being initializing/finalizing appropriately.  */
@@ -2790,7 +2936,8 @@ do_static_initialization_or_destruction (tree vars, bool initp)
 	 node = TREE_CHAIN (node))
       /* Do one initialization or destruction.  */
       one_static_initialization_or_destruction (TREE_VALUE (node),
-						TREE_PURPOSE (node), initp);
+						/* APPLE LOCAL elide global inits 5642351 */
+						TREE_PURPOSE (node), initp, pi);
 
     /* Finish up the priority if-stmt body.  */
     finish_then_clause (priority_if_stmt);
@@ -2849,6 +2996,20 @@ prune_vars_needing_no_initialization (tree *vars)
 	  var = &TREE_CHAIN (t);
 	  continue;
 	}
+
+      /* APPLE LOCAL begin elide global inits 3814991 */
+      /* If the initializer does nothing of interest, don't create the
+	 expense of a global constructor.  */
+      if (init
+	  && does_nothing_p (init)
+	  && TYPE_HAS_TRIVIAL_DESTRUCTOR (TREE_TYPE (decl))
+	  /* If we have guards, ensure we run them.  */
+	  && !NEEDS_GUARD_P (decl))
+	{
+	  var = &TREE_CHAIN (t);
+	  continue;
+	}
+      /* APPLE LOCAL end elide global inits 3814991 */
 
       /* This variable is going to need initialization and/or
 	 finalization, so we add it to the list.  */

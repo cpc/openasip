@@ -233,6 +233,10 @@ Print pass manager structure
 fdebug-pass-arguments
 Common Report Var(flag_debug_pass_arguments)
 Print pass manager arguments
+
+fdebug-llvm-module-opt
+Common Report Var(flag_debug_llvm_module_opt)
+Help debug llvm module-level optimizer
 ; LLVM LOCAL end
 
 ; The version of the C++ ABI in use.  The following values are allowed:

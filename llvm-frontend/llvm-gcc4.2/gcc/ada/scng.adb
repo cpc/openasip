@@ -477,7 +477,7 @@ package body Scng is
          UI_Int_Value := Uint_0;
          Scale := 0;
          Scan_Integer;
-         Scale := 0;
+         --  LLVM local deleted one line
          Point_Scanned := False;
          UI_Num_Value := UI_Int_Value;
 
@@ -1140,7 +1140,11 @@ package body Scng is
          --  Horizontal tab, just skip past it
 
          when HT =>
-            if Style_Check then Style.Check_HT; end if;
+            --  LLVM local begin
+            if Style_Check then
+               Style.Check_HT;
+            end if;
+            --  LLVM local end
             Scan_Ptr := Scan_Ptr + 1;
 
          --  End of file character, treated as an end of file only if it is
@@ -1149,7 +1153,11 @@ package body Scng is
          when EOF =>
             if Scan_Ptr = Source_Last (Current_Source_File) then
                Check_End_Of_Line;
-               if Style_Check then Style.Check_EOF; end if;
+               --  LLVM local begin
+               if Style_Check then
+                  Style.Check_EOF;
+               end if;
+               --  LLVM local end
                Token := Tok_EOF;
                return;
             else
@@ -1199,7 +1207,11 @@ package body Scng is
 
             if Double_Char_Token ('=') then
                Token := Tok_Colon_Equal;
-               if Style_Check then Style.Check_Colon_Equal; end if;
+               --  LLVM local begin
+               if Style_Check then
+                  Style.Check_Colon_Equal;
+               end if;
+               --  LLVM local end
                return;
 
             elsif Source (Scan_Ptr + 1) = '-'
@@ -1213,7 +1225,11 @@ package body Scng is
             else
                Scan_Ptr := Scan_Ptr + 1;
                Token := Tok_Colon;
-               if Style_Check then Style.Check_Colon; end if;
+               --  LLVM local begin
+               if Style_Check then
+                  Style.Check_Colon;
+               end if;
+               --  LLVM local end
                return;
             end if;
 
@@ -1223,7 +1239,11 @@ package body Scng is
             Accumulate_Checksum ('(');
             Scan_Ptr := Scan_Ptr + 1;
             Token := Tok_Left_Paren;
-            if Style_Check then Style.Check_Left_Paren; end if;
+            --  LLVM local begin
+            if Style_Check then
+               Style.Check_Left_Paren;
+            end if;
+            --  LLVM local end
             return;
 
          --  Left bracket
@@ -1253,7 +1273,11 @@ package body Scng is
             Accumulate_Checksum (',');
             Scan_Ptr := Scan_Ptr + 1;
             Token := Tok_Comma;
-            if Style_Check then Style.Check_Comma; end if;
+            --  LLVM local begin
+            if Style_Check then
+               Style.Check_Comma;
+            end if;
+            --  LLVM local end
             return;
 
          --  Dot, which is either an isolated period, or part of a double dot
@@ -1265,7 +1289,11 @@ package body Scng is
 
             if Double_Char_Token ('.') then
                Token := Tok_Dot_Dot;
-               if Style_Check then Style.Check_Dot_Dot; end if;
+               --  LLVM local begin
+               if Style_Check then
+                  Style.Check_Dot_Dot;
+               end if;
+               --  LLVM local end
                return;
 
             elsif Source (Scan_Ptr + 1) in '0' .. '9' then
@@ -1286,7 +1314,11 @@ package body Scng is
 
             if Double_Char_Token ('>') then
                Token := Tok_Arrow;
-               if Style_Check then Style.Check_Arrow; end if;
+               --  LLVM local begin
+               if Style_Check then
+                  Style.Check_Arrow;
+               end if;
+               --  LLVM local end
                return;
 
             elsif Source (Scan_Ptr + 1) = '=' then
@@ -1331,7 +1363,11 @@ package body Scng is
 
             elsif Double_Char_Token ('>') then
                Token := Tok_Box;
-               if Style_Check then Style.Check_Box; end if;
+               --  LLVM local begin
+               if Style_Check then
+                  Style.Check_Box;
+               end if;
+               --  LLVM local end
                return;
 
             elsif Double_Char_Token ('<') then
@@ -1363,7 +1399,11 @@ package body Scng is
             --  Comment
 
             else -- Source (Scan_Ptr + 1) = '-' then
-               if Style_Check then Style.Check_Comment; end if;
+               --  LLVM local begin
+               if Style_Check then
+                  Style.Check_Comment;
+               end if;
+               --  LLVM local end
                Scan_Ptr := Scan_Ptr + 2;
 
                --  If we are in preprocessor mode with Replace_In_Comments set,
@@ -1409,7 +1449,11 @@ package body Scng is
                   --  Keep going if horizontal tab
 
                   if Source (Scan_Ptr) = HT then
-                     if Style_Check then Style.Check_HT; end if;
+                     --  LLVM local begin
+                     if Style_Check then
+                        Style.Check_HT;
+                     end if;
+                     --  LLVM local end
                      Scan_Ptr := Scan_Ptr + 1;
 
                   --  Terminate scan of comment if line terminator
@@ -1543,7 +1587,11 @@ package body Scng is
                or else Prev_Token in Token_Class_Literal
             then
                Token := Tok_Apostrophe;
-               if Style_Check then Style.Check_Apostrophe; end if;
+               --  LLVM local begin
+               if Style_Check then
+                  Style.Check_Apostrophe;
+               end if;
+               --  LLVM local end
                return;
 
             --  Otherwise the apostrophe starts a character literal
@@ -1648,7 +1696,11 @@ package body Scng is
             Accumulate_Checksum (')');
             Scan_Ptr := Scan_Ptr + 1;
             Token := Tok_Right_Paren;
-            if Style_Check then Style.Check_Right_Paren; end if;
+            --  LLVM local begin
+            if Style_Check then
+               Style.Check_Right_Paren;
+            end if;
+            --  LLVM local end
             return;
 
          --  Right bracket or right brace, treated as right paren
@@ -1679,7 +1731,11 @@ package body Scng is
             Accumulate_Checksum (';');
             Scan_Ptr := Scan_Ptr + 1;
             Token := Tok_Semicolon;
-            if Style_Check then Style.Check_Semicolon; end if;
+            --  LLVM local begin
+            if Style_Check then
+               Style.Check_Semicolon;
+            end if;
+            --  LLVM local end
             return;
 
          --  Vertical bar
@@ -1698,7 +1754,11 @@ package body Scng is
             else
                Scan_Ptr := Scan_Ptr + 1;
                Token := Tok_Vertical_Bar;
-               if Style_Check then Style.Check_Vertical_Bar; end if;
+               --  LLVM local begin
+               if Style_Check then
+                  Style.Check_Vertical_Bar;
+               end if;
+               --  LLVM local end
                return;
             end if;
          end Vertical_Bar_Case;
@@ -2385,7 +2445,11 @@ package body Scng is
          --  Outer loop keeps going only if a horizontal tab follows
 
          if Source (Scan_Ptr) = HT then
-            if Style_Check then Style.Check_HT; end if;
+            --  LLVM local begin
+            if Style_Check then
+               Style.Check_HT;
+            end if;
+            --  LLVM local end
             Scan_Ptr := Scan_Ptr + 1;
             Start_Column := (Start_Column / 8) * 8 + 8;
          else

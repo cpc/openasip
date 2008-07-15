@@ -756,11 +756,30 @@ digest_init (tree type, tree init)
 	  return error_mark_node;
 	}
 
+      /* APPLE LOCAL begin AltiVec 5527030 */
+      /* Peer through compound literals for efficiency.  */
+      if (code == VECTOR_TYPE
+	  && TREE_CODE (init) == VAR_DECL
+	  && TREE_CODE (TREE_TYPE (init)) == VECTOR_TYPE
+	  /* APPLE LOCAL 5612787 mainline sse4 */
+          && vector_types_convertible_p (TREE_TYPE (init), type, true)
+	  && TYPE_READONLY (type)
+	  && !TYPE_VOLATILE (type))
+	{
+	  tree v = DECL_INITIAL (init);
+	  if (v
+	      && v != error_mark_node
+	      && TREE_CONSTANT (v))
+	    init = v;
+	}
+      /* APPLE LOCAL end AltiVec 5527030 */
+
       /* APPLE LOCAL begin AltiVec */
       if (code == VECTOR_TYPE
           && TREE_CODE (init) == CONSTRUCTOR
           && TREE_CODE (TREE_TYPE (init)) == VECTOR_TYPE
-          && vector_types_convertible_p (TREE_TYPE (init), type)
+	  /* APPLE LOCAL 5612787 mainline sse4 */
+          && vector_types_convertible_p (TREE_TYPE (init), type, true)
           && TREE_CONSTANT (init))
         return build_vector_from_ctor (type, CONSTRUCTOR_ELTS (init));
       /* APPLE LOCAL end AltiVec */

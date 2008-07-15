@@ -112,6 +112,10 @@ extern int ix86_expand_int_movcc (rtx[]);
 extern int ix86_expand_fp_movcc (rtx[]);
 extern bool ix86_expand_fp_vcond (rtx[]);
 extern bool ix86_expand_int_vcond (rtx[]);
+/* APPLE LOCAL begin 5612787 mainline sse4 */
+extern void ix86_expand_sse_unpack (rtx[], bool, bool);
+extern void ix86_expand_sse4_unpack (rtx[], bool, bool);
+/* APPLE LOCAL end 5612787 mainline sse4 */
 extern int ix86_expand_int_addcc (rtx[]);
 extern void ix86_expand_call (rtx, rtx, rtx, rtx, rtx, int);
 extern void x86_initialize_trampoline (rtx, rtx, rtx);
@@ -171,6 +175,8 @@ extern void init_cumulative_args (CUMULATIVE_ARGS *, tree, rtx, tree);
 extern rtx function_arg (CUMULATIVE_ARGS *, enum machine_mode, tree, int);
 extern void function_arg_advance (CUMULATIVE_ARGS *, enum machine_mode,
 				  tree, int);
+/* LLVM LOCAL make this global */
+extern bool contains_128bit_aligned_vector_p (tree);
 extern rtx ix86_function_value (tree, tree, bool);
 #endif
 
@@ -257,7 +263,13 @@ extern void ix86_expand_flt_rounds (rtx);
 extern int asm_preferred_eh_data_format (int, int);
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
+#define MAX_CLASSES 4
 enum machine_mode ix86_getNaturalModeForType(tree type);
 int ix86_HowToPassArgument(enum machine_mode mode, tree type, int in_return,
                            int *int_nregs, int *sse_nregs);
+int ix86_ClassifyArgument(enum machine_mode mode, tree type,
+                          enum x86_64_reg_class classes[MAX_CLASSES],
+                          int bit_offset);
+#endif
 /* LLVM LOCAL end */

@@ -2650,13 +2650,21 @@ reachable_next_level (struct eh_region *region, tree type_thrown,
 	 inline a subroutine that contains handlers, and that will
 	 change the value of saw_any_handlers.  */
 
+/* LLVM local begin */
+#ifndef ENABLE_LLVM
       if ((info && info->saw_any_handlers) || !cfun->after_inlining)
 	{
+#endif
+/* LLVM local end */
 	  add_reachable_handler (info, region, region);
 	  return RNL_CAUGHT;
+/* LLVM local begin */
+#ifndef ENABLE_LLVM
 	}
       else
 	return RNL_BLOCKED;
+#endif
+/* LLVM local end */
 
     case ERT_THROW:
     case ERT_UNKNOWN:

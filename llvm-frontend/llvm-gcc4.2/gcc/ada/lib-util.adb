@@ -75,10 +75,12 @@ package body Lib.Util is
    --  Start of processing for Write_Info_Char_Code
 
    begin
-      if Code in 16#00# .. 16#7F# then
+      --  LLVM local
+      if Code <= 16#7F# then
          Write_Info_Char (Character'Val (Code));
 
-      elsif Code in 16#80# .. 16#FF# then
+      --  LLVM local
+      elsif Code <= 16#FF# then
          Write_Info_Char ('U');
          Write_Info_Hex_Byte (Natural (Code));
 

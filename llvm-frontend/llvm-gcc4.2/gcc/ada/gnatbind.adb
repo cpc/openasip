@@ -206,6 +206,8 @@ procedure Gnatbind is
    -------------------
 
    procedure Scan_Bind_Arg (Argv : String) is
+      --  LLVM local
+      pragma Assert (Argv'First = 1);
    begin
       --  Now scan arguments that are specific to the binder and are not
       --  handled by the common circuitry in Switch.

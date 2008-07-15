@@ -61,6 +61,8 @@ extern bool default_decimal_float_supported_p (void);
 extern const char * default_invalid_within_doloop (rtx);
 
 extern bool default_narrow_bitfield (void);
+/* APPLE LOCAL mainline 4.2 5569774 */
+extern bool default_builtin_vector_alignment_reachable (tree, bool);
 
 /* These are here, and not in hooks.[ch], because not all users of
    hooks.h include tm.h, and thus we don't have CUMULATIVE_ARGS.  */

@@ -2124,6 +2124,8 @@ package body Osint is
 
       Status : Boolean;
       --  For the call to Close
+      --  LLVM local
+      pragma Warnings (Off, Status);
 
    begin
       Current_Full_Source_Name  := Find_File (N, T);

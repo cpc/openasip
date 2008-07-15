@@ -192,12 +192,3 @@ Boston, MA 02110-1301, USA.  */
 /* i386 glibc provides __stack_chk_guard in %gs:0x14.  */
 #define TARGET_THREAD_SSP_OFFSET	0x14
 #endif
-
-/* LLVM LOCAL begin */
-#ifdef ENABLE_LLVM
-
-/* Add general target specific stuff */
-#include "llvm-i386-target.h"
-
-#endif
-/* LLVM LOCAL end */

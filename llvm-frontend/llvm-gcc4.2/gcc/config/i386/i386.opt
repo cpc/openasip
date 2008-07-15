@@ -233,3 +233,30 @@ Schedule code for given CPU
 
 ;; Support Athlon 3Dnow builtins
 Mask(3DNOW_A)
+
+;; APPLE LOCAL begin 5612787 mainline sse4
+;; Var(ix86_isa_flags)
+msse4.1
+Target Report Mask(SSE4_1) VarExists
+Support MMX, SSE, SSE2, SSE3, SSSE3 and SSE4.1 built-in functions and code generation
+
+;; Var(ix86_isa_flags)
+msse4.2
+Target Report Mask(SSE4_2) VarExists
+Support MMX, SSE, SSE2, SSE3, SSSE3, SSE4.1 and SSE4.2 built-in functions and code generation
+
+;; Var(ix86_isa_flags)
+msse4
+Target RejectNegative Report Mask(SSE4_2) MaskExists VarExists
+Support MMX, SSE, SSE2, SSE3, SSSE3, SSE4.1 and SSE4.2 built-in functions and code generation
+
+;; Var(ix86_isa_flags)
+mno-sse4
+Target RejectNegative Report InverseMask(SSE4_1) MaskExists VarExists
+Do not support SSE4.1 and SSE4.2 built-in functions and code generation
+
+;; Var(ix86_isa_flags)
+msse4a
+Target Report Mask(SSE4A) VarExists
+Support MMX, SSE, SSE2, SSE3 and SSE4A built-in functions and code generation
+;; APPLE LOCAL end 5612787 mainline sse4

@@ -7384,6 +7384,14 @@ package body Make is
             --  unless we are dealing with a debug switch (starts with 'd')
             --  or an extended gnatmake switch (starts with 'e').
 
+         --  LLVM local begin
+         elsif Argv'Length >= 10 and then Argv (2 .. 10) = "emit-llvm" then
+
+            --  Pass -emit-llvm and -emit-llvm-bc to the Compiler
+
+            Add_Switch (Argv, Compiler, And_Save => And_Save);
+
+         --  LLVM local end
          elsif Argv (2) /= 'd'
            and then Argv (2) /= 'e'
            and then Argv (2 .. Argv'Last) /= "C"

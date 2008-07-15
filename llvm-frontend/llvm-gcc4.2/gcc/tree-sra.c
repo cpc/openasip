@@ -1888,8 +1888,15 @@ generate_element_zero (struct sra_elt *elt, tree *list_p)
     {
       tree t;
 
-      gcc_assert (elt->is_scalar);
-      t = fold_convert (elt->type, integer_zero_node);
+      /* APPLE LOCAL begin 5591491, 4158356 PR 22156/22157 */
+      if (elt->how_to_copy == integer_copy)
+        t = build1 (VIEW_CONVERT_EXPR, elt->type, integer_zero_node);
+      else
+      {
+        gcc_assert (elt->is_scalar);
+        t = fold_convert (elt->type, integer_zero_node);
+      }
+      /* APPLE LOCAL end 5591491, 4158356 PR 22156/22157 */
 
       t = sra_build_assignment (elt->replacement, t);
       append_to_statement_list (t, list_p);

@@ -44,12 +44,16 @@ extern int errno;
 
 static int pex_djgpp_open_read (struct pex_obj *, const char *, int);
 static int pex_djgpp_open_write (struct pex_obj *, const char *, int);
-static long pex_djgpp_exec_child (struct pex_obj *, int, const char *,
+/* LLVM LOCAL begin mainline */
+static pid_t pex_djgpp_exec_child (struct pex_obj *, int, const char *,
+/* LLVM LOCAL end mainline */
 				  char * const *, char * const *,
 				  int, int, int, int,
 				  const char **, int *);
 static int pex_djgpp_close (struct pex_obj *, int);
-static int pex_djgpp_wait (struct pex_obj *, long, int *, struct pex_time *,
+/* LLVM LOCAL begin mainline */
+static int pex_djgpp_wait (struct pex_obj *, pid_t, int *, struct pex_time *,
+/* LLVM LOCAL end mainline */
 			   int, const char **, int *);
 
 /* The list of functions we pass to the common routines.  */
@@ -110,7 +114,9 @@ pex_djgpp_close (struct pex_obj *obj ATTRIBUTE_UNUSED, int fd)
 
 /* Execute a child.  */
 
-static long
+/* LLVM LOCAL begin mainline */
+static pid_t
+/* LLVM LOCAL end mainline */
 pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
 		      char * const * argv, char * const * env,
                       int in, int out, int errdes,
@@ -132,19 +138,25 @@ pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	{
 	  *err = errno;
 	  *errmsg = "dup";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
       if (dup2 (in, STDIN_FILE_NO) < 0)
 	{
 	  *err = errno;
 	  *errmsg = "dup2";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
       if (close (in) < 0)
 	{
 	  *err = errno;
 	  *errmsg = "close";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
     }
 
@@ -155,19 +167,25 @@ pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	{
 	  *err = errno;
 	  *errmsg = "dup";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
       if (dup2 (out, STDOUT_FILE_NO) < 0)
 	{
 	  *err = errno;
 	  *errmsg = "dup2";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
       if (close (out) < 0)
 	{
 	  *err = errno;
 	  *errmsg = "close";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
     }
 
@@ -179,14 +197,18 @@ pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	{
 	  *err = errno;
 	  *errmsg = "dup";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
       if (dup2 ((flags & PEX_STDERR_TO_STDOUT) != 0 ? STDOUT_FILE_NO : errdes,
 		 STDERR_FILE_NO) < 0)
 	{
 	  *err = errno;
 	  *errmsg = "dup2";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
       if (errdes != STDERR_FILE_NO)
 	{
@@ -194,7 +216,9 @@ pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	    {
 	      *err = errno;
 	      *errmsg = "close";
-	      return -1;
+	      /* LLVM LOCAL begin mainline */
+	      return (pid_t) -1;
+	      /* LLVM LOCAL end mainline */
 	    }
 	}
     }
@@ -218,13 +242,17 @@ pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	{
 	  *err = errno;
 	  *errmsg = "dup2";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
       if (close (org_in) < 0)
 	{
 	  *err = errno;
 	  *errmsg = "close";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
     }
 
@@ -234,13 +262,17 @@ pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	{
 	  *err = errno;
 	  *errmsg = "dup2";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
       if (close (org_out) < 0)
 	{
 	  *err = errno;
 	  *errmsg = "close";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
     }
 
@@ -251,13 +283,17 @@ pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	{
 	  *err = errno;
 	  *errmsg = "dup2";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
       if (close (org_errdes) < 0)
 	{
 	  *err = errno;
 	  *errmsg = "close";
-	  return -1;
+	  /* LLVM LOCAL begin mainline */
+	  return (pid_t) -1;
+	  /* LLVM LOCAL end mainline */
 	}
     }
 
@@ -269,7 +305,9 @@ pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
   statuses[obj->count] = status;
   obj->sysdep = (void *) statuses;
 
-  return obj->count;
+  /* LLVM LOCAL begin mainline */
+  return (pid_t) obj->count;
+  /* LLVM LOCAL end mainline */
 }
 
 /* Wait for a child process to complete.  Actually the child process
@@ -277,7 +315,9 @@ pex_djgpp_exec_child (struct pex_obj *obj, int flags, const char *executable,
    status.  */
 
 static int
-pex_djgpp_wait (struct pex_obj *obj, long pid, int *status,
+/* LLVM LOCAL begin mainline */
+pex_djgpp_wait (struct pex_obj *obj, pid_t pid, int *status,
+/* LLVM LOCAL end mainline */
 		struct pex_time *time, int done ATTRIBUTE_UNUSED,
 		const char **errmsg ATTRIBUTE_UNUSED,
 		int *err ATTRIBUTE_UNUSED)

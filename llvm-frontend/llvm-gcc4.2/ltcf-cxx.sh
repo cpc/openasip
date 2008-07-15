@@ -247,7 +247,8 @@ case $host_os in
     esac
     # Disable shared library build on OS-X older than 10.3.
     case $host_os in
-	darwin[1-6]*)
+	# APPLE LOCAL darwin10
+	darwin[3-6]*)
 	    can_build_shared=no
 	    ;;
 	darwin7*)

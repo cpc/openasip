@@ -84,8 +84,9 @@
 /* APPLE LOCAL end mainline 2007-02-20 5005743 */ \
       && flag_use_cxa_get_exception_ptr == 2)				\
     flag_use_cxa_get_exception_ptr = 0;					\
-  if (flag_mkernel)							\
-    flag_no_builtin = 1;						\
+  /* APPLE LOCAL begin 5731065 */					\
+  /* moved flag_no_builtin to darwin.h */				\
+  /* APPLE LOCAL end 5731065 */						\
   SUBTARGET_C_COMMON_OVERRIDE_OPTIONS;					\
 } while (0)
 /* APPLE LOCAL end mainline */

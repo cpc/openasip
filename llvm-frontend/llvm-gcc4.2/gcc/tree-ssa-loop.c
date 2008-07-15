@@ -184,7 +184,6 @@ struct tree_opt_pass pass_tree_unswitch =
   0					/* letter */
 };
 
-
 /* Loop autovectorization.  */
 
 static unsigned int

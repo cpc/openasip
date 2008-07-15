@@ -37,7 +37,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/SetVector.h"
 #include "llvm/Support/DataTypes.h"
-#include "llvm/Support/LLVMBuilder.h"
+#include "llvm/Support/IRBuilder.h"
 #include "llvm/Support/Streams.h"
 
 extern "C" {
@@ -116,7 +116,7 @@ struct StructTypeConversionInfo;
 
 /// Return true if and only if field no. N from struct type T is a padding
 /// element added to match llvm struct type size and gcc struct type size.
-bool isPaddingElement(const Type *T, unsigned N);
+bool isPaddingElement(union tree_node*, unsigned N);
 
 /// TypeConverter - Implement the converter from GCC types to LLVM types.
 ///
@@ -157,7 +157,7 @@ public:
                                           tree_node *decl,
                                           tree_node *static_chain,
                                           unsigned &CallingConv,
-                                          const ParamAttrsList *&PAL);
+                                          PAListPtr &PAL);
   
   /// ConvertArgListToFnType - Given a DECL_ARGUMENTS list on an GCC tree,
   /// return the LLVM type corresponding to the function.  This is useful for
@@ -166,13 +166,13 @@ public:
                                              tree_node *arglist,
                                              tree_node *static_chain,
                                              unsigned &CallingConv,
-                                             const ParamAttrsList *&PAL);
+                                             PAListPtr &PAL);
   
 private:
   const Type *ConvertRECORD(tree_node *type, tree_node *orig_type);
   const Type *ConvertUNION(tree_node *type, tree_node *orig_type);
   void SetFieldIndex(tree_node *field_decl, unsigned int Index);
-  void DecodeStructFields(tree_node *Field, StructTypeConversionInfo &Info);
+  bool DecodeStructFields(tree_node *Field, StructTypeConversionInfo &Info);
   void DecodeStructBitField(tree_node *Field, StructTypeConversionInfo &Info);
 };
 
@@ -274,13 +274,12 @@ class TreeToLLVM {
   Function *Fn;
   BasicBlock *ReturnBB;
   BasicBlock *UnwindBB;
-  BasicBlock *NoUnwindBB;
 
   // State that changes as the function is emitted.
 
   /// Builder - Instruction creator, the location to insert into is always the
   /// same as &Fn->back().
-  LLVMBuilder Builder;
+  IRBuilder Builder;
 
   // AllocaInsertionPoint - Place to insert alloca instructions.  Lazily created
   // and managed by CreateTemporary.
@@ -386,6 +385,13 @@ public:
   /// instruction's type is a pointer to the specified type.
   AllocaInst *CreateTemporary(const Type *Ty);
 
+  /// CreateTempLoc - Like CreateTemporary, but returns a MemRef.
+  MemRef CreateTempLoc(const Type *Ty);
+
+  /// EmitAggregateCopy - Copy the elements from SrcLoc to DestLoc, using the
+  /// GCC type specified by GCCType to know which elements to copy.
+  void EmitAggregateCopy(MemRef DestLoc, MemRef SrcLoc, tree_node *GCCType);
+
 private: // Helper functions.
 
   /// StartFunctionBody - Start the emission of 'fndecl', outputing all
@@ -406,10 +412,6 @@ private: // Helper functions.
   /// the previous block falls through into it, add an explicit branch.
   void EmitBlock(BasicBlock *BB);
   
-  /// EmitAggregateCopy - Copy the elements from SrcLoc to DestLoc, using the
-  /// GCC type specified by GCCType to know which elements to copy.
-  void EmitAggregateCopy(MemRef DestLoc, MemRef SrcLoc, tree_node *GCCType);
-
   /// EmitAggregateZero - Zero the elements of DestLoc.
   ///
   void EmitAggregateZero(MemRef DestLoc, tree_node *GCCType);
@@ -429,9 +431,6 @@ private: // Helper functions.
   /// EmitUnwindBlock - Emit the lazily created EH unwind block.
   void EmitUnwindBlock();
 
-  /// EmitNoUnwindBlock - Emit the lazily created EH illegal-unwind block.
-  void EmitNoUnwindBlock();
-
 private: // Helpers for exception handling.
 
   /// CreateExceptionValues - Create values used internally by exception
@@ -443,9 +442,6 @@ private: // Helpers for exception handling.
   BasicBlock *getPostPad(unsigned RegionNo);
 
 private:
-  /// CreateTempLoc - Like CreateTemporary, but returns a MemRef.
-  MemRef CreateTempLoc(const Type *Ty);
-
   void EmitAutomaticVariableDecl(tree_node *decl);
 
   /// isNoopCast - Return true if a cast from V to Ty does not change any bits.
@@ -478,7 +474,7 @@ private:
   Value *EmitOBJ_TYPE_REF(tree_node *exp);
   Value *EmitCALL_EXPR(tree_node *exp, const MemRef *DestLoc);
   Value *EmitCallOf(Value *Callee, tree_node *exp, const MemRef *DestLoc,
-                    const ParamAttrsList *PAL);
+                    const PAListPtr &PAL);
   Value *EmitMODIFY_EXPR(tree_node *exp, const MemRef *DestLoc);
   Value *EmitNOP_EXPR(tree_node *exp, const MemRef *DestLoc);
   Value *EmitCONVERT_EXPR(tree_node *exp, const MemRef *DestLoc);

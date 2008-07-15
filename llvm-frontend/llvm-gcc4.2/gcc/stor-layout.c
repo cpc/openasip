@@ -441,9 +441,7 @@ layout_decl (tree decl, unsigned int known_align)
 	    = MIN (DECL_ALIGN (decl), (unsigned) BIGGEST_FIELD_ALIGNMENT);
 #endif
 #ifdef ADJUST_FIELD_ALIGN
-/* APPLE LOCAL begin mainline 2006-10-31 PR 23067, radar 4869885 */
 	  DECL_ALIGN (decl) = ADJUST_FIELD_ALIGN (decl, DECL_ALIGN (decl));
-/* APPLE LOCAL end mainline 2006-10-31 PR 23067, radar 4869885 */
 #endif
 	}
 
@@ -709,9 +707,7 @@ update_alignment_for_field (record_layout_info rli, tree field,
 #ifdef ADJUST_FIELD_ALIGN
   if (! user_align && TREE_CODE (rli->t) == RECORD_TYPE)
     desired_align = 
-/* APPLE LOCAL begin mainline 2006-10-31 PR 23067, radar 4869885 */
       ADJUST_FIELD_ALIGN (field, desired_align);
-/* APPLE LOCAL end mainline 2006-10-31 PR 23067, radar 4869885 */
 #endif
   /* APPLE LOCAL end Macintosh alignment 2002-5-24 --ff */
 
@@ -754,9 +750,7 @@ update_alignment_for_field (record_layout_info rli, tree field,
 
 #ifdef ADJUST_FIELD_ALIGN
 	  if (! TYPE_USER_ALIGN (type))
-/* APPLE LOCAL begin mainline 2006-10-31 PR 23067, radar 4869885 */
 	    type_align = ADJUST_FIELD_ALIGN (field, type_align);
-/* APPLE LOCAL end mainline 2006-10-31 PR 23067, radar 4869885 */
 #endif
 
 	  /* Targets might chose to handle unnamed and hence possibly
@@ -1008,9 +1002,7 @@ place_field (record_layout_info rli, tree field)
 
 #ifdef ADJUST_FIELD_ALIGN
       if (! TYPE_USER_ALIGN (type))
-/* APPLE LOCAL begin mainline 2006-10-31 PR 23067, radar 4869885 */
 	type_align = ADJUST_FIELD_ALIGN (field, type_align);
-/* APPLE LOCAL end mainline 2006-10-31 PR 23067, radar 4869885 */
 #endif
 
       /* A bit field may not span more units of alignment of its type
@@ -1042,9 +1034,7 @@ place_field (record_layout_info rli, tree field)
 
 #ifdef ADJUST_FIELD_ALIGN
       if (! TYPE_USER_ALIGN (type))
-/* APPLE LOCAL begin mainline 2006-10-31 PR 23067, radar 4869885 */
 	type_align = ADJUST_FIELD_ALIGN (field, type_align);
-/* APPLE LOCAL end mainline 2006-10-31 PR 23067, radar 4869885 */
 #endif
 
       if (maximum_field_alignment != 0)
@@ -1139,17 +1129,6 @@ place_field (record_layout_info rli, tree field)
 				       TYPE_SIZE (type),
 				       bitsize_int (rli->remaining_in_alignment)));
 		      rli->prev_field = field;
-		      /* MERGE FIXME 5416334 audit for correctness wrt:
-
-			 2006-07-15  Kaz Kojima  <kkojima@gcc.gnu.org>
-
-			 PR middle-end/28160
-			 * stor-layout.c (place_field): Take the bit field with
-			 an excessive size into account in the ms-bitfiled case.
-
-			 PR middle-end/28161
-			 * stor-layout.c (place_field): Use DECL_BIT_FIELD_TYPE of
-			 the previous bit field.  */
 		      if (typesize < bitsize)
 			rli->remaining_in_alignment = 0;
 		      else

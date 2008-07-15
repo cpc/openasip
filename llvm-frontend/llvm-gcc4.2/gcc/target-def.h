@@ -343,9 +343,16 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
    TARGET_SCHED_SET_SCHED_FLAGS}
 
 #define TARGET_VECTORIZE_BUILTIN_MASK_FOR_LOAD 0
+/* APPLE LOCAL begin mainline 4.2 5569774 */
+#define TARGET_VECTOR_ALIGNMENT_REACHABLE \
+  default_builtin_vector_alignment_reachable
+/* APPLE LOCAL end mainline 4.2 5569774 */
 
 #define TARGET_VECTORIZE                                                \
-  {TARGET_VECTORIZE_BUILTIN_MASK_FOR_LOAD}
+  /* APPLE LOCAL begin mainline 4.2 5569774 */				\
+  {TARGET_VECTORIZE_BUILTIN_MASK_FOR_LOAD,				\
+   TARGET_VECTOR_ALIGNMENT_REACHABLE}
+  /* APPLE LOCAL end mainline 4.2 5569774 */
 
 #define TARGET_DEFAULT_TARGET_FLAGS 0
 

@@ -12723,7 +12723,7 @@ package body Sem_Ch3 is
                Ancestor := Etype (Ancestor);
             end loop;
 
-            return True;
+            --  LLVM local deleted unreachable line
          end;
       end if;
    end Is_Visible_Component;

@@ -84,15 +84,21 @@ extern int errno;
    time that it took.  This is simple if we have wait4, slightly
    harder if we have waitpid, and is a pain if we only have wait.  */
 
+/* LLVM LOCAL begin mainline */
 static pid_t pex_wait (struct pex_obj *, pid_t, int *, struct pex_time *);
+/* LLVM LOCAL end mainline */
 
 #ifdef HAVE_WAIT4
 
+/* LLVM LOCAL begin mainline */
 static pid_t
 pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
+/* LLVM LOCAL end mainline */
 	  struct pex_time *time)
 {
+  /* LLVM LOCAL begin mainline */
   pid_t ret;
+  /* LLVM LOCAL end mainline */
   struct rusage r;
 
 #ifdef HAVE_WAITPID
@@ -119,8 +125,10 @@ pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
 
 #ifndef HAVE_GETRUSAGE
 
+/* LLVM LOCAL begin mainline */
 static pid_t
 pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
+/* LLVM LOCAL end mainline */
 	  struct pex_time *time)
 {
   if (time != NULL)
@@ -130,12 +138,16 @@ pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
 
 #else /* defined (HAVE_GETRUSAGE) */
 
+/* LLVM LOCAL begin mainline */
 static pid_t
 pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
+/* LLVM LOCAL end mainline */
 	  struct pex_time *time)
 {
   struct rusage r1, r2;
+  /* LLVM LOCAL begin mainline */
   pid_t ret;
+  /* LLVM LOCAL end mainline */
 
   if (time == NULL)
     return waitpid (pid, status, 0);
@@ -174,13 +186,17 @@ pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
 struct status_list
 {
   struct status_list *next;
+  /* LLVM LOCAL begin mainline */
   pid_t pid;
+  /* LLVM LOCAL end mainline */
   int status;
   struct pex_time time;
 };
 
+/* LLVM LOCAL begin mainline */
 static pid_t
 pex_wait (struct pex_obj *obj, pid_t pid, int *status, struct pex_time *time)
+/* LLVM LOCAL end mainline */
 {
   struct status_list **pp;
 
@@ -204,7 +220,9 @@ pex_wait (struct pex_obj *obj, pid_t pid, int *status, struct pex_time *time)
 
   while (1)
     {
+      /* LLVM LOCAL begin mainline */
       pid_t cpid;
+      /* LLVM LOCAL end mainline */
       struct status_list *psl;
       struct pex_time pt;
 #ifdef HAVE_GETRUSAGE
@@ -269,12 +287,16 @@ static void pex_child_error (struct pex_obj *, const char *, const char *, int)
      ATTRIBUTE_NORETURN;
 static int pex_unix_open_read (struct pex_obj *, const char *, int);
 static int pex_unix_open_write (struct pex_obj *, const char *, int);
-static long pex_unix_exec_child (struct pex_obj *, int, const char *,
+/* LLVM LOCAL begin mainline */
+static pid_t pex_unix_exec_child (struct pex_obj *, int, const char *,
+/* LLVM LOCAL end mainline */
 				 char * const *, char * const *,
 				 int, int, int, int,
 				 const char **, int *);
 static int pex_unix_close (struct pex_obj *, int);
-static int pex_unix_wait (struct pex_obj *, long, int *, struct pex_time *,
+/* LLVM LOCAL begin mainline */
+static int pex_unix_wait (struct pex_obj *, pid_t, int *, struct pex_time *,
+/* LLVM LOCAL end mainline */
 			  int, const char **, int *);
 static int pex_unix_pipe (struct pex_obj *, int *, int);
 static FILE *pex_unix_fdopenr (struct pex_obj *, int, int);
@@ -355,13 +377,17 @@ pex_child_error (struct pex_obj *obj, const char *executable,
 
 extern char **environ;
 
-static long
+/* LLVM LOCAL begin mainline */
+static pid_t
 pex_unix_exec_child (struct pex_obj *obj, int flags, const char *executable,
+/* LLVM LOCAL end mainline */
 		     char * const * argv, char * const * env,
                      int in, int out, int errdes,
 		     int toclose, const char **errmsg, int *err)
 {
+  /* LLVM LOCAL begin mainline */
   pid_t pid;
+  /* LLVM LOCAL end mainline */
 
   /* We declare these to be volatile to avoid warnings from gcc about
      them being clobbered by vfork.  */
@@ -384,7 +410,9 @@ pex_unix_exec_child (struct pex_obj *obj, int flags, const char *executable,
     case -1:
       *err = errno;
       *errmsg = VFORK_STRING;
-      return -1;
+      /* LLVM LOCAL begin mainline */
+      return (pid_t) -1;
+      /* LLVM LOCAL end mainline */
 
     case 0:
       /* Child process.  */
@@ -435,7 +463,9 @@ pex_unix_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	}
 
       /* NOTREACHED */
-      return -1;
+      /* LLVM LOCAL begin mainline */
+      return (pid_t) -1;
+      /* LLVM LOCAL end mainline */
 
     default:
       /* Parent process.  */
@@ -445,7 +475,9 @@ pex_unix_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	    {
 	      *err = errno;
 	      *errmsg = "close";
-	      return -1;
+	      /* LLVM LOCAL begin mainline */
+	      return (pid_t) -1;
+	      /* LLVM LOCAL end mainline */
 	    }
 	}
       if (out != STDOUT_FILE_NO)
@@ -454,7 +486,9 @@ pex_unix_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	    {
 	      *err = errno;
 	      *errmsg = "close";
-	      return -1;
+	      /* LLVM LOCAL begin mainline */
+	      return (pid_t) -1;
+	      /* LLVM LOCAL end mainline */
 	    }
 	}
       if (errdes != STDERR_FILE_NO)
@@ -463,18 +497,22 @@ pex_unix_exec_child (struct pex_obj *obj, int flags, const char *executable,
 	    {
 	      *err = errno;
 	      *errmsg = "close";
-	      return -1;
+	      /* LLVM LOCAL begin mainline */
+	      return (pid_t) -1;
+	      /* LLVM LOCAL end mainline */
 	    }
 	}
 
-      return (long) pid;
+      return pid;
     }
 }
 
 /* Wait for a child process to complete.  */
 
 static int
-pex_unix_wait (struct pex_obj *obj, long pid, int *status,
+/* LLVM LOCAL begin mainline */
+pex_unix_wait (struct pex_obj *obj, pid_t pid, int *status,
+/* LLVM LOCAL end mainline */
 	       struct pex_time *time, int done, const char **errmsg,
 	       int *err)
 {

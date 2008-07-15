@@ -33,12 +33,17 @@ Boston, MA 02110-1301, USA.  */
   %{!nostdinc:%{!mno-win32|mno-cygwin:-idirafter ../include/w32api%s -idirafter ../../include/w32api%s}}\
 "
 
+/* LLVM LOCAL begin mainline 125696 */
 #undef STARTFILE_SPEC
 #define STARTFILE_SPEC "\
   %{shared|mdll: %{mno-cygwin:dllcrt2%O%s}}\
   %{!shared: %{!mdll: %{!mno-cygwin:crt0%O%s} %{mno-cygwin:crt2%O%s}\
   %{pg:gcrt0%O%s}}}\
-"
+  crtbegin%O%s"
+
+#undef ENDFILE_SPEC
+#define ENDFILE_SPEC "crtend%O%s"
+/* LLVM LOCAL end mainline 125696 */
 
 /* Normally, -lgcc is not needed since everything in it is in the DLL, but we
    want to allow things to be added to it when installing new versions of

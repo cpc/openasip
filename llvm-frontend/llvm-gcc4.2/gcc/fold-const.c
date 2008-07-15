@@ -5679,6 +5679,14 @@ extract_muldiv_1 (tree t, tree c, enum tree_code code, tree wide_type,
             }
           break;
         }
+      /* APPLE LOCAL begin radar 5612779, mainline candidate */
+      /* Do not move a negative constant from an ABS_EXPR. */
+      else if (!TYPE_UNSIGNED (ctype)
+               && !TYPE_UNSIGNED (type)
+               && TREE_CODE (c) == INTEGER_CST
+               && TREE_INT_CST_HIGH (c) < 0)
+        break;
+      /* APPLE LOCAL end radar 5612779, mainline candidate */
       /* FALLTHROUGH */
     case NEGATE_EXPR:
       if ((t1 = extract_muldiv (op0, c, code, wide_type, strict_overflow_p))
@@ -6229,7 +6237,8 @@ fold_inf_compare (enum tree_code code, tree type, tree arg0, tree arg1)
 {
   enum machine_mode mode;
   REAL_VALUE_TYPE max;
-  tree temp;
+  /* APPLE LOCAL 5752613 equality comparison to inf sets inv flag */
+  /* Removed temp */
   bool neg;
 
   mode = TYPE_MODE (TREE_TYPE (arg0));
@@ -6261,12 +6270,8 @@ fold_inf_compare (enum tree_code code, tree type, tree arg0, tree arg1)
 	}
       break;
 
-    case EQ_EXPR:
-    case GE_EXPR:
-      /* x == +Inf and x >= +Inf are always equal to x > DBL_MAX.  */
-      real_maxval (&max, neg, mode);
-      return fold_build2 (neg ? LT_EXPR : GT_EXPR, type,
-			  arg0, build_real (TREE_TYPE (arg0), max));
+    /* APPLE LOCAL 5752613 equality comparison to inf sets inv flag */
+    /* removed lines */
 
     case LT_EXPR:
       /* x < +Inf is always equal to x <= DBL_MAX.  */
@@ -6274,21 +6279,8 @@ fold_inf_compare (enum tree_code code, tree type, tree arg0, tree arg1)
       return fold_build2 (neg ? GE_EXPR : LE_EXPR, type,
 			  arg0, build_real (TREE_TYPE (arg0), max));
 
-    case NE_EXPR:
-      /* x != +Inf is always equal to !(x > DBL_MAX).  */
-      real_maxval (&max, neg, mode);
-      if (! HONOR_NANS (mode))
-	return fold_build2 (neg ? GE_EXPR : LE_EXPR, type,
-			    arg0, build_real (TREE_TYPE (arg0), max));
-
-      /* The transformation below creates non-gimple code and thus is
-	 not appropriate if we are in gimple form.  */
-      if (in_gimple_form)
-	return NULL_TREE;
-
-      temp = fold_build2 (neg ? LT_EXPR : GT_EXPR, type,
-			  arg0, build_real (TREE_TYPE (arg0), max));
-      return fold_build1 (TRUTH_NOT_EXPR, type, temp);
+    /* APPLE LOCAL 5752613 equality comparison to inf sets inv flag */
+    /* removed lines */
 
     default:
       break;
@@ -13661,3 +13653,4 @@ fold_strip_sign_ops (tree exp)
     }
   return NULL_TREE;
 }
+

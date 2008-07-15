@@ -274,11 +274,8 @@ void DebugInfo::EmitFunctionStart(tree FnDecl, Function *Fn,
   if (!FuncStartFn)
     FuncStartFn = Intrinsic::getDeclaration(M, Intrinsic::dbg_func_start);
 
-  // Call llvm.dbg.func.start.
-  new CallInst(FuncStartFn, getCastValueFor(Subprogram), "", CurBB);
-  
-  // Provide an entry stop point.
-  EmitStopPoint(Fn, CurBB);
+  // Call llvm.dbg.func.start which also implicitly calls llvm.dbg.stoppoint.
+  CallInst::Create(FuncStartFn, getCastValueFor(Subprogram), "", CurBB);
   
   // Push function on region stack.
   RegionStack.push_back(Subprogram);
@@ -296,7 +293,7 @@ void DebugInfo::EmitRegionStart(Function *Fn, BasicBlock *CurBB) {
     RegionStartFn = Intrinsic::getDeclaration(M, Intrinsic::dbg_region_start);
   
   // Call llvm.dbg.func.start.
-  new CallInst(RegionStartFn, getCastValueFor(Block), "", CurBB);
+  CallInst::Create(RegionStartFn, getCastValueFor(Block), "", CurBB);
 }
 
 /// EmitRegionEnd - Constructs the debug code for exiting a declarative
@@ -310,7 +307,7 @@ void DebugInfo::EmitRegionEnd(Function *Fn, BasicBlock *CurBB) {
   EmitStopPoint(Fn, CurBB);
   
   // Call llvm.dbg.func.end.
-  new CallInst(RegionEndFn, getCastValueFor(RegionStack.back()), "", CurBB);
+  CallInst::Create(RegionEndFn, getCastValueFor(RegionStack.back()), "", CurBB);
   RegionStack.pop_back();
 }
 
@@ -318,18 +315,22 @@ void DebugInfo::EmitRegionEnd(Function *Fn, BasicBlock *CurBB) {
 /// region - "llvm.dbg.declare."
 void DebugInfo::EmitDeclare(tree decl, unsigned Tag, const char *Name,
                             tree type, Value *AI, BasicBlock *CurBB) {
+  // Ignore compiler generated temporaries.
+  if (DECL_IGNORED_P(decl))
+    return;
+
   // Lazily construct llvm.dbg.declare function.
   const PointerType *EmpPtr = SR.getEmptyStructPtrType();
   if (!DeclareFn)
     DeclareFn = Intrinsic::getDeclaration(M, Intrinsic::dbg_declare);
-  
+
   // Get type information.
   CompileUnitDesc *Unit = getOrCreateCompileUnit(CurFullPath);
   TypeDesc *TyDesc = getOrCreateType(type, Unit);
 
   expanded_location Loc = GetNodeLocation(decl, false);
   CompileUnitDesc *File = Loc.line ? getOrCreateCompileUnit(Loc.file) : NULL;
-  
+
   // Construct variable.
   VariableDesc *Variable = new VariableDesc(Tag);
   Variable->setContext(RegionStack.back());
@@ -346,7 +347,7 @@ void DebugInfo::EmitDeclare(tree decl, unsigned Tag, const char *Name,
   SmallVector<Value *, 2> Args;
   Args.push_back(AllocACast);
   Args.push_back(getCastValueFor(Variable));
-  new CallInst(DeclareFn, Args.begin(), Args.end(), "", CurBB);
+  CallInst::Create(DeclareFn, Args.begin(), Args.end(), "", CurBB);
 }
 
 /// EmitStopPoint - Emit a call to llvm.dbg.stoppoint to indicate a change of 
@@ -377,7 +378,7 @@ void DebugInfo::EmitStopPoint(Function *Fn, BasicBlock *CurBB) {
     ConstantInt::get(Type::Int32Ty, 0),
     getCastValueFor(Unit)
   };
-  new CallInst(StopPointFn, Args, Args+3, "", CurBB);
+  CallInst::Create(StopPointFn, Args, Args+3, "", CurBB);
 }
 
 /// EmitGlobalVariable - Emit information about a global variable.

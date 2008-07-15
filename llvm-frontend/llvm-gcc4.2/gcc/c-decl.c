@@ -3522,6 +3522,8 @@ start_decl (struct c_declarator *declarator, struct c_declspecs *declspecs,
   if (TREE_CODE (decl) == VAR_DECL
       && current_scope != file_scope
       && TREE_STATIC (decl)
+      /* APPLE LOCAL inline fixups 5580320 */
+      && !TREE_READONLY (decl)
       && DECL_DECLARED_INLINE_P (current_function_decl)
       && DECL_EXTERNAL (current_function_decl))
     pedwarn ("%J%qD is static but declared in inline function %qD "
@@ -8322,5 +8324,36 @@ lookup_struct_or_union_tag (tree typename)
   return rslt;
 }
 /* APPLE LOCAL end CW asm blocks */
+
+/* APPLE LOCAL begin radar 5741070  */
+
+/* Given an IDENTIFIER tree for a class interface, find (if possible) and
+   return the record type for the class interface.  */
+
+tree
+c_return_interface_record_type (tree typename)
+{
+  enum tree_code_class class;
+  enum tree_code code;
+  tree retval = NULL;
+
+  if (typename == NULL)
+    return retval;
+
+  code = TREE_CODE (typename);
+  class = TREE_CODE_CLASS (code);
+
+  if (code != IDENTIFIER_NODE 
+      || class != tcc_exceptional)
+    return retval;
+
+  retval = I_TAG_DECL (typename);
+
+  if (TREE_CODE (retval) != RECORD_TYPE)
+    retval = NULL;
+
+  return retval;
+}
+/* APPLE LOCAL end radar 5741070  */
 
 #include "gt-c-decl.h"

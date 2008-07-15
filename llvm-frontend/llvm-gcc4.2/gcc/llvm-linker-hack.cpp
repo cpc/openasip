@@ -64,6 +64,7 @@ void dummy_function() {
   llvm::createLoopUnrollPass();
   llvm::createReassociatePass();
   llvm::createLoopUnswitchPass();
+  llvm::createLoopIndexSplitPass();
   llvm::createAggressiveDCEPass();
   llvm::createConstantMergePass();
   llvm::createIndVarSimplifyPass();
@@ -71,6 +72,7 @@ void dummy_function() {
   llvm::createCondPropagationPass();
   llvm::createGlobalOptimizerPass();
   llvm::createTailDuplicationPass();
+  llvm::createJumpThreadingPass();
   llvm::createFunctionInliningPass();
   llvm::createRaiseAllocationsPass();
   llvm::createSimplifyLibCallsPass();
@@ -81,6 +83,10 @@ void dummy_function() {
   llvm::createDeadStoreEliminationPass();
   llvm::createIPConstantPropagationPass();
   llvm::createStripDeadPrototypesPass();
+  llvm::createMemCpyOptPass();
+  llvm::createDeadTypeEliminationPass();
+  llvm::createLoopDeletionPass();
+  
 }
 
 /* LLVM LOCAL end (ENTIRE FILE!)  */

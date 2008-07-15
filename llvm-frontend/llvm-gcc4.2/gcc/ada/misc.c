@@ -492,6 +492,17 @@ gnat_compute_largest_alignment (void)
 #endif
 }
 
+/* LLVM local begin */
+/* Return a type info that catches all exceptions.  */
+static tree gnat_eh_catch_all (void);
+
+tree
+gnat_eh_catch_all (void)
+{
+    return build_unary_op (ADDR_EXPR, NULL_TREE, all_others_decl);
+}
+/* LLVM local end */
+
 /* If we are using the GCC mechanism to process exception handling, we
    have to register the personality routine for Ada and to initialize
    various language dependent hooks.  */
@@ -515,6 +526,7 @@ gnat_init_gcc_eh (void)
   /* LLVM LOCAL begin */
   llvm_eh_personality_libfunc = llvm_init_one_libfunc ("__gnat_eh_personality");
   default_init_unwind_resume_libfunc ();
+  lang_eh_catch_all = gnat_eh_catch_all;
   /* LLVM LOCAL end */
   lang_eh_type_covers = gnat_eh_type_covers;
   lang_eh_runtime_type = gnat_eh_runtime_type;

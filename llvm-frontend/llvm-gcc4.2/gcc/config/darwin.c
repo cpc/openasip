@@ -94,6 +94,10 @@ enum darwin_builtins
 int darwin_reverse_bitfields = 0;
 /* APPLE LOCAL end pragma reverse_bitfields */
 
+/* APPLE LOCAL begin axe stubs 5571540 */
+int darwin_stubs = false;
+/* APPLE LOCAL end axe stubs 5571540 */
+
 /* Section names.  */
 section * darwin_sections[NUM_DARWIN_SECTIONS];
 
@@ -139,7 +143,6 @@ output_objc_section_asm_op (const void *directive)
 	  objc_class_ext_section,
 	  objc_prop_list_section
 	  /* APPLE LOCAL end objc2 */
-	  /* APPLE LOCAL curly braces confuse me */
 	};
       /* APPLE LOCAL begin ObjC abi v2 - radar 4792158 */
       static const enum darwin_section_enum tomarkv2[] =
@@ -156,7 +159,7 @@ output_objc_section_asm_op (const void *directive)
 	  objc_v2_super_classrefs_section,
 	  objc_v2_image_info_section,
 	  objc_v2_constant_string_object_section
-	};
+	} ;
       /* APPLE LOCAL end ObjC abi v2 - radar 4792158 */
       size_t i;
 
@@ -789,6 +792,11 @@ machopic_force_indirect_call_target (rtx target)
 rtx
 machopic_indirect_call_target (rtx target)
 {
+  /* APPLE LOCAL begin axe stubs 5571540 */
+  if (! darwin_stubs)
+    return target;
+  /* APPLE LOCAL end axe stubs 5571540 */
+
   if (GET_CODE (target) != MEM)
     return target;
 
@@ -1336,12 +1344,14 @@ machopic_select_section (tree exp, int reloc,
 
   /* APPLE LOCAL begin fwritable strings  */
   if (TREE_CODE (exp) == STRING_CST
-      && ((size_t) TREE_STRING_LENGTH (exp)
+      /* APPLE LOCAL begin 5612787 mainline sse4 */
+      /* deletion */
       /* Copied from varasm.c:output_constant_def_contents().  5346453 */
       && (MAX ((HOST_WIDE_INT)TREE_STRING_LENGTH (exp),
 	       int_size_in_bytes (TREE_TYPE (exp)))
 	  /* APPLE LOCAL ARM signedness mismatch */
-	  == (HOST_WIDE_INT) strlen (TREE_STRING_POINTER (exp)) + 1))
+	  == (HOST_WIDE_INT) strlen (TREE_STRING_POINTER (exp)) + 1)
+      /* APPLE LOCAL end 5612787 mainline sse4 */
       && ! flag_writable_strings)
     return darwin_sections[cstring_section];
   /* APPLE LOCAL end fwritable strings, 5346453 */
@@ -1527,11 +1537,11 @@ const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
     
     if (!strcmp(IDENTIFIER_POINTER(typename), "__builtin_ObjCString")) {
       if (flag_next_runtime)
-        return "__OBJC,__cstring_object,regular,no_dead_strip";
+        return "__OBJC, __cstring_object,regular,no_dead_strip";
       else
-        return "__OBJC,__string_object,no_dead_strip";
+        return "__OBJC, __string_object,no_dead_strip";
     } else if (!strcmp(IDENTIFIER_POINTER(typename), "__builtin_CFString")) {
-      return "__DATA,__cfstring";
+      return "__DATA, __cfstring";
     } else {
       return 0;
     }
@@ -1553,7 +1563,7 @@ const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
   else if (!strncmp (name, "INSTANCE_VARIABLES_", 19))
     return "__OBJC,__instance_vars,regular,no_dead_strip";
   else if (!strncmp (name, "CLASS_PROTOCOLS_", 16))
-    return "__OBJC,__cls_meth,regular,no_dead_strip";
+    return "__OBJC,__cat_cls_meth,regular,no_dead_strip";
   else if (!strncmp (name, "CLASS_NAME_", 11))
     return "__TEXT,__cstring,cstring_literals";
   else if (!strncmp (name, "METH_VAR_NAME_", 14))
@@ -1563,9 +1573,13 @@ const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
   else if (!strncmp (name, "CLASS_REFERENCES", 16))
     return "__OBJC,__cls_refs,literal_pointers,no_dead_strip";
   else if (!strncmp (name, "CLASS_", 6))
-    return "__OBJC,__class,regular,no_dead_strip";
+    return (flag_objc_abi == 1 ? 
+            "__OBJC,__class,regular,no_dead_strip" :
+            "__DATA,__data");
   else if (!strncmp (name, "METACLASS_", 10))
-    return "__OBJC,__meta_class,regular,no_dead_strip";
+    return (flag_objc_abi == 1 ?
+            "__OBJC,__meta_class,regular,no_dead_strip" :
+            "__DATA,__data");
   else if (!strncmp (name, "CATEGORY_", 9))
     return "__OBJC,__category,regular,no_dead_strip";
   else if (!strncmp (name, "SELECTOR_REFERENCES", 19))
@@ -1580,7 +1594,7 @@ const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
     return "__OBJC,__module_info,regular,no_dead_strip";
   else if (!strncmp (name, "IMAGE_INFO", 10))
     return (flag_objc_abi == 1 ? 
-            "__OBJC,__image_info,regular" /*,no_dead_strip";*/ :
+            "__OBJC, __image_info,regular" /*,no_dead_strip";*/ :
             "__DATA, __objc_imageinfo, regular, no_dead_strip");
   else if (!strncmp (name, "PROTOCOL_INSTANCE_METHODS_", 26))
     return "__OBJC,__cat_inst_meth,regular,no_dead_strip";
@@ -1985,16 +1999,21 @@ darwin_non_lazy_pcrel (FILE *file, rtx addr)
    VISIBILITY_INTERNAL or VISIBILITY_PROTECTED. */
 
 void
-darwin_assemble_visibility (tree decl, int vis)
+/* LLVM LOCAL begin */
+darwin_assemble_visibility (tree decl ATTRIBUTE_UNUSED, int vis)
 {
   if (vis == VISIBILITY_DEFAULT)
     ;
   else if (vis == VISIBILITY_HIDDEN)
     {
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
       fputs ("\t.private_extern ", asm_out_file);
       assemble_name (asm_out_file,
 		     (IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (decl))));
       fputs ("\n", asm_out_file);
+/* LLVM LOCAL */
+#endif
     }
   else
     warning (OPT_Wattributes, "internal and protected visibility attributes "
@@ -2523,6 +2542,8 @@ darwin_override_options (void)
 
       /* No EH in kexts.  */
       flag_exceptions = 0;
+      /* APPLE LOCAL 5628030 */
+      flag_asynchronous_unwind_tables = 0;
       /* No -fnon-call-exceptions data in kexts.  */
       flag_non_call_exceptions = 0;
       /* APPLE LOCAL begin kext v2 */
@@ -2531,6 +2552,12 @@ darwin_override_options (void)
 	flag_apple_kext = 2;
       /* APPLE LOCAL end kext v2 */
     }
+  /* APPLE LOCAL begin axe stubs 5571540 */
+  /* Go ahead and generate stubs for old systems, just in case.  */
+  if (strverscmp (darwin_macosx_version_min, "10.5") < 0)
+    darwin_stubs = true;
+  /* APPLE LOCAL end axe stubs 5571540 */
+/* APPLE LOCAL diff confuses me */
 }
 /* APPLE LOCAL begin radar 4985544 */
 bool

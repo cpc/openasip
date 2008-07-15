@@ -986,10 +986,10 @@ shorten_branches (rtx first ATTRIBUTE_UNUSED)
 		  max = shuid;
 		  max_lab = lab;
 		}
-/* APPLE LOCAL begin for-fsf-4_4 3274130 5295549 */ \
-	      if (min_align > LABEL_ALIGN_LOG (lab))
+/* APPLE LOCAL begin for-fsf-4_4 3274130 5295549 */
+	      if (min_align > (int) LABEL_ALIGN_LOG (lab))
 		min_align = LABEL_ALIGN_LOG (lab);
-/* APPLE LOCAL end for-fsf-4_4 3274130 5295549 */ \
+/* APPLE LOCAL end for-fsf-4_4 3274130 5295549 */
 	    }
 	  XEXP (pat, 2) = gen_rtx_LABEL_REF (Pmode, min_lab);
 	  XEXP (pat, 3) = gen_rtx_LABEL_REF (Pmode, max_lab);

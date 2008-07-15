@@ -2052,6 +2052,9 @@ backend_init (void)
 
   /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
+  /* note: stor-layout.c:layout_type() uses have_regs_of_mode[] to initialize
+     TYPE_MODE field for user specified vector types. */
+  init_regs ();
   /* note: we need init_emit_once above to initialize ptr_mode and friends. */
   llvm_initialize_backend();
   return;

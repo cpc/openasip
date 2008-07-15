@@ -5865,6 +5865,18 @@ c_parser_postfix_expression (c_parser *parser)
 	}
       break;
     case CPP_OPEN_SQUARE:
+      /* APPLE LOCAL begin CW asm blocks */
+      if (inside_iasm_block)
+	{
+	  c_parser_consume_token (parser);
+	  expr = c_parser_expression (parser);
+	  c_parser_skip_until_found (parser, CPP_CLOSE_SQUARE,
+				     "expected %<]%>");
+	  expr.value = iasm_build_bracket (expr.value, NULL_TREE);
+	  expr.original_code = ERROR_MARK;
+	  break;
+	}
+      /* APPLE LOCAL end CW asm blocks */
       if (c_dialect_objc ())
 	{
 	  tree receiver, args;
@@ -5878,18 +5890,6 @@ c_parser_postfix_expression (c_parser *parser)
 	  expr.original_code = ERROR_MARK;
 	  break;
 	}
-      /* APPLE LOCAL begin CW asm blocks */
-      if (inside_iasm_block)
-	{
-	  c_parser_consume_token (parser);
-	  expr = c_parser_expression (parser);
-	  c_parser_skip_until_found (parser, CPP_CLOSE_SQUARE,
-				     "expected %<]%>");
-	  expr.value = iasm_build_bracket (expr.value, NULL_TREE);
-	  expr.original_code = ERROR_MARK;
-	  break;
-	}
-      /* APPLE LOCAL end CW asm blocks */
       /* Else fall through to report error.  */
     default:
       /* APPLE LOCAL begin CW asm blocks */

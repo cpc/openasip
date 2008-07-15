@@ -4762,7 +4762,8 @@ package body Exp_Disp is
       --  Protect this procedure against wrong usage. Required because it will
       --  be used directly from GDB
 
-      if not (Typ in First_Node_Id .. Last_Node_Id)
+      --  LLVM local
+      if not (Typ <= Last_Node_Id)
         or else not Is_Tagged_Type (Typ)
       then
          Write_Str ("wrong usage: Write_DT must be used with tagged types");

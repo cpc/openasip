@@ -40,6 +40,8 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tm.h"
 #include "tree.h"
 #include "version.h"
+/* APPLE LOCAL radar 2338865 optimization notification  */
+#include "options.h"
 #include "flags.h"
 #include "real.h"
 #include "rtl.h"
@@ -4768,6 +4770,13 @@ dwarf_attr_name (unsigned int attr)
     case DW_AT_VMS_rtnbeg_pd_address:
       return "DW_AT_VMS_rtnbeg_pd_address";
 
+    /* APPLE LOCAL begin radar 2338865 optimization notification  */
+    case DW_AT_APPLE_flags:
+      return "DW_AT_APPLE_flags";
+    case DW_AT_APPLE_optimized:
+      return "DW_AT_APPLE_optimized";
+    /* APPLE LOCAL end radar 2338865 optimization notification  */
+
     default:
       return "DW_AT_<unknown>";
     }
@@ -6515,6 +6524,38 @@ break_out_includes (dw_die_ref die)
   htab_delete (cu_hash_table);
 }
 
+/* APPLE LOCAL begin radar 5636185  */
+/* Search backwards through the die structures to see if the current
+   die, DIE is contained within a subprogram die or not.  Return the
+   result. 
+
+   This is used when making final determination whether or not to
+   write out DW_AT_MIPS_linkage_name (in add_sibling_attributes).  
+   DW_AT_MIPS_linkage_name needs to be written out for global level
+   structs, classes and namespaces, and any nested structs, classes
+   or namespaces, but not for such things that are local to 
+   functions.  */
+
+static bool
+contained_in_subroutine (dw_die_ref die)
+{
+  dw_die_ref ancestor_die;
+  bool ret_val = false;
+  
+  ancestor_die = die->die_parent;
+
+  while (ancestor_die 
+	 && ancestor_die->die_tag != DW_TAG_compile_unit
+	 && ancestor_die->die_tag != DW_TAG_subprogram)
+    ancestor_die = ancestor_die->die_parent;
+
+  if (ancestor_die && ancestor_die->die_tag == DW_TAG_subprogram)
+    ret_val = true;
+
+  return ret_val;
+}
+/* APPLE LOCAL end radar 5636185  */
+
 /* Traverse the DIE and add a sibling attribute if it may have the
    effect of speeding up access to siblings.  To save some space,
    avoid generating sibling attributes for DIE's without children.  */
@@ -6527,6 +6568,25 @@ add_sibling_attributes (dw_die_ref die)
   if (! die->die_child)
     return;
 
+  /* APPLE LOCAL begin radar 5636185  */
+  /* As we are traversing the entire structure of dies, to add the
+     sibling attributes, also check each die to see if it has the
+     attribute DW_AT_MIPS_linkage_name.  If it has the attribute,
+     verify that the attribute is supposed to be output for the die,
+     i.e. that the die is not local to an subroutine.  If the current
+     die *is* local to a subroutine, then remove the
+     DW_AT_MIPS_linkage_name attribute.
+
+     This is done here, rather than at the time the
+     DW_AT_MIPS_linkage_name attribute is first added to the die,
+     because *here* we are guaranteed that all the dies have been
+     generated and the die structure is complete, whereas that is not
+     true at the time the attribute is first generated.  */
+
+  if (get_AT (die, DW_AT_MIPS_linkage_name)
+      && contained_in_subroutine (die))
+    remove_AT (die, DW_AT_MIPS_linkage_name);
+  /* APPLE LOCAL end radar 5636185  */
   if (die->die_parent && die != die->die_parent->die_child)
     add_AT_die_ref (die, DW_AT_sibling, die->die_sib);
 
@@ -11174,6 +11234,46 @@ add_src_coords_attributes (dw_die_ref die, tree decl)
   add_AT_unsigned (die, DW_AT_decl_line, s.line);
 }
 
+/* APPLE LOCAL begin radar 5636185  */
+/* Given a function or variable decl, DECL, check to see if
+   it has an assembler name, and if so, check to see if the
+   decl name is just a prefix for the assembler name, or if the
+   assembler name is really different.  For example if the name
+   is "foo" and the assembler name is "foo.37", then the names
+   do not really differ, and the assembler name should not be written
+   out.  However for names such as "cXf" vs "_ZN1cblahblahF3cXfE",
+   the assembler name does differ and should be written out.
+
+   This is used to determine if the DW_AT_MIPS_linkage_name attribute
+   needs to be added to the die for DECL or not.  Later, after all
+   the dies have been generated, there is a further check to see
+   if the die is local to a subroutine; if it is, then the attribute
+   is removed before the debug information is written out.  */
+
+static bool
+assembler_name_exists_and_is_different (tree decl)
+{
+  bool ret_val = true;
+  const char *assem_name = IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (decl));
+  const char *name = IDENTIFIER_POINTER (DECL_NAME (decl));
+  unsigned int len = strlen (name);
+
+  if (!assem_name)
+    ret_val = false;
+  else 
+    {
+      if (strlen (assem_name) < len)
+	len = strlen (assem_name);
+
+      if (strncmp (name, assem_name, len) == 0)
+	ret_val = false;
+    }
+
+  return ret_val;
+}
+
+/* APPLE LOCAL end radar 5636185  */
+
 /* Add a DW_AT_name attribute and source coordinate attribute for the
    given decl, but only if it actually has a name.  */
 
@@ -11190,8 +11290,10 @@ add_name_and_src_coords_attributes (dw_die_ref die, tree decl)
 	add_src_coords_attributes (die, decl);
 
       if ((TREE_CODE (decl) == FUNCTION_DECL || TREE_CODE (decl) == VAR_DECL)
-	  && TREE_PUBLIC (decl)
-	  && DECL_ASSEMBLER_NAME (decl) != DECL_NAME (decl)
+	  /* APPLE LOCAL begin radar 5636185  */
+	  && (TREE_PUBLIC (decl) || TREE_STATIC (decl) || DECL_EXTERNAL (decl))
+	  && assembler_name_exists_and_is_different (decl)
+	  /* APPLE LOCAL end radar 5636185  */
 	  && !DECL_ABSTRACT (decl)
 	  && !(TREE_CODE (decl) == VAR_DECL && DECL_REGISTER (decl)))
 	add_AT_string (die, DW_AT_MIPS_linkage_name,
@@ -12207,6 +12309,10 @@ gen_subprogram_die (tree decl, dw_die_ref context_die)
   /* Add the calling convention attribute if requested.  */
   add_calling_convention_attribute (subr_die, TREE_TYPE (decl));
 
+  /* APPLE LOCAL begin radar 2338865 optimization notification  */
+  if (optimize > 0)
+    add_AT_flag (subr_die, DW_AT_APPLE_optimized, 1);
+  /* APPLE LOCAL end radar 2338865 optimization notification  */
 }
 
 /* Generate a DIE to represent a declared data object.  */
@@ -12794,6 +12900,8 @@ gen_typedef_die (tree decl, dw_die_ref context_die)
 {
   dw_die_ref type_die;
   tree origin;
+  /* APPLE LOCAL pubtypes, radar 5619139  */
+  bool type_is_complete_p = true;
 
   if (TREE_ASM_WRITTEN (decl))
     return;
@@ -12818,6 +12926,10 @@ gen_typedef_die (tree decl, dw_die_ref context_die)
       else
 	type = TREE_TYPE (decl);
 
+      /* APPLE LOCAL begin pubtypes, radar 5619139  */
+      type_is_complete_p = COMPLETE_TYPE_P (type);
+      /* APPLE LOCAL end pubtypes, radar 5619139  */
+
       add_type_attribute (type_die, type, TREE_READONLY (decl),
 			  TREE_THIS_VOLATILE (decl), context_die);
     }
@@ -12826,7 +12938,10 @@ gen_typedef_die (tree decl, dw_die_ref context_die)
     equate_decl_number_to_die (decl, type_die);
 
   /* APPLE LOCAL begin pubtypes, approved for 4.3 4535968  */
-  if (get_AT (type_die, DW_AT_name))
+  /* Only add typedef type to pubtypes table if the type it is renaming
+     is fully defined in the current file.  Radar 5619139 */
+  if (get_AT (type_die, DW_AT_name)
+      && type_is_complete_p)
     add_pubtype (decl, type_die);
   /* APPLE LOCAL end pubtypes, approved for 4.3 4535968  */
 }
@@ -14590,6 +14705,8 @@ dwarf2out_finish (const char *filename)
   /* Add the name for the main input file now.  We delayed this from
      dwarf2out_init to avoid complications with PCH.  */
   add_name_attribute (comp_unit_die, filename);
+  /* APPLE LOCAL Radar 5645155 */
+  maybe_emit_file (lookup_filename (filename));
   if (filename[0] != DIR_SEPARATOR)
     add_comp_dir_attribute (comp_unit_die);
   else if (get_AT (comp_unit_die, DW_AT_comp_dir) == NULL)
@@ -14612,6 +14729,11 @@ dwarf2out_finish (const char *filename)
       add_AT_string (comp_unit_die, DW_AT_APPLE_flags, get_arguments());
   }
   /* APPLE LOCAL end option verifier 4957887 */
+  
+  /* APPLE LOCAL begin radar 2338865 optimization notification  */
+  if (optimize > 0)
+    add_AT_flag (comp_unit_die, DW_AT_APPLE_optimized, 1);
+  /* APPLE LOCAL end radar 2338865 optimization notification  */
 
   /* Traverse the limbo die list, and add parent/child links.  The only
      dies without parents that should be here are concrete instances of

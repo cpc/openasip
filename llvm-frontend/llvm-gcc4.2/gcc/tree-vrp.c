@@ -925,6 +925,13 @@ value_inside_range (tree val, value_range_t *vr)
   if (!cmp2)
     return -2;
 
+  /* APPLE LOCAL begin 5562718 rewritten on mainline */
+  /* Insure cmp1 and cmp2 are constants.  */
+  if ((cmp1 != boolean_true_node && cmp1 != boolean_false_node)
+      || (cmp2 != boolean_true_node && cmp2 != boolean_false_node))
+    return -2;
+  /* APPLE LOCAL end 5562718 rewritten on mainline */
+
   return cmp1 == boolean_true_node && cmp2 == boolean_true_node;
 }
 
@@ -958,7 +965,16 @@ range_includes_zero_p (value_range_t *vr)
 	      && !symbolic_range_p (vr));
 
   zero = build_int_cst (TREE_TYPE (vr->min), 0);
-  return (value_inside_range (zero, vr) == 1);
+  /* APPLE LOCAL begin 5562718 rewritten on mainline */
+  switch (value_inside_range (zero, vr))
+    {
+    case 1:	/* Range includes zero.  */
+    case -2:	/* Can't tell if range includes zero.  */
+      return TRUE;
+    default:	/* Range does not include zero.  */
+      return FALSE;
+    }
+  /* APPLE LOCAL end 5562718 rewritten on mainline */
 }
 
 /* Return true if T, an SSA_NAME, is known to be nonnegative.  Return

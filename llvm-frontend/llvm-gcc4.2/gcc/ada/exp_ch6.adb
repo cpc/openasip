@@ -623,7 +623,8 @@ package body Exp_Ch6 is
                            Low_Bound  =>
                              Make_Attribute_Reference (Loc,
                                Prefix => New_Occurrence_Of (Var, Loc),
-                               Attribute_name => Name_First),
+               --  LLVM local
+                               Attribute_Name => Name_First),
                            High_Bound =>
                              Make_Attribute_Reference (Loc,
                                Prefix => New_Occurrence_Of (Var, Loc),
@@ -2478,7 +2479,8 @@ package body Exp_Ch6 is
                      end loop;
 
                      while Present (Next (Temp)) loop
-                        Discard := Remove_Next (Temp);
+                        --  LLVM local
+                        Remove (Next (Temp));
                      end loop;
                   end if;
 

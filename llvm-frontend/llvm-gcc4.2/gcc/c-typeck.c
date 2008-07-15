@@ -2200,11 +2200,17 @@ build_external_ref (tree id, int fun, location_t loc)
      linkage ... shall not contain a reference to an identifier with
      internal linkage.  */
   else if (current_function_decl != 0
+	   /* APPLE LOCAL inline fixups 5580320 */
+	   && pedantic
 	   && DECL_DECLARED_INLINE_P (current_function_decl)
 	   && DECL_EXTERNAL (current_function_decl)
 	   && VAR_OR_FUNCTION_DECL_P (ref)
 	   && (TREE_CODE (ref) != VAR_DECL || TREE_STATIC (ref))
-	   && ! TREE_PUBLIC (ref))
+	   /* APPLE LOCAL begin inline fixups 5580320 */
+	   && ! TREE_PUBLIC (ref)
+	   && DECL_CONTEXT (ref) != current_function_decl
+	   && (! DECL_IN_SYSTEM_HEADER (ref) || warn_system_headers))
+	   /* APPLE LOCAL end inline fixups 5580320 */
     pedwarn ("%qD is static but used in inline function %qD "
 	     "which is not static", ref, current_function_decl);
 
@@ -4175,7 +4181,8 @@ convert_for_assignment (tree type, tree rhs, enum impl_conv errtype,
     }
   /* Some types can interconvert without explicit casts.  */
   else if (codel == VECTOR_TYPE && coder == VECTOR_TYPE
-	   && vector_types_convertible_p (type, TREE_TYPE (rhs)))
+	   /* APPLE LOCAL 5612787 mainline sse4 */
+	   && vector_types_convertible_p (type, TREE_TYPE (rhs), true))
     return convert (type, rhs);
   /* Arithmetic types all interconvert, and enum is treated like int.  */
   else if ((codel == INTEGER_TYPE || codel == REAL_TYPE
@@ -4929,7 +4936,8 @@ digest_init (tree type, tree init, bool strict_string, int require_constant)
      below and handle as a constructor.  */
   if (code == VECTOR_TYPE
       && TREE_CODE (TREE_TYPE (inside_init)) == VECTOR_TYPE
-      && vector_types_convertible_p (TREE_TYPE (inside_init), type)
+      /* APPLE LOCAL 5612787 mainline sse4 */
+      && vector_types_convertible_p (TREE_TYPE (inside_init), type, true)
       && TREE_CONSTANT (inside_init))
     {
       if (TREE_CODE (inside_init) == VECTOR_CST
@@ -8637,7 +8645,8 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
 	  || !same_scalar_type_ignoring_signedness (TREE_TYPE (type0),
 						    TREE_TYPE (type1))))
     {
-      binary_op_error (code);
+      /* APPLE LOCAL 5612787 mainline sse4 */
+      binary_op_error (code, type0, type1);
       return error_mark_node;
     }
 
@@ -8933,7 +8942,8 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
 
   if (!result_type)
     {
-      binary_op_error (code);
+      /* APPLE LOCAL 5612787 mainline sse4 */
+      binary_op_error (code, type0, type1);
       return error_mark_node;
     }
 

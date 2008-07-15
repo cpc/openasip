@@ -2254,8 +2254,10 @@ package body Sem_Type is
       then
          return False;
 
-      else return
-        Is_Numeric_Type (T)
+      --  LLVM local begin
+      else
+         return Is_Numeric_Type (T)
+      --  LLVM local end
           and then not In_Open_Scopes (Scope (T))
           and then not Is_Potentially_Use_Visible (T)
           and then not In_Use (T)

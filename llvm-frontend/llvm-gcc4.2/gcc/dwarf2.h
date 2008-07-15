@@ -387,7 +387,10 @@ enum dwarf_attribute
     /* APPLE LOCAL begin option verifier 4957887 */
     DW_AT_PGI_lstride  = 0x3a02,
     /* Apple extensions.  */
-    DW_AT_APPLE_flags = 0x3fe2
+    /* APPLE LOCAL begin radar 2338865 optimization notification  */
+    DW_AT_APPLE_optimized = 0x3fe1,
+    DW_AT_APPLE_flags     = 0x3fe2
+    /* APPLE LOCAL end radar 2338865 optimization notification  */
     /* APPLE LOCAL end option verifier 4957887 */
   };
 

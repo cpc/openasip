@@ -168,7 +168,9 @@ case ${host} in
     host_xmake_file="${host_xmake_file} i386/x-cygwin"
     host_exeext=.exe
     ;;
-  i[34567]86-*-mingw32*)
+# LLVM LOCAL begin mainline
+  i[34567]86-*-mingw32* | x86_64-*-mingw32*)
+# LLVM LOCAL end mainline
     host_xm_file=i386/xm-mingw32.h
     host_xmake_file="${host_xmake_file} i386/x-mingw32"
     host_exeext=.exe

@@ -44,6 +44,17 @@ void llvm_emit_code_for_current_function(union tree_node* fndecl);
 /* make_decl_llvm - This is also defined in tree.h and used by macros there. */
 void make_decl_llvm(union tree_node*);
 
+/* reset_type_and_initializer_llvm - Change the initializer for a global 
+ * variable.
+ */
+void reset_type_and_initializer_llvm(union tree_node*);
+
+/* llvm_compute_type - Compute the LLVM type for the specified tree type eagerly
+ * instead of letting it happen lazily.
+ */
+void llvm_compute_type(union tree_node*);
+
+
 /* reset_initializer_llvm - Change the initializer for a global variable. */
 void reset_initializer_llvm(union tree_node*);
 

@@ -277,16 +277,22 @@ i[34567]86-*-*)
 # LLVM LOCAL begin
 	out_cxx_file=i386/llvm-i386.cpp
 # LLVM LOCAL end                               
-	extra_headers="mmintrin.h mm3dnow.h xmmintrin.h emmintrin.h
-		       pmmintrin.h tmmintrin.h"
+ 	# APPLE LOCAL begin 5612787 mainline sse4
+  	extra_headers="mmintrin.h mm3dnow.h xmmintrin.h emmintrin.h
+ 		       pmmintrin.h tmmintrin.h ammintrin.h smmintrin.h
+ 		       nmmintrin.h"
+ 	# APPLE LOCAL end 5612787 mainline sse4
 	;;
 x86_64-*-*)
 	cpu_type=i386
 # LLVM LOCAL begin
 	out_cxx_file=i386/llvm-i386.cpp
 # LLVM LOCAL end                               
-	extra_headers="mmintrin.h mm3dnow.h xmmintrin.h emmintrin.h
-		       pmmintrin.h tmmintrin.h"
+ 	# APPLE LOCAL begin 5612787 mainline sse4
+  	extra_headers="mmintrin.h mm3dnow.h xmmintrin.h emmintrin.h
+ 		       pmmintrin.h tmmintrin.h ammintrin.h smmintrin.h
+ 		       nmmintrin.h"
+ 	# APPLE LOCAL end 5612787 mainline sse4
 	need_64bit_hwint=yes
 	;;
 # APPLE LOCAL end mainline
@@ -391,7 +397,8 @@ case ${target} in
   esac
   tm_file="${tm_file} ${cpu_type}/darwin.h"
   tm_p_file="${tm_p_file} darwin-protos.h"
-  tmake_file="t-darwin ${cpu_type}/t-darwin t-slibgcc-darwin"
+  # APPLE LOCAL 5681645
+  tmake_file="t-darwin ${cpu_type}/t-darwin"
   target_gtfiles="\$(srcdir)/config/darwin.c"
   extra_options="${extra_options} darwin.opt"
   c_target_objs="darwin-c.o"
@@ -1049,8 +1056,8 @@ i[34567]86-*-darwin*)
 	with_cpu=${with_cpu:-core2}
  	# APPLE LOCAL Macintosh alignment 2002-2-19 --ff
 	extra_options="${extra_options} i386/darwin.opt"
-	# APPLE LOCAL 4099000
-	tmake_file="${tmake_file} i386/t-darwin"
+	# APPLE LOCAL 4099000 5681645
+	tmake_file="${tmake_file} t-slibgcc-darwin i386/t-darwin"
 	;;
 x86_64-*-darwin*)
 	# APPLE LOCAL mainline
@@ -1318,21 +1325,30 @@ i[34567]86-*-pe | i[34567]86-*-cygwin*)
 	target_gtfiles="\$(srcdir)/config/i386/winnt.c"
 	extra_options="${extra_options} i386/cygming.opt"
 	extra_objs="winnt.o winnt-stubs.o"
-	c_target_objs=cygwin2.o
+# LLVM LOCAL begin mainline
+	c_target_objs="cygwin2.o"
 	cxx_target_objs="cygwin2.o winnt-cxx.o"
+# LLVM LOCAL end mainline
 	extra_gcc_objs=cygwin1.o
+	extra_parts="crtbegin.o crtend.o"
 	if test x$enable_threads = xyes; then
 		thread_file='posix'
 	fi
 	;;
-i[34567]86-*-mingw32*)
+# LLVM LOCAL begin mainline
+i[34567]86-*-mingw32* | x86_64-*-mingw32*)
+# LLVM LOCAL end mainline
 	tm_file="${tm_file} i386/unix.h i386/bsd.h i386/gas.h dbxcoff.h i386/cygming.h i386/mingw32.h"
 	xm_file=i386/xm-mingw32.h
 	tmake_file="i386/t-cygming i386/t-mingw32"
 	target_gtfiles="\$(srcdir)/config/i386/winnt.c"
 	extra_options="${extra_options} i386/cygming.opt"
 	extra_objs="winnt.o winnt-stubs.o"
-	cxx_target_objs=winnt-cxx.o
+# LLVM LOCAL begin mainline
+	cxx_target_objs="winnt-cxx.o"
+	default_use_cxa_atexit=yes
+# LLVM LOCAL end mainline
+	extra_parts="crtbegin.o crtend.o"
 	case ${enable_threads} in
 	  "" | yes | win32)
 	  thread_file='win32'
@@ -1743,11 +1759,18 @@ powerpc-*-beos*)
 	use_fixproto=yes
 	;;
 powerpc-*-darwin*)
+        # APPLE LOCAL ARM 5681645
+        tmake_file="${tmake_file} t-slibgcc-darwin"
 	extra_options="${extra_options} rs6000/darwin.opt"
 	# APPLE LOCAL mainline candidate 2006-06-22 4512244
 	extra_parts="${extra_parts} crt2.o"
 	case ${target} in
-	  *-darwin1[0-9]* | *-darwin[8-9]*)
+          # LLVM LOCAL begin
+	  *-darwin1[0-9]*)
+	    tm_file="${tm_file} rs6000/darwin8.h"
+	    ;;
+	  *-darwin[8-9]*)
+          # LLVM LOCAL end
 	    tmake_file="${tmake_file} rs6000/t-darwin8"
 	    tm_file="${tm_file} rs6000/darwin8.h"
 	    ;;
@@ -1761,6 +1784,8 @@ powerpc-*-darwin*)
 	;;
 powerpc64-*-darwin*)
 	tm_file="${tm_file} ${cpu_type}/darwin8.h ${cpu_type}/darwin64.h"
+        # APPLE LOCAL ARM 5681645
+        tmake_file="${tmake_file} t-slibgcc-darwin"
 	extra_options="${extra_options} ${cpu_type}/darwin.opt"
 	# We're omitting t-darwin8 to avoid building any multilibs
 	extra_headers=altivec.h

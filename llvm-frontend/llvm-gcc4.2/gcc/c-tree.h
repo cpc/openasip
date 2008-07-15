@@ -640,6 +640,8 @@ extern bool c_eh_initialized_p;
 extern void c_finish_incomplete_decl (tree);
 extern void c_write_global_declarations (void);
 
+/* APPLE LOCAL radar 5741070  */
+extern tree c_return_interface_record_type (tree);
 /* In order for the format checking to accept the C frontend
    diagnostic framework extensions, you must include this file before
    toplev.h, not after.  */

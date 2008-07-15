@@ -84,12 +84,6 @@ LLVM_SUBMIT_SUBVERSION="${11}"
 # LLVM_BIN_DIR - This is the place where llvm-gcc/llvm-g++ symlinks get installed.
 LLVM_BIN_DIR=$DEST_ROOT/../bin
 
-# LLVM_ARCHS - This tells us which architectures we'd like the libraries to be
-# build for. The default is 4-way.
-if [ "x$LLVM_ARCHS" == "x" ]; then
-    LLVM_ARCHS="ppc i386 ppc64 x86_64"
-fi
-
 # LLVM LOCAL end
 
 # The current working directory is where the build will happen.
@@ -110,7 +104,12 @@ fi
 MAJ_VERS=`echo $VERS | sed 's/\([0-9]*\.[0-9]*\)[.-].*/\1/'`
 
 # This is the libstdc++ version to use.
-LIBSTDCXX_VERSION=4.0.0
+LIBSTDCXX_VERSION=4.2.1
+# DO NOT USE $DEST_ROOT to check LIBSTDCXX_VERSION here. Directly use /usr here.
+# $DEST_ROOT is /Developer for llvm-gcc
+if [ ! -d "/usr/include/c++/$LIBSTDCXX_VERSION" ]; then
+  LIBSTDCXX_VERSION=4.0.0
+fi
 
 DARWIN_VERS=`uname -r | sed 's/\..*//'`
 echo DARWIN_VERS = $DARWIN_VERS
@@ -272,6 +271,12 @@ for t in $CROSS_TARGETS ; do
   mv $D/static/libgcc.a $D/libgcc_static.a || exit 1
   mv $D/kext/libgcc.a $D/libcc_kext.a || exit 1
   rm -r $D/static $D/kext || exit 1
+  # glue together kext64 stuff
+  if [ -e $D/kext64/libgcc.a ]; then
+    libtool -static $D/{kext64/libgcc.a,libcc_kext.a} -o $D/libcc_kext1.a 2>&1 | grep -v 'has no symbols'
+    mv $D/libcc_kext1.a $D/libcc_kext.a
+    rm -rf $D/kext64
+  fi
 done
 
 # Build the cross-hosted compilers.
@@ -355,12 +360,10 @@ done
 
 # bin
 # The native drivers ('native' is different in different architectures).
-BIN_FILES=`ls $DIR/dst-$BUILD-$BUILD$DEST_ROOT/bin | grep '^[^-]*-[0-9.]*$' \
-  | grep -v gccbug | grep -v gcov || exit 1`
 mkdir .$DEST_ROOT/bin
-for f in $BIN_FILES ; do
-  lipo -output .$DEST_ROOT/bin/$f -create $DIR/dst-*$DEST_ROOT/bin/$f || exit 1
-done
+cpp_files=`ls $DIR/dst-*$DEST_ROOT/bin/{llvm-cpp,cpp-$MAJ_VERS} 2>/dev/null`
+lipo -output .$DEST_ROOT/bin/llvm-cpp-$MAJ_VERS -create $cpp_files || exit 1
+
 # gcov, which is special only because it gets built multiple times and lipo
 # will complain if we try to add two architectures into the same output.
 TARG0=`echo $TARGETS | cut -d ' ' -f 1`
@@ -394,9 +397,9 @@ for t in $TARGETS ; do
 		.$DEST_ROOT/lib/gcc/$t-apple-darwin$DARWIN_VERS/$VERS/ || exit 1
 	    if [ $h = 'powerpc' ] ; then
 		cp -p $DIR/dst-$h-$t$DEST_ROOT/lib/ppc64/libgomp.a \
-		    .$DEST_ROOT/lib/gcc/$t-apple-darwin$DARWIN_VERS/$VERS/ppc64/ || exit 1
+		    .$DEST_ROOT/lib/gcc/$t-apple-darwin$DARWIN_VERS/$VERS/ppc64/ 
 		cp -p $DIR/dst-$h-$t$DEST_ROOT/lib/ppc64/libgomp.spec \
-		    .$DEST_ROOT/lib/gcc/$t-apple-darwin$DARWIN_VERS/$VERS/ppc64/ || exit 1
+		    .$DEST_ROOT/lib/gcc/$t-apple-darwin$DARWIN_VERS/$VERS/ppc64/ 
 	    elif [ $h = 'i686' ] ; then
 		cp -p $DIR/dst-$h-$t$DEST_ROOT/lib/x86_64/libgomp.a \
 		    .$DEST_ROOT/lib/gcc/$t-apple-darwin$DARWIN_VERS/$VERS/x86_64/ || exit 1
@@ -407,6 +410,7 @@ for t in $TARGETS ; do
     done
 done
 
+# FIXME: What is the motivation here ?
 for t in $TARGETS ; do
   cp -p /usr/lib/libstdc++.6.dylib \
     .$DEST_ROOT/lib/gcc/$t-apple-darwin$DARWIN_VERS/$VERS/libstdc++.dylib \
@@ -507,16 +511,18 @@ find obj-* -name \*.\[chy\] -print | cpio -pdml $SYM_DIR/src || exit 1
 ########################################
 # Remove debugging information from DEST_DIR.
 
-find $DEST_DIR -perm -0111 \! -name \*.dylib \! -name fixinc.sh \
-    \! -name mkheaders \! -name libstdc++.dylib -type f -print \
-  | xargs strip || exit 1
-# APPLE LOCAL begin LLVM - Strip with -Sx instead of -SX
-find $DEST_DIR \( -name \*.a -or -name \*.dylib \) \
-    \! -name libgcc_s.10.*.dylib -type f -print \
-  | xargs strip -SX || exit 1
-# APPLE LOCAL end LLVM - Strip with -Sx instead of -SX
-find $DEST_DIR -name \*.a -type f -print \
-  | xargs ranlib || exit 1
+if [ "x$LLVM_DEBUG" != "x1" ]; then
+    find $DEST_DIR -perm -0111 \! -name \*.dylib \! -name fixinc.sh \
+        \! -name mkheaders \! -name libstdc++.dylib -type f -print \
+        | xargs strip || exit 1
+    # APPLE LOCAL begin LLVM - Strip with -Sx instead of -SX
+    find $DEST_DIR \( -name \*.a -or -name \*.dylib \) \
+        \! -name libgcc_s.10.*.dylib -type f -print \
+        | xargs strip -SX || exit 1
+    # APPLE LOCAL end LLVM - Strip with -Sx instead of -SX
+    find $DEST_DIR -name \*.a -type f -print \
+        | xargs ranlib || exit 1
+fi
 
 # APPLE LOCAL begin LLVM
 # Set up the llvm-gcc/llvm-g++ symlinks.
@@ -524,6 +530,9 @@ mkdir -p $DEST_DIR$LLVM_BIN_DIR
 cd $DEST_DIR$LLVM_BIN_DIR
 ln -s -f ../llvm-gcc-$MAJ_VERS/bin/llvm-gcc-$MAJ_VERS llvm-gcc-$MAJ_VERS || exit 1
 ln -s -f ../llvm-gcc-$MAJ_VERS/bin/llvm-g++-$MAJ_VERS llvm-g++-$MAJ_VERS || exit 1
+ln -s -f ../llvm-gcc-$MAJ_VERS/bin/llvm-cpp-$MAJ_VERS llvm-cpp-$MAJ_VERS || exit 1
+ln -s -f ../llvm-gcc-$MAJ_VERS/bin/llvm-gcc-$MAJ_VERS llvm-gcc || exit 1
+ln -s -f ../llvm-gcc-$MAJ_VERS/bin/llvm-g++-$MAJ_VERS llvm-g++ || exit 1
 
 # FIXME: This is a hack to get things working.
 for h in $HOSTS ; do

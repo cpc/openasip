@@ -6243,7 +6243,7 @@ package body Einfo is
          end loop;
       end if;
 
-      raise Program_Error;
+      --  LLVM local deleted unreachable line
    end Root_Type;
 
    -----------------

@@ -4963,6 +4963,14 @@ cse_insn (rtx insn, rtx libcall_insn)
 	      else if (SET_DEST (y) == pc_rtx
 		       && GET_CODE (SET_SRC (y)) == LABEL_REF)
 		;
+              /* APPLE LOCAL begin radar 5596043, mainline candidate */
+              /* Ignore the asm operand of an inline assembly instruction
+                 when finding all the SETs and invalidate its target. */
+              else if (GET_CODE (SET_SRC (y)) == ASM_OPERANDS)
+                {		
+	            invalidate (XEXP (y, 0), VOIDmode);
+                }
+              /* APPLE LOCAL end radar 5596043, mainline candidate */
 	      else
 		sets[n_sets++].rtl = y;
 	    }

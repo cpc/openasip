@@ -1130,7 +1130,8 @@ package body Sem_Util is
 
          --  Message is a warning, even in Ada 95 case
 
-         if Msg (Msg'Length) = '?' then
+         --  LLVM local
+         if Msg (Msg'Last) = '?' then
             Wmsg := True;
 
          --  In Ada 83, all messages are warnings. In the private part and
@@ -3835,7 +3836,7 @@ package body Sem_Util is
          end loop;
       end if;
 
-      raise Program_Error;
+      --  LLVM local deleted unreachable line
    end Is_Descendent_Of;
 
    ------------------------------

@@ -2724,6 +2724,11 @@ struct tree_decl_with_rtl GTY(())
    writing debugging information about vfield and vbase decls for C++.  */
 #define DECL_FCONTEXT(NODE) (FIELD_DECL_CHECK (NODE)->field_decl.fcontext)
 
+/* LLVM LOCAL begin */
+/* In a FIELD_DECL, marks that the type is temporarily replaced in ConvertType. */
+#define DECL_FIELD_REPLACED(NODE) (FIELD_DECL_CHECK (NODE)->decl_common.decl_flag_0)
+/* LLVM LOCAL end */
+
 /* In a FIELD_DECL, indicates this field should be bit-packed.  */
 #define DECL_PACKED(NODE) (FIELD_DECL_CHECK (NODE)->decl_common.decl_flag_1)
 
@@ -4248,6 +4253,14 @@ extern tree get_narrower (tree, int *);
 extern tree get_inner_reference (tree, HOST_WIDE_INT *, HOST_WIDE_INT *,
 				 tree *, enum machine_mode *, int *, int *,
 				 bool);
+
+/* APPLE LOCAL begin mainline 4.2 5569774 */
+/* Given an expression EXP that may be a COMPONENT_REF or an ARRAY_REF,
+   look for whether EXP or any nested component-refs within EXP is marked
+   as PACKED.  */
+
+extern bool contains_packed_reference (tree exp);
+/* APPLE LOCAL end mainline 4.2 5569774 */
 
 /* Return 1 if T is an expression that get_inner_reference handles.  */
 

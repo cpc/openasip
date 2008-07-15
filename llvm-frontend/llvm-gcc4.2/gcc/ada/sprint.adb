@@ -3694,8 +3694,10 @@ package body Sprint is
       if Int (S'Last) + Column > Line_Limit then
          Write_Indent_Str ("  ");
 
-         if S (1) = ' ' then
-            Write_Str (S (2 .. S'Length));
+         --  LLVM local begin
+         if S (S'First) = ' ' then
+            Write_Str (S (S'First + 1 .. S'Last));
+         --  LLVM local end
          else
             Write_Str (S);
          end if;
@@ -3714,8 +3716,10 @@ package body Sprint is
       if Int (S'Last) + Column > Line_Limit then
          Write_Indent_Str ("  ");
 
-         if S (1) = ' ' then
-            Write_Str_Sloc (S (2 .. S'Length));
+         --  LLVM local begin
+         if S (S'First) = ' ' then
+            Write_Str_Sloc (S (S'First + 1 .. S'Last));
+         --  LLVM local end
          else
             Write_Str_Sloc (S);
          end if;

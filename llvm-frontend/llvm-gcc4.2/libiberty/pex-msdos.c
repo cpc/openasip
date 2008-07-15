@@ -54,12 +54,16 @@ struct pex_msdos
 static int pex_msdos_open (struct pex_obj *, const char *, int);
 static int pex_msdos_open (struct pex_obj *, const char *, int);
 static int pex_msdos_fdindex (struct pex_msdos *, int);
-static long pex_msdos_exec_child (struct pex_obj *, int, const char *,
+/* LLVM LOCAL begin mainline */
+static pid_t pex_msdos_exec_child (struct pex_obj *, int, const char *,
+/* LLVM LOCAL end mainline */
 				  char * const *, char * const *,
 				  int, int, int, int,
 				  int, const char **, int *);
 static int pex_msdos_close (struct pex_obj *, int);
-static int pex_msdos_wait (struct pex_obj *, long, int *, struct pex_time *,
+/* LLVM LOCAL begin mainline */
+static int pex_msdos_wait (struct pex_obj *, pid_t, int *, struct pex_time *,
+/* LLVM LOCAL end mainline */
 			   int, const char **, int *);
 static void pex_msdos_cleanup (struct pex_obj *);
 
@@ -152,7 +156,9 @@ pex_msdos_close (struct pex_obj *obj, int fd)
 
 /* Execute a child.  */
 
-static long
+/* LLVM LOCAL begin mainline */
+static pid_t
+/* LLVM LOCAL end mainline */
 pex_msdos_exec_child (struct pex_obj *obj, int flags, const char *executable,
 		      char * const * argv, char * const * env, int in, int out,
 		      int toclose ATTRIBUTE_UNUSED,
@@ -235,7 +241,9 @@ pex_msdos_exec_child (struct pex_obj *obj, int flags, const char *executable,
       free (scmd);
       free (rf);
       *errmsg = "cannot open temporary command file";
-      return -1;
+      /* LLVM LOCAL begin mainline */
+      return (pid_t) -1;
+      /* LLVM LOCAL end mainline */
     }
 
   for (i = 1; argv[i] != NULL; ++i)
@@ -262,7 +270,9 @@ pex_msdos_exec_child (struct pex_obj *obj, int flags, const char *executable,
       free (scmd);
       free (rf);
       *errmsg = "system";
-      return -1;
+      /* LLVM LOCAL begin mainline */
+      return (pid_t) -1;
+      /* LLVM LOCAL end mainline */
     }
 
   remove (rf);
@@ -275,7 +285,9 @@ pex_msdos_exec_child (struct pex_obj *obj, int flags, const char *executable,
   ms->statuses = XRESIZEVEC(int, ms->statuses, obj->count + 1);
   ms->statuses[obj->count] = status;
 
-  return obj->count;
+  /* LLVM LOCAL begin mainline */
+  return (pid_t) obj->count;
+  /* LLVM LOCAL end mainline */
 }
 
 /* Wait for a child process to complete.  Actually the child process
@@ -283,7 +295,9 @@ pex_msdos_exec_child (struct pex_obj *obj, int flags, const char *executable,
    status.  */
 
 static int
-pex_msdos_wait (struct pex_obj *obj, long pid, int *status,
+/* LLVM LOCAL begin mainline */
+pex_msdos_wait (struct pex_obj *obj, pid_t pid, int *status,
+/* LLVM LOCAL end mainline */
 		struct pex_time *time, int done ATTRIBUTE_UNUSED,
 		const char **errmsg ATTRIBUTE_UNUSED,
 		int *err ATTRIBUTE_UNUSED)

@@ -2092,10 +2092,6 @@ getpagesize (void)
 #endif
 }
 
-#ifdef __i386__
-extern int VirtualProtect (char *, int, int, int *) __attribute__((stdcall));
-#endif
-
 int
 mprotect (char *addr, int len, int prot)
 {
@@ -2127,7 +2123,7 @@ TRANSFER_FROM_TRAMPOLINE
 #endif
 #endif /* L_trampoline */
 
-#ifndef __CYGWIN__
+#if !defined (__CYGWIN__) && !defined(__MINGW32__)
 #ifdef L__main
 
 #include "gbl-ctors.h"

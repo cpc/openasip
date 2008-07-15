@@ -637,8 +637,10 @@ extern enum rs6000_nop_insertion rs6000_sched_insert_nops;
 
    We must map them here to avoid huge unwinder tables mostly consisting
    of unused space.  */
-#define DWARF_REG_TO_UNWIND_COLUMN(r) \
+/* APPLE LOCAL begin 3399553 */
+#define DWARF_REG_TO_UNWIND_COLUMN(r)  \
   ((r) > 1200 ? ((r) - 1200 + LAST_PHYSICAL_REGISTER) : (r))
+/* APPLE LOCAL end 3399553 */
 
 /* Use standard DWARF numbering for DWARF debugging information.  */
 #define DBX_REGISTER_NUMBER(REGNO) rs6000_dbx_register_number (REGNO)
@@ -3458,13 +3460,6 @@ enum rs6000_builtins
     F.AddFeature("64bit", TARGET_POWERPC64); \
   }
 
-/* GCC passes single-element structs and arrays in registers.  Other structs
- * are forced into integer registers, e.g. complex float is passed in two 
- * 32-bit GPR's.
- */
-#define LLVM_SHOULD_PASS_AGGREGATE_IN_INTEGER_REGS(type) \
-  !isSingleElementStructOrArray(type)
-
 /* When -m64 is specified, set the architecture to powerpc64-os-blah even if the
  * compiler was configured for powerpc-os-blah.
  */
@@ -3479,6 +3474,40 @@ enum rs6000_builtins
 #define LLVM_TARGET_INTRINSIC_LOWER(EXP, BUILTIN_CODE, DESTLOC, RESULT,       \
                                     DESTTY, OPS)                 \
         TargetIntrinsicLower(EXP, BUILTIN_CODE, DESTLOC, RESULT, DESTTY, OPS);
+
+#ifdef LLVM_ABI_H
+extern bool llvm_rs6000_should_pass_aggregate_byval(tree, const Type *);
+
+#define LLVM_SHOULD_PASS_AGGREGATE_USING_BYVAL_ATTR(X, TY)      \
+  llvm_rs6000_should_pass_aggregate_byval((X), (TY))
+
+extern bool llvm_rs6000_should_pass_vector_in_integer_regs(tree);
+
+/* All non-Altivec vectors are passed in integer regs. */
+#define LLVM_SHOULD_PASS_VECTOR_IN_INTEGER_REGS(X)            \
+  llvm_rs6000_should_pass_vector_in_integer_regs((X))
+
+extern bool llvm_rs6000_should_pass_aggregate_in_mixed_regs(tree, const Type*, 
+                                              std::vector<const Type*>&);
+
+/* FIXME this is needed for 64-bit  */
+#define LLVM_SHOULD_PASS_AGGREGATE_IN_MIXED_REGS(T, TY, E) \
+   llvm_rs6000_should_pass_aggregate_in_mixed_regs((T), (TY), (E))
+
+extern tree llvm_rs6000_should_return_vector_as_scalar(tree, bool);
+
+/* (Generic) vectors 4 bytes long are returned as an int.
+   Vectors 8 bytes long are returned as 2 ints. */
+#define LLVM_SHOULD_RETURN_VECTOR_AS_SCALAR(X,isBuiltin)  \
+  llvm_rs6000_should_return_vector_as_scalar((X), (isBuiltin))
+
+extern bool llvm_rs6000_should_return_vector_as_shadow(tree, bool);
+
+/* Non-altivec vectors bigger than 8 bytes are returned by sret. */
+#define LLVM_SHOULD_RETURN_VECTOR_AS_SHADOW(X,isBuiltin)\
+  llvm_rs6000_should_return_vector_as_shadow((X), (isBuiltin))
+
+#endif /* LLVM_ABI_H */
 
 /* LLVM LOCAL end */
 

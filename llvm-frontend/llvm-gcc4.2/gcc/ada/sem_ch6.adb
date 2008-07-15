@@ -2388,7 +2388,8 @@ package body Sem_Ch6 is
          --  Remove last character (question mark) to make this into an error,
          --  because the Inline_Always pragma cannot be obeyed.
 
-         Error_Msg_NE (Msg (1 .. Msg'Length - 1), N, Subp);
+         --  LLVM local
+         Error_Msg_NE (Msg (Msg'First .. Msg'Last - 1), N, Subp);
 
       elsif Ineffective_Inline_Warnings then
          Error_Msg_NE (Msg, N, Subp);
@@ -2999,6 +3000,8 @@ package body Sem_Ch6 is
       Err_Loc : Node_Id := Empty)
    is
       Result : Boolean;
+      --  LLVM local
+      pragma Warnings (Off, Result);
    begin
       Check_Conformance
         (New_Id, Old_Id, Fully_Conformant, True, Result, Err_Loc);
@@ -3015,6 +3018,8 @@ package body Sem_Ch6 is
       Get_Inst : Boolean := False)
    is
       Result : Boolean;
+      --  LLVM local
+      pragma Warnings (Off, Result);
 
    begin
       Check_Conformance
@@ -3480,6 +3485,8 @@ package body Sem_Ch6 is
       Err_Loc : Node_Id := Empty)
    is
       Result : Boolean;
+      --  LLVM local
+      pragma Warnings (Off, Result);
    begin
       Check_Conformance
         (New_Id, Old_Id, Subtype_Conformant, True, Result, Err_Loc);
@@ -3495,6 +3502,8 @@ package body Sem_Ch6 is
       Err_Loc : Node_Id := Empty)
    is
       Result : Boolean;
+      --  LLVM local
+      pragma Warnings (Off, Result);
    begin
       Check_Conformance
         (New_Id, Old_Id, Type_Conformant, True, Result, Err_Loc);

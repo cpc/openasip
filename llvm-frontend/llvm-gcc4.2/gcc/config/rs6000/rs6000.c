@@ -710,6 +710,8 @@ static int rs6000_use_sched_lookahead (void);
 static tree rs6000_builtin_mask_for_load (void);
 
 static void def_builtin (int, const char *, tree, int);
+/* APPLE LOCAL mainline 4.2 5569774 */
+static bool rs6000_vector_alignment_reachable (tree, bool);
 static void rs6000_init_builtins (void);
 static rtx rs6000_expand_unop_builtin (enum insn_code, tree, rtx);
 static rtx rs6000_expand_binop_builtin (enum insn_code, tree, rtx);
@@ -983,6 +985,11 @@ static const char alt_reg_names[][8] =
 #undef TARGET_VECTORIZE_BUILTIN_MASK_FOR_LOAD
 #define TARGET_VECTORIZE_BUILTIN_MASK_FOR_LOAD rs6000_builtin_mask_for_load
 
+/* APPLE LOCAL begin mainline 4.2 5569774 */
+#undef TARGET_VECTOR_ALIGNMENT_REACHABLE
+#define TARGET_VECTOR_ALIGNMENT_REACHABLE rs6000_vector_alignment_reachable
+/* APPLE LOCAL end mainline 4.2 5569774 */
+
 #undef TARGET_INIT_BUILTINS
 #define TARGET_INIT_BUILTINS rs6000_init_builtins
 
@@ -1191,6 +1198,17 @@ rs6000_init_hard_regno_mode_ok (void)
 	rs6000_hard_regno_mode_ok_p[m][r] = true;
 }
 
+/* APPLE LOCAL begin axe stubs 5571540 */
+#ifndef DARWIN_LINKER_GENERATES_ISLANDS
+#define DARWIN_LINKER_GENERATES_ISLANDS 0
+#endif
+
+/* KEXTs still need branch islands.  */
+#define DARWIN_GENERATE_ISLANDS (!DARWIN_LINKER_GENERATES_ISLANDS \
+				 || flag_mkernel || flag_apple_kext \
+				 || (!flag_pic && !MACHO_DYNAMIC_NO_PIC_P))
+/* APPLE LOCAL end axe stubs 5571540 */
+
 /* APPLE LOCAL begin mainline 2007-02-20 5005743 */ \
 #if TARGET_MACHO
 /* The Darwin version of SUBTARGET_OVERRIDE_OPTIONS.  */
@@ -1232,10 +1250,10 @@ darwin_rs6000_override_options (void)
       warning (0, "-m64 requires PowerPC64 architecture, enabling");
     }
   if (flag_mkernel)
-    {
-      rs6000_default_long_calls = 1;
-      target_flags |= MASK_SOFT_FLOAT;
-    }
+    /* APPLE LOCAL begin 5731065 */
+    /* Moved setting of SOFT_FLOAT into rs6000_handle_option.  */
+    rs6000_default_long_calls = 1;
+    /* APPLE LOCAL end 5731065 */
 
   /* Make -m64 imply -maltivec.  Darwin's 64-bit ABI includes
      Altivec.  */
@@ -1255,6 +1273,13 @@ darwin_rs6000_override_options (void)
     {
       target_flags |= MASK_ALTIVEC;
     }
+
+  /* APPLE LOCAL begin axe stubs 5571540 */
+  /* I'm not sure if the branch island code needs stubs or not, so
+     assume they do.  */
+  if (DARWIN_GENERATE_ISLANDS)
+    darwin_stubs = true;
+  /* APPLE LOCAL end axe stubs 5571540 */
 }
 #endif
 
@@ -1482,8 +1507,11 @@ rs6000_override_options (const char *default_cpu)
 	{
 	  flag_disable_opts_for_faltivec = 1;
 	  /* APPLE LOCAL radar 4161346 */
-	  target_flags |= (MASK_ALTIVEC | MASK_PIM_ALTIVEC);
+/* LLVM LOCAL begin handle -mpim-altivec correctly */
+	  target_flags |= MASK_ALTIVEC;
 	}
+      target_flags |= MASK_PIM_ALTIVEC;
+/* LLVM LOCAL begin handle -mpim-altivec correctly */
     }
   /* APPLE LOCAL end AltiVec */
 
@@ -1877,6 +1905,39 @@ rs6000_builtin_mask_for_load (void)
   else
     return 0;
 }
+
+/* APPLE LOCAL begin mainline 4.2 5569774 */
+/* Return true iff, data reference of TYPE can reach vector alignment (16)
+   after applying N number of iterations.  This routine does not determine
+   how may iterations are required to reach desired alignment.  */
+
+static bool
+rs6000_vector_alignment_reachable (tree type ATTRIBUTE_UNUSED, bool is_packed)
+{
+  if (is_packed)
+    return false;
+
+  if (TARGET_32BIT)
+    {
+      if (rs6000_alignment_flags == MASK_ALIGN_NATURAL)
+        return true;
+
+      if (rs6000_alignment_flags ==  MASK_ALIGN_POWER)
+        return true;
+
+      return false;
+    }
+  else
+    {
+      if (TARGET_MACHO)
+	/* APPLE LOCAL 5643197 */
+	return (rs6000_alignment_flags == MASK_ALIGN_NATURAL);
+
+      /* Assuming that all other types are naturally aligned. CHECKME!  */
+      return true;
+    }
+}
+/* APPLE LOCAL end mainline 4.2 5569774 */
 
 /* Handle generic options of the form -mfoo=yes/no.
    NAME is the option name.
@@ -2309,6 +2370,13 @@ rs6000_handle_option (size_t code, const char *arg, int value)
 	  return false;
 	}
       break;
+      /* APPLE LOCAL begin 5731065 */
+    case OPT_mkernel:
+      /* Set this early so that a kext that wants to use the hard
+	 floating point registers can use -mkernel -mhard-float.  */
+      target_flags |= MASK_SOFT_FLOAT;
+      break;
+      /* APPLE LOCAL end 5731065 */
     }
   return true;
 }
@@ -4830,6 +4898,20 @@ rs6000_emit_move (rtx dest, rtx source, enum machine_mode mode)
 static bool
 rs6000_return_in_memory (tree type, tree fntype ATTRIBUTE_UNUSED)
 {
+  /* LLVM LOCAL begin struct return check */
+  /* FIXME darwin ppc64 often returns structs partly in memory and partly
+     in regs.  The binary interface of return_in_memory (which does the
+     work for aggregate_value_p) is not a good match for this; in fact
+     this target returns false if any part of it goes in registers.  Which
+     means aggregate_value_p is not useful on this target for this purpose.
+     This is a big nasty longterm problem.  For now put things back the
+     way they used to be (wrong, but fewer crashes). */
+  if (TARGET_64BIT && TYPE_SIZE_UNIT(type) &&
+      TREE_CODE(TYPE_SIZE_UNIT(type)) == INTEGER_CST &&
+      TREE_INT_CST_LOW(TYPE_SIZE_UNIT(type)) > 8)
+    return true;
+  /* LLVM LOCAL end struct return check */  
+
   /* In the darwin64 abi, try to use registers for larger structs
      if possible.  */
   if (rs6000_darwin64_abi
@@ -5139,6 +5221,14 @@ rs6000_darwin64_record_arg_advance_flush (CUMULATIVE_ARGS *cum,
   endbit = (bitpos + BITS_PER_WORD - 1) & -BITS_PER_WORD;
   intregs = (endbit - startbit) / BITS_PER_WORD;
   cum->words += intregs;
+  /* APPLE LOCAL begin ppc64 abi */
+  /* words should be unsigned. */
+  if ((unsigned)cum->words < (endbit/BITS_PER_WORD))
+    {
+      int pad = (endbit/BITS_PER_WORD) - cum->words;
+      cum->words += pad;
+    }
+  /* APPLE LOCAL end ppc64 abi */
 }
 
 /* The darwin64 ABI calls for us to recurse down through structs,
@@ -12826,7 +12916,10 @@ print_operand (FILE *file, rtx x, int code)
 	{
 	  const char *name = XSTR (x, 0);
 #if TARGET_MACHO
-	  if (MACHOPIC_INDIRECT
+	  /* APPLE LOCAL begin axe stubs 5571540 */
+	  if (darwin_stubs
+	      && MACHOPIC_INDIRECT
+	  /* APPLE LOCAL end axe stubs 5571540 */
 	      && machopic_classify_symbol (x) == MACHOPIC_UNDEFINED_FUNCTION)
 	    name = machopic_indirection_name (x, /*stub_p=*/true);
 #endif
@@ -13101,6 +13194,8 @@ rs6000_assemble_visibility (tree decl, int vis)
       && DOT_SYMBOLS
       && TREE_CODE (decl) == FUNCTION_DECL)
     {
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
       static const char * const visibility_types[] = {
 	NULL, "internal", "hidden", "protected"
       };
@@ -13113,6 +13208,8 @@ rs6000_assemble_visibility (tree decl, int vis)
 
       fprintf (asm_out_file, "\t.%s\t%s\n", type, name);
       fprintf (asm_out_file, "\t.%s\t.%s\n", type, name);
+/* LLVM LOCAL */
+#endif
     }
   else
     default_assemble_visibility (decl, vis);
@@ -20530,13 +20627,9 @@ get_prev_label (tree function_name)
   return 0;
 }
 
-#ifndef DARWIN_LINKER_GENERATES_ISLANDS
-#define DARWIN_LINKER_GENERATES_ISLANDS 0
-#endif
-
-/* KEXTs still need branch islands.  */
-#define DARWIN_GENERATE_ISLANDS (!DARWIN_LINKER_GENERATES_ISLANDS \
-				 || flag_mkernel || flag_apple_kext)
+/* APPLE LOCAL begin axe stubs 5571540 */
+/* DARWIN_LINKER_GENERATES_ISLANDS and DARWIN_GENERATE_ISLANDS moved up */
+/* APPLE LOCAL end axe stubs 5571540 */
 
 /* INSN is either a function call or a millicode call.  It may have an
    unconditional jump in its delay slot.
@@ -22127,7 +22220,7 @@ rs6000_stack_protect_fail (void)
 	 : default_external_stack_protect_fail ();
 }
 
-/* APPLE LOCAL 3399553 */
+/* APPLE LOCAL begin 3399553 */
 /* Calculate the value of FLT_ROUNDS into DEST.
 
    The rounding mode is in bits 30:31 of FPSCR, and has the following
@@ -22180,4 +22273,6 @@ rs6000_expand_flt_rounds (rtx dest)
       emit_move_insn (dest, const1_rtx);
     }
 }
+/* APPLE LOCAL end 3399553 */
+
 #include "gt-rs6000.h"

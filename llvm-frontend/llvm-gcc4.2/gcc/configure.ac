@@ -853,11 +853,10 @@ AC_ARG_ENABLE(llvm,
      ;;
  esac
 
+ LLVMBUILDMODE=""
  if test -x "$LLVMBASEPATH/Release/bin/llc$EXEEXT"; then
-     echo Found Release LLVM Tree in $LLVMBASEPATH
      LLVMBUILDMODE="Release"
  elif test -x "$LLVMBASEPATH/Debug/bin/llc$EXEEXT"; then
-     echo Found Debug LLVM Tree in $LLVMBASEPATH
      LLVMBUILDMODE="Debug"
  elif test -x "$LLVMBASEPATH/Release-Asserts/bin/llc$EXEEXT"; then
      echo Found Release-Asserts LLVM Tree in $LLVMBASEPATH
@@ -879,7 +878,7 @@ AC_ARG_ENABLE(llvm,
      LLVMBUILDMODE="Debug-Asserts+Checks"
  elif test -x "$LLVMBASEPATH/bin/llc$EXEEXT"; then
      echo Found Installed LLVM Tree in $LLVMBASEPATH
- else
+ elif test x$LLVMBUILDMODE = x; then
      AC_MSG_ERROR([You must specify valid path to your LLVM tree with --enable-llvm=DIR])
  fi
 ],
@@ -2266,7 +2265,8 @@ L2:],
   as_ver=`$gcc_cv_as --version 2>/dev/null | sed 1q`
   if echo "$as_ver" | grep GNU > /dev/null; then
 changequote(,)dnl
-    as_ver=`echo $as_ver | sed -e 's/GNU assembler \([0-9.][0-9.]*\).*/\1/'`
+    # LLVM local
+    as_ver=`echo $as_ver | sed -e 's/GNU assembler[^0-9]*\([0-9.][0-9.]*\).*/\1/'`
     as_major=`echo $as_ver | sed 's/\..*//'`
     as_minor=`echo $as_ver | sed 's/[^.]*\.\([0-9]*\).*/\1/'`
 changequote([,])dnl
@@ -3326,17 +3326,14 @@ AC_CACHE_CHECK(__stack_chk_fail in target C library,
       # glibc 2.4 and later provides __stack_chk_fail and
       # either __stack_chk_guard, or TLS access to stack guard canary.
       if test -f $glibc_header_dir/features.h \
-         && $EGREP '^@<:@       @:>@*#[         ]*define[       ]+__GNU_LIBRARY__[      ]+([
-1-9][0-9]|[6-9])' \
+         && $EGREP '^@<:@       @:>@*#[         ]*define[       ]+__GNU_LIBRARY__[      ]+([1-9][0-9]|[6-9])' \
             $glibc_header_dir/features.h > /dev/null; then
-        if $EGREP '^@<:@        @:>@*#[         ]*define[       ]+__GLIBC__[    ]+([1-9][0-9
-]|[3-9])' \
+        if $EGREP '^@<:@        @:>@*#[         ]*define[       ]+__GLIBC__[    ]+([1-9][0-9]|[3-9])' \
            $glibc_header_dir/features.h > /dev/null; then
           gcc_cv_libc_provides_ssp=yes
         elif $EGREP '^@<:@      @:>@*#[         ]*define[       ]+__GLIBC__[    ]+2' \
              $glibc_header_dir/features.h > /dev/null \
-             && $EGREP '^@<:@   @:>@*#[         ]*define[       ]+__GLIBC_MINOR__[      ]+([
-1-9][0-9]|[4-9])' \
+             && $EGREP '^@<:@   @:>@*#[         ]*define[       ]+__GLIBC_MINOR__[      ]+([1-9][0-9]|[4-9])' \
              $glibc_header_dir/features.h > /dev/null; then
           gcc_cv_libc_provides_ssp=yes
         fi

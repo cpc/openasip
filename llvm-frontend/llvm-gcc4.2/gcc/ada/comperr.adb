@@ -174,15 +174,18 @@ package body Comperr is
 
             begin
                for P in 40 .. 69 loop
-                  if X (P) = ' ' then
+                  --  LLVM local
+                  if X (X'First + P - 1) = ' ' then
                      Last_Blank := P;
                   end if;
                end loop;
 
-               Write_Str (X (1 .. Last_Blank));
+               --  LLVM local
+               Write_Str (X (X'First .. X'First + Last_Blank - 1));
                End_Line;
                Write_Str ("|    ");
-               Write_Str (X (Last_Blank + 1 .. X'Length));
+               --  LLVM local
+               Write_Str (X (X'First + Last_Blank .. X'Last));
             end;
          else
             Write_Str (X);

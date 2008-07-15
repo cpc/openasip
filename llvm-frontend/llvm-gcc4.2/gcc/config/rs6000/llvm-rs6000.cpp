@@ -26,6 +26,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 
 #include "llvm-abi.h"
 #include "llvm-internal.h"
+#include "llvm/DerivedTypes.h"
 #include "llvm/Instructions.h"
 #include "llvm/Intrinsics.h"
 #include "llvm/Module.h"
@@ -43,7 +44,7 @@ static void MergeIntPtrOperand(TreeToLLVM *TTL,
                                unsigned OpNum, Intrinsic::ID IID,
                                const Type *ResultType,
                                std::vector<Value*> &Ops,
-                               LLVMBuilder &Builder, Value *&Result) {
+                               IRBuilder &Builder, Value *&Result) {
   const Type *VoidPtrTy = PointerType::getUnqual(Type::Int8Ty);
   
   Function *IntFn = Intrinsic::getDeclaration(TheModule, IID);
@@ -205,6 +206,10 @@ bool TreeToLLVM::TargetIntrinsicLower(tree exp,
   case ALTIVEC_BUILTIN_VSPLTH:
     if (ConstantInt *Elt = dyn_cast<ConstantInt>(Ops[1])) {
       int EV = Elt->getZExtValue();
+      // gcc accepts anything up to 31, and there is code that tests for it, 
+      // although it doesn't seem to make sense.  Hardware behaves as if mod 8.
+      if (EV>7 && EV<=31)
+        EV = EV%8;
       Result = BuildVectorShuffle(Ops[0], Ops[0],
                                   EV, EV, EV, EV, EV, EV, EV, EV);
     } else {
@@ -215,6 +220,10 @@ bool TreeToLLVM::TargetIntrinsicLower(tree exp,
   case ALTIVEC_BUILTIN_VSPLTW:
     if (ConstantInt *Elt = dyn_cast<ConstantInt>(Ops[1])) {
       int EV = Elt->getZExtValue();
+      // gcc accepts anything up to 31, and there is code that tests for it, 
+      // although it doesn't seem to make sense.  Hardware behaves as if mod 4.
+      if (EV>3 && EV<=31)
+        EV = EV%4;
       Result = BuildVectorShuffle(Ops[0], Ops[0], EV, EV, EV, EV);
     } else {
       error("%Helement number must be an immediate", &EXPR_LOCATION(exp));
@@ -362,6 +371,119 @@ bool TreeToLLVM::TargetIntrinsicLower(tree exp,
   }
   }
 
+  return false;
+}
+
+/* Target hook for llvm-abi.h. It returns true if an aggregate of the
+   specified type should be passed using the byval mechanism. */
+bool llvm_rs6000_should_pass_aggregate_byval(tree TreeType, const Type *Ty) {
+
+  /* FIXME byval not implemented for ppc64. */
+  if (TARGET_64BIT)
+    return false;
+
+  HOST_WIDE_INT Bytes = (TYPE_MODE(TreeType) == BLKmode) ? 
+                        int_size_in_bytes(TreeType) : 
+                        (int) GET_MODE_SIZE(TYPE_MODE(TreeType));
+
+  // Zero sized array, struct, or class, ignored.
+  if (Bytes == 0)
+    return false;
+
+  // Large types always use byval.  If this is a small fixed size type, 
+  // investigate it.
+  if (Bytes <= 0 || Bytes > 16)
+    return true;
+
+  // ppc32 passes aggregates by copying, either in int registers or on the 
+  // stack.
+  const StructType *STy = dyn_cast<StructType>(Ty);
+  if (!STy) return true;
+
+  // A struct containing only a float, double or vector field, possibly with
+  // some zero-length fields as well, must be passed as the field type.
+  // Note this does not apply to long double.
+  // This is required for ABI correctness.  
+  tree tType = isSingleElementStructOrArray(TreeType, true, false);
+  if (tType && int_size_in_bytes(tType)==Bytes && TYPE_MODE(tType)!=TFmode &&
+      (TREE_CODE(tType)!=VECTOR_TYPE || Bytes==16))
+    return false;
+
+  return true;
+}
+
+/* Target hook for llvm-abi.h. It returns true if an aggregate of the
+   specified type should be passed in a number of registers of mixed types.
+   It also returns a vector of types that correspond to the registers used
+   for parameter passing. */
+bool 
+llvm_rs6000_should_pass_aggregate_in_mixed_regs(tree TreeType, const Type* Ty,
+                                              std::vector<const Type*>&Elts) {
+  // FIXME there are plenty of ppc64 cases that need this.
+  if (TARGET_64BIT)
+    return false;
+
+  // If this is a small fixed size type, investigate it.
+  HOST_WIDE_INT SrcSize = int_size_in_bytes(TreeType);
+  if (SrcSize <= 0 || SrcSize > 16)
+    return false;
+
+  const StructType *STy = dyn_cast<StructType>(Ty);
+  if (!STy) return false;
+
+  // A struct containing only a float, double or Altivec field, possibly with
+  // some zero-length fields as well, must be passed as the field type.
+  // Note this does not apply to long double, nor generic vectors.
+  // Other single-element structs may be passed this way as well, but
+  // only if the type size matches the element's type size (structs that
+  // violate this can be created with __aligned__).
+  tree tType = isSingleElementStructOrArray(TreeType, true, false);
+  if (tType && int_size_in_bytes(tType)==SrcSize && TYPE_MODE(tType)!=TFmode &&
+      (TREE_CODE(tType)!=VECTOR_TYPE || SrcSize==16)) {
+    Elts.push_back(ConvertType(tType));
+    return true;
+  }
+
+  Elts.clear();
+  return false;
+}
+
+/* Non-Altivec vectors are passed in integer regs. */
+bool llvm_rs6000_should_pass_vector_in_integer_regs(tree type) {
+  if (!TARGET_64BIT &&
+    TREE_CODE(type) == VECTOR_TYPE &&
+    TYPE_SIZE(type) && TREE_CODE(TYPE_SIZE(type))==INTEGER_CST &&
+    TREE_INT_CST_LOW(TYPE_SIZE(type)) != 128)
+    return true;
+  return false;
+}
+
+/* (Generic) vectors 4 bytes long are returned as an int.
+   Vectors 8 bytes long are returned as 2 ints. */
+tree llvm_rs6000_should_return_vector_as_scalar(tree type, 
+                                    bool isBuiltin ATTRIBUTE_UNUSED) {
+  if (!TARGET_64BIT &&
+      TREE_CODE(type) == VECTOR_TYPE &&
+      TYPE_SIZE(type) &&
+      TREE_CODE(TYPE_SIZE(type))==INTEGER_CST) {
+    if (TREE_INT_CST_LOW(TYPE_SIZE(type))==32)
+      return uint32_type_node;
+    else if (TREE_INT_CST_LOW(TYPE_SIZE(type))==64)
+      return uint64_type_node;
+  }
+  return 0;
+}
+
+/* Non-altivec vectors bigger than 8 bytes are returned by sret. */
+bool llvm_rs6000_should_return_vector_as_shadow(tree type, 
+                                      bool isBuiltin ATTRIBUTE_UNUSED) {
+  if (!TARGET_64BIT &&
+      TREE_CODE(type) == VECTOR_TYPE &&
+      TYPE_SIZE(type) &&
+      TREE_CODE(TYPE_SIZE(type))==INTEGER_CST &&
+      TREE_INT_CST_LOW(TYPE_SIZE(type))>64 &&
+      TREE_INT_CST_LOW(TYPE_SIZE(type))!=128)
+    return true;
   return false;
 }
 
