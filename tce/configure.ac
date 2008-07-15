@@ -440,13 +440,13 @@ fi
 # if wx-config is found and the version is 2.4.*, conditional
 # WX is set.
 case "$LLVM_VERSION" in
-     2.2)
-     AC_DEFINE([LLVM_2_2], [], "Using LLVM v2.2")
+     2.3)
+     AC_DEFINE([LLVM_2_3], [], "Using LLVM v2.3")
    ;;
      *)
    AC_MSG_NOTICE(
    [
-Unsupported LLVM version. Only LLVM version 2.2 is supported.
+Unsupported LLVM version. Only LLVM version 2.3 is supported.
    ])
    LLVM_VERSION=
    ;;
@@ -1238,9 +1238,8 @@ AC_CONFIG_FILES([
   Python-bindings/test/RunPythonFileTests/Makefile
   src/ext/Makefile
   src/ext/llvm/Makefile
-  src/ext/llvm/2.2/Makefile
-  src/ext/llvm/2.2/TableGen/Makefile
-  src/ext/llvm/2.2/bugpoint/Makefile
+  src/ext/llvm/2.3/Makefile
+  src/ext/llvm/2.3/TableGen/Makefile
   src/applibs/LLVMBackend/Makefile
   src/applibs/LLVMBackend/passes/Makefile
   src/bintools/Compiler/Makefile
