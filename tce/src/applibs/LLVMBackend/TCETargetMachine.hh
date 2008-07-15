@@ -12,6 +12,7 @@
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetFrameInfo.h"
+#include "llvm/PassManager.h"
 #include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
 
@@ -42,10 +43,10 @@ namespace llvm {
             return &subtarget_; }
 
         virtual const TargetInstrInfo* getInstrInfo() const {
-	   return plugin_.getInstrInfo();
-	}
+            return plugin_.getInstrInfo();
+        }
 
-        virtual const MRegisterInfo *getRegisterInfo() const {
+        virtual const TargetRegisterInfo* getRegisterInfo() const {
             return plugin_.getRegisterInfo();
         }
 

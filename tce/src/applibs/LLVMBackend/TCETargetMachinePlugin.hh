@@ -22,7 +22,7 @@ namespace TTAMachine {
  */
 namespace llvm {
    class TargetInstrInfo;
-   class MRegisterInfo;
+   class TargetRegisterInfo;
    class FunctionPass;
    class TCETargetMachine;
 
@@ -32,7 +32,7 @@ namespace llvm {
        virtual ~TCETargetMachinePlugin() {};
 
        virtual const TargetInstrInfo* getInstrInfo() const = 0;
-       virtual const MRegisterInfo* getRegisterInfo() const = 0;
+       virtual const TargetRegisterInfo* getRegisterInfo() const = 0;
        virtual FunctionPass* createISelPass(TCETargetMachine* tm) = 0;
        virtual FunctionPass* createAsmPrinterPass(
            std::ostream& o, TCETargetMachine* tm) = 0;

@@ -32,7 +32,7 @@ AM_CXXFLAGS =
 
 libtcellvmbackend_la_LDFLAGS =   -L${LLVM_LIBDIR} \
     -Wl,--whole-archive \
-    -Wl,-lLLVMlto -Wl,-lLLVMLinker -Wl,-lLLVMipo \
+    -Wl,-lLLVMLinker -Wl,-lLLVMipo \
     -Wl,-lLLVMInstrumentation -Wl,-lLLVMDebugger -Wl,-lLLVMBitWriter \
     -Wl,-lLLVMAsmParser -Wl,-lLLVMArchive -Wl,-lLLVMBitReader -Wl,-lLLVMSelectionDAG \
     -Wl,-lLLVMCodeGen -Wl,-lLLVMScalarOpts -Wl,-lLLVMTransformUtils -Wl,-lLLVMipa \

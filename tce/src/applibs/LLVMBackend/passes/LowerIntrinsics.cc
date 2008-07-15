@@ -124,8 +124,8 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
                  Constant* f = currentModule_->getOrInsertFunction(
                      funcName, callee->getFunctionType());
 
-                 CallInst* call = new CallInst(
-                     f, args.begin(), args.end(), "", I);
+                 CallInst* call = 
+                     CallInst::Create(f, args.begin(), args.end(), "", I);
 		   
                  I->replaceAllUsesWith(call);
                  I->eraseFromParent();

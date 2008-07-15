@@ -84,7 +84,8 @@ namespace {
             // This is a cluster of orthogonal Transforms:
             AU.addPreserved<UnifyFunctionExitNodes>();
             AU.addPreservedID(PromoteMemoryToRegisterID);
-            AU.addPreservedID(LowerSelectID);
+            //in LLVM 2.2:
+            //AU.addPreservedID(LowerSelectID);
             AU.addPreservedID(LowerSwitchID);
             AU.addPreservedID(LowerInvokePassID);
         }
@@ -557,8 +558,8 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
             }
 
             CallInst *NewCall = 
-                new CallInst(replaceFunc->second, 
-                             args.begin(), args.end(), "", I);
+                CallInst::Create(
+                    replaceFunc->second, args.begin(), args.end(), "", I);
             
             NewCall->setTailCall();    
 

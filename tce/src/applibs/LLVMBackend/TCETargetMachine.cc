@@ -9,7 +9,7 @@
 #include "llvm/Module.h"
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetMachineRegistry.h"
-#include "llvm/Target/MRegisterInfo.h"
+#include "llvm/Target/TargetRegisterInfo.h"
 
 #include "TCETargetMachine.hh"
 #include "TCETargetAsmInfo.hh"
