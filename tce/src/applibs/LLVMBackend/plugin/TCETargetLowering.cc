@@ -94,8 +94,6 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     // SELECT is used instead of SELECT_CC
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
 
-    setSetCCResultType(MVT::i1);
-
     setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
 
     // Expand indirect branches.
@@ -107,9 +105,6 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
 
     setOperationAction(ISD::MULHU,  MVT::i32, Expand);
     setOperationAction(ISD::MULHS,  MVT::i32, Expand);
-    setOperationAction(ISD::MEMMOVE, MVT::Other, Expand);
-    setOperationAction(ISD::MEMSET, MVT::Other, Expand);
-    setOperationAction(ISD::MEMCPY, MVT::Other, Expand);
     setOperationAction(ISD::SHL_PARTS, MVT::i32, Expand);
     setOperationAction(ISD::SRA_PARTS, MVT::i32, Expand);
     setOperationAction(ISD::SRL_PARTS, MVT::i32, Expand);
@@ -139,7 +134,6 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     setOperationAction(ISD::UMUL_LOHI, MVT::i64, Expand);
 
     setOperationAction(ISD::BSWAP, MVT::i32, Expand);
-    setOperationAction(ISD::FLT_ROUNDS, MVT::i32, Custom);
 
     setStackPointerRegisterToSaveRestore(TCE::SP);
 
@@ -178,9 +172,7 @@ TCETargetLowering::LowerOperation(SDOperand op, SelectionDAG& dag) {
         SDOperand fr = dag.getFrameIndex(varArgsFrameIndex_, ptrVT);
         SrcValueSDNode* sv = cast<SrcValueSDNode>(op.getOperand(2));
         return dag.getStore(
-            op.getOperand(0), fr, op.getOperand(1), sv->getValue(),
-            sv->getOffset());
-
+            op.getOperand(0), fr, op.getOperand(1), sv->getValue(), 0);
     }
     case ISD::ConstantPool: {
         // TODO: Check this.
@@ -197,13 +189,6 @@ TCETargetLowering::LowerOperation(SDOperand op, SelectionDAG& dag) {
                 cp->getAlignment());
         }
         return dag.getNode(TCEISD::CONST_POOL, MVT::i32, res);
-    }
-    case ISD::FLT_ROUNDS: {
-        // TODO: check this.
-        // If flt_rounds is not custom lowered, llvm-2.2 asserts
-        // while handling this node later. For now it's just lowered
-        // to the correct rounding mode constant (1 = round to nearest).
-        return dag.getConstant(0, MVT::i32);
     }
     }
     op.Val->dump(&dag);
@@ -414,7 +399,7 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
  */
 std::pair<SDOperand, SDOperand>
 TCETargetLowering::LowerCallTo(
-    SDOperand chain, const Type* retTy, bool retTyIsSigned,
+    SDOperand chain, const Type* retTy, bool retTyIsSigned, bool,
     bool isVarArg, unsigned cc, bool isTailCall, SDOperand callee,
     ArgListTy& args, SelectionDAG& dag) {
 
@@ -591,9 +576,17 @@ TCETargetLowering::LowerCallTo(
         }
     }
 
+    // copied from SPARC backend:
+    chain = 
+        dag.getCALLSEQ_END(
+            chain, dag.getConstant(argsSize, getPointerTy()),
+            dag.getConstant(0, MVT::i32), chain.getValue(1));
+
+#if 0
+    // LLVM 2.2:
     chain = dag.getNode(ISD::CALLSEQ_END, MVT::Other, chain,
                         dag.getConstant(argsSize, getPointerTy()));
-
+#endif
     return std::make_pair(retVal, chain);
 }
 

@@ -10,6 +10,7 @@
 #define TCE_INSTR_INFO_H
 
 #include <llvm/Target/TargetInstrInfo.h>
+#include <llvm/Target/TargetRegisterInfo.h>
 #include "TCERegisterInfo.hh"
 
 namespace llvm {
@@ -20,7 +21,9 @@ namespace llvm {
         TCEInstrInfo();
         virtual ~TCEInstrInfo();
 
-        virtual const MRegisterInfo& getRegisterInfo() const { return ri_; }
+        virtual const TargetRegisterInfo& getRegisterInfo() const { 
+            return ri_; 
+        }
 
         virtual bool isMoveInstr(
             const MachineInstr& mi, 

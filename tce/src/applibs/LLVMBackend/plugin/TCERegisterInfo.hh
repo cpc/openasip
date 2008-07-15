@@ -9,7 +9,6 @@
 #ifndef TCE_REGISTER_INFO_H
 #define TCE_REGISTER_INFO_H
 
-#include <llvm/Target/MRegisterInfo.h>
 #include <llvm/ADT/BitVector.h>
 
 #include "TCESubtarget.hh"

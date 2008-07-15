@@ -13,6 +13,7 @@
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/CallingConv.h>
+#include <llvm/Support/Compiler.h>
 
 #include "TCEDAGToDAGISel.hh"
 #include "TCETargetMachine.hh"

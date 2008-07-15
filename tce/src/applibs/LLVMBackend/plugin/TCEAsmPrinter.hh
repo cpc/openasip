@@ -9,6 +9,8 @@
 
 #include <llvm/CodeGen/AsmPrinter.h>
 
+#include <map>
+
 namespace llvm {
 class TCEAsmPrinter : public AsmPrinter {
  public:

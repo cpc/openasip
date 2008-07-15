@@ -123,7 +123,7 @@ TCEAsmPrinter::printOperand(const MachineInstr* mi, int opNum) {
     assert((unsigned)opNum <= mi->getNumOperands());
 
     const MachineOperand& mo = mi->getOperand(opNum);
-    const MRegisterInfo& ri = *TM.getRegisterInfo();
+    const TargetRegisterInfo& ri = *TM.getRegisterInfo();
 
     switch (mo.getType()) {
     case MachineOperand::MO_Register: {

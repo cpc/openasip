@@ -53,6 +53,7 @@ namespace llvm {
                 llvm::SDOperand chain,
                 const llvm::Type* retTy,
                 bool retTyIsSigned,
+                bool,
                 bool isVarArg,
                 unsigned cc,
                 bool isTailCall,
@@ -71,6 +72,10 @@ namespace llvm {
 
         SDOperand lowerSELECT(SDOperand op, SelectionDAG& dag);
                 
+        virtual MVT::ValueType getSetCCResultType(const SDOperand &) const {
+            return MVT::i1;
+        }
+
     private:
         // Frame index to the the start of variadic parameter list.
         int varArgsFrameIndex_;

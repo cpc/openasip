@@ -25,7 +25,7 @@ public:
     GeneratedTCEPlugin();
     virtual ~GeneratedTCEPlugin();
     virtual const TargetInstrInfo* getInstrInfo() const;
-    virtual const MRegisterInfo* getRegisterInfo() const;
+    virtual const TargetRegisterInfo* getRegisterInfo() const;
     virtual FunctionPass* createISelPass(TCETargetMachine* tm);
     virtual FunctionPass* createAsmPrinterPass(
         std::ostream& o, TCETargetMachine* tm);
@@ -84,7 +84,7 @@ GeneratedTCEPlugin::getInstrInfo() const {
     return instrInfo_;
 }
 
-const MRegisterInfo*
+const TargetRegisterInfo*
 GeneratedTCEPlugin::getRegisterInfo() const {
     return &(dynamic_cast<TCEInstrInfo*>(instrInfo_))->getRegisterInfo();
 }
@@ -128,13 +128,7 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     else if (opc == TCE::SELECT_I64) return SELECT;
     else if (opc == TCE::SELECT_F32) return SELECT;
     else if (opc == TCE::SELECT_F64) return SELECT;
-    else if (opc == TCE::IMPLICIT_DEF_I1) return PSEUDO;
-    else if (opc == TCE::IMPLICIT_DEF_I8) return PSEUDO;
-    else if (opc == TCE::IMPLICIT_DEF_I16) return PSEUDO;
-    else if (opc == TCE::IMPLICIT_DEF_I32) return PSEUDO;
-    else if (opc == TCE::IMPLICIT_DEF_I64) return PSEUDO;
-    else if (opc == TCE::IMPLICIT_DEF_F32) return PSEUDO;
-    else if (opc == TCE::IMPLICIT_DEF_F64) return PSEUDO;
+    else if (opc == TCE::IMPLICIT_DEF) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKDOWN) return PSEUDO;
     else if (opc == TCE::ADJCALLSTACKUP) return PSEUDO;
     else if (opc == TCE::NOP) return NOP;

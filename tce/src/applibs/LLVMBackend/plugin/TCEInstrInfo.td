@@ -138,34 +138,34 @@ def ADJCALLSTACKUP : Pseudo<(outs), (ins i32imm:$amt),
 
 }
 
-def IMPLICIT_DEF_I1 : Pseudo<(outs I1Regs:$dst),
-                              (ins),
-                              "# IMPLICIT_DEF $dst",
-                              [(set I1Regs:$dst, (undef))]>;
+// def IMPLICIT_DEF_I1 : Pseudo<(outs I1Regs:$dst),
+//                               (ins),
+//                               "# IMPLICIT_DEF $dst",
+//                               [(set I1Regs:$dst, (undef))]>;
 
-def IMPLICIT_DEF_I8 : Pseudo<(outs I8Regs:$dst), (ins),
-                              "# IMPLICIT_DEF $dst",
-                              [(set I8Regs:$dst, (undef))]>;
+// def IMPLICIT_DEF_I8 : Pseudo<(outs I8Regs:$dst), (ins),
+//                               "# IMPLICIT_DEF $dst",
+//                               [(set I8Regs:$dst, (undef))]>;
 
-def IMPLICIT_DEF_I16 : Pseudo<(outs I16Regs:$dst), (ins),
-                              "# IMPLICIT_DEF $dst",
-                              [(set I16Regs:$dst, (undef))]>;
+// def IMPLICIT_DEF_I16 : Pseudo<(outs I16Regs:$dst), (ins),
+//                               "# IMPLICIT_DEF $dst",
+//                               [(set I16Regs:$dst, (undef))]>;
 
-def IMPLICIT_DEF_I32 : Pseudo<(outs I32Regs:$dst), (ins),
-                              "# IMPLICIT_DEF $dst",
-                              [(set I32Regs:$dst, (undef))]>;
+// def IMPLICIT_DEF_I32 : Pseudo<(outs I32Regs:$dst), (ins),
+//                               "# IMPLICIT_DEF $dst",
+//                               [(set I32Regs:$dst, (undef))]>;
 
-def IMPLICIT_DEF_I64 : Pseudo<(outs I64Regs:$dst), (ins),
-                              "# IMPLICIT_DEF $dst",
-                              [(set I64Regs:$dst, (undef))]>;
+// def IMPLICIT_DEF_I64 : Pseudo<(outs I64Regs:$dst), (ins),
+//                               "# IMPLICIT_DEF $dst",
+//                               [(set I64Regs:$dst, (undef))]>;
 
-def IMPLICIT_DEF_F32  : Pseudo<(outs F32Regs:$dst), (ins),
-                              "# IMPLICIT_DEF $dst",
-                              [(set F32Regs:$dst, (undef))]>;
+// def IMPLICIT_DEF_F32  : Pseudo<(outs F32Regs:$dst), (ins),
+//                               "# IMPLICIT_DEF $dst",
+//                               [(set F32Regs:$dst, (undef))]>;
 
-def IMPLICIT_DEF_F64  : Pseudo<(outs F64Regs:$dst), (ins),
-                              "# IMPLICIT_DEF $dst",
-                              [(set F64Regs:$dst, (undef))]>;
+// def IMPLICIT_DEF_F64  : Pseudo<(outs F64Regs:$dst), (ins),
+//                               "# IMPLICIT_DEF $dst",
+//                               [(set F64Regs:$dst, (undef))]>;
 
 
 // =========================
