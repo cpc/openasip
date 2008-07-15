@@ -1267,4 +1267,41 @@ buffer is full.
     <out id="2" type="UIntWord"/>
   </operation>
 
+  <operation>
+    <name>RTIMER</name>
+    <description>Real time timer. 
+
+Counts time (given in microseconds) down from the given value until reaches zero.
+
+When triggered with 0, returns the current timer value, when triggered with a value greater than 0, sets the timer value.
+
+The simulation behavior definition assumes 100MHz clock frequency, which can be modified using the environment variable TCE_RTIMER_CLOCK=MHZ.
+
+</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+
+  <operation>
+    <name>RTC</name>
+    <description>Real time clock.
+
+Counts time (microseconds) up from zero.
+
+When triggered with 0, resets the timer value to zero, when triggered with a value greater than 0, returns the timer value.
+
+The simulation behavior definition assumes 100MHz clock frequency, which can be modified using the environment variable TCE_RTIMER_CLOCK=MHZ.
+
+</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <side-effects/>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
 </osal>

@@ -168,8 +168,6 @@ private:
     std::set<RegInfo> guardedRegs_;
     /// True, if the target machine is fully connected with all busses<->ports
     bool fullyConnected_;
-    /// List of warning messages.
-    std::vector<std::string> warnings_;
 };
 
 #endif

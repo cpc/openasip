@@ -96,36 +96,46 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
     bool changed = false;
 
     for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; ++I) {
+
         CallInst* ci = dynamic_cast<CallInst*>(&(*I));
-
-        if (ci == NULL || ci->getNumOperands() == 0) {
-            continue;
-        }
+    if (ci != NULL && ci->getNumOperands() != 0) {
         Function* callee = ci->getCalledFunction();
-        if (callee == NULL) {
-            continue;
-        } else if (callee->isIntrinsic()) {
-
-	    // LLVM Intrinsic!
-	    if (replace_.find(callee->getIntrinsicID()) != replace_.end())  {
-
-	        std::string funcName = replace_[callee->getIntrinsicID()];
-	        std::vector<Value*> args;
+        if (callee != NULL && callee->isIntrinsic()) {
 	       
-	        for (unsigned j = 1; j < I->getNumOperands(); j++)  {
-		    args.push_back(I->getOperand(j));
-	        }
+	     if (callee->getIntrinsicID() == Intrinsic::flt_rounds) {
+                 // Replace FLT_ROUNDS intrinsic with the actual constant value
+                 // to avoid stupid  "if (1 == 0)" code even with full optimizations.
+                 I->replaceAllUsesWith(
+                     ConstantInt::get(Type::Int32Ty, 0, true));
 
-	        // replace intrinsic with function call to memcpy
-	        Constant* f = currentModule_->getOrInsertFunction(funcName, callee->getFunctionType());
-	        CallInst* call = new CallInst(f, args.begin(), args.end(), "", I);
-	        I->replaceAllUsesWith(call);
-	        I->eraseFromParent();
-	        changed = true;
-            }
-	}
+                 I->eraseFromParent();
+                 changed = true;
+	     } else if (replace_.find(callee->getIntrinsicID())
+                        != replace_.end())  {
+
+                 // Call to LLVM Intrinsic function.
+                 std::string funcName = replace_[callee->getIntrinsicID()];
+                 std::vector<Value*> args;
+                 for (unsigned j = 1; j < I->getNumOperands(); j++)  {
+                     args.push_back(I->getOperand(j));
+                 }
+
+                 // replace intrinsic with function call to memcpy
+                 Constant* f = currentModule_->getOrInsertFunction(
+                     funcName, callee->getFunctionType());
+
+                 CallInst* call = new CallInst(
+                     f, args.begin(), args.end(), "", I);
+		   
+                 I->replaceAllUsesWith(call);
+                 I->eraseFromParent();
+
+                 changed = true;
+             }
+	  }
+       }
        
     }
-    return changed;
+    return true;
 }
 

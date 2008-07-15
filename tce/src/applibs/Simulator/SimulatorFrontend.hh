@@ -303,11 +303,13 @@ protected:
     SimulationEventHandler* eventHandler_;
     /// The cycle count of the last non-interrupted simulation phase.
     ClockCycleCount lastRunCycleCount_;
-    /// The wall clock time of the last non-interrupted simulation phase in seconds.
+    /// The wall clock time of the last non-interrupted simulation phase in 
+    /// seconds.
     double lastRunTime_;
     /// The time of the last simulation start. Used to compute simulation speed.
     std::time_t startTime_;
-    /// The cycle count when the latest simulation was started. Used to compute simulation speed.
+    /// The cycle count when the latest simulation was started. Used to 
+    /// compute simulation speed.
     CycleCount startCycleCount_;
     /// Simulation timeout in seconds
     unsigned int simulationTimeout_;

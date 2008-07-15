@@ -266,7 +266,7 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
     stdoutFD, omit1 = tempfile.mkstemp()
 
     if veryVerboseOutput:
-        print "running: ",command
+        print "running: %s input-stream: %s" % (command,inputStream)
 
     process =  Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD, stderr=stderrFD, close_fds=False)
 
@@ -569,8 +569,7 @@ class TestCase:
             if (leaveDirty):
                 schedulingCommand += '-d '
             
-            schedulingCommand += " --scheduler-binary=" + schedulerExe + \
-                                " -o " + dstProgFileName + \
+            schedulingCommand += " -o " + dstProgFileName + \
                                 " -s " + configFileName + \
                                 " -a " + archFilename + \
                                 " " + seqProgFileName
@@ -928,16 +927,19 @@ class Tester:
         self.loadTestCases()
 
     def loadTestCases(self):
-        global testCaseFilters, useLLVM
+        global testCaseFilters, useLLVM, recompile
         
         self.testCases = []
         
         for root, dirs, files in os.walk("."):
 
-            if useLLVM:
-                inputProg = 'program.bc'
+            if recompile:
+                inputProg = 'src'
             else:
-                inputProg = 'sequential_program'
+                if useLLVM:
+                    inputProg = 'program.bc'
+                else:
+                    inputProg = 'sequential_program'
             
             if os.access(root + "/description.txt", R_OK):
 
@@ -1101,7 +1103,7 @@ class Tester:
         if latexTable:
             self.printLatexFooter()
         
-        if allSuccessful and not recompile:
+        if allSuccessful:
             self.updateStatisticsFiles()
     
     def printLatexHeader(self, firstColumnWidth=30, valueColumnWidth=16):

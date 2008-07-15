@@ -207,5 +207,26 @@ OperationContext::contextId() const {
     return pimpl_->contextId();
 }
 
+/**
+ * Returns the elapsed time since the beginning of simulation.
+ *
+ * Can be used to implement real time timer operations, etc. Uses
+ * the simulator's cycle count, if available, otherwise uses internal
+ * cycle counter that is incremented with the advanceClock();
+ */
+CycleCount
+OperationContext::cycleCount() const {
+    return pimpl_->cycleCount(); 
+}
 
-
+/**
+ * Sets the variable that contains the current simulation cycle count
+ * at the best possible accuracy. 
+ *
+ * Used by real time operations to track simulation time during
+ * simulations.
+ */
+void 
+OperationContext::setCycleCountVariable(CycleCount& cycleCount) {
+    pimpl_->setCycleCountVariable(cycleCount);
+}

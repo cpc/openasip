@@ -28,6 +28,8 @@ namespace llvm {
     class TCETargetMachinePlugin;
 }
 
+class InterPassData;
+
 /**
  * LLVM compiler backend and compiler interface for TCE.
  */
@@ -41,7 +43,8 @@ public:
         const std::string& bytecodeFile,
         TTAMachine::Machine& target,
         int optLevel,
-        bool debug = false)
+        bool debug = false,
+        InterPassData* ipData = NULL)
         throw (Exception);
 
     TTAProgram::Program* compile(
@@ -49,7 +52,17 @@ public:
         llvm::TCETargetMachinePlugin& plugin,
         TTAMachine::Machine& target,
         int optLevel,
-        bool debug = false)
+        bool debug = false,
+        InterPassData* ipData = NULL)
+        throw (Exception);
+
+    TTAProgram::Program* schedule(
+        const std::string& bytecodeFile,
+        TTAMachine::Machine& target,
+        int optLevel = 2,
+        SchedulingPlan* plan = NULL,
+        bool debug = false,
+        InterPassData* ipData = NULL)
         throw (Exception);
 
     TTAProgram::Program* schedule(
@@ -74,6 +87,7 @@ private:
     std::string cachePath_;
 
     bool useCache_;
+    InterPassData* ipData_;
 
     static const std::string TCEPLUGINGEN_BIN;
     static const std::string TBLGEN_INCLUDES;

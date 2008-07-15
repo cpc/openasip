@@ -1,7 +1,7 @@
 /**
  * Architecture plugin generator for LLVM TCE backend.
  *
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2007 (vjaaskel@cs.tut.fi)
  *
  * @note rating: red
  */
@@ -25,11 +25,13 @@
 #include "OperationPool.hh"
 #include "OperationNode.hh"
 #include "TerminalNode.hh"
+#include "ConstantNode.hh"
 #include "OperationDAG.hh"
 #include "OperationDAGEdge.hh"
 #include "OperationDAGSelector.hh"
 #include "TCEString.hh"
 #include "Operand.hh"
+#include "Application.hh"
 
 // SP, RES, KLUDGE, 2 GPRs?
 unsigned const TDGen::REQUIRED_I32_REGS = 5;
@@ -229,6 +231,41 @@ TDGen::analyzeRegisters() {
         regsFound = false;
         for (int i = 0; i < nav.count(); i++) {
             const TTAMachine::RegisterFile* rf = nav.item(i);
+
+            // Check that the registerfile has both input and output ports.
+            bool hasInput = false;
+            bool hasOutput = false;
+            for (int p = 0; p < rf->portCount(); p++) {
+                if (rf->port(p)->isInput()) hasInput = true;
+                if (rf->port(p)->isOutput()) hasOutput = true;
+            }
+
+            if (!hasInput) {
+                if (Application::verboseLevel() >
+                    Application::VERBOSE_LEVEL_DEFAULT) {
+
+                    Application::logStream()
+                        << "Warning: Skipping register file"
+                        << rf->name()
+                        << ": no input ports."
+                        << std::endl;
+                }
+                continue;
+            }
+
+            if (!hasOutput) {
+                if (Application::verboseLevel() >
+                    Application::VERBOSE_LEVEL_DEFAULT) {
+                    
+                    Application::logStream()
+                        << "Warning Skipping register file"
+                        << rf->name()
+                        << ": no output ports."
+                        << std::endl;
+                }
+                continue;
+            }
+
             unsigned width = rf->width();
             std::vector<RegInfo>* ri = NULL;
             if (width == 64) ri = &regs64bit_;
@@ -237,8 +274,14 @@ TDGen::analyzeRegisters() {
             else if (width == 8) ri = &regs8bit_;
             else if (width == 1) ri = &regs1bit_;
             else {
-                //std::cout << "Warning: ignoring " << width
-                //<< " bit rf '" << rf->name() << "'." << std::endl;
+                if (Application::verboseLevel() >
+                    Application::VERBOSE_LEVEL_DEFAULT) {
+                    
+                    Application::logStream()
+                        << "Warning: Skipping " << Conversion::toString(width)
+                        << " bit rf '" << rf->name() << "'." << std::endl;
+                }
+                continue;
             }
 
             int lastIdx = rf->size();
@@ -591,7 +634,9 @@ TDGen::writeInstrInfo(std::ostream& os) {
             requiredOps.erase(r);
         }
         Operation& op = opPool.operation((*iter).c_str());
-        if (&op == &NullOperation::instance()) {
+        if (&op == &NullOperation::instance() ||
+            llvmOperationPattern(op.name()) == "") {
+
             // Unknown operation: skip
             continue;
         }
@@ -618,7 +663,13 @@ TDGen::writeInstrInfo(std::ostream& os) {
             OperationDAGSelector::findDags(op.name(), opNames);
 
         if (emulationDAGs.empty()) {
-            warnings_.push_back("Operation '" + *iter + "' not supported.");
+            if (Application::verboseLevel() >
+                Application::VERBOSE_LEVEL_DEFAULT) {
+
+                Application::logStream()
+                    << "Warning: Operation '" << *iter 
+                    <<"' not supported." << std::endl;
+            }
         } else {
             writeEmulationPattern(os, op, emulationDAGs.smallestNodeCount());
         }
@@ -839,40 +890,54 @@ TDGen::writeOperationDef(
             suffix += 'b';
         }
         
+        // Start iteration from -1 so first pattern is w/o immediates.
         int inputCount = op.numberOfInputs();
         for (int immInput = 0;
              immInput <= inputCount; immInput++) {
-            
-            std::string outputs, inputs, asmstr, pattern, patSuffix;
-            try {
-                outputs = "(outs" + patOutputs(op, boolOut!=0) + ")";
-                inputs = "(ins " + patInputs(op, immInput, boolOut==2) + ")";
-                asmstr = "\"\"";
-                patSuffix = suffix;
-                if (immInput > 0) {
-                    if (boolOut != 2) {
-                        patSuffix[immInput - 1] = 'i';
-                    } else {
-                        // for 1 bit immediates use j instead of i
-                        patSuffix[immInput -1] = 'j';
-                    }
+
+            if (immInput > 0) {
+                if (immInput == 1 &&
+                    ((inputCount == 2 && op.canSwap(1, 2)) ||
+                     (inputCount == 1 && !op.input(0).isAddress()))) {
+
+                    // Don't create op(imm, reg) patterns for commutative
+                    // binary operations. tablegen wants only
+                    // op(reg, imm) pattern for them.
+                    continue;
                 }
-                
-                if (llvmOperationPattern(op.name()) != "" || 
-                    op.dagCount() == 0) {
-                    OperationDAG* trivial = createTrivialDAG(op);
-                    pattern = operationPattern(
-                        op, *trivial, immInput, boolOut);
-                    delete trivial;
-                } else {
-                    pattern = operationPattern(
-                        op, op.dag(0), immInput, boolOut);
+                if (!(op.operand(immInput).type() == Operand::SINT_WORD ||
+                      op.operand(immInput).type() == Operand::UINT_WORD)) {
+
+                    // Only integer immediates.
+                    continue;
                 }
-            } catch (InvalidData& e) {
-                //std::cerr << "ERROR: " << e.errorMessage() << std::endl;
-                continue;
             }
-            
+	   
+            std::string outputs, inputs, asmstr, pattern, patSuffix;
+	    outputs = "(outs" + patOutputs(op, boolOut!=0) + ")";
+            inputs = "(ins " + patInputs(op, immInput, boolOut==2) + ")";
+            asmstr = "\"\"";
+            patSuffix = suffix;
+            if (immInput > 0) {
+                if (boolOut != 2) {
+                    patSuffix[immInput - 1] = 'i';
+                } else {
+                    // for 1 bit immediates use j instead of i
+                    patSuffix[immInput -1] = 'j';
+                }
+            }
+
+            if (llvmOperationPattern(op.name()) != "" || 
+                op.dagCount() == 0) {
+                OperationDAG* trivial = createTrivialDAG(op);
+                pattern = operationPattern(
+                    op, *trivial, immInput, boolOut);
+                delete trivial;
+            } else {
+                pattern = operationPattern(
+                    op, op.dag(0), immInput, boolOut);
+            }
+
             if (attrs != "") {
                 o << "let" << attrs << " in { " << std::endl;
             }
@@ -927,8 +992,8 @@ TDGen::writeEmulationPattern(
     boost::format match1(llvmPat);
     boost::format match2(llvmPat);
     for (int i = 0; i < op.numberOfInputs(); i++) {
-        match1 % operandToString(op.operand(i + 1), true, 0, false);
-        match2 % operandToString(op.operand(i + 1), true, 0, true);
+        match1 % operandToString(op.operand(i + 1), false, 0, false);
+        match2 % operandToString(op.operand(i + 1), false, 0, true);
     }
 
     o << "def : Pat<(" << match1.str() << "), "
@@ -1111,11 +1176,14 @@ TDGen::dagNodeToString(
 
             if (imm && !canBeImmediate(dag, *tNode)) {
                 std::string msg = 
-                    "Invalid immediate operand. ";
+                    "Invalid immediate operand for " + op.name() +
+                    " operand #" + Conversion::toString(tNode->operandIndex());
+
                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
             }
 
-            return operandToString(operand, false, imm, intToBool==2);
+            return operandToString(
+                operand, false, imm, intToBool==2);
         } else {
 
             // Output operand for the whole operation.
@@ -1135,6 +1203,7 @@ TDGen::dagNodeToString(
                 (intToBool != 2) ? 
                 dagNodeToString(
                     op, dag, srcNode, immOp, emulationPattern, 0) :
+
                 dagNodeToString(
                     op, dag, srcNode, immOp, emulationPattern, 2);
             
@@ -1153,17 +1222,24 @@ TDGen::dagNodeToString(
             if (needTrunc) {
                 std::string pattern =
                     "(set " + operandToString(
-                        operand, false, imm, intToBool!=0)
+                        operand, emulationPattern, imm, intToBool!=0)
                     + ", (trunc " + dnString + "))";
                 return pattern;
             } else {
                 std::string pattern =
                     "(set " + operandToString(
-                        operand, false, imm, intToBool !=0) 
+                        operand, emulationPattern, imm, intToBool !=0) 
                     + ", " + dnString + ")";
                 return pattern;
             }
         }
+    }
+
+    // Constant values.
+    const ConstantNode* cNode = dynamic_cast<const ConstantNode*>(&node);
+    if (cNode != NULL) {
+        assert(dag.inDegree(*cNode) == 0);
+        return "(MOVI32ri " + Conversion::toString(cNode->value()) + ")";
     }
 
     assert(false && "Unknown OperationDAG node type.");
@@ -1197,7 +1273,7 @@ TDGen::operationNodeToString(
         char regInputChar = (intToBool != 2) ? 'r' : 'b';
 
         operationPat = StringTools::stringToUpper(operation.name()) +
-            string(operation.numberOfInputs(), regInputChar);
+            std::string(operation.numberOfInputs(), regInputChar);
 
         if (intToBool==1) {
             operationPat += 'b';
@@ -1219,6 +1295,7 @@ TDGen::operationNodeToString(
     if (operationPat == "") {
         std::string msg("Unknown operation node in dag: " + 
             std::string(operation.name()));
+        
         throw (InvalidData(__FILE__, __LINE__, __func__, msg));
     }
 
@@ -1292,8 +1369,8 @@ TDGen::operandToString(
         }
     } else if (operand.type() == Operand::FLOAT_WORD) {
         if (immediate) {
-            // f32 immediates not implemented
-            std::string msg = "f32 immediate operand not supported";
+            // f32 immediates not implemetned
+            std::string msg = "f32 immediate operands not supported";
             throw (InvalidData(__FILE__, __LINE__, __func__, msg));
         } else {
             return "F32Regs:$op" + Conversion::toString(idx);
@@ -1301,7 +1378,7 @@ TDGen::operandToString(
     } else if (operand.type() == Operand::DOUBLE_WORD) {
         if (immediate) {
             // f64 immediates not implemetned
-            std::string msg = "f64 immediate operand not supported";
+            std::string msg = "f64 immediate operands not supported";
             throw (InvalidData(__FILE__, __LINE__, __func__, msg));
         } else {
             return "F64Regs:$op" + Conversion::toString(idx);
@@ -1425,11 +1502,6 @@ TDGen::canBeImmediate(
             operation.numberOfInputs() == 2 &&
             operation.canSwap(1, 2)) {
 
-            return false;
-        }
-
-        // No stores with immediate value to store.
-        if (edge.dstOperand() == 2 && operation.writesMemory()) {
             return false;
         }
     }

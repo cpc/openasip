@@ -356,6 +356,13 @@ void LowerMissingInstructions::addFunctionForFootprints(
 }
 
 bool LowerMissingInstructions::doInitialization(Module &M) {        
+
+    if (Application::verboseLevel() > Application::VERBOSE_LEVEL_DEFAULT) {
+        Application::logStream()
+            << std::endl
+            << "---- LowerMissingInstructions ----"
+            << std::endl;
+    }
     
     dstModule_ = &M;    
 
@@ -426,7 +433,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
                        
             FunctionType* fType_i32 = 
                 FunctionType::get(retVal_i32, argList_i32, false);
-            
+             
             addFunctionForFootprints(M, fType_i32, op, ".i32");
             
             // create other function protos for other integer bitwidths
@@ -475,6 +482,12 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
 }
 
 bool LowerMissingInstructions::doFinalization(Module& /* M */) {
+    if (Application::verboseLevel() > Application::VERBOSE_LEVEL_DEFAULT) {
+        Application::logStream()
+            << std::endl
+            << "---- DONE: LowerMissingInstructions ----"
+            << std::endl;
+    }
     return true;
 }
 
@@ -492,17 +505,55 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
         
         // get footprint of instruction
         std::string footPrint = getFootprint(*I);
-//        std::cerr << "found node: " << footPrint << std::endl;        
 
         std::map<std::string, Constant*>::iterator 
             replaceFunc =  replaceFunctions.find(footPrint);        
 
         if (replaceFunc != replaceFunctions.end()) {
 
+            if (Application::verboseLevel() >
+                Application::VERBOSE_LEVEL_DEFAULT) {
+
+                Application::logStream()
+                    << "Replacing: " << footPrint
+                    << " with emulation function." << std::endl;
+            }
             std::vector<Value*> args;            
 
             for (unsigned j = 0; j < I->getNumOperands(); j++) {
-                args.push_back(I->getOperand(j));
+
+                if (I->getOperand(j)->getType() == Type::Int16Ty ||
+		    I->getOperand(j)->getType() == Type::Int8Ty) {
+
+                    // Emulated operations with i1/i8/i16 operands need
+                    // their operands extended to 32 bits. However, there's
+                    // no easy way to see if the llvm operand requires
+                    // sign or zero extension, so the correct extension is
+                    // currently determined directly from the footprint.
+                    if (footPrint == "f32.sitofp.i16" ||
+                        footPrint == "f32.sitofp.i8") {
+
+                        // sign extension needed
+                        args.push_back(
+                            llvm::CastInst::createIntegerCast(
+                                I->getOperand(j), Type::Int32Ty, true, "", I));
+
+                    } else if (footPrint == "f32.uitofp.i16" ||
+                               footPrint == "f32.uitofp.i8") {
+
+                        // zero extension needed
+                        args.push_back(
+                            llvm::CastInst::createIntegerCast(
+                                I->getOperand(j), Type::Int32Ty,
+                                false, "", I));
+                    } else {
+                        // unknown extension needed
+                        assert(false && "Unknown operation footprint "
+                               "requiring operand extension.");
+                    }
+                } else {
+                    args.push_back(I->getOperand(j));
+                }
             }
 
             CallInst *NewCall = 
@@ -511,21 +562,16 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
             
             NewCall->setTailCall();    
 
-#if 0            
-            std::cerr << "Replacing: " << footPrint 
-                      << " I->getType():" << stringType(I->getType()) 
-                      << " NewCall->getType():" << stringType(NewCall->getType()) 
-                      << std::endl;
-#endif
-            
-            
             // Replace all uses of the instruction with call instruction
             if (I->getType() != NewCall->getType()) {
-                assert(llvm::CastInst::isCastable(NewCall->getType(), I->getType()));
+                assert(llvm::CastInst::isCastable(
+                           NewCall->getType(), I->getType()));
+
                 Value *MCast;                
                 Instruction::CastOps castOps =
                     llvm::CastInst::getCastOpcode(
                         NewCall, false, I->getType(), false);
+
                 MCast = llvm::CastInst::create(
                     castOps ,NewCall, I->getType(), "", I);
                 I->replaceAllUsesWith(MCast);                                

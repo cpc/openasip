@@ -48,6 +48,7 @@ TCETargetMachine::TCETargetMachine(
     const Module& m, const std::string& fs, TCETargetMachinePlugin& plugin)
     : dataLayout_(
         "E-p:32:32:32"
+	"-a0:32:32"
         "-i1:8:8"
         "-i8:8:8"
         "-i32:32:32"

@@ -14,6 +14,8 @@
 #include "OSAL.hh"
 #include "OperationGlobals.hh"
 #include "Application.hh"
+#include "Conversion.hh"
+
 
 // A macro to obtain maximum value that can be represented with 'x' bits.
 // NOTE: If this is needed a lot it should be in the OSAL
@@ -1084,3 +1086,122 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION_WITH_STATE(STREAM_OUT_STATUS)
+
+//////////////////////////////////////////////////////////////////////////////
+// RTIMER - Counts real time (in microseconds) down from the given value.
+//
+// When triggered with 0, returns the current timer value, when triggered 
+// with a value greater than 0, sets the timer value to the written value.
+//
+// The simulation behavior definition assumes 100MHz clock frequency, 
+// which can be modified using the environment variable TCE_RTIMER_CLOCK=MHZ.
+//////////////////////////////////////////////////////////////////////////////
+
+DEFINE_STATE(TIMER_VALUE)
+    // current value of the timer
+    double value;
+    // number of usecs per cycle
+    double stepping;
+    // last cycle count reading
+    CycleCount lastCycleCount;
+INIT_STATE(TIMER_VALUE)
+    
+    int clockFrequencyMHz = 100;
+
+    const char* freqFromEnv = getenv("TCE_RTIMER_CLOCK");
+    if (freqFromEnv != NULL) {
+        clockFrequencyMHz = Conversion::toInt(freqFromEnv);
+    } 
+
+    value = 0.0;
+
+    // How many usec per cycle? Inverse of clock frequency in MHz.
+    stepping = 1.0 / clockFrequencyMHz;
+
+    lastCycleCount = 0;
+
+END_INIT_STATE;
+
+END_DEFINE_STATE
+
+
+OPERATION_WITH_STATE(RTIMER, TIMER_VALUE)
+
+TRIGGER
+    // update the timer using the passed cycles
+    CycleCount currentCycles = CYCLE_COUNT;
+    STATE.value -= (currentCycles - STATE.lastCycleCount)*STATE.stepping;
+    // saturate to 0
+    STATE.value = std::max(STATE.value, 0.0);
+
+    STATE.lastCycleCount = currentCycles;
+
+
+    UIntWord value = UINT(1);
+    if (value == 0) {
+        IO(2) = static_cast<UIntWord>(STATE.value);
+    } else {
+        IO(2) = static_cast<UIntWord>(STATE.value);
+        STATE.value = static_cast<double>(value);   
+    }
+END_TRIGGER;
+
+END_OPERATION_WITH_STATE(RTIMER)
+
+ 
+//////////////////////////////////////////////////////////////////////////////
+// RTC - Counts real time (in microseconds) up from zero.
+//
+// When triggered with 0, resets the the current real time value, when triggered 
+// with a value greater than 0, returns current real time value.
+//
+// The simulation behavior definition assumes 100MHz clock frequency, 
+// which can be modified using the environment variable TCE_RTIMER_CLOCK=MHZ.
+//////////////////////////////////////////////////////////////////////////////
+
+DEFINE_STATE(RTC_VALUE)
+    // current value of the clock
+    double value;
+    // number of usecs per cycle
+    double stepping;
+    // last cycle count reading
+    CycleCount resetCycleCount;
+INIT_STATE(RTC_VALUE)
+    
+    int clockFrequencyMHz = 100;
+
+    const char* freqFromEnv = getenv("TCE_RTIMER_CLOCK");
+    if (freqFromEnv != NULL) {
+        clockFrequencyMHz = Conversion::toInt(freqFromEnv);
+    } 
+
+    value = 0.0;
+
+    // How many usec per cycle? Inverse of clock frequency in MHz.
+    stepping = 1.0 / clockFrequencyMHz;
+
+    resetCycleCount = 0;
+
+END_INIT_STATE;
+
+END_DEFINE_STATE
+
+
+OPERATION_WITH_STATE(RTC, RTC_VALUE)
+
+TRIGGER
+    // update the timer
+    CycleCount currentCycles = CYCLE_COUNT;
+    STATE.value = (currentCycles - STATE.resetCycleCount)*STATE.stepping;
+
+    UIntWord value = UINT(1);
+    if (value == 0) {
+        STATE.resetCycleCount = currentCycles;
+        STATE.value = 0;
+        IO(2) = 0;
+    } else {
+        IO(2) = static_cast<UIntWord>(STATE.value);
+    }
+END_TRIGGER;
+
+END_OPERATION_WITH_STATE(RTC)

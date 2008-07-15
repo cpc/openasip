@@ -83,6 +83,12 @@ SimulationController::SimulationController(
     try {
         machineState_ = builder.build(
             machine, *memorySystem_, lock_, fuConflictDetectors_);
+        // set the real time clock source to be the simulation
+        // cycle counter
+        for (int i = 0; i < machineState_->FUStateCount(); ++i) {
+            FUState& fuState = machineState_->fuState(i);
+            fuState.context().setCycleCountVariable(clockCount_);
+        }        
     } catch (const IllegalMachine& e) {
         delete memorySystem_;
         memorySystem_ = NULL;

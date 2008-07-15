@@ -422,11 +422,14 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     updateDeclaredSymbolsList();
     updateSymbolsMap();
     
-    const Machine::FunctionUnitNavigator& fus = machine_.functionUnitNavigator();    
+    const Machine::FunctionUnitNavigator& fus = 
+        machine_.functionUnitNavigator();    
     for (int i = 0; i < fus.count(); i++) {
         const FunctionUnit& fu = *fus.item(i);
         std::string context = symbolGen_.operationContextSymbol(fu);
         
+        *os_ << "\t" << context << ".setCycleCountVariable(cycleCount_);"
+             << endl;
         // Create a state for each operation
         for (int j = 0; j < fu.operationCount(); ++j) {
             std::string operation = symbolGen_.operationSymbol(
@@ -450,7 +453,8 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     
     // generate simulateCycle() method
     *os_ << "// Simulation code:" << endl
-         << "EXPORT void " << className_  << "::simulateCycle() {" << endl << endl;
+         << "EXPORT void " << className_  << "::simulateCycle() {" 
+         << endl << endl;
 
     // Create a jump dispatcher for accessing each basic block start
     *os_ << "\t// jump dispatcher" << endl

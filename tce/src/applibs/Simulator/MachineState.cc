@@ -125,7 +125,8 @@ MachineState::fuState(const std::string& name) {
 FUState&
 MachineState::fuState(int index)
     throw (OutOfRange) {
-    const int count = fuStateCount_;
+
+    const int count = FUStateCount();
     if (index < 0 || (index > count - 1)) {
         string msg = "FUState index out of range";
         throw OutOfRange(__FILE__, __LINE__, __func__, msg);

@@ -139,6 +139,7 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     setOperationAction(ISD::UMUL_LOHI, MVT::i64, Expand);
 
     setOperationAction(ISD::BSWAP, MVT::i32, Expand);
+    setOperationAction(ISD::FLT_ROUNDS, MVT::i32, Custom);
 
     setStackPointerRegisterToSaveRestore(TCE::SP);
 
@@ -196,6 +197,13 @@ TCETargetLowering::LowerOperation(SDOperand op, SelectionDAG& dag) {
                 cp->getAlignment());
         }
         return dag.getNode(TCEISD::CONST_POOL, MVT::i32, res);
+    }
+    case ISD::FLT_ROUNDS: {
+        // TODO: check this.
+        // If flt_rounds is not custom lowered, llvm-2.2 asserts
+        // while handling this node later. For now it's just lowered
+        // to the correct rounding mode constant (1 = round to nearest).
+        return dag.getConstant(0, MVT::i32);
     }
     }
     op.Val->dump(&dag);

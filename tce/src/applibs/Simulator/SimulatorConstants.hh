@@ -33,12 +33,8 @@
 /// The full title name of the CLI application
 #define SIM_CLI_TITLE "ttasim - TCE Simulator command line interface"
 
-/// A type for storing clock cycle counts.
-/// @note was uint64_t, changed due to unnecessary header overhead
-typedef long long ClockCycleCount;
-
 /// Alias for ClockCycleCount.
-typedef ClockCycleCount CycleCount;
+typedef CycleCount ClockCycleCount;
 
 /// The reasons to stop simulation.
 enum StopReason {

@@ -152,6 +152,8 @@ typedef UInt32 AddressImage;
 /// the target's data memory.
 typedef Word MinimumAddressableUnit;
 
+/// Type for storing simulation cycle counts.
+typedef long long CycleCount;
 
 #endif
 

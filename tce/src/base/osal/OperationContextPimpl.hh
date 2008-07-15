@@ -36,7 +36,11 @@ private:
     Memory& memory();
     void setMemory(Memory* memory);
     int contextId() const;
-
+    CycleCount cycleCount() const;
+    void setCycleCountVariable(CycleCount& cycleCount) {
+        cycleCountVar_ = &cycleCount;
+    }
+    
     InstructionAddress& programCounter();
     void setSaveReturnAddress(bool value);
     bool saveReturnAddress();
@@ -60,24 +64,24 @@ private:
 
     /// The Memory model instance.
     Memory* memory_;
-
     /// Unique number that identifies a context instance.
     int contextId_;
-
     /// Context id for the next created context instance.
     static int nextContextId_;
-
     /// Simulates the program counter value. 
     InstructionAddress& programCounter_;
-
     /// Simulates the procedure return address. 
     SimValue& returnAddress_;    
-
     /// The state registry.
     StateRegistry stateRegistry_;
-
     /// Should the return address be saved?
     bool saveReturnAddress_;
+    /// Number of times advanceClock() has been called since
+    /// the creation.
+    CycleCount cycleCount_;
+    /// The external variable that contains the current simulation
+    /// cycle count.
+    CycleCount* cycleCountVar_;
 };
 
 #endif

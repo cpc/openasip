@@ -403,3 +403,8 @@ bool simulateTrigger( \
     executeOperation(__used_in_macro_temp__.behavior(), context, __VA_ARGS__);
 
 #endif
+
+/**
+ * Returns the cycle count since the beginning of simulation.
+ */
+#define CYCLE_COUNT (context.cycleCount())

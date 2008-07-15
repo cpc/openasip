@@ -3,7 +3,7 @@
  *
  * LLVM/TCE compiler command line interface.
  *
- * @author Veli-Pekka J��skel�inen 2008 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel@cs.tut.fi)
  * @note rating: red
  */
 
@@ -16,6 +16,7 @@
 #include "SchedulingPlan.hh"
 #include "SchedulerFrontend.hh"
 #include "FileSystem.hh"
+#include "InterPassData.hh"
 
 const std::string DEFAULT_OUTPUT_FILENAME = "out.tpef";
 const int DEFAULT_OPT_LEVEL = 2;
@@ -52,6 +53,10 @@ main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
+    if (options.isVerboseSwitchDefined()) {
+        Application::setVerboseLevel(Application::VERBOSE_LEVEL_INCREASED);
+    }
+
     // --- Target ADF ---
     if (!options.isMachineFileDefined()) {
         std::cerr << "ERROR: No target architecture (.adf) defined."
@@ -86,26 +91,21 @@ main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    bool schedule = true;
     SchedulingPlan* plan = NULL;
-    std::string schedulerConf = Environment::defaultSchedulerConf();
     if (options.isSchedulerConfigFileDefined()) {
-        schedulerConf = options.schedulerConfigFile();
-    }
+        std::string schedulerConf = options.schedulerConfigFile();
 
-    if (options.isVerboseSwitchDefined()) {
-        Application::setVerboseLevel(Application::VERBOSE_LEVEL_INCREASED);
-    }
+        try {
+            plan = SchedulingPlan::loadFromFile(schedulerConf);
+        } catch (Exception& e) {
+            std::cerr << "Error loading scheduler configuration file '"
+                      << schedulerConf << "':" << std::endl
+                      << e.errorMessageStack() << std::endl;
 
-    try {
-        plan = SchedulingPlan::loadFromFile(schedulerConf);
-    } catch (Exception& e) {
-        std::cerr << "Error loading scheduler configuration file '"
-                  << schedulerConf << "':" << std::endl
-                  << e.errorMessageStack() << std::endl;
-
-        return EXIT_FAILURE;
+            return EXIT_FAILURE;
+        }
     }
+   
     // --- Output file name ---
     std::string outputFileName = DEFAULT_OUTPUT_FILENAME;
     if (options.isOutputFileDefined()) {
@@ -132,11 +132,12 @@ main(int argc, char* argv[]) {
 
     // ---- Run compiler ----
     try {
+        InterPassData* ipData = new InterPassData;
         LLVMBackend compiler;
         TTAProgram::Program* seqProg =
-            compiler.compile(bytecodeFile, *mach, optLevel, debug);
+            compiler.compile(bytecodeFile, *mach, optLevel, debug, ipData);
 
-        if (schedule) {
+        if (plan != NULL) {
             SchedulerFrontend scheduler;
             TTAProgram::Program* prog;
             prog = scheduler.schedule(*seqProg, *mach, *plan);
@@ -151,6 +152,9 @@ main(int argc, char* argv[]) {
 
         delete seqProg;
         seqProg = NULL;
+
+        delete ipData;
+        ipData = NULL;
 
     } catch (Exception& e) {
         std::cerr << "Error compiling '" << bytecodeFile << "':" << std::endl

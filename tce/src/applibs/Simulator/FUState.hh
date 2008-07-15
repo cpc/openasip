@@ -54,13 +54,13 @@ public:
 
     virtual OperationExecutor* executor(Operation& op);
 
+    virtual OperationContext& context();
+
 protected:
     /// The idle status of the FU. The derived classes should
     /// alway set this to true when possible to avoid unnecessary
     /// advanceClock() and endClock() calls.
     bool idle_;
-
-    virtual OperationContext& context();
 
 private:
     /// Copying not allowed.

@@ -105,13 +105,18 @@ def processInputFiles(inFiles, tmpDir, verbose):
                     command = "tce-llvm-gcc --emit-llvm -O2 -ffreestanding "\
                               "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
                               " " + compileFlags + baseName + suffix + " -o " +\
-                              outFileName
+                              outFileName + ".tobelowered;"  
 
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
+                    
+                   
                 elif suffix == ".cpp" or suffix == ".cc":
                     command = "tce-llvm-g++ --emit-llvm -O2 -ffreestanding "\
                               "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
                               " " + compileFlags + baseName + suffix + " -o " +\
-                              outFileName
+                              outFileName + ".tobelowered;" 
+
+                    command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
 
                 elif suffix == ".bc":
                     exitWithError(
@@ -122,8 +127,8 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 elif suffix == ".o":
                     outFileName =  fName
 
-		elif suffix == ".a":
-		    outFileName = fName
+                elif suffix == ".a":
+                    outFileName = fName
 
                 # add all files to list for linkage
                 linkList += [outFileName]
@@ -150,13 +155,19 @@ def exitWithError(status, alreadyVerbose, output):
     sys.exit(status)
 
 
+def lowerMemIntrinsicCommand(srcFile, dstFile):
+    global lowerintrinsicsplugin
+    commandp = "opt -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
+    command = commandp + " -o " + dstFile + " " + srcFile
+    return command
+    
 ###
 # Links bytecode files and returns name of the linked file.
 ##
 def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     global llvmGccPrefix
-
+    
     llvmGccStartFiles = llvmGccPrefix + "/tce-llvm/lib/crt0.o "
 
     llvmGccEndFiles = (llvmGccPrefix + "/tce-llvm/lib/libc.a " +
@@ -164,20 +175,14 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
                        llvmGccPrefix + "/tce-llvm/lib/libm.a " +
                        llvmGccPrefix + "/tce-llvm/lib/crtend.o ")
 
-    LINKFLAGS=""
-    for i in options.lib_dirs:
-        LINKFLAGS += "-L" + i + " "
-
-    for i in options.libs:
-        LINKFLAGS += "-l" + i + " "
 
     linkedFileName = fileNamePrefix + "_linked"
     #### Link all binary code together
     command = "llvm-ld -disable-opt -o " + linkedFileName + " " + llvmGccStartFiles
-    for name in linkList:
+    for name in linkFiles:
         command += " " + name
 
-    command += " " + llvmGccEndFiles + LINKFLAGS
+    command += " " + llvmGccEndFiles
 
     (exitCode, output) = runCommand(command, options.verbose)
     if exitCode != 0:
@@ -194,12 +199,12 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 ###
 def optimizeBytecode(inFile, fileNamePrefix):
 
-    global options, lowerintrinsicsplugin
+    global options
 
     verbose = options.verbose
 
     defOptimization = ""
-    
+
     if options.optimization_level == 0:
         optSwitches = defOptimization
 
@@ -219,11 +224,13 @@ def optimizeBytecode(inFile, fileNamePrefix):
         optSwitches += " -internalize-public-api-list=" +\
                        options.keep_symbols
 
+    if options.noinline:
+        optSwitches += " -disable-inlining"
+
     outputName = fileNamePrefix + "_optimized.bc"
         
     command = "opt -f " + inFile + " -o " +\
               outputName +\
-              " -load=" + lowerintrinsicsplugin + " -lowerintrinsics " +\
               optSwitches
 
     (exitCode, output) = runCommand(command, verbose)
@@ -238,7 +245,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
 ###
 def linkEmulationFuncs(inFile, fileNamePrefix):
 
-    global llvmGccPrefix, llvmprefix, tceprefix, options, lowerintrinsicsplugin
+    global llvmGccPrefix, llvmprefix, tceprefix, options
 
     verbose = options.verbose
 
@@ -255,9 +262,12 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
         exitWithError(1, verbose, output)
 
     outputName = fileNamePrefix + "_emul_internalized.bc"
-    
-    command = ("opt " + linkedName + " -load=" + lowerintrinsicsplugin +\
-    " -lowerintrinsics -f -internalize -internalize-public-api-list=_start -o " + outputName)
+
+    command = ("opt " + linkedName +
+    " -f -internalize -internalize-public-api-list=_start -o " + outputName)
+
+    if options.noinline:
+        command += " -disable-inlining"
 
     (exitCode, output) = runCommand(command, verbose)
 
@@ -268,7 +278,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     return outputName
 
 #############################################
-# Super complex main program
+# Main program
 #############################################
 
 # Options..
@@ -337,18 +347,12 @@ p.add_option('-L', '--library-directory',
 p.add_option('-l', '--library-link', 
              type="string", action="append", metavar='libname',
              dest="libs", default=[],
-             help="Passed to gcc.")
+             help="Converted to static link command. i.e. -lpthread  => /llvm-install/tce-llvm/lib/libpthread.a")
 
 p.add_option('-W', '--warning', 
-             type="string", action="append", metavar='libname',
-             dest="libs", default=[],
+             type="string", action="append", metavar='type',
+             dest="warnings", default=[],
              help="Ignored.")
-
-p.add_option('--scheduler-binary',
-             type="string", action="store", metavar='scheduler binary',
-             dest="scheduler",
-             default="schedule",
-             help="Scheduler binary to use instead of 'schedule' in path.")
 
 p.add_option('--plugin-cache-dir',
              type="string", action="store", metavar='directory',
@@ -368,10 +372,23 @@ p.add_option('--clear-plugin-cache', action="store_true",
              dest="clear_cache", default=False,
              help="Clear plugin cache completely.")
 
+p.add_option('--disable-inlining', action="store_true",
+             dest="noinline", default=False,
+             help="Disable function inlining.")
+
 p.add_option('--debug', action="store_true",
              dest="debug", default=False,
              help="Print LLVM debug data.")
 
+p.add_option('--max-thread-latency',
+             type="int", action="store", metavar='usec',
+             dest='max_thread_latency',
+	     default=None,
+             help=\
+"""Emit sched_yield() calls to the program to produce given maximum thread
+switch latency (in microseconds). In case the target does not have the RTIMER
+operation, sched_yield() is called in every basic block unconditionally, 
+producing considerable additional overhead to the program exectuion.""")
 
 # get commandline arguments
 options, inFiles = p.parse_args()
@@ -412,7 +429,7 @@ else:
 
 ## check if we are running from the TCE source tree in which case use only
 ## source tree libraries and binaries
-scriptDir = os.path.normpath(os.path.dirname(sys.argv[0]))
+scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
 runningInstalled = 'src/bintools/Compiler' not in scriptDir
 
 if not runningInstalled:
@@ -477,7 +494,14 @@ else:
         cleanup(tempDir)
         sys.exit(0)
 
-    # link
+    # lower memset intrinsics
+    # loweredList = lowerMemIntrinsics(linkList, options.verbose)
+    # linkedFileName = linkBytecode(loweredList, namePrefix, options.verbose)
+
+    # convert -l switches to static library link commands.
+    for i in options.libs:
+        linkList.append(llvmGccPrefix + "/tce-llvm/lib/lib%s.a" % i)
+    
     linkedFileName = linkBytecode(linkList, namePrefix, options.verbose)
 
     # optimize
@@ -511,10 +535,10 @@ if options.adf_file != "":
     else:
         command = "llvm-tce"
 
-    if options.verbose is True:
+    if options.verbose:
         command += " -v"
         
-    if options.debug is True:
+    if options.debug:
         command += " --debug"
 
     if options.no_schedule is False:
@@ -524,6 +548,13 @@ if options.adf_file != "":
                 " -o " + outFile +\
                 " -O" + str(options.optimization_level) +\
                 " " + emulationLinkedFileName)
+    
+    if options.max_thread_latency is not None:
+	    # Temporary hack until 'schedule' supports passing cmdline
+	    # options to passes.
+	    import os
+	    os.environ['MAX_THREAD_SWITCH_LATENCY'] = \
+		str(options.max_thread_latency)
     
     (exitCode, output) = runCommand(command, options.verbose)
     if exitCode != 0:

@@ -31,12 +31,13 @@
 #include "TCETargetMachinePlugin.hh"
 #include "LLVMPOMBuilder.hh"
 #include "ADFSerializer.hh"
-
 #include "SchedulingPlan.hh"
 #include "SchedulerFrontend.hh"
-
 #include "MachineValidator.hh"
 #include "MachineValidatorResults.hh"
+
+#include "InterPassData.hh"
+#include "InterPassDatum.hh"
 
 using namespace llvm;
 
@@ -80,7 +81,8 @@ LLVMBackend::compile(
     const std::string& bytecodeFile,
     TTAMachine::Machine& target,
     int optLevel,
-    bool debug) throw (Exception){
+    bool debug,
+    InterPassData* ipData) throw (Exception){
 
     // Check target machine
     MachineValidator validator(target);
@@ -121,7 +123,7 @@ LLVMBackend::compile(
 
     // Compile.
     TTAProgram::Program* result =
-        compile(*m.get(), *plugin, target, optLevel, debug);
+        compile(*m.get(), *plugin, target, optLevel, debug, ipData);
 
     delete plugin;
     plugin = NULL;
@@ -147,10 +149,12 @@ LLVMBackend::compile(
     TCETargetMachinePlugin& plugin,
     TTAMachine::Machine& target,
     int /* optLevel */,
-    bool debug)
+    bool debug,
+    InterPassData* ipData)
     throw (Exception) {
 
     llvm::DebugFlag = debug;
+    ipData_ = ipData;
     bool fast = false;
     std::string fs = "";
     TCETargetMachine targetMachine(module, fs, plugin);
@@ -203,6 +207,54 @@ LLVMBackend::compile(
 
     TTAProgram::Program* prog = pomBuilder->result();
     assert(prog != NULL);
+
+    if (ipData_ != NULL) {
+        typedef SimpleInterPassDatum<std::pair<std::string, int> > RegData;
+
+        // Stack pointer datum.
+        RegData* spReg = new RegData;
+        spReg->first = plugin.rfName(plugin.spDRegNum());
+        spReg->second = plugin.registerIndex(plugin.spDRegNum());
+        ipData_->setDatum("STACK_POINTER", spReg);
+    }
+
+    return prog;
+}
+
+
+/**
+ * Compiles bytecode for the given target machine and calls scheduler.
+ *
+ * @param bytecodeFile Full path to the llvm bytecode file to compile.
+ * @param target Target machine to compile the bytecode for.
+ * @param optLevel Optimization level.
+ * @param plan Scheduling plan.
+ * @param debug If true, enable LLVM debug printing.
+ * @return Scheduled program or NULL if no plan given.
+ */
+TTAProgram::Program* 
+LLVMBackend::schedule(
+    const std::string& bytecodeFile,
+    TTAMachine::Machine& target,
+    int optLevel,
+    SchedulingPlan* plan,
+    bool debug,
+    InterPassData* ipData) 
+    throw (Exception) {
+
+    //dummy implementation for now
+    TTAProgram::Program* prog = NULL;
+    /*
+    TTAProgram::Program* prog = compile(bytecodeFile, target, optLevel, debug, ipData);
+
+    if (plan != NULL) {
+        SchedulerFrontend scheduler;
+        prog = scheduler.schedule(*prog, *mach, *plan);
+    } else {
+        delete prog;
+        prog = NULL;
+    }
+    */
 
     return prog;
 }

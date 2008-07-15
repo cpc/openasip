@@ -19,7 +19,6 @@ class SimValue;
 class Memory;
 class OperationContextPimpl;
 
-
 /**
  * OperationContext is used to store any implementation and context dependent 
  * data that may affect the result of an operation. 
@@ -58,6 +57,9 @@ public:
     void registerState(OperationState* state);
     void unregisterState(const char* name);
     OperationState& state(const char* name) const;
+
+    CycleCount cycleCount() const;
+    void setCycleCountVariable(CycleCount& cycleCount);
 
 private:
     /// Assignment not allowed

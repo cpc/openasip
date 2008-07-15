@@ -31,7 +31,8 @@ OperationContextPimpl::OperationContextPimpl() :
     memory_(NULL), 
     programCounter_(dummyInstructionAddress), 
     returnAddress_(NullSimValue::instance()),
-    saveReturnAddress_(false)  {
+    saveReturnAddress_(false), cycleCount_(0), 
+    cycleCountVar_(NULL)  {
     initializeContextId();
 }
 
@@ -46,12 +47,13 @@ OperationContextPimpl::OperationContextPimpl() :
  * @param syscallNumber The syscall code register.
  *
  */
-OperationContextPimpl::OperationContextPimpl(                                            
+OperationContextPimpl::OperationContextPimpl(
     Memory* memory,
     InstructionAddress& programCounter,
     SimValue& returnAddress) :
     memory_(memory), programCounter_(programCounter), 
-    returnAddress_(returnAddress), saveReturnAddress_(false) {
+    returnAddress_(returnAddress), saveReturnAddress_(false), 
+    cycleCount_(0), cycleCountVar_(NULL) {
     initializeContextId();
 }
 
@@ -117,6 +119,7 @@ OperationContextPimpl::advanceClock(OperationContext& context) {
         (*i).second->advanceClock(context);
         ++i;
     }
+    ++cycleCount_;
 }
 
 /**
@@ -265,4 +268,20 @@ OperationContextPimpl::isEmpty() const {
 bool
 OperationContextPimpl::hasMemoryModel() const {
     return (memory_ != NULL);
+}
+
+/**
+ * Returns the count of cycles simulated.
+ *
+ * Can be used to implement real time timer operations, etc. Uses
+ * the simulator's cycle count, if available, otherwise uses internal
+ * cycle counter that is incremented with the advanceClock();
+ */
+CycleCount
+OperationContextPimpl::cycleCount() const {
+    if (cycleCountVar_ != NULL) {
+        return *cycleCountVar_;
+    } else {
+        return cycleCount_;
+    }
 }
