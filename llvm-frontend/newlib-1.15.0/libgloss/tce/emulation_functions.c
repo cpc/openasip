@@ -2003,7 +2003,6 @@ float32 float32_sqrt( float32 a )
 | the corresponding value `b', and 0 otherwise.  The comparison is performed
 | according to the IEC/IEEE Standard for Binary Floating-Point Arithmetic.
 *----------------------------------------------------------------------------*/
-
 flag float32_eq( float32 a, float32 b )
 {
 
@@ -2016,7 +2015,6 @@ flag float32_eq( float32 a, float32 b )
         return 0;
     }
     return ( a == b ) || ( (bits32) ( ( a | b )<<1 ) == 0 );
-
 }
 
 /*----------------------------------------------------------------------------
@@ -3624,27 +3622,27 @@ inline float __emulate_DIVF_2_1_f32_f32_f32(float a, float b) {
 }
 
 inline uint32 __emulate_EQF_2_1_f32_f32_i32(float a, float b) {
-    return float32_eq(*((float*)&a), *((float*)&b));
+    return float32_eq(*((float32*)&a), *((float32*)&b));
 }
 
 inline uint32 __emulate_NEF_2_1_f32_f32_i32(float a, float b) {
-    return !float32_eq(*((float*)&a), *((float*)&b));
+    return !float32_eq(*((float32*)&a), *((float32*)&b));
 }
 
 inline uint32 __emulate_GEF_2_1_f32_f32_i32(float a, float b) {
-    return !float32_lt(*((float*)&a), *((float*)&b));
+    return !float32_lt(*((float32*)&a), *((float32*)&b));
 }
 
 inline uint32 __emulate_GTF_2_1_f32_f32_i32(float a, float b) {
-    return !float32_le(*((float*)&a), *((float*)&b));
+    return !float32_le(*((float32*)&a), *((float32*)&b));
 }
 
 inline uint32 __emulate_LEF_2_1_f32_f32_i32(float a, float b) {
-    return float32_le(*((float*)&a), *((float*)&b));
+    return float32_le(*((float32*)&a), *((float32*)&b));
 }
 
 inline uint32 __emulate_LTF_2_1_f32_f32_i32(float a, float b) {
-    return float32_lt(*((float*)&a), *((float*)&b));
+    return float32_lt(*((float32*)&a), *((float32*)&b));
 }
 
 inline uint32 __emulate_DIVU_2_1_i32_i32_i32(uint32 a, uint32 b) {
