@@ -1372,10 +1372,11 @@ LLVMPOMBuilder::emitInlineAsm(
     ExecutionPipeline::OperandSet useOps = op->pipeline()->readOperands();
     ExecutionPipeline::OperandSet defOps = op->pipeline()->writtenOperands();
 
-    for (unsigned o = 0; o < mi->getNumOperands(); o++) {
+    // go through the operands (0 is the chain, 1 is the asm string)
+    for (unsigned o = 2; o < mi->getNumOperands(); o++) {
 
         const MachineOperand& mo = mi->getOperand(o);
-        if (!mo.isRegister()) {
+        if (!(mo.isRegister() || mo.isImmediate()))   {
             // All operands should be in registers. Everything else is ignored.
             continue;
         }
@@ -1383,7 +1384,7 @@ LLVMPOMBuilder::emitInlineAsm(
 
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
-        if (mo.isUse()) {
+        if (mo.isImmediate() || mo.isUse()) {
             if (useOps.empty()) {
                 std::cerr << std::endl;
                 std::cerr <<"ERROR: Too many input operands for custom "
@@ -1412,11 +1413,15 @@ LLVMPOMBuilder::emitInlineAsm(
         TTAProgram::Instruction* instr = new TTAProgram::Instruction();
         instr->addMove(move);
 
-        if (mo.isUse()) {
+        if (mo.isImmediate() || mo.isUse()) {
             operandMoves.push_back(instr);
         } else {
             resultMoves.push_back(instr);
         }
+
+        // this is Operand #2n+2, let's skip the #2n+3 because it's 
+        // the TargetConstant indicating if the reg is a use/def
+        ++o;
     }
 
     if (!defOps.empty() || !useOps.empty()) {
@@ -1426,6 +1431,7 @@ LLVMPOMBuilder::emitInlineAsm(
         std::cerr << "Undefined: " << defOps.size() << " output operands, "
                   << useOps.size() << " input operands." << std::endl;
 
+        mi->dump();
         assert(false);
     }
     

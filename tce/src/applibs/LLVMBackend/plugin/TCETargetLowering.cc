@@ -636,9 +636,7 @@ TCETargetLowering::lowerSELECT(
     }
 
     return dag.getNode(
-        opcode,
-        trueVal.getValueType(),
-        trueVal, falseVal, cond);
+        opcode, trueVal.getValueType(), trueVal, falseVal, cond);
 }
 
 /**
@@ -660,6 +658,5 @@ TCETargetLowering::getRegForInlineAsmConstraint(
             return std::make_pair(0U, TCE::F64RegsRegisterClass);
         }
     }
-
     return TargetLowering::getRegForInlineAsmConstraint(constraint, vt);
 }
