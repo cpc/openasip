@@ -18,6 +18,8 @@
 #include "TerminalFUPort.hh"
 #include "SpecialRegisterPort.hh"
 #include "MoveNodeSelector.hh"
+#include "MoveGuard.hh"
+#include "Guard.hh"
 
 //#define MOVE_BYPASSER
 /**
@@ -104,6 +106,18 @@ CycleLookBackSoftwareBypasser::bypassNode(
     if (cyclesToLookBack_ != INT_MAX &&
         source.cycle() + cyclesToLookBack_ < moveNode.cycle()) {
         return 0;
+    }
+
+    if (!source.move().isUnconditional()) {
+        // cannot bypass from conditional to unconditional
+        if (moveNode.move().isUnconditional()) {
+            return 0;
+        }
+        // cannot bypass from different guard.
+        if (!moveNode.move().guard().guard().isEqual(
+                source.move().guard().guard())){
+            return 0;
+        }
     }
 
     // do no bypass from reg-reg moves - antidependencies not handled
