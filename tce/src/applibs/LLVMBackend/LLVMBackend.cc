@@ -26,10 +26,12 @@
 #include "tce_config.h" // CXX, SHARED_CXX_FLAGS, LLVM LD&CPP flags
 
 #include "Environment.hh"
+#include "Conversion.hh"
 #include "FileSystem.hh"
 #include "TCETargetMachine.hh"
 #include "TCETargetMachinePlugin.hh"
 #include "LLVMPOMBuilder.hh"
+#include "Program.hh"
 #include "ADFSerializer.hh"
 #include "SchedulingPlan.hh"
 #include "SchedulerFrontend.hh"
@@ -228,33 +230,70 @@ LLVMBackend::compile(
  * @param bytecodeFile Full path to the llvm bytecode file to compile.
  * @param target Target machine to compile the bytecode for.
  * @param optLevel Optimization level.
- * @param plan Scheduling plan.
- * @param debug If true, enable LLVM debug printing.
+ * @param debug Debug level as integer.
  * @return Scheduled program or NULL if no plan given.
  */
 TTAProgram::Program* 
-LLVMBackend::schedule(
+LLVMBackend::compileAndSchedule(
     const std::string& bytecodeFile,
     TTAMachine::Machine& target,
     int optLevel,
-    SchedulingPlan* plan,
-    bool debug,
-    InterPassData* ipData) 
+    const unsigned int debug)
     throw (Exception) {
 
-    //dummy implementation for now
-    TTAProgram::Program* prog = NULL;
-    /*
-    TTAProgram::Program* prog = compile(bytecodeFile, target, optLevel, debug, ipData);
+    static const std::string DS = FileSystem::DIRECTORY_SEPARATOR;
 
-    if (plan != NULL) {
-        SchedulerFrontend scheduler;
-        prog = scheduler.schedule(*prog, *mach, *plan);
-    } else {
-        delete prog;
-        prog = NULL;
+    // create temp directory for the target machine
+    std::string tmpDir = FileSystem::createTempDirectory();
+   
+    // write machine to a file for tcecc
+    std::string adf = tmpDir + DS + "mach.adf";
+    std::string tpef = tmpDir + DS + "program.tpef";
+    ADFSerializer serializer;
+    serializer.setDestinationFile(adf);
+    try {
+        serializer.writeMachine(target);
+    } catch (const SerializerException& exception) {
+        throw IOException(
+            __FILE__, __LINE__, __func__, exception.errorMessage());
+    } 
+
+    // call tcecc to compile, link and schedule the program
+    std::vector<std::string> tceccOutputLines;
+    std::string debugParams = "";
+    if (debug > 1) {
+        debugParams = "-v ";
+        if (debug > 2) {
+            debugParams.append("--debug ");
+        }
     }
-    */
+    std::string tceccPath = Environment::tceCompiler();
+    std::string tceccCommand = tceccPath + " " + debugParams 
+        + "-O " + Conversion::toString(optLevel) + "-a " + adf + " -o " + tpef + " " 
+        + bytecodeFile + " 2>&1";
+
+    Application::runShellCommandAndGetOutput(tceccCommand, tceccOutputLines);
+
+    if (debug && tceccOutputLines.size() > 0) {
+        for (unsigned int i = 0; i < tceccOutputLines.size(); ++i) {
+            std::cout << tceccOutputLines.at(i) << std::endl;
+        }
+    }
+
+    // check if tcecc produced any tpef output
+    if (!(FileSystem::fileExists(tpef) && FileSystem::fileIsReadable(tpef))) {
+        return NULL;    
+    } 
+
+    TTAProgram::Program* prog = NULL;
+    try {
+        prog = TTAProgram::Program::loadFromTPEF(tpef, target);
+    } catch (const Exception& e) {
+        IOException error(__FILE__, __LINE__,__func__, e.errorMessage());
+        error.setCause(e);
+        throw error;
+    }
+    FileSystem::removeFileOrDirectory(tmpDir);
 
     return prog;
 }

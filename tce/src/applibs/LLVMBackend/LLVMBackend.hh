@@ -56,13 +56,11 @@ public:
         InterPassData* ipData = NULL)
         throw (Exception);
 
-    TTAProgram::Program* schedule(
+    TTAProgram::Program* compileAndSchedule(
         const std::string& bytecodeFile,
         TTAMachine::Machine& target,
         int optLevel = 2,
-        SchedulingPlan* plan = NULL,
-        bool debug = false,
-        InterPassData* ipData = NULL)
+        const unsigned int debug = 0)
         throw (Exception);
 
     TTAProgram::Program* schedule(
