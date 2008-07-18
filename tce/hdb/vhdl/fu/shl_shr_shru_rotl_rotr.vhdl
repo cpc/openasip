@@ -107,8 +107,8 @@ begin
     if (opc = opc_rotr) or (opc = opc_rotl) then    
       for i in 0 to max_shift-1 loop
         if (shft_amount(i) = '1') then
-          y_temp(i+1)                       := (others => Y_temp(i)(0));
           y_temp(i+1) (dataw-1 downto 2**i) := y_temp(i) (dataw-1-2**i downto 0);
+					y_temp(i+1) (2**i-1 downto 0) := y_temp(i) (dataw-1 downto dataw-2**i);
         else
           y_temp(i+1) := y_temp(i);
         end if;

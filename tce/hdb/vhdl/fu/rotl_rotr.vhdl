@@ -82,17 +82,18 @@ begin
       y_temp(0) := A;
     end if;
 
-    if (opc = opc_rotr) then
-      rot_in := y_temp(0)(0);
-    else
-      rot_in := '0';
-    end if;
+    --if (opc = opc_rotr) then
+    --  rot_in := y_temp(0)(0);
+    --else
+    --  rot_in := '0';
+    --end if;
 
 
     for i in 0 to max_rot-1 loop
       if (rot_amount(i) = '1') then
-        y_temp(i+1)                       := (others => Y_temp(i)(0));
-        y_temp(i+1) (dataw-1 downto 2**i) := y_temp(i) (dataw-1-2**i downto 0);
+        --y_temp(i+1)                         := (others => Y_temp(i)(0));
+        y_temp(i+1) (dataw-1 downto 2**i)   := y_temp(i) (dataw-1-2**i downto 0);
+        y_temp(i+1) (2**i-1 downto 0) := y_temp(i) (dataw-1 downto dataw-2**i);
       else
         y_temp(i+1) := y_temp(i);
       end if;
