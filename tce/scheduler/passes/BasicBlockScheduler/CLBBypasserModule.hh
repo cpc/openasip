@@ -26,9 +26,9 @@ private:
     static const std::string LOOKBACK_DISTANCE_OPTION;
     static const std::string KILL_DEAD_RESULTS_OPTION;
 
+    CycleLookBackSoftwareBypasser* clbs_;
     int bypassDistance_;
     bool killDeadResults_;
-    CycleLookBackSoftwareBypasser* clbs_;
 };
 
 #endif

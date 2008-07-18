@@ -15,7 +15,7 @@
 using namespace TTAProgram;
 using namespace TTAMachine;
 
-SCHEDULER_PASS(OldFrontendStackAnalyzerPass);
+SCHEDULER_PASS(OldFrontendStackAnalyzerPass)
 
 OldFrontendStackAnalyzerPass::OldFrontendStackAnalyzerPass() {}
 

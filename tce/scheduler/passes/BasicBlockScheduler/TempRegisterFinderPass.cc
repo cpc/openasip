@@ -18,7 +18,6 @@
 
 void TempRegisterFinderPass::start() throw (Exception) {
 
-    bool allConnected = true;
     std::vector<TTAMachine::RegisterFile*> tempRegRFs =
         MachineConnectivityCheck::tempRegisterFiles(*target_);
 
