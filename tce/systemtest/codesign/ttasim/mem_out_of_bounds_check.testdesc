@@ -1,0 +1,11 @@
+<?php
+// short test description
+$test_description = "Test that data memory accesses out of bounds are detected by the debugging engine";
+
+// the binary being tested
+$test_bin = "./run_mem_out_of_bounds_check.sh";
+
+// args given to program
+// $bin_args="";
+
+?>
