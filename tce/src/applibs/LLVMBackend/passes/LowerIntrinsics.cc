@@ -92,50 +92,55 @@ LowerIntrinsics::doFinalization(Module& M) {
 
 bool
 LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
+   
+   bool changed = true;
+   while (changed)  {
+       changed = false;
+       for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; ++I) {
 
-    bool changed = false;
+           CallInst* ci = dynamic_cast<CallInst*>(&(*I));
+           if (ci != NULL && ci->getNumOperands() != 0) {
+               Function* callee = ci->getCalledFunction();
+               if (callee != NULL && callee->isIntrinsic()) {
+                   if (callee->getIntrinsicID() == Intrinsic::flt_rounds) {
+                       // Replace FLT_ROUNDS intrinsic with the actual
+                       // constant value to avoid stupid  "if (1 == 0)"
+                       // code even with full optimizations.
+                       I->replaceAllUsesWith(
+                           ConstantInt::get(Type::Int32Ty, 0, true));
 
-    for (BasicBlock::iterator I = BB.begin(), E = BB.end(); I != E; ++I) {
+                       I->eraseFromParent();
+                       changed = true;
+                       break;
+                   } else if (replace_.find(callee->getIntrinsicID())
+                              != replace_.end())  {
+		  
+                       // Call to LLVM Intrinsic function.
+                       std::string funcName =
+                           replace_[callee->getIntrinsicID()];
 
-        CallInst* ci = dynamic_cast<CallInst*>(&(*I));
-    if (ci != NULL && ci->getNumOperands() != 0) {
-        Function* callee = ci->getCalledFunction();
-        if (callee != NULL && callee->isIntrinsic()) {
-	       
-	     if (callee->getIntrinsicID() == Intrinsic::flt_rounds) {
-                 // Replace FLT_ROUNDS intrinsic with the actual constant value
-                 // to avoid stupid  "if (1 == 0)" code even with full optimizations.
-                 I->replaceAllUsesWith(
-                     ConstantInt::get(Type::Int32Ty, 0, true));
+                       std::vector<Value*> args;
+                       for (unsigned j = 1; j < I->getNumOperands(); j++)  {
+                           args.push_back(I->getOperand(j));
+                       }
+                       // replace intrinsic with function call to memcpy
+                       Constant* f = currentModule_->getOrInsertFunction(
+                           funcName, callee->getFunctionType());
 
-                 I->eraseFromParent();
-                 changed = true;
-	     } else if (replace_.find(callee->getIntrinsicID())
-                        != replace_.end())  {
+                       CallInst* call = CallInst::Create(
+                           f, args.begin(), args.end(), "", I);
 
-                 // Call to LLVM Intrinsic function.
-                 std::string funcName = replace_[callee->getIntrinsicID()];
-                 std::vector<Value*> args;
-                 for (unsigned j = 1; j < I->getNumOperands(); j++)  {
-                     args.push_back(I->getOperand(j));
-                 }
-
-                 // replace intrinsic with function call to memcpy
-                 Constant* f = currentModule_->getOrInsertFunction(
-                     funcName, callee->getFunctionType());
-
-                 CallInst* call = 
-                     CallInst::Create(f, args.begin(), args.end(), "", I);
-		   
-                 I->replaceAllUsesWith(call);
-                 I->eraseFromParent();
-
-                 changed = true;
-             }
-	  }
+                       I->replaceAllUsesWith(call);
+                       I->eraseFromParent();
+                       changed = true;
+                       break;
+                   }
+	    
+               }
+           }
        }
-       
-    }
-    return true;
+   }
+   return true;
 }
 
+      
