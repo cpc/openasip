@@ -42,11 +42,19 @@ public:
         int moreFUs, TTAMachine::Machine& mach);
     void percentualFUIncrease(
         double percentualFUIncrease, TTAMachine::Machine& mach);
+
     void reduceBuses(
-        int busesToRemove, TTAMachine::Machine& mach,
+        const int& busesToRemove, 
+        TTAMachine::Machine& mach,
         std::list<std::string>& removedBusNames);
+    bool removeBuses(
+        const int& countToRemove, 
+        TTAMachine::Machine& mach,
+        std::list<std::string>& removedBusNames);
+
     void removeNotConnectedSockets(
         TTAMachine::Machine& mach, std::list<std::string>& removedSocketNames);
+
     void analyzeBuses(const TTAMachine::Machine& mach, BusMap& busMap) const;
     void analyzeRegisters(
         const TTAMachine::Machine& mach, RegisterMap& registerMap) const;

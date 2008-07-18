@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libexplorer.la
 libexplorer_la_SOURCES = ComponentImplementationSelector.cc CostEstimates.cc \
-                         DesignSpaceExplorer.cc DesignSpaceExplorerPlugin.cc \
-			 FrequencySweep.cc CycleOptimizer.cc 
+			DesignSpaceExplorer.cc DesignSpaceExplorerPlugin.cc \
+			FrequencySweep.cc CycleOptimizer.cc 
 
 SRC_ROOT_DIR = ../../
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -15,6 +15,7 @@ COSTDB_DIR = ${SRC_ROOT_DIR}/applibs/costdb
 SIMULATOR_DIR = ${SRC_ROOT_DIR}/applibs/Simulator
 DSDB_DIR = ${SRC_ROOT_DIR}/applibs/dsdb
 SCHEDULER_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
+LLVMBACKEND_DIR = ${SRC_ROOT_DIR}/applibs/LLVMBackend
 OSAL_DIR = ${BASE_DIR}/osal
 UMACH_DIR = ${BASE_DIR}/umach
 ESTIMATOR_DIR = ${SRC_ROOT_DIR}/applibs/Estimator
@@ -25,7 +26,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${MACH_DIR} -I${PROG_DIR} -I${BASE_DIR} \
 	-I${TRACEDB_DIR} -I${IDF_DIR} -I${HDB_DIR} -I${COSTDB_DIR} \
 	-I${SIMULATOR_DIR} -I${DSDB_DIR} -I${SCHEDULER_APPLIBS_DIR} \
 	-I${OSAL_DIR} -I${UMACH_DIR} -I${ESTIMATOR_DIR} \
-	-I${INTERPRETER_DIR} -I${APPLIBS_MACH}
+	-I${INTERPRETER_DIR} -I${APPLIBS_MACH} -I${LLVMBACKEND_DIR}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

@@ -10,18 +10,21 @@
 #include <boost/timer.hpp>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
+#include <set>
+#include <vector>
+#include <string>
 
 #include "DesignSpaceExplorer.hh"
+#include "LLVMBackend.hh"
 #include "DesignSpaceExplorerPlugin.hh"
 #include "CostEstimates.hh"
 #include "ExecutionTrace.hh"
 #include "DSDBManager.hh"
 #include "Machine.hh"
+#include "FunctionUnit.hh"
 #include "Program.hh"
 #include "MachineImplementation.hh"
-#include "SchedulerFrontend.hh"
-#include "SchedulingPlan.hh"
-#include "SchedulerPluginLoader.hh"
 #include "PluginTools.hh"
 #include "CostEstimatorTypes.hh"
 #include "UniversalMachine.hh"
@@ -31,6 +34,7 @@
 #include "SimulatorFrontend.hh"
 #include "SimulatorInterpreter.hh"
 #include "OperationGlobals.hh"
+#include "Application.hh"
 
 using std::set;
 using std::vector;
@@ -45,10 +49,11 @@ DesignSpaceExplorer::pluginTool_;
  */
 DesignSpaceExplorer::DesignSpaceExplorer() {
     
-    schedulingPlan_ = 
-        SchedulingPlan::loadFromFile(Environment::oldGccSchedulerConf());
+    //schedulingPlan_ = 
+    //    SchedulingPlan::loadFromFile(Environment::oldGccSchedulerConf());
     oStream_ = new std::ostringstream;
     OperationGlobals::setOutputStream(*oStream_);
+    buildMinimalOpSet();
 }
 
 /**
@@ -56,8 +61,8 @@ DesignSpaceExplorer::DesignSpaceExplorer() {
  */
 DesignSpaceExplorer::~DesignSpaceExplorer() {
 
-    delete schedulingPlan_;
-    schedulingPlan_ = NULL;
+    //delete schedulingPlan_;
+    //schedulingPlan_ = NULL;
     delete oStream_;
     oStream_ = NULL;
 }
@@ -106,6 +111,17 @@ DesignSpaceExplorer::evaluate(
         adf = dsdb_->architecture(configuration.architectureID);
     }
 
+    // check if machine has minimal opset
+    if (!checkMinimalOpSet(*adf)) {
+        // below for debug ouput
+        //std::vector<std::string> missingOps;
+        //missingOperations(*adf, missingOps);
+        //for (std::vector<std::string>::iterator it = missingOps.begin(); it != missingOps.end(); ++it) {
+        //    std::cout << "DEBUG: machine missed operator: " << *it << std::endl;
+        //}
+        return false;
+    }
+
     try {
         if (configuration.hasImplementation && estimate) {
             AreaInGates totalArea = estimator_.totalArea(*adf, *idf);
@@ -124,22 +140,27 @@ DesignSpaceExplorer::evaluate(
         for (set<RowID>::const_iterator i = applicationIDs.begin();
              i != applicationIDs.end(); i++) {
 
-            const UniversalMachine* umach = new UniversalMachine();
             string applicationPath = dsdb_->applicationPath(*i);
             TestApplication testApplication(applicationPath);
-            TTAProgram::Program* program = 
-                TTAProgram::Program::loadFromTPEF(
-                    testApplication.applicationPath(), *umach);
-            // schedule program with current machine
-            //std::cerr << "schedule program" << std::endl;
-            TTAProgram::Program* scheduledProgram = schedule(*program, *adf);
-            //std::cerr << "scheduled" << std::endl;
-            // Write out the scheduled program
-            //TTAProgram::Program::writeToTPEF(
-            //    *scheduledProgram, "scheduled.tpef");
+            
+            std::string applicationFile = testApplication.applicationPath();
+
+            // test that program is found
+            if (applicationFile.length() < 1) {
+                std::cerr << "No program found from application dir '" 
+                          << applicationPath << std::endl;
+                return false;
+            }
+            
+            const int debugLevel = 0;
+            TTAProgram::Program* scheduledProgram =
+                schedule(applicationFile, *adf, debugLevel);
+
+            if (scheduledProgram == NULL) {
+                return false;
+            }
 
             // simulate the scheduled program
-            //std::cerr << "simulate the scheduled program.." << std::endl;
             ClockCycleCount runnedCycles;
             const ExecutionTrace* traceDB = NULL;
             if (configuration.hasImplementation && estimate) {
@@ -151,7 +172,8 @@ DesignSpaceExplorer::evaluate(
                     *scheduledProgram, *adf, testApplication, 0, runnedCycles,
                     false);
             }
-            //std::cerr << "simulated" << std::endl;
+
+            //std::cerr << "DEBUG: simulated" << std::endl;
             // verify the simulation
             if (testApplication.hasCorrectOutput()) {
                 string correctResult = testApplication.correctOutput();
@@ -173,8 +195,10 @@ DesignSpaceExplorer::evaluate(
                     std::cerr << "**********" << std::endl;
                     return false;
                 }
-                //std::cerr << "simulation OK" << std::endl;
-                // reset the stream pointer in to the beginning
+                //std::cerr << "DEBUG: simulation OK" << std::endl;
+                // reset the stream pointer in to the beginning and empty the
+                // stream
+                oStream_->str("");
                 oStream_->seekp(0);
 
                 // add simulated cycle count to dsdb
@@ -194,20 +218,17 @@ DesignSpaceExplorer::evaluate(
                     (*i), configuration.implementationID, programEnergy);
                 result.setEnergy(*scheduledProgram, programEnergy);
             }
-            delete umach;
-            umach = NULL;
             delete traceDB;
             traceDB = NULL;
         }
     } catch (const Exception& e) {
-        /*
-        std::cerr << "ERROR: " << e.errorMessage() << " " << e.fileName() << " "
-                  << e.lineNum() << std::endl;
-        */
+        Application::writeToErrorLog(
+                __FILE__, __LINE__, __func__, e.errorMessageStack(), 0);
         return false;
     }
     return true;
 }
+
 
 /**
  * Returns the DSDBManager of the current exploration process.
@@ -220,26 +241,39 @@ DesignSpaceExplorer::db() {
     return *dsdb_;
 }
 
+
 /**
- * Compiles the given sequential program on the given target machine.
+ * Compiles the given application bytecode file on the given target machine.
  *
- * Scheduling can be failed for many reasons. All exceptions are produced
- * by the scheduler. If the schedule succeeds is the parallel program
- * returned.
- *
- * @param sequentialProgram Sequential program.
+ * @param applicationFile Bytecode filename with path.
  * @param machine The machine to compile the sequential program against.
- * @return Scheduled parallel program.
- * @exception All exceptions are produced by scheduler.
+ * @return Scheduled parallel program or NULL if scheduler produced exeption.
  */
 TTAProgram::Program*
 DesignSpaceExplorer::schedule(
-    const TTAProgram::Program& sequentialProgram,
-    const TTAMachine::Machine& machine)
-    throw (Exception) {
+    const std::string applicationFile,
+    TTAMachine::Machine& machine,
+    const unsigned int debug) {
 
-    return scheduler_.schedule(sequentialProgram, machine, *schedulingPlan_);
+    // optimization level
+    const int optLevel = 2;
+
+    // Run compiler and scheduler for current machine
+    try {
+        LLVMBackend compiler;
+        return compiler.compileAndSchedule(applicationFile, machine, optLevel, debug);
+    } catch (Exception& e) {
+        std::cerr << "Error compiling and scheduling '" 
+            << applicationFile << "':" << std::endl
+            << e.errorMessageStack() << std::endl;
+        return NULL;
+    }
+
+    // Write out the scheduled program
+    //TTAProgram::Program::writeToTPEF(
+    //    *scheduledProgram, "scheduled.tpef");
 }
+
 
 /**
  * Simulates the parallel program.
@@ -263,13 +297,17 @@ DesignSpaceExplorer::schedule(
  */
 const ExecutionTrace*
 DesignSpaceExplorer::simulate(
-    const TTAProgram::Program& program, const TTAMachine::Machine& machine,
-    const TestApplication& testApplication, const ClockCycleCount&,
-    ClockCycleCount& runnedCycles, const bool tracing)
+    const TTAProgram::Program& program, 
+    const TTAMachine::Machine& machine,
+    const TestApplication& testApplication, 
+    const ClockCycleCount&,
+    ClockCycleCount& runnedCycles, 
+    const bool tracing, 
+    const bool useCompiledSimulation)
     throw (Exception) {
 
     // initialize the simulator
-    SimulatorFrontend simulator;
+    SimulatorFrontend simulator(useCompiledSimulation);
     
     // setting simulator timeout in seconds
     simulator.setTimeout(480);
@@ -415,3 +453,136 @@ DesignSpaceExplorer::loadExplorerPlugin(
     
     return pluginCreator(dsdb);
 }
+
+
+/**
+ * Constructs a minimal opset from a given machine.
+ *
+ * @param machine Machine that is used as reference for minimal opset.
+ */
+void 
+DesignSpaceExplorer::buildMinimalOpSet(const TTAMachine::Machine* machine) {
+    if (machine == NULL) {
+        machine = TTAMachine::Machine::loadFromADF(Environment::minimalADF());
+    }
+
+    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
+        machine->functionUnitNavigator();
+    // construct the opset list
+    for (int i = 0; i < fuNav.count(); i++) {
+        TTAMachine::FunctionUnit* fu = fuNav.item(i);
+        fu->operationNames(minimalOpSet_);
+    }
+}
+
+
+/**
+ * Returns constructed minimal opset.
+ *
+ * @return Minimap opset as strings in a set.
+ */
+std::set<std::string> 
+DesignSpaceExplorer::minimalOpSet() const {
+    return minimalOpSet_;
+}
+
+
+/**
+ * Checks if machine has all operations in minimal opset.
+ *
+ * @param machine Machine to be checked againsta minimal opset.
+ * @return True if minimal operation set was met, false otherwise.
+ */
+bool 
+DesignSpaceExplorer::checkMinimalOpSet(
+    const TTAMachine::Machine& machine) const {
+
+    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
+        machine.functionUnitNavigator();
+    std::set<std::string> opSet;
+    // construct the opset list
+    for (int i = 0; i < fuNav.count(); i++) {
+        TTAMachine::FunctionUnit* fu = fuNav.item(i);
+        fu->operationNames(opSet);
+    }
+
+    // if machines opset is smaller than requiered opset
+    if (opSet.size() < minimalOpSet_.size()) {
+        return false;
+    }
+
+    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
+    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
+
+    std::set<std::string>::iterator first2 = opSet.begin();
+    std::set<std::string>::iterator last2 = opSet.end();
+
+    // return false if missing operation was found
+    while (first1 != last1 && first2 != last2)
+    {
+        if (*first1 < *first2) {
+            return false;
+        }
+        else if (*first2 < *first1) {
+            ++first2;
+        }
+        else { 
+            ++first1; 
+            ++first2; 
+        }
+    }
+    if (first1 != last1) {
+        return false;
+    }
+    return true;
+}
+
+
+/**
+ * Return operations that are missing from a machine.
+ *
+ * Returns operations that are missing from a machine compared to the minimal
+ * operation set.
+ *
+ * @param machine Machine to be checked againsta minimal opset.
+ * @param missingOps Vector where missing operation names are to be stored.
+ */
+void
+DesignSpaceExplorer::missingOperations(
+    const TTAMachine::Machine& machine,
+    std::vector<std::string>& missingOps) const {
+
+    // construct the opset list
+    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
+        machine.functionUnitNavigator();
+    std::set<std::string> opSet;
+    for (int i = 0; i < fuNav.count(); i++) {
+        TTAMachine::FunctionUnit* fu = fuNav.item(i);
+        fu->operationNames(opSet);
+    }
+
+    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
+    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
+
+    std::set<std::string>::iterator first2 = opSet.begin();
+    std::set<std::string>::iterator last2 = opSet.end();
+
+    // missing opset is the difference towards minimalOpSet_
+    while (first1 != last1 && first2 != last2)
+    {
+        if (*first1 < *first2) {
+            missingOps.push_back(*first1++);
+        }
+        else if (*first2 < *first1) {
+            ++first2;
+        }
+        else { 
+            ++first1; 
+            ++first2; 
+        }
+    }
+    while (first1 != last1) {
+        missingOps.push_back(*first1++);
+    }
+}
+

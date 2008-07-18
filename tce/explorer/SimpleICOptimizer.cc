@@ -5,6 +5,7 @@
  * removing extra sockets and not used connections.
  *
  * @author Jari M‰ntyneva 2007 (jari.mantyneva@tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta@tut.fi)
  * @note rating: red
  */
 
@@ -29,9 +30,11 @@
 #include "CostEstimates.hh"
 #include "Application.hh"
 #include "Exception.hh"
-#include "SchedulerFrontend.hh"
 #include "Procedure.hh"
 #include "MachineResourceModifier.hh"
+
+//#include "SchedulerFrontend.hh"
+#include "LLVMBackend.hh"
 
 
 using namespace TTAProgram;
@@ -98,27 +101,18 @@ public:
                 removeAllConnections(*mach);
             }
 
+            // if no scheduled programs given
             Program* program = NULL;
             if (tpef_ == "") {
-                SchedulerFrontend scheduler;
+                //SchedulerFrontend scheduler;
                 try {
                     std::set<RowID> appIDs = dsdb.applicationIDs();
                     std::set<RowID>::const_iterator iter = appIDs.begin();
                     for (; iter != appIDs.end(); iter++) {
                         TestApplication testApp(dsdb.applicationPath(*iter));
-                        const UniversalMachine* uMach = new UniversalMachine();
-                        Program* seqProg = 
-                            Program::loadFromTPEF(
-                                testApp.applicationPath(), *uMach);
-                        SchedulingPlan* plan = 
-                            SchedulingPlan::loadFromFile(
-                                Environment::oldGccSchedulerConf());;
 
-                        program = 
-                            scheduler.schedule(*seqProg, *origMach, *plan);
-
-                        delete plan;
-                        plan = NULL;
+                        // sould origMach be mach?
+                        program = schedule(testApp.applicationPath(), *origMach);
 
                         addConnections(*mach, *program);
                     }
@@ -127,6 +121,7 @@ public:
                     msg << e.errorMessageStack() << std::endl;
                     errorOuput(msg.str());
                     delete mach;
+                    mach = NULL;
                     return result;
                 }
             } else {
@@ -209,6 +204,7 @@ private:
     /// evaluate the result(s)
     bool evaluateResult_;
 
+
     /**
      * Reads the parameters given to the plugin.
      */
@@ -254,6 +250,7 @@ private:
             evaluateResult_ = true;
         }
     }
+
     
     /**
      * Print error message of invalid parameter to plugin error stream.
@@ -268,6 +265,35 @@ private:
             << " value expected." << std::endl;
         errorOuput(msg.str());
     }
+
+
+    /**
+     * Compiles the given application bytecode file on the given target machine.
+     *
+     * @param applicationFile Bytecode filename with path.
+     * @param machine The machine to compile the sequential program against.
+     * @return Scheduled parallel program or NULL if scheduler produced exeption.
+     */
+    TTAProgram::Program* schedule(
+        const std::string applicationFile,
+        TTAMachine::Machine& machine) {
+
+        // optimization level
+        const int optLevel = 2;
+        const unsigned int debug = 0;
+
+        // Run compiler and scheduler for current machine
+        try {
+            LLVMBackend compiler;
+            return compiler.compileAndSchedule(applicationFile, machine, optLevel, debug);
+        } catch (Exception& e) {
+            std::cerr << "Error compiling and scheduling '" 
+                << applicationFile << "':" << std::endl
+                << e.errorMessageStack() << std::endl;
+            return NULL;
+        }
+    }
+
 
     /**
      * Removes all socket-bus connection from the given machine.

@@ -138,8 +138,6 @@ public:
                 newConf.architectureID = dsdb.addArchitecture(*mach);
                 CostEstimates estimates;
 
-                // DEBUG: no evaluation needed
-
                 RowID confID = dsdb.addConfiguration(newConf);
                 result.push_back(confID);
             }

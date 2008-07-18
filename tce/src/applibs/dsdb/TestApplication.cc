@@ -4,6 +4,7 @@
  * Implementation of TestApplication class.
  *
  * @author Jari M‰ntyneva 2007 (jari.mantyneva@tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta@tut.fi)
  * @note rating: red
  */
 
@@ -18,7 +19,7 @@
 using std::string;
 
 const string TestApplication::DESCRIPTION_FILE_NAME_ = "description.txt";
-const string TestApplication::APPLICATION_FILE_NAME_ = "sequential_program";
+const string TestApplication::APPLICATION_FILE_NAME_ = "program.bc";
 const string TestApplication::SETUP_FILE_NAME_ = "setup.sh";
 const string TestApplication::SIMULATE_TTASIM_FILE_NAME_ = "simulate.ttasim";
 const string 

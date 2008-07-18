@@ -49,6 +49,7 @@ public:
     std::string hdbFileName(int index) const
         throw (OutOfRange);
     RowID startConfiguration() const;
+    int verboseLevel() const;
     bool adfFile() const;
     bool idfFile() const;
     std::string adfFileName() const;

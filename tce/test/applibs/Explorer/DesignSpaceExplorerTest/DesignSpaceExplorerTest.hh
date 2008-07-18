@@ -80,16 +80,20 @@ DesignSpaceExplorerTest::testEvaluate() {
 
     FileSystem::removeFileOrDirectory("data/test.dsdb");
     DSDBManager* dsdb = DSDBManager::createNew("data/test.dsdb");
+    /*
+       not needed until estimating is enabled again
     IDF::MachineImplementation* idf = 
         IDF::MachineImplementation::loadFromIDF(
-            "data/10_bus_full_connectivity.idf");
+            "data/minimal.idf");
+    */
+    // path to minimal adf under project root
     TTAMachine::Machine* adf =
         TTAMachine::Machine::loadFromADF(
-            "data/10_bus_full_connectivity.adf");
+            "../../../../data/mach/minimal.adf");
     DSDBManager::MachineConfiguration conf;
     conf.architectureID = dsdb->addArchitecture(*adf);
-    conf.implementationID = dsdb->addImplementation(*idf, 0, 0);
-    conf.hasImplementation = true;
+    //conf.implementationID = dsdb->addImplementation(*idf, 0, 0);
+    conf.hasImplementation = false;
     //RowID confID = 
     dsdb->addConfiguration(conf);
     //RowID appID = 
@@ -100,11 +104,18 @@ DesignSpaceExplorerTest::testEvaluate() {
     DesignSpaceExplorer explorer;
     explorer.setDSDB(*dsdb);
     CostEstimates results;
-    TS_ASSERT(explorer.evaluate(conf, results, true));
+    bool estimate = false;
+    TS_ASSERT(explorer.evaluate(conf, results, estimate));
+    
     //std::cout << "result area: " << results.area() << std::endl;
     //std::cout << "result delay: " 
     // << results.longestPathDelay() << std::endl;
     // there should be one energy estimate
+    
+    /*
+    This is disabled until, some machine with estimate info in default 
+    hdb is found.
+    std::cout << "energies: " << results.energies() << std::endl << std::endl;
     TS_ASSERT(results.energies() == 2);
     if (results.energies() == 2) {
         // the energy estimate must not be equal to zero    
@@ -112,6 +123,7 @@ DesignSpaceExplorerTest::testEvaluate() {
         TS_ASSERT_DIFFERS(results.energy(1), 0);
         //std::cout << "result energy: " << results.energy(0) << std::endl;
     }
+    */
 }
 
 #endif

@@ -29,7 +29,8 @@ using std::string;
 class ExplorerPluginTest : public CxxTest::TestSuite {
 public:
     void testLoadPlugin();
-    void testInitialMachinePlugin();
+    // initialmachine plugin is depracated
+    //void testInitialMachinePlugin();
 };
 
 /**
@@ -53,6 +54,7 @@ ExplorerPluginTest::testLoadPlugin() {
 /**
  * Test initial machine generator plugin.
  */
+/*
 void
 ExplorerPluginTest::testInitialMachinePlugin() {
 
@@ -97,5 +99,6 @@ ExplorerPluginTest::testInitialMachinePlugin() {
         plugin->explore(conf, 0);
     TS_ASSERT_EQUALS(Conversion::toInt(result.size()), 1);
 }
+*/
 
 #endif

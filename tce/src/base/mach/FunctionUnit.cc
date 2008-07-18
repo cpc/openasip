@@ -421,6 +421,19 @@ FunctionUnit::operationCount() const {
 
 
 /**
+ * Adds FUs operations to the set given as a parameter.
+ */
+void
+FunctionUnit::operationNames(std::set<std::string>& opNames) const {
+    OperationTable::const_iterator iter = operations_.begin();
+    while (iter != operations_.end()) {
+        opNames.insert((*iter)->name());
+        ++iter;
+    }
+}
+
+
+/**
  * Returns the maximum latency among the operations of the function unit.
  *
  * @return The maximum latency.

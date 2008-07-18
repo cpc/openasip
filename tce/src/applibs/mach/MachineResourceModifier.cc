@@ -101,10 +101,13 @@ MachineResourceModifier::addBusesByAmount(
 }
 
 /**
- * Reduces the amount of buses with given number.
+ * Reduces the amount of buses with a given number using some strange
+ * algorithm.
  *
  * Won't remove buses that are immediate template slots. Remove slots first.
  * Slots may cause that given number of buses cannot be removed.
+ * (I, maattae, have really no idea why this function does what it does. And
+ * what it does isn't actually very clear.)
  *
  * @param busesToRemove Number of buses to remove.
  * @param mach Machine where the buses are removed.
@@ -113,7 +116,7 @@ MachineResourceModifier::addBusesByAmount(
  */
 void
 MachineResourceModifier::reduceBuses(
-    int busesToRemove, TTAMachine::Machine& mach,
+    const int& busesToRemove, TTAMachine::Machine& mach,
     std::list<std::string>& removedBusNames) {
 
     BusMap busMap;
@@ -123,12 +126,12 @@ MachineResourceModifier::reduceBuses(
     std::multimap<double, TTAMachine::Bus*>::const_iterator iter =
         busMap.begin();
 
-    while (iter != busMap.end()) {
-        if (removedBuses == busesToRemove) {
-            break;
-        }
-        double numberToRemove = ceil((*iter).first * busesToRemove);
+    while (iter != busMap.end() && removedBuses != busesToRemove) {
+
+        double numberToRemove = ceil(iter->first * busesToRemove);
+
         TTAMachine::Machine::BusNavigator navigator = mach.busNavigator();
+
         for (int i = 0; numberToRemove > 0 && i < navigator.count(); i++) {
             if (removedBuses < busesToRemove) {
                 if ((*iter).second->isArchitectureEqual(
@@ -154,6 +157,47 @@ MachineResourceModifier::reduceBuses(
         iter++;
     }
 }
+
+
+/**
+ * Removes busses from machine.
+ *
+ * Doens't remove buses that have template slots.
+ *
+ * @param countToRemove Number of buses to remove in optimal case.
+ * @param mach Machine where buses are going to be removed.
+ * @param removedBusName Names of the removed buses are added at the end 
+ *                       of this list.
+ * @return True if the number of buses to be removed were actually removed,
+ * false otherwise.
+ */
+bool
+MachineResourceModifier::removeBuses(
+    const int& countToRemove, TTAMachine::Machine& mach,
+    std::list<std::string>& removedBusNames) {
+
+    TTAMachine::Machine::BusNavigator navigator = mach.busNavigator();
+    Machine::InstructionTemplateNavigator itNav = 
+        mach.instructionTemplateNavigator();
+
+    // TODO: make test that the last guard bus isn't removed either.
+    for (int busesRemoved = 0, i = 0; 0 < navigator.count(); ++i) {
+        if ( countToRemove == busesRemoved ) {
+            return true;
+        }
+        // buses that contains template slot are not removed
+        if (hasSlot(mach, navigator.item(i)->name())) {
+            continue;
+        }
+        removedBusNames.push_back(navigator.item(i)->name());
+        // remove the bus
+        mach.removeBus(*(navigator.item(i)));
+        ++busesRemoved;
+        --i;
+    }
+    return false;
+}
+
 
 /**
  * Returns true if the machine contains an Instruction template slot for given

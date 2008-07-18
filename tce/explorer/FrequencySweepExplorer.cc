@@ -25,7 +25,6 @@
 #include "Move.hh"
 #include "Terminal.hh"
 #include "Operation.hh"
-#include "StaticProgramAnalyzer.hh"
 #include "ComponentImplementationSelector.hh"
 #include "HDBRegistry.hh"
 #include "ICDecoderEstimatorPlugin.hh"
@@ -82,9 +81,7 @@ public:
     DESCRIPTION("Frequency sweep algorithm.");
     
     /**
-     * Explores from the given start configuration and uses 
-     * InitialMachineExplorer with default parameters to create one if start
-     * configuration is not given.
+     * Explores from the given start configuration.
      *
      * @param startPointConfigurationID Configuration ID to start the
      * exploration from.
@@ -99,19 +96,15 @@ public:
         
         RowID startPointConfID = startPointConfigurationID;
         if (startPointConfID == 0) {
-            DesignSpaceExplorerPlugin* initialMachineExplorer =
-                DesignSpaceExplorer::loadExplorerPlugin(
-                    "InitialMachineExplorer", db());
-            vector<RowID> initialResult = 
-                initialMachineExplorer->explore(startPointConfigurationID);
-            if (initialResult.size() == 1) {
-                startPointConfID = initialResult.at(0);
-            } else {
-                return result;
-            }
+            // Starting point is going to be needed, or the new componentAdder
+            // called. That would add FUs that support basic opset if needed.
+            std::ostringstream msg(std::ostringstream::out);
+            msg << "Error: No starting configuration specified." << endl;
+            verboseOuput(msg.str());
+            return result;
         }
 
-        // other plugins used
+        // other explorer plugins used
         DesignSpaceExplorerPlugin* icOptimizer =
             DesignSpaceExplorer::loadExplorerPlugin(
                     "SimpleICOptimizer", db());
@@ -234,9 +227,13 @@ public:
                     }
 
                     // selecting the component implementations
-                    RowID selectedConf = 
-                        selectComponents(
-                            dsdb, minConf, currentFrequencyMHz);
+                    RowID selectedConf = selectComponents(dsdb, minConf, 
+                            currentFrequencyMHz, 0);
+
+                    // check if component selection failed
+                    if (selectedConf == 0) {
+                        break;
+                    }
                     
                     // IC optimization with SimpleICOptimizer plugin
                     vector<RowID> icOptimizedResult = 
@@ -292,22 +289,10 @@ public:
 private:
     /// Selector used by the plugin.
     ComponentImplementationSelector selector_;
-    /// Set of operations used in the applications.
-    std::set<std::string> operations_;
-    /// Set of integer variables used in the applications.
-    std::set<SIntWord> integerVariables_;
-    /// Set of float variables used in the applications.
-    std::set<int> floatVariables_;
-    /// Set of immediate bit widths in the applications.
-    std::map<int, int> immediateWidths_;
     /// Number of buses in the machine.
     int busCount_;
     /// Default value of busCount_
     static const int busCountDefault_ = 4;
-    /// Program analyzer.
-    StaticProgramAnalyzer analyzer_;
-    /// Biggest instruction address used in the programs
-    InstructionAddress biggestAddress_;
 
     int startMHz_;
     int endMHz_;
@@ -330,204 +315,6 @@ private:
     std::string icDec_;
     /// name of the hdb used by ic decoder
     std::string icDecHDB_;
-
-    /**
-     * Selects the implementations for the machine configuration.
-     *
-     * @TODO: throw appropriate exceptions
-     *
-     * @param configuration MachineConfiguration of which architecture is used.
-     * @param frequency The minimum frequency of the implementations.
-     * @return RowID of the new machine configuration having adf and idf.
-     * @exception Exception No suitable implementations found.
-     */
-    RowID
-    selectComponents(
-        DSDBManager& dsdb, const DSDBManager::MachineConfiguration& conf,
-        int frequency)
-        throw (Exception) {
-
-        HDBRegistry& hdbRegistry = HDBRegistry::instance();
-        for (int i = 0; i < hdbRegistry.hdbCount(); i++) {
-            selector_.addHDB(hdbRegistry.hdb(i));
-        }
-
-        Machine* mach = dsdb.architecture(conf.architectureID);
-
-        Machine::FunctionUnitNavigator fuNav = mach->functionUnitNavigator();
-        Machine::RegisterFileNavigator rfNav = mach->registerFileNavigator();
-        Machine::ImmediateUnitNavigator iuNav = mach->immediateUnitNavigator();
-        IDF::MachineImplementation* idf = new IDF::MachineImplementation;
-        
-        // select implementations for funtion units
-        for (int i = 0; i < fuNav.count(); i++) {
-            FunctionUnit* fu = fuNav.item(i);
-
-            map<const FUImplementationLocation*, CostEstimates*> fuMap =
-                selector_.fuImplementations(*fu, frequency);
-            map<const FUImplementationLocation*,
-                CostEstimates*>::const_iterator iter = fuMap.begin();
-            
-            if (fuMap.size() != 0) {
-                double longestPathDelay = 0;
-                map<const IDF::FUImplementationLocation*,
-                    CostEstimates*>::const_iterator wanted = iter;
-                while (iter != fuMap.end()) {
-                    if (iter->second == NULL) {
-                        throw Exception(
-                            __FILE__, __LINE__, __func__,
-                            "No cost estimates found for FU: " 
-                            + fu->name());
-                    }
-                    if (longestPathDelay < (*iter).second->longestPathDelay()) {
-                        longestPathDelay = (*iter).second->longestPathDelay();
-                        wanted = iter;
-                    }
-                    iter++;
-                }
-                const IDF::FUImplementationLocation* fuImpl = (*wanted).first;
-                ObjectState* state = fuImpl->saveState();
-                IDF::FUImplementationLocation* newFUImpl = 
-                    new IDF::FUImplementationLocation(state);
-
-                try {
-                    idf->addFUImplementation(newFUImpl);
-                } catch (Exception e) {
-                    std::ostringstream msg(std::ostringstream::out);
-                    msg << e.errorMessage() 
-                        << " " << e.fileName() 
-                        << " " << e.lineNum() << endl;
-                    errorOuput(msg.str());
-                }
-            } else {
-                throw Exception(
-                    __FILE__, __LINE__, __func__,
-                    "no implementations found for FU: " + fu->name());
-            }
-        }
-
-        // select implementations for register files
-        for (int i = 0; i < rfNav.count(); i++) {
-            RegisterFile* rf = rfNav.item(i);
-            map<const RFImplementationLocation*, CostEstimates*> rfMap;
-
-            // check if the register is boolean register.
-            if (rf->isUsedAsGuard()) {
-                // select from guarded registers
-                rfMap = selector_.rfImplementations(*rf, true, frequency);
-            } else {
-                // select from non guarded registers
-                rfMap = selector_.rfImplementations(*rf, false, frequency);
-            }
-            map<const IDF::RFImplementationLocation*,
-                CostEstimates*>::const_iterator iter = rfMap.begin();
-            if (rfMap.size() != 0) {
-                double longestPathDelay = 0;
-                map<const IDF::RFImplementationLocation*,
-                    CostEstimates*>::const_iterator wanted = iter;
-                while (iter != rfMap.end()) {
-                    if (iter->second == NULL) {
-                        throw Exception(
-                            __FILE__, __LINE__, __func__,
-                            "No cost estimates found for RF: " 
-                            + rf->name());
-                    }
-                    if (longestPathDelay < (*iter).second->longestPathDelay()) {
-                        longestPathDelay = (*iter).second->longestPathDelay();
-                        wanted = iter;
-                    }
-                    iter++;
-                }
-                const IDF::RFImplementationLocation* rfImpl = (*wanted).first;
-                ObjectState* state = rfImpl->saveState();
-                IDF::RFImplementationLocation* newRFImpl = 
-                    new IDF::RFImplementationLocation(state);
-                try {
-                    idf->addRFImplementation(newRFImpl);
-                } catch (Exception e) {
-                    std::ostringstream msg(std::ostringstream::out);
-                    msg << e.errorMessage() 
-                        << " " << e.fileName() 
-                        << " " << e.lineNum() << endl;
-                    errorOuput(msg.str());
-                }
-            } else {
-                throw Exception(
-                    __FILE__, __LINE__, __func__,
-                    "no implementations found for RF: " + rf->name());
-            }
-        }
-
-        // select implementations for immediate units
-        for (int index = 0; index < iuNav.count(); index++) {
-            TTAMachine::ImmediateUnit* iu = iuNav.item(index);
-            map<const IDF::IUImplementationLocation*, CostEstimates*> iuMap =
-                selector_.iuImplementations(*iu, frequency);
-            map<const IDF::IUImplementationLocation*,
-                CostEstimates*>::const_iterator iter = iuMap.begin();
-            if (iuMap.size() != 0) {
-                double longestPathDelay = 0;
-                map<const IDF::RFImplementationLocation*,
-                    CostEstimates*>::const_iterator wanted = iter;
-                while (iter != iuMap.end()) {
-                    if (iter->second == NULL) {
-                        throw Exception(
-                            __FILE__, __LINE__, __func__,
-                            "No cost estimates found for IU: " 
-                            + iu->name());
-                    }
-                    if (longestPathDelay < (*iter).second->longestPathDelay()) {
-                        longestPathDelay = (*iter).second->longestPathDelay();
-                        wanted = iter;
-                    }
-                    iter++;
-                }
-                const IDF::IUImplementationLocation* iuImpl = (*wanted).first;
-                ObjectState* state = iuImpl->saveState();
-                IDF::IUImplementationLocation* newIUImpl = 
-                    new IDF::IUImplementationLocation(state);
-                try {
-                    idf->addIUImplementation(newIUImpl);
-                } catch (Exception e) {
-                    std::ostringstream msg(std::ostringstream::out);
-                    msg << e.errorMessage() 
-                         << " " << e.fileName() 
-                         << " " << e.lineNum() << endl;
-                    errorOuput(msg.str());
-                }
-            } else {
-                throw Exception(
-                    __FILE__, __LINE__, __func__,
-                    "no implementations found for IU: " + iu->name());
-            }
-        }
-
-        // add the ic decoder plugin
-        std::vector<std::string> icDecPaths =
-            Environment::icDecoderPluginPaths();
-        idf->setICDecoderPluginName(icDec_);
-        idf->setICDecoderHDB(icDecHDB_);
-        std::vector<std::string>::const_iterator iter = icDecPaths.begin();
-        for (; iter != icDecPaths.end(); iter++) {
-            std::string path = *iter;
-            std::string file = 
-                path + FileSystem::DIRECTORY_SEPARATOR + icDec_ + "Plugin.so";
-            if (FileSystem::fileExists(file)) {
-                idf->setICDecoderPluginFile(file);
-                break;
-            }
-        }
-        
-        delete mach;
-        mach = 0;
-        
-        DSDBManager::MachineConfiguration newConfiguration;
-        newConfiguration.architectureID = conf.architectureID;
-        newConfiguration.implementationID = dsdb.addImplementation(*idf, 0, 0);
-        newConfiguration.hasImplementation = true;
-        return dsdb.addConfiguration(newConfiguration);
-    }
-
 
 
     /**
@@ -620,6 +407,7 @@ private:
             verbose_ = verboseDefault;
         }
     }
+
     
     /**
      * Print error message of invalid parameter to plugin error stream.
@@ -635,6 +423,7 @@ private:
         errorOuput(msg.str());
     }
 
+
     /**
      * Loads HDBs that are used into the registry.
      */
@@ -647,85 +436,53 @@ private:
         }
     }
 
-#if 0 
-    // remove if not needed because of minimal.adf (28.12.07)
+
     /**
-     * Analyzes the operation need and counts variables used in the
-     * application.
-     *
-     * @todo is this needed? At least it's not called anywhere. 
-     */
-    void analyze() {
+     * Selects components for a machine and creates a new configuration.
+     * 
+     * @param dsdb Desing database.
+     * @param conf MachineConfiguration of which architecture is used.
+     * @param frequency The minimum frequency of the implementations.
+     * @param maxArea Maximum area for implementations.
+     * @return RowID of the new machine configuration having adf and idf.
+     * */
+    RowID selectComponents(
+            DSDBManager& dsdb,
+            DSDBManager::MachineConfiguration& conf, 
+            const double& frequency,
+            const double& maxArea) {
+
+        const TTAMachine::Machine* mach = dsdb.architecture(conf.architectureID);
+        IDF::MachineImplementation* idf = NULL;
+
         try {
-            DSDBManager& dsdb = db();
-            std::set<RowID> applications = dsdb.applicationIDs();
-            for (std::set<RowID>::const_iterator id = applications.begin();
-                 id != applications.end(); id++) {
-                
-                TestApplication application(dsdb.applicationPath(*id));
-                
-                const UniversalMachine* umach = new UniversalMachine();
-                TTAProgram::Program* program = 
-                    TTAProgram::Program::loadFromTPEF(
-                        application.applicationPath(), *umach);
-                
-                analyzer_.addProgram(*program);
-                delete umach;
-                umach = NULL;
-                delete program;
-                program = NULL;
-            }
-            operations_ = analyzer_.operationsUsed();
-            integerVariables_ = analyzer_.integerRegisterIndexes();
-            immediateWidths_ = analyzer_.immediateBitWidths();
-            biggestAddress_ = analyzer_.biggestAddress();
+            idf = selector_.selectComponents(mach, icDec_,
+                    icDecHDB_, frequency, maxArea);
         } catch (const Exception& e) {
-            debugLog(std::string("Analyze failed in FrequencySweepExplorer. ")
-                     + e.errorMessage() + std::string(" ") + e.fileName()
-                     + std::string(" ") + Conversion::toString(e.lineNum()));
+            std::ostringstream msg(std::ostringstream::out);
+            msg << e.errorMessage() 
+                << " " << e.fileName() 
+                << " " << e.lineNum() << std::endl;
+            errorOuput(msg.str());
+            return 0;
         }
 
-        // needed memory
-        InstructionAddress stackMem = 16384; // 2^14
-        biggestAddress_ += stackMem;
-
-        // round up to next power of two
-        InstructionAddress x = 1;
-        while (x < biggestAddress_ && x != 0) {
-            x <<= 1;
+        DSDBManager::MachineConfiguration newConfiguration;
+        newConfiguration.architectureID = conf.architectureID;
+        newConfiguration.implementationID = dsdb.addImplementation(*idf, 0, 0);
+        newConfiguration.hasImplementation = true;
+        try {
+            return dsdb.addConfiguration(newConfiguration);
+        } catch (const Exception& e) {
+            std::ostringstream msg(std::ostringstream::out);
+            msg << e.errorMessage() 
+                << " " << e.fileName() 
+                << " " << e.lineNum() << std::endl;
+            errorOuput(msg.str());
+            return 0;
         }
-        // if x equals to zero make the highest possible address as biggest
-        if (x == 0) {
-            x--;
-        }
-        biggestAddress_ = x;
     }
 
-
-    /**
-     * Check if the fu has such operations that needs an address space.
-     *
-     * @todo This implementation is not robust. It should use the OSAL 
-     * operand setting "memory address", that is, if there is at least one
-     * operation of which operand is a memory address, we know the FU
-     * needs an address space. The name matching is not enough.
-     *
-     * @return True if the fu needs an address space.
-     */
-    bool needsAddressSpace(const FunctionUnit* fu) const {
-
-        for (int i = 0; i < fu->operationCount(); i++) {
-            HWOperation* operation = fu->operation(i);
-            std::string opName = StringTools::stringToUpper(operation->name());
-            if (opName == "LDW" || opName == "LDQ" || opName == "LDH" ||
-                opName == "LDBU" || opName == "LDHU" || opName == "STW" ||
-                opName == "STQ" || opName == "STH") {
-                return true;
-            }
-        }
-        return false;
-    }
-#endif    
 };
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(FrequencySweepExplorer);

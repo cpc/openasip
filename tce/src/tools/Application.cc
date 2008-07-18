@@ -139,7 +139,12 @@ Application::writeToErrorLog(
     const string fileName,
     const int lineNumber,
     const string functionName,
-    const string message) {
+    const string message,
+    const int neededVerbosity) {
+
+    if (neededVerbosity > verboseLevel_) {
+        return;
+    }
 
     if (!initialized_) {
         initialize();

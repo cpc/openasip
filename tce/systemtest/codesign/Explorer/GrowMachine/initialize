@@ -9,7 +9,6 @@ rm -rf 3.{adf,tpef}
 pushd . > /dev/null
 cd ../../../../explorer/ && rm -f *.so
 ../src/codesign/Explorer/buildexplorerplugin GrowMachine.so GrowMachine.cc > /dev/null
-../src/codesign/Explorer/buildexplorerplugin InitialMachineExplorer.so InitialMachineExplorer.cc > /dev/null
 popd > /dev/null
 
 # Compile the IC&decoder estimator plugin.

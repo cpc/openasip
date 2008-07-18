@@ -255,11 +255,11 @@ private:
 
         TTAMachine::Machine::BusNavigator busNav = mach->busNavigator();
 
+        // can't reduce buses from one
         int origBusCount = busNav.count();
-        // variables for binary search    
-        int busHigh = busNav.count();
-        int busLow = 1;
-        int busMid = (busLow + busHigh) /2;
+        if (origBusCount < 2) {
+            return confToMinimize;
+        }
 
         DesignSpaceExplorer explorer;
         explorer.setDSDB(dsdb);
@@ -288,82 +288,113 @@ private:
 
         MachineResourceModifier modifier;
 
+        // variables for binary search    
+        int busHigh = origBusCount;
+        int busLow = 1;
+        int busMid = (busLow + busHigh) /2;
+
         TTAMachine::Machine* newMach = NULL;
         RowID lastArchID = 0;
         RowID lastConfID = 0;
+        RowID lastOKArchID = 0;
+        RowID lastOKConfID = 0;
 
         std::list<std::string> removedBusNames;
 
         // use binary search to find out the bus count that can be removed
         // removes busses as long as each apps max cycle counts are not exceeded
-        while (busLow < busMid) {
+        // if buses are not of equal value this doesn't really work.
+        do {
+            assert(newMach == NULL);
+            bool newConfigOK = false;
             newMach = new TTAMachine::Machine(*mach);
-            try {
-                int amountOfBusesToReduce = (origBusCount - busMid);
-                modifier.reduceBuses(
-                        amountOfBusesToReduce, *newMach, removedBusNames);
-                DSDBManager::MachineConfiguration newConfiguration;
-                try {
-                    lastArchID = dsdb.addArchitecture(*newMach);
-                } catch (const RelationalDBException& e) {
-                    // Error occurred while adding adf to the dsdb, adf
-                    // probably too big
-                    break;
-                }
-                newConfiguration.architectureID = lastArchID;
-                newConfiguration.hasImplementation = false;
-                lastConfID = dsdb.addConfiguration(newConfiguration);
-                CostEstimates newEstimates;
 
-                if (!explorer.evaluate(newConfiguration, newEstimates, false)) {
-                    // goes through every apps new cycles
-                    bool belowMaxCycles = true;
-                    for (int i = 0; i < newEstimates.cycleCounts(); i++) {
-                        // if no time constraints
-                        if (maxCycleCounts.at(i) < 1) {
-                            continue;
-                        }
-                        // if some apps maxCycles was exceeded
-                        if (maxCycleCounts.at(i) < newEstimates.cycleCount(i)) {
-                            busLow = busMid + 1;
-                            busMid = (busLow + busHigh) / 2;
-                            belowMaxCycles = false;
-                            break;
-                        }
-                    }
-                    if (belowMaxCycles) {
-                        busHigh = busMid - 1;
-                        busMid = (busLow + busHigh) / 2;
-                    } 
+            int busesToRemove = (origBusCount - busMid);
 
-                    if (busLow < busMid) {
-                        delete newMach;
-                        newMach = NULL;
-                    }
-                } else {
-                    break;
-                }
-            } catch (const Exception& e) {            
-                throw e;
+            if (!modifier.removeBuses(busesToRemove, *newMach, removedBusNames)) {
+                // TODO: some good way to cope with non complete bus removal
             }
-        }
 
+            DSDBManager::MachineConfiguration newConfiguration;
+            try {
+                lastArchID = dsdb.addArchitecture(*newMach);
+                // machine stored to dsdb can be deleted
+                delete newMach;
+                newMach = NULL;
+            } catch (const RelationalDBException& e) {
+                // Error occurred while adding adf to the dsdb, adf
+                // probably too big
+                delete newMach;
+                newMach = NULL;
+                break;
+            }
+
+            newConfiguration.architectureID = lastArchID;
+            newConfiguration.hasImplementation = false;
+            try {
+                lastConfID = dsdb.addConfiguration(newConfiguration);
+            } catch (const KeyNotFound& e) {
+                break;
+            }
+            CostEstimates newEstimates;
+
+            if (explorer.evaluate(newConfiguration, newEstimates, false)) {
+                newConfigOK = true;
+                
+                // goes through every apps new cycles
+                for (int i = 0; i < newEstimates.cycleCounts(); i++) {
+                    // if no time constraints
+                    if (maxCycleCounts.at(i) < 1) {
+                        continue;
+                    }
+                    // if some apps maxCycles was exceeded
+                    if (maxCycleCounts.at(i) < newEstimates.cycleCount(i)) {
+                        newConfigOK = false;
+                        break;
+                    }
+                }
+            } 
+            
+            if (newConfigOK) {
+                busHigh = busMid - 1;
+                busMid = (busLow + busMid) / 2;
+                lastOKArchID = lastArchID;
+                lastOKConfID = lastConfID;
+            } else {
+                busLow = busMid + 1;
+                busMid = (busMid + busHigh) / 2;
+            }
+        } while (busLow <= busHigh && busLow <= busMid);
+
+        // these aren't needed anymore
+        lastArchID = 0;
+        lastConfID = 0;
+
+        // delete old machine
         delete mach;
         mach = NULL;
         
+        // check if no new architecture/config could be created
+        if (lastOKArchID == 0) {
+            return confToMinimize;
+        }
+        
         // create new idf for the new machine if needed
-        if (configuration.hasImplementation && lastArchID != 0) {
+        if (configuration.hasImplementation) {
             IDF::MachineImplementation* idf =
                 dsdb.implementation(configuration.implementationID);
+
+            // remove removed busses from orginal implementation file
             std::list<std::string>::const_iterator busNameIter = 
                 removedBusNames.begin();
             while (busNameIter != removedBusNames.end()) {
                 idf->removeBusImplementation(*busNameIter);
                 busNameIter++;
             }
+
             DSDBManager::MachineConfiguration newConfiguration;
-            newConfiguration.architectureID = lastArchID;
-            newConfiguration.hasImplementation = true;
+            newConfiguration.architectureID = lastOKArchID;
+
             CostEstimates newEstimates;
             if (explorer.evaluate(newConfiguration, newEstimates, false)) {
                 newConfiguration.implementationID = 
@@ -373,15 +404,15 @@ private:
                 delete idf;
                 idf = NULL;
 
+                newConfiguration.hasImplementation = true;
+                // add new configuration
                 RowID confID = dsdb.addConfiguration(newConfiguration);
                 return confID;
             } else {
                 return confToMinimize;
             }
         } else {
-            delete newMach;
-            newMach = NULL;
-            return lastConfID;
+            return lastOKConfID;
         }
 
         assert(false);

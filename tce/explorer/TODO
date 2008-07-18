@@ -9,8 +9,10 @@
         not reached anymore.
     - [DONE] Pass frequency to the new MinimizeMachine and minimize fu/rf 
       according to all programs max cycle times.
+
   - Check that all CycleOptimizers functionality is implemented in plugins
     and remove the module.
+  - remove InitialMachineGenerator plugin
 
 - initial machine generator:
     - should be able to use a config as a starting point. initial adf as default.
@@ -21,23 +23,15 @@
 - new plugin for op addition to given configuration.
     - paramaters for (custom) ops addition to the machine.
 
-- new plugin for to handle immediate templates.
-    - Minimize busses should consider immediate templates, remove and create
-      new.
-
-- DesingSpaceExplorer:
-    - timeout/max cycle count for simulate.
-    - watchdog thread (boost), or timer to simulator.
-
-- selectComponents:
-  - isn't this a generic exploration method that should be moved to 
-  the base class or to ComponentImplementationSelector
+- SimpleICOptimizer:
+    - remove tpef usage, make to use .bc if needed anymore
 
 - tcecc support:
   - should be able to read program.bc instead of sequential_program 
   - call tcecc instead of scheduler to compile 
   - no sequential simulation: initial machine generator simply uses
     initial.adf     
+  - ei sekventiaalista tpef enään vaan skeduloitu tpef.
 
 - testing:
   - (FrequencySweepExplorer) create a (long) systemtest with at least 3 
@@ -47,5 +41,55 @@
     /home/wor/work/svnroot/trunk/tce/systemtest/bintools/Scheduler/tests/FFT/r4fftditinplace_no_custom_op
   - tests for plugings that use more than one application.
 
+- explorer should be able to add application dirs where all .bc files are read
+  and application files explicitely.
+
 - Update the documentation for the plugins.
   - state clearly what is needed in application dir for specific plugin.
+
+- make new function to llvmbackend module that does compilation and simulation with
+  default plan.
+
+- these use old testaplication: [DONE?]
+    DesignSpaceExplorer.cc [DONE?]
+    FrequencySweepExplorer.cc
+    MinimizeMachine.cc
+
+- depracate the use of initial machine generator
+    FrequencySweepExplorer.cc 
+
+- just call tcecc python script for .bc file before compiling and scheduling
+  for now.
+
+- Add a plugin that takes a adf or some other reference of ops
+    and checks that other adf has these ops (base opset requirement)
+
+- make system test for minimize machine by growing the minimal adf and then
+    minimizing it and checking resulting adf against minimal adf.
+
+- make tcecc output possible with verbose or debug params only.
+
+- what is needed from adf at minimum, guard-registers?
+
+FIX frequency sweep plugin systemtest long.
+FIX LLVMBackend.hh compile/schedule functions to use const machine.
+
+REDO: debug and verbose printing using application module
+    add -v parameter for verbose level to explorer.cc
+
+TODO: make longest path selection of units in implementation selector module a
+    function.
+
+ComponentAdder test case and systemtest long ones to be fixed.
+Look for unkown files, bzr add needed. tests seem to be ok.
+check diffs and make commit. is evaluate.cc plugin clean enough?
+
+Commit next to tce-1.0:
+
+DONE tce/src/applibs/LLVMBackend/LLVMBackend.{hh,cc} tce/src/applibs/LLVMBackend/Makefile.am 
+DONE Environment.{cc.hh}
+
+do not merge to tce-1.0:
+tce/src/applibs/LLVMBackend/LowerMissingInstructions.cc
+
+

@@ -478,7 +478,7 @@ CycleOptimizer::minimizeBuses(
             newConfiguration.hasImplementation = false;
             lastConfID = dsdb_.addConfiguration(newConfiguration);
             CostEstimates newEstimates;
-            if (!explorer.evaluate(newConfiguration, newEstimates, false)) {
+            if (explorer.evaluate(newConfiguration, newEstimates, false)) {
                 for (int i = 0; i < newEstimates.cycleCounts(); i++) {
                     // resets the currentMinCycles 
                     if (i == 0) {

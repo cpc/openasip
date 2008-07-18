@@ -1,6 +1,6 @@
 <?php
 // short test description
-$test_description="GrowMachine/InitialMachineExplorer Explorer plugin test case.";
+$test_description="GrowMachine Explorer plugin test case.";
 
 // the binary being tested
 $test_bin="./run_growmachine.sh";

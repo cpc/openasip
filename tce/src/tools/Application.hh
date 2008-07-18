@@ -99,7 +99,8 @@ public:
         const std::string fileName,
         const int lineNumber,
         const std::string functionName,
-        const std::string message);
+        const std::string message,
+        const int neededVerbosity = 0);
 
     static void exitProgram(const int status = EXIT_SUCCESS);
     static void abortProgram();

@@ -68,6 +68,8 @@ public:
         throw (OutOfRange);
     virtual int operationCount() const;
 
+    virtual void operationNames(std::set<std::string>& opNames) const;
+
     virtual int maxLatency() const;
 
     virtual void addPipelineElement(PipelineElement& element)

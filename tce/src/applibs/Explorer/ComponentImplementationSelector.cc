@@ -4,6 +4,7 @@
  * Implementation of ComponentImplementationSelector class
  *
  * @author Jari M‰ntyneva 2006 (jari.mantyneva@tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta@tut.fi)
  * @note rating: red
  */
 
@@ -549,3 +550,323 @@ ComponentImplementationSelector::iuImplementations(
     }
     return results;
 }
+
+
+/**
+ * Selects the implementations for machine configuration.
+ *
+ * Stores created idf to the given configuration and the configuration hold
+ * information in the given dsdb. If no machine is given then read the machine
+ * from dsdb through given configuration.
+ *
+ * @param conf Machine configuration.
+ * @param dsdb DSDB where implementation is added.
+ * @param mach Machine for what the implementation is generated.
+ * @param icDecoder The name of the ic decoder plugin for idf.
+ * @param icDecoderHDB The name of the hdb used by ic decoder plugin.
+ * @param frequency The minimum frequency of the implementations.
+ * @param maxArea The maximum area of the implementations.
+ */
+void 
+ComponentImplementationSelector::selectComponentsToConf(
+    DSDBManager::MachineConfiguration& conf, 
+    DSDBManager& dsdb, 
+    TTAMachine::Machine* mach,
+    const std::string& icDecoder, 
+    const std::string& icDecoderHDB,
+    const double& frequency,
+    const double& maxArea) throw(Exception) {
+
+    if (mach == NULL) {
+        try {
+            mach = dsdb.architecture(conf.architectureID);
+        } catch (const Exception& e) {
+            Exception error(__FILE__, __LINE__, __func__, 
+                    e.errorMessage());
+            error.setCause(e);
+            throw error;
+        }
+    }
+        
+    IDF::MachineImplementation* idf = NULL;
+    try {
+        // building the idf
+        idf = selectComponents(
+                mach, icDecoder, icDecoderHDB, frequency, maxArea);
+    } catch (const Exception& e) {
+        Exception error(__FILE__, __LINE__, __func__, 
+                e.errorMessage());
+        error.setCause(e);
+        conf.hasImplementation = false;
+        throw error;
+    }
+
+    conf.implementationID = dsdb.addImplementation(*idf, 0, 0);
+    conf.hasImplementation = true;
+}
+
+
+/**
+ * Selects the implementations for the machine configuration.
+ *
+ * @param configuration MachineConfiguration of which architecture is used.
+ * @param frequency The minimum frequency of the implementations.
+ * @param icDecoder The name of the ic decoder plugin for idf.
+ * @param icDecoderHDB The name of the hdb used by ic decoder plugin.
+ * @return RowID of the new machine configuration having adf and idf.
+ * @exception Exception No suitable implementations found.
+ */
+IDF::MachineImplementation*
+ComponentImplementationSelector::selectComponents(
+    const TTAMachine::Machine* mach,
+    const std::string& icDecoder, 
+    const std::string& icDecoderHDB,
+    const double& frequency,
+    const double& maxArea) throw(Exception) {
+
+
+    HDBRegistry& hdbRegistry = HDBRegistry::instance();
+    for (int i = 0; i < hdbRegistry.hdbCount(); i++) {
+        addHDB(hdbRegistry.hdb(i));
+    }
+
+    IDF::MachineImplementation* idf = new IDF::MachineImplementation;
+
+    // select implementations for funtion units
+    selectFUs(mach, idf, frequency, maxArea);
+
+    // select implementations for register files
+    selectRFs(mach, idf);
+
+    // select implementations for immediate units
+    selectIUs(mach, idf, frequency, maxArea);
+
+    // add the ic decoder plugin
+    std::vector<std::string> icDecPaths =
+        Environment::icDecoderPluginPaths();
+    idf->setICDecoderPluginName(icDecoder);
+    idf->setICDecoderHDB(icDecoderHDB);
+    std::vector<std::string>::const_iterator iter = icDecPaths.begin();
+    for (; iter != icDecPaths.end(); iter++) {
+        std::string path = *iter;
+        std::string file = 
+            path + FileSystem::DIRECTORY_SEPARATOR + icDecoder + "Plugin.so";
+        if (FileSystem::fileExists(file)) {
+            idf->setICDecoderPluginFile(file);
+            break;
+        }
+    }
+
+    return idf;
+}
+
+
+/**
+ * Selects the implementations for FUs in the machine configuration.
+ *
+ * frequency and maxArea to zero by default.
+ * TODO: throw more appropriate exceptions
+ */
+void
+ComponentImplementationSelector::selectFUs(
+        const TTAMachine::Machine* mach,
+        IDF::MachineImplementation* idf,
+        const double& frequency,
+        const double& maxArea,
+        const bool& filterLongestPathDelay) throw (Exception) {
+
+    Machine::FunctionUnitNavigator fuNav = mach->functionUnitNavigator();
+
+    // select implementations for funtion units
+    for (int i = 0; i < fuNav.count(); i++) {
+        FunctionUnit* fu = fuNav.item(i);
+
+        map<const IDF::FUImplementationLocation*, CostEstimates*> fuMap =
+            fuImplementations(*fu, frequency, maxArea);
+        map<const IDF::FUImplementationLocation*,
+            CostEstimates*>::const_iterator iter = fuMap.begin();
+
+        if (fuMap.size() != 0) {
+            map<const IDF::FUImplementationLocation*,
+                CostEstimates*>::const_iterator wanted = iter;
+
+            if (filterLongestPathDelay) {
+                double longestPathDelay = 0;
+                while (iter != fuMap.end()) {
+                    CostEstimates* estimate = iter->second;
+                    if (estimate == NULL) {
+                        std::string errorMsg = "When selecting FUs regarding"
+                            " longest path delay, no cost estimates were"
+                            " found for FU: " + fu->name();
+                        Application::writeToErrorLog(
+                                __FILE__, __LINE__, __func__, errorMsg, 1);
+                        break;
+                    }
+                    if (longestPathDelay < estimate->longestPathDelay()) {
+                        longestPathDelay = estimate->longestPathDelay();
+                        wanted = iter;
+                    }
+                    iter++;
+                }
+            }
+
+            const IDF::FUImplementationLocation* fuImpl = (*wanted).first;
+            ObjectState* state = fuImpl->saveState();
+            IDF::FUImplementationLocation* newFUImpl =
+                new IDF::FUImplementationLocation(state);
+
+            try {
+                idf->addFUImplementation(newFUImpl);
+            } catch (const Exception& e) {
+                Exception error(__FILE__, __LINE__, __func__, 
+                        e.errorMessage());
+                error.setCause(e);
+                throw error;
+            }
+        } else {
+            throw Exception(
+                    __FILE__, __LINE__, __func__,
+                    "no implementations found for FU: " + fu->name());
+        }
+    }
+}
+
+
+/**
+ * Selects the implementations for RFs in the machine configuration.
+ * 
+ * Selects the the RF that has biggest longest path delay.
+ *
+ */
+void
+ComponentImplementationSelector::selectRFs(
+        const TTAMachine::Machine* mach,
+        IDF::MachineImplementation* idf,
+        const double& frequency,
+        const double& maxArea) throw (Exception) {
+
+    Machine::RegisterFileNavigator rfNav = mach->registerFileNavigator();
+    
+    // selects the register that has biggest longest path delay
+    for (int i = 0; i < rfNav.count(); i++) {
+        RegisterFile* rf = rfNav.item(i);
+        map<const IDF::RFImplementationLocation*, CostEstimates*> rfMap;
+
+        // check if the register is boolean register.
+        if (rf->isUsedAsGuard()) {
+            // select from guarded registers
+            rfMap = rfImplementations(*rf, true, frequency, maxArea);
+        } else {
+            // select from non guarded registers
+            rfMap = rfImplementations(*rf, false, frequency, maxArea);
+        }
+
+        map<const IDF::RFImplementationLocation*,
+            CostEstimates*>::const_iterator iter = rfMap.begin();
+        if (rfMap.size() != 0) {
+            double longestPathDelay = 0;
+
+            map<const IDF::RFImplementationLocation*,
+                CostEstimates*>::const_iterator wanted = iter;
+            while (iter != rfMap.end()) {
+                CostEstimates* estimate = iter->second;
+                if (estimate == NULL) {
+                    std::string errorMsg = "When selecting RFs regarding"
+                        " longest path delay, no cost estimates were"
+                        " found for RF: " + rf->name();
+                    Application::writeToErrorLog(
+                            __FILE__, __LINE__, __func__, errorMsg, 1);
+                    break;
+                }
+                if (longestPathDelay < estimate->longestPathDelay()) {
+                    longestPathDelay = estimate->longestPathDelay();
+                    wanted = iter;
+                }
+                iter++;
+            }
+            const IDF::RFImplementationLocation* rfImpl = (*wanted).first;
+            ObjectState* state = rfImpl->saveState();
+            IDF::RFImplementationLocation* newRFImpl = 
+                new IDF::RFImplementationLocation(state);
+            try {
+                idf->addRFImplementation(newRFImpl);
+            } catch (const Exception& e) {
+                Exception error(__FILE__, __LINE__, __func__, 
+                        e.errorMessage());
+                error.setCause(e);
+                throw error;
+            }
+        } else {
+            throw Exception(
+                    __FILE__, __LINE__, __func__,
+                    "no implementations found for RF: " + rf->name());
+        }
+    }
+}
+
+
+/**
+ * Selects the implementations for IUs in the machine configuration.
+ *
+ */
+void
+ComponentImplementationSelector::selectIUs(
+        const TTAMachine::Machine* mach,
+        IDF::MachineImplementation* idf,
+        const double& frequency,
+        const double& maxArea) throw (Exception) {
+
+    Machine::ImmediateUnitNavigator iuNav = mach->immediateUnitNavigator();
+    
+    // select implementations for immediate units
+    for (int index = 0; index < iuNav.count(); index++) {
+        TTAMachine::ImmediateUnit* iu = iuNav.item(index);
+
+        map<const IDF::IUImplementationLocation*, CostEstimates*> iuMap =
+            iuImplementations(*iu, frequency, maxArea);
+        map<const IDF::IUImplementationLocation*,
+            CostEstimates*>::const_iterator iter = iuMap.begin();
+
+        if (iuMap.size() != 0) {
+            double longestPathDelay = 0;
+
+            map<const IDF::RFImplementationLocation*,
+                CostEstimates*>::const_iterator wanted = iter;
+
+            while (iter != iuMap.end()) {
+                CostEstimates* estimate = iter->second;
+                if (estimate == NULL) {
+                    std::string errorMsg = "When selecting IUs regarding"
+                        " longest path delay, no cost estimates were"
+                        " found for IU: " + iu->name();
+                    Application::writeToErrorLog(
+                            __FILE__, __LINE__, __func__, errorMsg, 1);
+                    break;
+                }
+                if (longestPathDelay < estimate->longestPathDelay()) {
+                    longestPathDelay = estimate->longestPathDelay();
+                    wanted = iter;
+                }
+                iter++;
+            }
+
+            const IDF::IUImplementationLocation* iuImpl = (*wanted).first;
+            ObjectState* state = iuImpl->saveState();
+            IDF::IUImplementationLocation* newIUImpl = 
+                new IDF::IUImplementationLocation(state);
+            try {
+                idf->addIUImplementation(newIUImpl);
+            } catch (const Exception& e) {
+                Exception error(__FILE__, __LINE__, __func__, 
+                        e.errorMessage());
+                error.setCause(e);
+                throw error;
+            }
+        } else {
+            throw Exception(
+                    __FILE__, __LINE__, __func__,
+                    "no implementations found for IU: " + iu->name());
+        }
+    }
+}
+

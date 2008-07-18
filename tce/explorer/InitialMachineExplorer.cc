@@ -6,8 +6,10 @@
  * programs but not optimized in any way.
  *
  * @author Jari M‰ntyneva 2007 (jari.mantyneva@tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta@tut.fi)
  * @note rating: red
  */
+
 #include <vector>
 #include <string>
 #include "DesignSpaceExplorerPlugin.hh"

@@ -11,12 +11,11 @@
 #define TTA_DESIGN_SPACE_EXPLORER_HH
 
 #include <set>
+#include <vector>
 #include <istream>
 #include "Application.hh"
 #include "Exception.hh"
 #include "SimulatorConstants.hh"
-#include "SchedulingPlan.hh"
-#include "SchedulerFrontend.hh"
 #include "PluginTools.hh"
 #include "Estimator.hh"
 #include "DSDBManager.hh"
@@ -59,11 +58,18 @@ public:
     static DesignSpaceExplorerPlugin* loadExplorerPlugin(
         const std::string& pluginName, DSDBManager& dsdb)
         throw (FileNotFound, DynamicLibraryException);
+    void buildMinimalOpSet(const TTAMachine::Machine* machine = NULL);
+    std::set<std::string> minimalOpSet() const;
+    bool checkMinimalOpSet(const TTAMachine::Machine& machine) const;
+    void missingOperations(
+        const TTAMachine::Machine& machine,
+        std::vector<std::string>& missingOps) const;
+
 protected:
     TTAProgram::Program* schedule(
-        const TTAProgram::Program& sequentialProgram,
-        const TTAMachine::Machine& machine)
-        throw (Exception);
+        const std::string applicationFile,
+        TTAMachine::Machine& machine,
+        const unsigned int debug = 0);
     
     const ExecutionTrace* simulate(
         const TTAProgram::Program& program,
@@ -71,22 +77,21 @@ protected:
         const TestApplication& testApplication,
         const ClockCycleCount& maxCycles,
         ClockCycleCount& runnedCycles,
-        const bool tracing)
+        const bool tracing,
+        const bool useCompiledSimulation = false)
         throw (Exception);
 
 private:
     /// Design space database where results are stored.
     DSDBManager* dsdb_;
-    /// Scheduling plan.
-    SchedulingPlan* schedulingPlan_;
-    /// The scheduler frontend.
-    SchedulerFrontend scheduler_;
     /// The plugin tool.
     static PluginTools pluginTool_;
     /// The estimator frontend.
     CostEstimator::Estimator estimator_;
     /// Output stream.
     std::ostringstream* oStream_;
+    // minimal opset
+    std::set<std::string> minimalOpSet_;
 };
 
 #endif

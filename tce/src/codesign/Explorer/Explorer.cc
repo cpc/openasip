@@ -163,6 +163,9 @@ int main(int argc, char* argv[]) {
 
     Application::initialize();    
 
+    // boolean to check if done something useful
+    bool doneUseful = false;
+
     // Parses the command line options.
     ExplorerCmdLineOptions options;
     try {
@@ -172,6 +175,13 @@ int main(int argc, char* argv[]) {
     } catch (const IllegalCommandLine& i) {
         std::cerr << i.errorMessage() <<  std::endl;
         return EXIT_FAILURE;
+    }
+
+    int verboseLevel = options.verboseLevel();
+    if (verboseLevel < 0) {
+        Application::setVerboseLevel();
+    } else {
+        Application::setVerboseLevel(verboseLevel);
     }
 
     // Only argument should be dsdb.
@@ -341,20 +351,21 @@ int main(int argc, char* argv[]) {
 
     // Check the test application directories.
     int testDirectories = options.testApplicationDirectoryCount();
-    if (testDirectories > 0) {
-        for (int i = 0; i < testDirectories; i++) {
-            std::string testDir = options.testApplicationDirectory(i);
-            if (FileSystem::fileExists(testDir) &&
+    for (int i = 0; i < testDirectories; i++) {
+        std::string testDir = options.testApplicationDirectory(i);
+        if (FileSystem::fileExists(testDir) &&
                 FileSystem::fileIsDirectory(testDir)) {
-                if (!dsdb->hasApplication(testDir)) {
-                    dsdb->addApplication(testDir);
-                }
-            } else {
-                std::cerr << "Application directory '" << testDir
-                          << "' does not exists." << std::endl;
+            if (!dsdb->hasApplication(testDir)) {
+                dsdb->addApplication(testDir);
             }
+        } else {
+            std::cerr << "Application directory '" << testDir
+                      << "' does not exists." << std::endl;
         }
-    } else if (testDirectories < 1 && !dsdb->applicationCount()) {
+        doneUseful = true;
+    }
+
+    if (testDirectories < 1 && !dsdb->applicationCount()) {
         // used plugin may not need a test application, or the app is
         // provided to the plugin with its own parameter
         std::cout << "Warning: No test application paths given or found in "
@@ -384,8 +395,12 @@ int main(int argc, char* argv[]) {
     std::string pluginToUse = "";
     pluginToUse = options.explorerPlugin();
     if (pluginToUse == "") {
-        std::cerr << "No explorer plugin given." << std::endl;
-        return EXIT_FAILURE;
+        if (!doneUseful) {
+            std::cerr << "No explorer plugin given." << std::endl;
+            return EXIT_FAILURE;
+        } else {
+            return EXIT_SUCCESS;
+        }
     }
     
     // Check the parameters to be passed to the explorer plugin.

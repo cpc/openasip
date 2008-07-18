@@ -23,6 +23,8 @@ GRAPH_DIR = ../../base/Graph
 PROGE_APPLIBS = ../../applibs/ProGe
 BEM_APPLIBS = ../../applibs/bem
 IDF_APPLIBS = ../../applibs/idf
+LLVMBACKEND_APPLIBS = ../../applibs/LLVMBackend
+OSAL_APPLIBS = ../../applibs/osal
 
 bin_PROGRAMS = explore
 bin_SCRIPTS = buildexplorerplugin
@@ -47,9 +49,11 @@ explore_LDADD = ${LIB_BASE_DIR}/libttabase.la \
 	${DSDB_DIR}/libdsdb.la \
 	${PROGE_APPLIBS}/libproge.la \
 	${BEM_APPLIBS}/libapplibsbem.la \
-	${IDF_APPLIBS}/libapplibsidf.la
-	${GRAPH_DIR}/libgraph.la
-
+	${IDF_APPLIBS}/libapplibsidf.la \
+	${GRAPH_DIR}/libgraph.la \
+	${EXPLORER_APPLIBS_DIR}/libexplorer.la \
+	${LLVMBACKEND_APPLIBS}/libtcellvmbackend.la \
+	${OSAL_APPLIBS}/libapplibsosal.la
 
 AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \
@@ -57,7 +61,8 @@ AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
 	-I${LIB_APPLIBS_MACH_DIR} -I${EXPLORER_APPLIBS_DIR} \
 	-I${SCHEDULER_APPLIBS_DIR} -I${UM_DIR} \
 	-I${ESTIMATOR_APPLIBS_DIR} -I${COSTDB_DIR} -I${DSDB_DIR} \
-	-I${GRAPH_DIR} -I${PROGE_APPLIBS} -I${IDF_APPLIBS} -I${BEM_APPLIBS}
+	-I${GRAPH_DIR} -I${PROGE_APPLIBS} -I${IDF_APPLIBS} -I${BEM_APPLIBS} \
+	-I${LLVMBACKEND_APPLIBS} -I${OSAL_APPLIBS}
 AM_LDFLAGS = ${BOOST_LIBDIR} ${BOOST_PYTHON_LIB} ${SQLITE_LIBDIR} \
     ${TCL_LD_FLAGS} ${XERCES_LIBS} ${EDITLINE_LD_FLAGS}
 

@@ -18,6 +18,7 @@
 #include "HDBRegistry.hh"
 #include "HDBManager.hh"
 #include "Estimator.hh"
+#include "DSDBManager.hh"
 
 namespace TTAMachine {
     class FunctionUnit;
@@ -74,6 +75,42 @@ public:
     iuImplementations(
         const TTAMachine::ImmediateUnit& iu, double frequencyMHz = 0,
         double maxArea = 0);
+
+    void selectComponentsToConf(
+        DSDBManager::MachineConfiguration& conf, 
+        DSDBManager& dsdb, 
+        TTAMachine::Machine* mach = NULL,
+        const std::string& icDecoder = "ic_hdb",
+        const std::string& icDecoderHDB = "asic_130nm_1.5V.hdb", 
+        const double& frequency = 0,
+        const double& maxArea = 0) throw(Exception);
+
+    IDF::MachineImplementation* selectComponents(
+        const TTAMachine::Machine* mach,
+        const std::string& icDecoder = "ic_hdb",
+        const std::string& icDecoderHDB = "asic_130nm_1.5V.hdb", 
+        const double& frequency = 0,
+        const double& maxArea = 0) throw(Exception);
+
+    void selectFUs(
+        const TTAMachine::Machine* mach,
+        IDF::MachineImplementation* idf,
+        const double& frequency = 0,
+        const double& maxArea = 0,
+        const bool& filterLongestPathDelay = true) throw (Exception);
+
+    void selectRFs(
+        const TTAMachine::Machine* mach,
+        IDF::MachineImplementation* idf,
+        const double& frequency = 0,
+        const double& maxArea = 0) throw (Exception);
+    
+    void selectIUs(
+        const TTAMachine::Machine* mach,
+        IDF::MachineImplementation* idf,
+        const double& frequency = 0,
+        const double& maxArea = 0) throw (Exception);
+
 private:
     /// HDBs from which implementations are serched are stored in this set
     std::set<std::string> usedHDBs_;

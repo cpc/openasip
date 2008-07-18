@@ -32,6 +32,10 @@ const std::string SWS_TEST_DIR_ADD = "d";
 const std::string SWL_START_ID = "start";
 /// Short switch string for giving a start configuration id.
 const std::string SWS_START_ID = "s";
+/// Long switch for verbose level.
+const std::string SWL_VERBOSE_LEVEL = "verbose";
+/// Short switch for verbose level.
+const std::string SWS_VERBOSE_LEVEL = "v";
 /// Long switch string for number of configurations flag.
 const std::string SWL_CONFIGURATION_SUMMARY = "conf_summary";
 /// Short switch string for number of configurations flag.
@@ -96,6 +100,11 @@ ExplorerCmdLineOptions::ExplorerCmdLineOptions() : CmdLineOptions("") {
             SWL_START_ID,
             "Starting point configuration ID in the DSDB.",
             SWS_START_ID));
+    addOption(
+        new IntegerCmdLineOptionParser(
+            SWL_VERBOSE_LEVEL,
+            "The level of verbosity of errors and warnings.",
+            SWS_VERBOSE_LEVEL));
     addOption(
         new StringCmdLineOptionParser(
             SWL_CONFIGURATION_SUMMARY,
@@ -418,6 +427,24 @@ ExplorerCmdLineOptions::startConfiguration() const {
         return findOption(SWL_START_ID)->integer();
     } else {
         return 0;
+    }
+}
+
+/**
+ * Returns the ID of the start configuration given as option.
+ *
+ * If start configuration option was not given returns zero.
+ *
+ * @return The ID of given start configuration or zero if the option was not
+ * used.
+ */
+int
+ExplorerCmdLineOptions::verboseLevel() const {
+
+    if (findOption(SWL_VERBOSE_LEVEL)->isDefined()) {
+        return findOption(SWL_VERBOSE_LEVEL)->integer();
+    } else {
+        return -1;
     }
 }
 
