@@ -813,6 +813,32 @@ Environment::minimalADF() {
 
 
 /**
+ * Returns full path to the tce compiler tcecc.
+ *
+ * @return Full path to the tce compiler tcecc.
+ */
+string
+Environment::tceCompiler() {
+
+    if (!DISTRIBUTED_VERSION) {
+        // first find from the src tree
+        std::string srcPath =
+            string(TCE_SRC_ROOT) + "/src/bintools/Compiler/tcecc";
+
+        if (FileSystem::fileExists(srcPath))
+            return srcPath;
+    } 
+    std::string path =
+        string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
+        "/bin/tcecc";
+    assert(
+        FileSystem::fileExists(path) &&
+        "Installation broken, tcecc not found.");
+    return path;
+}
+
+
+/**
  * Returns full path to the default scheduler pass configuration file.
  *
  * @return Full path to the default_scheduler.conf
@@ -836,6 +862,7 @@ Environment::defaultSchedulerConf() {
         "Installation broken, default_scheduler.conf not found.");
     return path;
 }
+
 
 /**
  * Returns full path to the old gcc scheduler pass configuration file.

@@ -428,12 +428,12 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     std::string tblgenbin;
     if (DISTRIBUTED_VERSION) {
-       tblgenbin = std::string(TCE_INSTALLATION_ROOT) + DS + "bin" + DS +
-           "tblgen";
+        tblgenbin = std::string(TCE_INSTALLATION_ROOT) + DS + "bin" + DS +
+            "tblgen";
     } else {
-       tblgenbin = std::string(TCE_SRC_ROOT) + DS +
-           "src" + DS + "ext" + DS + "llvm" + DS + LLVM_VERSION + DS +
-           "TableGen" + DS + "tblgen";
+        tblgenbin = std::string(TCE_SRC_ROOT) + DS +
+            "src" + DS + "ext" + DS + "llvm" + DS + LLVM_VERSION + DS +
+            "TableGen" + DS + "tblgen";
     }
        
     // Generate TCEGenRegisterNames.inc
@@ -456,7 +456,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             " -I" + tmpDir +
             " -I`llvm-config --includedir`";
     } else {
-	tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
+        tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
             " -I" + tmpDir + " -I" + LLVM_INCLUDEDIR;
     }
 

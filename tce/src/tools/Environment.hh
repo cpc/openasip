@@ -55,6 +55,7 @@ public:
 
     static std::string pdfManual();
     static std::string minimalADF();
+    static std::string tceCompiler();
     static std::string defaultSchedulerConf();
     static std::string oldGccSchedulerConf();
     static std::string defaultICDecoderPlugin();
