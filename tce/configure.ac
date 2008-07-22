@@ -657,6 +657,7 @@ AM_CONDITIONAL(WX, test x$DO_WX_COMPILE = xtrue)
 
 # If tcl is not in standard path, its location can be given with
 # --with-tcl=<path>.
+AC_LANG(C++)
 AC_ARG_WITH(tcl,
 [AC_HELP_STRING([--with-tcl], [absolute path where tcl is found])],
 [
@@ -719,7 +720,7 @@ AC_PREPROC_IFELSE(
   [[
   printf(TCL_VERSION"\n");
   ]])])
-  $CC $CPPFLAGS -o tclversiontest conftest.c
+  $CXX $CPPFLAGS -o tclversiontest conftest.cpp
   TCL_VERSION=`./tclversiontest`
   rm -f ./tclversiontest
   AC_MSG_RESULT([yes ($TCL_VERSION)])
