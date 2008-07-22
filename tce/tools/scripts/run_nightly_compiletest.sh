@@ -76,6 +76,7 @@ function start_compiletest {
     export CXX="ccache g++${ALTGCC}"
     export CC="ccache gcc${ALTGCC}"
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros"
+    export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros"
     export TCE_CONFIGURE_SWITCHES="--disable-python"
 
     tools/scripts/compiletest.sh $@
