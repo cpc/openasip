@@ -9,7 +9,7 @@
 
 #include "OSAL.hh"
 
-OPERATION(OPER1);
+OPERATION(OPER1)
 
 TRIGGER
 SIntWord in1;

@@ -10,7 +10,7 @@
 
 #include "OSAL.hh"
 
-OPERATION(OPER1);
+OPERATION(OPER1)
 
 TRIGGER
 UIntWord in1;

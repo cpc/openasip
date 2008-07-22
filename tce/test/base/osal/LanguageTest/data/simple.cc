@@ -11,7 +11,7 @@
 
 #include "OSAL.hh"
 
-OPERATION(ADD4);
+OPERATION(ADD4)
 
 TRIGGER
 
