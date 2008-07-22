@@ -1520,6 +1520,7 @@ DefaultICGenerator::convertDirection(
     switch (direction) {
     case Socket::INPUT: return HDB::OUT;
     case Socket::OUTPUT: return HDB::IN;
+    case Socket::UNKNOWN: assert(false);
     }
     
     assert(false);

@@ -77,13 +77,12 @@ public:
         DSDBManager& dsdb = db();
         DSDBManager::MachineConfiguration conf;
         conf.hasImplementation = false;
-        Machine* mach = NULL;
+        TTAMachine::Machine* mach = NULL;
 
         // load the adf from file or from dsdb
         try {
             if (adf_ != "") {
-                TTAMachine::Machine* mach = 
-                    TTAMachine::Machine::loadFromADF(adf_);
+                mach = TTAMachine::Machine::loadFromADF(adf_);
             } else {
                 conf = dsdb.configuration(configurationID);
                 mach = dsdb.architecture(conf.architectureID);
@@ -222,4 +221,4 @@ private:
     }
 };
 
-EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ImplementationSelector);
+EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ImplementationSelector)

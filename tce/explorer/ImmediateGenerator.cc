@@ -472,7 +472,8 @@ private:
             busP = busNav.item(bus);
 
             if (overSpill > 0) {
-                if (overSpill < (busP->width() - widthPart_)) {
+                if (overSpill < static_cast<int>(
+                            busP->width() - widthPart_)) {
                     widthAdd = overSpill;
                     overSpill = -1; // all spilled
                 } else {
@@ -513,4 +514,4 @@ private:
     }
 };
 
-EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ImmediateGenerator);
+EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ImmediateGenerator)

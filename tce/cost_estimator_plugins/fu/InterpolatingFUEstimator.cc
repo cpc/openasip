@@ -469,4 +469,4 @@ CostDBTypes::EntryTable createSearch(const FunctionUnit& fu) const {
 
 };
 
-EXPORT_FU_COST_ESTIMATOR_PLUGIN(InterpolatingFUEstimator);
+EXPORT_FU_COST_ESTIMATOR_PLUGIN(InterpolatingFUEstimator)

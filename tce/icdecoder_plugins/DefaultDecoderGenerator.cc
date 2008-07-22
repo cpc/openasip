@@ -429,7 +429,6 @@ int
 DefaultDecoderGenerator::glockRequestWidth() const {
 
     Machine::FunctionUnitNavigator fuNav = machine_.functionUnitNavigator();
-    Netlist& netlist = decoderBlock_->netlist();
 
     int lockReqWidth(0);
     for (int i = 0; i < fuNav.count(); i++) {
@@ -1052,8 +1051,8 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
     
     Machine::InstructionTemplateNavigator itNav = 
         machine_.instructionTemplateNavigator();
-    if (itNav.count() == 0 || itNav.count() == 1 &&
-        itNav.item(0)->isEmpty()) {
+    if (itNav.count() == 0 || (itNav.count() == 1 &&
+        itNav.item(0)->isEmpty())) {
         return;
     }
 
@@ -1067,7 +1066,6 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
         int indLevel = 3;
         if (bem_.hasImmediateControlField()) {
             indLevel = 4;
-            ImmediateControlField& icField = bem_.immediateControlField();
             if (i == 0) {
                 stream << indentation(3) << "if ("
                        << instructionTemplateCondition(iTemp->name()) 
@@ -1113,8 +1111,6 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
             stream << indentation(indLevel)
                    << iuWriteLoadCntrlPort(iu->name()) << " <= '0';" << endl;
 
-            int msb = iu->width() - 1;
-            int lsb = 0;
             stream << indentation(indLevel)
                    << iuWritePort(iu->name())
                    << "(" << (iu->width() - 1) << " downto 0"
@@ -1123,17 +1119,13 @@ DefaultDecoderGenerator::writeInstructionTemplateProcedures(
     } else {
         for (int i = 0; i < iuNav.count(); i++) {
             ImmediateUnit* iu = iuNav.item(i);
-            int immWidth = iTemp.supportedWidth(*iu);
             if (iTemp.isOneOfDestinations(*iu)) {
+                int msb = iu->width() - 1; 
+                int lsb = iTemp.supportedWidth(*iu) - 
+                    iTemp.supportedWidth(iTemp.slotOfDestination(*iu, 0));
                 for (int j = 0; j < iTemp.numberOfSlots(*iu); j++) {
                     string slot = iTemp.slotOfDestination(*iu, j);
-                    int msb;
-                    int lsb;
-                    if (j == 0) {
-                        msb = iu->width() - 1;
-                        lsb = iTemp.supportedWidth(*iu) - 
-                            iTemp.supportedWidth(slot);
-                    } else {
+                    if (j != 0) {
                         msb = lsb-1;
                         lsb = msb - iTemp.supportedWidth(slot) + 1;
                     }
@@ -1493,7 +1485,6 @@ DefaultDecoderGenerator::writeBusControlRulesOfOutputSocket(
         Bus* bus = *iter;
         MoveSlot& slot = bem_.moveSlot(bus->name());
         SourceField& srcField = slot.sourceField();
-        SocketEncoding& enc = srcField.socketEncoding(socket.name());
         stream << indentation(4) << "if (" 
                << socketEncodingCondition(srcField, socket.name()) 
                << " and " << squashSignal(bus->name()) << " = '0') then"
@@ -2749,7 +2740,6 @@ DefaultDecoderGenerator::portCodeCondition(
         signalName = dstFieldSignal(parent->parent()->name());
     }
 
-    SocketCodeTable* table = code.parent();
     int codeStart;
     if (parent->componentIDPosition() == BinaryEncoding::RIGHT) {
         codeStart = socketEnc.socketIDWidth() + code.indexWidth();

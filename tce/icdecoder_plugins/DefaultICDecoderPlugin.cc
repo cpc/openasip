@@ -635,7 +635,8 @@ private:
         HDB::HDBManager& hdb = hdbRegistry.hdb(implementation.hdbFile());
 
         try {
-            DelayInNanoSeconds delay = hdb.busCostEstimationData(
+            //DelayInNanoSeconds delay = hdb.busCostEstimationData(
+            hdb.busCostEstimationData(
                 "throughput_delay", implementationId, name_).doubleValue();
 
         } catch (const Exception& e) {
@@ -722,7 +723,7 @@ private:
         for (std::vector<std::size_t>::iterator i = allWidths.begin(); 
              i != allWidths.end(); ++i) {
 
-            const int width = *i;
+            const unsigned int width = *i;
 
             // how many input widths fits in the current width?
             std::size_t fanIn = 0;
@@ -754,14 +755,14 @@ private:
             parameters.dataWidth = width;
             combinations.push_back(parameters);
             
-            for (int n = 0; n < inputWidths.size(); n++) {
+            for (unsigned int n = 0; n < inputWidths.size(); n++) {
                 if (inputWidths.at(n) > width) {
                     inputWidths.at(n) = inputWidths.at(n) - width;
                 } else {
                     inputWidths.at(n) = 0;
                 }
             }
-            for (int n = 0; n < outputWidths.size(); n++) {
+            for (unsigned int n = 0; n < outputWidths.size(); n++) {
                 if (outputWidths.at(n) > width) {
                     outputWidths.at(n) = outputWidths.at(n) - width;
                 } else {
@@ -769,7 +770,7 @@ private:
                 }
             }
 
-            for (int n = 0; n < allWidths.size(); n++) {
+            for (unsigned int n = 0; n < allWidths.size(); n++) {
                 if (allWidths.at(n) > width) {
                     allWidths.at(n) = allWidths.at(n) - width;
                 } else {
@@ -834,7 +835,8 @@ private:
             if (bus.isConnectedTo(socket)) {
                 std::size_t width = 0;
                 for (int port = 0; port < socket.portCount(); port++) {
-                    if (socket.port(port)->width() > width) {
+                    if (static_cast<unsigned int>(
+                                socket.port(port)->width()) > width) {
                         width = socket.port(port)->width();
                     }
                 }

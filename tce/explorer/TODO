@@ -88,6 +88,7 @@ Commit next to tce-1.0:
 
 DONE tce/src/applibs/LLVMBackend/LLVMBackend.{hh,cc} tce/src/applibs/LLVMBackend/Makefile.am 
 DONE Environment.{cc.hh}
+DONE Explorer.cc
 
 do not merge to tce-1.0:
 tce/src/applibs/LLVMBackend/LowerMissingInstructions.cc

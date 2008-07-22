@@ -307,4 +307,4 @@ public:
 
 };
 
-EXPORT_RF_COST_ESTIMATOR_PLUGIN(StrictMatchRFEstimator);
+EXPORT_RF_COST_ESTIMATOR_PLUGIN(StrictMatchRFEstimator)

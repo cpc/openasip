@@ -537,4 +537,4 @@ void createSearchTypes() {
 
 };
 
-EXPORT_RF_COST_ESTIMATOR_PLUGIN(InterpolatingRFEstimator);
+EXPORT_RF_COST_ESTIMATOR_PLUGIN(InterpolatingRFEstimator)

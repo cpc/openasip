@@ -21,9 +21,9 @@
 // default value when nothing given as parameter or environment variable.
 #define BYPASS_DISTANCE 1
 
-CLBBypasserModule::CLBBypasserModule() : clbs_(NULL), 
-                                         bypassDistance_(BYPASS_DISTANCE),
-                                         killDeadResults_(true) {
+CLBBypasserModule::CLBBypasserModule() : bypassDistance_(BYPASS_DISTANCE), 
+                                         killDeadResults_(true),
+                                         clbs_(NULL) {
 }
 
 CLBBypasserModule::~CLBBypasserModule() {

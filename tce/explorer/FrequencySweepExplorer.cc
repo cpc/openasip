@@ -143,7 +143,7 @@ public:
         if (verbose_ > 1) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "GrowMachine plugin produced initial configs: ";
-            for (int i = 0; i < cycleOptimizedConfs.size(); ++i) {
+            for (unsigned int i = 0; i < cycleOptimizedConfs.size(); ++i) {
                 msg << cycleOptimizedConfs.at(i) << " ";
             }
             msg << endl;
@@ -485,4 +485,4 @@ private:
 
 };
 
-EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(FrequencySweepExplorer);
+EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(FrequencySweepExplorer)

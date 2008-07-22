@@ -117,6 +117,7 @@ public:
             errorOuput(msg.str());
             return result;
         }
+        return result;
     }
 
 private:
@@ -166,7 +167,7 @@ private:
     void removeUnconnectedFUs(TTAMachine::Machine& mach,
         std::vector<std::string>& removedFUNames) {
 
-        MachineTester& tester = mach.machineTester();
+        //MachineTester& tester = mach.machineTester();
         Machine::SocketNavigator socketNav = mach.socketNavigator();
 
         Machine::FunctionUnitNavigator FUNav = mach.functionUnitNavigator();
@@ -297,4 +298,4 @@ private:
 
 };
 
-EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(RemoveUnconnectedComponents);
+EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(RemoveUnconnectedComponents)

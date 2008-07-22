@@ -288,4 +288,4 @@ public:
 
 };
 
-EXPORT_FU_COST_ESTIMATOR_PLUGIN(StrictMatchFUEstimator);
+EXPORT_FU_COST_ESTIMATOR_PLUGIN(StrictMatchFUEstimator)

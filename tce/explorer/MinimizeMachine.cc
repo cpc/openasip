@@ -703,5 +703,4 @@ private:
     }
 };
 
-EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(MinimizeMachine);
-
+EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(MinimizeMachine)

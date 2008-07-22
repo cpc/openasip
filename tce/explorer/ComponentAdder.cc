@@ -304,16 +304,16 @@ private:
                     32, RFReadPorts_, RFWritePorts_, 0,
                     TTAMachine::RegisterFile::NORMAL);
             for (int n = 0; n < RFReadPorts_; n++) {
-                TTAMachine::RFPort* port = new TTAMachine::RFPort(
-                        "read" + Conversion::toString( + 1), *rf);
+                new TTAMachine::RFPort("read" + 
+                        Conversion::toString( + 1), *rf);
             }
             for (int n = 0; n < RFWritePorts_; n++) {
-                TTAMachine::RFPort* port = new TTAMachine::RFPort(
-                        "write" + Conversion::toString(n + 1), *rf);
+                new TTAMachine::RFPort("write" + 
+                        Conversion::toString(n + 1), *rf);
             }
             mach->addRegisterFile(*rf);
         }
     }
 };
 
-EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ComponentAdder);
+EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ComponentAdder)
