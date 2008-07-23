@@ -33,4 +33,4 @@ public:
     }
 };
 
-EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(TestExplorerPlugin);
+EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(TestExplorerPlugin)
