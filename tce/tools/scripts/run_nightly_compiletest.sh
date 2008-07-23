@@ -69,7 +69,6 @@ function install_llvm-frontend {
 
 function start_compiletest {
     cd "${BRANCH_DIR}/tce"
-    autoreconf >>${OUTPUT} 2>&1
 
     export ERROR_MAIL=yes
     export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
@@ -78,6 +77,8 @@ function start_compiletest {
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros"
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros"
     export TCE_CONFIGURE_SWITCHES="--disable-python"
+
+    autoreconf >>${OUTPUT} 2>&1
 
     tools/scripts/compiletest.sh $@
 
