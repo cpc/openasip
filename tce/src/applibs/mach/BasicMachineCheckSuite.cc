@@ -14,6 +14,7 @@
 
 #include "OperationBindingCheck.hh"
 #include "RFPortCheck.hh"
+#include "RegisterQuantityCheck.hh"
 
 /**
  * The Constructor.
@@ -21,6 +22,7 @@
 BasicMachineCheckSuite::BasicMachineCheckSuite() : MachineCheckSuite() {    
     addCheck(new OperationBindingCheck);
     addCheck(new RFPortCheck);
+    addCheck(new RegisterQuantityCheck);
 }
 
 /**

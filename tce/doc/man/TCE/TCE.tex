@@ -4042,7 +4042,8 @@ Designer (ProDe, Section~\ref{sec:prode}) tool. Start ProDe with:
 % 
 % \paragraph{Adding a bool register file}
 % Add another register file as done above. This time, name the register file boolRF
-% and set the width and size of the of the RF to 1 bit and guard latency to 0.
+% and set the width of the of the RF to 1 bit and size of thr RF to be 2 
+% and guard latency to 0.
 % 
 % \paragraph{Adding interconnection network.}
 % Next add two transport buses to the machine so we can actually generate
@@ -4053,7 +4054,10 @@ Designer (ProDe, Section~\ref{sec:prode}) tool. Start ProDe with:
 % that \textit{Always true guard} is checked. Click \textit{Add} from the
 % \textit{Register file guards} dialog. Next select boolRF as the \textit{Register
 % file} and click OK. Then repeat this, but this time check the \textit{Inverted}
-% box. Other default values should be OK for this example, so just click OK on the
+% box. Then change the register index from 0 to 1 and do this again, adding
+% two guards(non-inverted and inverted) also to register 1.
+
+% Other default values should be OK for this example, so just click OK on the
 % Bus dialog. Add another bus similarly.
 % 
 % Finally, create a fully connected interconnection network by connecting the

@@ -6,7 +6,7 @@ MachineCheckResults.cc MachineCheckSuite.cc MachineConnectivityCheck.cc \
 FullyConnectedCheck.cc MachineResourceModifier.cc AddressSpaceCheck.cc \
 ReservationTable.cc FUCollisionMatrixIndex.cc FUReservationTableIndex.cc \
 CollisionMatrix.cc RFPortCheck.cc BasicMachineCheckSuite.cc MachineInfo.cc \
-OperationBindingCheck.cc
+OperationBindingCheck.cc RegisterQuantityCheck.cc
 
 PROJECT_ROOT = ../../..
 
