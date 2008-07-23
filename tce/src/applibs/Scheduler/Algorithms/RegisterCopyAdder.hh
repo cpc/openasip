@@ -61,32 +61,50 @@ public:
     RegisterCopyAdder(InterPassData& data, SimpleResourceManager& rm);
     virtual ~RegisterCopyAdder();
 
-    int addMinimumRegisterCopies(
+    typedef std::pair<MoveNode*,MoveNode*> MoveNodePair;
+    typedef std::map<const MoveNode*, MoveNodePair>
+    AddedRegisterCopyMap;
+
+    struct AddedRegisterCopies {
+        AddedRegisterCopies(int count);
+        AddedRegisterCopies();
+        int count_;
+        AddedRegisterCopyMap copies_;
+    };
+
+    AddedRegisterCopies addMinimumRegisterCopies(
         ProgramOperation& programOperation,
         const TTAMachine::Machine& targetMachine,
-        DataDependenceGraph& ddg);
+        DataDependenceGraph* ddg);
 
 private:
-    int addRegisterCopies(
+    AddedRegisterCopies addRegisterCopies(
         ProgramOperation& programOperation,
         const TTAMachine::FunctionUnit& fu,
+        bool countOnly = true,
         DataDependenceGraph* ddg = NULL);
 
     int addConnectionRegisterCopies(
         MoveNode& originalMove,
         const TTAMachine::Port& sourcePort,
         const TTAMachine::Port& destinationPort,
-        DataDependenceGraph* ddg = NULL);
+        bool countOnly = true,
+        DataDependenceGraph* ddg = NULL,
+        MoveNodePair* addedNodes = NULL);
 
     int addConnectionRegisterCopiesImmediate(
         MoveNode& originalMove,
         const TTAMachine::Port& destinationPort,
-        DataDependenceGraph* ddg = NULL);
+        bool countOnly = true,
+        DataDependenceGraph* ddg = NULL,
+        MoveNodePair* addedNodes = NULL);
 
     int addConnectionRegisterCopies(
         MoveNode& moveNode,
         const TTAMachine::FunctionUnit& fu,
-        DataDependenceGraph* ddg = NULL);
+        bool countOnly = true,
+        DataDependenceGraph* ddg = NULL,
+        MoveNodePair* addedNodes = NULL);
 
     void addCandidateSetAnnotations(
         ProgramOperation& programOperation,

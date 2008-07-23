@@ -6,7 +6,7 @@
  * @todo rename the file to match the class name
  *
  * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
- * @note rating: yellow
+ * @note rating: orange
  * @note reviewed 16-17 January 2008 by pj, pk, ml, hk
  */
 
@@ -76,7 +76,7 @@ RegisterCopyAdder::requiredRegisterCopiesForEachFU(
         std::string operationName = programOperation.operation().name();
         if (unit.hasOperation(operationName)) {
             registerCopiesRequired[&unit] = 
-                addRegisterCopies(programOperation, unit);
+                addRegisterCopies(programOperation, unit).count_;
         }
     }
 
@@ -92,18 +92,16 @@ RegisterCopyAdder::requiredRegisterCopiesForEachFU(
  *
  * @param programOperation The operation execution.
  * @param targetMachine The target machine.
- * @param ddg If NULL, no register copies are really added, only
- * the required copies are counted, otherwise register copies are added and
- * the DDG is updated.
- * @return The count of register copies added.
+ * @param ddg ddg which to update when adding temp reg moves. Can be NULL.
+ * @return Data which temp reg mvoes were added.
  * @exception In case there was no such FU that could be connected with 
  *            a temp register chain of maximal length of 2 copies.
  */
-int
+RegisterCopyAdder::AddedRegisterCopies
 RegisterCopyAdder::addMinimumRegisterCopies(
     ProgramOperation& programOperation,
     const TTAMachine::Machine& targetMachine,
-    DataDependenceGraph& ddg) {
+    DataDependenceGraph* ddg) {
 
     RegisterCopyCountIndex 
         registerCopiesRequired = 
@@ -132,15 +130,18 @@ RegisterCopyAdder::addMinimumRegisterCopies(
         // some FUs require the copies and thus the FU selection should be
         // restricted to those which do not require any copies
         addCandidateSetAnnotations(programOperation, targetMachine);
-        return 0;
+        // return empty
+        return AddedRegisterCopies();
+
     } else if (min < INT_MAX) {
         // add register copies as if the operation was assigned to that FU
-        addRegisterCopies(programOperation, *unit, &ddg);
+            AddedRegisterCopies copies = 
+                addRegisterCopies(programOperation, *unit, false, ddg);
         
         // create the FU candidate set now that we have added the register
         // copies
         addCandidateSetAnnotations(programOperation, targetMachine); 
-        return min;
+        return copies;
     } else {
         throw IllegalMachine(
             __FILE__, __LINE__, __func__, 
@@ -157,46 +158,56 @@ RegisterCopyAdder::addMinimumRegisterCopies(
  *
  * @param programOperation The operation execution.
  * @param fu The function unit the operation should be able to be assigned to.
- * @param ddg If NULL, no register copies are really added, only
- * the required copies are counted, otherwise register copies are added and
- * the DDG is updated.
- * @return Returns the count of register copies required if the given operation
+ * @param countOnly whether to only count or do the register copies.
+ * @param ddg ddg to update, or NULL.
+ * @return Returns data about register copies required if the given operation
  * execution was assigned to the given FU.
  */
-int
+RegisterCopyAdder::AddedRegisterCopies
 RegisterCopyAdder::addRegisterCopies(
     ProgramOperation& programOperation,
     const TTAMachine::FunctionUnit& fu,
+    bool countOnly,
     DataDependenceGraph* ddg) {
     
-    const bool countOnly = (ddg == NULL);
-    int registerCopies = 0;
+    AddedRegisterCopies copies;
+    int registerCopyCount = 0;
     for (int input = 0; input < programOperation.inputMoveCount(); ++input) {
         MoveNode& m = programOperation.inputMove(input);                
-        const int copies = addConnectionRegisterCopies(m, fu, ddg);
-        if (copies == INT_MAX) {
+        MoveNodePair addedNodes(NULL,NULL);
+        const int count = addConnectionRegisterCopies(
+            m, fu, countOnly, ddg, &addedNodes);
+        if (count == INT_MAX) {
             if (countOnly)
                 return INT_MAX;
             else
                 assert(false && "Temp moves not possible for the FU.");
         }
-        
-        registerCopies += copies;
+        registerCopyCount += count;
+        if (count != 0 && !countOnly) {
+            copies.copies_[&m] = addedNodes;
+        }
     }
 
     for (int output = 0; output < programOperation.outputMoveCount(); 
          ++output) {
         MoveNode& m = programOperation.outputMove(output);
-        const int copies = addConnectionRegisterCopies(m, fu, ddg);
-        if (copies == INT_MAX) {
+        MoveNodePair addedNodes(NULL,NULL);
+        const int count = addConnectionRegisterCopies(
+            m, fu, countOnly, ddg, &addedNodes);
+        if (count == INT_MAX) {
             if (countOnly)
                 return INT_MAX;
             else
                 assert(false && "Temp moves not possible for the FU.");
         }
-        registerCopies += copies;        
+        registerCopyCount += count;
+        if (count != 0 && !countOnly) {
+            copies.copies_[&m] = addedNodes;
+        }
     }
-    return registerCopies;
+    copies.count_ = registerCopyCount;
+    return copies;
 }
 
 /**
@@ -209,9 +220,9 @@ RegisterCopyAdder::addRegisterCopies(
  * case connectivity is missing.
  * @param sourcePort The source port.
  * @param destinationPort The destination port.
- * @param ddg If NULL, no register copies are really added, only the 
- *        required copies are counted, otherwise register copies are added 
- *        and the DDG is updated.
+ * @param countOnly whether to only count or do the register copies.
+ * @param ddg ddg to update
+ * @param addedNodes place to store information about added regcopies.
  * @return Returns the count of register copies required.
  * @exception Exception Throws in case the machine does not have
  *            enough connectivity even when 2 register copies are used.
@@ -221,7 +232,9 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     MoveNode& originalMove,
     const TTAMachine::Port& sourcePort,
     const TTAMachine::Port& destinationPort,
-    DataDependenceGraph* ddg) {
+    bool countOnly,
+    DataDependenceGraph* ddg,
+    MoveNodePair* addedNodes) {
 
     if (MachineConnectivityCheck::isConnected(sourcePort, destinationPort))
         return 0;
@@ -239,8 +252,6 @@ RegisterCopyAdder::addConnectionRegisterCopies(
 
     const TempRegData& tempRegs = 
         dynamic_cast<TempRegData&>(interPassData_.datum("SCRATCH_REGISTERS"));
-
-    const bool countOnly = (ddg == NULL);
 
     const int minRegisterWidth = 
         std::min(sourcePort.width(), destinationPort.width());
@@ -337,7 +348,6 @@ RegisterCopyAdder::addConnectionRegisterCopies(
             destinationPort.parentUnit()->name() + " cannot be reached.");
     }
     
-    BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);        
 
     /* two options:
        1:
@@ -396,14 +406,28 @@ RegisterCopyAdder::addConnectionRegisterCopies(
         // input move
         firstMove = new MoveNode(originalMove.move().copy());
         lastMove = &originalMove;
-        ddg->addNode(*firstMove,bbn);
+        if (ddg != NULL) {
+            BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);        
+            ddg->addNode(*firstMove,bbn);
+        }
+        if (addedNodes != NULL) {
+            addedNodes->first = firstMove;
+        }
+
         firstMove->move().addAnnotation(connMoveAnnotation);
 
     } else if (originalMove.move().source().isFUPort()) {
         // output move
         firstMove = &originalMove;
         lastMove = new MoveNode(originalMove.move().copy());
-        ddg->addNode(*lastMove,bbn);
+        if (ddg != NULL) {
+            BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);        
+            ddg->addNode(*lastMove,bbn);
+        }
+        if (addedNodes != NULL) {
+            addedNodes->first = lastMove;
+        }
+
         lastMove->move().addAnnotation(connMoveAnnotation);
     } else {
         abortWithError("Can add temp regs only for operation moves.");
@@ -438,7 +462,13 @@ RegisterCopyAdder::addConnectionRegisterCopies(
         regToRegCopy->move().setDestination(temp2->copy());
         lastMoveSrc = temp2;
         
-        ddg->addNode(*regToRegCopy,bbn);
+        if (ddg != NULL) {
+            BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);        
+            ddg->addNode(*regToRegCopy,bbn);
+        }
+        if (addedNodes != NULL) {
+            addedNodes->second = regToRegCopy;
+        }
         regToRegCopy->move().addAnnotation(connMoveAnnotation);
     }
 
@@ -446,11 +476,13 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     lastMove->move().setSource(lastMoveSrc);
     lastMove->move().setDestination(originalDestination);
 
-    // update the DDG edges
-    fixDDGEdgesInTempRegChain(
-        *ddg, originalMove, firstMove, regToRegCopy, lastMove, tempRF1,
-        tempRF2, tempRegisterIndex1, tempRegisterIndex2);
-
+    if (ddg != NULL) {
+        // update the DDG edges
+        fixDDGEdgesInTempRegChain(
+            *ddg, originalMove, firstMove, regToRegCopy, lastMove, tempRF1,
+            tempRF2, tempRegisterIndex1, tempRegisterIndex2);
+    }
+    
     return regsRequired;
 }
 
@@ -467,9 +499,9 @@ RegisterCopyAdder::addConnectionRegisterCopies(
  *        connectivity. Will be modified to read from the temporary reg 
  *        instead.
  * @param destinationPort The destination port.
- * @param ddg If NULL, no register copies are really added, only
- *        the required copies are counted, otherwise register copies are added 
- *        and the DDG is updated.
+ * @param countOnly whether to count only or do the reg copies.
+ * @param ddg ddg to update, or null if none.
+ * @param addedNodes place to put data about added reg copies.
  * @return Returns the count of register copies required.
  * @exception Exception Throws in case the machine does not have
  *            enough connectivity even when 2 register copies are used or 
@@ -479,7 +511,9 @@ int
 RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
     MoveNode& originalMove,
     const TTAMachine::Port& destinationPort,
-    DataDependenceGraph* ddg) {
+    bool countOnly,
+    DataDependenceGraph* ddg,
+    MoveNodePair* addedNodes) {
        
     assert(originalMove.isSourceConstant());
 
@@ -496,8 +530,6 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
 
     const TempRegData& tempRegs = 
         dynamic_cast<TempRegData&>(interPassData_.datum("SCRATCH_REGISTERS"));
-
-    const bool countOnly = (ddg == NULL);
 
     const TTAProgram::TerminalImmediate& immediate =
         dynamic_cast<const TTAProgram::TerminalImmediate&>(
@@ -601,7 +633,6 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
     if (countOnly)
         return regsRequired;
 
-    BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);
 
     /* two options:
        1:
@@ -661,7 +692,15 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
         // input move
         firstMove = new MoveNode(originalMove.move().copy());
         lastMove = &originalMove;
-        ddg->addNode(*firstMove,bbn);
+
+        if (ddg != NULL) {
+            BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);
+            ddg->addNode(*firstMove,bbn);
+        } 
+        if (addedNodes != NULL) {
+            addedNodes->first = firstMove;
+        }
+            
         firstMove->move().addAnnotation(connMoveAnnotation);
     } else {
         abortWithError("Can add imm temp regs only for FU or RF moves.");
@@ -696,7 +735,14 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
         regToRegCopy->move().setDestination(temp2->copy());
         lastMoveSrc = temp2;
         
-        ddg->addNode(*regToRegCopy,bbn);
+        if (ddg != NULL) {
+            BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);
+            ddg->addNode(*regToRegCopy,bbn);
+        } 
+        if (addedNodes != NULL) {
+            addedNodes->second = regToRegCopy;
+        }
+
         regToRegCopy->move().addAnnotation(connMoveAnnotation);
     }
 
@@ -704,10 +750,12 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
     lastMove->move().setSource(lastMoveSrc);
     lastMove->move().setDestination(originalDestination);
 
-    // update the DDG edges
-    fixDDGEdgesInTempRegChain(
-        *ddg, originalMove, firstMove, regToRegCopy, lastMove, tempRF1,
-        tempRF2, tempRegisterIndex1, tempRegisterIndex2);
+    if (ddg != NULL) {
+        // update the DDG edges
+        fixDDGEdgesInTempRegChain(
+            *ddg, originalMove, firstMove, regToRegCopy, lastMove, tempRF1,
+            tempRF2, tempRegisterIndex1, tempRegisterIndex2);
+    }
 
     return regsRequired;
 }
@@ -888,19 +936,19 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
  *
  * @param moveNode The transport.
  * @param fu The assumed function unit assigned to the operation of the move.
- * @param ddg If NULL, no register copies are really added, only
- *        the required copies are counted, otherwise register copies are added 
- *        and the DDG is updated.
+ * @param countOnly whether to just count or really do the reg copies.
+ * @param ddg ddg to be updated.
+ * @param addedNode place to put data about added regcopies.
  * @return Returns the count of register copies required.
  */
 int 
 RegisterCopyAdder::addConnectionRegisterCopies(
     MoveNode& moveNode,
     const TTAMachine::FunctionUnit& fu,
-    DataDependenceGraph* ddg) {
+    bool countOnly,
+    DataDependenceGraph* ddg,
+    MoveNodePair* addedNodes) {
     
-    const bool countOnly = (ddg == NULL);
-
     // collect the set of possible candidate destination ports (in case of 
     // RFs, there can be multiple ports)
     TTAProgram::Terminal& dest = moveNode.move().destination();
@@ -1047,7 +1095,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
             abortWithError("Should be an impossible situation.");
         }
         return addConnectionRegisterCopiesImmediate(
-            moveNode, *(*dstPorts.begin()), ddg);
+            moveNode, *(*dstPorts.begin()), countOnly, ddg, addedNodes);
     } else if (source.isImmediate() && dest.isGPR()) {
         // IMM -> REG should always be possible, at least after LIMM
         // conversion (all IUs must be connected to all RFs), so no temp 
@@ -1112,7 +1160,8 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     const TTAMachine::Port& dst = *(bestConnection->second);
 
     // actually add the connection now that we have found the best way
-    return addConnectionRegisterCopies(moveNode, src, dst, ddg);
+    return addConnectionRegisterCopies(
+        moveNode, src, dst, countOnly, ddg, addedNodes);
 }
 
 /**
@@ -1186,3 +1235,12 @@ RegisterCopyAdder::addCandidateSetAnnotations(
     }
 }
 
+/**
+ * Constructor.
+ *
+ * @param count count of register copies needed.
+ */
+RegisterCopyAdder::AddedRegisterCopies::AddedRegisterCopies(int count) :
+    count_(count) {}
+
+RegisterCopyAdder::AddedRegisterCopies::AddedRegisterCopies() : count_(0) {}

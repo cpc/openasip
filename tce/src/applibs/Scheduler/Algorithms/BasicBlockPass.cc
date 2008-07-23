@@ -84,10 +84,31 @@ BasicBlockPass::executeDDGPass(
 #endif
 
     // Find largest cycle any move was scheduled in DDG
-    // and largest cycle any of a pipelines is still used
-    const int ddgLastCycle = ddg->largestCycle();
-    const int rmLastCycle = rm->largestCycle();
-    assert(rmLastCycle >= ddgLastCycle);
+//    const int ddgLastCycle = ddg->largestCycle();
+
+    copyRMToBB(*rm, bb, targetMachine);
+
+    // deletes or stores rm for future use
+    deleteRM(rm, bb);
+    delete ddg;
+}
+
+
+/** 
+ * Copies moves back from resourcemanager to basicblock,
+ * putting them to correct instructions based in their cycle,
+ * and addign the final delay slots.
+ * 
+ * @param rm the resourcemanager
+ * @param bb the basicblock
+ * @param targetMachine machine we are scheduling for.
+ */
+void BasicBlockPass::copyRMToBB(
+    SimpleResourceManager& rm, BasicBlock& bb, 
+    const TTAMachine::Machine& targetMachine) {
+    // find the largest cycle any of a pipelines is still used
+    const int rmLastCycle = rm.largestCycle();
+//    assert(rmLastCycle >= ddgLastCycle);
     int lastCycle = rmLastCycle;
 
     // the location of the branch instruction in the BB
@@ -101,7 +122,7 @@ BasicBlockPass::executeDDGPass(
     bb.clear();
     for (int cycle = 0; cycle <= lastCycle; ++cycle) {
 
-        TTAProgram::Instruction* newInstruction = rm->instruction(cycle);
+        TTAProgram::Instruction* newInstruction = rm.instruction(cycle);
 
         if (newInstruction->hasControlFlowMove()) {
             assert(jumpCycle == -1 && "Multiple jumps in BB!");
@@ -119,10 +140,7 @@ BasicBlockPass::executeDDGPass(
         }
     }
 
-    // deletes or stores rm for future use
-    rm->loseInstructionOwnership();
-    deleteRM(rm, bb);
-    delete ddg;
+    rm.loseInstructionOwnership();
 }
 
 /**

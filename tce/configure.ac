@@ -1210,6 +1210,7 @@ AC_CONFIG_FILES([
   scheduler/passes/SequentialFirstFitResourceMapper/Makefile
   scheduler/passes/LinearScanAllocator/Makefile
   scheduler/passes/BasicBlockScheduler/Makefile
+  scheduler/passes/SequentialScheduler/Makefile
   opset/Makefile
   opset/base/Makefile
   src/applibs/Scheduler/ProgramRepresentations/Makefile

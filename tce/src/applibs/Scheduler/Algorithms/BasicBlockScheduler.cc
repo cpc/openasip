@@ -201,8 +201,11 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
     const int tempsAdded =
 #endif
 
-    regCopyAdder.addMinimumRegisterCopies(po, *targetMachine_, *ddg_);
-
+        regCopyAdder.addMinimumRegisterCopies(po, *targetMachine_, ddg_)
+#ifdef DEBUG_REG_COPY_ADDER
+        .count_
+#endif    
+        ;
 #ifdef DEBUG_REG_COPY_ADDER
     if (tempsAdded > 0) {
         ddg_->writeToDotFile(

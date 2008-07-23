@@ -6,7 +6,8 @@ AddressSpaceMapper.cc SimpleGuardAllocatorCore.cc RegisterMap.cc \
 LinearScanAllocatorCore.cc BasicBlockPass.cc RegisterCopyAdder.cc \
 SchedulerPass.cc ControlFlowGraphPass.cc ProgramPass.cc ProcedurePass.cc \
 InterPassData.cc SoftwareBypasser.cc CycleLookBackSoftwareBypasser.cc \
-DDGPass.cc CopyingDelaySlotFiller.cc BypasserModule.cc DSFillerModule.cc
+DDGPass.cc CopyingDelaySlotFiller.cc BypasserModule.cc DSFillerModule.cc \
+SequentialScheduler.cc
 
 
 libscheduleralgorithms_la_LIBADD = \
