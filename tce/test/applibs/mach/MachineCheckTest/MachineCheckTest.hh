@@ -15,6 +15,7 @@
 #include "FUPort.hh"
 #include "Machine.hh"
 #include "OperationBindingCheck.hh"
+#include "RegisterQuantityCheck.hh"
 
 class MachineCheckTest : public CxxTest::TestSuite {
 public:
@@ -25,6 +26,7 @@ public:
 
     void testMachineConnectivityCheck();
     void testOperationBindingCheck();
+    void testRegisterQuantityCheck();
 
 private:
     const TTAMachine::BaseFUPort& findFUPort(
@@ -175,6 +177,58 @@ MachineCheckTest::testOperationBindingCheck() {
     TS_ASSERT(!opc.check(*brokenMachine, res));
     TS_ASSERT_EQUALS(res.errorCount(),4);
 
+}
+
+void MachineCheckTest::testRegisterQuantityCheck() {
+
+    TTAMachine::Machine* okMachine = NULL;
+    TTAMachine::Machine* guardBrokenMachine = NULL;
+    TTAMachine::Machine* intBrokenMachine = NULL;
+    TTAMachine::Machine* brokenMachine = NULL;
+
+
+    CATCH_ANY(
+        guardBrokenMachine = 
+        TTAMachine::Machine::loadFromADF(
+            "data/10_bus_reduced_connectivity.adf"));
+
+    CATCH_ANY(
+        okMachine = 
+        TTAMachine::Machine::loadFromADF(
+            "data/minimal.adf"));
+
+    CATCH_ANY(
+        intBrokenMachine = 
+        TTAMachine::Machine::loadFromADF(
+            "data/intreg_missing.adf"));
+
+    CATCH_ANY(
+        brokenMachine = 
+        TTAMachine::Machine::loadFromADF(
+            "data/fewregs.adf"));
+
+    
+    RegisterQuantityCheck rqc;
+    MachineCheckResults resOK;
+    MachineCheckResults resGuard;
+    MachineCheckResults resInt;
+    MachineCheckResults resBroken;
+
+    TS_ASSERT(rqc.check(*okMachine, resOK));
+
+    TS_ASSERT(!(rqc.check(*guardBrokenMachine,resGuard)));
+    TS_ASSERT_EQUALS(resGuard.errorCount(),1);
+
+    TS_ASSERT(!(rqc.check(*intBrokenMachine,resInt)));
+    TS_ASSERT_EQUALS(resInt.errorCount(),1);
+
+    TS_ASSERT(!(rqc.check(*brokenMachine,resBroken)));
+    TS_ASSERT_EQUALS(resBroken.errorCount(),2);
+    
+    delete okMachine;
+    delete guardBrokenMachine;
+    delete intBrokenMachine;
+    delete brokenMachine;
 }
 
 #endif
