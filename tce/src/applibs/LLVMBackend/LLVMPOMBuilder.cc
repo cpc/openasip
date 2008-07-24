@@ -1019,7 +1019,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
                "CPE not found!");
 
         unsigned addr = currentFnCP_[idx];
-        SimValue cpeAddr(width, addr);
+        SimValue cpeAddr(addr, width);
         return new TTAProgram::TerminalImmediate(cpeAddr);
     } else if (mo.isGlobalAddress()) {
         std::string name = mang_->getValueName(mo.getGlobal());
