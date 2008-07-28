@@ -1365,9 +1365,8 @@ register files, buses, sockets) for the architectures.
 \textbf{TCE compiler} compiles high level language (such as 
 C/C++) source files provided by the toolset user and produces a bytecode
 program or a parallel TTA program. Bytecode program is a non-architecture
-specific sequential program that can be simulated and tested (not currently
-possible). Parallel TTA program, however, is a architecture specific program
-that is optimized for the target architecture.
+specific sequential program. Parallel TTA program, however, is 
+a architecture specific program that is optimized for the target architecture.
 
 The main idea between these two program formats is that you can compile your
 source code into bytecode and then compile the bytecode into architecture
@@ -2851,11 +2850,9 @@ t & syms & Prints the symbol tables. \\
 \section{Architecture Simulation and Debugging}
 
 TTA Processor \textbf{Simulator} simulates the process of running a TTA
-program on its target TTA processor, or in case of sequential 
-program, a ``virtual'' sequntial TTA processor called Universal 
-Machine). Provides profiling, utilization, and tracing data for Explorer,
-Estimator and Compiler Backend.  Additionally, it offers debugging
-capabilities. 
+program on its target TTA processor. Provides profiling, utilization, and 
+tracing data for Explorer, Estimator and Compiler Backend.  Additionally, 
+it offers debugging capabilities. 
 
 \textbf{Input}: TPEF, [ADF]
 
@@ -2884,8 +2881,7 @@ ttasim <options>
 \end{verbatim}
 
 In case of a parallel simulation, a machine description file can be given before
-giving the simulated program file. The machine file is not given in case of a
-sequential simulation. Neither machine file or the program file are mandatory;
+giving the simulated program file. Neither machine file or the program file are mandatory;
 they can also be given by means of the simulator control language.
 
 The possible options for the application are as follows:\\
@@ -2894,13 +2890,11 @@ The possible options for the application are as follows:\\
                 p{0.75\textwidth}}
 \textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
 \hline
-a & adf & Sets the architecture definition file (ADF). Not given in case of a sequential simulation \\
+a & adf & Sets the architecture definition file (ADF). \\
 d & debugmode & Start simulator in interactive "debugging mode". This is enabled by default. Use --no-debugmode to disable.\\
 e & execute-script & Executes the given string as a simulator control language script. For an examples of usage, see later in this section. \\
-p & program & Sets the program to be simulated. This is either a TTA program exchange format file (.TPEF)
-or a .SEQ in case of a sequential simulation \\
-q & quick & Simulates the program as fast as possible using the compiled
-simulation engine. \\
+p & program & Sets the program to be simulated. Program must be given as a TTA program exchange format file (.TPEF) \\
+q & quick & Simulates the program as fast as possible using the compiled simulation engine. \\
 \end{tabular}\\
 
 
@@ -2915,18 +2909,7 @@ without entering the debugging mode after simulation.
 ttasim --no-debugmode -a machine.adf -p program.tpef
 \end{verbatim}
 
-\paragraph{Example: Simulating a Sequential Program Without Entering Interactive
-Mode}
-
-The following command simulates a sequential program until the program's end
-without entering the debugging mode after simulation. The only difference to the
-parallel simulation is that the machine description is not given.
-
-\begin{verbatim}
-ttasim --no-debugmode -p program.tpef
-\end{verbatim}
-
-\paragraph{Example: Simulating a Sequential Program Until Main Function Without
+\paragraph{Example: Simulating a Program Until Main Function Without
 Entering Interactive Mode}
 
 The following command simulates a sequential program until its main function and
@@ -2935,7 +2918,7 @@ control language and the '-e' option, which allows entering scripts
 from the command line.
 
 \begin{verbatim}
-ttasim --no-debugmode -e "until main; puts [info proc cycles];" -p program.tpef
+ttasim --no-debugmode -e "until main; puts [info proc cycles];" -a machine.adf -p program.tpef
 \end{verbatim}
 
 \paragraph{Using the Interactive Debugging Mode}
@@ -3324,8 +3307,7 @@ Simulator to stop, in case of a watchpoint.
 The Simulator needs to know the file name of the program to
 simulate/debug and, usually, the Architecture Definition File (ADF)
 that describes the architecture of the target processor on which the
-program is going to run.  The name of the ADF is not necessary in
-case of a sequential program.
+program is going to run.  
 
 \begin{description}
 \item[prog {[\emph{filename}]}]%
@@ -3377,8 +3359,7 @@ value of some register is greater than some constant.
 \item[info proc stats] %
   In case of parallel simulation, displays current processor utilization
   statistics. In case 'rf\_tracking' setting is enabled and running parallel
-  simulation, also lists the detailed register file access information. In
-  sequential simulation, displays only operation utilization statistics.
+  simulation, also lists the detailed register file access information. 
 
 \item[info regfiles] %
   Prints the name of all the register files of the target processor.
@@ -5278,15 +5259,6 @@ This chapter gives solutions to common problems encountered while using TCE.
 Problems with simulation, both with command line (ttasim) and graphical
 user interfaces (proxim) are listed here.
 
-\subsection{Slow Simulation Speed}
-
-In TCE, the simulation speed in case of sequential code can be slower than
-in MOVE. This is because optimization efforts were directed to parallel
-simulation, and because MOVE's sequential code is not really sequential
-(multiple moves simulated per cycle) which speeds up simulation. On the
-contrary, parallel simulation should be faster in TCE than in MOVE.
-
-
 \subsection{Failing to Load Operation Behavior Definitions}
 
 It might be possible that you have defined some custom operations to
@@ -5325,7 +5297,7 @@ necessity. Currently it does not seem to be a very important feature.
 
 \subsection{Data Memory Addressing}
 
-There is no tool to map data memory accesses in the sequential code to the
+There is no tool to map data memory accesses in the source code to the
 actual target's memories. Therefore, you need to have a data memory which
 provides byte-addressing with 32-bit words. The data will be accessed using
 operations LDQ, LDH, LDW, STQ, STH, STW, which access the memory in 1 (q),

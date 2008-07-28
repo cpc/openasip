@@ -20,4 +20,4 @@ publish: TCE.dvi html
 	cp TCE_manual.pdf ../../../manual/
 
 publish_to_web: TCE.pdf TCE.ps html
-	scp -r TCE.pdf TCE.ps TCE tce@webhotel.cs.tut.fi:/export/services/tce.cs.tut.fi/public_html/user_manual
+	scp -r TCE.pdf TCE.ps TCE ${LINTULA_USERNAME}@webhotel.cs.tut.fi:/export/services/tce.cs.tut.fi/public_html/user_manual
