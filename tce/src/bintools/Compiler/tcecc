@@ -207,6 +207,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     if options.optimization_level == 0:
         optSwitches = defOptimization
+        options.sequential_schedule = True
 
     elif options.optimization_level == 1:
         optSwitches = defOptimization + " -std-compile-opts"
@@ -220,9 +221,10 @@ def optimizeBytecode(inFile, fileNamePrefix):
             "Optimization level " +\
             str(options.optimization_level) + " not defined.\n")
 
+    internalize_api_list = "-internalize-public-api-list=_start"
     if options.keep_symbols != "":
-        optSwitches += " -internalize-public-api-list=" +\
-                       options.keep_symbols
+        internalize_api_list += "," + options.keep_symbols
+    optSwitches += " " + internalize_api_list
 
     if options.noinline:
         optSwitches += " -disable-inlining"
@@ -263,8 +265,13 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
 
     outputName = fileNamePrefix + "_emul_internalized.bc"
 
+
+    internalize_api_list = " -internalize-public-api-list=_start"
+    if options.keep_symbols != "":
+        internalize_api_list += "," + options.keep_symbols
+    
     command = ("opt " + linkedName +
-    " -f -internalize -internalize-public-api-list=_start -o " + outputName)
+               " -f -internalize " + internalize_api_list + " -o " + outputName)
 
     if options.noinline:
         command += " -disable-inlining"
@@ -375,6 +382,10 @@ p.add_option('--clear-plugin-cache', action="store_true",
 p.add_option('--disable-inlining', action="store_true",
              dest="noinline", default=False,
              help="Disable function inlining.")
+
+p.add_option('--sequential-schedule', action="store_true",
+             dest="sequential_schedule", default=False,
+             help="Runs sequential scheduler for compiled code.")
 
 p.add_option('--debug', action="store_true",
              dest="debug", default=False,
@@ -521,13 +532,20 @@ if options.adf_file != "":
     # optimize and lower flaotingpoint
     emulationLinkedFileName = linkEmulationFuncs(optimizedFileName, namePrefix)
 
+    if options.sequential_schedule:
+        scheduler_config_file_name = "sequential_tcecc_scheduler.conf"
+    else:
+        scheduler_config_file_name = "default_scheduler.conf"        
+        
     if options.no_schedule is False and options.scheduler_config is None:
         if runningInstalled:
-            options.scheduler_config = \
-                tceprefix + "/share/tce/scheduler/passes/default_scheduler.conf"
+            options.scheduler_config = (tceprefix +
+                                        "/share/tce/scheduler/passes/" +
+                                        scheduler_config_file_name)
         else:
-            options.scheduler_config = \
-                os.path.normpath(srcRoot + "../scheduler/passes/default_scheduler.conf")
+            options.scheduler_config = os.path.normpath(srcRoot +
+                                                        "../scheduler/passes/" +
+                                                        scheduler_config_file_name)
 
     #### Compile to unscheduled mixed code for the target architecture
     if not runningInstalled:
