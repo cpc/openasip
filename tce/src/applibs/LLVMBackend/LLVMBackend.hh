@@ -36,7 +36,7 @@ class InterPassData;
 class LLVMBackend {
 public:
 
-    LLVMBackend(bool useCache = true);
+    LLVMBackend(bool useCache = true, bool useInstalledVersion = false);
     virtual ~LLVMBackend();
 
     TTAProgram::Program* compile(
@@ -85,6 +85,7 @@ private:
     std::string cachePath_;
 
     bool useCache_;
+    bool useInstalledVersion_;
     InterPassData* ipData_;
 
     static const std::string TCEPLUGINGEN_BIN;

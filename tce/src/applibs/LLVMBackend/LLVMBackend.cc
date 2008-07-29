@@ -56,8 +56,8 @@ const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
 /**
  * Constructor.
  */
-LLVMBackend::LLVMBackend(bool useCache):
-    useCache_(useCache) {
+LLVMBackend::LLVMBackend(bool useCache, bool useInstalledVersion):
+    useCache_(useCache), useInstalledVersion_(useInstalledVersion) {
 
     cachePath_ = Environment::llvmtceCachePath();
 
@@ -373,7 +373,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     // Static plugin source files path.
     std::string srcsPath;
     std::string pluginIncludeFlags;
-    if (DISTRIBUTED_VERSION) {
+    if (useInstalledVersion_) {
         srcsPath = std::string(TCE_INSTALLATION_ROOT) +  DS + "include" + DS;
         pluginIncludeFlags = " -I" + srcsPath;
     } else {
@@ -427,7 +427,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     }
 
     std::string tblgenbin;
-    if (DISTRIBUTED_VERSION) {
+    if (useInstalledVersion_) {
         tblgenbin = std::string(TCE_INSTALLATION_ROOT) + DS + "bin" + DS +
             "tblgen";
     } else {
@@ -439,7 +439,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     // Generate TCEGenRegisterNames.inc
     std::string tblgenCmd;
     
-    if (DISTRIBUTED_VERSION) {
+    if (useInstalledVersion_) {
         // This is quite ugly. LLVM include dir is determined by
         // executing llvm-config in the commandline. This doesn't
         // work if llvm-config is not found in path.

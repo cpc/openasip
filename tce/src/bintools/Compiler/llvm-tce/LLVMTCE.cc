@@ -129,11 +129,18 @@ main(int argc, char* argv[]) {
     std::string bytecodeFile = options.argument(1);
 
     bool debug = options.debugFlag();
-
+    
+    //--- check if program was ran in src dir or from install dir ---
+    std::string runPath = string(argv[0]);
+    bool useInstalledVersion = 
+        runPath.find("bintools/Compiler/llvm-tce/.libs") == string::npos &&
+        runPath.find("lt-llvm-tce") == string::npos;
+    
     // ---- Run compiler ----
     try {
         InterPassData* ipData = new InterPassData;
-        LLVMBackend compiler;
+        
+        LLVMBackend compiler(true, useInstalledVersion);
         TTAProgram::Program* seqProg =
             compiler.compile(bytecodeFile, *mach, optLevel, debug, ipData);
 
