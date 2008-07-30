@@ -182,6 +182,21 @@ RFDialog::setTexts() {
 bool
 RFDialog::TransferDataToWindow() {
 
+    updateWidgets();
+
+    return wxWindow::TransferDataToWindow();
+}
+
+
+/**
+ * Reads data form the RegisterFile and updates GUI.
+ *
+ */
+void
+RFDialog::updateWidgets() {
+
+    registerFile_->updateMaxReadsAndWrites();
+
     name_ = WxConversion::toWxString(registerFile_->name());
     size_ = registerFile_->numberOfRegisters();
     width_ = registerFile_->width();
@@ -215,10 +230,7 @@ RFDialog::TransferDataToWindow() {
             WxConversion::toWxString(maxWrites_));
     dynamic_cast<wxSpinCtrl*>(
         FindWindow(ID_GUARD_LATENCY))->SetValue(guardLatency_);
-
-    return wxWindow::TransferDataToWindow();
 }
-
 
 /**
  * Updates the port list widget.
@@ -385,6 +397,9 @@ RFDialog::onAddPort(wxCommandEvent&) {
     } else {
         delete port;
     }
+
+    updateWidgets();
+
 }
 
 
@@ -397,6 +412,8 @@ RFDialog::onDeletePort(wxCommandEvent&) {
     assert(selected != NULL);
     delete selected;
     updatePortList();
+
+    updateWidgets();
 }
 
 

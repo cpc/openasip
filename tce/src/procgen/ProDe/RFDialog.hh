@@ -39,6 +39,7 @@ private:
     void onActivatePort(wxListEvent& event);
     void onEditPort(wxCommandEvent& event);
     void onDeletePort(wxCommandEvent& event);
+    void updateWidgets();
     void updatePortList();
     void setTexts();
 

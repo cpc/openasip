@@ -198,10 +198,7 @@ OSEdInfoView::operationPropertyView(
     }
 
     // write "static" properties
-    writeStaticPropertiesOfOperation(op);
-    
-    // counter for the row
-    int i = 8;
+    int i = writeStaticPropertiesOfOperation(op);
     
     format fmt;
     
@@ -369,8 +366,10 @@ OSEdInfoView::insertOperationPropertyColumns() {
  * Writes the "static" operation properties in operation property view
  *
  * @param op Operation which static properties are written.
+ *
+ * @return Number of written properties.
  */
-void
+int
 OSEdInfoView::writeStaticPropertiesOfOperation(Operation* op) {
     
     OSEdTextGenerator& texts = OSEdTextGenerator::instance();
@@ -445,7 +444,7 @@ OSEdInfoView::writeStaticPropertiesOfOperation(Operation* op) {
     }
     i++;
     
-    // has side effects
+    // is clocked
     fmt = texts.text(OSEdTextGenerator::TXT_ROW_CLOCKED);
     InsertItem(i, WxConversion::toWxString(fmt.str()));
     if (op->isClocked()) {
@@ -455,6 +454,7 @@ OSEdInfoView::writeStaticPropertiesOfOperation(Operation* op) {
     }
     i++;
 
+    return i;
 }
 
 /**

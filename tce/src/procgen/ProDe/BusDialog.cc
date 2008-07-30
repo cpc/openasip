@@ -99,7 +99,7 @@ END_EVENT_TABLE()
 BusDialog::BusDialog(
     wxWindow* parent,
     Bus* bus):
-    wxDialog(parent, -1, _T(""), wxDefaultPosition),
+    wxDialog(parent, -1, _T(""), wxDefaultPosition, wxSize(300, 300)),
     bus_(bus),
     name_(_T("")),
     width_(ModelConstants::DEFAULT_WIDTH),
@@ -1110,7 +1110,8 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
 
     item2->Add( item7, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    //item1->Add( item2, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticBox *item11 = new wxStaticBox( parent, -1, wxT("Short Immediate:") );
     wxStaticBoxSizer *item10 = new wxStaticBoxSizer( item11, wxVERTICAL );
@@ -1134,7 +1135,8 @@ BusDialog::createContents(wxWindow *parent, bool call_fit, bool set_sizer) {
     wxRadioBox *item15 = new wxRadioBox( parent, ID_SI_EXTENSION, wxT("Extension"), wxDefaultPosition, wxDefaultSize, 2, strs15, 1, wxRA_SPECIFY_ROWS );
     item10->Add( item15, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    item1->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    item0->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+    //item1->Add( item10, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxCheckBox *item16 = new wxCheckBox( parent, ID_TRUE_GUARD, wxT("Always true guard"), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item16, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );

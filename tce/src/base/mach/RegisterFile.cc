@@ -98,6 +98,7 @@ RegisterFile::~RegisterFile() {
  */
 int
 RegisterFile::maxReads() const {
+    //updateMaxReadsAndWrites();
     return maxReads_;
 }
 
@@ -109,6 +110,7 @@ RegisterFile::maxReads() const {
  */
 int
 RegisterFile::maxWrites() const {
+    //updateMaxReadsAndWrites();
     return maxWrites_;
 }
 

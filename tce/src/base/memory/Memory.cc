@@ -8,6 +8,7 @@
  */
 
 #include <cstddef>
+#include <ios>
 
 #include <boost/format.hpp>
 #include "Memory.hh"
@@ -412,12 +413,16 @@ Memory::advanceClock() {
 void
 Memory::checkRange(Word startAddress, int numberOfMAUs) {
 
-    if (startAddress < start() || startAddress + numberOfMAUs > end())
+    unsigned int low = start(); 
+    unsigned int high = end(); 
+
+    if ((startAddress < low) || (startAddress > high - numberOfMAUs + 1)) {
         throw OutOfRange(
             __FILE__, __LINE__, __func__,
             (boost::format(
                 "Memory access at %d of size %d is out of the address space.")
              % startAddress % numberOfMAUs).str());
+    }
 }
 
 //////////////////////////////////////////////////////////////////////////////

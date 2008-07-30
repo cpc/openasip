@@ -44,7 +44,7 @@ private:
     void onSelection(wxListEvent& event);
     void onDropDownMenu(wxMouseEvent& event);
     void insertOperationPropertyColumns();
-    void writeStaticPropertiesOfOperation(Operation* op);
+    int  writeStaticPropertiesOfOperation(Operation* op);
 
     /**
      * Possible modes of info view.

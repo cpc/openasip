@@ -1188,11 +1188,19 @@ OperationPropertyDialog::createContents(
 
     wxBoxSizer *opHeaderSizer = new wxBoxSizer(wxHORIZONTAL);
 
+    wxBoxSizer *nameSizer = new wxBoxSizer(wxHORIZONTAL);
+
     wxStaticText *item2 = new wxStaticText(parent, ID_TEXT_NAME, wxT("Name:"), wxDefaultPosition, wxDefaultSize, 0);
-    item1->Add(item2, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+    nameSizer->Add(item2, 0, wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
+
+    wxTextCtrl *item3 = new wxTextCtrl(parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(200,-1), 0);
+    nameSizer->Add(item3, 0, wxALIGN_LEFT|wxALL, 5);
 
     wxStaticBox *opProperties = new wxStaticBox(parent, -1, wxT("Operation properties"));
-    wxStaticBoxSizer *opPropertiesContainer = new wxStaticBoxSizer(opProperties, wxGROW);
+    wxStaticBoxSizer *opPropertiesContainer = new wxStaticBoxSizer(opProperties, wxVERTICAL);
+    //wxStaticBoxSizer *opPropertiesContainer = new wxStaticBoxSizer(wxGROW, opProperties);
+
+    opPropertiesContainer->Add(nameSizer, 0, wxGROW, 5);
     opPropertiesContainer->Add(item1, 0, wxGROW, 5);
 
     wxStaticBox *opDescription = new wxStaticBox(parent, -1, wxT("Operation description"));
@@ -1203,9 +1211,6 @@ OperationPropertyDialog::createContents(
 
     opHeaderSizer->Add(opPropertiesContainer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL, 5);
     opHeaderSizer->Add(opDescriptionContainer, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL|wxALL|wxGROW, 5);
-
-    wxTextCtrl *item3 = new wxTextCtrl(parent, ID_NAME, wxT(""), wxDefaultPosition, wxSize(80,-1), 0);
-    item1->Add(item3, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
 
     wxCheckBox *item4 = new wxCheckBox(parent, ID_READS_MEMORY, wxT("Reads memory"), wxDefaultPosition, wxDefaultSize, 0);
     item1->Add(item4, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5);
