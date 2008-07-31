@@ -264,6 +264,9 @@ HDBEditorMainFrame::createHDB(const std::string& filePath) {
     }
 
     browser_->setHDBManager(*hdb_);
+    std::string title = "HDB Editor - " + FileSystem::fileOfPath(filePath);
+    SetTitle(WxConversion::toWxString(title));
+
     return true;
 
 }
