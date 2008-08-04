@@ -46,14 +46,4 @@ EOF
 } &> ./ttasim_output.temp
 diff -B ./ttasim_output.temp data/correct_simulation_output
 
-# next run min_fu, min_rf and min_bus singly and check that result adf is the same
-
-NEW_CONFIG_BUS="$(${EXPLORE_BIN} -e MinimizeMachine -s 1 -u min_fu=false -u min_rf=false -u frequency=50 testi.dsdb 2>/dev/null | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
-NEW_CONFIG_FU="$(${EXPLORE_BIN} -e MinimizeMachine -s ${NEW_CONFIG_BUS} -u min_bus=false -u min_rf=false -u frequency=50 testi.dsdb 2>/dev/null | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
-NEW_CONFIG_RF="$(${EXPLORE_BIN} -e MinimizeMachine -s ${NEW_CONFIG_FU} -u min_bus=false -u min_fu=false -u frequency=50 testi.dsdb 2>/dev/null | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
-
-"${EXPLORE_BIN}" -w "${NEW_CONFIG_RF}" testi.dsdb 1>/dev/null
-
-diff "${NEW_CONFIG_RF}".adf "${NEW_CONFIG}".adf
-
-rm -rf "${NEW_CONFIG}".adf "${NEW_CONFIG_RF}".adf
+rm -rf "${NEW_CONFIG}".adf
