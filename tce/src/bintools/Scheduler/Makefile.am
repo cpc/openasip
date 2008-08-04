@@ -1,4 +1,5 @@
 bin_PROGRAMS = schedule
+bin_SCRIPTS = buildschedulerpass
 schedule_SOURCES = Schedule.cc
 
 SRC_ROOT_DIR = ../..

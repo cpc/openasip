@@ -19,15 +19,19 @@ else
         PROGE="${SRC_BASE}/applibs/ProGe"
         TRACEDB="${SRC_BASE}/applibs/TraceDB"        
         SIMULATOR="${SRC_BASE}/applibs/Simulator"
+
+        BOOST_INCLUDES="@BOOST_INCLUDES@"
+
         compiler=gcc
         libdir=
         includedir="\
 -I ${SRC_BASE}/tools -I ${SRC_BASE}/applibs/Estimator -I ${SRC_BASE}/base/idf \
 -I ${SRC_BASE}/applibs/hdb -I ${PROGE} -I ${BASE}/mach -I ${BASE}/program \
--I ${TCE_ROOT} -I ${TRACEDB} -I ${SIMULATOR} -I ${BASE}/bem ${CPPFLAGS}"
+-I ${TCE_ROOT} -I ${TRACEDB} -I ${SIMULATOR} -I ${BASE}/bem \
+ ${BOOST_INCLUDES} ${CPPFLAGS}"
         soflags="-lgcc -shared -fPIC -o"
 
-        else
+    else
 
         compiler=$(tce-config --c++-compiler)
         libdir=$(tce-config --libs) 

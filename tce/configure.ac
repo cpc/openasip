@@ -1249,6 +1249,19 @@ AC_CONFIG_FILES([
   src/bintools/Compiler/llvm-tce/Makefile
 ])
 
+# scripts which need to be filled with BOOST_INCLUDES and other variables...
+AC_CONFIG_FILES([src/codesign/Explorer/buildexplorerplugin], 
+                [chmod +x src/codesign/Explorer/buildexplorerplugin])
+
+AC_CONFIG_FILES([src/codesign/Estimator/buildestimatorplugin], 
+                [chmod +x src/codesign/Estimator/buildestimatorplugin])
+
+AC_CONFIG_FILES([src/bintools/Scheduler/buildschedulerpass], 
+                [chmod +x src/bintools/Scheduler/buildschedulerpass])
+
+AC_CONFIG_FILES([src/procgen/ProGe/buildicdecoderplugin], 
+                [chmod +x src/procgen/ProGe/buildicdecoderplugin])
+
 # Generate config.status and launch it. config.status then
 # performs all configuration actions.
 AC_OUTPUT
