@@ -704,7 +704,13 @@ AC_PREPROC_IFELSE(
 ][
 #if TCL_MAJOR_VERSION < 8
 ][
-#error tcl version is lower than 8
+#error tcl major version is lower than 8
+][
+#endif
+][
+#if TCL_MINOR_VERSION > 4
+][
+#error tcl minor version is higher than 4
 ][
 #endif
 ]],
