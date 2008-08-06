@@ -1,6 +1,6 @@
 #define _TCE_ADDSUB(i1, i2, o1, o2) asm volatile ("ADDSUB":"=r"((int)o1), "=r"((int)o2):"ir"((int)i1), "ir"((int)i2))
 #define _TCE_ADD(i1, i2, o1) asm volatile ("ADD":"=r"((int)o1):"ir"((int)i1), "ir"((int)i2))
-#define _TCE_XOR(i1, i2, o1) asm volatile ("XOR":"=r"((unsigned)o1):"ir"((unsigned)i1), "ir"((unsigned)i2))
+#define _TCE_XOR(i1, i2, o1) asm volatile ("XOR":"=r"((int)o1):"ir"((int)i1), "ir"((int)i2))
 #define _TCE_MUL(i1, i2, o1) asm volatile ("MUL":"=r"((int)o1):"ir"((int)i1), "ir"((int)i2))
 #define _TCE_DIVU(i1, i2, o1) asm volatile ("DIVU":"=r"((unsigned)o1):"ir"((unsigned)i1), "ir"((unsigned)i2))
 #define _TCE_ADDF(i1, i2, o1) asm volatile ("ADDF":"=r"((float)o1):"ir"((float)i1), "ir"((float)i2))

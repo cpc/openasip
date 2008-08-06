@@ -1,6 +1,6 @@
 <?php
 // short test description
-$test_description="Scheduling long test cases";
+$test_description="Scheduling long test cases with the old gcc";
 $test_bin = "../../../scheduler/testbench/scheduler_tester.py";
 $bin_args = 
     "-c ../../../scheduler/passes/old_gcc.conf -vrq ".
