@@ -16,6 +16,29 @@
 #include "OperationIndex.hh"
 #include "Operand.hh"
 
+
+/**
+ * Returns a C cast string for the given operand type.
+ */
+std::string
+operandCastString(const Operand& operand) {
+    switch (operand.type()) {
+    default:
+    case Operand::SINT_WORD:
+        return "(int)";
+        break;
+    case Operand::UINT_WORD:
+        return "(unsigned)";
+        break;
+    case Operand::FLOAT_WORD:
+        return"(float)";
+        break;
+    case Operand::DOUBLE_WORD:
+        return "(double)";
+        break;
+    }
+    return "(int)"; // a good guess ;)
+}
 /**
  * Writes _tce_customop_OPNAME macros to a header file.
  */
@@ -41,7 +64,8 @@ writeCustomOpMacros(std::ostream& os) {
 
             int seenInputs = 0;
             int seenOutputs = 0;
-            for (int i = 1; i < (op.numberOfInputs() + op.numberOfOutputs() + 1);
+            for (int i = 1; 
+                 i < (op.numberOfInputs() + op.numberOfOutputs() + 1);
                  i++) {
 
                 const Operand& operand = op.operand(i);
@@ -58,14 +82,20 @@ writeCustomOpMacros(std::ostream& os) {
             os << ") asm volatile (\"" << opName << "\":";
 
             for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
+                const Operand& operand = op.output(out - 1);
+
                 if (out > 1) os << ", ";
-                os << "\"=r\"(o" << out << ")";
+                os << "\"=r\"(" << operandCastString(operand) 
+                   << "o" << out << ")";
             }
             os << ":";
 
             for (int in = 1; in < op.numberOfInputs() + 1; in++) {
+                const Operand& operand = op.input(in - 1);
+
                 if (in > 1) os << ", ";
-                os << "\"ir\"(i" << in << ")";
+                os << "\"ir\"(" << operandCastString(operand) 
+                   << "i" << in << ")";
             }
 
             os << ")" << std::endl;
