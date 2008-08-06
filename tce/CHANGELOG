@@ -8,6 +8,7 @@ Notable new features
 - Constant support for the OSAL DAG language.
 - Added support for dynamic compiled simulation. Static compiled simulation
   is still used by default.
+- Fixed TCE to compile and pass tests with Ubuntu 6.06 LTS (Dapper).
 
 Bug fixes worth mentioning
 --------------------------

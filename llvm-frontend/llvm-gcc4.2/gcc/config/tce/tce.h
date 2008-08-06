@@ -830,7 +830,10 @@ do										\
    will reload one or both registers only if neither labeling works.  */
 #define REG_OK_FOR_INDEX_P(X) REG_OK_FOR_BASE_P (X)
 
+#define INITIAL_FRAME_POINTER_OFFSET(X) 0
+
 /*
  Defines after this point are not obligatories, but they were added to
  for removing warnings during the compilation.
 */
+

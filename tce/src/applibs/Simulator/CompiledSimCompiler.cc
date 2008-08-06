@@ -33,9 +33,11 @@ const char* CompiledSimCompiler::COMPILED_SIM_CPP_FLAGS =
     "-fno-enforce-eh-specs "
     "-fno-rtti "
     "-fno-threadsafe-statics "
-    "-fno-stack-protector "
     "-fvisibility=hidden "
     "-fvisibility-inlines-hidden ";
+
+// this was not recognized on Ubuntu 6.06's gcc:
+//    "-fno-stack-protector "
 
 // Flags when compiling shared libraries
 const char* CompiledSimCompiler::COMPILED_SIM_SO_FLAGS = " -shared -fpic ";
