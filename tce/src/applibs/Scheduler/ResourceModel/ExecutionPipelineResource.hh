@@ -107,11 +107,11 @@ private:
     std::vector<std::pair<ProgramOperation*, int> > resultRead_;
     // stores cycle in which the result is written to output register of
     // FU
-    std::map<MoveNode*, int> storedResultCycles_;
+    std::map<MoveNode*, int, MoveNode::Comparator> storedResultCycles_;
     // stores the set of assigned source nodes
-    std::set<MoveNode*> assignedSourceNodes_;
+    std::set<MoveNode*, MoveNode::Comparator> assignedSourceNodes_;
     // stores the set of assigned destination nodes
-    std::set<MoveNode*> assignedDestinationNodes_;
+    std::set<MoveNode*, MoveNode::Comparator> assignedDestinationNodes_;
 
     mutable int cachedSize_;
 };

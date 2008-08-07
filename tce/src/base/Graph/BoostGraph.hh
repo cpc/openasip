@@ -219,8 +219,10 @@ protected:
     virtual int edgeWeight( GraphEdge& e, const GraphNode& n) const;
     
     // Calculated path lengths
-    mutable std::map<const GraphNode*,int> sourceDistances_;
-    mutable std::map<const GraphNode*,int> sinkDistances_;
+    mutable std::map<const GraphNode*,int, typename GraphNode::Comparator>
+    sourceDistances_;
+    mutable std::map<const GraphNode*,int, typename GraphNode::Comparator> 
+    sinkDistances_;
     
     mutable int height_;
 

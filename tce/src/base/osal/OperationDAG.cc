@@ -107,7 +107,7 @@ OperationDAG::stepsToRoot(const OperationDAGNode& node) const {
  *
  * @return Set of end nodes of a DAG. 
  */
-const std::set<OperationDAGNode*>&
+const OperationDAG::NodeSet&
 OperationDAG::endNodes() const {
     if (endNodes_.empty()) {
         for (int i = 0; i < nodeCount(); i++) {

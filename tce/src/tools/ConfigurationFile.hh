@@ -86,6 +86,8 @@ protected:
 private:
     struct Key;
     typedef std::map<std::string, std::vector<std::string> > ValueContainer;
+
+    // potential indeterminism?
     typedef std::map<Key*, ConfigurationValueType> KeyContainer;
 
     void parse(std::istream& inputStream);

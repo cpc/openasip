@@ -514,5 +514,20 @@ unsigned int ProgramOperation::poId() const {
     return poId_;
 }
 
+/**
+ * Comparison based on ID's for maps and sets.
+ */
+bool 
+ProgramOperation::Comparator::operator()(
+    const ProgramOperation* po1, const ProgramOperation* po2) const {
+    if (po1 == NULL) {
+        return false;
+    } 
+    if (po2 == NULL) {
+        return true;
+    }
+    return po1->poId() < po2->poId();
+}
+
 unsigned int ProgramOperation::idCounter = 0;
 

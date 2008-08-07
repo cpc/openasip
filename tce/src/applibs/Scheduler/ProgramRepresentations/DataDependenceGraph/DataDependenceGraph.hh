@@ -112,7 +112,7 @@ public:
         throw (InstanceNotFound);
 
     DataDependenceGraph* createSubgraph(
-        std::set<TTAProgram::CodeSnippet*> codeSnippets,
+        std::list<TTAProgram::CodeSnippet*>& codeSnippets,
         bool includeLoops)
         throw (InstanceNotFound);
 

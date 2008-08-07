@@ -23,7 +23,7 @@
 #include "UniversalMachine.hh"
 #include "ProgramOperation.hh"
 #include "POMDisassembler.hh"
-#include "AssocTools.hh"
+#include "SetTools.hh"
 #include "FUPort.hh"
 #include "HWOperation.hh"
 #include "TCEString.hh"
@@ -274,7 +274,7 @@ MoveNode::inSameOperation(const MoveNode& other) const {
 
     std::set<ProgramOperation*> commonOperations;
 
-    AssocTools::intersection(operationsA, operationsB, commonOperations);
+    SetTools::intersection(operationsA, operationsB, commonOperations);
     return commonOperations.size() > 0;
 }
 

@@ -123,7 +123,9 @@ private:
 
     /// container for storing the required register copies if the operation
     /// was bound to the given FU
-    typedef std::map<const TTAMachine::FunctionUnit*, int> 
+    typedef std::map<
+        const TTAMachine::FunctionUnit*, int, 
+        TTAMachine::FunctionUnit::Comparator> 
     RegisterCopyCountIndex;
 
     RegisterCopyCountIndex requiredRegisterCopiesForEachFU(

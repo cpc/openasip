@@ -17,6 +17,7 @@
 #include "Conversion.hh"
 #include "AssocTools.hh"
 #include "Application.hh"
+#include "SetTools.hh"
 
 using std::string;
 
@@ -622,9 +623,11 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
 
         int eWeight = edgeWeight(e, nHead); 
         
-        typename std::map<const GraphNode*,int>::iterator headIter = 
+        typename std::map<const GraphNode*,int,
+            typename GraphNode::Comparator>::iterator headIter = 
             sinkDistances_.find(&nHead);
-        typename std::map<const GraphNode*,int>::iterator tailIter =
+        typename std::map<const GraphNode*,int, 
+            typename GraphNode::Comparator>::iterator tailIter = 
             sourceDistances_.find(&nTail);
         
         if( headIter == sinkDistances_.end()) {
@@ -1515,8 +1518,8 @@ int
 BoostGraph<GraphNode, GraphEdge>::maxSourceDistance(const GraphNode& node) 
     const {
 
-    typename std::map<const GraphNode*,int>::iterator iter = 
-        sourceDistances_.find(&node);
+    typename std::map<const GraphNode*,int,typename GraphNode::Comparator>::
+        iterator iter = sourceDistances_.find(&node);
     if (iter == sourceDistances_.end()) {
         calculatePathLengths();
         iter = sourceDistances_.find(&node);
@@ -1539,8 +1542,8 @@ int
 BoostGraph<GraphNode, GraphEdge>::maxSinkDistance(const GraphNode& node) 
     const {
 
-    typename std::map<const GraphNode*,int>::iterator iter = 
-        sinkDistances_.find(&node);
+    typename std::map<const GraphNode*,int, typename GraphNode::Comparator>::
+        iterator iter = sinkDistances_.find(&node);
     if (iter == sinkDistances_.end()) {
         calculatePathLengths();
         iter = sinkDistances_.find(&node);
@@ -1599,7 +1602,7 @@ BoostGraph<GraphNode, GraphEdge>::connectingEdges(
     EdgeSet headIn = inEdges(nHead);
     EdgeSet tailOut = outEdges(nTail);
     EdgeSet intersection;
-    AssocTools::intersection(headIn, tailOut, intersection);
+    SetTools::intersection(headIn, tailOut, intersection);
     return intersection;
 }
 

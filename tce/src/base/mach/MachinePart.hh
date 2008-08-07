@@ -30,15 +30,22 @@ class Machine;
  * Abstract base class for all the machine components.
  */
 class MachinePart : public Serializable {
+public:
+    struct Comparator {
+        bool operator() (const MachinePart* mp1, const MachinePart* mp2) const;
+    };
 protected:
     MachinePart();
     virtual ~MachinePart();
-
 private:
     /// Copying forbidden.
     MachinePart(const MachinePart&);
     /// Assingment forbidden.
     MachinePart& operator=(const MachinePart&);
+    /// Id just for comparison for sets and maps.
+    /// More deterministic than pointer to the object.
+    static int idCounter_;
+    int id_;
 };
 
 

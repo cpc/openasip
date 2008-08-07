@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include "Application.hh"
-#include "AssocTools.hh"
+#include "SetTools.hh"
 #include "ContainerTools.hh"
 #include "ProgrammabilityValidator.hh"
 #include "ProgrammabilityValidatorResults.hh"
@@ -843,7 +843,7 @@ ProgrammabilityValidator::searchMissingRFConnections(
                          Connections>::iterator m = rfConnections.begin();
                      m != rfConnections.end(); m++) {
                     if ((*m).first->direction() == Socket::INPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.outputs, 
                             (*m).second.inputs,
                             outputIntersection);
@@ -861,11 +861,11 @@ ProgrammabilityValidator::searchMissingRFConnections(
                          Connections>::iterator m = rfConnections.begin();
                      m != rfConnections.end(); m++) {
                     if ((*m).first->direction() == Socket::OUTPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.inputs,
                             (*m).second.outputs,
                             inputIntersection);
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.triggeredInputs, 
                             (*m).second.outputs,
                             inputIntersection);
@@ -894,7 +894,7 @@ ProgrammabilityValidator::searchMissingRFConnections(
                          Connections>::iterator m = rfConnections.begin();
                      m != rfConnections.end(); m++) {
                     if ((*m).first->direction() == Socket::INPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.outputs,
                             (*m).second.inputs,
                             outputIntersection);
@@ -911,11 +911,11 @@ ProgrammabilityValidator::searchMissingRFConnections(
                          Connections>::iterator m = rfConnections.begin();
                      m != rfConnections.end(); m++) {
                     if ((*m).first->direction() == Socket::OUTPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.inputs,
                             (*m).second.outputs,
                             inputIntersection);
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.triggeredInputs,
                             (*m).second.outputs,
                             inputIntersection);
@@ -945,7 +945,7 @@ ProgrammabilityValidator::searchMissingRFConnections(
                          Connections>::iterator m = rfConnections.begin();
                      m != rfConnections.end(); m++) {
                     if ((*m).first->direction() == Socket::INPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.outputs,
                             (*m).second.inputs,
                             outputIntersection);
@@ -974,7 +974,7 @@ ProgrammabilityValidator::searchMissingRFConnections(
                      m != rfConnections.end(); m++) {
                     
                     if ((*m).first->direction() == Socket::INPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.outputs,
                             (*m).second.inputs,
                             outputIntersection);
@@ -986,7 +986,7 @@ ProgrammabilityValidator::searchMissingRFConnections(
                      m != rfConnections.end(); m++) {
 
                     if ((*m).first->direction() == Socket::OUTPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.inputs,
                             (*m).second.outputs,
                             inputIntersection);
@@ -1034,7 +1034,7 @@ ProgrammabilityValidator::printNotConnectedSockets(const RegisterFile* rf) {
                      m != rfConnections.end(); m++) {
 
                     if ((*m).first->direction() == Socket::INPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.outputs,
                             (*m).second.inputs,
                             outputIntersection);
@@ -1052,11 +1052,11 @@ ProgrammabilityValidator::printNotConnectedSockets(const RegisterFile* rf) {
                      m != rfConnections.end(); m++) {
 
                     if ((*m).first->direction() == Socket::OUTPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.inputs,
                             (*m).second.outputs,
                             inputIntersection);
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.triggeredInputs,
                             (*m).second.outputs,
                             inputIntersection);
@@ -1087,7 +1087,7 @@ ProgrammabilityValidator::printNotConnectedSockets(const RegisterFile* rf) {
                      m != rfConnections.end(); m++) {
 
                     if ((*m).first->direction() == Socket::INPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.outputs,
                             (*m).second.inputs,
                             outputIntersection);
@@ -1105,11 +1105,11 @@ ProgrammabilityValidator::printNotConnectedSockets(const RegisterFile* rf) {
                      m != rfConnections.end(); m++) {
 
                     if ((*m).first->direction() == Socket::OUTPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.inputs,
                             (*m).second.outputs, 
                             inputIntersection);
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.triggeredInputs, 
                             (*m).second.outputs,
                             inputIntersection);
@@ -1141,7 +1141,7 @@ ProgrammabilityValidator::printNotConnectedSockets(const RegisterFile* rf) {
                      m != rfConnections.end(); m++) {
 
                     if ((*m).first->direction() == Socket::INPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.outputs,
                             (*m).second.inputs,
                             outputIntersection);
@@ -1170,7 +1170,7 @@ ProgrammabilityValidator::printNotConnectedSockets(const RegisterFile* rf) {
                      m != rfConnections.end(); m++) {
 
                     if ((*m).first->direction() == Socket::INPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.outputs,
                             (*m).second.inputs,
                             outputIntersection);
@@ -1182,7 +1182,7 @@ ProgrammabilityValidator::printNotConnectedSockets(const RegisterFile* rf) {
                      m != rfConnections.end(); m++) {
 
                     if ((*m).first->direction() == Socket::OUTPUT) {
-                        AssocTools::intersection(
+                        SetTools::intersection(
                             (*n).second.inputs,
                             (*m).second.outputs, 
                             inputIntersection);
@@ -1485,7 +1485,7 @@ ProgrammabilityValidator::findConnections() {
                     
                     // do an intersection between 
                     // inputs and socket connections
-		    AssocTools::intersection(inputs[k].second,
+		    SetTools::intersection(inputs[k].second,
                                              outputConnections,
                                              intersection);
 
@@ -1528,7 +1528,7 @@ ProgrammabilityValidator::findConnections() {
 		    set<Segment*> intersection;
                     
                     
-		    AssocTools::intersection(inputs[k].second,
+		    SetTools::intersection(inputs[k].second,
                                              outputConnections,
                                              intersection);
                     map<const Socket*, Connections> socketConnections =
@@ -1569,7 +1569,7 @@ ProgrammabilityValidator::findConnections() {
 		listConnections(outputConnections, socket);
 		for (unsigned int k = 0; k < inputs.size(); k++) {
 		    set<Segment*> intersection;
-		    AssocTools::intersection(inputs[k].second,
+		    SetTools::intersection(inputs[k].second,
                                              outputConnections,
                                              intersection);
                     map<const Socket*, Connections> socketConnections =
@@ -1607,7 +1607,7 @@ ProgrammabilityValidator::findConnections() {
 		listConnections(outputConnections, socket);
 		for (unsigned int k = 0; k < inputs.size(); k++) {
 		    set<Segment*> intersection;
-		    AssocTools::intersection(inputs[k].second,
+		    SetTools::intersection(inputs[k].second,
                                              outputConnections,
                                              intersection);
                     map<const Socket*, Connections> socketConnections = 

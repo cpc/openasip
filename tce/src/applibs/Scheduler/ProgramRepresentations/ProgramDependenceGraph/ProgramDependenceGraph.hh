@@ -28,7 +28,8 @@ public:
     virtual ~ProgramDependenceGraph();
     
 private:
-    typedef std::map<ControlDependenceNode*, ProgramDependenceNode*> 
+    typedef std::map<ControlDependenceNode*, ProgramDependenceNode*,
+                     ControlDependenceNode::Comparator> 
         ControlToProgram; 
         
     void removeGuardedJump(

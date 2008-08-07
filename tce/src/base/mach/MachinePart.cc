@@ -28,7 +28,7 @@ namespace TTAMachine {
 /**
  * Constructor.
  */
-MachinePart::MachinePart() {
+MachinePart::MachinePart() : id_(idCounter_++){
 }
 
 
@@ -38,6 +38,22 @@ MachinePart::MachinePart() {
 MachinePart::~MachinePart() {
 }
 
+int MachinePart::idCounter_ = 0;
+
+/**
+   Comparator
+*/
+bool
+MachinePart::Comparator::operator() (
+    const MachinePart* mp1, const MachinePart* mp2) const {
+    if (mp1 == NULL) {
+        return false;
+    }
+    if (mp2 == NULL) {
+        return true;
+    }
+    return mp1->id_ > mp2->id_;
+}
 
 /////////////////////////////////////////////////////////////////////////////
 // Component

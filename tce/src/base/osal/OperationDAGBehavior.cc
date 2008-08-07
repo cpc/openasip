@@ -30,15 +30,16 @@ OperationDAGBehavior::OperationDAGBehavior(
   
     ios_ = new SimValue[operandCount_];
     
-    std::vector<std::set<OperationDAGNode*> > nodeLevels;
-    std::set<OperationDAGNode*> addedNodes;
+    std::vector<std::set<OperationDAGNode*, OperationDAGNode::Comparator> > 
+        nodeLevels;
+    std::set<OperationDAGNode*, OperationDAGNode::Comparator> addedNodes;
     
     // organize all the nodes calculation levels, in first level we calculate
     // nodes whose inputs are read straight from TerminalNodes or 
     // ConstantNodes, in the second are added nodes whose inputs are read 
     // from TerminalNodes or first level nodes etc.
     while (static_cast<int>(addedNodes.size()) < dag_.nodeCount()) {
-        std::set<OperationDAGNode*> currSet;
+        std::set<OperationDAGNode*, OperationDAGNode::Comparator> currSet;
                        
         for (int i = 0; i < dag_.nodeCount(); i++) {
             OperationDAGNode& currNode = dag_.node(i);
@@ -87,7 +88,8 @@ OperationDAGBehavior::OperationDAGBehavior(
     std::map<OperationNode*, int> stepOfNode;
 
     for (unsigned int i = 0; i < nodeLevels.size(); i++) {
-        for (std::set<OperationDAGNode*>::iterator nodeIter = 
+        for (std::set<OperationDAGNode*,OperationDAGNode::Comparator>::
+                 iterator nodeIter = 
                  nodeLevels[i].begin(); nodeIter != nodeLevels[i].end();
              nodeIter++) {
             

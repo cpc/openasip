@@ -76,14 +76,16 @@ private:
     /// cycle/instruction
     std::map<int, TTAProgram::Instruction*> instructions_;
     /// MoveNode/ original parent instruction
-    std::map<const MoveNode*, TTAProgram::Instruction*> oldParentInstruction_;
+    std::map<const MoveNode*, TTAProgram::Instruction*, MoveNode::Comparator>
+    oldParentInstruction_;
     
     /// Record cycle for MoveNodes that needed immediate writes,
     /// IU broker restores immediates before the template broker is called
     /// so we need to explicitely find the Immediate to remove it from
     /// template
-    std::map<const MoveNode*, int> immediateCycles_;
-    std::map<const MoveNode*, TTAProgram::Immediate*> immediateValues_;
+    std::map<const MoveNode*, int, GraphNode::Comparator> immediateCycles_;
+    std::map<const MoveNode*, TTAProgram::Immediate*, 
+             GraphNode::Comparator> immediateValues_;
     
     bool ownsInstructions_;
     // Pointer to resource manager, needed to get information about

@@ -1114,11 +1114,13 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     // connection registers accordingly
 
     typedef std::set<
-    std::pair<const TTAMachine::Port*, const TTAMachine::Port*> >
+    std::pair<const TTAMachine::Port*, const TTAMachine::Port*>,
+        TTAMachine::Port::PairComparator >
         CombinationSet;
 
-    CombinationSet pairs = AssocTools::pairs(srcPorts, dstPorts);
-    
+    CombinationSet pairs = AssocTools::pairs<TTAMachine::Port::PairComparator>(
+        srcPorts, dstPorts);
+
     const std::pair<const TTAMachine::Port*, const TTAMachine::Port*>*
         bestConnection = NULL;
     int registersRequired = INT_MAX;
@@ -1186,7 +1188,9 @@ RegisterCopyAdder::addCandidateSetAnnotations(
     // if the long immediate conversion should be performed to ensure
     // connectivity, in that case we add IU candidate sets for the
     // sources of the input moves that have such immediates
-    for (std::map<const TTAMachine::FunctionUnit*, int>::const_iterator
+
+    for (std::map<const TTAMachine::FunctionUnit*, int, 
+             TTAMachine::FunctionUnit::Comparator>::const_iterator
              i = registerCopiesRequired.begin(); 
          i != registerCopiesRequired.end(); ++i) {
 

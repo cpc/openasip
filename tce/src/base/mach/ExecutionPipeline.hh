@@ -17,13 +17,13 @@
 #include "MachinePart.hh"
 #include "Exception.hh"
 #include "Serializable.hh"
+#include "PipelineElement.hh"
 
 class Operand;
 class ObjectState;
 
 namespace TTAMachine {
 
-class PipelineElement;
 class HWOperation;
 class FUPort;
 
@@ -35,7 +35,7 @@ public:
     /// Set for operand indexes.
     typedef std::set<int> OperandSet;
     /// Set for pipeline elements.
-    typedef std::set<PipelineElement*> ResourceSet;
+    typedef std::set<PipelineElement*,PipelineElement::Comparator> ResourceSet;
 
     ExecutionPipeline(HWOperation& parentOperation);
     virtual ~ExecutionPipeline();

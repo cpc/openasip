@@ -725,8 +725,23 @@ DataDependenceGraph::mergeAndKeep(MoveNode& resultNode, MoveNode& userNode) {
     }
     
     // remove RAW deps
+
     EdgeSet edges = connectingEdges(
         resultNode, userNode);
+/*
+    Ugly temporary woraround code follows. 
+
+
+    EdgeSet edges;
+    EdgeSet iEdges = inEdges(userNode);
+    for (EdgeSet::iterator i = iEdges.begin(); i != iEdges.end(); i++) {
+        if (&tailNode(**i) == &resultNode) {
+            edges.insert(*i);
+        }
+    }
+    // Ugly temporary workaround code ends here 
+    */
+
     for (EdgeSet::iterator i = edges.begin();
          i != edges.end(); i++ ) {
          DataDependenceEdge* edge = *i;
@@ -1339,10 +1354,10 @@ DataDependenceGraph::createSubgraph(
  */
 DataDependenceGraph*
 DataDependenceGraph::createSubgraph(
-    std::set<TTAProgram::CodeSnippet*> codeSnippets, bool includeLoops) 
+    std::list<TTAProgram::CodeSnippet*>& codeSnippets, bool includeLoops) 
     throw (InstanceNotFound) {
     NodeSet moveNodes;
-    for( std::set<TTAProgram::CodeSnippet*>::iterator iter =
+    for( std::list<TTAProgram::CodeSnippet*>::iterator iter =
              codeSnippets.begin(); iter != codeSnippets.end(); iter++ ) {
         TTAProgram::CodeSnippet& cs = **iter;
         for (int i = 0; i < cs.instructionCount(); i++) {

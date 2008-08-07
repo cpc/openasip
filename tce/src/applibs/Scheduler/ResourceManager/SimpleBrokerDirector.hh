@@ -19,6 +19,7 @@
 #include "MoveGuard.hh"
 #include "Bus.hh"
 #include "Immediate.hh"
+#include "MoveNode.hh"
 
 namespace TTAProgram {
     class Instruction;
@@ -88,7 +89,8 @@ private:
     ExecutionPipelineBroker& executionPipelineBroker() const
         throw (InstanceNotFound);
 
-    std::map<const MoveNode*, OriginalResources*> origResMap_;
+    std::map<const MoveNode*, OriginalResources*, MoveNode::Comparator> 
+    origResMap_;
     int knownMaxCycle_;
 };
 

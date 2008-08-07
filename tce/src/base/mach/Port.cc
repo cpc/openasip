@@ -543,4 +543,23 @@ Port::detachAllSockets() {
     }
 }
 
+
+bool 
+Port::PairComparator::operator()(
+    const std::pair<const Port*, const Port*>& pp1, 
+    const std::pair<const Port*, const Port*>& pp2)
+    const {
+    if (Comparator()(pp1.first, pp2.first)) {
+        return false;
+    }
+    if (Comparator()(pp2.first, pp1.first)) {
+        return true;
+    }
+    if (Comparator()(pp1.second, pp2.second)) {
+        return true;
+    }
+    return false;
 }
+
+}
+

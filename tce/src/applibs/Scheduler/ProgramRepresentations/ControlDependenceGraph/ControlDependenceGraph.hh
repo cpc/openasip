@@ -47,7 +47,8 @@ private:
         SourceType;
     typedef std::vector<SourceType> DependentOn;
     typedef std::vector<BasicBlockNode*> BlockVector;
-    typedef std::map<ControlDependenceNode*, DependentOn*> DependenceMap;
+    typedef std::map<ControlDependenceNode*, DependentOn*,
+                     ControlDependenceNode::Comparator> DependenceMap;
 
 
     void computeDependence();

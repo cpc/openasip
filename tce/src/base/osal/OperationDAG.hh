@@ -30,13 +30,14 @@ public:
     bool isTrivial() const;
 
     int stepsToRoot(const OperationDAGNode& node) const;
-    const std::set<OperationDAGNode*>& endNodes() const;
+    const OperationDAG::NodeSet& endNodes() const;
 
 private:    
     /// Map of known step counts, if dag is changed this must be cleared.
-    mutable std::map<const OperationDAGNode*, int> stepMap_;    
+    mutable std::map<const OperationDAGNode*, int, 
+                     OperationDAGNode::Comparator> stepMap_;    
     /// Set of root nodes of DAG, must be cleared if dag is changed.
-    mutable std::set<OperationDAGNode*> endNodes_;
+    mutable OperationDAG::NodeSet endNodes_;
         
 };
 

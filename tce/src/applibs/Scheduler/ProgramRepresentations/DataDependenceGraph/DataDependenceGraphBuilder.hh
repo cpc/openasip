@@ -80,13 +80,12 @@ private:
             mn_(&mn), guard_(guard), ra_(ra), pseudo_(pseudo) {}
         // TODO: should be deterministic - this is not!
         bool operator< (const MNData2& other) const {
-            if ((mn_ == NULL) && (other.mn_ != NULL)) return true;
-            if ((mn_ != NULL) < (other.mn_ != NULL)) return true;
-            if ((mn_ != NULL) > (other.mn_ != NULL)) return false;
-            if (mn_ != NULL) {
-                if (mn_->nodeID() < other.mn_->nodeID()) return true;
-                if (mn_->nodeID() > other.mn_->nodeID()) return false;
-            }
+            if (mn_ == NULL) return false;
+            if (other.mn_ == NULL) return true;
+
+            if (mn_->nodeID() < other.mn_->nodeID()) return true;
+            if (mn_->nodeID() > other.mn_->nodeID()) return false;
+
             if (guard_ < other.guard_) return true;
             if (guard_ > other.guard_) return false;
             

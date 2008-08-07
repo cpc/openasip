@@ -32,7 +32,7 @@ public:
 
     class Comparator {
     public:
-        bool operator()(GraphNode* mn1, GraphNode* mn2) const;
+        bool operator()(const GraphNode* gn1, const GraphNode* gn2) const;
     };
 private:
     int nodeID_;

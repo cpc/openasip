@@ -1,0 +1,63 @@
+/**
+ * @file SetTools.icc
+ *
+ * Tools for handling STL Sets.
+ *
+ * Inline and template definitions.
+ *
+ * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
+ */
+
+
+/**
+ * Creates an intersection of the given containers.
+ *
+ * The elements in the intersection are selected by using < and > operators
+ * of the elements in the container. Thus, if both containers contains an
+ * equal element, it is added to the intersection.
+ *
+ * @param firstContainer The first container.
+ * @param secondContainer The second container.
+ * @param intersection Intersection of the container is added to this
+ *                     container.
+ */
+template <typename ValueType>
+void
+SetTools::intersection(
+    const std::set<ValueType>& firstContainer,
+    const std::set<ValueType>& secondContainer,
+    std::set<ValueType>& intersection) {
+
+    std::insert_iterator<std::set<ValueType> >
+        intersectIter(intersection, intersection.end());
+    std::set_intersection(firstContainer.begin(), firstContainer.end(),
+                          secondContainer.begin(), secondContainer.end(),
+                          intersectIter);
+}
+
+/**
+ * Creates an intersection of the given containers.
+ *
+ * The elements in the intersection are selected by using comparator operator
+ * of the elements in the container. Thus, if both containers contains an
+ * equal element, it is added to the intersection.
+ *
+ * @param firstContainer The first container.
+ * @param secondContainer The second container.
+ * @param intersection Intersection of the container is added to this
+ *                     container.
+ */
+template <typename ValueType, typename Comparator>
+void
+SetTools::intersection(
+    const std::set<ValueType, Comparator>& firstContainer,
+    const std::set<ValueType, Comparator>& secondContainer,
+    std::set<ValueType, Comparator>& intersection) {
+
+    std::insert_iterator<std::set<ValueType, Comparator> >
+        intersectIter(intersection, intersection.end());
+    std::set_intersection(firstContainer.begin(), firstContainer.end(),
+                          secondContainer.begin(), secondContainer.end(),
+                          intersectIter, Comparator());
+}
+

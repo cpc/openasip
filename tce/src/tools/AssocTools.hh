@@ -30,12 +30,6 @@ public:
         const KeyType& aKey);
 
     template <typename ContainerType>
-    static void intersection(
-        const ContainerType& firstContainer,
-        const ContainerType& secondContainer,
-        ContainerType& intersection);
-
-    template <typename ContainerType>
     static void difference(
         const ContainerType& firstContainer,
         const ContainerType& secondContainer,
@@ -43,8 +37,16 @@ public:
 
     template <typename ContainerType1, typename ContainerType2>
     static std::set<std::pair<
+        typename ContainerType1::value_type, 
+        typename ContainerType2::value_type> > pairs(
+        ContainerType1& firstContainer,
+        ContainerType2& secondContainer);
+
+    template <typename Comparator,typename ContainerType1, 
+              typename ContainerType2> 
+    static std::set<std::pair<
                         typename ContainerType1::value_type, 
-                        typename ContainerType2::value_type> > pairs(
+        typename ContainerType2::value_type>, Comparator > pairs(
         ContainerType1& firstContainer,
         ContainerType2& secondContainer);
         

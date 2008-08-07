@@ -13,11 +13,10 @@
 #include "Application.hh"
 #include "Bus.hh"
 #include "Segment.hh"
-#include "AssocTools.hh"
+#include "SetTools.hh"
 #include "RegisterFile.hh"
 #include "ControlUnit.hh"
 #include "SpecialRegisterPort.hh"
-#include "BusBroker.hh"
 #include "MathTools.hh"
 #include "TerminalImmediate.hh"
 
@@ -65,7 +64,7 @@ MachineConnectivityCheck::isConnected(
         destinationPort, destinationBuses);
 
     std::set<TTAMachine::Bus*> sharedBuses;
-    AssocTools::intersection(sourceBuses, destinationBuses, sharedBuses);
+    SetTools::intersection(sourceBuses, destinationBuses, sharedBuses);
 
     return sharedBuses.size() > 0;
 }
@@ -154,7 +153,7 @@ MachineConnectivityCheck::isConnected(
     }
 
     std::set<TTAMachine::Bus*> sharedBuses;
-    AssocTools::intersection(
+    SetTools::intersection(
         srcBuses, destBuses, sharedBuses);
     return (sharedBuses.size() > 0);
 }
@@ -181,7 +180,7 @@ MachineConnectivityCheck::isConnected(
     appendConnectedSourceBuses(destRF, dstBuses);
 
     std::set<TTAMachine::Bus*> sharedBuses;
-    AssocTools::intersection(srcBuses, dstBuses, sharedBuses);
+    SetTools::intersection(srcBuses, dstBuses, sharedBuses);
     return (sharedBuses.size() > 0);
 }
 
@@ -207,7 +206,7 @@ MachineConnectivityCheck::isConnected(
     appendConnectedSourceBuses(destFU, dstBuses);
 
     std::set<TTAMachine::Bus*> sharedBuses;
-    AssocTools::intersection(srcBuses, dstBuses, sharedBuses);
+    SetTools::intersection(srcBuses, dstBuses, sharedBuses);
     return (sharedBuses.size() > 0);
 }
 
@@ -238,7 +237,7 @@ MachineConnectivityCheck::isConnected(
     }
     
     std::set<TTAMachine::Bus*> sharedBuses;
-    AssocTools::intersection(sourceBuses, destBuses, sharedBuses);
+    SetTools::intersection(sourceBuses, destBuses, sharedBuses);
     return (sharedBuses.size() > 0 );
 }
 
@@ -279,7 +278,7 @@ MachineConnectivityCheck::fromRfConnected(
             // connections from RF to FU's
             if (port.inputSocket() != NULL) {
                 std::set<TTAMachine::Bus*> sharedBuses;
-                AssocTools::intersection(
+                SetTools::intersection(
                     rfBuses, connectedSourceBuses(port), sharedBuses);
                 if (sharedBuses.size() == 0) {
                     return false;
@@ -296,7 +295,7 @@ MachineConnectivityCheck::fromRfConnected(
         // connections from RF to CU
         if (port.inputSocket() != NULL) {
             std::set<TTAMachine::Bus*> sharedBuses;
-            AssocTools::intersection(
+            SetTools::intersection(
                 rfBuses, connectedSourceBuses(port), sharedBuses);
             if (sharedBuses.size() == 0) {
                 return false;
@@ -362,7 +361,7 @@ MachineConnectivityCheck::toRfConnected(
             // connections from FU to RF
             if (port.outputSocket() != NULL) {
                 std::set<TTAMachine::Bus*> sharedBuses;
-                AssocTools::intersection(
+                SetTools::intersection(
                     rfBuses, connectedDestinationBuses(port), sharedBuses);
                 if (sharedBuses.size() == 0) {
                     return false;
@@ -379,7 +378,7 @@ MachineConnectivityCheck::toRfConnected(
             Port& port = *iu.port(j);
             if (port.outputSocket() != NULL) {
                 std::set<TTAMachine::Bus*> sharedBuses;
-                AssocTools::intersection(
+                SetTools::intersection(
                     rfBuses, connectedDestinationBuses(port),sharedBuses);
                 if (sharedBuses.size() != 0) {
                     iuConnected = true;
@@ -400,7 +399,7 @@ MachineConnectivityCheck::toRfConnected(
         // connections from CU to RF
         if (port.outputSocket() != NULL) {
             std::set<TTAMachine::Bus*> sharedBuses;
-            AssocTools::intersection(
+            SetTools::intersection(
                 rfBuses, connectedDestinationBuses(port), sharedBuses);
             if (sharedBuses.size() == 0) {
                 return false;

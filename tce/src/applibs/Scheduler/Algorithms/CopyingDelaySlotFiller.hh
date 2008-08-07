@@ -14,6 +14,7 @@
 #include <vector>
 #include <list>
 #include "Exception.hh"
+#include "ProgramOperation.hh"
 
 class BasicBlockNode;
 class BasicBlock;
@@ -24,7 +25,6 @@ class ResourceManager;
 class UniversalMachine;
 class InterPassData;
 class MoveNode;
-class ProgramOperation;
 
 namespace TTAMachine {
     class Machine;
@@ -86,15 +86,17 @@ private:
     UniversalMachine* um_;
 
     // indexed by the original PO's
-    std::map<ProgramOperation*,ProgramOperation*> programOperations_;
-    std::map<ProgramOperation*,ProgramOperation*> oldProgramOperations_;
-    std::map<MoveNode*,MoveNode*> moveNodes_;
-    std::map<MoveNode*,MoveNode*> oldMoveNodes_;
+    std::map<ProgramOperation*,ProgramOperation*,ProgramOperation::Comparator>
+    programOperations_;
+    std::map<ProgramOperation*,ProgramOperation*,ProgramOperation::Comparator>
+    oldProgramOperations_;
+    std::map<MoveNode*,MoveNode*,MoveNode::Comparator> moveNodes_;
+    std::map<MoveNode*,MoveNode*,MoveNode::Comparator> oldMoveNodes_;
     std::map<TTAProgram::Move*,TTAProgram::Move*> moves_;
     
     // garbage collection would be SOOOO nice!
-    std::map<ProgramOperation*,bool> poOwned_;
-    std::map<MoveNode*,bool> mnOwned_;
+    std::map<ProgramOperation*,bool,ProgramOperation::Comparator> poOwned_;
+    std::map<MoveNode*,bool,MoveNode::Comparator> mnOwned_;
     std::map<TTAProgram::Move*,bool> moveOwned_;
 
     // do I have to free also resource managers?

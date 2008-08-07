@@ -61,6 +61,13 @@ public:
     std::string toString() const;
 
     unsigned int poId() const;
+
+    // Comparator for maps and sets
+    class Comparator {
+    public:
+        bool operator()(
+            const ProgramOperation* po1, const ProgramOperation* po2) const;
+    };
 private:
     // copying forbidden
     ProgramOperation(const ProgramOperation&);

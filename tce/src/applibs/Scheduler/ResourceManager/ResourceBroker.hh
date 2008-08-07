@@ -16,6 +16,7 @@
 #include "Exception.hh"
 #include "SchedulingResource.hh"
 #include "MachinePart.hh"
+#include "MoveNode.hh"
 
 #define TEST_BROKERS 0
 
@@ -24,7 +25,7 @@ namespace TTAMachine {
     class MachinePart;
 }
 
-class MoveNode;
+
 class ResourceMapper;
 
 /**
@@ -73,10 +74,13 @@ public:
     void validateResources() const;
     virtual std::string brokerName() const;
 protected:
+    // TODO: this causes indeterministicity
     typedef std::map<
-        const TTAMachine::MachinePart*, SchedulingResource*> ResourceMap;
+    const TTAMachine::MachinePart*, SchedulingResource*,
+    TTAMachine::MachinePart::Comparator> ResourceMap;
     // A container to store MoveNode - Scheduling Resource pairs
-    typedef std::map<const MoveNode*, SchedulingResource*> MoveResMap;
+    typedef std::map<const MoveNode*, SchedulingResource*, 
+                     MoveNode::Comparator> MoveResMap;
     void setResourceMapper(const ResourceMapper& mapper);
     const ResourceMapper& resourceMapper() const;
 

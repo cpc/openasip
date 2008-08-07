@@ -69,6 +69,13 @@ public:
     /// ObjectState attribute key for the name of the other connected socket.
     static const std::string OSKEY_SECOND_SOCKET;
 
+    struct PairComparator {
+        bool operator()(
+            const std::pair<const Port*, const Port*>& pp1, 
+            const std::pair<const Port*, const Port*>& pp2)
+            const;
+    };
+
 protected:
     Port(const std::string& name, FunctionUnit& parentUnit)
         throw (ComponentAlreadyExists, InvalidName);

@@ -31,6 +31,10 @@ public:
         throw (ComponentAlreadyExists, InvalidName);
     FunctionUnit* parentUnit() const;
 
+    struct Comparator {
+        bool operator()(
+            const PipelineElement* pe1, const PipelineElement* pe2) const;
+    };
 private:
     /// Name of the pipeline element.
     std::string name_;

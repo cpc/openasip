@@ -91,4 +91,28 @@ PipelineElement::setName(const std::string& name)
     name_ = name;
 }
 
+bool PipelineElement::Comparator::operator()(
+    const PipelineElement* pe1, const PipelineElement* pe2) const {
+    if (pe1 == NULL) {
+        return false;
+    }
+    if (pe2 == NULL) {
+        return true;
+    }
+    if (pe1->name() > pe2->name()) {
+        return true;
+    } 
+
+    if (pe2->name() > pe1->name()) {
+        return false;
+    } 
+
+    if (pe1->parentUnit()->name() > pe2->parentUnit()->name()) {
+        return true;
+    }
+    return false;
 }
+
+}
+
+

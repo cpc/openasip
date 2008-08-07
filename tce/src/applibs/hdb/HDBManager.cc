@@ -38,6 +38,7 @@
 #include "Application.hh"
 #include "MapTools.hh"
 #include "AssocTools.hh"
+#include "SetTools.hh"
 
 #include "FUValidator.hh"
 #include "MachineValidatorResults.hh"
@@ -4629,7 +4630,7 @@ HDBManager::areCompatiblePipelines(const PipelineElementUsageTable& table) {
             std::set<const PipelineElement*> resources = 
                 table[usageIndex].usage1;
             std::set<const PipelineElement*> intersect;
-            AssocTools::intersection(usedResources1, resources, intersect);
+            SetTools::intersection(usedResources1, resources, intersect);
             if (!intersect.empty()) {
                 illegalStages1.insert(usageIndex);
             }
@@ -4646,7 +4647,7 @@ HDBManager::areCompatiblePipelines(const PipelineElementUsageTable& table) {
             std::set<const PipelineElement*> resources = 
                 table[usageIndex].usage2;
             std::set<const PipelineElement*> intersect;
-            AssocTools::intersection(usedResources2, resources, intersect);
+            SetTools::intersection(usedResources2, resources, intersect);
             if (!intersect.empty()) {
                 illegalStages2.insert(usageIndex);
             }

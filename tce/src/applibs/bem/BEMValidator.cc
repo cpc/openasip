@@ -31,6 +31,7 @@
 #include "LImmDstRegisterField.hh"
 
 #include "AssocTools.hh"
+#include "SetTools.hh"
 #include "ContainerTools.hh"
 #include "MathTools.hh"
 
@@ -608,7 +609,7 @@ BEMValidator::checkLImmDstRegisterFields() {
         }
 
         StringSet intersection;
-        AssocTools::intersection(
+        SetTools::intersection(
             iTempDestinations, destinationsInBEM, intersection);
         if (intersection.size() < iTempDestinations.size()) {
             format errorMsg(

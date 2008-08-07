@@ -67,10 +67,17 @@ GraphNode::nodeID() const {
 }
 
 /**
- * Compariron based on node ID's for maps and sets.
+ * Comparison based on node ID's for maps and sets.
  */
 bool 
-GraphNode::Comparator::operator()(GraphNode* mn1, GraphNode* mn2) const {
+GraphNode::Comparator::operator()(
+    const GraphNode* mn1, const GraphNode* mn2) const {
+    if (mn1 == NULL) {
+        return false;
+    }
+    if (mn2 == NULL) {
+        return true;
+    }
     return mn1->nodeID() < mn2->nodeID();
 }
 

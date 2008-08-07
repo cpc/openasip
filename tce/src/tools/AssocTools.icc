@@ -72,31 +72,7 @@ AssocTools::containsKey(
     return (aContainer.find(aKey) != aContainer.end());
 }
 
-/**
- * Creates an intersection of the given containers.
- *
- * The elements in the intersection are selected by using < and > operators
- * of the elements in the container. Thus, if both containers contains an
- * equal element, it is added to the intersection.
- *
- * @param firstContainer The first container.
- * @param secondContainer The second container.
- * @param intersection Intersection of the container is added to this
- *                     container.
- */
-template <typename ContainerType>
-void
-AssocTools::intersection(
-    const ContainerType& firstContainer,
-    const ContainerType& secondContainer,
-    ContainerType& intersection) {
 
-    std::insert_iterator<ContainerType>
-        intersectIter(intersection, intersection.end());
-    std::set_intersection(firstContainer.begin(), firstContainer.end(),
-                          secondContainer.begin(), secondContainer.end(),
-                          intersectIter);
-}
 
 
 /**
@@ -151,6 +127,34 @@ AssocTools::pairs(
     }
     return combinations;
 }
+
+/**
+ * Finds all pair-wise combinations of elements in two containers.
+ *
+ * @return A set of pairs containing all combinations of elements.
+ */
+template <typename Comparator,typename ContainerType1, typename ContainerType2>
+std::set<std::pair<
+    typename ContainerType1::value_type, 
+    typename ContainerType2::value_type>, Comparator >
+AssocTools::pairs(
+    ContainerType1& firstContainer,
+    ContainerType2& secondContainer) {
+
+    typedef std::set<std::pair<
+    typename ContainerType1::value_type, 
+        typename ContainerType2::value_type>, Comparator > CombinationSet;
+    CombinationSet combinations;
+    for (typename ContainerType1::const_iterator i1 = firstContainer.begin();
+         i1 != firstContainer.end(); ++i1) {
+        for (typename ContainerType2::const_iterator i2 = 
+                 secondContainer.begin(); i2 != secondContainer.end(); ++i2) {
+            combinations.insert(std::make_pair(*i1, *i2));
+        }
+    }
+    return combinations;
+}
+
 
 /**
  * Appends all data from the first container to the second.

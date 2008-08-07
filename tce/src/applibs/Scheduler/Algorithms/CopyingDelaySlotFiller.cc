@@ -605,7 +605,8 @@ CopyingDelaySlotFiller::tryToFillSlots(
 
     // all ok, add filled nodes and PO's to DDG
     // first check which PO's to copy
-    for (std::map<ProgramOperation*,bool>::iterator iter = poOwned_.begin();
+    for (std::map<ProgramOperation*,bool,ProgramOperation::Comparator>::
+             iterator iter = poOwned_.begin();
          iter != poOwned_.end(); iter++) {
         ProgramOperation* po = iter->first;
         if (wholePOMoved(*po, moves)) {
@@ -788,11 +789,14 @@ CopyingDelaySlotFiller::getMove(Move& old) {
  */
 void CopyingDelaySlotFiller::loseCopies() {
     
-    for (std::map<MoveNode*,MoveNode*>::iterator mnIter =
+    for (std::map<MoveNode*,MoveNode*,MoveNode::Comparator>::iterator mnIter =
              moveNodes_.begin(); mnIter != moveNodes_.end();
          mnIter++ ) {
-        if (mnOwned_[mnIter->second] == true) {
-            delete mnIter->second;
+        MoveNode* second = mnIter->second;
+        if (mnOwned_[second] == true) {
+            mnOwned_.erase(second);
+            delete second;
+            moveNodes_.erase(mnIter);
         }
     }
     moveNodes_.clear();
@@ -809,11 +813,16 @@ void CopyingDelaySlotFiller::loseCopies() {
     moves_.clear();
     moveOwned_.clear();
     
-    for (std::map<ProgramOperation*,ProgramOperation*>::iterator poIter =
+    for (std::map<ProgramOperation*,ProgramOperation*,
+             ProgramOperation::Comparator>::iterator poIter =
              programOperations_.begin(); poIter != programOperations_.end();
          poIter++ ) {
+        ProgramOperation* second = poIter->second;
+        // may also crash on this
         if (poOwned_[poIter->second] == true) {
+            poOwned_.erase(second);
             delete poIter->second;
+            programOperations_.erase(poIter);
         }
     }
     programOperations_.clear();
