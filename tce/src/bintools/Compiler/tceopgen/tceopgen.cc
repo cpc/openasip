@@ -82,11 +82,19 @@ writeCustomOpMacros(std::ostream& os) {
             os << ") asm volatile (\"" << opName << "\":";
 
             for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
-                const Operand& operand = op.output(out - 1);
+                //const Operand& operand = op.output(out - 1);
 
+                // do not cast output to the value type because it
+                // breaks in case the variable you are reading the
+                // output to is smaller than the casted value,
+                // in a situation like this: char b; _TCE_FOO(34, b);
+                // this would provide something like (int)(b) to the
+                // output and it does not make sense and produces
+                // error lvalue required in asm statement
+                // TODO: figure out if this is a problem
                 if (out > 1) os << ", ";
-                os << "\"=r\"(" << operandCastString(operand) 
-                   << "o" << out << ")";
+                os << "\"=r\"(" //<< operandCastString(operand) 
+                   << "(o" << out << "))";
             }
             os << ":";
 
@@ -95,7 +103,7 @@ writeCustomOpMacros(std::ostream& os) {
 
                 if (in > 1) os << ", ";
                 os << "\"ir\"(" << operandCastString(operand) 
-                   << "i" << in << ")";
+                   << "(i" << in << "))";
             }
 
             os << ")" << std::endl;
