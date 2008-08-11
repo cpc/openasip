@@ -69,7 +69,7 @@ RFDialog::RFDialog(
     portListCtrl_(NULL),
     typeChoice_(NULL) {
 
-    registerFile_->updateMaxReadsAndWrites();
+    //registerFile_->updateMaxReadsAndWrites();
     createContents(this, true, true);
 
     FindWindow(wxID_OK)->Disable();
@@ -195,7 +195,7 @@ RFDialog::TransferDataToWindow() {
 void
 RFDialog::updateWidgets() {
 
-    registerFile_->updateMaxReadsAndWrites();
+    //registerFile_->updateMaxReadsAndWrites();
 
     name_ = WxConversion::toWxString(registerFile_->name());
     size_ = registerFile_->numberOfRegisters();
@@ -329,7 +329,7 @@ RFDialog::onOK(wxCommandEvent&) {
         assert(false);
     }
 
-    registerFile_->updateMaxReadsAndWrites();
+    //registerFile_->updateMaxReadsAndWrites();
     EndModal(wxID_OK);
 }
 
