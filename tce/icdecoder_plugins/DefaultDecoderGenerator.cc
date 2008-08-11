@@ -56,6 +56,7 @@
 #include "MathTools.hh"
 #include "AssocTools.hh"
 #include "StringTools.hh"
+#include "TCEString.hh"
 
 using namespace ProGe;
 using namespace TTAMachine;
@@ -517,14 +518,17 @@ DefaultDecoderGenerator::verifyCompatibility() const
     if (gcu->delaySlots() != 3) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
-            "Decoder generator supports only 4-stage transport "
-            "pipeline of GCU.");
+            TCEString("Decoder generator supports only 4-stage transport ")+
+            "pipeline of GCU. Given machine has " + 
+            Conversion::toString(gcu->delaySlots()+1) + " stages");
     }
 
     // check that global guard latency is 1
     if (gcu->globalGuardLatency() != 1) {
         string errorMsg = 
-            "Decoder generator supports only global guard latency of 1.";
+            TCEString("Decoder generator supports only ") +
+            "global guard latency of 1. Given machine has " +
+            Conversion::toString(gcu->globalGuardLatency());
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
 }
