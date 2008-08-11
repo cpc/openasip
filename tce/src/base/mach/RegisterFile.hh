@@ -59,8 +59,6 @@ public:
         throw (OutOfRange);
     virtual void setMaxWrites(int maxWrites)
         throw (OutOfRange);
-    bool updateMaxReadsAndWrites()
-        throw (OutOfRange);
     virtual void setType(RegisterFile::Type type);
     virtual void setNumberOfRegisters(int registers)
         throw (OutOfRange);
@@ -99,6 +97,8 @@ public:
 protected:
 
 private:
+    bool updateMaxReadsAndWrites() const
+        throw (OutOfRange);
     /// Copying forbidden, use the copy() method.
     RegisterFile(const RegisterFile&);
     /// Assingment forbidden.
@@ -109,9 +109,9 @@ private:
     void deleteGuards(int registers) const;
 
     /// Max number of ports that can read a register all in the same cycle.
-    int maxReads_;
+    mutable int maxReads_;
     /// Max number of ports that can read a register all in the same cycle.
-    int maxWrites_;
+    mutable int maxWrites_;
     /// The guard latency of the register file.
     int guardLatency_;
 

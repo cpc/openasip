@@ -162,7 +162,7 @@ RFPortDialog::onOK(wxCommandEvent&) {
     // update parent RFs max write and read parameters
     RegisterFile* RF = dynamic_cast<RegisterFile*>(port_->parentUnit());
     assert (RF != NULL);
-    RF->updateMaxReadsAndWrites();
+    //RF->updateMaxReadsAndWrites();
     EndModal(wxID_OK);
 }
 

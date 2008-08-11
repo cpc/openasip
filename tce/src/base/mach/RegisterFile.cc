@@ -98,7 +98,7 @@ RegisterFile::~RegisterFile() {
  */
 int
 RegisterFile::maxReads() const {
-    //updateMaxReadsAndWrites();
+    updateMaxReadsAndWrites();
     return maxReads_;
 }
 
@@ -110,7 +110,7 @@ RegisterFile::maxReads() const {
  */
 int
 RegisterFile::maxWrites() const {
-    //updateMaxReadsAndWrites();
+    updateMaxReadsAndWrites();
     return maxWrites_;
 }
 
@@ -194,7 +194,8 @@ RegisterFile::setName(const std::string& name)
 
 /**
  * Sets the maximum number of ports that can read a register all in the same
- * cycle.
+ * cycle. Note that this function is only needed if all of the ports are
+ * unconnected, otherwise this value is computed automatically.
  *
  * The given value must be at least zero.
  *
@@ -216,7 +217,8 @@ RegisterFile::setMaxReads(int reads)
 
 /**
  * Sets the maximum number of ports that can write a register all in the same
- * cycle.
+ * cycle. Note that this function is only needed if all of the ports are
+ * unconnected, otherwise this value is computed automatically.
  *
  * The given value must be at least zero.
  *
@@ -239,40 +241,44 @@ RegisterFile::setMaxWrites(int maxWrites)
 /**
  * Updates RFs max reads/writes according in/output ports.
  *
- * Port that is not assigned to a socket is considered to be a bidir port, 
- * thus counted to both counters.
+ * Port that is not assigned to a socket is considered to be a dead port, 
+ * thus not counted towards the maximum number of reads or writes.
  *
  * @return True if max reads/writes changed
  * @exception OutOfRange If setMaxReads/setMaxWrites throws outOfRange
  *            exception.
  */
 bool
-RegisterFile::updateMaxReadsAndWrites()
+RegisterFile::updateMaxReadsAndWrites() const
     throw (OutOfRange) {
 
     int reads = 0;
     int writes = 0;
-    for (int p = 0; p < portCount(); ++p) {
-        if ((port(p)->isOutput() && port(p)->isInput()) ||
-            (!port(p)->isOutput() && !port(p)->isInput())) {
+    bool changed = false;
 
-            ++reads;
-            ++writes;
-        } else if (port(p)->isOutput()) {
-            ++reads;
+    for (int p = 0; p < portCount(); ++p) {
+        if (!port(p)->isOutput() && !port(p)->isInput()) {
+
+            // do not count unconnected ports
+            //++reads;
+            //++writes;
+
         } else {
-            ++writes;
+            if (port(p)->isOutput()) {
+                changed = true;
+                ++reads;
+            }
+            if (port(p)->isInput()) {
+                changed = true;
+                ++writes;
+            }
         }
     }
 
-    bool changed = false;
-    if (reads != maxReads_) {
-        changed = true;
-        setMaxReads(reads);
-    }
-    if (writes != maxWrites_) {
-        changed = true;
-        setMaxWrites(writes);
+    if (changed)
+    {
+        maxReads_ = reads;
+        maxWrites_ = writes;
     }
     return changed;
 }

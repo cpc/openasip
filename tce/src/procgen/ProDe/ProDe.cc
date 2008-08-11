@@ -82,7 +82,7 @@ ProDe::OnInit() {
     docManager_ = new wxDocManager;
     (void) new wxDocTemplate((wxDocManager*) docManager_,
 			     _T("Architecture Definition"),
-                             _T("*.adf;*.cfg"), _T(""),
+                             _T("*.adf;*.xml;*.cfg"), _T(""),
 			     _T("adf"), _T("Architecture Definition File"),
 			     _T("ADF View"), CLASSINFO(MDFDocument),
 			     CLASSINFO(MDFView));
@@ -98,6 +98,14 @@ ProDe::OnInit() {
 			     _T("ADF View"), CLASSINFO(MDFDocument),
 			     CLASSINFO(MDFView), wxTEMPLATE_INVISIBLE);
 
+    // Dummy doc template for xmls.
+    (void) new wxDocTemplate((wxDocManager*) docManager_,
+			     _T("Architecture Definition File"),
+                             _T("*.xml"), _T(""),
+			     _T("xml"), _T("Architecture Definition File"),
+			     _T("ADF View"), CLASSINFO(MDFDocument),
+			     CLASSINFO(MDFView), wxTEMPLATE_INVISIBLE);
+    
     // create a registry of commands
     commandRegistry_ = new CommandRegistry();
 
