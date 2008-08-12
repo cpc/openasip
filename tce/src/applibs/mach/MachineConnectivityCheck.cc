@@ -543,16 +543,14 @@ MachineConnectivityCheck::tempRegisterFiles(
     }
 
     for (int i = 0; i < regNav.count(); i++) {
-        if (regNav.item(i)->width() != 1) {
-            if (!rfConnected(*regNav.item(i))) {
-                allConnected = false;
-            } else {
-                // we have at least on RF connected to everywhere so use it.
-                // but only if it's wide enough (as wide as the widest RF)
-                if (connectedRF == NULL && 
-                    regNav.item(i)->width() == widestRFWidth) {
-                    connectedRF = regNav.item(i);
-                }
+        if (!rfConnected(*regNav.item(i))) {
+            allConnected = false;
+        } else {
+            // we have at least on RF connected to everywhere so use it.
+            // but only if it's wide enough (as wide as the widest RF)
+            if (connectedRF == NULL && 
+                regNav.item(i)->width() == widestRFWidth) {
+                connectedRF = regNav.item(i);
             }
         }
     }
