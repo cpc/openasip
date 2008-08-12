@@ -12,3 +12,5 @@ $tcecc -O0 -a $adf -o $tpef \
 $tceopgen | egrep "MUL|ADD|DIVU|XOR"
 
 echo $($ttasim -p $tpef -a $adf -e "run; puts [x /u w _result]; quit;")
+
+rm -f $tpef
