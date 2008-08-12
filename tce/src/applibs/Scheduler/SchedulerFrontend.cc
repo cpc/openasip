@@ -257,7 +257,7 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
 TTAProgram::Program*
 SchedulerFrontend::schedule(
     const TTAProgram::Program& source, const TTAMachine::Machine& target,
-    const SchedulingPlan& schedulingPlan)
+    const SchedulingPlan& schedulingPlan, InterPassData* interPassData)
     throw (Exception) {
 
     // validate the loaded MOM, so we don't even try to schedule to
@@ -293,8 +293,11 @@ SchedulerFrontend::schedule(
         throw e;
     }
 
-    // run passes
-    InterPassData interPassData;
+    // use this if none given at command line.
+    InterPassData ipd2;
+    if (interPassData == NULL)
+        interPassData = &ipd2;
+
     for (int i = 0; i < schedulingPlan.passCount(); i++) {
         StartableSchedulerModule& pass = schedulingPlan.pass(i);
         try {
@@ -305,7 +308,7 @@ SchedulerFrontend::schedule(
                     "module.";
                 throw Exception(__FILE__, __LINE__, __func__, message);
             }
-            pass.setInterPassData(interPassData);
+            pass.setInterPassData(*interPassData);
         if (Application::verboseLevel() >=
             Application::VERBOSE_LEVEL_INCREASED) {
             /// Prints out info about modules starting and their execution

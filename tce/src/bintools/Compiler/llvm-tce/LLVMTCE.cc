@@ -147,8 +147,7 @@ main(int argc, char* argv[]) {
         if (plan != NULL) {
             SchedulerFrontend scheduler;
             TTAProgram::Program* prog;
-            prog = scheduler.schedule(*seqProg, *mach, *plan);
-
+            prog = scheduler.schedule(*seqProg, *mach, *plan, ipData);
             TTAProgram::Program::writeToTPEF(*prog, outputFileName);
 
             delete prog;

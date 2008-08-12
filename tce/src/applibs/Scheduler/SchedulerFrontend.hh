@@ -33,6 +33,8 @@ namespace TPEF {
     class Binary;
 }
 
+class InterPassData;
+
 /**
  * The top-level component of the Scheduler that the clients use to
  * setup and launch the scheduling process.
@@ -46,7 +48,8 @@ public:
         throw (Exception);
     TTAProgram::Program* schedule(
         const TTAProgram::Program& source, const TTAMachine::Machine& target,
-        const SchedulingPlan& schedulingPlan)
+        const SchedulingPlan& schedulingPlan,
+        InterPassData* interPassData = NULL)
         throw (Exception);
 private:
     /// Copying forbidden.
