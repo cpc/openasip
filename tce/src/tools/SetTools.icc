@@ -8,6 +8,7 @@
  * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
  */
 
+#include <algorithm>
 
 /**
  * Creates an intersection of the given containers.
