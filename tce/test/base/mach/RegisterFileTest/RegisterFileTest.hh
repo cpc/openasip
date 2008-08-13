@@ -32,6 +32,8 @@ public:
 
     void testSetName();
     void testSetNumberOfRegisters();
+    void testSetNumberOfWritesAndReads();
+    void testCalculateNumberOfWritesAndReads();
     void testSetWidth();
     void testLoadState();
     void testObjectStateLoadingErrors();
@@ -98,6 +100,88 @@ RegisterFileTest::testSetNumberOfRegisters() {
     TS_ASSERT(rf1.numberOfRegisters() == 20);
 }
 
+/**
+ * Tests manually setting the number of maxWrites and maxReads.
+ */
+void
+RegisterFileTest::testSetNumberOfWritesAndReads() {
+
+    const string rfName = "rf";
+    const string socketName1 = "socket1";
+    const string socketName2 = "socket2";
+    const string portName1 = "port1";
+    const string portName2 = "port2";
+
+    Machine mach;
+
+    RegisterFile rf(rfName, 30, 32, 5, 5, 0, RegisterFile::NORMAL);
+    mach.addRegisterFile(rf);
+
+    Socket socket1(socketName1);
+    mach.addSocket(socket1);
+
+    Socket socket2(socketName2);
+    mach.addSocket(socket2);
+
+    RFPort port1(portName1, rf);
+    RFPort port2(portName2, rf);
+
+    port1.attachSocket(socket1);
+    port2.attachSocket(socket2);
+
+    TS_ASSERT(rf.maxReads() == 5);
+    TS_ASSERT(rf.maxWrites() == 5);
+
+}
+
+/**
+ * Tests calculating the number of maxWrites and maxReads.
+ */
+void
+RegisterFileTest::testCalculateNumberOfWritesAndReads() {
+
+    const string rfName = "rf";
+    const string busName = "port1";
+    const string segmentName = "seg";
+    const string socketName1 = "socket1";
+    const string socketName2 = "socket2";
+    const string portName1 = "port1";
+    const string portName2 = "port2";
+
+    Machine mach;
+
+    RegisterFile rf(rfName, 30, 32, 5, 5, 0, RegisterFile::NORMAL);
+    mach.addRegisterFile(rf);
+
+    Socket socket1(socketName1);
+    mach.addSocket(socket1);
+
+    Socket socket2(socketName2);
+    mach.addSocket(socket2);
+
+    Bus bus(busName, 8, 8, Machine::ZERO);
+    mach.addBus(bus);
+    Segment seg(segmentName, bus);
+
+    socket1.attachBus(seg);
+    socket1.setDirection(Socket::INPUT);
+
+    RFPort port1(portName1, rf);
+    port1.attachSocket(socket1);
+
+    TS_ASSERT(rf.maxReads() == 0);
+    TS_ASSERT(rf.maxWrites() == 1);
+
+    socket2.attachBus(seg);
+    socket2.setDirection(Socket::OUTPUT);
+
+    RFPort port2(portName2, rf);
+    port2.attachSocket(socket2);
+
+    TS_ASSERT(rf.maxReads() == 1);
+    TS_ASSERT(rf.maxWrites() == 1);
+
+}
 
 /**
  * Tests setting the width of the register file.
