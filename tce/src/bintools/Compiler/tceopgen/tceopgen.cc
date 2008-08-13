@@ -18,29 +18,30 @@
 
 
 /**
- * Returns a C cast string for the given operand type.
+ * Returns a C type string for the given operand type.
  */
 std::string
-operandCastString(const Operand& operand) {
+operandTypeCString(const Operand& operand) {
     switch (operand.type()) {
     default:
     case Operand::SINT_WORD:
-        return "(int)";
+        return "int";
         break;
     case Operand::UINT_WORD:
-        return "(unsigned)";
+        return "unsigned";
         break;
     case Operand::FLOAT_WORD:
-        return"(float)";
+        return"float";
         break;
     case Operand::DOUBLE_WORD:
-        return "(double)";
+        return "double";
         break;
     }
-    return "(int)"; // a good guess ;)
+    return "unsigned"; // a good guess ;)
 }
 /**
- * Writes _tce_customop_OPNAME macros to a header file.
+ * Produces the _tce_customop_OPNAME macros that can be written to the
+ * tceops.h header file.
  */
 void
 writeCustomOpMacros(std::ostream& os) {
@@ -58,7 +59,7 @@ writeCustomOpMacros(std::ostream& os) {
             if (operations.count(opName) > 0) {
                 continue;
             }
-            operations.insert(opName);
+            operations.insert(opName);            
 
             os << "#define _TCE_" << opName << "(";
 
@@ -79,22 +80,42 @@ writeCustomOpMacros(std::ostream& os) {
                 }
             }
 
-            os << ") asm volatile (\"" << opName << "\":";
+            os << ") do { ";
+
+            /* Generate the temporary variables to ensure casting to
+               a correct value from the inline assembly statement.
+
+               Without this, LLVM inline assembly used i8 for the
+               output register type in case a char was used to
+               read the value. This produced strange errors due 
+               to the value produced by the inline asm not being 
+               masked to the char size (in case the output is really
+               larger than i8 in this case). 
+
+               In this bug (#35), after the char was written to 
+               a larger variable, the upper bits (produced by the custom op) 
+               were visible which is not expected behavior (writing int
+               to char should zero out the upper bits). Forcing
+               writing to int ensures the inline asm has 32 bit
+               reg for the register thus LLVM produced correct
+               masking/cast operations when writing the value to a smaller
+               variable. 
+
+               Use do {} while(0) block instead of {} to allow using the
+               custom ops as statements which end with ; etc.
+            */
 
             for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
-                //const Operand& operand = op.output(out - 1);
+                const Operand& operand = op.output(out - 1);
+                os << operandTypeCString(operand) << " __tce_op_output_" << out
+                   << " = (" << operandTypeCString(operand) << ")0; ";
+            }
+               
+            os << "asm volatile (\"" << opName << "\":";
 
-                // do not cast output to the value type because it
-                // breaks in case the variable you are reading the
-                // output to is smaller than the casted value,
-                // in a situation like this: char b; _TCE_FOO(34, b);
-                // this would provide something like (int)(b) to the
-                // output and it does not make sense and produces
-                // error lvalue required in asm statement
-                // TODO: figure out if this is a problem
+            for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
                 if (out > 1) os << ", ";
-                os << "\"=r\"(" //<< operandCastString(operand) 
-                   << "(o" << out << "))";
+                os << "\"=r\"(" << " __tce_op_output_" << out << ")";
             }
             os << ":";
 
@@ -102,11 +123,18 @@ writeCustomOpMacros(std::ostream& os) {
                 const Operand& operand = op.input(in - 1);
 
                 if (in > 1) os << ", ";
-                os << "\"ir\"(" << operandCastString(operand) 
-                   << "(i" << in << "))";
+                os << "\"ir\"((" << operandTypeCString(operand) 
+                   << ")(i" << in << "))";
             }
 
-            os << ")" << std::endl;
+            os << "); ";
+
+            // write the results from the temps to the output variables
+            for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
+                os << "o" << out << " = __tce_op_output_" << out << ";";
+            }
+
+            os << "} while(0) " << std::endl;
         }
     }
 }

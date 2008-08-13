@@ -3,7 +3,7 @@
  *
  * LLVM/TCE compiler command line interface.
  *
- * @author Veli-Pekka J√§√§skel√§inen 2008 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel@cs.tut.fi)
  * @note rating: red
  */
 
