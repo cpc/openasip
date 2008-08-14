@@ -40,8 +40,6 @@ LICENCE_FILE="${LICENCE_FILE_CPP}"
 # $1 file to be tested
 function testFile {
     LINE_TO_INSERT=1
-    echo
-    echo "Testing file $1"
     # checking if some copyright or licence already in the file
     head -40 "${1}" | grep -iqE 'Copyright|Licence' && return 1
     # checking if the file is a script file
@@ -58,8 +56,7 @@ function insertFileToFile {
     local lineA="$LINE_TO_INSERT"
     local lineB=""
     let lineB=lineA+1
-    echo
-    echo "Calling prepend with 1: $1 $LICENCE_FILE, to line $lineA ($lineB)"
+    echo "Adding licence to file: $1 $LICENCE_FILE, to line $lineA ($lineB)"
 
     sed -i -e "$lineA{ h
     r $LICENCE_FILE
