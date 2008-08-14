@@ -13,8 +13,6 @@
 -- Description: Select correct architecture for moveproc
 --              (single-port vs. dual-port data memory)
 -------------------------------------------------------------------------------
--- Copyright (c) 2003 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2003-11-24  1.0      sertamo	Created

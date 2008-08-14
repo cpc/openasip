@@ -14,8 +14,6 @@
 --              -Supports SVTL pipelining discipline
 
 -------------------------------------------------------------------------------
--- Copyright (c) 2003 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2003-03-11  1.0      sertamo Created

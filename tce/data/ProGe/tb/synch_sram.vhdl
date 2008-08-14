@@ -20,8 +20,6 @@
 --   the contents of the memory in textual bit-vectors which are mapped to ram
 --   starting from the position 0
 -------------------------------------------------------------------------------
--- Copyright (c) 2003 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2003-11-14  1.0      sertamo Created

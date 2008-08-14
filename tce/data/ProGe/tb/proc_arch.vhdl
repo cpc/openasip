@@ -14,8 +14,6 @@
 -- memory/cache (structural) and with a core with dual-port data memory/cache
 -- (structural_dp_dmem)
 -------------------------------------------------------------------------------
--- Copyright (c) 2003 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2003-11-26  1.0      sertamo	Created

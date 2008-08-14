@@ -19,8 +19,6 @@
 --              -case1 and case2
 --                 uses case statement for register logic
 -------------------------------------------------------------------------------
--- Copyright (c) 2005 
--------------------------------------------------------------------------------
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;

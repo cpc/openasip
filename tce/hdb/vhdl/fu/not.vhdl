@@ -14,8 +14,6 @@
 --              -Supports SVTL pipelining discipline
 --
 -------------------------------------------------------------------------------
--- Copyright (c) 2006 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author   Description
 -- 2006-03-16  1.0      pitkanen first revision

@@ -18,8 +18,6 @@
 --              -rtl:
 --                 uses if statement for register logic
 -------------------------------------------------------------------------------
--- Copyright (c) 2006 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author   Description
 -- 2006-07-03  1.0      pitkanen first revision

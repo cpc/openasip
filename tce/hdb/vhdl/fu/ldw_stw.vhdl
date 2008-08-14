@@ -14,8 +14,6 @@
 --              opcode 0 load   address:t1data
 --                     1 store  address:o1data  data:t1data
 -------------------------------------------------------------------------------
--- Copyright (c) 2002 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2002-06-24  1.0      sertamo Created

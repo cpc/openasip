@@ -13,8 +13,6 @@
 -- Description: Selects which of the two inputs has the access to the memory
 --              Static arbitration, input 1 privililage over input 2
 -------------------------------------------------------------------------------
--- Copyright (c) 2003 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2003-08-28  1.0      sertamo Created

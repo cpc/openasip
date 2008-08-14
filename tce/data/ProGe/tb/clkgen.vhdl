@@ -12,8 +12,6 @@
 -- Description: A 50/50 testbench clock. The clock period is defined by
 --           a generic PERIOD          
 -------------------------------------------------------------------------------
--- Copyright (c) 2001 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2001-07-16  1.0      sertamo	Created

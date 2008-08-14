@@ -14,8 +14,6 @@
 --              Adder/Subtractor as separate component
 --              Supports SVTL pipelining
 -------------------------------------------------------------------------------
--- Copyright (c) 2003 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2003-03-06  1.0      sertamo Created

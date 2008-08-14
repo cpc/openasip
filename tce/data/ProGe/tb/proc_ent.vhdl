@@ -17,8 +17,6 @@
 -- contains interface to access the control register which can be used in
 -- initialization of execution as well as in communication with the processor
 -------------------------------------------------------------------------------
--- Copyright (c) 2003 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2003-08-28  1.0      sertamo Created

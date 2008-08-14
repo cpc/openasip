@@ -13,8 +13,6 @@
 --              -suber architecture as a separate component
 --              -Supports SVTL pipelining discipline
 -------------------------------------------------------------------------------
--- Copyright (c) 2002 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2002-06-24  1.0      sertamo Created

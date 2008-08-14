@@ -15,8 +15,6 @@
 -- Enables initalization of execution from external stimulus end
 -- simple communication
 -------------------------------------------------------------------------------
--- Copyright (c) 2003 
--------------------------------------------------------------------------------
 -- Revisions  :
 -- Date        Version  Author  Description
 -- 2003-08-26  1.0      sertamo Created
