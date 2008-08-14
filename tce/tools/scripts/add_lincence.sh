@@ -46,6 +46,7 @@ function testFile {
     head -1 "${1}" | grep -Fq '#!/' && LICENCE_FILE="${LICENCE_FILE_SCRIPT}" && LINE_TO_INSERT=2 && return 0
     grep -qiE '.*(py|sh)$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_SCRIPT}" && return 0
     grep -qiE '.*tex$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_TEX}" && return 0
+    return 0
 }
 
 # insert $LICENCE_FILE to a another file given as a parameter
@@ -56,7 +57,7 @@ function insertFileToFile {
     local lineA="$LINE_TO_INSERT"
     local lineB=""
     let lineB=lineA+1
-    echo "Adding licence to file: $1 $LICENCE_FILE, to line $lineA ($lineB)"
+    echo "Adding licence to file: $1 $LICENCE_FILE, to line $lineA"
 
     sed -i -e "$lineA{ h
     r $LICENCE_FILE
@@ -71,6 +72,7 @@ function insertFileToFile {
 export -f insertFileToFile
 export -f testFile
 export LICENCE_FILE_SCRIPT
+export LICENCE_FILE_TEX
 export LICENCE_FILE
 
 PREPEND_REGEX='.*\.(h|hh|cc|icc|sh|py|php|vhd|vhdl|tex)$'
