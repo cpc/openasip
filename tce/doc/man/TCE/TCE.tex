@@ -30,9 +30,9 @@ design flows in the form of tutorials.
 It is recommended to start reading this user manual from the
 Chapter~\ref{chapter:tceFlow} that provides an overview to the TCE
 processor design flow, and then jump to Chapter~\ref{chapter:tutorials} that
-contains tutorials for several common TCE use cases. Rest of the chapters that
-describe the use of each tool separately can be referred to if
-wanting to learn to learn the advanced usage of each of the tool.
+contains tutorials for several common TCE use cases. The rest of the chapters 
+describe the use of each tool separately, and the can be referred to for
+information on more advanced usage the tools.
 
 \section{Acronyms, Abbreviations and Definitions}
 \begin{tabular}[h]{p{0.15\textwidth}p{0.80\textwidth}}
@@ -46,7 +46,7 @@ HDB & Hardware Database \\
 HDL & Hardware Description Language. \\
 HLL & High Level (Programming) Language. \\
 IDF & (Machine/Processor) Implementation Definition File.\\
-ILP & Instruction Level Parallel(ism).\\
+ILP & Instruction Level Parallelism.\\
 LLVM & Low Level Virtual Machine \\
 MAU & Minimum Addressable Unit\\
 PIG & Program Image Generator\\
@@ -89,26 +89,27 @@ and effective toolset for designing programmable application specific
 processors, and generate machine code for them from applications written 
 in high-level languages.
 
-In addition, TCE provides for an extensible research platform for 
+In addition, TCE provides an extensible research platform for 
 experimenting with new ideas for Transport Triggered Architectures (TTAs), 
 retargetable code ILP code generation, and application specific processor 
 design methodology, among others.
 
-TCE design flow starts from a program described in a high level
-language (HLL). The program is processed by a compiler that 
-inputs programs in high-level languages (currently only the C language 
-is supported officially) and generates a intermediate
-representation that can be rescheduled to multiple TTA processors. 
-The compiler framework used is the LLVM and the intermediate representation
-is its bytecode format 'bitcode'.
+The TCE design flow starts from an application described in a high level
+language (currently the C language). The LLVM compiler framework~\cite{llvm-home-page} is used to
+compile the application to 'bitcode', the intermediate representation of
+LLVM. The resulting bitcode is then compiled and scheduled to a particular
+TTA processor  by TCE. Traditional compiler optimizations are done in LLVM
+before bitcode generation, so it is possible to utilize the same bitcode file
+when exploring different TTA processors for running an application.
 
-It should be noted that the actual software development phase is intended 
+The initial software development phase is intended 
 to be separate from the actual codesign flow of TCE. That is, the program is 
 expected to be implemented and tested natively (on a workstation PC) before 
-``porting it'' to the TTA/TCE platform. The ``porting'' includes ensuring
-the TTA/TCE runs the program correctly and optimizing the hardware along
-with the software by adding useful resources for the application
-at hand to the processor architecture -- a process called hardware/software 
+``porting'' it to the TTA/TCE platform. The porting includes ensuring
+that TTA/TCE runs the program correctly, and optimizing the hardware together
+with the software by modifying the resources and architecture of the processor
+to fit  the application
+at hand -- a process called hardware/software 
 co-design.
 
 % ISO C99 if LLVM/TCE is used
@@ -181,13 +182,13 @@ Filename extension: .hdb
 Hardware Database (HDB) is the main database used by the
 Processor Generator and the Cost Estimator.  The data stored in HDB consist
 of hardware description language definitions (HDL) of TTA components
-(function units, register files, buses and sockets) and ``meta-data'' that
+(function units, register files, buses and sockets) and metadata that
 describe certain parameters used in implementations. In addition, HDB may
 include data of each implementation needed by the cost estimation
 algorithms.
 
 TCE ships with an example HDB that includes implementations for several
-function units and register files and cost data for the default
+function units and register files, and cost data for the default
 interpolating cost estimation plugin.
 
 \subsection{Implementation Definition File (IDF)}
@@ -196,9 +197,9 @@ interpolating cost estimation plugin.
 Filename extension:  .idf
 
 Describes which implementations to use for each component in the
-architecture (defined in an ADF file). Using this information it's possible
+architecture (defined in an ADF file). Using this information it is possible
 to fetch correct hardware description language
-(HDL) files from hardware block library for cost estimation and processor 
+(HDL) files from the hardware block library for cost estimation and processor 
 generation. 
 
 \subsection{Binary Encoding Map}
@@ -265,7 +266,8 @@ The following properties define a TTA operation:
 
 \paragraph{operation name}
 The operation name is a string of characters starting with a character in
-set [A-Z\_] and followed by one or more character in set [0-9A-Z\_].  All
+set [A-Z\_] and followed by one or more character in set [0-9A-Z\_] 
+(i.e.\ lowercase letters are not allowed).  All
 names of operations of the database must be unique. Different data bases 
 can contain operations with equal names. 
 
@@ -357,11 +359,11 @@ inputs listed.  The can-swap declaration need not be symmetrical, but it is
 not an error if the implied declaration is also specified.
 
 \paragraph{mem-address}
-Optional.  Indicates that given input is used to compute (affects the value
+Optional.  Indicates that the input is used to compute (affects the value
 of) the memory address accessed by this operation.
 
 \paragraph{mem-data}
-Optional.  Indicates that given input is used to compute (affects the value
+Optional.  Indicates that the input is used to compute (affects the value
 of) the data word written to memory by this operation.  This property
 implies that the operation writes to memory.
 
@@ -374,30 +376,30 @@ output moves of an operation are missing, then the only useful work that can
 be performed by the operation is state change.
 
 \paragraph{mem-data}
-Optional.  Indicates that given output contains a value that depends on a
+Optional.  Indicates that the output contains a value that depends on a
 data word read from memory by this operation.  This property implies that
 the operation reads data from memory.
 
 \subsubsection{Operation Behavior}
 \label{ssec:operation-behavior}
 
-To be complete, the model of an operation needs more than static properties.
-The behavior of the operation, as it would be emulated by the instruction
-set simulator of a sequential processor architecture, must be defined.  The
-behavior is specified in the source language of the TCE toolset (augmented
-with macro definitions) and must follow certain restrictions.
+To be complete, the model of an operation needs to describe the
+behavior of the operation. The behavior is specified in a restricted
+form of C++, the source language of the TCE toolset, augmented with
+macro definitions.  This definition is used for simulating the
+operation in the instruction set simulator of TCE.
 
 \paragraph{Definition of Operation Behavior}
 
 Operation behavior simulation functions are entered inside an operation
-behavior definition block. There are two kinds of such blocks; one for
+behavior definition block. There are two kinds of such blocks: one for
 operations with no state, and one for operations with state.
 
 \begin{description}
 \item[OPERATION(\emph{operationName})] %
   Starts an operation behavior definition block for an operation with name 
   \emph{operationName}. Operations defined with this statement do not 
-  contain state. Operation name must be written in upper case letters!
+  contain state. Operation names must be written in upper case letters!
 \item[END\_OPERATION(\emph{operationName})] %
   End an operation behavior definition block for an operation with no state.
   \emph{operationName} has to be exactly the same as it was entered in the
@@ -408,7 +410,7 @@ operations with no state, and one for operations with state.
   name of the state. DEFINE\_STATE() definition for the \emph{stateName}
 must 
   occur before this statement in the definition file. Operation and state
-  name must be written in upper case letters!
+  names must be written in upper case letters!
 \item[END\_OPERATION\_WITH\_STATE(\emph{operationName})] %
   Ends an operation behavior definition block for an operation with state.
   \emph{operationName} has to be exactly the same as it was entered in the
@@ -458,7 +460,7 @@ its name, which should be unique across all the operation definitions.%
 
 Operation state can be accessed in the code that implements the behavior of
 the operation by means of a \verb#STATE# expression.  The fields of the
-state object are accessed with the ``dot syntax'' of C language.  See
+state object are accessed with the dot operator, as in C++.  See
 Section~\ref{ssec:behaviour-commands} for a complete description of this
 statement.
 
@@ -480,14 +482,15 @@ computed before returning.
 The behavior of operations and the information contents of operation state
 objects are defined by means of the behavior description language.
 
-With some limitations, valid C++ code is also valid definition of the
-emulation functions that model operation behavior.  OSAL behavior definition
+The emulation functions that model operation behavior are written in C++
+with some restrictions.
+The  OSAL behavior definition
 language augments the C++ language with a number of statements.  For
 example, 
 control may exit the definition body at any moment by using a special 
-statements; a set of statements is provided to refer to operation inputs
+statement, a set of statements is provided to refer to operation inputs
 and 
-outputs; a statement is used to access the memory model.
+outputs, and a statement is provided to access the memory model.
 
 \paragraph{Base data types.}
 The behavior description language defines a number of base data
@@ -510,9 +513,11 @@ unique number.  The inputs are assigned a number starting from 1 for the
 first input.  The first output is assigned the number $n+1$, where $n$ is
 the number of inputs of the operations, the second $n+2$, and so on.
 
-Two sets of expressions are used when accessing terminals. Input terminal
-values can be read as an unsigned integer, signed integer, a single- or
-double-precision floating point number using the following expressions:
+Two sets of expressions are used when accessing terminals. The value of
+an input terminal
+can be read as an unsigned integer, a signed integer, a single precision 
+floating point number, or
+a double precision floating point number using the following expressions:
 \begin{description}
 \item[UINT(\emph{number})] %
   Treats the input terminal denoted by \emph{number} as a number of type
@@ -538,7 +543,7 @@ Output terminals can be written using the following expression:
 \end{description}
 
 Since the behavior of certain operations may depend in non-trivial ways on
-the bit width of the terminals (of a given implementation), it is sometimes
+the bit width of the terminals of a given implementation, it is sometimes
 necessary to know the bit width of every terminal.  The expression
 \begin{description}
 \item[BWIDTH(\emph{number})]
@@ -580,8 +585,8 @@ by the output:
 \end{verbatim}
 
 \paragraph{Definition of operation state.}
-Operation state consists of a data structure.  Its contents of information
-is shared by one or more operations and is introduced by statement
+Operation state consists of a data structure.  Its value
+is shared by one or more operations, and it is introduced by the statement
 \begin{description}
 \item[DEFINE\_STATE(\emph{name})]
 \end{description}
@@ -593,7 +598,7 @@ string must be generated with the following regular expression:
 \end{quote}
 Note that only upper case letters are allowed.
 
-An state definition block is terminated by the statement
+A state definition block is terminated by the statement
 \begin{description}
 \item[END\_DEFINE\_STATE]
 \end{description}
@@ -609,8 +614,9 @@ DEFINE_STATE(BLISS)
 END_DEFINE_STATE;
 \end{verbatim}
 
-The data type IntWord represents a 32-bit integer number; the data type
-FloatWord represents a 32-bit floating-point IEEE-754 number.
+%% These were already defined a couple a pages before:
+% The data type IntWord represents a 32-bit integer number; the data type
+% FloatWord represents a 32-bit floating-point IEEE-754 number.
 
 Some operation state definitions may require that the data is initialized to
 a predefined state, or even that dynamic data structures are allocated when
@@ -620,7 +626,7 @@ to provide an initialization definition inside the state definition block.
 \item[INIT\_STATE(\emph{name})]%
   Introduces the code that initializes the operation state.
 \item[END\_INIT\_STATE]%
-  Terminates the block that contains initialization code.
+  Terminates the block that contains the initialization code.
 \end{description}
 
 Some state definitions may contain resources that need to be released when the
@@ -650,19 +656,18 @@ of operation behaviour.
 
 \paragraph{Access to operation state.}
 Operation state is denoted by a unique name string and is accessed by means
-of statement
+of the statement
 \begin{description}
 \item[STATE]
 \end{description}
 
 Typically, an operation state data structure consists of several fields,
-which are accessed using the ``dot syntax'' of C.  For example, the
-expression \verb#STATE.floatData# gives the current value of the
-field \verb#floatData# of state object which is assigned to the operation
-of 
-which the simulation function is defined in.  The precise format of an
-operation state structure is defined by means of \verb#DEFINE_STATE()#
-statement and is specific for an operation. State must be defined before it
+which are accessed using the dot operator of C++.  For example, the
+expression \verb#STATE.floatData# in a simulation function refers to the
+field \verb#floatData# of the state object assigned to the operation
+being defined.  The precise format of an
+operation state structure is defined by means of the \verb#DEFINE_STATE()#
+statement, and it is specific for an operation. State must be defined before it
 can be used in an operation definition.
 
 \paragraph{Access to control registers.}
@@ -687,7 +692,7 @@ can be accessed with \verb#CONTEXT_ID#.
 \paragraph{Returning from operation behavior emulation functions.}
 Normally, an emulation function returns control to the caller when control
 flows out of the definition body.  To return immediately, from an arbitrary
-point in the definition body, the following normal C return 
+point in the definition body, the following normal C++ return 
 statement can be used. The return value is boolean indicating the success
 of the operation execution. In pratice, 'true' is always returned:
 \verb|return true;|.
@@ -732,28 +737,28 @@ The processor template from which the application specific processors
 designed with TCE are defined from is called Transport Triggered 
 Architecture (TTA). For a detailed description behind the TTA philosophy, 
 refer to \cite{HCorp97}.
-This section describes certain aspects of the TTA template version TCE
-uses in the toolset that might not be very clear.
+This section describes certain aspects of the TTA template used in the TCE
+toolset that might not be very clear.
 
-\subsection{Immediates/Constants in the TTAs of TCE}
+\subsection{Immediates/Constants}
 
-The TTA template supports two ways of transporting program constants in the 
+The TTA template supports two ways of transporting program constants in
 instructions. \textit{Short immediates} are encoded in the move slot's
-source field, thus consume part of a single move slot. The constants
-transported in the source field are often limited in size. 
+source field, and thus consume a part of a single move slot. The constants
+transported in the source field are usually relatively small in size. 
 Wider constants can be transported by means of so called \textit{long 
 immediates}. Long immediates can be defined using a 
 parameter called \textit{instruction template}. The idea is that
 each TTA instruction is connected to a single instruction template which 
 defines the move slots that contain pieces of a long immediate, if any. 
-Such pieces consume whole move slots, thus the slot cannot be used for
-a regular data transport in case it's used for transporting (a piece of)
-a long immediate. Instruction containing a long immediate also provides
+The slots cannot be used for
+regular data transports when they are used for transporting pieces of
+a long immediate. An instruction containing a long immediate also provides
 a target to which the long immediate must be transported. The target is so 
 called \textit{immediate unit} which is written directly from the control 
-unit, not through the transport buses. \textit{Immediate unit} is like
+unit, not through the transport buses. The immediate unit is like
 a register file expect that it contains only read ports and is written
-only by the control unit's instruction decoder when it detects an 
+only by the instruction decoder in the control unit when it detects an 
 instruction with a long immediate.
 
 \subsection{Operations, Function Units, and Operand Bindings}
@@ -767,8 +772,8 @@ Operations in TCE are defined in a separate database
 database of ``operation semantics''. The operations are
 used in processor designs by adding \textit{function units} (FU) that implement
 the wanted operations. Operands of the operations can be
-mapped to different ports of the implementing FU, and affects 
-the programming of the designed processor. Mapping of operation operands
+mapped to different ports of the implementing FU, which affects 
+programming of the  processor. Mapping of operation operands
 to the FU ports must be therefore described by the processor designer
 explicitly.
 
@@ -810,13 +815,13 @@ With the rest of the operands bound similarly as in the first example.
 
 Due to the differing 'SUB' input bindings one cannot run code scheduled
 for the previous processor on a machine with an ALU with the latter 
-alternative operand bindings. This small detail is important to understand when 
-designing more complex FUs with multiple operations with different number of 
-operands with varying size, but is usually transparent to the basic user of 
+operand bindings. This small detail is important to understand when 
+designing more complex FUs, with multiple operations with different number of 
+operands of varying size, but is usually transparent to the basic user of 
 TCE.
 
 Reasons for wanting to fine tune the operand bindings might include using
-a smaller width input ports for some operation operands. For example, the 
+input ports of a smaller width for some operation operands. For example, the 
 width of the address operands in memory accessing operations of a load store 
 unit is often smaller than the data width. Similarly, the second operand of
 a shift operation that defines the number of bits to shift requires less
