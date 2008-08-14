@@ -1,0 +1,12 @@
+<?php
+// short test description
+// this test is broken because it assumes 0 latency IMM writes
+$test_description="parallel simulation: 64, 256, and 1025 point FFT testcase by Risto and Teemu";
+
+// the binary being tested
+$test_bin="../../../../tce/src/codesign/ttasim/ttasim";
+
+// args given to program
+// $bin_args="";
+
+?>

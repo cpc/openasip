@@ -1,0 +1,8 @@
+<?php
+// short test description
+$test_description="Using the command line loading of program and machine, etc.";
+
+// the binary being tested
+$test_bin="../../../../tce/src/codesign/ttasim/ttasim";
+$bin_args="-e \"stepi 10000; puts [info proc cycles]; quit\" -a data/guard_latencies.adf -p data/guard_latencies.tpef"
+?>

@@ -253,6 +253,8 @@ LINES_FROM_ERROR_LOG=1500
 # test dir names under tce root
 SYSTEMTEST_DIR="systemtest"
 SYSTEMTEST_LONG_DIR="systemtest_long"
+REAL_ST_DIR="../testsuite/systemtest"
+REAL_ST_LONG_DIR="../testsuite/systemtest_long"
 UNITTEST_DIR="test"
 
 LOG_FILE="$LOG_DIR/compiletest.log"
@@ -291,6 +293,18 @@ RETURN_IF_ERRORS="no"
 currentLine=""
 
 firstDialog=yes
+
+function link_systemtest_dirs {
+    if [ ! -h $SYSTEMTEST_DIR ]
+    then
+      ln -s $REAL_ST_DIR $SYSTEMTEST_DIR
+    fi
+
+    if [ ! -h $SYSTEMTEST_LONG_DIR ]
+    then
+      ln -s $REAL_ST_LONG_DIR $SYSTEMTEST_LONG_DIR
+    fi
+}
 
 function debug_print {
     if [ "$DEBUG_OUTPUT" == "yes" ]; then
@@ -471,7 +485,7 @@ function run_system_tests {
 
     cd $SYSTEMTEST_DIR
     {
-        ../tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../../tce/tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure system_testing
@@ -495,7 +509,7 @@ function run_long_system_tests {
 
     cd $SYSTEMTEST_LONG_DIR
     {
-        ../tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../tools../tce/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure long_testing
@@ -757,7 +771,7 @@ function handleError {
 # parameters:
 # 1: project root (i.e. where to run configure and make)
 function compile_test_with_all_compilers {
-
+    link_systemtest_dirs
     mkdir -p ${LOG_DIR}
     lineLength=79
     echo -n > $ERROR_LOG_FILE

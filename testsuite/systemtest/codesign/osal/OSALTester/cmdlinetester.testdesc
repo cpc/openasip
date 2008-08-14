@@ -1,0 +1,13 @@
+<?php
+// file osaltester.testdesc
+
+// short test description
+$test_description="OSALTester command line behavior";
+
+// the binary being tested
+$test_bin="../../../../../tce/src/codesign/osal/OSALTester/testosal";
+
+// args given to program
+$bin_args="add2 2 \"2;\" mul2 5 5";
+
+?>

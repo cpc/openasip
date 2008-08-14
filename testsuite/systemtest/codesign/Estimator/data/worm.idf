@@ -1,0 +1,114 @@
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <hdb-file>data/test.hdb</hdb-file>
+  </ic-decoder-plugin>
+
+  <fu name="GCU">
+    <hdb-file>data/test.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="ALU">
+    <hdb-file>data/test.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="LSU">
+    <hdb-file>data/test.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="ADD">
+    <hdb-file>data/test.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>data/test.hdb</hdb-file>
+    <rf-id>1</rf-id>
+  </rf>
+
+  <bus name="bus1">
+    <hdb-file>data/test.hdb</hdb-file>
+    <bus-id>5</bus-id>
+  </bus>
+
+  <bus name="bus2">
+    <hdb-file>data/test.hdb</hdb-file>
+    <bus-id>5</bus-id>
+  </bus>
+
+  <socket name="S1">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>6</socket-id>
+  </socket>
+
+  <socket name="S2">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>7</socket-id>
+  </socket>
+
+  <socket name="S3">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>6</socket-id>
+  </socket>
+
+  <socket name="S4">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>7</socket-id>
+  </socket>
+
+  <socket name="S5">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>6</socket-id>
+  </socket>
+
+  <socket name="S7">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>7</socket-id>
+  </socket>
+
+  <socket name="S8">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>6</socket-id>
+  </socket>
+
+  <socket name="S11">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>7</socket-id>
+  </socket>
+
+  <socket name="S7_1_2">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>6</socket-id>
+  </socket>
+
+  <socket name="S7_1">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>7</socket-id>
+  </socket>
+
+  <socket name="S8_1">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>6</socket-id>
+  </socket>
+
+  <socket name="S4_1">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>7</socket-id>
+  </socket>
+
+  <socket name="S5_1">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>6</socket-id>
+  </socket>
+
+  <socket name="S7_1_2_1">
+    <hdb-file>data/test.hdb</hdb-file>
+    <socket-id>7</socket-id>
+  </socket>
+
+</adf-implementation>

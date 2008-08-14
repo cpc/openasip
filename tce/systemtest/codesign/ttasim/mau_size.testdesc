@@ -1,7 +1,0 @@
-<?php
-// short test description
-$test_description="Tests memory accessing FUs with different MAU sizes.";
-
-// the binary being tested
-$test_bin="../../../src/codesign/ttasim/ttasim";
-?>

@@ -1,2 +1,0 @@
-#!/bin/bash
-../../../../src/codesign/osal/OSALBuilder/buildopset data/operations

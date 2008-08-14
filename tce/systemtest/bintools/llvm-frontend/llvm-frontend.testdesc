@@ -1,6 +1,0 @@
-<?php
-// short test description
-$test_description="Compiling test cases with tcecc and simulate results after sequential schedule.";
-$test_bin = "../../../scheduler/testbench/scheduler_tester.py";
-$bin_args = "-c ../../../scheduler/passes/sequential_tcecc_scheduler.conf -vrx -g -O3 -a misc/1_bus_min_opset.adf ";
-?>

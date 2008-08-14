@@ -1,0 +1,11 @@
+#!/bin/bash
+cd ../../../../tce/src/tools
+make > /dev/null
+cd ../base
+make > /dev/null
+cd ../applibs
+make > /dev/null
+cd ../bintools/Assembler
+make > /dev/null
+cd ../TPEFDumper
+make > /dev/null

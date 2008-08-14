@@ -1,0 +1,10 @@
+<?php
+// file: complex_bem.testdesc
+
+// short test description
+$test_description="generating BEM of a complex machine";
+// the binary being tested
+$test_bin="../../../../tce/src/bintools/BEMViewer/viewbem";
+// arguments given to the program
+$bin_args="data/complex.bem";
+?>

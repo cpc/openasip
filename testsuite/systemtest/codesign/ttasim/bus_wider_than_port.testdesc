@@ -1,0 +1,13 @@
+<?php
+// short test description
+$test_description = 
+    "a case which writes data to a port and expects the top bits ".
+    "to be dropped due to wider bus than the port";
+
+// the binary being tested
+$test_bin="../../../../tce/src/codesign/ttasim/ttasim";
+
+// args given to program
+// $bin_args="";
+
+?>

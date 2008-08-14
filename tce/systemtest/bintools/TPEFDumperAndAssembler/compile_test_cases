@@ -1,2 +1,0 @@
-#!/bin/bash
-../../../tools/scripts/exec_max_time 60 "../../../src/bintools/Assembler/tceasm data/memoryworm.adf data/memoryworm.tceasm"

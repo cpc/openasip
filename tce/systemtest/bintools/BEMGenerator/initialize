@@ -1,2 +1,0 @@
-#!/bin/bash
-../../../src/bintools/BEMGenerator/createbem -o data/complex.bem data/complex.adf
