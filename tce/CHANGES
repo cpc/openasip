@@ -1,7 +1,7 @@
 1.0-beta1     2008-xx-xx
 
-Notable new features
---------------------
+New features
+------------
 
 - Added example stream operations to the base opset and documented them in
   the TCE User Manual's tutorial section.
@@ -10,8 +10,8 @@ Notable new features
   is still used by default.
 - Fixed TCE to compile and pass tests with Ubuntu 6.06 LTS (Dapper).
 
-Bug fixes worth mentioning
---------------------------
+Bug fixes
+---------
 - Workaround for an ICE that happened with LLVM-GCC inlining.
 - Bug #14: Tcl 8.5 has a problem with stack size detection which caused Proxim's
   script interpreter to fail (see Bug #14). Removed support for Tcl 8.5 for

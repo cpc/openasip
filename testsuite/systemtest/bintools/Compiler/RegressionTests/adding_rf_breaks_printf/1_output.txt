@@ -1,8 +1,6 @@
 
- A1_Cb: 9a, A1_Cr: 8a
- B1_Cb: 99, B1_Cr: eb
- C1_Cb: ac, C1_Cr: 9f
+0x99
+0xeb
 
- A1_Cb: 9a, A1_Cr: 8a
- B1_Cb: 99, B1_Cr: eb
- C1_Cb: ac, C1_Cr: 9f
+0x99
+0xeb
