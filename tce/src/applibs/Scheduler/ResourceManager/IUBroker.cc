@@ -23,6 +23,12 @@ using std::string;
 using namespace TTAMachine;
 using namespace TTAProgram;
 
+// limit distance between LIMM write and use.
+// this limit makes scheduling much faster, and cases
+// where there is some advantage in limm read and write being 
+// far away are extremely rare
+static const int MAX_LIMM_DISTANCE = 25;
+
 /**
  * Constructor.
  */
@@ -102,7 +108,8 @@ IUBroker::allAvailableResources(int useCycle, const MoveNode& node) const {
     SchedulingResourceSet results;
     std::vector<IUResource*> tmpResult;
     
-    while (defCycle > 0 && tmpResult.empty()) {
+    while (defCycle > 0 && (useCycle - defCycle) < MAX_LIMM_DISTANCE &&
+           tmpResult.empty()) {
         defCycle--;
         ResourceMap::const_iterator resIter = resMap_.begin();
         while (resIter != resMap_.end()) {
@@ -160,7 +167,7 @@ IUBroker::assign(int useCycle, MoveNode& node, SchedulingResource& res)
         // IURes assign method will set index to the register
         // in IU that was assigned for immediate read
         int index = 0;
-        while (defCycle > 0) {
+        while (defCycle > 0 && (useCycle - defCycle) < MAX_LIMM_DISTANCE) {
             defCycle--;
             if (iuRes.canAssign(defCycle, useCycle, node)) {
                 TerminalImmediate* tempImm = 
