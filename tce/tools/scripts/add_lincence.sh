@@ -45,6 +45,7 @@ function testFile {
     # checking if some copyright or licence already in the file
     head -40 "${1}" | grep -m 1 -iqE '[[:space:]]Copyright[[:space:]]|[[:space:]]Licence[[:space:]]' && return 1
     # checking if the file is a script file
+    head -1 "${1}" | grep -Eq '#!/.*/php($|[[:space:]])' && LINE_TO_INSERT=3 && return 0
     head -1 "${1}" | grep -Fq '#!/' && LICENCE_FILE="${LICENCE_FILE_SCRIPT}" && LINE_TO_INSERT=2 && return 0
     grep -qiE '.*\.(py|sh)$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_SCRIPT}" && return 0
     grep -qiE '.*\.tex$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_TEX}" && return 0
@@ -53,13 +54,14 @@ function testFile {
 }
 
 # insert $LICENCE_FILE to a another file given as a parameter
-# file where insert is done must have at least $LINE_TO_INSERT+1 lines
 # $1 file where $LICENCE_FILE is inserted
 # $LINE_TO_INSERT line in $1 where $LICENCE_FILE 
 function insertFileToFile {
     local lineA="$LINE_TO_INSERT"
     local lineB=""
     let lineB=lineA+1
+    # file where insert is done must have at least $LINE_TO_INSERT+1 lines
+    [ "$(cat ${1} | wc -l)" -lt "${lineB}" ] && return 1
     echo "Adding licence to file: $1 $LICENCE_FILE, to the line $lineA"
 
     sed -i -e "$lineA{ h
