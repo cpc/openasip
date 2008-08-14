@@ -28,10 +28,12 @@
 LICENCE_FILE_SCRIPT="licence_script"
 LICENCE_FILE_CPP="licence_cpp"
 LICENCE_FILE_TEX="licence_tex"
+LICENCE_FILE_VHDL="licence_vhdl"
 
 [ ! -e "${LICENCE_FILE_SCRIPT}" ] && echo "File ${LICENCE_FILE_SCRIPT} missing." && exit 1
 [ ! -e "${LICENCE_FILE_CPP}" ] && echo "File ${LICENCE_FILE_CPP} missing." && exit 1
 [ ! -e "${LICENCE_FILE_TEX}" ] && echo "File ${LICENCE_FILE_TEX} missing." && exit 1
+[ ! -e "${LICENCE_FILE_VHDL}" ] && echo "File ${LICENCE_FILE_VHDL} missing." && exit 1
 
 # default licence file is cpp
 LICENCE_FILE="${LICENCE_FILE_CPP}"
@@ -44,8 +46,9 @@ function testFile {
     head -40 "${1}" | grep -iqE 'Copyright|Licence' && return 1
     # checking if the file is a script file
     head -1 "${1}" | grep -Fq '#!/' && LICENCE_FILE="${LICENCE_FILE_SCRIPT}" && LINE_TO_INSERT=2 && return 0
-    grep -qiE '.*(py|sh)$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_SCRIPT}" && return 0
-    grep -qiE '.*tex$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_TEX}" && return 0
+    grep -qiE '.*\.(py|sh)$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_SCRIPT}" && return 0
+    grep -qiE '.*\.tex$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_TEX}" && return 0
+    grep -qiE '.*\.vhd[l]?$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_VHDL}" && return 0
     return 0
 }
 
@@ -57,7 +60,7 @@ function insertFileToFile {
     local lineA="$LINE_TO_INSERT"
     local lineB=""
     let lineB=lineA+1
-    echo "Adding licence to file: $1 $LICENCE_FILE, to line $lineA"
+    echo "Adding licence to file: $1 $LICENCE_FILE, to the line $lineA"
 
     sed -i -e "$lineA{ h
     r $LICENCE_FILE
@@ -73,9 +76,10 @@ export -f insertFileToFile
 export -f testFile
 export LICENCE_FILE_SCRIPT
 export LICENCE_FILE_TEX
+export LICENCE_FILE_VHDL
 export LICENCE_FILE
 
-PREPEND_REGEX='.*\.(h|hh|cc|icc|sh|py|php|vhd|vhdl|tex)$'
+PREPEND_REGEX='.*\.(h|hh|cc|icc|sh|py|php|vhd[l]?|tex)$'
 
-find . -regextype posix-extended -type f -regex "$PREPEND_REGEX" -exec bash -l -c "\
+find . -regextype posix-extended -type f -regex "$PREPEND_REGEX" -exec bash -c "\
 testFile {} && insertFileToFile {}" \;
