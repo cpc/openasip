@@ -43,7 +43,7 @@ LICENCE_FILE="${LICENCE_FILE_CPP}"
 function testFile {
     LINE_TO_INSERT=1
     # checking if some copyright or licence already in the file
-    head -40 "${1}" | grep -m 1 -iqE ' Copyright | Licence ' && return 1
+    head -40 "${1}" | grep -m 1 -iqE '[[:space:]]Copyright[[:space:]]|[[:space:]]Licence[[:space:]]' && return 1
     # checking if the file is a script file
     head -1 "${1}" | grep -Fq '#!/' && LICENCE_FILE="${LICENCE_FILE_SCRIPT}" && LINE_TO_INSERT=2 && return 0
     grep -qiE '.*\.(py|sh)$' <(echo $1) && LICENCE_FILE="${LICENCE_FILE_SCRIPT}" && return 0
