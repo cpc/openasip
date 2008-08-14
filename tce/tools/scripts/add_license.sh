@@ -43,7 +43,7 @@ LICENSE_FILE="${LICENSE_FILE_CPP}"
 function testFile {
     LINE_TO_INSERT=1
     # checking if some copyright or license already in the file
-    head -40 "${1}" | grep -m 1 -iqE '[[:space:]]Copyright[[:space:]]|[[:space:]]License[[:space:]]' && return 1
+    head -40 "${1}" | grep -m 1 -iqE '[[:space:]](Copyright|License)([[:space:]]|\.)' && return 1
     # checking if the file is a script file
     head -1 "${1}" | grep -Eq '#!/.*/php($|[[:space:]])' && LINE_TO_INSERT=3 && return 0
     head -1 "${1}" | grep -Fq '#!/' && LICENSE_FILE="${LICENSE_FILE_SCRIPT}" && LINE_TO_INSERT=2 && return 0
