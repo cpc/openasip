@@ -509,7 +509,7 @@ function run_long_system_tests {
 
     cd $SYSTEMTEST_LONG_DIR
     {
-        ../tools../tce/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+        ../../tce/toolsscripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
     } 1> $TEMP_FILE 2>&1
 
     log_failure long_testing
