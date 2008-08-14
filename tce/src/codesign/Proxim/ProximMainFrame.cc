@@ -491,7 +491,7 @@ ProximMainFrame::dockWindow(wxWindow* window) {
     // splitter window, and the new window as the bottom half of the
     // splitter. Finally, the old contents of the frame is replaced with the
     // new splitter window.
-    sizer_->Remove(topSplitter_);
+    sizer_->Detach(topSplitter_);
     wxSplitterWindow* newSplitter = new wxSplitterWindow(this, wxHORIZONTAL);
     newSplitter->SetMinimumPaneSize(25);
     window->Reparent(newSplitter);

@@ -96,7 +96,7 @@ ProximDisassemblyWindow::resetGrid() {
     wxSizer* sizer = GetSizer();
 
     if (codeGrid_ != NULL) {
-        sizer->Remove(codeGrid_);
+        sizer->Detach(codeGrid_);
         sizer->Layout();
         codeGrid_->Destroy();
     }
@@ -134,7 +134,7 @@ ProximDisassemblyWindow::reset() {
     wxSizer* sizer = GetSizer();
 
     if (codeGrid_ != NULL) {
-        sizer->Remove(codeGrid_);
+        sizer->Detach(codeGrid_);
         sizer->Layout();
         codeGrid_->Destroy();
         codeGrid_ = NULL;
