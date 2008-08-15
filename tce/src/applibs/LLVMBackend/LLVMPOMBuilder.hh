@@ -39,6 +39,7 @@
 #define LLVM_POM_BUILDER_H
 
 #include <map>
+#include <set>
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/Support/Mangler.h"
 #include "llvm/Constant.h"
