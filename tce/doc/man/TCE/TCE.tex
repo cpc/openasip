@@ -52,12 +52,12 @@ This is the user manual for TTA Codesign Environment (TCE). The document
 describes the usage of all the tools in the toolset, and the most common
 design flows in the form of tutorials. 
 
-It is recommended to start reading this user manual from the
-Chapter~\ref{chapter:tceFlow} that provides an overview to the TCE
-processor design flow, and then jump to Chapter~\ref{chapter:tutorials} that
-contains tutorials for several common TCE use cases. The rest of the chapters 
-describe the use of each tool separately, and the can be referred to for
-information on more advanced usage the tools.
+Chapter~\ref{chapter:tceFlow} provides an overview to the TCE
+processor design flow, and Chapter~\ref{chapter:tutorials} contains
+tutorials for several common TCE use cases. These should be sufficient
+for starting to use the TCE toolset.  The rest of the chapters
+describe the use of each tool separately, and they can be referred to
+for information on more advanced usage the tools.
 
 \section{Acronyms, Abbreviations and Definitions}
 \begin{tabular}[h]{p{0.15\textwidth}p{0.80\textwidth}}
@@ -95,8 +95,10 @@ XML & Extensible Markup Language. \\
 \hline
 [brackets]       & bibliographic references\\
 \hline
-`single quoted'   & keywords, file names or literal strings in running
+`single quoted'   & keywords or literal strings in running
                     text\\
+\hline
+\file{file name}   & file and directory names in running text\\
 \hline
 \textbf{bold}     & Shorthand name of a TCE application.\\
 \hline
@@ -116,7 +118,7 @@ in high-level languages.
 
 In addition, TCE provides an extensible research platform for 
 experimenting with new ideas for Transport Triggered Architectures (TTAs), 
-retargetable code ILP code generation, and application specific processor 
+retargetable ILP code generation, and application specific processor 
 design methodology, among others.
 
 The TCE design flow starts from an application described in a high level
@@ -135,7 +137,7 @@ that TTA/TCE runs the program correctly, and optimizing the hardware together
 with the software by modifying the resources and architecture of the processor
 to fit  the application
 at hand -- a process called hardware/software 
-co-design.
+codesign.
 
 % ISO C99 if LLVM/TCE is used
 
@@ -264,7 +266,7 @@ operations. The .opb is the plugin module compiled from the .cc.
 
 Operations are divided in ``operation modules''. For example, `base' module,
 included in the TCE distribution, contains all the operations available 
-to the frontend compiler's code generation.
+to the front end compiler's code generation.
 
 An operation in OSAL is defined by its properties
 and its behavior.  The properties defined by OSAL do not restrict in any
@@ -300,13 +302,13 @@ can contain operations with equal names.
 Optional description of the operation.
 
 \paragraph{inputs}
-Number of inputs of the operation. The number of inputs is an integer
-nonnegative number. Must be a positive number if the number of outputs is
+Number of inputs of the operation. The number of inputs is a
+nonnegative integer. It must be positive if the number of outputs is
 zero.
 
 \paragraph{outputs}
-Number of outputs of the operation. The number of outputs is an integer
-nonnegative number. Must be a positive number if the number of inputs is
+Number of outputs of the operation. The number of outputs is a
+nonnegative integer. It must be positive if the number of inputs is
 zero.
 
 \paragraph{reads/writes-memory}
@@ -355,7 +357,9 @@ which the two operations are executed cannot be swapped.  An operation where
 
 Note: it is not necessary that, if operation A `affects' operation B, then B
 must contain A in its `affected-by' list.  Vice versa, if A is `affected-by'
-B, it is not needed that B must contain A in its `affects' list.
+B, it is not needed that B must contain A in its `affects' list. This
+allows a user to add new operations that share state with the base
+operations shipped with TCE, without needing to modify the base operations.
 
 \subsubsection{Operation Input Properties}
 \label{ssec:opinput-properties}
@@ -373,12 +377,13 @@ properties:
 \paragraph{identification number}
 Integer number in the range [1,N] where N is the number of inputs as defined
 in section~\ref{ssec:operation-properties} of operation declaration.  If N
-is zero, then no input declarations can be specified.
+is zero, then no input declarations can be specified. TCE does not currently
+allow operations with zero inputs to be defined.
 
 \paragraph{can-swap}
 A list of identification numbers.  All the inputs listed can be swapped with
 this input.  The identification number of this input definition is not
-allowed in this list.  The can-swap property is commutative, thus any of the
+allowed in the list.  The can-swap property is commutative, thus any of the
 listed inputs is implicitly `can-swap' with this input and all the other
 inputs listed.  The can-swap declaration need not be symmetrical, but it is
 not an error if the implied declaration is also specified.
@@ -442,17 +447,17 @@ must
   block start statement \verb|OPERATION_WITH_STATE()|.
 \end{description}
 
-The operation behavior specifications may include following
-emulation function definition blocks:
+The main emulation  function definition block is given as:
 \begin{description}
 \item[TRIGGER ... END\_TRIGGER;] %
   Main emulation function.
-\item[LATE\_RESULT ... END\_LATE\_RESULT;] %
-  Function that emulates late-coming results.
+
+% \item[LATE\_RESULT ... END\_LATE\_RESULT;] %
+%   Function that emulates late-coming results.
 \end{description}
 
-Only the first definition is mandatory.  The LATE\_RESULT definition allows 
-the user to define operations with complex, nondeterministic behavior.
+% Only the first definition is mandatory.  The LATE\_RESULT definition allows 
+% the user to define operations with complex, nondeterministic behavior.
 
 The bodies of the function definitions are written in the operation behavior
 language, described in Section~\ref{ssec:behaviour-commands}.
@@ -662,7 +667,7 @@ function is defined by a finalization definition block, which must be
 defined inside the state definition block.
 \begin{description}
 \item[FINALIZE\_STATE(\emph{name})]%
-  Introduces the code that finalises the operation state, that is,
+  Introduces the code that finalizes the operation state, that is,
   deallocates the dynamic data contained in an operation state object.
 \item[END\_FINALIZE\_STATE]%
   Terminates the block that contains finalisation code.
@@ -674,7 +679,7 @@ of operation behaviour.
 \begin{description}
 \item[ADVANCE\_CLOCK \ldots END\_ADVANCE\_CLOCK]%
   In case the model of operations state is synchronous, this definition can
-  be used to specif activity that occurs ``in the raising edge of the clock
+  be used to specify activity that occurs ``in the raising edge of the clock
   signal'', that is, at the end of a simulation cycle. The C `return'
   statement can used to return from this function.
 \end{description}
@@ -858,6 +863,1367 @@ bits than the shifted data operand.
 % In GUIs, describe only the most unclear parts (esp. in ProDe).
 
 
+\chapter{TUTORIALS}
+\label{chapter:tutorials}
+
+
+\section{TCE Tour}
+
+This tutorial goes through most of the tools in TCE using a fairly simple
+example application. It starts from C code and ends up with VHDL of the
+processor and a bit image of the parallel program. This tutorial will also
+explain how to accelerate an algorithm by customizing the instruction
+set, i.e.\ by using custom operations. The total time  to go through
+the tutorial is about 2 to 3 hours.
+
+The tutorial file package is available at:
+
+\url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz}\\
+
+Unpack it to a working directory and cd to tce\_tutorials/tce\_tour.
+
+\subsection{The Sample Application}
+
+The test application counts a 32-bit CRC (Cyclic Redundant Check). The C code
+implementation is written by Michael Barr and it is published under Public
+Domain. The implementation consists of two different version of crc, but we will
+be using the fast version only.
+
+The program consists of two separate files: \file{main.c} contains the simple main
+function and \file{crc.c} contains the actual implementation. Open \file{crc.c} in
+your preferred editor and take a look at the code. The
+main difference between the crcSlow and crcFast implementations is that 
+crcFast exploits precalculated table values. This is a quite usual method of
+algorithm optimization.
+
+\subsection{Generating LLVM Bitcode}
+
+We first generate LLVM bitcode from the C code. The bitcode
+will be later compiled to an architecture dependent TTA program.
+Compile the C code with the 'tcecc' compiler:
+
+\shellcmd{tcecc -O2 -o crc.bc -k main,result crc.c main.c}
+
+This produces an architecture independent bitcode program \file{crc.bc}
+of the C code. The switch -k was used to tell the
+compiler to keep the \textit{main} and \textit{result} symbols in the
+generated program in order to access them by name in the simulator.
+
+\subsection{Starting Point Processor Architecture}
+
+We use the {\em minimal architecture} as the starting point. File
+\file{minimal.adf} describes a minimalistic architecture containing just enough
+resources that the TCE compiler can still compile programs for it. Function
+units in \file{minimal.adf} are selected from the hardware database (HDB,
+Section~\ref{section:hdb}) so we are able to generate a VHDL implementation
+of the processor automatically later in the tutorial. 
+% It is also possible to
+% design all the components from scratch in order to evaluate the architecture
+% without actually implementing the components in VHDL.
+
+Copy the \file{minimal.adf} included in TCE distribution to a new ADF file which
+is your starting point architecture:
+
+\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
+
+Take a look at the starting point architecture using the graphical Processor
+Designer (ProDe, Section~\ref{sec:prode}) tool. Start ProDe with:
+
+\shellcmd{prode start.adf \&}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Preserved this. Maybe there should be a tutorial for building an
+% architecture from scratch using ProDe because tce tour doesn't include it
+% anymore?
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Create a new architecture design by clicking 'New' button in the toolbar.
+% 
+% Alternatively, if you want to get quickly past this part of the tutorial,
+% you can load a premade architecture design from file
+% \textit{starting\_point.adf} which was extracted from the tutorial package.
+% 
+% You can do this either from command line:
+% 
+% \textit{prode starting\_point.adf \&}
+% 
+% Or by clicking the 'Open' button in the toolbar.
+% 
+% In case you decided to design the architecute from scratch, next add a
+% functional unit (FU) that supports the operations the application uses from
+% the hardware database to the design.
+% 
+% \paragraph{Adding the functional units (FU) and the control unit.}
+% From menu: select \textit{Edit>Add From HDB>Function Unit}. Add one FU
+% that includes add, sub, eq, gt and gtu operations and another FU for the load
+% and store operations (ldw and stw). Name the first FU as ``ALU'' (as in Arithmetic
+% Logical Unit), and the second ``LSU'' (as in Load/Store Unit). Renaming the
+% FU can be done by clicking the FU and entering the name to the dialog field
+% ``Name''.
+% 
+% Add the control unit which includes the control flow operations
+% \textit{call and jump}.
+% 
+% Right click on the canvas, select: \textit{Edit>Add>Global Control Unit}. Just
+% click OK in the dialog, the default values should be fine.
+% 
+% Now we have FUs that support the operations the application uses. Next add
+% a register file with enough registers to store the variables our
+% application uses (without needing to spill them to memory).
+% 
+% \paragraph{Adding a register file (RF).}
+% Select from menu: \textit{Edit>Add from HDB>Register File}. Select a
+% RF with at least one read and write port. Click 'Add' and
+% 'Close'. Set the width and size of the RF. the program used only 4
+% variables, but we'll set the RF to contain 16 registers to be able to
+% execute also a bit larger applications efficiently. Let us use
+% integer registers with 32 bit width, as that is what the frontend compiler
+% expects in the current version. Click the RF, set ``Name=RF'', ``Size=16''
+% and ``Width=32''.
+% 
+% \paragraph{Adding a bool register file}
+% Add another register file as done above. This time, name the register file boolRF
+% and set the width of the of the RF to 1 bit and size of thr RF to be 2 
+% and guard latency to 0.
+% 
+% \paragraph{Adding interconnection network.}
+% Next add two transport buses to the machine so we can actually generate
+% TTA programs that move data between the units. Let us add two buses: right
+% click on the canvas and select: \textit{Edit>Add>Transport Bus}.
+% 
+% Now we need to add support for register file guards. Make sure
+% that \textit{Always true guard} is checked. Click \textit{Add} from the
+% \textit{Register file guards} dialog. Next select boolRF as the \textit{Register
+% file} and click OK. Then repeat this, but this time check the \textit{Inverted}
+% box. Then change the register index from 0 to 1 and do this again, adding
+% two guards(non-inverted and inverted) also to register 1.
+
+% Other default values should be OK for this example, so just click OK on the
+% Bus dialog. Add another bus similarly.
+% 
+% Finally, create a fully connected interconnection network by connecting the
+% newly created transport buses to all inputs and outputs of all units (FUs
+% and RFs). You can do this automatically by selecting:
+% \textit{Tools>Fully Connect IC}.
+% 
+
+% \paragraph{Defining the address spaces.} We need to define some basic
+% properties of the instruction and data address spaces the processor
+% accesses. 
+% 
+% Select from menu: \textit{Edit>Address spaces>Add...}. Set Name
+% ``data'', MAU=8, Min-Address=0, Max-address=1ffff ff.
+% This defines an address space with 8 bit minimum addressable units starting
+% from address 0, ending at address 0x1ffff fff. Thus, 32M of data memory.
+% Should be more than enough for the small application.
+% 
+% For the instruction memory address space, add a new address space similarly
+% with the default values and name it ``instructions''. Other values for the
+% instruction memory address space values do not matter for now. 
+% 
+% Finally, you need to assign the address spaces to correct functional units.
+% The data address space is accessed by the load store unit (LSU), thus
+% double-click the LSU and set its address space to be the newly created ``data''
+% address space. Similarly, click the control unit and select its address
+% space to be the instruction address space ``instructions''.
+% 
+% The processor architecture design is now ready to be evaluated. Save the
+% architecture to an ADF file, name it \file{first.adf}.
+
+\subsection{Evaluating the Starting Point Architecture}
+
+Now we want to know how well the starting point architecture executes our
+program. First we need to map (``schedule'') the generic bitcode program
+to the parallel architecture we examined in the previous section. This can be
+done by compiling the bitcode program against the processor architecture
+with the command:
+
+\shellcmd{tcecc -a start.adf -o crc.tpef -k main,result crc.bc -O3}
+
+This will produce a parallel program called \file{crc.tpef} that can be
+executed with the processor design \file{start.adf}.  The parallel
+program is now tied to a specified architecture, so it is no longer
+architecture independent like the bitcode program.
+
+After successfully compiling the program we can now simulate it. Lets use
+the command line based simulator called ttasim. Start the simulator with:
+
+\shellcmd{ttasim -a start.adf -p crc.tpef}
+
+The simulator will load the architecture definition and the program and
+execute it. After this you should see ttasim prompt: \textit{(ttasim)}.
+The simulator can show various pieces of information about the execution of the program and
+utilization of processor resources.
+
+To see the cycle count use the following command in ttasim:
+
+\shellcmd{info proc cycles}
+
+Lets take a look at the processor utilization. Enter:
+
+\shellcmd{info proc stats}
+
+This will output a lot of information about the execution, like
+utilization of transport busses, register files and function units.
+
+Also check the result with:
+
+\shellcmd{x /u w \_result}
+
+The checksum should be \textbf{0x62488e82}.
+Next take a look at the graphical user interface of the simulator called Proxim
+(Section~\ref{section:proxim}). You can start it with:
+
+\shellcmd{proxim start.adf crc.tpef \&}
+
+Run the simulation and check the final cycle count it took to execute the
+program. The cycle count is written in the bottom bar of the simulator.
+
+Proxim can also show various pieces of information about a program's execution and
+resource utilization. To check the utilization of the resources of our
+architecture, select \textit{View>Machine Window} from the top menu. 
+Then enable the utilization visualization: \textit{Right click the machine
+window > Display utilizations}. The parts of the processor that are utilized
+the most are visualized with darker red color.
+
+Next, check the profiling data to see which instructions were executed the
+most. Select: \textit{Source>Profile data>Highlight Top Execution Counts}.
+Now the disassembly window has the most executed instructions highlighted.
+You should be able to spot the main loop of the program easily.
+
+
+As you probably noticed from the processor utilisation, the dividers
+(divs, divu) were not used. Currently the dividers have been implemented
+using Design Ware IP, which isn't freely distributed. In order to generate
+functioning processor you will have to remove these two FUs from the machine.
+Open ProDe and delete the divs and divu FUs and their sockets and remember to
+save.
+
+\subsection{Initial optimization}
+
+As you noticed the cycle count is tremendous. The reason for this is that the
+crcTable array is evaluated at runtime in crcInit function. In an actual
+system the evaluation would only be done once at startup, so the impact on cycle
+count would be miniscule in the long run. Nevertheless, we will remove this
+overhead and precalculate the values so we can consentrate on the optimization
+of the main CRC algorithm instead of the initialization routines.
+
+A simple method to precalculate the array values is to modify the
+crcInit function so that it prints the array after it has been
+calculated. The values obtained are included in the tutorial as the
+file \file{crcTable.dat}. Open \file{crc.c} and find the line:
+
+\begin{verbatim}
+ crc crcTable[256];
+\end{verbatim}
+
+To load the precalculated values, modify the line to read:
+
+\begin{verbatim}
+ crc crcTable[256] = {
+ #include "crcTable.dat"
+ };
+\end{verbatim}
+
+Next open \file{main.c} and remove or comment out the crcInit() function call because
+we now use the precalculated crcTable. Then
+recompile the code and simulate it again. Verify the result and check cycle
+count as done earlier. This time you should see a huge drop in the cycle
+count. Write down the cycle count as a baseline for future comparison.
+
+\subsection{Accelerating the Algorithm}
+
+Custom operations implement application specific functionality in TTA
+processors. In this part of the tutorial we accelerate the CRC computation
+by adding a custom operation to the processor design.
+
+\subsubsection{Evaluating Custom Operation Candidates}
+
+First of all, it is quite simple and efficient to implement CRC calculation
+entirely on hardware. Naturally, using the whole CRC function as a custom
+operation would be quite pointless and the benefits of using a processor
+based implementation would get smaller. Instead, we will consentrate
+on trying to accelerate smaller parts of the algorithm, picking a custom
+operation that is potentially useful also for other algorithms than CRC.
+
+\subsubsection{Finding the Bottlenecks}
+
+The first thing to do when trying to optimize code is to profile the execution.
+In Proxim you can trace the most executed instructions (see section
+\ref{sec:ProfileProxim} for more information). Another way is to enable
+``procedure transfer tracking'',  which traces function calls and
+corresponding cycle counts. A call profile helps locating the functions
+that are executed the most. Refer to section \ref{sec:traces} for further
+information.
+
+In this case finding the operation to be optimized is quite obvious if you
+look at function crcFast(). It consists of a for-loop in which the 
+function reflect() is called through the macro REFLECT\_DATA. If you look at 
+the actual function you can see that it is quite simple to implement on 
+hardware, but requires many instructions if done with basic operations in
+software. The function ``reflects'' the bitpattern around the middle point like
+a mirror. For example,
+the bit pattern \textbf{0101 0100} would look like this after reflection:
+\textbf{0010 1010}. The main complexity of the function is that the bit pattern width is not
+fixed. Fortunately, the width cannot be arbitrary. If you examine the
+crcFast()-function and the reflect macros you can spot that function reflect() is
+only called with 8 and 32 bit widths (unsigned char and 'crc' which is an unsigned long).
+
+\subsection{Analyzing the Custom Operation}
+
+A great advantage of TCE is that the operation semantics, 
+processor architecture and implementation are separate abstractions. 
+How this affects designing custom operations is that you can
+simulate your design by simply defining the simulation behaviour of 
+the operation and setting the latency of the operation to the processor
+architecture definition. This is nice as you
+do not need an actual hardware implementation of the operation at this point
+of the design, but
+can evaluate different custom operation possibilities at the architectural
+level. However, this brings up an awkward question: how to determine 
+the latency of the operation? Unrealistic or too pessimistic 
+latency estimates can give inaccurate results or bias the analysis.
+
+One approach to the problem is to take an educated guess and simulate
+some test cases with different custom operation latencies. This way you can
+determine a latency range in which the custom operation would accelerate your
+application to the satisfactory level. After this you can scetch how the
+operation could be implemented in hardware, or consult someone knowledgeable 
+in hardware design to figure out whether the custom operation is 
+implementable within the latency constraint.
+
+Another approach is to try and determine the latency by examining the
+operation itself and considering how it could be implemented. This approach
+requires some insight in digital design.
+
+Besides latency you should also consider the size of the custom function unit.
+It will consume extra die area, but the size limit is always case-specific. For
+accurate size estimation you need to have the actual implementation and synthesis.
+
+Let us consider the reflect function. If we had fixed width we could implement
+the reflect by hard wiring (and registering the output) because the operation
+only moves bits about. This could be done easily in one clock cycle. But we
+need two different bit widths so things would be a bit more complicated. We
+could design the implementation to be 32 bits wide. This way we can also use
+it to reflect 8 bit patterns by aligning the input around the middle position
+and align the output back to the right position. The alignment could be done
+with multiplexers etc. When a lower clock frequency is used, this could still be a one
+cycle operation, but let us play it safe and allow for faster clock frequencies,
+and use a latency of two clock cycles.
+
+\subsection{Using the Custom Operation}
+\label{section:customOperations}
+% includes adding a FU that implements the custom operation to HDB and
+% adding the operation to OSAL
+
+Now we have decided the operation to be accelerated and its latency. Next we
+will create a function unit implementing the operation and add it to our
+processor design. First, a description of
+the semantics of the new operation must be added at least to Operation Set
+Abstraction Layer (Section~\ref{section:osal}). OSAL stores the semantic
+properties of the operation, which includes the simulation behavior, operand
+count etc., but not the latency. OSAL definitions can be added by using the
+OSAL GUI, \emph{OSEd} (Section~\ref{sec:osed}).
+
+If processors that use the custom operation are to be synthesized or simulated
+at the VHDL level, at least one function unit implementing
+the operation should be added to the
+Hardware Database (Section~\ref{section:hdb}). Cost data of the function unit
+needs to be added to the cost database if cost estimates of a processor
+containing the custom function unit are wanted. In this tutorial we add the
+FU implementation for our custom operation so the processor implementation can
+be generated, but omit the cost data required for the cost estimation.
+
+\paragraph{Using Operation Set Editor (OSEd) to add the operation data.}
+
+OSEd is started with the command 'osed'.
+
+Create a new operation module, which is a container for a set of operations.
+You can add a new module in any of the predefined search paths, provided
+that you have sufficient file system access on the chosen directory.
+
+For example, choose directory `/home/\emph{user}/.tce/opset/custom', where
+\emph{user} is the name of the user account being used for the tutorial.
+This directory is intended for the custom operations defined by the
+current user, and should always have sufficient access rights.
+
+\begin{enumerate}
+\item%
+  Right-click on a path name in the left area of the main window.  A
+  drop-down menu appears below the mouse pointer.
+\item%
+  Select \textbf{Add module} menu item. 
+\item%
+  Type in the name of the module (for example, `tutorial') and press \emph{OK}.
+  The module is now added under the selected path.
+\end{enumerate} 
+
+\paragraph{Adding a new operation.} We will now add an operation
+definition to the newly created operation module.
+
+\begin{enumerate}
+\item%
+  Select the module that you just added by right-clicking on its name,
+  displayed in the left area of the main window. A drop down menu appears.
+\item%
+  Select \textbf{Add operation} menu item.
+\item%
+  Type `REFLECT' as the name of the operation.
+\item%
+  Add two inputs by pressing the \emph{Add} button under the operation input
+  list repeatedly. Select \textit{UIntWord} as type.
+\item%
+  Add one output by pressing the \emph{Add} button under the operation output
+  list. Select \textit{UIntWord} as type.
+\item%
+  After the inputs and the output of the operation have been added, close
+  the dialog by pressing the \emph{OK} button. A confirmation dialog will pop
+  up. Press \emph{Yes} to confirm the action. The operation definition is
+  now added to the module.
+\end{enumerate}
+
+\paragraph{Adding simulation behavior to the operation.} The new operation
+REFLECT does not yet have a simulation behavior model, so we cannot simulate
+programs that use the operation with the TCE processor simulator. Open again the
+operation property dialog by right-clicking REFLECT, then choosing \emph{Modify
+properties}. Now press the \emph{Open} button to open an empty behavior source
+file for the module. Type in the following code in the editor window:
+
+\begin{verbatim}
+#include "OSAL.hh"
+OPERATION(REFLECT)
+ TRIGGER
+
+ unsigned long data = UINT(1);
+ unsigned char nBits = UINT(2);
+
+ unsigned long  reflection = 0x00000000;
+ unsigned char  bit;
+
+ /*
+  * Reflect the data about the center bit.
+  */
+ for (bit = 0; bit < nBits; ++bit)
+ {
+     /*
+      * If the LSB bit is set, set the reflection of it.
+      */
+     if (data & 0x01)
+     {
+         reflection |= (1 << ((nBits - 1) - bit));
+     }
+
+     data = (data >> 1);
+ }
+
+ IO(3) = static_cast<unsigned> (reflection);
+
+ return true;
+ END_TRIGGER;
+ END_OPERATION(REFLECT)
+\end{verbatim}
+
+This behavior definition simply sums up the input operand integers (with ids
+1 and 2) and writes the result to the ''output operand`` with id 3 which is the first output
+and signals the simulator that all results are computed successfully.
+
+Open file \file{crc.c} in your preferred editor. Compare the definition file
+version and the original reflect-function. The function is mostly similar
+except for parameter passing. On hardware the function unit's data is read
+from input ports and written to output ports. So, we must declare the input
+parameters data and nBits as normal variables. Then we assign input values to
+them: value of data is read from (input) operand one (INT(1)) and nBits is read
+from operand two (INT(2)).  This declaration binds the input ports,
+data is to be written to port one and nBits to port two.
+
+Also the function's return value must be handled differently because the 
+result is read from the output port. Here is an important notice: the operation
+operands are \textbf{running numbered} so that the number of first
+output port is not 1 but (number of input operands) + 1! In addition, the output
+operands are presented as IO(x).
+
+Save the code and close the editor. REFLECT operation now has a TCE simulator
+behavior model.
+
+\paragraph{Compiling operation behavior.} Operation  REFLECT has been
+added to the test module. Before we can simulate the behavior of our
+operation, the module must be compiled.
+
+\begin{enumerate}
+\item%
+  Right-click on the module name displayed in the left area to bring up the
+  drop down menu.
+\item%
+  Select \textbf{Build} menu item. 
+\item%
+  Hopefully, no errors were found during the compilation! Otherwise, re-open
+  the behaviour source file and try to locate the errors with the
+  help of the diagnostic information displayed in the build dialog.
+\end{enumerate}
+
+\paragraph{Simulating the operation behavior.} Now the operation simulation
+behavior definition can be tested.
+
+\begin{enumerate}
+\item%
+  Right-click on the operation name displayed in the left area of the
+  main window, under the operation module that contains it.
+\item%
+  Select \textbf{Simulate} menu item from the drop-down menu. 
+\item%
+  Edit the input values of REFLECT by selecting the input operand from the
+  list and typing the values in the text input field and pressing the
+  \emph{Update} button next to the field. In this case it is handy to choose
+  the format to be binary.
+\item%
+  Press the \emph{Trigger} button. The value of the output should be updated.
+\item%
+  The format of the displayed input and output values can be modified by
+  selecting different formats from the choice list next to the label
+  `Format:'. It might be more illustrating if you change input and output
+   format to binary.  This way we can enter binary patterns, 
+  for example '11001100' (as binary) for the first operand and '8' (as decimal)
+  as the second. The trigger should produce the reflected
+  value '00110011'
+
+\item%
+  The state of REFLECT can be reset by pressing the \emph{Reset} button.
+\item%
+  Repeat the test with different input values. After you are convinced
+  the behavior definition works, close the dialog by clicking on the \emph{OK} button.
+\end{enumerate}
+
+Now the operation definition of the custom operation has been added to the
+Operation Set Abstraction Layer (OSAL) database. Next, we need to add at
+least one functional unit (FU) that implements the operation which can be
+used in the processor design. Note the separation between ''operation`` and
+an ''function unit`` that implements the operation which allows using the
+same OSAL operation definitions in multiple FUs with different latencies.
+
+First, add the architecture of the FU that implements the custom operation
+to the processor design we defined in the previous step. Let us first backup
+our processor design to another file so we can later more easily compare the
+architecture with and without the custom operation support:
+
+\shellcmd{cp start.adf custom.adf}
+
+Open the copy in ProDe:
+
+\shellcmd{prode custom.adf \&}
+
+Then:
+\begin{enumerate}
+\item%
+Add a new function unit to the design, right click the canvas and select:
+\textit{Add>Function Unit}. Name the FU ''reflecter``. Add two input
+ports (named as input1 and trigger) and an output port (output1) to the FU in
+the Function unit dialog. Set the second input port (trigger)
+triggering (\textit{Click the port named trigger->Edit->Check dialog 
+''triggers``}). This port starts the execution of the operation when
+it is written to.
+\item%
+Add the operation ''REFLECT`` we defined to the FU: \textit{Add from
+opset>REFLECT>OK} and set the latency to 2. Click on the REFLECT operation and
+ensure that the operation inputs are bound to the input ports and the output
+is bound to the output port. Check that the operand usage is in such a way that
+all inputs are read at cycle 0 and the result is written at the end of the 
+next cycle. Thus, the latency of the operation is 2 clock cycles.
+\item%
+Now an FU that supports the custom operation has been added to the architecture. 
+Finally, fully connect the machine to connect the
+FU to the rest of the architecture. This can be done by selecting
+\textit{Tools->Fully Connect IC}. Finally save the architecture.
+\end{enumerate}
+
+
+\paragraph{Adding an implementation of the FU to the hardware database
+(HDB).} \label{par:AddToHDB} In order to generate a VHDL implementation of our
+processor later in the tutorial, we need to add implementation information
+of an FU that implements the custom operation to an HDB file. Normally, this
+step would be done only after deciding the evaluated custom operation 
+is a good choice for accelerating the design.
+
+Start HDBEditor (see Section~\ref{sec:hdbedit}):
+
+\shellcmd{hdbeditor \&}
+
+TCE needs some data of the FU implementation in order to be able to 
+automatically generate processors that include the FU. \\
+\begin{enumerate}
+ \item%
+Create a new hdb file (name it \file{tour.hdb}) with hdbeditor and add the 
+''reflecter`` function unit from \file{custom.adf} file 
+(\textit{edit->add->FU architecture from ADF}). You can leave
+the ''parametrized width`` and ''guard support`` unchecked.
+Then define implementation for the added function unit entry \textit{right 
+click reflect -> Add implementation....}\\
+
+\item%
+Open file \file{reflect.vhdl} that was provided in the tutorial package with the editor 
+you prefer, and take a look. This is an example implementation of 
+a TTA function unit performing the custom 'reflect' operation.
+
+\item%
+The HDB implementation dialog needs the following information from the VHDL:\\
+
+\textbf{1. Name of the entity and the naming of the FU interface ports.}
+
+Name the implemention after the top level entity: ``fu\_reflect''.
+
+By examining the VHDL code you can easily spot the clock port (clk),
+reset (rstx) and global lock port (glock). Write these into the appropriate
+text boxes. You do not have to fill the Opcode port or Global lock req. port
+fields because the function unit has only one opcode and does not need to 
+cause a global lock to the processor during its execution.
+
+\textbf{2. Parameters.}
+
+Parameters can be found from the VHDL file. On top of the file there are two
+parameters: dataw and busw. The dataw tells the width of input ports and
+busw tells us the width of the transport buses.
+
+Thus, add two 32-bit integer parameters (dataw and busw) to the Parameter
+dialog.
+
+\textbf{3. Architecture ports.}
+
+This settings defines the connection between the ports in the
+architectural description of the FU and the VHDL implementation.
+Each input data port in the FU is accompanied with a load port that
+controls the updating of the FU input port registers.
+
+Choose a port in the Architecture ports dialog and click edit.
+Set the name of architecture port p1 to o1data and the load port to o1load.
+Width formula is the parameter dataw.
+
+Name of the architecture port p2 is t1data and load port is t1load.
+Width formula is the parameter dataw.
+
+Name the output port (p3) to r1data and the width formula is now busw
+because the output port writes to the bus.
+The output port does not have a load port.
+
+\textbf{4. Add VHDL source file.}
+
+Add the VHDL source file into the Source code dialog (Add -> Browse ->
+reflect.vhdl).
+
+Now you are done with adding the FU implementation. Click OK.
+
+\end{enumerate}
+
+\subsection{Use the custom operation in C code.}
+
+To get some benefits from the added custom hardware,
+we must use it from the C code. This is done by replacing
+a C statement with a custom operation invocation. 
+
+Let us first backup the original C code.
+
+\shellcmd{cp crc.c crc\_with\_custom\_op.c}
+
+Then open \file{crc\_with\_custom\_op.c} in your preferred text editor.
+
+\begin{enumerate}
+\item%
+Add \#include ``tceops.h'' to the top of the file. This includes 
+automatically generated macros which allow us to use specific 
+operations from C code without getting our hands dirty with
+inline assembly.
+
+Usage of these macros is as follows:
+
+\begin{verbatim}
+ _TCE_<name>(input1, ... , inputN, output1, ... , outputN);
+\end{verbatim}
+
+where <name> is the name of the operation in OSAL. Number of input and output
+operands depends on the operation. Input operands are given first and they are
+followed by output operands if any. 
+
+In our case we need to write operands into the reflecter and read the
+result from it. We named the operation ``REFLECT'' so the macro we are going
+to use is:
+
+\begin{verbatim}
+ _TCE_REFLECT(input1, input2, output);
+\end{verbatim}
+
+Now we will modify the crcFast function to use the custom op.
+First declare 2 new variables at the beginning of the function:
+
+\begin{verbatim}
+ crc input;
+ crc output;
+\end{verbatim}
+
+These will help in using the reflect FU macro.
+
+Take a look at the REFLECT\_DATA and REFLECT\_REMAINDER macros. The first one
+has got a magic number 8 and ``variable'' X is the data. This is used in the
+for-loop.
+
+In the for-loop the input data of reflect function is read from message[].
+Let us modify this so that at the beginning of the loop the input data is
+read to the input variable. Then we will use the \_TCE\_REFLECT macro to run
+the custom operations, and finally replace the REFLECT\_DATA macro with the
+output variable. After these modifications the body of the for-loop should
+look like this:
+
+\begin{verbatim}
+ input = message[byte];
+ _TCE_REFLECT(input, 8, output);
+ data = (unsigned char) output ^ (remainder >> (WIDTH - 8));
+ remainder = crcTable[data] ^ (remainder << 8);
+\end{verbatim}
+
+Next we will modify the return statement. Originally it uses
+REFLECT\_REMAINDER macro where nBits is defined as WIDTH and data is
+remainder. Simply use \_TCE\_REFLECT macro before return statement and replace
+the original macro with the variable output:
+
+\begin{verbatim}
+ _TCE_REFLECT(remainder, WIDTH, output);
+ return (output ^ FINAL_XOR_VALUE);
+\end{verbatim}
+
+And now we are ready. Remember to save the file.
+
+\item%
+This time we skip the bitcode phase and compile directly from C to 
+a parallel TTA program using the new architecture which includes
+a FU with the custom operation:
+
+\shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k main,result }\verb#\#\\
+\shellcmd{\ \ crc\_with\_custom\_op.c main.c}
+
+\item%
+Simulate the parallel program. You can do it quickly with the command line
+simulator:
+
+\shellcmd{ttasim -a custom.adf -p crc\_with\_custom\_op.tpef}.
+
+Verify that the result is the same as before. Check the cycle count
+\textit{info proc cycles} and compare it to the cycle count of the version 
+which does not use a custom operation. You should see a significant drop.
+
+In addition to custom operations, other ways to improve the cycle count 
+further is to add more resources such as registers and transport buses. 
+You can play around with these parameters easily with ProDe. After 
+modifying the architecture, recompile and simulate the code to see 
+the effect to the cycle count.
+\end{enumerate}
+
+
+\subsection{Generating the Final Products}
+
+In this step we generate the VHDL implementation of the processor, and the
+bit image of the parallel program.
+
+First create an encoding for the instructions in the architecture:
+
+\shellcmd{createbem custom.adf}
+
+This should generate \file{custom.bem} which is a description on how
+instructions should be encoded in the architecture.
+
+You can print the encoding info in a more human readable format with:
+
+\shellcmd{viewbem custom.bem}
+
+The program should print details on how each type of source/destination, etc.
+is encoded. You do not have to care about this, it is just for curiosity.
+Maybe the only important part in the printout is the length of the
+instruction word. In this case, even though the processor has only
+one move slot, the instruction word width is more than 40 bits. Memorize the
++instruction word width in bits. The
+size can be reduced with instruction compression, which is not 
+used in the tutorial.
+% TODO: add the instruction compression part here also (TEEMU)
+
+Next, we must set correct instruction memory MAU and then 
+select implementations for all components in the architecture. Each
+architecture component can be implemented in multiple ways, so we must
+choose one implementation for each component in order to be able to
+generate the implementation for the processor.
+
+This can be done in the ProDe tool:
+
+\shellcmd{prode custom.adf}
+
+Now the architecture is loaded. First select change the MAU of instruction
+memory \textit{Edit>Address Spaces...} to the value you checked earlier in
+viewbem. See the FAQ (chapter \ref{chapter:faq}) for more information about
+instruction memory.
+
+You should also change the widths of GCU ports and LSU trigger port to avoid
+error messages from the Processor Generator. So open the Address Spaces
+dialog and check the bitwidth fields. Then set the GCU port widths according
+the instruction memorys bitwidth field. Next change the LSU trigger port's
+width. Notice that you must set the trigger's width to be 2 bits wider than
+the marked bitwidth in address space. For more information check the FAQ
+(chapter \ref{chapter:faq})
+
+Create the binary encoding map again just in case the port width changes
+caused some changes:
+
+\textit{createbem custom.adf}
+
+Then we'll select implementations for the FUs which can be done in
+\textit{Tools>Processor Implementation...}. Note that the selection window
+is not currently very informative about the different implementations, so a
+safe bet is to select an implementation with parametrizable width/size.
+
+\begin{enumerate}
+\item%
+Select implementation for RF: Click the RF name, 'Select RF implementation',
+find the TCE's default HDB file from your tce installation path 
+(PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb) and select an
+implementation for the RF from there.
+
+\item%
+Next select implementation for the boolean RF like above. But this time
+select an implementation which is guarded i.e. select an implementation which
+has word ``guarded'' in its name.
+
+\item%
+Similarly, select implementations for the function units from TCE's default
+HDB. Then select implementation for the custom\_adder but this time you have to
+use the \file{tour.hdb} created earlier to find the FU we added that supports the
+REFLECT custom operation.
+
+\item%
+Finally select the IC/Decoder generator plugin used to generate the
+decoder in the control unit and interconnection network:
+\textit{Browse... (installation\_path)/share/tce/icdecoder\_plugins/base/
+DefaultICDecoderPlugin.so>OK}.
+You do not have to care about the HDB file text box because we are not going 
+to use cost estimation data.
+\end{enumerate}
+
+\paragraph{Generate the VHDL for the processor using Processor Generator
+(ProGe).} 
+
+You can start processor generation from the implementation selection dialog:
+Click ``Generate Processor''. For Binary Encoding Map: Select the
+previously generated .bem (Load from file...). Create and set target directory
+\file{proge-output}. Or alternatively, save the .idf file and execute ProGe from
+command line:
+
+\shellcmd{generateprocessor -b custom.bem -i custom.idf custom.adf}
+
+Now directory \file{proge-output} includes the VHDL implementation of the
+designed processor. You can take a look what the directory includes, how the RF
+and FU implementations are collected up under \file{vhdl} subdir and 
+the interconnection network has been generated to connect the units (the \file{gcu\_ic}
+subdir).
+
+\paragraph{Generate instruction memory bit image using Program Image Generator.}
+
+Finally, to get our shiny new processor some bits to chew on,
+we use generatebits to create an instruction memory image:
+
+\shellcmd{generatebits -b custom.bem -d -p crc\_with\_custom\_op.tpef
+custom.adf} 
+
+Now the file \file{crc\_with\_custom\_op.img} includes the instruction memory
+image in ``ascii 0/1'' format. Each line in that file represents a single
+instruction. Thus, you can get the count of instructions by counting the
+lines in that file:
+
+\begin{verbatim}
+ wc -l crc_with_custom_op.img
+\end{verbatim}
+
+By multiplying the count with the instruction width we found earlier you
+can get the required size of instruction memory for the program.
+
+\subsection{Final Words}
+
+This tutorial is now finished. Now you should know
+how to make and use your own custom operations and generate the
+processor implementation along with its instruction memory bit image.
+
+If given a functional testbench you could simulate the generated 
+VHDL implementation of the processor with a VHDL
+simulator. You could also synthesize the processor implementation with
+appropriate application. There are some scripts in the produced \file{proge-output}
+directory you can use as a starting point for synthesis and VHDL simulation.
+
+You can cd to the proge\_output directory and compile the testbench with
+\textit{./ghdl\_compile.sh} of you have GHDL installed in your system. After
+that you must move the data images to the tb directory:
+
+\textit{cp ../crc\_with\_custom\_op\_data.img tb/dmem\_init.img}
+
+\textit{cp ../crc\_with\_custom\_op.img tb/imem\_init.img}
+
+Then you can try and simulate the design: \textit{./ghdl\_simulate.sh}
+
+Please notice that GHDL is a work in progress VHDL compiler/simulator so it
+is recommended to use some other VHDL tool.
+ 
+In this tutorial we used a ``minimalistic'' processor architecture as our
+starting point. The machine had only one transport bus and 5 registers so it
+could not fully exploit the parallel capabilities of TTA. As mentioned 
+earlier, if you are interested you can open the custom.adf in ProDe and 
+add more transport buses, register files and function units and see how 
+they affect the performance.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TODO: Esa will remake this when Explorer is usable
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \section{From C to VHDL as Quickly as Possible}
+% \label{section:fromCtoVHDL}
+% TODO: the quickest way: compile input programs, start the wizard that
+% generates the initial processor, start ProGe and PIG (all in the TCE IDE?)
+% TODO: include the usage of remove unconnected components plugin. Also add
+%	compilation and simulation of VHDL code using GHDL
+% This tutorial introduces the fastest way to generate a processor VHDL model
+% from C source code using Desing Space Explorer.
+% 
+% If you haven't already downloaded the tutorial file package, you can get it 
+% from:\\
+% \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} \\
+% Unpack it to a working directory and then cd to tce\_tutorials/c2vhdl/
+% 
+% \subsection{Compile C code}
+% 
+% % compile C code.
+% Compile the application C code. It is important that the name of the compiled
+% code is ``sequential\_program''.
+% 
+% \textit{tcecc application1/complex\_multiply.c -O2 
+% -o application1/sequential\_program}
+% 
+% \subsection{Use explorer}
+% 
+% % use initial machine generator
+% The initial machine generator is an explorer plugin which uses a sequential
+% TTA program to generate an initial processor capable of running the
+% program. The initial machine generator creates a processor configuration 
+% that can be generated to VHDL code implementation of the processor.
+% 
+% \textit{explore -e InitialMachineExplorer -a application1/ -p build\_idf=true
+% ExpRes.dsdb}
+% 
+% Result of the initial machine generator is now added in the ``ExpRes.dsdb''
+% with id 1 assuming the exploration was successful.
+% 
+% % use the simple ic optimizer
+% Next you can try to optimize the configuration created by the initial machine
+% generator. This can be done by using Simple IC Optimizer plugin which reduces
+% connections which aren't needed to run the application.
+% 
+% \textit{explore -e SimpleICOptimizer -s 1 ExpRes.dsdb}
+% 
+% where \textit{-s 1} is the id of the configuration to be optimized.
+% 
+% If the plugin found something to optimize, it adds a new configuration, with
+% id 2 in this case, into the database.
+% 
+% \subsection{Generate required files}
+% 
+% The created configurations can be written as file with command:
+% 
+% \textit{explore -w <configuration\_ID> ExpRes.dsdb}
+% 
+% If the optimization was succesful you should export the optimized version,
+% otherwise use the original version.
+% 
+% Now the ADF and IDF files are written into the current directory and are named
+% as ``1.adf'' and ``1.idf'' or ``2.adf'' and ``2.idf'' depending on which
+% version you wrote out.
+% 
+% % Schedule
+% Schedule each program against the new architecture:
+% 
+% (replace <id> with the proper number)
+% 
+% \textit{schedule -t <id>.adf -o application1/complex\_multiply.scheduled.tpef
+% application1/sequential\_program}
+% 
+% This step creates file ``ApplicationDir/complex\_multiply.scheduled.tpef''.
+% 
+% % create bem
+% Now create an encoding for the instructions in our new architecture:
+% 
+% \textit{createbem <id>.adf}
+% 
+% This step creates file <id>.bem.
+% Now you should have all the needed parts for the processor VHDL.
+% 
+% \subsection{Generate processor VHDL implementation}
+% 
+% % start ProGe
+% Use ProGe to generate the processor VHDL:
+% 
+% \textit{generateprocessor -b <id>.bem -i <id>.idf <id>.adf}
+% 
+% Now directory called ``proge-output'' should include the VHDL implementation
+% of the processor.
+% 
+% % start PIG
+% Generate instruction memory bit image using PIG. First cd to application1
+% directory and then generate the bit image:
+% 
+% \textit{generatebits -b ../<id>.bem -d -t 
+% application1/complex\_multiply.scheduled.tpef ../<id>.adf}
+% 
+% This generates files ``Application.scheduled.img'' into the application
+% directory.
+% 
+% Tutorial is now finished and you can simulate the generated VHDL
+% implementation of the processor with a VHDL simulator and synthesize it.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THESE ARE TODO's
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%\section{Manual Exploration}
+%\label{section:manualExpl}
+% Modify the arch manually until it meets the requirements
+
+%\section{Automated Design Space Exploration}
+%\label{section:automatedExploration}
+% Add requirements and sequential programs, 
+% Click, click, *wait a couple of weeks*, done! ;-)
+
+
+\section{Hello TTA World!}
+
+What would a tutorial be without the traditional ``Hello World!''
+example? Interestingly enough, printing out ``Hello World'' in a
+standalone (operating system free) platform like the TTA of TCE is not 
+totally straightforward. That is the reason this tutorial is not the first 
+one in this tutorial chapter.
+
+The first question is: where should I print the string? Naturally 
+it is easy to answer that question while working with the simulator: to
+the simulator console, of course. However, when implementing the final
+hardware of the TTA, the output is platform dependent. It can be a
+debugging interface, serial port output, etc.
+
+In order to make printing data easier from TTAs designed
+with TCE, we have included an operation called STDOUT in the ``base operation 
+set'' that is installed with the TCE. The simulation behavior of the 
+operation reads its input, expects it to be a 8bit char and writes the char
+verbatim to the simulator host's standard output. Of course, in case the 
+designer wants to use the operation in his final system he must provide the 
+platform specific implementation for the function unit (FU) implementing the 
+operation, or just remove the FU after the design is fully debugged and
+verified.
+
+The default implementation of \textit{printf()} in TCE uses the STDOUT
+operation to print out data. Therefore, implementing a ``Hello World''
+application with TCE is as simple as adding an FU that implements
+the STDOUT to the processor design and then calling \textit{printf()} in
+the simulated program. The simulator should print out the greeting
+as expected.
+
+Here is a simple C code (hello.c) that prints the magic string:
+
+\begin{verbatim}
+#include <stdio.h>
+
+int main() {
+    printf("Hello TTA World!");
+    return 0;
+}
+\end{verbatim}
+
+Next, compile it to an architecture that implements the
+STDOUT. In this case we add an FU with STDOUT (see the previous
+tutorial for instructions on adding FUs to your designs) to the minimal.adf, 
+after copying it to minimalWithStdout.adf:
+
+\begin{verbatim}
+cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf minimalWithStdout.adf
+prode minimalWithStdout.adf &
+... add the IO function unit with the STDOUT operation to the ADF ...
+tcecc -O0 hello.c -a minimalWithStdout.adf -o hello.tpef
+\end{verbatim}
+
+It should compile without errors. Beware: the compilation can take
+a couple of minutes on a slower machine! This is because \textit{printf()} 
+is actually quite a large function and the compiler is not yet optimized for 
+speed.
+
+Finally, simulate the program to get the greeting:
+
+\begin{verbatim}
+ttasim -a minimalWithStdout.adf -p hello.tpef --no-debugmode
+Hello TTA World!
+\end{verbatim}
+
+That's it. Happy debugging!
+
+
+\section{Streaming I/O}
+\label{section:streamIO}
+
+Because TTA/TCE is an environment without operating system, there is also
+no file system available for implementing file-based I/O. Therefore, one
+popular way to get input and output to/from the TTA is using shared memory
+for communicating the data. For stream processing type of applications,
+one can also use an I/O function unit that implements the required 
+operations for streaming.
+
+TCE ships with example operations for implementing stream type input/output. 
+These operations can be used to read and write samples from streams in the
+designed TTA processor. The basic interface of the operations allows reading and 
+writing samples from the streams and querying the status of an input or output stream 
+(buffer full/empty, etc.). The status operations are provided to
+allow the software running in the TTA to do something useful while the
+buffer is empty or full, for example switch to another thread. Otherwise,
+in case one tries to read/write a sample from/to a stream whose buffer is 
+empty/full, the TTA is locked and the cycles until the situation resolves
+are wasted.
+
+The example streaming operations in the base operation set are 
+called STREAM\_IN, STREAM\_OUT, STREAM\_IN\_STATUS, and STREAM\_OUT\_STATUS.
+These operations have a simulation behavior definition which simulates the
+stream I/O by reading/writing from/to files stored in the file system of 
+the simulator host. The files are called \textit{ttasim\_stream.in} for 
+the input stream and \textit{ttasim\_stream.out} for the output stream and
+should reside in the directory where the simulator is started. 
+The file names can be customized using environment variables 
+TTASIM\_STREAM\_OUT\_FILE and TTASIM\_STREAM\_IN\_FILE, respectively.
+
+Here is an example C code that implements streaming I/O with the operations:
+
+\begin{verbatim}
+#include "tceops.h"
+
+int main()
+{
+    char byte;
+    int status;
+
+    while (1)
+    {
+        _TCE_STREAM_IN_STATUS(0, status);
+
+        if (status == 0)
+            break;
+
+        _TCE_STREAM_IN(0, byte);
+        _TCE_STREAM_OUT(byte);
+    }
+
+    return 0;
+}
+\end{verbatim}
+
+This code uses the TCE operation invocation macros from \textit{tceops.h}
+to read bytes from the input stream and write the same bytes to the
+output stream until there is no more data left. This situation is indicated
+with the status code 0 queried with the STREAM\_IN\_STATUS operation. The
+value means the stream buffer is empty, which means the file simulating the
+input buffer has reached the end of file.
+
+You can test the code by creating a file \textit{ttasim\_stream.in}
+with some test data. The code should create a copy of that file to the
+stream output file \textit{ttasim\_stream.out}.
+
+\section{Implementing Programs in Parallel Assembly Code}
+\label{section:parallelAssemblyCoding}
+% TODO: add example of implementing a sort RISC assembly code as
+% a parallel TTA program. How to compile it (refer to assembler section) and
+% how to simulate and estimate it, etc.
+
+This tutorial will introduce you to TTA assembly programming. It is
+recommended that you go through this tutorial because it will certainly
+familiarize you with TTA architecture and how TTA works.
+
+\subsection{Preparations}
+
+For the tutorial you need to download file package from
+\url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} and unpack it
+to a working directory. Then cd to parallel\_assembly-directory.
+
+The first thing to do is to compile the custom operation set called cos16 shipped
+within the parallel\_assembly-directory. The easiest way to do this is:
+
+\shellcmd{buildopset cos16}
+
+This should create a file named \file{cos16.opb} in the directory.
+
+\subsection{Introduction to DCT}
+
+Now you will be introduced to TCE assembler language and assembler usage.
+Your task is to write TCE assembly code for 2-Dimensional 8 times 8 point 
+Discrete Cosine Transform (DCT\_8x8).
+First take a look at the C code of DCT\_8x8
+\file{dct\_8x8\_16\_bit\_with\_sfus.c}.  
+The code is written to support fixed point datatype with sign plus 15 fragment
+bits, which means coverage from $-1\ to\ 1-2^{15}$. The fixed point
+multiplier, function \textit{mul\_16\_fix}, and fixed point adder, function
+\textit{add\_16\_fix},  used in the code scale inputs automatically to prevent
+overflow. Function \textit{cos16} takes $x(2i+1)$ as input and returns
+the corresponding cosine value $\frac{cos(x(2i+1)\pi)}{16}$. The code calculates
+following equations:
+
+\begin{equation}
+F(x) = \frac{C(x)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{x
+\left(2i+1\right)\pi}{16}\right)\right] \nonumber
+\end{equation}
+\begin{equation}
+F(y) = \frac{C(y)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{y
+\left(2i+1\right)\pi}{16}\right)\right] \nonumber
+\end{equation}
+
+\begin{equation}
+C(i) = 
+\left\{
+\begin{array}{c c}
+\frac{2}{\sqrt2} &,  i = 0 \\
+1 &,  else 
+\end{array} \right . . \nonumber
+\end{equation}
+
+\begin{equation}
+F(x,y) = F(x)F(y) \nonumber
+\end{equation}
+
+\subsection{Introduction to TCE assembly}
+
+First take a look at assembly example in file \file{example.tceasm}
+to get familiar with syntax. More help can be found from
+section \ref{section:TCEAsm}
+
+Compilation of the example code is done by command:
+
+\shellcmd{tceasm \ -o \ example.tpef \ dct\_8x8\_16\_bit\_with\_sfus.adf \
+example.tceasm}
+
+The assembler will give some warnings saying that ``Source is
+wider than destination.'' but these can be ignored.
+
+The compiled tceasm code can be simulated with TCE
+simulator, ttasim or proxim(GUI).
+
+\shellcmd{ttasim -a \ dct\_8x8\_16\_bit\_with\_sfus.adf -p example.tpef} , or
+
+\shellcmd{proxim \ dct\_8x8\_16\_bit\_with\_sfus.adf example.tpef}
+
+It is recommended to use proxim because it is more illustrating to track the
+execution with it. Especially if you open the Machine Window (View -> Machine
+Window) and step through the program.
+
+Check the result of example code with command (you can also write this in
+proxim's command line at the bottom of the main window):
+
+\shellcmd{x /a IODATA /n 1 /u b 2}. 
+
+the output of x should be 0x40.
+
+\subsection{Implementing DCT on TCE assembly}
+
+Next try to write assembly code which does the same functionality as the
+C code. The assembly code must be functional with the given machine
+\file{dct\_8x8\_16\_bit\_with\_sfus.adf}. Take a look at the processor by
+using prode:
+
+\shellcmd{prode dct\_8x8\_16\_bit\_with\_sfus.adf \&}
+
+The processor's specifications are the following:
+
+\textbf{Supported operations} \\
+Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix},
+\textit{add}, \textit{add\_16\_fix}, \textit{ldq}, \textit{ldw}, \textit{stq},
+\textit{stw}, \textit{shr}, \textit{shl}, \textit{eq}, \textit{gt},
+\textit{gtu}, \textit{jump} and \textit{immediate transport}.
+
+When you program using TTA assembly you need to take into account 
+operation latencies. The \textit{jump} latency is four clock cycles and load
+latencies (\textit{ldq} and \textit{ldw}) are three cycles. Latency for
+multiplications (\textit{mul} and \textit{mul\_16\_fix}) are two clock cycles.
+
+\textbf{Address spaces} \\
+The machine has two separate address spaces, one for data and another for
+instructions. The data memory is 16-bit containing 128 memory slots and the
+MAU of data memory is 16-bits. The intruction memory has 1024 memory slots
+which means that the maximum number of instructions of 1024.
+
+\textbf{Register files} \\
+The machine contains 4 register files, each of which have 4 16-bit registers,
+leading to total of 16 16-bit registers.  The first register file
+has 2 read ports.
+
+\textbf{Transport buses} \\
+The machine has 3 16-bit buses, which means maximum of 3 concurrent
+transports. Each bus can contain a 8-bit short immediate.
+
+\textbf{Immediates} \\
+Because the transport buses can only contain 8-bit short immediates you must
+use the immediate unit if you want to use longer immediates. The immediate unit
+can hold a 16-bit immediate. There is an example of immediate unit usage in
+file \file{immediate\_example.tceasm}. Basically you need to transfer the value to the
+immediate register. The value of immediate register can be read on the next
+cycle.
+
+The initial input data is written to memory locations 0-63 in the file
+\file{assembler\_tutorial.tceasm}. Write your assembly code in that file.
+
+\subsubsection{Verifying the assembly program}
+
+The reference output is given in \file{reference\_output}. You need to
+compare your assembly program's simulation result to the reference
+output. Comparision can be done by first dumping the memory contents in the
+TCE simulator with following command:
+
+\shellcmd{x /a IODATA /n 64 /u b 0}
+
+The command assumes that output data is stored to memory locations 0-63.
+
+The easiest way to dump the memory into a text file is to execute ttasim with
+the following command:
+
+\shellcmd{ttasim -a dct\_8x8\_16\_bit\_with\_sfus.adf -p
+assembler\_tutorial.tpef < input\_command.txt > dump.txt}
+
+After this you should use sed to divide the memory dump into separete lines
+to help comparison between your output and the reference output. Use the
+following command to do this (there is an empty space between the
+first two slashes of the sed expression):
+
+\shellcmd{cat dump.txt | sed 's/ /$\backslash$n/g' > output.txt}
+
+And then compare the result with reference:
+
+\shellcmd{diff -u output.txt reference\_output}
+
+When the TCE simulator memory dump is the same as the reference output your
+assembly code works and you have completed this tutorial. Of
+cource you might wish to improve your assembly code to minimize cycle
+count or/and instruction count.
+
+If it is too hard to visualize the whole program in parallel assembly
+you can start by writing sequential code and then write it to
+parallel assembly.
+
+You should also compile the C program and run it because it gives more
+detailed information which can be used as reference data if you need to debug
+your assembly code.
+
+To compile the C code, enter:
+
+\shellcmd{gcc -o c\_version dct\_8x8\_16\_bit\_with\_sfus.c}
+
+If you want the program to print its output to a text file, you can use the
+following command:
+
+\shellcmd{./c-version > output.txt}
+
+
+To get some idea of the performance possibilities of the machine,
+one assembly code has 52 instructions and it runs the DCT8x8 in
+3298 cycles.
+
+
+
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}
 
@@ -928,7 +2294,7 @@ accomplish the common tasks are given in detail.
 
 Operation Set Editor can simply be executed from command line with:
 
-\textit{osed}
+\shellcmd{osed}
 
 \begin{figure}[tb]
 \centerline{\psfig{figure=eps/osed/MainWindow.eps,width=0.75\textwidth}}
@@ -988,31 +2354,31 @@ width=0.70\textwidth}}
 \end{figure}
 
 Operation inputs and outputs (henceforth, ``terminal'' is used to denote both)
-can be deleted by selecting an item from the list and clicking \emph{Delete}
+can be deleted by selecting an item from the list and clicking the \emph{Delete}
 button. New terminals can be added
-by clicking \emph{Add} button, and can be modified by clicking \emph{Modify}
+by clicking the \emph{Add} button, and can be modified by clicking the \emph{Modify}
 button. The order of the terminals can be changed by selecting a terminal
-and pushing on of the arrow buttons. By pushing downward arrow button, the
-terminal is moved one step downwards in the list; by pushing upward arrow
+and pushing on of the arrow buttons. By pushing the downward arrow button, the
+terminal is moved one step downwards in the list; by pushing the upward arrow
 button, it is moved one step up on the list.
 
 Operand properties can be modified by clicking on the check boxes. The set
 of operands that can be swapped with the operand being edited are shown as a
 list of references to operands (input indentification numbers).  A reference
 to an operand can be removed by selecting the corresponding item in the `can
-swap' list and clicking \emph{Delete} button.  A new reference to another
+swap' list and clicking the \emph{Delete} button.  A new reference to another
 operand can be added by selecting an item from the choice list and clicking
-\emph{Add} button.
+the \emph{Add} button.
 
 \paragraph{Operation Behaviour Model}
 
 Behaviour models of operations are stored in separate source files.  If the
 operation definition includes a behaviour model, the behaviour source file
 can be opened in a text editor of choice by clicking on the \emph{Open}
-button. If the operation doesn't have behavior source file, clicking
+button. If the operation does not have behavior source file, clicking
 \emph{Open} will open an empty file in an editor. The text editor to use can
 be defined in the options dialog. All changes to operation properties are 
-committed by clicking \emph{OK} button and canceled by clicking \emph{Cancel} 
+committed by clicking the \emph{OK} button and canceled by clicking the \emph{Cancel} 
 button.
 
 \paragraph{Operation Directed Acyclic Graph}
@@ -1025,18 +2391,18 @@ nodes and output arcs to leafs. With OSAL DAG language, it is possible to
 define operation behavior model by composing it from multiple operations'
 respective models.
 
-Operation's OSAL DAG code sections can be edited by pressing \emph{Open DAG}
+Operation's OSAL DAG code sections can be edited by pressing the \emph{Open DAG}
 button, which opens the DAG editor window. Code section shows the currently
 selected DAG code from the list box below. A new DAG section can be created
-either by selecting \emph{New DAG} list box item or pressing \emph{New} button.
-By pressing \emph{Undo} button, it is possible to revert changes to current
+either by selecting \emph{New DAG} list box item or pressing the \emph{New} button.
+By pressing the \emph{Undo} button, it is possible to revert changes to current
 code from the last saved position. DAG can be saved to operation's definition
-file by pressing \emph{Save} button. Unneccessary DAG sections can be deleted
-by pressing \emph{Delete} button.
+file by pressing the \emph{Save} button. Unneccessary DAG sections can be deleted
+by pressing the \emph{Delete} button.
 
 If code section contains valid OSAL DAG code, then the editor window shows
-a DAG presentation of that code. Note that in order to view this graph, a
-program called 'dot' must be installed. This is included in Graphviz graph
+a DAG presentation of that code.  In order to view the graph, a
+program called \file{dot} must be installed. This is included in Graphviz graph
 visualization software package and can be obtained from www.graphviz.org. 
 
 \paragraph{Operation Modules}
@@ -1104,7 +2470,7 @@ compiling and installing new (user-defined) operations into the OSAL system.
 
 The OSAL Builder is invoked with the following command line:
 
-\textit{buildopset <options> operation\_module} 
+\shellcmd{buildopset <options> operation\_module} 
 
 where \emph{operation\_module} is the name of the operation module. 
 Operation module is the base name of a definition file, e.g., the module
@@ -1293,7 +2659,7 @@ the ProGe configuration file is used.
 \\
 d & \verb|decomp| &%
 Specifies the file that contains the decompressor module of the
-GCU. Normally, this file is generated by the compressor plugin of
+GCU. Normally, the file is generated by the compressor plugin of
 Program Image Generator (PIG).
 \\
 o & \verb|output| &%
@@ -1304,7 +2670,7 @@ u & \verb|plugin-parameter| &%
 Shows the parameters accepted by an IC/Decoder generator plug-in and a short
 description of the plug-in. When this options are given, any other type of
 option is ignored and ProGe returns immediately without generating any output
-file or directory. Notice that even though other options are ignored they must
+file or directory.  Even though other options are ignored they must
 be valid.
 \\
 \end{longtable}
@@ -1352,11 +2718,11 @@ Editor.
 
 HDB editor can be launched from command line by entering:
 
-\textit{hdbeditor}
+\shellcmd{hdbeditor}
 
 You can also give a .hdb-file as parameter for the hdbeditor:
 
-\textit{hdbeditor customHardware.hdb}
+\shellcmd{hdbeditor customHardware.hdb}
 
 \subsubsection{Creating a new HDB file}
 
@@ -1393,16 +2759,16 @@ register files, buses, sockets) for the architectures.
 \label{sec:frontend}
 
 \textbf{TCE compiler} compiles high level language (such as 
-C/C++) source files provided by the toolset user and produces a bytecode
-program or a parallel TTA program. Bytecode program is a non-architecture
+C/C++) source files provided by the toolset user and produces a bitcode
+program or a parallel TTA program. Bitcode program is a non-architecture
 specific sequential program. Parallel TTA program, however, is 
 a architecture specific program that is optimized for the target architecture.
 
 The main idea between these two program formats is that you can compile your
-source code into bytecode and then compile the bytecode into architecture
-dependent parallel code. This way you don't have to compile the source code
+source code into bitcode and then compile the bitcode into architecture
+dependent parallel code. This way you do not have to compile the source code
 again every time you make changes in the architecture. Instead you only need
-to compile the bytecode into parallel code.
+to compile the bitcode into parallel code.
 
 The frontend compiler uses the LLVM C compiler which again is built on GCC
 version 4.
@@ -1432,7 +2798,7 @@ a & adf-file & Architectures for which the program is scheduled after the
                         installed.\\
 s & scheduler-config & Configure file for scheduling command. \\
 O & optimization-level & Optimization level. 0=no optimizations, 1=preserve
-                       program API, 2=don't respect original API, 3 = same
+                       program API, 2=do not respect original API, 3 = same
                        that 2 \\
 k & keep-symbols & List of symbols whose optimization away is prevented.
                    If you are using this, remember to define at least the
@@ -1462,33 +2828,33 @@ W & warning & Ignored. \\
 Usage of tcecc quite alike to gcc, excluding that warning options are
 ignored.
 
-If you wish to compile your source code into optimized bytecode the
+If you wish to compile your source code into optimized bitcode the
 usage is:
 
-\textit{tcecc -O2 -o myProg myProg.c} \\
+\shellcmd{tcecc -O2 -o myProg myProg.c} \\
 
 On the other hand if you already have an architecture definition file of the
 target processor you can compile the source code directly to parallel program:
 
-\textit{tcecc -O2 -a myProcessor.adf -o myProg.tpef myProg.c} \\
+\shellcmd{tcecc -O2 -a myProcessor.adf -o myProg.tpef myProg.c} \\
 
-To compile the bytecode program into parallel program use:
+To compile the bitcode program into parallel program use:
 
-\textit{tcecc -a myProcessor.adf -o myProg.tpef myProg.bc}
+\shellcmd{tcecc -a myProcessor.adf -o myProg.tpef myProg.bc}
 
 Or if you want to a different scheduling configuration than the default:
 
-\textit{tcecc -s /path/to/mySchedulerConfiguration.conf -a myProcessor.adf
+\shellcmd{tcecc -s /path/to/mySchedulerConfiguration.conf -a myProcessor.adf
 -o myProg.tpef myProg.bc} \\
 
 Tcecc also has a ``leave dirty'' flag -d which preserves the intermediate
 files created by the compiler. After compilation is complete tcecc will tell
 you where to find these files (usually it is /tmp/tcecc-xxxxxx/). For example
 if you try to compile your C-code straight into a scheduled program and
-something goes wrong in scheduling you can find the bytecode program from the
+something goes wrong in scheduling you can find the bitcode program from the
 temp directory.
 
-\textit{tcecc -d -O2 -a myProcessor.adf -o myProg.tpef myProg.c}
+\shellcmd{tcecc -d -O2 -a myProcessor.adf -o myProg.tpef myProg.c}
 
 After compilation you should see this kind of message:
 
@@ -1498,18 +2864,18 @@ where \textit{xxxxxx} is a random pattern of characters. \\
 
 If you only want to compile the source code without linking
 (and optimization) use -c flag. Output file is named after the source file
-with .o appendix if you don't define an output name with -o.
+with .o appendix if you do not define an output name with -o.
 
-\textit{tcecc -c myProg.c}
+\shellcmd{tcecc -c myProg.c}
 
-\textit{tcecc -c -o ~/another/path/myProg.o myProg.c} \\
+\shellcmd{tcecc -c -o ~/another/path/myProg.o myProg.c} \\
 
 With tcecc you can explicitly define symbols you wish to preserve in the
 binary. This can be useful in debugging and profiling if the compiler removes
 needed function labels.
 Symbols are given in a comma seperated list.
 
-\textit{tcecc -O2 -a myMach.adf -k main,foo,bar -o myProg.tpef myProg.c}
+\shellcmd{tcecc -O2 -a myMach.adf -k main,foo,bar -o myProg.tpef myProg.c}
 
 \paragraph{Plugins}
 % TODO: explain about tcecc plugins
@@ -1538,9 +2904,9 @@ output operands depends on the operation.
 \begin{enumerate}
 
 \item
-Currently it's not possible to simulate a bytecode format program. But the
-advantage of bytecode simulation is quite non-existent because the bytecode
-doesn't even contain the final basic blocks that the architecture dependent
+Currently it is not possible to simulate a bitcode format program. But the
+advantage of bitcode simulation is quite non-existent because the bitcode
+does not even contain the final basic blocks that the architecture dependent
 program has.
 \end{enumerate}
 
@@ -1563,7 +2929,7 @@ compression, if used).
 
 The usage of BEMgenerator is the following:
 
-\textit{createbem -o outName.bem myProcessor.adf}
+\shellcmd{createbem -o outName.bem myProcessor.adf}
 
 \section{Parallel Assembler and Disassembler}
 \label{section:TCEAsm}
@@ -1652,7 +3018,7 @@ The possible options of the application are as follows:\\
 \textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
 \hline
 o & outputfile  & The name of the output file.\\
-q & quiet       & Don't print warnings.\\
+q & quiet       & Do Not print warnings.\\
 h & help        & Help info about program usage and parameters.\\
 \end{tabular}\\
 
@@ -1778,7 +3144,7 @@ classes of literals: numeric literals and strings.
 A numeric literal is a numeral in a positional system. The base of the
 system (or radix) can be decimal, hexadecimal or binary. Hexadecimal numbers
 are prefixed with `0x', binary numbers are prefixed with `0b'. Numbers in
-base 10 don't have a prefix. Floating-point numbers can only have decimal
+base 10 do not have a prefix. Floating-point numbers can only have decimal
 base.
 
 \emph{Example: Numeric literals.}
@@ -1961,7 +3327,7 @@ labels are always zero-extended.
 
 \paragraph{Partial Initialisation.}
 If the combined size of the initialisation values (computed or specified
-explicitly, it doesn't matter) is smaller than the size declared by the `DA'
+explicitly, it does not matter) is smaller than the size declared by the `DA'
 directive, then the remaining MAU's are initialised with zeroes.
 
 \emph{Example: Padding of single initialisation elements.}
@@ -2275,7 +3641,7 @@ procedure. This directive is followed by one mandatory parameter: the name
 of the procedure. Procedure directives should appear only in code areas. The
 procedure directive defines also, implicitly, the end of procedure declared
 by the previous `:procedure' directive. If the first code section of the
-assembly program contains any code before a procedure directive, this code
+assembly program contains any code before a procedure directive, the code
 is assumed to be part of a nameless procedure. Code in following code areas
 that precede any procedure directive is considered part of the last
 procedure declared in one of the previous code areas.
@@ -2856,7 +4222,7 @@ The possible options of the application are as follows:\\
 f & file-headers & Prints the file headers. \\
 l & logical & Prints only logical information. Can be used for
 checking if two files contain the same program and data and connections even if
-it's in different order. \\
+it is in different order. \\
 m & mem & Print information about memory usage of reserved sections. \\
 r & reloc & Prints the relocation tables. \\
 j & section & Prints the elements of section by section index. \\
@@ -3125,7 +4491,7 @@ observe which procedures were
  called and in which order. The trace is saved in 'procedure\_transfer'
 table of Trace DB. This information
  could be derived from 'execution\_trace', but simulation is very slow when
-it's enabled, this type of
+it is enabled, this type of
  tracking should be faster.
 
 \item[profile\_data\_saving {\emph{boolean}}]%
@@ -3270,7 +4636,7 @@ watchpoint is a special breakpoint that stops simulation as soon as the
 value of an expression changes.
 
 %
-where \emph{num} is a unique number that identifies this breakpoint or
+where \emph{num} is a unique number that identifies the breakpoint or
 watchpoint and \emph{description} describes the properties of the
 breakpoint. The properties include: whether the breakpoint must be deleted
 or disabled after it is reached; whether the breakpoint is currently
@@ -3591,7 +4957,7 @@ buttons for items in the \emph{Program} menu.
 
 Textual output from the simulator and all commands sent to the simulator
 engine are displayed in the \emph{Simulator Console} window, as well as the
-input and output from the simulated program. Using this window,
+input and output from the simulated program. Using the window,
 the simulator can be controlled directly with Simulator Control Language
 accepted also by the command line interface of the simulator. For list of
 available commands, enter \emph{'help'} in the console.
@@ -3775,7 +5141,7 @@ Depending on the exploration plugin, the exploring results machine
 configurations in to the exploration result database dsdb. The best results
 from the previous exploration run are given at the end of the exploration:
 
-\textit{explore -e InitialMachineExplorer -a data/FFTTest --hdb=data/initial.hdb 
+\shellcmd{explore -e InitialMachineExplorer -a data/FFTTest --hdb=data/initial.hdb 
 data/test.dsdb}
 
 \begin{verbatim}
@@ -3831,7 +5197,7 @@ ordering of the results.
 % This adds an application directory to result.dsdb, but it is not used,
 % so it can be any existing directory.
 % 
-% Use '--hdb' option if you don't want to use all search path HDBs.
+% Use '--hdb' option if you do not want to use all search path HDBs.
 % Explorer outputs the result configuration in the result database:
 % \begin{verbatim}
 % Best result configurations:
@@ -3868,13 +5234,13 @@ and others discarded.
 Plugin tries to schedule sequential program(s) from the application path(s) defined in
 the dsdb and use them in optimization if tpef is not given.
 
-Using this plugin requires user to define the configuration he wishes optimize.
+Using the plugin requires user to define the configuration he wishes optimize.
 This is done by giving \textit{-s <configuration\_ID>} option to the explorer.
 
 Let there be 2 configurations in database.dsdb and application directory path app/.
 You can optimize the first configuration with:
 
-\textit{explore -e SimpleICOptimizer -s 1 database.dsdb}
+\shellcmd{explore -e SimpleICOptimizer -s 1 database.dsdb}
 
 If the optimization was succesfull, explorer should output:
 \begin{verbatim}
@@ -3886,15 +5252,15 @@ included in application paths defined in database.dsdb but you still want to run
 it with the same processor configuration.
 First export the optimized configuration (which is id 3 in this case):
 
-\textit{explore -w 3 database.dsdb}
+\shellcmd{explore -w 3 database.dsdb}
 
 Next schedule the program:
 
-\textit{schedule -t 3.adf -o app\_dir2/app2.scheduled.tpef app\_dir2/app2.seq}
+\shellcmd{schedule -t 3.adf -o app\_dir2/app2.scheduled.tpef app\_dir2/app2.seq}
 
 And then run explorer:
 
-\textit{explore -e SimpleICOptimizer -s 3 -u add\_only=true -u tpef=app\_dir2/app2.scheduled.tpef database.dsdb}
+\shellcmd{explore -e SimpleICOptimizer -s 3 -u add\_only=true -u tpef=app\_dir2/app2.scheduled.tpef database.dsdb}
 
 The plugin now uses the optimized configuration created earlier and adds
 connections needed to run the other program. If the plugin finds a new 
@@ -3918,1379 +5284,22 @@ You can pass a parameter to the plugin:
 allow\_remove & false & Allows the removal of unconnected ports and FUs \\
 \end{tabular}\\
 
-When using this plugin you must define the configuration you wish the plugin
+When using the plugin you must define the configuration you wish the plugin
 to remove unconnected components. This is done by passing 
 \textit{-s <configuration\_ID>} to explorer.
 
-If you don't allow removal the plugin will connect unconnected ports to some
+If you do not allow removal the plugin will connect unconnected ports to some
 sockets. It can be done with: \\
-\textit{explore -e RemoveUnconnectedComponents -s 3 database.dsdb}\\
+\shellcmd{explore -e RemoveUnconnectedComponents -s 3 database.dsdb}\\
 or \\
-\textit{explore -e RemoveUnconnectedComponents -s 3 -u allow\_remove=false
+\shellcmd{explore -e RemoveUnconnectedComponents -s 3 -u allow\_remove=false
 database.dsdb}\\
 if you wish to emphasise you do not want to remove components. This will
 reconnect the unconnected ports from the configuration 3 in database.dsdb.
 
 And if you want to remove the unconnected components: \\
-\textit{explore -e RemoveUnconnectedComponents -s 3 -u allow\_remove=true
+\shellcmd{explore -e RemoveUnconnectedComponents -s 3 -u allow\_remove=true
 database.dsdb}\\
-
-\chapter{TUTORIALS}
-\label{chapter:tutorials}
-
-
-\section{TCE Tour}
-
-This tutorial goes through most of the tools in TCE using a fairly simple
-example application. It starts from C code and ends up with VHDL of the
-processor and bit image of the parallel program. This tutorial will also
-introduce how you can accelerate your algorithm by customizing instruction
-set i.e. using custom operations. The total time it takes to go through
-the tutorial is about 2 to 3 hours.
-
-For this you need to download tutorial file package from:\\
-\url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz}\\
-and unpack it to a working directory. Then cd to tce\_tutorials/tce\_tour.
-
-The test application counts a 32-bit CRC (Cyclic Redundant Check). The C-code
-implementation is written by Michael Barr and it is published under Public
-Domain. Implementation consists of two different version of crc but we'll
-be using the fast version only.
-
-\subsection{Evaluating the code}
-The program consists of two separate .c files: main.c contains the simple main
-function and crc.c consists of the actual implementation. Open the crc.c in
-your preferred editor and take a look at the code. As you can propably see the
-biggest difference between crcSlow and crcFast implementations is that the
-crcFast exploits (pre)calculated table values. This is a quite usual method of
-algorithm optimization.
-
-\subsection{Bytecode Program Input}
-
-First we generate a generic bytecode TTA program from our C code
-which will be later on compiled to architecture dependent TTA program.
-
-Compile it with the tce compiler:
-
-\textit{tcecc -O2 -o crc.bc -k main,result crc.c main.c}
-
-This produces an architecture independent bytecode program (crc.bc)
-of the C code. The switch -k was used to tell the
-compiler to keep the \textit{main} and \textit{result} symbols in the
-generated program in order to access them by name in the simulator.
-
-\subsection{Starting Point Processor Architecture}
-
-Next we will use so called minimal architecture as our starting point. The
-minimal.adf is a minimalistic architecture containing minimal number of
-resources the TCE compiler needs to compile programs for. Function
-units in the minimal.adf are selected from the hardware database (HDB,
-Section~\ref{section:hdb}) so we are able to generate a VHDL implementation
-of the processor automatically later in the tutorial. 
-% It is also possible to
-% design all the components from scratch in order to evaluate the architecture
-% without actually implementing the components in VHDL.
-
-Copy the minimal.adf included in TCE distribution to a new ADF file which
-is your starting point architecture (there are two '-' characters before
-'prefix'):
-
-\textit{cp \$(tce-config --prefix)/share/tce/data/mach/minimal.adf start.adf}
-
-Take a look at the starting point architecture using the graphical Processor
-Designer (ProDe, Section~\ref{sec:prode}) tool. Start ProDe with:
-
-\textit{prode start.adf \&}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Preserved this. Maybe there should be a tutorial for building an
-% architecture from scratch using ProDe because tce tour doesn't include it
-% anymore?
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Create a new architecture design by clicking 'New' button in the toolbar.
-% 
-% Alternatively, if you want to get quickly past this part of the tutorial,
-% you can load a premade architecture design from file
-% \textit{starting\_point.adf} which was extracted from the tutorial package.
-% 
-% You can do this either from command line:
-% 
-% \textit{prode starting\_point.adf \&}
-% 
-% Or by clicking the 'Open' button in the toolbar.
-% 
-% In case you decided to design the architecute from scratch, next add a
-% functional unit (FU) that supports the operations the application uses from
-% the hardware database to the design.
-% 
-% \paragraph{Adding the functional units (FU) and the control unit.}
-% From menu: select \textit{Edit>Add From HDB>Function Unit}. Add one FU
-% that includes add, sub, eq, gt and gtu operations and another FU for the load
-% and store operations (ldw and stw). Name the first FU as ``ALU'' (as in Arithmetic
-% Logical Unit), and the second ``LSU'' (as in Load/Store Unit). Renaming the
-% FU can be done by clicking the FU and entering the name to the dialog field
-% ``Name''.
-% 
-% Add the control unit which includes the control flow operations
-% \textit{call and jump}.
-% 
-% Right click on the canvas, select: \textit{Edit>Add>Global Control Unit}. Just
-% click OK in the dialog, the default values should be fine.
-% 
-% Now we have FUs that support the operations our application uses. Next add
-% a register file with enough registers to store the variables our
-% application uses (without needing to spill them to memory).
-% 
-% \paragraph{Adding a register file (RF).}
-% Select from menu: \textit{Edit>Add from HDB>Register File}. Select a
-% RF with at least one read and write port. Click 'Add' and
-% 'Close'. Set the width and size of the RF. Our program used only 4
-% variables, but we'll set the RF to contain 16 registers to be able to
-% execute also a bit larger applications efficiently. Let's use
-% integer registers with 32 bit width, as that is what the frontend compiler
-% expects in the current version. Click the RF, set ``Name=RF'', ``Size=16''
-% and ``Width=32''.
-% 
-% \paragraph{Adding a bool register file}
-% Add another register file as done above. This time, name the register file boolRF
-% and set the width of the of the RF to 1 bit and size of thr RF to be 2 
-% and guard latency to 0.
-% 
-% \paragraph{Adding interconnection network.}
-% Next add two transport buses to the machine so we can actually generate
-% TTA programs that move data between the units. Let's add two buses: right
-% click on the canvas and select: \textit{Edit>Add>Transport Bus}.
-% 
-% Now we need to add support for register file guards. Make sure
-% that \textit{Always true guard} is checked. Click \textit{Add} from the
-% \textit{Register file guards} dialog. Next select boolRF as the \textit{Register
-% file} and click OK. Then repeat this, but this time check the \textit{Inverted}
-% box. Then change the register index from 0 to 1 and do this again, adding
-% two guards(non-inverted and inverted) also to register 1.
-
-% Other default values should be OK for this example, so just click OK on the
-% Bus dialog. Add another bus similarly.
-% 
-% Finally, create a fully connected interconnection network by connecting the
-% newly created transport buses to all inputs and outputs of all units (FUs
-% and RFs). You can do this automatically by selecting:
-% \textit{Tools>Fully Connect IC}.
-% 
-
-% \paragraph{Defining the address spaces.} We need to define some basic
-% properties of the instruction and data address spaces our processor
-% accesses. 
-% 
-% Select from menu: \textit{Edit>Address spaces>Add...}. Set Name
-% ``data'', MAU=8, Min-Address=0, Max-address=1ffff ff.
-% This defines an address space with 8 bit minimum addressable units starting
-% from address 0, ending at address 0x1ffff fff. Thus, 32M of data memory.
-% Should be more than enough for our small application.
-% 
-% For the instruction memory address space, add a new address space similarly
-% with the default values and name it ``instructions''. Other values for the
-% instruction memory address space values do not matter for now. 
-% 
-% Finally, you need to assign the address spaces to correct functional units.
-% The data address space is accessed by the load store unit (LSU), thus
-% double-click the LSU and set its address space to be the newly created ``data''
-% address space. Similarly, click the control unit and select its address
-% space to be the instruction address space ``instructions''.
-% 
-% The processor architecture design is now ready to be evaluated. Save the
-% architecture to an ADF file, name it``first.adf''.
-
-\subsection{Evaluating the Starting Point Architecture}
-
-Now we want to know how well the starting point architecture executes our
-program. First we need to map (``schedule'') the generic bytecode program
-to the parallel architecture we examined in the previous section. This can be
-done by compiling the bytecode program against the processor architectire
-with this command:
-
-\textit{tcecc -a start.adf -o crc.tpef -k main,result crc.bc -O3}
-
-This will produce a parallel program called ``crc.tpef'' that can be
-executed with our processor design ``start.adf''. Notice that the parallel
-program is now tied to a specified architecture so it is no longer
-architecture independent like the bytecode program.
-
-After successfully compiling the program we can now simulate it. Lets use
-the command line based simulator called ttasim. Start the simulator with:
-
-\textit{ttasim -a start.adf -p crc.tpef}
-
-The simulator will load the architecture definition and the program and
-executes it. After this you should see ttasim prompt: \textit{(ttasim)}.
-ttasim can show various information about the execution of the program and
-utilization of processor resources.
-
-To see the cycle count use the following command in ttasim:
-
-\textit{info proc cycles}
-
-Lets take a look at the processor utilization. Enter:
-
-\textit{info proc stats}
-
-This will output a lot of information about the execution. For example
-utilization of transport busses, register files and function units.
-
-Also check the result (the checksum should be \textbf{0x62488e82}) with:
-
-\textit{x /u w \_result}
-
-Next take a look at the graphical user interface of the simulator called
-Proxim (Section~\ref{section:proxim}). You can start it with:
-
-\textit{proxim start.adf crc.tpef \&}
-
-Run the simulation and check the final cycle count it took to execute the
-program. The cycle count is written in the bottom bar of the simulator.
-
-Proxim can also show various information about program's execution and
-resource utilizastion. To check the utilization of the resources of our
-architecture, select \textit{View>Machine Window} from the top menu. 
-Then enable the utilization visualization: \textit{Right click the machine
-window > Display utilizations}. The parts of the processor that are utilized
-the most are visualized with darker red color.
-
-Next, check the profiling data to see which instructions were executed the
-most. Select: \textit{Source>Profile data>Highlight Top Execution Counts}.
-Now the disassembly window has the most executed instructions highlighted.
-You should be able to spot the main loop of the program easily.
-
-As you probably noticed from the processor utilisation, the dividers
-(divs, divu) were not used. Currently the dividers have been implemented
-using Design Ware IP, which isn't freely distributed. In order to generate
-functioning processor you will have to remove these two FUs from the machine.
-Open ProDe and delete the divs and divu FUs and their sockets and remember to
-save.
-
-\subsection{Initial optimization}
-
-As you noticed the cycle count is tremendous. The reason for this is that the
-crcTable array is evaluated at runtime in crcInit function. In an actual
-system this evaluation is only done once at startup so the impact on cycle
-count is not meaningful in the long run. Nevertheless, we will get rid of
-this overhead and precalculate these values so we can consentrate on the
-optimizationof the main CRC algorithm instead of the initialization routines.
-
-Simple method to precalculate the array values is to modify the crcInit
-function so that it prints the array after it has been calculated. To speed
-things up the values are already evaluated in crcTable.dat included in
-the tutorial package. Open crc.c and find this line:
-
-\begin{verbatim}
- crc crcTable[256];
-\end{verbatim}
-
-To load the precalculated values, modify the line:
-
-\begin{verbatim}
- crc crcTable[256] = {
- #include "crcTable.dat"
- };
-\end{verbatim}
-
-Next open main.c and remove or comment out the crcInit() function call
-because now we use the precalculated crcTable. Then recompile the code and
-simulate it again. Verify the result and check cycle count as done earlier.
-This time you should see a huge drop in the cyclecount. Write down this cycle
-count as a baseline for future comparison.
-
-\subsection{Accelerating the Algorithm}
-
-Custom operations implement application specific functionality in TTA
-processors. In this part of the tutorial we accelerate the CRC computation
-by adding a custom operation to the processor design.
-
-\subsubsection{Evaluating Custom Operation Candidates}
-
-First of all, it is quite simple and efficient to implement CRC calculation
-entirely on hardware. Naturally, using the whole CRC function as a custom
-operation would be quite pointless and the benefits of using a processor
-based implementation would get smaller. Instead, we will consentrate
-on trying to accelerate smaller parts of the algorithm, picking a custom
-operation that is potentially useful also for other algorithms than CRC.
-
-\subsubsection{Finding the Bottlenecks}
-
-First thing to do when trying to optimize code is to profile the execution.
-In Proxim you can trace the most executed instructions. See section
-\ref{sec:ProfileProxim} for more information. Another way is to enable
-``procedure transfer tracking'' -- a trace which traces function calls and
-corresponding cycle counts. A call profile helps locating the functions
-that are executed the most. Refer to section \ref{sec:traces} for further
-information.
-
-In this case finding the operation to be optimized is quite obvious if you
-look at the crcFast()-function. It consists of a for-loop in which the 
-reflect()-function is called through the macro REFLECT\_DATA. If you look at 
-the actual function you can see that it is quite simple to implement on 
-hardware, but requires many instructions if done with basic operations with
-software. The function ``reflects'' the bitpattern around the middle point like
-a mirror. For example,
-the bit pattern \textbf{0101 0100} would look like this after reflection:
-\textbf{0010 1010}. The main complexity of this function is that the bit pattern width is not
-fixed. Fortunately, the width cannot be arbitrary. If you examine the
-crcFast()-function and the reflect macros you can spot that the reflect()-function is
-only called with 8 and 32 bit widths (unsigned char and 'crc' which is an unsigned long).
-
-\subsection{Analyzing the Custom Operation}
-
-A great advantage in TCE is that the operation semantics, 
-processor architecture and implementation are separate abstractions. 
-How this affects designing custom operations is that you can
-simulate your design by simply defining the simulation behaviour of 
-the operation and setting the latency of the operation to the processor
-architecture definition. This is nice as you
-don't need an actual hardware implementation of the operation at this point
-of the design, but
-can evaluate different custom operation possibilities at the architectural
-level. However, this brings up an awkward question: how to determine 
-the latency of the operation? Unrealistic or too pessimistic 
-latency estimates can give inaccurate results or bias the analyzis.
-
-One approach to this problem is to take an educated guess and simulate
-some test cases with different custom operation latencies. This way you can
-determine a latency range in which the custom operation would accelerate your
-application to the satisfactory level. After this you can scetch how the
-operation could be implemented in hardware, or consult someone knowledgeable 
-in hardware design to figure out whether the custom operation is 
-implementable within the latency constraint.
-
-Another approach is to try and determine the latency by examining the
-operation itself and considering how it could be implemented. This approach
-requires some insight in digital design.
-
-Besides latency you should also consider the size of the custom function unit.
-It will consume extra die area, but the size limit is always case-specific. For
-accurate size estimation you need to have the actual implementation and synthesis.
-
-Let's consider our reflect function. If we had fixed width we could implement
-the reflect by hard wiring (and registering the output) because the operation
-only moves bits about. This could be done easily in one clock cycle. But we
-need two different bit widths so things would be a bit more complicated. We
-could design the implementation to be 32 bits wide. This way we can also use
-it to reflect 8 bit patterns by aligning the input around the middle position
-and align the output back to the right position. This alignment could be done
-with multiplexers etc. When a lower clock frequency is used, this could still be a one
-cycle operation, but let's play it safe and allow for faster clock frequencies,
-and use a latency of two clock cycles.
-
-\subsection{Using the Custom Operation}
-\label{section:customOperations}
-% includes adding a FU that implements the custom operation to HDB and
-% adding the operation to OSAL
-
-Now we have decided the operation to be accelerated and its latency. Next we
-will create a function unit implementing the operation and add it to our
-processor design. First, a description of
-the semantics of the new operation must be added at least to Operation Set
-Abstraction Layer (Section~\ref{section:osal}). OSAL stores the semantic
-properties of the operation, which includes the simulation behavior, operand
-count etc., but not the latency. OSAL definitions can be added by using the
-OSAL GUI, \emph{OSEd} (Section~\ref{sec:osed}).
-
-If processors that use this custom operation are to be synthesized or simulated
-at the VHDL level, at least one function unit implementing
-the operation should be added to the
-Hardware Database (Section~\ref{section:hdb}). Cost data of the function unit
-needs to be added to the cost database if cost estimates of a processor
-containing the custom function unit are wanted. In this tutorial we add the
-FU implementation for our custom operation so the processor implementation can
-be generated, but omit the cost data required for the cost estimation.
-
-\paragraph{Using Operation Set Editor (OSEd) to add the operation data.}
-
-OSEd is started with the command 'osed'.
-
-Create a new operation module, which is a container for a set of operations.
-you can add a new module in any of the predefined search paths, provided
-that you have sufficient file system access on the chosen directory.
-
-For example, choose directory `/home/\emph{user}/.tce/opset/custom', where
-\emph{user} is the name of the user account being used for this tutorial.
-This directory is intended for the custom operations defined by the
-current user, and should always have sufficient access rights.
-
-\begin{enumerate}
-\item%
-  Right-click on a path name in the left area of the main window.  A
-  drop-down menu appears below the mouse pointer.
-\item%
-  Select \textbf{Add module} menu item. 
-\item%
-  Type in the name of the module (for example, `tutorial') and press \emph{OK}.
-  The module is now added under the selected path.
-\end{enumerate} 
-
-\paragraph{Adding a new operation.} We will now add an operation
-definition to the newly created operation module.
-
-\begin{enumerate}
-\item%
-  Select the module that you just added by right-clicking on its name,
-  displayed in the left area of the main window. A drop down menu appears.
-\item%
-  Select \textbf{Add operation} menu item.
-\item%
-  Type `REFLECT' as the name of the operation.
-\item%
-  Add two inputs by pressing \emph{Add} button under the operation input
-  list repeatedly. Select \textit{UIntWord} as type.
-\item%
-  Add one output by pressing \emph{Add} button under the operation output
-  list. Select \textit{UIntWord} as type.
-\item%
-  After the inputs and the output of the operation have been added, close
-  the dialog by pressing \emph{OK} button. A confirmation dialog will pop
-  up. Press \emph{Yes} to confirm the action. The operation definition is
-  now added to the module.
-\end{enumerate}
-
-\paragraph{Adding simulation behavior to the operation.} Our new operation
-REFLECT doesn't yet have simulation behavior model, thus we cannot simulate
-a program that uses this operation with the TCE processor simulator. Open again the
-operation property dialog by right-clicking REFLECT, then choosing \emph{Modify
-properties}. Now press \emph{Open} button to open an empty behavior source
-file for our module. Type in the following code in the editor window:
-
-\begin{verbatim}
-#include "OSAL.hh"
-OPERATION(REFLECT)
- TRIGGER
-
- unsigned long data = UINT(1);
- unsigned char nBits = UINT(2);
-
- unsigned long  reflection = 0x00000000;
- unsigned char  bit;
-
- /*
-  * Reflect the data about the center bit.
-  */
- for (bit = 0; bit < nBits; ++bit)
- {
-     /*
-      * If the LSB bit is set, set the reflection of it.
-      */
-     if (data & 0x01)
-     {
-         reflection |= (1 << ((nBits - 1) - bit));
-     }
-
-     data = (data >> 1);
- }
-
- IO(3) = static_cast<unsigned> (reflection);
-
- return true;
- END_TRIGGER;
- END_OPERATION(REFLECT)
-\end{verbatim}
-
-This behavior definition simply sums up the input operand integers (with ids
-1 and 2) and writes the result to the ''output operand`` with id 3 which is the first output
-and signals the simulator that all results are computed successfully.
-
-Open the crc.c file in your preferred editor. Compare the definition file
-version and the original reflect-function. The function is mostly similar
-except for parameter passing. On hardware the function unit's data is read
-from input ports and written to output ports. So, we must declare the input
-parameters data and nBits as normal variables. Then we assign input values to
-them: value of data is read from (input) operand one (INT(1)) and nBits is read
-from operand two (INT(2)). Notice that this declaration binds the input ports,
-data is to be written to port one and nBits to port two.
-
-Also the function's return value must be handled differently because the 
-result is read from the output port. Here is an important notice: the operation
-operands are \textbf{running numbered} so that the number of first
-output port is not 1 but (number of input operands) + 1! In addition, the output
-operands are presented as IO(x).
-
-Save the code and close the editor. REFLECT operation now has a TCE simulator
-behavior model.
-
-\paragraph{Compiling operation behavior.} REFLECT operation has been
-added to our test module. Before we can simulate the behavior of our
-operation, the module must be compiled.
-
-\begin{enumerate}
-\item%
-  Right-click on the module name displayed in the left area to bring up the
-  drop down menu.
-\item%
-  Select \textbf{Build} menu item. 
-\item%
-  Hopefully, no errors were found during the compilation! Otherwise, re-open
-  the behaviour source file and try to locate the errors with the
-  help of the diagnostic information displayed in the build dialog.
-\end{enumerate}
-
-\paragraph{Simulating the operation behavior.} Now the operation simulation
-behavior definition can be tested.
-
-\begin{enumerate}
-\item%
-  Right-click on the operation name displayed in the left area of the
-  main window, under the operation module that contains it.
-\item%
-  Select \textbf{Simulate} menu item from the drop-down menu. 
-\item%
-  Edit the input values of REFLECT by selecting the input operand from the
-  list and typing the values in the text input field and pressing the
-  \emph{Update} button next to the field. In this case it's handy to choose
-  the format to be binary.
-\item%
-  Press the \emph{Trigger} button. The value of the output should be updated.
-\item%
-  The format of the displayed input and output values can be modified by
-  selecting different formats from the choice list next to the label
-  `Format:'. It might be more illustrating if you change input and output
-   format to binary.  This way we can enter binary patterns, 
-  for example '11001100' (as binary) for the first operand and '8' (as decimal)
-  as the second. The trigger should produce the reflected
-  value '00110011'
-
-\item%
-  The state of REFLECT can be reset by pressing \emph{Reset} button.
-\item%
-  Repeat the test with different input values. After you are convinced
-  the behavior definition works, close the dialog by clicking on the \emph{OK} button.
-\end{enumerate}
-
-Now the operation definition of our custom operation has been added to the
-Operation Set Abstraction Layer (OSAL) database. Next, we need to add at
-least one functional unit (FU) that implements the operation which can be
-used in our processor design. Note the separation between ''operation`` and
-an ''function unit`` that implements the operation which allows using the
-same OSAL operation definitions in multiple FUs with different latencies.
-
-First, add the architecture of the FU that implements the custom operation
-to the processor design we defined in the previous step. Let's first backup
-our processor design to another file so we can later more easily compare the
-architecture with and without the custom operation support:
-
-\textit{cp start.adf custom.adf}
-
-Open the copy in ProDe:
-
-\textit{prode custom.adf \&}
-
-Then:
-\begin{enumerate}
-\item%
-Add a new function unit to the design, right click the canvas and select:
-\textit{Add>Function Unit}. Name the FU ''reflecter``. Add two input
-ports (named as input1 and trigger) and an output port (output1) to the FU in
-the Function unit dialog. Set the second input port (trigger)
-triggering (\textit{Click the port named trigger->Edit->Check dialog 
-''triggers``}). This port starts the execution of the operation when
-it's written to.
-\item%
-Add the operation ''REFLECT`` we defined to the FU: \textit{Add from
-opset>REFLECT>OK} and set the latency to 2. Click on the REFLECT operation and
-ensure that the operation inputs are bound to the input ports and the output
-is bound to the output port. Check that the operand usage is in such a way that
-all inputs are read at cycle 0 and the result is written at the end of the 
-next cycle. Thus, the latency of the operation is 2 clock cycles.
-\item%
-Now an FU that supports the custom operation has been added to our architecture. 
-Finally, fully connect the machine to connect the
-FU to the rest of the architecture. This can be done by selecting
-\textit{Tools->Fully Connect IC}. Finally save the architecture.
-\end{enumerate}
-
-
-\paragraph{Adding an implementation of the FU to the hardware database
-(HDB).} \label{par:AddToHDB} In order to generate a VHDL implementation of our
-processor later in this tutorial, we need to add implementation information
-of an FU that implements our custom operation to an HDB file. Normally, this
-step would be done only after deciding the evaluated custom operation 
-is a good choice for accelerating the design.
-
-Start HDBEditor (see Section~\ref{sec:hdbedit}):
-
-\textit{hdbeditor \&}
-
-TCE needs some data of the FU implementation in order to be able to 
-automatically generate processors that include the FU. \\
-\begin{enumerate}
- \item%
-Create a new hdb file (name it tour.hdb) with hdbeditor and add the 
-''reflecter`` function unit from custom.adf file 
-(\textit{edit->add->FU architecture from ADF}). You can leave
-the ''parametrized width`` and ''guard support`` unchecked.
-Then define implementation for the added function unit entry \textit{right 
-click reflect -> Add implementation....}\\
-
-\item%
-Open the reflect.vhdl that was provided in the tutorial package with the editor 
-you prefer, and take a look. This is an example implementation of 
-a TTA function unit performing the custom 'reflect' operation.
-
-\item%
-The HDB implementation dialog needs the following information from the VHDL:\\
-
-\textbf{1. Name of the entity and the naming of the FU interface ports.}
-
-Name the implemention after the top level entity: ``fu\_reflect''.
-
-By examining the VHDL-code you can easily spot the clock port (clk),
-reset (rstx) and global lock port (glock). Write these into the appropriate
-text boxes. You don't have to fill the Opcode port or Global lock req. port
-fields because this function unit has only one opcode and does not need to 
-cause a global lock to the processor during its execution.
-
-\textbf{2. Parameters.}
-
-Parameters can be found from the VHDL-file. On top of the file there are two
-parameters: dataw and busw. The dataw tells the width of input ports and
-busw tells us the width of the transport buses.
-
-Thus, add two 32-bit integer parameters (dataw and busw) to the Parameter
-dialog.
-
-\textbf{3. Architecture ports.}
-
-This settings defines the connection between the ports in the
-architectural description of the FU and the VHDL implementation.
-Each input data port in the FU is accompanied with a load port that
-controls the updating of the FU input port registers.
-
-Choose a port in the Architecture ports dialog and click edit.
-Set the name of architecture port p1 to o1data and the load port to o1load.
-Width formula is the parameter dataw.
-
-Name of the architecture port p2 is t1data and load port is t1load.
-Width formula is the parameter dataw.
-
-Name the output port (p3) to r1data and the width formula is now busw
-because the output port writes to the bus.
-Notice that the output port doesn't have a load port.
-
-\textbf{4. Add VHDL source file.}
-
-Add the VHDL source file into the Source code dialog (Add -> Browse ->
-reflect.vhdl).
-
-Now you are done with adding the FU implementation. Click OK.
-
-\end{enumerate}
-
-\subsection{Use the custom operation in C code.}
-
-Now, to get some benefits from the added custom hardware,
-we must use it from our C code. This is done by replace 
-a C statement with a custom operation invokation. 
-
-Let's first backup the original C code.
-
-\textit{cp crc.c crc\_with\_custom\_op.c}
-
-Then open crc\_with\_custom\_op.c in your preferred texteditor.
-
-\begin{enumerate}
-\item%
-Add \#include ``tceops.h'' to the top of the file. This includes 
-automatically generated macros which allows us to use specific 
-operations from C code without getting our hands dirty with
-inline assembly.
-
-Usage of these macros is as follows:
-
-\begin{verbatim}
- _TCE_<name>(input1, ... , inputN, output1, ... , outputN);
-\end{verbatim}
-
-where <name> is the name of the operation in OSAL. Number of input and output
-operands depends on the operation. Input operands are given first and they are
-followed by output operands if any. 
-
-In our case we need to write operands into our reflecter and read the
-result from it. We named the operation ``REFLECT'' so the macro we are going
-to use is:
-
-\begin{verbatim}
- _TCE_REFLECT(input1, input2, output);
-\end{verbatim}
-
-Now we will modify the crcFast function to use the custom op.
-First declare 2 new variables at the beginning of the function:
-
-\begin{verbatim}
- crc input;
- crc output;
-\end{verbatim}
-
-These will help in using the reflect FU macro.
-
-Take a look at the REFLECT\_DATA and REFLECT\_REMAINDER macros. The first one
-has got a magic number 8 and ``variable'' X is the data. This is used in the
-for-loop.
-
-In the for-loop the input data of reflect function is read from message[].
-Let's modify this so that at the beginning of the loop the input data is
-read to the input variable. Then we will use the \_TCE\_REFLECT-macro to run
-the custom operations and finally replace the REFLECT\_DATA-macro with our
-output variable. So after these modifications the body of the for-loop should
-look like this:
-
-\begin{verbatim}
- input = message[byte];
- _TCE_REFLECT(input, 8, output);
- data = (unsigned char) output ^ (remainder >> (WIDTH - 8));
- remainder = crcTable[data] ^ (remainder << 8);
-\end{verbatim}
-
-Next we will modify the return statement. Originally it uses
-REFLECT\_REMAINDER macro where nBits is defined as WIDTH and data is
-remainder. Simply use \_TCE\_REFLECT-macro before return sentence and replace
-the original macro with output-variable:
-
-\begin{verbatim}
- _TCE_REFLECT(remainder, WIDTH, output);
- return (output ^ FINAL_XOR_VALUE);
-\end{verbatim}
-
-And now we're ready. Remember to save the file.
-
-\item%
-Lets skip this time the bytecode phase and compile directly from C to 
-a parallel TTA program using our new architecture which includes
-an FU with the custom operation:
-
-\textit{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k main,result
-crc\_with\_custom\_op.c main.c}
-
-\item%
-Simulate the parallel program. You can do it quickly with the command line
-simulator:
-
-\textit{ttasim -a custom.adf -p crc\_with\_custom\_op.tpef}.
-
-Verify that the result is same as before. Check the cycle count
-\textit{info proc cycles} and compare it to the cycle count of the version 
-which does not use a custom operation. You should see a significant drop.
-
-In addition to custom operations, other ways to improve the cycle count 
-further is to add more resources such as registers and transport buses. 
-You can play around with these parameters easily with ProDe. After 
-modifying the architecture, recompile and simulate the code to see 
-the effect to the cycle count.
-\end{enumerate}
-
-
-\subsection{Generating the Final Products}
-
-In this step we generate the VHDL implementation of the processor and the
-bit image of the parallel program.
-
-First create an encoding for the instructions in our architecture:
-
-\textit{createbem custom.adf}
-
-This should generate ``custom.bem'' which is a description on how
-instructions should be encoded in this architecture.
-
-You can print the encoding info in a more human readable format with:
-
-\textit{viewbem custom.bem}
-
-The program should print details on how each type of source/destination, etc.
-is encoded. You don't have to care about this, it's just for curiosity.
-Maybe the only important part in this printout is the length of the
-instruction word. In this case, even though the processor has only
-one move slot, the instruction word width is more than 40 bits. Memorize the
-instruction word width in bits. The size can be reduced with instruction
-compression, which is not used in this tutorial.
-% TODO: add the instruction compression part here also (TEEMU)
-
-Next, we must set correct instruction memory MAU and then select
-implementations for all components in our architecture. Each
-architecture component can be implemented in multiple ways, so we must
-choose one implementation for each component in order to be able to
-generate the implementation for the processor.
-
-This can be done in the ProDe tool:
-
-\textit{prode custom.adf}
-
-Now the architecture is loaded. First select change the MAU of instruction
-memory \textit{Edit>Address Spaces...} to the value you checked earlier in
-viewbem. See the FAQ (chapter \ref{chapter:faq}) for more information about
-instruction memory.
-
-You should also change the widths of GCU ports and LSU trigger port to avoid
-error messages from the Processor Generator. So open the Address Spaces
-dialog and check the bitwidth fields. Then set the GCU port widths according
-the instruction memorys bitwidth field. Next change the LSU trigger port's
-width. Notice that you must set the trigger's width to be 2 bits wider than
-the marked bitwidth in address space. For more information check the FAQ
-(chapter \ref{chapter:faq})
-
-Create the binary encoding map again just in case the port width changes
-caused some changes:
-
-\textit{createbem custom.adf}
-
-Then we'll select implementations for the FUs which can be done in
-\textit{Tools>Processor Implementation...}. Note that the selection window
-is not currently very informative about the different implementations, so a
-safe bet is to select an implementation with parametrizable width/size.
-
-\begin{enumerate}
-\item%
-Select implementation for RF: Click the RF name, 'Select RF implementation',
-find the TCE's default HDB file from your tce installation path 
-(PREFIX/share/tce/hdb/asic\_130nm\_1.5V.hdb) and select an
-implementation for the RF from there.
-
-\item%
-Next select implementation for the boolean RF unlike above. But this time
-select an implementation which is guarded i.e. select an implementation which
-has word ``guarded'' in its name.
-
-\item%
-Similarly, select implementations for the function units from the TCE's default
-HDB. Then select implementation for the custom\_adder but this time you have to
-use the 'tour.hdb' created earlier to find the FU we added that supports the
-REFLECT custom operation.
-
-\item%
-Finally select the IC/Decoder generator plugin used to generate the
-decoder in the control unit and interconnection network:
-\textit{Browse... (installation\_path)/share/tce/icdecoder\_plugins/base/
-DefaultICDecoderPlugin.so>OK}.
-You don't have to care about the HDB file text box because we are not going 
-to use cost estimation data.
-\end{enumerate}
-
-\paragraph{Generate the VHDL for the processor using Processor Generator
-(ProGe).} 
-
-You can start processor generation from the implementation selection dialog:
-Click ``Generate Processor''. For Binary Encoding Map: Select the
-previously generated .bem (Load from file...). Create and set target directory
-'proge-output'. Or alternatively, save the .idf file and execute ProGe from
-command line:
-
-\textit{generateprocessor -b custom.bem -i custom.idf custom.adf}
-
-Now ``proge-output'' directory includes the VHDL implementation of the
-designed processor. You can take a look what the directory includes, how the RF
-and FU implementations are collected up under 'vhdl' subdir and 
-the interconnection network has been generated to connect the units (the 'gcu\_ic'
-subdir).
-
-\paragraph{Generate instruction memory bit image using Program Image Generator.}
-
-Finally, to get our shiny new processor some bits to chew on,
-we use generatebits to create an instruction memory image:
-
-\textit{generatebits -b custom.bem -d -p crc\_with\_custom\_op.tpef
-custom.adf} 
-
-Now the file ``crc\_with\_custom\_op.img'' includes the instruction memory
-image in ``ascii 0/1'' format. Each line in that file represents a single
-instruction. Thus, you can get the count of instructions by counting the
-lines in that file:
-
-\begin{verbatim}
- wc -l crc_with_custom_op.img
-\end{verbatim}
-
-By multiplying the count with the instruction width we found earlier you
-can get the required size of instruction memory for this program.
-
-\subsection{Final Words}
-
-This tutorial is now finished. Now you should know
-how to make and use your own custom operations and generate the
-processor implementation along with its instruction memory bit image.
-
-If given a functional testbench you could simulate the generated 
-VHDL implementation of the processor with a VHDL
-simulator. You could also synthesize the processor implementation with
-appropriate application. There are some scripts in the produced 'proge\_output'
-directory you can use as a starting point for synthesis and VHDL simulation.
-You can cd to the proge\_output directory and compile the testbench with
-\textit{./ghdl\_compile.sh} of you have GHDL installed in your system. After
-that you must move the data images to the tb directory:
-
-\textit{cp ../crc\_with\_custom\_op\_data.img tb/dmem\_init.img}
-
-\textit{cp ../crc\_with\_custom\_op.img tb/imem\_init.img}
-
-Then you can try and simulate the design: \textit{./ghdl\_simulate.sh}
-
-Please notice that GHDL is a work in progress VHDL compiler/simulator so it
-is recommended to use some other VHDL tool.
-
-In this tutorial we used a ``minimalistic'' processor architecture as our
-starting point. The machine had only one transport bus and 5 registers so it
-couldn't fully exploit the parallel capabilities of TTA. As mentioned 
-earlier, if you are interested you can open the custom.adf in ProDe and 
-add more transport buses, register files and function units and see how 
-they affect the performance.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TODO: Esa will remake this when Explorer is usable
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \section{From C to VHDL as Quickly as Possible}
-% \label{section:fromCtoVHDL}
-% TODO: the quickest way: compile input programs, start the wizard that
-% generates the initial processor, start ProGe and PIG (all in the TCE IDE?)
-% TODO: include the usage of remove unconnected components plugin. Also add
-%	compilation and simulation of VHDL code using GHDL
-% This tutorial introduces the fastest way to generate a processor VHDL model
-% from C source code using Desing Space Explorer.
-% 
-% If you haven't already downloaded the tutorial file package, you can get it 
-% from:\\
-% \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} \\
-% Unpack it to a working directory and then cd to tce\_tutorials/c2vhdl/
-% 
-% \subsection{Compile C code}
-% 
-% % compile C code.
-% Compile the application C code. It is important that the name of the compiled
-% code is ``sequential\_program''.
-% 
-% \textit{tcecc application1/complex\_multiply.c -O2 
-% -o application1/sequential\_program}
-% 
-% \subsection{Use explorer}
-% 
-% % use initial machine generator
-% The initial machine generator is an explorer plugin which uses a sequential
-% TTA program to generate an initial processor capable of running the
-% program. The initial machine generator creates a processor configuration 
-% that can be generated to VHDL code implementation of the processor.
-% 
-% \textit{explore -e InitialMachineExplorer -a application1/ -p build\_idf=true
-% ExpRes.dsdb}
-% 
-% Result of the initial machine generator is now added in the ``ExpRes.dsdb''
-% with id 1 assuming the exploration was successful.
-% 
-% % use the simple ic optimizer
-% Next you can try to optimize the configuration created by the initial machine
-% generator. This can be done by using Simple IC Optimizer plugin which reduces
-% connections which aren't needed to run the application.
-% 
-% \textit{explore -e SimpleICOptimizer -s 1 ExpRes.dsdb}
-% 
-% where \textit{-s 1} is the id of the configuration to be optimized.
-% 
-% If the plugin found something to optimize, it adds a new configuration, with
-% id 2 in this case, into the database.
-% 
-% \subsection{Generate required files}
-% 
-% The created configurations can be written as file with command:
-% 
-% \textit{explore -w <configuration\_ID> ExpRes.dsdb}
-% 
-% If the optimization was succesful you should export the optimized version,
-% otherwise use the original version.
-% 
-% Now the ADF and IDF files are written into the current directory and are named
-% as ``1.adf'' and ``1.idf'' or ``2.adf'' and ``2.idf'' depending on which
-% version you wrote out.
-% 
-% % Schedule
-% Schedule each program against the new architecture:
-% 
-% (replace <id> with the proper number)
-% 
-% \textit{schedule -t <id>.adf -o application1/complex\_multiply.scheduled.tpef
-% application1/sequential\_program}
-% 
-% This step creates file ``ApplicationDir/complex\_multiply.scheduled.tpef''.
-% 
-% % create bem
-% Now create an encoding for the instructions in our new architecture:
-% 
-% \textit{createbem <id>.adf}
-% 
-% This step creates file <id>.bem.
-% Now you should have all the needed parts for the processor VHDL.
-% 
-% \subsection{Generate processor VHDL implementation}
-% 
-% % start ProGe
-% Use ProGe to generate the processor VHDL:
-% 
-% \textit{generateprocessor -b <id>.bem -i <id>.idf <id>.adf}
-% 
-% Now directory called ``proge-output'' should include the VHDL implementation
-% of the processor.
-% 
-% % start PIG
-% Generate instruction memory bit image using PIG. First cd to application1
-% directory and then generate the bit image:
-% 
-% \textit{generatebits -b ../<id>.bem -d -t 
-% application1/complex\_multiply.scheduled.tpef ../<id>.adf}
-% 
-% This generates files ``Application.scheduled.img'' into the application
-% directory.
-% 
-% Tutorial is now finished and you can simulate the generated VHDL
-% implementation of the processor with a VHDL simulator and synthesize it.
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% THESE ARE TODO's
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%
-%\section{Manual Exploration}
-%\label{section:manualExpl}
-% Modify the arch manually until it meets the requirements
-
-%\section{Automated Design Space Exploration}
-%\label{section:automatedExploration}
-% Add requirements and sequential programs, 
-% Click, click, *wait a couple of weeks*, done! ;-)
-
-
-\section{Hello TTA World!}
-
-What would a tutorial section be without the traditional ``Hello World!''
-example? Interestingly enough, printing out ``Hello World'' in a
-standalone (operating system free) platform like the TTA of TCE is not 
-totally straightforward. That's the reason this tutorial is not the first 
-one in this tutorial chapter.
-
-The first question arises: where should I print the string? Naturally 
-it's easy to answer that question while working with the simulator: to
-the simulator console, of course. However, when implementing the final
-hardware of the TTA, the output is platform dependent. It can be a
-debugging interface, serial port output, etc.
-
-In order to make printing (usually readable) data easier from TTAs designed
-with TCE, we have added an operation called STDOUT to the ``base operation 
-set'' that is installed with the TCE. The simulation behavior of this 
-operation reads its input, expects it to be a 8bit char and writes the char
-verbatim to the simulator host's standard output. Of course, in case the 
-designer wants to use this operation in his final system he must provide the 
-platform specific implementation for the function unit (FU) implementing the 
-operation, or just remove the FU after the design is fully debugged and
-verified.
-
-The default implementation of \textit{printf()} in TCE uses the STDOUT
-operation to print out data. Therefore, implementing a ``Hello World''
-application with TCE is as simple as adding an FU that implements
-the STDOUT to the processor design and then calling \textit{printf()} in
-the simulated program. The simulator should print out the greeting
-as expected.
-
-Here is a simple C code (hello.c) that prints the magic string:
-
-\begin{verbatim}
-#include <stdio.h>
-
-int main() {
-    printf("Hello TTA World!");
-    return 0;
-}
-\end{verbatim}
-
-Next, compile it to an architecture that implements the
-STDOUT. In this case we add an FU with STDOUT (see the previous
-tutorial for instructions on adding FUs to your designs) to the minimal.adf, 
-after copying it to minimalWithStdout.adf:
-
-\begin{verbatim}
-cp $(tce-config --prefix)/share/tce/data/mach/minimal.adf minimalWithStdout.adf
-prode minimalWithStdout.adf &
-... add the IO function unit with the STDOUT operation to the ADF ...
-tcecc -O0 hello.c -a minimalWithStdout.adf -o hello.tpef
-\end{verbatim}
-
-It should compile without errors. Beware: the compilation can take
-a couple of minutes on a slower machine! This is because \textit{printf()} 
-is actually quite a large function and the compiler is not yet optimized for 
-speed.
-
-Finally, simulate the program to get the greeting:
-
-\begin{verbatim}
-ttasim -a minimalWithStdout.adf -p hello.tpef --no-debugmode
-Hello TTA World!
-\end{verbatim}
-
-That's it. Happy debugging!
-
-
-\section{Streaming I/O}
-\label{section:streamIO}
-
-Because TTA/TCE is an environment without operating system, there is also
-no file system available for implementing file-based I/O. Therefore, one
-popular way to get input and output to/from the TTA is using shared memory
-for communicating the data. For stream processing type of applications,
-one can also use an I/O function unit that implements the required 
-operations for streaming.
-
-TCE ships with example operations for implementing stream type input/output. 
-These operations can be used to read and write samples from streams in the
-designed TTA processor. The basic interface of the operations allows reading and 
-writing samples from the streams and querying the input or output stream's 
-status (buffer full/empty, etc.). The status operations are provided to
-allow the software running in the TTA to do something useful while the
-buffer is empty or full, for example switch to another thread. Otherwise,
-in case on tries to read/write a sample from/to a stream of which buffer is 
-empty/full, the TTA is locked and the cycles until the situation resolves
-are wasted.
-
-The example streaming operations in the base operation set are 
-called STREAM\_IN, STREAM\_OUT, STREAM\_IN\_STATUS, and STREAM\_OUT\_STATUS.
-These operations have a simulation behavior definition which simulates the
-stream I/O by reading/writing from/to files stored in the file system of 
-the simulator host. The files are called \textit{ttasim\_stream.in} for 
-the input stream and \textit{ttasim\_stream.out} for the output stream and
-should reside in the directory where the simulator is started. 
-The file names can be customized using environment variables 
-TTASIM\_STREAM\_OUT\_FILE and TTASIM\_STREAM\_IN\_FILE, respectively.
-
-Here is an example C code that implements streaming I/O with the operations:
-
-\begin{verbatim}
-#include "tceops.h"
-
-int main()
-{
-    char byte;
-    int status;
-
-    while (1)
-    {
-        _TCE_STREAM_IN_STATUS(0, status);
-
-        if (status == 0)
-            break;
-
-        _TCE_STREAM_IN(0, byte);
-        _TCE_STREAM_OUT(byte);
-    }
-
-    return 0;
-}
-\end{verbatim}
-
-This code uses the TCE operation invokation macros from \textit{tceops.h}
-to read bytes from the input stream and write the same bytes to the
-output stream until there is no more data left. This situation is indicated
-with the status code 0 queried with the STREAM\_IN\_STATUS operation. The
-value means the stream buffer is empty, which means the file simulating the
-input buffer has reached the end of file.
-
-You can test this code by creating a file \textit{ttasim\_stream.in}
-with some test data. The code should create a copy of that file to the
-stream output file \textit{ttasim\_stream.out}.
-
-\section{Implementing Programs in Parallel Assembly Code}
-\label{section:parallelAssemblyCoding}
-% TODO: add example of implementing a sort RISC assembly code as
-% a parallel TTA program. How to compile it (refer to assembler section) and
-% how to simulate and estimate it, etc.
-
-This tutorial will introduce you to TTA assembly programming. It is
-recommended that you go through this tutorial because it will certainly
-familiarize you with TTA architecture and how TTA works.
-
-\subsection{Preparations}
-
-For this tutorial you need to download file package from
-\url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} and unpack it
-to a working directory. Then cd to parallal\_assembly-directory.
-
-First thing to do is to compile the custom operation set called cos16 shipped
-within the parallal\_assembly-directory. Easiest way to do this is:
-
-\textit{buildopset cos16}
-
-This should create a file named cos16.opb in the directory.
-
-\subsection{Introduction to DCT}
-
-Now you will be introduced to TCE assembler language and assembler usage.
-Your task is to write TCE assembly code for 2-Dimensional 8 times 8 point 
-Discrete Cosine Transform(DCT\_8x8).
-First take a look at the C code of DCT\_8x8
-\textit{dct\_8x8\_16\_bit\_with\_sfus.c}.  
-The code is written to support fixed point datatype with sign plus 15 fragment
-bits, which means coverage from $-1\ to\ 1-2^{15}$. The fixed point
-multiplier, function \textit{mul\_16\_fix}, and fixed point adder, function
-\textit{add\_16\_fix},  used in the code scale inputs automatically to prevent
-overflow. Function \textit{cos16} takes $x(2i+1)$ as input and returns
-corresponding cosine value $\frac{cos(x(2i+1)\pi)}{16}$. The code calculates
-following equations:
-
-\begin{equation}
-F(x) = \frac{C(x)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{x
-\left(2i+1\right)\pi}{16}\right)\right] \nonumber
-\end{equation}
-\begin{equation}
-F(y) = \frac{C(y)}{2}\sum_{i = 0}^7 \left[f(i)cos\left(\frac{y
-\left(2i+1\right)\pi}{16}\right)\right] \nonumber
-\end{equation}
-
-\begin{equation}
-C(i) = 
-\left\{
-\begin{array}{c c}
-\frac{2}{\sqrt2} &,  i = 0 \\
-1 &,  else 
-\end{array} \right . . \nonumber
-\end{equation}
-
-\begin{equation}
-F(x,y) = F(x)F(y) \nonumber
-\end{equation}
-
-\subsection{Introduction to TCE assembly}
-
-First take a look at assembly example in file $example.tceasm$
-to get familiar with syntax. More help can be found from
-section \ref{section:TCEAsm}
-
-Compilation of the example code is done by command:
-
-\textit{tceasm \ -o \ example.tpef \ dct\_8x8\_16\_bit\_with\_sfus.adf \
-example.tceasm}
-
-Notice that the assembler will give some warnings saying that ``Source is
-wider than destination.'' but these can be ignored.
-
-The compiled tceasm code can be simulated with TCE
-simulator, ttasim or proxim(GUI).
-
-\textit{ttasim -a \ dct\_8x8\_16\_bit\_with\_sfus.adf -p example.tpef} , or
-
-\textit{proxim \ dct\_8x8\_16\_bit\_with\_sfus.adf example.tpef}
-
-It is recommended to use proxim because it is more illustrating to track the
-execution with it. Especially if you open the Machine Window (View -> Machine
-Window) and step through the program.
-
-Check the result of example code with command (you can also write this in
-proxim's command line at the bottom of the main window):
-
-\textit{x /a IODATA /n 1 /u b 2}. 
-
-the output of x should be 0x40.
-
-\subsection{Implementing DCT on TCE assembly}
-
-Next try to write assembly code which does the same functionality as the
-C code. The assembly code must be functional with the given machine
-\textit{dct\_8x8\_16\_bit\_with\_sfus.adf}. Take a look at the processer by
-using prode:
-
-\textit{prode dct\_8x8\_16\_bit\_with\_sfus.adf \&}
-
-Processor's specifications are the following:
-
-\textbf{Supported operations} \\
-Operations supported by the machine are: \textit{mul}, \textit{mul\_16\_fix},
-\textit{add}, \textit{add\_16\_fix}, \textit{ldq}, \textit{ldw}, \textit{stq},
-\textit{stw}, \textit{shr}, \textit{shl}, \textit{eq}, \textit{gt},
-\textit{gtu}, \textit{jump} and \textit{immediate transport}.
-
-Notice that when you program using TTA assembly you need to take account in
-operation latencies. The \textit{jump} latency is four clock cycles and load
-latencies (\textit{ldq} and \textit{ldw}) are three cycles. Latency for
-multiplications (\textit{mul} and \textit{mul\_16\_fix}) are two clock cycles.
-
-\textbf{Address spaces} \\
-The machine has two separate address spaces, one for data and another for
-instructions. The data memory is 16-bit containing 128 memory slots and the
-MAU of data memory is 16-bits. The intruction memory has 1024 memory slots
-which means that the maximum number of instructions of 1024.
-
-\textbf{Register files} \\
-Machine contains 4 register files, which each have 4 16-bit registers,
-leading to total of 16 16-bit registers. Notice that the first register file
-has 2 read ports.
-
-\textbf{Transport buses} \\
-The machine has 3 16-bit buses, which means maximum of 3 concurrent
-transports. Each bus can contain 8-bit short immediate.
-
-\textbf{Immediates} \\
-Because the transport buses can only contain 8-bit short immediates you must
-use the immediate unit if you want to use longer immediates. Immediate unit
-can hold a 16-bit immediate. There is an example of immediate unit usage in
-the immediate\_example.tceasm. Basically you need to transfer the value to the
-immediate register. The value of immediate register can be read on the next
-cycle.
-
-The initial input data is written to memory locations 0-63 in the file
-\textit{assembler\_tutorial.tceasm}. Write your assembly code in that file.
-
-\subsubsection{Verifying the assembly program}
-
-The reference output is given in \textit{reference\_output}. You need to
-compare your assembly program's simulation result to this reference
-output. Comparision can be done by first dumping the memory contents in the
-TCE simulator with following command:
-
-\textit{x /a IODATA /n 64 /u b 0}
-
-The command assumes that output data is stored to memory locations 0-63.
-
-The easiest way to dump the memory into a text file is to execute ttasim with
-the following command:
-
-\textit{ttasim -a dct\_8x8\_16\_bit\_with\_sfus.adf -p
-assembler\_tutorial.tpef < input\_command.txt > dump.txt}
-
-After this you should use sed to divide the memory dump into separete lines
-to help comparison between your output and the reference output. Use the
-following command to do this (notice that there is an empty space between the
-first two slashes of the sed expression):
-
-\textit{cat dump.txt | sed 's/ /$\backslash$n/g' > output.txt}
-
-And then compare the result with reference:
-
-\textit{diff -u output.txt reference\_output}
-
-When the TCE simulator memory dump is same as the reference output your
-assembly code works and you have completed this tutorial. Of
-cource you might wish to improve your assembly code to minimize cycle
-count or/and instruction count.
-
-
-If it is too hard to visualize the whole program in parallel assembly
-you can start by writing sequential code and then write it to
-parallel assembly.
-
-You should also compile the C program and run it because it gives more
-detailed information which can be used as reference data if you need to debug
-your assembly code.
-
-To compile the C code, enter:
-
-\textit{gcc -o c\_version dct\_8x8\_16\_bit\_with\_sfus.c}
-
-If you want the program to print its output to a textfile, you can use the
-following command:
-
-\textit{./c-version > output.txt}
-
-
-To get some idea of the performance possibilities of the machine,
-one assembly code has 52 instructions and it runs the DCT8x8 in
-3298 cycles.
-
-
 
 
 \chapter{FREQUENTLY ASKED QUESTIONS}
@@ -5309,8 +5318,8 @@ Big endian. At the moment, endianness cannot be customized.
 The memory acessing operations in the base operation set (ldq, ldh, ldw,
 ldd, stq, sth, stw, and ldd) are aligned with their size. Operations stq/ldq
 are for accessing single minimum addressable units (MAU, usually bytes),
-thus their alignment is 1 MAU, for sth/ldh it's 2 MAUs, and for stw/ldw 
-it's 4 MAUs. Thus, one cannot access, for example, a 4 MAU word at address
+thus their alignment is 1 MAU, for sth/ldh it is 2 MAUs, and for stw/ldw 
+it is 4 MAUs. Thus, one cannot access, for example, a 4 MAU word at address
 3. 
 
 Double precision floating point word operations std/ldd which access
@@ -5340,6 +5349,7 @@ possibilities. But as an advantage this gives the user free hands to
 implement almost any kind of memory hierarchy the user wants. Most probably
 you must implement a memory adapter to bind the memory chip and the TTA
 processor interfaces together.
+
 
 \chapter{TROUBLESHOOTING}
 \label{chapter:troubleshooting}
@@ -5393,7 +5403,7 @@ There is no tool to map data memory accesses in the source code to the
 actual target's memories. Therefore, you need to have a data memory which
 provides byte-addressing with 32-bit words. The data will be accessed using
 operations LDQ, LDH, LDW, STQ, STH, STW, which access the memory in 1 (q),
-2 (h), and 4 (w) byte chunks. This should not be a problem, as it's rather
+2 (h), and 4 (w) byte chunks. This should not be a problem, as it is rather
 easy to implement byte-addressing in case the actual memory is of width of
 2's exponent multiple of the byte. The parallel assembler allows any kind
 of minimum addressable units (MAU) in the load/store units. In that case,
@@ -5407,7 +5417,7 @@ respectively.
 The simulator assumes ideal memory model which generates no stalls and
 returns data for the next instruction. This so called 'Ideal SRAM' model
 allows modeling all types of memories in the point of view of the
-programmer. It's up to the load/store unit implementation to generate the
+programmer. It is up to the load/store unit implementation to generate the
 lock signals in case the memory model does not match the ideal model.
 
 There are hooks for adding more memory models which generate lock signals
@@ -5631,7 +5641,7 @@ Xerces-C++ is released under the terms of the Apache License, version
 
       To apply the Apache License to your work, attach the following
       boilerplate notice, with the fields enclosed by brackets "[]"
-      replaced with your own identifying information. (Don't include
+      replaced with your own identifying information. (Do Not include
       the brackets!)  The text should be enclosed in the appropriate
       comment syntax for the file format. We also recommend that a
       file or class name and description of purpose be included on the
@@ -5783,7 +5793,7 @@ ordinary GNU General Public License, which was designed for
 utility programs.  This license, the GNU Library General Public
 License, applies to certain designated libraries.  This license
 is quite different from the ordinary one; be sure to read it in
-full, and don't assume that anything in it is the same as in the
+full, and do not assume that anything in it is the same as in the
 ordinary license.
 
 The reason we have a separate public license for some libraries

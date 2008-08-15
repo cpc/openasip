@@ -124,6 +124,8 @@ State: \thestate
 
 % Add here new command definitions that can be used in all types
 % of documents.
+\newcommand{\shellcmd}[1]{\texttt{\hbox to 0.5cm{}#1}}
+\newcommand{\file}[1]{'#1'}
 
 % ------------------------------------------------------------------
 %  ENVIRONMENTS
