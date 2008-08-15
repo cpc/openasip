@@ -230,34 +230,20 @@ ProGeTestBenchGenerator::generate(
                 && param.type == "integer") {
 
                 if (param.value.length() < 1) {
-                    // if width isn't stored calculate it
+                    // if width isn't stored read it from port
                     FunctionUnit* FU = it->second.at(0);
                     TTAMachine::HWOperation* hwop = FU->operation(0);
-                    dataWidth = hwop->port(1)->width();
+                    dataWidth = hwop->port(2)->width();
                 } else {
                     dataWidth = Conversion::toInt(param.value);
                 }
-            } else
-            if (string::npos != param.name.find("addrw") 
+            } else if (string::npos != param.name.find("addrw") 
                 && param.type == "integer") {
-
-                if (param.value.size() < 1) {
-                    // if width isn't stored calculate it
-                    FunctionUnit* FU = it->second.at(0);
-                    AddressSpace* AS = FU->addressSpace();
-                    addrWidth = static_cast<int>(floor(
-                        log(AS->end()) / log(2))) - 1; // ceil - 2
-                } else {
-                    const string plus = "plus_";
-                    string::size_type place = param.name.find(plus);
-                    if (string::npos != place) {
-                        string pvalue = param.name.substr(place + plus.length());
-                        addrWidth = Conversion::toInt(param.value) - 
-                            Conversion::toInt(pvalue);
-                    } else {
-                        addrWidth = Conversion::toInt(param.value);
-                    }
-                }
+                // calculate the address width from the address space
+                FunctionUnit* FU = it->second.at(0);
+                AddressSpace* AS = FU->addressSpace();
+                addrWidth = 
+                    static_cast<int>(ceil(log(AS->end()) / log(2)));
             }
         }
         // TODO: don't create whole file here just add memory widths and 

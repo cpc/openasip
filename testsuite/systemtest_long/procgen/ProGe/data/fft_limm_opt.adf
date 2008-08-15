@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<adf version="1.5">
+<adf version="1.7">
 
   <bus name="m1">
     <width>1</width>
@@ -1710,7 +1710,7 @@
     </port>
     <port name="o0">
       <connects-to>fu6_o</connects-to>
-      <width>13</width>
+      <width>15</width>
     </port>
     <port name="r0">
       <connects-to>fu6_r</connects-to>
@@ -1758,7 +1758,7 @@
     </port>
     <port name="o0">
       <connects-to>fu7_o</connects-to>
-      <width>13</width>
+      <width>15</width>
     </port>
     <port name="r0">
       <connects-to>fu7_r</connects-to>

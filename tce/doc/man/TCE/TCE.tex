@@ -4140,8 +4140,8 @@ Also check the result (the checksum should be \textbf{0x62488e82}) with:
 
 \textit{x /u w \_result}
 
-Next take a look at the graphical user interface of the simulator called Proxim
-(Section~\ref{section:proxim}). You can start it with:
+Next take a look at the graphical user interface of the simulator called
+Proxim (Section~\ref{section:proxim}). You can start it with:
 
 \textit{proxim start.adf crc.tpef \&}
 
@@ -4160,14 +4160,21 @@ most. Select: \textit{Source>Profile data>Highlight Top Execution Counts}.
 Now the disassembly window has the most executed instructions highlighted.
 You should be able to spot the main loop of the program easily.
 
+As you probably noticed from the processor utilisation, the dividers
+(divs, divu) were not used. Currently the dividers have been implemented
+using Design Ware IP, which isn't freely distributed. In order to generate
+functioning processor you will have to remove these two FUs from the machine.
+Open ProDe and delete the divs and divu FUs and their sockets and remember to
+save.
+
 \subsection{Initial optimization}
 
 As you noticed the cycle count is tremendous. The reason for this is that the
 crcTable array is evaluated at runtime in crcInit function. In an actual
 system this evaluation is only done once at startup so the impact on cycle
-count is not meaningful in the long run. Nevertheless, we will get rid of this
-overhead and precalculate these values so we can consentrate on the optimization
-of the main CRC algorithm instead of the initialization routines.
+count is not meaningful in the long run. Nevertheless, we will get rid of
+this overhead and precalculate these values so we can consentrate on the
+optimizationof the main CRC algorithm instead of the initialization routines.
 
 Simple method to precalculate the array values is to modify the crcInit
 function so that it prints the array after it has been calculated. To speed
@@ -4186,11 +4193,11 @@ To load the precalculated values, modify the line:
  };
 \end{verbatim}
 
-Next open main.c and remove or comment out the crcInit() function call because
-now we use the precalculated crcTable. Then
-recompile the code and simulate it again. Verify the result and check cycle
-count as done earlier. This time you should see a huge drop in the cycle
-count. Write down this cycle count as a baseline for future comparison.
+Next open main.c and remove or comment out the crcInit() function call
+because now we use the precalculated crcTable. Then recompile the code and
+simulate it again. Verify the result and check cycle count as done earlier.
+This time you should see a huge drop in the cyclecount. Write down this cycle
+count as a baseline for future comparison.
 
 \subsection{Accelerating the Algorithm}
 
@@ -4602,7 +4609,7 @@ where <name> is the name of the operation in OSAL. Number of input and output
 operands depends on the operation. Input operands are given first and they are
 followed by output operands if any. 
 
-In our case we need to write operands into our custom adder and read the
+In our case we need to write operands into our reflecter and read the
 result from it. We named the operation ``REFLECT'' so the macro we are going
 to use is:
 
@@ -4696,12 +4703,13 @@ The program should print details on how each type of source/destination, etc.
 is encoded. You don't have to care about this, it's just for curiosity.
 Maybe the only important part in this printout is the length of the
 instruction word. In this case, even though the processor has only
-one move slot, the instruction word width is more than 40 bits. The
-size can be reduced with instruction compression, which is not 
-used in this tutorial.
+one move slot, the instruction word width is more than 40 bits. Memorize the
+instruction word width in bits. The size can be reduced with instruction
+compression, which is not used in this tutorial.
 % TODO: add the instruction compression part here also (TEEMU)
 
-Next, select implementations for all components in our architecture. Each
+Next, we must set correct instruction memory MAU and then select
+implementations for all components in our architecture. Each
 architecture component can be implemented in multiple ways, so we must
 choose one implementation for each component in order to be able to
 generate the implementation for the processor.
@@ -4710,8 +4718,29 @@ This can be done in the ProDe tool:
 
 \textit{prode custom.adf}
 
-Now the architecture is loaded. The implementations can be selected in
-\textit{Tools>Processor Implementation...}.
+Now the architecture is loaded. First select change the MAU of instruction
+memory \textit{Edit>Address Spaces...} to the value you checked earlier in
+viewbem. See the FAQ (chapter \ref{chapter:faq}) for more information about
+instruction memory.
+
+You should also change the widths of GCU ports and LSU trigger port to avoid
+error messages from the Processor Generator. So open the Address Spaces
+dialog and check the bitwidth fields. Then set the GCU port widths according
+the instruction memorys bitwidth field. Next change the LSU trigger port's
+width. Notice that you must set the trigger's width to be 2 bits wider than
+the marked bitwidth in address space. For more information check the FAQ
+(chapter \ref{chapter:faq})
+
+Create the binary encoding map again just in case the port width changes
+caused some changes:
+
+\textit{createbem custom.adf}
+
+Then we'll select implementations for the FUs which can be done in
+\textit{Tools>Processor Implementation...}. Note that the selection window
+is not currently very informative about the different implementations, so a
+safe bet is to select an implementation with parametrizable width/size.
+
 \begin{enumerate}
 \item%
 Select implementation for RF: Click the RF name, 'Select RF implementation',
@@ -4748,8 +4777,7 @@ previously generated .bem (Load from file...). Create and set target directory
 'proge-output'. Or alternatively, save the .idf file and execute ProGe from
 command line:
 
-\textit{generateprocessor -b custom.bem -i
-custom.idf -w 4 custom.adf}
+\textit{generateprocessor -b custom.bem -i custom.idf custom.adf}
 
 Now ``proge-output'' directory includes the VHDL implementation of the
 designed processor. You can take a look what the directory includes, how the RF
@@ -4788,6 +4816,18 @@ VHDL implementation of the processor with a VHDL
 simulator. You could also synthesize the processor implementation with
 appropriate application. There are some scripts in the produced 'proge\_output'
 directory you can use as a starting point for synthesis and VHDL simulation.
+You can cd to the proge\_output directory and compile the testbench with
+\textit{./ghdl\_compile.sh} of you have GHDL installed in your system. After
+that you must move the data images to the tb directory:
+
+\textit{cp ../crc\_with\_custom\_op\_data.img tb/dmem\_init.img}
+
+\textit{cp ../crc\_with\_custom\_op.img tb/imem\_init.img}
+
+Then you can try and simulate the design: \textit{./ghdl\_simulate.sh}
+
+Please notice that GHDL is a work in progress VHDL compiler/simulator so it
+is recommended to use some other VHDL tool.
 
 In this tutorial we used a ``minimalistic'' processor architecture as our
 starting point. The machine had only one transport bus and 5 registers so it
@@ -5278,6 +5318,28 @@ Double precision floating point word operations std/ldd which access
 addressed in 16-bit units, double words can be stored at addresses
 divisible by 4, if memory is byte-addressed, then addresses must be
 divisible by 8, and so on.
+
+\subsection{Load Store Unit}
+In the LSUs shipped with TCE the two LSB bits are used by the LSU to control
+a so called write mask that handles writing of bytes. This means that the
+memory address outside the processor is 2 bits narrower than inside the
+processor. When you set the data address space width in ProDe, the width
+is the address width of the outside interface. This means that the trigger
+port of LSU has to be 2 bits wider than the marked address width. This way
+you can address the whole memory with the LSU.
+
+\subsection{Instruction memory}
+The default GCU assumes that instruction memory is intruction addressable. In
+other words the instruction word must fit in the MAU of the instruction
+memory. This way the next instruction can be referenced by incrementing the
+current memory address by one.
+
+How to interface the instruction memory with an actual memory chip is out of
+scope in TCE because there are too many different platforms and chips and
+possibilities. But as an advantage this gives the user free hands to
+implement almost any kind of memory hierarchy the user wants. Most probably
+you must implement a memory adapter to bind the memory chip and the TTA
+processor interfaces together.
 
 \chapter{TROUBLESHOOTING}
 \label{chapter:troubleshooting}

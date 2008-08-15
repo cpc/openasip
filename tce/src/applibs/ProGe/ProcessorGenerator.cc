@@ -272,7 +272,8 @@ ProcessorGenerator::validateMachine(
         if (code ==
             MachineValidator::IMEM_ADDR_WIDTH_DIFFERS_FROM_RA_AND_PC) {
             outputStream << "Warning: " << errorMsg
-                         << " ProGe uses the greater value." << endl;
+                         << " ProGe uses the value set in the address space."
+                         << endl;
         } else {
             string msg = "Error: " + errorMsg;
             delete results;
@@ -341,7 +342,10 @@ ProcessorGenerator::checkIULatencies(
 
 /**
  * Returns the width of the memory address of instruction memory of the
- * given machine.
+ * given machine. If the memory address width set in machine instruction
+ * memory address space differ from gcu port widths, the value set in
+ * the address space is used. In this case, GCU port widths are changed
+ * accordingly.
  *
  * @param mach The machine.
  * @return The bit width.
@@ -358,30 +362,32 @@ ProcessorGenerator::iMemAddressWidth(const TTAMachine::Machine& mach) {
     AddressSpace* iMem = gcu->addressSpace();
     // must have been already caught in main method: generateProcessor
     assert(iMem != NULL);
-
+    
+    int imemASWidth = MathTools::requiredBits(iMem->end());
+    // if gcu port have different width than imemASWidth, change port widths
     if (gcu->hasReturnAddressPort()) {
-        return std::max(
-            static_cast<int>(MathTools::requiredBits(iMem->end())),
-            gcu->returnAddressPort()->width());
-    } else {
-        if (gcu->hasOperation(CALL)) {
-            FUPort* pcPort = gcu->operation(CALL)->port(1);
-            if (pcPort != NULL) {
-                return std::max(
-                    static_cast<int>(MathTools::requiredBits(iMem->end())),
-                    pcPort->width());
+        int gcuRAPortWidth = gcu->returnAddressPort()->width();
+        if (gcuRAPortWidth != imemASWidth) {
+            gcu->returnAddressPort()->setWidth(imemASWidth);
+        }
+    }
+    if (gcu->hasOperation(CALL)) {
+        FUPort* pcPort = gcu->operation(CALL)->port(1);
+        if (pcPort != NULL) {
+            if (pcPort->width() != imemASWidth) {
+                pcPort->setWidth(imemASWidth);
             }
-        } else if (gcu->hasOperation(JUMP)) {
-            FUPort* pcPort = gcu->operation(JUMP)->port(1);
-            if (pcPort != NULL) {
-                return std::max(
-                    static_cast<int>(MathTools::requiredBits(iMem->end())),
-                    pcPort->width());
+        }
+    } else if (gcu->hasOperation(JUMP)) {
+        FUPort* pcPort = gcu->operation(JUMP)->port(1);
+        if (pcPort != NULL) {
+            if (pcPort->width() != imemASWidth) {
+                pcPort->setWidth(imemASWidth);
             }
         }
     }
 
-    return MathTools::requiredBits(iMem->end());
+    return imemASWidth;
 }
 
 
@@ -405,5 +411,5 @@ ProcessorGenerator::iMemWidth(
 
     return iMem->width() * imemWidthInMAUs;
 }
-
+    
 } // namespace ProGe

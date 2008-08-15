@@ -133,6 +133,7 @@ const std::string NetlistGenerator::DECODER_PC_LOAD_PORT = "pc_load";
 const std::string NetlistGenerator::DECODER_PC_OPCODE_PORT = "pc_opcode";
 const std::string NetlistGenerator::DECODER_LOCK_REQ_OUT_PORT = "lock_r";
 const std::string NetlistGenerator::DECODER_LOCK_REQ_IN_PORT = "lock";
+const std::string NetlistGenerator::ADDR_WIDTH = "addrw";
 
 /**
  * Constructor. Records the input parameters for later operation.
@@ -827,13 +828,26 @@ NetlistGenerator::addFUToNetlist(
         string paramName = parameter.name;
         string paramType = parameter.type;
         string paramValue = parameter.value;
-        if (paramValue == "") {
+        if (paramValue == "" || isParameterizable(paramName, entry)) {
             bool parameterResolved = false;
             // find the port which uses this parameter
             for (int i = 0; i < fuImplementation.architecturePortCount();
-                 i++) {
+                 i++) {       
                 FUPortImplementation& port =
                     fuImplementation.architecturePort(i);
+                if (paramName == ADDR_WIDTH && adfFU->hasAddressSpace()) {
+                    int ASWidth = calculateAddressWidth(adfFU);
+                    block->setParameter(
+                        paramName, paramType, 
+                        Conversion::toString(ASWidth));
+                    // set the width to ADF port
+                    FUPort& adfPort = findCorrespondingPort(
+                        *adfFU, architecture.architecture(),
+                        port.architecturePort());
+                        adfPort.setWidth(ASWidth);
+                    parameterResolved = true;
+                    break;
+                }                
                 if (port.widthFormula() == paramName) {
                     try {
                         FUPort& adfPort = findCorrespondingPort(
@@ -863,6 +877,13 @@ NetlistGenerator::addFUToNetlist(
                     __FILE__, __LINE__, __func__, errorMsg.str());
             }
         } else {
+            // special case if the paramName is reserved keyword
+            // (memory address width in lsu)
+            if (paramName == ADDR_WIDTH) {
+                int temp = Conversion::toInt(paramValue);
+                temp += 2;
+                paramValue = Conversion::toString(temp);
+            }
             block->setParameter(paramName, paramType, paramValue);
         }
     }
@@ -1100,23 +1121,20 @@ NetlistGenerator::addBaseRFToNetlist(
     NetlistBlock& topLevelBlock = netlist.topLevelBlock();
     topLevelBlock.addSubBlock(block);
 
-    // add parameters to the block
-    if (architecture.hasParameterizedWidth()) {
-        block->setParameter(
-            implementation.widthParameter(), "integer",
-            Conversion::toString(regFile.width()));
-    }
-    if (architecture.hasParameterizedSize()) {
-        block->setParameter(
-            implementation.sizeParameter(), "integer",
-            Conversion::toString(regFile.numberOfRegisters()));
-    }
+    // add parameters (generics) to the block
+    block->setParameter(
+        implementation.widthParameter(), "integer",
+        Conversion::toString(regFile.width()));
+
+    block->setParameter(
+        implementation.sizeParameter(), "integer",
+        Conversion::toString(regFile.numberOfRegisters()));
 
     // add ports
     for (int i = 0; i < implementation.portCount(); i++) {
         RFPortImplementation& port = implementation.port(i);
         NetlistPort* newPort = NULL;
-        if (architecture.hasParameterizedWidth()) {
+         if (!implementation.widthParameter().empty()) {
             newPort = new NetlistPort(
                 port.name(), implementation.widthParameter(),
                 regFile.width(), BIT_VECTOR, port.direction(), *block);
@@ -1416,6 +1434,60 @@ NetlistGenerator::mapImmediateUnitWritePort(
         std::pair<const ImmediateUnit*, NetlistPort*>(&iu, &port));
 }
 
+/**
+ * Checks if the given parameter is defined parametrizable in the given
+ * FUImplementation
+ *
+ * @param paramName Name of the parameter
+ * @param fuImplementation FUImplementation to be tested
+ */
+bool
+NetlistGenerator::isParameterizable(
+     const string& paramName, const FUEntry* fuEntry) const {
+    HDB::FUImplementation& fuImplementation = fuEntry->implementation();
+
+    for (int i = 0; i < fuImplementation.architecturePortCount(); i++) {
+
+        FUPortImplementation& port = fuImplementation.architecturePort(i);
+        string widthFormula = port.widthFormula();
+        if (widthFormula == paramName) {
+            return fuEntry->
+                architecture().hasParameterizedWidth(port.architecturePort());
+        }
+    }
+    return false;
+}
+
+/**
+ * Calculates the address width of an address space in FU
+ *
+ * @exception Invalid data If the FU doesn't have an address space or the
+ * address space is invalid
+ *
+ */
+unsigned int
+NetlistGenerator::calculateAddressWidth(
+    TTAMachine::FunctionUnit const* fu)const {
+    if (fu->hasAddressSpace() && fu->addressSpace() != NULL) {
+        AddressSpace* AS = fu->addressSpace();
+        unsigned int highestAddr = AS->end();
+        unsigned int lowestAddr = AS->start();
+        if (highestAddr == 0 || lowestAddr >= highestAddr) {
+            string errorMessage = "Invalid address space";
+            throw InvalidData(__FILE__, __LINE__, __func__,
+                              errorMessage.c_str());
+        }
+        return static_cast<unsigned int>(
+            ceil(log(highestAddr) / log(2))+2);
+    } else {
+        string errorMessage = "Tried to resolve address space width "
+            "from FU '" + fu->name() + "' that doesn't have address space";
+        throw InvalidData(__FILE__, __LINE__, __func__,
+                          errorMessage.c_str());
+    }
+    // never reached
+    return 0;
+}
 
 /**
  * Calculates the required opcode port width for the given FU.

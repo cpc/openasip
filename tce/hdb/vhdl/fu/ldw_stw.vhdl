@@ -54,7 +54,7 @@ entity fu_ldw_stw_always_3 is
     addrw : integer := 11);
   port(
     -- socket interfaces:
-    t1data    : in  std_logic_vector(addrw+1 downto 0);
+    t1data    : in  std_logic_vector(addrw-1 downto 0);
     t1load    : in  std_logic;
     t1opcode  : in  std_logic_vector(0 downto 0);
     -- CHANGE
@@ -64,8 +64,8 @@ entity fu_ldw_stw_always_3 is
     -- external memory unit interface:
     data_in   : in  std_logic_vector(dataw-1 downto 0);
     data_out  : out std_logic_vector(dataw-1 downto 0);
-    --mem_address : out std_logic_vector(addrw-1 downto 0);
-    addr      : out std_logic_vector(addrw-1 downto 0);
+    --mem_address : out std_logic_vector(addrw-2-1 downto 0);
+    addr      : out std_logic_vector(addrw-2-1 downto 0);
     -- memory control signals
     mem_en_x  : out std_logic_vector(0 downto 0);          -- active low
     wr_en_x   : out std_logic_vector(0 downto 0);          -- active low
@@ -81,7 +81,7 @@ architecture rtl of fu_ldw_stw_always_3 is
 
   type action_reg_type is array (natural range <>) of std_logic_vector(1 downto 0);
 
-  signal addr_reg     : std_logic_vector(addrw-1 downto 0);
+  signal addr_reg     : std_logic_vector(addrw-2-1 downto 0);
   signal data_out_reg : std_logic_vector(dataw-1 downto 0);
   signal wr_en_x_reg  : std_logic_vector(0 downto 0);
   signal mem_en_x_reg : std_logic_vector(0 downto 0);
@@ -127,26 +127,26 @@ begin
         case sel is
           
           when TRIG_OP_ST =>
-            addr_reg     <= t1data(addrw+1 downto 2);
+            addr_reg     <= t1data(addrw-1 downto 2);
             data_out_reg <= o1data;
             o1shadow_reg <= o1data;
             mem_en_x_reg <= "0";
             wr_en_x_reg  <= "0";
 
           when TRIG_OP_LD =>
-            addr_reg     <= t1data(addrw+1 downto 2);
+            addr_reg     <= t1data(addrw-1 downto 2);
             o1shadow_reg <= o1data;
             mem_en_x_reg <= "0";
             wr_en_x_reg  <= "1";
             
             
           when TRIG_LD =>
-            addr_reg     <= t1data(addrw+1 downto 2);
+            addr_reg     <= t1data(addrw-1 downto 2);
             mem_en_x_reg <= "0";
             wr_en_x_reg  <= "1";
             
           when TRIG_ST =>
-            addr_reg     <= t1data(addrw+1 downto 2);
+            addr_reg     <= t1data(addrw-1 downto 2);
             data_out_reg <= o1shadow_reg;
             mem_en_x_reg <= "0";
             wr_en_x_reg  <= "0";

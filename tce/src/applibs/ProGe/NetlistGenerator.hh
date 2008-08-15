@@ -136,6 +136,8 @@ public:
     static const std::string DECODER_LOCK_REQ_OUT_PORT;
     /// Lock request in port name in instruction decoder.
     static const std::string DECODER_LOCK_REQ_IN_PORT;
+    // Name of address width parameter
+    static const std::string ADDR_WIDTH;
 
 private:
     /// Map type to map ADF ports to NetlistPorts.
@@ -189,6 +191,10 @@ private:
     void mapImmediateUnitWritePort(
         const TTAMachine::ImmediateUnit& iu,
         NetlistPort& port);
+    bool isParameterizable(
+        const std::string& paramName,
+        const HDB::FUEntry* fuEntry) const;
+    unsigned int calculateAddressWidth(TTAMachine::FunctionUnit const* fu) const;
 
     static int opcodePortWidth(const HDB::FUEntry& fu)
         throw (InvalidData);

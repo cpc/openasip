@@ -71,7 +71,7 @@ entity fu_ldw_ldq_ldh_stw_stq_sth_always_3 is
     addrw : integer := 11);
   port(
     -- socket interfaces:
-    t1data    : in  std_logic_vector(addrw+1 downto 0);
+    t1data    : in  std_logic_vector(addrw-1 downto 0);
     t1load    : in  std_logic;
     t1opcode  : in  std_logic_vector(2 downto 0);
     -- CHANGE
@@ -81,8 +81,8 @@ entity fu_ldw_ldq_ldh_stw_stq_sth_always_3 is
     -- external memory unit interface:
     data_in   : in  std_logic_vector(dataw-1 downto 0);
     data_out  : out std_logic_vector(dataw-1 downto 0);
-    --mem_address : out std_logic_vector(addrw-1 downto 0);
-    addr      : out std_logic_vector(addrw-1 downto 0);
+    --mem_address : out std_logic_vector(addrw-2-1 downto 0);
+    addr      : out std_logic_vector(addrw-2-1 downto 0);
     -- control signals
     mem_en_x  : out std_logic_vector(0 downto 0);          -- active low
     wr_en_x   : out std_logic_vector(0 downto 0);          -- active low
@@ -98,7 +98,7 @@ architecture rtl of fu_ldw_ldq_ldh_stw_stq_sth_always_3 is
 
   type reg_array is array (natural range <>) of std_logic_vector(3 downto 0);
 
-  signal addr_reg      : std_logic_vector(addrw-1 downto 0);
+  signal addr_reg      : std_logic_vector(addrw-2-1 downto 0);
   signal data_out_reg  : std_logic_vector(dataw-1 downto 0);
   signal wr_en_x_reg   : std_logic_vector(0 downto 0);
   signal mem_en_x_reg  : std_logic_vector(0 downto 0);
@@ -162,17 +162,17 @@ begin
           case opc is
             when OPC_LD =>
               status_addr_reg(0) <= LD & t1data(1 downto 0);
-              addr_reg           <= t1data(addrw+1 downto 2);
+              addr_reg           <= t1data(addrw-1 downto 2);
               mem_en_x_reg(0)       <= '0';
               wr_en_x_reg(0)        <= '1';
             when OPC_LDB =>
               status_addr_reg(0) <= LDB & t1data(1 downto 0);
-              addr_reg           <= t1data(addrw+1 downto 2);
+              addr_reg           <= t1data(addrw-1 downto 2);
               mem_en_x_reg(0)       <= '0';
               wr_en_x_reg(0)        <= '1';
             when OPC_LDH =>
               status_addr_reg(0) <= LDH & t1data(1 downto 0);
-              addr_reg           <= t1data(addrw+1 downto 2);
+              addr_reg           <= t1data(addrw-1 downto 2);
               mem_en_x_reg(0)       <= '0';
               wr_en_x_reg(0)        <= '1';
             when OPC_ST =>
@@ -185,7 +185,7 @@ begin
               mem_en_x_reg(0)  <= '0';
               wr_en_x_reg(0)   <= '0';
               wr_mask_x_reg <= (others => '0');
-              addr_reg  <= t1data(addrw+1 downto 2);
+              addr_reg  <= t1data(addrw-1 downto 2);
             when OPC_STH =>
               status_addr_reg(0)(3 downto 2) <= NOT_LOAD;
               -- endianes dependent code
@@ -193,7 +193,7 @@ begin
               -- big endian
               --        Byte #
               --        |0|1|2|3|
-              addr_reg  <= t1data(addrw+1 downto 2);              
+              addr_reg  <= t1data(addrw-1 downto 2);              
               if o1load = '1' then
                 if t1data(1) = '0' then
                   wr_mask_x_reg <= MSW_MASK_BIGENDIAN;
@@ -222,7 +222,7 @@ begin
               -- big endian
               --        Byte #
               --        |0|1|2|3|
-              addr_reg  <= t1data(addrw+1 downto 2);              
+              addr_reg  <= t1data(addrw-1 downto 2);              
               if o1load = '1' then
                 case t1data(1 downto 0) is
                   -- endianes dependent code                            

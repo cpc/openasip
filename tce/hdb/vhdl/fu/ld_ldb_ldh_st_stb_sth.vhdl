@@ -75,14 +75,14 @@ entity fu_ldw_ldq_ldh_stw_stq_sth_always_3 is
     t1load    : in  std_logic;
     t1opcode  : in  std_logic_vector(2 downto 0);
     -- CHANGE
-    o1data    : in  std_logic_vector(addrw+1 downto 0);
+    o1data    : in  std_logic_vector(addrw-1 downto 0);
     o1load    : in  std_logic;
     r1data    : out std_logic_vector(dataw-1 downto 0);
     -- external memory unit interface:
     data_in   : in  std_logic_vector(dataw-1 downto 0);
     data_out  : out std_logic_vector(dataw-1 downto 0);
-    --mem_address : out std_logic_vector(addrw-1 downto 0);
-    addr      : out std_logic_vector(addrw-1 downto 0);
+    --mem_address : out std_logic_vector(addrw-2-1 downto 0);
+    addr      : out std_logic_vector(addrw-2-1 downto 0);
     -- control signals
     mem_en_x  : out std_logic_vector(0 downto 0);          -- active low
     wr_en_x   : out std_logic_vector(0 downto 0);          -- active low
@@ -98,7 +98,7 @@ architecture rtl of fu_ldw_ldq_ldh_stw_stq_sth_always_3 is
 
   type reg_array is array (natural range <>) of std_logic_vector(3 downto 0);
 
-  signal addr_reg      : std_logic_vector(addrw-1 downto 0);
+  signal addr_reg      : std_logic_vector(addrw-2-1 downto 0);
   signal data_out_reg  : std_logic_vector(dataw-1 downto 0);
   signal wr_en_x_reg   : std_logic_vector(0 downto 0);
   signal mem_en_x_reg  : std_logic_vector(0 downto 0);
@@ -107,7 +107,7 @@ architecture rtl of fu_ldw_ldq_ldh_stw_stq_sth_always_3 is
   signal status_addr_reg : reg_array(1 downto 0);
 
   -- information on the word (lsw/msw) needed in register
-  signal o1shadow_reg           : std_logic_vector(addrw+1 downto 0);
+  signal o1shadow_reg           : std_logic_vector(addrw-1 downto 0);
   signal r1_reg                 : std_logic_vector(dataw-1 downto 0);
   signal byte_spec_o1data       : std_logic_vector(1 downto 0);
   signal byte_spec_o1shadow_reg : std_logic_vector(1 downto 0);
@@ -162,25 +162,25 @@ begin
           case opc is
             when OPC_LD =>
               status_addr_reg(0) <= LD & t1data(1 downto 0);
-              addr_reg           <= t1data(addrw+1 downto 2);
+              addr_reg           <= t1data(addrw-1 downto 2);
               mem_en_x_reg       <= "0";
               wr_en_x_reg        <= "1";
             when OPC_LDB =>
               status_addr_reg(0) <= LDB & t1data(1 downto 0);
-              addr_reg           <= t1data(addrw+1 downto 2);
+              addr_reg           <= t1data(addrw-1 downto 2);
               mem_en_x_reg       <= "0";
               wr_en_x_reg        <= "1";
             when OPC_LDH =>
               status_addr_reg(0) <= LDH & t1data(1 downto 0);
-              addr_reg           <= t1data(addrw+1 downto 2);
+              addr_reg           <= t1data(addrw-1 downto 2);
               mem_en_x_reg       <= "0";
               wr_en_x_reg        <= "1";
             when OPC_ST =>
               status_addr_reg(0)(3 downto 2) <= NOT_LOAD;
               if o1load = '1' then
-                addr_reg <= o1data(addrw+1 downto 2);
+                addr_reg <= o1data(addrw-1 downto 2);
               else
-                addr_reg <= o1shadow_reg(addrw+1 downto 2);
+                addr_reg <= o1shadow_reg(addrw-1 downto 2);
               end if;
               mem_en_x_reg  <= "0";
               wr_en_x_reg   <= "0";
@@ -194,7 +194,7 @@ begin
               --        Byte #
               --        |0|1|2|3|
               if o1load = '1' then
-                addr_reg <= o1data(addrw+1 downto 2);
+                addr_reg <= o1data(addrw-1 downto 2);
                 if o1data(1) = '0' then
                   wr_mask_x_reg <= MSW_MASK_BIGENDIAN;
                   data_out_reg  <= t1data(dataw/2-1 downto 0)&ZEROS&ZEROS;
@@ -224,7 +224,7 @@ begin
               --        Byte #
               --        |0|1|2|3|
               if o1load = '1' then
-                addr_reg <= o1data(addrw+1 downto 2);
+                addr_reg <= o1data(addrw-1 downto 2);
                 case byte_spec_o1data is
                   -- endianes dependent code                            
                   when "00" =>
@@ -270,7 +270,7 @@ begin
         end if;
 
         if o1load = '1' then
-          o1shadow_reg <= o1data(addrw+1 downto 0);
+          o1shadow_reg <= o1data(addrw-1 downto 0);
         end if;
 
         status_addr_reg(1) <= status_addr_reg(0);
