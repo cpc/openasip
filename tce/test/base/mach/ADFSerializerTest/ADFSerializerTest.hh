@@ -253,7 +253,7 @@ ADFSerializerTest::testReadState() {
     TS_ASSERT(rf1->numberOfRegisters() == 15);
     TS_ASSERT(rf1->width() == 32);
     TS_ASSERT(rf1->maxReads() == 1);
-    TS_ASSERT(rf1->maxWrites() == 1);
+    TS_ASSERT(rf1->maxWrites() == 0);
     TS_ASSERT(rf1->isNormal());
     
     ImmediateUnit* iu1 = mach->immediateUnitNavigator().item(iu1Name);

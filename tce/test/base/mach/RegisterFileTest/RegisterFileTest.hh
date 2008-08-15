@@ -60,6 +60,8 @@ public:
 
     void testSetName();
     void testSetNumberOfRegisters();
+    void testManualMaxReadsAndWrites();
+    void testAutomaticMaxReadsAndWrites();
     void testSetWidth();
     void testLoadState();
     void testObjectStateLoadingErrors();
@@ -124,6 +126,88 @@ RegisterFileTest::testSetNumberOfRegisters() {
     TS_ASSERT(rf1.numberOfRegisters() == 30);
     TS_ASSERT_THROWS_NOTHING(rf1.setNumberOfRegisters(20));
     TS_ASSERT(rf1.numberOfRegisters() == 20);
+}
+
+
+/**
+ * Tests calculating automatically the number of maxWrites and maxReads.
+ */
+void
+RegisterFileTest::testAutomaticMaxReadsAndWrites() {
+    Machine mach;
+
+    // set maxReads and maxWrites to 0
+    RegisterFile rf("rf1", 30, 32, 0, 0, 0, RegisterFile::NORMAL);
+    mach.addRegisterFile(rf);
+
+    TS_ASSERT(rf.maxReads() == 0);
+    TS_ASSERT(rf.maxWrites() == 0);
+
+    Bus bus("bus", 8, 8, Machine::ZERO);
+    Segment segment("segment", bus);
+    mach.addBus(bus);
+
+    // create input socket
+    Socket sock1("sock1");
+    mach.addSocket(sock1);
+    sock1.attachBus(segment);
+    sock1.setDirection(Socket::INPUT);
+
+    // create output socket
+    Socket sock2("sock2");
+    mach.addSocket(sock2);
+    sock2.attachBus(segment);
+    sock2.setDirection(Socket::OUTPUT);
+
+    // create port and attach it to socket
+    RFPort port1("port1", rf);
+    port1.attachSocket(sock1);
+
+    // since the port was attached to input socket, maxWrites should now be 1
+    TS_ASSERT(rf.maxReads() == 0);
+    TS_ASSERT(rf.maxWrites() == 1);
+
+    // attach another port to output socket
+    RFPort port2("port2", rf);
+    port2.attachSocket(sock2);
+
+    // maxReads should have increased
+    TS_ASSERT(rf.maxReads() == 1);
+    TS_ASSERT(rf.maxWrites() == 1);
+}
+
+/**
+ * Tests setting manually the number of maxWrites and maxReads.
+ */
+void
+RegisterFileTest::testManualMaxReadsAndWrites() {
+    Machine mach;
+
+    // set maxReads and maxWrites to 9
+    RegisterFile rf("rf1", 30, 32, 9, 9, 0, RegisterFile::NORMAL);
+    mach.addRegisterFile(rf);
+
+    TS_ASSERT(rf.maxReads() == 9);
+    TS_ASSERT(rf.maxWrites() == 9);
+
+    Bus bus("bus", 8, 8, Machine::ZERO);
+    Segment segment("segment", bus);
+    mach.addBus(bus);
+
+    // create port in registerfile
+    RFPort port1("port1", rf);
+
+    // since the port was not attached, reads and writes should be unaffected
+    TS_ASSERT(rf.maxReads() == 9);
+    TS_ASSERT(rf.maxWrites() == 9);
+
+    // set maxReads and maxWrites to 1
+    rf.setMaxReads(1);
+    rf.setMaxWrites(1);
+
+    // verify
+    TS_ASSERT(rf.maxReads() == 1);
+    TS_ASSERT(rf.maxWrites() == 1);
 }
 
 
