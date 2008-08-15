@@ -40,6 +40,7 @@
 
 #include "OSAL.hh"
 #include "OperationGlobals.hh"
+#include "Conversion.hh"
 
 //////////////////////////////////////////////////////////////////////////////
 // STDOUT - treats the only input as a char and prints it to the output stream
