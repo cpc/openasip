@@ -97,7 +97,6 @@ class module_builder_t(object):
 
         self.__registrations_code_head = []
         self.__registrations_code_tail = []
-        self.__already_exposed_modules = []
         
     @property
     def global_ns( self ):
@@ -108,8 +107,23 @@ class module_builder_t(object):
     def encoding( self ):
         return self.__encoding
 
-    def register_module_dependency( self, other_module_generate_code_dir ):
-        self.__already_exposed_modules.append( other_module_generate_code_dir )
+    def register_module_dependency( self, other_module_generated_code_dir ):
+        """``already_exposed`` solution is pretty good when you mix hand-written 
+        modules with Py++ generated. It doesn't work/scale for "true" 
+        multi-module development. This is exactly the reason why ``Py++``_ 
+        offers "semi automatic" solution.
+
+        For every exposed module, ``Py++``_ generates "exposed_decl.pypp.txt" file. 
+        This file contains the list of all parsed declarations and whether they 
+        were included or excluded. Later, when you work on another module, you 
+        can tell ``Py++``_ that the current module depends on the previously 
+        generated one. ``Py++``_ will load "exposed_decl.pypp.txt" file and 
+        update the declarations.
+        """
+        
+        db = utils.exposed_decls_db_t()
+        db.load( other_module_generated_code_dir )
+        db.update_decls( self.global_ns )
 
     def run_query_optimizer(self):
         """
@@ -255,8 +269,7 @@ class module_builder_t(object):
                                               , types_db
                                               , target_configuration
                                               , enable_indexing_suite
-                                              , doc_extractor
-                                              , self.__already_exposed_modules)
+                                              , doc_extractor)
         self.__code_creator = creator.create()
         self.__code_creator.replace_included_headers(self.__parsed_files)
         #I think I should ask users, what they expect
@@ -266,11 +279,12 @@ class module_builder_t(object):
 
         return self.__code_creator
 
-    def _get_module( self ):
+    @property
+    def code_creator( self ):
+        "reference to L{code_creators.module_t} instance"
         if not self.__code_creator:
             raise RuntimeError( "self.module is equal to None. Did you forget to call build_code_creator function?" )
         return self.__code_creator
-    code_creator = property( _get_module, doc="reference to L{code_creators.module_t} instance" )
 
     def has_code_creator( self ):
         """
@@ -316,11 +330,25 @@ class module_builder_t(object):
         self.__merge_user_code()
         file_writers.write_file( self.code_creator, file_name, encoding=self.encoding )
 
+    def __work_on_unused_files( self, dir_name, written_files, on_unused_file_found ):
+        all_files = os.listdir( dir_name )
+        all_files = map( lambda fname: os.path.join( dir_name, fname ), all_files )
+        all_files = filter( file_writers.has_pypp_extenstion, all_files )
+
+        unused_files = set( all_files ).difference( set( written_files ) )
+        for fpath in unused_files:
+            try:
+                if on_unused_file_found is os.remove:
+                    self.logger.info( 'removing file "%s"' % fpath )
+                on_unused_file_found( fpath )
+            except Exception, error:
+                self.logger.exception( "Exception was catched, while executing 'on_unused_file_found' function."  )
+
     def split_module( self
                       , dir_name
                       , huge_classes=None
                       , on_unused_file_found=os.remove
-                      , use_files_sum_repository=True):
+                      , use_files_sum_repository=False):
         """
         Writes module to multiple files
 
@@ -357,21 +385,48 @@ class module_builder_t(object):
                                 , huge_classes 
                                 , files_sum_repository=files_sum_repository
                                 , encoding=self.encoding)
-
-        all_files = os.listdir( dir_name )
-        all_files = map( lambda fname: os.path.join( dir_name, fname ), all_files )
-        all_files = filter( file_writers.has_pypp_extenstion, all_files )
-
-        unused_files = set( all_files ).difference( set( written_files ) )
-        for fpath in unused_files:
-            try:
-                if on_unused_file_found is os.remove:
-                    self.logger.info( 'removing file "%s"' % fpath )
-                on_unused_file_found( fpath )
-            except Exception, error:
-                self.logger.exception( "Exception was catched, while executing 'on_unused_file_found' function."  )
+        self.__work_on_unused_files( dir_name, written_files, on_unused_file_found )
 
         return written_files
+
+    def balanced_split_module( self
+                               , dir_name
+                               , number_of_files
+                               , on_unused_file_found=os.remove
+                               , use_files_sum_repository=False):
+        """
+        Writes module to fixed number of multiple cpp files
+
+        @param number_of_files: the desired number of generated cpp files
+        @type number_of_files: int
+
+        @param dir_name: directory name
+        @type dir_name: string
+
+        @param on_unused_file_found: callable object that represents the action that should be taken on
+                                     file, which is no more in use
+
+        @use_files_sum_repository: Py++ can generate file, which will contain md5 sum of every generated file.
+                                   Next time you generate code, md5sum will be loaded from the file and compared.
+                                   This could speed-up code generation process by 10-15%.
+        """
+        self.__merge_user_code()
+        
+        files_sum_repository = None        
+        if use_files_sum_repository:
+            cache_file = os.path.join( dir_name, self.code_creator.body.name + '.md5.sum' )
+            files_sum_repository = file_writers.cached_repository_t( cache_file )
+        
+        written_files = file_writers.write_balanced_files( self.code_creator
+                                                           , dir_name
+                                                           , number_of_buckets=number_of_files
+                                                           , files_sum_repository=files_sum_repository
+                                                           , encoding=self.encoding)
+                                                           
+        self.__work_on_unused_files( dir_name, written_files, on_unused_file_found )
+
+        return written_files
+
 
     #select decl(s) interfaces
     def decl( self, name=None, function=None, header_dir=None, header_file=None, recursive=None ):

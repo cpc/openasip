@@ -71,21 +71,21 @@ class file_configuration_t( object ):
            and self.__content_type == self.CONTENT_TYPE.CACHED_SOURCE_FILE:
             self.__cached_source_file = self.__data + '.xml'
 
-    def __get_data(self):
+    @property
+    def data(self):
         return self.__data
-    data = property( __get_data )
 
-    def __get_start_with_declarations(self):
+    @property
+    def start_with_declarations(self):
         return self.__start_with_declarations
-    start_with_declarations = property( __get_start_with_declarations )
 
-    def __get_content_type(self):
+    @property
+    def content_type(self):
         return self.__content_type
-    content_type = property( __get_content_type )
 
-    def __get_cached_source_file(self):
+    @property
+    def cached_source_file(self):
         return self.__cached_source_file
-    cached_source_file = property( __get_cached_source_file )
 
 def create_text_fc( text ):
     """
@@ -427,7 +427,7 @@ class project_reader_t:
         for decl_wrapper_type in declarated_types:
             #it is possible, that cache contains reference to dropped class
             #We need to clear it
-            decl_wrapper_type.cache.reset() 
+            decl_wrapper_type.cache.reset()
             if isinstance( decl_wrapper_type.declaration, pygccxml.declarations.class_t ):
                 key = create_key(decl_wrapper_type.declaration)
                 if leaved_classes.has_key( key ):
@@ -465,7 +465,8 @@ class project_reader_t:
                     types.extend( get_from_type( arg ) )
                 return types
             else:
-                assert isinstance( cpptype, pygccxml.declarations.unknown_t )
+                assert isinstance( cpptype, ( pygccxml.declarations.unknown_t
+                                              , pygccxml.declarations.ellipsis_t ) )
                 return []
         types = []
         for decl in pygccxml.declarations.make_flatten( namespaces ):

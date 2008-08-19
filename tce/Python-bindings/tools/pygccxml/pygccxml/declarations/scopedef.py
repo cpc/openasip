@@ -62,6 +62,9 @@ class scopedef_t( declaration.declaration_t ):
     RECURSIVE_DEFAULT = True
     ALLOW_EMPTY_MDECL_WRAPPER = False
 
+    declaration_not_found_t = matcher_module.matcher.declaration_not_found_t
+    multiple_declarations_found_t = matcher_module.matcher.multiple_declarations_found_t
+
     _impl_matchers = {} #this class variable is used to prevent recursive imports
     _impl_decl_types = {} #this class variable is used to prevent recursive imports
     _impl_all_decl_types = [] #this class variable is used to prevent recursive imports

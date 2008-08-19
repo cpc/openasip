@@ -29,7 +29,6 @@
 
 import TCE.base.program
 import TCE.base.mach
-import TCE.base.tpef
 import TCE.applibs.Scheduler.ProgramRepresentations.ProgramDependenceGraph
 import TCE.applibs.Scheduler.ResourceManager
 import TCE.applibs.Scheduler.ResourceModel

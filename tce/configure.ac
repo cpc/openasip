@@ -1246,6 +1246,17 @@ AC_CONFIG_FILES([
   Python-bindings/Makefile
   Python-bindings/src/Makefile
   Python-bindings/src/setup.py
+  Python-bindings/src/Algorithms/Makefile
+  Python-bindings/src/program/Makefile
+  Python-bindings/src/DataDependenceGraph/Makefile
+  Python-bindings/src/ProgramDependenceGraph/Makefile
+  Python-bindings/src/SchedulerModules/Makefile
+  Python-bindings/src/ResourceModel/Makefile
+  Python-bindings/src/osal/Makefile
+  Python-bindings/src/mach/Makefile
+  Python-bindings/src/ControlFlowGraph/Makefile
+  Python-bindings/src/tools/Makefile
+  Python-bindings/src/ResourceManager/Makefile
   Python-bindings/test/RunPythonFileTests/Makefile
   src/ext/Makefile
   src/ext/llvm/Makefile

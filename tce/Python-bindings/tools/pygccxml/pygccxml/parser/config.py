@@ -14,13 +14,13 @@ class parser_configuration_t(object):
     """Configuration object to collect parameters for invoking C++ parser
 
     This class serves as a base class for the parameters that can be used
-    to customize the call to C++ parser. This class also allows users to work with 
+    to customize the call to C++ parser. This class also allows users to work with
     relative files paths. In this case files are searched in the following order:
-  
+
     1. current directory
-      
+
     2. working directory
-      
+
     3. additional include paths specified by the user
 
     """
@@ -31,7 +31,7 @@ class parser_configuration_t(object):
                   , undefine_symbols=None
                   , cflags=""
                   , compiler=None):
-        """Constructor. 
+        """Constructor.
         """
         object.__init__( self )
         self.__working_directory = working_directory
@@ -49,23 +49,23 @@ class parser_configuration_t(object):
         self.__undefine_symbols = undefine_symbols
 
         self.__cflags = cflags
-        
+
         self.__compiler = compiler
-        
+
     def clone(self):
         raise NotImplementedError( self.__class__.__name__ )
-        
+
     def __get_working_directory(self):
         return self.__working_directory
     def __set_working_directory(self, working_dir):
         self.__working_directory=working_dir
     working_directory = property( __get_working_directory, __set_working_directory )
-    
+
     @property
     def include_paths(self):
         """list of include paths to look for header files"""
         return self.__include_paths
-    
+
     @property
     def define_symbols(self):
         """list of "define" directives """
@@ -77,7 +77,7 @@ class parser_configuration_t(object):
         return self.__undefine_symbols
 
     @property
-    def compiler(self):        
+    def compiler(self):
         """compiler name to simulate"""
         return self.__compiler
 
@@ -90,7 +90,7 @@ class parser_configuration_t(object):
 
     def __ensure_dir_exists( self, dir_path, meaning ):
         if os.path.isdir( dir_path ):
-            return 
+            return
         msg = None
         if os.path.exists( self.working_directory ):
             raise RuntimeError( '%s("%s") does not exist!' % ( meaning, dir_path ) )
@@ -98,18 +98,18 @@ class parser_configuration_t(object):
             raise RuntimeError( '%s("%s") should be "directory", not a file.' % ( meaning, dir_path ) )
 
 
-    def raise_on_wrong_settings( self ):     
+    def raise_on_wrong_settings( self ):
         """validates the configuration settings and raises RuntimeError on error"""
         self.__ensure_dir_exists( self.working_directory, 'working directory' )
         map( lambda idir: self.__ensure_dir_exists( idir, 'include directory' )
              , self.include_paths )
 
-        
+
 class gccxml_configuration_t(parser_configuration_t):
     """Configuration object to collect parameters for invoking gccxml.
 
     This class serves as a container for the parameters that can be used
-    to customize the call to gccxml. 
+    to customize the call to gccxml.
     """
     def __init__( self
                   , gccxml_path=''
@@ -121,7 +121,7 @@ class gccxml_configuration_t(parser_configuration_t):
                   , ignore_gccxml_output=False
                   , cflags=""
                   , compiler=None):
-        """Constructor. 
+        """Constructor.
         """
         parser_configuration_t.__init__( self
                                          , working_directory=working_directory
@@ -130,7 +130,7 @@ class gccxml_configuration_t(parser_configuration_t):
                                          , undefine_symbols=undefine_symbols
                                          , cflags=cflags
                                          , compiler=compiler)
-                                         
+
         self.__gccxml_path = gccxml_path
 
         if not start_with_declarations:
@@ -138,10 +138,10 @@ class gccxml_configuration_t(parser_configuration_t):
         self.__start_with_declarations = start_with_declarations
 
         self.__ignore_gccxml_output = ignore_gccxml_output
-        
+
     def clone(self):
         return copy.deepcopy( self )
-    
+
     def __get_gccxml_path(self):
         return self.__gccxml_path
     def __set_gccxml_path(self, new_path ):
@@ -151,9 +151,9 @@ class gccxml_configuration_t(parser_configuration_t):
 
     @property
     def start_with_declarations(self):
-        """list of declarations gccxml should start with, when it dumps declaration tree"""    
+        """list of declarations gccxml should start with, when it dumps declaration tree"""
         return self.__start_with_declarations
-    
+
     def __get_ignore_gccxml_output(self):
         return self.__ignore_gccxml_output
     def __set_ignore_gccxml_output(self, val=True):
@@ -161,11 +161,11 @@ class gccxml_configuration_t(parser_configuration_t):
     ignore_gccxml_output = property( __get_ignore_gccxml_output, __set_ignore_gccxml_output
                                     , doc="set this property to True, if you want pygccxml to ignore any error\\warning that comes from gccxml" )
 
-    
-    def raise_on_wrong_settings( self ):     
+
+    def raise_on_wrong_settings( self ):
         super( gccxml_configuration_t, self ).raise_on_wrong_settings()
         if os.path.isfile( self.gccxml_path ):
-            return 
+            return
         if sys.platform == 'win32':
             gccxml_name = 'gccxml' + '.exe'
             environment_var_delimiter = ';'
@@ -187,31 +187,5 @@ class gccxml_configuration_t(parser_configuration_t):
                 msg = 'gccxml_path("%s") should exists or to be a valid file name.' \
                       % self.gccxml_path
                 raise RuntimeError( msg )
-    
+
 config_t = gccxml_configuration_t #backward computability
-
-class synopsis_configuration_t(parser_configuration_t):
-    """Configuration object to collect parameters for invoking gccxml.
-
-    This class serves as a container for the parameters that can be used
-    to customize the call to synopsis. 
-    """
-    def __init__( self
-                  , working_directory='.'
-                  , include_paths=None
-                  , define_symbols=None
-                  , undefine_symbols=None
-                  , cflags=""
-                  , compiler=None):
-        """Constructor. 
-        """
-        parser_configuration_t.__init__( self
-                                         , working_directory=working_directory
-                                         , include_paths=include_paths
-                                         , define_symbols=define_symbols
-                                         , undefine_symbols=undefine_symbols
-                                         , cflags=cflags
-                                         , compiler=compiler)
-
-    def clone(self):
-        return copy.deepcopy( self )

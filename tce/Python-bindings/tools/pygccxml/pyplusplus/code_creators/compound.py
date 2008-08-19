@@ -87,10 +87,3 @@ class compound_t(code_creator.code_creator_t):
             files = self.unique_headers( files )
         return files
     
-    def register_exposed( self, exposed_db ):
-        """Register exposed declaration in L{exposed data base<utils.exposed_decls_db_t>}
-        
-        The default implementation of the function does nothing.
-        """
-        map( lambda creator: creator.register_exposed( exposed_db )
-             , self._creators )

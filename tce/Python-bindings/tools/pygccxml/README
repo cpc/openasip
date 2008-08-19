@@ -1,3 +1,5 @@
 This directory contains a snapshot of the Python sources of pygccxml
 and Py++. For up to date sources see http://www.language-binding.net.
 
+The files in include/ are Raoul Gough's indexing suite for Boost.Python,
+taken from the Py++ sources.

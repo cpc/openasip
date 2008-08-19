@@ -57,7 +57,8 @@ class argument_utils_t:
                     if declarations.is_fundamental( arg_type_no_alias ) \
                        and declarations.is_integral( arg_type_no_alias ) \
                        and not arg.default_value.startswith( arg_type_no_alias.decl_string ):
-                        result.append( '=(%s)(%s)' % ( arg_type_no_alias.decl_string, arg.default_value ) )
+                        result.append( '=(%s)(%s)' % ( arg_type_no_alias.partial_decl_string
+                                                       , arg.default_value ) )
                     elif self.__should_use_enum_wa( arg ):
                         #Work around for bug/missing functionality in boost.python.
                         #registration order
@@ -79,7 +80,7 @@ class argument_utils_t:
     def args_declaration( self ):
         args = []
         for index, arg in enumerate( self.__args ):
-            result = arg.type.decl_string + ' ' + self.argument_name(index)
+            result = arg.type.partial_decl_string + ' ' + self.argument_name(index)
             if arg.default_value:
                 result += '=%s' % arg.default_value
             args.append( result )

@@ -22,8 +22,3 @@ class opaque_type_registrator_t( code_creator.code_creator_t
     
     def _get_system_headers_impl( self ):
         return []
-
-    def register_exposed( self, exposed_db ):
-        """Register exposed declaration in L{exposed data base<utils.exposed_decls_db_t>}"""
-        exposed_db.expose( self.declaration )
-

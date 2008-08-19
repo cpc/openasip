@@ -1,0 +1,19 @@
+#
+# Makefile template for the Python bindings.
+# Pertti Kellomaki 2008, pertti.kellomaki@tut.fi
+#
+# Makefile.in is NOT a generated file
+# Do NOT delete it unless you provide a Makefile.am that generates a corresponding file.
+#
+
+all: SchedulerModules.main.cpp
+
+clean::
+	/bin/rm -f *.cpp *.hpp *.d
+
+%.main.cpp: %_bindings.pypp
+	export PYTHONPATH="..:../../tools/pygccxml"; @PYTHON@ $<
+
+%.d: %.pypp
+	export PYTHONPATH="..:../../tools/pygccxml"; @PYTHON@ $< --generate-dependences 
+

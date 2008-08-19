@@ -33,11 +33,6 @@ class global_variable_base_t( registration_based.registration_based_t
     def _get_system_headers_impl( self ):
         return []
 
-    def register_exposed( self, exposed_db ):
-        """Register exposed declaration in L{exposed data base<utils.exposed_decls_db_t>}"""
-        exposed_db.expose( self.declaration )
-
-
 class global_variable_t( global_variable_base_t ):
     """
     Creates boost.python code that exposes global variable.
@@ -117,7 +112,8 @@ class array_gv_wrapper_t( code_creator.code_creator_t
     def _get_wrapper_creator_type(self):
         return declarations.free_function_type_t.create_decl_string(
                 return_type=self.wrapper_type
-                , arguments_types=[] )
+                , arguments_types=[]
+                , with_defaults=False)
     wrapper_creator_type = property( _get_wrapper_creator_type )
 
     def _get_wrapper_creator_name(self):

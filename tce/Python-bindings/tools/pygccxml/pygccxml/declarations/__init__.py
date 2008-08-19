@@ -6,6 +6,9 @@
 """
 contains classes that describe different C++ declarations
 """
+
+import compilers
+
 from dependencies import dependency_info_t
 from declaration import location_t
 from declaration import declaration_t
@@ -25,6 +28,7 @@ from typedef import typedef_t
 from cpptypes import type_t
 from cpptypes import dummy_type_t
 from cpptypes import unknown_t
+from cpptypes import ellipsis_t
 from cpptypes import fundamental_t
 from cpptypes import void_t
 from cpptypes import char_t
@@ -49,6 +53,7 @@ from cpptypes import volatile_t
 from cpptypes import const_t
 from cpptypes import pointer_t
 from cpptypes import reference_t
+from cpptypes import restrict_t
 from cpptypes import array_t
 from cpptypes import calldef_type_t
 from cpptypes import free_function_type_t
@@ -155,7 +160,8 @@ from type_traits import remove_declarated
 
 from type_traits import has_destructor
 from type_traits import has_public_less
-from type_traits import has_trivial_copy
+from type_traits import has_copy_constructor
+has_trivial_copy = has_copy_constructor #backward comp mode will be removed
 from type_traits import has_public_equal
 from type_traits import has_public_assign
 from type_traits import has_public_destructor
@@ -186,7 +192,7 @@ from container_traits import find_container_traits
 from function_traits import is_same_function
 
 all_container_traits = container_traits.container_traits
-"""tuple of all STD container traits classes"""    
+"""tuple of all STD container traits classes"""
 
 sequential_container_traits = \
 [

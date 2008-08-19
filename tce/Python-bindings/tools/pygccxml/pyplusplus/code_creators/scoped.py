@@ -16,9 +16,3 @@ class scoped_t(declaration_based.declaration_based_t, compound.compound_t):
         #template method pattern should be used.
         raise NotImplementedError()
     
-    def register_exposed( self, exposed_db ):
-        """Register exposed declaration in L{exposed data base<utils.exposed_decls_db_t>}"""
-        exposed_db.expose( self.declaration )
-        map( lambda creator: creator.register_exposed( exposed_db )
-             , self._creators )
-

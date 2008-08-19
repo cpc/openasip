@@ -12,12 +12,15 @@ import os
 import sys
 import logging
 import tempfile
+from fs_utils import files_walker
+from fs_utils import directories_walker
 
 def _create_logger_( name ):
     """implementation details"""
     logger = logging.getLogger(name)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter( logging.Formatter( os.linesep + '%(levelname)s %(message)s' ) )
+    handler = logging.StreamHandler()
+    #handler.setFormatter( logging.Formatter( os.linesep + '%(levelname)s %(message)s' ) )
+    handler.setFormatter( logging.Formatter( '%(levelname)s %(message)s' ) )
     logger.addHandler(handler)
     logger.setLevel(logging.INFO)
     return logger
@@ -33,7 +36,12 @@ class loggers:
     """
 
     gccxml = cxx_parser #backward compatability
-    
+
+    pdb_reader = _create_logger_( 'pygccxml.pdb_reader' )
+    """logger for MS .pdb file reader functionality
+    """
+
+
     queries_engine = _create_logger_( 'pygccxml.queries_engine' )
     """logger for query engine functionality.
 
@@ -53,7 +61,7 @@ class loggers:
     root = logging.getLogger( 'pygccxml' )
     """root logger exists for your convinience only"""
 
-    all = [ root, cxx_parser, queries_engine, declarations_cache ]
+    all = [ root, cxx_parser, queries_engine, declarations_cache, pdb_reader ]
     """contains all logger classes, defined by the class"""
 
 def remove_file_no_raise(file_name ):
@@ -93,3 +101,56 @@ def get_architecture():
     else:
         raise RuntimeError( "Unknown architecture" )
 
+
+#The following code is cut-and-paste from this post:
+#http://groups.google.com/group/comp.lang.python/browse_thread/thread/5b71896c06bd0f76/
+#Thanks to Michele Simionato, for it
+class cached(property):
+    'Convert a method into a cached attribute'
+    def __init__(self, method):
+        private = '_' + method.__name__
+        def fget(s):
+            try:
+                return getattr(s, private)
+            except AttributeError:
+                value = method(s)
+                setattr(s, private, value)
+                return value
+        def fdel(s):
+            del s.__dict__[private]
+        super(cached, self).__init__(fget, fdel=fdel)
+        
+    @staticmethod
+    def reset(self):
+        cls = self.__class__
+        for name in dir(cls):
+            attr = getattr(cls, name)
+            if isinstance(attr, cached):
+                delattr(self, name) 
+
+class enum( object ):
+    """Usage example:
+        class fruits(enum):
+            apple = 0
+            orange = 1
+            
+        fruits.has_value( 1 )
+        fruits.name_of( 1 )
+    """
+    
+    @classmethod
+    def has_value( cls, enum_numeric_value ):
+        for name, value in cls.__dict__.iteritems():          
+            if enum_numeric_value == value:
+                return True
+        else:
+            return False
+    
+    @classmethod
+    def name_of( cls, enum_numeric_value ):
+        for name, value in cls.__dict__.iteritems():          
+            if enum_numeric_value == value:
+                return name
+        else:
+            raise RuntimeError( 'Unable to find name for value(%d) in enumeration "%s"'
+                                % ( enum_numeric_value, cls.__name__ ) )

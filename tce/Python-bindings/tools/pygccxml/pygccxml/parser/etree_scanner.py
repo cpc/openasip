@@ -5,12 +5,12 @@
 
 import scanner
 import xml.etree.cElementTree as ElementTree
-        
+
 class etree_saxifier_t(object):
     def __init__(self, etree, handler):
         self.__root_elem = etree.getroot()
-        self.__handler = handler        
-        
+        self.__handler = handler
+
     def saxify(self):
         self.__handler.startDocument()
         self.__recursive_saxify( self.__root_elem )
@@ -18,31 +18,23 @@ class etree_saxifier_t(object):
 
     def __recursive_saxify(self, element ):
         self.__handler.startElement( element.tag, element.attrib )
-        
-        #~ if element.text:
-            #~ self.__handler.characters(element.text)
-            
         map( self.__recursive_saxify, element )
-            
         self.__handler.endElement( element.tag )
-
-        #~ if element.tail:
-            #~ self.__handler.characters(element.tail)
 
 class etree_scanner_t( scanner.scanner_t ):
     def __init__(self, gccxml_file, decl_factory, *args ):
         scanner.scanner_t.__init__( self, gccxml_file, decl_factory, *args )
-    
-    def read( self ):        
+
+    def read( self ):
         tree = ElementTree.parse( self.gccxml_file )
         saxifier = etree_saxifier_t( tree, self )
-        saxifier.saxify()  
+        saxifier.saxify()
 
 class ietree_scanner_t( scanner.scanner_t ):
     def __init__(self, gccxml_file, decl_factory, *args ):
         scanner.scanner_t.__init__( self, gccxml_file, decl_factory, *args )
-    
-    def read( self ):        
+
+    def read( self ):
         context = ElementTree.iterparse(self.gccxml_file, events=("start", "end"))
         for event, elem in context:
             if event == 'start':
@@ -51,5 +43,5 @@ class ietree_scanner_t( scanner.scanner_t ):
                 self.endElement( elem.tag )
                 elem.clear()
         self.endDocument()
-    
+
 etree_scanner_t = ietree_scanner_t

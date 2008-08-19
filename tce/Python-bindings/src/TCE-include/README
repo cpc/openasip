@@ -1,3 +1,0 @@
-Py++ does not deal well with include files that are upward in the
-directory tree. This directory contains symbolic links to the required
-header files.
