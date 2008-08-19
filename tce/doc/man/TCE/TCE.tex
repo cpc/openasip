@@ -1775,13 +1775,12 @@ they affect the performance.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % \section{From C to VHDL as Quickly as Possible}
 % \label{section:fromCtoVHDL}
-% TODO: the quickest way: compile input programs, start the wizard that
-% generates the initial processor, start ProGe and PIG (all in the TCE IDE?)
-% TODO: include the usage of remove unconnected components plugin. Also add
-%	compilation and simulation of VHDL code using GHDL
-% This tutorial introduces the fastest way to generate a processor VHDL model
-% from C source code using Desing Space Explorer.
+% TODO: Also add compilation and simulation of VHDL code using GHDL
+% TODO: this c2vhdl tutorial missing from the tce_turorial.tar.gz?
 % 
+% This tutorial introduces the fastest way to generate a processor VHDL model
+% from C source code using Design Space Explorer.
+%  
 % If you haven't already downloaded the tutorial file package, you can get it 
 % from:\\
 % \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} \\
@@ -1791,78 +1790,79 @@ they affect the performance.
 % 
 % % compile C code.
 % Compile the application C code. It is important that the name of the compiled
-% code is ``sequential\_program''.
-% 
-% \textit{tcecc application1/complex\_multiply.c -O2 
-% -o application1/sequential\_program}
-% 
+% code is ``program.bc''.
+%  
+% \textit{tcecc application1/complex\_multiply.c -O2 -o application1/program.bc}
+%  
 % \subsection{Use explorer}
 % 
-% % use initial machine generator
-% The initial machine generator is an explorer plugin which uses a sequential
-% TTA program to generate an initial processor capable of running the
-% program. The initial machine generator creates a processor configuration 
-% that can be generated to VHDL code implementation of the processor.
+% % use minimal.adf as a initial machine
+% Use minimal.adf (data/mach/minimal.adf) as a starting point machine and store
+% it to a design space exploration database to be used by the design space
+% explorer. At the same time data directory can be assigned for the database
+% where for example the compiled program is found and used by the explorer.
 % 
-% \textit{explore -e InitialMachineExplorer -a application1/ -p build\_idf=true
-% ExpRes.dsdb}
-% 
-% Result of the initial machine generator is now added in the ``ExpRes.dsdb''
-% with id 1 assuming the exploration was successful.
+% \textit{explorer -a minimal.adf -d application1 ExpRes.dsdb}
 % 
 % % use the simple ic optimizer
-% Next you can try to optimize the configuration created by the initial machine
-% generator. This can be done by using Simple IC Optimizer plugin which reduces
-% connections which aren't needed to run the application.
-% 
+% Next you can try to optimize the initial configuration with the
+% SimpleICOptimizer explorer plugin. The plugin looks which connections are
+% needed by the program and removes all others and with default parameters
+% removes also components that are left unconnected with the
+% RemoveUnconnectedComponents plugin (plugins sometimes call other plugins).
+%  
 % \textit{explore -e SimpleICOptimizer -s 1 ExpRes.dsdb}
-% 
-% where \textit{-s 1} is the id of the configuration to be optimized.
-% 
-% If the plugin found something to optimize, it adds a new configuration, with
-% id 2 in this case, into the database.
-% 
+%  
+% Where \textit{-s 1} is the id of the configuration to be optimized.
+%  
+% If the plugin found something to optimize, it adds a new configuration(s) into
+% the database and reports the final configuration(s) as ``Best result
+% configurations´´ ids in the database.
+%  
 % \subsection{Generate required files}
-% 
+%  
 % The created configurations can be written as file with command:
-% 
+%  
 % \textit{explore -w <configuration\_ID> ExpRes.dsdb}
-% 
+%  
 % If the optimization was succesful you should export the optimized version,
 % otherwise use the original version.
-% 
+%  
 % Now the ADF and IDF files are written into the current directory and are named
 % as ``1.adf'' and ``1.idf'' or ``2.adf'' and ``2.idf'' depending on which
 % version you wrote out.
 % 
+% % TODO: if implementation definition file is not generated you can generate it
+% % with the ImplementationSelector plugin.
+%  
 % % Schedule
 % Schedule each program against the new architecture:
 % 
 % (replace <id> with the proper number)
-% 
+%  
 % \textit{schedule -t <id>.adf -o application1/complex\_multiply.scheduled.tpef
-% application1/sequential\_program}
-% 
+% application1/program.bc}
+%  
 % This step creates file ``ApplicationDir/complex\_multiply.scheduled.tpef''.
-% 
+%  
 % % create bem
 % Now create an encoding for the instructions in our new architecture:
-% 
+%  
 % \textit{createbem <id>.adf}
-% 
+%  
 % This step creates file <id>.bem.
 % Now you should have all the needed parts for the processor VHDL.
-% 
+%  
 % \subsection{Generate processor VHDL implementation}
-% 
+%  
 % % start ProGe
 % Use ProGe to generate the processor VHDL:
-% 
+%  
 % \textit{generateprocessor -b <id>.bem -i <id>.idf <id>.adf}
-% 
+%  
 % Now directory called ``proge-output'' should include the VHDL implementation
 % of the processor.
-% 
+%  
 % % start PIG
 % Generate instruction memory bit image using PIG. First cd to application1
 % directory and then generate the bit image:
