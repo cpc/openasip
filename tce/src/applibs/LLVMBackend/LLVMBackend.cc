@@ -74,8 +74,13 @@ using namespace llvm;
 #include <llvm/Target/TargetLowering.h>
 volatile TargetLowering dummy(TargetMachine());
 
+#include <llvm/Assembly/PrintModulePass.h>
 Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
-extern const PassInfo* LowerMissingInstructionsID;
+Pass* createLinkBitcodePass(Module& inputCode);
+Pass* createMachineDCE();
+
+// TODO: uncomment with llvm 2.4
+// extern const PassInfo* UnreachableMachineBlockElimID;
 
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
@@ -109,6 +114,7 @@ LLVMBackend::~LLVMBackend() {
 TTAProgram::Program*
 LLVMBackend::compile(
     const std::string& bytecodeFile,
+    const std::string& emulationBytecodeFile,
     TTAMachine::Machine& target,
     int optLevel,
     bool debug,
@@ -134,18 +140,32 @@ LLVMBackend::compile(
 
     // Load bytecode file.
     std::string errorMessage;
-    std::auto_ptr<Module> m;
 
+    // TODO: refactor
+    std::auto_ptr<Module> m;
     std::auto_ptr<MemoryBuffer> buffer(
         MemoryBuffer::getFileOrSTDIN(bytecodeFile, &errorMessage));
-
     if (buffer.get()) {
         m.reset(ParseBitcodeFile(buffer.get(), &errorMessage));
     }
-
     if (m.get() == 0) {
         std::string msg = "Error reading bytecode file:\n" + errorMessage;
         throw CompileError(__FILE__, __LINE__, __func__, msg);
+    }
+
+    
+    std::auto_ptr<Module> emuM;
+
+    if (!emulationBytecodeFile.empty()) {
+        std::auto_ptr<MemoryBuffer> emuBuffer(
+            MemoryBuffer::getFileOrSTDIN(emulationBytecodeFile, &errorMessage));
+        if (emuBuffer.get()) {
+            emuM.reset(ParseBitcodeFile(emuBuffer.get(), &errorMessage));
+        }
+        if (emuM.get() == 0) {
+            std::string msg = "Error reading bytecode file:\n" + errorMessage;
+            throw CompileError(__FILE__, __LINE__, __func__, msg);
+        }
     }
 
     // Create target machine plugin.
@@ -153,7 +173,7 @@ LLVMBackend::compile(
 
     // Compile.
     TTAProgram::Program* result =
-        compile(*m.get(), *plugin, target, optLevel, debug, ipData);
+        compile(*m.get(), emuM.get(), *plugin, target, optLevel, debug, ipData);
 
     delete plugin;
     plugin = NULL;
@@ -176,6 +196,7 @@ LLVMBackend::compile(
 TTAProgram::Program*
 LLVMBackend::compile(
     llvm::Module& module,
+    llvm::Module* emulationModule,
     TCETargetMachinePlugin& plugin,
     TTAMachine::Machine& target,
     int /* optLevel */,
@@ -187,6 +208,7 @@ LLVMBackend::compile(
     ipData_ = ipData;
     bool fast = false;
     std::string fs = "";
+
     TCETargetMachine targetMachine(module, fs, plugin);
 
     llvm::FunctionPassManager fpm(new ExistingModuleProvider(&module));
@@ -209,15 +231,32 @@ LLVMBackend::compile(
     // Global DCE
     pm.add(createGlobalDCEPass());
 
+    // this should use scan data to link in needed emulation functions.
+    // emulationModule will be useless after this (linker is not very gentle)..
+    if (emulationModule != NULL) {
+        pm.add(createLinkBitcodePass(*emulationModule));
+    }
+
+    // to allow machine dead basic block emlination...
+    pm.add(createInternalizePass(true));
+
+    // just for debugging... disable if needed... 
+    // (TODO: check if pm automatically frees passes.. if not create stack object)
+    // pm.add(new PrintModulePass());
+    
     // Instruction selection.
     targetMachine.addInstSelector(fpm, fast);
 
+    // Machine DCE pass. TODO: fix to following in llvm 2.4
+    fpm.add(createMachineDCE());
+    // fpm.add(UnreachableMachineBlockElimID->createPass());
+    
     // Register allocation.
     fpm.add(createRegisterAllocator());
 
     // Insert prolog/epilog code.
     fpm.add(createPrologEpilogCodeInserter());
-    //pm.add(createBranchFoldingPass());
+    //fpm.add(createBranchFoldingPass());
     fpm.add(createDebugLabelFoldingPass());
 
     LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(targetMachine, &target);
@@ -340,6 +379,7 @@ LLVMBackend::compileAndSchedule(
 TTAProgram::Program* 
 LLVMBackend::schedule(
     const std::string& bytecodeFile,
+    const std::string& emulationBytecodeFile,
     TTAMachine::Machine& target,
     int optLevel,
     bool debug,
@@ -347,7 +387,7 @@ LLVMBackend::schedule(
     throw (Exception) {
 
     TTAProgram::Program* prog = 
-        compile(bytecodeFile, target, optLevel, debug);
+        compile(bytecodeFile, emulationBytecodeFile, target, optLevel, debug);
 
     // load default scheduler plan if no plan given
     if (plan == NULL) {

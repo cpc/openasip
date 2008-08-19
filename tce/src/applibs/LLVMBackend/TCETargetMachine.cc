@@ -114,6 +114,9 @@ TCETargetMachine::getModuleMatchQuality(const Module &M) {
 
 /**
  * Creates an instruction selector instance.
+ *
+ * @param pm Function pass manager to add isel pass.
+ * @param fast Not used.
  */
 bool
 TCETargetMachine::addInstSelector(FunctionPassManager& pm, bool /* fast */) {

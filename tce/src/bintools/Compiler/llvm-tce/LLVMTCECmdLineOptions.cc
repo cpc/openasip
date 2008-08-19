@@ -43,6 +43,8 @@ const std::string LLVMTCECmdLineOptions::SWL_OUTPUT_FILE = "output";
 const std::string LLVMTCECmdLineOptions::SWS_OUTPUT_FILE = "o";
 const std::string LLVMTCECmdLineOptions::SWL_SCHEDULER_CONFIG = "config";
 const std::string LLVMTCECmdLineOptions::SWS_SCHEDULER_CONFIG = "c";
+const std::string LLVMTCECmdLineOptions::SWL_EMULATION_LIB = "emulation";
+const std::string LLVMTCECmdLineOptions::SWS_EMULATION_LIB = "e";
 const std::string LLVMTCECmdLineOptions::SWL_DEBUG_FLAG = "debug";
 const std::string LLVMTCECmdLineOptions::SWL_OPT_LEVEL = "optimize";
 const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
@@ -72,6 +74,11 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() :
         new StringCmdLineOptionParser(
             SWL_SCHEDULER_CONFIG, "Scheduler configuration file.",
             SWS_SCHEDULER_CONFIG));
+
+    addOption(
+        new StringCmdLineOptionParser(
+            SWL_EMULATION_LIB, "Emulation library bitcode file.",
+            SWS_EMULATION_LIB));
 
     addOption(
         new IntegerCmdLineOptionParser(
@@ -136,6 +143,15 @@ LLVMTCECmdLineOptions::isSchedulerConfigFileDefined() const {
     return findOption(SWS_SCHEDULER_CONFIG)->isDefined();
 }
 
+std::string
+LLVMTCECmdLineOptions::standardEmulationLib() const {
+    return findOption(SWS_EMULATION_LIB)->String();
+}
+
+bool
+LLVMTCECmdLineOptions::isStandardEmulationLibDefined() const {
+    return findOption(SWS_EMULATION_LIB)->isDefined();
+}
 
 /**
  * Returns path to the output file defined with the -o switch.

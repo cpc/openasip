@@ -624,46 +624,6 @@
         </writes>
       </pipeline>
     </operation>
-    <operation>
-      <name>div</name>
-      <bind name="1">o0</bind>
-      <bind name="2">trigger</bind>
-      <bind name="3">r0</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>divu</name>
-      <bind name="1">o0</bind>
-      <bind name="2">trigger</bind>
-      <bind name="3">r0</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>1</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
     <address-space/>
   </function-unit>
 
@@ -754,26 +714,6 @@
     </operation>
     <operation>
       <name>mod</name>
-      <bind name="1">o0</bind>
-      <bind name="2">trigger</bind>
-      <bind name="3">r0</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>modu</name>
       <bind name="1">o0</bind>
       <bind name="2">trigger</bind>
       <bind name="3">r0</bind>

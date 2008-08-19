@@ -84,7 +84,9 @@ namespace llvm {
         virtual const TargetFrameInfo* getFrameInfo() const {
             return &frameInfo_; }
         
-        virtual bool addInstSelector(FunctionPassManager& pm, bool fast);
+        virtual bool addInstSelector(
+            FunctionPassManager& pm, bool fast);
+
         virtual bool addAssemblyEmitter(
             FunctionPassManager& pm, bool fast, std::ostream& out);
 

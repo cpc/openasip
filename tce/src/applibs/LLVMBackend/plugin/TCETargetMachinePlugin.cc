@@ -248,9 +248,8 @@ GeneratedTCEPlugin::raPortDRegNum() {
 extern "C" {                                
     TCETargetMachinePlugin*
     create_tce_backend_plugin() {
-       TCETargetMachinePlugin* instance =
-	   new GeneratedTCEPlugin();
-       return instance;
+        TCETargetMachinePlugin* instance = new GeneratedTCEPlugin();
+        return instance;
     }
     void delete_tce_backend_plugin(
         TCETargetMachinePlugin* target) {
