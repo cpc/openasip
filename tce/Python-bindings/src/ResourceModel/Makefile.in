@@ -9,7 +9,7 @@
 all: ResourceModel.main.cpp
 
 clean::
-	/bin/rm -f *.cpp *.hpp *.d
+	/bin/rm -f *.cpp *.hpp *.d *.md5.sum
 
 %.main.cpp: %_bindings.pypp
 	export PYTHONPATH="..:../../tools/pygccxml"; @PYTHON@ $<
