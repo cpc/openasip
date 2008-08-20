@@ -868,6 +868,7 @@ bits than the shifted data operand.
 
 
 \section{TCE Tour}
+\label{sec:tcetour}
 
 This tutorial goes through most of the tools in TCE using a fairly simple
 example application. It starts from C code and ends up with VHDL of the
@@ -930,6 +931,13 @@ Take a look at the starting point architecture using the graphical Processor
 Designer (ProDe, Section~\ref{sec:prode}) tool. Start ProDe with:
 
 \shellcmd{prode start.adf \&}
+
+If you have GHDL installed in your system and you want to simulate the
+generated processor I suggest you to decrease the amount of memory in the
+processor. Otherwise the GHDL generated testbench might consume tremendous
+amount of memory on your computer. To do this select Edit -> Address Spaces
+in ProDe. Then edit the bit widths of data and instruction address spaces and
+set them to 12 bits which should be plenty for our case.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preserved this. Maybe there should be a tutorial for building an
@@ -1635,9 +1643,8 @@ is encoded. You do not have to care about this, it is just for curiosity.
 Maybe the only important part in the printout is the length of the
 instruction word. In this case, even though the processor has only
 one move slot, the instruction word width is more than 40 bits. Memorize the
-+instruction word width in bits. The
-size can be reduced with instruction compression, which is not 
-used in the tutorial.
+instruction word width in bits. The size can be reduced with instruction
+compression, which is not used in the tutorial.
 % TODO: add the instruction compression part here also (TEEMU)
 
 Next, we must set correct instruction memory MAU and then 
@@ -1722,7 +1729,7 @@ subdir).
 Finally, to get our shiny new processor some bits to chew on,
 we use generatebits to create an instruction memory image:
 
-\shellcmd{generatebits -b custom.bem -d -p crc\_with\_custom\_op.tpef
+\shellcmd{generatebits -b custom.bem -d -w 4 -p crc\_with\_custom\_op.tpef
 custom.adf} 
 
 Now the file \file{crc\_with\_custom\_op.img} includes the instruction memory
@@ -2750,6 +2757,115 @@ register files, buses, sockets) for the architectures.
 \label{fig:hdbeditor_main_window}
 \end{figure}
 
+
+\section{Function Unit Interface}
+
+Function unit interfaces follow a certain de facto standard in TCE. Here is
+an example of a such interface:
+
+\begin{verbatim}
+entity fu_add_sub_eq_gt_always_1 is
+  generic (
+    dataw : integer := 32;
+    busw  : integer := 32);
+  port (
+    -- trigger port / operand2 input port
+    t1data   : in std_logic_vector (dataw-1 downto 0);
+    t1opcode : in std_logic_vector (1 downto 0);
+    t1load   : in std_logic;
+    -- operand1 input port
+    o1data : in std_logic_vector (dataw-1 downto 0);
+    o1load : in std_logic;
+    -- result output port
+    r1data : out std_logic_vector (busw-1 downto 0);
+    -- control signals
+    glock  : in  std_logic;
+    rstx   : in  std_logic;
+    clk    : in  std_logic);
+end fu_add_sub_eq_gt_always_1;
+\end{verbatim}
+
+As you can see the actual implementation interface has more inputs/outputs
+than the architecture model of a FU. Architecture input ports are o1data and
+t1data and the output port is r1data. In addition there load ports, operation
+code port and some control signals.
+
+It is good practice to use (integer) generics for the port widths in the data
+I/O ports. This makes the managing of Hardware Data Base (hdb) easier because
+you can use the name of the generic to define port width formulas instead of
+using magic numbers. Whether the value of a generic is constant or
+parametrizable depends on how you define it in the hdb. In the example entity
+declaration we have used two different generics, data width (dataw) and bus
+width (busw). The input data ports depend on the dataw and the output port is
+defined using busw. You can also use only one generic but with 2 generics you
+can define different widths for input and output data if needed.
+
+The names you set for the ports in vhdl code is up to you. When you define an
+FU implementation in hdb you'll have to do port mapping where you map the
+vhdl implementation names to the hdb counterparts. I strongly recommend to use
+a consistent naming convention to avoid confusion. If you use your own naming
+style for the ports I still recommend to use the standard names for control
+signals which are used in the example above (glock = Global Lock, rstx =
+reset, x stands for active low, clk = clock).
+
+The input ports have also load ports. The load signal is active high when the
+input value of an input port is valid and should be read (most probably to a
+register inside the FU). If the input port is also a trigger port the
+operation should be initiated.
+
+If the FU has multiple operations there is also an operation code port in the
+interface. Opcode port is usually bound to the trigger port because operations
+have at least one input. And if you wish to initiate an operation with one
+input operand, the operand has to be written to the trigger port. Operation
+codes also have to be declared in hdb.
+
+FU can also have external ports (external as in external to the TTA processor
+core). They declared like any other ports in the entity declaration but these
+ports must be defined as external in hdb.
+
+See the TCE Tour-tutorial (section \ref{sec:tcetour}) for an example how to
+add an FU implementation to hdb.
+
+\subsection{Summary of interface ports}
+\subsubsection{Input/Output operand ports}
+\verb|VHDL-type: std_logic_vector| \\
+TCE naming convention is to use \verb|t1data| for the triggering input port
+and \verb|o1data, o2data ...| etc. for the rest of input operands. Output port
+is usually called \verb|r1data|.
+
+Use generics when you define widths for these ports.
+
+\subsubsection{Input load ports}
+\verb|VHDL-type: std_logic| \\
+The load ports are named after the input operand ports. For example load port
+of t1data is \verb|t1load| and o1data is \verb|o1load|.
+
+\subsubsection{Operation code port}
+\verb|VHDL-type: std_logic_vector| \\
+Operation code port is usually called \verb|t1opcode| and it is bound to the
+trigger port.
+
+\subsubsection{Control signals}
+\verb|VHDL-type: std_logic| \\
+There are four control signals available in FUs:
+
+\verb|clk| is the most obvious, it is the clock signal
+
+\verb|rstx| is active low reset (x stands for active low)
+
+\verb|glock| is a Global Lock signal. For example if the global control unit
+(GCU) issues global lock the ongoing operation should stop and wait for the
+global lock signal to become inactive before resuming.
+
+\verb|glock_r| is global lock request. Rarely used in normal function units.
+It can be used to request global lock state.
+
+\subsection{Reserved keywords in generics}
+Currently there is only one reserved keyword in generic definitions and it is
+\verb|addrw|. This keyword is used in load-store units to define trigger
+port's width according to the data address space width. Processor Generator
+identifies this keyword and defines the port width from the data address space
+assigned to the LSU.
 
 
 \chapter{CODE GENERATION TOOLS}
@@ -5332,9 +5448,7 @@ In the LSUs shipped with TCE the two LSB bits are used by the LSU to control
 a so called write mask that handles writing of bytes. This means that the
 memory address outside the processor is 2 bits narrower than inside the
 processor. When you set the data address space width in ProDe, the width
-is the address width of the outside interface. This means that the trigger
-port of LSU has to be 2 bits wider than the marked address width. This way
-you can address the whole memory with the LSU.
+is the address width inside the processor.
 
 \subsection{Instruction memory}
 The default GCU assumes that instruction memory is intruction addressable. In

@@ -15,11 +15,11 @@
 
   <map-ports name="fu6_t">
     <extra-bits>0</extra-bits>
-    <fu-port-code fu="fu6" name="trigger" operation="ld">
+    <fu-port-code fu="fu6" name="trigger" operation="ldw">
       <encoding>0</encoding>
       <extra-bits>0</extra-bits>
     </fu-port-code>
-    <fu-port-code fu="fu6" name="trigger" operation="st">
+    <fu-port-code fu="fu6" name="trigger" operation="stw">
       <encoding>1</encoding>
       <extra-bits>0</extra-bits>
     </fu-port-code>
@@ -27,11 +27,11 @@
 
   <map-ports name="fu7_t">
     <extra-bits>0</extra-bits>
-    <fu-port-code fu="fu7" name="trigger" operation="ld">
+    <fu-port-code fu="fu7" name="trigger" operation="ldw">
       <encoding>0</encoding>
       <extra-bits>0</extra-bits>
     </fu-port-code>
-    <fu-port-code fu="fu7" name="trigger" operation="st">
+    <fu-port-code fu="fu7" name="trigger" operation="stw">
       <encoding>1</encoding>
       <extra-bits>0</extra-bits>
     </fu-port-code>
@@ -787,11 +787,11 @@
       <pos>0</pos>
       <extra-bits>0</extra-bits>
       <id-pos>left</id-pos>
-      <socket name="fu7_o">
-        <map extra-bits="0">1</map>
+      <socket name="fu7_t">
+        <map codes="fu7_t" extra-bits="0">0</map>
       </socket>
       <no-operation>
-        <map extra-bits="0">0</map>
+        <map extra-bits="0">1</map>
       </no-operation>
     </destination>
   </slot>
@@ -824,11 +824,11 @@
       <pos>0</pos>
       <extra-bits>0</extra-bits>
       <id-pos>left</id-pos>
-      <socket name="fu7_t">
-        <map codes="fu7_t" extra-bits="0">0</map>
+      <socket name="fu7_o">
+        <map extra-bits="0">1</map>
       </socket>
       <no-operation>
-        <map extra-bits="0">1</map>
+        <map extra-bits="0">0</map>
       </no-operation>
     </destination>
   </slot>
