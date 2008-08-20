@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libexplorer.la
 libexplorer_la_SOURCES = ComponentImplementationSelector.cc CostEstimates.cc \
 			DesignSpaceExplorer.cc DesignSpaceExplorerPlugin.cc \
-			FrequencySweep.cc CycleOptimizer.cc 
+			FrequencySweep.cc
 
 SRC_ROOT_DIR = ../../
 BASE_DIR = ${SRC_ROOT_DIR}/base
