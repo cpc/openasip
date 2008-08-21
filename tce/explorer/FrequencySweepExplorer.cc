@@ -71,7 +71,6 @@
 #include "Exception.hh"
 #include "FrequencySweep.hh"
 #include "MachineResourceModifier.hh"
-#include "CycleOptimizer.hh"
 #include "MachineImplementation.hh"
 #include "FUImplementationLocation.hh"
 

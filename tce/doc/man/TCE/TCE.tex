@@ -1671,9 +1671,9 @@ the marked bitwidth in address space. For more information check the FAQ
 (chapter \ref{chapter:faq})
 
 Create the binary encoding map again just in case the port width changes
-caused some changes:
+caused some changes in encoding:
 
-\textit{createbem custom.adf}
+\shellcmd{createbem custom.adf}
 
 Then we'll select implementations for the FUs which can be done in
 \textit{Tools>Processor Implementation...}. Note that the selection window
@@ -1690,7 +1690,7 @@ implementation for the RF from there.
 \item%
 Next select implementation for the boolean RF like above. But this time
 select an implementation which is guarded i.e. select an implementation which
-has word ``guarded'' in its name.
+has word ``guarded\_1'' in its name.
 
 \item%
 Similarly, select implementations for the function units from TCE's default
@@ -1753,22 +1753,38 @@ processor implementation along with its instruction memory bit image.
 If given a functional testbench you could simulate the generated 
 VHDL implementation of the processor with a VHDL
 simulator. You could also synthesize the processor implementation with
-appropriate application. There are some scripts in the produced \file{proge-output}
-directory you can use as a starting point for synthesis and VHDL simulation.
+appropriate application. There are some scripts in the produced
+\file{proge-output} directory you can use as a starting point for synthesis
+and VHDL simulation.
 
-You can cd to the proge\_output directory and compile the testbench with
-\textit{./ghdl\_compile.sh} of you have GHDL installed in your system. After
-that you must move the data images to the tb directory:
+You can go to the proge\_output directory and compile the testbench with if
+you have GHDL installed in your system. After that you must move the data
+images to the tb directory:
 
-\textit{cp ../crc\_with\_custom\_op\_data.img tb/dmem\_init.img}
+\shellcmd{cd proge\_output}
 
-\textit{cp ../crc\_with\_custom\_op.img tb/imem\_init.img}
+\shellcmd{./ghdl\_compile.sh} 
 
-Then you can try and simulate the design: \textit{./ghdl\_simulate.sh}
+\shellcmd{cp ../crc\_with\_custom\_op\_data.img tb/dmem\_init.img}
+
+\shellcmd{cp ../crc\_with\_custom\_op.img tb/imem\_init.img}
+
+Then you can try and simulate the design:
+
+\shellcmd{./ghdl\_simulate.sh}
 
 Please notice that GHDL is a work in progress VHDL compiler/simulator so it
 is recommended to use some other VHDL tool.
- 
+
+If you want a more detailed information about what happens in the testbench
+simulation you can enable bustracing from the Processor
+Implementation-dialog's IC / Decoder Plugin tab in ProDE. To enable this, set
+the bustrace plugin parameter to ``yes'' and the bustracestartingcycle to
+``1''. Then save the .idf and generate the processor again. Notice that you'll
+have to remove the existing proge-output dircetory or generate the new
+processor in another directory. Now the testbench will create a file called
+\file{bus.dump} which holds the values of every bus on every cycle.
+
 In this tutorial we used a ``minimalistic'' processor architecture as our
 starting point. The machine had only one transport bus and 5 registers so it
 could not fully exploit the parallel capabilities of TTA. As mentioned 

@@ -1,5 +1,4 @@
 run
-x /u w _sum1
-x /u w _sum2
+x /u w _result
 quit
 
