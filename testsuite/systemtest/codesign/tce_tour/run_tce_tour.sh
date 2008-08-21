@@ -7,13 +7,7 @@ SIMCMD=data/simulator_commands
 CREATEBEM=../../../../tce/src/bintools/BEMGenerator/createbem
 PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
 PIG=../../../../tce/src/bintools/PIG/generatebits
-
-TCECC=$(which tcecc 2> /dev/null)
-if [ "x${TCECC}" == "x" ]
-then
-  echo "tcecc not found from PATH!" 
-  exit 1
-fi
+TCECC=../../../../tce/src/bintools/Compiler/tcecc
 
 MINIMAL=../../../../tce/data/mach/minimal.adf
 MACH1=start.adf
