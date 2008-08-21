@@ -33,7 +33,7 @@
 \title{TTA Codesign Environment v1.0}
 \ver{8}
 \firstday{25.10.2006}
-\lastday{12.05.2008}
+\lastday{21.08.2008}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -1862,7 +1862,7 @@ Schedule each program against the new architecture:
 
 (replace <id> with the proper number)
  
-\textit{tcecc -t <id>.adf -o application1/complex\_multiply.scheduled.tpef
+\textit{tcecc -a <id>.adf -o application1/complex\_multiply.scheduled.tpef
 application1/program.bc}
  
 This step creates file ``ApplicationDir/complex\_multiply.scheduled.tpef''.
@@ -5272,7 +5272,7 @@ Depending on the exploration plugin, the exploring results machine
 configurations in to the exploration result database dsdb. The best results
 from the previous exploration run are given at the end of the exploration:
 
-\shellcmd{explore -e InitialMachineExplorer -a data/FFTTest --hdb=data/initial.hdb 
+\shellcmd{explore -e RemoveUnconnectedComponents -a data/FFTTest --hdb=data/initial.hdb 
 data/test.dsdb}
 
 \begin{verbatim}
@@ -5283,65 +5283,6 @@ Exploration plugins may also estimate the costs of configurations with the
 available applications. If there are estimation results for the configuratios
 those can be queried with option \textbf{--conf\_summary} by giving the
 ordering of the results.
-
-% TODO: Remove this(?)
-% \subsection{Explorer Plugin: InitialMachineExplorer}
-% InitialMachineExplorer is an explorer plugin that can be used to generate
-% a machine that is capable of executing the applications given in the dsdb.
-% Parameters that can be passed to the InitialMachineExplorer are:
-% 
-% \begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
-%                 p{0.60\textwidth}}
-% \textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
-% \hline
-% bus\_count & 4 & Number of buses used in the machine.\\
-% imm\_32 & 0 & Number of 32 bit immediate slots.\\
-% imm\_16 & 0 & Number of 16 bit immediate slots.\\
-% imm\_8 & 2 & Number of 8 bit immediate slots.\\
-% imm\_slot\_bus\_index & 0 & Index of the bus for the first template slot.\\
-% iu\_size & 2 & Number of registers in immediate units.\\
-% iu\_num & 1 & Number of immediate units.\\
-% iu\_width & 32 & Width of immediate units.\\
-% rf\_size & 4 & Number of registers in one register file.\\
-% max\_rfs & 16 & Maximum number of register files in the machine.\\
-% rf\_reads & 1 & Number of register read ports in register files.\\
-% rf\_writes & 1 & Number of register write ports in register file.\\
-% mau & 8 & Size of minimum addressable unit.\\
-% build\_idf & false & Boolean value. If set true the idf file is built.\\
-% ic\_dec & DefaultICDecoder & Name of the ic decoder plugin (used in idf).\\
-% ic\_hdb & asic\_130nm\_1.5V.hdb & Name of the HDB that is used in IC
-% estimation.\\
-% adf & Not set & Builds idf to this arhitecture. Path to the adf file is
-% excepted.\\
-% \end{tabular}\\
-% 
-% Initial Machine Explorer plugin assumes that the application in the given
-% application directory is named \textbf{sequential\_program}. In other words
-% the application(s) in application path(s) must be named sequential\_program
-% and there can be only one sequential\_program per directory.
-% 
-% Initial machine explorer can be used to create idf file to self created
-% architecture. IDF can be generated like this:
-% 
-% \textit{explore -e InitialMachineExplorer -a someDir -p adf=my\_own.adf result.dsdb}
-% 
-% This adds an application directory to result.dsdb, but it is not used,
-% so it can be any existing directory.
-% 
-% Use '--hdb' option if you do not want to use all search path HDBs.
-% Explorer outputs the result configuration in the result database:
-% \begin{verbatim}
-% Best result configurations:
-%  1
-% \end{verbatim}
-% Now you can write out the idf file like this:
-% 
-% \textit{explore -w 1 result.dsdb}
-% 
-% If there are some units that are not included in the HDBs those are printed
-% into the command line. If any units are printed the idf file is not complete
-% but it helps to see what data is missing from the HDBs.
-
 
 \subsection{Explorer Plugin: SimpleICOptimizer}
 SimpleICOptimizer is an explorer plugin that optimizes the interconnection
@@ -5432,6 +5373,98 @@ And if you want to remove the unconnected components: \\
 \shellcmd{explore -e RemoveUnconnectedComponents -s 3 -u allow\_remove=true
 database.dsdb}\\
 
+\subsection{Explorer Plugin: GrowMachine}
+GrowMachine is an Explorer plugin that adds resources to the machine until
+cycle count doesn't go down anymore.
+
+Parameters that can be passed to the GrowMachine are:
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+superiority & 2 & Percentage value of how much faster schedules are wanted
+    until cycle count optimization is stopped \\
+\end{tabular}\\
+
+Using the plugin requires user to define the configuration he wishes optimize.
+This is done by giving \textit{-s <configuration\_ID>} option to the explorer.
+
+Example of usage:
+
+\shellcmd{explore -e GrowMachine -s 1 database.dsdb}
+
+\subsection{Explorer Plugin: ImmediateGenerator}
+ImmediateGenerator is an Explorer plugin that creates or modifies machine
+instruction templates. Typical usage is to split an instruction template slot
+among buses.
+
+Parameters that can be passed to the ImmediateGenerator are:
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+print & false & Print information about machines instruction templates.\\
+remove\_it\_name & no default value & Remove instruction template with a
+given name \\
+add\_it\_name & no default value & Add empty instruction template with a
+given name. \\
+modify\_it\_name & no default value & Modify instruction template with a
+given name. \\
+width & 32 & Instruction template supported width.\\
+width\_part & 8 & Minimum size of width per slot.\\
+split & false & Split immediate among slots.\\
+dst\_imm\_unit & no default value & Destination immediate unit.\\
+\end{tabular}\\
+
+Example of adding a new 32 width immediate template named newTemplate that is
+splitted among busses:
+
+\shellcmd{explore -e ImmediateGenerator -s 1 -u add\_it\_name="newTemplate" -u
+width=32 -u split=true database.dsdb}
+
+\subsection{Explorer Plugin: ImplementationSelector}
+ImplementationSelector is an Explorer plugin that selects implementations for
+units in a given configuration ADF. It creates a new configuration with a IDF.
+
+Parameters that can be passed to the ImmediateGenerator are:
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+ic\_dec & DefaultICDecoder & Name of the ic decoder plugin. \\
+ic\_hdb & asic\_130nm\_1.5V.hdb & name of the HDB where the implementations are \\
+selected. \\
+adf & no default value & An ADF for the implementations are selected if no \\
+database is used. \\
+\end{tabular}\\
+
+Example of creating implementation for configuration ID 1, in the database:
+
+\shellcmd{explore -e ImplementationSelector -s 1 database.dsdb}
+
+\subsection{Explorer Plugin: MinimizeMachine}
+MinimizeMachine is an Explorer plugin that removes resources from a machine
+until the real time requirements of applications are not reached anymore.
+
+Parameters that can be passed to the ImmediateGenerator are:
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+min\_bus & true & Minimize buses. \\
+min\_fu & true & Minimize function units. \\
+min\_rf & true & Minimize register files. \\
+frequency & no default value & Running frequency for applications. \\
+\end{tabular}\\
+
+Example of minimizing configuration ID 1, in the database, with frequency
+50 MHz:
+
+\shellcmd{explore -e MinimizeMachine -s 1 -u frequency=50 database.dsdb}
 
 \chapter{FREQUENTLY ASKED QUESTIONS}
 \label{chapter:faq}
