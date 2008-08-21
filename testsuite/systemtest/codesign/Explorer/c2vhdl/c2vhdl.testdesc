@@ -1,0 +1,7 @@
+<?php
+// short test description
+$test_description="From c to vhdl as quickly as possible Explorer test case.";
+
+// the binary being tested
+$test_bin="./run_c2vhdl.sh";
+?>

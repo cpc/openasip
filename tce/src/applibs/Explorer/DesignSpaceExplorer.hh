@@ -96,8 +96,7 @@ public:
 protected:
     TTAProgram::Program* schedule(
         const std::string applicationFile,
-        TTAMachine::Machine& machine,
-        const unsigned int debug = 0);
+        TTAMachine::Machine& machine);
     
     const ExecutionTrace* simulate(
         const TTAProgram::Program& program,

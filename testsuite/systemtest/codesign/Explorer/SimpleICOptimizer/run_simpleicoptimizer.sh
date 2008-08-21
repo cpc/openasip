@@ -1,22 +1,30 @@
 #!/bin/bash
-EXPLORE_BIN="../../../../../tce/src/codesign/Explorer/explore"
+TCE_ROOT="../../../../../tce"
+EXPLORE="${TCE_ROOT}/src/codesign/Explorer/explore"
 ADF="./data/bloated3xminimal.adf"
 TPEF="./data/scheduled.tpef"
 
+OUTPUT="/dev/null"
+__DEBUG="false"
+if [ "${__DEBUG}x" == "truex" ]; then
+    OUTPUT="debug.log"
+fi
+
 {
-    "${EXPLORE_BIN}" -a ${ADF} simple_test.dsdb
-    "${EXPLORE_BIN}" -e SimpleICOptimizer -s 1 -u tpef=${TPEF} simple_test.dsdb
-    "${EXPLORE_BIN}" -e RemoveUnconnectedComponents -s 2 -u allow_remove=true simple_test.dsdb
-} 1>/dev/null
+    "${EXPLORE}" -a ${ADF} simple_test.dsdb
+    NEW_CONF="$(${EXPLORE} -e SimpleICOptimizer -s 1 -u tpef=${TPEF} simple_test.dsdb \
+    | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
+    echo "New config created: ${NEW_CONF}" 
+} 1>${OUTPUT} 2>&1
 
 # checking that enough connections are removed
-"${EXPLORE_BIN}" -w 2 simple_test.dsdb 1>/dev/null
+"${EXPLORE}" -w $NEW_CONF simple_test.dsdb 1>/dev/null
 COUNT_ADF="${ADF}"
 SOCNUM_OLD="$(grep '<socket name.*>' ${COUNT_ADF} | wc -l)"
 WRITES_OLD="$(grep '<writes-to>' ${COUNT_ADF} | wc -l)"
 READS_OLD="$(grep '<reads-from>' ${COUNT_ADF} | wc -l)"
 
-COUNT_ADF="2.adf"
+COUNT_ADF="$NEW_CONF.adf"
 SOCNUM_NEW="$(grep '<socket name.*>' ${COUNT_ADF} | wc -l)"
 WRITES_NEW="$(grep '<writes-to>' ${COUNT_ADF} | wc -l)"
 READS_NEW="$(grep '<reads-from>' ${COUNT_ADF} | wc -l)"
@@ -33,12 +41,11 @@ if [ "${READS_NEW}" -ge "${READS_OLD}" ]; then
     echo "Too many reads-from (${READS_NEW} -ge ${READS_OLD})." 
 fi
 
-"${EXPLORE_BIN}" -w 3 simple_test.dsdb 1>/dev/null
 # simulate output
 ttasim="../../../../../tce/src/codesign/ttasim/ttasim -q"
 {
 ${ttasim} <<EOF
-mach 3.adf
+mach $NEW_CONF.adf
 prog data/scheduled.tpef
 $(cat ./data/simulate.ttasim)
 quit
