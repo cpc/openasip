@@ -64,7 +64,7 @@
 
   <rf name="bool">
     <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
-    <rf-id>958</rf-id>
+    <rf-id>96</rf-id>
   </rf>
 
 </adf-implementation>

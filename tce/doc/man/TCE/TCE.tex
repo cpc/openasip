@@ -1666,9 +1666,7 @@ You should also change the widths of GCU ports and LSU trigger port to avoid
 error messages from the Processor Generator. So open the Address Spaces
 dialog and check the bitwidth fields. Then set the GCU port widths according
 the instruction memorys bitwidth field. Next change the LSU trigger port's
-width. Notice that you must set the trigger's width to be 2 bits wider than
-the marked bitwidth in address space. For more information check the FAQ
-(chapter \ref{chapter:faq})
+width. Set it to the same value as the data memory's bitwidth.
 
 Create the binary encoding map again just in case the port width changes
 caused some changes in encoding:
@@ -1690,7 +1688,7 @@ implementation for the RF from there.
 \item%
 Next select implementation for the boolean RF like above. But this time
 select an implementation which is guarded i.e. select an implementation which
-has word ``guarded\_1'' in its name.
+has word ``guarded\_0'' in its name.
 
 \item%
 Similarly, select implementations for the function units from TCE's default

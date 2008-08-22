@@ -1128,7 +1128,7 @@ NetlistGenerator::addBaseRFToNetlist(
     for (int i = 0; i < implementation.portCount(); i++) {
         RFPortImplementation& port = implementation.port(i);
         NetlistPort* newPort = NULL;
-         if (!implementation.widthParameter().empty()) {
+        if (!implementation.widthParameter().empty()) {
             newPort = new NetlistPort(
                 port.name(), implementation.widthParameter(),
                 regFile.width(), BIT_VECTOR, port.direction(), *block);
@@ -1205,7 +1205,7 @@ NetlistGenerator::addBaseRFToNetlist(
     if (architecture.hasGuardSupport()) {
         string guardPortName = implementation.guardPort();
         string size;
-        if (architecture.hasParameterizedSize()) {
+        if (!implementation.sizeParameter().empty()) {
             size = implementation.sizeParameter();
         } else {
             size = Conversion::toString(architecture.size());
