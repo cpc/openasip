@@ -581,6 +581,7 @@ then
   [AC_LANG_PROGRAM(
   [[
    #include <wx/wx.h>
+   wxRect retWx() {return wxRect();}
   ]],
   [[
    ;
