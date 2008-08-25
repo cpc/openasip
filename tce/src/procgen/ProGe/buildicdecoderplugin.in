@@ -22,14 +22,14 @@ else
 
         BOOST_INCLUDES="@BOOST_INCLUDES@"
 
-        compiler=gcc
+        compiler=@CC@
         libdir=
         includedir="\
 -I ${SRC_BASE}/tools -I ${SRC_BASE}/applibs/Estimator -I ${SRC_BASE}/base/idf \
 -I ${SRC_BASE}/applibs/hdb -I ${PROGE} -I ${BASE}/mach -I ${BASE}/program \
 -I ${TCE_ROOT} -I ${TRACEDB} -I ${SIMULATOR} -I ${BASE}/bem \
  ${BOOST_INCLUDES} ${CPPFLAGS}"
-        soflags="-lgcc -shared -fPIC -o"
+        soflags="@SHARED_CXX_FLAGS@ -o"
 
     else
 

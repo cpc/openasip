@@ -35,7 +35,7 @@ else
 
         BOOST_INCLUDES="@BOOST_INCLUDES@"
 
-        compiler=gcc
+        compiler=@CC@
         libdir=
         includedir="\
 -I ${SRC_BASE}/tools -I ${SRC_BASE}/base/idf \
@@ -44,8 +44,8 @@ else
 -I ${EXPLORER} -I ${DSDB} -I ${SCHEDULER_APPLIBS} -I ${LLVMBACKEND_APPLIBS} \
 -I ${OSAL} -I ${UMACH} -I ${INTERPRETER} -I ${MEMORY} -I ${MACH_APPLIBS} \
 -I ${PROGRAM_APPLIBS} -I ${ESTIMATOR_APPLIBS} ${BOOST_INCLUDES} ${CPPFLAGS}"
-        soflags="-lgcc -shared -fPIC -o"
-        cxxflags="-g -O3"
+        soflags="@SHARED_CXX_FLAGS@ -o"
+        cxxflags="@CXXFLAGS@"
     else
 		
         compiler=$(tce-config --c++-compiler)
