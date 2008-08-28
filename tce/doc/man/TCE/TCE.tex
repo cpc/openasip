@@ -1795,8 +1795,8 @@ they affect the performance.
 % NOTE: when updating this update also c2vhdl systemtest if needed.
 % TODO: Also add compilation and simulation of VHDL code using GHDL
  
-This tutorial introduces the a fast way to generate a processor VHDL model
-from C source code using Design Space Explorer.
+This tutorial introduces a fast way to generate a processor VHDL model
+from C source code using the Design Space Explorer.
  
 If you haven't already downloaded the tutorial file package, you can get it 
 from:\\
@@ -1834,7 +1834,7 @@ Where \textit{-s 1} is the id of the configuration to be optimized.
  
 If the plugin found something to optimize, it adds a new configuration(s) into
 the database and reports the final configuration(s) as ``Best result
-configurations´´ ids in the database.
+configurations ids'' in the database.
  
 \subsection{Generate required files}
  
@@ -1849,8 +1849,8 @@ Now the ADF and IDF files are written into the current directory and are named
 as ``1.adf'' and ``1.idf'' or ``2.adf'' and ``2.idf'' depending on which
 version you wrote out.
 
-If implementation definition file ``idf´´ is not generated automatically by
-the plugin you can generate it with the ImplementationSelector plugin.
+If implementation definition file ``idf'' is not generated automatically
+by the plugin you can generate it with the ImplementationSelector plugin.
 Remember to write out the new configuration as explained above.
 
 \textit{explore -e ImplementationSelector -s <configuration\_ID> ExpRes.dsdb}
@@ -2806,27 +2806,30 @@ end fu_add_sub_eq_gt_always_1;
 \end{verbatim}
 
 As you can see the actual implementation interface has more inputs/outputs
-than the architecture model of a FU. Architecture input ports are o1data and
-t1data and the output port is r1data. In addition there load ports, operation
-code port and some control signals.
+than the architecture model of a FU. Architecture input ports are
+called o1data and t1data and the output port is called r1data. In addition
+there are load ports, operation code port and some control signals.
 
 It is good practice to use (integer) generics for the port widths in the data
-I/O ports. This makes the managing of Hardware Data Base (hdb) easier because
+I/O ports. This makes the managing of Hardware Database (HDB) easier because
 you can use the name of the generic to define port width formulas instead of
 using magic numbers. Whether the value of a generic is constant or
-parametrizable depends on how you define it in the hdb. In the example entity
-declaration we have used two different generics, data width (dataw) and bus
-width (busw). The input data ports depend on the dataw and the output port is
-defined using busw. You can also use only one generic but with 2 generics you
-can define different widths for input and output data if needed.
+parametrizable depends on how you define it in the HDB. In the example
+entity declaration we have used two different generics, data width (dataw)
+and bus width (busw). The input data ports depend on the dataw and the
+output port is defined using busw. You can also use only one generic but
+with 2 generics you can define different widths for input and output data if
+needed.
 
-The names you set for the ports in vhdl code is up to you. When you define an
-FU implementation in hdb you'll have to do port mapping where you map the
-vhdl implementation names to the hdb counterparts. I strongly recommend to use
-a consistent naming convention to avoid confusion. If you use your own naming
-style for the ports I still recommend to use the standard names for control
-signals which are used in the example above (glock = Global Lock, rstx =
-reset, x stands for active low, clk = clock).
+The names you set for the ports in VHDL code is up to you. When you define
+an FU implementation in HDB you'll have to do port mapping where you map the
+VHDL implementation names to the HDB counterparts. I strongly recommend to
+use a consistent naming convention to avoid confusion. In the future,
+HDBEditor might include prefilled dialog fields with the defacto standard
+names. If you use your own naming style for the ports I still recommend to
+use the standard names for control signals which are used in the example
+above (glock = Global Lock, rstx = reset, x stands for active low, clk =
+clock).
 
 The input ports have also load ports. The load signal is active high when the
 input value of an input port is valid and should be read (most probably to a
@@ -2837,11 +2840,11 @@ If the FU has multiple operations there is also an operation code port in the
 interface. Opcode port is usually bound to the trigger port because operations
 have at least one input. And if you wish to initiate an operation with one
 input operand, the operand has to be written to the trigger port. Operation
-codes also have to be declared in hdb.
+codes also have to be declared in HDB.
 
-FU can also have external ports (external as in external to the TTA processor
-core). They declared like any other ports in the entity declaration but these
-ports must be defined as external in hdb.
+FUs can also have ports connecting to the external of the TTA processor
+core. They are declared like any other ports in the entity declaration but
+these ports must be defined as external in HDB.
 
 See the TCE Tour-tutorial (section \ref{sec:tcetour}) for an example how to
 add an FU implementation to hdb.
@@ -2874,18 +2877,27 @@ There are four control signals available in FUs:
 \verb|rstx| is active low reset (x stands for active low)
 
 \verb|glock| is a Global Lock signal. For example if the global control unit
-(GCU) issues global lock the ongoing operation should stop and wait for the
-global lock signal to become inactive before resuming.
+(GCU) issues global lock the ongoing operation should freeze and wait for
+the global lock signal to become inactive before resuming execution.
 
 \verb|glock_r| is global lock request. Rarely used in normal function units.
-It can be used to request global lock state.
+It can be used to request global lock state, for example, in case the
+result does not arrive in the time set by the static latency of the
+operation. 
+
+A common example using this signal is a load-store unit of which
+memory latency is sometimes larger than the static latency informed to the
+compiler due to dynamic behavior of the memory system. In that case, a
+global lock is requested after the static number of cycles has passed and
+the data has not arrived to the load-store-unit from the memory system.
 
 \subsection{Reserved keywords in generics}
+
 Currently there is only one reserved keyword in generic definitions and it is
 \verb|addrw|. This keyword is used in load-store units to define trigger
 port's width according to the data address space width. Processor Generator
 identifies this keyword and defines the port width from the data address space
-assigned to the LSU.
+assigned to the LSU in the ADF.
 
 
 \chapter{CODE GENERATION TOOLS}
