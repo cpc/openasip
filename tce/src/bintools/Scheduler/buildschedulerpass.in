@@ -33,7 +33,7 @@ else
 
         BOOST_INCLUDES="@BOOST_INCLUDES@"
 
-        compiler=@CC@
+        compiler="@CXX@"
         libdir=
         includedir="-I${TCE_ROOT} -I${SRC_BASE}/tools -I${SCHEDULER} "\
 "-I${RESOURCE_MODEL} -I${RESOURCE_MANAGER} -I${PDG} -I${BASE}/mach "\

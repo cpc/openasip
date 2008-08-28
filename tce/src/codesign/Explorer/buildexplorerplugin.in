@@ -35,7 +35,7 @@ else
 
         BOOST_INCLUDES="@BOOST_INCLUDES@"
 
-        compiler=@CC@
+        compiler="@CXX@"
         libdir=
         includedir="\
 -I ${SRC_BASE}/tools -I ${SRC_BASE}/base/idf \

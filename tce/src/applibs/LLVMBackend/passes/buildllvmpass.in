@@ -6,7 +6,7 @@ if test $# -lt 2
 then
     echo "Usage: buildllvmpass <object file> <source files>"
 else
-    compiler=@CC@
+    compiler="@CXX@"
     llvmlibs=$(llvm-config --libs core)
     llvmldflags=$(llvm-config --ldflags)
     llvmcppflags=$(llvm-config --cppflags)

@@ -20,7 +20,7 @@ else
         TRACEDB="${SRC_BASE}/applibs/TraceDB"        
         SIMULATOR="${SRC_BASE}/applibs/Simulator"
         BOOST_INCLUDES="@BOOST_INCLUDES@"
-        compiler=@CC@
+        compiler="@CXX@"
         libdir=
         includedir="\
 -I ${SRC_BASE}/tools -I ${SRC_BASE}/applibs/PIG -I ${SRC_BASE}/base/idf \
