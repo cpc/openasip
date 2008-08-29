@@ -1106,8 +1106,8 @@ LLVMPOMBuilder::emitConstantPool(const MachineConstantPool& mcp) {
         MachineConstantPoolEntry cpe = cp[i];
 
         assert(!(cp[i].isMachineConstantPoolEntry()) && "NOT SUPPORTED");
-        currentFnCP_[i] = end_;
         createDataDefinition(end_, cp[i].Val.ConstVal);
+        currentFnCP_[i] = end_;
     }
 }
 
