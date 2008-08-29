@@ -25,9 +25,9 @@
 # other reasons why the executable file might be covered by the GNU General
 # Public License.
 
-# This script creates a tar.gz source package from clean tce directory.
-# Run this script in the tce root directory, the package is created one 
-# directory up
+# This script creates a tar.gz source package from clean _package_dir_name
+# directory.  Run this script in the _package_dir_name directory, the actual
+# package is created one directory up.
 #
 # $1    version number for the package
 
@@ -43,17 +43,17 @@ else
 fi
 
 if [ "$(basename "$(pwd)")x" != "${_package_dir_name}x" ]; then
-    echo "Run this script under tce root directory.. exiting."
+    echo "Run this script under tce root directory.. Exiting."
     exit 1
 fi
 
 if [ ! -e "./configure.ac" ]; then
-    echo "No configure.ac found.. exiting."
+    echo "No configure.ac found.. Exiting."
     exit 1
 fi
 
-if [ -e "./configure" ]; then
-    echo "Script configure found in tce root, tce root is not clean, exiting.."
+if [ "$(bzr status .)x" != "x" ]; then
+    echo "${_package_dir_name} is not clean.. Exiting."
     exit 1
 fi
 
@@ -61,6 +61,6 @@ autoreconf || exit 2
 
 cd ..
 
-tar cvvzf "${_package_name}-${_package_version}.tar.gz" tce || exit 2
+tar czf "${_package_name}-${_package_version}.tar.gz" ${_package_dir_name} || exit 2
 
 echo "OK"

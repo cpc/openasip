@@ -61,6 +61,6 @@ fi
 
 cd ..
 
-tar czf "${_package_name}-${_package_version}.tar.gz" tce || exit 2
+tar czf "${_package_name}-${_package_version}.tar.gz" ${_package_dir_name} || exit 2
 
 echo "OK"
