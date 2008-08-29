@@ -940,6 +940,29 @@ Environment::defaultICDecoderPlugin() {
 }
 
 /**
+ * Returns default text editor to be used.
+ *
+ * @return Full path of default text editor or contents of EDITOR/VISUAL
+ * environment variables. Empty string is also returned if no editor is found.
+ */
+string
+Environment::defaultTextEditorPath() {
+
+    std::string editor = environmentVariable("EDITOR");
+    if (editor.empty()) {
+        editor = environmentVariable("VISUAL");
+    }
+    if (editor.empty()) {
+        editor = environmentVariable("VISUAL");
+    }
+    if (editor.empty()) {
+        editor = "/usr/bin/vi";
+    }
+
+    return editor;
+}
+
+/**
  * Returns full path to llvmtce plugin cache directory.
  *
  * @return Full path to the llvmtce plugin cache directory.

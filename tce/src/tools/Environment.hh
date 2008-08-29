@@ -87,6 +87,7 @@ public:
     static std::string defaultSchedulerConf();
     static std::string oldGccSchedulerConf();
     static std::string defaultICDecoderPlugin();
+    static std::string defaultTextEditorPath();
 
     static std::string llvmtceCachePath();
 
