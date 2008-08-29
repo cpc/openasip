@@ -96,6 +96,7 @@ private:
     ~Environment();
 
     static std::string pathTo(const std::string& name);
+    static inline void parsePathEnvVariable(std::vector<std::string>& paths);
 
     /// Name of the XML Schema directory.
     static const std::string SCHEMA_DIR_NAME_;

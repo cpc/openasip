@@ -64,6 +64,7 @@ public:
     static bool fileExists(const std::string fileName);
     static bool fileIsWritable(const std::string fileName);
     static bool fileIsReadable(const std::string fileName);
+    static bool fileIsExecutable(const std::string fileName);
     static bool fileIsCreatable(const std::string fileName);
     static bool fileIsDirectory(const std::string fileName);
 

@@ -230,6 +230,36 @@ StringTools::chopString(
 
 
 /**
+ * Chops string using a given delimiter.
+ *
+ * Result is returned as a vector. Extra blanks are ignored.
+ *
+ * @param source String to be chopped.
+ * @param delimiter Delimiter used.
+ * @param store String vector reference where result strings are stored.
+ */
+void
+StringTools::chopString(
+    const std::string& source,
+    const std::string& delimiter, 
+    std::vector<std::string>& results) {
+
+    string line = trim(source);
+    while (line.length() > 0) {
+        string::size_type location = line.find(delimiter);
+        if (location == string::npos) {
+            results.push_back(line);
+            line = "";
+        } else {
+            results.push_back(line.substr(0, location));
+            line.replace(0, location + 1, "");
+            line = trim(line);
+        }
+    }
+}
+
+
+/**
  * Returns true if two strings are equal if the case is not taken into account.
  *
  * @param a A string.
