@@ -1088,11 +1088,29 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
         return;
     }
 
+    string resetPort = NetlistGenerator::DECODER_RESET_PORT;
+    string clockPort = NetlistGenerator::DECODER_CLOCK_PORT;
+
     stream << indentation(1) << "--long immediate write process" << endl;
     stream << indentation(1) << "process ("
-           << NetlistGenerator::DECODER_INSTR_WORD_PORT << ", "
-           << LIMM_TAG_SIGNAL <<  ")" << endl;
+           << clockPort << ", "  << resetPort << ")" << endl;
     stream << indentation(1) << "begin --process" << endl;
+    
+    // reset
+    stream << indentation(2) << "if (" << resetPort << " = '0') then" 
+           << endl;
+    Machine::ImmediateUnitNavigator iuNav = 
+        machine_.immediateUnitNavigator();
+
+    for (int i = 0; i < iuNav.count(); i++) {
+        ImmediateUnit* iu = iuNav.item(i);
+        stream << indentation(3) << iuWriteLoadCntrlPort(iu->name())
+               << " <= '0';" << endl;
+        stream << indentation(3) << iuWritePort(iu->name()) 
+               << " <= (others => '0');" << endl;
+    }
+    // else
+    stream << indentation(2)  << "elsif (clk'event and clk = '1') then" << endl;
     for (int i = 0; i < itNav.count(); i++) {
         InstructionTemplate* iTemp = itNav.item(i);
         int indLevel = 3;
@@ -1116,6 +1134,7 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
     if (bem_.hasImmediateControlField()) {
         stream << indentation(3) << "end if;" << endl;
     }
+    stream << indentation(2) << "end if;" << endl;
     stream << indentation(1) << "end process;" << endl;
 }
 
