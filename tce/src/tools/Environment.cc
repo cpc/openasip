@@ -858,8 +858,7 @@ Environment::tceCompiler() {
             return srcPath;
     } 
     std::string path =
-        string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
-        "/bin/tcecc";
+        string(TCE_INSTALLATION_ROOT) + "/bin/tcecc";
     assert(
         FileSystem::fileExists(path) &&
         "Installation broken, tcecc not found.");
