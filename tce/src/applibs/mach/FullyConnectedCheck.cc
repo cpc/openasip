@@ -356,7 +356,7 @@ FullyConnectedCheck::connectRFPort(RFPort& port, TTAMachine::Socket::Direction d
     const BaseRegisterFile& rf = *port.parentUnit();
 
     Socket* socket = NULL;
-    socket = createSocket(*port.parentUnit(), direction);
+    socket = createSocket(rf, direction);
 
     if (tester.canConnect(*socket, port)) {
         port.attachSocket(*socket);
