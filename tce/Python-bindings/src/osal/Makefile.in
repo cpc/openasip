@@ -11,6 +11,9 @@ all: osal.main.cpp
 clean::
 	/bin/rm -f *.cpp *.hpp *.d *.md5.sum
 
+distclean::
+	make clean
+
 %.main.cpp: %_bindings.pypp
 	export PYTHONPATH="..:../../tools/pygccxml"; @PYTHON@ $<
 

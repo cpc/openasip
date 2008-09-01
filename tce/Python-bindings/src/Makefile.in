@@ -23,5 +23,6 @@ clean::
 	for d in $(SUBDIRS); do (cd $$d; make clean); done
 	@PYTHON@ setup.py clean
 
-distclean: 
-	for d in $(SUBDIRS); do (cd $$d; make clean); done
+distclean:: 
+	make clean
+	for d in $(SUBDIRS); do (cd $$d; make distclean); done
