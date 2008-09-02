@@ -73,6 +73,8 @@ printf(fmt, va_alist)
 #endif
   ret = vfprintf (_stdout_r (_REENT), fmt, ap);
   va_end (ap);
+
+  fflush(NULL);
   return ret;
 }
 
