@@ -205,7 +205,8 @@ ExecutionPipelineBroker::buildResources(const TTAMachine::Machine& target) {
                 fu->maxLatency(),
                 resourceNumber);
         for (int j = 0; j < fu->operationCount(); j++) {
-            ExecutionPipeline* ep = fu->operation(j)->pipeline();
+            HWOperation& hwop = *fu->operation(j);
+            ExecutionPipeline* ep = hwop.pipeline();
             for (int l = 0; l < ep->latency(); l++ ) {
                 for (int k = 0; k < fu->pipelineElementCount(); k++) {
                     PipelineElement *pe = fu->pipelineElement(k);
@@ -225,6 +226,17 @@ ExecutionPipelineBroker::buildResources(const TTAMachine::Machine& target) {
                     }
                 }
             }
+
+            // set operation latencies
+            ExecutionPipeline::OperandSet writes = ep->writtenOperands();
+            for (ExecutionPipeline::OperandSet::iterator iter =
+                     writes.begin(); iter != writes.end(); iter++) {
+                int index = *iter;
+                int latency = hwop.latency(index);
+                epResource->setLatency(
+                            StringTools::stringToUpper(
+                                fu->operation(j)->name()), index, latency);
+            }
         }
         ResourceBroker::addResource(*fu, epResource);
         fuPipelineMap_.insert(
@@ -241,7 +253,8 @@ ExecutionPipelineBroker::buildResources(const TTAMachine::Machine& target) {
             resNumber);
 
     for (int i = 0; i < gcu->operationCount(); i++) {
-        ExecutionPipeline* ep = gcu->operation(i)->pipeline();
+        HWOperation& hwop = *gcu->operation(i);
+        ExecutionPipeline* ep = hwop.pipeline();
         for (int l = 0; l < ep->latency(); l++ ) {
             for (int k = 0; k < gcu->pipelineElementCount(); k++) {
                 PipelineElement *pe =gcu->pipelineElement(k);
@@ -260,6 +273,17 @@ ExecutionPipelineBroker::buildResources(const TTAMachine::Machine& target) {
                         gcu->pipelineElementCount()+k);
                 }
             }
+        }
+
+        // set operation latencies
+        ExecutionPipeline::OperandSet writes = ep->writtenOperands();
+        for (ExecutionPipeline::OperandSet::iterator iter =
+                 writes.begin(); iter != writes.end(); iter++) {
+            int index = *iter;
+            int latency = hwop.latency(index);
+            epResource->setLatency(
+                StringTools::stringToUpper(
+                    gcu->operation(i)->name()), index, latency);
         }
     }
 
