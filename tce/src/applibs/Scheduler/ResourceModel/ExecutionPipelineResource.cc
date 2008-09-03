@@ -924,7 +924,7 @@ void ExecutionPipelineResource::setLatency(
     }
 
     int pIndex = MapTools::valueForKey<int>(operationSupported_, opName);
-    while (operationLatencies_.size() <= pIndex) {
+    while (static_cast<int>(operationLatencies_.size()) <= pIndex) {
         operationLatencies_.push_back(std::map<int,int>());
     }
     operationLatencies_[pIndex][output] = latency;
