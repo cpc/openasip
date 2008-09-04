@@ -405,7 +405,7 @@ OutputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
     Terminal& src = const_cast<MoveNode&>(node).move().source();
     if (src.isFUPort()) {
         const FunctionUnit& fu = src.functionUnit();
-        if (hasResourceOf(fu) && resourceOf(fu).isInUse(cycle)) {
+        if (hasResourceOf(fu)) {
             if (MapTools::containsKey(assignedResources_, &node)) {
                 return true;
             }

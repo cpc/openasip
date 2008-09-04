@@ -51,6 +51,7 @@
 #include "InstructionReference.hh"
 #include "InstructionReferenceManager.hh"
 #include "TerminalRegister.hh"
+#include "SpecialRegisterPort.hh"
 
 #include "MoveNode.hh"
 #include "ProgramOperation.hh"
@@ -687,8 +688,8 @@ CopyingDelaySlotFiller::getMove(Move& old) {
         Move* newMove = old.copy();
         newMove->setBus(um_->universalBus());
 
+        Terminal& source = newMove->source();
         if (oldMN.isSourceOperation()) {
-            Terminal& source = newMove->source();
             assert(source.isFUPort());
             std::string fuName = source.functionUnit().name();
             TTAProgram::ProgramAnnotation srcUnit(
@@ -701,9 +702,16 @@ CopyingDelaySlotFiller::getMove(Move& old) {
                 srcOp.name());
             newMove->setSource(new TerminalFUPort(
                                    hwop, old.source().operationIndex()));
+        } else {
+            if (source.isRA()) {
+                newMove->setSource(
+                    new TerminalFUPort(
+                        *um_->controlUnit()->returnAddressPort()));
+            }
         }
+
+        Terminal& dest = newMove->destination();
         if (oldMN.isDestinationOperation()) {
-            Terminal& dest = newMove->destination();
             assert(dest.isFUPort());
 
             std::string fuName = dest.functionUnit().name();
@@ -717,7 +725,14 @@ CopyingDelaySlotFiller::getMove(Move& old) {
                 dstOp.name());
             newMove->setDestination(new TerminalFUPort(
                                    hwop, old.destination().operationIndex()));
-        }            
+        } else {
+            if (dest.isRA()) {
+                newMove->setDestination(
+                    new TerminalFUPort(
+                        *um_->controlUnit()->returnAddressPort()));
+            }
+        }
+
 
         moves_[&old] = newMove;
 
@@ -739,19 +754,27 @@ CopyingDelaySlotFiller::getMove(Move& old) {
  */
 void CopyingDelaySlotFiller::loseCopies() {
     
+    std::list<MoveNode*> toDeleteNodes;
     for (std::map<MoveNode*,MoveNode*,MoveNode::Comparator>::iterator mnIter =
              moveNodes_.begin(); mnIter != moveNodes_.end();
          mnIter++ ) {
         MoveNode* second = mnIter->second;
         if (mnOwned_[second] == true) {
             mnOwned_.erase(second);
-            delete second;
-            moveNodes_.erase(mnIter);
-        }
+
+            // queue to be deleted
+            toDeleteNodes.push_back(second);
+        } 
     }
     moveNodes_.clear();
     mnOwned_.clear();
     oldMoveNodes_.clear();
+
+    // actually delete the movenodes.
+    for (std::list<MoveNode*>::iterator i = toDeleteNodes.begin();
+         i != toDeleteNodes.end(); i++) {
+        delete *i;
+    }
     
     for (std::map<Move*,Move*>::iterator mIter = moves_.begin(); 
          mIter != moves_.end();
@@ -763,6 +786,7 @@ void CopyingDelaySlotFiller::loseCopies() {
     moves_.clear();
     moveOwned_.clear();
     
+    std::list<ProgramOperation*> toDeletePOs;    
     for (std::map<ProgramOperation*,ProgramOperation*,
              ProgramOperation::Comparator>::iterator poIter =
              programOperations_.begin(); poIter != programOperations_.end();
@@ -771,13 +795,20 @@ void CopyingDelaySlotFiller::loseCopies() {
         // may also crash on this
         if (poOwned_[poIter->second] == true) {
             poOwned_.erase(second);
-            delete poIter->second;
-            programOperations_.erase(poIter);
+
+            // queue to be deleted
+            toDeletePOs.push_back(second);
         }
     }
     programOperations_.clear();
     oldProgramOperations_.clear();
     poOwned_.clear();    
+
+    // actually delete the programoperations
+    for (std::list<ProgramOperation*>::iterator i = toDeletePOs.begin();
+         i != toDeletePOs.end(); i++) {
+        delete *i;
+    }
 }
 
 /**
