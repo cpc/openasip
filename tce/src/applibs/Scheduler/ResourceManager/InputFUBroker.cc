@@ -342,7 +342,7 @@ InputFUBroker::latestCycle(int, const MoveNode&) const {
  * is, the broker has marked that resource as in use in the given
  * cycle).
  *
- * @param cycle Cycle.
+ * @param cycle Cycle. Not used.
  * @param node Node.
  * @return True if the given node is already assigned a resource of the
  * type managed by this broker, and the assignment appears valid (that
@@ -361,6 +361,7 @@ InputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
             }
         }
     }
+    cycle = cycle; // to avoid unused variable
     return false;
 }
 
