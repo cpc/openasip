@@ -78,6 +78,7 @@ volatile TargetLowering dummy(TargetMachine());
 Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
 Pass* createLinkBitcodePass(Module& inputCode);
 Pass* createMachineDCE();
+//Pass* createFixLibCalls();
 
 // TODO: uncomment with llvm 2.4
 // extern const PassInfo* UnreachableMachineBlockElimID;
@@ -211,8 +212,14 @@ LLVMBackend::compile(
 
     TCETargetMachine targetMachine(module, fs, plugin);
 
-    llvm::FunctionPassManager fpm(new ExistingModuleProvider(&module));
-    fpm.add(new TargetData(*targetMachine.getTargetData()));
+    llvm::FunctionPassManager fpm1(new ExistingModuleProvider(&module));
+    fpm1.add(new TargetData(*targetMachine.getTargetData()));
+
+    llvm::FunctionPassManager fpm2(new ExistingModuleProvider(&module));
+    fpm2.add(new TargetData(*targetMachine.getTargetData()));
+
+    llvm::FunctionPassManager fpm3(new ExistingModuleProvider(&module));
+    fpm3.add(new TargetData(*targetMachine.getTargetData()));
 
     llvm::PassManager pm;
     pm.add(new TargetData(*targetMachine.getTargetData()));
@@ -241,38 +248,62 @@ LLVMBackend::compile(
     pm.add(createInternalizePass(true));
 
     // just for debugging... disable if needed... 
-    // (TODO: check if pm automatically frees passes.. if not create stack object)
     // pm.add(new PrintModulePass());
     
     // Instruction selection.
-    targetMachine.addInstSelector(fpm, fast);
+    targetMachine.addInstSelector(fpm1, fast);
 
-    // Machine DCE pass. TODO: fix to following in llvm 2.4
-    fpm.add(createMachineDCE());
+    // Fix external lib calls.. must be finalized before Machine DCE
+    // fpm1.add(createFixLibCalls());
+
+    // Machine DCE pass. 
+    fpm2.add(createMachineDCE());
+    
+    // TODO: enable following in llvm 2.4
     // fpm.add(UnreachableMachineBlockElimID->createPass());
     
+    // TODO: Maybe MachineDCE should be finalized before this... 
     // Register allocation.
-    fpm.add(createRegisterAllocator());
+    fpm2.add(createRegisterAllocator());
 
     // Insert prolog/epilog code.
-    fpm.add(createPrologEpilogCodeInserter());
+    fpm2.add(createPrologEpilogCodeInserter());
     //fpm.add(createBranchFoldingPass());
-    fpm.add(createDebugLabelFoldingPass());
+    fpm2.add(createDebugLabelFoldingPass());
 
+    // In separate function pass manager, because we have to run finalization 
+    // of MachineDCE pass before writing POM data.
     LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(targetMachine, &target);
-    fpm.add(pomBuilder);
+    fpm3.add(pomBuilder);
 
     // Module passes.
     pm.run(module);
 
     // Function passes.
-    fpm.doInitialization();
+    fpm1.doInitialization();
     for (Module::iterator i = module.begin(), e = module.end(); i != e; ++i) {
         if (!i->isDeclaration()) {
-            fpm.run(*i);
+            fpm1.run(*i);
         }
     }
-    fpm.doFinalization();
+    fpm1.doFinalization();
+
+    // Function passes.
+    fpm2.doInitialization();
+    for (Module::iterator i = module.begin(), e = module.end(); i != e; ++i) {
+        if (!i->isDeclaration()) {
+            fpm2.run(*i);
+        }
+    }
+    fpm2.doFinalization();
+
+    fpm3.doInitialization();
+    for (Module::iterator i = module.begin(), e = module.end(); i != e; ++i) {
+        if (!i->isDeclaration()) {
+            fpm3.run(*i);
+        }
+    }
+    fpm3.doFinalization();
 
     TTAProgram::Program* prog = pomBuilder->result();
     assert(prog != NULL);

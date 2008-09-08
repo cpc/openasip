@@ -33,27 +33,46 @@
 #include "llvm/Target/TargetInstrInfo.h"
 #include "llvm/ADT/DepthFirstIterator.h"
 
+#include "llvm/Analysis/CallGraph.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/Passes.h"
+#include "llvm/Module.h"
+#include "llvm/Support/Debug.h"
+
 #include <iostream>
+#include <map>
 
 using namespace llvm;
 
-namespace {
-  class VISIBILITY_HIDDEN UnreachableMachineBlockElim :
+namespace {    
+  class VISIBILITY_HIDDEN MachineDCE :
         public MachineFunctionPass {
+      
+    typedef std::map<const Function*, MachineFunction*> FunctionMap;
+    typedef std::vector<const llvm::User*> UserList;
+    typedef std::map<const Function*, UserList> UserRelations;
+    typedef std::map<const llvm::User*, const Function*> ParentMap;
+
+    FunctionMap functionMappings;
+    UserRelations usersOfFunction;
+
     virtual bool runOnMachineFunction(MachineFunction &F);
-         
-      std::vector<MachineBasicBlock*> AllBlocks;
-      std::vector<MachineBasicBlock*> ReacheableBlocks;
+    virtual bool doFinalization(Module &M);
+
+    bool canFindStart(
+      const Function* curr, const Function* start,
+      UserRelations &uses, ParentMap &parents);
+
 
   public:
     static char ID; // Pass identification, replacement for typeid
-    UnreachableMachineBlockElim() : MachineFunctionPass((intptr_t)&ID) {}
+    MachineDCE() : MachineFunctionPass((intptr_t)&ID) {}
   };
 }
-char UnreachableMachineBlockElim::ID = 0;
+char MachineDCE::ID = 0;
 
 Pass* createMachineDCE() {
-    return new UnreachableMachineBlockElim();
+    return new MachineDCE();
 }
 
 /**
@@ -62,96 +81,92 @@ Pass* createMachineDCE() {
 void eraseFromParent(MachineBasicBlock* fake_this) {
     assert(fake_this->getParent() && "Not embedded in a function!");    
     MachineFunction* mf = fake_this->getParent();
-    mf->getBasicBlockList().erase(fake_this);
-    
+    mf->getBasicBlockList().erase(fake_this);    
 }
 
-bool UnreachableMachineBlockElim::runOnMachineFunction(MachineFunction &F) {
-    
-    /*
-    
-    // Mark all reachable blocks.
-    for (df_ext_iterator<MachineFunction*> I = df_ext_begin(&F, Reachable),
-             E = df_ext_end(&F, Reachable); I != E; ++I)
-    
-    // Loop over all dead blocks, remembering them and deleting all instructions
-    // in them.
-    std::vector<MachineBasicBlock*> DeadBlocks;
-    for (MachineFunction::iterator I = F.begin(), E = F.end(); I != E; ++I) {
-    MachineBasicBlock *BB = I;
+bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
+    const Function* currFunc = F.getFunction();    
+    DOUT << currFunc->getNameStr() << " Address: " 
+         << std::hex << (unsigned)currFunc << std::endl;    
 
-    // Test for deadness.
-    if (!Reachable.count(BB)) {
-      DeadBlocks.push_back(BB);
+    // Could be done in finalize as well.
+    DOUT << "Users:";
+    for (Value::use_const_iterator i = currFunc->use_begin(); 
+         i != currFunc->use_end(); ++i) {
+        DOUT << " " << *i << " Name: " << i->getNameStr();
+        usersOfFunction[currFunc].push_back(*i);
+    }
+    DOUT << std::endl;
+   
+    functionMappings[F.getFunction()] = &F; 
+    return true;
+}
 
-      while (BB->succ_begin() != BB->succ_end()) {
-        MachineBasicBlock* succ = *BB->succ_begin();
+/**
+ * Returns true if can find startpoint.
+ */ 
+bool MachineDCE::canFindStart(const Function* curr, const Function* start,
+                              UserRelations &uses, ParentMap &parents) {
 
-        MachineBasicBlock::iterator start = succ->begin();
-        while (start != succ->end() &&
-               start->getOpcode() == TargetInstrInfo::PHI) {
-          for (unsigned i = start->getNumOperands() - 1; i >= 2; i-=2)
-            if (start->getOperand(i).isMBB() &&
-                start->getOperand(i).getMBB() == BB) {
-              start->RemoveOperand(i);
-              start->RemoveOperand(i-1);
+    UserList &usesVec = uses[curr];
+    DOUT << "Checking " << curr->getNameStr() << std::endl;
+
+    // current function is actually the start point.. nice job.
+    if (curr == start) {
+        DOUT << "Found it!" << std::endl;
+        return true;
+    }
+
+    // check if this function is used by start point to be sure...
+    for (unsigned int i=0; i < usesVec.size(); i++) {
+        const Function* parent = NULL;
+        if (parents.find(usesVec[i]) != parents.end()) {
+            parent = parents[usesVec[i]];
+        } else {
+            DOUT << "Could not find parent! Lets assume it is needed then.\n";
+            return true;
+        }
+        DOUT << "Parent name: " << parent->getNameStr() << std::endl;
+        if (canFindStart(parent, start, uses, parents)) {
+            return true;
+        }
+    }    
+
+    DOUT << "Done without finding entry point " << curr->getNameStr() 
+         << std::endl;
+    return false;
+}
+
+bool MachineDCE::doFinalization(Module &M) {    
+    // find entry function of prgogram...
+    Function& startPoint = *(M.begin());
+    ParentMap parentOfUser;
+
+    // Get parent functions of llvm::User objects for tracing users.
+    for (Module::iterator F = M.begin(), E = M.end(); F != E; ++F) 
+        // For all basic blocks...
+        for (Function::iterator BB = F->begin(), E = F->end(); BB != E; ++BB)
+            // For all instructions...
+            for (BasicBlock::iterator I = BB->begin(), E = BB->end(); 
+                 I != E; ++I) {
+                parentOfUser[&(*I)] = &(*F);
             }
+    
+    // For all functions check that they are reached from entrypoint of module.
+    for (Module::iterator F = M.begin(), E = M.end(); F != E; ++F) {
+        if (!canFindStart(&(*F), &startPoint, usersOfFunction, parentOfUser)) {
+            // TODO: use DOUT
+            std::cerr << "Function was not referred trying to delete all " 
+                 << "MachineBasicBlocks of : " << F->getNameStr() 
+                 << std::endl;
 
-          start++;
+            MachineFunction* mf = functionMappings[&(*F)];            
+            while (!mf->empty()) {
+                MachineBasicBlock &BB = mf->front();
+                eraseFromParent(&BB);
+            }
         }
-
-        BB->removeSuccessor(BB->succ_begin());
-      }
     }
-
-
-    }
-  
-  std::cerr << "Blocks to kills: " << DeadBlocks.size() << std::endl;
-
-  // Actually remove the blocks now.
-  for (unsigned i = 0, e = DeadBlocks.size(); i != e; ++i) {
-      // DeadBlocks[i]->eraseFromParent();
-      eraseFromParent(DeadBlocks[i]);
-  }
-
-  // Cleanup PHI nodes.
-  for (MachineFunction::iterator I = F.begin(), E = F.end(); I != E; ++I) {
-    MachineBasicBlock *BB = I;
-    // Prune unneeded PHI entries.
-    SmallPtrSet<MachineBasicBlock*, 8> preds(BB->pred_begin(),
-                                             BB->pred_end());
-    MachineBasicBlock::iterator phi = BB->begin();
-    while (phi != BB->end() &&
-           phi->getOpcode() == TargetInstrInfo::PHI) {
-      for (unsigned i = phi->getNumOperands() - 1; i >= 2; i-=2)
-        if (!preds.count(phi->getOperand(i).getMBB())) {
-          phi->RemoveOperand(i);
-          phi->RemoveOperand(i-1);
-        }
-
-      if (phi->getNumOperands() == 3) {
-        unsigned Input = phi->getOperand(1).getReg();
-        unsigned Output = phi->getOperand(0).getReg();
-
-        MachineInstr* temp = phi;
-        ++phi;
-
-        temp->eraseFromParent();
-
-        if (Input != Output)
-          F.getRegInfo().replaceRegWith(Output, Input);
-
-        continue;
-      }
-
-      ++phi;
-    }
-  }
-
-  F.RenumberBlocks();
-
-  return DeadBlocks.size();
-*/
+   
     return true;
 }
