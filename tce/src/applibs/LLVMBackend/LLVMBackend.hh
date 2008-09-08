@@ -86,7 +86,7 @@ public:
 
     TTAProgram::Program* compileAndSchedule(
         const std::string& bytecodeFile,
-        TTAMachine::Machine& target,
+        const TTAMachine::Machine& target,
         int optLevel = 2,
         const unsigned int debug = 0)
         throw (Exception);
