@@ -32,6 +32,7 @@
  * Implementation of DesignSpaceExplorer class
  *
  * @author Jari Mäntyneva 2006 (jari.mantyneva@tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta@tut.fi)
  * @note rating: red
  */
 
@@ -63,6 +64,8 @@
 #include "SimulatorInterpreter.hh"
 #include "OperationGlobals.hh"
 #include "Application.hh"
+#include "FullyConnectedCheck.hh"
+#include "ComponentImplementationSelector.hh"
 
 using std::set;
 using std::vector;
@@ -141,10 +144,12 @@ DesignSpaceExplorer::evaluate(
 
     try {
         if (configuration.hasImplementation && estimate) {
+            // estimate total area
             AreaInGates totalArea = estimator_.totalArea(*adf, *idf);
             dsdb_->setAreaEstimate(configuration.implementationID, totalArea);
             result.setArea(totalArea);
         
+            // estimate longest path delay
             DelayInNanoSeconds longestPathDelay = 0;
             longestPathDelay = estimator_.longestPath(*adf, *idf);
             dsdb_->setLongestPathDelayEstimate(
@@ -173,7 +178,7 @@ DesignSpaceExplorer::evaluate(
                 schedule(applicationFile, *adf);
 
             if (scheduledProgram == NULL) {
-                verboseLog("Evaluate failed: Scheduling program failed.", 1)
+                verboseLogC("Evaluate failed: Scheduling program failed.", 1)
                 return false;
             }
 
@@ -239,8 +244,7 @@ DesignSpaceExplorer::evaluate(
             traceDB = NULL;
         }
     } catch (const Exception& e) {
-        Application::writeToErrorLog(
-                __FILE__, __LINE__, __func__, e.errorMessageStack(), 0);
+        debugLog(e.errorMessageStack());
         return false;
     }
     return true;
@@ -552,6 +556,64 @@ DesignSpaceExplorer::checkMinimalOpSet(
 
 
 /**
+ * Checks if machine has all operations in minimal opset.
+ *
+ * Ignores fus with specified names from the check. This is usefull with
+ * testing if minimal opset requirement breaks if a certain FUs are removed.
+ *
+ * @param machine Machine to be checked againsta minimal opset.
+ * @param ignoreFUs Names of the fus to be ignored regarding the check.
+ * @return True if minimal operation set was met, false otherwise.
+ */
+bool 
+DesignSpaceExplorer::checkMinimalOpSet(
+    const TTAMachine::Machine& machine,
+    const std::set<std::string>& ignoreFUs) const {
+
+    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
+        machine.functionUnitNavigator();
+    std::set<std::string> opSet;
+    // construct the opset list
+    for (int i = 0; i < fuNav.count(); i++) {
+        TTAMachine::FunctionUnit* fu = fuNav.item(i);
+        if (ignoreFUs.find(fu->name()) == ignoreFUs.end()) {
+            fu->operationNames(opSet);
+        }
+    }
+
+    // if machines opset is smaller than requiered opset
+    if (opSet.size() < minimalOpSet_.size()) {
+        return false;
+    }
+
+    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
+    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
+
+    std::set<std::string>::iterator first2 = opSet.begin();
+    std::set<std::string>::iterator last2 = opSet.end();
+
+    // return false if missing operation was found
+    while (first1 != last1 && first2 != last2)
+    {
+        if (*first1 < *first2) {
+            return false;
+        }
+        else if (*first2 < *first1) {
+            ++first2;
+        }
+        else { 
+            ++first1; 
+            ++first2; 
+        }
+    }
+    if (first1 != last1) {
+        return false;
+    }
+    return true;
+}
+
+
+/**
  * Return operations that are missing from a machine.
  *
  * Returns operations that are missing from a machine compared to the minimal
@@ -596,5 +658,219 @@ DesignSpaceExplorer::missingOperations(
     }
     while (first1 != last1) {
         missingOps.push_back(*first1++);
+    }
+}
+
+
+/**
+ * Adds FUs to the machine so that it doesn't miss operations anymore.
+ *
+ * Check is done against minimal opset.
+ *
+ * @param machine Machine to be checked againsta minimal opset and where FUs
+ * are inserted so that minimal opset is fulfilled.
+ * @return True if something was done to the machine, false otherwise.
+ */
+bool
+DesignSpaceExplorer::fulfillMinimalOpset(
+    TTAMachine::Machine& machine) const {
+
+    std::vector<std::string> missingOps;
+    missingOperations(machine, missingOps);
+
+    if (missingOps.size() < 1) {
+        return false;
+    }
+
+    // go through minimal adf and add FUs that include missing ops
+    TTAMachine::Machine* minMach = TTAMachine::Machine::loadFromADF(
+            Environment::minimalADF());
+    
+    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
+        minMach->functionUnitNavigator();
+    std::set<std::string> fuAdded;
+    FullyConnectedCheck conCheck = FullyConnectedCheck();
+
+    for (unsigned int moi = 0; moi < missingOps.size(); ++moi) {
+        for (int fui = 0; fui < fuNav.count(); ++fui) {
+            TTAMachine::FunctionUnit* fu = fuNav.item(fui);
+            if (fu->hasOperation(missingOps.at(moi))) {
+                if (fuAdded.end() != fuAdded.find(fu->name())) {
+                    break;
+                }
+                fuAdded.insert(fu->name());
+                fu->unsetMachine();
+                machine.addFunctionUnit(*fu);
+                // connect the fu
+                for (int op = 0; op < fu->operationPortCount(); ++op) {
+                    conCheck.connectFUPort(*fu->operationPort(op));
+                }
+                break;
+            }
+        }
+    }
+    return true;
+}
+
+
+/**
+ * Selects components for a machine and creates a new configuration.
+ * 
+ * Also stores the new configuration to the dsdb and returns it's rowID.
+ *
+ * @param dsdb Desing database.
+ * @param conf MachineConfiguration of which architecture is used.
+ * @param frequency The minimum frequency of the implementations.
+ * @param maxArea Maximum area for implementations.
+ * @return RowID of the new machine configuration having adf and idf.
+ * */
+RowID 
+DesignSpaceExplorer::createImplementationAndStore(
+    const DSDBManager::MachineConfiguration& conf,
+    const double& frequency,
+    const double& maxArea,
+    const bool& createEstimates,
+    const std::string& icDec,
+    const std::string& icDecHDB) {
+
+    const TTAMachine::Machine* mach = dsdb_->architecture(conf.architectureID);
+    IDF::MachineImplementation* idf = NULL;
+
+    if (!selectComponents(*mach, idf, frequency, maxArea, icDec, icDecHDB)) {
+        return 0;
+    }
+
+    CostEstimator::AreaInGates area = 0;
+    CostEstimator::DelayInNanoSeconds longestPathDelay = 0;
+    if (createEstimates) {
+        createEstimateData(*mach, *idf, area, longestPathDelay);
+    }
+
+    DSDBManager::MachineConfiguration newConf;
+
+    newConf.architectureID = conf.architectureID;
+
+    newConf.implementationID = 
+        dsdb_->addImplementation(*idf, longestPathDelay, area);
+    newConf.hasImplementation = true;
+    
+    // idf written to the dsdb so it can be deleted
+    delete idf;
+    idf = NULL;
+
+    return addConfToDSDB(newConf);
+}
+
+
+bool
+DesignSpaceExplorer::createImplementation(
+    const DSDBManager::MachineConfiguration& conf,
+    DSDBManager::MachineConfiguration& newConf,
+    const double& frequency,
+    const double& maxArea,
+    const bool& createEstimates,
+    const std::string& icDec,
+    const std::string& icDecHDB) const {
+
+    const TTAMachine::Machine* mach = dsdb_->architecture(conf.architectureID);
+    IDF::MachineImplementation* idf = NULL;
+
+    if (!selectComponents(*mach, idf, frequency, maxArea, icDec, icDecHDB)) {
+        return false;
+    }
+
+    CostEstimator::AreaInGates area = 0;
+    CostEstimator::DelayInNanoSeconds longestPathDelay = 0;
+    if (createEstimates) {
+        createEstimateData(*mach, *idf, area, longestPathDelay);
+    }
+
+    newConf.architectureID = conf.architectureID;
+    newConf.implementationID = dsdb_->addImplementation(*idf, longestPathDelay, area);
+    newConf.hasImplementation = true;
+    
+    // idf written to the dsdb so it can be deleted
+    delete idf;
+    idf = NULL;
+    return true;
+}
+
+
+/**
+ * Selects components for a machine, creates a idf.
+ * 
+ * @param dsdb Desing database.
+ * @param conf MachineConfiguration of which architecture is used.
+ * @param frequency The minimum frequency of the implementations.
+ * @param maxArea Maximum area for implementations.
+ * @return True if implementation was created, false otherwise.
+ * */
+bool 
+DesignSpaceExplorer::selectComponents(
+    const TTAMachine::Machine& mach,
+    IDF::MachineImplementation* idf,
+    const double& frequency,
+    const double& maxArea,
+    const std::string& icDec,
+    const std::string& icDecHDB) const {
+
+    ComponentImplementationSelector impSelector;
+
+    try {
+        // TODO: check that idf is deleted when it has been written to the
+        // dsdb, and not in use anymore (selectComponents reserves it with
+        // new)
+        idf = impSelector.selectComponents(&mach, icDec,
+                icDecHDB, frequency, maxArea);
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        if (idf != NULL) {
+            delete idf;
+            idf = NULL;
+        }
+        return false;
+    }
+    return true;
+}
+
+
+/**
+ * creates estimate data for machine and idf.
+ * 
+ * @param mach Machine mathcing given idf.
+ * @param idf Implementation definition for given machine.
+ * @param area Estimated area cost.
+ * @param longestPathDelay Estimated longest path delay.
+ * */
+void
+DesignSpaceExplorer::createEstimateData(
+    const TTAMachine::Machine& mach,
+    const IDF::MachineImplementation& idf,
+    CostEstimator::AreaInGates& area,
+    CostEstimator::DelayInNanoSeconds& longestPathDelay) const {
+
+    CostEstimator::Estimator estimator;
+    area = estimator.totalArea(mach, idf);
+    longestPathDelay = estimator.longestPath(mach, idf);                
+}
+
+
+/**
+ * Add given configuration to the database.
+ *
+ * @param conf Configuration to be added to the database.
+ * @param dsdb Database where to add the configuration.
+ * @return RowID Row ID of the config in the database. 0 if adding
+ *         failed.
+ */
+inline RowID 
+DesignSpaceExplorer::addConfToDSDB(
+    const DSDBManager::MachineConfiguration& conf) {
+
+    try {
+        return dsdb_->addConfiguration(conf);
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        return 0;
     }
 }

@@ -108,7 +108,8 @@ public:
         explorer.setDSDB(dsdb);
         CostEstimates estimates;
         try {
-            if (!explorer.evaluate(configuration, estimates, false)) {
+            bool estimate = false;
+            if (!explorer.evaluate(configuration, estimates, estimate)) {
                 debugLog(std::string("Evaluate failed in GrowMachine plugin."));
                 result.push_back(configurationID);
                 return result;
@@ -197,6 +198,7 @@ public:
         }
         if (result.empty()) {
             // if now new configuration created return the old
+            verboseLogC("GrowMachine could not generate new configs.", 2)
             result.push_back(configurationID);
         }
         return result;

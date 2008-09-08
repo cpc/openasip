@@ -264,7 +264,7 @@ LLVMBackend::compile(
 TTAProgram::Program* 
 LLVMBackend::compileAndSchedule(
     const std::string& bytecodeFile,
-    TTAMachine::Machine& target,
+    const TTAMachine::Machine& target,
     int optLevel,
     const unsigned int debug)
     throw (Exception) {
@@ -289,9 +289,9 @@ LLVMBackend::compileAndSchedule(
     // call tcecc to compile, link and schedule the program
     std::vector<std::string> tceccOutputLines;
     std::string debugParams = "";
-    if (debug > 1) {
+    if (debug > 3) {
         debugParams = "-v ";
-        if (debug > 2) {
+        if (debug > 4) {
             debugParams.append("--debug ");
         }
     }

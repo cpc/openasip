@@ -82,6 +82,9 @@
     Application::writeToErrorLog(__FILE__, __LINE__, __func__, \
         std::string("DEBUG: ") + std::string(text))
 
+// provide an easy way to verbose log printing
+#define verboseLog(text) Application::logStream() << text << std::endl;
+
 // provide an easy way to print out exception data
 #define CATCH_ANY(XXX__) \
     try { XXX__; } \
@@ -92,10 +95,11 @@
 	    Conversion::toString(e.lineNum())); } \
     catch ( ... ) { debugLog("Unknown exception"); }
 
-// easy way to do verbose logging
-#define verboseLog(text, neededVerbosity) \
+// easy way to do conditional verbose logging
+#define verboseLogC(text, neededVerbosity) \
     if (Application::verboseLevel() >= neededVerbosity) { \
        Application::logStream() << text << std::endl; }
+
 
 // provide an easy way to print out the contents of a variable
 #define PRINT_VAR(VARIABLE__) \

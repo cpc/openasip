@@ -1,96 +1,26 @@
-- CycleOptimizer:
-  - should be split to explorer plugins, now a single applibs class
-    with multiple useful methods
-  - create explorer plugins:
-    - [DONE] GrowMachine 
-      = optimizes cycle count by adding resources
-    - MinimizeMachine (minimizeBusFURF)
-      = removes resources until the real time requirements of apps are 
-        not reached anymore.
-    - [DONE] Pass frequency to the new MinimizeMachine and minimize fu/rf 
-      according to all programs max cycle times.
+- clean MinimalOpSet before commiting.
 
-  - Check that all CycleOptimizers functionality is implemented in plugins
-    and remove the module.
-  - remove InitialMachineGenerator plugin
+- how to preserve frequency an max area limitations when selecting components
+  when other plugins are called.
 
-- initial machine generator:
-    - should be able to use a config as a starting point. initial adf as default.
-    - expects default minimal op set that must be found from machine.
-    - no sequential program, no automatic selection of ops.
-    - adds fus, rfs, busses and so on only.
+- ComponentAdder plugin is rather limited now.
 
-- new plugin for op addition to given configuration.
-    - paramaters for (custom) ops addition to the machine.
+Documentation:
+- update the documentation for the plugins.
+- state clearly what is needed in application dir for specific plugin.
 
-- SimpleICOptimizer:
-    - remove tpef usage, make to use .bc if needed anymore
+Questions:
+- what is needed from adf at minimum: minimal opset, guard-registers?
 
-- tcecc support:
-  - should be able to read program.bc instead of sequential_program 
-  - call tcecc instead of scheduler to compile 
-  - no sequential simulation: initial machine generator simply uses
-    initial.adf     
-  - ei sekventiaalista tpef enään vaan skeduloitu tpef.
+Tests:
+- fix frequency sweep plugin long systemtest.
+- simple FrequencySweepExplorer long system test
+- (FrequencySweepExplorer) create a (long) systemtest with at least 3 
+  applications with realistic realtime requirements, explore and verify the
+  result, this is prob going to be too long test to run rutinely.
+- tests for plugings that use more than one application.
 
-- testing:
-  - (FrequencySweepExplorer) create a (long) systemtest with at least 3 
-    applications with realistic realtime requirements, explore and verify the
-    result
-  - simple FrequencySweepExplorer long system test
-    /home/wor/work/svnroot/trunk/tce/systemtest/bintools/Scheduler/tests/FFT/r4fftditinplace_no_custom_op
-  - tests for plugings that use more than one application.
-
-- explorer should be able to add application dirs where all .bc files are read
-  and application files explicitely.
-
-- Update the documentation for the plugins.
-  - state clearly what is needed in application dir for specific plugin.
-
-- make new function to llvmbackend module that does compilation and simulation with
-  default plan.
-
-- these use old testaplication: [DONE?]
-    DesignSpaceExplorer.cc [DONE?]
-    FrequencySweepExplorer.cc
-    MinimizeMachine.cc
-
-- depracate the use of initial machine generator
-    FrequencySweepExplorer.cc 
-
-- just call tcecc python script for .bc file before compiling and scheduling
-  for now.
-
-- Add a plugin that takes a adf or some other reference of ops
-    and checks that other adf has these ops (base opset requirement)
-
-- make system test for minimize machine by growing the minimal adf and then
-    minimizing it and checking resulting adf against minimal adf.
-
-- make tcecc output possible with verbose or debug params only.
-
-- what is needed from adf at minimum, guard-registers?
-
-FIX frequency sweep plugin systemtest long.
-FIX LLVMBackend.hh compile/schedule functions to use const machine.
-
-REDO: debug and verbose printing using application module
-    add -v parameter for verbose level to explorer.cc
-
-TODO: make longest path selection of units in implementation selector module a
-    function.
-
-ComponentAdder test case and systemtest long ones to be fixed.
-Look for unkown files, bzr add needed. tests seem to be ok.
-check diffs and make commit. is evaluate.cc plugin clean enough?
-
-Commit next to tce-1.0:
-
-DONE tce/src/applibs/LLVMBackend/LLVMBackend.{hh,cc} tce/src/applibs/LLVMBackend/Makefile.am 
-DONE Environment.{cc.hh}
-DONE Explorer.cc
-
-do not merge to tce-1.0:
-tce/src/applibs/LLVMBackend/LowerMissingInstructions.cc
-
-
+Refactor/cleanups:
+- make longest path selection of units in implementation selector module a
+  function.
+- LLVMBackend.hh compile/schedule functions to use const machine.

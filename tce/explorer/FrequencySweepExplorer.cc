@@ -45,6 +45,7 @@
 #include <boost/format.hpp>
 
 #include "DesignSpaceExplorerPlugin.hh"
+#include "Conversion.hh"
 #include "DSDBManager.hh"
 #include "Machine.hh"
 #include "TestApplication.hh"
@@ -127,7 +128,7 @@ public:
             // called. That would add FUs that support basic opset if needed.
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error: No starting configuration specified." << endl;
-            verboseOuput(msg.str());
+            verboseLog(msg.str())
             return result;
         }
 
@@ -167,19 +168,17 @@ public:
         // count stops going down
         vector<RowID> cycleOptimizedConfs = 
             growMachine->explore(startPointConfID);
-        if (verbose_ > 1) {
+        if (Application::verboseLevel() > 1) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "GrowMachine plugin produced initial configs: ";
             for (unsigned int i = 0; i < cycleOptimizedConfs.size(); ++i) {
                 msg << cycleOptimizedConfs.at(i) << " ";
             }
             msg << endl;
-            verboseOuput(msg.str());
+            verboseLog(msg.str())
         }
 
         int currentFrequencyMHz = sweeper.nextFrequency();
-        set<RowID> applicationIDs = dsdb.applicationIDs();
-        set<RowID>::const_iterator applicationIter;
         vector<RowID>::const_iterator archIter;
         DesignSpaceExplorerPlugin::ParameterTable minMachineParameters;
         DesignSpaceExplorerPlugin::Parameter frequencyPar;
@@ -198,34 +197,8 @@ public:
                  archIter != cycleOptimizedConfs.end();
                  archIter++) {
 
-                bool isFastEnough = true;
-                DSDBManager::MachineConfiguration configuration = 
-                    dsdb.configuration(*archIter);
-                for (applicationIter = applicationIDs.begin();
-                     applicationIter != applicationIDs.end();
-                     applicationIter++) {
-                                        
-                    ClockCycleCount cycleCount = 
-                        dsdb.cycleCount(
-                            *applicationIter, configuration.architectureID);
-                    TestApplication testApplication(
-                        dsdb.applicationPath(*applicationIter));
-
-                    // test if application max runtime is set
-                    if (testApplication.maxRuntime() < 1) {
-                        continue;
-                    }   
-
-                    if ((cycleCount / (currentFrequencyMHz * 100000)) >
-                        testApplication.maxRuntime()) {
-                        // we can skip this architecture since it won't
-                        // meet the speed requirements
-                        isFastEnough = false;
-                        break;
-                    }
-                }
-                // if was fast enough for all apps
-                if (isFastEnough) {
+                // if is fast enough for all apps
+                if (fastEnough(*archIter, currentFrequencyMHz, dsdb)) {
                     // calling MimimizeMachine plugin with confToMinimize 
                     // (architer) and currentFrequencyMHz
                     minimizeMachine->setParameters(minMachineParameters);
@@ -245,47 +218,41 @@ public:
                             ) % *archIter).str());
                     }
 
-                    if (verbose_ > 2) {
+                    if (Application::verboseLevel() > 2) {
                         std::ostringstream msg(std::ostringstream::out);
                         msg << "MinimizeMachine plugin produced config: "
                             << minimizedConfs.at(0) << " (" 
                             << currentFrequencyMHz << " Mhz)" << endl;
-                        verboseOuput(msg.str());
+                        verboseLog(msg.str())
                     }
 
-                    // selecting the component implementations
-                    RowID selectedConf = selectComponents(dsdb, minConf, 
-                            currentFrequencyMHz, 0);
+                    // create implementation for configuration
+                    RowID selectedConf = createImplementationAndStore(minConf, 
+                            currentFrequencyMHz, 0, true, icDec_, icDecHDB_);
 
                     // check if component selection failed
                     if (selectedConf == 0) {
-                        break;
+                        continue;
                     }
                     
                     // IC optimization with SimpleICOptimizer plugin
                     vector<RowID> icOptimizedResult = 
                         icOptimizer->explore(selectedConf);
                     if (icOptimizedResult.size() == 1) {
-                        if (verbose_) {
+                        if (Application::verboseLevel()) {
                             std::ostringstream msg(std::ostringstream::out);
                             msg << "Config " << icOptimizedResult.at(0) 
                                 << " created for frequency " 
                                 << currentFrequencyMHz << "." << endl;
-                            verboseOuput(msg.str());
+                            verboseLogC(msg.str(), 1)
                         }
                         result.push_back(icOptimizedResult.at(0));
                     } else {
-                        // should work always
-                        // If doesn't work, there is possibly a bug in
-                        // estimator or the ICOptimizer or the HDB is
-                        // missing some vital data.
-                        throw InvalidData(
-                            __FILE__, __LINE__, __func__,
-                            (boost::format(
-                                "ICOptimizer failed to optimize configuration "
-                                "%d. Possible bug in Optimizer, Estimator "
-                                "or missing data from HDB.") % selectedConf).
-                            str());
+                        // simpleICOptimizer can make a machine not fully
+                        // connected, and so, register file requirements can
+                        // change. Meaning evaluating the machine can fail in
+                        // the plugin.
+                        continue;
                     }
 
                     /// @todo Optimization of the instruction size
@@ -336,7 +303,6 @@ private:
     int maxNumberOfRegisterFiles_;
     int rfReadPorts_;
     int rfWritePorts_;
-    int verbose_;
 
     /// name of the ic decoder plugin for idf
     std::string icDec_;
@@ -355,8 +321,6 @@ private:
         const std::string icDecoderDefault = "DefaultICDecoder";
         const std::string icDecHDB = "ic_hdb";
         const std::string icDecHDBDefault = "asic_130nm_1.5V.hdb";
-        const std::string verbose = "verbose";
-        const int verboseDefault = 0;
 
         if (hasParameter(startMHz)) {
             try {
@@ -420,19 +384,6 @@ private:
             // set defaut value to icDecHDB
             icDecHDB_ = icDecHDBDefault;
         }
-
-        // parameter for printing info about what is done
-        if (hasParameter(verbose)) {
-            try {
-                verbose_ = Conversion::toInt(parameterValue(verbose));
-            } catch (const Exception& e) {
-                parameterError(verbose, "integer");
-                verbose_ = verboseDefault;
-            }
-        } else {
-            // set defaut value to verbose
-            verbose_ = verboseDefault;
-        }
     }
 
     
@@ -463,53 +414,43 @@ private:
         }
     }
 
-
+    
     /**
-     * Selects components for a machine and creates a new configuration.
-     * 
-     * @param dsdb Desing database.
-     * @param conf MachineConfiguration of which architecture is used.
-     * @param frequency The minimum frequency of the implementations.
-     * @param maxArea Maximum area for implementations.
-     * @return RowID of the new machine configuration having adf and idf.
-     * */
-    RowID selectComponents(
-            DSDBManager& dsdb,
-            DSDBManager::MachineConfiguration& conf, 
-            const double& frequency,
-            const double& maxArea) {
+     * Check if architecture is fast enough.
+     *
+     * @param id Row id of the architecture.
+     * @param freq Frequency in MHz for testing the run time.
+     * @param dsdb Desing Space Explorer database.
+     */
+    bool fastEnough(const RowID& id, const int& freq, DSDBManager& dsdb) {
+        set<RowID>::const_iterator applicationIter;
+        set<RowID> applicationIDs = dsdb.applicationIDs();
+        DSDBManager::MachineConfiguration configuration = 
+            dsdb.configuration(id);
+        for (applicationIter = applicationIDs.begin();
+                applicationIter != applicationIDs.end();
+                applicationIter++) {
 
-        const TTAMachine::Machine* mach = dsdb.architecture(conf.architectureID);
-        IDF::MachineImplementation* idf = NULL;
+            ClockCycleCount cycleCount = 
+                dsdb.cycleCount(
+                        *applicationIter, configuration.architectureID);
+            TestApplication testApplication(
+                    dsdb.applicationPath(*applicationIter));
 
-        try {
-            idf = selector_.selectComponents(mach, icDec_,
-                    icDecHDB_, frequency, maxArea);
-        } catch (const Exception& e) {
-            std::ostringstream msg(std::ostringstream::out);
-            msg << e.errorMessage() 
-                << " " << e.fileName() 
-                << " " << e.lineNum() << std::endl;
-            errorOuput(msg.str());
-            return 0;
+            // test if application max runtime is set
+            if (testApplication.maxRuntime() < 1) {
+                continue;
+            }   
+
+            if ((cycleCount / (freq * 100000)) >
+                    testApplication.maxRuntime()) {
+                // we can skip this architecture since it won't
+                // meet the speed requirements
+                return false;
+            }
         }
-
-        DSDBManager::MachineConfiguration newConfiguration;
-        newConfiguration.architectureID = conf.architectureID;
-        newConfiguration.implementationID = dsdb.addImplementation(*idf, 0, 0);
-        newConfiguration.hasImplementation = true;
-        try {
-            return dsdb.addConfiguration(newConfiguration);
-        } catch (const Exception& e) {
-            std::ostringstream msg(std::ostringstream::out);
-            msg << e.errorMessage() 
-                << " " << e.fileName() 
-                << " " << e.lineNum() << std::endl;
-            errorOuput(msg.str());
-            return 0;
-        }
+        return true;
     }
-
 };
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(FrequencySweepExplorer)

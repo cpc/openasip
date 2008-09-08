@@ -48,6 +48,10 @@
 #include "Program.hh"
 #include "Instruction.hh"
 #include "Move.hh"
+#include "Port.hh"
+#include "FUPort.hh"
+#include "Socket.hh"
+#include "Terminal.hh"
 #include "Terminal.hh"
 #include "HDBRegistry.hh"
 #include "ICDecoderEstimatorPlugin.hh"
@@ -149,7 +153,7 @@ public:
                             std::string msg = "SimpleICOptimizer: Schedule "
                                 "failed for program: " + 
                                 testApp.applicationPath();
-                            verboseLog(msg, 1)
+                            verboseLogC(msg, 1)
                             return result;     
                         }
 
@@ -214,39 +218,16 @@ public:
                 std::string errorMsg = "SimpleICOptimizer plugin: "
                     "RemoveUnconnectedComponents plugin failed to produce"
                     "result.";
-                verboseLog(errorMsg, 2)
+                verboseLogC(errorMsg, 2)
                 return result;
             }
 
-            tempConf = dsdb.configuration(cleanedTempConfIDs.at(0));
-
-            mach = dsdb.architecture(tempConf.architectureID);
-            // TODO: find a way to save idf for allready existing config,
-            // avoid creating a new config here
-            DSDBManager::MachineConfiguration newConf;
-            try {
-                newConf.architectureID =
-                    dsdb.addArchitecture(*mach);
-            } catch (const RelationalDBException& e) {
-                std::ostringstream msg(std::ostringstream::out);
-                msg << "Error while adding ADF to the dsdb. "
-                    << "ADF probably too big." << endl;
-                errorOuput(msg.str());
-                return result;
-            }
+            DSDBManager::MachineConfiguration newConf =
+                dsdb.configuration(cleanedTempConfIDs.at(0));
 
             // create implementation for newConf if orginal config had one
-            if (conf.hasImplementation) {
-                newConf.hasImplementation = true;
-                IDF::MachineImplementation* idf = 
-                    dsdb.implementation(conf.implementationID);
-                CostEstimator::Estimator estimator;
-                CostEstimator::AreaInGates area = 
-                    estimator.totalArea(*mach, *idf);
-                CostEstimator::DelayInNanoSeconds longestPathDelay =
-                    estimator.longestPath(*mach, *idf);                
-                newConf.implementationID = 
-                    dsdb.addImplementation(*idf, longestPathDelay, area);
+            if (conf.hasImplementation && !newConf.hasImplementation) {
+                createImplementation(newConf, newConf);
             } else {
                 newConf.hasImplementation = false;
             }
@@ -255,7 +236,7 @@ public:
             CostEstimates estimates;
             if (evaluateResult_) {
                 // evaluate the new config
-                bool estimate = true;
+               bool estimate = (newConf.hasImplementation ? true : false);
                 if (evaluate(newConf, estimates, estimate)) {
                     RowID confID = dsdb.addConfiguration(newConf);
                     result.push_back(confID);
@@ -289,6 +270,8 @@ private:
     bool addOnly_;
     /// evaluate the result(s)
     bool evaluateResult_;
+    /// respect minimal opset when removing connections
+    bool preserveMinimalOpset_;
 
 
     /**
@@ -300,6 +283,9 @@ private:
         const std::string tpefDefault = "";
         const std::string addOnly = "add_only";
         const std::string evaluate = "evaluate";
+        const std::string preserveMinOps = "preserve_min_ops";
+        const bool preserveMinimalOpsetDefault = true;
+        preserveMinimalOpset_ = false;
     
         if (hasParameter(tpef)) {
             try {
@@ -335,6 +321,18 @@ private:
             // set defaut value to tpef
             evaluateResult_ = true;
         }
+
+        if (hasParameter(preserveMinOps)) {
+            try {
+                preserveMinimalOpset_ = booleanValue(parameterValue(preserveMinOps));
+            } catch (const Exception& e) {
+                parameterError(evaluate, "Boolean");
+                preserveMinimalOpset_ = preserveMinimalOpsetDefault;
+            }
+        } else {
+            // set default value
+            preserveMinimalOpset_ = preserveMinimalOpsetDefault;
+        }
     }
 
     
@@ -362,10 +360,30 @@ private:
         Machine::SocketNavigator socketNav = mach.socketNavigator();
         Machine::BusNavigator busNav = mach.busNavigator();
 
-        for (int i = 0; i < socketNav.count(); i++) {
-            Socket* socket = socketNav.item(i);
-            for (int bus = 0; bus < busNav.count(); bus++) {
-                socket->detachBus(*busNav.item(bus));
+        if (!preserveMinimalOpset_) {
+            for (int i = 0; i < socketNav.count(); i++) {
+                Socket* socket = socketNav.item(i);
+                for (int bus = 0; bus < busNav.count(); bus++) {
+                    socket->detachBus(*busNav.item(bus));
+                }
+            }
+        } else {
+            // remove connections only if connected minimal opset preserved.
+            for (int i = 0; i < socketNav.count(); i++) {
+                Socket* socket = socketNav.item(i);
+                std::set<std::string> ignoreFUNames;
+                // check all ports connected to the socket
+                for (int si = 0; si < socket->portCount(); ++si) {
+                    Port* port = socket->port(si); 
+                    if (dynamic_cast<FUPort*>(port)) {
+                        ignoreFUNames.insert(port->parentUnit()->name());
+                    }
+                }
+                if (checkMinimalOpSet(mach, ignoreFUNames)) {
+                    for (int bus = 0; bus < busNav.count(); bus++) {
+                        socket->detachBus(*busNav.item(bus));
+                    }
+                }
             }
         }
     }

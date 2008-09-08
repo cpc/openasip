@@ -89,9 +89,42 @@ public:
     void buildMinimalOpSet(const TTAMachine::Machine* machine = NULL);
     std::set<std::string> minimalOpSet() const;
     bool checkMinimalOpSet(const TTAMachine::Machine& machine) const;
+    bool checkMinimalOpSet(
+        const TTAMachine::Machine& machine,
+        const std::set<std::string>& ignoreFUName) const;
     void missingOperations(
         const TTAMachine::Machine& machine,
         std::vector<std::string>& missingOps) const;
+    bool fulfillMinimalOpset(TTAMachine::Machine& machine) const;
+    RowID createImplementationAndStore(
+        const DSDBManager::MachineConfiguration& conf,
+        const double& frequency = 0.0,
+        const double& maxArea = 0.0,
+        const bool& createEstimates = true,
+        const std::string& icDec = "DefaultICDecoder",
+        const std::string& icDecHDB = "asic_130nm_1.5V.hdb");
+    bool createImplementation(
+        const DSDBManager::MachineConfiguration& conf,
+        DSDBManager::MachineConfiguration& newConf,
+        const double& frequency = 0.0,
+        const double& maxArea = 0.0,
+        const bool& createEstimates = true,
+        const std::string& icDec = "DefaultICDecoder",
+        const std::string& icDecHDB = "asic_130nm_1.5V.hdb") const;
+    bool selectComponents(
+        const TTAMachine::Machine& mach,
+        IDF::MachineImplementation* idf,
+        const double& frequency = 0.0,
+        const double& maxArea = 0.0,
+        const std::string& icDec = "DefaultICDecoder",
+        const std::string& icDecHDB = "asic_130nm_1.5V.hdb") const;
+    void createEstimateData(
+        const TTAMachine::Machine& mach,
+        const IDF::MachineImplementation& idf,
+        CostEstimator::AreaInGates& area,
+        CostEstimator::DelayInNanoSeconds& longestPathDelay) const;
+    RowID addConfToDSDB(
+        const DSDBManager::MachineConfiguration& conf);
 
 protected:
     TTAProgram::Program* schedule(

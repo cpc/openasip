@@ -183,6 +183,10 @@ public:
         throw (KeyNotFound, IOException);
     void writeImplementationToFile(RowID id, const std::string& path) const
         throw (KeyNotFound, IOException);
+    void writeConfigurationToFile(
+        const MachineConfiguration& conf, 
+        const std::string& path)
+        throw (KeyNotFound, IOException);
 
     std::vector<ConfigurationCosts> applicationCostEstimatesByConf(
         Order ordering = ORDER_BY_CONFIGURATION) const;

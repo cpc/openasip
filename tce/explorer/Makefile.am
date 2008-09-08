@@ -1,15 +1,15 @@
 BUILD_EXPLORER_PLUGIN = ../src/codesign/Explorer/buildexplorerplugin
 basedir = ${prefix}/share/tce/explorer/base
 
-nobase_base_DATA = FrequencySweepExplorer.so SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so GrowMachine.so ImmediateGenerator.so ImplementationSelector.so ComponentAdder.so Evaluate.so
+nobase_base_DATA = FrequencySweepExplorer.so SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so GrowMachine.so ImmediateGenerator.so ImplementationSelector.so ComponentAdder.so Evaluate.so MinimalOpSet.so
 
 # Force recompilation always, dependency checking does not work here.
 .PHONY: FrequencySweepExplorer.so \
 SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so \
 GrowMachine.so ImmediateGenerator.so ImplementationSelector.so \
-ComponentAdder.so Evaluate.so
+ComponentAdder.so Evaluate.so MinimalOpSet.so
 
-all-local: FrequencySweepExplorer.so SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so GrowMachine.so ImmediateGenerator.so ImplementationSelector.so ComponentAdder.so Evaluate.so
+all-local: FrequencySweepExplorer.so SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so GrowMachine.so ImmediateGenerator.so ImplementationSelector.so ComponentAdder.so Evaluate.so MinimalOpSet.so
 
 FrequencySweepExplorer.so: FrequencySweepExplorer.cc
 	${BUILD_EXPLORER_PLUGIN} FrequencySweepExplorer.so \
@@ -47,6 +47,10 @@ Evaluate.so: Evaluate.cc
 	${BUILD_EXPLORER_PLUGIN} Evaluate.so \
 	Evaluate.cc
 
+MinimalOpSet.so: MinimalOpSet.cc
+	${BUILD_EXPLORER_PLUGIN} MinimalOpSet.so \
+	MinimalOpSet.cc
+
 clean:
-	rm -f FrequencySweepExplorer.so SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so GrowMachine.so ImmediateGenerator.so ImplementationSelector.so ComponentAdder.so Evaluate.so
+	rm -f FrequencySweepExplorer.so SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so GrowMachine.so ImmediateGenerator.so ImplementationSelector.so ComponentAdder.so Evaluate.so MinimalOpSet.so
 
