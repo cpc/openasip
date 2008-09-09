@@ -46,11 +46,13 @@
 #include "llvm/Support/Compiler.h"
 #include "llvm/Pass.h"
 #include "llvm/Intrinsics.h"
+#include "llvm/CodeGen/IntrinsicLowering.h"
+#include "llvm/Target/TargetData.h"
 
 using namespace llvm;
 
 #include <iostream>
-#include <map>
+#include <set>
 
 namespace {
     class VISIBILITY_HIDDEN LowerIntrinsics : public BasicBlockPass {
@@ -67,8 +69,10 @@ namespace {
         bool runOnBasicBlock(BasicBlock &BB);
        
      private:
-       Module* currentModule_;
-       std::map<unsigned, std::string> replace_;
+        /// List of intrinsics to replace.
+        std::set<unsigned> replace_;
+        IntrinsicLowering* iLowering_;
+        TargetData* td_;
     };
 
     char LowerIntrinsics::ID = 0;
@@ -82,13 +86,7 @@ namespace {
  * Constructor
  */
 LowerIntrinsics::LowerIntrinsics() :
-BasicBlockPass((intptr_t)&ID), currentModule_(NULL) {
-
-    // Intrinsics to replace and corresponding function names.
-    replace_[Intrinsic::memcpy_i32] = "memcpy";
-    replace_[Intrinsic::memcpy_i64] = "memcpy";
-    replace_[Intrinsic::memset_i32] = "memset";
-    replace_[Intrinsic::memset_i64] = "memset";   
+BasicBlockPass((intptr_t)&ID), iLowering_(NULL), td_(NULL) {
 }
 
 /**
@@ -108,12 +106,36 @@ Pass* createLowerIntrinsicsPass() {
 
 bool
 LowerIntrinsics::doInitialization(Module &M) {
-    currentModule_ = &M;
+   
+    // Initialize list of intrinsics to lower.
+    replace_.insert(Intrinsic::flt_rounds);
+    replace_.insert(Intrinsic::memcpy_i32);
+    replace_.insert(Intrinsic::memcpy_i64);
+    replace_.insert(Intrinsic::memset_i32);
+    replace_.insert(Intrinsic::memset_i64);
+    replace_.insert(Intrinsic::memmove_i32);
+    replace_.insert(Intrinsic::memmove_i64);
+
+    assert(iLowering_ == NULL && td_ == NULL);
+    td_ = new TargetData(&M);
+    iLowering_ = new IntrinsicLowering(*td_);
+   
+    iLowering_->AddPrototypes(M);
+
     return true;
 }
 
 bool
 LowerIntrinsics::doFinalization(Module& M) {
+    if (iLowering_ != NULL) { 
+        delete iLowering_;
+        iLowering_ = NULL;
+    }
+    if (td_ != NULL) {
+	delete td_;
+	td_ = NULL;
+    }
+   
     return true;
 }
 
@@ -129,7 +151,8 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
            CallInst* ci = dynamic_cast<CallInst*>(&(*I));
            if (ci != NULL && ci->getNumOperands() != 0) {
                Function* callee = ci->getCalledFunction();
-               if (callee != NULL && callee->isIntrinsic()) {
+               if (callee != NULL && callee->isIntrinsic() &&
+		   replace_.find(callee->getIntrinsicID()) != replace_.end()) {
                    if (callee->getIntrinsicID() == Intrinsic::flt_rounds) {
                        // Replace FLT_ROUNDS intrinsic with the actual
                        // constant value to avoid stupid  "if (1 == 0)"
@@ -139,27 +162,9 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
 
                        I->eraseFromParent();
                        changed = true;
-                       break;
-                   } else if (replace_.find(callee->getIntrinsicID())
-                              != replace_.end())  {
-		  
-                       // Call to LLVM Intrinsic function.
-                       std::string funcName =
-                           replace_[callee->getIntrinsicID()];
-
-                       std::vector<Value*> args;
-                       for (unsigned j = 1; j < I->getNumOperands(); j++)  {
-                           args.push_back(I->getOperand(j));
-                       }
-                       // replace intrinsic with function call to memcpy
-                       Constant* f = currentModule_->getOrInsertFunction(
-                           funcName, callee->getFunctionType());
-
-                       CallInst* call = CallInst::Create(
-                           f, args.begin(), args.end(), "", I);
-
-                       I->replaceAllUsesWith(call);
-                       I->eraseFromParent();
+		       break;
+                   } else {		       
+		       iLowering_->LowerIntrinsicCall(ci);
                        changed = true;
                        break;
                    }
@@ -170,5 +175,3 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
    }
    return true;
 }
-
-      
