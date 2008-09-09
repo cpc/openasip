@@ -126,3 +126,14 @@ TCE on 64-bit distributions
 If you compile LLVM from sources you should give --enable-pic option for
 the LLVM's configure script. Otherwise compilation of TCE might fail.
 
+Troubleshooting
+===============
+New Ubuntu versions seem to have problems with the shipped autotools
+scripts. In order to compile TCE on Ubuntu 8.10 and newer, you should
+generate the autotools scripts after installing 'libtool' with
+
+  ./gen_config.sh
+  
+The resulting autotools scripts should work with the new libtool
+version.
+
