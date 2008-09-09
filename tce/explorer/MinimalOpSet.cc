@@ -81,6 +81,8 @@ public:
 
         DSDBManager& dsdb = db();
         DSDBManager::MachineConfiguration conf;
+        conf.architectureID = -1; 
+        conf.hasImplementation = false; 
         
         // load adf/idf from file if no configuration was given
         if (configurationID == 0) {
