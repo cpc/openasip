@@ -980,8 +980,8 @@ HDBManager::addFUImplementation(const FUEntry& entry) const
             }
             FUPort* port = fu.operationPort(archPortName);
             bool portAdded = false;
-            for (int i = 0; i < fu.operationCount(); i++) {
-                HWOperation* operation = fu.operation(i);
+            for (int j = 0; j < fu.operationCount(); j++) {
+                HWOperation* operation = fu.operation(j);
                 if (operation->isBound(*port)) {
                     int io = operation->io(*port);
                     // find the fu_data_port from DB
@@ -1147,7 +1147,8 @@ HDBManager::removeFUImplementation(RowID implID) const {
         dbConnection_->updateQuery(
             std::string(
                 "DELETE FROM fu_ext_port_parameter_dependency "
-                "WHERE port=(SELECT id FROM fu_external_port WHERE fu_impl="
+                "WHERE parameter in (SELECT ALL id FROM "
+                "fu_implementation_parameter WHERE fu_impl="
                 + Conversion::toString(implID) + ");"));
 
         // remove from fu_external_port table
