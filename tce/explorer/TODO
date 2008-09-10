@@ -1,3 +1,4 @@
+General/Explorer:
 - After writing adf/idf to the dsdb, delete them. Explorer is leaking memory
   quite efficiently now :)
 
@@ -5,19 +6,22 @@
     - when refactoring the parameter functions move parameter error function
       up in the class hierarchy.
 
-- clean MinimalOpSet before commiting.
-
 - how to preserve frequency an max area limitations when selecting components
   when other plugins are called.
 
+
+ComponentAdder:
 - ComponentAdder plugin is rather limited now.
+
+SimpleICOptimizer:
+- Check that SimpleICOptimizer works right with large programs (doesn't remove
+  needed read/write port from GCU) 
+- Add parameter flag for guard register preservation or make the preservation
+  always default.
 
 Documentation:
 - update the documentation for the plugins.
 - state clearly what is needed in application dir for specific plugin.
-
-Questions:
-- what is needed from adf at minimum: minimal opset, guard-registers?
 
 Tests:
 - fix frequency sweep plugin long systemtest.

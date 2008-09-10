@@ -65,6 +65,7 @@
 #include "Procedure.hh"
 
 #include "LLVMBackend.hh"
+#include "RegisterQuantityCheck.hh"
 
 
 using namespace TTAProgram;
@@ -236,7 +237,7 @@ public:
             CostEstimates estimates;
             if (evaluateResult_) {
                 // evaluate the new config
-               bool estimate = (newConf.hasImplementation ? true : false);
+               bool estimate = newConf.hasImplementation;
                 if (evaluate(newConf, estimates, estimate)) {
                     RowID confID = dsdb.addConfiguration(newConf);
                     result.push_back(confID);
@@ -359,6 +360,7 @@ private:
     void removeAllConnections(TTAMachine::Machine& mach) {
         Machine::SocketNavigator socketNav = mach.socketNavigator();
         Machine::BusNavigator busNav = mach.busNavigator();
+        RegisterQuantityCheck RFCheck;
 
         if (!preserveMinimalOpset_) {
             for (int i = 0; i < socketNav.count(); i++) {
@@ -372,18 +374,49 @@ private:
             for (int i = 0; i < socketNav.count(); i++) {
                 Socket* socket = socketNav.item(i);
                 std::set<std::string> ignoreFUNames;
+                std::set<std::string> ignoreRFNames;
                 // check all ports connected to the socket
                 for (int si = 0; si < socket->portCount(); ++si) {
                     Port* port = socket->port(si); 
                     if (dynamic_cast<FUPort*>(port)) {
                         ignoreFUNames.insert(port->parentUnit()->name());
+                    } else if (dynamic_cast<RFPort*>(port)) {
+                        ignoreRFNames.insert(port->parentUnit()->name());
                     }
                 }
-                if (checkMinimalOpSet(mach, ignoreFUNames)) {
+                // TODO: refactor below
+                // TODO: add test that same FU/RF is not checked multiple
+                // times in situations where there are more than one socket
+                // connected to the same FU/RF, do this by storing unit names
+                // and the verdict if connections can be removed as a pair to
+                // a map
+                if (!ignoreFUNames.empty()) {
+                    if (checkMinimalOpSet(mach, ignoreFUNames)) {
+                        if (!ignoreRFNames.empty()) {
+                            if (RFCheck.checkWithIgnore(mach, ignoreRFNames)) 
+                            {
+                                for (int bus = 0; bus < busNav.count(); bus++) 
+                                {
+                                    socket->detachBus(*busNav.item(bus));
+                                }
+                            }
+                        } else {
+                            for (int bus = 0; bus < busNav.count(); bus++) {
+                                socket->detachBus(*busNav.item(bus));
+                            }
+                        }
+                    }
+                } else if (!ignoreRFNames.empty()) {
+                    if (RFCheck.checkWithIgnore(mach, ignoreRFNames)) {
+                        for (int bus = 0; bus < busNav.count(); bus++) {
+                            socket->detachBus(*busNav.item(bus));
+                        }
+                    }
+                } else {
                     for (int bus = 0; bus < busNav.count(); bus++) {
                         socket->detachBus(*busNav.item(bus));
                     }
-                }
+                } 
             }
         }
     }
