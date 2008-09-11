@@ -159,6 +159,9 @@ CycleLookBackSoftwareBypasser::bypassNode(
         
         ddg.mergeAndKeep(source, moveNode);
         int ddgCycle = ddg.earliestCycle(moveNode);
+        if (!moveNode.move().isUnconditional()) {
+            ddgCycle = std::max(ddgCycle, moveNode.guardLatency()-1);
+        }
         if (ddgCycle != INT_MAX) {
 #ifdef MOVE_BYPASSER
             ddgCycle = originalCycle;
@@ -256,6 +259,9 @@ CycleLookBackSoftwareBypasser::bypass(
         rm.unassign(moveNode);
         int earliestCycle =
             rm.earliestCycle(ddg.earliestCycle(moveNode),moveNode);
+        if (!moveNode.move().isUnconditional()) {
+            earliestCycle = std::max(earliestCycle, moveNode.guardLatency()-1);
+        }
         if (oldCycle > earliestCycle && earliestCycle != -1) {
             rm.assign(earliestCycle, moveNode);
         } else {

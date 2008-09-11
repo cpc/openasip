@@ -31,7 +31,7 @@
  *
  * Implementation of data dependence graph class
  *
- * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
+ * @author Heikki Kultala 2006-2008 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -279,22 +279,41 @@ DataDependenceGraph::earliestCycle(const MoveNode& moveNode) const {
 
         /// @todo Consider the latency for result read move!
         if (tail.isScheduled()) {
-            // in case of RAW, we have to wait for one cycle before we
-            // can use the written value.
-            // in case of WaW we must be sure to have the last write alive
-            if (edge.dependenceType() != DataDependenceEdge::DEP_WAR) {
-                // TODO: what about RF latencies? can they be over 1?
-                // but if it's pseudo dependency when we can make it
-                // earlier by number of delay slots
-                int effTailCycle = edge.headPseudo() ? tail.cycle() -
-                    delaySlots_ : tail.cycle() +1;
-                minCycle = std::max(effTailCycle, minCycle);
+            int latency = 1;
+            int effTailCycle = tail.cycle();
+            
+            // If call, make sure all incoming deps fit into delay slots,
+            // can still be later than the call itself
+            // dependence type does not matter.
+            if (edge.headPseudo()) {
+                effTailCycle -= delaySlots_;
             } else {
-                // WAR allows writing at same cycle than reading
-                int effTailCycle = edge.headPseudo() ? tail.cycle() -
-                    delaySlots_ : tail.cycle();
-                minCycle = std::max(effTailCycle, minCycle);
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+                    
+                    // latency does not matter with WAW. always +1.
+                    effTailCycle += 1;
+                } else {
+                    if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                        // WAR allows writing at same cycle than reading.
+                        // in WAR also the latency goes backwards, 
+                        // new value can
+                        // be written before old is read is latency is big.
+                        if (edge.guardUse()) {
+                            latency = tail.guardLatency();
+                        } 
+                        effTailCycle = effTailCycle - latency + 1;
+                    } else {
+                        // RAW
+                        if (edge.guardUse()) {
+                            latency = moveNode.guardLatency();
+                        }
+                        // in case of RAW, we have to wait latency cycles 
+                        // before we can use the written value. 
+                        effTailCycle += latency;
+                    }
+                }
             }
+            minCycle = std::max(effTailCycle, minCycle);
         } else {
             return INT_MAX;
         }
@@ -325,25 +344,45 @@ DataDependenceGraph::latestCycle(const MoveNode& moveNode) const {
         DataDependenceEdge& edge = **i;
         MoveNode& head = headNode(edge);
         
+        /// @todo Consider the latency for result read move!
         if (head.isScheduled()) {
-            if (edge.dependenceType() != DataDependenceEdge::DEP_WAR) {
-                // in case of RAW, we have to wait for one cycle before we
-                // can use the written value
-                // in case of WaW we must be sure to have the last write alive
-                // TODO: what about RF latencies? can they be over 1?
-                // but if it's pseudo dependence we can make it later by
-                // number of delay slots
-                int effHeadCycle = edge.headPseudo() ? head.cycle() +
-                    delaySlots_ : head.cycle() -1;
-
-                maxCycle = std::min(effHeadCycle, maxCycle);
+            int latency = 1;
+            int effHeadCycle = head.cycle();
+            
+            // If call, make sure all incoming deps fit into delay slots,
+            // can still be later than the call itself
+            // dependence type does not matter.
+            if (edge.tailPseudo()) {
+                effHeadCycle += delaySlots_;
             } else {
-                // WAR allows writing at same cycle than reading
-                maxCycle = std::max(head.cycle(), maxCycle);
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+                    
+                    // latency does not matter with WAW. always +1.
+                    effHeadCycle -= 1;
+                } else {
+                    if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                        // WAR allows writing at same cycle than reading.
+                        // in WAR also the latency goes backwards, 
+                        // new value can
+                        // be written before old is read is latency is big.
+                        if (edge.guardUse()) {
+                            latency = moveNode.guardLatency();
+                        } 
+                        effHeadCycle = effHeadCycle + latency - 1;
+                    } else {
+                        // RAW
+                        if (edge.guardUse()) {
+                            latency = moveNode.guardLatency();
+                        }
+                        // in case of RAW, value must be written latency
+                        // cycles before it is used
+                        effHeadCycle -= latency;
+                    }
+                }
             }
+            maxCycle = std::min(effHeadCycle, maxCycle);
         } else {
             return 0;
-
         }
     }
     return maxCycle;

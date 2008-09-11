@@ -31,7 +31,7 @@
  *
  * Implementation of of CopyingDelaySlotFiller class.
  *
- * @author Heikki Kultala 2007 (hkultala-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2007-2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -80,7 +80,7 @@ using namespace TTAMachine;
  * @param fillFallThru fill from Fall-thru of jump BB?
  */
 void CopyingDelaySlotFiller::fillDelaySlots(
-    BasicBlockNode &jumpingBB, int delaySlots, bool fillFallThru) 
+    BasicBlockNode &jumpingBB, int delaySlots, bool fillFallThru)
     throw (Exception) {
 
     
@@ -156,6 +156,8 @@ void CopyingDelaySlotFiller::fillDelaySlots(
             return; // port guards not yet supported
         }
         // if conditional, fill only slots+jump ins
+        // this is safe as the guard latency is also in the jump,
+        // but may be unoptimal if guard written before.
         maxFillCount = std::min(maxFillCount,delaySlots+1);
     }
 
@@ -268,14 +270,16 @@ CopyingDelaySlotFiller::fillDelaySlots(
     for (int i = 0; i < cfg.nodeCount(); i++) {
         BasicBlockNode& bbn = cfg.node(i);
         if (bbn.isNormalBB()) {
-            fillDelaySlots(bbn, delaySlots, false);
+            fillDelaySlots(
+                bbn, delaySlots, false);
         }
     }
     // then fill only fall-thru's.
     for (int i = 0; i < cfg.nodeCount(); i++) {
         BasicBlockNode& bbn = cfg.node(i);
         if (bbn.isNormalBB()) {
-            fillDelaySlots(bbn, delaySlots, true);
+            fillDelaySlots(
+                bbn, delaySlots, true);
         }
     }
 
@@ -398,7 +402,8 @@ bool
 CopyingDelaySlotFiller::tryToFillSlots(
     BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode, 
     bool fallThru, Move& jumpMove, int slotsToFill,
-    int grIndex, RegisterFile* grFile) throw (Exception) {
+    int grIndex, RegisterFile* grFile) 
+    throw (Exception) {
 
     ResourceManager& rm = *resourceManagers_[&blockToFillNode.basicBlock()];
     BasicBlock& blockToFill = blockToFillNode.basicBlock();
@@ -461,15 +466,24 @@ CopyingDelaySlotFiller::tryToFillSlots(
                 } 
             }
 
-            // Do not fill with guarded moves, if jump is guarded,
-            // might need 2 guards.
-            if (!oldMove.isUnconditional() && grFile != NULL) {
-                failed = true;
-                break;
-            }
-
             // check all deps
             MoveNode& mnOld = ddg_->nodeOfMove(oldMove);
+
+            if (!oldMove.isUnconditional()) {
+                // Do not fill with guarded moves, if jump is guarded,
+                // might need 2 guards.
+                if (grFile != NULL) {
+                    failed = true;
+                    break;
+                }
+                // don't allow unconditionals before 
+                // BB start + guard latency (if guard written in last move
+                // of previous BB)
+                if (firstToFill < mnOld.guardLatency()-1) {
+                    failed = true;
+                    break;
+                }
+            }
 
             DataDependenceGraph::EdgeSet inEdges = ddg_->inEdges(mnOld);
             for (DataDependenceGraph::EdgeSet::iterator ieIter = 
@@ -481,9 +495,25 @@ CopyingDelaySlotFiller::tryToFillSlots(
                     BasicBlockNode& predBlock = ddg_->getBasicBlockNode(pred);
 
                     if (&predBlock == &blockToFillNode) {
-                        int nodeCycle = ddEdge.dependenceType() == 
-                            DataDependenceEdge::DEP_WAR ?
-                            pred.cycle() : pred.cycle()+1;
+                        int nodeCycle;
+                        int delay = 1;
+                        // guard latency.
+                        if (ddEdge.dependenceType() == 
+                            DataDependenceEdge::DEP_WAR) {
+                            if (ddEdge.guardUse()) {
+                                delay = pred.guardLatency();
+                            }
+                            nodeCycle = pred.cycle() - delay+1;
+                        } else {
+                            // if WAW, always 1
+                            if (ddEdge.dependenceType() !=
+                                DataDependenceEdge::DEP_WAW) {
+                                if (ddEdge.guardUse()) {
+                                    delay = mnOld.guardLatency();
+                                }
+                            }
+                            nodeCycle = pred.cycle()+delay;
+                        }
                         if (nodeCycle > firstToFill+i) {
                             failed = true;
                             break;

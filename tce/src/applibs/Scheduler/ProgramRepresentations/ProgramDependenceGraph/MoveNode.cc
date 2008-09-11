@@ -55,6 +55,8 @@
 #include "FUPort.hh"
 #include "HWOperation.hh"
 #include "TCEString.hh"
+#include "Guard.hh"
+#include "ControlUnit.hh"
 
 using namespace TTAMachine;
 
@@ -707,3 +709,30 @@ MoveNode::unsetMoveOwned() {
     moveOwned_ = false;
 }
 
+/**
+ * Returns the total guard latency of the guard of given move,
+ * or 0 if the move is unconditional.
+ */
+int MoveNode::guardLatency() const {
+    if (!isMove()) {
+        return 0;
+    }
+    if (!move_->isUnconditional()) {
+
+        const TTAMachine::Guard& guard = move().guard().guard();
+        const TTAMachine::RegisterGuard* rg = 
+            dynamic_cast<const TTAMachine::RegisterGuard*>(&guard);
+        if (rg != NULL) {
+            const TTAMachine::RegisterFile& rf =
+                *rg->registerFile();
+            return rf.guardLatency() +
+                rf.machine()->controlUnit()->globalGuardLatency();
+        } else {
+            throw IllegalMachine(
+                __FILE__, __LINE__, __func__,
+                "Scheduling FU output port guards is not yet supported.");
+        }
+    } else {
+        return 0;
+    }
+}
