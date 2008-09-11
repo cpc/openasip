@@ -25,49 +25,28 @@
 # other reasons why the executable file might be covered by the GNU General
 # Public License.
 
-# Copy all headers into the installation prefix/include/tce directory.
-# Headers are needed for TCE plugin development. This must be executed
-# in the tce root directory.
+# This script changes all commented @author lines in non binary files with 
+# obfuscated email address. In this case '@' is replaced with '-no.spam-".
+# Files are found recursively starting from working directory.
+# note: iconv might be needed in case of utf8 files.
 
-TCEROOTPATH=${1:-/usr/local/tce}
-progname=`basename $0`
+SEARCH_DIR="."
 
-function usage {
-    echo "Copy all headers into the installation prefix/include/tce directory."
-    echo "Headers are needed for TCE plugin development. This must be executed"
-    echo "in the tce root directory."
-    echo
-    echo "The destination directory is found by using 'tce-config', so it has"
-    echo "to be found in your PATH."
-}
+FILES=($(\grep -IRilZE '[[:space:]]*(\*|//)[[:space:]]+@author' ${SEARCH_DIR} | xargs -0))
+for file in ${FILES[@]}; do 
+{ \rm $file && awk ' 
+    BEGIN { nop=1 }
+    /[[:space:]]*(\*|\/\/)[[:space:]]+@author/ { 
+        print gensub("@", "-no.spam-", 2)
+        nop=0
+    }
 
-if [ "$1_" = "-h_" -o "$1_" = "--help_" ]
-then
-    usage ;
-    exit 0 ;
-fi
-
-if [ "$1_" != "_" ]
-then
-    TCE_ROOT=$1
-else
-    if [ ! tce-config ]
-    then
-    	usage ;
-    	exit 1
-    fi
-    TCE_ROOT=$(tce-config --prefix)
-fi
-
-if [ ! -d src -o ! -e configure ]
-then
-    usage ;
-    exit 1;
-fi
-
-
-DESTINATION=${DESTDIR}${TCE_ROOT}/include/tce
-mkdir -p $DESTINATION
-cp `find src/ -name *.icc` $DESTINATION
-cp `find src/ -name *.hh` $DESTINATION
-cp config.h $DESTINATION
+    { 
+        if (nop == 1) {
+            print $0
+        }
+        nop=1
+    }
+    ' > $file
+} < $file
+done
