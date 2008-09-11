@@ -31,7 +31,7 @@
  *
  * Declaration of CompiledSimulation abstract class.
  *
- * @author Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+ * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */

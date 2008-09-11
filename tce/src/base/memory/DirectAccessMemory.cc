@@ -31,8 +31,8 @@
  *
  * Definition of DirectAccessMemory class.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
- * @author Viljami Korhonen 2008 (viljami.korhonen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Viljami Korhonen 2008 (viljami.korhonen-no.spam-tut.fi)
  * @note rating: red
  */
 

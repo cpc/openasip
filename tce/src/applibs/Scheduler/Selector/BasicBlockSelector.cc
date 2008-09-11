@@ -31,7 +31,7 @@
  *
  * Dummy implementation of BasicBlockSelector interface.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

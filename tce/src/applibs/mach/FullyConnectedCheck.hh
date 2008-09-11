@@ -32,7 +32,7 @@
  * Declaration of FullyConnectedCheck class that checks and fixes machines
  * fully connectivity.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 

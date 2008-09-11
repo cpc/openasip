@@ -31,7 +31,7 @@
  *
  * Declaration of Listener class.
  *
- * @author Atte Oksman 2005 (oksman@cs.tut.fi)
+ * @author Atte Oksman 2005 (oksman-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

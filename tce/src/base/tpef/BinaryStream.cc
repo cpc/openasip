@@ -31,8 +31,8 @@
  *
  * Implementation of BinaryStream class.
  *
- * @author Ari Metsähalme 2003 (ari.metsahalme@tut.fi)
- * @author Mikael Lepistö 2005 (mikael.lepisto@tut.fi)
+ * @author Ari Metsähalme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Mikael Lepistö 2005 (mikael.lepisto-no.spam-tut.fi)
  * @note reviewed 7 August 2003 by pj, am, jn, ao, rl
  *
  * @note rating: yellow

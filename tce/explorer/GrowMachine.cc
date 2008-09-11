@@ -32,8 +32,8 @@
  * Explorer plugin that adds resources until cycle count doesn't go down
  * anymore.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva@tut.fi)
- * @author Esa Määttä 2008 (esa.maatta@tut.fi)
+ * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

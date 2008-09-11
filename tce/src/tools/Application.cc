@@ -36,8 +36,8 @@
  * assertion, program exiting, debugging to a log file, catching unexpected
  * exceptions, "control-c" signal handling.
  *
- * @author Atte Oksman 2003 (oksman@cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel@cs.tut.fi)
+ * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <string>

@@ -31,8 +31,8 @@
  *
  * Implementation of BlockImplementationDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel@cs.tut.fi)
- * @author Esa M‰‰tt‰ 2007 (esa.maatta@tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

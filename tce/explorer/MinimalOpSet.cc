@@ -32,7 +32,7 @@
  * Explorer plugin that checks that given config or adf meets minimal opset
  * requirements stated by minimal machine adf or user given reference adf.
  *
- * @author Esa Määttä 2008 (esa.maatta@tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

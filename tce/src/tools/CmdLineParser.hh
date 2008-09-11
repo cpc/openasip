@@ -31,8 +31,8 @@
  *
  * Declaration of class CmdLineParser.
  *
- * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
- * @author Jari Mäntyneva 2006 (jari.mantyneva@tut.fi)
+ * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note reviewed 3 December 2003 by jn, kl, ao
  * @note rating: red
  */

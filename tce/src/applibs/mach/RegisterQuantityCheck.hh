@@ -33,7 +33,7 @@
  * 
  * Tests that given machine has enough registers.
  *
- * @author Heikki Kultala (hkultala@cs.tut.fi)
+ * @author Heikki Kultala (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

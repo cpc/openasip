@@ -31,7 +31,7 @@
  *
  * Declaration of RedoCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_REDO_CMD_HH

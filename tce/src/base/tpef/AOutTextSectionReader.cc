@@ -31,8 +31,8 @@
  *
  * Definition of AOutTextSectionReader class.
  *
- * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
- * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 23 October 2003 by pj, am, ll, jn
  *
  * @note rating: yellow

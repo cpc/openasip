@@ -33,7 +33,7 @@
  *
  * The command line user interface of cost estimator.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

@@ -31,7 +31,7 @@
  *
  * Class which finds free regs for temp reg copier.
  * 
- * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
+ * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

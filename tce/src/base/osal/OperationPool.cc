@@ -31,9 +31,9 @@
  *
  * Definition of OperationPool class.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel@cs.tut.fi)
- * @author Miakel Lepistö 2007 (mikael.lepisto@tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Miakel Lepistö 2007 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: yellow
  * @note reviewed 19 August 2004 by pj, jn, ao, ac
  */

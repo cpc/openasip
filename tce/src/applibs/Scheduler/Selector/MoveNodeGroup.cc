@@ -31,7 +31,7 @@
  *
  * Implementation of MoveNodeGroup class
  *
- * @author Heikki Kultala 2006 (heikki.kultala@tut.fi)
+ * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -31,7 +31,7 @@
  *
  * Declaration of AddressSpace class.
  *
- * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
  * @note reviewed 10 Jun 2004 by vpj, am, tr, ll
  * @note rating: red
  */

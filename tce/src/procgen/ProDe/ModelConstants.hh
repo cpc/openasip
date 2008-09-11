@@ -31,7 +31,7 @@
  *
  * Declaration of ModelConstants class.
  *
- * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Tommi Rantanen 2004 (tommi.rantanen-no.spam-tut.fi)
  */
 
 #ifndef TTA_MODEL_CONSTANTS_HH

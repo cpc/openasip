@@ -31,8 +31,8 @@
  *
  * Definition of LongImmUpdateAction class.
  *
- * @author Jussi Nyk‰nen 2005 (nykanen@cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel@cs.tut.fi)
+ * @author Jussi Nyk‰nen 2005 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

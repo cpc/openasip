@@ -31,7 +31,7 @@
  * 
  * A test suite for SimValue.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #ifndef SIM_VALUE_TEST_HH

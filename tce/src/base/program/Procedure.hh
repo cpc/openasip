@@ -31,7 +31,7 @@
  *
  * Declaration of Procedure class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 

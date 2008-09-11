@@ -34,7 +34,7 @@
  * buses. If all ports from a unit are removed, removes also the unit.
  *
  *
- * @author Esa Määttä 2007 (esa.maatta@tut.fi)
+ * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -33,8 +33,8 @@
  * intented to run with the processor. The machine is capable to run all the
  * programs but not optimized in any way.
  *
- * @author Jari M‰ntyneva 2007 (jari.mantyneva@tut.fi)
- * @author Esa M‰‰tt‰ 2008 (esa.maatta@tut.fi)
+ * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -32,7 +32,7 @@
  * Declaration of prototype of graph-based program representation:
  * declaration of the program dependence node.
  *
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 #ifndef TTA_PROGRAM_DEPENDENCE_NODE_HH

@@ -31,8 +31,8 @@
  *
  * Non-inline definitions of MoveElement class.
  *
- * @author Jussi Nykänen 2003 (nykanen@cc.tut.fi)
- * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ * @author Jussi Nykänen 2003 (nykanen-no.spam-cc.tut.fi)
+ * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 21 October 2003 by ml, jn, rm, pj
  *
  * @note rating: yellow

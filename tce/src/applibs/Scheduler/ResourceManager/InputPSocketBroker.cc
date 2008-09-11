@@ -31,8 +31,8 @@
  *
  * Implementation of InputPSocketBroker class.
  *
- * @author Ari Mets�halme 2006 (ari.metsahalme@tut.fi)
- * @author Vladimir Guzma 2007 (vladimir.guzma@tut.fi)
+ * @author Ari Mets�halme 2006 (ari.metsahalme-no.spam-tut.fi)
+ * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

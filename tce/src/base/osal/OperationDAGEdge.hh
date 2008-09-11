@@ -31,7 +31,7 @@
  *
  * Declaration of operation directed acyclic graph edge.
  *
- * @author Mikael Lepistö 2007 (mikael.lepisto@tut.fi)
+ * @author Mikael Lepistö 2007 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 

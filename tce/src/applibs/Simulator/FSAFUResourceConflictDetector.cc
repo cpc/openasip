@@ -31,7 +31,7 @@
  *
  * Definition of FSAFUResourceConflictDetector class.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -169,7 +169,7 @@ FSAFUResourceConflictDetector::isIdle() {
  *
  * Inline implementations of FSAFUResourceConflictDetector class.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

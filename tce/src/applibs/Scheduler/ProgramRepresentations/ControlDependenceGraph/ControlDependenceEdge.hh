@@ -32,8 +32,8 @@
  * Prototype of graph-based program representation: declaration of graph
  * control dependence edge.
  *
- * @author Andrea Cilio 2005 (cilio@cs.tut.fi)
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -31,8 +31,8 @@
  *
  * Declaration of UniversalMachine class.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen@tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: yellow
  */
 

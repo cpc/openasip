@@ -31,7 +31,7 @@
  *
  * A test suite for BitMatrix
  *
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #ifndef TTA_BIT_MATRIX_TEST_HH

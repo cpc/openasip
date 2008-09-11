@@ -31,7 +31,7 @@
  *
  * Declaration of SaveOptionsCmd class.
  *
- * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Tommi Rantanen 2004 (tommi.rantanen-no.spam-tut.fi)
  */
 
 #ifndef TTA_SAVE_OPTIONS_CMD_HH

@@ -31,7 +31,7 @@
  *
  * Definition of IUPortDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <boost/format.hpp>

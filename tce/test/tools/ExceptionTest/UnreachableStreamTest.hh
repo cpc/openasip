@@ -31,7 +31,7 @@
  *
  * A test suite for UnreachableStream.
  *
- * @author Ari Metsähalme 2003 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note reviewed 7 November 2003 by am, ml, jn, pj
  */
 

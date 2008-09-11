@@ -31,7 +31,7 @@
  *
  * Declaration of SetStatusTextCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_SET_STATUS_TEXT_CMD_HH

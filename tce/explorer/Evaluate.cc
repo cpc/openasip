@@ -31,7 +31,7 @@
  *
  * Explorer plugin that evaluates given configuration.
  *
- * @author Esa Määttä 2008 (esa.maatta@tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

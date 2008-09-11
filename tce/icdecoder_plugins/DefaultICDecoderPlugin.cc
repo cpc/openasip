@@ -31,7 +31,7 @@
  *
  * Declaration and implementation of DefaultICDecoderPlugin class.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

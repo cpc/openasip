@@ -33,7 +33,7 @@
  *
  * Declarations.
  *
- * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
+ * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_SET_TOOLS_HH

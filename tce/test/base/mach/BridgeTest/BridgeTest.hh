@@ -30,7 +30,7 @@
  * @file BridgeTest.hh 
  * A test suite for Bridge.
  *
- * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
  * @note reviewed 10 Jun 2004 by vpj, tr, am, ll
  * @note rating: red
  */

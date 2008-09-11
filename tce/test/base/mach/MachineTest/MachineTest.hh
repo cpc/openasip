@@ -31,7 +31,7 @@
  *
  * A test suite for Machine.
  *
- * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
  */
 
 #ifndef MachineTest_HH

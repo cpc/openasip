@@ -31,7 +31,7 @@
  *
  * Implementation of PythonSchedulerModule class.
  *
- * @author Pertti Kellomäki 2007 (pertti.kellomaki@tut.fi)
+ * @author Pertti Kellomäki 2007 (pertti.kellomaki-no.spam-tut.fi)
  * @note rating: red
  */
 

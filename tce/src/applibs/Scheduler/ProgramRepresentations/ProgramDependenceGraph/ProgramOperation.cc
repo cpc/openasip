@@ -35,7 +35,7 @@
  * the program and should hold the reference to each MoveNode that belongs
  * to the operation execution instance.
  *
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -31,7 +31,7 @@
  *
  * A test suite for AssocTools class.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #ifndef TTA_ASSOC_TOOLS_TEST_HH

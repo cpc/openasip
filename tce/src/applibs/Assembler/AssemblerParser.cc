@@ -31,8 +31,8 @@
  *
  * Syntax declarations and callbacks of assembler language.
  *
- * @author Mikael Lepistö 2005 (tmlepist@cs.tut.fi)
- * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen@tut.fi)
+ * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  *
  * @note rating: yellow
  */

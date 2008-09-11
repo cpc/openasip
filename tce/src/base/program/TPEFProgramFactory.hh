@@ -31,8 +31,8 @@
  *
  * Declaration of TPEFProgramFactory class.
  *
- * @author Mikael Lepistö 2005 (tmlepist@cs.tut.fi)
- * @author Pekka Jääskeläinen 2006 (pjaaskel@cs.tut.fi)
+ * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: yellow
  */
 

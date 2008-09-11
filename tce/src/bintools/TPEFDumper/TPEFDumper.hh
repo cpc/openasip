@@ -31,7 +31,7 @@
  *
  * Class for outputting TPEF sections in textual format.
  *
- * @author Mikael Lepistö 2005 (tmlepist@tut.fi)
+ * @author Mikael Lepistö 2005 (tmlepist-no.spam-tut.fi)
  * @rating red
  */
 

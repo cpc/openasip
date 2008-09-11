@@ -31,7 +31,7 @@
  *
  * Implementation of PIGCmdLineOptions class.
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

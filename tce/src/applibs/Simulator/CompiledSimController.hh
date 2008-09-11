@@ -31,7 +31,7 @@
  *
  * Declaration of CompiledSimController class.
  *
- * @author Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+ * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  * @note rating: red
  */
 

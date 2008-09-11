@@ -31,7 +31,7 @@
  *
  * Declaration of DirectAccessMemory class.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */

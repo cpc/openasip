@@ -31,7 +31,7 @@
  *
  * Test definition of operation definitions with state.
  *
- * @author Pekka J‰‰skel‰inen (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #include "OSAL.hh"

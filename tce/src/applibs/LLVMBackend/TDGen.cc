@@ -29,7 +29,7 @@
 /**
  * Architecture plugin generator for LLVM TCE backend.
  *
- * @author Veli-Pekka J��skel�inen 2007 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J��skel�inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  *
  * @note rating: red
  */

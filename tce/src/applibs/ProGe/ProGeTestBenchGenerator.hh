@@ -31,7 +31,7 @@
  *
  * Declaration of ProGeTestBenchGenerator class.
  *
- * @author Esa Määttä 2007 (esa.maatta@tut.fi)
+ * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

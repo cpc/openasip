@@ -31,7 +31,7 @@
  *
  * Implementation of ShortImmPSocketResource class.
  *
- * @author Ari Metsähalme 2006 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 

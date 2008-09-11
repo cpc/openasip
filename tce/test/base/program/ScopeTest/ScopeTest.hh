@@ -31,7 +31,7 @@
  * 
  * A test suite for Scope.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
  */
 
 #ifndef SCOPE_TEST_HH

@@ -31,7 +31,7 @@
  *
  * Definition of BasicBlockScheduler class.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

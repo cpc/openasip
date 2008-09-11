@@ -31,7 +31,7 @@
  *
  * Declaration of SymbolAddressCommand class
  *
- * @author Pekka J‰‰skel‰inen 2008 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2008 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

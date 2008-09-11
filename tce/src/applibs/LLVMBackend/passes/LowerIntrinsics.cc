@@ -31,7 +31,7 @@
  *
  * Converts llvm intrinsics to libcalls.
  *
- * @author Veli-Pekka Jaaskelainen 2008 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jaaskelainen 2008 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #define DEBUG_TYPE "lowerintrinsics"

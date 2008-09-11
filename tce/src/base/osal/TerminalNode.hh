@@ -34,7 +34,7 @@
  * Represents input and output values of operation, 
  * which can be reconnected to other operations.
  *
- * @author Mikael Lepistö 2007 (mikael.lepisto@tut.fi)
+ * @author Mikael Lepistö 2007 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 

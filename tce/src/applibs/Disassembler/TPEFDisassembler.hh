@@ -31,7 +31,7 @@
  *
  * Declaration of TPEFDisassembler class.
  *
- * @author Mikael Lepistö 2005 (tmlepist@cs.tut.fi)
+ * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

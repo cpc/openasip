@@ -33,8 +33,8 @@
  * 
  * Checks that given machine has enough registers.
  *
- * @author Heikki Kultala (hkultala@cs.tut.fi)
- * @author Esa Määttä 2008 (esa.maatta@tut.fi)
+ * @author Heikki Kultala (hkultala-no.spam-cs.tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

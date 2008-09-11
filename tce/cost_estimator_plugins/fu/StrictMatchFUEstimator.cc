@@ -34,7 +34,7 @@
  * from HDB. It does not perform any kind of linearization etc. to  
  * estimate an FU that has not direct cost data in HDB.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 #include "FUCostEstimationPlugin.hh"

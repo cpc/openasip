@@ -32,7 +32,7 @@
  * Implements the main function of createbem application which creates a
  * binary encoding map.
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

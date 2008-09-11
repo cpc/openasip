@@ -31,8 +31,8 @@
  * 
  * A test suite for OperationSerializer.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
- * @author Mikael Lepistö 2008 (mikael.lepisto@tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2008 (mikael.lepisto-no.spam-tut.fi)
  */
 
 #ifndef OPERATION_SERIALIZER_TEST_HH

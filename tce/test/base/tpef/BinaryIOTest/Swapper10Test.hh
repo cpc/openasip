@@ -32,7 +32,7 @@
  * A test suite for Swapper. Host machine is defined as big-endian and
  * target as little-endian.
  *
- * @author Ari Metsähalme 2003 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note reviewed 23 October 2003 by am, jn, ll, pj
  */
 

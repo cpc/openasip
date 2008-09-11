@@ -32,9 +32,9 @@
  * Prototype of graph-based program representation: declaration of graph
  * edge.
  *
- * @author Andrea Cilio 2005 (cilio@cs.tut.fi)
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
- * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
+ * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
+ * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
