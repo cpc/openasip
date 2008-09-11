@@ -63,14 +63,14 @@
  *
  * Stops the simulation (if it's running).
  */
-class SimulationStopper : public Application::UnixSignalHandler {
+class SigINTHandler : public Application::UnixSignalHandler {
 public:
     /**
      * Constructor.
      *
      * @param target The target SimulatorFrontend instance.
      */
-    SimulationStopper(SimulatorFrontend& target) : target_(target) {
+    SigINTHandler(SimulatorFrontend& target) : target_(target) {
     }
 
     /**
@@ -90,14 +90,14 @@ private:
  *
  * Stops the simulation (if it's running).
  */
-class SimulationFPEHandler : public Application::UnixSignalHandler {
+class SigFPEHandler : public Application::UnixSignalHandler {
 public:
     /**
      * Constructor.
      *
      * @param target The target SimulatorFrontend instance.
      */
-    SimulationFPEHandler(SimulatorFrontend& target) : target_(target) {
+    SigFPEHandler(SimulatorFrontend& target) : target_(target) {
     }
 
     /**
@@ -123,6 +123,41 @@ public:
             msg = " Subscript out of range";
         }
         
+        msg += "\n" + target_.programLocationDescription();
+             
+        target_.prepareToStop(SRE_USER_REQUESTED);
+        SimulatorToolbox::reportSimulatedProgramError(
+            target_.eventHandler(),
+            SimulatorToolbox::RES_FATAL, msg);
+       
+        throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__, msg);
+    }
+private:
+    /// Simulator frontend to use when stopping the simulation.
+    SimulatorFrontend& target_;
+};
+
+/**
+ * A handler class for SIGSEGV signal
+ *
+ * Stops the simulation (if it's running).
+ */
+class SigSegvHandler : public Application::UnixSignalHandler {
+public:
+    /**
+     * Constructor.
+     *
+     * @param target The target SimulatorFrontend instance.
+     */
+    SigSegvHandler(SimulatorFrontend& target) : target_(target) {
+    }
+
+    /**
+     * Terminates the simulation.
+     */
+    virtual void execute(int data, siginfo_t *info) {
+        if (data) {}
+        std::string msg("Invalid memory reference");
         msg += "\n" + target_.programLocationDescription();
              
         target_.prepareToStop(SRE_USER_REQUESTED);
@@ -294,10 +329,13 @@ int main(int argc, char* argv[]) {
     /// Catch runtime errors and print them out to the simulator console.
     RuntimeErrorReporter errorReporter(*simFront);
 
-    SimulationStopper ctrlcHandler(*simFront);
-    SimulationFPEHandler fpeHandler(*simFront);
-    Application::setCtrlcHandler(ctrlcHandler);
-    Application::setFpeHandler(fpeHandler);
+    SigINTHandler ctrlcHandler(*simFront);
+    SigFPEHandler fpeHandler(*simFront);
+    SigSegvHandler segvHandler(*simFront);
+    
+    Application::setSignalHandler(SIGINT, ctrlcHandler);
+    Application::setSignalHandler(SIGFPE, fpeHandler);
+    Application::setSignalHandler(SIGSEGV, segvHandler);
 
     if (machineToLoad != "") {
         interpreteAndPrintResults(
@@ -340,8 +378,9 @@ int main(int argc, char* argv[]) {
 
     delete reader;
     reader = NULL;
-    Application::restoreFpeHandler();
-    Application::restoreCtrlcHandler();
+    Application::restoreSignalHandler(SIGINT);
+    Application::restoreSignalHandler(SIGFPE);
+    Application::restoreSignalHandler(SIGSEGV);
     
     return EXIT_SUCCESS;
 }

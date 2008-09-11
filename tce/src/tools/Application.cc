@@ -74,8 +74,7 @@ using std::set_unexpected;
 // static member variable initializations
 bool Application::initialized_ = false;
 std::ostream* Application::logStream_ = NULL;
-Application::UnixSignalHandler* Application::ctrlcHandler_(NULL);
-Application::UnixSignalHandler* Application::fpeHandler_(NULL);
+std::map<int, Application::UnixSignalHandler*> Application::signalHandlers_;
 
 int Application::verboseLevel_ = Application::VERBOSE_LEVEL_DEFAULT;
 
@@ -266,82 +265,62 @@ Application::runShellCommandAndGetOutput(
 }
 
 /**
- * Sets handler for signal which is produced when user hits ctrl-c.
+ * Sets a new signal handler for the given signal
  *
- * The previous handler is saved.
- *
- * @param handler The handler instance to use.
+ * @param signalNum signal number
+ * @param handler The handler to be set
  */
-void
-Application::setCtrlcHandler(UnixSignalHandler& handler) {
-    ctrlcHandler_ = &handler;
+void 
+Application::setSignalHandler(int signalNum, UnixSignalHandler& handler) {
+    signalHandlers_[signalNum] = &handler;
     
     struct sigaction action;
     action.sa_flags = SA_SIGINFO; 
-    action.sa_sigaction = ctrlcSignalRedirector;
+    action.sa_sigaction = signalRedirector;
  
-    sigaction(SIGINT, &action, NULL);
+    sigaction(signalNum, &action, NULL);
 }
 
 /**
- * Restores the original ctrl-c handler.
+ * Returns a pointer to the signal's current handler
+ * 
+ * @return a pointer to the signal's current handler
+ * @exception InstanceNotFound if the signal has not been set a custom handler
  */
-void
-Application::restoreCtrlcHandler() {
-    signal(SIGINT, SIG_DFL);
+Application::UnixSignalHandler*
+Application::getSignalHandler(int signalNum) {
+    std::map<int, UnixSignalHandler*>::iterator it =
+        signalHandlers_.find(signalNum);
+    if (it != signalHandlers_.end()) {
+        return it->second;
+    } else {
+        throw InstanceNotFound(__FILE__, __LINE__, __FUNCTION__);
+    }
 }
 
 /**
- * Sets handler for signal SIGFPE
- *
- * The previous handler is saved.
- *
- * @param handler The handler instance to use.
+ * Restores to the signal its original handler
+ * 
+ * @param signalNum signal number
  */
-void
-Application::setFpeHandler(UnixSignalHandler& handler) {
-    fpeHandler_ = &handler;
-    
-    struct sigaction action;
-    action.sa_flags = SA_SIGINFO; 
-    action.sa_sigaction = fpeSignalRedirector;
- 
-    sigaction(SIGFPE, &action, NULL);
+void 
+Application::restoreSignalHandler(int signalNum) {
+    signal(signalNum, SIG_DFL);
+    signalHandlers_.erase(signalNum);
 }
 
 /**
- * Restores the original SIGFPE handler.
- */
-void
-Application::restoreFpeHandler() {
-    signal(SIGFPE, SIG_DFL);
-}
-
-/**
- * Redirects the signal received when user hits ctrl-c to the user defined
- * wrapper.
+ * Redirects the signal received to the current signal handler
  *
  * @param data Data from the signal.
  * @param info signal information struct
  * @param context signal context
  */
 void
-Application::ctrlcSignalRedirector(int data, siginfo_t *info, void *context) {
-    assert(ctrlcHandler_ != NULL);
+Application::signalRedirector(int data, siginfo_t *info, void *context) {
     if (context) {}
-    ctrlcHandler_->execute(data, info);
-}
-
-/**
- * Redirects the received signal SIGFPE to the user defined wrapper.
- *
- * @param data Data from the signal.
- * @param info signal information struct
- * @param context signal context
- */
-void
-Application::fpeSignalRedirector(int data, siginfo_t *info, void *context) {
-    assert(fpeHandler_ != NULL);
-    if (context) {}
-    fpeHandler_->execute(data, info);
+    
+    UnixSignalHandler* handler = getSignalHandler(info->si_signo);
+    assert(handler != NULL);
+    handler->execute(data, info);
 }
