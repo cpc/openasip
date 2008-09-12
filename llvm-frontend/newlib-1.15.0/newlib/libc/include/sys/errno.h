@@ -11,7 +11,9 @@ extern "C" {
 #include <sys/reent.h>
 
 #ifndef _REENT_ONLY
-#define errno (*__errno())
+//#define errno (*__errno()) // Veli-Pekka's testhack
+extern int errno; // FIXME: not reent
+ 
 extern int *__errno _PARAMS ((void));
 #endif
 
