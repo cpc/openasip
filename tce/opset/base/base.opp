@@ -277,9 +277,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -287,17 +287,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(and, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -308,17 +308,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(ior, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -329,17 +329,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(xor, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -416,17 +416,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(minu, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -437,17 +437,17 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord">
+    <in id="1" type="UIntWord">
       <can-swap>
         <in id="2"/>
       </can-swap>
     </in>
-    <in id="2" type="SIntWord">
+    <in id="2" type="UIntWord">
       <can-swap>
         <in id="1"/>
       </can-swap>
     </in>
-    <out id="3" type="SIntWord"/>
+    <out id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(maxu, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -1028,9 +1028,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
   </operation>
 
   <operation>
@@ -1038,9 +1038,9 @@
     <description/>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
     <trigger-semantics>
       EXEC_OPERATION(rotr, IO(1), IO(2), IO(3));
     </trigger-semantics>
@@ -1156,9 +1156,9 @@
     <description>Does a bitwise negation (NOT) on the 2nd input followed by AND of the 1st input and the negated 2nd output. Special instruction in TI C64X.</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
-    <in id="1" type="SIntWord"/>
-    <in id="2" type="SIntWord"/>
-    <out id="3" type="SIntWord"/>
+    <in id="1" type="UIntWord"/>
+    <in id="2" type="UIntWord"/>
+    <out id="3" type="UIntWord"/>
     <trigger-semantics>
 	SimValue negResult;
 	EXEC_OPERATION(not, IO(2), negResult);
