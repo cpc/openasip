@@ -160,7 +160,7 @@ public:
         DesignSpaceExplorerPlugin::ParameterTable growMachineParameters;
         DesignSpaceExplorerPlugin::Parameter superiorityPar;
         superiorityPar.name = "superiority";
-        superiorityPar.value = "2";
+        superiorityPar.value = Conversion::toString(superiority_);
         growMachineParameters.push_back(superiorityPar);
         growMachine->setParameters(growMachineParameters);
 
@@ -287,6 +287,8 @@ private:
     int busCount_;
     /// Default value of busCount_
     static const int busCountDefault_ = 4;
+    /// Superirity percentage for the GrowMachine plugin
+    unsigned int superiority_;
 
     int startMHz_;
     int endMHz_;
@@ -321,6 +323,8 @@ private:
         const std::string icDecoderDefault = "DefaultICDecoder";
         const std::string icDecHDB = "ic_hdb";
         const std::string icDecHDBDefault = "asic_130nm_1.5V.hdb";
+        const std::string superiority = "superiority";
+        const unsigned int superiorityDefault = 10;
 
         if (hasParameter(startMHz)) {
             try {
@@ -383,6 +387,18 @@ private:
         } else {
             // set defaut value to icDecHDB
             icDecHDB_ = icDecHDBDefault;
+        }
+
+        if (hasParameter(superiority)) {
+            try {
+                superiority_ = Conversion::toUnsignedInt(
+                        parameterValue(superiority));
+            } catch (const Exception& e) {
+                parameterError(superiority, "unsigned integer");
+                superiority_ = superiorityDefault;
+            }
+        } else {
+            superiority_ = superiorityDefault;
         }
     }
 
