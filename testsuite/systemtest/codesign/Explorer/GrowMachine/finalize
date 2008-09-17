@@ -1,5 +1,3 @@
 #!/bin/bash
 rm -rf growmachine.dsdb
-rm -rf 1.{adf,tpef}
-rm -rf 2.{adf,tpef}
-rm -rf 3.{adf,tpef}
+rm -rf ?.{adf,tpef}

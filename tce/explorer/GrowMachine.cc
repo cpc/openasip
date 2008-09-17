@@ -174,9 +174,30 @@ public:
                             currentMinCycles = newEstimates.cycleCount(i);
                         }
                     }
-                    resultMap[currentMinCycles] = confID;
+
+                    if (Application::verboseLevel() > 2) {
+                        std::ostringstream msg(std::ostringstream::out);
+                        msg << "GrowMachine plugin produced config: "
+                            << confID << ", with cycle count: " 
+                            << currentMinCycles << " (" 
+                            << calculateImprovement(currentMinCycles, 
+                                    prevMinCycles)
+                            << "% better)";
+                        verboseLog(msg.str())
+                    }
+
+                    if (checkSuperiority(currentMinCycles, prevMinCycles)) {
+                        // only add config if it meets the superiority
+                        // requirements regarding clock cycles
+                        resultMap[currentMinCycles] = confID;
+                    } else {
+                        break;
+                    }
                 } else {
                     // evaluating failed
+                    debugLog("GrowMachine: Evaluating config with id: " 
+                            + Conversion::toString(confID) 
+                            + " failed. This is probably a bug.");
                     break;
                 }
 
@@ -187,9 +208,7 @@ public:
                 result.push_back(configurationID);
                 return result;
             }
-        } while ((currentMinCycles < prevMinCycles) &&
-                (((static_cast<double>(superiority_) / 100) * prevMinCycles) <
-                 (prevMinCycles - currentMinCycles)));
+        } while (true);
 
         std::map<ClockCycleCount, RowID>::const_iterator mapIter = 
             resultMap.begin();
@@ -242,6 +261,38 @@ private:
             << " value expected." << std::endl;
         errorOuput(msg.str());
     }
+
+    /**
+     * Checks whether cycle counts have been lowered enough.
+     *
+     * @param newCC The new minimum cycle count.
+     * @param oldCC The old minimum cycle count.
+     */
+    inline bool checkSuperiority(
+        const ClockCycleCount& newCC, 
+        const ClockCycleCount& oldCC) const {
+        
+        if ((newCC < oldCC) &&
+                (((static_cast<double>(superiority_) / 100) * oldCC) <
+                 (oldCC - newCC))) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Calculates the percentage of improvement in cycle count
+     *
+     * @param newCC The new minimum cycle count.
+     * @param oldCC The old minimum cycle count.
+     */
+    inline double calculateImprovement(
+        const ClockCycleCount& newCC, 
+        const ClockCycleCount& oldCC) const {
+        
+        return (1.0 -(static_cast<double>(newCC)/oldCC))*100.0;
+    }
+
 };
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(GrowMachine)

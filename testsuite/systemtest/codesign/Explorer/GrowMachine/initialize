@@ -1,31 +1,10 @@
 #!/bin/bash
 CURDIR=$(pwd)
 rm -rf growmachine.dsdb
-rm -rf 1.{adf,tpef}
-rm -rf 2.{adf,tpef}
-rm -rf 3.{adf,tpef}
+rm -rf ?.{adf,tpef}
 
 # Compile the initial machine generator estimator plugin.
 pushd . > /dev/null
 cd ../../../../../tce/explorer/ && rm -f *.so
 ../src/codesign/Explorer/buildexplorerplugin GrowMachine.so GrowMachine.cc > /dev/null
 popd > /dev/null
-
-# Compile the IC&decoder estimator plugin.
-#pushd . > /dev/null
-#cd ../../../../tce/icdecoder_plugins/ && rm -f *.so
-#../src/procgen/ProGe/buildicdecoderplugin DefaultICDecoderPlugin.so DefaultICDecoderPlugin.cc DefaultDecoderGenerator.cc DefaultICGenerator.cc CentralizedControlICGenerator.cc > /dev/null
-#popd > /dev/null
-
-# Compile the FU estimator plugin.
-#pushd . > /dev/null
-#cd ../../../../tce/cost_estimator_plugins/fu/ && rm -f *.so
-#make > /dev/null
-#popd > /dev/null
-
-# Compile the RF estimator plugin.
-#pushd . > /dev/null
-#cd ../../../../tce/cost_estimator_plugins/rf/ && rm -f *.so
-#make > /dev/null
-#popd > /dev/null
-

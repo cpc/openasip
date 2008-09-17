@@ -9,6 +9,9 @@ General/Explorer:
 - how to preserve frequency an max area limitations when selecting components
   when other plugins are called.
 
+MinimalOpSet:
+- Rename plugin when adding more functionality like guard register checker.
+  MinimalResourceAdder might be a good name.
 
 ComponentAdder:
 - ComponentAdder plugin is rather limited now.
