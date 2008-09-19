@@ -19,7 +19,7 @@ simulatorExe = "../../src/codesign/ttasim/ttasim"
 schedulingTimeoutSec = 100*60
 
 # How long the simulation can run without getting killed?
-simulationTimeoutSec = 480*60
+simulationTimeoutSec = 120*60
 
 def usage():
     print "Usage: scheduler_testbench.py [options]"

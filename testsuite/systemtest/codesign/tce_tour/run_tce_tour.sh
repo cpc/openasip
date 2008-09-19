@@ -42,7 +42,7 @@ then
 fi
 
 # compile the original
-$TCECC -O3 -a $MACH1 -o $PROG1 -k $SYMBOLS data/crc.c data/main.c
+$TCECC -O0 -a $MACH1 -o $PROG1 -k $SYMBOLS data/crc.c data/main.c
 test_success "Failed to compile original version of crc"
 
 # simulate the original and verify result
@@ -50,7 +50,7 @@ $TTASIM -e "mach $MACH1; prog $PROG1" < $SIMCMD
 test_success "Simulation of original program failed"
 
 # compile the custom op version
-$TCECC -O3 -a $MACH2 -o $PROG2 -k $SYMBOLS data/crc_with_custom_op.c data/main.c
+$TCECC -O0 -a $MACH2 -o $PROG2 -k $SYMBOLS data/crc_with_custom_op.c data/main.c
 test_success "Failed to compile custom op version of crc"
 
 # simulate and verify results
