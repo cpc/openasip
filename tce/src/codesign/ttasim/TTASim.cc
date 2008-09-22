@@ -155,7 +155,7 @@ public:
     /**
      * Terminates the simulation.
      */
-    virtual void execute(int data, siginfo_t *info) {
+    virtual void execute(int data, siginfo_t*) {
         if (data) {}
         std::string msg("Invalid memory reference");
         msg += "\n" + target_.programLocationDescription();
