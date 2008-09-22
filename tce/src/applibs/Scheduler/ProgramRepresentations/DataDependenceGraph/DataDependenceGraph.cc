@@ -886,7 +886,7 @@ DataDependenceGraph::unMerge(MoveNode &resultNode, MoveNode& mergedNode) {
         if (edge.edgeReason() == DataDependenceEdge::EDGE_OPERATION ||
             (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
              edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
-             !edge.headPseudo())) {
+             !edge.headPseudo() && !edge.guardUse())) {
             removeEdge(edge);
             i--; // do not skip next edge which now has same index
         } 
