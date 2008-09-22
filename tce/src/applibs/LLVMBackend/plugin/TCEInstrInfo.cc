@@ -117,8 +117,8 @@ unsigned
 TCEInstrInfo::isLoadFromStackSlot(
     MachineInstr* mi, int& frameIndex) const {
 
-    if (//mi->getOpcode() == TCE::LDQri ||
-        //mi->getOpcode() == TCE::LDHri ||
+    if (mi->getOpcode() == TCE::LDQi ||
+        mi->getOpcode() == TCE::LDHi ||
         mi->getOpcode() == TCE::LDWi) {
 
         if (mi->getOperand(1).isFrameIndex() &&
@@ -139,8 +139,8 @@ TCEInstrInfo::isLoadFromStackSlot(
 unsigned
 TCEInstrInfo::isStoreToStackSlot(MachineInstr* mi, int& frameIndex) const {
     
-    if (//mi->getOpcode() == TCE::STQri ||
-        //mi->getOpcode() == TCE::STHri ||
+    if (mi->getOpcode() == TCE::STQri ||
+        mi->getOpcode() == TCE::STHri ||
         mi->getOpcode() == TCE::STWir) {
 
        if (mi->getOperand(0).isFrameIndex() &&
@@ -194,7 +194,7 @@ TCEInstrInfo::storeRegToStackSlot(
         BuildMI(mbb, mbbi, get(TCE::STWir))
             .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
     } else if (rc == TCE::I1RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::STWir))
+        BuildMI(mbb, mbbi, get(TCE::STQir))
             .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
     } else {
         assert(0 && "Can't store this register to stack slot");
@@ -227,7 +227,7 @@ TCEInstrInfo::loadRegFromStackSlot(
             destReg).addFrameIndex(fi).addImm(0);
     } else if (rc == TCE::I1RegsRegisterClass) {
         BuildMI(
-            mbb, mbbi, get(TCE::LDWi),
+            mbb, mbbi, get(TCE::LDQi),
         destReg).addFrameIndex(fi).addImm(0);
     } else {
 
