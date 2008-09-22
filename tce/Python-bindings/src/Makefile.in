@@ -21,7 +21,7 @@ install::
 
 clean::
 	for d in $(SUBDIRS); do (cd $$d; make clean); done
-	@PYTHON@ setup.py clean
+	@PYTHON_ENABLED_TRUE@@PYTHON@ setup.py clean
 
 distclean:: 
 	make clean
