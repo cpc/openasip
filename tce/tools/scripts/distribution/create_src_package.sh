@@ -57,6 +57,7 @@ if [ "$(bzr status .)x" != "x" ]; then
     exit 1
 fi
 
+sed -i 's/DISTRIBUTED_VERSION, false,/DISTRIBUTED_VERSION, true,/g' configure.ac
 autoreconf || exit 2
 
 cd ..
