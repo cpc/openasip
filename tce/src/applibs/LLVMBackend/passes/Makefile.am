@@ -1,6 +1,6 @@
 BUILD_PASS = ./buildllvmpass
 
-SRC_ROOT_DIR = ../../..
+SRC_ROOT_DIR = $(top_srcdir)/src
 
 basedir = ${prefix}/share/tce/llvm/passes/
 nobase_base_DATA = LowerIntrinsics.so
@@ -10,7 +10,7 @@ nobase_base_DATA = LowerIntrinsics.so
 all-local: LowerIntrinsics.so
 
 LowerIntrinsics.so: LowerIntrinsics.cc
-	${BUILD_PASS} LowerIntrinsics.so LowerIntrinsics.cc
+	${BUILD_PASS} $@ $^
 
 clean:
 	rm -f *.so *~

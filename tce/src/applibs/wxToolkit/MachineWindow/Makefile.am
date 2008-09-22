@@ -17,7 +17,7 @@ libmachinewindow_la_SOURCES = MachineEditPartFactory.cc BidirBridgeFigure.cc \
 	MachineCanvasOptions.cc
 
 
-PROJECT_ROOT = ../../../..
+PROJECT_ROOT = $(top_srcdir)
 
 LIB_TCEtools_DIR = ${PROJECT_ROOT}/src/tools
 LIB_MACH_DIR = ${PROJECT_ROOT}/src/base/mach

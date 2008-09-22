@@ -9,10 +9,12 @@ libosal_la_SOURCES = OperationBehavior.cc OperationContext.cc \
 	OperationDAGBuilder.cc OperationGlobals.cc OperationPoolPimpl.cc \
 	OperationContextPimpl.cc OperationPimpl.cc ConstantNode.cc
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
-AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools -I../memory \
-              -I../../applibs/Simulator -I../../base/Graph
+AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools \
+              -I$(PROJECT_ROOT)/src/base/memory \
+              -I../../applibs/Simulator \
+              -I$(PROJECT_ROOT)/src/base/Graph
 AM_CXXFLAGS = -UNDEBUG
 
 include_HEADERS = OSAL.hh OperationContext.hh OperationBehavior.hh \

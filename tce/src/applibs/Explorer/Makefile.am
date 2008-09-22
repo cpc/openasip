@@ -3,7 +3,7 @@ libexplorer_la_SOURCES = ComponentImplementationSelector.cc CostEstimates.cc \
 			DesignSpaceExplorer.cc DesignSpaceExplorerPlugin.cc \
 			FrequencySweep.cc
 
-SRC_ROOT_DIR = ../../
+SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
 IDF_DIR = ${BASE_DIR}/idf
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools

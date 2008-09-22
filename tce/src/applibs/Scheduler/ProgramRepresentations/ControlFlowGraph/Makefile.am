@@ -2,7 +2,7 @@ lib_LTLIBRARIES = libcfg.la
 libcfg_la_SOURCES = BasicBlockNode.cc ControlFlowEdge.cc ControlFlowGraph.cc \
 BasicBlock.cc CFGStatistics.cc
 
-SRC_ROOT_DIR = ../../../../
+SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
 APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools

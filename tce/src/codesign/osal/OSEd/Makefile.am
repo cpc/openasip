@@ -1,3 +1,16 @@
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
+
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
+MEMORY_DIR = ${SRC_ROOT_DIR}/base/memory
+WXTOOLS_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit
+APPLIBS_OSAL_DIR = ${SRC_ROOT_DIR}/applibs/osal
+MACH_DIR = ${SRC_ROOT_DIR}/base/mach
+EPS_GENERATOR_DIR = ${SRC_ROOT_DIR}/applibs/EPSGenerator
+APPLIBS_MACH_DIR = ${SRC_ROOT_DIR}/applibs/mach
+GRAPH_DIR = ${SRC_ROOT_DIR}/base/Graph
+
 LIB_BASE_DIR = ../../../base
 LIB_TOOLS_DIR = ../../../tools
 LIB_OSAL_DIR = ../../../base/osal
@@ -42,11 +55,12 @@ osed_LDADD = ${LIB_UM_DIR}/libuniversalmachine.la ${LIB_BASE_DIR}/libttabase.la 
 
 AM_CXXFLAGS = ${GUI_INCLUDES}
 
-AM_CPPFLAGS = -I${LIB_TOOLS_DIR} -I${LIB_OSAL_DIR} \
-	-I${LIB_MEMORY_DIR} -I${LIB_WXTOOLS_DIR} \
-	-I${LIB_APPLIBS_OSAL_DIR} -I${LIB_MACH_DIR} \
-	-I${LIB_EPS_GENERATOR_DIR} -I${LIB_APPLIBS_MACH_DIR} \
-	-I${LIB_GRAPH_DIR}
+AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
+	-I${MEMORY_DIR} -I${WXTOOLS_DIR} \
+	-I${APPLIBS_OSAL_DIR} -I${MACH_DIR} \
+	-I${EPS_GENERATOR_DIR} -I${APPLIBS_MACH_DIR} \
+	-I${GRAPH_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

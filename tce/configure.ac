@@ -831,8 +831,9 @@ else
 fi
 
 # Paths for bitmaps, data...
-CURDIR="$(pwd)"
-AC_DEFINE_UNQUOTED([TCE_SRC_ROOT], ["$CURDIR"], [Root for the project])
+#CURDIR="$(pwd)"
+AC_DEFINE_UNQUOTED([TCE_SRC_ROOT], ["`cd $srcdir && pwd`"], [Root for the project])
+AC_DEFINE_UNQUOTED([TCE_BLD_ROOT], ["`pwd`"], [Build directory for the project])
 #AC_DEFINE_UNQUOTED([BITMAPSDIR], ["$CURDIR/bitmaps"],
 #		   [Directory for bitmaps])
 #AC_DEFINE_UNQUOTED([DATADIR], ["$CURDIR/data"],

@@ -14,7 +14,7 @@ if HAVE_SQLITE
   libtcetools_la_LDFLAGS = ${SQLITE_LD_FLAGS} ${BOOST_LDFLAGS}
 endif
 
-PROJECT_ROOT = ../../
+PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/base/memory
 AM_CXXFLAGS = -UNDEBUG

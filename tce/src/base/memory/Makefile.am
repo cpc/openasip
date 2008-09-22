@@ -2,7 +2,7 @@
 noinst_LTLIBRARIES = libmemory.la
 libmemory_la_SOURCES = Memory.cc IdealSRAM.cc DirectAccessMemory.cc WriteRequest.cc
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 
 AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools \

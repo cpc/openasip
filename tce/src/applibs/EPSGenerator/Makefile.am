@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libepsgenerator.la
 libepsgenerator_la_SOURCES = EPSGenerator.cc VertexList.cc
 
-SRC_ROOT = ../..
+SRC_ROOT = $(top_srcdir)/src
 
 TOOLS_DIR = ${SRC_ROOT}/tools
 AM_CPPFLAGS = -I${TOOLS_DIR}

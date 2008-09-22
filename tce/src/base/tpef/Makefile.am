@@ -34,9 +34,10 @@ libtpef_la_SOURCES = AOutDataSectionReader.cc AOutReader.cc \
 	DebugElement.cc DebugStabElem.cc TPEFDebugSectionWriter.cc \
 	TPEFDebugSectionReader.cc NullBinary.cc
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 AM_CXXFLAGS = -UNDEBUG
 
 dist-hook:

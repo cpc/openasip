@@ -1,12 +1,23 @@
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
+
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
+SIM_APPLIB_DIR = ${SRC_ROOT_DIR}/applibs/Simulator
+INT_APPLIB_DIR = ${SRC_ROOT_DIR}/applibs/Interpreter
+BASE_DIR = ${SRC_ROOT_DIR}/base
+MACH_DIR = ${SRC_ROOT_DIR}/base/mach
+PROGRAM_DIR = ${SRC_ROOT_DIR}/base/program
+APPLIBS_HDB_DIR = ${SRC_ROOT_DIR}/applibs/hdb
+APPLIBS_MACH_DIR = ${SRC_ROOT_DIR}/applibs/mach
+APPLIBS_SCHED_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
+
 LIB_TCETOOLS_DIR = ../../tools
 LIB_BASE_DIR = ../../base
-ROOT_DIR = ../../..
-OSAL_DIR = ../../base/osal
-MACH_DIR = ../../base/mach
-PROGRAM_DIR = ../../base/program
-SIM_APPLIB_DIR = ../../applibs/Simulator
+LIB_PROGRAM_DIR = ../../base/program
+LIB_SIM_APPLIB_DIR = ../../applibs/Simulator
 UM_DIR = ../../base/umach
-INT_APPLIB_DIR = ../../applibs/Interpreter
+LIB_INT_APPLIB_DIR = ../../applibs/Interpreter
 DISASM_DIR = ../../applibs/Disassembler
 TRACEDB_DIR = ../../applibs/TraceDB
 PROG_APPLIB_DIR = ../../applibs/program
@@ -20,9 +31,9 @@ ttasim_SOURCES = TTASim.cc SimulatorCmdLineOptions.cc
 
 ttasim_LDADD = ${LIB_BASE_DIR}/libttabase.la \
 	${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${SIM_APPLIB_DIR}/libsimulator.la \
-	${INT_APPLIB_DIR}/libinterpreter.la \
-	${PROGRAM_DIR}/libprogram.la \
+	${LIB_SIM_APPLIB_DIR}/libsimulator.la \
+	${LIB_INT_APPLIB_DIR}/libinterpreter.la \
+	${LIB_PROGRAM_DIR}/libprogram.la \
 	${DISASM_DIR}/libdisassembler.la \
 	${UM_DIR}/libuniversalmachine.la \
 	${TRACEDB_DIR}/libtracedb.la \
@@ -32,10 +43,10 @@ ttasim_LDADD = ${LIB_BASE_DIR}/libttabase.la \
 	${LIB_APPLIBS_SCHED_DIR}/libscheduler.la \
 	${FSA_APPLIB_DIR}/libfsa.la
 
-AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
-	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \
-	-I${MACH_DIR} -I$(PROGRAM_DIR) -I${LIB_APPLIBS_HDB_DIR} \
-	-I${LIB_APPLIBS_MACH_DIR} -I${LIB_APPLIBS_SCHED_DIR}
+AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
+	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${BASE_DIR} \
+	-I${MACH_DIR} -I$(PROGRAM_DIR) -I${APPLIBS_HDB_DIR} \
+	-I${APPLIBS_MACH_DIR} -I${APPLIBS_SCHED_DIR}
 AM_LDFLAGS = ${BOOST_LIBDIR} ${BOOST_PYTHON_LIB} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} \
 	${XERCES_LIBS} ${EDITLINE_LD_FLAGS}
 

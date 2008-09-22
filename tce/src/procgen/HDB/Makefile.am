@@ -1,3 +1,9 @@
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
+
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+HDB_DIR = ${SRC_ROOT_DIR}/applibs/hdb
+
 LIB_TCETOOLS_DIR = ../../tools
 LIB_BASE_DIR = ../../base
 ROOT_DIR = ../../..
@@ -12,7 +18,7 @@ INT_APPLIB_DIR = ../../applibs/Interpreter
 DISASM_DIR = ../../applibs/Disassembler
 TRACEDB_DIR = ../../applibs/TraceDB
 ESTIMATE_DIR = ../../applibs/Estimator
-HDB_DIR = ../../applibs/hdb
+LIB_HDB_DIR = ../../applibs/hdb
 MACH_APPLIB_DIR = ../../applibs/mach
 PROG_APPLIB_DIR = ../../applibs/program
 FSA_APPLIB_DIR = ../../applibs/FSA
@@ -29,14 +35,15 @@ createhdb_LDADD = ${LIB_BASE_DIR}/libttabase.la \
 	${DISASM_DIR}/libdisassembler.la \
 	${UMACH_DIR}/libuniversalmachine.la \
 	${TRACEDB_DIR}/libtracedb.la \
-	${HDB_DIR}/libhdb.la \
+	${LIB_HDB_DIR}/libhdb.la \
 	${MACH_APPLIB_DIR}/libapplibsmach.la \
 	${PROG_APPLIB_DIR}/libapplibsprogram.la \
 	${FSA_APPLIB_DIR}/libfsa.la \
 	${LIB_APPLIBS_SCHED_DIR}/libscheduler.la
 
 
-AM_CPPFLAGS = -I${HDB_DIR} -I${LIB_TCETOOLS_DIR}
+AM_CPPFLAGS = -I${HDB_DIR} -I${TOOLS_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 #-I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
 #	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \

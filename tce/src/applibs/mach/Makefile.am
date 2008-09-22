@@ -8,7 +8,7 @@ ReservationTable.cc FUCollisionMatrixIndex.cc FUReservationTableIndex.cc \
 CollisionMatrix.cc RFPortCheck.cc BasicMachineCheckSuite.cc MachineInfo.cc \
 OperationBindingCheck.cc RegisterQuantityCheck.cc
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 
 AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/tools \
 	-I${PROJECT_ROOT}/src/base/mach \

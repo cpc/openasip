@@ -1,6 +1,6 @@
 BUILD_PASS = ../../../src/bintools/Scheduler/buildschedulerpass
 
-SRC_ROOT_DIR = ../../..
+SRC_ROOT_DIR = @abs_top_srcdir@
 BASE_DIR = ${SRC_ROOT_DIR}/base
 APPLIBS_DIR = ${SRC_ROOT_DIR}/src/applibs
 SCHED_DIR = ${APPLIBS_DIR}/Scheduler
@@ -20,18 +20,18 @@ all-local: BasicBlockSchedulerPass.so CLBBypasserModule.so \
 BasicBlockSchedulerPass.so: BasicBlockSchedulerPass.cc \
 	BasicBlockSchedulerPass.hh ${ALGO_DIR}/DSFillerModule.hh \
 	${ALGO_DIR}/BypasserModule.hh
-	${BUILD_PASS} BasicBlockSchedulerPass.so BasicBlockSchedulerPass.cc
+	${BUILD_PASS} $@ $<
 
 CLBBypasserModule.so:  CLBBypasserModule.cc CLBBypasserModule.hh \
 	${ALGO_DIR}/BypasserModule.hh
-	${BUILD_PASS} CLBBypasserModule.so CLBBypasserModule.cc
+	${BUILD_PASS} $@ $<
 
 CopyingDSFillerModule.so: CopyingDSFillerModule.cc CopyingDSFillerModule.hh \
 	${ALGO_DIR}/DSFillerModule.hh 
-	${BUILD_PASS} CopyingDSFillerModule.so CopyingDSFillerModule.cc
+	${BUILD_PASS} $@ $<
 
 TempRegisterFinderPass.so: TempRegisterFinderPass.cc TempRegisterFinderPass.hh
-	${BUILD_PASS} TempRegisterFinderPass.so TempRegisterFinderPass.cc
+	${BUILD_PASS} $@ $<
 
 clean:
 	rm -f *.so *~

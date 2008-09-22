@@ -10,8 +10,9 @@ if HAVE_EDITLINE
 endif
 
 AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 libinterpreter_la_LDFLAGS = ${TCL_LIBDIR} ${EDITLINE_LIBDIR} ${EDITLINE_LD_FLAGS}
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da

@@ -5,7 +5,7 @@ IDFSerializer.cc NullUnitImplementationLocation.cc
 
 libidf_la_LDFLAGS = -lpthread
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 
 AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools
