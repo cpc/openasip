@@ -203,7 +203,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     verbose = options.verbose
 
-    loop_unroll_switches = " -loop-unroll -unroll-threshold=1000 "
+    loop_unroll_switches = " -loop-unroll -unroll-threshold=100 "
 
     tce_std_compile_opts = (" " +
         "-preverify -domtree -verify -lowersetjmp -raiseallocs -simplifycfg -domtree " + 
