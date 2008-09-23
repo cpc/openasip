@@ -102,13 +102,16 @@ public:
 
     /**
      * Terminates the simulation.
+     * 
+     * @exception SimulationExecutionError thrown always
      */
-    virtual void execute(int data, siginfo_t *info) {
-        if (data) {}
+    virtual void execute(int, siginfo_t *info) {
         std::string msg("Unknown floating point exception");
         
-        if (info->si_code == FPE_INTDIV || info->si_code == FPE_FLTDIV) {
-            msg = "division by zero";
+        if (info->si_code == FPE_INTDIV) {
+            msg = "integer division by zero";
+        } else if (info->si_code == FPE_FLTDIV) {
+            msg = "floating-point division by zero";
         } else if (info->si_code == FPE_INTOVF) {
             msg = "integer overflow";
         } else if (info->si_code == FPE_FLTOVF) {
@@ -122,10 +125,8 @@ public:
         } else if (info->si_code == FPE_FLTSUB) {
             msg = " Subscript out of range";
         }
-        
-        msg += "\n" + target_.programLocationDescription();
-             
-        target_.prepareToStop(SRE_USER_REQUESTED);
+    
+        target_.prepareToStop(SRE_RUNTIME_ERROR);
         SimulatorToolbox::reportSimulatedProgramError(
             target_.eventHandler(),
             SimulatorToolbox::RES_FATAL, msg);
@@ -154,13 +155,13 @@ public:
 
     /**
      * Terminates the simulation.
+     * 
+     * @exception SimulationExecutionError thrown always
      */
-    virtual void execute(int data, siginfo_t*) {
-        if (data) {}
+    virtual void execute(int, siginfo_t*) {
         std::string msg("Invalid memory reference");
-        msg += "\n" + target_.programLocationDescription();
              
-        target_.prepareToStop(SRE_USER_REQUESTED);
+        target_.prepareToStop(SRE_RUNTIME_ERROR);
         SimulatorToolbox::reportSimulatedProgramError(
             target_.eventHandler(),
             SimulatorToolbox::RES_FATAL, msg);
