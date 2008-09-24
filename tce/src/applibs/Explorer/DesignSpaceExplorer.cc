@@ -51,7 +51,6 @@
 #include "ExecutionTrace.hh"
 #include "DSDBManager.hh"
 #include "Machine.hh"
-#include "FunctionUnit.hh"
 #include "Program.hh"
 #include "MachineImplementation.hh"
 #include "PluginTools.hh"
@@ -64,7 +63,6 @@
 #include "SimulatorInterpreter.hh"
 #include "OperationGlobals.hh"
 #include "Application.hh"
-#include "FullyConnectedCheck.hh"
 #include "ComponentImplementationSelector.hh"
 
 using std::set;
@@ -75,6 +73,7 @@ using namespace CostEstimator;
 PluginTools
 DesignSpaceExplorer::pluginTool_;
 
+
 /**
  * The constructor.
  */
@@ -84,7 +83,6 @@ DesignSpaceExplorer::DesignSpaceExplorer() {
     //    SchedulingPlan::loadFromFile(Environment::oldGccSchedulerConf());
     oStream_ = new std::ostringstream;
     OperationGlobals::setOutputStream(*oStream_);
-    buildMinimalOpSet();
 }
 
 /**
@@ -469,247 +467,6 @@ DesignSpaceExplorer::loadExplorerPlugin(
         "create_explorer_plugin_" + pluginName, pluginCreator, pluginFileName);
     
     return pluginCreator(dsdb);
-}
-
-
-/**
- * Constructs a minimal opset from a given machine.
- *
- * @param machine Machine that is used as reference for minimal opset.
- */
-void 
-DesignSpaceExplorer::buildMinimalOpSet(const TTAMachine::Machine* machine) {
-    if (machine == NULL) {
-        machine = TTAMachine::Machine::loadFromADF(Environment::minimalADF());
-    }
-
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
-        machine->functionUnitNavigator();
-    // construct the opset list
-    for (int i = 0; i < fuNav.count(); i++) {
-        TTAMachine::FunctionUnit* fu = fuNav.item(i);
-        fu->operationNames(minimalOpSet_);
-    }
-}
-
-
-/**
- * Returns constructed minimal opset.
- *
- * @return Minimap opset as strings in a set.
- */
-std::set<std::string> 
-DesignSpaceExplorer::minimalOpSet() const {
-    return minimalOpSet_;
-}
-
-
-/**
- * Checks if machine has all operations in minimal opset.
- *
- * @param machine Machine to be checked againsta minimal opset.
- * @return True if minimal operation set was met, false otherwise.
- */
-bool 
-DesignSpaceExplorer::checkMinimalOpSet(
-    const TTAMachine::Machine& machine) const {
-
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
-        machine.functionUnitNavigator();
-    std::set<std::string> opSet;
-    // construct the opset list
-    for (int i = 0; i < fuNav.count(); i++) {
-        TTAMachine::FunctionUnit* fu = fuNav.item(i);
-        fu->operationNames(opSet);
-    }
-
-    // if machines opset is smaller than requiered opset
-    if (opSet.size() < minimalOpSet_.size()) {
-        return false;
-    }
-
-    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
-    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
-
-    std::set<std::string>::iterator first2 = opSet.begin();
-    std::set<std::string>::iterator last2 = opSet.end();
-
-    // return false if missing operation was found
-    while (first1 != last1 && first2 != last2)
-    {
-        if (*first1 < *first2) {
-            return false;
-        }
-        else if (*first2 < *first1) {
-            ++first2;
-        }
-        else { 
-            ++first1; 
-            ++first2; 
-        }
-    }
-    if (first1 != last1) {
-        return false;
-    }
-    return true;
-}
-
-
-/**
- * Checks if machine has all operations in minimal opset.
- *
- * Ignores fus with specified names from the check. This is usefull with
- * testing if minimal opset requirement breaks if a certain FUs are removed.
- *
- * @param machine Machine to be checked againsta minimal opset.
- * @param ignoreFUs Names of the fus to be ignored regarding the check.
- * @return True if minimal operation set was met, false otherwise.
- */
-bool 
-DesignSpaceExplorer::checkMinimalOpSet(
-    const TTAMachine::Machine& machine,
-    const std::set<std::string>& ignoreFUs) const {
-
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
-        machine.functionUnitNavigator();
-    std::set<std::string> opSet;
-    // construct the opset list
-    for (int i = 0; i < fuNav.count(); i++) {
-        TTAMachine::FunctionUnit* fu = fuNav.item(i);
-        if (ignoreFUs.find(fu->name()) == ignoreFUs.end()) {
-            fu->operationNames(opSet);
-        }
-    }
-
-    // if machines opset is smaller than requiered opset
-    if (opSet.size() < minimalOpSet_.size()) {
-        return false;
-    }
-
-    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
-    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
-
-    std::set<std::string>::iterator first2 = opSet.begin();
-    std::set<std::string>::iterator last2 = opSet.end();
-
-    // return false if missing operation was found
-    while (first1 != last1 && first2 != last2)
-    {
-        if (*first1 < *first2) {
-            return false;
-        }
-        else if (*first2 < *first1) {
-            ++first2;
-        }
-        else { 
-            ++first1; 
-            ++first2; 
-        }
-    }
-    if (first1 != last1) {
-        return false;
-    }
-    return true;
-}
-
-
-/**
- * Return operations that are missing from a machine.
- *
- * Returns operations that are missing from a machine compared to the minimal
- * operation set.
- *
- * @param machine Machine to be checked againsta minimal opset.
- * @param missingOps Vector where missing operation names are to be stored.
- */
-void
-DesignSpaceExplorer::missingOperations(
-    const TTAMachine::Machine& machine,
-    std::vector<std::string>& missingOps) const {
-
-    // construct the opset list
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
-        machine.functionUnitNavigator();
-    std::set<std::string> opSet;
-    for (int i = 0; i < fuNav.count(); i++) {
-        TTAMachine::FunctionUnit* fu = fuNav.item(i);
-        fu->operationNames(opSet);
-    }
-
-    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
-    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
-
-    std::set<std::string>::iterator first2 = opSet.begin();
-    std::set<std::string>::iterator last2 = opSet.end();
-
-    // missing opset is the difference towards minimalOpSet_
-    while (first1 != last1 && first2 != last2)
-    {
-        if (*first1 < *first2) {
-            missingOps.push_back(*first1++);
-        }
-        else if (*first2 < *first1) {
-            ++first2;
-        }
-        else { 
-            ++first1; 
-            ++first2; 
-        }
-    }
-    while (first1 != last1) {
-        missingOps.push_back(*first1++);
-    }
-}
-
-
-/**
- * Adds FUs to the machine so that it doesn't miss operations anymore.
- *
- * Check is done against minimal opset.
- *
- * @param machine Machine to be checked againsta minimal opset and where FUs
- * are inserted so that minimal opset is fulfilled.
- * @return True if something was done to the machine, false otherwise.
- */
-bool
-DesignSpaceExplorer::fulfillMinimalOpset(
-    TTAMachine::Machine& machine) const {
-
-    std::vector<std::string> missingOps;
-    missingOperations(machine, missingOps);
-
-    if (missingOps.size() < 1) {
-        return false;
-    }
-
-    // go through minimal adf and add FUs that include missing ops
-    TTAMachine::Machine* minMach = TTAMachine::Machine::loadFromADF(
-            Environment::minimalADF());
-    
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
-        minMach->functionUnitNavigator();
-    std::set<std::string> fuAdded;
-    FullyConnectedCheck conCheck = FullyConnectedCheck();
-
-    for (unsigned int moi = 0; moi < missingOps.size(); ++moi) {
-        for (int fui = 0; fui < fuNav.count(); ++fui) {
-            TTAMachine::FunctionUnit* fu = fuNav.item(fui);
-            if (fu->hasOperation(missingOps.at(moi))) {
-                if (fuAdded.end() != fuAdded.find(fu->name())) {
-                    break;
-                }
-                fuAdded.insert(fu->name());
-                fu->unsetMachine();
-                machine.addFunctionUnit(*fu);
-                // connect the fu
-                for (int op = 0; op < fu->operationPortCount(); ++op) {
-                    conCheck.connectFUPort(*fu->operationPort(op));
-                }
-                break;
-            }
-        }
-    }
-    return true;
 }
 
 

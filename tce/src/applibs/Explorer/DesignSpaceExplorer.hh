@@ -49,7 +49,7 @@
 #include "DSDBManager.hh"
 #include "TestApplication.hh"
 #include "BaseLineReader.hh"
-
+    
 class CostEstimates;
 class ExecutionTrace;
 class DesignSpaceExplorerPlugin;
@@ -86,16 +86,7 @@ public:
     static DesignSpaceExplorerPlugin* loadExplorerPlugin(
         const std::string& pluginName, DSDBManager& dsdb)
         throw (FileNotFound, DynamicLibraryException);
-    void buildMinimalOpSet(const TTAMachine::Machine* machine = NULL);
-    std::set<std::string> minimalOpSet() const;
-    bool checkMinimalOpSet(const TTAMachine::Machine& machine) const;
-    bool checkMinimalOpSet(
-        const TTAMachine::Machine& machine,
-        const std::set<std::string>& ignoreFUName) const;
-    void missingOperations(
-        const TTAMachine::Machine& machine,
-        std::vector<std::string>& missingOps) const;
-    bool fulfillMinimalOpset(TTAMachine::Machine& machine) const;
+
     RowID createImplementationAndStore(
         const DSDBManager::MachineConfiguration& conf,
         const double& frequency = 0.0,
@@ -150,8 +141,6 @@ private:
     CostEstimator::Estimator estimator_;
     /// Output stream.
     std::ostringstream* oStream_;
-    // minimal opset
-    std::set<std::string> minimalOpSet_;
 };
 
 #endif

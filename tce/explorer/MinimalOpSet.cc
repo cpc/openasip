@@ -46,6 +46,8 @@
 #include "StringTools.hh"
 #include "Exception.hh"
 
+#include "MinimalOpSetCheck.hh"
+
 //using namespace TTAProgram;
 using namespace TTAMachine;
 using namespace HDB;
@@ -68,6 +70,7 @@ public:
     explore(const RowID& configurationID, const unsigned int&) {
         readParameters();
         std::vector<RowID> result;
+        MinimalOpSetCheck minimalOpSetCheck = MinimalOpSetCheck();
 
         // make params for adf and idf, so no configuration needed
         if (configurationID == 0 && adf_ == "") {
@@ -109,10 +112,10 @@ public:
         // check minimal opset and print missing ops
         if (printMissingOps_) {
             std::vector<std::string> missingOps;
-            missingOperations(*mach, missingOps);
+            minimalOpSetCheck.missingOperations(*mach, missingOps);
             if (missingOps.empty()) {
                 verboseLog("MinimalOpSet: Configuration/machine has all"
-                        "the operations in the minimal opset already.")
+                        " the operations in the minimal opset already.")
                 return result;
             }
             for (unsigned int i = 0; i < missingOps.size(); ++i) {
@@ -122,7 +125,9 @@ public:
 
         // add FUs to the machine, so that it has all the operations in the
         // minimal opset
-        if (!DesignSpaceExplorer::fulfillMinimalOpset(*mach)) {
+        try {
+            minimalOpSetCheck.fix(*mach);
+        } catch (const InvalidData& e) {
             verboseLog("MinimalOpSet: Configuration/machine has all the"
                     "operations in the minimal opset already.")
             return result;

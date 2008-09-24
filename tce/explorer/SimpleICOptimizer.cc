@@ -67,6 +67,8 @@
 #include "LLVMBackend.hh"
 #include "RegisterQuantityCheck.hh"
 
+#include "MinimalOpSetCheck.hh"
+
 
 using namespace TTAProgram;
 using namespace TTAMachine;
@@ -361,6 +363,7 @@ private:
         Machine::SocketNavigator socketNav = mach.socketNavigator();
         Machine::BusNavigator busNav = mach.busNavigator();
         RegisterQuantityCheck RFCheck;
+        MinimalOpSetCheck minimalOpSetCheck = MinimalOpSetCheck();
 
         if (!preserveMinimalOpset_) {
             for (int i = 0; i < socketNav.count(); i++) {
@@ -391,7 +394,7 @@ private:
                 // and the verdict if connections can be removed as a pair to
                 // a map
                 if (!ignoreFUNames.empty()) {
-                    if (checkMinimalOpSet(mach, ignoreFUNames)) {
+                    if (minimalOpSetCheck.checkWithIgnore(mach, ignoreFUNames)) {
                         if (!ignoreRFNames.empty()) {
                             if (RFCheck.checkWithIgnore(mach, ignoreRFNames)) 
                             {

@@ -61,6 +61,8 @@
 #include "MachineValidator.hh"
 #include "MachineValidatorResults.hh"
 
+#include "MinimalOpSetCheck.hh"
+
 using std::set;
 using std::vector;
 using std::string;
@@ -79,7 +81,8 @@ using namespace TTAProgram;
  * @param procedure ProgrammabilityValidator generates procedure.
  */
 ProgrammabilityValidator::ProgrammabilityValidator(const Machine& machine) 
-    throw (IllegalMachine) : machine_(machine) {
+    throw (IllegalMachine) : machine_(machine), 
+    minimalOpSetCheck_(new MinimalOpSetCheck()) {
 
     directCounter = 0;
     gcrCounter = 0;
@@ -126,6 +129,8 @@ ProgrammabilityValidator::~ProgrammabilityValidator() {
     GCUConnections.clear();
     RFConnections.clear();
     IMMConnections.clear();
+    delete minimalOpSetCheck_;
+    minimalOpSetCheck_ = NULL;
 }
 
 
@@ -341,32 +346,16 @@ void
 ProgrammabilityValidator::checkPrimitiveSet(
     ProgrammabilityValidatorResults& results) const {
     
-    for (int n = 0; n < PRIMITIVE_SET_SIZE; n++) {
-	bool found = false;
-	std::string operation = PRIMITIVE_SET[n];
-	const TTAMachine::Machine::FunctionUnitNavigator& nav =
-	    machine_.functionUnitNavigator();
-	for (int i = 0; i < nav.count(); i++) {
-	    const TTAMachine::FunctionUnit* fu = nav.item(i);
-	    if (fu->hasOperation(operation)) {
-		found = true;
-		continue;
-	    }
-	    if (machine_.controlUnit() != NULL) {
-		if (machine_.controlUnit()->hasOperation(operation)) {
-		    found = true;
-		    continue;
-		}
-	    }
-	}
-	// the operation was not in the machine
-	if (found == false) {
-            string msg 
-                = "Operation missing from the primitive operation set: ";
-	    results.addError(
+    std::vector<std::string> missingOps;
+    minimalOpSetCheck_->missingOperations(machine_, missingOps);
+
+    string msg = "Operation missing from the minimal operation set: ";
+    std::vector<std::string>::iterator it = missingOps.begin();
+    std::vector<std::string>::iterator end = missingOps.end();
+    while (it != end) {
+        results.addError(
                 OPERATION_MISSING_FROM_THE_PRIMITIVE_OPERATION_SET,
-                msg.append(PRIMITIVE_SET[n]));
-	}
+                msg.append(*it++));
     }
 }
 
