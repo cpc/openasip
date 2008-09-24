@@ -161,8 +161,8 @@ ProximMemoryWindow::loadProgramMemory() {
     MemorySystem& memorySystem = simulator_->memorySystem();
     
     for (unsigned int i = 0; i < memorySystem.memoryCount(); i++) {
-	string asName = memorySystem.addressSpace(i).name();
-	asChoice_->Append(WxConversion::toWxString(asName));
+        string asName = memorySystem.addressSpace(i).name();
+        asChoice_->Append(WxConversion::toWxString(asName));
     }
     asChoice_->SetSelection(0);
     wxCommandEvent dummy;
@@ -224,23 +224,23 @@ ProximMemoryWindow::onSimulationStop(const SimulatorEvent&) {
 void
 ProximMemoryWindow::createContents() {
 
-    sizer_= new wxBoxSizer( wxVERTICAL );
+    sizer_= new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *item1 = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText *item2 = new wxStaticText(
 	this, ID_TEXT_AS, wxT("Address space:"),
-	wxDefaultPosition, wxDefaultSize, 0);
+        wxDefaultPosition, wxDefaultSize, 0);
 
     item1->Add(item2, 0, wxALIGN_CENTER|wxALL, 5);
 
     wxString *strs3 = (wxString*) NULL;
     asChoice_ = new wxChoice(
-	this, ID_AS_CHOICE, wxDefaultPosition, wxSize(150,-1), 0, strs3, 0);
+        this, ID_AS_CHOICE, wxDefaultPosition, wxSize(150,-1), 0, strs3, 0);
 
     item1->Add(asChoice_, 0, wxALIGN_CENTER|wxALL, 5);
     sizer_->Add(item1, 0, wxALIGN_CENTER|wxALL, 5);
 
     wxStaticLine *item4 = new wxStaticLine(
-	this, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL);
+        this, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL);
 
     sizer_->Add(item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5);
     
