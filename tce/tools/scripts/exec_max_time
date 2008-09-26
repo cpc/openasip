@@ -12,8 +12,8 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
     timePassed = 0.0
     increment = 0.01
     
-    stderrFD, omit1 = tempfile.mkstemp()
-    stdoutFD, omit1 = tempfile.mkstemp()
+    stderrFD, errFile = tempfile.mkstemp()
+    stdoutFD, outFile = tempfile.mkstemp()
 
     # runs command in new shell, returned process is the created shell, not pid of the
     # command that is ran in the new shell.
@@ -47,7 +47,9 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
                 stderrContents = os.read(stderrFD, stderrSize)
 
                 os.close(stdoutFD)
+                os.remove(outFile)
                 os.close(stderrFD)
+                os.remove(errFile)
 
                 if verbose:
                     print "Command was executed successfully."
@@ -75,7 +77,9 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
                 stderrContents = os.read(stderrFD, stderrSize)
 
                 os.close(stdoutFD)
+                os.remove(outFile)
                 os.close(stderrFD)
+                os.remove(errFile)
             
                 os.kill(process.pid, signal.SIGTSTP)
                 if verbose:
@@ -96,7 +100,9 @@ def runWithTimeout(command, timeoutSecs, inputStream = None, verbose = False):
             stderrContents = os.read(stderrFD, stderrSize)
 
             os.close(stdoutFD)
+            os.remove(outFile)
             os.close(stderrFD)
+            os.remove(errFile)
         except:
             pass
         
