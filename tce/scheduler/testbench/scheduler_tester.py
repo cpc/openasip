@@ -270,8 +270,8 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
     timePassed = 0.0
     increment = 0.01
     
-    stderrFD, omit1 = tempfile.mkstemp()
-    stdoutFD, omit1 = tempfile.mkstemp()
+    stderrFD, errFile = tempfile.mkstemp()
+    stdoutFD, outFile = tempfile.mkstemp()
 
     if veryVerboseOutput:
         print "running: %s input-stream: %s" % (command,inputStream)
@@ -302,7 +302,9 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
                 stderrContents = os.read(stderrFD, stderrSize)
 
                 os.close(stdoutFD)
+                os.remove(outFile)
                 os.close(stderrFD)
+                os.remove(errFile)
 
                 return (True, stdoutContents, stderrContents)
         
@@ -322,7 +324,9 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
                 stderrContents = os.read(stderrFD, stderrSize)
 
                 os.close(stdoutFD)
+                os.remove(outFile)
                 os.close(stderrFD)
+                os.remove(errFile)
             
                 os.kill(process.pid, signal.SIGTSTP)
             
@@ -343,7 +347,9 @@ def runWithTimeout(command, timeoutSecs, inputStream = ""):
             stderrContents = os.read(stderrFD, stderrSize)
 
             os.close(stdoutFD)
+            os.remove(outFile)
             os.close(stderrFD)
+            os.remove(errFile)
         except:
             pass
         
