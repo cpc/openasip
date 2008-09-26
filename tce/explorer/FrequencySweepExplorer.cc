@@ -204,32 +204,12 @@ public:
                 if (fastEnough(*archIter, currentFrequencyMHz, dsdb)) {
                     verboseLogC("Calling minimize machine for init config: " +
                             Conversion::toString(*archIter), 3)
+
                     // calling MimimizeMachine plugin with confToMinimize 
                     // (architer) and currentFrequencyMHz
-                    minimizeMachine->setParameters(minMachineParameters);
-                    vector<RowID> minimizedConfs = 
-                        minimizeMachine->explore(*archIter);
-
-                    DSDBManager::MachineConfiguration minConf;
-                    if (minimizedConfs.size() == 1) {
-                        minConf = dsdb.configuration(minimizedConfs.at(0));
-                    } else {
-                        throw InvalidData(
-                            __FILE__, __LINE__, __func__,
-                            (boost::format(
-                                "MinimizeMachine failed to optimize "
-                                "configuration %d. Possible bug in Optimizer,"
-                                " Estimator or missing data from HDB."
-                            ) % *archIter).str());
-                    }
-
-                    if (Application::verboseLevel() > 2) {
-                        std::ostringstream msg(std::ostringstream::out);
-                        msg << "MinimizeMachine plugin produced config: "
-                            << minimizedConfs.at(0) << " (" 
-                            << currentFrequencyMHz << " Mhz)" << endl;
-                        verboseLog(msg.str())
-                    }
+                    DSDBManager::MachineConfiguration minConf = 
+                        callPlugin(minMachineParameters, minimizeMachine, 
+                                *archIter, dsdb);
 
                     // create implementation for configuration
                     RowID selectedConf = createImplementationAndStore(minConf, 
@@ -237,6 +217,9 @@ public:
 
                     // check if component selection failed
                     if (selectedConf == 0) {
+                        verboseLogC("Component selection failed for minimized"
+                            " arch: " + Conversion::toString(
+                                minConf.architectureID), 3)
                         continue;
                     }
                     
@@ -257,6 +240,8 @@ public:
                         // connected, and so, register file requirements can
                         // change. Meaning evaluating the machine can fail in
                         // the plugin.
+                        verboseLogC("SimpleICOptimzer failed for arch: "
+                            + Conversion::toString(selectedConf), 3)
                         continue;
                     }
 
@@ -472,6 +457,48 @@ private:
             }
         }
         return true;
+    }
+
+
+    /**
+     * Calls an explorer plugin.
+     *
+     * @param pluginParams Parameters for the plugin.
+     * @param plugin The plugin to be called.
+     * @param arch Row id of the architechture to be passed to the plugin.
+     * @return dsdb Design space database to be used.
+     */
+    DSDBManager::MachineConfiguration callPlugin(
+        const DesignSpaceExplorerPlugin::ParameterTable& pluginParams,
+        DesignSpaceExplorerPlugin* plugin,
+        const RowID& arch,
+        DSDBManager& dsdb) {
+        
+        plugin->setParameters(pluginParams);
+        vector<RowID> resultConfs = plugin->explore(arch);
+
+        DSDBManager::MachineConfiguration resultConf;
+        if (resultConfs.size() == 1) {
+            resultConf = dsdb.configuration(resultConfs.at(0));
+        } else {
+            throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                (boost::format(
+                    "%s failed to optimize "
+                    "configuration %d. Possible bug in Optimizer,"
+                    " Estimator or missing data from HDB."
+                    ) % arch % plugin->name()).str());
+        }
+
+        if (Application::verboseLevel() > 2) {
+            std::ostringstream msg(std::ostringstream::out);
+            msg << plugin->name()
+                << " plugin produced config: "
+                << resultConfs.at(0) << endl;
+            verboseLog(msg.str())
+        }
+
+        return resultConf;
     }
 };
 

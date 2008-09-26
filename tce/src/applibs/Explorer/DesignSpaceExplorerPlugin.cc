@@ -69,12 +69,23 @@ DesignSpaceExplorerPlugin::setPluginName(const std::string& pluginName) {
 
 
 /**
+ * Returns the plugin name.
+ *
+ * @return The plugin name as a string.
+ */
+std::string 
+DesignSpaceExplorerPlugin::name() const {
+    return pluginName_;
+}
+
+
+/**
  * Sets the plugin parameters.
  *
  * @param parameters The parameters.
  */
 void
-DesignSpaceExplorerPlugin::setParameters(ParameterTable parameters) {
+DesignSpaceExplorerPlugin::setParameters(const ParameterTable& parameters) {
     parameters_ = parameters;
 }
 
