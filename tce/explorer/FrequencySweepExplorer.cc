@@ -190,6 +190,7 @@ public:
             minMachineParameters.clear();
             minMachineParameters.push_back(frequencyPar);
 
+            verboseLogC("Testing frequency: " + frequencyPar.value, 3)
             /* Find the configurations that are fast enough for the
                real time requirements of the applications at the
                currently examined frequency. */
@@ -197,8 +198,12 @@ public:
                  archIter != cycleOptimizedConfs.end();
                  archIter++) {
 
+                verboseLogC("Testing (fast enough) init config: " +
+                        Conversion::toString(*archIter), 3)
                 // if is fast enough for all apps
                 if (fastEnough(*archIter, currentFrequencyMHz, dsdb)) {
+                    verboseLogC("Calling minimize machine for init config: " +
+                            Conversion::toString(*archIter), 3)
                     // calling MimimizeMachine plugin with confToMinimize 
                     // (architer) and currentFrequencyMHz
                     minimizeMachine->setParameters(minMachineParameters);
@@ -262,6 +267,7 @@ public:
                     /// not required for 1st version!
 
                 } else {
+                    verboseLogC("Init config was too slow.", 3)
                     // the architecture was too slow
                 }
 

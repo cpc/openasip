@@ -475,10 +475,12 @@ DesignSpaceExplorer::loadExplorerPlugin(
  * 
  * Also stores the new configuration to the dsdb and returns it's rowID.
  *
- * @param dsdb Desing database.
  * @param conf MachineConfiguration of which architecture is used.
  * @param frequency The minimum frequency of the implementations.
  * @param maxArea Maximum area for implementations.
+ * @param createEstimates Boolean for creating estimates.
+ * @param icDec IC decoder to be used.
+ * @param icDecHDB IC decoder HDB file.
  * @return RowID of the new machine configuration having adf and idf.
  * */
 RowID 
@@ -493,10 +495,11 @@ DesignSpaceExplorer::createImplementationAndStore(
     const TTAMachine::Machine* mach = dsdb_->architecture(conf.architectureID);
     IDF::MachineImplementation* idf = NULL;
 
-    if (!selectComponents(*mach, idf, frequency, maxArea, icDec, icDecHDB)) {
+    idf = selectComponents(*mach, frequency, maxArea, icDec, icDecHDB);
+    if (!idf) {
         return 0;
     }
-
+    
     CostEstimator::AreaInGates area = 0;
     CostEstimator::DelayInNanoSeconds longestPathDelay = 0;
     if (createEstimates) {
@@ -504,7 +507,6 @@ DesignSpaceExplorer::createImplementationAndStore(
     }
 
     DSDBManager::MachineConfiguration newConf;
-
     newConf.architectureID = conf.architectureID;
 
     newConf.implementationID = 
@@ -519,6 +521,18 @@ DesignSpaceExplorer::createImplementationAndStore(
 }
 
 
+/**
+ * Selects components for a machine and ands them to a given config.
+ * 
+ * @param conf MachineConfiguration of which architecture is used.
+ * @param newConf MachineConfiguration where idf is to be added.
+ * @param frequency The minimum frequency of the implementations.
+ * @param maxArea Maximum area for implementations.
+ * @param createEstimates Boolean for creating estimates.
+ * @param icDec IC decoder to be used.
+ * @param icDecHDB IC decoder HDB file.
+ * @return RowID of the new machine configuration having adf and idf.
+ * */
 bool
 DesignSpaceExplorer::createImplementation(
     const DSDBManager::MachineConfiguration& conf,
@@ -532,7 +546,8 @@ DesignSpaceExplorer::createImplementation(
     const TTAMachine::Machine* mach = dsdb_->architecture(conf.architectureID);
     IDF::MachineImplementation* idf = NULL;
 
-    if (!selectComponents(*mach, idf, frequency, maxArea, icDec, icDecHDB)) {
+    idf = selectComponents(*mach, frequency, maxArea, icDec, icDecHDB);
+    if (!idf) {
         return false;
     }
 
@@ -556,22 +571,23 @@ DesignSpaceExplorer::createImplementation(
 /**
  * Selects components for a machine, creates a idf.
  * 
- * @param dsdb Desing database.
- * @param conf MachineConfiguration of which architecture is used.
+ * @param mach Target machine for which components are selected.
  * @param frequency The minimum frequency of the implementations.
  * @param maxArea Maximum area for implementations.
- * @return True if implementation was created, false otherwise.
+ * @param icDec IC decoder to be used.
+ * @param icDecHDB IC decoder HDB file.
+ * @return Machine Implementation pointer if ok, else NULL.
  * */
-bool 
+IDF::MachineImplementation* 
 DesignSpaceExplorer::selectComponents(
     const TTAMachine::Machine& mach,
-    IDF::MachineImplementation* idf,
     const double& frequency,
     const double& maxArea,
     const std::string& icDec,
     const std::string& icDecHDB) const {
 
     ComponentImplementationSelector impSelector;
+    IDF::MachineImplementation* idf = NULL;
 
     try {
         // TODO: check that idf is deleted when it has been written to the
@@ -585,9 +601,9 @@ DesignSpaceExplorer::selectComponents(
             delete idf;
             idf = NULL;
         }
-        return false;
     }
-    return true;
+
+    return idf;
 }
 
 

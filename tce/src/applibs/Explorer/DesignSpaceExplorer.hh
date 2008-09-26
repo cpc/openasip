@@ -102,9 +102,8 @@ public:
         const bool& createEstimates = true,
         const std::string& icDec = "DefaultICDecoder",
         const std::string& icDecHDB = "asic_130nm_1.5V.hdb") const;
-    bool selectComponents(
+    IDF::MachineImplementation*  selectComponents(
         const TTAMachine::Machine& mach,
-        IDF::MachineImplementation* idf,
         const double& frequency = 0.0,
         const double& maxArea = 0.0,
         const std::string& icDec = "DefaultICDecoder",
