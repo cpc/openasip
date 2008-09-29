@@ -2,18 +2,21 @@ bin_PROGRAMS = schedule
 bin_SCRIPTS = buildschedulerpass
 schedule_SOURCES = Schedule.cc
 
-SRC_ROOT_DIR = ../..
-BASE_DIR = ${SRC_ROOT_DIR}/base
-APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs
-TOOLS_DIR = ${SRC_ROOT_DIR}/tools
-SCHEDULER_DIR = ${APPLIBS_DIR}/Scheduler
-POM_DIR = ${BASE_DIR}/program
-OSAL_DIR = ${BASE_DIR}/osal
-MACH_DIR = ${BASE_DIR}/mach
-UM_DIR = ${BASE_DIR}/umach
+LIB_BASE_DIR = ../../base
+LIB_APPLIBS_DIR = ../../applibs
+LIB_TOOLS_DIR = ../../tools
 
-schedule_LDADD = ${BASE_DIR}/libttabase.la ${APPLIBS_DIR}/libapplibs.la \
-	${TOOLS_DIR}/libtcetools.la
+SRC_ROOT_DIR = $(top_srcdir)/src
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+SCHEDULER_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
+POM_DIR = ${SRC_ROOT_DIR}/base/program
+OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
+MACH_DIR = ${SRC_ROOT_DIR}/base/mach
+UM_DIR = ${SRC_ROOT_DIR}/base/umach
+
+schedule_LDADD = ${LIB_BASE_DIR}/libttabase.la \
+	${LIB_APPLIBS_DIR}/libapplibs.la \
+	${LIB_TOOLS_DIR}/libtcetools.la
 
 AM_CPPFLAGS = -I${SCHEDULER_DIR} -I${TOOLS_DIR} -I${MACH_DIR} -I${UM_DIR} \
 	-I${OSAL_DIR} -I${POM_DIR}

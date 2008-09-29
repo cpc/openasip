@@ -4,7 +4,7 @@ libguioptions_la_SOURCES = ToolbarButton.cc KeyboardShortcut.cc \
 	GUIOptions.cc GUIOptionsSerializer.cc OptionsDialog.cc \
 	KeyboardShortcutDialog.cc
 
-PROJECT_ROOT = ../../../..
+PROJECT_ROOT = $(top_srcdir)
 
 LIB_TCEtools_DIR = ${PROJECT_ROOT}/src/tools
 LIB_WXTOOLKIT_DIR = ${PROJECT_ROOT}/src/applibs/wxToolkit

@@ -31,8 +31,8 @@
  *
  * Definition of StringSection class.
  *
- * @author Ari Metsähalme 2003 (ari.metsahalme@tut.fi)
- * @author Mikael Lepistö 2004 (tmlepist@cs.tut.fi)
+ * @author Ari Metsähalme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Mikael Lepistö 2004 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 17 October 2003 by am, pj, rm, kl
  *
  * @note rating: yellow

@@ -31,7 +31,7 @@
  *
  * Header file for ProgrammabilityValidator.
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -42,11 +42,13 @@
 #include <set>
 #include <vector>
 #include <map>
+
 #include "Exception.hh"
 #include "Machine.hh"
 #include "Program.hh"
 #include "Guard.hh"
 
+#include "MinimalOpSetCheck.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -61,14 +63,6 @@ namespace TPEF {
 }
 
 class ProgrammabilityValidatorResults;
-
-/// the primitive operation set
-const int PRIMITIVE_SET_SIZE = 15;
-const string PRIMITIVE_SET[PRIMITIVE_SET_SIZE] = {"ADD", "SUB", "LDW",
-                                                  "STW", "EQ", "GT",
-                                                  "GTU", "SHL", "SHR",
-                                                  "SHRU", "AND", "IOR",
-                                                  "XOR", "JUMP", "CALL"};
 
 
 class ProgrammabilityValidator {
@@ -162,6 +156,8 @@ private:
     RegisterFile* booleanRegister_;
     /// The global connection register of the machine
     RegisterFile* globalConnectionRegister_;
+    /// Minimal operation checker
+    MinimalOpSetCheck* minimalOpSetCheck_;
     
     /// All inputs found in the machine are stored here.
     vector<pair<const Port*, set<Segment*> > > inputs;

@@ -14,7 +14,7 @@ else
         
         echo "Assuming that we are working with an uninstalled TCE. "
 
-        TCE_ROOT=../../..
+        TCE_ROOT=@abs_top_srcdir@
         SRC_BASE=${TCE_ROOT}/src
         BASE=${SRC_BASE}/base
         APPLIBS=${SRC_BASE}/applibs
@@ -35,7 +35,7 @@ else
 
         compiler="@CXX@"
         libdir=
-        includedir="-I${TCE_ROOT} -I${SRC_BASE}/tools -I${SCHEDULER} "\
+        includedir="-I../../.. -I${SRC_BASE}/tools -I${SCHEDULER} "\
 "-I${RESOURCE_MODEL} -I${RESOURCE_MANAGER} -I${PDG} -I${BASE}/mach "\
 "-I${BASE}/program -I${BASE}/umach -I${BASE}/osal -I${DISASSEMBLER} "\
 "-I${GRAPH} -I${DDG} -I${CFG} -I${SCHEDULER_ALGO} -I${SF_DIR} "\

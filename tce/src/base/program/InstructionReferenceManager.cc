@@ -31,7 +31,7 @@
  *
  * Implementation of InstructionReferenceManager class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -91,11 +91,15 @@ InstructionReference&
 InstructionReferenceManager::replace(Instruction& insA, Instruction& insB)
     throw (InstanceNotFound) {
 
+    InstructionReference* ir = NULL;
     for (unsigned int i = 0; i < references_.size(); i++) {
         if (&references_.at(i)->instruction() == &insA) {
             references_.at(i)->setInstruction(insB);
-            return *references_.at(i);
+            ir = references_.at(i);
         }
+    }
+    if (ir != NULL) {
+        return *ir;
     }
     throw InstanceNotFound(
         __FILE__, __LINE__, "InstructionReferenceManager::replace()",

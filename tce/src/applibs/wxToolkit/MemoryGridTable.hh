@@ -31,7 +31,7 @@
  *
  * Declaration of MemoryGridTable class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -102,7 +102,7 @@ private:
     static const std::string NOT_AVAILABLE;
     static const int COLUMNS;
     /// Maximum number of rows to display in the window.
-    static const int MAX_ROWS;
+    static const Word MAX_ROWS;
     /// Current data mode of the window (hex/binary/int...).
     DataMode dataMode_;
     /// Current size mode of the window (1/2/4... MAUs per cell).

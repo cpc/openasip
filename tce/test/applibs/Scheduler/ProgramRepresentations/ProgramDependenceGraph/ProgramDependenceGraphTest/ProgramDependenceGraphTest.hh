@@ -31,7 +31,7 @@
  *
  * A test suite for Program Dependence analysis.
  *
- * @author Vladimir Guzma 2007 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

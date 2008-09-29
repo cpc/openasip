@@ -31,9 +31,9 @@
  *
  * Definition of Environment class.
  *
- * @author Atte Oksman 2003 (oksman@cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
- * @author Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+ * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  *
  * @note reviewed 19 May 2004 by ao, jn, ml, am
  * @note rating: red
@@ -325,6 +325,7 @@ Environment::includeDirPaths() {
     const std::string ROOT = string(TCE_SRC_ROOT);
     const std::string BASE = ROOT + DS + "src" + DS + "base";
     const std::string APPLIBS = ROOT + DS + "src" + DS + "applibs";
+    const std::string BLD = string(TCE_BLD_ROOT);
     
     if (!DISTRIBUTED_VERSION) {
         includes.push_back(ROOT);
@@ -341,6 +342,7 @@ Environment::includeDirPaths() {
         includes.push_back(APPLIBS + DS + "Simulator");
         includes.push_back(APPLIBS + DS + "mach");
         includes.push_back(APPLIBS + DS + "FSA");
+        includes.push_back(TCE_BLD_ROOT);
     } else {
         includes.push_back(string(TCE_INSTALLATION_ROOT) + DS + "include");
     }

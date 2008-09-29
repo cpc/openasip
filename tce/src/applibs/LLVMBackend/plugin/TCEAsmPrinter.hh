@@ -31,7 +31,7 @@
  * 
  * Declaration of TCEAsmPrinter class.
  * 
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

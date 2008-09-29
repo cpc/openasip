@@ -31,7 +31,7 @@
  *
  * Declaration of DisassemblyAnnotation class.
  *
- * @author Mikael Lepistö 2007 (tmlepist@cs.tut.fi)
+ * @author Mikael Lepistö 2007 (tmlepist-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

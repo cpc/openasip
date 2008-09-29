@@ -33,7 +33,7 @@
  *
  * Declarations.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

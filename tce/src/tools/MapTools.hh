@@ -29,7 +29,7 @@
 /**
  * @file MapTools.hh
  *
- * @author Pekka J‰‰skel‰inen (pekka.jaaskelainen@tut.fi) 2004
+ * @author Pekka J‰‰skel‰inen (pekka.jaaskelainen-no.spam-tut.fi) 2004
  *
  * Tools for handling STL Pair Associative Containers (usually map).
  *

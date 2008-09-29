@@ -31,7 +31,7 @@
  *
  * A test suite for Interpolation class.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  */    
 
 #ifndef TTA_COSTDB_INTERPOLATION_TEST_HH

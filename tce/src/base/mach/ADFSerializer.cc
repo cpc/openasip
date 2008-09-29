@@ -31,7 +31,7 @@
  *
  * Implementation of ADFSerializer class.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
  * @note reviewed 15 Jun 2004 by pj, vpj, ml, ll
  * @note rating: red
  */

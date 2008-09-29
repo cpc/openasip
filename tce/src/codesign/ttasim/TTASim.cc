@@ -33,7 +33,7 @@
  *
  * The command line version of the TTA Simulator.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -63,14 +63,14 @@
  *
  * Stops the simulation (if it's running).
  */
-class SimulationStopper : public Application::UnixSignalHandler {
+class SigINTHandler : public Application::UnixSignalHandler {
 public:
     /**
      * Constructor.
      *
      * @param target The target SimulatorFrontend instance.
      */
-    SimulationStopper(SimulatorFrontend& target) : target_(target) {
+    SigINTHandler(SimulatorFrontend& target) : target_(target) {
     }
 
     /**
@@ -90,25 +90,28 @@ private:
  *
  * Stops the simulation (if it's running).
  */
-class SimulationFPEHandler : public Application::UnixSignalHandler {
+class SigFPEHandler : public Application::UnixSignalHandler {
 public:
     /**
      * Constructor.
      *
      * @param target The target SimulatorFrontend instance.
      */
-    SimulationFPEHandler(SimulatorFrontend& target) : target_(target) {
+    SigFPEHandler(SimulatorFrontend& target) : target_(target) {
     }
 
     /**
      * Terminates the simulation.
+     * 
+     * @exception SimulationExecutionError thrown always
      */
-    virtual void execute(int data, siginfo_t *info) {
-        if (data) {}
+    virtual void execute(int, siginfo_t *info) {
         std::string msg("Unknown floating point exception");
         
-        if (info->si_code == FPE_INTDIV || info->si_code == FPE_FLTDIV) {
-            msg = "division by zero";
+        if (info->si_code == FPE_INTDIV) {
+            msg = "integer division by zero";
+        } else if (info->si_code == FPE_FLTDIV) {
+            msg = "floating-point division by zero";
         } else if (info->si_code == FPE_INTOVF) {
             msg = "integer overflow";
         } else if (info->si_code == FPE_FLTOVF) {
@@ -122,10 +125,43 @@ public:
         } else if (info->si_code == FPE_FLTSUB) {
             msg = " Subscript out of range";
         }
-        
-        msg += "\n" + target_.programLocationDescription();
+    
+        target_.prepareToStop(SRE_RUNTIME_ERROR);
+        SimulatorToolbox::reportSimulatedProgramError(
+            target_.eventHandler(),
+            SimulatorToolbox::RES_FATAL, msg);
+       
+        throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__, msg);
+    }
+private:
+    /// Simulator frontend to use when stopping the simulation.
+    SimulatorFrontend& target_;
+};
+
+/**
+ * A handler class for SIGSEGV signal
+ *
+ * Stops the simulation (if it's running).
+ */
+class SigSegvHandler : public Application::UnixSignalHandler {
+public:
+    /**
+     * Constructor.
+     *
+     * @param target The target SimulatorFrontend instance.
+     */
+    SigSegvHandler(SimulatorFrontend& target) : target_(target) {
+    }
+
+    /**
+     * Terminates the simulation.
+     * 
+     * @exception SimulationExecutionError thrown always
+     */
+    virtual void execute(int, siginfo_t*) {
+        std::string msg("Invalid memory reference");
              
-        target_.prepareToStop(SRE_USER_REQUESTED);
+        target_.prepareToStop(SRE_RUNTIME_ERROR);
         SimulatorToolbox::reportSimulatedProgramError(
             target_.eventHandler(),
             SimulatorToolbox::RES_FATAL, msg);
@@ -294,10 +330,13 @@ int main(int argc, char* argv[]) {
     /// Catch runtime errors and print them out to the simulator console.
     RuntimeErrorReporter errorReporter(*simFront);
 
-    SimulationStopper ctrlcHandler(*simFront);
-    SimulationFPEHandler fpeHandler(*simFront);
-    Application::setCtrlcHandler(ctrlcHandler);
-    Application::setFpeHandler(fpeHandler);
+    SigINTHandler ctrlcHandler(*simFront);
+    SigFPEHandler fpeHandler(*simFront);
+    SigSegvHandler segvHandler(*simFront);
+    
+    Application::setSignalHandler(SIGINT, ctrlcHandler);
+    Application::setSignalHandler(SIGFPE, fpeHandler);
+    Application::setSignalHandler(SIGSEGV, segvHandler);
 
     if (machineToLoad != "") {
         interpreteAndPrintResults(
@@ -340,8 +379,9 @@ int main(int argc, char* argv[]) {
 
     delete reader;
     reader = NULL;
-    Application::restoreFpeHandler();
-    Application::restoreCtrlcHandler();
+    Application::restoreSignalHandler(SIGINT);
+    Application::restoreSignalHandler(SIGFPE);
+    Application::restoreSignalHandler(SIGSEGV);
     
     return EXIT_SUCCESS;
 }

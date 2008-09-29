@@ -1,4 +1,4 @@
-1.0-beta1     2008-xx-xx
+1.0-beta1     2008-10-02
 ========================
 
 New features
@@ -21,6 +21,11 @@ New features
 - New sequential scheduler which minimizes scheduling time and helps
   to isolate compilation bugs between LLVM and TCE. 
   Invoke with 'tcecc -O0'.
+- SimpleICOptimizer Explorer plugin now has a switch to preserve the minimal
+  opset.
+- Evaluate Explorer plugin added to easily evaluate configurations.
+- MinimalOpSet Explorer plugin added to check machines against the minimal
+  opset.
 
 Bug fixes
 ---------

@@ -31,7 +31,7 @@
  *
  * A generic container of option values.
  *
- * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 

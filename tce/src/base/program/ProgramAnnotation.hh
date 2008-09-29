@@ -31,7 +31,7 @@
  *
  * Declaration of ProgramAnnotation class.
  *
- * @author Pekka J��skel�inen 2006 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J��skel�inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -121,8 +121,19 @@ public:
         ANN_CONNECTIVITY_MOVE           = 0x00030002,
 
         ANN_REQUIRES_LIMM               = 0x00030003,
+
+        /// debugging info annotations
+
+        /// Full path to the program source code file the annotated move
+        /// originates from
+        ANN_DEBUG_SOURCE_CODE_PATH      = 0x00040000,
+
+        /// The line number in the source code file the annotated move
+        /// originates from
+        ANN_DEBUG_SOURCE_CODE_LINE,
+
         /// an illegal annotation ID (the id is only 24 bits, this has more
-        /// meaningful bits)
+        /// meaningful bits)        
         ANN_UNDEF_ID                    = 0xFF000000
 
     };

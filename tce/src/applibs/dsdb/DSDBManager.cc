@@ -31,7 +31,7 @@
  *
  * Implementation of DSDBManager class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -742,6 +742,28 @@ DSDBManager::writeImplementationToFile(RowID id, const std::string& path) const
         throw IOException(
             __FILE__, __LINE__, __func__, exception.errorMessage());
     }        
+}
+    
+/**
+ * Writes the machine configuration to files path.{idf,adf}.
+ *
+ * @param conf MachineConfiguration to be written to a path.
+ * @param path Path where the ADF and possibly the IDF of the configuration
+ *             will be written.
+ */
+void 
+DSDBManager::writeConfigurationToFile(
+    const MachineConfiguration& conf, 
+    const std::string& path)
+    throw (KeyNotFound, IOException) {
+
+    const std::string adfFile = path + ".adf";
+    const std::string idfFile = path + ".idf";
+
+    writeArchitectureToFile(conf.architectureID, adfFile);
+    if (conf.hasImplementation) {
+        writeImplementationToFile(conf.implementationID, idfFile);
+    }
 }
 
 /**

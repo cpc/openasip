@@ -30,7 +30,7 @@
  * @file ObjectStateTest.hh
  * A test suite for ObjectState class.
  *
- * @author Lasse Laasonen (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

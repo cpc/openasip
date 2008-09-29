@@ -6,8 +6,8 @@ libtcellvmbackend_la_SOURCES = TCESubtarget.cc  TCETargetAsmInfo.cc \
     TCETargetMachine.cc  LLVMPOMBuilder.cc LLVMBackend.cc \
     LowerMissingInstructions.cc TDGen.cc passes/LinkBitcode.cc passes/MachineDCE.cc
 
-PROJECT_ROOT = ../../..
-SRC_ROOT = ../..
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT = ${PROJECT_ROOT}/src
 TOOLS_DIR = ${SRC_ROOT}/tools
 MACH_DIR = ${SRC_ROOT}/base/mach
 PROG_DIR = ${SRC_ROOT}/base/program
@@ -25,6 +25,7 @@ AM_CPPFLAGS = ${LLVM_CPPFLAGS} -I${TOOLS_DIR} -I${MACH_DIR} \
     -I${PROG_DIR} -I${TPEF_DIR} -I${OSAL_DIR} -I${DISASM_DIR} \
     -I${UMACH_DIR} -I${OSAL_APPLIBS_DIR} -I${GRAPH_DIR} \
     -I${MACH_APPLIBS_DIR} -I${SCHED_ALGO_DIR} -I${SCHED_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS =
 

@@ -31,9 +31,9 @@
  *
  * Base operation definitions.
  *
- * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
- * @author Ari Mets‰halme 2004 (ari.metsahalme@tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pekka.jaaskelainen@tut.fi)
+ * @author Tommi Rantanen 2004 (tommi.rantanen-no.spam-tut.fi)
+ * @author Ari Mets‰halme 2004 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #include <iostream>

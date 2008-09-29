@@ -31,7 +31,7 @@
  *
  * Definition of OperationModule class.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note rating: yellow
  * @note reviewed 7 September 2004 by pj, jn, jm, ao
  */

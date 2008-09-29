@@ -31,8 +31,8 @@
  *
  * Declaration of AOutDataSectionReader class.
  *
- * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
- * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 7 October 2003 by jn, ml, tr, ll
  *
  * @note rating: yellow

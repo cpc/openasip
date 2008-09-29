@@ -31,7 +31,7 @@
  *
  * Implementation of NullBinary class.
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: yellow
  */
 

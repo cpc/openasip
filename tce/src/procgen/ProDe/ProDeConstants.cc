@@ -31,7 +31,7 @@
  *
  * Definition of ProDeConstants class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

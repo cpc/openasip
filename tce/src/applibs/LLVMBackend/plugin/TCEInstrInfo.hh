@@ -31,7 +31,7 @@
  *
  * Declaration of TCEInstrInfo class.
  *
- * @author Veli-Pekka Jaaskelainen 2007 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jaaskelainen 2007 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TCE_INSTR_INFO_H

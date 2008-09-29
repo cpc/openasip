@@ -31,7 +31,7 @@
  *
  * Definition of BasicBlockScheduler class.
  *
- * @author Pekka Jääskeläinen 2006 (pjaaskel@cs.tut.fi)
+ * @author Pekka Jääskeläinen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -50,6 +50,7 @@
 #include "ControlUnit.hh"
 #include "Machine.hh"
 #include "UniversalMachine.hh"
+#include "Guard.hh"
 #include "MapTools.hh"
 #include "Instruction.hh"
 #include "InstructionReference.hh"
@@ -704,28 +705,14 @@ BasicBlockScheduler::scheduleMove(
     }
 
     // if it's a conditional move then we have to be sure that the guard
-    // is defined before executing the move
+    // is defined before executing the move.
+    // this is already handled by DDGs earliestCycle, except cases
+    // where the guard is defined in a previous BB. 
+    // So this prevents scheduling unconditional moves at the beginning
+    // of a BB.
+    
     if (!moveNode.move().isUnconditional()) {
-
-        MoveNode* guardWrite = ddg_->guardDefMove(moveNode);
-        // only care abut guard latency if guard is written in this BB.
-        if (guardWrite != NULL) {
-            const int guardWriteCycle = guardWrite->cycle();
-            int guardLatency =
-                targetMachine_->controlUnit()->globalGuardLatency();
-
-            if (guardWrite->move().destination().isGPR()) {
-                const TTAMachine::RegisterFile& rf =
-                    dynamic_cast<const TTAMachine::RegisterFile&>(
-                        guardWrite->move().destination().registerFile());
-                guardLatency += rf.guardLatency();
-            } else {
-                throw IllegalMachine(
-                    __FILE__, __LINE__, __func__,
-                    "Scheduling FU output port guards is not yet supported.");
-            }
-            ddgCycle = std::max(ddgCycle, guardWriteCycle + guardLatency);
-        }
+        ddgCycle = std::max(ddgCycle, moveNode.guardLatency()-1);
     }
 
     // Earliest cycle from which to start, could depend on result ready

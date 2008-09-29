@@ -1,59 +1,48 @@
 #!/bin/bash
-EXPLORE_BIN="../../../../../tce/src/codesign/Explorer/explore"
-COMPILER_BIN="../../../../../tce/src/bintools/Compiler/tcecc"
-SCHEDULER_CONF=../../../../../tce/scheduler/passes/old_gcc.conf
-TTASIM_BIN="../../../../../tce/src/codesign/ttasim/ttasim -q"
-MINIMAL_ADF_PATH="../../../../../tce/data/mach/minimal.adf"
+_TCE_ROOT="../../../../../tce"
+EXPLORE_BIN="${_TCE_ROOT}/src/codesign/Explorer/explore"
+COMPILER_BIN="${_TCE_ROOT}/src/bintools/Compiler/tcecc"
+SCHEDULER_CONF=${_TCE_ROOT}/scheduler/passes/old_gcc.conf
+TTASIM_BIN="${_TCE_ROOT}/src/codesign/ttasim/ttasim"
+MINIMAL_ADF_PATH="${_TCE_ROOT}/data/mach/minimal.adf"
 
 # TODO: fu/rf/bus count check
-# TODO: make test script dynamic regards to number of configs produced
+SUPERIORITY=5      # superiority percentage
 "${EXPLORE_BIN}" -d data/ growmachine.dsdb 1>/dev/null
 "${EXPLORE_BIN}" -a ${MINIMAL_ADF_PATH} -d data/ growmachine.dsdb 1>/dev/null
-"${EXPLORE_BIN}" -e GrowMachine -s 1 -u superiority=10 growmachine.dsdb 1>/dev/null
+NEW_CONFIGS=($("${EXPLORE_BIN}" -e GrowMachine -s 1 -u superiority=${SUPERIORITY} growmachine.dsdb \
+| grep -x '[[:space:]][0-9][0-9]*' | xargs))
 
-"${EXPLORE_BIN}" -w 1 growmachine.dsdb 1>/dev/null
-"${EXPLORE_BIN}" -w 2 growmachine.dsdb 1>/dev/null
-"${EXPLORE_BIN}" -w 3 growmachine.dsdb 1>/dev/null
-
-${COMPILER_BIN} -o 1.tpef -a 1.adf data/program.bc 1>/dev/null
-${COMPILER_BIN} -o 2.tpef -a 2.adf data/program.bc 1>/dev/null
-${COMPILER_BIN} -o 3.tpef -a 3.adf data/program.bc 1>/dev/null
-
-CYCLECOUNT_1=$(
-${TTASIM_BIN} <<EOF
-mach 1.adf
-prog 1.tpef
-run
-info proc cycles
-quit
-EOF
-)
-
-CYCLECOUNT_2=$(
-${TTASIM_BIN} <<EOF
-mach 2.adf
-prog 2.tpef
-run
-info proc cycles
-quit
-EOF
-)
-
-CYCLECOUNT_3=$(
-${TTASIM_BIN} <<EOF
-mach 3.adf
-prog 3.tpef
-run
-info proc cycles
-quit
-EOF
-)
-
-# test that cycle count is lowered
-if [ "${CYCLECOUNT_1}" -le "${CYCLECOUNT_2}" ]; then
-    echo "Cycle count was not lowered (1->2, ${CYCLECOUNT_1} -> ${CYCLECOUNT_2})."
+#echo "New config(s) created: ${NEW_CONFIGS[@]}" 
+if [ "${#NEW_CONFIGS}" -lt 1 ]; then 
+    echo "Atleast 1 config should be produced by GrowMachine plugin (${NEW_CONFIGS[*]})"
+    exit 1
 fi
 
-if [ "${CYCLECOUNT_2}" -le "${CYCLECOUNT_3}" ]; then
-    echo "Cycle count was not lowered (2->3, ${CYCLECOUNT_2} -> ${CYCLECOUNT_3})."
-fi
+NEW_CONFIGS=(${NEW_CONFIGS[@]} 1)
+declare -a CYCLECOUNTS
+for conf in ${NEW_CONFIGS[@]}; do
+    "${EXPLORE_BIN}" -w ${conf} growmachine.dsdb 1>/dev/null
+    "${COMPILER_BIN}" -o ${conf}.tpef -a ${conf}.adf data/program.bc 1>/dev/null
+    
+    CYCLECOUNT=$(
+    ${TTASIM_BIN} <<EOF
+mach ${conf}.adf
+prog ${conf}.tpef
+run
+info proc cycles
+quit
+EOF
+    )
+    CYCLECOUNTS=(${CYCLECOUNTS[@]} ${CYCLECOUNT})
+done
+
+# test that cycle counts were lowered enough
+j="0"
+i="1"
+while [ $i -lt "${#CYCLECOUNTS[*]}" ]; do
+    echo "" | awk -v oldcc=${CYCLECOUNTS[i]} -v newcc=${CYCLECOUNTS[j]} -v sp=${SUPERIORITY} \
+    '{ perc = (1.0-(newcc/oldcc))*100; if (perc < sp) { print "FAIL", perc, "<", sp; }}'
+    ((++j))
+    ((++i)) 
+done

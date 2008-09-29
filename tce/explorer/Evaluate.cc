@@ -31,7 +31,7 @@
  *
  * Explorer plugin that evaluates given configuration.
  *
- * @author Esa Määttä 2008 (esa.maatta@tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -72,10 +72,8 @@ public:
         readParameters();
         std::vector<RowID> result;
 
-        // if configuration doesn't have a implementation, warn
-
-        // check if adf given, TODO: check idf also
-        if (configurationID == 0) {
+        // make params for adf and idf, so no configuration needed
+        if (configurationID == 0 && adf_ == "") {
             std::ostringstream msg(std::ostringstream::out);
             msg << "No configuration nor adf defined. Use -s <confID> to "
                 << "define the configuration to be optimized or give adf "
@@ -85,37 +83,78 @@ public:
         }
 
         DSDBManager& dsdb = db();
-        // loads starting configuration
-        DSDBManager::MachineConfiguration conf = 
-            dsdb.configuration(configurationID);
+        DSDBManager::MachineConfiguration conf;
+        
+        // load adf/idf from file if no configuration was given
+        if (configurationID == 0) {
+            if (!createConfig(adf_, idf_, dsdb, conf)) {
+               return result; 
+            }
+        } else {
+            // if starting configuration given load it
+            conf = dsdb.configuration(configurationID);
+        }
 
-        DesignSpaceExplorer explorer;
-        explorer.setDSDB(dsdb);
         CostEstimates estimates;
-        bool estimate = true;
+        bool estimate = (conf.hasImplementation ? true : false);
         try {
-            if (!explorer.evaluate(conf, estimates, estimate)) {
+            if (!evaluate(conf, estimates, estimate)) {
                 debugLog(std::string("Evaluate failed."));
-                result.push_back(configurationID);
                 return result;
             }
         } catch (const Exception& e) {
             debugLog(std::string("Error in Evaluate plugin: ")
                     + e.errorMessage() + std::string(" ")
                     + e.errorMessageStack());
-            result.push_back(configurationID);
             return result;
         }
 
+        verboseLogC(std::string("Evalution OK, ") 
+                + (estimate ? "with" : "without") + " estimation.",1)
+        // add new configuration to the database
+        if (configurationID == 0) {
+            RowID newConfID = addConfToDSDB(conf);
+            if (newConfID != 0) {
+                result.push_back(newConfID);
+            }
+        }
         return result;
     }
 
 private:
+    /// name of the adf file to evaluate
+    std::string adf_;
+    /// name of the idf file to evaluate
+    std::string idf_;
+
     /**
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        return;
+        const std::string adf = "adf";
+        const std::string idf = "idf";
+
+        if (hasParameter(adf)) {
+            try {
+                adf_ = parameterValue(adf);
+            } catch (const Exception& e) {
+                parameterError(adf, "string");
+                adf_ = "";
+            }
+        } else {
+            adf_ = "";
+        }
+
+        if (hasParameter(idf)) {
+            try {
+                idf_ = parameterValue(idf);
+            } catch (const Exception& e) {
+                parameterError(idf, "string");
+                idf_ = "";
+            }
+        } else {
+            idf_ = "";
+        }
     }
 
     
@@ -131,6 +170,50 @@ private:
             << "' on parameter '" << param << "'. " << type 
             << " value expected." << std::endl;
         errorOuput(msg.str());
+    }
+    
+    
+    /**
+     * Load adf and idf from files and store to given dsdb and config.
+     *
+     * @param adf Path of architecture definition file.
+     * @param idf Path of implementation definition file.
+     * @param dsdb Database where to store adf and idf.
+     * @param conf Configuration for adf/idf ids.
+     * @return True if creating config succeeded, else false.
+     */
+    bool createConfig(
+        const std::string& adf,
+        const std::string& idf,
+        DSDBManager& dsdb,
+        DSDBManager::MachineConfiguration& conf) {
+
+        assert(adf != "");
+
+        IDF::MachineImplementation* idfo = NULL;
+        TTAMachine::Machine* mach = NULL;
+        try {
+            if (adf != "") {
+                mach = TTAMachine::Machine::loadFromADF(adf);
+                conf.architectureID = dsdb.addArchitecture(*mach);
+            } else {
+                return false;
+            }
+            if (idf != "") {
+                idfo = IDF::MachineImplementation::loadFromIDF(idf);
+                conf.implementationID = 
+                    dsdb.addImplementation(*idfo, 0,0);
+                conf.hasImplementation = true;
+            } else {
+                conf.hasImplementation = false;
+            }
+        } catch (const Exception& e) {
+            std::ostringstream msg(std::ostringstream::out);
+            msg << "Error loading the adf/idf." << std::endl;
+            errorOuput(msg.str());
+            return false;
+        }
+        return true;
     }
 };
 

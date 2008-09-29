@@ -31,7 +31,7 @@
  *
  * Implementation of LLVMTCECmdLineOptions class.
  *
- * @author Veli-Pekka J��skel�inen 2008 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J��skel�inen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

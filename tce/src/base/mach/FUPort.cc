@@ -31,7 +31,7 @@
  *
  * Implementation of class FUPort.
  *
- * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
  * @note reviewed 14 Jun 2004 by am, tr, ao, ll
  * @note rating: red
  */

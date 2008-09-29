@@ -8,10 +8,10 @@ nobase_base_DATA = DirectMappingRegisterAllocator.so SequentialFirstFitResourceA
 all-local: DirectMappingRegisterAllocator.so SequentialFirstFitResourceAllocator.so
 
 DirectMappingRegisterAllocator.so: DirectMappingRegisterAllocator.cc
-	${BUILD_PASS} DirectMappingRegisterAllocator.so DirectMappingRegisterAllocator.cc
+	${BUILD_PASS} $@ $^
 
 SequentialFirstFitResourceAllocator.so: SequentialFirstFitResourceAllocator.cc
-	${BUILD_PASS} SequentialFirstFitResourceAllocator.so SequentialFirstFitResourceAllocator.cc
+	${BUILD_PASS} $@ $^
 
 clean:
 	rm -f *.so *~

@@ -2,10 +2,14 @@ SUBDIRS = bitmaps
 
 datadir = ${prefix}/share/tce/data
 
-nobase_data_DATA = ProDe/confschema.xsd bem/BEM_Schema.xsd \
-                   mach/ADF_Schema.xsd mach/minimal.adf osal/Operation_Schema.xsd \
-		   idf/IDF_Schema.xsd OSEd/behavior_definition_template.cc \
-                   ProGe/decompressor.vhdl ProGe/ifetch.vhdl \
-                   ProGe/highest_pkg.vhdl ProGe/opcodes_pkg.vhdl \
-                   icons/*.png ProGe/tb/*.vhdl \
-                   Proxim/confschema.xsd
+nobase_data_DATA = $(srcdir)/ProDe/confschema.xsd \
+                   $(srcdir)/bem/BEM_Schema.xsd \
+                   $(srcdir)/mach/ADF_Schema.xsd mach/minimal.adf \
+                   $(srcdir)/osal/Operation_Schema.xsd \
+		   $(srcdir)/idf/IDF_Schema.xsd \
+                   $(srcdir)/OSEd/behavior_definition_template.cc \
+                   $(srcdir)/ProGe/decompressor.vhdl ProGe/ifetch.vhdl \
+                   $(srcdir)/ProGe/highest_pkg.vhdl ProGe/opcodes_pkg.vhdl \
+                   $(srcdir)/icons/*.png \
+                   $(srcdir)/ProGe/tb/*.vhdl \
+                   $(srcdir)/Proxim/confschema.xsd

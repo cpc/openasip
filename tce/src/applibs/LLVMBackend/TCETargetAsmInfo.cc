@@ -31,7 +31,7 @@
  *
  * Implementation of TCETargetAsmInfo class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #include "TCETargetAsmInfo.hh"

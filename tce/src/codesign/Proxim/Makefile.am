@@ -1,5 +1,22 @@
 CURDIR = $(shell pwd)
 
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
+
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+MACH_DIR = ${SRC_ROOT_DIR}/base/mach
+WXTOOLKIT_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit
+INTERPRETER_DIR = ${SRC_ROOT_DIR}/applibs/Interpreter
+SIMULATOR_DIR = ${SRC_ROOT_DIR}/applibs/Simulator
+PROGRAM_DIR = ${SRC_ROOT_DIR}/base/program
+DISASM_DIR = ${SRC_ROOT_DIR}/applibs/Disassembler
+MEMORY_DIR = ${SRC_ROOT_DIR}/base/memory
+UM_DIR = ${SRC_ROOT_DIR}/base/umach
+MACHINE_WINDOW_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit/MachineWindow
+GUI_OPTIONS_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit/GUIOptions
+OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
+EPS_GENERATOR_DIR = ${SRC_ROOT_DIR}/applibs/EPSGenerator
+
 LIB_TTABASE_DIR = ../../base
 LIB_TCETOOLS_DIR = ../../tools
 LIB_MACH_DIR = ../../base/mach
@@ -79,19 +96,20 @@ proxim_LDADD =	${LIB_TCETOOLS_DIR}/libtcetools.la \
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 
-AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} \
-	      -I${LIB_MACH_DIR} \
-	      -I${LIB_WXTOOLKIT_DIR} \
-	      -I${LIB_INTERPRETER_DIR} \
-	      -I${LIB_SIMULATOR_DIR} \
-	      -I${LIB_PROGRAM_DIR} \
-	      -I${LIB_DISASM_DIR} \
-              -I${LIB_MEMORY_DIR} \
-	      -I${LIB_UM_DIR} \
-	      -I${LIB_MACHINE_WINDOW_DIR} \
-	      -I${LIB_GUI_OPTIONS_DIR} \
-	      -I${LIB_OSAL_DIR} \
-	      -I${LIB_EPS_GENERATOR_DIR}
+AM_CPPFLAGS = -I${TOOLS_DIR} \
+	      -I${MACH_DIR} \
+	      -I${WXTOOLKIT_DIR} \
+	      -I${INTERPRETER_DIR} \
+	      -I${SIMULATOR_DIR} \
+	      -I${PROGRAM_DIR} \
+	      -I${DISASM_DIR} \
+              -I${MEMORY_DIR} \
+	      -I${UM_DIR} \
+	      -I${MACHINE_WINDOW_DIR} \
+	      -I${GUI_OPTIONS_DIR} \
+	      -I${OSAL_DIR} \
+	      -I${EPS_GENERATOR_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = -UNDEBUG ${AM_WXCXXFLAGS} 
 

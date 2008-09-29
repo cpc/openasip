@@ -31,7 +31,7 @@
  * 
  * A test suite for OperationContext.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #ifndef OP_CONTEXT_TEST_HH

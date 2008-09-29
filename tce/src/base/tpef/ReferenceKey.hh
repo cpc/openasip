@@ -31,7 +31,7 @@
  *
  * Declarations of different key types used in reference managing.
  *
- * @author Pekka J‰‰skel‰inen 2003 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2003 (pjaaskel-no.spam-cs.tut.fi)
  * @note reviewed 17 Oct 2003 by am, rm, kl
  *
  * @note rating: yellow

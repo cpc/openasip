@@ -1,5 +1,24 @@
 CURDIR = $(shell pwd)
 
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
+
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+MACH_DIR = ${SRC_ROOT_DIR}/base/mach
+WXTOOLKIT_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit
+PROGRAM_DIR = ${SRC_ROOT_DIR}/base/program
+HDB_DIR = ${SRC_ROOT_DIR}/applibs/hdb
+MACHINE_WINDOW_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit/MachineWindow
+GUI_OPTIONS_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit/GUIOptions
+EPS_GENERATOR_DIR = ${SRC_ROOT_DIR}/applibs/EPSGenerator
+MACH_TOOLS_DIR = ${SRC_ROOT_DIR}/applibs/mach
+IDF_DIR = ${SRC_ROOT_DIR}/base/idf
+IDF_TOOLS_DIR = ${SRC_ROOT_DIR}/applibs/idf
+BEM_DIR = ${SRC_ROOT_DIR}/base/bem
+PROGE_DIR = ${SRC_ROOT_DIR}/applibs/ProGe
+BEM_TOOLS_DIR = ${SRC_ROOT_DIR}/applibs/bem
+OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
+
 LIB_TTABASE_DIR = ../../base
 LIB_TCETOOLS_DIR = ../../tools
 LIB_MACH_DIR = ../../base/mach
@@ -108,21 +127,23 @@ prode_LDADD =	${LIB_TCETOOLS_DIR}/libtcetools.la \
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 
-AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} \
-	      -I${LIB_MACH_DIR} \
-	      -I${LIB_WXTOOLKIT_DIR}  \
-	      -I${LIB_MACHINE_WINDOW_DIR} \
-	      -I${LIB_EPS_GENERATOR_DIR} \
-	      -I${LIB_GUI_OPTIONS_DIR} \
-	      -I${LIB_MACH_TOOLS_DIR} \
-	      -I${LIB_PROGRAM_DIR} \
-	      -I${LIB_HDB_DIR} \
-	      -I${LIB_IDF_DIR} \
-	      -I${LIB_IDF_TOOLS_DIR} \
-	      -I${LIB_BEM_DIR} \
-	      -I${LIB_BEM_TOOLS_DIR} \
-	      -I${LIB_PROGE_DIR} \
-	      -I${LIB_OSAL_DIR}
+
+AM_CPPFLAGS = -I${TOOLS_DIR} \
+	      -I${MACH_DIR} \
+	      -I${WXTOOLKIT_DIR}  \
+	      -I${MACHINE_WINDOW_DIR} \
+	      -I${EPS_GENERATOR_DIR} \
+	      -I${GUI_OPTIONS_DIR} \
+	      -I${MACH_TOOLS_DIR} \
+	      -I${PROGRAM_DIR} \
+	      -I${HDB_DIR} \
+	      -I${IDF_DIR} \
+	      -I${IDF_TOOLS_DIR} \
+	      -I${BEM_DIR} \
+	      -I${BEM_TOOLS_DIR} \
+	      -I${PROGE_DIR} \
+	      -I${OSAL_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = -UNDEBUG ${AM_WXCXXFLAGS} 
 

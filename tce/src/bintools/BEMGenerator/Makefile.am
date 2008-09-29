@@ -1,11 +1,16 @@
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
+
 LIB_TCETOOLS_DIR = ../../tools
 LIB_APPLIBS_DIR = ../../applibs
 LIB_BASE_DIR = ../../base
 ROOT_DIR = ../../..
 
-MACH_DIR = ${LIB_BASE_DIR}/mach
-BEM_DIR = ${LIB_BASE_DIR}/bem
-APPLIBS_BEM_DIR = ${LIB_APPLIBS_DIR}/bem
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+
+MACH_DIR = ${SRC_ROOT_DIR}/base/mach
+BEM_DIR = ${SRC_ROOT_DIR}/base/bem
+APPLIBS_BEM_DIR = ${SRC_ROOT_DIR}/applibs/bem
 
 bin_PROGRAMS = createbem
 createbem_SOURCES = CreateBEM.cc BEMGeneratorCmdLineOptions.cc \
@@ -29,7 +34,8 @@ createbem-static: CreateBEM.o BEMGeneratorCmdLineOptions.o BEMGeneratorCLITextGe
 	-lxerces-c -lsqlite3 -ldl ${BOOST_LDFLAGS}
 
 AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${LIB_BASE_DIR} \
-        -I${MACH_DIR} -I${BEM_DIR} -I${APPLIBS_BEM_DIR}
+        -I${MACH_DIR} -I${BEM_DIR} -I${APPLIBS_BEM_DIR} -I${TOOLS_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} \
 	${XERCES_LIBS} ${EDITLINE_LD_FLAGS}

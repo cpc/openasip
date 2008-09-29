@@ -36,8 +36,8 @@
  * the nodes in a program representation are linked together by dependences
  * and thus form a graph.
  *
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
- * @author Ari Metsähalme 2006 (ari.metsahalme@tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
+ * @author Ari Metsähalme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -96,6 +96,7 @@ public:
     int cycle() const throw(InvalidData);
 
     int earliestResultReadCycle() const;
+    int guardLatency() const;
 
     Scope& scope();
     ProgramOperation& sourceOperation() const throw (InvalidData);

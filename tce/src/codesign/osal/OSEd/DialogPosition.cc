@@ -31,7 +31,7 @@
  *
  * Definition of DialogPosition class.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

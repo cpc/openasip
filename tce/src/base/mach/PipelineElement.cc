@@ -31,7 +31,7 @@
  *
  * Implementation of class PipelineElement.
  *
- * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
  */
 
 #include "PipelineElement.hh"

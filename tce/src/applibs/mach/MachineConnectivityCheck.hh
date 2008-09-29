@@ -31,7 +31,7 @@
  *
  * Declaration of MachineConnectivityCheck class.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -39,6 +39,7 @@
 #define TTA_MACHINE_CONNECTIVITY_CHECK_HH
 
 #include <set>
+#include <map>
 
 #include "MachineCheckResults.hh"
 #include "MachineCheck.hh"
@@ -133,7 +134,28 @@ public:
 
 protected:
     MachineConnectivityCheck(const std::string& shortDesc_);
+private:
+    typedef std::pair<const TTAMachine::Port*,const TTAMachine::Port*> 
+    PortPortPair;
 
+    typedef std::pair<const TTAMachine::BaseRegisterFile*,
+                      const TTAMachine::BaseRegisterFile*> RfRfPair;
+    
+    typedef std::pair<const TTAMachine::BaseRegisterFile*,
+                      const TTAMachine::Port*> RfPortPair;
+    
+    typedef std::pair<const TTAMachine::Port*,
+                      const TTAMachine::BaseRegisterFile*> PortRfPair;
+
+    typedef std::map<PortPortPair,bool> PortPortBoolMap;
+    typedef std::map<RfRfPair,bool> RfRfBoolMap;
+    typedef std::map<RfPortPair,bool> RfPortBoolMap;
+    typedef std::map<PortRfPair,bool> PortRfBoolMap;
+
+    static PortPortBoolMap portPortCache_;
+    static RfRfBoolMap rfRfCache_;
+    static RfPortBoolMap rfPortCache_;
+    static PortRfBoolMap portRfCache_;
 };
 
 #endif

@@ -33,7 +33,7 @@
  * 
  * Tests that given machine has enough registers.
  *
- * @author Heikki Kultala (hkultala@cs.tut.fi)
+ * @author Heikki Kultala (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -42,7 +42,10 @@
 
 #include "MachineCheck.hh"
 
+#include <set>
 #include <string>
+
+#include "RegisterFile.hh"
 
 class RegisterQuantityCheck : public MachineCheck {
 public:
@@ -50,7 +53,33 @@ public:
     virtual ~RegisterQuantityCheck();
 
     virtual bool check(
-        const TTAMachine::Machine& mach, MachineCheckResults& results) const;
+        const TTAMachine::Machine& mach) const;
+    virtual bool check(
+        const TTAMachine::Machine& mach, 
+        MachineCheckResults& results) const;
+    bool checkWithIgnore(
+        const TTAMachine::Machine& mach, 
+        const std::set<std::string>& ignoreRFs) const;
+    bool checkWithIgnore(
+        const TTAMachine::Machine& mach, 
+        MachineCheckResults& results, 
+        const std::set<std::string>& ignoreRFs) const;
+private:
+    typedef std::pair<TTAMachine::RegisterFile*, int> Register;
+    void findGuardRegisters(
+        const TTAMachine::Machine& mach, 
+        std::set<Register>& registers,
+        const std::set<std::string>& ignoreRFs) const;
+    unsigned int countIntRegisters(
+        const TTAMachine::Machine& mach, 
+        const std::set<Register>& registers,
+        const std::set<std::string>& ignoreRFs) const;
+    bool checkPredRegs(
+        const unsigned int& regCount,
+        MachineCheckResults* results) const;
+    bool checkIntRegs(
+        const unsigned int& regCount,
+        MachineCheckResults* results) const;
 };
 
 #endif

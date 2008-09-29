@@ -31,7 +31,7 @@
  *
  * Declaration of FSAFUResourceConflictDetector class.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */

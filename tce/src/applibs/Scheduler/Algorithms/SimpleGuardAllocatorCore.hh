@@ -34,7 +34,7 @@
  * Stupid guard allocator. does not use more than one guard register,
  * Does not do any if-conversion etc.
  *
- * @author Heikki Kultala 2007 (heikki.kultala@tut.fi)
+ * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -34,7 +34,7 @@
  * Represents one operation which might be constructed out of other operations
  * or of a OSAL opartion.
  *
- * @author Mikael Lepistö 2007 (mikael.lepisto@tut.fi)
+ * @author Mikael Lepistö 2007 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 

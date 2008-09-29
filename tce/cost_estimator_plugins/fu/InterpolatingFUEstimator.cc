@@ -33,7 +33,7 @@
  * estimates data generating cost database from the cost data stored in HDB.
  * Estimate is interpolated if possible if no exact data values are found.
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 #include "FUCostEstimationPlugin.hh"

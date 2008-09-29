@@ -33,7 +33,7 @@
  * 1) if the function units' operations access memory
  * 2) if there is a memory address space available for them
  *
- * @author Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+ * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  * @note rating: red
  */
 

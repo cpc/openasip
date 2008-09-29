@@ -31,7 +31,7 @@
  *
  * A test suite for interpolating cost estimation plugins.
  * 
- * @author Jari Mäntyneva 2006 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 

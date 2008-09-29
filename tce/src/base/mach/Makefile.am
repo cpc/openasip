@@ -16,7 +16,7 @@ libmach_la_SOURCES =							     \
 
 libmach_la_LDFLAGS = ${XERCES_LIBDIR} -lxerces-c -lpthread
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 
 AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools -I${PROJECT_ROOT}/src/base/osal \

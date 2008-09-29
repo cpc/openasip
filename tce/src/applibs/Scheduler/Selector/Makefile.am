@@ -3,7 +3,7 @@ libselector_la_SOURCES = MoveNodeGroup.cc ScopeSelector.cc \
 	SchedulingScope.cc BasicBlockSelector.cc MoveNodeSelector.cc \
 	CriticalPathBBMoveNodeSelector.cc SequentialMoveNodeSelector.cc
 
-SRC_ROOT_DIR = ../../..
+SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
 APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools

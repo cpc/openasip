@@ -31,7 +31,7 @@
  *
  * A test suite for the different pipeline resource models.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

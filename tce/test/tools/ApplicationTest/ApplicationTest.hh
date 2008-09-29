@@ -31,7 +31,7 @@
  * 
  * A test suite for Application helper class.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #ifndef APPLICATION_TEST_HH

@@ -31,7 +31,7 @@
  *
  * Declaration of PluginTools class.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note reviewed 19 May 2004 by ml, jn, ao, am
  * @note rating: green
  */

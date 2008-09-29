@@ -33,7 +33,7 @@
  *
  * The command line version of the Design Space Explorer.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -461,9 +461,11 @@ int main(int argc, char* argv[]) {
         delete dsdb;
         return EXIT_FAILURE;
     } catch (const Exception& e) {
-        std::cerr << "Error while trying to load the explorer plugin named '"
-                  << pluginToUse
-                  << ".so'."  << std::endl;
+        std::string msg = "Error while trying to load the explorer plugin "
+            "named '" + pluginToUse + ".so'.";
+        verboseLog(msg)
+        msg = "With reason: " + e.errorMessage();
+        verboseLogC(msg, 1)
         delete dsdb;
         delete explorer;
         return EXIT_FAILURE;

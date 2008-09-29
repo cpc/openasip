@@ -31,7 +31,7 @@
  *
  * Declaration of classes needed by build_opset.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

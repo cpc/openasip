@@ -31,7 +31,8 @@
  *
  * Implementation of MachineConnectivityCheck class.
  *
- * @author Pekka Jääskeläinen 2007 (pjaaskel@cs.tut.fi)
+ * @author Pekka Jääskeläinen 2007 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -83,6 +84,11 @@ MachineConnectivityCheck::isConnected(
     const TTAMachine::Port& sourcePort,
     const TTAMachine::Port& destinationPort) {
 
+    PortPortBoolMap::const_iterator
+        i = portPortCache_.find(PortPortPair(&sourcePort, &destinationPort));
+    if (i != portPortCache_.end()) {
+        return i->second;
+    }
     std::set<TTAMachine::Bus*> sourceBuses;
     MachineConnectivityCheck::appendConnectedDestinationBuses(
         sourcePort, sourceBuses);
@@ -93,8 +99,13 @@ MachineConnectivityCheck::isConnected(
 
     std::set<TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(sourceBuses, destinationBuses, sharedBuses);
-
-    return sharedBuses.size() > 0;
+    if (sharedBuses.size() > 0) {
+        portPortCache_[PortPortPair(&sourcePort,&destinationPort)] = true;
+        return true;
+    } else {
+        portPortCache_[PortPortPair(&sourcePort,&destinationPort)] = false;
+        return false;
+    }
 }
 
 /**
@@ -169,7 +180,12 @@ bool
 MachineConnectivityCheck::isConnected(
     const TTAMachine::BaseRegisterFile& sourceRF,
     const TTAMachine::Port& destPort) {
-    
+
+    RfPortBoolMap::const_iterator
+        i = rfPortCache_.find(RfPortPair(&sourceRF, &destPort));
+    if (i != rfPortCache_.end()) {
+        return i->second;
+    }    
     std::set<TTAMachine::Bus*> destBuses = connectedSourceBuses(destPort);
     std::set<TTAMachine::Bus*> srcBuses;
 
@@ -183,7 +199,13 @@ MachineConnectivityCheck::isConnected(
     std::set<TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(
         srcBuses, destBuses, sharedBuses);
-    return (sharedBuses.size() > 0);
+    if (sharedBuses.size() > 0) {
+        rfPortCache_[RfPortPair(&sourceRF,&destPort)] = true;
+        return true;
+    } else {
+        rfPortCache_[RfPortPair(&sourceRF,&destPort)] = false;
+        return false;
+    }
 }
 
 /**
@@ -201,6 +223,11 @@ MachineConnectivityCheck::isConnected(
     const TTAMachine::BaseRegisterFile& sourceRF,
     const TTAMachine::BaseRegisterFile& destRF) {
     
+    RfRfBoolMap::const_iterator
+        i = rfRfCache_.find(RfRfPair(&sourceRF, &destRF));
+    if (i != rfRfCache_.end()) {
+        return i->second;
+    }
     std::set<TTAMachine::Bus*> srcBuses;
     appendConnectedDestinationBuses(sourceRF, srcBuses);
 
@@ -209,7 +236,13 @@ MachineConnectivityCheck::isConnected(
 
     std::set<TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(srcBuses, dstBuses, sharedBuses);
-    return (sharedBuses.size() > 0);
+    if (sharedBuses.size() > 0) {
+        rfRfCache_[RfRfPair(&sourceRF,&destRF)] = true;
+        return true;
+    } else {
+        rfRfCache_[RfRfPair(&sourceRF,&destRF)] = false;
+        return false;
+    }
 }
 
 /**
@@ -253,6 +286,12 @@ MachineConnectivityCheck::isConnected(
     const TTAMachine::Port& sourcePort,
     const TTAMachine::RegisterFile& destRF) {
 
+    PortRfBoolMap::const_iterator
+        i = portRfCache_.find(PortRfPair(&sourcePort, &destRF));
+    if (i != portRfCache_.end()) {
+        return i->second;
+    }
+
     std::set<TTAMachine::Bus*> sourceBuses = 
         connectedDestinationBuses(sourcePort);
     std::set<TTAMachine::Bus*> destBuses;
@@ -266,7 +305,14 @@ MachineConnectivityCheck::isConnected(
     
     std::set<TTAMachine::Bus*> sharedBuses;
     SetTools::intersection(sourceBuses, destBuses, sharedBuses);
-    return (sharedBuses.size() > 0 );
+
+    if (sharedBuses.size() > 0) {
+        portRfCache_[PortRfPair(&sourcePort,&destRF)] = true;
+        return true;
+    } else {
+        portRfCache_[PortRfPair(&sourcePort,&destRF)] = false;
+        return false;
+    }
 }
 
 /**
@@ -709,3 +755,9 @@ MachineConnectivityCheck::requiredImmediateWidth(
     }
     return bits;
 }
+
+/* These are static */
+MachineConnectivityCheck::PortPortBoolMap MachineConnectivityCheck::portPortCache_;
+MachineConnectivityCheck::RfRfBoolMap MachineConnectivityCheck::rfRfCache_;
+MachineConnectivityCheck::RfPortBoolMap MachineConnectivityCheck::rfPortCache_;
+MachineConnectivityCheck::PortRfBoolMap MachineConnectivityCheck::portRfCache_;

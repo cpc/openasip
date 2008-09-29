@@ -31,7 +31,7 @@
  *
  * Declaration of ProDeClipboard class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_PRODE_CLIPBOARD_HH

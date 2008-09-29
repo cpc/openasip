@@ -31,7 +31,7 @@
  *
  * Declaration of DebugElement class.
  *
- * @author Mikael Lepistö 2006 (tmlepist@cs.tut.fi)
+ * @author Mikael Lepistö 2006 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */

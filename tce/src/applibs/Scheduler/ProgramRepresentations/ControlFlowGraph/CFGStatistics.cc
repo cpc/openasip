@@ -32,7 +32,7 @@
  * Implementation of prototype class that collects statistics about
  * control flow graph.
  *
- * @author Vladimir Guzma 2007 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

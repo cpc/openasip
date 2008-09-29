@@ -32,7 +32,7 @@
  * TPEF file and section header related offsets and
  * some other TPEF binary file related values.
  *
- * @author Mikael Lepistö 2004 (tmlepist@cs.tut.fi)
+ * @author Mikael Lepistö 2004 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */

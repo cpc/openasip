@@ -31,7 +31,7 @@
  *
  * Definition of TclConditionScript class.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <string>

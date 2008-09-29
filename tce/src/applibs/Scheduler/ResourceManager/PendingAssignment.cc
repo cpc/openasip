@@ -31,7 +31,7 @@
  *
  * Implementation of PendingAssignment class.
  *
- * @author Ari Mets�halme 2006 (ari.metsahalme@tut.fi)
+ * @author Ari Mets�halme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 

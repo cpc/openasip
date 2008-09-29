@@ -32,7 +32,7 @@
  * Prototype of graph-based program representation: declaration of graph
  * node.
  *
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

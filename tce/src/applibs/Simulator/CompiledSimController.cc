@@ -31,7 +31,7 @@
  *
  * Definition of CompiledSimController class.
  *
- * @author Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+ * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -94,10 +94,6 @@ CompiledSimController::step(double count)
     try {
         simulation_->step(count);
     }  catch (const Exception& e) {
-        SimulatorToolbox::reportSimulatedProgramError(
-            frontend_.eventHandler(),
-            SimulatorToolbox::RES_FATAL,
-            e.errorMessage());
         prepareToStop(SRE_RUNTIME_ERROR);
         return;
     } catch(...) {
@@ -134,10 +130,6 @@ CompiledSimController::next(int count)
     try {
         simulation_->next(count);
     } catch (const Exception& e) {
-        SimulatorToolbox::reportSimulatedProgramError(
-            frontend_.eventHandler(),
-            SimulatorToolbox::RES_FATAL,
-            e.errorMessage());
         prepareToStop(SRE_RUNTIME_ERROR);
         return;
     }  catch(...) {
@@ -174,10 +166,6 @@ CompiledSimController::run() throw (SimulationExecutionError) {
     try {
         simulation_->run();
     } catch (const Exception& e) {
-        SimulatorToolbox::reportSimulatedProgramError(
-            frontend_.eventHandler(),
-            SimulatorToolbox::RES_FATAL,
-            e.errorMessage());
         prepareToStop(SRE_RUNTIME_ERROR);
         return;
     }  catch(...) {
@@ -216,10 +204,6 @@ CompiledSimController::runUntil(UIntWord address)
     try {
         simulation_->runUntil(address);
     } catch (const Exception& e) {
-        SimulatorToolbox::reportSimulatedProgramError(
-            frontend_.eventHandler(),
-            SimulatorToolbox::RES_FATAL,
-            e.errorMessage());
         prepareToStop(SRE_RUNTIME_ERROR);
         return;
     }  catch(...) {

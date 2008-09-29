@@ -31,9 +31,9 @@
  *
  * Declaration of OperationProperty class.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
- * @author Mikael Lepistö 2007 (mikael.lepisto@cs.tut.fi)
- * @author Tero Ryynänen 2008 (tero.ryynanen@tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2007 (mikael.lepisto-no.spam-cs.tut.fi)
+ * @author Tero Ryynänen 2008 (tero.ryynanen-no.spam-tut.fi)
  * @note rating: red
  */
 

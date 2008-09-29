@@ -3,7 +3,7 @@
 # Compiler driver for tce-llvm-gcc toolset
 #
 
-import os, sys, commands, optparse, shutil, glob
+import os, sys, commands, optparse, shutil, glob, signal
 import os.path
 
 from tempfile import mkdtemp
@@ -11,7 +11,10 @@ from optparse import OptionParser
 from shutil import rmtree
 
 debugMode = False
-tempDir = mkdtemp("","tcecc-")
+
+def handler(signum, frame):
+    cleanup(tempDir)
+    sys.exit(2)
 
 def cleanup(tmpDir):
     """Removes temporary files created during build."""
@@ -203,7 +206,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     verbose = options.verbose
 
-    loop_unroll_switches = " -loop-unroll -unroll-threshold=1000 "
+    loop_unroll_switches = " -loop-unroll -unroll-threshold=100 "
 
     tce_std_compile_opts = (" " +
         "-preverify -domtree -verify -lowersetjmp -raiseallocs -simplifycfg -domtree " + 
@@ -428,6 +431,13 @@ producing considerable additional overhead to the program exectuion.""")
 # get commandline arguments
 options, inFiles = p.parse_args()
 
+# create temp dir
+tempDir = mkdtemp("","tcecc-")
+
+# assign signal handlers to exit cleanly
+signal.signal(signal.SIGHUP, handler)
+signal.signal(signal.SIGTSTP, handler)
+
 # clear plugin cache and do nothing else if the --clear-plugin-cache
 # option is given
 if options.clear_cache:
@@ -436,10 +446,12 @@ if options.clear_cache:
         tryRemove(fName)
 
     sys.stdout.write("Cleared plugin cache.\n")
+    cleanup(tempDir)
     sys.exit(0)
 
 if len(inFiles) == 0:
     p.print_help()
+    cleanup(tempDir)
     sys.exit(1)
 
 if options.output_name == "":
@@ -487,6 +499,7 @@ namePrefix = tempDir + "/" + os.path.basename(outputName)
 
 if options.compile_only and options.output_name != "" and len(inFiles) > 1:
     sys.stdout.write("Cannot specify -o  with -c and multiple input files.\n")
+    cleanup(tempDir)
     sys.exit(1)
 
 elif len(inFiles) == 1 and inFiles[0][-3:] == ".bc":

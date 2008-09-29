@@ -6,7 +6,7 @@ libresourcemanager_la_SOURCES = AssignmentPlan.cc ITemplateBroker.cc \
 	InputFUBroker.cc PendingAssignment.cc SimpleBrokerDirector.cc \
 	InputPSocketBroker.cc ResourceBroker.cc SimpleResourceManager.cc
 
-SRC_ROOT_DIR = ../../..
+SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
 APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools

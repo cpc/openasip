@@ -32,7 +32,7 @@
  * Implements the viewbem application which prints out human readable 
  * information of given binary encoding map.
  *
- * @author Lasse Laasonen 2006 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2006 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

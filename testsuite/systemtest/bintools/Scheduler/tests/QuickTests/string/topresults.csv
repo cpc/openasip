@@ -1,5 +1,5 @@
-huge.adf,/home/hkultala/src/foo3/tce-1.0/tce/scheduler/passes/default_scheduler.conf,02.09.08 08:04,5252
-RF_constrained.adf,/home/hkultala/src/foo3/tce-1.0/tce/scheduler/passes/default_scheduler.conf,02.09.08 08:04,5460
-ti64x_subset.adf,/home/hkultala/src/foo3/tce-1.0/tce/scheduler/passes/default_scheduler.conf,02.09.08 08:04,7832
-FU_constrained.adf,/home/hkultala/src/foo3/tce-1.0/tce/scheduler/passes/default_scheduler.conf,02.09.08 08:04,5531
-minimal_with_io.adf,/home/hkultala/src/foo3/tce-1.0/tce/scheduler/passes/default_scheduler.conf,02.09.08 08:04,22755
+huge.adf,/home/hkultala/src/bzr-tce/tce-1.0/tce/scheduler/passes/default_scheduler.conf,24.09.08 12:55,5254
+FU_constrained.adf,/home/hkultala/src/bzr-tce/tce-1.0/tce/scheduler/passes/default_scheduler.conf,24.09.08 12:55,5531
+RF_constrained.adf,/home/hkultala/src/bzr-tce/tce-1.0/tce/scheduler/passes/default_scheduler.conf,24.09.08 12:55,5469
+minimal_with_io.adf,/home/hkultala/src/bzr-tce/tce-1.0/tce/scheduler/passes/default_scheduler.conf,24.09.08 12:55,22755
+ti64x_subset.adf,/home/hkultala/src/bzr-tce/tce-1.0/tce/scheduler/passes/default_scheduler.conf,24.09.08 12:55,7832

@@ -7,12 +7,12 @@ then
     echo "Usage: buildllvmpass <object file> <source files>"
 else
     compiler="@CXX@"
-    llvmlibs=$(llvm-config --libs core)
+    llvmlibs="-lLLVMCodeGen"
     llvmldflags=$(llvm-config --ldflags)
     llvmcppflags=$(llvm-config --cppflags)
     soflags="@SHARED_CXX_FLAGS@ -o"
     objectfile=$1
     shift
-    $compiler $llvmcppflags $llvmldflags $llvmlibs $soflags $objectfile $* && \
+    $compiler $llvmcppflags $llvmldflags $soflags $objectfile $* $llvmlibs && \
         echo "Compilation successful." || echo "Compilation failed." >&2
 fi

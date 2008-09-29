@@ -32,8 +32,8 @@
  * Prototype control flow graph of TTA program representation:
  * implementation of graph node (basic block).
  *
- * @author Andrea Cilio 2005 (cilio@cs.tut.fi)
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

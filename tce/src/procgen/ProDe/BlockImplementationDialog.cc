@@ -31,8 +31,8 @@
  *
  * Implementation of BlockImplementationDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel@cs.tut.fi)
- * @author Esa M‰‰tt‰ 2007 (esa.maatta@tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -84,10 +84,14 @@ int BlockImplementationDialog::selection_ = 0;
 BlockImplementationDialog::BlockImplementationDialog(
     wxWindow* parent, const TTAMachine::Component& block,
     UnitImplementationLocation& impl) :
-    wxDialog(parent, -1, _T("Select implementation from a HDB file")),
+    wxDialog(parent, -1, _T("Select implementation from a HDB file"), 
+        wxDefaultPosition, wxDefaultSize,
+        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
     block_(block), impl_(impl) {
-
+        
     createContents(this, true, true);
+    SetSize(wxSize(580, 300));
+    
     list_ = dynamic_cast<wxListCtrl*>(FindWindow(ID_LIST));
     hdbChoice_ = dynamic_cast<wxChoice*>(FindWindow(ID_HDB_CHOICE));
 
@@ -95,6 +99,10 @@ BlockImplementationDialog::BlockImplementationDialog(
     list_->InsertColumn(1, _T("id"), wxLIST_FORMAT_LEFT, 50);
     list_->InsertColumn(2, _T("param size"), wxLIST_FORMAT_LEFT, 100);
     list_->InsertColumn(3, _T("param width"), wxLIST_FORMAT_LEFT, 100);
+    
+    if (dynamic_cast<const RegisterFile*>(&block) != 0) {
+        list_->InsertColumn(4, _T("guard latency"), wxLIST_FORMAT_LEFT, 170);
+    }
 
     HDBRegistry& registry = HDBRegistry::instance();
     registry.loadFromSearchPaths();
@@ -246,7 +254,7 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
                     maxReads,
                     maxWrites,
                     latency,
-                    false,
+                    r->isUsedAsGuard(),
                     guardLatency,
                     width,
                     size);
@@ -283,6 +291,10 @@ BlockImplementationDialog::onHDBSelection(wxCommandEvent&) {
                     if (arch.hasParameterizedWidth()) {
                         list_->SetItem(i, 3, WxConversion::toWxString("*"));
                     }
+                    
+                    list_->SetItem(i, 4, r->isUsedAsGuard() ? 
+                        WxConversion::toWxString(guardLatency) : 
+                        WxConversion::toWxString("not used as guard"));
                 }
             }
         
@@ -322,9 +334,12 @@ BlockImplementationDialog::onOK(wxCommandEvent&) {
  */
 wxSizer*
 BlockImplementationDialog::createContents(
-    wxWindow* parent, bool call_fit, bool set_sizer) {
-
-    wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+    wxWindow *parent, 
+    bool call_fit, 
+    bool set_sizer) {
+    wxFlexGridSizer *item0 = new wxFlexGridSizer( 1, 0, 0 );
+    item0->AddGrowableCol( 0 );
+    item0->AddGrowableRow( 1 );
 
     wxBoxSizer *item1 = new wxBoxSizer( wxHORIZONTAL );
 
@@ -337,7 +352,7 @@ BlockImplementationDialog::createContents(
 
     item0->Add( item1, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    wxListCtrl *item4 = new wxListCtrl( parent, ID_LIST, wxDefaultPosition, wxSize(400,120), wxLC_REPORT|wxSUNKEN_BORDER );
+    wxListCtrl *item4 = new wxListCtrl( parent, ID_LIST, wxDefaultPosition, wxSize(300,120), wxLC_REPORT|wxSUNKEN_BORDER );
     item0->Add( item4, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxStaticLine *item5 = new wxStaticLine( parent, ID_LINE, wxDefaultPosition, wxSize(20,-1), wxLI_HORIZONTAL );

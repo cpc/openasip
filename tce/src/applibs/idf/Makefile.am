@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libapplibsidf.la
 libapplibsidf_la_SOURCES = IDFValidator.cc
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 
 AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/tools \
 	-I${PROJECT_ROOT}/src/base/idf -I${PROJECT_ROOT}/src/base/mach

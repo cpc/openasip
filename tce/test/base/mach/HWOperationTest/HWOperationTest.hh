@@ -30,7 +30,7 @@
  * @file HWOperationTest.hh 
  * A test suite for HWOperation.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

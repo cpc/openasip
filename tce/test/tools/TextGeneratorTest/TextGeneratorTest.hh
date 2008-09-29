@@ -31,7 +31,7 @@
  *
  * A test suite for TextGenerator.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_TEXT_GENERATOR_TEST_HH

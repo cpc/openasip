@@ -31,7 +31,7 @@
  *
  * Declaration of EditConnectionsCmd class.
  *
- * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Tommi Rantanen 2004 (tommi.rantanen-no.spam-tut.fi)
  */
 
 #ifndef TTA_EDIT_CONNECTIONS_CMD_HH

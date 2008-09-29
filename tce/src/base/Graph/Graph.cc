@@ -31,7 +31,7 @@
  *
  * Empty implementation of prototype of base graph interface.
  *
- * @author Andrea Cilio 2005 (cilio@cs.tut.fi)
+ * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

@@ -31,7 +31,7 @@
  *
  * Definition of GlobalLock class.
  *
- * @author Jussi Nykänen 2005 (nykanen@cs.tut.fi)
+ * @author Jussi Nykänen 2005 (nykanen-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

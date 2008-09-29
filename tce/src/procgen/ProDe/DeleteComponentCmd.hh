@@ -31,7 +31,7 @@
  *
  * Declaration of DeleteComponentCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_DELETE_COMPONENT_CMD_HH

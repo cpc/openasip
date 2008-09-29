@@ -6,7 +6,7 @@ nobase_base_DATA = SimpleDictionary.so
 all-local: SimpleDictionary.so
 
 SimpleDictionary.so: simple_dictionary.cc
-	${BUILD_COMPRESSOR} SimpleDictionary.so simple_dictionary.cc
+	${BUILD_COMPRESSOR} $@ $^
 
 clean:
 	rm -f SimpleDictionary.so

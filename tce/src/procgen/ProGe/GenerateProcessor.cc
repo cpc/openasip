@@ -32,7 +32,7 @@
  * Implementation of GenerateProcessor class and the main program of 
  * "generateprocessor".
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

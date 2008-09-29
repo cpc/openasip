@@ -31,7 +31,7 @@
  *
  * Definition of SaveOptionsCmd class.
  *
- * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
+ * @author Tommi Rantanen 2004 (tommi.rantanen-no.spam-tut.fi)
  */
 
 #include "SaveOptionsCmd.hh"

@@ -13,7 +13,7 @@ SequentialScheduler.cc
 libscheduleralgorithms_la_LIBADD = \
 StackFrameManagement/libstackframemanagement.la
 
-SRC_ROOT_DIR = ../../..
+SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
 APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools
@@ -29,7 +29,7 @@ PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/ProgramDependenceGraph
 CFG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/ControlFlowGraph
 DDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DataDependenceGraph
 MACH_APPLIB_DIR = ${APPLIBS_DIR}/mach
-SFM_DIR = StackFrameManagement
+SFM_DIR = $(srcdir)/StackFrameManagement
 SELECTOR_DIR = ${APPLIBS_DIR}/Scheduler/Selector
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler

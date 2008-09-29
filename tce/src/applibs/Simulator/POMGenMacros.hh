@@ -33,7 +33,7 @@
  * to make creating of Program Object Models for unit tests manually 
  * easy.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  */
 #ifndef TTA_POMGEN_MACROS
 #define TTA_POMGEN_MACROS

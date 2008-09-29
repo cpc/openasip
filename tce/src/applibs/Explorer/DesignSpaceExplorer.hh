@@ -31,7 +31,7 @@
  *
  * Declaration of DesignSpaceExplorer class.
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -49,7 +49,7 @@
 #include "DSDBManager.hh"
 #include "TestApplication.hh"
 #include "BaseLineReader.hh"
-
+    
 class CostEstimates;
 class ExecutionTrace;
 class DesignSpaceExplorerPlugin;
@@ -86,12 +86,35 @@ public:
     static DesignSpaceExplorerPlugin* loadExplorerPlugin(
         const std::string& pluginName, DSDBManager& dsdb)
         throw (FileNotFound, DynamicLibraryException);
-    void buildMinimalOpSet(const TTAMachine::Machine* machine = NULL);
-    std::set<std::string> minimalOpSet() const;
-    bool checkMinimalOpSet(const TTAMachine::Machine& machine) const;
-    void missingOperations(
-        const TTAMachine::Machine& machine,
-        std::vector<std::string>& missingOps) const;
+
+    RowID createImplementationAndStore(
+        const DSDBManager::MachineConfiguration& conf,
+        const double& frequency = 0.0,
+        const double& maxArea = 0.0,
+        const bool& createEstimates = true,
+        const std::string& icDec = "DefaultICDecoder",
+        const std::string& icDecHDB = "asic_130nm_1.5V.hdb");
+    bool createImplementation(
+        const DSDBManager::MachineConfiguration& conf,
+        DSDBManager::MachineConfiguration& newConf,
+        const double& frequency = 0.0,
+        const double& maxArea = 0.0,
+        const bool& createEstimates = true,
+        const std::string& icDec = "DefaultICDecoder",
+        const std::string& icDecHDB = "asic_130nm_1.5V.hdb") const;
+    IDF::MachineImplementation*  selectComponents(
+        const TTAMachine::Machine& mach,
+        const double& frequency = 0.0,
+        const double& maxArea = 0.0,
+        const std::string& icDec = "DefaultICDecoder",
+        const std::string& icDecHDB = "asic_130nm_1.5V.hdb") const;
+    void createEstimateData(
+        const TTAMachine::Machine& mach,
+        const IDF::MachineImplementation& idf,
+        CostEstimator::AreaInGates& area,
+        CostEstimator::DelayInNanoSeconds& longestPathDelay) const;
+    RowID addConfToDSDB(
+        const DSDBManager::MachineConfiguration& conf);
 
 protected:
     TTAProgram::Program* schedule(
@@ -117,8 +140,6 @@ private:
     CostEstimator::Estimator estimator_;
     /// Output stream.
     std::ostringstream* oStream_;
-    // minimal opset
-    std::set<std::string> minimalOpSet_;
 };
 
 #endif

@@ -31,7 +31,7 @@
  *
  * Definition of CopyingDelaySlotFiller class.
  *
- * @author Heikki Kultala 2007 (hkultala@cs.tut.fi)
+ * @author Heikki Kultala 2007-2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

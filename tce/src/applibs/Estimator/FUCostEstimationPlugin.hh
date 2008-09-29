@@ -32,7 +32,7 @@
  * Declaration of FUCostEstimationPlugin class and definition of CPP macro
  * used to export FU cost estimation plugins.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

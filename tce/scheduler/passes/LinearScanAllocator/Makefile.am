@@ -20,19 +20,18 @@ LinearScanAllocatorPass.so OldFrontendStackAnalyzerPass.so
 
 LinearScanAllocatorPass.so: LinearScanAllocatorPass.cc \
 Makefile LinearScanAllocatorPass.hh
-	${BUILD_PASS} LinearScanAllocatorPass.so LinearScanAllocatorPass.cc
+	${BUILD_PASS} $@ $<
 
 SimpleGuardAllocatorPass.so: SimpleGuardAllocatorPass.cc \
 SimpleGuardAllocatorPass.hh Makefile
-	${BUILD_PASS} SimpleGuardAllocatorPass.so SimpleGuardAllocatorPass.cc
+	${BUILD_PASS} $@ $<
 
 OldFrontendStackAnalyzerPass.so: OldFrontendStackAnalyzerPass.cc \
 OldFrontendStackAnalyzerPass.hh
-	${BUILD_PASS} OldFrontendStackAnalyzerPass.so \
-OldFrontendStackAnalyzerPass.cc
+	${BUILD_PASS} $@ $<
 
-AddressSpaceMapperPass.so: AddressSpaceMapperPass.hh AddressSpaceMapperPass.cc 
-	${BUILD_PASS} AddressSpaceMapperPass.so AddressSpaceMapperPass.cc
+AddressSpaceMapperPass.so: AddressSpaceMapperPass.cc AddressSpaceMapperPass.hh
+	${BUILD_PASS} $@ $<
 
 clean:
 	rm -f *.so *~

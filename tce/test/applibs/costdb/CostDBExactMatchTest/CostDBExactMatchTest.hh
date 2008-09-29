@@ -31,7 +31,7 @@
  *
  * A test suite for CostDatabase building.
  *
- * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva-no.spam-tut.fi)
  */    
 
 #ifndef TTA_COSTDB_EXACT_MATCH_TEST_HH

@@ -31,7 +31,7 @@
  *
  * Declaration of DesignSpaceExplorerPlugin class.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -67,8 +67,9 @@ public:
     
     void setVerboseStream(std::ostream* verboseOut);
     void setErrorStream(std::ostream* errorOut);
-    virtual void setParameters(ParameterTable parameters);
+    virtual void setParameters(const ParameterTable& parameters);
     virtual void setPluginName(const std::string& pluginName);
+    virtual std::string name() const;
 
     virtual std::vector<RowID>
     explore(

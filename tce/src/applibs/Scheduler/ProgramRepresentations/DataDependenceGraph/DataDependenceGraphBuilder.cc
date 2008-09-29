@@ -31,7 +31,7 @@
  *
  * Implementation of data dependence graph builder
  *
- * @author Heikki Kultala 2006-2008 (heikki.kultala@tut.fi)
+ * @author Heikki Kultala 2006-2008 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 

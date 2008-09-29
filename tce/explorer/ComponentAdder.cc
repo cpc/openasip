@@ -31,7 +31,7 @@
  *
  * Explorer plugin that adds machine components to a given machine.
  *
- * @author Esa Määttä 2008 (esa.maatta@tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -310,10 +310,8 @@ private:
         if (addRF_) {
             addRegisterFiles(mach);
         }
-        if (verbose_ && !addRF_) {
-            std::ostringstream msg(std::ostringstream::out);
-            msg << "Warning: No components were added." << endl;
-            verboseOuput(msg.str());
+        if (!addRF_ && Application::verboseLevel() > 0) {
+            verboseLog("Warning: No components were added.")
         }
     }
 
@@ -327,9 +325,16 @@ private:
      */
     void addRegisterFiles(TTAMachine::Machine* mach) {
         for (int i = 0; i < RFCount_; i++) {
+            std::string RFName = RFName_ + Conversion::toString(i);
+
+            const TTAMachine::Machine::RegisterFileNavigator& RFNav = 
+                mach->registerFileNavigator();
+            if (RFNav.hasItem(RFName)) {
+                RFName = RFName_ + Conversion::toString(i+RFNav.count());
+            }
+
             TTAMachine::RegisterFile* rf = new TTAMachine::RegisterFile(
-                    RFName_ + Conversion::toString(i), RFSize_,
-                    32, RFReadPorts_, RFWritePorts_, 0,
+                    RFName, RFSize_, 32, RFReadPorts_, RFWritePorts_, 0,
                     TTAMachine::RegisterFile::NORMAL);
             for (int n = 0; n < RFReadPorts_; n++) {
                 new TTAMachine::RFPort("read" + 
@@ -339,7 +344,13 @@ private:
                 new TTAMachine::RFPort("write" + 
                         Conversion::toString(n + 1), *rf);
             }
-            mach->addRegisterFile(*rf);
+            try {
+                mach->addRegisterFile(*rf);
+            } catch (const ComponentAlreadyExists& e) {
+                verboseLog("ComponentAdder: Tried to add RF with a already"
+                    "existing name (" + RFName)
+                Application::exitProgram(1);
+            }
         }
     }
 };

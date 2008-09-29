@@ -1512,8 +1512,10 @@ The output port does not have a load port.
 
 \textbf{4. Add VHDL source file.}
 
-Add the VHDL source file into the Source code dialog (Add -> Browse ->
-reflect.vhdl).
+Add the VHDL source file into the Source code dialog. Notice that the HDL
+files must be added in the compilation order (see section \ref{sec:hdbedit}).
+But now we have only one source file so we can simply add it without
+considering the compilation order (Add -> Browse -> reflect.vhdl).
 
 Now you are done with adding the FU implementation. Click OK.
 
@@ -2770,6 +2772,11 @@ The architecture implementation can be given either by hand or by a VHDL file.
 
 After setting up the architecture, one can add new entries (function units,
 register files, buses, sockets) for the architectures.
+
+\subsubsection{Adding FU/RF HDL source files}
+HDL files of Function Unit and Register File implementations must be added in
+right compilation order i.e. the source file which needs to be compiled first
+is first in the list and so on.
 
 \begin{figure}[tb]
 \centerline{\psfig{figure=eps/hdbeditor/MainWindow.eps,width=0.66\textwidth}}

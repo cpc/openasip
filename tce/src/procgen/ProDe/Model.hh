@@ -31,7 +31,7 @@
  *
  * Declaration of Model class.
  *
- * @author Tommi Rantanen 2003 (tommi.rantanen@tut.fi)
+ * @author Tommi Rantanen 2003 (tommi.rantanen-no.spam-tut.fi)
  */
 
 #ifndef TTA_MODEL_HH

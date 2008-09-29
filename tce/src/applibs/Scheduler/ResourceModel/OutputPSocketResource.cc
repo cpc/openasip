@@ -31,7 +31,7 @@
  *
  * Implementation of OutputPSocketResource class.
  *
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 #include <iostream>

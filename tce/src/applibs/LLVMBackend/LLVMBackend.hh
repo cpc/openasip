@@ -31,7 +31,7 @@
  *
  * Declaration of LLVMBackend class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -88,7 +88,7 @@ public:
 
     TTAProgram::Program* compileAndSchedule(
         const std::string& bytecodeFile,
-        TTAMachine::Machine& target,
+        const TTAMachine::Machine& target,
         int optLevel = 2,
         const unsigned int debug = 0)
         throw (Exception);

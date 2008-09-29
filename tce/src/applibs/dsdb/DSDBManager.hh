@@ -31,7 +31,7 @@
  *
  * Declaration of DSDBManager class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -182,6 +182,10 @@ public:
     void writeArchitectureToFile(RowID id, const std::string& path) const
         throw (KeyNotFound, IOException);
     void writeImplementationToFile(RowID id, const std::string& path) const
+        throw (KeyNotFound, IOException);
+    void writeConfigurationToFile(
+        const MachineConfiguration& conf, 
+        const std::string& path)
         throw (KeyNotFound, IOException);
 
     std::vector<ConfigurationCosts> applicationCostEstimatesByConf(
