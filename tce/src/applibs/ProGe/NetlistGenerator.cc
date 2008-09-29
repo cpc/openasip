@@ -844,7 +844,7 @@ NetlistGenerator::addFUToNetlist(
                     FUPort& adfPort = findCorrespondingPort(
                         *adfFU, architecture.architecture(),
                         port.architecturePort());
-                        adfPort.setWidth(ASWidth);
+                    adfPort.setWidth(ASWidth);
                     parameterResolved = true;
                     break;
                 }                
@@ -876,14 +876,8 @@ NetlistGenerator::addFUToNetlist(
                 throw InvalidData(
                     __FILE__, __LINE__, __func__, errorMsg.str());
             }
+
         } else {
-            // special case if the paramName is reserved keyword
-            // (memory address width in lsu)
-            if (paramName == ADDR_WIDTH) {
-                int temp = Conversion::toInt(paramValue);
-                temp += 2;
-                paramValue = Conversion::toString(temp);
-            }
             block->setParameter(paramName, paramType, paramValue);
         }
     }
@@ -1134,7 +1128,7 @@ NetlistGenerator::addBaseRFToNetlist(
     for (int i = 0; i < implementation.portCount(); i++) {
         RFPortImplementation& port = implementation.port(i);
         NetlistPort* newPort = NULL;
-         if (!implementation.widthParameter().empty()) {
+        if (!implementation.widthParameter().empty()) {
             newPort = new NetlistPort(
                 port.name(), implementation.widthParameter(),
                 regFile.width(), BIT_VECTOR, port.direction(), *block);
@@ -1211,7 +1205,7 @@ NetlistGenerator::addBaseRFToNetlist(
     if (architecture.hasGuardSupport()) {
         string guardPortName = implementation.guardPort();
         string size;
-        if (architecture.hasParameterizedSize()) {
+        if (!implementation.sizeParameter().empty()) {
             size = implementation.sizeParameter();
         } else {
             size = Conversion::toString(architecture.size());
@@ -1478,7 +1472,7 @@ NetlistGenerator::calculateAddressWidth(
                               errorMessage.c_str());
         }
         return static_cast<unsigned int>(
-            ceil(log(highestAddr) / log(2))+2);
+            ceil(log(highestAddr) / log(2)));
     } else {
         string errorMessage = "Tried to resolve address space width "
             "from FU '" + fu->name() + "' that doesn't have address space";

@@ -139,17 +139,6 @@ DesignSpaceExplorer::evaluate(
         adf = dsdb_->architecture(configuration.architectureID);
     }
 
-    // check if machine has minimal opset
-    if (!checkMinimalOpSet(*adf)) {
-        // below for debug ouput
-        //std::vector<std::string> missingOps;
-        //missingOperations(*adf, missingOps);
-        //for (std::vector<std::string>::iterator it = missingOps.begin(); it != missingOps.end(); ++it) {
-        //    std::cout << "DEBUG: machine missed operator: " << *it << std::endl;
-        //}
-        return false;
-    }
-
     try {
         if (configuration.hasImplementation && estimate) {
             AreaInGates totalArea = estimator_.totalArea(*adf, *idf);
@@ -180,11 +169,11 @@ DesignSpaceExplorer::evaluate(
                 return false;
             }
             
-            const int debugLevel = 0;
             TTAProgram::Program* scheduledProgram =
-                schedule(applicationFile, *adf, debugLevel);
+                schedule(applicationFile, *adf);
 
             if (scheduledProgram == NULL) {
+                verboseLog("Evaluate failed: Scheduling program failed.", 1)
                 return false;
             }
 
@@ -280,8 +269,7 @@ DesignSpaceExplorer::db() {
 TTAProgram::Program*
 DesignSpaceExplorer::schedule(
     const std::string applicationFile,
-    TTAMachine::Machine& machine,
-    const unsigned int debug) {
+    TTAMachine::Machine& machine) {
 
     // optimization level
     const int optLevel = 2;
@@ -289,17 +277,14 @@ DesignSpaceExplorer::schedule(
     // Run compiler and scheduler for current machine
     try {
         LLVMBackend compiler;
-        return compiler.compileAndSchedule(applicationFile, machine, optLevel, debug);
+        return compiler.compileAndSchedule(applicationFile, machine, 
+                optLevel, Application::verboseLevel());
     } catch (Exception& e) {
         std::cerr << "Error compiling and scheduling '" 
             << applicationFile << "':" << std::endl
             << e.errorMessageStack() << std::endl;
         return NULL;
     }
-
-    // Write out the scheduled program
-    //TTAProgram::Program::writeToTPEF(
-    //    *scheduledProgram, "scheduled.tpef");
 }
 
 
@@ -613,4 +598,3 @@ DesignSpaceExplorer::missingOperations(
         missingOps.push_back(*first1++);
     }
 }
-

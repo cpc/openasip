@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-encoding required-version="1.0" version="1.0">
+
+  <map-ports name="fu4_t">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="fu4" name="trigger" operation="add">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu4" name="trigger" operation="sub">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="fu6_t">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="fu6" name="trigger" operation="ldw">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu6" name="trigger" operation="stw">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="fu7_t">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="fu7" name="trigger" operation="ldw">
+      <encoding>0</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu7" name="trigger" operation="stw">
+      <encoding>1</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="fu8_t">
+    <extra-bits>0</extra-bits>
+    <fu-port-code fu="fu8" name="trigger" operation="eq">
+      <encoding>0</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu8" name="trigger" operation="gt">
+      <encoding>1</encoding>
+      <extra-bits>1</extra-bits>
+    </fu-port-code>
+    <fu-port-code fu="fu8" name="trigger" operation="gtu">
+      <encoding>2</encoding>
+      <extra-bits>0</extra-bits>
+    </fu-port-code>
+  </map-ports>
+
+  <map-ports name="ri_i1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="2" rf="integer0"/>
+  </map-ports>
+
+  <map-ports name="ri_i2">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer1"/>
+  </map-ports>
+
+  <map-ports name="ri_i3">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer2"/>
+  </map-ports>
+
+  <map-ports name="ri_i4">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer3"/>
+  </map-ports>
+
+  <map-ports name="ri_i5">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer4"/>
+  </map-ports>
+
+  <map-ports name="ri_i6">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer5"/>
+  </map-ports>
+
+  <map-ports name="ri_i7">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer6"/>
+  </map-ports>
+
+  <map-ports name="ri_i8">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer7"/>
+  </map-ports>
+
+  <map-ports name="ri_i9">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer8"/>
+  </map-ports>
+
+  <map-ports name="ri_i10">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer9"/>
+  </map-ports>
+
+  <map-ports name="ri_i11">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer10"/>
+  </map-ports>
+
+  <map-ports name="ri_o1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="2" rf="integer0"/>
+  </map-ports>
+
+  <map-ports name="ri_o2">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer1"/>
+  </map-ports>
+
+  <map-ports name="ri_o3">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer2"/>
+  </map-ports>
+
+  <map-ports name="ri_o4">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer3"/>
+  </map-ports>
+
+  <map-ports name="ri_o5">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer4"/>
+  </map-ports>
+
+  <map-ports name="ri_o6">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer5"/>
+  </map-ports>
+
+  <map-ports name="ri_o7">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer6"/>
+  </map-ports>
+
+  <map-ports name="ri_o72">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer6"/>
+  </map-ports>
+
+  <map-ports name="ri_o8">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer7"/>
+  </map-ports>
+
+  <map-ports name="ri_o9">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer8"/>
+  </map-ports>
+
+  <map-ports name="ri_o10">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer9"/>
+  </map-ports>
+
+  <map-ports name="ri_o11">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="integer10"/>
+  </map-ports>
+
+  <map-ports name="b_i1">
+    <extra-bits>0</extra-bits>
+    <rf-port-code index-width="1" rf="boolean0"/>
+  </map-ports>
+
+  <long-immediate-tag>
+    <pos>3</pos>
+    <extra-bits>0</extra-bits>
+    <map name="empty">1</map>
+    <map name="template0">0</map>
+  </long-immediate-tag>
+
+  <slot name="m19">
+    <pos>1</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <reg-guard-code index="0" inv="false" rf="boolean0">2</reg-guard-code>
+      <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
+      <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
+      <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="8">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="ri_o1">
+        <map codes="ri_o1" extra-bits="0">32</map>
+      </socket>
+      <socket name="ri_o2">
+        <map codes="ri_o2" extra-bits="0">33</map>
+      </socket>
+      <socket name="ri_o3">
+        <map codes="ri_o3" extra-bits="0">34</map>
+      </socket>
+      <socket name="ri_o4">
+        <map codes="ri_o4" extra-bits="0">35</map>
+      </socket>
+      <socket name="ri_o5">
+        <map codes="ri_o5" extra-bits="0">36</map>
+      </socket>
+      <socket name="ri_o6">
+        <map codes="ri_o6" extra-bits="0">37</map>
+      </socket>
+      <socket name="ri_o7">
+        <map codes="ri_o7" extra-bits="0">38</map>
+      </socket>
+      <socket name="ri_o72">
+        <map codes="ri_o72" extra-bits="0">39</map>
+      </socket>
+      <socket name="ri_o8">
+        <map codes="ri_o8" extra-bits="0">40</map>
+      </socket>
+      <socket name="ri_o9">
+        <map codes="ri_o9" extra-bits="0">41</map>
+      </socket>
+      <socket name="ri_o10">
+        <map codes="ri_o10" extra-bits="0">42</map>
+      </socket>
+      <socket name="ri_o11">
+        <map codes="ri_o11" extra-bits="0">43</map>
+      </socket>
+      <socket name="fu4_r">
+        <map extra-bits="0">45</map>
+      </socket>
+      <socket name="fu6_r">
+        <map extra-bits="0">46</map>
+      </socket>
+      <socket name="fu7_r">
+        <map extra-bits="0">47</map>
+      </socket>
+      <socket name="fu8_r">
+        <map extra-bits="0">48</map>
+      </socket>
+      <socket name="ra_o">
+        <map extra-bits="0">49</map>
+      </socket>
+      <socket name="ir_1">
+        <map extra-bits="0">50</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">44</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu8_t">
+        <map codes="fu8_t" extra-bits="3">0</map>
+      </socket>
+      <socket name="ri_i1">
+        <map codes="ri_i1" extra-bits="3">1</map>
+      </socket>
+      <socket name="fu4_t">
+        <map codes="fu4_t" extra-bits="2">4</map>
+      </socket>
+      <socket name="fu6_t">
+        <map codes="fu6_t" extra-bits="2">5</map>
+      </socket>
+      <socket name="fu7_t">
+        <map codes="fu7_t" extra-bits="2">6</map>
+      </socket>
+      <socket name="ri_i2">
+        <map codes="ri_i2" extra-bits="2">7</map>
+      </socket>
+      <socket name="ri_i3">
+        <map codes="ri_i3" extra-bits="1">8</map>
+      </socket>
+      <socket name="ri_i4">
+        <map codes="ri_i4" extra-bits="1">9</map>
+      </socket>
+      <socket name="ri_i5">
+        <map codes="ri_i5" extra-bits="1">10</map>
+      </socket>
+      <socket name="ri_i6">
+        <map codes="ri_i6" extra-bits="1">11</map>
+      </socket>
+      <socket name="ri_i7">
+        <map codes="ri_i7" extra-bits="1">12</map>
+      </socket>
+      <socket name="ri_i8">
+        <map codes="ri_i8" extra-bits="1">13</map>
+      </socket>
+      <socket name="ri_i9">
+        <map codes="ri_i9" extra-bits="1">14</map>
+      </socket>
+      <socket name="ri_i10">
+        <map codes="ri_i10" extra-bits="1">15</map>
+      </socket>
+      <socket name="ri_i11">
+        <map codes="ri_i11" extra-bits="0">16</map>
+      </socket>
+      <socket name="b_i1">
+        <map codes="b_i1" extra-bits="0">17</map>
+      </socket>
+      <socket name="fu4_o">
+        <map extra-bits="0">19</map>
+      </socket>
+      <socket name="fu6_o">
+        <map extra-bits="0">20</map>
+      </socket>
+      <socket name="fu7_o">
+        <map extra-bits="0">21</map>
+      </socket>
+      <socket name="fu8_o">
+        <map extra-bits="0">22</map>
+      </socket>
+      <socket name="pc">
+        <map extra-bits="0">23</map>
+      </socket>
+      <socket name="ra_i">
+        <map extra-bits="0">24</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">18</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <slot name="B1">
+    <pos>2</pos>
+    <extra-bits>0</extra-bits>
+    <guard>
+      <pos>2</pos>
+      <extra-bits>0</extra-bits>
+      <always-true-guard-code>0</always-true-guard-code>
+    </guard>
+    <source>
+      <pos>1</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <immediate width="32">
+        <map extra-bits="0">0</map>
+      </immediate>
+      <socket name="ri_o1">
+        <map codes="ri_o1" extra-bits="0">32</map>
+      </socket>
+      <socket name="ri_o2">
+        <map codes="ri_o2" extra-bits="0">33</map>
+      </socket>
+      <socket name="ri_o3">
+        <map codes="ri_o3" extra-bits="0">34</map>
+      </socket>
+      <socket name="ri_o4">
+        <map codes="ri_o4" extra-bits="0">35</map>
+      </socket>
+      <socket name="ri_o5">
+        <map codes="ri_o5" extra-bits="0">36</map>
+      </socket>
+      <socket name="ri_o6">
+        <map codes="ri_o6" extra-bits="0">37</map>
+      </socket>
+      <socket name="ri_o7">
+        <map codes="ri_o7" extra-bits="0">38</map>
+      </socket>
+      <socket name="ri_o72">
+        <map codes="ri_o72" extra-bits="0">39</map>
+      </socket>
+      <socket name="ri_o8">
+        <map codes="ri_o8" extra-bits="0">40</map>
+      </socket>
+      <socket name="ri_o9">
+        <map codes="ri_o9" extra-bits="0">41</map>
+      </socket>
+      <socket name="ri_o10">
+        <map codes="ri_o10" extra-bits="0">42</map>
+      </socket>
+      <socket name="ri_o11">
+        <map codes="ri_o11" extra-bits="0">43</map>
+      </socket>
+      <socket name="fu4_r">
+        <map extra-bits="0">45</map>
+      </socket>
+      <socket name="fu6_r">
+        <map extra-bits="0">46</map>
+      </socket>
+      <socket name="fu7_r">
+        <map extra-bits="0">47</map>
+      </socket>
+      <socket name="fu8_r">
+        <map extra-bits="0">48</map>
+      </socket>
+      <socket name="ra_o">
+        <map extra-bits="0">49</map>
+      </socket>
+      <socket name="ir_1">
+        <map extra-bits="0">50</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">44</map>
+      </no-operation>
+    </source>
+    <destination>
+      <pos>0</pos>
+      <extra-bits>0</extra-bits>
+      <id-pos>left</id-pos>
+      <socket name="fu8_t">
+        <map codes="fu8_t" extra-bits="3">0</map>
+      </socket>
+      <socket name="ri_i1">
+        <map codes="ri_i1" extra-bits="3">1</map>
+      </socket>
+      <socket name="fu4_t">
+        <map codes="fu4_t" extra-bits="2">4</map>
+      </socket>
+      <socket name="fu6_t">
+        <map codes="fu6_t" extra-bits="2">5</map>
+      </socket>
+      <socket name="fu7_t">
+        <map codes="fu7_t" extra-bits="2">6</map>
+      </socket>
+      <socket name="ri_i2">
+        <map codes="ri_i2" extra-bits="2">7</map>
+      </socket>
+      <socket name="ri_i3">
+        <map codes="ri_i3" extra-bits="1">8</map>
+      </socket>
+      <socket name="ri_i4">
+        <map codes="ri_i4" extra-bits="1">9</map>
+      </socket>
+      <socket name="ri_i5">
+        <map codes="ri_i5" extra-bits="1">10</map>
+      </socket>
+      <socket name="ri_i6">
+        <map codes="ri_i6" extra-bits="1">11</map>
+      </socket>
+      <socket name="ri_i7">
+        <map codes="ri_i7" extra-bits="1">12</map>
+      </socket>
+      <socket name="ri_i8">
+        <map codes="ri_i8" extra-bits="1">13</map>
+      </socket>
+      <socket name="ri_i9">
+        <map codes="ri_i9" extra-bits="1">14</map>
+      </socket>
+      <socket name="ri_i10">
+        <map codes="ri_i10" extra-bits="1">15</map>
+      </socket>
+      <socket name="ri_i11">
+        <map codes="ri_i11" extra-bits="0">16</map>
+      </socket>
+      <socket name="b_i1">
+        <map codes="b_i1" extra-bits="0">17</map>
+      </socket>
+      <socket name="fu4_o">
+        <map extra-bits="0">19</map>
+      </socket>
+      <socket name="fu6_o">
+        <map extra-bits="0">20</map>
+      </socket>
+      <socket name="fu7_o">
+        <map extra-bits="0">21</map>
+      </socket>
+      <socket name="fu8_o">
+        <map extra-bits="0">22</map>
+      </socket>
+      <socket name="pc">
+        <map extra-bits="0">23</map>
+      </socket>
+      <socket name="ra_i">
+        <map extra-bits="0">24</map>
+      </socket>
+      <no-operation>
+        <map extra-bits="0">18</map>
+      </no-operation>
+    </destination>
+  </slot>
+
+  <immediate-slot name="limm_slot0">
+    <pos>0</pos>
+    <width>13</width>
+  </immediate-slot>
+
+</adf-encoding>

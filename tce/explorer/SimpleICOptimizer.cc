@@ -59,9 +59,7 @@
 #include "Application.hh"
 #include "Exception.hh"
 #include "Procedure.hh"
-#include "MachineResourceModifier.hh"
 
-//#include "SchedulerFrontend.hh"
 #include "LLVMBackend.hh"
 
 
@@ -81,7 +79,9 @@ public:
     
     /**
      * Optimizes the IC of the given configuration by removing not used 
-     * connections. Needs the start point configuration to get the architecture
+     * connections. First removes connections and then adds them by looking
+     * all application domains programs instructions and their moves.
+     * Needs the start point configuration to get the architecture
      * which connections are optimized.
      *
      * Supported parameters:
@@ -136,11 +136,22 @@ public:
                 try {
                     std::set<RowID> appIDs = dsdb.applicationIDs();
                     std::set<RowID>::const_iterator iter = appIDs.begin();
+                    if (iter == appIDs.end()) {
+                        // no applications, nothing can be done
+                        return result;
+                    }
                     for (; iter != appIDs.end(); iter++) {
                         TestApplication testApp(dsdb.applicationPath(*iter));
 
-                        // sould origMach be mach?
-                        program = schedule(testApp.applicationPath(), *origMach);
+                        program = DesignSpaceExplorer::schedule(
+                                testApp.applicationPath(), *origMach);
+                        if (program == NULL) {
+                            std::string msg = "SimpleICOptimizer: Schedule "
+                                "failed for program: " + 
+                                testApp.applicationPath();
+                            verboseLog(msg, 1)
+                            return result;     
+                        }
 
                         addConnections(*mach, *program);
                     }
@@ -157,7 +168,6 @@ public:
                     program = Program::loadFromTPEF(tpef_, *origMach);
 
                     addConnections(*mach, *program);
-
                 } catch (const Exception& e) {
                     std::ostringstream msg(std::ostringstream::out);
                     msg << "Error while loading the program in "
@@ -168,9 +178,64 @@ public:
                 }
             }
 
-            removeSockets(*mach);
+            DSDBManager::MachineConfiguration tempConf;
+            try {
+                tempConf.architectureID = dsdb.addArchitecture(*mach);
+                tempConf.hasImplementation = false;
+            } catch (const RelationalDBException& e) {
+                std::ostringstream msg(std::ostringstream::out);
+                msg << "Error while adding ADF to the dsdb. "
+                    << "ADF probably too big." << endl;
+                errorOuput(msg.str());
+                return result;
+            }
 
+            // add config to database to pass it to
+            // RemoveUnconnectedComponents plugin
+            RowID tempConfID = dsdb.addConfiguration(tempConf);
+            
+            // remove unconnected components with RemoveUnconnectedComponents
+            // plugin
+            DesignSpaceExplorerPlugin* removeUnconnected =
+                DesignSpaceExplorer::loadExplorerPlugin(
+                    "RemoveUnconnectedComponents", db());
+
+            // parameters for RemoveUnconnectedComponents plugin
+            DesignSpaceExplorerPlugin::ParameterTable removeUParameters;
+            DesignSpaceExplorerPlugin::Parameter allowRemovePar;
+            allowRemovePar.name = "allow_remove";
+            allowRemovePar.value = "true";
+            removeUParameters.push_back(allowRemovePar);
+            removeUnconnected->setParameters(removeUParameters);
+
+            std::vector<RowID> cleanedTempConfIDs = 
+                removeUnconnected->explore(tempConfID);
+            if (cleanedTempConfIDs.size() < 1) {
+                std::string errorMsg = "SimpleICOptimizer plugin: "
+                    "RemoveUnconnectedComponents plugin failed to produce"
+                    "result.";
+                verboseLog(errorMsg, 2)
+                return result;
+            }
+
+            tempConf = dsdb.configuration(cleanedTempConfIDs.at(0));
+
+            mach = dsdb.architecture(tempConf.architectureID);
+            // TODO: find a way to save idf for allready existing config,
+            // avoid creating a new config here
             DSDBManager::MachineConfiguration newConf;
+            try {
+                newConf.architectureID =
+                    dsdb.addArchitecture(*mach);
+            } catch (const RelationalDBException& e) {
+                std::ostringstream msg(std::ostringstream::out);
+                msg << "Error while adding ADF to the dsdb. "
+                    << "ADF probably too big." << endl;
+                errorOuput(msg.str());
+                return result;
+            }
+
+            // create implementation for newConf if orginal config had one
             if (conf.hasImplementation) {
                 newConf.hasImplementation = true;
                 IDF::MachineImplementation* idf = 
@@ -186,20 +251,12 @@ public:
                 newConf.hasImplementation = false;
             }
 
-            try {
-                newConf.architectureID = dsdb.addArchitecture(*mach);
-            } catch (const RelationalDBException& e) {
-                std::ostringstream msg(std::ostringstream::out);
-                msg << "Error while adding ADF to the dsdb. "
-                    << "ADF probably too big." << endl;
-                errorOuput(msg.str());
-                return result;
-            }
+            // evaluate and save new config id as result
             CostEstimates estimates;
-
             if (evaluateResult_) {
                 // evaluate the new config
-                if (evaluate(newConf, estimates, true)) {
+                bool estimate = true;
+                if (evaluate(newConf, estimates, estimate)) {
                     RowID confID = dsdb.addConfiguration(newConf);
                     result.push_back(confID);
                 } else {
@@ -214,6 +271,7 @@ public:
                 RowID confID = dsdb.addConfiguration(newConf);
                 result.push_back(confID);
             }
+
         } catch (const Exception& e) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using SimpleICOptimizer:" << endl
@@ -296,34 +354,6 @@ private:
 
 
     /**
-     * Compiles the given application bytecode file on the given target machine.
-     *
-     * @param applicationFile Bytecode filename with path.
-     * @param machine The machine to compile the sequential program against.
-     * @return Scheduled parallel program or NULL if scheduler produced exeption.
-     */
-    TTAProgram::Program* schedule(
-        const std::string applicationFile,
-        TTAMachine::Machine& machine) {
-
-        // optimization level
-        const int optLevel = 2;
-        const unsigned int debug = 0;
-
-        // Run compiler and scheduler for current machine
-        try {
-            LLVMBackend compiler;
-            return compiler.compileAndSchedule(applicationFile, machine, optLevel, debug);
-        } catch (Exception& e) {
-            std::cerr << "Error compiling and scheduling '" 
-                << applicationFile << "':" << std::endl
-                << e.errorMessageStack() << std::endl;
-            return NULL;
-        }
-    }
-
-
-    /**
      * Removes all socket-bus connection from the given machine.
      *
      * @param mach Machine which connections are removed.
@@ -342,6 +372,9 @@ private:
 
     /**
      * Adds connections used in the program to the given machine.
+     *
+     * Connections to add are determined by procedure instructions in
+     * application domains programs.
      *
      * @param mach Machine where the connections are added.
      * @param prog Scheduled program where the used connections are searched.
@@ -401,21 +434,6 @@ private:
             }
         }
     }
-    
-    /**
-     * Removes sockets that are not needed in the machine.
-     * 
-     * @param mach Machine which extra sockets are removed.
-     */
-    void removeSockets(TTAMachine::Machine& mach) {
-        
-        // remove not connected sockets
-        MachineResourceModifier modifier;
-        std::list<std::string> removedSocketNames;
-        modifier.removeNotConnectedSockets(mach, removedSocketNames);
-    }
-    
-
 };
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(SimpleICOptimizer)

@@ -581,6 +581,7 @@ then
   [AC_LANG_PROGRAM(
   [[
    #include <wx/wx.h>
+   wxRect retWx() {return wxRect();}
   ]],
   [[
    ;
@@ -1279,8 +1280,14 @@ AC_CONFIG_FILES([src/codesign/Estimator/buildestimatorplugin],
 AC_CONFIG_FILES([src/bintools/Scheduler/buildschedulerpass], 
                 [chmod +x src/bintools/Scheduler/buildschedulerpass])
 
+AC_CONFIG_FILES([src/bintools/PIG/buildcompressor], 
+                [chmod +x src/bintools/PIG/buildcompressor])
+
 AC_CONFIG_FILES([src/procgen/ProGe/buildicdecoderplugin], 
                 [chmod +x src/procgen/ProGe/buildicdecoderplugin])
+
+AC_CONFIG_FILES([src/applibs/LLVMBackend/passes/buildllvmpass], 
+                [chmod +x src/applibs/LLVMBackend/passes/buildllvmpass])
 
 # Generate config.status and launch it. config.status then
 # performs all configuration actions.

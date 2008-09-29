@@ -1,8 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <adf-implementation>
+
   <ic-decoder-plugin>
     <name>DefaultICDecoder</name>
     <file>../../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
-    <hdb-file></hdb-file>
     <parameter name="bustrace">
       <value>yes</value>
     </parameter>
@@ -10,8 +11,6 @@
       <value>5</value>
     </parameter>
   </ic-decoder-plugin>
-
-  <decompressor-file></decompressor-file>
 
   <fu name="fu1">
     <hdb-file>hdb/fft.hdb</hdb-file>
@@ -40,12 +39,12 @@
 
   <fu name="fu6">
     <hdb-file>hdb/fft.hdb</hdb-file>
-    <fu-id>6</fu-id>
+    <fu-id>9</fu-id>
   </fu>
 
   <fu name="fu7">
     <hdb-file>hdb/fft.hdb</hdb-file>
-    <fu-id>6</fu-id>
+    <fu-id>9</fu-id>
   </fu>
 
   <fu name="fu8">

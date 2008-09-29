@@ -1,11 +1,14 @@
 #!/bin/bash
 # Clean the created files
 
-[ -e additions.tpef ] && rm additions.tpef
-[ -e additions_add4.tpef ] && rm additions_add4.tpef
-[ -e additions_add4.img ] && rm additions_add4.img
-[ -e add4_supported.bem ] && rm add4_supported.bem
-[ -e  proge-output ] && rm -r proge-output
-[ -e data/tour.opb ] && rm data/tour.opb
+rm -f data/tutorial.opb
+rm -f start.adf
+rm -f crc.tpef
+rm -f custom.tpef
+rm -f custom.bem
+rm -f custom_data.img
+rm -f custom.img
+rm -rf proge-output
+
 exit 0
 

@@ -33,7 +33,7 @@
 \title{TTA Codesign Environment v1.0}
 \ver{8}
 \firstday{25.10.2006}
-\lastday{12.05.2008}
+\lastday{21.08.2008}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -868,6 +868,7 @@ bits than the shifted data operand.
 
 
 \section{TCE Tour}
+\label{sec:tcetour}
 
 This tutorial goes through most of the tools in TCE using a fairly simple
 example application. It starts from C code and ends up with VHDL of the
@@ -930,6 +931,13 @@ Take a look at the starting point architecture using the graphical Processor
 Designer (ProDe, Section~\ref{sec:prode}) tool. Start ProDe with:
 
 \shellcmd{prode start.adf \&}
+
+If you have GHDL installed in your system and you want to simulate the
+generated processor I suggest you to decrease the amount of memory in the
+processor. Otherwise the GHDL generated testbench might consume tremendous
+amount of memory on your computer. To do this select Edit -> Address Spaces
+in ProDe. Then edit the bit widths of data and instruction address spaces and
+set them to 12 bits which should be plenty for our case.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Preserved this. Maybe there should be a tutorial for building an
@@ -1635,9 +1643,8 @@ is encoded. You do not have to care about this, it is just for curiosity.
 Maybe the only important part in the printout is the length of the
 instruction word. In this case, even though the processor has only
 one move slot, the instruction word width is more than 40 bits. Memorize the
-+instruction word width in bits. The
-size can be reduced with instruction compression, which is not 
-used in the tutorial.
+instruction word width in bits. The size can be reduced with instruction
+compression, which is not used in the tutorial.
 % TODO: add the instruction compression part here also (TEEMU)
 
 Next, we must set correct instruction memory MAU and then 
@@ -1659,14 +1666,12 @@ You should also change the widths of GCU ports and LSU trigger port to avoid
 error messages from the Processor Generator. So open the Address Spaces
 dialog and check the bitwidth fields. Then set the GCU port widths according
 the instruction memorys bitwidth field. Next change the LSU trigger port's
-width. Notice that you must set the trigger's width to be 2 bits wider than
-the marked bitwidth in address space. For more information check the FAQ
-(chapter \ref{chapter:faq})
+width. Set it to the same value as the data memory's bitwidth.
 
 Create the binary encoding map again just in case the port width changes
-caused some changes:
+caused some changes in encoding:
 
-\textit{createbem custom.adf}
+\shellcmd{createbem custom.adf}
 
 Then we'll select implementations for the FUs which can be done in
 \textit{Tools>Processor Implementation...}. Note that the selection window
@@ -1683,7 +1688,7 @@ implementation for the RF from there.
 \item%
 Next select implementation for the boolean RF like above. But this time
 select an implementation which is guarded i.e. select an implementation which
-has word ``guarded'' in its name.
+has word ``guarded\_0'' in its name.
 
 \item%
 Similarly, select implementations for the function units from TCE's default
@@ -1722,7 +1727,7 @@ subdir).
 Finally, to get our shiny new processor some bits to chew on,
 we use generatebits to create an instruction memory image:
 
-\shellcmd{generatebits -b custom.bem -d -p crc\_with\_custom\_op.tpef
+\shellcmd{generatebits -b custom.bem -d -w 4 -p crc\_with\_custom\_op.tpef
 custom.adf} 
 
 Now the file \file{crc\_with\_custom\_op.img} includes the instruction memory
@@ -1746,22 +1751,38 @@ processor implementation along with its instruction memory bit image.
 If given a functional testbench you could simulate the generated 
 VHDL implementation of the processor with a VHDL
 simulator. You could also synthesize the processor implementation with
-appropriate application. There are some scripts in the produced \file{proge-output}
-directory you can use as a starting point for synthesis and VHDL simulation.
+appropriate application. There are some scripts in the produced
+\file{proge-output} directory you can use as a starting point for synthesis
+and VHDL simulation.
 
-You can cd to the proge\_output directory and compile the testbench with
-\textit{./ghdl\_compile.sh} of you have GHDL installed in your system. After
-that you must move the data images to the tb directory:
+You can go to the proge\_output directory and compile the testbench with if
+you have GHDL installed in your system. After that you must move the data
+images to the tb directory:
 
-\textit{cp ../crc\_with\_custom\_op\_data.img tb/dmem\_init.img}
+\shellcmd{cd proge\_output}
 
-\textit{cp ../crc\_with\_custom\_op.img tb/imem\_init.img}
+\shellcmd{./ghdl\_compile.sh} 
 
-Then you can try and simulate the design: \textit{./ghdl\_simulate.sh}
+\shellcmd{cp ../crc\_with\_custom\_op\_data.img tb/dmem\_init.img}
+
+\shellcmd{cp ../crc\_with\_custom\_op.img tb/imem\_init.img}
+
+Then you can try and simulate the design:
+
+\shellcmd{./ghdl\_simulate.sh}
 
 Please notice that GHDL is a work in progress VHDL compiler/simulator so it
 is recommended to use some other VHDL tool.
- 
+
+If you want a more detailed information about what happens in the testbench
+simulation you can enable bustracing from the Processor
+Implementation-dialog's IC / Decoder Plugin tab in ProDE. To enable this, set
+the bustrace plugin parameter to ``yes'' and the bustracestartingcycle to
+``1''. Then save the .idf and generate the processor again. Notice that you'll
+have to remove the existing proge-output dircetory or generate the new
+processor in another directory. Now the testbench will create a file called
+\file{bus.dump} which holds the values of every bus on every cycle.
+
 In this tutorial we used a ``minimalistic'' processor architecture as our
 starting point. The machine had only one transport bus and 5 registers so it
 could not fully exploit the parallel capabilities of TTA. As mentioned 
@@ -1774,8 +1795,8 @@ they affect the performance.
 % NOTE: when updating this update also c2vhdl systemtest if needed.
 % TODO: Also add compilation and simulation of VHDL code using GHDL
  
-This tutorial introduces the a fast way to generate a processor VHDL model
-from C source code using Design Space Explorer.
+This tutorial introduces a fast way to generate a processor VHDL model
+from C source code using the Design Space Explorer.
  
 If you haven't already downloaded the tutorial file package, you can get it 
 from:\\
@@ -1813,7 +1834,7 @@ Where \textit{-s 1} is the id of the configuration to be optimized.
  
 If the plugin found something to optimize, it adds a new configuration(s) into
 the database and reports the final configuration(s) as ``Best result
-configurations´´ ids in the database.
+configurations ids'' in the database.
  
 \subsection{Generate required files}
  
@@ -1828,8 +1849,8 @@ Now the ADF and IDF files are written into the current directory and are named
 as ``1.adf'' and ``1.idf'' or ``2.adf'' and ``2.idf'' depending on which
 version you wrote out.
 
-If implementation definition file ``idf´´ is not generated automatically by
-the plugin you can generate it with the ImplementationSelector plugin.
+If implementation definition file ``idf'' is not generated automatically
+by the plugin you can generate it with the ImplementationSelector plugin.
 Remember to write out the new configuration as explained above.
 
 \textit{explore -e ImplementationSelector -s <configuration\_ID> ExpRes.dsdb}
@@ -1839,7 +1860,7 @@ Schedule each program against the new architecture:
 
 (replace <id> with the proper number)
  
-\textit{tcecc -t <id>.adf -o application1/complex\_multiply.scheduled.tpef
+\textit{tcecc -a <id>.adf -o application1/complex\_multiply.scheduled.tpef
 application1/program.bc}
  
 This step creates file ``ApplicationDir/complex\_multiply.scheduled.tpef''.
@@ -2243,6 +2264,12 @@ most common problematic situations encountered while using the toolset.
 The main difficulty in using the tool is to understand what is being
 designed, that is, the limitations placed by the processor template. 
 Details of the processor template are described in \cite{ADF-specs}.
+
+\subsubsection{Usage}
+
+Processor Desinger can simply be executed from command line with:
+
+\shellcmd{prode}
 
 
 \section{Operation Set Abstraction Layer (OSAL) Tools}
@@ -2750,6 +2777,127 @@ register files, buses, sockets) for the architectures.
 \label{fig:hdbeditor_main_window}
 \end{figure}
 
+
+\section{Function Unit Interface}
+
+Function unit interfaces follow a certain de facto standard in TCE. Here is
+an example of a such interface:
+
+\begin{verbatim}
+entity fu_add_sub_eq_gt_always_1 is
+  generic (
+    dataw : integer := 32;
+    busw  : integer := 32);
+  port (
+    -- trigger port / operand2 input port
+    t1data   : in std_logic_vector (dataw-1 downto 0);
+    t1opcode : in std_logic_vector (1 downto 0);
+    t1load   : in std_logic;
+    -- operand1 input port
+    o1data : in std_logic_vector (dataw-1 downto 0);
+    o1load : in std_logic;
+    -- result output port
+    r1data : out std_logic_vector (busw-1 downto 0);
+    -- control signals
+    glock  : in  std_logic;
+    rstx   : in  std_logic;
+    clk    : in  std_logic);
+end fu_add_sub_eq_gt_always_1;
+\end{verbatim}
+
+As you can see the actual implementation interface has more inputs/outputs
+than the architecture model of a FU. Architecture input ports are
+called o1data and t1data and the output port is called r1data. In addition
+there are load ports, operation code port and some control signals.
+
+It is good practice to use (integer) generics for the port widths in the data
+I/O ports. This makes the managing of Hardware Database (HDB) easier because
+you can use the name of the generic to define port width formulas instead of
+using magic numbers. Whether the value of a generic is constant or
+parametrizable depends on how you define it in the HDB. In the example
+entity declaration we have used two different generics, data width (dataw)
+and bus width (busw). The input data ports depend on the dataw and the
+output port is defined using busw. You can also use only one generic but
+with 2 generics you can define different widths for input and output data if
+needed.
+
+The names you set for the ports in VHDL code is up to you. When you define
+an FU implementation in HDB you'll have to do port mapping where you map the
+VHDL implementation names to the HDB counterparts. I strongly recommend to
+use a consistent naming convention to avoid confusion. In the future,
+HDBEditor might include prefilled dialog fields with the defacto standard
+names. If you use your own naming style for the ports I still recommend to
+use the standard names for control signals which are used in the example
+above (glock = Global Lock, rstx = reset, x stands for active low, clk =
+clock).
+
+The input ports have also load ports. The load signal is active high when the
+input value of an input port is valid and should be read (most probably to a
+register inside the FU). If the input port is also a trigger port the
+operation should be initiated.
+
+If the FU has multiple operations there is also an operation code port in the
+interface. Opcode port is usually bound to the trigger port because operations
+have at least one input. And if you wish to initiate an operation with one
+input operand, the operand has to be written to the trigger port. Operation
+codes also have to be declared in HDB.
+
+FUs can also have ports connecting to the external of the TTA processor
+core. They are declared like any other ports in the entity declaration but
+these ports must be defined as external in HDB.
+
+See the TCE Tour-tutorial (section \ref{sec:tcetour}) for an example how to
+add an FU implementation to hdb.
+
+\subsection{Summary of interface ports}
+\subsubsection{Input/Output operand ports}
+\verb|VHDL-type: std_logic_vector| \\
+TCE naming convention is to use \verb|t1data| for the triggering input port
+and \verb|o1data, o2data ...| etc. for the rest of input operands. Output port
+is usually called \verb|r1data|.
+
+Use generics when you define widths for these ports.
+
+\subsubsection{Input load ports}
+\verb|VHDL-type: std_logic| \\
+The load ports are named after the input operand ports. For example load port
+of t1data is \verb|t1load| and o1data is \verb|o1load|.
+
+\subsubsection{Operation code port}
+\verb|VHDL-type: std_logic_vector| \\
+Operation code port is usually called \verb|t1opcode| and it is bound to the
+trigger port.
+
+\subsubsection{Control signals}
+\verb|VHDL-type: std_logic| \\
+There are four control signals available in FUs:
+
+\verb|clk| is the most obvious, it is the clock signal
+
+\verb|rstx| is active low reset (x stands for active low)
+
+\verb|glock| is a Global Lock signal. For example if the global control unit
+(GCU) issues global lock the ongoing operation should freeze and wait for
+the global lock signal to become inactive before resuming execution.
+
+\verb|glock_r| is global lock request. Rarely used in normal function units.
+It can be used to request global lock state, for example, in case the
+result does not arrive in the time set by the static latency of the
+operation. 
+
+A common example using this signal is a load-store unit of which
+memory latency is sometimes larger than the static latency informed to the
+compiler due to dynamic behavior of the memory system. In that case, a
+global lock is requested after the static number of cycles has passed and
+the data has not arrived to the load-store-unit from the memory system.
+
+\subsection{Reserved keywords in generics}
+
+Currently there is only one reserved keyword in generic definitions and it is
+\verb|addrw|. This keyword is used in load-store units to define trigger
+port's width according to the data address space width. Processor Generator
+identifies this keyword and defines the port width from the data address space
+assigned to the LSU in the ADF.
 
 
 \chapter{CODE GENERATION TOOLS}
@@ -5140,7 +5288,7 @@ Depending on the exploration plugin, the exploring results machine
 configurations in to the exploration result database dsdb. The best results
 from the previous exploration run are given at the end of the exploration:
 
-\shellcmd{explore -e InitialMachineExplorer -a data/FFTTest --hdb=data/initial.hdb 
+\shellcmd{explore -e RemoveUnconnectedComponents -a data/FFTTest --hdb=data/initial.hdb 
 data/test.dsdb}
 
 \begin{verbatim}
@@ -5151,65 +5299,6 @@ Exploration plugins may also estimate the costs of configurations with the
 available applications. If there are estimation results for the configuratios
 those can be queried with option \textbf{--conf\_summary} by giving the
 ordering of the results.
-
-% TODO: Remove this(?)
-% \subsection{Explorer Plugin: InitialMachineExplorer}
-% InitialMachineExplorer is an explorer plugin that can be used to generate
-% a machine that is capable of executing the applications given in the dsdb.
-% Parameters that can be passed to the InitialMachineExplorer are:
-% 
-% \begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
-%                 p{0.60\textwidth}}
-% \textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
-% \hline
-% bus\_count & 4 & Number of buses used in the machine.\\
-% imm\_32 & 0 & Number of 32 bit immediate slots.\\
-% imm\_16 & 0 & Number of 16 bit immediate slots.\\
-% imm\_8 & 2 & Number of 8 bit immediate slots.\\
-% imm\_slot\_bus\_index & 0 & Index of the bus for the first template slot.\\
-% iu\_size & 2 & Number of registers in immediate units.\\
-% iu\_num & 1 & Number of immediate units.\\
-% iu\_width & 32 & Width of immediate units.\\
-% rf\_size & 4 & Number of registers in one register file.\\
-% max\_rfs & 16 & Maximum number of register files in the machine.\\
-% rf\_reads & 1 & Number of register read ports in register files.\\
-% rf\_writes & 1 & Number of register write ports in register file.\\
-% mau & 8 & Size of minimum addressable unit.\\
-% build\_idf & false & Boolean value. If set true the idf file is built.\\
-% ic\_dec & DefaultICDecoder & Name of the ic decoder plugin (used in idf).\\
-% ic\_hdb & asic\_130nm\_1.5V.hdb & Name of the HDB that is used in IC
-% estimation.\\
-% adf & Not set & Builds idf to this arhitecture. Path to the adf file is
-% excepted.\\
-% \end{tabular}\\
-% 
-% Initial Machine Explorer plugin assumes that the application in the given
-% application directory is named \textbf{sequential\_program}. In other words
-% the application(s) in application path(s) must be named sequential\_program
-% and there can be only one sequential\_program per directory.
-% 
-% Initial machine explorer can be used to create idf file to self created
-% architecture. IDF can be generated like this:
-% 
-% \textit{explore -e InitialMachineExplorer -a someDir -p adf=my\_own.adf result.dsdb}
-% 
-% This adds an application directory to result.dsdb, but it is not used,
-% so it can be any existing directory.
-% 
-% Use '--hdb' option if you do not want to use all search path HDBs.
-% Explorer outputs the result configuration in the result database:
-% \begin{verbatim}
-% Best result configurations:
-%  1
-% \end{verbatim}
-% Now you can write out the idf file like this:
-% 
-% \textit{explore -w 1 result.dsdb}
-% 
-% If there are some units that are not included in the HDBs those are printed
-% into the command line. If any units are printed the idf file is not complete
-% but it helps to see what data is missing from the HDBs.
-
 
 \subsection{Explorer Plugin: SimpleICOptimizer}
 SimpleICOptimizer is an explorer plugin that optimizes the interconnection
@@ -5300,6 +5389,98 @@ And if you want to remove the unconnected components: \\
 \shellcmd{explore -e RemoveUnconnectedComponents -s 3 -u allow\_remove=true
 database.dsdb}\\
 
+\subsection{Explorer Plugin: GrowMachine}
+GrowMachine is an Explorer plugin that adds resources to the machine until
+cycle count doesn't go down anymore.
+
+Parameters that can be passed to the GrowMachine are:
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+superiority & 2 & Percentage value of how much faster schedules are wanted
+    until cycle count optimization is stopped \\
+\end{tabular}\\
+
+Using the plugin requires user to define the configuration he wishes optimize.
+This is done by giving \textit{-s <configuration\_ID>} option to the explorer.
+
+Example of usage:
+
+\shellcmd{explore -e GrowMachine -s 1 database.dsdb}
+
+\subsection{Explorer Plugin: ImmediateGenerator}
+ImmediateGenerator is an Explorer plugin that creates or modifies machine
+instruction templates. Typical usage is to split an instruction template slot
+among buses.
+
+Parameters that can be passed to the ImmediateGenerator are:
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+print & false & Print information about machines instruction templates.\\
+remove\_it\_name & no default value & Remove instruction template with a
+given name \\
+add\_it\_name & no default value & Add empty instruction template with a
+given name. \\
+modify\_it\_name & no default value & Modify instruction template with a
+given name. \\
+width & 32 & Instruction template supported width.\\
+width\_part & 8 & Minimum size of width per slot.\\
+split & false & Split immediate among slots.\\
+dst\_imm\_unit & no default value & Destination immediate unit.\\
+\end{tabular}\\
+
+Example of adding a new 32 width immediate template named newTemplate that is
+splitted among busses:
+
+\shellcmd{explore -e ImmediateGenerator -s 1 -u add\_it\_name="newTemplate" -u
+width=32 -u split=true database.dsdb}
+
+\subsection{Explorer Plugin: ImplementationSelector}
+ImplementationSelector is an Explorer plugin that selects implementations for
+units in a given configuration ADF. It creates a new configuration with a IDF.
+
+Parameters that can be passed to the ImmediateGenerator are:
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+ic\_dec & DefaultICDecoder & Name of the ic decoder plugin. \\
+ic\_hdb & asic\_130nm\_1.5V.hdb & name of the HDB where the implementations are \\
+selected. \\
+adf & no default value & An ADF for the implementations are selected if no \\
+database is used. \\
+\end{tabular}\\
+
+Example of creating implementation for configuration ID 1, in the database:
+
+\shellcmd{explore -e ImplementationSelector -s 1 database.dsdb}
+
+\subsection{Explorer Plugin: MinimizeMachine}
+MinimizeMachine is an Explorer plugin that removes resources from a machine
+until the real time requirements of applications are not reached anymore.
+
+Parameters that can be passed to the ImmediateGenerator are:
+
+\begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
+                p{0.60\textwidth}}
+\textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
+\hline
+min\_bus & true & Minimize buses. \\
+min\_fu & true & Minimize function units. \\
+min\_rf & true & Minimize register files. \\
+frequency & no default value & Running frequency for applications. \\
+\end{tabular}\\
+
+Example of minimizing configuration ID 1, in the database, with frequency
+50 MHz:
+
+\shellcmd{explore -e MinimizeMachine -s 1 -u frequency=50 database.dsdb}
 
 \chapter{FREQUENTLY ASKED QUESTIONS}
 \label{chapter:faq}
@@ -5332,9 +5513,7 @@ In the LSUs shipped with TCE the two LSB bits are used by the LSU to control
 a so called write mask that handles writing of bytes. This means that the
 memory address outside the processor is 2 bits narrower than inside the
 processor. When you set the data address space width in ProDe, the width
-is the address width of the outside interface. This means that the trigger
-port of LSU has to be 2 bits wider than the marked address width. This way
-you can address the whole memory with the LSU.
+is the address width inside the processor.
 
 \subsection{Instruction memory}
 The default GCU assumes that instruction memory is intruction addressable. In

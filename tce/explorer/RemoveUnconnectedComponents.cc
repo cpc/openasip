@@ -32,7 +32,7 @@
  * Explorer plugin that removes unconnected ports from units or creates
  * connections to these ports in case of a FUs. Also removes unconnected
  * buses. If all ports from a unit are removed, removes also the unit.
- * Removes also unconnected FUs.
+ *
  *
  * @author Esa Määttä 2007 (esa.maatta@tut.fi)
  * @note rating: red
@@ -47,6 +47,8 @@
 #include "MachineTester.hh"
 #include "Exception.hh"
 #include "StringTools.hh"
+
+#include "MachineResourceModifier.hh"
 
 using std::endl;
 using namespace TTAMachine;
@@ -66,7 +68,7 @@ public:
      * Explorer plugin that removes unconnected ports from units or creates
      * connections to these ports in case of a FUs. Also removes unconnected
      * buses. If all ports from a unit are removed, removes also the unit.
-     * Removes also unconnected FUs.
+     * Removes also unconnected FUs. First unconnected sockets are removed.
      *
      * Supported parameters:
      * - allow_remove, Allows the RFs port removal and portless RFs removal.
@@ -101,14 +103,22 @@ public:
                 return result;
             }
 
+            // removes sockets not connected to any bus
+            removeSockets(*mach);
+
+            // removes FUs not connected to any socket by any port
             std::vector<std::string> removedFUNames;
             removeUnconnectedFUs(*mach, removedFUNames);
 
+            // checks that every FU port is connected to a socket
             checkFUPorts(*mach);
 
+            // register files are removed only if allow_remove parameter is
+            // given, else connections to sockets are made for RFs
             std::vector<std::string> removedRFNames;
             checkRFPorts(*mach, removedRFNames);
 
+            // removes buses that have no connections to any socket
             checkBuses(*mach);
 
             DSDBManager::MachineConfiguration newConf;
@@ -324,6 +334,18 @@ private:
         }
     }
 
+    /**
+     * Removes sockets that are not needed in the machine.
+     * 
+     * @param mach Machine which extra sockets are removed.
+     */
+    void removeSockets(TTAMachine::Machine& mach) {
+        
+        // remove not connected sockets
+        MachineResourceModifier modifier;
+        std::list<std::string> removedSocketNames;
+        modifier.removeNotConnectedSockets(mach, removedSocketNames);
+    }
 };
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(RemoveUnconnectedComponents)

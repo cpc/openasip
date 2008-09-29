@@ -2246,8 +2246,8 @@ test -n "$YACC" || YACC="yacc"
 
 
 if test "`which llvm-config`" = ""; then
-   { { echo "$as_me:$LINENO: error: llvm-config was not found from PATH, please install llvm-2.2." >&5
-echo "$as_me: error: llvm-config was not found from PATH, please install llvm-2.2." >&2;}
+   { { echo "$as_me:$LINENO: error: llvm-config was not found from PATH, please install llvm-2.3." >&5
+echo "$as_me: error: llvm-config was not found from PATH, please install llvm-2.3." >&2;}
    { (exit 1); exit 1; }; }
 fi
 

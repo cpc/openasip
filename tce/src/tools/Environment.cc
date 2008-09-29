@@ -45,6 +45,7 @@
 #include "Environment.hh"
 #include "config.h"
 #include "FileSystem.hh"
+#include "StringTools.hh"
 
 using std::vector;
 using std::string;
@@ -857,8 +858,7 @@ Environment::tceCompiler() {
             return srcPath;
     } 
     std::string path =
-        string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
-        "/bin/tcecc";
+        string(TCE_INSTALLATION_ROOT) + "/bin/tcecc";
     assert(
         FileSystem::fileExists(path) &&
         "Installation broken, tcecc not found.");
@@ -937,6 +937,90 @@ Environment::defaultICDecoderPlugin() {
     } catch(FileNotFound e) {
         assert(false && "Installation broken, DefaultICDecoderPlugin.so not found.");
     }
+}
+
+/**
+ * Returns default text editor to be used.
+ *
+ * @return Full path of default text editor or contents of EDITOR/VISUAL
+ * environment variables. Empty string is also returned if no editor is found.
+ */
+string
+Environment::defaultTextEditorPath() {
+
+    std::string editor = environmentVariable("EDITOR");
+    if (editor.empty()) {
+        editor = environmentVariable("VISUAL");
+    }
+    if (editor.empty()) {
+        // if couldn't get editor from env variables test if some usual
+        // default editor is found
+        vector<std::string> editors;
+        editors.push_back("/bin/nano");
+        editors.push_back("/usr/bin/nano");
+        editors.push_back("/usr/bin/emacs");
+        editors.push_back("/usr/bin/vim");
+        editors.push_back("/usr/bin/vi");
+        for (unsigned int i = 0; i < editors.size(); ++i) {
+            if (FileSystem::fileIsExecutable(editors.at(i))) {
+                return editors.at(i);
+            }
+        }
+        // if none of above editors were found try to find from PATH env
+        // variable
+        editors.clear();
+        std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+        editors.push_back("nano");
+        editors.push_back("emacs");
+        editors.push_back("vim");
+        editors.push_back("vi");
+        vector<std::string> paths;
+        parsePathEnvVariable(paths);
+        for (unsigned int i = 0; i < paths.size(); ++i) {
+            for (unsigned int j = 0; j < editors.size(); ++j) {
+                editor = paths.at(i) + DS + editors.at(j);
+                if (FileSystem::fileIsExecutable(editor)) {
+                    return editor;
+                }
+            }
+        }
+         
+        // no editor were found
+        return "";
+    } 
+
+    // testi if env variable contained full path to text editor executable
+    if (FileSystem::fileIsExecutable(editor)) {
+        return editor;
+    }
+
+    // EDITOR and VISUAL doesn't have to contain full path
+    // so let's search PATH enviroment variable to get the full path
+    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+    std::string testEditor = "";
+    vector<std::string> paths;
+    parsePathEnvVariable(paths);
+    for (unsigned int i = 0; i < paths.size(); ++i) {
+        testEditor = paths.at(i) + DS + editor;
+        if (FileSystem::fileIsExecutable(testEditor)) {
+            return testEditor;
+        }
+    }
+
+    // no editor were found
+    return "";
+}
+
+/**
+ * Returns Paths in PATH environment variable.
+ *
+ * @return Paths in PATH environment variable.
+ */
+inline void
+Environment::parsePathEnvVariable(std::vector<std::string>& paths) {
+
+    std::string pathsEnv = environmentVariable("PATH");
+    StringTools::chopString(pathsEnv, ":", paths);
 }
 
 /**

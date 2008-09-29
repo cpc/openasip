@@ -35,6 +35,7 @@ Bug fixes
 - Determinism fixes to the instruction scheduler.  
 - Optimized scheduling of long immediates. Speeds up scheduling up to
   50% for some cases.
+- Got rid of compile warnings on Ubuntu 8.10 (Intrepid Ibex).
 
 1.0-alpha1    2008-05-06
 ========================

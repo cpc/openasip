@@ -82,7 +82,6 @@ InputFUBroker::~InputFUBroker(){
  */
 SchedulingResourceSet
 InputFUBroker::allAvailableResources(int cycle, const MoveNode& node) const {
-
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
@@ -343,7 +342,7 @@ InputFUBroker::latestCycle(int, const MoveNode&) const {
  * is, the broker has marked that resource as in use in the given
  * cycle).
  *
- * @param cycle Cycle.
+ * @param cycle Cycle. Not used.
  * @param node Node.
  * @return True if the given node is already assigned a resource of the
  * type managed by this broker, and the assignment appears valid (that
@@ -356,12 +355,13 @@ InputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
     Terminal& dst = const_cast<MoveNode&>(node).move().destination();
     if (dst.isFUPort()) {
         const FunctionUnit& fu = dst.functionUnit();
-        if (hasResourceOf(fu) && resourceOf(fu).isInUse(cycle)) {
+        if (hasResourceOf(fu)) {
             if (MapTools::containsKey(assignedResources_, &node)){
                 return true;
             }
         }
     }
+    cycle = cycle; // to avoid unused variable
     return false;
 }
 
@@ -397,7 +397,6 @@ InputFUBroker::isApplicable(const MoveNode& node) const {
 void
 InputFUBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     throw (Exception) {
-
     if (!isApplicable(node)) {
         string msg = "Broker not capable of assigning resources to node!";
         throw WrongSubclass(__FILE__, __LINE__, __func__, msg);

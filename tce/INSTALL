@@ -4,7 +4,7 @@ Building and installation
 Building and installation with the help of autotools should be very easy. 
 First, to create Makefiles you have to run configure as follows:
 
-	./configure --prefix=INSTALLATION_DIRECTORY
+    ./configure --prefix=INSTALLATION_DIRECTORY
 
 If you don't give prefix, the software will be installed in /usr/local/.
 In that case you have to install TCE as root. 
@@ -62,24 +62,24 @@ Tcl                   8.0-8.4                              BSD-style
 Boost                 1.32+                               very permissive
 sqlite3               3.0.0+                               public domain
 Python                2.4,2.5                              very permissive
-LLVM                  2.2                                  LLVM Release License
+LLVM                  2.3                                  LLVM Release License
 
 
 optional:
 
 Editline              2.9                                  BSD-style
 
-	To get line editing capabilities to the command line interface of the simulator.
+    To get line editing capabilities to the command line interface of the simulator.
 
-	You can download the sources here: http://www.thrysoee.dk/editline/
+    You can download the sources here: http://www.thrysoee.dk/editline/
 
-	Note: this library might require 'termcap' library in some distributions. 
-	The package is named 'libedit-dev' in Debian and Ubuntu.
+    Note: this library might require 'termcap' library in some distributions. 
+    The package is named 'libedit-dev' in Debian and Ubuntu.
 
 Python headers               2.4                                  very permissive
 
-	The Python interpreter and its headers and libraries are
-	needed for the optional Python bindings.
+    The Python interpreter and its headers and libraries are
+    needed for the optional Python bindings.
 
 The development files of the following Boost libraries are required by TCE:
 . regexp,

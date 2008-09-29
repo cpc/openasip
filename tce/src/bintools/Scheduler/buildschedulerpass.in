@@ -33,14 +33,14 @@ else
 
         BOOST_INCLUDES="@BOOST_INCLUDES@"
 
-        compiler=gcc
+        compiler="@CXX@"
         libdir=
         includedir="-I${TCE_ROOT} -I${SRC_BASE}/tools -I${SCHEDULER} "\
 "-I${RESOURCE_MODEL} -I${RESOURCE_MANAGER} -I${PDG} -I${BASE}/mach "\
 "-I${BASE}/program -I${BASE}/umach -I${BASE}/osal -I${DISASSEMBLER} "\
 "-I${GRAPH} -I${DDG} -I${CFG} -I${SCHEDULER_ALGO} -I${SF_DIR} "\
 "-I${SELECTOR} ${BOOST_INCLUDES} ${CPPFLAGS} -I${A_MACH}"
-        soflags="-lgcc -shared -g -fPIC -o"
+        soflags="@SHARED_CXX_FLAGS@ -o"
 
     else
         compiler=$(tce-config --c++-compiler)

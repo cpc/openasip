@@ -6,11 +6,11 @@ if test $# -lt 2
 then
     echo "Usage: buildllvmpass <object file> <source files>"
 else
-    compiler=gcc
-    llvmlibs="-lLLVMCodeGen"
+    compiler="@CXX@"
+    llvmlibs=$(llvm-config --libs core)
     llvmldflags=$(llvm-config --ldflags)
     llvmcppflags=$(llvm-config --cppflags)
-    soflags="-O2 -lgcc -shared -g -fPIC -o"
+    soflags="@SHARED_CXX_FLAGS@ -o"
     objectfile=$1
     shift
     $compiler $llvmcppflags $llvmldflags $llvmlibs $soflags $objectfile $* && \

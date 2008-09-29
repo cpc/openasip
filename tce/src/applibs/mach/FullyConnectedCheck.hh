@@ -68,7 +68,7 @@ private:
     void connectIUPort(TTAMachine::RFPort& port) const;
     void connectSpecialRegisterPort(
         TTAMachine::SpecialRegisterPort& port) const;
-    void connectRFPort(TTAMachine::RFPort& port) const;
+    void connectRFPort(TTAMachine::RFPort& port, TTAMachine::Socket::Direction direction) const;
     TTAMachine::Socket* createSocket(
         const TTAMachine::Unit& unit, TTAMachine::Socket::Direction direction)
         const;

@@ -249,13 +249,29 @@ int main(int argc, char* argv[]) {
             std::cout << "Added configuration " << confID << " into the DSDB." << std::endl;
             delete adf;
             delete idf;
-            return EXIT_SUCCESS;
+            doneUseful = true;
         } catch (const Exception& e) {
             std::cout << "Error occured reading ADF or IDF. " 
                       << e.errorMessage() << std::endl;
             delete dsdb;
             return EXIT_FAILURE;           
         }
+    }
+
+    // Check and add the test application directories.
+    int testDirectories = options.testApplicationDirectoryCount();
+    for (int i = 0; i < testDirectories; i++) {
+        std::string testDir = options.testApplicationDirectory(i);
+        if (FileSystem::fileExists(testDir) &&
+                FileSystem::fileIsDirectory(testDir)) {
+            if (!dsdb->hasApplication(testDir)) {
+                dsdb->addApplication(testDir);
+            }
+        } else {
+            std::cerr << "Application directory '" << testDir
+                      << "' does not exists." << std::endl;
+        }
+        doneUseful = true;
     }
 
     // Prints the summary of the configurations in the database.
@@ -377,22 +393,6 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
-    // Check the test application directories.
-    int testDirectories = options.testApplicationDirectoryCount();
-    for (int i = 0; i < testDirectories; i++) {
-        std::string testDir = options.testApplicationDirectory(i);
-        if (FileSystem::fileExists(testDir) &&
-                FileSystem::fileIsDirectory(testDir)) {
-            if (!dsdb->hasApplication(testDir)) {
-                dsdb->addApplication(testDir);
-            }
-        } else {
-            std::cerr << "Application directory '" << testDir
-                      << "' does not exists." << std::endl;
-        }
-        doneUseful = true;
-    }
-
     if (testDirectories < 1 && !dsdb->applicationCount()) {
         // used plugin may not need a test application, or the app is
         // provided to the plugin with its own parameter
@@ -452,6 +452,7 @@ int main(int argc, char* argv[]) {
     try {
         explorer = DesignSpaceExplorer::loadExplorerPlugin(pluginToUse, *dsdb);
         explorer->setParameters(explorerParams);
+        // TODO: fix to use something more systemwide
         explorer->setVerboseStream(&cout);
         explorer->setErrorStream(&cerr);
     } catch (const FileNotFound& e) {

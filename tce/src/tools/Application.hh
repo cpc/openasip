@@ -92,6 +92,10 @@
 	    Conversion::toString(e.lineNum())); } \
     catch ( ... ) { debugLog("Unknown exception"); }
 
+// easy way to do verbose logging
+#define verboseLog(text, neededVerbosity) \
+    if (Application::verboseLevel() >= neededVerbosity) { \
+       Application::logStream() << text << std::endl; }
 
 // provide an easy way to print out the contents of a variable
 #define PRINT_VAR(VARIABLE__) \

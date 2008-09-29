@@ -83,6 +83,10 @@ public:
         const std::string& opName,
         const int cycle,
         const int resIndex);
+    void setLatency(
+        const std::string& opName,
+        const int output,
+        const int latency);
     int highestKnownCycle() const;
     int nextResultCycle(int cycle, const MoveNode& node) const;
 
@@ -140,6 +144,8 @@ private:
     std::set<MoveNode*, MoveNode::Comparator> assignedSourceNodes_;
     // stores the set of assigned destination nodes
     std::set<MoveNode*, MoveNode::Comparator> assignedDestinationNodes_;
+    // latencies of all operations supported by this FU.
+    std::vector<std::map<int,int> > operationLatencies_;
 
     mutable int cachedSize_;
 };

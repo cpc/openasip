@@ -13,4 +13,5 @@ else
     touch test_fft_case_with_simm.testdesc.disabled
     touch test_fft_case_with_limm_opt.testdesc.disabled
     touch test_fft_case_with_compression.testdesc.disabled
+    touch verify_limm_operation.testdesc.disabled
 fi

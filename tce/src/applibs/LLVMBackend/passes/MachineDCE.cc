@@ -22,6 +22,7 @@
 
 #include "llvm/CodeGen/Passes.h"
 #include "llvm/Constant.h"
+#include "llvm/Constants.h"
 #include "llvm/Instructions.h"
 #include "llvm/Function.h"
 #include "llvm/Pass.h"
@@ -39,6 +40,8 @@
 #include "llvm/Module.h"
 #include "llvm/Support/Debug.h"
 
+#include "llvm/ADT/StringMap.h"
+
 #include <iostream>
 #include <map>
 
@@ -48,20 +51,27 @@ namespace {
   class VISIBILITY_HIDDEN MachineDCE :
         public MachineFunctionPass {
       
-    typedef std::map<const Function*, MachineFunction*> FunctionMap;
-    typedef std::vector<const llvm::User*> UserList;
-    typedef std::map<const Function*, UserList> UserRelations;
-    typedef std::map<const llvm::User*, const Function*> ParentMap;
+    typedef std::map<std::string, MachineFunction*> FunctionMap;
+    typedef std::set<std::string> UserList;
+    typedef std::map<std::string, UserList> UserRelations;
+    typedef std::set<const std::string*> AvoidRecursionSet;
 
-    FunctionMap functionMappings;
-    UserRelations usersOfFunction;
+    /// Function name to MachineFunction map.
+    FunctionMap functionMappings_;
 
+    /// List of users of a symbol.
+    UserRelations usersOfValue_;
+      
+    /// If users are traced to this list it means that function 
+    /// cannot be eliminated.
+    UserList baseUsers_;
+
+    virtual bool doInitialization(Module &M);
     virtual bool runOnMachineFunction(MachineFunction &F);
     virtual bool doFinalization(Module &M);
 
-    bool canFindStart(
-      const Function* curr, const Function* start,
-      UserRelations &uses, ParentMap &parents);
+    bool canFindStart(const std::string& user, AvoidRecursionSet& avoid_recursion);
+    void addInitializer(const Constant* init, std::string& name);
 
 
   public:
@@ -84,83 +94,136 @@ void eraseFromParent(MachineBasicBlock* fake_this) {
     mf->getBasicBlockList().erase(fake_this);    
 }
 
-bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
-    const Function* currFunc = F.getFunction();    
-    DOUT << currFunc->getNameStr() << " Address: " 
-         << std::hex << (unsigned)currFunc << std::endl;    
-
-    // Could be done in finalize as well.
-    DOUT << "Users:";
-    for (Value::use_const_iterator i = currFunc->use_begin(); 
-         i != currFunc->use_end(); ++i) {
-        DOUT << " " << *i << " Name: " << i->getNameStr();
-        usersOfFunction[currFunc].push_back(*i);
-    }
-    DOUT << std::endl;
-   
-    functionMappings[F.getFunction()] = &F; 
-    return true;
-}
 
 /**
  * Returns true if can find startpoint.
  */ 
-bool MachineDCE::canFindStart(const Function* curr, const Function* start,
-                              UserRelations &uses, ParentMap &parents) {
+bool MachineDCE::canFindStart(const std::string& user, AvoidRecursionSet& avoid_recursion) {
 
-    UserList &usesVec = uses[curr];
-    DOUT << "Checking " << curr->getNameStr() << std::endl;
+    if (avoid_recursion.find(&user) != avoid_recursion.end()) {
+	return false;
+    } else {
+	avoid_recursion.insert(&user);
+    }
 
     // current function is actually the start point.. nice job.
-    if (curr == start) {
-        DOUT << "Found it!" << std::endl;
+    if (baseUsers_.find(user) != baseUsers_.end()) {
+        std::cerr << "Found it!" << std::endl;
         return true;
     }
 
+    UserList &usesList = usersOfValue_[user];
+    std::cerr << "Checking " << user << std::endl;
+
     // check if this function is used by start point to be sure...
-    for (unsigned int i=0; i < usesVec.size(); i++) {
-        const Function* parent = NULL;
-        if (parents.find(usesVec[i]) != parents.end()) {
-            parent = parents[usesVec[i]];
-        } else {
-            DOUT << "Could not find parent! Lets assume it is needed then.\n";
-            return true;
-        }
-        DOUT << "Parent name: " << parent->getNameStr() << std::endl;
-        if (canFindStart(parent, start, uses, parents)) {
+    for (UserList::iterator i= usesList.begin(); i != usesList.end(); i++) {
+        if (canFindStart((*i), avoid_recursion)) {
             return true;
         }
     }    
 
-    DOUT << "Done without finding entry point " << curr->getNameStr() 
-         << std::endl;
+    std::cerr << "Done without finding entry point " << user 
+              << std::endl;
     return false;
 }
 
-bool MachineDCE::doFinalization(Module &M) {    
-    // find entry function of prgogram...
-    Function& startPoint = *(M.begin());
-    ParentMap parentOfUser;
+void MachineDCE::addInitializer(const Constant* init, std::string& name) {
 
-    // Get parent functions of llvm::User objects for tracing users.
-    for (Module::iterator F = M.begin(), E = M.end(); F != E; ++F) 
-        // For all basic blocks...
-        for (Function::iterator BB = F->begin(), E = F->end(); BB != E; ++BB)
-            // For all instructions...
-            for (BasicBlock::iterator I = BB->begin(), E = BB->end(); 
-                 I != E; ++I) {
-                parentOfUser[&(*I)] = &(*F);
+    if (const GlobalValue* gv = dyn_cast<GlobalValue>(init)) {
+        std::cerr << "Added data " << name 
+                  << " to uses of value: " << gv->getNameStr()
+                  << " and " << name << " to baseUsers." 
+                  <<  std::endl;
+
+        baseUsers_.insert(name);
+        usersOfValue_[gv->getNameStr()].insert(name);
+    }
+    
+    if ((dyn_cast<ConstantArray>(init) != NULL) ||
+        (dyn_cast<ConstantStruct>(init) != NULL) ||
+        (dyn_cast<ConstantVector>(init) != NULL) ||
+        (dyn_cast<ConstantExpr>(init) != NULL)) {
+
+        for (unsigned i = 0, e = init->getNumOperands(); i != e; ++i) {
+            addInitializer(init->getOperand(i), name);
+        }
+    }
+}
+
+bool MachineDCE::doInitialization(Module &M) {    
+
+    // add first function to baseUsers
+    baseUsers_.insert(M.begin()->getNameStr());
+    
+    // Go through global variables to find out 
+    for (Module::const_global_iterator i = M.global_begin();
+         i != M.global_end(); i++) {
+        
+        std::string name = i->getNameStr();        
+
+        if (!i->hasInitializer()) {
+            assert(false && "No initializer. External linkage?");
+        }
+        
+        const Constant* initializer = i->getInitializer();
+        const Type* type = initializer->getType();
+
+        std::cerr << "Data name: " << name 
+                  << "\ttype: " << type->getDescription() << std::endl;        
+        
+        addInitializer(initializer, name);        
+    }
+
+    return true;
+}
+
+bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
+    
+    std::string funcName = F.getFunction()->getNameStr();
+
+    // add function to function map...
+    functionMappings_[funcName] = &F;
+    
+    for (MachineFunction::const_iterator i = F.begin();
+         i != F.end(); i++) {
+        
+        for (MachineBasicBlock::const_iterator j = i->begin();
+             j != i->end(); j++) {
+            
+            for (unsigned k = 0; k < j->getNumOperands(); k++) {
+                const MachineOperand& mo = j->getOperand(k);
+                
+                std::string moName;
+
+                if (mo.isGlobalAddress()) {
+                    moName = mo.getGlobal()->getNameStr();
+                } else if (mo.isExternalSymbol()) {
+                    moName = mo.getSymbolName();
+                }
+                
+                if (!moName.empty()) {
+                    usersOfValue_[moName].insert(funcName);
+                }
             }
+        }        
+    }    
+    return true;
+}
+
+bool MachineDCE::doFinalization(Module &M) {    
     
     // For all functions check that they are reached from entrypoint of module.
-    for (Module::iterator F = M.begin(), E = M.end(); F != E; ++F) {
-        if (!canFindStart(&(*F), &startPoint, usersOfFunction, parentOfUser)) {
-            // TODO: use DOUT
-            std::cerr << "Function was not referred trying to delete all " 
-                 << "MachineBasicBlocks of : " << F->getNameStr() 
-                 << std::endl;
+    for (FunctionMap::iterator func = functionMappings_.begin(); 
+         func != functionMappings_.end(); ++func) {
 
-            MachineFunction* mf = functionMappings[&(*F)];            
+        AvoidRecursionSet avoid_recursion;
+
+        if (!canFindStart(func->first, avoid_recursion)) {
+            std::cerr << "Function was not referred trying to delete all " 
+                      << "MachineBasicBlocks of : " << func->first 
+                      << std::endl;
+
+            MachineFunction* mf = func->second;
             while (!mf->empty()) {
                 MachineBasicBlock &BB = mf->front();
                 eraseFromParent(&BB);

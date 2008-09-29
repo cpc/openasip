@@ -1093,14 +1093,14 @@
 
   <socket name="fu7_o">
     <reads-from>
-      <bus>m14</bus>
+      <bus>m15</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
   <socket name="fu7_t">
     <reads-from>
-      <bus>m15</bus>
+      <bus>m14</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
@@ -1701,102 +1701,6 @@
     <address-space/>
   </function-unit>
 
-  <function-unit name="fu6">
-    <port name="trigger">
-      <connects-to>fu6_t</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="o0">
-      <connects-to>fu6_o</connects-to>
-      <width>15</width>
-    </port>
-    <port name="r0">
-      <connects-to>fu6_r</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>ld</name>
-      <bind name="1">trigger</bind>
-      <bind name="2">r0</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>2</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>st</name>
-      <bind name="1">o0</bind>
-      <bind name="2">trigger</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-      </pipeline>
-    </operation>
-    <address-space>iodata</address-space>
-  </function-unit>
-
-  <function-unit name="fu7">
-    <port name="trigger">
-      <connects-to>fu7_t</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="o0">
-      <connects-to>fu7_o</connects-to>
-      <width>15</width>
-    </port>
-    <port name="r0">
-      <connects-to>fu7_r</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>ld</name>
-      <bind name="1">trigger</bind>
-      <bind name="2">r0</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>2</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>st</name>
-      <bind name="1">o0</bind>
-      <bind name="2">trigger</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-      </pipeline>
-    </operation>
-    <address-space>iodata</address-space>
-  </function-unit>
-
   <function-unit name="fu8">
     <port name="trigger">
       <connects-to>fu8_t</connects-to>
@@ -1873,6 +1777,102 @@
       </pipeline>
     </operation>
     <address-space/>
+  </function-unit>
+
+  <function-unit name="fu6">
+    <port name="trigger">
+      <connects-to>fu6_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="r0">
+      <connects-to>fu6_r</connects-to>
+      <width>32</width>
+    </port>
+    <port name="o0">
+      <connects-to>fu6_o</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>ldw</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>stw</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">o0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <address-space>iodata</address-space>
+  </function-unit>
+
+  <function-unit name="fu7">
+    <port name="trigger">
+      <connects-to>fu7_t</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <port name="r0">
+      <connects-to>fu7_r</connects-to>
+      <width>32</width>
+    </port>
+    <port name="o0">
+      <connects-to>fu7_o</connects-to>
+      <width>32</width>
+    </port>
+    <operation>
+      <name>ldw</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">r0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>2</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>stw</name>
+      <bind name="1">trigger</bind>
+      <bind name="2">o0</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <address-space>iodata</address-space>
   </function-unit>
 
   <register-file name="integer0">

@@ -31,7 +31,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2007/12/05
+-- Last update: 2008/05/28
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Load Store functional unit
@@ -54,11 +54,11 @@ entity fu_ldw_stw_always_3 is
     addrw : integer := 11);
   port(
     -- socket interfaces:
-    t1data    : in  std_logic_vector(dataw-1 downto 0);
+    t1data    : in  std_logic_vector(addrw-1 downto 0);
     t1load    : in  std_logic;
     t1opcode  : in  std_logic_vector(0 downto 0);
     -- CHANGE
-    o1data    : in  std_logic_vector(addrw-1 downto 0);
+    o1data    : in  std_logic_vector(dataw-1 downto 0);
     o1load    : in  std_logic;
     r1data    : out std_logic_vector(dataw-1 downto 0);
     -- external memory unit interface:
@@ -88,7 +88,7 @@ architecture rtl of fu_ldw_stw_always_3 is
 
   signal action_reg : action_reg_type(0 to 1);
 
-  signal o1shadow_reg : std_logic_vector(addrw-2-1 downto 0);
+  signal o1shadow_reg : std_logic_vector(dataw-1 downto 0);
   signal r1_reg       : std_logic_vector(dataw-1 downto 0);
   signal sel          : std_logic_vector(2 downto 0);
 
@@ -99,8 +99,7 @@ architecture rtl of fu_ldw_stw_always_3 is
   constant TRIG_ST    : std_logic_vector(2 downto 0) := "101";
   constant OP1        : std_logic_vector(2 downto 0) := "010";
   constant OP2        : std_logic_vector(2 downto 0) := "011";
-  
-  
+    
 begin
 
   sel <= t1load & o1load & t1opcode;
@@ -126,16 +125,17 @@ begin
       if glock = '0' then
         
         case sel is
+          
           when TRIG_OP_ST =>
-            addr_reg     <= o1data(addrw-1 downto 2);
-            data_out_reg <= t1data;
-            o1shadow_reg <= o1data(addrw-1 downto 2);
+            addr_reg     <= t1data(addrw-1 downto 2);
+            data_out_reg <= o1data;
+            o1shadow_reg <= o1data;
             mem_en_x_reg <= "0";
             wr_en_x_reg  <= "0";
 
           when TRIG_OP_LD =>
             addr_reg     <= t1data(addrw-1 downto 2);
-            o1shadow_reg <= o1data(addrw-1 downto 2);
+            o1shadow_reg <= o1data;
             mem_en_x_reg <= "0";
             wr_en_x_reg  <= "1";
             
@@ -146,18 +146,18 @@ begin
             wr_en_x_reg  <= "1";
             
           when TRIG_ST =>
-            addr_reg     <= o1shadow_reg;
-            data_out_reg <= t1data;
+            addr_reg     <= t1data(addrw-1 downto 2);
+            data_out_reg <= o1shadow_reg;
             mem_en_x_reg <= "0";
             wr_en_x_reg  <= "0";
 
           when OP1 =>
-            o1shadow_reg <= o1data(addrw-1 downto 2);
+            o1shadow_reg <= o1data;
             wr_en_x_reg  <= "1";
             mem_en_x_reg <= "1";
             
           when OP2 =>
-            o1shadow_reg <= o1data(addrw-1 downto 2);
+            o1shadow_reg <= o1data;
             wr_en_x_reg  <= "1";
             mem_en_x_reg <= "1";
             

@@ -82,13 +82,29 @@ DataDependenceGraph::setNodeBB(
 
 /**
  * Adds a node into the graph.
+ *
+ * This method should not be called by the user, used internally
+ * 
+ * @param moveNode moveNode being added.
+ */
+void
+DataDependenceGraph::addNode(MoveNode& moveNode) throw (ObjectAlreadyExists) {
+    BoostGraph<MoveNode, DataDependenceEdge>::addNode(moveNode);
+    if (moveNode.isMove()) {
+        nodesOfMoves_[&moveNode.move()] = &moveNode;
+    }
+}
+
+
+/**
+ * Adds a node into the graph.
  * 
  * @param moveNode moveNode being added.
  * @param bblock Basic block where the move logically belongs.
  */
 void
 DataDependenceGraph::addNode(MoveNode& moveNode, BasicBlockNode& bblock) {
-    BoostGraph<MoveNode, DataDependenceEdge>::addNode(moveNode);
+    addNode(moveNode);
     setNodeBB(moveNode, bblock, NULL);
 }
 
@@ -102,7 +118,7 @@ DataDependenceGraph::addNode(MoveNode& moveNode, BasicBlockNode& bblock) {
  */
 void
 DataDependenceGraph::addNode(MoveNode& moveNode, MoveNode& relatedNode) {
-    BoostGraph<MoveNode, DataDependenceEdge>::addNode(moveNode);
+    addNode(moveNode);
     setNodeBB(moveNode, getBasicBlockNode(relatedNode), NULL);
     ///  @todo: also add to subgrapsh which have the related node?
 }
@@ -756,19 +772,6 @@ DataDependenceGraph::mergeAndKeep(MoveNode& resultNode, MoveNode& userNode) {
 
     EdgeSet edges = connectingEdges(
         resultNode, userNode);
-/*
-    Ugly temporary woraround code follows. 
-
-
-    EdgeSet edges;
-    EdgeSet iEdges = inEdges(userNode);
-    for (EdgeSet::iterator i = iEdges.begin(); i != iEdges.end(); i++) {
-        if (&tailNode(**i) == &resultNode) {
-            edges.insert(*i);
-        }
-    }
-    // Ugly temporary workaround code ends here 
-    */
 
     for (EdgeSet::iterator i = edges.begin();
          i != edges.end(); i++ ) {
@@ -942,18 +945,32 @@ DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
     RemovedNodeData* rmn = new RemovedNodeData;
     removedNodes_[&node] = rmn;
 
+    // remove move -> movenode mapping.
+    if (node.isMove()) {
+        TTAProgram::Move* move = &node.move();
+        std::map<TTAProgram::Move*, MoveNode*>::iterator i = 
+            nodesOfMoves_.find(move);
+        if (i != nodesOfMoves_.end()) {
+            nodesOfMoves_.erase(i);
+        } 
+    }
+
     DataDependenceGraph::NodeDescriptor nd = descriptor(node);
-    // iterating this way is slow if there are many edges
-    for (int i = 0; i < inDegree(node); i++) {
-        DataDependenceEdge& iEdge = inEdge(node,i);
+
+    EdgeSet iEdges = inEdges(node);
+    
+    for (EdgeSet::iterator i = iEdges.begin(); i != iEdges.end(); i++) {
+        DataDependenceEdge& iEdge = **i;
         DataDependenceEdge* newIEdge = new DataDependenceEdge(iEdge);
         rmn->inEdges.push_back(
             std::pair<DataDependenceEdge*,MoveNode*>(
                 newIEdge, &tailNode(iEdge,nd)));
     }
-    // iterating this way is slow if there are many edges
-    for (int i = 0; i < outDegree(node); i++) {
-        DataDependenceEdge& oEdge = outEdge(node,i);
+
+    EdgeSet oEdges = outEdges(node);
+
+    for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
+        DataDependenceEdge& oEdge = **i;
         DataDependenceEdge* newOEdge = new DataDependenceEdge(oEdge);
         rmn->outEdges.push_back(
             std::pair<DataDependenceEdge*,MoveNode*>(
@@ -977,13 +994,17 @@ DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
         }
 
         // fix WaW and WaR antidependencies that go over this node
-        for (int i = 0; i < outDegree(node); i++) {
-            DataDependenceEdge& oEdge = outEdge(node,i);
+
+        for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
+            DataDependenceEdge& oEdge = **i;
+        
             if (oEdge.dependenceType() == DataDependenceEdge::DEP_WAW
                 && oEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER) {
-                
-                for (int i = 0; i < inDegree(node); i++) {
-                    DataDependenceEdge& iEdge = inEdge(node,i);
+
+                for (EdgeSet::iterator j = iEdges.begin(); 
+                     j != iEdges.end(); j++) {
+                    DataDependenceEdge& iEdge = **j;
+                    
                     if (iEdge.dependenceType() == 
                         DataDependenceEdge::DEP_WAW &&
                         iEdge.edgeReason() == 
@@ -1414,19 +1435,18 @@ DataDependenceGraph::createSubgraph(
 MoveNode& 
 DataDependenceGraph::nodeOfMove(TTAProgram::Move& move) 
     throw (InstanceNotFound) {
-    const int nc = nodeCount();
-    for (int i = 0; i < nc; i++ ) {
-        MoveNode& mn = node(i, false);
-        if( mn.isMove()) {
-            if (&mn.move() == &move) {
-                return mn;
-            }
-        }
-    }
+
+    std::map<TTAProgram::Move*, MoveNode*>::iterator i = 
+        nodesOfMoves_.find(&move);
+    if (i != nodesOfMoves_.end()) {
+        return *(i->second);
+    } 
+
     std::string msg = "move not in ddg: " + 
-        Conversion::toString(reinterpret_cast<long>(&move)) + " " + 
-        POMDisassembler::disassemble(move);
+            Conversion::toString(reinterpret_cast<long>(&move)) + " " + 
+            POMDisassembler::disassemble(move);
     throw InstanceNotFound(__FILE__,__LINE__,__func__, msg);
+
 }
 
 /**

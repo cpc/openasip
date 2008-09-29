@@ -44,6 +44,7 @@
 #include "ExecutionPipeline.hh"
 #include "ControlUnit.hh"
 #include "SpecialRegisterPort.hh"
+#include "Socket.hh"
 
 using namespace TTAMachine;
 
@@ -242,10 +243,37 @@ FullyConnectedCheck::fix(TTAMachine::Machine& mach) const
 
     for (int i = 0; i < rfNav.count(); i++) {
         RegisterFile& rf = *rfNav.item(i);
+        int maxReads = rf.maxReads();
+        int maxWrites = rf.maxWrites();
         for (int p = 0; p < rf.portCount(); p++) {
             RFPort& port = *rf.port(p);
             if (port.socketCount() == 0) {
-                connectRFPort(port);
+                if (maxReads > 0) {
+                    connectRFPort(port, Socket::OUTPUT);
+                    maxReads--;
+                } else if (maxWrites > 0) {
+                    connectRFPort(port, Socket::INPUT);
+                    maxWrites--;
+                } else {
+                    // when maxReads == 0 and maxWrites == 0, all ports should have connected
+                    throw InvalidData(
+                        __FILE__, __LINE__, __func__,
+                        "Port count exceeds number of reads and writes.");
+                }
+
+            }
+            else // port connected, check wheter it is input or output
+            {
+                if (port.inputSocket() != NULL) {
+                    maxWrites--;
+                } else if (port.outputSocket() != NULL) {
+                    maxReads--;
+                } else {
+                    // port connected, but input and output sockets are null
+                    throw InvalidData(
+                        __FILE__, __LINE__, __func__,
+                        "Port connected to unknown socket.");
+                }
             }
         }
     }
@@ -322,37 +350,20 @@ FullyConnectedCheck::connectSpecialRegisterPort(
  * @param port Immediate unit port to connect.
  */
 void
-FullyConnectedCheck::connectRFPort(RFPort& port) const {
+FullyConnectedCheck::connectRFPort(RFPort& port, TTAMachine::Socket::Direction direction) const {
 
     MachineTester tester(*port.parentUnit()->machine());
     const BaseRegisterFile& rf = *port.parentUnit();
 
-    // Count input and output ports.
-    int inputPorts = 0;
-    int outputPorts = 0;
-    for (int i = 0; i < rf.portCount(); i++) {
-        const RFPort* p = rf.port(i);
-        if (p->inputSocket() != NULL) {
-            inputPorts++;
-        }
-        if (p->outputSocket() != NULL) {
-            outputPorts++;
-        }
-    }
-
     Socket* socket = NULL;
-
-    if (inputPorts > outputPorts) {
-        socket = createSocket(*port.parentUnit(), Socket::OUTPUT);
-    } else {
-        socket = createSocket(*port.parentUnit(), Socket::INPUT);
-    }
+    socket = createSocket(rf, direction);
 
     if (tester.canConnect(*socket, port)) {
         port.attachSocket(*socket);
     } else {
         delete socket;
     }
+
 }
 
 /**

@@ -549,27 +549,23 @@ ExecutionPipelineResource::canAssign(
         const ProgramOperation* pOp = &node.sourceOperation();
         int maxResultRead = resultRead_.size();
         for (int i = resultReady; i < maxResultRead; i++) {
-            if (i < maxResultRead) {
-                if (resultRead_.at(i).second > 0) {
-                    if (i < otherResult &&
-                        resultRead_.at(i).first != pOp) {
+            if (resultRead_.at(i).second > 0) {
+                if (i < otherResult &&
+                    resultRead_.at(i).first != pOp) {
                     // Other result was written earlier and is read
                     // after this one would be written in cycle
                     // we can not overwrite it!
-                        return false;
-                    } else {
-                        // there is result read, but there is also result
-                        // write before it so we are not overwriting
-                        // anything
-                        break;
-                    }
+                    return false;
+                } else {
+                    // there is result read, but there is also result
+                    // write before it so we are not overwriting
+                    // anything
+                    break;
                 }
-            } else {
-                break;
             }
         }
     }
-
+    
     if (!node.isDestinationOperation() || pSocket.isOutputPSocketResource()) {
         // If destination is ra register of gcu, or bypassed move
         // for which we are only interested at source at this call
@@ -637,12 +633,43 @@ ExecutionPipelineResource::canAssign(
     int pIndex = MapTools::valueForKey<int>(operationSupported_, opName);
     for (int i = 0; i < maximalLatency_; i++) {
         if ((cycle + i) >= size()) {
-            return true;
+            break;
         }
         for (int j = 0 ; j < numberOfResources_; j++) {
             if (operationPipelines_[pIndex][i][j] &&
                 fuExecutionPipeline_[cycle + i][j]) {
                 return false;
+            }
+        }
+    }
+
+    // test for result read WaW already when scheduling trigger.
+
+    for (int i = 0; i < pOp->outputMoveCount(); i++) {
+        MoveNode& resReadMove = pOp->outputMove(i);
+
+        int pIndex = MapTools::valueForKey<int>(operationSupported_, opName);
+        const int outputIndex = resReadMove.move().source().operationIndex();
+        const std::map<int,int>& opLatency = operationLatencies_[pIndex];
+        std::map<int,int>::const_iterator iter = opLatency.find(outputIndex);
+        int resultReady = cycle + iter->second;
+        
+        int nextResCycle = nextResultCycle(resultReady,resReadMove);
+        int maxResultRead = resultRead_.size();
+        for (int i = resultReady; i < maxResultRead; i++) {
+            if (resultRead_.at(i).second > 0) {
+                if (i < nextResCycle &&
+                    resultRead_.at(i).first != pOp) {
+                    // Other result was written earlier and is read
+                    // after this one would be written in cycle
+                    // we can not overwrite it!
+                    return false;
+                } else {
+                    // there is result read, but there is also result
+                    // write before it so we are not overwriting
+                    // anything
+                    break;
+                }
             }
         }
     }
@@ -876,4 +903,29 @@ ExecutionPipelineResource::nextResultCycle(int cycle, const MoveNode& node)
         }
     } 
     return INT_MAX;
+}
+
+/**
+ * Sets latency of an output of an operation.
+ * The resource usage of the operation has to be set before calling this.
+ * @param opName operation to set the latency
+ * @param output index of the output operand(stating from 
+ *               numberofinputoperand, not 0/1)
+ * @param latency latency of the output of the operation
+ */
+void ExecutionPipelineResource::setLatency(
+    const std::string& opName,
+    const int output,
+    const int latency) {
+
+    if (!MapTools::containsKey(operationSupported_, opName)) {
+        throw InvalidData(__FILE__,__LINE__,__func__,
+                          "First set resource usage, only then latency");
+    }
+
+    int pIndex = MapTools::valueForKey<int>(operationSupported_, opName);
+    while (static_cast<int>(operationLatencies_.size()) <= pIndex) {
+        operationLatencies_.push_back(std::map<int,int>());
+    }
+    operationLatencies_[pIndex][output] = latency;
 }

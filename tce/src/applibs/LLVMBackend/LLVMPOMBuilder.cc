@@ -618,6 +618,9 @@ LLVMPOMBuilder::createExprDataDefinition(
 bool
 LLVMPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
 
+    // omit empty functions..
+    if (mf.begin() == mf.end()) return true;
+
     emitConstantPool(*mf.getConstantPool());
 
     std::string fnName = mang_->getValueName(mf.getFunction());
@@ -1082,9 +1085,12 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
          *       
          *       http://llvm.org/bugs/show_bug.cgi?id=2673 
          *
-         *       Should be removed after fix is applied to llvm (2.4?)
+         *       Should be removed after fix is applied to llvm.. (maybe never...)
          */ 
-        std::string name = std::string("_") + mo.getSymbolName();
+
+        std::string name = mang_->makeNameProper(mo.getSymbolName(), "_");
+
+        std::cerr << "TCE proper name: " << name << std::endl;
 
         TTAProgram::InstructionReference* dummy =
             new TTAProgram::InstructionReference(
@@ -1131,8 +1137,8 @@ LLVMPOMBuilder::emitConstantPool(const MachineConstantPool& mcp) {
         MachineConstantPoolEntry cpe = cp[i];
 
         assert(!(cp[i].isMachineConstantPoolEntry()) && "NOT SUPPORTED");
-        currentFnCP_[i] = end_;
         createDataDefinition(end_, cp[i].Val.ConstVal);
+        currentFnCP_[i] = end_;
     }
 }
 
@@ -1429,7 +1435,7 @@ LLVMPOMBuilder::emitInlineAsm(
     for (unsigned o = 2; o < mi->getNumOperands(); o++) {
 
         const MachineOperand& mo = mi->getOperand(o);
-        if (!(mo.isRegister() || mo.isImmediate()))   {
+        if (!(mo.isRegister() || mo.isImmediate() || mo.isGlobalAddress()))   {
             // All operands should be in registers. Everything else is ignored.
             continue;
         }
@@ -1437,7 +1443,7 @@ LLVMPOMBuilder::emitInlineAsm(
 
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
-        if (mo.isImmediate() || mo.isUse()) {
+        if (mo.isImmediate() || mo.isGlobalAddress() || mo.isUse()) {
             if (useOps.empty()) {
                 std::cerr << std::endl;
                 std::cerr <<"ERROR: Too many input operands for custom "
@@ -1466,7 +1472,7 @@ LLVMPOMBuilder::emitInlineAsm(
         TTAProgram::Instruction* instr = new TTAProgram::Instruction();
         instr->addMove(move);
 
-        if (mo.isImmediate() || mo.isUse()) {
+        if (mo.isImmediate() || mo.isGlobalAddress() || mo.isUse()) {
             operandMoves.push_back(instr);
         } else {
             resultMoves.push_back(instr);

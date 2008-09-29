@@ -87,6 +87,7 @@ public:
     static std::string defaultSchedulerConf();
     static std::string oldGccSchedulerConf();
     static std::string defaultICDecoderPlugin();
+    static std::string defaultTextEditorPath();
 
     static std::string llvmtceCachePath();
 
@@ -95,6 +96,7 @@ private:
     ~Environment();
 
     static std::string pathTo(const std::string& name);
+    static inline void parsePathEnvVariable(std::vector<std::string>& paths);
 
     /// Name of the XML Schema directory.
     static const std::string SCHEMA_DIR_NAME_;

@@ -67,6 +67,11 @@ public:
         const std::string& source,
         const std::string& delimiter);
 
+    static void chopString(
+        const std::string& source,
+        const std::string& delimiter, 
+        std::vector<std::string>& results);
+
     static std::string splitToRows(
         const std::string& original,
         const unsigned int rowLength);

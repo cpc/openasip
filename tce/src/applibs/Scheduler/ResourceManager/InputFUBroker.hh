@@ -38,8 +38,6 @@
 #ifndef TTA_INPUT_FU_BROKER_HH
 #define TTA_INPUT_FU_BROKER_HH
 
-#include <map>
-
 #include "ResourceBroker.hh"
 
 namespace TTAMachine {
@@ -77,14 +75,6 @@ public:
 
     virtual void buildResources(const TTAMachine::Machine& target);
     virtual void setupResourceLinks(const ResourceMapper& mapper);
-private:
-    /// A container type for storing the old terminals for easy restoration
-    /// in unassign().
-    typedef std::map<
-        const TTAProgram::Move*,
-        TTAProgram::TerminalFUPort*> RestoreMap;
-    /// A map for old terminals for easy unassign.
-    RestoreMap oldTerminalMap_;    
 };
 
 #endif

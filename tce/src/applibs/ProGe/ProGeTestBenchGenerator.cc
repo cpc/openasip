@@ -62,6 +62,7 @@
 #include "FUImplementationLocation.hh"
 #include "FUExternalPort.hh"
 #include "Exception.hh"
+#include "StringTools.hh"
 
 using namespace IDF; 
 using namespace HDB; 
@@ -72,6 +73,7 @@ using std::endl;
 
 using namespace TTAMachine;
 
+const string ADDR_WIDTH = "addrw";
 
 /**
  * The constructor.
@@ -220,8 +222,8 @@ ProGeTestBenchGenerator::generate(
 
         // get data width and address width of memory unit that fu is
         // connected to, only once for every address space
-        unsigned int dataWidth = 0;
-        unsigned int addrWidth = 0;
+        string dataWidth;
+        string addrWidth;
         for (int p = 0, count = fuImplementation->parameterCount();
             p < count; ++p) {
 
@@ -233,17 +235,35 @@ ProGeTestBenchGenerator::generate(
                     // if width isn't stored read it from port
                     FunctionUnit* FU = it->second.at(0);
                     TTAMachine::HWOperation* hwop = FU->operation(0);
-                    dataWidth = hwop->port(2)->width();
+                    dataWidth = Conversion::toString(hwop->port(2)->width());
                 } else {
-                    dataWidth = Conversion::toInt(param.value);
+                    dataWidth = param.value;
                 }
-            } else if (string::npos != param.name.find("addrw") 
+            } else if (string::npos != param.name.find(ADDR_WIDTH) 
                 && param.type == "integer") {
-                // calculate the address width from the address space
+                // calculate the internal address width from the address space
                 FunctionUnit* FU = it->second.at(0);
                 AddressSpace* AS = FU->addressSpace();
-                addrWidth = 
-                    static_cast<int>(ceil(log(AS->end()) / log(2)));
+                string internalAddrWidth = Conversion::toString(
+                    static_cast<int>(ceil(log(AS->end()) / log(2))));
+
+                // locate the external address port and its width formula
+                string widthFormula;
+                for (int i = 0; i < fuImplementation->externalPortCount();
+                     i++) {
+                    FUExternalPort& ep = fuImplementation->externalPort(i);
+                    if (ep.widthFormula().find(ADDR_WIDTH) != string::npos) {
+                        widthFormula = ep.widthFormula();
+                        break;
+                    }
+                }
+
+                if (widthFormula.empty()) {
+                    addrWidth = internalAddrWidth;
+                } else {
+                    addrWidth = StringTools::replaceAllOccurrences(
+                        widthFormula, ADDR_WIDTH, internalAddrWidth);
+                }
             }
         }
         // TODO: don't create whole file here just add memory widths and 
@@ -418,8 +438,8 @@ ProGeTestBenchGenerator::getSignalMapping(
 void
 ProGeTestBenchGenerator::createTBConstFile(
         std::string dstDirectory,
-        const int dataWidth,
-        const int addrWidth) {
+        const string dataWidth,
+        const string addrWidth) {
     string dstFile = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         "testbench_constants_pkg.vhdl";
 
@@ -430,12 +450,12 @@ ProGeTestBenchGenerator::createTBConstFile(
     stream << "package testbench_constants is" << endl
            << "-- width of the data memory"    << endl
 
-           << ((dataWidth < 1) ? "-- " : "")
+           << ((dataWidth.empty()) ? "-- " : "")
            << "constant DMEMDATAWIDTH : positive := " << dataWidth << ";" 
            << endl
            << "-- address width of the data memory" << endl
 
-           << ((addrWidth < 1) ? "-- " : "")
+           << ((addrWidth.empty()) ? "-- " : "")
            << "constant DMEMADDRWIDTH : positive := " << addrWidth << ";" 
            << endl
 
@@ -443,11 +463,11 @@ ProGeTestBenchGenerator::createTBConstFile(
            << "constant RUNTIME : time := 5234 * 10 ns;" << endl
 
            << "-- memory init files" << endl
-           << ((dataWidth < 1) ? "-- " : "")
+           << ((dataWidth.empty()) ? "-- " : "")
            << "constant DMEM_INIT_FILE : string := " << "\"tb" 
            << FileSystem::DIRECTORY_SEPARATOR << "dmem_init.img\";" << endl
            
-           << ((addrWidth < 1) ? "-- " : "")
+           << ((addrWidth.empty()) ? "-- " : "")
            << "constant IMEM_INIT_FILE : string := " << "\"tb" 
            << FileSystem::DIRECTORY_SEPARATOR << "imem_init.img\";" << endl
            << "end testbench_constants;" << endl;

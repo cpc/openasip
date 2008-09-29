@@ -67,6 +67,7 @@ const string RegisterFile::OSKEY_GUARD_LATENCY = "g_latency";
  * @param size Number of registers in the register file.
  * @param width Bit width of the registers in the register file.
  * @param maxReads Maximum simultaneous reads of a register.
+ * @param maxWrites Maximum simultaneous writes of a register.
  * @param maxRw Maximum simultaneous reads of a register in the same cycle
  *              the register is written.
  * @param type Type of the register file, see RegisterFile::Type.

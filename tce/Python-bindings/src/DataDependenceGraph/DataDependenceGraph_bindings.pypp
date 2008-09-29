@@ -1,0 +1,64 @@
+# Copyright 2002-2008 Tampere University of Technology.  All Rights Reserved.
+#
+# This file is part of TTA-Based Codesign Environment (TCE).
+#
+# TCE is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
+#
+# TCE is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# TCE; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+# Fifth Floor, Boston, MA  02110-1301  USA
+#
+# As a special exception, you may use this file as part of a free software
+# library without restriction.  Specifically, if other files instantiate
+# templates or use macros or inline functions from this file, or you compile
+# this file and link it with other files to produce an executable, this file
+# does not by itself cause the resulting executable to be covered by the GNU
+# General Public License.  This exception does not however invalidate any
+# other reasons why the executable file might be covered by the GNU General
+# Public License.
+
+from binding_generator import *
+
+prefix="./DataDependenceGraph/"
+
+bg = binding_generator_t(
+    module_name = "DataDependenceGraph",
+    call_policies = (('DataDependenceGraphBuilder',
+                      [('build', return_value_policy(manage_new_object)),
+                       ]),
+                     ('DataDependenceGraph',
+                      [('createSubgraph', return_value_policy(manage_new_object)),
+                       ('getBasicBlockNode', return_internal_reference()),
+                       ('guardDefMove', return_internal_reference()),
+                       ('lastScheduledRegisterRead', return_internal_reference()),
+                       ('nodeOfMove', return_internal_reference()),
+                       ('onlyIncomingGuard', return_internal_reference()),
+                       ('onlyRegisterEdgeIn', return_internal_reference()),
+                       ('onlyRegisterEdgeOut', return_internal_reference()),
+                       ('programOperation', return_internal_reference()),
+                       ]),
+                      ),
+    headers = [#prefix + "ConstantAliasAnalyzer.hh",
+               prefix + "DataDependenceEdge.hh",
+               prefix + "DataDependenceGraphBuilder.hh",
+               prefix + "DataDependenceGraph.hh",
+               #prefix + "FalseAliasAnalyzer.hh",
+               #prefix + "MemoryAliasAnalyzer.hh",
+               ],
+    extra_headers = ["ProgramOperation.hh",
+                     "Machine.hh",
+                     "UniversalMachine.hh",
+                     "BaseRegisterFile.hh",
+                     "Procedure.hh",
+                     "InterPassData.hh",
+                     ],
+    )
+
+bg.run()

@@ -7,12 +7,29 @@
 /* Written 2000 by Werner Almesberger */
 
 
+#include <stdio.h>
+
+#undef __MORE_OR_LESS_ORIGINAL_FROM_NEWLIB
+#ifndef __MORE_OR_LESS_ORIGINAL_FROM_NEWLIB
+
+void _start(void) __attribute__((noinline));
+void _exit(int) __attribute__((noinline,noreturn));
+
+void _start(void)
+{
+    _exit(main());
+}
+
+/* override normal exit. simulator should stop when _exit() is seen */
+void _exit(int retval) {
+    while(1); /* less instructions are generated, when this while exists */
+}
+
+#else
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
 
-
-#if 0
 extern char **environ;
 
 /* extern int main(int argc,char **argv,char **envp); */
@@ -42,10 +59,4 @@ void _start(int args)
     exit(main(argc,argv));     
 }
 
-#else 
-
-void _start()
-{
-    exit(main());
-}
 #endif

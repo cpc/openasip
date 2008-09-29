@@ -2,59 +2,87 @@
 # Script to run tce tour test
 
 BUILDOPSET=../../../../tce/src/codesign/osal/OSALBuilder/buildopset
-SCHEDULE="../../../../tce/src/bintools/Scheduler/schedule -c ../../../../tce/scheduler/passes/old_gcc.conf"
 TTASIM=../../../../tce/src/codesign/ttasim/ttasim
 SIMCMD=data/simulator_commands
 CREATEBEM=../../../../tce/src/bintools/BEMGenerator/createbem
 PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
 PIG=../../../../tce/src/bintools/PIG/generatebits
+TCECC=../../../../tce/src/bintools/Compiler/tcecc
+
+MINIMAL=../../../../tce/data/mach/minimal.adf
+MACH1=start.adf
+MACH2=data/custom.adf
+IDF=data/custom.idf
+PROG1=crc.tpef
+PROG2=custom.tpef
+BEM=custom.bem
+
+SYMBOLS=main,result
+PROGE_OUT=proge-output
+DMEM_IMG=custom_data.img
+IMEM_IMG=custom.img
 
 test_success() {
 if [ $? -ne 0 ]
 then
-	exit 1
+	echo $1
+  exit 1
 fi
 }
 
-$BUILDOPSET data/tour
+$BUILDOPSET data/tutorial
 
-# simulatethe original and verify results
-$TTASIM -e "prog data/additions.seq" < $SIMCMD
-test_success
+# copy the minimal.adf
+cp $MINIMAL $MACH1
 
-# schedule against starting_point.adf
-$SCHEDULE -a data/starting_point.adf -o additions.tpef data/additions.seq
-test_success
+if [ ! -e $MACH1 ]
+then
+  echo "Failed to copy minimal.adf from $MINIMAL"
+  exit 1
+fi
+
+# compile the original
+$TCECC -O3 -a $MACH1 -o $PROG1 -k $SYMBOLS data/crc.c data/main.c
+test_success "Failed to compile original version of crc"
+
+# simulate the original and verify result
+$TTASIM -e "mach $MACH1; prog $PROG1" < $SIMCMD
+test_success "Simulation of original program failed"
+
+# compile the custom op version
+$TCECC -O3 -a $MACH2 -o $PROG2 -k $SYMBOLS data/crc_with_custom_op.c data/main.c
+test_success "Failed to compile custom op version of crc"
 
 # simulate and verify results
-$TTASIM -e "mach data/starting_point.adf; prog additions.tpef" < $SIMCMD
-test_success
-
-# simulate custom op version and verify results
-$TTASIM -e "prog data/additions_add4.seq" < $SIMCMD
-test_success
-
-# schedule the custom op version against add4_supported.adf
-$SCHEDULE -a data/add4_supported.adf -o additions_add4.tpef data/additions_add4.seq
-test_success
-
-# simulate and verify results
-$TTASIM -e "mach data/add4_supported.adf; prog additions_add4.tpef" < $SIMCMD
-test_success
+$TTASIM -e "mach $MACH2; prog $PROG2" < $SIMCMD
+test_success "Simulation of custom op program failed"
 
 # create bem
-$CREATEBEM data/add4_supported.adf
-test_success
+$CREATEBEM $MACH2
+test_success "Failed to create bem"
 
 # use processor generator
-$PROGE -i data/add4_supported.idf -b add4_supported.bem -w 4 data/add4_supported.adf
-test_success
+rm -rf $PROGE_OUT
+$PROGE -i $IDF -b $BEM -o $PROGE_OUT $MACH2
+test_success "Failed to generate processor"
 
-# generate bit image
-$PIG -b add4_supported.bem  -p additions_add4.tpef data/add4_supported.adf
-test_success
+# generate bit images
+$PIG -b $BEM -d -w 4 -p $PROG2 $MACH2
+test_success "Failed to generate bit images"
 
-# Todo: Add ghdl compilation/simulation when the automatic testbench
-# generation works like a charm.
+# If GHDL is found from PATH, compile and simulate
+GHDL=$(which ghdl 2> /dev/null)
+if [ "x${GHDL}" != "x" ]
+then
+  cd $PROGE_OUT
+  ./ghdl_compile.sh >& /dev/null
+  test_success "Failed to compile testbench"
+  cp ../$DMEM_IMG tb/dmem_init.img
+	test_success "Failed to copy bit image"
+  cp ../$IMEM_IMG tb/imem_init.img
+	test_success "Failed to copy bit image"
+  ./ghdl_simulate.sh >& /dev/null
+  test_success "Failed to simulate testbench"
+fi
 
 exit 0

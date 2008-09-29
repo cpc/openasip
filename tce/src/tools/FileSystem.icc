@@ -85,6 +85,18 @@ FileSystem::fileIsReadable(const std::string fileName) {
 }
 
 /**
+ * Tests if a file or directory is executable by user.
+ *
+ * @param fileName The file or directory to test.
+ * @return True if file or directory is executable.
+ *
+ */
+inline bool
+FileSystem::fileIsExecutable(const std::string fileName) {
+    return (access(fileName.c_str(), X_OK) == 0);
+}
+
+/**
  * Tests if the given file is a directory.
  *
  * @param fileName The file to test.
