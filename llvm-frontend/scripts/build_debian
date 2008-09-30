@@ -4,75 +4,104 @@
 #
 # Good starting point for information:
 # http://www.ibm.com/developerworks/linux/library/l-debpkg.html
+#
+# $1    package version number, default FRONTEND_ROOT bzr revision
+
+FRONTEND_ROOT=${FRONTEND_ROOT:-"$(pwd)/.."}
+DEB_ARCH=${DEB_ARCH:-"i386"}
+PROGRAM_NAME=${PROGRAM_NAME:-"tce-frontend"}
 
 function eexit {
-    echo "${1}"
-    rm -rf "$tempDir"
+    echo "$1"
+    cleanup
     exit 1
 }
 
+function cleanup {
+    rm -fr $TMP_DIR
+}
 
-cd ..
+# adds the $1 param to the end of PATH variable
+function addToPath {
+    local re='[:\n]{1}'
+    if [ -z "$(echo "$PATH" | grep -E "${1}${re}")" ]; then
+        export PATH="${PATH}:${1}"
+    fi  
+}
 
-# Grab the bzr revision number
-version="$(bzr revno)"
+function init_temp_dir {
+    TMP_DIR=$(mktemp -d)
+    echo "Temporary directory for the package: ${TMP_DIR}"
 
-echo "Creating a .deb for LLVM frontend version bzr ${version}."
+    mkdir $TMP_DIR/DEBIAN
+    cp DEBIAN/* $TMP_DIR/DEBIAN
+}
 
-tempDir=$(mktemp -d)
-echo "Temporary directory for the package: ${tempDir}"
+function build_and_install {
+    local log_file="/dev/null"
+    local build_tmp_dir=$(mktemp -d)
+    cd ${build_tmp_dir}
 
-mkdir $tempDir/DEBIAN
-cp scripts/DEBIAN/* $tempDir/DEBIAN
+    export MAKEFLAGS="-j1"
+    export CXX="g++"
+    export CXXFLAGS="-O2"
+    export CPPFLAGS="-O2"
+    export CFLAGS="-O2"
+    export CC="gcc"
+
+    export LLVM_BIN_DIR=${LLVM_BIN_DIR:-$HOME/llvm/bin}
+    addToPath "${LLVM_BIN_DIR}"
+
+    ${FRONTEND_ROOT}/configure > ${log_file} || { rm -rf ${build_tmp_dir}; eexit "Configure failed."; }
+    make > ${log_file} || { rm -rf ${build_tmp_dir}; eexit "Make failed."; }
+    make DESTDIR=${TMP_DIR} install > ${log_file} || { rm -rf ${build_tmp_dir}; eexit "Make install failed."; }
+    cd ${FRONTEND_ROOT}
+    rm -rf ${build_tmp_dir}
+}
+
+function create_deb {
+    # create the new .deb
+    local package=${PROGRAM_NAME}-${VERSION}_${DEB_ARCH}.deb
+
+    # remove old packages
+    rm -rf *.deb
+    dpkg -b $TMP_DIR $package || eexit "building package with dpkg failed."
+}
+
+
+### MAIN ###
+
+# package version given as a parameter or 
+if [ "${1}x" != "x" ]; then
+    VERSION="${1}"
+else
+    VERSION="$(bzr revno $FRONTEND_ROOT)"
+fi
+
+echo "Creating a .deb for LLVM frontend with version: ${VERSION}."
+
+init_temp_dir
 
 echo "Building and installing LLVM into temp dir."
 
-mkdir llvm-gcc-build
-cd llvm-gcc-build
-
-export MAKEFLAGS=-j1
-export CXX=g++
-export CXXFLAGS="-O2"
-export CFLAGS="-O2"
-export CC=gcc
-
-export INSTALLATION_PATH=$HOME/tce-installation
-export LLVM_BIN_DIR=${HOME}/llvm/bin
-export LLVM_FRONTEND_INSTALL_DIR=${HOME}/llvm-frontend
-
-export PATH="$INSTALLATION_PATH/bin:${LLVM_BIN_DIR}:${INSTALLATION_PATH}/bin:${LLVM_FRONTEND_INSTALL_DIR}/bin:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin"
-export LD_LIBRARY_PATH=$INSTALLATION_PATH/lib
-
-../configure || eexit "Configure failed."
-make || eexit "Make failed."
-make DESTDIR=$tempDir install || eexit "Make install failed."
-
-cd ..
+build_and_install
 
 # Create the .deb control file
-cat > $tempDir/DEBIAN/control <<EOF
+cat > $TMP_DIR/DEBIAN/control <<EOF
 Package: tce-frontend
-Version: 1.0beta1
+Version: ${VERSION}
 Section: devel 
 Priority: optional
-Architecture: i386
+Architecture: ${DEB_ARCH}
 Essential: no
 Depends: binfmt-support, libc6, libgcc1, libstdc++6
 Pre-Depends: perl 
-Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
-Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen@tut.fi>
+Installed-Size: $(du -s ${TMP_DIR}/usr | awk '{print $1}')
+Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen_no.spam_tut.fi>
 Provides: tce-frontend
 Description: Low-Level Virtual Machine (LLVM) C/C++ compiler for TCE
 EOF
-#Conflicts: llvm
 
-# delete the old .deb files
-rm *.deb
+create_deb
 
-# create the new .deb
-package=llvm_tce-${version}_i386.deb
-
-rm -f $package
-dpkg -b $tempDir $package || eexit "dpkg -b $tempDir failed." 
-
-rm -fr $tempDir
+cleanup
