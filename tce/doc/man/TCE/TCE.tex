@@ -939,103 +939,6 @@ amount of memory on your computer. To do this select Edit -> Address Spaces
 in ProDe. Then edit the bit widths of data and instruction address spaces and
 set them to 12 bits which should be plenty for our case.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Preserved this. Maybe there should be a tutorial for building an
-% architecture from scratch using ProDe because tce tour doesn't include it
-% anymore?
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Create a new architecture design by clicking 'New' button in the toolbar.
-% 
-% Alternatively, if you want to get quickly past this part of the tutorial,
-% you can load a premade architecture design from file
-% \textit{starting\_point.adf} which was extracted from the tutorial package.
-% 
-% You can do this either from command line:
-% 
-% \textit{prode starting\_point.adf \&}
-% 
-% Or by clicking the 'Open' button in the toolbar.
-% 
-% In case you decided to design the architecute from scratch, next add a
-% functional unit (FU) that supports the operations the application uses from
-% the hardware database to the design.
-% 
-% \paragraph{Adding the functional units (FU) and the control unit.}
-% From menu: select \textit{Edit>Add From HDB>Function Unit}. Add one FU
-% that includes add, sub, eq, gt and gtu operations and another FU for the load
-% and store operations (ldw and stw). Name the first FU as ``ALU'' (as in Arithmetic
-% Logical Unit), and the second ``LSU'' (as in Load/Store Unit). Renaming the
-% FU can be done by clicking the FU and entering the name to the dialog field
-% ``Name''.
-% 
-% Add the control unit which includes the control flow operations
-% \textit{call and jump}.
-% 
-% Right click on the canvas, select: \textit{Edit>Add>Global Control Unit}. Just
-% click OK in the dialog, the default values should be fine.
-% 
-% Now we have FUs that support the operations the application uses. Next add
-% a register file with enough registers to store the variables our
-% application uses (without needing to spill them to memory).
-% 
-% \paragraph{Adding a register file (RF).}
-% Select from menu: \textit{Edit>Add from HDB>Register File}. Select a
-% RF with at least one read and write port. Click 'Add' and
-% 'Close'. Set the width and size of the RF. the program used only 4
-% variables, but we'll set the RF to contain 16 registers to be able to
-% execute also a bit larger applications efficiently. Let us use
-% integer registers with 32 bit width, as that is what the frontend compiler
-% expects in the current version. Click the RF, set ``Name=RF'', ``Size=16''
-% and ``Width=32''.
-% 
-% \paragraph{Adding a bool register file}
-% Add another register file as done above. This time, name the register file boolRF
-% and set the width of the of the RF to 1 bit and size of thr RF to be 2 
-% and guard latency to 0.
-% 
-% \paragraph{Adding interconnection network.}
-% Next add two transport buses to the machine so we can actually generate
-% TTA programs that move data between the units. Let us add two buses: right
-% click on the canvas and select: \textit{Edit>Add>Transport Bus}.
-% 
-% Now we need to add support for register file guards. Make sure
-% that \textit{Always true guard} is checked. Click \textit{Add} from the
-% \textit{Register file guards} dialog. Next select boolRF as the \textit{Register
-% file} and click OK. Then repeat this, but this time check the \textit{Inverted}
-% box. Then change the register index from 0 to 1 and do this again, adding
-% two guards(non-inverted and inverted) also to register 1.
-
-% Other default values should be OK for this example, so just click OK on the
-% Bus dialog. Add another bus similarly.
-% 
-% Finally, create a fully connected interconnection network by connecting the
-% newly created transport buses to all inputs and outputs of all units (FUs
-% and RFs). You can do this automatically by selecting:
-% \textit{Tools>Fully Connect IC}.
-% 
-
-% \paragraph{Defining the address spaces.} We need to define some basic
-% properties of the instruction and data address spaces the processor
-% accesses. 
-% 
-% Select from menu: \textit{Edit>Address spaces>Add...}. Set Name
-% ``data'', MAU=8, Min-Address=0, Max-address=1ffff ff.
-% This defines an address space with 8 bit minimum addressable units starting
-% from address 0, ending at address 0x1ffff fff. Thus, 32M of data memory.
-% Should be more than enough for the small application.
-% 
-% For the instruction memory address space, add a new address space similarly
-% with the default values and name it ``instructions''. Other values for the
-% instruction memory address space values do not matter for now. 
-% 
-% Finally, you need to assign the address spaces to correct functional units.
-% The data address space is accessed by the load store unit (LSU), thus
-% double-click the LSU and set its address space to be the newly created ``data''
-% address space. Similarly, click the control unit and select its address
-% space to be the instruction address space ``instructions''.
-% 
-% The processor architecture design is now ready to be evaluated. Save the
-% architecture to an ADF file, name it \file{first.adf}.
 
 \subsection{Evaluating the Starting Point Architecture}
 
@@ -1443,84 +1346,6 @@ FU to the rest of the architecture. This can be done by selecting
 \end{enumerate}
 
 
-\paragraph{Adding an implementation of the FU to the hardware database
-(HDB).} \label{par:AddToHDB} In order to generate a VHDL implementation of our
-processor later in the tutorial, we need to add implementation information
-of an FU that implements the custom operation to an HDB file. Normally, this
-step would be done only after deciding the evaluated custom operation 
-is a good choice for accelerating the design.
-
-Start HDBEditor (see Section~\ref{sec:hdbedit}):
-
-\shellcmd{hdbeditor \&}
-
-TCE needs some data of the FU implementation in order to be able to 
-automatically generate processors that include the FU. \\
-\begin{enumerate}
- \item%
-Create a new hdb file (name it \file{tour.hdb}) with hdbeditor and add the 
-''reflecter`` function unit from \file{custom.adf} file 
-(\textit{edit->add->FU architecture from ADF}). You can leave
-the ''parametrized width`` and ''guard support`` unchecked.
-Then define implementation for the added function unit entry \textit{right 
-click reflect -> Add implementation....}\\
-
-\item%
-Open file \file{reflect.vhdl} that was provided in the tutorial package with the editor 
-you prefer, and take a look. This is an example implementation of 
-a TTA function unit performing the custom 'reflect' operation.
-
-\item%
-The HDB implementation dialog needs the following information from the VHDL:\\
-
-\textbf{1. Name of the entity and the naming of the FU interface ports.}
-
-Name the implemention after the top level entity: ``fu\_reflect''.
-
-By examining the VHDL code you can easily spot the clock port (clk),
-reset (rstx) and global lock port (glock). Write these into the appropriate
-text boxes. You do not have to fill the Opcode port or Global lock req. port
-fields because the function unit has only one opcode and does not need to 
-cause a global lock to the processor during its execution.
-
-\textbf{2. Parameters.}
-
-Parameters can be found from the VHDL file. On top of the file there are two
-parameters: dataw and busw. The dataw tells the width of input ports and
-busw tells us the width of the transport buses.
-
-Thus, add two 32-bit integer parameters (dataw and busw) to the Parameter
-dialog.
-
-\textbf{3. Architecture ports.}
-
-This settings defines the connection between the ports in the
-architectural description of the FU and the VHDL implementation.
-Each input data port in the FU is accompanied with a load port that
-controls the updating of the FU input port registers.
-
-Choose a port in the Architecture ports dialog and click edit.
-Set the name of architecture port p1 to o1data and the load port to o1load.
-Width formula is the parameter dataw.
-
-Name of the architecture port p2 is t1data and load port is t1load.
-Width formula is the parameter dataw.
-
-Name the output port (p3) to r1data and the width formula is now busw
-because the output port writes to the bus.
-The output port does not have a load port.
-
-\textbf{4. Add VHDL source file.}
-
-Add the VHDL source file into the Source code dialog. Notice that the HDL
-files must be added in the compilation order (see section \ref{sec:hdbedit}).
-But now we have only one source file so we can simply add it without
-considering the compilation order (Add -> Browse -> reflect.vhdl).
-
-Now you are done with adding the FU implementation. Click OK.
-
-\end{enumerate}
-
 \subsection{Use the custom operation in C code.}
 
 To get some benefits from the added custom hardware,
@@ -1623,6 +1448,84 @@ modifying the architecture, recompile and simulate the code to see
 the effect to the cycle count.
 \end{enumerate}
 
+\subsection{Adding an implementation of the FU to the hardware database
+(HDB).}
+\label{par:AddToHDB}
+
+Now we have seen that the custom operation accelerates our application. Next
+we'll add a VHDL implementation of the custom FU to Hardware Database (hdb).
+This way we will be able to generate a VHDL implementation of our processor.
+
+Start HDBEditor (see Section~\ref{sec:hdbedit}):
+
+\shellcmd{hdbeditor \&}
+
+TCE needs some data of the FU implementation in order to be able to 
+automatically generate processors that include the FU. \\
+\begin{enumerate}
+ \item%
+Create a new hdb file (name it \file{tour.hdb}) with hdbeditor and add the 
+''reflecter`` function unit from \file{custom.adf} file 
+(\textit{edit->add->FU architecture from ADF}). You can leave
+the ''parametrized width`` and ''guard support`` unchecked.
+Then define implementation for the added function unit entry \textit{right 
+click reflect -> Add implementation....}\\
+
+\item%
+Open file \file{reflect.vhdl} that was provided in the tutorial package with the editor 
+you prefer, and take a look. This is an example implementation of 
+a TTA function unit performing the custom 'reflect' operation.
+
+\item%
+The HDB implementation dialog needs the following information from the VHDL:\\
+
+\textbf{1. Name of the entity and the naming of the FU interface ports.}
+
+Name the implemention after the top level entity: ``fu\_reflect''.
+
+By examining the VHDL code you can easily spot the clock port (clk),
+reset (rstx) and global lock port (glock). Write these into the appropriate
+text boxes. You do not have to fill the Opcode port or Global lock req. port
+fields because the function unit has only one opcode and does not need to 
+cause a global lock to the processor during its execution.
+
+\textbf{2. Parameters.}
+
+Parameters can be found from the VHDL file. On top of the file there are two
+parameters: dataw and busw. The dataw tells the width of input ports and
+busw tells us the width of the transport buses.
+
+Thus, add two 32-bit integer parameters (dataw and busw) to the Parameter
+dialog.
+
+\textbf{3. Architecture ports.}
+
+This settings defines the connection between the ports in the
+architectural description of the FU and the VHDL implementation.
+Each input data port in the FU is accompanied with a load port that
+controls the updating of the FU input port registers.
+
+Choose a port in the Architecture ports dialog and click edit.
+Set the name of architecture port p1 to o1data and the load port to o1load.
+Width formula is the parameter dataw.
+
+Name of the architecture port p2 is t1data and load port is t1load.
+Width formula is the parameter dataw.
+
+Name the output port (p3) to r1data and the width formula is now busw
+because the output port writes to the bus.
+The output port does not have a load port.
+
+\textbf{4. Add VHDL source file.}
+
+Add the VHDL source file into the Source code dialog. Notice that the HDL
+files must be added in the compilation order (see section \ref{sec:hdbedit}).
+But now we have only one source file so we can simply add it without
+considering the compilation order (Add -> Browse -> reflect.vhdl).
+
+Now you are done with adding the FU implementation. Click OK.
+
+\end{enumerate}
 
 \subsection{Generating the Final Products}
 
