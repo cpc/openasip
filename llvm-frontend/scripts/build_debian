@@ -51,8 +51,8 @@ cd ..
 
 # Create the .deb control file
 cat > $tempDir/DEBIAN/control <<EOF
-Package: tce-frontend1.0
-Version: ${version}
+Package: tce-frontend
+Version: 1.0beta1
 Section: devel 
 Priority: optional
 Architecture: i386
@@ -61,7 +61,7 @@ Depends: binfmt-support, libc6, libgcc1, libstdc++6
 Pre-Depends: perl 
 Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
 Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen@tut.fi>
-Provides: tce-frontend1.0
+Provides: tce-frontend
 Description: Low-Level Virtual Machine (LLVM) C/C++ compiler for TCE
 EOF
 #Conflicts: llvm
@@ -70,7 +70,7 @@ EOF
 rm *.deb
 
 # create the new .deb
-package=llvm_tce-1.0-${version}_i386.deb
+package=llvm_tce-${version}_i386.deb
 
 rm -f $package
 dpkg -b $tempDir $package || eexit "dpkg -b $tempDir failed." 

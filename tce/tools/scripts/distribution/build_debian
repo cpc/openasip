@@ -55,8 +55,8 @@ make clean
 make DESTDIR=$tempDir dev-install || eexit "make failed."
 
 cat > $tempDir/DEBIAN/control <<EOF
-Package: tce1.0
-Version: ${version}
+Package: tce
+Version: 1.0beta1 
 Section: devel 
 Priority: optional
 Architecture: i386
@@ -65,13 +65,13 @@ Depends: libwxgtk2.6-0, libboost-filesystem1.34.1, \
 libboost-graph1.34.1, libboost-regex1.34.1, \
 libboost-thread1.34.1, tcl8.5, libedit2, \
 libsqlite3-0, libxerces27, g++, \
-tce-frontend1.0
+tce-frontend
 Pre-Depends: perl 
 Recommends: llvm (=2.2)
 Suggests: kpdf | acroread | evince, sqlite3
 Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
 Maintainer: Esa Määttä <esa.maatta@tut.fi>
-Provides: tce1.0
+Provides: tce
 Description: TTA Co-design Environment. A toolset for designing TTA-based application specific processors.
 EOF
 
@@ -79,7 +79,7 @@ EOF
 rm *.deb
 
 # create the new .deb
-package=tce-1.0_${version}_i386.deb
+package=tce-${version}_i386.deb
 
 rm -f $package
 dpkg -b $tempDir $package || eexit "building package with dpkg failed."
