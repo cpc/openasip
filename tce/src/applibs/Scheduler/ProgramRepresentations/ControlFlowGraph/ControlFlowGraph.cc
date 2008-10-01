@@ -284,8 +284,11 @@ ControlFlowGraph::computeLeadersFromRefManager(
     // Add first instruction of procedure by default,
     // testing starts from second
     leaders[startAddress_.location()] = &procedure.firstInstruction();
-    for (int i = 0; i < refManager.referenceCount(); i++) {
-        Instruction& instruction(refManager.reference(i).instruction());
+
+    // this can get slow if there are zillion instructionreferences?
+    for (InstructionReferenceManager::Iterator i = refManager.begin();
+         i != refManager.end(); ++i) {
+        Instruction& instruction = i->instruction();
         InstructionAddress insAddr = instruction.address().location();
         if (insAddr > startAddress_.location() &&
             insAddr < endAddress_.location()) {

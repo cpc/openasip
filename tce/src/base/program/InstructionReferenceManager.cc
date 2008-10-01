@@ -68,14 +68,15 @@ InstructionReferenceManager::~InstructionReferenceManager() {
  */
 InstructionReference&
 InstructionReferenceManager::createReference(Instruction& ins) {
-    for (unsigned int i = 0; i < references_.size(); i++) {
-        if (&references_.at(i)->instruction() == &ins) {
-            return *references_.at(i);
-        }
+    RefMap::const_iterator iter = references_.find(&ins);
+    if (iter == references_.end()) {
+        InstructionReference* newRef = new InstructionReference(ins);
+        references_.insert(
+            std::pair<Instruction*,InstructionReference*>(&ins, newRef));
+        return *newRef;
+    } else {
+        return *iter->second;
     }
-    InstructionReference* newRef = new InstructionReference(ins);
-    references_.push_back(newRef);
-    return *newRef;
 }
 
 /**
@@ -92,11 +93,14 @@ InstructionReferenceManager::replace(Instruction& insA, Instruction& insB)
     throw (InstanceNotFound) {
 
     InstructionReference* ir = NULL;
-    for (unsigned int i = 0; i < references_.size(); i++) {
-        if (&references_.at(i)->instruction() == &insA) {
-            references_.at(i)->setInstruction(insB);
-            ir = references_.at(i);
-        }
+    RefMap::iterator iter = references_.find(&insA);
+    while (iter != references_.end()) {
+        ir = iter->second;
+        ir->setInstruction(insB);
+        references_.erase(iter);
+        references_.insert(
+            std::pair<Instruction*,InstructionReference*>(&insB, ir));
+        iter = references_.find(&insA);
     }
     if (ir != NULL) {
         return *ir;
@@ -112,9 +116,10 @@ InstructionReferenceManager::replace(Instruction& insA, Instruction& insB)
  */
 void
 InstructionReferenceManager::clearReferences() {
-    for (unsigned int i = 0; i < references_.size(); i++) {
-        delete references_.at(i);
-        references_.at(i) = NULL;
+    for (RefMap::iterator iter = references_.begin(); 
+         iter != references_.end(); iter++) {
+        delete iter->second;
+        iter->second = NULL;
     }
     references_.clear();
 }
@@ -126,36 +131,7 @@ InstructionReferenceManager::clearReferences() {
  */
 bool
 InstructionReferenceManager::hasReference(Instruction& ins) const {
-    for (unsigned int i = 0; i < references_.size(); i++) {
-        if (&references_.at(i)->instruction() == &ins) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * Return the number of instruction references.
- *
- * @return The number of instruction references.
- */
-int
-InstructionReferenceManager::referenceCount() const {
-    return references_.size();
-}
-
-/**
- * Return the reference in the given index.
- *
- * @return The reference in the given index.
- * @exception OutOfRange If the index is out of range.
- */
-InstructionReference&
-InstructionReferenceManager::reference(int index) const throw (OutOfRange){
-    if (index < 0 || (unsigned int)index >= references_.size()) {
-        throw OutOfRange(__FILE__, __LINE__);
-    }
-    return *references_.at(index);
+    return references_.find(&ins) != references_.end();
 }
 
 /**
@@ -167,10 +143,12 @@ InstructionReferenceManager*
 InstructionReferenceManager::copy() const {
     InstructionReferenceManager* newManager;
     newManager = new InstructionReferenceManager();
-    for (int i = 0; i < referenceCount(); i++) {
-        newManager->createReference(reference(i).instruction());
+    for (RefMap::const_iterator iter = references_.begin(); 
+         iter != references_.end(); iter++) {
+        newManager->createReference(*iter->first);
     }
     return newManager;
 }
+    
 
 } // namespace TTAProgram
