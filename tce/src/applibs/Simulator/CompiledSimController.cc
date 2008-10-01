@@ -248,8 +248,11 @@ CompiledSimController::reset() {
     // Generate all simulation code at once
     CompiledSimCodeGenerator generator(sourceMachine_, program_, *this,
         frontend_.isSequentialSimulation(),
-        frontend_.fuResourceConflictDetection(), frontend_.executionTracing(), 
-        !frontend_.staticCompilation(), false, !frontend_.staticCompilation());
+        frontend_.fuResourceConflictDetection(),
+        frontend_.executionTracing() || frontend_.procedureTransferTracing(),
+        !frontend_.staticCompilation(), 
+        false, 
+        !frontend_.staticCompilation());
     CATCH_ANY(generator.generateToDirectory(compiledSimulationPath_));
     
     basicBlocks_ = generator.basicBlocks();
