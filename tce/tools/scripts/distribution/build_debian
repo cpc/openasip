@@ -39,9 +39,9 @@ function init_temp_dir {
 
 function build_and_install {
     local log_file="/dev/null"
-    export LLVM_BIN_DIR=${LLVM_BIN_DIR:-$HOME/llvm/bin}
+    export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR:-$HOME/llvm}
     export LLVM_FRONTEND_INSTALL_DIR=${LLVM_FRONTEND_INSTALL_DIR:-$HOME/llvm-frontend}
-    addToPath "${LLVM_BIN_DIR}"
+    addToPath "${LLVM_INSTALL_DIR}/bin"
     addToPath "${LLVM_FRONTEND_INSTALL_DIR}/bin"
 
     export CXX="g++"
@@ -49,9 +49,10 @@ function build_and_install {
     export CXXFLAGS="-O3 -g" 
 
     cd $TCE_ROOT
-    make clean > ${log_file}
-    ./configure --enable-distributed > ${log_file} || eexit "configure failed."
-    make DESTDIR=${TMP_DIR} dev-install > ${log_file} || eexit "make failed."
+    [ ! -e "./configure" ] && autoreconf &> ${log_file}
+    make clean &> ${log_file}
+    ./configure --enable-distributed &> ${log_file} || eexit "configure failed."
+    make DESTDIR=${TMP_DIR} dev-install &> ${log_file} || eexit "make failed."
 }
 
 function create_deb {
@@ -73,7 +74,7 @@ else
     VERSION="$(bzr revno $TCE_ROOT)"
 fi
 
-echo "Creating a .deb for TCE with version: ${VERSION}"
+echo "Creating a .deb for TCE with version: ${VERSION} using tce: ${TCE_ROOT}"
 
 init_temp_dir
 
