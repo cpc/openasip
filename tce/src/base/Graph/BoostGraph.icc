@@ -37,6 +37,7 @@
  * @note rating: red
  */
 
+#include <queue>
 #include <map>
 #include <string>
 #include <algorithm>
@@ -1448,10 +1449,21 @@ BoostGraph<GraphNode, GraphEdge>::calculatePathLengths() const {
         }
     }
 
-    for (int i = 0; i < nodeCount(); i++ ) {
+    // priority queue of all sink nodes.
+    std::priority_queue<PathLengthHelper> sinkDistanceQueue;
+    
+    // insert all sink nodes to the pqueue
+    for (int i = nodeCount() -1 ; i >= 0 ; i--) {
         if (outDegree(node(i)) == 0) {
-            calculateSinkDistance(node(i),0);
+            sinkDistanceQueue.push(
+                PathLengthHelper(i, sourceDistances_[&node(i)]));
         }
+    }
+
+    // and then start sink calculation from each of them.
+    while (!sinkDistanceQueue.empty()) {
+        calculateSinkDistance(node(sinkDistanceQueue.top().index_),0);
+        sinkDistanceQueue.pop();
     }
 }
 
@@ -1505,12 +1517,27 @@ BoostGraph<GraphNode, GraphEdge>::calculateSinkDistance(
             height_ = len;
         }
         
+        // priority queue of predecessor nodes. recurse always
+        // to one with highest source distance
+        std::priority_queue<PathLengthHelper> predecessorQueue;
+
         NodeDescriptor nd = descriptor(node);
-        EdgeSet in = inEdges(node);
-        for (typename EdgeSet::iterator i = in.begin(); 
-             i != in.end(); i++) {
-            int eWeight = edgeWeight(**i, node);
-            calculateSinkDistance(tailNode(**i,nd), len + eWeight);
+        // inEdge is expensive. but hopefully not too many incoming edges.
+        int ieCount = inDegree(node);
+        for (int i = 0; i < ieCount; i++) {
+            Edge& e = inEdge(node, i); 
+            Node& tail = tailNode(e, nd);
+            predecessorQueue.push(
+                PathLengthHelper(i, sourceDistances_[&tail]));
+        }
+
+        // all predecessors are in the queue, loop it thru in
+        // correct order.
+        while (!predecessorQueue.empty()) {
+            Edge& e = inEdge(node, predecessorQueue.top().index_);
+            int eWeight = edgeWeight(e, node);
+            predecessorQueue.pop();
+            calculateSinkDistance(tailNode(e,nd), len + eWeight);
         }
     }
 }
@@ -1639,3 +1666,16 @@ const std::string&
 BoostGraph<GraphNode, GraphEdge>::name() const {
     return name_;
 }
+
+template <typename GraphNode, typename GraphEdge>
+bool
+BoostGraph<GraphNode, GraphEdge>::PathLengthHelper::operator<(
+    const BoostGraph<GraphNode, GraphEdge>::PathLengthHelper& other) const {
+    return sd_ < other.sd_; 
+} 
+
+
+
+template <typename GraphNode, typename GraphEdge>
+BoostGraph<GraphNode, GraphEdge>::PathLengthHelper::PathLengthHelper(
+    int index, int sd) : index_(index), sd_(sd) {}

@@ -292,6 +292,16 @@ protected:
     void constructSubGraph(
         BoostGraph& subGraph, NodeSet& nodes);
 
+    /**
+     * This class is used in the pririty queue, to select which node to
+     * start sink distance calculations */
+    struct PathLengthHelper {
+        inline PathLengthHelper(int index, int sd);
+        int index_;
+        int sd_;
+        inline bool operator< (const PathLengthHelper& other) const;
+    };
+
     std::string name_;
     int sgCounter_;
 };

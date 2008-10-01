@@ -288,19 +288,10 @@ ExecutionPipelineResource::assign(
     if (newNode->move().destination().isOpcodeSetting()) {
         opName = newNode->move().destination().operation().name();
     } else {
-        for (int i = cycle; i >= 0; i--) {
-            if (MapTools::containsKey(opcodeSettingCycle_, i)) {
-                opName = MapTools::valueForKey<std::string>
-                    (opcodeSettingCycle_, i);
-                break;
-            }
-        }
-        if (opName == "") {
-            std::string msg = "Using non opcodeSetting triggering move";
-            msg += " without setting opcode first!";
-            msg += " Move: " + node.toString();
-            throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
-        }
+        std::string msg = "Using non opcodeSetting triggering move";
+        msg += " without setting opcode first!";
+        msg += " Move: " + node.toString();
+        throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
     int pIndex = 0;
     if (MapTools::containsKey(operationSupported_, opName)) {
@@ -610,15 +601,6 @@ ExecutionPipelineResource::canAssign(
         if (triggers) {
             opName = newNode->move().destination().hintOperation().name();
         }
-        for (int i = cycle; i >= 0; i--) {
-            // if there was opcode setting move earlier, pick operation from
-            // the recorded ones
-            if (MapTools::containsKey(opcodeSettingCycle_, i)) {
-                opName = MapTools::valueForKey<std::string>(
-                    opcodeSettingCycle_, i);
-                break;
-            }
-        }
         if (opName == "") {
             std::string msg = "Using non opcodeSetting triggering move";
             msg += " without setting opcode first!";
@@ -652,6 +634,8 @@ ExecutionPipelineResource::canAssign(
         const int outputIndex = resReadMove.move().source().operationIndex();
         const std::map<int,int>& opLatency = operationLatencies_[pIndex];
         std::map<int,int>::const_iterator iter = opLatency.find(outputIndex);
+
+        assert(iter != opLatency.end());
         int resultReady = cycle + iter->second;
         
         int nextResCycle = nextResultCycle(resultReady,resReadMove);
