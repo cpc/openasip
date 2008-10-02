@@ -195,7 +195,7 @@ ExecutionPipelineResource::assign(
     throw (Exception) {
 
     cachedSize_ = INT_MIN;
-    
+
     if (node.isSourceOperation() && source) {
 
         assignedSourceNodes_.insert(&node);
@@ -246,8 +246,6 @@ ExecutionPipelineResource::assign(
     }
 
     // If move is opcode setting, we set operation based on opcode.
-    // If it is only triggering, then opcode from previous opcode setting
-    // move is applied....
     assignedDestinationNodes_.insert(&node);
     ProgramOperation* pOp = NULL;
     try {
@@ -288,8 +286,7 @@ ExecutionPipelineResource::assign(
     if (newNode->move().destination().isOpcodeSetting()) {
         opName = newNode->move().destination().operation().name();
     } else {
-        std::string msg = "Using non opcodeSetting triggering move";
-        msg += " without setting opcode first!";
+        std::string msg = "Using non opcodeSetting triggering move. ";
         msg += " Move: " + node.toString();
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
@@ -323,10 +320,6 @@ ExecutionPipelineResource::assign(
             }
         }
     }
-    // Even if the operation was just triggering not opcode setting
-    // it started new execution with old opcode so we add it to the list.
-    opcodeSettingCycle_.insert(std::pair<int, std::string>(cycle, opName));
-
 }
 
 void
@@ -353,7 +346,7 @@ ExecutionPipelineResource::unassign(
     cachedSize_ = INT_MIN;
 
     if (node.cycle() != cycle) {
-        throw InvalidData(__FILE__, __LINE__, __func__, 
+        throw InvalidData(__FILE__, __LINE__, __func__,
             "Trying to unassign node from different cycle "
             "then it was assigned to!");
     }
@@ -452,38 +445,16 @@ ExecutionPipelineResource::unassign(
     if (!node.move().destination().isTriggering()) {
         return;
     }
-    if (!MapTools::containsKey(opcodeSettingCycle_, cycle)) {
-        std::string msg = "Trying to unassing operation \"";
-        msg += node.move().destination().operation().name();
-        msg += "\" not assigned in cycle (";
-        msg += Conversion::toString(cycle);
-        msg += ")!";
-        throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
-    }
-    std::string recordedName = "";
-    recordedName =
-        MapTools::valueForKey<std::string>(opcodeSettingCycle_, cycle);
-    MoveNode* newNode = const_cast<MoveNode*>(&node);
     std::string opName = "";
-    if (newNode->move().destination().isOpcodeSetting()) {
-        opName = newNode->move().destination().operation().name();
+    if (node.move().destination().isOpcodeSetting()) {
+        opName = node.move().destination().operation().name();
     } else {
-        opName = recordedName;
+        opName = node.move().destination().hintOperation().name();
     }
     if (!MapTools::containsKey(operationSupported_, opName)) {
         std::string msg = "Trying to unassign operation \'";
         msg += opName ;
         msg += "\' not supported on FU!";
-        throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
-    }
-    if (opName != recordedName) {
-        // we have different operation started in cycle then we are
-        // trying to unassign
-        std::string msg = "Trying to unassign operation ";
-        msg += opName;
-        msg += " , different from what was recorded (";
-        msg += recordedName;
-        msg += "). Move: " + node.toString(); 
         throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
     }
     int pIndex = 0;
@@ -503,7 +474,6 @@ ExecutionPipelineResource::unassign(
                 (!operationPipelines_[pIndex][i][j]);
         }
     }
-    opcodeSettingCycle_.erase(cycle);
 }
 
 /**
@@ -556,7 +526,7 @@ ExecutionPipelineResource::canAssign(
             }
         }
     }
-    
+
     if (!node.isDestinationOperation() || pSocket.isOutputPSocketResource()) {
         // If destination is ra register of gcu, or bypassed move
         // for which we are only interested at source at this call
@@ -564,7 +534,6 @@ ExecutionPipelineResource::canAssign(
     }
 
     MoveNode* newNode = const_cast<MoveNode*>(&node);
-    std::string opName = "";
     ProgramOperation* pOp = NULL;
     try {
         pOp = &newNode->destinationOperation();
@@ -589,10 +558,10 @@ ExecutionPipelineResource::canAssign(
 
     // triggering move may be different on a target machine then on
     // universal machine, test triggering using data from FUBrokers
-    if (!(triggers /* || newNode->move().destination().isTriggering()*/)) {
+    if (!(triggers)) {
         return true;
     }
-
+    std::string opName = "";
     if (newNode->move().destination().isOpcodeSetting()) {
         opName = newNode->move().destination().operation().name();
     } else {
@@ -602,8 +571,8 @@ ExecutionPipelineResource::canAssign(
             opName = newNode->move().destination().hintOperation().name();
         }
         if (opName == "") {
-            std::string msg = "Using non opcodeSetting triggering move";
-            msg += " without setting opcode first!";
+            std::string msg = "Using non opcodeSetting triggering move. ";
+            msg += "Move: " + newNode->toString();
             throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
         }
     }
@@ -637,7 +606,7 @@ ExecutionPipelineResource::canAssign(
 
         assert(iter != opLatency.end());
         int resultReady = cycle + iter->second;
-        
+
         int nextResCycle = nextResultCycle(resultReady,resReadMove);
         int maxResultRead = resultRead_.size();
         for (int i = resultReady; i < maxResultRead; i++) {
@@ -745,12 +714,12 @@ ExecutionPipelineResource::setResourceUse(
     const int resIndex) {
 
     if (cycle > maximalLatency_ || cycle < 0) {
-        throw InvalidData(__FILE__, __LINE__, __func__, 
+        throw InvalidData(__FILE__, __LINE__, __func__,
             "Trying to set resource use to cycle out of scope of "
             "FU pipeline!");
     }
     if (resIndex >= numberOfResources_ || resIndex < 0){
-        throw InvalidData(__FILE__, __LINE__, __func__, 
+        throw InvalidData(__FILE__, __LINE__, __func__,
             "Trying to set resource use for resource out of scope of "
             "FU pipeline!");
     }
@@ -833,7 +802,6 @@ ExecutionPipelineResource::findRange(
  */
 int
 ExecutionPipelineResource::highestKnownCycle() const {
-
     int maximum = operandsWriten_.size() - 1;
     while (maximum >= 0 && operandsWriten_.at(maximum) == NULL) {
         maximum--;
@@ -865,7 +833,7 @@ ExecutionPipelineResource::nextResultCycle(int cycle, const MoveNode& node)
     const {
 
     if (!node.isSourceOperation()) {
-        throw InvalidData(__FILE__, __LINE__, __func__, 
+        throw InvalidData(__FILE__, __LINE__, __func__,
             "Trying to get next result for move that is not "
             "in ProgramOperation");
     }
@@ -873,7 +841,7 @@ ExecutionPipelineResource::nextResultCycle(int cycle, const MoveNode& node)
     if (node.isSourceOperation()) {
         sourcePo = &node.sourceOperation();
     }
-    
+
     int resSize = resultWriten_.size();
 
     if (cycle > resSize) {
@@ -883,9 +851,9 @@ ExecutionPipelineResource::nextResultCycle(int cycle, const MoveNode& node)
         if (resultWriten_.at(i).second > 0 ) {
             if (resultWriten_.at(i).first != sourcePo) {
                 return i;
-            } 
+            }
         }
-    } 
+    }
     return INT_MAX;
 }
 
@@ -893,7 +861,7 @@ ExecutionPipelineResource::nextResultCycle(int cycle, const MoveNode& node)
  * Sets latency of an output of an operation.
  * The resource usage of the operation has to be set before calling this.
  * @param opName operation to set the latency
- * @param output index of the output operand(stating from 
+ * @param output index of the output operand(stating from
  *               numberofinputoperand, not 0/1)
  * @param latency latency of the output of the operation
  */
@@ -904,7 +872,7 @@ void ExecutionPipelineResource::setLatency(
 
     if (!MapTools::containsKey(operationSupported_, opName)) {
         throw InvalidData(__FILE__,__LINE__,__func__,
-                          "First set resource usage, only then latency");
+            "First set resource usage, only then latency");
     }
 
     int pIndex = MapTools::valueForKey<int>(operationSupported_, opName);
