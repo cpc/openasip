@@ -257,11 +257,12 @@ CycleLookBackSoftwareBypasser::bypass(
         }
         int oldCycle = moveNode.cycle();
         rm.unassign(moveNode);
-        int earliestCycle =
-            rm.earliestCycle(ddg.earliestCycle(moveNode),moveNode);
+        int earliestCycle = ddg.earliestCycle(moveNode);
         if (!moveNode.move().isUnconditional()) {
             earliestCycle = std::max(earliestCycle, moveNode.guardLatency()-1);
         }
+        earliestCycle = rm.earliestCycle(earliestCycle, moveNode);
+        
         if (oldCycle > earliestCycle && earliestCycle != -1) {
             rm.assign(earliestCycle, moveNode);
         } else {
