@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# Copyright 2002-2008 Tampere University of Technology.  All Rights Reserved.
+#
+# This file is part of TTA-Based Codesign Environment (TCE).
+#
+# TCE is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
+#
+# TCE is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# TCE; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+# Fifth Floor, Boston, MA  02110-1301  USA
+#
+# As a special exception, you may use this file as part of a free software
+# library without restriction.  Specifically, if other files instantiate
+# templates or use macros or inline functions from this file, or you compile
+# this file and link it with other files to produce an executable, this file
+# does not by itself cause the resulting executable to be covered by the GNU
+# General Public License.  This exception does not however invalidate any
+# other reasons why the executable file might be covered by the GNU General
+# Public License.
+
+# input *.c
+# output .vhdl, .img, .adf, .bem
+# expects that tce programs explore, tcecc, createbem, generateprocessor and
+# generatebits are to be found from path.
+
+# TODO: temp dir for intermediate files
+
+function check_in_path {
+    for prog in $@; do
+        which "${prog}" &>/dev/null || { 
+            echo "${prog} program cannot be found from path."
+            exit 1 
+        }
+    done
+}
+
+function check_minimal_adf {
+    [ ! -e "minimal.adf" ] && { 
+        echo "minimal.adf not found."
+        exit 1
+    }
+}
+
+[ "${1}x" == "x" ] && { echo "Code file in c should be given as a parameter."; exit 1; }
+
+if [ "${1}x" == "--helpx" -o "${1}x" == "-h" ]; then
+    echo "Usage: c2vhdl c_source_file"
+    echo ""
+    exit
+fi
+
+# check that the necessary programs are found from path
+check_in_path explore tcecc createbem generateprocessor generatebits
+
+check_minimal_adf
+
+
+tmp_dir="$(mktemp -d)"
+
+name="$(basename "${1}" .c)"
+tmp_name="${tmp_dir}/${name}"
+# XXX: minimal adf from install directory or source directory
+adf="minimal.adf" 
+
+tcecc "${1}" -O2 -o ${tmp_name}.bc
+explore -a ${adf} -d data ${tmp_name}.dsdb
+
+new_conf="$(explore -e SimpleICOptimizer -s 1 ExpRes.dsdb \
+| tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
+
+#echo "DEBUG: New config created: ${new_conf}" 
+
+new_conf="$(explore -e ImplementationSelector -s ${new_conf} ExpRes.dsdb \
+| tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
+
+#echo "DEBUG: New config created: ${new_conf}" 
+
+explore -w ${new_conf} ${tmp_name}.dsdb && { mv ${new_conf}.adf ${name}.adf; mv ${new_conf}.idf ${name}.idf; }
+tcecc -a ${name}.adf -o ${tmp_name}.tpef ${tmp_name}.bc 
+createbem ${name}.adf 
+generateprocessor -b ${name}.bem -i ${name}.idf ${name}.adf 
+generatebits -b ${name}.bem -d -p ${tmp_name}.tpef ${name}.adf 
+
+rm -rf "${tmp_dir}"
