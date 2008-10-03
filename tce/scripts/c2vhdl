@@ -79,8 +79,8 @@ tmp_dir="$(mktemp -d)"
 name="$(basename "${1}" .c)"
 tmp_name="${tmp_dir}/${name}"
 
-tcecc "${1}" -O2 -o ${tmp_name}.bc
-explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb
+tcecc "${1}" -O2 -o ${tmp_name}.bc || pexit 1
+explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb || pexit 1
 
 new_conf="$(explore -e SimpleICOptimizer -s 1 ${tmp_name}.dsdb \
 | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
