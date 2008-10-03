@@ -47,11 +47,14 @@ function check_in_path {
 }
 
 function check_minimal_adf {
-    # TODO: use tce-config to find minimal.adf?
-    if [ -e "minimal.adf" ]; then 
-        adf="minimal.adf" 
-        return
-    elif [ -e "${TCE_ROOT}/data/mach/minimal.adf" ]; then 
+    if which "tce-config" &>/dev/null; then 
+        adf="$(tce-config --prefix)/share/tce/data/mach/minimal.adf"
+        if [ -e "${adf}" ]; then
+            return
+        fi
+    fi
+
+    if [ -e "${TCE_ROOT}/data/mach/minimal.adf" ]; then 
         adf="${TCE_ROOT}/data/mach/minimal.adf"
         return
     fi
@@ -85,12 +88,12 @@ explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb || pexit 1
 new_conf="$(explore -e SimpleICOptimizer -s 1 ${tmp_name}.dsdb \
 | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
 
-#echo "DEBUG: New config created: ${new_conf}" 
+[ "${new_conf}x" == "x" ] && pexit 1 "Explorer failed to create a new config."
 
 new_conf="$(explore -e ImplementationSelector -s ${new_conf} ${tmp_name}.dsdb \
 | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
 
-#echo "DEBUG: New config created: ${new_conf}" 
+[ "${new_conf}x" == "x" ] && pexit 1 "Explorer failed to create a new config."
 
 explore -w ${new_conf} ${tmp_name}.dsdb 1>/dev/null || pexit 1
 mv ${new_conf}.adf ${name}.adf; mv ${new_conf}.idf ${name}.idf
