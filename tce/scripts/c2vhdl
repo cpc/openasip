@@ -31,7 +31,11 @@
 # expects that tce programs explore, tcecc, createbem, generateprocessor and
 # generatebits are to be found from path.
 
-# TODO: temp dir for intermediate files
+function pexit {
+    [ "${2}x" != "x" ] && echo "${2}"
+    rm -rf "${tmp_dir}"
+    exit "${1}"
+}
 
 function check_in_path {
     for prog in $@; do
@@ -43,10 +47,17 @@ function check_in_path {
 }
 
 function check_minimal_adf {
-    [ ! -e "minimal.adf" ] && { 
-        echo "minimal.adf not found."
-        exit 1
-    }
+    # TODO: use tce-config to find minimal.adf?
+    if [ -e "minimal.adf" ]; then 
+        adf="minimal.adf" 
+        return
+    elif [ -e "${TCE_ROOT}/data/mach/minimal.adf" ]; then 
+        adf="${TCE_ROOT}/data/mach/minimal.adf"
+        return
+    fi
+
+    echo "minimal.adf not found."
+    exit 1
 }
 
 [ "${1}x" == "x" ] && { echo "Code file in c should be given as a parameter."; exit 1; }
@@ -67,26 +78,26 @@ tmp_dir="$(mktemp -d)"
 
 name="$(basename "${1}" .c)"
 tmp_name="${tmp_dir}/${name}"
-# XXX: minimal adf from install directory or source directory
-adf="minimal.adf" 
 
 tcecc "${1}" -O2 -o ${tmp_name}.bc
-explore -a ${adf} -d data ${tmp_name}.dsdb
+explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb
 
-new_conf="$(explore -e SimpleICOptimizer -s 1 ExpRes.dsdb \
+new_conf="$(explore -e SimpleICOptimizer -s 1 ${tmp_name}.dsdb \
 | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
 
 #echo "DEBUG: New config created: ${new_conf}" 
 
-new_conf="$(explore -e ImplementationSelector -s ${new_conf} ExpRes.dsdb \
+new_conf="$(explore -e ImplementationSelector -s ${new_conf} ${tmp_name}.dsdb \
 | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
 
 #echo "DEBUG: New config created: ${new_conf}" 
 
-explore -w ${new_conf} ${tmp_name}.dsdb && { mv ${new_conf}.adf ${name}.adf; mv ${new_conf}.idf ${name}.idf; }
-tcecc -a ${name}.adf -o ${tmp_name}.tpef ${tmp_name}.bc 
-createbem ${name}.adf 
-generateprocessor -b ${name}.bem -i ${name}.idf ${name}.adf 
-generatebits -b ${name}.bem -d -p ${tmp_name}.tpef ${name}.adf 
+explore -w ${new_conf} ${tmp_name}.dsdb 1>/dev/null || pexit 1
+mv ${new_conf}.adf ${name}.adf; mv ${new_conf}.idf ${name}.idf
 
-rm -rf "${tmp_dir}"
+tcecc -a ${name}.adf -o ${tmp_name}.tpef ${tmp_name}.bc 1>/dev/null || pexit 1
+createbem ${name}.adf 1>/dev/null || pexit 1
+generateprocessor -b ${name}.bem -i ${name}.idf ${name}.adf 1>/dev/null || pexit 1
+generatebits -b ${name}.bem -d -p ${tmp_name}.tpef ${name}.adf 1>/dev/null || pexit 1
+
+pexit 0
