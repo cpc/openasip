@@ -770,6 +770,7 @@ TDGen::writeBackendCode(std::ostream& o) {
     // operation names
     std::map<std::string, std::string>::const_iterator iter =
         opNames_.begin();
+
     for (; iter != opNames_.end(); iter++) {
         o << "    opNames_[TCE::" << (*iter).first
           << "] = \"" << (*iter).second
@@ -822,6 +823,41 @@ TDGen::writeBackendCode(std::ostream& o) {
     o << "    dataASName_ = \"" << asName << "\";" << std::endl;
 
     o << "}" << std::endl;
+
+
+    bool hasSDIV = false;
+    bool hasUDIV = false;
+    bool hasSREM = false;
+    bool hasUREM = false;
+    bool hasMUL = false;
+
+    const TTAMachine::Machine::FunctionUnitNavigator fuNav =
+        mach_.functionUnitNavigator();
+
+    for (int i = 0; i < fuNav.count(); i++) {
+        const TTAMachine::FunctionUnit* fu = fuNav.item(i);
+        for (int o = 0; o < fu->operationCount(); o++) {
+            const std::string opName =
+                StringTools::stringToLower(fu->operation(o)->name());
+
+            if (opName == "div") hasSDIV = true;
+            if (opName == "divu") hasUDIV = true;
+            if (opName == "mod") hasSREM = true;
+            if (opName == "modu") hasUREM = true;
+            if (opName == "mul") hasMUL = true;
+        }
+    }
+
+    o << "bool GeneratedTCEPlugin::hasSDIV() const { return "
+      << hasSDIV << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasUDIV() const { return "
+      << hasUDIV << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSREM() const { return "
+      << hasSREM << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasUREM() const { return "
+      << hasUREM << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasMUL() const { return "
+      << hasMUL << "; }" << std::endl;
 }
 
 /**

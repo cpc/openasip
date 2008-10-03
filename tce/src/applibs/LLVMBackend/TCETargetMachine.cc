@@ -38,6 +38,7 @@
 #include "llvm/PassManager.h"
 #include "llvm/Target/TargetMachineRegistry.h"
 #include "llvm/Target/TargetRegisterInfo.h"
+#include "llvm/CodeGen/SelectionDAGNodes.h"
 
 #include "TCETargetMachine.hh"
 #include "TCETargetAsmInfo.hh"
@@ -87,6 +88,11 @@ TCETargetMachine::TCETargetMachine(
       frameInfo_(TargetFrameInfo::StackGrowsDown, 4, -4),
       plugin_(plugin), pluginTool_(NULL) {
 
+    if (!plugin_.hasSDIV()) missingOps_.insert(llvm::ISD::SDIV);
+    if (!plugin_.hasUDIV()) missingOps_.insert(llvm::ISD::UDIV);
+    if (!plugin_.hasSREM()) missingOps_.insert(llvm::ISD::SREM);
+    if (!plugin_.hasUREM()) missingOps_.insert(llvm::ISD::UREM);
+    if (!plugin_.hasMUL()) missingOps_.insert(llvm::ISD::MUL);
 }
 
 /**
@@ -142,6 +148,10 @@ TCETargetMachine::addAssemblyEmitter(
     return false;
 }
 
+
+/**
+ * Creates a TTAMachine::Machine object of the target architecture.
+ */
 TTAMachine::Machine*
 TCETargetMachine::createMachine() {
     ADFSerializer serializer;
@@ -149,68 +159,14 @@ TCETargetMachine::createMachine() {
     return serializer.readMachine();
 }
 
-
 /**
- * Loads the plugin file specified with the -tce-plugin option.
-
-void
-TCETargetMachine::loadPlugin() {
-
-    std::string pluginFileName = subtarget_.pluginFileName();
-    if (pluginFileName == "") {
-        std::cerr << "No target machine plugin name specified." << std::endl;
-        assert(false);
-    }
-    if (!FileSystem::fileExists(pluginFileName) ||
-        !FileSystem::fileIsReadable(pluginFileName)) {
-
-        std::cerr << "Plugin file '" << pluginFileName
-                  << "' does not exist or is not readable."
-                  << std::endl;
-
-        assert(false);
-    }
-
-    std::string pluginPath =
-        FileSystem::directoryOfPath(subtarget_.pluginFileName());
-
-    std::string pluginFile =
-        FileSystem::fileOfPath(subtarget_.pluginFileName());
-
-    pluginTool_ = new PluginTools();
-
-    try {
-        pluginTool_->addSearchPath(pluginPath);
-        pluginTool_->registerModule(pluginFile);
-        TCETargetMachinePlugin* (*creator)();
-        pluginTool_->importSymbol(
-            "create_tce_backend_plugin", creator, pluginFile);
-        
-        plugin_ = creator();
-    } catch (Exception& e) {
-        std::cerr << "ERROR loading '" << pluginPath << "/"
-                  << pluginFile << "': "
-                  << e.errorMessage() << std::endl;
-
-        assert(false);
-    }
-
-
-#if 0
-    // DEBUG: Print register statistics.
-    std::cerr << "REGISTER INFO:" << std::endl;
-    std::cerr << "--------------" << std::endl;
-    const MRegisterInfo* ri = plugin_.getRegisterInfo();
-    assert(ri != NULL);
-    for (unsigned i = 1; i <= ri->getNumRegClasses(); i++) {
-        const TargetRegisterClass* rc = ri->getRegClass(i);
-        assert(rc != NULL);
-        std::cerr << "sz: " << rc->getSize()
-                  << " align: " << rc->getAlignment()
-                  << " regs: " << rc->getNumRegs() << std::endl;
-    }
-    std::cerr << "--------------" << std::endl;
-#endif
-
+ * Returns list of llvm::ISD SelectionDAG opcodes for operations that are not
+ * supported in the target architecture.
+ *
+ * The returned operations have to be expanded to emulation fucntion calls
+ * or emulation patterns in TCETargetLowering.
+ */
+const std::set<unsigned>*
+TCETargetMachine::missingOperations() {
+    return &missingOps_;
 }
-*/

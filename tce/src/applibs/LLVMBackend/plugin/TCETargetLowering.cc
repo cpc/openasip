@@ -53,16 +53,6 @@
 #include "TCETargetLowering.hh"
 #include "tce_config.h"
 
-// includes for emulation function importing
-#include "OperationPool.hh"
-#include "Operation.hh"
-#include "TCEString.hh"
-#include <llvm/System/Path.h>
-#include <llvm/Module.h>
-#include <llvm/Linker.h>
-#include <llvm/Support/MemoryBuffer.h>
-#include <llvm/Bitcode/ReaderWriter.h>
-
 #include <iostream> // DEBUG
 
 using namespace llvm;
@@ -82,6 +72,7 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
     case TCEISD::RET_FLAG: return "TCEISD::RET_FLAG";
     case TCEISD::GLOBAL_ADDR: return "TCEISD::GLOBAL_ADDR";
     case TCEISD::CONST_POOL: return "TCEISD::CONST_POOL";
+
     case TCEISD::SELECT_I1: return "TCEISD::SELECT_I1";
     case TCEISD::SELECT_I8: return "TCEISD::SELECT_I8";
     case TCEISD::SELECT_I16: return "TCEISD::SELECT_I16";
@@ -172,17 +163,20 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
 
     setOperationAction(ISD::BSWAP, MVT::i32, Expand);
 
-    // TODO: these lines only if machine does not have these
-    // hw operations but they are expanded to libcalls.
-    setOperationAction(ISD::UDIV,  MVT::i32, Expand);
-    setOperationAction(ISD::SDIV,  MVT::i32, Expand);
-    setOperationAction(ISD::UREM,  MVT::i32, Expand);
-    setOperationAction(ISD::SREM,  MVT::i32, Expand);
-
-    setOperationAction(ISD::UDIVREM,  MVT::i32, Expand);
-    setOperationAction(ISD::SDIVREM,  MVT::i32, Expand);
+    setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
+    setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
 
     setStackPointerRegisterToSaveRestore(TCE::SP);
+
+    // Set missing operations that can be emulated with emulation function
+    // to be expanded.
+    const std::set<unsigned>* missingOps = tm.missingOperations();
+    std::set<unsigned>::const_iterator iter = missingOps->begin();
+    while (iter != missingOps->end()) {
+        unsigned nodetype = *iter;
+        setOperationAction(nodetype, MVT::i32, Expand);
+        iter++;
+    }
 
     computeRegisterProperties();
 }
@@ -193,6 +187,7 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
  */
 TCETargetLowering::~TCETargetLowering() {
 }
+
 
 /**
  * Handles custom operation lowerings.
@@ -237,9 +232,8 @@ TCETargetLowering::LowerOperation(SDOperand op, SelectionDAG& dag) {
         return dag.getNode(TCEISD::CONST_POOL, MVT::i32, res);
     }
     }
-    
     op.Val->dump(&dag);
-    assert(0 && "Custom lowerings not implemented and could not find emulation code!");
+    assert(0 && "Custom lowerings not implemented!");
 }
 
 /**
@@ -403,7 +397,7 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
 
             argValues.push_back(wholeValue);
             argOffset += 8;
-            break;
+	    break;
         }
     }
 

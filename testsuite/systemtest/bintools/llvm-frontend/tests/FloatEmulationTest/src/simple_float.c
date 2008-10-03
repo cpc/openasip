@@ -38,15 +38,13 @@ int main(int argc,char **argv,char **envp) {
 
     printf("%x to fp to uint %x\n", srcVal, dstVal1);  
     printf("%x to fp to -fp to uint %x\n", srcVal, dstVal2);  
-    
-/* Printing floating point values doesnt work yet */
 
-/*     printf("%f+%f=%f\n", aFloat, bFloat, resAdd);  */
-/*     printf("%f-%f=%f\n", aFloat, bFloat, resSub);  */
-/*     printf("%f*%f=%f\n", aFloat, bFloat, resMul);  */
-/*     printf("%f/%f=%f\n", aFloat, bFloat, resDiv);  */
-/*     printf("-%f=%f\n", aFloat, resNeg);  */
-    
+    printf("%f+%f=%f\n", aFloat, bFloat, resAdd);
+    printf("%f-%f=%f\n", aFloat, bFloat, resSub);
+    printf("%f*%f=%f\n", aFloat, bFloat, resMul);
+    printf("%f/%f=%f\n", aFloat, bFloat, resDiv);
+    printf("-%f=%f\n", aFloat, resNeg);
+
     if (resDiv > resMul) return 1;
     if (resMod >= resAdd) return 2;
     if (resMod < resDiv) return 3;

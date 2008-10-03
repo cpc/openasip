@@ -73,6 +73,12 @@ public:
     unsigned int raPortDRegNum();
     std::string dataASName();
 
+    virtual bool hasSDIV() const;
+    virtual bool hasUDIV() const;
+    virtual bool hasSREM() const;
+    virtual bool hasUREM() const;
+    virtual bool hasMUL() const;
+
 private:
     void initialize();
     
@@ -107,11 +113,17 @@ GeneratedTCEPlugin::~GeneratedTCEPlugin() {
 }
 
 
+/**
+ * Returns TargetInstrInfo object for TCE target.
+ */
 const TargetInstrInfo*
 GeneratedTCEPlugin::getInstrInfo() const {
     return instrInfo_;
 }
 
+/**
+ * Returns TargetRegisterInfo object for TCE target.
+ */
 const TargetRegisterInfo*
 GeneratedTCEPlugin::getRegisterInfo() const {
     return &(dynamic_cast<TCEInstrInfo*>(instrInfo_))->getRegisterInfo();
