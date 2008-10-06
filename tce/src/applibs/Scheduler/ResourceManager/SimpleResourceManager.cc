@@ -90,6 +90,7 @@ SimpleResourceManager::SimpleResourceManager(
  * Destructor.
  */
 SimpleResourceManager::~SimpleResourceManager(){
+    delete director_;
 }
 
 /**

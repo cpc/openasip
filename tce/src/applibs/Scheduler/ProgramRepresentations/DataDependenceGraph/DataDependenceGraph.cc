@@ -152,21 +152,18 @@ DataDependenceGraph::~DataDependenceGraph() {
     // with old boost just have a memory leak.
     // The same bug will cause also bypassing and reduced connectivity 
     // to fail.
-#if BOOST_VERSION >= 103300
-    while (edgeCount()) {
-        DataDependenceEdge& e = edge(0);
-        removeEdge(e);
-        delete &e;
-    }
-
+#if (!(defined(BOOST_VERSION)) || (BOOST_VERSION >= 103300))
+        
     if (parentGraph_ == NULL) {
-
-        while (edgeCount()) {
+        
+        int ec = edgeCount();
+        for (int i = 0; i < ec; i++) {
             DataDependenceEdge& e = edge(0);
             removeEdge(e);
             delete &e;
         }
         
+/* for some reason this causes a crash. so commented out.
         while (nodeCount()) {
             MoveNode& n = node(0);
             // unregistering 2-directional dying links is nasty so just
@@ -174,7 +171,7 @@ DataDependenceGraph::~DataDependenceGraph() {
             BoostGraph<MoveNode,DataDependenceEdge>::removeNode(n);
             delete &n;
         }
-        
+*/      
         for (POLIter i = programOperations_.begin();
              i != programOperations_.end(); i++) {
             delete *i;

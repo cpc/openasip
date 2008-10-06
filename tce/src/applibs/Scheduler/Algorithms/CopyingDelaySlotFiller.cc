@@ -729,8 +729,7 @@ CopyingDelaySlotFiller::getMoveNode(MoveNode& old) {
         return *moveNodes_[&old];
     } else {
         Move& move = getMove(old.move());
-        MoveNode *newMN = new MoveNode(move);
-        moveOwned_[&move] = false;
+        MoveNode *newMN = new MoveNode(&move);
         moveNodes_[&old] = newMN;
         oldMoveNodes_[newMN] = &old;
         mnOwned_[newMN] = true;
@@ -850,8 +849,6 @@ CopyingDelaySlotFiller::getMove(Move& old) {
             TTAProgram::MoveGuard* g = old.guard().copy();
             newMove->setGuard(g);
         }
-
-        moveOwned_[newMove] = true;
         return *newMove;
     }
 }
@@ -885,15 +882,7 @@ void CopyingDelaySlotFiller::loseCopies() {
         delete *i;
     }
     
-    for (std::map<Move*,Move*>::iterator mIter = moves_.begin(); 
-         mIter != moves_.end();
-         mIter++ ) {
-        if (moveOwned_[mIter->second] == true) {
-            delete mIter->second;
-        }
-    }
     moves_.clear();
-    moveOwned_.clear();
     
     std::list<ProgramOperation*> toDeletePOs;    
     for (std::map<ProgramOperation*,ProgramOperation*,
@@ -929,7 +918,6 @@ CopyingDelaySlotFiller::~CopyingDelaySlotFiller() {
     assert(moveNodes_.size() == 0);
     assert(mnOwned_.size() == 0);
     assert(moves_.size() == 0);
-    assert(moveOwned_.size() == 0);
     
     //should not be needed but lets be sure
     loseCopies();
