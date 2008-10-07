@@ -155,17 +155,11 @@ DataDependenceGraph::~DataDependenceGraph() {
 #if (!(defined(BOOST_VERSION)) || (BOOST_VERSION >= 103300))
         
     if (parentGraph_ == NULL) {
-        
-        int ec = edgeCount();
-        for (int i = 0; i < ec; i++) {
-            DataDependenceEdge& e = edge(0);
-            removeEdge(e);
-            delete &e;
-        }
-        
+
 /* for some reason this causes a crash. so commented out.
-        while (nodeCount()) {
-            MoveNode& n = node(0);
+        int nc;
+        while ((nc = nodeCount()) != 0) {
+            MoveNode& n = node(nc-1);
             // unregistering 2-directional dying links is nasty so just
             // don't case about them, they die when both objects die.
             BoostGraph<MoveNode,DataDependenceEdge>::removeNode(n);

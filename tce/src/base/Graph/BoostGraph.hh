@@ -280,7 +280,7 @@ protected:
 
     virtual void connectNodes(
         const Node& nTail, const Node& nHead, Edge& e,
-        GraphBase<GraphNode, GraphEdge>* modifier)
+        GraphBase<GraphNode, GraphEdge>* modifier, bool creatingSG=false)
         throw (ObjectAlreadyExists);
 
     void moveInEdges(
@@ -304,6 +304,9 @@ protected:
 
     std::string name_;
     int sgCounter_;
+
+    std::list<Edge*> ownedEdges_;
+
 };
 
 #include "BoostGraph.icc"

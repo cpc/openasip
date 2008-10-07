@@ -87,10 +87,6 @@ OperationDAG::isTrivial() const {
  * Deletes all MoveNodes and ProgramOperations.
  */
 OperationDAG::~OperationDAG() {
-    for (int i = 0; i < edgeCount(); i++) {
-        delete &edge(i);
-    }
-    
     for (int i = 0; i < nodeCount(); i++) {
         delete &node(i);
     }

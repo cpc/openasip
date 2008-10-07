@@ -119,6 +119,10 @@ BoostGraph<GraphNode, GraphEdge>::~BoostGraph() {
     if (parentGraph_ != NULL) {
         parentGraph_->detachSubgraph(*this);
     }
+    for (typename std::list<GraphEdge*>::iterator i = ownedEdges_.begin();
+         i != ownedEdges_.end(); i++) {
+        delete *i;
+    }
 }
 
 /**
@@ -626,7 +630,7 @@ template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::connectNodes(
     const GraphNode& nTail, const GraphNode& nHead, GraphEdge& e, 
-    GraphBase<GraphNode, GraphEdge>* modifier)
+    GraphBase<GraphNode, GraphEdge>* modifier, bool creatingSG)
     throw (ObjectAlreadyExists) {
 
     // not add if invalid params
@@ -643,6 +647,10 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
         string procName("BoostGraph::addEdge");
         string errorMsg("Edge already belongs to this graph.");
         throw ObjectAlreadyExists(__FILE__, __LINE__, procName, errorMsg);
+    }
+
+    if (parentGraph_ == NULL && !creatingSG) {
+        ownedEdges_.push_back(&e);
     }
 
     boost::add_edge(descriptor(nTail), descriptor(nHead), &e, graph_);
@@ -707,7 +715,6 @@ BoostGraph<GraphNode, GraphEdge>::disconnectNodes(
         EdgeDescriptor e = connectingEdge(nTail, nHead);
         GraphEdge* theEdge = graph_[e];
         removeEdge(*theEdge);
-        delete theEdge;
     }
 
     // removing a node invalidates path length data
@@ -896,36 +903,8 @@ BoostGraph<GraphNode, GraphEdge>::removeNode(
     throw (InstanceNotFound) {
     
     if (hasNode(node)) {
-        if ( parentGraph_ == NULL) {
-            // first, record all edges of the node
-            EdgeSet edges;
-            
-            typedef std::pair<InEdgeIter, InEdgeIter> InEdgeIterPair;
-            typedef std::pair<OutEdgeIter, OutEdgeIter> OutEdgeIterPair;
-
-            NodeDescriptor nd = descriptor(node);
-            OutEdgeIterPair outEdges = 
-                boost::out_edges(nd, graph_);
-            for (OutEdgeIter i = outEdges.first; i != outEdges.second; i++) {
-                EdgeDescriptor ed = *i;
-                GraphEdge* buu = graph_[ed];
-                if (boost::target(ed, graph_) != nd) {
-                    delete buu;
-                }
-            }
-            InEdgeIterPair inEdges = boost::in_edges(descriptor(node), graph_);
-            for (InEdgeIter i = inEdges.first; i != inEdges.second; i++) {
-                delete graph_[*i];
-            }
-
-            // second, detach edges from node to delete
-            boost::clear_vertex(descriptor(node), graph_);
-
-        } else {
-            // second, detach edges from node to delete
-            boost::clear_vertex(descriptor(node), graph_);
-        }
-        
+        boost::clear_vertex(descriptor(node), graph_);
+      
         boost::remove_vertex(descriptor(node), graph_);
         // edge and node descriptors are invalidated when vertex is removed.
         edgeDescriptors_.clear();
@@ -1126,7 +1105,7 @@ BoostGraph<GraphNode, GraphEdge>::constructSubGraph(
             for ( typename NodeSet::iterator k = nodes.begin();
                   k != nodes.end(); k++) {
                 if ( &hn == *k) {
-                    subGraph.connectNodes(gn, hn, edge);
+                    subGraph.connectNodes(gn, hn, edge, NULL, true);
                 }
             }
         }
