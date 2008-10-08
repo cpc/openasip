@@ -113,6 +113,9 @@ BoostGraph<GraphNode, GraphEdge>::BoostGraph(
 
 /** 
  * Destructor
+ *
+ * This automatically deletes all edges that have been in the graph.
+ * Those should not be deleted by destructors of deleted graphs.
  */
 template <typename GraphNode, typename GraphEdge>
 BoostGraph<GraphNode, GraphEdge>::~BoostGraph() {
@@ -978,8 +981,9 @@ BoostGraph<GraphNode, GraphEdge>::dropNode(GraphNode& node)
 }
 
 /**
- * Removes the edge connecting two nodes of the graph, without deleting the
- * associated properties.
+ * Removes the edge connecting two nodes of the graph.
+ * The associated properties are deleted automatically when
+ * the graph is deleted, should not be deleted by the used.
  *
  * The connection between the head and tail nodes corresponding to the given
  * property object is removed from the graph. The property object is not
@@ -1652,8 +1656,6 @@ BoostGraph<GraphNode, GraphEdge>::PathLengthHelper::operator<(
     const BoostGraph<GraphNode, GraphEdge>::PathLengthHelper& other) const {
     return sd_ < other.sd_; 
 } 
-
-
 
 template <typename GraphNode, typename GraphEdge>
 BoostGraph<GraphNode, GraphEdge>::PathLengthHelper::PathLengthHelper(

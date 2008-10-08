@@ -156,16 +156,13 @@ DataDependenceGraph::~DataDependenceGraph() {
         
     if (parentGraph_ == NULL) {
 
-/* for some reason this causes a crash. so commented out.
-        int nc;
-        while ((nc = nodeCount()) != 0) {
-            MoveNode& n = node(nc-1);
-            // unregistering 2-directional dying links is nasty so just
-            // don't case about them, they die when both objects die.
-            BoostGraph<MoveNode,DataDependenceEdge>::removeNode(n);
-            delete &n;
+        //delete nodes.
+        int nc = nodeCount();
+        for (int i = 0; i < nc; i++) {
+            delete &node(i);
         }
-*/      
+
+        // delete program operations.
         for (POLIter i = programOperations_.begin();
              i != programOperations_.end(); i++) {
             delete *i;

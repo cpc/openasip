@@ -68,6 +68,8 @@ public:
         ResourceManager& rm) = 0;
 
     virtual void setSelector(MoveNodeSelector* selector);
+
+    virtual void clearCaches();
 };
 
 #endif

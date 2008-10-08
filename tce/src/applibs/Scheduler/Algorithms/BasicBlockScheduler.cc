@@ -158,6 +158,10 @@ BasicBlockScheduler::handleDDG(
         moves = selector.candidates();
     }
 
+    if (softwareBypasser_ != NULL) {
+        softwareBypasser_->clearCaches();
+    }
+
     if (ddg.nodeCount() !=
         ddg.scheduledNodeCount()) {
         debugLog("All moves in the DDG didn't get scheduled.");

@@ -451,3 +451,13 @@ void
 CycleLookBackSoftwareBypasser::setSelector(MoveNodeSelector* selector) {
     selector_ = selector;
 }
+
+/** 
+ * Clears the storesSources data structure, when the old values in it are
+ * not needed anymore. (Allowing them to be deleted by the objects who
+ * own them)
+ */
+void
+CycleLookBackSoftwareBypasser::clearCaches() {
+    storedSources_.clear();
+}
