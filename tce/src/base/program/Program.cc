@@ -684,25 +684,21 @@ Program::copyFrom(const Program& source) {
     // cleanup the old data first
     cleanup();
 
-    // copy procedures to new program
-    Procedure* proc = &source.firstProcedure();
-    while (proc != &NullProcedure::instance()) {
-
+    for (int k = 0; k < source.procedureCount(); k++) {
+        Procedure& proc = source.procedure(k);
         Procedure* newProc =
             new Procedure(
-                proc->name(), proc->startAddress().space(),
-                proc->startAddress().location());
+                proc.name(), proc.startAddress().space(),
+                proc.startAddress().location());
         addProcedure(newProc);
-        Instruction* ins = &proc->firstInstruction();
+            
+        for (int j = 0; j < proc.instructionCount(); j++) {
+            Instruction &ins = proc.instructionAtIndex(j);
 
-        while (ins != &NullInstruction::instance()) {
-            Instruction* newIns = ins->copy();
+            Instruction* newIns = ins.copy();
             newProc->add(newIns);
-            ins = &proc->nextInstruction(*ins);
         }
-
-        proc = &source.nextProcedure(*proc);
-    }
+    }            
 
     fixInstructionReferences();
     copyDataMemoriesFrom(source);
@@ -722,28 +718,29 @@ Program::copyFrom(const Program& source) {
  */
 void
 Program::fixInstructionReferences() {
-
-    Instruction* ins = &firstInstruction();
-    while (ins != &NullInstruction::instance()) {
-
-        for (int i = 0; i < ins->moveCount(); i++) {
-            Terminal& source = ins->move(i).source();
-
-            if (source.isInstructionAddress()) {
-                Instruction& oldRefIns =
-                    source.instructionReference().instruction();
-
-                Instruction& newRefIns =
-                    instructionAt(oldRefIns.address().location());
-
-                InstructionReference& newRef =
-                    instructionReferenceManager().createReference(newRefIns);
-
-                source.setInstructionReference(newRef);
+    for (int k = 0; k < procedureCount(); k++) {
+        Procedure& proc = procedure(k);
+        for (int j = 0; j < proc.instructionCount(); j++) {
+            Instruction &ins = proc.instructionAtIndex(j);
+            for (int i = 0; i < ins.moveCount(); i++) {
+                Terminal& source = ins.move(i).source();
+                
+                if (source.isInstructionAddress()) {
+                    Instruction& oldRefIns =
+                        source.instructionReference().instruction();
+                    
+                    Instruction& newRefIns =
+                        instructionAt(oldRefIns.address().location());
+                    
+                    InstructionReference& newRef =
+                        instructionReferenceManager().createReference(
+                            newRefIns);
+                    source.setInstructionReference(newRef);
+                }
             }
         }
-        ins = &nextInstruction(*ins);
     }
+    
 }
 
 /**
@@ -938,15 +935,13 @@ Program::replaceUniversalAddressSpaces(const TTAMachine::AddressSpace& space) {
     start_ = Address(start_.location(), instructionAS);
     entry_ = Address(entry_.location(), instructionAS);
 
-    Procedure* proc = &firstProcedure();
 
-    while (proc != &NullProcedure::instance()) {
-        proc->setStartAddress(Address(proc->startAddress().location(), 
-                                      instructionAS));
-        Instruction* ins = &proc->firstInstruction();
-        while (ins != &NullInstruction::instance()) {
-            for (int i = 0; i < ins->moveCount(); i++) {
-                Move& move = ins->move(i);
+    for (int k = 0; k < procedureCount(); k++) {
+        Procedure& proc = procedure(k);
+        for (int j = 0; j < proc.instructionCount(); j++) {
+            Instruction &ins = proc.instructionAtIndex(j);
+            for (int i = 0; i < ins.moveCount(); i++) {
+                Move& move = ins.move(i);
                 Terminal& source = move.source();
                 if (source.isAddress() && !source.isInstructionAddress()) {
                     TerminalAddress* newSource = new TerminalAddress(
@@ -954,9 +949,7 @@ Program::replaceUniversalAddressSpaces(const TTAMachine::AddressSpace& space) {
                     move.setSource(newSource);
                 }
             }
-            ins = &proc->nextInstruction(*ins);
         }
-        proc = &nextProcedure(*proc);
     }
     
     if (dataMemoryCount()  > 1) {
