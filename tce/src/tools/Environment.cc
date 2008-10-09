@@ -46,6 +46,8 @@
 #include "config.h"
 #include "FileSystem.hh"
 #include "StringTools.hh"
+#include "VectorTools.hh"
+#include "MapTools.hh"
 
 using std::vector;
 using std::string;
@@ -524,10 +526,10 @@ Environment::osalPaths() {
 	// in current working directory
     string cwd = FileSystem::currentWorkingDir();
 
-    paths.push_back(basePath);
-    paths.push_back(userPath);
-    paths.push_back(customPath);
-    paths.push_back(cwd);
+    VectorTools::insertUnique(paths, basePath);
+    VectorTools::insertUnique(paths, userPath);
+    VectorTools::insertUnique(paths, customPath);
+    VectorTools::insertUnique(paths, cwd);
 
 	return paths;
 }

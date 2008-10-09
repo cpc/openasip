@@ -182,6 +182,14 @@ public:
     static const std::string SCL_SETTING_RF_TRACE;
     /// Name of the fu conflict detection setting.
     static const std::string SCL_SETTING_FU_CONFLICT_DETECTION;
+    /// Name of the profile data saving setting.
+    static const std::string SCL_SETTING_PROFILE_DATA_SAVING;
+    /// Name of the utilization data saving setting.
+    static const std::string SCL_SETTING_UTILIZATION_DATA_SAVING;
+    /// Name of the fu next insturction printing setting.
+    static const std::string SCL_SETTING_NEXT_INSTRUCTION_PRINTING;
+    /// Name of the simulation time statistics setting.
+    static const std::string SCL_SETTING_SIMULATION_TIME_STATISTICS;
     /// Name of the input history saving setting,
     static const std::string SCL_SETTING_HISTORY_SAVE;
     /// Name of the input history size setting.

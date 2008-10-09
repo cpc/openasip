@@ -90,6 +90,15 @@ const std::string ProximConstants::SCL_SETTING_HISTORY_SIZE = "history_size";
 const std::string ProximConstants::SCL_SETTING_HISTORY_FILE =
     "history_filename";
 
+const std::string ProximConstants::SCL_SETTING_PROFILE_DATA_SAVING =
+    "profile_data_saving";
+const std::string ProximConstants::SCL_SETTING_UTILIZATION_DATA_SAVING =
+    "utilization_data_saving";
+const std::string ProximConstants::SCL_SETTING_NEXT_INSTRUCTION_PRINTING =
+    "next_instruction_printing";
+const std::string ProximConstants::SCL_SETTING_SIMULATION_TIME_STATISTICS =
+    "simulation_time_statistics";
+
 const std::string ProximConstants::MACH_WIN_FU_LABEL = "Function unit: ";
 const std::string ProximConstants::MACH_WIN_FU_PORT_LABEL =
     "Function Unit Port: ";

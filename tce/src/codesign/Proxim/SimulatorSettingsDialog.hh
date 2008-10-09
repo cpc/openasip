@@ -68,6 +68,10 @@ private:
         ID_RF_TRACKING,
         ID_FU_CONFLICT_DETECTION,
         ID_LABEL_HISTORY_SIZE,
+        ID_PROFILE_DATA_SAVING,
+        ID_UTILIZATION_DATA_SAVING,
+        ID_NEXT_INSTRUCTION_PRINTING,
+        ID_SIMULATION_TIME_STATISTICS,
         ID_HISTORY_SIZE,
         ID_SAVE_HISTORY,
         ID_HISTORY_FILE,
@@ -89,6 +93,15 @@ private:
     bool rfTrace_;
     /// FU conflict detection enabled/disabled.
     bool fuConflictDetection_;    
+
+    /// Profile data saving enabled/disabled
+    bool profileDataSaving_;
+    /// Utilization data saving enabled/disabled
+    bool utilizationDataSaving_;
+    /// Next instruction printing enabled/disabled
+    bool nextInstructionPrinting_;
+    /// Profile data saving enabled/disabled
+    bool simulationTimeStatistics_;
 
     /// Input history log file enabled/disabled.
     bool historySave_;

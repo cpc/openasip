@@ -1,0 +1,89 @@
+/*
+    Copyright 2002-2008 Tampere University of Technology.  All Rights
+    Reserved.
+
+    This file is part of TTA-Based Codesign Environment (TCE).
+
+    TCE is free software; you can redistribute it and/or modify it under the
+    terms of the GNU General Public License version 2 as published by the Free
+    Software Foundation.
+
+    TCE is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+    details.
+
+    You should have received a copy of the GNU General Public License along
+    with TCE; if not, write to the Free Software Foundation, Inc., 51 Franklin
+    St, Fifth Floor, Boston, MA  02110-1301  USA
+
+    As a special exception, you may use this file as part of a free software
+    library without restriction.  Specifically, if other files instantiate
+    templates or use macros or inline functions from this file, or you compile
+    this file and link it with other files to produce an executable, this
+    file does not by itself cause the resulting executable to be covered by
+    the GNU General Public License.  This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
+*/
+/**
+ * @file VectorTools.icc
+ * @author Tero Ryynänen (tero.ryynanen-no.spam-tut.fi) 2008
+ *
+ * Tools for handling STL Iterative Containers (usually vector).
+ *
+ * Inline and template definitions.
+ *
+ */
+
+/**
+ * Returns true if given container contains the given value.
+ *
+ * @param aVec The vector to look in.
+ * @param aValue Value to compare to.
+ *
+ * @return Returns true if value was found, false otherwise.
+ */
+template <typename ContainerType, typename ValueType>
+bool
+VectorTools::containsValue(const ContainerType& aVec, const ValueType& aValue) {
+    for (typename ContainerType::const_iterator i = aVec.begin();
+         i != aVec.end(); i++) {
+        if (*i == aValue)
+            return true;
+    }
+    return false;
+}
+
+/**
+ * Inserts value to container if it doesn't already include it.
+ *
+ * @param aVec The vector to which value is inserted.
+ * @param aValue Value to insert.
+ * 
+ * @return Returns true if value was inserted, false otherwise.
+ */
+template <typename ContainerType, typename ValueType>
+bool
+VectorTools::insertUnique(ContainerType& aVec, const ValueType& aValue) {
+    if (VectorTools::containsValue<ContainerType, ValueType>(aVec, aValue)) {
+        return false;
+    } else {
+        aVec.push_back(aValue);
+        return true;
+    }
+}
+
+
+/**
+ * Sorts container and removes duplicate entries from it.
+ *
+ * @param aVec The vector to be operated.
+ * 
+ */
+template <typename ContainerType, typename ValueType>
+void
+VectorTools::removeDuplicates(ContainerType& aVec, const ValueType& aValue) {
+    std::sort(aVec.begin(), aVec.end());
+    aVec.erase(std::unique(aVec.begin(), aVec.end()), aVec.end());
+}

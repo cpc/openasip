@@ -240,39 +240,24 @@ IDFValidator::removeUnknownImplementations(
     const Machine::FunctionUnitNavigator fuNav =
         machine.functionUnitNavigator();
 
-    bool ok = false;
-    while (!ok) {
-        for (int i = 0; i < idf.iuImplementationCount(); i++) {
-            const RFImplementationLocation& iui = idf.iuImplementation(i);
-            if (!iuNav.hasItem(iui.unitName())) {
-                idf.removeIUImplementation(iui.unitName());
-                break;
-            }
+    for (int i = 0; i < idf.iuImplementationCount(); i++) {
+        const RFImplementationLocation& iui = idf.iuImplementation(i);
+        if (!iuNav.hasItem(iui.unitName())) {
+            idf.removeIUImplementation(iui.unitName());
         }
-        ok = true;
     }
 
-    ok = false;
-    while (!ok) {
-        for (int i = 0; i < idf.rfImplementationCount(); i++) {
-            const RFImplementationLocation& rfi = idf.rfImplementation(i);
-            if (!rfNav.hasItem(rfi.unitName())) {
-                idf.removeRFImplementation(rfi.unitName());
-                break;
-            }
+    for (int i = 0; i < idf.rfImplementationCount(); i++) {
+        const RFImplementationLocation& rfi = idf.rfImplementation(i);
+        if (!rfNav.hasItem(rfi.unitName())) {
+            idf.removeRFImplementation(rfi.unitName());
         }
-        ok = true;
     }
 
-    ok = false;
-    while (!ok) {
-        for (int i = 0; i < idf.fuImplementationCount(); i++) {
-            const FUImplementationLocation& fui = idf.fuImplementation(i);
-            if (!fuNav.hasItem(fui.unitName())) {
-                idf.removeFUImplementation(fui.unitName());
-                break;
-            }
+    for (int i = 0; i < idf.fuImplementationCount(); i++) {
+        const FUImplementationLocation& fui = idf.fuImplementation(i);
+        if (!fuNav.hasItem(fui.unitName())) {
+            idf.removeFUImplementation(fui.unitName());
         }
-        ok = true;
     }
 }
