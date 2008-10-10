@@ -109,8 +109,9 @@ ProcedurePass::copyCfgToProcedure(
         // we can assume that only at most the first instruction is referred to.
         const int originalBBSize = 
             bb.originalEndAddress() - bb.originalStartAddress() + 1;
+        int addr = placeHolder.address().location() +1;
         for (int i = 1; i < originalBBSize; ++i) {
-            procedure.deleteInstructionAt(placeHolder.address().location() + 1);
+            procedure.deleteInstructionAt(addr);
         }
 
         TTAProgram::Instruction* firstNewInstruction = NULL;
