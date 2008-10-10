@@ -1,0 +1,19 @@
+#!/bin/bash
+# Dumps the procedure execution profile of the program.
+#
+# Input:  The TraceDB file (produced with profile_data_saving on).
+# Output: Listing of procedures in order of the total cycle count spent.
+
+needSQLite=1
+
+. $(dirname $0)/tce_scripts_settings.sh
+
+${TCE_SQLITE_BIN} -header -column $1 <<EOF
+SELECT procedure_address_range.procedure_name AS procedure, 
+      SUM(instruction_execution_count.count) AS cycles 
+      FROM instruction_execution_count, procedure_address_range 
+      WHERE address >= procedure_address_range.first_address AND
+            address <= procedure_address_range.last_address
+	    GROUP BY procedure
+	    ORDER BY cycles DESC;
+EOF

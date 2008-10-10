@@ -88,7 +88,8 @@ SimulatorInterpreter::SimulatorInterpreter(
     addCustomCommand(new ProgCommand());
     addCustomCommand(new MachCommand());
     addCustomCommand(new ConfCommand());
-    addCustomCommand(new QuitCommand());
+    addCustomCommand(new QuitCommand("quit"));
+    addCustomCommand(new QuitCommand("exit"));
     addCustomCommand(new RunCommand());
     addCustomCommand(new StepiCommand());
     addCustomCommand(new DisassembleCommand());

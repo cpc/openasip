@@ -50,7 +50,8 @@
  *
  * Sets the name of the command to the base class.
  */
-QuitCommand::QuitCommand() : CustomCommand("quit") {
+QuitCommand::QuitCommand(const std::string& commandString) : 
+    CustomCommand(commandString) {
 }
 
 /**

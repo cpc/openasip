@@ -31,9 +31,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.0}
-\ver{8}
+\ver{9}
 \firstday{25.10.2006}
-\lastday{21.08.2008}
+\lastday{10.10.2008}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -4934,7 +4934,8 @@ the tables using standard SQL queries.
 This section provides several useful example SQL queries to retrieve data from
 the trace database. To query data in a generated trace database file, one should
 use the 'sqlite3' client to open the database after which any SQL query can
-be entered.
+be entered. The most useful queries are provides as scripts of which
+names start with 'dump\_*'.
 
 \paragraph{Instruction Execution Statistics}
 
@@ -4970,6 +4971,8 @@ GROUP BY procedure
 ORDER BY cycles DESC;
 \end{verbatim}
 
+This query is provided in script \emph{dump\_function\_profile}.
+
 \paragraph{Procedure Transfer Trace}
 
 This query lists the order in which each procedure was executed in the program.
@@ -4984,6 +4987,8 @@ WHERE address >= procedure_address_range.first_address AND
       address <= procedure_address_range.last_address
 ORDER BY cycle;
 \end{verbatim}
+
+This query is provided in script \emph{dump\_call\_trace}.
 
 \subsection{Processor Simulator GUI (Proxim)}
 \label{section:proxim}
