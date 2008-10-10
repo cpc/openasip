@@ -94,8 +94,10 @@ DEF_SECTION (darwin_eh_frame_section, 0,
 	     ".section " EH_FRAME_SECTION_NAME ",__eh_frame"
 	     EH_FRAME_SECTION_ATTR, 0)
 /* APPLE LOCAL begin ObjC new abi - radar 4792158 */
+/* APPLE LOCAL begin radar 5575115 */
 DEF_SECTION (objc_v2_message_refs_section, 0,
-	     ".section __DATA, __objc_msgrefs, regular, no_dead_strip", 1)
+	     ".section __DATA, __objc_msgrefs, coalesced", 0)
+/* APPLE LOCAL end radar 5575115 */
 DEF_SECTION (objc_v2_classrefs_section, 0, 
              ".section __DATA, __objc_classrefs, regular, no_dead_strip", 1)
 DEF_SECTION (objc_v2_classlist_section, 0,
@@ -103,7 +105,7 @@ DEF_SECTION (objc_v2_classlist_section, 0,
 DEF_SECTION (objc_v2_categorylist_section, 0,
 	     ".section __DATA, __objc_catlist, regular, no_dead_strip", 1)
 DEF_SECTION (objc_v2_selector_refs_section, 0,
-	     ".section __DATA, __objc_selrefs, regular, no_dead_strip", 1)
+	     ".section __DATA, __objc_selrefs, literal_pointers, no_dead_strip", 1)
 DEF_SECTION (objc_v2_nonlazy_class_section, 0,
 	     ".section __DATA, __objc_nlclslist, regular, no_dead_strip", 1)
 DEF_SECTION (objc_v2_nonlazy_category_section, 0,

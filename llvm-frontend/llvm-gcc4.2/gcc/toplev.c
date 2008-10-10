@@ -84,7 +84,9 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tree-mudflap.h"
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #include "llvm.h"
+#endif
 /* LLVM LOCAL end */
 
 #if defined (DWARF2_UNWIND_INFO) || defined (DWARF2_DEBUGGING_INFO)
@@ -257,10 +259,8 @@ int flag_signed_char;
 int flag_short_enums;
 
 /* LLVM LOCAL begin */
-
 /* Options to pass directly into the LLVM backend. */
 const char *llvm_optns = 0;
-
 /* LLVM LOCAL end */
 
 /* APPLE LOCAL begin -fast or -fastf or -fastcp */
@@ -397,9 +397,9 @@ int align_labels_log;
 int align_labels_max_skip;
 int align_functions_log;
 
-/* Like align_functions_log above, but used by front-ends to force the
-   minimum function alignment.  Zero means no alignment is forced.  */
-int force_align_functions_log;
+/* APPLE LOCAL begin mainline aligned functions 5933878 */
+/* Removed force_align_functions_log.  */
+/* APPLE LOCAL end mainline aligned functions 5933878 */
 
 typedef struct
 {
@@ -2011,6 +2011,12 @@ process_options (void)
   if (flag_cx_limited_range)
     flag_complex_method = 0;
 
+  /* APPLE LOCAL begin stack-protector default 5095227 */
+  /* Unless the target chooses otherwise, default stack protection to off.  */
+  if (flag_stack_protect == -1)
+    flag_stack_protect = 0;
+  /* APPLE LOCAL end stack-protector default 5095227 */
+
   /* APPLE LOCAL begin optimization pragmas 3124235/3420242 */
   cl_pf_opts_cooked = cl_pf_opts;
   /* APPLE LOCAL end optimization pragmas 3124235/3420242 */
@@ -2107,8 +2113,7 @@ lang_dependent_init (const char *name)
   llvm_lang_dependent_init(name);
   init_eh();
   return 1; /* don't initialize the RTL backend */
-#endif
-  /* LLVM LOCAL end */
+#else
   
   /* These create various _DECL nodes, so need to be called after the
      front end is initialized.  */
@@ -2144,6 +2149,8 @@ lang_dependent_init (const char *name)
   timevar_pop (TV_SYMOUT);
 
   return 1;
+#endif
+  /* LLVM LOCAL end */
 }
 
 /* Clean up: close opened files, etc.  */

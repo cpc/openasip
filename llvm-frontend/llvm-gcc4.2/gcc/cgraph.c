@@ -396,7 +396,8 @@ cgraph_create_edge (struct cgraph_node *caller, struct cgraph_node *callee,
   gcc_assert (get_call_expr_in (call_stmt));
 
   if (!DECL_SAVED_TREE (callee->decl))
-    edge->inline_failed = N_("function body not available");
+    /* APPLE LOCAL wording 4598393 */
+    edge->inline_failed = N_("the function body must appear before caller");
   else if (callee->local.redefined_extern_inline)
     edge->inline_failed = N_("redefined extern inline functions are not "
 			     "considered for inlining");

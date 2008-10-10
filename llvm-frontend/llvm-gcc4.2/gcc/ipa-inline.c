@@ -310,7 +310,8 @@ cgraph_default_inline_p (struct cgraph_node *n, const char **reason)
   if (!DECL_STRUCT_FUNCTION (decl)->cfg)
     {
       if (reason)
-	*reason = N_("function body not available");
+	/* APPLE LOCAL wording 4598393 */
+	*reason = N_("the function body must appear before caller");
       return false;
     }
 
@@ -941,7 +942,11 @@ cgraph_decide_inlining (void)
 	/* At the moment, no IPA passes change function bodies before inlining.
 	   Save some time by not recomputing function body sizes if early inlining
 	   already did so.  */
+        /* LLVM local begin - Don't rely on pass_early_ipa_inline being run.  */
+#ifndef ENABLE_LLVM
 	if (!flag_early_inlining)
+#endif
+        /* LLVM local end */
 	  node->local.self_insns = node->global.insns
 	     = estimate_num_insns (node->decl);
 
@@ -1028,9 +1033,19 @@ cgraph_decide_inlining (void)
 		 overall_insns - old_insns);
     }
 
+  /* LLVM local begin */
+#ifdef ENABLE_LLVM
+  if (1) /* FIXME: 1 should be 0 some day, see PR2353.  */
+#endif
+  /* LLVM local end*/
   if (!flag_really_no_inline)
     cgraph_decide_inlining_of_small_functions ();
 
+  /* LLVM local begin */
+#ifdef ENABLE_LLVM
+  if (1) /* FIXME: 1 should be 0 some day, see PR2353.  */
+#endif
+  /* LLVM local end*/
   if (!flag_really_no_inline
       && flag_inline_functions_called_once)
     {
@@ -1074,7 +1089,8 @@ cgraph_decide_inlining (void)
 		  if (altivec_infection (node->callers))
 		    {
 		      if (dump_file)
-			fprintf (dump_file, node->callers->inline_failed);
+			/* APPLE LOCAL default to Wformat-security 5764921 */
+			fprintf (dump_file, "%s", node->callers->inline_failed);
 		      continue;
 		    }
 		  /* APPLE LOCAL end Selective inlining of functions that use Altivec 3837835 */
@@ -1148,6 +1164,11 @@ cgraph_decide_inlining_incrementally (struct cgraph_node *node, bool early)
       }
 
   /* Now do the automatic inlining.  */
+  /* LLVM local begin */
+#ifdef ENABLE_LLVM
+  if (1) /* FIXME: 1 should be 0 some day, see PR2353.  */
+#endif
+  /* LLVM local end */
   if (!flag_really_no_inline)
     for (e = node->callees; e; e = e->next_callee)
       if (e->callee->local.inlinable

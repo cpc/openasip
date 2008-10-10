@@ -29,7 +29,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/ModuleProvider.h"
 #include "llvm/PassManager.h"
 #include "llvm/ValueSymbolTable.h"
-#include "llvm/Analysis/LoadValueNumbering.h"
 #include "llvm/Analysis/LoopPass.h"
 #include "llvm/Analysis/Verifier.h"
 #include "llvm/Assembly/Writer.h"
@@ -51,6 +50,8 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/Support/Streams.h"
 #include "llvm/Support/ManagedStatic.h"
 #include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/System/Program.h"
 #include <cassert>
 #undef VISIBILITY_HIDDEN
 extern "C" {
@@ -74,10 +75,14 @@ extern "C" {
 // Non-zero if bytecode from PCH is successfully read.
 int flag_llvm_pch_read;
 
+// Non-zero if libcalls should not be simplified.
+int flag_no_simplify_libcalls;
+
 // Global state for the LLVM backend.
 Module *TheModule = 0;
 DebugInfo *TheDebugInfo = 0;
 TargetMachine *TheTarget = 0;
+TargetFolder *TheFolder = 0;
 TypeConverter *TheTypeConverter = 0;
 llvm::OStream *AsmOutFile = 0;
 llvm::OStream *AsmIntermediateOutFile = 0;
@@ -102,6 +107,22 @@ static FunctionPassManager *CodeGenPasses = 0;
 static void createOptimizationPasses();
 bool OptimizationPassesCreated = false;
 static void destroyOptimizationPasses();
+
+// Forward decl visibility style to global.
+void handleVisibility(tree decl, GlobalValue *GV) {
+  // If decl has visibility specified explicitely (via attribute) - honour
+  // it. Otherwise (e.g. visibility specified via -fvisibility=hidden) honour
+  // only if symbol is local.
+  if (TREE_PUBLIC(decl) &&
+      (DECL_VISIBILITY_SPECIFIED(decl) || !DECL_EXTERNAL(decl))) {
+    if (DECL_VISIBILITY(decl) == VISIBILITY_HIDDEN)
+      GV->setVisibility(GlobalValue::HiddenVisibility);
+    else if (DECL_VISIBILITY(decl) == VISIBILITY_PROTECTED)
+      GV->setVisibility(GlobalValue::ProtectedVisibility);
+    else if (DECL_VISIBILITY(decl) == VISIBILITY_DEFAULT)
+      GV->setVisibility(Function::DefaultVisibility);
+  }
+}
 
 void llvm_initialize_backend(void) {
   // Initialize LLVM options.
@@ -128,9 +149,9 @@ void llvm_initialize_backend(void) {
     Args.push_back("--debug-pass=Structure");
   if (flag_debug_pass_arguments)
     Args.push_back("--debug-pass=Arguments");
-  if (optimize_size)
+  if (optimize_size || optimize < 3)
     // Reduce inline limit. Default limit is 200.
-    Args.push_back("--inline-threshold=100");
+    Args.push_back("--inline-threshold=50");
   if (flag_unwind_tables)
     Args.push_back("--unwind-tables");
 
@@ -138,6 +159,12 @@ void llvm_initialize_backend(void) {
   // directly from the command line, do so now.  This is mainly for debugging
   // purposes, and shouldn't really be for general use.
   std::vector<std::string> ArgStrings;
+
+  if (flag_limited_precision > 0) {
+    std::string Arg("--limit-float-precision="+utostr(flag_limited_precision));
+    ArgStrings.push_back(Arg);
+  }
+
   if (llvm_optns) {
     std::string Opts = llvm_optns;
     for (std::string Opt = getToken(Opts); !Opt.empty(); Opt = getToken(Opts))
@@ -172,6 +199,15 @@ void llvm_initialize_backend(void) {
   // cerr << "new triplet: " << TargetTriple << std::endl;    
     
 
+#ifdef LLVM_OVERRIDE_TARGET_VERSION
+    char *NewTriple;
+    bool OverRidden = LLVM_OVERRIDE_TARGET_VERSION(TargetTriple.c_str(),
+                                                   &NewTriple);
+    if (OverRidden)
+      TargetTriple = std::string(NewTriple);
+#endif
+
+
   TheModule->setTargetTriple(TargetTriple);
   
   TheTypeConverter = new TypeConverter();
@@ -196,6 +232,9 @@ void llvm_initialize_backend(void) {
   FeatureStr = Features.getString();
 #endif
   TheTarget = TME->CtorFn(*TheModule, FeatureStr);
+  assert(TheTarget->getTargetData()->isBigEndian() == BYTES_BIG_ENDIAN);
+
+  TheFolder = new TargetFolder(*TheTarget->getTargetData());
 
   // Install information about target datalayout stuff into the module for
   // optimizer use.
@@ -217,7 +256,6 @@ void llvm_initialize_backend(void) {
 void performLateBackendInitialization(void) {
   // The Ada front-end sets flag_exceptions only after processing the file.
   ExceptionHandling = flag_exceptions;
-  OptimizeForSize = optimize_size;
 }
 
 void llvm_lang_dependent_init(const char *Name) {
@@ -226,15 +264,16 @@ void llvm_lang_dependent_init(const char *Name) {
 }
 
 oFILEstream *AsmOutStream = 0;
+static raw_ostream *AsmOutRawStream = 0;
 oFILEstream *AsmIntermediateOutStream = 0;
 
 /// Read bytecode from PCH file. Initialize TheModule and setup
 /// LTypes vector.
 void llvm_pch_read(const unsigned char *Buffer, unsigned Size) {
-
   std::string ModuleName = TheModule->getModuleIdentifier();
-  if (TheModule)
-    delete TheModule;
+
+  delete TheModule;
+  delete TheDebugInfo;
 
   clearTargetBuiltinCache();
 
@@ -244,6 +283,9 @@ void llvm_pch_read(const unsigned char *Buffer, unsigned Size) {
   std::string ErrMsg;
   TheModule = ParseBitcodeFile(MB, &ErrMsg);
   delete MB;
+
+  if (!optimize && debug_info_level > DINFO_LEVEL_NONE)
+    TheDebugInfo = new DebugInfo(TheModule);
 
   if (!TheModule) {
     cerr << "Error reading bytecodes from PCH file\n";
@@ -273,12 +315,18 @@ void llvm_pch_read(const unsigned char *Buffer, unsigned Size) {
 void llvm_pch_write_init(void) {
   timevar_push(TV_LLVM_INIT);
   AsmOutStream = new oFILEstream(asm_out_file);
+  // FIXME: disentangle ostream madness here.  Kill off ostream and FILE.
+  AsmOutRawStream = new raw_os_ostream(*AsmOutStream);
   AsmOutFile = new OStream(*AsmOutStream);
 
   assert(!OptimizationPassesCreated);
   OptimizationPassesCreated = true;
   PerModulePasses = new PassManager();
   PerModulePasses->add(new TargetData(*TheTarget->getTargetData()));
+
+  // If writing to stdout, set binary mode.
+  if (asm_out_file == stdout)
+    sys::Program::ChangeStdoutToBinary();
 
   // Emit an LLVM .bc file to the output.  This is used when passed
   // -emit-llvm -c to the GCC driver.
@@ -336,13 +384,21 @@ static void createOptimizationPasses() {
     else
       PerFunctionPasses->add(createScalarReplAggregatesPass());
     PerFunctionPasses->add(createInstructionCombiningPass());
-    //    PerFunctionPasses->add(createCFGSimplificationPass());
   }
 
   // FIXME: AT -O0/O1, we should stream out functions at a time.
   PerModulePasses = new PassManager();
   PerModulePasses->add(new TargetData(*TheTarget->getTargetData()));
   bool HasPerModulePasses = false;
+  bool NeedAlwaysInliner = false;
+  // Check if AlwaysInliner is needed to handle functions that are 
+  // marked as always_inline.
+  for (Module::iterator I = TheModule->begin(), E = TheModule->end();
+       I != E; ++I)
+    if (I->hasFnAttr(Attribute::AlwaysInline)) {
+      NeedAlwaysInliner = true;
+      break;
+    }
 
   if (optimize > 0 && !DisableLLVMOptimizations) {
     HasPerModulePasses = true;
@@ -359,18 +415,18 @@ static void createOptimizationPasses() {
     }
     PM->add(createInstructionCombiningPass());    // Clean up after IPCP & DAE
     PM->add(createCFGSimplificationPass());       // Clean up after IPCP & DAE
-    if (flag_unit_at_a_time && flag_exceptions)
-      PM->add(createPruneEHPass());               // Remove dead EH info
-
-    if (optimize > 1) {
-      if (flag_inline_trees > 1)                  // respect -fno-inline-functions
-        PM->add(createFunctionInliningPass());    // Inline small functions
-      if (optimize > 2)
-        PM->add(createArgumentPromotionPass()); // Scalarize uninlined fn args
+    if (flag_unit_at_a_time) {
+      if (flag_exceptions)
+        PM->add(createPruneEHPass());             // Remove dead EH info
+      PM->add(createAddReadAttrsPass());          // Set readonly/readnone attrs
     }
-    
-    PM->add(createTailDuplicationPass());       // Simplify cfg by copying code
-    if (!lang_hooks.flag_no_builtin())
+    if (flag_inline_trees > 1)                    // respect -fno-inline-functions
+      PM->add(createFunctionInliningPass());      // Inline small functions
+    else if (NeedAlwaysInliner)
+      PM->add(createAlwaysInlinerPass());         // Inline always_inline functions
+    if (optimize > 2)
+      PM->add(createArgumentPromotionPass());   // Scalarize uninlined fn args
+    if (!flag_no_simplify_libcalls)
       PM->add(createSimplifyLibCallsPass());    // Library Call Optimizations
     PM->add(createInstructionCombiningPass());  // Cleanup for scalarrepl.
     PM->add(createJumpThreadingPass());         // Thread jumps.
@@ -385,8 +441,9 @@ static void createOptimizationPasses() {
     PM->add(createLICMPass());                  // Hoist loop invariants
     PM->add(createLoopUnswitchPass(optimize_size ? true : false));
     PM->add(createLoopIndexSplitPass());        // Split loop index
-    PM->add(createInstructionCombiningPass());  // Clean up after LICM/reassoc
+    PM->add(createInstructionCombiningPass());  
     PM->add(createIndVarSimplifyPass());        // Canonicalize indvars
+    PM->add(createLoopDeletionPass());          // Delete dead loops
     if (flag_unroll_loops)
       PM->add(createLoopUnrollPass());          // Unroll small loops
     PM->add(createInstructionCombiningPass());  // Clean up after the unroller
@@ -399,7 +456,7 @@ static void createOptimizationPasses() {
     PM->add(createInstructionCombiningPass());
     PM->add(createCondPropagationPass());       // Propagate conditionals
     PM->add(createDeadStoreEliminationPass());  // Delete dead stores
-    PM->add(createAggressiveDCEPass());         // SSA based 'Aggressive DCE'
+    PM->add(createAggressiveDCEPass());   // Delete dead instructions
     PM->add(createCFGSimplificationPass());     // Merge & remove BBs
 
     if (flag_unit_at_a_time) {
@@ -410,7 +467,10 @@ static void createOptimizationPasses() {
     if (optimize > 1 && flag_unit_at_a_time)
       PM->add(createConstantMergePass());       // Merge dup global constants 
   }
-  
+
+  if (!HasPerModulePasses && NeedAlwaysInliner)
+    PerModulePasses->add(createAlwaysInlinerPass());
+
   if (emit_llvm_bc) {
     // Emit an LLVM .bc file to the output.  This is used when passed
     // -emit-llvm -c to the GCC driver.
@@ -441,7 +501,7 @@ static void createOptimizationPasses() {
 
     // Normal mode, emit a .s file by running the code generator.
     // Note, this also adds codegenerator level optimization passes.
-    switch (TheTarget->addPassesToEmitFile(*PM, *AsmOutStream,
+    switch (TheTarget->addPassesToEmitFile(*PM, *AsmOutRawStream,
                                            TargetMachine::AssemblyFile,
                                            /*FAST*/optimize == 0)) {
     default:
@@ -475,6 +535,8 @@ static void createOptimizationPasses() {
 void llvm_asm_file_start(void) {
   timevar_push(TV_LLVM_INIT);
   AsmOutStream = new oFILEstream(asm_out_file);
+  // FIXME: disentangle ostream madness here.  Kill off ostream and FILE.
+  AsmOutRawStream = new raw_os_ostream(*AsmOutStream);
   AsmOutFile = new OStream(*AsmOutStream);
 
   flag_llvm_pch_read = 0;
@@ -483,6 +545,10 @@ void llvm_asm_file_start(void) {
     // Disable emission of .ident into the output file... which is completely
     // wrong for llvm/.bc emission cases.
     flag_no_ident = 1;
+
+  // If writing to stdout, set binary mode.
+  if (asm_out_file == stdout)
+    sys::Program::ChangeStdoutToBinary();
 
   AttributeUsedGlobals.clear();
   timevar_pop(TV_LLVM_INIT);
@@ -505,7 +571,7 @@ static void CreateStructorsList(std::vector<std::pair<Function*, int> > &Tors,
     
     // __attribute__(constructor) can be on a function with any type.  Make sure
     // the pointer is void()*.
-    StructInit[1] = ConstantExpr::getBitCast(Tors[i].first, FPTy);
+    StructInit[1] = TheFolder->CreateBitCast(Tors[i].first, FPTy);
     InitList.push_back(ConstantStruct::get(StructInit, false));
   }
   Constant *Array =
@@ -541,7 +607,7 @@ void llvm_asm_file_end(void) {
     for (SmallSetVector<Constant *,32>::iterator AI = AttributeUsedGlobals.begin(),
            AE = AttributeUsedGlobals.end(); AI != AE; ++AI) {
       Constant *C = *AI;
-      AUGs.push_back(ConstantExpr::getBitCast(C, SBP));
+      AUGs.push_back(TheFolder->CreateBitCast(C, SBP));
     }
 
     ArrayType *AT = ArrayType::get(SBP, AUGs.size());
@@ -624,8 +690,11 @@ void llvm_asm_file_end(void) {
     CodeGenPasses->doFinalization();
   }
 
+  AsmOutRawStream->flush();
   AsmOutStream->flush();
   fflush(asm_out_file);
+  delete AsmOutRawStream;
+  AsmOutRawStream = 0;
   delete AsmOutStream;
   AsmOutStream = 0;
   delete AsmOutFile;
@@ -755,13 +824,8 @@ void emit_alias_to_llvm(tree decl, tree target, tree target_decl) {
 
   GlobalAlias* GA = new GlobalAlias(Aliasee->getType(), Linkage, "",
                                     Aliasee, TheModule);
-  // Handle visibility style
-  if (TREE_PUBLIC(decl)) {
-    if (DECL_VISIBILITY(decl) == VISIBILITY_HIDDEN)
-      GA->setVisibility(GlobalValue::HiddenVisibility);
-    else if (DECL_VISIBILITY(decl) == VISIBILITY_PROTECTED)
-      GA->setVisibility(GlobalValue::ProtectedVisibility);
-  }
+
+  handleVisibility(decl, GA);
 
   if (V->getType() == GA->getType())
     V->replaceAllUsesWith(GA);
@@ -821,7 +885,7 @@ void AddAnnotateAttrsToGlobal(GlobalValue *GV, tree decl) {
   Constant *lineNo = ConstantInt::get(Type::Int32Ty, DECL_SOURCE_LINE(decl));
   Constant *file = ConvertMetadataStringToGV(DECL_SOURCE_FILE(decl));
   const Type *SBP= PointerType::getUnqual(Type::Int8Ty);
-  file = ConstantExpr::getBitCast(file, SBP);
+  file = TheFolder->CreateBitCast(file, SBP);
  
   // There may be multiple annotate attributes. Pass return of lookup_attr 
   //  to successive lookups.
@@ -842,8 +906,8 @@ void AddAnnotateAttrsToGlobal(GlobalValue *GV, tree decl) {
              "Annotate attribute arg should always be a string");
       Constant *strGV = TreeConstantToLLVM::EmitLV_STRING_CST(val);
       Constant *Element[4] = {
-        ConstantExpr::getBitCast(GV,SBP),
-        ConstantExpr::getBitCast(strGV,SBP),
+        TheFolder->CreateBitCast(GV,SBP),
+        TheFolder->CreateBitCast(strGV,SBP),
         file,
         lineNo
       };
@@ -870,6 +934,9 @@ void reset_initializer_llvm(tree decl) {
   // Get or create the global variable now.
   GlobalVariable *GV = cast<GlobalVariable>(DECL_LLVM(decl));
   
+  // Visibility may also have changed.
+  handleVisibility(decl, GV);
+
   // Convert the initializer over.
   Constant *Init = TreeConstantToLLVM::Convert(DECL_INITIAL(decl));
 
@@ -890,6 +957,9 @@ void reset_type_and_initializer_llvm(tree decl) {
   // Get or create the global variable now.
   GlobalVariable *GV = cast<GlobalVariable>(DECL_LLVM(decl));
   
+  // Visibility may also have changed.
+  handleVisibility(decl, GV);
+
   // Temporary to avoid infinite recursion (see comments emit_global_to_llvm)
   GV->setInitializer(UndefValue::get(GV->getType()->getElementType()));
 
@@ -906,7 +976,7 @@ void reset_type_and_initializer_llvm(tree decl) {
                                              GV->getLinkage(), 0,
                                              GV->getName(), TheModule);
     NGV->setVisibility(GV->getVisibility());
-    GV->replaceAllUsesWith(ConstantExpr::getBitCast(NGV, GV->getType()));
+    GV->replaceAllUsesWith(TheFolder->CreateBitCast(NGV, GV->getType()));
     if (AttributeUsedGlobals.count(GV)) {
       AttributeUsedGlobals.remove(GV);
       AttributeUsedGlobals.insert(NGV);
@@ -973,7 +1043,7 @@ void emit_global_to_llvm(tree decl) {
     GlobalVariable *NGV = new GlobalVariable(Init->getType(), GV->isConstant(),
                                              GlobalValue::ExternalLinkage, 0,
                                              GV->getName(), TheModule);
-    GV->replaceAllUsesWith(ConstantExpr::getBitCast(NGV, GV->getType()));
+    GV->replaceAllUsesWith(TheFolder->CreateBitCast(NGV, GV->getType()));
     if (AttributeUsedGlobals.count(GV)) {
       AttributeUsedGlobals.remove(GV);
       AttributeUsedGlobals.insert(NGV);
@@ -994,11 +1064,12 @@ void emit_global_to_llvm(tree decl) {
   // Set the linkage.
   if (!TREE_PUBLIC(decl)) {
     GV->setLinkage(GlobalValue::InternalLinkage);
-  } else if (DECL_WEAK(decl) || DECL_ONE_ONLY(decl) ||
-             (DECL_COMMON(decl) &&  // DECL_COMMON is only meaningful if no init
-              (!DECL_INITIAL(decl) || DECL_INITIAL(decl) == error_mark_node))) {
-    // llvm-gcc also includes DECL_VIRTUAL_P here.
+  } else if (DECL_WEAK(decl) || DECL_ONE_ONLY(decl)) {
     GV->setLinkage(GlobalValue::WeakLinkage);
+  } else if (DECL_COMMON(decl) &&  // DECL_COMMON is only meaningful if no init
+              (!DECL_INITIAL(decl) || DECL_INITIAL(decl) == error_mark_node)) {
+    // llvm-gcc also includes DECL_VIRTUAL_P here.
+    GV->setLinkage(GlobalValue::CommonLinkage);
   } else if (DECL_COMDAT(decl)) {
     GV->setLinkage(GlobalValue::LinkOnceLinkage);
   }
@@ -1007,13 +1078,7 @@ void emit_global_to_llvm(tree decl) {
   TARGET_ADJUST_LLVM_LINKAGE(GV,decl);
 #endif /* TARGET_ADJUST_LLVM_LINKAGE */
 
-  // Handle visibility style
-  if (TREE_PUBLIC(decl)) {
-    if (DECL_VISIBILITY(decl) == VISIBILITY_HIDDEN)
-      GV->setVisibility(GlobalValue::HiddenVisibility);
-    else if (DECL_VISIBILITY(decl) == VISIBILITY_PROTECTED)
-      GV->setVisibility(GlobalValue::ProtectedVisibility);
-  }
+  handleVisibility(decl, GV);
 
   // Set the section for the global.
   if (TREE_CODE(decl) == VAR_DECL) {
@@ -1088,7 +1153,7 @@ bool ValidateRegisterVariable(tree decl) {
 #endif
   else if (DECL_INITIAL(decl) != 0 && TREE_STATIC(decl))
     error("global register variable has initial value");
-  else if (!Ty->isFirstClassType())
+  else if (!Ty->isSingleValueType())
     sorry("%JLLVM cannot handle register variable %qD, report a bug",
           decl, decl);
   else {
@@ -1183,13 +1248,13 @@ void make_decl_llvm(tree decl) {
     Function *FnEntry = TheModule->getFunction(Name);
     if (FnEntry == 0) {
       unsigned CC;
-      PAListPtr PAL;
+      AttrListPtr PAL;
       const FunctionType *Ty = 
         TheTypeConverter->ConvertFunctionType(TREE_TYPE(decl), decl, NULL,
                                               CC, PAL);
       FnEntry = Function::Create(Ty, Function::ExternalLinkage, Name, TheModule);
       FnEntry->setCallingConv(CC);
-      FnEntry->setParamAttrs(PAL);
+      FnEntry->setAttributes(PAL);
 
       // Check for external weak linkage
       if (DECL_EXTERNAL(decl) && DECL_WEAK(decl))
@@ -1199,13 +1264,7 @@ void make_decl_llvm(tree decl) {
       TARGET_ADJUST_LLVM_LINKAGE(FnEntry,decl);
 #endif /* TARGET_ADJUST_LLVM_LINKAGE */
 
-      // Handle visibility style
-      if (TREE_PUBLIC(decl)) {
-        if (DECL_VISIBILITY(decl) == VISIBILITY_HIDDEN)
-          FnEntry->setVisibility(GlobalValue::HiddenVisibility);
-        else if (DECL_VISIBILITY(decl) == VISIBILITY_PROTECTED)
-          FnEntry->setVisibility(GlobalValue::ProtectedVisibility);
-      }
+     handleVisibility(decl, FnEntry);
 
       // If FnEntry got renamed, then there is already an object with this name
       // in the symbol table.  If this happens, the old one must be a forward
@@ -1215,7 +1274,7 @@ void make_decl_llvm(tree decl) {
         assert(G && G->isDeclaration() && "A global turned into a function?");
         
         // Replace any uses of "G" with uses of FnEntry.
-        Value *GInNewType = ConstantExpr::getBitCast(FnEntry, G->getType());
+        Value *GInNewType = TheFolder->CreateBitCast(FnEntry, G->getType());
         G->replaceAllUsesWith(GInNewType);
         
         // Update the decl that points to G.
@@ -1251,14 +1310,7 @@ void make_decl_llvm(tree decl) {
       TARGET_ADJUST_LLVM_LINKAGE(GV,decl);
 #endif /* TARGET_ADJUST_LLVM_LINKAGE */
 
-      // Handle visibility style
-      if (TREE_PUBLIC(decl)) {
-        if (DECL_VISIBILITY(decl) == VISIBILITY_HIDDEN)
-          GV->setVisibility(GlobalValue::HiddenVisibility);
-        else if (DECL_VISIBILITY(decl) == VISIBILITY_PROTECTED)
-          GV->setVisibility(GlobalValue::ProtectedVisibility);
-      }
-
+      handleVisibility(decl, GV);
     } else {
       // If the global has a name, prevent multiple vars with the same name from
       // being created.
@@ -1276,13 +1328,7 @@ void make_decl_llvm(tree decl) {
         TARGET_ADJUST_LLVM_LINKAGE(GV,decl);
 #endif /* TARGET_ADJUST_LLVM_LINKAGE */
 
-        // Handle visibility style
-        if (TREE_PUBLIC(decl)) {
-          if (DECL_VISIBILITY(decl) == VISIBILITY_HIDDEN)
-            GV->setVisibility(GlobalValue::HiddenVisibility);
-          else if (DECL_VISIBILITY(decl) == VISIBILITY_PROTECTED)
-            GV->setVisibility(GlobalValue::ProtectedVisibility);
-        }
+	handleVisibility(decl, GV);
 
         // If GV got renamed, then there is already an object with this name in
         // the symbol table.  If this happens, the old one must be a forward
@@ -1292,7 +1338,7 @@ void make_decl_llvm(tree decl) {
           assert(F && F->isDeclaration() && "A function turned into a global?");
           
           // Replace any uses of "F" with uses of GV.
-          Value *FInNewType = ConstantExpr::getBitCast(GV, F->getType());
+          Value *FInNewType = TheFolder->CreateBitCast(GV, F->getType());
           F->replaceAllUsesWith(FInNewType);
           
           // Update the decl that points to F.

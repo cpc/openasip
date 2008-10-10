@@ -118,11 +118,13 @@ extern int lookup_stmt_eh_region (tree);
 extern bool verify_eh_edges (tree);
 
 /* LLVM local begin */
+#ifdef ENABLE_LLVM
 extern int classify_eh_handler (struct eh_region *);
 extern struct eh_region *get_eh_next_catch (struct eh_region *);
 extern struct eh_region *get_eh_region (unsigned);
 extern tree get_eh_type_list (struct eh_region *);
 extern tree lookup_type_for_runtime (tree);
+#endif
 /* LLVM local end */
 
 /* If non-NULL, this is a function that returns an expression to be
@@ -140,12 +142,13 @@ extern int (*lang_eh_type_covers) (tree a, tree b);
 extern tree (*lang_eh_runtime_type) (tree);
 
 /* LLVM local begin */
+#ifdef ENABLE_LLVM
 /* If non-NULL, this function returns a type that covers all others,
    a "catch-all" type.  It may also return NULL_TREE, indicating that
    the null runtime object catches all types, as in C++.  */
 extern tree (*lang_eh_catch_all) (void);
+#endif
 /* LLVM local end */
-
 
 /* Just because the user configured --with-sjlj-exceptions=no doesn't
    mean that we can use call frame exceptions.  Detect that the target

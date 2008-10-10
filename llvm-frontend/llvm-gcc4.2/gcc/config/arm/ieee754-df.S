@@ -1382,3 +1382,256 @@ ARM_FUNC_ALIAS(aeabi_d2f,truncdfsf2)
 	FUNC_END truncdfsf2
 
 #endif /* L_truncdfsf2 */
+
+/* APPLE LOCAL begin ARM 4702983 Thumb VFP math */
+#ifndef NOT_DARWIN
+#if __ARM_ARCH__ > 5
+#ifdef L_muldf3vfp
+
+ARM_FUNC_START muldf3vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fmuld	d5, d6, d7
+	fmrrd	r0, r1, d5
+	RET
+
+	FUNC_END muldf3vfp
+
+#endif
+
+#ifdef L_adddf3vfp
+
+ARM_FUNC_START adddf3vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	faddd	d5, d6, d7
+	fmrrd	r0, r1, d5
+	RET
+
+	FUNC_END adddf3vfp
+
+#endif
+
+#ifdef L_subdf3vfp
+
+ARM_FUNC_START subdf3vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fsubd	d5, d6, d7
+	fmrrd	r0, r1, d5
+	RET
+
+	FUNC_END subdf3vfp
+
+#endif
+
+#ifdef L_divdf3vfp
+
+ARM_FUNC_START divdf3vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fdivd	d5, d6, d7
+	fmrrd	r0, r1, d5
+	RET
+
+	FUNC_END divdf3vfp
+
+#endif
+
+#ifdef L_eqdf2vfp
+
+ARM_FUNC_START eqdf2vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fcmpd	d6, d7
+	fmstat
+	movne	r0, #0
+	moveq	r0, #1
+	RET
+
+	FUNC_END eqdf2vfp
+
+#endif
+
+#ifdef L_nedf2vfp
+
+ARM_FUNC_START nedf2vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fcmpd	d6, d7
+	fmstat
+	moveq	r0, #0
+	movne	r0, #1
+	RET
+
+	FUNC_END nedf2vfp
+
+#endif
+
+#ifdef L_ltdf2vfp
+
+ARM_FUNC_START ltdf2vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fcmpd	d6, d7
+	fmstat
+	movpl	r0, #0
+	movmi	r0, #1
+	RET
+
+	FUNC_END ltdf2vfp
+
+#endif
+
+#ifdef L_gtdf2vfp
+
+ARM_FUNC_START gtdf2vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fcmpd	d6, d7
+	fmstat
+	movle	r0, #0
+	movgt	r0, #1
+	RET
+
+	FUNC_END gtdf2vfp
+
+#endif
+
+#ifdef L_ledf2vfp
+
+ARM_FUNC_START ledf2vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fcmpd	d6, d7
+	fmstat
+	movhi	r0, #0
+	movls	r0, #1
+	RET
+
+	FUNC_END ledf2vfp
+
+#endif
+
+#ifdef L_gedf2vfp
+
+ARM_FUNC_START gedf2vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fcmpd	d6, d7
+	fmstat
+	movlt	r0, #0
+	movge	r0, #1
+	RET
+
+	FUNC_END gedf2vfp
+
+#endif
+
+#ifdef L_unorddf2vfp
+
+ARM_FUNC_START unorddf2vfp
+
+	fmdrr	d6, r0, r1
+	fmdrr	d7, r2, r3
+	fcmpd	d6, d7
+	fmstat
+	movvc	r0, #0
+	movvs	r0, #1
+	RET
+
+	FUNC_END unorddf2vfp
+
+#endif
+
+#ifdef L_fixdfsivfp
+
+ARM_FUNC_START fixdfsivfp
+
+	fmdrr	d7, r0, r1
+	ftosizd	s15, d7
+	fmrs	r0, s15
+	RET
+
+	FUNC_END fixdfsivfp
+
+#endif
+
+#ifdef L_fixunsdfsivfp
+
+ARM_FUNC_START fixunsdfsivfp
+
+	fmdrr	d7, r0, r1
+	ftouizd	s15, d7
+	fmrs	r0, s15
+	RET
+
+	FUNC_END fixunsdfsivfp
+
+#endif
+
+#ifdef L_extendsfdf2vfp
+
+ARM_FUNC_START extendsfdf2vfp
+
+	fmsr	s15, r0
+	fcvtds	d7, s15
+	fmrrd	r0, r1, d7
+	RET
+
+	FUNC_END extendsfdf2vfp
+
+#endif
+
+#ifdef L_truncdfsf2vfp
+
+ARM_FUNC_START truncdfsf2vfp
+
+	fmdrr	d7, r0, r1
+	fcvtsd	s15, d7
+	fmrs	r0, s15
+	RET
+
+	FUNC_END truncdfsf2vfp
+
+#endif
+
+#ifdef L_floatsidfvfp
+
+ARM_FUNC_START floatsidfvfp
+
+	fmsr	s15, r0
+	fsitod	d7, s15
+	fmrrd	r0, r1, d7
+	RET
+
+	FUNC_END floatsidfvfp
+
+#endif
+
+#ifdef L_floatsidfvfp
+
+ARM_FUNC_START floatunssidfvfp
+
+	fmsr	s15, r0
+	fuitod	d7, s15
+	fmrrd	r0, r1, d7
+	RET
+
+	FUNC_END floatunssidfvfp
+
+#endif
+
+#endif /* __ARM_ARCH__ > 5 */
+#endif /* NOT_DARWIN */
+/* APPLE LOCAL end ARM 4702983 Thumb VFP math */

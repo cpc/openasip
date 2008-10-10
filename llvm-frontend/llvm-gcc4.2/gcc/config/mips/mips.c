@@ -721,6 +721,7 @@ const struct mips_cpu_info mips_cpu_info_table[] = {
 
   /* MIPS II */
   { "r6000", PROCESSOR_R6000, 2 },
+  { "allegrex", PROCESSOR_ALLEGREX, 2 },
 
   /* MIPS III */
   { "r4000", PROCESSOR_R4000, 3 },
@@ -7219,7 +7220,9 @@ mips_output_mi_thunk (FILE *file, tree thunk_fndecl ATTRIBUTE_UNUSED,
   split_all_insns_noflow ();
   if (TARGET_MIPS16)
     mips16_lay_out_constants ();
+#ifndef ENABLE_LLVM
   shorten_branches (insn);
+#endif
   final_start_function (insn, file, 1);
   final (insn, file, 1);
   final_end_function ();
@@ -9022,7 +9025,9 @@ mips_avoid_hazards (void)
 
   /* Recalculate instruction lengths without taking nops into account.  */
   cfun->machine->ignore_hazard_length_p = true;
+#ifndef ENABLE_LLVM
   shorten_branches (get_insns ());
+#endif
 
   cfun->machine->all_noreorder_p = true;
 
@@ -9344,15 +9349,16 @@ mips_output_conditional_branch (rtx insn, rtx *operands,
 	 delay slot if is not annulled.  */
       if (!INSN_ANNULLED_BRANCH_P (insn))
 	{
+#ifndef ENABLE_LLVM
 	  final_scan_insn (XVECEXP (final_sequence, 0, 1),
 			   asm_out_file, optimize, 1, NULL);
+#endif
 	  INSN_DELETED_P (XVECEXP (final_sequence, 0, 1)) = 1;
 	}
       else
 	output_asm_insn ("nop", 0);
       fprintf (asm_out_file, "\n");
     }
-
   /* Output the unconditional branch to TAKEN.  */
   if (length <= 16)
     output_asm_insn ("j\t%0%/", &taken);
@@ -9369,8 +9375,10 @@ mips_output_conditional_branch (rtx insn, rtx *operands,
 	 Use INSN's delay slot if is annulled.  */
       if (INSN_ANNULLED_BRANCH_P (insn))
 	{
+#ifndef ENABLE_LLVM
 	  final_scan_insn (XVECEXP (final_sequence, 0, 1),
 			   asm_out_file, optimize, 1, NULL);
+#endif
 	  INSN_DELETED_P (XVECEXP (final_sequence, 0, 1)) = 1;
 	}
       else
@@ -9808,12 +9816,14 @@ vr4130_swap_insns_p (rtx insn1, rtx insn2)
 
      If INSN1 is the last instruction blocking X, it would better to
      choose (INSN1, X) over (INSN2, INSN1).  */
+#ifndef ENABLE_LLVM
   for (dep = INSN_DEPEND (insn1); dep != 0; dep = XEXP (dep, 1))
     if (REG_NOTE_KIND (dep) == REG_DEP_ANTI
 	&& INSN_PRIORITY (XEXP (dep, 0)) > INSN_PRIORITY (insn2)
 	&& recog_memoized (XEXP (dep, 0)) >= 0
 	&& get_attr_vr4130_class (XEXP (dep, 0)) == VR4130_CLASS_ALU)
       return false;
+#endif
 
   if (vr4130_last_insn != 0
       && recog_memoized (insn1) >= 0

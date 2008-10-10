@@ -1024,6 +1024,12 @@ setup_one_parameter (copy_body_data *id, tree p, tree value, tree fn,
      to just use the argument value.  */
   if (TREE_READONLY (p)
       && !TREE_ADDRESSABLE (p)
+/* LLVM LOCAL begin fix handling of parameters with variably modified types */
+#ifdef ENABLE_LLVM
+      /* We need the copy if it has a variably modified type. */
+      && !variably_modified_type_p (TREE_TYPE (p), id->src_fn)
+#endif
+/* LLVM LOCAL end */
       && value && !TREE_SIDE_EFFECTS (value))
     {
       /* We may produce non-gimple trees by adding NOPs or introduce
@@ -1048,6 +1054,16 @@ setup_one_parameter (copy_body_data *id, tree p, tree value, tree fn,
      here since the type of this decl must be visible to the calling
      function.  */
   var = copy_decl_to_var (p, id);
+
+/* LLVM LOCAL begin fix handling of parameters with variably modified types */
+#ifdef ENABLE_LLVM
+  /* But, we must remap variably modified types, which depend on local
+     variables in this function and are NOT visible to the calling
+     function. */
+  if (variably_modified_type_p (TREE_TYPE (p), id->src_fn))
+    TREE_TYPE (var) = remap_type(TREE_TYPE (p), id);    
+#endif
+/* LLVM LOCAL end */
 
   /* See if the frontend wants to pass this by invisible reference.  If
      so, our new VAR_DECL will have REFERENCE_TYPE, and we need to
@@ -1261,12 +1277,11 @@ declare_return_variable (copy_body_data *id, tree return_slot_addr,
 	{
 	  var = modify_dest;
 	  use = NULL;
-    
+
     /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
-    /* The return node can suddenly become multiple assignment.  Because of this
-     * conservatively don't consider this thing for SSA form anymore.
-    */
+    /* The return node may not dominate all of its uses.  Because of this,
+       conservatively don't consider it for SSA form anymore.  */
     if (TREE_CODE (var) == VAR_DECL)
       DECL_GIMPLE_FORMAL_TEMP_P (var) = 0;
 #endif
@@ -1570,7 +1585,7 @@ inlinable_function_p (tree fn)
 
   /* Squirrel away the result so that we don't have to check again.  */
   DECL_UNINLINABLE (fn) = !inlinable;
-  
+
   return inlinable;
 }
 
@@ -2025,8 +2040,10 @@ expand_call_inline (basic_block bb, tree stmt, tree *tp, void *data)
 	  /* Avoid warnings during early inline pass. */
 	  && (!flag_unit_at_a_time || cgraph_global_info_ready))
 	{
-	  sorry ("inlining failed in call to %q+F: %s", fn, reason);
-	  sorry ("called from here");
+	  /* APPLE LOCAL begin wording 4598393 */
+	  error ("%<always_inline%> function could not be inlined in call to %q+F: %s", fn, reason);
+	  error ("called from here");
+	  /* APPLE LOCAL end wording 4598393 */
 	}
       else if (warn_inline && DECL_DECLARED_INLINE_P (fn)
 	       && !DECL_IN_SYSTEM_HEADER (fn)
@@ -2637,7 +2654,7 @@ copy_decl_for_dup_finish (copy_body_data *id, tree decl, tree copy)
 #ifdef ENABLE_LLVM
     SET_DECL_LLVM (copy, 0);
 #else
-    SET_DECL_RTL (copy, NULL_RTX); 
+    SET_DECL_RTL (copy, NULL_RTX);
 #endif
   /* LLVM_LOCAL end */
   
@@ -2830,7 +2847,7 @@ tree_function_versioning (tree old_decl, tree new_decl, varray_type tree_map,
   if (!update_clones)
     DECL_NAME (new_decl) = create_tmp_var_name (NULL);
   /* LLVM LOCAL begin */
-  #ifndef ENABLE_LLVM
+#ifndef ENABLE_LLVM
   /* Create a new SYMBOL_REF rtx for the new name. */
   if (DECL_RTL (old_decl) != NULL)
     {
@@ -2839,7 +2856,7 @@ tree_function_versioning (tree old_decl, tree new_decl, varray_type tree_map,
 	gen_rtx_SYMBOL_REF (GET_MODE (XEXP (DECL_RTL (old_decl), 0)),
 			    IDENTIFIER_POINTER (DECL_NAME (new_decl)));
     }
-  #endif
+#endif
   /* LLVM LOCAL end */
     
   /* Prepare the data structures for the tree copy.  */

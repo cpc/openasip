@@ -114,6 +114,10 @@ int current_function_uses_only_leaf_regs;
    post-instantiation libcalls.  */
 int virtuals_instantiated;
 
+/* APPLE LOCAL begin radar 5732232 - blocks */
+struct block_sema_info *cur_block;
+/* APPLE LOCAL end radar 5732232 - blocks */
+
 /* Assign unique numbers to labels generated for profiling, debugging, etc.  */
 static GTY(()) int funcdef_no;
 
@@ -3869,17 +3873,23 @@ allocate_struct_function (tree fndecl)
   DECL_STRUCT_FUNCTION (fndecl) = cfun;
   cfun->decl = fndecl;
 
-  result = DECL_RESULT (fndecl);
-  if (aggregate_value_p (result, fndecl))
+  /* APPLE LOCAL begin radar 5732232 - blocks */
+  /* We cannot support blocks which return aggregates because at this
+     point we do not have info on the return type. */
+  if (!cur_block)
+  {
+    result = DECL_RESULT (fndecl);
+    if (aggregate_value_p (result, fndecl))
     {
 #ifdef PCC_STATIC_STRUCT_RETURN
       current_function_returns_pcc_struct = 1;
 #endif
       current_function_returns_struct = 1;
     }
-
-  current_function_returns_pointer = POINTER_TYPE_P (TREE_TYPE (result));
-
+    /* This code is not used anywhere ! */
+    current_function_returns_pointer = POINTER_TYPE_P (TREE_TYPE (result));
+  }
+  /* APPLE LOCAL end radar 5732232 - blocks */
   current_function_stdarg
     = (fntype
        && TYPE_ARG_TYPES (fntype) != 0

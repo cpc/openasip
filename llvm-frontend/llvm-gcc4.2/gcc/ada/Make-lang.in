@@ -263,13 +263,20 @@ GNATBIND_OBJS = \
  ada/widechar.o   \
  $(EXTRA_GNATBIND_OBJS)
 
+# LLVM LOCAL begin
+stub-ada.o : ada/stub-ada.c
+	$(CC) -c $(ALL_CFLAGS) $(ALL_ADA_CFLAGS) \
+		$(ALL_CPPFLAGS) $(INCLUDES) $< $(OUTPUT_OPTION)
+# LLVM LOCAL end
+
 # List of extra object files linked in with various programs.
 EXTRA_GNAT1_OBJS = prefix.o
-EXTRA_GNATBIND_OBJS = prefix.o version.o
+# LLVM LOCAL
+EXTRA_GNATBIND_OBJS = prefix.o version.o stub-ada.o
 
 # Language-independent object files.
 # LLVM LOCAL
-ADA_BACKEND = $(BACKEND) attribs.o stub-objc.o stub-c.o
+ADA_BACKEND = $(BACKEND) attribs.o stub-objc.o stub-c.o stub-ada.o
 
 # List of target dependent sources, overridden below as necessary
 TARGET_ADA_SRCS =

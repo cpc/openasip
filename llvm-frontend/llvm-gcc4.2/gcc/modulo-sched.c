@@ -50,6 +50,12 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "timevar.h"
 #include "tree-pass.h"
 
+/* LLVM LOCAL begin comment out most of this file */
+#ifdef ENABLE_LLVM
+#undef INSN_SCHEDULING
+#endif
+/* LLVM LOCAL end */
+
 #ifdef INSN_SCHEDULING
 
 /* This file contains the implementation of the Swing Modulo Scheduler,

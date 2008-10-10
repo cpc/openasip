@@ -143,6 +143,8 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "splay-tree.h"
 #include "tree-pass.h"
 #include "params.h"
+/* APPLE LOCAL 5695218 */
+#include "reload.h"
 
 #ifndef HAVE_epilogue
 #define HAVE_epilogue 0
@@ -285,6 +287,14 @@ static int ndead;
 
 static int *reg_deaths;
 
+/* APPLE LOCAL begin 5695218 */
+/* TRUE for normal operation.  Set FALSE to avoid recomputing
+   REG_LIVE_LENGTH().  REG_LIVE_LENGTH is initially computed by flow,
+   and then modified by local_alloc.  Another flow pass ("life3")
+   must not change the lifetimes.  */
+static int normal_flow = 1;
+/* APPLE LOCAL end 5695218 */
+
 /* Forward declarations */
 static int verify_wide_reg_1 (rtx *, void *);
 static void verify_wide_reg (int, basic_block);
@@ -330,6 +340,10 @@ static void clear_log_links (sbitmap);
 static int count_or_remove_death_notes_bb (basic_block, int);
 static void allocate_bb_life_data (void);
 
+/* APPLE LOCAL begin 5695218 */
+static void maybe_uses_pic_offset_table_rtx (struct propagate_block_info *pbi, rtx reg,
+					     rtx cond ATTRIBUTE_UNUSED, rtx insn);
+/* APPLE LOCAL end 5695218 */
 /* Return the INSN immediately following the NOTE_INSN_BASIC_BLOCK
    note associated with the BLOCK.  */
 
@@ -529,19 +543,25 @@ verify_local_live_at_start (regset new_live_at_start, basic_block bb)
       EXECUTE_IF_SET_IN_REG_SET (new_live_at_start, 0, i, rsi)
 	{
 	  /* No registers should die.  */
-	  if (REGNO_REG_SET_P (bb->il.rtl->global_live_at_start, i))
+	  /* APPLE LOCAL begin 5695218 */
+	  /* life3 pass added expressly so the pic-base/GOT could die here; not an error.  */
+	  if (i != PIC_OFFSET_TABLE_REGNUM)
 	    {
-	      if (dump_file)
+	      if (REGNO_REG_SET_P (bb->il.rtl->global_live_at_start, i))
 		{
-		  fprintf (dump_file,
-			   "Register %d died unexpectedly.\n", i);
-		  dump_bb (bb, dump_file, 0);
+		  if (dump_file)
+		    {
+		      fprintf (dump_file,
+			       "Register %d died unexpectedly.\n", i);
+		      dump_bb (bb, dump_file, 0);
+		    }
+		  internal_error ("internal consistency failure");
 		}
-	      internal_error ("internal consistency failure");
+	      /* Verify that the now-live register is wider than word_mode.  */
+	      verify_wide_reg (i, bb);
 	    }
-	  /* Verify that the now-live register is wider than word_mode.  */
-	  verify_wide_reg (i, bb);
 	}
+      /* APPLE LOCAL end 5695218 */
     }
 }
 
@@ -722,7 +742,10 @@ update_life_info (sbitmap blocks, enum update_life_extent extent,
 	{
 	  if (regno_reg_rtx[i] != 0)
 	    {
-	      REG_LIVE_LENGTH (i) = -1;
+	      /* APPLE LOCAL begin 5695218 */
+	      if (normal_flow)
+		REG_LIVE_LENGTH (i) = -1;
+	      /* APPLE LOCAL end 5695218 */
 	      REG_BASIC_BLOCK (i) = REG_BLOCK_UNKNOWN;
 	    }
 	}
@@ -1634,7 +1657,10 @@ allocate_reg_life_data (void)
       REG_N_DEATHS (i) = 0;
       REG_N_CALLS_CROSSED (i) = 0;
       REG_N_THROWING_CALLS_CROSSED (i) = 0;
-      REG_LIVE_LENGTH (i) = 0;
+      /* APPLE LOCAL begin 5695218 */
+      if (normal_flow)
+	REG_LIVE_LENGTH (i) = 0;
+      /* APPLE LOCAL end 5695218 */
       REG_FREQ (i) = 0;
       REG_BASIC_BLOCK (i) = REG_BLOCK_UNKNOWN;
     }
@@ -2165,7 +2191,10 @@ free_propagate_block_info (struct propagate_block_info *pbi)
 
       EXECUTE_IF_SET_IN_REG_SET (pbi->reg_live, 0, i, rsi)
 	{
-	  REG_LIVE_LENGTH (i) += num - reg_deaths[i];
+	  /* APPLE LOCAL begin 5695218 */
+	  if (normal_flow)
+	    REG_LIVE_LENGTH (i) += num - reg_deaths[i];
+	  /* APPLE LOCAL end 5695218 */
 	  reg_deaths[i] = 0;
 	}
     }
@@ -2939,7 +2968,10 @@ mark_set_1 (struct propagate_block_info *pbi, enum rtx_code code, rtx reg, rtx c
 		     elsewhere, but we want the count to include the insn
 		     where the reg is set, and the normal counting mechanism
 		     would not count it.  */
-		  REG_LIVE_LENGTH (i) += 1;
+		  /* APPLE LOCAL begin 5695218 */
+		  if (normal_flow)
+		    REG_LIVE_LENGTH (i) += 1;
+		  /* APPLE LOCAL end 5695218 */
 		}
 
 	      /* If this is a hard reg, record this function uses the reg.  */
@@ -3052,7 +3084,10 @@ mark_set_1 (struct propagate_block_info *pbi, enum rtx_code code, rtx reg, rtx c
 		if ((pbi->flags & PROP_REG_INFO)
 		    && REGNO_REG_SET_P (pbi->reg_live, i))
 		  {
-		    REG_LIVE_LENGTH (i) += pbi->insn_num - reg_deaths[i];
+		    /* APPLE LOCAL begin 5695218 */
+		    if (normal_flow)
+		      REG_LIVE_LENGTH (i) += pbi->insn_num - reg_deaths[i];
+		    /* APPLE LOCAL end 5695218 */
 		    reg_deaths[i] = 0;
 		  }
 		CLEAR_REGNO_REG_SET (pbi->reg_live, i);
@@ -3640,7 +3675,10 @@ attempt_auto_inc (struct propagate_block_info *pbi, rtx inc, rtx insn,
 	      if ((pbi->flags & PROP_REG_INFO)
 		  && REGNO_REG_SET_P (pbi->reg_live, regno))
 		{
-		  REG_LIVE_LENGTH (regno) += pbi->insn_num - reg_deaths[regno];
+		  /* APPLE LOCAL begin 5695218 */
+		  if (normal_flow)
+		    REG_LIVE_LENGTH (regno) += pbi->insn_num - reg_deaths[regno];
+		  /* APPLE LOCAL end 5695218 */
 		  reg_deaths[regno] = 0;
 		}
 	      CLEAR_REGNO_REG_SET (pbi->reg_live, REGNO (XEXP (note, 0)));
@@ -3875,6 +3913,14 @@ mark_used_reg (struct propagate_block_info *pbi, rtx reg,
 	}
     }
 
+  /* APPLE LOCAL begin 5695218 */
+  /* If this pseudo register might turn into a reference involving the PIC register
+     (e.g. not allocated to a hard reg, reload substitutes initial mem-ref),
+     mark the PIC register alive.  */
+  if (flag_pic
+      && regno_first >= FIRST_PSEUDO_REGISTER)
+    maybe_uses_pic_offset_table_rtx (pbi, reg, cond, insn);
+  /* APPLE LOCAL end 5695218 */
   /* Mark the register as being live.  */
   for (i = regno_first; i <= regno_last; ++i)
     {
@@ -3946,6 +3992,48 @@ mark_used_reg (struct propagate_block_info *pbi, rtx reg,
 #endif
     }
 }
+/* APPLE LOCAL begin 5695218 */
+static void
+/* LLVM LOCAL begin */
+maybe_uses_pic_offset_table_rtx (struct propagate_block_info *pbi  ATTRIBUTE_UNUSED,
+                                 rtx reg  ATTRIBUTE_UNUSED,
+				 rtx cond ATTRIBUTE_UNUSED,
+                                 rtx insn  ATTRIBUTE_UNUSED)
+/* LLVM LOCAL begin */
+{
+  /* LLVM LOCAL */
+#ifndef ENABLE_LLVM
+  int found;
+  /* rtx step; */
+  unsigned int regno = REGNO (reg);
+  extern sbitmap pic_rtx_inheritance;
+
+  /* If we're not generating PIC code, or if the pic_offset_table_rtx
+     is never referenced, no PIC references are possible.  x86_64 PIC
+     doesn't use a PIC-base/GOT register.  */
+  if (!pic_rtx_inheritance)
+    return;
+
+  /* If this is the PIC-base (GOT) register, it's obviously used here.  */
+  if (regno < FIRST_PSEUDO_REGISTER
+      && regno == PIC_OFFSET_TABLE_REGNUM)
+    {
+      current_function_uses_pic_offset_table = 1;
+      mark_used_reg (pbi, pic_offset_table_rtx, cond, insn);
+      return;
+    }
+  
+  /* It's a pseudo register.  See if we can tell where it came from.  */
+  found = TEST_BIT (pic_rtx_inheritance, regno);
+  if (found)
+    mark_used_reg (pbi, pic_offset_table_rtx, cond, insn);
+  /* LLVM LOCAL begin */
+#else
+  gcc_assert(0);
+#endif
+  /* LLVM LOCAL end */
+}
+/* APPLE LOCAL end 5695218 */
 
 /* Scan expression X for registers which have to be marked used in PBI.  
    X is considered to be the SET_DEST rtx of SET.  TRUE is returned if
@@ -4480,12 +4568,74 @@ recompute_reg_usage (void)
      REG_UNUSED notes to REG_DEAD notes.  This causes CHECK_DEAD_NOTES
      in sched1 to die.  To solve this update the DEATH_NOTES
      here.  */
-  update_life_info (NULL, UPDATE_LIFE_LOCAL, PROP_REG_INFO | PROP_DEATH_NOTES);
+  /* APPLE LOCAL begin 6102803 */
+#ifdef TARGET_POWERPC
+  if (flag_tree_pre)
+    {
+      basic_block bb;
+      /* Zap the life information from the last round.  If we don't
+	 do this, we can wind up with registers that no longer appear
+	 in the code being marked live at entry.  */
+      FOR_EACH_BB (bb)
+      {
+	CLEAR_REG_SET (bb->il.rtl->global_live_at_start);
+	CLEAR_REG_SET (bb->il.rtl->global_live_at_end);
+      }
+      update_life_info (NULL, UPDATE_LIFE_GLOBAL, PROP_FINAL);
+    }
+  else
+#endif
+    update_life_info (NULL, UPDATE_LIFE_LOCAL, PROP_REG_INFO | PROP_DEATH_NOTES);
+  /* APPLE LOCAL end 6102803 */
 
   if (dump_file)
     dump_flow_info (dump_file, dump_flags);
   return 0;
 }
+
+/* APPLE LOCAL begin 5695218 */
+static bool gate_flow_lite (void);
+static bool gate_flow_lite (void)
+{
+#ifdef TARGET_386
+  return !!optimize;
+#else
+  return 0;
+#endif
+}
+static unsigned int flow_lite (void);
+/* Extra register life-analysis pass to determine the life of the
+   PIC-base/GOT register.  */
+static unsigned int
+flow_lite (void)
+{
+  /* LLVM LOCAL */
+#ifndef ENABLE_LLVM
+  extern sbitmap pic_rtx_inheritance;
+  if (PIC_OFFSET_TABLE_REGNUM != INVALID_REGNUM)
+    {
+      fixed_regs[PIC_OFFSET_TABLE_REGNUM] = call_used_regs[PIC_OFFSET_TABLE_REGNUM] = 0;
+      CLEAR_HARD_REG_BIT (call_fixed_reg_set, PIC_OFFSET_TABLE_REGNUM);
+      CLEAR_HARD_REG_BIT (fixed_reg_set, PIC_OFFSET_TABLE_REGNUM);
+      CLEAR_HARD_REG_BIT (call_used_reg_set, PIC_OFFSET_TABLE_REGNUM);
+    }
+  normal_flow = 0;
+  count_or_remove_death_notes ((sbitmap)0, 1);
+  life_analysis (PROP_FINAL);
+  if (pic_rtx_inheritance)
+    {
+      sbitmap_free (pic_rtx_inheritance);
+      pic_rtx_inheritance = NULL;
+    }
+  normal_flow = 1;
+  /* LLVM LOCAL begin */
+#else
+  gcc_assert(0);
+#endif
+  /* LLVM LOCAL end */
+  return 0;
+}
+/* APPLE LOCAL end 5695218 */
 
 struct tree_opt_pass pass_recompute_reg_usage =
 {
@@ -4503,6 +4653,25 @@ struct tree_opt_pass pass_recompute_reg_usage =
   TODO_dump_func,                       /* todo_flags_finish */
   'f'                                   /* letter */
 };
+
+/* APPLE LOCAL begin 5695218 */
+struct tree_opt_pass pass_life3 =
+{
+  "life3",                              /* name */
+  gate_flow_lite,                       /* gate */
+  flow_lite,                            /* execute */
+  NULL,                                 /* sub */
+  NULL,                                 /* next */
+  0,                                    /* static_pass_number */
+  0,                                    /* tv_id */
+  0,                                    /* properties_required */
+  0,                                    /* properties_provided */
+  0,                                    /* properties_destroyed */
+  0,                                    /* todo_flags_start */
+  TODO_dump_func,                       /* todo_flags_finish */
+  'f'                                   /* letter */
+};
+/* APPLE LOCAL end 5695218 */
 
 /* Optionally removes all the REG_DEAD and REG_UNUSED notes from a set of
    blocks.  If BLOCKS is NULL, assume the universal set.  Returns a count
@@ -4750,6 +4919,8 @@ struct tree_opt_pass pass_life =
 static unsigned int
 rest_of_handle_flow2 (void)
 {
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   /* If optimizing, then go ahead and split insns now.  */
 #ifndef STACK_REGS
   if (optimize > 0)
@@ -4767,6 +4938,8 @@ rest_of_handle_flow2 (void)
      it and the rest of the code and also allows delayed branch
      scheduling to operate in the epilogue.  */
   thread_prologue_and_epilogue_insns (get_insns ());
+#endif
+/* LLVM LOCAL end */
   epilogue_completed = 1;
   flow2_completed = 1;
   return 0;

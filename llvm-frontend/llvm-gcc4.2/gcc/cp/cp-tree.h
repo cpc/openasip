@@ -1066,6 +1066,12 @@ struct lang_type_class GTY(())
   unsigned has_complex_assign_ref : 1;
   unsigned non_aggregate : 1;
 
+  /* APPLE LOCAL begin omit calls to empty destructors 5559195 */
+  unsigned has_nontrivial_destructor_body : 1;
+  unsigned destructor_nontrivial_because_of_base : 1;
+  unsigned destructor_triviality_final : 1;
+  /* APPLE LOCAL end omit calls to empty destructors 5559195 */
+
   /* When adding a flag here, consider whether or not it ought to
      apply to a template instance if it applies to the template.  If
      so, make sure to copy it in instantiate_class_template!  */
@@ -1073,7 +1079,9 @@ struct lang_type_class GTY(())
   /* There are some bits left to fill out a 32-bit word.  Keep track
      of this by updating the size of this bitfield whenever you add or
      remove a flag.  */
-  unsigned dummy : 12;
+  /* APPLE LOCAL begin omit calls to empty destructors 5559195 */
+  unsigned dummy : 10;
+  /* APPLE LOCAL end omit calls to empty destructors 5559195 */
 
   tree primary_base;
   VEC(tree_pair_s,gc) *vcall_indices;
@@ -2453,6 +2461,8 @@ extern void decl_shadowed_for_var_insert (tree, tree);
    || TREE_CODE (TYPE) == ENUMERAL_TYPE		\
    || ARITHMETIC_TYPE_P (TYPE)			\
    || TYPE_PTR_P (TYPE)				\
+   /* APPLE LOCAL blocks 6040305 */		\
+   || TREE_CODE (TYPE) == BLOCK_POINTER_TYPE	\
    || TYPE_PTRMEMFUNC_P (TYPE))
 
 /* [dcl.init.aggr]
@@ -2533,6 +2543,20 @@ extern void decl_shadowed_for_var_insert (tree, tree);
    ARRAY_TYPE is the type of the elements needs a destructor.  */
 #define TYPE_HAS_NONTRIVIAL_DESTRUCTOR(NODE) \
   (TYPE_LANG_FLAG_4 (NODE))
+
+/* APPLE LOCAL begin omit calls to empty destructors 5559195 */
+/* One if the body of the destructor of class type NODE has been shown to do
+   nothing, else zero. */
+#define CLASSTYPE_HAS_NONTRIVIAL_DESTRUCTOR_BODY(NODE) (LANG_TYPE_CLASS_CHECK (NODE)->has_nontrivial_destructor_body)
+
+/* One if destructor of this type must be called by its base classes because
+   one of its base classes' destructors must be called. */
+#define CLASSTYPE_DESTRUCTOR_NONTRIVIAL_BECAUSE_OF_BASE(NODE) (LANG_TYPE_CLASS_CHECK (NODE)->destructor_nontrivial_because_of_base)
+
+/* One if the values of CLASSTYPE_DESTRUCTOR_NONTRIVIAL_BECAUSE_OF_BASE
+   and CLASSTYPE_HAS_NONTRIVIAL_DESTRUCTOR_BODY are final. */
+#define CLASSTYPE_DESTRUCTOR_TRIVIALITY_FINAL(NODE) (LANG_TYPE_CLASS_CHECK (NODE)->destructor_triviality_final)
+/* APPLE LOCAL end omit calls to empty destructors 5559195 */
 
 /* Nonzero for class type means that copy initialization of this type can use
    a bitwise copy.  */
@@ -3110,8 +3134,8 @@ extern void decl_shadowed_for_var_insert (tree, tree);
 /* APPLE LOCAL begin for-fsf-4_4 3274130 5295549 */ \
 #define DO_ATTRIBUTES(NODE)	TREE_OPERAND (DO_STMT_CHECK (NODE), 2)
 /* APPLE LOCAL begin C* language */
-/* Used as a flag to indicate synthesized inner do-while loop of a 
-   foreach statement.  Used for generation of break/continue statement 
+/* Used as a flag to indicate synthesized inner do-while loop of a
+   foreach statement.  Used for generation of break/continue statement
    of the loop. */
 #define DO_FOREACH(NODE)           TREE_OPERAND (DO_STMT_CHECK (NODE), 3)
 /* APPLE LOCAL end C* language */
@@ -3726,6 +3750,8 @@ typedef enum cp_declarator_kind {
   cdk_pointer,
   cdk_reference,
   cdk_ptrmem,
+  /* APPLE LOCAL blocks 6040305 (ch) */
+  cdk_block_pointer,
   cdk_error
 } cp_declarator_kind;
 
@@ -3794,6 +3820,13 @@ struct cp_declarator {
       /* For cdk_ptrmem, the class type containing the member.  */
       tree class_type;
     } pointer;
+    /* APPLE LOCAL begin blocks 6040305 (ch) */
+    /* For cdk_block_pointer.  */
+    struct {
+      /* The cv-qualifiers for the pointer.  */
+      cp_cv_quals qualifiers;
+    } block_pointer;
+    /* APPLE LOCAL end blocks 6040305 (ch) */
   } u;
 };
 
@@ -4122,6 +4155,8 @@ extern void yyerror				(const char *);
 extern void yyhook				(int);
 extern bool cxx_init				(void);
 extern void cxx_finish				(void);
+/* APPLE LOCAL mainline radar 6194879 */
+extern bool in_main_input_context		(void);
 
 /* in method.c */
 extern void init_method				(void);
@@ -4204,6 +4239,8 @@ extern tree build_non_dependent_args		(tree);
 extern bool reregister_specialization		(tree, tree, tree);
 extern tree fold_non_dependent_expr		(tree);
 extern bool explicit_class_specialization_p     (tree);
+/* APPLE LOCAL mainline radar 6194879 */
+extern tree outermost_tinst_level		(void);
 
 /* in repo.c */
 extern void init_repo				(void);
@@ -4628,6 +4665,8 @@ extern tree objcp_build_eh_type_type (tree);
 /* APPLE LOCAL end radar 2848255 */
 /* APPLE LOCAL radar 5355344 */
 extern bool cp_objc_protocol_id_list (tree);
+/* APPLE LOCAL radar 6029624 */
+extern bool objcp_reference_related_p (tree, tree);
 
 /* -- end of C++ */
 
@@ -4647,5 +4686,10 @@ extern void cp_cpp_error			(cpp_reader *, int,
      ATTRIBUTE_GCC_CXXDIAG(3,0);
 /* APPLE LOCAL radar 5741070  */
 extern tree c_return_interface_record_type (tree);
+
+/* APPLE LOCAL begin blocks 6040305 (cg) */
+extern cp_declarator* make_block_pointer_declarator (tree, cp_cv_quals,
+						     cp_declarator *);
+/* APPLE LOCAL end blocks 6040305 (cg) */
 
 #endif /* ! GCC_CP_TREE_H */

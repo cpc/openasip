@@ -238,9 +238,9 @@ extern int align_labels_log;
 extern int align_labels_max_skip;
 extern int align_functions_log;
 
-/* Like align_functions_log above, but used by front-ends to force the
-   minimum function alignment.  Zero means no alignment is forced.  */
-extern int force_align_functions_log;
+/* APPLE LOCAL begin mainline aligned functions 5933878 */
+/* Removed extern force_align_functions_log.  */
+/* APPLE LOCAL end mainline aligned functions 5933878 */
 
 /* Nonzero if we dump in VCG format, not plain text.  */
 extern int dump_for_graph;
@@ -388,7 +388,11 @@ enum warn_strict_overflow_code
 /* Whether to emit an overflow warning whose code is C.  */
 #define issue_strict_overflow_warning(c) (warn_strict_overflow >= (int) (c))
 
-/* LLVM LOCAL */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 extern int flag_llvm_pch_read;
+extern int flag_no_simplify_libcalls;
+#endif
+/* LLVM LOCAL end */
 
 #endif /* ! GCC_FLAGS_H */

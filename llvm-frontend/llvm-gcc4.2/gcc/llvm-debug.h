@@ -60,7 +60,7 @@ private:
   std::map<std::string, CompileUnitDesc *> CompileUnitCache;
                                         // Cache of previously constructed 
                                         // CompileUnits.
-  std::map<tree_node *, TypeDesc *> TypeCache;
+  DenseMap<tree_node *, TypeDesc *> TypeCache;
                                         // Cache of previously constructed 
                                         // Types.
   Function *StopPointFn;                // llvm.dbg.stoppoint
@@ -77,7 +77,7 @@ private:
   
 public:
   DebugInfo(Module *m);
-  
+
   // Accessors.
   void setLocationFile(const char *FullPath) { CurFullPath = FullPath; }
   void setLocationLine(int LineNo)           { CurLineNo = LineNo; }

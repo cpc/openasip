@@ -120,7 +120,8 @@
    (set_attr "cirrus" "normal")]
 )
 
-(define_insn "muldi3"
+;; APPLE LOCAL DImode multiply enhancement 
+(define_insn "cirrus_muldi3"
   [(set (match_operand:DI          0 "cirrus_fp_register" "=v")
 	(mult:DI (match_operand:DI 2 "cirrus_fp_register"  "v")
 		 (match_operand:DI 1 "cirrus_fp_register"  "v")))]

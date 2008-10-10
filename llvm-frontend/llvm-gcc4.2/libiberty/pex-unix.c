@@ -84,21 +84,15 @@ extern int errno;
    time that it took.  This is simple if we have wait4, slightly
    harder if we have waitpid, and is a pain if we only have wait.  */
 
-/* LLVM LOCAL begin mainline */
 static pid_t pex_wait (struct pex_obj *, pid_t, int *, struct pex_time *);
-/* LLVM LOCAL end mainline */
 
 #ifdef HAVE_WAIT4
 
-/* LLVM LOCAL begin mainline */
 static pid_t
 pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
-/* LLVM LOCAL end mainline */
 	  struct pex_time *time)
 {
-  /* LLVM LOCAL begin mainline */
   pid_t ret;
-  /* LLVM LOCAL end mainline */
   struct rusage r;
 
 #ifdef HAVE_WAITPID
@@ -125,10 +119,8 @@ pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
 
 #ifndef HAVE_GETRUSAGE
 
-/* LLVM LOCAL begin mainline */
 static pid_t
 pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
-/* LLVM LOCAL end mainline */
 	  struct pex_time *time)
 {
   if (time != NULL)
@@ -138,16 +130,12 @@ pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
 
 #else /* defined (HAVE_GETRUSAGE) */
 
-/* LLVM LOCAL begin mainline */
 static pid_t
 pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
-/* LLVM LOCAL end mainline */
 	  struct pex_time *time)
 {
   struct rusage r1, r2;
-  /* LLVM LOCAL begin mainline */
   pid_t ret;
-  /* LLVM LOCAL end mainline */
 
   if (time == NULL)
     return waitpid (pid, status, 0);
@@ -186,17 +174,13 @@ pex_wait (struct pex_obj *obj ATTRIBUTE_UNUSED, pid_t pid, int *status,
 struct status_list
 {
   struct status_list *next;
-  /* LLVM LOCAL begin mainline */
   pid_t pid;
-  /* LLVM LOCAL end mainline */
   int status;
   struct pex_time time;
 };
 
-/* LLVM LOCAL begin mainline */
 static pid_t
 pex_wait (struct pex_obj *obj, pid_t pid, int *status, struct pex_time *time)
-/* LLVM LOCAL end mainline */
 {
   struct status_list **pp;
 
@@ -220,9 +204,7 @@ pex_wait (struct pex_obj *obj, pid_t pid, int *status, struct pex_time *time)
 
   while (1)
     {
-      /* LLVM LOCAL begin mainline */
       pid_t cpid;
-      /* LLVM LOCAL end mainline */
       struct status_list *psl;
       struct pex_time pt;
 #ifdef HAVE_GETRUSAGE
@@ -385,9 +367,7 @@ pex_unix_exec_child (struct pex_obj *obj, int flags, const char *executable,
                      int in, int out, int errdes,
 		     int toclose, const char **errmsg, int *err)
 {
-  /* LLVM LOCAL begin mainline */
   pid_t pid;
-  /* LLVM LOCAL end mainline */
 
   /* We declare these to be volatile to avoid warnings from gcc about
      them being clobbered by vfork.  */

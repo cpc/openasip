@@ -26,6 +26,15 @@
 
 /* APPLE LOCAL ARM darwin optimization defaults */
 extern void optimization_options (int, int);
+/* APPLE LOCAL begin ARM compact switch tables */
+extern void arm_adjust_insn_length (rtx, int *);
+extern void register_switch8_libfunc (void);
+extern void register_switchu8_libfunc (void);
+extern void register_switch16_libfunc (void);
+extern void register_switch32_libfunc (void);
+extern int count_thumb_unexpanded_prologue (void);
+extern int arm_label_align (rtx);
+/* APPLE LOCAL end ARM compact switch tables */
 /* APPLE LOCAL ARM prefer SP to FP */
 extern HOST_WIDE_INT arm_local_debug_offset (rtx);
 extern void arm_override_options (void);
@@ -54,6 +63,10 @@ extern void arm_encode_call_attribute (tree, int);
 extern bool arm_vector_mode_supported_p (enum machine_mode);
 extern int arm_hard_regno_mode_ok (unsigned int, enum machine_mode);
 extern int const_ok_for_arm (HOST_WIDE_INT);
+/* APPLE LOCAL begin 5831562 long long constants */
+extern bool const64_ok_for_arm_immediate (rtx);
+extern bool const64_ok_for_arm_add (rtx);
+/* APPLE LOCAL end 5831562 long long constants */
 extern int arm_split_constant (RTX_CODE, enum machine_mode, rtx,
 			       HOST_WIDE_INT, rtx, rtx, int);
 extern RTX_CODE arm_canonicalize_comparison (RTX_CODE, enum machine_mode,
@@ -177,6 +190,12 @@ extern void thumb_reload_in_hi (rtx *);
 extern void thumb_set_return_address (rtx, rtx);
 #endif
 
+/* APPLE LOCAL begin ARM enhance conditional insn generation */
+#ifdef BB_HEAD
+extern void arm_ifcvt_modify_multiple_tests (ce_if_block_t *, basic_block, rtx *, rtx*);
+#endif
+/* APPLE LOCAL end ARM enhance conditional insn generation */
+
 /* Defined in pe.c.  */
 extern int arm_dllexport_name_p (const char *);
 extern int arm_dllimport_name_p (const char *);
@@ -193,5 +212,7 @@ extern void arm_mark_dllimport (tree);
 extern void arm_pr_long_calls (struct cpp_reader *);
 extern void arm_pr_no_long_calls (struct cpp_reader *);
 extern void arm_pr_long_calls_off (struct cpp_reader *);
+/* APPLE LOCAL 5946347 ms_struct support */
+extern int arm_field_ms_struct_align (tree);
 
 #endif /* ! GCC_ARM_PROTOS_H */

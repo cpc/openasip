@@ -46,6 +46,13 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "df.h"
 #include "ddg.h"
 
+/* LLVM LOCAL begin comment out most of this file */
+#ifdef ENABLE_LLVM
+#undef INSN_SCHEDULING
+#endif
+
+#ifdef INSN_SCHEDULING
+/* LLVM LOCAL end */
 /* A flag indicating that a ddg edge belongs to an SCC or not.  */
 enum edge_flag {NOT_IN_SCC = 0, IN_SCC};
 
@@ -1053,3 +1060,6 @@ longest_simple_path (struct ddg * g, int src, int dest, sbitmap nodes)
   sbitmap_free (tmp);
   return result;
 }
+/* LLVM LOCAL begin */
+#endif /* INSN_SCHEDULING */
+/* LLVM LOCAL end */

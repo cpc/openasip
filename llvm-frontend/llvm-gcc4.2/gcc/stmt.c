@@ -1727,7 +1727,10 @@ expand_return (tree retval)
 	  store_bit_field (dst, bitsize, xbitpos % BITS_PER_WORD, word_mode,
 			   extract_bit_field (src, bitsize,
 					      bitpos % BITS_PER_WORD, 1,
-					      NULL_RTX, word_mode, word_mode));
+			   /* APPLE LOCAL begin 6020402 */
+					      NULL_RTX, word_mode, word_mode),
+			   NULL_TREE);
+			   /* APPLE LOCAL end 6020402 */
 	}
 
       tmpmode = GET_MODE (result_rtl);
@@ -2514,9 +2517,11 @@ expand_case (tree exp)
 	       /* RANGE may be signed, and really large ranges will show up
 		  as negative numbers.  */
 	       || compare_tree_int (range, 0) < 0
-#ifndef ASM_OUTPUT_ADDR_DIFF_ELT
+/* APPLE LOCAL begin ARM compact switch tables */
+#if !defined(ASM_OUTPUT_ADDR_DIFF_ELT) && !defined(ASM_OUTPUT_ADDR_DIFF_VEC)
 	       || flag_pic
 #endif
+/* APPLE LOCAL end ARM compact switch tables */
 	       || !flag_jump_tables
 	       || TREE_CONSTANT (index_expr)
 	       /* If neither casesi or tablejump is available, we can
@@ -2594,6 +2599,10 @@ expand_case (tree exp)
 	  /* Get table of labels to jump to, in order of case index.  */
 
 	  ncases = tree_low_cst (range, 0) + 1;
+/* APPLE LOCAL begin ARM compact switch tables */
+	  /* Add target-specific extra labels.  */
+	  ncases += TARGET_EXTRA_CASES;
+/* APPLE LOCAL end ARM compact switch tables */
 	  labelvec = alloca (ncases * sizeof (rtx));
 	  memset (labelvec, 0, ncases * sizeof (rtx));
 

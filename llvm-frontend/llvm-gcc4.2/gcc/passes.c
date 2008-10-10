@@ -83,9 +83,9 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tree-pass.h"
 #include "tree-dump.h"
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #include "llvm.h"
 
-#ifdef ENABLE_LLVM
 /* LLVM doesn't need the GCC scheduler.  Clear this so it need not be linked
    in.  */
 #undef INSN_SCHEDULING
@@ -198,11 +198,11 @@ rest_of_decl_compilation (tree decl,
     {
     /* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
-    timevar_push (TV_SYMOUT);
-    debug_hooks->type_decl (decl, !top_level);
-    timevar_pop (TV_SYMOUT);
+      timevar_push (TV_SYMOUT);
+      debug_hooks->type_decl (decl, !top_level);
+      timevar_pop (TV_SYMOUT);
 #else
-    llvm_emit_typedef (decl);
+      llvm_emit_typedef (decl);
 #endif
     /* LLVM LOCAL end */
     }
@@ -239,15 +239,13 @@ rest_of_type_compilation (tree type, int toplev)
 void
 finish_optimization_passes (void)
 {
-  enum tree_dump_index i;
-  struct dump_file_info *dfi;
-  char *name;
-  
   /* LLVM LOCAL begin Dead code strip cc1. */
 #ifdef ENABLE_LLVM
   return;
-#endif
-  /* LLVM LOCAL end Dead code strip cc1. */
+#else
+  enum tree_dump_index i;
+  struct dump_file_info *dfi;
+  char *name;
 
   timevar_push (TV_DUMP);
   if (profile_arc_flag || flag_test_coverage || flag_branch_probabilities)
@@ -280,6 +278,8 @@ finish_optimization_passes (void)
 	}
 
   timevar_pop (TV_DUMP);
+#endif
+  /* LLVM LOCAL end Dead code strip cc1. */
 }
 
 static bool
@@ -481,18 +481,20 @@ init_optimization_passes (void)
 #define NEXT_PASS(PASS)  (p = next_pass_1 (p, &PASS))
   /* Interprocedural optimization passes.  */
   p = &all_ipa_passes;
+  /* LLVM local begin */
+#ifndef ENABLE_LLVM
   NEXT_PASS (pass_early_ipa_inline);
   NEXT_PASS (pass_early_local_passes);
   NEXT_PASS (pass_ipa_cp);
-  NEXT_PASS (pass_ipa_inline);
-/* LLVM LOCAL begin */
+#endif
+  NEXT_PASS (pass_ipa_inline); /* LLVM: inline functions marked always_inline */
 #ifndef ENABLE_LLVM
   NEXT_PASS (pass_ipa_reference);
   NEXT_PASS (pass_ipa_pure_const); 
   NEXT_PASS (pass_ipa_type_escape);
   NEXT_PASS (pass_ipa_pta);
 #endif
-/* LLVM LOCAL end */
+  /* LLVM local end */
   *p = NULL;
 
   /* All passes needed to lower the function into shape optimizers can
@@ -504,9 +506,9 @@ init_optimization_passes (void)
   NEXT_PASS (pass_lower_cf);
   NEXT_PASS (pass_lower_eh);
   NEXT_PASS (pass_build_cfg);
-  NEXT_PASS (pass_lower_complex_O0);
   /* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
+  NEXT_PASS (pass_lower_complex_O0);
   NEXT_PASS (pass_lower_vector);
 #endif
   /* LLVM LOCAL end */
@@ -516,16 +518,6 @@ init_optimization_passes (void)
   NEXT_PASS (pass_early_tree_profile);
 #endif
   /* LLVM LOCAL end */
-  *p = NULL;
-
-  p = &pass_early_local_passes.sub;
-  /* LLVM LOCAL begin */
-#ifndef ENABLE_LLVM
-  NEXT_PASS (pass_tree_profile);
-#endif
-  /* LLVM LOCAL end */
-  NEXT_PASS (pass_cleanup_cfg);
-  NEXT_PASS (pass_rebuild_cgraph_edges);
   *p = NULL;
 
   /* LLVM LOCAL begin */
@@ -538,6 +530,14 @@ init_optimization_passes (void)
   *p = NULL;
 #endif
   /* LLVM LOCAL end */
+
+  /* LLVM LOCAL begin - Do not pull in symbols. */
+#ifndef ENABLE_LLVM
+  p = &pass_early_local_passes.sub;
+  NEXT_PASS (pass_tree_profile);
+  NEXT_PASS (pass_cleanup_cfg);
+  NEXT_PASS (pass_rebuild_cgraph_edges);
+  *p = NULL;
 
   p = &all_passes;
   NEXT_PASS (pass_fixup_cfg);
@@ -612,7 +612,13 @@ init_optimization_passes (void)
   NEXT_PASS (pass_object_sizes);
   NEXT_PASS (pass_store_ccp);
   NEXT_PASS (pass_store_copy_prop);
+
+#endif
+  /* LLVM LOCAL end */
   NEXT_PASS (pass_fold_builtins);
+  /* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+
   /* FIXME: May alias should a TODO but for 4.0.0,
      we add may_alias right after fold builtins
      which can create arbitrary GIMPLE.  */
@@ -684,8 +690,6 @@ init_optimization_passes (void)
   NEXT_PASS (pass_dce_loop);
   *p = NULL;
 
-  /* LLVM LOCAL begin */
-#ifndef ENABLE_LLVM
   p = &pass_loop2.sub;
   NEXT_PASS (pass_rtl_loop_init);
   NEXT_PASS (pass_rtl_move_loop_invariants);
@@ -727,6 +731,11 @@ init_optimization_passes (void)
   NEXT_PASS (pass_sms);
   NEXT_PASS (pass_sched);
   NEXT_PASS (pass_local_alloc);
+  /* APPLE LOCAL begin 5695218 */
+#ifdef TARGET_386
+  NEXT_PASS (pass_life3);
+#endif
+  /* APPLE LOCAL end 5695218 */
   NEXT_PASS (pass_global_alloc);
   NEXT_PASS (pass_postreload);
   *p = NULL;
@@ -761,7 +770,7 @@ init_optimization_passes (void)
   NEXT_PASS (pass_final);
   *p = NULL;
 #endif
-  /* LLVM LOCAL end */
+  /* LLVM local end */
 
 #undef NEXT_PASS
 
@@ -775,11 +784,12 @@ init_optimization_passes (void)
   register_dump_files (all_extra_lowering_passes, false,
 		       PROP_gimple_any | PROP_gimple_lcf | PROP_gimple_leh
 		       | PROP_cfg);
-#endif
-  /* LLVM LOCAL end */
+#else
   register_dump_files (all_passes, false,
 		       PROP_gimple_any | PROP_gimple_lcf | PROP_gimple_leh
 		       | PROP_cfg);
+#endif
+  /* LLVM LOCAL end */
 }
 
 static unsigned int last_verified;

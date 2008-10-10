@@ -216,9 +216,9 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
  *   int __lhbrx(void *, int);
  */
 #define __lhbrx(base, index)   \
-  ({ unsigned short lhbrxResult;       \
-     __asm__ volatile ("lhbrx %0, %1, %2" : "=r" (lhbrxResult) : "b%" (index), "r" (base) : "memory"); \
-     /*return*/ lhbrxResult; })
+  ({ unsigned short __ppc_i_lhbrxResult;       \
+     __asm__ volatile ("lhbrx %0, %1, %2" : "=r" (__ppc_i_lhbrxResult) : "b%" (index), "r" (base) : "memory"); \
+     /*return*/ __ppc_i_lhbrxResult; })
 
 /*
  * __lwbrx - Load Word Byte-Reverse Indexed
@@ -226,9 +226,9 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
  *   int __lwbrx(void *, int);
  */
 #define __lwbrx(base, index)    \
-  ({ unsigned int lwbrxResult; \
-     __asm__ volatile ("lwbrx %0, %1, %2" : "=r" (lwbrxResult) : "b%" (index), "r" (base) : "memory"); \
-     /*return*/ lwbrxResult; })
+  ({ unsigned int __ppc_i_lwbrxResult; \
+     __asm__ volatile ("lwbrx %0, %1, %2" : "=r" (__ppc_i_lwbrxResult) : "b%" (index), "r" (base) : "memory"); \
+     /*return*/ __ppc_i_lwbrxResult; })
 
 /*
  * __sthbrx - Store Half Word Byte-Reverse Indexed
@@ -278,22 +278,22 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
  *
  *   int __rlwinm(long, int, int, int);
  */
-#define __rlwinm(rS, cnt, mb, me)                          \
-  ({ unsigned int val;                         \
-     __asm__ ("rlwinm %0,%1,%2,%3,%4" : "=r" (val)         \
-              : "r" (rS), "n" (cnt), "n" (mb), "n" (me)); \
-     /*return*/ val;})
+#define __rlwinm(rS, cnt, mb, me)						\
+  ({ unsigned int __ppc_i_val;							\
+     __asm__ ("rlwinm %0,%1,%2,%3,%4" : "=r" (__ppc_i_val)			\
+              : "r" (rS), "n" (cnt), "n" (mb), "n" (me));			\
+     /*return*/ __ppc_i_val;})
 
 /*
  * __rlwnm - Rotate Left Word then AND with Mask
  *
  *   int __rlwnm(long, int, int, int);
  */
-#define __rlwnm(value, leftRotateBits, maskStart, maskEnd)                        \
-  ({ unsigned int result;                                                        \
-     __asm__ ("rlwnm %0, %1, %2, %3, %4" : "=r" (result) :                        \
+#define __rlwnm(value, leftRotateBits, maskStart, maskEnd)			\
+  ({ unsigned int __ppc_i_result;						\
+     __asm__ ("rlwnm %0, %1, %2, %3, %4" : "=r" (__ppc_i_result) :		\
               "r" (value), "r" (leftRotateBits), "n" (maskStart), "n" (maskEnd)); \
-     /*return */ result; })
+     /*return */ __ppc_i_result; })
 
 
 /*******************************************************************
@@ -930,10 +930,10 @@ __mffs (void)
  *
  *   int __mfspr(int);
  */
-#define __mfspr(spr)    \
-  __extension__ ({ long mfsprResult; \
-     __asm__ volatile ("mfspr %0, %1" : "=r" (mfsprResult) : "n" (spr)); \
-     /*return*/ mfsprResult; })
+#define __mfspr(spr)							\
+  __extension__ ({ long __ppc_i_mfsprResult;				\
+     __asm__ volatile ("mfspr %0, %1" : "=r" (__ppc_i_mfsprResult) : "n" (spr)); \
+     /*return*/ __ppc_i_mfsprResult; })
 
 /*
  * __mtfsf - Move to SPSCR Fields

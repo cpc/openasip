@@ -522,7 +522,8 @@ lhd_print_error_function (diagnostic_context *context, const char *file)
       pp_set_prefix (context->printer, new_prefix);
 
       if (current_function_decl == NULL)
-	pp_printf (context->printer, _("At top level:"));
+	/* APPLE LOCAL default to Wformat-security 5764921 */
+	pp_printf (context->printer, "%s", _("At top level:"));
       else
 	{
 	  if (TREE_CODE (TREE_TYPE (current_function_decl)) == METHOD_TYPE)

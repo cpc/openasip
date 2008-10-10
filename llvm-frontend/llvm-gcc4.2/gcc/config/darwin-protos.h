@@ -95,6 +95,8 @@ extern section* darwin_set_section_for_var_p (tree, int, int, section*);
 
 /* APPLE LOCAL ObjC GC */
 extern tree darwin_handle_objc_gc_attribute (tree *, tree, tree, int, bool *);
+/* APPLE LOCAL file radar 5595352 */
+extern tree darwin_handle_nsobject_attribute (tree *, tree, tree, int, bool *);
 
 extern void darwin_file_start (void);
 extern void darwin_file_end (void);
@@ -136,8 +138,9 @@ extern bool objc_check_format_cfstring (tree, unsigned HOST_WIDE_INT, bool *);
 /* APPLE LOCAL radar 5195402 */
 extern bool objc_check_cfstringref_type (tree);
 
-/* APPLE LOCAL begin radar 2996215 */
-extern tree objc_create_init_utf16_var (const unsigned char *, size_t, size_t *);
-/* APPLE LOCAL end radar 2996215 */
+/* APPLE LOCAL begin radar 2996215 - 6068877 */
+extern bool cvt_utf8_utf16 (const unsigned char *, size_t, unsigned char **, size_t *);
+extern tree create_init_utf16_var (const unsigned char *inbuf, size_t length, size_t *numUniChars);
+/* APPLE LOCAL end radar 2996215 - 6068877 */
 /* APPLE LOCAL radar 5202926 */
 extern bool objc_anonymous_local_objc_name (const char *);

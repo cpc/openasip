@@ -248,6 +248,9 @@ m32c*-*-*)
 alpha*-*-*)
 	cpu_type=alpha
 	need_64bit_hwint=yes
+# LLVM LOCAL begin
+	out_cxx_file=alpha/llvm-alpha.cpp
+# LLVM LOCAL end                               
 	;;
 am33_2.0-*-linux*)
 	cpu_type=mn10300
@@ -315,6 +318,9 @@ m68k-*-*)
 	;;
 mips*-*-*)
 	cpu_type=mips
+# LLVM LOCAL begin
+	out_cxx_file=mips/llvm-mips.cpp
+# LLVM LOCAL end                               
 	need_64bit_hwint=yes
 	;;
 powerpc*-*-*)
@@ -378,6 +384,13 @@ x86_64-*-*)
 	tm_file="i386/biarch64.h ${tm_file}"
 	;;
 esac
+## LLVM LOCAL begin add dependency for llvm-i386-target.h
+case ${target} in
+x86_64-*-* | i686-*-* | i386-*-*)
+	tm_file="i386/llvm-i386-target.h ${tm_file}"
+	;;
+esac
+## LLVM LOCAL end
 
 # On a.out targets, we need to use collect2.
 case ${target} in
@@ -391,7 +404,8 @@ case ${target} in
 *-*-darwin*)
   tm_file="${tm_file} darwin.h"
   case ${target} in
-  *-*-darwin9*)
+  # APPLE LOCAL darwin10 5810054
+  *-*-darwin[912]*)
     tm_file="${tm_file} darwin9.h"
     ;;
   esac
@@ -790,7 +804,8 @@ arm*-*-elf | ep9312-*-elf)
 arm*-*-darwin*)
 	extra_options="${extra_options} arm/darwin.opt"
         tm_file="${tm_file} arm/darwin.h"
-        tmake_file="${tmake_file} arm/t-darwin"
+        tmake_file="${tmake_file} arm/t-darwin arm/t-slibgcc-iphoneos"
+	extra_headers=
         ;;
 # APPLE LOCAL end ARM darwin target
 arm*-wince-pe*)
@@ -1054,7 +1069,7 @@ i[34567]86-*-darwin*)
 	# Deleted a comment here.
 	# APPLE LOCAL mainline
 	with_cpu=${with_cpu:-core2}
- 	# APPLE LOCAL Macintosh alignment 2002-2-19 --ff
+	# APPLE LOCAL Macintosh alignment 2002-2-19 --ff
 	extra_options="${extra_options} i386/darwin.opt"
 	# APPLE LOCAL 4099000 5681645
 	tmake_file="${tmake_file} t-slibgcc-darwin i386/t-darwin"
@@ -1064,6 +1079,8 @@ x86_64-*-darwin*)
 	# Deleted with_arch
 	# APPLE LOCAL mainline
 	with_cpu=${with_cpu:-core2}
+	# APPLE LOCAL Macintosh alignment 2002-2-19 --ff
+	extra_options="${extra_options} i386/darwin.opt"
 	tmake_file="t-darwin ${cpu_type}/t-darwin64 t-slibgcc-darwin"
 	tm_file="${tm_file} ${cpu_type}/darwin64.h"
 	;;
@@ -1325,10 +1342,8 @@ i[34567]86-*-pe | i[34567]86-*-cygwin*)
 	target_gtfiles="\$(srcdir)/config/i386/winnt.c"
 	extra_options="${extra_options} i386/cygming.opt"
 	extra_objs="winnt.o winnt-stubs.o"
-# LLVM LOCAL begin mainline
-	c_target_objs="cygwin2.o"
+	c_target_objs=cygwin2.o
 	cxx_target_objs="cygwin2.o winnt-cxx.o"
-# LLVM LOCAL end mainline
 	extra_gcc_objs=cygwin1.o
 	extra_parts="crtbegin.o crtend.o"
 	if test x$enable_threads = xyes; then
@@ -1345,7 +1360,7 @@ i[34567]86-*-mingw32* | x86_64-*-mingw32*)
 	extra_options="${extra_options} i386/cygming.opt"
 	extra_objs="winnt.o winnt-stubs.o"
 # LLVM LOCAL begin mainline
-	cxx_target_objs="winnt-cxx.o"
+	cxx_target_objs=winnt-cxx.o
 	default_use_cxa_atexit=yes
 # LLVM LOCAL end mainline
 	extra_parts="crtbegin.o crtend.o"
@@ -1698,6 +1713,18 @@ mipstx39-*-elf* | mipstx39el-*-elf*)
 	tmake_file=mips/t-r3900
 	use_fixproto=yes
 	;;
+mipsallegrex*)
+	tm_file="elfos.h ${tm_file} mips/elf.h"
+	tmake_file=mips/t-allegrex
+	target_cpu_default="MASK_SINGLE_FLOAT|MASK_DIVIDE_BREAKS"
+	tm_defines="${tm_defines} MIPS_ISA_DEFAULT=2 MIPS_CPU_STRING_DEFAULT=\\\"allegrex\\\" MIPS_ABI_DEFAULT=ABI_EABI"
+	case ${target} in
+	mipsallegrex*-psp-elf*)   
+		tm_file="${tm_file} mips/psp.h"
+		;;
+	esac
+	use_fixproto=yes
+	;; 
 mmix-knuth-mmixware)
 	need_64bit_hwint=yes
 	;;
@@ -1759,8 +1786,8 @@ powerpc-*-beos*)
 	use_fixproto=yes
 	;;
 powerpc-*-darwin*)
-        # APPLE LOCAL ARM 5681645
-        tmake_file="${tmake_file} t-slibgcc-darwin"
+	# APPLE LOCAL ARM 5681645
+	tmake_file="${tmake_file} t-slibgcc-darwin"
 	extra_options="${extra_options} rs6000/darwin.opt"
 	# APPLE LOCAL mainline candidate 2006-06-22 4512244
 	extra_parts="${extra_parts} crt2.o"
@@ -1784,8 +1811,8 @@ powerpc-*-darwin*)
 	;;
 powerpc64-*-darwin*)
 	tm_file="${tm_file} ${cpu_type}/darwin8.h ${cpu_type}/darwin64.h"
-        # APPLE LOCAL ARM 5681645
-        tmake_file="${tmake_file} t-slibgcc-darwin"
+	# APPLE LOCAL ARM 5681645
+	tmake_file="${tmake_file} t-slibgcc-darwin"
 	extra_options="${extra_options} ${cpu_type}/darwin.opt"
 	# We're omitting t-darwin8 to avoid building any multilibs
 	extra_headers=altivec.h

@@ -152,7 +152,9 @@ typedef struct machine_function GTY(())
 /* Target cpu type */
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 const char *rs6000_cpu_target = "ppc";
+#endif
 /* LLVM LOCAL end */
 
 enum processor_type rs6000_cpu;
@@ -164,6 +166,10 @@ struct rs6000_cpu_select rs6000_select[3] =
   { (const char *)0,	"-mtune=",		1,	0 },
 };
 
+/* APPLE LOCAL begin 5774356 */
+static int debug_sp_offset = 0;
+static int debug_vrsave_offset = 0;
+/* APPLE LOCAL end 5774356 */
 /* Always emit branch hint bits.  */
 static GTY(()) bool rs6000_always_hint;
 
@@ -703,7 +709,6 @@ static int force_new_group (int, FILE *, rtx *, rtx, bool *, int, int *);
 static int redefine_groups (FILE *, int, rtx, rtx);
 static int pad_groups (FILE *, int, rtx, rtx);
 static void rs6000_sched_finish (FILE *, int);
-
 static int rs6000_use_sched_lookahead (void);
 /* LLVM LOCAL - Disable scheduler. */
 #endif
@@ -977,6 +982,7 @@ static const char alt_reg_names[][8] =
 #define TARGET_SCHED_IS_COSTLY_DEPENDENCE rs6000_is_costly_dependence
 #undef TARGET_SCHED_FINISH
 #define TARGET_SCHED_FINISH rs6000_sched_finish
+
 #undef TARGET_SCHED_FIRST_CYCLE_MULTIPASS_DFA_LOOKAHEAD
 #define TARGET_SCHED_FIRST_CYCLE_MULTIPASS_DFA_LOOKAHEAD rs6000_use_sched_lookahead
 /* LLVM LOCAL - Disable scheduler. */
@@ -1221,11 +1227,19 @@ darwin_rs6000_override_options (void)
   rs6000_altivec_abi = 1;
   TARGET_ALTIVEC_VRSAVE = 1;
 
+  /* APPLE LOCAL begin ARM 5683689 */
+  if (!darwin_macosx_version_min && !darwin_iphoneos_version_min)
+    darwin_macosx_version_min = "10.1";
+  /* APPLE LOCAL end ARM 5683689 */
+
+  /* APPLE LOCAL begin ARM 5683689 */
   /* APPLE LOCAL begin constant cfstrings */
   if (darwin_constant_cfstrings < 0)
-    darwin_constant_cfstrings = (strverscmp (darwin_macosx_version_min, "10.2")
-				 >= 0);
+    darwin_constant_cfstrings = 
+      darwin_iphoneos_version_min
+      || (strverscmp (darwin_macosx_version_min, "10.2") >= 0);
   /* APPLE LOCAL end constant cfstrings */
+  /* APPLE LOCAL end ARM 5683689 */
 
   if (DEFAULT_ABI == ABI_DARWIN)
   {
@@ -1267,6 +1281,8 @@ darwin_rs6000_override_options (void)
      G4 unless targetting the kernel.  */
   if (!flag_mkernel
       && !flag_apple_kext
+      /* APPLE LOCAL ARM 5683689 */
+      && darwin_macosx_version_min
       && strverscmp (darwin_macosx_version_min, "10.5") >= 0
       && ! (target_flags_explicit & MASK_ALTIVEC)
       && ! rs6000_select[1].string)
@@ -1280,6 +1296,15 @@ darwin_rs6000_override_options (void)
   if (DARWIN_GENERATE_ISLANDS)
     darwin_stubs = true;
   /* APPLE LOCAL end axe stubs 5571540 */
+  /* APPLE LOCAL begin stack-protector default 5095227 */
+  /* Don't enable -fstack-protector by default for kexts on darwin ppc
+     targeting 10.6 because there's a bug that it exposes in some kext,
+     <rdar://problem/6034665>.  */
+  if (flag_stack_protect == -1
+      && (flag_mkernel || flag_apple_kext)
+      && strcmp (darwin_macosx_version_min, "10.6") == 0)
+    flag_stack_protect = 0;
+  /* APPLE LOCAL end stack-protector default 5095227 */
 }
 #endif
 
@@ -1440,7 +1465,9 @@ rs6000_override_options (const char *default_cpu)
   rs6000_cpu = TARGET_POWERPC64 ? PROCESSOR_DEFAULT64 : PROCESSOR_DEFAULT;
 
   /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   rs6000_cpu_target = TARGET_POWERPC64 ? "ppc64" : "ppc";
+#endif
   /* LLVM LOCAL end */
 
   /* APPLE LOCAL begin -fast or -fastf or -fastcp */
@@ -1471,12 +1498,13 @@ rs6000_override_options (const char *default_cpu)
 		    target_flags &= ~set_masks;
 		    target_flags |= (processor_target_table[j].target_enable
 				     & set_masks);
-		    /* APPLE LOCAL begin -fast */
+		    /* APPLE LOCAL begin -fast or -fastf or -fastcp */
 		    mcpu_cpu = processor_target_table[j].processor;
-		    /* APPLE LOCAL end -fast */
-        
+		    /* APPLE LOCAL end -fast or -fastf or -fastcp */
 		    /* LLVM LOCAL begin */
-        rs6000_cpu_target = processor_target_table[j].name;
+#ifdef ENABLE_LLVM
+                    rs6000_cpu_target = processor_target_table[j].name;
+#endif
 		    /* LLVM LOCAL end */
 		  }
 		break;
@@ -1507,11 +1535,10 @@ rs6000_override_options (const char *default_cpu)
 	{
 	  flag_disable_opts_for_faltivec = 1;
 	  /* APPLE LOCAL radar 4161346 */
-/* LLVM LOCAL begin handle -mpim-altivec correctly */
 	  target_flags |= MASK_ALTIVEC;
 	}
+      /* APPLE LOCAL radar 5822514 */
       target_flags |= MASK_PIM_ALTIVEC;
-/* LLVM LOCAL begin handle -mpim-altivec correctly */
     }
   /* APPLE LOCAL end AltiVec */
 
@@ -4899,6 +4926,7 @@ static bool
 rs6000_return_in_memory (tree type, tree fntype ATTRIBUTE_UNUSED)
 {
   /* LLVM LOCAL begin struct return check */
+#ifdef ENABLE_LLVM
   /* FIXME darwin ppc64 often returns structs partly in memory and partly
      in regs.  The binary interface of return_in_memory (which does the
      work for aggregate_value_p) is not a good match for this; in fact
@@ -4910,6 +4938,7 @@ rs6000_return_in_memory (tree type, tree fntype ATTRIBUTE_UNUSED)
       TREE_CODE(TYPE_SIZE_UNIT(type)) == INTEGER_CST &&
       TREE_INT_CST_LOW(TYPE_SIZE_UNIT(type)) > 8)
     return true;
+#endif
   /* LLVM LOCAL end struct return check */  
 
   /* In the darwin64 abi, try to use registers for larger structs
@@ -9340,7 +9369,11 @@ rs6000_expand_builtin (tree exp, rtx target, rtx subtarget ATTRIBUTE_UNUSED,
     if (d->code == fcode)
       return rs6000_expand_ternop_builtin (d->icode, arglist, target);
 
-  gcc_unreachable ();
+  /* APPLE LOCAL begin 5774356 */
+  /* It looks like a builtin call, but there is something wrong;
+     maybe the wrong number of arguments.  Return failure.  */
+  return NULL_RTX;
+  /* APPLE LOCAL end 5774356 */
 }
 
 static tree
@@ -9408,7 +9441,6 @@ rs6000_init_builtins (void)
   bool_V8HI_type_node = build_vector_type (bool_short_type_node, 8);
   bool_V4SI_type_node = build_vector_type (bool_int_type_node, 4);
   pixel_V8HI_type_node = build_vector_type (pixel_type_node, 8);
-
 
   /* APPLE LOCAL begin LLVM */
 #ifdef ENABLE_LLVM
@@ -17183,6 +17215,10 @@ rs6000_emit_prologue (void)
         {
           /* Save VRSAVE.  */
           offset = info->vrsave_save_offset + sp_offset;
+	  /* APPLE LOCAL begin 5774356 */
+	  debug_vrsave_offset = offset;
+	  debug_sp_offset = sp_offset;
+	  /* APPLE LOCAL end 5774356 */
           mem = gen_frame_mem (SImode,
                                gen_rtx_PLUS (Pmode, frame_reg_rtx,
                                              GEN_INT (offset)));
@@ -17486,7 +17522,10 @@ rs6000_emit_epilogue (int sibcall)
 
   /* APPLE LOCAL begin mainline */
   /* Set sp_offset based on the stack push from the prologue.  */
-  if ((DEFAULT_ABI == ABI_V4 || current_function_calls_eh_return)
+  /* APPLE LOCAL begin 5774356 */
+  if (info->push_p
+      && (DEFAULT_ABI == ABI_V4 || DEFAULT_ABI == ABI_DARWIN || current_function_calls_eh_return)
+      /* APPLE LOCAL end 5664356 */
       && info->total_size < 32767)
 	sp_offset = info->total_size;
 
@@ -17520,6 +17559,10 @@ rs6000_emit_epilogue (int sibcall)
     {
       rtx addr, mem, reg;
 
+      /* APPLE LOCAL begin 5774356 */
+      gcc_assert (debug_sp_offset == sp_offset);
+      gcc_assert (debug_vrsave_offset == (info->vrsave_save_offset + sp_offset));
+      /* APPLE LOCAL end 5774356 */
       addr = gen_rtx_PLUS (Pmode, frame_reg_rtx,
 			   GEN_INT (info->vrsave_save_offset + sp_offset));
       mem = gen_frame_mem (SImode, addr);
@@ -19064,9 +19107,9 @@ output_function_profiler (FILE *file, int labelno)
       break;
     }
 }
+
 /* LLVM LOCAL - Disable scheduler. */
 #ifndef ENABLE_LLVM
-
 
 /* Power4 load update and store update instructions are cracked into a
    load or store and an integer insn which are executed in the same cycle.
@@ -19292,6 +19335,7 @@ is_branch_slot_insn (rtx insn)
    INSN earlier, reduce the priority to execute INSN later.  Do not
    define this macro if you do not need to adjust the scheduling
    priorities of insns.  */
+
 static int
 rs6000_adjust_priority (rtx insn ATTRIBUTE_UNUSED, int priority)
 {
@@ -19393,7 +19437,6 @@ rs6000_use_sched_lookahead (void)
     return 4;
   return 0;
 }
-
 
 /* Determine is PAT refers to memory.  */
 
@@ -19981,6 +20024,7 @@ rs6000_sched_finish (FILE *dump, int sched_verbose)
 
 /* LLVM LOCAL - Disable scheduler. */
 #endif ENABLE_LLVM
+
 /* Length in units of the trampoline for entering a nested function.  */
 
 int

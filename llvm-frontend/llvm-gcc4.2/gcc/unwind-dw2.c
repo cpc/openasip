@@ -1514,6 +1514,7 @@ uw_identify_context (struct _Unwind_Context *context)
 /* LLVM LOCAL begin
    This change is needed to match Apple's installed libgcc. */
 #ifdef LLVM_STACKSENSITIVE_UNWIND_RESUME
+  /* APPLE LOCAL libgcc 6148462 */
   return _Unwind_GetCFA (context);
 #else
   return _Unwind_GetIP (context);

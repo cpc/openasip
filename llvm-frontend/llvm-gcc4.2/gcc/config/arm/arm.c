@@ -84,12 +84,18 @@ static bool arm_assemble_integer (rtx, unsigned int, int);
 static const char *fp_const_from_val (REAL_VALUE_TYPE *);
 static arm_cc get_arm_condition_code (rtx);
 static HOST_WIDE_INT int_log2 (HOST_WIDE_INT);
-static rtx is_jump_table (rtx);
 static const char *output_multi_immediate (rtx *, const char *, const char *,
 					   int, HOST_WIDE_INT);
 static const char *shift_op (rtx, HOST_WIDE_INT *);
 static struct machine_function *arm_init_machine_status (void);
-static void thumb_exit (FILE *, int);
+/* APPLE LOCAL begin compact switch tables */
+static int handle_thumb_unexpanded_prologue (FILE *, bool);
+static int handle_thumb_unexpanded_epilogue (bool);
+static int handle_thumb_exit (FILE *, int, bool);
+static int handle_thumb_pushpop (FILE *, unsigned long, int, int *, unsigned long, bool);
+/* APPLE LOCAL end compact switch tables */
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
 static rtx is_jump_table (rtx);
 static HOST_WIDE_INT get_jump_table_size (rtx);
 static Mnode *move_minipool_fix_forward_ref (Mnode *, Mnode *, HOST_WIDE_INT);
@@ -104,8 +110,14 @@ static Mfix *create_fix_barrier (Mfix *, HOST_WIDE_INT);
 static void push_minipool_barrier (rtx, HOST_WIDE_INT);
 static void push_minipool_fix (rtx, HOST_WIDE_INT, rtx *, enum machine_mode,
 			       rtx);
+/* LLVM LOCAL */
+#endif
 static void arm_reorg (void);
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
 static bool note_invalid_constants (rtx, HOST_WIDE_INT, int);
+/* LLVM LOCAL */
+#endif
 static int current_file_function_operand (rtx);
 static unsigned long arm_compute_save_reg0_reg12_mask (void);
 static unsigned long arm_compute_save_reg_mask (void);
@@ -135,9 +147,13 @@ static bool arm_fastmul_rtx_costs (rtx, int, int, int *);
 static bool arm_xscale_rtx_costs (rtx, int, int, int *);
 static bool arm_9e_rtx_costs (rtx, int, int, int *);
 static int arm_address_cost (rtx);
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
 static bool arm_memory_load_p (rtx);
 static bool arm_cirrus_insn_p (rtx);
 static void cirrus_reorg (rtx);
+/* LLVM LOCAL */
+#endif
 static void arm_init_builtins (void);
 static rtx arm_expand_builtin (tree, rtx, rtx, enum machine_mode, int);
 static void arm_init_iwmmxt_builtins (void);
@@ -153,9 +169,13 @@ static int arm_arg_partial_bytes (CUMULATIVE_ARGS *, enum machine_mode,
 #ifdef OBJECT_FORMAT_ELF
 static void arm_elf_asm_constructor (rtx, int);
 #endif
-#ifndef ARM_PE
+/* APPLE LOCAL begin ARM darwin section_info */
+#if TARGET_MACHO
+static void arm_darwin_encode_section_info (tree, rtx, int);
+#elif !defined(ARM_PE)
 static void arm_encode_section_info (tree, rtx, int);
 #endif
+/* APPLE LOCAL end ARM darwin section_info */
 
 static void arm_file_end (void);
 
@@ -213,6 +233,11 @@ static rtx arm_builtin_setjmp_frame_value (void);
 static bool arm_binds_local_p (tree);
 #endif
 /* APPLE LOCAL end ARM darwin local binding */
+/* APPLE LOCAL begin 5946347 ms_struct support */
+static tree arm_handle_ms_struct_attribute (tree *, tree, tree, int, bool *);
+static tree arm_handle_gcc_struct_attribute (tree *, tree, tree, int, bool *);
+static bool arm_ms_bitfield_layout_p (tree);
+/* APPLE LOCAL end 5946347 ms_struct support */
 
 
 /* Initialize the GCC target structure.  */
@@ -286,6 +311,10 @@ static bool arm_binds_local_p (tree);
 #undef TARGET_ENCODE_SECTION_INFO
 #ifdef ARM_PE
 #define TARGET_ENCODE_SECTION_INFO  arm_pe_encode_section_info
+/* APPLE LOCAL begin ARM darwin section_info */
+#elif  TARGET_MACHO
+#define TARGET_ENCODE_SECTION_INFO  arm_darwin_encode_section_info
+/* APPLE LOCAL end ARM darwin section_info */
 #else
 #define TARGET_ENCODE_SECTION_INFO  arm_encode_section_info
 #endif
@@ -413,11 +442,22 @@ static bool arm_binds_local_p (tree);
 #define TARGET_BINDS_LOCAL_P arm_binds_local_p
 #endif
 /* APPLE LOCAL end ARM darwin local binding */
+/* APPLE LOCAL ARM 6008578 */
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
+static HOST_WIDE_INT get_label_pad (rtx, HOST_WIDE_INT);
+/* LLVM LOCAL */
+#endif
 
 /* APPLE LOCAL begin ARM reliable backtraces */
 #undef TARGET_BUILTIN_SETJMP_FRAME_VALUE
 #define TARGET_BUILTIN_SETJMP_FRAME_VALUE arm_builtin_setjmp_frame_value
 /* APPLE LOCAL end ARM reliable backtraces */
+
+/* APPLE LOCAL begin 5946347 ms_struct support */
+#undef TARGET_MS_BITFIELD_LAYOUT_P
+#define TARGET_MS_BITFIELD_LAYOUT_P arm_ms_bitfield_layout_p
+/* APPLE LOCAL end 5946347 ms_struct support */
 
 struct gcc_target targetm = TARGET_INITIALIZER;
 
@@ -465,6 +505,15 @@ int    arm_structure_size_boundary = DEFAULT_STRUCTURE_SIZE_BOUNDARY;
 /* Used for Thumb call_via trampolines.  */
 rtx thumb_call_via_label[14];
 static int thumb_call_reg_needed;
+
+/* APPLE LOCAL begin ARM compact switch tables */
+/* Keeps track of which *_switch* functions we've used, so we
+   can emit the right stubs. */
+static GTY(()) rtx switch8_libfunc;
+static GTY(()) rtx switchu8_libfunc;
+static GTY(()) rtx switch16_libfunc;
+static GTY(()) rtx switch32_libfunc;
+/* APPLE LOCAL end ARM compact switch tables */
 
 /* Bit values used to identify processor capabilities.  */
 #define FL_CO_PROC    (1 << 0)        /* Has external co-processor bus */
@@ -661,6 +710,7 @@ static const struct processors all_architectures[] =
   {"armv6j",  arm1136js,  "6J",  FL_CO_PROC |             FL_FOR_ARCH6J, NULL},
   {"armv6k",  mpcore,	  "6K",  FL_CO_PROC |             FL_FOR_ARCH6K, NULL},
 #endif
+/* APPLE LOCAL end ARM custom architectures */
   {"armv6z",  arm1176jzs, "6Z",  FL_CO_PROC |             FL_FOR_ARCH6Z, NULL},
   {"armv6zk", arm1176jzs, "6ZK", FL_CO_PROC |             FL_FOR_ARCH6ZK, NULL},
   {"ep9312",  ep9312,     "4T",  FL_LDSCHED | FL_CIRRUS | FL_FOR_ARCH4, NULL},
@@ -808,11 +858,125 @@ inclusive_bitmask (int start, int end)
 }
 /* APPLE LOCAL end ARM custom frame layout */
 
+/* APPLE LOCAL begin ARM compact switch tables */
+/* These are library functions, but calls to them are not 
+   represented as calls in the RTL because they do not have 
+   normal function-call semantics.   We generate the
+   Mach-O stuff lazily in this case. */
+
+void register_switch8_libfunc (void)
+{
+#if TARGET_MACHO
+  if (switch8_libfunc == NULL)
+    switch8_libfunc = gen_rtx_SYMBOL_REF (Pmode, 
+		ggc_alloc_string ("__switch8", sizeof ("__switch8")));
+  if (flag_pic || MACHO_DYNAMIC_NO_PIC_P)
+    machopic_validate_stub_or_non_lazy_ptr
+	(machopic_indirection_name (switch8_libfunc, true));
+#endif
+}
+
+void register_switchu8_libfunc (void)
+{
+#if TARGET_MACHO
+  if (switchu8_libfunc == NULL)
+    switchu8_libfunc = gen_rtx_SYMBOL_REF (Pmode, 
+		ggc_alloc_string ("__switchu8", sizeof ("__switchu8")));
+  if (flag_pic || MACHO_DYNAMIC_NO_PIC_P)
+    machopic_validate_stub_or_non_lazy_ptr
+	(machopic_indirection_name (switchu8_libfunc, true));
+#endif
+}
+
+void register_switch16_libfunc (void)
+{
+#if TARGET_MACHO
+  if (switch16_libfunc == NULL)
+    switch16_libfunc = gen_rtx_SYMBOL_REF (Pmode, 
+		ggc_alloc_string ("__switch16", sizeof ("__switch16")));
+  if (flag_pic || MACHO_DYNAMIC_NO_PIC_P)
+    machopic_validate_stub_or_non_lazy_ptr
+	(machopic_indirection_name (switch16_libfunc, true));
+#endif
+}
+
+void register_switch32_libfunc (void)
+{
+#if TARGET_MACHO
+  if (switch32_libfunc == NULL)
+    switch32_libfunc = gen_rtx_SYMBOL_REF (Pmode, 
+		ggc_alloc_string ("__switch32", sizeof ("__switch32")));
+  if (flag_pic || MACHO_DYNAMIC_NO_PIC_P)
+    machopic_validate_stub_or_non_lazy_ptr
+	(machopic_indirection_name (switch32_libfunc, true));
+#endif
+}
+/* APPLE LOCAL end ARM compact switch tables */
+
 /* Set up library functions unique to ARM.  */
 
 static void
 arm_init_libfuncs (void)
 {
+  /* APPLE LOCAL begin ARM 4702983 Thumb VFP math */
+  if (TARGET_MACHO && TARGET_THUMB && !TARGET_SOFT_FLOAT
+      && (flag_pic || MACHO_DYNAMIC_NO_PIC_P))
+    {
+      /* Double-precision floating-point arithmetic.  */
+      set_optab_libfunc (add_optab, DFmode, "__adddf3vfp");
+      set_optab_libfunc (sdiv_optab, DFmode, "__divdf3vfp");
+      set_optab_libfunc (smul_optab, DFmode, "__muldf3vfp");
+      set_optab_libfunc (neg_optab, DFmode, NULL);
+      set_optab_libfunc (sub_optab, DFmode, "__subdf3vfp");
+
+      /* Double-precision comparisons. */
+      set_optab_libfunc (eq_optab, DFmode, "__eqdf2vfp");
+      set_optab_libfunc (ne_optab, DFmode, "__nedf2vfp");
+      set_optab_libfunc (lt_optab, DFmode, "__ltdf2vfp");
+      set_optab_libfunc (le_optab, DFmode, "__ledf2vfp");
+      set_optab_libfunc (ge_optab, DFmode, "__gedf2vfp");
+      set_optab_libfunc (gt_optab, DFmode, "__gtdf2vfp");
+      set_optab_libfunc (unord_optab, DFmode, "__unorddf2vfp");
+
+      /* Single-precision floating-point arithmetic.  */
+      set_optab_libfunc (add_optab, SFmode, "__addsf3vfp");
+      set_optab_libfunc (sdiv_optab, SFmode, "__divsf3vfp");
+      set_optab_libfunc (smul_optab, SFmode, "__mulsf3vfp");
+      set_optab_libfunc (neg_optab, SFmode, NULL);
+      set_optab_libfunc (sub_optab, SFmode, "__subsf3vfp");
+
+      /* Single-precision comparisons.  */
+      set_optab_libfunc (eq_optab, SFmode, "__eqsf2vfp");
+      set_optab_libfunc (ne_optab, SFmode, "__nesf2vfp");
+      set_optab_libfunc (lt_optab, SFmode, "__ltsf2vfp");
+      set_optab_libfunc (le_optab, SFmode, "__lesf2vfp");
+      set_optab_libfunc (ge_optab, SFmode, "__gesf2vfp");
+      set_optab_libfunc (gt_optab, SFmode, "__gtsf2vfp");
+      set_optab_libfunc (unord_optab, SFmode, "__unordsf2vfp");
+
+      /* Floating-point to integer conversions.  */
+      /* DImode conversions are done via library routines even
+	 when generating VFP instructions, so use the same ones. */
+      set_conv_libfunc (sfix_optab, SImode, DFmode, "__fixdfsivfp");
+      set_conv_libfunc (ufix_optab, SImode, DFmode, "__fixunsdfsivfp");
+      set_conv_libfunc (sfix_optab, SImode, SFmode, "__fixsfsivfp");
+      set_conv_libfunc (ufix_optab, SImode, SFmode, "__fixunssfsivfp");
+
+      /* Conversions between floating types. */
+      set_conv_libfunc (trunc_optab, SFmode, DFmode, "__truncdfsf2vfp");
+      set_conv_libfunc (sext_optab, DFmode, SFmode, "__extendsfdf2vfp");
+
+      /* Integer to floating-point conversions.  */
+      /* DImode conversions are done via library routines even
+	 when generating VFP instructions, so use the same ones. */
+      set_conv_libfunc (sfloat_optab, DFmode, SImode, "__floatsidfvfp");
+      set_conv_libfunc (ufloat_optab, DFmode, SImode, "__floatunssidfvfp");
+      set_conv_libfunc (sfloat_optab, SFmode, SImode, "__floatsisfvfp");
+      set_conv_libfunc (ufloat_optab, SFmode, SImode, "__floatunssisfvfp");
+      return;
+    }
+  /* APPLE LOCAL end ARM 4702983 Thumb VFP math */
+
   /* There are no special library functions unless we are using the
      ARM BPABI.  */
   if (!TARGET_BPABI)
@@ -1560,6 +1724,91 @@ arm_current_func_type (void)
   return cfun->machine->func_type;
 }
 
+/* APPLE LOCAL begin ARM indirect sibcalls */
+/* Look for an indirect sibling call that uses a callee-saved reg.
+   We'll need to copy this reg to IP and change the call, since
+   the callee-saved reg will be clobbered by the restore of the old
+   value.   (This negates the code size advantage of the sibcall, but
+   not the gain in stack size at runtime.) */
+
+static int
+indirect_sibreturn_reg (rtx sibling, bool *is_value)
+{
+  if (GET_CODE (sibling) == CALL_INSN
+      && GET_CODE (PATTERN (sibling)) == PARALLEL
+      && GET_CODE (XVECEXP (PATTERN (sibling), 0, 0)) == CALL
+      && GET_CODE (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0)) == MEM
+      && GET_CODE (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0), 0)) == REG)
+    {
+      *is_value = 0;
+      return REGNO (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0), 0));
+    }
+  if (GET_CODE (sibling) == CALL_INSN
+      && GET_CODE (PATTERN (sibling)) == PARALLEL
+      && GET_CODE (XVECEXP (PATTERN (sibling), 0, 0)) == SET
+      && GET_CODE (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1)) == CALL
+      && GET_CODE (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0)) == MEM
+      && GET_CODE (XEXP (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0), 0)) == REG)
+    {
+      *is_value = 1;
+      return REGNO (XEXP (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0), 0));
+    }
+  return -1;
+}
+
+/* Look for an indirect sibling call that uses a memory location, at
+   reg + or - constant; this will be a stack location, but registers
+   other than SP and FP are possible with large stack frames.
+   We'll need to load this location into IP and change the call, since
+   a memory location is not valid in the instruction.  (The usual approach
+   of forcing reload to copy the value into a register through predicates
+   and constraints will not work here, as the load would come out after
+   the restore of FP and SP, too late.)
+   Return value = signed offset from register *reg (usually SP or FP).
+   Null if this case doesn't apply.
+   We do not check for offsets too big to fit in a load, nor offsets in a
+   register; it is believed that these cases cannot occur. */
+
+static rtx
+indirect_sibreturn_mem (rtx sibling, rtx* reg, bool *is_value)
+{
+  rtx mem = NULL_RTX;
+  if (GET_CODE (sibling) == CALL_INSN
+      && GET_CODE (PATTERN (sibling)) == PARALLEL
+      && GET_CODE (XVECEXP (PATTERN (sibling), 0, 0)) == CALL
+      && GET_CODE (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0)) == MEM
+      && GET_CODE (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0), 0)) == MEM)
+    {
+      *is_value = 0;
+      mem = XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0), 0);
+    }
+  else if (GET_CODE (sibling) == CALL_INSN
+      && GET_CODE (PATTERN (sibling)) == PARALLEL
+      && GET_CODE (XVECEXP (PATTERN (sibling), 0, 0)) == SET
+      && GET_CODE (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1)) == CALL
+      && GET_CODE (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0)) == MEM
+      && GET_CODE (XEXP (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0), 0)) == MEM)
+    {
+      *is_value = 1;
+      mem = XEXP (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0), 0);
+    }
+ if (mem 
+     && GET_CODE (XEXP (mem, 0)) == PLUS
+     && GET_CODE (XEXP (XEXP (mem, 0), 0)) == REG
+     && GET_CODE (XEXP (XEXP (mem, 0), 1)) == CONST_INT)
+    {
+      *reg = XEXP (XEXP (mem, 0), 0);
+      return XEXP (XEXP (mem, 0), 1);
+    }
+  else if (mem && GET_CODE (XEXP (mem, 0)) == REG)
+    {
+      *reg = XEXP (mem, 0);
+      return const0_rtx;
+    }
+  return NULL_RTX;
+}
+/* APPLE LOCAL end ARM indirect sibcalls */
+
 /* Return 1 if it is possible to return using a single instruction.
    If SIBLING is non-null, this is a test for a return before a sibling
    call.  SIBLING is the call insn, so we can examine its register usage.  */
@@ -1637,6 +1886,16 @@ use_return_insn (int iscond, rtx sibling)
 
 	  if (find_regno_fusage (sibling, USE, 3))
 	    return 0;
+
+	  /* APPLE LOCAL begin ARM indirect sibcalls */
+	  /* ... or to hold the target address for an indirect sibcall. */
+	  {
+	    bool ignored;
+	    int regno = indirect_sibreturn_reg (sibling, &ignored);
+	    if (regno == 3)
+	      return 0;
+	  }
+	  /* APPLE LOCAL end ARM indirect sibcalls */
 	}
 
       /* ... and that there are no call-saved registers in r0-r2
@@ -1670,6 +1929,20 @@ use_return_insn (int iscond, rtx sibling)
      two instructions for the return.  */
   if (saved_int_regs && !(saved_int_regs & (1 << LR_REGNUM)))
     return 0;
+
+  /* APPLE LOCAL begin ARM indirect sibcalls */
+  /* If we have an indirect sibcall that uses a saved reg, we'll need
+     to copy that value into IP before restoring. */
+  if (sibling)
+    {
+      bool ignored;
+      int regno = indirect_sibreturn_reg (sibling, &ignored);
+      if (regno > 3 && regno != 12)
+	return 0;
+      if (regno == -1)
+	return 0;
+    }
+  /* APPLE LOCAL end ARM indirect sibcalls */
 
   /* Can't be done if any of the FPA regs are pushed,
      since this also requires an insn.  */
@@ -2976,6 +3249,10 @@ const struct attribute_spec arm_attribute_table[] =
   { "dllexport",    0, 0, false, false, false, handle_dll_attribute },
   { "notshared",    0, 0, false, true, false, arm_handle_notshared_attribute },
 #endif
+/* APPLE LOCAL begin 5946347 ms_struct support */
+  { "ms_struct", 0, 0, false, false,  false, arm_handle_ms_struct_attribute },
+  { "gcc_struct", 0, 0, false, false,  false, arm_handle_gcc_struct_attribute },
+/* APPLE LOCAL end 5946347 ms_struct support */
 /* APPLE LOCAL begin ARM darwin attributes */
 #ifdef SUBTARGET_ATTRIBUTE_TABLE
   SUBTARGET_ATTRIBUTE_TABLE,
@@ -3138,8 +3415,11 @@ arm_encode_call_attribute (tree decl, int flag)
 #if TARGET_MACHO
   rtx sym_ref = XEXP (DECL_RTL (decl), 0);
 
-  /* Do not allow weak functions to be treated as short call.  */
-  if (DECL_WEAK (decl) && flag == SYMBOL_SHORT_CALL)
+  /* Do not allow weak functions with default visibility to be treated
+     as short call.  */
+  if (DECL_WEAK (decl)
+      && DECL_VISIBILITY (decl) == VISIBILITY_DEFAULT
+      && flag == SYMBOL_SHORT_CALL)
     return;
 
   SYMBOL_REF_FLAGS (sym_ref) |= flag;
@@ -3186,6 +3466,24 @@ arm_set_default_type_attributes (tree type)
       type_attr_list = tree_cons (attr_name, NULL_TREE, type_attr_list);
       TYPE_ATTRIBUTES (type) = type_attr_list;
     }
+  /* APPLE LOCAL begin 5946347 ms_struct support */
+  /* If -mms-bitfields is active and this is a structure or union type 
+     definition, then add an ms_struct attribute. */
+#if TARGET_MACHO
+  else if ((TARGET_MS_BITFIELD_LAYOUT || darwin_ms_struct)
+	   && (TREE_CODE (type) == RECORD_TYPE
+	       || TREE_CODE (type) == UNION_TYPE))
+#else
+  else if (TARGET_MS_BITFIELD_LAYOUT 
+	   && (TREE_CODE (type) == RECORD_TYPE 
+	       || TREE_CODE (type) == UNION_TYPE))
+#endif
+    {
+      TYPE_ATTRIBUTES (type) = tree_cons (get_identifier ("ms_struct"),
+                                          NULL_TREE,
+                                          TYPE_ATTRIBUTES (type));
+    }
+  /* APPLE LOCAL end 5946347 ms_struct support */
 }
 
 /* Return 1 if the operand is a SYMBOL_REF for a function known to be
@@ -3292,10 +3590,17 @@ arm_function_ok_for_sibcall (tree decl, tree exp ATTRIBUTE_UNUSED)
   if (cfun->machine->sibcall_blocked)
     return false;
 
+  /* APPLE LOCAL begin ARM indirect sibcalls */
   /* Never tailcall something for which we have no decl, or if we
      are in Thumb mode.  */
-  if (decl == NULL || TARGET_THUMB)
+  if (TARGET_THUMB)
     return false;
+
+  /* All indirect calls are within range, since we load the address into a
+     register. */
+  if (decl == NULL)
+    return true;
+  /* APPLE LOCAL end ARM indirect sibcalls */
 
   /* Get the calling method.  */
   if (lookup_attribute ("short_call", TYPE_ATTRIBUTES (TREE_TYPE (decl))))
@@ -4239,7 +4544,17 @@ arm_legitimize_address (rtx x, rtx orig_x, enum machine_mode mode)
   if (arm_tls_symbol_p (x))
     return legitimize_tls_address (x, NULL_RTX);
 
-  if (GET_CODE (x) == PLUS)
+  /* APPLE LOCAL begin ARM addresses involving large constants */
+  if (flag_pic)
+    {
+      /* We need to find and carefully transform any SYMBOL and LABEL
+	 references; so go back to the original address expression.  */
+      rtx new_x = legitimize_pic_address (orig_x, mode, NULL_RTX);
+
+      if (new_x != orig_x)
+	x = new_x;
+    }
+  else if (GET_CODE (x) == PLUS)
     {
       rtx xop0 = XEXP (x, 0);
       rtx xop1 = XEXP (x, 1);
@@ -4247,16 +4562,42 @@ arm_legitimize_address (rtx x, rtx orig_x, enum machine_mode mode)
       if (CONSTANT_P (xop0) && !symbol_mentioned_p (xop0))
 	xop0 = force_reg (SImode, xop0);
 
-      if (CONSTANT_P (xop1) && !symbol_mentioned_p (xop1))
+      if (CONSTANT_P (xop1) && !symbol_mentioned_p (xop1)
+	  && GET_CODE (xop1) != CONST_INT)
 	xop1 = force_reg (SImode, xop1);
 
-      if (ARM_BASE_REGISTER_RTX_P (xop0)
-	  && GET_CODE (xop1) == CONST_INT)
+      if (GET_CODE (xop1) == CONST_INT)
 	{
 	  HOST_WIDE_INT n, low_n;
 	  rtx base_reg, val;
-	  n = INTVAL (xop1);
 
+	  /* Look for
+	     (+ (+ (foo, SFP) const)).  It is better to rearrange this as
+	     (+ (foo (+ (SFP, const))).   The eventual SP + const1 + const will
+	     get folded. */
+
+	  if (GET_CODE (xop0) == PLUS)
+	    {
+	      rtx xop00 = XEXP (xop0, 0);
+	      rtx xop01 = XEXP (xop0, 1);
+
+	      if (xop01 == virtual_stack_vars_rtx)
+		{
+		  base_reg = gen_reg_rtx (SImode);
+		  val = force_operand (gen_rtx_PLUS (SImode, xop01, xop1), 
+					NULL_RTX);
+		  emit_move_insn (base_reg, val);
+		  /* Canonical form requires some non-reg ops to be first. */
+		  x = gen_rtx_PLUS (SImode, xop00, base_reg);
+		  return x;
+		}
+	    }
+
+	  n = INTVAL (xop1);
+	  /* The size of constant that fits in a load or store instruction
+	     is different for different sized operations.  Break N into
+	     low_n (the part that will fit in the instruction) and n
+	     (the part that won't). */
 	  /* VFP addressing modes actually allow greater offsets, but for
 	     now we just stick with the lowest common denominator.  */
 	  if (mode == DImode
@@ -4270,6 +4611,11 @@ arm_legitimize_address (rtx x, rtx orig_x, enum machine_mode mode)
 		  low_n -= 16;
 		}
 	    }
+	  else if ((mode == HImode || mode == QImode) && arm_arch4)
+	    {
+	      low_n = n >= 0 ? (n & 0xff) : -((-n) & 0xff);
+	      n -= low_n;
+	    }
 	  else
 	    {
 	      low_n = ((mode) == TImode ? 0
@@ -4277,10 +4623,17 @@ arm_legitimize_address (rtx x, rtx orig_x, enum machine_mode mode)
 	      n -= low_n;
 	    }
 
-	  base_reg = gen_reg_rtx (SImode);
-	  val = force_operand (plus_constant (xop0, n), NULL_RTX);
-	  emit_move_insn (base_reg, val);
-	  x = plus_constant (base_reg, low_n);
+	  if (n != 0)
+	    {
+	      /* Emit an auxiliary instruction to compute base+high_part
+		 into a register base_reg, then return base_reg+low_part. */
+	      base_reg = gen_reg_rtx (SImode);
+	      val = force_operand (plus_constant (xop0, n), NULL_RTX);
+	      emit_move_insn (base_reg, val);
+	      x = plus_constant (base_reg, low_n);
+	    }
+	  else if (xop0 != XEXP (x, 0) || xop1 != XEXP (x, 1))
+	    x = gen_rtx_PLUS (SImode, xop0, xop1);
 	}
       else if (xop0 != XEXP (x, 0) || xop1 != XEXP (x, 1))
 	x = gen_rtx_PLUS (SImode, xop0, xop1);
@@ -4314,14 +4667,14 @@ arm_legitimize_address (rtx x, rtx orig_x, enum machine_mode mode)
       rtx base_reg;
 
       /* ldr and ldrb can use a 12 bit index, ldrsb and the rest can only
-         use a 8 bit index. So let's use a 12 bit index for SImode only and
-         hope that arm_gen_constant will enable ldrb to use more bits. */
+	 use a 8 bit index. So let's use a 12 bit index for SImode only and
+	 hope that arm_gen_constant will enable ldrb to use more bits. */
       bits = (mode == SImode) ? 12 : 8;
       mask = (1 << bits) - 1;
       base = INTVAL (x) & ~mask;
       index = INTVAL (x) & mask;
       if (bit_count (base & 0xffffffff) > (32 - bits)/2)
-        {
+	{
 	  /* It'll most probably be more efficient to generate the base
 	     with more bits set and use a negative index instead. */
 	  base |= mask;
@@ -4330,16 +4683,7 @@ arm_legitimize_address (rtx x, rtx orig_x, enum machine_mode mode)
       base_reg = force_reg (SImode, GEN_INT (base));
       x = plus_constant (base_reg, index);
     }
-
-  if (flag_pic)
-    {
-      /* We need to find and carefully transform any SYMBOL and LABEL
-	 references; so go back to the original address expression.  */
-      rtx new_x = legitimize_pic_address (orig_x, mode, NULL_RTX);
-
-      if (new_x != orig_x)
-	x = new_x;
-    }
+  /* APPLE LOCAL end ARM addresses involving large constants */
 
   return x;
 }
@@ -4638,6 +4982,113 @@ thumb_rtx_costs (rtx x, enum rtx_code code, enum rtx_code outer)
     }
 }
 
+/* APPLE LOCAL begin ARM size variant of thumb costs */
+/* This is very much a work in progress; it is just thumb_rtx_costs
+   with modifications for size as discovered.  Currently, the costs
+   for MULT, AND, XOR, IOR have been fixed; all of these are single
+   instructions.  (Not for DImode, but that's not taken into account
+   anywhere here.)  */
+
+static inline int
+thumb_size_rtx_costs (rtx x, enum rtx_code code, enum rtx_code outer)
+{
+  enum machine_mode mode = GET_MODE (x);
+
+  switch (code)
+    {
+    case ASHIFT:
+    case ASHIFTRT:
+    case LSHIFTRT:
+    case ROTATERT:
+    case PLUS:
+    case MINUS:
+    case COMPARE:
+    case NEG:
+    case NOT:
+    case AND:
+    case XOR:
+    case IOR:
+    case MULT:
+      return COSTS_N_INSNS (1);
+
+    case SET:
+      return (COSTS_N_INSNS (1)
+	      + 4 * ((GET_CODE (SET_SRC (x)) == MEM)
+		     + GET_CODE (SET_DEST (x)) == MEM));
+
+    case CONST_INT:
+      if (outer == SET)
+	{
+	  if ((unsigned HOST_WIDE_INT) INTVAL (x) < 256)
+	    return 0;
+	  if (thumb_shiftable_const (INTVAL (x)))
+	    return COSTS_N_INSNS (2);
+	  return COSTS_N_INSNS (3);
+	}
+      else if ((outer == PLUS || outer == COMPARE)
+	       && INTVAL (x) < 256 && INTVAL (x) > -256)
+	return 0;
+      else if (outer == AND
+	       && INTVAL (x) < 256 && INTVAL (x) >= -256)
+	return COSTS_N_INSNS (1);
+      else if (outer == ASHIFT || outer == ASHIFTRT
+	       || outer == LSHIFTRT)
+	return 0;
+      return COSTS_N_INSNS (2);
+
+    case CONST:
+    case CONST_DOUBLE:
+    case LABEL_REF:
+    case SYMBOL_REF:
+      return COSTS_N_INSNS (3);
+
+    case UDIV:
+    case UMOD:
+    case DIV:
+    case MOD:
+      return 100;
+
+    case TRUNCATE:
+      return 99;
+
+    case MEM:
+      /* XXX another guess.  */
+      /* Memory costs quite a lot for the first word, but subsequent words
+	 load at the equivalent of a single insn each.  */
+      return (10 + 4 * ((GET_MODE_SIZE (mode) - 1) / UNITS_PER_WORD)
+	      + ((GET_CODE (x) == SYMBOL_REF && CONSTANT_POOL_ADDRESS_P (x))
+		 ? 4 : 0));
+
+    case IF_THEN_ELSE:
+      /* XXX a guess.  */
+      if (GET_CODE (XEXP (x, 1)) == PC || GET_CODE (XEXP (x, 2)) == PC)
+	return 14;
+      return 2;
+
+    case ZERO_EXTEND:
+      /* XXX still guessing.  */
+      switch (GET_MODE (XEXP (x, 0)))
+	{
+	case QImode:
+	  return (1 + (mode == DImode ? 4 : 0)
+		  + (GET_CODE (XEXP (x, 0)) == MEM ? 10 : 0));
+
+	case HImode:
+	  return (4 + (mode == DImode ? 4 : 0)
+		  + (GET_CODE (XEXP (x, 0)) == MEM ? 10 : 0));
+
+	case SImode:
+	  return (1 + (GET_CODE (XEXP (x, 0)) == MEM ? 10 : 0));
+
+	default:
+	  return 99;
+	}
+
+    default:
+      return 99;
+    }
+}
+/* APPLE LOCAL end ARM size variant of thumb costs */
 
 /* Worker routine for arm_rtx_costs.  */
 static inline int
@@ -4768,6 +5219,11 @@ arm_rtx_costs_1 (rtx x, enum rtx_code code, enum rtx_code outer)
 			&& const_ok_for_op (INTVAL (XEXP (x, 1)), code)))
 		   ? 0 : 4));
 
+      /* APPLE LOCAL begin ARM 4652753 */
+      /* If the previous insn feeds into the shifted operand of this one,
+	 there is a 1 cycle delay.  We can't tell here whether this will
+	 be the case or not.  Model it for now, as this seems to lead to
+	 better decisions about splitting up multiply-by-constant. */
       else if (REG_OR_SUBREG_REG (XEXP (x, 1)))
 	return (1 + extra_cost
 		+ ((((subcode = GET_CODE (XEXP (x, 0))) == ASHIFT
@@ -4780,7 +5236,8 @@ arm_rtx_costs_1 (rtx x, enum rtx_code code, enum rtx_code outer)
 		    && (REG_OR_SUBREG_REG (XEXP (XEXP (x, 0), 0)))
 		    && ((REG_OR_SUBREG_REG (XEXP (XEXP (x, 0), 1)))
 			|| GET_CODE (XEXP (XEXP (x, 0), 1)) == CONST_INT))
-		   ? 0 : 4));
+		   ? 1 : 4));
+      /* APPLE LOCAL end ARM 4652753 */
 
       return 8;
 
@@ -4890,8 +5347,9 @@ arm_size_rtx_costs (rtx x, int code, int outer_code, int *total)
 
   if (TARGET_THUMB)
     {
-      /* XXX TBD.  For now, use the standard costs.  */
-      *total = thumb_rtx_costs (x, code, outer_code);
+      /* APPLE LOCAL begin ARM size variant of thumb costs */
+      *total = thumb_size_rtx_costs (x, code, outer_code);
+      /* APPLE LOCAL end ARM size variant of thumb costs */
       return true;
     }
 
@@ -4999,9 +5457,34 @@ arm_size_rtx_costs (rtx x, int code, int outer_code, int *total)
       *total = COSTS_N_INSNS (ARM_NUM_REGS (mode));
       return false;
 
+    /* APPLE LOCAL begin DImode multiply enhancement */
     case MULT:
+      if (mode == DImode)
+	{
+	  if (((GET_CODE (XEXP (x, 0)) == SIGN_EXTEND
+	           && GET_CODE (XEXP (x, 1)) == SIGN_EXTEND)
+	        || (GET_CODE (XEXP (x, 0)) == ZERO_EXTEND
+	            && GET_CODE (XEXP (x, 1)) == ZERO_EXTEND))
+	       && GET_MODE (XEXP (XEXP (x, 0), 0)) == SImode
+	       && GET_MODE (XEXP (XEXP (x, 1), 0)) == SImode)
+	    {
+	      /* SMULL, etc., do sign extend better than free */
+	      *total = COSTS_N_INSNS (1)
+	               + rtx_cost (XEXP (XEXP (x, 0), 0), MULT)
+	               + rtx_cost (XEXP (XEXP (x, 1), 0), MULT);
+	      return true;
+	    }
+	  else
+	    {
+	      /* broken into 3 insns later, plus cost of kids */
+	      /** does not allow for Cirrus instruction **/
+	      *total = COSTS_N_INSNS (3);
+	      return false;
+	    }
+	}
       *total = COSTS_N_INSNS (ARM_NUM_REGS (mode));
       return false;
+    /* APPLE LOCAL end DImode multiply enhancement */
 
     case NEG:
       if (TARGET_HARD_FLOAT && GET_MODE_CLASS (mode) == MODE_FLOAT)
@@ -5420,6 +5903,14 @@ arm_address_cost (rtx x)
 static int
 arm_adjust_cost (rtx insn, rtx link, rtx dep, int cost)
 {
+/* LLVM LOCAL */
+#ifdef ENABLE_LLVM
+  insn = insn;
+  link = link;
+  dep = dep;
+  cost = cost;
+  return 1;
+#else  
   rtx i_pat, d_pat;
 
   /* Some true dependencies can have a higher cost depending
@@ -5493,6 +5984,8 @@ arm_adjust_cost (rtx insn, rtx link, rtx dep, int cost)
     }
 
   return cost;
+/* LLVM LOCAL */
+#endif
 }
 
 static int fp_consts_inited = 0;
@@ -5706,6 +6199,9 @@ arm_return_in_msb (tree valtype)
               || TREE_CODE (valtype) == COMPLEX_TYPE));
 }
 
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
+
 /* Returns TRUE if INSN is an "LDR REG, ADDR" instruction.
    Use by the Cirrus Maverick code which has to workaround
    a hardware bug triggered by such instructions.  */
@@ -5879,6 +6375,9 @@ cirrus_reorg (rtx first)
     }
 }
 
+/* LLVM LOCAL */
+#endif
+
 /* APPLE LOCAL begin ARM -mdynamic-no-pic support */
 /* Return TRUE if X references a SYMBOL_REF.  */
 int
@@ -5927,10 +6426,13 @@ symbol_mentioned_with_filter (rtx x, int filter_local)
 	  int j;
 
 	  for (j = XVECLEN (x, i) - 1; j >= 0; j--)
-	    if (symbol_mentioned_p (XVECEXP (x, i, j)))
+	    if (symbol_mentioned_with_filter (XVECEXP (x, i, j),
+					      filter_local))
 	      return 1;
 	}
-      else if (fmt[i] == 'e' && symbol_mentioned_p (XEXP (x, i)))
+      else if (fmt[i] == 'e'
+	       && symbol_mentioned_with_filter (XEXP (x, i),
+						filter_local))
 	return 1;
     }
 
@@ -5999,9 +6501,20 @@ arm_cannot_copy_insn_p (rtx insn)
   if (GET_CODE (pat) == SET)
     {
       rtx rhs = SET_SRC (pat);
+      rtx lhs = SET_DEST (pat);
 
       if (GET_CODE (rhs) == UNSPEC
 	  && XINT (rhs, 1) == UNSPEC_PIC_BASE)
+	return TRUE;
+
+      if (GET_CODE (rhs) == MEM
+	  && GET_CODE (XEXP (rhs, 0)) == UNSPEC
+	  && XINT (XEXP (rhs, 0), 1) == UNSPEC_PIC_BASE)
+	return TRUE;
+
+      if (GET_CODE (lhs) == MEM
+	  && GET_CODE (XEXP (lhs, 0)) == UNSPEC
+	  && XINT (XEXP (lhs, 0), 1) == UNSPEC_PIC_BASE)
 	return TRUE;
     }
   /* APPLE LOCAL end ARM pic support */
@@ -6681,6 +7194,22 @@ arm_gen_movmemqi (rtx *operands)
       || INTVAL (operands[2]) > 64
       || INTVAL (operands[3]) & 3)
     return 0;
+
+  /* APPLE LOCAL begin ARM use memcpy more at -Os */
+  /* At -Os we consider the size of repeated lod/sto vs memcpy call.  Both ways
+     require getting source and dest addresses into regs.  Beyond that memcpy
+     is 2 insns; lod/sto is at least 2, maybe more.  But lod/sto is faster so
+     we prefer that when it is only 2 insns; that occurs when the size is
+     1, 2, 4, 8, 12, or 16 only. */
+  if (optimize_size
+      && INTVAL (operands[2]) != 1
+      && INTVAL (operands[2]) != 2
+      && INTVAL (operands[2]) != 4
+      && INTVAL (operands[2]) != 8
+      && INTVAL (operands[2]) != 12
+      && INTVAL (operands[2]) != 16)
+    return 0;
+  /* APPLE LOCAL end ARM use memcpy more at -Os */
 
   dstbase = operands[0];
   srcbase = operands[1];
@@ -7612,6 +8141,253 @@ struct minipool_fixup
 #define MINIPOOL_FIX_SIZE(mode) \
   (GET_MODE_SIZE ((mode)) >= 4 ? GET_MODE_SIZE ((mode)) : 4)
 
+/* APPLE LOCAL begin ARM 4790140 compact switch tables */
+/* The miniLisp in attributes doesn't seem to be up to extracting
+   a numeric datum from the argument; do it in code. */
+void
+arm_adjust_insn_length (rtx insn, int *length)
+{
+  rtx body = PATTERN (insn);
+  if (GET_CODE (body) == UNSPEC_VOLATILE
+      && (int) XEXP (body, 1) == VUNSPEC_POOL_STRING)
+    {
+      int len = TREE_STRING_LENGTH (SYMBOL_REF_DECL 
+		    (XVECEXP (body, 0, 0)));
+      len = (len + 3) & ~3;
+      *length = len;
+    }
+  if (GET_CODE (body) == ADDR_DIFF_VEC)
+    {
+      /* The obvious sizeof(elt)*nelts, plus sizeof(elt) for the
+	 count.  */
+      int len = (XVECLEN (body, 1) + 1) * GET_MODE_SIZE (GET_MODE (body));
+      int insn_size = (TARGET_THUMB) ? 2 : 4;
+
+      /* 32-bit thumb tables can have one halfword of padding.
+	 If we knew the alignment + offset now, we could be correct
+	 about this calculation.  Instead, we have to be
+	 pessimistic.  */
+      if (TARGET_THUMB
+	  && GET_MODE_SIZE (GET_MODE (body)) == 4)
+	len += 2;
+
+      /* Round up to a multiple of instruction size.  */
+      len = ((len + insn_size - 1) / insn_size) * insn_size;
+      *length = len;
+    }
+  if (TARGET_THUMB
+      && GET_CODE (body) == UNSPEC_VOLATILE
+      && (int) XEXP (body, 1) == VUNSPEC_EPILOGUE)
+    {
+      *length = handle_thumb_unexpanded_epilogue (false);
+    }
+  if (INSN_CODE (insn) == CODE_FOR_adjustable_thumb_zero_extendhisi2
+      || INSN_CODE (insn) == CODE_FOR_adjustable_thumb_zero_extendhisi2_v6)
+    {
+      rtx mem = XEXP (XEXP (body, 1), 0);
+      if (GET_CODE (mem) == REG || GET_CODE (mem) == SUBREG)
+	*length = 2;
+      else
+	{
+	  gcc_assert (GET_CODE (mem) == MEM);
+	  mem = XEXP (mem, 0);
+	  if (GET_CODE (mem) == CONST)
+	    mem = XEXP (mem, 0);
+	  if (GET_CODE (mem) == PLUS
+	      && GET_CODE (XEXP (mem, 0)) == REG
+	      && REGNO (XEXP (mem, 0)) == SP_REGNUM)
+	    *length = 4;
+	  else
+	    *length = 2;
+	}
+    }
+  if (INSN_CODE (insn) == CODE_FOR_thumb_extendhisi2
+      || INSN_CODE (insn) == CODE_FOR_adjustable_thumb_extendhisi2_insn_v6)
+    {
+      rtx mem = XEXP (XEXP (XVECEXP (body, 0, 0), 1), 0);
+      if (GET_CODE (mem) == REG || GET_CODE (mem) == SUBREG)
+	*length = 2;
+      else
+	{
+          gcc_assert (GET_CODE (mem) == MEM);
+	  mem = XEXP (mem, 0);
+	  if (GET_CODE (mem) == CONST)
+	    mem = XEXP (mem, 0);
+	  *length = 4;
+	  if (GET_CODE (mem) == LABEL_REF)
+	    *length = 2;
+	  if (GET_CODE (mem) == PLUS)
+	    {
+	      if (GET_CODE (XEXP (mem, 0)) == LABEL_REF
+		  && GET_CODE (XEXP (mem, 1)) == CONST_INT)
+		*length = 2;
+	      if (GET_CODE (XEXP (mem, 1)) == REG)
+		*length = 2;
+	    }
+	}
+    }
+  if (INSN_CODE (insn) == CODE_FOR_adjustable_thumb_extendqisi2)
+    {
+      rtx mem = XEXP (XEXP (body, 1), 0);
+      if (GET_CODE (mem) == REG || GET_CODE (mem) == SUBREG)
+	*length = 2;
+      else
+	{
+          gcc_assert (GET_CODE (mem) == MEM);
+	  mem = XEXP (mem, 0);
+	  if (GET_CODE (mem) == CONST)
+	    mem = XEXP (mem, 0);
+	  if (GET_CODE (mem) == LABEL_REF)
+	    *length = 2;
+	  else if (GET_CODE (mem) == PLUS
+	           && GET_CODE (XEXP (mem, 0)) == LABEL_REF)
+	    *length = 2;
+	  /* The "operand matches V constraint" case is not handled explicitly;
+	     this can only generate valid code if the address is REG + REG,
+	     so assume this is the case and let the code below handle it. */
+	  else if (GET_CODE (mem) == PLUS)
+	    {
+	      if (GET_CODE (XEXP (mem, 0)) == REG)
+		{
+		  if (GET_CODE (XEXP (mem, 1)) == REG)
+		    *length = 2;
+	          else if (REGNO (XEXP (mem, 0)) == REGNO (XEXP (body, 0)))
+		    *length = 6;
+		  else
+		    *length = 4;
+		}
+	      else
+	        {
+		  gcc_assert (GET_CODE (XEXP (mem, 1)) == REG);
+		  if (REGNO (XEXP (mem, 1)) == REGNO (XEXP (body, 0)))
+		    *length = 6;
+		  else
+		    *length = 4;
+		}
+	    }
+	  else if (GET_CODE (mem) == REG && REGNO (XEXP (body, 0)) == REGNO (mem))
+	    *length = 6;
+	  else
+	    *length = 4;
+	}
+    }
+  if (INSN_CODE (insn) == CODE_FOR_adjustable_thumb_extendqisi2_v6)
+    {
+      rtx mem = XEXP (XEXP (body, 1), 0);
+      if (GET_CODE (mem) == REG || GET_CODE (mem) == SUBREG)
+	*length = 2;
+      else
+	{
+          gcc_assert (GET_CODE (mem) == MEM);
+	  mem = XEXP (mem, 0);
+	  if (GET_CODE (mem) == CONST)
+	    mem = XEXP (mem, 0);
+	  if (GET_CODE (mem) == LABEL_REF)
+	    *length = 2;
+	  else if (GET_CODE (mem) == PLUS
+	           && GET_CODE (XEXP (mem, 0)) == LABEL_REF)
+	    *length = 2;
+	  /* The "operand matches V constraint" case is not handled explicitly;
+	     this can only generate valid code if the address is REG + REG,
+	     so assume this is the case and let the code below handle it. */
+	  else if (GET_CODE (mem) == PLUS)
+	    {
+	      if (GET_CODE (XEXP (mem, 0)) == REG)
+		{
+		  if (GET_CODE (XEXP (mem, 1)) == REG)
+		    *length = 2;
+	          else if (REGNO (XEXP (mem, 0)) == REGNO (XEXP (body, 0)))
+		    *length = 4;
+		  else
+		    *length = 4;
+		}
+	      else
+	        {
+		  gcc_assert (GET_CODE (XEXP (mem, 1)) == REG);
+		  if (REGNO (XEXP (mem, 1)) == REGNO (XEXP (body, 0)))
+		    *length = 4;
+		  else
+		    *length = 4;
+		}
+	    }
+	  else if (GET_CODE (mem) == REG && REGNO (XEXP (body, 0)) == REGNO (mem))
+	    *length = 4;
+	  else
+	    *length = 4;
+	}
+    }
+  if (INSN_CODE (insn) == CODE_FOR_adjustable_thumb_movhi_insn)
+    {
+      rtx mem = XEXP (body, 1);
+      if (GET_CODE (mem) != MEM)
+	*length = 2;
+      else if (GET_CODE (XEXP (mem, 0)) == PLUS
+	       && GET_CODE (XEXP (XEXP (mem, 0), 0)) == REG
+	       && REGNO (XEXP (XEXP (mem, 0), 0)) == SP_REGNUM)
+	*length = 4;
+      else
+	*length = 2;
+    }
+  if (INSN_CODE (insn) == CODE_FOR_adjustable_thumb_movdi_insn)
+    {
+      rtx op0 = XEXP (body, 0);
+      rtx op1 = XEXP (body, 1);
+
+      /* case 3 */
+      if (GET_CODE (op0) == MEM && 
+	    (GET_CODE (XEXP (op0, 0)) == PRE_INC
+	     || GET_CODE (XEXP (op0, 0)) == POST_INC))
+	*length = 2;
+      /* case 4 */
+      else if (GET_CODE (op1) == MEM && 
+	    (GET_CODE (XEXP (op1, 0)) == PRE_INC
+	     || GET_CODE (XEXP (op1, 0)) == POST_INC))
+	*length = 2;
+      /* case 2 */
+      else if (GET_CODE (op1) == CONST_INT
+	       && !const_ok_for_arm (INTVAL (op1))
+	       && INTVAL (op1) >= -4095
+	       && INTVAL (op1) <= 4095
+	       && thumb_low_register_operand (op0, GET_MODE (op0)))
+	*length = 6;
+      /* case 0, 1, 6, 7 */
+      else if (GET_CODE (op1) != MEM)
+	*length = 4;
+      /* case 5 */
+      else
+	{
+	  rtx addr = XEXP (op1, 0);
+	  if (GET_CODE (addr) == REG)
+	    *length = 4;
+	  else if (GET_CODE (addr) == CONST)
+	    *length = 4;
+	  else if (GET_CODE (addr) == PLUS)
+	    {
+	      rtx base = XEXP (addr, 0);
+	      rtx offset = XEXP (addr, 1);
+	      if (CONSTANT_P (base))
+		{
+		  rtx temp = base;
+		  base = offset;
+		  offset = temp;
+		}
+	      if (GET_CODE (offset) == REG)
+		*length = 6;
+	      else
+		*length = 4;
+	    }
+	  else if (GET_CODE (addr) == LABEL_REF)
+	    *length = 4;
+	  else
+	    abort ();
+	}
+    }
+}
+/* APPLE LOCAL end ARM 4790140 compact switch tables */
+
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
+
 static Mnode *	minipool_vector_head;
 static Mnode *	minipool_vector_tail;
 static rtx	minipool_vector_label;
@@ -8203,6 +8979,11 @@ create_fix_barrier (Mfix *fix, HOST_WIDE_INT max_address)
       /* Count the length of this insn.  */
       count += get_attr_length (from);
 
+      /* APPLE LOCAL begin ARM 6008578 */
+      if (LABEL_P (from))
+	count += get_label_pad (from, fix->address + count);
+      /* APPLE LOCAL end ARM 6008578 */
+
       /* If there is a jump table, add its length.  */
       tmp = is_jump_table (from);
       if (tmp != NULL)
@@ -8340,6 +9121,9 @@ push_minipool_fix (rtx insn, HOST_WIDE_INT address, rtx *loc,
   minipool_fix_tail = fix;
 }
 
+/* LLVM LOCAL */
+#endif
+
 /* Return the cost of synthesizing a 64-bit constant VAL inline.
    Returns the number of insns needed, or 99 if we don't know how to
    do it.  */
@@ -8367,6 +9151,75 @@ arm_const_double_inline_cost (rtx val)
 	  + arm_gen_constant (SET, SImode, NULL_RTX, INTVAL (highpart),
 			      NULL_RTX, NULL_RTX, 0, 0));
 }
+
+/* APPLE LOCAL begin 5831562 long long constants */
+/* Return true if a 64-bit constant consists of two 32-bit halves,
+   each of which is a valid immediate data-processing operand.
+   (This differs from other 64-bit evaluations in that ~const is
+   not considered.)
+*/
+
+bool
+const64_ok_for_arm_immediate (rtx val)
+{
+  rtx lowpart, highpart;
+  enum machine_mode mode;
+
+  if (!TARGET_ARM)
+    return false;
+
+  mode = GET_MODE (val);
+
+  if (mode == VOIDmode)
+    mode = DImode;
+
+  gcc_assert (GET_MODE_SIZE (mode) == 8);
+
+  lowpart = gen_lowpart (SImode, val);
+  highpart = gen_highpart_mode (SImode, mode, val);
+
+  gcc_assert (GET_CODE (lowpart) == CONST_INT);
+  gcc_assert (GET_CODE (highpart) == CONST_INT);
+
+  return (const_ok_for_arm (INTVAL (lowpart))
+	  && const_ok_for_arm (INTVAL (highpart)));
+}
+
+/* As above, but allow for constants whose negative value
+   fits as well.  Both halves must match either as themselves
+   or as negated.  */
+bool
+const64_ok_for_arm_add (rtx val)
+{
+  rtx lowpart, highpart, lowpart_neg, highpart_neg, val_neg;
+  enum machine_mode mode;
+
+  if (!TARGET_ARM)
+    return false;
+
+  mode = GET_MODE (val);
+
+  if (mode == VOIDmode)
+    mode = DImode;
+
+  gcc_assert (GET_MODE_SIZE (mode) == 8);
+
+  lowpart = gen_lowpart (SImode, val);
+  highpart = gen_highpart_mode (SImode, mode, val);
+
+  val_neg = negate_rtx (mode, val);
+  lowpart_neg = gen_lowpart (SImode, val_neg);
+  highpart_neg = gen_highpart_mode (SImode, mode, val_neg);
+
+  gcc_assert (GET_CODE (lowpart) == CONST_INT);
+  gcc_assert (GET_CODE (highpart) == CONST_INT);
+
+  return ((const_ok_for_arm (INTVAL (lowpart))
+	   && const_ok_for_arm (INTVAL (highpart)))
+	  || (const_ok_for_arm (INTVAL (lowpart_neg))
+	      && const_ok_for_arm (INTVAL (highpart_neg))));
+}
+/* APPLE LOCAL end 5831562 long long constants */
 
 /* Return true if it is worthwhile to split a 64-bit constant into two
    32-bit operations.  This is the case if optimizing for size, or
@@ -8402,6 +9255,9 @@ arm_const_double_by_parts (rtx val)
 
   return false;
 }
+
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
 
 /* Scan INSN and note any of its operands that need fixing.
    If DO_PUSHES is false we do not actually push any of the fixups
@@ -8476,6 +9332,39 @@ note_invalid_constants (rtx insn, HOST_WIDE_INT address, int do_pushes)
   return result;
 }
 
+/* APPLE LOCAL begin ARM 6008578 */
+/* Return the bytes of padding that will be inserted to align
+   the label INSN given the current pc ADDRESS.  */
+static HOST_WIDE_INT get_label_pad (rtx insn, HOST_WIDE_INT address)
+{
+  int label_align, max_skip;
+  unsigned HOST_WIDE_INT align_mask;
+  int pad_needed;
+
+  gcc_assert (LABEL_P (insn));
+
+  label_align = LABEL_ALIGN_LOG (insn);
+  max_skip = LABEL_MAX_SKIP (insn);
+  align_mask = ((unsigned int) 1 << label_align) - 1;
+
+  /* Already aligned.  */
+  if ((address & align_mask) == 0)
+    return 0;
+
+  pad_needed = ((address | align_mask) + 1) - address;
+
+  /* We would have to insert more than max_skip bytes to
+     align this label.  */
+  if (max_skip && (pad_needed > max_skip))
+    return 0;
+
+  return pad_needed;
+}
+/* APPLE LOCAL end ARM 6008578 */
+
+/* LLVM LOCAL */
+#endif
+
 /* Gcc puts the pool in the wrong place for ARM, since we can only
    load addresses a limited distance around the pc.  We do some
    special munging to move the constant pool values to the correct
@@ -8483,11 +9372,19 @@ note_invalid_constants (rtx insn, HOST_WIDE_INT address, int do_pushes)
 static void
 arm_reorg (void)
 {
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
   rtx insn;
   HOST_WIDE_INT address = 0;
   Mfix * fix;
 
   minipool_fix_head = minipool_fix_tail = NULL;
+
+/* APPLE LOCAL begin ARM compact switch tables */
+/* This is actually lurking bug I think, alignment matters.  */
+  if (TARGET_THUMB)
+    address = count_thumb_unexpanded_prologue ();
+/* APPLE LOCAL end ARM compact switch tables */
 
   /* The first insn must always be a note, or the code below won't
      scan it properly.  */
@@ -8506,6 +9403,10 @@ arm_reorg (void)
 
       if (GET_CODE (insn) == BARRIER)
 	push_minipool_barrier (insn, address);
+      /* APPLE LOCAL begin ARM 6008578 */
+      else if (LABEL_P (insn))
+	address += get_label_pad (insn, address);
+      /* APPLE LOCAL end ARM 6008578 */
       else if (INSN_P (insn))
 	{
 	  rtx table;
@@ -8638,6 +9539,8 @@ arm_reorg (void)
 
   /* Free the minipool memory.  */
   obstack_free (&minipool_obstack, minipool_startobj);
+/* LLVM LOCAL */
+#endif
 }
 
 /* Routines to output assembly language.  */
@@ -10291,6 +11194,43 @@ arm_output_epilogue (rtx sibling)
       /* APPLE LOCAL ARM custom frame layout */
       /* Removed lines.  */
 
+      /* APPLE LOCAL begin ARM indirect sibcalls */
+      /* If we have an indirect sibcall that uses a reg saved across calls, that reg will
+	 be clobbered when we pop the old value off the stack.  Copy the value to IP
+	 before doing the pop. */
+      if (sibling)
+	{
+	  bool is_value;
+	  int regno = indirect_sibreturn_reg (sibling, &is_value);
+	  if (regno > 3 && regno != 12)
+	    {
+	      if (is_value)
+		XEXP (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0), 0)
+		    = gen_rtx_REG (SImode, IP_REGNUM);
+	      else
+		XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0), 0) 
+		    = gen_rtx_REG (SImode, IP_REGNUM);
+	      asm_fprintf (f, "\tmov\t%r, %r\n", IP_REGNUM, regno);
+	    }
+	  if (regno == -1)
+	    {
+	      rtx stack_reg, offset;
+	      offset = indirect_sibreturn_mem (sibling, &stack_reg, &is_value);
+	      if (offset)
+		{
+		  if (is_value)
+		    XEXP (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0), 0)
+			= gen_rtx_REG (SImode, IP_REGNUM);
+		  else
+		    XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0), 0) 
+			= gen_rtx_REG (SImode, IP_REGNUM);
+		  asm_fprintf (f, "\tldr\t%r, [%r, #%wd]\n", IP_REGNUM, 
+		    REGNO (stack_reg), INTVAL (offset));
+		}
+	    }
+	}
+      /* APPLE LOCAL end ARM indirect sibcalls */
+
       /* We must use SP as the base register, because SP is one of the
          registers being restored.  If an interrupt or page fault
          happens in the ldm instruction, the SP might or might not
@@ -10349,13 +11289,98 @@ arm_output_epilogue (rtx sibling)
     }
   else
     {
+      /* APPLE LOCAL begin ARM indirect sibcalls */
+      int ip_ok = 1;
+
+      /* If we have an indirect sibcall that uses a reg saved across calls, that reg will
+	 be clobbered when we pop the old value off the stack.  Copy the value to IP
+	 before doing the pop. */
+      if (sibling)
+	{
+	  bool is_value;
+	  int regno = indirect_sibreturn_reg (sibling, &is_value);
+	  if (regno > 3 && regno != 12)
+	    {
+	      ip_ok = 0;
+	      if (is_value)
+		XEXP (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0), 0)
+		    = gen_rtx_REG (SImode, IP_REGNUM);
+	      else
+		XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0), 0) 
+		    = gen_rtx_REG (SImode, IP_REGNUM);
+	      asm_fprintf (f, "\tmov\t%r, %r\n", IP_REGNUM, regno);
+	    }
+	  if (regno == -1)
+	    {
+	      rtx stack_reg, offset;
+	      offset = indirect_sibreturn_mem (sibling, &stack_reg, &is_value);
+	      if (offset)
+		{
+		  ip_ok = 0;
+		  if (is_value)
+		    XEXP (XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 1), 0), 0)
+			= gen_rtx_REG (SImode, IP_REGNUM);
+		  else
+		    XEXP (XEXP (XVECEXP (PATTERN (sibling), 0, 0), 0), 0) 
+			= gen_rtx_REG (SImode, IP_REGNUM);
+		  asm_fprintf (f, "\tldr\t%r, [%r, #%wd]\n", IP_REGNUM, 
+		    REGNO (stack_reg), INTVAL (offset));
+		}
+	    }
+	}
+
+      /* APPLE LOCAL begin ARM combine stack pop and register pop */
+      /* Code here is probably making overly specific assumptions about modes. */
       /* Restore stack pointer if necessary.  */
       if (offsets->outgoing_args != offsets->saved_regs)
 	{
-	  operands[0] = operands[1] = stack_pointer_rtx;
-	  operands[2] = GEN_INT (offsets->outgoing_args - offsets->saved_regs);
-	  output_add_immediate (operands);
+	  int delta = offsets->outgoing_args - offsets->saved_regs;
+	  int maxpopsize;
+	  tree rettype = TREE_TYPE (TREE_TYPE (current_function_decl));
+	  /* We can use R0 through R3 for this purpose, but not any regs that
+	     contain (part of) the return value.  */
+	  if (TYPE_MODE (rettype) == VOIDmode)
+	    maxpopsize = 20;
+	  else if (TYPE_MODE (rettype) == DFmode
+		   || TYPE_MODE (rettype) == DImode)
+	    maxpopsize = 12;
+	  else
+	    maxpopsize = 16;
+	  /* We can also use R12 provided it was not used for the sibcall hack above,
+	     and we are not saving any regs in the range R4...R11.  In the latter case
+	     they are stored on the stack below the "empty" spot used for R12 and
+	     the saved values would get clobbered.  */
+	  if (saved_regs_mask 
+	      & ((1<<4) | (1<<5) | (1<<6) | (1<<7) | (1<<8) | (1<<9) | (1<<10) | (1<<11)))
+	    ip_ok = 0;
+	  if (!ip_ok)
+	    maxpopsize -= 4;
+	  if (optimize_size 
+	      && delta <= maxpopsize && delta % 4 == 0
+	      && !TARGET_IWMMXT
+	      && really_return
+	      && TARGET_SOFT_FLOAT
+	      && arm_fpu_arch == FPUTYPE_NONE
+	      && !flag_pic
+	      && !frame_pointer_needed)
+	    {
+	      int reg = ip_ok ? 12 : 3;
+	      while (delta)
+		{
+		  saved_regs_mask |= (1 << reg);
+		  reg = (reg == 12) ? 3 : reg - 1;
+		  delta -= 4;
+		}
+	    }
+	  else
+	    {
+	      operands[0] = operands[1] = stack_pointer_rtx;
+	      operands[2] = GEN_INT (offsets->outgoing_args - offsets->saved_regs);
+	      output_add_immediate (operands);
+	    }
 	}
+      /* APPLE LOCAL end ARM combine stack pop and register pop */
+      /* APPLE LOCAL end ARM indirect sibcalls */
 
       if (arm_fpu_arch == FPUTYPE_FPA_EMU2)
 	{
@@ -11088,8 +12113,47 @@ arm_expand_prologue (void)
       emit_set_insn (lr, plus_constant (lr, -4));
     }
 
+  /* APPLE LOCAL begin ARM peephole combine reg store and stack push */
+  offsets = arm_get_frame_offsets ();
+
   if (live_regs_mask)
     {
+      saved_regs += bit_count (live_regs_mask) * 4;
+
+      /* Space optimization:  if we need a small amount of stack space, and
+	 we're going to do a push, push some extra registers rather than
+	 doing a separate subtract.  We can safely push R0 thru R3.  We can
+	 also use R12 provided no regs in the range R4..R11 are being saved.
+	 (Their saved values would be below the value of R12 on the stack,
+	 and would get clobbered.) */
+      /* The conditions here are probably overly restrictive. */
+      if (optimize_size
+	  && !flag_pic
+	  && !frame_pointer_needed
+	  && arm_fpu_arch == FPUTYPE_NONE
+	  && TARGET_SOFT_FLOAT
+	  && !TARGET_IWMMXT)
+	{
+	  int ip_ok = 1;
+	  int delta = offsets->outgoing_args - offsets->saved_args - saved_regs;
+	  if (delta < 0)
+	    abort();
+	  if (live_regs_mask
+	      & ((1<<4) | (1<<5) | (1<<6) | (1<<7) | (1<<8) | (1<<9) | (1<<10) | (1<<11)))
+	    ip_ok = 0;
+	  if (delta <= (ip_ok ? 20 : 16) && delta % 4 == 0)
+	    {
+	      int reg = (ip_ok ? 12 : 3);
+	      while (delta)
+		{
+		  delta -= 4;
+		  live_regs_mask |= (1<<reg);
+		  reg = (reg == 12) ? 3 : reg - 1;
+		  saved_regs += 4;
+		}
+	    }
+	}
+
       /* APPLE LOCAL begin ARM custom frame layout */
       if (frame_pointer_needed)
 	{
@@ -11101,7 +12165,9 @@ arm_expand_prologue (void)
 					    & regs_above_fp;
 
 	  /* Save everything up to the FP, and the LR  */
-	  emit_multi_reg_push (initial_push_regs);
+	  insn = emit_multi_reg_push (initial_push_regs);
+	  /* rdar://6148015 */
+	  RTX_FRAME_RELATED_P (insn) = 1;
 
 	  /* Configure FP to point to the saved FP.  */
 	  insn = emit_insn (
@@ -11115,16 +12181,20 @@ arm_expand_prologue (void)
 
 	  /* Push remaining regs.  */
 	  if (second_push_regs)
-	    emit_multi_reg_push (second_push_regs);
+	    {
+	      insn = emit_multi_reg_push (second_push_regs);
+	      /* rdar://6148015 */
+	      RTX_FRAME_RELATED_P (insn) = 1;
+	    }
 	}
       else
 	{
 	  insn = emit_multi_reg_push (live_regs_mask);
 	  RTX_FRAME_RELATED_P (insn) = 1;
 	}
-      saved_regs += bit_count (live_regs_mask) * 4;
       /* APPLE LOCAL end ARM custom frame layout */
     }
+  /* APPLE LOCAL end ARM peephole combine reg store and stack push */
 
   if (TARGET_IWMMXT)
     for (reg = LAST_IWMMXT_REGNUM; reg >= FIRST_IWMMXT_REGNUM; reg--)
@@ -11214,7 +12284,8 @@ arm_expand_prologue (void)
   /* APPLE LOCAL ARM custom frame layout */
   /* Removed lines.  */
 
-  offsets = arm_get_frame_offsets ();
+  /* APPLE LOCAL ARM peephole combine reg store and stack push */
+  /* Remove call to arm_get_frame_offsets.  */
   if (offsets->outgoing_args != offsets->saved_args + saved_regs)
     {
       /* This add can produce multiple insns for a large constant, so we
@@ -11575,7 +12646,8 @@ arm_print_operand (FILE *stream, rtx x, int code)
 	      "wC12",  "wC13",  "wC14",  "wC15"
 	    };
 
-	  fprintf (stream, wc_reg_names [INTVAL (x)]);
+	  /* APPLE LOCAL default to Wformat-security 5764921 */
+	  fprintf (stream, "%s", wc_reg_names [INTVAL (x)]);
 	}
       return;
 
@@ -11896,6 +12968,10 @@ get_arm_condition_code (rtx comparison)
 void
 arm_final_prescan_insn (rtx insn)
 {
+/* LLVM LOCAL */
+#ifdef ENABLE_LLVM
+  insn = insn;
+#else
   /* BODY will hold the body of INSN.  */
   rtx body = PATTERN (insn);
 
@@ -12234,6 +13310,8 @@ arm_final_prescan_insn (rtx insn)
 	 call recog direct).  */
       recog (PATTERN (insn), insn, NULL);
     }
+/* LLVM LOCAL */
+#endif
 }
 
 /* Returns true if REGNO is a valid register
@@ -13271,21 +14349,29 @@ number_of_first_bit_set (unsigned mask)
   return bit;
 }
 
-/* Emit code to push or pop registers to or from the stack.  F is the
-   assembly file.  MASK is the registers to push or pop.  PUSH is
+/* APPLE LOCAL begin ARM compact switch tables */
+/* Handle push or pop of registers from the stack.
+   If EMIT is true, generate the code.
+   If EMIT is false, compute and return the number of bytes that
+   would result from a call with EMIT true.  In this case F is
+   not necessarily valid and should not be referenced.
+
+   F is the assembly file.  MASK is the registers to push or pop.  PUSH is
    nonzero if we should push, and zero if we should pop.  For debugging
    output, if pushing, adjust CFA_OFFSET by the amount of space added
    to the stack.  REAL_REGS should have the same number of bits set as
    MASK, and will be used instead (in the same order) to describe which
    registers were saved - this is used to mark the save slots when we
-   push high registers after moving them to low registers.  */
-static void
-thumb_pushpop (FILE *f, unsigned long mask, int push, int *cfa_offset,
-	       unsigned long real_regs)
+   push high registers after moving them to low registers.
+*/
+static int
+handle_thumb_pushpop (FILE *f, unsigned long mask, int push, int *cfa_offset,
+		      unsigned long real_regs, bool emit)
 {
   int regno;
   int lo_mask = mask & 0xFF;
   int pushed_words = 0;
+  int bytes = 0;
 
   gcc_assert (mask);
 
@@ -13293,11 +14379,10 @@ thumb_pushpop (FILE *f, unsigned long mask, int push, int *cfa_offset,
     {
       /* Special case.  Do not generate a POP PC statement here, do it in
 	 thumb_exit() */
-      thumb_exit (f, -1);
-      return;
+      return handle_thumb_exit (f, -1, emit);
     }
 
-  if (ARM_EABI_UNWIND_TABLES && push)
+  if (ARM_EABI_UNWIND_TABLES && push && emit)
     {
       fprintf (f, "\t.save\t{");
       for (regno = 0; regno < 15; regno++)
@@ -13312,17 +14397,22 @@ thumb_pushpop (FILE *f, unsigned long mask, int push, int *cfa_offset,
       fprintf (f, "}\n");
     }
 
-  fprintf (f, "\t%s\t{", push ? "push" : "pop");
+  bytes += 2;
+  if (emit)
+    fprintf (f, "\t%s\t{", push ? "push" : "pop");
 
   /* Look at the low registers first.  */
   for (regno = 0; regno <= LAST_LO_REGNUM; regno++, lo_mask >>= 1)
     {
       if (lo_mask & 1)
 	{
-	  asm_fprintf (f, "%r", regno);
+	  if (emit)
+	    {
+	      asm_fprintf (f, "%r", regno);
 
-	  if ((lo_mask & ~1) != 0)
-	    fprintf (f, ", ");
+	      if ((lo_mask & ~1) != 0)
+		fprintf (f, ", ");
+	    }
 
 	  pushed_words++;
 	}
@@ -13331,10 +14421,13 @@ thumb_pushpop (FILE *f, unsigned long mask, int push, int *cfa_offset,
   if (push && (mask & (1 << LR_REGNUM)))
     {
       /* Catch pushing the LR.  */
-      if (mask & 0xFF)
-	fprintf (f, ", ");
+      if (emit)
+	{
+	  if (mask & 0xFF)
+	    fprintf (f, ", ");
 
-      asm_fprintf (f, "%r", LR_REGNUM);
+	  asm_fprintf (f, "%r", LR_REGNUM);
+	}
 
       pushed_words++;
     }
@@ -13349,13 +14442,14 @@ thumb_pushpop (FILE *f, unsigned long mask, int push, int *cfa_offset,
 	{
 	  /* The PC is never poped directly, instead
 	     it is popped into r3 and then BX is used.  */
-	  fprintf (f, "}\n");
+	  if (emit)
+	    fprintf (f, "}\n");
 
-	  thumb_exit (f, -1);
+	  bytes += handle_thumb_exit (f, -1, emit);
 
-	  return;
+	  return bytes;
 	}
-      else
+      else if (emit)
 	{
 	  if (mask & 0xFF)
 	    fprintf (f, ", ");
@@ -13364,9 +14458,10 @@ thumb_pushpop (FILE *f, unsigned long mask, int push, int *cfa_offset,
 	}
     }
 
-  fprintf (f, "}\n");
+  if (emit)
+    fprintf (f, "}\n");
 
-  if (push && pushed_words && dwarf2out_do_frame ())
+  if (emit && push && pushed_words && dwarf2out_do_frame ())
     {
       char *l = dwarf2out_cfi_label ();
       int pushed_mask = real_regs;
@@ -13382,13 +14477,19 @@ thumb_pushpop (FILE *f, unsigned long mask, int push, int *cfa_offset,
 	    dwarf2out_reg_save (l, regno, 4 * pushed_words++ - *cfa_offset);
 	}
     }
+  return bytes;
 }
 
-/* Generate code to return from a thumb function.
+/* Handle return from a thumb function.
+   If EMIT is true, generate the code.
+   If EMIT is false, compute and return the number of bytes that
+   would result from a call with EMIT true.  In this case F is
+   not necessarily valid and should not be referenced.
    If 'reg_containing_return_addr' is -1, then the return address is
-   actually on the stack, at the stack pointer.  */
-static void
-thumb_exit (FILE *f, int reg_containing_return_addr)
+   actually on the stack, at the stack pointer.
+*/
+static int
+handle_thumb_exit (FILE *f, int reg_containing_return_addr, bool emit)
 {
   unsigned regs_available_for_popping;
   unsigned regs_to_pop;
@@ -13398,6 +14499,7 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
   int mode;
   int size;
   int restore_a4 = FALSE;
+  int bytes = 0;
 
   /* Compute the registers we need to pop.  */
   regs_to_pop = 0;
@@ -13421,10 +14523,17 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
   if (pops_needed == 0)
     {
       if (current_function_calls_eh_return)
-	asm_fprintf (f, "\tadd\t%r, %r\n", SP_REGNUM, ARM_EH_STACKADJ_REGNUM);
+	{
+	  bytes += 2;
+	  if (emit)
+	    asm_fprintf (f, "\tadd\t%r, %r\n", SP_REGNUM, ARM_EH_STACKADJ_REGNUM);
+	}
 
-      asm_fprintf (f, "\tbx\t%r\n", reg_containing_return_addr);
-      return;
+      bytes += 2;
+      if (emit)
+	asm_fprintf (f, "\tbx\t%r\n", reg_containing_return_addr);
+
+      return bytes;
     }
   /* Otherwise if we are not supporting interworking and we have not created
      a backtrace structure and the function was not entered in ARM mode then
@@ -13435,8 +14544,10 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
 	   && !is_called_in_ARM_mode (current_function_decl)
 	   && !current_function_calls_eh_return)
     {
-      asm_fprintf (f, "\tpop\t{%r}\n", PC_REGNUM);
-      return;
+      bytes += 2;
+      if (emit)
+	asm_fprintf (f, "\tpop\t{%r}\n", PC_REGNUM);
+      return bytes;
     }
 
   /* Find out how many of the (return) argument registers we can corrupt.  */
@@ -13506,7 +14617,9 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
       if (regs_available_for_popping == 0
 	  && reg_containing_return_addr == LAST_ARG_REGNUM)
 	{
-	  asm_fprintf (f, "\tmov\t%r, %r\n", LR_REGNUM, LAST_ARG_REGNUM);
+	  bytes += 2;
+	  if (emit)
+	    asm_fprintf (f, "\tmov\t%r, %r\n", LR_REGNUM, LAST_ARG_REGNUM);
 	  reg_containing_return_addr = LR_REGNUM;
 	}
       else if (size > 12)
@@ -13515,7 +14628,9 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
 	     but we have dire need of a free, low register.  */
 	  restore_a4 = TRUE;
 
-	  asm_fprintf (f, "\tmov\t%r, %r\n",IP_REGNUM, LAST_ARG_REGNUM);
+	  bytes += 2;
+	  if (emit)
+	    asm_fprintf (f, "\tmov\t%r, %r\n",IP_REGNUM, LAST_ARG_REGNUM);
 	}
 
       if (reg_containing_return_addr != LAST_ARG_REGNUM)
@@ -13528,8 +14643,8 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
     }
 
   /* Pop as many registers as we can.  */
-  thumb_pushpop (f, regs_available_for_popping, FALSE, NULL,
-		 regs_available_for_popping);
+  bytes += handle_thumb_pushpop (f, regs_available_for_popping, FALSE, NULL,
+				 regs_available_for_popping, emit);
 
   /* Process the registers we popped.  */
   if (reg_containing_return_addr == -1)
@@ -13554,8 +14669,10 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
       frame_pointer = number_of_first_bit_set (regs_available_for_popping);
 
       /* Move it into the correct place.  */
-      asm_fprintf (f, "\tmov\t%r, %r\n",
-		   ARM_HARD_FRAME_POINTER_REGNUM, frame_pointer);
+      bytes += 2;
+      if (emit)
+	asm_fprintf (f, "\tmov\t%r, %r\n",
+		     ARM_HARD_FRAME_POINTER_REGNUM, frame_pointer);
 
       /* (Temporarily) remove it from the mask of popped registers.  */
       regs_available_for_popping &= ~(1 << frame_pointer);
@@ -13570,7 +14687,9 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
 	  stack_pointer = number_of_first_bit_set (regs_available_for_popping);
 
 	  /* Move it into the stack register.  */
-	  asm_fprintf (f, "\tmov\t%r, %r\n", SP_REGNUM, stack_pointer);
+	  bytes += 2;
+	  if (emit)
+	    asm_fprintf (f, "\tmov\t%r, %r\n", SP_REGNUM, stack_pointer);
 
 	  /* At this point we have popped all necessary registers, so
 	     do not worry about restoring regs_available_for_popping
@@ -13597,8 +14716,10 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
     {
       regs_available_for_popping |= 1 << reg_containing_return_addr;
 
-      asm_fprintf (f, "\tmov\t%r, %r\n", LR_REGNUM,
-		   reg_containing_return_addr);
+      bytes += 2;
+      if (emit)
+	asm_fprintf (f, "\tmov\t%r, %r\n", LR_REGNUM,
+		     reg_containing_return_addr);
 
       reg_containing_return_addr = LR_REGNUM;
     }
@@ -13610,15 +14731,17 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
       int  popped_into;
       int  move_to;
 
-      thumb_pushpop (f, regs_available_for_popping, FALSE, NULL,
-		     regs_available_for_popping);
+      bytes += handle_thumb_pushpop (f, regs_available_for_popping, FALSE, NULL,
+				     regs_available_for_popping, emit);
 
       /* We have popped either FP or SP.
 	 Move whichever one it is into the correct register.  */
       popped_into = number_of_first_bit_set (regs_available_for_popping);
       move_to     = number_of_first_bit_set (regs_to_pop);
 
-      asm_fprintf (f, "\tmov\t%r, %r\n", move_to, popped_into);
+      bytes += 2;
+      if (emit)
+	asm_fprintf (f, "\tmov\t%r, %r\n", move_to, popped_into);
 
       regs_to_pop &= ~(1 << move_to);
 
@@ -13631,12 +14754,14 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
     {
       int  popped_into;
 
-      thumb_pushpop (f, regs_available_for_popping, FALSE, NULL,
-		     regs_available_for_popping);
+      bytes += handle_thumb_pushpop (f, regs_available_for_popping, FALSE, NULL,
+				     regs_available_for_popping, emit);
 
       popped_into = number_of_first_bit_set (regs_available_for_popping);
 
-      asm_fprintf (f, "\tmov\t%r, %r\n", SP_REGNUM, popped_into);
+      bytes += 2;
+      if (emit)
+	asm_fprintf (f, "\tmov\t%r, %r\n", SP_REGNUM, popped_into);
       /*
 	assert (regs_to_pop == (1 << STACK_POINTER))
 	assert (pops_needed == 1)
@@ -13648,19 +14773,31 @@ thumb_exit (FILE *f, int reg_containing_return_addr)
     {
       if (reg_containing_return_addr != LR_REGNUM)
 	{
-	  asm_fprintf (f, "\tmov\t%r, %r\n", LR_REGNUM, LAST_ARG_REGNUM);
+	  bytes += 2;
+	  if (emit)
+	    asm_fprintf (f, "\tmov\t%r, %r\n", LR_REGNUM, LAST_ARG_REGNUM);
 	  reg_containing_return_addr = LR_REGNUM;
 	}
 
-      asm_fprintf (f, "\tmov\t%r, %r\n", LAST_ARG_REGNUM, IP_REGNUM);
+      bytes += 2;
+      if (emit)
+	asm_fprintf (f, "\tmov\t%r, %r\n", LAST_ARG_REGNUM, IP_REGNUM);
     }
 
   if (current_function_calls_eh_return)
-    asm_fprintf (f, "\tadd\t%r, %r\n", SP_REGNUM, ARM_EH_STACKADJ_REGNUM);
+    {
+      bytes += 2;
+      if (emit)
+	asm_fprintf (f, "\tadd\t%r, %r\n", SP_REGNUM, ARM_EH_STACKADJ_REGNUM);
+    }
 
   /* Return to caller.  */
-  asm_fprintf (f, "\tbx\t%r\n", reg_containing_return_addr);
+  bytes += 2;
+  if (emit)
+    asm_fprintf (f, "\tbx\t%r\n", reg_containing_return_addr);
+  return bytes;
 }
+/* APPLE LOCAL end ARM compact switch tables */
 
 
 void
@@ -13692,6 +14829,10 @@ thumb_shiftable_const (unsigned HOST_WIDE_INT val)
 static int
 thumb_far_jump_used_p (void)
 {
+/* LLVM LOCAL */
+#ifdef ENABLE_LLVM
+  return 0;
+#else  
   rtx insn;
 
   /* This test is only important for leaf functions.  */
@@ -13756,6 +14897,8 @@ thumb_far_jump_used_p (void)
     }
 
   return 0;
+/* LLVM LOCAL */
+#endif
 }
 
 /* Return nonzero if FUNC must be entered in ARM mode.  */
@@ -13775,21 +14918,28 @@ is_called_in_ARM_mode (tree func)
 #endif
 }
 
-/* The bits which aren't usefully expanded as rtl.  */
-const char *
-thumb_unexpanded_epilogue (void)
+/* APPLE LOCAL begin ARM compact switch tables */
+/* This handles the part of the epilogue that is not expressed as RTL.
+   It computes and returns the number of bytes in this part of the epilogue.
+   When EMIT is true, it additionally outputs this part of the epilogue.
+   When !EMIT, this function does not output anything; in this case
+   F need not be valid and should not be referenced.
+*/
+static int
+handle_thumb_unexpanded_epilogue (bool emit)
 {
   int regno;
   unsigned long live_regs_mask = 0;
   int high_regs_pushed = 0;
   int had_to_push_lr;
   int size;
+  int bytes = 0;
 
   if (return_used_this_function)
-    return "";
+    return bytes;
 
   if (IS_NAKED (arm_current_func_type ()))
-    return "";
+    return bytes;
 
   live_regs_mask = thumb_compute_save_reg_mask ();
   high_regs_pushed = bit_count (live_regs_mask & 0x0f00);
@@ -13847,15 +14997,17 @@ thumb_unexpanded_epilogue (void)
 	  mask &= (2 << regno) - 1;	/* A noop if regno == 8 */
 
 	  /* Pop the values into the low register(s).  */
-	  thumb_pushpop (asm_out_file, mask, 0, NULL, mask);
+	  bytes += handle_thumb_pushpop (asm_out_file, mask, 0, NULL, mask, emit);
 
 	  /* Move the value(s) into the high registers.  */
 	  for (regno = 0; regno <= LAST_LO_REGNUM; regno++)
 	    {
 	      if (mask & (1 << regno))
 		{
-		  asm_fprintf (asm_out_file, "\tmov\t%r, %r\n", next_hi_reg,
-			       regno);
+		  bytes += 2;
+		  if (emit)
+		    asm_fprintf (asm_out_file, "\tmov\t%r, %r\n", next_hi_reg,
+				 regno);
 
 		  for (next_hi_reg++; next_hi_reg < 13; next_hi_reg++)
 		    if (live_regs_mask & (1 << next_hi_reg))
@@ -13879,42 +15031,48 @@ thumb_unexpanded_epilogue (void)
 	 structure was created which includes an adjusted stack
 	 pointer, so just pop everything.  */
       if (live_regs_mask)
-	thumb_pushpop (asm_out_file, live_regs_mask, FALSE, NULL,
-		       live_regs_mask);
+	bytes += handle_thumb_pushpop (asm_out_file, live_regs_mask, FALSE, NULL,
+				       live_regs_mask, emit);
 
       /* We have either just popped the return address into the
 	 PC or it is was kept in LR for the entire function.  */
       if (!had_to_push_lr)
-	thumb_exit (asm_out_file, LR_REGNUM);
+	bytes += handle_thumb_exit (asm_out_file, LR_REGNUM, emit);
     }
   else
     {
       /* Pop everything but the return address.  */
       if (live_regs_mask)
-	thumb_pushpop (asm_out_file, live_regs_mask, FALSE, NULL,
-		       live_regs_mask);
+	bytes += handle_thumb_pushpop (asm_out_file, live_regs_mask, FALSE, NULL,
+				       live_regs_mask, emit);
 
       if (had_to_push_lr)
 	{
 	  if (size > 12)
 	    {
 	      /* We have no free low regs, so save one.  */
-	      asm_fprintf (asm_out_file, "\tmov\t%r, %r\n", IP_REGNUM,
-			   LAST_ARG_REGNUM);
+	      bytes += 2;
+	      if (emit)
+		asm_fprintf (asm_out_file, "\tmov\t%r, %r\n", IP_REGNUM,
+			     LAST_ARG_REGNUM);
 	    }
 
 	  /* Get the return address into a temporary register.  */
-	  thumb_pushpop (asm_out_file, 1 << LAST_ARG_REGNUM, 0, NULL,
-			 1 << LAST_ARG_REGNUM);
+	  bytes += handle_thumb_pushpop (asm_out_file, 1 << LAST_ARG_REGNUM, 0, NULL,
+					 1 << LAST_ARG_REGNUM, emit);
 
 	  if (size > 12)
 	    {
-	      /* Move the return address to lr.  */
-	      asm_fprintf (asm_out_file, "\tmov\t%r, %r\n", LR_REGNUM,
-			   LAST_ARG_REGNUM);
-	      /* Restore the low register.  */
-	      asm_fprintf (asm_out_file, "\tmov\t%r, %r\n", LAST_ARG_REGNUM,
-			   IP_REGNUM);
+	      bytes += 4;
+	      if (emit)
+		{
+		  /* Move the return address to lr.  */
+		  asm_fprintf (asm_out_file, "\tmov\t%r, %r\n", LR_REGNUM,
+			       LAST_ARG_REGNUM);
+		  /* Restore the low register.  */
+		  asm_fprintf (asm_out_file, "\tmov\t%r, %r\n", LAST_ARG_REGNUM,
+			       IP_REGNUM);
+		}
 	      regno = LR_REGNUM;
 	    }
 	  else
@@ -13924,15 +15082,28 @@ thumb_unexpanded_epilogue (void)
 	regno = LR_REGNUM;
 
       /* Remove the argument registers that were pushed onto the stack.  */
-      asm_fprintf (asm_out_file, "\tadd\t%r, %r, #%d\n",
-		   SP_REGNUM, SP_REGNUM,
-		   current_function_pretend_args_size);
+      bytes += 2;
+      if (emit)
+	asm_fprintf (asm_out_file, "\tadd\t%r, %r, #%d\n",
+		     SP_REGNUM, SP_REGNUM,
+		     current_function_pretend_args_size);
 
-      thumb_exit (asm_out_file, regno);
+      bytes += handle_thumb_exit (asm_out_file, regno, emit);
     }
 
+  return bytes;
+}
+
+/* This is the externally visible entry point for generating code for the
+   part of the epilogue that is not stored as RTL.  This is just a wrapper
+   around the previous, with the correct externally imposed interface. */
+
+const char * thumb_unexpanded_epilogue (void)
+{
+  (void) handle_thumb_unexpanded_epilogue (true);
   return "";
 }
+/* APPLE LOCAL end ARM compact switch tables */
 
 /* Functions to save and restore machine-specific function data.  */
 static struct machine_function *
@@ -14060,9 +15231,9 @@ thumb_expand_prologue (void)
   if (flag_pic && arm_pic_register != INVALID_REGNUM)
     arm_load_pic_register (live_regs_mask);
 
+  /* APPLE LOCAL begin ARM custom frame layout */
   offsets = arm_get_frame_offsets ();
 
-  /* APPLE LOCAL begin ARM custom frame layout */
   if (frame_pointer_needed)
     {
       insn = emit_insn (gen_addsi3 (hard_frame_pointer_rtx,
@@ -14261,17 +15432,25 @@ thumb_expand_epilogue (void)
     emit_insn (gen_rtx_USE (VOIDmode, gen_rtx_REG (SImode, LR_REGNUM)));
 }
 
-static void
-thumb_output_function_prologue (FILE *f, HOST_WIDE_INT size ATTRIBUTE_UNUSED)
+/* APPLE LOCAL begin ARM 4790140 compact switch tables */
+/* This handles the part of the prologue that is not expressed as RTL.
+   It computes and returns the number of bytes in this part of the prologue.
+   When EMIT is true, it additionally outputs this part of the prologue.
+   When !EMIT, this function does not output anything; in this case
+   F need not be valid and should not be referenced.
+*/
+static int
+handle_thumb_unexpanded_prologue (FILE *f, bool emit)
 {
   unsigned long live_regs_mask = 0;
   unsigned long l_mask;
   unsigned high_regs_pushed = 0;
   int cfa_offset = 0;
   int regno;
+  int bytes = 0;
 
   if (IS_NAKED (arm_current_func_type ()))
-    return;
+    return bytes;
 
   if (is_called_in_ARM_mode (current_function_decl))
     {
@@ -14280,65 +15459,80 @@ thumb_output_function_prologue (FILE *f, HOST_WIDE_INT size ATTRIBUTE_UNUSED)
       gcc_assert (GET_CODE (DECL_RTL (current_function_decl)) == MEM);
       gcc_assert (GET_CODE (XEXP (DECL_RTL (current_function_decl), 0))
 		  == SYMBOL_REF);
-      name = XSTR  (XEXP (DECL_RTL (current_function_decl), 0), 0);
 
-      /* Generate code sequence to switch us into Thumb mode.  */
-      /* The .code 32 directive has already been emitted by
-	 ASM_DECLARE_FUNCTION_NAME.  */
-      asm_fprintf (f, "\torr\t%r, %r, #1\n", IP_REGNUM, PC_REGNUM);
-      asm_fprintf (f, "\tbx\t%r\n", IP_REGNUM);
+      bytes += 8;
 
-      /* Generate a label, so that the debugger will notice the
-	 change in instruction sets.  This label is also used by
-	 the assembler to bypass the ARM code when this function
-	 is called from a Thumb encoded function elsewhere in the
-	 same file.  Hence the definition of STUB_NAME here must
-	 agree with the definition in gas/config/tc-arm.c.  */
+      if (emit)
+	{
+	  name = XSTR  (XEXP (DECL_RTL (current_function_decl), 0), 0);
+
+	  /* Generate code sequence to switch us into Thumb mode.  */
+	  /* The .code 32 directive has already been emitted by
+	     ASM_DECLARE_FUNCTION_NAME.  */
+	  asm_fprintf (f, "\torr\t%r, %r, #1\n", IP_REGNUM, PC_REGNUM);
+	  asm_fprintf (f, "\tbx\t%r\n", IP_REGNUM);
+
+	  /* Generate a label, so that the debugger will notice the
+	     change in instruction sets.  This label is also used by
+	     the assembler to bypass the ARM code when this function
+	     is called from a Thumb encoded function elsewhere in the
+	     same file.  Hence the definition of STUB_NAME here must
+	     agree with the definition in gas/config/tc-arm.c.  */
 
 #define STUB_NAME ".real_start_of"
 
-      fprintf (f, "\t.code\t16\n");
+	  fprintf (f, "\t.code\t16\n");
 #ifdef ARM_PE
-      if (arm_dllexport_name_p (name))
-        name = arm_strip_name_encoding (name);
+	  if (arm_dllexport_name_p (name))
+	    name = arm_strip_name_encoding (name);
 #endif
-      asm_fprintf (f, "\t.globl %s%U%s\n", STUB_NAME, name);
-      fprintf (f, "\t.thumb_func\n");
-      asm_fprintf (f, "%s%U%s:\n", STUB_NAME, name);
+	  asm_fprintf (f, "\t.globl %s%U%s\n", STUB_NAME, name);
+	  /* APPLE LOCAL begin ARM thumb_func <symbol_name> */
+	  if (TARGET_MACHO)
+	    asm_fprintf (f, "\t.thumb_func %s%U%s\n", STUB_NAME, name);
+	  else
+	    fprintf (f, "\t.thumb_func\n");
+	  /* APPLE LOCAL end ARM thumb_func <symbol_name> */
+
+	  asm_fprintf (f, "%s%U%s:\n", STUB_NAME, name);
+	}
     }
 
   if (current_function_pretend_args_size)
     {
       /* Output unwind directive for the stack adjustment.  */
-      if (ARM_EABI_UNWIND_TABLES)
+      if (emit && ARM_EABI_UNWIND_TABLES)
 	fprintf (f, "\t.pad #%d\n",
 		 current_function_pretend_args_size);
 
-      if (cfun->machine->uses_anonymous_args)
+      if (emit)
 	{
-	  int num_pushes;
+	  if (cfun->machine->uses_anonymous_args)
+	    {
+	      int num_pushes;
 
-	  fprintf (f, "\tpush\t{");
+	      fprintf (f, "\tpush\t{");
 
-	  num_pushes = ARM_NUM_INTS (current_function_pretend_args_size);
+	      num_pushes = ARM_NUM_INTS (current_function_pretend_args_size);
 
-	  for (regno = LAST_ARG_REGNUM + 1 - num_pushes;
-	       regno <= LAST_ARG_REGNUM;
-	       regno++)
-	    asm_fprintf (f, "%r%s", regno,
-			 regno == LAST_ARG_REGNUM ? "" : ", ");
+	      for (regno = LAST_ARG_REGNUM + 1 - num_pushes;
+		   regno <= LAST_ARG_REGNUM;
+		   regno++)
+		asm_fprintf (f, "%r%s", regno,
+			     regno == LAST_ARG_REGNUM ? "" : ", ");
 
-	  fprintf (f, "}\n");
+	      fprintf (f, "}\n");
+	    }
+	  else
+	    asm_fprintf (f, "\tsub\t%r, %r, #%d\n",
+			 SP_REGNUM, SP_REGNUM,
+			 current_function_pretend_args_size);
 	}
-      else
-	asm_fprintf (f, "\tsub\t%r, %r, #%d\n",
-		     SP_REGNUM, SP_REGNUM,
-		     current_function_pretend_args_size);
 
       /* We don't need to record the stores for unwinding (would it
 	 help the debugger any if we did?), but record the change in
 	 the stack pointer.  */
-      if (dwarf2out_do_frame ())
+      if (emit && dwarf2out_do_frame ())
 	{
 	  char *l = dwarf2out_cfi_label ();
 
@@ -14379,14 +15573,16 @@ thumb_output_function_prologue (FILE *f, HOST_WIDE_INT size ATTRIBUTE_UNUSED)
 
       work_register = thumb_find_work_register (live_regs_mask);
 
-      if (ARM_EABI_UNWIND_TABLES)
+      if (emit && ARM_EABI_UNWIND_TABLES)
 	asm_fprintf (f, "\t.pad #16\n");
 
-      asm_fprintf
-	(f, "\tsub\t%r, %r, #16\t%@ Create stack backtrace structure\n",
-	 SP_REGNUM, SP_REGNUM);
+      bytes += 2;
+      if (emit)
+	asm_fprintf
+	  (f, "\tsub\t%r, %r, #16\t%@ Create stack backtrace structure\n",
+	   SP_REGNUM, SP_REGNUM);
 
-      if (dwarf2out_do_frame ())
+      if (emit && dwarf2out_do_frame ())
 	{
 	  char *l = dwarf2out_cfi_label ();
 
@@ -14396,48 +15592,60 @@ thumb_output_function_prologue (FILE *f, HOST_WIDE_INT size ATTRIBUTE_UNUSED)
 
       if (l_mask)
 	{
-	  thumb_pushpop (f, l_mask, 1, &cfa_offset, l_mask);
+	  bytes += handle_thumb_pushpop (f, l_mask, 1, &cfa_offset, l_mask, emit);
 	  offset = bit_count (l_mask) * UNITS_PER_WORD;
 	}
       else
 	offset = 0;
 
-      asm_fprintf (f, "\tadd\t%r, %r, #%d\n", work_register, SP_REGNUM,
-		   offset + 16 + current_function_pretend_args_size);
-
-      asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
-		   offset + 4);
-
-      /* Make sure that the instruction fetching the PC is in the right place
-	 to calculate "start of backtrace creation code + 12".  */
-      if (l_mask)
+      bytes += 4;
+      if (emit)
 	{
-	  asm_fprintf (f, "\tmov\t%r, %r\n", work_register, PC_REGNUM);
+	  asm_fprintf (f, "\tadd\t%r, %r, #%d\n", work_register, SP_REGNUM,
+		       offset + 16 + current_function_pretend_args_size);
+
 	  asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
-		       offset + 12);
-	  asm_fprintf (f, "\tmov\t%r, %r\n", work_register,
-		       ARM_HARD_FRAME_POINTER_REGNUM);
-	  asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
-		       offset);
-	}
-      else
-	{
-	  asm_fprintf (f, "\tmov\t%r, %r\n", work_register,
-		       ARM_HARD_FRAME_POINTER_REGNUM);
-	  asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
-		       offset);
-	  asm_fprintf (f, "\tmov\t%r, %r\n", work_register, PC_REGNUM);
-	  asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
-		       offset + 12);
+		       offset + 4);
 	}
 
-      asm_fprintf (f, "\tmov\t%r, %r\n", work_register, LR_REGNUM);
-      asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
-		   offset + 8);
-      asm_fprintf (f, "\tadd\t%r, %r, #%d\n", work_register, SP_REGNUM,
-		   offset + 12);
-      asm_fprintf (f, "\tmov\t%r, %r\t\t%@ Backtrace structure created\n",
-		   ARM_HARD_FRAME_POINTER_REGNUM, work_register);
+      bytes += 8;
+      if (emit)
+	{
+	  /* Make sure that the instruction fetching the PC is in the right place
+	     to calculate "start of backtrace creation code + 12".  */
+	  if (l_mask)
+	    {
+	      asm_fprintf (f, "\tmov\t%r, %r\n", work_register, PC_REGNUM);
+	      asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
+			   offset + 12);
+	      asm_fprintf (f, "\tmov\t%r, %r\n", work_register,
+			   ARM_HARD_FRAME_POINTER_REGNUM);
+	      asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
+			   offset);
+	    }
+	  else
+	    {
+	      asm_fprintf (f, "\tmov\t%r, %r\n", work_register,
+			   ARM_HARD_FRAME_POINTER_REGNUM);
+	      asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
+			   offset);
+	      asm_fprintf (f, "\tmov\t%r, %r\n", work_register, PC_REGNUM);
+	      asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
+			   offset + 12);
+	    }
+	}
+
+      bytes += 8;
+      if (emit)
+	{
+	  asm_fprintf (f, "\tmov\t%r, %r\n", work_register, LR_REGNUM);
+	  asm_fprintf (f, "\tstr\t%r, [%r, #%d]\n", work_register, SP_REGNUM,
+		       offset + 8);
+	  asm_fprintf (f, "\tadd\t%r, %r, #%d\n", work_register, SP_REGNUM,
+		       offset + 12);
+	  asm_fprintf (f, "\tmov\t%r, %r\t\t%@ Backtrace structure created\n",
+		       ARM_HARD_FRAME_POINTER_REGNUM, work_register);
+	}
     }
   /* Optimization:  If we are not pushing any low registers but we are going
      to push some high registers then delay our first push.  This will just
@@ -14445,7 +15653,7 @@ thumb_output_function_prologue (FILE *f, HOST_WIDE_INT size ATTRIBUTE_UNUSED)
      register.  */
   else if ((l_mask & 0xff) != 0
 	   || (high_regs_pushed == 0 && l_mask))
-    thumb_pushpop (f, l_mask, 1, &cfa_offset, l_mask);
+    bytes += handle_thumb_pushpop (f, l_mask, 1, &cfa_offset, l_mask, emit);
 
   if (high_regs_pushed)
     {
@@ -14470,7 +15678,9 @@ thumb_output_function_prologue (FILE *f, HOST_WIDE_INT size ATTRIBUTE_UNUSED)
 	    {
 	      if (pushable_regs & (1 << regno))
 		{
-		  asm_fprintf (f, "\tmov\t%r, %r\n", regno, next_hi_reg);
+		  bytes += 2;
+		  if (emit)
+		    asm_fprintf (f, "\tmov\t%r, %r\n", regno, next_hi_reg);
 
 		  high_regs_pushed --;
 		  real_regs_mask |= (1 << next_hi_reg);
@@ -14494,16 +15704,30 @@ thumb_output_function_prologue (FILE *f, HOST_WIDE_INT size ATTRIBUTE_UNUSED)
 	     saved the LR then add it to the list of regs to push.  */
 	  if (l_mask == (1 << LR_REGNUM))
 	    {
-	      thumb_pushpop (f, pushable_regs | (1 << LR_REGNUM),
-			     1, &cfa_offset,
-			     real_regs_mask | (1 << LR_REGNUM));
+	      bytes += handle_thumb_pushpop 
+			 (f, pushable_regs | (1 << LR_REGNUM),
+			  1, &cfa_offset,
+			  real_regs_mask | (1 << LR_REGNUM), emit);
 	      l_mask = 0;
 	    }
 	  else
-	    thumb_pushpop (f, pushable_regs, 1, &cfa_offset, real_regs_mask);
+	    bytes += handle_thumb_pushpop (f, pushable_regs, 1, &cfa_offset, real_regs_mask, emit);
 	}
     }
+  return bytes;
 }
+
+static void
+thumb_output_function_prologue (FILE *f, HOST_WIDE_INT size ATTRIBUTE_UNUSED)
+{
+  (void) handle_thumb_unexpanded_prologue (f, true);
+}
+
+int count_thumb_unexpanded_prologue (void)
+{
+  return handle_thumb_unexpanded_prologue (NULL, false);
+}
+/* APPLE LOCAL end ARM compact switch tables */
 
 /* Handle the case of a double word load into a low register from
    a computed memory address.  The computed address may involve a
@@ -14563,24 +15787,13 @@ thumb_load_double_from_address (rtx *operands)
       /* Catch the case of <address> = <reg> + <reg> */
       if (GET_CODE (offset) == REG)
 	{
-	  int reg_offset = REGNO (offset);
-	  int reg_base   = REGNO (base);
-	  int reg_dest   = REGNO (operands[0]);
-
-	  /* Add the base and offset registers together into the
-             higher destination register.  */
-	  asm_fprintf (asm_out_file, "\tadd\t%r, %r, %r",
-		       reg_dest + 1, reg_base, reg_offset);
-
-	  /* Load the lower destination register from the address in
-             the higher destination register.  */
-	  asm_fprintf (asm_out_file, "\tldr\t%r, [%r, #0]",
-		       reg_dest, reg_dest + 1);
-
-	  /* Load the higher destination register from its own address
-             plus 4.  */
-	  asm_fprintf (asm_out_file, "\tldr\t%r, [%r, #4]",
-		       reg_dest + 1, reg_dest + 1);
+	  /* APPLE LOCAL begin ARM compact switch tables */
+	  /* thumb_legitimate_address_p won't allow this form,
+	     and allowing a 3-instruction variant confuses
+	     our instruction length counts, so remove it.
+	     Details in rdar://5435967.  */
+	  gcc_unreachable();
+	  /* APPLE LOCAL end ARM compact switch tables */
 	}
       else
 	{
@@ -15085,7 +16298,8 @@ aof_file_end (void)
 }
 #endif /* AOF_ASSEMBLER */
 
-#ifndef ARM_PE
+/* APPLE LOCAL ARM darwin section_info */
+#if !defined(ARM_PE) && !TARGET_MACHO
 /* Symbols in the text segment can be accessed without indirecting via the
    constant pool; it may take an extra binary operation, but this is still
    faster than indirecting via memory.  Don't do this when not optimizing,
@@ -15095,12 +16309,6 @@ aof_file_end (void)
 static void
 arm_encode_section_info (tree decl, rtx rtl, int first)
 {
-  /* APPLE LOCAL begin ARM darwin section_info */
-#if TARGET_MACHO
-  darwin_encode_section_info (decl, rtl, first);
-#endif
-  /* APPLE LOCAL end ARM darwin section_info */
-
   /* This doesn't work with AOF syntax, since the string table may be in
      a different AREA.  */
 #ifndef AOF_ASSEMBLER
@@ -15113,24 +16321,45 @@ arm_encode_section_info (tree decl, rtx rtl, int first)
      or known to be defined in this file then encode a short call flag.  */
   if (first && DECL_P (decl))
     {
-/* APPLE LOCAL begin ARM longcall */
-#if TARGET_MACHO
-      if (TREE_CODE (decl) == FUNCTION_DECL && DECL_WEAK (decl))
-        arm_encode_call_attribute (decl, SYMBOL_LONG_CALL);
-      else if (! TREE_PUBLIC (decl))
-        arm_encode_call_attribute (decl, SYMBOL_SHORT_CALL);
-#else
       if (TREE_CODE (decl) == FUNCTION_DECL && DECL_WEAK (decl))
         arm_encode_call_attribute (decl, LONG_CALL_FLAG_CHAR);
       else if (! TREE_PUBLIC (decl))
         arm_encode_call_attribute (decl, SHORT_CALL_FLAG_CHAR);
-#endif
-/* APPLE LOCAL end ARM longcall */
     }
 
   default_encode_section_info (decl, rtl, first);
 }
-#endif /* !ARM_PE */
+/* APPLE LOCAL begin ARM darwin section_info */
+#endif /* !ARM_PE && !TARGET_MACHO*/
+
+#if TARGET_MACHO
+/* Encode the standard darwin attributes, plus the longcall flag.  */
+
+static void
+arm_darwin_encode_section_info (tree decl, rtx rtl, int first)
+{
+  darwin_encode_section_info (decl, rtl, first);
+
+  if (optimize > 0 && TREE_CONSTANT (decl))
+    SYMBOL_REF_FLAG (XEXP (rtl, 0)) = 1;
+
+  /* If we are referencing a function with default visibility that is
+     weak then encode a long call flag in the function name, otherwise
+     if the function is static or or known to be defined in this file
+     then encode a short call flag.  */
+  if (DECL_P (decl))
+    {
+      if (TREE_CODE (decl) == FUNCTION_DECL
+	  && DECL_WEAK (decl)
+	  && DECL_VISIBILITY (decl) == VISIBILITY_DEFAULT)
+        arm_encode_call_attribute (decl, SYMBOL_LONG_CALL);
+      /* Should this be binds_local_p???  */
+      else if (! TREE_PUBLIC (decl))
+        arm_encode_call_attribute (decl, SYMBOL_SHORT_CALL);
+    }
+}
+#endif
+/* APPLE LOCAL end ARM darwin section_info */
 
 static void
 arm_internal_label (FILE *stream, const char *prefix, unsigned long labelno)
@@ -15152,6 +16381,7 @@ arm_output_mi_thunk (FILE *file, tree thunk ATTRIBUTE_UNUSED,
 		     HOST_WIDE_INT vcall_offset ATTRIBUTE_UNUSED,
 		     tree function)
 {
+  /* APPLE LOCAL begin ARM 4620953 4745175 5920116 */
   static int thunk_label = 0;
   char label[256];
   char labelpc[256];
@@ -15160,26 +16390,29 @@ arm_output_mi_thunk (FILE *file, tree thunk ATTRIBUTE_UNUSED,
   int shift = 0;
   int this_regno = (aggregate_value_p (TREE_TYPE (TREE_TYPE (function)), function)
                     ? 1 : 0);
-  /* APPLE LOCAL ARM begin 4745175 */
   rtx function_rtx = XEXP (DECL_RTL (function), 0);
   const char *function_name;
+  bool is_longcall = arm_is_longcall_p (function_rtx,
+					SYMBOL_REF_FLAGS (function_rtx),
+					1);
+  bool is_indirected = false;
 
   /* Darwin/mach-o: use a stub for dynamic references.  */
 #if TARGET_MACHO
-      if ((flag_pic || MACHO_DYNAMIC_NO_PIC_P)
-          && ! machopic_data_defined_p (function_rtx))
-          function_name =
-              machopic_indirection_name (function_rtx, true);
-      else
-          function_name = XSTR (function_rtx, 0);
-#else
-      function_name = XSTR (function_rtx, 0);
+  if (TARGET_MACHO
+      && MACHOPIC_INDIRECT
+      && (! machopic_data_defined_p (function_rtx)))
+    {
+      function_name = machopic_indirection_name (function_rtx, !is_longcall);
+      is_indirected = true;
+    }
+  else
 #endif
-  /* APPLE LOCAL ARM end 4745175 */
+    function_name = XSTR (function_rtx, 0);
 
   if (mi_delta < 0)
     mi_delta = - mi_delta;
-  if (TARGET_THUMB)
+  if (TARGET_THUMB || is_longcall)
     {
       int labelno = thunk_label++;
       ASM_GENERATE_INTERNAL_LABEL (label, "LTHUMBFUNC", labelno);
@@ -15203,6 +16436,8 @@ arm_output_mi_thunk (FILE *file, tree thunk ATTRIBUTE_UNUSED,
 	  fputs (":\n", file);
 	  fputs ("\tadd\tr12, pc, r12\n", file);
 	}
+      if (is_indirected)
+	fputs ("\tldr\tr12, [r12]\n", file);
     }
   while (mi_delta != 0)
     {
@@ -15217,7 +16452,7 @@ arm_output_mi_thunk (FILE *file, tree thunk ATTRIBUTE_UNUSED,
           shift += 8;
         }
     }
-  if (TARGET_THUMB)
+  if (TARGET_THUMB || is_longcall)
     {
       fprintf (file, "\tbx\tr12\n");
       ASM_OUTPUT_ALIGN (file, 2);
@@ -15225,23 +16460,17 @@ arm_output_mi_thunk (FILE *file, tree thunk ATTRIBUTE_UNUSED,
       fputs (":\n", file);
       if (flag_pic)
 	{
-	  /* APPLE LOCAL begin ARM 4745175 */
-	  /* If we're branching to a local routine, output:
+	  /* If we're branching to a local Thumb routine, output:
 	       ".word .LTHUNKn-7-.LTHUNKPCn".
 	     Otherwise, output:
 	       ".word .LTHUNKn-8-.LTHUNKPCn".
 	     (inter-module thumbness is fixed up by the linker).  */
 	  rtx tem = gen_rtx_SYMBOL_REF (Pmode, function_name);
 
-#if TARGET_MACHO
-          if (! machopic_data_defined_p (function_rtx))
+	  if (TARGET_MACHO && (TARGET_ARM || is_indirected))
 	    tem = gen_rtx_PLUS (GET_MODE (tem), tem, GEN_INT (-8));
 	  else
 	    tem = gen_rtx_PLUS (GET_MODE (tem), tem, GEN_INT (-7));
-#else
-          tem = gen_rtx_PLUS (GET_MODE (tem), tem, GEN_INT (-7));
-#endif
-	  /* APPLE LOCAL end ARM 4745175 */
 
 	  tem = gen_rtx_MINUS (GET_MODE (tem),
 			       tem,
@@ -15251,20 +16480,18 @@ arm_output_mi_thunk (FILE *file, tree thunk ATTRIBUTE_UNUSED,
 	}
       else
 	/* Output ".word .LTHUNKn".  */
-	/* APPLE LOCAL begin ARM 4745175 */
 	assemble_integer (gen_rtx_SYMBOL_REF (Pmode, function_name),
 			  4, BITS_PER_WORD, 1);
-	/* APPLE LOCAL end ARM 4745175 */
     }
   else
     {
       fputs ("\tb\t", file);
-      /* APPLE LOCAL ARM 4745175 */
       assemble_name (file, function_name);
       if (NEED_PLT_RELOC)
         fputs ("(PLT)", file);
       fputc ('\n', file);
     }
+  /* APPLE LOCAL end ARM 4620953 4745175 5920116 */
 }
 
 int
@@ -15719,7 +16946,8 @@ arm_dbx_register_number (unsigned int regno)
     return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
 
   if (IS_VFP_REGNUM (regno))
-    return 64 + regno - FIRST_VFP_REGNUM;
+    /* APPLE LOCAL ARM 5757769 */
+    return 256 + regno - FIRST_VFP_REGNUM;
 
   if (IS_IWMMXT_GR_REGNUM (regno))
     return 104 + regno - FIRST_IWMMXT_GR_REGNUM;
@@ -16115,7 +17343,7 @@ void
 machopic_output_stub (FILE *file, const char *symb, const char *stub)
 {
   unsigned int length;
-  char *symbol_name, *lazy_ptr_name;
+  char *symbol_name, *lazy_ptr_name, *slp_label_name;
   static int label = 0;
 
   /* Lose our funky encoding stuff so it doesn't contaminate the stub.  */
@@ -16127,6 +17355,9 @@ machopic_output_stub (FILE *file, const char *symb, const char *stub)
 
   lazy_ptr_name = alloca (length + 32);
   GEN_LAZY_PTR_NAME_FOR_SYMBOL (lazy_ptr_name, symb, length);
+
+  slp_label_name = alloca (length + 32);
+  GEN_SUFFIXED_NAME_FOR_SYMBOL (slp_label_name, symb, length, "$slp");
 
   if (flag_pic == 2)
     switch_to_section (darwin_sections[machopic_picsymbol_stub4_section]);
@@ -16140,7 +17371,7 @@ machopic_output_stub (FILE *file, const char *symb, const char *stub)
 
   fprintf (file, "%s:\n", stub);
   fprintf (file, "\t.indirect_symbol %s\n", symbol_name);
-  fprintf (file, "\tldr\tip, L%s$slp\n", symbol_name);
+  fprintf (file, "\tldr\tip, %s\n", slp_label_name);
 
   label++;
 
@@ -16150,11 +17381,11 @@ machopic_output_stub (FILE *file, const char *symb, const char *stub)
   fprintf (file, "\tldr\tpc, [ip, #0]\n");
 
   if (flag_pic == 2)
-    fprintf (file, "L%s$slp:\n\t.long\tL%s$lazy_ptr - (L%d$scv + 8)\n",
-	     symbol_name, symbol_name, label);
+    fprintf (file, "%s:\n\t.long\t%s - (L%d$scv + 8)\n",
+	     slp_label_name, lazy_ptr_name, label);
   else
-    fprintf (file, "L%s$slp:\n\t.long\tL%s$lazy_ptr\n",
-	     symbol_name, symbol_name);
+    fprintf (file, "%s:\n\t.long\t%s\n",
+	     slp_label_name, lazy_ptr_name);
       
   switch_to_section (darwin_sections[machopic_lazy_symbol_ptr_section]);
   fprintf (file, "%s:\n", lazy_ptr_name);
@@ -16189,9 +17420,8 @@ optimization_options (int level, int size ATTRIBUTE_UNUSED)
      in darwin-c.c).  */
   flag_trapping_math = 0;
 
-  /* Disable local RA.  */
   /* APPLE LOCAL conditionally disable local RA */
-  /* flag_local_alloc = 0; */
+  flag_local_alloc = 0;
   /* APPLE LOCAL rerun cse after combine */
   /* flag_rerun_cse_after_combine = 1; */
   
@@ -16251,5 +17481,273 @@ arm_local_debug_offset (rtx var)
     return offset;
 }
 /* APPLE LOCAL end ARM prefer SP to FP */
+
+/* APPLE LOCAL begin ARM compact switch tables */
+int arm_label_align (rtx label)
+{
+  rtx insn = NEXT_INSN (label);
+  if (insn
+      && GET_CODE (insn) == INSN
+      && GET_CODE (PATTERN (insn)) == UNSPEC_VOLATILE)
+    {
+      if ((int) XEXP (PATTERN (insn), 1) == VUNSPEC_ALIGN)
+	return 2;
+      if ((int) XEXP (PATTERN (insn), 1) == VUNSPEC_ALIGN8)
+	return 3;
+    }
+  return align_labels_log;
+}
+/* APPLE LOCAL end ARM compact switch tables */
+
+/* APPLE LOCAL begin ARM enhance conditional insn generation */
+/* A C expression to modify the code described by the conditional if
+   information CE_INFO, for the basic block BB, possibly updating the tests in
+   TRUE_EXPR, and FALSE_EXPR for converting the && and || parts of if-then or
+   if-then-else code to conditional instructions.  Set either TRUE_EXPR or
+   FALSE_EXPR to a null pointer if the tests cannot be converted.  */
+
+/* p_true and p_false are given expressions of the form:
+
+	(and (relop:CC (reg:CC) (const_int 0))
+	     (relop:CC (reg:CC) (const_int 0)))
+
+  We try to simplify them to something that will work in a branch instruction.
+  If we can't do anything useful, return; the caller will try to substitute
+  the complex expression and will fail.
+  Currently the true and false cases are not handled.
+  It's surprising that there isn't already a routine somewhere that does this,
+  but I couldn't find one. */
+ 
+void
+arm_ifcvt_modify_multiple_tests (ce_if_block_t *ce_info ATTRIBUTE_UNUSED,
+                                 basic_block bb ATTRIBUTE_UNUSED,
+                                 rtx *p_true,
+                                 rtx *p_false)
+{
+  /* There is a dependency here on the order of codes in rtl.def,
+     also an assumption that none of the useful enum values will
+     collide with 0 or 1.  
+     Order is:  NE EQ GE GT LE LT GEU GTU LEU LTU */
+  static RTX_CODE and_codes[10][10] =
+	{ {  NE,  0, GT, GT, LT, LT, GTU, GTU, LTU, LTU },
+	  {   0, EQ, EQ,  0, EQ,  0,  EQ,   0,  EQ,   0 },
+	  {  GT, EQ, GE, GT, EQ,  0,   0,   0,   0,   0 },
+	  {  GT,  0, GT, GT,  0,  0,   0,   0,   0,   0 },
+	  {  LT, EQ, EQ,  0, LE, LT,   0,   0,   0,   0 },
+	  {  LT,  0,  0,  0, LT, LT,   0,   0,   0,   0 },
+	  { GTU, EQ,  0,  0,  0,  0, GEU, GTU,  EQ,   0 },
+	  { GTU,  0,  0,  0,  0,  0, GTU, GTU,   0,   0 },
+	  { LTU, EQ,  0,  0,  0,  0,  EQ,   0, LEU, LTU },
+	  { LTU,  0,  0,  0,  0,  0,   0,   0, LTU, LTU } };
+
+  static RTX_CODE or_codes[10][10] =
+	{ { NE,   1,  1, NE,  1, NE,   1,  NE,   1,  NE },
+	  {  1,  EQ, GE, GE, LE, LE, GEU, GEU, LEU, LEU },
+	  {  1,  GE, GE, GE,  1,  1,   0,   0,   0,   0 },
+	  { NE,  GE, GE, GT,  1, NE,   0,   0,   0,   0 },
+	  {  1,  LE,  1,  1, LE, LE,   0,   0,   0,   0 },
+	  { NE,  LE,  1, NE, LE, LT,   0,   0,   0,   0 },
+	  {  1, GEU,  0,  0,  0,  0, GEU, GEU,   1,   1 },
+	  { NE, GEU,  0,  0,  0,  0, GEU, GTU,   1,  NE },
+	  {  1, LEU,  0,  0,  0,  0,   1,   1, LEU, LEU },
+	  { NE, LEU,  0,  0,  0,  0,   1,  NE, LEU, LTU } };
+
+  rtx true_lhs = XEXP (*p_true, 0);
+  rtx false_lhs = XEXP (*p_false, 0);
+  rtx true_rhs = XEXP (*p_true, 1);
+  rtx false_rhs = XEXP (*p_false, 1);
+  int true_and_p, false_and_p;
+  RTX_CODE merged_code;
+
+  if (!TARGET_ARM)
+    return;
+
+  if (GET_CODE (*p_true) == AND)
+    true_and_p = true;
+  else if (GET_CODE (*p_true) == IOR)
+    true_and_p = false;
+  else
+    return;
+
+  if (GET_CODE (*p_false) == AND)
+    false_and_p = true;
+  else if (GET_CODE (*p_false) == IOR)
+    false_and_p = false;
+  else
+    return;
+
+  if (!cc_register (XEXP (true_lhs, 0), CCmode)
+      || !cc_register (XEXP (true_lhs, 0), CCmode)
+      || !cc_register (XEXP (true_lhs, 0), CCmode)
+      || !cc_register (XEXP (true_lhs, 0), CCmode))
+    return;
+
+  if (XEXP (true_lhs, 1) != const0_rtx
+      || XEXP (true_rhs, 1) != const0_rtx
+      || XEXP (false_lhs, 1) != const0_rtx
+      || XEXP (false_rhs, 1) != const0_rtx)
+    return;
+
+  if (GET_CODE (true_lhs) < NE || GET_CODE (true_lhs) > LTU
+      || GET_CODE (true_rhs) < NE || GET_CODE (true_rhs) > LTU)
+    *p_true = 0;
+  else
+    {
+      if (true_and_p)
+        merged_code = and_codes [GET_CODE (true_lhs) - NE][GET_CODE (true_rhs) - NE];
+      else
+        merged_code = or_codes [GET_CODE (true_lhs) - NE][GET_CODE (true_rhs) - NE];
+      if (merged_code == 0 || merged_code == 1)
+	*p_true = 0;
+      else
+	*p_true = gen_rtx_fmt_ee (merged_code, VOIDmode, gen_rtx_REG (CCmode, CC_REGNUM), const0_rtx);
+    }
+
+  if (GET_CODE (false_lhs) < NE || GET_CODE (false_lhs) > LTU
+      || GET_CODE (false_rhs) < NE || GET_CODE (false_rhs) > LTU)
+    *p_false = 0;
+  else
+    {
+      if (false_and_p)
+        merged_code = and_codes [GET_CODE (false_lhs) - NE][GET_CODE (false_rhs) - NE];
+      else
+        merged_code = or_codes [GET_CODE (false_lhs) - NE][GET_CODE (false_rhs) - NE];
+      if (merged_code == 0 || merged_code == 1)
+	*p_false = 0;
+      else
+        *p_false = gen_rtx_fmt_ee (merged_code, VOIDmode, gen_rtx_REG (CCmode, CC_REGNUM), const0_rtx);
+    }
+}
+/* APPLE LOCAL end ARM enhance conditional insn generation */
+
+/* APPLE LOCAL begin 5946347 ms_struct support */
+/* Handle a "ms_struct" attribute; arguments as in struct 
+   attribute_spec.handler.  */
+static tree
+arm_handle_ms_struct_attribute (tree *node, tree name,
+			     tree args ATTRIBUTE_UNUSED,
+			     int flags ATTRIBUTE_UNUSED, bool *no_add_attrs)
+{
+  tree *type = NULL;
+  if (DECL_P (*node))
+    {
+      if (TREE_CODE (*node) == TYPE_DECL)
+	type = &TREE_TYPE (*node);
+    }
+  else
+    type = node;
+
+  if (!(type && (TREE_CODE (*type) == RECORD_TYPE
+		 || TREE_CODE (*type) == UNION_TYPE)))
+    {
+      warning (OPT_Wattributes, "%qs attribute ignored",
+	       IDENTIFIER_POINTER (name));
+      *no_add_attrs = true;
+    }
+  else if (lookup_attribute ("gcc_struct", TYPE_ATTRIBUTES (*type)))
+    {
+      warning (OPT_Wattributes, "%qs incompatible attribute ignored",
+               IDENTIFIER_POINTER (name));
+      *no_add_attrs = true;
+    }
+
+  return NULL_TREE;
+}
+
+/* Handle a "gcc_struct" attribute; arguments as in struct 
+   attribute_spec.handler.  */
+static tree
+arm_handle_gcc_struct_attribute (tree *node, tree name,
+				 tree args ATTRIBUTE_UNUSED,
+				 int flags ATTRIBUTE_UNUSED, bool *no_add_attrs)
+{
+  tree *type = NULL;
+  if (DECL_P (*node))
+    {
+      if (TREE_CODE (*node) == TYPE_DECL)
+	type = &TREE_TYPE (*node);
+    }
+  else
+    type = node;
+
+  if (!(type && (TREE_CODE (*type) == RECORD_TYPE
+		 || TREE_CODE (*type) == UNION_TYPE)))
+    {
+      warning (OPT_Wattributes, "%qs attribute ignored",
+	       IDENTIFIER_POINTER (name));
+      *no_add_attrs = true;
+    }
+  else if (lookup_attribute ("ms_struct", TYPE_ATTRIBUTES (*type)))
+    {
+      /* ms_struct may be on the type by default (-mms-bitfields or
+         #pragma ms_struct), so gcc_struct simply means that if there
+	 is an ms_struct attribute on type, remove it. */
+      remove_attribute ("ms_struct", TYPE_ATTRIBUTES (*type));
+      *no_add_attrs = true;
+    }
+
+  return NULL_TREE;
+}
+
+static bool
+arm_ms_bitfield_layout_p (tree record_type)
+{
+  return (lookup_attribute ("ms_struct", 
+			    TYPE_ATTRIBUTES (record_type)) != NULL);
+}
+
+/* Return the alignment necessary for the field when it's part of
+   an ms_struct attributed structure. */
+int
+arm_field_ms_struct_align (tree field)
+{
+  tree type = TREE_TYPE (field);
+  int desired_align;
+
+  if (TREE_CODE (type) == RECORD_TYPE || TREE_CODE (type) == UNION_TYPE)
+    desired_align = TYPE_ALIGN (type);
+  else
+    {
+      enum machine_mode mode;
+      /* For non-aggregate types of BIGGEST_ALIGNMENT bits or greater, 
+         the alignment should be the size of the type. For arrays, it 
+	 should be the alignement of the members of the array. */
+      mode = TYPE_MODE (TREE_CODE (type) == ARRAY_TYPE
+			? get_inner_array_type (type) : type);
+      desired_align = GET_MODE_BITSIZE (mode) > BIGGEST_ALIGNMENT ?
+	GET_MODE_BITSIZE (mode) : TYPE_ALIGN (type);
+      gcc_assert (desired_align <= BIGGEST_MS_STRUCT_ALIGNMENT);
+    }
+  return desired_align;
+}
+
+/* APPLE LOCAL end 5946347 ms_struct support */
+
+/* APPLE LOCAL begin ARM 6008578 */
+/* Minimum alignment of a function entry point, in bits.  */
+int
+arm_function_boundary (void)
+{
+  int min_align = TARGET_ARM ? 32 : 16;
+
+  /* Even in Thumb mode, thunks are output as ARM functions.  */
+  if (cfun && current_function_is_thunk)
+    min_align = MAX (min_align, 32);
+
+  /* e.g., Thumb functions with jump tables.  */
+  if (cfun && cfun->needs_4byte_alignment)
+    min_align = MAX (min_align, 32);
+
+  /* If -falign-loops was specified, use that alignment.  This is _not_
+     needed to guarantee that loop alignments within the function are
+     honored -- that's handled by the assembler and linker.  However,
+     if we don't align the function, then our address calculations (in
+     arm_reorg) are incorrect, potentially wreaking havoc on the
+     constant pool calculations.  */
+  min_align = MAX (min_align, align_loops * BITS_PER_UNIT);
+
+  return min_align;
+}
+/* APPLE LOCAL end ARM 6008578 */
 
 #include "gt-arm.h"

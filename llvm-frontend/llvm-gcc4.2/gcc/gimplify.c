@@ -1148,7 +1148,8 @@ gimplify_return_expr (tree stmt, tree *pre_p)
   tree result_decl, result;
 
   if (!ret_expr || TREE_CODE (ret_expr) == RESULT_DECL
-      || ret_expr == error_mark_node)
+      /* APPLE LOCAL radar 6040305 - blocks */
+      || ret_expr == error_mark_node || cur_block)
     return GS_ALL_DONE;
 
   if (VOID_TYPE_P (TREE_TYPE (TREE_TYPE (current_function_decl))))
@@ -1775,8 +1776,11 @@ gimplify_compound_lval (tree *expr_p, tree *pre_p,
 	     gimplified.  */
         /* LLVM LOCAL begin */
         /* Handle the LLVM extension that allows: (ARRAY_REF ptr, idx) */
-	  if (!TREE_OPERAND (t, 2) && 
-              TREE_CODE (TREE_TYPE (TREE_OPERAND (t, 0))) == ARRAY_TYPE)
+	  if (!TREE_OPERAND (t, 2)
+#ifdef ENABLE_LLVM
+              && TREE_CODE (TREE_TYPE (TREE_OPERAND (t, 0))) == ARRAY_TYPE
+#endif
+              )
         /* LLVM LOCAL end */
 	    {
 	      tree low = unshare_expr (array_ref_low_bound (t));
@@ -1791,8 +1795,11 @@ gimplify_compound_lval (tree *expr_p, tree *pre_p,
 
           /* LLVM LOCAL begin */
           /* Handle the LLVM extension that allows: (ARRAY_REF ptr, idx) */
-          if (!TREE_OPERAND (t, 3) &&
-              TREE_CODE (TREE_TYPE (TREE_OPERAND (t, 0))) == ARRAY_TYPE)
+          if (!TREE_OPERAND (t, 3)
+#ifdef ENABLE_LLVM
+              && TREE_CODE (TREE_TYPE (TREE_OPERAND (t, 0))) == ARRAY_TYPE
+#endif
+              )
             /* LLVM LOCAL end */
 	    {
 	      tree elmt_type = TREE_TYPE (TREE_TYPE (TREE_OPERAND (t, 0)));
@@ -5145,6 +5152,10 @@ gimplify_omp_atomic_fetch_op (tree *expr_p, tree addr, tree rhs, int index)
   decl = built_in_decls[base + index + 1];
   itype = TREE_TYPE (TREE_TYPE (decl));
 
+#ifdef ENABLE_LLVM
+  /* LLVM LOCAL fix me. Add target specific check. */
+  return GS_UNHANDLED;
+#endif
   if (optab[TYPE_MODE (itype)] == CODE_FOR_nothing)
     return GS_UNHANDLED;
 
@@ -5221,6 +5232,10 @@ gimplify_omp_atomic_pipeline (tree *expr_p, tree *pre_p, tree addr,
   type = TYPE_MAIN_VARIANT (TREE_TYPE (TREE_TYPE (addr)));
   itype = TREE_TYPE (TREE_TYPE (cmpxchg));
 
+#ifdef ENABLE_LLVM
+  /* LLVM LOCAL fix me. Add target specific check. */
+  return GS_UNHANDLED;
+#endif
   if (sync_compare_and_swap[TYPE_MODE (itype)] == CODE_FOR_nothing)
     return GS_UNHANDLED;
 

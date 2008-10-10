@@ -98,17 +98,23 @@ mlittle-endian
 Target Report RejectNegative InverseMask(BIG_END)
 Assume target CPU is configured as little endian
 
+; APPLE LOCAL begin mlong-branch for arm
 mlong-branch
 Target Mask(LONG_CALLS)
 Alias for -mlong-calls
+; APPLE LOCAL end mlong-branch for arm
 
+; APPLE LOCAL begin mlong-branch for arm
 mlong-calls
 Target Report Mask(LONG_CALLS) MaskExists
 Generate call insns as indirect calls, if necessary
+; APPLE LOCAL end mlong-branch for arm
 
+; APPLE LOCAL begin mlong-branch for arm
 mlongcall
 Target Mask(LONG_CALLS) MaskExists
 Alias for -mlong-calls
+; APPLE LOCAL end mlong-branch for arm
 
 mpic-register=
 Target RejectNegative Joined Var(arm_pic_register_string)
@@ -163,3 +169,9 @@ Tune code for the given processor
 mwords-little-endian
 Target Report RejectNegative Mask(LITTLE_WORDS)
 Assume big endian bytes, little endian words
+
+; APPLE LOCAL begin 5946347 ms_struct support
+mms-bitfields
+Target Report Mask(MS_BITFIELD_LAYOUT)
+Use Microsoft structure layout
+; APPLE LOCAL end 5946347 ms_struct support

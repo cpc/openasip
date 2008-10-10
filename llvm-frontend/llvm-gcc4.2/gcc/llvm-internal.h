@@ -39,6 +39,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/Support/DataTypes.h"
 #include "llvm/Support/IRBuilder.h"
 #include "llvm/Support/Streams.h"
+#include "llvm/Support/TargetFolder.h"
 
 extern "C" {
 #include "llvm.h"
@@ -68,6 +69,8 @@ namespace llvm {
 }
 using namespace llvm;
 
+typedef IRBuilder<true, TargetFolder> LLVMBuilder;
+
 /// TheModule - This is the current global module that we are compiling into.
 ///
 extern llvm::Module *TheModule;
@@ -79,6 +82,9 @@ extern llvm::DebugInfo *TheDebugInfo;
 /// TheTarget - The current target being compiled for.
 ///
 extern llvm::TargetMachine *TheTarget;
+
+/// TheFolder - The constant folder to use.
+extern TargetFolder *TheFolder;
 
 /// getTargetData - Return the current TargetData object from TheTarget.
 const TargetData &getTargetData();
@@ -111,6 +117,7 @@ void readLLVMValues();
 void writeLLVMValues();
 void clearTargetBuiltinCache();
 const char* extractRegisterName(union tree_node*);
+void handleVisibility(union tree_node* decl, GlobalValue *GV);
 
 struct StructTypeConversionInfo;
 
@@ -126,9 +133,9 @@ class TypeConverter {
   bool ConvertingStruct;
   
   /// PointersToReresolve - When ConvertingStruct is true, we handling of
-  /// POINTER_TYPE and REFERENCE_TYPE is changed to return opaque*'s instead of
-  /// recursively calling ConvertType.  When this happens, we add the
-  /// POINTER_TYPE to this list.
+  /// POINTER_TYPE, REFERENCE_TYPE, and BLOCK_POINTER_TYPE is changed to return
+  /// opaque*'s instead of recursively calling ConvertType.  When this happens,
+  /// we add the POINTER_TYPE to this list.
   ///
   std::vector<tree_node*> PointersToReresolve;
 
@@ -157,16 +164,16 @@ public:
                                           tree_node *decl,
                                           tree_node *static_chain,
                                           unsigned &CallingConv,
-                                          PAListPtr &PAL);
+                                          AttrListPtr &PAL);
   
   /// ConvertArgListToFnType - Given a DECL_ARGUMENTS list on an GCC tree,
   /// return the LLVM type corresponding to the function.  This is useful for
   /// turning "T foo(...)" functions into "T foo(void)" functions.
-  const FunctionType *ConvertArgListToFnType(tree_node *retty,
+  const FunctionType *ConvertArgListToFnType(tree_node *type,
                                              tree_node *arglist,
                                              tree_node *static_chain,
                                              unsigned &CallingConv,
-                                             PAListPtr &PAL);
+                                             AttrListPtr &PAL);
   
 private:
   const Type *ConvertRECORD(tree_node *type, tree_node *orig_type);
@@ -274,17 +281,22 @@ class TreeToLLVM {
   Function *Fn;
   BasicBlock *ReturnBB;
   BasicBlock *UnwindBB;
+  unsigned ReturnOffset;
 
   // State that changes as the function is emitted.
 
   /// Builder - Instruction creator, the location to insert into is always the
   /// same as &Fn->back().
-  IRBuilder Builder;
+  LLVMBuilder Builder;
 
   // AllocaInsertionPoint - Place to insert alloca instructions.  Lazily created
   // and managed by CreateTemporary.
   Instruction *AllocaInsertionPoint;
   
+  /// UniquedValues - Values defined using a no-op bitcast in order to make them
+  /// unique.  These can be simplified once the function has been emitted.
+  std::vector<BitCastInst *> UniquedValues;
+
   //===---------------------- Exception Handling --------------------------===//
 
   /// LandingPads - The landing pad for a given EH region.
@@ -448,7 +460,7 @@ private:
   ///
   static bool isNoopCast(Value *V, const Type *Ty);
 
-  void HandleMultiplyDefinedGCCTemp(tree_node *var);
+  void HandleMultiplyDefinedGimpleTemporary(tree_node *var);
   
   /// EmitAnnotateIntrinsic - Emits call to annotate attr intrinsic
   void EmitAnnotateIntrinsic(Value *V, tree_node *decl);
@@ -474,7 +486,7 @@ private:
   Value *EmitOBJ_TYPE_REF(tree_node *exp);
   Value *EmitCALL_EXPR(tree_node *exp, const MemRef *DestLoc);
   Value *EmitCallOf(Value *Callee, tree_node *exp, const MemRef *DestLoc,
-                    const PAListPtr &PAL);
+                    const AttrListPtr &PAL);
   Value *EmitMODIFY_EXPR(tree_node *exp, const MemRef *DestLoc);
   Value *EmitNOP_EXPR(tree_node *exp, const MemRef *DestLoc);
   Value *EmitCONVERT_EXPR(tree_node *exp, const MemRef *DestLoc);
@@ -486,7 +498,7 @@ private:
   Value *EmitTRUTH_NOT_EXPR(tree_node *exp);
   Value *EmitEXACT_DIV_EXPR(tree_node *exp, const MemRef *DestLoc);
   Value *EmitCompare(tree_node *exp, unsigned UIPred, unsigned SIPred, 
-                     unsigned FPOpc);
+                     unsigned FPPred, const Type *DestTy = 0);
   Value *EmitBinOp(tree_node *exp, const MemRef *DestLoc, unsigned Opc);
   Value *EmitPtrBinOp(tree_node *exp, unsigned Opc);
   Value *EmitTruthOp(tree_node *exp, unsigned Opc);
@@ -512,17 +524,19 @@ private:
   Value *BuildVector(const std::vector<Value*> &Elts);
   Value *BuildVector(Value *Elt, ...);
   Value *BuildVectorShuffle(Value *InVec1, Value *InVec2, ...);
+  Value *BuildBinaryAtomicBuiltin(tree_node *exp, Intrinsic::ID id);
+  Value *BuildCmpAndSwapAtomicBuiltin(tree_node *exp, tree_node *type, 
+                                      bool isBool);
 
   // Builtin Function Expansion.
   bool EmitBuiltinCall(tree_node *exp, tree_node *fndecl, 
                        const MemRef *DestLoc, Value *&Result);
   bool EmitFrontendExpandedBuiltinCall(tree_node *exp, tree_node *fndecl,
                                        const MemRef *DestLoc, Value *&Result);
-  bool EmitBuiltinUnaryIntOp(Value *InVal, Value *&Result, Intrinsic::ID Id);
-  Value *EmitBuiltinUnaryFPOp(Value *InVal, const char *F32Name,
-                              const char *F64Name, const char *LongDoubleName);
+  bool EmitBuiltinUnaryOp(Value *InVal, Value *&Result, Intrinsic::ID Id);
   Value *EmitBuiltinSQRT(tree_node *exp);
   Value *EmitBuiltinPOWI(tree_node *exp);
+  Value *EmitBuiltinPOW(tree_node *exp);
 
   bool EmitBuiltinConstantP(tree_node *exp, Value *&Result);
   bool EmitBuiltinAlloca(tree_node *exp, Value *&Result);

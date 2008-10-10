@@ -35,7 +35,6 @@ Boston, MA 02110-1301, USA.  */
    that start with ASM_ or end in ASM_OP.  */
 
 /* LLVM LOCAL begin */
-
 #ifdef ENABLE_LLVM
 
 /* Add general target specific stuff */
@@ -65,7 +64,6 @@ enum x86_64_reg_class
   };
 
 #endif /* ENABLE_LLVM */
-
 /* LLVM LOCAL end */
 
 /* Define the specific costs for a given cpu */
@@ -306,12 +304,12 @@ extern int x86_prefetch_sse;
    it's analogous to similar code for Mach-O on PowerPC.  darwin.h
    redefines this to 1.  */
 #define TARGET_MACHO 0
-
 /* LLVM LOCAL begin mainline */
+#ifdef ENABLE_LLVM
 /* Likewise, for the Windows 64-bit ABI.  */
 #define TARGET_64BIT_MS_ABI 0
+#endif
 /* LLVM LOCAL end mainline */
-
 /* APPLE LOCAL begin mach-o cleanup */
 #define MACHOPIC_INDIRECT 0
 #define MACHOPIC_PURE 0
@@ -386,6 +384,14 @@ extern const char *host_detect_local_cpu (int argc, const char **argv);
 #endif
 #endif
 
+/* LLVM LOCAL begin PR879 workaround */
+#ifdef ENABLE_LLVM
+#define LLVM_CPP_BUILTINS builtin_define("__NO_MATH_INLINES");
+#else
+#define LLVM_CPP_BUILTINS
+#endif
+/* LLVM LOCAL end PR879 workaround */
+
 /* Target CPU builtins.  */
 #define TARGET_CPU_CPP_BUILTINS()				\
   do								\
@@ -555,9 +561,9 @@ extern const char *host_detect_local_cpu (int argc, const char **argv);
 	  builtin_define ("__core2__");				\
 	}							\
       /* APPLE LOCAL end mainline */				\
-      /* LLVM LOCAL begin PR879 workaround */             \
-      builtin_define("__NO_MATH_INLINES");                      \
-     /* LLVM LOCAL end PR879 workaround */                \
+      /* LLVM LOCAL begin PR879 workaround */                   \
+      LLVM_CPP_BUILTINS                                         \
+      /* LLVM LOCAL end PR879 workaround */                     \
     }								\
   while (0)
 
@@ -791,7 +797,12 @@ extern const char *host_detect_local_cpu (int argc, const char **argv);
 /* This processor has special stack-like registers.  See reg-stack.c
    for details.  */
 
+/* LLVM LOCAL begin We don't need the RTL-based STACK_REGS (x87) mechanism. */
+#ifndef ENABLE_LLVM
 #define STACK_REGS
+#endif
+/* LLVM LOCAL end */
+
 #define IS_STACK_MODE(MODE)					\
   (((MODE) == SFmode && (!TARGET_SSE || !TARGET_SSE_MATH))	\
    || ((MODE) == DFmode && (!TARGET_SSE2 || !TARGET_SSE_MATH))  \
@@ -1108,10 +1119,12 @@ do {									\
 #define REAL_PIC_OFFSET_TABLE_REGNUM  3
 
 #define PIC_OFFSET_TABLE_REGNUM				\
+  /* APPLE LOCAL begin 5695218 */			\
   ((TARGET_64BIT && ix86_cmodel == CM_SMALL_PIC)	\
-   || !flag_pic ? INVALID_REGNUM			\
-   : reload_completed ? REGNO (pic_offset_table_rtx)	\
-   : REAL_PIC_OFFSET_TABLE_REGNUM)
+  || !flag_pic ? INVALID_REGNUM				\
+   : reload_completed && pic_offset_table_rtx ? REGNO (pic_offset_table_rtx) \
+   : REAL_PIC_OFFSET_TABLE_REGNUM)					\
+  /* APPLE LOCAL end 5695218 */
 
 #define GOT_SYMBOL_NAME "_GLOBAL_OFFSET_TABLE_"
 
@@ -1969,11 +1982,8 @@ do {							\
    subsequent accesses occur to other fields in the same word of the
    structure, but to different bytes.  */
 
-/* APPLE LOCAL begin radar 4287182 */
-/* Temporarily set it to two targets. Please sync it with main line
-   when its patch is approved. */
-#define SLOW_BYTE_ACCESS (TARGET_GENERIC | TARGET_NOCONA | TARGET_CORE2)
-/* APPLE LOCAL end radar 4287182 */
+/* APPLE LOCAL 6131435 */
+#define SLOW_BYTE_ACCESS (!flag_apple_kext && !flag_mkernel && !TARGET_64BIT)
 
 /* Nonzero if access to memory by shorts is slow and undesirable.  */
 #define SLOW_SHORT_ACCESS 0
@@ -2509,6 +2519,8 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
   { "adc", 2, "ir,m" },		\
   { "add", 1, "+rm,r" },	\
   { "add", 2, "ir,m" },		\
+  { "addpd", 1, "+x"},		\
+  { "addpd", 2, "xm"},		\
   { "addps", 1, "+x"},		\
   { "addps", 2, "xm"},		\
   { "addsd", 1, "+x"},		\
@@ -3266,7 +3278,7 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
 	((SYMBOL_REF_FLAGS (X) & SYMBOL_FLAG_FAR_ADDR) != 0)
 
 /* LLVM LOCAL begin */
-
+#ifdef ENABLE_LLVM
 /* Codes for all the SSE/MMX builtins.  */
 enum ix86_builtins
 {
@@ -3652,12 +3664,16 @@ enum ix86_builtins
   IX86_BUILTIN_PSRLD128,
   IX86_BUILTIN_PSRLQ128,
   IX86_BUILTIN_PSLLDQI128,
+  /* APPLE LOCAL 591583 */
+  IX86_BUILTIN_PSLLDQI128_BYTESHIFT,
   IX86_BUILTIN_PSLLWI128,
   IX86_BUILTIN_PSLLDI128,
   IX86_BUILTIN_PSLLQI128,
   IX86_BUILTIN_PSRAWI128,
   IX86_BUILTIN_PSRADI128,
   IX86_BUILTIN_PSRLDQI128,
+  /* APPLE LOCAL 591583 */
+  IX86_BUILTIN_PSRLDQI128_BYTESHIFT,
   IX86_BUILTIN_PSRLWI128,
   IX86_BUILTIN_PSRLDI128,
   IX86_BUILTIN_PSRLQI128,
@@ -3888,6 +3904,7 @@ enum ix86_builtins
 #define LLVM_TARGET_INTRINSIC_LOWER(EXP, BUILTIN_CODE, DESTLOC, RESULT,       \
                                     DESTTY, OPS)                              \
         TargetIntrinsicLower(EXP, BUILTIN_CODE, DESTLOC, RESULT, DESTTY, OPS);
+#endif /* ENABLE_LLVM */
 /* LLVM LOCAL end */
 
 /*

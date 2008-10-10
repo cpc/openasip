@@ -23,15 +23,15 @@ mfix-and-continue
 Target Report Var(darwin_fix_and_continue)
 Generate code suitable for fast turn around debugging
 
-; APPLE LOCAL begin mainline 2007-02-20 5005743
-; The Init here is for the convenience of GCC developers, so that
-; cc1 and cc1plus don't crash if no -mmacosx-version-min is passed.  The
-; driver will always pass a -mmacosx-version-min, so in normal use
-; the Init is never used.
+; APPLE LOCAL begin ARM 5683689
 mmacosx-version-min=
-Target Joined Report Var(darwin_macosx_version_min) Init("10.1")
+Target Joined Report Var(darwin_macosx_version_min) Init(NULL)
 The earliest MacOS X version on which this program will run
-; APPLE LOCAL end mainline 2007-02-20 5005743
+
+miphoneos-version-min=
+Target Joined Report Var(darwin_iphoneos_version_min) Init(NULL)
+The earliest iPhone OS version on which this program will run
+; APPLE LOCAL end ARM 5683689
 
 mone-byte-bool
 Target RejectNegative Report Var(darwin_one_byte_bool)
@@ -70,3 +70,8 @@ Generate code for darwin loadable kernel extentions
 mkernel
 Target Report Var(flag_mkernel)
 Generate code for the kernel or loadable kernel extentions
+
+; APPLE LOCAL begin 5971844
+mdarwin-rtl-pre-ignore-critical-edges
+Target Report Var(flag_darwin_rtl_pre_ignore_critical_edges)
+; APPLE LOCAL end 5971844

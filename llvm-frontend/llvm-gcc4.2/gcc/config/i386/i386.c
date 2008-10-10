@@ -63,6 +63,10 @@ extern struct cpp_reader* parse_in;
 #include "c-tree.h"
 #include "c-common.h"
 /* APPLE LOCAL end regparmandstackparm */
+/* APPLE LOCAL begin dwarf call/pop 5221468 */
+#include "debug.h"
+#include "dwarf2out.h"
+/* APPLE LOCAL end dwarf call/pop 5221468 */
 
 #ifndef CHECK_STACK_LIMIT
 #define CHECK_STACK_LIMIT (-1)
@@ -1130,8 +1134,12 @@ enum processor_type ix86_arch;
 int x86_prefetch_sse;
 
 /* ix86_regparm_string as a number */
-/* LLVM local */
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+static
+#endif
 int ix86_regparm;
+/* LLVM LOCAL end */
 
 /* APPLE LOCAL begin 5612787 mainline sse4 */
 /* True if SSE population count insn supported. */
@@ -1237,8 +1245,11 @@ const struct attribute_spec ix86_attribute_table[];
 static bool ix86_function_ok_for_sibcall (tree, tree);
 static tree ix86_handle_cconv_attribute (tree *, tree, tree, int, bool *);
 static int ix86_value_regno (enum machine_mode, tree, tree);
-/* LLVM LOCAL make global */
-/*static bool contains_128bit_aligned_vector_p (tree);*/
+/* LLVM LOCAL - begin make global */
+#ifndef ENABLE_LLVM
+static bool contains_128bit_aligned_vector_p (tree);
+#endif
+/* LLVM LOCAL - end make global */
 static rtx ix86_struct_value_rtx (tree, int);
 static bool ix86_ms_bitfield_layout_p (tree);
 static tree ix86_handle_struct_attribute (tree *, tree, tree, int, bool *);
@@ -1261,7 +1272,6 @@ static void i386_solaris_elf_named_section (const char *, unsigned int, tree)
   ATTRIBUTE_UNUSED;
 
 /* LLVM LOCAL begin */
-
 #ifndef ENABLE_LLVM
 /* Register class used for passing given 64bit part of the argument.
    These represent classes as documented by the PS ABI, with the exception
@@ -1286,9 +1296,7 @@ enum x86_64_reg_class
     X86_64_MEMORY_CLASS
   };
 #endif /* !ENABLE_LLVM */
-
 /* LLVM LOCAL end */
-
 static const char * const x86_64_reg_class_name[] = {
   "no", "integer", "integerSI", "sse", "sseSF", "sseDF",
   "sseup", "x87", "x87up", "cplx87", "no"
@@ -1333,13 +1341,6 @@ static section *x86_64_elf_select_section (tree decl, int reloc,
 #define TARGET_ENCODE_SECTION_INFO SUBTARGET_ENCODE_SECTION_INFO
 #endif
 
- /* APPLE LOCAL begin mainline 2005-07-31 */
-#ifdef SUBTARGET_ENCODE_SECTION_INFO
-#undef TARGET_ENCODE_SECTION_INFO
-#define TARGET_ENCODE_SECTION_INFO SUBTARGET_ENCODE_SECTION_INFO
-#endif
-
- /* APPLE LOCAL end mainline 2005-07-31 */
 #undef TARGET_ASM_OPEN_PAREN
 #define TARGET_ASM_OPEN_PAREN ""
 #undef TARGET_ASM_CLOSE_PAREN
@@ -1443,10 +1444,6 @@ static section *x86_64_elf_select_section (tree decl, int reloc,
 #define TARGET_INTERNAL_ARG_POINTER ix86_internal_arg_pointer
 #undef TARGET_DWARF_HANDLE_FRAME_UNSPEC
 #define TARGET_DWARF_HANDLE_FRAME_UNSPEC ix86_dwarf_handle_frame_unspec
-/* LLVM LOCAL begin mainline */
-#undef TARGET_STRICT_ARGUMENT_NAMING
-#define TARGET_STRICT_ARGUMENT_NAMING hook_bool_CUMULATIVE_ARGS_true
-/* LLVM LOCAL end mainline */
 
 #undef TARGET_GIMPLIFY_VA_ARG_EXPR
 #define TARGET_GIMPLIFY_VA_ARG_EXPR ix86_gimplify_va_arg
@@ -2014,6 +2011,8 @@ override_options (void)
   /* APPLE LOCAL begin mainline */
   if (TARGET_64BIT)
     {
+      if (TARGET_ALIGN_DOUBLE)
+        error ("-malign-double makes no sense in the 64bit mode");
       if (TARGET_RTD)
         error ("-mrtd calling convention not supported in the 64bit mode");
       /* APPLE LOCAL begin radar 4877693 */
@@ -4117,8 +4116,12 @@ ix86_pass_by_reference (CUMULATIVE_ARGS *cum ATTRIBUTE_UNUSED,
 
 /* Return true when TYPE should be 128bit aligned for 32bit argument passing
    ABI.  Only called if TARGET_SSE.  */
-/* LLVM LOCAL make global */
+/* LLVM LOCAL - begin make global */
+#ifndef ENABLE_LLVM
+static
+#endif
 bool
+/* LLVM LOCAL - end make global */
 contains_128bit_aligned_vector_p (tree type)
 {
   enum machine_mode mode = TYPE_MODE (type);
@@ -5233,7 +5236,8 @@ ix86_setup_frame_addresses (void)
 # define USE_HIDDEN_LINKONCE 0
 #endif
 
-static int pic_labels_used;
+/* APPLE LOCAL 5695218 */
+static GTY(()) int pic_labels_used;
 
 /* Fills in the label name that should be used for a pc thunk for
    the given register.  */
@@ -5348,7 +5352,29 @@ output_set_got (rtx dest, rtx label ATTRIBUTE_UNUSED)
       if (!flag_pic)
 	output_asm_insn ("mov{l}\t{%2, %0|%0, %2}", xops);
       else
-	output_asm_insn ("call\t%a2", xops);
+	/* APPLE LOCAL begin dwarf call/pop 5221468 */
+	{
+	  output_asm_insn ("call\t%a2", xops);
+
+	  /* If necessary, report the effect that the instruction has on
+	     the unwind info.  */
+#if defined (DWARF2_UNWIND_INFO)
+	  if (flag_asynchronous_unwind_tables
+#if !defined (HAVE_prologue)
+	      && !ACCUMULATE_OUTGOING_ARGS
+#endif
+	      && dwarf2out_do_frame ())
+	    {
+	      rtx insn = gen_rtx_SET (VOIDmode, stack_pointer_rtx,
+				      gen_rtx_PLUS (Pmode, stack_pointer_rtx,
+						    GEN_INT (-4)));
+	      insn = make_insn_raw (insn);
+	      RTX_FRAME_RELATED_P (insn) = 1;
+	      dwarf2out_frame_debug (insn, true);
+	    }
+#endif
+	}
+      /* APPLE LOCAL end dwarf call/pop 5221468 */
 
 #if TARGET_MACHO
       /* Output the Mach-O "canonical" label name ("Lxx$pb") here too.  This
@@ -5361,7 +5387,30 @@ output_set_got (rtx dest, rtx label ATTRIBUTE_UNUSED)
 				 CODE_LABEL_NUMBER (XEXP (xops[2], 0)));
 
       if (flag_pic)
-	output_asm_insn ("pop{l}\t%0", xops);
+	/* APPLE LOCAL begin dwarf call/pop 5221468 */
+	{
+	  output_asm_insn ("pop{l}\t%0", xops);
+
+	  /* If necessary, report the effect that the instruction has on
+	     the unwind info.   We've already done this for delay slots
+	     and call instructions.  */
+#if defined (DWARF2_UNWIND_INFO)
+	  if (flag_asynchronous_unwind_tables
+#if !defined (HAVE_prologue)
+	      && !ACCUMULATE_OUTGOING_ARGS
+#endif
+	      && dwarf2out_do_frame ())
+	    {
+	      rtx insn = gen_rtx_SET (VOIDmode, stack_pointer_rtx,
+				      gen_rtx_PLUS (Pmode, stack_pointer_rtx,
+						    GEN_INT (4)));
+	      insn = make_insn_raw (insn);
+	      RTX_FRAME_RELATED_P (insn) = 1;
+	      dwarf2out_frame_debug (insn, true);
+	    }
+#endif
+	}
+      /* APPLE LOCAL end dwarf call/pop 5221468 */
     }
   else
     {
@@ -5424,6 +5473,49 @@ ix86_select_alt_pic_regnum (void)
   return INVALID_REGNUM;
 }
 
+/* APPLE LOCAL begin 5695218 */
+/* Reload may introduce references to the PIC base register
+   that do not directly reference pic_offset_table_rtx.
+   In the rare event we choose an alternate PIC register,
+   walk all the insns and rewrite every reference.  */
+/* Run through the insns, changing references to the original
+   PIC_OFFSET_TABLE_REGNUM to our new one.  */
+static void
+ix86_globally_replace_pic_reg (unsigned int new_pic_regno)
+{
+  rtx insn;
+  const int nregs = PIC_OFFSET_TABLE_REGNUM + 1;
+  rtx reg_map[FIRST_PSEUDO_REGISTER];
+  memset (reg_map, 0, nregs * sizeof (rtx));
+  pic_offset_table_rtx = gen_rtx_REG (SImode, new_pic_regno);
+  reg_map[REAL_PIC_OFFSET_TABLE_REGNUM] = pic_offset_table_rtx;
+
+  push_topmost_sequence ();
+  for (insn = get_insns (); insn != NULL; insn = NEXT_INSN (insn))
+    {
+      if (GET_CODE (insn) == INSN || GET_CODE (insn) == JUMP_INSN)
+	{
+	  replace_regs (PATTERN (insn), reg_map, nregs, 1);
+	  replace_regs (REG_NOTES (insn), reg_map, nregs, 1);
+	}
+#if defined (TARGET_TOC)
+      else if (GET_CODE (insn) == CALL_INSN)
+	{
+	  if ( !SIBLING_CALL_P (insn))
+	    abort ();
+	}
+#endif
+    }
+  pop_topmost_sequence ();
+
+  regs_ever_live[new_pic_regno] = 1;
+  regs_ever_live[PIC_OFFSET_TABLE_REGNUM] = 0;
+#if defined (TARGET_TOC)
+  cfun->machine->substitute_pic_base_reg = new_pic_regno;
+#endif
+}
+/* APPLE LOCAL end 5695218 */
+
 /* Return 1 if we need to save REGNO.  */
 static int
 ix86_save_reg (unsigned int regno, int maybe_eh_return)
@@ -5437,10 +5529,12 @@ ix86_save_reg (unsigned int regno, int maybe_eh_return)
 
   if (pic_offset_table_rtx
       && regno == REAL_PIC_OFFSET_TABLE_REGNUM
-      && (regs_ever_live[REAL_PIC_OFFSET_TABLE_REGNUM]
+      /* APPLE LOCAL begin 5695218 */
+      && (current_function_uses_pic_offset_table
 	  || current_function_profile
 	  || current_function_calls_eh_return
 	  || current_function_uses_const_pool))
+    /* APPLE LOCAL end 5695218 */
     {
       if (ix86_select_alt_pic_regnum () != INVALID_REGNUM)
 	return 0;
@@ -5463,6 +5557,16 @@ ix86_save_reg (unsigned int regno, int maybe_eh_return)
   if (cfun->machine->force_align_arg_pointer
       && regno == REGNO (cfun->machine->force_align_arg_pointer))
     return 1;
+
+  /* APPLE LOCAL begin 5695218 */
+  /* In order to get accurate usage info for the PIC register, we've
+     been forced to break and un-break the call_used_regs and
+     fixed_regs vectors.  Ignore them when considering the PIC
+     register.  */
+  if (regno == REAL_PIC_OFFSET_TABLE_REGNUM
+      && regs_ever_live[regno])
+    return 1;
+  /* APPLE LOCAL end 5695218 */
 
   return (regs_ever_live[regno]
 	  && !call_used_regs[regno]
@@ -5733,13 +5837,22 @@ pro_epilogue_adjust_stack (rtx dest, rtx src, rtx offset, int style)
       gcc_assert (style);
       r11 = gen_rtx_REG (DImode, FIRST_REX_INT_REG + 3 /* R11 */);
       insn = emit_insn (gen_rtx_SET (DImode, r11, offset));
-      if (style < 0)
+      /* APPLE LOCAL async unwind info 5949469 */
+      if (style < 0 /* || flag_asynchronous_unwind_tables*/)
 	RTX_FRAME_RELATED_P (insn) = 1;
       insn = emit_insn (gen_pro_epilogue_adjust_stack_rex64_2 (dest, src, r11,
 							       offset));
     }
   if (style < 0)
     RTX_FRAME_RELATED_P (insn) = 1;
+  /* APPLE LOCAL begin async unwind info 5949350 5949469 */
+#if 0
+  else if (flag_asynchronous_unwind_tables
+	   && (src == hard_frame_pointer_rtx
+	       || src == stack_pointer_rtx))
+    RTX_FRAME_RELATED_P (insn) = 1;
+#endif
+  /* APPLE LOCAL end async unwind info 5949350 5949469 */
 }
 
 /* Handle the TARGET_INTERNAL_ARG_POINTER hook.  */
@@ -6008,14 +6121,20 @@ ix86_expand_prologue (void)
     }
 
   pic_reg_used = false;
-  if (pic_offset_table_rtx
-      && (regs_ever_live[REAL_PIC_OFFSET_TABLE_REGNUM]
-	  || current_function_profile))
+  /* APPLE LOCAL begin 5695218 */
+  if (pic_offset_table_rtx && regs_ever_live[REAL_PIC_OFFSET_TABLE_REGNUM]
+      && !TARGET_64BIT)
     {
-      unsigned int alt_pic_reg_used = ix86_select_alt_pic_regnum ();
+      unsigned int alt_pic_reg_used;
+
+      alt_pic_reg_used = ix86_select_alt_pic_regnum ();
+      /* APPLE LOCAL end 5695218 */
 
       if (alt_pic_reg_used != INVALID_REGNUM)
-	REGNO (pic_offset_table_rtx) = alt_pic_reg_used;
+	/* APPLE LOCAL begin 5695218 */
+	/* REGNO (pic_offset_table_rtx) = alt_pic_reg_used; */
+	ix86_globally_replace_pic_reg (alt_pic_reg_used);
+	/* APPLE LOCAL end 5695218 */
 
       pic_reg_used = true;
     }
@@ -7719,15 +7838,13 @@ output_pic_addr_const (FILE *file, rtx x, int code)
       break;
 
     case SYMBOL_REF:
-      /* APPLE LOCAL axe stubs 5571540 */
+      /* APPLE LOCAL begin axe stubs 5571540 */
       if (! TARGET_MACHO ||
-          /* LLVM LOCAL begin */
 #if TARGET_MACHO
-          /* darwin_stubs not available on non-Darwin systems  */
           ! darwin_stubs ||
 #endif
-          /* LLVM LOCAL end */
           TARGET_64BIT)
+      /* APPLE LOCAL end axe stubs 5571540 */
 	output_addr_const (file, x);
       else
 	{
@@ -10146,6 +10263,10 @@ ix86_expand_convert_uns_SF2SI_sse (rtx operands[])
   rtx int_result_xmm;
   rtx v_rtx;
   rtx incoming_value;
+#ifdef ENABLE_LLVM
+  gcc_assert(0 && "rtx floating point conversion?");
+  return 0;
+#endif
 
   cfun->uses_vector = 1;
 
@@ -10155,8 +10276,11 @@ ix86_expand_convert_uns_SF2SI_sse (rtx operands[])
   real_from_integer (&rvt_int_two31, SFmode, 0x80000000ULL, 0ULL, 1);
   int_two31_as_fp = const_double_from_real_value (rvt_int_two31, SFmode);
 
+#ifndef ENABLE_LLVM
+  /* This warns if HOST_WIDE_INT < 64. */
   real_from_integer (&rvt_int_two32, SFmode, (HOST_WIDE_INT)0x100000000ULL,
 		     0ULL, 1);
+#endif
   int_two32_as_fp = const_double_from_real_value (rvt_int_two32, SFmode);
 
   incoming_value = force_reg (GET_MODE (operands[1]), operands[1]);
@@ -10283,6 +10407,11 @@ ix86_expand_convert_uns_DI2DF_sse (rtx operands[])
   rtx biases, exponents;
   rtvec biases_rtvec, exponents_rtvec;
 
+#ifdef ENABLE_LLVM
+  gcc_assert(0 && "rtx floating point conversion?");
+  return 0;
+#endif
+
   cfun->uses_vector = 1;
 
   gcc_assert (ix86_preferred_stack_boundary >= 128);
@@ -10317,8 +10446,11 @@ ix86_expand_convert_uns_DI2DF_sse (rtx operands[])
 			    gen_rtx_SUBREG (V2DFmode, int_xmm, 0));
 
   /* Integral versions of the DFmode 'exponents' above.  */
+#ifndef ENABLE_LLVM
+  /* These get warnings if HOST_WIDE_INT < 64 */
   REAL_VALUE_FROM_INT (bias_lo_rvt, 0x00000000000000ULL, 0x100000ULL, DFmode);
   REAL_VALUE_FROM_INT (bias_hi_rvt, 0x10000000000000ULL, 0x000000ULL, DFmode);
+#endif
   bias_lo_rtx = CONST_DOUBLE_FROM_REAL_VALUE (bias_lo_rvt, DFmode);
   bias_hi_rtx = CONST_DOUBLE_FROM_REAL_VALUE (bias_hi_rvt, DFmode);
   biases_rtvec = gen_rtvec (2, bias_lo_rtx, bias_hi_rtx);
@@ -10415,6 +10547,10 @@ ix86_expand_convert_sign_DI2DF_sse (rtx operands[])
   rtx int_two32_as_fp, int_two32_as_fp_vec;
   rtx target = operands[0];
   rtx input = force_reg (DImode, operands[1]);
+#ifdef ENABLE_LLVM
+  gcc_assert(0 && "rtx floating point conversion?");
+  return 0;
+#endif
 
   gcc_assert (ix86_preferred_stack_boundary >= 128);
   gcc_assert (GET_MODE (input) == DImode);
@@ -10425,7 +10561,10 @@ ix86_expand_convert_sign_DI2DF_sse (rtx operands[])
   emit_insn (gen_sse2_cvtsi2sd (fp_value_hi_xmm, fp_value_hi_xmm,
 				gen_rtx_SUBREG (SImode, input, 4)));
 
+#ifndef ENABLE_LLVM
+  /* This gets warnings when HOST_WIDE_INT < 64 */
   real_from_integer (&rvt_int_two32, DFmode, 0x100000000ULL, 0ULL, 1);
+#endif
   int_two32_as_fp = const_double_from_real_value (rvt_int_two32, DFmode);
   rvt_int_two32_vec = gen_rtx_CONST_VECTOR (V2DFmode,
 				gen_2_4_rtvec (2, int_two32_as_fp, DFmode));
@@ -16719,11 +16858,15 @@ ix86_init_mmx_sse_builtins (void)
   def_builtin (MASK_SSE2, "__builtin_ia32_psrad128", v4si_ftype_v4si_v4si, IX86_BUILTIN_PSRAD128);
 
   def_builtin (MASK_SSE2, "__builtin_ia32_pslldqi128", v2di_ftype_v2di_int, IX86_BUILTIN_PSLLDQI128);
+  /* APPLE LOCAL 5919583 */
+  def_builtin (MASK_SSE2, "__builtin_ia32_pslldqi128_byteshift", v2di_ftype_v2di_int, IX86_BUILTIN_PSLLDQI128_BYTESHIFT);
   def_builtin (MASK_SSE2, "__builtin_ia32_psllwi128", v8hi_ftype_v8hi_int, IX86_BUILTIN_PSLLWI128);
   def_builtin (MASK_SSE2, "__builtin_ia32_pslldi128", v4si_ftype_v4si_int, IX86_BUILTIN_PSLLDI128);
   def_builtin (MASK_SSE2, "__builtin_ia32_psllqi128", v2di_ftype_v2di_int, IX86_BUILTIN_PSLLQI128);
 
   def_builtin (MASK_SSE2, "__builtin_ia32_psrldqi128", v2di_ftype_v2di_int, IX86_BUILTIN_PSRLDQI128);
+  /* APPLE LOCAL 5919583 */
+  def_builtin (MASK_SSE2, "__builtin_ia32_psrldqi128_byteshift", v2di_ftype_v2di_int, IX86_BUILTIN_PSRLDQI128_BYTESHIFT);
   def_builtin (MASK_SSE2, "__builtin_ia32_psrlwi128", v8hi_ftype_v8hi_int, IX86_BUILTIN_PSRLWI128);
   def_builtin (MASK_SSE2, "__builtin_ia32_psrldi128", v4si_ftype_v4si_int, IX86_BUILTIN_PSRLDI128);
   def_builtin (MASK_SSE2, "__builtin_ia32_psrlqi128", v2di_ftype_v2di_int, IX86_BUILTIN_PSRLQI128);
@@ -18027,10 +18170,16 @@ ix86_expand_builtin (tree exp, rtx target, rtx subtarget ATTRIBUTE_UNUSED,
       emit_insn (pat);
       return target;
 
+      /* APPLE LOCAL begin 5919583 */
     case IX86_BUILTIN_PSLLDQI128:
     case IX86_BUILTIN_PSRLDQI128:
-      icode = (fcode == IX86_BUILTIN_PSLLDQI128 ? CODE_FOR_sse2_ashlti3
+    case IX86_BUILTIN_PSLLDQI128_BYTESHIFT:
+    case IX86_BUILTIN_PSRLDQI128_BYTESHIFT:
+      icode = ((fcode == IX86_BUILTIN_PSLLDQI128
+		|| fcode == IX86_BUILTIN_PSLLDQI128_BYTESHIFT)
+	       ? CODE_FOR_sse2_ashlti3
 	       : CODE_FOR_sse2_lshrti3);
+      /* APPLE LOCAL end 5919583 */
       arg0 = TREE_VALUE (arglist);
       arg1 = TREE_VALUE (TREE_CHAIN (arglist));
       op0 = expand_normal (arg0);
@@ -18039,6 +18188,23 @@ ix86_expand_builtin (tree exp, rtx target, rtx subtarget ATTRIBUTE_UNUSED,
       mode1 = insn_data[icode].operand[1].mode;
       mode2 = insn_data[icode].operand[2].mode;
 
+      /* APPLE LOCAL begin 591583 */
+      if (! CONST_INT_P (op1))
+	{
+	  error ("shift must be an immediate");
+	  return const0_rtx;
+	}
+      /* The _mm_srli_si128/_mm_slli_si128 primitives are defined with
+	 a byte-shift count; inside of GCC, we prefer to specify the
+	 width of a shift in bits.  The original non-BYTESHIFT
+	 primitives were problematic due to the "*8" in their macro
+	 bodies; we have moved the "*8" here to resolve this.  The
+	 original builtins are still supported because many developers
+	 rely upon them.  */
+      if (fcode == IX86_BUILTIN_PSLLDQI128_BYTESHIFT
+	  || fcode == IX86_BUILTIN_PSRLDQI128_BYTESHIFT)
+	op1 = gen_rtx_CONST_INT (SImode, INTVAL (op1) * 8);
+      /* APPLE LOCAL end 591583 */
       if (! (*insn_data[icode].operand[1].predicate) (op0, mode1))
 	{
 	  op0 = copy_to_reg (op0);
@@ -18905,7 +19071,8 @@ ix86_tieable_integer_mode_p (enum machine_mode mode)
       return TARGET_64BIT || !TARGET_PARTIAL_REG_STALL;
 
     case DImode:
-      return TARGET_64BIT;
+      /* APPLE LOCAL 5695218 convert int to logical bool */
+      return !!TARGET_64BIT;
 
     default:
       return false;
@@ -19741,7 +19908,7 @@ x86_output_mi_thunk (FILE *file ATTRIBUTE_UNUSED,
 	{
 	  int tmp_regno = 2 /* ECX */;
 	  if (lookup_attribute ("fastcall",
-				TYPE_ATTRIBUTES (TREE_TYPE (function))))
+	      TYPE_ATTRIBUTES (TREE_TYPE (function))))
 	    tmp_regno = 0 /* EAX */;
 	  tmp = gen_rtx_REG (SImode, tmp_regno);
 	}
@@ -21758,8 +21925,13 @@ iasm_type_for (tree arg)
       else if (IDENTIFIER_POINTER (arg)[1] == 'x')
 	mode = SFmode;
       else if (IDENTIFIER_POINTER (arg)[1] == 'm')
-        /* LLVM LOCAL - Force MMX to use a vector mode: PR1222. */
+        /* LLVM LOCAL - begin Force MMX to use a vector mode: PR1222. */
+#ifdef ENABLE_LLVM
 	mode = V2SImode;
+#else
+	mode = SFmode;
+#endif
+        /* LLVM LOCAL - end Force MMX to use a vector mode: PR1222. */
 
       if (mode != VOIDmode)
 	type = lang_hooks.types.type_for_mode (mode, 1);
@@ -21837,7 +22009,9 @@ iasm_is_offset (tree v)
 	  && TREE_STATIC (v)
 /* APPLE LOCAL begin LLVM */
 /* DECL_RTL is not set for LLVM */
-/*        && MEM_P (DECL_RTL (v))*/
+#ifndef ENABLE_LLVM
+          && MEM_P (DECL_RTL (v))
+#endif
          )
 /* APPLE LOCAL end LLVM */
 	{
@@ -21852,7 +22026,9 @@ iasm_is_offset (tree v)
       && TREE_STATIC (v)
 /* APPLE LOCAL begin LLVM */
 /* DECL_RTL is not set for LLVM */
-/*    && MEM_P (DECL_RTL (v))*/
+#ifndef ENABLE_LLVM
+      && MEM_P (DECL_RTL (v))
+#endif
      )
 /* APPLE LOCAL end LLVM */
     {
@@ -22758,8 +22934,8 @@ asm_preferred_eh_data_format (int code, int global)
 }
 
 
-/* APPLE LOCAL begin LLVM */
-
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 /* These are wrappers for type_natural_mode and examine_argument which are
    both static functions. */
 enum machine_mode ix86_getNaturalModeForType(tree type) {
@@ -22776,8 +22952,7 @@ int ix86_ClassifyArgument(enum machine_mode mode, tree type,
                           int bit_offset) {
   return classify_argument(mode, type, classes, bit_offset);
 }
-
-  
-/* APPLE LOCAL end LLVM */
+#endif
+/* LLVM LOCAL end */
 
 #include "gt-i386.h"

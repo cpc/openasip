@@ -1591,3 +1591,22 @@ do {							\
 
 /* The system headers under Alpha systems are generally C++-aware.  */
 #define NO_IMPLICIT_EXTERN_C
+
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
+
+/* LLVM_TARGET_INTRINSIC_PREFIX - Specify what prefix this target uses for its
+ * intrinsics.
+ */
+#define LLVM_TARGET_INTRINSIC_PREFIX "alpha"
+
+/* LLVM_TARGET_INTRINSIC_LOWER - To handle builtins, we want to expand the
+ * invocation into normal LLVM code.  If the target can handle the builtin, this
+ * macro should call the target TreeToLLVM::TargetIntrinsicLower method and
+ *  return true.This macro is invoked from a method in the TreeToLLVM class.
+ */
+#define LLVM_TARGET_INTRINSIC_LOWER(EXP, BUILTIN_CODE, DESTLOC, RESULT,       \
+                                    DESTTY, OPS)                              \
+        TargetIntrinsicLower(EXP, BUILTIN_CODE, DESTLOC, RESULT, DESTTY, OPS);
+#endif /* ENABLE_LLVM */
+/* LLVM LOCAL end */

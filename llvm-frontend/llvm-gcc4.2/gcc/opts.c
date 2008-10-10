@@ -206,6 +206,13 @@ handle_option (const char **argv, unsigned int lang_mask)
 
   opt = argv[0];
 
+  /* LLVM LOCAL begin stack protector */
+#ifdef ENABLE_LLVM
+  if (strncmp(opt, "-fstack-protector", 17) == 0)
+    error ("-fstack-protector is not supported.");
+#endif
+  /* LLVM LOCAL end stack protector */
+
   opt_index = find_opt (opt + 1, lang_mask | CL_COMMON | CL_TARGET);
   if (opt_index == cl_options_count
       && (opt[1] == 'W' || opt[1] == 'f' || opt[1] == 'm')
@@ -523,9 +530,14 @@ void set_flags_from_O (unsigned int cmdline)
           flag_tree_pre = 1;
 	}
       /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
       /* Enable loop unrolling at -O2 if -f[no-]unroll-loops is not used.  */
       if (!flag_unroll_loops_set && !optimize_size)
         flag_unroll_loops = 1;
+      /* Enable llvm inliner at -O2. */
+      if (cmdline)
+        flag_inline_functions = 1;
+#endif
       /* LLVM LOCAL end */
     }
 
@@ -779,8 +791,12 @@ decode_options (unsigned int argc, const char **argv)
       flag_strict_aliasing = saved_flag_strict_aliasing;
   /* APPLE LOCAL end AV 3846092 */
   /* APPLE LOCAL begin 4224227, 4231773 */
+  /* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   if (!optimize_size_z)
     optimize_size = 0;
+#endif
+  /* LLVM LOCAL end */
   /* APPLE LOCAL end 4224227, 4231773 */
 }
 
@@ -1363,7 +1379,8 @@ print_target_help (void)
   for (i = 0; i < cl_options_count; i++)
     if ((cl_options[i].flags & (CL_TARGET | CL_UNDOCUMENTED)) == CL_TARGET)
       {
-	printf (_("\nTarget specific options:\n"));
+	/* APPLE LOCAL default to Wformat-security 5764921 */
+	printf ("%s", _("\nTarget specific options:\n"));
 	print_filtered_help (CL_TARGET);
 	break;
       }

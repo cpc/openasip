@@ -56,6 +56,12 @@
 #include "tm-constrs.h"
 #include "spu-builtins.h"
 
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
+#undef INSN_SCHEDULING
+#endif
+/* LLVM LOCAL end */
+
 /* Builtin types, data and prototypes. */
 struct spu_builtin_range
 {
@@ -92,11 +98,15 @@ static rtx frame_emit_store (int regno, rtx addr, HOST_WIDE_INT offset);
 static rtx frame_emit_load (int regno, rtx addr, HOST_WIDE_INT offset);
 static rtx frame_emit_add_imm (rtx dst, rtx src, HOST_WIDE_INT imm,
 			       rtx scratch);
+/* LLVM LOCAL begin */
+#ifdef INSN_SCHEDULING
 static void emit_nop_for_insn (rtx insn);
 static bool insn_clobbers_hbr (rtx insn);
 static void spu_emit_branch_hint (rtx before, rtx branch, rtx target,
 				  int distance);
 static rtx get_branch_target (rtx branch);
+#endif
+/* LLVM LOCAL end */
 static void insert_branch_hints (void);
 static void insert_nops (void);
 static void spu_machine_dependent_reorg (void);
@@ -130,8 +140,12 @@ static void spu_init_libfuncs (void);
 static bool spu_return_in_memory (tree type, tree fntype);
 static void fix_range (const char *);
 static void spu_encode_section_info (tree, rtx, int);
+/* LLVM LOCAL begin */
+#ifdef INSN_SCHEDULING
 static tree spu_builtin_mul_widen_even (tree);
 static tree spu_builtin_mul_widen_odd (tree);
+#endif
+/* LLVM LOCAL end */
 static tree spu_builtin_mask_for_load (void);
 
 extern const char *reg_names[];
@@ -1804,6 +1818,8 @@ struct spu_bb_info
   basic_block bb;		/* the original block. */
 };
 
+/* LLVM LOCAL begin */
+#ifdef INSN_SCHEDULING
 /* The special $hbr register is used to prevent the insn scheduler from
    moving hbr insns across instructions which invalidate them.  It
    should only be used in a clobber, and this function searches for
@@ -1933,10 +1949,14 @@ get_branch_target (rtx branch)
     }
   return 0;
 }
+#endif
+/* LLVM LOCAL end */
 
 static void
 insert_branch_hints (void)
 {
+/* LLVM LOCAL begin */
+#ifdef INSN_SCHEDULING
   struct spu_bb_info *spu_bb_info;
   rtx branch, insn, next;
   rtx branch_target = 0;
@@ -2107,8 +2127,12 @@ insert_branch_hints (void)
       }
   }
   free (spu_bb_info);
+#endif
+/* LLVM LOCAL end */
 }
 
+/* LLVM LOCAL begin */
+#ifdef INSN_SCHEDULING
 /* Emit a nop for INSN such that the two will dual issue.  This assumes
    INSN is 8-byte aligned.  When INSN is inline asm we emit an lnop.
    We check for TImode to handle a MULTI1 insn which has dual issued its
@@ -2129,12 +2153,16 @@ emit_nop_for_insn (rtx insn)
   else
     new_insn = emit_insn_after (gen_lnop (), insn);
 }
+#endif
+/* LLVM LOCAL end */
 
 /* Insert nops in basic blocks to meet dual issue alignment
    requirements. */
 static void
 insert_nops (void)
 {
+/* LLVM LOCAL begin */
+#ifdef INSN_SCHEDULING
   rtx insn, next_insn, prev_insn;
   int length;
   int addr;
@@ -2162,6 +2190,8 @@ insert_nops (void)
 	}
       prev_insn = insn;
     }
+#endif
+/* LLVM LOCAL end */
 }
 
 static void
@@ -2255,6 +2285,8 @@ static int
 spu_sched_adjust_cost (rtx insn, rtx link ATTRIBUTE_UNUSED,
 		       rtx dep_insn ATTRIBUTE_UNUSED, int cost)
 {
+/* LLVM LOCAL begin */
+#ifdef INSN_SCHEDULING
   if (GET_CODE (insn) == CALL_INSN)
     return cost - 2;
   /* The dfa scheduler sets cost to 0 for all anti-dependencies and the
@@ -2264,6 +2296,12 @@ spu_sched_adjust_cost (rtx insn, rtx link ATTRIBUTE_UNUSED,
   if (GET_CODE (insn) == JUMP_INSN && REG_NOTE_KIND (link) == REG_DEP_ANTI)
     return INSN_COST (dep_insn) - 3;
   return cost;
+#else
+  /* If INSN_SCHEDULING is not defined, this function is merely a stub, so
+     return something reasonable to make the compiler happy. */
+  return cost;
+#endif
+/* LLVM LOCAL end */
 }
 
 /* Create a CONST_DOUBLE from a string.  */
@@ -5002,6 +5040,8 @@ spu_expand_builtin (tree exp,
   abort ();
 }
 
+/* LLVM LOCAL begin */
+#ifdef INSN_SCHEDULING
 /* Implement targetm.vectorize.builtin_mul_widen_even.  */
 static tree
 spu_builtin_mul_widen_even (tree type)
@@ -5035,6 +5075,8 @@ spu_builtin_mul_widen_odd (tree type)
       return NULL_TREE;
     }
 }
+#endif /* INSN_SCHEDULING */
+/* LLVM LOCAL end */
 
 /* Implement targetm.vectorize.builtin_mask_for_load.  */
 static tree

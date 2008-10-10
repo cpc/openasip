@@ -825,10 +825,10 @@ static const char *cpp_debug_options = "%{d*}";
 /* LLVM LOCAL begin */
 static const char *llvm_options =
 #ifdef ENABLE_LLVM
-"%{O4|emit-llvm:%{S:-emit-llvm} \
-                %{!S:-emit-llvm-bc \
-                  %{c: %W{o*} %{!o*:-o %b%w.o}} \
-                  %{!c:-o %d%w%u%O}}}"
+"%{O4|emit-llvm|flto:%{S:-emit-llvm} \
+                     %{!S:-emit-llvm-bc \
+                     %{c: %W{o*} %{!o*:-o %b%w.o}} \
+                     %{!c:-o %d%w%u%O}}}"
 #else
   "%{emit-llvm:%e--emit-llvm is not supported in this configuration.}"
 #endif
@@ -860,10 +860,10 @@ static const char *asm_options =
 static const char *invoke_as =
 #ifdef AS_NEEDS_DASH_FOR_PIPED_INPUT
 /* LLVM LOCAL */
-"%{!O4:%{!emit-llvm:%{!S:-o %|.s |\n as %(asm_options) %|.s %A }}}";
+"%{!O4:%{!emit-llvm:%{!flto:%{!S:-o %|.s |\n as %(asm_options) %|.s %A }}}}";
 #else
 /* LLVM LOCAL */
-"%{!O4:%{!emit-llvm:%{!S:-o %|.s |\n as %(asm_options) %m.s %A }}}";
+"%{!O4:%{!emit-llvm:%{!flto:%{!S:-o %|.s |\n as %(asm_options) %m.s %A }}}}";
 #endif
 
 /* Some compilers have limits on line lengths, and the multilib_select
@@ -3054,7 +3054,8 @@ execute (void)
       if (errmsg != NULL)
 	{
 	  if (err == 0)
-	    fatal (errmsg);
+	    /* APPLE LOCAL default to Wformat-security 5764921 */
+	    fatal ("%s", errmsg);
 	  else
 	    {
 	      errno = err;
@@ -6460,7 +6461,8 @@ int
 main (int argc, char **argv)
 {
   size_t i;
-  int value;
+  /* APPLE LOCAL uninit warning */
+  int value = 0;
   int linker_was_run = 0;
   int lang_n_infiles = 0;
   int num_linker_inputs = 0;
@@ -6841,7 +6843,8 @@ main (int argc, char **argv)
 
       if (! verbose_flag)
 	{
-	  printf (_("\nFor bug reporting instructions, please see:\n"));
+	  /* APPLE LOCAL default to Wformat-security 5764921 */
+	  printf ("%s", _("\nFor bug reporting instructions, please see:\n"));
 	  printf ("%s.\n", bug_report_url);
 
 	  return (0);
@@ -7000,9 +7003,7 @@ main (int argc, char **argv)
 		  infiles[i].incompiler = lookup_compiler (infiles[i].name,
 							   strlen (infiles[i].name),
 							   infiles[i].language);
-
-		  if (value < 0)
-		    this_file_error = 1;
+			  
 		}
 	      else if (traditional_cpp_flag)
 			{
@@ -7015,6 +7016,9 @@ main (int argc, char **argv)
 			}
 	    }
 
+	  if (value < 0)
+	    this_file_error = 1;
+  
 	  if (this_file_error)
 	    {
 	      delete_failure_queue ();

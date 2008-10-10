@@ -35,6 +35,12 @@ Boston, MA 02110-1301, USA.  */
 #ifdef HAVE_SYS_FILE_H
 #include <sys/file.h>   /* May get R_OK, etc. on some systems.  */
 #endif
+/* APPLE LOCAL begin mainline candidate */
+#include <errno.h>
+#ifdef NEED_DECLARATION_ERRNO
+extern int errno;
+#endif
+/* APPLE LOCAL end mainline candidate */
 
 #ifndef R_OK
 #define R_OK 4
@@ -166,12 +172,21 @@ make_temp_file (const char *suffix)
   strcpy (temp_filename + base_len + TEMP_FILE_LEN, suffix);
 
   fd = mkstemps (temp_filename, suffix_len);
-  /* If mkstemps failed, then something bad is happening.  Maybe we should
-     issue a message about a possible security attack in progress?  */
+
+  /* APPLE LOCAL begin mainline candidate */
+  /* If mkstemps failed something bad is happening, send an error message
+     and exit.  */
   if (fd == -1)
-    abort ();
+    {
+      fprintf (stderr, "Failed to open temp file in %s, error: %s\n", base, xstrerror(errno));
+      xexit (1);
+    }
   /* Similarly if we can not close the file.  */
   if (close (fd))
-    abort ();
+    {
+      fprintf (stderr, "Failed to close temp file in %s, error: %s\n", base, xstrerror(errno));
+      xexit (1);
+    }
+  /* APPLE LOCAL end mainline candidate */
   return temp_filename;
 }

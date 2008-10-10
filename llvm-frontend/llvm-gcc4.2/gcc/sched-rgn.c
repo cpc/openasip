@@ -68,6 +68,12 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "timevar.h"
 #include "tree-pass.h"
 
+/* LLVM LOCAL begin comment out most of this file */
+#ifdef ENABLE_LLVM
+#undef INSN_SCHEDULING
+#endif
+/* LLVM LOCAL end */
+
 /* Define when we want to do count REG_DEAD notes before and after scheduling
    for sanity checking.  We can't do that when conditional execution is used,
    as REG_DEAD exist only for unconditional deaths.  */

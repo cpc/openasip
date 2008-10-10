@@ -103,6 +103,31 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "timevar.h"
 #include "tree-pass.h"
 
+/* LLVM LOCAL begin comment out most of this file */
+#ifndef ENABLE_LLVM
+/* LLVM LOCAL end */
+
+/* APPLE LOCAL begin ARM DImode multiply enhancement */
+/* If this is set, try substituting instructions forward even if we cannot
+   immediately delete the earlier instructions because their values are
+   reused later.  This is beneficial in a few cases where it's cheaper to
+   redo an earlier operation as part of the later instruction than it is
+   to use the register result of computing it. E.g. (i64)i32 * (i64)i32
+   on ARM is a single insn, but i64*i64 is several, so if we have
+   something like
+      t1 = (i64)i32
+      t2 = (i64)i32
+      t3 = (i64)i32
+      = t1*t2 + t2*t3 + t1*t3
+  we want to move the casts forward into the multiplies.  For the last
+  multiply the original casts will be deleted, but copying them forward
+  would gain even if this did not happen. */
+
+#ifndef COMBINE_TRY_RETAIN
+#define COMBINE_TRY_RETAIN 0
+#endif
+/* APPLE LOCAL end ARM DImode multiply enhancement */
+
 /* Number of attempts to combine instructions in this function.  */
 
 static int combine_attempts;
@@ -390,7 +415,8 @@ static int cant_combine_insn_p (rtx);
 static int can_combine_p (rtx, rtx, rtx, rtx, rtx *, rtx *);
 static int combinable_i3pat (rtx, rtx *, rtx, rtx, int, rtx *);
 static int contains_muldiv (rtx);
-static rtx try_combine (rtx, rtx, rtx, int *);
+/* APPLE LOCAL expand retain_inputs */
+static rtx try_combine (rtx, rtx, rtx, int *, bool);
 static void undo_all (void);
 static void undo_commit (void);
 static rtx *find_split_point (rtx *, rtx);
@@ -585,12 +611,16 @@ do_SUBST_MODE (rtx *into, enum machine_mode newval)
 
 #define SUBST_MODE(INTO, NEWVAL)  do_SUBST_MODE(&(INTO), (NEWVAL))
 
+/* APPLE LOCAL begin ARM DImode multiply enhancement */
 /* Subroutine of try_combine.  Determine whether the combine replacement
    patterns NEWPAT and NEWI2PAT are cheaper according to insn_rtx_cost
    that the original instruction sequence I1, I2 and I3.  Note that I1
    and/or NEWI2PAT may be NULL_RTX.  This function returns false, if the
    costs of all instructions can be estimated, and the replacements are
-   more expensive than the original sequence.  */
+   more expensive than the original sequence.
+   We also permit I2 to be null; this means NEWPAT is a replacement for
+   I3, but the original instructions feeding into it will remain.  In
+   this case I1 and NEWI2PAT are expected to be null. */
 
 static bool
 combine_validate_cost (rtx i1, rtx i2, rtx i3, rtx newpat, rtx newi2pat)
@@ -600,22 +630,31 @@ combine_validate_cost (rtx i1, rtx i2, rtx i3, rtx newpat, rtx newi2pat)
   int old_cost, new_cost;
 
   /* Lookup the original insn_rtx_costs.  */
-  i2_cost = INSN_UID (i2) <= last_insn_cost
-	    ? uid_insn_cost[INSN_UID (i2)] : 0;
   i3_cost = INSN_UID (i3) <= last_insn_cost
 	    ? uid_insn_cost[INSN_UID (i3)] : 0;
-
-  if (i1)
+  if (i2)
     {
-      i1_cost = INSN_UID (i1) <= last_insn_cost
-		? uid_insn_cost[INSN_UID (i1)] : 0;
-      old_cost = (i1_cost > 0 && i2_cost > 0 && i3_cost > 0)
-		 ? i1_cost + i2_cost + i3_cost : 0;
+      i2_cost = INSN_UID (i2) <= last_insn_cost
+	    ? uid_insn_cost[INSN_UID (i2)] : 0;
+      if (i1)
+	{
+	  i1_cost = INSN_UID (i1) <= last_insn_cost
+		    ? uid_insn_cost[INSN_UID (i1)] : 0;
+	  old_cost = (i1_cost > 0 && i2_cost > 0 && i3_cost > 0)
+		     ? i1_cost + i2_cost + i3_cost : 0;
+	}
+      else
+	{
+	  i1_cost = 0;
+	  old_cost = (i2_cost > 0 && i3_cost > 0) ? i2_cost + i3_cost : 0;
+	}
     }
   else
     {
-      old_cost = (i2_cost > 0 && i3_cost > 0) ? i2_cost + i3_cost : 0;
-      i1_cost = 0;
+      gcc_assert (!i1);
+      gcc_assert (!newi2pat);
+      i1_cost = i2_cost = 0;
+      old_cost = (i3_cost > 0) ? i3_cost : 0;
     }
 
   /* Calculate the replacement insn_rtx_costs.  */
@@ -648,10 +687,25 @@ combine_validate_cost (rtx i1, rtx i2, rtx i3, rtx newpat, rtx newi2pat)
 	old_cost = 0;
     }
 
+  if (i2 == 0 
+      && (old_cost == 0 
+	  || new_cost == 0 
+	  || new_cost > old_cost))
+    {
+      if (dump_file)
+	{
+	  fprintf (dump_file,
+		   "rejecting forward combination into insn %d\n",
+		   INSN_UID (i3));
+	  fprintf (dump_file, "original cost %d\n", old_cost);
+	  fprintf (dump_file, "replacement cost %d\n", new_cost);
+	}
+      return false;
+   }
   /* Disallow this recombination if both new_cost and old_cost are
      greater than zero, and new_cost is greater than old cost.  */
-  if (old_cost > 0
-      && new_cost > old_cost)
+  else if (old_cost > 0 
+           && new_cost > old_cost)
     {
       if (dump_file)
 	{
@@ -685,13 +739,15 @@ combine_validate_cost (rtx i1, rtx i2, rtx i3, rtx newpat, rtx newi2pat)
     }
 
   /* Update the uid_insn_cost array with the replacement costs.  */
-  uid_insn_cost[INSN_UID (i2)] = new_i2_cost;
+  if (i2)
+    uid_insn_cost[INSN_UID (i2)] = new_i2_cost;
   uid_insn_cost[INSN_UID (i3)] = new_i3_cost;
   if (i1)
     uid_insn_cost[INSN_UID (i1)] = 0;
 
   return true;
 }
+/* APPLE LOCAL end ARM DImode multiply enhancement */
 
 /* Main entry point for combiner.  F is the first insn of the function.
    NREGS is the first unused pseudo-reg number.
@@ -825,7 +881,8 @@ combine_instructions (rtx f, unsigned int nregs)
 
 	      for (links = LOG_LINKS (insn); links; links = XEXP (links, 1))
 		if ((next = try_combine (insn, XEXP (links, 0),
-					 NULL_RTX, &new_direct_jump_p)) != 0)
+				    /* APPLE LOCAL expand retain_inputs */
+					 NULL_RTX, &new_direct_jump_p, true)) != 0)
 		  goto retry;
 
 	      /* Try each sequence of three linked insns ending with this one.  */
@@ -844,7 +901,8 @@ combine_instructions (rtx f, unsigned int nregs)
 		       nextlinks = XEXP (nextlinks, 1))
 		    if ((next = try_combine (insn, link,
 					     XEXP (nextlinks, 0),
-					     &new_direct_jump_p)) != 0)
+				    /* APPLE LOCAL expand retain_inputs */
+					     &new_direct_jump_p, true)) != 0)
 		      goto retry;
 		}
 
@@ -862,14 +920,16 @@ combine_instructions (rtx f, unsigned int nregs)
 		  && sets_cc0_p (PATTERN (prev)))
 		{
 		  if ((next = try_combine (insn, prev,
-					   NULL_RTX, &new_direct_jump_p)) != 0)
+				    /* APPLE LOCAL expand retain_inputs */
+					   NULL_RTX, &new_direct_jump_p, true)) != 0)
 		    goto retry;
 
 		  for (nextlinks = LOG_LINKS (prev); nextlinks;
 		       nextlinks = XEXP (nextlinks, 1))
 		    if ((next = try_combine (insn, prev,
 					     XEXP (nextlinks, 0),
-					     &new_direct_jump_p)) != 0)
+				    /* APPLE LOCAL expand retain_inputs */
+					     &new_direct_jump_p, true)) != 0)
 		      goto retry;
 		}
 
@@ -882,14 +942,16 @@ combine_instructions (rtx f, unsigned int nregs)
 		  && reg_mentioned_p (cc0_rtx, SET_SRC (PATTERN (insn))))
 		{
 		  if ((next = try_combine (insn, prev,
-					   NULL_RTX, &new_direct_jump_p)) != 0)
+				    /* APPLE LOCAL expand retain_inputs */
+					   NULL_RTX, &new_direct_jump_p, true)) != 0)
 		    goto retry;
 
 		  for (nextlinks = LOG_LINKS (prev); nextlinks;
 		       nextlinks = XEXP (nextlinks, 1))
 		    if ((next = try_combine (insn, prev,
 					     XEXP (nextlinks, 0),
-					     &new_direct_jump_p)) != 0)
+				    /* APPLE LOCAL expand retain_inputs */
+					     &new_direct_jump_p, true)) != 0)
 		      goto retry;
 		}
 
@@ -904,7 +966,8 @@ combine_instructions (rtx f, unsigned int nregs)
 		    && NONJUMP_INSN_P (prev)
 		    && sets_cc0_p (PATTERN (prev))
 		    && (next = try_combine (insn, XEXP (links, 0),
-					    prev, &new_direct_jump_p)) != 0)
+				    /* APPLE LOCAL expand retain_inputs */
+					    prev, &new_direct_jump_p, true)) != 0)
 		  goto retry;
 #endif
 
@@ -915,7 +978,8 @@ combine_instructions (rtx f, unsigned int nregs)
 		     nextlinks = XEXP (nextlinks, 1))
 		  if ((next = try_combine (insn, XEXP (links, 0),
 					   XEXP (nextlinks, 0),
-					   &new_direct_jump_p)) != 0)
+				    /* APPLE LOCAL expand retain_inputs */
+					   &new_direct_jump_p, true)) != 0)
 		    goto retry;
 
 	      /* Try this insn with each REG_EQUAL note it links back to.  */
@@ -941,8 +1005,20 @@ combine_instructions (rtx f, unsigned int nregs)
 		      i2mod = temp;
 		      i2mod_old_rhs = copy_rtx (orig);
 		      i2mod_new_rhs = copy_rtx (note);
+		      /* APPLE LOCAL begin ARM expand retain_inputs */
+		      /* If we were to allow the retain_inputs optimization here,
+			 we would need to restore SET_SRC below when the
+			 retain_inputs case was hit.  That is possible, but
+			 leads to the following harder problem: when we have
+			 a REG_DEAD note on i3 and that register no longer appears
+			 due to optimization of i3 after replacements, we don't
+			 know whether to remove the instruction that set that
+			 reg (which is what it does) or leave it alone because
+			 it will be used again once we restore SET_SRC below.
+			 See REG_DEAD case in distribute_notes.  */
 		      next = try_combine (insn, i2mod, NULL_RTX,
-					  &new_direct_jump_p);
+					  &new_direct_jump_p, false);
+		      /* APPLE LOCAL end ARM expand retain_inputs */
 		      i2mod = NULL_RTX;
 		      if (next)
 			goto retry;
@@ -1801,14 +1877,21 @@ reg_subword_p (rtx x, rtx reg)
    If we did the combination, return the insn at which combine should
    resume scanning.
 
+   APPLE LOCAL begin ARM expand retain_inputs
    Set NEW_DIRECT_JUMP_P to a nonzero value if try_combine creates a
-   new direct jump instruction.  */
+   new direct jump instruction.
+
+   If RETAIN_INPUTS_OK, and the replacement doesn't match because one of the
+   inputs is reused later, try accepting the replacement anyway and leaving
+   the original insns there.  */
 
 static rtx
-try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p)
+try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p, bool retain_inputs_ok)
+/* APPLE LOCAL end ARM expand retain_inputs */
 {
   /* New patterns for I3 and I2, respectively.  */
-  rtx newpat, newi2pat = 0;
+  /* APPLE LOCAL ARM DImode multiply enhancement */
+  rtx newpat, newi2pat = 0, newpat_before_added_sets = 0;
   rtvec newpat_vec_with_clobbers = 0;
   int substed_i2 = 0, substed_i1 = 0;
   /* Indicates need to preserve SET in I1 or I2 in I3 if it is not dead.  */
@@ -1838,6 +1921,11 @@ try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p)
   /* Notes that I1, I2 or I3 is a MULT operation.  */
   int have_mult = 0;
   int swap_i2i3 = 0;
+/* APPLE LOCAL begin ARM DImode multiply enhancement */
+  /* Marks the case where it's cheaper to duplicate an operation in i3 
+     even though we can't delete i2 and i1 because of later uses. */
+  bool retain_inputs = 0;
+/* APPLE LOCAL end ARM DImode multiply enhancement */
 
   int maxreg;
   rtx temp;
@@ -2416,6 +2504,8 @@ try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p)
     {
       combine_extras++;
 
+      /* APPLE LOCAL ARM DImode multiply enhancement */
+      newpat_before_added_sets = copy_rtx (newpat);
       if (GET_CODE (newpat) == PARALLEL)
 	{
 	  rtvec old = XVEC (newpat, 0);
@@ -2961,7 +3051,81 @@ try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p)
        && (! check_asm_operands (newpat) || added_sets_1 || added_sets_2)))
     {
       undo_all ();
-      return 0;
+      /* APPLE LOCAL begin ARM DImode multiply enhancement */
+      /* If we had to add copies of the original inputs because their values
+	 are used later, try matching the replacement without those copies
+	 and leaving the originals alone. 
+	 Do not copy a load, even if the costs appear to be equal (which
+	 can certainly happen with -Os).  We check for volatile explicitly
+	 so this should not be a correctness problem, but it just can't be
+	 an improvement whatever the costs say.  (e.g., the interference with
+	 scheduling is not modeled in this pass.)  */
+      /* Currently, we accept cases where i1!=0 and i1 feeds i3, and where
+	 i1==0.  Can certainly be expanded to handle cases where !i1_feeds_i3, 
+	 i3 is a CALL or JUMP, or only one of added_sets_1 and added_sets_2 is true.
+
+      	 At the moment, code below that fixes up notes assumes the conditions here
+	 are true.  */
+      if (COMBINE_TRY_RETAIN
+	  && retain_inputs_ok
+	  && i2
+	  && !CALL_P (i2) && !JUMP_P (i2) 
+	  && !volatile_refs_p (PATTERN (i2))
+	  && added_sets_2
+	  && !MEM_P (i2src)
+	  && !((GET_CODE (i2src) == SIGN_EXTEND
+	        || GET_CODE (i2src) == ZERO_EXTEND
+		|| GET_CODE (i2src) == SUBREG)
+	       && MEM_P (XEXP (i2src, 0)))
+          && (!targetm.cannot_copy_insn_p || !targetm.cannot_copy_insn_p (i2))
+	  && !i2dest_in_i2src
+    	  && (!i1 
+	       || (!CALL_P (i1) && !JUMP_P (i1) 
+		   && !volatile_refs_p (PATTERN (i1))
+		   && added_sets_1
+		   && !MEM_P (i1src)
+		   && !((GET_CODE (i1src) == SIGN_EXTEND
+			 || GET_CODE (i1src) == ZERO_EXTEND
+			 || GET_CODE (i1src) == SUBREG)
+			&& MEM_P (XEXP (i1src, 0)))
+		   && !i1dest_in_i1src
+		   && i1_feeds_i3))
+	  && !CALL_P (i3) && !JUMP_P (i3)
+	  && !swap_i2i3
+	  && !i3_subst_into_i2)
+	{
+	  SUBST (PATTERN (i3), newpat_before_added_sets);
+	  insn_code_number = recog_for_combine (&newpat_before_added_sets, i3, &new_i3_notes);
+	  if (insn_code_number < 0 
+	      || undobuf.other_insn
+	      || !combine_validate_cost (0, 0, i3, newpat_before_added_sets, 0))
+	    {
+	      undo_all ();
+	      return 0;
+	    }
+	  added_sets_1 = added_sets_2 = 0;
+	  newi2pat = NULL_RTX;
+	  newpat = newpat_before_added_sets;
+	  retain_inputs = 1;
+	  if (dump_file)
+	    {
+	      if (i1) 
+		{
+		  fprintf (dump_file,
+			   "Forward combination of %d and %d into insn %d\n",
+			   INSN_UID (i1), INSN_UID (i2), INSN_UID (i3));
+	        } 
+	      else 
+		{
+		  fprintf (dump_file,
+			   "Forward combination of %d into insn %d\n",
+			   INSN_UID (i2), INSN_UID (i3));
+		}
+	    }
+	}
+      else
+	return 0;
+      /* APPLE LOCAL end ARM DImode multiply enhancement */
     }
 
   /* If we had to change another insn, make sure it is valid also.  */
@@ -3022,9 +3186,11 @@ try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p)
   }
 #endif
 
+  /* APPLE LOCAL begin ARM DImode multiply enhancement */
   /* Only allow this combination if insn_rtx_costs reports that the
      replacement instructions are cheaper than the originals.  */
-  if (!combine_validate_cost (i1, i2, i3, newpat, newi2pat))
+  if (!retain_inputs
+      && !combine_validate_cost (i1, i2, i3, newpat, newi2pat))
     {
       undo_all ();
       return 0;
@@ -3183,7 +3349,8 @@ try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p)
 
     LOG_LINKS (i3) = 0;
     REG_NOTES (i3) = 0;
-    LOG_LINKS (i2) = 0;
+    if (!retain_inputs)
+      LOG_LINKS (i2) = 0;
     REG_NOTES (i2) = 0;
 
     if (newi2pat)
@@ -3191,14 +3358,16 @@ try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p)
 	INSN_CODE (i2) = i2_code_number;
 	PATTERN (i2) = newi2pat;
       }
-    else
+    else if (!retain_inputs)
       SET_INSN_DELETED (i2);
 
     if (i1)
       {
-	LOG_LINKS (i1) = 0;
+        if (!retain_inputs)
+	  LOG_LINKS (i1) = 0;
 	REG_NOTES (i1) = 0;
-	SET_INSN_DELETED (i1);
+	if (!retain_inputs)
+	  SET_INSN_DELETED (i1);
       }
 
     /* Get death notes for everything that is now used in either I3 or
@@ -3304,10 +3473,13 @@ try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p)
       }
 
     distribute_links (i3links);
-    distribute_links (i2links);
-    distribute_links (i1links);
+    if (!retain_inputs)
+      {
+	distribute_links (i2links);
+	distribute_links (i1links);
+      }
 
-    if (REG_P (i2dest))
+    if (!retain_inputs && REG_P (i2dest))
       {
 	rtx link;
 	rtx i2_insn = 0, i2_val = 0, set;
@@ -3338,7 +3510,8 @@ try_combine (rtx i3, rtx i2, rtx i1, int *new_direct_jump_p)
 	  }
       }
 
-    if (i1 && REG_P (i1dest))
+    if (!retain_inputs && i1 && REG_P (i1dest))
+    /* APPLE LOCAL end ARM DImode multiply enhancement */
       {
 	rtx link;
 	rtx i1_insn = 0, i1_val = 0, set;
@@ -11622,6 +11795,9 @@ mark_used_regs_combine (rtx x)
       }
   }
 }
+/* LLVM LOCAL begin following function is used elsewhere */
+#endif
+/* LLVM LOCAL end */
 
 /* Remove register number REGNO from the dead registers list of INSN.
 
@@ -11641,6 +11817,9 @@ remove_death (unsigned int regno, rtx insn)
   return note;
 }
 
+/* LLVM LOCAL begin comment out most of file */
+#ifndef ENABLE_LLVM
+/* LLVM LOCAL end */
 /* For each register (hardware or pseudo) used within expression X, if its
    death is in an instruction with cuid between FROM_CUID (inclusive) and
    TO_INSN (exclusive), put a REG_DEAD note for that register in the
@@ -12598,6 +12777,9 @@ dump_combine_total_stats (FILE *file)
      "\n;; Combiner totals: %d attempts, %d substitutions (%d requiring new space),\n;; %d successes.\n",
      total_attempts, total_merges, total_extras, total_successes);
 }
+/* LLVM LOCAL begin */
+#endif
+/* LLVM LOCAL end */
 
 
 static bool
@@ -12610,6 +12792,8 @@ gate_handle_combine (void)
 static unsigned int
 rest_of_handle_combine (void)
 {
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   int rebuild_jump_labels_after_combine
     = combine_instructions (get_insns (), max_reg_num ());
 
@@ -12625,6 +12809,8 @@ rest_of_handle_combine (void)
       delete_dead_jumptables ();
       cleanup_cfg (CLEANUP_EXPENSIVE | CLEANUP_UPDATE_LIFE);
     }
+#endif
+/* LLVM LOCAL end */
   return 0;
 }
 

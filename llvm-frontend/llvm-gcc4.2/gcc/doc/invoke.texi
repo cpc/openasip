@@ -216,6 +216,10 @@ in the following sections.
 -Wnewline-eof (APPLE ONLY) @gol
 @c APPLE LOCAL -Wno-altivec-long-deprecated --ilr **
 -Wno-altivec-long-deprecated (APPLE ONLY)
+@c APPLE LOCAL begin 5695218
+-fglobal-alloc-prefer-bytes (APPLE ONLY)
+-fno-global-alloc-prefer-bytes (APPLE ONLY)
+@c APPLE LOCAL end 5695218
 @c APPLE LOCAL fwritable strings
 -funsigned-bitfields  -funsigned-char  -fwritable-strings}
 
@@ -278,9 +282,11 @@ Objective-C and Objective-C++ Dialects}.
 -Wconversion  -Wno-deprecated-declarations @gol
 -Wdisabled-optimization  -Wno-div-by-zero  -Wno-endif-labels @gol
 -Werror  -Werror=* -Werror-implicit-function-declaration @gol
--Wfatal-errors  -Wfloat-equal  -Wformat  -Wformat=2 @gol
+@c APPLE LOCAL default to Wformat-security 5764921
+-Wfatal-errors  -Wfloat-equal  -Wno-format  -Wformat=2 @gol
 -Wno-format-extra-args -Wformat-nonliteral @gol
--Wformat-security  -Wformat-y2k @gol
+@c APPLE LOCAL default to Wformat-security 5764921
+-Wno-format-security  -Wformat-y2k @gol
 -Wimplicit  -Wimplicit-function-declaration  -Wimplicit-int @gol
 -Wimport  -Wno-import  -Winit-self  -Winline @gol
 -Wno-int-to-pointer-cast @gol
@@ -355,6 +361,8 @@ Objective-C and Objective-C++ Dialects}.
 -p  -pg  -print-file-name=@var{library}  -print-libgcc-file-name @gol
 -print-multi-directory  -print-multi-lib @gol
 -print-prog-name=@var{program}  -print-search-dirs  -Q @gol
+@c LLVM LOCAL
+-mllvm @var{string}
 -save-temps  -time}
 
 @item Optimization Options
@@ -376,7 +384,11 @@ Objective-C and Objective-C++ Dialects}.
 -fcrossjumping  -fif-conversion  -fif-conversion2 @gol
 -finline-functions  -finline-functions-called-once @gol
 -finline-limit=@var{n}  -fkeep-inline-functions @gol
--fkeep-static-consts  -fmerge-constants  -fmerge-all-constants @gol
+@c APPLE LOCAL begin ARM conditionally disable local RA
+-fkeep-static-consts @gol
+-flocal-alloc (APPLE ONLY) @gol
+-fmerge-constants  -fmerge-all-constants @gol
+@c APPLE LOCAL end ARM conditionally disable local RA
 -fmodulo-sched -fno-branch-count-reg @gol
 -fno-default-inline  -fno-defer-pop -fmove-loop-invariants @gol
 -fno-function-cse  -fno-guess-branch-probability @gol
@@ -413,7 +425,7 @@ Objective-C and Objective-C++ Dialects}.
 -ftree-copy-prop -ftree-store-ccp -ftree-store-copy-prop -fwhole-program @gol
 --param @var{name}=@var{value}
 @c LLVM LOCAL -fast, -Oz,
--O  -O0  -O1  -O2  -O3 -O4 (APPLE ONLY) -Os -Oz (APPLE ONLY) -fast (APPLE ONLY)}
+-flto (APPLE ONLY) -O  -O0  -O1  -O2  -O3 -O4 (APPLE ONLY) -Os -Oz (APPLE ONLY) -fast (APPLE ONLY)}
 
 @item Preprocessor Options
 @xref{Preprocessor Options,,Options Controlling the Preprocessor}.
@@ -426,6 +438,8 @@ Objective-C and Objective-C++ Dialects}.
 -iprefix @var{file}  -iwithprefix @var{dir} @gol
 -iwithprefixbefore @var{dir}  -isystem @var{dir} @gol
 -imultilib @var{dir} -isysroot @var{dir} @gol
+@c APPLE LOCAL ARM iwithsysroot 4917039
+-iwithsysroot (APPLE ONLY) @var{dir} @gol
 -M  -MM  -MF  -MG  -MP  -MQ  -MT  -nostdinc  @gol
 -P  -fworking-directory  -remap @gol
 -trigraphs  -undef  -U@var{macro}  -Wp,@var{option} @gol
@@ -490,7 +504,10 @@ Objective-C and Objective-C++ Dialects}.
 -mthumb  -marm @gol
 -mtpcs-frame  -mtpcs-leaf-frame @gol
 -mcaller-super-interworking  -mcallee-super-interworking @gol
--mtp=@var{name}}
+@c APPLE LOCAL begin 5946347 ms_struct support
+-mtp=@var{name} @gol
+-mms-bitfields -mno-ms-bitfields}
+@c APPLE LOCAL end 5946347 ms_struct support
 
 @c APPLE LOCAL ARM prune man page
 @ignore
@@ -545,6 +562,8 @@ Objective-C and Objective-C++ Dialects}.
 -twolevel_namespace  -umbrella  -undefined @gol
 -unexported_symbols_list  -weak_reference_mismatches @gol
 -whatsloaded -F -gused -gfull -mmacosx-version-min=@var{version} @gol
+@c APPLE LOCAL ARM 5905142
+-miphoneos-version-min=@var{version} @gol
 @c APPLE LOCAL pascal strings
 -mpascal-strings (APPLE ONLY) @gol
 @c APPLE LOCAL begin fat builds
@@ -626,7 +645,10 @@ Objective-C and Objective-C++ Dialects}.
 -mstackrealign @gol
 -momit-leaf-frame-pointer  -mno-red-zone -mno-tls-direct-seg-refs @gol
 -mcmodel=@var{code-model} @gol
--m32  -m64 -mlarge-data-threshold=@var{num}}
+@c APPLE LOCAL begin 5946347 ms_struct support
+-m32  -m64 -mlarge-data-threshold=@var{num} @gol
+-mms-bitfields -mno-ms-bitfields}
+@c APPLE LOCAL end 5946347 ms_struct support
 
 @c APPLE LOCAL prune man page
 @ignore
@@ -775,7 +797,10 @@ See RS/6000 and PowerPC Options.
 -mfloat-gprs=yes  -mfloat-gprs=no -mfloat-gprs=single -mfloat-gprs=double @gol
 -mprototype  -mno-prototype @gol
 -msim  -mmvme  -mads  -myellowknife  -memb  -msdata @gol
--msdata=@var{opt}  -mvxworks  -mwindiss  -G @var{num}  -pthread}
+@c APPLE LOCAL begin 5946347 ms_struct support
+-msdata=@var{opt}  -mvxworks  -mwindiss  -G @var{num}  -pthread @gol
+-mms-bitfields -mno-ms-bitfields}
+@c APPLE LOCAL end 5946347 ms_struct support
 
 @c APPLE LOCAL prune man page
 @ignore
@@ -823,13 +848,6 @@ See RS/6000 and PowerPC Options.
 -munaligned-doubles  -mno-unaligned-doubles @gol
 -mv8plus  -mno-v8plus  -mvis  -mno-vis
 -threads -pthreads -pthread}
-
-@emph{SPU Options}
-@gccoptlist{-mwarn-reloc -merror-reloc @gol
--msafe-dma -munsafe-dma @gol
--mbranch-hints @gol
--msmall-mem -mlarge-mem -mstdmain @gol
--mfixed-range=@var{register-range}}
 
 @emph{System V Options}
 @gccoptlist{-Qy  -Qn  -YP,@var{paths}  -Ym,@var{dir}}
@@ -971,12 +989,9 @@ C++ source code which must be preprocessed.  Note that in @samp{.cxx},
 the last two letters must both be literally @samp{x}.  Likewise,
 @samp{.C} refers to a literal capital C@.
 
-@item @var{file}.mm
-@itemx @var{file}.M
-Objective-C++ source code which must be preprocessed.
-
-@item @var{file}.mii
-Objective-C++ source code which should not be preprocessed.
+@c APPLE LOCAL begin Objective-C++
+@c Delete duplicate @var{file}.mm, @var{file}.M, @var{file}.mii.
+@c APPLE LOCAL end Objective-C++
 
 @item @var{file}.hh
 @itemx @var{file}.H
@@ -1642,6 +1657,18 @@ Warn if constant CFString objects contain non-portable characters
 (default behavior)
 @c APPLE LOCAL end radar 3506309
 
+@c APPLE LOCAL begin 5695218
+@item -fglobal-alloc-prefer-bytes
+@item -fno-global-alloc-prefer-bytes
+@opindex fglobal-alloc-prefer-bytes
+For the x86_32 architecture, prefer byte or short values to word
+values during global register allocation.  Some of the registers on
+this target can't be used with values smaller than a 32-bit word;
+allocating these values earlier increases the chance they will get a
+byte-capable (or short-capable) register.  Ignored for other targets.
+Defaults on with global register allocation (@code{-Os}, @code{-O2},
+or @code{-O3}).  (APPLE ONLY)
+@c APPLE LOCAL end 5695218
 @c APPLE LOCAL begin fwritable strings. 
 @item -fwritable-strings
 @opindex fwritable-strings
@@ -2412,33 +2439,43 @@ to be unlocked properly.
 @item -fobjc-gc
 @opindex fobjc-gc
 Enable garbage collection (GC) in Objective-C and Objective-C++ programs.
-@c APPLE LOCAL begin ObjC GC
-The resulting binary requires additional runtime support which is not
-present in any released version of Mac OS X.
+@c APPLE LOCAL begin radar 5780114  - ObjC GC
+The resulting binary requires additional runtime support which is present on 
+Mac OS X Version 10.5 (Leopard) and later.  All Objective-C objects are presumed 
+to be garbage collected. To aid in this effort, compiler implements assignments 
+of Objective-C object pointers via runtime support functions. These functions work 
+correctly in non-GC environments as well, in case this code is used as part of a 
+library.  Assignments of objects into instance variables of other objects are 
+intercepted, so are assignments to global object variables. In general, assignments 
+through pointers to objects are intercepted. Additionally, assignments of objects 
+as fields within structures are intercepted.
 
-When the @option{-fobjc-gc} switch is specified, the compiler will replace
-assignments to instance variables (ivars) and to certain kinds of pointers to
-Objective-C object instances with calls to interceptor functions provided
-by the runtime garbage collector.  Two type qualifiers, @code{__strong} and
-@code{__weak}, also become available.  The @code{__strong} qualifier may be
-used to indicate that assignments to variables of this type should generate
-a GC interceptor call, e.g.:
+In addition, other pointer variables may be marked with the __strong storage class 
+modifier to indicate to the compiler that these assignments need to use the assignment 
+runtime functions as well, allowing the memory referenced by these pointers to be 
+allocated from the collector. A __weak storage class modifier for pointers is also 
+introduced to indicate a zero-ing weak reference. This is permitted only for instance 
+variables of an object or globals.  The compiler arranges for all reads as well as 
+writes to these variables to occur via runtime support functions.  Under garbage 
+collection these variables are not consulted when determining what is not garbage 
+and they are set to nil (zero) if the memory they reference is deemed garbage and is 
+collected.
 
 @smallexample
-  __strong void *p;  // assignments to 'p' will have interceptor calls
+  __strong void *p;  // assignments to 'p' will have runtime support calls
   int *q;            // assignments to 'q' ordinarly will not
     @dots{}
-  (__strong int *)q = 0;   // this assignment will call an interceptor
+  (__strong int *)q = 0;   // this assignment will call a runtime support function
 @end smallexample
 
-Conversely, the @code{__weak} type qualifier may be used to suppress
-interceptor call generation:
+Conversely, the @code{__weak} type qualifier may be used to call weak runtime 
+functions.
 
 @smallexample
-  __weak id q;      // assignments to 'q' will not have interceptor calls
-  id p;             // assignments to 'p' will have interceptor calls
+  __weak id q;      // assignments to 'q' will have the '__weak' semantics
+  id p;             // assignments to 'p' will have the "__strong' semantics
     @dots{}
-  (__weak id)p = 0;   // suppress interceptor call for this assignment
+  (__weak id)p = 0;   // Fall back to '__weak' semantics in this assignment.
 @end smallexample
 
 @item -fobjc-gc-only
@@ -2448,7 +2485,7 @@ collection (GC) only - that is, it does not contain retain/release logic.
 This flag implies @option{-fobjc-gc} as well. With this flag, framework
 is marked as not honoring retain/release.
 
-@c APPLE LOCAL end ObjC GC
+@c APPLE LOCAL end radar 5780114 - ObjC GC
 @item -freplace-objc-classes
 @opindex freplace-objc-classes
 Emit a special marker instructing @command{ld(1)} not to statically link in
@@ -2721,8 +2758,10 @@ This option causes the compiler to abort compilation on the first error
 occurred rather than trying to keep going and printing further error
 messages.
 
-@item -Wformat
-@opindex Wformat
+@c APPLE LOCAL begin default to Wformat-security 5764921
+@item -Wno-format
+@opindex Wno-format
+@c APPLE LOCAL end default to Wformat-security 5764921
 @opindex ffreestanding
 @opindex fno-builtin
 Check calls to @code{printf} and @code{scanf}, etc., to make sure that
@@ -2787,8 +2826,10 @@ If @option{-Wformat} is specified, also warn if the format string is not a
 string literal and so cannot be checked, unless the format function
 takes its format arguments as a @code{va_list}.
 
-@item -Wformat-security
-@opindex Wformat-security
+@c APPLE LOCAL begin default to Wformat-security 5764921
+@item -Wno-format-security
+@opindex Wno-format-security
+@c APPLE LOCAL end default to Wformat-security 5764921
 If @option{-Wformat} is specified, also warn about uses of format
 functions that represent possible security problems.  At present, this
 warns about calls to @code{printf} and @code{scanf} functions where the
@@ -3325,8 +3366,10 @@ void foo(bar) @{ @}
 An empty body occurs in an @samp{if} or @samp{else} statement.
 
 @c APPLE LOCAL begin mainline
-@item @r{(C++ only)}
-An empty body occurs in a @samp{while} or @samp{for} statement with no
+@c APPLE LOCAL begin pod error 6089368
+@item
+(C++ only) An empty body occurs in a @samp{while} or @samp{for} statement with no
+@c APPLE LOCAL end pod error 6089368
 whitespacing before the semicolon. This warning can be independently
 controlled by @option{-Wempty-body}.
 @c APPLE LOCAL end mainline
@@ -3338,24 +3381,26 @@ A pointer is compared against integer zero with @samp{<}, @samp{<=},
 @item
 A variable might be changed by @samp{longjmp} or @samp{vfork}.
 
-@item @r{(C++ only)}
-An enumerator and a non-enumerator both appear in a conditional expression.
+@c APPLE LOCAL begin pod error 6089368
+@item
+(C++ only) An enumerator and a non-enumerator both appear in a conditional expression.
 
-@item @r{(C++ only)}
-A non-static reference or non-static @samp{const} member appears in a
+@item
+(C++ only) A non-static reference or non-static @samp{const} member appears in a
 class without constructors.
 
-@item @r{(C++ only)}
-Ambiguous virtual bases.
+@item
+(C++ only) Ambiguous virtual bases.
 
-@item @r{(C++ only)}
-Subscripting an array which has been declared @samp{register}.
+@item
+(C++ only) Subscripting an array which has been declared @samp{register}.
 
-@item @r{(C++ only)}
-Taking the address of a variable which has been declared @samp{register}.
+@item
+(C++ only) Taking the address of a variable which has been declared @samp{register}.
 
-@item @r{(C++ only)}
-A base class is not initialized in a derived class' copy constructor.
+@item
+(C++ only) A base class is not initialized in a derived class' copy constructor.
+@c APPLE LOCAL end pod error 6089368
 @end itemize
 
 @item -Wno-div-by-zero
@@ -3589,8 +3634,6 @@ casts like @code{(unsigned) -1}.
 @item -Wshorten-64-to-32
 @opindex Wshorten-64-to-32
 Warn if a value is implicitly converted from a 64 bit type to a 32 bit type.
-This option is deprecated in favor of the -Wconversion option in future
-releases.
 @c APPLE LOCAL end mainline
 
 @c APPLE LOCAL begin mainline
@@ -4843,6 +4886,15 @@ input source file with the same extension as an intermediate file.
 The corresponding intermediate file may be obtained by renaming the
 source file before using @option{-save-temps}.
 
+@c LLVM LOCAL begin
+@item -mllvm @var{string}
+@opindex mllvm
+This option provides a way to supply llvm optimization and code
+generation debugging options to LLVM component directly. This option
+is intended for compiler developers, who are investigating LLVM 
+bugs, not end users.
+@c LLVM LOCAL end
+
 @item -time
 @opindex time
 Report the CPU time taken by each subprocess in the compilation
@@ -5063,6 +5115,10 @@ Optimize yet more.  @option{-O3} turns on all optimizations specified by
 @option{-funswitch-loops} and @option{-fgcse-after-reload} options.
 
 @c LLVM LOCAL begin
+@item -flto
+@opindex flto
+Enable LLVM Link Time Optimization. 
+
 @item -O4
 @opindex O4
 Enable LLVM Link Time Optimization. @option{-O4} turns on all LLVM compile
@@ -5337,6 +5393,16 @@ on, even if the variables aren't referenced.
 GCC enables this option by default.  If you want to force the compiler to
 check if the variable was referenced, regardless of whether or not
 optimization is turned on, use the @option{-fno-keep-static-consts} option.
+
+@c APPLE LOCAL begin ARM conditionally disable local RA
+@item -flocal-alloc
+(APPLE ONLY) Enable the local (intra-basic-block) register allocator.
+
+GCC enables this option by default.  If you want to force the compiler to
+supress register allocation within a basic block, use the
+@option{-fno-local-alloc} option.  This option cannot be disabled with
+@option{-O0}, for correctness reasons.
+@c APPLE LOCAL end ARM conditionally disable local RA
 
 @item -fmerge-constants
 Attempt to merge identical constants (string constants and floating point
@@ -7033,6 +7099,8 @@ they cause the preprocessor output to be unsuitable for actual
 compilation.
 
 @table @gcctabopt
+@c APPLE LOCAL pod error 6089368
+@item -Wp,@var{option}
 @opindex Wp
 You can use @option{-Wp,@var{option}} to bypass the compiler driver
 and pass @var{option} directly through to the preprocessor.  If
@@ -7345,6 +7413,14 @@ This is to ensure that GCC's procedure to fix buggy system headers and
 the ordering for the include_next directive are not inadvertently changed.
 If you really need to change the search order for system directories,
 use the @option{-nostdinc} and/or @option{-isystem} options.
+
+@c APPLE LOCAL begin ARM iwithsysroot 4917039
+The option @option{-iwithsysroot} (APPLE ONLY), if specified with an
+absolute path, will prepend the system root directory (if applicable) to
+the path and add it to the beginning of the system search paths.  If
+specified with a relative path, @option{-iwithsysroot} will behave
+identically to @option{-isystem}.
+@c APPLE LOCAL end ARM iwithsysroot 4917039
 
 @item -iquote@var{dir}
 @opindex iquote
@@ -8079,7 +8155,6 @@ platform.
 * Score Options::
 * SH Options::
 * SPARC Options::
-* SPU Options::
 * System V Options::
 * TMS320C3x/C4x Options::
 * V850 Options::
@@ -8456,6 +8531,15 @@ models are @option{soft}, which generates calls to @code{__aeabi_read_tp},
 (supported in the arm6k architecture), and @option{auto}, which uses the
 best available method for the selected processor.  The default setting is
 @option{auto}.
+
+@c APPLE LOCAL begin  5946347 ms_struct support
+@item -mms-bitfields
+@opindex mms-bitfields
+Set the default structure layout to be compatible with the Microsoft
+compiler standard. This is equivalent to adding an @code{ms_struct}
+attribute to each structure and union tag definition. The default is
+@option{mno-ms-bitfields}.
+@c APPLE LOCAL end 5946347 ms_struct support
 
 @end table
 
@@ -8852,12 +8936,35 @@ The earliest version of MacOS X that this executable will run on
 is @var{version}.  Typical values of @var{version} include @code{10.1},
 @code{10.2}, and @code{10.3.9}.
 
+@c APPLE LOCAL begin ARM 5905142
+This value can also be set with the @env{MACOSX_DEPLOYMENT_TARGET}
+environment variable.  If both the command-line option is specified
+and the environment variable is set, the command-line option will
+take precedence.
+@c APPLE LOCAL end ARM 5905142
+
 @c APPLE LOCAL begin mainline 2007-06-14 5235474
 If the compiler was built to use the system's headers by default,
 then the default for this option is the system version on which the
 compiler is running, otherwise the default is to make choices which
 are compatible with as many systems and code bases as possible.
 @c APPLE LOCAL end mainline 2007-06-14 5235474
+
+@c APPLE LOCAL begin ARM 5905142
+This value is not set by default for ARM targets.
+
+@item -miphoneos-version-min=@var{version}
+The earliest version of iPhone OS that this executable will run on
+is @var{version}.
+
+This value can also be set with the @env{IPHONEOS_DEPLOYMENT_TARGET}
+environment variable.  If both the command-line option is specified
+and the environment variable is set, the command-line option will
+take precedence.
+
+On ARM targets, if not specified by the command-line option or
+environment variable, this value defaults to 2.0.
+@c APPLE LOCAL end ARM 5905142
 
 @item -mkernel
 @opindex mkernel
@@ -10548,6 +10655,16 @@ building of shared libraries are not supported with the medium model.
 Generate code for the large model: This model makes no assumptions
 about addresses and sizes of sections.  Currently GCC does not implement
 this model.
+
+@c APPLE LOCAL begin 5946347 ms_struct support
+@item -mms-bitfields
+@opindex mms-bitfields
+Set the default structure layout to be compatible with the Microsoft
+compiler standard. This is equivalent to adding an @code{ms_struct}
+attribute to each structure and union tag definition. The default is
+@option{mno-ms-bitfields}.
+@c APPLE LOCAL end 5946347 ms_struct support
+
 @end table
 
 @c APPLE LOCAL prune man page
@@ -12885,6 +13002,15 @@ when the linker is known to generate glue.
 Adds support for multithreading with the @dfn{pthreads} library.
 This option sets flags for both the preprocessor and linker.
 
+@c APPLE LOCAL begin 5946347 ms_struct support
+@item -mms-bitfields
+@opindex mms-bitfields
+Set the default structure layout to be compatible with the Microsoft
+compiler standard. This is equivalent to adding an @code{ms_struct}
+attribute to each structure and union tag definition. The default is
+@option{mno-ms-bitfields}.
+@c APPLE LOCAL end 5946347 ms_struct support
+
 @end table
 
 @c APPLE LOCAL prune man page
@@ -13641,74 +13767,6 @@ that of libraries supplied with it.
 @item -pthread
 @opindex pthread
 This is a synonym for @option{-pthreads}.
-@end table
-
-@node SPU Options
-@subsection SPU Options
-@cindex SPU options
-
-These @samp{-m} options are supported on the SPU:
-
-@table @gcctabopt
-@item -mwarn-reloc
-@itemx -merror-reloc
-@opindex mwarn-reloc
-@opindex merror-reloc
-
-The loader for SPU does not handle dynamic relocations.  By default, GCC
-will give an error when it generates code that requires a dynamic
-relocation.  @option{-mno-error-reloc} disables the error,
-@option{-mwarn-reloc} will generate a warning instead.
-
-@item -msafe-dma
-@itemx -munsafe-dma
-@opindex msafe-dma
-@opindex munsafe-dma
-
-Instructions which initiate or test completion of DMA must not be
-reordered with respect to loads and stores of the memory which is being
-accessed.  Users typically address this problem using the volatile
-keyword, but that can lead to inefficient code in places where the
-memory is known to not change.  Rather than mark the memory as volatile
-we treat the DMA instructions as potentially effecting all memory.  With
-@option{-munsafe-dma} users must use the volatile keyword to protect
-memory accesses.
-
-@item -mbranch-hints
-@opindex mbranch-hints
-
-By default, GCC will generate a branch hint instruction to avoid
-pipeline stalls for always taken or probably taken branches.  A hint
-will not be generated closer than 8 instructions away from its branch.
-There is little reason to disable them, except for debugging purposes,
-or to make an object a little bit smaller.
-
-@item -msmall-mem
-@itemx -mlarge-mem
-@opindex msmall-mem
-@opindex mlarge-mem
-
-By default, GCC generates code assuming that addresses are never larger
-than 18 bits.  With @option{-mlarge-mem} code is generated that assumes
-a full 32 bit address.
-
-@item -mstdmain
-@opindex mstdmain
-
-By default, GCC links against startup code that assumes the SPU-style
-main function interface (which has an unconventional parameter list).
-With @option{-mstdmain}, GCC will link your program against startup
-code that assumes a C99-style interface to @code{main}, including a
-local copy of @code{argv} strings.
-
-@item -mfixed-range=@var{register-range}
-@opindex mfixed-range
-Generate code treating the given register range as fixed registers.
-A fixed register is one that the register allocator can not use.  This is
-useful when compiling kernel code.  A register range is specified as
-two registers separated by a dash.  Multiple register ranges can be
-specified separated by a comma.
-
 @end table
 
 @node System V Options
@@ -14735,6 +14793,21 @@ Recognize EUCJP characters.
 If @env{LANG} is not defined, or if it has some other value, then the
 compiler will use mblen and mbtowc as defined by the default locale to
 recognize and translate multibyte characters.
+
+@c APPLE LOCAL begin ARM 5905142
+@item MACOSX_DEPLOYMENT_TARGET
+@itemx IPHONEOS_DEPLOYMENT_TARGET
+These variables are used to set the target OS version, as described
+for command-line options @option{-mmacosx-version-min} and
+@option{-miphoneos-version-min}.  Only one OS version can be specified
+per architecture, with @env{MACOSX_DEPLOYMENT_TARGET} taking precedence
+on non-ARM targets and @env{IPHONEOS_DEPLOYMENT_TARGET} taking
+precedence on ARM targets.
+
+If either command-line option @option{-mmacosx-version-min} or
+@option{-miphoneos-version-min} is specified, both of these
+environment variables are ignored.
+@c APPLE LOCAL end ARM 5905142
 @end table
 
 @noindent

@@ -236,9 +236,11 @@ Wformat-nonliteral
 C ObjC C++ ObjC++ Var(warn_format_nonliteral)
 Warn about format strings that are not literals
 
+; APPLE LOCAL begin default to Wformat-security 5764921
 Wformat-security
-C ObjC C++ ObjC++ Var(warn_format_security)
+C ObjC C++ ObjC++ Var(warn_format_security) Init(0)
 Warn about possible security problems with format functions
+; APPLE LOCAL end default to Wformat-security 5764921
 
 Wformat-y2k
 C ObjC C++ ObjC++ Var(warn_format_y2k)
@@ -360,9 +362,11 @@ Wnon-virtual-dtor
 C++ ObjC++ Var(warn_nonvdtor)
 Warn about non-virtual destructors
 
+; APPLE LOCAL begin turn on for C++/Objective-C++
 Wnonnull
-C ObjC Var(warn_nonnull)
+C ObjC C++ ObjC++ Var(warn_nonnull)
 Warn about NULL being passed to argument slots marked as requiring non-NULL
+; APPLE LOCAL end turn on for C++/Objective-C++
 
 Wnormalized=
 C ObjC C++ ObjC++ Joined
@@ -751,6 +755,12 @@ fobjc-exceptions
 ObjC ObjC++ Var(flag_objc_exceptions)
 Enable Objective-C exception and synchronization syntax
 
+; APPLE LOCAL begin ARM hybrid objc-2.0
+fobjc-legacy-dispatch
+ObjC ObjC++ Var(flag_objc_legacy_dispatch) Init(-1)
+Use Objective-C v1 message dispatching
+; APPLE LOCAL end ARM hybrid objc-2.0
+
 ; APPLE LOCAL begin radar 2848255
 fobjc-zerocost-exceptions
 ObjC ObjC++ Var(flag_objc_zerocost_exceptions) Init(0)
@@ -763,6 +773,12 @@ C C++ ObjC ObjC++ Var(flag_objc_new_property) Init(1)
 Enable Objective-C new property syntax and semantics
 ; APPLE LOCAL end objc new property - not for  merge to the FSF
 
+; APPLE LOCAL begin radar 5435299 - radar 6173152 
+fnew-property-ivar-synthesis
+ObjC ObjC++ Var(flag_new_property_ivar_synthesis) Init(1)
+Enable new style of fragile-ivar synthesis for properties
+; APPLE LOCAL end radar 5435299 - radar 6173152 
+
 ; APPLE LOCAL begin radar 4810609
 fobjc-gc-only
 ObjC ObjC++ Var(flag_objc_gc_only)  Init(0)
@@ -772,6 +788,12 @@ Program only supprts (GC) in ObjC/ObjC++ programs
 fobjc-gc
 ObjC ObjC++ Var(flag_objc_gc)
 Enable garbage collection (GC) in Objective-C/Objective-C++ programs
+
+; APPLE LOCAL begin radar 5811887 - blocks
+fblocks
+C ObjC C++ ObjC++ Var(flag_blocks) Init(-1)
+Program supports c/objc extension blocks
+; APPLE LOCAL end radar 5811887 - blocks
 
 ; Nonzero means that we generate NeXT setjmp based exceptions.
 fobjc-sjlj-exceptions
@@ -964,6 +986,12 @@ C ObjC C++ ObjC++ Joined Separate
 iwithprefixbefore
 C ObjC C++ ObjC++ Joined Separate
 -iwithprefixbefore <dir>	Add <dir> to the end of the main include path
+
+; APPLE LOCAL begin ARM iwithsysroot 4917039
+iwithsysroot
+C ObjC C++ ObjC++ Joined Separate
+-iwithsysroot <dir> Add <sysroot>/<dir> to the start of the system include path
+; APPLE LOCAL end ARM iwithsysroot 4917039
 
 lang-asm
 C Undocumented

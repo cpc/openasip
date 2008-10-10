@@ -157,6 +157,7 @@ is_gimple_condexpr (tree t)
 }
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 static inline bool
 llvm_is_array_arrayref_extension(tree t)
 {
@@ -170,6 +171,7 @@ llvm_is_array_arrayref_extension(tree t)
 #endif
   return false;
 }
+#endif
 /* LLVM LOCAL end */
 
 /*  Return true if T is something whose address can be taken.  */
@@ -178,8 +180,11 @@ bool
 is_gimple_addressable (tree t)
 {
   return (is_gimple_id (t) || handled_component_p (t)
-          /* LLVM LOCAL */
+          /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
           || llvm_is_array_arrayref_extension (t)
+#endif
+          /* LLVM LOCAL end */
 	  || INDIRECT_REF_P (t));
 }
 

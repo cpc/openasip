@@ -562,15 +562,6 @@ objc_check_format_nsstring (tree ARG_UNUSED (argument),
   return false;
 }
 /* APPLE LOCAL end radar 4985544 */
-/* APPLE LOCAL begin radar 2996215 */
-tree
-objc_create_init_utf16_var (const unsigned char * ARG_UNUSED (inbuf), 
-			    size_t  ARG_UNUSED (length),
-			    size_t  *ARG_UNUSED (numUniChars))
-{
-  return NULL_TREE;
-}
-/* APPLE LOCAL end radar 2996215 */
 /* APPLE LOCAL begin radar 5202926 */
 bool
 objc_anonymous_local_objc_name (const char * ARG_UNUSED (name))
@@ -585,3 +576,35 @@ objc_check_nsstring_pointer_type (tree ARG_UNUSED (type))
 }
 /* APPLE LOCAL end radar 5195402 */
 /* APPLE LOCAL end radar 5202926 */
+
+/* APPLE LOCAL begin radar 5782740 - blocks */
+tree copy_in_object (tree exp)
+{
+  return exp;
+}
+tree retain_block_component (tree ARG_UNUSED (exp))
+{
+  return NULL_TREE;
+}
+tree release_block_component (tree ARG_UNUSED (exp))
+{
+  return NULL_TREE;
+}
+bool block_requires_copying (tree exp)
+{
+  return TREE_CODE (TREE_TYPE (exp)) == BLOCK_POINTER_TYPE;
+}
+/* APPLE LOCAL end radar 5782740 - blocks */
+
+/* APPLE LOCAL begin radar 5802025 */
+tree objc_build_property_getter_func_call (tree object)
+{
+  return object;
+}
+/* APPLE LOCAL end radar 5802025 */
+/* APPLE LOCAL begin radar 5932809 - copyable byref blocks */
+tree cast_to_pointer_to_id (tree exp)
+{
+  return exp;
+}
+/* APPLE LOCAL end radar 5932809 - copyable byref blocks */

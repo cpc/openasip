@@ -32,6 +32,7 @@ enum iasm_states iasm_state ATTRIBUTE_WEAK;
 bool iasm_in_operands ATTRIBUTE_WEAK;
 int flag_iasm_blocks ATTRIBUTE_WEAK;
 int parse_in ATTRIBUTE_WEAK;
+tree invoke_impl_ptr_type ATTRIBUTE_WEAK;
 
 
 tree iasm_addr (tree) ATTRIBUTE_WEAK;

@@ -1476,10 +1476,8 @@ _mm_srli_si128 (__m128i __A, int __B)
   return ((__m128i)__builtin_ia32_pslldqi128 (__A, __B * 8));
 }
 #else
-#define _mm_srli_si128(__A, __B) \
-  ((__m128i)__builtin_ia32_psrldqi128 (__A, (__B) * 8))
-#define _mm_slli_si128(__A, __B) \
-  ((__m128i)__builtin_ia32_pslldqi128 (__A, (__B) * 8))
+#define _mm_srli_si128 (__m128i)__builtin_ia32_psrldqi128_byteshift
+#define _mm_slli_si128 (__m128i)__builtin_ia32_pslldqi128_byteshift
 #endif
 
 #if 0

@@ -366,6 +366,8 @@ push_binding (tree id, tree decl, cxx_scope* level)
     {
       binding = cxx_binding_make (decl, NULL_TREE);
       binding->scope = level;
+      /* APPLE LOCAL blocks 6040305 (ch) */
+      binding->declared_in_block = cur_block != 0;
     }
   else
     binding = new_class_binding (id, decl, /*type=*/NULL_TREE, level);
@@ -1368,10 +1370,9 @@ leave_scope (void)
       is_class_level = 0;
     }
 
-#ifdef HANDLE_PRAGMA_VISIBILITY
-  if (scope->has_visibility)
-    pop_visibility ();
-#endif
+  /* APPLE LOCAL begin visibility 5805832 */
+  /* pop_visibility() removed */
+  /* APPLE LOCAL end visibility 5805832 */
 
   /* Move one nesting level up.  */
   current_binding_level = scope->level_chain;
@@ -1824,6 +1825,8 @@ binding_for_name (cxx_scope *scope, tree name)
   result->scope = scope;
   result->is_local = false;
   result->value_is_inherited = false;
+  /* APPLE LOCAL blocks 6040305 (ch) */
+  result->declared_in_block = 0;
   IDENTIFIER_NAMESPACE_BINDINGS (name) = result;
   return result;
 }
@@ -3014,13 +3017,16 @@ push_namespace (tree name)
 /* Same, but specify attributes to apply to the namespace.  The attributes
    only apply to the current namespace-body, not to any later extensions. */
 
-void
+/* APPLE LOCAL visibility 5805832 */
+bool
 push_namespace_with_attribs (tree name, tree attributes)
 {
   tree d = NULL_TREE;
   int need_new = 1;
   int implicit_use = 0;
   bool anon = !name;
+  /* APPLE LOCAL visibility 5805832 */
+  bool visibility_pushed = false;
 
   timevar_push (TV_NAME_LOOKUP);
 
@@ -3109,7 +3115,8 @@ push_namespace_with_attribs (tree name, tree attributes)
 	  continue;
 	}
 
-      current_binding_level->has_visibility = 1;
+      /* APPLE LOCAL visibility 5805832 */
+      visibility_pushed = true;
       push_visibility (TREE_STRING_POINTER (x));
       goto found;
     }
@@ -3117,6 +3124,8 @@ push_namespace_with_attribs (tree name, tree attributes)
 #endif
 
   timevar_pop (TV_NAME_LOOKUP);
+  /* APPLE LOCAL visibility 5805832 */
+  return visibility_pushed;
 }
 
 /* Pop from the scope of the current namespace.  */
@@ -4560,6 +4569,8 @@ arg_assoc_type (struct arg_lookup *k, tree type)
 	return arg_assoc_type (k, TYPE_PTRMEMFUNC_FN_TYPE (type));
       return arg_assoc_class (k, type);
     case POINTER_TYPE:
+      /* APPLE LOCAL blocks 6040305 */
+    case BLOCK_POINTER_TYPE:
     case REFERENCE_TYPE:
     case ARRAY_TYPE:
       return arg_assoc_type (k, TREE_TYPE (type));

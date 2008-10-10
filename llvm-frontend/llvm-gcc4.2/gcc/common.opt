@@ -225,6 +225,12 @@ emit-llvm-bc
 Common Report Var(emit_llvm_bc)
 Emit LLVM IR to the output file instead of native machine code.
 
+; Calculate log, log2, log10, exp, exp2, pow(10,x) to a limited precision for
+; single-precision floating-point numbers.
+flimited-precision=
+Common RejectNegative Joined UInteger Var(flag_limited_precision) Init(0)
+Calculate the approximate value of logf, log2f, log10f, expf, exp2f, and powf(10,x) to the given bit precision.
+
 ; Debug pass manager
 fdebug-pass-structure
 Common Report Var(flag_debug_pass_structure)
@@ -559,6 +565,19 @@ Allow function addresses to be held in registers
 ffunction-sections
 Common Report Var(flag_function_sections)
 Place each function into its own section
+
+;; APPLE LOCAL begin 5695218
+fglobal-alloc-prefer-bytes
+Common Report Var(flag_global_alloc_prefer_bytes) Init(1) PerFunc
+Prefer to allocate byte and short candidates before word candidates (x86_32 only)
+
+;; APPLE LOCAL end 5695218
+
+;; APPLE LOCAL begin ARM conditionally disable local RA
+flocal-alloc
+Common Report Var(flag_local_alloc) Init(1) PerFunc
+Run the local register allocator
+;; APPLE LOCAL end ARM conditionally disable local RA
 
 ; APPLE LOCAL begin optimization pragmas 3124235/3420242
 fgcse
@@ -998,9 +1017,12 @@ fstack-limit-symbol=
 Common RejectNegative Joined
 -fstack-limit-symbol=<name>	Trap if the stack goes past symbol <name>
 
+; APPLE LOCAL begin stack-protector default 5095227
+; LLVM LOCAL FIXME Don't add Init just yet
 fstack-protector
 Common Report Var(flag_stack_protect, 1)
 Use propolice as a stack protection method
+; APPLE LOCAL end stack-protector default 5095227
 
 fstack-protector-all
 Common Report RejectNegative Var(flag_stack_protect, 2) VarExists

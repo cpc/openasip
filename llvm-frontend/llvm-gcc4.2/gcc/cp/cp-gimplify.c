@@ -292,7 +292,7 @@ gimplify_cp_loop (tree cond, tree body, tree incr, tree attrs,
 	      append_to_statement_list (t, &exit);
 	      /* elem = nil */
 	      t = build2 (MODIFY_EXPR, void_type_node, inner_foreach,
-			  fold_convert (TREE_TYPE (inner_foreach), 
+			  fold_convert (TREE_TYPE (inner_foreach),
 					integer_zero_node));
 	      gimplify_stmt (&t);
 	      append_to_statement_list (t, &exit);
@@ -314,7 +314,7 @@ gimplify_cp_loop (tree cond, tree body, tree incr, tree attrs,
 
   /* APPLE LOCAL begin radar 4547045 */
   /* Pop foreach's inner loop break label so outer loop's
-     break label becomes target of inner loop body's break statements. 
+     break label becomes target of inner loop body's break statements.
   */
   t = NULL_TREE;
   /* APPLE LOCAL radar 4667060 */

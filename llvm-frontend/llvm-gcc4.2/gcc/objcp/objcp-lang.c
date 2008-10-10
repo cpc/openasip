@@ -133,6 +133,12 @@ objcp_tsubst_copy_and_build (tree t, tree args, tsubst_flags_t complain,
       return objc_get_class_reference
 	(RECURSE (TREE_OPERAND (t, 0)));
 
+    /* APPLE LOCAL begin radar 5887355 */
+    case OBJC_STRING_REFERENCE:
+      return objc_build_string_object
+	(RECURSE (TREE_OPERAND (t, 0)));
+    /* APPLE LOCAL end radar 5887355 */
+
     default:
       break;
     }

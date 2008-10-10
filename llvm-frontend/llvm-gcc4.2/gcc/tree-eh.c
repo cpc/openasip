@@ -1328,7 +1328,13 @@ decide_copy_try_finally (int ndests, tree finally)
 {
   int f_estimate, sw_estimate;
 
+  /* LLVM local begin - let LLVM make this decision.  */
+#ifdef ENABLE_LLVM
+  if (1)
+#else
   if (!optimize)
+#endif
+  /* LLVM local end */
     return false;
 
   /* Finally estimate N times, plus N gotos.  */

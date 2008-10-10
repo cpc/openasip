@@ -148,6 +148,15 @@ int reg_alloc_order[FIRST_PSEUDO_REGISTER] = REG_ALLOC_ORDER;
 int inv_reg_alloc_order[FIRST_PSEUDO_REGISTER];
 #endif
 
+/* APPLE LOCAL begin 5831562 add DIMODE_REG_ALLOC_ORDER */
+#ifdef DIMODE_REG_ALLOC_ORDER
+int dimode_reg_alloc_order[FIRST_PSEUDO_REGISTER] = DIMODE_REG_ALLOC_ORDER;
+
+/* The inverse of reg_alloc_order.  */
+int dimode_inv_reg_alloc_order[FIRST_PSEUDO_REGISTER];
+#endif
+/* APPLE LOCAL end 5831562 add DIMODE_REG_ALLOC_ORDER */
+
 /* For each reg class, a HARD_REG_SET saying which registers are in it.  */
 
 HARD_REG_SET reg_class_contents[N_REG_CLASSES];
@@ -302,6 +311,13 @@ init_reg_sets (void)
   for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
     inv_reg_alloc_order[reg_alloc_order[i]] = i;
 #endif
+
+/* APPLE LOCAL begin 5831562 add DIMODE_REG_ALLOC_ORDER */
+#ifdef DIMODE_REG_ALLOC_ORDER
+  for (i = 0; i < FIRST_PSEUDO_REGISTER; i++)
+    dimode_inv_reg_alloc_order[dimode_reg_alloc_order[i]] = i;
+#endif
+/* APPLE LOCAL end 5831562 add DIMODE_REG_ALLOC_ORDER */
 }
 
 /* After switches have been processed, which perhaps alter

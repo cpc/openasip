@@ -30,6 +30,14 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 /* For reg_note.  */
 #include "rtl.h"
 
+/* LLVM LOCAL begin comment out most of this file */
+#ifdef ENABLE_LLVM
+#undef INSN_SCHEDULING
+#endif
+
+#ifdef INSN_SCHEDULING
+/* LLVM LOCAL end */
+
 /* Pointer to data describing the current DFA state.  */
 extern state_t curr_state;
 
@@ -658,4 +666,7 @@ extern rtx bb_note (basic_block);
 extern void check_reg_live (bool);
 #endif
 
+/* LLVM LOCAL begin comment out most of this file */
+#endif /* INSN_SCHEDULING */
+/* LLVM LOCAL end */
 #endif /* GCC_SCHED_INT_H */

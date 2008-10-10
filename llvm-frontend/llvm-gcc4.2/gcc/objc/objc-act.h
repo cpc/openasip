@@ -515,7 +515,8 @@ extern GTY(()) tree objc_global_trees[OCTI_MAX];
 	 && TYPE_OBJC_PROTOCOL_LIST (TREE_TYPE (TYPE)))
 #define IS_SUPER(TYPE)							\
 	(TREE_CODE (TYPE) == POINTER_TYPE				\
-	 && TREE_TYPE (TYPE) == objc_super_template)
+	 /* APPLE LOCAL radar 6023694 */				\
+	 && TYPE_MAIN_VARIANT (TREE_TYPE (TYPE)) == objc_super_template)
 
 /* APPLE LOCAL radar 4345837 */
 /* class_chain and alias_chain are removed */

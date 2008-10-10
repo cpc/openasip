@@ -1152,7 +1152,6 @@ LLVMTARGETCOMPONENT := \
     ia64-*-*) echo ia64;; \
     i[34567]86-*-*) echo x86;; \
     x86_64-*-*) echo x86;; \
-    mips*-*-*) echo mips;; \
     powerpc*-*-*) echo powerpc;; \
     sparc-*-*) echo sparc;; \
     sparcv9-*-*) echo sparc;; \
@@ -4065,28 +4064,6 @@ install-common: native $(EXTRA_PARTS) lang.install-common installdirs
 # Install the driver program as $(target_noncanonical)-gcc,
 # $(target_noncanonical)-gcc-$(version)
 # and also as either gcc (if native) or $(gcc_tooldir)/bin/gcc.
-
-# LLVM LOCAL begin copy libstdc++.dylib on Darwin
-ifneq (,$(findstring darwin,$(target)))
-install-driver: installdirs xgcc$(exeext)
-	-rm -f $(DESTDIR)$(bindir)/$(GCC_INSTALL_NAME)$(exeext)
-	-$(INSTALL_PROGRAM) xgcc$(exeext) $(DESTDIR)$(bindir)/$(GCC_INSTALL_NAME)$(exeext)
-	-rm -f $(DESTDIR)$(bindir)/$(target_noncanonical)-gcc-$(version)$(exeext)
-	-cp -p /usr/lib/libstdc++.6.dylib $(DESTDIR)$(libsubdir)/libstdc++.dylib
-	-( cd $(DESTDIR)$(bindir) && \
-	   $(LN) $(GCC_INSTALL_NAME)$(exeext) $(target_noncanonical)-gcc-$(version)$(exeext) )
-	-if [ -f gcc-cross$(exeext) ] ; then \
-	  if [ -d $(DESTDIR)$(gcc_tooldir)/bin/. ] ; then \
-	    rm -f $(DESTDIR)$(gcc_tooldir)/bin/gcc$(exeext); \
-	    $(INSTALL_PROGRAM) gcc-cross$(exeext) $(DESTDIR)$(gcc_tooldir)/bin/gcc$(exeext); \
-	  else true; fi; \
-	else \
-	  rm -f $(DESTDIR)$(bindir)/$(target_noncanonical)-gcc-tmp$(exeext); \
-	  ( cd $(DESTDIR)$(bindir) && \
-	    $(LN) $(GCC_INSTALL_NAME)$(exeext) $(target_noncanonical)-gcc-tmp$(exeext) && \
-	    mv -f $(target_noncanonical)-gcc-tmp$(exeext) $(GCC_TARGET_INSTALL_NAME)$(exeext) ); \
-	fi
-else
 install-driver: installdirs xgcc$(exeext)
 	-rm -f $(DESTDIR)$(bindir)/$(GCC_INSTALL_NAME)$(exeext)
 	-$(INSTALL_PROGRAM) xgcc$(exeext) $(DESTDIR)$(bindir)/$(GCC_INSTALL_NAME)$(exeext)
@@ -4104,8 +4081,6 @@ install-driver: installdirs xgcc$(exeext)
 	    $(LN) $(GCC_INSTALL_NAME)$(exeext) $(target_noncanonical)-gcc-tmp$(exeext) && \
 	    mv -f $(target_noncanonical)-gcc-tmp$(exeext) $(GCC_TARGET_INSTALL_NAME)$(exeext) ); \
 	fi
-endif
-# LLVM LOCAL end copy libstdc++.dylib on Darwin
 
 # Install the info files.
 # $(INSTALL_DATA) might be a relative pathname, so we can't cd into srcdir

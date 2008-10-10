@@ -30,7 +30,8 @@
 ;; in Thumb state: I, J, K, L, M, N, O
 
 ;; The following multi-letter normal constraints have been used:
-;; in ARM state: Da, Db, Dc
+;; APPLE LOCAL 5831562 long long constants
+;; in ARM state: Da, Db, Dc, Dd
 
 ;; The following memory constraints have been used:
 ;; in ARM state: Q, Uq, Uv, Uy
@@ -151,6 +152,15 @@
  (and (match_code "const_double,const_int,const_vector")
       (match_test "TARGET_ARM && arm_const_double_inline_cost (op) == 4
 		   && !(optimize_size || arm_ld_sched)")))
+
+;; APPLE LOCAL begin 5831562 long long constants
+(define_constraint "Dd"
+ "@internal
+  In ARM state a const_int, const_double or const_vector that can
+  used directly in arithmetic instructions as two 32-bit immediates."
+ (and (match_code "const_double,const_int,const_vector")
+      (match_test "TARGET_ARM && const64_ok_for_arm_immediate (op)")))
+;; APPLE LOCAL end 5831562 long long constants
 
 (define_memory_constraint "Uv"
  "@internal

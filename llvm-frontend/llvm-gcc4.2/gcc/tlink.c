@@ -785,7 +785,8 @@ do_tlink (char **ld_argv, char **object_lst ATTRIBUTE_UNUSED)
 	    if (! recompile_files ())
 	      break;
 	    if (tlink_verbose)
-	      fprintf (stderr, _("collect: relinking\n"));
+	      /* APPLE LOCAL default to Wformat-security 5764921 */
+	      fprintf (stderr, "%s", _("collect: relinking\n"));
 	    exit = tlink_execute ("ld", ld_argv, ldout, lderrout);
 	  }
     }

@@ -996,6 +996,8 @@ duplicate_insn_chain (rtx from, rtx to)
 	    case NOTE_INSN_BASIC_BLOCK:
 	      break;
 
+            /* APPLE LOCAL 5819088 alloca note needs to be copied */
+            case NOTE_INSN_ALLOCA:
 	    case NOTE_INSN_REPEATED_LINE_NUMBER:
 	    case NOTE_INSN_SWITCH_TEXT_SECTIONS:
 	      emit_note_copy (insn);

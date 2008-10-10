@@ -908,34 +908,31 @@ extern void cpp_error_with_line (cpp_reader *, int, source_location, unsigned,
 				 const char *msgid, ...) ATTRIBUTE_PRINTF_5;
 
 /* APPLE LOCAL begin headermaps 3871393 */
+#include <stdint.h>
+
 #define HMAP_SAME_ENDIANNESS_MAGIC      (((((('h' << 8) | 'm') << 8) | 'a') << 8) | 'p')
 #define HMAP_OPPOSITE_ENDIANNESS_MAGIC  (((((('p' << 8) | 'a') << 8) | 'm') << 8) | 'h')
 
 #define HMAP_NOT_A_KEY   0x00000000
 
-#if !defined(uint32)
-typedef unsigned short  uint16;
-typedef unsigned long   uint32;
-#endif
-
 struct hmap_bucket
 {
-  uint32 key;          /* Offset (into strings) of key                */
+  uint32_t key;        /* Offset (into strings) of key                */
   struct {
-    uint32 prefix;     /* Offset (into strings) of value prefix   */
-    uint32 suffix;     /* Offset (into strings) of value suffix   */
+    uint32_t prefix;   /* Offset (into strings) of value prefix   */
+    uint32_t suffix;   /* Offset (into strings) of value suffix   */
   } value;             /* Value (prefix- and suffix-strings)          */
 };
 
 struct hmap_header_map
 {
-  uint32 magic;             /* Magic word, also indicates byte order       */
-  uint16 version;           /* Version number -- currently 1               */
-  uint16 _reserved;         /* Reserved for future use -- zero for now     */
-  uint32 strings_offset;    /* Offset to start of string pool              */
-  uint32 count;             /* Number of entries in the string table       */
-  uint32 capacity;          /* Number of buckets (always a power of 2)     */
-  uint32 max_value_length;  /* Length of longest result path (excl. '\0')  */
+  uint32_t magic;                /* Magic word, also indicates byte order       */
+  uint16_t version;              /* Version number -- currently 1               */
+  uint16_t _reserved;            /* Reserved for future use -- zero for now     */
+  uint32_t strings_offset;       /* Offset to start of string pool              */
+  uint32_t count;                /* Number of entries in the string table       */
+  uint32_t capacity;             /* Number of buckets (always a power of 2)     */
+  uint32_t max_value_length;     /* Length of longest result path (excl. '\0')  */
   struct hmap_bucket buckets[1]; /* Inline array of 'capacity' maptable buckets */
   /* Strings follow the buckets, at strings_offset.  */
 };

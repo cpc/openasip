@@ -591,7 +591,6 @@ get_alias_set (tree t)
         return 0;
 #endif
       /* LLVM LOCAL end */
-        
       /* Now all we care about is the type.  */
       t = TREE_TYPE (t);
     }

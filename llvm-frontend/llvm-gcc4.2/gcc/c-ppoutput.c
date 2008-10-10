@@ -21,8 +21,11 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 #include "system.h"
 #include "coretypes.h"
 #include "tm.h"
-/* LLVM LOCAL */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #include "toplev.h"
+#endif
+/* LLVM LOCAL end */
 #include "cpplib.h"
 #include "../libcpp/internal.h"
 #include "tree.h"
@@ -456,9 +459,13 @@ cb_read_pch (cpp_reader *pfile, const char *name,
   c_common_read_pch (pfile, name, fd, orig_name);
 
   /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   fprintf (print.outf, "#pragma GCC pch_preprocess ");
   output_quoted_string (print.outf, name);
   fprintf (print.outf, "\n");
+#else
+  fprintf (print.outf, "#pragma GCC pch_preprocess \"%s\"\n", name);
+#endif
   /* LLVM LOCAL end */
   print.src_line++;
 }

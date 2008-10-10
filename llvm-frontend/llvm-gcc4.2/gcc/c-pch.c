@@ -35,7 +35,10 @@ Boston, MA 02110-1301, USA.  */
 #include "hosthooks.h"
 #include "target.h"
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #include "llvm.h"
+#endif
+/* LLVM LOCAL end */
 
 /* This is a list of flag variables that must match exactly, and their
    names for the error message.  The possible values for *flag_var must
@@ -424,7 +427,6 @@ c_common_read_pch (cpp_reader *pfile, const char *name,
       if (fseek (f, h.asm_size, SEEK_CUR) != 0)
 	cpp_errno (pfile, CPP_DL_ERROR, "seeking");
     }
-
 
   cpp_prepare_state (pfile, &smd);
 

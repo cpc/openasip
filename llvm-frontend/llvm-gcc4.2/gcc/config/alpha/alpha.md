@@ -4190,6 +4190,10 @@
 	   && rtx_equal_p (operands[5], operands[3]))
     operands[5] = operands[2];
 
+/* LLVM LOCAL begin comment out this pattern */
+#ifndef ENABLE_LLVM
+/* LLVM LOCAL end */
+
   if (code == NE || code == EQ
       || (extended_count (operands[2], DImode, unsignedp) >= 1
 	  && extended_count (operands[3], DImode, unsignedp) >= 1))
@@ -4203,7 +4207,13 @@
       operands[8] = gen_rtx_fmt_ee (code, VOIDmode, operands[6], const0_rtx);
     }
 
-  else if (code == EQ || code == LE || code == LT
+  else 
+/* LLVM LOCAL begin comment out this pattern*/
+#endif
+/* LLVM LOCAL end */
+
+
+if (code == EQ || code == LE || code == LT
 	   || code == LEU || code == LTU)
     {
       operands[7] = gen_rtx_fmt_ee (code, DImode, operands[2], operands[3]);
@@ -4236,10 +4246,17 @@
   int unsignedp = (code == GEU || code == LEU || code == GTU || code == LTU);
   rtx tem;
 
+/* LLVM LOCAL begin comment out this pattern */
+#ifndef ENABLE_LLVM
+/* LLVM LOCAL end */
+
   if ((code != NE && code != EQ
        && ! (extended_count (operands[2], DImode, unsignedp) >= 1
 	     && extended_count (operands[3], DImode, unsignedp) >= 1)))
     FAIL;
+/* LLVM LOCAL begin comment out this pattern */
+#endif
+/* LLVM LOCAL end */
 
   if (GET_CODE (operands[3]) == CONST_INT)
     tem = gen_rtx_PLUS (SImode, operands[2],

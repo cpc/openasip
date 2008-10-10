@@ -417,7 +417,8 @@ print_version (void)
   fnotice (stdout, "gcov (GCC) %s\n", version_string);
   fprintf (stdout, "Copyright %s 2006 Free Software Foundation, Inc.\n",
 	   _("(C)"));
-  fnotice (stdout,
+  /* APPLE LOCAL default to Wformat-security 5764921 */
+  fnotice (stdout, "%s",
 	   _("This is free software; see the source for copying conditions.\n"
 	     "There is NO warranty; not even for MERCHANTABILITY or \n"
 	     "FITNESS FOR A PARTICULAR PURPOSE.\n\n"));

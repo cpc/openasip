@@ -46,6 +46,12 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 /* APPLE LOCAL begin SDK 3886137.  */
 /* Allow -isysroot to override ALL  include patchs. This is done by
    setting add_sysroot for all default inclue paths.  */
+/* LLVM LOCAL begin - fix sysroot on non-Darwin systems */
+#ifdef CONFIG_DARWIN_H
+#define ADD_SYSROOT 1
+#else
+#define ADD_SYSROOT 0
+#endif
 const struct default_include cpp_include_defaults[]
 #ifdef INCLUDE_DEFAULTS
 = INCLUDE_DEFAULTS;
@@ -53,34 +59,34 @@ const struct default_include cpp_include_defaults[]
 = {
 #ifdef GPLUSPLUS_INCLUDE_DIR
     /* Pick up GNU C++ generic include files.  */
-    { GPLUSPLUS_INCLUDE_DIR, "G++", 1, 1, 1, 0 },
+    { GPLUSPLUS_INCLUDE_DIR, "G++", 1, 1, ADD_SYSROOT, 0 },
 #endif
 #ifdef GPLUSPLUS_TOOL_INCLUDE_DIR
     /* Pick up GNU C++ target-dependent include files.  */
-    { GPLUSPLUS_TOOL_INCLUDE_DIR, "G++", 1, 1, 1, 1 },
+    { GPLUSPLUS_TOOL_INCLUDE_DIR, "G++", 1, 1, ADD_SYSROOT, 1 },
 #endif
 #ifdef GPLUSPLUS_BACKWARD_INCLUDE_DIR
     /* Pick up GNU C++ backward and deprecated include files.  */
-    { GPLUSPLUS_BACKWARD_INCLUDE_DIR, "G++", 1, 1, 1, 0 },
+    { GPLUSPLUS_BACKWARD_INCLUDE_DIR, "G++", 1, 1, ADD_SYSROOT, 0 },
 #endif
 #ifdef LOCAL_INCLUDE_DIR
     /* /usr/local/include comes before the fixincluded header files.  */
     { LOCAL_INCLUDE_DIR, 0, 0, 1, 1, 0 },
 #endif
 #ifdef PREFIX_INCLUDE_DIR
-    { PREFIX_INCLUDE_DIR, 0, 0, 1, 1, 0 },
+    { PREFIX_INCLUDE_DIR, 0, 0, 1, ADD_SYSROOT, 0 },
 #endif
 #ifdef GCC_INCLUDE_DIR
     /* This is the dir for fixincludes and for gcc's private headers.  */
-    { GCC_INCLUDE_DIR, "GCC", 0, 0, 1, 0 },
+    { GCC_INCLUDE_DIR, "GCC", 0, 0, ADD_SYSROOT, 0 },
 #endif
 #ifdef CROSS_INCLUDE_DIR
     /* One place the target system's headers might be.  */
-    { CROSS_INCLUDE_DIR, "GCC", 0, 0, 1, 0 },
+    { CROSS_INCLUDE_DIR, "GCC", 0, 0, ADD_SYSROOT, 0 },
 #endif
 #ifdef TOOL_INCLUDE_DIR
     /* Another place the target system's headers might be.  */
-    { TOOL_INCLUDE_DIR, "BINUTILS", 0, 1, 1, 0 },
+    { TOOL_INCLUDE_DIR, "BINUTILS", 0, 1, ADD_SYSROOT, 0 },
 #endif
 #ifdef SYSTEM_INCLUDE_DIR
     /* Some systems have an extra dir of include files.  */
@@ -94,6 +100,8 @@ const struct default_include cpp_include_defaults[]
   };
 #endif /* no INCLUDE_DEFAULTS */
 
+#undef ADD_SYSROOT
+/* LLVM local end */
 /* APPLE LOCAL end SDK 3886137.  */
 
 #ifdef GCC_INCLUDE_DIR

@@ -460,6 +460,10 @@ struct function GTY(())
   unsigned int uses_vector : 1;
   /* APPLE LOCAL end 3837835  */
 
+  /* APPLE LOCAL begin ARM compact switch tables */
+  unsigned int needs_4byte_alignment : 1;
+  /* APPLE LOCAL end ARM compact switch tables */
+
   /* APPLE LOCAL begin ARM reliable backtraces */
   unsigned int calls_builtin_ret_addr : 1;
   unsigned int calls_builtin_frame_addr : 1;
@@ -605,4 +609,6 @@ extern bool reference_callee_copied (CUMULATIVE_ARGS *, enum machine_mode,
 
 extern void used_types_insert (tree);
 
+/* APPLE LOCAL radar 5732232 - blocks */
+extern struct block_sema_info *cur_block;
 #endif  /* GCC_FUNCTION_H */

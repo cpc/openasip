@@ -1911,10 +1911,6 @@ expr_align (tree t)
     case SAVE_EXPR:         case COMPOUND_EXPR:       case MODIFY_EXPR:
     case INIT_EXPR:         case TARGET_EXPR:         case WITH_CLEANUP_EXPR:
     case CLEANUP_POINT_EXPR:
-    /* LLVM local begin */
-    /* return correctly the alignment of packed structs */
-    case COMPONENT_REF:
-    /* LLVM local end */
       /* These don't change the alignment of an object.  */
       return expr_align (TREE_OPERAND (t, 0));
 
@@ -2887,7 +2883,7 @@ do { tree _node = (NODE); \
     }
   else if (CONSTANT_CLASS_P (node))
     ;
-/* APPLE LOCAL begin LLVM */
+/* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
   /* Support the "array ref with pointer base" extension.  If we have &p[i],
      treat this like we do a binop.
@@ -2902,7 +2898,7 @@ do { tree _node = (NODE); \
           TREE_SIDE_EFFECTS(TREE_OPERAND(node, 1));
   }
 #endif
-/* APPLE LOCAL end LLVM */
+/* LLVM LOCAL end */
   else
     {
       ti = tc = false;
@@ -5106,6 +5102,25 @@ build_pointer_type (tree to_type)
   return build_pointer_type_for_mode (to_type, ptr_mode, false);
 }
 
+/* APPLE LOCAL begin radar 5732232 - blocks */
+tree
+build_block_pointer_type (tree to_type)
+{
+  tree t;
+  
+  t = make_node (BLOCK_POINTER_TYPE);
+
+  TREE_TYPE (t) = to_type;
+  TYPE_MODE (t) = ptr_mode;
+
+  /* Lay out the type.  This function has many callers that are concerned
+     with expression-construction, and this simplifies them all.  */
+  layout_type (t);
+
+  return t;
+}
+/* APPLE LOCAL end radar 5732232 - blocks */
+
 /* Same as build_pointer_type_for_mode, but for REFERENCE_TYPE.  */
 
 tree
@@ -6808,12 +6823,21 @@ build_common_builtin_nodes (void)
   tmp = tree_cons (NULL_TREE, ptr_type_node, void_list_node);
   tmp = tree_cons (NULL_TREE, ptr_type_node, tmp);
   tmp = tree_cons (NULL_TREE, ptr_type_node, tmp);
-  /* LLVM local begin */
+  /* LLVM LOCAL begin */
   ftype = build_function_type (ptr_type_node, tmp);
   local_define_builtin ("__builtin_init_trampoline", ftype,
 			BUILT_IN_INIT_TRAMPOLINE,
 			"__builtin_init_trampoline", ECF_NOTHROW);
-  /* LLVM local end */
+
+#ifndef ENABLE_LLVM
+  tmp = tree_cons (NULL_TREE, ptr_type_node, void_list_node);
+  ftype = build_function_type (ptr_type_node, tmp);
+  local_define_builtin ("__builtin_adjust_trampoline", ftype,
+			BUILT_IN_ADJUST_TRAMPOLINE,
+			"__builtin_adjust_trampoline",
+			ECF_CONST | ECF_NOTHROW);
+#endif
+  /* LLVM LOCAL end */
 
   tmp = tree_cons (NULL_TREE, ptr_type_node, void_list_node);
   tmp = tree_cons (NULL_TREE, ptr_type_node, tmp);
@@ -6923,7 +6947,12 @@ reconstruct_complex_type (tree type, tree bottom)
       /* APPLE LOCAL begin AltiVec */
       outer = (TREE_CODE (type) == REFERENCE_TYPE
 	       ? build_reference_type (inner)
-	       : build_pointer_type (inner));
+               /* APPLE LOCAL begin blocks 5882266 */
+	       : (TREE_CODE (type) == BLOCK_POINTER_TYPE ? 
+                  build_block_pointer_type (inner) : 
+                  build_pointer_type (inner))
+               );
+               /* APPLE LOCAL end blocks 5882266 */
       /* APPLE LOCAL end AltiVec */
     }
   else if (TREE_CODE (type) == ARRAY_TYPE)

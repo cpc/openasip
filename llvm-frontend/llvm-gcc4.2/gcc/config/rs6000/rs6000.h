@@ -216,7 +216,9 @@ enum processor_type
 };
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 extern const char *rs6000_cpu_target;
+#endif
 /* LLVM LOCAL end */
 
 extern enum processor_type rs6000_cpu;
@@ -638,7 +640,7 @@ extern enum rs6000_nop_insertion rs6000_sched_insert_nops;
    We must map them here to avoid huge unwinder tables mostly consisting
    of unused space.  */
 /* APPLE LOCAL begin 3399553 */
-#define DWARF_REG_TO_UNWIND_COLUMN(r)  \
+#define DWARF_REG_TO_UNWIND_COLUMN(r)	\
   ((r) > 1200 ? ((r) - 1200 + LAST_PHYSICAL_REGISTER) : (r))
 /* APPLE LOCAL end 3399553 */
 
@@ -1212,7 +1214,14 @@ extern enum rs6000_abi rs6000_current_abi;	/* available for use by subtarget */
 
    On the RS/6000, we grow upwards, from the area after the outgoing
    arguments.  */
+/* LLVM LOCAL - begin stack protector */
+#ifdef ENABLE_LLVM
+#define FRAME_GROWS_DOWNWARD 0
+#else
 #define FRAME_GROWS_DOWNWARD (flag_stack_protect != 0)
+#endif
+/* LLVM LOCAL - end stack protector */
+
 
 /* Size of the outgoing register save area */
 #define RS6000_REG_SAVE ((DEFAULT_ABI == ABI_AIX			\
@@ -3447,6 +3456,7 @@ enum rs6000_builtins
 /* APPLE LOCAL end CW asm blocks */
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #define LLVM_TARGET_INTRINSIC_PREFIX "ppc"
 
 /* Turn -march=xx into a CPU type.
@@ -3508,7 +3518,7 @@ extern bool llvm_rs6000_should_return_vector_as_shadow(tree, bool);
   llvm_rs6000_should_return_vector_as_shadow((X), (isBuiltin))
 
 #endif /* LLVM_ABI_H */
-
+#endif /* ENABLE_LLVM */
 /* LLVM LOCAL end */
 
 enum rs6000_builtin_type_index

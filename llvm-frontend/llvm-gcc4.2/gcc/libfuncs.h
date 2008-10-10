@@ -20,8 +20,11 @@ Boston, MA 02110-1301, USA.  */
 
 #ifndef GCC_LIBFUNCS_H
 #define GCC_LIBFUNCS_H
-/* LOCAL LLVM */
+/* LOCAL LLVM begin */
+#ifdef ENABLE_LLVM
 #include "tree.h"
+#endif
+/* LOCAL LLVM end */
 
 /* Enumeration of indexes into libfunc_table.  */
 enum libfunc_index
@@ -52,9 +55,11 @@ enum libfunc_index
    implicitly and not via optabs.  */
 extern GTY(()) rtx libfunc_table[LTI_MAX];
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 /* FUNCTION_DECL nodes for the library functions that are called
    implicitly and not via optabs.  */
 extern GTY(()) tree llvm_libfunc_table[LTI_MAX];
+#endif
 /* LLVM LOCAL end */
 
 /* Accessor macros for libfunc_table.  */

@@ -145,6 +145,11 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "output.h"
 #include "params.h"
 
+/* LLVM LOCAL begin comment out most of this file */
+#ifdef ENABLE_LLVM
+#undef INSN_SCHEDULING
+#endif
+/* LLVM LOCAL end */
 #ifdef INSN_SCHEDULING
 
 /* issue_rate is the number of insns that can be scheduled in the same

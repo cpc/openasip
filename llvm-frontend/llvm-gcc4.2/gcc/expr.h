@@ -733,7 +733,10 @@ extern enum machine_mode
 mode_for_extraction (enum extraction_pattern, int);
 
 extern rtx store_bit_field (rtx, unsigned HOST_WIDE_INT,
-			    unsigned HOST_WIDE_INT, enum machine_mode, rtx);
+			    /* APPLE LOCAL begin 6020402 */
+			    unsigned HOST_WIDE_INT, enum machine_mode, rtx,
+			    tree);
+			    /* APPLE LOCAL end 6020402 */
 extern rtx extract_bit_field (rtx, unsigned HOST_WIDE_INT,
 			      unsigned HOST_WIDE_INT, int, rtx,
 			      enum machine_mode, enum machine_mode);

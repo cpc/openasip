@@ -243,3 +243,15 @@ extern GTY(()) tree solaris_pending_finis;
 
 /* Allow macro expansion in #pragma pack.  */
 #define HANDLE_PRAGMA_PACK_WITH_EXPANSION
+
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
+
+/* Supporting PIC codegen for solaris targets */
+#define LLVM_SET_TARGET_OPTIONS(argvec)              \
+  if (flag_pic)                                      \
+    argvec.push_back ("--relocation-model=pic");     \
+  else                                               \
+    argvec.push_back ("--relocation-model=static");
+#endif
+/* LLVM LOCAL end */

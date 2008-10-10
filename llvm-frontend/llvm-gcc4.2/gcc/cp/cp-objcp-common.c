@@ -291,7 +291,7 @@ c_return_interface_record_type (tree typename)
   code = TREE_CODE (typename);
   class = TREE_CODE_CLASS (code);
 
-  if (code != IDENTIFIER_NODE 
+  if (code != IDENTIFIER_NODE
       || class != tcc_exceptional)
     return retval;
 

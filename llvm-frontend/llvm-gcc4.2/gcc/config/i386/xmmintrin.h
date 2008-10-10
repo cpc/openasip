@@ -40,7 +40,11 @@
 #include <mmintrin.h>
 
 /* Get _mm_malloc () and _mm_free ().  */
+/* APPLE LOCAL begin xmmintrin.h for kernel 4123064 */
+#if __STDC_HOSTED__
 #include <mm_malloc.h>
+#endif
+/* APPLE LOCAL end xmmintrin.h for kernel 4123064 */
 
 /* The Intel API is flexible enough that we must allow aliasing with other
    vector types, and their scalar components.  */

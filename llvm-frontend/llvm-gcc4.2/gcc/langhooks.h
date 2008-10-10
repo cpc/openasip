@@ -468,9 +468,6 @@ struct lang_hooks
      TREE_SIDE_EFFECTS need updating.  */
   tree (*expr_to_decl) (tree expr, bool *tc, bool *ti, bool *se);
 
-  /* APPLE LOCAL define this sensibly for all languages */
-  bool (*flag_no_builtin)(void);
-
   /* Whenever you add entries here, make sure you adjust langhooks-def.h
      and langhooks.c accordingly.  */
 };

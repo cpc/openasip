@@ -8430,7 +8430,13 @@ alpha_output_mi_thunk_osf (FILE *file, tree thunk_fndecl ATTRIBUTE_UNUSED,
      assemble_start_function and assemble_end_function.  */
   insn = get_insns ();
   insn_locators_initialize ();
-  shorten_branches (insn);
+  /* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+/* LLVM LOCAL end */
+shorten_branches (insn);
+/* LLVM LOCAL begin */
+#endif
+/* LLVM LOCAL end */
   final_start_function (insn, file, 1);
   final (insn, file, 1);
   final_end_function ();
@@ -9225,8 +9231,15 @@ alpha_align_insns (unsigned int max_align,
   int prev_in_use, in_use, len, ldgp;
   rtx i, next;
 
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+/* LLVM LOCAL end */
   /* Let shorten branches care for assigning alignments to code labels.  */
   shorten_branches (get_insns ());
+/* LLVM LOCAL begin */
+#endif
+/* LLVM LOCAL end */
+
 
   if (align_functions < 4)
     align = 4;

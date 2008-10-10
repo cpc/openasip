@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2001, 2003, 2004 Apple Computer, Inc.
+ * Copyright (c) 2000, 2001, 2003, 2004, 2008 Apple Computer, Inc.
  * All rights reserved.
  */
 
@@ -108,15 +108,6 @@ typedef __UINTMAX_TYPE__             uintmax_t;
 typedef unsigned long long      uintmax_t;
 #endif /* __UINTMAX_TYPE__ */
 #endif /* _UINTMAX_T */
-
-/* "C++ implementations should define these macros only when
- *  __STDC_LIMIT_MACROS is defined before <stdint.h> is included."
- * In other words, if C++, then __STDC_LIMIT_MACROS enables the
- * macros below.  (Note that there also exists a different enabling
- * macro (__STDC_CONSTANT_MACROS) for the last few, below.)
- */
-#if (! defined(__cplusplus)) || defined(__STDC_LIMIT_MACROS)
-
 
 /* 7.18.2 Limits of specified-width integer types:
  *   These #defines specify the minimum and maximum limits
@@ -245,13 +236,6 @@ typedef unsigned long long      uintmax_t;
 #define SIG_ATOMIC_MIN	  INT32_MIN
 #define SIG_ATOMIC_MAX	  INT32_MAX
 
-#endif /* if C++, then __STDC_LIMIT_MACROS enables the above macros */
-
-/* "C++ implementations should define these macros only when
- *  __STDC_CONSTANT_MACROS is defined before <stdint.h> is included."
- */
-#if (! defined(__cplusplus)) || defined(__STDC_CONSTANT_MACROS)
-
 /* 7.18.4 Macros for integer constants */
 #define INT8_C(v)    (v)
 #define INT16_C(v)   (v)
@@ -265,7 +249,5 @@ typedef unsigned long long      uintmax_t;
 
 #define INTMAX_C(v)  (v ## LL)
 #define UINTMAX_C(v) (v ## ULL)
-
-#endif /* if C++, then __STDC_CONSTANT_MACROS enables the above macros */
 
 #endif /* _STDINT_H_ */

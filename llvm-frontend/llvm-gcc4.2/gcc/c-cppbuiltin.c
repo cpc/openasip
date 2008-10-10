@@ -368,13 +368,12 @@ define__GNUC__ (void)
   else
     builtin_define_with_value_n ("__GNUC_PATCHLEVEL__", "0", 1);
 
-  gcc_assert (!*v || *v == ' ' || *v == '-' || *v == '(');
+  gcc_assert (!*v || *v == ' ' || *v == '-');
 
   /* LLVM LOCAL no version number */
 #ifndef LLVM_VERSION_INFO
 
   /* APPLE LOCAL begin Apple version */
-#ifdef CONFIG_DARWIN_H
   {
     /* This chunk of code defines __APPLE_CC__ from the version
        string.  It expects to see a substring of the version string of
@@ -398,7 +397,6 @@ define__GNUC__ (void)
       abort ();
     builtin_define_with_value_n ("__APPLE_CC__", vt, q - vt);
   }
-#endif
   /* APPLE LOCAL end Apple version */
 
   /* LLVM LOCAL begin version number */
@@ -474,7 +472,6 @@ c_cpp_builtins (cpp_reader *pfile)
     return;
 
   define__GNUC__ ();
-  
   /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
   cpp_define (pfile, "__llvm__");
@@ -585,6 +582,11 @@ c_cpp_builtins (cpp_reader *pfile)
 
   /* Other target-independent built-ins determined by command-line
      options.  */
+  /* APPLE LOCAL begin blocks */
+  /* APPLE LOCAL radar 5868913 */
+  if (flag_blocks)
+    cpp_define (pfile, "__BLOCKS__=1"); 
+  /* APPLE LOCAL end blocks */
   if (optimize_size)
     cpp_define (pfile, "__OPTIMIZE_SIZE__");
   if (optimize)

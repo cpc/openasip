@@ -866,7 +866,8 @@ extern void omp_clause_range_check_failed (const tree, const char *, int,
 #define CST_CHECK(T)		TREE_CLASS_CHECK (T, tcc_constant)
 #define STMT_CHECK(T)		TREE_CLASS_CHECK (T, tcc_statement)
 #define FUNC_OR_METHOD_CHECK(T)	TREE_CHECK2 (T, FUNCTION_TYPE, METHOD_TYPE)
-#define PTR_OR_REF_CHECK(T)	TREE_CHECK2 (T, POINTER_TYPE, REFERENCE_TYPE)
+/* APPLE LOCAL blocks 5862465 */
+#define PTR_OR_REF_CHECK(T)	TREE_CHECK3 (T, POINTER_TYPE, REFERENCE_TYPE, BLOCK_POINTER_TYPE)
 
 #define RECORD_OR_UNION_CHECK(T)	\
   TREE_CHECK3 (T, RECORD_TYPE, UNION_TYPE, QUAL_UNION_TYPE)
@@ -995,8 +996,12 @@ extern void omp_clause_range_check_failed (const tree, const char *, int,
    (It should be renamed to INDIRECT_TYPE_P.)  Keep these checks in
    ascending code order.  */
 
+/* APPLE LOCAL begin blocks 5862465 */
 #define POINTER_TYPE_P(TYPE) \
-  (TREE_CODE (TYPE) == POINTER_TYPE || TREE_CODE (TYPE) == REFERENCE_TYPE)
+  (TREE_CODE (TYPE) == POINTER_TYPE \
+   || TREE_CODE (TYPE) == REFERENCE_TYPE \
+   || TREE_CODE (TYPE) == BLOCK_POINTER_TYPE)
+/* APPLE LOCAL end blocks 5862465 */
 
 /* Nonzero if this type is a complete type.  */
 #define COMPLETE_TYPE_P(NODE) (TYPE_SIZE (NODE) != NULL_TREE)
@@ -2104,6 +2109,17 @@ struct tree_block GTY(())
 #define TYPE_CONTAINS_PLACEHOLDER_INTERNAL(NODE) \
   (TYPE_CHECK (NODE)->type.contains_placeholder_bits)
 
+/* APPLE LOCAL begin radar 5811943 - Fix type of pointers to blocks  */
+/* Indicates that the struct type is a block struct, rather than
+   a 'normal' struct, i.e. one of its fields is a function that can
+   be called.  This uses the existing bit-field lang_flag_2 in the
+   struct tree_type, rather than creating a new bit field, as 
+   lang_flag_2 is currently unused and we don't want to increase the 
+   size of trees if we can avoid it.  */
+#define TYPE_BLOCK_IMPL_STRUCT(NODE) \
+  (TYPE_CHECK (NODE)->type.lang_flag_2)
+/* APPLE LOCAL end radar 5811943 - Fix type of pointers to Blocks  */
+
 struct die_struct;
 
 struct tree_type GTY(())
@@ -2128,6 +2144,14 @@ struct tree_type GTY(())
 
   unsigned lang_flag_0 : 1;
   unsigned lang_flag_1 : 1;
+  /* APPLE LOCAL begin radar 5811943 - Fix type of pointers to Blocks  */
+  /* Since it is currently completely unused, and in the interest of
+     not making trees any bigger than they already are, lang_flag_2
+     in the tree_type struct will be used to indicate that a struct is a 
+     block struct.  The macro used for these purposes is 
+     TYPE_BLOCK_IMPL_STRUCT, rather than TYPE_LANG_FLAG_2, in order to make 
+     its uses in the code more clear.  */
+  /* APPLE LOCAL end radar 5811943 - Fix type of pointers to Blocks  */
   unsigned lang_flag_2 : 1;
   unsigned lang_flag_3 : 1;
   unsigned lang_flag_4 : 1;
@@ -2142,11 +2166,11 @@ struct tree_type GTY(())
     int GTY ((tag ("0"))) address;
     char * GTY ((tag ("1"))) pointer;
     struct die_struct * GTY ((tag ("2"))) die;
-    /* LLVM LOCAL begin */
+/* LLVM LOCAL begin */
     unsigned GTY ((tag ("3"))) llvm;   /* Really an LLVM Type vector (LTypes) index */
   } GTY ((desc ("LLVM_IS_ENABLED ? 3 : debug_hooks == &sdb_debug_hooks ? 1 : debug_hooks == &dwarf2_debug_hooks ? 2 : 0"),
-	  descbits ("2"))) symtab;
 /* LLVM LOCAL end */
+	  descbits ("2"))) symtab;
   tree name;
   tree minval;
   tree maxval;
@@ -2446,7 +2470,8 @@ struct tree_struct_field_tag GTY(())
 /* Likewise for the size in bytes.  */
 #define DECL_SIZE_UNIT(NODE) (DECL_COMMON_CHECK (NODE)->decl_common.size_unit)
 /* Holds the alignment required for the datum, in bits.  */
-#define DECL_ALIGN(NODE) (DECL_COMMON_CHECK (NODE)->decl_common.u1.a.align)
+/* APPLE LOCAL mainline aligned functions 5933878 */
+#define DECL_ALIGN(NODE) (DECL_COMMON_CHECK (NODE)->decl_common.align)
 /* The alignment of NODE, in bytes.  */
 #define DECL_ALIGN_UNIT(NODE) (DECL_ALIGN (NODE) / BITS_PER_UNIT)
 /* APPLE LOCAL begin for-fsf-4_4 3274130 5295549 */ \
@@ -2463,7 +2488,11 @@ struct tree_struct_field_tag GTY(())
    operation it is.  Note, however, that this field is overloaded, with
    DECL_BUILT_IN_CLASS as the discriminant, so the latter must always be
    checked before any access to the former.  */
-#define DECL_FUNCTION_CODE(NODE) (FUNCTION_DECL_CHECK (NODE)->decl_common.u1.f)
+/* APPLE LOCAL begin mainline aligned functions 5933878 */
+#define DECL_FUNCTION_CODE(NODE) \
+  (FUNCTION_DECL_CHECK (NODE)->function_decl.function_code)
+/* APPLE LOCAL end mainline aligned functions 5933878 */
+
 #define DECL_DEBUG_EXPR_IS_FROM(NODE) \
   (DECL_COMMON_CHECK (NODE)->decl_common.debug_expr_is_from)
 
@@ -2610,20 +2639,11 @@ struct tree_decl_common GTY(())
   unsigned int iasm_frame_size;
   /* APPLE LOCAL end CW asm blocks */
 
-  union tree_decl_u1 {
-    /* In a FUNCTION_DECL for which DECL_BUILT_IN holds, this is
-       DECL_FUNCTION_CODE.  */
-    enum built_in_function f;
-    /* In a FUNCTION_DECL for which DECL_BUILT_IN does not hold, this
-       is used by language-dependent code.  */
-    HOST_WIDE_INT i;
-    /* DECL_ALIGN and DECL_OFFSET_ALIGN.  (These are not used for
-       FUNCTION_DECLs).  */
-    struct tree_decl_u1_a {
-      unsigned int align : 24;
-      unsigned int off_align : 8;
-    } a;
-  } GTY ((skip)) u1;
+  /* APPLE LOCAL begin mainline aligned functions 5933878 */
+  unsigned int align : 24;
+  /* DECL_OFFSET_ALIGN, used only for FIELD_DECLs.  */
+  unsigned int off_align : 8;
+  /* APPLE LOCAL end mainline aligned functions 5933878 */
 
   tree size_unit;
   tree initial;
@@ -2711,11 +2731,13 @@ struct tree_decl_with_rtl GTY(())
    DECL_OFFSET_ALIGN thus returns the alignment that DECL_FIELD_OFFSET
    has.  */
 #define DECL_OFFSET_ALIGN(NODE) \
-  (((unsigned HOST_WIDE_INT)1) << FIELD_DECL_CHECK (NODE)->decl_common.u1.a.off_align)
+  /* APPLE LOCAL mainline aligned functions 5933878 */ \
+  (((unsigned HOST_WIDE_INT)1) << FIELD_DECL_CHECK (NODE)->decl_common.off_align)
 
 /* Specify that DECL_ALIGN(NODE) is a multiple of X.  */
 #define SET_DECL_OFFSET_ALIGN(NODE, X) \
-  (FIELD_DECL_CHECK (NODE)->decl_common.u1.a.off_align = exact_log2 ((X) & -(X)))
+  /* APPLE LOCAL mainline aligned functions 5933878 */ \
+  (FIELD_DECL_CHECK (NODE)->decl_common.off_align = exact_log2 ((X) & -(X)))
 /* 1 if the alignment for this type was requested by "aligned" attribute,
    0 if it is the default for this type.  */
 
@@ -3038,7 +3060,19 @@ struct tree_decl_with_vis GTY(())
 
  /* Belongs to VAR_DECL exclusively.  */
  ENUM_BITFIELD(tls_model) tls_model : 3;
- /* 11 unused bits. */
+
+ /* APPLE LOCAL begin radar 5732232 - blocks */
+ /* Belong to VAR_DECL exclusively. */
+ unsigned block_decl_byref : 1;
+ unsigned block_decl_copied : 1;
+ /* APPLE LOCAL begin radar 5932809 - copyable byref blocks */
+ unsigned copyable_byref_local_var : 1;
+ unsigned copyable_byref_local_nonpod : 1;
+ /* APPLE LOCAL radar 6172148 */
+ unsigned block_synthesized_function : 1;
+ /* 6 unused bits. */
+ /* APPLE LOCAL end radar 5932809 - copyable byref blocks */
+ /* APPLE LOCAL end radar 5732232 - blocks */
 };
 
 /* In a VAR_DECL that's static,
@@ -3083,6 +3117,17 @@ extern void decl_init_priority_insert (tree, unsigned short);
 /* In a VAR_DECL, the model to use if the data should be allocated from
    thread-local storage.  */
 #define DECL_TLS_MODEL(NODE) (VAR_DECL_CHECK (NODE)->decl_with_vis.tls_model)
+
+/* APPLE LOCAL begin radar 5732232 - blocks */
+#define BLOCK_DECL_BYREF(NODE) (VAR_DECL_CHECK (NODE)->decl_with_vis.block_decl_byref)
+#define BLOCK_DECL_COPIED(NODE) (VAR_DECL_CHECK (NODE)->decl_with_vis.block_decl_copied)
+/* APPLE LOCAL end radar 5732232 - blocks */
+/* APPLE LOCAL radar 6172148 */
+#define BLOCK_SYNTHESIZED_FUNC(NODE) (FUNCTION_DECL_CHECK (NODE)->decl_with_vis.block_synthesized_function)
+/* APPLE LOCAL begin radar 5932809 - copyable byref blocks */
+#define COPYABLE_BYREF_LOCAL_VAR(NODE) (VAR_DECL_CHECK (NODE)->decl_with_vis.copyable_byref_local_var)
+#define COPYABLE_BYREF_LOCAL_NONPOD(NODE) (VAR_DECL_CHECK (NODE)->decl_with_vis.copyable_byref_local_nonpod)
+/* APPLE LOCAL end radar 5932809 - copyable byref blocks */
 
 /* In a VAR_DECL, nonzero if the data should be allocated from
    thread-local storage.  */
@@ -3217,6 +3262,12 @@ struct tree_decl_non_common GTY(())
 struct tree_function_decl GTY(())
 {
   struct tree_decl_non_common common;
+
+  /* APPLE LOCAL begin mainline aligned functions 5933878 */
+  /* In a FUNCTION_DECL for which DECL_BUILT_IN holds, this is
+     DECL_FUNCTION_CODE.  Otherwise unused.  */
+  enum built_in_function function_code;
+  /* APPLE LOCAL end mainline aligned functions 5933878 */
 
   unsigned static_ctor_flag : 1;
   unsigned static_dtor_flag : 1;
@@ -3734,6 +3785,8 @@ extern void set_sizetype (tree);
 extern void fixup_unsigned_type (tree);
 extern tree build_pointer_type_for_mode (tree, enum machine_mode, bool);
 extern tree build_pointer_type (tree);
+/* APPLE LOCAL radar 5732232 - blocks */
+extern tree build_block_pointer_type (tree);
 extern tree build_reference_type_for_mode (tree, enum machine_mode, bool);
 extern tree build_reference_type (tree);
 extern tree build_vector_type_for_mode (tree, enum machine_mode);
@@ -4796,5 +4849,8 @@ extern bool has_alternative_entry_points (void);
 
 extern void note_alternative_entry_points (void);
 /* APPLE LOCAL end CW asm blocks */
+
+/* APPLE LOCAL radar 6113240 */
+extern GTY(()) tree invoke_impl_ptr_type;
 
 #endif  /* GCC_TREE_H  */

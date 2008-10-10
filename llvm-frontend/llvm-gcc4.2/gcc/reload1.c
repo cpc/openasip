@@ -1797,6 +1797,21 @@ find_reg (struct insn_chain *chain, int order)
 	      /* Among registers with equal cost, prefer caller-saved ones, or
 		 use REG_ALLOC_ORDER if it is defined.  */
 	      || (this_cost == best_cost
+/* APPLE LOCAL begin 5831562 add DIMODE_REG_ALLOC_ORDER */
+#ifdef DIMODE_REG_ALLOC_ORDER
+		  && ((rl->mode == DImode 
+		        && dimode_inv_reg_alloc_order[regno]
+		           < dimode_inv_reg_alloc_order[best_reg])
+		      || (rl->mode != DImode
+#ifdef REG_ALLOC_ORDER
+			  && (inv_reg_alloc_order[regno]
+			      < inv_reg_alloc_order[best_reg])
+#else
+			  && call_used_regs[regno]
+			  && ! call_used_regs[best_reg]
+#endif
+		    ))
+#else
 #ifdef REG_ALLOC_ORDER
 		  && (inv_reg_alloc_order[regno]
 		      < inv_reg_alloc_order[best_reg])
@@ -1804,6 +1819,8 @@ find_reg (struct insn_chain *chain, int order)
 		  && call_used_regs[regno]
 		  && ! call_used_regs[best_reg]
 #endif
+#endif
+/* APPLE LOCAL end 5831562 add DIMODE_REG_ALLOC_ORDER */
 		  ))
 	    {
 	      best_reg = regno;
@@ -2049,6 +2066,8 @@ alter_reg (int i, int from_reg)
 	 inherent space, and no less total space, then the previous slot.  */
       if (from_reg == -1)
 	{
+/* LLVM LOCAL begin we've removed this definition */
+#ifndef ENABLE_LLVM
 	  /* APPLE LOCAL begin 4321079 */
 	  extern rtx find_tied_stack_pseudo (int);
 	  /* Ask global reg allocator for a stack slot already assigned
@@ -2056,6 +2075,8 @@ alter_reg (int i, int from_reg)
 	  if (from_global)
 	    x = find_tied_stack_pseudo (i);
 	  else
+#endif
+/* LLVM LOCAL end */
 	    x = NULL_RTX;
 
 	  if (!x)
@@ -3826,7 +3847,11 @@ finish_spills (int global)
 	    COPY_HARD_REG_SET (forbidden, bad_spill_regs_global);
 	    IOR_HARD_REG_SET (forbidden, pseudo_forbidden_regs[i]);
 	    IOR_HARD_REG_SET (forbidden, pseudo_previous_regs[i]);
+/* LLVM LOCAL begin we've removed this definition */
+#ifndef ENABLE_LLVM
 	    retry_global_alloc (i, forbidden);
+#endif
+/* LLVM LOCAL end */
 	    if (reg_renumber[i] >= 0)
 	      CLEAR_REGNO_REG_SET (&spilled_pseudos, i);
 	  }

@@ -87,5 +87,7 @@ Boston, MA 02110-1301, USA.  */
 #define TARGET_POSIX_IO
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #define HANDLE_PRAGMA_PACK_PUSH_POP
+#endif
 /* LLVM LOCAL end */

@@ -533,6 +533,10 @@ record_layout_info
 start_record_layout (tree t)
 {
   record_layout_info rli = xmalloc (sizeof (struct record_layout_info_s));
+  /* APPLE LOCAL begin 5946347 ms_struct support */
+  unsigned biggest_alignment = targetm.ms_bitfield_layout_p (t) ?
+    BIGGEST_MS_STRUCT_ALIGNMENT
+    : BIGGEST_ALIGNMENT;
 
   rli->t = t;
 
@@ -541,7 +545,8 @@ start_record_layout (tree t)
      one-byte alignment.  */
   rli->record_align = MAX (BITS_PER_UNIT, TYPE_ALIGN (t));
   rli->unpacked_align = rli->record_align;
-  rli->offset_align = MAX (rli->record_align, BIGGEST_ALIGNMENT);
+  rli->offset_align = MAX (rli->record_align, biggest_alignment);
+  /* APPLE LOCAL end 5946347 ms_struct support */
 
 #ifdef STRUCTURE_SIZE_BOUNDARY
 /* APPLE LOCAL begin ARM Macintosh alignment */
@@ -729,7 +734,8 @@ update_alignment_for_field (record_layout_info rli, tree field,
 		 && DECL_BIT_FIELD_TYPE (rli->prev_field)
 		 && ! integer_zerop (DECL_SIZE (rli->prev_field)))))
 	{
-	  unsigned int type_align = TYPE_ALIGN (type);
+	  /* APPLE LOCAL 5946347 ms_struct support */
+	  unsigned int type_align = TARGET_FIELD_MS_STRUCT_ALIGN (field);
 	  type_align = MAX (type_align, desired_align);
 	  if (maximum_field_alignment != 0)
 	    type_align = MIN (type_align, maximum_field_alignment);
@@ -1267,7 +1273,8 @@ place_field (record_layout_info rli, tree field)
 	    }
 
 	  /* Now align (conventionally) for the new type.  */
-	  type_align = TYPE_ALIGN (TREE_TYPE (field));
+	  /* APPLE LOCAL 5946347 ms_struct support */
+	  type_align = TARGET_FIELD_MS_STRUCT_ALIGN (field);
 
 	  if (maximum_field_alignment != 0)
 	    type_align = MIN (type_align, maximum_field_alignment);
@@ -1879,6 +1886,8 @@ layout_type (tree type)
 
     case POINTER_TYPE:
     case REFERENCE_TYPE:
+    /* APPLE LOCAL blocks */
+    case BLOCK_POINTER_TYPE:
       {
 
 	enum machine_mode mode = ((TREE_CODE (type) == REFERENCE_TYPE

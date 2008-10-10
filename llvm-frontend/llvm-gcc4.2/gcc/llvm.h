@@ -49,12 +49,6 @@ void make_decl_llvm(union tree_node*);
  */
 void reset_type_and_initializer_llvm(union tree_node*);
 
-/* llvm_compute_type - Compute the LLVM type for the specified tree type eagerly
- * instead of letting it happen lazily.
- */
-void llvm_compute_type(union tree_node*);
-
-
 /* reset_initializer_llvm - Change the initializer for a global variable. */
 void reset_initializer_llvm(union tree_node*);
 

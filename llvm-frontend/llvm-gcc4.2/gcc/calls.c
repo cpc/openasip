@@ -910,7 +910,9 @@ store_unaligned_arguments_into_pseudos (struct arg_data *args, int num_actuals)
 
 	    bytes -= bitsize / BITS_PER_UNIT;
 	    store_bit_field (reg, bitsize, endian_correction, word_mode,
-			     word);
+			     /* APPLE LOCAL begin 6020402 */
+			     word, NULL_TREE);
+			     /* APPLE LOCAL end 6020402 */
 	  }
       }
 }
@@ -2117,7 +2119,8 @@ expand_call (tree exp, rtx target, int ignore)
 
   /* Operand 0 is a pointer-to-function; get the type of the function.  */
   funtype = TREE_TYPE (addr);
-  gcc_assert (POINTER_TYPE_P (funtype));
+  /* APPLE LOCAL blocks */
+  gcc_assert (POINTER_TYPE_P (funtype) || TREE_CODE (funtype) == BLOCK_POINTER_TYPE);
   funtype = TREE_TYPE (funtype);
 
   /* APPLE LOCAL begin objc stret methods */

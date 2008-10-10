@@ -1,4 +1,4 @@
-/* APPLE LOCAL file mainline 2007-06-14 5235474 */
+/* APPLE LOCAL file 5235474 5683689 */
 /* Additional functions for the GCC driver on Darwin native.
    Copyright (C) 2006, 2007 Free Software Foundation, Inc.
    Contributed by Apple Computer Inc.
@@ -37,12 +37,17 @@ Boston, MA 02110-1301, USA.  */
 #define WORD_SWITCH_TAKES_ARG(STR) DEFAULT_WORD_SWITCH_TAKES_ARG (STR)
 #endif
 
-/* When running on a Darwin system and using that system's headers and
-   libraries, default the -mmacosx-version-min flag to be the version
-   of the system on which the compiler is running.  */
+/* This function is used when running on a Darwin system and using that
+   system's headers and libraries.  Unless specified otherwise by
+   command-line options or environment variables, this routine will
+   set the appropriate version specification flag to a default value.
+   The version flag used is based on VERS_TYPE, and is either:
+   DARWIN_VERSION_MACOSX to use -mmacosx-version-min and
+   DARWIN_VERSION_IPHONEOS to use -miphoneos-version-min.  */
 
 void
-darwin_default_min_version (int * argc_p, char *** argv_p)
+darwin_default_min_version (int * argc_p, char *** argv_p,
+			    enum darwin_version_type vers_type)
 {
   const int argc = *argc_p;
   char ** const argv = *argv_p;
@@ -54,7 +59,7 @@ darwin_default_min_version (int * argc_p, char *** argv_p)
   char * version_pend;
   int major_vers;
   char minor_vers[6];
-  static char new_flag[sizeof ("-mmacosx-version-min=10.0.0") + 6];
+  static char new_flag[sizeof ("-mxxxxxx-version-min=99.99.99") + 6];
 
   /* If the command-line is empty, just return.  */
   if (argc <= 1)
@@ -66,14 +71,17 @@ darwin_default_min_version (int * argc_p, char *** argv_p)
 	  ((argv[1][1] == 'b') && (NULL != strchr(argv[1] + 2,'-')))))
     return;
   
-  /* Don't do this if the user specified -mmacosx-version-min= or
-     -mno-macosx-version-min.  */
+  /* Don't do this if the user specified -mmacosx-version-min=,
+     -miphoneos-version-min, -mno-macosx-version-min, or
+     -mno-iphoneos-version-min.  */
   for (i = 1; i < argc; i++)
     if (argv[i][0] == '-')
       {
 	const char * const p = argv[i];
 	if (strncmp (p, "-mno-macosx-version-min", 23) == 0
-	    || strncmp (p, "-mmacosx-version-min", 20) == 0)
+	    || strncmp (p, "-mno-iphoneos-version-min", 25) == 0
+	    || strncmp (p, "-mmacosx-version-min", 20) == 0
+	    || strncmp (p, "-miphoneos-version-min", 22) == 0)
 	  return;
 	
 	/* It doesn't count if it's an argument to a different switch.  */
@@ -87,12 +95,31 @@ darwin_default_min_version (int * argc_p, char *** argv_p)
      it as a flag.  */
   {
     const char * macosx_deployment_target;
+    const char * iphoneos_deployment_target;
+    bool iphoneos_env_set, macosx_env_set;
+
     macosx_deployment_target = getenv ("MACOSX_DEPLOYMENT_TARGET");
-    if (macosx_deployment_target
-	/* Apparently, an empty string for MACOSX_DEPLOYMENT_TARGET means
-	   "use the default".  Or, possibly "use 10.1".  We choose
-	   to ignore the environment variable, as if it was never set.  */
-	&& macosx_deployment_target[0])
+    iphoneos_deployment_target = getenv ("IPHONEOS_DEPLOYMENT_TARGET");
+
+    /* We choose to ignore an environment variable set to an empty
+       string.  */
+    macosx_env_set = macosx_deployment_target
+		     && macosx_deployment_target[0];
+    iphoneos_env_set = iphoneos_deployment_target
+		       && iphoneos_deployment_target[0];
+
+    if (macosx_env_set && iphoneos_env_set)
+      {
+	/* Conflicting DEPLOYMENT_TARGETs given.  Don't emit a warning
+	   for now (see rdar://5819018) -- just choose based on
+	   VERS_TYPE.  */
+	if (vers_type == DARWIN_VERSION_IPHONEOS)
+	  macosx_env_set = 0;
+	else
+	  iphoneos_env_set = 0;
+      }
+
+    if (macosx_env_set)
       {
 	++*argc_p;
 	*argv_p = xmalloc (sizeof (char *) * *argc_p);
@@ -102,7 +129,32 @@ darwin_default_min_version (int * argc_p, char *** argv_p)
 	memcpy (*argv_p + 2, argv + 1, (argc - 1) * sizeof (char *));
 	return;
       }
+
+    if (iphoneos_env_set)
+      {
+	++*argc_p;
+	*argv_p = xmalloc (sizeof (char *) * *argc_p);
+	(*argv_p)[0] = argv[0];
+	(*argv_p)[1] = concat ("-miphoneos-version-min=",
+			       iphoneos_deployment_target, NULL);
+	memcpy (*argv_p + 2, argv + 1, (argc - 1) * sizeof (char *));
+	return;
+      }
   }
+
+  /* For iPhone OS, if no version number is specified, we default to
+     2.0.  */
+  if (vers_type == DARWIN_VERSION_IPHONEOS)
+    {
+      ++*argc_p;
+      *argv_p = xmalloc (sizeof (char *) * *argc_p);
+      (*argv_p)[0] = argv[0];
+      (*argv_p)[1] = xstrdup ("-miphoneos-version-min=2.0");
+      memcpy (*argv_p + 2, argv + 1, (argc - 1) * sizeof (char *));
+      return;
+    }
+
+  gcc_assert (vers_type == DARWIN_VERSION_MACOSX);
 
   /* Determine the version of the running OS.  If we can't, warn user,
      and do nothing.  */

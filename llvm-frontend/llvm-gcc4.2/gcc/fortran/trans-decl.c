@@ -2145,24 +2145,30 @@ gfc_build_intrinsic_function_decls (void)
 #undef NRKINDS
   }
 
+  /* LLVM local begin - correct cpow prototypes */
   gfor_fndecl_math_cpowf =
     gfc_build_library_function_decl (get_identifier ("cpowf"),
-				     gfc_complex4_type_node,
-				     1, gfc_complex4_type_node);
+				     gfc_complex4_type_node, 2,
+                                     gfc_complex4_type_node,
+                                     gfc_complex4_type_node);
   gfor_fndecl_math_cpow =
     gfc_build_library_function_decl (get_identifier ("cpow"),
-				     gfc_complex8_type_node,
-				     1, gfc_complex8_type_node);
+				     gfc_complex8_type_node, 2,
+                                     gfc_complex8_type_node,
+                                     gfc_complex8_type_node);
   if (gfc_complex10_type_node)
     gfor_fndecl_math_cpowl10 =
       gfc_build_library_function_decl (get_identifier ("cpowl"),
-				       gfc_complex10_type_node, 1,
-				       gfc_complex10_type_node);
+				       gfc_complex10_type_node, 2,
+				       gfc_complex10_type_node,
+                                       gfc_complex10_type_node);
   if (gfc_complex16_type_node)
     gfor_fndecl_math_cpowl16 =
       gfc_build_library_function_decl (get_identifier ("cpowl"),
-				       gfc_complex16_type_node, 1,
-				       gfc_complex16_type_node);
+				       gfc_complex16_type_node, 2,
+				       gfc_complex16_type_node,
+                                       gfc_complex16_type_node);
+  /* LLVM local end - correct cpow prototypes */
 
   gfor_fndecl_math_ishftc4 =
     gfc_build_library_function_decl (get_identifier (PREFIX("ishftc4")),

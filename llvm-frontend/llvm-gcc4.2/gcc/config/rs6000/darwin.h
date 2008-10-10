@@ -79,9 +79,11 @@
 #define C_COMMON_OVERRIDE_OPTIONS do {					\
   /* On powerpc, __cxa_get_exception_ptr is available starting in the	\
      10.4.6 libstdc++.dylib.  */					\
-/* APPLE LOCAL begin mainline 2007-02-20 5005743 */ \
-  if (strverscmp (darwin_macosx_version_min, "10.4.6") < 0		\
-/* APPLE LOCAL end mainline 2007-02-20 5005743 */ \
+/* APPLE LOCAL begin ARM 5683689 */					\
+  if (!darwin_iphoneos_version_min					\
+      && (!darwin_macosx_version_min					\
+	  || strverscmp (darwin_macosx_version_min, "10.4.6") < 0)	\
+/* APPLE LOCAL end 5683689 */						\
       && flag_use_cxa_get_exception_ptr == 2)				\
     flag_use_cxa_get_exception_ptr = 0;					\
   /* APPLE LOCAL begin 5731065 */					\
@@ -98,6 +100,7 @@
 
 #define RS6000_DEFAULT_LONG_DOUBLE_SIZE 128
 
+
 /* We want -fPIC by default, unless we're using -static to compile for
    the kernel or some such.  */
 
@@ -108,8 +111,10 @@
   %<msse  %<msse2 %<msse3 %<march=pentium4 %<mcpu=pentium4 \
   %{g: %{!fno-eliminate-unused-debug-symbols: -feliminate-unused-debug-symbols }} \
   %{static: %{Zdynamic: %e conflicting code gen style switches are used}}\
-  "/* APPLE LOCAL mainline 2007-02-20 5005743 */" \
-  %{!mmacosx-version-min=*:-mmacosx-version-min=%(darwin_minversion)} \
+  "/* APPLE LOCAL ARM 5683689 */"\
+  %{!mmacosx-version-min=*: %{!miphoneos-version-min=*: %(darwin_cc1_minversion)}} \
+  "/* APPLE LOCAL enable format security warnings */"\
+  %{!Wno-format:-Wformat -Wformat-security} \
   "/* APPLE LOCAL -fast or -fastf or -fastcp */"\
   %{!mkernel:%{!static:%{!fast:%{!fastf:%{!fastcp:%{!mdynamic-no-pic:-fPIC}}}}}}"
 
@@ -135,8 +140,11 @@
    :ppc}}"
 
 /* crt2.o is at least partially required for 10.3.x and earlier.  */
+/* APPLE LOCAL begin ARM 5683689 */
 #define DARWIN_CRT2_SPEC \
-  "%{!m64:%:version-compare(!> 10.4 mmacosx-version-min= crt2.o%s)}"
+  "%{!m64: %{mmacosx-version-min=*:		\
+	%:version-compare(!> 10.4 mmacosx-version-min= crt2.o%s)}}"
+/* APPLE LOCAL end ARM 5683689 */
 
 /* APPLE LOCAL begin mainline 2007-03-13 5005743 5040758 */ \
 /* Determine a minimum version based on compiler options.  */
@@ -151,16 +159,33 @@
      :10.1}"
 
 /* APPLE LOCAL end mainline 2007-03-13 5040758 5005743 */
+/* APPLE LOCAL begin ARM 5683689 */
+/* Default cc1 option for specifying minimum version number.  */
+#define DARWIN_CC1_MINVERSION_SPEC "-mmacosx-version-min=%(darwin_minversion)"
+
+/* Default ld option for specifying minimum version number.  */
+#define DARWIN_LD_MINVERSION_SPEC "-macosx_version_min %(darwin_minversion)"
+
+/* Use macosx version numbers by default.  */
+#define DARWIN_DEFAULT_VERSION_TYPE  DARWIN_VERSION_MACOSX
+/* APPLE LOCAL end ARM 5683689 */
+
+/* APPLE LOCAL ARM 5681645 */
+#define DARWIN_IPHONEOS_LIBGCC_SPEC "-lgcc_s.10.5 -lgcc"
+
 /* APPLE LOCAL begin 5342595 */
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #ifdef HAVE_DSYMUTIL
 #define DARWIN_DSYMUTIL_SPEC	\
   "%{g*:%{!gstabs*:%{!g0: dsymutil %{o*:%*}%{!o:a.out}}}}"
 #else
 #define DARWIN_DSYMUTIL_SPEC ""
 #endif
+#endif
 /* LLVM LOCAL end */
 /* APPLE LOCAL end 5342595 */
+
 /* APPLE LOCAL begin mainline */
 #undef SUBTARGET_EXTRA_SPECS
 #define SUBTARGET_EXTRA_SPECS			\
@@ -545,9 +570,10 @@
     (flag_next_runtime			\
      && flag_objc_direct_dispatch != 0	\
      && !TARGET_64BIT			\
-/* APPLE LOCAL begin mainline 2007-02-20 5005743 */ \
-     && (strverscmp (darwin_macosx_version_min, "10.4") >= 0 \
-/* APPLE LOCAL end mainline 2007-02-20 5005743 */ \
+/* APPLE LOCAL begin ARM 5683689 */				\
+     && (darwin_iphoneos_version_min				\
+         || strverscmp (darwin_macosx_version_min, "10.4") >= 0	\
+/* APPLE LOCAL end ARM 5683689 */ 				\
          || flag_objc_direct_dispatch == 1))
 
 /* This is the reserved direct dispatch address for Objective-C.  */
@@ -563,15 +589,18 @@
 #undef TARGET_C99_FUNCTIONS
 #define TARGET_C99_FUNCTIONS					\
   (TARGET_64BIT							\
-/* APPLE LOCAL begin mainline 2007-02-20 5005743 */ \
+   /* APPLE LOCAL begin ARM 5683689 */				\
+   || darwin_iphoneos_version_min				\
    || strverscmp (darwin_macosx_version_min, "10.3") >= 0)
-
-/* APPLE LOCAL end mainline 2007-02-20 5005743 */ \
+   /* APPLE LOCAL end ARM 5683689 */
 
 /* APPLE LOCAL begin track initialization status 4964532  */
+/* APPLE LOCAL begin ARM 5683689 */
 #undef  TARGET_DWARF_UNINIT_VARS
-#define TARGET_DWARF_UNINIT_VARS   \
-  (strverscmp (darwin_macosx_version_min, "10.4") >= 0)
+#define TARGET_DWARF_UNINIT_VARS	\
+  (darwin_iphoneos_version_min 		\
+   || (strverscmp (darwin_macosx_version_min, "10.4") >= 0))
+/* APPLE LOCAL end ARM 5683689 */
 /* APPLE LOCAL end track initialization status 4964532  */
 
 /* When generating kernel code or kexts, we don't use Altivec by

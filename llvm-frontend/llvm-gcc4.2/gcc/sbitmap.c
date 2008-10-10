@@ -787,7 +787,8 @@ dump_sbitmap_vector (FILE *file, const char *title, const char *subtitle,
   int bb;
 
   fprintf (file, "%s\n", title);
-  for (bb = 0; bb < n_maps; bb++)
+  /* APPLE LOCAL 6102803 */
+  for (bb = NUM_FIXED_BLOCKS; bb < n_maps; bb++)
     {
       fprintf (file, "%s %d\n", subtitle, bb);
       dump_sbitmap (file, bmaps[bb]);

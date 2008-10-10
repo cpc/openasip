@@ -30,7 +30,9 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "langhooks.h"
 #include "tree-iterator.h"
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #include "llvm.h"
+#endif
 /* LLVM LOCAL end */
 
 /* Define the hash table of nodes already seen.
@@ -453,17 +455,17 @@ print_node (FILE *file, const char *prefix, tree node, int indent)
 	      || DECL_INLINE (node) || DECL_BUILT_IN (node))
 	    indent_to (file, indent + 3);
 	  
-	  if (TREE_CODE (node) != FUNCTION_DECL)
-	    {
-	      if (DECL_USER_ALIGN (node))
-		fprintf (file, " user");
-	      
-	      fprintf (file, " align %d", DECL_ALIGN (node));
-	      if (TREE_CODE (node) == FIELD_DECL)
-		fprintf (file, " offset_align " HOST_WIDE_INT_PRINT_UNSIGNED,
-			 DECL_OFFSET_ALIGN (node));
-	    }
-	  else if (DECL_BUILT_IN (node))
+	  /* APPLE LOCAL begin mainline aligned functions 5933878 */
+	  if (DECL_USER_ALIGN (node))
+	    fprintf (file, " user");
+
+	  fprintf (file, " align %d", DECL_ALIGN (node));
+	  if (TREE_CODE (node) == FIELD_DECL)
+	    fprintf (file, " offset_align " HOST_WIDE_INT_PRINT_UNSIGNED,
+		     DECL_OFFSET_ALIGN (node));
+
+	  if (TREE_CODE (node) == FUNCTION_DECL && DECL_BUILT_IN (node))
+	  /* APPLE LOCAL end mainline aligned functions 5933878 */
 	    {
 	      if (DECL_BUILT_IN_CLASS (node) == BUILT_IN_MD)
 		fprintf (file, " built-in BUILT_IN_MD %d", DECL_FUNCTION_CODE (node));

@@ -1867,6 +1867,13 @@ find_src_status (dataflow_set *in, rtx loc, rtx insn)
 	    && SET_DEST (XVECEXP (PATTERN (insn), 0, i)) == loc)
 	  src = SET_SRC (XVECEXP (PATTERN (insn), 0, i));
     }
+  /* APPLE LOCAL begin ARM 5595749 */
+  else if (GET_CODE (PATTERN (insn)) == COND_EXEC
+	   && GET_CODE (COND_EXEC_CODE (PATTERN (insn))) == SET)
+    src = SET_SRC (COND_EXEC_CODE (PATTERN (insn)));
+  else
+    gcc_unreachable ();
+  /* APPLE LOCAL end ARM 5595749 */
 
   if (REG_P (src))
     decl = var_debug_decl (REG_EXPR (src));
@@ -1905,6 +1912,13 @@ find_src_set_src (dataflow_set *set, rtx loc, rtx insn)
 	    && SET_DEST (XVECEXP (PATTERN (insn), 0, i)) == loc)
 	  src = SET_SRC (XVECEXP (PATTERN (insn), 0, i));
     }
+  /* APPLE LOCAL begin ARM 5595749 */
+  else if (GET_CODE (PATTERN (insn)) == COND_EXEC
+	   && GET_CODE (COND_EXEC_CODE (PATTERN (insn))) == SET)
+    src = SET_SRC (COND_EXEC_CODE (PATTERN (insn)));
+  else
+    gcc_unreachable ();
+  /* APPLE LOCAL end ARM 5595749 */
 
   if (REG_P (src))
     decl = var_debug_decl (REG_EXPR (src));

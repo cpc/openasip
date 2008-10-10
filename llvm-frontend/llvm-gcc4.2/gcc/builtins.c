@@ -71,8 +71,12 @@ tree built_in_decls[(int) END_BUILTINS];
    required to implement the function call in all cases).  */
 tree implicit_built_in_decls[(int) END_BUILTINS];
 
-/* LLVM LOCAL */
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+static
+#endif
 int get_pointer_alignment (tree, unsigned int);
+/* LLVM LOCAL end */
 static const char *c_getstr (tree);
 static rtx c_readstr (const char *, enum machine_mode);
 static int target_char_cast (tree, char *);
@@ -141,6 +145,9 @@ static tree fold_builtin_strlen (tree);
 static tree fold_builtin_inf (tree, int);
 static tree fold_builtin_nan (tree, tree, int);
 /* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+static
+#endif
 int validate_arglist (tree, ...);
 /* LLVM LOCAL end */
 static bool integer_valued_real_p (tree);
@@ -232,8 +239,12 @@ static bool called_as_built_in (tree node)
    Otherwise, look at the expression to see if we can do better, i.e., if the
    expression is actually pointing at an object whose alignment is tighter.  */
 
-/* LLVM LOCAL */
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+static
+#endif
 int
+/* LLVM LOCAL end */
 get_pointer_alignment (tree exp, unsigned int max_align)
 {
   unsigned int align, inner;
@@ -5303,14 +5314,39 @@ expand_builtin_init_trampoline (tree arglist)
   trampolines_created = 1;
   INITIALIZE_TRAMPOLINE (r_tramp, r_func, r_chain);
 
-/* LLVM local begin */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #ifdef TRAMPOLINE_ADJUST_ADDRESS
   TRAMPOLINE_ADJUST_ADDRESS (r_tramp);
 #endif
 
   return r_tramp;
+#else
+  return const0_rtx;
+#endif
+/* LLVM LOCAL end */
 }
-/* LLVM local end */
+
+/* LLVM LOCAL */
+#ifndef ENABLE_LLVM
+static rtx
+expand_builtin_adjust_trampoline (tree arglist)
+{
+  rtx tramp;
+
+  if (!validate_arglist (arglist, POINTER_TYPE, VOID_TYPE))
+    return NULL_RTX;
+
+  tramp = expand_normal (TREE_VALUE (arglist));
+  tramp = round_trampoline_addr (tramp);
+#ifdef TRAMPOLINE_ADJUST_ADDRESS
+  TRAMPOLINE_ADJUST_ADDRESS (tramp);
+#endif
+
+  return tramp;
+}
+/* LLVM LOCAL */
+#endif
 
 /* Expand a call to the built-in signbit, signbitf or signbitl function.
    Return NULL_RTX if a normal call should be emitted rather than expanding
@@ -6296,7 +6332,12 @@ expand_builtin (tree exp, rtx target, rtx subtarget, enum machine_mode mode,
 
     case BUILT_IN_INIT_TRAMPOLINE:
       return expand_builtin_init_trampoline (arglist);
-    /* LLVM local deleted 2 lines */
+    /* LLVM LOCAL begin deleted 2 lines */
+#ifndef ENABLE_LLVM
+    case BUILT_IN_ADJUST_TRAMPOLINE:
+      return expand_builtin_adjust_trampoline (arglist);
+#endif
+    /* LLVM LOCAL end deleted 2 lines */
 
     case BUILT_IN_FORK:
     case BUILT_IN_EXECL:
@@ -8863,7 +8904,8 @@ fold_builtin_classify (tree fndecl, tree arglist, int builtin_index)
       /* APPLE LOCAL begin mainline 5675014 */
       if (!HONOR_NANS (TYPE_MODE (TREE_TYPE (arg)))
 	  && !HONOR_INFINITIES (TYPE_MODE (TREE_TYPE (arg))))
-	return omit_one_operand (type, integer_zero_node, arg);
+	/* APPLE LOCAL 6119849 */
+	return omit_one_operand (type, integer_one_node, arg);
       /* APPLE LOCAL end mainline 5675014 */
 
       if (TREE_CODE (arg) == REAL_CST)
@@ -9360,6 +9402,9 @@ build_function_call_expr (tree fn, tree arglist)
    ellipses, otherwise the last specifier must be a VOID_TYPE.  */
 
 /* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+static
+#endif
 int    /* export this for LLVM to use*/
 /* LLVM LOCAL end */
 validate_arglist (tree arglist, ...)

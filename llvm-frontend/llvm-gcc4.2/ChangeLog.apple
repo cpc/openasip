@@ -1,3 +1,96 @@
+2008-09-05  Josh Conner  <jconner@apple.com>
+
+	Radar 6177003
+	* build_gcc: Add support for LANGUAGES.
+
+2008-09-03  Josh Conner  <jconner@apple.com>
+
+	Radar 6156214
+	* build_gcc (ARM_CONFIGFLAGS): On ARM, Configure
+	--with-build-sysroot instead of --with-sysroot.
+	* build_libgcc (ARM_CONFIGFLAGS): Likewise.
+
+2008-08-25  Josh Conner  <jconner@apple.com>
+
+	Radar 6162685
+	* build_libgcc: Strip libgcc.
+
+	Radar 6175043
+	* build_libgcc: Disable bootstrap if BOOTSTRAP is empty.
+
+2008-08-06  Eugene Marinelli  <marinelli@apple.com>
+
+	Radar 6123671
+	* driverdriver.c (main): Instead of aborting, print a fatal error when
+	there is no argument after -o.
+
+2008-06-04  Josh Conner  <jconner@apple.com>
+
+	Radar 5961147
+	* build_gcc: Use 4.2.1 libstdcxx headers for ARM.
+
+2008-05-09  Josh Conner  <jconner@apple.com>
+
+	Radar 5925341
+	* build_libgcc (TRANSLATE_ARCH): Add s/armv6/arm/.
+
+2008-04-15  Josh Conner  <jconner@apple.com>
+
+	Radar 5866354
+	* build_gcc: Translate armv6->arm in HOSTS and TARGETS.  Also,
+	don't try to build libgomp for ARM.
+
+2008-02-07  Josh Conner  <jconner@apple.com>
+
+	Radar 5730761
+	* driverdriver.c (do_compile_separately): New variable
+	ifn_found, provide a fatal error if set twice for a single
+	invocation.
+
+2008-01-17  Josh Conner  <jconner@apple.com>
+
+	* driverdriver.c (do_compile): Move malloc of
+	arch_specific_argv to after call to add_arch_options.
+
+2008-01-09  Josh Conner  <jconner@apple.com>
+
+	Radar 5256615
+	* driverdriver.c (arch_conditional): New global...
+	(initialize): ...initialize it.
+	(filter_args_for_arch): New function...
+	(do_compile): ...use it.
+	(do_compile_separately): Maintain arch_conditional.
+	(main): Set arch_conditional.  Configure and use
+	arch_specific_argc and arch_specific_argv.  Pass args through
+	filter_args_for_arch.
+
+2007-11-07  Josh Conner  <jconner@apple.com>
+
+	Radar 5585401
+	* GNUmakefile: Add install_libgcc target.
+	* build_libgcc: New file.
+
+2007-10-26  Josh Conner  <jconner@apple.com>
+
+	Radar 5562046
+	* configure: Don't configure libgomp, libobjc, libstdc++-v3, or
+	libssp for arm-*-darwin*.
+	* configure.in: Likewise.
+	* driverdriver.c (arch_config_map): Add arm variants.
+	(add_arch_options): Likewise.
+	* build_gcc: For ARM, configure with sysroot.
+
+2007-08-30  Josh Conner  <jconner@apple.com> 
+	Radar 5448306
+	* build_gcc: Add and use CROSS_TARGETS.
+	Use intermediate compiler instead of destination compiler when
+	building driver-driver.
+
+2007-07-31  Mike Stump  <mrs@apple.com>
+
+	Radar 5370764
+	* REMOVED: Document removed files.
+
 2007-06-20  Eric Christopher  <echristo@apple.com>
 
 	Radar 5279253

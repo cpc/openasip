@@ -35,9 +35,13 @@
 
 /* EABI targets should enable interworking by default.  */
 #undef TARGET_DEFAULT
-/* LLVM Local begin */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #define TARGET_DEFAULT (0)
-/* LLVM Local end */
+#else
+#define TARGET_DEFAULT MASK_INTERWORK
+#endif
+/* LLVM LOCAL end */
 
 /* The ARM BPABI functions return a boolean; they use no special
    calling convention.  */

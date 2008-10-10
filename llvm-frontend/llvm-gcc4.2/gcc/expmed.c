@@ -40,7 +40,9 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 
 static void store_fixed_bit_field (rtx, unsigned HOST_WIDE_INT,
 				   unsigned HOST_WIDE_INT,
-				   unsigned HOST_WIDE_INT, rtx);
+				   /* APPLE LOCAL begin 6020402 */
+				   unsigned HOST_WIDE_INT, rtx, tree);
+				   /* APPLE LOCAL end 6020402 */
 static void store_split_bit_field (rtx, unsigned HOST_WIDE_INT,
 				   unsigned HOST_WIDE_INT, rtx);
 static rtx extract_fixed_bit_field (enum machine_mode, rtx,
@@ -54,6 +56,12 @@ static rtx extract_split_bit_field (rtx, unsigned HOST_WIDE_INT,
 static void do_cmp_and_jump (rtx, rtx, enum rtx_code, enum machine_mode, rtx);
 static rtx expand_smod_pow2 (enum machine_mode, rtx, HOST_WIDE_INT);
 static rtx expand_sdiv_pow2 (enum machine_mode, rtx, HOST_WIDE_INT);
+/* APPLE LOCAL begin 6020402 */
+static enum machine_mode
+widest_mode_including_no_volatile_fields (tree, unsigned HOST_WIDE_INT,
+					  unsigned HOST_WIDE_INT,
+					  unsigned HOST_WIDE_INT);
+/* APPLE LOCAL end 6020402 */
 
 /* Test whether a value is zero of a power of two.  */
 #define EXACT_POWER_OF_2_OR_ZERO_P(x) (((x) & ((x) - 1)) == 0)
@@ -332,7 +340,11 @@ mode_for_extraction (enum extraction_pattern pattern, int opno)
    containing BITSIZE bits starting at bit BITNUM.
    FIELDMODE is the machine-mode of the FIELD_DECL node for this field.
    ALIGN is the alignment that STR_RTX is known to have.
-   TOTAL_SIZE is the size of the structure in bytes, or -1 if varying.  */
+APPLE LOCAL begin 6020402
+   TOTAL_SIZE is the size of the structure in bytes, or -1 if varying.
+   STRUCT_TYPE is the type of the struct containing the bitfield, or NULL_TREE
+   if the struct type is not available.
+APPLE LOCAL end 6020402 */
 
 /* ??? Note that there are two different ideas here for how
    to determine the size to count bits within, for a register.
@@ -345,7 +357,9 @@ mode_for_extraction (enum extraction_pattern pattern, int opno)
 rtx
 store_bit_field (rtx str_rtx, unsigned HOST_WIDE_INT bitsize,
 		 unsigned HOST_WIDE_INT bitnum, enum machine_mode fieldmode,
-		 rtx value)
+		 /* APPLE LOCAL begin 6020402 */
+		 rtx value, tree struct_type)
+		 /* APPLE LOCAL end 6020402 */
 {
   unsigned int unit
     = (MEM_P (str_rtx)) ? BITS_PER_UNIT : BITS_PER_WORD;
@@ -582,7 +596,10 @@ store_bit_field (rtx str_rtx, unsigned HOST_WIDE_INT bitsize,
 	  store_bit_field (op0, MIN (BITS_PER_WORD,
 				     bitsize - i * BITS_PER_WORD),
 			   bitnum + bit_offset, word_mode,
-			   operand_subword_force (value, wordnum, fieldmode));
+			   /* APPLE LOCAL begin 6020402 */
+			   operand_subword_force (value, wordnum, fieldmode),
+			   struct_type);
+			   /* APPLE LOCAL end 6020402 */
 	}
       return value;
     }
@@ -695,7 +712,9 @@ store_bit_field (rtx str_rtx, unsigned HOST_WIDE_INT bitsize,
 	      (GET_MODE_CLASS (fieldmode) != MODE_INT
 		&& GET_MODE_CLASS (fieldmode) != MODE_PARTIAL_INT)
 	      ? GET_MODE (orig_value) : fieldmode,
-	    orig_value);
+	      /* APPLE LOCAL begin 6020402 */
+	      orig_value, struct_type);
+	      /* APPLE LOCAL end 6020402 */
 	  /* APPLE LOCAL end do not use float fieldmode */
 	  emit_move_insn (op0, tempreg);
 	  return value;
@@ -775,16 +794,133 @@ store_bit_field (rtx str_rtx, unsigned HOST_WIDE_INT bitsize,
       else
 	{
 	  delete_insns_since (last);
-	  store_fixed_bit_field (op0, offset, bitsize, bitpos, value);
+	  /* APPLE LOCAL begin 6020402 */
+	  store_fixed_bit_field (op0, offset, bitsize, bitpos, value,
+				 struct_type);
+	  /* APPLE LOCAL end 6020402 */
 	}
     }
   else
     insv_loses:
     /* Insv is not available; store using shifts and boolean ops.  */
-    store_fixed_bit_field (op0, offset, bitsize, bitpos, value);
+    /* APPLE LOCAL begin 6020402 */
+    store_fixed_bit_field (op0, offset, bitsize, bitpos, value, struct_type);
+    /* APPLE LOCAL end 6020402 */
   return value;
 }
 
+/* APPLE LOCAL begin 6020402 */
+/* Given a struct type and a bit field corresponding to OFFSET_BYTES, BITSIZE,
+   and BITPOS, returns the widest mode that can be used to store to the bit
+   field without also writing to a volatile region of the struct.  If no mode
+   is small enough to fit the bit field, then VOIDmode is returned.  It is
+   assumed that OFFSET_BYTES, BITSIZE, and BITPOS correspond to a field
+   defined explicitly in STRUCT_TYPE.
+
+   STRUCT_TYPE is the type of the struct containing the bit field.
+   OFFSET_BYTES is the offset of the target field in the struct in bytes.
+   BITPOS is the offset of the target field in the struct in bits, not
+   including the byte offset.
+   BITSIZE is the size of the bit field in bits.
+*/
+
+static enum machine_mode
+widest_mode_including_no_volatile_fields (tree struct_type,
+					  unsigned HOST_WIDE_INT offset_bytes,
+					  unsigned HOST_WIDE_INT bitpos,
+					  unsigned HOST_WIDE_INT bitsize)
+{
+  enum machine_mode minmode = VOIDmode, maxmode = VOIDmode, tmode;
+  unsigned target_low, target_high;
+
+  /* Find the narrowest integer mode that contains the bit field. */
+  for (minmode = GET_CLASS_NARROWEST_MODE (MODE_INT); minmode != VOIDmode;
+       minmode = GET_MODE_WIDER_MODE (minmode))
+    {
+      unsigned unit = GET_MODE_BITSIZE (minmode);
+      if ((bitpos % unit) + bitsize <= unit)
+	break;
+    }
+
+  if (minmode == VOIDmode)
+    return VOIDmode; /* No mode will fit a bitfield of this size. */
+
+  target_low = offset_bytes * 8 + bitpos;
+  target_high = target_low + bitsize;
+
+  maxmode = VOIDmode;
+
+  for (tmode = minmode;
+       tmode != VOIDmode
+	 && GET_MODE_BITSIZE (tmode) <= GET_MODE_BITSIZE (word_mode);
+       tmode = GET_MODE_WIDER_MODE (tmode))
+    {
+      tree field;
+      unsigned mode_bitsize = GET_MODE_BITSIZE (tmode);
+      unsigned mode_low = (target_low / mode_bitsize) * mode_bitsize;
+      unsigned mode_high = mode_low + mode_bitsize;
+
+      for (field = TYPE_FIELDS (struct_type); field;
+	   field = TREE_CHAIN (field))
+	{
+	  unsigned field_low, field_high;
+	  bool field_is_target_field, field_intersects_with_mode_range;
+
+	  /* Make sure all values that we need are present for this field. */
+	  if (TREE_CODE (field) != FIELD_DECL
+	      || DECL_FIELD_OFFSET (field) == NULL_TREE
+	      || DECL_FIELD_BIT_OFFSET (field) == NULL_TREE
+	      || TREE_TYPE (field) == NULL_TREE
+	      || TYPE_SIZE (TREE_TYPE (field)) == NULL_TREE)
+	    continue;
+
+	  if (TREE_CODE (DECL_FIELD_OFFSET (field)) != INTEGER_CST)
+	    return VOIDmode;
+
+	  field_low = 8 * TREE_INT_CST_LOW (DECL_FIELD_OFFSET (field))
+	    + TREE_INT_CST_LOW (DECL_FIELD_BIT_OFFSET (field));
+
+	  if (DECL_SIZE (field) != NULL_TREE)
+	    field_high = field_low + TREE_INT_CST_LOW (DECL_SIZE (field));
+	  else
+	    {
+	      if (TREE_CODE (TYPE_SIZE (TYPE_SIZE (TREE_TYPE (field))))
+		  != INTEGER_CST)
+		return VOIDmode;
+
+	      field_high = field_low
+		+ TREE_INT_CST_LOW (TYPE_SIZE (TREE_TYPE (field)));
+	    }
+
+	  /* We assume that this will be true if the current field is the
+	     target field.  This may not be the case if the field is
+	     split up, for instance. */
+	  field_is_target_field =
+	    field_low == target_low && field_high == target_high;
+
+	  /* The current field and the current mode intersect if either the
+	     field low or the field high is in the mode range, or if the
+	     field completely contains the mode range. */
+	  field_intersects_with_mode_range =
+	    (field_high > mode_low && field_high <= mode_high)
+	    || (field_low >= mode_low && field_low < mode_high)
+	    || (field_high >= mode_high && field_low <= mode_low);
+
+	  if (!field_is_target_field
+	      && TYPE_VOLATILE (TREE_TYPE (field))
+	      && field_intersects_with_mode_range)
+	    /* The current field is volatile and within the mode of the
+	       target field.  Return the max mode allowed up to this point. */
+	    return maxmode;
+	}
+
+      maxmode = tmode;
+    }
+
+  return maxmode;
+}
+/* APPLE LOCAL end 6020402 */
+
 /* Use shifts and boolean operations to store VALUE
    into a bit field of width BITSIZE
    in a memory location specified by OP0 except offset by OFFSET bytes.
@@ -797,7 +933,10 @@ store_bit_field (rtx str_rtx, unsigned HOST_WIDE_INT bitsize,
 static void
 store_fixed_bit_field (rtx op0, unsigned HOST_WIDE_INT offset,
 		       unsigned HOST_WIDE_INT bitsize,
-		       unsigned HOST_WIDE_INT bitpos, rtx value)
+		       /* APPLE LOCAL begin 6020402 */
+		       unsigned HOST_WIDE_INT bitpos, rtx value,
+		       tree struct_type)
+		       /* APPLE LOCAL end 6020402 */
 {
   enum machine_mode mode;
   unsigned int total_bits = BITS_PER_WORD;
@@ -829,12 +968,24 @@ store_fixed_bit_field (rtx op0, unsigned HOST_WIDE_INT offset,
 	 a word, we won't be doing the extraction the normal way.
 	 We don't want a mode bigger than the destination.  */
 
-      mode = GET_MODE (op0);
-      if (GET_MODE_BITSIZE (mode) == 0
-	  || GET_MODE_BITSIZE (mode) > GET_MODE_BITSIZE (word_mode))
-	mode = word_mode;
+      /* APPLE LOCAL begin 6020402 */
+      enum machine_mode maxmode = GET_MODE (op0);
+
+      /* Find the largest mode that doesn't interfere with volatile fields in
+       * the struct. */
+      if (struct_type != NULL_TREE && TREE_CODE (struct_type) == RECORD_TYPE)
+	maxmode = widest_mode_including_no_volatile_fields (struct_type,
+							    offset,
+							    bitpos, bitsize);
+
+      if (GET_MODE_BITSIZE (maxmode) == 0
+	  || GET_MODE_BITSIZE (maxmode) > GET_MODE_BITSIZE (word_mode))
+	maxmode = word_mode;
+      /* APPLE LOCAL end 6020402 */
       mode = get_best_mode (bitsize, bitpos + offset * BITS_PER_UNIT,
-			    MEM_ALIGN (op0), mode, MEM_VOLATILE_P (op0));
+			    /* APPLE LOCAL begin 6020402 */
+			    MEM_ALIGN (op0), maxmode, MEM_VOLATILE_P (op0));
+			    /* APPLE LOCAL end 6020402 */
 
       if (mode == VOIDmode)
 	{
@@ -1069,7 +1220,9 @@ store_split_bit_field (rtx op0, unsigned HOST_WIDE_INT bitsize,
       /* OFFSET is in UNITs, and UNIT is in bits.
          store_fixed_bit_field wants offset in bytes.  */
       store_fixed_bit_field (word, offset * unit / BITS_PER_UNIT, thissize,
-			     thispos, part);
+			     /* APPLE LOCAL begin 6020402 */
+			     thispos, part, NULL_TREE);
+			     /* APPLE LOCAL end 6020402 */
       bitsdone += thissize;
     }
 }

@@ -35,8 +35,11 @@
 #include "expr.h"
 #include "langhooks.h"
 #include "ggc.h"
-/* LLVM local */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #include "pointer-set.h"
+#endif
+/* LLVM LOCAL end */
 
 
 /* The object of this pass is to lower the representation of a set of nested
@@ -91,8 +94,9 @@ struct nesting_info GTY ((chain_next ("%h.next")))
   struct nesting_info *inner;
   struct nesting_info *next;
   
-  /* LLVM local */
+  /* LLVM LOCAL begin */
   struct nesting_info *next_with_chain;
+  /* LLVM LOCAL end */
 
   htab_t GTY ((param_is (struct var_map_elt))) field_map;
   htab_t GTY ((param_is (struct var_map_elt))) var_map;
@@ -107,16 +111,17 @@ struct nesting_info GTY ((chain_next ("%h.next")))
   tree chain_decl;
   tree nl_goto_field;
 
-  /* LLVM local */
+  /* LLVM LOCAL begin */
   struct pointer_set_t * GTY ((skip)) callers;
-
+  /* LLVM LOCAL end */
   bool any_parm_remapped;
   bool any_tramp_created;
   char static_chain_added;
 };
 
 
-/* LLVM local begin */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 /* Hash table used to look up nesting_info from nesting_info->context.  */
 
 static htab_t ni_map;
@@ -136,7 +141,8 @@ ni_eq (const void *p1, const void *p2)
   const struct nesting_info *i1 = p1, *i2 = p2;
   return DECL_UID (i1->context) == DECL_UID (i2->context);
 }
-/* LLVM local end */
+#endif
+/* LLVM LOCAL end */
 
 /* Hashing and equality functions for nesting_info->var_map.  */
 
@@ -455,20 +461,16 @@ save_tmp_var (struct nesting_info *info, tree exp,
 
 /* Build or return the type used to represent a nested function trampoline.  */
 
-/* LLVM local */
-static GTY(()) tree trampoline_storage_type;
+static GTY(()) tree trampoline_type;
 
 static tree
-/* LLVM local */
-get_trampoline_storage_type (void)
+get_trampoline_type (void)
 {
   tree record, t;
   unsigned align, size;
 
-  /* LLVM local begin */
-  if (trampoline_storage_type)
-    return trampoline_storage_type;
-  /* LLVM local end */
+  if (trampoline_type)
+    return trampoline_type;
 
   align = TRAMPOLINE_ALIGNMENT;
   size = TRAMPOLINE_SIZE;
@@ -524,9 +526,15 @@ lookup_tramp_for_decl (struct nesting_info *info, tree decl,
     {
       field = make_node (FIELD_DECL);
       DECL_NAME (field) = DECL_NAME (decl);
-      /* LLVM local begin */
+      /* LLVM LOCAL begin */
+      /* FIXME: Keep the LLVM-way? */
+#ifdef ENABLE_LLVM
       TREE_TYPE (field) = TYPE_POINTER_TO (TREE_TYPE (decl));
-      /* LLVM local end */
+#else
+      TREE_TYPE (field) = get_trampoline_type ();
+      TREE_ADDRESSABLE (field) = 1;
+#endif
+      /* LLVM LOCAL end */
 
       insert_field_into_struct (get_frame_type (info), field);
 
@@ -806,20 +814,25 @@ check_for_nested_with_variably_modified (tree fndecl, tree orig_fndecl)
 static struct nesting_info *
 create_nesting_tree (struct cgraph_node *cgn)
 {
-  /* LLVM local */
+  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   struct nesting_info **slot;
+#endif
+  /* LLVM LOCAL end */
   struct nesting_info *info = GGC_CNEW (struct nesting_info);
   info->field_map = htab_create_ggc (7, var_map_hash, var_map_eq, ggc_free);
   info->var_map = htab_create_ggc (7, var_map_hash, var_map_eq, ggc_free);
   info->suppress_expansion = BITMAP_GGC_ALLOC ();
   info->context = cgn->decl;
-  /* LLVM local begin */
+  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   info->callers = pointer_set_create ();
 
   slot = (struct nesting_info **) htab_find_slot (ni_map, info, INSERT);
   gcc_assert (*slot == NULL);
   *slot = info;
-  /* LLVM local end */
+#endif
+  /* LLVM LOCAL end */
 
   for (cgn = cgn->nested; cgn ; cgn = cgn->next_nested)
     {
@@ -1653,7 +1666,8 @@ convert_nl_goto_receiver (tree *tp, int *walk_subtrees, void *data)
   return NULL_TREE;
 }
 
-/* LLVM local begin */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 /* Find the nesting context for FNDECL, a function declaration.  */
 
 static struct nesting_info *
@@ -1768,7 +1782,8 @@ propagate_chains (struct nesting_info *root) {
     pointer_set_traverse (info->callers, propagate_to_caller, info->outer);
   }
 }
-/* LLVM local end */
+#endif
+/* LLVM LOCAL end */
 
 /* Called via walk_function+walk_tree, rewrite all references to addresses
    of nested functions that require the use of trampolines.  The rewrite
@@ -1779,8 +1794,12 @@ convert_tramp_reference (tree *tp, int *walk_subtrees, void *data)
 {
   struct walk_stmt_info *wi = (struct walk_stmt_info *) data;
   struct nesting_info *info = wi->info, *i;
-  /* LLVM local */
+  /* LLVM LOCAL begin */
   tree t = *tp, decl, target_context, x;
+#ifndef ENABLE_LLVM
+  tree arg;
+#endif
+  /* LLVM LOCAL end */
 
   *walk_subtrees = 0;
   switch (TREE_CODE (t))
@@ -1806,12 +1825,32 @@ convert_tramp_reference (tree *tp, int *walk_subtrees, void *data)
 	 we need to insert the trampoline.  */
       for (i = info; i->context != target_context; i = i->outer)
 	continue;
-      /* LLVM local begin */
 
+      /* LLVM LOCAL begin */
+      /* FIXME: Keep the LLVM-way? */
+#ifdef ENABLE_LLVM
       /* Lookup the trampoline.  */
       x = lookup_tramp_for_decl (i, decl, INSERT);
       x = get_frame_field (info, target_context, x, &wi->tsi);
-      /* LLVM local end */
+#else
+      x = lookup_tramp_for_decl (i, decl, INSERT);
+
+      /* Compute the address of the field holding the trampoline.  */
+      x = get_frame_field (info, target_context, x, &wi->tsi);
+      x = build_addr (x, target_context);
+      x = tsi_gimplify_val (info, x, &wi->tsi);
+      arg = tree_cons (NULL, x, NULL);
+
+      /* Do machine-specific ugliness.  Normally this will involve
+	 computing extra alignment, but it can really be anything.  */
+      x = implicit_built_in_decls[BUILT_IN_ADJUST_TRAMPOLINE];
+      x = build_function_call_expr (x, arg);
+      x = init_tmp_var (info, x, &wi->tsi);
+
+      /* Cast back to the proper function type.  */
+      x = build1 (NOP_EXPR, TREE_TYPE (t), x);
+#endif
+      /* LLVM LOCAL end */
       x = init_tmp_var (info, x, &wi->tsi);
 
       *tp = x;
@@ -1928,11 +1967,20 @@ convert_all_function_calls (struct nesting_info *root)
       walk_function (convert_tramp_reference, root);
       walk_function (convert_call_expr, root);
 
-      /* LLVM local begin */
+      /* LLVM LOCAL begin */
+      /* FIXME: Keep the LLVM-way? */
+#ifdef ENABLE_LLVM
       gcc_assert (!root->outer ||
                   DECL_NO_STATIC_CHAIN (root->context) ==
                   !(root->chain_decl || root->chain_field));
-      /* LLVM local end */
+#else
+      /* If the function does not use a static chain, then remember that.  */
+      if (root->outer && !root->chain_decl && !root->chain_field)
+	DECL_NO_STATIC_CHAIN (root->context) = 1;
+      else
+	gcc_assert (!DECL_NO_STATIC_CHAIN (root->context));
+#endif
+      /* LLVM LOCAL end */
 
       root = root->next;
     }
@@ -2006,8 +2054,12 @@ finalize_nesting_tree_1 (struct nesting_info *root)
       struct nesting_info *i;
       for (i = root->inner; i ; i = i->next)
 	{
-	  /* LLVM local */
-	  tree arg, x, y, field;
+	  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
+          tree y;
+#endif
+	  /* LLVM LOCAL end */
+	  tree arg, x, field;
 
 	  field = lookup_tramp_for_decl (root, i->context, NO_INSERT);
 	  if (!field)
@@ -2022,15 +2074,26 @@ finalize_nesting_tree_1 (struct nesting_info *root)
 	  x = build_addr (i->context, context);
 	  arg = tree_cons (NULL, x, arg);
 
-	  /* LLVM local begin */
+	  /* LLVM LOCAL begin */
+          /* FIXME: Keep the LLVM-way? */
+#ifdef ENABLE_LLVM
 	  /* Create a local variable to hold the trampoline code.  */
-	  y = create_tmp_var_for (root, get_trampoline_storage_type(),
+	  y = create_tmp_var_for (root, get_trampoline_type(),
 				  "TRAMP");
 	  x = build_addr (y, context);
+#else
+	  x = build3 (COMPONENT_REF, TREE_TYPE (field),
+		      root->frame_decl, field, NULL_TREE);
+	  x = build_addr (x, context);
+#endif
+	  /* LLVM LOCAL end */
 	  arg = tree_cons (NULL, x, arg);
 
 	  x = implicit_built_in_decls[BUILT_IN_INIT_TRAMPOLINE];
 	  x = build_function_call_expr (x, arg);
+
+          /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 	  y = create_tmp_var_for (root, TREE_TYPE(x), NULL);
 	  x = build2 (MODIFY_EXPR, TREE_TYPE (x), y, x);
 	  append_to_statement_list (x, &stmt_list);
@@ -2042,7 +2105,8 @@ finalize_nesting_tree_1 (struct nesting_info *root)
 	  x = build3 (COMPONENT_REF, TREE_TYPE (field),
 		      root->frame_decl, field, NULL_TREE);
 	  x = build2 (MODIFY_EXPR, TREE_TYPE (field), x, y);
-	  /* LLVM local end */
+#endif
+	  /* LLVM LOCAL end */
 
 	  append_to_statement_list (x, &stmt_list);
 	}
@@ -2138,10 +2202,12 @@ free_nesting_tree (struct nesting_info *root)
       if (root->inner)
 	free_nesting_tree (root->inner);
       htab_delete (root->var_map);
-      /* LLVM local begin */
+      /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
       htab_delete (root->field_map);
       pointer_set_destroy (root->callers);
-      /* LLVM local end */
+#endif
+      /* LLVM LOCAL end */
       next = root->next;
       ggc_free (root);
       root = next;
@@ -2164,24 +2230,32 @@ lower_nested_functions (tree fndecl)
   if (!cgn->nested)
     return;
 
-  /* LLVM local */
+  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   ni_map = htab_create (11, ni_hash, ni_eq, NULL);
+#endif
+  /* LLVM LOCAL end */
   root = create_nesting_tree (cgn);
   walk_all_functions (convert_nonlocal_reference, root);
   walk_all_functions (convert_local_reference, root);
   walk_all_functions (convert_nl_goto_reference, root);
   walk_all_functions (convert_nl_goto_receiver, root);
-  /* LLVM local begin */
+  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   walk_all_functions (construct_reverse_callgraph, root);
   propagate_chains (root);
-  /* LLVM local end */
+#endif
+  /* LLVM LOCAL end */
   convert_all_function_calls (root);
   finalize_nesting_tree (root);
   unnest_nesting_tree (root);
   free_nesting_tree (root);
   root = NULL;
-  /* LLVM local */
+  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   htab_delete (ni_map);
+#endif
+  /* LLVM LOCAL end */
 }
 
 #include "gt-tree-nested.h"

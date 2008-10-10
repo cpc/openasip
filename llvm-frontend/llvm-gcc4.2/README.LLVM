@@ -57,11 +57,42 @@ you are probably hitting http://llvm.org/PR896.  Please reconfigure with the
 //===-----------------------
 X86-64/AMD-64/EM64-T for any OS other than Darwin/Mac OS X:
 
-When targeting non-darwin X86-64/AMD-64/EM64-T, configure with
---disable-shared.  The LLVM X86-64 backend doesn't support PIC codegen on
-non-darwin systems yet.  If you get a build error, try configuring with
---disable-multilib.
+If you want to build multilib-enabled llvm-gcc (so, it will be able to generate
+32 and 64 bit executables) you need to consider your system default lib directory
+layout. 
 
+Usually, your system uses one of these layouts:
+
+I. /usr/lib    => 32 bit libraries (also in /usr/lib32)
+   /usr/lib64  => 64 bit libraries
+
+You're lucky and don't need to do anything, just proceed to usual configure
+steps.
+
+II. /usr/lib   => 64 bit libraries (also in /usr/lib64)
+    /usr/lib32 => 32 bit libraries
+
+You need to apply the following patch:
+
+<==cut==>
+--- gcc/config/i386/t-linux64
++++ gcc/config/i386/t-linux64
+@@ -6,7 +6,7 @@ SHLIB_MAPFILES = $(srcdir)/libgcc-std.ver \
+ 
+ MULTILIB_OPTIONS = m64/m32
+ MULTILIB_DIRNAMES = 64 32 
+-MULTILIB_OSDIRNAMES = ../lib64 ../lib
++MULTILIB_OSDIRNAMES = ../lib64 ../lib32
+ 
+ LIBGCC = stmp-multilib
+ INSTALL_LIBGCC = install-multilib
+<==cut==>
+
+Note, that usually you don't notice such patching with your native gcc, since
+it's done automatically by your favourite system package manager. Maybe we'll
+add some layout detection routine in the future.
+
+If you want just pure 64 bit compiler, configure with --disable-multilib.
 
 //===-----------------------
 Darwin/Mac OS X Instructions:
@@ -119,11 +150,17 @@ $ ../llvm-gcc4-x.y.source/configure --prefix=`pwd`/../install --program-prefix=l
     --enable-llvm=$LLVMOBJDIR --enable-languages=c,c++$EXTRALANGS $TARGETOPTIONS
 $ make $BUILDOPTIONS
 $ make install
+
+//===-----------------------
+Darwin/Mac OS X Specific part:
+
 $ ln -sf /usr/lib/libstdc++.6.dylib `pwd`/../install/lib
 $ ln -sf /usr/lib/libstdc++.6.dylib `pwd`/../install/lib/libstdc++.dylib
 
 That last step, "ln -sf ..." is required so that the linker (collect2) can find
 libstdc++ ('-lstdc++') and subsequently link C++ executables correctly.
+
+//===-----------------------
 
 Note that if you prefer to bootstrap llvm-gcc (so that the final llvm-gcc 
 executables have been compiled with llvm-gcc itself), replace "make" with

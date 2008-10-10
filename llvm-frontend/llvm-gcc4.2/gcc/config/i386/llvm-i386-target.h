@@ -28,10 +28,15 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
       CC = CallingConv::X86_StdCall;                            \
     } else if (lookup_attribute("fastcall", type_attributes)) { \
       CC = CallingConv::X86_FastCall;                           \
-    } else if (!TARGET_64BIT &&                                 \
-               lookup_attribute("sseregparm", type_attributes)){\
-      CC = CallingConv::X86_SSECall;                            \
     }                                                           \
+  }
+
+#define TARGET_ADJUST_LLVM_RETATTR(Rattributes, type)           \
+  {                                                             \
+    tree type_attributes = TYPE_ATTRIBUTES (type);              \
+    if (!TARGET_64BIT && (TARGET_SSEREGPARM ||                  \
+               lookup_attribute("sseregparm", type_attributes)))\
+      RAttributes |= Attribute::InReg;                          \
   }
 
 /* LLVM specific stuff for converting gcc's `regparm` attribute to LLVM's
@@ -57,7 +62,7 @@ extern int ix86_regparm;
       local_fp_regparm = 3;                                     \
   }
 
-#define LLVM_ADJUST_REGPARM_ATTRIBUTE(Attribute, Type, Size,    \
+#define LLVM_ADJUST_REGPARM_ATTRIBUTE(PAttribute, Type, Size,   \
                                       local_regparm,            \
                                       local_fp_regparm)         \
   {                                                             \
@@ -67,7 +72,7 @@ extern int ix86_regparm;
            TYPE_PRECISION(Type)==64)) {                         \
           local_fp_regparm -= 1;                                \
           if (local_fp_regparm >= 0)                            \
-            Attribute |= ParamAttr::InReg;                      \
+            PAttribute |= Attribute::InReg;                     \
           else                                                  \
             local_fp_regparm = 0;                               \
       } else if (TREE_CODE(Type) == INTEGER_TYPE ||             \
@@ -76,7 +81,7 @@ extern int ix86_regparm;
                   (Size + BITS_PER_WORD - 1) / BITS_PER_WORD;   \
           local_regparm -= words;                               \
           if (local_regparm>=0)                                 \
-            Attribute |= ParamAttr::InReg;                      \
+            PAttribute |= Attribute::InReg;                     \
           else                                                  \
             local_regparm = 0;                                  \
       }                                                         \
@@ -85,45 +90,68 @@ extern int ix86_regparm;
 
 #ifdef LLVM_ABI_H
 
-/* Objects containing SSE vectors are 16 byte aligned, everything else 4. */
+/* On x86-32 objects containing SSE vectors are 16 byte aligned, everything
+   else 4.  On x86-64 vectors are 8-byte aligned, everything else can
+   be figured out by the back end. */
 extern "C" bool contains_128bit_aligned_vector_p(tree);
 #define LLVM_BYVAL_ALIGNMENT(T) \
-  (TARGET_64BIT ? 0 : \
+  (TARGET_64BIT ? (TREE_CODE(T)==VECTOR_TYPE ? 8 : 0) : \
    TARGET_SSE && contains_128bit_aligned_vector_p(T) ? 16 : 4)
 
-/* Structs containing a single data field plus zero-length fields are
-   considered as if they were the type of the data field. */
-#ifndef LLVM_SHOULD_RETURN_SELT_STRUCT_AS_SCALAR
-#define LLVM_SHOULD_RETURN_SELT_STRUCT_AS_SCALAR(X) \
-  isSingleElementStructOrArray(X, true, false)
-#endif
+extern tree llvm_x86_should_return_selt_struct_as_scalar(tree);
 
-extern bool llvm_x86_should_pass_vector_in_integer_regs(tree);
+/* Structs containing a single data field plus zero-length fields are
+   considered as if they were the type of the data field.  On x86-64,
+   if the element type is an MMX vector, return it as double (which will
+   get it into XMM0). */
+
+#define LLVM_SHOULD_RETURN_SELT_STRUCT_AS_SCALAR(X) \
+  llvm_x86_should_return_selt_struct_as_scalar((X))
+
+extern bool llvm_x86_should_pass_aggregate_in_integer_regs(tree, 
+                                                          unsigned*, bool*);
+
+/* LLVM_SHOULD_PASS_AGGREGATE_IN_INTEGER_REGS - Return true if this aggregate
+   value should be passed in integer registers.  This differs from the usual
+   handling in that x86-64 passes 128-bit structs and unions which only
+   contain data in the first 64 bits, as 64-bit objects.  (These can be
+   created by abusing __attribute__((aligned)).  */
+#define LLVM_SHOULD_PASS_AGGREGATE_IN_INTEGER_REGS(X, Y, Z)             \
+  llvm_x86_should_pass_aggregate_in_integer_regs((X), (Y), (Z))
+
+extern const Type *llvm_x86_scalar_type_for_struct_return(tree type, 
+                                                          unsigned *Offset);
 
 /* LLVM_SCALAR_TYPE_FOR_STRUCT_RETURN - Return LLVM Type if X can be 
    returned as a scalar, otherwise return NULL. */
-#define LLVM_SCALAR_TYPE_FOR_STRUCT_RETURN(X) \
-  llvm_x86_scalar_type_for_struct_return(X)
+#define LLVM_SCALAR_TYPE_FOR_STRUCT_RETURN(X, Y) \
+  llvm_x86_scalar_type_for_struct_return((X), (Y))
 
-extern const Type *llvm_x86_scalar_type_for_struct_return(tree type);
+extern const Type *llvm_x86_aggr_type_for_struct_return(tree type);
 
 /* LLVM_AGGR_TYPE_FOR_STRUCT_RETURN - Return LLVM Type if X can be 
    returned as an aggregate, otherwise return NULL. */
 #define LLVM_AGGR_TYPE_FOR_STRUCT_RETURN(X) \
   llvm_x86_aggr_type_for_struct_return(X)
 
-extern const Type *llvm_x86_aggr_type_for_struct_return(tree type);
+extern void llvm_x86_extract_multiple_return_value(Value *Src, Value *Dest,
+                                                   bool isVolatile,
+                                                   LLVMBuilder &B);
 
 /* LLVM_EXTRACT_MULTIPLE_RETURN_VALUE - Extract multiple return value from
    SRC and assign it to DEST. */
 #define LLVM_EXTRACT_MULTIPLE_RETURN_VALUE(Src,Dest,V,B)       \
   llvm_x86_extract_multiple_return_value((Src),(Dest),(V),(B))
 
-extern void llvm_x86_extract_multiple_return_value(Value *Src, Value *Dest,
-                                                   bool isVolatile,
-                                                   IRBuilder &B);
+extern bool llvm_x86_should_pass_vector_using_byval_attr(tree);
 
-/* Vectors which are not MMX nor SSE should be passed as integers. */
+/* On x86-64, vectors which are not MMX nor SSE should be passed byval. */
+#define LLVM_SHOULD_PASS_VECTOR_USING_BYVAL_ATTR(X)      \
+  llvm_x86_should_pass_vector_using_byval_attr((X))
+
+extern bool llvm_x86_should_pass_vector_in_integer_regs(tree);
+
+/* On x86-32, vectors which are not MMX nor SSE should be passed as integers. */
 #define LLVM_SHOULD_PASS_VECTOR_IN_INTEGER_REGS(X)      \
   llvm_x86_should_pass_vector_in_integer_regs((X))
 
@@ -131,7 +159,9 @@ extern tree llvm_x86_should_return_vector_as_scalar(tree, bool);
 
 /* The MMX vector v1i64 is returned in EAX and EDX on Darwin.  Communicate
     this by returning i64 here.  Likewise, (generic) vectors such as v2i16
-    are returned in EAX.  */
+    are returned in EAX.  
+    On Darwin x86-64, MMX vectors are returned in XMM0.  Communicate this by
+    returning f64.  */
 #define LLVM_SHOULD_RETURN_VECTOR_AS_SCALAR(X,isBuiltin)\
   llvm_x86_should_return_vector_as_scalar((X), (isBuiltin))
 
@@ -183,7 +213,7 @@ bool llvm_x86_64_aggregate_partially_passed_in_regs(std::vector<const Type*>&,
 extern void llvm_x86_store_scalar_argument(Value *Loc, Value *ArgVal,
                                            const llvm::Type *LLVMTy,
                                            unsigned RealSize,
-                                           IRBuilder &Builder);
+                                           LLVMBuilder &Builder);
 #define LLVM_STORE_SCALAR_ARGUMENT(LOC,ARG,TYPE,SIZE,BUILDER)   \
   llvm_x86_store_scalar_argument((LOC),(ARG),(TYPE),(SIZE),(BUILDER))
 
@@ -192,7 +222,7 @@ extern void llvm_x86_store_scalar_argument(Value *Loc, Value *ArgVal,
 extern Value *llvm_x86_load_scalar_argument(Value *L,
                                             const llvm::Type *LLVMTy,
                                             unsigned RealSize,
-                                            IRBuilder &Builder);
+                                            LLVMBuilder &Builder);
 #define LLVM_LOAD_SCALAR_ARGUMENT(LOC,TY,SIZE,BUILDER) \
   llvm_x86_load_scalar_argument((LOC),(TY),(SIZE),(BUILDER))
 

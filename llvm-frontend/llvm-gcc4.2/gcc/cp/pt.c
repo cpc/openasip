@@ -5288,6 +5288,17 @@ reopen_tinst_level (tree level)
   pop_tinst_level ();
 }
 
+/* APPLE LOCAL begin mainline radar 6194879 */
+/* Returns the TINST_LEVEL which gives the original instantiation
+   context.  */
+
+tree
+outermost_tinst_level (void)
+{
+  return tree_last (current_tinst_level);
+}
+
+/* APPLE LOCAL end mainline radar 6194879 */
 /* DECL is a friend FUNCTION_DECL or TEMPLATE_DECL.  ARGS is the
    vector of template arguments, as for tsubst.
 
@@ -5769,7 +5780,15 @@ instantiate_class_template (tree type)
   if (CLASSTYPE_VISIBILITY_SPECIFIED (pattern))
     {
       CLASSTYPE_VISIBILITY_SPECIFIED (type) = 1;
-      CLASSTYPE_VISIBILITY (type) = CLASSTYPE_VISIBILITY (pattern);
+      /* APPLE LOCAL begin 5812195 */
+      /* CLASSTYPE_VISIBILITY (type) should already be set by the time
+	 we get here, in particular, we should just constrain the
+	 visibility, as we don't reconstrain on template arguments
+	 post this whereas we've already done that by the time we get
+	 here.  */
+      if (CLASSTYPE_VISIBILITY (type) < CLASSTYPE_VISIBILITY (pattern))
+	CLASSTYPE_VISIBILITY (type) = CLASSTYPE_VISIBILITY (pattern);
+      /* APPLE LOCAL end 5812195 */
     }
 
   pbinfo = TYPE_BINFO (pattern);
@@ -6683,7 +6702,7 @@ tsubst_decl (tree t, tree args, tsubst_flags_t complain)
 	SET_DECL_ASSEMBLER_NAME (r, NULL_TREE);
         /* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
-        SET_DECL_RTL (r, NULL_RTX);
+	SET_DECL_RTL (r, NULL_RTX);
 #else
         SET_DECL_LLVM (r, 0);
 #endif
@@ -7002,7 +7021,7 @@ tsubst_decl (tree t, tree args, tsubst_flags_t complain)
 	cp_apply_type_quals_to_decl (cp_type_quals (type), r);
 	DECL_CONTEXT (r) = ctx;
 	/* Clear out the mangled name and RTL for the instantiation.  */
-        SET_DECL_ASSEMBLER_NAME (r, NULL_TREE);
+	SET_DECL_ASSEMBLER_NAME (r, NULL_TREE);
 	if (CODE_CONTAINS_STRUCT (TREE_CODE (t), TS_DECL_WRTL))
         /* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
@@ -7849,6 +7868,11 @@ tsubst (tree t, tree args, tsubst_flags_t complain, tree in_decl)
 					     | cp_type_quals (type),
 					     complain);
       }
+
+      /* APPLE LOCAL begin blocks 6204446 */
+    case BLOCK_POINTER_TYPE:
+      return t;
+      /* APPLE LOCAL end blocks 6204446 */
 
     default:
       sorry ("use of %qs in template",
@@ -8952,7 +8976,8 @@ tsubst_copy_and_build (tree t,
 				     /*template_arg_p=*/false,
 				     &error_msg);
 	if (error_msg)
-	  error (error_msg);
+	  /* APPLE LOCAL default to Wformat-security 5764921 */
+	  error ("%s", error_msg);
 	if (!function_p && TREE_CODE (decl) == IDENTIFIER_NODE)
 	  decl = unqualified_name_lookup_error (decl);
 	return decl;

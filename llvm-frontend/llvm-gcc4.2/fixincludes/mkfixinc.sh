@@ -20,6 +20,7 @@ case $machine in
     i?86-*-moss* | \
     i?86-*-pe | \
     i?86-*-cygwin* | \
+    i?86-*-mingw32* | \
     i?86-*-uwin* | \
     i?86-*-interix* | \
     powerpc-*-eabiaix* | \

@@ -1533,6 +1533,16 @@ insert (rtx x, struct table_elt *classp, unsigned int hash, enum machine_mode mo
   elt->mode = mode;
   elt->is_const = (CONSTANT_P (x) || fixed_base_plus_p (x));
 
+/* APPLE LOCAL begin ARM propagate stack addresses better */
+#ifdef TARGET_ARM
+  /* Adjust cost of SP+const addresses lower; generally, we want to propagate the addition
+     rather than use a register if these are equally cheap.  This attempts to compensate
+     for forcing the cost of a reg to 0. */
+  if (fixed_base_plus_p (x))
+    elt->cost -= 2 * COSTS_N_INSNS (1);
+#endif
+/* APPLE LOCAL end ARM propagate stack addresses better */
+
   if (table[hash])
     table[hash]->prev_same_hash = elt;
   table[hash] = elt;
@@ -2927,6 +2937,8 @@ find_best_addr (rtx insn, rtx *loc, enum machine_mode mode)
 	  int best_addr_cost = address_cost (*loc, mode);
 	  int best_rtx_cost = (elt->cost + 1) >> 1;
 	  int exp_cost;
+	  /* APPLE LOCAL ARM propagate stack addresses better */
+	  bool best_fixed_base_plus_p = fixed_base_plus_p (elt->exp);
 	  struct table_elt *best_elt = elt;
 
 	  found_better = 0;
@@ -2937,11 +2949,25 @@ find_best_addr (rtx insn, rtx *loc, enum machine_mode mode)
 		     || exp_equiv_p (p->exp, p->exp, 1, false))
 		    && ((exp_cost = address_cost (p->exp, mode)) < best_addr_cost
 			|| (exp_cost == best_addr_cost
-			    && ((p->cost + 1) >> 1) > best_rtx_cost)))
+/* APPLE LOCAL begin ARM propagate stack addresses better */
+#ifdef TARGET_ARM
+			    /* Prefer a stack address if possible.  Thus, prefer a new
+			       stack address to an old non-stack address, and do not replace
+			       an old stack address with a new non-stack address. */
+			    && ((!best_fixed_base_plus_p && fixed_base_plus_p (p->exp))
+				|| (!(best_fixed_base_plus_p && !fixed_base_plus_p (p->exp))
+				    && ((p->cost + 1) >> 1) > best_rtx_cost))
+#else
+			    && ((p->cost + 1) >> 1) > best_rtx_cost
+#endif
+		    )))
+/* APPLE LOCAL end ARM propagate stack addresses better */
 		  {
 		    found_better = 1;
 		    best_addr_cost = exp_cost;
 		    best_rtx_cost = (p->cost + 1) >> 1;
+		    /* APPLE LOCAL ARM propagate stack addresses better */
+		    best_fixed_base_plus_p = fixed_base_plus_p (p->exp);
 		    best_elt = p;
 		  }
 	      }

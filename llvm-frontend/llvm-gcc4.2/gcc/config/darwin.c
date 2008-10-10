@@ -229,6 +229,15 @@ machopic_symbol_defined_p (rtx sym_ref)
 	  if (DECL_COMMON (decl))
 	    return false;
 	}
+      /* APPLE LOCAL begin 6077274 */
+      /* Weak functions should always be indirected.  */
+      else if (SYMBOL_REF_FLAGS (sym_ref) & SYMBOL_FLAG_FUNCTION)
+	{
+	  tree decl = SYMBOL_REF_DECL (sym_ref);
+	  if (decl && DECL_WEAK (decl))
+	    return false;
+	}
+      /* APPLE LOCAL end 6077274 */
       return true;
     }
   return false;
@@ -1418,7 +1427,10 @@ machopic_select_section (tree exp, int reloc,
 	   DECL_NAME (exp) &&
 	   TREE_CODE (DECL_NAME (exp)) == IDENTIFIER_NODE &&
 	   IDENTIFIER_POINTER (DECL_NAME (exp)) &&
-	   !strncmp (IDENTIFIER_POINTER (DECL_NAME (exp)), "_OBJC_", 6))
+           /* APPLE LOCAL begin radar 5575115 */
+	   (!strncmp (IDENTIFIER_POINTER (DECL_NAME (exp)), "_OBJC_", 6)
+            || !strncmp (IDENTIFIER_POINTER (DECL_NAME (exp)), "l_objc_", 7)))
+           /* APPLE LOCAL end radar 5575115 */
     {
       const char *name = IDENTIFIER_POINTER (DECL_NAME (exp));
       /* APPLE LOCAL begin radar 4792158 */
@@ -1493,7 +1505,8 @@ machopic_select_section (tree exp, int reloc,
             return darwin_sections[objc_v2_classrefs_section];
           else if (!strncmp (name, "_OBJC_CLASSLIST_SUP_REFS_", 25))
             return darwin_sections[objc_v2_super_classrefs_section];
-          else if (!strncmp (name, "_OBJC_MESSAGE_REF", 17))
+          /* APPLE LOCAL radar 5575115 */
+          else if (!strncmp (name, "l_objc_msgSend_", 15))
             return darwin_sections[objc_v2_message_refs_section];
           else if (!strncmp (name, "_OBJC_LABEL_CLASS_", 18))
             return darwin_sections[objc_v2_classlist_section];
@@ -1525,31 +1538,48 @@ machopic_select_section (tree exp, int reloc,
 }
 
 /* LLVM LOCAL begin */
-#ifdef ENABLE_LLVM
-const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
-  const char *name;
+extern char * mempcpy (char *dst, const char *src, size_t len);
+char *darwin_build_sysroot_path(const char *sysroot, const char *path) {
+  char *str = NULL;
+  char *str1 = NULL;
+  char *darwin = NULL;
+#ifndef ENABLE_LLVM
+  return concat (sysroot, path, NULL);
+#endif
 
-  if (TREE_CODE(decl) == CONST_DECL) {
-    extern int flag_next_runtime;
-    tree typename = TYPE_NAME(TREE_TYPE(decl));
-    if (TREE_CODE(typename) == TYPE_DECL)
-      typename = DECL_NAME(typename);
-    
-    if (!strcmp(IDENTIFIER_POINTER(typename), "__builtin_ObjCString")) {
-      if (flag_next_runtime)
-        return "__OBJC, __cstring_object,regular,no_dead_strip";
-      else
-        return "__OBJC, __string_object,no_dead_strip";
-    } else if (!strcmp(IDENTIFIER_POINTER(typename), "__builtin_CFString")) {
-      return "__DATA, __cfstring";
-    } else {
-      return 0;
-    }
-  }
-  
-  /* Get a pointer to the name, past the L_OBJC_ prefix. */
-  name = IDENTIFIER_POINTER (DECL_NAME (decl))+7;
-  
+  /* FIXME : When time is appropriate, handle other sdks.  */
+  if (sysroot && strstr(sysroot, "MacOSX10.5.sdk") == NULL)
+    return concat (sysroot, path, NULL);
+
+  /* libstdc++ headers are fixed magically through sym link jungle.  */
+  if (strstr(path, "c++") != NULL)
+    return concat (sysroot, path, NULL);
+
+  darwin = strstr(path, "apple-darwin");
+  if (!darwin)
+    return concat (sysroot, path, NULL);
+
+  /* Released 10.5 SDK uses header paths that include OS version
+     number, for example 9 in 
+     .../MacOSX10.5.sdk/.../lib/gcc/i686-apple-darwin9/4.2.1/include
+     However the 9 is constructed based on the host OS version on
+     which the compiler is built. This means, the compiler will
+     not be able to use 10.5 SDK unless it is built on 10.5 system.
+     Fix header path here to make it work.
+     
+     Path includes "apple-darwinXYZ/" substring. Replace
+     this substring with "apple-darwin9/". */
+  str = XNEWVEC(char, strlen(sysroot) + strlen(path) + 2);
+  str1 = mempcpy(str, sysroot, strlen(sysroot));
+  str1 = mempcpy(str1, path, darwin - path);
+  str1 = mempcpy(str1, "apple-darwin9", strlen("apple-darwin9"));
+  darwin = strchr(darwin, '/');
+  str1 = mempcpy(str1, darwin, strlen(darwin));
+  return str;
+}
+
+#ifdef ENABLE_LLVM
+const char *darwin_objc_llvm_special_name_section(const char* name) {
   if (!strncmp (name, "CLASS_METHODS_", 14))
     return "__OBJC,__cls_meth,regular,no_dead_strip";
   else if (!strncmp (name, "INSTANCE_METHODS_", 17))
@@ -1569,6 +1599,8 @@ const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
   else if (!strncmp (name, "METH_VAR_NAME_", 14))
     return "__TEXT,__cstring,cstring_literals";
   else if (!strncmp (name, "METH_VAR_TYPE_", 14))
+    return "__TEXT,__cstring,cstring_literals";
+  else if (!strncmp (name, "PROP_NAME_ATTR_", 15))
     return "__TEXT,__cstring,cstring_literals";
   else if (!strncmp (name, "CLASS_REFERENCES", 16))
     return "__OBJC,__cls_refs,literal_pointers,no_dead_strip";
@@ -1619,14 +1651,39 @@ const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
       return "__DATA, __objc_catlist, regular, no_dead_strip"; 
     else if (!strncmp (name, "LABEL_NONLAZY_CLASS_", 20))
       return "__DATA, __objc_nlclslist, regular, no_dead_strip";
-    else if (!strncmp (name, "LABEL_NONLAZY_CAGEGORY_", 23))
+    else if (!strncmp (name, "LABEL_NONLAZY_CATEGORY_", 23))
       return "__DATA, __objc_nlcatlist, regular, no_dead_strip";
     else if (!strncmp (name, "PROTOCOL_REFERENCE_", 19))
       return "__DATA, __objc_protorefs, regular, no_dead_strip";
-    else 
+  }
+  return 0;
+}
+
+const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
+  const char *name;
+
+  if (TREE_CODE(decl) == CONST_DECL) {
+    extern int flag_next_runtime;
+    tree typename = TYPE_NAME(TREE_TYPE(decl));
+    if (TREE_CODE(typename) == TYPE_DECL)
+      typename = DECL_NAME(typename);
+    
+    if (!strcmp(IDENTIFIER_POINTER(typename), "__builtin_ObjCString")) {
+      if (flag_next_runtime)
+        return "__OBJC, __cstring_object,regular,no_dead_strip";
+      else
+        return "__OBJC, __string_object,no_dead_strip";
+    } else if (!strcmp(IDENTIFIER_POINTER(typename), "__builtin_CFString")) {
+      return "__DATA, __cfstring";
+    } else {
       return 0;
-  } else
-    return 0;
+    }
+  }
+  
+  /* Get a pointer to the name, past the L_OBJC_ prefix. */
+  name = IDENTIFIER_POINTER (DECL_NAME (decl))+7;
+
+  return darwin_objc_llvm_special_name_section(name);
 }
 #endif
 /* LLVM LOCAL end */
@@ -1758,6 +1815,40 @@ darwin_handle_objc_gc_attribute (tree *node,
   return NULL_TREE;
 }
 /* APPLE LOCAL end ObjC GC */
+
+/* APPLE LOCAL begin radar 5595352 */
+tree
+darwin_handle_nsobject_attribute (tree *node,
+                                  tree name,
+                                  tree args ATTRIBUTE_UNUSED,
+                                  int flags ATTRIBUTE_UNUSED,
+                                  bool *no_add_attrs)
+{
+  tree orig = *node, type;
+  if (!POINTER_TYPE_P (orig) || TREE_CODE (TREE_TYPE (orig)) != RECORD_TYPE)
+    {
+      error ("__attribute ((NSObject)) is for pointer types only");
+      return NULL_TREE;
+    }
+  type = build_type_attribute_variant (orig,
+				       tree_cons (name, NULL_TREE,
+				       TYPE_ATTRIBUTES (orig)));
+  /* The main variant must be preserved no matter what. What ever
+     main variant comes out of the call to build_type_attribute_variant
+     is bogus here. */
+  if (TYPE_MAIN_VARIANT (orig) != TYPE_MAIN_VARIANT (type))
+    {
+      TYPE_MAIN_VARIANT (type) = TYPE_MAIN_VARIANT (orig);
+      TYPE_NEXT_VARIANT (type) = TYPE_NEXT_VARIANT (orig);
+      TYPE_NEXT_VARIANT (orig) = type;
+    }
+
+  *node = type;
+  /* No need to hang on to the attribute any longer.  */
+  *no_add_attrs = true;
+  return NULL_TREE;
+}
+/* APPLE LOCAL end radar 5595352 */
 
 /* APPLE LOCAL begin darwin_set_section_for_var_p  20020226 --turly  */
 
@@ -2395,7 +2486,7 @@ darwin_build_constant_cfstring (tree str)
         {
           size_t numUniChars;
           const unsigned char *inbuf = (unsigned char *)TREE_STRING_POINTER (str);
-          utf16_str = objc_create_init_utf16_var (inbuf, length, &numUniChars);
+          utf16_str = create_init_utf16_var (inbuf, length, &numUniChars);
           if (!utf16_str)
             {
               warning (0, "input conversion stopped due to an input byte "
@@ -2553,10 +2644,24 @@ darwin_override_options (void)
       /* APPLE LOCAL end kext v2 */
     }
   /* APPLE LOCAL begin axe stubs 5571540 */
+  /* APPLE LOCAL begin ARM 5683689 */
+
   /* Go ahead and generate stubs for old systems, just in case.  */
-  if (strverscmp (darwin_macosx_version_min, "10.5") < 0)
+  if (darwin_macosx_version_min
+      && strverscmp (darwin_macosx_version_min, "10.5") < 0)
     darwin_stubs = true;
+  /* APPLE LOCAL end ARM 5683689 */
   /* APPLE LOCAL end axe stubs 5571540 */
+  /* APPLE LOCAL begin stack-protector default 5095227 */
+  /* Default flag_stack_protect to 1 if on 10.5 or later for user code,
+     or 10.6 or later for code identified as part of the kernel.  */
+  if (flag_stack_protect == -1
+      && darwin_macosx_version_min
+      && ((! flag_mkernel && ! flag_apple_kext
+	   && strverscmp (darwin_macosx_version_min, "10.5") >= 0)
+	  || strverscmp (darwin_macosx_version_min, "10.6") >= 0))
+    flag_stack_protect = 1;
+  /* APPLE LOCAL end stack-protector default 5095227 */
 /* APPLE LOCAL diff confuses me */
 }
 /* APPLE LOCAL begin radar 4985544 */
@@ -2566,4 +2671,62 @@ darwin_cfstring_type_node (tree type_node)
   return type_node == ccfstring_type_node;
 }
 /* APPLE LOCAL end radar 4985544 */
+
+/* LLVM LOCAL begin radar 6230142 */
+unsigned darwin_llvm_override_target_version(const char *triple, char **new_triple) {
+  int len = 0, pad1 = 0, pad2 = 0, version = 0;
+  char *substr;
+
+  if (!darwin_macosx_version_min)
+    return 0;
+  
+  /* Triple string is expected to look something like 'i386-*-darwin?' or
+     'i386-*-darwin9.5.0'  */
+  substr = strstr(triple, "darwin");
+  if (!substr)
+    return 0;
+  len = substr + 6 - triple;
+
+  /* llvm-gcc doesn't support pre-10.0 systems. */
+  version = strverscmp (darwin_macosx_version_min, "10.0");
+  if (version < 0)
+    return 0;
+
+  /* 10.0 is darwin4. */
+  version += 4;
+
+  /* Darwin version number will be 2 digits for 10.6 and up.  */
+  if (version >= 10)
+    pad1 = 1;
+
+  /* If darwin_macosx_version_min is something like 10.4.9, we need to append
+     the .9 to the new triple. */
+  substr = strchr(darwin_macosx_version_min, '.');
+  if (!substr)
+    return 0;
+  substr = strchr(substr+1, '.');
+  if (substr)
+    pad2 = strlen(substr);
+  
+  *new_triple = ggc_alloc (len+pad1+pad2+1);
+  strncpy (*new_triple, triple, len);
+  if (version >= 10)
+    {
+      (*new_triple)[len] = '1';
+      version -= 10;
+      ++len;
+    }
+  (*new_triple)[len] = '0' + version;
+  if (substr)
+    {
+      int i;
+      for (i = 0; i < pad2; ++i)
+        (*new_triple)[len+1+i] = substr[i];
+      len += pad2;
+    }
+  (*new_triple)[len+1] = '\0';
+  
+  return 1;
+}
+/* LLVM LOCAL end radar 6230142 */
 #include "gt-darwin.h"

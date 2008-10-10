@@ -713,6 +713,11 @@ static const format_char_info time_char_table[] =
   /* GNU conversion specifiers.  */
   { "kls",		0, STD_EXT, NOLENGTHS, "-_0Ow",  "",   NULL },
   { "P",		0, STD_EXT, NOLENGTHS, "",       "",   NULL },
+  /* APPLE LOCAL begin strftime 5838528 */
+#ifdef CONFIG_DARWIN_H
+  { "+",		0, STD_EXT, NOLENGTHS, "E",      "",   NULL },
+#endif
+  /* APPLE LOCAL end strftime 5838528 */
   { NULL,		0, 0, NOLENGTHS, NULL, NULL, NULL }
 };
 

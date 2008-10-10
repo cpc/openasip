@@ -163,14 +163,6 @@ If the default location for system headers is not @file{/usr/include},
 you must set this to the directory containing the headers.  This value
 should match the value of the @code{SYSTEM_INCLUDE_DIR} macro.
 
-@c APPLE LOCAL begin mainline 2005-08-02
-@findex NATIVE_SYSTEM_HEADER_DIR
-@item NATIVE_SYSTEM_HEADER_DIR
-If the default location for system headers is not @file{/usr/include},
-you must set this to the directory containing the headers.  This value
-should match the value of the @code{SYSTEM_INCLUDE_DIR} macro.
-@c APPLE LOCAL end mainline 2005-08-02
-
 @findex SPECS
 @item SPECS
 Unfortunately, setting @code{MULTILIB_EXTRA_OPTS} is not enough, since

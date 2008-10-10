@@ -828,6 +828,10 @@ tinfo_base_init (tinfo_s *ti, tree target)
     DECL_EXTERNAL (name_decl) = 0;
     DECL_TINFO_P (name_decl) = 1;
     set_linkage_according_to_type (target, name_decl);
+    /* APPLE LOCAL begin export basic tinfo names 5008927 */
+    if (doing_runtime && ! targetm.cxx.library_rtti_comdat ())
+      DECL_INTERFACE_KNOWN (name_decl) = 1;
+    /* APPLE LOCAL end export basic tinfo names 5008927 */
     import_export_decl (name_decl);
     DECL_INITIAL (name_decl) = name_string;
     mark_used (name_decl);

@@ -84,12 +84,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #define TARGET_ASM_TTYPE hook_bool_rtx_false
 #endif
 
-/* LLVM LOCAL begin */
-#ifndef TARGET_ARM_TTYPE
-#define TARGET_ASM_TTYPE hook_bool_rtx_false
-#endif
-/* LLVM LOCAL end */
-
 #ifndef TARGET_ASM_ASSEMBLE_VISIBILITY
 #define TARGET_ASM_ASSEMBLE_VISIBILITY default_assemble_visibility
 #endif
@@ -511,16 +505,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 #define TARGET_ARM_EABI_UNWINDER false
 
-/* APPLE LOCAL begin mainline 2005-10-12 */
-#ifndef TARGET_VALID_DLLIMPORT_ATTRIBUTE_P
-#define TARGET_VALID_DLLIMPORT_ATTRIBUTE_P hook_bool_tree_true
-#endif
-/* APPLE LOCAL end mainline 2005-10-12 */
-
-/* LLVM LOCAL begin */
-#define TARGET_ARM_EABI_UNWINDER false
-/* LLVM LOCAL end */
-
 #define TARGET_PROMOTE_FUNCTION_ARGS hook_bool_tree_false
 #define TARGET_PROMOTE_FUNCTION_RETURN hook_bool_tree_false
 #define TARGET_PROMOTE_PROTOTYPES hook_bool_tree_false
@@ -600,11 +584,6 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #define TARGET_SECONDARY_RELOAD default_secondary_reload
 #endif
 
-/* LLVM LOCAL begin */
-#ifndef TARGET_UNWIND_TABLES_DEFAULT
-#define TARGET_UNWIND_TABLES_DEFAULT false
-#endif
-/* LLVM LOCAL end */
 
 /* C++ specific.  */
 #ifndef TARGET_CXX_GUARD_TYPE
@@ -780,5 +759,10 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
   /* APPLE LOCAL end radar 5155743, mainline candidate */	\
 }
 
+/* LLVM LOCAL begin sysroot */
+#ifndef TARGET_BUILD_SYSROOT_PATH
+#define TARGET_BUILD_SYSROOT_PATH(S,P) default_build_sysroot_path((S), (P))
+#endif
+/* LLVM LOCAL end sysroot */
 #include "hooks.h"
 #include "targhooks.h"

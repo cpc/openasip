@@ -59,7 +59,9 @@ optab optab_table[OTI_MAX];
 
 rtx libfunc_table[LTI_MAX];
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 tree llvm_libfunc_table[LTI_MAX];
+#endif
 /* LLVM LOCAL end */
 
 /* Tables of patterns for converting one mode to another.  */
@@ -5136,7 +5138,7 @@ init_intraclass_conv_libfuncs (convert_optab tab, const char *opname,
 }
 
 
-/* LLVM local begin */
+/* LLVM LOCAL begin */
 tree
 llvm_init_one_libfunc_impl (const char *name)
 {
@@ -5144,25 +5146,22 @@ llvm_init_one_libfunc_impl (const char *name)
      targetm.encode_section_info.  */
   /* ??? We don't have any type information except for this is
      a function.  Pretend this is "int foo()".  */
-  tree decl;
-
-  decl = build_decl (FUNCTION_DECL, get_identifier (name),
-                     build_function_type (integer_type_node, NULL_TREE));
-
+  tree decl = build_decl (FUNCTION_DECL, get_identifier (name),
+			  build_function_type (integer_type_node, NULL_TREE));
   DECL_ARTIFICIAL (decl) = 1;
   DECL_EXTERNAL (decl) = 1;
   TREE_PUBLIC (decl) = 1;
 
   return decl;
 }
+/* LLVM LOCAL end */
 
-/* LLVM local end */
 rtx
 init_one_libfunc (const char *name)
 {
   rtx symbol;
 
-  /* LLVM local begin */
+  /* LLVM LOCAL begin */
   tree decl;
 
 #ifdef ENABLE_LLVM
@@ -5170,7 +5169,7 @@ init_one_libfunc (const char *name)
 #endif
 
   decl = llvm_init_one_libfunc_impl (name);
-  /* LLVM local end */
+  /* LLVM LOCAL end */
 
   symbol = XEXP (DECL_RTL (decl), 0);
 

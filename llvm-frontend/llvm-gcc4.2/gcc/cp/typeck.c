@@ -57,7 +57,8 @@ static void casts_away_constness_r (tree *, tree *);
 static bool casts_away_constness (tree, tree);
 static void maybe_warn_about_returning_address_of_local (tree);
 static tree lookup_destructor (tree, tree, tree);
-static tree convert_arguments (tree, tree, tree, int);
+/* APPLE LOCAL radar 6087117 */
+static tree convert_arguments (tree, tree, tree, int, int);
 
 /* Do `exp = require_complete_type (exp);' to make sure exp
    does not have an incomplete type.  (That includes void types.)
@@ -406,7 +407,8 @@ composite_pointer_type_r (tree t1, tree t2, const char* location)
   tree attributes;
 
   /* Determine the types pointed to by T1 and T2.  */
-  if (TREE_CODE (t1) == POINTER_TYPE)
+  /* APPLE LOCAL blocks 6040305 */
+  if (TREE_CODE (t1) == POINTER_TYPE || TREE_CODE (t1) == BLOCK_POINTER_TYPE)
     {
       pointee1 = TREE_TYPE (t1);
       pointee2 = TREE_TYPE (t2);
@@ -453,8 +455,13 @@ composite_pointer_type_r (tree t1, tree t2, const char* location)
       result_type = build_ptrmem_type (TYPE_PTRMEM_CLASS_TYPE (t1),
 				       result_type);
     }
+  /* APPLE LOCAL begin blocks 6065211 */
+  else if (TREE_CODE (t1) == BLOCK_POINTER_TYPE
+	   && result_type != void_type_node)
+    result_type = build_block_pointer_type (result_type);
   else
     result_type = build_pointer_type (result_type);
+  /* APPLE LOCAL end blocks 6065211 */
 
   /* Merge the attributes.  */
   attributes = (*targetm.merge_type_attributes) (t1, t2);
@@ -574,6 +581,14 @@ composite_pointer_type (tree t1, tree t2, tree arg1, tree arg2,
 	  return error_mark_node;
 	}
     }
+  /* APPLE LOCAL begin blocks 6065211 */
+  else if (TREE_CODE (t1) != TREE_CODE (t2))
+    {
+      error ("%s between distinct pointer types %qT and %qT "
+	     "lacks a cast", location, t1, t2);
+      return error_mark_node;
+    }
+  /* APPLE LOCAL end blocks 6065211 */
 
   return composite_pointer_type_r (t1, t2, location);
 }
@@ -1041,6 +1056,21 @@ comptypes (tree t1, tree t2, int strict)
 	return false;
       break;
 
+      /* APPLE LOCAL begin blocks 6040305 */
+      case BLOCK_POINTER_TYPE:
+        if (TREE_CODE (t2) == BLOCK_POINTER_TYPE)
+        {
+          tree pt1 = TREE_TYPE (t1);
+          tree pt2 = TREE_TYPE (t2);
+          if (!same_type_ignoring_top_level_qualifiers_p (TREE_TYPE (pt1),
+							  TREE_TYPE (pt2)))
+            return false;
+          if (!compparms (TYPE_ARG_TYPES (pt1), TYPE_ARG_TYPES (pt2)))
+            return false;
+          break;
+        }
+        /* APPLE LOCAL end blocks 6040305 */
+        
     case POINTER_TYPE:
     case REFERENCE_TYPE:
       if (TYPE_MODE (t1) != TYPE_MODE (t2)
@@ -1360,7 +1390,12 @@ cxx_alignof_expr (tree e)
     {
       pedwarn ("ISO C++ forbids applying %<__alignof%> to an expression of "
 	       "function type");
-      t = size_one_node;
+      /* APPLE LOCAL begin mainline aligned functions 5933878 */
+      if (TREE_CODE (e) == FUNCTION_DECL)
+	t = size_int (DECL_ALIGN_UNIT (e));
+      else
+	t = size_one_node;
+      /* APPLE LOCAL end mainline aligned functions 5933878 */
     }
   else if (type_unknown_p (e))
     {
@@ -2113,6 +2148,10 @@ finish_class_member_access_expr (tree object, tree name, bool template_p)
 	  /* APPLE LOCAL radar 5285911 */
           && (expr = objc_build_property_reference_expr (object, name)))
         return expr;
+      /* APPLE LOCAL begin radar 5802025 */
+      else if (objc_property_reference_expr (object))
+        object = objc_build_property_getter_func_call (object);
+      /* APPLE LOCAL end radar 5802025 */
     }
   /* APPLE LOCAL end C* property (Radar 4436866) */
 
@@ -2722,6 +2761,46 @@ get_member_function_from_ptrfunc (tree *instance_ptrptr, tree function)
   return function;
 }
 
+/* APPLE LOCAL begin blocks 6040305 (cm) */
+/**
+ build_block_call - Routine to build a block call; as in:
+ ((double(*)(struct invok_impl *, int))(BLOCK_PTR_VAR->FuncPtr))(I, 42);
+ FNTYPE is the original function type derived from the syntax.
+ FUNCTION is the4 block pointer variable.
+ PARAMS is the parameter list.
+ */
+static tree
+build_block_call (tree fntype, tree function, tree params)
+{
+  tree block_ptr_exp;
+  tree function_ptr_exp;
+  tree typelist;
+  tree result;
+  
+  /* (struct invok_impl *)BLOCK_PTR_VAR */
+  /* First convert it to 'void *'. */
+  block_ptr_exp = convert (ptr_type_node, function);
+  gcc_assert (invoke_impl_ptr_type);
+  block_ptr_exp = convert (invoke_impl_ptr_type, block_ptr_exp);
+  params = tree_cons (NULL_TREE, block_ptr_exp, params);
+  /* BLOCK_PTR_VAR->FuncPtr */
+  function_ptr_exp =
+  finish_class_member_access_expr (build_indirect_ref (block_ptr_exp, "->"),
+                       get_identifier ("FuncPtr"), false);
+  
+  /* Build: result_type(*)(struct invok_impl *, function-arg-type-list) */
+  typelist = TYPE_ARG_TYPES (fntype);
+  typelist = tree_cons (NULL_TREE, invoke_impl_ptr_type, typelist);
+  fntype = build_function_type (TREE_TYPE (fntype), typelist);
+  function_ptr_exp = convert (build_pointer_type (fntype), function_ptr_exp);
+  result = build3 (CALL_EXPR, TREE_TYPE (fntype),
+		   function_ptr_exp, params, NULL_TREE);
+  /* FIXME: should do more from build_cxx_call */
+  result = convert_from_reference (result);
+  return result;
+}
+/* APPLE LOCAL end blocks 6040305 (cm) */
+
 tree
 build_function_call (tree function, tree params)
 {
@@ -2784,7 +2863,8 @@ build_function_call (tree function, tree params)
   is_method = (TREE_CODE (fntype) == POINTER_TYPE
 	       && TREE_CODE (TREE_TYPE (fntype)) == METHOD_TYPE);
 
-  if (!((TREE_CODE (fntype) == POINTER_TYPE
+  /* APPLE LOCAL blocks 6040305 */
+  if (!(((TREE_CODE (fntype) == POINTER_TYPE || TREE_CODE (fntype) == BLOCK_POINTER_TYPE)
 	 && TREE_CODE (TREE_TYPE (fntype)) == FUNCTION_TYPE)
 	|| is_method
 	|| TREE_CODE (function) == TEMPLATE_ID_EXPR))
@@ -2799,8 +2879,11 @@ build_function_call (tree function, tree params)
   /* Convert the parameters to the types declared in the
      function prototype, or apply default promotions.  */
 
+  /* APPLE LOCAL begin radar 6087117 */
   coerced_params = convert_arguments (TYPE_ARG_TYPES (fntype),
-				      params, fndecl, LOOKUP_NORMAL);
+				      params, fndecl, LOOKUP_NORMAL,
+				      (TREE_CODE (TREE_TYPE (function)) == BLOCK_POINTER_TYPE));
+  /* APPLE LOCAL end radar 6087117 */
   if (coerced_params == error_mark_node)
     return error_mark_node;
 
@@ -2809,7 +2892,11 @@ build_function_call (tree function, tree params)
 
   check_function_arguments (TYPE_ATTRIBUTES (fntype), coerced_params,
 			    TYPE_ARG_TYPES (fntype));
-
+  /* APPLE LOCAL begin blocks 6040305 */
+  if (TREE_CODE (TREE_TYPE (function)) == BLOCK_POINTER_TYPE)
+    return build_block_call (fntype, function, coerced_params);
+  /* APPLE LOCAL end blocks 6040305 */
+  
   return build_cxx_call (function, coerced_params);
 }
 
@@ -2831,7 +2918,8 @@ build_function_call (tree function, tree params)
    default arguments, if such were specified.  Do so here.  */
 
 static tree
-convert_arguments (tree typelist, tree values, tree fndecl, int flags)
+/* APPLE LOCAL radar 6087117 */
+convert_arguments (tree typelist, tree values, tree fndecl, int flags, int block_call)
 {
   tree typetail, valtail;
   tree result = NULL_TREE;
@@ -2873,7 +2961,8 @@ convert_arguments (tree typelist, tree values, tree fndecl, int flags)
 	      error ("at this point in file");
 	    }
 	  else
-	    error ("too many arguments to function");
+	    /* APPLE LOCAL radar 6087117 */
+	    error ("too many arguments to %s", (block_call ? "block call" : "function"));
 	  /* In case anybody wants to know if this argument
 	     list is valid.  */
 	  if (result)
@@ -2975,7 +3064,8 @@ convert_arguments (tree typelist, tree values, tree fndecl, int flags)
 	      error ("at this point in file");
 	    }
 	  else
-	    error ("too few arguments to function");
+	    /* APPLE LOCAL radar 6087117 */
+	    error ("too few arguments to %s", (block_call ? "block call" : "function"));
 	  return error_mark_node;
 	}
     }
@@ -3168,7 +3258,8 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
   if ((invalid_op_diag
        = targetm.invalid_binary_op (code, type0, type1)))
     {
-      error (invalid_op_diag);
+      /* APPLE LOCAL default to Wformat-security 5764921 */
+      error (invalid_op_diag, "");
       return error_mark_node;
     }
 
@@ -3367,7 +3458,8 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
       if ((TREE_CODE (orig_op0) == STRING_CST && !integer_zerop (op1))
 	  || (TREE_CODE (orig_op1) == STRING_CST && !integer_zerop (op0)))
 	warning (OPT_Waddress, 
-                 "comparison with string literal results in unspecified behaviour");
+		 /* APPLE LOCAL spelling 5808469 */
+                 "comparison with string literal results in unspecified behavior");
 
       build_type = boolean_type_node;
       if ((code0 == INTEGER_TYPE || code0 == REAL_TYPE
@@ -3375,22 +3467,29 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
 	  && (code1 == INTEGER_TYPE || code1 == REAL_TYPE
 	      || code1 == COMPLEX_TYPE))
 	short_compare = 1;
-      else if ((code0 == POINTER_TYPE && code1 == POINTER_TYPE)
+      /* APPLE LOCAL begin blocks 6040305 */
+      else if (((code0 == POINTER_TYPE || code0 == BLOCK_POINTER_TYPE)
+		&& (code1 == POINTER_TYPE || code1 == BLOCK_POINTER_TYPE))
 	       || (TYPE_PTRMEM_P (type0) && TYPE_PTRMEM_P (type1)))
+      /* APPLE LOCAL end blocks 6040305 */
 	result_type = composite_pointer_type (type0, type1, op0, op1,
 					      "comparison");
-      else if ((code0 == POINTER_TYPE || TYPE_PTRMEM_P (type0))
+      /* APPLE LOCAL blocks 6040305 (cl) */
+      else if ((code0 == POINTER_TYPE || code0 == BLOCK_POINTER_TYPE || TYPE_PTRMEM_P (type0))
 	       && null_ptr_cst_p (op1))
 	result_type = type0;
-      else if ((code1 == POINTER_TYPE || TYPE_PTRMEM_P (type1))
+      /* APPLE LOCAL blocks 6040305 (cl) */
+      else if ((code1 == POINTER_TYPE || code1 == BLOCK_POINTER_TYPE || TYPE_PTRMEM_P (type1))
 	       && null_ptr_cst_p (op0))
 	result_type = type1;
-      else if (code0 == POINTER_TYPE && code1 == INTEGER_TYPE)
+      /* APPLE LOCAL blocks 6040305 (cl) */
+      else if ((code0 == POINTER_TYPE || code0 == BLOCK_POINTER_TYPE) && code1 == INTEGER_TYPE)
 	{
 	  result_type = type0;
 	  error ("ISO C++ forbids comparison between pointer and integer");
 	}
-      else if (code0 == INTEGER_TYPE && code1 == POINTER_TYPE)
+      /* APPLE LOCAL blocks 6040305 (cl) */
+      else if (code0 == INTEGER_TYPE && (code1 == POINTER_TYPE || code1 == BLOCK_POINTER_TYPE))
 	{
 	  result_type = type1;
 	  error ("ISO C++ forbids comparison between pointer and integer");
@@ -3483,7 +3582,8 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
       if (TREE_CODE (orig_op0) == STRING_CST
 	  || TREE_CODE (orig_op1) == STRING_CST)
 	warning (OPT_Waddress, 
-                 "comparison with string literal results in unspecified behaviour");
+		 /* APPLE LOCAL spelling 5808469 */
+                 "comparison with string literal results in unspecified behavior");
 
       build_type = boolean_type_node;
       if ((code0 == INTEGER_TYPE || code0 == REAL_TYPE)
@@ -3842,12 +3942,24 @@ build_binary_op (enum tree_code code, tree orig_op0, tree orig_op1,
 
   if (! converted)
     {
-      /* APPLE LOCAL begin mainline */
-      if (TREE_TYPE (op0) != result_type)
-	op0 = cp_convert_and_check (result_type, op0);
-      if (TREE_TYPE (op1) != result_type)
-	op1 = cp_convert_and_check (result_type, op1);
-      /* APPLE LOCAL end mainline */
+      /* APPLE LOCAL begin 64bit shorten warning 6183168 */
+      if (final_type == 0)
+	{
+	  /* APPLE LOCAL begin mainline */
+	  if (TREE_TYPE (op0) != result_type)
+	    op0 = cp_convert_and_check (result_type, op0);
+	  if (TREE_TYPE (op1) != result_type)
+	    op1 = cp_convert_and_check (result_type, op1);
+	  /* APPLE LOCAL end mainline */
+	}
+      else
+	{
+	  if (TREE_TYPE (op0) != result_type)
+	    op0 = cp_convert (result_type, op0);
+	  if (TREE_TYPE (op1) != result_type)
+	    op1 = cp_convert (result_type, op1);
+	}
+      /* APPLE LOCAL end 64bit shorten warning 6183168 */
 
       if (op0 == error_mark_node || op1 == error_mark_node)
 	return error_mark_node;
@@ -4099,7 +4211,8 @@ build_unary_op (enum tree_code code, tree xarg, int noconvert)
 				    : code),
 				   TREE_TYPE (xarg))))
     {
-      error (invalid_op_diag);
+      /* APPLE LOCAL default to Wformat-security 5764921 */
+      error (invalid_op_diag, "");
       return error_mark_node;
     }
 
@@ -5362,6 +5475,30 @@ build_reinterpret_cast_1 (tree type, tree expr, bool c_cast_p,
   else if (TYPE_PTR_P (type) && INTEGRAL_OR_ENUMERATION_TYPE_P (intype))
     /* OK */
     ;
+  /* APPLE LOCAL begin blocks 6040305 (ck) */
+  else if (TREE_CODE (type) == INTEGER_TYPE && TREE_CODE (intype) == BLOCK_POINTER_TYPE)
+    {
+      if (TYPE_PRECISION (type) < TYPE_PRECISION (intype))
+	pedwarn ("cast from %qT to %qT loses precision",
+		 intype, type);
+    }
+  else if (TREE_CODE (type) == BLOCK_POINTER_TYPE && TREE_CODE (intype) == INTEGER_TYPE)
+    /* OK */
+    ;
+  else if (TREE_CODE (type) == BLOCK_POINTER_TYPE && TREE_CODE (intype) == BLOCK_POINTER_TYPE)
+    /* OK */
+    ;
+  else if (TREE_CODE (intype) == BLOCK_POINTER_TYPE
+	   && (objc_is_id (type)
+	       || (TREE_CODE (type) == POINTER_TYPE && VOID_TYPE_P (TREE_TYPE (type)))))
+    /* OK */
+    ;
+  else if (TREE_CODE (type) == BLOCK_POINTER_TYPE
+	   && TREE_CODE (intype) == POINTER_TYPE
+	   && (objc_is_id (intype) || VOID_TYPE_P (TREE_TYPE (intype))))
+    /* OK */
+    ;
+  /* APPLE LOCAL end blocks 6040305 (ck) */
   else if ((TYPE_PTRFN_P (type) && TYPE_PTRFN_P (intype))
 	   || (TYPE_PTRMEMFUNC_P (type) && TYPE_PTRMEMFUNC_P (intype)))
     return fold_if_not_in_template (build_nop (type, expr));
@@ -6787,12 +6924,24 @@ maybe_warn_about_returning_address_of_local (tree retval)
       if (TREE_CODE (valtype) == REFERENCE_TYPE)
 	warning (0, "reference to local variable %q+D returned",
 		 whats_returned);
+      /* APPLE LOCAL begin blocks 6040305 (cn) */
+      else if (TREE_CODE (valtype) == BLOCK_POINTER_TYPE)
+	  error ("returning block that lives on the local stack");
+      /* APPLE LOCAL end blocks 6040305 (cn) */
       else
 	warning (0, "address of local variable %q+D returned",
 		 whats_returned);
       return;
     }
 }
+
+/* APPLE LOCAL begin blocks 6040305 (cm) */
+static bool
+types_are_block_compatible (tree t1, tree t2)
+{
+  return comptypes (t1, t2, COMPARE_STRICT);
+}
+/* APPLE LOCAL end blocks 6040305 (cm) */
 
 /* Check that returning RETVAL from the current function is valid.
    Return an expression explicitly showing all conversions required to
@@ -6836,6 +6985,64 @@ check_return_expr (tree retval, bool *no_warning)
 	error ("returning a value from a constructor");
       return NULL_TREE;
     }
+
+  /* APPLE LOCAL begin blocks 6040305 (cm) */
+  /* APPLE LOCAL radar 6185344 */
+  if (cur_block && !cur_block->block_has_return_type)
+    {
+      /* If this is the first return we've seen in the block, infer the type of
+	 the block from it. */
+      if (cur_block->return_type == NULL_TREE)
+	{
+	  if (retval)
+	    {
+	      tree restype;
+	      retval = decay_conversion (retval);
+	      restype = TYPE_MAIN_VARIANT (TREE_TYPE (retval));
+	      TREE_TYPE (current_function_decl)
+		= build_function_type (restype,
+				       TYPE_ARG_TYPES (TREE_TYPE (current_function_decl)));
+	      TREE_TYPE (DECL_RESULT (current_function_decl)) = restype;
+	      relayout_decl (DECL_RESULT (current_function_decl));
+	      cur_block->return_type = restype;
+	    }
+	  else
+	    cur_block->return_type = void_type_node;
+	}
+
+      /* Verify that this result type matches the previous one.  We
+	 are pickier with blocks than for normal functions because
+	 this is a new feature and we set the rules. */
+      if (TREE_CODE (cur_block->return_type) == VOID_TYPE)
+	{
+	  if (retval)
+	    {
+	      error ("void block should not return a value");
+	      return error_mark_node;
+	    }
+	}
+      else if (!retval)
+	{
+	  error ("non-void block should return a value");
+	  return error_mark_node;
+	}
+  
+      if (retval)
+	{
+	  /* We have a non-void block with an expression, continue checking.  */
+	  valtype = TREE_TYPE (retval);
+
+	  /* For now, restrict multiple return statements in a block to have 
+	     strict compatible types only. */
+	  if (!types_are_block_compatible (cur_block->return_type, valtype))
+	    {
+	      error ("incompatible type returning %qT, expected %qT",
+		     valtype, cur_block->return_type);
+	      return error_mark_node;
+	    }
+	}
+    }
+  /* APPLE LOCAL end blocks 6040305 (cm) */
 
   if (processing_template_decl)
     {

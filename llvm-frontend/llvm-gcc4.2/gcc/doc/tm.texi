@@ -1050,6 +1050,31 @@ Alignment required for a function entry point, in bits.
 Biggest alignment that any data type can require on this machine, in bits.
 @end defmac
 
+@c APPLE LOCAL begin 5946347 ms_struct support
+@defmac BIGGEST_MS_STRUCT_ALIGNMENT
+Define this macro if the target supports Microsoft structure alignment
+(@code{TARGET_MS_BITFIELD_LAYOUT_P}) and the target definition of
+BIGGEST_ALIGNMENT is smaller than is needed for ms_struct records. It should
+defined as the largest field alignment required by the target for Microsoft
+aligned structure fields.
+
+By default, @code{BIGGEST_MS_STRUCT_ALIGNMENT} is defined to be equivalent to
+@code{BIGGEST_ALIGNMENT}.
+@end defmac
+
+@defmac TARGET_FIELD_MS_STRUCT_ALIGN
+Define this macro if the target supports Microsoft structure alignment 
+(@code{TARGET_MS_BITFIELD_LAYOUT_P}) and the standard type alignment
+of non-aggregate types is not sufficient for the MS structure alignment rules.
+
+The @code{TARGET_FIELD_MS_STRUCT_ALIGN} macro should return the alignment required
+for the field passed as its argument.
+
+By default, the type alignment of the field will be used, i.e.,
+@code{TYPE_ALIGN (TREE_TYPE (FIELD))}.
+@end defmac
+@c APPLE LOCAL end 5946347 ms_struct support
+
 @defmac MINIMUM_ATOMIC_ALIGNMENT
 If defined, the smallest alignment, in bits, that can be given to an
 object that can be referenced in one operation, without disturbing any
@@ -8831,14 +8856,6 @@ to perform initial processing of the @samp{dllimport} and
 specified. Use this hook if the target needs to add extra validation
 checks to @code{handle_dll_attribute}.
 @end deftypefn
-
-@c APPLE LOCAL begin mainline 2005-10-12
-@deftypefn {Target Hook} bool TARGET_VALID_DLLIMPORT_ATTRIBUTE_P (tree @var{decl})
-@var{decl} is a variable or function with @code{__attribute__((dllimport))}
-specified. Use this hook if the target needs to add extra validation
-checks to @code{handle_dll_attribute}.
-@end deftypefn
-@c APPLE LOCAL begin mainline 2005-10-12
 
 @defmac TARGET_DECLSPEC
 Define this macro to a nonzero value if you want to treat

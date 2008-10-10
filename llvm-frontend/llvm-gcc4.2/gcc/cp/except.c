@@ -56,7 +56,8 @@ static bool is_admissible_throw_operand (tree);
 static int can_convert_eh (tree, tree);
 static tree cp_protect_cleanup_actions (void);
 
-/* LLVM local begin */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 /* Do nothing (return NULL_TREE).  */
 static tree return_null_tree (void);
 
@@ -65,7 +66,8 @@ return_null_tree (void)
 {
   return NULL_TREE;
 }
-/* LLVM local end */
+#endif
+/* LLVM LOCAL end */
 
 /* Sets up all the global eh stuff that needs to be initialized at the
    start of compilation.  */
@@ -89,22 +91,36 @@ init_exception_processing (void)
   call_unexpected_node
     = push_throw_library_fn (get_identifier ("__cxa_call_unexpected"), tmp);
 
-  /* LLVM local begin */
+  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   llvm_eh_personality_libfunc
     = llvm_init_one_libfunc (USING_SJLJ_EXCEPTIONS
                              ? "__gxx_personality_sj0"
                              : "__gxx_personality_v0");
-  /* LLVM local end */
+#else
+  eh_personality_libfunc = init_one_libfunc (USING_SJLJ_EXCEPTIONS
+					     ? "__gxx_personality_sj0"
+					     : "__gxx_personality_v0");
+#endif
+  /* LLVM LOCAL end */
   if (targetm.arm_eabi_unwinder)
-    /* LLVM local */
+    /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
     llvm_unwind_resume_libfunc = llvm_init_one_libfunc ("__cxa_end_cleanup");
+#else
+    unwind_resume_libfunc = init_one_libfunc ("__cxa_end_cleanup");
+#endif
+    /* LLVM LOCAL end */
   else
     default_init_unwind_resume_libfunc ();
 
   lang_eh_runtime_type = build_eh_type_type;
   lang_protect_cleanup_actions = &cp_protect_cleanup_actions;
-  /* LLVM local */
+  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   lang_eh_catch_all = return_null_tree;
+#endif
+  /* LLVM LOCAL end */
 }
 
 /* Returns an expression to be executed if an unhandled exception is
@@ -371,12 +387,18 @@ choose_personality_routine (enum languages lang)
 
     case lang_java:
       state = chose_java;
-      /* LLVM local begin */
+      /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
       llvm_eh_personality_libfunc
         = llvm_init_one_libfunc (USING_SJLJ_EXCEPTIONS
                                  ? "__gcj_personality_sj0"
                                  : "__gcj_personality_v0");
-      /* LLVM local end */
+#else
+      eh_personality_libfunc = init_one_libfunc (USING_SJLJ_EXCEPTIONS
+						 ? "__gcj_personality_sj0"
+						 : "__gcj_personality_v0");
+#endif
+      /* LLVM LOCAL end */
       break;
 
     default:

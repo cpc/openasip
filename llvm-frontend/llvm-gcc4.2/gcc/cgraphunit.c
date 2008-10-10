@@ -166,8 +166,11 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tree-gimple.h"
 #include "tree-pass.h"
 #include "output.h"
-/* LLVM LOCAL */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #include "llvm.h"
+#endif
+/* LLVM LOCAL end */
 
 static void cgraph_expand_all_functions (void);
 static void cgraph_mark_functions_to_output (void);
@@ -232,9 +235,19 @@ decide_is_function_needed (struct cgraph_node *node, tree decl)
      in the original implementation and it is unclear whether we want
      to change the behavior here.  */
   if (((TREE_PUBLIC (decl)
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+    /* Don't keep static functions at -O0.  Note that gcc-4.0 removes such
+       functions; gcc-4.2 does not.  Radar 6037815.  See also PR 24561.
+
+       For this to be effective, -funit-at-a-time must also be on.  This
+       is the default in C++/ObjC++, but not C/ObjC.  */
 	|| (!optimize && !node->local.disregard_inline_limits
 	    && !DECL_DECLARED_INLINE_P (decl)
-	    && !node->origin))
+	    && !node->origin)
+#endif
+        )
+/* LLVM LOCAL end */
       && !flag_whole_program)
       && !DECL_COMDAT (decl) && !DECL_EXTERNAL (decl))
     return true;

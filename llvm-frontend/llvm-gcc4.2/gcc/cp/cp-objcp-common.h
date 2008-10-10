@@ -149,10 +149,6 @@ extern tree objcp_tsubst_copy_and_build (tree, tree, tsubst_flags_t,
 #define LANG_HOOKS_TYPE_PROMOTES_TO cxx_type_promotes_to
 #undef LANG_HOOKS_REGISTER_BUILTIN_TYPE
 #define LANG_HOOKS_REGISTER_BUILTIN_TYPE c_register_builtin_type
-/* APPLE LOCAL begin define this sensibly in all languages */
-#undef LANG_HOOKS_FLAG_NO_BUILTIN
-#define LANG_HOOKS_FLAG_NO_BUILTIN c_flag_no_builtin
-/* APPLE LOCAL end define this sensibly in all languages */
 #undef LANG_HOOKS_TO_TARGET_CHARSET
 #define LANG_HOOKS_TO_TARGET_CHARSET c_common_to_target_charset
 #undef LANG_HOOKS_GIMPLIFY_EXPR

@@ -95,22 +95,6 @@ parse_lsda_header (struct _Unwind_Context *context, const unsigned char *p,
 #define CONTINUE_UNWINDING return _URC_CONTINUE_UNWIND
 #endif
 
-/* LLVM LOCAL begin */
-#ifdef __ARM_EABI_UNWINDER__
-/* ARM EABI personality routines must also unwind the stack.  */
-#define CONTINUE_UNWINDING \
-  do								\
-    {								\
-      if (__gnu_unwind_frame (ue_header, context) != _URC_OK)	\
-	return _URC_FAILURE;					\
-      return _URC_CONTINUE_UNWIND;				\
-    }								\
-  while (0)
-#else
-#define CONTINUE_UNWINDING return _URC_CONTINUE_UNWIND
-#endif
-/* LLVM LOCAL end */
-
 #ifdef __USING_SJLJ_EXCEPTIONS__
 #define PERSONALITY_FUNCTION    __gcc_personality_sj0
 #define __builtin_eh_return_data_regno(x) x

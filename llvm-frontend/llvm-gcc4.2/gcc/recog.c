@@ -3005,7 +3005,12 @@ peep2_find_free_register (int from, int to, const char *class_str,
 #else
       regno = raw_regno;
 #endif
-
+/* APPLE LOCAL begin 5831562 add DIMODE_REG_ALLOC_ORDER */
+#ifdef DIMODE_REG_ALLOC_ORDER
+      if (mode == DImode)
+	regno = dimode_reg_alloc_order[raw_regno];
+#endif
+/* APPLE LOCAL end 5831562 add DIMODE_REG_ALLOC_ORDER */
       /* Don't allocate fixed registers.  */
       if (fixed_regs[regno])
 	continue;

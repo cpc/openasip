@@ -2112,6 +2112,8 @@ dbxout_partial_type (tree type, tree main_variant)
     {
     case VOID_TYPE:
     case LANG_TYPE:
+      /* APPLE LOCAL blocks 6034272 */
+    case BLOCK_POINTER_TYPE:
       dbxout_void_type (type);
       break;
 
@@ -2314,6 +2316,8 @@ dbxout_complete_type (tree type, tree main_variant)
     {
     case VOID_TYPE:
     case LANG_TYPE:
+      /* APPLE LOCAL blocks 6034272 */
+    case BLOCK_POINTER_TYPE:
       dbxout_void_type (type);
       break;
 

@@ -2266,6 +2266,8 @@ extern rtx find_base_term (rtx);
 extern rtx gen_hard_reg_clobber (enum machine_mode, unsigned int);
 extern rtx get_reg_known_value (unsigned int);
 extern bool get_reg_known_equiv_p (unsigned int);
+/* APPLE LOCAL 5695218 */
+extern rtx replace_regs (rtx, rtx *, unsigned int, int);
 
 #ifdef STACK_REGS
 extern int stack_regs_mentioned (rtx insn);

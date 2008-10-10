@@ -168,6 +168,8 @@ c_common_missing_argument (const char *opt, size_t code)
     case OPT_isysroot:
     case OPT_isystem:
     case OPT_iquote:
+    /* APPLE LOCAL ARM iwithsysroot 4917039 */
+    case OPT_iwithsysroot:
       error ("missing path after %qs", opt);
       break;
 
@@ -658,6 +660,11 @@ c_common_handle_option (size_t scode, const char *arg, int value)
 
     case OPT_fbuiltin:
       flag_no_builtin = !value;
+      /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
+      flag_no_simplify_libcalls = !value;
+#endif
+      /* LLVM LOCAL end */
       break;
 
     case OPT_fbuiltin_:
@@ -683,6 +690,11 @@ c_common_handle_option (size_t scode, const char *arg, int value)
     case OPT_fhosted:
       flag_hosted = value;
       flag_no_builtin = !value;
+      /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
+      flag_no_simplify_libcalls = !value;
+#endif
+      /* LLVM LOCAL end */
       /* warn_main will be 2 if set by -Wall, 1 if set by -Wmain */
       if (!value && warn_main == 2)
 	warn_main = 0;
@@ -918,6 +930,15 @@ c_common_handle_option (size_t scode, const char *arg, int value)
       sysroot = arg;
       break;
 
+    /* APPLE LOCAL begin ARM iwithsysroot 4917039 */
+    case OPT_iwithsysroot:
+      if (arg[0] != '/' || !sysroot)
+	add_path (xstrdup (arg), SYSTEM, 0, true);
+      else
+	add_path (concat (sysroot, arg, NULL), SYSTEM, 0, true);
+      break;
+    /* APPLE LOCAL end ARM iwithsysroot 4917039 */
+
     case OPT_isystem:
       add_path (xstrdup (arg), SYSTEM, 0, true);
       break;
@@ -1102,6 +1123,13 @@ c_common_post_options (const char **pfilename)
     flag_no_inline = 1;
   if (flag_inline_functions)
     flag_inline_trees = 2;
+
+  /* APPLE LOCAL begin radar 5811887  - radar 6084601 */
+  /* In all flavors of c99, except for ObjC/ObjC++, blocks are off by default 
+     unless requested via -fblocks. */
+  if (flag_blocks == -1 && flag_iso && !c_dialect_objc())
+    flag_blocks = 0;
+  /* APPLE LOCAL end radar 5811887 - radar 6084601 */
 
   /* APPLE LOCAL begin mainline */
   /* By default we use C99 inline semantics in GNU99 or C99 mode.  C99

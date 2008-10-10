@@ -135,8 +135,6 @@ extern void lhd_omp_firstprivatize_type_sizes (struct gimplify_omp_ctx *,
 #define LANG_HOOKS_TREE_SIZE		lhd_tree_size
 #define LANG_HOOKS_TYPES_COMPATIBLE_P	lhd_types_compatible_p
 #define LANG_HOOKS_BUILTIN_FUNCTION	builtin_function
-/* APPLE LOCAL define this sensibly for all languages */
-#define LANG_HOOKS_FLAG_NO_BUILTIN      hook_bool_void_false
 #define LANG_HOOKS_EXPR_TO_DECL		lhd_expr_to_decl
 #define LANG_HOOKS_TO_TARGET_CHARSET	lhd_to_target_charset
 #define LANG_HOOKS_INIT_TS		lhd_do_nothing
@@ -339,8 +337,6 @@ extern tree lhd_make_node (enum tree_code);
   LANG_HOOKS_BUILTIN_FUNCTION, \
   LANG_HOOKS_INIT_TS,          \
   LANG_HOOKS_EXPR_TO_DECL, \
-/* APPLE LOCAL define this sensibly for all languages */ \
-  LANG_HOOKS_FLAG_NO_BUILTIN, \
 }
 
 #endif /* GCC_LANG_HOOKS_DEF_H */

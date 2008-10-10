@@ -992,7 +992,8 @@ fold_overflow_warning (const char* gmsgid, enum warn_strict_overflow_code wc)
 	}
     }
   else if (issue_strict_overflow_warning (wc))
-    warning (OPT_Wstrict_overflow, gmsgid);
+    /* APPLE LOCAL default to Wformat-security 5764921 */
+    warning (OPT_Wstrict_overflow, "%s", gmsgid);
 }
 
 /* Return true if the built-in mathematical function specified by CODE
@@ -1890,7 +1891,9 @@ size_binop (enum tree_code code, tree arg0, tree arg1)
   if (TREE_CODE (arg0) == INTEGER_CST && TREE_CODE (arg1) == INTEGER_CST)
     {
       /* And some specific cases even faster than that.  */
-      /* LLVM local begin gcc 121252 */
+      /* LLVM LOCAL - begin gcc 121252 */
+      /* FIXME: Do we need this LLVM-specific code anymore? */
+#ifdef ENABLE_LLVM
       if (code == PLUS_EXPR)
 	{
 	  if (integer_zerop (arg0) && !TREE_OVERFLOW (arg0))
@@ -1908,7 +1911,16 @@ size_binop (enum tree_code code, tree arg0, tree arg1)
 	  if (integer_onep (arg0) && !TREE_OVERFLOW (arg0))
 	    return arg1;
 	}
-      /* LLVM local end gcc 121252 */
+#else
+      if (code == PLUS_EXPR && integer_zerop (arg0))
+	return arg1;
+      else if ((code == MINUS_EXPR || code == PLUS_EXPR)
+	       && integer_zerop (arg1))
+	return arg0;
+      else if (code == MULT_EXPR && integer_onep (arg0))
+	return arg1;
+#endif
+      /* LLVM LOCAL - end gcc 121252 */
 
       /* Handle general case of two integer constants.  */
       return int_const_binop (code, arg0, arg1, 0);
@@ -2162,6 +2174,8 @@ fold_convert (tree type, tree arg)
     {
     case INTEGER_TYPE: case ENUMERAL_TYPE: case BOOLEAN_TYPE:
     case POINTER_TYPE: case REFERENCE_TYPE:
+      /* APPLE LOCAL blocks 5862465 */
+    case BLOCK_POINTER_TYPE:
     case OFFSET_TYPE:
       if (TREE_CODE (arg) == INTEGER_CST)
 	{
@@ -6833,14 +6847,14 @@ try_move_mult_to_index (enum tree_code code, tree addr, tree op1)
 
   for (;; ref = TREE_OPERAND (ref, 0))
     {
+      /* LLVM LOCAL begin */      
       if (TREE_CODE (ref) == ARRAY_REF
-          /* LLVM LOCAL begin */      
-#if ENABLE_LLVM
+#ifdef ENABLE_LLVM
           /* LLVM extends ARRAY_REF to allow pointers to be the base value. */
           && (TREE_CODE (TREE_TYPE (TREE_OPERAND (ref, 0))) == ARRAY_TYPE)
 #endif
-          /* LLVM LOCAL end */
          )
+      /* LLVM LOCAL end */
 	{
 	  itype = TYPE_DOMAIN (TREE_TYPE (TREE_OPERAND (ref, 0)));
 	  if (! itype)
@@ -9374,7 +9388,6 @@ fold_binary (enum tree_code code, tree type, tree op0, tree op1)
 
               /* LLVM LOCAL Disable pow generation (FIXME: PR1631) */
 #ifndef ENABLE_LLVM
-              
 	      /* Optimize x*x as pow(x,2.0), which is expanded as x*x.  */
 	      if (! optimize_size
 		  && operand_equal_p (arg0, arg1, 0))
@@ -10597,7 +10610,13 @@ fold_binary (enum tree_code code, tree type, tree op0, tree op1)
 	  && ! DECL_WEAK (TREE_OPERAND (arg1, 0))
 	  && ! lookup_attribute ("alias",
 				 DECL_ATTRIBUTES (TREE_OPERAND (arg1, 0)))
-	  && ! DECL_EXTERNAL (TREE_OPERAND (arg1, 0)))
+	  /* APPLE LOCAL begin folding of anon union 6120295 */
+	  && ! DECL_EXTERNAL (TREE_OPERAND (arg1, 0))
+	  && ! (TREE_CODE (TREE_OPERAND (arg0, 0)) == VAR_DECL
+		&& DECL_HAS_VALUE_EXPR_P (TREE_OPERAND (arg0, 0))
+		&& TREE_CODE (TREE_OPERAND (arg0, 0)) == VAR_DECL
+		&& DECL_HAS_VALUE_EXPR_P (TREE_OPERAND (arg0, 0))))
+	  /* APPLE LOCAL end folding of anon union 6120295 */
 	{
 	  /* We know that we're looking at the address of two
 	     non-weak, unaliased, static _DECL nodes.
@@ -12951,14 +12970,14 @@ fold_read_from_constant_string (tree exp)
 {
   if ((TREE_CODE (exp) == INDIRECT_REF
        || TREE_CODE (exp) == ARRAY_REF)
-      && TREE_CODE (TREE_TYPE (exp)) == INTEGER_TYPE
 /* LLVM LOCAL begin */      
+      && TREE_CODE (TREE_TYPE (exp)) == INTEGER_TYPE
 #if ENABLE_LLVM
     /* LLVM extends ARRAY_REF to allow pointers to be the base value. */
       && (TREE_CODE (TREE_TYPE (TREE_OPERAND (exp, 0))) == ARRAY_TYPE)
 #endif
-/* LLVM LOCAL end */      
     )
+/* LLVM LOCAL end */      
     {
       tree exp1 = TREE_OPERAND (exp, 0);
       tree index;

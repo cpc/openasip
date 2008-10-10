@@ -6720,6 +6720,8 @@ longest_path_length (state_t state)
   return result;
 }
 
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
 /* The function outputs all initialization values of VECT.  */
 static void
 output_vect (vla_hwint_t vect)
@@ -6745,7 +6747,8 @@ output_vect (vla_hwint_t vect)
 	els_on_line++;
       }
 }
-
+#endif
+/* LLVM LOCAL end */
 /* The following is name of the structure which represents DFA(s) for
    PHR.  */
 #define CHIP_NAME "DFA_chip"
@@ -6762,6 +6765,8 @@ output_chip_member_name (FILE *f, automaton_t automaton)
              automaton->corresponding_automaton_decl->name);
 }
 
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
 /* The following is name of temporary variable which stores state of a
    DFA for PHR.  */
 static void
@@ -6770,12 +6775,16 @@ output_temp_chip_member_name (FILE *f, automaton_t automaton)
   fprintf (f, "_");
   output_chip_member_name (f, automaton);
 }
+#endif
+/* LLVM LOCAL end */
 
 /* This is name of macro value which is code of pseudo_insn
    representing advancing cpu cycle.  Its value is used as internal
    code unknown insn.  */
 #define ADVANCE_CYCLE_VALUE_NAME "DFA__ADVANCE_CYCLE"
 
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
 /* Output name of translate vector for given automaton.  */
 static void
 output_translate_vect_name (FILE *f, automaton_t automaton)
@@ -6841,6 +6850,8 @@ output_min_issue_delay_vect_name (FILE *f, automaton_t automaton)
     fprintf (f, "%s_min_issue_delay",
              automaton->corresponding_automaton_decl->name);
 }
+#endif
+/* LLVM LOCAL end */
 
 /* Output name of deadlock vector for given automaton.  */
 static void
@@ -6985,6 +6996,8 @@ output_chip_definitions (void)
 }
 
 
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
 /* The function outputs translate vector of internal insn code into
    insn equivalence class number.  The equivalence class number is
    used to access to table and vectors representing DFA(s).  */
@@ -7382,6 +7395,8 @@ output_trans_table (automaton_t automaton)
   VEC_free (state_t,heap, output_states_vect);
   VEC_free (vect_el_t,heap, transition_vect);
 }
+#endif
+/* LLVM LOCAL end */
 
 /* The current number of passing states to find minimal issue delay
    value for an ainsn and state.  */
@@ -7430,6 +7445,8 @@ min_issue_delay_pass_states (state_t state, ainsn_t ainsn)
   return min_insn_issue_delay;
 }
 
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
 /* The function searches minimal issue delay value for AINSN in STATE.
    The function can return negative value if we can not issue AINSN.  We
    will report about it later.  */
@@ -7658,6 +7675,8 @@ output_tables (void)
   fprintf (output_file, "\n#define %s %d\n\n", ADVANCE_CYCLE_VALUE_NAME,
            DECL_INSN_RESERV (advance_cycle_insn_decl)->insn_num);
 }
+#endif
+/* LLVM LOCAL end */
 
 /* The function outputs definition and value of PHR interface variable
    `max_insn_queue_index'.  Its value is not less than maximal queue
@@ -7692,6 +7711,8 @@ output_max_insn_queue_index_def (void)
 	   (1 << i) - 1);
 }
 
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
 /* The function outputs switch cases for insn reservations using
    function *output_automata_list_code.  */
 static void
@@ -7939,13 +7960,16 @@ output_internal_insn_code_evaluation (const char *insn_name,
   fprintf (output_file, "    }\n  else\n    %s = %s;\n\n",
 	   insn_code_name, ADVANCE_CYCLE_VALUE_NAME);
 }
-
+#endif
+/* LLVM LOCAL end */
 
 /* This function outputs `dfa_insn_code' and its helper function
    `dfa_insn_code_enlarge'.  */
 static void
 output_dfa_insn_code_func (void)
 {
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
   /* Emacs c-mode gets really confused if there's a { or } in column 0
      inside a string, so don't do that.  */
   fprintf (output_file, "\
@@ -7988,12 +8012,22 @@ static inline int\n%s (rtx %s)\n\
 	   INTERNAL_DFA_INSN_CODE_FUNC_NAME, INSN_PARAMETER_NAME,
 	   DFA_INSN_CODES_VARIABLE_NAME, INTERNAL_INSN_CODE_NAME);
   fprintf (output_file, "  return %s;\n}\n\n", INTERNAL_INSN_CODE_NAME);
+#endif
+/* LLVM LOCAL end */
 }
 
 /* The function outputs PHR interface function `state_transition'.  */
 static void
 output_trans_func (void)
 {
+/* LLVM LOCAL begin remove unneeded code */
+#ifdef ENABLE_LLVM
+  fprintf (output_file, 
+           "int\n%s (%s %s ATTRIBUTE_UNUSED, rtx %s ATTRIBUTE_UNUSED)\n"
+           "{ return -1; }\n",
+	   TRANSITION_FUNC_NAME, STATE_TYPE_NAME, STATE_NAME,
+	   INSN_PARAMETER_NAME);
+#else
   fprintf (output_file, "int\n%s (%s %s, rtx %s)\n",
 	   TRANSITION_FUNC_NAME, STATE_TYPE_NAME, STATE_NAME,
 	   INSN_PARAMETER_NAME);
@@ -8002,12 +8036,22 @@ output_trans_func (void)
 					INTERNAL_INSN_CODE_NAME, -1);
   fprintf (output_file, "  return %s (%s, %s);\n}\n\n",
 	   INTERNAL_TRANSITION_FUNC_NAME, INTERNAL_INSN_CODE_NAME, STATE_NAME);
+#endif
+/* LLVM LOCAL end */
 }
 
 /* Output function `min_issue_delay'.  */
 static void
 output_min_issue_delay_func (void)
 {
+/* LLVM LOCAL begin remove unneeded code */
+#ifdef ENABLE_LLVM
+  fprintf (output_file, 
+           "int\n%s (%s %s ATTRIBUTE_UNUSED, rtx %s ATTRIBUTE_UNUSED)\n"
+           "{ return -1;}\n",
+	   MIN_ISSUE_DELAY_FUNC_NAME, STATE_TYPE_NAME, STATE_NAME,
+	   INSN_PARAMETER_NAME);
+#else
   fprintf (output_file, "int\n%s (%s %s, rtx %s)\n",
 	   MIN_ISSUE_DELAY_FUNC_NAME, STATE_TYPE_NAME, STATE_NAME,
 	   INSN_PARAMETER_NAME);
@@ -8023,6 +8067,8 @@ output_min_issue_delay_func (void)
 	   INTERNAL_MIN_ISSUE_DELAY_FUNC_NAME, INTERNAL_INSN_CODE_NAME,
 	   STATE_NAME);
   fprintf (output_file, "}\n\n");
+#endif
+/* LLVM LOCAL end */
 }
 
 /* Output function `internal_dead_lock'.  */
@@ -8090,6 +8136,14 @@ output_reset_func (void)
 static void
 output_min_insn_conflict_delay_func (void)
 {
+/* LLVM LOCAL begin remove unneeded code */
+#ifdef ENABLE_LLVM
+  fprintf (output_file,
+	   "int\n%s (%s %s ATTRIBUTE_UNUSED, rtx %s ATTRIBUTE_UNUSED, "
+           "rtx %s ATTRIBUTE_UNUSED)\n{ return -1; }\n",
+	   MIN_INSN_CONFLICT_DELAY_FUNC_NAME, STATE_TYPE_NAME,
+	   STATE_NAME, INSN_PARAMETER_NAME, INSN2_PARAMETER_NAME);
+#else
   fprintf (output_file,
 	   "int\n%s (%s %s, rtx %s, rtx %s)\n",
 	   MIN_INSN_CONFLICT_DELAY_FUNC_NAME, STATE_TYPE_NAME,
@@ -8111,8 +8165,12 @@ output_min_insn_conflict_delay_func (void)
 	   INTERNAL_MIN_ISSUE_DELAY_FUNC_NAME, INTERNAL_INSN2_CODE_NAME,
 	   CHIP_NAME);
   fprintf (output_file, "}\n\n");
+#endif
+/* LLVM LOCAL end */
 }
 
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
 /* Output function `internal_insn_latency'.  */
 static void
 output_internal_insn_latency_func (void)
@@ -8207,11 +8265,20 @@ output_internal_insn_latency_func (void)
   fprintf (output_file, "    }\n  return default_latencies[%s];\n}\n\n",
 	   INTERNAL_INSN_CODE_NAME);
 }
+#endif
+/* LLVM LOCAL end */
 
 /* The function outputs PHR interface function `insn_latency'.  */
 static void
 output_insn_latency_func (void)
 {
+/* LLVM LOCAL begin remove unneeded code */
+#ifdef ENABLE_LLVM
+  fprintf (output_file, 
+           "int\n%s (rtx %s ATTRIBUTE_UNUSED, rtx %s ATTRIBUTE_UNUSED)\n"
+           "{ return -1; }\n",
+	   INSN_LATENCY_FUNC_NAME, INSN_PARAMETER_NAME, INSN2_PARAMETER_NAME);
+#else
   fprintf (output_file, "int\n%s (rtx %s, rtx %s)\n",
 	   INSN_LATENCY_FUNC_NAME, INSN_PARAMETER_NAME, INSN2_PARAMETER_NAME);
   fprintf (output_file, "{\n  int %s, %s;\n",
@@ -8224,12 +8291,22 @@ output_insn_latency_func (void)
 	   INTERNAL_INSN_LATENCY_FUNC_NAME,
 	   INTERNAL_INSN_CODE_NAME, INTERNAL_INSN2_CODE_NAME,
 	   INSN_PARAMETER_NAME, INSN2_PARAMETER_NAME);
+#endif
+/* LLVM LOCAL end */
 }
 
 /* The function outputs PHR interface function `print_reservation'.  */
 static void
 output_print_reservation_func (void)
 {
+/* LLVM LOCAL begin remove unneeded code */
+#ifdef ENABLE_LLVM
+  fprintf (output_file,
+	   "void\n%s (FILE *%s ATTRIBUTE_UNUSED, rtx %s ATTRIBUTE_UNUSED)\n"
+           "{}\n",
+           PRINT_RESERVATION_FUNC_NAME, FILE_PARAMETER_NAME,
+           INSN_PARAMETER_NAME);
+#else
   decl_t decl;
   int i, j;
 
@@ -8283,6 +8360,8 @@ output_print_reservation_func (void)
 
   fprintf (output_file, "  fputs (reservation_names[%s], %s);\n}\n\n",
 	   INTERNAL_INSN_CODE_NAME, FILE_PARAMETER_NAME);
+#endif
+/* LLVM LOCAL end */
 }
 
 /* The following function is used to sort unit declaration by their
@@ -8770,6 +8849,8 @@ output_automaton_descriptions (void)
 /* The page contains top level function for generation DFA(s) used for
    PHR.  */
 
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
 /* The function outputs statistics about work of different phases of
    DFA generator.  */
 static void
@@ -8837,6 +8918,8 @@ output_statistics (FILE *f)
   fprintf (f, "%5d all locked states\n", locked_states);
 #endif
 }
+#endif
+/* LLVM LOCAL end */
 
 /* The function output times of work of different phases of DFA
    generator.  */
@@ -9153,7 +9236,11 @@ write_automata (void)
   output_time = create_ticker ();
   if (progress_flag)
     fprintf (stderr, "Forming and outputting automata tables...");
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
   output_tables ();
+#endif
+/* LLVM LOCAL end */
   if (progress_flag)
     {
       fprintf (stderr, "done\n");
@@ -9161,8 +9248,12 @@ write_automata (void)
     }
   output_chip_definitions ();
   output_max_insn_queue_index_def ();
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
   output_internal_min_issue_delay_func ();
   output_internal_trans_func ();
+#endif
+/* LLVM LOCAL end */
   /* Cache of insn dfa codes: */
   fprintf (output_file, "\nstatic int *%s;\n", DFA_INSN_CODES_VARIABLE_NAME);
   fprintf (output_file, "\nstatic int %s;\n\n",
@@ -9176,7 +9267,11 @@ write_automata (void)
   output_internal_reset_func ();
   output_reset_func ();
   output_min_insn_conflict_delay_func ();
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
   output_internal_insn_latency_func ();
+#endif
+/* LLVM LOCAL end */
   output_insn_latency_func ();
   output_print_reservation_func ();
   /* Output function get_cpu_unit_code.  */
@@ -9204,9 +9299,17 @@ write_automata (void)
       output_automaton_descriptions ();
       if (progress_flag)
 	fprintf (stderr, "done\n");
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
       output_statistics (output_description_file);
+#endif
+/* LLVM LOCAL end */
     }
+/* LLVM LOCAL begin remove unneeded code */
+#ifndef ENABLE_LLVM
   output_statistics (stderr);
+#endif
+/* LLVM LOCAL end */
   ticker_off (&output_time);
   output_time_statistics (stderr);
   finish_states ();

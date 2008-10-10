@@ -920,4 +920,22 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #define HARD_REGNO_NREGS_WITH_PADDING(REGNO, MODE) -1
 #endif
 
+/* APPLE LOCAL begin ARM compact switch tables */
+/* Extra cases to add to switch tables.  */
+#ifndef TARGET_EXTRA_CASES
+#define TARGET_EXTRA_CASES 0
+#endif
+/* APPLE LOCAL end ARM compact switch tables */
+
+/* APPLE LOCAL begin 5946347 ms_struct support */
+/* On most machines, the default type alignment is sufficient */
+#ifndef TARGET_FIELD_MS_STRUCT_ALIGN
+#define TARGET_FIELD_MS_STRUCT_ALIGN(FIELD) TYPE_ALIGN (TREE_TYPE (FIELD))
+#endif
+#ifndef BIGGEST_MS_STRUCT_ALIGNMENT
+#define BIGGEST_MS_STRUCT_ALIGNMENT BIGGEST_ALIGNMENT
+#endif
+
+/* APPLE LOCAL end 5946347 ms_struct support */
+
 #endif  /* ! GCC_DEFAULTS_H */

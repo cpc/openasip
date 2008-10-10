@@ -781,8 +781,6 @@ extern HOST_WIDE_INT c_common_to_target_charset (HOST_WIDE_INT);
 /* APPLE LOCAL begin IMA built-in decl merging fix (radar 3645899) */
 extern bool builtin_function_disabled_p (const char *);
 /* APPLE LOCAL end */
-/* APPLE LOCAL define this sensibly in all languages */
-extern bool c_flag_no_builtin (void);
 
 /* This is the basic parsing function.  */
 extern void c_parse_file (void);
@@ -1067,6 +1065,8 @@ void objc_add_property_variable (tree);
 tree objc_build_property_reference_expr (tree, tree);
 bool objc_property_reference_expr (tree);
 /* APPLE LOCAL end radar 5285911 */
+/* APPLE LOCAL radar 5802025 */
+tree objc_build_property_getter_func_call (tree);
 tree objc_build_setter_call (tree, tree);
 /* APPLE LOCAL end C* property (Radar 4436866) */
 /* APPLE LOCAL radar 4712269 */
@@ -1094,8 +1094,6 @@ tree objc_v2_bitfield_ivar_bitpos (tree);
 bool objc_check_format_nsstring (tree, unsigned HOST_WIDE_INT, bool *);
 /* APPLE LOCAL end 4985544 */
 
-/* APPLE LOCAL radar 2996215 */
-tree objc_create_init_utf16_var (const unsigned char *, size_t, size_t *);
 /* APPLE LOCAL radar 5202926 */
 bool objc_anonymous_local_objc_name (const char *);
 /* APPLE LOCAL begin radar 5195402 */
@@ -1120,6 +1118,109 @@ extern bool check_missing_format_attribute (tree, tree);
    vector initializers.  */
 extern tree vector_constructor_from_expr (tree, tree);
 /* APPLE LOCAL end AltiVec */
+
+/* APPLE LOCAL begin radar 5732232 - blocks */
+enum {
+     BLOCK_NEEDS_FREE =        (1 << 24),
+     BLOCK_HAS_COPY_DISPOSE =  (1 << 25),
+     /* APPLE LOCAL radar 6214617 */
+     BLOCK_HAS_CXX_OBJ =       (1 << 26), 
+     BLOCK_IS_GC =             (1 << 27),
+     /* APPLE LOCAL radar 5822844 */
+     BLOCK_IS_GLOBAL = 	       (1 << 28)
+};
+
+struct block_sema_info {
+  tree helper_func_decl;
+  tree copy_helper_func_decl;
+  tree destroy_helper_func_decl;
+  tree block_arg_ptr_type;
+  /* This is for C.  */
+  struct c_arg_info * arg_info;
+  tree block_ref_decl_list;
+  tree block_byref_decl_list;
+  /* APPLE LOCAL radar 5803600 */
+  tree block_byref_global_decl_list;
+  tree block_original_ref_decl_list;
+  tree block_original_byref_decl_list;
+  tree block_body;
+  bool hasPrototype;
+  bool isVariadic;
+  bool BlockHasCopyDispose;
+  /* APPLE LOCAL radar 6214617 */
+  bool BlockImportsCxxObjects;
+  /* APPLE LOCAL radar 6185344 */
+  bool block_has_return_type; /* When true, block has a declared return type. */
+
+  /* the_scope - This is the scope for the block itself, which
+     contains arguments etc.  Use only for C.  */
+  struct c_scope *the_scope;
+  /* Same as the above, only for C++.  */
+  struct cp_binding_level *cp_the_scope;
+
+  /* return_type - This will get set to block result type, by looking
+     at return types, if any, in the block body. */
+  tree return_type;
+
+  /* prev_block_info - If this is nested inside another block, this points
+     to the outer block. */
+  struct block_sema_info *prev_block_info;
+};
+
+extern struct block_sema_info *cur_block;
+extern tree build_helper_func_decl (tree, tree);
+extern bool building_block_byref_decl;
+/* APPLE LOCAL - begin radar 6113240 */
+/* Move invoke_impl_ptr_type to tree.h */
+/* APPLE LOCAL - end radar 6113240 */
+extern tree build_block_byref_decl (tree, tree, tree);
+extern tree build_block_ref_decl (tree, tree);
+extern tree begin_block (void);
+extern struct block_sema_info *finish_block (tree);
+extern bool in_imm_block (void);
+extern bool lookup_name_in_block (tree, tree*);
+extern void build_block_internal_types (void);
+extern void push_to_top_level (void);
+extern void pop_from_top_level (void);
+extern void start_block_helper_function (tree func_decl);
+extern void block_build_prologue (struct block_sema_info *block_impl);
+extern tree c_finish_return (tree);
+extern tree copy_in_object (tree);
+extern bool block_requires_copying (tree);
+extern tree retain_block_component (tree);
+extern tree release_block_component (tree);
+/* APPLE LOCAL begin radar 5803600 */
+extern void add_block_global_byref_list (tree);
+extern bool in_block_global_byref_list (tree);
+/* APPLE LOCAL end radar 5803600 */
+/* APPLE LOCAL end radar 5732232 - blocks */
+/* APPLE LOCAL begin radar 5932809 - copyable byref blocks */
+extern tree build_byref_local_var_access (tree, tree);
+extern tree do_digest_init (tree, tree);
+extern tree cast_to_pointer_to_id (tree);
+/* APPLE LOCAL end radar 5932809 - copyable byref blocks */
+
+/* APPLE LOCAL begin radar 6083129 - byref escapes */
+extern void gen_block_byref_release_exp (tree);
+extern tree build_block_byref_release_exp (tree);
+extern tree build_block_byref_release_decl (void);
+extern tree build_block_byref_assign_copy_decl (void);
+extern void release_all_local_byrefs_at_return (void);
+void diagnose_byref_var_in_current_scope (void);
+extern void release_local_byrefs_at_break (void);
+extern void in_bc_stmt_block (void);
+extern void outof_bc_stmt_block (void);
+/* APPLE LOCAL end radar 6083129 - byref escapes */
+
+/* APPLE LOCAL radar 6040305 - blocks */
+extern tree build_indirect_object_id_exp (tree);
+/* APPLE LOCAL begin radar 6212722 */
+extern tree array_to_pointer_conversion (tree);
+extern tree function_to_pointer_conversion (tree);
+/* APPLE LOCAL end radar 6212722 */
+
+/* APPLE LOCAL radar 6160536 */
+extern tree build_block_helper_name (int);
 
 /* In c-omp.c  */
 extern tree c_finish_omp_master (tree);

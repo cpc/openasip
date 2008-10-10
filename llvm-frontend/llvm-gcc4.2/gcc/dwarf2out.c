@@ -418,6 +418,13 @@ static void def_cfa_1 (const char *, dw_cfa_location *);
 #ifndef DWARF_FRAME_REGNUM
 #define DWARF_FRAME_REGNUM(REG) DBX_REGISTER_NUMBER (REG)
 #endif
+
+/* APPLE LOCAL begin differentiate between arm & thumb.  */
+#define DW_ISA_UNKNOWN         0
+#define DW_ISA_ARM_thumb       1
+#define DW_ISA_ARM_arm         2
+#define DW_ISA_USE_STMT_LIST  -1
+/* APPLE LOCAL end differentiate between arm & thumb.  */
 
 /* Hook used by __throw.  */
 
@@ -4026,6 +4033,11 @@ static GTY(()) struct dwarf_file_data * file_table_last_lookup;
    within the current function.  */
 static HOST_WIDE_INT frame_pointer_fb_offset;
 
+/* APPLE LOCAL begin ARM prefer SP to FP */
+/* Which register was used to calculate the frame_pointer_fb_offset.  */
+static rtx frame_pointer_fb_offset_from;
+/* APPLE LOCAL end ARM prefer SP to FP */
+
 /* Forward declarations for functions defined in this file.  */
 
 static int is_pseudo_reg (rtx);
@@ -4084,6 +4096,10 @@ static unsigned get_AT_unsigned (dw_die_ref, enum dwarf_attribute);
 static inline dw_die_ref get_AT_ref (dw_die_ref, enum dwarf_attribute);
 static bool is_c_family (void);
 static bool is_cxx (void);
+/* APPLE LOCAL begin radar 6113240 */
+static bool is_objc (void);
+static bool is_objcxx (void);
+/* APPLE LOCAL end radar 6113240 */
 static bool is_java (void);
 static bool is_fortran (void);
 static bool is_ada (void);
@@ -4776,7 +4792,15 @@ dwarf_attr_name (unsigned int attr)
     case DW_AT_APPLE_optimized:
       return "DW_AT_APPLE_optimized";
     /* APPLE LOCAL end radar 2338865 optimization notification  */
-
+    /* APPLE LOCAL begin differentiate between arm & thumb.  */
+    case DW_AT_APPLE_isa:
+      return "DW_AT_APPLE_isa";
+    /* APPLE LOCAL end differentiate between arm & thumb.  */
+     
+    /* APPLE LOCAL begin radar 5811943 - Fix type of pointers to Blocks  */
+    case DW_AT_APPLE_block:
+      return "DW_AT_APPLE_block";
+    /* APPLE LOCAL end radar 5811943 - Fix type of pointers to Blocks  */
     default:
       return "DW_AT_<unknown>";
     }
@@ -5470,6 +5494,28 @@ is_cxx (void)
   return lang == DW_LANG_C_plus_plus || lang == DW_LANG_ObjC_plus_plus;
 }
 
+/* APPLE LOCAL begin radar 6113240 */
+/* Return TRUE if the language is ObjC.  */
+
+static inline bool
+is_objc (void)
+{
+  unsigned int lang = get_AT_unsigned (comp_unit_die, DW_AT_language);
+  
+  return lang == DW_LANG_ObjC;
+}
+
+/* Return TRUE if the language is ObjC++.  */
+
+static inline bool
+is_objcxx (void)
+{
+  unsigned int lang = get_AT_unsigned (comp_unit_die, DW_AT_language);
+  
+  return lang == DW_LANG_ObjC_plus_plus;
+}
+
+/* APPLE LOCAL end radar 6113240 */
 /* Return TRUE if the language is Fortran.  */
 
 static inline bool
@@ -6565,9 +6611,7 @@ add_sibling_attributes (dw_die_ref die)
 {
   dw_die_ref c;
 
-  if (! die->die_child)
-    return;
-
+  /* APPLE LOCAL radar 6066486 - move code further down.  */
   /* APPLE LOCAL begin radar 5636185  */
   /* As we are traversing the entire structure of dies, to add the
      sibling attributes, also check each die to see if it has the
@@ -6587,6 +6631,13 @@ add_sibling_attributes (dw_die_ref die)
       && contained_in_subroutine (die))
     remove_AT (die, DW_AT_MIPS_linkage_name);
   /* APPLE LOCAL end radar 5636185  */
+  /* APPLE LOCAL begin radar 6066486 - Code moved from above.  */
+  /* Don't return until after removing the DW_AT_MIPS_linkage_name,
+     if appropriate.  */
+  if (! die->die_child)
+    return;
+  /* APPLE LOCAL end radar 6066486  */
+
   if (die->die_parent && die != die->die_parent->die_child)
     add_AT_die_ref (die, DW_AT_sibling, die->die_sib);
 
@@ -8418,6 +8469,8 @@ root_type (tree type)
     case ERROR_MARK:
       return error_mark_node;
 
+    /* APPLE LOCAL radar 5732232 - blocks */
+    case BLOCK_POINTER_TYPE:
     case POINTER_TYPE:
     case REFERENCE_TYPE:
       return type_main_variant (root_type (TREE_TYPE (type)));
@@ -8450,6 +8503,8 @@ is_base_type (tree type)
     case ENUMERAL_TYPE:
     case FUNCTION_TYPE:
     case METHOD_TYPE:
+    /* APPLE LOCAL radar 5732232 - blocks */
+    case BLOCK_POINTER_TYPE:
     case POINTER_TYPE:
     case REFERENCE_TYPE:
     case OFFSET_TYPE:
@@ -8586,6 +8641,18 @@ modified_type_die (tree type, int is_const_type, int is_volatile_type,
   if (code == ERROR_MARK)
     return NULL;
 
+  /* APPLE LOCAL begin Radar 5741731, typedefs used in '@try' blocks    */ 
+  if (is_volatile_type
+      /* APPLE LOCAL - radar 6113240 */
+      && (is_objc () || is_objcxx ())
+      && lookup_attribute ("objc_volatilized", TYPE_ATTRIBUTES (type)))
+    {
+      is_volatile_type = 0;
+      if (TYPE_NAME (type) && TREE_TYPE (TYPE_NAME (type)))
+	type = TREE_TYPE (TYPE_NAME (type));
+    }
+  /* APPLE LOCAL end Radar 5741731, typedefs used in '@try' blocks    */ 
+
   /* See if we already have the appropriately qualified variant of
      this type.  */
   qualified_type
@@ -8637,7 +8704,8 @@ modified_type_die (tree type, int is_const_type, int is_volatile_type,
       mod_type_die = new_die (DW_TAG_volatile_type, comp_unit_die, type);
       sub_die = modified_type_die (type, 0, 0, context_die);
     }
-  else if (code == POINTER_TYPE)
+  /* APPLE LOCAL radar 5732232 - blocks */
+  else if (code == POINTER_TYPE || code == BLOCK_POINTER_TYPE)
     {
       mod_type_die = new_die (DW_TAG_pointer_type, comp_unit_die, type);
       add_AT_unsigned (mod_type_die, DW_AT_byte_size,
@@ -8950,8 +9018,10 @@ based_loc_descr (rtx reg, HOST_WIDE_INT offset,
 	      offset += INTVAL (XEXP (elim, 1));
 	      elim = XEXP (elim, 0);
 	    }
-	  gcc_assert (elim == (frame_pointer_needed ? hard_frame_pointer_rtx
-		      : stack_pointer_rtx));
+	  /* APPLE LOCAL begin ARM prefer SP to FP */
+	  /* Make sure we are using the same base register.  */
+	  gcc_assert (elim == frame_pointer_fb_offset_from);
+	  /* APPLE LOCAL end ARM prefer SP to FP */
           offset += frame_pointer_fb_offset;
 
           return new_loc_descr (DW_OP_fbreg, offset, 0);
@@ -10841,9 +10911,10 @@ compute_frame_pointer_to_fb_displacement (HOST_WIDE_INT offset)
       offset += INTVAL (XEXP (elim, 1));
       elim = XEXP (elim, 0);
     }
-  gcc_assert (elim == (frame_pointer_needed ? hard_frame_pointer_rtx
-		       : stack_pointer_rtx));
+  /* APPLE LOCAL begin ARM prefer SP to FP */
 
+  frame_pointer_fb_offset_from = elim;
+  /* APPLE LOCAL end ARM prefer SP to FP */
   frame_pointer_fb_offset = -offset;
 }
 
@@ -11140,8 +11211,12 @@ add_bit_size_attribute (dw_die_ref die, tree decl)
 static inline void
 add_prototyped_attribute (dw_die_ref die, tree func_type)
 {
-  if (get_AT_unsigned (comp_unit_die, DW_AT_language) == DW_LANG_C89
+  /* APPLE LOCAL begin radar 5344182 */
+  unsigned int lang = get_AT_unsigned (comp_unit_die, DW_AT_language);
+  
+  if ((lang == DW_LANG_C89 || lang == DW_LANG_ObjC)
       && TYPE_ARG_TYPES (func_type) != NULL)
+   /* APPLE LOCAL end radar 5344182 */
     add_AT_flag (die, DW_AT_prototyped, 1);
 }
 
@@ -11424,6 +11499,16 @@ add_type_attribute (dw_die_ref object_die, tree type, int decl_const,
 {
   enum tree_code code  = TREE_CODE (type);
   dw_die_ref type_die  = NULL;
+
+  /* APPLE LOCAL begin radar 5811943 - Fix type of pointers to blocks  */
+  /* APPLE LOCAL - radar 6113240 */
+  if (code == BLOCK_POINTER_TYPE && invoke_impl_ptr_type)
+    {
+      /* APPLE LOCAL - radar 6113240 Removed gcc_assert */
+      type = invoke_impl_ptr_type;
+      code = TREE_CODE (type);
+    }
+  /* APPLE LOCAL end radar 5811943 - Fix type of pointers to Blocks  */
 
   /* ??? If this type is an unnamed subrange type of an integral or
      floating-point type, use the inner type.  This is because we have no
@@ -12075,7 +12160,12 @@ gen_subprogram_die (tree decl, dw_die_ref context_die)
     }
   else
     {
-      subr_die = new_die (DW_TAG_subprogram, context_die, decl);
+      /* APPLE LOCAL begin radar 6193416  */
+      if (BLOCK_SYNTHESIZED_FUNC (decl))
+	subr_die = new_die (DW_TAG_subprogram, comp_unit_die, decl);
+      else
+	subr_die = new_die (DW_TAG_subprogram, context_die, decl);
+      /* APPLE LOCAL end radar 6193416  */
 
       if (TREE_PUBLIC (decl))
 	add_AT_flag (subr_die, DW_AT_external, 1);
@@ -12313,13 +12403,394 @@ gen_subprogram_die (tree decl, dw_die_ref context_die)
   if (optimize > 0)
     add_AT_flag (subr_die, DW_AT_APPLE_optimized, 1);
   /* APPLE LOCAL end radar 2338865 optimization notification  */
+  /* APPLE LOCAL begin differentiate between arm & thumb.  */
+#ifdef TARGET_ARM
+  if (TARGET_THUMB)
+    add_AT_int (subr_die, DW_AT_APPLE_isa, DW_ISA_ARM_thumb);
+  else if (TARGET_ARM)
+    add_AT_int  (subr_die, DW_AT_APPLE_isa, DW_ISA_ARM_arm);
+#endif
+  /* APPLE LOCAL end differentiate between arm & thumb.  */
+  /* APPLE LOCAL confused diff */
 }
+/* APPLE LOCAL begin radar 6048397 handle block byref variables  */
+
+/* Byref variables, in blocks, are declared by the programmer as
+   "SomeType VarName;", but the compiler creates a
+   __Block_byref_x_VarName struct, and gives the variable VarName
+   either the struct, or a pointer to the struct, as its type.  This
+   is necessary for various behind-the-scenes things the compiler
+   needs to do with by-reference variables in blocks.
+
+   However, as far as the original *programmer* is concerned, the
+   variable should still have type 'SomeType', as originally declared.
+
+   The following function dives into the __Block_byref_x_VarName
+   struct to find the original type of the variable.  This will be
+   passed back to the code generating the type for the Debug
+   Information Entry for the variable 'VarName'.  'VarName' will then
+   have the original type 'SomeType' in its debug information.
+
+   The original type 'SomeType' will be the type of the field named
+   'VarName' inside the __Block_byref_x_VarName struct.
+
+   NOTE: In order for this to not completely fail on the debugger
+   side, the Debug Information Entry for the variable VarName needs to
+   have a DW_AT_location that tells the debugger how to unwind through
+   the pointers and __Block_byref_x_VarName struct to find the actual
+   value of the variable.  The function
+   add_block_byref_var_location_attribute does this.  */
+
+static tree
+find_block_byref_var_real_type (tree decl)
+{
+  tree block_struct = TREE_TYPE (decl);
+  const char *var_name ;
+  tree var_field;
+  bool found = false;
+  tree ret_type = NULL_TREE;
+
+
+  if ((! (DECL_NAME (decl)))
+      || (! IDENTIFIER_POINTER (DECL_NAME (decl))))
+    return ret_type;
+
+  if (!block_struct)
+    return ret_type;
+
+  /* Get the name of the variable whose real type we are trying to find.  */
+
+  var_name = IDENTIFIER_POINTER (DECL_NAME (decl));
+
+  /* If the type for the variable was pointer to __Block_byref_etc, then
+     dereference the pointer type to get the structure __Block_byref_etc.  */
+
+  if (TREE_CODE (block_struct) == POINTER_TYPE)
+    block_struct = TREE_TYPE (block_struct);
+
+  /* If block_struct is NOT a __Block_byref_etc record, then something is
+     wrong, so we should bail out here.  */
+
+  if (TREE_CODE (block_struct) != RECORD_TYPE)
+    return ret_type;
+
+  if ((! TYPE_NAME (block_struct))
+      || (! IDENTIFIER_POINTER (TYPE_NAME (block_struct)))
+      || (strncmp (IDENTIFIER_POINTER (TYPE_NAME (block_struct)),
+		   "__Block_byref_", 14) != 0))
+    return ret_type;
+
+  /* We've got the record for a __Byref_block_etc; go through the fields
+     looking for one with the same name as the var_decl.  */
+
+  var_field = TYPE_FIELDS (block_struct);
+
+  while (var_field && !found)
+    {
+      if (TREE_CODE (var_field) != FIELD_DECL)
+	return ret_type;
+      if (DECL_NAME (var_field)
+	  && IDENTIFIER_POINTER (DECL_NAME (var_field))
+	  && strcmp (IDENTIFIER_POINTER (DECL_NAME (var_field)), var_name) == 0)
+	{
+	  /* We've found the right field.  Return its type.  */
+	  ret_type = TREE_TYPE (var_field);
+	  found = 1;
+	}
+      else
+	var_field = TREE_CHAIN (var_field);
+    }
+
+  return ret_type;
+}
+
+/* This function is a helper function for the function below,
+   add_block_byref_var_location_attribute.  See comments there
+   for full description.  */
+
+static void
+build_byref_var_location_expression (dw_loc_descr_ref *main_descr,
+				     bool is_pointer,
+				     int forwarding_field_offset,
+				     int var_field_offset)
+{
+  dw_loc_descr_ref temp_descr;
+
+  /* If we started with a pointer to the __Block_byref... struct, then
+     the first thing we need to do is dereference the pointer
+     (DW_OP_deref).  */
+
+  if (is_pointer)
+    {
+      temp_descr = new_loc_descr (DW_OP_deref, 0, 0);
+      add_loc_descr (main_descr, temp_descr);
+    }
+
+  /* Next add the offset for the 'forwarding' field:
+     DW_OP_plus_uconst forwarding_field_offset
+     Note, there's no point in adding it if the offset is 0.  */
+
+  if (forwarding_field_offset != 0)
+    {
+      temp_descr = new_loc_descr (DW_OP_plus_uconst, forwarding_field_offset,
+				  0);
+      add_loc_descr (main_descr, temp_descr);
+    }
+
+  /* Follow that pointer to find the *real* __Block_byref struct:
+     DW_OP_deref  */
+
+  temp_descr = new_loc_descr (DW_OP_deref, 0, 0);
+  add_loc_descr (main_descr, temp_descr);
+
+  /* Now we've got the real __Block_byref struct, add the offset for
+     the variable's field to get the location of the actual variable:
+     DW_OP_plus_uconst var_field_offset
+     Again, there's no point in adding the offset if it is 0.  */
+
+  if (var_field_offset != 0)
+    {
+      temp_descr = new_loc_descr (DW_OP_plus_uconst, var_field_offset, 0);
+      add_loc_descr (main_descr, temp_descr);
+    }
+}
+
+/* Byref variables, in blocks, are declared by the programmer as
+   "SomeType VarName;", but the compiler creates a
+   __Block_byref_x_VarName struct, and gives the variable VarName
+   either the struct, or a pointer to the struct, as its type.  This
+   is necessary for various behind-the-scenes things the compiler
+   needs to do with by-reference variables in blocks.
+
+   However, as far as the original *programmer* is concerned, the
+   variable should still have type 'SomeType', as originally declared.
+
+   The function find_block_byref_var_real_type dives into the
+   __Block_byref_x_VarName struct to find the original type of the
+   variable, which is then assigned to the variable's Debug
+   Information Entry as its real type.  So far, so good.  However now
+   the debugger will expect the variable VarName to have the type
+   SomeType.  So we need the location attribute for the variable to be
+   an expression that explains to the debugger how to navigate through
+   the pointers and struct to find the actual variable of type
+   SomeType.
+
+   The following function does just that.  We start by getting
+   the "normal" location for the variable. This will be the location
+   of either the struct __Block_byref_x_VarName or the pointer to the
+   struct __Block_byref_x_VarName.
+
+   The struct will look something like:
+
+   struct __Block_byref_x_VarName {
+     struct __Block_byref_x_VarName *forwarding;
+     ... <various irrelevant fields>
+     SomeType VarName;
+   };
+
+   If we are given the struct directly (as our starting point) we
+   need to tell the debugger to:
+
+   1).  Add the offset of the forwarding field (do NOT assume the field
+   will always be as position 0).
+
+   2).  Follow that pointer to get the the real __Block_byref_x_VarName
+   struct to use (the real one may have been copied onto the heap).
+
+   3).  Add the offset for the field VarName, to find the actual variable.
+
+   If we started with a pointer to the struct, then we need to
+   derefernce (follow) that pointer first, before the other steps.
+   Translating this into DWARF ops, we will need to append the following
+   to the current location description for the variable:
+
+   DW_OP_deref                    -- optional, if we start with a pointer
+   DW_OP_plus_uconst <forward_fld_offset>
+   DW_OP_deref
+   DW_OP_plus_uconst <varName_fld_offset>
+
+   This function returns a boolean indicating whether or not it was
+   able to successfully create and add the location description.  */
+
+static bool
+add_block_byref_var_location_attribute (dw_die_ref var_die, tree decl)
+{
+  tree block_struct = TREE_TYPE (decl);
+  const char *var_name = IDENTIFIER_POINTER (DECL_NAME (decl));
+  tree var_field = NULL;
+  tree forwarding_field = NULL;
+  tree temp_field;
+  unsigned int forwarding_field_offset = 0;
+  unsigned int var_field_offset = 0;
+  bool is_pointer = false;
+  dw_loc_descr_ref descr;
+  var_loc_list *loc_list;
+
+  if (!block_struct)
+    return false;
+
+  if ((! DECL_NAME (decl))
+      || (! IDENTIFIER_POINTER (DECL_NAME (decl))))
+    return false;
+
+  /* Get the name of the variable whose location we are decoding.  */
+
+  var_name = IDENTIFIER_POINTER (DECL_NAME (decl));
+
+  if (TREE_CODE (block_struct) == POINTER_TYPE)
+    block_struct = TREE_TYPE (block_struct);
+
+  /* Verify that we have a record that is a __Block_byref_...  */
+
+  if (TREE_CODE (block_struct) != RECORD_TYPE)
+    return false;
+
+  if ((! TYPE_NAME (block_struct))
+      || (! IDENTIFIER_POINTER (TYPE_NAME (block_struct)))
+      || strncmp (IDENTIFIER_POINTER (TYPE_NAME (block_struct)),
+		  "__Block_byref_", 14) != 0)
+    return false;
+
+  /* Find the forwarding field and the variable field within
+     the struct.  */
+
+  temp_field = TYPE_FIELDS (block_struct);
+
+  while (temp_field
+	 && (!var_field || !forwarding_field))
+    {
+      if (TREE_CODE (temp_field) != FIELD_DECL)
+	return false;
+      if (DECL_NAME (temp_field)
+	  && IDENTIFIER_POINTER (DECL_NAME (temp_field)))
+	{
+	  if (strcmp (IDENTIFIER_POINTER (DECL_NAME (temp_field)),
+		      var_name) == 0)
+	    var_field = temp_field;
+	  else if (strcmp (IDENTIFIER_POINTER (DECL_NAME (temp_field)),
+			   "forwarding") == 0)
+	    forwarding_field = temp_field;
+	}
+
+      temp_field = TREE_CHAIN (temp_field);
+    }
+
+  /* If we didn't find both fields, we can't continue.  */
+
+  if (!var_field || !forwarding_field)
+    return false;
+
+  /* Get the offsets of the fields within the struct.  */
+
+  if (var_field)
+    var_field_offset = field_byte_offset (var_field);
+  if (forwarding_field)
+    forwarding_field_offset = field_byte_offset (forwarding_field);
+
+  /* Check to see if we start with a pointer we need to dereference,
+     or not.  */
+
+  if (TREE_CODE (TREE_TYPE (decl)) == POINTER_TYPE)
+    is_pointer = true;
+
+  /* See if we possible have multiple locations for this variable.  */
+  loc_list = lookup_decl_loc (decl);
+
+  /* If it truly has multiple locations, the first and last node will
+     differ.  */
+  if (loc_list && loc_list->first != loc_list->last)
+    {
+      struct var_loc_node *node;
+      rtx varloc;
+      dw_loc_list_ref list;
+      const char *endname, *secname;
+
+      /* Build the first entry for the location list.  */
+
+      node = loc_list->first;
+      varloc = NOTE_VAR_LOCATION (node->var_loc_note);
+      secname = secname_for_decl (decl);
+
+      descr = loc_descriptor (varloc, STATUS_INITIALIZED);
+      build_byref_var_location_expression (&descr, is_pointer,
+					   forwarding_field_offset,
+					   var_field_offset);
+      list = new_loc_list (descr, node->label, node->next->label, secname, 1);
+      node = node->next;
+
+      for (; node->next; node = node->next)
+
+	/* Build the other entries for the location list, except the last.  */
+
+	if (NOTE_VAR_LOCATION_LOC (node->var_loc_note) != NULL_RTX)
+	  {
+	    varloc = NOTE_VAR_LOCATION (node->var_loc_note);
+	    descr = loc_descriptor (varloc, STATUS_INITIALIZED);
+	    build_byref_var_location_expression (&descr, is_pointer,
+						 forwarding_field_offset,
+						 var_field_offset);
+	    add_loc_descr_to_loc_list (&list, descr, node->label,
+				       node->next->label, secname);
+	  }
+      if (NOTE_VAR_LOCATION_LOC (node->var_loc_note) != NULL_RTX)
+	{
+	  char label_id[MAX_ARTIFICIAL_LABEL_BYTES];
+
+	  /* Build the last entry for the location list.  */
+
+	  varloc = NOTE_VAR_LOCATION (node->var_loc_note);
+	  if (!current_function_decl)
+	    endname = text_end_label;
+	  else
+	    {
+	      ASM_GENERATE_INTERNAL_LABEL (label_id, FUNC_END_LABEL,
+					   current_function_funcdef_no);
+	      endname = ggc_strdup (label_id);
+	    }
+	  descr = loc_descriptor (varloc, STATUS_INITIALIZED);
+	  build_byref_var_location_expression (&descr, is_pointer,
+					       forwarding_field_offset,
+					       var_field_offset);
+	  add_loc_descr_to_loc_list (&list, descr, node->label, endname,
+				     secname);
+	}
+      add_AT_loc_list (var_die, DW_AT_location, list);
+    }
+  else
+    {
+      /* We are not dealing with a location list so...  */
+
+      /* 'descr' starts with the base location of the __Block_byref_... struct,
+	 or the pointer to the __Block_byref_... struct.  */
+
+      descr = loc_descriptor_from_tree (decl);
+      if (!descr)
+	return false;
+
+      build_byref_var_location_expression (&descr, is_pointer,
+					   forwarding_field_offset,
+					   var_field_offset);
+
+      /* Finally, now that we've built up the location description to find the
+	 actual value of the variable, add the location description to the
+	 variable's die.  */
+
+      add_AT_location_description (var_die, DW_AT_location, descr);
+    }
+
+  return true;
+}
+/* APPLE LOCAL end radar 6048397 handle block byref variables  */
 
 /* Generate a DIE to represent a declared data object.  */
 
 static void
 gen_variable_die (tree decl, dw_die_ref context_die)
 {
+  /* APPLE LOCAL begin radar 6048397 handle block byref variables  */
+  bool is_block_byref_var = false;
+  tree decl_type = TREE_TYPE (decl);
+  /* APPLE LOCAL end radar 6048397 handle block byref variables  */
   tree origin = decl_ultimate_origin (decl);
   dw_die_ref var_die = new_die (DW_TAG_variable, context_die, decl);
 
@@ -12346,6 +12817,24 @@ gen_variable_die (tree decl, dw_die_ref context_die)
 			 && DECL_COMDAT (decl) && !TREE_ASM_WRITTEN (decl))
 		     || class_or_namespace_scope_p (context_die));
 
+  /* APPLE LOCAL begin radar 6048397 handle block byref variables  */
+  /* Check to see if this variable is for a block passed-by-refernce
+     variable, in which case we need to do some special stuff for its
+     type and location.  */
+  if (decl_type)
+    {
+      if (TREE_CODE (decl_type) == POINTER_TYPE)
+	decl_type = TREE_TYPE (decl_type);
+      if (decl_type
+	  && TREE_CODE (decl_type) == RECORD_TYPE
+	  && TYPE_NAME (decl_type)
+	  && TREE_CODE (TYPE_NAME (decl_type)) == IDENTIFIER_NODE
+	  && IDENTIFIER_POINTER (TYPE_NAME (decl_type))
+	  && (strncmp (IDENTIFIER_POINTER (TYPE_NAME (decl_type)), 
+		       "__Block_byref_", 14) == 0))
+	  is_block_byref_var = true;
+    }
+  /* APPLE LOCAL end radar 6048397 handle block byref variables  */
   if (origin != NULL)
     add_abstract_origin_attribute (var_die, origin);
 
@@ -12383,8 +12872,24 @@ gen_variable_die (tree decl, dw_die_ref context_die)
   else
     {
       add_name_and_src_coords_attributes (var_die, decl);
-      add_type_attribute (var_die, TREE_TYPE (decl), TREE_READONLY (decl),
-			  TREE_THIS_VOLATILE (decl), context_die);
+      /* APPLE LOCAL begin radar 6048397 handle block byref variables  */
+      if (is_block_byref_var)
+	{
+	  /* Try to find the real type for the variable; if we can't find
+	     it, fall back on the old behavior.  */
+	  tree real_type = NULL_TREE;
+	  real_type = find_block_byref_var_real_type (decl);
+	  if (real_type)
+	    add_type_attribute (var_die, real_type, TREE_READONLY (decl),
+				TREE_THIS_VOLATILE (decl), context_die);
+	  else
+	    add_type_attribute (var_die, TREE_TYPE (decl), TREE_READONLY (decl),
+				TREE_THIS_VOLATILE (decl), context_die);
+	}
+      else
+	add_type_attribute (var_die, TREE_TYPE (decl), TREE_READONLY (decl),
+			    TREE_THIS_VOLATILE (decl), context_die);
+      /* APPLE LOCAL end radar 6048397 handle block byref variables  */
 
       if (TREE_PUBLIC (decl))
 	add_AT_flag (var_die, DW_AT_external, 1);
@@ -12406,7 +12911,16 @@ gen_variable_die (tree decl, dw_die_ref context_die)
 
   if (! declaration && ! DECL_ABSTRACT (decl))
     {
-      add_location_or_const_value_attribute (var_die, decl, DW_AT_location);
+      /* APPLE LOCAL begin radar 6048397 handle block byref variables  */
+      /* Try to build and add the location info for navigating through
+	 a __Block_byref_... struct to find the real variable.  If that
+	 fails, fall back on the old behavior.  */
+      bool loc_added = false;
+      if (is_block_byref_var)
+	loc_added = add_block_byref_var_location_attribute (var_die, decl);
+      if (!loc_added)
+	add_location_or_const_value_attribute (var_die, decl, DW_AT_location);
+      /* APPLE LOCAL end radar 6048397 handle block byref variables  */
       add_pubname (decl, var_die);
     }
   else
@@ -12822,6 +13336,11 @@ gen_struct_or_union_type_die (tree type, dw_die_ref context_die)
 	add_AT_specification (type_die, old_die);
       else
 	add_name_attribute (type_die, type_tag (type));
+
+      /* APPLE LOCAL begin radar 5811943 - Fix type of pointers to Blocks  */
+      if (TYPE_BLOCK_IMPL_STRUCT (type))
+	add_AT_flag (type_die, DW_AT_APPLE_block, 1);
+      /* APPLE LOCAL end radar 5811943 - Fix type of pointers to Blocks  */
     }
   else
     remove_AT (type_die, DW_AT_declaration);
@@ -12986,6 +13505,8 @@ gen_type_die (tree type, dw_die_ref context_die)
     case ERROR_MARK:
       break;
 
+    /* APPLE LOCAL radar 5732232 - blocks */
+    case BLOCK_POINTER_TYPE:
     case POINTER_TYPE:
     case REFERENCE_TYPE:
       /* We must set TREE_ASM_WRITTEN in case this is a recursive type.  This
@@ -13792,6 +14313,8 @@ dwarf2out_decl (tree decl)
 	 a plain function, this will be fixed up in decls_for_scope.  If
 	 we're a method, it will be ignored, since we already have a DIE.  */
       if (decl_function_context (decl)
+	  /* APPLE LOCAL blocks 5811952 - radar 6172148 */
+	  && (! BLOCK_SYNTHESIZED_FUNC (decl))
 	  /* But if we're in terse mode, we don't care about scope.  */
 	  && debug_info_level > DINFO_LEVEL_TERSE)
 	context_die = NULL;

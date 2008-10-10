@@ -31,9 +31,6 @@
 #ifndef TARGET_MACHO
 #define TARGET_MACHO 0
 #endif
-#ifndef MACHO_DYNAMIC_NO_PIC_P
-#define MACHO_DYNAMIC_NO_PIC_P 0
-#endif
 /* APPLE LOCAL end ARM darwin target */
 
 /* APPLE LOCAL ARM interworking */
@@ -469,7 +466,10 @@ extern int arm_cpp_interwork;
 #define PREFERRED_STACK_BOUNDARY \
     (arm_abi == ARM_ABI_ATPCS ? 64 : STACK_BOUNDARY)
 
-#define FUNCTION_BOUNDARY  32
+/* APPLE LOCAL begin ARM 6008578 */
+#define FUNCTION_BOUNDARY arm_function_boundary ()
+extern int arm_function_boundary (void);
+/* APPLE LOCAL end ARM 6008578 */
 
 /* The lowest bit is used to indicate Thumb-mode functions, so the
    vbit must go into the delta field of pointers to member
@@ -479,6 +479,11 @@ extern int arm_cpp_interwork;
 #define EMPTY_FIELD_BOUNDARY  32
 
 #define BIGGEST_ALIGNMENT (ARM_DOUBLEWORD_ALIGN ? DOUBLEWORD_ALIGNMENT : 32)
+
+/* APPLE LOCAL begin 5946347 ms_struct support */
+#define TARGET_FIELD_MS_STRUCT_ALIGN(FIELD) arm_field_ms_struct_align (FIELD)
+#define BIGGEST_MS_STRUCT_ALIGNMENT 128
+/* APPLE LOCAL end 5946347 ms_struct support */
 
 /* XXX Blah -- this macro is used directly by libobjc.  Since it
    supports no vector modes, cut out the complexity and fall back
@@ -966,6 +971,26 @@ extern int arm_structure_size_boundary;
     87, 88, 89, 90, 91, 92, 93, 94, \
     95				    \
 }
+
+/* APPLE LOCAL begin 5831562 add DIMODE_REG_ALLOC_ORDER */
+#define DIMODE_REG_ALLOC_ORDER  	    \
+{                                   \
+     2,  3,  1,  0, 12, 14,  4,  5, \
+     6,  7,  8, 10,  9, 11, 13, 15, \
+    16, 17, 18, 19, 20, 21, 22, 23, \
+    27, 28, 29, 30, 31, 32, 33, 34, \
+    35, 36, 37, 38, 39, 40, 41, 42, \
+    43, 44, 45, 46, 47, 48, 49, 50, \
+    51, 52, 53, 54, 55, 56, 57, 58, \
+    59, 60, 61, 62,		    \
+    24, 25, 26,			    \
+    78, 77, 76, 75, 74, 73, 72, 71, \
+    70, 69, 68, 67, 66, 65, 64, 63, \
+    79, 80, 81, 82, 83, 84, 85, 86, \
+    87, 88, 89, 90, 91, 92, 93, 94, \
+    95				    \
+}
+/* APPLE LOCAL end 5831562 add DIMODE_REG_ALLOC_ORDER */
 
 /* Interrupt functions can only use registers that have already been
    saved by the prologue, even if they would normally be
@@ -1833,14 +1858,8 @@ typedef struct
 #define SHORT_CALL_FLAG_CHAR	'^'
 #define LONG_CALL_FLAG_CHAR	'#'
 
-#define ENCODED_SHORT_CALL_ATTR_P(SYMBOL_NAME) \
-  (*(SYMBOL_NAME) == SHORT_CALL_FLAG_CHAR)
-
 #define SYMBOL_SHORT_CALL_ATTR_P(SYMBOL) \
   (SYMBOL_REF_FLAGS (SYMBOL) & SYMBOL_SHORT_CALL)
-
-#define ENCODED_LONG_CALL_ATTR_P(SYMBOL_NAME)  \
-  (*(SYMBOL_NAME) == LONG_CALL_FLAG_CHAR)
 
 #define SYMBOL_LONG_CALL_ATTR_P(SYMBOL) \
   (SYMBOL_REF_FLAGS (SYMBOL) & SYMBOL_LONG_CALL)
@@ -2070,6 +2089,111 @@ do {							\
    for the index in the tablejump instruction.  */
 #define CASE_VECTOR_MODE Pmode
 
+/* APPLE LOCAL begin ARM compact switch tables */
+#define CASE_VECTOR_PC_RELATIVE (TARGET_THUMB)
+
+#define CASE_VECTOR_SHORTEN_MODE(MIN_OFFSET, MAX_OFFSET, BODY)	\
+(TARGET_ARM ? SImode						\
+ : (MIN_OFFSET) >= -256 && (MAX_OFFSET) <= 254			\
+ ? (ADDR_DIFF_VEC_FLAGS (BODY).offset_unsigned = 0, QImode)	\
+ : (MIN_OFFSET) >= 0 && (MAX_OFFSET) <= 510			\
+ ? (ADDR_DIFF_VEC_FLAGS (BODY).offset_unsigned = 1, QImode)	\
+ : (MIN_OFFSET) >= -65536 && (MAX_OFFSET) <= 65534		\
+ ? (ADDR_DIFF_VEC_FLAGS (BODY).offset_unsigned = 0, HImode)	\
+ : SImode)
+
+/* This macro uses variable "file" that exists at 
+   the single place it is invoked, in final.c.  INSN_ADDRESSES 
+   and INSN_UID also expand to variables visible at that point,
+   but not everywhere.  Ewww.
+   Table in RTL includes default target as the last element (via
+   local change in stmt.c).  Table in .s file additionally includes 
+   count as first element, count does not include the last element.  
+   All that is dealt with here. */
+   
+
+#define ASM_OUTPUT_ADDR_DIFF_VEC(LABEL, BODY)				\
+do {									\
+  int idx, size = GET_MODE_SIZE (GET_MODE (BODY));			\
+  int pack = (TARGET_THUMB) ? 2 : 4;					\
+  /* APPLE LOCAL 5837498 assembler expr for (L1-L2)/2 */		\
+  /* removed unused variable "base_addr" */				\
+  int base_label_no = CODE_LABEL_NUMBER (LABEL);			\
+  int vlen = XVECLEN (BODY, 1); /*includes trailing default */		\
+  const char* directive;						\
+  if (GET_MODE (BODY) == QImode)					\
+      directive = ".byte";						\
+  else if (GET_MODE (BODY) == HImode)					\
+      directive = ".short";						\
+  else									\
+    {									\
+      pack = 1;		    						\
+      directive = ".long";						\
+    }									\
+  /* Alignment of table was handled by aligning its label,		\
+     in final_scan_insn. */						\
+  targetm.asm_out.internal_label (file, "L", base_label_no);		\
+  /* Default is not included in output count */				\
+  if (TARGET_THUMB)							\
+    asm_fprintf (file, "\t%s\t%d @ size\n", directive, vlen - 1);	\
+  for (idx = 0; idx < vlen; idx++)					\
+    {									\
+      rtx target_label = XEXP (XVECEXP (BODY, 1, idx), 0);		\
+      /* APPLE LOCAL begin 5837498 assembler expr for (L1-L2)/2 */	\
+      if (GET_MODE (BODY) != SImode)					\
+        {								\
+	  /* ARM mode is always SImode bodies */			\
+	  gcc_assert (!TARGET_ARM);					\
+	  /* APPLE LOCAL 5903944 */					\
+	  asm_fprintf (file, "\t%s\t(L%d-L%d)/%d\n",			\
+	    directive,							\
+	    CODE_LABEL_NUMBER (target_label), base_label_no, pack);	\
+        }								\
+      /* APPLE LOCAL end 5837498 assembler expr for (L1-L2)/2 */	\
+      else if (!TARGET_THUMB)						\
+	asm_fprintf (file, "\tb\tL%d\n",				\
+			CODE_LABEL_NUMBER (target_label));		\
+      else								\
+	/* Let the assembler do the computation here; one case that	\
+	   uses is this is when there are asm's, which makes		\
+	   compile time computations unreliable. */			\
+	asm_fprintf (file, "\t%s\tL%d-L%d\n",				\
+	  directive,							\
+	  CODE_LABEL_NUMBER (target_label), base_label_no);		\
+    }									\
+  /* Pad to instruction boundary. */					\
+  vlen = (vlen + 1/*count*/) * size;					\
+  while (vlen % pack != 0)						\
+    {									\
+      asm_fprintf (file, "\t%s\t0 @ pad\n", directive);			\
+      vlen += size;							\
+    }									\
+} while (0)
+
+/* This is identical to the default code when ASM_OUTPUT_ADDR_VEC is
+   not defined; however, final_scan_insn() will not invoke that
+   code when ASM_OUTPUT_ADDR_DIFF_VEC is defined.  In other words
+   if one of these is defined the other must be also, assuming you
+   want to use both kinds of tables in different circumstances.
+   Grr. This requirement is undocumented.  */
+
+#define ASM_OUTPUT_ADDR_VEC(LABEL, BODY)			    \
+do								    \
+    {								    \
+      int vlen = XVECLEN (BODY, 0);				    \
+      int idx;							    \
+      if (GET_CODE (BODY) != ADDR_VEC)				    \
+	gcc_unreachable ();					    \
+      for (idx = 0; idx < vlen; idx++)				    \
+	{							    \
+	  ASM_OUTPUT_ADDR_VEC_ELT				    \
+	    (file, CODE_LABEL_NUMBER (XEXP			    \
+		    (XVECEXP (BODY, 0, idx), 0)));		    \
+	}							    \
+    }								    \
+while (0)
+/* APPLE LOCAL end ARM compact switch tables */
+
 /* signed 'char' is most compatible, but RISC OS wants it unsigned.
    unsigned is probably best, but may break some code.  */
 #ifndef DEFAULT_SIGNED_CHAR
@@ -2118,9 +2242,25 @@ do {							\
 /* Calling from registers is a massive pain.  */
 #define NO_FUNCTION_CSE 1
 
+/* APPLE LOCAL begin DImode multiply enhancement */
+/* Enable a new optimization in combine.c, see there. */
+#define COMBINE_TRY_RETAIN 1
+/* APPLE LOCAL end DImode multiply enhancement */
+
 /* The machine modes of pointers and functions */
 #define Pmode  SImode
 #define FUNCTION_MODE  Pmode
+
+/* APPLE LOCAL begin ARM enhance conditional insn generation */
+/* A C expression to modify the code described by the conditional if
+   information CE_INFO, for the basic block BB, possibly updating the tests in
+   TRUE_EXPR, and FALSE_EXPR for converting the && and || parts of if-then or
+   if-then-else code to conditional instructions.  OLD_TRUE and OLD_FALSE are
+   the previous tests.  Set either TRUE_EXPR or FALSE_EXPR to a null pointer if
+   the tests cannot be converted.  */
+#define IFCVT_MODIFY_MULTIPLE_TESTS(CE_INFO, BB, TRUE_EXPR, FALSE_EXPR) \
+arm_ifcvt_modify_multiple_tests (CE_INFO, BB, &TRUE_EXPR, &FALSE_EXPR)
+/* APPLE LOCAL end ARM enhance conditional insn generation */
 
 #define ARM_FRAME_RTX(X)					\
   (   (X) == frame_pointer_rtx || (X) == stack_pointer_rtx	\
@@ -2499,10 +2639,57 @@ extern int making_const_table;
   optimization_options ((LEVEL), (SIZE))
 /* APPLE LOCAL end ARM darwin optimization defaults */
 
+/* APPLE LOCAL begin 5831562 ARM pseudo-pseudo tying */
+#define TIE_PSEUDOS 1
+/* APPLE LOCAL end 5831562 ARM pseudo-pseudo tying */
+
+/* APPLE LOCAL begin ARM strings in code */
+/* APPLE LOCAL begin ARM compact switch tables */
+/* length for consttable_string needs to be done in code */
+#define ADJUST_INSN_LENGTH(INSN, LENGTH) \
+  arm_adjust_insn_length ((INSN), &(LENGTH))
+/* APPLE LOCAL end ARM compact switch tables */
+/* APPLE LOCAL end ARM strings in code */
+
 /* APPLE LOCAL begin ARM prefer SP to FP */
 #define DEBUGGER_AUTO_OFFSET(X) arm_local_debug_offset (X)
 #define ALLOW_ELIMINATION_TO_SP
 /* APPLE LOCAL end ARM prefer SP to FP */
+
+/* APPLE LOCAL begin ARM compact switch tables */
+#define LABEL_ALIGN(LABEL) arm_label_align(LABEL)
+#define TARGET_EXTRA_CASES (TARGET_THUMB ? 1 : 0)
+
+/* Don't take shortcuts which may compromise preciseness of
+   address/alignment calculations.  */
+#define TARGET_EXACT_SIZE_CALCULATIONS
+
+/* Count size of prologue */
+#define TARGET_UNEXPANDED_PROLOGUE_SIZE \
+		(TARGET_THUMB ? count_thumb_unexpanded_prologue () : 0)
+
+/* Align labels in ADDR_DIFF_VECs with the same alignment as
+   the table they are a part of.  */
+#define TARGET_ALIGN_ADDR_DIFF_VEC_LABEL
+/* APPLE LOCAL end ARM compact switch tables */
+
+/* APPLE LOCAL begin ARM 4-byte align stack objects */
+/* In Thumb mode align stack objects on 4 bytes, so we can use
+   the %sp+N form of ADD to compute their addresses rather than
+   having to break this into 2 insns. */
+#if TARGET_MACHO
+#define LOCAL_ALIGNMENT(TYPE, BASIC_ALIGN) \
+  (TARGET_THUMB ? (MAX (BASIC_ALIGN, 4 * BITS_PER_UNIT)) : BASIC_ALIGN)
+#endif
+/* APPLE LOCAL end ARM 4-byte align stack objects */
+
+/* APPLE LOCAL begin ARM 6148015 */
+/* Tells us how to find the CFA == dwarf frame_base == address of stack
+   on entry to the function given the (virtual) arg-pointer.  */
+#define ARG_POINTER_CFA_OFFSET(FNDECL) 				\
+		((FIRST_PARM_OFFSET (FNDECL)) 			\
+		 + (DECL_STRUCT_FUNCTION (FNDECL))->pretend_args_size)
+/* APPLE LOCAL end ARM 6148015 */
 
 enum arm_builtins
 {
@@ -2672,6 +2859,7 @@ enum arm_builtins
 };
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 #define LLVM_TARGET_INTRINSIC_PREFIX "arm"
 
 /* Turn -march=xx into a CPU type.
@@ -2734,7 +2922,7 @@ enum arm_builtins
   else if ((ESCAPED_CHAR) == '@') {       		\
     (RESULT) += ASM_COMMENT_START;                      \
   }
-
+#endif
 /* LLVM LOCAL end */
 
 #endif /* ! GCC_ARM_H */

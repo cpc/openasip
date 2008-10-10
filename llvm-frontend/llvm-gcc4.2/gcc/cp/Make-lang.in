@@ -107,7 +107,7 @@ cc1plus-dummy$(exeext): $(CXX_OBJS) dummy-checksum.o $(BACKEND) $(LIBDEPS)
 	$(LINKCC) $(ALL_CFLAGS) $(LDFLAGS) -o $@ \
 	      $(CXX_OBJS) dummy-checksum.o $(BACKEND) $(LIBS) \
 	      $(CC1PLUS_ORDER_FLAGS)
-# APLE LOCAL end LLVM
+# LLVM LOCAL end
 
 cc1plus-checksum.c : cc1plus-dummy$(exeext) build/genchecksum$(build_exeext)
 	build/genchecksum$(build_exeext) cc1plus-dummy$(exeext) > $@

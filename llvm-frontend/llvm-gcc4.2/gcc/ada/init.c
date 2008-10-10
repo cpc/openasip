@@ -96,9 +96,8 @@ char  __gl_locking_policy           = ' ';
 char  __gl_queuing_policy           = ' ';
 char  __gl_task_dispatching_policy  = ' ';
 /* LLVM local begin */
-char *__gl_priority_specific_dispatching          __attribute__ ((__weak__)) = 0;
-int   __gl_num_specific_dispatching               __attribute__ ((__weak__)) = 0;
-int   system__restrictions__run_time_restrictions __attribute__ ((__weak__)) = 0;
+char *__gl_priority_specific_dispatching __attribute__ ((weak));
+int   __gl_num_specific_dispatching      __attribute__ ((weak));
 /* LLVM local end */
 char *__gl_restrictions             = 0;
 char *__gl_interrupt_states         = 0;

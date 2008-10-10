@@ -345,7 +345,8 @@ _L__\name:
 	.text
 	.globl SYM (__$0)
 	TYPE (__$0)
-	.align 0
+	/* APPLE LOCAL ARM function alignment */
+	.align 2
 	.arm
 SYM (__$0):
 #else
@@ -1271,6 +1272,85 @@ L10:	cmp	ip, #0
 	FUNC_END ashldi3
 
 #endif
+
+/* APPLE LOCAL begin ARM 4790140 compact switch tables */
+/* ----------------------------------------------------------------------- */
+/* Thumb switch table implementation.  Arm code, although must be called 
+   from Thumb (the low bit of LR is expected to be 1).
+   Expects the call site to be followed by 1-byte count, then <count>
+   1-byte unsigned half-offsets (low bit of real offset is always 0, so
+   not stored), then the half-offset for the default case (not included
+   in the count). */
+
+#ifdef L_switchu8
+
+	FUNC_START switchu8
+
+	ldrb ip, [lr, #-1]
+	cmp r0, ip
+	ldrccb r0, [lr, r0]
+	ldrcsb r0, [lr, ip]
+	add ip, lr, r0, lsl #1
+	bx ip
+
+	FUNC_END switchu8
+#endif
+
+/* Same with signed half-offsets. */
+
+#ifdef L_switch8
+
+	FUNC_START switch8
+
+	ldrb ip, [lr, #-1]
+	cmp r0, ip
+	ldrccsb r0, [lr, r0]
+	ldrcssb r0, [lr, ip]
+	add ip, lr, r0, lsl #1
+	bx ip
+
+	FUNC_END switch8
+#endif
+
+/* Same with 16-bit signed half-offsets.   (This one is not
+   all that efficient, there's no reg+reg<<const mode for
+   halfwords.) */
+
+#ifdef L_switch16
+
+	FUNC_START switch16
+
+	ldrh ip, [lr, #-1]
+	cmp r0, ip
+	add r0, lr, r0, lsl #1
+	ldrccsh r0, [r0, #1]
+	add ip, lr, ip, lsl #1
+	ldrcssh r0, [ip, #1]
+	add ip, lr, r0, lsl #1
+	bx ip
+
+	FUNC_END switch16
+#endif
+
+/* Same with 32-bit signed offset (shifting off the low
+   bit would not gain anything here).  */
+
+#ifdef L_switch32
+
+	FUNC_START switch32
+
+	ldr ip, [lr, #-1]
+	cmp r0, ip
+	add r0, lr, r0, lsl #2
+	ldrcc r0, [r0, #3]
+	add ip, lr, ip, lsl #2
+	ldrcs r0, [ip, #3]
+	add ip, lr, r0
+	bx ip
+
+	FUNC_END switch32
+#endif
+/* APPLE LOCAL end ARM 4790140 compact switch tables */
 
 #endif /* __symbian__ */
 

@@ -23,6 +23,16 @@ along with GCC; see the file COPYING.  If not, write to
 the Free Software Foundation, 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
+/* LLVM LOCAL begin */
+
+#ifdef ENABLE_LLVM
+
+/* Add general target specific stuff */
+#include "llvm-mips-target.h"
+
+#endif /* ENABLE_LLVM */
+
+/* LLVM LOCAL end */
 
 /* MIPS external variables defined in mips.c.  */
 
@@ -60,6 +70,7 @@ enum processor_type {
   PROCESSOR_SB1,
   PROCESSOR_SB1A,
   PROCESSOR_SR71000,
+  PROCESSOR_ALLEGREX,
   PROCESSOR_MAX
 };
 
@@ -212,6 +223,7 @@ extern const struct mips_rtx_cost_data *mips_cost;
 #define TARGET_SB1                  (mips_arch == PROCESSOR_SB1		\
 				     || mips_arch == PROCESSOR_SB1A)
 #define TARGET_SR71K                (mips_arch == PROCESSOR_SR71000)
+#define TARGET_ALLEGREX             (mips_arch == PROCESSOR_ALLEGREX)
 
 /* Scheduling target defines.  */
 #define TUNE_MIPS3000               (mips_tune == PROCESSOR_R3000)
@@ -227,6 +239,7 @@ extern const struct mips_rtx_cost_data *mips_cost;
 #define TUNE_MIPS9000               (mips_tune == PROCESSOR_R9000)
 #define TUNE_SB1                    (mips_tune == PROCESSOR_SB1		\
 				     || mips_tune == PROCESSOR_SB1A)
+#define TUNE_ALLEGREX               (mips_tune == PROCESSOR_ALLEGREX)
 
 /* True if the pre-reload scheduler should try to create chains of
    multiply-add or multiply-subtract instructions.  For example,
@@ -269,6 +282,9 @@ extern const struct mips_rtx_cost_data *mips_cost;
 /* IRIX specific stuff.  */
 #define TARGET_IRIX	   0
 #define TARGET_IRIX6	   0
+
+/* PSP */
+#define TARGET_PSP	   0
 
 /* Define preprocessor macros for the -march and -mtune options.
    PREFIX is either _MIPS_ARCH or _MIPS_TUNE, INFO is the selected
@@ -338,6 +354,13 @@ extern const struct mips_rtx_cost_data *mips_cost;
 								\
       if (TARGET_DSP)						\
 	builtin_define ("__mips_dsp");				\
+								\
+      if (TARGET_PSP)						\
+	{							\
+	  builtin_define ("PSP=1");				\
+	  builtin_define ("__psp__=1");				\
+	  builtin_define ("_PSP=1");				\
+	}							\
 								\
       MIPS_CPP_SET_PROCESSOR ("_MIPS_ARCH", mips_arch_info);	\
       MIPS_CPP_SET_PROCESSOR ("_MIPS_TUNE", mips_tune_info);	\

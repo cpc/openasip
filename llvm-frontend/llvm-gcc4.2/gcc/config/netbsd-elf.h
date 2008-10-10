@@ -92,3 +92,16 @@ Boston, MA 02110-1301, USA.  */
        %{rdynamic:-export-dynamic} \
        %{!dynamic-linker:-dynamic-linker /usr/libexec/ld.elf_so}} \
      %{static:-static}}"
+
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
+
+/* Yes, we're supporting PIC codegen for NetBSD targets! */
+#define LLVM_SET_TARGET_OPTIONS(argvec)              \
+  if (flag_pic)                                      \
+    argvec.push_back ("--relocation-model=pic");     \
+  else                                               \
+    argvec.push_back ("--relocation-model=static");
+
+#endif
+/* LLVM LOCAL end */

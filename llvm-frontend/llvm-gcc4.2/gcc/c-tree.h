@@ -304,6 +304,8 @@ enum c_declarator_kind {
   cdk_array,
   /* A pointer.  */
   cdk_pointer,
+  /* APPLE LOCAL blocks (C++ ch) */
+  cdk_block_pointer,
   /* Parenthesized declarator with nested attributes.  */
   cdk_attrs
 };
@@ -509,6 +511,10 @@ extern struct c_declarator *build_function_declarator (struct c_arg_info *,
 extern struct c_declarator *build_id_declarator (tree);
 extern struct c_declarator *make_pointer_declarator (struct c_declspecs *,
 						     struct c_declarator *);
+/* APPLE LOCAL begin radar 5814025 - blocks (C++ cg) */
+extern struct c_declarator *make_block_pointer_declarator (struct c_declspecs *,
+							     struct c_declarator *);
+/* APPLE LOCAL end radar 5814025 - blocks (C++ cg) */
 extern struct c_declspecs *build_null_declspecs (void);
 extern struct c_declspecs *declspecs_add_qual (struct c_declspecs *, tree);
 extern struct c_declspecs *declspecs_add_type (struct c_declspecs *,

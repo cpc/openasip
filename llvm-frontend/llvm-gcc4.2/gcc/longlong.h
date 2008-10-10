@@ -97,7 +97,7 @@ extern const UQItype __clz_tab[256];
    (E.g. WE32100, IBM360.)  */
 
 /* LLVM LOCAL begin */
-#if defined (__GNUC__) && !defined (NO_ASM) && !defined (__llvm__)
+#if defined (__GNUC__) && !defined (NO_ASM) && (!defined (ENABLE_LLVM) || !defined (__llvm__))
 /* LLVM LOCAL end */
 
 /* We sometimes need to clobber "cc" with gcc2, but that would not be

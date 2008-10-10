@@ -32,7 +32,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm-internal.h"
 #include "llvm/Constants.h"
 #include "llvm/DerivedTypes.h"
-#include "llvm/ParameterAttributes.h"
+#include "llvm/Attributes.h"
 #include "llvm/Target/TargetData.h"
 
 namespace llvm {
@@ -57,8 +57,10 @@ struct DefaultABIClient {
 
   /// HandleAggregateResultAsScalar - This callback is invoked if the function
   /// returns an aggregate value by bit converting it to the specified scalar
-  /// type and returning that.
-  void HandleAggregateResultAsScalar(const Type *ScalarTy) {}
+  /// type and returning that.  The bit conversion should start at byte Offset
+  /// within the struct, and ScalarTy is not necessarily big enough to cover
+  /// the entire struct.
+  void HandleAggregateResultAsScalar(const Type *ScalarTy, unsigned Offset=0) {}
 
   /// HandleAggregateResultAsAggregate - This callback is invoked if the function
   /// returns an aggregate value using multiple return values.
@@ -197,9 +199,10 @@ static bool isZeroSizedStructOrUnion(tree type) {
 // getLLVMScalarTypeForStructReturn - Return LLVM Type if TY can be 
 // returned as a scalar, otherwise return NULL. This is the default
 // target independent implementation.
-static const Type* getLLVMScalarTypeForStructReturn(tree type) {
+static const Type* getLLVMScalarTypeForStructReturn(tree type, unsigned *Offset) {
   const Type *Ty = ConvertType(type);
   unsigned Size = getTargetData().getABITypeSize(Ty);
+  *Offset = 0;
   if (Size == 0)
     return Type::VoidTy;
   else if (Size == 1)
@@ -230,6 +233,13 @@ static const Type* getLLVMAggregateTypeForStructReturn(tree type) {
 // not part of the target architecture should do this.
 #ifndef LLVM_SHOULD_PASS_VECTOR_IN_INTEGER_REGS
 #define LLVM_SHOULD_PASS_VECTOR_IN_INTEGER_REGS(TY) \
+  false
+#endif
+
+// LLVM_SHOULD_PASS_VECTOR_USING_BYVAL_ATTR - Return true if this vector
+// type should be passed byval.  Used for generic vectors on x86-64.
+#ifndef LLVM_SHOULD_PASS_VECTOR_USING_BYVAL_ATTR
+#define LLVM_SHOULD_PASS_VECTOR_USING_BYVAL_ATTR(X) \
   false
 #endif
 
@@ -277,8 +287,8 @@ static const Type* getLLVMAggregateTypeForStructReturn(tree type) {
 // single element is a bitfield of a type bigger than the struct; the code
 // for field-by-field struct passing does not handle this one right.
 #ifndef LLVM_SHOULD_PASS_AGGREGATE_IN_INTEGER_REGS
-#define LLVM_SHOULD_PASS_AGGREGATE_IN_INTEGER_REGS(X) \
-   !isSingleElementStructOrArray(X, false, true)
+#define LLVM_SHOULD_PASS_AGGREGATE_IN_INTEGER_REGS(X, Y, Z) \
+   !isSingleElementStructOrArray((X), false, true)
 #endif
 
 // LLVM_SHOULD_RETURN_SELT_STRUCT_AS_SCALAR - Return a TYPE tree if this single
@@ -309,8 +319,8 @@ static const Type* getLLVMAggregateTypeForStructReturn(tree type) {
 // LLVM_SCALAR_TYPE_FOR_STRUCT_RETURN - Return LLVM Type if X can be 
 // returned as a scalar, otherwise return NULL.
 #ifndef LLVM_SCALAR_TYPE_FOR_STRUCT_RETURN
-#define LLVM_SCALAR_TYPE_FOR_STRUCT_RETURN(X) \
-  getLLVMScalarTypeForStructReturn(X)
+#define LLVM_SCALAR_TYPE_FOR_STRUCT_RETURN(X, Y) \
+  getLLVMScalarTypeForStructReturn((X), (Y))
 #endif
 
 // LLVM_AGGR_TYPE_FOR_STRUCT_RETURN - Return LLVM Type if X can be 
@@ -329,7 +339,7 @@ static const Type* getLLVMAggregateTypeForStructReturn(tree type) {
 #endif
 static void llvm_default_extract_multiple_return_value(Value *Src, Value *Dest,
                                                        bool isVolatile,
-                                                       IRBuilder &Builder) {
+                                                       LLVMBuilder &Builder) {
   assert (0 && "LLVM_EXTRACT_MULTIPLE_RETURN_VALUE is not implemented!");
 }
 
@@ -351,6 +361,7 @@ public:
   /// on the client that indicate how its pieces should be handled.  This
   /// handles things like returning structures via hidden parameters.
   void HandleReturnType(tree type, tree fn, bool isBuiltin) {
+    unsigned Offset = 0;
     const Type *Ty = ConvertType(type);
     if (Ty->getTypeID() == Type::VectorTyID) {
       // Vector handling is weird on x86.  In particular builtin and
@@ -363,7 +374,7 @@ public:
         C.HandleScalarShadowArgument(PointerType::getUnqual(Ty), false);
       else
         C.HandleScalarResult(Ty);
-    } else if (Ty->isFirstClassType() || Ty == Type::VoidTy) {
+    } else if (Ty->isSingleValueType() || Ty == Type::VoidTy) {
       // Return scalar values normally.
       C.HandleScalarResult(Ty);
     } else if (doNotUseShadowReturn(type, fn)) {
@@ -376,10 +387,11 @@ public:
       } else {
         // Otherwise return as an integer value large enough to hold the entire
         // aggregate.
-        if (const Type* ScalarTy = LLVM_SCALAR_TYPE_FOR_STRUCT_RETURN(type))
-          C.HandleAggregateResultAsScalar(ScalarTy);
-        else if (const Type *AggrTy = LLVM_AGGR_TYPE_FOR_STRUCT_RETURN(type))
+        if (const Type *AggrTy = LLVM_AGGR_TYPE_FOR_STRUCT_RETURN(type))
           C.HandleAggregateResultAsAggregate(AggrTy);
+        else if (const Type* ScalarTy = 
+                    LLVM_SCALAR_TYPE_FOR_STRUCT_RETURN(type, &Offset))
+          C.HandleAggregateResultAsScalar(ScalarTy, Offset);
         else {
           assert(0 && "Unable to determine how to return this aggregate!");
           abort();
@@ -401,7 +413,9 @@ public:
   /// should be handled.  This handles things like decimating structures into
   /// their fields.
   void HandleArgument(tree type, std::vector<const Type*> &ScalarElts,
-                      ParameterAttributes *Attributes = NULL) {
+                      Attributes *Attributes = NULL) {
+    unsigned Size = 0;
+    bool DontCheckAlignment = false;
     const Type *Ty = ConvertType(type);
     // Figure out if this field is zero bits wide, e.g. {} or [0 x int].  Do
     // not include variable sized fields here.
@@ -412,12 +426,19 @@ public:
       ScalarElts.push_back(PtrTy);
     } else if (Ty->getTypeID()==Type::VectorTyID) {
       if (LLVM_SHOULD_PASS_VECTOR_IN_INTEGER_REGS(type)) {
-        PassInIntegerRegisters(type, Ty, ScalarElts);
+        PassInIntegerRegisters(type, Ty, ScalarElts, 0, false);
+      } else if (LLVM_SHOULD_PASS_VECTOR_USING_BYVAL_ATTR(type)) {
+        C.HandleByValArgument(Ty, type);
+        if (Attributes) {
+          *Attributes |= Attribute::ByVal;
+          *Attributes |= 
+            Attribute::constructAlignmentFromInt(LLVM_BYVAL_ALIGNMENT(type));
+        }
       } else {
         C.HandleScalarArgument(Ty, type);
         ScalarElts.push_back(Ty);
       }
-    } else if (Ty->isFirstClassType()) {
+    } else if (Ty->isSingleValueType()) {
       C.HandleScalarArgument(Ty, type);
       ScalarElts.push_back(Ty);
     } else if (LLVM_SHOULD_PASS_AGGREGATE_IN_MIXED_REGS(type, Ty, Elts)) {
@@ -426,32 +447,43 @@ public:
       else {
         C.HandleByValArgument(Ty, type);
         if (Attributes) {
-          *Attributes |= ParamAttr::ByVal;
+          *Attributes |= Attribute::ByVal;
           *Attributes |= 
-            ParamAttr::constructAlignmentFromInt(LLVM_BYVAL_ALIGNMENT(type));
+            Attribute::constructAlignmentFromInt(LLVM_BYVAL_ALIGNMENT(type));
         }
       }
     } else if (LLVM_SHOULD_PASS_AGGREGATE_USING_BYVAL_ATTR(type, Ty)) {
       C.HandleByValArgument(Ty, type);
       if (Attributes) {
-        *Attributes |= ParamAttr::ByVal;
+        *Attributes |= Attribute::ByVal;
         *Attributes |= 
-          ParamAttr::constructAlignmentFromInt(LLVM_BYVAL_ALIGNMENT(type));
+          Attribute::constructAlignmentFromInt(LLVM_BYVAL_ALIGNMENT(type));
       }
-    } else if (LLVM_SHOULD_PASS_AGGREGATE_IN_INTEGER_REGS(type)) {
-      PassInIntegerRegisters(type, Ty, ScalarElts);
+    } else if (LLVM_SHOULD_PASS_AGGREGATE_IN_INTEGER_REGS(type, &Size,
+                                                     &DontCheckAlignment)) {
+      PassInIntegerRegisters(type, Ty, ScalarElts, Size, DontCheckAlignment);
     } else if (isZeroSizedStructOrUnion(type)) {
       // Zero sized struct or union, just drop it!
       ;
     } else if (TREE_CODE(type) == RECORD_TYPE) {
       for (tree Field = TYPE_FIELDS(type); Field; Field = TREE_CHAIN(Field))
         if (TREE_CODE(Field) == FIELD_DECL) {
+          const tree Ftype = getDeclaredType(Field);
+          const Type *FTy = ConvertType(Ftype);
           unsigned FNo = GetFieldIndex(Field);
           assert(FNo != ~0U && "Case not handled yet!");
-          
-          C.EnterField(FNo, Ty);
-          HandleArgument(getDeclaredType(Field), ScalarElts);
-          C.ExitField();
+
+          // Currently, a bvyal type inside a non-byval struct is a zero-length
+          // object inside a bigger object on x86-64.  This type should be
+          // skipped (but only when it is inside a bigger object).
+          // (We know there currently are no other such cases active because
+          // they would hit the assert in FunctionPrologArgumentConversion::
+          // HandleByValArgument.)
+          if (!LLVM_SHOULD_PASS_AGGREGATE_USING_BYVAL_ATTR(Ftype, FTy)) {
+            C.EnterField(FNo, Ty);
+            HandleArgument(getDeclaredType(Field), ScalarElts);
+            C.ExitField();
+          }
         }
     } else if (TREE_CODE(type) == COMPLEX_TYPE) {
       C.EnterField(0, Ty);
@@ -520,10 +552,15 @@ public:
     
   /// PassInIntegerRegisters - Given an aggregate value that should be passed in
   /// integer registers, convert it to a structure containing ints and pass all
-  /// of the struct elements in.
+  /// of the struct elements in.  If Size is set we pass only that many bytes.
   void PassInIntegerRegisters(tree type, const Type *Ty,
-                              std::vector<const Type*> &ScalarElts) {
-    unsigned Size = TREE_INT_CST_LOW(TYPE_SIZE(type))/8;
+                              std::vector<const Type*> &ScalarElts,
+                              unsigned origSize, bool DontCheckAlignment) {
+    unsigned Size;
+    if (origSize)
+      Size = origSize;
+    else
+      Size = TREE_INT_CST_LOW(TYPE_SIZE(type))/8;
 
     // FIXME: We should preserve all aggregate value alignment information.
     // Work around to preserve some aggregate value alignment information:
@@ -531,7 +568,7 @@ public:
     // from Int64 alignment. ARM backend needs this.
     unsigned Align = TYPE_ALIGN(type)/8;
     unsigned Int64Align = getTargetData().getABITypeAlignment(Type::Int64Ty);
-    bool UseInt64 = (Align >= Int64Align);
+    bool UseInt64 = DontCheckAlignment ? true : (Align >= Int64Align);
 
     // FIXME: In cases where we can, we should use the original struct.
     // Consider cases like { int, int } and {int, short} for example!  This will
@@ -589,9 +626,20 @@ public:
   /// mixed integer, floating point, and vector registers, convert it to a
   /// structure containing the specified struct elements in.
   void PassInMixedRegisters(tree type, const Type *Ty,
-                            std::vector<const Type*> &Elts,
+                            std::vector<const Type*> &OrigElts,
                             std::vector<const Type*> &ScalarElts) {
+    // We use VoidTy in OrigElts to mean "this is a word in the aggregate
+    // that occupies storage but has no useful information, and is not passed
+    // anywhere".  Happens on x86-64.
+    std::vector<const Type*> Elts(OrigElts);
+    const Type* wordType = getTargetData().getPointerSize() == 4 ? Type::Int32Ty :
+                                                                 Type::Int64Ty;
+    for (unsigned i=0, e=Elts.size(); i!=e; ++i)
+      if (OrigElts[i]==Type::VoidTy)
+        Elts[i] = wordType;
+
     const StructType *STy = StructType::get(Elts, false);
+
     unsigned Size = getTargetData().getABITypeSize(STy);
     const StructType *InSTy = dyn_cast<StructType>(Ty);
     unsigned InSize = 0;
@@ -609,13 +657,15 @@ public:
       }
     }
     for (unsigned i = 0, e = Elts.size(); i != e; ++i) {
-      C.EnterField(i, STy);
-      unsigned RealSize = 0;
-      if (LastEltSizeDiff && i == (e - 1))
-        RealSize = LastEltSizeDiff;
-      C.HandleScalarArgument(Elts[i], 0, RealSize);
-      ScalarElts.push_back(Elts[i]);
-      C.ExitField();
+      if (OrigElts[i] != Type::VoidTy) {
+        C.EnterField(i, STy);
+        unsigned RealSize = 0;
+        if (LastEltSizeDiff && i == (e - 1))
+          RealSize = LastEltSizeDiff;
+        C.HandleScalarArgument(Elts[i], 0, RealSize);
+        ScalarElts.push_back(Elts[i]);
+        C.ExitField();
+      }
     }
   }
 };

@@ -39,8 +39,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/CodeGen/MachineModuleInfo.h"
 
-#include <iostream>
-
 extern "C" {
 #include "langhooks.h"
 #include "toplev.h"
@@ -90,15 +88,15 @@ static uint64_t NodeSizeInBits(tree Node) {
   } else if (TYPE_P(Node)) {
     if (TYPE_SIZE(Node) == NULL_TREE)
       return 0;
-    else if (host_integerp (TYPE_SIZE(Node), 1))
-      return tree_low_cst (TYPE_SIZE(Node), 1);
+    else if (isInt64(TYPE_SIZE(Node), 1))
+      return getInt64(TYPE_SIZE(Node), 1);
     else
       return TYPE_ALIGN(Node);
   } else if (DECL_P(Node)) {
     if (DECL_SIZE(Node) == NULL_TREE)
       return 0;
-    else if (host_integerp (DECL_SIZE(Node), 1))
-      return tree_low_cst (DECL_SIZE(Node), 1);
+    else if (isInt64(DECL_SIZE(Node), 1))
+      return getInt64(DECL_SIZE(Node), 1);
     else
       return DECL_ALIGN(Node);
   }
@@ -234,7 +232,7 @@ Value *DebugInfo::getValueFor(DebugInfoDesc *DD) {
 /// getCastValueFor - Return a llvm representation for a given debug information
 /// descriptor cast to an empty struct pointer.
 Value *DebugInfo::getCastValueFor(DebugInfoDesc *DD) {
-  return ConstantExpr::getBitCast(SR.Serialize(DD), SR.getEmptyStructPtrType());
+  return TheFolder->CreateBitCast(SR.Serialize(DD), SR.getEmptyStructPtrType());
 }
 
 /// EmitFunctionStart - Constructs the debug code for entering a function -
@@ -344,10 +342,11 @@ void DebugInfo::EmitDeclare(tree decl, unsigned Tag, const char *Name,
   Value *AllocACast = new BitCastInst(AI, EmpPtr, Name, CurBB);
 
   // Call llvm.dbg.declare.
-  SmallVector<Value *, 2> Args;
-  Args.push_back(AllocACast);
-  Args.push_back(getCastValueFor(Variable));
-  CallInst::Create(DeclareFn, Args.begin(), Args.end(), "", CurBB);
+  Value *Args[2] = {
+    AllocACast,
+    getCastValueFor(Variable)
+  };
+  CallInst::Create(DeclareFn, Args, Args + 2, "", CurBB);
 }
 
 /// EmitStopPoint - Emit a call to llvm.dbg.stoppoint to indicate a change of 
@@ -441,17 +440,20 @@ static TypeDesc *AddTypeQualifiers(tree_node *type, CompileUnitDesc *Unit,
 /// getOrCreateType - Get the type from the cache or create a new type if
 /// necessary.
 /// FIXME - I hate jumbo methods - split up.
-TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
+TypeDesc *DebugInfo::getOrCreateType(tree type, CompileUnitDesc *Unit) {
   DEBUGASSERT(type != NULL_TREE && type != error_mark_node &&
               "Not a type.");
   if (type == NULL_TREE || type == error_mark_node) return NULL;
-  
+
+  // Ignore variants such as const, volatile, or restrict.
+  type = TYPE_MAIN_VARIANT(type);
+
   // Should only be void if a pointer/reference/return type.  Returning NULL
   // allows the caller to produce a non-derived type.
   if (TREE_CODE(type) == VOID_TYPE) return NULL;
   
   // Check to see if the compile unit already has created this type.
-  TypeDesc *&Slot = TypeCache[type];
+  TypeDesc *Slot = TypeCache[type];
   if (Slot) return Slot;
   
   // Ty will have contain the resulting type.
@@ -472,7 +474,7 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
       // typedefs are derived from some other type.
       DerivedTypeDesc *DerivedTy = new DerivedTypeDesc(DW_TAG_typedef);
       // Set the slot early to prevent recursion difficulties.
-      Slot = Ty = DerivedTy;
+      TypeCache[type] = Ty = DerivedTy;
       // Handle derived type.
       TypeDesc *FromTy = getOrCreateType(DECL_ORIGINAL_TYPE(Name), Unit);
       DerivedTy->setFromType(FromTy);
@@ -494,15 +496,19 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
     }
 
     case POINTER_TYPE:
-    case REFERENCE_TYPE: {
+    case REFERENCE_TYPE:
+    case BLOCK_POINTER_TYPE: {
       // type* and type&
-      unsigned T = TREE_CODE(type) == POINTER_TYPE ? DW_TAG_pointer_type :
-                                                     DW_TAG_reference_type;
+      // FIXME: Should BLOCK_POINTER_TYP have its own DW_TAG?
+      unsigned T = (TREE_CODE(type) == POINTER_TYPE ||
+                    TREE_CODE(type) == BLOCK_POINTER_TYPE) ?
+        DW_TAG_pointer_type :
+        DW_TAG_reference_type;
       DerivedTypeDesc *DerivedTy = new DerivedTypeDesc(T);
       Ty = DerivedTy;
       // Set the slot early to prevent recursion difficulties.
       // Any other use of the type should include the qualifiers.
-      Slot = AddTypeQualifiers(type, Unit, DerivedTy);
+      TypeCache[type] = AddTypeQualifiers(type, Unit, DerivedTy);
       // Handle the derived type.
       TypeDesc *FromTy = getOrCreateType(TREE_TYPE(type), Unit);
       DerivedTy->setFromType(FromTy);
@@ -524,7 +530,7 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
       Ty = SubrTy;
       // Set the slot early to prevent recursion difficulties.
       // Any other use of the type should include the qualifiers.
-      Slot = AddTypeQualifiers(type, Unit, SubrTy);
+      TypeCache[type] = AddTypeQualifiers(type, Unit, SubrTy);
       
       // Prepare to add the arguments for the subroutine.
       std::vector<DebugInfoDesc *> &Elements = SubrTy->getElements();
@@ -559,14 +565,14 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
         Ty = ArrayTy = new CompositeTypeDesc(DW_TAG_vector_type);
         // Set the slot early to prevent recursion difficulties.
         // Any other use of the type should include the qualifiers.
-        Slot = AddTypeQualifiers(type, Unit, ArrayTy);
+        TypeCache[type] = AddTypeQualifiers(type, Unit, ArrayTy);
         // Use the element type of the from this point.
         type = TREE_TYPE(TYPE_FIELDS(TYPE_DEBUG_REPRESENTATION_TYPE(type)));
       } else {
         Ty = ArrayTy = new CompositeTypeDesc(DW_TAG_array_type);
         // Set the slot early to prevent recursion difficulties.
         // Any other use of the type should include the qualifiers.
-        Slot = AddTypeQualifiers(type, Unit, ArrayTy);
+        TypeCache[type] = AddTypeQualifiers(type, Unit, ArrayTy);
       }
 
       // Prepare to add the dimensions of the array.
@@ -583,10 +589,9 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
           tree MinValue = TYPE_MIN_VALUE(Domain);
           tree MaxValue = TYPE_MAX_VALUE(Domain);
           if (MinValue && MaxValue &&
-              host_integerp(MinValue, 0) &&
-              host_integerp(MaxValue, 0)) {
-            Subrange->setLo(tree_low_cst(MinValue, 0));
-            Subrange->setHi(tree_low_cst(MaxValue, 0));
+              isInt64(MinValue, 0) && isInt64(MaxValue, 0)) {
+            Subrange->setLo(getInt64(MinValue, 0));
+            Subrange->setHi(getInt64(MaxValue, 0));
           }
         }
         
@@ -603,7 +608,7 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
       CompositeTypeDesc *Enum = new CompositeTypeDesc(DW_TAG_enumeration_type);
       Ty = Enum;
       // Any other use of the type should include the qualifiers.
-      Slot = AddTypeQualifiers(type, Unit, Enum);
+      TypeCache[type] = AddTypeQualifiers(type, Unit, Enum);
       // Prepare to add the enumeration values.
       std::vector<DebugInfoDesc *> &Elements = Enum->getElements();
 
@@ -612,8 +617,7 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
           EnumeratorDesc *EnumDesc = new EnumeratorDesc();
 
           tree EnumValue = TREE_VALUE(Link);
-          int64_t Value = tree_low_cst(EnumValue,
-                                       tree_int_cst_sgn(EnumValue) > 0);
+          int64_t Value = getInt64(EnumValue, tree_int_cst_sgn(EnumValue) > 0);
           const char *EnumName = IDENTIFIER_POINTER(TREE_PURPOSE(Link));
           EnumDesc->setName(EnumName);
           EnumDesc->setValue(Value);
@@ -634,7 +638,7 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
       Ty = StructTy;
       // Set the slot early to prevent recursion difficulties.
       // Any other use of the type should include the qualifiers.
-      Slot = AddTypeQualifiers(type, Unit, StructTy);
+      TypeCache[type] = AddTypeQualifiers(type, Unit, StructTy);
       // Prepare to add the fields.
       std::vector<DebugInfoDesc *> &Elements = StructTy->getElements();
       
@@ -657,7 +661,7 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
             }
           }
           
-          MemberDesc->setOffset(tree_low_cst(BINFO_OFFSET(BInfo), 0));
+          MemberDesc->setOffset(getInt64(BINFO_OFFSET(BInfo), 0));
           Elements.push_back(MemberDesc);
         }
       }
@@ -763,7 +767,7 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
       BasicTypeDesc *BTy = new BasicTypeDesc();
       Ty = BTy;
       // Any other use of the type should include the qualifiers.
-      Slot = AddTypeQualifiers(type, Unit, BTy);
+      TypeCache[type] = AddTypeQualifiers(type, Unit, BTy);
       // The encoding specific to the type.
       unsigned Encoding = 0;
 
@@ -819,9 +823,8 @@ TypeDesc *DebugInfo::getOrCreateType(tree_node *type, CompileUnitDesc *Unit) {
     Ty->setOffset(Offset);
   }
 
-  DEBUGASSERT(Slot && "Unimplemented type");
-  
-  return Slot;
+  DEBUGASSERT(TypeCache[type] && "Unimplemented type");
+  return TypeCache[type];
 }
 
 /// getOrCreateCompileUnit - Get the compile unit from the cache or create a new
@@ -881,20 +884,20 @@ void DebugInfo::readLLVMDebugInfo() {
   MachineModuleInfo MMI;
   MMI.AnalyzeModule(*TheModule);
 
-  std::vector<SubprogramDesc *> Subprograms =
-    MMI.getAnchoredDescriptors<SubprogramDesc>(*TheModule);
+  std::vector<SubprogramDesc *> Subprograms;
+  MMI.getAnchoredDescriptors<SubprogramDesc>(*TheModule, Subprograms);
 
   if (!Subprograms.empty())
     SubprogramAnchor = Subprograms[0]->getAnchor();
 
-  std::vector<CompileUnitDesc *> CUs =
-    MMI.getAnchoredDescriptors<CompileUnitDesc>(*TheModule);
+  std::vector<CompileUnitDesc *> CUs;
+  MMI.getAnchoredDescriptors<CompileUnitDesc>(*TheModule, CUs);
 
   if (!CUs.empty())
     CompileUnitAnchor = CUs[0]->getAnchor();
 
-  std::vector<GlobalVariableDesc *> GVs =
-    MMI.getAnchoredDescriptors<GlobalVariableDesc>(*TheModule);
+  std::vector<GlobalVariableDesc *> GVs;
+  MMI.getAnchoredDescriptors<GlobalVariableDesc>(*TheModule, GVs);
 
   if (!GVs.empty())
     GlobalVariableAnchor = GVs[0]->getAnchor();

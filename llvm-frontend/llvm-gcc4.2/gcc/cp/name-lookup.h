@@ -76,6 +76,8 @@ struct cxx_binding GTY(())
   cxx_scope *scope;
   unsigned value_is_inherited : 1;
   unsigned is_local : 1;
+  /* APPLE LOCAL blocks 6040305 (ch) */
+  unsigned declared_in_block : 1;
 };
 
 /* Datatype used to temporarily save C++ bindings (for implicit
@@ -311,7 +313,8 @@ extern void pop_inner_scope (tree, tree);
 extern void push_binding_level (struct cp_binding_level *);
 
 extern void push_namespace (tree);
-extern void push_namespace_with_attribs (tree, tree);
+/* APPLE LOCAL visibility 5805832 */
+extern bool push_namespace_with_attribs (tree, tree);
 extern void pop_namespace (void);
 extern void push_nested_namespace (tree);
 extern void pop_nested_namespace (tree);

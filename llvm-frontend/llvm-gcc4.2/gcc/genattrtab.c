@@ -272,11 +272,15 @@ static void write_attr_case	   (struct attr_desc *, struct attr_value *,
 static void write_attr_value	   (struct attr_desc *, rtx);
 static void write_upcase	   (const char *);
 static void write_indent	   (int);
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
 static rtx identity_fn		   (rtx);
 static rtx zero_fn		   (rtx);
 static rtx one_fn		   (rtx);
 static rtx max_fn		   (rtx);
 static rtx min_fn		   (rtx);
+#endif
+/* LLVM LOCAL end */
 
 #define oballoc(size) obstack_alloc (hash_obstack, size)
 
@@ -1519,6 +1523,8 @@ substitute_address (rtx exp, rtx (*no_address_fn) (rtx),
 static void
 make_length_attrs (void)
 {
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   static const char *new_names[] =
     {
       "*insn_default_length",
@@ -1531,9 +1537,12 @@ make_length_attrs (void)
   static rtx (*const address_fn[]) (rtx)
     = {max_fn, min_fn, one_fn, identity_fn};
   size_t i;
-  struct attr_desc *length_attr, *new_attr;
+  struct attr_desc *new_attr;
   struct attr_value *av, *new_av;
   struct insn_ent *ie, *new_ie;
+#endif
+  struct attr_desc *length_attr;
+/* LLVM LOCAL end */
 
   /* See if length attribute is defined.  If so, it must be numeric.  Make
      it special so we don't output anything for it.  */
@@ -1547,6 +1556,8 @@ make_length_attrs (void)
   length_attr->is_const = 0;
   length_attr->is_special = 1;
 
+/* LLVM LOCAL begin we don't need these for llvm */
+#ifndef ENABLE_LLVM
   /* Make each new attribute, in turn.  */
   for (i = 0; i < ARRAY_SIZE (new_names); i++)
     {
@@ -1567,8 +1578,12 @@ make_length_attrs (void)
 	    insert_insn_ent (new_av, new_ie);
 	  }
     }
+#endif
+/* LLVM LOCAL end */
 }
 
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
 /* Utility functions called from above routine.  */
 
 static rtx
@@ -1602,6 +1617,8 @@ min_fn (rtx exp)
   int unknown;
   return make_numeric_value (min_attr_value (exp, &unknown));
 }
+#endif
+/* LLVM LOCAL end */
 
 static void
 write_length_unit_log (void)
@@ -4481,9 +4498,13 @@ make_automaton_attrs (void)
 	  }
     }
 
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   make_internal_attr ("*internal_dfa_insn_code", code_exp, ATTR_NONE);
   make_internal_attr ("*insn_default_latency",   lats_exp, ATTR_NONE);
   make_internal_attr ("*bypass_p",               byps_exp, ATTR_NONE);
+#endif
+/* LLVM LOCAL end */
 }
 
 int

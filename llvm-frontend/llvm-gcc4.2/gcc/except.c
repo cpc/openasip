@@ -96,8 +96,10 @@ int (*lang_eh_type_covers) (tree a, tree b);
 tree (*lang_eh_runtime_type) (tree);
 
 /* LLVM local begin */
+#ifdef ENABLE_LLVM
 /* Return a type that catches all others */
 tree (*lang_eh_catch_all) (void);
+#endif
 /* LLVM local end */
 
 /* A hash table of label to region number.  */
@@ -260,8 +262,11 @@ struct eh_status GTY(())
 static int t2r_eq (const void *, const void *);
 static hashval_t t2r_hash (const void *);
 static void add_type_for_runtime (tree);
-/* LLVM local */
-/* static tree lookup_type_for_runtime (tree); */
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+static tree lookup_type_for_runtime (tree);
+#endif
+/* LLVM LOCAL end */
 
 static void remove_unreachable_regions (rtx);
 
@@ -571,7 +576,8 @@ set_eh_region_tree_label (struct eh_region *region, tree lab)
   region->tree_label = lab;
 }
 
-/* LLVM local begin */
+/* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 int
 classify_eh_handler (struct eh_region *region)
 {
@@ -624,7 +630,8 @@ get_eh_type_list (struct eh_region *region)
       gcc_unreachable();
     }
 }
-/* LLVM local end */
+#endif
+/* LLVM LOCAL end */
 
 
 void
@@ -1221,8 +1228,12 @@ add_type_for_runtime (tree type)
     }
 }
 
-/* LLVM local */
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
+static
+#endif
 tree
+/* LLVM LOCAL end */
 lookup_type_for_runtime (tree type)
 {
   tree *slot;
@@ -2650,21 +2661,21 @@ reachable_next_level (struct eh_region *region, tree type_thrown,
 	 inline a subroutine that contains handlers, and that will
 	 change the value of saw_any_handlers.  */
 
-/* LLVM local begin */
+/* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
       if ((info && info->saw_any_handlers) || !cfun->after_inlining)
 	{
 #endif
-/* LLVM local end */
+/* LLVM LOCAL end */
 	  add_reachable_handler (info, region, region);
 	  return RNL_CAUGHT;
-/* LLVM local begin */
+/* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
 	}
       else
 	return RNL_BLOCKED;
 #endif
-/* LLVM local end */
+/* LLVM LOCAL end */
 
     case ERT_THROW:
     case ERT_UNKNOWN:
@@ -2716,12 +2727,12 @@ foreach_reachable_handler (int region_number, bool is_resx,
 	 processing any more of them.  Each cleanup will have an edge
 	 to the next outer cleanup region, so the flow graph will be
 	 accurate.  */
-/* LLVM local */
+/* LLVM LOCAL */
 #ifndef ENABLE_LLVM
       if (region->type == ERT_CLEANUP)
 	region = region->u.cleanup.prev_try;
       else
-/* LLVM local */
+/* LLVM LOCAL */
 #endif
 	region = region->outer;
     }
@@ -3752,8 +3763,9 @@ output_function_exception_table (void)
   switch_to_exception_section ();
 #endif
 
-  /* If the target wants a label to begin the table, emit it here.  */
-  targetm.asm_out.except_table_label (asm_out_file);
+  /* APPLE LOCAL begin 6128170 */
+  /* deletion; code moved down 26 lines */
+  /* APPLE LOCAL end 6128170 */
 
   have_tt_data = (VEC_length (tree, cfun->eh->ttype_data) > 0
 		  || VARRAY_ACTIVE_SIZE (cfun->eh->ehspec_data) > 0);
@@ -3772,6 +3784,11 @@ output_function_exception_table (void)
 
       assemble_align (tt_format_size * BITS_PER_UNIT);
     }
+
+  /* APPLE LOCAL begin 6128170 */
+  /* If the target wants a label to begin the table, emit it here.  */
+  targetm.asm_out.except_table_label (asm_out_file);
+  /* APPLE LOCAL end 6128170 */
 
   targetm.asm_out.internal_label (asm_out_file, "LLSDA",
 			     current_function_funcdef_no);
@@ -4060,7 +4077,8 @@ void
 default_init_unwind_resume_libfunc (void)
 {
   /* The default c++ routines aren't actually c++ specific, so use those.  */
-  /* LLVM local begin */
+  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   llvm_unwind_resume_libfunc = llvm_init_one_libfunc ( USING_SJLJ_EXCEPTIONS ?
                                                "_Unwind_SjLj_Resume"
 #ifdef LLVM_STACKSENSITIVE_UNWIND_RESUME
@@ -4068,7 +4086,12 @@ default_init_unwind_resume_libfunc (void)
 #else
                                                : "_Unwind_Resume");
 #endif
-  /* LLVM local end */
+#else
+  unwind_resume_libfunc =
+    init_one_libfunc ( USING_SJLJ_EXCEPTIONS ? "_Unwind_SjLj_Resume"
+					     : "_Unwind_Resume");
+#endif
+  /* LLVM LOCAL end */
 }
 
 

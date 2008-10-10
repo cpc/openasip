@@ -85,6 +85,9 @@
 #include "toplev.h"
 #include "tree-pass.h"
 
+/* LLVM LOCAL begin comment out most of this file */
+#ifndef ENABLE_LLVM
+
 #ifndef HAVE_conditional_execution
 #define HAVE_conditional_execution 0
 #endif
@@ -1965,6 +1968,8 @@ insert_section_boundary_note (void)
 	}
     }
 }
+#endif /* !ENABLE_LLVM */
+/* LLVM LOCAL end */
 
 /* Duplicate the blocks containing computed gotos.  This basically unfactors
    computed gotos that were factored early on in the compilation process to
@@ -1982,6 +1987,8 @@ gate_duplicate_computed_gotos (void)
 static unsigned int
 duplicate_computed_gotos (void)
 {
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   basic_block bb, new_bb;
   bitmap candidates;
   int max_size;
@@ -2083,6 +2090,8 @@ done:
   cfg_layout_finalize ();
 
   BITMAP_FREE (candidates);
+#endif
+/* LLVM LOCAL end */
   return 0;
 }
 
@@ -2104,6 +2113,8 @@ struct tree_opt_pass pass_duplicate_computed_gotos =
 };
 
 
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
 /* This function is the main 'entrance' for the optimization that
    partitions hot and cold basic blocks into separate sections of the
    .o file (to improve performance and cache locality).  Ideally it
@@ -2193,6 +2204,8 @@ partition_hot_cold_basic_blocks (void)
 
   cfg_layout_finalize();
 }
+#endif
+/* LLVM LOCAL end */
 
 static bool
 gate_handle_reorder_blocks (void)
@@ -2205,6 +2218,8 @@ gate_handle_reorder_blocks (void)
 static unsigned int
 rest_of_handle_reorder_blocks (void)
 {
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   bool changed;
   unsigned int liveness_flags;
 
@@ -2235,6 +2250,8 @@ rest_of_handle_reorder_blocks (void)
 
   /* Add NOTE_INSN_SWITCH_TEXT_SECTIONS notes.  */
   insert_section_boundary_note ();
+#endif
+/* LLVM LOCAL end */
   return 0;
 }
 
@@ -2272,12 +2289,16 @@ gate_handle_partition_blocks (void)
 static unsigned int
 rest_of_handle_partition_blocks (void)
 {
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   no_new_pseudos = 0;
   partition_hot_cold_basic_blocks ();
   allocate_reg_life_data ();
   update_life_info (NULL, UPDATE_LIFE_GLOBAL_RM_NOTES,
 		    PROP_LOG_LINKS | PROP_REG_INFO | PROP_DEATH_NOTES);
   no_new_pseudos = 1;
+#endif
+/* LLVM LOCAL end */
   return 0;
 }
 

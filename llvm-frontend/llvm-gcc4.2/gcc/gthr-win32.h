@@ -561,10 +561,13 @@ __gthread_once (__gthread_once_t *once, void (*func) (void))
 /* Windows32 thread local keys don't support destructors; this leads to
    leaks, especially in threaded applications making extensive use of
    C++ EH. Mingw uses a thread-support DLL to work-around this problem.  */
-static inline int
-__gthread_key_create (__gthread_key_t *key,
 /* LLVM LOCAL begin mainline */
-		      void (*dtor) (void *) __attribute__((unused)))
+static inline int
+__gthread_key_create (__gthread_key_t *key, void (*dtor) (void *)
+#ifdef ENABLE_LLVM
+                      __attribute__((unused))
+#endif
+)
 /* LLVM LOCAL end mainline */
 {
   int status = 0;

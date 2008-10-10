@@ -1502,6 +1502,8 @@ group_aliases (struct alias_info *ai)
 {
   size_t i;
   tree ptr;
+  /* APPLE LOCAL 6070085 */
+  bool more;
 
   /* Sort the POINTERS array in descending order of contributed
      virtual operands.  */
@@ -1523,26 +1525,38 @@ group_aliases (struct alias_info *ai)
       /* See if TAG1 had any aliases in common with other symbol tags.
 	 If we find a TAG2 with common aliases with TAG1, add TAG2's
 	 aliases into TAG1.  */
-      for (j = i + 1; j < ai->num_pointers; j++)
-	{
-	  bitmap tag2_aliases = ai->pointers[j]->may_aliases;
+      /* APPLE LOCAL begin 6070085 */
+      do {
+	/* Repeat alias merging until changes converge.  */
+	more = false;
+	for (j = i + 1; j < ai->num_pointers; j++)
+	  {
+	    bitmap tag2_aliases;
 
-          if (bitmap_intersect_p (tag1_aliases, tag2_aliases))
-	    {
-	      tree tag2 = var_ann (ai->pointers[j]->var)->symbol_mem_tag;
+	    if (ai->pointers[j]->grouped_p)
+	      continue;
 
-	      bitmap_ior_into (tag1_aliases, tag2_aliases);
+	    tag2_aliases = ai->pointers[j]->may_aliases;
 
-	      /* TAG2 does not need its aliases anymore.  */
-	      bitmap_clear (tag2_aliases);
-	      var_ann (tag2)->may_aliases = NULL;
+	    if (bitmap_intersect_p (tag1_aliases, tag2_aliases))
+	      {
+		tree tag2 = var_ann (ai->pointers[j]->var)->symbol_mem_tag;
 
-	      /* TAG1 is the unique alias of TAG2.  */
-	      add_may_alias (tag2, tag1);
+		bitmap_ior_into (tag1_aliases, tag2_aliases);
 
-	      ai->pointers[j]->grouped_p = true;
-	    }
-	}
+		/* TAG2 does not need its aliases anymore.  */
+		bitmap_clear (tag2_aliases);
+		var_ann (tag2)->may_aliases = NULL;
+
+		/* TAG1 is the unique alias of TAG2.  */
+		add_may_alias (tag2, tag1);
+
+		ai->pointers[j]->grouped_p = true;
+		more = true;
+	      }
+	  }
+      } while (more);
+      /* APPLE LOCAL end 6070085 */
 
       /* Now group all the aliases we collected into TAG1.  */
       group_aliases_into (tag1, tag1_aliases, ai);

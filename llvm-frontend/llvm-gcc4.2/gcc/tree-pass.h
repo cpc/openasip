@@ -360,6 +360,9 @@ extern struct tree_opt_pass pass_see;
 extern struct tree_opt_pass pass_recompute_reg_usage;
 extern struct tree_opt_pass pass_sms;
 extern struct tree_opt_pass pass_sched;
+/* APPLE LOCAL begin 5695218 */
+extern struct tree_opt_pass pass_life3;
+/* APPLE LOCAL end 5695218 */
 extern struct tree_opt_pass pass_local_alloc;
 extern struct tree_opt_pass pass_global_alloc;
 extern struct tree_opt_pass pass_postreload;
