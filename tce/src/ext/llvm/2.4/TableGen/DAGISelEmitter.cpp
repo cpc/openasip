@@ -317,7 +317,7 @@ private:
   CodeGenDAGPatterns &CGP;
 
   // Predicates.
-  ListInit *Predicates;
+  std::string PredicateCheck;
   // Pattern cost.
   unsigned Cost;
   // Instruction selector pattern.
@@ -395,7 +395,7 @@ private:
     VTNo++;
   }
 public:
-  PatternCodeEmitter(CodeGenDAGPatterns &cgp, ListInit *preds,
+  PatternCodeEmitter(CodeGenDAGPatterns &cgp, std::string predcheck,
                      TreePatternNode *pattern, TreePatternNode *instr,
                      std::vector<std::pair<unsigned, std::string> > &gc,
                      std::set<std::string> &gd,
@@ -403,7 +403,7 @@ public:
                      std::vector<std::string> &tv,
                      bool &oiv,
                      unsigned &niro)
-  : CGP(cgp), Predicates(preds), Pattern(pattern), Instruction(instr),
+  : CGP(cgp), PredicateCheck(predcheck), Pattern(pattern), Instruction(instr),
     GeneratedCode(gc), GeneratedDecl(gd),
     TargetOpcodes(to), TargetVTs(tv),
     OutputIsVariadic(oiv), NumInputRootOps(niro),
@@ -431,29 +431,13 @@ public:
       if (DisablePatternForFastISel(N, CGP))
         emitCheck("!Fast");
 
-      std::string PredicateCheck;
-      for (unsigned i = 0, e = Predicates->getSize(); i != e; ++i) {
-        if (DefInit *Pred = dynamic_cast<DefInit*>(Predicates->getElement(i))) {
-          Record *Def = Pred->getDef();
-          if (!Def->isSubClassOf("Predicate")) {
-#ifndef NDEBUG
-            Def->dump();
-#endif
-            assert(0 && "Unknown predicate type!");
-          }
-          if (!PredicateCheck.empty())
-            PredicateCheck += " && ";
-          PredicateCheck += "(" + Def->getValueAsString("CondString") + ")";
-        }
-      }
-      
       emitCheck(PredicateCheck);
     }
 
     if (N->isLeaf()) {
       if (IntInit *II = dynamic_cast<IntInit*>(N->getLeafValue())) {
         emitCheck("cast<ConstantSDNode>(" + RootName +
-                  ")->getSignExtended() == " + itostr(II->getValue()));
+                  ")->getSExtValue() == " + itostr(II->getValue()));
         return;
       } else if (!NodeIsComplexPattern(N)) {
         assert(0 && "Cannot match this as a leaf value!");
@@ -522,17 +506,17 @@ public:
 
           if (NeedCheck) {
             std::string ParentName(RootName.begin(), RootName.end()-1);
-            emitCheck("CanBeFoldedBy(" + RootName + ".Val, " + ParentName +
-                      ".Val, N.Val)");
+            emitCheck("CanBeFoldedBy(" + RootName + ".getNode(), " + ParentName +
+                      ".getNode(), N.getNode())");
           }
         }
       }
 
       if (NodeHasChain) {
         if (FoundChain) {
-          emitCheck("(" + ChainName + ".Val == " + RootName + ".Val || "
-                    "IsChainCompatible(" + ChainName + ".Val, " +
-                    RootName + ".Val))");
+          emitCheck("(" + ChainName + ".getNode() == " + RootName + ".getNode() || "
+                    "IsChainCompatible(" + ChainName + ".getNode(), " +
+                    RootName + ".getNode()))");
           OrigChains.push_back(std::make_pair(ChainName, RootName));
         } else
           FoundChain = true;
@@ -559,7 +543,7 @@ public:
 
     // If there is a node predicate for this, emit the call.
     if (!N->getPredicateFn().empty())
-      emitCheck(N->getPredicateFn() + "(" + RootName + ".Val)");
+      emitCheck(N->getPredicateFn() + "(" + RootName + ".getNode())");
 
     
     // If this is an 'and R, 1234' where the operation is AND/OR and the RHS is
@@ -736,13 +720,13 @@ public:
         // If there is a node predicate for this, emit the call.
         if (!Child->getPredicateFn().empty())
           emitCheck(Child->getPredicateFn() + "(" + RootName +
-                    ".Val)");
+                    ".getNode())");
       } else if (IntInit *II =
                  dynamic_cast<IntInit*>(Child->getLeafValue())) {
         emitCheck("isa<ConstantSDNode>(" + RootName + ")");
         unsigned CTmp = TmpNo++;
         emitCode("int64_t CN"+utostr(CTmp)+" = cast<ConstantSDNode>("+
-                 RootName + ")->getSignExtended();");
+                 RootName + ")->getSExtValue();");
         
         emitCheck("CN" + utostr(CTmp) + " == " +itostr(II->getValue()));
       } else {
@@ -797,7 +781,7 @@ public:
         }
         emitCode("SDValue " + TmpVar + 
                  " = CurDAG->getTargetConstant(((" + CastType +
-                 ") cast<ConstantSDNode>(" + Val + ")->getValue()), " +
+                 ") cast<ConstantSDNode>(" + Val + ")->getZExtValue()), " +
                  getEnumName(N->getTypeNum(0)) + ");");
         // Add Tmp<ResNo> to VariableMap, so that we don't multiply select this
         // value if used multiple times by this pattern result.
@@ -808,9 +792,9 @@ public:
         assert(N->getExtTypes().size() == 1 && "Multiple types not handled!");
         std::string TmpVar =  "Tmp" + utostr(ResNo);
         emitCode("SDValue " + TmpVar + 
-                 " = CurDAG->getTargetConstantFP(cast<ConstantFPSDNode>(" + 
-                 Val + ")->getValueAPF(), cast<ConstantFPSDNode>(" + Val +
-                 ")->getValueType(0));");
+                 " = CurDAG->getTargetConstantFP(*cast<ConstantFPSDNode>(" + 
+                 Val + ")->getConstantFPValue(), cast<ConstantFPSDNode>(" +
+                 Val + ")->getValueType(0));");
         // Add Tmp<ResNo> to VariableMap, so that we don't multiply select this
         // value if used multiple times by this pattern result.
         Val = TmpVar;
@@ -967,8 +951,8 @@ public:
         // case, the TokenFactor can have more operands.
         emitCode("SmallVector<SDValue, 8> InChains;");
         for (unsigned i = 0, e = OrigChains.size(); i < e; ++i) {
-          emitCode("if (" + OrigChains[i].first + ".Val != " +
-                   OrigChains[i].second + ".Val) {");
+          emitCode("if (" + OrigChains[i].first + ".getNode() != " +
+                   OrigChains[i].second + ".getNode()) {");
           emitCode("  AddToISelQueue(" + OrigChains[i].first + ");");
           emitCode("  InChains.push_back(" + OrigChains[i].first + ");");
           emitCode("}");
@@ -1180,7 +1164,7 @@ public:
         std::string Code;
         for (unsigned j = 0, e = FoldedChains.size(); j < e; j++) {
           ReplaceFroms.push_back("SDValue(" +
-                                 FoldedChains[j].first + ".Val, " +
+                                 FoldedChains[j].first + ".getNode(), " +
                                  utostr(FoldedChains[j].second) +
                                  ")");
           ReplaceTos.push_back("SDValue(ResNode, " +
@@ -1190,12 +1174,12 @@ public:
 
       if (NodeHasOutFlag) {
         if (FoldedFlag.first != "") {
-          ReplaceFroms.push_back("SDValue(" + FoldedFlag.first + ".Val, " +
+          ReplaceFroms.push_back("SDValue(" + FoldedFlag.first + ".getNode(), " +
                                  utostr(FoldedFlag.second) + ")");
           ReplaceTos.push_back("InFlag");
         } else {
           assert(NodeHasProperty(Pattern, SDNPOutFlag, CGP));
-          ReplaceFroms.push_back("SDValue(N.Val, " +
+          ReplaceFroms.push_back("SDValue(N.getNode(), " +
                                  utostr(NumPatResults + (unsigned)InputHasChain)
                                  + ")");
           ReplaceTos.push_back("InFlag");
@@ -1203,10 +1187,10 @@ public:
       }
 
       if (!ReplaceFroms.empty() && InputHasChain) {
-        ReplaceFroms.push_back("SDValue(N.Val, " +
+        ReplaceFroms.push_back("SDValue(N.getNode(), " +
                                utostr(NumPatResults) + ")");
-        ReplaceTos.push_back("SDValue(" + ChainName + ".Val, " +
-                             ChainName + ".ResNo" + ")");
+        ReplaceTos.push_back("SDValue(" + ChainName + ".getNode(), " +
+                             ChainName + ".getResNo()" + ")");
         ChainAssignmentNeeded |= NodeHasChain;
       }
 
@@ -1216,12 +1200,12 @@ public:
       } else if (InputHasChain && !NodeHasChain) {
         // One of the inner node produces a chain.
         if (NodeHasOutFlag) {
-          ReplaceFroms.push_back("SDValue(N.Val, " +
+          ReplaceFroms.push_back("SDValue(N.getNode(), " +
                                  utostr(NumPatResults+1) +
                                  ")");
-          ReplaceTos.push_back("SDValue(ResNode, N.ResNo-1)");
+          ReplaceTos.push_back("SDValue(ResNode, N.getResNo()-1)");
         }
-        ReplaceFroms.push_back("SDValue(N.Val, " +
+        ReplaceFroms.push_back("SDValue(N.getNode(), " +
                                utostr(NumPatResults) + ")");
         ReplaceTos.push_back(ChainName);
       }
@@ -1232,7 +1216,7 @@ public:
         std::string ChainAssign;
         if (!isRoot)
           ChainAssign = ChainName + " = SDValue(" + NodeName +
-                        ".Val, " + utostr(NumResults+NumDstRegs) + ");";
+                        ".getNode(), " + utostr(NumResults+NumDstRegs) + ");";
         else
           ChainAssign = ChainName + " = SDValue(" + NodeName +
                         ", " + utostr(NumResults+NumDstRegs) + ");";
@@ -1267,7 +1251,7 @@ public:
       if (!isRoot || (InputHasChain && !NodeHasChain)) {
         Code = "CurDAG->getTargetNode(" + Code;
       } else {
-        Code = "CurDAG->SelectNodeTo(N.Val, " + Code;
+        Code = "CurDAG->SelectNodeTo(N.getNode(), " + Code;
       }
       if (isRoot) {
         if (After.empty())
@@ -1290,10 +1274,10 @@ public:
                        ResNodeDecled, true);
       unsigned ResNo = TmpNo++;
       emitCode("SDValue Tmp" + utostr(ResNo) + " = Transform_" + Op->getName()
-               + "(" + Ops.back() + ".Val);");
+               + "(" + Ops.back() + ".getNode());");
       NodeOps.push_back("Tmp" + utostr(ResNo));
       if (isRoot)
-        emitCode("return Tmp" + utostr(ResNo) + ".Val;");
+        emitCode("return Tmp" + utostr(ResNo) + ".getNode();");
       return NodeOps;
     } else {
       N->dump();
@@ -1314,7 +1298,7 @@ public:
       Pat->setTypes(Other->getExtTypes());
       // The top level node type is checked outside of the select function.
       if (!isRoot)
-        emitCheck(Prefix + ".Val->getValueType(0) == " +
+        emitCheck(Prefix + ".getNode()->getValueType(0) == " +
                   getName(Pat->getTypeNum(0)));
       return true;
     }
@@ -1376,7 +1360,7 @@ private:
               std::string Decl = (!ResNodeDecled) ? "SDNode *" : "";
               emitCode(Decl + "ResNode = CurDAG->getCopyToReg(" + ChainName +
                        ", " + getQualifiedName(RR) +
-                       ", " +  RootName + utostr(OpNo) + ", InFlag).Val;");
+                       ", " +  RootName + utostr(OpNo) + ", InFlag).getNode();");
               ResNodeDecled = true;
               emitCode(ChainName + " = SDValue(ResNode, 0);");
               emitCode("InFlag = SDValue(ResNode, 1);");
@@ -1412,7 +1396,7 @@ void DAGISelEmitter::GenerateCodeForPattern(const PatternToMatch &Pattern,
   OutputIsVariadic = false;
   NumInputRootOps = 0;
 
-  PatternCodeEmitter Emitter(CGP, Pattern.getPredicates(),
+  PatternCodeEmitter Emitter(CGP, Pattern.getPredicateCheck(),
                              Pattern.getSrcPattern(), Pattern.getDstPattern(),
                              GeneratedCode, GeneratedDecl,
                              TargetOpcodes, TargetVTs,
@@ -1604,17 +1588,8 @@ static std::string getLegalCName(std::string OpName) {
 void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
   const CodeGenTarget &Target = CGP.getTargetInfo();
   
-  // Get the namespace to insert instructions into.  Make sure not to pick up
-  // "TargetInstrInfo" by accidentally getting the namespace off the PHI
-  // instruction or something.
-  std::string InstNS;
-  for (CodeGenTarget::inst_iterator i = Target.inst_begin(),
-       e = Target.inst_end(); i != e; ++i) {
-    InstNS = i->second.Namespace;
-    if (InstNS != "TargetInstrInfo")
-      break;
-  }
-  
+  // Get the namespace to insert instructions into.
+  std::string InstNS = Target.getInstNamespace();
   if (!InstNS.empty()) InstNS += "::";
   
   // Group the patterns by their top-level opcodes.
@@ -1678,17 +1653,7 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
     for (unsigned i = 0, e = PatternsOfOp.size(); i != e; ++i) {
       const PatternToMatch *Pat = PatternsOfOp[i];
       TreePatternNode *SrcPat = Pat->getSrcPattern();
-      MVT::SimpleValueType VT = SrcPat->getTypeNum(0);
-      std::map<MVT::SimpleValueType,
-               std::vector<const PatternToMatch*> >::iterator TI = 
-        PatternsByType.find(VT);
-      if (TI != PatternsByType.end())
-        TI->second.push_back(Pat);
-      else {
-        std::vector<const PatternToMatch*> PVec;
-        PVec.push_back(Pat);
-        PatternsByType.insert(std::make_pair(VT, PVec));
-      }
+      PatternsByType[SrcPat->getTypeNum(0)].push_back(Pat);
     }
 
     for (std::map<MVT::SimpleValueType,
@@ -1867,20 +1832,15 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
       // If the last pattern has predicates (which could fail) emit code to
       // catch the case where nothing handles a pattern.
       if (mightNotMatch) {
-        OS << "  cerr << \"Cannot yet select: \";\n";
+        OS << "\n";
         if (OpName != "ISD::INTRINSIC_W_CHAIN" &&
             OpName != "ISD::INTRINSIC_WO_CHAIN" &&
-            OpName != "ISD::INTRINSIC_VOID") {
-          OS << "  N.Val->dump(CurDAG);\n";
-        } else {
-          OS << "  unsigned iid = cast<ConstantSDNode>(N.getOperand("
-            "N.getOperand(0).getValueType() == MVT::Other))->getValue();\n"
-             << "  cerr << \"intrinsic %\"<< "
-            "Intrinsic::getName((Intrinsic::ID)iid);\n";
-        }
-        OS << "  cerr << '\\n';\n"
-           << "  abort();\n"
-           << "  return NULL;\n";
+            OpName != "ISD::INTRINSIC_VOID")
+          OS << "  CannotYetSelect(N);\n";
+        else
+          OS << "  CannotYetSelectIntrinsic(N);\n";
+
+        OS << "  return NULL;\n";
       }
       OS << "}\n\n";
     }
@@ -1888,8 +1848,8 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
   
   // Emit boilerplate.
   OS << "SDNode *Select_INLINEASM(SDValue N) {\n"
-     << "  std::vector<SDValue> Ops(N.Val->op_begin(), N.Val->op_end());\n"
-     << "  SelectInlineAsmMemoryOperands(Ops, *CurDAG);\n\n"
+     << "  std::vector<SDValue> Ops(N.getNode()->op_begin(), N.getNode()->op_end());\n"
+     << "  SelectInlineAsmMemoryOperands(Ops);\n\n"
     
      << "  // Ensure that the asm operands are themselves selected.\n"
      << "  for (unsigned j = 0, e = Ops.size(); j != e; ++j)\n"
@@ -1900,11 +1860,11 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
      << "  VTs.push_back(MVT::Flag);\n"
      << "  SDValue New = CurDAG->getNode(ISD::INLINEASM, VTs, &Ops[0], "
                  "Ops.size());\n"
-     << "  return New.Val;\n"
+     << "  return New.getNode();\n"
      << "}\n\n";
 
   OS << "SDNode *Select_UNDEF(const SDValue &N) {\n"
-     << "  return CurDAG->SelectNodeTo(N.Val, TargetInstrInfo::IMPLICIT_DEF,\n"
+     << "  return CurDAG->SelectNodeTo(N.getNode(), TargetInstrInfo::IMPLICIT_DEF,\n"
      << "                              N.getValueType());\n"
      << "}\n\n";
 
@@ -1913,7 +1873,7 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
      << "  unsigned C = cast<LabelSDNode>(N)->getLabelID();\n"
      << "  SDValue Tmp = CurDAG->getTargetConstant(C, MVT::i32);\n"
      << "  AddToISelQueue(Chain);\n"
-     << "  return CurDAG->SelectNodeTo(N.Val, TargetInstrInfo::DBG_LABEL,\n"
+     << "  return CurDAG->SelectNodeTo(N.getNode(), TargetInstrInfo::DBG_LABEL,\n"
      << "                              MVT::Other, Tmp, Chain);\n"
      << "}\n\n";
 
@@ -1922,7 +1882,7 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
      << "  unsigned C = cast<LabelSDNode>(N)->getLabelID();\n"
      << "  SDValue Tmp = CurDAG->getTargetConstant(C, MVT::i32);\n"
      << "  AddToISelQueue(Chain);\n"
-     << "  return CurDAG->SelectNodeTo(N.Val, TargetInstrInfo::EH_LABEL,\n"
+     << "  return CurDAG->SelectNodeTo(N.getNode(), TargetInstrInfo::EH_LABEL,\n"
      << "                              MVT::Other, Tmp, Chain);\n"
      << "}\n\n";
 
@@ -1931,9 +1891,7 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
      << "  SDValue N1 = N.getOperand(1);\n"
      << "  SDValue N2 = N.getOperand(2);\n"
      << "  if (!isa<FrameIndexSDNode>(N1) || !isa<GlobalAddressSDNode>(N2)) {\n"
-     << "    cerr << \"Cannot yet select llvm.dbg.declare: \";\n"
-     << "    N.Val->dump(CurDAG);\n"
-     << "    abort();\n"
+     << "    CannotYetSelect(N);\n"
      << "  }\n"
      << "  int FI = cast<FrameIndexSDNode>(N1)->getIndex();\n"
      << "  GlobalValue *GV = cast<GlobalAddressSDNode>(N2)->getGlobal();\n"
@@ -1942,17 +1900,17 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
      << "  SDValue Tmp2 = "
      << "CurDAG->getTargetGlobalAddress(GV, TLI.getPointerTy());\n"
      << "  AddToISelQueue(Chain);\n"
-     << "  return CurDAG->SelectNodeTo(N.Val, TargetInstrInfo::DECLARE,\n"
+     << "  return CurDAG->SelectNodeTo(N.getNode(), TargetInstrInfo::DECLARE,\n"
      << "                              MVT::Other, Tmp1, Tmp2, Chain);\n"
      << "}\n\n";
 
   OS << "SDNode *Select_EXTRACT_SUBREG(const SDValue &N) {\n"
      << "  SDValue N0 = N.getOperand(0);\n"
      << "  SDValue N1 = N.getOperand(1);\n"
-     << "  unsigned C = cast<ConstantSDNode>(N1)->getValue();\n"
+     << "  unsigned C = cast<ConstantSDNode>(N1)->getZExtValue();\n"
      << "  SDValue Tmp = CurDAG->getTargetConstant(C, MVT::i32);\n"
      << "  AddToISelQueue(N0);\n"
-     << "  return CurDAG->SelectNodeTo(N.Val, TargetInstrInfo::EXTRACT_SUBREG,\n"
+     << "  return CurDAG->SelectNodeTo(N.getNode(), TargetInstrInfo::EXTRACT_SUBREG,\n"
      << "                              N.getValueType(), N0, Tmp);\n"
      << "}\n\n";
 
@@ -1960,11 +1918,11 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
      << "  SDValue N0 = N.getOperand(0);\n"
      << "  SDValue N1 = N.getOperand(1);\n"
      << "  SDValue N2 = N.getOperand(2);\n"
-     << "  unsigned C = cast<ConstantSDNode>(N2)->getValue();\n"
+     << "  unsigned C = cast<ConstantSDNode>(N2)->getZExtValue();\n"
      << "  SDValue Tmp = CurDAG->getTargetConstant(C, MVT::i32);\n"
      << "  AddToISelQueue(N1);\n"
      << "  AddToISelQueue(N0);\n"
-     << "  return CurDAG->SelectNodeTo(N.Val, TargetInstrInfo::INSERT_SUBREG,\n"
+     << "  return CurDAG->SelectNodeTo(N.getNode(), TargetInstrInfo::INSERT_SUBREG,\n"
      << "                              N.getValueType(), N0, N1, Tmp);\n"
      << "}\n\n";
 
@@ -1973,7 +1931,7 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
      << "  if (N.isMachineOpcode()) {\n"
      << "    return NULL;   // Already selected.\n"
      << "  }\n\n"
-     << "  MVT::SimpleValueType NVT = N.Val->getValueType(0).getSimpleVT();\n"
+     << "  MVT::SimpleValueType NVT = N.getNode()->getValueType(0).getSimpleVT();\n"
      << "  switch (N.getOpcode()) {\n"
      << "  default: break;\n"
      << "  case ISD::EntryToken:       // These leaves remain the same.\n"
@@ -2011,7 +1969,6 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
      << "  case ISD::INSERT_SUBREG: return Select_INSERT_SUBREG(N);\n"
      << "  case ISD::UNDEF: return Select_UNDEF(N);\n";
 
-    
   // Loop over all of the case statements, emiting a call to each method we
   // emitted above.
   for (std::map<std::string, std::vector<const PatternToMatch*> >::iterator
@@ -2064,21 +2021,32 @@ void DAGISelEmitter::EmitInstructionSelector(std::ostream &OS) {
   }
 
   OS << "  } // end of big switch.\n\n"
-     << "  cerr << \"Cannot yet select: \";\n"
      << "  if (N.getOpcode() != ISD::INTRINSIC_W_CHAIN &&\n"
      << "      N.getOpcode() != ISD::INTRINSIC_WO_CHAIN &&\n"
      << "      N.getOpcode() != ISD::INTRINSIC_VOID) {\n"
-     << "    N.Val->dump(CurDAG);\n"
+     << "    CannotYetSelect(N);\n"
      << "  } else {\n"
-     << "    unsigned iid = cast<ConstantSDNode>(N.getOperand("
-               "N.getOperand(0).getValueType() == MVT::Other))->getValue();\n"
-     << "    cerr << \"intrinsic %\"<< "
-               "Intrinsic::getName((Intrinsic::ID)iid);\n"
+     << "    CannotYetSelectIntrinsic(N);\n"
      << "  }\n"
+     << "  return NULL;\n"
+     << "}\n\n";
+
+  OS << "void CannotYetSelect(SDValue N) DISABLE_INLINE {\n"
+     << "  cerr << \"Cannot yet select: \";\n"
+     << "  N.getNode()->dump(CurDAG);\n"
      << "  cerr << '\\n';\n"
      << "  abort();\n"
-     << "  return NULL;\n"
-     << "}\n";
+     << "}\n\n";
+
+  OS << "void CannotYetSelectIntrinsic(SDValue N) DISABLE_INLINE {\n"
+     << "  cerr << \"Cannot yet select: \";\n"
+     << "  unsigned iid = cast<ConstantSDNode>(N.getOperand("
+     << "N.getOperand(0).getValueType() == MVT::Other))->getZExtValue();\n"
+     << "  cerr << \"intrinsic %\"<< "
+     << "Intrinsic::getName((Intrinsic::ID)iid);\n"
+     << "  cerr << '\\n';\n"
+     << "  abort();\n"
+     << "}\n\n";
 }
 
 void DAGISelEmitter::run(std::ostream &OS) {

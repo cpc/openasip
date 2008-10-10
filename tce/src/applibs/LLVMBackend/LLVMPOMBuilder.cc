@@ -896,7 +896,7 @@ LLVMPOMBuilder::emitInstruction(
 
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
-        if (!mo.isRegister() || mo.isUse()) {
+        if (!mo.isReg() || mo.isUse()) {
             if (useOps.empty()) {
                 DOUT << " WARNING: Skipping input operand "
                      << o << " for " << opName << std::endl;
@@ -956,7 +956,7 @@ LLVMPOMBuilder::emitInstruction(
         TTAProgram::Instruction* instr = new TTAProgram::Instruction();
         instr->addMove(move);
 
-        if (!mo.isRegister() || mo.isUse()) {
+        if (!mo.isReg() || mo.isUse()) {
             operandMoves.push_back(instr);
         } else {
             resultMoves.push_back(instr);
@@ -992,7 +992,7 @@ LLVMPOMBuilder::emitInstruction(
 TTAProgram::Terminal*
 LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
-    if (mo.isRegister()) {
+    if (mo.isReg()) {
         unsigned dRegNum = mo.getReg();
 
         if (dRegNum == tm_.raPortDRegNum()) {
@@ -1019,7 +1019,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         assert(port != NULL);
         return new TTAProgram::TerminalRegister(*port, idx);
 
-    } else if (mo.isImmediate()) {
+    } else if (mo.isImm()) {
         int width = 32; // FIXME
         SimValue val(mo.getImm(), width);
         return new TTAProgram::TerminalImmediate(val);
@@ -1036,11 +1036,11 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
         mbbReferences_[ref] = mbbName(*mo.getMBB());
         return ref;
-    } else if (mo.isFrameIndex()) {
+    } else if (mo.isFI()) {
         std::cerr << " Frame index source operand NOT IMPLEMENTED!"
                   << std::endl;
         assert(false); 
-    } else if (mo.isConstantPoolIndex()) {
+    } else if (mo.isCPI()) {
         int width = 32; // FIXME
         unsigned idx = mo.getIndex();
         assert(currentFnCP_.find(idx) != currentFnCP_.end() &&
@@ -1049,7 +1049,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         unsigned addr = currentFnCP_[idx];
         SimValue cpeAddr(addr, width);
         return new TTAProgram::TerminalImmediate(cpeAddr);
-    } else if (mo.isGlobalAddress()) {
+    } else if (mo.isGlobal()) {
         std::string name = mang_->getValueName(mo.getGlobal());
         if (name == "_end") {
             return &TTAProgram::NullTerminal::instance();
@@ -1070,11 +1070,11 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
             codeLabelReferences_[ref] = name;
             return ref;
         }
-    } else if (mo.isJumpTableIndex()) {
+    } else if (mo.isJTI()) {
         std::cerr << " Jump table index operand NOT IMPLEMENTED!"
                   << std::endl;
         assert(false);
-    } else if (mo.isExternalSymbol()) {
+    } else if (mo.isSymbol()) {
         std::cerr << "*** ERROR: External symbol reference '"
                   << mo.getSymbolName() << "'. ***" << std::endl
                   << "Module must be fully linked w/o external symbol references!" << std::endl;
@@ -1126,7 +1126,7 @@ LLVMPOMBuilder::emitMove(
     assert(mi->getNumOperands() == 2); // src, dst
     const MachineOperand& dst = mi->getOperand(0);
     const MachineOperand& src = mi->getOperand(1);
-    assert(!src.isRegister() || src.isUse());
+    assert(!src.isReg() || src.isUse());
     assert(dst.isDef());
 
     Bus& bus = umach_->universalBus();
@@ -1246,7 +1246,7 @@ TTAProgram::Terminal*
 LLVMPOMBuilder::createAddrTerminal(
     const MachineOperand& base, const MachineOperand& offset) {
 
-    assert(offset.isImmediate());
+    assert(offset.isImm());
     assert(offset.getImm() == 0);
     return createTerminal(base);
 }
@@ -1372,7 +1372,7 @@ LLVMPOMBuilder::emitInlineAsm(
 
     }
     assert(numDefs != numOperands-1 && "No asm string?");
-    assert(mi->getOperand(numDefs).isExternalSymbol() && "No asm string?");
+    assert(mi->getOperand(numDefs).isSymbol() && "No asm string?");
     std::string opName =  mi->getOperand(numDefs).getSymbolName();
 
     if (StringTools::containsChar(opName, ' ') ||
@@ -1404,7 +1404,7 @@ LLVMPOMBuilder::emitInlineAsm(
     for (unsigned o = 2; o < mi->getNumOperands(); o++) {
 
         const MachineOperand& mo = mi->getOperand(o);
-        if (!(mo.isRegister() || mo.isImmediate() || mo.isGlobalAddress()))   {
+        if (!(mo.isReg() || mo.isImm() || mo.isGlobal()))   {
             // All operands should be in registers. Everything else is ignored.
             continue;
         }
@@ -1412,7 +1412,7 @@ LLVMPOMBuilder::emitInlineAsm(
 
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
-        if (mo.isImmediate() || mo.isGlobalAddress() || mo.isUse()) {
+        if (mo.isImm() || mo.isGlobal() || mo.isUse()) {
             if (useOps.empty()) {
                 std::cerr << std::endl;
                 std::cerr <<"ERROR: Too many input operands for custom "
@@ -1441,7 +1441,7 @@ LLVMPOMBuilder::emitInlineAsm(
         TTAProgram::Instruction* instr = new TTAProgram::Instruction();
         instr->addMove(move);
 
-        if (mo.isImmediate() || mo.isGlobalAddress() || mo.isUse()) {
+        if (mo.isImm() || mo.isGlobal() || mo.isUse()) {
             operandMoves.push_back(instr);
         } else {
             resultMoves.push_back(instr);

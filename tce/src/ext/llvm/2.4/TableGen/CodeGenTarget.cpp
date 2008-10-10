@@ -50,7 +50,7 @@ std::string llvm::getName(MVT::SimpleValueType T) {
   case MVT::f128:  return "MVT::f128";
   case MVT::ppcf128:  return "MVT::ppcf128";
   case MVT::Flag:  return "MVT::Flag";
-  case MVT::isVoid:return "MVT::void";
+  case MVT::isVoid:return "MVT::isVoid";
   case MVT::v8i8:  return "MVT::v8i8";
   case MVT::v4i16: return "MVT::v4i16";
   case MVT::v2i32: return "MVT::v2i32";
@@ -133,6 +133,21 @@ CodeGenTarget::CodeGenTarget() {
 
 const std::string &CodeGenTarget::getName() const {
   return TargetRec->getName();
+}
+
+std::string CodeGenTarget::getInstNamespace() const {
+  std::string InstNS;
+
+  for (inst_iterator i = inst_begin(), e = inst_end(); i != e; ++i) {
+    InstNS = i->second.Namespace;
+
+    // Make sure not to pick up "TargetInstrInfo" by accidentally getting
+    // the namespace off the PHI instruction or something.
+    if (InstNS != "TargetInstrInfo")
+      break;
+  }
+
+  return InstNS;
 }
 
 Record *CodeGenTarget::getInstructionSet() const {

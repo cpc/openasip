@@ -155,11 +155,18 @@ struct OptionDescription {
   std::string EscapeVariableName(const std::string& Var) const {
     std::string ret;
     for (unsigned i = 0; i != Var.size(); ++i) {
-      if (Var[i] == ',') {
+      char cur_char = Var[i];
+      if (cur_char == ',') {
+        ret += "_comma_";
+      }
+      else if (cur_char == '+') {
+        ret += "_plus_";
+      }
+      else if (cur_char == ',') {
         ret += "_comma_";
       }
       else {
-        ret.push_back(Var[i]);
+        ret.push_back(cur_char);
       }
     }
     return ret;
@@ -279,7 +286,7 @@ namespace ToolOptionDescriptionFlags {
                                     Forward = 0x2, UnpackValues = 0x4};
 }
 namespace OptionPropertyType {
-  enum OptionPropertyType { AppendCmd, OutputSuffix };
+  enum OptionPropertyType { AppendCmd, ForwardAs, OutputSuffix };
 }
 
 typedef std::pair<OptionPropertyType::OptionPropertyType, std::string>
@@ -399,6 +406,8 @@ public:
         &CollectOptionProperties::onAppendCmd;
       optionPropertyHandlers_["forward"] =
         &CollectOptionProperties::onForward;
+      optionPropertyHandlers_["forward_as"] =
+        &CollectOptionProperties::onForwardAs;
       optionPropertyHandlers_["help"] =
         &CollectOptionProperties::onHelp;
       optionPropertyHandlers_["output_suffix"] =
@@ -464,6 +473,15 @@ private:
     checkNumberOfArguments(d, 0);
     checkToolProps(d);
     toolProps_->OptDescs[optDesc_.Name].setForward();
+  }
+
+  void onForwardAs (const DagInit* d) {
+    checkNumberOfArguments(d, 1);
+    checkToolProps(d);
+    const std::string& cmd = InitPtrToString(d->getArg(0));
+
+    toolProps_->OptDescs[optDesc_.Name].
+      AddProperty(OptionPropertyType::ForwardAs, cmd);
   }
 
   void onHelp (const DagInit* d) {
@@ -796,7 +814,6 @@ bool EmitCaseTest1Arg(const std::string& TestName,
                       const DagInit& d,
                       const GlobalOptionDescriptions& OptDescs,
                       std::ostream& O) {
-  // TOFIX - Add a mechanism for OS detection.
   checkNumberOfArguments(&d, 1);
   const std::string& OptName = InitPtrToString(d.getArg(0));
   if (TestName == "switch_on") {
@@ -809,8 +826,11 @@ bool EmitCaseTest1Arg(const std::string& TestName,
     O << "InLangs.count(\"" << OptName << "\") != 0";
     return true;
   } else if (TestName == "in_language") {
-    // Works only for cmd_line!
-    O << "GetLanguage(inFile) == \"" << OptName << '\"';
+    // This works only for single-argument Tool::GenerateAction. Join
+    // tools can process several files in different languages simultaneously.
+
+    // TODO: make this work with Edge::Weight (if possible).
+    O << "LangMap.GetLanguage(inFile) == \"" << OptName << '\"';
     return true;
   } else if (TestName == "not_empty") {
     if (OptName == "o") {
@@ -957,26 +977,31 @@ void EmitCaseConstructHandler(const DagInit* d, const char* IndentLevel,
 
 /// EmitForwardOptionPropertyHandlingCode - Helper function used to
 /// implement EmitOptionPropertyHandlingCode(). Emits code for
-/// handling the (forward) option property.
+/// handling the (forward) and (forward_as) option properties.
 void EmitForwardOptionPropertyHandlingCode (const ToolOptionDescription& D,
+                                            const std::string& NewName,
                                             std::ostream& O) {
+  const std::string& Name = NewName.empty()
+    ? ("-" + D.Name)
+    : NewName;
+
   switch (D.Type) {
   case OptionType::Switch:
-    O << Indent3 << "vec.push_back(\"-" << D.Name << "\");\n";
+    O << Indent3 << "vec.push_back(\"" << Name << "\");\n";
     break;
   case OptionType::Parameter:
-    O << Indent3 << "vec.push_back(\"-" << D.Name << "\");\n";
+    O << Indent3 << "vec.push_back(\"" << Name << "\");\n";
     O << Indent3 << "vec.push_back(" << D.GenVariableName() << ");\n";
     break;
   case OptionType::Prefix:
-    O << Indent3 << "vec.push_back(\"-" << D.Name << "\" + "
+    O << Indent3 << "vec.push_back(\"" << Name << "\" + "
       << D.GenVariableName() << ");\n";
     break;
   case OptionType::PrefixList:
     O << Indent3 << "for (" << D.GenTypeDeclaration()
       << "::iterator B = " << D.GenVariableName() << ".begin(),\n"
       << Indent3 << "E = " << D.GenVariableName() << ".end(); B != E; ++B)\n"
-      << Indent4 << "vec.push_back(\"-" << D.Name << "\" + "
+      << Indent4 << "vec.push_back(\"" << Name << "\" + "
       << "*B);\n";
     break;
   case OptionType::ParameterList:
@@ -984,7 +1009,7 @@ void EmitForwardOptionPropertyHandlingCode (const ToolOptionDescription& D,
       << "::iterator B = " << D.GenVariableName() << ".begin(),\n"
       << Indent3 << "E = " << D.GenVariableName()
       << ".end() ; B != E; ++B) {\n"
-      << Indent4 << "vec.push_back(\"-" << D.Name << "\");\n"
+      << Indent4 << "vec.push_back(\"" << Name << "\");\n"
       << Indent4 << "vec.push_back(*B);\n"
       << Indent3 << "}\n";
     break;
@@ -1002,7 +1027,8 @@ bool ToolOptionHasInterestingProperties(const ToolOptionDescription& D) {
   for (OptionPropertyList::const_iterator B = D.Props.begin(),
          E = D.Props.end(); B != E; ++B) {
       const OptionProperty& OptProp = *B;
-      if (OptProp.first == OptionPropertyType::AppendCmd)
+      if (OptProp.first == OptionPropertyType::AppendCmd
+          || OptProp.first == OptionPropertyType::ForwardAs)
         ret = true;
     }
   if (D.isForward() || D.isUnpackValues())
@@ -1037,6 +1063,10 @@ void EmitOptionPropertyHandlingCode (const ToolOptionDescription& D,
     case OptionPropertyType::AppendCmd:
       O << Indent3 << "vec.push_back(\"" << val.second << "\");\n";
       break;
+      // (forward_as) property
+    case OptionPropertyType::ForwardAs:
+      EmitForwardOptionPropertyHandlingCode(D, val.second, O);
+      break;
       // Other properties with argument
     default:
       break;
@@ -1047,7 +1077,7 @@ void EmitOptionPropertyHandlingCode (const ToolOptionDescription& D,
 
   // (forward) property
   if (D.isForward())
-    EmitForwardOptionPropertyHandlingCode(D, O);
+    EmitForwardOptionPropertyHandlingCode(D, "", O);
 
   // (unpack_values) property
   if (D.isUnpackValues()) {
@@ -1178,7 +1208,8 @@ void EmitGenerateActionMethod (const ToolProperties& P,
     O << Indent1 << "Action GenerateAction(const sys::Path& inFile,\n";
 
   O << Indent2 << "const sys::Path& outFile,\n"
-    << Indent2 << "const InputLanguagesSet& InLangs) const\n"
+    << Indent2 << "const InputLanguagesSet& InLangs,\n"
+    << Indent2 << "const LanguageMap& LangMap) const\n"
     << Indent1 << "{\n"
     << Indent2 << "const char* cmd;\n"
     << Indent2 << "std::vector<std::string> vec;\n";
@@ -1218,7 +1249,8 @@ void EmitGenerateActionMethods (const ToolProperties& P,
   if (!P.isJoin())
     O << Indent1 << "Action GenerateAction(const PathVector& inFiles,\n"
       << Indent2 << "const llvm::sys::Path& outFile,\n"
-      << Indent2 << "const InputLanguagesSet& InLangs) const\n"
+      << Indent2 << "const InputLanguagesSet& InLangs,\n"
+      << Indent2 << "const LanguageMap& LangMap) const\n"
       << Indent1 << "{\n"
       << Indent2 << "throw std::runtime_error(\"" << P.Name
       << " is not a Join tool!\");\n"
@@ -1424,7 +1456,8 @@ void EmitPopulateLanguageMap (const RecordKeeper& Records, std::ostream& O)
     throw std::string("Error in the language map definition!");
 
   // Generate code
-  O << "void llvmc::PopulateLanguageMap() {\n";
+  O << "namespace {\n\n";
+  O << "void PopulateLanguageMapLocal(LanguageMap& langMap) {\n";
 
   for (unsigned i = 0; i < LangsToSuffixesList->size(); ++i) {
     Record* LangToSuffixes = LangsToSuffixesList->getElementAsRecord(i);
@@ -1433,12 +1466,12 @@ void EmitPopulateLanguageMap (const RecordKeeper& Records, std::ostream& O)
     const ListInit* Suffixes = LangToSuffixes->getValueAsListInit("suffixes");
 
     for (unsigned i = 0; i < Suffixes->size(); ++i)
-      O << Indent1 << "GlobalLanguageMap[\""
+      O << Indent1 << "langMap[\""
         << InitPtrToString(Suffixes->getElement(i))
         << "\"] = \"" << Lang << "\";\n";
   }
 
-  O << "}\n\n";
+  O << "}\n\n}\n\n";
 }
 
 /// FillInToolToLang - Fills in two tables that map tool names to
@@ -1462,8 +1495,8 @@ void FillInToolToLang (const ToolPropertiesList& TPList,
 // and multiple default edges in the graph (better error
 // reporting). Unfortunately, it is awkward to do right now because
 // our intermediate representation is not sufficiently
-// sofisticated. Algorithms like these should be run on a real graph
-// instead of AST.
+// sophisticated. Algorithms like these require a real graph instead of
+// an AST.
 void TypecheckGraph (Record* CompilationGraph,
                      const ToolPropertiesList& TPList) {
   StringMap<StringSet<> > ToolToInLang;
@@ -1561,8 +1594,8 @@ void EmitPopulateCompilationGraph (Record* CompilationGraph,
   ListInit* edges = CompilationGraph->getValueAsListInit("edges");
 
   // Generate code
-  O << "void llvmc::PopulateCompilationGraph(CompilationGraph& G) {\n"
-    << Indent1 << "PopulateLanguageMap();\n\n";
+  O << "namespace {\n\n";
+  O << "void PopulateCompilationGraphLocal(CompilationGraph& G) {\n";
 
   // Insert vertices
 
@@ -1596,7 +1629,7 @@ void EmitPopulateCompilationGraph (Record* CompilationGraph,
     O << ");\n";
   }
 
-  O << "}\n\n";
+  O << "}\n\n}\n\n";
 }
 
 /// ExtractHookNames - Extract the hook names from all instances of
@@ -1673,6 +1706,38 @@ void EmitHookDeclarations(const ToolPropertiesList& ToolProps,
   O << "}\n\n";
 }
 
+/// EmitRegisterPlugin - Emit code to register this plugin.
+void EmitRegisterPlugin(std::ostream& O) {
+  O << "namespace {\n\n"
+    << "struct Plugin : public llvmc::BasePlugin {\n"
+    << Indent1 << "void PopulateLanguageMap(LanguageMap& langMap) const\n"
+    << Indent1 << "{ PopulateLanguageMapLocal(langMap); }\n\n"
+    << Indent1
+    << "void PopulateCompilationGraph(CompilationGraph& graph) const\n"
+    << Indent1 << "{ PopulateCompilationGraphLocal(graph); }\n"
+    << "};\n\n"
+
+    << "static llvmc::RegisterPlugin<Plugin> RP;\n\n}\n\n";
+}
+
+/// EmitInclude - Emit necessary #include directives.
+void EmitIncludes(std::ostream& O) {
+  O << "#include \"llvm/CompilerDriver/CompilationGraph.h\"\n"
+    << "#include \"llvm/CompilerDriver/Plugin.h\"\n"
+    << "#include \"llvm/CompilerDriver/Tool.h\"\n\n"
+
+    << "#include \"llvm/ADT/StringExtras.h\"\n"
+    << "#include \"llvm/Support/CommandLine.h\"\n\n"
+
+    << "#include <cstdlib>\n"
+    << "#include <stdexcept>\n\n"
+
+    << "using namespace llvm;\n"
+    << "using namespace llvmc;\n\n"
+
+    << "extern cl::opt<std::string> OutputFilename;\n\n";
+}
+
 // End of anonymous namespace
 }
 
@@ -1682,6 +1747,7 @@ void LLVMCConfigurationEmitter::run (std::ostream &O) {
 
   // Emit file header.
   EmitSourceFileHeader("LLVMC Configuration Library", O);
+  EmitIncludes(O);
 
   // Get a list of all defined Tools.
   RecordVector Tools = Records.getAllDerivedDefinitions("Tool");
@@ -1728,6 +1794,9 @@ void LLVMCConfigurationEmitter::run (std::ostream &O) {
 
   // Emit PopulateCompilationGraph() function.
   EmitPopulateCompilationGraph(CompilationGraphRecord, O);
+
+  // Emit code for plugin registration.
+  EmitRegisterPlugin(O);
 
   // EOF
   } catch (std::exception& Error) {

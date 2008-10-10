@@ -114,9 +114,9 @@ bool isSubRegisterClass(const CodeGenRegisterClass &RC,
 }
 
 static void addSuperReg(Record *R, Record *S,
-                        std::map<Record*, std::set<Record*> > &SubRegs,
-                        std::map<Record*, std::set<Record*> > &SuperRegs,
-                        std::map<Record*, std::set<Record*> > &Aliases) {
+                  std::map<Record*, std::set<Record*>, LessRecord> &SubRegs,
+                  std::map<Record*, std::set<Record*>, LessRecord> &SuperRegs,
+                  std::map<Record*, std::set<Record*>, LessRecord> &Aliases) {
   if (R == S) {
     cerr << "Error: recursive sub-register relationship between"
          << " register " << getQualifiedName(R)
@@ -135,9 +135,9 @@ static void addSuperReg(Record *R, Record *S,
 }
 
 static void addSubSuperReg(Record *R, Record *S,
-                           std::map<Record*, std::set<Record*> > &SubRegs,
-                           std::map<Record*, std::set<Record*> > &SuperRegs,
-                           std::map<Record*, std::set<Record*> > &Aliases) {
+                   std::map<Record*, std::set<Record*>, LessRecord> &SubRegs,
+                   std::map<Record*, std::set<Record*>, LessRecord> &SuperRegs,
+                   std::map<Record*, std::set<Record*>, LessRecord> &Aliases) {
   if (R == S) {
     cerr << "Error: recursive sub-register relationship between"
          << " register " << getQualifiedName(R)
@@ -158,10 +158,10 @@ static void addSubSuperReg(Record *R, Record *S,
 
 class RegisterSorter {
 private:
-  std::map<Record*, std::set<Record*> > &RegisterSubRegs;
+  std::map<Record*, std::set<Record*>, LessRecord> &RegisterSubRegs;
 
 public:
-  RegisterSorter(std::map<Record*, std::set<Record*> > &RS)
+  RegisterSorter(std::map<Record*, std::set<Record*>, LessRecord> &RS)
     : RegisterSubRegs(RS) {};
 
   bool operator()(Record *RegA, Record *RegB) {
@@ -251,7 +251,7 @@ void RegisterInfoEmitter::run(std::ostream &OS) {
       std::string Name = RC.TheDef->getName();
 
       OS << "  // " << Name 
-         << " Sub-register Classess...\n"
+         << " Sub-register Classes...\n"
          << "  static const TargetRegisterClass* const "
          << Name << "SubRegClasses [] = {\n    ";
 
@@ -296,7 +296,7 @@ void RegisterInfoEmitter::run(std::ostream &OS) {
       std::string Name = RC.TheDef->getName();
 
       OS << "  // " << Name 
-         << " Super-register Classess...\n"
+         << " Super-register Classes...\n"
          << "  static const TargetRegisterClass* const "
          << Name << "SuperRegClasses [] = {\n    ";
 
@@ -418,11 +418,12 @@ void RegisterInfoEmitter::run(std::ostream &OS) {
   OS << "  };\n";
 
   // Emit register sub-registers / super-registers, aliases...
-  std::map<Record*, std::set<Record*> > RegisterSubRegs;
-  std::map<Record*, std::set<Record*> > RegisterSuperRegs;
-  std::map<Record*, std::set<Record*> > RegisterAliases;
+  std::map<Record*, std::set<Record*>, LessRecord> RegisterSubRegs;
+  std::map<Record*, std::set<Record*>, LessRecord> RegisterSuperRegs;
+  std::map<Record*, std::set<Record*>, LessRecord> RegisterAliases;
   std::map<Record*, std::vector<std::pair<int, Record*> > > SubRegVectors;
-  std::map<Record*, std::vector<int> > DwarfRegNums;
+  typedef std::map<Record*, std::vector<int>, LessRecord> DwarfRegNumsMapTy;
+  DwarfRegNumsMapTy DwarfRegNums;
   
   const std::vector<CodeGenRegister> &Regs = Target.getRegisters();
 
@@ -546,7 +547,7 @@ void RegisterInfoEmitter::run(std::ostream &OS) {
   OS << "  const unsigned Empty_AliasSet[] = { 0 };\n";
   // Loop over all of the registers which have aliases, emitting the alias list
   // to memory.
-  for (std::map<Record*, std::set<Record*> >::iterator
+  for (std::map<Record*, std::set<Record*>, LessRecord >::iterator
          I = RegisterAliases.begin(), E = RegisterAliases.end(); I != E; ++I) {
     OS << "  const unsigned " << I->first->getName() << "_AliasSet[] = { ";
     for (std::set<Record*>::iterator ASI = I->second.begin(),
@@ -562,7 +563,7 @@ void RegisterInfoEmitter::run(std::ostream &OS) {
   OS << "  const unsigned Empty_SubRegsSet[] = { 0 };\n";
   // Loop over all of the registers which have sub-registers, emitting the
   // sub-registers list to memory.
-  for (std::map<Record*, std::set<Record*> >::iterator
+  for (std::map<Record*, std::set<Record*>, LessRecord>::iterator
          I = RegisterSubRegs.begin(), E = RegisterSubRegs.end(); I != E; ++I) {
     OS << "  const unsigned " << I->first->getName() << "_SubRegsSet[] = { ";
     std::vector<Record*> SubRegsVector;
@@ -583,7 +584,7 @@ void RegisterInfoEmitter::run(std::ostream &OS) {
   OS << "  const unsigned Empty_SuperRegsSet[] = { 0 };\n";
   // Loop over all of the registers which have super-registers, emitting the
   // super-registers list to memory.
-  for (std::map<Record*, std::set<Record*> >::iterator
+  for (std::map<Record*, std::set<Record*>, LessRecord >::iterator
          I = RegisterSuperRegs.begin(), E = RegisterSuperRegs.end(); I != E; ++I) {
     OS << "  const unsigned " << I->first->getName() << "_SuperRegsSet[] = { ";
 
@@ -654,16 +655,16 @@ void RegisterInfoEmitter::run(std::ostream &OS) {
   OS << "unsigned " << ClassName 
      << "::getSubReg(unsigned RegNo, unsigned Index) const {\n"
      << "  switch (RegNo) {\n"
-     << "  default: abort(); break;\n";
+     << "  default:\n    return 0;\n";
   for (std::map<Record*, std::vector<std::pair<int, Record*> > >::iterator 
         I = SubRegVectors.begin(), E = SubRegVectors.end(); I != E; ++I) {
     OS << "  case " << getQualifiedName(I->first) << ":\n";
     OS << "    switch (Index) {\n";
-    OS << "    default: abort(); break;\n";
+    OS << "    default: return 0;\n";
     for (unsigned i = 0, e = I->second.size(); i != e; ++i)
       OS << "    case " << (I->second)[i].first << ": return "
          << getQualifiedName((I->second)[i].second) << ";\n";
-    OS << "    }; break;\n";
+    OS << "    };\n" << "    break;\n";
   }
   OS << "  };\n";
   OS << "  return 0;\n";
@@ -693,8 +694,8 @@ void RegisterInfoEmitter::run(std::ostream &OS) {
   }
 
   // Now we know maximal length of number list. Append -1's, where needed
-  for (std::map<Record*, std::vector<int> >::iterator 
-        I = DwarfRegNums.begin(), E = DwarfRegNums.end(); I != E; ++I)
+  for (DwarfRegNumsMapTy::iterator 
+       I = DwarfRegNums.begin(), E = DwarfRegNums.end(); I != E; ++I)
     for (unsigned i = I->second.size(), e = maxLength; i != e; ++i)
       I->second.push_back(-1);
 
@@ -712,8 +713,11 @@ void RegisterInfoEmitter::run(std::ostream &OS) {
        << "    default:\n"
        << "      assert(0 && \"Invalid RegNum\");\n"
        << "      return -1;\n";
+    
+    // Sort by name to get a stable order.
+    
 
-    for (std::map<Record*, std::vector<int> >::iterator 
+    for (DwarfRegNumsMapTy::iterator 
            I = DwarfRegNums.begin(), E = DwarfRegNums.end(); I != E; ++I) {
       int RegNo = I->second[i];
       if (RegNo != -2)
