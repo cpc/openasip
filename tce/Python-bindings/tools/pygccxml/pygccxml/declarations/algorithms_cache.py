@@ -13,9 +13,11 @@ class declaration_algs_cache_t( object ):
         object.__init__( self )
         self._enabled = True
         self._full_name = None
+        self._full_partial_name = None
         self._access_type = None
         self._demangled_name = None
         self._declaration_path = None
+        self._partial_declaration_path = None
 
     def disable( self ):
         self._enabled = False
@@ -37,6 +39,16 @@ class declaration_algs_cache_t( object ):
         
     full_name = property( _get_full_name, _set_full_name )
 
+    def _get_full_partial_name( self ):
+        return self._full_partial_name
+
+    def _set_full_partial_name( self, fname ):
+        if not self.enabled:
+            fname = None
+        self._full_partial_name = fname
+        
+    full_partial_name = property( _get_full_partial_name, _set_full_partial_name )
+
     def _get_access_type( self ):
         return self._access_type
 
@@ -44,7 +56,6 @@ class declaration_algs_cache_t( object ):
         if not self.enabled:
             access_type = None
         self._access_type = access_type
-        
     access_type = property( _get_access_type, _set_access_type )
 
     def _get_demangled_name( self ):
@@ -64,19 +75,34 @@ class declaration_algs_cache_t( object ):
         if not self.enabled:
             declaration_path = None
         self._declaration_path = declaration_path
-    
+        
     declaration_path = property( _get_declaration_path, _set_declaration_path )
+
+    def _get_partial_declaration_path( self ):
+        return self._partial_declaration_path
+
+    def _set_partial_declaration_path( self, partial_declaration_path ):
+        if not self.enabled:
+            partial_declaration_path = None
+        self._partial_declaration_path = partial_declaration_path
+    
+    partial_declaration_path = property( _get_partial_declaration_path
+                                             , _set_partial_declaration_path )
 
     def reset( self ):
         self.full_name = None
+        self.full_partial_name = None
         self.access_type = None
         self.demangled_name = None
         self.declaration_path = None
+        self.partial_declaration_path = None
 
     def reset_name_based( self ):
         self.full_name = None
+        self.full_partial_name = None
         self.demangled_name = None
         self.declaration_path = None
+        self.partial_declaration_path = None
 
     def reset_access_type( self ):
         self.access_type = None

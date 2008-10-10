@@ -31,7 +31,7 @@
  *
  * Declaration of WarningDialog class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

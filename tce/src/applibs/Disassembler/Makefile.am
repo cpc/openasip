@@ -10,7 +10,7 @@ DisassemblyInstructionSlot.cc DisassemblyImmediateAssignment.cc \
 DisassemblyLabel.cc DisassemblyNOP.cc DisassemblyFUOperand.cc \
 DisassemblySequentialGuard.cc DisassemblyAnnotation.cc
 
-SRC_ROOT = ../..
+SRC_ROOT = $(top_srcdir)/src
 
 TOOLS_DIR = ${SRC_ROOT}/tools
 MACH_DIR = ${SRC_ROOT}/base/mach

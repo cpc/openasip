@@ -31,8 +31,8 @@
  *
  * oper1 behavior definition.
  * 
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
- * @author Mikael Lepistö 2007 (tmlepist@cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2007 (tmlepist-no.spam-cs.tut.fi)
  */
 
 

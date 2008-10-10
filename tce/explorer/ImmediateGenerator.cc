@@ -31,7 +31,7 @@
  *
  * Explorer plugin that creates or modifies machine instruction templates.
  *
- * @author Esa M‰‰tt‰ 2007 (esa.maatta@tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

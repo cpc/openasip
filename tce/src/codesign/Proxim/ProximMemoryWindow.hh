@@ -31,7 +31,7 @@
  *
  * Declaration of ProximMemoryWindow class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -85,14 +85,14 @@ private:
 
     // Widget IDs.
     enum {
-	ID_AS_CHOICE = 10000,
-	ID_TEXT_AS,
-        ID_TEXT_AS_INFO,
-	ID_TEXT_START_ADDRESS,
-	ID_START_ADDRESS,
-	ID_TEXT_DISPLAY,
-	ID_DISPLAY_SIZE_CHOICE,
-	ID_LINE
+        ID_AS_CHOICE = 10000,
+        ID_TEXT_AS,
+            ID_TEXT_AS_INFO,
+        ID_TEXT_START_ADDRESS,
+        ID_START_ADDRESS,
+        ID_TEXT_DISPLAY,
+        ID_DISPLAY_SIZE_CHOICE,
+        ID_LINE
     };
     DECLARE_EVENT_TABLE()
 };

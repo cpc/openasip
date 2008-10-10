@@ -31,7 +31,7 @@
  *
  * A test suite for AddressSpace.
  *
- * @author Andrea Cilio 2003 (a.cilio@et.tudelft.nl)
+ * @author Andrea Cilio 2003 (a.cilio-no.spam-et.tudelft.nl)
  */
 
 #ifndef AddressSpaceTest_HH

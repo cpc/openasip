@@ -1,0 +1,10 @@
+<?php
+// file: test_fft_case_with_limm.testdesc
+
+// short test description
+$test_description="if LIMM operations work correctly";
+// the binary being tested
+$test_bin="./run_verify_limm_test.sh";
+// arguments given to the program
+$bin_args="";
+?>

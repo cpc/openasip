@@ -32,8 +32,8 @@
  * Explorer plugin that optimizes the interconnection network by
  * removing extra sockets and not used connections.
  *
- * @author Jari M‰ntyneva 2007 (jari.mantyneva@tut.fi)
- * @author Esa M‰‰tt‰ 2008 (esa.maatta@tut.fi)
+ * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -48,6 +48,10 @@
 #include "Program.hh"
 #include "Instruction.hh"
 #include "Move.hh"
+#include "Port.hh"
+#include "FUPort.hh"
+#include "Socket.hh"
+#include "Terminal.hh"
 #include "Terminal.hh"
 #include "HDBRegistry.hh"
 #include "ICDecoderEstimatorPlugin.hh"
@@ -59,10 +63,11 @@
 #include "Application.hh"
 #include "Exception.hh"
 #include "Procedure.hh"
-#include "MachineResourceModifier.hh"
 
-//#include "SchedulerFrontend.hh"
 #include "LLVMBackend.hh"
+#include "RegisterQuantityCheck.hh"
+
+#include "MinimalOpSetCheck.hh"
 
 
 using namespace TTAProgram;
@@ -81,7 +86,9 @@ public:
     
     /**
      * Optimizes the IC of the given configuration by removing not used 
-     * connections. Needs the start point configuration to get the architecture
+     * connections. First removes connections and then adds them by looking
+     * all application domains programs instructions and their moves.
+     * Needs the start point configuration to get the architecture
      * which connections are optimized.
      *
      * Supported parameters:
@@ -136,11 +143,22 @@ public:
                 try {
                     std::set<RowID> appIDs = dsdb.applicationIDs();
                     std::set<RowID>::const_iterator iter = appIDs.begin();
+                    if (iter == appIDs.end()) {
+                        // no applications, nothing can be done
+                        return result;
+                    }
                     for (; iter != appIDs.end(); iter++) {
                         TestApplication testApp(dsdb.applicationPath(*iter));
 
-                        // sould origMach be mach?
-                        program = schedule(testApp.applicationPath(), *origMach);
+                        program = DesignSpaceExplorer::schedule(
+                                testApp.applicationPath(), *origMach);
+                        if (program == NULL) {
+                            std::string msg = "SimpleICOptimizer: Schedule "
+                                "failed for program: " + 
+                                testApp.applicationPath();
+                            verboseLogC(msg, 1)
+                            return result;     
+                        }
 
                         addConnections(*mach, *program);
                     }
@@ -157,7 +175,6 @@ public:
                     program = Program::loadFromTPEF(tpef_, *origMach);
 
                     addConnections(*mach, *program);
-
                 } catch (const Exception& e) {
                     std::ostringstream msg(std::ostringstream::out);
                     msg << "Error while loading the program in "
@@ -168,26 +185,10 @@ public:
                 }
             }
 
-            removeSockets(*mach);
-
-            DSDBManager::MachineConfiguration newConf;
-            if (conf.hasImplementation) {
-                newConf.hasImplementation = true;
-                IDF::MachineImplementation* idf = 
-                    dsdb.implementation(conf.implementationID);
-                CostEstimator::Estimator estimator;
-                CostEstimator::AreaInGates area = 
-                    estimator.totalArea(*mach, *idf);
-                CostEstimator::DelayInNanoSeconds longestPathDelay =
-                    estimator.longestPath(*mach, *idf);                
-                newConf.implementationID = 
-                    dsdb.addImplementation(*idf, longestPathDelay, area);
-            } else {
-                newConf.hasImplementation = false;
-            }
-
+            DSDBManager::MachineConfiguration tempConf;
             try {
-                newConf.architectureID = dsdb.addArchitecture(*mach);
+                tempConf.architectureID = dsdb.addArchitecture(*mach);
+                tempConf.hasImplementation = false;
             } catch (const RelationalDBException& e) {
                 std::ostringstream msg(std::ostringstream::out);
                 msg << "Error while adding ADF to the dsdb. "
@@ -195,11 +196,51 @@ public:
                 errorOuput(msg.str());
                 return result;
             }
-            CostEstimates estimates;
 
+            // add config to database to pass it to
+            // RemoveUnconnectedComponents plugin
+            RowID tempConfID = dsdb.addConfiguration(tempConf);
+            
+            // remove unconnected components with RemoveUnconnectedComponents
+            // plugin
+            DesignSpaceExplorerPlugin* removeUnconnected =
+                DesignSpaceExplorer::loadExplorerPlugin(
+                    "RemoveUnconnectedComponents", db());
+
+            // parameters for RemoveUnconnectedComponents plugin
+            DesignSpaceExplorerPlugin::ParameterTable removeUParameters;
+            DesignSpaceExplorerPlugin::Parameter allowRemovePar;
+            allowRemovePar.name = "allow_remove";
+            allowRemovePar.value = "true";
+            removeUParameters.push_back(allowRemovePar);
+            removeUnconnected->setParameters(removeUParameters);
+
+            std::vector<RowID> cleanedTempConfIDs = 
+                removeUnconnected->explore(tempConfID);
+            if (cleanedTempConfIDs.size() < 1) {
+                std::string errorMsg = "SimpleICOptimizer plugin: "
+                    "RemoveUnconnectedComponents plugin failed to produce"
+                    "result.";
+                verboseLogC(errorMsg, 2)
+                return result;
+            }
+
+            DSDBManager::MachineConfiguration newConf =
+                dsdb.configuration(cleanedTempConfIDs.at(0));
+
+            // create implementation for newConf if orginal config had one
+            if (conf.hasImplementation && !newConf.hasImplementation) {
+                createImplementation(newConf, newConf);
+            } else {
+                newConf.hasImplementation = false;
+            }
+
+            // evaluate and save new config id as result
+            CostEstimates estimates;
             if (evaluateResult_) {
                 // evaluate the new config
-                if (evaluate(newConf, estimates, true)) {
+               bool estimate = newConf.hasImplementation;
+                if (evaluate(newConf, estimates, estimate)) {
                     RowID confID = dsdb.addConfiguration(newConf);
                     result.push_back(confID);
                 } else {
@@ -214,6 +255,7 @@ public:
                 RowID confID = dsdb.addConfiguration(newConf);
                 result.push_back(confID);
             }
+
         } catch (const Exception& e) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using SimpleICOptimizer:" << endl
@@ -231,6 +273,8 @@ private:
     bool addOnly_;
     /// evaluate the result(s)
     bool evaluateResult_;
+    /// respect minimal opset when removing connections
+    bool preserveMinimalOpset_;
 
 
     /**
@@ -242,6 +286,9 @@ private:
         const std::string tpefDefault = "";
         const std::string addOnly = "add_only";
         const std::string evaluate = "evaluate";
+        const std::string preserveMinOps = "preserve_min_ops";
+        const bool preserveMinimalOpsetDefault = true;
+        preserveMinimalOpset_ = false;
     
         if (hasParameter(tpef)) {
             try {
@@ -277,6 +324,18 @@ private:
             // set defaut value to tpef
             evaluateResult_ = true;
         }
+
+        if (hasParameter(preserveMinOps)) {
+            try {
+                preserveMinimalOpset_ = booleanValue(parameterValue(preserveMinOps));
+            } catch (const Exception& e) {
+                parameterError(evaluate, "Boolean");
+                preserveMinimalOpset_ = preserveMinimalOpsetDefault;
+            }
+        } else {
+            // set default value
+            preserveMinimalOpset_ = preserveMinimalOpsetDefault;
+        }
     }
 
     
@@ -296,34 +355,6 @@ private:
 
 
     /**
-     * Compiles the given application bytecode file on the given target machine.
-     *
-     * @param applicationFile Bytecode filename with path.
-     * @param machine The machine to compile the sequential program against.
-     * @return Scheduled parallel program or NULL if scheduler produced exeption.
-     */
-    TTAProgram::Program* schedule(
-        const std::string applicationFile,
-        TTAMachine::Machine& machine) {
-
-        // optimization level
-        const int optLevel = 2;
-        const unsigned int debug = 0;
-
-        // Run compiler and scheduler for current machine
-        try {
-            LLVMBackend compiler;
-            return compiler.compileAndSchedule(applicationFile, machine, optLevel, debug);
-        } catch (Exception& e) {
-            std::cerr << "Error compiling and scheduling '" 
-                << applicationFile << "':" << std::endl
-                << e.errorMessageStack() << std::endl;
-            return NULL;
-        }
-    }
-
-
-    /**
      * Removes all socket-bus connection from the given machine.
      *
      * @param mach Machine which connections are removed.
@@ -331,17 +362,73 @@ private:
     void removeAllConnections(TTAMachine::Machine& mach) {
         Machine::SocketNavigator socketNav = mach.socketNavigator();
         Machine::BusNavigator busNav = mach.busNavigator();
+        RegisterQuantityCheck RFCheck;
+        MinimalOpSetCheck minimalOpSetCheck = MinimalOpSetCheck();
 
-        for (int i = 0; i < socketNav.count(); i++) {
-            Socket* socket = socketNav.item(i);
-            for (int bus = 0; bus < busNav.count(); bus++) {
-                socket->detachBus(*busNav.item(bus));
+        if (!preserveMinimalOpset_) {
+            for (int i = 0; i < socketNav.count(); i++) {
+                Socket* socket = socketNav.item(i);
+                for (int bus = 0; bus < busNav.count(); bus++) {
+                    socket->detachBus(*busNav.item(bus));
+                }
+            }
+        } else {
+            // remove connections only if connected minimal opset preserved.
+            for (int i = 0; i < socketNav.count(); i++) {
+                Socket* socket = socketNav.item(i);
+                std::set<std::string> ignoreFUNames;
+                std::set<std::string> ignoreRFNames;
+                // check all ports connected to the socket
+                for (int si = 0; si < socket->portCount(); ++si) {
+                    Port* port = socket->port(si); 
+                    if (dynamic_cast<FUPort*>(port)) {
+                        ignoreFUNames.insert(port->parentUnit()->name());
+                    } else if (dynamic_cast<RFPort*>(port)) {
+                        ignoreRFNames.insert(port->parentUnit()->name());
+                    }
+                }
+                // TODO: refactor below
+                // TODO: add test that same FU/RF is not checked multiple
+                // times in situations where there are more than one socket
+                // connected to the same FU/RF, do this by storing unit names
+                // and the verdict if connections can be removed as a pair to
+                // a map
+                if (!ignoreFUNames.empty()) {
+                    if (minimalOpSetCheck.checkWithIgnore(mach, ignoreFUNames)) {
+                        if (!ignoreRFNames.empty()) {
+                            if (RFCheck.checkWithIgnore(mach, ignoreRFNames)) 
+                            {
+                                for (int bus = 0; bus < busNav.count(); bus++) 
+                                {
+                                    socket->detachBus(*busNav.item(bus));
+                                }
+                            }
+                        } else {
+                            for (int bus = 0; bus < busNav.count(); bus++) {
+                                socket->detachBus(*busNav.item(bus));
+                            }
+                        }
+                    }
+                } else if (!ignoreRFNames.empty()) {
+                    if (RFCheck.checkWithIgnore(mach, ignoreRFNames)) {
+                        for (int bus = 0; bus < busNav.count(); bus++) {
+                            socket->detachBus(*busNav.item(bus));
+                        }
+                    }
+                } else {
+                    for (int bus = 0; bus < busNav.count(); bus++) {
+                        socket->detachBus(*busNav.item(bus));
+                    }
+                } 
             }
         }
     }
 
     /**
      * Adds connections used in the program to the given machine.
+     *
+     * Connections to add are determined by procedure instructions in
+     * application domains programs.
      *
      * @param mach Machine where the connections are added.
      * @param prog Scheduled program where the used connections are searched.
@@ -401,21 +488,6 @@ private:
             }
         }
     }
-    
-    /**
-     * Removes sockets that are not needed in the machine.
-     * 
-     * @param mach Machine which extra sockets are removed.
-     */
-    void removeSockets(TTAMachine::Machine& mach) {
-        
-        // remove not connected sockets
-        MachineResourceModifier modifier;
-        std::list<std::string> removedSocketNames;
-        modifier.removeNotConnectedSockets(mach, removedSocketNames);
-    }
-    
-
 };
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(SimpleICOptimizer)

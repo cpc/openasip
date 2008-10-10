@@ -37,6 +37,6 @@ import pygccxml.utils as utils
 #  1. Write documentation for filtering functionality.
 #  2. Add "explicit" property for constructors
 
-__version__ = '0.9.0'
+__version__ = '0.9.5'
 
 __revision__ = 1080

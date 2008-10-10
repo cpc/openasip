@@ -41,7 +41,8 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	CompiledSimulationPimpl.cc FSAFUResourceConflictDetectorPimpl.cc \
 	OperationIDIndex.cc CompiledSimUtilizationStats.cc
 
-SRC_ROOT_DIR = ../../
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
 
 TPEF_DIR = ${BASE_DIR}/tpef
@@ -63,15 +64,16 @@ CFG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/ControlFlowGr
 DDG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/DataDependenceGraph
 GRAPH_DIR = ${BASE_DIR}/Graph
 
-TOOLS_DIR = ../../tools
-UNIVERSAL_MACH_DIR = ../../base/umach
-INTERPRETER_DIR = ../Interpreter
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+UNIVERSAL_MACH_DIR = ${BASE_DIR}/umach
+INTERPRETER_DIR = ${SRC_ROOT_DIR}/applibs/Interpreter
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} -I${MEMORY_DIR} -I${MACH_DIR} \
 	-I${UNIVERSAL_MACH_DIR} -I${PROG_DIR} -I${INTERPRETER_DIR} -I${BASE_DIR} \
 	-I${TPEF_DIR} -I${DISASM_DIR} -I${TRACEDB_DIR} -I${PROG_APPLIBS_DIR} \
 	-I${FSA_DIR} -I${MACH_APPLIBS_DIR} -I${OSAL_APPLIBS_DIR} -I${GRAPH_DIR} \
 	-I${SCHED_APPLIBS_DIR} -I${CFG_DIR} -I${DDG_DIR} -I${PDG_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

@@ -177,7 +177,7 @@ class class_t( class_common_details_t
         self._redefine_operators = False
         self._held_type = None
         self._noncopyable = None
-        self._wrapper_alias = self._generate_valid_name() + "_wrapper"
+        self._wrapper_alias = None 
         self._registration_code = []
         self._declaration_code = []
         self._wrapper_code = []
@@ -224,6 +224,8 @@ class class_t( class_common_details_t
                                  +"Default value is calculated, based on information presented in the declarations tree" )
 
     def _get_wrapper_alias( self ):
+        if None is self._wrapper_alias:
+            self._wrapper_alias = self._generate_valid_name(self.partial_name) + "_wrapper"
         return self._wrapper_alias
     def _set_wrapper_alias( self, walias ):
         self._wrapper_alias = walias
@@ -325,7 +327,9 @@ class class_t( class_common_details_t
 
     def set_constructors_body( self, body ):
         """Sets the body for all constructors"""
-        self.constructors().body = body
+        constrs = self.constructors(allow_empty=True, recursive=False)
+        if constrs:
+            constrs.body = body
         self.null_constructor_body = body
         self.copy_constructor_body = body
 
@@ -426,23 +430,28 @@ class class_t( class_common_details_t
 
         all_included = declarations.custom_matcher_t( lambda decl: decl.ignore == False and decl.exportable )
         all_protected = declarations.access_type_matcher_t( 'protected' ) & all_included
-        all_pure_virtual = declarations.virtuality_type_matcher_t( VIRTUALITY_TYPES.PURE_VIRTUAL )
+        all_pure_virtual = declarations.virtuality_type_matcher_t( VIRTUALITY_TYPES.PURE_VIRTUAL )        
+        all_virtual = declarations.virtuality_type_matcher_t( VIRTUALITY_TYPES.VIRTUAL ) \
+                      & ( declarations.access_type_matcher_t( 'public' ) \
+                          | declarations.access_type_matcher_t( 'protected' ))        
         all_not_pure_virtual = ~all_pure_virtual
 
-        query = all_protected | all_pure_virtual
+        query = all_protected | all_pure_virtual 
+        mf_query = query | all_virtual 
         relevant_opers = declarations.custom_matcher_t( lambda decl: decl.symbol in ('()', '[]') )
-        funcs = set()
-        defined_funcs = set()
+        funcs = []
+        defined_funcs = []
 
         for base in self.recursive_bases:
             if base.access == ACCESS_TYPES.PRIVATE:
                 continue
             base_cls = base.related_class
-            funcs.update( base_cls.member_functions( query, allow_empty=True ) )
-            funcs.update( base_cls.member_operators( relevant_opers & query, allow_empty=True ) )
 
-            defined_funcs.update( base_cls.member_functions( all_not_pure_virtual, allow_empty=True ) )
-            defined_funcs.update( base_cls.member_operators( all_not_pure_virtual & relevant_opers, allow_empty=True ) )
+            funcs.extend( base_cls.member_functions( mf_query, recursive=False, allow_empty=True ) )
+            funcs.extend( base_cls.member_operators( relevant_opers & query, recursive=False, allow_empty=True ) )
+
+            defined_funcs.extend( base_cls.member_functions( all_not_pure_virtual, recursive=False, allow_empty=True ) )
+            defined_funcs.extend( base_cls.member_operators( all_not_pure_virtual & relevant_opers, recursive=False, allow_empty=True ) )
 
         not_reimplemented_funcs = set()
         is_same_function = declarations.is_same_function
@@ -469,10 +478,48 @@ class class_t( class_common_details_t
                             if is_same_function( f, f_defined ):
                                 break
                         else:
-                            not_reimplemented_funcs.add( f )
-        functions = list( not_reimplemented_funcs )
+                            not_reimplemented_funcs.add( f )        
+        functions = filter( lambda f: ( False == f.ignore and True == f.exportable )
+                                      or all_pure_virtual( f )
+                            , list( not_reimplemented_funcs ) )
+                            
+
+        #Boost.Python is not able to call for non-virtual function, from the base
+        #class if there is a virtual function with the same within base class
+        #See override_bug tester for more information
+
+        def buggy_bpl_filter( f ):
+            if f.parent is self: 
+                return False
+            if f.access_type != ACCESS_TYPES.PUBLIC:
+                return False
+            if f.virtuality != VIRTUALITY_TYPES.NOT_VIRTUAL:
+                return False
+            #we need to check that we don't have "same" function in this class
+            this_funs = self.decls( name=f.name
+                                    , decl_type=declarations.calldef_t
+                                    , recursive=False
+                                    , allow_empty=True )
+            for this_f in this_funs:
+                if is_same_function( this_f, f ):
+                    #there is already the function in the class, so no need to redefined it
+                    return False
+            else:
+                return True
+
+        tmp = {} # id : f
+        for redefined_f in functions:
+            #redefined is virtual, I am not interested in virtual functions
+            for rfo in redefined_f.overloads:
+                if id(rfo) in tmp:
+                    continue
+                if buggy_bpl_filter( rfo ):
+                    tmp[ id(rfo) ] = rfo
+        functions.extend( tmp.values() )
+
         functions.sort( cmp=lambda f1, f2: cmp( ( f1.name, f1.location.as_tuple() )
                                                 , ( f2.name, f2.location.as_tuple() ) ) )
+
         self._redefined_funcs = functions
         return self._redefined_funcs
 

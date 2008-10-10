@@ -13,6 +13,7 @@ This modules contains definition for next C++ declarations:
 """
 
 import scopedef
+import compilers
 import algorithm
 import declaration
 import dependencies
@@ -31,9 +32,24 @@ class CLASS_TYPES:
     UNION = "union"
     ALL = [ CLASS, STRUCT, UNION ]
 
+def get_partial_name( name ):
+    import templates
+    import container_traits #prevent cyclic dependencies
+    ct = container_traits.find_container_traits( name )
+    if ct:
+        return ct.remove_defaults( name )
+    elif templates.is_instantiation( name ):
+        tmpl_name, args = templates.split( name )
+        for i, arg_name in enumerate( args ):
+            args[i] = get_partial_name( arg_name.strip() )
+        return templates.join( tmpl_name, args )
+    else:
+        return name
+
+
 class hierarchy_info_t( object ):
     """describes class relationship"""
-    def __init__(self, related_class=None, access=None ):
+    def __init__(self, related_class=None, access=None, is_virtual=False ):
         """creates class that contains partial information about class relationship"""
         if related_class:
             assert( isinstance( related_class, class_t ) )
@@ -41,12 +57,14 @@ class hierarchy_info_t( object ):
         if access:
             assert( access in ACCESS_TYPES.ALL)
         self._access=access
+        self._is_virtual = is_virtual
 
     def __eq__(self, other):
         if not isinstance( other, hierarchy_info_t ):
             return False
         return algorithm.declaration_path( self.related_class ) == algorithm.declaration_path( other.related_class ) \
-               and self.access == other.access
+               and self.access == other.access \
+               and self.is_virtual == other.is_virtual
 
     def __ne__( self, other):
         return not self.__eq__( other )
@@ -54,8 +72,8 @@ class hierarchy_info_t( object ):
     def __lt__(self, other):
         if not isinstance( other, self.__class__ ):
             return self.__class__.__name__ < other.__class__.__name__
-        return ( algorithm.declaration_path( self.related_class ), self.access  ) \
-               < ( algorithm.declaration_path( other.related_class ), other.access )
+        return ( algorithm.declaration_path( self.related_class ), self.access, self.is_virtual  ) \
+               < ( algorithm.declaration_path( other.related_class ), other.access, self.is_virtual )
 
     def _get_related_class(self):
         return self._related_class
@@ -75,6 +93,15 @@ class hierarchy_info_t( object ):
     access_type = property( _get_access, _set_access
                             , doc="describes L{hierarchy type<ACCESS_TYPES>}")
 
+    #TODO: check whether GCC XML support this and if so parser this information
+    def _get_is_virtual(self):
+        return self._is_virtual
+    def _set_is_virtual(self, new_is_virtual):
+        self._is_virtual = new_is_virtual
+    is_virtual = property( _get_is_virtual, _set_is_virtual
+                           , doc="indicates whether the inheritance is virtual or not")
+
+
 class class_declaration_t( declaration.declaration_t ):
     """describes class declaration"""
     def __init__( self, name='' ):
@@ -83,14 +110,14 @@ class class_declaration_t( declaration.declaration_t ):
         self._aliases = []
         self._container_traits = None
         self._container_traits_set = False
-        
+
     def _get__cmp__items(self):
         """implementation details"""
         return []
-    
+
     def i_depend_on_them( self, recursive=True ):
         return []
-    
+
     def _get_aliases(self):
         return self._aliases
     def _set_aliases( self, new_aliases ):
@@ -104,9 +131,12 @@ class class_declaration_t( declaration.declaration_t ):
         if self._container_traits_set == False:
             import container_traits #prevent cyclic dependencies
             self._container_traits_set = True
-            self._container_traits = container_traits.find_container_traits( self )            
+            self._container_traits = container_traits.find_container_traits( self )
         return self._container_traits
-    
+
+    def _get_partial_name_impl( self ):
+        return get_partial_name( self.name )
+
 class class_t( scopedef.scopedef_t ):
     """describes class definition"""
 
@@ -124,6 +154,8 @@ class class_t( scopedef.scopedef_t ):
         self._private_members = []
         self._protected_members = []
         self._aliases = []
+        self._byte_size = 0
+        self._byte_align = 0
         self._container_traits = None
         self._container_traits_set = False
         self._recursive_bases = None
@@ -132,7 +164,7 @@ class class_t( scopedef.scopedef_t ):
     def _get_name_impl( self ):
         if not self._name: #class with empty name
             return self._name
-        elif class_t.USE_DEMANGLED_AS_NAME and self.demangled:
+        elif class_t.USE_DEMANGLED_AS_NAME and self.demangled and 'GCC' in self.compiler:
             if not self.cache.demangled_name:
                 fname = algorithm.full_name( self.parent )
                 if fname.startswith( '::' ) and not self.demangled.startswith( '::' ):
@@ -141,8 +173,16 @@ class class_t( scopedef.scopedef_t ):
                     tmp = self.demangled[ len( fname ): ] #demangled::name
                     if tmp.startswith( '::' ):
                         tmp = tmp[2:]
-                    self.cache.demangled_name = tmp
-                    return tmp
+                    if '<' not in tmp and '<' in self._name:
+                        #we have template class, but for some reason demangled
+                        #name doesn't contain any template
+                        #This happens for std::string class, but this breaks
+                        #other cases, because this behaviour is not consistent
+                        self.cache.demangled_name = self._name
+                        return self.cache.demangled_name
+                    else:
+                        self.cache.demangled_name = tmp
+                        return tmp
                 else:
                     self.cache.demangled_name = self._name
                     return self._name
@@ -235,7 +275,18 @@ class class_t( scopedef.scopedef_t ):
         return self._recursive_derived
 
     def _get_is_abstract(self):
-        return self._is_abstract
+        if self.compiler == compilers.MSVC_PDB_9:
+            import calldef
+            import matchers #prevent cyclic dependencies
+            m = matchers.virtuality_type_matcher_t( calldef.VIRTUALITY_TYPES.PURE_VIRTUAL )
+            if self.calldefs( m, recursive=False, allow_empty=True ):
+                return True
+            for base in self.recursive_bases:
+                if base.related_class.calldefs( m, recursive=False, allow_empty=True ):
+                    return True
+            return False
+        else:
+            return self._is_abstract
     def _set_is_abstract( self, is_abstract ):
         self._is_abstract = is_abstract
     is_abstract = property( _get_is_abstract, _set_is_abstract
@@ -268,6 +319,22 @@ class class_t( scopedef.scopedef_t ):
         self._aliases = new_aliases
     aliases = property( _get_aliases, _set_aliases
                          , doc="List of L{aliases<typedef_t>} to this instance")
+
+    def _get_byte_size(self):
+        return self._byte_size
+    def _set_byte_size( self, new_byte_size ):
+        self._byte_size = new_byte_size
+    byte_size = property( _get_byte_size, _set_byte_size
+                          , doc="Size of this class in bytes @type: int")
+
+    def _get_byte_align(self):
+        if self.compiler == compilers.MSVC_PDB_9:
+            compilers.on_missing_functionality( self.compiler, "byte align" )
+        return self._byte_align
+    def _set_byte_align( self, new_byte_align ):
+        self._byte_align = new_byte_align
+    byte_align = property( _get_byte_align, _set_byte_align
+                          , doc="Alignment of this class in bytes @type: int")
 
     def _get_declarations_impl(self):
         return self.get_members()
@@ -374,14 +441,14 @@ class class_t( scopedef.scopedef_t ):
     def i_depend_on_them( self, recursive=True ):
         report_dependency = lambda *args: dependencies.dependency_info_t( self, *args )
         answer = []
-        
+
         map( lambda base: answer.append( report_dependency( base.related_class, base.access_type ) )
              , self.bases )
-        
+
         if recursive:
             map( lambda access_type: answer.extend( self.__find_out_member_dependencies( access_type ) )
                  , ACCESS_TYPES.ALL )
-             
+
         return answer
 
     @property
@@ -390,7 +457,30 @@ class class_t( scopedef.scopedef_t ):
         if self._container_traits_set == False:
             import container_traits #prevent cyclic dependencies
             self._container_traits_set = True
-            self._container_traits = container_traits.find_container_traits( self )            
+            self._container_traits = container_traits.find_container_traits( self )
         return self._container_traits
+
+    def find_copy_constructor( self ):
+        copy_ = self.constructors( lambda x: x.is_copy_constructor, recursive=False, allow_empty=True )
+        if copy_:
+            return copy_[0]
+        else:
+            return None
+
+    def find_trivial_constructor( self ):
+        trivial = self.constructors( lambda x: x.is_trivial_constructor, recursive=False, allow_empty=True )
+        if trivial:
+            return trivial[0]
+        else:
+            return None
+
+    def _get_partial_name_impl( self ):
+        import type_traits #prevent cyclic dependencies
+        if type_traits.is_std_string( self ):
+            return 'string'
+        elif type_traits.is_std_wstring( self ):
+            return 'wstring'
+        else:
+            return get_partial_name( self.name )
 
 class_types = ( class_t, class_declaration_t )

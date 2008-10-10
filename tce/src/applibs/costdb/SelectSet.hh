@@ -31,8 +31,8 @@
  *
  * Declaration of SelectSet class.
  *
- * @author Tommi Rantanen 2004 (tommi.rantanen@tut.fi)
- * @author Jari Mäntyneva 2005 (jari.mantyneva@tut.fi)
+ * @author Tommi Rantanen 2004 (tommi.rantanen-no.spam-tut.fi)
+ * @author Jari Mäntyneva 2005 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 

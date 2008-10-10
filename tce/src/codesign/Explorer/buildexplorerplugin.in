@@ -12,7 +12,7 @@ else
 		
         echo "Assuming that we are working with an uninstalled TCE. "
 		
-        TCE_ROOT=${PWD}/..
+        TCE_ROOT=@abs_top_srcdir@
         SRC_BASE=${TCE_ROOT}/src
         BASE=${SRC_BASE}/base
         APPLIBS=${SRC_BASE}/applibs
@@ -35,17 +35,17 @@ else
 
         BOOST_INCLUDES="@BOOST_INCLUDES@"
 
-        compiler=gcc
+        compiler="@CXX@"
         libdir=
         includedir="\
 -I ${SRC_BASE}/tools -I ${SRC_BASE}/base/idf \
 -I ${PROGE} -I ${BASE}/mach -I ${BASE}/program \
--I ${TCE_ROOT} -I ${TRACEDB} -I ${SIMULATOR} -I ${HDB} -I ${COSTDB} \
+-I .. -I ${TRACEDB} -I ${SIMULATOR} -I ${HDB} -I ${COSTDB} \
 -I ${EXPLORER} -I ${DSDB} -I ${SCHEDULER_APPLIBS} -I ${LLVMBACKEND_APPLIBS} \
 -I ${OSAL} -I ${UMACH} -I ${INTERPRETER} -I ${MEMORY} -I ${MACH_APPLIBS} \
 -I ${PROGRAM_APPLIBS} -I ${ESTIMATOR_APPLIBS} ${BOOST_INCLUDES} ${CPPFLAGS}"
-        soflags="-lgcc -shared -fPIC -o"
-        cxxflags="-g -O3"
+        soflags="@SHARED_CXX_FLAGS@ -o"
+        cxxflags="@CXXFLAGS@"
     else
 		
         compiler=$(tce-config --c++-compiler)

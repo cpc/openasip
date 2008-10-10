@@ -31,7 +31,7 @@
  *
  * Declaration of MachineInfo class.
  *
- * @author Mikael Lepistö 2008 (mikael.lepisto@tut.fi)
+ * @author Mikael Lepistö 2008 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 

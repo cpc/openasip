@@ -31,8 +31,8 @@
  *
  * Declaration of SymbolElement class.
  *
- * @author Jussi Nykänen 2003 (nykanen@cs.tut.fi)
- * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ * @author Jussi Nykänen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
  * @note reviewed 22 October 2003 by ml, jn, ao, tr
  *
  * @note rating: yellow

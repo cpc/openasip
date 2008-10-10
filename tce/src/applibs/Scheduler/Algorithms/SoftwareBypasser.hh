@@ -31,7 +31,7 @@
  *
  * Declaration of SoftwareBypasser interface.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -68,6 +68,8 @@ public:
         ResourceManager& rm) = 0;
 
     virtual void setSelector(MoveNodeSelector* selector);
+
+    virtual void clearCaches();
 };
 
 #endif

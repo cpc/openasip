@@ -31,7 +31,7 @@
  *
  * Implementation of ResourceBroker class.
  *
- * @author Ari Mets�halme 2006 (ari.metsahalme@tut.fi)
+ * @author Ari Mets�halme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -41,6 +41,8 @@
 #include "SchedulingResource.hh"
 #include "MapTools.hh"
 #include "MachinePart.hh"
+
+#include "ShortImmPSocketResource.hh"
 
 using std::pair;
 using std::string;
@@ -240,7 +242,7 @@ void
 ResourceBroker::addResource(
     const TTAMachine::MachinePart& mp,
     SchedulingResource* res) {
-
+    
     resMap_.insert(
         pair<const TTAMachine::MachinePart*, SchedulingResource*>(&mp, res));
 }

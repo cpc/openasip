@@ -31,7 +31,7 @@
  *
  * Declaration of NullSection class.
  *
- * @author Mikael Lepistö 2004 (tmlepist@cs.tut.fi)
+ * @author Mikael Lepistö 2004 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */

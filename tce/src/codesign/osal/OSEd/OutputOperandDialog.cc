@@ -31,8 +31,8 @@
  *
  * Definition of OutputOperandDialog class.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
- * @author Tero Ryynänen 2008 (tero.ryynanen@tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Tero Ryynänen 2008 (tero.ryynanen-no.spam-tut.fi)
  * @note rating: red
  */
 

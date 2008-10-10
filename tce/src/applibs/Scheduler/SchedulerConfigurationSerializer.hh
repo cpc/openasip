@@ -31,8 +31,8 @@
  *
  * Declaration of SchedulerConfigurationSerializer class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
- * @author Vladimír Guzma 2008 (vladimir.guzma@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Vladimír Guzma 2008 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -31,8 +31,8 @@
  * 
  * A test suite for OperationPool.
  *
- * @author Jussi Nyk‰nen 2004 (nykanen@cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #ifndef OPERATION_POOL_TEST_HH

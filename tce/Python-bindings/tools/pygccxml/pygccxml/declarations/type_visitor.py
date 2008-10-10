@@ -126,3 +126,7 @@ class type_visitor_t(object):
         
     def visit_declarated( self ):
         raise NotImplementedError()
+
+    def visit_restrict( self ):
+        raise NotImplementedError()
+    

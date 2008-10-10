@@ -1,0 +1,127 @@
+/*
+    Copyright 2002-2008 Tampere University of Technology.  All Rights
+    Reserved.
+
+    This file is part of TTA-Based Codesign Environment (TCE).
+
+    TCE is free software; you can redistribute it and/or modify it under the
+    terms of the GNU General Public License version 2 as published by the Free
+    Software Foundation.
+
+    TCE is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+    details.
+
+    You should have received a copy of the GNU General Public License along
+    with TCE; if not, write to the Free Software Foundation, Inc., 51 Franklin
+    St, Fifth Floor, Boston, MA  02110-1301  USA
+
+    As a special exception, you may use this file as part of a free software
+    library without restriction.  Specifically, if other files instantiate
+    templates or use macros or inline functions from this file, or you compile
+    this file and link it with other files to produce an executable, this
+    file does not by itself cause the resulting executable to be covered by
+    the GNU General Public License.  This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
+*/
+/**
+ * @file InstructionReferenceManager.icc
+ *
+ * Inline implementations of InstructionReferenceManager class.
+ *
+ * @author Heikki Kultala 2008 (heikki.kultala-no.spam-tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Increment operator. Increments the iterator to point to next element.
+ *
+ * @return returns itself.
+ */
+InstructionReferenceManager::Iterator&
+InstructionReferenceManager::Iterator::operator++() {
+    iter_++; return *this; 
+}
+
+/**
+ * Overloaded pointer reference operator.
+ * Gets the InstructionReference this iterator points to.
+ */
+InstructionReference& 
+InstructionReferenceManager::Iterator::operator*() { 
+    return *iter_->second; 
+}
+
+/**
+ * Overloaded pointer reference operator.
+ * Gets the InstructionReference this iterator points to.
+ */
+const InstructionReference& 
+InstructionReferenceManager::Iterator::operator*() const { 
+    return *iter_->second; 
+}
+
+/**
+ * Overloaded arrow operator.
+ *
+ * Gets the InstructionReference this iterator points to.
+ */
+InstructionReference*
+InstructionReferenceManager::Iterator::operator->() { 
+    return iter_->second; 
+}
+
+/**
+ * Overloaded arrow operator.
+ *
+ * Gets the InstructionReference this iterator points to.
+ */
+const InstructionReference*
+InstructionReferenceManager::Iterator::operator->() const { 
+    return iter_->second; 
+}
+
+/**
+ * Comparison operator.
+ * Compares if the two iterators are the same.
+ */
+const bool InstructionReferenceManager::Iterator::operator !=(
+    const InstructionReferenceManager::Iterator& i) const { 
+    return iter_ != i.iter_; 
+}
+
+/**
+ * Constructor.
+ *
+ * @param iter iterator inside the instructionreferencemanager.
+ */
+InstructionReferenceManager::Iterator::Iterator(
+    InstructionReferenceManager::RefMap::iterator iter) : iter_(iter) {
+}
+
+/**
+ * Constructor.
+ *
+ * @param iter iterator inside the instructionreferencemanager.
+ */
+InstructionReferenceManager::Iterator::Iterator(
+    InstructionReferenceManager::RefMap::iterator& iter) : iter_(iter) {
+}
+
+/**
+ * Gives iterator to the first instructionreference
+ */
+InstructionReferenceManager::Iterator 
+InstructionReferenceManager::begin() {
+    return Iterator(references_.begin());
+}
+
+/**
+ * Gives iterator which is after the last instructionreference.
+ */
+InstructionReferenceManager::Iterator 
+InstructionReferenceManager::end() {
+    return Iterator(references_.end());
+}

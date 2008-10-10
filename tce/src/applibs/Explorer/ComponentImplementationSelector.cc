@@ -31,8 +31,8 @@
  *
  * Implementation of ComponentImplementationSelector class
  *
- * @author Jari M‰ntyneva 2006 (jari.mantyneva@tut.fi)
- * @author Esa M‰‰tt‰ 2008 (esa.maatta@tut.fi)
+ * @author Jari M‰ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

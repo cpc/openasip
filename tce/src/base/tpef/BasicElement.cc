@@ -31,7 +31,7 @@
  *
  * Non-inline definitions of BasicElement class.
  *
- * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
  *
  * @note rating: yellow
  */

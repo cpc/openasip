@@ -31,8 +31,8 @@
  *
  * Declaration of MoveNodeSet class.
  *
- * @author Heikki Kultala 2006 (hkultala@cs.tut.fi)
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Heikki Kultala 2006 (hkultala-no.spam-cs.tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

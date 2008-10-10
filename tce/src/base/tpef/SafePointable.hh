@@ -31,8 +31,8 @@
  *
  * Declaration of SafePointable interface class.
  *
- * @author Pekka Jääskeläinen 2003 (pjaaskel@cs.tut.fi)
- * @author Mikael Lepistö 2005 (tmlepist@cs.tut.fi)
+ * @author Pekka Jääskeläinen 2003 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
  * @note Reviewed 29 Aug 2003 by Risto Mäkinen, Mikael Lepistö, Andrea Cilio,
  * Tommi Rantanen
  *

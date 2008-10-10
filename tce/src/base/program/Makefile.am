@@ -1,11 +1,10 @@
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 
-LIB_MACH_DIR = ../mach
-LIB_OSAL_DIR = ../osal
-LIB_TPEF_DIR = ../tpef
-LIB_MEMORY_DIR = ../memory
-
-LIB_UNIVERSAL_MACHINE_DIR = ../../base/umach
+LIB_MACH_DIR = ${PROJECT_ROOT}/src/base/mach
+LIB_OSAL_DIR = ${PROJECT_ROOT}/src/base/osal
+LIB_TPEF_DIR = ${PROJECT_ROOT}/src/base/tpef
+LIB_MEMORY_DIR = ${PROJECT_ROOT}/src/base/memory
+LIB_UNIVERSAL_MACHINE_DIR = ${PROJECT_ROOT}/src/base/umach
 
 LIB_TOOLS_DIR = ${PROJECT_ROOT}/src/tools
 

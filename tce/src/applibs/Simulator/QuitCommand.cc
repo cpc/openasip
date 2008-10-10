@@ -31,7 +31,7 @@
  *
  * Implementation of QuitCommand class
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -50,7 +50,8 @@
  *
  * Sets the name of the command to the base class.
  */
-QuitCommand::QuitCommand() : CustomCommand("quit") {
+QuitCommand::QuitCommand(const std::string& commandString) : 
+    CustomCommand(commandString) {
 }
 
 /**

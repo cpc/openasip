@@ -35,7 +35,7 @@
  * the program and should hold the reference to each MoveNode that belongs
  * to the operation execution instance.
  *
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -104,6 +104,8 @@ ProgramOperation::~ProgramOperation() {
  * Add given node to the set of nodes that belong to this program
  * operation.
  *
+ * Warning: this should not be used with bypassed moves!
+ *
  * Add node to nodes of program operation
  * @param node MoveNode to add to operation
  */
@@ -120,7 +122,7 @@ ProgramOperation::addNode(MoveNode& node)
             if (node.move().destination().hintOperation().name() ==
                 operation().name()) {
                     addInputNode(node);
-                }
+            }
         }
     }
 }
@@ -512,7 +514,8 @@ ProgramOperation::triggeringMove() const
         }
     }
     throw InvalidData(
-        __FILE__, __LINE__, __func__, "Triggering move not found.");
+        __FILE__, __LINE__, __func__, 
+        TCEString("Triggering move not found: ") + toString());
 }
 
 /**

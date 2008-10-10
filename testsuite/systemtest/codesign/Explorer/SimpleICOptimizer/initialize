@@ -1,15 +1,18 @@
 #!/bin/bash
 CURDIR=$(pwd)
 rm -rf simple_test.dsdb
-rm -rf 2.adf
-rm -rf 3.adf
+rm -rf ?.adf
 rm -rf ttasim_output
 
 # Compile the initial machine generator estimator plugin.
 pushd . > /dev/null
 cd ../../../../../tce/explorer/ && rm -f *.so
-../src/codesign/Explorer/buildexplorerplugin SimpleICOptimizer.so SimpleICOptimizer.cc > /dev/null
-../src/codesign/Explorer/buildexplorerplugin RemoveUnconnectedComponents.so RemoveUnconnectedComponents.cc > /dev/null
+if [ ! -e "SimpleICOptimizer.so" ]; then 
+    ../src/codesign/Explorer/buildexplorerplugin SimpleICOptimizer.so SimpleICOptimizer.cc > /dev/null
+fi
+if [ ! -e "RemoveUnconnectedComponents.so" ]; then 
+    ../src/codesign/Explorer/buildexplorerplugin RemoveUnconnectedComponents.so RemoveUnconnectedComponents.cc > /dev/null
+fi
 popd > /dev/null
 
 # Compile the IC&decoder estimator plugin.

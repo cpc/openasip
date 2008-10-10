@@ -2,7 +2,7 @@ lib_LTLIBRARIES = libassembler.la
 libassembler_la_SOURCES = CodeSectionCreator.cc DataSectionCreator.cc \
 LabelManager.cc AssemblerParser.cc MachineResourceManager.cc Assembler.cc
 
-SRC_ROOT = ../..
+SRC_ROOT = $(top_srcdir)/src
 
 TOOLS_DIR = ${SRC_ROOT}/tools
 MACH_DIR = ${SRC_ROOT}/base/mach

@@ -31,7 +31,7 @@
  *
  * Implementation of CodeSnippet class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -82,11 +82,16 @@ CodeSnippet::~CodeSnippet() {
 /**
  * Clears the code snippet.
  *
- * Removes all instruction references inside the snippet, but does
- * not remove them from the target program.
+ * Removes all instruction references inside the snippet and deletes
+ * the instructions.
  */
 void
 CodeSnippet::clear() {
+    for (unsigned int i = 0; i < instructions_.size(); i++) {
+        if (instructions_.at(i) != &NullInstruction::instance()) {
+            delete instructions_.at(i);
+        }
+    }
     instructions_.clear();
 }
 

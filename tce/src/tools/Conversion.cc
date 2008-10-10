@@ -32,7 +32,7 @@
  * Conversion static class contains functions for converting between
  * different types, e.g. from any (possible) type to a string.
  *
- * @author Pekka J‰‰skel‰inen 2003 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2003 (pjaaskel-no.spam-cs.tut.fi)
  *
  */
 #include <string>

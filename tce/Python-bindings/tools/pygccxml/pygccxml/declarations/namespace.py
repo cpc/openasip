@@ -72,7 +72,8 @@ class namespace_t( scopedef.scopedef_t ):
                                   , name=name
                                   , function=function
                                   , recursive=recursive )
-
+    ns = namespace
+    
     def namespaces( self, name=None, function=None, recursive=None, allow_empty=None ):
         """returns a set of namespace declarations, that are matched defined criterias"""
         return self._find_multiple( scopedef.scopedef_t._impl_matchers[ namespace_t.namespace ]
@@ -80,7 +81,8 @@ class namespace_t( scopedef.scopedef_t ):
                                     , function=function
                                     , recursive=recursive
                                     , allow_empty=allow_empty)
-
+    nss = namespaces
+    
     def free_function( self, name=None, function=None, return_type=None, arg_types=None, header_dir=None, header_file=None, recursive=None ):
         """returns reference to free function declaration, that is matched defined criterias"""
         return self._find_single( scopedef.scopedef_t._impl_matchers[ namespace_t.free_function ]

@@ -7,7 +7,7 @@
 
 import types
 
-def declaration_path( decl ):
+def declaration_path( decl, with_defaults=True ):
     """
     returns a list of parent declarations names
 
@@ -17,9 +17,6 @@ def declaration_path( decl ):
     @return: [names], where first item contains top parent name and last item
              contains decl name
     """
-    #TODO:
-    #If parent declaration cache already has declaration_path, reuse it for
-    #calculation.
     if not decl:
         return []
     if not decl.cache.declaration_path:
@@ -39,6 +36,40 @@ def declaration_path( decl ):
     else:
         return decl.cache.declaration_path
 
+def partial_declaration_path( decl ):
+    """
+    returns a list of parent declarations names without template arguments that
+    have default value
+
+    @param decl: declaration for which declaration path should be calculated
+    @type decl: L{declaration_t}
+
+    @return: [names], where first item contains top parent name and last item
+             contains decl name
+    """
+    #TODO:
+    #If parent declaration cache already has declaration_path, reuse it for
+    #calculation.
+    if not decl:
+        return []
+    if not decl.cache.partial_declaration_path:
+        result = [ decl.partial_name ]
+        parent = decl.parent
+        while parent:
+            if parent.cache.partial_declaration_path:
+                result.reverse()
+                decl.cache.partial_declaration_path \
+                    = parent.cache.partial_declaration_path + result
+                return decl.cache.partial_declaration_path
+            else:
+                result.append( parent.partial_name )
+                parent = parent.parent
+        result.reverse()
+        decl.cache.partial_declaration_path = result
+        return result
+    else:
+        return decl.cache.partial_declaration_path
+
 def full_name_from_declaration_path( dpath ):
     ##Here I have lack of knowledge:
     ##TODO: "What is the full name of declaration declared in unnamed namespace?"  
@@ -46,7 +77,7 @@ def full_name_from_declaration_path( dpath ):
     result = result[0] + '::'.join( result[1:] )
     return result
 
-def full_name( decl ):
+def full_name( decl, with_defaults=True ):
     """
     returns full name of the declaration
     @param decl: declaration for which full name should be calculated. If decl
@@ -58,10 +89,16 @@ def full_name( decl ):
     """
     if None is decl:
         raise RuntimeError( "Unable to generate full name for None object!" )
-    if not decl.cache.full_name:
-        decl.cache.full_name = full_name_from_declaration_path( declaration_path( decl ) )
-    return decl.cache.full_name
-
+    if with_defaults:
+        if not decl.cache.full_name:
+            decl.cache.full_name = full_name_from_declaration_path( declaration_path( decl ) )
+        return decl.cache.full_name
+    else:
+        if not decl.cache.full_partial_name:
+            decl.cache.full_partial_name \
+                = full_name_from_declaration_path( partial_declaration_path( decl ) )
+        return decl.cache.full_partial_name
+        
 def make_flatten( decl_or_decls ):
     """
     converts tree representation of declarations to flatten one.

@@ -31,7 +31,7 @@
  *
  * Declarations of exception classes.
  *
- * @author Mikael Lepistö 2003 (tmlepist@cs.tut.fi)
+ * @author Mikael Lepistö 2003 (tmlepist-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_EXCEPTION_HH

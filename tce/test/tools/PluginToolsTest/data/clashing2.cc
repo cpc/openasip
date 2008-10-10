@@ -31,7 +31,7 @@
  *
  * File for testing purposes.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
  */
 
 // By default, global symbols are exported. Global symbols

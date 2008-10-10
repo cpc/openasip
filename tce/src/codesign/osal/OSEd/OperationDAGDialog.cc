@@ -31,7 +31,7 @@
  *
  * Declaration of OperationDAGEditor class.
  *
- * @author Tero Ryynänen 2008 (tero.ryynanen@tut.fi)
+ * @author Tero Ryynänen 2008 (tero.ryynanen-no.spam-tut.fi)
  * @note rating: red
  */
 

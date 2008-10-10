@@ -4,6 +4,12 @@
 #
 # Good starting point for information:
 # http://www.ibm.com/developerworks/linux/library/l-debpkg.html
+#
+# $1    package version number, default TCE_ROOT bzr revision
+
+TCE_ROOT=${TCE_ROOT:-"../../../"}
+DEB_ARCH=${DEB_ARCH:-"i386"}
+PROGRAM_NAME=${PROGRAM_NAME:-"tce"}
 
 function eexit {
     echo "$1"
@@ -12,7 +18,7 @@ function eexit {
 }
 
 function cleanup {
-    rm -fr $tempDir
+    rm -fr $TMP_DIR
 }
 
 # adds the $1 param to the end of PATH variable
@@ -23,65 +29,80 @@ function addToPath {
     fi  
 }
 
-tceRoot=../../../
+function init_temp_dir {
+    TMP_DIR=$(mktemp -d)
+    echo "Temporary directory for the package: ${TMP_DIR}"
 
-# Grab the tce bzr revision number
-oldDir=$(pwd)
-cd ${tceRoot}
-version="$(bzr revno)"
-cd $oldDir
+    mkdir $TMP_DIR/DEBIAN
+    cp DEBIAN/* $TMP_DIR/DEBIAN
+}
 
-echo "Creating a .deb for TCE version bzr ${version}."
+function build_and_install {
+    local log_file="/dev/null"
+    export LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR:-$HOME/llvm}
+    export LLVM_FRONTEND_INSTALL_DIR=${LLVM_FRONTEND_INSTALL_DIR:-$HOME/llvm-frontend}
+    addToPath "${LLVM_INSTALL_DIR}/bin"
+    addToPath "${LLVM_FRONTEND_INSTALL_DIR}/bin"
 
-tempDir=$(mktemp -d)
-echo "Temporary directory for the package: ${tempDir}"
+    export CXX="g++"
+    export CC="gcc"
+    export CXXFLAGS="-O3 -g" 
 
-mkdir $tempDir/DEBIAN
-cp DEBIAN/* $tempDir/DEBIAN
+    cd $TCE_ROOT
+    [ ! -e "./configure" ] && autoreconf &> ${log_file}
+    make clean &> ${log_file}
+    ./configure --enable-distributed &> ${log_file} || eexit "configure failed."
+    make DESTDIR=${TMP_DIR} dev-install &> ${log_file} || eexit "make failed."
+}
+
+function create_deb {
+    # create the new .deb
+    local package=${PROGRAM_NAME}-${VERSION}_${DEB_ARCH}.deb
+
+    # remove old packages
+    rm -rf *.deb
+    dpkg -b $TMP_DIR $package || eexit "building package with dpkg failed."
+}
+
+
+### MAIN ###
+
+# package version given as a parameter or 
+if [ "${1}x" != "x" ]; then
+    VERSION="${1}"
+else
+    VERSION="$(bzr revno $TCE_ROOT)"
+fi
+
+echo "Creating a .deb for TCE with version: ${VERSION} using tce: ${TCE_ROOT}"
+
+init_temp_dir
 
 echo "Building and installing TCE."
 
-export LLVM_BIN_DIR=${LLVM_BIN_DIR:-$HOME/llvm/bin}
-export LLVM_FRONTEND_INSTALL_DIR=${LLVM_FRONTEND_INSTALL_DIR:-$HOME/llvm-frontend}
-addToPath "${LLVM_BIN_DIR}"
-addToPath "${LLVM_FRONTEND_INSTALL_DIR}/bin"
+build_and_install
 
-cd $tceRoot
-export CXX="g++"
-export CC="gcc"
-export CXXFLAGS="-O3 -g" 
-make clean
-./configure --enable-distributed || eexit "configure failed."
-make DESTDIR=$tempDir dev-install || eexit "make failed."
-
-cat > $tempDir/DEBIAN/control <<EOF
-Package: tce1.0
-Version: ${version}
+cat > $TMP_DIR/DEBIAN/control <<EOF
+Package: tce
+Version: ${VERSION}
 Section: devel 
 Priority: optional
-Architecture: i386
+Architecture: ${DEB_ARCH}
 Essential: no
 Depends: libwxgtk2.6-0, libboost-filesystem1.34.1, \
 libboost-graph1.34.1, libboost-regex1.34.1, \
 libboost-thread1.34.1, tcl8.5, libedit2, \
 libsqlite3-0, libxerces27, g++, \
-tce-frontend1.0
+tce-frontend
 Pre-Depends: perl 
 Recommends: llvm (=2.2)
 Suggests: kpdf | acroread | evince, sqlite3
-Installed-Size: $(du -s $tempDir/usr | awk '{print $1}')
-Maintainer: Esa Määttä <esa.maatta@tut.fi>
-Provides: tce1.0
+Installed-Size: $(du -s $TMP_DIR/usr | awk '{print $1}')
+Maintainer: Pekka Jaaskelainen <pekka.jaaskelainen_no.spam_tut.fi>
+Provides: tce
 Description: TTA Co-design Environment. A toolset for designing TTA-based application specific processors.
 EOF
 
-# delete the old .deb files
-rm *.deb
-
-# create the new .deb
-package=tce-1.0_${version}_i386.deb
-
-rm -f $package
-dpkg -b $tempDir $package || eexit "building package with dpkg failed."
+create_deb
 
 cleanup

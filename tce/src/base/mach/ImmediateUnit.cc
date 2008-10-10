@@ -31,8 +31,8 @@
  *
  * Implementation of ImmediateUnit class.
  *
- * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
- * @author Esa Määttä 2007 (esa.maatta@tut.fi)
+ * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
+ * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
  */
 
 #include "ImmediateUnit.hh"

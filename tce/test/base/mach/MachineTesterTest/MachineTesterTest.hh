@@ -30,7 +30,7 @@
  * @file MachineTesterTest.hh 
  * A test suite for MachineTester.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
  */
 
 #ifndef MachineTesterTest_HH

@@ -5,7 +5,7 @@ libresourcemodel_la_SOURCES = BusResource.cc ExecutionPipelineResource.cc \
 	OutputPSocketResource.cc PSocketResource.cc SchedulingResource.cc \
 	SegmentResource.cc ShortImmPSocketResource.cc
 
-SRC_ROOT_DIR = ../../../
+SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools
 APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs

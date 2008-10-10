@@ -32,8 +32,8 @@
  * Explorer plugin that removes resources until the real time requirements
  * of applications are not reached anymore.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva@tut.fi)
- * @author Esa Määttä 2008 (esa.maatta@tut.fi)
+ * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

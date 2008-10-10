@@ -29,7 +29,7 @@
 /**
  * @file hash_set.hh
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  *
  * Definition for a hash set.
  *

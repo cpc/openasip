@@ -31,7 +31,7 @@
  *
  * Declaration of OpenDocumentCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_OPEN_DOCUMENT_CMD_HH

@@ -31,7 +31,7 @@
  *
  * Declaration of Connection class.
  *
- * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
  * @note reviewed 11 Jun 2004 by am, pj, jn, ll
  * @note rating: red
  */

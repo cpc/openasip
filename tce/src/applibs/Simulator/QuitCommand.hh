@@ -31,7 +31,7 @@
  *
  * Declaration of QuitCommand class
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -50,7 +50,7 @@
  */
 class QuitCommand : public CustomCommand {
 public:
-    QuitCommand();
+    QuitCommand(const std::string& commandString = "quit");
     virtual ~QuitCommand();
 
     virtual bool execute(const std::vector<DataObject>& arguments)

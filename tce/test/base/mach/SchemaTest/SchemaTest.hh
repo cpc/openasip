@@ -31,7 +31,7 @@
  *
  * A test suite for MDF Schema file. 
  *
- * @author Atte Oksman 2004 (oksman@cs.tut.fi)
+ * @author Atte Oksman 2004 (oksman-no.spam-cs.tut.fi)
  * @note rating: red
  */    
 

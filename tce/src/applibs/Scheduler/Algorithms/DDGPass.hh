@@ -32,7 +32,7 @@
  *
  * Definition of a DDGPass interface.
  * 
- * @author Heikki Kultala 2007 (hkultala@cs.tut.fi)
+ * @author Heikki Kultala 2007 (hkultala-no.spam-cs.tut.fi)
  * @note rating:red
  */
 

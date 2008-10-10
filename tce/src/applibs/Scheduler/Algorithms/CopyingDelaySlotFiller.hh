@@ -31,7 +31,7 @@
  *
  * Definition of CopyingDelaySlotFiller class.
  *
- * @author Heikki Kultala 2007 (hkultala@cs.tut.fi)
+ * @author Heikki Kultala 2007-2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -125,9 +125,6 @@ private:
     // garbage collection would be SOOOO nice!
     std::map<ProgramOperation*,bool,ProgramOperation::Comparator> poOwned_;
     std::map<MoveNode*,bool,MoveNode::Comparator> mnOwned_;
-    std::map<TTAProgram::Move*,bool> moveOwned_;
-
-    // do I have to free also resource managers?
 };
 
 #endif

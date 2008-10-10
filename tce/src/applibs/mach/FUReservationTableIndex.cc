@@ -31,7 +31,7 @@
  *
  * Definition of FUReservationTableIndex class.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

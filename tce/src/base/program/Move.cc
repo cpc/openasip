@@ -31,8 +31,8 @@
  *
  * Implementation of Move class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
- * @author Pekka Jääskeläinen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -172,7 +172,7 @@ Move::isJump() const {
     if (dst_->isFUPort()) {
         const TerminalFUPort* tfup = dynamic_cast<const TerminalFUPort*>(dst_);
         if (tfup->isOpcodeSetting()) {
-            if (StringTools::ciEqual(tfup->operation().name(), "JUMP")) {
+            if (StringTools::stringToLower(tfup->operation().name())=="jump"){
                 return true;
             }
         }

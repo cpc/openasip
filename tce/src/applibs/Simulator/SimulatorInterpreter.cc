@@ -31,7 +31,7 @@
  *
  * Implementation of SimulatorInterpreter class
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -88,7 +88,8 @@ SimulatorInterpreter::SimulatorInterpreter(
     addCustomCommand(new ProgCommand());
     addCustomCommand(new MachCommand());
     addCustomCommand(new ConfCommand());
-    addCustomCommand(new QuitCommand());
+    addCustomCommand(new QuitCommand("quit"));
+    addCustomCommand(new QuitCommand("exit"));
     addCustomCommand(new RunCommand());
     addCustomCommand(new StepiCommand());
     addCustomCommand(new DisassembleCommand());

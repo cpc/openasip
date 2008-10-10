@@ -31,7 +31,7 @@
  * 
  * A test suite for BoostGraphTest.hh
  *
- * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef BOOST_GRAPH_TEST_HH

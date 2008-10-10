@@ -31,7 +31,7 @@
  *
  * Program for outputting TPEF hierarchy in textual format.
  *
- * @author Mikael Lepistö 2005 (tmlepist@tut.fi)
+ * @author Mikael Lepistö 2005 (tmlepist-no.spam-tut.fi)
  * @note rating: red
  */
 

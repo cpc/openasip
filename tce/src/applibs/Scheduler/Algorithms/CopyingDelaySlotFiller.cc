@@ -31,7 +31,7 @@
  *
  * Implementation of of CopyingDelaySlotFiller class.
  *
- * @author Heikki Kultala 2007 (hkultala@cs.tut.fi)
+ * @author Heikki Kultala 2007-2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -51,6 +51,7 @@
 #include "InstructionReference.hh"
 #include "InstructionReferenceManager.hh"
 #include "TerminalRegister.hh"
+#include "SpecialRegisterPort.hh"
 
 #include "MoveNode.hh"
 #include "ProgramOperation.hh"
@@ -79,7 +80,7 @@ using namespace TTAMachine;
  * @param fillFallThru fill from Fall-thru of jump BB?
  */
 void CopyingDelaySlotFiller::fillDelaySlots(
-    BasicBlockNode &jumpingBB, int delaySlots, bool fillFallThru) 
+    BasicBlockNode &jumpingBB, int delaySlots, bool fillFallThru)
     throw (Exception) {
 
     
@@ -155,6 +156,8 @@ void CopyingDelaySlotFiller::fillDelaySlots(
             return; // port guards not yet supported
         }
         // if conditional, fill only slots+jump ins
+        // this is safe as the guard latency is also in the jump,
+        // but may be unoptimal if guard written before.
         maxFillCount = std::min(maxFillCount,delaySlots+1);
     }
 
@@ -267,14 +270,17 @@ CopyingDelaySlotFiller::fillDelaySlots(
     for (int i = 0; i < cfg.nodeCount(); i++) {
         BasicBlockNode& bbn = cfg.node(i);
         if (bbn.isNormalBB()) {
-            fillDelaySlots(bbn, delaySlots, false);
+            fillDelaySlots(
+                bbn, delaySlots, false);
         }
     }
+
     // then fill only fall-thru's.
     for (int i = 0; i < cfg.nodeCount(); i++) {
         BasicBlockNode& bbn = cfg.node(i);
         if (bbn.isNormalBB()) {
-            fillDelaySlots(bbn, delaySlots, true);
+            fillDelaySlots(
+                bbn, delaySlots, true);
         }
     }
 
@@ -397,7 +403,8 @@ bool
 CopyingDelaySlotFiller::tryToFillSlots(
     BasicBlockNode& blockToFillNode, BasicBlockNode& nextBBNode, 
     bool fallThru, Move& jumpMove, int slotsToFill,
-    int grIndex, RegisterFile* grFile) throw (Exception) {
+    int grIndex, RegisterFile* grFile) 
+    throw (Exception) {
 
     ResourceManager& rm = *resourceManagers_[&blockToFillNode.basicBlock()];
     BasicBlock& blockToFill = blockToFillNode.basicBlock();
@@ -460,15 +467,24 @@ CopyingDelaySlotFiller::tryToFillSlots(
                 } 
             }
 
-            // Do not fill with guarded moves, if jump is guarded,
-            // might need 2 guards.
-            if (!oldMove.isUnconditional() && grFile != NULL) {
-                failed = true;
-                break;
-            }
-
             // check all deps
             MoveNode& mnOld = ddg_->nodeOfMove(oldMove);
+
+            if (!oldMove.isUnconditional()) {
+                // Do not fill with guarded moves, if jump is guarded,
+                // might need 2 guards.
+                if (grFile != NULL) {
+                    failed = true;
+                    break;
+                }
+                // don't allow unconditionals before 
+                // BB start + guard latency (if guard written in last move
+                // of previous BB)
+                if (firstToFill < mnOld.guardLatency()-1) {
+                    failed = true;
+                    break;
+                }
+            }
 
             DataDependenceGraph::EdgeSet inEdges = ddg_->inEdges(mnOld);
             for (DataDependenceGraph::EdgeSet::iterator ieIter = 
@@ -480,9 +496,25 @@ CopyingDelaySlotFiller::tryToFillSlots(
                     BasicBlockNode& predBlock = ddg_->getBasicBlockNode(pred);
 
                     if (&predBlock == &blockToFillNode) {
-                        int nodeCycle = ddEdge.dependenceType() == 
-                            DataDependenceEdge::DEP_WAR ?
-                            pred.cycle() : pred.cycle()+1;
+                        int nodeCycle;
+                        int delay = 1;
+                        // guard latency.
+                        if (ddEdge.dependenceType() == 
+                            DataDependenceEdge::DEP_WAR) {
+                            if (ddEdge.guardUse()) {
+                                delay = pred.guardLatency();
+                            }
+                            nodeCycle = pred.cycle() - delay+1;
+                        } else {
+                            // if WAW, always 1
+                            if (ddEdge.dependenceType() !=
+                                DataDependenceEdge::DEP_WAW) {
+                                if (ddEdge.guardUse()) {
+                                    delay = mnOld.guardLatency();
+                                }
+                            }
+                            nodeCycle = pred.cycle()+delay;
+                        }
                         if (nodeCycle > firstToFill+i) {
                             failed = true;
                             break;
@@ -697,8 +729,7 @@ CopyingDelaySlotFiller::getMoveNode(MoveNode& old) {
         return *moveNodes_[&old];
     } else {
         Move& move = getMove(old.move());
-        MoveNode *newMN = new MoveNode(move);
-        moveOwned_[&move] = false;
+        MoveNode *newMN = new MoveNode(&move);
         moveNodes_[&old] = newMN;
         oldMoveNodes_[newMN] = &old;
         mnOwned_[newMN] = true;
@@ -765,8 +796,8 @@ CopyingDelaySlotFiller::getMove(Move& old) {
         Move* newMove = old.copy();
         newMove->setBus(um_->universalBus());
 
+        Terminal& source = newMove->source();
         if (oldMN.isSourceOperation()) {
-            Terminal& source = newMove->source();
             assert(source.isFUPort());
             std::string fuName = source.functionUnit().name();
             TTAProgram::ProgramAnnotation srcUnit(
@@ -779,9 +810,16 @@ CopyingDelaySlotFiller::getMove(Move& old) {
                 srcOp.name());
             newMove->setSource(new TerminalFUPort(
                                    hwop, old.source().operationIndex()));
+        } else {
+            if (source.isRA()) {
+                newMove->setSource(
+                    new TerminalFUPort(
+                        *um_->controlUnit()->returnAddressPort()));
+            }
         }
+
+        Terminal& dest = newMove->destination();
         if (oldMN.isDestinationOperation()) {
-            Terminal& dest = newMove->destination();
             assert(dest.isFUPort());
 
             std::string fuName = dest.functionUnit().name();
@@ -795,7 +833,14 @@ CopyingDelaySlotFiller::getMove(Move& old) {
                 dstOp.name());
             newMove->setDestination(new TerminalFUPort(
                                    hwop, old.destination().operationIndex()));
-        }            
+        } else {
+            if (dest.isRA()) {
+                newMove->setDestination(
+                    new TerminalFUPort(
+                        *um_->controlUnit()->returnAddressPort()));
+            }
+        }
+
 
         moves_[&old] = newMove;
 
@@ -804,8 +849,6 @@ CopyingDelaySlotFiller::getMove(Move& old) {
             TTAProgram::MoveGuard* g = old.guard().copy();
             newMove->setGuard(g);
         }
-
-        moveOwned_[newMove] = true;
         return *newMove;
     }
 }
@@ -817,30 +860,31 @@ CopyingDelaySlotFiller::getMove(Move& old) {
  */
 void CopyingDelaySlotFiller::loseCopies() {
     
+    std::list<MoveNode*> toDeleteNodes;
     for (std::map<MoveNode*,MoveNode*,MoveNode::Comparator>::iterator mnIter =
              moveNodes_.begin(); mnIter != moveNodes_.end();
          mnIter++ ) {
         MoveNode* second = mnIter->second;
         if (mnOwned_[second] == true) {
             mnOwned_.erase(second);
-            delete second;
-            moveNodes_.erase(mnIter);
-        }
+
+            // queue to be deleted
+            toDeleteNodes.push_back(second);
+        } 
     }
     moveNodes_.clear();
     mnOwned_.clear();
     oldMoveNodes_.clear();
-    
-    for (std::map<Move*,Move*>::iterator mIter = moves_.begin(); 
-         mIter != moves_.end();
-         mIter++ ) {
-        if (moveOwned_[mIter->second] == true) {
-            delete mIter->second;
-        }
+
+    // actually delete the movenodes.
+    for (std::list<MoveNode*>::iterator i = toDeleteNodes.begin();
+         i != toDeleteNodes.end(); i++) {
+        delete *i;
     }
-    moves_.clear();
-    moveOwned_.clear();
     
+    moves_.clear();
+    
+    std::list<ProgramOperation*> toDeletePOs;    
     for (std::map<ProgramOperation*,ProgramOperation*,
              ProgramOperation::Comparator>::iterator poIter =
              programOperations_.begin(); poIter != programOperations_.end();
@@ -849,13 +893,20 @@ void CopyingDelaySlotFiller::loseCopies() {
         // may also crash on this
         if (poOwned_[poIter->second] == true) {
             poOwned_.erase(second);
-            delete poIter->second;
-            programOperations_.erase(poIter);
+
+            // queue to be deleted
+            toDeletePOs.push_back(second);
         }
     }
     programOperations_.clear();
     oldProgramOperations_.clear();
     poOwned_.clear();    
+
+    // actually delete the programoperations
+    for (std::list<ProgramOperation*>::iterator i = toDeletePOs.begin();
+         i != toDeletePOs.end(); i++) {
+        delete *i;
+    }
 }
 
 /**
@@ -867,7 +918,6 @@ CopyingDelaySlotFiller::~CopyingDelaySlotFiller() {
     assert(moveNodes_.size() == 0);
     assert(mnOwned_.size() == 0);
     assert(moves_.size() == 0);
-    assert(moveOwned_.size() == 0);
     
     //should not be needed but lets be sure
     loseCopies();

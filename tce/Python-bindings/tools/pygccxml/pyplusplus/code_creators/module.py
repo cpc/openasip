@@ -18,11 +18,17 @@ class module_t(compound.compound_t):
 
     The root of the code creator tree is always a module_t object.
     """
-    def __init__(self):
+    def __init__(self, global_ns):
         """Constructor.
         """
         compound.compound_t.__init__(self)
         self.__body = None
+        self.__global_ns = global_ns
+        
+    @property
+    def global_ns(self):
+        "reference to global_ns ( namespace_t ) declaration"
+        return self.__global_ns
             
     def _get_include_dirs(self):
         include_dirs = algorithm.creator_finder.find_by_class_instance( 

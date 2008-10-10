@@ -31,8 +31,8 @@
  *
  * Implementation of OutputFUBroker class.
  *
- * @author Ari Mets�halme 2006 (ari.metsahalme@tut.fi)
- * @author Vladimir Guzma 2007 (vladimir.guzma@tut.fi)
+ * @author Ari Mets�halme 2006 (ari.metsahalme-no.spam-tut.fi)
+ * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -393,7 +393,7 @@ OutputFUBroker::latestCycle(int, const MoveNode&) const {
  * is, the broker has marked that resource as in use in the given
  * cycle).
  *
- * @param cycle Cycle.
+ * @param cycle Cycle. not used.
  * @param node Node.
  * @return True if the given node is already assigned a resource of the
  * type managed by this broker, and the assignment appears valid (that
@@ -405,12 +405,13 @@ OutputFUBroker::isAlreadyAssigned(int cycle, const MoveNode& node) const {
     Terminal& src = const_cast<MoveNode&>(node).move().source();
     if (src.isFUPort()) {
         const FunctionUnit& fu = src.functionUnit();
-        if (hasResourceOf(fu) && resourceOf(fu).isInUse(cycle)) {
+        if (hasResourceOf(fu)) {
             if (MapTools::containsKey(assignedResources_, &node)) {
                 return true;
             }
         }
     }
+    cycle = cycle; // avoid unused variable
     return false;
 }
 

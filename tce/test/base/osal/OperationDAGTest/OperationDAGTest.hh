@@ -31,7 +31,7 @@
  * 
  * A test suite for OperationDAG and related classes.
  *
- * @author Mikael Lepist� 2007 (mikael.lepisto@tut.fi)
+ * @author Mikael Lepist� 2007 (mikael.lepisto-no.spam-tut.fi)
  */
 
 #ifndef OPERATION_DAG_TEST_HH

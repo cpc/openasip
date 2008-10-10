@@ -32,7 +32,7 @@
  * A test suite for TPEFReader and TPEFSectionReader classes.
  * Test is designed to help profiling bottlenecks in system.
  *
- * @author Mikael Lepistö 2006 (tmlepist@cs.tut.fi)
+ * @author Mikael Lepistö 2006 (tmlepist-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_READING_BIG_PROGRAM_TEST_HH

@@ -31,7 +31,7 @@
  *
  * A test suite for Opearation Schema.
  *
- * @author Atte Oksman 2004 (atte.oksman@tut.fi)
+ * @author Atte Oksman 2004 (atte.oksman-no.spam-tut.fi)
  * @note: rating: red
  */
 

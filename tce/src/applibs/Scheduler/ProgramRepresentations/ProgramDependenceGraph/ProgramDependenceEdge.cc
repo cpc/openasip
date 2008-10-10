@@ -32,7 +32,7 @@
  * Implementation of prototype of graph-based program representation:
  * declaration of the program dependence edge.
  *
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

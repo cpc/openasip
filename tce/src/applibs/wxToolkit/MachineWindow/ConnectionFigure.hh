@@ -31,7 +31,7 @@
  *
  * Declaration of ConnectionFigure class.
  *
- * @author Ari Metsähalme 2003 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: yellow
  * @note reviewed Jul 27 2004 by ml, pj, am
  */

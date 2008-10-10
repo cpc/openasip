@@ -31,7 +31,7 @@
  *
  * TCE compiler backend 
  *
- * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -129,6 +129,7 @@ LLVMBackend::compile(
         for (int i = 0; i < res->errorCount(); i++) {
             msg += res->error(i).second + "\n";
         }
+        delete res; res = NULL;
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
@@ -157,6 +158,8 @@ LLVMBackend::compile(
 
     delete plugin;
     plugin = NULL;
+
+    delete res; res = NULL;
 
     return result;
 }
@@ -264,7 +267,7 @@ LLVMBackend::compile(
 TTAProgram::Program* 
 LLVMBackend::compileAndSchedule(
     const std::string& bytecodeFile,
-    TTAMachine::Machine& target,
+    const TTAMachine::Machine& target,
     int optLevel,
     const unsigned int debug)
     throw (Exception) {
@@ -282,6 +285,7 @@ LLVMBackend::compileAndSchedule(
     try {
         serializer.writeMachine(target);
     } catch (const SerializerException& exception) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         throw IOException(
             __FILE__, __LINE__, __func__, exception.errorMessage());
     } 
@@ -289,9 +293,9 @@ LLVMBackend::compileAndSchedule(
     // call tcecc to compile, link and schedule the program
     std::vector<std::string> tceccOutputLines;
     std::string debugParams = "";
-    if (debug > 1) {
+    if (debug > 3) {
         debugParams = "-v ";
-        if (debug > 2) {
+        if (debug > 4) {
             debugParams.append("--debug ");
         }
     }
@@ -310,6 +314,7 @@ LLVMBackend::compileAndSchedule(
 
     // check if tcecc produced any tpef output
     if (!(FileSystem::fileExists(tpef) && FileSystem::fileIsReadable(tpef))) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         return NULL;    
     } 
 
@@ -317,6 +322,7 @@ LLVMBackend::compileAndSchedule(
     try {
         prog = TTAProgram::Program::loadFromTPEF(tpef, target);
     } catch (const Exception& e) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         IOException error(__FILE__, __LINE__,__func__, e.errorMessage());
         error.setCause(e);
         throw error;
@@ -430,8 +436,10 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             pluginTool_.importSymbol(
                 "create_tce_backend_plugin", creator, pluginFile);
 
+            FileSystem::removeFileOrDirectory(tmpDir);
             return creator();
         } catch(Exception& e) {
+            FileSystem::removeFileOrDirectory(tmpDir);
             std::string msg = "Unable to load plugin file '" +
                 pluginFileName + "'.";
 
@@ -446,6 +454,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     try {
         plugingen.generateBackend(tmpDir);
     } catch(Exception& e) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg =
             "Failed to build compiler plugin for target architecture.";
 
@@ -473,6 +482,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         // work if llvm-config is not found in path.
         // First check that llvm-config is found in path.
         if (system("llvm-config --version")) {
+            FileSystem::removeFileOrDirectory(tmpDir);
             std::string msg = "Unable to determine llvm include dir. "
                 "llvm-config not found in path";
 
@@ -497,6 +507,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     int ret = system(cmd.c_str());
     if (ret) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -512,6 +523,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -527,6 +539,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -542,6 +555,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -557,6 +571,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -572,6 +587,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -587,6 +603,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -614,6 +631,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -631,6 +649,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
         
     } catch(Exception& e) {
+        FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Unable to load plugin file '" +
             pluginFileName + "'.";

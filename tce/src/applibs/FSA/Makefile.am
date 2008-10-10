@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libfsa.la
 libfsa_la_SOURCES = FiniteStateAutomaton.cc FUFiniteStateAutomaton.cc
 
-SRC_ROOT_DIR = ../..
+SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
 MACH_DIR = ${BASE_DIR}/mach
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools

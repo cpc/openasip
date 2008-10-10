@@ -32,7 +32,7 @@
  * Implementation of MachinePart class and derived Component and SubComponent
  * classes.
  *
- * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
  * @note reviewed 17 Jun 2003 by jn, pj, jm, ll
  * @note rating: red
  */

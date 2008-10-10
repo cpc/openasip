@@ -31,7 +31,7 @@
  *
  * Implementation of FUValidator class.
  *
- * @author Lasse Laasonen 2006 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2006 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

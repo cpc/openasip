@@ -31,7 +31,7 @@
  *
  * A test suite for FileSystem class
  *
- * @author Pekka J‰‰skel‰inen 2004 (poj@iki.fi)
+ * @author Pekka J‰‰skel‰inen 2004 (poj-no.spam-iki.fi)
  */
 
 #ifndef TTA_FILESYSTEM_TEST_HH

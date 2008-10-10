@@ -31,7 +31,7 @@
  *
  * Implementation of class ObjectState.
  *
- * @author Lasse Laasonen 2003 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2003 (lasse.laasonen-no.spam-tut.fi)
  * @note reviewed 8 Jun 2004 by tr, jm, am, ll
  * @note rating: red
  */

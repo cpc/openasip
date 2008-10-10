@@ -31,8 +31,8 @@
  *
  * Inline definitions of FileSystem class.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen@tut.fi)
- * @author Esa M‰‰tt‰ 2007 (esa.maatta@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  */
 
 #include <boost/filesystem/operations.hpp>
@@ -82,6 +82,18 @@ FileSystem::fileIsWritable(const std::string fileName) {
 inline bool
 FileSystem::fileIsReadable(const std::string fileName) {
     return (access(fileName.c_str(), R_OK) == 0);
+}
+
+/**
+ * Tests if a file or directory is executable by user.
+ *
+ * @param fileName The file or directory to test.
+ * @return True if file or directory is executable.
+ *
+ */
+inline bool
+FileSystem::fileIsExecutable(const std::string fileName) {
+    return (access(fileName.c_str(), X_OK) == 0);
 }
 
 /**

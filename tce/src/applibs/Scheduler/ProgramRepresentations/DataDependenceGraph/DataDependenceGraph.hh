@@ -31,7 +31,7 @@
  *
  * Declaration of data dependence graph class
  *
- * @author Heikki Kultala 2006 (heikki.kultala@tut.fi)
+ * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -85,6 +85,8 @@ public:
     DataDependenceEdge* onlyRegisterEdgeIn(MoveNode& mn);
     DataDependenceEdge* onlyRegisterEdgeOut(MoveNode& mn);
 
+    // should not be called by the user
+    void addNode(MoveNode& moveNode) throw (ObjectAlreadyExists);
     void addNode(MoveNode& moveNode, MoveNode& relatedNode);
     void addNode(MoveNode& moveNode, BasicBlockNode& bblock);
     void addProgramOperation(ProgramOperation* po);
@@ -173,6 +175,10 @@ private:
         ~RemovedNodeData();
     };
     std::map<MoveNode*,RemovedNodeData*> removedNodes_;
+
+    // cache to make things faster
+    // may not be ised with iterator.
+    std::map<TTAProgram::Move*, MoveNode*> nodesOfMoves_;
     
     bool hasEqualEdge(
         const MoveNode& tailNode, const MoveNode& headNode, 

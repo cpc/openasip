@@ -31,8 +31,8 @@
  *
  * Implementation of BrokerDirector class.
  *
- * @author Ari Metsähalme 2006 (ari.metsahalme@tut.fi)
- * @author Vladimir Guzma 2007 (vladimir.guzma@tut.fi)
+ * @author Ari Metsähalme 2006 (ari.metsahalme-no.spam-tut.fi)
+ * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -196,6 +196,7 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
         oldRes->isGuarded_ = true;
         oldRes->guard_ = node.move().guard().copy();
     }
+
     origResMap_.insert(
         std::pair<const MoveNode*, OriginalResources*>(&node, oldRes));
 
@@ -276,6 +277,7 @@ SimpleBrokerDirector::unassign(MoveNode& node)
     // immediates
     if (nodeCycle == knownMaxCycle_) {
         while(nodeCycle >= 0) {
+            // this may memory leak 
             Instruction* tempIns = instruction(nodeCycle);
             if (tempIns->moveCount() == 0 && tempIns->immediateCount() == 0) {
                 knownMaxCycle_--;

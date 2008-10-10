@@ -31,7 +31,7 @@
  *
  * Definition of Model class.
  *
- * @author Tommi Rantanen 2003 (tommi.rantanen@tut.fi)
+ * @author Tommi Rantanen 2003 (tommi.rantanen-no.spam-tut.fi)
  */
 
 #include "Application.hh"

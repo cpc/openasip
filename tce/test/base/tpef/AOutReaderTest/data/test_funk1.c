@@ -3,7 +3,7 @@
  *
  * Test data for AOutReaderTest.
  *
- * @author Mikael Lepistö 2004 (tmlepist@cs.tut.fi) 
+ * @author Mikael Lepistö 2004 (tmlepist-no.spam-cs.tut.fi) 
  */
 
 #include "test_header.h"

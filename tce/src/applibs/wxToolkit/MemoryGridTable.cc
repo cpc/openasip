@@ -31,7 +31,7 @@
  *
  * Implementation of MemoryGridTable class.
  *
- * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -43,7 +43,7 @@
 
 using std::string;
 
-const int MemoryGridTable::MAX_ROWS = 4000000;
+const Word MemoryGridTable::MAX_ROWS = 600000000;
 const string MemoryGridTable::NOT_AVAILABLE = "N/A";
 
 /**
@@ -87,13 +87,13 @@ int
 MemoryGridTable::GetNumberRows() {
 
     Word size = end_ - start_ + 1;
-    int cells = size / sizeOfCell();
-    int rows = cells / numberOfColumns_;
+    Word cells = size / sizeOfCell();
+    Word rows = cells / numberOfColumns_;
     if ((cells % numberOfColumns_) != 0) {
         rows++;
     }
     if (rows > MAX_ROWS) {
-	rows = MAX_ROWS;
+        rows = MAX_ROWS;
     }
     return rows;
 }

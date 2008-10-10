@@ -23,6 +23,7 @@
 # General Public License.  This exception does not however invalidate any
 # other reasons why the executable file might be covered by the GNU General
 # Public License.
+
 import sys
 import os
 from pyplusplus import module_builder
@@ -31,23 +32,23 @@ from pyplusplus import function_transformers as FT
 
 include_paths = map(os.path.abspath,
                     ['.',
-                     '../..',
-                     '../../src/base/mach',
-                     '../../src/base/program',
-                     '../../src/tools',
-                     '../../src/base/tpef',
-                     '../../src/base/umach',
-                     '../../src/base/osal',
-                     '../../src/base/Graph',
-                     '../../src/applibs/Scheduler',
-                     '../../src/applibs/Scheduler/Algorithms',
-                     '../../src/applibs/Scheduler/ResourceManager',
-                     '../../src/applibs/Scheduler/ResourceModel',
-                     '../../src/applibs/Scheduler/Selector',
-                     '../../src/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph',
-                     '../../src/applibs/Scheduler/ProgramRepresentations/DataDependenceGraph',
-                     '../../src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph',
-                     '../../scheduler/passes/BasicBlockScheduler',
+                     '../../..',
+                     '../../../src/base/mach',
+                     '../../../src/base/program',
+                     '../../../src/tools',
+                     '../../../src/base/tpef',
+                     '../../../src/base/umach',
+                     '../../../src/base/osal',
+                     '../../../src/base/Graph',
+                     '../../../src/applibs/Scheduler',
+                     '../../../src/applibs/Scheduler/Algorithms',
+                     '../../../src/applibs/Scheduler/ResourceManager',
+                     '../../../src/applibs/Scheduler/ResourceModel',
+                     '../../../src/applibs/Scheduler/Selector',
+                     '../../../src/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph',
+                     '../../../src/applibs/Scheduler/ProgramRepresentations/DataDependenceGraph',
+                     '../../../src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph',
+                     '../../../scheduler/passes/BasicBlockScheduler',
                      ])
 
 class binding_generator_t(object):
@@ -57,6 +58,7 @@ class binding_generator_t(object):
                  function_call_policies = (),
                  excluded_classes = (),
                  excluded_members = (),
+                 included_members = (),
                  excluded_constructors = (),
                  already_exposed = (),
                  headers = [],
@@ -65,13 +67,15 @@ class binding_generator_t(object):
                  extra_registrations = [],
                  extra_member_registrations = [],
                  held_types = [],
-                 ownership_transfers = []):
+                 ownership_transfers = [],
+                 ):
         self.module_name = module_name
         self.headers = headers
         self.call_policies = call_policies
         self.function_call_policies = function_call_policies
         self.excluded_classes = excluded_classes
         self.excluded_members = excluded_members
+        self.included_members = included_members
         self.excluded_constructors = excluded_constructors
         self.already_exposed = already_exposed
         self.extra_headers = extra_headers
@@ -80,6 +84,7 @@ class binding_generator_t(object):
         self.extra_registrations = extra_registrations
         self.held_types = held_types
         self.ownership_transfers = ownership_transfers
+        self.bindings_dir = "."
 
 
         # If only generating the list of dependences, do not create
@@ -88,8 +93,14 @@ class binding_generator_t(object):
         if len(sys.argv) == 2 and sys.argv[1] == '--generate-dependences':
             pass
 	else:
+            #try:
+            #    os.mkdir(self.bindings_dir)
+            #except OSError:
+            #    pass
+            
             hh = map(os.path.abspath, headers)
-            header_file_name = "%s_headers.hh" % self.module_name
+            header_file_name = "%s/%s_headers.hpp" % (self.bindings_dir,
+                                                     self.module_name)
             f = open(header_file_name, 'w')
             for h in hh:
                 f.write('#include <%s>\n'% h)
@@ -98,12 +109,12 @@ class binding_generator_t(object):
                 [os.path.abspath(header_file_name)]
                 , gccxml_path=r"/usr/bin/gccxml" 
                 , include_paths=include_paths
-                , define_symbols=['TCE_PYTHON_BINDINGS'] )
+                , define_symbols=['TCE_PYTHON_BINDINGS']
+                , indexing_suite_version=2)
 
     def exclude_classes(self):
         for class_name in self.excluded_classes:
             try:
-                print "Exclude %s" % class_name
                 self.module_builder.class_(class_name).exclude()
             except RuntimeError:
                 print "Did not find class %s to exclude" % class_name
@@ -121,7 +132,6 @@ class binding_generator_t(object):
             cl = self.module_builder.class_(class_name)
             for ctor in cl.constructors():
                 sig = map(lambda a: "%s" % a.type, ctor.arguments)
-                print "Compare '%s' and '%s'" % (signature, sig)
                 if sig == signature:
                     ctor.exclude()
 
@@ -137,7 +147,6 @@ class binding_generator_t(object):
                     for member_name, policy in default_policies + member_policies:
                         try:
                             for member in cl.member_functions(member_name):
-                                print "Set policy of %s %s to %s" % (class_name, member_name, policy)
                                 member.call_policies = policy
                         except RuntimeError:
                             print "Failed to set policy of %s %s to %s" % (class_name, member_name, policy)
@@ -192,29 +201,41 @@ class binding_generator_t(object):
             for m in members:
                 cl.add_registration_code(m)
 
+    def add_extra_declarations(self):
+        for class_name, decl in self.extra_declarations:
+            if class_name:
+                cl = self.module_builder.class_(class_name)
+                cl.add_declaration_code(decl)
+            else:
+                self.module_builder.add_declaration_code(decl)
+
+    def add_extra_registrations(self):
+        for class_name, reg in self.extra_registrations:
+            if class_name:
+                cl = self.module_builder.class_(class_name)
+                cl.add_registration_code(reg)
+            else:
+                self.module_builder.add_registration_code(reg)
+
     def generate(self):
         mb = self.module_builder
-        for ed in self.extra_declarations:
-            mb.add_declaration_code(ed)
-        for er in self.extra_registrations:
-            mb.add_registration_code(er)
         mb.calldefs().create_with_signature = True
 
         # Filter out declarations that do not come directly from the
-        # header files or the associated .icc files.
+        # header files or the associated .icc files. Include members
+        # that are explicitly requested to be included.
         hhs = map(os.path.basename, self.headers)
         headers = []
         for h in hhs:
             headers.append(h)
             headers.append(h.replace(".hh", ".icc"))
         for decl in mb.decls():
-            if decl.location:
-                #print "DECLARATION %s in %s" % (decl, decl.location.file_name)
+            if decl.name in self.included_members:
+                    decl.include()
+            elif decl.location:
                 if os.path.basename(decl.location.file_name) not in headers:
                     decl.exclude()
-                    #print "EXCLUDE %s in %s" % (decl, decl.location.file_name)
                 else:
-                    #print "INCLUDE %s in %s" % (decl, decl.location.file_name)
                     decl.include()
 
         self.set_member_call_policies()
@@ -227,11 +248,13 @@ class binding_generator_t(object):
         self.add_exception_translation()
         self.set_held_types()
         self.handle_ownership_transfers()
+        self.add_extra_declarations()
+        self.add_extra_registrations()
 
         mb.build_code_creator( module_name=self.module_name )
         for eh in self.extra_headers:
             mb.code_creator.add_include(eh)
-        mb.write_module('./%s.cc' % self.module_name)
+        mb.split_module(self.bindings_dir)
 
     def generate_dependences(self):
         n = self.module_name

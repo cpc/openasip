@@ -1,0 +1,44 @@
+#!/bin/bash
+#
+# Script to build a shared object file from a code compressor definition.
+
+if test $# -lt 2
+then
+    echo "Usage: buildcompressor <object file> <source files>"
+else
+    tceconf=$(which tce-config 2> /dev/null)
+    if [ "$(basename `pwd`)" == "compressors" ];
+        then
+        
+        echo "Assuming that we are working with an uninstalled TCE. "
+
+        TCE_ROOT=@abs_top_srcdir@
+        SRC_BASE=${TCE_ROOT}/src
+        BASE=${SRC_BASE}/base
+        APPLIBS=${SRC_BASE}/applibs
+        PROGE="${SRC_BASE}/applibs/ProGe"
+        TRACEDB="${SRC_BASE}/applibs/TraceDB"        
+        SIMULATOR="${SRC_BASE}/applibs/Simulator"
+        BOOST_INCLUDES="@BOOST_INCLUDES@"
+        compiler="@CXX@"
+        libdir=
+        includedir="\
+-I ${SRC_BASE}/tools -I ${SRC_BASE}/applibs/PIG -I ${SRC_BASE}/base/idf \
+-I ${SRC_BASE}/applibs/hdb -I ${APPLIBS}/mach -I ${PROGE} -I ${BASE}/mach \
+-I ${BASE}/program -I ${BASE}/tpef -I .. -I ${TRACEDB} \
+-I ${SIMULATOR} -I ${BASE}/bem -I ${BASE}/umach -I ${BASE}/osal ${BOOST_INCLUDES} ${CPPFLAGS}"
+        soflags="@SHARED_CXX_FLAGS@ -o"
+
+        else
+
+        compiler=$(tce-config --c++-compiler)
+        libdir=$(tce-config --libs) 
+        includedir=$(tce-config --includes)
+        soflags="$(tce-config --so-flags) -o"
+
+    fi
+    objectfile=$1
+    shift
+    $compiler $libdir $includedir $extra_objects $soflags $objectfile $* && \
+        echo "Compilation successful." || echo "Compilation failed." >&2
+fi

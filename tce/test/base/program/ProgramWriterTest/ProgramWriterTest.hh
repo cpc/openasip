@@ -31,8 +31,8 @@
  *
  * A test suite for ProgramWriter class.
  *
- * @author Mikael Lepistö 2005 (mikael.lepisto@tut.fi)
- * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen@tut.fi)
+ * @author Mikael Lepistö 2005 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 

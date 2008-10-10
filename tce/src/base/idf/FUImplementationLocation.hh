@@ -31,7 +31,7 @@
  *
  * Type definition for FUImplementationLocation.
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

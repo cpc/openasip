@@ -178,12 +178,4 @@ class code_creator_t(object):
         assert isinstance( line, types.StringTypes )
         l = line.lstrip()
         return l.startswith( '//' ) or l.startswith( '/*' )
-
-    def register_exposed( self, exposed_db ):
-        """Register exposed declaration in L{exposed data base<utils.exposed_decls_db_t>}
-        
-        The default implementation of the function does nothing.
-        """
-        pass
-    
     

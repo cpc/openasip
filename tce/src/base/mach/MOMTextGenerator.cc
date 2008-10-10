@@ -31,7 +31,7 @@
  *
  * Implementation of MOMTextGenerator class.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
  */
 
 #include "MOMTextGenerator.hh"

@@ -583,6 +583,7 @@ then
   [AC_LANG_PROGRAM(
   [[
    #include <wx/wx.h>
+   wxRect retWx() {return wxRect();}
   ]],
   [[
    ;
@@ -832,8 +833,9 @@ else
 fi
 
 # Paths for bitmaps, data...
-CURDIR="$(pwd)"
-AC_DEFINE_UNQUOTED([TCE_SRC_ROOT], ["$CURDIR"], [Root for the project])
+#CURDIR="$(pwd)"
+AC_DEFINE_UNQUOTED([TCE_SRC_ROOT], ["`cd $srcdir && pwd`"], [Root for the project])
+AC_DEFINE_UNQUOTED([TCE_BLD_ROOT], ["`pwd`"], [Build directory for the project])
 #AC_DEFINE_UNQUOTED([BITMAPSDIR], ["$CURDIR/bitmaps"],
 #		   [Directory for bitmaps])
 #AC_DEFINE_UNQUOTED([DATADIR], ["$CURDIR/data"],
@@ -1248,6 +1250,17 @@ AC_CONFIG_FILES([
   Python-bindings/Makefile
   Python-bindings/src/Makefile
   Python-bindings/src/setup.py
+  Python-bindings/src/Algorithms/Makefile
+  Python-bindings/src/program/Makefile
+  Python-bindings/src/DataDependenceGraph/Makefile
+  Python-bindings/src/ProgramDependenceGraph/Makefile
+  Python-bindings/src/SchedulerModules/Makefile
+  Python-bindings/src/ResourceModel/Makefile
+  Python-bindings/src/osal/Makefile
+  Python-bindings/src/mach/Makefile
+  Python-bindings/src/ControlFlowGraph/Makefile
+  Python-bindings/src/tools/Makefile
+  Python-bindings/src/ResourceManager/Makefile
   Python-bindings/test/RunPythonFileTests/Makefile
   src/ext/Makefile
   src/ext/llvm/Makefile
@@ -1272,8 +1285,14 @@ AC_CONFIG_FILES([src/codesign/Estimator/buildestimatorplugin],
 AC_CONFIG_FILES([src/bintools/Scheduler/buildschedulerpass], 
                 [chmod +x src/bintools/Scheduler/buildschedulerpass])
 
+AC_CONFIG_FILES([src/bintools/PIG/buildcompressor], 
+                [chmod +x src/bintools/PIG/buildcompressor])
+
 AC_CONFIG_FILES([src/procgen/ProGe/buildicdecoderplugin], 
                 [chmod +x src/procgen/ProGe/buildicdecoderplugin])
+
+AC_CONFIG_FILES([src/applibs/LLVMBackend/passes/buildllvmpass], 
+                [chmod +x src/applibs/LLVMBackend/passes/buildllvmpass])
 
 # Generate config.status and launch it. config.status then
 # performs all configuration actions.

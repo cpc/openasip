@@ -31,7 +31,7 @@
  *
  * Implementation of SimulatorSettingsDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -70,6 +70,15 @@ SimulatorSettingsDialog::SimulatorSettingsDialog(
     FindWindow(ID_FU_CONFLICT_DETECTION)->SetValidator(
         wxGenericValidator(&fuConflictDetection_));
 
+    FindWindow(ID_PROFILE_DATA_SAVING)->SetValidator(
+        wxGenericValidator(&profileDataSaving_));
+    FindWindow(ID_UTILIZATION_DATA_SAVING)->SetValidator(
+        wxGenericValidator(&utilizationDataSaving_));
+    FindWindow(ID_NEXT_INSTRUCTION_PRINTING)->SetValidator(
+        wxGenericValidator(&nextInstructionPrinting_));
+    FindWindow(ID_SIMULATION_TIME_STATISTICS)->SetValidator(
+        wxGenericValidator(&simulationTimeStatistics_));
+
     FindWindow(ID_SAVE_HISTORY)->SetValidator(
         wxGenericValidator(&historySave_));
 
@@ -97,6 +106,11 @@ SimulatorSettingsDialog::TransferDataToWindow() {
     busTrace_ = simulator_.busTracing();
     ptTrace_ = simulator_.procedureTransferTracing();
     rfTrace_ = simulator_.rfAccessTracing();
+
+    profileDataSaving_ = simulator_.profileDataSaving();
+    utilizationDataSaving_ = simulator_.utilizationDataSaving();
+    nextInstructionPrinting_ = simulator_.nextInstructionPrinting();
+    simulationTimeStatistics_ = simulator_.simulationTimeStatistics();
     
     fuConflictDetection_ = simulator_.fuResourceConflictDetection();
 
@@ -179,6 +193,34 @@ SimulatorSettingsDialog::onOK(wxCommandEvent&) {
         command += ProximConstants::SCL_DELIM;
     }
 
+    if (simulator_.profileDataSaving() != profileDataSaving_) {
+        command += ProximConstants::SCL_SET + " ";
+        command += ProximConstants::SCL_SETTING_PROFILE_DATA_SAVING + " ";
+        command += Conversion::toString(profileDataSaving_);
+        command += ProximConstants::SCL_DELIM;
+    }
+
+    if (simulator_.utilizationDataSaving() != utilizationDataSaving_) {
+        command += ProximConstants::SCL_SET + " ";
+        command += ProximConstants::SCL_SETTING_UTILIZATION_DATA_SAVING + " ";
+        command += Conversion::toString(utilizationDataSaving_);
+        command += ProximConstants::SCL_DELIM;
+    }
+
+    if (simulator_.nextInstructionPrinting() != nextInstructionPrinting_) {
+        command += ProximConstants::SCL_SET + " ";
+        command += ProximConstants::SCL_SETTING_NEXT_INSTRUCTION_PRINTING + " ";
+        command += Conversion::toString(nextInstructionPrinting_);
+        command += ProximConstants::SCL_DELIM;
+    }
+
+    if (simulator_.simulationTimeStatistics() != simulationTimeStatistics_) {
+        command += ProximConstants::SCL_SET + " ";
+        command += ProximConstants::SCL_SETTING_SIMULATION_TIME_STATISTICS + " ";
+        command += Conversion::toString(simulationTimeStatistics_);
+        command += ProximConstants::SCL_DELIM;
+    }
+
     lineReader_.input(command);
 
     EndModal(wxID_OK);
@@ -218,6 +260,18 @@ SimulatorSettingsDialog::createContents(
 
     wxCheckBox *item6 = new wxCheckBox( parent, ID_FU_CONFLICT_DETECTION, wxT("Function unit resouce conflict detection."), wxDefaultPosition, wxDefaultSize, 0 );
     item1->Add( item6, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxCheckBox *profiledata = new wxCheckBox( parent, ID_PROFILE_DATA_SAVING, wxT("Profile data saving."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( profiledata, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxCheckBox *utildata = new wxCheckBox( parent, ID_UTILIZATION_DATA_SAVING, wxT("Utilization data saving."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( utildata, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxCheckBox *nextinstr = new wxCheckBox( parent, ID_NEXT_INSTRUCTION_PRINTING, wxT("Next instruction printing."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( nextinstr, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
+
+    wxCheckBox *timestat = new wxCheckBox( parent, ID_SIMULATION_TIME_STATISTICS, wxT("Simulation time statistics."), wxDefaultPosition, wxDefaultSize, 0 );
+    item1->Add( timestat, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     item0->Add( item1, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 

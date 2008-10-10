@@ -31,7 +31,7 @@
  *
  * Declaration of ProGeTestBenchGenerator class.
  *
- * @author Esa Määttä 2007 (esa.maatta@tut.fi)
+ * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -43,6 +43,7 @@
 #include "MachineImplementation.hh"
 #include "FUImplementationLocation.hh"
 
+#include <string>
 
 /**
  * Class for test bench generating objects.
@@ -74,8 +75,8 @@ private:
         throw (InvalidName);
     void createTBConstFile(
         std::string dstDirectory,
-        const int dataWidth = 0,
-        const int addrWidth = 0);
+        const std::string dataWidth = "",
+        const std::string addrWidth = "");
     void createProcArchVhdl(
         const std::string& dstDirectory,
         const std::string& topLevelVhdl,

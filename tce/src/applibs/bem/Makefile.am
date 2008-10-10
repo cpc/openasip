@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libapplibsbem.la
 libapplibsbem_la_SOURCES = BEMGenerator.cc BEMValidator.cc
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 
 AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/tools \
 	-I${PROJECT_ROOT}/src/base/bem -I${PROJECT_ROOT}/src/base/mach

@@ -32,7 +32,7 @@
  * Declaration of FullyConnectedCheck class that checks and fixes machines
  * fully connectivity.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -62,17 +62,17 @@ public:
     virtual bool canFix(const TTAMachine::Machine& mach) const;
     virtual std::string fix(TTAMachine::Machine& mach) const
         throw (InvalidData);
+    void connectFUPort(TTAMachine::FUPort& port) const;
 protected:
     FullyConnectedCheck(const std::string& shortDesc);
 private:
     void connectIUPort(TTAMachine::RFPort& port) const;
     void connectSpecialRegisterPort(
         TTAMachine::SpecialRegisterPort& port) const;
-    void connectRFPort(TTAMachine::RFPort& port) const;
+    void connectRFPort(TTAMachine::RFPort& port, TTAMachine::Socket::Direction direction) const;
     TTAMachine::Socket* createSocket(
         const TTAMachine::Unit& unit, TTAMachine::Socket::Direction direction)
         const;
-    void connectFUPort(TTAMachine::FUPort& port) const;
     void attachSocketToAllBusses(TTAMachine::Socket& socket) const;
     bool socketAttachedToAllBusses(const TTAMachine::Socket& socket) const;
 };

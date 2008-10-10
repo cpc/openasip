@@ -31,8 +31,8 @@
  *
  * A test suite for the resource manager using the basic block selector.
  *
- * @author Pekka J��skel�inen 2007 (pekka.jaaskelainen@tut.fi)
- * @author Vladimir Guzma 2007 (vladimir.guzma@tut.fi)
+ * @author Pekka J��skel�inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

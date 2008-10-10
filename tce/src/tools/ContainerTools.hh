@@ -28,7 +28,7 @@
 */
 /**
  * @file ContainerTools.hh
- * @author Pekka J‰‰skel‰inen (pjaaskel@cs.tut.fi) 2003
+ * @author Pekka J‰‰skel‰inen (pjaaskel-no.spam-cs.tut.fi) 2003
  *
  * Tools for handling STL containers.
  *

@@ -33,8 +33,8 @@
  *
  * This is practically the same as the test suite of basic block scheduler.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen@tut.fi)
- * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

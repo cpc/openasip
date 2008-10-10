@@ -2,7 +2,7 @@ lib_LTLIBRARIES = libapplibsosal.la
 libapplibsosal_la_SOURCES = OperationBuilder.cc OperationSimulator.cc \
 							OperationDAGSelector.cc
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 
 AM_CPPFLAGS = -I${PROJECT_ROOT} \
 	-I${PROJECT_ROOT}/src/tools \

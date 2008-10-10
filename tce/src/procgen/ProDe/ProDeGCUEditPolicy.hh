@@ -31,7 +31,7 @@
  *
  * Declaration of ProDeGCUEditPolicy class.
  *
- * @author Ari Metsähalme 2003 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2003 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: yellow
  * @note reviewed Jul 20 2004 by vpj, jn, am
  */

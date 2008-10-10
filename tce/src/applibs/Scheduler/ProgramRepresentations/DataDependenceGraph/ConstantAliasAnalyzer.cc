@@ -34,7 +34,7 @@
  * This class does simple alias analysis between memove addresses
  * that come directly from immediates.
  *
- * @author Heikki Kultala 2007 (heikki.kultala@tut.fi)
+ * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
  * @note rating: ref
  */
 

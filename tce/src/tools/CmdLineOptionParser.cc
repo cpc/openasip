@@ -31,8 +31,8 @@
  *
  * Definitions of CmdLineOptionParser classes.
  *
- * @author Jussi Nyk‰nen 2003 (nykanen@cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
+ * @author Jussi Nyk‰nen 2003 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note reviewed 3 December 2003 by jn, kl, ao
  * @note rating: red
  */

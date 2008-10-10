@@ -31,7 +31,7 @@
  *
  * Declaration of DOMBuilderErrorHandler class.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
  */
 
 #ifndef TTA_DOM_BUILDER_ERROR_HANDLER_HH

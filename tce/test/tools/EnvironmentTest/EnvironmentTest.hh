@@ -31,8 +31,8 @@
  *
  * A test suite for Environment.
  * 
- * @author Jussi Nyk‰nen 2004 (nykanen@cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen@tut.fi)
+ * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note reviewed 2 June 2004 by jm, pj, tr, jn
  * @note rating: green
  */

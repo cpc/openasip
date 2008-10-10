@@ -31,7 +31,7 @@
  *
  * Definition of CompiledSimSettingCommand class.
  *
- * @author Viljami Korhonen 2008 (viljami.korhonen@tut.fi)
+ * @author Viljami Korhonen 2008 (viljami.korhonen-no.spam-tut.fi)
  * @note rating: red
  */
 

@@ -31,7 +31,7 @@
  *
  * Implementation of Procedure class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -207,10 +207,10 @@ Procedure::insertAfter(const Instruction& pos, Instruction* ins)
 
     if (!ins->isInProcedure()) {
 
-        if (hasNextInstruction(pos)) {
+        Instruction& next = nextInstruction(pos);
+        if (&next != &NullInstruction::instance()) {
 
             InsList::iterator iter = instructions_.begin();
-            Instruction& next = nextInstruction(pos);
 
             while (iter != instructions_.end()) {
 

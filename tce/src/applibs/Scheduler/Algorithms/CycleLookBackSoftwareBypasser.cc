@@ -31,9 +31,9 @@
  *
  * Definition of CycleLookBackSoftwareBypasser interface.
  *
- * @author Pekka Jääskeläinen 2007 (pjaaskel@cs.tut.fi)
- * @author Vladmír Guzma 2008 (vg@cs.tut.fi)
- * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
+ * @author Pekka Jääskeläinen 2007 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Vladmír Guzma 2008 (vg-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -159,6 +159,9 @@ CycleLookBackSoftwareBypasser::bypassNode(
         
         ddg.mergeAndKeep(source, moveNode);
         int ddgCycle = ddg.earliestCycle(moveNode);
+        if (!moveNode.move().isUnconditional()) {
+            ddgCycle = std::max(ddgCycle, moveNode.guardLatency()-1);
+        }
         if (ddgCycle != INT_MAX) {
 #ifdef MOVE_BYPASSER
             ddgCycle = originalCycle;
@@ -254,8 +257,12 @@ CycleLookBackSoftwareBypasser::bypass(
         }
         int oldCycle = moveNode.cycle();
         rm.unassign(moveNode);
-        int earliestCycle =
-            rm.earliestCycle(ddg.earliestCycle(moveNode),moveNode);
+        int earliestCycle = ddg.earliestCycle(moveNode);
+        if (!moveNode.move().isUnconditional()) {
+            earliestCycle = std::max(earliestCycle, moveNode.guardLatency()-1);
+        }
+        earliestCycle = rm.earliestCycle(earliestCycle, moveNode);
+        
         if (oldCycle > earliestCycle && earliestCycle != -1) {
             rm.assign(earliestCycle, moveNode);
         } else {
@@ -443,4 +450,14 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
 void 
 CycleLookBackSoftwareBypasser::setSelector(MoveNodeSelector* selector) {
     selector_ = selector;
+}
+
+/** 
+ * Clears the storesSources data structure, when the old values in it are
+ * not needed anymore. (Allowing them to be deleted by the objects who
+ * own them)
+ */
+void
+CycleLookBackSoftwareBypasser::clearCaches() {
+    storedSources_.clear();
 }

@@ -406,6 +406,16 @@
         </reads>
       </pipeline>
     </operation>
+    <operation>
+      <name>print_int</name>
+      <bind name="1">trigger</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
     <address-space/>
   </function-unit>
 

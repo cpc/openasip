@@ -8,8 +8,6 @@
 
 from config import config_t
 from config import gccxml_configuration_t
-from config import synopsis_configuration_t
-
 
 from project_reader import COMPILATION_MODE
 from project_reader import project_reader_t

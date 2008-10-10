@@ -31,8 +31,8 @@
  *
  * Declaration of boost-based templated implementation of graph base class.
  *
- * @author Andrea Cilio 2005 (cilio@cs.tut.fi)
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Andrea Cilio 2005 (cilio-no.spam-cs.tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -280,7 +280,7 @@ protected:
 
     virtual void connectNodes(
         const Node& nTail, const Node& nHead, Edge& e,
-        GraphBase<GraphNode, GraphEdge>* modifier)
+        GraphBase<GraphNode, GraphEdge>* modifier, bool creatingSG=false)
         throw (ObjectAlreadyExists);
 
     void moveInEdges(
@@ -292,8 +292,21 @@ protected:
     void constructSubGraph(
         BoostGraph& subGraph, NodeSet& nodes);
 
+    /**
+     * This class is used in the pririty queue, to select which node to
+     * start sink distance calculations */
+    struct PathLengthHelper {
+        inline PathLengthHelper(int index, int sd);
+        int index_;
+        int sd_;
+        inline bool operator< (const PathLengthHelper& other) const;
+    };
+
     std::string name_;
     int sgCounter_;
+
+    std::list<Edge*> ownedEdges_;
+
 };
 
 #include "BoostGraph.icc"

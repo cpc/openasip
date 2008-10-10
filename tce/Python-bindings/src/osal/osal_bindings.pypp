@@ -1,0 +1,67 @@
+# Copyright 2002-2008 Tampere University of Technology.  All Rights Reserved.
+#
+# This file is part of TTA-Based Codesign Environment (TCE).
+#
+# TCE is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
+#
+# TCE is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# TCE; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+# Fifth Floor, Boston, MA  02110-1301  USA
+#
+# As a special exception, you may use this file as part of a free software
+# library without restriction.  Specifically, if other files instantiate
+# templates or use macros or inline functions from this file, or you compile
+# this file and link it with other files to produce an executable, this file
+# does not by itself cause the resulting executable to be covered by the GNU
+# General Public License.  This exception does not however invalidate any
+# other reasons why the executable file might be covered by the GNU General
+# Public License.
+
+import sys
+from binding_generator import *
+
+prefix = "./osal/"
+
+bg = binding_generator_t(
+    module_name = "osal",
+    call_policies = (('Operation',
+                      [('behavior', return_internal_reference()),
+                       ('dag', return_internal_reference()),
+                       ('expandedDag', return_internal_reference()),
+                       ('input', return_internal_reference()),
+                       ('output', return_internal_reference()),
+                       ('operand', return_internal_reference()),
+                       ('saveState', return_value_policy(manage_new_object)),
+                       ]),
+                     ('NullOperation',
+                      [('behavior', return_internal_reference()),
+                       ('dag', return_internal_reference()),
+                       ('expandedDag', return_internal_reference()),
+                       ('input', return_internal_reference()),
+                       ('instance', return_value_policy(reference_existing_object)),
+                       ('output', return_internal_reference()),
+                       ('operand', return_internal_reference()),
+                       ('saveState', return_value_policy(manage_new_object)),
+                       ]),
+                     ('NullOperationBehavior',
+                      [('instance', return_value_policy(reference_existing_object)),
+                       ]),
+                     ),
+    headers = [prefix + 'OperationBehavior.hh',
+               prefix + 'Operation.hh',
+               ],
+    extra_headers = ['OperationDAG.hh',
+                     'OperationContext.hh',
+                     'TCEString.hh',
+                     'Operand.hh',
+                     ],
+    )
+
+bg.run()

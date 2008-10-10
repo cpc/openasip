@@ -32,7 +32,7 @@
  * Declaration of prototype of Resource Model:
  * declaration of the ITemplateResource class.
  *
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

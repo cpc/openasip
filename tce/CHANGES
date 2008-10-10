@@ -1,4 +1,15 @@
-1.0-beta1     2008-xx-xx
+1.0-beta2     200X-XX-XX
+========================
+
+Bug fixes
+---------
+- Some scheduling speed optimizations; Scheduling big basic blocks 
+  and big programs is now much faster than with beta1.
+- Some scheduler memory leak fixes, scheduling big programs consumes about 
+  33% less memory than beta1.
+- Fixed a bug which caused random scheduler failures.
+
+1.0-beta1     2008-10-02
 ========================
 
 New features
@@ -21,6 +32,11 @@ New features
 - New sequential scheduler which minimizes scheduling time and helps
   to isolate compilation bugs between LLVM and TCE. 
   Invoke with 'tcecc -O0'.
+- SimpleICOptimizer Explorer plugin now has a switch to preserve the minimal
+  opset.
+- Evaluate Explorer plugin added to easily evaluate configurations.
+- MinimalOpSet Explorer plugin added to check machines against the minimal
+  opset.
 
 Bug fixes
 ---------
@@ -35,6 +51,7 @@ Bug fixes
 - Determinism fixes to the instruction scheduler.  
 - Optimized scheduling of long immediates. Speeds up scheduling up to
   50% for some cases.
+- Got rid of compile warnings on Ubuntu 8.10 (Intrepid Ibex).
 
 1.0-alpha1    2008-05-06
 ========================

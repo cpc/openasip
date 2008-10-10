@@ -161,7 +161,7 @@ class variable_accessors_resolver_t( resolver_t ):
             return None
         if declarations.has_destructor( decl ) and not declarations.has_public_destructor( decl ): 
             return None
-        if not declarations.has_trivial_copy(decl):
+        if not declarations.has_copy_constructor(decl):
             return None
         if hint == 'get':
             #if we rich this line, it means that we are able to create an obect using

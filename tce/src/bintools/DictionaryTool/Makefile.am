@@ -1,16 +1,20 @@
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
+
 LIB_TCETOOLS_DIR = ../../tools
 LIB_BASE_DIR = ../../base
 LIB_APPLIBS_DIR = ../../applibs
 ROOT_DIR = ../../..
 
-TPEF_DIR = ../../base/tpef
-PROGRAM_DIR = ../../base/program
-MACH_DIR = ../../base/mach
-BEM_DIR = ../../base/bem
-BEM_APPLIBS_DIR = ../../applibs/bem
-MACH_APPLIBS_DIR = ../../applibs/mach
-UMACH_DIR = ../../base/umach
-OSAL_DIR = ../../base/osal
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+TPEF_DIR = ${SRC_ROOT_DIR}/base/tpef
+PROGRAM_DIR = ${SRC_ROOT_DIR}/base/program
+MACH_DIR = ${SRC_ROOT_DIR}/base/mach
+BEM_DIR = ${SRC_ROOT_DIR}/base/bem
+BEM_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/bem
+MACH_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/mach
+UMACH_DIR = ${SRC_ROOT_DIR}/base/umach
+OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
 
 bin_PROGRAMS = dictionary_tool
 dictionary_tool_SOURCES = DictionaryTool.cc
@@ -18,10 +22,11 @@ dictionary_tool_SOURCES = DictionaryTool.cc
 dictionary_tool_LDADD = ${LIB_BASE_DIR}/libttabase.la \
         ${LIB_TCETOOLS_DIR}/libtcetools.la ${LIB_APPLIBS_DIR}/libapplibs.la
 
-AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} \
+AM_CPPFLAGS = -I${TOOLS_DIR} \
         -I${MACH_DIR} -I${TPEF_DIR} -I${BEM_DIR} \
 	-I${BEM_APPLIBS_DIR} -I${MACH_APPLIBS_DIR} \
 	-I${PROGRAM_DIR} -I${UMACH_DIR} -I${OSAL_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_LDFLAGS = ${BOOST_LIBDIR} ${BOOST_PYTHON_LIB} ${SQLITE_LIBDIR} \
     ${TCL_LD_FLAGS} ${XERCES_LIBS} ${EDITLINE_LD_FLAGS}

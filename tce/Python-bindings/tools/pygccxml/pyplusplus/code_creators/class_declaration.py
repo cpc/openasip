@@ -159,9 +159,9 @@ class class_t( scoped.scoped_t, registration_based.registration_based_t ):
             if base_desc.access != declarations.ACCESS_TYPES.PUBLIC:
                 continue
             if base_creators.has_key( id(base_desc.related_class) ):
-                bases.append( algorithm.create_identifier( self, base_desc.related_class.decl_string ) )
+                bases.append( algorithm.create_identifier( self, base_desc.related_class.partial_decl_string ) )
             elif base_desc.related_class.already_exposed:
-                bases.append( base_desc.related_class.decl_string )
+                bases.append( base_desc.related_class.partial_decl_string )
         if not bases:
             return None
         bases_identifier = algorithm.create_identifier( self, '::boost::python::bases' )
@@ -186,14 +186,14 @@ class class_t( scoped.scoped_t, registration_based.registration_based_t ):
             else:
                 if not self.target_configuration.boost_python_has_wrapper_held_type \
                    or self.declaration.require_self_reference:
-                    args.append( algorithm.create_identifier( self, self.declaration.decl_string ) )
+                    args.append( self.decl_identifier )
                 if self.declaration.require_self_reference:
                     if not held_type:
                         args.append( self.wrapper.full_name )
                 else:
                     args.append( self.wrapper.full_name )
         else:
-            args.append( algorithm.create_identifier( self, self.declaration.decl_string ) )
+            args.append( self.decl_identifier )
             
         bases = self._generate_bases(base_creators)
         if bases:
@@ -308,7 +308,7 @@ class class_t( scoped.scoped_t, registration_based.registration_based_t ):
 
         code = os.linesep.join( result )
 
-        result = [ '{ //%s' % declarations.full_name( self.declaration ) ]
+        result = [ '{ //%s' % declarations.full_name( self.declaration, with_defaults=False ) ]
         result.append( self.indent( code ) )
         result.append( '}' )
 
@@ -347,7 +347,8 @@ class class_wrapper_t( scoped.scoped_t ):
         self.declaration.wrapper_alias = walias
     wrapper_alias = property( _get_wrapper_alias, _set_wrapper_alias )
 
-    def _get_base_wrappers( self ):
+    @property    
+    def base_wrappers( self ):
         if self.declaration.is_abstract and not self._base_wrappers:
             bases = [ hi.related_class for hi in self.declaration.bases ]
             creators_before_me = algorithm.creators_affect_on_me( self )
@@ -356,17 +357,17 @@ class class_wrapper_t( scoped.scoped_t ):
                                           and creator.declaration in bases
                           , creators_before_me )
         return self._base_wrappers
-    base_wrappers = property( _get_base_wrappers )
 
-    def _get_exposed_identifier(self):
-        return algorithm.create_identifier( self, self.declaration.decl_string )
-    exposed_identifier = property( _get_exposed_identifier )
+    @property
+    def exposed_identifier(self):
+        return algorithm.create_identifier( self, self.declaration.partial_decl_string )
 
-    def _get_class_creator(self):
+    @property
+    def class_creator(self):
         return self._class_creator
-    class_creator = property( _get_class_creator )
 
-    def _get_full_name( self ):
+    @property
+    def full_name( self ):
         if not isinstance( self.parent, class_wrapper_t ):
             return self.declaration.wrapper_alias
         else:
@@ -378,16 +379,15 @@ class class_wrapper_t( scoped.scoped_t ):
                 parent = parent.parent
             full_name.reverse()
             return '::'.join( full_name )
-    full_name = property( _get_full_name )
 
-    def _get_held_type(self):
+    @property
+    def held_type(self):
         return self._class_creator.held_type
-    held_type = property( _get_held_type )
 
-    def _get_boost_wrapper_identifier(self):
+    @property
+    def boost_wrapper_identifier(self):
         boost_wrapper = algorithm.create_identifier( self, '::boost::python::wrapper' )
         return declarations.templates.join( boost_wrapper, [self.exposed_identifier] )
-    boost_wrapper_identifier = property( _get_boost_wrapper_identifier )
 
     def _create_bases(self):
         return ', '.join( [self.exposed_identifier, self.boost_wrapper_identifier] )
@@ -404,13 +404,3 @@ class class_wrapper_t( scoped.scoped_t ):
 
     def _get_system_headers_impl( self ):
         return []
-
-    def register_exposed( self, exposed_db ):
-        """Register exposed declaration in L{exposed data base<utils.exposed_decls_db_t>}"""
-        exposed_db.expose( self.declaration )
-
-
-
-
-
-

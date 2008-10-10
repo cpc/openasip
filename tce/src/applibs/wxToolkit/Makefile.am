@@ -9,7 +9,7 @@ FocusTrackingTextCtrl.cc NumberControl.cc MemoryControl.cc \
 MemoryValueDialog.cc MessageDialog.cc MemoryGridTable.cc \
 EPSDC.cc UserManualCmd.cc
 
-PROJECT_ROOT = ../../..
+PROJECT_ROOT = $(top_srcdir)
 
 LIB_TCEtools_DIR = ${PROJECT_ROOT}/src/tools
 LIB_MEMORY_DIR = ${PROJECT_ROOT}/src/base/memory
@@ -20,6 +20,7 @@ AM_WXCXXFLAGS = $(GUI_INCLUDES)
 
 AM_CPPFLAGS = -I${LIB_TCEtools_DIR} -I${LIB_MEMORY_DIR} -I${LIB_MACH_DIR} \
 	      -I${LIB_EPS_GENERATOR_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = $(AM_WXCXXFLAGS)
 

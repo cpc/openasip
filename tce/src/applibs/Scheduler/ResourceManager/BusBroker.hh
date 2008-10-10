@@ -31,7 +31,7 @@
  *
  * Declaration of BusBroker class.
  *
- * @author Ari Mets�halme 2006 (ari.metsahalme@tut.fi)
+ * @author Ari Mets�halme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -39,6 +39,8 @@
 #define TTA_BUS_BROKER_HH
 
 #include "ResourceBroker.hh"
+
+#include <list>
 
 namespace TTAMachine {
     class Machine;
@@ -93,6 +95,7 @@ private:
         ShortImmPSocketResource& immRes) const;
     virtual ShortImmPSocketResource& findImmResource(
         BusResource& busRes) const;
+    std::list<SchedulingResource*> shortImmPSocketResources_;
 };
 
 #endif

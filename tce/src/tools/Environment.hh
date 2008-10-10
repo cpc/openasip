@@ -31,8 +31,8 @@
  *
  * Declaration of Environment class.
  *
- * @author Atte Oksman 2003 (oksman@cs.tut.fi)
- * @author Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
+ * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
+ * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  * @note reviewed 19 May 2004 by ao, jn, ml, am
  * @note rating: red
  */
@@ -87,6 +87,7 @@ public:
     static std::string defaultSchedulerConf();
     static std::string oldGccSchedulerConf();
     static std::string defaultICDecoderPlugin();
+    static std::string defaultTextEditorPath();
 
     static std::string llvmtceCachePath();
 
@@ -95,6 +96,7 @@ private:
     ~Environment();
 
     static std::string pathTo(const std::string& name);
+    static inline void parsePathEnvVariable(std::vector<std::string>& paths);
 
     /// Name of the XML Schema directory.
     static const std::string SCHEMA_DIR_NAME_;

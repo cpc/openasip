@@ -40,12 +40,12 @@
 
   <fu name="fu6">
     <hdb-file>hdb/fft.hdb</hdb-file>
-    <fu-id>6</fu-id>
+    <fu-id>9</fu-id>
   </fu>
 
   <fu name="fu7">
     <hdb-file>hdb/fft.hdb</hdb-file>
-    <fu-id>6</fu-id>
+    <fu-id>9</fu-id>
   </fu>
 
   <fu name="fu8">

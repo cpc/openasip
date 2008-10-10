@@ -31,7 +31,7 @@
  *
  * Definition of SoftwareBypasser interface.
  *
- * @author Pekka J‰‰skel‰inen 2007 (pjaaskel@cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -138,4 +138,11 @@ SoftwareBypasser::removeDeadResults(
  */
 void 
 SoftwareBypasser::setSelector(MoveNodeSelector*) {
+}
+
+/**
+ * Clears all temporary data structures/caches used byt the bypasser.
+ */
+void 
+SoftwareBypasser::clearCaches() {
 }

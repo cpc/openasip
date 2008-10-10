@@ -113,7 +113,7 @@ class class_multiple_files_t(multiple_files.multiple_files_t):
 
         #relevant header file
         head_headers = [ self.create_base_fname( class_creator, pattern + self.HEADER_EXT ) ]
-        source_code.append( self.create_include_code( creators, head_headers ) )
+        source_code.append( self.create_include_code( creators, tail_headers=head_headers ) )
 
         source_code.append( '' )
         source_code.append( self.create_namespaces_code( creators ) )

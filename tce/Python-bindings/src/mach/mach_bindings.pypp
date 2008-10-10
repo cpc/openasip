@@ -1,0 +1,264 @@
+# Copyright 2002-2008 Tampere University of Technology.  All Rights Reserved.
+#
+# This file is part of TTA-Based Codesign Environment (TCE).
+#
+# TCE is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
+#
+# TCE is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# TCE; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+# Fifth Floor, Boston, MA  02110-1301  USA
+#
+# As a special exception, you may use this file as part of a free software
+# library without restriction.  Specifically, if other files instantiate
+# templates or use macros or inline functions from this file, or you compile
+# this file and link it with other files to produce an executable, this file
+# does not by itself cause the resulting executable to be covered by the GNU
+# General Public License.  This exception does not however invalidate any
+# other reasons why the executable file might be covered by the GNU General
+# Public License.
+
+from binding_generator import *
+
+prefix1 = "./mach/"
+prefix2 = "./umach/"
+prefix3 = "./tools/"
+
+bg = binding_generator_t(
+    module_name = "mach",
+    call_policies = (('*',
+                      [('parentUnit', return_internal_reference()),
+                       ('saveState', return_value_policy(manage_new_object)),
+                       ('copy', return_value_policy(manage_new_object)),
+                       ('machine', return_internal_reference()),
+                       ('instance', return_value_policy(reference_existing_object))]),
+
+                     ## Classes in src/base/mach
+                     ('AddressSpace', []),
+                     ('ADFSerializer',
+                      [('readState', return_value_policy(manage_new_object)),
+                       ('readMachine', return_value_policy(manage_new_object)),
+                       ('convertToMDFFormat', return_value_policy(manage_new_object))]),
+                     ('BaseFUPort', []),
+                     ('BaseRegisterFile',
+                      [('port', return_internal_reference())]),
+                     ('Bus',
+                      [('segment', return_internal_reference()),
+                       ('guard', return_internal_reference()),
+                       ('nextBus', return_internal_reference()),
+                       ('previousBus', return_internal_reference()),
+                       ('previousBridge', return_internal_reference()),
+                       ('nextBridge', return_internal_reference())]),
+                     ('Component',
+                      [('Machine', return_internal_reference())]),
+                     ('Connection',
+                      [('bus', return_internal_reference()),
+                       ('socket', return_internal_reference()),
+                       ]),
+                     ('ControlUnit',
+                      [('specialRegisterPort', return_internal_reference()),
+                       ('returnAddressPort', return_internal_reference()),
+                       ]),
+                     ('ExecutionPipeline',
+                      [('parentOperation', return_internal_reference()),
+                       ('pipelineElement', return_internal_reference()),
+                       ('addPipelineElement', return_internal_reference())]),
+                     ('FUPort', []),
+                     ('FunctionUnit',
+                      [('port', return_internal_reference()),
+                       ('operationPort', return_internal_reference()),
+                       ('operation', return_internal_reference()),
+                       ('operationLowercase', return_internal_reference()),
+                       ('pipelineElement', return_internal_reference()),
+                       ('addressSpace', return_internal_reference())
+                       ]),
+                     ('Guard',
+                      [('parentBus', return_internal_reference()),]),
+                     ('HWOperation',
+                      [('pipeline', return_internal_reference()),
+                       ('port', return_internal_reference())
+                       ]),
+                     ('ImmediateSlot', []),
+                     ('ImmediateUnit', []),
+                     ('InstructionTemplate',
+                      [('destinationOfSlot', return_internal_reference()),
+                       ('slot', return_internal_reference()),
+                       ('templateSlot', return_internal_reference())]),
+                     ('Machine',
+                      [('controlUnit', return_internal_reference()),
+                       ('loadFromADF', return_value_policy(manage_new_object)),
+                       ('machineTester', return_internal_reference())
+                       ]),
+                     ('MachinePart', []),
+                     ('MachineTester',
+                      [('branchedBus', return_internal_reference()),
+                       ('sameDirSocketConnection', return_internal_reference()),
+                       ('forbiddenSocketDirection', return_internal_reference())
+                       ]),
+                     ('NullAddressSpace', []),
+                     ('NullBus',
+                      [('segment', return_internal_reference()),
+                       ('guard', return_internal_reference()),
+                       ('nextBus', return_internal_reference()),
+                       ('previousBus', return_internal_reference()),
+                       ('previousBridge', return_internal_reference()),
+                       ('nextBridge', return_internal_reference())]),
+                     ('NullFunctionUnit',
+                      [('port', return_internal_reference()),
+                       ('operationPort', return_internal_reference()),
+                       ('operation', return_internal_reference()),
+                       ('pipelineElement', return_internal_reference()),
+                       ('addressSpace', return_internal_reference())
+                       ]),
+                     ('NullGuard',
+                      [('parentBus', return_internal_reference())]),
+                     ('NullImmediateUnit', []),
+                     ('NullInstructionTemplate',
+                      [('destinationOfSlot', return_internal_reference()),
+                       ('slot', return_internal_reference()),
+                       ('templateSlot', return_internal_reference())]),
+                     ('NullMachine',
+                      [('controlUnit', return_internal_reference()),
+                       ('loadFromADF', return_value_policy(manage_new_object)),
+                       ('machineTester', return_internal_reference())
+                       ]),
+                     ('NullPort',
+                      [('inputSocket', return_internal_reference()),
+                       ('outputSocket', return_internal_reference()),
+                       ('unconnectedSocket', return_internal_reference())
+                       ]),
+                     ('NullRegisterFile', []),
+                     ('PipelineElement', []),
+                     ('Port',
+                      [('inputSocket', return_internal_reference()),
+                       ('outputSocket', return_internal_reference()),
+                       ('unconnectedSocket', return_internal_reference())
+                       ]),
+                     ('PortGuard',
+                      [('port', return_internal_reference()),
+                       ('parentBus', return_internal_reference()),
+                       ]),
+                     ('RegisterGuard',
+                      [('registerFile', return_internal_reference()),
+                       ('parentBus', return_internal_reference()),
+                       ]),
+                     ('RegisterFile', []),
+                     ('RFPort', []),
+                     ('Segment',
+                      [('connection', return_internal_reference())]),
+                     ('Serializable', []),
+                     ('Socket',
+                      [('port', return_internal_reference()),
+                       ('segment', return_internal_reference())
+                       ]),
+                     ('SpecialRegisterPort', []),
+                     ('SubComponent',
+                      [('saveState', return_value_policy(manage_new_object))]),
+                     ('TemplateSlot',
+                      [('destination', return_internal_reference()),
+                       ]),
+                     ('UnconditionalGuard', []),
+                     ('Unit',
+                      [('port', return_internal_reference()),
+                       ('saveState', return_value_policy(manage_new_object))]),
+
+                     ## Classes in src/base/umach
+                     ('SmartHWOperation',
+                      [('port', return_internal_reference())]),
+                     ('UniversalFunctionUnit',
+                      [('operation', return_internal_reference()),
+                       ('port', return_internal_reference())]),
+                     ('UniversalMachine',
+                      [('booleanRegisterFile', return_internal_reference()),
+                       ('doubleRegisterFile', return_internal_reference()),
+                       ('integerRegisterFile', return_internal_reference()),
+                       ('specialRegisterFile', return_internal_reference()),
+                       ('dataAddressSpace', return_internal_reference()),
+                       ('instructionAddressSpace', return_internal_reference()),
+                       ('universalBus', return_internal_reference()),
+                       ('universalFunctionUnit', return_internal_reference())
+                       ])
+                     ),
+    excluded_classes = ['ComponentContainer<TTAMachine::AddressSpace>',
+                        'ComponentContainer<TTAMachine::Bridge>',
+                        'ComponentContainer<TTAMachine::Bus>',
+                        'ComponentContainer<TTAMachine::FunctionUnit>',
+                        'ComponentContainer<TTAMachine::ImmediateSlot>',
+                        'ComponentContainer<TTAMachine::ImmediateUnit>',
+                        'ComponentContainer<TTAMachine::InstructionTemplate>',
+                        'ComponentContainer<TTAMachine::RegisterFile>',
+                        'ComponentContainer<TTAMachine::Socket>',
+                        'ADFSerializer',
+                        'Serializable',
+                        'Bridge',
+                        'Segment',
+                        ],
+    # For some reason Py++ generates two versions of the constructor
+    # Port(name, parentUnit), and the type of parentUnit of the second
+    # one is TTAMachine::FunctionUnit
+    excluded_constructors = [('Port', ['std::string const &', 'TTAMachine::FunctionUnit &'])],
+    headers = map(os.path.abspath,
+                  [prefix1 + "AddressSpace.hh",
+                   prefix1 + "ADFSerializer.hh",
+                   # "ADFSerializerTextGenerator.hh",
+                   prefix1 + "BaseFUPort.hh",
+                   prefix1 + "BaseRegisterFile.hh",
+                   #"Bridge.hh",
+                   prefix1 + "Bus.hh",
+                   prefix1 + "Connection.hh",
+                   prefix1 + "ControlUnit.hh",
+                   # "DummyMachineTester.hh",
+                   prefix1 + "ExecutionPipeline.hh",
+                   prefix1 + "FunctionUnit.hh",
+                   prefix1 + "FUPort.hh",
+                   prefix1 + "Guard.hh",
+                   prefix1 + "HWOperation.hh",
+                   prefix1 + "ImmediateSlot.hh",
+                   prefix1 + "ImmediateUnit.hh",
+                   prefix1 + "InstructionTemplate.hh",
+                   prefix1 + "Machine.hh",
+                   prefix1 + "MachinePart.hh",
+                   prefix1 + "MachineTester.hh",
+                   prefix1 + "MachineTestReporter.hh",
+                   prefix1 + "MachineTestReportTextGenerator.hh",
+                   #"MOMTextGenerator.hh",
+                   prefix1 + "NullAddressSpace.hh",
+                   prefix1 + "NullBus.hh",
+                   prefix1 + "NullFunctionUnit.hh",
+                   prefix1 + "NullGuard.hh",
+                   prefix1 + "NullImmediateUnit.hh",
+                   prefix1 + "NullInstructionTemplate.hh",
+                   prefix1 + "NullMachine.hh",
+                   prefix1 + "NullPort.hh",
+                   prefix1 + "NullRegisterFile.hh",
+                   prefix1 + "PipelineElement.hh",
+                   prefix1 + "Port.hh",
+                   prefix1 + "RegisterFile.hh",
+                   prefix1 + "RFPort.hh",
+                   prefix1 + "Segment.hh",
+                   prefix1 + "Socket.hh",
+                   prefix1 + "SpecialRegisterPort.hh",
+                   prefix1 + "TemplateSlot.hh",
+                   prefix1 + "Unit.hh",
+
+                   # src/base/umach
+                   prefix2 + "SmartHWOperation.hh",
+                   prefix2 + "UnboundedRegisterFile.hh",
+                   prefix2 + "UniversalFunctionUnit.hh",
+                   prefix2 + "UniversalFUPort.hh",
+                   prefix2 + "UniversalMachine.hh",               
+
+                   # Not part of the library, but needed because
+                   # virtual methods are inherited from here. 
+                   prefix3 + "Serializable.hh",
+                   ]),
+    extra_headers = ['Operation.hh'],
+    )
+
+bg.run()

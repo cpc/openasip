@@ -31,7 +31,7 @@
  *
  * Definition of RedoCmd class.
  *
- * @author Veli-Pekka J‰‰skel‰inen (vjaaskel@cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <wx/docview.h>

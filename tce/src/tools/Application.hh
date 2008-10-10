@@ -34,10 +34,10 @@
  * Application is a class for generic services that are project-wide
  * applicable to standalone applications or modules. These services include
  * assertion, program exiting, debugging to a log file, catching unexpected
- * exceptions, "control-c" signal handling.
+ * exceptions and "control-c", SIGFPE and SIGSEGV signal handling.
  *
- * @author Atte Oksman 2003 (oksman@cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel@cs.tut.fi)
+ * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_APPLICATION_HH
@@ -48,6 +48,7 @@
 #include <iostream>
 #include <vector>
 #include <signal.h>
+#include <map>
 
 #ifdef assert
 #undef assert
@@ -82,6 +83,9 @@
     Application::writeToErrorLog(__FILE__, __LINE__, __func__, \
         std::string("DEBUG: ") + std::string(text))
 
+// provide an easy way to verbose log printing
+#define verboseLog(text) Application::logStream() << text << std::endl;
+
 // provide an easy way to print out exception data
 #define CATCH_ANY(XXX__) \
     try { XXX__; } \
@@ -91,6 +95,11 @@
 	    e.procedureName() + ":" + \
 	    Conversion::toString(e.lineNum())); } \
     catch ( ... ) { debugLog("Unknown exception"); }
+
+// easy way to do conditional verbose logging
+#define verboseLogC(text, neededVerbosity) \
+    if (Application::verboseLevel() >= neededVerbosity) { \
+       Application::logStream() << text << std::endl; }
 
 
 // provide an easy way to print out the contents of a variable
@@ -160,12 +169,11 @@ public:
         virtual void execute(int data, siginfo_t *info) = 0;
         virtual ~UnixSignalHandler() {}
     };
-
-    static void setCtrlcHandler(UnixSignalHandler& handler);
-    static void restoreCtrlcHandler();
-    static void setFpeHandler(UnixSignalHandler& handler);
-    static void restoreFpeHandler();
-
+    
+    // Unix signal handler set/reset functions
+    static void setSignalHandler(int signalNum, UnixSignalHandler& handler);
+    static UnixSignalHandler* getSignalHandler(int signalNum);
+    static void restoreSignalHandler(int signalNum);
 
     /// Default verbose level - do not print anything unnecessary
     static const int VERBOSE_LEVEL_DEFAULT = 0;
@@ -173,8 +181,8 @@ public:
     static const int VERBOSE_LEVEL_INCREASED = 1;
 
 private:
-    static void ctrlcSignalRedirector(int data, siginfo_t *info, void *context);
-    static void fpeSignalRedirector(int data, siginfo_t *info, void *context);
+    static void signalRedirector(int data, siginfo_t *info, void *context);
+
     /// True when initialize() is called. Ensures that initialization is
     /// done only once.
     static bool initialized_;
@@ -182,14 +190,8 @@ private:
     /// The stream for error logging.
     static std::ostream* logStream_;
 
-    ///* @note if more signals need to be handled, refactor the following into a
-    /// std::map<int, UnixSignalHandler*> or similar.
-    
-    /// The handler for signal produced by user pressing ctrl-c.
-    static UnixSignalHandler* ctrlcHandler_;
-
-    /// The handler for signal SIGFPE.
-    static UnixSignalHandler* fpeHandler_;
+    /// Signal handlers in a map associated by their signal numbers
+    static std::map<int, UnixSignalHandler*> signalHandlers_;
 
     /// Verbose level directs how much output will be printed to console
     static int verboseLevel_;

@@ -1,6 +1,6 @@
 BUILD_PASS = ../../../src/bintools/Scheduler/buildschedulerpass
 
-SRC_ROOT_DIR = ../../..
+SRC_ROOT_DIR = @abs_top_srcdir@
 BASE_DIR = ${SRC_ROOT_DIR}/base
 APPLIBS_DIR = ${SRC_ROOT_DIR}/src/applibs
 SCHED_DIR = ${APPLIBS_DIR}/Scheduler
@@ -17,7 +17,7 @@ all-local: SequentialSchedulerModule.so
 
 SequentialSchedulerModule.so: SequentialSchedulerModule.cc \
 	SequentialSchedulerModule.hh	
-	${BUILD_PASS} SequentialSchedulerModule.so SequentialSchedulerModule.cc
+	${BUILD_PASS} $@ $<
 
 clean:
 	rm -f *.so *~

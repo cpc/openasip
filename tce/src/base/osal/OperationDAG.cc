@@ -31,7 +31,7 @@
  *
  * Implementation of operation directed acyclic graph class
  *
- * @author Mikael Lepistö 2007 (mikael.lepisto@tut.fi)
+ * @author Mikael Lepistö 2007 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -84,13 +84,9 @@ OperationDAG::isTrivial() const {
 /**
  * Destructor.
  *
- * Deletes all MoveNodes and ProgramOperations.
+ * Deletes all Nodes. Edges are destroyed by destructor of base class.
  */
 OperationDAG::~OperationDAG() {
-    for (int i = 0; i < edgeCount(); i++) {
-        delete &edge(i);
-    }
-    
     for (int i = 0; i < nodeCount(); i++) {
         delete &node(i);
     }

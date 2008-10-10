@@ -31,7 +31,8 @@
  *
  * Implementation of DesignSpaceExplorer class
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -50,7 +51,6 @@
 #include "ExecutionTrace.hh"
 #include "DSDBManager.hh"
 #include "Machine.hh"
-#include "FunctionUnit.hh"
 #include "Program.hh"
 #include "MachineImplementation.hh"
 #include "PluginTools.hh"
@@ -63,6 +63,7 @@
 #include "SimulatorInterpreter.hh"
 #include "OperationGlobals.hh"
 #include "Application.hh"
+#include "ComponentImplementationSelector.hh"
 
 using std::set;
 using std::vector;
@@ -71,6 +72,7 @@ using namespace CostEstimator;
 
 PluginTools
 DesignSpaceExplorer::pluginTool_;
+
 
 /**
  * The constructor.
@@ -81,7 +83,6 @@ DesignSpaceExplorer::DesignSpaceExplorer() {
     //    SchedulingPlan::loadFromFile(Environment::oldGccSchedulerConf());
     oStream_ = new std::ostringstream;
     OperationGlobals::setOutputStream(*oStream_);
-    buildMinimalOpSet();
 }
 
 /**
@@ -139,23 +140,14 @@ DesignSpaceExplorer::evaluate(
         adf = dsdb_->architecture(configuration.architectureID);
     }
 
-    // check if machine has minimal opset
-    if (!checkMinimalOpSet(*adf)) {
-        // below for debug ouput
-        //std::vector<std::string> missingOps;
-        //missingOperations(*adf, missingOps);
-        //for (std::vector<std::string>::iterator it = missingOps.begin(); it != missingOps.end(); ++it) {
-        //    std::cout << "DEBUG: machine missed operator: " << *it << std::endl;
-        //}
-        return false;
-    }
-
     try {
         if (configuration.hasImplementation && estimate) {
+            // estimate total area
             AreaInGates totalArea = estimator_.totalArea(*adf, *idf);
             dsdb_->setAreaEstimate(configuration.implementationID, totalArea);
             result.setArea(totalArea);
         
+            // estimate longest path delay
             DelayInNanoSeconds longestPathDelay = 0;
             longestPathDelay = estimator_.longestPath(*adf, *idf);
             dsdb_->setLongestPathDelayEstimate(
@@ -180,11 +172,11 @@ DesignSpaceExplorer::evaluate(
                 return false;
             }
             
-            const int debugLevel = 0;
             TTAProgram::Program* scheduledProgram =
-                schedule(applicationFile, *adf, debugLevel);
+                schedule(applicationFile, *adf);
 
             if (scheduledProgram == NULL) {
+                verboseLogC("Evaluate failed: Scheduling program failed.", 1)
                 return false;
             }
 
@@ -250,8 +242,7 @@ DesignSpaceExplorer::evaluate(
             traceDB = NULL;
         }
     } catch (const Exception& e) {
-        Application::writeToErrorLog(
-                __FILE__, __LINE__, __func__, e.errorMessageStack(), 0);
+        debugLog(e.errorMessageStack());
         return false;
     }
     return true;
@@ -280,8 +271,7 @@ DesignSpaceExplorer::db() {
 TTAProgram::Program*
 DesignSpaceExplorer::schedule(
     const std::string applicationFile,
-    TTAMachine::Machine& machine,
-    const unsigned int debug) {
+    TTAMachine::Machine& machine) {
 
     // optimization level
     const int optLevel = 2;
@@ -289,17 +279,14 @@ DesignSpaceExplorer::schedule(
     // Run compiler and scheduler for current machine
     try {
         LLVMBackend compiler;
-        return compiler.compileAndSchedule(applicationFile, machine, optLevel, debug);
+        return compiler.compileAndSchedule(applicationFile, machine, 
+                optLevel, Application::verboseLevel());
     } catch (Exception& e) {
         std::cerr << "Error compiling and scheduling '" 
             << applicationFile << "':" << std::endl
             << e.errorMessageStack() << std::endl;
         return NULL;
     }
-
-    // Write out the scheduled program
-    //TTAProgram::Program::writeToTPEF(
-    //    *scheduledProgram, "scheduled.tpef");
 }
 
 
@@ -484,133 +471,179 @@ DesignSpaceExplorer::loadExplorerPlugin(
 
 
 /**
- * Constructs a minimal opset from a given machine.
+ * Selects components for a machine and creates a new configuration.
+ * 
+ * Also stores the new configuration to the dsdb and returns it's rowID.
  *
- * @param machine Machine that is used as reference for minimal opset.
- */
-void 
-DesignSpaceExplorer::buildMinimalOpSet(const TTAMachine::Machine* machine) {
-    if (machine == NULL) {
-        machine = TTAMachine::Machine::loadFromADF(Environment::minimalADF());
+ * @param conf MachineConfiguration of which architecture is used.
+ * @param frequency The minimum frequency of the implementations.
+ * @param maxArea Maximum area for implementations.
+ * @param createEstimates Boolean for creating estimates.
+ * @param icDec IC decoder to be used.
+ * @param icDecHDB IC decoder HDB file.
+ * @return RowID of the new machine configuration having adf and idf.
+ * */
+RowID 
+DesignSpaceExplorer::createImplementationAndStore(
+    const DSDBManager::MachineConfiguration& conf,
+    const double& frequency,
+    const double& maxArea,
+    const bool& createEstimates,
+    const std::string& icDec,
+    const std::string& icDecHDB) {
+
+    const TTAMachine::Machine* mach = dsdb_->architecture(conf.architectureID);
+    IDF::MachineImplementation* idf = NULL;
+
+    idf = selectComponents(*mach, frequency, maxArea, icDec, icDecHDB);
+    if (!idf) {
+        return 0;
+    }
+    
+    CostEstimator::AreaInGates area = 0;
+    CostEstimator::DelayInNanoSeconds longestPathDelay = 0;
+    if (createEstimates) {
+        createEstimateData(*mach, *idf, area, longestPathDelay);
     }
 
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
-        machine->functionUnitNavigator();
-    // construct the opset list
-    for (int i = 0; i < fuNav.count(); i++) {
-        TTAMachine::FunctionUnit* fu = fuNav.item(i);
-        fu->operationNames(minimalOpSet_);
-    }
+    DSDBManager::MachineConfiguration newConf;
+    newConf.architectureID = conf.architectureID;
+
+    newConf.implementationID = 
+        dsdb_->addImplementation(*idf, longestPathDelay, area);
+    newConf.hasImplementation = true;
+    
+    // idf written to the dsdb so it can be deleted
+    delete idf;
+    idf = NULL;
+
+    return addConfToDSDB(newConf);
 }
 
 
 /**
- * Returns constructed minimal opset.
- *
- * @return Minimap opset as strings in a set.
- */
-std::set<std::string> 
-DesignSpaceExplorer::minimalOpSet() const {
-    return minimalOpSet_;
-}
+ * Selects components for a machine and ands them to a given config.
+ * 
+ * @param conf MachineConfiguration of which architecture is used.
+ * @param newConf MachineConfiguration where idf is to be added.
+ * @param frequency The minimum frequency of the implementations.
+ * @param maxArea Maximum area for implementations.
+ * @param createEstimates Boolean for creating estimates.
+ * @param icDec IC decoder to be used.
+ * @param icDecHDB IC decoder HDB file.
+ * @return RowID of the new machine configuration having adf and idf.
+ * */
+bool
+DesignSpaceExplorer::createImplementation(
+    const DSDBManager::MachineConfiguration& conf,
+    DSDBManager::MachineConfiguration& newConf,
+    const double& frequency,
+    const double& maxArea,
+    const bool& createEstimates,
+    const std::string& icDec,
+    const std::string& icDecHDB) const {
 
+    const TTAMachine::Machine* mach = dsdb_->architecture(conf.architectureID);
+    IDF::MachineImplementation* idf = NULL;
 
-/**
- * Checks if machine has all operations in minimal opset.
- *
- * @param machine Machine to be checked againsta minimal opset.
- * @return True if minimal operation set was met, false otherwise.
- */
-bool 
-DesignSpaceExplorer::checkMinimalOpSet(
-    const TTAMachine::Machine& machine) const {
-
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
-        machine.functionUnitNavigator();
-    std::set<std::string> opSet;
-    // construct the opset list
-    for (int i = 0; i < fuNav.count(); i++) {
-        TTAMachine::FunctionUnit* fu = fuNav.item(i);
-        fu->operationNames(opSet);
-    }
-
-    // if machines opset is smaller than requiered opset
-    if (opSet.size() < minimalOpSet_.size()) {
+    idf = selectComponents(*mach, frequency, maxArea, icDec, icDecHDB);
+    if (!idf) {
         return false;
     }
 
-    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
-    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
-
-    std::set<std::string>::iterator first2 = opSet.begin();
-    std::set<std::string>::iterator last2 = opSet.end();
-
-    // return false if missing operation was found
-    while (first1 != last1 && first2 != last2)
-    {
-        if (*first1 < *first2) {
-            return false;
-        }
-        else if (*first2 < *first1) {
-            ++first2;
-        }
-        else { 
-            ++first1; 
-            ++first2; 
-        }
+    CostEstimator::AreaInGates area = 0;
+    CostEstimator::DelayInNanoSeconds longestPathDelay = 0;
+    if (createEstimates) {
+        createEstimateData(*mach, *idf, area, longestPathDelay);
     }
-    if (first1 != last1) {
-        return false;
-    }
+
+    newConf.architectureID = conf.architectureID;
+    newConf.implementationID = dsdb_->addImplementation(*idf, longestPathDelay, area);
+    newConf.hasImplementation = true;
+    
+    // idf written to the dsdb so it can be deleted
+    delete idf;
+    idf = NULL;
     return true;
 }
 
 
 /**
- * Return operations that are missing from a machine.
- *
- * Returns operations that are missing from a machine compared to the minimal
- * operation set.
- *
- * @param machine Machine to be checked againsta minimal opset.
- * @param missingOps Vector where missing operation names are to be stored.
- */
-void
-DesignSpaceExplorer::missingOperations(
-    const TTAMachine::Machine& machine,
-    std::vector<std::string>& missingOps) const {
+ * Selects components for a machine, creates a idf.
+ * 
+ * @param mach Target machine for which components are selected.
+ * @param frequency The minimum frequency of the implementations.
+ * @param maxArea Maximum area for implementations.
+ * @param icDec IC decoder to be used.
+ * @param icDecHDB IC decoder HDB file.
+ * @return Machine Implementation pointer if ok, else NULL.
+ * */
+IDF::MachineImplementation* 
+DesignSpaceExplorer::selectComponents(
+    const TTAMachine::Machine& mach,
+    const double& frequency,
+    const double& maxArea,
+    const std::string& icDec,
+    const std::string& icDecHDB) const {
 
-    // construct the opset list
-    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
-        machine.functionUnitNavigator();
-    std::set<std::string> opSet;
-    for (int i = 0; i < fuNav.count(); i++) {
-        TTAMachine::FunctionUnit* fu = fuNav.item(i);
-        fu->operationNames(opSet);
-    }
+    ComponentImplementationSelector impSelector;
+    IDF::MachineImplementation* idf = NULL;
 
-    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
-    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
-
-    std::set<std::string>::iterator first2 = opSet.begin();
-    std::set<std::string>::iterator last2 = opSet.end();
-
-    // missing opset is the difference towards minimalOpSet_
-    while (first1 != last1 && first2 != last2)
-    {
-        if (*first1 < *first2) {
-            missingOps.push_back(*first1++);
-        }
-        else if (*first2 < *first1) {
-            ++first2;
-        }
-        else { 
-            ++first1; 
-            ++first2; 
+    try {
+        // TODO: check that idf is deleted when it has been written to the
+        // dsdb, and not in use anymore (selectComponents reserves it with
+        // new)
+        idf = impSelector.selectComponents(&mach, icDec,
+                icDecHDB, frequency, maxArea);
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        if (idf != NULL) {
+            delete idf;
+            idf = NULL;
         }
     }
-    while (first1 != last1) {
-        missingOps.push_back(*first1++);
-    }
+
+    return idf;
 }
 
+
+/**
+ * creates estimate data for machine and idf.
+ * 
+ * @param mach Machine mathcing given idf.
+ * @param idf Implementation definition for given machine.
+ * @param area Estimated area cost.
+ * @param longestPathDelay Estimated longest path delay.
+ * */
+void
+DesignSpaceExplorer::createEstimateData(
+    const TTAMachine::Machine& mach,
+    const IDF::MachineImplementation& idf,
+    CostEstimator::AreaInGates& area,
+    CostEstimator::DelayInNanoSeconds& longestPathDelay) const {
+
+    CostEstimator::Estimator estimator;
+    area = estimator.totalArea(mach, idf);
+    longestPathDelay = estimator.longestPath(mach, idf);                
+}
+
+
+/**
+ * Add given configuration to the database.
+ *
+ * @param conf Configuration to be added to the database.
+ * @param dsdb Database where to add the configuration.
+ * @return RowID Row ID of the config in the database. 0 if adding
+ *         failed.
+ */
+inline RowID 
+DesignSpaceExplorer::addConfToDSDB(
+    const DSDBManager::MachineConfiguration& conf) {
+
+    try {
+        return dsdb_->addConfiguration(conf);
+    } catch (const Exception& e) {
+        debugLog(e.errorMessage());
+        return 0;
+    }
+}

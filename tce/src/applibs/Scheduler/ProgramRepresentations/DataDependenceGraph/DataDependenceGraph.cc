@@ -31,7 +31,7 @@
  *
  * Implementation of data dependence graph class
  *
- * @author Heikki Kultala 2006 (heikki.kultala@tut.fi)
+ * @author Heikki Kultala 2006-2008 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -82,13 +82,29 @@ DataDependenceGraph::setNodeBB(
 
 /**
  * Adds a node into the graph.
+ *
+ * This method should not be called by the user, used internally
+ * 
+ * @param moveNode moveNode being added.
+ */
+void
+DataDependenceGraph::addNode(MoveNode& moveNode) throw (ObjectAlreadyExists) {
+    BoostGraph<MoveNode, DataDependenceEdge>::addNode(moveNode);
+    if (moveNode.isMove()) {
+        nodesOfMoves_[&moveNode.move()] = &moveNode;
+    }
+}
+
+
+/**
+ * Adds a node into the graph.
  * 
  * @param moveNode moveNode being added.
  * @param bblock Basic block where the move logically belongs.
  */
 void
 DataDependenceGraph::addNode(MoveNode& moveNode, BasicBlockNode& bblock) {
-    BoostGraph<MoveNode, DataDependenceEdge>::addNode(moveNode);
+    addNode(moveNode);
     setNodeBB(moveNode, bblock, NULL);
 }
 
@@ -102,7 +118,7 @@ DataDependenceGraph::addNode(MoveNode& moveNode, BasicBlockNode& bblock) {
  */
 void
 DataDependenceGraph::addNode(MoveNode& moveNode, MoveNode& relatedNode) {
-    BoostGraph<MoveNode, DataDependenceEdge>::addNode(moveNode);
+    addNode(moveNode);
     setNodeBB(moveNode, getBasicBlockNode(relatedNode), NULL);
     ///  @todo: also add to subgrapsh which have the related node?
 }
@@ -136,29 +152,17 @@ DataDependenceGraph::~DataDependenceGraph() {
     // with old boost just have a memory leak.
     // The same bug will cause also bypassing and reduced connectivity 
     // to fail.
-#if BOOST_VERSION >= 103300
-    while (edgeCount()) {
-        DataDependenceEdge& e = edge(0);
-        removeEdge(e);
-        delete &e;
-    }
-
+#if (!(defined(BOOST_VERSION)) || (BOOST_VERSION >= 103300))
+        
     if (parentGraph_ == NULL) {
 
-        while (edgeCount()) {
-            DataDependenceEdge& e = edge(0);
-            removeEdge(e);
-            delete &e;
+        //delete nodes.
+        int nc = nodeCount();
+        for (int i = 0; i < nc; i++) {
+            delete &node(i);
         }
-        
-        while (nodeCount()) {
-            MoveNode& n = node(0);
-            // unregistering 2-directional dying links is nasty so just
-            // don't case about them, they die when both objects die.
-            BoostGraph<MoveNode,DataDependenceEdge>::removeNode(n);
-            delete &n;
-        }
-        
+
+        // delete program operations.
         for (POLIter i = programOperations_.begin();
              i != programOperations_.end(); i++) {
             delete *i;
@@ -263,22 +267,41 @@ DataDependenceGraph::earliestCycle(const MoveNode& moveNode) const {
 
         /// @todo Consider the latency for result read move!
         if (tail.isScheduled()) {
-            // in case of RAW, we have to wait for one cycle before we
-            // can use the written value.
-            // in case of WaW we must be sure to have the last write alive
-            if (edge.dependenceType() != DataDependenceEdge::DEP_WAR) {
-                // TODO: what about RF latencies? can they be over 1?
-                // but if it's pseudo dependency when we can make it
-                // earlier by number of delay slots
-                int effTailCycle = edge.headPseudo() ? tail.cycle() -
-                    delaySlots_ : tail.cycle() +1;
-                minCycle = std::max(effTailCycle, minCycle);
+            int latency = 1;
+            int effTailCycle = tail.cycle();
+            
+            // If call, make sure all incoming deps fit into delay slots,
+            // can still be later than the call itself
+            // dependence type does not matter.
+            if (edge.headPseudo()) {
+                effTailCycle -= delaySlots_;
             } else {
-                // WAR allows writing at same cycle than reading
-                int effTailCycle = edge.headPseudo() ? tail.cycle() -
-                    delaySlots_ : tail.cycle();
-                minCycle = std::max(effTailCycle, minCycle);
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+                    
+                    // latency does not matter with WAW. always +1.
+                    effTailCycle += 1;
+                } else {
+                    if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                        // WAR allows writing at same cycle than reading.
+                        // in WAR also the latency goes backwards, 
+                        // new value can
+                        // be written before old is read is latency is big.
+                        if (edge.guardUse()) {
+                            latency = tail.guardLatency();
+                        } 
+                        effTailCycle = effTailCycle - latency + 1;
+                    } else {
+                        // RAW
+                        if (edge.guardUse()) {
+                            latency = moveNode.guardLatency();
+                        }
+                        // in case of RAW, we have to wait latency cycles 
+                        // before we can use the written value. 
+                        effTailCycle += latency;
+                    }
+                }
             }
+            minCycle = std::max(effTailCycle, minCycle);
         } else {
             return INT_MAX;
         }
@@ -309,25 +332,45 @@ DataDependenceGraph::latestCycle(const MoveNode& moveNode) const {
         DataDependenceEdge& edge = **i;
         MoveNode& head = headNode(edge);
         
+        /// @todo Consider the latency for result read move!
         if (head.isScheduled()) {
-            if (edge.dependenceType() != DataDependenceEdge::DEP_WAR) {
-                // in case of RAW, we have to wait for one cycle before we
-                // can use the written value
-                // in case of WaW we must be sure to have the last write alive
-                // TODO: what about RF latencies? can they be over 1?
-                // but if it's pseudo dependence we can make it later by
-                // number of delay slots
-                int effHeadCycle = edge.headPseudo() ? head.cycle() +
-                    delaySlots_ : head.cycle() -1;
-
-                maxCycle = std::min(effHeadCycle, maxCycle);
+            int latency = 1;
+            int effHeadCycle = head.cycle();
+            
+            // If call, make sure all incoming deps fit into delay slots,
+            // can still be later than the call itself
+            // dependence type does not matter.
+            if (edge.tailPseudo()) {
+                effHeadCycle += delaySlots_;
             } else {
-                // WAR allows writing at same cycle than reading
-                maxCycle = std::max(head.cycle(), maxCycle);
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+                    
+                    // latency does not matter with WAW. always +1.
+                    effHeadCycle -= 1;
+                } else {
+                    if (edge.dependenceType() == DataDependenceEdge::DEP_WAR) {
+                        // WAR allows writing at same cycle than reading.
+                        // in WAR also the latency goes backwards, 
+                        // new value can
+                        // be written before old is read is latency is big.
+                        if (edge.guardUse()) {
+                            latency = moveNode.guardLatency();
+                        } 
+                        effHeadCycle = effHeadCycle + latency - 1;
+                    } else {
+                        // RAW
+                        if (edge.guardUse()) {
+                            latency = moveNode.guardLatency();
+                        }
+                        // in case of RAW, value must be written latency
+                        // cycles before it is used
+                        effHeadCycle -= latency;
+                    }
+                }
             }
+            maxCycle = std::min(effHeadCycle, maxCycle);
         } else {
             return 0;
-
         }
     }
     return maxCycle;
@@ -756,19 +799,6 @@ DataDependenceGraph::mergeAndKeep(MoveNode& resultNode, MoveNode& userNode) {
 
     EdgeSet edges = connectingEdges(
         resultNode, userNode);
-/*
-    Ugly temporary woraround code follows. 
-
-
-    EdgeSet edges;
-    EdgeSet iEdges = inEdges(userNode);
-    for (EdgeSet::iterator i = iEdges.begin(); i != iEdges.end(); i++) {
-        if (&tailNode(**i) == &resultNode) {
-            edges.insert(*i);
-        }
-    }
-    // Ugly temporary workaround code ends here 
-    */
 
     for (EdgeSet::iterator i = edges.begin();
          i != edges.end(); i++ ) {
@@ -844,7 +874,7 @@ DataDependenceGraph::unMerge(MoveNode &resultNode, MoveNode& mergedNode) {
         if (edge.edgeReason() == DataDependenceEdge::EDGE_OPERATION ||
             (edge.edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
              edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
-             !edge.headPseudo())) {
+             !edge.headPseudo() && !edge.guardUse())) {
             removeEdge(edge);
             i--; // do not skip next edge which now has same index
         } 
@@ -942,18 +972,32 @@ DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
     RemovedNodeData* rmn = new RemovedNodeData;
     removedNodes_[&node] = rmn;
 
+    // remove move -> movenode mapping.
+    if (node.isMove()) {
+        TTAProgram::Move* move = &node.move();
+        std::map<TTAProgram::Move*, MoveNode*>::iterator i = 
+            nodesOfMoves_.find(move);
+        if (i != nodesOfMoves_.end()) {
+            nodesOfMoves_.erase(i);
+        } 
+    }
+
     DataDependenceGraph::NodeDescriptor nd = descriptor(node);
-    // iterating this way is slow if there are many edges
-    for (int i = 0; i < inDegree(node); i++) {
-        DataDependenceEdge& iEdge = inEdge(node,i);
+
+    EdgeSet iEdges = inEdges(node);
+    
+    for (EdgeSet::iterator i = iEdges.begin(); i != iEdges.end(); i++) {
+        DataDependenceEdge& iEdge = **i;
         DataDependenceEdge* newIEdge = new DataDependenceEdge(iEdge);
         rmn->inEdges.push_back(
             std::pair<DataDependenceEdge*,MoveNode*>(
                 newIEdge, &tailNode(iEdge,nd)));
     }
-    // iterating this way is slow if there are many edges
-    for (int i = 0; i < outDegree(node); i++) {
-        DataDependenceEdge& oEdge = outEdge(node,i);
+
+    EdgeSet oEdges = outEdges(node);
+
+    for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
+        DataDependenceEdge& oEdge = **i;
         DataDependenceEdge* newOEdge = new DataDependenceEdge(oEdge);
         rmn->outEdges.push_back(
             std::pair<DataDependenceEdge*,MoveNode*>(
@@ -977,13 +1021,17 @@ DataDependenceGraph::removeNode(MoveNode& node) throw (InstanceNotFound) {
         }
 
         // fix WaW and WaR antidependencies that go over this node
-        for (int i = 0; i < outDegree(node); i++) {
-            DataDependenceEdge& oEdge = outEdge(node,i);
+
+        for (EdgeSet::iterator i = oEdges.begin(); i != oEdges.end(); i++) {
+            DataDependenceEdge& oEdge = **i;
+        
             if (oEdge.dependenceType() == DataDependenceEdge::DEP_WAW
                 && oEdge.edgeReason() == DataDependenceEdge::EDGE_REGISTER) {
-                
-                for (int i = 0; i < inDegree(node); i++) {
-                    DataDependenceEdge& iEdge = inEdge(node,i);
+
+                for (EdgeSet::iterator j = iEdges.begin(); 
+                     j != iEdges.end(); j++) {
+                    DataDependenceEdge& iEdge = **j;
+                    
                     if (iEdge.dependenceType() == 
                         DataDependenceEdge::DEP_WAW &&
                         iEdge.edgeReason() == 
@@ -1414,19 +1462,18 @@ DataDependenceGraph::createSubgraph(
 MoveNode& 
 DataDependenceGraph::nodeOfMove(TTAProgram::Move& move) 
     throw (InstanceNotFound) {
-    const int nc = nodeCount();
-    for (int i = 0; i < nc; i++ ) {
-        MoveNode& mn = node(i, false);
-        if( mn.isMove()) {
-            if (&mn.move() == &move) {
-                return mn;
-            }
-        }
-    }
+
+    std::map<TTAProgram::Move*, MoveNode*>::iterator i = 
+        nodesOfMoves_.find(&move);
+    if (i != nodesOfMoves_.end()) {
+        return *(i->second);
+    } 
+
     std::string msg = "move not in ddg: " + 
-        Conversion::toString(reinterpret_cast<long>(&move)) + " " + 
-        POMDisassembler::disassemble(move);
+            Conversion::toString(reinterpret_cast<long>(&move)) + " " + 
+            POMDisassembler::disassemble(move);
     throw InstanceNotFound(__FILE__,__LINE__,__func__, msg);
+
 }
 
 /**

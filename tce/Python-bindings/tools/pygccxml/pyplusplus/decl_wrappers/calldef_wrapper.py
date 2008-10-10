@@ -30,7 +30,7 @@ class calldef_t(decl_wrapper.decl_wrapper_t):
         self._call_policies = None
         self._use_keywords = True
         self._use_default_arguments = True
-        self._create_with_signature = False
+        self._create_with_signature = None
         self._overridable = None
         self._non_overridable_reason = None
         self._transformations = None
@@ -52,7 +52,28 @@ class calldef_t(decl_wrapper.decl_wrapper_t):
                                   +"Default value is True.")
 
     def _get_create_with_signature(self):
-        return self._create_with_signature or bool( self.overloads )
+        if None is self._create_with_signature:
+            self._create_with_signature = bool( self.overloads )
+            
+            if not self._create_with_signature and declarations.templates.is_instantiation( self.name ):
+                self._create_with_signature = True
+
+            if not self._create_with_signature and isinstance( self.parent, declarations.class_t ):
+                for hi in self.parent.recursive_bases:
+                    if hi.access_type == 'private':
+                        continue
+                    funcs = hi.related_class.calldefs( self.name, recursive=False, allow_empty=True )
+                    for f in funcs:
+                        if f.argument_types != self.argument_types:
+                            self._create_with_signature = True
+                            break
+                    if self._create_with_signature:
+                        break
+                if not self._create_with_signature:
+                    self._create_with_signature \
+                        = bool( self.parent.calldefs( self.name, recursive=False, allow_empty=True ) )
+        return self._create_with_signature
+               
     def _set_create_with_signature(self, create_with_signature):
         self._create_with_signature = create_with_signature
     create_with_signature = property( _get_create_with_signature, _set_create_with_signature
@@ -141,6 +162,8 @@ class calldef_t(decl_wrapper.decl_wrapper_t):
         all_types = [ arg.type for arg in self.arguments ]
         all_types.append( self.return_type )
         for some_type in all_types:
+            if isinstance( some_type, declarations.ellipsis_t ):
+                return messages.W1053 % str( self )
             units = declarations.decompose_type( some_type )
             ptr2functions = filter( lambda unit: isinstance( unit, declarations.calldef_type_t )
                                     , units )

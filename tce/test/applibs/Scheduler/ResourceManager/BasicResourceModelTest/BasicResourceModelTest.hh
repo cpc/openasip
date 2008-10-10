@@ -31,7 +31,7 @@
  *
  * A test suite for the construction adn functionality of Resource Model
  *
- * @author Vladimir Guzma 2007 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 

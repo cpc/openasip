@@ -3,7 +3,7 @@
 # Compiler driver for tce-llvm-gcc toolset
 #
 
-import os, sys, commands, optparse, shutil, glob
+import os, sys, commands, optparse, shutil, glob, signal
 import os.path
 
 from tempfile import mkdtemp
@@ -11,7 +11,10 @@ from optparse import OptionParser
 from shutil import rmtree
 
 debugMode = False
-tempDir = mkdtemp("","tcecc-")
+
+def handler(signum, frame):
+    cleanup(tempDir)
+    sys.exit(2)
 
 def cleanup(tmpDir):
     """Removes temporary files created during build."""
@@ -203,6 +206,36 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     verbose = options.verbose
 
+    loop_unroll_switches = " -loop-unroll -unroll-threshold=100 "
+
+    inline_pass = " -inline "
+    if options.noinline:
+        inline_pass = " "
+
+    tce_std_compile_opts = (" " +
+        "-preverify -domtree -verify -lowersetjmp -raiseallocs -simplifycfg -domtree " + 
+        "-domfrontier -mem2reg -globalopt -globaldce " + 
+        "-ipconstprop -deadargelim -instcombine " +
+        "-simplifycfg -basiccg -prune-eh " +
+        inline_pass +
+        "-argpromotion -tailduplicate -simplify-libcalls " + 
+        "-instcombine -jump-threading -simplifycfg -domtree -domfrontier -scalarrepl " + 
+        "-instcombine -break-crit-edges -condprop -tailcallelim -simplifycfg -reassociate " + 
+        "-domtree -loops -loopsimplify -domfrontier -scalar-evolution -lcssa -loop-rotate " + 
+        "-licm -lcssa -loop-unswitch -scalar-evolution -lcssa -loop-index-split -instcombine " + 
+        "-scalar-evolution -domfrontier -lcssa " + 
+        "-indvars -domfrontier -scalar-evolution " +
+        "-lcssa " +
+        loop_unroll_switches +
+        "-instcombine -domtree " +
+        "-memdep -gvn " + 
+#        "-memcpyopt " +
+        "-sccp " + 
+        "-instcombine -break-crit-edges -condprop -memdep -dse -mergereturn -postdomtree " + 
+        "-postdomfrontier -adce -simplifycfg -strip-dead-prototypes -printusedtypes " + 
+        "-deadtypeelim -constmerge -preverify -domtree -verify" + 
+        "")
+    
     defOptimization = ""
 
     if options.optimization_level == 0:
@@ -210,21 +243,20 @@ def optimizeBytecode(inFile, fileNamePrefix):
         options.sequential_schedule = True
 
     elif options.optimization_level == 1:
-        optSwitches = defOptimization + " -std-compile-opts"
+        optSwitches = defOptimization + tce_std_compile_opts
 
     elif options.optimization_level == 2 or options.optimization_level == 3:
-        optSwitches = defOptimization + " -internalize -internalize-public-api-list=_start -std-compile-opts"
-
+        optSwitches = defOptimization + " -internalize " + tce_std_compile_opts
     else:
         exitWithError(
             1, verbose,\
             "Optimization level " +\
             str(options.optimization_level) + " not defined.\n")
 
-    internalize_api_list = "-internalize-public-api-list=_start"
+    internalize_api_list = " -internalize-public-api-list=_start"
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
-    optSwitches += " " + internalize_api_list
+    optSwitches += internalize_api_list
 
     if options.noinline:
         optSwitches += " -disable-inlining"
@@ -270,11 +302,12 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
     
-    command = ("opt " + linkedName +
-               " -f -internalize " + internalize_api_list + " -o " + outputName)
-
+    no_inline = ""
     if options.noinline:
-        command += " -disable-inlining"
+        no_inline = " -disable-inlining"
+
+    command = ("opt " + linkedName + no_inline +
+               " -f -internalize " + internalize_api_list + " -o " + outputName)
 
     (exitCode, output) = runCommand(command, verbose)
 
@@ -404,6 +437,13 @@ producing considerable additional overhead to the program exectuion.""")
 # get commandline arguments
 options, inFiles = p.parse_args()
 
+# create temp dir
+tempDir = mkdtemp("","tcecc-")
+
+# assign signal handlers to exit cleanly
+signal.signal(signal.SIGHUP, handler)
+signal.signal(signal.SIGTSTP, handler)
+
 # clear plugin cache and do nothing else if the --clear-plugin-cache
 # option is given
 if options.clear_cache:
@@ -412,10 +452,12 @@ if options.clear_cache:
         tryRemove(fName)
 
     sys.stdout.write("Cleared plugin cache.\n")
+    cleanup(tempDir)
     sys.exit(0)
 
 if len(inFiles) == 0:
     p.print_help()
+    cleanup(tempDir)
     sys.exit(1)
 
 if options.output_name == "":
@@ -463,6 +505,7 @@ namePrefix = tempDir + "/" + os.path.basename(outputName)
 
 if options.compile_only and options.output_name != "" and len(inFiles) > 1:
     sys.stdout.write("Cannot specify -o  with -c and multiple input files.\n")
+    cleanup(tempDir)
     sys.exit(1)
 
 elif len(inFiles) == 1 and inFiles[0][-3:] == ".bc":

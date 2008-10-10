@@ -31,7 +31,7 @@
  *
  * Declaration of OptionValue classes.
  *
- * @author Jari Mäntyneva (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 

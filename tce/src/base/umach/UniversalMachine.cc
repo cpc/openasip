@@ -31,8 +31,8 @@
  *
  * Implementation of UniversalMachine class.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel@cs.tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: yellow
  */
 

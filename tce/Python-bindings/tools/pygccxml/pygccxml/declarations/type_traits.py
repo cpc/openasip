@@ -15,6 +15,7 @@ Those functions are very valuable for code generation. Almost all functions
 within this module works on L{type_t} class hierarchy and\\or L{class_t}.
 """
 
+import os
 import types
 import matchers
 import typedef
@@ -26,6 +27,7 @@ import namespace
 import templates
 import enumeration
 import class_declaration
+from pygccxml import utils
 import types as build_in_types
 
 def __remove_alias(type_):
@@ -344,24 +346,84 @@ is_class_declaration = class_declaration_traits.is_my_case
 def find_trivial_constructor( type ):
     """returns reference to trivial constructor or None"""
     assert isinstance( type, class_declaration.class_t )
-    constructors = filter( lambda x: isinstance( x, calldef.constructor_t ) \
-                                     and 0 == len( x.arguments ) \
-                           , type.public_members )
-    if constructors:
-        return constructors[0]
-    else:
-        return None
+    return type.find_trivial_constructor()
 
 def has_trivial_constructor( type ):
-    """returns True, if class has trivial constructor, False otherwise"""
-    return None != find_trivial_constructor( type )
+    """returns True, if class has public trivial constructor, False otherwise"""
+    logger = utils.loggers.cxx_parser
+    true_header = "has_trivial_constructor(TRUE)- %s - " % type.decl_string
+    false_header = "has_trivial_constructor(false)- %s - " % type.decl_string
+    
+    if '0.9' in type.compiler:
+        trivial = type.constructors( lambda x: x.is_trivial_constructor
+                                     , recursive=False
+                                     , allow_empty=True )
+        if trivial:
+            if trivial[0].access_type == 'public':
+                logger.debug( true_header + "there is user defined public trivial constructor" )
+                return True
+            else:
+                logger.debug( false_header + "there is user defined non-public trivial constructor" )
+                return False
+        else: 
+            #there is no trivial constructor, so I should find out whether other constructors exist
+            if type.constructors( recursive=False, allow_empty=True ):
+                logger.debug( false_header + "there are other user defined constructors" )
+                return False
+            else:
+                if __contains_noncopyable_mem_var( type ):
+                    logger.debug( false_header + "class doesn't have any user defined constructor and BUT it is NOT copyable" )
+                    return False
+                else:
+                    logger.debug( true_header + "class doesn't have any user defined constructor and it is copyable" )
+                    return True
+    else:
+        cons = find_trivial_constructor( type )
+        return cons and cons.access_type == 'public'
 
-def has_trivial_copy( type):
-    """returns True, if class has copy constructor, False otherwise"""
-    assert isinstance( type, class_declaration.class_t )
-    constructors = filter( lambda x: isinstance( x, calldef.constructor_t ) \
+"""
+Question: Do I have to define a copy constructor and assignment operator?
+
+Answer: 
+  C++ implicitly declares a copy constructor and an assignment operator 
+  for every class, struct and union unless the user declared them explicitly. 
+  A copy constructor isnot implicitly declared if the class has any user-declared 
+  constructor(s). Implicitly defined copy constructor and assignment operator 
+  are said to be trivial if:
+
+    * their class has no virtual functions and no virtual base class(es)
+    * all direct base classes and nonstatic data members of their class have trivial constructors
+
+  Otherwise, the copy constructor and the assignment operator are non-trivial. 
+  Implicitly-declared non-trivial copy constructor and assignment operator are 
+  implicitly-defined.
+
+The assignment operator is called "copy assignment operator" in the standard. 
+This verbosity doesnot convey any new or hidden meanings. Perhaps it's meant to 
+differentiate between the assignment operator of fundamental types and the 
+assignment operator member function of class types. In this series I will stick 
+to the term assignment operator.
+"""
+
+def has_copy_constructor( class_ ):
+    """returns True, if class has public copy constructor, False otherwise"""
+    class_ = class_traits.get_declaration( class_ )
+    if '0.9' in class_.compiler:
+        copy_ = class_.find_copy_constructor()
+        if copy_:
+            if copy_.access_type == 'public':
+                return True
+            else:
+                return False
+        else:
+            if __contains_noncopyable_mem_var( class_ ):
+                return False
+            else:
+                return True
+    else:
+        constructors = filter( lambda x: isinstance( x, calldef.constructor_t ) \
                                      and x.is_copy_constructor
-                           , type.public_members )
+                           , class_.public_members )
     return bool( constructors )
 
 def has_destructor(type):
@@ -378,7 +440,7 @@ def has_public_constructor(type):
                                              , type=calldef.constructor_t
                                              , recursive=False )
     constructors = filter( lambda decl: not decl.is_copy_constructor, decls )
-    return bool( constructors )
+    return bool( constructors ) or has_trivial_constructor( type )
 
 def has_public_assign(type):
     """returns True, if class has public assign operator, False otherwise"""
@@ -395,7 +457,6 @@ def has_public_destructor(type):
     return bool( algorithm.find_declaration( type.public_members
                                              , type=calldef.destructor_t
                                              , recursive=False ) )
-
 
 def is_base_and_derived( based, derived ):
     """returns True, if there is "base and derived" relationship between classes, False otherwise"""
@@ -420,7 +481,7 @@ def has_any_non_copyconstructor( type):
     constructors = filter( lambda x: isinstance( x, calldef.constructor_t ) \
                                      and not x.is_copy_constructor
                            , type.public_members )
-    return bool( constructors )
+    return bool( constructors ) or has_trivial_constructor( type )
 
 def has_public_binary_operator( type, operator_symbol ):
     """returns True, if type has public binary operator, otherwise False"""
@@ -629,7 +690,7 @@ class __is_convertible_t:
             return True
         if isinstance( target, cpptypes.declarated_t ):
             assert isinstance( target.declaration, class_declaration.class_t )
-            if has_trivial_copy( target.declaration ):
+            if has_copy_constructor( target.declaration ):
                 return True #we have copy constructor
         return False
 
@@ -642,7 +703,7 @@ class __is_convertible_t:
             return True
         if isinstance( target, cpptypes.declarated_t ):
             assert isinstance( target.declaration, class_declaration.class_t )
-            if has_trivial_copy( target.declaration ):
+            if has_copy_constructor( target.declaration ):
                 return True #we have copy constructor
         return False
 
@@ -655,7 +716,7 @@ class __is_convertible_t:
             return True
         if isinstance( target, cpptypes.declarated_t ):
             assert isinstance( target.declaration, class_declaration.class_t )
-            if has_trivial_copy( target.declaration ):
+            if has_copy_constructor( target.declaration ):
                 return True #we have copy constructor
         return False
 
@@ -668,7 +729,7 @@ class __is_convertible_t:
             return True
         if isinstance( target, cpptypes.declarated_t ):
             assert isinstance( target.declaration, class_declaration.class_t )
-            if has_trivial_copy( target.declaration ):
+            if has_copy_constructor( target.declaration ):
                 return True #we have copy constructor
         return False
 
@@ -808,67 +869,108 @@ def is_convertible( source, target ):
     """returns True, if source could be converted to target, otherwise False"""
     return __is_convertible_t( source, target ).is_convertible()
 
-def __is_noncopyable_single( class_ ):
+def __contains_noncopyable_mem_var( class_ ):
     """implementation details"""
-    #It is not enough to check base classes, we should also to check
-    #member variables.
-    
-    if has_trivial_copy( class_ ) \
-       and has_public_constructor( class_ ) \
-       and has_public_assign( class_ ) \
-       and has_public_destructor( class_ ):
-        return False
-    
-    mvars = filter( lambda x: isinstance( x, variable.variable_t )
-                    , class_.declarations )
+    logger = utils.loggers.cxx_parser
+    mvars = class_.vars( lambda v: not v.type_qualifiers.has_static, recursive=False, allow_empty=True )
     for mvar in mvars:
-        if mvar.type_qualifiers.has_static:
-            continue
         type_ = remove_alias( mvar.type )
         type_ = remove_reference( type_ )
         if is_const( type_ ):
             no_const = remove_const( type_ )
             if is_fundamental( no_const ) or is_enum( no_const):
+                logger.debug( "__contains_noncopyable_mem_var - %s - TRUE - containes const member variable - fundamental or enum" % class_.decl_string )
                 return True
             if is_class( no_const ):
+                logger.debug( "__contains_noncopyable_mem_var - %s - TRUE - containes const member variable - class" % class_.decl_string )
+                return True
+            if is_array( no_const ):
+                logger.debug( "__contains_noncopyable_mem_var - %s - TRUE - containes const member variable - array" % class_.decl_string )
                 return True
         if is_class( type_ ):
             cls = type_.declaration
             if is_noncopyable( cls ):
+                logger.debug( "__contains_noncopyable_mem_var - %s - TRUE - containes member variable - class that is not copyable" % class_.decl_string )
                 return True
-    return False
+    logger.debug( "__contains_noncopyable_mem_var - %s - false - doesn't contains noncopyable members" % class_.decl_string )
+
+def __is_noncopyable_single( class_):
+    """implementation details"""
+    #It is not enough to check base classes, we should also to check
+    #member variables.
+    logger = utils.loggers.cxx_parser
+
+    if has_copy_constructor( class_ ) \
+       and has_public_constructor( class_ ) \
+       and has_public_assign( class_ ) \
+       and has_public_destructor( class_ ):
+        msg = os.linesep.join([
+            "__is_noncopyable_single - %s - COPYABLE:" % class_.decl_string
+            , "    trivial copy constructor: yes"
+            , "    public constructor: yes"
+            , "    public assign: yes"
+            , "    public destructor: yes"
+        ])
+        logger.debug( msg )
+        return False
+    if __contains_noncopyable_mem_var( class_ ):
+        logger.debug( "__is_noncopyable_single(TRUE) - %s - contains noncopyable members" % class_.decl_string )
+        return True
+    else:        
+        logger.debug( "__is_noncopyable_single(FALSE) - %s - COPYABLE, because is doesn't contains noncopyable members" % class_.decl_string )
+        return False
 
 def is_noncopyable( class_ ):
     """returns True, if class is noncopyable, False otherwise"""
+    logger = utils.loggers.cxx_parser        
     class_ = class_traits.get_declaration( class_ )
+    
+    true_header = "is_noncopyable(TRUE) - %s - " % class_.decl_string
+    false_header = "is_noncopyable(false) - %s - " % class_.decl_string
     
     if class_.class_type == class_declaration.CLASS_TYPES.UNION:
         return False
-    for base_desc in class_.recursive_bases:
-        assert isinstance( base_desc, class_declaration.hierarchy_info_t )
-        if base_desc.related_class.decl_string in ('::boost::noncopyable', '::boost::noncopyable_::noncopyable' ):
-            return True
-        if not has_trivial_copy( base_desc.related_class ):
-            protected_ctrs = filter( lambda x: isinstance( x, calldef.constructor_t ) \
-                                               and x.is_copy_constructor
-                                     , base_desc.related_class.protected_members )
-            if not protected_ctrs:
-                return True
-
-        if __is_noncopyable_single( base_desc.related_class ):
-            return True
 
     if class_.is_abstract:
+        logger.debug( true_header + "abstract client" )
         return True
-    elif not has_trivial_copy( class_ ):
+
+    #if class has public, user defined copy constructor, than this class is 
+    #copyable
+    copy_ = class_.find_copy_constructor()
+    if copy_ and copy_.access_type == 'public' and not copy_.is_artificial:
+        return False
+    
+    for base_desc in class_.recursive_bases:
+        assert isinstance( base_desc, class_declaration.hierarchy_info_t )    
+        if base_desc.related_class.decl_string in ('::boost::noncopyable', '::boost::noncopyable_::noncopyable' ):
+            logger.debug( true_header + "derives from boost::noncopyable" )
+            return True        
+        if not has_copy_constructor( base_desc.related_class ):
+            base_copy_ = base_desc.related_class.find_copy_constructor()
+            if base_copy_:
+                if base_copy_.access_type == 'private':
+                    logger.debug( true_header + "there is private copy constructor" )
+                    return True
+            else:
+                if __is_noncopyable_single( base_desc.related_class ):
+                    logger.debug( true_header + "__is_noncopyable_single returned True" )
+                    return True
+        if __is_noncopyable_single( base_desc.related_class ):
+            logger.debug( true_header + "__is_noncopyable_single returned True" )
+            return True
+        
+    if not has_copy_constructor( class_ ):
+        logger.debug( true_header + "does not have trival copy constructor" )
         return True
     elif not has_public_constructor( class_ ):
+        logger.debug( true_header + "does not have a public constructor" )
         return True
     elif has_destructor( class_ ) and not has_public_destructor( class_ ):
+        logger.debug( true_header + "has private destructor")
         return True
     else:
         return __is_noncopyable_single( class_ )
-
 
 def is_defined_in_xxx( xxx, cls ):
     """small helper function, that checks whether class ( C{cls} ) is defined

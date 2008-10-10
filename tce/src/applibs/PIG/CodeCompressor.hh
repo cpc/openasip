@@ -32,7 +32,7 @@
  * Macro definitions for defining code compressor plugins for program image
  * generator.
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

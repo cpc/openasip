@@ -29,7 +29,7 @@
 /**
  * @file OperationDAGSelectorTest.hh
  *
- * @author Mikael Lepistö 2008 (tmlepist@cs.tut.fi)
+ * @author Mikael Lepistö 2008 (tmlepist-no.spam-cs.tut.fi)
  * @note rating: red
  */
 

@@ -32,7 +32,7 @@
  * A test suite for CostDBEntryStats and CostDBEntryStatsRF, CostDBEntryStatsFU
  * classes.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva@tut.fi)
+ * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  */    
 
 #ifndef TTA_COSTDB_ENTRY_STATS_TEST_HH

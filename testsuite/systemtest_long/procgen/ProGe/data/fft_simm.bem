@@ -15,11 +15,11 @@
 
   <map-ports name="fu6_t">
     <extra-bits>0</extra-bits>
-    <fu-port-code fu="fu6" name="trigger" operation="ld">
+    <fu-port-code fu="fu6" name="trigger" operation="ldw">
       <encoding>0</encoding>
       <extra-bits>0</extra-bits>
     </fu-port-code>
-    <fu-port-code fu="fu6" name="trigger" operation="st">
+    <fu-port-code fu="fu6" name="trigger" operation="stw">
       <encoding>1</encoding>
       <extra-bits>0</extra-bits>
     </fu-port-code>
@@ -27,11 +27,11 @@
 
   <map-ports name="fu7_t">
     <extra-bits>0</extra-bits>
-    <fu-port-code fu="fu7" name="trigger" operation="ld">
+    <fu-port-code fu="fu7" name="trigger" operation="ldw">
       <encoding>0</encoding>
       <extra-bits>0</extra-bits>
     </fu-port-code>
-    <fu-port-code fu="fu7" name="trigger" operation="st">
+    <fu-port-code fu="fu7" name="trigger" operation="stw">
       <encoding>1</encoding>
       <extra-bits>0</extra-bits>
     </fu-port-code>
@@ -173,12 +173,6 @@
     <rf-port-code index-width="1" rf="boolean0"/>
   </map-ports>
 
-  <long-immediate-tag>
-    <pos>18</pos>
-    <extra-bits>0</extra-bits>
-    <map name="no_limm">0</map>
-  </long-immediate-tag>
-
   <slot name="m1">
     <pos>0</pos>
     <extra-bits>0</extra-bits>
@@ -189,8 +183,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -226,8 +220,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -281,8 +275,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -333,8 +327,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -382,8 +376,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -425,8 +419,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -462,8 +456,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -529,8 +523,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -566,8 +560,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -603,8 +597,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -640,8 +634,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -695,8 +689,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -741,8 +735,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -786,11 +780,11 @@
       <pos>0</pos>
       <extra-bits>0</extra-bits>
       <id-pos>left</id-pos>
-      <socket name="fu7_o">
-        <map extra-bits="0">1</map>
+      <socket name="fu7_t">
+        <map codes="fu7_t" extra-bits="0">0</map>
       </socket>
       <no-operation>
-        <map extra-bits="0">0</map>
+        <map extra-bits="0">1</map>
       </no-operation>
     </destination>
   </slot>
@@ -805,8 +799,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -823,11 +817,11 @@
       <pos>0</pos>
       <extra-bits>0</extra-bits>
       <id-pos>left</id-pos>
-      <socket name="fu7_t">
-        <map codes="fu7_t" extra-bits="0">0</map>
+      <socket name="fu7_o">
+        <map extra-bits="0">1</map>
       </socket>
       <no-operation>
-        <map extra-bits="0">1</map>
+        <map extra-bits="0">0</map>
       </no-operation>
     </destination>
   </slot>
@@ -842,8 +836,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -885,8 +879,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -928,8 +922,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>
@@ -965,8 +959,8 @@
       <reg-guard-code index="0" inv="true" rf="boolean0">3</reg-guard-code>
       <reg-guard-code index="1" inv="false" rf="boolean0">4</reg-guard-code>
       <reg-guard-code index="1" inv="true" rf="boolean0">5</reg-guard-code>
-      <always-true-guard-code>1</always-true-guard-code>
-      <always-false-guard-code>0</always-false-guard-code>
+      <always-true-guard-code>0</always-true-guard-code>
+      <always-false-guard-code>1</always-false-guard-code>
     </guard>
     <source>
       <pos>1</pos>

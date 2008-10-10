@@ -19,6 +19,12 @@ class linker_t( decl_visitor_t, type_visitor_t, object ):
         self.__files = files
         self.__inst = None
         
+        self.__compiler = None 
+        if self.__decls:
+            for d in self.__decls.itervalues():
+                self.__compiler = d.compiler
+                break
+    
     def _get_inst(self):
         return self.__inst
     def _set_inst(self, inst):
@@ -37,10 +43,12 @@ class linker_t( decl_visitor_t, type_visitor_t, object ):
             base = declarated_t( declaration=self.__decls[ type_id ] )
             self.__types[type_id] = base
             return base
+        elif '...' == type_id:
+            return ellipsis_t()
         else:
             return unknown_t()
 
-    def __link_compound_type(self):
+    def __link_compound_type(self):        
         self.__inst.base = self.__link_type( self.__inst.base )
 
     def __link_members(self):
@@ -229,7 +237,13 @@ class linker_t( decl_visitor_t, type_visitor_t, object ):
         self.__link_compound_type()
 
     def visit_pointer( self ):
-        self.__link_compound_type()
+        if '0.9' in self.__compiler and isinstance( self.__inst.base, member_variable_type_t ):
+            original_inst = self.__inst
+            self.__inst = self.__inst.base 
+            self.visit_member_variable_type()
+            self.__inst = original_inst
+        else:
+            self.__link_compound_type()
 
     def visit_reference( self ):
         self.__link_compound_type()
@@ -252,3 +266,7 @@ class linker_t( decl_visitor_t, type_visitor_t, object ):
     def visit_declarated( self ):
         if isinstance( self.__inst.declaration, types.StringTypes ):
             self.__inst.declaration = self.__decls[self.__inst.declaration]
+
+    def visit_restrict( self ):
+        self.__link_compound_type()
+

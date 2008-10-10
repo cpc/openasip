@@ -30,7 +30,7 @@
  * @file GUIOptionsSerializerTest.hh 
  * A test suite for GUIOptionsSerializer.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
  */
 
 #ifndef GUIOptionsSerializerTest_HH

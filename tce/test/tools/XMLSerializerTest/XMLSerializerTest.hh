@@ -30,7 +30,7 @@
  * @file XMLSerializerTest.hh
  * A test suite for XMLSerializer.
  *
- * @author Lasse Laasonen (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen (lasse.laasonen-no.spam-tut.fi)
  * @note reviewed 8 Jun 2004 by tr, jm, am, ll
  * @note rating: red
  */

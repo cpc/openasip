@@ -1,5 +1,13 @@
 CURDIR = $(shell pwd)
 
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
+
+HDB_DIR = ${SRC_ROOT_DIR}/applibs/hdb
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+MACH_DIR = ${SRC_ROOT_DIR}/base/mach
+WXTOOLKIT_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit
+
 LIB_HDB_DIR = ../../applibs/hdb
 LIB_TCETOOLS_DIR = ../../tools
 LIB_WXTOOLKIT_DIR = ../../applibs/wxToolkit
@@ -43,10 +51,11 @@ hdbeditor_LDADD = ${LIB_TCETOOLS_DIR}/libtcetools.la \
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 
-AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} \
-	      -I${LIB_HDB_DIR} \
-	      -I${LIB_MACH_DIR} \
-	      -I${LIB_WXTOOLKIT_DIR}
+AM_CPPFLAGS = -I${TOOLS_DIR} \
+	      -I${HDB_DIR} \
+	      -I${MACH_DIR} \
+	      -I${WXTOOLKIT_DIR}
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = -UNDEBUG ${AM_WXCXXFLAGS} 
 

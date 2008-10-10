@@ -31,9 +31,9 @@
  *
  * Declaration of FileSystem class.
  *
- * @author Pekka J‰‰skel‰inen 2005 (pekka.jaaskelainen@tut.fi)
- * @author Viljami Korhonen 2007 (viljami.korhonen@tut.fi)
- * @author Esa M‰‰tt‰ 2007 (esa.maatta@tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -64,6 +64,7 @@ public:
     static bool fileExists(const std::string fileName);
     static bool fileIsWritable(const std::string fileName);
     static bool fileIsReadable(const std::string fileName);
+    static bool fileIsExecutable(const std::string fileName);
     static bool fileIsCreatable(const std::string fileName);
     static bool fileIsDirectory(const std::string fileName);
 

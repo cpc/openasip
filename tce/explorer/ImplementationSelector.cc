@@ -29,7 +29,7 @@
 /**
  * @file ImplementationSelector.cc
  *
- * @author Esa Määttä 2008 (esa.maatta@tut.fi)
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 

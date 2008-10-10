@@ -30,7 +30,7 @@
  * @file GuardTest.hh 
  * A test suite for Guard.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 

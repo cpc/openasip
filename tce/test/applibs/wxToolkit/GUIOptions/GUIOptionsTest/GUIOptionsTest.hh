@@ -30,7 +30,7 @@
  * @file GUIOptionsTest.hh 
  * A test suite for GUIOptions.
  *
- * @author Lasse Laasonen 2004 (lasse.laasonen@tut.fi)
+ * @author Lasse Laasonen 2004 (lasse.laasonen-no.spam-tut.fi)
  */
 
 #ifndef GUIOptionsTest_HH

@@ -32,7 +32,7 @@
  * A test suite for ReferenceManager. Tests SafePointer and
  * reference manager co-operation.
  *
- * @author Pekka Jääskeläinen 2003 (pjaaskel@cs.tut.fi)
+ * @author Pekka Jääskeläinen 2003 (pjaaskel-no.spam-cs.tut.fi)
  * @note reviewed 26 Sep 2003 by rm, jn
  *
  */

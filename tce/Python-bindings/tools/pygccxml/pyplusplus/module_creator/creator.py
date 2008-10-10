@@ -52,8 +52,7 @@ class creator_t( declarations.decl_visitor_t ):
                   , types_db=None
                   , target_configuration=None
                   , enable_indexing_suite=True
-                  , doc_extractor=None
-                  , already_exposed_dbs=None):
+                  , doc_extractor=None ):
         """Constructor.
 
         @param decls: Declarations that should be exposed in the final module.
@@ -91,7 +90,7 @@ class creator_t( declarations.decl_visitor_t ):
         if not self.__types_db:
             self.__types_db = types_database.types_database_t()
 
-        self.__extmodule = code_creators.module_t()
+        self.__extmodule = code_creators.module_t( declarations.get_global_namespace(decls) )
         if boost_python_ns_name:
             bp_ns_alias = code_creators.namespace_alias_t( alias=boost_python_ns_name
                                                            , full_namespace_name='::boost::python' )
@@ -100,10 +99,10 @@ class creator_t( declarations.decl_visitor_t ):
         self.__module_body = code_creators.module_body_t( name=module_name )
 
         self.__extmodule.adopt_creator( self.__module_body )
-        
+
         self.__opaque_types_manager = opaque_types_manager.manager_t( self.__extmodule )
-        self.__dependencies_manager = dependencies_manager.manager_t(self.decl_logger, already_exposed_dbs)
-        
+        self.__dependencies_manager = dependencies_manager.manager_t(self.decl_logger)
+
         prepared_decls = self._prepare_decls( decls, doc_extractor )
         self.__decls = sort_algorithms.sort( prepared_decls )
 
@@ -117,8 +116,8 @@ class creator_t( declarations.decl_visitor_t ):
     def __print_readme( self, decl ):
         readme = decl.readme()
         if not readme:
-            return 
-        
+            return
+
         if not decl.exportable:
             reason = readme[0]
             readme = readme[1:]
@@ -135,21 +134,20 @@ class creator_t( declarations.decl_visitor_t ):
 
             if isinstance( decl, declarations.namespace_t ):
                 continue
-            
+
             if not decl.exportable:
                 #leave only decls that user wants to export and that could be exported
                 self.__print_readme( decl )
                 continue
-            
-            if self.__dependencies_manager.is_already_exposed( decl ):
+
+            if decl.already_exposed:
                 #check wether this is already exposed in other module
-                decl.already_exposed = True
                 continue
- 
+
             if isinstance( decl.parent, declarations.namespace_t ):
                 #leave only declarations defined under namespace, but remove namespaces
                 to_be_exposed.append( decl )
-            
+
             #Right now this functionality introduce a bug: declarations that should
             #not be exported for some reason are not marked as such. I will need to
             #find out.
@@ -160,12 +158,12 @@ class creator_t( declarations.decl_visitor_t ):
 
             #if isinstance( decl, declarations.variable_t ):
                 #self.__types_db.update( decl )
-                
+
             if doc_extractor:
                 decl.documentation = doc_extractor( decl )
 
             self.__print_readme( decl )
-            
+
         return to_be_exposed
 
     def _adopt_free_operator( self, operator ):
@@ -283,11 +281,10 @@ class creator_t( declarations.decl_visitor_t ):
         used_containers = filter( lambda cls: cls.indexing_suite.include_files
                                   , used_containers )
         used_containers.sort( cmp_by_name )
-        for cls in used_containers: 
+        for cls in used_containers:
             self.__print_readme( cls )
 
-            if self.__dependencies_manager.is_already_exposed( cls ):
-                cls.already_exposed = True
+            if cls.already_exposed:
                 continue
 
             cls_creator = create_cls_cc( cls )
@@ -308,12 +305,14 @@ class creator_t( declarations.decl_visitor_t ):
                 class_traits = declarations.class_traits
                 if not ( None is element_type ) and class_traits.is_my_case( element_type ):
                     value_cls = class_traits.get_declaration( element_type )
-                    if value_cls not in created_value_traits:
+                    has_prerequisits = value_cls.less_than_comparable \
+                                       and value_cls.equality_comparable                    
+                    if ( not has_prerequisits ) and ( value_cls not in created_value_traits ):
                         created_value_traits.add( value_cls )
                         element_type_cc = code_creators.value_traits_t( value_cls )
                         self.__extmodule.adopt_declaration_creator( element_type_cc )
                 cls_creator.adopt_creator( code_creators.indexing_suite2_t(cls) )
-                
+
         creators.reverse()
         self.__module_body.adopt_creators( creators, 0 )
 
@@ -338,7 +337,7 @@ class creator_t( declarations.decl_visitor_t ):
             creator.target_configuration = self.__target_configuration
         #last action.
         self._append_user_code()
-        
+
         add_include = self.__extmodule.add_include
         #add system headers
         system_headers = self.__extmodule.get_system_headers( recursive=True, unique=True )
@@ -346,12 +345,12 @@ class creator_t( declarations.decl_visitor_t ):
              , system_headers )
         #add user defined header files
         if decl_headers is None:
-            decl_headers = declarations.declaration_files( self.__decls )        
+            decl_headers = declarations.declaration_files( self.__decls )
         map( lambda header: add_include( header, user_defined=False, system=False )
              , decl_headers )
-        
+
         self.__dependencies_manager.inform_user()
-        
+
         return self.__extmodule
 
     def visit_member_function( self ):
@@ -360,7 +359,7 @@ class creator_t( declarations.decl_visitor_t ):
         self.__dependencies_manager.add_exported( self.curr_decl )
         if None is self.curr_decl.call_policies:
             self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-        
+
         maker_cls, fwrapper_cls = creators_wizard.find_out_mem_fun_creator_classes( self.curr_decl )
 
         maker = None
@@ -385,7 +384,7 @@ class creator_t( declarations.decl_visitor_t ):
                 maker = maker_cls( function=self.curr_decl )
             self.curr_code_creator.adopt_creator( maker )
             self.__opaque_types_manager.register_opaque( maker, self.curr_decl )
-        
+
         if self.curr_decl.has_static:
             #static_method should be created only once.
             found = filter( lambda creator: isinstance( creator, code_creators.static_method_t )
@@ -399,16 +398,13 @@ class creator_t( declarations.decl_visitor_t ):
     def visit_constructor( self ):
         self.__types_db.update( self.curr_decl )
         self.__dependencies_manager.add_exported( self.curr_decl )
-        if self.curr_decl.allow_implicit_conversion:
-            maker = code_creators.casting_constructor_t( constructor=self.curr_decl )
-            self.__module_body.adopt_creator( maker )
 
         cwrapper = None
         if self.curr_decl.parent.is_wrapper_needed():
             class_wrapper = self.curr_code_creator.wrapper
             cwrapper = code_creators.constructor_wrapper_t( constructor=self.curr_decl )
             class_wrapper.adopt_creator( cwrapper )
-#TODO: FT for constructor            
+        #TODO: FT for constructor
             #~ if self.curr_decl.transformations:
                 #~ cwrapper = code_creators.constructor_transformed_wrapper_t( constructor=self.curr_decl )
                 #~ class_wrapper.adopt_creator( cwrapper )
@@ -418,7 +414,6 @@ class creator_t( declarations.decl_visitor_t ):
                 #~ class_wrapper.adopt_creator( cwrapper )
                 #~ self.__module_body.adopt_creator( cwrapper )
                 #~ self.curr_code_creator.associated_decl_creators.append( cwrapper )
-                
         #~ maker = None
         #~ if self.curr_decl.transformations:
             #~ maker = code_creators.constructor_transformed_t( constructor=self.curr_decl )
@@ -427,6 +422,12 @@ class creator_t( declarations.decl_visitor_t ):
         if None is self.curr_decl.call_policies:
             self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
         self.curr_code_creator.adopt_creator( maker )
+
+        if self.curr_decl.allow_implicit_conversion:
+            maker = code_creators.casting_constructor_t( constructor=self.curr_decl )
+            #casting constructor will be generated in the same file as class
+            self.curr_code_creator.adopt_creator( maker )
+
 
     def visit_destructor( self ):
         pass
@@ -444,13 +445,13 @@ class creator_t( declarations.decl_visitor_t ):
         self.__dependencies_manager.add_exported( self.curr_decl )
         if None is self.curr_decl.call_policies:
             self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-        
+
         self.__types_db.update( self.curr_decl )
         if not self.curr_decl.parent.is_abstract and not declarations.is_reference( self.curr_decl.return_type ):
             maker = code_creators.casting_operator_t( operator=self.curr_decl )
             self.__module_body.adopt_creator( maker )
             self.__opaque_types_manager.register_opaque( maker, self.curr_decl )
-            
+
         #what to do if class is abstract
         maker = code_creators.casting_member_operator_t( operator=self.curr_decl )
         self.curr_code_creator.adopt_creator( maker )
@@ -483,7 +484,7 @@ class creator_t( declarations.decl_visitor_t ):
                     self.curr_code_creator.adopt_creator( overloads_reg )
                     overloads_reg.associated_decl_creators.append( overloads_cls_creator )
                     self.__opaque_types_manager.register_opaque( overloads_reg, overloads )
-                    
+
                     ctext_t = code_creators.custom_text_t
                     for f in overloads:
                         uc_creators = map( lambda uc: ctext_t( uc.text ), f.declaration_code )
@@ -495,7 +496,7 @@ class creator_t( declarations.decl_visitor_t ):
             self.__dependencies_manager.add_exported( self.curr_decl )
             if None is self.curr_decl.call_policies:
                 self.curr_decl.call_policies = self.__call_policies_resolver( self.curr_decl )
-            
+
             maker = None
             if self.curr_decl.transformations:
                 wrapper = code_creators.free_fun_transformed_wrapper_t( self.curr_decl )
@@ -512,7 +513,7 @@ class creator_t( declarations.decl_visitor_t ):
             insert_pos = self.__extmodule.creators.index( self.__module_body )
             self.__extmodule.adopt_creators( uc_creators, insert_pos )
             maker.associated_decl_creators.extend( uc_creators )
-            
+
     def visit_free_operator( self ):
         self.__types_db.update( self.curr_decl )
         self.__free_operators.append( self.curr_decl )
@@ -570,18 +571,43 @@ class creator_t( declarations.decl_visitor_t ):
                 self.curr_code_creator.wrapper.adopt_creator( wrapper )
             else:
                 self.__extmodule.adopt_declaration_creator( wrapper )
-            if declarations.has_trivial_copy( self.curr_decl ):
-                #~ #I don't know but sometimes boost.python requieres
-                #~ #to construct wrapper from wrapped classe
-                copy_constr = self.curr_decl.constructor( lambda c: c.is_copy_constructor, recursive=False )
-                if not self.curr_decl.noncopyable and copy_constr.is_artificial:
-                    cccc = code_creators.copy_constructor_wrapper_t( constructor=copy_constr )
+            #next constructors are not present in code, but compiler generated
+            #Boost.Python requiers them to be declared in the wrapper class
+            if '0.9' in self.curr_decl.compiler:
+                copy_constr = self.curr_decl.find_copy_constructor()
+                add_to_wrapper = False
+                if declarations.has_copy_constructor( self.curr_decl ):
+                    #find out whether user or compiler defined it
+                    if self.curr_decl.noncopyable:
+                        add_to_wrapper = False
+                    elif not copy_constr:
+                        add_to_wrapper = True #compiler defined will not be exposed manually later
+                    elif copy_constr.is_artificial:
+                        add_to_wrapper = True #compiler defined will not be exposed manually later
+                if add_to_wrapper:
+                    cccc = code_creators.copy_constructor_wrapper_t( class_=self.curr_decl)
                     wrapper.adopt_creator( cccc )
-                null_constr = declarations.find_trivial_constructor(self.curr_decl)
-                if null_constr and null_constr.is_artificial:
-                    #this constructor is not going to be exposed
-                    tcons = code_creators.null_constructor_wrapper_t( constructor=null_constr )
+                trivial_constr = self.curr_decl.find_trivial_constructor()
+                add_to_wrapper = False
+                if declarations.has_trivial_constructor( self.curr_decl ):
+                    if not trivial_constr:
+                        add_to_wrapper = True
+                    elif trivial_constr.is_artificial:
+                        add_to_wrapper = True
+                if add_to_wrapper:
+                    tcons = code_creators.null_constructor_wrapper_t( class_=self.curr_decl )
                     wrapper.adopt_creator( tcons )
+            else:
+                if declarations.has_copy_constructor( self.curr_decl ):
+                    copy_constr = self.curr_decl.find_copy_constructor()
+                    if not self.curr_decl.noncopyable and copy_constr.is_artificial:
+                        cccc = code_creators.copy_constructor_wrapper_t( class_=self.curr_decl)
+                        wrapper.adopt_creator( cccc )
+                    null_constr = self.curr_decl.find_trivial_constructor()
+                    if null_constr and null_constr.is_artificial:
+                        #this constructor is not going to be exposed
+                        tcons = code_creators.null_constructor_wrapper_t( class_=self.curr_decl )
+                        wrapper.adopt_creator( tcons )
 
         exposed = self.expose_overloaded_mem_fun_using_macro( cls_decl, cls_cc )
 
@@ -648,7 +674,7 @@ class creator_t( declarations.decl_visitor_t ):
     def visit_variable(self):
         self.__types_db.update( self.curr_decl )
         self.__dependencies_manager.add_exported( self.curr_decl )
-        
+
         if declarations.is_array( self.curr_decl.type ):
             if self._register_array_1( self.curr_decl.type ):
                 array_1_registrator = code_creators.array_1_registrator_t( array_type=self.curr_decl.type )

@@ -35,7 +35,7 @@
  * Helper scheduler module for CycleLookBackSoftwareBypasser class.
  * Creates a CycleLookBackSoftwareBypasser which is the actual bypasser class.
  *
- * @author Heikki Kultala 2007 (heikki.kultala@tut.fi)
+ * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 #include <cstdlib>

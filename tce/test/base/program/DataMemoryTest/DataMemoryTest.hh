@@ -32,8 +32,8 @@
  * A test suite for DataMemory class, copying POM and
  * ProgramWriter and TPEFProgramFactory classes.
  *
- * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen@tut.fi)
- * @author Mikael Lepistö 2007 (mikael.lepisto@tut.fi)
+ * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Mikael Lepistö 2007 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 

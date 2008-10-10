@@ -66,7 +66,3 @@ class enum_t( registration_based.registration_based_t
 
     def _get_system_headers_impl( self ):
         return []
-
-    def register_exposed( self, exposed_db ):
-        """Register exposed declaration in L{exposed data base<utils.exposed_decls_db_t>}"""
-        exposed_db.expose( self.declaration )

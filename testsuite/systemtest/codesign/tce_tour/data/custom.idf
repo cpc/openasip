@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<adf-implementation>
+
+  <ic-decoder-plugin>
+    <name>DefaultICDecoder</name>
+    <file>../../../../../tce/icdecoder_plugins/DefaultICDecoderPlugin.so</file>
+    <parameter name="bustrace">
+      <value>yes</value>
+    </parameter>
+    <parameter name="bustracestartingcycle">
+      <value>5</value>
+    </parameter>
+  </ic-decoder-plugin>
+
+  <fu name="lsu">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>62</fu-id>
+  </fu>
+
+  <fu name="alu_comp">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>260</fu-id>
+  </fu>
+
+  <fu name="logic">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>22</fu-id>
+  </fu>
+
+  <fu name="mul">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>88</fu-id>
+  </fu>
+
+  <fu name="ext1">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <fu name="ext2">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>83</fu-id>
+  </fu>
+
+  <fu name="shifter">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>46</fu-id>
+  </fu>
+
+  <fu name="rotator">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <fu-id>250</fu-id>
+  </fu>
+
+  <fu name="reflecter">
+    <hdb-file>data/tour.hdb</hdb-file>
+    <fu-id>1</fu-id>
+  </fu>
+
+  <rf name="RF">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>958</rf-id>
+  </rf>
+
+  <rf name="bool">
+    <hdb-file>../../../../../tce/hdb/asic_130nm_1.5V.hdb</hdb-file>
+    <rf-id>96</rf-id>
+  </rf>
+
+</adf-implementation>

@@ -31,9 +31,9 @@
  *
  * Definition of Operation class.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel@cs.tut.fi)
- * @author Mikael Lepistö 2007 (tmlepist@cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2007 (tmlepist-no.spam-cs.tut.fi)
  * @note rating: yellow
  * @note reviewed 17 August 2004 by jn, ll, tr, pj
  */

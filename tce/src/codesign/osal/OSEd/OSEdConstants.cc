@@ -31,12 +31,13 @@
  *
  * Definition of OSEdConstants.cc class.
  *
- * @author Jussi Nykänen 2004 (nykanen@cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
 #include <wx/treectrl.h>
 #include "OSEdConstants.hh"
+#include "Environment.hh"
 
 using std::string;
 
@@ -60,7 +61,7 @@ const string OSEdConstants::USER_MANUAL_NAME = "index.html";
 const string OSEdConstants::BEHAVIOR_TEMPLATE_FILE_NAME = 
 "behavior_definition_template.cc";
 
-const string OSEdConstants::DEFAULT_EDITOR = "/usr/bin/emacs";
+const string OSEdConstants::DEFAULT_EDITOR = Environment::defaultTextEditorPath();
 
 const wxString OSEdConstants::APPLICATION_NAME = _T("OSEd");
 

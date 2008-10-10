@@ -32,7 +32,7 @@
  * Declaration of prototype of Resource Model:
  * declaration of the ExecutionPipelineResource class.
  *
- * @author Vladimir Guzma 2006 (vladimir.guzma@tut.fi)
+ * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -83,6 +83,10 @@ public:
         const std::string& opName,
         const int cycle,
         const int resIndex);
+    void setLatency(
+        const std::string& opName,
+        const int output,
+        const int latency);
     int highestKnownCycle() const;
     int nextResultCycle(int cycle, const MoveNode& node) const;
 
@@ -119,12 +123,6 @@ private:
     std::map<std::string, int> operationSupported_;
     // Pipelines for operations
     std::vector<ResourceTable> operationPipelines_;
-    // Records operation triggered in cycle. Necessary for opcodeSetting
-    // and triggering ports separation
-    // Each opcode setting port also triggers but non opcode setting ports
-    // could trigger too. In which case the operation set by last
-    // opcode setting move is started.
-    std::map<int, std::string> opcodeSettingCycle_;
     // Stores for each result ready in a cycle in which it was ready
     // counts number of results that are ready in that cycle
     std::vector<std::pair<ProgramOperation*, int> > resultWriten_;
@@ -140,6 +138,8 @@ private:
     std::set<MoveNode*, MoveNode::Comparator> assignedSourceNodes_;
     // stores the set of assigned destination nodes
     std::set<MoveNode*, MoveNode::Comparator> assignedDestinationNodes_;
+    // latencies of all operations supported by this FU.
+    std::vector<std::map<int,int> > operationLatencies_;
 
     mutable int cachedSize_;
 };

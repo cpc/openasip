@@ -31,7 +31,7 @@
  *
  * Definition of BidirBridgeFigure class.
  *
- * @author Ari Metsähalme 2004 (ari.metsahalme@tut.fi)
+ * @author Ari Metsähalme 2004 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: yellow
  * @note reviewed Jul 27 2004 by ml, pj, am
  */
