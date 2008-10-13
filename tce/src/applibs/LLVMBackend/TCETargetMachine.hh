@@ -86,7 +86,7 @@ namespace llvm {
         
         virtual bool addInstSelector(FunctionPassManager& pm, bool fast);
         virtual bool addAssemblyEmitter(
-            FunctionPassManager& pm, bool fast, std::ostream& out);
+            FunctionPassManager& pm, bool fast, llvm::raw_ostream& out);
 
         static unsigned getModuleMatchQuality(const Module &M);
 

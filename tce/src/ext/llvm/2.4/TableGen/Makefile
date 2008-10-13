@@ -248,7 +248,7 @@ oldincludedir = /usr/include
 pdfdir = ${docdir}
 pkgpyexecdir = 
 pkgpythondir = 
-prefix = /usr/local
+prefix = /usr/local/stow/tce-trunk
 program_transform_name = s,x,x,
 psdir = ${docdir}
 pyexecdir = 
@@ -308,9 +308,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --gnu  src/ext/llvm/2.4/TableGen/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign  src/ext/llvm/2.4/TableGen/Makefile'; \
 	cd $(top_srcdir) && \
-	  $(AUTOMAKE) --gnu  src/ext/llvm/2.4/TableGen/Makefile
+	  $(AUTOMAKE) --foreign  src/ext/llvm/2.4/TableGen/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \

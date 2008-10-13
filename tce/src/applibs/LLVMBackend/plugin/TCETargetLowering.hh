@@ -70,37 +70,41 @@ namespace llvm {
         TCETargetLowering(llvm::TCETargetMachine& m);
         virtual ~TCETargetLowering();
 
-        virtual llvm::SDOperand LowerOperation(
-            llvm::SDOperand op, llvm::SelectionDAG& dag);
+        virtual llvm::SDValue LowerOperation(
+            llvm::SDValue op, llvm::SelectionDAG& dag);
 
-        virtual std::vector<llvm::SDOperand>
-            LowerArguments(llvm::Function& f, llvm::SelectionDAG& dag);
+        virtual void
+        LowerArguments(
+            llvm::Function& f, 
+            llvm::SelectionDAG& dag,
+            SmallVectorImpl<SDValue>& argValues);
 
-        virtual std::pair<llvm::SDOperand, llvm::SDOperand>
+        virtual std::pair<llvm::SDValue, llvm::SDValue>
             LowerCallTo(
-                llvm::SDOperand chain,
+                llvm::SDValue chain,
                 const llvm::Type* retTy,
                 bool retTyIsSigned,
                 bool,
                 bool isVarArg,
+                bool,
                 unsigned cc,
                 bool isTailCall,
-                llvm::SDOperand callee,
+                llvm::SDValue callee,
                 llvm::TargetLowering::ArgListTy& args,
                 llvm::SelectionDAG& dag);
 
         virtual const char* getTargetNodeName(unsigned opcode) const;
 
-        llvm::SDOperand LowerRET(llvm::SDOperand op, llvm::SelectionDAG& dag);
+        llvm::SDValue LowerRET(llvm::SDValue op, llvm::SelectionDAG& dag);
 
         virtual std::pair<unsigned, const TargetRegisterClass*>
             getRegForInlineAsmConstraint(
                 const std::string& constraint,
-                MVT::ValueType vt) const;
+                llvm::MVT vt) const;
 
-        SDOperand lowerSELECT(SDOperand op, SelectionDAG& dag);
+        SDValue lowerSELECT(SDValue op, SelectionDAG& dag);
                 
-        virtual MVT::ValueType getSetCCResultType(const SDOperand &) const {
+        virtual llvm::MVT getSetCCResultType(const SDValue &) const {
             return MVT::i1;
         }
 

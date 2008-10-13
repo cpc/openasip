@@ -63,7 +63,7 @@ namespace llvm {
        virtual const TargetRegisterInfo* getRegisterInfo() const = 0;
        virtual FunctionPass* createISelPass(TCETargetMachine* tm) = 0;
        virtual FunctionPass* createAsmPrinterPass(
-           std::ostream& o, TCETargetMachine* tm) = 0;
+           llvm::raw_ostream& o, TCETargetMachine* tm) = 0;
 
        /// Returns name of the physical register file corresponding
        /// to a generated register ID.

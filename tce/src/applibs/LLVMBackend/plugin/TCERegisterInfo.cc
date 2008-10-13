@@ -101,7 +101,7 @@ TCERegisterInfo::eliminateFrameIndex(
 
     // Frame index operand number
     unsigned i = 0;
-    while (!mi.getOperand(i).isFrameIndex()) {
+    while (!mi.getOperand(i).isFI()) {
         i++;
         assert(i < mi.getNumOperands() && ("No FrameIndex operand found!"));
     }
@@ -316,7 +316,11 @@ TCERegisterInfo::reMaterialize(
     unsigned destReg,
     const MachineInstr* orig) const {
 
+#ifdef LLVM_2_3
     MachineInstr* mi = orig->clone();
+#else
+    MachineInstr* mi = mbb.getParent()->CloneMachineInstr(orig);
+#endif
     mi->getOperand(0).setReg(destReg);
     mbb.insert(i, mi);
 }

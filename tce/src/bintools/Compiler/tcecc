@@ -232,7 +232,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
 #        "-memcpyopt " +
         "-sccp " + 
         "-instcombine -break-crit-edges -condprop -memdep -dse -mergereturn -postdomtree " + 
-        "-postdomfrontier -adce -simplifycfg -strip-dead-prototypes -printusedtypes " + 
+        "-postdomfrontier -adce -simplifycfg -strip-dead-prototypes " + 
         "-deadtypeelim -constmerge -preverify -domtree -verify" + 
         "")
     

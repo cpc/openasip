@@ -132,7 +132,7 @@ TCETargetMachine::addInstSelector(FunctionPassManager& pm, bool /* fast */) {
  */
 bool
 TCETargetMachine::addAssemblyEmitter(
-    FunctionPassManager& pm, bool /* fast */, std::ostream& out) {
+    FunctionPassManager& pm, bool /* fast */, llvm::raw_ostream& out) {
 
     // Output assembly language.
     pm.add(plugin_.createAsmPrinterPass(out, this));

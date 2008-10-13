@@ -451,7 +451,7 @@ case "$LLVM_VERSION" in
      *)
    AC_MSG_NOTICE(
    [
-Unsupported LLVM version. Only LLVM version 2.3 is supported.
+Unsupported LLVM version. Only LLVM version 2.4 is supported.
    ])
    LLVM_VERSION=
    ;;
@@ -1264,8 +1264,6 @@ AC_CONFIG_FILES([
   Python-bindings/test/RunPythonFileTests/Makefile
   src/ext/Makefile
   src/ext/llvm/Makefile
-  src/ext/llvm/2.3/Makefile
-  src/ext/llvm/2.3/TableGen/Makefile
   src/ext/llvm/2.4/Makefile
   src/ext/llvm/2.4/TableGen/Makefile 
   src/applibs/LLVMBackend/Makefile

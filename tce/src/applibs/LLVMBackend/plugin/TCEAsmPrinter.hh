@@ -43,8 +43,7 @@ namespace llvm {
 class TCEAsmPrinter : public AsmPrinter {
  public:
     TCEAsmPrinter(
-        std::ostream& o, TargetMachine& tm,
-        const TargetAsmInfo* t);
+        llvm::raw_ostream& o, TargetMachine& tm, const TargetAsmInfo* t);
 
 
    virtual ~TCEAsmPrinter();

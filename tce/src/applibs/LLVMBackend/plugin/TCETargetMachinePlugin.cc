@@ -56,7 +56,7 @@ public:
     virtual const TargetRegisterInfo* getRegisterInfo() const;
     virtual FunctionPass* createISelPass(TCETargetMachine* tm);
     virtual FunctionPass* createAsmPrinterPass(
-        std::ostream& o, TCETargetMachine* tm);
+        llvm::raw_ostream& o, TCETargetMachine* tm);
 
     virtual unsigned spDRegNum() {
         return TCE::SP;
@@ -130,7 +130,7 @@ GeneratedTCEPlugin::createISelPass(TCETargetMachine* tm) {
  */
 FunctionPass*
 GeneratedTCEPlugin::createAsmPrinterPass(
-    std::ostream& o, TCETargetMachine* tm) {
+    llvm::raw_ostream& o, TCETargetMachine* tm) {
 
     return new TCEAsmPrinter(o, *tm, tm->getTargetAsmInfo());
 }
@@ -248,9 +248,9 @@ GeneratedTCEPlugin::raPortDRegNum() {
 extern "C" {                                
     TCETargetMachinePlugin*
     create_tce_backend_plugin() {
-       TCETargetMachinePlugin* instance =
-	   new GeneratedTCEPlugin();
-       return instance;
+        TCETargetMachinePlugin* instance =
+            new GeneratedTCEPlugin();
+        return instance;
     }
     void delete_tce_backend_plugin(
         TCETargetMachinePlugin* target) {

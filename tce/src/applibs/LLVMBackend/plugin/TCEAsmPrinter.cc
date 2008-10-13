@@ -53,6 +53,7 @@
 #include <llvm/ADT/StringExtras.h>
 #include <llvm/Support/CommandLine.h>
 #include <llvm/Support/MathExtras.h>
+#include "llvm/Support/raw_ostream.h"
 
 #include "TCEAsmPrinter.hh"
 #include "TCEInstrInfo.hh"
@@ -65,7 +66,7 @@ using namespace llvm;
  * Constructor.
  */
 TCEAsmPrinter::TCEAsmPrinter(
-    std::ostream& o, TargetMachine& tm, const TargetAsmInfo* t):
+    llvm::raw_ostream& o, TargetMachine& tm, const TargetAsmInfo* t) :
     AsmPrinter(o, tm, t) {
 }
 
@@ -99,15 +100,15 @@ TCEAsmPrinter::runOnMachineFunction(MachineFunction& mf) {
     SetupMachineFunction(mf);
     EmitConstantPool(mf.getConstantPool());
 
-    O << std::endl << std::endl;
+    O << '\n' << '\n';
     CurrentFnName = Mang->getValueName(mf.getFunction());
 
     // label
     const Function* f = mf.getFunction();
-    SwitchToTextSection(getSectionForFunction(*f).c_str(), f);
+    SwitchToTextSection(f->getSection().c_str(), f);
     EmitAlignment(1);
-    O << ".globl\t" << CurrentFnName << ";" << std::endl;
-    O << CurrentFnName << ":" << std::endl;
+    O << ".globl\t" << CurrentFnName << ";\n";
+    O << CurrentFnName << ":\n";
 
     // Basic block labels are numbered.
     static unsigned bbNumber = 0;
@@ -125,7 +126,7 @@ TCEAsmPrinter::runOnMachineFunction(MachineFunction& mf) {
 
         if (i != mf.begin()) {
             printBasicBlockLabel(i, true);
-            O << std::endl;
+            O << "\n";
         }
 
         for (MachineBasicBlock::const_iterator j = i->begin();
@@ -159,20 +160,12 @@ TCEAsmPrinter::printOperand(const MachineInstr* mi, int opNum) {
         break;
     }
     case MachineOperand::MO_Immediate: {
-#ifdef LLVM_2_1
-        O << (int)mo.getImmedValue();
-#else
         O << (int)mo.getImm();
-#endif
         break;
     }
 
     case MachineOperand::MO_MachineBasicBlock:
-#ifdef LLVM_2_1
-        printBasicBlockLabel(mo.getMachineBasicBlock(), false, false);
-#else
         printBasicBlockLabel(mo.getMBB(), false, false);
-#endif
         return;
     case MachineOperand::MO_GlobalAddress: {
         O << Mang->getValueName(mo.getGlobal());
@@ -184,11 +177,7 @@ TCEAsmPrinter::printOperand(const MachineInstr* mi, int opNum) {
     case MachineOperand::MO_ConstantPoolIndex:
         O << TAI->getPrivateGlobalPrefix()
           << "CPI" << getFunctionNumber() << "_"
-#ifdef LLVM_2_1
-          << mo.getConstantPoolIndex();
-#else
           << mo.getIndex();
-#endif
         break;
     default:
         O << "<unknown operand type>";
@@ -249,7 +238,7 @@ TCEAsmPrinter::doFinalization(Module& m) {
                 continue;
             }
 
-            O << std::endl << std::endl;
+            O << "\n" << "\n";
             std::string name = Mang->getValueName(i);
             Constant* c = i->getInitializer();
 
@@ -259,12 +248,8 @@ TCEAsmPrinter::doFinalization(Module& m) {
 
                 SwitchToDataSection(".data", i);
                 O << "\t.comm ";
-#ifdef LLVM_2_1
-                O << name << ", " << td->getTypeSize(c->getType());
-#else
                 O << name << ", " << td->getTypeSizeInBits(c->getType()) / 8;
-#endif
-                O << std::endl;
+                O << "\n";
             } else {
                 switch (i->getLinkage()) {
                 case GlobalValue::LinkOnceLinkage:
@@ -276,26 +261,26 @@ TCEAsmPrinter::doFinalization(Module& m) {
                     // For now, just emit them as external.
                 case GlobalValue::ExternalLinkage:
                     // If external or appending, declare as a global symbol
-                    O << "\t.globl " << name << std::endl;
+                    O << "\t.globl " << name << "\n";
                     // FALL THROUGH
                 case GlobalValue::InternalLinkage:
                     SwitchToDataSection(".data", i);
                     break;
                 case GlobalValue::GhostLinkage:
                     cerr << "Should not have any unmaterialized functions!"
-                         << std::endl;
+                         << "\n";
                     abort();
                 case GlobalValue::DLLImportLinkage:
-                    cerr << "DLLImport linkage is not supported." << std::endl;
+                    cerr << "DLLImport linkage is not supported." << "\n";
                     abort();
                 case GlobalValue::DLLExportLinkage:
-                    cerr << "DLLExport linkage is not supported." << std::endl;
+                    cerr << "DLLExport linkage is not supported." << "\n";
                     abort();
                 default:
                     assert(0 && "Unknown linkage type!");
                 }
                 
-                O << name << ":" << std::endl;
+                O << name << ":" << "\n";
 
                 // We don't want byte arrays initialized by ascii-data.
                 // Assembler has some problems interpreting the escaped

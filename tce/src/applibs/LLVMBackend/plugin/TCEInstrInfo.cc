@@ -121,8 +121,8 @@ TCEInstrInfo::isLoadFromStackSlot(
         mi->getOpcode() == TCE::LDHi ||
         mi->getOpcode() == TCE::LDWi) {
 
-        if (mi->getOperand(1).isFrameIndex() &&
-            mi->getOperand(2).isImmediate() &&
+        if (mi->getOperand(1).isFI() &&
+            mi->getOperand(2).isImm() &&
             mi->getOperand(2).getImm() == 0) {
             
             frameIndex = mi->getOperand(1).getIndex();
@@ -143,8 +143,8 @@ TCEInstrInfo::isStoreToStackSlot(MachineInstr* mi, int& frameIndex) const {
         mi->getOpcode() == TCE::STHri ||
         mi->getOpcode() == TCE::STWir) {
 
-       if (mi->getOperand(0).isFrameIndex() &&
-           mi->getOperand(1).isImmediate() &&
+       if (mi->getOperand(0).isFI() &&
+           mi->getOperand(1).isImm() &&
            mi->getOperand(1).getImm() == 0) {
            
            frameIndex = mi->getOperand(0).getIndex();
@@ -244,7 +244,7 @@ TCEInstrInfo::loadRegFromStackSlot(
  * @param destReg Register where the value is copied to.
  * @param rc Class of the register to copy.
  */
-void
+bool
 TCEInstrInfo::copyRegToReg(
     MachineBasicBlock& mbb,
     MachineBasicBlock::iterator mbbi,
@@ -272,4 +272,5 @@ TCEInstrInfo::copyRegToReg(
         assert(
             false && "TCERegisterInfo::copyRegToReg(): Can't copy register");
     }
+    return true;
 }

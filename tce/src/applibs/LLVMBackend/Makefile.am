@@ -38,6 +38,7 @@ libtcellvmbackend_la_LDFLAGS =   -L${LLVM_LIBDIR} \
     -Wl,-lLLVMAsmParser -Wl,-lLLVMArchive -Wl,-lLLVMBitReader -Wl,-lLLVMSelectionDAG \
     -Wl,-lLLVMCodeGen -Wl,-lLLVMScalarOpts -Wl,-lLLVMTransformUtils -Wl,-lLLVMipa \
     -Wl,-lLLVMAnalysis -Wl,-lLLVMTarget -Wl,-lLLVMCore -Wl,-lLLVMSupport -Wl,-lLLVMSystem \
+	-Wl,-lLLVMAsmPrinter \
     -Wl,--no-whole-archive
 
 # libtcellvmbackend_la_LDFLAGS = -L${LLVM_LIBDIR} -lLLVMSelectionDAG \

@@ -53,18 +53,22 @@
 using namespace llvm;
 class TCEDAGToDAGISel : public llvm::SelectionDAGISel {
 public:
-   TCEDAGToDAGISel(llvm::TCETargetMachine& tm);
+    TCEDAGToDAGISel(llvm::TCETargetMachine& tm);
     virtual ~TCEDAGToDAGISel();
     bool SelectADDRrr(
-        llvm::SDOperand op, llvm::SDOperand addr,
-        llvm::SDOperand& r1, llvm::SDOperand& r2);
+        llvm::SDValue op, llvm::SDValue addr,
+        llvm::SDValue& r1, llvm::SDValue& r2);
 
     bool SelectADDRri(
-        llvm::SDOperand op, llvm::SDOperand addr,
-        llvm::SDOperand& base, llvm::SDOperand& offset);
+        llvm::SDValue op, llvm::SDValue addr,
+        llvm::SDValue& base, llvm::SDValue& offset);
 
-    llvm::SDNode* Select(llvm::SDOperand op);
+    llvm::SDNode* Select(llvm::SDValue op);
+#ifdef LLVM_2_3
     virtual void InstructionSelectBasicBlock(llvm::SelectionDAG& dag);
+#else
+    virtual void InstructionSelect();
+#endif
     virtual const char* getPassName() const {
         return "TCE DAG->DAG Pattern Instruction Selection";
     }
@@ -90,6 +94,7 @@ TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
 TCEDAGToDAGISel::~TCEDAGToDAGISel() {
 }
 
+#ifdef LLVM_2_3
 /** 
  * This callback is invoked by SelectionDAGISel when it has created
  * a SelectionDAG for us to codegen.
@@ -106,6 +111,16 @@ TCEDAGToDAGISel::InstructionSelectBasicBlock(SelectionDAG& dag) {
     // Emit machine code to BB.
     ScheduleAndEmitDAG(dag);
 }
+#else
+// from Sparc backend:
+void TCEDAGToDAGISel::InstructionSelect() {
+  DEBUG(BB->dump());
+  
+  // Select target instructions for the DAG.
+  SelectRoot();
+  CurDAG->RemoveDeadNodes();
+}
+#endif
 
 /**
  * Handles custom instruction selections.
@@ -113,9 +128,9 @@ TCEDAGToDAGISel::InstructionSelectBasicBlock(SelectionDAG& dag) {
  * @param op Operation to select.
  */
 SDNode*
-TCEDAGToDAGISel::Select(SDOperand op) {
+TCEDAGToDAGISel::Select(SDValue op) {
 
-    SDNode* n = op.Val;
+    SDNode* n = op.getNode();
 
     if (n->getOpcode() >= ISD::BUILTIN_OP_END &&
         n->getOpcode() < TCEISD::FIRST_NUMBER) {
@@ -124,8 +139,8 @@ TCEDAGToDAGISel::Select(SDOperand op) {
     } else if (n->getOpcode() == ISD::BRCOND) {
 
         // TODO: Check this. Following IA64 example..
-        SDOperand chain = n->getOperand(0);
-        SDOperand cc = n->getOperand(1);
+        SDValue chain = n->getOperand(0);
+        SDValue cc = n->getOperand(1);
         AddToISelQueue(chain);
         AddToISelQueue(cc);
         MachineBasicBlock* dest =
@@ -136,8 +151,8 @@ TCEDAGToDAGISel::Select(SDOperand op) {
             n, TCE::TCEBRCOND, MVT::Other, cc,
             CurDAG->getBasicBlock(dest), chain);
         //} else if (n->getOpcode() == ISD::SETCC) {
-        //SDOperand op1 = n->getOperand(0);
-        //SDOperand op1 = n->getOperand(1);
+        //SDValue op1 = n->getOperand(0);
+        //SDValue op1 = n->getOperand(1);
         //ISD::CondCode cc = cast<CondCodeSDNode>(op.getOperand(2))->get();
         //switch (cc) {
         //default: assert(false && "Unhandled CC");
@@ -146,7 +161,7 @@ TCEDAGToDAGISel::Select(SDOperand op) {
         //}
         //}
     } else if (n->getOpcode() == ISD::BR) {
-        SDOperand chain = n->getOperand(0);
+        SDValue chain = n->getOperand(0);
         AddToISelQueue(chain);
         MachineBasicBlock* dest =
             cast<BasicBlockSDNode>(n->getOperand(1))->getBasicBlock();
@@ -175,7 +190,7 @@ TCEDAGToDAGISel::Select(SDOperand op) {
  */
 bool
 TCEDAGToDAGISel::SelectADDRri(
-    SDOperand op, SDOperand addr, SDOperand& base, SDOperand& offset) {
+    SDValue op, SDValue addr, SDValue& base, SDValue& offset) {
 
     if (FrameIndexSDNode* fin = dyn_cast<FrameIndexSDNode>(addr)) {
         base = CurDAG->getTargetFrameIndex(fin->getIndex(), MVT::i32);
@@ -211,7 +226,7 @@ TCEDAGToDAGISel::SelectADDRri(
  */
 bool
 TCEDAGToDAGISel::SelectADDRrr(
-    SDOperand op, SDOperand addr, SDOperand& r1, SDOperand& r2) {
+    SDValue op, SDValue addr, SDValue& r1, SDValue& r2) {
 
     if (addr.getOpcode() == ISD::TargetGlobalAddress) {
         //r1 = addr.getOperand(0);

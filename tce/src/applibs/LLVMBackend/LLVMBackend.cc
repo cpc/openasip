@@ -387,7 +387,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     throw (Exception) {
 
     std::string pluginFile = pluginFilename(target);
-    std::string pluginFileName;
+    std::string pluginFileName = "";
     std::string DS = FileSystem::DIRECTORY_SEPARATOR;
 
     // Create temp directory for building the target machine plugin.
@@ -405,8 +405,8 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     }
 
     // Static plugin source files path.
-    std::string srcsPath;
-    std::string pluginIncludeFlags;
+    std::string srcsPath = "";
+    std::string pluginIncludeFlags = "";
     if (useInstalledVersion_) {
         srcsPath = std::string(TCE_INSTALLATION_ROOT) +  DS + "include" + DS;
         pluginIncludeFlags = " -I" + srcsPath;

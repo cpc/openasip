@@ -137,9 +137,9 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     setOperationAction(ISD::SRA_PARTS, MVT::i32, Expand);
     setOperationAction(ISD::SRL_PARTS, MVT::i32, Expand);
 
-    setOperationAction(ISD::LOCATION, MVT::Other, Expand);
+    setOperationAction(ISD::DBG_STOPPOINT, MVT::Other, Expand);
     setOperationAction(ISD::DEBUG_LOC, MVT::Other, Expand);
-    setOperationAction(ISD::LABEL, MVT::Other, Expand);
+    setOperationAction(ISD::DBG_LABEL, MVT::Other, Expand);
 
     setOperationAction(ISD::VASTART           , MVT::Other, Custom);
     setOperationAction(ISD::VAARG             , MVT::Other, Expand);
@@ -179,14 +179,14 @@ TCETargetLowering::~TCETargetLowering() {
 /**
  * Handles custom operation lowerings.
  */
-SDOperand
-TCETargetLowering::LowerOperation(SDOperand op, SelectionDAG& dag) {
+SDValue
+TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
 
     switch(op.getOpcode()) {
     case ISD::RET: return LowerRET(op, dag);
     case ISD::GlobalAddress: {
         GlobalValue* gv = cast<GlobalAddressSDNode>(op)->getGlobal();
-        SDOperand ga = dag.getTargetGlobalAddress(gv, MVT::i32);
+        SDValue ga = dag.getTargetGlobalAddress(gv, MVT::i32);
         return dag.getNode(TCEISD::GLOBAL_ADDR, MVT::i32, ga);
     }
     case ISD::DYNAMIC_STACKALLOC: {
@@ -196,17 +196,17 @@ TCETargetLowering::LowerOperation(SDOperand op, SelectionDAG& dag) {
         return lowerSELECT(op, dag);
     }
     case ISD::VASTART: {
-        MVT::ValueType ptrVT = dag.getTargetLoweringInfo().getPointerTy();
-        SDOperand fr = dag.getFrameIndex(varArgsFrameIndex_, ptrVT);
+        llvm::MVT ptrVT = dag.getTargetLoweringInfo().getPointerTy();
+        SDValue fr = dag.getFrameIndex(varArgsFrameIndex_, ptrVT);
         SrcValueSDNode* sv = cast<SrcValueSDNode>(op.getOperand(2));
         return dag.getStore(
             op.getOperand(0), fr, op.getOperand(1), sv->getValue(), 0);
     }
     case ISD::ConstantPool: {
         // TODO: Check this.
-        MVT::ValueType ptrVT = op.getValueType();
+        llvm::MVT ptrVT = op.getValueType();
         ConstantPoolSDNode* cp = cast<ConstantPoolSDNode>(op);
-        SDOperand res;
+        SDValue res;
         if (cp->isMachineConstantPoolEntry()) {
             res = dag.getTargetConstantPool(
                 cp->getMachineCPVal(), ptrVT,
@@ -219,17 +219,17 @@ TCETargetLowering::LowerOperation(SDOperand op, SelectionDAG& dag) {
         return dag.getNode(TCEISD::CONST_POOL, MVT::i32, res);
     }
     }
-    op.Val->dump(&dag);
+    op.getNode()->dump(&dag);
     assert(0 && "Custom lowerings not implemented!");
 }
 
 /**
  * Lowers return operation.
  */
-SDOperand
-TCETargetLowering::LowerRET(SDOperand op, SelectionDAG& dag) {
+SDValue
+TCETargetLowering::LowerRET(SDValue op, SelectionDAG& dag) {
     
-    SDOperand copy;
+    SDValue copy;
     switch (op.getNumOperands()) {
     default: {
         std::cerr  << "Do not know how to return "
@@ -239,11 +239,11 @@ TCETargetLowering::LowerRET(SDOperand op, SelectionDAG& dag) {
         assert(false);
     }
     case 1: {
-        return SDOperand();
+        return SDValue();
     }
     case 3: {
         unsigned argReg;
-        switch(op.getOperand(1).getValueType()) {
+        switch(op.getOperand(1).getValueType().getSimpleVT()) {
         default: assert(0 && "Unknown type to return");
         case MVT::i32: argReg = TCE::IRES0; break;
         case MVT::f32: argReg = TCE::FRES0; break;
@@ -252,7 +252,7 @@ TCETargetLowering::LowerRET(SDOperand op, SelectionDAG& dag) {
         }
         copy = dag.getCopyToReg(
             op.getOperand(0), argReg, op.getOperand(1),
-            SDOperand());
+            SDValue());
         break;
     }
     case 5: {
@@ -263,7 +263,7 @@ TCETargetLowering::LowerRET(SDOperand op, SelectionDAG& dag) {
 
         copy = dag.getCopyToReg(
             op.getOperand(0), TCE::IRES0, op.getOperand(3),
-            SDOperand());
+            SDValue());
 
         copy = dag.getCopyToReg(
             copy, TCE::KLUDGE_REGISTER, op.getOperand(1),
@@ -280,19 +280,20 @@ TCETargetLowering::LowerRET(SDOperand op, SelectionDAG& dag) {
 /**
  * Lowers FORMAL_ARGUMENTS node.
  */
-std::vector<SDOperand>
-TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
+void
+TCETargetLowering::LowerArguments(
+    Function& f, SelectionDAG& dag, SmallVectorImpl<SDValue>& argValues) {
  
     MachineFunction& mf = dag.getMachineFunction();
     unsigned argOffset = 0;
-    std::vector<SDOperand> argValues;
-    SDOperand root = dag.getRoot();
+    
+    SDValue root = dag.getRoot();
 
     Function::arg_iterator iter = f.arg_begin();
     for (; iter != f.arg_end(); iter++) {
-        MVT::ValueType objectVT = getValueType(iter->getType());
+        llvm::MVT objectVT = getValueType(iter->getType());
 
-        switch (objectVT) {
+        switch (objectVT.getSimpleVT()) {
         default: assert(
             false &&
             "TCETargetLowering::LowerArguments(): unhandled argument type");
@@ -307,8 +308,8 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
             // Argument always in stack.
             int frameIdx =
                 mf.getFrameInfo()->CreateFixedObject(4, argOffset);
-            SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
-            SDOperand load;
+            SDValue fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
+            SDValue load;
             if (objectVT == MVT::i32) {
                 load = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
             } else {
@@ -336,10 +337,10 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
         }
         case MVT::i64: {
             // Following sparc example: i64 is split into lo/hi parts.
-            SDOperand loVal, hiVal;
+            SDValue loVal, hiVal;
 
             int frameIdx = mf.getFrameInfo()->CreateFixedObject(4, argOffset);
-            SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
+            SDValue fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
             hiVal = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
 
             frameIdx = mf.getFrameInfo()->CreateFixedObject(4, argOffset+4);
@@ -347,7 +348,7 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
             loVal = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
 
             // Compose the two halves together into an i64 unit.
-            SDOperand wholeValue =
+            SDValue wholeValue =
                 dag.getNode(ISD::BUILD_PAIR, MVT::i64, loVal, hiVal);
 
             argValues.push_back(wholeValue);
@@ -357,29 +358,29 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
         case MVT::f32: {
             // For now, f32s are always passed in the stack.
             int frameIdx = mf.getFrameInfo()->CreateFixedObject(4, argOffset);
-            SDOperand fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
-            SDOperand load = dag.getLoad(MVT::f32, root, fiPtr, NULL, 0);
+            SDValue fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
+            SDValue load = dag.getLoad(MVT::f32, root, fiPtr, NULL, 0);
             argValues.push_back(load);
             argOffset += 4;
             break;
         }
         case MVT::f64:
-            SDOperand loVal, hiVal;
+            SDValue loVal, hiVal;
 
             int frameIdxHi =
                 mf.getFrameInfo()->CreateFixedObject(4, argOffset);
 
-            SDOperand hiFiPtr = dag.getFrameIndex(frameIdxHi, MVT::i32);
+            SDValue hiFiPtr = dag.getFrameIndex(frameIdxHi, MVT::i32);
             hiVal = dag.getLoad(MVT::i32, root, hiFiPtr, NULL, 0);
 	       
             int frameIdxLo =
                 mf.getFrameInfo()->CreateFixedObject(4, argOffset+4);
 
-            SDOperand loFiPtr = dag.getFrameIndex(frameIdxLo, MVT::i32);
+            SDValue loFiPtr = dag.getFrameIndex(frameIdxLo, MVT::i32);
             loVal = dag.getLoad(MVT::i32, root, loFiPtr, NULL, 0);
 
             // Compose the two halves together into an i64 unit.
-            SDOperand wholeValue =
+            SDValue wholeValue =
                 dag.getNode(ISD::BUILD_PAIR, MVT::f64, loVal, hiVal);
 
             argValues.push_back(wholeValue);
@@ -395,7 +396,7 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
             mf.getFrameInfo()->CreateFixedObject(4, argOffset);
     }
 
-    switch (getValueType(f.getReturnType())) {
+    switch (getValueType(f.getReturnType()).getSimpleVT()) {
     default: assert(0 && "Unknown type!");
     case MVT::isVoid: break;
     case MVT::i1:
@@ -418,22 +419,21 @@ TCETargetLowering::LowerArguments(Function& f, SelectionDAG& dag) {
         break;
     }
     }
-    return argValues;
 }
 
 
 /**
  * Lowers call pseudo instruction to target specific sequence.
  */
-std::pair<SDOperand, SDOperand>
+std::pair<SDValue, SDValue>
 TCETargetLowering::LowerCallTo(
-    SDOperand chain, const Type* retTy, bool retTyIsSigned, bool,
-    bool isVarArg, unsigned cc, bool isTailCall, SDOperand callee,
+    SDValue chain, const Type* retTy, bool retTyIsSigned, bool,
+    bool isVarArg, bool,  unsigned cc, bool isTailCall, SDValue callee,
     ArgListTy& args, SelectionDAG& dag) {
 
     unsigned argsSize = 0;
     for (unsigned i = 0; i < args.size(); i++) {
-        switch(getValueType(args[i].Ty)) {
+        switch(getValueType(args[i].Ty).getSimpleVT()) {
         default: assert(false && "Unknown value type!");
         case MVT::i1: {
             argsSize += 4;
@@ -472,17 +472,17 @@ TCETargetLowering::LowerCallTo(
     chain = dag.getCALLSEQ_START(
         chain, dag.getConstant(argsSize, getPointerTy()));
 
-    SDOperand stackPtr;
-    std::vector<SDOperand> stores;
+    SDValue stackPtr;
+    std::vector<SDValue> stores;
     unsigned argOffset = 0;
 
     for (unsigned i = 0; i < args.size(); i++) {
-        SDOperand val = args[i].Node;
-        MVT::ValueType objectVT = val.getValueType();
-        SDOperand valToStore(0, 0);
+        SDValue val = args[i].Node;
+        llvm::MVT objectVT = val.getValueType();
+        SDValue valToStore(0, 0);
         unsigned objSize = 0;
 
-        switch (objectVT) {
+        switch (objectVT.getSimpleVT()) {
         default: assert(false && "Unhandled argument type!");
         case MVT::i1:
         case MVT::i8:
@@ -519,11 +519,11 @@ TCETargetLowering::LowerCallTo(
         }
         }
 
-        if (valToStore.Val) {
-            if (!stackPtr.Val) {
+        if (valToStore.getNode()) {
+            if (!stackPtr.getNode()) {
                 stackPtr = dag.getRegister(TCE::SP, MVT::i32);
             }
-            SDOperand ptrOff = dag.getConstant(argOffset, getPointerTy());
+            SDValue ptrOff = dag.getConstant(argOffset, getPointerTy());
             ptrOff = dag.getNode(ISD::ADD, MVT::i32, stackPtr, ptrOff);
             stores.push_back(
                 dag.getStore(chain, valToStore, ptrOff, NULL, 0));
@@ -538,7 +538,7 @@ TCETargetLowering::LowerCallTo(
         chain = dag.getNode(
             ISD::TokenFactor, MVT::Other, &stores[0], stores.size());
 
-    SDOperand inFlag;
+    SDValue inFlag;
 
     // Turn global addressses to target global adresses.
     if (GlobalAddressSDNode* g = dyn_cast<GlobalAddressSDNode>(callee))
@@ -546,18 +546,18 @@ TCETargetLowering::LowerCallTo(
     else if (ExternalSymbolSDNode* e = dyn_cast<ExternalSymbolSDNode>(callee))
         callee = dag.getTargetExternalSymbol(e->getSymbol(), MVT::i32);
 
-    std::vector<MVT::ValueType> nodeTys;
+    std::vector<llvm::MVT> nodeTys;
     nodeTys.push_back(MVT::Other);
     nodeTys.push_back(MVT::Flag);
-    SDOperand ops[] = { chain, callee, inFlag };
-    chain = dag.getNode(TCEISD::CALL, nodeTys, ops, inFlag.Val ? 3 : 2);
+    SDValue ops[] = { chain, callee, inFlag };
+    chain = dag.getNode(TCEISD::CALL, nodeTys, ops, inFlag.getNode() ? 3 : 2);
     inFlag = chain.getValue(1);
 
     // Return value
-    MVT::ValueType retTyVT = getValueType(retTy);
-    SDOperand retVal;
+    MVT retTyVT = getValueType(retTy);
+    SDValue retVal;
     if (retTyVT != MVT::isVoid) {
-        switch (retTyVT) {
+        switch (retTyVT.getSimpleVT()) {
         default: assert(false && "Unsupported return value type.");
         case MVT::i1:
         case MVT::i8:
@@ -573,10 +573,10 @@ TCETargetLowering::LowerCallTo(
             break;
         }
         case MVT::i64: {
-            SDOperand lo = dag.getCopyFromReg(
+            SDValue lo = dag.getCopyFromReg(
                 chain, TCE::IRES0, MVT::i32, inFlag);
 
-            SDOperand hi = dag.getCopyFromReg(
+            SDValue hi = dag.getCopyFromReg(
                 lo.getValue(1), TCE::KLUDGE_REGISTER, MVT::i32, 
                 lo.getValue(2));
 
@@ -590,10 +590,10 @@ TCETargetLowering::LowerCallTo(
             break;
         }
         case MVT::f64: {
-            SDOperand lo = dag.getCopyFromReg(
+            SDValue lo = dag.getCopyFromReg(
                 chain, TCE::IRES0, MVT::i32, inFlag);
 
-            SDOperand hi = dag.getCopyFromReg(
+            SDValue hi = dag.getCopyFromReg(
                 lo.getValue(1), TCE::KLUDGE_REGISTER, MVT::i32, 
                 lo.getValue(2));
 
@@ -610,11 +610,6 @@ TCETargetLowering::LowerCallTo(
             chain, dag.getConstant(argsSize, getPointerTy()),
             dag.getConstant(0, MVT::i32), chain.getValue(1));
 
-#if 0
-    // LLVM 2.2:
-    chain = dag.getNode(ISD::CALLSEQ_END, MVT::Other, chain,
-                        dag.getConstant(argsSize, getPointerTy()));
-#endif
     return std::make_pair(retVal, chain);
 }
 
@@ -622,16 +617,16 @@ TCETargetLowering::LowerCallTo(
 /**
  * Converts SELECT nodes to TCE-specific pseudo instructions.
  */
-SDOperand
+SDValue
 TCETargetLowering::lowerSELECT(
-    SDOperand op, SelectionDAG& dag) {
+    SDValue op, SelectionDAG& dag) {
 
-    SDOperand cond = op.getOperand(0);
-    SDOperand trueVal = op.getOperand(1);
-    SDOperand falseVal = op.getOperand(2);
+    SDValue cond = op.getOperand(0);
+    SDValue trueVal = op.getOperand(1);
+    SDValue falseVal = op.getOperand(2);
 
     unsigned opcode = 0;
-    switch(trueVal.getValueType()) {
+    switch(trueVal.getValueType().getSimpleVT()) {
     default: assert(0 && "Unknown type to select.");
     case MVT::i1: {
         opcode = TCEISD::SELECT_I1;
@@ -673,7 +668,7 @@ TCETargetLowering::lowerSELECT(
 std::pair<unsigned, const TargetRegisterClass*>
 TCETargetLowering::getRegForInlineAsmConstraint(
     const std::string& constraint,
-    MVT::ValueType vt) const {
+    llvm::MVT vt) const {
 
     if (constraint == "r") {
         return std::make_pair(0U, TCE::I32RegsRegisterClass);

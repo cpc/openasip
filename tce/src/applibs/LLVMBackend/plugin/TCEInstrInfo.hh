@@ -85,7 +85,7 @@ namespace llvm {
             unsigned destReg, int frameIndex,
             const TargetRegisterClass* rc) const;
 
-        virtual void copyRegToReg(
+        virtual bool copyRegToReg(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned destReg, unsigned srcReg,
