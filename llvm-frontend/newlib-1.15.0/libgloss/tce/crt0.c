@@ -20,9 +20,14 @@ void _start(void)
     _exit(main());
 }
 
+volatile char __dummy__;
+
 /* override normal exit. simulator should stop when _exit() is seen */
 void _exit(int retval) {
-    while(1); /* less instructions are generated, when this while exists */
+    /* less instructions are generated, when this while exists */
+    /* volatile write to workaround LLVM bug #965 */
+    while(1) __dummy__ = 0; 
+
 }
 
 #else

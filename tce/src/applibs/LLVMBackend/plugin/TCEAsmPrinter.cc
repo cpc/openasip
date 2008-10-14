@@ -105,7 +105,7 @@ TCEAsmPrinter::runOnMachineFunction(MachineFunction& mf) {
 
     // label
     const Function* f = mf.getFunction();
-    SwitchToTextSection(f->getSection().c_str(), f);
+    SwitchToTextSection(SectionForGlobal(f).getName().c_str(), f);
     EmitAlignment(1);
     O << ".globl\t" << CurrentFnName << ";\n";
     O << CurrentFnName << ":\n";
