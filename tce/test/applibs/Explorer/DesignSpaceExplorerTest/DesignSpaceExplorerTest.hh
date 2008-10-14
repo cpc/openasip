@@ -133,6 +133,7 @@ DesignSpaceExplorerTest::testEvaluate() {
     explorer.setDSDB(*dsdb);
     CostEstimates results;
     bool estimate = false;
+    //Application::setVerboseLevel(1);
     TS_ASSERT(explorer.evaluate(conf, results, estimate));
     
     //std::cout << "result area: " << results.area() << std::endl;

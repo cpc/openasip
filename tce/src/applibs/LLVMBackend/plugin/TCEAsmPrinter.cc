@@ -67,7 +67,7 @@ using namespace llvm;
  */
 TCEAsmPrinter::TCEAsmPrinter(
     llvm::raw_ostream& o, TargetMachine& tm, const TargetAsmInfo* t) :
-    AsmPrinter(o, tm, t) {
+    AsmPrinter(o, tm, t), asmInfo_(*t) {
 }
 
 /**
@@ -105,7 +105,7 @@ TCEAsmPrinter::runOnMachineFunction(MachineFunction& mf) {
 
     // label
     const Function* f = mf.getFunction();
-    SwitchToTextSection(SectionForGlobal(f).getName().c_str(), f);
+    SwitchToTextSection(asmInfo_.SectionForGlobal(f)->getName().c_str(), f);
     EmitAlignment(1);
     O << ".globl\t" << CurrentFnName << ";\n";
     O << CurrentFnName << ":\n";

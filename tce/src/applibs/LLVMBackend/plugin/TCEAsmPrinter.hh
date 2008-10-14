@@ -70,5 +70,6 @@ class TCEAsmPrinter : public AsmPrinter {
 
    typedef std::map<const Value*, unsigned> ValueMapTy;
    ValueMapTy NumberForBB_;
+   const TargetAsmInfo& asmInfo_;
 };
 }
