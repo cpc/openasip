@@ -85,12 +85,13 @@ tmp_name="${tmp_dir}/${name}"
 tcecc "${1}" -O2 -o ${tmp_name}.bc || pexit 1
 explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb || pexit 1
 
-new_conf="$(explore -e SimpleICOptimizer -s 1 ${tmp_name}.dsdb \
-| tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
+# use simpleicoptimizer if using some other adf than minimal
+#new_conf="$(explore -e SimpleICOptimizer -s 1 ${tmp_name}.dsdb \
+#| tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
+#
+#[ "${new_conf}x" == "x" ] && pexit 1 "Explorer failed to create a new config."
 
-[ "${new_conf}x" == "x" ] && pexit 1 "Explorer failed to create a new config."
-
-new_conf="$(explore -e ImplementationSelector -s ${new_conf} ${tmp_name}.dsdb \
+new_conf="$(explore -e ImplementationSelector -s 1 ${tmp_name}.dsdb \
 | tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
 
 [ "${new_conf}x" == "x" ] && pexit 1 "Explorer failed to create a new config."
