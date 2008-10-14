@@ -121,7 +121,6 @@ BoostGraphTest::BoostGraphTest() {
  */
 BoostGraphTest::~BoostGraphTest() {
     AssocTools::deleteAllItems(nodes_);
-    AssocTools::deleteAllItems(edges_);
 }
 
 /**
