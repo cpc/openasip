@@ -81,7 +81,7 @@ public:
         inline const InstructionReference& operator*() const;
         inline InstructionReference* operator->();
         inline const InstructionReference* operator->() const;
-        inline const bool operator !=(const Iterator& i) const;
+        inline bool operator !=(const Iterator& i) const;
         inline Iterator(RefMap::iterator iter);
         inline Iterator(RefMap::iterator& iter);
     private:

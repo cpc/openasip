@@ -145,8 +145,8 @@ AC_LANG(C++)
 AC_MSG_CHECKING([whether unordered_map/hash_map is available])
 AC_LANG_CONFTEST(
                  [AC_LANG_PROGRAM(
-                  [[#include <unordered_map>]
-                   [using std::unordered_map;]],
+                  [[#include <tr1/unordered_map>]
+                   [using std::tr1::unordered_map;]],
                    [[]])
                   ])
 
