@@ -901,7 +901,6 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         delete node2;
         delete node3;
         delete node5;
-        delete po2;        
         delete node6;
         delete node7;
         delete duplicate;
@@ -911,6 +910,7 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         delete srcProgram;
         delete targetMachine;
         delete po1;
+        delete po2;        
 
     } catch (const Exception& e) {
         std::cout << e.fileName() << " " << e.procedureName() << " ";
