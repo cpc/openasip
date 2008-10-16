@@ -636,7 +636,11 @@ FileSystem::findFileInDirectoryTree(
             if (findFileInDirectoryTree(p, fileName, pathFound))
                 return true;
         }
-        else if ((*itr).leaf() == fileName)
+#if BOOST_VERSION >= 103600
+        else if (itr->filename() == fileName)
+#else
+        else if (itr->leaf() == fileName)
+#endif
         {
             pathFound = Path((*itr).string());
             return true;
