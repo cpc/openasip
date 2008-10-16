@@ -147,13 +147,6 @@ DataDependenceGraph::~DataDependenceGraph() {
     // they should already have been deleted by the one who removed them
     AssocTools::deleteAllValues(removedNodes_);
 
-    // Old version of Boost has a bug which causes the following loop
-    // to crash, so delete edges only if we have new boost.
-    // with old boost just have a memory leak.
-    // The same bug will cause also bypassing and reduced connectivity 
-    // to fail.
-#if (!(defined(BOOST_VERSION)) || (BOOST_VERSION >= 103300))
-        
     if (parentGraph_ == NULL) {
 
         //delete nodes.
@@ -168,8 +161,6 @@ DataDependenceGraph::~DataDependenceGraph() {
             delete *i;
         }
     }
-#endif
-    
 }
 
 /**

@@ -323,7 +323,7 @@ fi
 # Check boost libraries
 #
 ######################################
-AX_BOOST_BASE([1.32.0])
+AX_BOOST_BASE([1.33.0])
 if test -z "$BOOST_LDFLAGS"
 then
 AC_MSG_ERROR(
@@ -1298,7 +1298,7 @@ AC_OUTPUT
 
 echo "***************************************"
 echo "Found xerces-c library."
-echo "Found boost library >= v.1.32.0"
+echo "Found boost library >= v.1.33.0"
 echo "Found sqlite3 library."
 
 if test x"$LATEX" = xyes;

@@ -8,6 +8,7 @@ Bug fixes
 - Some scheduler memory leak fixes, scheduling big programs consumes about 
   33% less memory than beta1.
 - Fixed a bug which caused random scheduler failures.
+- Dropped support for Boost 1.32 as it has some bad bugs, at least 1.33 required
 
 1.0-beta1     2008-10-02
 ========================
