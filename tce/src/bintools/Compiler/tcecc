@@ -206,7 +206,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     verbose = options.verbose
 
-    loop_unroll_switches = " -loop-unroll -unroll-threshold=100 "
+    loop_unroll_switches = " -loop-unroll -unroll-threshold=100 -unroll-allow-partial "
 
     inline_pass = " -inline "
     if options.noinline:
