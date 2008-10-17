@@ -137,3 +137,15 @@ generate the autotools scripts after installing 'libtool' with
 The resulting autotools scripts should work with the new libtool
 version.
 
+Older gcc versions, for example, the version 3.4.x shipped with
+Red Hat Enterprise Linux 4 do not support the switch
+'-Wno-variadic-macros'. This switch is set automatically by 'configure'
+in case CXXFLAGS is not set manually by the user. This results in
+rest of the configure tests failing due to an unknown flag.
+
+Workaround is to define CXXFLAGS manually before running the
+configure script:
+
+export CXXFLAGS=-O3 -W -Wall -pedantic -Wno-long-long -g -Wno-system-headers
+export CFLAGS=$CXXFLAGS
+
