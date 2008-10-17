@@ -1546,8 +1546,7 @@ DataDependenceGraph::fixInterBBAntiEdges(
                     if (mn1.isMove()) {
                         if (mn1.move().source().isGPR() &&  // WAR?
                             mn1.move().source().equals(
-                                mn2.move().destination()) && 
-                            sg1->rWarEdgesOut(mn1) == 0) {
+                                mn2.move().destination())) {
                             DataDependenceEdge* edge = 
                                 new DataDependenceEdge(
                                     DataDependenceEdge::EDGE_REGISTER,
@@ -1556,8 +1555,7 @@ DataDependenceGraph::fixInterBBAntiEdges(
                         }
                         if (mn1.move().destination().isGPR() && // WAW?
                             mn1.move().destination().equals(
-                                mn2.move().destination()) && 
-                            sg1->rWawRawEdgesOut(mn1) == 0) {
+                                mn2.move().destination())) {
                             DataDependenceEdge* edge = 
                                 new DataDependenceEdge(
                                     DataDependenceEdge::EDGE_REGISTER,
