@@ -1,4 +1,6 @@
-##### http://autoconf-archive.cryp.to/ax_boost_python.html
+# ===========================================================================
+#            http://autoconf-archive.cryp.to/ax_boost_python.html
+# ===========================================================================
 #
 # SYNOPSIS
 #
@@ -6,56 +8,52 @@
 #
 # DESCRIPTION
 #
-#   This macro checks to see if the Boost.Python library is installed.
-#   It also attempts to guess the currect library name using several
-#   attempts. It tries to build the library name using a user supplied
-#   name or suffix and then just the raw library.
+#   This macro checks to see if the Boost.Python library is installed. It
+#   also attempts to guess the currect library name using several attempts.
+#   It tries to build the library name using a user supplied name or suffix
+#   and then just the raw library.
 #
 #   If the library is found, HAVE_BOOST_PYTHON is defined and
 #   BOOST_PYTHON_LIB is set to the name of the library.
 #
 #   This macro calls AC_SUBST(BOOST_PYTHON_LIB).
 #
-#   In order to ensure that the Python headers are specified on the
-#   include path, this macro requires AX_PYTHON to be called.
+#   In order to ensure that the Python headers are specified on the include
+#   path, this macro requires AX_PYTHON to be called.
 #
 # LAST MODIFICATION
 #
-#   2007-07-24
+#   2008-04-12
 #
 # COPYLEFT
 #
-#   Copyright (c) 2007 Michael Tindal
+#   Copyright (c) 2008 Michael Tindal
 #
-#   This program is free software; you can redistribute it and/or
-#   modify it under the terms of the GNU General Public License as
-#   published by the Free Software Foundation; either version 2 of the
-#   License, or (at your option) any later version.
+#   This program is free software; you can redistribute it and/or modify it
+#   under the terms of the GNU General Public License as published by the
+#   Free Software Foundation; either version 2 of the License, or (at your
+#   option) any later version.
 #
 #   This program is distributed in the hope that it will be useful, but
 #   WITHOUT ANY WARRANTY; without even the implied warranty of
-#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
-#   General Public License for more details.
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+#   Public License for more details.
 #
-#   You should have received a copy of the GNU General Public License
-#   along with this program; if not, write to the Free Software
-#   Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
-#   02111-1307, USA.
+#   You should have received a copy of the GNU General Public License along
+#   with this program. If not, see <http://www.gnu.org/licenses/>.
 #
-#   As a special exception, the respective Autoconf Macro's copyright
-#   owner gives unlimited permission to copy, distribute and modify the
-#   configure scripts that are the output of Autoconf when processing
-#   the Macro. You need not follow the terms of the GNU General Public
-#   License when using or distributing such scripts, even though
-#   portions of the text of the Macro appear in them. The GNU General
-#   Public License (GPL) does govern all other use of the material that
-#   constitutes the Autoconf Macro.
+#   As a special exception, the respective Autoconf Macro's copyright owner
+#   gives unlimited permission to copy, distribute and modify the configure
+#   scripts that are the output of Autoconf when processing the Macro. You
+#   need not follow the terms of the GNU General Public License when using
+#   or distributing such scripts, even though portions of the text of the
+#   Macro appear in them. The GNU General Public License (GPL) does govern
+#   all other use of the material that constitutes the Autoconf Macro.
 #
-#   This special exception to the GPL applies to versions of the
-#   Autoconf Macro released by the Autoconf Macro Archive. When you
-#   make and distribute a modified version of the Autoconf Macro, you
-#   may extend this special exception to the GPL to apply to your
-#   modified version as well.
+#   This special exception to the GPL applies to versions of the Autoconf
+#   Macro released by the Autoconf Macro Archive. When you make and
+#   distribute a modified version of the Autoconf Macro, you may extend this
+#   special exception to the GPL to apply to your modified version as well.
 
 AC_DEFUN([AX_BOOST_PYTHON],
 [AC_REQUIRE([AX_PYTHON])dnl
@@ -84,14 +82,9 @@ if test "$ac_cv_boost_python" = "yes"; then
      ax_python_lib=$with_boost_python
      ax_boost_python_lib=boost_python-$with_boost_python
    fi])
- LDFLAGS_SAVE=$LDFLAGS
- if test x$PYTHON_LIB != x; then
-   LDFLAGS=-l$PYTHON_LIB
- fi
   for ax_lib in $ax_python_lib $ax_boost_python_lib boost_python; do
-    AC_CHECK_LIB($ax_lib, exit, [BOOST_PYTHON_LIB=-l$ax_lib break])
+    AC_CHECK_LIB($ax_lib, abort, [BOOST_PYTHON_LIB=$ax_lib break])
   done
-  LDFLAGS=$LDFLAGS_SAVE
   AC_SUBST(BOOST_PYTHON_LIB)
 fi
 ])dnl

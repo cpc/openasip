@@ -1,4 +1,6 @@
-##### http://autoconf-archive.cryp.to/ax_boost_unit_test_framework.html
+# ===========================================================================
+#      http://autoconf-archive.cryp.to/ax_boost_unit_test_framework.html
+# ===========================================================================
 #
 # SYNOPSIS
 #
@@ -6,10 +8,9 @@
 #
 # DESCRIPTION
 #
-#   Test for Unit_Test_Framework library from the Boost C++ libraries.
-#   The macro requires a preceding call to AX_BOOST_BASE. Further
-#   documentation is available at
-#   <http://randspringer.de/boost/index.html>.
+#   Test for Unit_Test_Framework library from the Boost C++ libraries. The
+#   macro requires a preceding call to AX_BOOST_BASE. Further documentation
+#   is available at <http://randspringer.de/boost/index.html>.
 #
 #   This macro calls:
 #
@@ -21,15 +22,15 @@
 #
 # LAST MODIFICATION
 #
-#   2007-11-22
+#   2008-04-12
 #
 # COPYLEFT
 #
-#   Copyright (c) 2007 Thomas Porschberg <thomas@randspringer.de>
+#   Copyright (c) 2008 Thomas Porschberg <thomas@randspringer.de>
 #
-#   Copying and distribution of this file, with or without
-#   modification, are permitted in any medium without royalty provided
-#   the copyright notice and this notice are preserved.
+#   Copying and distribution of this file, with or without modification, are
+#   permitted in any medium without royalty provided the copyright notice
+#   and this notice are preserved.
 
 AC_DEFUN([AX_BOOST_UNIT_TEST_FRAMEWORK],
 [
@@ -94,7 +95,7 @@ AC_DEFUN([AX_BOOST_UNIT_TEST_FRAMEWORK],
                 if test "x$link_unit_test_framework" != "xyes"; then
                 for libextension in `ls $BOOSTLIBDIR/boost_unit_test_framework*.{dll,a}* 2>/dev/null  | sed 's,.*/,,' | sed -e 's;^\(boost_unit_test_framework.*\)\.dll.*$;\1;' -e 's;^\(boost_unit_test_framework.*\)\.a*$;\1;'` ; do
                      ax_lib=${libextension}
-				    AC_CHECK_LIB($ax_lib, exit,
+				    AC_CHECK_LIB($ax_lib, abort,
                                  [BOOST_UNIT_TEST_FRAMEWORK_LIB="-l$ax_lib"; AC_SUBST(BOOST_UNIT_TEST_FRAMEWORK_LIB) link_unit_test_framework="yes"; break],
                                  [link_unit_test_framework="no"])
   				done
