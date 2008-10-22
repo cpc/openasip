@@ -64,6 +64,7 @@
 #include "TPEFWriter.hh"
 #include "ProgramAnnotation.hh"
 #include "InterPassData.hh"
+#include "SequenceTools.hh"
 
 // In case some debug info is needed, uncomment
 #define DEBUG_OUTPUT
@@ -220,9 +221,11 @@ BasicResourceManagerTest::testBasicFunctionality() {
         ControlFlowGraph cfg(procedure);
 
         // pick the first basic block from the program for this test
-        CriticalPathBBMoveNodeSelector selector(
-            cfg.node(0).basicBlock(), *targetMachine);
-
+        CriticalPathBBMoveNodeSelector* cpSelector = 
+            new CriticalPathBBMoveNodeSelector(
+                cfg.node(0).basicBlock(), *targetMachine);
+        MoveNodeSelector& selector = *cpSelector;
+        
         SimpleResourceManager rm(*targetMachine);
 
         // to see what's going on, print out the DDG
@@ -307,6 +310,7 @@ BasicResourceManagerTest::testBasicFunctionality() {
         TS_ASSERT(moves.node(0).cycle() == 4);
         TS_ASSERT(rm.instruction(5)->moveCount() == 0);
         TS_ASSERT(rm.instruction(4)->moveCount() == 1);
+        delete cpSelector;
         delete targetMachine;
         delete srcProgram;
     } catch (const Exception& e) {
@@ -360,14 +364,19 @@ BasicResourceManagerTest::wholeProgramAssignment(
             ControlFlowGraph cfg(procedure);
             SimpleResourceManager rm(*targetMachine);
             minCycle = maxCycle;
-
+            std::vector<CriticalPathBBMoveNodeSelector*> selectors;
             // pick the basic block in order they are in graph
             for (int k = 0; k < cfg.nodeCount(); k++) {
                 if (!cfg.node(k).isNormalBB()) {
                     continue;
                 }
-                CriticalPathBBMoveNodeSelector selector(
-                    cfg.node(k).basicBlock(), *targetMachine);
+                CriticalPathBBMoveNodeSelector* cpSelector = 
+                    new CriticalPathBBMoveNodeSelector(
+                        cfg.node(k).basicBlock(), *targetMachine);
+                
+                
+                selectors.push_back(cpSelector);
+                MoveNodeSelector& selector = *cpSelector;
 
                 int cycle = 0;
                 MoveNodeGroup moves;
@@ -390,6 +399,7 @@ BasicResourceManagerTest::wholeProgramAssignment(
                     }
                 }
             }
+            SequenceTools::deleteAllItems(selectors);
         }
         delete targetMachine;
         delete srcProgram;
@@ -434,8 +444,10 @@ BasicResourceManagerTest::testRestorationOfResources() {
     ControlFlowGraph cfg(procedure);
 
     // pick the first basic block from the program for this test
-    CriticalPathBBMoveNodeSelector selector(
+    CriticalPathBBMoveNodeSelector* cpSelector = 
+        new CriticalPathBBMoveNodeSelector(
         cfg.node(0).basicBlock(), *targetMachine);
+    MoveNodeSelector& selector = *cpSelector;
 
     SimpleResourceManager rm(*targetMachine);
 
@@ -547,6 +559,7 @@ BasicResourceManagerTest::testRestorationOfResources() {
     delete source;
     delete destination;
 
+    delete cpSelector; // need to be deleted first
     delete targetMachine;
     delete srcProgram;
 
@@ -584,18 +597,19 @@ BasicResourceManagerTest::testLongImmediates() {
         ControlFlowGraph cfg(procedure);
 
         // pick the first basic block from the program for this test
-        CriticalPathBBMoveNodeSelector selector(
+        CriticalPathBBMoveNodeSelector *selector =
+            new CriticalPathBBMoveNodeSelector(
             cfg.node(0).basicBlock(), *targetMachine);
 
         SimpleResourceManager rm(*targetMachine);
         MoveNodeGroup moves;
 
-        moves = selector.candidates();
+        moves = selector->candidates();
 
         TS_ASSERT_EQUALS(moves.node(1).isPlaced(), false);
         TS_ASSERT(rm.canAssign(1, moves.node(1)) == true);
         TS_ASSERT_THROWS_NOTHING(rm.assign(1,moves.node(1)));
-        TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(1)));
+        TS_ASSERT_THROWS_NOTHING(selector->notifyScheduled(moves.node(1)));
 
         TS_ASSERT_EQUALS(moves.node(0).isPlaced(), false);
 
@@ -603,24 +617,24 @@ BasicResourceManagerTest::testLongImmediates() {
         TS_ASSERT_EQUALS(moves.node(0).isPlaced(), false);
         TS_ASSERT_THROWS_NOTHING(rm.assign(1,moves.node(0)));
         TS_ASSERT_EQUALS(moves.node(0).isPlaced(), true);
-        TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(0)));
+        TS_ASSERT_THROWS_NOTHING(selector->notifyScheduled(moves.node(0)));
 
         TS_ASSERT_THROWS_NOTHING(rm.assign(2,moves.node(2)));
-        TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(2)));
+        TS_ASSERT_THROWS_NOTHING(selector->notifyScheduled(moves.node(2)));
         MoveNode* node = moves.node(2).copy();
         delete node;
 
-        moves = selector.candidates();
+        moves = selector->candidates();
         TS_ASSERT_THROWS_NOTHING(rm.assign(2,moves.node(0)));
-        TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(0)));
+        TS_ASSERT_THROWS_NOTHING(selector->notifyScheduled(moves.node(0)));
         TS_ASSERT_THROWS_NOTHING(rm.assign(2,moves.node(1)));
-        TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(1)));
+        TS_ASSERT_THROWS_NOTHING(selector->notifyScheduled(moves.node(1)));
         node = moves.node(1).copy();
 
         delete node;
-        moves = selector.candidates();
+        moves = selector->candidates();
         TS_ASSERT_THROWS_NOTHING(rm.assign(3,moves.node(0)));
-        TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(0)));
+        TS_ASSERT_THROWS_NOTHING(selector->notifyScheduled(moves.node(0)));
 
         TS_ASSERT_EQUALS(rm.canAssign(3,moves.node(1)), true);
         TS_ASSERT_THROWS_NOTHING(rm.assign(3,moves.node(1)));
@@ -629,10 +643,10 @@ BasicResourceManagerTest::testLongImmediates() {
         TS_ASSERT_THROWS_NOTHING(rm.unassign(moves.node(1)));
         TS_ASSERT_EQUALS(moves.node(1).isPlaced(), false);
         TS_ASSERT_THROWS_NOTHING(rm.assign(3, moves.node(1)));
-        TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(1)));
+        TS_ASSERT_THROWS_NOTHING(selector->notifyScheduled(moves.node(1)));
         TS_ASSERT_EQUALS(rm.canAssign(4,moves.node(2)), true);
         TS_ASSERT_THROWS_NOTHING(rm.assign(4,moves.node(2)));
-        TS_ASSERT_THROWS_NOTHING(selector.notifyScheduled(moves.node(2)));
+        TS_ASSERT_THROWS_NOTHING(selector->notifyScheduled(moves.node(2)));
 
         TS_ASSERT_EQUALS(rm.instruction(0)->immediateCount(), 2);
         TS_ASSERT_EQUALS(rm.instruction(1)->immediateCount(), 0);
@@ -641,6 +655,7 @@ BasicResourceManagerTest::testLongImmediates() {
         TS_ASSERT_EQUALS(rm.instruction(2)->moveCount(), 3);
         TS_ASSERT_EQUALS(rm.instruction(3)->moveCount(), 2);
         TS_ASSERT_EQUALS(rm.instruction(4)->moveCount(), 1);
+        delete selector;
         delete targetMachine;
         delete srcProgram;
 
