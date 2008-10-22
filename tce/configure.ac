@@ -755,7 +755,7 @@ AC_PREPROC_IFELSE(
   LIBS=$TEMP_LIBS
 ],
 [
-  AC_MSG_ERROR([TCE requires a path to the header files of tcl library (v8.0-8.4). Either install the header files or provide their location.])
+  AC_MSG_ERROR([TCE requires a path to the header files of tcl library. Either install the header files or provide their location.])
 ])
 
 AM_CONDITIONAL(HAVE_TCL, test x$TCL = xtrue)
@@ -1143,6 +1143,16 @@ CPP=$CPP
 CC=$CC
 
 " > $FILENAME
+
+
+LDFLAGS="$EDITLINE_LD_FLAGS $BOOST_LDFLAGS $SQLITE_LD_FLAGS $XERCES_LIBDIR $XERCES_LIBS $GUI_LIBS $TCL_LD_FLAGS"
+
+AC_DEFINE_UNQUOTED([CONFIGURE_CPPFLAGS], ["$CPPFLAGS"],
+                   [CPPFLAGS used during configuration of TCE])
+
+AC_DEFINE_UNQUOTED([CONFIGURE_LDFLAGS], ["$LDFLAGS"],
+                   [LDFLAGS used during configuration of TCE])
+
 
 # Make AC_OUTPUT to create each file listed here.
 AC_CONFIG_FILES([
