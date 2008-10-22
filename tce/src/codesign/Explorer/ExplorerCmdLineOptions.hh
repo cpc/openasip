@@ -55,6 +55,7 @@ public:
     virtual void printHelp() const;
 
     std::string explorerPlugin() const;
+    std::string pluginInfo() const;
     int testApplicationDirectoryCount() const;
     std::string testApplicationDirectory(int index) const
         throw (OutOfRange);
@@ -69,6 +70,7 @@ public:
     RowID configurationToWrite(int index) const
         throw (OutOfRange);
     bool printApplications() const;
+    bool printPlugins() const;
     int applicationIDToRemoveCount() const;
     RowID applicationIDToRemove(int index) const
         throw (OutOfRange);

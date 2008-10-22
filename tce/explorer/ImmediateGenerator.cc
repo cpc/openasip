@@ -73,8 +73,33 @@ using std::endl;
  * adding/removing immediates.
  */
 class ImmediateGenerator : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Creates immediates for configuration.");
+    PLUGIN_DESCRIPTION("Creates immediates for configuration.");
+
+    ImmediateGenerator(): DesignSpaceExplorerPlugin(), 
+        createNewConfig_(false),
+        print_(false), 
+        removeInsTemplateName_(""),
+        addInsTemplateName_(""),
+        modInsTemplateName_(""),
+        width_(32),
+        widthPart_(8),
+        split_(false),
+        dstImmUnitName_("") {
+
+        // compulsory parameters
+        // no compulsory parameters
+
+        // parameters that have a default value
+        addParameter(printPN_, BOOL, false, Conversion::toString(print_));
+        addParameter(removeInsTemplateNamePN_, STRING, false, removeInsTemplateName_);
+        addParameter(addInsTemplateNamePN_, STRING, false, addInsTemplateName_);
+        addParameter(modInsTemplateNamePN_, STRING, false, modInsTemplateName_);
+        addParameter(widthPN_, UINT, false, Conversion::toString(width_));
+        addParameter(widthPartPN_, UINT, false, Conversion::toString(widthPart_));
+        addParameter(splitPN_, BOOL, false, Conversion::toString(split_));
+        addParameter(dstImmUnitNamePN_, STRING, false, dstImmUnitName_);
+    }
+
     
     /**
      * Explorer plugin that creates or modifies machine instruction templates.
@@ -183,6 +208,18 @@ public:
 private:
     /// Boolean value used to decide if new config is created.
     bool createNewConfig_;
+
+    // parameter names
+    static const std::string printPN_;
+    static const std::string removeInsTemplateNamePN_;
+    static const std::string addInsTemplateNamePN_;
+    static const std::string modInsTemplateNamePN_;
+    static const std::string widthPN_;
+    static const std::string widthPartPN_;
+    static const std::string splitPN_;
+    static const std::string dstImmUnitNamePN_;
+
+    // parameters
     /// print values
     bool print_;
     /// instruction template name to be removed.
@@ -199,128 +236,22 @@ private:
     bool split_;
     /// destination immediate unit name
     std::string dstImmUnitName_;
-     
+
+
     /**
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        const std::string print = "print";
-        const std::string removeInsTemplateName = "remove_it_name";
-        const std::string addInsTemplateName = "add_it_name";
-        const std::string modInsTemplateName = "modify_it_name";
-        const std::string width = "width";
-        const std::string widthPart = "width_part";
-        const std::string split = "split";
-        const std::string dstImmUnitName = "dst_imm_unit";
-
-        const unsigned int widthDefault_ = 32;
-        const unsigned int widthPartDefault_ = 8;
-        createNewConfig_ = false; // by default don't create a new config
-        
-        if (hasParameter(print)) {
-            try {
-                print_ = booleanValue(parameterValue(print));
-            } catch (const Exception& e) {
-                parameterError(print, "Boolean");
-                print_ = false;
-            }   
-        } else {
-            print_ = false;
-        }   
-
-        if (hasParameter(removeInsTemplateName)) {
-            try {
-                removeInsTemplateName_ = parameterValue(removeInsTemplateName);
-            } catch (const Exception& e) {
-                parameterError(removeInsTemplateName, "string");
-                removeInsTemplateName_ = "";
-            }   
-        } else {
-            removeInsTemplateName_ = "";
-        }   
-
-        if (hasParameter(addInsTemplateName)) {
-            try {
-                addInsTemplateName_ = parameterValue(addInsTemplateName);
-            } catch (const Exception& e) {
-                parameterError(addInsTemplateName, "string");
-                addInsTemplateName_ = "";
-            }   
-        } else {
-            addInsTemplateName_ = "";
-        }   
-
-        if (hasParameter(modInsTemplateName)) {
-            try {
-                modInsTemplateName_ = parameterValue(modInsTemplateName);
-            } catch (const Exception& e) {
-                parameterError(modInsTemplateName, "string");
-                modInsTemplateName_ = "";
-            }   
-        } else {
-            modInsTemplateName_ = "";
-        }   
-
-        if (hasParameter(width)) {
-            try {
-                width_ = Conversion::toUnsignedInt(parameterValue(width));
-            } catch (const Exception& e) {
-                parameterError(width, "Integer");
-                width_ = widthDefault_;
-            }   
-        } else {
-            // set defaut value to width
-            width_ = widthDefault_;
-        }   
-
-        if (hasParameter(widthPart)) {
-            try {
-                widthPart_ = Conversion::toUnsignedInt(parameterValue(widthPart));
-            } catch (const Exception& e) {
-                parameterError(widthPart, "Integer");
-                widthPart_ = widthPartDefault_;
-            }   
-        } else {
-            // set defaut value to widthPart
-            widthPart_ = widthPartDefault_;
-        }   
-
-        if (hasParameter(split)) {
-            try {
-                split_ = booleanValue(parameterValue(split));
-            } catch (const Exception& e) {
-                parameterError(split, "Boolean");
-                split_ = false;
-            }   
-        } else {
-            split_ = false;
-        }   
-        
-        if (hasParameter(dstImmUnitName)) {
-            try {
-                dstImmUnitName_ = parameterValue(dstImmUnitName);
-            } catch (const Exception& e) {
-                parameterError(dstImmUnitName, "string");
-                dstImmUnitName_ = "";
-            }   
-        } else {
-            dstImmUnitName_ = "";
-        }   
+        readCompulsoryParameter(printPN_, print_);
+        readCompulsoryParameter(removeInsTemplateNamePN_, removeInsTemplateName_);
+        readCompulsoryParameter(addInsTemplateNamePN_, addInsTemplateName_);
+        readCompulsoryParameter(modInsTemplateNamePN_, modInsTemplateName_);
+        readCompulsoryParameter(widthPN_, width_);
+        readCompulsoryParameter(widthPartPN_, widthPart_);
+        readCompulsoryParameter(splitPN_, split_);
+        readCompulsoryParameter(dstImmUnitNamePN_, dstImmUnitName_);
     }
     
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << endl;
-        errorOuput(msg.str());
-    }
 
     /**
      * Print info about instruction templates of a given machine.
@@ -541,5 +472,15 @@ private:
         createNewConfig_ = true;
     }
 };
+
+// parameter names
+const std::string ImmediateGenerator::printPN_("print");
+const std::string ImmediateGenerator::removeInsTemplateNamePN_("remove_it_name");
+const std::string ImmediateGenerator::addInsTemplateNamePN_("add_it_name");
+const std::string ImmediateGenerator::modInsTemplateNamePN_("modify_it_name");
+const std::string ImmediateGenerator::widthPN_("width");
+const std::string ImmediateGenerator::widthPartPN_("width_part");
+const std::string ImmediateGenerator::splitPN_("split");
+const std::string ImmediateGenerator::dstImmUnitNamePN_("dst_imm_unit");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ImmediateGenerator)

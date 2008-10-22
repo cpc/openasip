@@ -1,6 +1,11 @@
 1.0-beta2     200X-XX-XX
 ========================
 
+New features
+------------
+- Explorer can now print available plugins with "-g" option switch.
+- Explorer can now print plugin parameters with "-p <plugin name>" switch.
+
 Bug fixes
 ---------
 - Some scheduling speed optimizations; Scheduling big basic blocks 

@@ -59,8 +59,22 @@ using namespace HDB;
  * Supported parameters:
  */
 class MinimalOpSet : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Minimal opset checker and fixer plugin.");
+    PLUGIN_DESCRIPTION("Minimal opset checker and fixer plugin.");
+
+    MinimalOpSet(): DesignSpaceExplorerPlugin(), 
+        adf_(""),
+        idf_(""), 
+        printMissingOps_(false) {
+
+        // compulsory parameters
+        // no compulsory parameters
+
+        // parameters that have a default value
+        addParameter(adfPN_, STRING, false, adf_);
+        addParameter(idfPN_, STRING, false, idf_);
+        addParameter(printMissingOpsPN_, BOOL, false, 
+            Conversion::toString(printMissingOps_));
+    }
     
     /**
      * Explorer plugin that checks that given config or adf meets minimal opset
@@ -165,6 +179,12 @@ public:
     }
 
 private:
+    // parameter name variables
+    static const std::string adfPN_;
+    static const std::string idfPN_;
+    static const std::string printMissingOpsPN_;
+     
+    // parameters
     /// name of the adf file to evaluate
     std::string adf_;
     /// name of the idf file to evaluate
@@ -176,63 +196,12 @@ private:
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        const std::string adf = "adf";
-        const std::string idf = "idf";
-        const std::string printMissingOps = "print";
-        const bool printMissingOpsDefault = false;
-
-        if (hasParameter(adf)) {
-            try {
-                adf_ = parameterValue(adf);
-            } catch (const Exception& e) {
-                parameterError(adf, "string");
-                adf_ = "";
-            }
-        } else {
-            adf_ = "";
-        }
-
-        if (hasParameter(idf)) {
-            try {
-                idf_ = parameterValue(idf);
-            } catch (const Exception& e) {
-                parameterError(idf, "string");
-                idf_ = "";
-            }
-        } else {
-            idf_ = "";
-        }
-
-        if (hasParameter(printMissingOps)) {
-            try {
-                printMissingOps_ =
-                    booleanValue(parameterValue(printMissingOps));
-            } catch (const Exception& e) {
-                parameterError(printMissingOps, "Boolean");
-                printMissingOps_ = printMissingOpsDefault;
-            }
-        } else {
-            // set defaut value
-            printMissingOps_ = printMissingOpsDefault;
-        }
+        readCompulsoryParameter(adfPN_, adf_);
+        readCompulsoryParameter(idfPN_, idf_);
+        readCompulsoryParameter(printMissingOpsPN_, printMissingOps_);
     }
     
 
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << std::endl;
-        verboseLog(msg.str());
-    }
-    
-    
     /**
      * Load adf and idf from files and store to given dsdb and config.
      *
@@ -276,5 +245,10 @@ private:
         return true;
     }
 };
+
+// parameter names
+const std::string MinimalOpSet::adfPN_("adf");
+const std::string MinimalOpSet::idfPN_("idf");
+const std::string MinimalOpSet::printMissingOpsPN_("print");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(MinimalOpSet)

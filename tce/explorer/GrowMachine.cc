@@ -51,6 +51,8 @@
 #include "CostEstimates.hh"
 #include "SimulatorConstants.hh"
 
+#include "Conversion.hh"
+
 using namespace TTAProgram;
 using namespace TTAMachine;
 using namespace HDB;
@@ -62,10 +64,20 @@ using namespace HDB;
  * Supported parameters:
  */
 class GrowMachine : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Removes resources until the real time "
+    PLUGIN_DESCRIPTION("Removes resources until the real time "
         "requirements of applications are not reached anymore.");
     
+    GrowMachine(): DesignSpaceExplorerPlugin(), 
+        superiority_(10) {
+
+        // compulsory parameters
+        // no compulsory parameters
+
+        // parameters that have a default value
+        addParameter(superiorityPN_, UINT, false, 
+                Conversion::toString(superiority_));
+    }
+
     /**
      * Optimizes the architecture in regards of the cycle count.
      *
@@ -224,7 +236,10 @@ public:
     }
 
 private:
+    // parameter names
+    static const std::string superiorityPN_;
 
+    // parameters
     /// Percentage value of how much faster schedules are wanted until cycle
     /// count optimization is stopped.
     unsigned int superiority_;
@@ -233,34 +248,10 @@ private:
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        const std::string superiority = "superiority";
-
-        if (hasParameter(superiority)) {
-            try {
-                superiority_ = Conversion::toUnsignedInt(parameterValue(superiority));
-            } catch (const Exception& e) {
-                parameterError(superiority, "Unsigned integer");
-                superiority_ = 2;
-            }
-        } else {
-            // set default value to superiority
-            superiority_ = 2;
-        }
+        // optional parameters
+        readOptionalParameter(superiorityPN_, superiority_);
     }
 
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << std::endl;
-        errorOuput(msg.str());
-    }
 
     /**
      * Checks whether cycle counts have been lowered enough.
@@ -294,5 +285,7 @@ private:
     }
 
 };
+
+const std::string GrowMachine::superiorityPN_("superiority");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(GrowMachine)

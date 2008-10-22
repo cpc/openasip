@@ -449,7 +449,7 @@ DesignSpaceExplorer::simulate(
  */
 DesignSpaceExplorerPlugin*
 DesignSpaceExplorer::loadExplorerPlugin(
-    const std::string& pluginName, DSDBManager& dsdb)
+    const std::string& pluginName, DSDBManager* dsdb)
     throw (FileNotFound, DynamicLibraryException) {
 
     string pluginFileName = pluginName + ".so";
@@ -462,11 +462,16 @@ DesignSpaceExplorer::loadExplorerPlugin(
         }
     }
     pluginTool_.registerModule(pluginFileName);
-    DesignSpaceExplorerPlugin* (*pluginCreator)(DSDBManager&);
-    pluginTool_.importSymbol(
-        "create_explorer_plugin_" + pluginName, pluginCreator, pluginFileName);
-    
-    return pluginCreator(dsdb);
+        DesignSpaceExplorerPlugin* (*pluginCreator)();
+        pluginTool_.importSymbol(
+                "create_explorer_plugin_" + pluginName, pluginCreator, 
+                pluginFileName);
+
+    DesignSpaceExplorerPlugin* plugin = pluginCreator();
+    if (dsdb) {
+        plugin->setDSDB(*dsdb);
+    }
+    return plugin;
 }
 
 

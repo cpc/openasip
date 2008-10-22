@@ -28,6 +28,7 @@
 
 # input *.c
 # output .vhdl, .img, .adf, .bem
+# TODO: output cycle counts, estimation data (area, energy, ...)
 # expects that tce programs explore, tcecc, createbem, generateprocessor and
 # generatebits are to be found from path.
 
@@ -83,7 +84,7 @@ name="$(basename "${1}" .c)"
 tmp_name="${tmp_dir}/${name}"
 
 tcecc "${1}" -O2 -o ${tmp_name}.bc || pexit 1
-explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb || pexit 1
+explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb &>/dev/null || pexit 1
 
 # use simpleicoptimizer if using some other adf than minimal
 #new_conf="$(explore -e SimpleICOptimizer -s 1 ${tmp_name}.dsdb \

@@ -59,8 +59,18 @@ using namespace TTAMachine;
  * buses. If all ports from a unit are removed, removes also the unit.
  */
 class RemoveUnconnectedComponents : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Removes unconnected components from a configuration.");
+    PLUGIN_DESCRIPTION("Removes unconnected components from a configuration.");
+
+    RemoveUnconnectedComponents(): DesignSpaceExplorerPlugin(), 
+        allowRemoval_(false) {
+
+        // compulsory parameters
+        // no compulsory parameters
+
+        // parameters that have a default value
+        addParameter(allowRemovalPN_, BOOL, false, 
+            Conversion::toString(allowRemoval_));
+    }
     
     /**
      * Removes unconnected components from a configuration.
@@ -159,42 +169,18 @@ public:
     }
 
 private:
-
+    static const std::string allowRemovalPN_;
     /// parameter allow removal of unused ports and RFs without ports.
     bool allowRemoval_;
+
 
     /**
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        const std::string allowRemoval = "allow_remove";
-
-        if (hasParameter(allowRemoval)) {
-            try {
-                allowRemoval_ = booleanValue(parameterValue(allowRemoval));
-            } catch (const Exception& e) {
-                parameterError(allowRemoval, "Boolean");
-                allowRemoval_ = false;
-            }
-        } else {
-            // set defaut value for allow Removal parameter
-            allowRemoval_ = false;
-        }
+        readOptionalParameter(allowRemovalPN_, allowRemoval_);
     }
 
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << std::endl;
-        errorOuput(msg.str());
-    }
 
     /**
      * Removes totally unconnected FUs.
@@ -347,5 +333,8 @@ private:
         modifier.removeNotConnectedSockets(mach, removedSocketNames);
     }
 };
+
+const std::string 
+    RemoveUnconnectedComponents::allowRemovalPN_("allow_remove");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(RemoveUnconnectedComponents)

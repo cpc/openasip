@@ -2,9 +2,7 @@ General/Explorer:
 - After writing adf/idf to the dsdb, delete them. Explorer is leaking memory
   quite efficiently now :)
 
-- Explorer should be able to print out plugin parameters.
-    - when refactoring the parameter functions move parameter error function
-      up in the class hierarchy.
+- Support for multiple HDBs.
 
 - how to preserve frequency an max area limitations when selecting components
   when other plugins are called.
@@ -38,3 +36,8 @@ Refactor/cleanups:
 - make longest path selection of units in implementation selector module a
   function.
 - LLVMBackend.hh compile/schedule functions to use const machine.
+
+
+--- notes ---
+
+Update tutorial to use c2vhdl script.

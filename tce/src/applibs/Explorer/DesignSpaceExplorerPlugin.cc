@@ -35,7 +35,12 @@
  * @note rating: red
  */
 
+#include <map>
+#include <string>
+
 #include "DesignSpaceExplorerPlugin.hh"
+#include "ExplorerPluginParameter.hh"
+#include "Exception.hh"
 #include "StringTools.hh"
 
 /**
@@ -63,7 +68,6 @@ DesignSpaceExplorerPlugin::~DesignSpaceExplorerPlugin() {
  */
 void
 DesignSpaceExplorerPlugin::setPluginName(const std::string& pluginName) {
-
     pluginName_ = pluginName;
 }
 
@@ -80,13 +84,22 @@ DesignSpaceExplorerPlugin::name() const {
 
 
 /**
- * Sets the plugin parameters.
+ * Gives a plugin parameter value.
  *
- * @param parameters The parameters.
+ * @param name The parameter name.
+ * @param value The value to be set for the parameter.
  */
 void
-DesignSpaceExplorerPlugin::setParameters(const ParameterTable& parameters) {
-    parameters_ = parameters;
+DesignSpaceExplorerPlugin::giveParameter(
+    const std::string& name, 
+    const std::string& value) throw (InstanceNotFound) {
+
+    PMIt it = parameters_.find(name);
+    if (it == parameters_.end()) {
+        std::string msg = "Plugin has no parameter named: " + name;
+        throw InstanceNotFound(__FILE__, __LINE__, __func__, msg);
+    }
+    it->second.setValue(value);
 }
 
 
@@ -120,38 +133,20 @@ DesignSpaceExplorerPlugin::setErrorStream(std::ostream* errorOut) {
  */
 bool
 DesignSpaceExplorerPlugin::hasParameter(const std::string& paramName) const {
-    for (ParameterTable::const_iterator iter = parameters_.begin();
-         iter != parameters_.end(); iter++) {
-        Parameter param = *iter;
-        if (param.name == paramName) {
-            return true;
-        }
-    }
-    return false;
+    return parameters_.find(paramName)->second.isSet();
 }
 
 
 /**
- * Returns the value of the given parameter.
+ * Makes a copy of the parameters of the plugin and returns it.
  *
- * @param paramName Name of the parameter.
- * @return The value.
- * @exception NotAvailable If the given parameter is not defined.
+ * @return ParameterMap map of the explorer plugin parameters.
  */
-std::string
-DesignSpaceExplorerPlugin::parameterValue(const std::string& paramName) const
-    throw (NotAvailable) {
-
-    for (ParameterTable::const_iterator iter = parameters_.begin();
-         iter != parameters_.end(); iter++) {
-        Parameter param = *iter;
-        if (param.name == paramName) {
-            return param.value;
-        }
-    }
-
-    throw NotAvailable(__FILE__, __LINE__, __func__);
+DesignSpaceExplorerPlugin::ParameterMap 
+DesignSpaceExplorerPlugin::parameters() const {
+    return parameters_;
 }
+
 
 /**
  * Returns the boolean value of the given parameter if parameter can be
@@ -173,6 +168,20 @@ DesignSpaceExplorerPlugin::booleanValue(const std::string& parameter) const
         return false;
     } else {
         throw IllegalParameters(__FILE__, __LINE__, __func__);
+    }
+}
+
+/**
+ * Checks that all compulsory parameters are set for the plugin.
+ */
+void 
+DesignSpaceExplorerPlugin::checkParameters() const throw(IllegalParameters) {
+    PMCIt it = parameters_.begin();
+    while (it != parameters_.end()) {
+        if (it->second.isCompulsory() && !it->second.isSet()) {
+            std::string msg = it->second.name() + " parameter is needed.";
+            throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
+        }
     }
 }
 

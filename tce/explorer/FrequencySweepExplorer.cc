@@ -45,6 +45,7 @@
 #include <boost/format.hpp>
 
 #include "DesignSpaceExplorerPlugin.hh"
+#include "ExplorerPluginParameter.hh"
 #include "Conversion.hh"
 #include "DSDBManager.hh"
 #include "Machine.hh"
@@ -83,7 +84,6 @@ using namespace IDF;
 using std::endl;
 using std::map;
 using std::vector;
-using std::string;
 using std::set;
 
 /**
@@ -105,9 +105,25 @@ using std::set;
  *  - ic_hdb, name of the HDB that is used in IC estimation
  */
 class FrequencySweepExplorer : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Frequency sweep algorithm.");
+    PLUGIN_DESCRIPTION("Frequency sweep algorithm.");
     
+    FrequencySweepExplorer(): DesignSpaceExplorerPlugin(), 
+        icDec_("DefaultICDecoder"),
+        icDecHDB_("asic_130nm_1.5V.hdb"),
+        superiority_(10) {
+
+        // compulsory parameters
+        addParameter(startMHzPN_, UINT);
+        addParameter(endMHzPN_, UINT);
+        addParameter(stepMHzPN_, UINT);
+
+        // parameters that have a default value
+        addParameter(icDecPN_, STRING, false, icDec_);
+        addParameter(icDecHDBPN_, STRING, false, icDecHDB_);
+        addParameter(superiorityPN_, UINT, false, 
+                Conversion::toString(superiority_));
+    }
+
     /**
      * Explores from the given start configuration.
      *
@@ -118,7 +134,7 @@ public:
     virtual std::vector<RowID>
     explore(const RowID& startPointConfigurationID, const unsigned int&) {
 
-        readParameters();
+        checkParameters();
         openHDBs();
         std::vector<RowID> result;
         
@@ -135,13 +151,13 @@ public:
         // other explorer plugins used
         DesignSpaceExplorerPlugin* icOptimizer =
             DesignSpaceExplorer::loadExplorerPlugin(
-                    "SimpleICOptimizer", db());
+                    "SimpleICOptimizer", &db());
         DesignSpaceExplorerPlugin* minimizeMachine =
             DesignSpaceExplorer::loadExplorerPlugin(
-                    "MinimizeMachine", db());
+                    "MinimizeMachine", &db());
         DesignSpaceExplorerPlugin* growMachine =
             DesignSpaceExplorer::loadExplorerPlugin(
-                    "GrowMachine", db());
+                    "GrowMachine", &db());
 
         DSDBManager& dsdb = db();
 
@@ -157,12 +173,7 @@ public:
         FrequencySweep sweeper(startMHz_, endMHz_, stepMHz_);
 
         // parameters for GrowMachine plugin
-        DesignSpaceExplorerPlugin::ParameterTable growMachineParameters;
-        DesignSpaceExplorerPlugin::Parameter superiorityPar;
-        superiorityPar.name = "superiority";
-        superiorityPar.value = Conversion::toString(superiority_);
-        growMachineParameters.push_back(superiorityPar);
-        growMachine->setParameters(growMachineParameters);
+        growMachine->giveParameter("superiority", Conversion::toString(superiority_));
 
         // find new configurations by adding components until the cycle
         // count stops going down
@@ -177,20 +188,15 @@ public:
             msg << endl;
             verboseLog(msg.str())
         }
+        delete growMachine;
+        growMachine = NULL;
 
         int currentFrequencyMHz = sweeper.nextFrequency();
         vector<RowID>::const_iterator archIter;
-        DesignSpaceExplorerPlugin::ParameterTable minMachineParameters;
-        DesignSpaceExplorerPlugin::Parameter frequencyPar;
-        frequencyPar.name = "frequency";
         while (currentFrequencyMHz != 0) {
 
-            // for minimizeMachine plugin
-            frequencyPar.value = Conversion::toString(currentFrequencyMHz);
-            minMachineParameters.clear();
-            minMachineParameters.push_back(frequencyPar);
-
-            verboseLogC("Testing frequency: " + frequencyPar.value, 3)
+            verboseLogC("Testing frequency: " + Conversion::toString(
+                        currentFrequencyMHz), 3)
             /* Find the configurations that are fast enough for the
                real time requirements of the applications at the
                currently examined frequency. */
@@ -207,9 +213,10 @@ public:
 
                     // calling MimimizeMachine plugin with confToMinimize 
                     // (architer) and currentFrequencyMHz
+                    minimizeMachine->giveParameter("frequency", 
+                            Conversion::toString(currentFrequencyMHz));
                     DSDBManager::MachineConfiguration minConf = 
-                        callPlugin(minMachineParameters, minimizeMachine, 
-                                *archIter, dsdb);
+                        callPlugin(minimizeMachine, *archIter, dsdb);
 
                     // create implementation for configuration
                     RowID selectedConf = createImplementationAndStore(minConf, 
@@ -260,6 +267,11 @@ public:
             // advance to next frequency
             currentFrequencyMHz = sweeper.nextFrequency();
         }
+
+        delete minimizeMachine;
+        minimizeMachine = NULL;
+        delete icOptimizer;
+        icOptimizer = NULL;
         
         // Idea:
         // All results will be given to a result explorer that returns
@@ -278,12 +290,6 @@ private:
     int busCount_;
     /// Default value of busCount_
     static const int busCountDefault_ = 4;
-    /// Superirity percentage for the GrowMachine plugin
-    unsigned int superiority_;
-
-    int startMHz_;
-    int endMHz_;
-    unsigned int stepMHz_;
 
     static const unsigned int immSlotBusIndexDefault_ = 0;
     unsigned int immSlotBusIndex_;
@@ -296,119 +302,46 @@ private:
     int maxNumberOfRegisterFiles_;
     int rfReadPorts_;
     int rfWritePorts_;
+    
+    // parameter names
+    const static std::string startMHzPN_;
+    const static std::string endMHzPN_;
+    const static std::string stepMHzPN_;
+
+    const static std::string icDecPN_;
+    const static std::string icDecHDBPN_;
+    const static std::string superiorityPN_;
+
+    // parameters
+    unsigned int startMHz_;
+    unsigned int endMHz_;
+    unsigned int stepMHz_;
 
     /// name of the ic decoder plugin for idf
     std::string icDec_;
     /// name of the hdb used by ic decoder
     std::string icDecHDB_;
+    /// Superirity percentage for the GrowMachine plugin
+    unsigned int superiority_;
 
+    static const std::string talo;
 
     /**
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        const std::string startMHz = "start_freq_mhz";
-        const std::string endMHz = "end_freq_mhz";
-        const std::string stepMHz = "step_freq_mhz";
-        const std::string icDec = "ic_dec";
-        const std::string icDecoderDefault = "DefaultICDecoder";
-        const std::string icDecHDB = "ic_hdb";
-        const std::string icDecHDBDefault = "asic_130nm_1.5V.hdb";
-        const std::string superiority = "superiority";
-        const unsigned int superiorityDefault = 10;
+        // compulsory parameters
+        readCompulsoryParameter(startMHzPN_, startMHz_);
+        readCompulsoryParameter(endMHzPN_, endMHz_);
+        readCompulsoryParameter(stepMHzPN_, stepMHz_);
 
-        if (hasParameter(startMHz)) {
-            try {
-                startMHz_ = Conversion::toInt(parameterValue(startMHz));
-            } catch (const Exception& e) {
-                parameterError(startMHz, "integer");
-                string msg = "'start_freq_mhz' parameter needed";
-                throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
-            }
-        } else {
-            string msg = "'start_freq_mhz' parameter needed";
-                throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
-        }
-
-        if (hasParameter(endMHz)) {
-            try {
-                endMHz_ = Conversion::toInt(parameterValue(endMHz));
-            } catch (const Exception& e) {
-                parameterError(endMHz, "integer");
-                string msg = "'end_freq_mhz' parameter needed";
-                throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
-            }
-        } else {
-            string msg = "'end_freq_mhz' parameter needed";
-                throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
-        }
-        
-        if (hasParameter(stepMHz)) {
-            try {
-                stepMHz_ = Conversion::toInt(parameterValue(stepMHz));
-            } catch (const Exception& e) {
-                parameterError(stepMHz, "integer");
-                string msg = "'step_freq_mhz' parameter needed";
-                throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
-            }
-        } else {
-            string msg = "'step_freq_mhz' parameter needed";
-            throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
-        }
-
-        if (hasParameter(icDec)) {
-            try {
-                icDec_ = parameterValue(icDec);
-            } catch (const Exception& e) {
-                parameterError(icDec, "String");
-                icDec_ = icDecoderDefault;
-            }
-        } else {
-            // set defaut value to icDec
-            icDec_ = icDecoderDefault;
-        }
-
-        if (hasParameter(icDecHDB)) {
-            try {
-                icDecHDB_ = parameterValue(icDecHDB);
-            } catch (const Exception& e) {
-                parameterError(icDecHDB, "String");
-                icDecHDB_ = icDecHDBDefault;
-            }
-        } else {
-            // set defaut value to icDecHDB
-            icDecHDB_ = icDecHDBDefault;
-        }
-
-        if (hasParameter(superiority)) {
-            try {
-                superiority_ = Conversion::toUnsignedInt(
-                        parameterValue(superiority));
-            } catch (const Exception& e) {
-                parameterError(superiority, "unsigned integer");
-                superiority_ = superiorityDefault;
-            }
-        } else {
-            superiority_ = superiorityDefault;
-        }
+        // optional parameters
+        readOptionalParameter(icDecPN_, icDec_);
+        readOptionalParameter(icDecHDBPN_, icDecHDB_);
+        readOptionalParameter(superiorityPN_, superiority_);
     }
 
     
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << std::endl;
-        errorOuput(msg.str());
-    }
-
-
     /**
      * Loads HDBs that are used into the registry.
      */
@@ -463,18 +396,15 @@ private:
     /**
      * Calls an explorer plugin.
      *
-     * @param pluginParams Parameters for the plugin.
      * @param plugin The plugin to be called.
      * @param arch Row id of the architechture to be passed to the plugin.
      * @return dsdb Design space database to be used.
      */
     DSDBManager::MachineConfiguration callPlugin(
-        const DesignSpaceExplorerPlugin::ParameterTable& pluginParams,
         DesignSpaceExplorerPlugin* plugin,
         const RowID& arch,
         DSDBManager& dsdb) {
         
-        plugin->setParameters(pluginParams);
         vector<RowID> resultConfs = plugin->explore(arch);
 
         DSDBManager::MachineConfiguration resultConf;
@@ -501,5 +431,13 @@ private:
         return resultConf;
     }
 };
+
+// parameter names
+const std::string FrequencySweepExplorer::startMHzPN_("start_freq_mhz");
+const std::string FrequencySweepExplorer::endMHzPN_("end_freq_mhz");
+const std::string FrequencySweepExplorer::stepMHzPN_("step_freq_mhz");
+const std::string FrequencySweepExplorer::icDecPN_("ic_dec");
+const std::string FrequencySweepExplorer::icDecHDBPN_("ic_hdb");
+const std::string FrequencySweepExplorer::superiorityPN_("superiority");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(FrequencySweepExplorer)
