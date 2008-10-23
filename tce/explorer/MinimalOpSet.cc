@@ -133,7 +133,7 @@ class MinimalOpSet : public DesignSpaceExplorerPlugin {
                 return result;
             }
             for (unsigned int i = 0; i < missingOps.size(); ++i) {
-                verboseLogC(missingOps.at(i) + " : operation is missing.", 1);
+                verboseLog(missingOps.at(i) + " : operation is missing.");
             }
         }
 
