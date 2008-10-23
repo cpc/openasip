@@ -30,6 +30,8 @@ else
 -I .. -I ${TRACEDB} -I ${SIMULATOR} -I ${BASE}/bem \
  ${BOOST_INCLUDES} ${CPPFLAGS}"
         soflags="@SHARED_CXX_FLAGS@ -o"
+	CONFIGURE_CPPFLAGS="@CPPFLAGS@"
+	CONFIGURE_LDFLAGS="@LDFLAGS@"
 
     else
 
@@ -41,6 +43,6 @@ else
     fi
     objectfile=$1
     shift
-    $compiler $libdir $includedir $extra_objects $soflags $objectfile $* && \
+    $compiler $libdir $includedir $extra_objects $soflags $objectfile $CONFIGURE_CPPFLAGS $CONFIGURE_LDFLAGS $* && \
         echo "Compilation successful." || echo "Compilation failed." >&2
 fi

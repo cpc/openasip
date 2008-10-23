@@ -45,7 +45,7 @@
 #include "CmdLineOptions.hh"
 #include "Environment.hh"
 #include "Conversion.hh"
-#include "config.h"
+#include "tce_config.h"
 #include "OperationBuilder.hh"
 
 using std::string;

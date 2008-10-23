@@ -151,9 +151,12 @@ OperationBuilder::buildObject(
 
     if (behaviorFile != "") {
         const string CPPFLAGS = Environment::environmentVariable("CPPFLAGS");
-        const string CXXFLAGS = Environment::environmentVariable("CXXFLAGS");
+        const string CXXFLAGS = Environment::environmentVariable("CXXFLAGS")
+	  + " " + CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS + " ";
         const string CXXCOMPILER = Environment::environmentVariable("CXX");
         vector<string> includes = Environment::includeDirPaths();
+
+	
 
         string INCLUDES = makeIncludeString(includes);
         
