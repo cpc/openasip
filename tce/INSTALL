@@ -121,13 +121,18 @@ See the TCE Bug report for more info.
 
   http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=14
 
+Troubleshooting
+===============
+
 TCE on 64-bit distributions
-===========================
+---------------------------
+
 If you compile LLVM from sources you should give --enable-pic option for
 the LLVM's configure script. Otherwise compilation of TCE might fail.
 
-Troubleshooting
-===============
+Ubuntu versions starting from 8.10
+----------------------------------
+
 New Ubuntu versions seem to have problems with the shipped autotools
 scripts. In order to compile TCE on Ubuntu 8.10 and newer, you should
 generate the autotools scripts after installing 'libtool' with
@@ -137,15 +142,32 @@ generate the autotools scripts after installing 'libtool' with
 The resulting autotools scripts should work with the new libtool
 version.
 
-Older gcc versions, for example, the version 3.4.x shipped with
-Red Hat Enterprise Linux 4 do not support the switch
-'-Wno-variadic-macros'. This switch is set automatically by 'configure'
-in case CXXFLAGS is not set manually by the user. This results in
-rest of the configure tests failing due to an unknown flag.
+Red Hat Enterprise Linux 4.x (or CentOS 4.x)
+--------------------------------------------
 
-Workaround is to define CXXFLAGS manually before running the
-configure script:
+This distribution does not provide majority of the libraries
+required by TCE. In addition, it ships quite old gcc, 
+the version 3.4.x.
 
-export CXXFLAGS=-O3 -W -Wall -pedantic -Wno-long-long -g -Wno-system-headers
-export CFLAGS=$CXXFLAGS
+In order to make compiling TCE in this system easier, we distribute
+a binary package for the required libraries.
 
+Download it for x86-64 from:
+
+	http://tce.cs.tut.fi/lib/tce_libs-CentOS4.6-x64.tar.gz
+
+After unpacking the archive to /opt, one should regenerate
+the build scripts by going to the root of the tce sources and
+executing the following command:
+
+	/opt/tce_libs/bin/autoreconf
+
+Then TCE build should be configured with the following command line:
+
+CXXFLAGS=-O3 CFLAGS=-O3 ./configure --with-boost=/opt/tce_libs --with-xerces=/opt/tce_libs \
+            --with-xerces=/opt/tce_libs --with-editline=/opt/tce_libs \
+            --with-sqlite3=/opt/tce_libs
+
+After this TCE should build and install with:
+
+	make && sudo make install
