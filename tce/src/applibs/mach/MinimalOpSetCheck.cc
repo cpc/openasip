@@ -95,15 +95,12 @@ MinimalOpSetCheck::check(const TTAMachine::Machine& machine) const {
     std::set<std::string>::iterator last2 = opSet.end();
 
     // return false if missing operation was found
-    while (first1 != last1 && first2 != last2)
-    {
+    while (first1 != last1 && first2 != last2) {
         if (*first1 < *first2) {
             return false;
-        }
-        else if (*first2 < *first1) {
+        } else if (*first2 < *first1) {
             ++first2;
-        }
-        else { 
+        } else { 
             ++first1; 
             ++first2; 
         }
@@ -144,16 +141,13 @@ MinimalOpSetCheck::check(
 
     bool errorsAdded = false;
     // missing opset is the difference towards minimalOpSet_
-    while (first1 != last1 && first2 != last2)
-    {
+    while (first1 != last1 && first2 != last2) {
         if (*first1 < *first2) {
             results.addError(*this, eMsg.append(*first1++));
             errorsAdded = true;
-        }
-        else if (*first2 < *first1) {
+        } else if (*first2 < *first1) {
             ++first2;
-        }
-        else { 
+        } else { 
             ++first1; 
             ++first2; 
         }
@@ -204,15 +198,12 @@ MinimalOpSetCheck::checkWithIgnore(
     std::set<std::string>::iterator last2 = opSet.end();
 
     // return false if missing operation was found
-    while (first1 != last1 && first2 != last2)
-    {
+    while (first1 != last1 && first2 != last2) {
         if (*first1 < *first2) {
             return false;
-        }
-        else if (*first2 < *first1) {
+        } else if (*first2 < *first1) {
             ++first2;
-        }
-        else { 
+        } else { 
             ++first1; 
             ++first2; 
         }
@@ -254,15 +245,12 @@ MinimalOpSetCheck::missingOperations(
     std::set<std::string>::iterator last2 = opSet.end();
 
     // missing opset is the difference towards minimalOpSet_
-    while (first1 != last1 && first2 != last2)
-    {
+    while (first1 != last1 && first2 != last2) {
         if (*first1 < *first2) {
             missingOps.push_back(*first1++);
-        }
-        else if (*first2 < *first1) {
+        } else if (*first2 < *first1) {
             ++first2;
-        }
-        else { 
+        } else { 
             ++first1; 
             ++first2; 
         }

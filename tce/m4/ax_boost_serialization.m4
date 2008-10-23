@@ -1,4 +1,6 @@
-##### http://autoconf-archive.cryp.to/ax_boost_serialization.html
+# ===========================================================================
+#         http://autoconf-archive.cryp.to/ax_boost_serialization.html
+# ===========================================================================
 #
 # SYNOPSIS
 #
@@ -6,10 +8,9 @@
 #
 # DESCRIPTION
 #
-#   Test for Serialization library from the Boost C++ libraries. The
-#   macro requires a preceding call to AX_BOOST_BASE. Further
-#   documentation is available at
-#   <http://randspringer.de/boost/index.html>.
+#   Test for Serialization library from the Boost C++ libraries. The macro
+#   requires a preceding call to AX_BOOST_BASE. Further documentation is
+#   available at <http://randspringer.de/boost/index.html>.
 #
 #   This macro calls:
 #
@@ -21,15 +22,15 @@
 #
 # LAST MODIFICATION
 #
-#   2007-11-22
+#   2008-04-12
 #
 # COPYLEFT
 #
-#   Copyright (c) 2007 Thomas Porschberg <thomas@randspringer.de>
+#   Copyright (c) 2008 Thomas Porschberg <thomas@randspringer.de>
 #
-#   Copying and distribution of this file, with or without
-#   modification, are permitted in any medium without royalty provided
-#   the copyright notice and this notice are preserved.
+#   Copying and distribution of this file, with or without modification, are
+#   permitted in any medium without royalty provided the copyright notice
+#   and this notice are preserved.
 
 AC_DEFUN([AX_BOOST_SERIALIZATION],
 [
@@ -82,14 +83,14 @@ AC_DEFUN([AX_BOOST_SERIALIZATION],
             if test "x$ax_boost_user_serialization_lib" = "x"; then
                 for libextension in `ls $BOOSTLIBDIR/libboost_serialization*.{so,a}* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^lib\(boost_serialization.*\)\.so.*$;\1;' -e 's;^lib\(boost_serialization.*\)\.a*$;\1;'` ; do
                      ax_lib=${libextension}
-				    AC_CHECK_LIB($ax_lib, exit,
+				    AC_CHECK_LIB($ax_lib, abort,
                                  [BOOST_SERIALIZATION_LIB="-l$ax_lib"; AC_SUBST(BOOST_SERIALIZATION_LIB) link_serialization="yes"; break],
                                  [link_serialization="no"])
   				done
                 if test "x$link_serialization" != "xyes"; then
                 for libextension in `ls $BOOSTLIBDIR/boost_serialization*.{dll,a}* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^\(boost_serialization.*\)\.dll.*$;\1;' -e 's;^\(boost_serialization.*\)\.a*$;\1;'` ; do
                      ax_lib=${libextension}
-				    AC_CHECK_LIB($ax_lib, exit,
+				    AC_CHECK_LIB($ax_lib, abort,
                                  [BOOST_SERIALIZATION_LIB="-l$ax_lib"; AC_SUBST(BOOST_SERIALIZATION_LIB) link_serialization="yes"; break],
                                  [link_serialization="no"])
   				done

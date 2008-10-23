@@ -46,6 +46,10 @@
 const std::string SWL_PLUGIN_NAME = "explorer_plugin";
 /// Short switch string for giving an explorer plugin to be used.
 const std::string SWS_PLUGIN_NAME = "e";
+/// Long switch string for giving an explorer plugin info.
+const std::string SWL_PLUGIN_INFO = "plugin_info";
+/// Short switch string for giving an explorer plugin info.
+const std::string SWS_PLUGIN_INFO = "p";
 /// Long switch string for giving an explorer plugin to be used.
 const std::string SWL_PLUGIN_PARAM = "plugin_param";
 /// Short switch string for giving an explorer plugin to be used.
@@ -80,10 +84,14 @@ const std::string SWS_CONFIGURATION_WRITE = "w";
 const std::string SWL_TEST_DIR_RM = "rm_app";
 /// Short switch string for removing application paths from dsdb.
 const std::string SWS_TEST_DIR_RM = "r";
-/// Short switch string for listing application paths in the dsdb.
-const std::string SWS_LIST_APPS = "l";
 /// Long switch string for listing application paths in the dsdb.
 const std::string SWL_LIST_APPS = "list_apps";
+/// Short switch string for listing loadable plugins.
+const std::string SWS_LIST_APPS = "l";
+/// Long switch string for listing loadable plugins.
+const std::string SWL_LIST_PLUGINS = "list_plugins";
+/// Short switch string for listing application paths in the dsdb.
+const std::string SWS_LIST_PLUGINS = "g";
 /// Short switch string for hdb file.
 const std::string SWS_HDB_FILE = "b";
 /// Long switch string for hdb file.
@@ -108,6 +116,11 @@ ExplorerCmdLineOptions::ExplorerCmdLineOptions() : CmdLineOptions("") {
             SWL_PLUGIN_NAME,
             "Design Space Explorer plugin to be used.",
             SWS_PLUGIN_NAME));
+    addOption(
+        new StringCmdLineOptionParser(
+            SWL_PLUGIN_INFO,
+            "Design Space Explorer plugin to print info about.",
+            SWS_PLUGIN_INFO));
     addOption(
         new StringListCmdLineOptionParser(
             SWL_PLUGIN_PARAM,
@@ -160,6 +173,11 @@ ExplorerCmdLineOptions::ExplorerCmdLineOptions() : CmdLineOptions("") {
             SWL_LIST_APPS,
             "List the applications in the DSDB.",
             SWS_LIST_APPS));
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_LIST_PLUGINS,
+            "List loadable plugins.",
+            SWS_LIST_PLUGINS));
     addOption(
         new StringListCmdLineOptionParser(
             SWL_HDB_FILE,
@@ -231,6 +249,16 @@ ExplorerCmdLineOptions::printHelp() const {
 std::string
 ExplorerCmdLineOptions::explorerPlugin() const {
     return findOption(SWL_PLUGIN_NAME)->String();
+}
+
+/**
+ * Returns the the plugin name which info is to be printed.
+ *
+ * @return The explorer plugin name which info is to be printed.
+ */
+std::string
+ExplorerCmdLineOptions::pluginInfo() const {
+    return findOption(SWL_PLUGIN_INFO)->String();
 }
 
 /**
@@ -369,6 +397,16 @@ ExplorerCmdLineOptions::configurationToWrite(int index) const
 bool
 ExplorerCmdLineOptions::printApplications() const {
     return findOption(SWL_LIST_APPS)->isFlagOn();
+}
+
+/**
+ * Returns true if print applications option is used.
+ *
+ * @return True if the option is defined.
+ */
+bool
+ExplorerCmdLineOptions::printPlugins() const {
+    return findOption(SWL_LIST_PLUGINS)->isFlagOn();
 }
 
 /**

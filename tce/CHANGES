@@ -1,6 +1,11 @@
 1.0-beta2     200X-XX-XX
 ========================
 
+New features
+------------
+- Explorer can now print available plugins with "-g" option switch.
+- Explorer can now print plugin parameters with "-p <plugin name>" switch.
+
 Bug fixes
 ---------
 - Some scheduling speed optimizations; Scheduling big basic blocks 
@@ -8,6 +13,8 @@ Bug fixes
 - Some scheduler memory leak fixes, scheduling big programs consumes about 
   33% less memory than beta1.
 - Fixed a bug which caused random scheduler failures.
+- Dropped support for Boost 1.32 as it has some bad bugs, at least 1.33 required
+- ProDe: crash when "fully connecting" unconnected RF ports fixed. 
 
 1.0-beta1     2008-10-02
 ========================

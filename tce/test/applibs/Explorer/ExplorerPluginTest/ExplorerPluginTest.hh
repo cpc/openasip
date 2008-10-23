@@ -72,7 +72,7 @@ ExplorerPluginTest::testLoadPlugin() {
     DSDBManager* dsdb = DSDBManager::createNew(dsdbFile);
     string pluginName = "TestExplorerPlugin";
     DesignSpaceExplorerPlugin* plugin = 
-        DesignSpaceExplorer::loadExplorerPlugin(pluginName, *dsdb);
+        DesignSpaceExplorer::loadExplorerPlugin(pluginName, dsdb);
     RowID conf = 1;
     std::vector<RowID> result = 
         plugin->explore(conf, 0);

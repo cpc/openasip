@@ -1,4 +1,6 @@
-##### http://autoconf-archive.cryp.to/ax_boost_date_time.html
+# ===========================================================================
+#           http://autoconf-archive.cryp.to/ax_boost_date_time.html
+# ===========================================================================
 #
 # SYNOPSIS
 #
@@ -7,8 +9,8 @@
 # DESCRIPTION
 #
 #   Test for Date_Time library from the Boost C++ libraries. The macro
-#   requires a preceding call to AX_BOOST_BASE. Further documentation
-#   is available at <http://randspringer.de/boost/index.html>.
+#   requires a preceding call to AX_BOOST_BASE. Further documentation is
+#   available at <http://randspringer.de/boost/index.html>.
 #
 #   This macro calls:
 #
@@ -20,16 +22,16 @@
 #
 # LAST MODIFICATION
 #
-#   2007-11-22
+#   2008-04-12
 #
 # COPYLEFT
 #
-#   Copyright (c) 2007 Thomas Porschberg <thomas@randspringer.de>
-#   Copyright (c) 2007 Michael Tindal
+#   Copyright (c) 2008 Thomas Porschberg <thomas@randspringer.de>
+#   Copyright (c) 2008 Michael Tindal
 #
-#   Copying and distribution of this file, with or without
-#   modification, are permitted in any medium without royalty provided
-#   the copyright notice and this notice are preserved.
+#   Copying and distribution of this file, with or without modification, are
+#   permitted in any medium without royalty provided the copyright notice
+#   and this notice are preserved.
 
 AC_DEFUN([AX_BOOST_DATE_TIME],
 [
@@ -77,14 +79,14 @@ AC_DEFUN([AX_BOOST_DATE_TIME],
             if test "x$ax_boost_user_date_time_lib" = "x"; then
                 for libextension in `ls $BOOSTLIBDIR/libboost_date_time*.{so,a}* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^lib\(boost_date_time.*\)\.so.*$;\1;' -e 's;^lib\(boost_date_time.*\)\.a*$;\1;'` ; do
                      ax_lib=${libextension}
-				    AC_CHECK_LIB($ax_lib, exit,
+				    AC_CHECK_LIB($ax_lib, abort,
                                  [BOOST_DATE_TIME_LIB="-l$ax_lib"; AC_SUBST(BOOST_DATE_TIME_LIB) link_date_time="yes"; break],
                                  [link_date_time="no"])
   				done
                 if test "x$link_date_time" != "xyes"; then
                 for libextension in `ls $BOOSTLIBDIR/boost_date_time*.{dll,a}* 2>/dev/null | sed 's,.*/,,' | sed -e 's;^\(boost_date_time.*\)\.dll.*$;\1;' -e 's;^\(boost_date_time.*\)\.a*$;\1;'` ; do
                      ax_lib=${libextension}
-				    AC_CHECK_LIB($ax_lib, exit,
+				    AC_CHECK_LIB($ax_lib, abort,
                                  [BOOST_DATE_TIME_LIB="-l$ax_lib"; AC_SUBST(BOOST_DATE_TIME_LIB) link_date_time="yes"; break],
                                  [link_date_time="no"])
   				done

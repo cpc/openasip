@@ -70,9 +70,23 @@ using namespace HDB;
  *  - frequency, running frequency for applications.
  */
 class MinimizeMachine : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Removes resources until the real time "
+    PLUGIN_DESCRIPTION("Removes resources until the real time "
         "requirements of applications are not reached anymore.");
+
+    MinimizeMachine(): DesignSpaceExplorerPlugin(), 
+        minBus_(true),
+        minFU_(true),
+        minRF_(true),
+        frequency_(0) {
+
+        // compulsory parameters
+        addParameter(frequencyPN_, UINT);
+
+        // parameters that have a default value
+        addParameter(minBusPN_, BOOL, false, Conversion::toString(minBus_));
+        addParameter(minFUPN_, BOOL, false, Conversion::toString(minFU_));
+        addParameter(minRFPN_, BOOL, false, Conversion::toString(minRF_));
+    }
     
     /**
      * Minimizes given configuration by not exceeding applications max
@@ -85,7 +99,7 @@ public:
         readParameters();
 
         // TODO: make better parameter error function
-        if (frequency_ < 0) {
+        if (frequency_ < 1) {
             result.push_back(configurationID);
             return result;
         }
@@ -97,6 +111,12 @@ public:
     }
 
 private:
+    // parameter name variables
+    static const std::string minBusPN_;
+    static const std::string minFUPN_;
+    static const std::string minRFPN_;
+    static const std::string frequencyPN_;
+
     /// minimize busses
     bool minBus_;
     /// minimize function units
@@ -104,94 +124,19 @@ private:
     /// minimize register files
     bool minRF_;
     /// running frequency in MHz for apps
-    int frequency_;
+    unsigned int frequency_;
 
     /**
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        const std::string minBus = "min_bus";
-        const std::string minFU = "min_fu";
-        const std::string minRF = "min_rf";
-        const std::string frequency = "frequency";
-        const int frequencyDefault = -1;
+        readCompulsoryParameter(frequencyPN_, frequency_);
 
-        if (hasParameter(minBus)) {
-            try {
-                minBus_ = booleanValue(parameterValue(minBus));
-            } catch (const Exception& e) {
-                parameterError(minBus, "Boolean");
-                minBus_ = false;
-            }
-        } else {
-            // set defaut value for minimize busses
-            minBus_ = true;
-        }
-
-        if (hasParameter(minFU)) {
-            try {
-                minFU_ = booleanValue(parameterValue(minFU));
-            } catch (const Exception& e) {
-                parameterError(minFU, "Boolean");
-                minFU_ = false;
-            }
-        } else {
-            // set defaut value for minimize FUs
-            minFU_ = true;
-        }
-
-        if (hasParameter(minRF)) {
-            try {
-                minRF_ = booleanValue(parameterValue(minRF));
-            } catch (const Exception& e) {
-                parameterError(minRF, "Boolean");
-                minRF_ = false;
-            }
-        } else {
-            // set defaut value for minimize RFs
-            minRF_ = true;
-        }
-
-        if (hasParameter(frequency)) {
-            try {
-                frequency_ = Conversion::toInt(parameterValue(frequency));
-            } catch (const Exception& e) {
-                parameterError(frequency, "Integer");
-                frequency_ = frequencyDefault;
-            }
-        } else {
-            // frequency needed, added bogus default value
-            parameterMissing(frequency, "Integer");
-            frequency_ = frequencyDefault;
-        }
+        readOptionalParameter(minBusPN_, minBus_);
+        readOptionalParameter(minFUPN_, minFU_);
+        readOptionalParameter(minRFPN_, minRF_);
     }
     
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << std::endl;
-        errorOuput(msg.str());
-    }
-
-    /**
-     * Print error message of missing parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has missing value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterMissing(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Parameter '" << param << "' with expected type '" 
-            << type << "' is missing, nothing done." << std::endl;
-        errorOuput(msg.str());
-    }
     
     /**
      * Minimizes the number of buses, function units and register files in the given
@@ -730,5 +675,11 @@ private:
         }
     }
 };
+
+// parameter names
+const std::string MinimizeMachine::minBusPN_("min_bus");
+const std::string MinimizeMachine::minFUPN_("min_fu");
+const std::string MinimizeMachine::minRFPN_("min_rf");
+const std::string MinimizeMachine::frequencyPN_("frequency");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(MinimizeMachine)

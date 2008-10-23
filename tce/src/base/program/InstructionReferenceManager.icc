@@ -87,7 +87,7 @@ InstructionReferenceManager::Iterator::operator->() const {
  * Comparison operator.
  * Compares if the two iterators are the same.
  */
-const bool InstructionReferenceManager::Iterator::operator !=(
+bool InstructionReferenceManager::Iterator::operator !=(
     const InstructionReferenceManager::Iterator& i) const { 
     return iter_ != i.iter_; 
 }

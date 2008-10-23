@@ -45,7 +45,9 @@
 // if unordered_map is available, should also be unordered_set
 #ifdef UNORDERED_MAP
 
-#include <unordered_set>
+#include <tr1/unordered_set>
+
+using std::tr1::unordered_set;
 #define hash_set unordered_set
 
 // if hash_map is available, should also be hash_set

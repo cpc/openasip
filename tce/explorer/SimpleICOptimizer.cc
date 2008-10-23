@@ -81,8 +81,26 @@ using std::endl;
  * parallel program.
  */
 class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Optimizes the IC of the given configuration");
+    PLUGIN_DESCRIPTION("Optimizes the IC of the given configuration");
+
+    SimpleICOptimizer(): DesignSpaceExplorerPlugin(), 
+        tpef_(""),
+        addOnly_(false),
+        evaluateResult_(true),
+        preserveMinimalOpset_(true) {
+
+        // compulsory parameters
+        // none
+
+        // parameters that have a default value
+        addParameter(tpefPN_, STRING, false, "");
+        addParameter(addOnlyPN_, BOOL, false, 
+                Conversion::toString(addOnly_));
+        addParameter(evaluatePN_, BOOL, false, 
+                Conversion::toString(evaluateResult_));
+        addParameter(preserveMinOpsPN_, BOOL, false, 
+                Conversion::toString(preserveMinimalOpset_));
+    }
     
     /**
      * Optimizes the IC of the given configuration by removing not used 
@@ -205,18 +223,15 @@ public:
             // plugin
             DesignSpaceExplorerPlugin* removeUnconnected =
                 DesignSpaceExplorer::loadExplorerPlugin(
-                    "RemoveUnconnectedComponents", db());
+                    "RemoveUnconnectedComponents", &db());
 
             // parameters for RemoveUnconnectedComponents plugin
-            DesignSpaceExplorerPlugin::ParameterTable removeUParameters;
-            DesignSpaceExplorerPlugin::Parameter allowRemovePar;
-            allowRemovePar.name = "allow_remove";
-            allowRemovePar.value = "true";
-            removeUParameters.push_back(allowRemovePar);
-            removeUnconnected->setParameters(removeUParameters);
+            removeUnconnected->giveParameter("allow_remove", "true");
 
             std::vector<RowID> cleanedTempConfIDs = 
                 removeUnconnected->explore(tempConfID);
+            delete removeUnconnected;
+            removeUnconnected = NULL;
             if (cleanedTempConfIDs.size() < 1) {
                 std::string errorMsg = "SimpleICOptimizer plugin: "
                     "RemoveUnconnectedComponents plugin failed to produce"
@@ -267,6 +282,13 @@ public:
     }
 
 private:
+    // parameter name variables
+    static const std::string tpefPN_;
+    static const std::string tpefDefaultPN_;
+    static const std::string addOnlyPN_;
+    static const std::string evaluatePN_;
+    static const std::string preserveMinOpsPN_;
+    
     /// name of the tpef file
     std::string tpef_;
     /// can we remove connections
@@ -281,76 +303,10 @@ private:
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        // Parameter name of bus number in the machine.
-        const std::string tpef = "tpef";
-        const std::string tpefDefault = "";
-        const std::string addOnly = "add_only";
-        const std::string evaluate = "evaluate";
-        const std::string preserveMinOps = "preserve_min_ops";
-        const bool preserveMinimalOpsetDefault = true;
-        preserveMinimalOpset_ = false;
-    
-        if (hasParameter(tpef)) {
-            try {
-                tpef_ = parameterValue(tpef);
-            } catch (const Exception& e) {
-                parameterError(tpef, "String");
-                tpef_ = tpefDefault;
-            }
-        } else {
-            // set defaut value to tpef
-            tpef_ = tpefDefault;
-        }
-
-        if (hasParameter(addOnly)) {
-            try {
-                addOnly_ = booleanValue(parameterValue(addOnly));
-            } catch (const Exception& e) {
-                parameterError(addOnly, "Boolean");
-                addOnly_ = false;
-            }
-        } else {
-            addOnly_ = false;
-        }
-
-        if (hasParameter(evaluate)) {
-            try {
-                evaluateResult_ = booleanValue(parameterValue(evaluate));
-            } catch (const Exception& e) {
-                parameterError(evaluate, "Boolean");
-                evaluateResult_ = false;
-            }
-        } else {
-            // set defaut value to tpef
-            evaluateResult_ = true;
-        }
-
-        if (hasParameter(preserveMinOps)) {
-            try {
-                preserveMinimalOpset_ = booleanValue(parameterValue(preserveMinOps));
-            } catch (const Exception& e) {
-                parameterError(evaluate, "Boolean");
-                preserveMinimalOpset_ = preserveMinimalOpsetDefault;
-            }
-        } else {
-            // set default value
-            preserveMinimalOpset_ = preserveMinimalOpsetDefault;
-        }
-    }
-
-    
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << std::endl;
-        errorOuput(msg.str());
+        readOptionalParameter(tpefPN_, tpef_);
+        readOptionalParameter(addOnlyPN_, addOnly_);
+        readOptionalParameter(evaluatePN_, evaluateResult_);
+        readOptionalParameter(preserveMinOpsPN_, preserveMinimalOpset_);
     }
 
 
@@ -489,5 +445,11 @@ private:
         }
     }
 };
+
+// parameter names
+const std::string SimpleICOptimizer::tpefPN_("tpef");
+const std::string SimpleICOptimizer::addOnlyPN_("add_only");
+const std::string SimpleICOptimizer::evaluatePN_("evaluate");
+const std::string SimpleICOptimizer::preserveMinOpsPN_("preserve_min_ops");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(SimpleICOptimizer)

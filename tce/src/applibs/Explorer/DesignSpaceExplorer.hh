@@ -84,7 +84,7 @@ public:
         CostEstimates& results, bool estimate);
     virtual DSDBManager& db();
     static DesignSpaceExplorerPlugin* loadExplorerPlugin(
-        const std::string& pluginName, DSDBManager& dsdb)
+        const std::string& pluginName, DSDBManager* dsdb = NULL)
         throw (FileNotFound, DynamicLibraryException);
 
     RowID createImplementationAndStore(

@@ -41,7 +41,7 @@
 #include "OperationBuilder.hh"
 #include "Environment.hh"
 #include "FileSystem.hh"
-#include "config.h"
+#include "tce_config.h"
 #include "OperationSerializer.hh"
 #include "ObjectState.hh"
 #include "Application.hh"
@@ -151,9 +151,12 @@ OperationBuilder::buildObject(
 
     if (behaviorFile != "") {
         const string CPPFLAGS = Environment::environmentVariable("CPPFLAGS");
-        const string CXXFLAGS = Environment::environmentVariable("CXXFLAGS");
+        const string CXXFLAGS = Environment::environmentVariable("CXXFLAGS")
+	  + " " + CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS + " ";
         const string CXXCOMPILER = Environment::environmentVariable("CXX");
         vector<string> includes = Environment::includeDirPaths();
+
+	
 
         string INCLUDES = makeIncludeString(includes);
         
@@ -171,7 +174,9 @@ OperationBuilder::buildObject(
             }
          }
 
-        string COMPILE_FLAGS = CXXFLAGS + " " + CPPFLAGS + " " + INCLUDES;
+        string COMPILE_FLAGS = \
+            CXXFLAGS + " " + CPPFLAGS + " " + INCLUDES + " " + 
+            CONFIGURE_CPPFLAGS + " " + CONFIGURE_LDFLAGS;
 
         string module = path + FileSystem::DIRECTORY_SEPARATOR +
             baseName + ".opb";

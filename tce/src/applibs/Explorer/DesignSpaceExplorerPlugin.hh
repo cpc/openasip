@@ -39,9 +39,17 @@
 #define TTA_DESIGN_SPACE_EXPLORER_PLUGIN_HH
 
 #include <string>
-#include <vector>
+#include <map>
+
 #include "DesignSpaceExplorer.hh"
+#include "ExplorerPluginParameter.hh"
 #include "Machine.hh"
+
+#include "Exception.hh"
+#include "Conversion.hh"
+#include "Application.hh"
+
+
 
 /**
  * A base interface for all classes that implement pluggable
@@ -54,58 +62,86 @@
 class DesignSpaceExplorerPlugin : public DesignSpaceExplorer {
 public:
 
-    /// Parameter struct.
-    struct Parameter {
-        std::string name; ///< Name of the parameter.
-        std::string value; ///< Value of the parameter.
-    };
-
-    /// Table for passing plugin parameters.
-    typedef std::vector<Parameter> ParameterTable;
-
     virtual ~DesignSpaceExplorerPlugin();
     
-    void setVerboseStream(std::ostream* verboseOut);
-    void setErrorStream(std::ostream* errorOut);
-    virtual void setParameters(const ParameterTable& parameters);
-    virtual void setPluginName(const std::string& pluginName);
-    virtual std::string name() const;
+    typedef std::pair<std::string, 
+            ExplorerPluginParameter> Parameter;
+    typedef std::map<std::string, 
+            ExplorerPluginParameter> ParameterMap;
+    typedef std::map<std::string, 
+            ExplorerPluginParameter>::iterator PMIt;
+    typedef std::map<std::string, 
+            ExplorerPluginParameter>::const_iterator PMCIt;
 
-    virtual std::vector<RowID>
-    explore(
+    virtual void giveParameter(
+        const std::string& name, 
+        const std::string& value) 
+        throw (InstanceNotFound);
+    
+    virtual inline std::string description() const;
+    virtual std::string name() const;
+    virtual void setPluginName(const std::string& pluginName);
+
+    virtual std::vector<RowID> explore(
         const RowID& startPointConfigurationID,
         const unsigned int& maxIter = 0);
 
     virtual bool hasParameter(const std::string& paramName) const;
-    virtual std::string parameterValue(const std::string& paramName) const
-        throw (NotAvailable);
+
+    ParameterMap parameters() const;
+    
+    inline void addParameter(
+        std::string name, 
+        ExplorerPluginParameterType type, 
+        bool compulsory = true, 
+        std::string defaultValue = "");
+
+    template <typename T>
+    void readCompulsoryParameter(const std::string paramName, T& param) const
+        throw (NotAvailable, IllegalParameters);
+
+    template <typename T>
+    void readOptionalParameter(const std::string paramName, T& param) const
+        throw (NotAvailable, IllegalParameters);
+
+    template <typename RT>
+    RT parameterValue(const std::string& paramName) const
+        throw (NotAvailable, IllegalParameters);
+
     virtual bool booleanValue(const std::string& parameter) const
         throw (IllegalParameters);
+
+    // TODO: remove, use Application module
+    void setVerboseStream(std::ostream* verboseOut);
+    void setErrorStream(std::ostream* errorOut);
     void verboseOuput(const std::string& message);
     void errorOuput(const std::string& message);
 
 protected:
     DesignSpaceExplorerPlugin();
 
+    void checkParameters() const throw(IllegalParameters);
+
     /// the name of the explorer plugin
     std::string pluginName_;
     /// Parameters for the plugin.
-    ParameterTable parameters_;
+    ParameterMap parameters_;
     /// plugin verbose output stream
     std::ostream* verboseOut_;
     /// plugin error output stream
     std::ostream* errorOut_;
 };
 
+#include "DesignSpaceExplorerPlugin.icc"
+
+
 /**
  * Exports the given class as a DesignSpaceExplorer plugin.
  */
 #define EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(PLUGIN_NAME__)   \
 extern "C" { \
-    DesignSpaceExplorerPlugin* create_explorer_plugin_##PLUGIN_NAME__(\
-        DSDBManager& dsdb) { \
+    DesignSpaceExplorerPlugin* create_explorer_plugin_##PLUGIN_NAME__() { \
         PLUGIN_NAME__* instance = new PLUGIN_NAME__(); \
-        instance->setDSDB(dsdb);\
         instance->setPluginName(#PLUGIN_NAME__);\
         return instance;\
     }\
@@ -122,9 +158,8 @@ extern "C" { \
  *
  * @param TEXT__ The description string. 
  */
-#define DESCRIPTION(TEXT__) \
+#define PLUGIN_DESCRIPTION(TEXT__) \
 public:\
-    virtual std::string description() const { return TEXT__; }\
-    int* XXXXXd_escrip__tion__
+    virtual std::string description() const { return TEXT__; }
 
 #endif

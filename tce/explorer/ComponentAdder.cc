@@ -64,9 +64,30 @@ using std::endl;
  *    If adf parameter is given the idf is built.
  */
 class ComponentAdder : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Generates intial machine capable of running all given "
+    PLUGIN_DESCRIPTION("Generates intial machine capable of running all given "
                 "applications");
+
+    ComponentAdder(): DesignSpaceExplorerPlugin(), 
+        RFName_("rf"),
+        RFCount_(1),
+        RFSize_(4),
+        RFReadPorts_(1),
+        RFWritePorts_(1),
+        adf_(""),
+        buildIdf_(false) {
+
+        // compulsory parameters
+        // no compulsory parameters
+
+        // parameters that have a default value
+        addParameter(RFNamePN_, STRING, false, RFName_);
+        addParameter(RFCountPN_, UINT, false, Conversion::toString(RFCount_));
+        addParameter(RFSizePN_, UINT, false, Conversion::toString(RFSize_));
+        addParameter(RFReadPortsPN_, UINT, false, Conversion::toString(RFReadPorts_));
+        addParameter(RFWritePortsPN_, UINT, false, Conversion::toString(RFWritePorts_));
+        addParameter(adfPN_, STRING, false, adf_);
+        addParameter(buildIdfPN_, BOOL, false, Conversion::toString(buildIdf_));
+    }
     
     /**
      * Explorer plugin that adds machine components to a given machine with
@@ -139,16 +160,20 @@ private:
     /// Selector used by the plugin.
     ComponentImplementationSelector selector_;
     
+    static const std::string RFNamePN_;
+    static const std::string RFCountPN_;
+    static const std::string RFSizePN_;
+    static const std::string RFReadPortsPN_;
+    static const std::string RFWritePortsPN_;
+    static const std::string adfPN_;
+    static const std::string buildIdfPN_;
+    
     // register file variables
     std::string RFName_;
     int RFCount_;
     int RFSize_;
     int RFReadPorts_;
     int RFWritePorts_;
-    bool addRF_;
-
-    int verbose_;
-
     /// name of the adf file if wanted to use idf generation
     std::string adf_;
     /// do we build idf
@@ -158,145 +183,13 @@ private:
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        const std::string RFName = "rf_name";
-        const std::string RFCount = "rf_count";
-        const std::string RFSize = "rf_size";
-        const std::string RFReadPorts = "rf_reads";
-        const std::string RFWritePorts = "rf_writes";
-        addRF_ = false;
-        
-        const std::string RFNameDefault = "rf";
-        const int RFCountDefault = 1;
-        const int RFSizeDefault = 4;
-        const int RFReadPortsDefault = 1;
-        const int RFWritePortsDefault = 1;
-        
-        const std::string adf = "adf";
-
-        const std::string buildIdf = "build_idf";
-        const bool buildIdfDefault = false;
-
-        const std::string verbose = "verbose";
-        const int verboseDefault = 0;
-
-        if (hasParameter(RFName)) {
-            try {
-                RFName_ = parameterValue(RFName);
-            } catch (const Exception& e) {
-                parameterError(RFName, "String");
-                RFName_ = RFNameDefault;
-            }
-            addRF_ = true;
-        } else {
-            // set defaut value to RFName
-            RFName_ = RFNameDefault;
-        }
-
-        if (hasParameter(RFCount)) {
-            try {
-                RFCount_ =
-                    Conversion::toUnsignedInt(parameterValue(RFCount));
-            } catch (const Exception& e) {
-                parameterError(RFCount, "Integer");
-                RFSize_ = RFCountDefault;
-            }
-            addRF_ = true;
-        } else {
-            // set defaut value to RFCount
-            RFCount_ = RFCountDefault;
-        }
-
-        if (hasParameter(RFSize)) {
-            try {
-                RFSize_ =
-                    Conversion::toUnsignedInt(parameterValue(RFSize));
-            } catch (const Exception& e) {
-                parameterError(RFSize, "Integer");
-                RFSize_ = RFSizeDefault;
-            }
-            addRF_ = true;
-        } else {
-            // set defaut value to RFSize
-            RFSize_ = RFSizeDefault;
-        }
-
-        if (hasParameter(RFReadPorts)) {
-            try {
-                RFReadPorts_ =
-                    Conversion::toUnsignedInt(parameterValue(RFReadPorts));
-            } catch (const Exception& e) {
-                parameterError(RFReadPorts, "Integer");
-                RFReadPorts_ = RFReadPortsDefault;
-            }
-            addRF_ = true;
-        } else {
-            // set defaut value to RFReadPorts
-            RFReadPorts_ = RFReadPortsDefault;
-        }
-
-        if (hasParameter(RFWritePorts)) {
-            try {
-                RFWritePorts_ =
-                    Conversion::toUnsignedInt(parameterValue(RFWritePorts));
-            } catch (const Exception& e) {
-                parameterError(RFWritePorts, "Integer");
-                RFWritePorts_ = RFWritePortsDefault;
-            }
-            addRF_ = true;
-        } else {
-            // set defaut value to RFWritePorts
-            RFWritePorts_ = RFWritePortsDefault;
-        }
-
-        if (hasParameter(adf)) {
-            try {
-                adf_ = parameterValue(adf);
-            } catch (const Exception& e) {
-                parameterError(adf, "string");
-                adf_ = "";
-            }
-        } else {
-            adf_ = "";
-        }
-
-        if (hasParameter(buildIdf)) {
-            try {
-                buildIdf_ = booleanValue(parameterValue(buildIdf));
-            } catch (const Exception& e) {
-                parameterError(buildIdf, "Boolean");
-                buildIdf_ = buildIdfDefault;
-            }
-        } else {
-            buildIdf_ = buildIdfDefault;
-        }
-        
-        // parameter for printing info about what is done
-        if (hasParameter(verbose)) {
-            try {
-                verbose_ = Conversion::toInt(parameterValue(verbose));
-            } catch (const Exception& e) {
-                parameterError(verbose, "integer");
-                verbose_ = verboseDefault;
-            }
-        } else {
-            // set defaut value to verbose
-            verbose_ = verboseDefault;
-        }
-    }
-
-    
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << std::endl;
-        errorOuput(msg.str());
+        readOptionalParameter(RFNamePN_, RFName_);
+        readOptionalParameter(RFCountPN_, RFCount_);
+        readOptionalParameter(RFSizePN_, RFSize_);
+        readOptionalParameter(RFReadPortsPN_, RFReadPorts_);
+        readOptionalParameter(RFWritePortsPN_, RFWritePorts_);
+        readOptionalParameter(adfPN_, adf_);
+        readOptionalParameter(buildIdfPN_, buildIdf_);
     }
 
     
@@ -307,12 +200,7 @@ private:
      */
     void addComponents(TTAMachine::Machine* mach) {
         // add register files
-        if (addRF_) {
-            addRegisterFiles(mach);
-        }
-        if (!addRF_ && Application::verboseLevel() > 0) {
-            verboseLog("Warning: No components were added.")
-        }
+        addRegisterFiles(mach);
     }
 
 
@@ -354,5 +242,14 @@ private:
         }
     }
 };
+
+// parameters
+const std::string ComponentAdder::RFNamePN_("rf_name");
+const std::string ComponentAdder::RFCountPN_("rf_count");
+const std::string ComponentAdder::RFSizePN_("rf_size");
+const std::string ComponentAdder::RFReadPortsPN_("rf_reads");
+const std::string ComponentAdder::RFWritePortsPN_("rf_writes");
+const std::string ComponentAdder::adfPN_("adf");
+const std::string ComponentAdder::buildIdfPN_("build_idf");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ComponentAdder)

@@ -245,6 +245,7 @@ FullyConnectedCheck::fix(TTAMachine::Machine& mach) const
         RegisterFile& rf = *rfNav.item(i);
         int maxReads = rf.maxReads();
         int maxWrites = rf.maxWrites();
+        bool lastWasReadPort = false;
         for (int p = 0; p < rf.portCount(); p++) {
             RFPort& port = *rf.port(p);
             if (port.socketCount() == 0) {
@@ -255,10 +256,15 @@ FullyConnectedCheck::fix(TTAMachine::Machine& mach) const
                     connectRFPort(port, Socket::INPUT);
                     maxWrites--;
                 } else {
-                    // when maxReads == 0 and maxWrites == 0, all ports should have connected
-                    throw InvalidData(
-                        __FILE__, __LINE__, __func__,
-                        "Port count exceeds number of reads and writes.");
+                    // when maxReads == 0 and maxWrites == 0, connect every other
+                    // port as a read port, every other as write
+                    if (lastWasReadPort) {
+                        connectRFPort(port, Socket::INPUT);
+                        lastWasReadPort = false;
+                    } else {
+                        connectRFPort(port, Socket::OUTPUT);
+                        lastWasReadPort = true;
+                    }
                 }
 
             }

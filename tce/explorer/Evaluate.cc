@@ -59,10 +59,21 @@ using std::endl;
  * estimate
  */
 class Evaluate : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Generates intial machine capable of running all given "
+    PLUGIN_DESCRIPTION("Generates intial machine capable of running all given "
                 "applications");
     
+    Evaluate(): DesignSpaceExplorerPlugin(), 
+        adf_(""), 
+        idf_("") {
+
+        // compulsory parameters
+        // no compulsory parameters
+
+        // parameters that have a default value
+        addParameter(adfPN_, STRING, false, adf_);
+        addParameter(idfPN_, STRING, false, idf_);
+    }
+
     /**
      * Explorer plugin that adds machine components to a given machine with
      * adf parameter or with configuration id in dsdb.
@@ -99,7 +110,7 @@ public:
         bool estimate = (conf.hasImplementation ? true : false);
         try {
             if (!evaluate(conf, estimates, estimate)) {
-                debugLog(std::string("Evaluate failed."));
+                verboseLog(std::string("Evaluate failed."))
                 return result;
             }
         } catch (const Exception& e) {
@@ -122,6 +133,11 @@ public:
     }
 
 private:
+    // parameter names
+    static const std::string adfPN_;
+    static const std::string idfPN_;
+
+    // parameters
     /// name of the adf file to evaluate
     std::string adf_;
     /// name of the idf file to evaluate
@@ -131,47 +147,11 @@ private:
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        const std::string adf = "adf";
-        const std::string idf = "idf";
-
-        if (hasParameter(adf)) {
-            try {
-                adf_ = parameterValue(adf);
-            } catch (const Exception& e) {
-                parameterError(adf, "string");
-                adf_ = "";
-            }
-        } else {
-            adf_ = "";
-        }
-
-        if (hasParameter(idf)) {
-            try {
-                idf_ = parameterValue(idf);
-            } catch (const Exception& e) {
-                parameterError(idf, "string");
-                idf_ = "";
-            }
-        } else {
-            idf_ = "";
-        }
+        // optional parameters
+        readOptionalParameter(adfPN_, adf_);
+        readOptionalParameter(idfPN_, idf_);
     }
 
-    
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << std::endl;
-        errorOuput(msg.str());
-    }
-    
     
     /**
      * Load adf and idf from files and store to given dsdb and config.
@@ -216,5 +196,9 @@ private:
         return true;
     }
 };
+
+// parameters
+const std::string Evaluate::adfPN_("adf");
+const std::string Evaluate::idfPN_("idf");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(Evaluate)

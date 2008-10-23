@@ -27,48 +27,57 @@
     the GNU General Public License.
 */
 /**
- * @file hash_map.hh
+ * @file ExplorerPluginParameter.hh
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * Declaration of ExplorerPluginParameter class.
  *
- * Definition for a hash map.
- *
- * Hash map provides amortized constant time access for situations in which
- * the keys need not to be stored in sorted order. hash_map is not provided
- * by STL. It's usually provided as an STL extension. For example, SGI STL
- * implements it. This header selects the best possible implementation
- * for hash_map available in the system.
+ * @author Esa M√§√§tt√§ 2008 (esa.maatta-no.spam-tut.fi)
+ * @note rating: red
  */
 
-#include "tce_config.h"
+#ifndef TTA_EXPLORER_PLUGIN_PARAMETER_HH
+#define TTA_EXPLORER_PLUGIN_PARAMETER_HH
 
-#ifdef UNORDERED_MAP
 
-#include <tr1/unordered_map>
+#include <string>
 
-using std::tr1::unordered_map;
-#define hash_map unordered_map
+#include "Exception.hh"
+    
+enum ExplorerPluginParameterType { INT, UINT, STRING, BOOL };
 
-#elif HASHMAP_GNU_EXT
+/**
+ * Explorer plugin parameter class. Represents a parameter that an explorer
+ * plugin can have.
+ */
+class ExplorerPluginParameter {
+public:
+    ExplorerPluginParameter(
+        std::string name, 
+        ExplorerPluginParameterType type,
+        bool compulsory,
+        std::string value);
 
-#include <ext/hash_map>
+    virtual ~ExplorerPluginParameter();
 
-using __gnu_cxx::hash_map;
+    std::string name() const;
+    std::string value() const;
+    void setValue(const std::string& value);
 
-#elif HASHMAP_STD
+    ExplorerPluginParameterType type() const;
+    std::string typeAsString() const;
 
-#include <hash_map>
+    bool isCompulsory() const;
+    bool isSet() const;
 
-using std::hash_map;
-
-#else
-
-#warning Pretending std::map to be hash_map.
-
-#define hash_map std::map
+private:
+    /// Parameter name
+    std::string name_;
+    /// Parameter type
+    ExplorerPluginParameterType type_;
+    /// Is parameter compulsory
+    bool compulsory_;
+    /// The value of the parameter as a string, empty if none set.
+    std::string value_;
+};
 
 #endif
-
-/// @todo Check for STLport hash_map
-/// @todo Check for Intel's compiler. It seems Intel's compiler provides
-/// compatibility for GNU so HASHMAP_GNU_EXT gets defined.

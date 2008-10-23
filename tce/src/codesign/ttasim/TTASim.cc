@@ -295,6 +295,10 @@ int main(int argc, char* argv[]) {
     reader->initialize(SIM_COMMAND_PROMPT);
     reader->setInputHistoryLog(SIM_DEFAULT_COMMAND_LOG);
 
+    // handler for catching ctrl-c from the user (stops simulation)
+    SigINTHandler ctrlcHandler(*simFront);
+    Application::setSignalHandler(SIGINT, ctrlcHandler);
+
     if (!options.fastSimulationEngine()) {
         interpreter.reset(new SimulatorInterpreter(
             argc, argv, context, *reader));
@@ -306,11 +310,9 @@ int main(int argc, char* argv[]) {
            in compiled simulation these show up as normal
            signals as the simulation code is native code we are 
            running in the simulation process. */
-        SigINTHandler ctrlcHandler(*simFront);
         SigFPEHandler fpeHandler(*simFront);
         SigSegvHandler segvHandler(*simFront);
     
-        Application::setSignalHandler(SIGINT, ctrlcHandler);
         Application::setSignalHandler(SIGFPE, fpeHandler);
         Application::setSignalHandler(SIGSEGV, segvHandler);
     }
@@ -389,8 +391,8 @@ int main(int argc, char* argv[]) {
     delete reader;
     reader = NULL;
 
+    Application::restoreSignalHandler(SIGINT);
     if (options.fastSimulationEngine()) {
-        Application::restoreSignalHandler(SIGINT);
         Application::restoreSignalHandler(SIGFPE);
         Application::restoreSignalHandler(SIGSEGV);
     }

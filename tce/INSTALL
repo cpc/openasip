@@ -59,7 +59,7 @@ Library               supported versions                   library licence
 Xerces                2.3.0+                               Apache v2.0
 wxWidgets             2.6.0+                               wxWidgets
 Tcl                   8.0-8.4                              BSD-style
-Boost                 1.32+                               very permissive
+Boost                 1.33+                               very permissive
 sqlite3               3.0.0+                               public domain
 Python                2.4,2.5                              very permissive
 LLVM                  2.3                                  LLVM Release License
@@ -121,13 +121,18 @@ See the TCE Bug report for more info.
 
   http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=14
 
+Troubleshooting
+===============
+
 TCE on 64-bit distributions
-===========================
+---------------------------
+
 If you compile LLVM from sources you should give --enable-pic option for
 the LLVM's configure script. Otherwise compilation of TCE might fail.
 
-Troubleshooting
-===============
+Ubuntu versions starting from 8.10
+----------------------------------
+
 New Ubuntu versions seem to have problems with the shipped autotools
 scripts. In order to compile TCE on Ubuntu 8.10 and newer, you should
 generate the autotools scripts after installing 'libtool' with
@@ -137,3 +142,32 @@ generate the autotools scripts after installing 'libtool' with
 The resulting autotools scripts should work with the new libtool
 version.
 
+Red Hat Enterprise Linux 4.x (or CentOS 4.x)
+--------------------------------------------
+
+This distribution does not provide majority of the libraries
+required by TCE. In addition, it ships quite old gcc, 
+the version 3.4.x.
+
+In order to make compiling TCE in this system easier, we distribute
+a binary package for the required libraries.
+
+Download it for x86-64 from:
+
+	http://tce.cs.tut.fi/lib/tce_libs-CentOS4.6-x64.tar.gz
+
+After unpacking the archive to /opt, one should regenerate
+the build scripts by going to the root of the tce sources and
+executing the following command:
+
+	/opt/tce_libs/bin/autoreconf
+
+Then TCE build should be configured with the following command line:
+
+CXXFLAGS=-O3 CFLAGS=-O3 ./configure --with-boost=/opt/tce_libs --with-xerces=/opt/tce_libs \
+            --with-xerces=/opt/tce_libs --with-editline=/opt/tce_libs \
+            --with-sqlite3=/opt/tce_libs
+
+After this TCE should build and install with:
+
+	make && sudo make install

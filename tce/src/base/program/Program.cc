@@ -567,13 +567,18 @@ Program::addInstruction(Instruction* ins) throw (IllegalRegistration) {
  */
 void
 Program::moveProcedure(Procedure& proc, int howMuch) {
-
-    for (unsigned int i = 0; i < procedures_.size(); i++) {
-        UIntWord current = procedures_.at(i)->startAddress().location();
-        if (current >= proc.startAddress().location()) {
-            procedures_.at(i)->setStartAddress(
-                Address(current + howMuch, start_.space()));
+    unsigned int index;
+    // skip procedures before given procedure
+    for (index = 0; index < procedures_.size(); index++) {
+        if (procedures_[index] == &proc) {
+            break; 
         }
+    } 
+    // only update procedures after.
+    for (;index < procedures_.size(); index++) {
+        Procedure* p2 = procedures_[index];
+        UIntWord oldAddr = p2->startAddress().location();
+        p2->setStartAddress(Address(oldAddr + howMuch, start_.space()));
     }
 }
 
