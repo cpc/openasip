@@ -64,11 +64,17 @@ function check_minimal_adf {
     exit 1
 }
 
+# ----------------- process parameters ------------------------------------ #
+
+[ "${1}x" == "-ex" ] && { shift; EVALUATE="true"; }
+
 [ "${1}x" == "x" ] && { echo "Code file in c should be given as a parameter."; exit 1; }
 
-if [ "${1}x" == "--helpx" -o "${1}x" == "-h" ]; then
-    echo "Usage: c2vhdl c_source_file"
+if [ "${1}x" == "--helpx" -o "${1}x" == "-hx" ]; then
+    echo "Usage: c2vhdl [options] c_source_file"
     echo ""
+    echo "Options:"
+    echo "-e    Evaluate and generate estimation data."
     exit
 fi
 
@@ -77,16 +83,18 @@ check_in_path explore tcecc createbem generateprocessor generatebits
 
 check_minimal_adf
 
+# ------------------------------------------------------------------------- #
 
 tmp_dir="$(mktemp -d)"
 
 name="$(basename "${1}" .c)"
 tmp_name="${tmp_dir}/${name}"
+tmp_pname="${tmp_dir}/program"
 
-tcecc "${1}" -O2 -o ${tmp_name}.bc || pexit 1
+tcecc "${1}" -O2 -o ${tmp_pname}.bc || pexit 1
 explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb &>/dev/null || pexit 1
 
-# use simpleicoptimizer if using some other adf than minimal
+# TODO: use simpleicoptimizer if using some other adf than minimal
 #new_conf="$(explore -e SimpleICOptimizer -s 1 ${tmp_name}.dsdb \
 #| tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
 #
@@ -97,10 +105,16 @@ new_conf="$(explore -e ImplementationSelector -s 1 ${tmp_name}.dsdb \
 
 [ "${new_conf}x" == "x" ] && pexit 1 "Explorer failed to create a new config."
 
+# get estimation data if it was asked
+if [ "${EVALUATE}x" == "truex" ]; then
+    explore -e Evaluate -s ${new_conf} ${tmp_name}.dsdb || pexit 1
+    # TODO: print estimation data from dsdb
+fi
+
 explore -w ${new_conf} ${tmp_name}.dsdb 1>/dev/null || pexit 1
 mv ${new_conf}.adf ${name}.adf; mv ${new_conf}.idf ${name}.idf
 
-tcecc -a ${name}.adf -o ${tmp_name}.tpef ${tmp_name}.bc 1>/dev/null || pexit 1
+tcecc -a ${name}.adf -o ${tmp_name}.tpef ${tmp_pname}.bc 1>/dev/null || pexit 1
 createbem ${name}.adf 1>/dev/null || pexit 1
 generateprocessor -b ${name}.bem -i ${name}.idf ${name}.adf 1>/dev/null || pexit 1
 generatebits -b ${name}.bem -d -p ${tmp_name}.tpef ${name}.adf 1>/dev/null || pexit 1
