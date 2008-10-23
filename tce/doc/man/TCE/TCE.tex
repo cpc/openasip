@@ -1708,95 +1708,17 @@ from:\\
 \url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz} \\
 Unpack it to a working directory and then cd to tce\_tutorials/c2vhdl/
 
-\subsection{Compile C code}
+\subsection{Generate the VHDL}
 
-% compile C code.
-Compile the application C code. It is important that the name of the compiled
-code is ``program.bc''.
- 
-\textit{tcecc application1/complex\_multiply.c -O2 -o application1/program.bc}
- 
-\subsection{Use explorer}
+A script named c2vhdl should generate all the needed files from the C source code.
 
-% use minimal.adf as a initial machine
-Use minimal.adf (data/mach/minimal.adf) as a starting point machine and store
-it to a design space exploration database to be used by the Design Space
-Explorer. At the same time data directory can be assigned for the database
-from where, for example, the compiled program is found and used by the Explorer.
+\shellcmd{c2vhdl application1/complex\_multiply.c}
 
-\textit{explore -a minimal.adf -d application1 ExpRes.dsdb}
-
-% use the simple ic optimizer
-Next you can try to optimize the initial configuration with the
-SimpleICOptimizer explorer plugin. The plugin looks which connections are
-needed by the program and removes all others and with default parameters
-removes also components that are left unconnected with the
-RemoveUnconnectedComponents plugin (plugins sometimes call other plugins).
- 
-\textit{explore -e SimpleICOptimizer -s 1 ExpRes.dsdb}
- 
-Where \textit{-s 1} is the id of the configuration to be optimized.
- 
-If the plugin found something to optimize, it adds a new configuration(s) into
-the database and reports the final configuration(s) as ``Best result
-configurations ids'' in the database.
- 
-\subsection{Generate required files}
- 
-The created configurations can be written as file with command:
- 
-\textit{explore -w <configuration\_ID> ExpRes.dsdb}
- 
-If the optimization was successful you should export the optimized version,
-otherwise use the original version.
- 
-Now the ADF and IDF files are written into the current directory and are named
-as ``1.adf'' and ``1.idf'' or ``2.adf'' and ``2.idf'' depending on which
-version you wrote out.
-
-If implementation definition file ``idf'' is not generated automatically
-by the plugin you can generate it with the ImplementationSelector plugin.
-Remember to write out the new configuration as explained above.
-
-\textit{explore -e ImplementationSelector -s <configuration\_ID> ExpRes.dsdb}
- 
-% Schedule
-Schedule each program against the new architecture:
-
-(replace <id> with the proper number)
- 
-\textit{tcecc -a <id>.adf -o application1/complex\_multiply.scheduled.tpef
-application1/program.bc}
- 
-This step creates file ``ApplicationDir/complex\_multiply.scheduled.tpef''.
- 
-% create bem
-Now create an encoding for the instructions in our new architecture:
- 
-\textit{createbem <id>.adf}
- 
-This step creates file <id>.bem.
-Now you should have all the needed parts for the processor VHDL.
- 
-\subsection{Generate processor VHDL implementation}
- 
-% start ProGe
-Use ProGe to generate the processor VHDL:
- 
-\textit{generateprocessor -b <id>.bem -i <id>.idf <id>.adf}
- 
 Now directory called ``proge-output'' should include the VHDL implementation
 of the processor.
- 
-% start PIG
-Generate instruction memory bit image using PIG. First cd to application1
-directory and then generate the bit image:
-
-\textit{generatebits -b ../<id>.bem -d -p complex\_multiply.scheduled.tpef
-../<id>.adf}
-
-This generates files ``Application.scheduled.img'' into the application
-directory.
+The current working directory should also contain the instruction memory bit
+image file and the instruction encoding (bem) file along with the processor
+architecture definition and implementation definition files.
 
 Tutorial is now finished and you can simulate the generated VHDL
 implementation of the processor with a VHDL simulator and synthesize it.
