@@ -1,5 +1,5 @@
 #!/bin/bash
-TCE_ROOT="../../../../../tce"
+export TCE_ROOT="../../../../../tce"
 
 function addToVarEnd {
     export $1="${!1}${2}"
