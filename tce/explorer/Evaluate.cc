@@ -110,7 +110,7 @@ class Evaluate : public DesignSpaceExplorerPlugin {
         bool estimate = (conf.hasImplementation ? true : false);
         try {
             if (!evaluate(conf, estimates, estimate)) {
-                debugLog(std::string("Evaluate failed."));
+                verboseLog(std::string("Evaluate failed."))
                 return result;
             }
         } catch (const Exception& e) {
