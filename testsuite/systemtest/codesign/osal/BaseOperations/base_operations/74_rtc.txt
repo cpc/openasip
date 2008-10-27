@@ -1,0 +1,12 @@
+#
+# dummytest for test that checks that all base ops are tested
+#
+!register programcounter
+rtc 100
+!register returnaddress
+!register programcounter
+rtc 0xabba
+!register returnaddress
+!output hex
+!register programcounter
+!quit

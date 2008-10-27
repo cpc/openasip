@@ -1,0 +1,6 @@
+!output unsigned
+cfiu 6.23589234f
+cfiu 6.8932f
+cfiu 70000.2f
+cfiu 4000000000.2f
+!quit

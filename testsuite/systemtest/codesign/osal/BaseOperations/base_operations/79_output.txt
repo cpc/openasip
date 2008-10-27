@@ -1,0 +1,1 @@
+STREAM_OUT works with bytes only at the moment.
