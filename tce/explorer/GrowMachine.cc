@@ -138,7 +138,7 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
             msg << "GrowMachine Plugin Error: Couldn't evaluate cycle "
                 << "counts for applications, correct_simulation_output"
                 << " probably missing." << std::endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             result.push_back(configurationID);
             return result;
         }

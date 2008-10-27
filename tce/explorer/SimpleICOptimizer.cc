@@ -126,7 +126,7 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
             std::ostringstream msg(std::ostringstream::out);
             msg << "No configuration nor adf defined. Use -s <confID> to "
                 << "define the configuration to be optimized." << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
 
@@ -146,7 +146,7 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
             } catch (const Exception& e) {
                 std::ostringstream msg(std::ostringstream::out);
                 msg << e.errorMessage() << std::endl;
-                errorOuput(msg.str());
+                verboseLog(msg.str());
                 return result;
             }
 
@@ -183,7 +183,7 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
                 } catch (const Exception& e) {
                     std::ostringstream msg(std::ostringstream::out);
                     msg << e.errorMessageStack() << std::endl;
-                    errorOuput(msg.str());
+                    verboseLog(msg.str());
                     delete mach;
                     mach = NULL;
                     return result;
@@ -198,7 +198,7 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
                     msg << "Error while loading the program in "
                         << "SimpleICOptimizer:" << endl
                         << e.errorMessage() << endl;
-                    errorOuput(msg.str());
+                    verboseLog(msg.str());
                     return result;
                 }
             }
@@ -211,7 +211,7 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
                 std::ostringstream msg(std::ostringstream::out);
                 msg << "Error while adding ADF to the dsdb. "
                     << "ADF probably too big." << endl;
-                errorOuput(msg.str());
+                verboseLog(msg.str());
                 return result;
             }
 
@@ -263,7 +263,7 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
                     std::ostringstream msg(std::ostringstream::out);
                     msg << "SimpleICOptimizer plugin couldn't evaluate "
                         << "generated config - nothing done." << endl;
-                    errorOuput(msg.str());
+                    verboseLog(msg.str());
                     return result;
                 }
             } else {
@@ -275,7 +275,7 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using SimpleICOptimizer:" << endl
                 << e.errorMessage() << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
         return result;
