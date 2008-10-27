@@ -64,8 +64,7 @@ using namespace HDB;
  * Supported parameters:
  */
 class GrowMachine : public DesignSpaceExplorerPlugin {
-    PLUGIN_DESCRIPTION("Removes resources until the real time "
-        "requirements of applications are not reached anymore.");
+    PLUGIN_DESCRIPTION("Adds resources until cycle count doesn't go down anymore.");
     
     GrowMachine(): DesignSpaceExplorerPlugin(), 
         superiority_(10) {
