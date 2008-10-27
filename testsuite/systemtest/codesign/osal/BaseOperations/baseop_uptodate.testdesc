@@ -8,6 +8,6 @@ $test_description="Test that all operations are tested.";
 $test_bin="expr";
 
 // args given to program
-$bin_args="`ls -1 base_operations/*.txt|grep -v \"_output\.txt\"|wc -l` - `../../../../../tce/src/bintools/Compiler/tceopgen/tceopgen|wc -l`";
+$bin_args="`ls -1 base_operations/*.txt|grep -v \"_output\.txt\"|wc -l` - `cat ../../../../../tce/opset/base/base.opp|grep \"<name>\"|wc -l`";
 
 ?>
