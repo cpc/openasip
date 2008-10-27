@@ -29,7 +29,7 @@
 /**
  * @file Evaluate.cc
  *
- * Explorer plugin that evaluates given configuration.
+ * Explorer plugin that evaluates the given configuration.
  *
  * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
@@ -51,16 +51,11 @@ using namespace HDB;
 using std::endl;
 
 /**
- *
- * Supported parameters:
- * adf
- * idf
- * build_idf
- * estimate
+ * Explorer plugin that evaluates a configuration and estimates it if the
+ * configuration has an implementation.
  */
 class Evaluate : public DesignSpaceExplorerPlugin {
-    PLUGIN_DESCRIPTION("Generates intial machine capable of running all given "
-                "applications");
+    PLUGIN_DESCRIPTION("Evaluates and/or estimates a configuration.");
     
     Evaluate(): DesignSpaceExplorerPlugin(), 
         adf_(""), 
@@ -74,10 +69,7 @@ class Evaluate : public DesignSpaceExplorerPlugin {
         addParameter(idfPN_, STRING, false, idf_);
     }
 
-    /**
-     * Explorer plugin that adds machine components to a given machine with
-     * adf parameter or with configuration id in dsdb.
-     */
+
     virtual std::vector<RowID>
     explore(const RowID& configurationID, const unsigned int&) {
         readParameters();

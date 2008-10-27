@@ -5,6 +5,16 @@ General/Explorer:
 - how to preserve frequency an max area limitations when selecting components
   when other plugins are called.
 
+- c2vhdl script should print information about estimates. 
+    [waiting for a new HDB with more estimation related data] 
+
+- Check that every plugins parameters that are truly needed are compulsory
+  params.
+
+
+Evaluate:
+- systemtest after the new HDB is done.
+
 MinimalOpSet:
 - Rename plugin when adding more functionality like guard register checker.
   MinimalResourceAdder might be a good name.
@@ -18,10 +28,12 @@ SimpleICOptimizer:
 - Add parameter flag for guard register preservation or make the preservation
   always default.
 
+
 Documentation:
 - write proper documentation for the minimize machine plugin.
 - update the documentation for the plugins.
 - state clearly what is needed in application dir for specific plugin.
+
 
 Tests:
 - fix frequency sweep plugin long systemtest.
@@ -29,7 +41,9 @@ Tests:
 - (FrequencySweepExplorer) create a (long) systemtest with at least 3 
   applications with realistic realtime requirements, explore and verify the
   result, this is prob going to be too long test to run rutinely.
+    [FrequencySweeper plugin testcases need a new HDB]
 - tests for plugings that use more than one application.
+
 
 Refactor/cleanups:
 - make longest path selection of units in implementation selector module a
