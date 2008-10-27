@@ -1,13 +1,13 @@
 #!/bin/bash
 export TCE_ROOT="../../../../../tce"
 
-function addToVarEnd {
-    export $1="${!1}${2}"
+function addToVarBeg {
+    export $1="${2}${!1}"
 }
 
 function addToPath {
     if ! $(\grep -qE ":?${1}(:|$)" <(echo "${PATH}")); then
-        addToVarEnd PATH ":$1" 
+        addToVarBeg PATH "$1:" 
     fi  
 }
 
