@@ -172,7 +172,7 @@ Move::isJump() const {
     if (dst_->isFUPort()) {
         const TerminalFUPort* tfup = dynamic_cast<const TerminalFUPort*>(dst_);
         if (tfup->isOpcodeSetting()) {
-            if (StringTools::ciEqual(tfup->operation().name(), "JUMP")) {
+            if (StringTools::stringToLower(tfup->operation().name())=="jump"){
                 return true;
             }
         }

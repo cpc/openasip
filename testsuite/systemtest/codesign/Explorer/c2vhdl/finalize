@@ -1,9 +1,9 @@
 #!/bin/bash
 rm -rf ExpRes.dsdb
-rm -rf ?.{{a,i}df,bem}
+rm -rf complex_multiply.{{a,i}df,bem}
 rm -rf data/program.bc
-rm -rf complex_multiply.scheduled.tpef
-rm -rf complex_multiply.scheduled.img
-rm -rf complex_multiply.scheduled_data.img
+rm -rf complex_multiply.tpef
+rm -rf complex_multiply.img
+rm -rf complex_multiply_data.img
 rm -rf debug.log
 rm -rf proge-output

@@ -44,7 +44,9 @@
 
 #ifdef UNORDERED_MAP
 
-#include <unordered_map>
+#include <tr1/unordered_map>
+
+using std::tr1::unordered_map;
 #define hash_map unordered_map
 
 #elif HASHMAP_GNU_EXT

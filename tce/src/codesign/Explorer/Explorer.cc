@@ -34,10 +34,14 @@
  * The command line version of the Design Space Explorer.
  *
  * @author Jari M‰ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
+
 #include <string>
+#include <vector>
+#include <algorithm>
 #include <iostream>
 
 #include "StringTools.hh"
@@ -50,6 +54,9 @@
 #include "DSDBManager.hh"
 #include "HDBRegistry.hh"
 #include "MachineImplementation.hh"
+
+#include "ExplorerPluginParameter.hh"
+#include "Environment.hh"
 
 using std::vector;
 using std::cout;
@@ -179,6 +186,143 @@ DSDBManager::Order orderingOfData(const string& order) {
 }
 
 /**
+ * Parses parameters given from command line and passes them to the plugin.
+ *
+ * @param plugin Explorer plugin that receives the parameters.
+ * @param options Explorer command line options where parameters are read.
+ */
+bool
+loadPluginParameters(
+    DesignSpaceExplorerPlugin* plugin, 
+    const ExplorerCmdLineOptions& options) {
+
+    // Check the parameters to be passed to the explorer plugin.
+    for (int i = 0; i < options.explorerPluginParameterCount(); i++) {
+        string param = options.explorerPluginParameter(i);
+        string paramName;
+        string paramValue;
+        try {
+            parseParameter(param, paramName, paramValue);
+            plugin->giveParameter(paramName, paramValue);
+        } catch (const Exception& e) {
+            std::cerr << e.errorMessage() << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+
+/**
+ * Loads explorer plugin.
+ *
+ * @param plugin Explorer plugin name to be loaded.
+ * @param dsdb DSDB that plugin is associated with.
+ * @return explorer plugin as a pointer.
+ */
+DesignSpaceExplorerPlugin*
+loadExplorerPlugin(const std::string& plugin, DSDBManager* dsdb) {
+    
+    // Try to load the explorer plugin.
+    DesignSpaceExplorerPlugin* explorer = NULL;
+    try {
+        explorer = DesignSpaceExplorer::loadExplorerPlugin(plugin, dsdb);
+    } catch (const FileNotFound& e) {
+        std::cerr << "No explorer plugin file named '" << plugin
+                  << ".so' found."  << std::endl;
+        delete dsdb;
+        return NULL;
+    } catch (const Exception& e) {
+        std::string msg = "Error while trying to load the explorer plugin "
+            "named '" + plugin + ".so'.";
+        verboseLog(msg)
+        msg = "With reason: " + e.errorMessage();
+        verboseLogC(msg, 1)
+        delete dsdb;
+        delete explorer;
+        return NULL;
+    }
+    return explorer;
+}
+
+
+/**
+ * Prints explorer plugins and their descriptions.
+ */
+void
+printPlugins() {
+    vector<string> found_plugins;
+    vector<string> searchPaths = Environment::explorerPluginPaths();
+    for (vector<string>::const_iterator iter = searchPaths.begin();
+            iter != searchPaths.end(); iter++) {
+
+        if (FileSystem::fileExists(*iter)) {
+            // now list all files with postfix ".so"
+            FileSystem::findFromDirectory(".*\\.so$", *iter, found_plugins);
+        }
+    }
+    cout << "| Plugin name                 | Description " << endl
+         << "--------------------------------------------" << endl;
+    cout.flags(std::ios::left);
+    for (unsigned int i = 0; i < found_plugins.size(); ++i) {
+        std::string pluginName = FileSystem::fileNameBody(found_plugins[i]);
+        DesignSpaceExplorerPlugin* plugin = loadExplorerPlugin(pluginName, NULL);
+        if (!plugin) {
+            return;
+        }
+        cout << std::setw(30) << pluginName << plugin->description() << endl;
+    }
+}
+
+
+/**
+ * Prints explorer plugin parameter info.
+ *
+ * @param plugin Explorer plugin which parameter info is to be printed.
+ */
+void
+printPluginParamInfo(DesignSpaceExplorerPlugin& plugin) {
+    using std::setw;
+    DesignSpaceExplorerPlugin::ParameterMap pm = plugin.parameters();
+    DesignSpaceExplorerPlugin::PMCIt it = pm.begin();
+    cout << "| Parameter name |      Type       | Default value | Description " << endl
+         << "-----------------------------------------------------------------" << endl;
+    cout.flags(std::ios::left);
+    int fw = 18;
+    while (it != pm.end()) {
+        cout << setw(fw) << it->first;
+        switch (it->second.type()) {
+            case UINT:
+                cout << setw(fw) << "unsigned int"; 
+                break;
+            case INT:
+                cout << setw(fw) << "int"; 
+                break;
+            case STRING:
+                cout << setw(fw) << "string"; 
+                break;
+            case BOOL:
+                cout << setw(fw) << "boolean"; 
+                break;
+            default:
+                cout << setw(fw) << "unknown type"; 
+        }
+        if (!it->second.isCompulsory()) {
+            if (it->second.type() == BOOL) {
+                cout << setw(fw) << 
+                    (it->second.value() == "1" || it->second.value() == "true"
+                     ? "true" : "false"); 
+            } else {
+                cout << setw(fw) << it->second.value();
+            }
+        }
+        cout << std::endl;
+        ++it; 
+    }
+}
+
+
+/**
  * Main function.
  *
  * Parses the command line and figures out what to do.
@@ -210,6 +354,23 @@ int main(int argc, char* argv[]) {
         Application::setVerboseLevel();
     } else {
         Application::setVerboseLevel(verboseLevel);
+    }
+
+    if (options.printPlugins()) {
+        printPlugins();
+        return EXIT_SUCCESS;
+    }
+
+    if (options.pluginInfo().length() != 0) {
+        std::string plugin = options.pluginInfo();
+        DesignSpaceExplorerPlugin* explorer = loadExplorerPlugin(plugin, NULL);
+        if (!explorer) {
+            return EXIT_FAILURE;
+        }
+        printPluginParamInfo(*explorer);
+        delete explorer;
+        explorer = NULL;
+        return EXIT_SUCCESS;
     }
 
     // Only argument should be dsdb.
@@ -431,45 +592,14 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // Check the parameters to be passed to the explorer plugin.
-    DesignSpaceExplorerPlugin::ParameterTable explorerParams;
-    for (int i = 0; i < options.explorerPluginParameterCount(); i++) {
-        string param = options.explorerPluginParameter(i);
-        string paramName;
-        string paramValue;
-        try {
-            parseParameter(param, paramName, paramValue);
-        } catch (const Exception& e) {
-            std::cerr << e.errorMessage() << std::endl;
-            return EXIT_FAILURE;
-        }
-        DesignSpaceExplorerPlugin::Parameter newParam = {paramName, paramValue};
-        explorerParams.push_back(newParam);
-    }
-
     // Try to load the explorer plugin.
-    DesignSpaceExplorerPlugin* explorer = NULL;
-    try {
-        explorer = DesignSpaceExplorer::loadExplorerPlugin(pluginToUse, *dsdb);
-        explorer->setParameters(explorerParams);
-        // TODO: fix to use something more systemwide
-        explorer->setVerboseStream(&cout);
-        explorer->setErrorStream(&cerr);
-    } catch (const FileNotFound& e) {
-        std::cerr << "No explorer plugin file named '" << pluginToUse
-                  << ".so' found."  << std::endl;
-        delete dsdb;
-        return EXIT_FAILURE;
-    } catch (const Exception& e) {
-        std::string msg = "Error while trying to load the explorer plugin "
-            "named '" + pluginToUse + ".so'.";
-        verboseLog(msg)
-        msg = "With reason: " + e.errorMessage();
-        verboseLogC(msg, 1)
-        delete dsdb;
-        delete explorer;
+    DesignSpaceExplorerPlugin* explorer = loadExplorerPlugin(pluginToUse, dsdb);
+    if (!explorer || !loadPluginParameters(explorer, options)) {
         return EXIT_FAILURE;
     }
+    // TODO: fix to use something more systemwide
+    explorer->setVerboseStream(&cout);
+    explorer->setErrorStream(&cerr);
     
     // Load the HDB files if given as option
     if (options.hdbFileNames()) {

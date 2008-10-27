@@ -854,8 +854,9 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChain(
          i != outEdges.end(); ++i) {
         DataDependenceEdge& edge = **i;
         MoveNode& dest = ddg.headNode(edge);
-        if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
-            edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+        if ((edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
+             edge.dependenceType() == DataDependenceEdge::DEP_WAW) &&
+            !edge.guardUse()) {
             // do not touch memory edges, they should still be going out from
             // original moves
             if (edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) {

@@ -1,0 +1,122 @@
+#!/bin/bash
+
+# Copyright 2002-2008 Tampere University of Technology.  All Rights Reserved.
+#
+# This file is part of TTA-Based Codesign Environment (TCE).
+#
+# TCE is free software; you can redistribute it and/or modify it under the
+# terms of the GNU General Public License version 2 as published by the Free
+# Software Foundation.
+#
+# TCE is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# TCE; if not, write to the Free Software Foundation, Inc., 51 Franklin St,
+# Fifth Floor, Boston, MA  02110-1301  USA
+#
+# As a special exception, you may use this file as part of a free software
+# library without restriction.  Specifically, if other files instantiate
+# templates or use macros or inline functions from this file, or you compile
+# this file and link it with other files to produce an executable, this file
+# does not by itself cause the resulting executable to be covered by the GNU
+# General Public License.  This exception does not however invalidate any
+# other reasons why the executable file might be covered by the GNU General
+# Public License.
+
+# input *.c
+# output .vhdl, .img, .adf, .bem
+# TODO: output cycle counts, estimation data (area, energy, ...)
+# expects that tce programs explore, tcecc, createbem, generateprocessor and
+# generatebits are to be found from path.
+
+function pexit {
+    [ "${2}x" != "x" ] && echo "${2}"
+    rm -rf "${tmp_dir}"
+    exit "${1}"
+}
+
+function check_in_path {
+    for prog in $@; do
+        which "${prog}" &>/dev/null || { 
+            echo "${prog} program cannot be found from path."
+            exit 1 
+        }
+    done
+}
+
+function check_minimal_adf {
+    if which "tce-config" &>/dev/null; then 
+        adf="$(tce-config --prefix)/share/tce/data/mach/minimal.adf"
+        if [ -e "${adf}" ]; then
+            return
+        fi
+    fi
+
+    if [ -e "${TCE_ROOT}/data/mach/minimal.adf" ]; then 
+        adf="${TCE_ROOT}/data/mach/minimal.adf"
+        return
+    fi
+
+    echo "minimal.adf not found."
+    exit 1
+}
+
+# ----------------- process parameters ------------------------------------ #
+
+[ "${1}x" == "-ex" ] && { shift; EVALUATE="true"; }
+
+[ "${1}x" == "x" ] && { echo "Code file in c should be given as a parameter."; exit 1; }
+
+if [ "${1}x" == "--helpx" -o "${1}x" == "-hx" ]; then
+    echo "Usage: c2vhdl [options] c_source_file"
+    echo ""
+    echo "Options:"
+    echo "-e    Evaluate and generate estimation data."
+    exit
+fi
+
+# check that the necessary programs are found from path
+check_in_path explore tcecc createbem generateprocessor generatebits
+
+check_minimal_adf
+
+# ------------------------------------------------------------------------- #
+
+tmp_dir="$(mktemp -d)"
+
+name="$(basename "${1}" .c)"
+tmp_name="${tmp_dir}/${name}"
+tmp_pname="${tmp_dir}/program"
+
+tcecc "${1}" -O2 -o ${tmp_pname}.bc || pexit 1
+explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb &>/dev/null || pexit 1
+
+# TODO: use simpleicoptimizer if using some other adf than minimal
+#new_conf="$(explore -e SimpleICOptimizer -s 1 ${tmp_name}.dsdb \
+#| tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
+#
+#[ "${new_conf}x" == "x" ] && pexit 1 "Explorer failed to create a new config."
+
+new_conf="$(explore -e ImplementationSelector -s 1 ${tmp_name}.dsdb \
+| tail -n1 | grep -x '[[:space:]][0-9][0-9]*' | tr -d '[[:space:]]')"
+
+[ "${new_conf}x" == "x" ] && pexit 1 "Explorer failed to create a new config."
+
+# get estimation data if it was asked
+if [ "${EVALUATE}x" == "truex" ]; then
+    explore -e Evaluate -s ${new_conf} ${tmp_name}.dsdb || pexit 1
+    # TODO: print estimation data from dsdb
+fi
+
+explore -w ${new_conf} ${tmp_name}.dsdb 1>/dev/null || pexit 1
+mv ${new_conf}.adf ${name}.adf; mv ${new_conf}.idf ${name}.idf
+
+tcecc -a ${name}.adf -o ${tmp_name}.tpef ${tmp_pname}.bc 1>/dev/null || pexit 1
+createbem ${name}.adf 1>/dev/null || pexit 1
+generateprocessor -b ${name}.bem -i ${name}.idf ${name}.adf 1>/dev/null || pexit 1
+generatebits -b ${name}.bem -d -p ${tmp_name}.tpef ${name}.adf 1>/dev/null || pexit 1
+
+pexit 0

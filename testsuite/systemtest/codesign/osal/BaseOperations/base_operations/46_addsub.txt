@@ -1,0 +1,4 @@
+addsub -1 -1
+addsub 0xffffffff 1
+addsub 123456 54321
+!quit

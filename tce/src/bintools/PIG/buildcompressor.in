@@ -28,6 +28,8 @@ else
 -I ${BASE}/program -I ${BASE}/tpef -I .. -I ${TRACEDB} \
 -I ${SIMULATOR} -I ${BASE}/bem -I ${BASE}/umach -I ${BASE}/osal ${BOOST_INCLUDES} ${CPPFLAGS}"
         soflags="@SHARED_CXX_FLAGS@ -o"
+	CONFIGURE_CPPFLAGS="@CPPFLAGS@"
+	CONFIGURE_LDFLAGS="@LDFLAGS@"
 
         else
 
@@ -37,8 +39,10 @@ else
         soflags="$(tce-config --so-flags) -o"
 
     fi
+
     objectfile=$1
     shift
-    $compiler $libdir $includedir $extra_objects $soflags $objectfile $* && \
+    $compiler $libdir $includedir $extra_objects $soflags $objectfile $* \
+	$CONFIGURE_CPPFLAGS $CONFIGURE_LDFLAGS && \
         echo "Compilation successful." || echo "Compilation failed." >&2
 fi

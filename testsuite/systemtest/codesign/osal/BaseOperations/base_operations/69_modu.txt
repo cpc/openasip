@@ -1,0 +1,6 @@
+!output unsigned
+modu 10 5
+modu 3 2
+modu 69850 814
+modu -234 4
+!quit

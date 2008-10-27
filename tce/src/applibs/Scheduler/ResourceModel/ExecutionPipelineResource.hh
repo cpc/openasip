@@ -123,12 +123,6 @@ private:
     std::map<std::string, int> operationSupported_;
     // Pipelines for operations
     std::vector<ResourceTable> operationPipelines_;
-    // Records operation triggered in cycle. Necessary for opcodeSetting
-    // and triggering ports separation
-    // Each opcode setting port also triggers but non opcode setting ports
-    // could trigger too. In which case the operation set by last
-    // opcode setting move is started.
-    std::map<int, std::string> opcodeSettingCycle_;
     // Stores for each result ready in a cycle in which it was ready
     // counts number of results that are ready in that cycle
     std::vector<std::pair<ProgramOperation*, int> > resultWriten_;

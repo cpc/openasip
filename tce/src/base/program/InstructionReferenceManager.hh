@@ -38,7 +38,7 @@
 #ifndef TTA_INSTRUCTION_REFERENCE_MANAGER_HH
 #define TTA_INSTRUCTION_REFERENCE_MANAGER_HH
 
-#include <vector>
+#include <map>
 #include "Exception.hh"
 
 namespace TTAProgram {
@@ -63,17 +63,38 @@ public:
         throw (InstanceNotFound);
     void clearReferences();
     bool hasReference(Instruction& ins) const;
-    int referenceCount() const;
-    InstructionReference& reference(int index) const throw (OutOfRange);
     InstructionReferenceManager* copy() const;
 
+       
 private:
-    /// List for instruction references.
-    typedef std::vector<InstructionReference*> RefList;
+    /// Map for instruction references. faster to search than list.
+    typedef std::multimap<Instruction*,InstructionReference*> RefMap;
+
     /// Instruction references to maintain.
-    RefList references_;
+    RefMap references_;
+public:
+
+    class Iterator {
+    public:
+        inline Iterator& operator++(); // ++i
+        inline InstructionReference& operator*();
+        inline const InstructionReference& operator*() const;
+        inline InstructionReference* operator->();
+        inline const InstructionReference* operator->() const;
+        inline bool operator !=(const Iterator& i) const;
+        inline Iterator(RefMap::iterator iter);
+        inline Iterator(RefMap::iterator& iter);
+    private:
+        RefMap::iterator iter_;
+    };
+        
+    inline Iterator begin();
+    inline Iterator end();
 };
 
+#include "InstructionReferenceManager.icc"
+
 }
+
 
 #endif

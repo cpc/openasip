@@ -257,11 +257,12 @@ CycleLookBackSoftwareBypasser::bypass(
         }
         int oldCycle = moveNode.cycle();
         rm.unassign(moveNode);
-        int earliestCycle =
-            rm.earliestCycle(ddg.earliestCycle(moveNode),moveNode);
+        int earliestCycle = ddg.earliestCycle(moveNode);
         if (!moveNode.move().isUnconditional()) {
             earliestCycle = std::max(earliestCycle, moveNode.guardLatency()-1);
         }
+        earliestCycle = rm.earliestCycle(earliestCycle, moveNode);
+        
         if (oldCycle > earliestCycle && earliestCycle != -1) {
             rm.assign(earliestCycle, moveNode);
         } else {
@@ -449,4 +450,14 @@ CycleLookBackSoftwareBypasser::removeDeadResults(
 void 
 CycleLookBackSoftwareBypasser::setSelector(MoveNodeSelector* selector) {
     selector_ = selector;
+}
+
+/** 
+ * Clears the storesSources data structure, when the old values in it are
+ * not needed anymore. (Allowing them to be deleted by the objects who
+ * own them)
+ */
+void
+CycleLookBackSoftwareBypasser::clearCaches() {
+    storedSources_.clear();
 }

@@ -40,6 +40,8 @@
 
 #include "ResourceBroker.hh"
 
+#include <list>
+
 namespace TTAMachine {
     class Machine;
     class MachinePart;
@@ -93,6 +95,7 @@ private:
         ShortImmPSocketResource& immRes) const;
     virtual ShortImmPSocketResource& findImmResource(
         BusResource& busRes) const;
+    std::list<SchedulingResource*> shortImmPSocketResources_;
 };
 
 #endif

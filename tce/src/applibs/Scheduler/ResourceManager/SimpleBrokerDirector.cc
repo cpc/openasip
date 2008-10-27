@@ -196,6 +196,7 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
         oldRes->isGuarded_ = true;
         oldRes->guard_ = node.move().guard().copy();
     }
+
     origResMap_.insert(
         std::pair<const MoveNode*, OriginalResources*>(&node, oldRes));
 
@@ -276,6 +277,7 @@ SimpleBrokerDirector::unassign(MoveNode& node)
     // immediates
     if (nodeCycle == knownMaxCycle_) {
         while(nodeCycle >= 0) {
+            // this may memory leak 
             Instruction* tempIns = instruction(nodeCycle);
             if (tempIns->moveCount() == 0 && tempIns->immediateCount() == 0) {
                 knownMaxCycle_--;

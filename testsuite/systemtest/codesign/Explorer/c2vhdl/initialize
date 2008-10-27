@@ -1,10 +1,10 @@
 #!/bin/bash
 rm -rf ExpRes.dsdb
-rm -rf ?.{{a,i}df,bem}
+rm -rf complex_multiply.{{a,i}df,bem}
 rm -rf data/program.bc
-rm -rf complex_multiply.scheduled.tpef
-rm -rf complex_multiply.scheduled.img
-rm -rf complex_multiply.scheduled_data.img
+rm -rf complex_multiply.tpef
+rm -rf complex_multiply.img
+rm -rf complex_multiply_data.img
 rm -rf debug.log
 rm -rf proge-output
 
@@ -12,13 +12,17 @@ rm -rf proge-output
 pushd . > /dev/null
 cd ../../../../../tce/explorer/ 
 # rm -f *.so
-if [ ! -e "SimpleICOptimizer.so" ]; then 
-    ../src/codesign/Explorer/buildexplorerplugin SimpleICOptimizer.so SimpleICOptimizer.cc > /dev/null
-fi
-if [ ! -e "RemoveUnconnectedComponents.so" ]; then 
-    ../src/codesign/Explorer/buildexplorerplugin RemoveUnconnectedComponents.so RemoveUnconnectedComponents.cc > /dev/null
-fi
+#if [ ! -e "SimpleICOptimizer.so" ]; then 
+#    ../src/codesign/Explorer/buildexplorerplugin SimpleICOptimizer.so SimpleICOptimizer.cc > /dev/null
+#fi
+#if [ ! -e "RemoveUnconnectedComponents.so" ]; then 
+#    ../src/codesign/Explorer/buildexplorerplugin RemoveUnconnectedComponents.so RemoveUnconnectedComponents.cc > /dev/null
+#fi
+rm -f ImplementationSelector.so Evaluate.so
 if [ ! -e "ImplementationSelector.so" ]; then 
+    ../src/codesign/Explorer/buildexplorerplugin ImplementationSelector.so ImplementationSelector.cc > /dev/null
+fi
+if [ ! -e "Evaluate.so" ]; then 
     ../src/codesign/Explorer/buildexplorerplugin ImplementationSelector.so ImplementationSelector.cc > /dev/null
 fi
 popd > /dev/null

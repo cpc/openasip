@@ -1,0 +1,2 @@
+stream_in_status 1
+!quit

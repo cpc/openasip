@@ -42,7 +42,7 @@ using std::string;
 
 const int ModelConstants::DEFAULT_WIDTH = 32;
 const int ModelConstants::DEFAULT_RF_SIZE = 8;
-const int ModelConstants::DEFAULT_RF_MAX_READS = 1;
+const int ModelConstants::DEFAULT_RF_MAX_READS = 0;
 const int ModelConstants::DEFAULT_RF_MAX_WRITES = 0;
 const int ModelConstants::DEFAULT_RF_GUARD_LATENCY = 0;
 const int ModelConstants::DEFAULT_IU_SIZE = 4;

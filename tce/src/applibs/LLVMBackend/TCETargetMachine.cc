@@ -93,6 +93,8 @@ TCETargetMachine::TCETargetMachine(
     if (!plugin_.hasSREM()) missingOps_.insert(llvm::ISD::SREM);
     if (!plugin_.hasUREM()) missingOps_.insert(llvm::ISD::UREM);
     if (!plugin_.hasMUL()) missingOps_.insert(llvm::ISD::MUL);
+    if (!plugin_.hasROTL()) missingOps_.insert(llvm::ISD::ROTL);
+    if (!plugin_.hasROTR()) missingOps_.insert(llvm::ISD::ROTR);
 }
 
 /**

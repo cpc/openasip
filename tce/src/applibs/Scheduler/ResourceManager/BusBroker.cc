@@ -52,6 +52,7 @@
 #include "MapTools.hh"
 #include "MoveNode.hh"
 #include "MachineConnectivityCheck.hh"
+#include "SequenceTools.hh"
 
 using std::string;
 using std::set;
@@ -68,6 +69,7 @@ BusBroker::BusBroker(std::string name) : ResourceBroker(name) {
  * Destructor.
  */
 BusBroker::~BusBroker(){
+    SequenceTools::deleteAllItems(shortImmPSocketResources_);
 }
 
 /**
@@ -547,11 +549,12 @@ BusBroker::setupResourceLinks(const ResourceMapper& mapper) {
         SchedulingResource* busResource = (*resIter).second;
 
         int immWidth = bus->immediateWidth();
+
         ShortImmPSocketResource* immSocketResource =
             new ShortImmPSocketResource(
                 bus->name() + "Imm", immWidth, bus->signExtends());
 
-        ResourceBroker::addResource(*bus, immSocketResource);
+        shortImmPSocketResources_.push_back(immSocketResource);
         busResource->addToRelatedGroup(0, *immSocketResource);
 
         for (int i = 0; i < bus->segmentCount(); i++) {

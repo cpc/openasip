@@ -50,7 +50,7 @@
  */
 class QuitCommand : public CustomCommand {
 public:
-    QuitCommand();
+    QuitCommand(const std::string& commandString = "quit");
     virtual ~QuitCommand();
 
     virtual bool execute(const std::vector<DataObject>& arguments)

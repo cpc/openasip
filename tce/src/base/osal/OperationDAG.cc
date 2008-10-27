@@ -84,13 +84,9 @@ OperationDAG::isTrivial() const {
 /**
  * Destructor.
  *
- * Deletes all MoveNodes and ProgramOperations.
+ * Deletes all Nodes. Edges are destroyed by destructor of base class.
  */
 OperationDAG::~OperationDAG() {
-    for (int i = 0; i < edgeCount(); i++) {
-        delete &edge(i);
-    }
-    
     for (int i = 0; i < nodeCount(); i++) {
         delete &node(i);
     }

@@ -1,0 +1,132 @@
+/*
+    Copyright 2002-2008 Tampere University of Technology.  All Rights
+    Reserved.
+
+    This file is part of TTA-Based Codesign Environment (TCE).
+
+    TCE is free software; you can redistribute it and/or modify it under the
+    terms of the GNU General Public License version 2 as published by the Free
+    Software Foundation.
+
+    TCE is distributed in the hope that it will be useful, but WITHOUT ANY
+    WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+    FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+    details.
+
+    You should have received a copy of the GNU General Public License along
+    with TCE; if not, write to the Free Software Foundation, Inc., 51 Franklin
+    St, Fifth Floor, Boston, MA  02110-1301  USA
+
+    As a special exception, you may use this file as part of a free software
+    library without restriction.  Specifically, if other files instantiate
+    templates or use macros or inline functions from this file, or you compile
+    this file and link it with other files to produce an executable, this
+    file does not by itself cause the resulting executable to be covered by
+    the GNU General Public License.  This exception does not however
+    invalidate any other reasons why the executable file might be covered by
+    the GNU General Public License.
+*/
+
+/**
+ * @file DesignExplorerPlugin.icc
+ *
+ * Inline definitions of DesignExplorerPlugin class.
+ *
+ * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
+ */
+
+#include <boost/lexical_cast.hpp>
+
+inline std::string 
+DesignSpaceExplorerPlugin::description() const { 
+    return "base class description"; 
+}
+
+
+/**
+ * Adds a parameter to the plugin parameter list
+ *
+ * @param name Parameter name.
+ * @param type Parameter type.
+ * @param compulsory Is parameter compulsory.
+ * @param defaultValue default value of the parameter is not compulsory.
+ */
+inline void
+DesignSpaceExplorerPlugin::addParameter(
+    std::string name, 
+    ExplorerPluginParameterType type, 
+    bool compulsory, 
+    std::string defaultValue) {
+
+    parameters_.insert(Parameter(name, 
+        ExplorerPluginParameter(
+            name, type, compulsory, defaultValue)));
+}
+
+
+/**
+ * Reads compulsory parameter from the plugin parameters.
+ *
+ * @param paramName Parameter name.
+ * @param param Variable where to read the parameter.
+ */
+template <typename T>
+void 
+DesignSpaceExplorerPlugin::readCompulsoryParameter(
+    const std::string paramName, T& param) const
+    throw (NotAvailable, IllegalParameters) {
+
+    param = parameterValue<T>(paramName);
+}
+
+
+/**
+ * Reads optional parameter from the plugin parameters.
+ *
+ * @param paramName Parameter name.
+ * @param param Variable where to read the parameter.
+ */
+template <typename T>
+void 
+DesignSpaceExplorerPlugin::readOptionalParameter(
+    const std::string paramName, T& param) const
+    throw (NotAvailable, IllegalParameters) {
+
+    // optional parameters
+    if (hasParameter(paramName)) {
+        param = parameterValue<T>(paramName);
+    } 
+}
+
+
+/**
+ * Return parameter value.
+ *
+ * @param paramName Parameter name which value is to be returned.
+ */
+template <typename RT>
+RT
+DesignSpaceExplorerPlugin::parameterValue(const std::string& paramName) const
+    throw (NotAvailable, IllegalParameters) {
+
+    using boost::lexical_cast;
+    using boost::bad_lexical_cast;
+
+    PMCIt it = parameters_.find(paramName);
+    if (it != parameters_.end()) {
+        try {
+            std::string value = it->second.value();
+            if (it->second.type() == BOOL && 
+                    (value == "true" || value == "false")) {
+                value = value == "true" ? "1" : "0";
+            }
+            return lexical_cast<RT>(value);
+        } catch (bad_lexical_cast &) {
+            std::string msg = paramName + " had an illegal type of a value: " 
+                + it->second.value();
+            throw IllegalParameters(__FILE__, __LINE__, __func__, msg);
+        }
+    }
+    std::string msg = paramName + " parameter has not been defined.";
+    throw NotAvailable(__FILE__, __LINE__, __func__, msg);
+}

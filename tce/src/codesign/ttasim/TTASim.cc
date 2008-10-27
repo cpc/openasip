@@ -88,7 +88,9 @@ private:
 /**
  * A handler class for SIGFPE signal
  *
- * Stops the simulation (if it's running).
+ * Stops the simulation (if it's running). Used for catching
+ * errors from the simulated program in the compiled simulation
+ * engine.
  */
 class SigFPEHandler : public Application::UnixSignalHandler {
 public:
@@ -141,7 +143,9 @@ private:
 /**
  * A handler class for SIGSEGV signal
  *
- * Stops the simulation (if it's running).
+ * Stops the simulation (if it's running). Used for catching
+ * errors from the simulated program in the compiled simulation
+ * engine.
  */
 class SigSegvHandler : public Application::UnixSignalHandler {
 public:
@@ -291,12 +295,26 @@ int main(int argc, char* argv[]) {
     reader->initialize(SIM_COMMAND_PROMPT);
     reader->setInputHistoryLog(SIM_DEFAULT_COMMAND_LOG);
 
+    // handler for catching ctrl-c from the user (stops simulation)
+    SigINTHandler ctrlcHandler(*simFront);
+    Application::setSignalHandler(SIGINT, ctrlcHandler);
+
     if (!options.fastSimulationEngine()) {
         interpreter.reset(new SimulatorInterpreter(
             argc, argv, context, *reader));
     } else {
         interpreter.reset(new CompiledSimInterpreter(
             argc, argv, context, *reader));
+
+        /* Catch errors caused by the simulated program
+           in compiled simulation these show up as normal
+           signals as the simulation code is native code we are 
+           running in the simulation process. */
+        SigFPEHandler fpeHandler(*simFront);
+        SigSegvHandler segvHandler(*simFront);
+    
+        Application::setSignalHandler(SIGFPE, fpeHandler);
+        Application::setSignalHandler(SIGSEGV, segvHandler);
     }
 
     // check if there is an initialization file in user's home dir and 
@@ -330,14 +348,6 @@ int main(int argc, char* argv[]) {
     /// Catch runtime errors and print them out to the simulator console.
     RuntimeErrorReporter errorReporter(*simFront);
 
-    SigINTHandler ctrlcHandler(*simFront);
-    SigFPEHandler fpeHandler(*simFront);
-    SigSegvHandler segvHandler(*simFront);
-    
-    Application::setSignalHandler(SIGINT, ctrlcHandler);
-    Application::setSignalHandler(SIGFPE, fpeHandler);
-    Application::setSignalHandler(SIGSEGV, segvHandler);
-
     if (machineToLoad != "") {
         interpreteAndPrintResults(
             *interpreter, std::string("mach " ) + machineToLoad);
@@ -357,6 +367,7 @@ int main(int argc, char* argv[]) {
     }
     
     std::string command = "";
+    
     while (interactiveMode && !interpreter->isQuitCommandGiven()) {
         try {
             command = reader->readLine();
@@ -379,9 +390,12 @@ int main(int argc, char* argv[]) {
 
     delete reader;
     reader = NULL;
+
     Application::restoreSignalHandler(SIGINT);
-    Application::restoreSignalHandler(SIGFPE);
-    Application::restoreSignalHandler(SIGSEGV);
+    if (options.fastSimulationEngine()) {
+        Application::restoreSignalHandler(SIGFPE);
+        Application::restoreSignalHandler(SIGSEGV);
+    }
     
     return EXIT_SUCCESS;
 }

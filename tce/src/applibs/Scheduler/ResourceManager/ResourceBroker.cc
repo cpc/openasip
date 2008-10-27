@@ -42,6 +42,8 @@
 #include "MapTools.hh"
 #include "MachinePart.hh"
 
+#include "ShortImmPSocketResource.hh"
+
 using std::pair;
 using std::string;
 using namespace TTAMachine;
@@ -240,7 +242,7 @@ void
 ResourceBroker::addResource(
     const TTAMachine::MachinePart& mp,
     SchedulingResource* res) {
-
+    
     resMap_.insert(
         pair<const TTAMachine::MachinePart*, SchedulingResource*>(&mp, res));
 }

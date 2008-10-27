@@ -136,6 +136,7 @@ LLVMBackend::compile(
         for (int i = 0; i < res->errorCount(); i++) {
             msg += res->error(i).second + "\n";
         }
+        delete res; res = NULL;
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
@@ -178,6 +179,8 @@ LLVMBackend::compile(
 
     delete plugin;
     plugin = NULL;
+
+    delete res; res = NULL;
 
     return result;
 }

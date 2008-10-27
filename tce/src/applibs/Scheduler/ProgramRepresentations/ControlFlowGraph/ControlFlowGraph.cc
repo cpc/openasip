@@ -142,9 +142,11 @@ ControlFlowGraph::ControlFlowGraph(
     Instruction* instruction = &procedure.firstInstruction();
     int delaySlots = 0;
     bool hasCFMove = false;
-    while (instruction->address().location() <= iEnd.address().location()) {
+    unsigned int endAddr = iEnd.address().location();
+    unsigned int insAddr = instruction->address().location();
+    while (insAddr <= endAddr) {
         if (MapTools::containsValue(leaders, instruction)) {
-            leaderAddr = instruction->address().location();
+            leaderAddr = insAddr;
             if (!MapTools::containsKey(blocks_, leaderAddr)) {
                 throw InvalidData(
                     __FILE__, __LINE__, __func__, "Basic block is missing!");
@@ -202,9 +204,10 @@ ControlFlowGraph::ControlFlowGraph(
                 break;
             }
         }
-        if (procedure.hasNextInstruction(*instruction)) {
-            Instruction* nextInstruction =
-                &procedure.nextInstruction(*instruction);
+        Instruction* nextInstruction =
+        &procedure.nextInstruction(*instruction);
+        if (nextInstruction != &NullInstruction::instance()) {
+            unsigned int nextAddr = nextInstruction->address().location();
             // Look if next instruction is beginning of basic block
             // and if there was no CF move in current basic block
             // add fall true edge in such case
@@ -212,13 +215,14 @@ ControlFlowGraph::ControlFlowGraph(
                 hasCFMove == false) {
                 BasicBlockNode& blockSource(*blocks_[leaderAddr]);
                 BasicBlockNode& blockTarget(
-                    *blocks_[nextInstruction->address().location()]);
+                    *blocks_[nextAddr]);
                 if (!hasEdge(blockSource, blockTarget)) {
                     createControlFlowEdge(
                         *leaders[leaderAddr],*nextInstruction);
                     }
             }
             instruction = nextInstruction;
+            insAddr = nextAddr;
         } else {
             break;
         }
@@ -284,8 +288,11 @@ ControlFlowGraph::computeLeadersFromRefManager(
     // Add first instruction of procedure by default,
     // testing starts from second
     leaders[startAddress_.location()] = &procedure.firstInstruction();
-    for (int i = 0; i < refManager.referenceCount(); i++) {
-        Instruction& instruction(refManager.reference(i).instruction());
+
+    // this can get slow if there are zillion instructionreferences?
+    for (InstructionReferenceManager::Iterator i = refManager.begin();
+         i != refManager.end(); ++i) {
+        Instruction& instruction = i->instruction();
         InstructionAddress insAddr = instruction.address().location();
         if (insAddr > startAddress_.location() &&
             insAddr < endAddress_.location()) {

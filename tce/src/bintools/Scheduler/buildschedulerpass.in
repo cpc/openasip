@@ -41,6 +41,8 @@ else
 "-I${GRAPH} -I${DDG} -I${CFG} -I${SCHEDULER_ALGO} -I${SF_DIR} "\
 "-I${SELECTOR} ${BOOST_INCLUDES} ${CPPFLAGS} -I${A_MACH}"
         soflags="@SHARED_CXX_FLAGS@ -o"
+	CONFIGURE_CPPFLAGS="@CPPFLAGS@"
+	CONFIGURE_LDFLAGS="@LDFLAGS@"
 
     else
         compiler=$(tce-config --c++-compiler)
@@ -50,9 +52,11 @@ else
 		devincludedir=${includedir}/tce
         soflags="$(tce-config --so-flags) -o"
     fi
-	cd $curdir
+
+    cd $curdir
     objectfile=$1
     shift
-    $compiler $libdir $includedir $devincludedir $extra_objects $soflags $objectfile $* && \
+    $compiler $libdir $includedir $devincludedir $extra_objects $soflags \
+	$objectfile $CONFIGURE_CPPFLAGS $CONFIGURE_LDFLAGS $* && \
         echo "Compilation successful." || echo "Compilation failed." >&2
 fi

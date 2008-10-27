@@ -81,8 +81,22 @@ using std::map;
  *      If adf parameter is given the idf is built.
  */
 class ImplementationSelector : public DesignSpaceExplorerPlugin {
-public:
-    DESCRIPTION("Creates implementation for given machine.");
+    PLUGIN_DESCRIPTION("Creates implementation for the given machine.");
+
+    ImplementationSelector(): DesignSpaceExplorerPlugin(), 
+        icDec_("DefaultICDecoder"),
+        icDecHDB_("asic_130nm_1.5V.hdb"), 
+        adf_("") {
+
+        // compulsory parameters
+        // no compulsory parameters
+
+        // parameters that have a default value
+        addParameter(icDecPN_, STRING, false, icDec_);
+        addParameter(icDecHDBPN_, STRING, false, icDecHDB_);
+        addParameter(adfPN_, STRING, false, adf_);
+    }
+
     
     /**
      */
@@ -159,6 +173,12 @@ private:
     /// Selector used by the plugin.
     ComponentImplementationSelector selector_;
 
+    // parameter names
+    static const std::string icDecPN_;
+    static const std::string icDecHDBPN_;
+    static const std::string adfPN_;
+
+    // parameters
     /// name of the ic decoder plugin for idf
     std::string icDec_;
     /// name of the hdb used by ic decoder
@@ -171,65 +191,12 @@ private:
      * Reads the parameters given to the plugin.
      */
     void readParameters() {
-        // Parameter name of bus number in the machine.
-        const std::string icDec = "ic_dec";
-        const std::string icDecoderDefault = "DefaultICDecoder";
-        const std::string icDecHDB = "ic_hdb";
-        const std::string icDecHDBDefault = "asic_130nm_1.5V.hdb";
-        const std::string adf = "adf";
-
-        if (hasParameter(icDec)) {
-            try {
-                icDec_ = parameterValue(icDec);
-            } catch (const Exception& e) {
-                parameterError(icDec, "String");
-                icDec_ = icDecoderDefault;
-            }
-        } else {
-            // set defaut value to icDec
-            icDec_ = icDecoderDefault;
-        }
-
-        if (hasParameter(icDecHDB)) {
-            try {
-                icDecHDB_ = parameterValue(icDecHDB);
-            } catch (const Exception& e) {
-                parameterError(icDecHDB, "String");
-                icDecHDB_ = icDecHDBDefault;
-            }
-        } else {
-            // set defaut value to icDecHDB
-            icDecHDB_ = icDecHDBDefault;
-        }
-
-        if (hasParameter(adf)) {
-            try {
-                adf_ = parameterValue(adf);
-            } catch (const Exception& e) {
-                parameterError(adf, "string");
-                adf_ = "";
-            }
-        } else {
-            adf_ = "";
-        }
+        readOptionalParameter(icDecPN_, icDec_);
+        readOptionalParameter(icDecHDBPN_, icDecHDB_);
+        readOptionalParameter(adfPN_, adf_);
     }
 
     
-    /**
-     * Print error message of invalid parameter to plugin error stream.
-     *
-     * @param param Name of the parameter that has invalid value.
-     * @param type Type of the parameter ought to be.
-     */
-    void parameterError(const std::string& param, const std::string& type) {
-        std::ostringstream msg(std::ostringstream::out);
-        msg << "Invalid parameter value '" << parameterValue(param)
-            << "' on parameter '" << param << "'. " << type 
-            << " value expected." << std::endl;
-        errorOuput(msg.str());
-    }
-
-
     /**
      * Sets up the component implementation selector by adding the HDBs.
      */
@@ -248,5 +215,10 @@ private:
         }
     }
 };
+
+// parameter names
+const std::string ImplementationSelector::icDecPN_("ic_dec");
+const std::string ImplementationSelector::icDecHDBPN_("ic_hdb");
+const std::string ImplementationSelector::adfPN_("adf");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(ImplementationSelector)

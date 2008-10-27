@@ -78,6 +78,8 @@ public:
     virtual bool hasSREM() const;
     virtual bool hasUREM() const;
     virtual bool hasMUL() const;
+    virtual bool hasROTL() const;
+    virtual bool hasROTR() const;
 
 private:
     void initialize();

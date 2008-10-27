@@ -208,11 +208,16 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     loop_unroll_switches = " -loop-unroll -unroll-threshold=100 "
 
+    inline_pass = " -inline "
+    if options.noinline:
+        inline_pass = " "
+
     tce_std_compile_opts = (" " +
         "-preverify -domtree -verify -lowersetjmp -raiseallocs -simplifycfg -domtree " + 
         "-domfrontier -mem2reg -globalopt -globaldce " + 
         "-ipconstprop -deadargelim -instcombine " +
-        "-simplifycfg -basiccg -prune-eh -inline " +
+        "-simplifycfg -basiccg -prune-eh " +
+        inline_pass +
         "-argpromotion -tailduplicate -simplify-libcalls " + 
         "-instcombine -jump-threading -simplifycfg -domtree -domfrontier -scalarrepl " + 
         "-instcombine -break-crit-edges -condprop -tailcallelim -simplifycfg -reassociate " + 
@@ -297,11 +302,12 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
     
-    command = ("opt " + linkedName +
-               " -f -internalize " + internalize_api_list + " -o " + outputName)
-
+    no_inline = ""
     if options.noinline:
-        command += " -disable-inlining"
+        no_inline = " -disable-inlining"
+
+    command = ("opt " + linkedName + no_inline +
+               " -f -internalize " + internalize_api_list + " -o " + outputName)
 
     (exitCode, output) = runCommand(command, verbose)
 

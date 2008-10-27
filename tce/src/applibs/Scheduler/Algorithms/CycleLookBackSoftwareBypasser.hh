@@ -70,6 +70,7 @@ public:
 
     void setSelector(MoveNodeSelector* selector);
     
+    virtual void clearCaches();
 private:
     /// count of cycles before the operand write to look for the producer
     /// of the read value

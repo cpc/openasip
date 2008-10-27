@@ -46,6 +46,8 @@
 #include "config.h"
 #include "FileSystem.hh"
 #include "StringTools.hh"
+#include "VectorTools.hh"
+#include "MapTools.hh"
 
 using std::vector;
 using std::string;
@@ -524,10 +526,10 @@ Environment::osalPaths() {
 	// in current working directory
     string cwd = FileSystem::currentWorkingDir();
 
-    paths.push_back(basePath);
-    paths.push_back(userPath);
-    paths.push_back(customPath);
-    paths.push_back(cwd);
+    VectorTools::insertUnique(paths, basePath);
+    VectorTools::insertUnique(paths, userPath);
+    VectorTools::insertUnique(paths, customPath);
+    VectorTools::insertUnique(paths, cwd);
 
 	return paths;
 }
@@ -739,19 +741,25 @@ Environment::explorerPluginPaths() {
 
     string base = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
         "explorer" + DS + "base";
+    paths.push_back(base);
+
     string personal = FileSystem::homeDirectory() + DS + ".tce" + DS +
         "explorer";
-    string custom = string(TCE_SRC_ROOT) + DS +
-        "explorer";
+    paths.push_back(personal);
+
+    if (DISTRIBUTED_VERSION) {
+        string custom = string(TCE_SRC_ROOT) + DS +
+            "explorer";
+        paths.push_back(custom);
+    }
+
     string cwd = FileSystem::currentWorkingDir();
+    paths.push_back(cwd);
+
     string data = FileSystem::currentWorkingDir() + DS +
         "data";
-
-    paths.push_back(base);
-    paths.push_back(personal);
-    paths.push_back(custom);
-    paths.push_back(cwd);
     paths.push_back(data);
+
     return paths;
 }
 

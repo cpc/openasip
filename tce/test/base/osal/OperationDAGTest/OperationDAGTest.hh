@@ -49,6 +49,7 @@
 #include "OperationDAG.hh"
 #include "OperationDAGBehavior.hh"
 #include "OperationContext.hh"
+#include "TCEString.hh"
 
 /**
  * This class is used to test OperationPool.
@@ -135,7 +136,7 @@ OperationDAGTest::testCreateCode() {
 void 
 OperationDAGTest::testIfCanSimulate() {
     OperationPool opPool;
-    Operation& okOp = opPool.operation("addsubmuldivdivu");    
+    Operation& okOp = opPool.operation("addsubmuldivadd");    
     Operation& okOpWithConstant = opPool.operation("neg2");
 
     Operation& noSimOp1 = opPool.operation("cannotsimulate");
@@ -156,7 +157,7 @@ OperationDAGTest::testIfCanSimulate() {
         
 
 //      std::cerr << "*********** Osal code: " << okOp.name() << std::endl
-//                << OperationDAGConverter::createOsalCode(okOp.dag()) 
+//                << OperationDAGConverter::createOsalCode(okOp.dag(0)) 
 //                << std::endl;
     
 //      std::cerr << "********* Expanded osal code: " << okOp.name() << std::endl
@@ -172,7 +173,6 @@ OperationDAGTest::testIfCanSimulate() {
 //                << OperationDAGConverter::createSimulationCode(okOp.expandedDag()) 
 //                << std::endl;
     
-//     okOp.expandedDag().writeToDotFile("expanded.dot");
 //    okOp.dag(0).writeToDotFile("normal.dot");
        
     TS_ASSERT_EQUALS(noSimOp1.canBeSimulated(), false);
@@ -180,6 +180,19 @@ OperationDAGTest::testIfCanSimulate() {
     TS_ASSERT_EQUALS(okOp.canBeSimulated(), true);
     TS_ASSERT_EQUALS(okOpWithConstant.canBeSimulated(), true);
     TS_ASSERT_EQUALS(allSimulationCodeOperations.canBeSimulated(), true);
+
+    OperationDAGBehavior behave(okOp.dag(0), 4);            
+    SimValue a,b,c,d;
+    a = 5;
+    b = 2;
+    c = 4;
+    d = 0;
+    
+    SimValue* params[] = {&a, &b, &c, &d};    
+    SimValue** paramsBlah = params;
+    OperationContext context;
+    behave.simulateTrigger(paramsBlah, context);    
+    TS_ASSERT_EQUALS(d.intValue(), -10);   
 }
 
 #endif

@@ -139,3 +139,10 @@ SoftwareBypasser::removeDeadResults(
 void 
 SoftwareBypasser::setSelector(MoveNodeSelector*) {
 }
+
+/**
+ * Clears all temporary data structures/caches used byt the bypasser.
+ */
+void 
+SoftwareBypasser::clearCaches() {
+}

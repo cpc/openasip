@@ -147,41 +147,20 @@ DataDependenceGraph::~DataDependenceGraph() {
     // they should already have been deleted by the one who removed them
     AssocTools::deleteAllValues(removedNodes_);
 
-    // Old version of Boost has a bug which causes the following loop
-    // to crash, so delete edges only if we have new boost.
-    // with old boost just have a memory leak.
-    // The same bug will cause also bypassing and reduced connectivity 
-    // to fail.
-#if BOOST_VERSION >= 103300
-    while (edgeCount()) {
-        DataDependenceEdge& e = edge(0);
-        removeEdge(e);
-        delete &e;
-    }
-
     if (parentGraph_ == NULL) {
 
-        while (edgeCount()) {
-            DataDependenceEdge& e = edge(0);
-            removeEdge(e);
-            delete &e;
+        //delete nodes.
+        int nc = nodeCount();
+        for (int i = 0; i < nc; i++) {
+            delete &node(i);
         }
-        
-        while (nodeCount()) {
-            MoveNode& n = node(0);
-            // unregistering 2-directional dying links is nasty so just
-            // don't case about them, they die when both objects die.
-            BoostGraph<MoveNode,DataDependenceEdge>::removeNode(n);
-            delete &n;
-        }
-        
+
+        // delete program operations.
         for (POLIter i = programOperations_.begin();
              i != programOperations_.end(); i++) {
             delete *i;
         }
     }
-#endif
-    
 }
 
 /**
@@ -1567,8 +1546,7 @@ DataDependenceGraph::fixInterBBAntiEdges(
                     if (mn1.isMove()) {
                         if (mn1.move().source().isGPR() &&  // WAR?
                             mn1.move().source().equals(
-                                mn2.move().destination()) && 
-                            sg1->rWarEdgesOut(mn1) == 0) {
+                                mn2.move().destination())) {
                             DataDependenceEdge* edge = 
                                 new DataDependenceEdge(
                                     DataDependenceEdge::EDGE_REGISTER,
@@ -1577,8 +1555,7 @@ DataDependenceGraph::fixInterBBAntiEdges(
                         }
                         if (mn1.move().destination().isGPR() && // WAW?
                             mn1.move().destination().equals(
-                                mn2.move().destination()) && 
-                            sg1->rWawRawEdgesOut(mn1) == 0) {
+                                mn2.move().destination())) {
                             DataDependenceEdge* edge = 
                                 new DataDependenceEdge(
                                     DataDependenceEdge::EDGE_REGISTER,

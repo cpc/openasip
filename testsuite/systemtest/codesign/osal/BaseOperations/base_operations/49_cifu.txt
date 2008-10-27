@@ -1,0 +1,6 @@
+!output float
+cifu 1
+cifu 213
+cifu 548924
+cifu 4000000
+!quit

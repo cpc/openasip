@@ -1,0 +1,2 @@
+Cannot open input stream file tta_stream.in
+1
