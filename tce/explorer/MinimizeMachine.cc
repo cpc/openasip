@@ -472,19 +472,19 @@ private:
                 if (((*registerMapIter).second)->isArchitectureEqual(
                             *rfNav.item(i))) {
 
+                    // remove the register file
                     mach.removeRegisterFile(*rfNav.item(i));
                     std::list<std::string> socketList;
                     modifier.removeNotConnectedSockets(mach, socketList);
-                    DSDBManager::MachineConfiguration newConfiguration;
-                    newConfiguration.architectureID = dsdb.addArchitecture(mach);
-                    newConfiguration.hasImplementation = false;
-                    RowID confID = dsdb.addConfiguration(newConfiguration);
-                    CostEstimates newEstimates;
 
-                    // if the evaluation fails the removed register is needed
+                    DSDBManager::MachineConfiguration newConfiguration;
+                    RowID confID = 0;
+                    CostEstimates newEstimates;
+                    
+                    // if the evaluation fails the removed RF is needed
                     // and the old machine state is loaded
-                    if (!explorer.evaluate(
-                                newConfiguration, newEstimates, false)) {
+                    if (!evalNewConfigWithoutImplementation(explorer, mach,
+                            dsdb, newConfiguration, confID, newEstimates)) {
 
                         // continue with old machine state and
                         // try with next register file type
@@ -616,16 +616,15 @@ private:
                     mach.removeFunctionUnit(*fuNav.item(i));
                     std::list<std::string> socketList;
                     modifier.removeNotConnectedSockets(mach, socketList);
-                    DSDBManager::MachineConfiguration newConfiguration;
-                    newConfiguration.architectureID = dsdb.addArchitecture(mach);
-                    newConfiguration.hasImplementation = false;
-                    RowID confID = dsdb.addConfiguration(newConfiguration);
-                    CostEstimates newEstimates;
 
+                    DSDBManager::MachineConfiguration newConfiguration;
+                    RowID confID = 0;
+                    CostEstimates newEstimates;
+                    
                     // if the evaluation fails the removed FU is needed
                     // and the old machine state is loaded
-                    if (!explorer.evaluate(
-                                newConfiguration, newEstimates, false)) {
+                    if (!evalNewConfigWithoutImplementation(explorer, mach,
+                            dsdb, newConfiguration, confID, newEstimates)) {
 
                         // continue with old machine state and
                         // try with next FU type
@@ -673,6 +672,46 @@ private:
             // no new config could be created
             return confToMinimize; 
         }
+    }
+
+
+    /**
+     * Create, store and evaluate a new configuration without implementation.
+     *
+     * @param explorer Design space explorer to use to evaluate.
+     * @param mach machine for the new configuration.
+     * @param dsdb Design space database to store the new configuration.
+     * @param newConfiguration New machine configuration.
+     * @param confID Row ID of the new configuration in the DSDB.
+     * @param newEstimates Estimates that are calculated during evaluation.
+     * @return true if evaluation succeed, if not, return false.
+     */
+    inline bool
+    evalNewConfigWithoutImplementation(
+            DesignSpaceExplorer& explorer,
+            const TTAMachine::Machine& mach,
+            DSDBManager& dsdb, 
+            DSDBManager::MachineConfiguration& newConfiguration,
+            RowID& confID,
+            CostEstimates &newEstimates) 
+            throw (RelationalDBException, KeyNotFound) {
+
+        try {
+            newConfiguration.architectureID = dsdb.addArchitecture(mach);
+        } catch (const RelationalDBException& e) {
+            // Error occurred while adding adf to the dsdb, adf
+            // probably too big
+            throw e;
+        }
+        newConfiguration.hasImplementation = false;
+
+        try {
+            confID = dsdb.addConfiguration(newConfiguration);
+        } catch (const KeyNotFound& e) {
+            throw e;
+        }
+
+        return explorer.evaluate(newConfiguration, newEstimates, false);
     }
 };
 
