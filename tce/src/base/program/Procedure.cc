@@ -367,6 +367,15 @@ Procedure::remove(Instruction& ins) throw (IllegalRegistration) {
     }
 }
 
+void
+Procedure::clear() {
+    int insCount = instructionCount();
+    CodeSnippet::clear();
 
+    if (parent_ != NULL && this != &parent_->lastProcedure()) {
+        parent_->moveProcedure(
+            parent_->nextProcedure(*this), -insCount);
+    }
+}
 
 }
