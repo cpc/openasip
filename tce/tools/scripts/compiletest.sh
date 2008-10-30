@@ -278,8 +278,10 @@ LINES_FROM_ERROR_LOG=1500
 # test dir names under tce root
 SYSTEMTEST_DIR="systemtest"
 SYSTEMTEST_LONG_DIR="systemtest_long"
+SYSTEMTEST_LONGLONG_DIR="systemtest_longlong"
 REAL_ST_DIR="../testsuite/systemtest"
 REAL_ST_LONG_DIR="../testsuite/systemtest_long"
+REAL_ST_LONGLONG_DIR="../testsuite/systemtest_longlong"
 UNITTEST_DIR="test"
 
 LOG_FILE="$LOG_DIR/compiletest.log"
@@ -328,6 +330,11 @@ function link_systemtest_dirs {
     if [ ! -h $SYSTEMTEST_LONG_DIR ]
     then
       ln -s $REAL_ST_LONG_DIR $SYSTEMTEST_LONG_DIR
+    fi
+
+    if [ ! -h $SYSTEMTEST_LONGLONG_DIR ]
+    then
+      ln -s $REAL_ST_LONGLONG_DIR $SYSTEMTEST_LONGLONG_DIR
     fi
 }
 
@@ -546,6 +553,31 @@ function run_long_system_tests {
     pop_dir
 }
 
+# Run the very long system tests for the code base.
+function run_longlong_system_tests {
+    push_dir
+
+    if [ "x${findBreakingRev}" == "xyes" ]; then
+        STPARAM="-bo"
+    else
+        STPARAM="-o"
+    fi
+
+    cd $SYSTEMTEST_LONGLONG_DIR
+    {
+        ../../tce/tools/scripts/systemtest.php $STPARAM 2>&1 | grep -vE "$SYSTEM_TEST_WARNING_FILTERS"
+    } 1> $TEMP_FILE 2>&1
+
+    log_failure longlong_testing
+
+    if [ -e "broken_system_tests.temp" ]; then
+        echo_broken_systemtest_info >> $ERROR_LOG_FILE
+    fi
+
+    pop_dir
+}
+
+
 function echo_broken_unittest_info {
     if [[ "x${errors}" == "xno" && "x${last_tested_rev}" != "x${rev_to_up}" ]]; then
         bad_coder="$(bzr revno)"
@@ -649,6 +681,7 @@ function compile_test {
     # remove broken test temp lists written by systemtest.php
     rm -rf "./${SYSTEMTEST_DIR}/broken_system_tests.temp"
     rm -rf "./${SYSTEMTEST_LONG_DIR}/broken_system_tests.temp"
+    rm -rf "./${SYSTEMTEST_LONGLONG_DIR}/broken_system_tests.temp"
 
     # remove broken unit test temp list, not implemented yet (TODO)
     # rm -rf "./${UNITTEST_DIR}/broken_unit_tests.temp"
@@ -657,6 +690,8 @@ function compile_test {
     unit_tests_failed="yes"
     system_tests_failed="yes"
     long_system_tests_failed="yes"
+    longlong_system_tests_failed="yes"
+
     # TODO: limit unit tests with count or error diff
 
     while true; do
@@ -682,6 +717,14 @@ function compile_test {
             fi
 
             test_errors_for long_system_tests_failed
+
+            #  long long system test function
+            if [ "x$quickTest" == "xno" -a "x$longlong_system_tests_failed" == "xyes" ]; then 
+                run_tests "longlong tests: " "run_longlong_system_tests"
+            fi
+
+            test_errors_for longlong_system_tests_failed
+
         fi
 
         # loop test
@@ -935,4 +978,3 @@ function compile_test_with_all_compilers {
 echo " Temp: $TEMP_FILE"
 echo "[ === Starting compile test for branch ${BRANCH_NAME} ===]" >> $LOG_FILE
 compile_test_with_all_compilers tce .
-
