@@ -999,7 +999,7 @@ OsalCmdLineOptions::~OsalCmdLineOptions() {
 void
 OsalCmdLineOptions::printVersion() const {
     cout << "test_osal - OSAL Tester "
-         << VERSION << endl;
+         << Application::TCEVersionString() << endl;
 }
 
 /**

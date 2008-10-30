@@ -154,5 +154,5 @@ SchedulerCmdLineOptions::outputFile() const {
 void
 SchedulerCmdLineOptions::printVersion() const {
     cout << "schedule - TCE Scheduler command line interface "
-         << VERSION << endl;
+         <<  Application::TCEVersionString() << endl;
 }

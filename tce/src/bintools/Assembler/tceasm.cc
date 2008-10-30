@@ -80,7 +80,9 @@ public:
     }
     
     void printVersion() const {
-        std::cout << "tceasm - TCE parallel assembler " << VERSION << std::endl;
+        std::cout << "tceasm - TCE parallel assembler " 
+                  << Application::TCEVersionString() 
+                  << std::endl;
     }
 };
 

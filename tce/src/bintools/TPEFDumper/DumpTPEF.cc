@@ -171,7 +171,9 @@ public:
     }
 
     void printVersion() const {
-        std::cout << "dumptpef - TPEF Dumper " << VERSION << std::endl;
+        std::cout << "dumptpef - TPEF Dumper " 
+                  << Application::TCEVersionString() 
+                  << std::endl;
     }
 };
 

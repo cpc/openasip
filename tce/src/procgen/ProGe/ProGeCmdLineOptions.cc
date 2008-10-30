@@ -177,7 +177,7 @@ ProGeCmdLineOptions::pluginParametersQuery() const {
 void
 ProGeCmdLineOptions::printVersion() const {
     std::cout << "generateprocessor - TCE Processor Generator "
-              << VERSION << std::endl;
+              << Application::TCEVersionString() << std::endl;
 }
 
 

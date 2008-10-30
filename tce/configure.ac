@@ -5,6 +5,12 @@
 # Email address is for bug reporting. 
 AC_INIT(tce, 1.0-beta1, tce-users@cs.tut.fi)
 
+# Get the current revision number so we can print it out in
+# tce-config --version
+REVNO=$(which bzr > /dev/null && bzr revno || echo "unknown")
+
+AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION-r${REVNO}"] )
+
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
 # directory.

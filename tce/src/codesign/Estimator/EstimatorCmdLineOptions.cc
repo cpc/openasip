@@ -110,7 +110,7 @@ EstimatorCmdLineOptions::~EstimatorCmdLineOptions() {
 void
 EstimatorCmdLineOptions::printVersion() const {
     std::cout << "estimate - TTA Processor Cost Estimator " 
-              << VERSION << std::endl;
+              <<  Application::TCEVersionString() << std::endl;
 }
 
 /**
