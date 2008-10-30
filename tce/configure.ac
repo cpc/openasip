@@ -873,7 +873,7 @@ history_init()
   AC_MSG_RESULT([yes])
   AC_DEFINE([EDITLINE], [1], [Defines whether editline is found or not])
   EDITLINE=true
-  AC_SUBST([EDITLINE_LD_FLAGS], ["-ledit"])
+  AC_SUBST([EDITLINE_LD_FLAGS], ["-ledit $EDITLINE_LIBDIR"])
 
 ],
 [
@@ -948,7 +948,7 @@ AC_RUN_IFELSE(
 )], 
 [
   AC_MSG_RESULT([yes])
-  AC_SUBST([SQLITE_LD_FLAGS], ["-lsqlite3"])
+  AC_SUBST([SQLITE_LD_FLAGS], ["-lsqlite3 $SQLITE_LIBDIR"])
   SQLITE3=true
 ],
 [

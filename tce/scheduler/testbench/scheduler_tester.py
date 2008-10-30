@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import getopt, sys, os, glob, __builtin__, subprocess, time, signal, csv, tempfile
 from os import *
 from subprocess import *
