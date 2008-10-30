@@ -128,7 +128,7 @@ class ImmediateGenerator : public DesignSpaceExplorerPlugin {
             std::ostringstream msg(std::ostringstream::out);
             msg << "No configuration nor adf defined. Use -s <confID> to "
                 << "define the configuration to be optimized." << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
 
@@ -149,7 +149,7 @@ class ImmediateGenerator : public DesignSpaceExplorerPlugin {
             } catch (const Exception& e) {
                 std::ostringstream msg(std::ostringstream::out);
                 msg << e.errorMessage() << endl;
-                errorOuput(msg.str());
+                verboseLog(msg.str());
                 return result;
             }
 
@@ -199,7 +199,7 @@ class ImmediateGenerator : public DesignSpaceExplorerPlugin {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using ImmediateGenerator:" << endl
                 << e.errorMessage() << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
         return result;
@@ -289,7 +289,7 @@ private:
             msg << "\tNumber of Destinations: " 
                 << insTemplate->numberOfDestinations() << endl;
         }
-        errorOuput(msg.str());
+        verboseLog(msg.str());
     }
 
     /**
@@ -316,7 +316,7 @@ private:
             msg << "Error while using ImmediateGenerator:" << endl
                 << "Instruction template with name \"" << name 
                 << "\" was not found."  << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
         }
     }
 
@@ -335,14 +335,14 @@ private:
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using ImmediateGenerator:" << endl
                 << e.errorMessage() << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             delete insTemplate;
             return;
         } catch (InvalidName& e) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using ImmediateGenerator:" << endl
                 << e.errorMessage() << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             delete insTemplate;
             return;
         }
@@ -373,7 +373,7 @@ private:
                 std::ostringstream msg(std::ostringstream::out);
                 msg << "Error while using ImmediateGenerator:" << endl
                     << "No immediate units." << endl;
-                errorOuput(msg.str());
+                verboseLog(msg.str());
                 return;
             }
         } else {
@@ -388,7 +388,7 @@ private:
                 msg << "Error while using ImmediateGenerator:" << endl
                     << "Given destination immediate unit \"" 
                     << dstImmUnitName_ << "\" was not found." << endl;
-                errorOuput(msg.str());
+                verboseLog(msg.str());
                 return;
             }
         }
@@ -400,7 +400,7 @@ private:
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using ImmediateGenerator:" << endl
                 << e.errorMessage() << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             delete insTemplate;
             insTemplate = NULL;
             return;
@@ -408,7 +408,7 @@ private:
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using ImmediateGenerator:" << endl
                 << e.errorMessage() << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             delete insTemplate;
             insTemplate = NULL;
             return;
@@ -450,7 +450,7 @@ private:
                 std::ostringstream msg(std::ostringstream::out);
                 msg << "Error while using ImmediateGenerator:" << endl
                     << e.errorMessage() << endl;
-                errorOuput(msg.str());
+                verboseLog(msg.str());
                 delete insTemplate;
                 insTemplate = NULL;
                 return;
@@ -463,7 +463,7 @@ private:
             msg << "Error while using ImmediateGenerator:" << endl
                 << "Immediate template generation failed, width=\"" << width_
                 << "\" too great by: \"" << overSpill << "\"" << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             delete insTemplate;
             insTemplate = NULL;
             return;

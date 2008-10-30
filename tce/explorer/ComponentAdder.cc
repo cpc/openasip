@@ -64,8 +64,8 @@ using std::endl;
  *    If adf parameter is given the idf is built.
  */
 class ComponentAdder : public DesignSpaceExplorerPlugin {
-    PLUGIN_DESCRIPTION("Generates intial machine capable of running all given "
-                "applications");
+    PLUGIN_DESCRIPTION("Explorer plugin that adds machine components to a "
+            "given machine.");
 
     ComponentAdder(): DesignSpaceExplorerPlugin(), 
         RFName_("rf"),
@@ -88,6 +88,7 @@ class ComponentAdder : public DesignSpaceExplorerPlugin {
         addParameter(adfPN_, STRING, false, adf_);
         addParameter(buildIdfPN_, BOOL, false, Conversion::toString(buildIdf_));
     }
+
     
     /**
      * Explorer plugin that adds machine components to a given machine with
@@ -104,7 +105,7 @@ class ComponentAdder : public DesignSpaceExplorerPlugin {
             msg << "No configuration nor adf defined. Use -s <confID> to "
                 << "define the configuration to be optimized or give adf "
                 << "as plugin parameter." << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
 
@@ -124,7 +125,7 @@ class ComponentAdder : public DesignSpaceExplorerPlugin {
         } catch (const Exception& e) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error loading the adf." << std::endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
         assert(mach != NULL);
@@ -141,7 +142,7 @@ class ComponentAdder : public DesignSpaceExplorerPlugin {
                 msg << e.errorMessage() 
                     << " " << e.fileName() 
                     << " " << e.lineNum() << std::endl;
-                errorOuput(msg.str());
+                verboseLog(msg.str());
             }
         } else {
             conf.hasImplementation = false;

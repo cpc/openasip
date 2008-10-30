@@ -84,6 +84,8 @@ class Procedure : public CodeSnippet {
     void insertBefore(const Instruction& pos, Instruction* ins)
         throw (IllegalRegistration);
 
+    void clear();
+
     using CodeSnippet::insertAfter;
     using CodeSnippet::insertBefore;
     

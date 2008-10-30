@@ -92,7 +92,7 @@ class MinimalOpSet : public DesignSpaceExplorerPlugin {
             msg << "No configuration nor adf defined. Use -s <confID> to "
                 << "define the configuration to be optimized or give adf "
                 << "as plugin parameter." << std::endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
 
@@ -119,7 +119,7 @@ class MinimalOpSet : public DesignSpaceExplorerPlugin {
         } catch (const Exception& e) {
             std::ostringstream msg(std::ostringstream::out);
             msg << e.errorMessage() << std::endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
 
@@ -239,7 +239,7 @@ private:
         } catch (const Exception& e) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error loading the adf/idf." << std::endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return false;
         }
         return true;

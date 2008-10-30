@@ -162,6 +162,7 @@ bool MachineDCE::doInitialization(Module &M) {
         std::string name = i->getNameStr();        
 
         if (!i->hasInitializer()) {
+            continue;
             assert(false && "No initializer. External linkage?");
         }
         

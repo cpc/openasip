@@ -155,7 +155,8 @@ int main(int argc, char *argv[]) {
             TTAProgram::TPEFProgramFactory factory(*tpef, *machine, umach);
             program = factory.build();
         } catch (Exception& e1) {
-            cerr << "Error: " << e.errorMessage() << " and " << e1.errorMessage() << endl;
+            cerr << "Error: " << e.errorMessage() << " and " 
+                 << e1.errorMessage() << endl;
             delete tpef;
             delete machine;
             return 1;
@@ -164,10 +165,16 @@ int main(int argc, char *argv[]) {
 
     std::ostream* output = &std::cout;
     std::fstream file;
-    if (FileSystem::fileIsCreatable(options.outputFile())) {
+    if ((!FileSystem::fileExists(options.outputFile()) &&
+         FileSystem::fileIsCreatable(options.outputFile()))) {
         FileSystem::createFile(options.outputFile());
         file.open(options.outputFile().c_str());
-        output = &file;
+        output = &file;        
+    } else if (FileSystem::fileIsWritable(options.outputFile())) {
+        file.open(options.outputFile().c_str());
+        if (file.is_open()) {
+            output = &file;
+        }
     }
 
     // Write code section disassembly.
