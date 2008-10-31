@@ -60,7 +60,7 @@ CreateHDBCmdLineOptions::~CreateHDBCmdLineOptions() {
 void
 CreateHDBCmdLineOptions::printVersion() const {
     std::cout << "CreateHDB - TCE Hardware Database (HDB) initializer "
-              << VERSION << std::endl; 
+              << Application::TCEVersionString() << std::endl; 
 }
 
 /**

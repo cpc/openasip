@@ -206,7 +206,8 @@ ExplorerCmdLineOptions::~ExplorerCmdLineOptions() {
  */
 void
 ExplorerCmdLineOptions::printVersion() const {
-    std::cout << DSCLI_TITLE << " version " << VERSION << std::endl;
+    std::cout << DSCLI_TITLE << " version " 
+              << Application::TCEVersionString() << std::endl;
 }
 
 /**

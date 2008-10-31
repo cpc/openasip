@@ -6,7 +6,9 @@ libtcetools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
 	PluginTools.cc Conversion.cc StringTools.cc DataObject.cc SimValue.cc \
 	ConfigurationFile.cc ProcessorConfigurationFile.cc Listener.cc \
 	Informer.cc Options.cc OptionValue.cc CmdLineParser.cc MathTools.cc \
-	BitMatrix.cc TCEString.cc
+	BitMatrix.cc TCEString.cc 
+
+BUILT_SOURCES = tce_version_string.h
 
 if HAVE_SQLITE
   libtcetools_la_SOURCES += SQLiteConnection.cc RelationalDBQueryResult.cc \
@@ -26,9 +28,20 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
-.PHONY: clean doc
+.PHONY: clean doc 
 
 doc:
 	doxygen ${DOXYGEN_CONFIG_FILE}
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+REVNO=$(shell which bzr > /dev/null && bzr revno || echo "Unknown")
+TCE_VERSION_STRING=@PACKAGE_VERSION@-r$(REVNO)
+
+tce_version_string.h: ../../../.bzr/branch/last-revision
+	@echo "Setting TCE_VERSION_STRING to $(TCE_VERSION_STRING)"
+	@echo '#define TCE_VERSION_STRING "$(TCE_VERSION_STRING)"' > $@
+
+# A hack, we'll see if something breaks.
+../../../.bzr/branch/last-revision:
+	@echo "Not compiling in a bazaar branch"

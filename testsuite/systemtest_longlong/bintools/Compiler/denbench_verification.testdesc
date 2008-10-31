@@ -1,0 +1,5 @@
+<?php
+$test_description="the compiler using the DENbench benchmark suite";
+$test_bin = "./denbench_verification.sh";
+$bin_args = "";
+?>

@@ -1,0 +1,13 @@
+#!/bin/bash
+#
+# Find the DENbench directory and link it to the current dir.
+# We cannot copy it to the test suite as DENbench cannot be redistributed.
+
+
+if test -d ~/project/experimental/EEMBC/DENBench;
+then
+    ln -sdf  ~/project/experimental/EEMBC/DENBench DENBench
+    ln -sdf $PWD/../../../../tce/scheduler/testbench/Operations/ DENBench/consumer/data
+    cd ../../../../tce/scheduler/testbench/Operations/
+    make > /dev/null
+fi

@@ -115,7 +115,8 @@ SimulatorCmdLineOptions::~SimulatorCmdLineOptions() {
  */
 void
 SimulatorCmdLineOptions::printVersion() const {
-    std::cout << SIM_CLI_TITLE << " " << VERSION << std::endl;
+    std::cout << SIM_CLI_TITLE << " " << Application::TCEVersionString() 
+              << std::endl;
 }
 
 /**

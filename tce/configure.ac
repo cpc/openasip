@@ -5,6 +5,12 @@
 # Email address is for bug reporting. 
 AC_INIT(tce, 1.0-beta1, tce-users@cs.tut.fi)
 
+# Get the current revision number so we can print it out in
+# tce-config --version
+REVNO=$(which bzr > /dev/null && bzr revno || echo "unknown")
+
+AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION-r${REVNO}"] )
+
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
 # directory.
@@ -873,7 +879,7 @@ history_init()
   AC_MSG_RESULT([yes])
   AC_DEFINE([EDITLINE], [1], [Defines whether editline is found or not])
   EDITLINE=true
-  AC_SUBST([EDITLINE_LD_FLAGS], ["-ledit"])
+  AC_SUBST([EDITLINE_LD_FLAGS], ["-ledit $EDITLINE_LIBDIR"])
 
 ],
 [
@@ -948,7 +954,7 @@ AC_RUN_IFELSE(
 )], 
 [
   AC_MSG_RESULT([yes])
-  AC_SUBST([SQLITE_LD_FLAGS], ["-lsqlite3"])
+  AC_SUBST([SQLITE_LD_FLAGS], ["-lsqlite3 $SQLITE_LIBDIR"])
   SQLITE3=true
 ],
 [

@@ -155,7 +155,8 @@ public:
     }
 
     void printVersion() const {
-        cout << "dictionary_tool - Dictionary Tool " << VERSION << endl;
+        cout << "dictionary_tool - Dictionary Tool " 
+             << Application::TCEVersionString() << endl;
     }
 };
 

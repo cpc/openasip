@@ -85,7 +85,7 @@ public:
 
     void printVersion() const {
         std::cout << "tcedisasm - TCE parallel disassembler " 
-                  << VERSION << std::endl;
+                  << Application::TCEVersionString() << std::endl;
     }
 
     virtual ~DisasmCmdLineOptions() {
