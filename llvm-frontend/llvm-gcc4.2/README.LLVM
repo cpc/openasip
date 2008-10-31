@@ -129,9 +129,9 @@ Version Identifier:
 
   If you want LLVM to include an identifying marker in the --version output,
   build llvm-gcc with LLVM_VERSION_INFO=XXX.  For example, to build the LLVM
-  2.3 Release front-end, use 'make LLVM_VERSION_INFO=2.3'.  This will cause the
+  2.4 Release front-end, use 'make LLVM_VERSION_INFO=2.4'.  This will cause the
   front-end to print: "gcc version 4.2.1 (Based on Apple Inc. build 5555) 
-  (LLVM build 2.3)" as the version number.
+  (LLVM build 2.4)" as the version number.
   
   BUILDOPTIONS=LLVM_VERSION_INFO=whatever
   
@@ -146,7 +146,7 @@ llvm-gcc source directory, and build and install llvm-gcc:
 $ mkdir obj
 $ mkdir install
 $ cd obj
-$ ../llvm-gcc4-x.y.source/configure --prefix=`pwd`/../install --program-prefix=llvm- \
+$ ../llvm-gcc4.2-2.4.source/configure --prefix=`pwd`/../install --program-prefix=llvm- \
     --enable-llvm=$LLVMOBJDIR --enable-languages=c,c++$EXTRALANGS $TARGETOPTIONS
 $ make $BUILDOPTIONS
 $ make install
