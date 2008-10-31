@@ -1,0 +1,7 @@
+!output bin
+not 100111001b
+!output hex
+not 0xf0
+!output signed
+not 2548
+!quit

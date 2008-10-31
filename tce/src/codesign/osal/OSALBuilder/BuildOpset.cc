@@ -109,7 +109,7 @@ BuildOpsetOptions::~BuildOpsetOptions() {
 void
 BuildOpsetOptions::printVersion() const {
     cout << "buildopset - Operation behavior module builder " 
-         << VERSION << endl;
+         << Application::TCEVersionString() << endl;
 }
 
 /**

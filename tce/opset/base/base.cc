@@ -1000,10 +1000,15 @@ END_DEFINE_STATE
 OPERATION_WITH_STATE(STREAM_IN, INPUT_STREAM)
 
 TRIGGER
-    if (BWIDTH(2) != 8) 
+    if (BWIDTH(2) != 8) {
         Application::logStream() 
             << "STREAM_IN works with bytes only at the moment." 
             << std::endl;
+    }
+    if (!STATE.inputFile.is_open()) {
+        IO(2) = 0;
+        return true;
+    }
     char input;
     STATE.inputFile.read(&input, 1);
     IO(2) = static_cast<int>(input);

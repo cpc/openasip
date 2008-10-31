@@ -115,7 +115,8 @@ Proxim::OnInit() {
         machineToLoad = WxConversion::toString(parser.GetParam(0));
         programToLoad = WxConversion::toString(parser.GetParam(1));
     } else if (parser.GetParamCount() > 2) {
-        std::cout << ProximConstants::PROXIM_TITLE << " " << VERSION << std::endl;
+        std::cout << ProximConstants::PROXIM_TITLE << " " 
+                  << Application::TCEVersionString() << std::endl;
         std::cout << "Usage: proxim [program file]" << endl;
         std::cout << "       proxim [machine file] [program file]" << endl;
         

@@ -96,7 +96,7 @@ class RemoveUnconnectedComponents : public DesignSpaceExplorerPlugin {
             std::ostringstream msg(std::ostringstream::out);
             msg << "No configuration nor adf defined. Use -s <confID> to "
                 << "define the configuration to be optimized." << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
 
@@ -162,7 +162,7 @@ class RemoveUnconnectedComponents : public DesignSpaceExplorerPlugin {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while using RemoveUnconnectedComponents:" 
                 << endl << e.errorMessage() << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
         return result;

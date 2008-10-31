@@ -29,11 +29,14 @@ cxx_command="@CXX@"
 
 dynamic_flag="@DYNAMIC_FLAG@"
 
+version_string="@VERSION_STRING@"
+
 usage()
 {
 	cat <<EOF
 Usage: tce-config [OPTIONS]
 Options:
+  [--version]
   [--prefix]
   [--exec-prefix]
   [--libs]
@@ -56,6 +59,10 @@ while test $# -gt 0; do
   esac
 
   case $1 in
+    --version)
+      echo $version_string
+      exit
+      ;;
     --prefix)
       echo_prefix=yes
       ;;

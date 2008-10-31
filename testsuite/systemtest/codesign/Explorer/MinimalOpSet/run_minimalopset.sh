@@ -11,8 +11,8 @@ ${EXPLORE_BIN} -a data/broken.adf ${DSDB} &>${LOGFILE}
 ${EXPLORE_BIN} -e MinimalOpSet -s 1 -u print=true ${DSDB} 2>&1 | grep -q 'operation is missing' && echo "No operations should be missing."
 ${EXPLORE_BIN} -e MinimalOpSet -s 2 -u print=true ${DSDB} 2>&1 | grep -Ec '^ldh|^ldhu|^ldq|^ldqu|^ldw|^sth|^stq|^stw' | grep -qE '^8$' || echo "8 operations should be missing."
 
-explore -n ${DSDB} | grep -q ' 3 ' || echo "Wrong number of configs in dsdb, exptected 3."
+${EXPLORE_BIN} -n ${DSDB} | grep -q ' 3 ' || echo "Wrong number of configs in dsdb, exptected 3."
 
 ${EXPLORE_BIN} -e MinimalOpSet -s 3 -u print=true ${DSDB} 2>&1 | grep -q 'operation is missing' && echo "No operations should be missing."
 
-explore -n ${DSDB} | grep -q ' 3 ' || echo "Wrong number of configs in dsdb, exptected 3 again."
+${EXPLORE_BIN} -n ${DSDB} | grep -q ' 3 ' || echo "Wrong number of configs in dsdb, exptected 3 again."

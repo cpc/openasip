@@ -48,6 +48,8 @@ iprintf(fmt, va_alist)
 #endif
   ret = vfiprintf (stdout, fmt, ap);
   va_end (ap);
+
+  fflush(NULL);
   return ret;
 }
 

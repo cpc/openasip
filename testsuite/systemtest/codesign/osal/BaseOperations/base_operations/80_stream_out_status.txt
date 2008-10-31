@@ -1,0 +1,2 @@
+stream_out_status 19
+!quit

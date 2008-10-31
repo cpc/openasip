@@ -641,7 +641,7 @@ DesignSpaceExplorer::createEstimateData(
  * @return RowID Row ID of the config in the database. 0 if adding
  *         failed.
  */
-inline RowID 
+RowID 
 DesignSpaceExplorer::addConfToDSDB(
     const DSDBManager::MachineConfiguration& conf) {
 

@@ -175,6 +175,8 @@ public:
     static UnixSignalHandler* getSignalHandler(int signalNum);
     static void restoreSignalHandler(int signalNum);
 
+    static std::string TCEVersionString();
+
     /// Default verbose level - do not print anything unnecessary
     static const int VERBOSE_LEVEL_DEFAULT = 0;
     /// Increased verbose level - print information about modules etc

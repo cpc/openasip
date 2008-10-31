@@ -64,8 +64,7 @@ using namespace HDB;
  * Supported parameters:
  */
 class GrowMachine : public DesignSpaceExplorerPlugin {
-    PLUGIN_DESCRIPTION("Removes resources until the real time "
-        "requirements of applications are not reached anymore.");
+    PLUGIN_DESCRIPTION("Adds resources until cycle count doesn't go down anymore.");
     
     GrowMachine(): DesignSpaceExplorerPlugin(), 
         superiority_(10) {
@@ -139,7 +138,7 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
             msg << "GrowMachine Plugin Error: Couldn't evaluate cycle "
                 << "counts for applications, correct_simulation_output"
                 << " probably missing." << std::endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             result.push_back(configurationID);
             return result;
         }

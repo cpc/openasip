@@ -243,22 +243,14 @@ private:
             mach = NULL;
             return confToMinimize;
         }
-         
-        // goes through every apps new cycles
-        for (int i = 0; i < estimates.cycleCounts(); i++) {
-            // if no time constraints
-            if (maxCycleCounts.at(i) < 1) {
-                continue;
-            }
-            // if some apps maxCycles was exceeded
-            if (maxCycleCounts.at(i) < estimates.cycleCount(i)) {
-                // given configuration exceeds the given maximum of clock cycles
-                delete mach;
-                mach = NULL;
-                return confToMinimize;
-            }
+        
+        // check if some apps maxCycles was exceeded
+        if (!checkCycleCounts(estimates, maxCycleCounts)) {
+            delete mach;
+            mach = NULL;
+            return confToMinimize;
         }
-
+         
         MachineResourceModifier modifier;
 
         // variables for binary search    
@@ -279,7 +271,6 @@ private:
         // if buses are not of equal value this doesn't really work.
         do {
             assert(newMach == NULL);
-            bool newConfigOK = false;
             newMach = new TTAMachine::Machine(*mach);
 
             int busesToRemove = (origBusCount - busMid);
@@ -311,21 +302,10 @@ private:
             }
             CostEstimates newEstimates;
 
+            bool newConfigOK = false;
             if (explorer.evaluate(newConfiguration, newEstimates, false)) {
-                newConfigOK = true;
-                
                 // goes through every apps new cycles
-                for (int i = 0; i < newEstimates.cycleCounts(); i++) {
-                    // if no time constraints
-                    if (maxCycleCounts.at(i) < 1) {
-                        continue;
-                    }
-                    // if some apps maxCycles was exceeded
-                    if (maxCycleCounts.at(i) < newEstimates.cycleCount(i)) {
-                        newConfigOK = false;
-                        break;
-                    }
-                }
+                newConfigOK = checkCycleCounts(estimates, maxCycleCounts);
             } 
             
             if (newConfigOK) {
@@ -438,20 +418,12 @@ private:
             origMach = NULL;
             return confToMinimize;
         }
-
-        // goes through every apps new cycles
-        for (int i = 0; i < estimates.cycleCounts(); i++) {
-            // if no time constraints
-            if (maxCycleCounts.at(i) < 1) {
-                continue;
-            }
-            // if some apps maxCycles was exceeded
-            if (maxCycleCounts.at(i) < estimates.cycleCount(i)) {
-                // given configuration exceeds the given maximum of clock cycles
-                delete origMach;
-                origMach = NULL;
-                return confToMinimize;
-            }
+        
+        // check if some apps maxCycles was exceeded
+        if (!checkCycleCounts(estimates, maxCycleCounts)) {
+            delete origMach;
+            origMach = NULL;
+            return confToMinimize;
         }
 
         MachineResourceModifier::RegisterMap::const_iterator registerMapIter =
@@ -472,39 +444,28 @@ private:
                 if (((*registerMapIter).second)->isArchitectureEqual(
                             *rfNav.item(i))) {
 
+                    // remove the register file
                     mach.removeRegisterFile(*rfNav.item(i));
                     std::list<std::string> socketList;
                     modifier.removeNotConnectedSockets(mach, socketList);
-                    DSDBManager::MachineConfiguration newConfiguration;
-                    newConfiguration.architectureID = dsdb.addArchitecture(mach);
-                    newConfiguration.hasImplementation = false;
-                    RowID confID = dsdb.addConfiguration(newConfiguration);
-                    CostEstimates newEstimates;
 
-                    // if the evaluation fails the removed register is needed
+                    DSDBManager::MachineConfiguration newConfiguration;
+                    RowID confID = 0;
+                    CostEstimates newEstimates;
+                    
+                    // if the evaluation fails the removed RF is needed
                     // and the old machine state is loaded
-                    if (!explorer.evaluate(
-                                newConfiguration, newEstimates, false)) {
+                    if (!evalNewConfigWithoutImplementation(explorer, mach,
+                            dsdb, newConfiguration, confID, newEstimates)) {
 
                         // continue with old machine state and
                         // try with next register file type
                         break;
                     }
 
-                    // goes through every apps new cycles
-                    bool belowMaxCycles = true;
-                    for (int i = 0; i < newEstimates.cycleCounts(); i++) {
-                        // if no time constraints
-                        if (maxCycleCounts.at(i) < 1) {
-                            continue;
-                        }
-                        // if some apps maxCycles was exceeded
-                        if (maxCycleCounts.at(i) < newEstimates.cycleCount(i)) {
-                            belowMaxCycles = false;
-                            break;
-                        }
-                    }
-                    if (!belowMaxCycles) {
+                    // check every apps new cycle counts against
+                    // maxCycleCounts
+                    if (!checkCycleCounts(newEstimates, maxCycleCounts)) {
                         // continue with old machine state and
                         // try with next register file type
                         break;
@@ -581,21 +542,13 @@ private:
             return confToMinimize;
         }
 
-        // goes through every apps new cycles
-        for (int i = 0; i < estimates.cycleCounts(); i++) {
-            // if no time constraints
-            if (maxCycleCounts.at(i) < 1) {
-                continue;
-            }
-            // if some apps maxCycles was exceeded
-            if (maxCycleCounts.at(i) < estimates.cycleCount(i)) {
-                // given configuration exceeds the given maximum of clock cycles
-                delete origMach;
-                origMach = NULL;
-                return confToMinimize;
-            }
+        // check if some apps maxCycles was exceeded
+        if (!checkCycleCounts(estimates, maxCycleCounts)) {
+            delete origMach;
+            origMach = NULL;
+            return confToMinimize;
         }
-        
+
         MachineResourceModifier::FunctionUnitMap::const_iterator fuMapIter =
             origFUMap.begin();
 
@@ -616,16 +569,15 @@ private:
                     mach.removeFunctionUnit(*fuNav.item(i));
                     std::list<std::string> socketList;
                     modifier.removeNotConnectedSockets(mach, socketList);
-                    DSDBManager::MachineConfiguration newConfiguration;
-                    newConfiguration.architectureID = dsdb.addArchitecture(mach);
-                    newConfiguration.hasImplementation = false;
-                    RowID confID = dsdb.addConfiguration(newConfiguration);
-                    CostEstimates newEstimates;
 
+                    DSDBManager::MachineConfiguration newConfiguration;
+                    RowID confID = 0;
+                    CostEstimates newEstimates;
+                    
                     // if the evaluation fails the removed FU is needed
                     // and the old machine state is loaded
-                    if (!explorer.evaluate(
-                                newConfiguration, newEstimates, false)) {
+                    if (!evalNewConfigWithoutImplementation(explorer, mach,
+                            dsdb, newConfiguration, confID, newEstimates)) {
 
                         // continue with old machine state and
                         // try with next FU type
@@ -633,19 +585,7 @@ private:
                     }
 
                     // goes through every apps new cycles
-                    bool belowMaxCycles = true;
-                    for (int i = 0; i < newEstimates.cycleCounts(); i++) {
-                        // if no time constraints
-                        if (maxCycleCounts.at(i) < 1) {
-                            continue;
-                        }
-                        // if some apps maxCycles was exceeded
-                        if (maxCycleCounts.at(i) < newEstimates.cycleCount(i)) {
-                            belowMaxCycles = false;
-                            break;
-                        }
-                    }
-                    if (!belowMaxCycles) {
+                    if (!checkCycleCounts(newEstimates, maxCycleCounts)) {
                         // continue with old machine state and
                         // try with next register file type
                         break;
@@ -673,6 +613,73 @@ private:
             // no new config could be created
             return confToMinimize; 
         }
+    }
+
+
+    /**
+     * Create, store and evaluate a new configuration without implementation.
+     *
+     * @param explorer Design space explorer to use to evaluate.
+     * @param mach machine for the new configuration.
+     * @param dsdb Design space database to store the new configuration.
+     * @param newConfiguration New machine configuration.
+     * @param confID Row ID of the new configuration in the DSDB.
+     * @param newEstimates Estimates that are calculated during evaluation.
+     * @return true if evaluation succeed, if not, return false.
+     */
+    inline bool evalNewConfigWithoutImplementation(
+        DesignSpaceExplorer& explorer,
+        const TTAMachine::Machine& mach,
+        DSDBManager& dsdb, 
+        DSDBManager::MachineConfiguration& newConfiguration,
+        RowID& confID,
+        CostEstimates &newEstimates) 
+        throw (RelationalDBException, KeyNotFound) {
+
+        try {
+            newConfiguration.architectureID = dsdb.addArchitecture(mach);
+        } catch (const RelationalDBException& e) {
+            // Error occurred while adding adf to the dsdb, adf
+            // probably too big
+            throw e;
+        }
+        newConfiguration.hasImplementation = false;
+
+        try {
+            confID = dsdb.addConfiguration(newConfiguration);
+        } catch (const KeyNotFound& e) {
+            throw e;
+        }
+
+        return explorer.evaluate(newConfiguration, newEstimates, false);
+    }
+
+
+    /**
+     * Checks that max cycle counts are not exceeded.
+     * 
+     * Expects that maxCycleCount vector contains cycle counts for the
+     * matching programs in the same order as the estimates.
+     *
+     * @param estimates Estimations that contain cycle counts.
+     * @param maxCycleCounts Maximum cycle counts of the applications.
+     * @return true if maximum cycle counts are not exceeded, false otherwise.
+     */
+    bool checkCycleCounts(
+        const CostEstimates& estimates,
+        const std::vector<ClockCycleCount>& maxCycleCounts) {
+
+        for (int i = 0; i < estimates.cycleCounts(); i++) {
+            // if no time constraints
+            if (maxCycleCounts.at(i) < 1) {
+                continue;
+            }
+            // if some apps maxCycles was exceeded
+            if (maxCycleCounts.at(i) < estimates.cycleCount(i)) {
+                return false;
+            }
+        }
+        return true;
     }
 };
 

@@ -42,7 +42,7 @@
  * The constructor.
  */
 BEMViewerCmdLineOptions::BEMViewerCmdLineOptions() :
-    CmdLineOptions("BEM viewer", VERSION) {
+    CmdLineOptions("BEM viewer", Application::TCEVersionString()) {
 }
 
 
@@ -73,7 +73,8 @@ BEMViewerCmdLineOptions::bemFile() const {
  */
 void
 BEMViewerCmdLineOptions::printVersion() const {
-    std::cout << "viewbem - BEM Viewer " << VERSION << std::endl;
+    std::cout << "viewbem - BEM Viewer " 
+              << Application::TCEVersionString() << std::endl;
 }
 
 

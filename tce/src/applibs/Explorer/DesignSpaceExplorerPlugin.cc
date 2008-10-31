@@ -50,7 +50,7 @@
  * @name pluginName Name of the plugin.
  */
 DesignSpaceExplorerPlugin::DesignSpaceExplorerPlugin():
-    DesignSpaceExplorer(), verboseOut_(NULL), errorOut_(NULL) {
+    DesignSpaceExplorer() {
 }
 
 
@@ -104,28 +104,6 @@ DesignSpaceExplorerPlugin::giveParameter(
 
 
 /**
- * Sets the plugin verbose out stream.
- *
- * @param verboseOut Verbose output stream.
- */
-void 
-DesignSpaceExplorerPlugin::setVerboseStream(std::ostream* verboseOut) {
-    verboseOut_ = verboseOut;
-}
-
-
-/**
- * Sets the plugin error out stream.
- *
- * @param errorOut Error output output stream.
- */
-void 
-DesignSpaceExplorerPlugin::setErrorStream(std::ostream* errorOut) {
-    errorOut_ = errorOut;
-}
-
-
-/**
  * Tells whether the plugin has the given parameter defined.
  *
  * @param paramName Name of the parameter.
@@ -171,6 +149,7 @@ DesignSpaceExplorerPlugin::booleanValue(const std::string& parameter) const
     }
 }
 
+
 /**
  * Checks that all compulsory parameters are set for the plugin.
  */
@@ -185,37 +164,6 @@ DesignSpaceExplorerPlugin::checkParameters() const throw(IllegalParameters) {
     }
 }
 
-/**
- * Writes a verbose output message to a stream.
- *
- * @param message Message to be written.
- */
-void
-DesignSpaceExplorerPlugin::verboseOuput(
-        const std::string& message) {
-
-    if (verboseOut_ == NULL) {
-       return;
-    } 
-
-    *verboseOut_ << message;
-}
-
-/**
- * Writes a error output message to a stream.
- *
- * @param message Message to be written.
- */
-void
-DesignSpaceExplorerPlugin::errorOuput(
-        const std::string& message) {
-
-    if (errorOut_ == NULL) {
-       return;
-    } 
-
-    *errorOut_ << message;
-}
 
 /**
  * Explores the design space from the starting point machine and returns

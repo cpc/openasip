@@ -5113,6 +5113,8 @@ e & explorer\_plugin & Design Space Explorer plugin to be used.\\
 b & hdb & HDB to use with exploration.\\
 i & idf & IDF to add into the DSDB, needs also ADF.\\
 l & list\_apps & List the applications in the DSDB.\\
+g & list\_plugins & List loadable explorer plugins.\\
+p & plugin\_info & Get information about a plugin.\\
 u & plugin\_param & Parameter to the explorer plugin in form 'name=value'.
 If parameter value is boolean, use 'true', 'false', 1 or 0.\\
 r & rm\_app & ID(s) of the test program path(s) to be removed from the DSDB.\\
@@ -5136,6 +5138,16 @@ Exploration plugins may also estimate the costs of configurations with the
 available applications. If there are estimation results for the configuratios
 those can be queried with option \textbf{--conf\_summary} by giving the
 ordering of the results.
+
+The Explorer plugins explained in chapters below can be listed with a command:
+
+\shellcmd{explore -g}
+
+And their parameters with a command:
+
+\shellcmd{explore -p <plugin name>}
+
+These commands can help if, for some reason, this documentation is not up-to-date.
 
 \subsection{Explorer Plugin: SimpleICOptimizer}
 SimpleICOptimizer is an explorer plugin that optimizes the interconnection
@@ -5300,7 +5312,7 @@ Example of creating implementation for configuration ID 1, in the database:
 
 \subsection{Explorer Plugin: MinimizeMachine}
 MinimizeMachine is an Explorer plugin that removes resources from a machine
-until the real time requirements of applications are not reached anymore.
+until the real time requirements of the applications are not reached anymore.
 
 Parameters that can be passed to the ImmediateGenerator are:
 
@@ -5311,11 +5323,11 @@ Parameters that can be passed to the ImmediateGenerator are:
 min\_bus & true & Minimize buses. \\
 min\_fu & true & Minimize function units. \\
 min\_rf & true & Minimize register files. \\
-frequency & no default value & Running frequency for applications. \\
+frequency & no default value & Running frequency for the applications. \\
 \end{tabular}\\
 
-Example of minimizing configuration ID 1, in the database, with frequency
-50 MHz:
+Example of minimizing configuration ID 1, in the database, with a frequency
+of 50 MHz:
 
 \shellcmd{explore -e MinimizeMachine -s 1 -u frequency=50 database.dsdb}
 

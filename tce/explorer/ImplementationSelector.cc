@@ -112,7 +112,7 @@ class ImplementationSelector : public DesignSpaceExplorerPlugin {
             msg << "No configuration nor adf defined. Use -s <confID> to "
                 << "define the configuration to be optimized or give adf "
                 << "as plugin parameter." << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
 
@@ -132,7 +132,7 @@ class ImplementationSelector : public DesignSpaceExplorerPlugin {
         } catch (const Exception& e) {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error loading the adf." << std::endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
 
@@ -145,7 +145,7 @@ class ImplementationSelector : public DesignSpaceExplorerPlugin {
             msg << e.errorMessage() 
                 << " " << e.fileName() 
                 << " " << e.lineNum() << std::endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
             
@@ -157,7 +157,7 @@ class ImplementationSelector : public DesignSpaceExplorerPlugin {
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error while adding ADF to the dsdb. "
                 << "ADF probably too big." << endl;
-            errorOuput(msg.str());
+            verboseLog(msg.str());
             return result;
         }
         conf.implementationID = dsdb.addImplementation(*idf, 0, 0);

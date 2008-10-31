@@ -47,6 +47,7 @@
 #include "OperationNode.hh"
 #include "TerminalNode.hh"
 #include "ConstantNode.hh"
+#include "TCEString.hh"
 
 /**
  * Constructor.
@@ -126,7 +127,7 @@ OperationDAGBehavior::OperationDAGBehavior(
             if (opNode != NULL) {
                 SimulationStep step;
                 step.op = &opNode->referencedOperation();
-
+                
                 step.params = 
                     new SimValue*[step.op->numberOfInputs() + 
                                   step.op->numberOfOutputs()];
@@ -165,7 +166,6 @@ OperationDAGBehavior::OperationDAGBehavior(
                         
                         step.params[currEdge->dstOperand() - 1] = 
                             refStep.params[currEdge->srcOperand() - 1];
-
                     } else {
                         assert(false && "Invalid node type");
                     }
@@ -197,7 +197,7 @@ OperationDAGBehavior::OperationDAGBehavior(
                         assert(false && "Invalid node type");
                     }
                 }
-                
+                stepOfNode[opNode] = simulationSteps_.size();
                 simulationSteps_.push_back(step);
             }
         }
@@ -237,20 +237,32 @@ OperationDAGBehavior::simulateTrigger(
     SimValue** operands, OperationContext& context) const {    
   
     for (int i = 0; i < operandCount_; i++) {
-        ios_[i] = *operands[i];
+        ios_[i] = *(operands[i]);
     }
     
+    //std::cerr << "before operands of behavior: ";
+    //for (int j = 0; j < operandCount_; j++) std::cerr << operands[j]->intValue() << ",";
+
     for (unsigned int i = 0; i < simulationSteps_.size(); i++) {
+        //std::cerr << "Simulating:"  << simulationSteps_[i].op->name() << " in:";        
+        //for (int j = 0; j < simulationSteps_[i].op->numberOfInputs() + simulationSteps_[i].op->numberOfOutputs();j++) 
+        //    std::cerr << simulationSteps_[i].params[j]->intValue() << ",";  
+
         simulationSteps_[i].op->simulateTrigger(
             simulationSteps_[i].params, context);
+        
+        //std::cerr << " out:";
+        //for (int j = 0; j < simulationSteps_[i].op->numberOfInputs() + simulationSteps_[i].op->numberOfOutputs();j++) 
+        //    std::cerr << simulationSteps_[i].params[j]->intValue() << ",";  
+        //std::cerr << std::endl;
     }
-    
-    // this back copying should be able to be prevented by setting pointers 
-    // to pointers in ios_ table
+
     for (int i = 0; i < operandCount_; i++) {
-        *operands[i] = ios_[i];
+        *(operands[i]) = ios_[i];
     }
-    
+
+    //std::cerr << "after operands of behavior: ";
+    //for (int j = 0; j < operandCount_; j++) std::cerr << operands[j]->intValue() << ","; 
     return true;
 }
 

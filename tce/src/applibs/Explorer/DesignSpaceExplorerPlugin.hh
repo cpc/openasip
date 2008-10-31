@@ -111,12 +111,6 @@ public:
     virtual bool booleanValue(const std::string& parameter) const
         throw (IllegalParameters);
 
-    // TODO: remove, use Application module
-    void setVerboseStream(std::ostream* verboseOut);
-    void setErrorStream(std::ostream* errorOut);
-    void verboseOuput(const std::string& message);
-    void errorOuput(const std::string& message);
-
 protected:
     DesignSpaceExplorerPlugin();
 
@@ -126,10 +120,6 @@ protected:
     std::string pluginName_;
     /// Parameters for the plugin.
     ParameterMap parameters_;
-    /// plugin verbose output stream
-    std::ostream* verboseOut_;
-    /// plugin error output stream
-    std::ostream* errorOut_;
 };
 
 #include "DesignSpaceExplorerPlugin.icc"

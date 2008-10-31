@@ -30,7 +30,7 @@
     </operation>
 
     <operation>
-        <name>addsubmuldivdivu</name>
+        <name>addsubmuldivadd</name>
         <inputs>3</inputs>
         <outputs>1</outputs>
        	<in id="1" type="SIntWord"/>
@@ -43,7 +43,7 @@
             EXEC_OPERATION(addsub, IO(1), IO(2), tmp1, tmp2);
             EXEC_OPERATION(div, tmp1, tmp2, tmp3);
             EXEC_OPERATION(addsubmul, tmp3, IO(3), tmp5);
-            EXEC_OPERATION(divu, tmp3, tmp5, IO(4));
+            EXEC_OPERATION(add, tmp3, tmp5, IO(4));
         </trigger-semantics>
     </operation>
 

@@ -1,0 +1,3 @@
+Cannot open input stream file tta_stream.in
+STREAM_IN works with bytes only at the moment.
+0

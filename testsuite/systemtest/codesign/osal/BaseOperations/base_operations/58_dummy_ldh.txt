@@ -1,0 +1,3 @@
+# just dummy test since this is already tested with sth test
+ldh 0
+!quit

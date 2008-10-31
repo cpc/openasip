@@ -597,9 +597,6 @@ int main(int argc, char* argv[]) {
     if (!explorer || !loadPluginParameters(explorer, options)) {
         return EXIT_FAILURE;
     }
-    // TODO: fix to use something more systemwide
-    explorer->setVerboseStream(&cout);
-    explorer->setErrorStream(&cerr);
     
     // Load the HDB files if given as option
     if (options.hdbFileNames()) {

@@ -1,0 +1,7 @@
+ne 35 35
+ne 3 -3
+ne -3 -3
+ne -122 -123
+ne -1 1
+ne 0xffffffff -1
+!quit
