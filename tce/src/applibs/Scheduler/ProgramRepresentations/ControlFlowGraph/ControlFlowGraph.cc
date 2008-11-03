@@ -563,19 +563,9 @@ ControlFlowGraph::createControlFlowEdge(
     BasicBlockNode& blockTarget(*blocks_[targetAddr]);
 
     ControlFlowEdge* theEdge;
-    if (hasEdge(blockSource, blockTarget)) {
-        theEdge = graph_[connectingEdge(blockSource, blockTarget)];
-        if (theEdge->isNormalEdge() &&
-            edgePredicate != ControlFlowEdge::CFLOW_EDGE_NORMAL) {
-            disconnectNodes(blockSource, blockTarget);
-            theEdge = new ControlFlowEdge(
-                edgePredicate, isJumpEdge);
-            connectNodes(blockSource, blockTarget, *theEdge);
-        }
-    } else {
-        theEdge = new ControlFlowEdge(edgePredicate, isJumpEdge);
-        connectNodes(blockSource, blockTarget, *theEdge);
-    }
+    theEdge = new ControlFlowEdge(edgePredicate, isJumpEdge);
+    connectNodes(blockSource, blockTarget, *theEdge);
+
     return *theEdge;
 }
 
