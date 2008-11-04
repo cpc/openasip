@@ -46,6 +46,7 @@
 #include "SimValue.hh"
 
 #include <iostream>
+#include <fstream>
 
 /**
  * Constructor.
@@ -96,6 +97,7 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
     size_t newMAUCount = MAUsToDisplay;
     size_t newDisplayedAddress = lastDisplayedAddress + MAUsToDisplay;
     std::string addressSpaceName = "";
+    std::string fileName = "";
     for (size_t i = 1; i < arguments.size(); ++i) {
         if (StringTools::ciEqual(arguments.at(i).stringValue(), "/n")) {
             if (i == arguments.size() - 1 || 
@@ -129,6 +131,13 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
                 break;
             }
             addressSpaceName = arguments.at(i + 1).stringValue();
+            ++i;
+        } else if (StringTools::ciEqual(arguments.at(i).stringValue(), "/f")) {
+            if (i == arguments.size() - 1) {
+                illegalArguments = true;
+                break;
+            }
+            fileName = arguments.at(i + 1).stringValue();
             ++i;
         } else if (i == arguments.size() - 1) {
             const std::string addressString = arguments.at(i).stringValue();
@@ -204,6 +213,21 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
         return false;        
     }
 
+    std::ofstream* out = NULL;
+    const bool dumpToFile = fileName != "";
+    if (dumpToFile) {
+        if (MAUSize != sizeof(char)*8) {
+            interpreter()->setResult(
+                (boost::format(
+                    "Can only dump 8 bit memories to files. The given "
+                    "address space is %d.") % MAUSize).str());
+            interpreter()->setError(true);
+            return false;
+        }
+        newMAUCount = 1;
+        out = new std::ofstream(fileName.c_str(), std::ios::binary);
+    }
+
     MAUsToDisplay = newMAUCount;
     DataObject* result = new DataObject("");
     // read the wanted number (given with /n) of chunks of data to the result 
@@ -220,18 +244,29 @@ MemDumpCommand::execute(const std::vector<DataObject>& arguments)
             return false;        
         }
 
-        const int HEX_DIGITS = MAUSize*newMAUCount/4;
-        result->setString(
-            result->stringValue() + Conversion::toHexString(data, HEX_DIGITS));
-
+        
         newDisplayedCount--;
         newDisplayedAddress += MAUsToDisplay;
 
-        if (newDisplayedCount > 0) {
-            result->setString(result->stringValue() + " ");
+        if (!dumpToFile) {
+            const int HEX_DIGITS = MAUSize*newMAUCount/4;
+            result->setString(
+                result->stringValue() + 
+                Conversion::toHexString(data, HEX_DIGITS));
+
+            if (newDisplayedCount > 0) {
+                result->setString(result->stringValue() + " ");
+            }
+        } else {
+            *out << (char)data;
         }
     }
 
+    if (dumpToFile) {
+        out->close();
+        delete out;
+        out = NULL;
+    }
     interpreter()->setResult(result);
     return true;
 }

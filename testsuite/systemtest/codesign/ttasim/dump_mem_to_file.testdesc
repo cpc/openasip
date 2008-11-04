@@ -1,0 +1,11 @@
+<?php
+// short test description
+$test_description="dumping memory to a binary file";
+
+// the binary being tested
+$test_bin="../../../../tce/src/codesign/ttasim/ttasim";
+
+// args given to program
+// $bin_args="";
+
+?>

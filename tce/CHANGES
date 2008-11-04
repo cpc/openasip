@@ -5,6 +5,8 @@ New features
 ------------
 - Explorer can now print available plugins with "-g" option switch.
 - Explorer can now print plugin parameters with "-p <plugin name>" switch.
+- Simulator's x (dump memory) command can now dump memory to a binary file
+  with switch /f 
 
 Code optimizations
 ------------------
