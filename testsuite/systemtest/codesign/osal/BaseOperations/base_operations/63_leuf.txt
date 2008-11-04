@@ -2,4 +2,7 @@ leuf 1934.34f 1934.33f
 leuf 123.123f -123.123f
 leuf 234.234f 234.234f
 leuf -234.234f 234.234f
+leuf 0xfff00000 0xfff00000
+leuf 1.0f 0xfff00000
+leuf 0xfff00000 1.0f
 !quit

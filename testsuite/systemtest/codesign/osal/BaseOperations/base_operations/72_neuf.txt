@@ -1,4 +1,7 @@
 neuf 1934.34f 1934.33f
 neuf 123.123f -123.123f
 neuf 234.234f 234.234f
+neuf 0xfff00000 0xfff00000
+neuf 1.0f 0xfff00000
+neuf 0xfff00000 1.0f
 !quit

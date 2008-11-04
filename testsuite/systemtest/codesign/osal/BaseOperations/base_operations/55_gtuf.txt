@@ -2,4 +2,7 @@ gtuf 1934.34f 1934.33f
 gtuf 123.123f -123.123f
 gtuf 234.234f 234.234f
 gtuf 234.236f 234.234f
+gtuf 0xfff00000 0xfff00000
+gtuf 1.0f 0xfff00000
+gtuf 0xfff00000 1.0f
 !quit

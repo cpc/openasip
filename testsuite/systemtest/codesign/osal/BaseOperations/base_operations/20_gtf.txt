@@ -2,4 +2,7 @@ gtf 234.23f 34.54f
 gtf -123.123f -1234.123f
 gtf 12.12f -12.12f
 gtf 32.34f 12.65f
+gtf 0xfff00000 0xfff00000
+gtf 1.0f 0xfff00000
+gtf 0xfff00000 1.0f
 !quit

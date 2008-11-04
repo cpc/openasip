@@ -1,4 +1,7 @@
 nef 1934.34f 1934.33f
 nef 123.123f -123.123f
 nef 234.234f 234.234f
+nef 0xfff00000 0xfff00000
+nef 1.0f 0xfff00000
+nef 0xfff00000 1.0f
 !quit
