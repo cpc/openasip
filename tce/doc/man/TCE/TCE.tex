@@ -5090,6 +5090,40 @@ evaluating hundreds of processor configurations.
 
 \textbf{Output}: ExpResDB (Section~\ref{sec:expresdb})
 
+\subsection{Explorer Application format}
+
+Applications are given as directories that contain the application specific
+files to the Explorer. Below is a description of all the possible files inside
+the application directory.
+
+\begin{tabular}{p{0.25\textwidth}p{0.60\textwidth}}
+\textbf{file name} &\textbf{Description} \\
+\hline
+program.bc & The application byte code.\\
+description.txt & The application description.\\
+simulate.ttasim & TTASIM simulation script piped to the TTASIM to produce
+ttasim.out file. If no such file is given the simulation is started with
+"until 0" command.\\
+correct\_simulation\_output & Correct output of the simulation used in
+verifying.\\
+max\_runtime & The applications maximum runtime.\\
+setup.sh & Simulation setup script, if something needs to be done before
+simulation.\\
+verify.sh & Simulation verify script for additional verifying of the
+simulation, returns 0 if OK. If missing only correct\_simulation\_output is used
+in verifying.\\
+% cleanup.sh & Cleanup script ran after simulation. \\
+\end{tabular}\\
+
+Below is an example of the file structure of \emph{HelloWorld} application.
+As The maximum runtime file is missing application is expected not to have a
+maximum runtime requirement.
+\begin{verbatim}
+HelloWorld/program.bc
+HelloWorld/correct_simulation_output
+HelloWorld/description.txt
+\end{verbatim}
+
 \subsection{Command Line Options}
 
 The exploration result database \emph{<output\_dsdb>} is required always. The
