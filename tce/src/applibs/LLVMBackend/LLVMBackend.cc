@@ -439,13 +439,12 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             FileSystem::removeFileOrDirectory(tmpDir);
             return creator();
         } catch(Exception& e) {
-            FileSystem::removeFileOrDirectory(tmpDir);
-            std::string msg = "Unable to load plugin file '" +
-                pluginFileName + "'.";
-
-            IOException ne(__FILE__, __LINE__, __func__, msg);
-            ne.setCause(e);
-            throw ne;
+            if (Application::verboseLevel() > 0) {
+                Application::logStream()
+                    << "Unable to load plugin file " << pluginFileName 
+                    << ": " << e.errorMessage() << ", "
+                    << "regenerating..." << std::endl;
+            }
         }
     }
 

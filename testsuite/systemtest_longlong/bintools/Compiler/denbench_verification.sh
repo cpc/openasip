@@ -10,7 +10,7 @@ tcecc=${tce}/src/bintools/Compiler/tcecc
 
 cd DENBench
 rm -fr DENBench/consumer/llvm-tce-systemtest 
-./run_systemtest.sh -c $tcecc -t $ttasim -a $machine
+./run_systemtest.sh -c $tcecc -t $ttasim -a $machine -O0
 
 else
 
