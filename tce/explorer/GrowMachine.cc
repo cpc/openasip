@@ -123,6 +123,8 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
             if (!explorer.evaluate(configuration, estimates, estimate)) {
                 debugLog(std::string("Evaluate failed in GrowMachine plugin."));
                 result.push_back(configurationID);
+                delete adf;
+                adf = NULL;
                 return result;
             }
         } catch (const Exception& e) {
@@ -130,6 +132,8 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
                     + e.errorMessage() + std::string(" ")
                     + e.errorMessageStack());
             result.push_back(configurationID);
+            delete adf;
+            adf = NULL;
             return result;
         }
 
@@ -140,6 +144,8 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
                 << " probably missing." << std::endl;
             verboseLog(msg.str());
             result.push_back(configurationID);
+            delete adf;
+            adf = NULL;
             return result;
         }
 
@@ -217,6 +223,8 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
                         + e.errorMessage() + std::string(" ")
                         + e.errorMessageStack());
                 result.push_back(configurationID);
+                delete adf;
+                adf = NULL;
                 return result;
             }
         } while (true);
@@ -231,6 +239,8 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
             verboseLogC("GrowMachine could not generate new configs.", 2)
             result.push_back(configurationID);
         }
+        delete adf;
+        adf = NULL;
         return result;
     }
 
