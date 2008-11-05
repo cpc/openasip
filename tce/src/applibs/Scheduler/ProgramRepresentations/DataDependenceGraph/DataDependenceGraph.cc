@@ -1470,36 +1470,55 @@ DataDependenceGraph::nodeOfMove(TTAProgram::Move& move)
 /**
  * Drops back edges from a sub-DDG.
  *
- * This is now O(n²), could be O(n) if used lower level graph routines.
- *
  * This works only with simple control structures. 
  */
 void DataDependenceGraph::dropBackEdges() {
-    int eCount = edgeCount();
-    for ( int i = 0; i < eCount; i++ ) {
-        DataDependenceEdge &e = edge(i);
-        MoveNode &hn = headNode(e);
-        MoveNode &tn = tailNode(e,descriptor(hn));
-        if (hn.nodeID() <= tn.nodeID()) {
-            dropEdge(e);
-            i--;
-            eCount--;
-        } else {
-            if (e.edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
-                e.dependenceType() == DataDependenceEdge::DEP_WAW) {
-                if (!hn.isDestinationOperation()) {
-                    continue;
-                } 
-                if (!tn.isDestinationOperation()) {
-                    continue;
-                } 
-                if (&hn.destinationOperation() == &tn.destinationOperation()) {
-                    dropEdge(e);
-                    i--;
-                    eCount--;
+
+    const int nc = nodeCount();
+
+    // first loop thru all nodes.
+    for (int n = 0; n < nc; n++) {
+        NodeDescriptor nd = boost::vertex(n, graph_);
+
+        Node* tn = graph_[nd];
+
+        // the thru all output edges of the node.
+        std::pair<OutEdgeIter, OutEdgeIter> edges = 
+            boost::out_edges(nd, graph_);
+
+        for (OutEdgeIter ei = edges.first; ei != edges.second;) {
+            DataDependenceEdge* e = graph_[(*ei)];
+
+            MoveNode& hn = headNode(*e,nd);
+            if (hn.nodeID() <= tn->nodeID() || 
+                (e->edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
+                 e->dependenceType() == DataDependenceEdge::DEP_WAW &&
+                 hn.isDestinationOperation() &&
+                 tn->isDestinationOperation() &&
+                 &hn.destinationOperation() == 
+                 &tn->destinationOperation())) {
+                
+                // remove from internal bookkeeping
+                boost::remove_edge(*ei, graph_);
+
+                // iterators must be resetted when deleted something.
+                edges = boost::out_edges(nd, graph_);
+                ei = edges.first;
+
+                // remove from edge descriptor cache
+                DataDependenceGraph::EdgeDescMap::iterator
+                    edIter = edgeDescriptors_.find(e);
+                if (edIter != edgeDescriptors_.end()) {
+                    edgeDescriptors_.erase(edIter);
                 }
+
+                for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+                    childGraphs_.at(i)->dropEdge(*e);
+                }    
+            } else {
+                ei++;
             }
-        }    
+        }
     }
 }
 
