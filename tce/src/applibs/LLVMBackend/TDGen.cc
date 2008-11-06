@@ -1267,7 +1267,7 @@ TDGen::dagNodeToString(
     const ConstantNode* cNode = dynamic_cast<const ConstantNode*>(&node);
     if (cNode != NULL) {
         assert(dag.inDegree(*cNode) == 0);
-        return "(MOVI32ri " + Conversion::toString(cNode->value()) + ")";
+        return Conversion::toString(cNode->value());
     }
 
     assert(false && "Unknown OperationDAG node type.");

@@ -376,11 +376,12 @@ void LowerMissingInstructions::addFunctionForFootprints(
 //        replaceFunctions[footprints[j]] = 
 //            M.getOrInsertFunction(op.emulationFunctionName(), fType);
 
-        std::cerr << "Operation: " << op.name()
+#if 0
+       std::cerr << "Operation: " << op.name()
                   << " is emulated with: " << op.emulationFunctionName() 
                   << " footprint: " << footprints[j]
                   << std::endl;
-
+#endif
         if (replaceFunctions[footprints[j]] == NULL) {
             std::cerr << " ERROR: suitable function wasn't found" << std::endl;
         }
@@ -537,9 +538,6 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
         
         // get footprint of instruction
         std::string footPrint = getFootprint(*I);
-
-       if (I->getOpcode() == Instruction::FCmp)
-	  std::cerr << "FCMP: " << footPrint << std::endl;
 
         std::map<std::string, Constant*>::iterator 
             replaceFunc =  replaceFunctions.find(footPrint);        
