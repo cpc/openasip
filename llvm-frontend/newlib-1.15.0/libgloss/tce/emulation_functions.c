@@ -711,8 +711,7 @@ enum {
 
 flag float32_is_nan( float32 a )
 {
-
-    return ( 0xFF000000 < (bits32) ( a<<1 ) );
+   return ( 0xFF000000 < (bits32) ( a<<1 ) );
 
 }
 
@@ -1808,7 +1807,8 @@ float32 float32_div( float32 a, float32 b )
     bExp = extractFloat32Exp( b );
     bSign = extractFloat32Sign( b );
     zSign = aSign ^ bSign;
-    if ( aExp == 0xFF ) {
+
+   if ( aExp == 0xFF ) {
         if ( aSig ) return propagateFloat32NaN( a, b );
         if ( bExp == 0xFF ) {
             if ( bSig ) return propagateFloat32NaN( a, b );
@@ -3627,7 +3627,7 @@ inline uint32 __emulate_EQF_2_1_f32_f32_i32(float a, float b) {
 }
 
 inline uint32 __emulate_EQUF_2_1_f32_f32_i32(float a, float b) {
-    return float32_is_nan(a) || float32_is_nan(b) ||
+    return float32_is_nan(*((float32*)&a)) || float32_is_nan(*((float32*)&b)) ||
      float32_eq(*((float32*)&a), *((float32*)&b));
 }
 
@@ -3637,7 +3637,7 @@ inline uint32 __emulate_NEF_2_1_f32_f32_i32(float a, float b) {
 }
 
 inline uint32 __emulate_NEUF_2_1_f32_f32_i32(float a, float b) {
-    return float32_is_nan(a) || float32_is_nan(b) ||
+    return float32_is_nan(*((float32*)&a)) || float32_is_nan(*((float32*)&b)) ||
      !float32_eq(*((float32*)&a), *((float32*)&b));
 }
 
@@ -3647,7 +3647,7 @@ inline uint32 __emulate_GEF_2_1_f32_f32_i32(float a, float b) {
 }
 
 inline uint32 __emulate_GEUF_2_1_f32_f32_i32(float a, float b) {
-    return float32_is_nan(a) || float32_is_nan(b) ||
+    return float32_is_nan(*((float32*)&a)) || float32_is_nan(*((float32*)&b)) ||
      !float32_lt(*((float32*)&a), *((float32*)&b));
 }
 
@@ -3656,7 +3656,7 @@ inline uint32 __emulate_GTF_2_1_f32_f32_i32(float a, float b) {
 }
 
 inline uint32 __emulate_GTUF_2_1_f32_f32_i32(float a, float b) {
-    return float32_is_nan(a) || float32_is_nan(b) ||
+    return float32_is_nan(*((float32*)&a)) || float32_is_nan(*((float32*)&b)) ||
      !float32_le(*((float32*)&a), *((float32*)&b));
 }
 
@@ -3665,7 +3665,7 @@ inline uint32 __emulate_LEF_2_1_f32_f32_i32(float a, float b) {
 }
 
 inline uint32 __emulate_LEUF_2_1_f32_f32_i32(float a, float b) {
-    return float32_is_nan(a) || float32_is_nan(b) ||
+    return float32_is_nan(*((float32*)&a)) || float32_is_nan(*((float32*)&b)) ||
      float32_le(*((float32*)&a), *((float32*)&b));
 }
 
@@ -3674,16 +3674,16 @@ inline uint32 __emulate_LTF_2_1_f32_f32_i32(float a, float b) {
 }
 
 inline uint32 __emulate_LTUF_2_1_f32_f32_i32(float a, float b) {
-    return float32_is_nan(a) || float32_is_nan(b) ||
+    return float32_is_nan(*((float32*)&a)) || float32_is_nan(*((float32*)&b)) ||
      float32_lt(*((float32*)&a), *((float32*)&b));
 }
 
 inline uint32 __emulate_ORDF_2_1_f32_f32_i32(float a, float b) {
-    return (!float32_is_nan(a) && !float32_is_nan(b));
+    return (!float32_is_nan(*((float32*)&a)) && !float32_is_nan(*((float32*)&b)));
 }
 
 inline uint32 __emulate_UORDF_2_1_f32_f32_i32(float a, float b) {
-    return (float32_is_nan(a) || float32_is_nan(b));
+    return (float32_is_nan(*((float32*)&a)) || float32_is_nan(*((float32*)&b)));
 }
 
 
