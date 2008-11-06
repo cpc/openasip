@@ -10,10 +10,12 @@ tcecc=${tce}/src/bintools/Compiler/tcecc
 optlevel=-O0
 # this was default behavior
 scheduler_flags=-O2
+verbose=""
+#verbose=-v
 
 cd DENBench
 rm -fr DENBench/consumer/llvm-tce-systemtest 
-./run_systemtest.sh -c $tcecc -t $ttasim -a $machine $optlevel -s "$scheduler_flags" -v
+./run_systemtest.sh -c $tcecc -t $ttasim -a $machine $optlevel -s "$scheduler_flags" $verbose
 
 else
 
