@@ -839,6 +839,8 @@
   <operation>
     <name>EQUF</name>
     <description>
+
+
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord">
@@ -852,11 +854,18 @@
       </can-swap>
     </in>
     <out id="3" type="UIntWord"/>
+    <trigger-semantics>EXEC_OPERATION(eqf, IO(1), IO(2), IO(3));
+
+
+
+</trigger-semantics>
   </operation>
 
   <operation>
     <name>NEUF</name>
     <description>
+
+
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord">
@@ -870,49 +879,82 @@
       </can-swap>
     </in>
     <out id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue temp1;
+EXEC_OPERATION(eqf, IO(1), IO(2), temp1);
+EXEC_OPERATION(xor, temp1, 1, IO(3));
+
+</trigger-semantics>
   </operation>
 
   <operation>
     <name>GTUF</name>
     <description>
+
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
     <in id="2" type="FloatWord"/>
     <out id="3" type="UIntWord"/>
+    <trigger-semantics>EXEC_OPERATION(gtf, IO(1), IO(2), IO(3));
+
+</trigger-semantics>
   </operation>
 
   <operation>
     <name>GEUF</name>
     <description>
+
+
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
     <in id="2" type="FloatWord"/>
     <out id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue temp1, temp2;
+EXEC_OPERATION(gtf, IO(1), IO(2), temp1);
+EXEC_OPERATION(eqf, IO(1), IO(2), temp2);
+EXEC_OPERATION(ior, temp1, temp2, IO(3));
+
+
+</trigger-semantics>
   </operation>
 
   <operation>
     <name>LTUF</name>
     <description>
+
+
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
     <in id="2" type="FloatWord"/>
     <out id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue temp1, temp2, temp3;
+EXEC_OPERATION(gtf, IO(1), IO(2), temp1);
+EXEC_OPERATION(eqf, IO(1), IO(2), temp2);
+EXEC_OPERATION(ior, temp1, temp2, temp3);
+EXEC_OPERATION(xor, temp3, 1, IO(3));
+
+
+
+</trigger-semantics>
   </operation>
 
   <operation>
     <name>LEUF</name>
     <description>
+
+
 </description>    <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
     <in id="2" type="FloatWord"/>
     <out id="3" type="UIntWord"/>
-    <trigger-semantics>
-      EXEC_OPERATION(lef, IO(1), IO(2), IO(3));
-    </trigger-semantics>
+    <trigger-semantics>SimValue temp1;
+EXEC_OPERATION(gtf, IO(1), IO(2), temp1);
+EXEC_OPERATION(xor,temp1,1, IO(3));
+
+</trigger-semantics>
     <trigger-semantics>
       SimValue t1,t2;
       EXEC_OPERATION(eqf, IO(1), IO(2), t1);
@@ -1276,6 +1318,7 @@ The simulation behavior definition assumes 100MHz clock frequency, which can be 
   <operation>
     <name>ORDF</name>
     <description>Returns 1 if floating point input operands are ordered. i.e. neither of the input operands is NaN.
+
 </description>
     <inputs>2</inputs>
     <outputs>1</outputs>
@@ -1290,17 +1333,35 @@ The simulation behavior definition assumes 100MHz clock frequency, which can be 
       </can-swap>
     </in>
     <out id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue temp1, temp2;
+EXEC_OPERATION(eqf, IO(1), IO(1), temp1);
+EXEC_OPERATION(eqf, IO(2), IO(2), temp2);
+EXEC_OPERATION(and, temp1, temp2, IO(3));
+
+
+
+</trigger-semantics>
   </operation>
 
   <operation>
     <name>UORDF</name>
     <description>Returns 1 if the two floating point operands are unordered. i.e. isNaN(io1) || isNan(io2).
+
 </description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="FloatWord"/>
     <in id="2" type="FloatWord"/>
     <out id="3" type="UIntWord"/>
+    <trigger-semantics>SimValue temp1, temp2, temp3;
+EXEC_OPERATION(eqf, IO(1), IO(1), temp1);
+EXEC_OPERATION(eqf, IO(2), IO(2), temp2);
+EXEC_OPERATION(and, temp1, temp2, temp3);
+EXEC_OPERATION(xor, temp3, 1, IO(3));
+
+
+
+</trigger-semantics>
   </operation>
 
 </osal>

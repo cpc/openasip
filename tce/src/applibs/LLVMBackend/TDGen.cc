@@ -1112,6 +1112,9 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
     if (opName == "gtuf") return "setugt %1%, %2%";
     if (opName == "geuf") return "setuge %1%, %2%";
 
+    if (opName == "ordf") return "seto %1%, %2%";
+    if (opName == "uordf") return "setuo %1%, %2%";
+
     if (opName == "addf") return "fadd %1%, %2%";
     if (opName == "subf") return "fsub %1%, %2%";
     if (opName == "mulf") return "fmul %1%, %2%";
