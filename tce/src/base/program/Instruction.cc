@@ -61,7 +61,8 @@ namespace TTAProgram {
 Instruction::Instruction(
     const TTAMachine::InstructionTemplate& instructionTemplate) :
     parent_(NULL), size_(1), hasRegisterAccesses_(false),
-    hasConditionalRegisterAccesses_(false), insTemplate_(&instructionTemplate) {
+    hasConditionalRegisterAccesses_(false), insTemplate_(&instructionTemplate),
+    positionInProcedure_((InstructionAddress)-1) {
 }
 
 /**
@@ -261,7 +262,25 @@ Instruction::address() const
             __FILE__, __LINE__, __func__,
             "Instruction is not registered in a procedure.");
     }
-    return parent().address(*this);
+    // speed up by caching the Instruction's position in the Procedure
+    if (positionInProcedure_ != (InstructionAddress)-1 &&
+        positionInProcedure_ < 
+        (InstructionAddress)parent().instructionCount() &&
+        &parent().instructionAtIndex(positionInProcedure_) == this) {
+        // the instruction has not moved in the Procedure, we
+        // can compute its address in constant time
+        // cannot cache the Address itself because the Procedure might
+        // have moved
+        Address address(
+            parent().startAddress().location() + positionInProcedure_,
+            parent().startAddress().space());
+        return address;
+    } else {
+        Address address = parent().address(*this);
+        positionInProcedure_ = 
+            address.location() - parent().startAddress().location();
+        return address;
+    }
 }
 
 /**

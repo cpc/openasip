@@ -2,4 +2,7 @@ lef 1934.34f 1934.33f
 lef 123.123f -123.123f
 lef 234.234f 234.234f
 lef -1.9f 234.234f
+lef 0xfff00000 0xfff00000
+lef 1.0f 0xfff00000
+lef 0xfff00000 1.0f
 !quit

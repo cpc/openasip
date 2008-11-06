@@ -31,9 +31,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.0}
-\ver{9}
+\ver{10}
 \firstday{25.10.2006}
-\lastday{10.10.2008}
+\lastday{04.11.2008}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -4372,8 +4372,9 @@ same simulation program again, due to drastically reduced compilation times.
 http://distcc.samba.org/
 
 Another useful tool to use together with the compiled simulator is a
-distributed compiler called distcc. Distcc works by distributing compilation to
-multiple computers and compiling the generated source files in parallel.
+distributed compiler called distcc. Distcc works by distributing the 
+compilation of simulation engine to multiple computers and compiling 
+the generated source files in parallel.
 
 After installing distcc, you can set ttasim to use the distcc compiler using the
 following environment variable:
@@ -4408,6 +4409,7 @@ evaluation, parameter substitution rules, operators, loop constructs,
 functions, and so on) are supported.
 
 \subsubsection{Initialization}
+
 When the Simulator is run in debug mode, it automatically reads and executes
 the initialization command file `.ttasim-init' if found in the user home
 directory. The `.ttasim-init' file allows user to define specific simulator
@@ -4563,16 +4565,15 @@ uses
 \begin{description}
 \item[x {[/\emph{nfu}][\emph{addr}]}] %
   This low-level command prints the data in memory starting at specified
-  addresses \emph{addr}.  The optional parameters \emph{n}, \emph{f} and
+  addresses \emph{addr}.  The optional parameters \emph{n} and
   \emph{u} specify how much memory to display and how to format it.
   \begin{description}
   \item[\emph{n}] %
     Repeat count: how many data words (counting by units \emph{u}) to
     display.  If omitted, it defaults to 1.
   \item[\emph{f}] %
-    Display format is one of the output (specified below), `s'
-    (null-terminated string) or `i' (machine instruction).  If omitted, it
-    defaults to `x' (hexadecimal).
+    Target filename. Setting this causes the memory contents to be printed 
+    as binary data to the given file.
   \item[\emph{u}] %
     Unit size: `b' (MAU, a byte in byte-addressed memories), `h' (double
     MAU), `w' (quadruple word, a `word' in byte-addressed 32-bit
@@ -4582,7 +4583,7 @@ uses
 
   If \emph{addr} is omitted, then the first address past the last address
   displayed by the previous \emph{x} command is implied.  If the value of
-  \emph{n}, \emph{f}, or \emph{u} is not specified, the value given in the
+  \emph{n} or \emph{u} is not specified, the value given in the
   most recent \emph{x} command is maintained.
 
   The values printed by command \emph{x} are not entered in the value
@@ -5089,6 +5090,40 @@ evaluating hundreds of processor configurations.
 \textbf{Input}: ADF (a starting point architecture), TPEF, HDB
 
 \textbf{Output}: ExpResDB (Section~\ref{sec:expresdb})
+
+\subsection{Explorer Application format}
+
+Applications are given as directories that contain the application specific
+files to the Explorer. Below is a description of all the possible files inside
+the application directory.
+
+\begin{tabular}{p{0.25\textwidth}p{0.60\textwidth}}
+\textbf{file name} &\textbf{Description} \\
+\hline
+program.bc & The application byte code.\\
+description.txt & The application description.\\
+simulate.ttasim & TTASIM simulation script piped to the TTASIM to produce
+ttasim.out file. If no such file is given the simulation is started with
+"until 0" command.\\
+correct\_simulation\_output & Correct output of the simulation used in
+verifying.\\
+max\_runtime & The applications maximum runtime.\\
+setup.sh & Simulation setup script, if something needs to be done before
+simulation.\\
+verify.sh & Simulation verify script for additional verifying of the
+simulation, returns 0 if OK. If missing only correct\_simulation\_output is used
+in verifying.\\
+% cleanup.sh & Cleanup script ran after simulation. \\
+\end{tabular}\\
+
+Below is an example of the file structure of \emph{HelloWorld} application.
+As The maximum runtime file is missing application is expected not to have a
+maximum runtime requirement.
+\begin{verbatim}
+HelloWorld/program.bc
+HelloWorld/correct_simulation_output
+HelloWorld/description.txt
+\end{verbatim}
 
 \subsection{Command Line Options}
 

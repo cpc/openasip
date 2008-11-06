@@ -545,12 +545,11 @@ CompiledSimCodeGenerator::findBasicBlocks() const {
  */
 void
 CompiledSimCodeGenerator::generateProcedureCode(const Procedure& procedure) {
-    const Instruction* instruction = &procedure.firstInstruction();
     currentProcedure_ = &procedure;
     isProcedureBegin_ = true;
-    while (instruction != &NullInstruction::instance()) {
-        generateInstruction(*instruction);
-        instruction = &(procedure.nextInstruction(*instruction));
+    for (int i = 0; i < procedure.instructionCount(); i++) {
+        Instruction& instruction = procedure.instructionAtIndex(i);
+        generateInstruction(instruction);
         instructionNumber_++;
         instructionCounter_--;
         isProcedureBegin_ = false;
@@ -743,20 +742,24 @@ CompiledSimCodeGenerator::addUsedRFSymbols() {
     assert (isSequentialSimulation_);
     
     // Loop all moves of the program and find the used RFs
-    const Instruction* instruction = &program_.firstInstruction();
-    while (instruction != &NullInstruction::instance()) {
-        for (int i = 0; i < instruction->moveCount(); ++i) {
-            const Move& move = instruction->move(i);
-            if (move.source().isGPR()) {
-                addDeclaredSymbol(symbolGen_.registerSymbol(
-                    move.source()), move.source().port().width());
-            }
-            if (move.destination().isGPR()) {
-                addDeclaredSymbol(symbolGen_.registerSymbol(
-                    move.destination()), move.destination().port().width());
+    for (int procIndx = 0; procIndx < program_.procedureCount(); procIndx++) {
+        Procedure& proc = program_.procedure(procIndx);
+        for (int insIndx = 0; insIndx < proc.instructionCount(); insIndx++) {
+            const Instruction& instruction = proc.instructionAtIndex(insIndx);
+            for (int i = 0; i < instruction.moveCount(); ++i) {
+                const Move& move = instruction.move(i);
+                if (move.source().isGPR()) {
+                    addDeclaredSymbol(symbolGen_.registerSymbol(
+                                          move.source()), 
+                                      move.source().port().width());
+                }
+                if (move.destination().isGPR()) {
+                    addDeclaredSymbol(symbolGen_.registerSymbol(
+                                          move.destination()), 
+                                      move.destination().port().width());
+                }
             }
         }
-        instruction = &(program_.nextInstruction(*instruction));
     }
 }
 

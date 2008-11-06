@@ -119,6 +119,10 @@ OperationDAGSelector::llvmRequiredOpset() {
     requiredOps.insert("GTUF");
     requiredOps.insert("GEUF");
 
+    // Ordered/unordered operations
+    requiredOps.insert("ORDF");
+    requiredOps.insert("UORDF");
+
     return requiredOps;
 }
 

@@ -2,4 +2,7 @@ geuf 1934.34f 1934.33f
 geuf 123.123f -123.123f
 geuf 234.234f 234.234f
 geuf -234.234f 234.234f
+geuf 0xfff00000 0xfff00000
+geuf 1.0f 0xfff00000
+geuf 0xfff00000 1.0f
 !quit

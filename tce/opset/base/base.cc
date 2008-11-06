@@ -38,6 +38,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <math.h> // isnan()
 
 #include "OSAL.hh"
 #include "OperationGlobals.hh"
@@ -633,15 +634,15 @@ END_TRIGGER;
 END_OPERATION(DIVF)
 
 //////////////////////////////////////////////////////////////////////////////
-// EQF - floating-point compare equal
+// EQF - floating-point compare equal (ordered)
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(EQF)
 
 TRIGGER
     if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (FLT(1) == FLT(2)) ? 1 : 0;
+        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) == FLT(2)) ? 1 : 0;
     } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (DBL(1) == DBL(2)) ? 1 : 0;
+        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) == DBL(2)) ? 1 : 0;
     } else {
         abortWithError("bit widths of operands erronous");
     }
@@ -649,16 +650,35 @@ END_TRIGGER;
 
 END_OPERATION(EQF)
 
+  
 //////////////////////////////////////////////////////////////////////////////
-// NEF - floating-point compare not equal
+// EQUF - floating-point compare equal (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(EQUF)
+
+TRIGGER
+    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
+        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) == FLT(2)) ? 1 : 0;
+    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
+        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) == DBL(2)) ? 1 : 0;
+    } else {
+        abortWithError("bit widths of operands erronous");
+    }
+END_TRIGGER;
+
+END_OPERATION(EQUF)
+
+  
+//////////////////////////////////////////////////////////////////////////////
+// NEF - floating-point compare not equal (ordered)
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(NEF)
 
 TRIGGER
     if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (FLT(1) != FLT(2)) ? 1 : 0;
+        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) != FLT(2)) ? 1 : 0;
     } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (DBL(1) != DBL(2)) ? 1 : 0;
+        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) != DBL(2)) ? 1 : 0;
     } else {
         abortWithError("bit widths of operands erronous");
     }
@@ -666,16 +686,34 @@ END_TRIGGER;
 
 END_OPERATION(NEF)
 
+  
 //////////////////////////////////////////////////////////////////////////////
-// GTF - floating-point compare greater
+// NEUF - floating-point compare not equal (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(NEUF)
+
+TRIGGER
+    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
+        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) != FLT(2)) ? 1 : 0;
+    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
+        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) != DBL(2)) ? 1 : 0;
+    } else {
+        abortWithError("bit widths of operands erronous");
+    }
+END_TRIGGER;
+
+END_OPERATION(NEUF)
+
+//////////////////////////////////////////////////////////////////////////////
+// GTF - floating-point compare greater (ordered)
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(GTF)
 
 TRIGGER
     if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (FLT(1) > FLT(2)) ? 1 : 0;
+        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) > FLT(2)) ? 1 : 0;
     } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (DBL(1) > DBL(2)) ? 1 : 0;
+        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) > DBL(2)) ? 1 : 0;
     } else {
         abortWithError("bit widths of operands erronous");
     }
@@ -684,15 +722,32 @@ END_TRIGGER;
 END_OPERATION(GTF)
 
 //////////////////////////////////////////////////////////////////////////////
+// GTUF - floating-point compare greater (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(GTUF)
+
+TRIGGER
+    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
+        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) > FLT(2)) ? 1 : 0;
+    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
+        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) > DBL(2)) ? 1 : 0;
+    } else {
+        abortWithError("bit widths of operands erronous");
+    }
+END_TRIGGER;
+
+END_OPERATION(GTUF)
+
+//////////////////////////////////////////////////////////////////////////////
 // GEF - floating-point compare greater or equal
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(GEF)
 
 TRIGGER
     if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (FLT(1) >= FLT(2)) ? 1 : 0;
+        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) >= FLT(2)) ? 1 : 0;
     } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (DBL(1) >= DBL(2)) ? 1 : 0;
+        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) >= DBL(2)) ? 1 : 0;
     } else {
         abortWithError("bit widths of operands erronous");
     }
@@ -701,21 +756,56 @@ END_TRIGGER;
 END_OPERATION(GEF)
 
 //////////////////////////////////////////////////////////////////////////////
-// LTF - floating-point compare lower
+// GEUF - floating-point compare greater or equal (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(GEUF)
+
+TRIGGER
+    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
+        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) >= FLT(2)) ? 1 : 0;
+    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
+        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) >= DBL(2)) ? 1 : 0;
+    } else {
+        abortWithError("bit widths of operands erronous");
+    }
+END_TRIGGER;
+
+END_OPERATION(GEUF)
+
+//////////////////////////////////////////////////////////////////////////////
+// LTF - floating-point compare lower (ordered)
 //////////////////////////////////////////////////////////////////////////////
 OPERATION(LTF)
 
 TRIGGER
     if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (FLT(1) < FLT(2)) ? 1 : 0;
+        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) < FLT(2)) ? 1 : 0;
     } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (DBL(1) < DBL(2)) ? 1 : 0;
+        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) < DBL(2)) ? 1 : 0;
     } else {
         abortWithError("bit widths of operands erronous");
     }
 END_TRIGGER;
 
 END_OPERATION(LTF)
+
+  
+//////////////////////////////////////////////////////////////////////////////
+// LTUF - floating-point compare lower (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LTUF)
+
+TRIGGER
+    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
+        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) < FLT(2)) ? 1 : 0;
+    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
+        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) < DBL(2)) ? 1 : 0;
+    } else {
+        abortWithError("bit widths of operands erronous");
+    }
+END_TRIGGER;
+
+END_OPERATION(LTUF)
 
 //////////////////////////////////////////////////////////////////////////////
 // LEF - floating-point compare lower or equal
@@ -724,15 +814,68 @@ OPERATION(LEF)
 
 TRIGGER
     if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
-        IO(3) = (FLT(1) <= FLT(2)) ? 1 : 0;
+        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2)) && FLT(1) <= FLT(2)) ? 1 : 0;
     } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
-        IO(3) = (DBL(1) <= DBL(2)) ? 1 : 0;
+        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2)) && DBL(1) <= DBL(2)) ? 1 : 0;
     } else {
         abortWithError("bit widths of operands erronous");
     }
 END_TRIGGER;
 
 END_OPERATION(LEF)
+
+//////////////////////////////////////////////////////////////////////////////
+// LEUF - floating-point compare lower or equal (unordered)
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LEUF)
+
+TRIGGER
+    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
+        IO(3) = (isnan(FLT(1)) || isnan(FLT(2)) || FLT(1) <= FLT(2)) ? 1 : 0;
+    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
+        IO(3) = (isnan(DBL(1)) || isnan(DBL(2)) || DBL(1) <= DBL(2)) ? 1 : 0;
+    } else {
+        abortWithError("bit widths of operands erronous");
+    }
+END_TRIGGER;
+
+END_OPERATION(LEUF)
+
+
+//////////////////////////////////////////////////////////////////////////////
+// ORDF - floating-point order check
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(ORDF)
+
+TRIGGER
+    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
+        IO(3) = (!isnan(FLT(1)) && !isnan(FLT(2))) ? 1 : 0;
+    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
+        IO(3) = (!isnan(DBL(1)) && !isnan(DBL(2))) ? 1 : 0;
+    } else {
+        abortWithError("bit widths of operands erronous");
+    }
+END_TRIGGER;
+
+END_OPERATION(ORDF)
+
+	 
+//////////////////////////////////////////////////////////////////////////////
+// UORDF - floating-point unorder check
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(UORDF)
+
+TRIGGER
+    if (BWIDTH(1) == FLT_WORD_SIZE && BWIDTH(2) == FLT_WORD_SIZE) {
+        IO(3) = (isnan(FLT(1)) || isnan(FLT(2))) ? 1 : 0;
+    } else if (BWIDTH(1) == DBL_WORD_SIZE && BWIDTH(2) == DBL_WORD_SIZE) {
+        IO(3) = (isnan(DBL(1)) || isnan(DBL(2))) ? 1 : 0;
+    } else {
+        abortWithError("bit widths of operands erronous");
+    }
+END_TRIGGER;
+
+END_OPERATION(UORDF)
 
 //////////////////////////////////////////////////////////////////////////////
 // CFI  - convert floating-point to integer

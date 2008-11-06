@@ -135,16 +135,21 @@ SimulatorTextGenerator::SimulatorTextGenerator() {
 
         "\t/u\n\n"
 
-
         "Unit size: `b' (MAU, a byte in byte-addressed memories), `h' "
         "(double MAU), `w' (quadruple word, a `word' in byte-adressed "
         "32-bit architectures). For example, 'x /a data /n 8 /u w 1024' "
         "displays 8 words starting from address 1024 in address space "
         "'data'.\n\n"
 
+        "\t/f [file name]\n\n"
+
+        "Target filename. Setting this causes the memory contents to be "
+        "printed as binary data to the given file.\n\n"
+
+
         "If addr is omitted, then the first address past the last address "
         "displayed by the previous x command is implied. If the value of n, "
-        "f, or u is not specified, the value given in the most recent x "
+        "or u is not specified, the value given in the most recent x "
         "command is maintained. ");
 
     addText(

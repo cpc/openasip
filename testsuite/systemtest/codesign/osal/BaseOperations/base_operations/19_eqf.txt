@@ -1,4 +1,7 @@
 eqf 1934.34f 1934.33f
 eqf 123.123f -123.123f
 eqf 234.234f 234.234f
+eqf 0xfff00000 0xfff00000
+eqf 1.0f 0xfff00000
+eqf 0xfff00000 1.0f
 !quit

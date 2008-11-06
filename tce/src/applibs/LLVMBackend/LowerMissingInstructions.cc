@@ -253,12 +253,12 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         footprints["GTF.i1"].push_back("i1.fcmp.ogt.f32.f32");
         footprints["GEF.i1"].push_back("i1.fcmp.oge.f32.f32");
         
-        footprints["EQF.i1"].push_back("i1.fcmp.ueq.f32.f32");
-        footprints["NEF.i1"].push_back("i1.fcmp.une.f32.f32");
-        footprints["LTF.i1"].push_back("i1.fcmp.ult.f32.f32");
-        footprints["LEF.i1"].push_back("i1.fcmp.ule.f32.f32");
-        footprints["GTF.i1"].push_back("i1.fcmp.ugt.f32.f32");
-        footprints["GEF.i1"].push_back("i1.fcmp.uge.f32.f32");
+        footprints["EQUF.i1"].push_back("i1.fcmp.ueq.f32.f32");
+        footprints["NEUF.i1"].push_back("i1.fcmp.une.f32.f32");
+        footprints["LTUF.i1"].push_back("i1.fcmp.ult.f32.f32");
+        footprints["LEUF.i1"].push_back("i1.fcmp.ule.f32.f32");
+        footprints["GTUF.i1"].push_back("i1.fcmp.ugt.f32.f32");
+        footprints["GEUF.i1"].push_back("i1.fcmp.uge.f32.f32");
 
         footprints["EQF.i32"].push_back("i32.fcmp.oeq.f32.f32");
         footprints["NEF.i32"].push_back("i32.fcmp.one.f32.f32");
@@ -267,12 +267,17 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         footprints["GTF.i32"].push_back("i32.fcmp.ogt.f32.f32");
         footprints["GEF.i32"].push_back("i32.fcmp.oge.f32.f32");
         
-        footprints["EQF.i32"].push_back("i32.fcmp.ueq.f32.f32");
-        footprints["NEF.i32"].push_back("i32.fcmp.une.f32.f32");
-        footprints["LTF.i32"].push_back("i32.fcmp.ult.f32.f32");
-        footprints["LEF.i32"].push_back("i32.fcmp.ule.f32.f32");
-        footprints["GTF.i32"].push_back("i32.fcmp.ugt.f32.f32");
-        footprints["GEF.i32"].push_back("i32.fcmp.uge.f32.f32");
+        footprints["EQUF.i32"].push_back("i32.fcmp.ueq.f32.f32");
+        footprints["NEUF.i32"].push_back("i32.fcmp.une.f32.f32");
+        footprints["LTUF.i32"].push_back("i32.fcmp.ult.f32.f32");
+        footprints["LEUF.i32"].push_back("i32.fcmp.ule.f32.f32");
+        footprints["GTUF.i32"].push_back("i32.fcmp.ugt.f32.f32");
+        footprints["GEUF.i32"].push_back("i32.fcmp.uge.f32.f32");
+
+        footprints["ORDF.i1"].push_back("i1.fcmp.ord.f32.f32");
+        footprints["ORDF.i32"].push_back("i32.fcmp.ord.f32.f32");
+        footprints["UORDF.i1"].push_back("i1.fcmp.uno.f32.f32");
+        footprints["UORDF.i32"].push_back("i32.fcmp.uno.f32.f32");
 
         init = false;                
     }
@@ -371,12 +376,10 @@ void LowerMissingInstructions::addFunctionForFootprints(
 //        replaceFunctions[footprints[j]] = 
 //            M.getOrInsertFunction(op.emulationFunctionName(), fType);
 
-#if 0
         std::cerr << "Operation: " << op.name()
                   << " is emulated with: " << op.emulationFunctionName() 
                   << " footprint: " << footprints[j]
                   << std::endl;
-#endif
 
         if (replaceFunctions[footprints[j]] == NULL) {
             std::cerr << " ERROR: suitable function wasn't found" << std::endl;
@@ -534,6 +537,9 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
         
         // get footprint of instruction
         std::string footPrint = getFootprint(*I);
+
+       if (I->getOpcode() == Instruction::FCmp)
+	  std::cerr << "FCMP: " << footPrint << std::endl;
 
         std::map<std::string, Constant*>::iterator 
             replaceFunc =  replaceFunctions.find(footPrint);        

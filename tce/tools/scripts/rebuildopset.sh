@@ -33,4 +33,4 @@ fi
 
 export BUILDOPSET="$(pwd)/src/codesign/osal/OSALBuilder/buildopset"
 
-find ../../ -iname "*.opp" -execdir bash -c '$BUILDOPSET $(echo {} | cut -d"." -f1,2)' ';'
+find . -iname "*.opp" -execdir bash -c '$BUILDOPSET $(echo {} | cut -d"." -f1,2)' ';'

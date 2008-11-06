@@ -1,6 +1,5 @@
 consumer/llvm-tce-systemtest/results_lite/mp2decodf32psnr1.psnr.csv:Arithmetic Mean,47.132921
 consumer/llvm-tce-systemtest/results_lite/mp2decodfixpsnr1.psnr.csv:Arithmetic Mean,46.592435
-consumer/llvm-tce-systemtest/results_lite/mp2enf32data1.psnr.csv:Arithmetic Mean,15.843858
 consumer/llvm-tce-systemtest/results_lite/mp2enfixdata1.psnr.csv:Arithmetic Mean,43.449839
 consumer/llvm-tce-systemtest/results_lite/mp4decodepsnr1.psnr.csv:Arithmetic Mean,32.834480
 consumer/llvm-tce-systemtest/results_lite/mp4encodedata1.psnr.csv:Arithmetic Mean,32.834480
@@ -10,7 +9,6 @@ consumer/llvm-tce-systemtest/results_lite/djpegv2data1.run.log:--  Non-Intrusive
 consumer/llvm-tce-systemtest/results_lite/huffde.run.log:--  Non-Intrusive CRC = 7776
 consumer/llvm-tce-systemtest/results_lite/mp2decodf32psnr1.run.log:--  Non-Intrusive CRC =    0
 consumer/llvm-tce-systemtest/results_lite/mp2decodfixpsnr1.run.log:--  Non-Intrusive CRC =    0
-consumer/llvm-tce-systemtest/results_lite/mp2enf32data1.run.log:--  Non-Intrusive CRC = 7ec9
 consumer/llvm-tce-systemtest/results_lite/mp2enfixdata1.run.log:--  Non-Intrusive CRC = 702b
 consumer/llvm-tce-systemtest/results_lite/mp3playerfixeddata1.run.log:--  Non-Intrusive CRC = 7dc6
 consumer/llvm-tce-systemtest/results_lite/mp4decodepsnr1.run.log:--  Non-Intrusive CRC =    0

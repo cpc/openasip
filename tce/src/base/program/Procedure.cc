@@ -117,7 +117,7 @@ Procedure::address(const Instruction& ins) const
     unsigned int i = 0;
 
     /* this loop is executed very ofter so 
-       uses pre-computer size and [] for performance reasons */
+       uses pre-computed size and [] for performance reasons */
     const unsigned int size = instructions_.size();
     while (i < size && instructions_[i] != &ins) {
         i++;

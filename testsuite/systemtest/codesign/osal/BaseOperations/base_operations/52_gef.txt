@@ -2,4 +2,7 @@ gef 1934.34f 1934.33f
 gef 123.123f -123.123f
 gef 234.234f 234.234f
 gef -124.123f -123.123f
+gef 0xfff00000 0xfff00000
+gef 1.0f 0xfff00000
+gef 0xfff00000 1.0f
 !quit
