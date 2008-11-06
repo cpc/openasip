@@ -1,0 +1,5 @@
+uordf 32.34f 12.65f
+uordf 0xfff00000 0xfff00000
+uordf 1.0f 0xfff00000
+uordf 0xfff00000 1.0f
+!quit
