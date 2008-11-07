@@ -176,16 +176,19 @@ main(int argc, char* argv[]) {
             SchedulerFrontend scheduler;
             TTAProgram::Program* prog;
             prog = scheduler.schedule(*seqProg, *mach, *plan, ipData);
+
+            delete seqProg;
+            seqProg = NULL;
+
             TTAProgram::Program::writeToTPEF(*prog, outputFileName);
 
             delete prog;
             prog = NULL;
         } else {
             TTAProgram::Program::writeToTPEF(*seqProg, outputFileName);
+            delete seqProg;
+            seqProg = NULL;
         }
-
-        delete seqProg;
-        seqProg = NULL;
 
         delete ipData;
         ipData = NULL;

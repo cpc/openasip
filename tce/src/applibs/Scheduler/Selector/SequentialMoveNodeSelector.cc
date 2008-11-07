@@ -66,7 +66,7 @@ SequentialMoveNodeSelector::SequentialMoveNodeSelector(BasicBlock& bb) {
  */
 SequentialMoveNodeSelector::~SequentialMoveNodeSelector() {
 /* TODO: delete  movenodes. and PO's  */
-    while(mngs_.size()) {
+    while(!mngs_.empty()) {
         std::list<MoveNodeGroup*>::iterator iter = mngs_.begin();
         MoveNodeGroup* mng = *iter;
         for (int i = 0; i < mng->nodeCount(); i++) {
@@ -76,7 +76,7 @@ SequentialMoveNodeSelector::~SequentialMoveNodeSelector() {
         mngs_.erase(iter);
     }
 
-    while(programOperations_.size()) {
+    while(!programOperations_.empty()) {
         std::list<ProgramOperation*>::iterator iter = 
             programOperations_.begin();
         delete *iter;

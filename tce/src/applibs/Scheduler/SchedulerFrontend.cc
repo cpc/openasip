@@ -243,19 +243,23 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
         throw IOException(__FILE__, __LINE__, __func__, msg);
     }
 
+    // not needed anymore.
+    delete tpefBin;
+
     TTAProgram::Program* scheduled = NULL;
     try {
         scheduled = schedule(*source, *target, *schedulingPlan);
     } catch (const Exception& e) {
         delete target;
-        delete tpefBin;
         delete source;
         delete schedulingPlan;
         throw;
     }
 
-    // write out scheduled program
+    delete source;
+    delete schedulingPlan;
 
+    // write out scheduled program
     BinaryStream tpefOut(outputFile);
 
     // create new binary and write it in the output file
@@ -265,9 +269,7 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
 
     delete newBin;
     delete target;
-    delete tpefBin;
-    delete source;
-    delete schedulingPlan;
+
     delete scheduled;
 }
 
