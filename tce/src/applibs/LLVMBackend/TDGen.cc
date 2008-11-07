@@ -1156,6 +1156,9 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
     if (opName == "gtuf") return "setugt %1%, %2%";
     if (opName == "geuf") return "setuge %1%, %2%";
 
+    if (opName == "ordf") return "seto %1%, %2%";
+    if (opName == "uordf") return "setuo %1%, %2%";
+
     if (opName == "addf") return "fadd %1%, %2%";
     if (opName == "subf") return "fsub %1%, %2%";
     if (opName == "mulf") return "fmul %1%, %2%";
@@ -1311,7 +1314,7 @@ TDGen::dagNodeToString(
     const ConstantNode* cNode = dynamic_cast<const ConstantNode*>(&node);
     if (cNode != NULL) {
         assert(dag.inDegree(*cNode) == 0);
-        return "(MOVI32ri " + Conversion::toString(cNode->value()) + ")";
+        return Conversion::toString(cNode->value());
     }
 
     assert(false && "Unknown OperationDAG node type.");
