@@ -85,6 +85,14 @@ namespace llvm {
        /// Returns ID number of the stack pointer register.
        virtual unsigned spDRegNum() = 0;
 
+       virtual bool hasUDIV() const = 0;
+       virtual bool hasSDIV() const = 0;
+       virtual bool hasUREM() const = 0;
+       virtual bool hasSREM() const = 0;
+       virtual bool hasMUL() const = 0;
+       virtual bool hasROTL() const = 0;
+       virtual bool hasROTR() const = 0;
+
    protected:
        /// Target machine instruction info for the llvm framework.
        TargetInstrInfo* instrInfo_;

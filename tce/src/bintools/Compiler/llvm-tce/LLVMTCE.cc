@@ -164,13 +164,21 @@ main(int argc, char* argv[]) {
         runPath.find("bintools/Compiler/llvm-tce/.libs") == string::npos &&
         runPath.find("lt-llvm-tce") == string::npos;
     
+    // All emulation code which cannot be linked in before last global dce is
+    // executed, for emulation of instructions which are generated during 
+    // lowering. Un necessary functions are optimized by MachineDCE pass.
+    std::string emulationCode;    
+    if (options.isStandardEmulationLibDefined()) {
+        emulationCode = options.standardEmulationLib();
+    }
+            
     // ---- Run compiler ----
     try {
         InterPassData* ipData = new InterPassData;
         
         LLVMBackend compiler(true, useInstalledVersion);
         TTAProgram::Program* seqProg =
-            compiler.compile(bytecodeFile, *mach, optLevel, debug, ipData);
+            compiler.compile(bytecodeFile, emulationCode, *mach, optLevel, debug, ipData);
 
         if (plan != NULL) {
             SchedulerFrontend scheduler;

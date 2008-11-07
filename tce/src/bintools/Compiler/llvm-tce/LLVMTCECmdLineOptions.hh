@@ -60,6 +60,9 @@ public:
     bool isSchedulerConfigFileDefined() const;
     std::string schedulerConfigFile() const;
 
+    bool isStandardEmulationLibDefined() const;
+    std::string standardEmulationLib() const;
+
     bool isOptLevelDefined() const;
     int optLevel() const;
 
@@ -79,6 +82,8 @@ private:
     static const std::string SWS_OUTPUT_FILE;
     static const std::string SWL_SCHEDULER_CONFIG;
     static const std::string SWS_SCHEDULER_CONFIG;
+    static const std::string SWL_EMULATION_LIB;
+    static const std::string SWS_EMULATION_LIB;
     static const std::string SWL_DEBUG_FLAG;
     static const std::string SWL_OPT_LEVEL;
     static const std::string SWS_OPT_LEVEL;
