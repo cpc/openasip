@@ -78,7 +78,8 @@ public:
     void addResourceManager(BasicBlock& bbn,ResourceManager& rm);
 protected:
         void fillDelaySlots(
-            BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru)
+            BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru,
+            bool fullyConnected)
     throw (Exception);
 private:
     typedef std::vector <std::list<MoveNode*> > MoveNodeListVector;

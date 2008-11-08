@@ -160,8 +160,8 @@ public:
     DataDependenceEdge* onlyIncomingGuard(const MoveNode& mn);
     
 private:
-    int rWarEdgesOut(MoveNode& mn);
-    int rWawRawEdgesOut(MoveNode& mn);
+    bool rWarEdgesOutUncond(MoveNode& mn);
+    bool rWawRawEdgesOutUncond(MoveNode& mn);
     int rAntiEdgesIn(MoveNode& mn);
 
     void setNodeBB(
