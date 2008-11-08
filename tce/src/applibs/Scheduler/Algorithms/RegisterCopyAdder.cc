@@ -270,16 +270,17 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     typedef SimpleInterPassDatum<
     std::vector<std::pair<TTAMachine::RegisterFile*, int> > > 
         TempRegData;
-    
-    if (!interPassData_.hasDatum("SCRATCH_REGISTERS") ||
+
+    std::string srDatumName = "SCRATCH_REGISTERS";
+    if (!interPassData_.hasDatum(srDatumName) ||
         (dynamic_cast<TempRegData&>(
-            interPassData_.datum("SCRATCH_REGISTERS"))).size() == 0)
+            interPassData_.datum(srDatumName))).size() == 0)
         throw IllegalProgram(
             __FILE__, __LINE__, __func__,
             "No scratch registers available for temporary moves.");
 
     const TempRegData& tempRegs = 
-        dynamic_cast<TempRegData&>(interPassData_.datum("SCRATCH_REGISTERS"));
+        dynamic_cast<TempRegData&>(interPassData_.datum(srDatumName));
 
     const int minRegisterWidth = 
         std::min(sourcePort.width(), destinationPort.width());

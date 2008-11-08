@@ -1093,7 +1093,10 @@ Program::writeToTPEF(
     const std::string& tpefFileName) 
     throw (Exception) {
 
-    TPEF::BinaryStream binaryStream(tpefFileName);
+    std::ofstream outputFile(
+        tpefFileName.c_str(),
+        std::ios_base::out|std::ios_base::trunc|std::ios_base::binary);
+    TPEF::BinaryStream binaryStream(outputFile);
 
     TTAProgram::ProgramWriter writer(program);
     TPEF::Binary* tpefBin = writer.createBinary();
