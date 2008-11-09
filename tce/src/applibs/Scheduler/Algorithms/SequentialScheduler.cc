@@ -35,11 +35,21 @@
  * @note rating: red
  */
 
+// using CFG causes some 9% slowdown.
+// even if this is not defined schedling is still done one BB at time.
+//#define USE_CFG
+
 #include <string>
 
-#include "ControlFlowGraph.hh"
-#include "SimpleResourceManager.hh"
+#include <boost/config.hpp>
+#include <boost/format.hpp>
 
+#ifdef USE_CFG
+#include "ControlFlowGraph.hh"
+#endif
+
+#include "AssocTools.hh"
+#include "SimpleResourceManager.hh"
 #include "Procedure.hh"
 #include "ProgramOperation.hh"
 #include "ControlUnit.hh"
@@ -59,6 +69,7 @@
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
 //#define CFG_SNAPSHOTS
+
 
 class SequentialSelector;
 
@@ -515,6 +526,7 @@ SequentialScheduler::handleProcedure(
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
 
+#ifdef USE_CFG
     ControlFlowGraph cfg(procedure);
 
 #ifdef CFG_SNAPSHOTS
@@ -526,6 +538,19 @@ SequentialScheduler::handleProcedure(
     // now all basic blocks are scheduled, let's put them back to the
     // original procedure
     copyCfgToProcedure(procedure, cfg);
+
+#else
+    std::vector<BasicBlock*> basicBlocks;
+    std::vector<int> bbAddresses;
+    createBasicBlocks(procedure, basicBlocks, bbAddresses);
+
+    for (unsigned int i = 0; i < basicBlocks.size();i++) {
+        handleBasicBlock(*basicBlocks[i], targetMachine);
+    }
+
+    copyBasicBlocksToProcedure(procedure, basicBlocks, bbAddresses);
+#endif
+
 }
 
 /**
@@ -588,4 +613,107 @@ SequentialScheduler::shortDescription() const {
 std::string
 SequentialScheduler::longDescription() const {
     return "Sequential Instruction scheduler";
+}
+
+/**
+ * Splits a procedure into basic blocks.
+ */
+void 
+SequentialScheduler::createBasicBlocks(
+    TTAProgram::Procedure& proc, 
+    std::vector<BasicBlock*> &basicBlocks,
+    std::vector<int>& bbAddresses) {
+    TTAProgram::InstructionReferenceManager& irm = 
+        proc.parent().instructionReferenceManager();
+    BasicBlock* currentBB = NULL;
+    int lastStartAddress = 0;
+    // loop thru all instructions in the given BB.
+    for (int i = 0; i < proc.instructionCount(); i++) {
+        TTAProgram::Instruction& ins = proc.instructionAtIndex(i);
+        TTAProgram::Instruction* insCopy = ins.copy();
+
+        // if has references, starts a new BB, from this instruction.
+        if (irm.hasReference(ins)) {
+            if (currentBB != NULL) {
+                // only add non-empty BBs.
+                if (currentBB->instructionCount() != 0) {
+                    basicBlocks.push_back(currentBB);
+                    bbAddresses.push_back(lastStartAddress);
+                } else {
+                    delete currentBB;
+                }
+            }
+            currentBB = new BasicBlock;
+            lastStartAddress = ins.address().location();
+            // update instruction references.
+//            irm.replace(ins, *insCopy);
+        }
+        assert(currentBB != NULL); // first ins of proc should have a ref.
+        currentBB->add(insCopy);        
+
+        // jump or call starts a new BB, after this instruction.
+        if (ins.hasControlFlowMove()) {
+            basicBlocks.push_back(currentBB);
+            bbAddresses.push_back(lastStartAddress);
+            currentBB = new BasicBlock;
+            lastStartAddress = ins.address().location() + 1;
+        }
+    }
+    
+    // at end, add last BB if non-empty
+    if (currentBB->instructionCount() != 0) {
+        basicBlocks.push_back(currentBB);
+        bbAddresses.push_back(lastStartAddress);
+    } else {
+        delete currentBB;
+    }
+}
+
+void 
+SequentialScheduler::copyBasicBlocksToProcedure(
+    TTAProgram::Procedure& proc, 
+    std::vector<BasicBlock*>& basicBlocks,
+    std::vector<int>& bbAddresses) {
+    TTAProgram::InstructionReferenceManager& irm = 
+        proc.parent().instructionReferenceManager();
+
+    for (unsigned int i = 0; i < basicBlocks.size(); i++) {
+        BasicBlock& bb = *basicBlocks.at(i);
+        TTAProgram::Instruction& bbIns = bb.instructionAtIndex(0);
+        TTAProgram::Instruction& oldProcIns = proc.instructionAt(
+            bbAddresses[i]);
+        if (irm.hasReference(oldProcIns)) {
+            irm.replace(oldProcIns, bbIns);
+        }
+    }
+
+    proc.clear();
+    for (unsigned int i = 0; i < basicBlocks.size(); i++) {
+        BasicBlock& bb = *basicBlocks.at(i);
+
+        // first one is a special case. can contain ref which need to 
+        // be update
+        TTAProgram::Instruction& ins = bb.firstInstruction();
+        TTAProgram::Instruction* insCopy = ins.copy();
+        proc.CodeSnippet::add(insCopy); // delay address fix
+
+        if (irm.hasReference(ins)) {
+            irm.replace(ins, *insCopy);
+        }
+        
+        for (int j = 1; j < bb.instructionCount(); j++) {
+            TTAProgram::Instruction& ins = bb.instructionAtIndex(j);
+            TTAProgram::Instruction* insCopy = ins.copy();
+            proc.CodeSnippet::add(insCopy); // delay address fix
+        }
+    }
+ 
+    // update inst addresses
+    if (proc.isInProgram()) {
+        if (!(&proc == &proc.parent().lastProcedure())) {
+            proc.parent().moveProcedure(
+                proc.parent().nextProcedure(proc), 
+                proc.instructionCount());
+        }
+    }
 }
