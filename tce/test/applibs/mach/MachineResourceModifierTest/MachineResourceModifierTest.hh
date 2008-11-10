@@ -47,6 +47,7 @@
 #include "Exception.hh"
 #include "Machine.hh"
 #include "Bus.hh"
+#include "Segment.hh"
 #include "ADFSerializer.hh"
 
 using namespace TTAMachine;
@@ -71,9 +72,16 @@ MachineResourcemodifierTest::testAddBusesByAmount() {
     Bus bus("bus0", 22, 2, Machine::ZERO);
     Bus bus1("bus1", 22, 2, Machine::ZERO);
     Bus bus2("toinen", 26, 1, Machine::SIGN);
+    Segment segment("bus", bus);
+    Segment segment1("bus1", bus1);
+    Segment segment2("bus2", bus2);
     mach.addBus(bus);
     mach.addBus(bus1);
     mach.addBus(bus2);
+    TS_ASSERT_EQUALS(bus.segmentCount(), 1);
+    TS_ASSERT_EQUALS(bus1.segmentCount(), 1);
+    TS_ASSERT_EQUALS(bus2.segmentCount(), 1);
+
     Machine::BusNavigator busNav = mach.busNavigator();
     TS_ASSERT_EQUALS(busNav.count(), 3);
     MachineResourceModifier modifier;
