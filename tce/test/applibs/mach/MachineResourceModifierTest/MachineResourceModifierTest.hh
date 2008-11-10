@@ -47,6 +47,7 @@
 #include "Exception.hh"
 #include "Machine.hh"
 #include "Bus.hh"
+#include "Segment.hh"
 #include "ADFSerializer.hh"
 
 using namespace TTAMachine;
@@ -71,15 +72,25 @@ MachineResourcemodifierTest::testAddBusesByAmount() {
     Bus bus("bus0", 22, 2, Machine::ZERO);
     Bus bus1("bus1", 22, 2, Machine::ZERO);
     Bus bus2("toinen", 26, 1, Machine::SIGN);
+    Segment segment("bus", bus);
+    Segment segment1("bus1", bus1);
+    Segment segment2("bus2", bus2);
     mach.addBus(bus);
     mach.addBus(bus1);
     mach.addBus(bus2);
+
     Machine::BusNavigator busNav = mach.busNavigator();
     TS_ASSERT_EQUALS(busNav.count(), 3);
     MachineResourceModifier modifier;
     modifier.addBusesByAmount(3, mach);
 
     TS_ASSERT_EQUALS(busNav.count(), 6);
+
+    // test that all added buses have one segment
+    for (int i = 0; i < 6; i++) {
+        TTAMachine::Bus& bus = *busNav.item(i);
+        TS_ASSERT_EQUALS(bus.segmentCount(), 1);
+    }
 
     RegisterFile* rf = 
         new TTAMachine::RegisterFile(
@@ -97,14 +108,22 @@ MachineResourcemodifierTest::testAddBusesByAmount() {
     Machine::RegisterFileNavigator rfNav = mach.registerFileNavigator();
     TS_ASSERT_EQUALS(rfNav.count(), 1);
 
-    modifier.increaseAllRFsThatDiffersByAmount(3, mach);
+    try {
+        modifier.increaseAllRFsThatDiffersByAmount(3, mach);
+    } catch (Exception& e) {
+        TS_FAIL(e.errorMessage());
+    }
 
     TS_ASSERT_EQUALS(rfNav.count(), 4);
     RegisterFile rf2("rf2_0", 2, 16, 1, 1, 0, RegisterFile::VOLATILE);
     mach.addRegisterFile(rf2);
     TS_ASSERT_EQUALS(rfNav.count(), 5);
 
-    modifier.increaseAllRFsThatDiffersByAmount(1, mach);
+    try {
+        modifier.increaseAllRFsThatDiffersByAmount(1, mach);
+    } catch (Exception& e) {
+        TS_FAIL(e.errorMessage());
+    }
     TS_ASSERT_EQUALS(rfNav.count(), 7);
     RegisterFile* rf3 = 
         new TTAMachine::RegisterFile(
@@ -120,7 +139,11 @@ MachineResourcemodifierTest::testAddBusesByAmount() {
 
     mach.addRegisterFile(*rf3);
     TS_ASSERT_EQUALS(rfNav.count(), 8);
-    modifier.increaseAllRFsThatDiffersByAmount(1, mach);
+    try {
+        modifier.increaseAllRFsThatDiffersByAmount(1, mach);
+    } catch (Exception& e) {
+        TS_FAIL(e.errorMessage());
+    }
     TS_ASSERT_EQUALS(rfNav.count(), 11);
 }
 

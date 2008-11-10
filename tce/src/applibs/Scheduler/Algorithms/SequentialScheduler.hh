@@ -38,6 +38,8 @@
 #ifndef TTA_SEQUENTIAL_SCHEDULER_HH
 #define TTA_SEQUENTIAL_SCHEDULER_HH
 
+#include <vector>
+
 #include "Program.hh"
 #include "MoveNode.hh"
 #include "MoveNodeGroup.hh"
@@ -117,6 +119,15 @@ private:
         RegisterCopyAdder::AddedRegisterCopies& regCopies)
         throw (Exception);
         
+    void createBasicBlocks(
+        TTAProgram::Procedure& cs, 
+        std::vector<BasicBlock*>& basicBlocks,
+        std::vector<int>& bbAddresses);
+
+    void copyBasicBlocksToProcedure(
+        TTAProgram::Procedure& cs, 
+        std::vector<BasicBlock*>& basicBlocks,
+        std::vector<int>& bbAddresses);
 
     void unschedule(MoveNode& moveNode);
 

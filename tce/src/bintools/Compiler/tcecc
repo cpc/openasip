@@ -585,7 +585,7 @@ if options.adf_file != "":
     # optimize and lower flaotingpoint
     emulationLinkedFileName = linkEmulationFuncs(optimizedFileName, namePrefix)
 
-    if options.sequential_schedule:
+    if options.sequential_schedule or options.optimization_level == 0:
         scheduler_config_file_name = "sequential_tcecc_scheduler.conf"
     else:
         scheduler_config_file_name = "default_scheduler.conf"        

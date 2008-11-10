@@ -1565,7 +1565,8 @@ DataDependenceGraph::fixInterBBAntiEdges(
                     if (mn1.isMove()) {
                         if (mn1.move().source().isGPR() &&  // WAR?
                             mn1.move().source().equals(
-                                mn2.move().destination())) {
+                                mn2.move().destination()) &&
+                            !sg1->rWarEdgesOutUncond(mn1)) {
                             DataDependenceEdge* edge = 
                                 new DataDependenceEdge(
                                     DataDependenceEdge::EDGE_REGISTER,
@@ -1574,7 +1575,8 @@ DataDependenceGraph::fixInterBBAntiEdges(
                         }
                         if (mn1.move().destination().isGPR() && // WAW?
                             mn1.move().destination().equals(
-                                mn2.move().destination())) {
+                                mn2.move().destination()) &&
+                            !sg1->rWawRawEdgesOutUncond(mn1)) {
                             DataDependenceEdge* edge = 
                                 new DataDependenceEdge(
                                     DataDependenceEdge::EDGE_REGISTER,
@@ -1593,8 +1595,8 @@ DataDependenceGraph::fixInterBBAntiEdges(
                                     TTAProgram::TerminalRegister&>(
                                         mn2.move().destination());
                                 if (rg->registerFile() == &tr.registerFile() &&
-                                    rg->registerIndex() == tr.index()) {
-                                    
+                                    rg->registerIndex() == tr.index() && 
+                                    !sg1->rWarEdgesOutUncond(mn1)) {
                                     DataDependenceEdge* edge = 
                                         new DataDependenceEdge(
                                             DataDependenceEdge::EDGE_REGISTER,
@@ -1656,17 +1658,19 @@ DataDependenceGraph::copyDependencies(
  * @return number of register WAR antidependencies originating
  * from given node
  */
-int DataDependenceGraph::rWarEdgesOut(MoveNode& mn) {
+bool DataDependenceGraph::rWarEdgesOutUncond(MoveNode& mn) {
     EdgeSet oEdges = outEdges(mn);
-    int count = 0;
     for (EdgeSet::iterator iter = 
              oEdges.begin(); iter != oEdges.end(); iter++) {
         if ((*iter)->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
             (*iter)->dependenceType() == DataDependenceEdge::DEP_WAR) {
-            count++;
+            MoveNode& head = headNode(**iter);
+            if (head.move().isUnconditional()) {
+                return true;
+            }
         }
     }
-    return count;
+    return false;
 }
 
 /**
@@ -1678,18 +1682,21 @@ int DataDependenceGraph::rWarEdgesOut(MoveNode& mn) {
  * from given node
  */
 
-int DataDependenceGraph::rWawRawEdgesOut(MoveNode& mn) {
+bool DataDependenceGraph::rWawRawEdgesOutUncond(MoveNode& mn) {
     EdgeSet oEdges = outEdges(mn);
-    int count = 0;
     for (EdgeSet::iterator iter = 
              oEdges.begin(); iter != oEdges.end(); iter++) {
         if ((*iter)->edgeReason() == DataDependenceEdge::EDGE_REGISTER &&
             (((*iter)->dependenceType() == DataDependenceEdge::DEP_RAW) ||
             ((*iter)->dependenceType() == DataDependenceEdge::DEP_WAW))) {
-            count++;
+            MoveNode& head = headNode(**iter);
+            if (head.move().isUnconditional()) {
+                return true;
+            }
         }
     }
-    return count;
+    return false;
+
 }
 
 /**
