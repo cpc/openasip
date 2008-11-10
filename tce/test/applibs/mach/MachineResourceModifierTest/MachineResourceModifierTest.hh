@@ -97,14 +97,22 @@ MachineResourcemodifierTest::testAddBusesByAmount() {
     Machine::RegisterFileNavigator rfNav = mach.registerFileNavigator();
     TS_ASSERT_EQUALS(rfNav.count(), 1);
 
-    modifier.increaseAllRFsThatDiffersByAmount(3, mach);
+    try {
+        modifier.increaseAllRFsThatDiffersByAmount(3, mach);
+    } catch (Exception& e) {
+        TS_FAIL(e.errorMessage());
+    }
 
     TS_ASSERT_EQUALS(rfNav.count(), 4);
     RegisterFile rf2("rf2_0", 2, 16, 1, 1, 0, RegisterFile::VOLATILE);
     mach.addRegisterFile(rf2);
     TS_ASSERT_EQUALS(rfNav.count(), 5);
 
-    modifier.increaseAllRFsThatDiffersByAmount(1, mach);
+    try {
+        modifier.increaseAllRFsThatDiffersByAmount(1, mach);
+    } catch (Exception& e) {
+        TS_FAIL(e.errorMessage());
+    }
     TS_ASSERT_EQUALS(rfNav.count(), 7);
     RegisterFile* rf3 = 
         new TTAMachine::RegisterFile(
@@ -120,7 +128,11 @@ MachineResourcemodifierTest::testAddBusesByAmount() {
 
     mach.addRegisterFile(*rf3);
     TS_ASSERT_EQUALS(rfNav.count(), 8);
-    modifier.increaseAllRFsThatDiffersByAmount(1, mach);
+    try {
+        modifier.increaseAllRFsThatDiffersByAmount(1, mach);
+    } catch (Exception& e) {
+        TS_FAIL(e.errorMessage());
+    }
     TS_ASSERT_EQUALS(rfNav.count(), 11);
 }
 
