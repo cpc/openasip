@@ -294,7 +294,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     verbose = options.verbose
 
     # if software floatingpoint should be lowered, link the emulation functions in
-    emulationLib = llvmGccPrefix + "/tce-llvm/lib/emulation_functions.o "
+    emulationLib = llvmGccPrefix + "/tce-llvm/lib/float_emulation.o "
     linkedName = fileNamePrefix + "_libemul.bc"
         
     command = ("llvm-link -f " + inFile + " " + emulationLib + " -o " + linkedName)
@@ -615,9 +615,12 @@ if options.adf_file != "":
     if options.no_schedule is False:
         command += " -c " + options.scheduler_config
 
+    stdEmulationLib = llvmGccPrefix + "/tce-llvm/lib/standard_emulation.o "
+
     command += (" -a " + options.adf_file +
-                " -o " + outFile +\
-                " -O" + str(options.optimization_level) +\
+                " -o " + outFile +
+                " -O" + str(options.optimization_level) +
+                " -e" + stdEmulationLib +
                 " " + emulationLinkedFileName)
     
     if options.max_thread_latency is not None:

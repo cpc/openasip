@@ -3,4 +3,7 @@ ltuf -123.123f -123.123f
 ltuf -123.124f -123.123f
 ltuf 12.12f -12.12f
 ltuf 32.34f 12.65f
+ltuf 0xfff00000 0xfff00000
+ltuf 1.0f 0xfff00000
+ltuf 0xfff00000 1.0f
 !quit

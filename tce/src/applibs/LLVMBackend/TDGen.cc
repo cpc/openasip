@@ -770,6 +770,7 @@ TDGen::writeBackendCode(std::ostream& o) {
     // operation names
     std::map<std::string, std::string>::const_iterator iter =
         opNames_.begin();
+
     for (; iter != opNames_.end(); iter++) {
         o << "    opNames_[TCE::" << (*iter).first
           << "] = \"" << (*iter).second
@@ -822,6 +823,49 @@ TDGen::writeBackendCode(std::ostream& o) {
     o << "    dataASName_ = \"" << asName << "\";" << std::endl;
 
     o << "}" << std::endl;
+
+
+    bool hasSDIV = false;
+    bool hasUDIV = false;
+    bool hasSREM = false;
+    bool hasUREM = false;
+    bool hasMUL = false;
+    bool hasROTL = false;
+    bool hasROTR = false;
+
+    const TTAMachine::Machine::FunctionUnitNavigator fuNav =
+        mach_.functionUnitNavigator();
+
+    for (int i = 0; i < fuNav.count(); i++) {
+        const TTAMachine::FunctionUnit* fu = fuNav.item(i);
+        for (int o = 0; o < fu->operationCount(); o++) {
+            const std::string opName =
+                StringTools::stringToLower(fu->operation(o)->name());
+
+            if (opName == "div") hasSDIV = true;
+            if (opName == "divu") hasUDIV = true;
+            if (opName == "mod") hasSREM = true;
+            if (opName == "modu") hasUREM = true;
+            if (opName == "mul") hasMUL = true;
+            if (opName == "rotl") hasROTL = true;
+            if (opName == "rotr") hasROTR = true;
+        }
+    }
+
+    o << "bool GeneratedTCEPlugin::hasSDIV() const { return "
+      << hasSDIV << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasUDIV() const { return "
+      << hasUDIV << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSREM() const { return "
+      << hasSREM << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasUREM() const { return "
+      << hasUREM << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasMUL() const { return "
+      << hasMUL << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasROTL() const { return "
+      << hasROTL << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasROTR() const { return "
+      << hasROTR << "; }" << std::endl;
 }
 
 /**
@@ -1112,6 +1156,9 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
     if (opName == "gtuf") return "setugt %1%, %2%";
     if (opName == "geuf") return "setuge %1%, %2%";
 
+    if (opName == "ordf") return "seto %1%, %2%";
+    if (opName == "uordf") return "setuo %1%, %2%";
+
     if (opName == "addf") return "fadd %1%, %2%";
     if (opName == "subf") return "fsub %1%, %2%";
     if (opName == "mulf") return "fmul %1%, %2%";
@@ -1267,7 +1314,7 @@ TDGen::dagNodeToString(
     const ConstantNode* cNode = dynamic_cast<const ConstantNode*>(&node);
     if (cNode != NULL) {
         assert(dag.inDegree(*cNode) == 0);
-        return "(MOVI32ri " + Conversion::toString(cNode->value()) + ")";
+        return Conversion::toString(cNode->value());
     }
 
     assert(false && "Unknown OperationDAG node type.");

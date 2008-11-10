@@ -69,6 +69,7 @@ public:
 
     TTAProgram::Program* compile(
         const std::string& bytecodeFile,
+        const std::string& emulationBytecodeFile,
         TTAMachine::Machine& target,
         int optLevel,
         bool debug = false,
@@ -77,6 +78,7 @@ public:
 
     TTAProgram::Program* compile(
         llvm::Module& module,
+        llvm::Module* emulationModule,
         llvm::TCETargetMachinePlugin& plugin,
         TTAMachine::Machine& target,
         int optLevel,
@@ -93,6 +95,7 @@ public:
 
     TTAProgram::Program* schedule(
         const std::string& bytecodeFile,
+        const std::string& emulationBytecodeFile,
         TTAMachine::Machine& target,
         int optLevel = 2,
         bool debug = false,

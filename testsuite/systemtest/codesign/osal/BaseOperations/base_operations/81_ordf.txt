@@ -1,0 +1,5 @@
+ordf 32.34f 12.65f
+ordf 0xfff00000 0xfff00000
+ordf 1.0f 0xfff00000
+ordf 0xfff00000 1.0f
+!quit

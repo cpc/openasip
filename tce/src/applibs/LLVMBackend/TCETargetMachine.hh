@@ -37,6 +37,7 @@
 #ifndef TCE_TARGET_MACHINE_H
 #define TCE_TARGET_MACHINE_H
 
+#include <set>
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetFrameInfo.h"
@@ -117,6 +118,8 @@ namespace llvm {
             return plugin_.spDRegNum();
         }
 
+        const std::set<unsigned>* missingOperations();
+
     protected:
         const TargetAsmInfo* createTargetAsmInfo() const;
 
@@ -126,6 +129,8 @@ namespace llvm {
         TargetFrameInfo frameInfo_;
         TCETargetMachinePlugin& plugin_;
         PluginTools* pluginTool_;
+        /// llvm::ISD opcode list of operations that have to be expanded.
+        std::set<unsigned> missingOps_;
     };
 }
 

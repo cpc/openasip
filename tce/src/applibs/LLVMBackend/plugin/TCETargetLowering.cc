@@ -163,7 +163,20 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
 
     setOperationAction(ISD::BSWAP, MVT::i32, Expand);
 
+    setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
+    setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
+
     setStackPointerRegisterToSaveRestore(TCE::SP);
+
+    // Set missing operations that can be emulated with emulation function
+    // to be expanded.
+    const std::set<unsigned>* missingOps = tm.missingOperations();
+    std::set<unsigned>::const_iterator iter = missingOps->begin();
+    while (iter != missingOps->end()) {
+        unsigned nodetype = *iter;
+        setOperationAction(nodetype, MVT::i32, Expand);
+        iter++;
+    }
 
     computeRegisterProperties();
 }

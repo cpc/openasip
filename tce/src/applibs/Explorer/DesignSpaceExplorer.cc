@@ -169,6 +169,10 @@ DesignSpaceExplorer::evaluate(
             if (applicationFile.length() < 1) {
                 std::cerr << "No program found from application dir '" 
                           << applicationPath << std::endl;
+                delete adf;
+                adf = NULL;
+                delete idf;
+                idf = NULL;
                 return false;
             }
             
@@ -177,6 +181,10 @@ DesignSpaceExplorer::evaluate(
 
             if (scheduledProgram == NULL) {
                 verboseLogC("Evaluate failed: Scheduling program failed.", 1)
+                delete adf;
+                adf = NULL;
+                delete idf;
+                idf = NULL;
                 return false;
             }
 
@@ -213,6 +221,10 @@ DesignSpaceExplorer::evaluate(
                     std::cerr << "********** expected result:" << std::endl;
                     std::cerr << correctResult << std::endl;
                     std::cerr << "**********" << std::endl;
+                    delete idf;
+                    idf = NULL;
+                    delete adf;
+                    adf = NULL;
                     return false;
                 }
                 //std::cerr << "DEBUG: simulation OK" << std::endl;
@@ -242,9 +254,17 @@ DesignSpaceExplorer::evaluate(
             traceDB = NULL;
         }
     } catch (const Exception& e) {
+        delete adf;
+        adf = NULL;
+        delete idf;
+        idf = NULL;
         debugLog(e.errorMessageStack());
         return false;
     }
+    delete idf;
+    idf = NULL;
+    delete adf;
+    adf = NULL;
     return true;
 }
 

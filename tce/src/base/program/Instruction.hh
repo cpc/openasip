@@ -133,6 +133,8 @@ private:
     bool hasConditionalRegisterAccesses_;
     /// Instruction template that is used for this instruction.
     const TTAMachine::InstructionTemplate* insTemplate_;
+    /// cache the instruction's index in the its procedure for faster address()
+    mutable InstructionAddress positionInProcedure_;
 };
 
 }

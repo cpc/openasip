@@ -5,6 +5,12 @@ New features
 ------------
 - Explorer can now print available plugins with "-g" option switch.
 - Explorer can now print plugin parameters with "-p <plugin name>" switch.
+- Simulator's x (dump memory) command can now dump memory to a binary file
+  with switch /f 
+
+Code optimizations
+------------------
+- Optimized the time spend in loading of program to the simulator.
 
 Bug fixes
 ---------
@@ -15,6 +21,7 @@ Bug fixes
 - Fixed a bug which caused random scheduler failures.
 - Dropped support for Boost 1.32 as it has some bad bugs, at least 1.33 required
 - ProDe: crash when "fully connecting" unconnected RF ports fixed. 
+
 
 1.0-beta1     2008-10-02
 ========================

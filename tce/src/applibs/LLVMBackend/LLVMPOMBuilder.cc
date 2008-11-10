@@ -618,6 +618,9 @@ LLVMPOMBuilder::createExprDataDefinition(
 bool
 LLVMPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
 
+    // omit empty functions..
+    if (mf.begin() == mf.end()) return true;
+
     emitConstantPool(*mf.getConstantPool());
 
     std::string fnName = mang_->getValueName(mf.getFunction());
@@ -665,7 +668,6 @@ LLVMPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
 
                 TTAProgram::InstructionReference& ref = prog_->
                     instructionReferenceManager().createReference(*instr);
-
                 prog_->globalScope().addCodeLabel(
                     new TTAProgram::CodeLabel(ref, fnName));
 
@@ -1075,11 +1077,34 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
                   << std::endl;
         assert(false);
     } else if (mo.isSymbol()) {
-        std::cerr << "*** ERROR: External symbol reference '"
-                  << mo.getSymbolName() << "'. ***" << std::endl
-                  << "Module must be fully linked w/o external symbol references!" << std::endl;
+        //} else if (mo.isExternalSymbol()) {        
+        
+        /**
+         * NOTE: Hack to get code compiling even if llvm falsely makes libcalls to 
+         *       external functions even if they are found from currently lowered program.
+         *       
+         *       http://llvm.org/bugs/show_bug.cgi?id=2673 
+         *
+         *       Should be removed after fix is applied to llvm.. (maybe never...)
+         */ 
 
-        assert(false && "External symbol reference in POM Builder pass.");
+        std::string name = mang_->makeNameProper(mo.getSymbolName(), "_");
+
+        std::cerr << "TCE proper name: " << name << std::endl;
+
+        TTAProgram::InstructionReference* dummy =
+            new TTAProgram::InstructionReference(
+                TTAProgram::NullInstruction::instance());
+        
+        TTAProgram::TerminalInstructionAddress* ref =
+            new TTAProgram::TerminalInstructionAddress(
+                *dummy);
+        
+        codeLabelReferences_[ref] = name;
+        return ref;
+        /**
+         * END OF HACK 
+         */
     } else {
         std::cerr << "Unknown src operand type!" << std::endl;
         assert(false);
