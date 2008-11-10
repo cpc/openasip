@@ -78,9 +78,6 @@ MachineResourcemodifierTest::testAddBusesByAmount() {
     mach.addBus(bus);
     mach.addBus(bus1);
     mach.addBus(bus2);
-    TS_ASSERT_EQUALS(bus.segmentCount(), 1);
-    TS_ASSERT_EQUALS(bus1.segmentCount(), 1);
-    TS_ASSERT_EQUALS(bus2.segmentCount(), 1);
 
     Machine::BusNavigator busNav = mach.busNavigator();
     TS_ASSERT_EQUALS(busNav.count(), 3);
@@ -88,6 +85,12 @@ MachineResourcemodifierTest::testAddBusesByAmount() {
     modifier.addBusesByAmount(3, mach);
 
     TS_ASSERT_EQUALS(busNav.count(), 6);
+
+    // test that all added buses have one segment
+    for (int i = 0; i < 6; i++) {
+        TTAMachine::Bus& bus = *busNav.item(i);
+        TS_ASSERT_EQUALS(bus.segmentCount(), 1);
+    }
 
     RegisterFile* rf = 
         new TTAMachine::RegisterFile(
