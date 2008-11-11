@@ -19,11 +19,12 @@ if [ "${#NEW_CONFIGS}" -lt 1 ]; then
     exit 1
 fi
 
+OPT="-O2"
 NEW_CONFIGS=(${NEW_CONFIGS[@]} 1)
 declare -a CYCLECOUNTS
 for conf in ${NEW_CONFIGS[@]}; do
     "${EXPLORE_BIN}" -w ${conf} growmachine.dsdb 1>/dev/null
-    "${COMPILER_BIN}" -o ${conf}.tpef -a ${conf}.adf data/program.bc 1>/dev/null
+    "${COMPILER_BIN}" ${OPT} -o ${conf}.tpef -a ${conf}.adf data/program.bc 1>/dev/null
     
     CYCLECOUNT=$(
     ${TTASIM_BIN} <<EOF
