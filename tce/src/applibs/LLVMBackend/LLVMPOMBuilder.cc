@@ -104,7 +104,7 @@ unsigned LLVMPOMBuilder::POINTER_SIZE = 4; // Pointer size in maus.
  */
 LLVMPOMBuilder::LLVMPOMBuilder(
     TCETargetMachine& tm, TTAMachine::Machine* mach):
-    MachineFunctionPass(0),
+    MachineFunctionPass(static_cast<void*>(0)),
     mod_(NULL), tm_(tm), mach_(mach), umach_(NULL), prog_(NULL),
     mang_(NULL), dmem_(NULL), end_(0), programReady_(false) {
 }
