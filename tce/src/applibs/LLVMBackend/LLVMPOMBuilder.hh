@@ -105,7 +105,7 @@ namespace llvm {
 
         void emitDataDef(const DataDef& def);
 
-        void createDataDefinition(
+        unsigned createDataDefinition(
             unsigned& addr,  const Constant* cv);
 
         void createIntDataDefinition(

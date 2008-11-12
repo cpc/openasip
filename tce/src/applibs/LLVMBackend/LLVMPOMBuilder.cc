@@ -330,7 +330,10 @@ LLVMPOMBuilder::emitDataDef(const DataDef& def) {
         assert(var != NULL && "Variable not found!");
 
         unsigned addr = def.address;
-        createDataDefinition(addr, var->getInitializer());
+        unsigned paddedAddr =
+            createDataDefinition(addr, var->getInitializer());
+
+        assert(paddedAddr == def.address);
     }
 }
 
@@ -339,8 +342,9 @@ LLVMPOMBuilder::emitDataDef(const DataDef& def) {
  * 
  * @param addr Address for the POM data.
  * @param cv Initializer for the data in llvm.
+ * @return POM data address after padding data to correct alignment.
  */
-void
+unsigned
 LLVMPOMBuilder::createDataDefinition(
     unsigned& addr, const Constant* cv) {
 
@@ -362,6 +366,10 @@ LLVMPOMBuilder::createDataDefinition(
         
     }
 
+    // paddedAddr is the actual address data was put to
+    // after alignment.
+    unsigned paddedAddr = addr;
+
     // Initialize with zeros if this is an uninitialized part of a partially
     // initialized data structure.
     if (cv->isNullValue()) {
@@ -376,7 +384,7 @@ LLVMPOMBuilder::createDataDefinition(
             new TTAProgram::DataDefinition(address, maus));
 
         addr += sz;
-        return;
+        return paddedAddr;
     }
 
 
@@ -385,7 +393,9 @@ LLVMPOMBuilder::createDataDefinition(
         (dyn_cast<ConstantVector>(cv) != NULL)) {
 
         for (unsigned i = 0, e = cv->getNumOperands(); i != e; ++i) {
-            createDataDefinition(addr, cv->getOperand(i));
+            unsigned dataAddr = createDataDefinition(addr, cv->getOperand(i));
+            // First element of structured data should be in the paddedAddr.
+            assert (i > 0 || dataAddr == paddedAddr);
         }
     } else if (const ConstantInt* ci = dyn_cast<ConstantInt>(cv)) {
         createIntDataDefinition(addr, ci);
@@ -398,6 +408,8 @@ LLVMPOMBuilder::createDataDefinition(
     } else {
         assert(false && "Unknown cv type.");
     }
+
+    return paddedAddr;
 }
 
 
@@ -588,7 +600,9 @@ LLVMPOMBuilder::createExprDataDefinition(
             createGlobalValueDataDefinition(addr, gv, offset);
         } else {
             assert(offset == 0);
-            createDataDefinition(addr, ptr);
+            unsigned dataAddr = createDataDefinition(addr, ptr);
+            // Data should have been padded already:
+            assert(dataAddr == addr);
         }
     } else if (opcode == Instruction::IntToPtr) {
         assert(offset == 0);
@@ -597,7 +611,9 @@ LLVMPOMBuilder::createExprDataDefinition(
         createIntDataDefinition(addr, ci, true);
     } else if (opcode == Instruction::PtrToInt) {
         assert(offset == 0);
-        createDataDefinition(addr, ce->getOperand(0));
+        // Data should have been padded already:
+        unsigned dataAddr = createDataDefinition(addr, ce->getOperand(0));
+        assert(dataAddr == addr);
     } else if (opcode == Instruction::Add) {
         assert(false && "NOT IMPLEMENTED");
     } else if (opcode == Instruction::Sub) {
@@ -621,9 +637,10 @@ LLVMPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
     // omit empty functions..
     if (mf.begin() == mf.end()) return true;
 
-    emitConstantPool(*mf.getConstantPool());
 
     std::string fnName = mang_->getValueName(mf.getFunction());
+
+    emitConstantPool(*mf.getConstantPool());
 
     TTAProgram::Procedure* proc =
         new TTAProgram::Procedure(fnName, *instrAddressSpace_);
@@ -1021,6 +1038,8 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         assert(port != NULL);
         return new TTAProgram::TerminalRegister(*port, idx);
 
+    } else if (mo.isFPImmediate()) {
+        assert(false && "FP immediates not implemented.");
     } else if (mo.isImmediate()) {
         int width = 32; // FIXME
         SimValue val(mo.getImm(), width);
@@ -1050,6 +1069,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
         unsigned addr = currentFnCP_[idx];
         SimValue cpeAddr(addr, width);
+
         return new TTAProgram::TerminalImmediate(cpeAddr);
     } else if (mo.isGlobalAddress()) {
         std::string name = mang_->getValueName(mo.getGlobal());
@@ -1137,8 +1157,7 @@ LLVMPOMBuilder::emitConstantPool(const MachineConstantPool& mcp) {
         MachineConstantPoolEntry cpe = cp[i];
 
         assert(!(cp[i].isMachineConstantPoolEntry()) && "NOT SUPPORTED");
-        createDataDefinition(end_, cp[i].Val.ConstVal);
-        currentFnCP_[i] = end_;
+        currentFnCP_[i] = createDataDefinition(end_, cp[i].Val.ConstVal);
     }
 }
 
