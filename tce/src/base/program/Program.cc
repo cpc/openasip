@@ -382,6 +382,8 @@ Program::instructionAt(InstructionAddress address) const
  *
  * @exception IllegalRegistration If given instruction does not belong
  * to the program.
+ * @note This method is very slow, do not use it for traversing the
+ *       whole program!
  */
 Instruction&
 Program::nextInstruction(const Instruction& ins) const
@@ -1108,5 +1110,27 @@ Program::writeToTPEF(
 }
 
 
+/**
+ * Returns all Instructions in the program as random accessible vector.
+ *
+ * The returned vector can be used for faster traversal of the program's
+ * instruction. It should be used instead of nextInstruction() or similar
+ * very slow methods when traversing through the whole program. Note
+ * that the Instruction* inside the vector should not be destroyed by
+ * the client as they are owned by the Program. The InstructionVector
+ * is not updated automatically as the Program changes!
+ */
+Program::InstructionVector
+Program::instructionVector() const {
+    InstructionVector instructions;
+    for (int p = 0; p < procedures_.size(); ++p) {
+        Procedure& proc = *procedures_.at(p);
+        for (std::size_t i = 0; i < proc.instructionCount(); ++i) {
+            Instruction* instr = &proc.instructionAtIndex(i);
+            instructions.push_back(instr);
+        }
+    }
+    return instructions;
+}
 
 } // namespace TTAProgram

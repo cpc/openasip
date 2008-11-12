@@ -736,7 +736,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
  * Returns (hopefully) unique plugin filename for target architecture.
  *
  * The filename consist of a 32bit hash of the .adf xml data and the .adf data
- * length as a hex string. The filename is used for cached plugins.
+ * length as a hex string. Also the TCE version string is part of the hash
+ * to avoid problems with incompatible backend plugins between TCE revisions.
+ * The filename is used for cached plugins.
  *
  * @param target Target architecture.
  * @return Filename for the target architecture.
@@ -756,6 +758,7 @@ LLVMBackend::pluginFilename(const TTAMachine::Machine& target) {
 
     fileName += "_";
     fileName += (Conversion::toHexString(h)).substr(2);
+    fileName += "-" + Application::TCEVersionString();
     fileName += PLUGIN_SUFFIX;
 
     return fileName;

@@ -65,7 +65,7 @@ using namespace TTAProgram;
  */
 POMValidator::POMValidator(
     const TTAMachine::Machine& machine, const TTAProgram::Program& program):
-    machine_(machine), program_(program) {
+    machine_(machine), program_(program), instructions_(program.instructionVector()) {
 
 }
 
@@ -113,11 +113,8 @@ POMValidator::validate(const std::set<ErrorCode>& errorsToCheck) {
 void
 POMValidator::checkConnectivity(POMValidatorResults& results) {
 
-    const Instruction* instruction = &program_.firstInstruction();
-
-    // Test all isntructions in the program.
-    while (instruction != &NullInstruction::instance()) {
-
+    for (std::size_t instrI = 0; instrI < instructions_.size(); ++instrI) {
+        const Instruction* instruction = instructions_.at(instrI);
         // Test all moves in the current instruction.
         for (int i = 0; i < instruction->moveCount(); i++) {
             const Move& move = instruction->move(i);
@@ -186,8 +183,6 @@ POMValidator::checkConnectivity(POMValidatorResults& results) {
 
             }
         }
-
-        instruction = &(program_.nextInstruction(*instruction));
     }
 }
 
@@ -199,10 +194,8 @@ POMValidator::checkConnectivity(POMValidatorResults& results) {
 void
 POMValidator::checkLongImmediates(POMValidatorResults& results) {
 
-    const Instruction* instruction = &program_.firstInstruction();
-
-    // Test all isntructions in the program.
-    while (instruction != &NullInstruction::instance()) {
+    for (std::size_t instrI = 0; instrI < instructions_.size(); ++instrI) {
+        const Instruction* instruction = instructions_.at(instrI);
 
         InstructionAddress address = instruction->address().location();
 
@@ -277,7 +270,6 @@ POMValidator::checkLongImmediates(POMValidatorResults& results) {
                 continue;
             }
         }
-        instruction = &(program_.nextInstruction(*instruction));
     }
 }
 
@@ -290,10 +282,10 @@ POMValidator::checkLongImmediates(POMValidatorResults& results) {
 void
 POMValidator::checkSimulatability(POMValidatorResults& results) {
     
-    Instruction* instruction = &program_.firstInstruction();
     std::set<std::string> errOpNames;
 
-    while (instruction != &NullInstruction::instance()) {
+    for (std::size_t instrI = 0; instrI < instructions_.size(); ++instrI) {
+        const Instruction* instruction = instructions_.at(instrI);
 
         for (int i = 0; i < instruction->moveCount(); i++) {
             Move& move = instruction->move(i);
@@ -320,7 +312,6 @@ POMValidator::checkSimulatability(POMValidatorResults& results) {
                 }
             }
         }
-        instruction = &(program_.nextInstruction(*instruction));
     }
 }
 
@@ -334,24 +325,13 @@ POMValidator::checkSimulatability(POMValidatorResults& results) {
  */
 void 
 POMValidator::checkCompiledSimulatability(POMValidatorResults& results) {    
-    Instruction* instruction = &program_.firstInstruction();
-    while (instruction != &NullInstruction::instance()) {
+
+    for (std::size_t instrI = 0; instrI < instructions_.size(); ++instrI) {
+        const Instruction* instruction = instructions_.at(instrI);
         for (int i = 0; i < instruction->moveCount(); i++) {
             Move& move = instruction->move(i);
             Terminal* destination = &move.destination();
             InstructionAddress address = instruction->address().location();
-#if 0
-            // jump or call to a possibly unknown target
-            if (move.source().isGPR() && move.isControlFlowMove()) {                    
-                std::string errorMessage =
-                    "Instruction at address: " + 
-                    Conversion::toString(address) +
-                    "' cannot be simulated with the compiled simulator. ";
-                    
-                results.addError(COMPILED_SIMULATION_NOT_POSSIBLE,
-                    errorMessage);
-            }
-#endif
             // clocked operations
             if (destination->isFUPort()) {
                 if (destination->isOpcodeSetting() && 
@@ -368,6 +348,5 @@ POMValidator::checkCompiledSimulatability(POMValidatorResults& results) {
                 }
             }
         } // end for
-        instruction = &(program_.nextInstruction(*instruction));
     }
 }

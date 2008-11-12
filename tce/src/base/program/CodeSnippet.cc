@@ -63,7 +63,7 @@ CodeSnippet::CodeSnippet() : parent_(NULL),
  * Constructor.
  */
 CodeSnippet::CodeSnippet(const TTAProgram::Address& start) : 
-        parent_(NULL), start_(start) {
+    parent_(NULL), start_(start) {
 }
 
 

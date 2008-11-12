@@ -64,6 +64,9 @@ class Move;
  */
 class Program {
 public:
+    /// Vector for instructions.
+    typedef std::vector<Instruction*> InstructionVector;
+
     Program(const TTAMachine::AddressSpace& space);
     Program(const TTAMachine::AddressSpace& space, Address start);
     Program(
@@ -123,6 +126,8 @@ public:
     void addDataMemory(DataMemory* dataMem) throw (IllegalRegistration);
 
     void replaceUniversalAddressSpaces(const TTAMachine::AddressSpace& space);
+
+    InstructionVector instructionVector() const;
 
     static Program* loadFromTPEF(
         const std::string& tpefFileName,
