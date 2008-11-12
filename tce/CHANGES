@@ -6,7 +6,9 @@ New features
 - Explorer can now print available plugins with "-g" option switch.
 - Explorer can now print plugin parameters with "-p <plugin name>" switch.
 - Simulator's x (dump memory) command can now dump memory to a binary file
-  with switch /f 
+  with switch /f
+- Added --unroll-threshold switch to tcecc to control the aggressiveness
+  of the loop unrolling.
 
 Code optimizations
 ------------------

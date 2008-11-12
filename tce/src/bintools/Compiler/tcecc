@@ -206,8 +206,13 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     verbose = options.verbose
 
-    loop_unroll_switches = " -loop-unroll -unroll-threshold=100 "
-
+    if options.unroll_threshold > 0:
+        loop_unroll_switches = \
+            " -loop-unroll -unroll-threshold=%d " % \
+            options.unroll_threshold
+    else:
+        loop_unroll_switches = " "
+    
     inline_pass = " -inline "
     if options.noinline:
         inline_pass = " "
@@ -415,6 +420,13 @@ p.add_option('--clear-plugin-cache', action="store_true",
 p.add_option('--disable-inlining', action="store_true",
              dest="noinline", default=False,
              help="Disable function inlining.")
+
+p.add_option('--unroll-threshold',
+             type="int", action="store", metavar='LLVM_INSTRUCTION_COUNT',
+             dest='unroll_threshold', default=100,
+             help="Unroll loops in case the unrolled loop body size will be less " + \
+             "than the given number of LLVM instructions. Use 0 to disable " + \
+             "loop unrolling.")
 
 p.add_option('--sequential-schedule', action="store_true",
              dest="sequential_schedule", default=False,
