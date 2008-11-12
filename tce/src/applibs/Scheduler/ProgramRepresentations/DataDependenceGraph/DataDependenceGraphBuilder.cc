@@ -1365,7 +1365,8 @@ void DataDependenceGraphBuilder::createTriggerDependencies(
     createSideEffectEdges(currentData_->fuDeps_, moveNode, dop);
     createSideEffectEdges(currentData_->fuDepReaches_, moveNode, dop);
 
-    if (dop.hasSideEffects() || dop.affectsCount() != 0) {
+    if (dop.hasSideEffects() || dop.affectsCount() != 0 || 
+        dop.affectedByCount() != 0) {
         currentData_->fuDeps_.insert(MNData2(moveNode));
     }
 
@@ -1423,8 +1424,8 @@ DataDependenceGraphBuilder::processOperand(
 void DataDependenceGraphBuilder::createSideEffectEdges(
     RegisterUseSet& prevMoves, const MoveNode& mn, Operation& dop) {
     
-    const int affectedCount = dop.affectedByCount();
-    if (affectedCount || dop.hasSideEffects()) {
+    const int affectCount = dop.affectedByCount() + dop.affectsCount();
+    if (affectCount != 0 || dop.hasSideEffects()) {
         for (RegisterUseSet::iterator i = prevMoves.begin();
              i != prevMoves.end(); i++) {
             Operation& o = i->mn_->destinationOperation().operation();
