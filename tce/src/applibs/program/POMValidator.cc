@@ -120,7 +120,6 @@ POMValidator::checkConnectivity(POMValidatorResults& results) {
             const Move& move = instruction->move(i);
 
             const Bus& bus = move.bus();
-            InstructionAddress address = instruction->address().location();
 
             // Test move source connectivity.
             if (move.source().isGPR() ||
@@ -131,6 +130,7 @@ POMValidator::checkConnectivity(POMValidatorResults& results) {
 
                 if (port.outputSocket() == NULL) {
                     // ERROR: Source port is not connected to an output socket.
+                    InstructionAddress address = instruction->address().location();
                     std::string errorMessage =
                         Conversion::toString(address) + ": " +
                         "Source port '" + port.parentUnit()->name() +
@@ -142,6 +142,7 @@ POMValidator::checkConnectivity(POMValidatorResults& results) {
                 } else if (!port.outputSocket()->isConnectedTo(bus)) {
                     // ERROR: Output socket of the source port is not connected
                     // to the move bus.
+                    InstructionAddress address = instruction->address().location();
                     std::string errorMessage =
                         Conversion::toString(address) + ": " +
                         "Source port '" + port.parentUnit()->name() +
@@ -162,6 +163,7 @@ POMValidator::checkConnectivity(POMValidatorResults& results) {
                 if (port.inputSocket() == NULL) {
                     // ERROR: Destination port is not connected to an output
                     // socket.
+                    InstructionAddress address = instruction->address().location();
                     std::string errorMessage =
                         Conversion::toString(address) + ": " +
                         "Destination port '" + port.parentUnit()->name() +
@@ -173,6 +175,7 @@ POMValidator::checkConnectivity(POMValidatorResults& results) {
                 } else if (!port.inputSocket()->isConnectedTo(bus)) {
                     // ERROR: Output socket of the target port is not connected
                     // to the move bus.
+                    InstructionAddress address = instruction->address().location();
                     std::string errorMessage =
                         Conversion::toString(address) + ": " +
                         "Destination port '" + port.parentUnit()->name() +
@@ -197,8 +200,6 @@ POMValidator::checkLongImmediates(POMValidatorResults& results) {
     for (std::size_t instrI = 0; instrI < instructions_.size(); ++instrI) {
         const Instruction* instruction = instructions_.at(instrI);
 
-        InstructionAddress address = instruction->address().location();
-
         const InstructionTemplate& templ =
             instruction->instructionTemplate();
 
@@ -209,6 +210,7 @@ POMValidator::checkLongImmediates(POMValidatorResults& results) {
 
             // Check that the immediate destination terminal is an IU.
             if (!immediate.destination().isImmediateRegister()) {
+                InstructionAddress address = instruction->address().location();
                 std::string errorMessage =
                     Conversion::toString(address) + ": " +
                     "Long immediate destination terminal is not an "
@@ -247,6 +249,7 @@ POMValidator::checkLongImmediates(POMValidatorResults& results) {
 
             if (!result.second) {
                 // Destination already in the set.
+                InstructionAddress address = instruction->address().location();
                 std::string errorMessage =
                     Conversion::toString(address) + ": " +
                     "Multiple long immediates with destination IU '" +
@@ -258,6 +261,7 @@ POMValidator::checkLongImmediates(POMValidatorResults& results) {
             // Check that the instruction template supports long immediates
             // with the current long immediate's width and destination IU.
             if (supportedWidth < width) {
+                InstructionAddress address = instruction->address().location();
                 std::string errorMessage =
                     Conversion::toString(address) + ": " +
                     "Long immediate with destination IU '" +
@@ -331,11 +335,11 @@ POMValidator::checkCompiledSimulatability(POMValidatorResults& results) {
         for (int i = 0; i < instruction->moveCount(); i++) {
             Move& move = instruction->move(i);
             Terminal* destination = &move.destination();
-            InstructionAddress address = instruction->address().location();
             // clocked operations
             if (destination->isFUPort()) {
                 if (destination->isOpcodeSetting() && 
                     destination->operation().isClocked()) {
+                    InstructionAddress address = instruction->address().location();
                     std::string errorMessage =
                         "Instruction at address: " +
                         Conversion::toString(address) +

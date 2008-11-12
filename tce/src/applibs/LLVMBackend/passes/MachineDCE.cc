@@ -211,7 +211,7 @@ bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
     return true;
 }
 
-bool MachineDCE::doFinalization(Module &M) {    
+bool MachineDCE::doFinalization(Module&) {    
     
     // For all functions check that they are reached from entrypoint of module.
     for (FunctionMap::iterator func = functionMappings_.begin(); 
