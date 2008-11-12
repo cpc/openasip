@@ -1367,9 +1367,23 @@ void DataDependenceGraphBuilder::createTriggerDependencies(
 
     if (dop.hasSideEffects() || dop.affectsCount() != 0 || 
         dop.affectedByCount() != 0) {
+
+        // remove old same op from bookkeeping. 
+        // this should prevent exponential explosion or edge count.
+        if (dop.hasSideEffects() && moveNode.move().isUnconditional()) {
+            for (RegisterUseSet::iterator iter = currentData_->fuDeps_.begin();
+                 iter != currentData_->fuDeps_.end(); iter++) {
+                
+                Operation& o = iter->mn_->destinationOperation().operation();
+                if (&o == &dop) {
+                    currentData_->fuDeps_.erase(iter);
+                    break;
+                }
+            }
+        }
+        // add the new one to bookkeeping
         currentData_->fuDeps_.insert(MNData2(moveNode));
     }
-
 }
 
 /**
@@ -1431,8 +1445,8 @@ void DataDependenceGraphBuilder::createSideEffectEdges(
             Operation& o = i->mn_->destinationOperation().operation();
             
             // mem writes are handled by memory deps so exclude here
-            if ((&dop == &o && o.hasSideEffects() && !o.writesMemory()) || 
-                dop.dependsOn(o)) {
+            if ((&dop == &o && o.hasSideEffects()) || 
+                dop.dependsOn(o) || o.dependsOn(dop)) {
                 
                 DataDependenceEdge* dde =
                     new DataDependenceEdge(

@@ -73,7 +73,6 @@
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <side-effects/>
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
@@ -510,7 +509,6 @@
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <side-effects/>
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
@@ -528,7 +526,6 @@
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <side-effects/>
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
@@ -546,7 +543,6 @@
     <inputs>2</inputs>
     <outputs>0</outputs>
     <writes-memory/>
-    <side-effects/>
     <in id="1" type="UIntWord">
       <mem-address/>
     </in>
