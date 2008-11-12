@@ -39,13 +39,10 @@
 #define TTA_POM_VALIDATOR_HH
 
 #include <set>
+#include "Program.hh"
 
 namespace TTAMachine {
     class Machine;
-}
-
-namespace TTAProgram {
-    class Program;
 }
 
 class POMValidatorResults;
@@ -86,6 +83,8 @@ private:
     const TTAMachine::Machine& machine_;
     /// The program to validate.
     const TTAProgram::Program& program_;
+    /// The program's instructions in a quickly accessed vector.
+    const TTAProgram::Program::InstructionVector instructions_;
     
 };
 

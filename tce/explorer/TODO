@@ -11,6 +11,10 @@ General/Explorer:
 - Check that every plugins parameters that are truly needed are compulsory
   params.
 
+- explore -v -g should print plugin loading dir as well.
+
+- All plugins compulsory parameters are not checked! Add checkParameter() to
+  the plugins.
 
 Evaluate:
 - systemtest after the new HDB is done.
