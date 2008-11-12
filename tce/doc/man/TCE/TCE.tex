@@ -31,9 +31,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.0}
-\ver{10}
+\ver{11}
 \firstday{25.10.2006}
-\lastday{04.11.2008}
+\lastday{12.11.2008}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -277,7 +277,8 @@ properties of the implementation, and are not defined in OSAL module.
 \subsubsection{Operation Properties}
 \label{ssec:operation-properties}
 
-The following properties define a TTA operation:
+The following properties define a TTA operation in TCE:
+
 \begin{itemize}
 \item name (unique string)
 \item description (string)
@@ -307,11 +308,13 @@ nonnegative integer. It must be positive if the number of outputs is
 zero.
 
 \paragraph{outputs}
+
 Number of outputs of the operation. The number of outputs is a
 nonnegative integer. It must be positive if the number of inputs is
 zero.
 
 \paragraph{reads/writes-memory}
+
 Indicates that this operation can access memory.  Normally, memory access is
 also implied from the properties `mem-address' and `mem-data' of operation
 inputs (or the `mem-data' property of operation outputs).  However, it is
@@ -325,41 +328,66 @@ must be specified explicitly even when it is implied by some of the inputs
 or outputs of the operation.  See sections on input and output declarations,
 below.
 
-%Not supported in TCE v1.0
-%\paragraph{trap}
-%Indicates that this operation can raise an exception when executed on some
-%implementations.
-
-\paragraph{side-effect}
-Indicates that two subsequent executions of this operation with the same
-input values may generate different output values.  An operation with
-side-effect may be an operation with state or an operation whose results
-depend on other operations or on a context that is external to the
-processor.  Side-effect is implied if the `affected-by' or the `affects'
-lists are not empty. Side-effect is also implied by the fact that any of the
-inputs is optional, see section on input declaration.
-
 \paragraph{clocked}
 Clocked attribute indicates that the operation can change its state
 synchronously with clock signal and independently from its input.
 
+\paragraph{side-effect}
+
+Indicates that two subsequent executions of this operation with the same
+input values may generate different output values.  An operation marked with
+``side-effect'' is an operation which writes some state data, affecting
+further executions of the same operation and other operations sharing
+that same state data. The other operations that read or write
+the same state data written by an operation marked with ``side-effect'' 
+must be marked ``affected-by'' that operation (see later for an example).
+
+Note: only operations that write the state should marked to
+have ``side-effects''. Operations that only read the state data do not
+have side effects and may be reordered more freely by the compiler.
+
 \paragraph{affected-by}
-Optional. A list of operation names. If an operation is listed, it means
-that it may affect the outcome of this operation.  The order in which the
-two operations are executed cannot be swapped.  An operation where
-`affected-by' list is not empty is also a side-effect operation.
+
+In case an operation reads or writes state data written by another 
+operation sharing the same state data (that is marked with the
+``side-effect'' property), the operation should be marked ``affected-by''
+that operation. 
+
+This property restricts the compiler's reordering optimizations 
+from moving operations that read or write state data above an operation
+that also writes the same data, which would result in potentially
+producing wrong results from the execution.
 
 \paragraph{affects}
-Optional. A list of operation names.  If an operation is listed, it means
-that it may be affected by the execution of this operation. The order in
-which the two operations are executed cannot be swapped.  An operation where
-`affects' list is not empty is also a side-effect operation.
+
+This is an optional convenience property that allows defining
+the state data dependency the other way around. If an operation
+is listed in the ``affects'' list it means that the operation
+is writing state data that is read or written by the affected operation.
 
 Note: it is not necessary that, if operation A `affects' operation B, then B
 must contain A in its `affected-by' list.  Vice versa, if A is `affected-by'
 B, it is not needed that B must contain A in its `affects' list. This
-allows a user to add new operations that share state with the base
-operations shipped with TCE, without needing to modify the base operations.
+allows, for example, a user to add new operations that share state with 
+the base operations shipped with TCE, without needing to modify the base
+operations.
+
+\paragraph{An example of defining multiple operations that share the
+same state.} A common use case for multiple operations that share
+state data is a case where one or more operations initialize an
+internal register file in an FU and one or more operations use the
+data in the register file to compute their results.
+
+For example, INIT\_RF could initialize the internal register
+file with the given number. This operation should be marked
+``side-effects''. Let's say that another two operations COMPUTE\_X and
+COMPUTE\_Y only read the internal RF data, thus they can be freely
+reordered by the computer with each other in the program code in case
+there are no other dependencies. As they only read the state data,
+they don't have and visible side effects, thus they should not
+be marked with the ``side-effects'' property. However, as they read
+the data written by the INIT\_RF operation, both operations should
+be marked to be ``affected-by'' the INIT\_RF.
 
 \subsubsection{Operation Input Properties}
 \label{ssec:opinput-properties}
