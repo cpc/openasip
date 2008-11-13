@@ -3,7 +3,7 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting. 
-AC_INIT(tce, 1.0-beta1, tce-users@cs.tut.fi)
+AC_INIT(tce, 1.0-beta2, tce-users@cs.tut.fi)
 
 # Get the current revision number so we can print it out in
 # tce-config --version
@@ -447,9 +447,6 @@ LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     2.3)
-     AC_DEFINE([LLVM_2_3], [], "Using LLVM v2.3")
-   ;;
      2.4)
      AC_DEFINE([LLVM_2_4], [], "Using LLVM v2.4")
    ;;

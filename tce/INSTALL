@@ -59,10 +59,10 @@ Library               supported versions                   library licence
 Xerces                2.3.0+                               Apache v2.0
 wxWidgets             2.6.0+                               wxWidgets
 Tcl                   8.0-8.4                              BSD-style
-Boost                 1.33+                               very permissive
+Boost                 1.33+                                very permissive
 sqlite3               3.0.0+                               public domain
 Python                2.4,2.5                              very permissive
-LLVM                  2.3                                  LLVM Release License
+LLVM                  2.4                                  LLVM Release License
 
 
 optional:

@@ -1,11 +1,11 @@
-The modified Bugpoint of LLVM in this directory
-can be used to track LLVM optimizations that produce 
-miscompiled TTA programs. It requires that the program 
-compiles successfully without optimizations (tcecc -O3) 
+Bugpoint of LLVM can be used to track LLVM optimizations 
+that produce miscompiled TTA programs. It requires that 
+the program compiles successfully without optimizations 
 but when some LLVM optimization is applied, the result 
 gets broken.
 
-I have added two new switches to the Bugpoint: -run-custom,
+I have implemented and submitted to mainline two new switches 
+to the Bugpoint tool: -run-custom,
 which instructs the Bugpoint to "run" the generated
 bitcodes with an custom command that can be defined
 with the added '-exec-command' switch.
@@ -15,7 +15,7 @@ that "executes" LLVM bytecodes by first scheduling it to
 a target and then running ttasim with the resulting
 TPEF.
 
-For example, here is how I tried to track the LLVM 2.2
+For example, here is how I tried to track a LLVM 2.2
 miscompilation bug with DSPstone/adpcm:
 
 1) Generate a bytecode that works correctly with -O0, but not with -O3:

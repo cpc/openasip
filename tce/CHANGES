@@ -1,8 +1,9 @@
-1.0-beta2     200X-XX-XX
+1.0-beta2     2008-11-13
 ========================
 
 New features
 ------------
+- Support for LLVM 2.4 (dropped support for LLVM 2.3).
 - Explorer can now print available plugins with "-g" option switch.
 - Explorer can now print plugin parameters with "-p <plugin name>" switch.
 - Simulator's x (dump memory) command can now dump memory to a binary file
