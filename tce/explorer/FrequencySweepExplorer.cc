@@ -135,6 +135,8 @@ class FrequencySweepExplorer : public DesignSpaceExplorerPlugin {
     explore(const RowID& startPointConfigurationID, const unsigned int&) {
 
         checkParameters();
+        readParameters();
+
         openHDBs();
         std::vector<RowID> result;
         
