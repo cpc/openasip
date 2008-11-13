@@ -25,11 +25,12 @@ Bug fixes
 - The compiler backend plugins now contain the TCE version string in
   the file name to avoid problems with incompatible backend versions
   in TCE version upgrades.
-  
+- custom operation sometimes got reordered illegally.
+
 Documentation
 -------------
 - Added proper documentation on marking the state properties of
-  operations sharing the same state (side-effects, affected-by, effects)
+  operations sharing the same state (side-effects, affected-by, affects)
   to the user manual.
 
 1.0-beta1     2008-10-02

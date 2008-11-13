@@ -212,7 +212,9 @@ runner.cpp.*|\
 .*TestSuite.h:.*warning.*comparison.between.signed.and.unsigned.*|\
 .*install:.warning:.relinking.*|\
 .*/llvm/include/llvm/.*warning:.*|\
-Inconsistency.detected.by.ld\.so:.*Assertion.*"
+Inconsistency.detected.by.ld\.so:.*Assertion.*|\
+.*/llvm/Target/TargetLowering.h.*|\
+.*llvm/ADT/STLExtras.h.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\

@@ -271,6 +271,11 @@ TPEFProgramFactory::build()
     // create all the code
     addProcedures(*newProgram, *adfInstrASpace_);
 
+    TTAProgram::Program::InstructionVector allInstructions =
+        newProgram->instructionVector();
+    const InstructionAddress startAddress =
+        newProgram->startAddress().location();
+        
     // fix TerminalAddresses pointing to instructions to be
     // TerminalInstructionAddresses.
     while (!instructionImmediates_.empty()) {
@@ -282,7 +287,7 @@ TPEFProgramFactory::build()
         assert(&(addressTerm.address().space()) == adfInstrASpace_);
 
         Instruction& referencedInstruction =
-            newProgram->instructionAt(addressTerm.address().location());
+            *allInstructions.at(addressTerm.address().location() - startAddress);
 
         InstructionReference &instructionReference =
             newProgram->instructionReferenceManager().createReference(
@@ -304,7 +309,7 @@ TPEFProgramFactory::build()
         assert(&(addressTerm.address().space()) == adfInstrASpace_);
 
         Instruction& referencedInstruction =
-            newProgram->instructionAt(addressTerm.address().location());
+            *allInstructions.at(addressTerm.address().location() - startAddress);
 
         InstructionReference& instructionReference =
             newProgram->instructionReferenceManager().createReference(

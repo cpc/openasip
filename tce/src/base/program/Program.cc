@@ -1123,9 +1123,9 @@ Program::writeToTPEF(
 Program::InstructionVector
 Program::instructionVector() const {
     InstructionVector instructions;
-    for (int p = 0; p < procedures_.size(); ++p) {
+    for (std::size_t p = 0; p < procedures_.size(); ++p) {
         Procedure& proc = *procedures_.at(p);
-        for (std::size_t i = 0; i < proc.instructionCount(); ++i) {
+        for (int i = 0; i < proc.instructionCount(); ++i) {
             Instruction* instr = &proc.instructionAtIndex(i);
             instructions.push_back(instr);
         }
