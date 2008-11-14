@@ -215,7 +215,7 @@ runner.cpp.*|\
 Inconsistency.detected.by.ld\.so:.*Assertion.*|\
 .*/llvm/Target/TargetLowering.h.*|\
 .*llvm/ADT/STLExtras.h.*|\
-.*llvm/Target/.*unused parameter.*"
+.*llvm/Target/.*unused.parameter.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
