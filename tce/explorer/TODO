@@ -8,6 +8,8 @@ General/Explorer:
 - c2vhdl script should print information about estimates. 
     [waiting for a new HDB with more estimation related data] 
 
+- c2vhdl script should accept multiple programs as parameters.
+
 - Check that every plugins parameters that are truly needed are compulsory
   params.
 

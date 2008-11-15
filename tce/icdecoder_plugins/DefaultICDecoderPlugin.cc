@@ -532,6 +532,11 @@ private:
                     Conversion::toString((*iter).fanIn) + " " +
                     Conversion::toString((*iter).fanOut) + " " +
                     Conversion::toString((*iter).dataWidth);
+                    if (socket.direction() == TTAMachine::Socket::INPUT &&
+                            (*iter).fanIn == 1 && (*iter).fanOut == 1) {
+                        // input socket 1 1 * --> no delay
+                        return 0;
+                    }
                 try {
                     DataObject subsocketData =
                         hdb.costEstimationDataValue(socketName, name());

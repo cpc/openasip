@@ -36,6 +36,7 @@
  */
 
 #include <vector>
+#include <set>
 #include <string>
 #include "DesignSpaceExplorerPlugin.hh"
 #include "DSDBManager.hh"
@@ -49,6 +50,8 @@
 using namespace TTAMachine;
 using namespace HDB;
 using std::endl;
+using std::cout;
+using std::setw;
 
 /**
  * Explorer plugin that evaluates a configuration and estimates it if the
@@ -59,7 +62,8 @@ class Evaluate : public DesignSpaceExplorerPlugin {
     
     Evaluate(): DesignSpaceExplorerPlugin(), 
         adf_(""), 
-        idf_("") {
+        idf_(""),
+        print_(true) {
 
         // compulsory parameters
         // no compulsory parameters
@@ -67,6 +71,7 @@ class Evaluate : public DesignSpaceExplorerPlugin {
         // parameters that have a default value
         addParameter(adfPN_, STRING, false, adf_);
         addParameter(idfPN_, STRING, false, idf_);
+        addParameter(printPN_, BOOL, false, Conversion::toString(print_));
     }
 
 
@@ -114,6 +119,11 @@ class Evaluate : public DesignSpaceExplorerPlugin {
 
         verboseLogC(std::string("Evalution OK, ") 
                 + (estimate ? "with" : "without") + " estimation.",1)
+
+        if (print_ && estimate) {
+            printEstimates(estimates);
+        }
+
         // add new configuration to the database
         if (configurationID == 0) {
             RowID newConfID = addConfToDSDB(conf);
@@ -128,12 +138,15 @@ private:
     // parameter names
     static const std::string adfPN_;
     static const std::string idfPN_;
+    static const std::string printPN_;
 
     // parameters
     /// name of the adf file to evaluate
     std::string adf_;
     /// name of the idf file to evaluate
     std::string idf_;
+    /// print evaluation results
+    bool print_;
 
     /**
      * Reads the parameters given to the plugin.
@@ -142,6 +155,7 @@ private:
         // optional parameters
         readOptionalParameter(adfPN_, adf_);
         readOptionalParameter(idfPN_, idf_);
+        readOptionalParameter(printPN_, print_);
     }
 
     
@@ -187,10 +201,35 @@ private:
         }
         return true;
     }
+
+
+    /**
+     * Print estimates
+     *
+     * @param estimates The cost estimates to be printed.
+     */
+    void printEstimates(const CostEstimates& estimates) {
+        std::ostream& log = Application::logStream();
+        log.flags(std::ios::left);
+        int fw = 27;
+
+        log << setw(fw) << "Area: " << estimates.area() << endl;
+        log << setw(fw) << "Longest path delay: " <<
+            estimates.longestPathDelay() << endl;
+        for (int i = 0; i < estimates.energies(); ++i) {
+            log << "application " << i << setw(14) << " energy: " <<
+                estimates.energy(i) << endl;
+        }
+        for (int i = 0; i < estimates.cycleCounts(); ++i) {
+            log << "application " << i << " cycle count: " <<
+                estimates.cycleCount(i) << endl;
+        }
+    }
 };
 
 // parameters
 const std::string Evaluate::adfPN_("adf");
 const std::string Evaluate::idfPN_("idf");
+const std::string Evaluate::printPN_("print");
 
 EXPORT_DESIGN_SPACE_EXPLORER_PLUGIN(Evaluate)

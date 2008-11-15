@@ -232,15 +232,16 @@ DesignSpaceExplorer::evaluate(
                 // stream
                 oStream_->str("");
                 oStream_->seekp(0);
+            }
 
-                // add simulated cycle count to dsdb
-                dsdb_->addCycleCount(
+            // add simulated cycle count to dsdb
+            dsdb_->addCycleCount(
                     (*i), configuration.architectureID,
                     runnedCycles);
-                
-                // add cycle count to result
-                result.setCycleCount(*scheduledProgram, runnedCycles);
-            }
+
+            // add cycle count to result
+            result.setCycleCount(*scheduledProgram, runnedCycles);
+
             if (configuration.hasImplementation && estimate) {
                 // energy estimate the simulated program
                 EnergyInMilliJoules programEnergy =

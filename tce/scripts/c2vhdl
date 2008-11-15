@@ -28,9 +28,12 @@
 
 # input *.c
 # output .vhdl, .img, .adf, .bem
-# TODO: output cycle counts, estimation data (area, energy, ...)
-# expects that tce programs explore, tcecc, createbem, generateprocessor and
+
+# Expects that tce programs explore, tcecc, createbem, generateprocessor and
 # generatebits are to be found from path.
+
+# TODO: correct result for simulation should be given?
+# TODO: multiple c programs as parameters.
 
 function pexit {
     [ "${2}x" != "x" ] && echo "${2}"
@@ -107,8 +110,7 @@ new_conf="$(explore -e ImplementationSelector -s 1 ${tmp_name}.dsdb \
 
 # get estimation data if it was asked
 if [ "${EVALUATE}x" == "truex" ]; then
-    explore -e Evaluate -s ${new_conf} ${tmp_name}.dsdb || pexit 1
-    # TODO: print estimation data from dsdb
+    { explore -e Evaluate -s ${new_conf} -u print="true" ${tmp_name}.dsdb || pexit 1; } | grep -v 'No new configurations'
 fi
 
 explore -w ${new_conf} ${tmp_name}.dsdb 1>/dev/null || pexit 1
