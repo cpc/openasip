@@ -1436,7 +1436,11 @@ int32 float32_to_int32_round_to_zero( float32 a )
     if ( 0 <= shiftCount ) {
         if ( a != 0xCF000000 ) {
             float_raise( float_flag_invalid );
-            if ( ! aSign || ( ( aExp == 0xFF ) && aSig ) ) return 0x7FFFFFFF;
+
+// x86 native wants this to be 0x800000000 as well
+// if ( ! aSign || ( ( aExp == 0xFF ) && aSig ) ) return 0x7FFFFFFF;
+            if ( ! aSign || ( ( aExp == 0xFF ) && aSig ) ) 
+                return (sbits32) 0x80000000;
         }
         return (sbits32) 0x80000000;
     }
@@ -3135,103 +3139,40 @@ inline uint32 __emulate_CFI_1_1_f32_i32(float a) {
     return float32_to_int32_round_to_zero(*((float32*)&a));
 }
 
-/**
- * float32_to_uint32 stuff from 
- * http://www.helenos.eu/doc/refman/uspace-ia64/conversion_8c-source.html 
- */
+/*----------------------------------------------------------------------------
+  Modified from float32_to_int32_round_to_zero
+  ---------------------------------------------------------------------------*/
 
-/*
- * Copyright (C) 2005 Josef Cejka
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * - Redistributions of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- * - Redistributions in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- * - The name of the author may not be used to endorse or promote products
- *   derived from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
- * IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
- * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
-typedef union {
-    uint32 binary;
-
-    struct  {
-        uint32 sign:1;
-        uint32 exp:8;
-        uint32 fraction:23;
-    } parts __attribute__ ((packed));
-} float32_t;
-
-#define FLOAT32_FRACTION_SIZE 23
-#define FLOAT32_HIDDEN_BIT_MASK 0x800000
-#define FLOAT32_BIAS 0x7F
-#define MAX_UINT32 0xFFFFFFFF
-#define MIN_UINT32 0x0
-
-inline int isFloat32Infinity(float32_t f) 
+int32 float32_to_uint32( float32 a )
 {
-    return ((f.parts.exp==0xFF)&&(f.parts.fraction==0x0));
-}
+    flag aSign;
+    int16 aExp, shiftCount;
+    bits32 aSig;
+    int32 z;
 
-static uint32 _float32_to_uint32_helper(float32_t a)
-{
-        uint32 frac;
-        
-        if (a.parts.exp < FLOAT32_BIAS) {
-                /*TODO: rounding*/
-                return 0;
-        }
-        
-        frac = a.parts.fraction;
-        
-        frac |= FLOAT32_HIDDEN_BIT_MASK;
-        /* shift fraction to left so hidden bit will be the most significant bit */
-        frac <<= 32 - FLOAT32_FRACTION_SIZE - 1; 
-
-        frac >>= 32 - (a.parts.exp - FLOAT32_BIAS) - 1;
-        if ((a.parts.sign == 1) && (frac != 0)) {
-                frac = ~frac;
-                ++frac;
-        }
-        
-        return frac;
-}
-
-/* Convert float to unsigned int32
- * FIXME: Im not sure what to return if overflow/underflow happens 
- *      - now its the biggest or the smallest int
- */ 
-uint32 float32_to_uint32(float32_t a)
-{
-    if (float32_is_nan(*((float32*)&a)) == 1) {
-        return MAX_UINT32;
+    aSig = extractFloat32Frac( a );
+    aExp = extractFloat32Exp( a );
+    aSign = extractFloat32Sign( a );
+    shiftCount = aExp - 0x9E;
+    if ( 0 < shiftCount ) {
+        // TODO: calculate result and let it overflow as x86 does 
+//        printf("TODO: calculate overflowed value aSig: %i(%8x), "
+//               "aExp: %i(%8x), aSign: %i(%8x)\n", aSig, aSig, aExp, aExp, aSign, aSign);
+        return (bits32) 0x0;
     }
-    
-    if (isFloat32Infinity(a) || (a.parts.exp >= (32 + FLOAT32_BIAS)))  {
-        if (a.parts.sign) {
-            return MIN_UINT32;
-        }
-        return MAX_UINT32;
+    else if ( aExp <= 0x7E ) {
+        if ( aExp | aSig ) float_exception_flags |= float_flag_inexact;
+        return 0;
     }
-    
-    return _float32_to_uint32_helper(a);    
+    aSig = ( aSig | 0x00800000 )<<8;
+    z = aSig>>( - shiftCount );
+    if ( (bits32) ( aSig<<( shiftCount & 31 ) ) ) {
+        float_exception_flags |= float_flag_inexact;
+    }
+    if ( aSign ) z = - z;
+    return z;
 }
+
 
 /************************************************
  * End of  Copyright (C) 2005 Josef Cejka
@@ -3239,7 +3180,7 @@ uint32 float32_to_uint32(float32_t a)
 
 
 inline uint32 __emulate_CFIU_1_1_f32_i32(float a) {
-    return float32_to_uint32(*((float32_t*)&a));
+    return float32_to_uint32(*((float32*)&a));
 }
 
 inline float __emulate_CIF_1_1_i32_f32(uint32 a) {

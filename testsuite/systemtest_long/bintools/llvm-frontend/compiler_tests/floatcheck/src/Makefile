@@ -12,10 +12,11 @@ LLVM_PRESERVE_SYMBOLS=main
 
 all: native llvm
 
+# will not work with O3 optimizations..
 native: 
 	cp ../../../../../../../llvm-frontend/newlib-1.15.0/libgloss/tce/softfloat.h .
 	cp ../../../../../../../llvm-frontend/newlib-1.15.0/libgloss/tce/float_emulation.c .
-	$(CC) -o native_executable -O3 timesoftfloat.c float_emulation.c
+	$(CC) -o native_executable -O1 timesoftfloat.c float_emulation.c
 	rm softfloat.* float_emulation.*
 
 

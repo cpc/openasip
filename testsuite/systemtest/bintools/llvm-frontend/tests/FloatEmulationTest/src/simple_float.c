@@ -22,16 +22,16 @@ int main(int argc,char **argv,char **envp) {
 //    resMod = aFloat % bFloat;
     
     unsigned srcVal = a;
-    float tempFloat;
+    float tempFloat1, tempFloat2;
     unsigned dstVal1, dstVal2;
     
-    tempFloat = srcVal;
-    dstVal1 = tempFloat;
-    tempFloat = -tempFloat;
-    dstVal2 = tempFloat;
+    tempFloat1 = srcVal;
+    dstVal1 = tempFloat1;
+    tempFloat2 = -tempFloat1;
+    dstVal2 = tempFloat2;
 
-    printf("%x to fp to uint %x\n", srcVal, dstVal1);  
-    printf("%x to fp to -fp to uint %x\n", srcVal, dstVal2);  
+    printf("%x to fp(%f) to uint %x\n", srcVal, tempFloat1, dstVal1);  
+    printf("%x to fp(%f) to -fp(%f) to uint %x\n", srcVal, tempFloat1, tempFloat2, dstVal2);  
 
     printf("%f+%f=%f in hex format: %x+%x=%x\n", aFloat, bFloat, resAdd, *((int*)&aFloat), *((int*)&bFloat), *((int*)&resAdd));  
     printf("%f-%f=%f in hex format: %x-%x=%x\n", aFloat, bFloat, resSub, *((int*)&aFloat), *((int*)&bFloat), *((int*)&resSub));  

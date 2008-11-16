@@ -256,14 +256,8 @@ LLVMBackend::compile(
     // Instruction selection.
     targetMachine.addInstSelector(fpm1, fast);
 
-    // Fix external lib calls.. must be finalized before Machine DCE
-    // fpm1.add(createFixLibCalls());
-
     // Machine DCE pass. 
     fpm2.add(createMachineDCE());
-    
-    // TODO: enable following in llvm 2.4
-    // fpm.add(UnreachableMachineBlockElimID->createPass());
     
     // TODO: Maybe MachineDCE should be finalized before this... 
     // Register allocation.
