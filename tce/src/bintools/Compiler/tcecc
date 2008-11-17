@@ -483,7 +483,9 @@ if len(inFiles) == 0:
     sys.exit(1)
 
 if options.output_name == "":
-    outputName = "llvm_output"
+    # configure checks sometimes check if a.out is created by default..
+    # (pth lib at least)
+    outputName = "a.out"
 else:
     outputName = options.output_name
 

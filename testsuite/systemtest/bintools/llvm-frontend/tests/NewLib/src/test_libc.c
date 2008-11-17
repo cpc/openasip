@@ -38,5 +38,6 @@ int main(int argc,char **argv,char **envp) {
     RUN_TEST(atof1);
     RUN_TEST(atof2);
     RUN_TEST(random);
+    RUN_TEST(math);
     return 0;
 }

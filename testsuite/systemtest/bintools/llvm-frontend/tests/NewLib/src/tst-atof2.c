@@ -31,12 +31,10 @@ static const struct
 #define NTESTS (sizeof (tests) / sizeof (tests[0]))
 
 
-static char DISABLED_TEXT[] = "test disabled";
-
 char* 
 tst_atof2 (void)
 {
-    return DISABLED_TEXT;
+    return "Test disabled";
 
     unsigned int i;
     for (i = 0; i < NTESTS; ++i)

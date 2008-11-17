@@ -25,6 +25,8 @@
 
 char* tst_malloc (void)
 {
+  return "Test disabled";
+    
   void *p, *q;
   int save;
 
