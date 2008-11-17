@@ -258,6 +258,7 @@ printPlugins() {
 
         if (FileSystem::fileExists(*iter)) {
             // now list all files with postfix ".so"
+            verboseLogC("Fetching plugins from directory: " + *iter, 1)
             FileSystem::findFromDirectory(".*\\.so$", *iter, found_plugins);
         }
     }

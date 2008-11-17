@@ -224,6 +224,9 @@ class FrequencySweepExplorer : public DesignSpaceExplorerPlugin {
                     RowID selectedConf = createImplementationAndStore(minConf, 
                             currentFrequencyMHz, 0, true, icDec_, icDecHDB_);
 
+                    verboseLogC("Implementation selection produced a config: "
+                            + Conversion::toString(selectedConf), 3)
+
                     // check if component selection failed
                     if (selectedConf == 0) {
                         verboseLogC("Component selection failed for minimized"
