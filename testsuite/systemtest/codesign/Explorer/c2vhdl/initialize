@@ -18,11 +18,8 @@ cd ../../../../../tce/explorer/
 #if [ ! -e "RemoveUnconnectedComponents.so" ]; then 
 #    ../src/codesign/Explorer/buildexplorerplugin RemoveUnconnectedComponents.so RemoveUnconnectedComponents.cc > /dev/null
 #fi
-rm -f ImplementationSelector.so Evaluate.so
+rm -f ImplementationSelector.so
 if [ ! -e "ImplementationSelector.so" ]; then 
-    ../src/codesign/Explorer/buildexplorerplugin ImplementationSelector.so ImplementationSelector.cc > /dev/null
-fi
-if [ ! -e "Evaluate.so" ]; then 
     ../src/codesign/Explorer/buildexplorerplugin ImplementationSelector.so ImplementationSelector.cc > /dev/null
 fi
 popd > /dev/null
