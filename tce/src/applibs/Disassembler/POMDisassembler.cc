@@ -744,6 +744,9 @@ POMDisassembler::disassemble(const TTAProgram::Procedure& proc, bool indices)
     const TTAProgram::Instruction* currentInstruction = NULL;
 
     // proc.instructionCount() is O(n) operation so do it only once.
+    
+    stringStream << ":procedure " << proc.name() << ";" << std::endl;
+
     for (int instrIndex = 0, iCount = proc.instructionCount(); 
          instrIndex < iCount; ++instrIndex) {
         currentInstruction = 

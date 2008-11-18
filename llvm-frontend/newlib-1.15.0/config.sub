@@ -1357,6 +1357,7 @@ case $os in
 	-none)
 		;;
 	-llvm)
+        os=-linux
 		;;
 	*)
 		# Get rid of the `-' at the beginning of $os.

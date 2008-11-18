@@ -8,6 +8,7 @@
 
 
 #include <stdio.h>
+#include <signal.h>
 
 #undef __MORE_OR_LESS_ORIGINAL_FROM_NEWLIB
 #ifndef __MORE_OR_LESS_ORIGINAL_FROM_NEWLIB
@@ -17,6 +18,8 @@ void _exit(int) __attribute__((noinline,noreturn));
 
 void _start(void)
 {
+    // for initing signal table...
+    //__init_signal();
     _exit(main());
 }
 

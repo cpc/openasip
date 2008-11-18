@@ -181,32 +181,8 @@ int main(int argc, char *argv[]) {
     POMDisassembler disassembler(*program);
     Word first = disassembler.startAddress();
     *output<< "CODE " << first << " ;" << endl << endl;
-    for (Word addr = first; addr < (first + disassembler.instructionCount());
-         addr++) {
 
-        // Write code labels.
-        for (int i = 0; i < disassembler.labelCount(addr); i++) {
-            *output << disassembler.label(addr, i) << ":" << endl;
-        }
-
-        DisassemblyInstruction* instr = NULL;
-        try {
-            // instr = disassembler.createInstruction(addr);
-            // *output << instr->toString() << endl;
-            if (options.lineNumbers()) {
-                
-                *output << std::left << std::setw(10) << Conversion::toString(addr) +":"
-                        << std::left;
-            }
-            *output << POMDisassembler::disassemble(program->instructionAt(addr)) << endl;
-        } catch (Exception& e) {
-            cerr << e.fileName() << e.lineNum() << ": " << e.errorMessage()
-                 << endl;
-        }
-        delete instr;
-    }
-
-    *output << endl << endl;
+    *output << POMDisassembler::disassemble(*program) << endl << endl;
 
     // Write data memory initializations.
     for (int i = 0; i < program->dataMemoryCount(); i++) {
@@ -238,6 +214,8 @@ int main(int argc, char *argv[]) {
             *output << " ;" << endl;
         }
     }
+    
+    *output << endl;
 
     return 0;
 }
