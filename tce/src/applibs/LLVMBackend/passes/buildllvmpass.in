@@ -8,8 +8,8 @@ then
 else
     compiler="@CXX@"
     llvmlibs="-lLLVMCodeGen"
-    llvmldflags=$(llvm-config --ldflags)
-    llvmcppflags=$(llvm-config --cppflags)
+    llvmldflags=$(@LLVM_CONFIG@ --ldflags)
+    llvmcppflags=$(@LLVM_CONFIG@ --cppflags)
     soflags="@SHARED_CXX_FLAGS@ -o"
     objectfile=$1
     shift
