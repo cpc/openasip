@@ -299,7 +299,13 @@ SPACER="              "
 # used by the timer
 SECONDS_CMD="date +%s"
 
-ERROR_MAIL_SUBJECT="OMG! Compiletest was a disaster @ ${HOSTNAME}"
+MACHINE_NAME=${HOSTNAME}
+if [ "x${HOST_DESC}" != "x" ] 
+then
+    MACHINE_NAME=${HOST_DESC}
+fi
+
+ERROR_MAIL_SUBJECT="OMG! Compiletest was a disaster @ $MACHINE_NAME"
 if [ "x${useMutt}" == "xyes" ]; then
     MAIL_BIN=`which mutt`
 else
@@ -964,7 +970,7 @@ function compile_test_with_all_compilers {
             if [ "x$ERROR_MAIL" == "xyes" ]; then
                 # send e-mail that states that everything has been OK for n runs
                 eval echo "Good work, guys!" | $MAIL_BIN -s \
-"GREAT! Compiletest @ ${HOSTNAME} has been successful $goodRuns times since "\
+"GREAT! Compiletest @ $MACHINE_NAME has been successful $goodRuns times since "\
 "the last e-mail." $ERROR_MAIL_ADDRESS 
             fi
             echo -n 0 > $goodRunCountFile
