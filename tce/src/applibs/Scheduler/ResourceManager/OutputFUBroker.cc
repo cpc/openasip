@@ -343,12 +343,13 @@ OutputFUBroker::unassign(MoveNode& node) {
         SchedulingResource& res = resourceOf(src.functionUnit());
         const ControlUnit* gcu =
             dynamic_cast<const ControlUnit*>(&machinePartOf(res));
-        if (gcu != NULL) {
-            // gcu output is ra read
-            return;
-        }
-        OutputFUResource& fuRes = dynamic_cast<OutputFUResource&>(res);
-        fuRes.unassign(node.cycle(), node);
+
+        // not ra read? unassign from fu
+        if (gcu == NULL) {
+            OutputFUResource& fuRes = dynamic_cast<OutputFUResource&>(res);
+            fuRes.unassign(node.cycle(), node);
+        } 
+        // removed from assigned resources also if ra read
         assignedResources_.erase(&node);
     }
 }

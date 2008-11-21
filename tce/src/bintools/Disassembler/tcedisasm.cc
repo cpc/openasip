@@ -182,7 +182,8 @@ int main(int argc, char *argv[]) {
     Word first = disassembler.startAddress();
     *output<< "CODE " << first << " ;" << endl << endl;
 
-    *output << POMDisassembler::disassemble(*program) << endl << endl;
+    *output << POMDisassembler::disassemble(*program,options.lineNumbers())
+            << endl << endl;
 
     // Write data memory initializations.
     for (int i = 0; i < program->dataMemoryCount(); i++) {

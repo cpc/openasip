@@ -183,6 +183,10 @@ void CopyingDelaySlotFiller::fillDelaySlots(
             }
 
             // register copy added leaves some inter-bb edges..
+            // also delay slot filler itself does not create
+            // all edges, at least if filling fall-thru jumps.
+            // so always run the routine until fixed,
+            // if-fall-thru jumps enabled.
             if (!fullyConnected) {
                 ddg_->fixInterBBAntiEdges(jumpingBB, nextBBN);
             }
@@ -455,10 +459,13 @@ CopyingDelaySlotFiller::tryToFillSlots(
             break;
         }
 
-        if (filler.hasJump() || filler.hasCall()) {
-            failed = true;
-            break; // goto cleanup
-        }
+// this would allow a bit better performance but breaks compiled sim.
+//        if (!fallThru) {
+            if (filler.hasJump() || filler.hasCall()) {
+                failed = true;
+                break; // goto cleanup
+            }
+//        }
 
         // loop thru all moves in the instr
         for (int j = 0; j < filler.moveCount(); j++) {
@@ -690,6 +697,8 @@ CopyingDelaySlotFiller::tryToFillSlots(
             MoveNode& mn = **iter;
             ddg_->addNode(mn, blockToFillNode);
             mnOwned_[&mn] = false;
+
+            // TODO: this may not work as it should?
             ddg_->copyDependencies(*oldMoveNodes_[&mn],mn);
             // adjust program operations to original in other BB is not
             // whole BB copied.
