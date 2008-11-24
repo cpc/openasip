@@ -1552,67 +1552,135 @@ void
 DataDependenceGraph::fixInterBBAntiEdges(
     BasicBlockNode& bbn1, BasicBlockNode& bbn2) throw (Exception) {
 
-    // TODO: creating heave, remembering fast
+    // TODO: creating heavy, remembering fast
     DataDependenceGraph* sg1 = createSubgraph(bbn1.basicBlock());
     DataDependenceGraph* sg2 = createSubgraph(bbn2.basicBlock());
 
+    // todo: some day get these from bookkeeping
+    std::map<TCEString, int> handledRegs2;
+    std::map<TCEString,MoveNode*> firstWrites2;
+    std::map<TCEString, MoveNode*> lastReads1;
+    std::map<TCEString, MoveNode*> lastWrites1;
+    std::map<TCEString, MoveNode*> lastGuards1;
+
+    // find all last guard uses, reg reads and reg writes
+    // from the first BB.
+    for (int n1 = sg1->nodeCount() -1 ; n1 >= 0 ; n1--) {
+        MoveNode& mn1 = sg1->node(n1);
+        if (mn1.isMove()) {
+            TTAProgram::Move& move1 = mn1.move();
+            TTAProgram::Terminal& dest = move1.destination();
+            TTAProgram::Terminal& src = move1.source();
+            int cycle = mn1.cycle();
+            assert(cycle > -1);
+
+            // find last write
+            if (dest.isGPR()) {
+                int index = dest.index();
+                const TTAMachine::RegisterFile& rf = dest.registerFile();
+                TCEString reg1 = rf.name() + '.' + 
+                    Conversion::toString(index);
+
+                std::map<TCEString, MoveNode*>::iterator iter2 = lastWrites1.find(reg1);
+                if (iter2 == lastWrites1.end() || 
+                    iter2->second->cycle() < cycle) {
+                    lastWrites1[reg1] = &mn1;
+                }
+            }
+
+            // find last read
+            if (src.isGPR()) {
+                int index = src.index();
+                const TTAMachine::RegisterFile& rf = src.registerFile();
+                TCEString reg1 = rf.name() + '.' + 
+                    Conversion::toString(index);
+
+                std::map<TCEString, MoveNode*>::iterator iter2 = lastReads1.find(reg1);
+                if (iter2 == lastReads1.end() || 
+                    iter2->second->cycle() < cycle) {
+                    lastReads1[reg1] = &mn1;
+                }
+            }
+
+            // find last guard use
+            if (!move1.isUnconditional()) {
+                TTAMachine::Guard& g = mn1.move().guard().guard();
+                TTAMachine::RegisterGuard* rg = 
+                    dynamic_cast<TTAMachine::RegisterGuard*>(&g);
+                int index = rg->registerIndex();
+                const TTAMachine::RegisterFile& rf = *rg->registerFile();
+                TCEString reg1 = rf.name() + '.' + 
+                    Conversion::toString(index);
+                
+                std::map<TCEString, MoveNode*>::iterator iter2 = lastGuards1.find(reg1);
+                if (iter2 == lastGuards1.end() || 
+                    iter2->second->cycle() < cycle) {
+                    lastGuards1[reg1] = &mn1;
+                }
+            }
+        }
+    }
+
+    // then find all first reg write from the second BB.
     for (int n2 = 0; n2 < sg2->nodeCount(); n2++) {
         MoveNode& mn2 = sg2->node(n2);
-        if (mn2.isMove() && mn2.move().destination().isGPR()) {
-//            if (sg2->rAntiEdgesIn(mn2) == 0 ) {
-                for (int n1 = sg1->nodeCount() -1 ; n1 >= 0; n1--) {
-                    MoveNode& mn1 = sg1->node(n1); 
-                    if (mn1.isMove()) {
-                        if (mn1.move().source().isGPR() &&  // WAR?
-                            mn1.move().source().equals(
-                                mn2.move().destination()) &&
-                            !sg1->rWarEdgesOutUncond(mn1)) {
-                            DataDependenceEdge* edge = 
-                                new DataDependenceEdge(
-                                    DataDependenceEdge::EDGE_REGISTER,
-                                    DataDependenceEdge::DEP_WAR);
-                            connectNodes(mn1, mn2, *edge);
-                        }
-                        if (mn1.move().destination().isGPR() && // WAW?
-                            mn1.move().destination().equals(
-                                mn2.move().destination()) &&
-                            !sg1->rWawRawEdgesOutUncond(mn1)) {
-                            DataDependenceEdge* edge = 
-                                new DataDependenceEdge(
-                                    DataDependenceEdge::EDGE_REGISTER,
-                                    DataDependenceEdge::DEP_WAW);
-                            connectNodes(mn1, mn2, *edge);
-                        }
-                        // antideps also for guards
-                        if (!mn1.move().isUnconditional()) {
-                            TTAMachine::Guard& g = mn1.move().guard().guard();
-                            TTAMachine::RegisterGuard* rg = 
-                                dynamic_cast<TTAMachine::RegisterGuard*>(&g);
-                            if (rg != NULL && 
-                                mn2.move().destination().isGPR()) {
-                                TTAProgram::TerminalRegister& tr = 
-                                    dynamic_cast<
-                                    TTAProgram::TerminalRegister&>(
-                                        mn2.move().destination());
-                                if (rg->registerFile() == &tr.registerFile() &&
-                                    rg->registerIndex() == tr.index() && 
-                                    !sg1->rWarEdgesOutUncond(mn1)) {
-                                    DataDependenceEdge* edge = 
-                                        new DataDependenceEdge(
-                                            DataDependenceEdge::EDGE_REGISTER,
-                                            DataDependenceEdge::DEP_WAR,true);
-                                    connectNodes(mn1, mn2, *edge);
-                                }
-                            }
-                        }
-                    }
+        if (mn2.isMove()) {
+            TTAProgram::Terminal& dest = mn2.move().destination();
+            if (dest.isGPR()) {
+                int cycle = mn2.cycle();
+                int index = dest.index();
+                const TTAMachine::RegisterFile& rf = dest.registerFile();
+                TCEString reg2 = rf.name() + '.' + 
+                    Conversion::toString(index);
+
+                std::map<TCEString, MoveNode*>::iterator iter2 = firstWrites2.find(reg2);
+                if (iter2 == firstWrites2.end() || 
+                    iter2->second->cycle() > cycle) {
+                    firstWrites2[reg2] = &mn2;
                 }
-//            }
+            }
+        }
+    }
+
+    // then go thru them
+    for (std::map<TCEString, MoveNode*>::iterator iter2 = firstWrites2.begin();
+         iter2 != firstWrites2.end(); iter2++) {
+        const TCEString& reg2 = iter2->first;
+        MoveNode& mn2 = *(iter2->second);
+        
+        // WaRs
+        MoveNode* mn1 = lastReads1[reg2];
+        if (mn1 != NULL) {
+            DataDependenceEdge* edge = 
+                new DataDependenceEdge(
+                    DataDependenceEdge::EDGE_REGISTER,
+                    DataDependenceEdge::DEP_WAR);
+            connectNodes(*mn1, mn2, *edge);
+        }
+        
+        // WaWs
+        mn1 = lastWrites1[reg2];
+        if (mn1 != NULL) {
+            DataDependenceEdge* edge = 
+                new DataDependenceEdge(
+                    DataDependenceEdge::EDGE_REGISTER,
+                    DataDependenceEdge::DEP_WAW);
+            connectNodes(*mn1, mn2, *edge);
+        }
+        
+        // guard WaRs
+        mn1 = lastGuards1[reg2];
+        if (mn1 != NULL) {
+            DataDependenceEdge* edge = 
+                new DataDependenceEdge(
+                    DataDependenceEdge::EDGE_REGISTER,
+                    DataDependenceEdge::DEP_WAR,true);
+            connectNodes(*mn1, mn2, *edge);
         }
     }
     delete sg1;
     delete sg2;
- }
+}
 
 /**
  * Copies all dependencies going to and from a movenode to another
