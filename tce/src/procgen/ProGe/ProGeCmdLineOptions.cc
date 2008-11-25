@@ -32,6 +32,7 @@
  * Implementation of ProGeCmdLineOptions class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -47,9 +48,7 @@ const string BEM_PARAM_NAME = "bem";
 const string IDF_PARAM_NAME = "idf";
 const string ICDECODER_PARAM_NAME = "gen";
 const string HDL_PARAM_NAME = "hdl";
-const string DECOMPRESSOR_PARAM_NAME = "decomp";
 const string OUTPUTDIR_PARAM_NAME = "output";
-const string IMEM_WIDTH_IN_MAUS_PARAM_NAME = "imemwidthinmaus";
 const string PLUGIN_PARAMETERS_PARAM_NAME = "pluginparameters";
 
 /**
@@ -71,10 +70,6 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
         new StringCmdLineOptionParser(
             OUTPUTDIR_PARAM_NAME, "The output directory", "o");
     addOption(outputDirectory);
-    IntegerCmdLineOptionParser* imemWidth = new IntegerCmdLineOptionParser(
-        IMEM_WIDTH_IN_MAUS_PARAM_NAME, 
-        "Width of instruction memory in MAUs. Default value is 1.", "w");
-    addOption(imemWidth);
     StringCmdLineOptionParser* pluginParameters = 
         new StringCmdLineOptionParser(
             PLUGIN_PARAMETERS_PARAM_NAME, "List plugin parameters for an "
@@ -133,22 +128,6 @@ ProGeCmdLineOptions::hdl() const {
     return findOption(HDL_PARAM_NAME)->String();
 }
 
-
-/**
- * Returns the given instruction memory width in MAUs.
- *
- * @return The width.
- */
-int
-ProGeCmdLineOptions::imemWidthInMAUs() const {
-    CmdLineOptionParser* option = findOption(
-        IMEM_WIDTH_IN_MAUS_PARAM_NAME);
-    if (option->isDefined()) {
-        return option->integer();
-    } else {
-        return 1;
-    }
-}
 
 /**
  * Returns the given output directory.

@@ -32,6 +32,7 @@
  * Declaration of CodeCompressorPlugin class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -97,7 +98,7 @@ public:
     virtual ~CodeCompressorPlugin();
 
     void setParameters(ParameterTable parameters);
-    void setPrograms(std::set<TPEF::Binary*> programs);
+    void setPrograms(std::map<std::string, TPEF::Binary*>& programs);
     void setMachine(const TTAMachine::Machine& machine);
     void setBEM(const BinaryEncoding& bem);
 
@@ -112,7 +113,7 @@ public:
      * @return The bit image.
      * @exception InvalidData If the BEM is erroneous.
      */
-    virtual InstructionBitVector* compress(TPEF::Binary& program)
+    virtual InstructionBitVector* compress(std::string& program)
         throw (InvalidData) = 0;
 
     /**
@@ -134,13 +135,18 @@ public:
     TTAProgram::Program& currentProgram() const
         throw (NotAvailable);
     
+    int imemMauWidth() const;
+
 protected:
+    /// Map type for handling programs
+    typedef std::map<std::string, TPEF::Binary*> TPEFMap;
+
     CodeCompressorPlugin();
 
     InstructionBitVector* bemBits(const TTAProgram::Program& program)
         throw (InvalidData);
 
-    void startNewProgram(TPEF::Binary& binary)
+    void startNewProgram(std::string& programName)
         throw (InvalidData);
     void addInstruction(
         const TTAProgram::Instruction& instruction, 
@@ -158,9 +164,14 @@ protected:
     std::string parameterValue(const std::string& paramName) const
         throw (NotAvailable);
 
+    void setImemWidth(int mau, int widthInMaus = 1);
+
+    int numberOfPrograms() const;
+    
+    TPEFMap::const_iterator programElement(int index) const;
+
 private:
-    /// Set type for TPEF programs.
-    typedef std::set<TPEF::Binary*> TPEFSet;
+
     /// Set type for Instructions.
     typedef std::set<const TTAProgram::Instruction*> InstructionSet;
     /// Set type for Immediates.
@@ -275,12 +286,15 @@ private:
         const TPEF::ImmediateElement& immElem,
         const TTAProgram::Instruction& instruction) const;
 
-    /// TPEFs run in the machine.
-    TPEFSet tpefPrograms_;
+    /// Programs run in the machine.
+    TPEFMap tpefPrograms_;
     /// The current TPEF.
     TPEF::Binary* currentTPEF_;
     /// The current program in POM.
     TTAProgram::Program* currentPOM_;
+    /// The current program
+    std::string currentProgram_;
+
     /// The binary encoding map.
     const BinaryEncoding* bem_;
     /// The machine.

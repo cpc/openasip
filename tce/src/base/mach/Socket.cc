@@ -71,7 +71,7 @@ const string Socket::OSVALUE_UNKNOWN = "unknown";
  */
 Socket::Socket(const std::string& name)
     throw (InvalidName) :
-    Component(name), direction_(UNKNOWN) {
+    Component(name), direction_(UNKNOWN), dataPortWidth_() {
 }
 
 
@@ -87,7 +87,7 @@ Socket::Socket(const std::string& name)
  */
 Socket::Socket(const ObjectState* state)
     throw (ObjectStateLoadingException) :
-    Component(state), direction_(UNKNOWN) {
+    Component(state), direction_(UNKNOWN), dataPortWidth_() {
 }
 
 
@@ -406,6 +406,17 @@ Socket::segment(int index) const
     return busses_[index]->bus();
 }
 
+    bool Socket::hasDataPortWidth() const {
+        return !dataPortWidth_.empty();
+    }
+
+    std::string const& Socket::dataPortWidth() const {
+        return dataPortWidth_;
+    }
+
+    void Socket::setDataPortWidth(string const& width) {
+        dataPortWidth_ = width;
+    }
 
 /**
  * Registers the socket to a machine.

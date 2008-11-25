@@ -3,9 +3,10 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 entity printchar_always_1 is
-
+	generic (
+		dataw  : integer := 32);
   port (
-    t1data : in std_logic_vector(7 downto 0);
+    t1data : in std_logic_vector(dataw-1 downto 0);
     t1load : in std_logic;
     rstx   : in std_logic;
     glock  : in std_logic;

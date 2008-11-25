@@ -32,6 +32,7 @@
  * Implementation of AsciiImageWriter class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -77,6 +78,12 @@ AsciiImageWriter::writeImage(std::ostream& stream) const {
         if (column == rowLength_ && nextIter != bits_.end()) {
             stream << '\n';
             column = 0;
+        } else if (nextIter == bits_.end()) {
+            // pad the remaining bits with zeroes if necessary
+            while (column < rowLength_) {
+                stream << "0";
+                column++;
+            }
         }
     }
 }
@@ -116,20 +123,23 @@ AsciiImageWriter::rowLength() const {
  *                       the row.
  */
 void
-AsciiImageWriter::writeSequence(std::ostream& stream, int length) const
+AsciiImageWriter::writeSequence(
+    std::ostream& stream, int length, bool padEnd) const
     throw (OutOfRange) {
-
     unsigned int lastIndex = nextBitIndex_ + length - 1;
 
-    if (lastIndex >= bits_.size()) {
-        const string procName = "AsciiImageWriter::writeRow";
+    if (lastIndex >= bits_.size() && !padEnd) {
+        const string procName = "AsciiImageWriter::writeSequence";
         throw OutOfRange(__FILE__, __LINE__, procName);
     }
 
     for (unsigned int index = nextBitIndex_; index <= lastIndex; index++) {
-        stream << bits_[index];
+        if (index < bits_.size()) {
+            stream << bits_[index];
+        } else {
+            stream << "0";
+        }
     }
-
     nextBitIndex_ = lastIndex + 1;
 }
         

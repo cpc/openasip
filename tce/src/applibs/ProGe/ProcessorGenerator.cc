@@ -33,6 +33,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -105,8 +106,8 @@ ProcessorGenerator::~ProcessorGenerator() {
  * @param plugin The IC/decoder generator plugin.
  * @param imemWidthInMAUs Width of the instruction memory in MAUs.
  * @param dstDirectory The destination directory.
- * @param outputStream Stream where warnings etc. information output is
- *                     written.
+ * @param outputStream Stream where errors are written.
+ * @param warningStream Stream where warnings are written
  * @exception IOException If an IO error occurs.
  * @exception InvalidData If implementation of a block defined in IDF is
  *                        not available or if HDB is erroneous or if the
@@ -123,12 +124,13 @@ ProcessorGenerator::generateProcessor(
     ICDecoderGeneratorPlugin& plugin,
     int imemWidthInMAUs,
     const std::string& dstDirectory,
-    std::ostream& outputStream)
+    std::ostream& errorStream,
+    std::ostream& warningStream)
     throw (IOException, InvalidData, IllegalMachine, OutOfRange,
            InstanceNotFound) {
 
     // validate the machine
-    validateMachine(machine, outputStream);
+    validateMachine(machine, errorStream, warningStream);
     // check the compatibility of the plugin
     plugin.verifyCompatibility();
     // check that IU implementation latencies are compatible with the
@@ -208,7 +210,7 @@ ProcessorGenerator::generateGlobalsPackage(
         throw IOException(__FILE__, __LINE__, __func__, errorMsg);
     }
 
-    int iMemMAUWidth = machine.controlUnit()->addressSpace()->width();
+    int iMemMAUWidth = bem.width();
 
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
     stream << "package globals is" << endl;
@@ -218,9 +220,6 @@ ProcessorGenerator::generateGlobalsPackage(
     stream << "  -- address width of the instruction memory" << endl;
     stream << "  constant IMEMADDRWIDTH : positive := "
            << iMemAddressWidth(machine) << ";" << endl;
-    stream << "  -- width of the MAU of instruction memory" << endl;
-    stream << "  constant IMEMMAUWIDTH : positive := " << iMemMAUWidth << ";"
-           << endl;
     stream << "  -- width of the instruction memory in MAUs" << endl;
     stream << "  constant IMEMWIDTHINMAUS : positive := " << imemWidthInMAUs
            << ";" << endl;
@@ -249,7 +248,7 @@ ProcessorGenerator::generateGlobalsPackage(
 void
 ProcessorGenerator::validateMachine(
     const TTAMachine::Machine& machine,
-    std::ostream& outputStream)
+    std::ostream& errorStream, std::ostream& warningStream)
     throw (IllegalMachine) {
 
     MachineValidator validator(machine);
@@ -271,9 +270,9 @@ ProcessorGenerator::validateMachine(
         string errorMsg = results->error(i).second;
         if (code ==
             MachineValidator::IMEM_ADDR_WIDTH_DIFFERS_FROM_RA_AND_PC) {
-            outputStream << "Warning: " << errorMsg
-                         << " ProGe uses the value set in the address space."
-                         << endl;
+            warningStream << "Warning: " << errorMsg
+                          << " ProGe uses the value set in the address space."
+                          << endl;
         } else {
             string msg = "Error: " + errorMsg;
             delete results;

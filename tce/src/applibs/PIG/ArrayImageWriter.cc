@@ -32,9 +32,12 @@
  * Implementation of ArrayImageWriter class.
  *
  * @author Lasse Laasonen 2006 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
+#include <cmath>
+#include <iostream>
 #include "ArrayImageWriter.hh"
 #include "BitVector.hh"
 
@@ -63,13 +66,17 @@ ArrayImageWriter::~ArrayImageWriter() {
  */
 void
 ArrayImageWriter::writeImage(std::ostream& stream) const {
-    int lineCount = bits().size() / rowLength();
+    int lineCount = 
+        static_cast<int>(
+            ceil(static_cast<double>(bits().size()) / rowLength()));
+
     for (int line = 1; line < lineCount; line++) {
         stream << "\"";
         writeSequence(stream, rowLength());
         stream << "\"," << std::endl;
     }
     stream << "\"";
-    writeSequence(stream, rowLength());
+    bool padRemainingBits = true;
+    writeSequence(stream, rowLength(), padRemainingBits);
     stream << "\"";
 }

@@ -46,11 +46,11 @@ class DEFAULT_Compressor : public CodeCompressorPlugin {
 public: 
     DEFAULT_Compressor() : CodeCompressorPlugin() {}
 
-    virtual InstructionBitVector* compress(TPEF::Binary& program) 
+    virtual InstructionBitVector* compress(std::string& programName) 
         throw (InvalidData) {
 
         try {
-            startNewProgram(program);
+            startNewProgram(programName);
             setAllInstructionsToStartAtBeginningOfMAU();
             Instruction* instruction = &currentProgram().firstInstruction();
             while (instruction != &NullInstruction::instance()) {

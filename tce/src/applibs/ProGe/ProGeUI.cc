@@ -33,6 +33,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -257,7 +258,8 @@ ProGeUI::loadICDecoderGeneratorPlugin(
  * @param imemWidthInMAUs Width of the instruction memory in MAUs.
  * @param language The language to generate.
  * @param dstDirectory The destination directory.
- * @param outputStream Stream where error messages etc. are written.
+ * @param errorStream Stream where error messages are written.
+ * @param warningStream Stream where warning messages are written.
  * @exception InvalidData If ADF or IDF is not loaded.
  * @exception IOException If an IO exception occurs.
  * @exception DynamicLibraryException If the default plugin cannot be opened.
@@ -272,7 +274,8 @@ ProGeUI::generateProcessor(
     int imemWidthInMAUs,
     HDL language,
     const std::string& dstDirectory,
-    std::ostream& outputStream)
+    std::ostream& errorStream,
+    std::ostream& warningStream)
     throw (InvalidData, DynamicLibraryException, IOException,
            IllegalMachine, OutOfRange, InstanceNotFound) {
 
@@ -298,6 +301,10 @@ ProGeUI::generateProcessor(
             errorMsg = bemValidator.errorMessage(0);
         }
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
+    } else if (bemValidator.warningCount() > 0) {
+        for (int i = 0; i < bemValidator.warningCount(); i++) {
+            warningStream << bemValidator.warningMessage(i) << std::endl;
+        }
     }
 
     if (plugin_ == NULL) {
@@ -321,7 +328,7 @@ ProGeUI::generateProcessor(
     ProcessorGenerator generator;
     generator.generateProcessor(
         language, *machine_, *idf_, *plugin_, imemWidthInMAUs,
-        dstDirectory, outputStream);
+        dstDirectory, errorStream, warningStream);
 }
 
 

@@ -32,6 +32,7 @@
  * Implementation of ProgramImageGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -128,7 +129,7 @@ ProgramImageGenerator::loadCompressorParameters(
  * @param programs The programs.
  */
 void
-ProgramImageGenerator::loadPrograms(std::set<TPEF::Binary*> programs) {
+ProgramImageGenerator::loadPrograms(TPEFMap programs) {
     compressor_->setPrograms(programs);
 }
 
@@ -174,7 +175,7 @@ ProgramImageGenerator::loadBEM(const BinaryEncoding& bem) {
  */
 void
 ProgramImageGenerator::generateProgramImage(
-    TPEF::Binary& program,
+    std::string& programName,
     std::ostream& stream,
     OutputFormat format,
     int mausPerLine) 
@@ -185,20 +186,22 @@ ProgramImageGenerator::generateProgramImage(
         throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
     }
 
-    InstructionBitVector* programBits = compressor_->compress(program);
+    InstructionBitVector* programBits = compressor_->compress(programName);
     int mau = compressor_->machine().controlUnit()->addressSpace()->width();
     BitImageWriter* writer = NULL;
 
     if (format == BINARY) {
         writer = new RawImageWriter(*programBits);
     } else if (format == ASCII) {
-        if (mausPerLine > 0) {
+        // change this to "mausPerLine > 0" when mau == instructionwidth
+        // does not apply anymore
+        if (mausPerLine > 1) {
             writer = new AsciiImageWriter(*programBits, mau * mausPerLine);
         } else {
            writer = new AsciiProgramImageWriter(*programBits);
-        }
+       }
     } else if (format == ARRAY) {
-        if (mausPerLine > 0) {
+        if (mausPerLine > 1) {
             writer = new ArrayImageWriter(*programBits, mau * mausPerLine);
         } else {
             writer = new ArrayProgramImageWriter(*programBits);
@@ -232,6 +235,7 @@ ProgramImageGenerator::generateProgramImage(
  */
 void
 ProgramImageGenerator::generateDataImage(
+    std::string& programName,
     TPEF::Binary& program,
     const std::string& addressSpace,
     std::ostream& stream,
@@ -261,7 +265,7 @@ ProgramImageGenerator::generateDataImage(
     AddressSpace* as = navigator.item(addressSpace);
 
     if (!usePregeneratedImage) {
-        InstructionBitVector* programBits = compressor_->compress(program);
+        InstructionBitVector* programBits = compressor_->compress(programName);
         delete programBits;
     }
 
@@ -495,3 +499,14 @@ ProgramImageGenerator::relocTarget(
 
     return NULL;
 }
+
+/**
+ * Asks the instruction memory mau width from code compressor plugin and 
+ * returns it
+ *
+ * @return instruction memory mau width
+ */
+int ProgramImageGenerator::imemMauWidth() const {
+    return compressor_->imemMauWidth();
+}
+    

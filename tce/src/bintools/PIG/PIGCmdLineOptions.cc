@@ -32,6 +32,7 @@
  * Implementation of PIGCmdLineOptions class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -51,12 +52,11 @@ const std::string PIGCmdLineOptions::DATA_IMG_PARAM_NAME = "dataimages";
 const std::string PIGCmdLineOptions::GEN_DECOMP_PARAM_NAME = "decompressor";
 const std::string PIGCmdLineOptions::DMEM_WIDTH_IN_MAUS_PARAM_NAME = 
     "dmemwidthinmaus";
-const std::string PIGCmdLineOptions::IMEM_WIDTH_IN_MAUS_PARAM_NAME =
-    "imemwidthinmaus";
 const std::string PIGCmdLineOptions::COMPRESSOR_PARAMS_PARAM_NAME = 
     "compressor param";
 const std::string PIGCmdLineOptions::SHOW_COMPRESSORS_PARAM_NAME =
     "showcompressors";
+const std::string PIGCmdLineOptions::HDL_OUTPUT_DIR = "hdl-dir";
 
 /**
  * The constructor.
@@ -96,13 +96,6 @@ PIGCmdLineOptions::PIGCmdLineOptions() : CmdLineOptions("") {
             DMEM_WIDTH_IN_MAUS_PARAM_NAME,
             "Width of data memory in MAUs. Default is 1.", "w");
     addOption(dmemMAUsPerLine);
-    IntegerCmdLineOptionParser* imemMAUsPerLine =
-        new IntegerCmdLineOptionParser(
-            IMEM_WIDTH_IN_MAUS_PARAM_NAME,
-            "Width of instruction memory in MAUs. Affects the ASCII output "
-            "formats. If not given, each instruction is printed on "
-            "different line.", "i");
-    addOption(imemMAUsPerLine);
     StringListCmdLineOptionParser* compressorParams = 
         new StringListCmdLineOptionParser(
             COMPRESSOR_PARAMS_PARAM_NAME,
@@ -112,6 +105,13 @@ PIGCmdLineOptions::PIGCmdLineOptions() : CmdLineOptions("") {
         SHOW_COMPRESSORS_PARAM_NAME, "Show compressor plugin descriptions.",
         "s");
     addOption(showCompressors);
+    string hdlDirDesc("Directory root where ProGe generated HDL files. "
+                      "Generatebits will write imem_mau_pkg and "
+                      "decompressor, if it is needed, under the given "
+                      "directory. Otherwise they are written to cwd.");
+    StringCmdLineOptionParser* hdlDir = new StringCmdLineOptionParser(
+        HDL_OUTPUT_DIR, hdlDirDesc, "x");
+    addOption(hdlDir);
 }
 
 
@@ -213,22 +213,6 @@ PIGCmdLineOptions::dataMemoryWidthInMAUs() const {
 
 
 /**
- * Returns the given width of instruction memory in MAUs.
- *
- * @return The width.
- */
-int
-PIGCmdLineOptions::instructionMemoryWidthInMAUs() const {
-    CmdLineOptionParser* option = findOption(IMEM_WIDTH_IN_MAUS_PARAM_NAME);
-    if (option->isDefined()) {
-        return option->integer();
-    } else {
-        return 0;
-    }
-}
-
-
-/**
  * Tells whether to create data images or not.
  */
 bool
@@ -282,6 +266,16 @@ PIGCmdLineOptions::compressorParameter(int index) const
 bool
 PIGCmdLineOptions::showCompressors() const {
     return findOption(SHOW_COMPRESSORS_PARAM_NAME)->isFlagOn();
+}
+
+/**
+ * Returns the proge output directory. Empty if not given
+ *
+ * @return proge output directory
+ */
+std::string
+PIGCmdLineOptions::progeOutputDirectory() const {
+    return findOption(HDL_OUTPUT_DIR)->String();
 }
 
 

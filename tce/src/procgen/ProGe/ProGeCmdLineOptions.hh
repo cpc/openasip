@@ -32,6 +32,7 @@
  * Declaration of ProGeCmdLineOptions class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -53,7 +54,6 @@ public:
     std::string bemFile() const;
     std::string idfFile() const;
     std::string hdl() const;
-    int imemWidthInMAUs() const;
     std::string outputDirectory() const;
     std::string pluginParametersQuery() const;
 

@@ -27,6 +27,7 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use work.globals.all;
+use work.imem_mau.all;
 
 entity decompressor is
 

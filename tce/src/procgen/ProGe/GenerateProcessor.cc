@@ -33,6 +33,7 @@
  * "generateprocessor".
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @authot Otto Esko 2008 (otto.esko-no.spam-tut.fi
  * @note rating: red
  */
 
@@ -53,6 +54,8 @@ using std::string;
 using std::cerr;
 using std::endl;
 using std::cout;
+
+int const DEFAULT_IMEMWIDTH_IN_MAUS = 1;
 
 /**
  * The main program of generateprocessor application.
@@ -132,7 +135,8 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         string bem = options.bemFile();
         string idf = options.idfFile();
         string hdl = options.hdl();
-        int imemWidthInMAUs = options.imemWidthInMAUs();
+
+        int imemWidthInMAUs = DEFAULT_IMEMWIDTH_IN_MAUS;
 
         if (bem != "") {
             loadBinaryEncoding(bem);
@@ -150,8 +154,11 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         }
         
         ProGeUI::generateProcessor(
-            imemWidthInMAUs, language, outputDirectory, std::cout);
+            imemWidthInMAUs, language, outputDirectory, std::cout, std::cout);
     } catch (ParserStopRequest) {
+        return false;
+    } catch (const IllegalCommandLine& exception) {
+        cerr << exception.errorMessage() << endl;
         return false;
     } catch (const Exception& e) {
         cerr << e.errorMessage() << endl;
@@ -166,7 +173,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         ProGeUI::generateTestBench(testBenchDir, outputDirectory);
     } catch (const Exception& e) {
         std::cerr << "Warning: Processor Generator failed to "
-                  << "generate a test bench." << std::endl;
+                  << "generate testbench." << std::endl;
         std::cerr << e.errorMessage() << std::endl;
     }
 
@@ -175,7 +182,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             testBenchDir);
     } catch (const Exception& e) {
         std::cerr << "Warning: Processor Generator failed to "
-                  << "generate a simulation/compilation scripts."
+                  << "generate simulation/compilation scripts."
                   << std::endl;
         std::cerr << e.errorMessage() << std::endl;
     }

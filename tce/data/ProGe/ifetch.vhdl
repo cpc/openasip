@@ -29,6 +29,7 @@ use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;
 use work.globals.all;
 use work.opcodes.all;
+use work.imem_mau.all;
 
 entity ifetch is
 

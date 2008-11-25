@@ -56,14 +56,14 @@ public:
     std::string dataImageOutputFormat() const;
     std::string compressorPlugin() const;
     int dataMemoryWidthInMAUs() const;
-    int instructionMemoryWidthInMAUs() const;
     bool generateDataImages() const;
     bool generateDecompressor() const;
     int compressorParameterCount() const;
     std::string compressorParameter(int index) const
         throw (OutOfRange);
     bool showCompressors() const;
-    
+    std::string progeOutputDirectory() const;
+
     virtual void printVersion() const;
     virtual void printHelp() const;
     void printUsage() const;
@@ -93,6 +93,8 @@ private:
     static const std::string COMPRESSOR_PARAMS_PARAM_NAME;
     /// Long name of the parameter that tells whether to show compressors.
     static const std::string SHOW_COMPRESSORS_PARAM_NAME;
+    /// Long name of the parameter which tells the proge-output dir
+    static const std::string HDL_OUTPUT_DIR;
 };
 
 #endif

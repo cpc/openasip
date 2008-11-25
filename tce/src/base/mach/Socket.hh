@@ -95,6 +95,12 @@ public:
     Segment* segment(int index) const
         throw (OutOfRange);
 
+    bool hasDataPortWidth() const;
+
+    std::string const& dataPortWidth() const;
+
+    void setDataPortWidth(std::string const& width);
+
     virtual void setMachine(Machine& mach)
         throw (ComponentAlreadyExists);
     virtual void unsetMachine();
@@ -132,6 +138,8 @@ private:
 
     /// Direction of the socket.
     Direction direction_;
+    /// Dataport width
+    std::string dataPortWidth_;
     /// Contains all connections to busses.
     ConnectionTable busses_;
     /// Contains all connections to ports.

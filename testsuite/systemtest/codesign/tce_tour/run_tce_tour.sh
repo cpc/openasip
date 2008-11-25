@@ -67,7 +67,7 @@ $PROGE -i $IDF -b $BEM -o $PROGE_OUT $MACH2
 test_success "Failed to generate processor"
 
 # generate bit images
-$PIG -b $BEM -d -w 4 -p $PROG2 $MACH2
+$PIG -b $BEM -d -w 4 -p $PROG2 -x $PROGE_OUT $MACH2
 test_success "Failed to generate bit images"
 
 # If GHDL is found from PATH, compile and simulate

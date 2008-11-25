@@ -1,6 +1,3 @@
-At func1
-At func2
-At func3
-At func4
-At func5
-At func6
+Warning: Return address port has different width than instruction memory address. ProGe uses the value set in the address space.
+Sum of 27 and 6 is 33
+Difference of 27 and 6 is 21

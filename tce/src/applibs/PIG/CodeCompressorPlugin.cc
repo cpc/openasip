@@ -32,6 +32,7 @@
  * Implementation of CodeCompressorPlugin class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (lasse.laasonen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -93,6 +94,7 @@
 using std::string;
 using std::vector;
 using std::pair;
+using std::map;
 using boost::format;
 
 using namespace TTAMachine;
@@ -103,8 +105,12 @@ using namespace TTAProgram;
  * The constructor.
  */
 CodeCompressorPlugin::CodeCompressorPlugin() :
-    currentTPEF_(NULL), currentPOM_(NULL), bem_(NULL), machine_(NULL),
-    programBits_(NULL), allStartsAtBeginningOfMAU_(false) {
+    tpefPrograms_(), currentTPEF_(NULL), currentPOM_(NULL),
+    currentProgram_(), bem_(NULL), machine_(NULL),
+    parameters_(), programBits_(NULL), allStartsAtBeginningOfMAU_(false),
+    mau_(0), addressSpaceOffset_(0), instructionsAtBeginningOfMAU_(),
+    immediatesToRelocate_(), terminalsToRelocate_(), relocMap_(),
+    indexTable_(), instructionAddresses_() {
 }
 
 
@@ -135,10 +141,11 @@ CodeCompressorPlugin::setParameters(ParameterTable parameters) {
 /**
  * Sets the programs to be executed in the machine.
  *
- * @param program Set of programs.
+ * @param program Map of programs.
  */
 void
-CodeCompressorPlugin::setPrograms(std::set<TPEF::Binary*> programs) {
+CodeCompressorPlugin::setPrograms(
+    std::map<std::string, TPEF::Binary*>& programs) {
     tpefPrograms_ = programs;
 }
 
@@ -147,9 +154,11 @@ CodeCompressorPlugin::setPrograms(std::set<TPEF::Binary*> programs) {
  * Sets the machine.
  *
  * Machine must be set before generating the program image.
+ * BEM must be set before calling this
  *
  * @param machine The machine.
  * @exception InvalidData If the machine does not have control unit.
+ * @exception InvalidData If bem is not set
  */
 void
 CodeCompressorPlugin::setMachine(const TTAMachine::Machine& machine) {
@@ -160,7 +169,15 @@ CodeCompressorPlugin::setMachine(const TTAMachine::Machine& machine) {
     }
     machine_ = &machine;
     AddressSpace* iMem = gcu->addressSpace();
-    mau_ = iMem->width();
+    if (bem_ == NULL) {
+        string errorMsg = "Bem not set!";
+            throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
+    }
+    mau_ = bem_->width();
+    //fix machines imem width if adf has wrong value
+    if (mau_ != iMem->width()) {
+       setImemWidth(mau_);
+    }
     addressSpaceOffset_ = iMem->start();
 }    
 
@@ -244,7 +261,7 @@ CodeCompressorPlugin::binaryEncoding() const
 
 
 /**
- * Returns the program being processed currently.
+ * Returns the program (POM) being processed currently.
  *
  * @return The program.
  * @exception NotAvailable If there is no program being processed.
@@ -285,26 +302,41 @@ CodeCompressorPlugin::machine() const
  * This function must be called always before starting to add instructions
  * to the program image.
  *
- * @param program The program of which to generate the image.
+ * @param programName The program of which to generate the image.
  * @exception InvalidData If the program object model cannot be created.
  */
 void
-CodeCompressorPlugin::startNewProgram(Binary& program) 
+CodeCompressorPlugin::startNewProgram(string& programName) 
     throw (InvalidData) {
 
     if (programBits_ != NULL) {
         delete programBits_;
+        programBits_ = NULL;
+    }
+
+    if (tpefPrograms_.find(programName) == tpefPrograms_.end()) {
+        string errorMsg = "Program " + programName + " not found from "
+            + "compressor plugin";
+        throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
+    }
+
+    TPEF::Binary* program = tpefPrograms_.find(programName)->second;
+
+    if (program == NULL) {
+        string errorMsg = "Program bits for program " + programName
+            + " not found";
+        throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
 
     programBits_ = new InstructionBitVector();
-    currentTPEF_ = &program;
+    currentTPEF_ = program;
 
     if (currentPOM_ != NULL) {
         delete currentPOM_;
         currentPOM_ = NULL;
     }
 
-    TPEFProgramFactory factory(program, *machine_);
+    TPEFProgramFactory factory(*program, *machine_);
     try {
         currentPOM_ = factory.build();
     } catch (const Exception& e) {
@@ -545,6 +577,57 @@ CodeCompressorPlugin::parameterValue(const std::string& paramName) const
     throw NotAvailable(__FILE__, __LINE__, __func__);
 }
 
+/**
+ * Returns the mau of instruction memory. Before compression this is the
+ * original width and after compression it returns the compressed instruction
+ * width
+ *
+ * @return mau width
+ */
+int CodeCompressorPlugin::imemMauWidth() const {
+    return mau_;
+}
+
+
+/**
+ * Sets the imem width to the given mau * widthInMaus and mau to given mau
+ *
+ * @param mau Mau of instruction memory
+ * @param widthInMaus Memory width in maus (default = 1)
+ */
+void CodeCompressorPlugin::setImemWidth(int mau, int widthInMaus) {
+    machine_->controlUnit()->addressSpace()->setWidth(mau*widthInMaus);
+    mau_ = mau;
+}
+
+/**
+ * Returns the number of programs to be compressed
+ *
+ * @return number of programs
+ */
+int CodeCompressorPlugin::numberOfPrograms() const {
+    return tpefPrograms_.size();
+}
+
+/**
+ * Returns a const iterator to program map element at the given index
+ *
+ * @return const iterator to program map element
+ * @exception OutOfRange If index is out of range
+ */
+
+CodeCompressorPlugin::TPEFMap::const_iterator
+CodeCompressorPlugin::programElement(int index) const {
+    if (index >= tpefPrograms_.size()) {
+        string errorMsg("Tried to overindex program map");
+        throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
+    }
+    TPEFMap::const_iterator iter = tpefPrograms_.begin();
+    for (int i = 0; i < index; i++) {
+        iter++;
+    }
+    return iter;
+}
 
 /**
  * Adds bits for immediate control field to the given bit vector.

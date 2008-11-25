@@ -32,6 +32,7 @@
  * Implementation of DefaultICGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -136,9 +137,19 @@ DefaultICGenerator::addICToNetlist(
             
             // connect the data port to the units
             for (int i = 0; i < socket->portCount(); i++) {
-                // RA port of GCU is special case
                 Port* port = socket->port(i);
                 NetlistPort* unitPort;
+                
+                // gcu ports must use IMEMADDRWIDTH as width
+                if (isGcuPort(port)) {
+                    delete socketDataPort;
+                    socket->setDataPortWidth("IMEMADDRWIDTH");
+                    socketDataPort = new NetlistPort(
+                        this->inputSocketDataPort(socket->name()),
+                        "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
+                        socketDirection, *icBlock);
+                }
+                // RA port of GCU is special case
                 if (gcu->hasReturnAddressPort() && 
                     port == gcu->returnAddressPort()) {
                     unitPort = &generator.gcuReturnAddressInPort();
@@ -159,6 +170,15 @@ DefaultICGenerator::addICToNetlist(
                 // connect the data port to the unit
                 Port* port = socket->port(i);
                 NetlistPort* unitPort;
+                // gcu ports are treated differently
+                if (isGcuPort(port)) {
+                    delete socketDataPort;
+                    socket->setDataPortWidth("IMEMADDRWIDTH");
+                    socketDataPort = new NetlistPort(
+                        outputSocketDataPort(socket->name(), i),
+                        "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
+                        socketDirection, *icBlock);
+                }
                 // RA port of GCU is special case
                 if (gcu->hasReturnAddressPort() &&
                     port == gcu->returnAddressPort()) {
@@ -192,8 +212,7 @@ DefaultICGenerator::addICToNetlist(
                 ProGe::BIT_VECTOR, HDB::IN, *icBlock);
             mapDataCntrlPortOfSocket(socket->name(), *icSocketCntrlPort);
         }
-        
-    }
+    }   
 
     // add ports for short immediates to IC
     Machine::BusNavigator busNav = machine_.busNavigator();
@@ -364,6 +383,22 @@ DefaultICGenerator::generateSockets(const std::string& dstDirectory) const
     copyHighestPackage(dstDirectory);
 }
 
+/**
+ * Tests if the given port belongs to GCU
+ *
+ * @param port The port to be tested
+ */
+bool DefaultICGenerator::isGcuPort(Port const* port) const {
+    ControlUnit* gcu = machine_.controlUnit();
+    for (int i = 0; i < gcu->portCount(); i++) {
+        TTAMachine::Port* gcuPort = 
+            reinterpret_cast<TTAMachine::Port*>(gcu->port(i));
+        if (gcuPort == port) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * Generates the given socket to a VHDL file in the given directory.
@@ -736,8 +771,15 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         }
         if (socket->direction() == Socket::OUTPUT) {
             for (int i = 0; i < socket->portCount(); i++) {
+                string socketWidth;
+                if (socket->hasDataPortWidth()) {
+                    socketWidth = socket->dataPortWidth();
+                } else {
+                    socketWidth =
+                        Conversion::toString(socket->port(i)->width());
+                }
                 stream << indentation(3) << dataWidthGeneric(i) 
-                       << " => " << socket->port(i)->width();
+                       << " => " << socketWidth;
                 if (i+1 == socket->portCount()) {
                     stream << ")" << endl;
                 } else {
@@ -745,8 +787,15 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
                 }
             }
         } else {
+            string socketWidth;
+            if (socket->hasDataPortWidth()) {
+                socketWidth = socket->dataPortWidth();
+            } else {
+                socketWidth =
+                    Conversion::toString(inputSocketDataPortWidth(*socket));
+            }
             stream << indentation(3) << INPUT_SOCKET_DATAW_GENERIC 
-                   << " => " << inputSocketDataPortWidth(*socket) << ")"
+                   << " => " << socketWidth << ")"
                    << endl;
         }
         stream << indentation(2) << "port map (" << endl;

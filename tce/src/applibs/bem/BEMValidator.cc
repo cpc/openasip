@@ -32,9 +32,9 @@
  * Implementation of BEMValidator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-
 #include <string>
 #include <boost/format.hpp>
 
@@ -46,6 +46,7 @@
 #include "HWOperation.hh"
 #include "Guard.hh"
 #include "FUPort.hh"
+#include "ControlUnit.hh"
 
 #include "BinaryEncoding.hh"
 #include "MoveSlot.hh"
@@ -90,8 +91,8 @@ BEMValidator::~BEMValidator() {
 /**
  * Validates the binary encoding map against the machine.
  *
- * Updates the error messages that can be queried with errorCount and
- * errorMessage methods.
+ * Updates the error and warning messages that can be queried with 
+ * {error,warning}Count and {error,warning}Message methods.
  *
  * @return True if the BEM is valid for the machine, otherwise false.
  */
@@ -120,6 +121,14 @@ BEMValidator::validate() {
 
     // check long immediate destination register fields
     checkLImmDstRegisterFields();
+
+    TTAMachine::ControlUnit* gcu = machine_.controlUnit();
+    if (gcu == NULL) {
+        string errorMsg("Error: Couldn't find GCU from machine");
+        errorMessages_.push_back(errorMsg);
+    } else {
+        checkImemMauWidth(*gcu);
+    }
 
     if (errorCount() == 0) {
         return true;
@@ -159,6 +168,33 @@ BEMValidator::errorMessage(int index) const
     }
 }
 
+/**
+ * Returns the number of warnings found.
+ *
+ * @return The number of warnings.
+ */
+int
+BEMValidator::warningCount() const {
+    return warningMessages_.size();
+}
+
+/**
+ * Returns an warning message by the given index.
+ *
+ * @param index The index.
+ * @return The warning message by the given index.
+ * @exception OutOfRange If the given index is negative or not smaller
+ *                       than the number of errors.
+ */
+std::string
+BEMValidator::warningMessage(int index) const {
+
+    if (index < 0 || index >= warningCount()) {
+        throw OutOfRange(__FILE__, __LINE__, __func__);
+    } else {
+        return warningMessages_[index];
+    }
+}
 
 /**
  * Checks that the move slot for the given bus is valid in BEM.
@@ -649,6 +685,29 @@ BEMValidator::checkLImmDstRegisterFields() {
     }
 }
         
+/**
+ * Checks that the instruction memory width (MAU) is greater or equal than
+ * the width of one instruction.
+ *
+ * @param gcu Global Control Unit of the machine
+ */
+void BEMValidator::checkImemMauWidth(TTAMachine::ControlUnit& gcu) {
+    int imemWidth = 0;
+    if (gcu.hasAddressSpace()) {
+        imemWidth = gcu.addressSpace()->width();
+    } else {
+        string errorMsg("GCU does not have an address space");
+        errorMessages_.push_back(errorMsg);
+    }
+    int instructionWidth = bem_.width();
+    
+    if (imemWidth < instructionWidth) {
+        string warningMsg(
+            "Warning: Instruction width is greater than the instruction "
+            "memory width.");
+        warningMessages_.push_back(warningMsg);
+    }
+}
 
 /**
  * Tells whether the given move slot needs source field.

@@ -39,6 +39,7 @@
  * This compressor creates the dictionary on the level of whole instruction.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -80,14 +81,15 @@ public:
      * The constructor.
      */
     SimpleDictionary() :
-        CodeCompressorPlugin(), compatibilityProgDone_(false) {
+        CodeCompressorPlugin(), compatibilityProgDone_(false),
+        dictionaryCreated_(false) {
     }
     
 
     /**
      * Creates the compressed code and returns the bit vector of it.
      */
-    virtual InstructionBitVector* compress(TPEF::Binary& program) 
+    virtual InstructionBitVector* compress(std::string& programName) 
         throw (InvalidData) {
 
         try {
@@ -110,10 +112,13 @@ public:
             throw InvalidData(
                 __FILE__, __LINE__, __func__, errorMsg);
         }            
-
-        startNewProgram(program);
+        if (!dictionaryCreated_) {
+            createDictionary();
+            // fix imem width (mau == instruction width)
+            setImemWidth(MathTools::requiredBits(dictionary_.size()));
+        }
+        startNewProgram(programName);
         setAllInstructionsToStartAtBeginningOfMAU();
-        updateDictionary(currentProgram());
         addInstructions();
         return programBits();
     }
@@ -161,7 +166,8 @@ public:
         stream << "use ieee.std_logic_1164.all;" << endl;
         stream << "use ieee.std_logic_arith.all;" << endl;
         stream << "use work.globals.all;" << endl;
-        stream << "use work.dict_init.all;" << endl << endl;
+        stream << "use work.dict_init.all;" << endl;
+        stream << "use work.imem_mau.all;" << endl << endl;
      
         // write the decompressor entity
         stream << "entity decompressor is" << endl;
@@ -236,6 +242,20 @@ private:
     /// Map type for dictionary.
     typedef std::map<BitVector, unsigned int> Dictionary;
 
+    /**
+     * Creates the whole dictionary
+     *
+     */
+    void createDictionary() {
+        for (int i = 0; i < numberOfPrograms(); i++) {
+            TPEFMap::const_iterator iter = programElement(i);
+            string name = iter->first;
+            startNewProgram(name);
+            setAllInstructionsToStartAtBeginningOfMAU();
+            updateDictionary(currentProgram());
+        }
+        dictionaryCreated_ = true;
+    }
 
     /**
      * Adds the given instruction bits to the dictionary.
@@ -280,7 +300,8 @@ private:
                 code, static_cast<int>(
                     MathTools::requiredBits(dictionary_.size() - 1)));
             addInstruction(*instruction, compressedInstruction);
-            instruction = &currentProgram().nextInstruction(*instruction);
+            instruction = &currentProgram().nextInstruction(*instruction);  
+            
         }
     }
 
@@ -302,6 +323,8 @@ private:
     Dictionary dictionary_;
     /// Indicates whether the compatibility program is in dictionary.
     bool compatibilityProgDone_;
+    /// Indicates whether the whole dictionary has been created
+    bool dictionaryCreated_;
 
 };
 

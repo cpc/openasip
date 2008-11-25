@@ -46,6 +46,7 @@
 
 use work.toplevel_params.all;
 use work.testbench_constants.all;
+use work.imem_mau.all;
 
 architecture structural_dp_dmem of proc is
 

@@ -32,6 +32,7 @@
  * Implementation of the main function of generatebits application.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -62,6 +63,11 @@ using std::ofstream;
 
 using namespace TPEF;
 using namespace TTAMachine;
+
+int const DEFAULT_IMEMWIDTH_IN_MAUS = 1;
+int const PERIOD = 10;
+string const IMEM_MAU_PKG = "imem_mau_pkg.vhdl";
+string const DECOMPRESSOR_FILE = "decompressor.vhdl";
 
 /**
  * Loads the given TPEF file and creates a Binary instance from it.
@@ -182,8 +188,44 @@ parseParameter(
 
     paramName = param.substr(0, separatorPos);
     paramValue = param.substr(separatorPos+1, param.length());
-}   
+}
 
+
+void createMauPkg(int imemMauWidth, string fileName) {
+    string indentation = "   ";
+ 
+    if (!FileSystem::fileExists(fileName) 
+        && !FileSystem::createFile(fileName)) {
+        string errorMsg = "Unable to create file " + fileName;
+        throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+    } else if (!FileSystem::fileIsWritable(fileName)) {
+        string errorMsg = "Unable to write to file " + fileName;
+        throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+    }
+    std::ofstream stream(fileName.c_str());
+
+    stream << "package imem_mau is" << endl
+
+           << indentation << "-- created by generatebits" << endl
+           << indentation << "constant IMEMMAUWIDTH : positive := "
+           << imemMauWidth << ";" << endl
+           << "end imem_mau;" << endl;
+    stream.close();
+}
+
+void
+createCompressor(string fileName, ProgramImageGenerator& imageGenerator) {
+    bool created = FileSystem::createFile(fileName);
+    if (!created) {
+        string errorMsg = "Unable to create file " + 
+            fileName;
+        throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+    }
+    std::ofstream decompressorStream(
+        fileName.c_str(), std::ofstream::out);
+    imageGenerator.generateDecompressor(decompressorStream);
+    decompressorStream.close();
+}
 
 /**
  * The main function of generatebits application.
@@ -219,11 +261,12 @@ int main(int argc, char* argv[]) {
     string piFormat = options.programImageOutputFormat();
     string diFormat = options.dataImageOutputFormat();
     int dmemMAUsPerLine = options.dataMemoryWidthInMAUs();
-    int imemMAUsPerLine = options.instructionMemoryWidthInMAUs();
     string compressor = options.compressorPlugin();
     bool generateDataImages = options.generateDataImages();
     bool generateDecompressor = options.generateDecompressor();
     bool showCompressors = options.showCompressors();
+    int imemMAUsPerLine = DEFAULT_IMEMWIDTH_IN_MAUS;
+    string progeOutputDir = options.progeOutputDirectory();
 
     if (showCompressors) {
         std::vector<string> compressorFiles = 
@@ -271,19 +314,15 @@ int main(int argc, char* argv[]) {
     }
 
     std::vector<Binary*> tpefTable;        
-
+    ProgramImageGenerator::TPEFMap tpefMap;
     try {
         Machine* mach = loadMachine(adfFile);
 
         for (int i = 0; i < options.tpefFileCount(); i++) {
             string tpefFile = options.tpefFile(i);
-            tpefTable.push_back(loadTPEF(tpefFile));
-        }
-
-        // create set of the Binaries
-        std::set<Binary*> tpefSet;
-        for (size_t i = 0; i < tpefTable.size(); i++) {
-            tpefSet.insert(tpefTable[i]);
+            Binary* tpef = loadTPEF(tpefFile);
+            tpefTable.push_back(tpef);
+            tpefMap[FileSystem::fileOfPath(tpefFile)] = tpef;
         }
 
         BinaryEncoding* bem = NULL;
@@ -298,15 +337,15 @@ int main(int argc, char* argv[]) {
             BEMGenerator bemGenerator(*mach);
             bem = bemGenerator.generate();
         }
-                    
+
         ProgramImageGenerator imageGenerator;
         if (compressor != "") {
             imageGenerator.loadCompressorPlugin(compressor);
         }
         imageGenerator.loadCompressorParameters(compressorParams);
-        imageGenerator.loadMachine(*mach);
         imageGenerator.loadBEM(*bem);
-        imageGenerator.loadPrograms(tpefSet);
+        imageGenerator.loadMachine(*mach);        
+        imageGenerator.loadPrograms(tpefMap);
 
         for (size_t i = 0; i < tpefTable.size(); i++) {
 
@@ -314,18 +353,17 @@ int main(int argc, char* argv[]) {
             string tpefFile = FileSystem::fileOfPath(options.tpefFile(i));
             string imageFile = programImageFile(tpefFile);
             ofstream piStream(imageFile.c_str());
-            
             if (piFormat == "binary") {
                 imageGenerator.generateProgramImage(
-                    *program, piStream, ProgramImageGenerator::BINARY);
+                    tpefFile, piStream, ProgramImageGenerator::BINARY);
             } else if (piFormat == "array") {
                 imageGenerator.generateProgramImage(
-                    *program, piStream, ProgramImageGenerator::ARRAY,
+                    tpefFile, piStream, ProgramImageGenerator::ARRAY,
                     imemMAUsPerLine);
             } else {
                 assert(piFormat == "ascii" || piFormat == "");
                 imageGenerator.generateProgramImage(
-                    *program, piStream, ProgramImageGenerator::ASCII,
+                    tpefFile, piStream, ProgramImageGenerator::ASCII,
                     imemMAUsPerLine);
             }
             
@@ -343,17 +381,17 @@ int main(int argc, char* argv[]) {
                         ofstream stream(fileName.c_str());
                         if (diFormat == "binary") {
                             imageGenerator.generateDataImage(
-                                *program, as->name(), stream, 
+                                tpefFile, *program, as->name(), stream, 
                                 ProgramImageGenerator::BINARY, 0, true);
                         } else if (diFormat == "array") {
                             imageGenerator.generateDataImage(
-                                *program, as->name(), stream, 
+                                tpefFile, *program, as->name(), stream, 
                                 ProgramImageGenerator::ARRAY,
                                 dmemMAUsPerLine, true);
                         } else {
                             assert(diFormat == "ascii" || diFormat == "");
                             imageGenerator.generateDataImage(
-                                *program, as->name(), stream, 
+                                tpefFile, *program, as->name(), stream, 
                                 ProgramImageGenerator::ASCII,
                                 dmemMAUsPerLine, true);
                         }
@@ -364,19 +402,35 @@ int main(int argc, char* argv[]) {
         }
 
         if (generateDecompressor) {
-            string decompressorFile = "decompressor.vhdl";
-            bool created = FileSystem::createFile(decompressorFile);
-            if (!created) {
-                string errorMsg = "Unable to create file " + 
-                    decompressorFile;
-                throw IOException(__FILE__, __LINE__, __func__, errorMsg);
+            string decomp = DECOMPRESSOR_FILE;
+            if (!progeOutputDir.empty()) {
+                string temp = progeOutputDir 
+                    + FileSystem::DIRECTORY_SEPARATOR
+                    + "gcu_ic" + FileSystem::DIRECTORY_SEPARATOR 
+                    + DECOMPRESSOR_FILE;
+               if ( (FileSystem::fileExists(temp) 
+                  &&FileSystem::fileIsWritable(temp)) 
+                 || FileSystem::fileIsCreatable(temp)) {
+                   decomp = temp;
+               }
             }
-            std::ofstream decompressorStream(
-                decompressorFile.c_str(), std::ofstream::out);
-            imageGenerator.generateDecompressor(decompressorStream);
-            decompressorStream.close();
+            createCompressor(decomp, imageGenerator);            
         }
         
+        int compressedInstructionWidth = imageGenerator.imemMauWidth();
+        string imemMauPkg = IMEM_MAU_PKG;
+        if (!progeOutputDir.empty()) {
+             string temp = progeOutputDir 
+                + FileSystem::DIRECTORY_SEPARATOR
+                + "vhdl" + FileSystem::DIRECTORY_SEPARATOR + IMEM_MAU_PKG;
+            if ( (FileSystem::fileExists(temp) 
+                  &&FileSystem::fileIsWritable(temp)) 
+                 || FileSystem::fileIsCreatable(temp)) {
+                imemMauPkg = temp;
+            }
+        }
+        createMauPkg(compressedInstructionWidth, imemMauPkg);
+
         for (std::vector<Binary*>::iterator iter = tpefTable.begin();
              iter != tpefTable.end(); iter++) {
             delete *iter;

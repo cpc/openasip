@@ -32,6 +32,7 @@
  * Implementation of NetlistGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -626,14 +627,10 @@ NetlistGenerator::addGCUToNetlist(
     NetlistPort* ifetchRstPort = new NetlistPort(
         RESET_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
     NetlistPort* ifetchRAOutPort = new NetlistPort(
-        RA_OUT_PORT_NAME, IMEMADDRWIDTH,
-        ProcessorGenerator::iMemAddressWidth(machine_), BIT_VECTOR,
-        HDB::OUT, *ifetchBlock);
+        RA_OUT_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::OUT, *ifetchBlock);
     raOutPort_ = ifetchRAOutPort;
     NetlistPort* ifetchRAInPort = new NetlistPort(
-        RA_IN_PORT_NAME, IMEMADDRWIDTH,
-        ProcessorGenerator::iMemAddressWidth(machine_), BIT_VECTOR,
-        HDB::IN, *ifetchBlock);
+        RA_IN_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *ifetchBlock);
     raInPort_ = ifetchRAInPort;
     NetlistPort* ifetchBusyPort = new NetlistPort(
         BUSY_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
@@ -643,13 +640,9 @@ NetlistGenerator::addGCUToNetlist(
         ADDRESS_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::OUT,
         *ifetchBlock);
     NetlistPort* ifetchDataPort = new NetlistPort(
-        DATA_PORT_NAME, IMEMWIDTHFORMULA,
-        ProcessorGenerator::iMemWidth(machine_, imemWidthInMAUs), BIT_VECTOR,
-        HDB::IN, *ifetchBlock);
+        DATA_PORT_NAME, IMEMWIDTHFORMULA, BIT_VECTOR, HDB::IN, *ifetchBlock);
     NetlistPort* ifetchPCInPort = new NetlistPort(
-        PC_IN_PORT_NAME, IMEMADDRWIDTH,
-        ProcessorGenerator::iMemAddressWidth(machine_), BIT_VECTOR,
-        HDB::IN, *ifetchBlock);
+        PC_IN_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *ifetchBlock);
     NetlistPort* ifetchPCLoadPort = new NetlistPort(
         PC_LOAD_PORT_NAME, "1", BIT, HDB::IN, *ifetchBlock);
     NetlistPort* ifetchRALoadPort = new NetlistPort(
@@ -661,9 +654,8 @@ NetlistGenerator::addGCUToNetlist(
     NetlistPort* ifetchGlockPort = new NetlistPort(
         GLOBAL_LOCK_PORT_NAME, "1", BIT, HDB::OUT, *ifetchBlock);
     NetlistPort* ifetchFetchBlockPort = new NetlistPort(
-        FETCHBLOCK_PORT_NAME, IMEMWIDTHFORMULA,
-        ProcessorGenerator::iMemWidth(machine_, imemWidthInMAUs), BIT_VECTOR,
-        HDB::OUT, *ifetchBlock);
+        FETCHBLOCK_PORT_NAME,
+        IMEMWIDTHFORMULA, BIT_VECTOR, HDB::OUT, *ifetchBlock);
     NetlistPort* ifetchPCInitPort = new NetlistPort(
         PC_INIT_PORT_NAME, IMEMADDRWIDTH, BIT_VECTOR, HDB::IN, *ifetchBlock);
 
@@ -697,16 +689,15 @@ NetlistGenerator::addGCUToNetlist(
     NetlistPort* decLockPort = new NetlistPort(
         LOCK_PORT_NAME, "1", BIT, HDB::IN, *decompressorBlock);
     NetlistPort* decFetchBlockPort = new NetlistPort(
-        FETCHBLOCK_PORT_NAME, IMEMWIDTHFORMULA,
-        ProcessorGenerator::iMemWidth(machine_, imemWidthInMAUs), BIT_VECTOR,
-        HDB::IN, *decompressorBlock);
+        FETCHBLOCK_PORT_NAME,
+        IMEMWIDTHFORMULA, BIT_VECTOR, HDB::IN, *decompressorBlock);
     NetlistPort* decClkPort = new NetlistPort(
         CLOCK_PORT_NAME, "1", BIT, HDB::IN, *decompressorBlock);
     NetlistPort* decRstPort = new NetlistPort(
         RESET_PORT_NAME, "1", BIT, HDB::IN, *decompressorBlock);
     NetlistPort* decIWordPort = new NetlistPort(
-        INSTRUCTIONWORD_PORT_NAME, INSTRUCTIONWIDTH, plugin_.bem().width(),
-        BIT_VECTOR, HDB::OUT, *decompressorBlock);
+        INSTRUCTIONWORD_PORT_NAME,
+        INSTRUCTIONWIDTH, BIT_VECTOR, HDB::OUT, *decompressorBlock);
     NetlistPort* decGlockPort = new NetlistPort(
         GLOBAL_LOCK_PORT_NAME, "1", BIT, HDB::OUT, *decompressorBlock);
     NetlistPort* decLockReqPort = new NetlistPort(
@@ -728,8 +719,8 @@ NetlistGenerator::addGCUToNetlist(
     toplevelBlock.addSubBlock(decoderBlock);
     instructionDecoder_ = decoderBlock;
     NetlistPort* decodIWordPort = new NetlistPort(
-        DECODER_INSTR_WORD_PORT, INSTRUCTIONWIDTH, plugin_.bem().width(),
-        BIT_VECTOR, HDB::IN, *decoderBlock);
+        DECODER_INSTR_WORD_PORT,
+        INSTRUCTIONWIDTH, BIT_VECTOR, HDB::IN, *decoderBlock);
     NetlistPort* decodPCLoadPort = new NetlistPort(
         DECODER_PC_LOAD_PORT, "1", BIT, HDB::OUT, *decoderBlock);
     NetlistPort* decodRALoadPort = new NetlistPort(

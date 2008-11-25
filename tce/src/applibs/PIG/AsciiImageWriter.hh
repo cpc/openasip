@@ -32,6 +32,7 @@
  * Declaration of AsciiBinaryWriter class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -56,7 +57,8 @@ public:
 protected:
     const BitVector& bits() const;
     int rowLength() const;
-    void writeSequence(std::ostream& stream, int length) const
+    void
+    writeSequence(std::ostream& stream, int length, bool padEnd = false) const
         throw (OutOfRange);
 
 private:

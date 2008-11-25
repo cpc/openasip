@@ -32,6 +32,7 @@
  * Declaration of DefaultICGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -43,6 +44,7 @@
 #include "CentralizedControlICGenerator.hh"
 #include "HDBTypes.hh"
 #include "Socket.hh"
+#include "Machine.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -98,6 +100,9 @@ private:
 
     void generateSockets(const std::string& dstDirectory) const
         throw (IOException);
+
+    bool isGcuPort(TTAMachine::Port const* port) const;
+
     static void generateSocket(
         TTAMachine::Socket::Direction direction,
         int portConns,

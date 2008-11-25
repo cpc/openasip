@@ -32,6 +32,7 @@
  * Declaration of ProcessorGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -73,7 +74,8 @@ public:
         ICDecoderGeneratorPlugin& plugin,
         int imemWidthInMAUs,
         const std::string& dstDirectory,
-        std::ostream& outputStream)
+        std::ostream& errorStream,
+        std::ostream& warningStream)
         throw (IOException, InvalidData, IllegalMachine, OutOfRange,
                InstanceNotFound);
 
@@ -84,7 +86,7 @@ public:
 private:
     void validateMachine(
         const TTAMachine::Machine& machine,
-        std::ostream& outputStream)
+        std::ostream& errorStream, std::ostream& warningStream)
         throw (IllegalMachine);
     void checkIULatencies(
         const TTAMachine::Machine& machine,

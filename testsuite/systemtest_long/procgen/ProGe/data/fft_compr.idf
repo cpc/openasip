@@ -11,8 +11,6 @@
     </parameter>
   </ic-decoder-plugin>
 
-  <decompressor-file>decompressor.vhdl</decompressor-file>
-
   <fu name="fu1">
     <hdb-file>hdb/fft.hdb</hdb-file>
     <fu-id>1</fu-id>

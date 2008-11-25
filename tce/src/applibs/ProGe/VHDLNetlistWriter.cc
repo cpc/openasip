@@ -32,6 +32,7 @@
  * Implementation of VHDLNetlistWriter class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -179,6 +180,7 @@ VHDLNetlistWriter::writeBlock(
     outFile << "use IEEE.std_logic_arith.all;" << endl;
     outFile << "use work.globals.all;" << endl;
     outFile << "use work.util.all;" << endl;
+    outFile << "use work.imem_mau.all;" << endl;
 
     if (netlist().parameterCount() > 0) {
         outFile << "use work." << netlistParameterPkgName() << ".all;"

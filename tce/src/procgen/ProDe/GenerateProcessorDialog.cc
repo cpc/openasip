@@ -32,6 +32,7 @@
  * Implementation of GenerateProcessorDialog class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -50,6 +51,7 @@
 #include "BEMSerializer.hh"
 #include "BEMGenerator.hh"
 #include "ErrorDialog.hh"
+#include "WarningDialog.hh"
 #include "BEMValidator.hh"
 #include "FileSystem.hh"
 #include "MachineImplementation.hh"
@@ -103,6 +105,9 @@ GenerateProcessorDialog::~GenerateProcessorDialog() {
  */
 void
 GenerateProcessorDialog::onOK(wxCommandEvent&) {
+
+    std::ostringstream errorStream;
+    std::ostringstream warningStream;
 
     // Binary encoding map.
     if (dynamic_cast<wxRadioButton*>(
@@ -175,6 +180,10 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
         ErrorDialog dialog(this, message);
         dialog.ShowModal();
         return;
+    } else if (bemValidator.warningCount() > 0) {
+        for (int i = 0; i < bemValidator.warningCount(); i++) {
+            warningStream << bemValidator.warningMessage(i) << std::endl;
+        }
     }
 
     ProGe::ICDecoderGeneratorPlugin* plugin = NULL;
@@ -201,13 +210,11 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
             impl_.icDecoderParameterValue(i));
     }
 
-    string errorMessages;
-    std::ostringstream errStream(errorMessages);
-
     ProGe::ProcessorGenerator generator;
     try {
         generator.generateProcessor(
-            ProGe::VHDL, machine_, impl_, *plugin, 1, targetDir, errStream);
+            ProGe::VHDL,
+            machine_, impl_, *plugin, 1, targetDir, errorStream, warningStream);
     } catch (Exception& e) {
         wxString message = WxConversion::toWxString(e.errorMessage());
         ErrorDialog dialog(this, message);
@@ -246,6 +253,13 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
         dialog.ShowModal();
     }
 
+    string warningMessages = warningStream.str();
+    if (warningMessages != "") {
+        WarningDialog dialog(this, WxConversion::toWxString(warningMessages));
+        dialog.ShowModal();
+    }
+
+    string errorMessages = errorStream.str();
     if (errorMessages != "") {
         ErrorDialog dialog(this, WxConversion::toWxString(errorMessages));
         dialog.ShowModal();

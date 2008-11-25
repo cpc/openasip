@@ -32,6 +32,7 @@
  * Declaration of BEMValidator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -47,6 +48,7 @@ namespace TTAMachine {
     class Machine;
     class Bus;
     class ImmediateSlot;
+    class ControlUnit;
 }
 
 class BinaryEncoding;
@@ -68,6 +70,8 @@ public:
     int errorCount() const;
     std::string errorMessage(int index) const
         throw (OutOfRange);
+    int warningCount() const;
+    std::string warningMessage(int index) const;
 
 private:
     /// Vector type for string.
@@ -81,6 +85,7 @@ private:
     void checkImmediateSlot(const TTAMachine::ImmediateSlot& immSlot);
     void checkImmediateControlField();
     void checkLImmDstRegisterFields();
+    void checkImemMauWidth(TTAMachine::ControlUnit& gcu);
 
     bool needsSourceField(const MoveSlot& slot) const;
     bool needsSocketCodeTable(const SocketEncoding& socketEnc) const;
@@ -92,6 +97,8 @@ private:
 
     /// Contains the error messages.
     StringVector errorMessages_;
+    /// Contains the warning messages.
+    StringVector warningMessages_;
 };
 
 #endif

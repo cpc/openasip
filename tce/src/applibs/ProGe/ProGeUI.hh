@@ -33,6 +33,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -86,7 +87,8 @@ protected:
         int imemWidthInMAUs,
         HDL language,
         const std::string& dstDirectory,
-        std::ostream& outputStream)
+        std::ostream& errorStream,
+        std::ostream& warningStream)
         throw (InvalidData, DynamicLibraryException, IOException,
                InvalidData, IllegalMachine, OutOfRange, InstanceNotFound);
     void generateTestBench(

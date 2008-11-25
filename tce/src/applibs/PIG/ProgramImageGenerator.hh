@@ -32,6 +32,7 @@
  * Declaration of ProgramImageGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -74,6 +75,7 @@ public:
         ASCII, ///< ASCII 1's and 0's.
         ARRAY ///< ASCII 1's and 0's in array form.
     };
+    typedef std::map<std::string, TPEF::Binary*> TPEFMap;
 
     ProgramImageGenerator();
     virtual ~ProgramImageGenerator();
@@ -82,17 +84,18 @@ public:
         throw (FileNotFound, DynamicLibraryException);
     void loadCompressorParameters(
         CodeCompressorPlugin::ParameterTable parameters);
-    void loadPrograms(std::set<TPEF::Binary*> programs);
+    void loadPrograms(TPEFMap programs);
     void loadMachine(const TTAMachine::Machine& machine);
     void loadBEM(const BinaryEncoding& bem);
     
     void generateProgramImage(
-        TPEF::Binary& program,
+        std::string& programName,
         std::ostream& stream,
         OutputFormat format,
         int mausPerLine = 0)
         throw (InvalidData);
     void generateDataImage(
+        std::string& programName,
         TPEF::Binary& program,
         const std::string& addressSpace, 
         std::ostream& stream, 
@@ -101,6 +104,8 @@ public:
         bool usePregeneratedImage)
         throw (InvalidData, OutOfRange);
     void generateDecompressor(std::ostream& stream);
+
+    int imemMauWidth() const;
 
     static std::vector<std::string> availableCompressors();
     static void printCompressorDescription(
