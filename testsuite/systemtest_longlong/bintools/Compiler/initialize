@@ -6,8 +6,8 @@
 
 if test -d ~/project/experimental/EEMBC/DENBench;
 then
-    ln -sdf  ~/project/experimental/EEMBC/DENBench DENBench
-    ln -sdf $PWD/../../../../tce/scheduler/testbench/Operations/ DENBench/consumer/data
+    ln -sdnf  ~/project/experimental/EEMBC/DENBench DENBench
+    ln -sdnf $PWD/../../../../tce/scheduler/testbench/Operations/ DENBench/consumer/data
     cd ../../../../tce/scheduler/testbench/Operations/
     make > /dev/null
 fi
