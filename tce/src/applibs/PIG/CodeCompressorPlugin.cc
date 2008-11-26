@@ -615,10 +615,9 @@ int CodeCompressorPlugin::numberOfPrograms() const {
  * @return const iterator to program map element
  * @exception OutOfRange If index is out of range
  */
-
 CodeCompressorPlugin::TPEFMap::const_iterator
 CodeCompressorPlugin::programElement(int index) const {
-    if (index >= tpefPrograms_.size()) {
+    if (index >= static_cast<int>(tpefPrograms_.size())) {
         string errorMsg("Tried to overindex program map");
         throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
     }

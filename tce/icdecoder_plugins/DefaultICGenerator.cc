@@ -130,10 +130,7 @@ DefaultICGenerator::addICToNetlist(
         if (socket->direction() == Socket::INPUT) {
             int width = inputSocketDataPortWidth(*socket);
             assert(width > 0);
-            NetlistPort* socketDataPort = new NetlistPort(
-                this->inputSocketDataPort(socket->name()), 
-                Conversion::toString(width), width, ProGe::BIT_VECTOR,
-                socketDirection, *icBlock);
+            NetlistPort* socketDataPort = NULL;
             
             // connect the data port to the units
             for (int i = 0; i < socket->portCount(); i++) {
@@ -142,13 +139,18 @@ DefaultICGenerator::addICToNetlist(
                 
                 // gcu ports must use IMEMADDRWIDTH as width
                 if (isGcuPort(port)) {
-                    delete socketDataPort;
                     socket->setDataPortWidth("IMEMADDRWIDTH");
                     socketDataPort = new NetlistPort(
                         this->inputSocketDataPort(socket->name()),
                         "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
                         socketDirection, *icBlock);
+                } else {
+                    socketDataPort = new NetlistPort(
+                        this->inputSocketDataPort(socket->name()), 
+                        Conversion::toString(width), width, ProGe::BIT_VECTOR,
+                        socketDirection, *icBlock);
                 }
+
                 // RA port of GCU is special case
                 if (gcu->hasReturnAddressPort() && 
                     port == gcu->returnAddressPort()) {
@@ -162,23 +164,25 @@ DefaultICGenerator::addICToNetlist(
             for (int i = 0; i < socket->portCount(); i++) {
                 int width = outputSocketDataPortWidth(*socket, i);
                 assert(width > 0);
-                NetlistPort* socketDataPort = new NetlistPort(
-                    outputSocketDataPort(socket->name(), i), 
-                    Conversion::toString(width), width, ProGe::BIT_VECTOR,
-                    socketDirection, *icBlock);
+                NetlistPort* socketDataPort = NULL;
                 
                 // connect the data port to the unit
                 Port* port = socket->port(i);
                 NetlistPort* unitPort;
                 // gcu ports are treated differently
                 if (isGcuPort(port)) {
-                    delete socketDataPort;
                     socket->setDataPortWidth("IMEMADDRWIDTH");
                     socketDataPort = new NetlistPort(
                         outputSocketDataPort(socket->name(), i),
                         "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
                         socketDirection, *icBlock);
+                } else {
+                    socketDataPort = new NetlistPort(
+                    outputSocketDataPort(socket->name(), i), 
+                    Conversion::toString(width), width, ProGe::BIT_VECTOR,
+                    socketDirection, *icBlock);
                 }
+
                 // RA port of GCU is special case
                 if (gcu->hasReturnAddressPort() &&
                     port == gcu->returnAddressPort()) {

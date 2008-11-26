@@ -210,8 +210,6 @@ ProcessorGenerator::generateGlobalsPackage(
         throw IOException(__FILE__, __LINE__, __func__, errorMsg);
     }
 
-    int iMemMAUWidth = bem.width();
-
     std::ofstream stream(dstFile.c_str(), std::ofstream::out);
     stream << "package globals is" << endl;
     stream << "  -- instruction width" << endl;

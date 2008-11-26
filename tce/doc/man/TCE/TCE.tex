@@ -1034,8 +1034,13 @@ As you probably noticed from the processor utilisation, the dividers
 (divs, divu) were not used. Currently the dividers have been implemented
 using Design Ware IP, which isn't freely distributed. In order to generate
 functioning processor you will have to remove these two FUs from the machine.
-Open ProDe and delete the divs and divu FUs and their sockets and remember to
-save.
+Open ProDe and delete the divs and divu FUs and their sockets.Remember to
+save your changes.
+
+In addition it is possible to use division in program even if the
+processor doesn't have a hardware divider since the compiler will use
+software emulation for division. Software emulation is naturally much less
+efficient than a hardware divider.
 
 \subsection{Initial optimization}
 
@@ -1575,36 +1580,24 @@ The program should print details on how each type of source/destination, etc.
 is encoded. You do not have to care about this, it is just for curiosity.
 Maybe the only important part in the printout is the length of the
 instruction word. In this case, even though the processor has only
-one move slot, the instruction word width is more than 40 bits. Memorize the
-instruction word width in bits. The size can be reduced with instruction
-compression, which is not used in the tutorial.
+one move slot, the instruction word width is more than 40 bits. The size can
+be reduced with instruction compression, which is not used in the tutorial.
 % TODO: add the instruction compression part here also (TEEMU)
 
-Next, we must set correct instruction memory MAU and then 
-select implementations for all components in the architecture. Each
-architecture component can be implemented in multiple ways, so we must
-choose one implementation for each component in order to be able to
-generate the implementation for the processor.
+Next, we must select implementations for all components in the architecture.
+Each architecture component can be implemented in multiple ways, so we must
+choose one implementation for each component to be able to generate the
+implementation for the processor.
 
 This can be done in the ProDe tool:
 
 \shellcmd{prode custom.adf}
 
-Now the architecture is loaded. First select change the MAU of instruction
-memory \textit{Edit>Address Spaces...} to the value you checked earlier in
-viewbem. See the FAQ (chapter \ref{chapter:faq}) for more information about
-instruction memory.
-
-You should also change the widths of GCU ports and LSU trigger port to avoid
-error messages from the Processor Generator. So open the Address Spaces
+If you want to avoid warning messages from ProGe, you should change
+the widths of GCU ports and LSU trigger port. Open the Address Spaces
 dialog and check the bitwidth fields. Then set the GCU port widths according
-the instruction memorys bitwidth field. Next change the LSU trigger port's
-width. Set it to the same value as the data memory's bitwidth.
-
-Create the binary encoding map again just in case the port width changes
-caused some changes in encoding:
-
-\shellcmd{createbem custom.adf}
+the instruction memory's address bitwidth field. Next change the LSU trigger
+port's width. Set it to the same value as the data memory's address bitwidth.
 
 Then we'll select implementations for the FUs which can be done in
 \textit{Tools>Processor Implementation...}. Note that the selection window
@@ -1647,24 +1640,27 @@ previously generated .bem (Load from file...). Create and set target directory
 \file{proge-output}. Or alternatively, save the .idf file and execute ProGe from
 command line:
 
-\shellcmd{generateprocessor -b custom.bem -i custom.idf custom.adf}
+\shellcmd{generateprocessor -b custom.bem -i custom.idf -o proge-output
+custom.adf}
 
 Now directory \file{proge-output} includes the VHDL implementation of the
-designed processor. You can take a look what the directory includes, how the RF
-and FU implementations are collected up under \file{vhdl} subdir and 
-the interconnection network has been generated to connect the units (the \file{gcu\_ic}
-subdir).
+designed processor except for the instruction memory width package which will
+be created by Program Image Generator. You can take a look what the directory
+includes, how the RF and FU implementations are collected up under
+\file{vhdl} subdir and the interconnection network has been generated to
+connect the units (the \file{gcu\_ic} subdir). The \file{tb} subdir contains
+testbench files for the processor core.
 
 \paragraph{Generate instruction memory bit image using Program Image Generator.}
 
 Finally, to get our shiny new processor some bits to chew on,
-we use generatebits to create an instruction memory image:
+we use generatebits to create instruction memory and data memory images:
 
 \shellcmd{generatebits -b custom.bem -d -w 4 -p crc\_with\_custom\_op.tpef
-custom.adf} 
+-x proge-output custom.adf} 
 
 Now the file \file{crc\_with\_custom\_op.img} includes the instruction memory
-image in ``ascii 0/1'' format. Each line in that file represents a single
+image in ``ascii 0/1'' format . Each line in that file represents a single
 instruction. Thus, you can get the count of instructions by counting the
 lines in that file:
 
@@ -1674,6 +1670,11 @@ lines in that file:
 
 By multiplying the count with the instruction width we found earlier you
 can get the required size of instruction memory for the program.
+
+Accoringly the file \file{crc\_with\_custom\_op\_data.img} contains the data
+memory image of the processor. Program Image Generator also created file
+\file{proge-output/gcu\_ic/imem\_mau\_width.vhdl} which contains the correct
+MAU width for the instruction memory.
 
 \subsection{Final Words}
 
@@ -2520,33 +2521,22 @@ is given. \\
 \textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
 \hline
 
+b & \verb|bem| &
+BEM file or the processor. If not given, ProGe will generate it. \\
+
 l & \verb|hdl| &
 Specifies the HDL of the top-level file which wires together the blocks
 taken from HDB with IC and GCU.\footnote{In the initial version, the only
 keyword accepted is `vhdl'.} \\
 
-g & \verb|gen| & %
-Specifies the IC/Decoder generator. It is name of an executable module
-linked at run time (plug-in) that generates the implementation of the
-processor interconnection network, the instruction decoder of the control
-unit.
-%
-The plug-in file is searched in the paths described in
-Section~\ref{sec:plugin-generators}.
-%
-This option overrides the plug-in specified in IDF, if present. If neither
-IDF nor the command line give the plug-in, the default plug-in defined in
-the ProGe configuration file is used.
-\\
-d & \verb|decomp| &%
-Specifies the file that contains the decompressor module of the
-GCU. Normally, the file is generated by the compressor plugin of
-Program Image Generator (PIG).
-\\
+i & \verb|idf| &
+IDF file. \\
+
 o & \verb|output| &%
 Name of the output directory. If not given, an output directory called
 `proge-output' is created inside the current working directory.
 \\
+
 u & \verb|plugin-parameter| &%
 Shows the parameters accepted by an IC/Decoder generator plug-in and a short
 description of the plug-in. When this options are given, any other type of
@@ -4083,8 +4073,9 @@ g & decompressor & Generates a decompressor block. \\
 o & diformat & The output format of data image(s) ('ascii', 'array'
 or 'binary'). Default is 'ascii'. \\
 w & dmemwidthinmaus & Width of data memory in MAUs. Default is 1. \\
-i & imemwidthinmaus & Width of instruction memory in MAUs. Affects the ASCII
-output formats. If not given, each instruction is printed on different line. \\
+x & hdl-dir & Directory root where are the ProGe generated HDL files
+generated by ProGe. If given, PIG will write imem\_mau\_pkg and compressor
+in that directory. Otherwise they are written to cwd.\\
 f & piformat & Determines the output format of the program image and data
 images. Value may be 'ascii' or 'binary'.\\
 s & showcompressors & Shows the compressor plugin descriptions. \\
