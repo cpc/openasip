@@ -1552,59 +1552,71 @@ void
 DataDependenceGraph::fixInterBBAntiEdges(
     BasicBlockNode& bbn1, BasicBlockNode& bbn2) throw (Exception) {
 
-    // TODO: creating heavy, remembering fast
-    DataDependenceGraph* sg1 = createSubgraph(bbn1.basicBlock());
-    DataDependenceGraph* sg2 = createSubgraph(bbn2.basicBlock());
+    std::map<TCEString, TTAProgram::Move*> firstWrites2;
+    std::map<TCEString, TTAProgram::Move*> lastReads1;
+    std::map<TCEString, TTAProgram::Move*> lastWrites1;
+    std::map<TCEString, TTAProgram::Move*> lastGuards1;
 
-    // todo: some day get these from bookkeeping
-    std::map<TCEString, int> handledRegs2;
-    std::map<TCEString,MoveNode*> firstWrites2;
-    std::map<TCEString, MoveNode*> lastReads1;
-    std::map<TCEString, MoveNode*> lastWrites1;
-    std::map<TCEString, MoveNode*> lastGuards1;
+    BasicBlock& bb1 = bbn1.basicBlock();
+    BasicBlock& bb2 = bbn2.basicBlock();
 
-    // find all last guard uses, reg reads and reg writes
-    // from the first BB.
-    for (int n1 = sg1->nodeCount() -1 ; n1 >= 0 ; n1--) {
-        MoveNode& mn1 = sg1->node(n1);
-        if (mn1.isMove()) {
-            TTAProgram::Move& move1 = mn1.move();
-            TTAProgram::Terminal& dest = move1.destination();
-            TTAProgram::Terminal& src = move1.source();
-            int cycle = mn1.cycle();
-            assert(cycle > -1);
+    // find the first writes in the next BB.
+    for (int i2 = 0; i2 < bb2.instructionCount(); i2++) {
+        TTAProgram::Instruction& ins = bb2.instructionAtIndex(i2);
+        for (int j2 = 0; j2 < ins.moveCount(); j2++) {
+            TTAProgram::Move& move = ins.move(j2);
+            TTAProgram::Terminal& dest = move.destination();
+            if (dest.isGPR()) {
+                int index = dest.index();
+                const TTAMachine::RegisterFile& rf = dest.registerFile();
+                TCEString reg2 = rf.name() + '.' + 
+                    Conversion::toString(index);
 
-            // find last write
+                std::map<TCEString, TTAProgram::Move*>::iterator iter2 = 
+                    firstWrites2.find(reg2);
+                if (iter2 == firstWrites2.end()) {
+                    firstWrites2[reg2] = &move;
+                }
+            }
+        }
+    }
+
+    // find the last reads, writes and guard uses from first BB.
+    for (int i1 = bb1.instructionCount()-1; i1 >= 0 ; i1--) {
+        TTAProgram::Instruction& ins = bb1.instructionAtIndex(i1);
+        for (int j1 = 0; j1 < ins.moveCount(); j1++) {
+            TTAProgram::Move& move = ins.move(j1);
+            TTAProgram::Terminal& dest = move.destination();
+            TTAProgram::Terminal& src = move.source();
+            // Writes for WaWs
             if (dest.isGPR()) {
                 int index = dest.index();
                 const TTAMachine::RegisterFile& rf = dest.registerFile();
                 TCEString reg1 = rf.name() + '.' + 
                     Conversion::toString(index);
 
-                std::map<TCEString, MoveNode*>::iterator iter2 = lastWrites1.find(reg1);
-                if (iter2 == lastWrites1.end() || 
-                    iter2->second->cycle() < cycle) {
-                    lastWrites1[reg1] = &mn1;
+                std::map<TCEString, TTAProgram::Move*>::iterator iter1 = 
+                    lastWrites1.find(reg1);
+                if (iter1 == lastWrites1.end()) {
+                    lastWrites1[reg1] = &move;
                 }
             }
-
-            // find last read
+            // reads for WaRs
             if (src.isGPR()) {
                 int index = src.index();
                 const TTAMachine::RegisterFile& rf = src.registerFile();
                 TCEString reg1 = rf.name() + '.' + 
                     Conversion::toString(index);
 
-                std::map<TCEString, MoveNode*>::iterator iter2 = lastReads1.find(reg1);
-                if (iter2 == lastReads1.end() || 
-                    iter2->second->cycle() < cycle) {
-                    lastReads1[reg1] = &mn1;
+                std::map<TCEString, TTAProgram::Move*>::iterator iter1 = 
+                    lastReads1.find(reg1);
+                if (iter1 == lastReads1.end()) {
+                    lastReads1[reg1] = &move;
                 }
             }
-
-            // find last guard use
-            if (!move1.isUnconditional()) {
-                TTAMachine::Guard& g = mn1.move().guard().guard();
+            // guard uses
+            if (!move.isUnconditional()) {
+                TTAMachine::Guard& g = move.guard().guard();
                 TTAMachine::RegisterGuard* rg = 
                     dynamic_cast<TTAMachine::RegisterGuard*>(&g);
                 int index = rg->registerIndex();
@@ -1612,74 +1624,52 @@ DataDependenceGraph::fixInterBBAntiEdges(
                 TCEString reg1 = rf.name() + '.' + 
                     Conversion::toString(index);
                 
-                std::map<TCEString, MoveNode*>::iterator iter2 = lastGuards1.find(reg1);
-                if (iter2 == lastGuards1.end() || 
-                    iter2->second->cycle() < cycle) {
-                    lastGuards1[reg1] = &mn1;
-                }
-            }
-        }
-    }
-
-    // then find all first reg write from the second BB.
-    for (int n2 = 0; n2 < sg2->nodeCount(); n2++) {
-        MoveNode& mn2 = sg2->node(n2);
-        if (mn2.isMove()) {
-            TTAProgram::Terminal& dest = mn2.move().destination();
-            if (dest.isGPR()) {
-                int cycle = mn2.cycle();
-                int index = dest.index();
-                const TTAMachine::RegisterFile& rf = dest.registerFile();
-                TCEString reg2 = rf.name() + '.' + 
-                    Conversion::toString(index);
-
-                std::map<TCEString, MoveNode*>::iterator iter2 = firstWrites2.find(reg2);
-                if (iter2 == firstWrites2.end() || 
-                    iter2->second->cycle() > cycle) {
-                    firstWrites2[reg2] = &mn2;
+                std::map<TCEString, TTAProgram::Move*>::iterator iter2 = 
+                    lastGuards1.find(reg1);
+                if (iter2 == lastGuards1.end()) {
+                    lastGuards1[reg1] = &move;
                 }
             }
         }
     }
 
     // then go thru them
-    for (std::map<TCEString, MoveNode*>::iterator iter2 = firstWrites2.begin();
+    for (std::map<TCEString, TTAProgram::Move*>::iterator iter2 = 
+             firstWrites2.begin();
          iter2 != firstWrites2.end(); iter2++) {
         const TCEString& reg2 = iter2->first;
-        MoveNode& mn2 = *(iter2->second);
+        MoveNode& mn2 = nodeOfMove(*(iter2->second));
         
         // WaRs
-        MoveNode* mn1 = lastReads1[reg2];
-        if (mn1 != NULL) {
+        TTAProgram::Move* move1 = lastReads1[reg2];
+        if (move1 != NULL) {
             DataDependenceEdge* edge = 
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER,
                     DataDependenceEdge::DEP_WAR);
-            connectNodes(*mn1, mn2, *edge);
+            connectNodes(nodeOfMove(*move1), mn2, *edge);
         }
         
         // WaWs
-        mn1 = lastWrites1[reg2];
-        if (mn1 != NULL) {
+        move1 = lastWrites1[reg2];
+        if (move1 != NULL) {
             DataDependenceEdge* edge = 
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER,
                     DataDependenceEdge::DEP_WAW);
-            connectNodes(*mn1, mn2, *edge);
+            connectNodes(nodeOfMove(*move1), mn2, *edge);
         }
         
         // guard WaRs
-        mn1 = lastGuards1[reg2];
-        if (mn1 != NULL) {
+        move1 = lastGuards1[reg2];
+        if (move1 != NULL) {
             DataDependenceEdge* edge = 
                 new DataDependenceEdge(
                     DataDependenceEdge::EDGE_REGISTER,
                     DataDependenceEdge::DEP_WAR,true);
-            connectNodes(*mn1, mn2, *edge);
+            connectNodes(nodeOfMove(*move1), mn2, *edge);
         }
     }
-    delete sg1;
-    delete sg2;
 }
 
 /**
