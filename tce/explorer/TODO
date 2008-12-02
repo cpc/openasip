@@ -18,6 +18,9 @@ General/Explorer:
 - All plugins compulsory parameters are not checked! Add checkParameter() to
   the plugins.
 
+- Fix printing error messages in Explorer, all error messages to stderr by
+  default.
+
 Evaluate:
 - systemtest after the new HDB is done.
 
@@ -36,7 +39,7 @@ SimpleICOptimizer:
 
 
 Documentation:
-- write proper documentation for the minimize machine plugin.
+- write a tutorial for the minimize machine plugin.
 - update the documentation for the plugins.
 - state clearly what is needed in application dir for specific plugin.
 
