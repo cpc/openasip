@@ -45,6 +45,8 @@ Documentation:
 
 
 Tests:
+- add estimation to the DesignSpaceExplorerTest.hh after estimation is
+  optimized.
 - fix frequency sweep plugin long systemtest.
 - simple FrequencySweepExplorer long system test
 - (FrequencySweepExplorer) create a (long) systemtest with at least 3 
