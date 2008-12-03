@@ -54,7 +54,7 @@ fi
 # set SHARED_CXX_FLAGS, if it is not set already
 if test -z "$SHARED_CXX_FLAGS"
 then
-  AC_SUBST([SHARED_CXX_FLAGS], ["-lgcc -shared -g -fPIC"])
+  AC_SUBST([SHARED_CXX_FLAGS], ["-lgcc -shared -g -fPIC -Wno-deprecated"])
 fi
 
 # Determine which C++ compiler to use. If CXX is not set,
