@@ -171,3 +171,72 @@ CXXFLAGS=-O3 CFLAGS=-O3 ./configure --with-boost=/opt/tce_libs --with-xerces=/op
 After this TCE should build and install with:
 
 	make && sudo make install
+
+
+Red Hat Enterprise Linux 4.x (or CentOS 4.x) libraries from sources
+===================================================================
+If you wish to compile the libraries yourself, here is a quick howto for
+x86-64 distibutions. Let's assume the install directory is /opt/tce_libs
+
+xerces-c-2.7:
+-------------
+unzipped to: /home/<user>/pkg_src/xerces-c-2.7.0-src
+export XERCESCROOT env before running configure:
+$ export XERCESCROOT=/home/<user>/pkg_src/xerces-c-2.7.0-src
+$ cd /home/<user>/pkg_src/xerces-c-2.7.0-src
+$ chmod a+x runConfigure configure
+$ ./runConfigure -p linux -P /opt/tce_libs -b 64
+$ gmake
+$ su
+# make install
+# ldconfig
+
+wxGTK-2.8.9:
+------------
+unzipped to /home/<user>/pkg_src/wxGTK-2.8.9
+$ cd /home/<user>/pkg_src/wxGTK-2.8.9
+$ mkdir gtkbuild && cd gtkbuild
+$ ../configure --prefix=/opt/tce_libs
+$ make
+$ su
+# make install
+# ldconfig
+
+libedit:
+--------
+unzipped to /home/<user>/pkg_src/libedit-<version>
+$ cd /home/<user>/pkg_src/libedit-<version>
+$ ./configure --prefix=/opt/tce_libs
+$ make
+$ su
+# make install
+# ldconfig
+
+sqlite3:
+--------
+unzipped to /home/<user>/pkg_src/sqlite-3.6.4
+$ cd /home/<user>/pkg_src/sqlite-3.6.4
+$ ./configure --prefix=/opt/tce_libs
+$ make
+$ su
+# make install
+# ldconfig
+
+boost:
+------
+unzipped to /home/<user>/pkg_src/boost_1_36_0
+$ cd /home/<user>/pkg_src/boost_1_36_0
+$ ./configure --prefix=/opt/tce_libs
+
+llvm-2.4:
+---------
+unzipped to /home/<user>/pkg_src/llvm-2.4
+$ cd /home/<user>/pkg_src/llvm-2.4
+$ mkdir build && cd build
+$ ../configure --prefix=/opt/tce_libs --enable-pic
+
+changing ENVs
+-------------
+export PATH=/opt/tce_libs/bin:$PATH
+export LD_LIBRARY_PATH=/opt/tce-libs/lib:$LD_LIBRARY_PATH
+
