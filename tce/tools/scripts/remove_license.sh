@@ -68,9 +68,6 @@ awk '
     rm -f ${TMPFILE}
 }
 
-remLicense $1
-
-
 # export function and variables needed by them
 export -f remLicense 
 
