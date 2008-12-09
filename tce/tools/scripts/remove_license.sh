@@ -37,14 +37,18 @@ function remLicense {
 
 awk '
     /^\/\*$/ { 
-        getline temp_line
-        if (index(temp_line, "Copyright 2002-2008 Tampere")) {
-            cpp_copyr = 1
-        } 
+        if (found < 1) {
+            getline temp_line
+            if (index(temp_line, "Copyright 2002-2008 Tampere")) {
+                cpp_copyr = 1
+                ++found
+            } 
+        }
     }
 
     /?? Copyright 2002-2008 Tampere University of Technology./ {
         cpp_copyr = 1  
+        ++found
     }
 
     /the GNU General Public License.$|?? Public License.$/ {
