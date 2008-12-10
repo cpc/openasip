@@ -125,7 +125,7 @@ ProcessorGenerator::generateProcessor(
            InstanceNotFound) {
 
     // validate the machine
-    validateMachine(machine, errorStream, warningStream);
+    validateMachine(machine, warningStream);
     // check the compatibility of the plugin
     plugin.verifyCompatibility();
     // check that IU implementation latencies are compatible with the
@@ -235,13 +235,13 @@ ProcessorGenerator::generateGlobalsPackage(
  * the given stream.
  *
  * @param machine The machine to validate.
- * @param outputStream The stream.
+ * @param warningStream Output stream where warnings are printed
  * @exception IllegalMachine If there is a fundamental error in the machine.
  */
 void
 ProcessorGenerator::validateMachine(
     const TTAMachine::Machine& machine,
-    std::ostream& errorStream, std::ostream& warningStream)
+    std::ostream& warningStream)
     throw (IllegalMachine) {
 
     MachineValidator validator(machine);

@@ -591,6 +591,10 @@ void
 NetlistGenerator::addGCUToNetlist(
     NetlistBlock& toplevelBlock, int imemWidthInMAUs) {
 
+    if (imemWidthInMAUs != 1) {
+        throw InvalidData(__FILE__, __LINE__, __func__,
+                          "Imem width is currently fixed to 1 MAU");
+    }
     Netlist& netlist = toplevelBlock.netlist();
 
     NetlistPort* tlClkPort = new NetlistPort(
