@@ -22,13 +22,16 @@
 # IN THE SOFTWARE.
 cd llvm-frontend
 
-if [ ! -e build ]
+if [ ! -e build_dir ]
 then
-	mkdir build
+	mkdir build_dir
+else
+	rm -rf build_dir
+        mkdir build_dir
 fi
-
-cd build
-../configure --prefix=$LLVM_FRONTEND_DIR $> compile.log
-make -j2 1>> compile.log 2>> compile.log || exit 1
+autoreconf >& /dev/null
+cd build_dir
+../configure --prefix=$LLVM_FRONTEND_DIR >& compile.log
+make 1>> compile.log 2>> compile.log || exit 1
 make install 1>> compile.log 2>> compile.log || exit 1
 exit $?

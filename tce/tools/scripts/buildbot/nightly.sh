@@ -27,7 +27,7 @@ BRANCH_DIR=$PWD
 function install_llvm-frontend {
 
     SOURCE_DIR=${BRANCH_DIR}/llvm-frontend
-    BUILD_DIR=${BRANCH_DIR}/llvm-frontend/build
+    BUILD_DIR=${BRANCH_DIR}/llvm-frontend/build_dir
 
     export MAKEFLAGS=-j1
     export CXX="g++${ALTGCC}"
@@ -37,22 +37,24 @@ function install_llvm-frontend {
 
 
     cd ${SOURCE_DIR} || return 1
-    autoreconf || return 1 $> /dev/null
+    autoreconf >& compile.log || return 1
 
     # remove build dir
     rm -rf ${BUILD_DIR}
     mkdir -p ${BUILD_DIR}
     cd ${BUILD_DIR} || return 1
-    ${SOURCE_DIR}/configure --prefix=${LLVM_FRONTEND_DIR} $> /dev/null || return 1
+    ${SOURCE_DIR}/configure --prefix=${LLVM_FRONTEND_DIR} >& compile.log || return 1
 
-    make -s $> /dev/null || return 1
+    make -s >& compile.log || return 1
     rm -rf ${LLVM_FRONTEND_DIR}
-    make install $> /dev/null || return 1
+    make install >& compile.log || return 1
 }
 
+# TODO: support for altgcc
 function start_compiletest {
     cd "${BRANCH_DIR}/tce"
 
+    # remove the zOMG error mail when testing is finished, buildbot will handle the mails
     export ERROR_MAIL=yes
     export ERROR_MAIL_ADDRESS=otto.esko@tut.fi
     export CXX="ccache g++${ALTGCC}"
@@ -61,9 +63,9 @@ function start_compiletest {
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
     export TCE_CONFIGURE_SWITCHES="--disable-python"
 
-    autoreconf $> /dev/null
+    autoreconf >& /dev/null
 
-    tools/scripts/compiletest.sh $@ $> test.log
+    tools/scripts/compiletest.sh $@ >& test.log
 
     ${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache
 }
@@ -73,6 +75,7 @@ export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
 install_llvm-frontend
 start_compiletest
 
+# ugly way to determine whether compiletest succeeded or not :)
 if [ -s compiletest.error.log ]
 then
    exit 1

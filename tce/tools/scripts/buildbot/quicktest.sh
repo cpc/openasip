@@ -21,11 +21,26 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
-cd tce
-tools/scripts/compiletest.sh -q -c $> test.log
+# remove old difference.txt files (buildbot logs them anyway)
+rm -f testsuite/systemtest/difference.txt
+rm -f testsuite/systemtest_long/difference.txt
+rm -f testsuite/systemtest_longlong/difference.txt
 
-# if there were errors
+# touch the new ones (just in case)
+touch testsuite/systemtest/difference.txt
+touch testsuite/systemtest_long/difference.txt
+touch testsuite/systemtest_longlong/difference.txt
+
+# export PATH to include llvm and llvm-frontend
+# (those ENVs are defined in buildbot master.cfg)
+export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
+
+# run the tests
+cd tce
+tools/scripts/compiletest.sh -q >& test.log
+
+# ugly way to check if there were errors (return value tells
+# buildbot whether this step was succesfull)
 if [ -s compiletest.error.log ]
 then
 	exit 1
