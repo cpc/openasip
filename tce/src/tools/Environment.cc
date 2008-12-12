@@ -615,15 +615,14 @@ Environment::icDecoderPluginPaths() {
     string cwd = FileSystem::currentWorkingDir();
     string data = cwd + DS + "data";
 
-    paths.push_back(base);
-    paths.push_back(personal);
-    paths.push_back(custom);
-
     if (!DISTRIBUTED_VERSION) {
         string path = string(TCE_SRC_ROOT) + DS + "icdecoder_plugins";
         paths.push_back(path);
     }
 
+    paths.push_back(base);
+    paths.push_back(personal);
+    paths.push_back(custom);
     paths.push_back(cwd);
     paths.push_back(data);
     return paths;

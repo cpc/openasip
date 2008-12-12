@@ -119,7 +119,7 @@ ProcessorGenerator::generateProcessor(
     ICDecoderGeneratorPlugin& plugin,
     int imemWidthInMAUs,
     const std::string& dstDirectory,
-    std::ostream& errorStream,
+    std::ostream& /*errorStream*/,
     std::ostream& warningStream)
     throw (IOException, InvalidData, IllegalMachine, OutOfRange,
            InstanceNotFound) {

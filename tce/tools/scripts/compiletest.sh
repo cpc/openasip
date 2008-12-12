@@ -207,7 +207,7 @@ runner.cpp.*|\
 .*MemoryGridTable.cc.*warning.*dereferencing.type.punned.*|\
 .*TestSuite.h:.*warning.*comparison.between.signed.and.unsigned.*|\
 .*install:.warning:.relinking.*|\
-.*/llvm/include/llvm/.*warning:.*|\
+.*/include/llvm/.*warning:.*|\
 Inconsistency.detected.by.ld\.so:.*Assertion.*|\
 .*/llvm/Target/TargetLowering.h.*|\
 .*llvm/ADT/STLExtras.h.*|\
