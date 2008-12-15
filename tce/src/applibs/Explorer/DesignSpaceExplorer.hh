@@ -96,7 +96,7 @@ public:
         const double& maxArea = 0.0,
         const bool& createEstimates = true,
         const std::string& icDec = "DefaultICDecoder",
-        const std::string& icDecHDB = "asic_130nm_1.5V.hdb") const;
+        const std::string& icDecHDB = "asic_130nm_1.5V.hdb");
     IDF::MachineImplementation*  selectComponents(
         const TTAMachine::Machine& mach,
         const double& frequency = 0.0,
@@ -107,7 +107,7 @@ public:
         const TTAMachine::Machine& mach,
         const IDF::MachineImplementation& idf,
         CostEstimator::AreaInGates& area,
-        CostEstimator::DelayInNanoSeconds& longestPathDelay) const;
+        CostEstimator::DelayInNanoSeconds& longestPathDelay);
     RowID addConfToDSDB(
         const DSDBManager::MachineConfiguration& conf);
 

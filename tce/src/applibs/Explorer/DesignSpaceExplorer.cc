@@ -136,15 +136,17 @@ DesignSpaceExplorer::evaluate(
     }
 
     try {
+        // program independent estimations
         if (configuration.hasImplementation && estimate) {
-            // estimate total area
-            AreaInGates totalArea = estimator_.totalArea(*adf, *idf);
+
+            // estimate total area and longest path delay
+            CostEstimator::AreaInGates totalArea = 0;
+            CostEstimator::DelayInNanoSeconds longestPathDelay = 0;
+            createEstimateData(*adf, *idf, totalArea, longestPathDelay);
+
             dsdb_->setAreaEstimate(configuration.implementationID, totalArea);
             result.setArea(totalArea);
-        
-            // estimate longest path delay
-            DelayInNanoSeconds longestPathDelay = 0;
-            longestPathDelay = estimator_.longestPath(*adf, *idf);
+
             dsdb_->setLongestPathDelayEstimate(
                 configuration.implementationID, longestPathDelay);
             result.setLongestPathDelay(longestPathDelay);
@@ -562,7 +564,7 @@ DesignSpaceExplorer::createImplementation(
     const double& maxArea,
     const bool& createEstimates,
     const std::string& icDec,
-    const std::string& icDecHDB) const {
+    const std::string& icDecHDB) {
 
     const TTAMachine::Machine* mach = dsdb_->architecture(conf.architectureID);
     IDF::MachineImplementation* idf = NULL;
@@ -641,11 +643,10 @@ DesignSpaceExplorer::createEstimateData(
     const TTAMachine::Machine& mach,
     const IDF::MachineImplementation& idf,
     CostEstimator::AreaInGates& area,
-    CostEstimator::DelayInNanoSeconds& longestPathDelay) const {
+    CostEstimator::DelayInNanoSeconds& longestPathDelay) {
 
-    CostEstimator::Estimator estimator;
-    area = estimator.totalArea(mach, idf);
-    longestPathDelay = estimator.longestPath(mach, idf);                
+    area = estimator_.totalArea(mach, idf);
+    longestPathDelay = estimator_.longestPath(mach, idf);                
 }
 
 
