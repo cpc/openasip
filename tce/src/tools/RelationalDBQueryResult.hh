@@ -55,6 +55,9 @@ public:
     virtual const DataObject& data(const std::string& name) const;
     virtual bool hasNext() const = 0;
     virtual bool next() = 0;
+    virtual void bindInt(unsigned int position, int value);
+    virtual void bindString(unsigned int position, const std::string& value);
+    virtual void reset();
 };
 
 #endif

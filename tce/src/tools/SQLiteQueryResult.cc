@@ -46,11 +46,12 @@ using std::string;
  *
  * @param virtualMachine Compiled SQLite virtual machine for the query.
  */
-SQLiteQueryResult::SQLiteQueryResult(sqlite3_stmt* statement,
-				     SQLiteConnection* connection) :
-    statement_(statement), connection_(connection) {
+SQLiteQueryResult::SQLiteQueryResult(
+    sqlite3_stmt* statement,
+    SQLiteConnection* connection) :
+    statement_(statement), 
+    connection_(connection) {
 
-    statement_ = statement;
     // initialize columnNames_ and nextData_
     next();
 }
@@ -197,5 +198,29 @@ SQLiteQueryResult::next() {
         columnNames_ = columnNames;
     }
     return nextData_.size() > 0;
+}
+
+/**
+ * Binds int to sqlite statement at given position (1->)
+ */
+void
+SQLiteQueryResult::bindInt(unsigned int position, int value) {
+    sqlite3_bind_int(statement_, position, value);
+}
+
+/**
+ * Binds string to sqlite statement at given position (1->)
+ */
+void
+SQLiteQueryResult::bindString(unsigned int position, const std::string& value) {
+    sqlite3_bind_text(statement_, position, value.c_str(), -1, NULL);
+}
+
+/**
+ * Resets compiled sqlite statement for new bindings and execution.
+ */
+void
+SQLiteQueryResult::reset() {
+    sqlite3_reset(statement_);
 }
 

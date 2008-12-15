@@ -713,7 +713,7 @@ ComponentImplementationSelector::selectFUs(
             map<const IDF::FUImplementationLocation*,
                 CostEstimates*>::const_iterator wanted = iter;
 
-            if (filterLongestPathDelay) {
+            if (filterLongestPathDelay && maxArea > 0 && frequency > 0) {
                 double longestPathDelay = 0;
                 while (iter != fuMap.end()) {
                     CostEstimates* estimate = iter->second;
@@ -791,21 +791,23 @@ ComponentImplementationSelector::selectRFs(
 
             map<const IDF::RFImplementationLocation*,
                 CostEstimates*>::const_iterator wanted = iter;
-            while (iter != rfMap.end()) {
-                CostEstimates* estimate = iter->second;
-                if (estimate == NULL) {
-                    std::string errorMsg = "When selecting RFs regarding"
-                        " longest path delay, no cost estimates were"
-                        " found for RF: " + rf->name();
-                    Application::writeToErrorLog(
-                            __FILE__, __LINE__, __func__, errorMsg, 1);
-                    break;
+            if (maxArea > 0 && frequency > 0) {
+                while (iter != rfMap.end()) {
+                    CostEstimates* estimate = iter->second;
+                    if (estimate == NULL) {
+                        std::string errorMsg = "When selecting RFs regarding"
+                            " longest path delay, no cost estimates were"
+                            " found for RF: " + rf->name();
+                        Application::writeToErrorLog(
+                                __FILE__, __LINE__, __func__, errorMsg, 1);
+                        break;
+                    }
+                    if (longestPathDelay < estimate->longestPathDelay()) {
+                        longestPathDelay = estimate->longestPathDelay();
+                        wanted = iter;
+                    }
+                    iter++;
                 }
-                if (longestPathDelay < estimate->longestPathDelay()) {
-                    longestPathDelay = estimate->longestPathDelay();
-                    wanted = iter;
-                }
-                iter++;
             }
             const IDF::RFImplementationLocation* rfImpl = (*wanted).first;
             ObjectState* state = rfImpl->saveState();

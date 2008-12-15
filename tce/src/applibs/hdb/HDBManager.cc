@@ -5693,74 +5693,37 @@ HDBManager::addCostEstimationData(const CostEstimationData& data) const
  * datas attributes that are set.
  *
  * @param match CostEstimationData which is matched to the HDB data.
+ * @param useCompiledQueries if true use a compiled query instead of making a
+ *        new one.
+ * @param compiledQuery Pointer to a prepared query to be used.
  * @return Set of cost estimation data row IDs that match the query.
  */
 std::set<RowID>
-HDBManager::costEstimationDataIDs(const CostEstimationData& match) const {
+HDBManager::costEstimationDataIDs(
+    const CostEstimationData& match, 
+    bool useCompiledQueries,
+    RelationalDBQueryResult* compiledQuery) const {
 
-    std::string query = "SELECT id FROM cost_estimation_data WHERE ";
-    bool firstMatch = true;
-
-    if (match.hasName()) {
-        firstMatch = false;
-        query += "name='";
-        query += match.name();
-        query += "'";
+    std::string query = "";
+    if (!compiledQuery) {
+        createCostEstimatioDataIdsQuery(match, &query);
+    } else {
+        // only bind query variables
+        createCostEstimatioDataIdsQuery(match, NULL, compiledQuery, NULL);
     }
-
-    if (match.hasValue()) {
-        if (!firstMatch) query += " AND ";
-        firstMatch = false;
-        query += "value='";
-        query += match.name();
-        query += "'";
-    }
-
-    if (match.hasPluginID()) {
-        if (!firstMatch) query += " AND ";
-        firstMatch = false;
-        query += "plugin_reference = ";
-        query += Conversion::toString(match.pluginID());
-    }
-
-    if (match.hasFUReference()) {
-        if (!firstMatch) query += " AND ";
-        firstMatch = false;
-        query += "fu_reference = ";
-        query += Conversion::toString(match.fuReference());
-    }
-
-    if (match.hasRFReference()) {
-        if (!firstMatch) query += " AND ";
-        firstMatch = false;
-        query += "rf_reference = ";
-        query += Conversion::toString(match.rfReference());
-    }
-
-    if (match.hasBusReference()) {
-        if (!firstMatch) query += " AND ";
-        firstMatch = false;
-        query += "bus_reference = ";
-        query += Conversion::toString(match.busReference());
-    }
-
-    if (match.hasSocketReference()) {
-        if (!firstMatch) query += " AND ";
-        firstMatch = false;
-        query += "socket_reference = ";
-        query += Conversion::toString(match.socketReference());
-    }
-
-    query += ";";
 
     RelationalDBQueryResult* result = NULL;
-
-    try {
-        result = dbConnection_->query(query);
-    } catch (const Exception& e) {
-        debugLog(query);
-        debugLog(e.errorMessage());
-        assert(false);
+    
+    if (compiledQuery) {
+        result = compiledQuery;
+    } else {
+        try {
+            result = dbConnection_->query(query);
+        } catch (const Exception& e) {
+            debugLog(query);
+            debugLog(e.errorMessage());
+            assert(false);
+        }
     }
 
     std::set<RowID> dataIDs;
@@ -5768,10 +5731,179 @@ HDBManager::costEstimationDataIDs(const CostEstimationData& match) const {
         result->next();
         dataIDs.insert(result->data(0).integerValue());
     }
-    delete result;
+
+    if (!compiledQuery) {
+        delete result;
+    } else {
+        compiledQuery->reset();
+    }
 
     return dataIDs;
 }
+
+
+/**
+ * Creates or prepares the query for cost estimation data ids.
+ *
+ * @param match CostEstimationData which is matched to the HDB data.
+ * @param query String variable where query is stored, null if no query is to
+ *         be created.
+ * @param compiledQuery Pointer to a prepared query to be used, null if not to
+ *        be used.
+ * @param queryHash Pointer to unique id variable to be created for the
+ *        query, null if not to be created.
+ */
+void
+HDBManager::createCostEstimatioDataIdsQuery(
+    const CostEstimationData& match, 
+    std::string* query,
+    RelationalDBQueryResult* compiledQuery,
+    short int* queryHash) const {
+
+    if (queryHash) {
+        *queryHash = 0;
+    }
+    bool firstMatch = true;
+    unsigned int count = 0;
+
+    if (query) {
+        *query = "SELECT id FROM cost_estimation_data WHERE ";
+    }
+
+    if (match.hasName()) {
+        if (queryHash) {
+            *queryHash |= 1;
+        }
+
+        if (compiledQuery) {
+            compiledQuery->bindString(++count, match.name());
+        }
+
+        if (query) {
+            firstMatch = false;
+            *query += "name='";
+            *query += match.name();
+            *query += "'";
+        }
+    }
+
+    if (match.hasValue()) {
+        if (queryHash) {
+            *queryHash |= 2;
+        }
+
+        if (compiledQuery) {
+            compiledQuery->bindString(++count, match.name());
+        }
+
+        if (query) {
+            if (!firstMatch) *query += " AND ";
+            firstMatch = false;
+            *query += "value='";
+            *query += match.name();
+            *query += "'";
+        }
+    }
+
+    if (match.hasPluginID()) {
+        if (queryHash) {
+            *queryHash |= 4;
+        }
+
+        if (compiledQuery) {
+            compiledQuery->bindInt(++count, match.pluginID());
+        }
+
+        if (query) {
+            if (!firstMatch) *query += " AND ";
+            firstMatch = false;
+            *query += "plugin_reference = ";
+            *query += Conversion::toString(match.pluginID());
+        }
+    }
+
+    if (match.hasFUReference()) {
+        if (queryHash) {
+            *queryHash |= 8;
+        }
+
+        if (compiledQuery) {
+            compiledQuery->bindInt(++count, match.fuReference());
+        }
+
+        if (query) {
+            if (!firstMatch) *query += " AND ";
+            firstMatch = false;
+            *query += "fu_reference = ";
+            *query += Conversion::toString(match.fuReference());
+        }
+    }
+
+    if (match.hasRFReference()) {
+        if (queryHash) {
+            *queryHash |= 16;
+        }
+
+        if (compiledQuery) {
+            compiledQuery->bindInt(++count, match.rfReference());
+        }
+
+        if (query) {
+            if (!firstMatch) *query += " AND ";
+            firstMatch = false;
+            *query += "rf_reference = ";
+            *query += Conversion::toString(match.rfReference());
+        }
+    }
+
+    if (match.hasBusReference()) {
+        if (queryHash) {
+            *queryHash |= 32;
+        }
+
+        if (compiledQuery) {
+            compiledQuery->bindInt(++count, match.rfReference());
+        }
+
+        if (query) {
+            if (!firstMatch) *query += " AND ";
+            firstMatch = false;
+            *query += "bus_reference = ";
+            *query += Conversion::toString(match.busReference());
+        }
+    }
+
+    if (match.hasSocketReference()) {
+        if (queryHash) {
+            *queryHash |= 64;
+        }
+
+        if (compiledQuery) {
+            compiledQuery->bindInt(++count, match.rfReference());
+        }
+
+        if (query) {
+            if (!firstMatch) *query += " AND ";
+            firstMatch = false;
+            *query += "socket_reference = ";
+            *query += Conversion::toString(match.socketReference());
+        }
+    }
+
+    if (query) {
+        *query += ";";
+    }
+}
+
+
+/**
+ * Returns used database connection.
+ */
+RelationalDBConnection* 
+HDBManager::getDBConnection() const {
+    return dbConnection_;
+}
+
 
 /**
  * Updates cost estimation data in the HDB.

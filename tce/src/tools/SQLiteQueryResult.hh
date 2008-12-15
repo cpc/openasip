@@ -59,6 +59,9 @@ public:
     virtual const DataObject& data(const std::string& name) const;
     virtual bool hasNext() const;
     virtual bool next();
+    virtual void bindInt(unsigned int position, int value);
+    virtual void bindString(unsigned int position, const std::string& value);
+    virtual void reset();
 
 private:
     /// single DataObject is used to return the column data with data()

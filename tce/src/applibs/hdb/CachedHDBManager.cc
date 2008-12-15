@@ -32,7 +32,9 @@
  */
 
 #include <iostream>
+
 #include "CachedHDBManager.hh"
+#include "SQLiteConnection.hh"
 #include "MapTools.hh"
 #include "FUArchitecture.hh"
 #include "RFArchitecture.hh"
@@ -484,6 +486,7 @@ CachedHDBManager::createImplementationOfFU(
     }
 }
 
+
 const FUArchitecture&
 CachedHDBManager::fuArchitectureByIDConst(RowID id) const {
 
@@ -495,6 +498,7 @@ CachedHDBManager::fuArchitectureByIDConst(RowID id) const {
     return *fuArchCache_[id];
 }
 
+
 const RFArchitecture&
 CachedHDBManager::rfArchitectureByIDConst(RowID id) const {
 
@@ -504,4 +508,57 @@ CachedHDBManager::rfArchitectureByIDConst(RowID id) const {
         rfArchCache_[id] = arch;
     }
     return *rfArchCache_[id];
+}
+
+
+/**
+ * Wrapper for HDBManager costEstimationDataIDs.
+ *
+ * Compiles and caches queries for HDBManager costEstimationDataIDs function.
+ */
+std::set<RowID>
+CachedHDBManager::costEstimationDataIDs(
+    const CostEstimationData& match, 
+    bool useCompiledQueries,
+    RelationalDBQueryResult* compiledQuery) const {
+
+    if (!useCompiledQueries) {
+        return HDBManager::costEstimationDataIDs(match);
+    }
+    
+    // query hash (bit vector might be better suited for this)
+    short int queryHash = 0;
+    HDBManager::createCostEstimatioDataIdsQuery(match, NULL, NULL, &queryHash);
+
+    std::map<short int,RelationalDBQueryResult*>::iterator it = 
+        costEstimationDataIDsQueries_.find(queryHash);
+
+    if (costEstimationDataIDsQueries_.end() != it) {
+        // TODO: query string is created for nothing above
+        return HDBManager::costEstimationDataIDs(match, true, it->second); 
+    } else {
+        // create a new compiledQuery
+        std::string query = "";
+        HDBManager::createCostEstimatioDataIdsQuery(match, &query, NULL, &queryHash);
+        compiledQuery = HDBManager::getDBConnection()->query(query);
+        costEstimationDataIDsQueries_[queryHash] = compiledQuery;
+        return HDBManager::costEstimationDataIDs(match, true, compiledQuery); 
+    }
+}
+
+
+/**
+ * Deletes cached costEstimationDataIDs queries.
+ */
+void 
+CachedHDBManager::deleteCostEstimationDataIDsQueries() const {
+    std::map<short int,RelationalDBQueryResult*>::iterator it = 
+        costEstimationDataIDsQueries_.begin();
+
+    while (it != costEstimationDataIDsQueries_.end()) {
+        delete it->second;
+        it->second = NULL;
+        ++it;
+    }
+    costEstimationDataIDsQueries_.clear();
 }

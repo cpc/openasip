@@ -138,3 +138,28 @@ bool
 RelationalDBQueryResult::next() {
     return false;
 }
+
+/**
+ * Binds int type variable to a prepared sql statement.
+ */
+void
+RelationalDBQueryResult::bindInt(unsigned int position, int value) {
+    return;
+}
+
+/**
+ * Binds string type variable to a prepared sql statement.
+ */
+void
+RelationalDBQueryResult::bindString(unsigned int position, const std::string& value) {
+    return;
+}
+
+/**
+ * Resets s prepared sql statement.
+ */
+void
+RelationalDBQueryResult::reset() {
+    return;
+}
+

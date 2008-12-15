@@ -189,6 +189,7 @@ SQLiteConnection::throwIfSQLiteError(int result)
     }
 }
 
+
 /**
  * Compiles a SQLite query.
  *
@@ -204,11 +205,12 @@ SQLiteConnection::compileQuery(const std::string& queryString)
     sqlite3_stmt* stmt = NULL;
     const char* dummy = NULL;
 
-    throwIfSQLiteError(sqlite3_prepare(
+    throwIfSQLiteError(sqlite3_prepare_v2(
         connection_, queryString.c_str(), queryString.length(),
         &stmt, &dummy));
     return stmt;
 }
+
 
 /**
  * Finalizes a SQLite query, frees the virtual machine.
@@ -219,7 +221,6 @@ SQLiteConnection::compileQuery(const std::string& queryString)
  * @exception RelationalDBException In case there was errors (can be
  * cumulated from a previous sqlite3_step() call).
  */
-
 void
 SQLiteConnection::finalizeQuery(sqlite3_stmt* statement)
     throw (RelationalDBException) {

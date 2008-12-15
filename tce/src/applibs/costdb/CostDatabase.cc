@@ -217,6 +217,8 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
             break;
         }
     }
+
+    bool useCompiledQueries = false;
     
     // Registers
     std::set<RowID> rfs = hdb_.rfEntryIDs();
@@ -333,7 +335,8 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
         CostEstimationData query;
         query.setRFReference(*id);
         query.setPluginID(rfEstimatorPluginID);
-        std::set<RowID> dataIDs = hdb_.costEstimationDataIDs(query);
+        std::set<RowID> dataIDs = hdb_.costEstimationDataIDs(query, 
+                useCompiledQueries);
         std::set<RowID>::const_iterator dataID = dataIDs.begin();
         for (; dataID != dataIDs.end(); dataID++) {
             CostEstimationData data = hdb_.costEstimationData(*dataID);
@@ -424,6 +427,9 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
         insertEntry(newEntry);
     }
     registerFilesBuilt_ = true;
+    if (useCompiledQueries) {
+        hdb_.deleteCostEstimationDataIDsQueries();
+    }
 }
 
 /**
@@ -449,6 +455,8 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
             break;
         }
     }
+
+    bool useCompiledQueries = false;
 
     // Function units
     std::set<RowID> fus = hdb_.fuEntryIDs();
@@ -527,7 +535,8 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
         CostEstimationData query;
         query.setFUReference(*id);
         query.setPluginID(fuEstimatorPluginID);
-        std::set<RowID> dataIDs = hdb_.costEstimationDataIDs(query);
+        std::set<RowID> dataIDs = hdb_.costEstimationDataIDs(query, 
+                useCompiledQueries);
         std::set<RowID>::const_iterator dataID = dataIDs.begin();
         for (; dataID != dataIDs.end(); dataID++) {
             CostEstimationData data = hdb_.costEstimationData(*dataID);
@@ -618,6 +627,9 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
         insertEntry(newEntry);    
     }
     functionUnitsBuilt_ = true;
+    if (useCompiledQueries) {
+        hdb_.deleteCostEstimationDataIDsQueries();
+    }
 }
 
 /**

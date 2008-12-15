@@ -45,6 +45,7 @@
 #include "DBTypes.hh"
 #include "HDBTypes.hh"
 #include "CostEstimationData.hh"
+#include "SQLiteConnection.hh"
 
 class SQLite;
 class RelationalDBConnection;
@@ -266,8 +267,10 @@ public:
     CostFunctionPlugin* costFunctionPluginByID(RowID pluginID) const
         throw (Exception);
 
-    std::set<RowID> costEstimationDataIDs(
-        const CostEstimationData& query) const;
+    virtual std::set<RowID> costEstimationDataIDs(
+        const CostEstimationData& match,
+        bool useCompiledQueries = false,
+        RelationalDBQueryResult* compiledQuery = NULL) const;
 
     RowID addCostEstimationData(const CostEstimationData& data) const
         throw (InvalidData, KeyNotFound);
@@ -281,6 +284,8 @@ public:
         const CostFunctionPlugin& plugin)
         throw (InvalidData, KeyNotFound);
 
+    virtual void deleteCostEstimationDataIDsQueries() const = 0;
+
     std::list<std::string> blockSourceFile();
 
 protected:
@@ -288,9 +293,16 @@ protected:
     virtual FUImplementation* createImplementationOfFU(
         FUArchitecture& architecture,
         RowID id) const;
+    void createCostEstimatioDataIdsQuery(
+        const CostEstimationData& match, 
+        std::string* query,
+        RelationalDBQueryResult* compiledQuery = NULL,
+        short int* queryHash = NULL) const;
+    RelationalDBConnection* getDBConnection() const; 
 
     HDBManager(const std::string& hdbFile) 
         throw (IOException);
+    
 
 private:
     
@@ -360,6 +372,9 @@ private:
     void addBlockImplementationFileToHDB(
         const BlockImplementationFile& file) const
         throw (RelationalDBException);
+    void createCostEstimatioDataIdsQuery(
+        const CostEstimationData& match, 
+        std::string& query) const;
 
     static bool isMatchingArchitecture(
         const TTAMachine::FunctionUnit& fu, const FUArchitecture& arch);

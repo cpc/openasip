@@ -36,7 +36,9 @@
 
 #include <map>
 #include "HDBManager.hh"
+#include "RelationalDBQueryResult.hh"
 #include "Exception.hh"
+#include "CostEstimationData.hh"
 
 namespace HDB {
 
@@ -114,6 +116,16 @@ public:
     const FUArchitecture& fuArchitectureByIDConst(RowID id) const;
     const RFArchitecture& rfArchitectureByIDConst(RowID id) const;
 
+    // Functions to manually delete stored queries
+    virtual void deleteCostEstimationDataIDsQueries() const;
+
+    // Queries using query cache
+    virtual std::set<RowID> costEstimationDataIDs(
+        const CostEstimationData& match, 
+        bool useCompiledQueries = false,
+        RelationalDBQueryResult* compiledQuery = NULL) const;
+
+
 private:
 
     CachedHDBManager(const std::string& hdbFile)
@@ -135,6 +147,10 @@ private:
     /// Cost estimation plugin value cache (pluginName/valueName)
     mutable std::map<std::string, std::map<std::string, DataObject> > 
         costEstimationPluginValueCache_;
+    
+    /// map of cached (compiled) queries for costEstimatioDataIDs function
+    mutable std::map<short int, RelationalDBQueryResult*> 
+        costEstimationDataIDsQueries_;
 };
 
 } // End namespace HDB.
