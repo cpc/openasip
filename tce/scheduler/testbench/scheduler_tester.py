@@ -146,7 +146,7 @@ worsenedIsErrorLimit = None
 extraCompileFlags = ""
 recompile = False
 makeCommand = "SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS=" + \
-              rootDir + "/compile_sources.make" + " make "
+              rootDir + "/compile_sources.make" + " make -s"
 
 # List of architectures given in command line.
 cmdLineArchitectures = []
