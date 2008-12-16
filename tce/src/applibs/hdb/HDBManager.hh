@@ -297,7 +297,8 @@ protected:
         const CostEstimationData& match, 
         std::string* query,
         RelationalDBQueryResult* compiledQuery = NULL,
-        short int* queryHash = NULL) const;
+        short int* queryHash = NULL,
+        bool createBindableQuery = false) const;
     RelationalDBConnection* getDBConnection() const; 
 
     HDBManager(const std::string& hdbFile) 

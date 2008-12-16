@@ -110,10 +110,11 @@ SQLiteConnection::DDLQuery(const std::string& queryString)
  * @exception RelationalDBException In case a database error occured.
  */
 RelationalDBQueryResult*
-SQLiteConnection::query(const std::string& queryString)
+SQLiteConnection::query(const std::string& queryString, bool init)
     throw (RelationalDBException) {
+
     sqlite3_stmt* stmt = compileQuery(queryString);
-    SQLiteQueryResult* result = new SQLiteQueryResult(stmt, this);
+    SQLiteQueryResult* result = new SQLiteQueryResult(stmt, this, init);
     return result;
 }
 

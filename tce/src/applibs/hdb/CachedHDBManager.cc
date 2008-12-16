@@ -528,19 +528,23 @@ CachedHDBManager::costEstimationDataIDs(
     
     // query hash (bit vector might be better suited for this)
     short int queryHash = 0;
+    // calculate query hash only to identify the query
     HDBManager::createCostEstimatioDataIdsQuery(match, NULL, NULL, &queryHash);
 
+    // check if query already exists
     std::map<short int,RelationalDBQueryResult*>::iterator it = 
         costEstimationDataIDsQueries_.find(queryHash);
 
     if (costEstimationDataIDsQueries_.end() != it) {
-        // TODO: query string is created for nothing above
+        // if query already existed use it
         return HDBManager::costEstimationDataIDs(match, true, it->second); 
     } else {
-        // create a new compiledQuery
+        // else create a new compiledQuery and use it
+        assert(queryHash != 0);
         std::string query = "";
-        HDBManager::createCostEstimatioDataIdsQuery(match, &query, NULL, &queryHash);
-        compiledQuery = HDBManager::getDBConnection()->query(query);
+        // create bindable query
+        HDBManager::createCostEstimatioDataIdsQuery(match, &query, NULL, NULL, true);
+        compiledQuery = HDBManager::getDBConnection()->query(query, false);
         costEstimationDataIDsQueries_[queryHash] = compiledQuery;
         return HDBManager::costEstimationDataIDs(match, true, compiledQuery); 
     }

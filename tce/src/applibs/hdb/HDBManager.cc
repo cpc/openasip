@@ -5752,13 +5752,16 @@ HDBManager::costEstimationDataIDs(
  *        be used.
  * @param queryHash Pointer to unique id variable to be created for the
  *        query, null if not to be created.
+ * @param createBindableQuery If true query of a kind where variables can be
+ *        binded is created, if false normal query with values is created.
  */
 void
 HDBManager::createCostEstimatioDataIdsQuery(
     const CostEstimationData& match, 
     std::string* query,
     RelationalDBQueryResult* compiledQuery,
-    short int* queryHash) const {
+    short int* queryHash,
+    bool createBindableQuery) const {
 
     if (queryHash) {
         *queryHash = 0;
@@ -5782,7 +5785,7 @@ HDBManager::createCostEstimatioDataIdsQuery(
         if (query) {
             firstMatch = false;
             *query += "name='";
-            *query += match.name();
+            *query += createBindableQuery ? "?" : match.name();
             *query += "'";
         }
     }
@@ -5800,7 +5803,7 @@ HDBManager::createCostEstimatioDataIdsQuery(
             if (!firstMatch) *query += " AND ";
             firstMatch = false;
             *query += "value='";
-            *query += match.name();
+            *query += createBindableQuery ? "?" : match.name();
             *query += "'";
         }
     }
@@ -5818,7 +5821,8 @@ HDBManager::createCostEstimatioDataIdsQuery(
             if (!firstMatch) *query += " AND ";
             firstMatch = false;
             *query += "plugin_reference = ";
-            *query += Conversion::toString(match.pluginID());
+            *query += createBindableQuery ? "?" : 
+                Conversion::toString(match.pluginID());
         }
     }
 
@@ -5835,7 +5839,8 @@ HDBManager::createCostEstimatioDataIdsQuery(
             if (!firstMatch) *query += " AND ";
             firstMatch = false;
             *query += "fu_reference = ";
-            *query += Conversion::toString(match.fuReference());
+            *query += createBindableQuery ? "?" : 
+                Conversion::toString(match.fuReference());
         }
     }
 
@@ -5852,7 +5857,8 @@ HDBManager::createCostEstimatioDataIdsQuery(
             if (!firstMatch) *query += " AND ";
             firstMatch = false;
             *query += "rf_reference = ";
-            *query += Conversion::toString(match.rfReference());
+            *query += createBindableQuery ? "?" : 
+                Conversion::toString(match.rfReference());
         }
     }
 
@@ -5869,7 +5875,8 @@ HDBManager::createCostEstimatioDataIdsQuery(
             if (!firstMatch) *query += " AND ";
             firstMatch = false;
             *query += "bus_reference = ";
-            *query += Conversion::toString(match.busReference());
+            *query += createBindableQuery ? "?" : 
+                Conversion::toString(match.busReference());
         }
     }
 
@@ -5886,7 +5893,8 @@ HDBManager::createCostEstimatioDataIdsQuery(
             if (!firstMatch) *query += " AND ";
             firstMatch = false;
             *query += "socket_reference = ";
-            *query += Conversion::toString(match.socketReference());
+            *query += createBindableQuery ? "?" : 
+                Conversion::toString(match.socketReference());
         }
     }
 

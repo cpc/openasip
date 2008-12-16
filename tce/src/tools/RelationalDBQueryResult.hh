@@ -53,7 +53,7 @@ public:
     virtual std::string columnName(std::size_t columnIndex) const;
     virtual const DataObject& data(std::size_t column) const = 0;
     virtual const DataObject& data(const std::string& name) const;
-    virtual bool hasNext() const = 0;
+    virtual bool hasNext() = 0;
     virtual bool next() = 0;
     virtual void bindInt(unsigned int position, int value);
     virtual void bindString(unsigned int position, const std::string& value);

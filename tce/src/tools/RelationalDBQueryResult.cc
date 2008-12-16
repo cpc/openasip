@@ -123,7 +123,7 @@ RelationalDBQueryResult::data(const std::string& name) const {
  * @return True if there are more rows that can be accessed with next().
  */
 bool
-RelationalDBQueryResult::hasNext() const {
+RelationalDBQueryResult::hasNext() {
     return false;
 }
 

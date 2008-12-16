@@ -48,12 +48,16 @@ using std::string;
  */
 SQLiteQueryResult::SQLiteQueryResult(
     sqlite3_stmt* statement,
-    SQLiteConnection* connection) :
+    SQLiteConnection* connection,
+    bool init) :
     statement_(statement), 
-    connection_(connection) {
+    connection_(connection),
+    dataInitialized_(init) {
 
     // initialize columnNames_ and nextData_
-    next();
+    if (init) {
+        next();
+    }
 }
 
 /**
@@ -139,7 +143,10 @@ SQLiteQueryResult::data(const std::string& name) const {
  * @return True if there are more rows that can be accessed with next().
  */
 bool
-SQLiteQueryResult::hasNext() const {
+SQLiteQueryResult::hasNext() {
+    if (!dataInitialized_) {
+        next();
+    }
     return nextData_.size() > 0;
 }
 
@@ -154,6 +161,7 @@ SQLiteQueryResult::hasNext() const {
 bool
 SQLiteQueryResult::next() {
 
+    dataInitialized_ = true;
     if (currentData_.size() > 0 && !hasNext()) {
         return false;
     }
@@ -205,7 +213,7 @@ SQLiteQueryResult::next() {
  */
 void
 SQLiteQueryResult::bindInt(unsigned int position, int value) {
-    sqlite3_bind_int(statement_, position, value);
+    connection_->throwIfSQLiteError(sqlite3_bind_int(statement_, position, value));
 }
 
 /**
@@ -213,7 +221,8 @@ SQLiteQueryResult::bindInt(unsigned int position, int value) {
  */
 void
 SQLiteQueryResult::bindString(unsigned int position, const std::string& value) {
-    sqlite3_bind_text(statement_, position, value.c_str(), -1, NULL);
+    connection_->throwIfSQLiteError(sqlite3_bind_text(statement_, position, value.c_str(),
+                -1, NULL));
 }
 
 /**
@@ -222,5 +231,6 @@ SQLiteQueryResult::bindString(unsigned int position, const std::string& value) {
 void
 SQLiteQueryResult::reset() {
     sqlite3_reset(statement_);
+    //sqlite3_clear_bindings(statement_);
 }
 

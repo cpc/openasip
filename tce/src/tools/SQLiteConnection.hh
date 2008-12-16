@@ -53,8 +53,10 @@ public:
 	throw (RelationalDBException);
     virtual void DDLQuery(const std::string& queryString)
 	throw (RelationalDBException);
-    virtual RelationalDBQueryResult* query(const std::string& queryString)
-	throw (RelationalDBException);
+    virtual RelationalDBQueryResult* query(
+        const std::string& queryString, 
+        bool init = true) 
+        throw (RelationalDBException);
 
     virtual void beginTransaction()
 	throw (RelationalDBException);

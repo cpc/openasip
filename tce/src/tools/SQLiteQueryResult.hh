@@ -49,15 +49,17 @@
  */
 class SQLiteQueryResult : public RelationalDBQueryResult {
 public:
-    SQLiteQueryResult(sqlite3_stmt* statement,
-		      SQLiteConnection* connection);
+    SQLiteQueryResult(
+        sqlite3_stmt* statement,
+        SQLiteConnection* connection,
+        bool init = true);
     virtual ~SQLiteQueryResult();
 
     virtual int columns() const;
     virtual std::string columnName(std::size_t columnIndex) const;
     virtual const DataObject& data(std::size_t columnIndex) const;
     virtual const DataObject& data(const std::string& name) const;
-    virtual bool hasNext() const;
+    virtual bool hasNext();
     virtual bool next();
     virtual void bindInt(unsigned int position, int value);
     virtual void bindString(unsigned int position, const std::string& value);
@@ -76,6 +78,8 @@ private:
     std::vector<DataObject> currentData_;
     /// data of the next row
     std::vector<DataObject> nextData_;
+    /// has next() been called for this query
+    bool dataInitialized_;
 };
 
 #endif
