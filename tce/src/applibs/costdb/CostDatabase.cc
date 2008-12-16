@@ -218,7 +218,7 @@ CostDatabase::buildRegisterFiles(const std::string& rfEstimatorPluginName)
         }
     }
 
-    bool useCompiledQueries = true;
+    bool useCompiledQueries = false;
     
     // Registers
     std::set<RowID> rfs = hdb_.rfEntryIDs();
@@ -456,7 +456,7 @@ CostDatabase::buildFunctionUnits(const std::string& fuEstimatorPluginName)
         }
     }
 
-    bool useCompiledQueries = true;
+    bool useCompiledQueries = false;
 
     // Function units
     std::set<RowID> fus = hdb_.fuEntryIDs();
