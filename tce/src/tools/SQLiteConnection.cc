@@ -205,7 +205,7 @@ SQLiteConnection::compileQuery(const std::string& queryString)
     sqlite3_stmt* stmt = NULL;
     const char* dummy = NULL;
 
-    throwIfSQLiteError(sqlite3_prepare_v2(
+    throwIfSQLiteError(sqlite3_prepare(
         connection_, queryString.c_str(), queryString.length(),
         &stmt, &dummy));
     return stmt;
