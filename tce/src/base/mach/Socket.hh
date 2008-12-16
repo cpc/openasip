@@ -92,9 +92,9 @@ public:
 
     bool hasDataPortWidth() const;
 
-    std::string const& dataPortWidth() const;
+    const std::string& dataPortWidth() const;
 
-    void setDataPortWidth(std::string const& width);
+    void setDataPortWidth(const std::string& width);
 
     virtual void setMachine(Machine& mach)
         throw (ComponentAlreadyExists);

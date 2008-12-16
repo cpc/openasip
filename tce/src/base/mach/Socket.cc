@@ -401,17 +401,20 @@ Socket::segment(int index) const
     return busses_[index]->bus();
 }
 
-    bool Socket::hasDataPortWidth() const {
-        return !dataPortWidth_.empty();
-    }
+bool
+Socket::hasDataPortWidth() const {
+    return !dataPortWidth_.empty();
+}
 
-    std::string const& Socket::dataPortWidth() const {
-        return dataPortWidth_;
-    }
+const std::string& 
+Socket::dataPortWidth() const {
+    return dataPortWidth_;
+}
 
-    void Socket::setDataPortWidth(string const& width) {
-        dataPortWidth_ = width;
-    }
+void
+Socket::setDataPortWidth(const string& width) {
+    dataPortWidth_ = width;
+}
 
 /**
  * Registers the socket to a machine.

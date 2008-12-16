@@ -387,11 +387,11 @@ DefaultICGenerator::generateSockets(const std::string& dstDirectory) const
  *
  * @param port The port to be tested
  */
-bool DefaultICGenerator::isGcuPort(Port const* port) const {
+bool 
+DefaultICGenerator::isGcuPort(const Port* port) const {
     ControlUnit* gcu = machine_.controlUnit();
     for (int i = 0; i < gcu->portCount(); i++) {
-        TTAMachine::Port* gcuPort = 
-            reinterpret_cast<TTAMachine::Port*>(gcu->port(i));
+        TTAMachine::Port* gcuPort = gcu->port(i);
         if (gcuPort == port) {
             return true;
         }
@@ -770,7 +770,7 @@ DefaultICGenerator::writeInterconnectionNetwork(std::ostream& stream) {
         }
         if (socket->direction() == Socket::OUTPUT) {
             for (int i = 0; i < socket->portCount(); i++) {
-                string socketWidth;
+                string socketWidth = "";
                 if (socket->hasDataPortWidth()) {
                     socketWidth = socket->dataPortWidth();
                 } else {

@@ -84,8 +84,8 @@ public:
     /**
      * Creates the compressed code and returns the bit vector of it.
      */
-    virtual InstructionBitVector* compress(std::string& programName) 
-        throw (InvalidData) {
+    virtual InstructionBitVector*
+    compress(const std::string& programName) throw (InvalidData) {
 
         try {
             if (hasParameter(ENSURE_PROGRAMMABILITY) &&
@@ -127,7 +127,8 @@ public:
      *
      * @param stream The stream to write.
      */
-    virtual void generateDecompressor(std::ostream& stream) {
+    virtual void 
+    generateDecompressor(std::ostream& stream) {
 
         stream << "library ieee;" << endl;
         stream << "use ieee.std_logic_1164.all;" << endl;
@@ -215,7 +216,8 @@ public:
      *
      * @param stream The stream.
      */
-    virtual void printDescription(std::ostream& stream) {
+    virtual void 
+    printDescription(std::ostream& stream) {
         stream  << "Generates the program image using dictionary "
                 << "compression." << endl << endl 
                 << "Warning! This compressor works correctly only when "
@@ -241,7 +243,8 @@ private:
      * Creates the whole dictionary
      *
      */
-    void createDictionary() {
+    void 
+    createDictionary() {
         for (int i = 0; i < numberOfPrograms(); i++) {
             TPEFMap::const_iterator iter = programElement(i);
             string name = iter->first;
@@ -257,7 +260,8 @@ private:
      *
      * @param instructionBits The instruction bits to add.
      */
-    void addToDictionary(const BitVector& instructionBits) {
+    void 
+    addToDictionary(const BitVector& instructionBits) {
         if (!MapTools::containsKey(dictionary_, instructionBits)) {
             unsigned int code = dictionary_.size();
             dictionary_.insert(
@@ -269,7 +273,8 @@ private:
     /**
      * Creates the dictionary.
      */
-    void updateDictionary(const Program& program) {        
+    void 
+    updateDictionary(const Program& program) {        
         Instruction* instruction = &program.firstInstruction();
         while (instruction != &NullInstruction::instance()) {
             InstructionBitVector* instructionBits = bemInstructionBits(
@@ -283,7 +288,8 @@ private:
     /**
      * Adds the compressed instructions to the program.
      */
-    void addInstructions() {
+    void 
+    addInstructions() {
         Instruction* instruction = &currentProgram().firstInstruction();
         while (instruction != &NullInstruction::instance()) {
             InstructionBitVector* bemBits = bemInstructionBits(*instruction);
@@ -306,7 +312,8 @@ private:
      *
      * @param level The indentation level.
      */
-    static std::string indentation(int level) {
+    static std::string 
+    indentation(int level) {
         string ind;
         for (int i = 0; i < level; i++) {
             ind += "  ";

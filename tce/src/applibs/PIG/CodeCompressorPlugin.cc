@@ -301,7 +301,7 @@ CodeCompressorPlugin::machine() const
  * @exception InvalidData If the program object model cannot be created.
  */
 void
-CodeCompressorPlugin::startNewProgram(string& programName) 
+CodeCompressorPlugin::startNewProgram(const string& programName) 
     throw (InvalidData) {
 
     if (programBits_ != NULL) {
@@ -573,13 +573,16 @@ CodeCompressorPlugin::parameterValue(const std::string& paramName) const
 }
 
 /**
- * Returns the mau of instruction memory. Before compression this is the
+ * Returns the mau of instruction memory. 
+ *
+ * Before compression this is the
  * original width and after compression it returns the compressed instruction
  * width
  *
  * @return mau width
  */
-int CodeCompressorPlugin::imemMauWidth() const {
+int
+CodeCompressorPlugin::imemMauWidth() const {
     return mau_;
 }
 
@@ -590,7 +593,8 @@ int CodeCompressorPlugin::imemMauWidth() const {
  * @param mau Mau of instruction memory
  * @param widthInMaus Memory width in maus (default = 1)
  */
-void CodeCompressorPlugin::setImemWidth(int mau, int widthInMaus) {
+void
+CodeCompressorPlugin::setImemWidth(int mau, int widthInMaus) {
     machine_->controlUnit()->addressSpace()->setWidth(mau*widthInMaus);
     mau_ = mau;
 }
@@ -600,7 +604,8 @@ void CodeCompressorPlugin::setImemWidth(int mau, int widthInMaus) {
  *
  * @return number of programs
  */
-int CodeCompressorPlugin::numberOfPrograms() const {
+int
+CodeCompressorPlugin::numberOfPrograms() const {
     return tpefPrograms_.size();
 }
 

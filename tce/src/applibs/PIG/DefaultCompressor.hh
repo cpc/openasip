@@ -41,7 +41,8 @@ class DEFAULT_Compressor : public CodeCompressorPlugin {
 public: 
     DEFAULT_Compressor() : CodeCompressorPlugin() {}
 
-    virtual InstructionBitVector* compress(std::string& programName) 
+    virtual InstructionBitVector*
+    compress(const std::string& programName)
         throw (InvalidData) {
 
         try {
@@ -63,11 +64,13 @@ public:
         }
     }
 
-    virtual void printDescription(std::ostream& stream) {
+    virtual void 
+    printDescription(std::ostream& stream) {
         stream << "Does not compress instructions at all." << std::endl;
     }
 
-    virtual void generateDecompressor(std::ostream&) {}
+    virtual void 
+    generateDecompressor(std::ostream&) {}
 };
 
 EXPORT_CODE_COMPRESSOR(DEFAULT_Compressor)

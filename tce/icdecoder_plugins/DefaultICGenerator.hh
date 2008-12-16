@@ -96,7 +96,7 @@ private:
     void generateSockets(const std::string& dstDirectory) const
         throw (IOException);
 
-    bool isGcuPort(TTAMachine::Port const* port) const;
+    bool isGcuPort(const TTAMachine::Port* port) const;
 
     static void generateSocket(
         TTAMachine::Socket::Direction direction,

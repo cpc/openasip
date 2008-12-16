@@ -119,13 +119,13 @@ ProcessorGenerator::generateProcessor(
     ICDecoderGeneratorPlugin& plugin,
     int imemWidthInMAUs,
     const std::string& dstDirectory,
-    std::ostream& /*errorStream*/,
+    std::ostream& errorStream,
     std::ostream& warningStream)
     throw (IOException, InvalidData, IllegalMachine, OutOfRange,
            InstanceNotFound) {
 
     // validate the machine
-    validateMachine(machine, warningStream);
+    validateMachine(machine, errorStream, warningStream);
     // check the compatibility of the plugin
     plugin.verifyCompatibility();
     // check that IU implementation latencies are compatible with the
@@ -235,12 +235,14 @@ ProcessorGenerator::generateGlobalsPackage(
  * the given stream.
  *
  * @param machine The machine to validate.
+ * @param errorStream Output stream where errors are printed
  * @param warningStream Output stream where warnings are printed
  * @exception IllegalMachine If there is a fundamental error in the machine.
  */
 void
 ProcessorGenerator::validateMachine(
     const TTAMachine::Machine& machine,
+    std::ostream& errorStream,
     std::ostream& warningStream)
     throw (IllegalMachine) {
 
@@ -268,6 +270,7 @@ ProcessorGenerator::validateMachine(
                           << endl;
         } else {
             string msg = "Error: " + errorMsg;
+            errorStream << msg << std::endl;
             delete results;
             throw IllegalMachine(__FILE__, __LINE__, __func__, msg);
         }

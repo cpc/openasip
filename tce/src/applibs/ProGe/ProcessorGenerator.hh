@@ -81,6 +81,7 @@ public:
 private:
     void validateMachine(
         const TTAMachine::Machine& machine,
+        std::ostream& errorStream,
         std::ostream& warningStream)
         throw (IllegalMachine);
     void checkIULatencies(

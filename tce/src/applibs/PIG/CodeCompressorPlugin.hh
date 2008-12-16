@@ -108,7 +108,7 @@ public:
      * @return The bit image.
      * @exception InvalidData If the BEM is erroneous.
      */
-    virtual InstructionBitVector* compress(std::string& program)
+    virtual InstructionBitVector* compress(const std::string& program)
         throw (InvalidData) = 0;
 
     /**
@@ -141,7 +141,7 @@ protected:
     InstructionBitVector* bemBits(const TTAProgram::Program& program)
         throw (InvalidData);
 
-    void startNewProgram(std::string& programName)
+    void startNewProgram(const std::string& programName)
         throw (InvalidData);
     void addInstruction(
         const TTAProgram::Instruction& instruction, 

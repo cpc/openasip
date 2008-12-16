@@ -28,7 +28,7 @@
  * "generateprocessor".
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @authot Otto Esko 2008 (otto.esko-no.spam-tut.fi
+ * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 

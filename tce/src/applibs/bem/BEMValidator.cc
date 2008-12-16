@@ -686,7 +686,8 @@ BEMValidator::checkLImmDstRegisterFields() {
  *
  * @param gcu Global Control Unit of the machine
  */
-void BEMValidator::checkImemMauWidth(TTAMachine::ControlUnit& gcu) {
+void
+BEMValidator::checkImemMauWidth(TTAMachine::ControlUnit& gcu) {
     int imemWidth = 0;
     if (gcu.hasAddressSpace()) {
         imemWidth = gcu.addressSpace()->width();

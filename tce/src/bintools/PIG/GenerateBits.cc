@@ -186,7 +186,8 @@ parseParameter(
 }
 
 
-void createMauPkg(int imemMauWidth, string fileName) {
+void 
+createMauPkg(int imemMauWidth, string fileName) {
     string indentation = "   ";
  
     if (!FileSystem::fileExists(fileName) 
