@@ -66,8 +66,6 @@ public:
     virtual void reset();
 
 private:
-    /// single DataObject is used to return the column data with data()
-    mutable DataObject columnData_;
     /// the compiled SQLite statement handle
     sqlite3_stmt* statement_;
     /// sqlite connection handle

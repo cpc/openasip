@@ -230,7 +230,11 @@ SQLiteQueryResult::bindString(unsigned int position, const std::string& value) {
  */
 void
 SQLiteQueryResult::reset() {
-    sqlite3_reset(statement_);
-    //sqlite3_clear_bindings(statement_);
+    connection_->throwIfSQLiteError(sqlite3_reset(statement_));
+    connection_->throwIfSQLiteError(sqlite3_clear_bindings(statement_));
+    columnNames_.clear();
+    currentData_.clear();
+    nextData_.clear();
+    dataInitialized_ = false;
 }
 
