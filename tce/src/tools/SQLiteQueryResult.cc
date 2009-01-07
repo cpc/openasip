@@ -231,7 +231,8 @@ SQLiteQueryResult::bindString(unsigned int position, const std::string& value) {
 void
 SQLiteQueryResult::reset() {
     connection_->throwIfSQLiteError(sqlite3_reset(statement_));
-    connection_->throwIfSQLiteError(sqlite3_clear_bindings(statement_));
+    // reset doesn't clear bindings
+    //connection_->throwIfSQLiteError(sqlite3_clear_bindings(statement_));
     columnNames_.clear();
     currentData_.clear();
     nextData_.clear();
