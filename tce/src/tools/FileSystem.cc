@@ -26,9 +26,9 @@
  *
  * Implementation of FileSystem class.
  *
- * @author Pekka Jääskeläinen (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
- * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
+ * @author Esa Mï¿½ï¿½ttï¿½ 2007 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -49,7 +49,7 @@
 
 #include "FileSystem.hh"
 #include "MathTools.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using std::string;
 using std::vector;

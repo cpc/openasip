@@ -26,12 +26,12 @@
  *
  * Definition of PrintPreviewCmd class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <wx/docview.h>
 
-#include "config.h"
+#include "tce_config.h"
 #include "PrintPreviewCmd.hh"
 #include "ProDeConstants.hh"
 #include "ProDe.hh"

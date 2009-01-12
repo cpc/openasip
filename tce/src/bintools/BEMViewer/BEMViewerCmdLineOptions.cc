@@ -31,7 +31,7 @@
  */
 
 #include "BEMViewerCmdLineOptions.hh"
-#include "config.h"
+#include "tce_config.h"
 
 /**
  * The constructor.

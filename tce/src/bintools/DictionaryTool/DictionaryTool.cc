@@ -26,7 +26,7 @@
  *
  * DictionaryTool main application.
  *
- * @author Jari Mäntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jari Mï¿½ntyneva 2006 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -49,7 +49,7 @@
 #include "ProgramWriter.hh"
 
 #include "MoveElement.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using std::cout;
 using std::cerr;

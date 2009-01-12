@@ -26,7 +26,7 @@
  *
  * Program for outputting TPEF hierarchy in textual format.
  *
- * @author Mikael Lepistö 2005 (tmlepist-no.spam-tut.fi)
+ * @author Mikael Lepistï¿½ 2005 (tmlepist-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -38,7 +38,7 @@
 #include "BinaryStream.hh"
 #include "Binary.hh"
 #include "TPEFDumper.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using TPEF::BinaryReader;
 using TPEF::Binary;

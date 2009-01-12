@@ -26,7 +26,7 @@
  *
  * Declaration of ExplorerCmdLineOptions.
  *
- * @author Jari Mäntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
+ * @author Jari Mï¿½ntyneva 2007 (jari.mantyneva-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -35,7 +35,7 @@
 //#include "ExplorerConstants.hh"
 #include "CmdLineOptions.hh"
 #include "ExplorerCmdLineOptions.hh"
-#include "config.h"
+#include "tce_config.h"
 
 /// Long switch string for giving an explorer plugin to be used.
 const std::string SWL_PLUGIN_NAME = "explorer_plugin";

@@ -33,7 +33,7 @@
  * @note rating: yellow
  */
 
-#include <config.h>
+#include <tce_config.h>
 
 namespace TPEF {
 

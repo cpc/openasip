@@ -26,7 +26,7 @@
  *
  * Definition of MFDView class.
  *
- * @author Veli-Pekka Jääskeläinen 2003 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2003 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  * @note reviewed Jun 23 2004 by ml, jn, jm, vpj
  */
@@ -34,7 +34,7 @@
 #include <wx/dcps.h>
 #include <string>
 #include "MDFView.hh"
-#include "config.h"
+#include "tce_config.h"
 #include "MDFDocument.hh"
 #include "Machine.hh"
 #include "SelectTool.hh"

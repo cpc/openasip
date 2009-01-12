@@ -36,7 +36,7 @@
 
 #include <string>
 #include "CmdLineOptions.hh"
-#include "config.h" // VERSION
+#include "tce_config.h" // VERSION
 
 /**
  * Command line options class for LLVMTCE compiler CLI.

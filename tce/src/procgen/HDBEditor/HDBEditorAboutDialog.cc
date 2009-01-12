@@ -26,12 +26,12 @@
  * 
  * Definition of HDBEditorAboutDialog class.
  * 
- * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
 #include "HDBEditorAboutDialog.hh"
-#include "config.h"
+#include "tce_config.h"
 #include "WxConversion.hh"
 #include "HDBEditorConstants.hh"
 

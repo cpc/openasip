@@ -27,7 +27,7 @@
  * Definition of Environment class.
  *
  * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  *
  * @note reviewed 19 May 2004 by ao, jn, ml, am
@@ -38,7 +38,7 @@
 #include <string>
 
 #include "Environment.hh"
-#include "config.h"
+#include "tce_config.h"
 #include "FileSystem.hh"
 #include "StringTools.hh"
 #include "VectorTools.hh"

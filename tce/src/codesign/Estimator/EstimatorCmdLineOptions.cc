@@ -26,7 +26,7 @@
  *
  * Declaration of EstimatorCmdLineOptions.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -34,7 +34,7 @@
 
 #include "CmdLineOptions.hh"
 #include "EstimatorCmdLineOptions.hh"
-#include "config.h"
+#include "tce_config.h"
 
 
 /// Long switch string for setting the TPEF (program).

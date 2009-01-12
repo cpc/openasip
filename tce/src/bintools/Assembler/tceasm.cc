@@ -26,7 +26,7 @@
  *
  * TCE paraller assembler commandline client.
  *
- * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2005 (tmlepist-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -42,7 +42,7 @@
 #include "Binary.hh"
 #include "TPEFWriter.hh"
 
-#include "config.h"
+#include "tce_config.h"
 
 using namespace TTAMachine;
 using namespace TPEF;

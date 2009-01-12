@@ -33,7 +33,7 @@
 
 #include <iostream>
 #include "ProGeCmdLineOptions.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using std::string;
 using std::cout;

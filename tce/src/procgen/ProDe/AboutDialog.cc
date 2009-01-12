@@ -26,7 +26,7 @@
  *
  * Definition of AboutDialog class.
  *
- * @author Veli-Pekka Jääskeläinen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2004 (vjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <string>
@@ -39,7 +39,7 @@
 #include "GUITextGenerator.hh"
 #include "ProDeTextGenerator.hh"
 #include "WidgetTools.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using boost::format;
 using std::string;

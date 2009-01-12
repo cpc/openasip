@@ -83,7 +83,7 @@
 
 #include "Operation.hh"
 
-#include "config.h"
+#include "tce_config.h"
 #include "MathTools.hh"
 
 using std::string;

@@ -69,7 +69,7 @@
 #include "CodeLabel.hh"
 #include "DataLabel.hh"
 #include "ControlFlowGraph.hh"
-#include "config.h"
+#include "tce_config.h"
 #include "BaseType.hh"
 #include "CompiledSimSymbolGenerator.hh"
 #include "CompiledSimMove.hh"

@@ -26,7 +26,7 @@
  *
  * Implementation of LLVMPOMBuilder class.
  *
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @note reting: red
  */
 
@@ -82,7 +82,7 @@ typedef llvm::TargetInstrDesc TargetInstrDescriptor;
 #include "Operation.hh"
 #include "OperationPool.hh"
 
-#include "config.h"
+#include "tce_config.h"
 
 #define END_SYMBOL_NAME "_end"
 

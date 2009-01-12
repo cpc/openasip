@@ -36,7 +36,7 @@
 
 #include "CompiledSimCompiler.hh"
 #include "Conversion.hh"
-#include "config.h"
+#include "tce_config.h"
 #include "Application.hh"
 #include "Environment.hh"
 #include "FileSystem.hh"

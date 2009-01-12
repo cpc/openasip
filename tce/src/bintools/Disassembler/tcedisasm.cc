@@ -26,7 +26,7 @@
  *
  * TCE parallel disassembler.
  *
- * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2006 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -46,7 +46,7 @@
 #include "DataDefinition.hh"
 #include "FileSystem.hh"
 #include "UniversalMachine.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using std::cout;
 using std::cerr;

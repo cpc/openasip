@@ -26,15 +26,15 @@
  *
  * Definition of MemoryControl class.
  *
- * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Jussi Nykï¿½nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2005 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
 #include <string>
 #include <wx/clipbrd.h>
 #include "MemoryControl.hh"
-#include "config.h"
+#include "tce_config.h"
 #include "WxConversion.hh"
 #include "Conversion.hh"
 #include "ErrorDialog.hh"

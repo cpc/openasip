@@ -32,7 +32,7 @@
 
 #include <iostream>
 #include "SchedulerCmdLineOptions.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using std::cout;
 using std::endl;

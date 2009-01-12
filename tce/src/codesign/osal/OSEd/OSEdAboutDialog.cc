@@ -26,7 +26,7 @@
  *
  * Definition of OSEdAboutDialog class.
  *
- * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nykï¿½nen 2004 (nykanen-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -43,7 +43,7 @@
 #include "GUITextGenerator.hh"
 #include "OSEdConstants.hh"
 #include "DialogPosition.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using boost::format;
 using std::string;

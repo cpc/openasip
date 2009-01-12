@@ -26,14 +26,14 @@
  *
  * Declaration of LineReaderFactory class.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
 #include "LineReaderFactory.hh"
 #include "LineReader.hh"
 
-#include "config.h"
+#include "tce_config.h"
 
 #ifdef EDITLINE
 #include "EditLineReader.hh"

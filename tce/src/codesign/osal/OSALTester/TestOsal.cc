@@ -26,8 +26,8 @@
  *
  * Implementation of test_osal.
  *
- * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Jussi Nykï¿½nen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka Jï¿½ï¿½skelï¿½inen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -47,7 +47,7 @@
 #include "IdealSRAM.hh"
 #include "BaseType.hh"
 #include "TCEString.hh"
-#include "config.h"
+#include "tce_config.h"
 
 using std::string;
 using std::vector;
