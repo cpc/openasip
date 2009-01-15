@@ -63,6 +63,7 @@
 #include "RegisterQuantityCheck.hh"
 
 #include "MinimalOpSetCheck.hh"
+#include "MachineCheckResults.hh"
 
 
 using namespace TTAProgram;
@@ -197,7 +198,7 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
                     return result;
                 }
             }
-
+             
             DSDBManager::MachineConfiguration tempConf;
             try {
                 tempConf.architectureID = dsdb.addArchitecture(*mach);
@@ -237,6 +238,19 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
 
             DSDBManager::MachineConfiguration newConf =
                 dsdb.configuration(cleanedTempConfIDs.at(0));
+
+            // if original machine had enough int registers, check and
+            // possibly try to fix the new machine
+            RegisterQuantityCheck RFCheck;
+            if (RFCheck.checkIntRegs(*origMach)) {
+                Machine* cleanedMach =
+                    dsdb.architecture(newConf.architectureID);
+                if (fixIntRegisters(*cleanedMach)) {
+                    // replace newConf machine with the fixed one
+                    newConf.architectureID =
+                        dsdb.addArchitecture(*cleanedMach); 
+                }
+            }
 
             // create implementation for newConf if orginal config had one
             if (conf.hasImplementation && !newConf.hasImplementation) {
@@ -373,6 +387,28 @@ private:
                 } 
             }
         }
+    }
+
+    /**
+     * Checks that produced machine is still usable
+     *
+     * @param mach Machine where the connections are added.
+     * @return True if something done to the machine given as parameter.
+     */
+    bool fixIntRegisters(TTAMachine::Machine& mach) {
+        // check that that machine has enough int registers and fix if needed
+        // and can be fixed
+        RegisterQuantityCheck RFCheck;
+        if (!RFCheck.checkIntRegs(mach) && RFCheck.canFixIntRegs(mach)) {
+            if (!RFCheck.fixIntRegs(mach)) {
+                verboseLog("Failed to add missing integer registers to the"
+                        "machine.");
+                return false;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

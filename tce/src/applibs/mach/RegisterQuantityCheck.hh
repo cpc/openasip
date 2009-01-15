@@ -36,6 +36,7 @@
 #define TTA_REGISTER_QUANTITY_CHECK_HH
 
 #include "MachineCheck.hh"
+#include "FullyConnectedCheck.hh"
 
 #include <set>
 #include <string>
@@ -52,6 +53,7 @@ public:
     virtual bool check(
         const TTAMachine::Machine& mach, 
         MachineCheckResults& results) const;
+
     bool checkWithIgnore(
         const TTAMachine::Machine& mach, 
         const std::set<std::string>& ignoreRFs) const;
@@ -59,6 +61,10 @@ public:
         const TTAMachine::Machine& mach, 
         MachineCheckResults& results, 
         const std::set<std::string>& ignoreRFs) const;
+    
+    bool checkIntRegs(const TTAMachine::Machine& mach) const;
+    bool canFixIntRegs(const TTAMachine::Machine& mach) const;
+    bool fixIntRegs(TTAMachine::Machine& mach) const;
 private:
     typedef std::pair<TTAMachine::RegisterFile*, int> Register;
     void findGuardRegisters(
@@ -67,14 +73,17 @@ private:
         const std::set<std::string>& ignoreRFs) const;
     unsigned int countIntRegisters(
         const TTAMachine::Machine& mach, 
-        const std::set<Register>& registers,
+        const std::set<Register>& guardRegs,
         const std::set<std::string>& ignoreRFs) const;
     bool checkPredRegs(
         const unsigned int& regCount,
         MachineCheckResults* results) const;
-    bool checkIntRegs(
+    unsigned int missingIntRegs(
         const unsigned int& regCount,
-        MachineCheckResults* results) const;
+        MachineCheckResults* results,
+        bool isFullyConnected) const;
+
+    FullyConnectedCheck fullyConCheck_;
 };
 
 #endif

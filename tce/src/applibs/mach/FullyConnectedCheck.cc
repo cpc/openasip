@@ -87,6 +87,76 @@ FullyConnectedCheck::canFix(const TTAMachine::Machine& mach) const {
 }
 
 /**
+ * Checks is the machine fully connected.
+ *
+ * @param mach Machine to be checked.
+ * @return True if the machine is fully connected.
+ */
+bool
+FullyConnectedCheck::check(const TTAMachine::Machine& mach) const {
+    const Machine::SocketNavigator
+        socketNav = mach.socketNavigator();
+
+    for (int so = 0; so < socketNav.count(); so++) {
+        // for each socket in the machine
+        if (!socketAttachedToAllBusses(*socketNav.item(so))) {
+            return false;
+        }
+    }
+
+    // check unconnected FU ports
+    const Machine::FunctionUnitNavigator fuNav = mach.functionUnitNavigator();
+
+    for (int i = 0; i < fuNav.count(); i++) {
+        FunctionUnit& fu = *fuNav.item(i);
+        for (int p = 0; p < fu.operationPortCount(); p++) {
+            FUPort& port = *fu.operationPort(p);
+            if (port.socketCount() == 0) {
+                return false;
+            }
+        }
+    }
+
+    // check unconnected IU ports
+    const Machine::ImmediateUnitNavigator iuNav =
+        mach.immediateUnitNavigator();
+
+    for (int i = 0; i < iuNav.count(); i++) {
+        ImmediateUnit& iu = *iuNav.item(i);
+        for (int p = 0; p < iu.portCount(); p++) {
+            RFPort& port = *iu.port(p);
+            if (port.socketCount() == 0) {
+                return false;
+            }
+        }
+    }
+
+    // check unconnected RF ports
+    const Machine::RegisterFileNavigator rfNav = mach.registerFileNavigator();
+
+    for (int i = 0; i < rfNav.count(); i++) {
+        RegisterFile& rf = *rfNav.item(i);
+        for (int p = 0; p < rf.portCount(); p++) {
+            RFPort& port = *rf.port(p);
+            if (port.socketCount() == 0) {
+                return false;
+            }
+        }
+    }
+
+    ControlUnit* gcu = mach.controlUnit();
+    if (gcu != NULL) {
+        for (int p = 0; p < gcu->operationPortCount(); p++) {
+            FUPort& port = *gcu->operationPort(p);
+            if (port.socketCount() == 0) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * Checks is the machine fully connected and adds errors to results.
  *
  * @param mach Machine to be checked.
@@ -110,7 +180,8 @@ FullyConnectedCheck::check(
             result = false;
         }
     }
-    // Connect all unconnected FU ports to newly created sockets.
+    
+    // check unconnected FU ports
     const Machine::FunctionUnitNavigator fuNav = mach.functionUnitNavigator();
 
     for (int i = 0; i < fuNav.count(); i++) {
@@ -126,7 +197,7 @@ FullyConnectedCheck::check(
         }
     }
 
-    // Connect all unconnected IU ports to new sockets.
+    // check unconnected IU ports
     const Machine::ImmediateUnitNavigator iuNav =
         mach.immediateUnitNavigator();
 
@@ -143,7 +214,7 @@ FullyConnectedCheck::check(
         }
     }
 
-    // Connect all unconnected RF ports to new sockets.
+    // check unconnected RF ports
     const Machine::RegisterFileNavigator rfNav = mach.registerFileNavigator();
 
     for (int i = 0; i < rfNav.count(); i++) {

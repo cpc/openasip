@@ -53,10 +53,14 @@ public:
     virtual ~FullyConnectedCheck();
 
     virtual bool check(
+        const TTAMachine::Machine& mach) const;
+    virtual bool check(
         const TTAMachine::Machine& mach, MachineCheckResults& results) const;
+
     virtual bool canFix(const TTAMachine::Machine& mach) const;
     virtual std::string fix(TTAMachine::Machine& mach) const
         throw (InvalidData);
+
     void connectFUPort(TTAMachine::FUPort& port) const;
 protected:
     FullyConnectedCheck(const std::string& shortDesc);

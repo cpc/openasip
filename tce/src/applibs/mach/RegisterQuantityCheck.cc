@@ -41,6 +41,7 @@
 #include "Conversion.hh"
 
 #include "RegisterQuantityCheck.hh"
+#include "FullyConnectedCheck.hh"
 
 RegisterQuantityCheck::RegisterQuantityCheck() : 
     MachineCheck("Checks that machine has enough registers") {}
@@ -72,7 +73,7 @@ RegisterQuantityCheck::check(const TTAMachine::Machine& mach) const {
     unsigned int intRegs = countIntRegisters(mach, guardRegs, ignoreRFs);
 
     // check if enough integer registers
-    if (!checkIntRegs(intRegs, NULL)) {
+    if (missingIntRegs(intRegs, NULL, fullyConCheck_.check(mach))) {
         return false;
     }
 
@@ -129,7 +130,7 @@ RegisterQuantityCheck::checkWithIgnore(
     unsigned int intRegs = countIntRegisters(mach, guardRegs, ignoreRFs);
 
     // check if enough integer registers
-    if (!checkIntRegs(intRegs, NULL)) {
+    if (missingIntRegs(intRegs, NULL, fullyConCheck_.check(mach))) {
         return false;
     }
 
@@ -168,9 +169,33 @@ RegisterQuantityCheck::checkWithIgnore(
     unsigned int intRegs = countIntRegisters(mach, guardRegs, ignoreRFs);
 
     // check if enough integer registers
-    checkIntRegs(intRegs, &results);
+    missingIntRegs(intRegs, &results, fullyConCheck_.check(mach));
 
     return results.errorCount() == 0;
+}
+
+
+/**
+ * Check only if enough integer registers. 
+ *
+ * @param mach Machine to be checked for int registers.
+ * @return True if enough integer registers found.
+ */
+bool 
+RegisterQuantityCheck::checkIntRegs(const TTAMachine::Machine& mach) const {
+    // find all registers that can be used for guards
+    std::set<Register> guardRegs;
+    const std::set<std::string> ignoreRFs; //empty, no ignore
+    findGuardRegisters(mach, guardRegs, ignoreRFs);
+
+    // count all integer registers
+    unsigned int intRegs = countIntRegisters(mach, guardRegs, ignoreRFs);
+
+    // check if enough integer registers
+    if (missingIntRegs(intRegs, NULL, fullyConCheck_.check(mach))) {
+        return false;
+    }
+    return true;
 }
 
 
@@ -219,7 +244,7 @@ RegisterQuantityCheck::findGuardRegisters(
  * Can be passed a list of RFs names that are ignored regarding the test.
  *
  * @param mach Machine where integer registers are counted.
- * @param registers A sorted list of register file, index pairs.
+ * @param guardRegs A sorted list of register file, index pairs.
  * @param ignoreRFs A sorted list of RFs to be ignored while counting the
  *        registers.
  * @return The number of counted integer registers in them machine.
@@ -283,18 +308,84 @@ RegisterQuantityCheck::checkPredRegs(
  *
  * @param regCount The number of integer registers.
  * @param results MachineCheckResults where possible errors are added.
- * @return True if the number of integer registers given was high enough.
+ * @return number of missing registers, 0 if none missing.
  */
-bool
-RegisterQuantityCheck::checkIntRegs(
+unsigned int
+RegisterQuantityCheck::missingIntRegs(
     const unsigned int& regCount,
-    MachineCheckResults* results) const {
+    MachineCheckResults* results,
+    bool isFullyConnected) const {
+
+    unsigned int neededIntRegs = isFullyConnected ? 5 : 6;
+    unsigned int missingRegisters = 0;
      
-    if (regCount < 5) {
+    if (regCount < neededIntRegs) {
+        missingRegisters = neededIntRegs - regCount;
         if (results != NULL) {
             results->addError(*this, "too few integer registers");
         }
-        return false;
     }
-   return true;
+   return missingRegisters;
+}
+
+
+/**
+ * Adds integer registers to an int rf so that requirements are met.
+ *
+ * @param machine Machine where integer registers are to be added if needed.
+ * @return True if something was done to the machine, false otherwise.
+ */
+bool
+RegisterQuantityCheck::fixIntRegs(TTAMachine::Machine& mach) const {
+    // find all guard registers, which are ignored
+    std::set<Register> guardRegs;
+    const std::set<std::string> ignoreRFs; //empty, no ignore
+    findGuardRegisters(mach, guardRegs, ignoreRFs);
+
+    // count all integer registers
+    unsigned int intRegs = countIntRegisters(mach, guardRegs, ignoreRFs);
+   
+    unsigned int missingRegs = 
+        missingIntRegs(intRegs, NULL, fullyConCheck_.check(mach));
+
+    if (!missingRegs) {
+        return true;
+    }
+
+    TTAMachine::Machine::RegisterFileNavigator regNav =
+        mach.registerFileNavigator();
+
+    // find an int rf to add registers
+    for (int i = 0; i < regNav.count(); i++) {
+        TTAMachine::RegisterFile* rf = regNav.item(i);
+        if (rf->width() == 32) {
+            rf->setNumberOfRegisters(rf->size() + missingRegs);
+            return true;
+        }
+    }
+
+    // no int rf found
+    return false;
+}
+
+
+/**
+ * Returns true if an int register file found, meaning int registers can be
+ * added.
+ *
+ * @return True, if int rf found.
+ */
+bool
+RegisterQuantityCheck::canFixIntRegs(const TTAMachine::Machine& mach) const {
+    TTAMachine::Machine::RegisterFileNavigator regNav =
+        mach.registerFileNavigator();
+
+    // return true if an int register file was found
+    for (int i = 0; i < regNav.count(); i++) {
+        TTAMachine::RegisterFile* rf = regNav.item(i);
+        if (rf->width() == 32) {
+            return true;
+        }
+    }
+    return false;
 }
