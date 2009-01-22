@@ -161,6 +161,9 @@ public:
     static const std::string CMD_NAME_VERIFY_MACHINE;
     /// Command name for the "Processor Implementation" command.
     static const std::string CMD_NAME_IMPLEMENTATION;
+    /// Command name for the "Call Explorer plugin" command.
+    static const std::string CMD_CALL_EXPLORER_PLUGIN;
+    
 
     /// Command name for the "Edit Options" command.
     static const std::string CMD_NAME_EDIT_OPTIONS;
@@ -230,6 +233,8 @@ public:
     static const std::string CMD_SNAME_VERIFY_MACHINE;
     /// Command name for the "Processor Implementation" command.
     static const std::string CMD_SNAME_IMPLEMENTATION;
+    /// Command name for the "Call Explorer Plugin" command.
+    static const std::string CMD_SNAME_EXPLORER_PLUGIN;
 
     /// Command name for the "Edit Options" command.
     static const std::string CMD_SNAME_EDIT_OPTIONS;
@@ -323,6 +328,8 @@ public:
     static const std::string CMD_ICON_VERIFY_MACHINE;
     /// Icon location for the "Implementation" command.
     static const std::string CMD_ICON_IMPLEMENTATION;
+    /// Icon location for the "Explorer plugin" command.
+    static const std::string CMD_ICON_EXPLORER_PLUGIN;
     /// Icon location for the "About" command.
     static const std::string CMD_ICON_ABOUT;
 
@@ -426,6 +433,7 @@ public:
         COMMAND_FULLY_CONNECT_BUSSES,
         COMMAND_VERIFY_MACHINE,
         COMMAND_IMPLEMENTATION,
+        COMMAND_CALL_EXPLORER_PLUGIN,
 	COMMAND_SELECT,
 
 	COMMAND_EDIT_OPTIONS,

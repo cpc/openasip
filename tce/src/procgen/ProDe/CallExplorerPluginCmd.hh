@@ -22,36 +22,34 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file MemoryContents.hh
+ * @file CallExplorerPluginCmd.hh
  *
- * Declaration of MemoryContents class.
+ * Declaration of CallExplorerPluginCmd class.
  *
- * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰kel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
- * @note This file is used in compiled simulation. Keep dependencies *clean*
+ * @author Viljami Korhonen 2008 (viljami.korhonen-no.spam-.tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_MEMORY_CONTENTS_HH
-#define TTA_MEMORY_CONTENTS_HH
+#ifndef CALL_EXPLORER_PLUGIN_CMD_HH
+#define CALL_EXPLORER_PLUGIN_CMD_HH
 
-#include "PagedArray.hh"
-#include "Memory.hh"
+#include <string>
 
-
-/// Size of a memory chunk in MAUs.
-#define MEM_CHUNK_SIZE (1024)
-
-using std::size_t;
+#include "EditorCommand.hh"
 
 /**
- * Models the data contained in memory.
+ * Command for opening explorer plugin call window.
  */
-class MemoryContents : public PagedArray<Memory::MAU, MEM_CHUNK_SIZE, 0> {
+class CallExplorerPluginCmd : public EditorCommand {
 public:
-    MemoryContents(std::size_t size) :
-        PagedArray<Memory::MAU, MEM_CHUNK_SIZE, 0>(size) { }
-    virtual ~MemoryContents() { }
+    CallExplorerPluginCmd();
+    virtual ~CallExplorerPluginCmd();
+    virtual bool Do();
+    virtual int id() const;
+    virtual CallExplorerPluginCmd* create() const;
+    virtual std::string icon() const;
+    virtual std::string shortName() const;
+    virtual bool isEnabled();
 };
 
 #endif

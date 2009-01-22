@@ -142,6 +142,8 @@ public:
     virtual void loadState(const ObjectState* state)
         throw (ObjectStateLoadingException);
     virtual ObjectState* saveState() const;
+    
+    virtual void copyFromMachine(Machine& machine);
 
     static Machine* loadFromADF(const std::string& adfFileName)
         throw (Exception);

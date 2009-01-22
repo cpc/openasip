@@ -18,6 +18,11 @@ BEM_DIR = ${SRC_ROOT_DIR}/base/bem
 PROGE_DIR = ${SRC_ROOT_DIR}/applibs/ProGe
 BEM_TOOLS_DIR = ${SRC_ROOT_DIR}/applibs/bem
 OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
+EXPLORER_DIR = ${SRC_ROOT_DIR}/applibs/Explorer
+SIMULATOR_DIR = ${SRC_ROOT_DIR}/applibs/Simulator
+ESTIMATOR_DIR = ${SRC_ROOT_DIR}/applibs/Estimator
+DSDB_DIR = ${SRC_ROOT_DIR}/applibs/dsdb
+INTERPRETER_DIR = ${SRC_ROOT_DIR}/applibs/Interpreter
 
 LIB_TTABASE_DIR = ../../base
 LIB_TCETOOLS_DIR = ../../tools
@@ -39,6 +44,7 @@ LIB_BEM_TOOLS_DIR = ../../applibs/bem
 LIB_TRACE_DB_DIR = ../../applibs/TraceDB
 LIB_ESTIMATOR_DIR = ../../applibs/Estimator
 LIB_OSAL_DIR = ../../base/osal
+LIB_APPLIBS_DIR = ../../applibs/
 APPLIBS_FSA_DIR = ../../applibs/FSA
 
 bin_PROGRAMS = prode
@@ -102,7 +108,9 @@ prode_SOURCES = Model.cc\
 		  AddFUFromHDBDialog.cc ValidateMachineDialog.cc \
 		  ToggleUnitDetailsCmd.cc ProcessorImplementationWindow.cc \
 		  BlockImplementationDialog.cc ImplementMachineCmd.cc \
-		  GenerateProcessorDialog.cc OpsetDialog.cc
+		  GenerateProcessorDialog.cc OpsetDialog.cc \
+		  CallExplorerPlugin.cc CallExplorerPluginCmd.cc \
+		  EditParameterDialog.cc
 
 prode_LDFLAGS = $(GUI_LIBS) ${SQLITE_LIBDIR} ${BOOST_LIBDIR}
 
@@ -123,7 +131,8 @@ prode_LDADD =	${LIB_TCETOOLS_DIR}/libtcetools.la \
 	${LIB_TRACE_DB_DIR}/libtracedb.la \
 	${LIB_ESTIMATOR_DIR}/libestimator.la \
 	${LIB_OSAL_DIR}/libosal.la \
-	${APPLIBS_FSA_DIR}/libfsa.la
+	${APPLIBS_FSA_DIR}/libfsa.la \
+	${LIB_APPLIBS_DIR}/libapplibs.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 
@@ -142,7 +151,12 @@ AM_CPPFLAGS = -I${TOOLS_DIR} \
 	      -I${BEM_DIR} \
 	      -I${BEM_TOOLS_DIR} \
 	      -I${PROGE_DIR} \
-	      -I${OSAL_DIR}
+	      -I${OSAL_DIR} \
+	      -I${EXPLORER_DIR} \
+	      -I${SIMULATOR_DIR} \	
+	      -I${ESTIMATOR_DIR} \
+	      -I${DSDB_DIR} \
+	      -I${INTERPRETER_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = -UNDEBUG ${AM_WXCXXFLAGS} 

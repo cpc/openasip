@@ -64,6 +64,7 @@
 #include "FitWidthCmd.hh"
 #include "VerifyMachineCmd.hh"
 #include "ImplementMachineCmd.hh"
+#include "CallExplorerPluginCmd.hh"
 #include "UserManualCmd.hh"
 #include "AboutCmd.hh"
 #include "NewDocumentCmd.hh"
@@ -165,6 +166,7 @@ MainFrame::MainFrame(
     commandRegistry_->addCommand(new ToggleUnitDetailsCmd());
     commandRegistry_->addCommand(new VerifyMachineCmd());
     commandRegistry_->addCommand(new ImplementMachineCmd());
+    commandRegistry_->addCommand(new CallExplorerPluginCmd());
     commandRegistry_->addCommand(new EditOptionsCmd());
     commandRegistry_->addCommand(new SaveOptionsCmd());
     commandRegistry_->addCommand(new UserManualCmd());
@@ -643,6 +645,11 @@ MainFrame::createMenubar() {
         ProDeConstants::COMMAND_IMPLEMENTATION,
         menuAccelerator(ProDeConstants::COMMAND_IMPLEMENTATION).Prepend(
             _T("&Processor Implementation...")));
+    
+    toolMenu->Append(
+        ProDeConstants::COMMAND_CALL_EXPLORER_PLUGIN,
+        menuAccelerator(ProDeConstants::COMMAND_CALL_EXPLORER_PLUGIN).Prepend(
+            _T("&Call Explorer Plugin...")));
 
     // Options menu
     wxMenu* optionsMenu = createOptionsMenu();

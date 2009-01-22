@@ -488,14 +488,16 @@ SimulateFunction
 CompiledSimulation::getSimulateFunction(InstructionAddress address) {
     
     // Is there an already existing simulate function in the given address?
-    if (pimpl_->jumpTable_[address] != 0) {
-            return pimpl_->jumpTable_[address];
+    SimulateFunction targetFunction = pimpl_->jumpTable_[address];
+    if (targetFunction != 0) {
+            return targetFunction;
     }
     
     if (dynamicCompilation_) {
         compileAndLoadFunction(address);
-        if (pimpl_->jumpTable_[address] != 0) {
-            return pimpl_->jumpTable_[address];
+        targetFunction = pimpl_->jumpTable_[address];
+        if (targetFunction != 0) {
+            return targetFunction;
         }
     }
     

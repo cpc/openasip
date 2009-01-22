@@ -91,6 +91,9 @@ ProDeTextGenerator::ProDeTextGenerator() {
     addText(TXT_RADIO_DIRECTION_OUTPUT, "Output");
 
     addText(TXT_COLUMN_NAME, "Name");
+    addText(TXT_COLUMN_COMPULSORY, "Compulsory");
+    addText(TXT_COLUMN_VALUE, "Value");
+    addText(TXT_COLUMN_TYPE, "Type");
     addText(TXT_COLUMN_WIDTH, "Width");
     addText(TXT_COLUMN_MAU, "MAU");
     addText(TXT_COLUMN_BIT_WIDTH, "Bit Width");
@@ -205,6 +208,12 @@ ProDeTextGenerator::ProDeTextGenerator() {
 
     // Address Spaces dialog
     addText(TXT_ADDRESS_SPACES_DIALOG_TITLE, "Address Spaces");
+    
+    // Explorer plugin call dialog
+    addText(TXT_CALL_EXPLORER_PLUGIN_TITLE, "Call Explorer Plugin");
+    
+    // Edit parameter title
+    addText(TXT_EDIT_PARAMETER_TITLE, "Edit Parameter");
 
     // Socket dialog
     addText(TXT_SOCKET_DIALOG_TITLE, "Socket");

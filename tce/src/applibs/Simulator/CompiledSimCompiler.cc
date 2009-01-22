@@ -78,7 +78,7 @@ CompiledSimCompiler::CompiledSimCompiler() {
     }
     
     // Get compiler
-    compiler_ = "gcc";
+    compiler_ = "g++";
     const char* USER_COMPILER = std::getenv("TTASIM_COMPILER");
     if (USER_COMPILER != NULL) {
         compiler_ = string(USER_COMPILER);

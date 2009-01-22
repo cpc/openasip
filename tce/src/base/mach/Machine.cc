@@ -861,6 +861,20 @@ Machine::loadState(const ObjectState* state)
     }
 }
 
+
+/**
+ * Copies state from one machine to this machine.
+ * (used for object copying).
+ * 
+ * @param machine machine to copy from
+ * 
+ */
+void
+Machine::copyFromMachine(Machine& machine) {
+    loadState(machine.saveState());
+}
+
+
 /**
  * Loads a Machine from the given ADF file.
  *
