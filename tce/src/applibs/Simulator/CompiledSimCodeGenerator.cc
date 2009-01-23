@@ -1255,6 +1255,14 @@ CompiledSimCodeGenerator::generateTriggerCode(
                 simCode.erase(begin, end);
             }
 
+            if (outValueStr.empty()) {
+                std::string msg = "Machine has bound outport not used by op: ";
+                msg += op.name();
+                msg += " port index: ";
+                msg += Conversion::toString(i);
+                throw IllegalMachine(__FILE__,__LINE__,__func__,msg);
+            }
+
             // generate new unique name for it
             string tempVariable = symbolGen_.generateTempVariable();
 
