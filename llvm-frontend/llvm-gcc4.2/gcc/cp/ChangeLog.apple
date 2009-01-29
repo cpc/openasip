@@ -1,3 +1,483 @@
+2008-12-05  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6413140
+        * parser.c (cp_parser_block_literal_expr): Warn on use of explicit
+        block return type.
+
+2008-12-02  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6396238
+        * typeck.c (build_block_call): Handle case of a block
+        expression tree with side-effect when envoking the block.
+
+2008-12-01  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6404979
+        * parser.c (cp_parser_block_literal_expr): Use an internal name for
+        block helper's hidden argument.
+
+008-11-07  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5847976
+	* decl.c (synth_block_byref_id_object_copy_func): Takes new 'flag' argument
+	and produces the new much simplified API.
+	(synth_block_byref_id_object_dispose_func): Ditto.
+	(new_block_byref_decl): Turn off -fobjc-gc so we don't get
+	bogus warning on field declared as __weak.
+	(init_byref_decl): Takes a new 'flag' argument and passes
+	it down to synth_block_byref_id_object_copy_func and
+	synth_block_byref_id_object_dispose_func.
+	(cp_finish_decl): Calculates the flag for the block 
+	variable declaration and passes it down to init_byref_decl.
+	* parser.c (build_block_struct_initlist): Removes call to	
+	copy_in_object (not needed).
+	(synth_copy_helper_block_func): Produce the new, simplified
+	API.
+	(synth_destroy_helper_block_func): Ditto.
+	(build_block_byref_decl): Copy over COPYABLE_WEAK_BLOCK flag.
+	
+2008-10-31  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6175959
+	* parser.c (synth_copy_helper_block_func): Use the new API
+	_Block_object_assign for ObjC object copying.
+	(block_object_dispose): New
+	(synth_destroy_helper_block_func): Call block_object_dispose
+	to use new _Block_object_dispose API for ObjC object release.
+
+2008-10-29  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6329245
+	* typeck.c (build_block_call): Block call is reverted back
+	to old ABI.
+	(build_block_descriptor_type): Removed "FuncPtr" field.
+	(build_generic_block_struct_type): This struct is partially reverted
+	to define a layout matching old ABI.
+	(build_block_struct_type): Ditto
+	(build_block_struct_initlist): Initializer list reflects the new
+	primary block layout.
+	
+2008-10-28  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6261630
+	* parser.c (cp_parser_objc_typename): Parse trailing attribute
+	in method type.
+
+2008-10-27  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6231433
+        * typeck.c (objc_compare_types, objc_have_common_type):
+        Take an extra argument for better diagnostics.
+	* call.c: Ditto
+
+2008-10-27  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6302949
+        * parser.c (objc_cp_parser_at_property): Warn on missing
+        ',' separator for property attribute list.
+
+2008-10-24  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6305545
+	* semantics.c (expand_or_defer_fn): Lower nested function
+	of the structors.
+
+2008-10-24  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5847213 (minor tweak)
+        * parser.c (build_block_descriptor_type):
+        Make descriptor_ptr_type and descriptor_ptr_type_with_copydispose
+        visible to pch.
+
+2008-10-22  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6310599
+        * typeck.c.c: All internal field names in block internal types
+        have '__' prefix.
+	* decl.c: Ditto
+	* semantics.c: Ditto
+	* pafrser.c: Ditto
+
+2008-10-17  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6289031
+        * decl.c: Removed all code related to
+        radar 6083129 (byref escapes).
+
+2008-10-15  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6271728
+	* parser.c (cp_parser_objc_method_definition_list): Method
+	definition always start with '{', or it is error.
+
+2008-10-14  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6275956
+	* semantics.c (finish_this_expr): Reference to "this" in a block
+	must be looked up.
+
+2008-10-10  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 5847213 - New Block ABI
+	
+	* typeck.c (build_block_call): New code gen for block call.
+	* parser.c (build_descriptor_block_decl) New
+	(build_block_struct_type): New block literal type.
+	(build_block_struct_initlist): New block literal initializers.
+	(build_block_literal_tmp): New block literal variable initialization.
+	(synth_copy_helper_block_func): Fixed a minor bug (unrelated to this radar).
+	(build_block_internal_types): Removed.
+	(build_block_descriptor_type): New routine to build build descriptor type.
+	(make_block_pointer_declarator): Unnecessary code is removed.
+	
+2008-10-02  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6246527
+        * parser.c (cp_parser_block_literal_expr): Call to do the delta
+        on printf attribute.
+
+2008-09-30  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6230297
+        * parser.c (build_block_struct_initlist): 'trivial' 
+        block temporary can be static as well.
+        (build_block_literal_tmp): Accomodate 'trivial' block
+        literal temporary variable as static.
+
+2008-09-30  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6225809
+        * parser.c (build_block_byref_decl): Add __block vaiables
+        to intervening blocks.
+
+2008-09-29  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6154598
+	tree.c (maybe_dummy_object): Build expression for
+        copied in "this" in the block.
+
+2008-09-26  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 6243400
+	* parser.c (build_block_struct_type): Mostly rewritten
+	to use C++'s API for building block's main struct so structors
+	for those data members requiring them are synthesized and
+	used.
+
+2008-09-25  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6244520
+        * decl.c (new_block_byref_decl): New field added to
+        struct __Block_byref_x.
+        (init_byref_decl): Above field initialized to NULL.
+
+2008-09-25  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6237713
+	* parser.c (cp_parser_block_literal_expr): Parse
+	and set attribute on block literals.
+
+2008-09-16  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6214617
+	* parser.c (cp_block_requires_copying): New
+	(build_block_struct_type): Set BlockImportsCxxObjects flag.
+	(build_block_struct_initlist): Set BLOCK_HAS_CXX_OBJ if need be.
+	(synth_copy_helper_block_func): Call copy ctor if copied in object has one.
+	(synth_destroy_helper_block_func): Call dtor on cxx object.
+	
+2008-09-12  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6212722 (tweak)
+	* parser.c (build_block_ref_decl): Use decay_conversion.
+
+2008-09-11  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6212722
+        * parser.c (build_block_ref_decl): Add support for arrays referenced
+        as copied in objects in blocks.
+	
+2008-09-09  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6169580
+	* decl.c (synth_block_byref_id_object_copy_func): Pass new flag 
+	to finish_function.
+	(synth_block_byref_id_object_): Ditto.
+	(finish_function): Don't pop the nested class when synthesizing
+	block helpers.
+	* semantics.c (finish_id_expression): Added logic to attach
+	copied-in "this" to stand-alone field reference in a block.
+	* parser.c (synth_copy_helper_block_func, synth_destroy_helper_block_func):
+	Pass new flag to finish_function.
+	(cp_parser_block_literal_expr): When block is in non-static member
+	function, need to import "this" as a read-only copied in variable.
+	
+	
+2008-09-05  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6169527
+	* parser.c (build_block_struct_type): Set CLASSTYPE_AS_BASE.
+	(build_block_internal_types): Ditto.
+	(build_block_struct_initlist): Rewritten.
+	(build_block_literal_tmp): Rewritten.
+	(build_block_ref_decl): Just add copied-in variable to
+	the scope.
+	(declare_block_prologue_local_vars): Rewritten.
+	(declare_block_prologue_local_byref_vars): New
+	(block_build_prologue): Call declare_block_prologue_local_byref_vars
+	for byref variables.
+
+2008-09-03  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6185344
+	* typeck.c (check_return_expr): Added extra check
+	for return type checking.
+	* parser.c (cp_parser_direct_declarator): Added
+	extra check for type used as block return type.
+	(cp_parser_block_literal_expr): Parse and handle
+	user provided block return type syntax.
+
+2008-08-28  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 6160536
+	* parser.c (cp_parser_block_literal_expr): Call build_block_helper_name
+	to get pretty name for block helper function.
+
+2008-08-28  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6180456
+	* decl.c (synth_block_byref_id_object_copy_func): Use different
+	API when copying __block object in c language.
+	(synth_block_byref_id_object_dispose_func): Use different
+	API when releasing a __block object in c.
+	* parser.c (synth_copy_helper_block_func): Refactored to
+	call build_block_byref_assign_copy_decl().
+
+2008-08-27  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6087117
+	* typeck.c (convert_arguments): Takes an extra argument
+	for distiguinsing block call to function calls.
+	(build_function_call): Tell convert_arguments if we
+	are calling a block.
+
+2008-08-22  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6172148
+	* parser.c (build_helper_func_decl): Set BLOCK_SYNTHESIZED_FUNC
+	for all block helper functions; used by die generation.
+
+2008-08-24  Caroline Tice  <ctice@apple.com.
+
+        Radar 6144664
+        * parser.c (build_block_byref_decl):  Assign the 
+	source location for each byref decl to the source
+	location of the helper function decl.
+	(build_block_ref_decl):  Ditto for ref decls.
+
+2008-08-06  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6040305 - work in proggress.
+	* parser.c (clean_and_exit): Clean up if inside
+	a function.
+	(cp_parser_block_literal_expr): Set DECL_NO_STATIC_CHAIN
+	if inside a function.
+
+2008-08-05  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6040305 - work in progress.
+	* decl.c (cp_finish_decl): local static is treated just
+	like global static wrt __byref.
+	* semantics.c (finish_id_expression): Ditto.
+
+2008-08-05  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6040305 - work in progress.
+	* decl.c (init_byref_decl): Generate c-style helper
+	functions for compose/dispose helpers.
+
+2008-08-04  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6040305 - work in progress.
+	* decl.c (synth_block_byref_id_object_copy_func,
+	synth_block_byref_id_object_dispose_func,
+	block_start_struct, block_finish_struct,
+	new_block_byref_decl, init_byref_decl): New routines.
+	(cp_finish_decl): Build the APIed version of 
+	a __byref local vriable.
+	* semantics.c (finish_id_expression): Add a __byref
+	variable to the list of such variables for current
+	block.
+	* parser.c (build_component_ref): Fix to make it work.
+	(cp_parser_block_literal_expr): Push/pop language-c,
+	set context of the helper function.
+	(declare_block_prologue_local_vars): Mend tree for
+	the built-in local variables in the helper prologue.
+
+2008-07-31  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6040305 - work in progress
+	* objcp-lang.c (c_finish_return): Removed
+	* cp-lang.c (c_finish_return): Removed
+	* typeck.c (c_finish_return): Add
+	(check_return_expr): On error of a return
+	expresison inside a block return error_mark_node.
+	* semantics.c (finish_return_stmt): For helper
+	functions, return expression is already done.
+
+2008-07-30  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6040305
+	* call.c (standard_conversion): Allow conversion of 'id'
+	type to a block pointer.
+
+2008-07-30  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6040305
+	* typeck.c (build_block_call): New
+	(build_function_call): Call build_block_call
+	for block calls.
+	* call.c (standard_conversion): Remove "void *" to
+	block pointer conversion.
+
+2008-07-29  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6040305
+	* call.c (standard_conversion): Allow assignment of
+	"void *" to block pointer object.
+
+2008-07-28  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6040305
+	* typeck.c (comptypes): block-pointer types'
+	return type get special treatment.
+
+2008-07-21  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6029624
+	* call.c (objcp_reference_related_p): New
+	* cp-tree.h (objcp_reference_related_p): New decl.
+
+2008-07-16  Eugene Marinelli <marinelli@apple.com>
+
+	Radar 5559195
+	* decl.c (cxx_maybe_build_cleanup): When considering whether to
+	build a cleanup for a class type, use
+	CLASSTYPE_HAS_NONTRIVIAL_DESTRUCTOR_BODY and
+	CLASSTYPE_DESTRUCTOR_NONTRIVIAL_BECAUSE_OF_BASE instead of
+	TYPE_HAS_NONTRIVIAL_DESTRUCTOR to determine whether it must be
+	output.
+
+2008-07-15  Eugene Marinelli <marinelli@apple.com>
+
+	Radar 5559195
+	* cp-tree.h (struct lang_type_class): Add destructor_triviality_final
+	flag to mark when has_nontrivial_destructor_body and
+	destructor_nontrivial_because_of_base are final.  Add accessor for
+	this flag.
+	* parser.c (cp_parser_statement_seq_opt): Use 
+	CLASSTYPE_DESTRUCTOR_TRIVIALITY_FINAL to determine if
+	destructor should be checked for being empty, and set it if
+	CLASSTYPE_HAS_NONTRIVIAL_DESTRUCTOR_BODY is changed.
+
+2008-07-14  Eugene Marinelli <marinelli@apple.com>
+
+	* class.c (check_bases): Remove curly braces.
+
+2008-07-10  Eugene Marinelli <marinelli@apple.com>
+
+	Radar 5559195
+	* init.c (push_base_cleanups): Check flags indicating whether
+	destructor of base class has a nontrivial body, has a base destructor
+	that must be called, or is private to determine whether it should be
+	called by the derived class.  Set
+	CLASSTYPE_DESTRUCTOR_NONTRIVIAL_BECAUSE_OF_BASE to 1 if it has
+	members that must be deleted.
+	* class.c (check_bases, finish_struct_bits,
+	add_implicitly_declared_members): Set
+	CLASSTYPE_DESTRUCTOR_NONTRIVIAL_BECAUSE_OF_BASE and
+	CLASSTYPE_HAS_NONTRIVIAL_DESTRUCTOR_BODY based on base classes.
+	(check_methods): Set CLASSTYPE_HAS_NONTRIVIAL_DESTRUCTOR_BODY to 1
+	whenever a user-declared destructor is seen as a conservative
+	assumption.
+	* cp-tree.h (struct lang_type_class): Add
+	has_nontrivial_destructor_body and
+	destructor_nontrivial_because_of_base flags.  Decrement remaining
+	dummy bits.  Add accessors for these flags.
+	* parser.c (cp_parser_statement_seq_opt): Unmark
+	CLASSTYPE_HAS_NONTRIVIAL_DESTRUCTOR_BODY and then set it again only if
+	a statement is parsed.
+
+2008-06-05  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5982990
+	* parser.c (cp_parser_compound_statement): Take a new
+	argument which is used to call objc_mark_locals_volatile.
+	(cp_parser_primary_expression, cp_parser_statement,
+         etc.): add extra argument in calling cp_parser_compound_statement.
+	(cp_parser_objc_synchronized_statement): Passes
+	flag_objc_sjlj_exceptions as last argument in calling
+	cp_parser_compound_statement.
+
+2008-06-02  Fariborz Jahanian  <fjahanian@apple.com>
+
+        Radar 5976344
+	* Parser.c (cp_parser_objc_interstitial_code): Allow template
+	declaration inside ObjC @implementation.
+
+2008-05-30  Josh Conner  <jconner@apple.com>
+
+	Radar 5933878
+	* method.c (implicitly_declare_fn): Set DECL_ALIGN, if needed.
+	Backport from 4.3:
+	2007-07-09  Geoffrey Keating  <geoffk@apple.com>
+	PR 32617
+	* decl.c (cxx_init_decl_processing): Don't set
+	force_align_functions_log.
+	(grokfndecl): Honour ptrmemfunc_vbit_in_pfn.
+	* typeck.c (cxx_alignof_expr): When alignof is used on a plain
+	FUNCTION_DECL, return its alignment.
+
+2008-02-20  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5732232 - code gen part 2.
+	* cp-lang.c (c_finish_return): Defined these
+	templates to get a clean compile.
+
+2008-05-01  Josh Conner  <jconner@apple.com>
+
+	* optimize.c: Rewrite of structor shrinkage.
+	(enum in_charge_use):  New.
+	(struct thunk_tree_walk_data):  New.
+	(struct clone_info):  New.
+	(maybe_alias_body):  Remove.
+	(examine_tree_for_in_charge_use):  New.
+	(compute_use_thunks):  New.
+	(maybe_thunk_body):  Rename to thunk_body.  Remove
+	explicit in-charge parameter.
+	(find_earlier_clone):  New.
+	(maybe_clone_body):  Remove most of old decloner
+	patch, replace with new algorithm.
+
+2008-03-20  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5802025
+	* typeck.c (finish_class_member_access_expr): Generate getter call
+	from an OBJC_PROPERTY_REFERENCE_EXPR.
+
+2008-03-19  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5733674
+        * decl.c (expand_static_init): Generate write barrier for
+        static initialization in objective-c++ mode.
+
+2007-11-29  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5619052
+        * pt.c (value_dependent_expression_p): @encode expression is 
+        value-dependent if the operand is type-dependent.
+        (type_dependent_expression_p): Treat @encode same as 'sizeof'.
+
 1007-10-26  Josh Conner  <jconner@apple.com>
 
 	Radar 5562046

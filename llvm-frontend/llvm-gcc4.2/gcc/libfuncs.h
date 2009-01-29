@@ -55,11 +55,11 @@ enum libfunc_index
    implicitly and not via optabs.  */
 extern GTY(()) rtx libfunc_table[LTI_MAX];
 /* LLVM LOCAL begin */
-#ifdef ENABLE_LLVM
 /* FUNCTION_DECL nodes for the library functions that are called
-   implicitly and not via optabs.  */
+   implicitly and not via optabs.  This needs to be declared even
+   when not building for LLVM because the garbage collector logic
+   ignores preprocessor directives.  */
 extern GTY(()) tree llvm_libfunc_table[LTI_MAX];
-#endif
 /* LLVM LOCAL end */
 
 /* Accessor macros for libfunc_table.  */

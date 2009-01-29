@@ -181,6 +181,16 @@ llvm_x86_should_not_return_complex_in_memory(tree type);
 #define LLVM_SHOULD_NOT_RETURN_COMPLEX_IN_MEMORY(X) \
   llvm_x86_should_not_return_complex_in_memory((X))
 
+extern bool
+llvm_x86_should_pass_aggregate_as_fca(tree type, const Type *);
+
+/* LLVM_SHOULD_PASS_AGGREGATE_AS_FCA - Return true if an aggregate of the
+   specified type should be passed as a first-class aggregate. */
+#ifndef LLVM_SHOULD_PASS_AGGREGATE_AS_FCA
+#define LLVM_SHOULD_PASS_AGGREGATE_AS_FCA(X, TY) \
+  llvm_x86_should_pass_aggregate_as_fca(X, TY)
+#endif
+
 extern bool llvm_x86_should_pass_aggregate_in_memory(tree, const Type *);
 
 #define LLVM_SHOULD_PASS_AGGREGATE_USING_BYVAL_ATTR(X, TY)      \

@@ -103,15 +103,18 @@ Next, decide if you want Objective-C support.  If so:
     EXTRALANGS=,objc,obj-c++
 
 If building for Darwin/PPC:
-    TRIPLE=powerpc-apple-darwin8
+    TRIPLE=powerpc-apple-darwin8 (Tiger)
+    TRIPLE=powerpc-apple-darwin9 (Leopard)
   
 If building for Darwin/X86 (32- and 64-bit support):
     TARGETOPTIONS='--with-arch=nocona --with-tune=generic'
-    TRIPLE=i686-apple-darwin8
+    TRIPLE=i686-apple-darwin8 (Tiger)
+    TRIPLE=i686-apple-darwin9 (Leopard)
     
 If building for Darwin/X86 (32-bit support only):
-   TARGETOPTIONS='--with-arch=pentium-m --with-tune=prescott --disable-multilib'
-   TRIPLE=i686-apple-darwin8
+    TARGETOPTIONS='--with-arch=pentium-m --with-tune=prescott --disable-multilib'
+    TRIPLE=i686-apple-darwin8 (Tiger)
+    TRIPLE=i686-apple-darwin9 (Leopard)
 
 In addition, you *must* specify the following options to configure:
 
@@ -129,9 +132,9 @@ Version Identifier:
 
   If you want LLVM to include an identifying marker in the --version output,
   build llvm-gcc with LLVM_VERSION_INFO=XXX.  For example, to build the LLVM
-  2.4 Release front-end, use 'make LLVM_VERSION_INFO=2.4'.  This will cause the
+  2.5 Release front-end, use 'make LLVM_VERSION_INFO=2.5'.  This will cause the
   front-end to print: "gcc version 4.2.1 (Based on Apple Inc. build 5555) 
-  (LLVM build 2.4)" as the version number.
+  (LLVM build 2.5)" as the version number.
   
   BUILDOPTIONS=LLVM_VERSION_INFO=whatever
   
@@ -146,7 +149,7 @@ llvm-gcc source directory, and build and install llvm-gcc:
 $ mkdir obj
 $ mkdir install
 $ cd obj
-$ ../llvm-gcc4.2-2.4.source/configure --prefix=`pwd`/../install --program-prefix=llvm- \
+$ ../llvm-gcc4.2-x.y.source/configure --prefix=`pwd`/../install --program-prefix=llvm- \
     --enable-llvm=$LLVMOBJDIR --enable-languages=c,c++$EXTRALANGS $TARGETOPTIONS
 $ make $BUILDOPTIONS
 $ make install

@@ -34,6 +34,16 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "coretypes.h"
 #include "tm.h"
 
+/* APPLE LOCAL begin instant off 6414141 */
+#if defined(__APPLE__) && !defined(__STATIC__) && !defined(__ppc__) && !defined(__ppc64__)
+#include <vproc.h>
+#if defined(VPROC_HAS_TRANSACTIONS)
+vproc_transaction_t vproc_transaction_begin(vproc_t virtual_proc) __attribute__((weak));
+void vproc_transaction_end(vproc_t virtual_proc, vproc_transaction_t handle) __attribute__((weak));
+#endif
+#endif
+/* APPLE LOCAL end instant off 6414141 */
+
 #if defined(inhibit_libc)
 #define IN_LIBGCOV (-1)
 #else
@@ -148,6 +158,14 @@ gcov_version (struct gcov_info *ptr, gcov_unsigned_t version,
     }
   return 1;
 }
+
+/* APPLE LOCAL begin instant off 6414141 */
+#if defined(__APPLE__) && !defined(__STATIC__) && !defined(__ppc__) && !defined(__ppc64__)
+#if defined(VPROC_HAS_TRANSACTIONS)
+static vproc_transaction_t gcov_trans;
+#endif
+#endif
+/* APPLE LOCAL end instant off 6414141 */
 
 /* Dump the coverage counts. We merge with existing counts when
    possible, to avoid growing the .da files ad infinitum. We use this
@@ -529,6 +547,16 @@ gcov_exit (void)
 		   "profiling:%s:Error writing\n",
 		   gi_filename);
     }
+  /* APPLE LOCAL begin instant off 6414141 */
+#if defined(__APPLE__) && !defined(__STATIC__) && !defined(__ppc__) && !defined(__ppc64__)
+#if defined(VPROC_HAS_TRANSACTIONS)
+  if (vproc_transaction_end)
+    {
+      vproc_transaction_end (0, gcov_trans);
+    }
+#endif
+#endif
+  /* APPLE LOCAL end instant off 6414141 */
 }
 
 /* Add a new object file onto the bb chain.  Invoked automatically
@@ -567,6 +595,21 @@ __gcov_init (struct gcov_info *info)
       
       gcov_crc32 = crc32;
       
+      /* APPLE LOCAL begin instant off 6414141 */
+#if defined(__APPLE__) && !defined(__STATIC__) && !defined(__ppc__) && !defined(__ppc64__)
+#if defined(VPROC_HAS_TRANSACTIONS)
+      if (!gcov_list
+	  && vproc_transaction_begin)
+	{
+	  /* Arrange for gcov data collection to turn off instant off,
+	     so that we record the collected data from an instant off
+	     app instead of loosing it.  */
+	  gcov_trans = vproc_transaction_begin (0);
+	}
+#endif
+#endif
+      /* APPLE LOCAL end instant off 6414141 */
+
       if (!gcov_list)
 	atexit (gcov_exit);
       

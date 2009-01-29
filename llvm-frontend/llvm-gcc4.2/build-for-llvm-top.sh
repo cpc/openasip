@@ -28,7 +28,6 @@ if test ! -d "$config_status" -o "$config_status" -ot "$0" ; then
   config_options="$config_options --program-prefix=llvm-"
   config_options="$config_options --enable-languages=c,c++"
   config_options="$config_options --disable-bootstrap"
-  config_options="$config_options --with-gxx-include-dir=/proj/install/include/c++/4.2.1"
   if test "$OPTIMIZED" -eq 0 ; then
     config_options="$config_options --enable-checking"
   fi

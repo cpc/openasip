@@ -237,18 +237,22 @@ C ObjC C++ ObjC++ Var(warn_format_nonliteral)
 Warn about format strings that are not literals
 
 ; APPLE LOCAL begin default to Wformat-security 5764921
+; LLVM LOCAL begin don't initialize this
 Wformat-security
-C ObjC C++ ObjC++ Var(warn_format_security) Init(0)
+C ObjC C++ ObjC++
 Warn about possible security problems with format functions
+; LLVM LOCAL end don't initialize this
 ; APPLE LOCAL end default to Wformat-security 5764921
 
 Wformat-y2k
 C ObjC C++ ObjC++ Var(warn_format_y2k)
 Warn about strftime formats yielding 2-digit years
 
+; LLVM LOCAL begin enable for C++
 Wformat-zero-length
-C ObjC Var(warn_format_zero_length)
+C ObjC C++ ObjC++ Var(warn_format_zero_length)
 Warn about zero-length formats
+; LLVM LOCAL end enable for C++
 
 Wformat=
 C ObjC C++ ObjC++ Joined
@@ -258,6 +262,15 @@ Wfour-char-constants
 C ObjC C++ ObjC++
 Warn about multicharacter constants containing exactly four characters
 ; APPLE LOCAL end -Wfour-char-constants
+
+; APPLE LOCAL begin Wglobal-constructors 6324584
+Wglobal-constructors
+C ObjC C++ ObjC++ Var(warn_global_constructors)
+Warn when global (namespace scope) objects require runtime
+construction or destruction or when functions that use attribute
+constructor or destructor are used.  This is useful to help maintain
+fast program startup and end times.
+; APPLE LOCAL end Wglobal-constructors 6324584
 
 Winit-self
 C ObjC C++ ObjC++ Var(warn_init_self)
@@ -318,9 +331,11 @@ Wmissing-include-dirs
 C ObjC C++ ObjC++
 Warn about user-specified include directories that do not exist
 
+; APPLE LOCAL begin warn missing prototype 6261539
 Wmissing-prototypes
-C ObjC Var(warn_missing_prototypes)
+C ObjC C++ ObjC++ Var(warn_missing_prototypes)
 Warn about global functions without prototypes
+; APPLE LOCAL end warn missing prototype 6261539
 
 ; APPLE LOCAL begin -Wmost
 Wmost

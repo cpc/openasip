@@ -302,6 +302,8 @@ struct cgraph_node *cgraph_master_clone (struct cgraph_node *);
 void cgraph_add_new_function (tree);
 
 /* In cgraphunit.c  */
+/* APPLE LOCAL radar 6305545 */
+void lower_if_nested_functions (tree);
 bool cgraph_assemble_pending_functions (void);
 bool cgraph_varpool_assemble_pending_decls (void);
 void cgraph_finalize_function (tree, bool);
@@ -331,4 +333,16 @@ bool cgraph_decide_inlining_incrementally (struct cgraph_node *, bool);
 void cgraph_clone_inlined_nodes (struct cgraph_edge *, bool, bool);
 void cgraph_mark_inline_edge (struct cgraph_edge *, bool);
 bool cgraph_default_inline_p (struct cgraph_node *, const char **);
+
+/* LLVM LOCAL begin 6501843 */
+/* We're no longer running gcc's inliner at all, so the bodies of 
+   used extern always-inline functions must be passed down to the LLVM BE.
+   cgraph used to remove these.  (gcc "extern inline" == c99 "inline") */
+#ifdef ENABLE_LLVM
+#define IS_EXTERN_INLINE(f) (DECL_EXTERNAL(f) && \
+           !lookup_attribute("always_inline", DECL_ATTRIBUTES(f)))
+#else
+#define IS_EXTERN_INLINE(f) (DECL_EXTERNAL(f))
+#endif
+/* LLVM LOCAL end */
 #endif  /* GCC_CGRAPH_H  */

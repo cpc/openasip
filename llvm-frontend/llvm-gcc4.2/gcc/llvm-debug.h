@@ -28,7 +28,8 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #ifndef LLVM_DEBUG_H
 #define LLVM_DEBUG_H
 
-#include "llvm/CodeGen/MachineModuleInfo.h"
+#include "llvm/Analysis/DebugInfo.h"
+#include "llvm/Support/Dwarf.h"
 
 extern "C" {
 #include "llvm.h"
@@ -36,6 +37,7 @@ extern "C" {
 
 #include <string>
 #include <map>
+#include <vector>
 
 namespace llvm {
 
@@ -51,16 +53,14 @@ class Module;
 class DebugInfo {
 private:
   Module *M;                            // The current module.
-  DISerializer SR;                      // Debug information serializer.
+  DIFactory DebugFactory;               
   const char *CurFullPath;              // Previous location file encountered.
   int CurLineNo;                        // Previous location line# encountered.
   const char *PrevFullPath;             // Previous location file encountered.
   int PrevLineNo;                       // Previous location line# encountered.
   BasicBlock *PrevBB;                   // Last basic block encountered.
-  std::map<std::string, CompileUnitDesc *> CompileUnitCache;
-                                        // Cache of previously constructed 
-                                        // CompileUnits.
-  DenseMap<tree_node *, TypeDesc *> TypeCache;
+  DICompileUnit MainCompileUnit;
+  std::map<tree_node *, DIType> TypeCache;
                                         // Cache of previously constructed 
                                         // Types.
   Function *StopPointFn;                // llvm.dbg.stoppoint
@@ -68,12 +68,8 @@ private:
   Function *RegionStartFn;              // llvm.dbg.region.start
   Function *RegionEndFn;                // llvm.dbg.region.end
   Function *DeclareFn;                  // llvm.dbg.declare
-  AnchorDesc *CompileUnitAnchor;        // Anchor for compile units.
-  AnchorDesc *GlobalVariableAnchor;     // Anchor for global variables.
-  AnchorDesc *SubprogramAnchor;         // Anchor for subprograms.
-  std::vector<DebugInfoDesc *> RegionStack;
+  std::vector<DIDescriptor> RegionStack;
                                         // Stack to track declarative scopes.
-  SubprogramDesc *Subprogram;           // Current subprogram.                                        
   
 public:
   DebugInfo(Module *m);
@@ -82,14 +78,6 @@ public:
   void setLocationFile(const char *FullPath) { CurFullPath = FullPath; }
   void setLocationLine(int LineNo)           { CurLineNo = LineNo; }
   
-  /// getValueFor - Return a llvm representation for a given debug information
-  /// descriptor.
-  Value *getValueFor(DebugInfoDesc *DD);
-  
-  /// getCastValueFor - Return a llvm representation for a given debug 
-  /// information descriptor cast to an empty struct pointer.
-  Value *getCastValueFor(DebugInfoDesc *DD);
-
   /// EmitFunctionStart - Constructs the debug code for entering a function -
   /// "llvm.dbg.func.start."
   void EmitFunctionStart(tree_node *FnDecl, Function *Fn, BasicBlock *CurBB);
@@ -118,14 +106,11 @@ public:
 
   /// getOrCreateType - Get the type from the cache or create a new type if
   /// necessary.
-  TypeDesc *getOrCreateType(tree_node *type, CompileUnitDesc *Unit);
+  DIType getOrCreateType(tree_node *type);
 
-  /// getOrCreateCompileUnit - Get the compile unit from the cache or create a
-  /// new one if necessary.
-  CompileUnitDesc *getOrCreateCompileUnit(const std::string &FullPath);
-
-  /// readLLVMDebugInfo - Read debug info from PCH file.
-  void readLLVMDebugInfo();
+  /// createCompileUnit - Create a new compile unit.
+  DICompileUnit createCompileUnit(const std::string &FullPath);
+  
 };
 
 } // end namespace llvm

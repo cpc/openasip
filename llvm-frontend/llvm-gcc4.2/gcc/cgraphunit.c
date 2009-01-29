@@ -384,7 +384,8 @@ cgraph_assemble_pending_functions (void)
       n->next_needed = NULL;
       if (!n->global.inlined_to
 	  && !n->alias
-	  && !DECL_EXTERNAL (n->decl))
+         /* LLVM LOCAL extern inline */
+	  && !IS_EXTERN_INLINE (n->decl))
 	{
 	  cgraph_expand_function (n);
 	  output = true;
@@ -473,6 +474,19 @@ cgraph_lower_function (struct cgraph_node *node)
   node->lowered = true;
 }
 
+/* APPLE LOCAL begin radar 6305545 */
+/** lower_if_nested_functions - This routine is called from cplus side only.
+    Its purpose is to lower block helper (or any other nested function)
+    which may have been nested in a constructor or destructor. We have to
+    do this because structors are cloned and are not lowered themselves (which
+    is the only way to lower the nested functions). */
+void 
+lower_if_nested_functions (tree decl)
+{
+    lower_nested_functions (decl, true);
+}
+/* APPLE LOCAL end radar 6305545 */
+
 /* DECL has been parsed.  Take it, queue it, compile it at the whim of the
    logic in effect.  If NESTED is true, then our caller cannot stand to have
    the garbage collector run at the moment.  We would need to either create
@@ -497,7 +511,8 @@ cgraph_finalize_function (tree decl, bool nested)
   node->local.finalized = true;
   node->lowered = DECL_STRUCT_FUNCTION (decl)->cfg != NULL;
   if (node->nested)
-    lower_nested_functions (decl);
+    /* APPLE LOCAL radar 6305545 */
+    lower_nested_functions (decl, false);
   gcc_assert (!node->nested);
 
   /* If not unit at a time, then we need to create the call graph
@@ -833,7 +848,8 @@ verify_cgraph_node (struct cgraph_node *node)
 
   if (node->analyzed
       && DECL_SAVED_TREE (node->decl) && !TREE_ASM_WRITTEN (node->decl)
-      && (!DECL_EXTERNAL (node->decl) || node->global.inlined_to))
+        /* LLVM LOCAL extern inline */ 
+     && (!IS_EXTERN_INLINE (node->decl) || node->global.inlined_to))
     {
       if (this_cfun->cfg)
 	{
@@ -1278,21 +1294,24 @@ cgraph_mark_functions_to_output (void)
 	  && (node->needed
 	      || (e && node->reachable))
 	  && !TREE_ASM_WRITTEN (decl)
-	  && !DECL_EXTERNAL (decl))
+          /* LLVM LOCAL extern inline */
+	  && !IS_EXTERN_INLINE (decl))
 	node->output = 1;
       else
 	{
 	  /* We should've reclaimed all functions that are not needed.  */
 #ifdef ENABLE_CHECKING
 	  if (!node->global.inlined_to && DECL_SAVED_TREE (decl)
-	      && !DECL_EXTERNAL (decl))
+            /* LLVM LOCAL extern inline */
+	      && !IS_EXTERN_INLINE (decl))
 	    {
 	      dump_cgraph_node (stderr, node);
 	      internal_error ("failed to reclaim unneeded function");
 	    }
 #endif
 	  gcc_assert (node->global.inlined_to || !DECL_SAVED_TREE (decl)
-		      || DECL_EXTERNAL (decl));
+                       /* LLVM LOCAL extern inline */
+		      || IS_EXTERN_INLINE (decl));
 
 	}
 
@@ -1581,6 +1600,8 @@ cgraph_preserve_function_body_p (tree decl)
   return false;
 }
 
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
 static void
 ipa_passes (void)
 {
@@ -1590,6 +1611,8 @@ ipa_passes (void)
   execute_ipa_pass_list (all_ipa_passes);
   bitmap_obstack_release (NULL);
 }
+#endif
+/* LLVM LOCAL end */
 
 /* Perform simple optimizations based on callgraph.  */
 
@@ -1627,9 +1650,13 @@ cgraph_optimize (void)
       dump_cgraph (cgraph_dump_file);
     }
     
+  /* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   /* Don't run the IPA passes if there was any error or sorry messages.  */
   if (errorcount == 0 && sorrycount == 0)
     ipa_passes ();
+#endif
+  /* LLVM LOCAL end */
 
   /* This pass remove bodies of extern inline functions we never inlined.
      Do this later so other IPA passes see what is really going on.  */

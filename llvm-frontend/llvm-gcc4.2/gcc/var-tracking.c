@@ -106,6 +106,8 @@
 #include "expr.h"
 #include "timevar.h"
 #include "tree-pass.h"
+/* APPLE LOCAL 6414738 */
+#include "langhooks.h"
 
 /* Type of micro operation.  */
 enum micro_operation_type
@@ -2279,6 +2281,63 @@ dump_dataflow_sets (void)
     }
 }
 
+/* APPLE LOCAL begin 6414738 */
+/* Compare variable *SLOT with the same variable in hash table DATA;
+   if not identical, print difference on file _F.  */
+static const char *_set_name;
+static FILE *_f;
+static int
+dump_dataflow_set_difference_1 (void **slot, void *data)
+{
+  htab_t htab = (htab_t) data;
+  variable var1, var2;
+
+  var1 = *(variable *) slot;
+  var2 = htab_find_with_hash (htab, var1->decl,
+			      VARIABLE_HASH_VAL (var1->decl));
+  if (!var2)
+    fprintf (_f, "%s only in %s set\n", lang_hooks.decl_printable_name (var1->decl, 0), _set_name);
+  else if (variable_different_p (var1, var2, false))
+    fprintf (_f, "%s present but not identical in sets\n", lang_hooks.decl_printable_name (var1->decl, 0));
+  /* Continue traversing the hash table.  */
+  return 1;
+}
+
+/* Print dataflow set difference to stderr.  Plagiarized from
+   dataflow_set_different.  Never called; intended for use from
+   GDB.  */
+void debug_dataflow_set_difference (dataflow_set *, dataflow_set *);
+void
+debug_dataflow_set_difference (dataflow_set *left_set, dataflow_set *right_set)
+{
+  _f = stderr;
+  _set_name = "left";
+  htab_traverse (left_set->vars, dump_dataflow_set_difference_1, right_set->vars);
+  _set_name = "right";
+  htab_traverse (right_set->vars, dump_dataflow_set_difference_1, left_set->vars);
+}
+
+void debug_dataflow_set (dataflow_set *);
+void
+debug_dataflow_set (dataflow_set *set)
+{
+  FILE *saved_dump_file = dump_file;
+  dump_file = stderr;
+  dump_dataflow_set (set);
+  dump_file = saved_dump_file;
+}
+void debug_var_tracking (void);
+void
+debug_var_tracking (void)
+{
+  FILE *saved_dump_file = dump_file;
+  dump_file = stderr;
+  dump_dataflow_sets ();
+  dump_flow_info (stderr, dump_flags);
+  dump_file = saved_dump_file;
+}
+/* APPLE LOCAL end 6414738 */
+
 /* Add variable VAR to the hash table of changed variables and
    if it has no locations delete it from hash table HTAB.  */
 
@@ -2556,6 +2615,10 @@ clobber_variable_part (dataflow_set *set, rtx loc, tree decl,
 			      pool_free (attrs_pool, anode);
 			      *anextp = anext;
 			    }
+			  /* APPLE LOCAL begin 6414738 */
+			  else
+			    anextp = &anode->next;
+			  /* APPLE LOCAL end 6414738 */
 			}
 		    }
 

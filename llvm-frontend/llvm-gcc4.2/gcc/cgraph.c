@@ -600,7 +600,8 @@ cgraph_remove_node (struct cgraph_node *node)
       struct cgraph_node *n = (struct cgraph_node *) *slot;
       if (!n->next_clone && !n->global.inlined_to
 	  && (cgraph_global_info_ready
-	      && (TREE_ASM_WRITTEN (n->decl) || DECL_EXTERNAL (n->decl))))
+                                            /* LLVM LOCAL extern inline */
+	      && (TREE_ASM_WRITTEN (n->decl) || IS_EXTERN_INLINE (n->decl))))
 	kill_body = true;
     }
 
@@ -1183,7 +1184,8 @@ cgraph_function_body_availability (struct cgraph_node *node)
      good optimization is what this optimization is about.  */
 
   else if (!(*targetm.binds_local_p) (node->decl)
-	   && !DECL_COMDAT (node->decl) && !DECL_EXTERNAL (node->decl))
+            /* LLVM LOCAL extern inline */
+	   && !DECL_COMDAT (node->decl) && !IS_EXTERN_INLINE (node->decl))
     avail = AVAIL_OVERWRITABLE;
   else avail = AVAIL_AVAILABLE;
 

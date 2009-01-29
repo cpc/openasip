@@ -163,6 +163,8 @@ static GTY(()) section *debug_pubtypes_section;
 static GTY(()) section *debug_str_section;
 static GTY(()) section *debug_ranges_section;
 static GTY(()) section *debug_frame_section;
+/* APPLE LOCAL radar 6275985 debug inlined section  */
+static GTY(()) section *debug_inlined_section;
 
 /* How to start an assembler comment.  */
 #ifndef ASM_COMMENT_START
@@ -330,6 +332,8 @@ struct indirect_string_node GTY(())
   const char *str;
   unsigned int refcount;
   unsigned int form;
+  /* APPLE LOCAL radar 6275985 debug inlined section  */
+  bool  is_fn_name;
   char *label;
 };
 
@@ -3706,6 +3710,8 @@ typedef struct dw_line_info_struct *dw_line_info_ref;
 typedef struct dw_separate_line_info_struct *dw_separate_line_info_ref;
 typedef struct pubname_struct *pubname_ref;
 typedef struct dw_ranges_struct *dw_ranges_ref;
+/* APPLE LOCAL radar 6275985 debug inlined section  */
+typedef struct inlined_entry_struct *inlined_ref;
 
 /* Each entry in the line_info_table maintains the file and
    line number associated with the label generated for that
@@ -3762,6 +3768,10 @@ typedef struct die_struct GTY(())
   /* Die is used and must not be pruned as unused.  */
   int die_perennial_p;
   unsigned int decl_id;
+  /* APPLE LOCAL begin radar 6476836  */
+  /* Mark inlined subroutine dies that are part of "eliminated" types. */
+  bool dead;
+  /* APPLE LOCAL end radar 6476836  */
 }
 die_node;
 
@@ -3787,6 +3797,20 @@ pubname_entry;
 DEF_VEC_O(pubname_entry);
 DEF_VEC_ALLOC_O(pubname_entry, gc);
 /* APPLE LOCAL end pubtypes, approved for 4.3 4535968  */
+/* APPLE LOCAL begin radar 6275985 debug inlined section  */
+DEF_VEC_O(dw_die_ref);
+DEF_VEC_ALLOC_O(dw_die_ref, gc);
+
+typedef struct inlined_entry_struct GTY (())
+{
+  dw_die_ref origin_die;
+  VEC(dw_die_ref,gc) *inlined_instances;
+}
+inlined_entry;
+
+DEF_VEC_O(inlined_entry);
+DEF_VEC_ALLOC_O(inlined_entry, gc);
+/* APPLE LOCAL end radar 6275985 debug inlined section  */
 
 struct dw_ranges_struct GTY(())
 {
@@ -3837,6 +3861,11 @@ limbo_die_node;
 
 /* Fixed size portion of public names info.  */
 #define DWARF_PUBNAMES_HEADER_SIZE (2 * DWARF_OFFSET_SIZE + 2)
+
+/* APPLE LOCAL begin radar 6275985 debug inlined section  */
+/* Fixed size portion of inlined section info.  */
+#define DWARF_INLINED_HEADER_SIZE  (3)
+/* APPLE LOCAL end radar 6275985 debug inlined section  */
 
 /* Fixed size portion of the address range info.  */
 #define DWARF_ARANGES_HEADER_SIZE					\
@@ -3977,6 +4006,9 @@ static GTY (()) VEC (pubname_entry, gc) * pubname_table;
 
 static GTY (()) VEC (pubname_entry, gc) * pubtype_table;
 /* APPLE LOCAL end pubtypes, approved for 4.3 4535968  */
+
+/* APPLE LOCAL radar 6275985 debug inlined section  */
+static GTY (()) VEC (inlined_entry, gc) * debug_inlined_table;
 
 /* Array of dies for which we should generate .debug_arange info.  */
 static GTY((length ("arange_table_allocated"))) dw_die_ref *arange_table;
@@ -4152,6 +4184,8 @@ static void unmark_dies (dw_die_ref);
 static void unmark_all_dies (dw_die_ref);
 /* APPLE LOCAL pubtypes, approved for 4.3 4535968  */
 static unsigned long size_of_pubnames (VEC (pubname_entry,gc) *);
+/* APPLE LOCAL radar 6275985 debug inlined section  */
+static unsigned long size_of_inlined (VEC (inlined_entry,gc) *);
 static unsigned long size_of_aranges (void);
 static enum dwarf_form value_format (dw_attr_ref);
 static void output_value_format (dw_attr_ref);
@@ -4166,6 +4200,10 @@ static void add_pubname (tree, dw_die_ref);
 static void add_pubtype (tree, dw_die_ref);
 static void output_pubnames (VEC (pubname_entry,gc) *);
 /* APPLE LOCAL end pubtypes, approved for 4.3 4535968  */
+/* APPLE LOCAL begin radar 6275985 debug inlined section  */
+static void add_inlined_section_entry (dw_die_ref);
+static void output_debug_inlined_section (VEC (inlined_entry,gc) *);
+/* APPLE LOCAL end radar 6275985 debug inlined section  */
 static void add_arange (tree, dw_die_ref);
 static void output_aranges (void);
 static unsigned int add_ranges (tree);
@@ -4801,6 +4839,12 @@ dwarf_attr_name (unsigned int attr)
     case DW_AT_APPLE_block:
       return "DW_AT_APPLE_block";
     /* APPLE LOCAL end radar 5811943 - Fix type of pointers to Blocks  */
+    /* APPLE LOCAL begin radar 6386976  */
+    case DW_AT_APPLE_major_runtime_vers:
+      return "DW_AT_APPLE_major_runtime_vers";
+    case DW_AT_APPLE_runtime_class:
+      return "DW_AT_APPLE_runtime_class";
+    /* APPLE LOCAL end radar 6386976  */
     default:
       return "DW_AT_<unknown>";
     }
@@ -5099,6 +5143,18 @@ add_AT_string (dw_die_ref die, enum dwarf_attribute attr_kind, const char *str)
   node->str = ggc_strdup (str);
   node->refcount++;
 
+  /* APPLE LOCAL begin radar 6275985 debug inlined section  */
+#ifdef DEBUG_INLINED_SECTION
+  /* Force the names of functions (which may be inlined) to be in the
+     debug string section (i.e. string pointers).  */
+  if (die
+      && die->die_tag == DW_TAG_subprogram
+      && ((attr_kind == DW_AT_name)
+	  || (attr_kind == DW_AT_MIPS_linkage_name)))
+    node->is_fn_name = true;
+#endif
+  /* APPLE LOCAL end radar 6275985 debug inlined section  */
+
   attr.dw_attr = attr_kind;
   attr.dw_attr_val.val_class = dw_val_class_str;
   attr.dw_attr_val.v.val_str = node;
@@ -5130,17 +5186,23 @@ AT_string_form (dw_attr_ref a)
 
   len = strlen (node->str) + 1;
 
+  /* APPLE LOCAL begin radar 6275985 debug inlined section  */
+  /* Ths sentence below is false.  If the string is a function name we
+     always want it to go into the debug_str section.  */
   /* If the string is shorter or equal to the size of the reference, it is
      always better to put it inline.  */
-  if (len <= DWARF_OFFSET_SIZE || node->refcount == 0)
+  if ((len <= DWARF_OFFSET_SIZE || node->refcount == 0)
+      && !node->is_fn_name)
     return node->form = DW_FORM_string;
 
   /* If we cannot expect the linker to merge strings in .debug_str
      section, only put it into .debug_str if it is worth even in this
      single module.  */
   if ((debug_str_section->common.flags & SECTION_MERGE) == 0
-      && (len - DWARF_OFFSET_SIZE) * node->refcount <= len)
+      && (len - DWARF_OFFSET_SIZE) * node->refcount <= len
+      && !node->is_fn_name)
     return node->form = DW_FORM_string;
+  /* APPLE LOCAL end radar 6275985 debug inlined section  */
 
   ASM_GENERATE_INTERNAL_LABEL (label, "LASF", dw2_string_counter);
   ++dw2_string_counter;
@@ -5374,6 +5436,29 @@ AT_lbl (dw_attr_ref a)
   return a->dw_attr_val.v.val_lbl_id;
 }
 
+/* APPLE LOCAL begin radar 6275985 debug inlined section  */
+
+/* Get the attribute of type attr_kind, if the die has it.
+   This differs from get_AT in that it does NOT search any
+   abstract origin or specification dies; it ONLY looks directly
+   at the die that was passed in.  */
+
+static dw_attr_ref
+has_AT (dw_die_ref die, enum dwarf_attribute attr_kind)
+{
+  dw_attr_ref a;
+  unsigned ix;
+
+  if (! die)
+    return NULL;
+
+  for (ix = 0; VEC_iterate (dw_attr_node, die->die_attr, ix, a); ix++)
+    if (a->dw_attr == attr_kind)
+      return a;
+
+  return NULL;
+}
+/* APPLE LOCAL end radar 6275985 debug inlined section  */
 /* Get the attribute of type attr_kind.  */
 
 static dw_attr_ref
@@ -6636,7 +6721,7 @@ add_sibling_attributes (dw_die_ref die)
      if appropriate.  */
   if (! die->die_child)
     return;
-  /* APPLE LOCAL end radar 6066486  */
+  /* APPLE LOCAL end radar 6066486 - Code moved from above.  */
 
   if (die->die_parent && die != die->die_parent->die_child)
     add_AT_die_ref (die, DW_AT_sibling, die->die_sib);
@@ -6908,6 +6993,39 @@ unmark_all_dies (dw_die_ref die)
       unmark_all_dies (AT_ref (a));
 }
 
+/* APPLE LOCAL begin radar 6275985 debug inlined section  */
+static unsigned long
+size_of_inlined (VEC (inlined_entry, gc) * inlined_dies)
+{
+  unsigned long size;
+  unsigned i;
+  /* APPLE LOCAL begin radar 6476836  */
+  unsigned j;
+  dw_die_ref *diep;
+  /* APPLE LOCAL end radar 6476836  */
+  unsigned num_entries;
+  inlined_ref iptr;
+
+  size = DWARF_INLINED_HEADER_SIZE;
+  
+  for (i = 0; VEC_iterate (inlined_entry, inlined_dies, i, iptr); i++)
+    {
+      /* APPLE LOCAL begin radar 6476836  */
+      /* Don't count or output entries that were eliminated as part of
+	 unused types.  */
+      num_entries = 0;
+      for (j = 0; VEC_iterate (dw_die_ref, iptr->inlined_instances, j, diep);
+	   j++)
+	if (! (*diep)->dead)
+	  num_entries++;
+      /* APPLE LOCAL end radar 6476836  */
+      size += (2 * DWARF_OFFSET_SIZE) + (num_entries * DWARF2_ADDR_SIZE)
+	+ (num_entries * DWARF_OFFSET_SIZE) + size_of_uleb128 (num_entries);
+    }
+
+  return size;
+}
+/* APPLE LOCAL end radar 6275985 debug inlined section  */
 /* APPLE LOCAL begin pubtypes, approved for 4.3 4535968  */
 /* Return the size of the .debug_pubnames or .debug_pubtypes table
    generated for the compilation unit.  */
@@ -7546,6 +7664,132 @@ add_pubtype (tree decl, dw_die_ref die)
 	VEC_safe_push (pubname_entry, gc, pubtype_table, &e);
     }
 }
+
+/* APPLE LOCAL begin radar 6275985 debug inlined section  */
+static void 
+add_inlined_section_entry (dw_die_ref die)
+{
+  unsigned i;
+  bool found = false;
+  inlined_ref iptr;
+  dw_die_ref current_origin_die = get_AT_ref (die, DW_AT_abstract_origin);
+
+  /* APPLE LOCAL begin radar 6292557  */
+  if (!current_origin_die)
+    return;
+  /* APPLE LOCAL end radar 6292557  */
+
+  if (!has_AT (die, DW_AT_low_pc))
+    return;
+
+  for (i = 0; VEC_iterate (inlined_entry, debug_inlined_table, i, iptr); i++)
+    {
+      if (iptr->origin_die == current_origin_die)
+	{
+	  VEC_safe_push (dw_die_ref, gc, iptr->inlined_instances, &die);
+	  found = true;
+	}
+    }
+
+  if (!found)
+    {
+      inlined_entry *new_entry = (inlined_entry *) xmalloc (sizeof (inlined_entry));
+      new_entry->origin_die = current_origin_die;
+      new_entry->inlined_instances = VEC_alloc (dw_die_ref, gc, 32);
+      VEC_safe_push (dw_die_ref, gc, new_entry->inlined_instances, &die);
+      VEC_safe_push (inlined_entry, gc, debug_inlined_table, new_entry);
+    }
+}
+
+static void
+output_debug_inlined_section (VEC (inlined_entry, gc) * inlined_dies)
+{
+  unsigned i;
+  unsigned long inlined_length = size_of_inlined (inlined_dies);
+  inlined_entry *iptr;
+
+  if (DWARF_INITIAL_LENGTH_SIZE - DWARF_OFFSET_SIZE == 4)
+    dw2_asm_output_data (4, 0xffffffff,
+      "Initial length escape value indicating 64-bit DWARF extension");
+  dw2_asm_output_data (DWARF_OFFSET_SIZE, inlined_length,
+		       "Length of Inlined Subroutines Info");
+  dw2_asm_output_data (2, DWARF_VERSION, "DWARF Version");
+  /* APPLE LOCAL radar 6476836 - eliminate some dead code.  */
+  dw2_asm_output_data (1, DWARF2_ADDR_SIZE, "Pointer Size (in bytes)");
+
+  for (i = 0; VEC_iterate (inlined_entry, inlined_dies, i, iptr); i++)
+    {
+      dw_attr_ref name_attr;
+      dw_attr_ref mips_name_attr;
+      dw_die_ref *diep;
+      unsigned j;
+      /* APPLE LOCAL radar 6476836  */
+      unsigned num_entries = 0;
+      dw_die_ref origin_die = iptr->origin_die;
+
+      /* APPLE LOCAL begin radar 6476836  */
+      /* Don't count or output dies that were eliminated as part of 
+	 unused types.  */
+      for (j = 0; VEC_iterate (dw_die_ref, iptr->inlined_instances, j, diep);
+	   j++)
+	if (! (*diep)->dead)
+	  num_entries++;
+
+      /* If all the entries were eliminated, move to next origin die.  */
+      if (num_entries == 0)
+	continue;
+      /* APPLE LOCAL end radar 6476836  */
+
+      mips_name_attr = get_AT (origin_die, DW_AT_MIPS_linkage_name);
+      name_attr = get_AT (origin_die, DW_AT_name);
+
+      if (!mips_name_attr)
+	mips_name_attr = name_attr;
+
+      gcc_assert (origin_die != NULL);
+      gcc_assert (name_attr != NULL);
+      gcc_assert (mips_name_attr != NULL);
+      gcc_assert (num_entries > 0);
+      gcc_assert (AT_string_form (name_attr) == DW_FORM_strp);
+      gcc_assert (AT_string_form (mips_name_attr) == DW_FORM_strp);
+
+      /* APPLE LOCAL radar 6476836 - eliminate some dead code.  */
+
+      dw2_asm_output_offset (DWARF_OFFSET_SIZE,
+			     mips_name_attr->dw_attr_val.v.val_str->label,
+			     debug_str_section,
+			     "MIPS linkage name: \"%s\"", 
+			     AT_string (mips_name_attr));
+
+      dw2_asm_output_offset (DWARF_OFFSET_SIZE,
+			     name_attr->dw_attr_val.v.val_str->label,
+			     debug_str_section,
+			     "Function name: \"%s\"", AT_string (name_attr));
+
+      dw2_asm_output_data_uleb128 (num_entries, NULL);
+
+      for (j = 0; VEC_iterate (dw_die_ref, iptr->inlined_instances, j, diep);
+	   j++)
+	{
+	  const char *low_pc = get_AT_low_pc (*diep);
+
+	  gcc_assert (low_pc != NULL);
+
+	  /* APPLE LOCAL begin radar 6476836  */
+	  /* Don't output dies that were eliminated as part of unused
+	     types.  */
+	  if (! (*diep)->dead)
+	    {
+	      dw2_asm_output_data (DWARF_OFFSET_SIZE, (*diep)->die_offset,
+				   "inlined subroutine die offset");
+	      dw2_asm_output_addr (DWARF2_ADDR_SIZE, low_pc, "%s", 
+				   "Low PC address");
+	    }
+	  /* APPLE LOCAL end radar 6476836  */
+	}
+    }
+}
+/* APPLE LOCAL end radar 6275985 debug inlined section  */
 
 /* Output the public names table used to speed up access to externally
    visible names; or the public types table used to find type
@@ -8774,8 +9018,7 @@ modified_type_die (tree type, int is_const_type, int is_volatile_type,
   if (sub_die != NULL)
     add_AT_die_ref (mod_type_die, DW_AT_type, sub_die);
 
-  /* APPLE LOCAL begin radar 5359827 add named pointer types to
-     pubtype table  */
+  /* APPLE LOCAL begin radar 5359827 add named pointer types to pubtype table  */
   if (mod_type_die
       && mod_type_die->die_tag  == DW_TAG_pointer_type 
       && get_AT (mod_type_die, DW_AT_name))
@@ -11262,7 +11505,22 @@ add_abstract_origin_attribute (dw_die_ref die, tree origin)
      here.  */
 
   if (origin_die)
+    /* APPLE LOCAL begin radar 6275985 debug inlined section  */
+     {
       add_AT_die_ref (die, DW_AT_abstract_origin, origin_die);
+      if (die->die_tag == DW_TAG_inlined_subroutine)
+	{
+	  dw_attr_ref inline_attr = get_AT (origin_die, DW_AT_inline);
+	  if (!inline_attr)
+	    {
+	      if (DECL_P (origin) && DECL_DECLARED_INLINE_P (origin))
+		add_AT_unsigned  (origin_die, DW_AT_inline, DW_INL_declared_inlined);
+	      else
+		add_AT_unsigned (origin_die, DW_AT_inline, DW_INL_inlined);
+	    }
+	}
+     }
+    /* APPLE LOCAL end radar 6275985 debug inlined section  */
 }
 
 /* We do not currently support the pure_virtual attribute.  */
@@ -11500,15 +11758,18 @@ add_type_attribute (dw_die_ref object_die, tree type, int decl_const,
   enum tree_code code  = TREE_CODE (type);
   dw_die_ref type_die  = NULL;
 
+/* APPLE LOCAL begin radar 5847213 */
   /* APPLE LOCAL begin radar 5811943 - Fix type of pointers to blocks  */
   /* APPLE LOCAL - radar 6113240 */
-  if (code == BLOCK_POINTER_TYPE && invoke_impl_ptr_type)
+  /* APPLE LOCAL begin radar 6300081  */
+  if (code == BLOCK_POINTER_TYPE && generic_block_literal_struct_type)
     {
-      /* APPLE LOCAL - radar 6113240 Removed gcc_assert */
-      type = invoke_impl_ptr_type;
+      type = build_pointer_type (generic_block_literal_struct_type);
       code = TREE_CODE (type);
     }
+  /* APPLE LOCAL end radar 6300081  */
   /* APPLE LOCAL end radar 5811943 - Fix type of pointers to Blocks  */
+/* APPLE LOCAL end radar 5847213 */
 
   /* ??? If this type is an unnamed subrange type of an integral or
      floating-point type, use the inner type.  This is because we have no
@@ -12474,11 +12735,28 @@ find_block_byref_var_real_type (tree decl)
   if (TREE_CODE (block_struct) != RECORD_TYPE)
     return ret_type;
 
-  if ((! TYPE_NAME (block_struct))
-      || (! IDENTIFIER_POINTER (TYPE_NAME (block_struct)))
-      || (strncmp (IDENTIFIER_POINTER (TYPE_NAME (block_struct)),
+  /* APPLE LOCAL begin radar 6237086  */
+  /* Look for a type name, and make sure it contains the __Block_byref_
+     substring.  */
+
+  if (! TYPE_NAME (block_struct))
+    return ret_type;
+
+  if (TREE_CODE (TYPE_NAME (block_struct)) != IDENTIFIER_NODE
+      && TREE_CODE (TYPE_NAME (block_struct)) != TYPE_DECL)
+    return ret_type;
+
+  if (TREE_CODE (TYPE_NAME (block_struct)) == IDENTIFIER_NODE
+      && (strncmp (IDENTIFIER_POINTER (TYPE_NAME (block_struct)),
 		   "__Block_byref_", 14) != 0))
     return ret_type;
+  else if (TREE_CODE (TYPE_NAME (block_struct)) == TYPE_DECL
+	   && ((! DECL_NAME (TYPE_NAME (block_struct)))
+	       || (strncmp 
+		    (IDENTIFIER_POINTER (DECL_NAME (TYPE_NAME (block_struct))),
+		     "__Block_byref_", 14) != 0)))
+    return ret_type;
+  /* APPLE LOCAL end radar 6237086  */
 
   /* We've got the record for a __Byref_block_etc; go through the fields
      looking for one with the same name as the var_decl.  */
@@ -12504,6 +12782,35 @@ find_block_byref_var_real_type (tree decl)
   return ret_type;
 }
 
+/* APPLE LOCAL begin radar 6237616  */
+/* Called from build_byref_var_location_expression, this function
+   checks to see if the starting location description is of type
+   DW_OP_regX (which, legally, cannot have anything added to it),
+   and if so, changes it to the equivalent DW_OP_bregX + 0, which
+   CAN legally have other stuff added to it.  */
+
+static void
+blocks_fixup_location_description (dw_loc_descr_ref *main_descr)
+{
+  dw_loc_descr_ref old_descr;
+  dw_loc_descr_ref new_descr;
+  enum dwarf_location_atom new_op;
+  int regno;
+  unsigned int offset = 0;
+
+  old_descr = *main_descr;
+
+  if (old_descr->dw_loc_opc >= DW_OP_reg0
+      && old_descr->dw_loc_opc <= DW_OP_reg31)
+    {
+      regno = old_descr->dw_loc_opc - DW_OP_reg0;
+      new_op = DW_OP_breg0 + regno;
+      new_descr = new_loc_descr (new_op, offset, 0);
+      *main_descr = new_descr;
+    }
+}
+/* APPLE LOCAL end radar 6237616  */
+
 /* This function is a helper function for the function below,
    add_block_byref_var_location_attribute.  See comments there
    for full description.  */
@@ -12515,6 +12822,12 @@ build_byref_var_location_expression (dw_loc_descr_ref *main_descr,
 				     int var_field_offset)
 {
   dw_loc_descr_ref temp_descr;
+
+  /* APPLE LOCAL begin radar 6237616  */
+  /* Make sure main_descr is legal, to start with.  */
+
+  blocks_fixup_location_description (main_descr);
+  /* APPLE LOCAL end radar 6237616  */
 
   /* If we started with a pointer to the __Block_byref... struct, then
      the first thing we need to do is dereference the pointer
@@ -12645,11 +12958,28 @@ add_block_byref_var_location_attribute (dw_die_ref var_die, tree decl)
   if (TREE_CODE (block_struct) != RECORD_TYPE)
     return false;
 
-  if ((! TYPE_NAME (block_struct))
-      || (! IDENTIFIER_POINTER (TYPE_NAME (block_struct)))
-      || strncmp (IDENTIFIER_POINTER (TYPE_NAME (block_struct)),
-		  "__Block_byref_", 14) != 0)
+  /* APPLE LOCAL begin radar 6237086  */
+  /* Look for a type name, and make sure it contains the __Block_byref_
+     substring.  */
+
+  if (! TYPE_NAME (block_struct))
     return false;
+
+  if (TREE_CODE (TYPE_NAME (block_struct)) != IDENTIFIER_NODE
+      && TREE_CODE (TYPE_NAME (block_struct)) != TYPE_DECL)
+    return false;
+
+  if (TREE_CODE (TYPE_NAME (block_struct)) == IDENTIFIER_NODE
+      && (strncmp (IDENTIFIER_POINTER (TYPE_NAME (block_struct)),
+		   "__Block_byref_", 14) != 0))
+    return false;
+  else if (TREE_CODE (TYPE_NAME (block_struct)) == TYPE_DECL
+	   && ((! DECL_NAME (TYPE_NAME (block_struct)))
+	       || (strncmp 
+		    (IDENTIFIER_POINTER (DECL_NAME (TYPE_NAME (block_struct))),
+		     "__Block_byref_", 14) != 0)))
+    return false;
+  /* APPLE LOCAL end radar 6237086  */
 
   /* Find the forwarding field and the variable field within
      the struct.  */
@@ -12668,7 +12998,7 @@ add_block_byref_var_location_attribute (dw_die_ref var_die, tree decl)
 		      var_name) == 0)
 	    var_field = temp_field;
 	  else if (strcmp (IDENTIFIER_POINTER (DECL_NAME (temp_field)),
-			   "forwarding") == 0)
+			   "__forwarding") == 0)
 	    forwarding_field = temp_field;
 	}
 
@@ -12825,18 +13155,34 @@ gen_variable_die (tree decl, dw_die_ref context_die)
     {
       if (TREE_CODE (decl_type) == POINTER_TYPE)
 	decl_type = TREE_TYPE (decl_type);
+      /* APPLE LOCAL begin radar 6237086  */
       if (decl_type
 	  && TREE_CODE (decl_type) == RECORD_TYPE
-	  && TYPE_NAME (decl_type)
-	  && TREE_CODE (TYPE_NAME (decl_type)) == IDENTIFIER_NODE
-	  && IDENTIFIER_POINTER (TYPE_NAME (decl_type))
-	  && (strncmp (IDENTIFIER_POINTER (TYPE_NAME (decl_type)), 
-		       "__Block_byref_", 14) == 0))
-	  is_block_byref_var = true;
+	  && TYPE_NAME (decl_type))
+	{
+	  if (TREE_CODE (TYPE_NAME (decl_type)) == IDENTIFIER_NODE
+	      && strncmp (IDENTIFIER_POINTER (TYPE_NAME (decl_type)),
+			  "__Block_byref_", 14) == 0)
+	    is_block_byref_var = true;
+	  else if (TREE_CODE (TYPE_NAME (decl_type)) == TYPE_DECL
+		   && DECL_NAME (TYPE_NAME (decl_type))
+		   && IDENTIFIER_POINTER (DECL_NAME (TYPE_NAME (decl_type)))
+		   && (strncmp 
+		       (IDENTIFIER_POINTER (DECL_NAME (TYPE_NAME (decl_type))),
+			"__Block_byref_", 14) == 0))
+	    is_block_byref_var = true;
+	  else
+	    is_block_byref_var = false;
+	}
+      /* APPLE LOCAL end radar 6237086  */
     }
   /* APPLE LOCAL end radar 6048397 handle block byref variables  */
-  if (origin != NULL)
+  /* APPLE LOCAL begin radar 5964438  */
+  /* Don't try to add a reference to the abstract origin die if the
+     die hasn't been created.  */
+  if ((origin != NULL) && lookup_decl_die (origin))
     add_abstract_origin_attribute (var_die, origin);
+  /* APPLE LOCAL end radar 5964438  */
 
   /* Loop unrolling can create multiple blocks that refer to the same
      static variable, so we must test for the DW_AT_declaration flag.
@@ -13053,6 +13399,8 @@ gen_inlined_subroutine_die (tree stmt, dw_die_ref context_die, int depth)
 
       decls_for_scope (stmt, subr_die, depth);
       current_function_has_inlines = 1;
+      /* APPLE LOCAL radar 6275985 debug inlined section  */
+      add_inlined_section_entry (subr_die);
     }
   else
     /* We may get here if we're the outer block of function A that was
@@ -13341,6 +13689,22 @@ gen_struct_or_union_type_die (tree type, dw_die_ref context_die)
       if (TYPE_BLOCK_IMPL_STRUCT (type))
 	add_AT_flag (type_die, DW_AT_APPLE_block, 1);
       /* APPLE LOCAL end radar 5811943 - Fix type of pointers to Blocks  */
+      /* APPLE LOCAL begin radar 6386976  */
+      if (TYPE_LANG_SPECIFIC (type)
+	  && (type_die->die_tag == DW_TAG_structure_type)
+	  && lang_hooks.types.is_runtime_specific_type (type))
+	{
+	  if (is_objcxx ())
+	    add_AT_unsigned (type_die, DW_AT_APPLE_runtime_class, 
+			     DW_LANG_ObjC_plus_plus);
+	  else if (is_objc ())
+	    add_AT_unsigned (type_die, DW_AT_APPLE_runtime_class, 
+			     DW_LANG_ObjC);
+	  else if (is_cxx())
+	    add_AT_unsigned (type_die, DW_AT_APPLE_runtime_class, 
+			     DW_LANG_C_plus_plus);
+	}
+      /* APPLE LOCAL end radar 6386976  */
     }
   else
     remove_AT (type_die, DW_AT_declaration);
@@ -14846,6 +15210,8 @@ dwarf2out_init (const char *filename ATTRIBUTE_UNUSED)
   pubname_table = VEC_alloc (pubname_entry, gc, 32);
   pubtype_table = VEC_alloc (pubname_entry, gc, 32);
   /* APPLE LOCAL end pubtypes, approved for 4.3 4535968  */
+  /* APPLE LOCAL radar 6275985 debug inlined section  */
+  debug_inlined_table = VEC_alloc (inlined_entry, gc, 32);
 
   /* Generate the initial DIE for the .debug section.  Note that the (string)
      value given in the DW_AT_name attribute of the DW_TAG_compile_unit DIE
@@ -14879,6 +15245,12 @@ dwarf2out_init (const char *filename ATTRIBUTE_UNUSED)
 				        SECTION_DEBUG, NULL);
 #endif
   /* APPLE LOCAL end pubtypes, approved for 4.3 4535968  */
+  /* APPLE LOCAL begin radar 6275985 debug inlined section  */
+#ifdef DEBUG_INLINED_SECTION
+  debug_inlined_section = get_section (DEBUG_INLINED_SECTION,
+				       SECTION_DEBUG, NULL);
+#endif
+  /* APPLE LOCAL end radar 6275985 debug inlined section  */
   debug_str_section = get_section (DEBUG_STR_SECTION,
 				   DEBUG_STR_SECTION_FLAGS, NULL);
   debug_ranges_section = get_section (DEBUG_RANGES_SECTION,
@@ -15105,15 +15477,19 @@ prune_unused_types_update_strings (dw_die_ref die)
 	s->refcount++;
 	/* Avoid unnecessarily putting strings that are used less than
 	   twice in the hash table.  */
-	if (s->refcount
-	    == ((DEBUG_STR_SECTION_FLAGS & SECTION_MERGE) ? 1 : 2))
+	/* APPLE LOCAL begin radar 6275985 debug inlined section  */
+	/* We always want function names to go into the hash table.  */
+	if ((s->refcount
+	     == ((DEBUG_STR_SECTION_FLAGS & SECTION_MERGE) ? 1 : 2))
+	    || s->is_fn_name)
 	  {
 	    void ** slot;
 	    slot = htab_find_slot_with_hash (debug_str_hash, s->str,
 					     htab_hash_string (s->str),
 					     INSERT);
-	    gcc_assert (*slot == NULL);
-	    *slot = s;
+	    if (*slot == NULL)
+	      *slot = s;
+	  /* APPLE LOCAL end radar 6275985 debug inlined section  */
 	  }
       }
 }
@@ -15155,6 +15531,40 @@ prune_unused_types_prune (dw_die_ref die)
   } while (c != die->die_child);
 }
 
+/* APPLE LOCAL begin radar 6476836  */
+/* If an inlined subroutine occurs in a struct or class that's going
+   to be eliminated, we need to mark it as dead so it doesn't get
+   output in the inlined debug section.  */
+
+static void
+prune_unused_types_cleanup_inlining (dw_die_ref die, bool should_be_dead)
+{
+  dw_die_ref c;
+
+  /* Mark inlined subroutine die as dead if appropriate.  */
+
+  if (die->die_tag == DW_TAG_inlined_subroutine
+      && should_be_dead)
+    die->dead = 1;
+
+  /* If a struct or class is not marked, then any inlined subroutine
+     descendant of it ought to be marked as dead.  */
+
+  if (die->die_tag == DW_TAG_class_type
+      || die->die_tag == DW_TAG_structure_type)
+    {
+      if (die->die_mark)
+	should_be_dead = 0;
+      else
+	should_be_dead = 1;
+    }
+
+  /* Call function recursively walking the die tree.  */
+
+  FOR_EACH_CHILD (die, c, 
+		  prune_unused_types_cleanup_inlining (c, should_be_dead));
+}
+/* APPLE LOCAL end radar 6476836  */
 
 /* Remove dies representing declarations that we never use.  */
 
@@ -15191,9 +15601,16 @@ prune_unused_types (void)
   /* Get rid of nodes that aren't marked; and update the string counts.  */
   if (debug_str_hash)
     htab_empty (debug_str_hash);
+  /* APPLE LOCAL radar 6476836  */
+  prune_unused_types_cleanup_inlining (comp_unit_die, false);
   prune_unused_types_prune (comp_unit_die);
   for (node = limbo_die_list; node; node = node->next)
-    prune_unused_types_prune (node->die);
+  /* APPLE LOCAL begin radar 6476836  */
+    {
+      prune_unused_types_cleanup_inlining (node->die, false);
+      prune_unused_types_prune (node->die);
+    }
+  /* APPLE LOCAL end radar 6476836  */
 
   /* Leave the marks clear.  */
   prune_unmark_dies (comp_unit_die);
@@ -15240,6 +15657,11 @@ dwarf2out_finish (const char *filename)
 	add_comp_dir_attribute (comp_unit_die);
     }
 
+  /* APPLE LOCAL begin radar 6386976  */
+  if (flag_objc_abi > 0)
+    add_AT_unsigned (comp_unit_die, DW_AT_APPLE_major_runtime_vers, 
+		     flag_objc_abi);
+  /* APPLE LOCAL end radar 6386976  */
   /* APPLE LOCAL begin option verifier 4957887 */
   /* Add the options for this compilation now, so that the options
      are from the final compilation not the PCH.
@@ -15401,6 +15823,17 @@ dwarf2out_finish (const char *filename)
     }
 #endif
   /* APPLE LOCAL end pubtypes, approved for 4.3 4535968  */
+
+  /* APPLE LOCAL begin radar 6275985 debug inlined section  */
+#ifdef DEBUG_INLINED_SECTION
+  /* Output debug section containing info about inlined subroutines  */
+  if (! VEC_empty (inlined_entry, debug_inlined_table))
+    {
+      switch_to_section (debug_inlined_section);
+      output_debug_inlined_section (debug_inlined_table);
+    }
+#endif
+  /* APPLE LOCAL end radar 6275985 debug inlined section  */
 
   /* Output the address range information.  We only put functions in the arange
      table, so don't write it out if we don't have any.  */

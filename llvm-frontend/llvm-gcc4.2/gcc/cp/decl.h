@@ -27,6 +27,8 @@ enum decl_context
   FIELD,			/* Declaration inside struct or union */
   BITFIELD,			/* Likewise but with specified width */
   TYPENAME,			/* Typename (inside cast or sizeof)  */
+  /* APPLE LOCAL blocks 6339747 */
+  BLOCKDEF,			/* Declaratin of block literal */
   MEMFUNCDEF			/* Member function definition */
 };
 

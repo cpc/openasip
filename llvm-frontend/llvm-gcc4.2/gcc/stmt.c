@@ -2387,6 +2387,8 @@ expand_case (tree exp)
   /* Label to jump to if no case matches.  */
   tree default_label_decl;
 
+  /* APPLE LOCAL ARM switch tables 6288519 */
+  bool have_casesi;
   /* The switch body is lowered in gimplify.c, we should never have
      switches with a non-NULL SWITCH_BODY here.  */
   gcc_assert (!SWITCH_BODY (exp));
@@ -2481,6 +2483,8 @@ expand_case (tree exp)
       /* Compute span of values.  */
       range = fold_build2 (MINUS_EXPR, index_type, maxval, minval);
 
+      /* APPLE LOCAL ARM switch tables 6288519 */
+      have_casesi = HAVE_casesi;
       /* Try implementing this switch statement by a short sequence of
 	 bit-wise comparisons.  However, we let the binary-tree case
 	 below handle constant index expressions.  */
@@ -2526,7 +2530,8 @@ expand_case (tree exp)
 	       || TREE_CONSTANT (index_expr)
 	       /* If neither casesi or tablejump is available, we can
 		  only go this way.  */
-	       || (!HAVE_casesi && !HAVE_tablejump))
+	       /* APPLE LOCAL ARM switch tables 6288519 */
+	       || (!have_casesi && !HAVE_tablejump))
 	{
 	  index = expand_normal (index_expr);
 

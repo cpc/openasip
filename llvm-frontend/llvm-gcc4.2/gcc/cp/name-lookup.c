@@ -813,7 +813,12 @@ pushdecl_maybe_friend (tree x, bool is_friend)
 	      if (TYPE_NAME (type) == 0)
 		TYPE_NAME (type) = x;
 	    }
-	  else if (type != error_mark_node && TYPE_NAME (type) != x
+	  /* APPLE LOCAL begin radar 6007135, typedef of anonymous struct  */
+	  /* Make sure to do the copying if the type was anonymous  */
+	  else if (type != error_mark_node 
+		   && ((TYPE_NAME (type) != x) 
+		       || (TYPE_LANG_SPECIFIC (type) && TYPE_WAS_ANONYMOUS (type)))
+	  /* APPLE LOCAL end radar 6007135, typedef of anonymous struct  */
 		   /* We don't want to copy the type when all we're
 		      doing is making a TYPE_DECL for the purposes of
 		      inlining.  */
@@ -4039,8 +4044,13 @@ lookup_name_real (tree name, int prefer_type, int nonclass, bool block_p,
 
 	if (binding)
 	  {
-	    /* Only namespace-scope bindings can be hidden.  */
-	    gcc_assert (!hidden_name_p (binding));
+	    /* APPLE LOCAL begin 6322334 */
+	    /* Ick, we don't want to find a hidden friend inside a
+	       local class!  */ 
+	    if (hidden_name_p (binding))
+	      POP_TIMEVAR_AND_RETURN (TV_NAME_LOOKUP, NULL_TREE);
+	    /* APPLE LOCAL end 6322334 */
+
 	    val = binding;
 	    break;
 	  }

@@ -206,13 +206,6 @@ handle_option (const char **argv, unsigned int lang_mask)
 
   opt = argv[0];
 
-  /* LLVM LOCAL begin stack protector */
-#ifdef ENABLE_LLVM
-  if (strncmp(opt, "-fstack-protector", 17) == 0)
-    error ("-fstack-protector is not supported.");
-#endif
-  /* LLVM LOCAL end stack protector */
-
   opt_index = find_opt (opt + 1, lang_mask | CL_COMMON | CL_TARGET);
   if (opt_index == cl_options_count
       && (opt[1] == 'W' || opt[1] == 'f' || opt[1] == 'm')

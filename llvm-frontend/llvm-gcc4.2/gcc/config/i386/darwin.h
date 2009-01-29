@@ -101,8 +101,6 @@ Boston, MA 02110-1301, USA.  */
   %{!mmacosx-version-min=*: %{!miphoneos-version-min=*: %(darwin_cc1_minversion)}} \
   "/* APPLE LOCAL ignore -mcpu=G4 -mcpu=G5 */"\
   %<faltivec %<mno-fused-madd %<mlong-branch %<mlongcall %<mcpu=G4 %<mcpu=G5 \
-  "/* APPLE LOCAL enable format security warnings */"\
-  %{!Wno-format:-Wformat -Wformat-security} \
   %{g: %{!fno-eliminate-unused-debug-symbols: -feliminate-unused-debug-symbols }}"
 
 /* APPLE LOCAL AltiVec */
@@ -110,7 +108,10 @@ Boston, MA 02110-1301, USA.  */
 
 /* APPLE LOCAL begin mainline */
 #undef ASM_SPEC
-#define ASM_SPEC "-arch %(darwin_arch) -force_cpusubtype_ALL"
+/* APPLE LOCAL begin kext weak_import 5935650 */
+#define ASM_SPEC "-arch %(darwin_arch) -force_cpusubtype_ALL \
+  %{mkernel|static|fapple-kext:%{!m64:-static}}"
+/* APPLE LOCAL end kext weak_import 5935650 */
 
 #define DARWIN_ARCH_SPEC "%{m64:x86_64;:i386}"
 #define DARWIN_SUBARCH_SPEC DARWIN_ARCH_SPEC
@@ -369,9 +370,11 @@ extern void ix86_darwin_init_expanders (void);
 /* APPLE LOCAL begin CW asm blocks */
 #define IASM_VALID_PIC(DECL, E)						\
   do {									\
-    if (E->as_immediate && ! MACHO_DYNAMIC_NO_PIC_P && flag_pic)	\
+    if (! TARGET_64BIT							\
+	&& E->as_immediate && ! MACHO_DYNAMIC_NO_PIC_P && flag_pic)	\
       warning (0, "non-pic addressing form not suitible for pic code");	\
   } while (0)
+#define IASM_RIP(X) do { if (TARGET_64BIT) strcat (X, "(%%rip)"); } while (0)
 /* APPLE LOCAL end cw asm blocks */
 
 /* APPLE LOCAL KEXT */

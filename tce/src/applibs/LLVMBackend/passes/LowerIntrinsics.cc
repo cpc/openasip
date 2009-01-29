@@ -104,12 +104,9 @@ LowerIntrinsics::doInitialization(Module &M) {
    
     // Initialize list of intrinsics to lower.
     replace_.insert(Intrinsic::flt_rounds);
-    replace_.insert(Intrinsic::memcpy_i32);
-    replace_.insert(Intrinsic::memcpy_i64);
-    replace_.insert(Intrinsic::memset_i32);
-    replace_.insert(Intrinsic::memset_i64);
-    replace_.insert(Intrinsic::memmove_i32);
-    replace_.insert(Intrinsic::memmove_i64);
+    replace_.insert(Intrinsic::memcpy);
+    replace_.insert(Intrinsic::memset);
+    replace_.insert(Intrinsic::memmove);
 
     assert(iLowering_ == NULL && td_ == NULL);
     td_ = new TargetData(&M);

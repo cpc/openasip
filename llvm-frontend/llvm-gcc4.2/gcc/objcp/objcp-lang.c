@@ -28,6 +28,10 @@ Boston, MA 02110-1301, USA.  */
 #include "c-common.h"
 #include "toplev.h"
 #include "objc-act.h"
+/* APPLE LOCAL begin radar 6386976  */
+#define OBJCP_REMAP_FUNCTIONS
+#include "objcp-decl.h"
+/* APPLE LOCAL end radar 6386976  */
 #include "langhooks.h"
 #include "langhooks-def.h"
 #include "diagnostic.h"
@@ -36,6 +40,8 @@ Boston, MA 02110-1301, USA.  */
 
 enum c_language_kind c_language = clk_objcxx;
 static void objcxx_init_ts (void);
+/* APPLE LOCAL radar 6386976  */
+static bool objcxx_is_runtime_type (tree);
 
 /* Lang hooks common to C++ and ObjC++ are declared in cp/cp-objcp-common.h;
    consequently, there should be very few hooks below.  */
@@ -56,6 +62,10 @@ static void objcxx_init_ts (void);
 #undef LANG_HOOKS_FOLD_OBJ_TYPE_REF
 #define LANG_HOOKS_FOLD_OBJ_TYPE_REF objc_fold_obj_type_ref
 /* APPLE LOCAL end radar 3904178 */
+/* APPLE LOCAL begin radar 6386976  */
+#undef LANG_HOOKS_IS_RUNTIME_SPECIFIC_TYPE
+#define LANG_HOOKS_IS_RUNTIME_SPECIFIC_TYPE objcxx_is_runtime_type
+/* APPLE LOCAL end radar 6386976  */
 
 /* Each front end provides its own lang hook initializer.  */
 const struct lang_hooks lang_hooks = LANG_HOOKS_INITIALIZER;
@@ -213,5 +223,16 @@ finish_file (void)
 {
   objc_finish_file ();
 }
+
+/* APPLE LOCAL begin radar 6386976  */
+static bool
+objcxx_is_runtime_type (tree type)
+{
+  if (TREE_CODE (type) != RECORD_TYPE)
+    return false;
+  else
+    return (TYPE_HAS_OBJCXX_INFO (type));
+}
+/* APPLE LOCAL end radar 6386976  */
 
 #include "gtype-objcp.h"

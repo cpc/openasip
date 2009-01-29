@@ -3045,17 +3045,9 @@
   [(set_attr "type" "sseishft")
    (set_attr "mode" "TI")])
 
-(define_insn "sse2_ashlti3"
-  [(set (match_operand:TI 0 "register_operand" "=x")
-	(ashift:TI (match_operand:TI 1 "register_operand" "0")
-		   (match_operand:SI 2 "const_0_to_255_mul_8_operand" "n")))]
-  "TARGET_SSE2"
-{
-  operands[2] = GEN_INT (INTVAL (operands[2]) / 8);
-  return "pslldq\t{%2, %0|%0, %2}";
-}
-  [(set_attr "type" "sseishft")
-   (set_attr "mode" "TI")])
+/* APPLE LOCAL begin 6440204 */
+/* Moved to i386.md.  */
+/* APPLE LOCAL end 6440204 */
 
 (define_expand "vec_shl_<mode>"
   [(set (match_operand:SSEMODEI 0 "register_operand" "")
@@ -3178,7 +3170,7 @@
 })
 
 ;; APPLE LOCAL begin 5612787 mainline sse4
-(define_insn "*sse4_1_smax<mode>3"
+(define_insn "sse4_1_smax<mode>3"
   [(set (match_operand:SSEMODE14 0 "register_operand" "=x")
 	(smax:SSEMODE14
 	  (match_operand:SSEMODE14 1 "nonimmediate_operand" "%0")
@@ -3189,7 +3181,7 @@
    (set_attr "prefix_extra" "1")
    (set_attr "mode" "TI")])
 
-(define_insn "*sse4_1_umax<mode>3"
+(define_insn "sse4_1_umax<mode>3"
   [(set (match_operand:SSEMODE24 0 "register_operand" "=x")
 	(umax:SSEMODE24
 	  (match_operand:SSEMODE24 1 "nonimmediate_operand" "%0")
@@ -3446,7 +3438,7 @@
    (set_attr "mode" "TI")])
 
 ;; APPLE LOCAL begin 5612787 mainline sse4
-(define_insn "*sse4_1_smin<mode>3"
+(define_insn "sse4_1_smin<mode>3"
   [(set (match_operand:SSEMODE14 0 "register_operand" "=x")
 	(smin:SSEMODE14
 	  (match_operand:SSEMODE14 1 "nonimmediate_operand" "%0")
@@ -3457,7 +3449,7 @@
    (set_attr "prefix_extra" "1")
    (set_attr "mode" "TI")])
 
-(define_insn "*sse4_1_umin<mode>3"
+(define_insn "sse4_1_umin<mode>3"
   [(set (match_operand:SSEMODE24 0 "register_operand" "=x")
 	(umin:SSEMODE24
 	  (match_operand:SSEMODE24 1 "nonimmediate_operand" "%0")

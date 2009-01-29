@@ -44,8 +44,8 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 #endif
 
 /* APPLE LOCAL begin SDK 3886137.  */
-/* Allow -isysroot to override ALL  include patchs. This is done by
-   setting add_sysroot for all default inclue paths.  */
+/* Allow -isysroot to override ALL include paths. This is done by
+   setting add_sysroot for all default include paths.  */
 /* LLVM LOCAL begin - fix sysroot on non-Darwin systems */
 #ifdef CONFIG_DARWIN_H
 #define ADD_SYSROOT 1
@@ -78,7 +78,10 @@ const struct default_include cpp_include_defaults[]
 #endif
 #ifdef GCC_INCLUDE_DIR
     /* This is the dir for fixincludes and for gcc's private headers.  */
-    { GCC_INCLUDE_DIR, "GCC", 0, 0, ADD_SYSROOT, 0 },
+    /* APPLE LOCAL begin */
+    /* Do not let isysroot override fixincludes and gcc's private headers paths.  */
+    { GCC_INCLUDE_DIR, "GCC", 0, 0, 0, 0 },
+    /* APPLE LOCAL end */
 #endif
 #ifdef CROSS_INCLUDE_DIR
     /* One place the target system's headers might be.  */

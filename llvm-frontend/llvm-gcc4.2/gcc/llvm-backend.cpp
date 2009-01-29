@@ -36,7 +36,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/Bitcode/ReaderWriter.h"
 #include "llvm/CodeGen/RegAllocRegistry.h"
 #include "llvm/CodeGen/SchedulerRegistry.h"
-#include "llvm/CodeGen/ScheduleDAG.h"
 #include "llvm/Target/SubtargetFeature.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetLowering.h"
@@ -70,6 +69,7 @@ extern "C" {
 #include "tree-inline.h"
 #include "langhooks.h"
 #include "cgraph.h"
+#include "params.h"
 }
 
 // Non-zero if bytecode from PCH is successfully read.
@@ -165,15 +165,23 @@ void llvm_initialize_backend(void) {
     ArgStrings.push_back(Arg);
   }
 
-  if (llvm_optns) {
-    std::string Opts = llvm_optns;
-    for (std::string Opt = getToken(Opts); !Opt.empty(); Opt = getToken(Opts))
-      ArgStrings.push_back(Opt);
+  if (flag_stack_protect > 0) {
+    std::string Arg("--stack-protector-buffer-size=" +
+                    utostr(PARAM_VALUE(PARAM_SSP_BUFFER_SIZE)));
+    ArgStrings.push_back(Arg);
   }
+
   for (unsigned i = 0, e = ArgStrings.size(); i != e; ++i)
     Args.push_back(ArgStrings[i].c_str());
+
+  std::vector<std::string> LLVM_Optns; // Avoid deallocation before opts parsed!
+  if (llvm_optns) {
+    SplitString(llvm_optns, LLVM_Optns);
+    for(unsigned i = 0, e = LLVM_Optns.size(); i != e; ++i)
+      Args.push_back(LLVM_Optns[i].c_str());
+  }
+ 
   Args.push_back(0);  // Null terminator.
-  
   int pseudo_argc = Args.size()-1;
   cl::ParseCommandLineOptions(pseudo_argc, (char**)&Args[0]);
 
@@ -191,23 +199,23 @@ void llvm_initialize_backend(void) {
       TargetTriple = Arch + TargetTriple.substr(DashPos);
   }
 #endif
+#ifdef LLVM_OVERRIDE_TARGET_VERSION
+  char *NewTriple;
+  bool OverRidden = LLVM_OVERRIDE_TARGET_VERSION(TargetTriple.c_str(),
+                                                 &NewTriple);
+  if (OverRidden)
+    TargetTriple = std::string(NewTriple);
+#endif
 
+  // TODO: TRY TO USE LLVM_OVERRIDE_TARGET_VERSION AND LLVM_OVERRIDE_TARGET_ARCH
+  //       defines to get rid of this code change....
+  // 
   // !!! TCE !!! hardcorecode to set target machine to be mips... 
   // to be able to use the compiler... 
   // cerr << "original triplet: " << TargetTriple << std::endl;    
   TargetTriple = "mips-linux";
   // cerr << "new triplet: " << TargetTriple << std::endl;    
     
-
-#ifdef LLVM_OVERRIDE_TARGET_VERSION
-    char *NewTriple;
-    bool OverRidden = LLVM_OVERRIDE_TARGET_VERSION(TargetTriple.c_str(),
-                                                   &NewTriple);
-    if (OverRidden)
-      TargetTriple = std::string(NewTriple);
-#endif
-
-
   TheModule->setTargetTriple(TargetTriple);
   
   TheTypeConverter = new TypeConverter();
@@ -247,8 +255,10 @@ void llvm_initialize_backend(void) {
     RegisterRegAlloc::setDefault(createLinearScanRegisterAllocator);
   else
     RegisterRegAlloc::setDefault(createLocalRegisterAllocator);
- 
-  if (!optimize && debug_info_level > DINFO_LEVEL_NONE)
+
+  // FIXME - Do not disable debug info while writing pch.
+  if (!flag_pch_file &&
+      !optimize && debug_info_level > DINFO_LEVEL_NONE)
     TheDebugInfo = new DebugInfo(TheModule);
 }
 
@@ -284,7 +294,9 @@ void llvm_pch_read(const unsigned char *Buffer, unsigned Size) {
   TheModule = ParseBitcodeFile(MB, &ErrMsg);
   delete MB;
 
-  if (!optimize && debug_info_level > DINFO_LEVEL_NONE)
+  // FIXME - Do not disable debug info while writing pch.
+  if (!flag_pch_file &&
+      !optimize && debug_info_level > DINFO_LEVEL_NONE)
     TheDebugInfo = new DebugInfo(TheModule);
 
   if (!TheModule) {
@@ -304,9 +316,6 @@ void llvm_pch_read(const unsigned char *Buffer, unsigned Size) {
   // Read LLVM Types string table
   readLLVMTypesStringTable();
   readLLVMValues();
-
-  if (TheDebugInfo)
-    TheDebugInfo->readLLVMDebugInfo();
 
   flag_llvm_pch_read = 1;
 }
@@ -418,7 +427,7 @@ static void createOptimizationPasses() {
     if (flag_unit_at_a_time) {
       if (flag_exceptions)
         PM->add(createPruneEHPass());             // Remove dead EH info
-      PM->add(createAddReadAttrsPass());          // Set readonly/readnone attrs
+      PM->add(createFunctionAttrsPass());         // Deduce function attrs
     }
     if (flag_inline_trees > 1)                    // respect -fno-inline-functions
       PM->add(createFunctionInliningPass());      // Inline small functions
@@ -479,7 +488,7 @@ static void createOptimizationPasses() {
   } else if (emit_llvm) {
     // Emit an LLVM .ll file to the output.  This is used when passed 
     // -emit-llvm -S to the GCC driver.
-    PerModulePasses->add(new PrintModulePass(AsmOutFile));
+    PerModulePasses->add(createPrintModulePass(AsmOutRawStream));
     HasPerModulePasses = true;
   } else {
     FunctionPassManager *PM;
@@ -584,7 +593,6 @@ static void CreateStructorsList(std::vector<std::pair<Function*, int> > &Tors,
 // llvm_asm_file_end - Finish the .s file.
 void llvm_asm_file_end(void) {
   timevar_push(TV_LLVM_PERFILE);
-  llvm_shutdown_obj X;  // Call llvm_shutdown() on exit.
 
   performLateBackendInitialization();
   createOptimizationPasses();
@@ -664,11 +672,16 @@ void llvm_asm_file_end(void) {
     FILE *asm_intermediate_out_file = fopen(asm_intermediate_out_filename, "w+b");
     AsmIntermediateOutStream = new oFILEstream(asm_intermediate_out_file);
     AsmIntermediateOutFile = new OStream(*AsmIntermediateOutStream);
+    raw_ostream *AsmIntermediateRawOutStream = 
+      new raw_os_ostream(*AsmIntermediateOutStream);
     if (emit_llvm_bc)
       IntermediatePM->add(CreateBitcodeWriterPass(*AsmIntermediateOutStream));
     if (emit_llvm)
-      IntermediatePM->add(new PrintModulePass(AsmIntermediateOutFile));
+      IntermediatePM->add(createPrintModulePass(AsmIntermediateRawOutStream));
     IntermediatePM->run(*TheModule);
+    AsmIntermediateRawOutStream->flush();
+    delete AsmIntermediateRawOutStream;
+    AsmIntermediateRawOutStream = 0;
     AsmIntermediateOutStream->flush();
     fflush(asm_intermediate_out_file);
     delete AsmIntermediateOutStream;
@@ -700,6 +713,11 @@ void llvm_asm_file_end(void) {
   delete AsmOutFile;
   AsmOutFile = 0;
   timevar_pop(TV_LLVM_PERFILE);
+}
+
+// llvm_call_llvm_shutdown - Release LLVM global state.
+void llvm_call_llvm_shutdown(void) {
+  llvm_shutdown();
 }
 
 // llvm_emit_code_for_current_function - Top level interface for emitting a
@@ -808,14 +826,14 @@ void emit_alias_to_llvm(tree decl, tree target, tree target_decl) {
         error ("%J%qD aliased to undefined symbol %qs", decl, decl, AliaseeName);
         timevar_pop(TV_LLVM_GLOBALS);
         return;
-      } 
+      }
     }
   }
-  
+
   GlobalValue::LinkageTypes Linkage;
 
-  // Check for external weak linkage
-  if (DECL_EXTERNAL(decl) && DECL_WEAK(decl))
+  // A weak alias has TREE_PUBLIC set but not the other bits.
+  if (DECL_WEAK(decl))
     Linkage = GlobalValue::WeakLinkage;
   else if (!TREE_PUBLIC(decl))
     Linkage = GlobalValue::InternalLinkage;
@@ -1007,6 +1025,11 @@ void emit_global_to_llvm(tree decl) {
   if (TREE_CODE(decl) == VAR_DECL && DECL_REGISTER(decl))
     return;
 
+  // If tree nodes says defer output then do not emit global yet.
+  if (CODE_CONTAINS_STRUCT (TREE_CODE (decl), TS_DECL_WITH_VIS) 
+      && (DECL_DEFER_OUTPUT(decl)))
+      return;
+
   timevar_push(TV_LLVM_GLOBALS);
 
   // Get or create the global variable now.
@@ -1115,6 +1138,12 @@ void emit_global_to_llvm(tree decl) {
     if (const char *Section = 
         LLVM_IMPLICIT_TARGET_GLOBAL_VAR_SECTION(decl)) {
       GV->setSection(Section);
+
+      /* LLVM LOCAL - begin radar 6389998 */
+#ifdef TARGET_ADJUST_CFSTRING_NAME
+      TARGET_ADJUST_CFSTRING_NAME(GV, Section);
+#endif
+      /* LLVM LOCAL - end radar 6389998 */
     }
 #endif
   }

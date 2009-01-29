@@ -74,6 +74,8 @@ namespace llvm {
     class LLVMPOMBuilder : public MachineFunctionPass {
 
     public:
+        static char ID; // Pass identification, replacement for typeid
+        
         LLVMPOMBuilder(
             TCETargetMachine& tm,
             TTAMachine::Machine* mach);

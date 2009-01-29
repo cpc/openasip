@@ -157,3 +157,26 @@ void store_init_value (tree decl ATTRIBUTE_UNUSED, tree init ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
 }
+
+bool cvt_utf8_utf16 (const unsigned char *, size_t, unsigned char **,
+                     size_t *) ATTRIBUTE_WEAK;
+
+bool
+cvt_utf8_utf16 (const unsigned char * inbuf ATTRIBUTE_UNUSED,
+                size_t length ATTRIBUTE_UNUSED,
+                unsigned char ** uniCharBuf  ATTRIBUTE_UNUSED,
+                size_t * numUniChars ATTRIBUTE_UNUSED)
+{
+  gcc_assert(0);
+}
+
+tree create_init_utf16_var (const unsigned char *, size_t,
+                            size_t *) ATTRIBUTE_WEAK;
+
+tree
+create_init_utf16_var (const unsigned char * inbuf  ATTRIBUTE_UNUSED,
+                       size_t length  ATTRIBUTE_UNUSED,
+                       size_t * numUniChars ATTRIBUTE_UNUSED)
+{
+  gcc_assert(0);
+}

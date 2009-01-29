@@ -2974,7 +2974,12 @@ build_constant_desc (tree exp)
 
   /* Create a string containing the label name, in LABEL.  */
   labelno = const_labelno++;
-  ASM_GENERATE_INTERNAL_LABEL (label, "LC", labelno);
+  /* APPLE LOCAL begin radar 6243961 */
+  if (flag_writable_strings && TREE_CODE (exp) == STRING_CST)
+    ASM_GENERATE_INTERNAL_LABEL (label, "lC", labelno);
+  else
+    ASM_GENERATE_INTERNAL_LABEL (label, "LC", labelno);
+  /* APPLE LOCAL end radar 6243961 */
 
   /* We have a symbol name; construct the SYMBOL_REF and the MEM.  */
   if (use_object_blocks_p ())
@@ -3027,6 +3032,12 @@ output_constant_def (tree exp, int defer)
   struct constant_descriptor_tree key;
   void **loc;
 
+  /* APPLE LOCAL begin radar 6243961 */
+  int save_flag_writable_strings = flag_writable_strings;
+  if (flag_writable_strings && TREE_CODE (exp) == STRING_CST 
+      && darwin_constant_cfstring_p (exp))
+    flag_writable_strings = 0;
+  /* APPLE LOCAL end radar 6243961 */
   /* Look up EXP in the table of constant descriptors.  If we didn't find
      it, create a new one.  */
   key.value = exp;
@@ -3042,6 +3053,8 @@ output_constant_def (tree exp, int defer)
     }
 
   maybe_output_constant_def_contents (desc, defer);
+  /* APPLE LOCAL radar 6243961 */
+  flag_writable_strings = save_flag_writable_strings;
   return desc->rtl;
 }
 

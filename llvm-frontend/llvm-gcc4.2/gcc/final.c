@@ -255,11 +255,12 @@ static void output_alternate_entry_point (FILE *, rtx);
 static tree get_mem_expr_from_op (rtx, int *);
 static void output_asm_operand_names (rtx *, int *, int);
 static void output_operand (rtx, int);
-/* APPLE LOCAL - begin ARM compact switch tables */
+/* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
+/* APPLE LOCAL ARM compact switch tables */
 static void calculate_alignments (void);
 #endif
-/* APPLE LOCAL - end ARM compact switch tables */
+/* LLVM LOCAL end */
 #ifdef LEAF_REGISTERS
 static void leaf_renumber_regs (rtx);
 #endif

@@ -1187,8 +1187,11 @@ c_common_post_options (const char **pfilename)
 	       "-Wformat-zero-length ignored without -Wformat");
       warning (OPT_Wformat_nonliteral,
 	       "-Wformat-nonliteral ignored without -Wformat");
-      warning (OPT_Wformat_security,
-	       "-Wformat-security ignored without -Wformat");
+      /* LLVM LOCAL begin */
+      if (warn_format_security)
+        warning (OPT_Wformat_security,
+                 "-Wformat-security ignored without -Wformat");
+      /* LLVM LOCAL end */
     }
 
   /* C99 requires special handling of complex multiplication and division;

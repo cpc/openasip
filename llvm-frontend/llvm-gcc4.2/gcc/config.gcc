@@ -404,10 +404,14 @@ case ${target} in
 *-*-darwin*)
   tm_file="${tm_file} darwin.h"
   case ${target} in
-  # APPLE LOCAL darwin10 5810054
-  *-*-darwin[912]*)
+  *-*-darwin9*)
     tm_file="${tm_file} darwin9.h"
     ;;
+    # APPLE LOCAL begin .file/.loc 6349436
+  *-*-darwin[12][0-9]*)
+    tm_file="${tm_file} darwin9.h darwin10.h"
+    ;;
+    # APPLE LOCAL end .file/.loc 6349436
   esac
   tm_file="${tm_file} ${cpu_type}/darwin.h"
   tm_p_file="${tm_p_file} darwin-protos.h"
@@ -2423,7 +2427,7 @@ strongarm-*-kaos*)
 	;;
 tce*-llvm*)
 	use_fixproto=yes
-	use_collect2=no
+    use_collect2=no
 
 # this didnt have any effect tce.md was still needed
 #   md_file=""
@@ -2431,7 +2435,7 @@ tce*-llvm*)
 	tm_p_file=""
 	tmake_file=""
    	tm_file="dbxelf.h elfos.h svr4.h ${tm_file}"
-	;;
+   	;;
 v850e1-*-*)
 	target_cpu_default="TARGET_CPU_v850e1"
 	tm_file="dbxelf.h elfos.h svr4.h v850/v850.h"

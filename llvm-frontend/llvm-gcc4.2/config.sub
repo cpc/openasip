@@ -1154,9 +1154,9 @@ case $basic_machine in
 	pmac | pmac-mpw)
 		basic_machine=powerpc-apple
 		;;
-	tce*)
-		basic_machine=tce-
-		;;
+ 	tce*)
+ 		basic_machine=tce-
+ 		;;
 	*-unknown)
 		# Make sure to match an already-canonicalized machine name.
 		;;
@@ -1358,9 +1358,9 @@ case $os in
 	-zvmoe)
 		os=-zvmoe
 		;;
+ 	-llvm*)
+        ;;
 	-none)
-		;;
-	-llvm*)
 		;;
 	*)
 		# Get rid of the `-' at the beginning of $os.

@@ -3070,7 +3070,9 @@ struct tree_decl_with_vis GTY(())
  unsigned copyable_byref_local_nonpod : 1;
  /* APPLE LOCAL radar 6172148 */
  unsigned block_synthesized_function : 1;
- /* 6 unused bits. */
+ /* APPLE LOCAL radar 5847976 */
+ unsigned block_weak : 1;
+ /* 5 unused bits. */
  /* APPLE LOCAL end radar 5932809 - copyable byref blocks */
  /* APPLE LOCAL end radar 5732232 - blocks */
 };
@@ -3127,6 +3129,8 @@ extern void decl_init_priority_insert (tree, unsigned short);
 /* APPLE LOCAL begin radar 5932809 - copyable byref blocks */
 #define COPYABLE_BYREF_LOCAL_VAR(NODE) (VAR_DECL_CHECK (NODE)->decl_with_vis.copyable_byref_local_var)
 #define COPYABLE_BYREF_LOCAL_NONPOD(NODE) (VAR_DECL_CHECK (NODE)->decl_with_vis.copyable_byref_local_nonpod)
+/* APPLE LOCAL radar 5847976 */
+#define COPYABLE_WEAK_BLOCK(NODE) (VAR_DECL_CHECK (NODE)->decl_with_vis.block_weak)
 /* APPLE LOCAL end radar 5932809 - copyable byref blocks */
 
 /* In a VAR_DECL, nonzero if the data should be allocated from
@@ -4509,7 +4513,9 @@ extern bool tree_expr_nonzero_warnv_p (tree, bool *);
 
 /* In builtins.c */
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 extern int validate_arglist (tree, ...);
+#endif
 /* LLVM LOCAL end */
 extern tree fold_builtin (tree, tree, bool);
 extern tree fold_builtin_fputs (tree, bool, bool, tree);
@@ -4850,7 +4856,9 @@ extern bool has_alternative_entry_points (void);
 extern void note_alternative_entry_points (void);
 /* APPLE LOCAL end CW asm blocks */
 
-/* APPLE LOCAL radar 6113240 */
-extern GTY(()) tree invoke_impl_ptr_type;
+/* APPLE LOCAL begin radar 6300081  */
+extern GTY(()) tree generic_block_literal_struct_type;
+
+/* APPLE LOCAL end radar 6300081  */
 
 #endif  /* GCC_TREE_H  */

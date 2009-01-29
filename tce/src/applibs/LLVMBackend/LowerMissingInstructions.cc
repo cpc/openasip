@@ -563,7 +563,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
 
                         // sign extension needed
                         args.push_back(
-                            llvm::CastInst::createIntegerCast(
+                            llvm::CastInst::CreateIntegerCast(
                                 I->getOperand(j), Type::Int32Ty, true, "", I));
 
                     } else if (footPrint == "f32.uitofp.i16" ||
@@ -571,7 +571,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
 
                         // zero extension needed
                         args.push_back(
-                            llvm::CastInst::createIntegerCast(
+                            llvm::CastInst::CreateIntegerCast(
                                 I->getOperand(j), Type::Int32Ty,
                                 false, "", I));
                     } else {
@@ -600,7 +600,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                     llvm::CastInst::getCastOpcode(
                         NewCall, false, I->getType(), false);
 
-                MCast = llvm::CastInst::create(
+                MCast = llvm::CastInst::Create(
                     castOps ,NewCall, I->getType(), "", I);
                 I->replaceAllUsesWith(MCast);                                
 

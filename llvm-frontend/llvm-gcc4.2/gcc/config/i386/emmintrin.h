@@ -1476,8 +1476,10 @@ _mm_srli_si128 (__m128i __A, int __B)
   return ((__m128i)__builtin_ia32_pslldqi128 (__A, __B * 8));
 }
 #else
-#define _mm_srli_si128 (__m128i)__builtin_ia32_psrldqi128_byteshift
-#define _mm_slli_si128 (__m128i)__builtin_ia32_pslldqi128_byteshift
+/* APPLE LOCAL begin 5919583 */
+#define _mm_srli_si128  (__m128i)__builtin_ia32_psrldqi128_byteshift
+#define _mm_slli_si128  (__m128i)__builtin_ia32_pslldqi128_byteshift
+/* APPLE LOCAL end 5919583 */
 #endif
 
 #if 0

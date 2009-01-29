@@ -478,6 +478,8 @@ extern tree finish_struct (tree, tree, tree);
 extern struct c_arg_info *get_parm_info (bool);
 extern tree grokfield (struct c_declarator *, struct c_declspecs *, tree);
 extern tree groktypename (struct c_type_name *);
+/* APPLE LOCAL blocks 6339747 */
+extern tree grokblockdecl (struct c_declspecs *, struct c_declarator *);
 extern tree grokparm (const struct c_parm *);
 extern tree implicitly_declare (tree);
 extern void keep_next_level (void);

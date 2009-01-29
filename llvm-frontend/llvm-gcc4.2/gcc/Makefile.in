@@ -624,11 +624,8 @@ LIBGCC2_STATIC_CFLAGS = $(TARGET_LIBGCC2_STATIC_CFLAGS)
 # Some targets override this to -isystem include
 LIBGCC2_INCLUDES =
 
-# Additional target-dependent options for compiling libgcc2.a. 
-#TARGET_LIBGCC2_CFLAGS =
-# TCE patch we like to compile libgcc2 to bytecode as well
+# Additional target-dependent options for compiling libgcc2.a.
 TARGET_LIBGCC2_CFLAGS = --emit-llvm
-
 # APPLE LOCAL gcov 5573505
 TARGET_LIBGCC2_STATIC_CFLAGS = --emit-llvm
 
@@ -742,6 +739,8 @@ BUILD_CPPFLAGS=$(ALL_CPPFLAGS)
 GCC_INSTALL_NAME := $(shell echo gcc|sed '$(program_transform_name)')
 GCC_TARGET_INSTALL_NAME := $(target_noncanonical)-$(shell echo gcc|sed '$(program_transform_name)')
 CPP_INSTALL_NAME := $(shell echo cpp|sed '$(program_transform_name)')
+# APPLE LOCAL 6024929
+CPP_TARGET_INSTALL_NAME := $(target_noncanonical)-$(shell echo cpp|sed '$(program_transform_name)')
 PROTOIZE_INSTALL_NAME := $(shell echo protoize|sed '$(program_transform_name)')
 UNPROTOIZE_INSTALL_NAME := $(shell echo unprotoize|sed '$(program_transform_name)')
 GCOV_INSTALL_NAME := $(shell echo gcov|sed '$(program_transform_name)')
@@ -947,13 +946,13 @@ INCLUDES = -I. -I$(@D) -I$(srcdir) -I$(srcdir)/$(@D) \
 
 # LLVM LOCAL begin
 ifneq ($(LLVMOBJDIR),)
-INCLUDES += -I$(LLVMINCLUDEDIR)
-
 # If LLVM is built srcdir != objdir, include the objdir headers for configured
 # headers, like DataTypes.h.
-ifneq (($LLVMOBJDIR),$(LLVMSRCDIR))
+ifneq ($(LLVMOBJDIR),$(LLVMSRCDIR))
 INCLUDES += -I$(LLVMINCLUDEDIR)
 endif
+
+INCLUDES += -I$(LLVMINCLUDEDIR)
 endif
 # LLVM LOCAL end
 .c.o:
@@ -1157,8 +1156,7 @@ LLVMTARGETCOMPONENT := \
     sparc-*-*) echo sparc;; \
     sparcv9-*-*) echo sparc;; \
     spu-*-*) echo cellspu;; \
-    mips-*-*) echo mips;; \
-    tce-*-*) echo mips;; \
+	tce-*-*) echo mips;; \
    esac
 LLVMTARGETOBJ := $(shell $(LLVMTARGETCOMPONENT))
 
@@ -1169,7 +1167,7 @@ endif
 # If in BUILD_LLVM_INTO_A_DYLIB mode, always link in the x86/ppc backends.
 # See below for more details.
 ifdef BUILD_LLVM_INTO_A_DYLIB
-LLVMTARGETOBJ := $(sort $(LLVMTARGETOBJ) x86 powerpc)
+LLVMTARGETOBJ := $(sort $(LLVMTARGETOBJ) x86 powerpc arm)
 endif
 
 # We use llvm-config to determine the libraries that we need to link in our
@@ -4000,6 +3998,17 @@ install: install-common $(INSTALL_HEADERS) $(INSTALL_LIBGCC) \
 install-cpp: installdirs cpp$(exeext)
 	-rm -f $(DESTDIR)$(bindir)/$(CPP_INSTALL_NAME)$(exeext)
 	-$(INSTALL_PROGRAM) -m 755 cpp$(exeext) $(DESTDIR)$(bindir)/$(CPP_INSTALL_NAME)$(exeext)
+	# APPLE LOCAL begin 6024929
+	-rm -f $(DESTDIR)$(bindir)/$(target_noncanonical)-cpp-$(version)$(exeext)
+	-( cd $(DESTDIR)$(bindir) && \
+	   $(LN) $(CPP_INSTALL_NAME)$(exeext) $(target_noncanonical)-cpp-$(version)$(exeext) )
+	-if [ \! -f gcc-cross$(exeext) ] ; then \
+	  rm -f $(DESTDIR)$(bindir)/$(target_noncanonical)-cpp-tmp$(exeext); \
+	  ( cd $(DESTDIR)$(bindir) && \
+	    $(LN) $(CPP_INSTALL_NAME)$(exeext) $(target_noncanonical)-cpp-tmp$(exeext) && \
+	    mv -f $(target_noncanonical)-cpp-tmp$(exeext) $(CPP_TARGET_INSTALL_NAME)$(exeext) ); \
+	fi
+	# APPLE LOCAL end 6024929
 	-if [ x$(cpp_install_dir) != x ]; then \
 	  rm -f $(DESTDIR)$(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \
 	  $(INSTALL_PROGRAM) -m 755 cpp$(exeext) $(DESTDIR)$(prefix)/$(cpp_install_dir)/$(CPP_INSTALL_NAME)$(exeext); \

@@ -171,4 +171,10 @@ extern tree objcp_tsubst_copy_and_build (tree, tree, tsubst_flags_t,
 #define LANG_HOOKS_VTABLE_P cp_vtable_p
 /* APPLE LOCAL end kext identify vtables */
 
+/* APPLE LOCAL begin radar 6353006  */
+#undef LANG_HOOKS_BUILD_GENERIC_BLOCK_STRUCT_TYPE
+#define LANG_HOOKS_BUILD_GENERIC_BLOCK_STRUCT_TYPE \
+     c_build_generic_block_struct_type
+/* APPLE LOCAL end radar 6353006  */
+
 #endif /* GCC_CP_OBJCP_COMMON */

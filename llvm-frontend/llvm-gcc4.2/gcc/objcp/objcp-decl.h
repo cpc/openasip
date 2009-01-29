@@ -80,6 +80,11 @@ extern tree objcp_end_compound_stmt (tree, int);
 
 #define OBJCP_ORIGINAL_FUNCTION(name, args) 	(name)args
 
+/* APPLE LOCAL begin radar 6386976  */
+#define TYPE_HAS_OBJCXX_INFO(TYPE)			\
+  (TYPE_LANG_SPECIFIC (TYPE) && TYPE_OBJC_INFO (TYPE))
+/* APPLE LOCAL end radar 6386976  */
+
 /* C++ marks ellipsis-free function parameters differently from C.  */
 #undef OBJC_VOID_AT_END
 #define OBJC_VOID_AT_END        void_list_node

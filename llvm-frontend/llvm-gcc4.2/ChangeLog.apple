@@ -1,3 +1,9 @@
+2008-10-09  Devang Patel  <dpatel@apple.com>
+
+       Radar 6184418
+       * driverdriver.c (get_arch_name): Enable 64 bit by default in x86.
+       (main): Check -m32 and -m64 on command line. Select default -arch.
+
 2008-09-05  Josh Conner  <jconner@apple.com>
 
 	Radar 6177003

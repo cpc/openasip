@@ -79,7 +79,7 @@ private:
  * Constructor.
  */
 TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
-    SelectionDAGISel(lowering_), lowering_(tm),
+    SelectionDAGISel(tm), lowering_(tm),
     subtarget_(tm.getSubtarget<TCESubtarget>()) {
 }
 
@@ -111,8 +111,14 @@ TCEDAGToDAGISel::InstructionSelectBasicBlock(SelectionDAG& dag) {
 void TCEDAGToDAGISel::InstructionSelect() {
   DEBUG(BB->dump());
   
+
+#if LLVM_2_4
   // Select target instructions for the DAG.
   SelectRoot();
+#else
+  SelectRoot(*CurDAG);
+#endif
+
   CurDAG->RemoveDeadNodes();
 }
 #endif
@@ -136,8 +142,10 @@ TCEDAGToDAGISel::Select(SDValue op) {
         // TODO: Check this. Following IA64 example..
         SDValue chain = n->getOperand(0);
         SDValue cc = n->getOperand(1);
+#if LLVM_2_4
         AddToISelQueue(chain);
         AddToISelQueue(cc);
+#endif
         MachineBasicBlock* dest =
             cast<BasicBlockSDNode>(n->getOperand(2))->getBasicBlock();
 
@@ -157,7 +165,9 @@ TCEDAGToDAGISel::Select(SDValue op) {
         //}
     } else if (n->getOpcode() == ISD::BR) {
         SDValue chain = n->getOperand(0);
+#if LLVM_2_4
         AddToISelQueue(chain);
+#endif
         MachineBasicBlock* dest =
             cast<BasicBlockSDNode>(n->getOperand(1))->getBasicBlock();
         return CurDAG->SelectNodeTo(

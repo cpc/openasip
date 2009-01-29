@@ -251,23 +251,30 @@ struct MemRef {
 };
 
 /// LValue - This struct represents an lvalue in the program.  In particular,
-/// the Ptr member indicates the memory that the lvalue lives in.  If this is
-/// a bitfield reference, BitStart indicates the first bit in the memory that
-/// is part of the field and BitSize indicates the extent.
+/// the Ptr member indicates the memory that the lvalue lives in.  Alignment
+/// is the alignment of the memory (in bytes).If this is a bitfield reference,
+/// BitStart indicates the first bit in the memory that is part of the field
+/// and BitSize indicates the extent.
 ///
 /// "LValue" is intended to be a light-weight object passed around by-value.
 struct LValue {
   Value *Ptr;
+  unsigned char Alignment;
   unsigned char BitStart;
   unsigned char BitSize;
   
-  LValue(Value *P) : Ptr(P), BitStart(255), BitSize(255) {}
-  LValue(Value *P, unsigned BSt, unsigned BSi) 
-    : Ptr(P), BitStart(BSt), BitSize(BSi) {
+  LValue(Value *P, unsigned Align)
+    : Ptr(P), Alignment(Align), BitStart(255), BitSize(255) {}
+  LValue(Value *P, unsigned Align, unsigned BSt, unsigned BSi) 
+  : Ptr(P), Alignment(Align), BitStart(BSt), BitSize(BSi) {
       assert(BitStart == BSt && BitSize == BSi &&
              "Bit values larger than 256?");
+    }
+
+  unsigned getAlignment() const {
+    assert(Alignment && "LValue alignment cannot be zero!");
+    return Alignment;
   }
-  
   bool isBitfield() const { return BitStart != 255; }
 };
 

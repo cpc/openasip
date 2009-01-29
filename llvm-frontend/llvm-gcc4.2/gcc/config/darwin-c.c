@@ -1081,13 +1081,12 @@ darwin_cpp_builtins (cpp_reader *pfile)
   else
     {
       builtin_define ("__strong=");
-      builtin_define ("__weak=");
+      /* APPLE LOCAL radar 5847976 */
+      builtin_define ("__weak=__attribute__((objc_gc(weak)))");
     }
   /* APPLE LOCAL end ObjC GC */
   /* APPLE LOCAL begin radar 5932809 - copyable byref blocks */
   if (flag_blocks) {
-    /* APPLE LOCAL radar 6096219 */
-    builtin_define ("__byref=__attribute__((__blocks__(byref)))");
     builtin_define ("__block=__attribute__((__blocks__(byref)))");
   }
   /* APPLE LOCAL radar 6230656 */

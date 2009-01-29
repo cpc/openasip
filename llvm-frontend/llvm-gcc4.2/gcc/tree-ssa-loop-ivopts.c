@@ -1489,8 +1489,12 @@ may_be_nonaddressable_p (tree expr)
 	 and make them look addressable.  After some processing the
 	 non-addressability may be uncovered again, causing ADDR_EXPRs
 	 of inappropriate objects to be built.  */
-      return AGGREGATE_TYPE_P (TREE_TYPE (expr))
-	     && !AGGREGATE_TYPE_P (TREE_TYPE (TREE_OPERAND (expr, 0)));
+      /* APPLE LOCAL begin 6187262 */
+      return ((AGGREGATE_TYPE_P (TREE_TYPE (expr))
+	       || TREE_CODE (TREE_TYPE (expr)) == VECTOR_TYPE)
+	      && !(AGGREGATE_TYPE_P (TREE_TYPE (TREE_OPERAND (expr, 0)))
+		   || TREE_CODE (TREE_TYPE (TREE_OPERAND (expr, 0))) == VECTOR_TYPE));
+      /* APPLE LOCAL end 6187262 */
 
     default:
       break;

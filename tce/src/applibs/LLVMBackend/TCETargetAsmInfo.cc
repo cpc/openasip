@@ -38,7 +38,9 @@ using namespace llvm;
  *
  * Sets some TCE-specific values in the base class attributes.
  */
-TCETargetAsmInfo::TCETargetAsmInfo(const TCETargetMachine& /* tm  */) {
+TCETargetAsmInfo::TCETargetAsmInfo(const TargetMachine& tm) :
+    TargetAsmInfo(tm) {
+
     Data16bitsDirective = "\t.word\t";
     Data64bitsDirective = 0;
     ZeroDirective = "\t.space\t";

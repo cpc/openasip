@@ -148,6 +148,10 @@ output_objc_section_asm_op (const void *directive)
       static const enum darwin_section_enum tomarkv2[] =
 	{
 	  objc_v2_message_refs_section,
+	  /* APPLE LOCAL begin radar 6255595 */
+	  objc_v2_classdefs_section,
+	  objc_v2_metadata_section,
+	  /* APPLE LOCAL end radar 6255595 */
 	  objc_v2_classrefs_section,
 	  objc_v2_classlist_section,
 	  objc_v2_categorylist_section,
@@ -276,7 +280,8 @@ machopic_classify_symbol (rtx sym_ref)
    permit the runtime to rebind new instances of the translation unit
    to the original instance of the data.  */
 
-static int
+/* APPLE LOCAL fix-and-continue 6227434 */
+int
 indirect_data (rtx sym_ref)
 {
   int lprefix;
@@ -294,8 +299,12 @@ indirect_data (rtx sym_ref)
   name = XSTR (sym_ref, 0);
 
   lprefix = (((name[0] == '*' || name[0] == '&')
-              && (name[1] == 'L' || (name[1] == '"' && name[2] == 'L')))
-             || (strncmp (name, "_OBJC_", 6) == 0));
+              && (name[1] == 'L'
+		  || (name[1] == '"' && name[2] == 'L')
+		  /* Don't indirect writable strings.  */
+		  || (name[1] == 'l' && name[2] == 'C')))
+             || (strncmp (name, "_OBJC_", 6) == 0)
+	     || objc_anonymous_local_objc_name (name));
 
   return ! lprefix;
 }
@@ -1325,6 +1334,30 @@ machopic_reloc_rw_mask (void)
   return MACHOPIC_INDIRECT ? 3 : 0;
 }
 
+/* APPLE LOCAL begin radar 5575115, 6255595 */
+/* This routine returns TRUE if EXP is a variable representing
+   on objective C meta data. */
+static inline bool
+objc_internal_variable_name (tree exp)
+{
+  if (TREE_CODE (exp) == VAR_DECL)
+    {
+      tree decl_name = DECL_NAME (exp);
+      if (decl_name && TREE_CODE (decl_name) == IDENTIFIER_NODE
+	  && IDENTIFIER_POINTER (decl_name))
+	{
+	  const char* name = IDENTIFIER_POINTER (decl_name);
+	  return 
+	   (!strncmp (name, "_OBJC_", 6)
+	    || !strncmp (name, "OBJC_", 5)
+	    || !strncmp (name, "l_OBJC_", 7)
+            || !strncmp (name, "l_objc_", 7));
+	}
+    }
+  return false;
+}
+/* APPLE LOCAL end radar 5575115, 6255595 */
+
 section *
 machopic_select_section (tree exp, int reloc,
 			 unsigned HOST_WIDE_INT align ATTRIBUTE_UNUSED)
@@ -1423,14 +1456,9 @@ machopic_select_section (tree exp, int reloc,
       else
 	return base_section;
     }
-  else if (TREE_CODE (exp) == VAR_DECL &&
-	   DECL_NAME (exp) &&
-	   TREE_CODE (DECL_NAME (exp)) == IDENTIFIER_NODE &&
-	   IDENTIFIER_POINTER (DECL_NAME (exp)) &&
-           /* APPLE LOCAL begin radar 5575115 */
-	   (!strncmp (IDENTIFIER_POINTER (DECL_NAME (exp)), "_OBJC_", 6)
-            || !strncmp (IDENTIFIER_POINTER (DECL_NAME (exp)), "l_objc_", 7)))
-           /* APPLE LOCAL end radar 5575115 */
+  /* APPLE LOCAL begin radar 5575115, 6255595 */
+  else if (objc_internal_variable_name (exp))
+  /* APPLE LOCAL end radar 5575115, 6255595 */
     {
       const char *name = IDENTIFIER_POINTER (DECL_NAME (exp));
       /* APPLE LOCAL begin radar 4792158 */
@@ -1505,12 +1533,13 @@ machopic_select_section (tree exp, int reloc,
             return darwin_sections[objc_v2_classrefs_section];
           else if (!strncmp (name, "_OBJC_CLASSLIST_SUP_REFS_", 25))
             return darwin_sections[objc_v2_super_classrefs_section];
-          /* APPLE LOCAL radar 5575115 */
-          else if (!strncmp (name, "l_objc_msgSend_", 15))
+          /* APPLE LOCAL radar 5575115 - radar 6252174 */
+          else if (!strncmp (name, "l_objc_msgSend", 14))
             return darwin_sections[objc_v2_message_refs_section];
           else if (!strncmp (name, "_OBJC_LABEL_CLASS_", 18))
             return darwin_sections[objc_v2_classlist_section];
-          else if (!strncmp (name, "_OBJC_LABEL_PROTOCOL_", 21))
+          /* APPLE LOCAL radar 6351990 */
+          else if (!strncmp (name, "l_OBJC_LABEL_PROTOCOL_", 22))
             return darwin_sections[objc_v2_protocollist_section];
           else if (!strncmp (name, "_OBJC_LABEL_CATEGORY_", 21))
             return darwin_sections[objc_v2_categorylist_section];
@@ -1518,14 +1547,21 @@ machopic_select_section (tree exp, int reloc,
             return darwin_sections[objc_v2_nonlazy_class_section];
           else if (!strncmp (name, "_OBJC_LABEL_NONLAZY_CATEGORY_", 29))
             return darwin_sections[objc_v2_nonlazy_category_section];
-          else if (!strncmp (name, "_OBJC_PROTOCOL_REFERENCE_", 25))
+          /* APPLE LOCAL radar 6351990 */
+          else if (!strncmp (name, "l_OBJC_PROTOCOL_REFERENCE_", 26))
             return darwin_sections[objc_v2_protocolrefs_section];
           else if (!strncmp (name, "_OBJC_SELECTOR_REFERENCES", 25))
             return darwin_sections[objc_v2_selector_refs_section];
           else if (!strncmp (name, "_OBJC_IMAGE_INFO", 16))
             return darwin_sections[objc_v2_image_info_section];
+	    /* APPLE LOCAL begin radar 6255595 */
+	  else if (!strncmp (name, "OBJC_CLASS_$_", 13)
+		   || !strncmp (name, "OBJC_METACLASS_$_", 17))
+	    return darwin_sections[objc_v2_classdefs_section];
           else
-            return base_section;
+            return  (base_section == data_section) ? 
+		      darwin_sections[objc_v2_metadata_section] : base_section;
+    	  /* APPLE LOCAL end radar 6255595 */
 	}
       /* APPLE LOCAL end radar 4792158 */
     }
@@ -1579,74 +1615,117 @@ char *darwin_build_sysroot_path(const char *sysroot, const char *path) {
 }
 
 #ifdef ENABLE_LLVM
-const char *darwin_objc_llvm_special_name_section(const char* name) {
-  if (!strncmp (name, "CLASS_METHODS_", 14))
-    return "__OBJC,__cls_meth,regular,no_dead_strip";
-  else if (!strncmp (name, "INSTANCE_METHODS_", 17))
-    return "__OBJC,__inst_meth,regular,no_dead_strip";
-  else if (!strncmp (name, "CATEGORY_CLASS_METHODS_", 23))
-    return "__OBJC,__cat_cls_meth,regular,no_dead_strip";
-  else if (!strncmp (name, "CATEGORY_INSTANCE_METHODS_", 26))
-    return "__OBJC,__cat_inst_meth,regular,no_dead_strip";
-  else if (!strncmp (name, "CLASS_VARIABLES_", 16))
-    return "__OBJC,__class_vars,regular,no_dead_strip";
-  else if (!strncmp (name, "INSTANCE_VARIABLES_", 19))
-    return "__OBJC,__instance_vars,regular,no_dead_strip";
-  else if (!strncmp (name, "CLASS_PROTOCOLS_", 16))
-    return "__OBJC,__cat_cls_meth,regular,no_dead_strip";
-  else if (!strncmp (name, "CLASS_NAME_", 11))
-    return "__TEXT,__cstring,cstring_literals";
-  else if (!strncmp (name, "METH_VAR_NAME_", 14))
-    return "__TEXT,__cstring,cstring_literals";
-  else if (!strncmp (name, "METH_VAR_TYPE_", 14))
-    return "__TEXT,__cstring,cstring_literals";
-  else if (!strncmp (name, "PROP_NAME_ATTR_", 15))
-    return "__TEXT,__cstring,cstring_literals";
-  else if (!strncmp (name, "CLASS_REFERENCES", 16))
-    return "__OBJC,__cls_refs,literal_pointers,no_dead_strip";
-  else if (!strncmp (name, "CLASS_", 6))
-    return (flag_objc_abi == 1 ? 
-            "__OBJC,__class,regular,no_dead_strip" :
-            "__DATA,__data");
-  else if (!strncmp (name, "METACLASS_", 10))
-    return (flag_objc_abi == 1 ?
-            "__OBJC,__meta_class,regular,no_dead_strip" :
-            "__DATA,__data");
-  else if (!strncmp (name, "CATEGORY_", 9))
-    return "__OBJC,__category,regular,no_dead_strip";
-  else if (!strncmp (name, "SELECTOR_REFERENCES", 19))
-    return (flag_objc_abi == 1 ? 
-            "__OBJC,__message_refs,literal_pointers,no_dead_strip" :
-            "__DATA, __objc_selrefs, regular, no_dead_strip");
-  else if (!strncmp (name, "SELECTOR_FIXUP", 14))
-    return "__OBJC,__sel_fixup,regular";/*,no_dead_strip";*/
-  else if (!strncmp (name, "SYMBOLS", 7))
-    return "__OBJC,__symbols,regular,no_dead_strip";
-  else if (!strncmp (name, "MODULES", 7))
-    return "__OBJC,__module_info,regular,no_dead_strip";
-  else if (!strncmp (name, "IMAGE_INFO", 10))
-    return (flag_objc_abi == 1 ? 
-            "__OBJC, __image_info,regular" /*,no_dead_strip";*/ :
-            "__DATA, __objc_imageinfo, regular, no_dead_strip");
-  else if (!strncmp (name, "PROTOCOL_INSTANCE_METHODS_", 26))
-    return "__OBJC,__cat_inst_meth,regular,no_dead_strip";
-  else if (!strncmp (name, "PROTOCOL_CLASS_METHODS_", 23))
-    return "__OBJC,__cat_cls_meth,regular,no_dead_strip";
-  else if (!strncmp (name, "PROTOCOL_REFS_", 14))
-    return "__OBJC,__cat_cls_meth,regular,no_dead_strip";
-  else if (!strncmp (name, "PROTOCOL_", 9))
-    return "__OBJC,__protocol,regular,no_dead_strip";
-  else if (flag_objc_abi == 2) {
-    if (!strncmp (name, "CLASSLIST_REFERENCES_", 21))
-    return "__DATA, __objc_classrefs, regular, no_dead_strip";
+static const char *skip_objc_prefix(const char *name)
+{
+  if (!strncmp (name, "_OBJC_", 6))
+    return name + 6;
+  else if (!strncmp (name, "OBJC_", 5))
+    return name + 5;
+
+  return name + 7;
+}
+
+static const char *
+darwin_objc_llvm_special_name_section_help(tree decl) {
+  /* Get a pointer to the name, past the L_OBJC_ prefix. */
+  const char *name = IDENTIFIER_POINTER (DECL_NAME (decl));
+  const char *base_section = 0;
+  const char *section = 0;
+  bool weak_p = (DECL_P (decl) && DECL_WEAK (decl)
+		 && (lookup_attribute ("weak", DECL_ATTRIBUTES (decl))
+		     || ! lookup_attribute ("weak_import",
+					    DECL_ATTRIBUTES (decl))));
+
+  if (TREE_READONLY (decl) || TREE_CONSTANT (decl))
+    base_section = weak_p ? "__DATA,__const_coal,coalesced" : "__DATA,__const";
+  else
+    base_section = weak_p ? "__DATA,__datacoal_nt,coalesced" : "__DATA,__data";
+
+  name = skip_objc_prefix(name);
+  section = darwin_objc_llvm_special_name_section(name);
+
+  if (!section && flag_objc_abi == 2)
+    section = strcmp(base_section, "__DATA,__data") == 0 ?
+      "__DATA, __objc_const" : base_section;
+
+  return section ? section : base_section;
+}
+
+const char *darwin_objc_llvm_special_name_section(const char *name) {
+  if (flag_objc_abi == 1) {
+    if (!strncmp (name, "CLASS_METHODS_", 14))
+      return "__OBJC,__cls_meth,regular,no_dead_strip";
+    else if (!strncmp (name, "INSTANCE_METHODS_", 17))
+      return "__OBJC,__inst_meth,regular,no_dead_strip";
+    else if (!strncmp (name, "CATEGORY_CLASS_METHODS_", 23))
+      return "__OBJC,__cat_cls_meth,regular,no_dead_strip";
+    else if (!strncmp (name, "CATEGORY_INSTANCE_METHODS_", 26))
+      return "__OBJC,__cat_inst_meth,regular,no_dead_strip";
+    else if (!strncmp (name, "CLASS_VARIABLES_", 16))
+      return "__OBJC,__class_vars,regular,no_dead_strip";
+    else if (!strncmp (name, "INSTANCE_VARIABLES_", 19))
+      return "__OBJC,__instance_vars,regular,no_dead_strip";
+    else if (!strncmp (name, "CLASS_PROTOCOLS_", 16))
+      return "__OBJC,__cat_cls_meth,regular,no_dead_strip";
+    else if (!strncmp (name, "CLASS_NAME_", 11))
+      return "__TEXT,__cstring,cstring_literals";
+    else if (!strncmp (name, "METH_VAR_NAME_", 14))
+      return "__TEXT,__cstring,cstring_literals";
+    else if (!strncmp (name, "METH_VAR_TYPE_", 14))
+      return "__TEXT,__cstring,cstring_literals";
+    else if (!strncmp (name, "PROP_NAME_ATTR_", 15))
+      return "__TEXT,__cstring,cstring_literals";
+    else if (!strncmp (name, "CLASS_REFERENCES", 16))
+      return "__OBJC,__cls_refs,literal_pointers,no_dead_strip";
+    else if (!strncmp (name, "CLASS_", 6))
+      return "__OBJC,__class,regular,no_dead_strip";
+    else if (!strncmp (name, "METACLASS_", 10))
+      return "__OBJC,__meta_class,regular,no_dead_strip";
+    else if (!strncmp (name, "CATEGORY_", 9))
+      return "__OBJC,__category,regular,no_dead_strip";
+    else if (!strncmp (name, "SELECTOR_REFERENCES", 19))
+      return "__OBJC,__message_refs,literal_pointers,no_dead_strip";
+    else if (!strncmp (name, "SELECTOR_FIXUP", 14))
+      return "__OBJC,__sel_fixup,regular";/*,no_dead_strip";*/
+    else if (!strncmp (name, "SYMBOLS", 7))
+      return "__OBJC,__symbols,regular,no_dead_strip";
+    else if (!strncmp (name, "MODULES", 7))
+      return "__OBJC,__module_info,regular,no_dead_strip";
+    else if (!strncmp (name, "IMAGE_INFO", 10))
+      return "__OBJC, __image_info,regular" /*,no_dead_strip";*/;
+    else if (!strncmp (name, "PROTOCOL_INSTANCE_METHODS_", 26))
+      return "__OBJC,__cat_inst_meth,regular,no_dead_strip";
+    else if (!strncmp (name, "PROTOCOL_CLASS_METHODS_", 23))
+      return "__OBJC,__cat_cls_meth,regular,no_dead_strip";
+    else if (!strncmp (name, "PROTOCOL_REFS_", 14))
+      return "__OBJC,__cat_cls_meth,regular,no_dead_strip";
+    else if (!strncmp (name, "PROTOCOL_", 9))
+      return "__OBJC,__protocol,regular,no_dead_strip";
+    else if (!strncmp (name, "CLASSEXT_", 9))
+      return "__OBJC,__class_ext,regular,no_dead_strip";
+    else if (!strncmp (name, "$_PROP_LIST", 11)
+             || !strncmp (name, "$_PROP_PROTO", 12))
+      return "__OBJC,__property,regular,no_dead_strip";
+    else if (!strncmp (name, "PROTOCOLEXT", 11))
+      return "__OBJC,__protocol_ext,regular,no_dead_strip";
+    else if (!strncmp (name, "PROP_NAME_ATTR_", 15))
+      return "__TEXT,__cstring,cstring_literals";
+  } else if (flag_objc_abi == 2) {
+    if (!strncmp (name, "PROP_NAME_ATTR_", 15)
+        || !strncmp (name, "CLASS_NAME_", 11)
+        || !strncmp (name, "METH_VAR_NAME_", 14)
+        || !strncmp (name, "METH_VAR_TYPE_", 14))
+      return "__TEXT,__cstring,cstring_literals";
+    else if (!strncmp (name, "CLASSLIST_REFERENCES_", 21))
+      return "__DATA, __objc_classrefs, regular, no_dead_strip";
     else if (!strncmp (name, "CLASSLIST_SUP_REFS_", 19))
       return "__DATA, __objc_superrefs, regular, no_dead_strip"; 
-    else if (!strncmp (name, "MESSAGE_REF", 11))
-      return "__DATA, __objc_msgrefs, regular, no_dead_strip"; 
+    else if (!strncmp (name, "msgSend", 7))
+      return "__DATA, __objc_msgrefs, coalesced";
     else if (!strncmp (name, "LABEL_CLASS_", 12))
       return "__DATA, __objc_classlist, regular, no_dead_strip"; 
     else if (!strncmp (name, "LABEL_PROTOCOL_", 15))
-      return "__DATA, __objc_protolist, regular, no_dead_strip"; 
+      return "__DATA, __objc_protolist, coalesced, no_dead_strip"; 
     else if (!strncmp (name, "LABEL_CATEGORY_", 15))
       return "__DATA, __objc_catlist, regular, no_dead_strip"; 
     else if (!strncmp (name, "LABEL_NONLAZY_CLASS_", 20))
@@ -1654,14 +1733,19 @@ const char *darwin_objc_llvm_special_name_section(const char* name) {
     else if (!strncmp (name, "LABEL_NONLAZY_CATEGORY_", 23))
       return "__DATA, __objc_nlcatlist, regular, no_dead_strip";
     else if (!strncmp (name, "PROTOCOL_REFERENCE_", 19))
-      return "__DATA, __objc_protorefs, regular, no_dead_strip";
+      return "__DATA, __objc_protorefs, coalesced, no_dead_strip";
+    else if (!strncmp (name, "SELECTOR_REFERENCES", 19))
+      return "__DATA, __objc_selrefs, literal_pointers, no_dead_strip";
+    else if (!strncmp (name, "IMAGE_INFO", 10))
+      return "__DATA, __objc_imageinfo, regular, no_dead_strip";
+    else if (!strncmp (name, "CLASS_$_", 8)
+             || !strncmp (name, "METACLASS_$_", 12))
+      return "__DATA, __objc_data";
   }
   return 0;
 }
 
 const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
-  const char *name;
-
   if (TREE_CODE(decl) == CONST_DECL) {
     extern int flag_next_runtime;
     tree typename = TYPE_NAME(TREE_TYPE(decl));
@@ -1680,10 +1764,7 @@ const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
     }
   }
   
-  /* Get a pointer to the name, past the L_OBJC_ prefix. */
-  name = IDENTIFIER_POINTER (DECL_NAME (decl))+7;
-
-  return darwin_objc_llvm_special_name_section(name);
+  return darwin_objc_llvm_special_name_section_help(decl);
 }
 #endif
 /* LLVM LOCAL end */
@@ -2158,6 +2239,8 @@ darwin_file_start (void)
 	  /* APPLE LOCAL begin pubtypes, approved for 4.3 4535968  */
 	  DEBUG_PUBTYPES_SECTION,
 	  /* APPLE LOCAL end pubtypes, approved for 4.3 4535968  */
+	  /* APPLE LOCAL radar 6275985 debug inlined section  */
+	  DEBUG_INLINED_SECTION,
 	  DEBUG_STR_SECTION,
 	  DEBUG_RANGES_SECTION
 	};
@@ -2655,12 +2738,24 @@ darwin_override_options (void)
   /* APPLE LOCAL begin stack-protector default 5095227 */
   /* Default flag_stack_protect to 1 if on 10.5 or later for user code,
      or 10.6 or later for code identified as part of the kernel.  */
+  /* LLVM LOCAL begin - Don't enable stack protectors by default for Leopard. */
+#ifndef ENABLE_LLVM
   if (flag_stack_protect == -1
       && darwin_macosx_version_min
       && ((! flag_mkernel && ! flag_apple_kext
 	   && strverscmp (darwin_macosx_version_min, "10.5") >= 0)
 	  || strverscmp (darwin_macosx_version_min, "10.6") >= 0))
     flag_stack_protect = 1;
+#else
+  if (flag_stack_protect == -1 && darwin_macosx_version_min)
+    {
+      if (strverscmp (darwin_macosx_version_min, "10.5") >= 0)
+        flag_stack_protect = 0;
+      else if (strverscmp (darwin_macosx_version_min, "10.6") >= 0)
+        flag_stack_protect = 1;
+    }
+#endif
+  /* LLVM LOCAL end - Don't enable stack protectors by default for Leopard. */
   /* APPLE LOCAL end stack-protector default 5095227 */
 /* APPLE LOCAL diff confuses me */
 }
