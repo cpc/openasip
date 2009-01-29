@@ -871,7 +871,9 @@ Machine::loadState(const ObjectState* state)
  */
 void
 Machine::copyFromMachine(Machine& machine) {
-    loadState(machine.saveState());
+    ObjectState* state = machine.saveState();
+    loadState(state);
+    delete state;
 }
 
 
