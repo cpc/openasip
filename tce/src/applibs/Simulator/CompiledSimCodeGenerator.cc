@@ -831,7 +831,8 @@ CompiledSimCodeGenerator::handleOperationWithoutDag(
         if (op.port(i)->isOutput()) {
             string outputSymbol = symbolGen_.generateTempVariable();
             operandSymbols.push_back(outputSymbol);
-            ss << "SimValue " << outputSymbol << ";" << endl;
+            ss << "SimValue " << outputSymbol 
+               << "(" << op.port(i)->width() << ");" << endl;
         } else { // input port
             string inputSymbol = symbolGen_.portSymbol(*op.port(i));
             operandSymbols.push_back(inputSymbol);
