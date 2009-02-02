@@ -173,6 +173,16 @@
       </can-swap>
     </in>
     <out id="3" type="SIntWord"/>
+    <trigger-semantics> 
+      SimValue t1;
+      EXEC_OPERATION(eq, IO(1), IO(2), t1);
+      EXEC_OPERATION(xor, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics> 
+      SimValue t1;
+      EXEC_OPERATION(eq, IO(1), IO(2), t1);
+      EXEC_OPERATION(not, t1, IO(3));
+    </trigger-semantics>
     <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(gt, IO(1), IO(2), t1);
@@ -189,6 +199,16 @@
     <in id="1" type="SIntWord"/>
     <in id="2" type="SIntWord"/>
     <out id="3" type="SIntWord"/>
+    <trigger-semantics> 
+      SimValue t1;
+      EXEC_OPERATION(gt, IO(2), IO(1), t1);
+      EXEC_OPERATION(xor, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gt, IO(2),IO(1), t1);
+      EXEC_OPERATION(not, t1, IO(3));
+    </trigger-semantics>
     <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(gt, IO(1), IO(2), t1);
@@ -206,6 +226,16 @@
     <in id="2" type="UIntWord"/>
     <out id="3" type="UIntWord"/>
     <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gtu, IO(2),IO(1), t1);
+      EXEC_OPERATION(xor, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gtu, IO(2),IO(1), t1);
+      EXEC_OPERATION(not, t1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(gtu, IO(1), IO(2), t1);
       EXEC_OPERATION(eq, IO(1), IO(2), t2);
@@ -222,6 +252,16 @@
     <in id="2" type="SIntWord"/>
     <out id="3" type="SIntWord"/>
     <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gt, IO(1),IO(2), t1);
+      EXEC_OPERATION(xor, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gt, IO(1),IO(2), t1);
+      EXEC_OPERATION(not, t1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(eq, IO(1), IO(2), t1);
       EXEC_OPERATION(gt, IO(2), IO(1), t2);
@@ -237,6 +277,16 @@
     <in id="1" type="UIntWord"/>
     <in id="2" type="UIntWord"/>
     <out id="3" type="UIntWord"/>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gtu, IO(1),IO(2), t1);
+      EXEC_OPERATION(xor, t1, 1, IO(3));
+    </trigger-semantics>
+    <trigger-semantics>
+      SimValue t1;
+      EXEC_OPERATION(gtu, IO(1),IO(2), t1);
+      EXEC_OPERATION(not, t1, IO(3));
+    </trigger-semantics>
     <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(eq, IO(1), IO(2), t1);
