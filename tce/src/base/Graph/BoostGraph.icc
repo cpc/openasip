@@ -440,7 +440,7 @@ BoostGraph<GraphNode, GraphEdge>::rootGraphInEdges(const GraphNode& node) const
     if (parentGraph_ == NULL) {
         return inEdges(node);
     } else {
-        return parentGraph_->rootGraphOutEdges(node);
+        return parentGraph_->rootGraphInEdges(node);
     }
 }
 
