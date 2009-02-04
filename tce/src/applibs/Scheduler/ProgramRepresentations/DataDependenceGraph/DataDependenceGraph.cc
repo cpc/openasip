@@ -242,7 +242,8 @@ DataDependenceGraph::addProgramOperation(ProgramOperation* po) {
  * data dependencies, INT_MAX if unknown.
  */
 int
-DataDependenceGraph::earliestCycle(const MoveNode& moveNode) const {
+DataDependenceGraph::earliestCycle(
+    const MoveNode& moveNode, bool ignoreUnscheduledPredecessors) const {
 
     const EdgeSet edges = inEdges(moveNode);
     int minCycle = 0;
@@ -289,7 +290,9 @@ DataDependenceGraph::earliestCycle(const MoveNode& moveNode) const {
             }
             minCycle = std::max(effTailCycle, minCycle);
         } else {
-            return INT_MAX;
+            if (!ignoreUnscheduledPredecessors) {
+                return INT_MAX;
+            }
         }
     }
     return minCycle;

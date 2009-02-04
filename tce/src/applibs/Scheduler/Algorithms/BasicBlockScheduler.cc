@@ -405,6 +405,8 @@ int
 BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
     throw (Exception) {
 
+    const int EARLY_OPERAND_DIFFERENCE = 15;
+    
     int lastOperandCycle = 0;
     int earliestScheduledOperand = INT_MAX;
     int startCycle = 0;
@@ -413,6 +415,30 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
     MoveNode* trigger = NULL;
     int minCycle = INT_MAX;
     MoveNode* firstToSchedule = NULL;
+
+    // find the movenode which has highest DDG->earliestCycle and limit
+    // the starting cycle of all operands close to that.
+    // this should prevent trying to schedule immediate writes very early
+    // and having lots of retries until the cycle has risen to the level of
+    // other moves.
+    // this might make SCHEDULING_WINDOW or SimpleBrokerDirector unnecessary / 
+    // allow groving it much smaller without scheduler slowdown.
+    for (int i = 0; i < moves.nodeCount(); i++) {
+        if (!moves.node(i).isDestinationOperation()) {
+            continue;
+        }
+        // count how many operand moves will need to be scheduled
+        unscheduledMoves++;
+
+        int limit = ddg_->earliestCycle(moves.node(i), true) - 
+            EARLY_OPERAND_DIFFERENCE;
+        if (limit < 0) {
+            limit = 0;
+        }
+        if (limit > cycle) {
+            cycle = limit;
+        }
+    }
 
     // Find and schedule moveNode which has highest "earliest Cycle"
     // other moveNodes could be scheduled in earlier cycle but this
@@ -424,11 +450,10 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
         if (!moves.node(i).isDestinationOperation()) {
             continue;
         }
-        // count how many operand moves will need to be scheduled
-        unscheduledMoves++;
 
         // Temporary moves needs to be scheduled so DDG can find
         // earliest cycle
+        // TODO: this should also have cycle limit?
         scheduleInputOperandTempMoves(moves.node(i));
         int earliestDDG = ddg_->earliestCycle(moves.node(i));
 
@@ -454,6 +479,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
             firstToSchedule = &moves.node(i);
         }
         unscheduleInputOperandTempMoves(moves.node(i));
+
         // Find also smallest of earliestCycles
         minCycle = std::min(minCycle, earliest);
     }
