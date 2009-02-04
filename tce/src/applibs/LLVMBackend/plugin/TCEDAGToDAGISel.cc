@@ -69,7 +69,7 @@ public:
     }
 
 private:
-    llvm::TCETargetLowering lowering_;
+    llvm::TCETargetLowering& lowering_;
     const llvm::TCESubtarget& subtarget_;
 
     #include "TCEGenDAGISel.inc"
@@ -79,7 +79,8 @@ private:
  * Constructor.
  */
 TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
-    SelectionDAGISel(tm), lowering_(tm),
+    SelectionDAGISel(tm), 
+    lowering_(*dynamic_cast<TCETargetLowering*>(tm.getTargetLowering())),
     subtarget_(tm.getSubtarget<TCESubtarget>()) {
 }
 

@@ -33,6 +33,7 @@
 #define TCE_TARGET_MACHINE_H
 
 #include <set>
+#include "llvm/Target/TargetLowering.h"
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetFrameInfo.h"
@@ -75,10 +76,16 @@ namespace llvm {
         }
 
         virtual const TargetData* getTargetData() const {
-            return &dataLayout_; }
+            return &dataLayout_;
+        }
 
         virtual const TargetFrameInfo* getFrameInfo() const {
-            return &frameInfo_; }
+            return &frameInfo_;
+        }
+        
+        virtual TargetLowering* getTargetLowering() const { 
+            return plugin_.getTargetLowering();
+        }
         
         virtual bool addInstSelector(FunctionPassManager& pm, bool fast);
         virtual bool addAssemblyEmitter(

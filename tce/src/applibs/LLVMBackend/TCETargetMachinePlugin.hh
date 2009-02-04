@@ -43,19 +43,22 @@ namespace TTAMachine {
 /**
  * TCE target machine plugin interface.
  */
-namespace llvm {
+namespace llvm { 
    class TargetInstrInfo;
+   class TargetLowering;
    class TargetRegisterInfo;
    class FunctionPass;
    class TCETargetMachine;
 
    class TCETargetMachinePlugin {
     public:
-       TCETargetMachinePlugin() {};
+       TCETargetMachinePlugin() : lowering_(NULL), tm_(NULL) {};
        virtual ~TCETargetMachinePlugin() {};
 
        virtual const TargetInstrInfo* getInstrInfo() const = 0;
        virtual const TargetRegisterInfo* getRegisterInfo() const = 0;
+       virtual TargetLowering* getTargetLowering() const = 0;
+
        virtual FunctionPass* createISelPass(TCETargetMachine* tm) = 0;
        virtual FunctionPass* createAsmPrinterPass(
            llvm::raw_ostream& o, TCETargetMachine* tm) = 0;
@@ -88,9 +91,14 @@ namespace llvm {
        virtual bool hasROTL() const = 0;
        virtual bool hasROTR() const = 0;
 
+       /// Plugin needs target machine for TragetLowering generation
+       virtual void registerTargetMachine(TCETargetMachine &tm) = 0;
+
    protected:
-       /// Target machine instruction info for the llvm framework.
+       /// Target machine instruction info for the llvm framework. 
        TargetInstrInfo* instrInfo_;
+       TargetLowering* lowering_;
+       TCETargetMachine* tm_;
    };
 
 }
