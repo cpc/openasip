@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : 
 -- Created    : 2003-03-11
--- Last update: 2003-08-28
+-- Last update: 2009-02-04
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -110,8 +110,8 @@ begin  -- rtl
     port map (clk       => clk,
               rst_n     => rstx,
               en        => en,
-              a         => o1reg,
-              b         => t1reg,
+              a         => t1reg,
+              b         => o1reg,
               quotient  => r1,
               remainder => r2);
 
@@ -225,8 +225,8 @@ begin  -- rtl
               rst_n     => rstx,
               hold      => glock,
               start     => result_en_reg(0),
-              a         => o1reg,
-              b         => t1reg,
+              a         => t1reg,
+              b         => o1reg,
               quotient  => r1,
               remainder => r2);
 
