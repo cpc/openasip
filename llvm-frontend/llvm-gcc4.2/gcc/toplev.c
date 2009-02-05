@@ -1841,6 +1841,12 @@ process_options (void)
   if (flag_value_profile_transformations)
     flag_profile_values = 1;
 
+  /* LLVM LOCAL begin */
+  /* Disable verbose_asm flag if -emit-llvm is used, it's totally bogus then */
+  if (emit_llvm || emit_llvm_bc)
+    flag_verbose_asm = 0;
+  /* LLVM LOCAL end */
+
   /* Warn about options that are not supported on this machine.  */
 #ifndef INSN_SCHEDULING
   if (flag_schedule_insns || flag_schedule_insns_after_reload)

@@ -305,8 +305,8 @@ extern int x86_prefetch_sse;
    redefines this to 1.  */
 #define TARGET_MACHO 0
 /* LLVM LOCAL begin mainline */
-#ifdef ENABLE_LLVM
 /* Likewise, for the Windows 64-bit ABI.  */
+#ifndef TARGET_64BIT_MS_ABI
 #define TARGET_64BIT_MS_ABI 0
 #endif
 /* LLVM LOCAL end mainline */
@@ -3279,7 +3279,6 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
 	((SYMBOL_REF_FLAGS (X) & SYMBOL_FLAG_FAR_ADDR) != 0)
 
 /* LLVM LOCAL begin */
-#ifdef ENABLE_LLVM
 /* Codes for all the SSE/MMX builtins.  */
 enum ix86_builtins
 {
@@ -3863,6 +3862,7 @@ enum ix86_builtins
   IX86_BUILTIN_MAX
 };
 
+#ifdef ENABLE_LLVM
 /* LLVM_TARGET_INTRINSIC_PREFIX - Specify what prefix this target uses for its
  * intrinsics.
  */
@@ -3878,9 +3878,13 @@ enum ix86_builtins
       F.setCPU(ix86_arch_string);                             \
     if (TARGET_64BIT)   F.AddFeature("64bit");                \
     if (TARGET_MMX)     F.AddFeature("mmx");                  \
+    else if (target_flags_explicit & MASK_MMX) F.AddFeature("mmx", false); \
     if (TARGET_SSE)     F.AddFeature("sse");                  \
+    else if (target_flags_explicit & MASK_SSE) F.AddFeature("sse", false); \
     if (TARGET_SSE2)    F.AddFeature("sse2");                 \
+    else if (target_flags_explicit & MASK_SSE2) F.AddFeature("sse2", false); \
     if (TARGET_SSE3)    F.AddFeature("sse3");                 \
+    else if (target_flags_explicit & MASK_SSE3) F.AddFeature("sse3", false); \
     if (TARGET_SSSE3)   F.AddFeature("ssse3");                \
     if (TARGET_SSE4_1)  F.AddFeature("sse41");                \
     if (TARGET_SSE4_2)  F.AddFeature("sse42");                \

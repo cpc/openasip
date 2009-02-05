@@ -2438,7 +2438,16 @@ optimization_options (int level, int size ATTRIBUTE_UNUSED)
   flag_trapping_math = 0;
   /* APPLE LOCAL end pragma fenv */
 
-  if (TARGET_MACHO)
+  /* APPLE LOCAL begin LLVM */
+  /* Enable -fno-math-errno by default, even on systems whose libm functions set
+     errno.  This is a deviation from what mainline GCC does, but it is a) good
+     for performance, b) controllable with -fmath-errno, and c) the default
+     behavior most people want anyway.  Numericists and others who play with or
+     depend on errno and can use -fmath-errno when they want it.  Because errno
+     is not set on all targets anyway, their code is inherently non-portable. */
+  if (TARGET_MACHO || 1)
+  /* APPLE LOCAL end LLVM */
+  
     /* The Darwin libraries never set errno, so we might as well
        avoid calling them when that's the only reason we would.  */
     flag_errno_math = 0;

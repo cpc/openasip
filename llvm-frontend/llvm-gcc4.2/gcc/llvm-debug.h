@@ -59,18 +59,14 @@ private:
   const char *PrevFullPath;             // Previous location file encountered.
   int PrevLineNo;                       // Previous location line# encountered.
   BasicBlock *PrevBB;                   // Last basic block encountered.
-  DICompileUnit MainCompileUnit;
+  std::map<std::string, GlobalVariable *> CUCache;
   std::map<tree_node *, DIType> TypeCache;
                                         // Cache of previously constructed 
                                         // Types.
-  Function *StopPointFn;                // llvm.dbg.stoppoint
-  Function *FuncStartFn;                // llvm.dbg.func.start
-  Function *RegionStartFn;              // llvm.dbg.region.start
-  Function *RegionEndFn;                // llvm.dbg.region.end
-  Function *DeclareFn;                  // llvm.dbg.declare
   std::vector<DIDescriptor> RegionStack;
                                         // Stack to track declarative scopes.
   
+  std::map<tree_node *, DIDescriptor> RegionMap;
 public:
   DebugInfo(Module *m);
 
@@ -108,9 +104,33 @@ public:
   /// necessary.
   DIType getOrCreateType(tree_node *type);
 
-  /// createCompileUnit - Create a new compile unit.
-  DICompileUnit createCompileUnit(const std::string &FullPath);
-  
+  /// createBasicType - Create BasicType.
+  DIType createBasicType(tree_node *type);
+
+  /// createMethodType - Create MethodType.
+  DIType createMethodType(tree_node *type);
+
+  /// createPointerType - Create PointerType.
+  DIType createPointerType(tree_node *type);
+
+  /// createArrayType - Create ArrayType.
+  DIType createArrayType(tree_node *type);
+
+  /// createEnumType - Create EnumType.
+  DIType createEnumType(tree_node *type);
+
+  /// createStructType - Create StructType for struct or union or class.
+  DIType createStructType(tree_node *type);
+
+  /// createVarinatType - Create variant type or return MainTy.
+  DIType createVariantType(tree_node *type, DIType MainTy);
+
+  /// getOrCreateCompileUnit - Create a new compile unit.
+  DICompileUnit getOrCreateCompileUnit(const char *FullPath,
+                                       bool isMain = false);
+
+  /// findRegion - Find tree_node N's region.
+  DIDescriptor findRegion(tree_node *n);
 };
 
 } // end namespace llvm

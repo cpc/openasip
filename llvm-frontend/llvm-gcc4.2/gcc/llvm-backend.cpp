@@ -104,8 +104,8 @@ static FunctionPassManager *PerFunctionPasses = 0;
 static PassManager *PerModulePasses = 0;
 static FunctionPassManager *CodeGenPasses = 0;
 
-static void createOptimizationPasses();
-bool OptimizationPassesCreated = false;
+static void createPerFunctionOptimizationPasses();
+static void createPerModuleOptimizationPasses();
 static void destroyOptimizationPasses();
 
 // Forward decl visibility style to global.
@@ -131,6 +131,9 @@ void llvm_initialize_backend(void) {
 
   // Allow targets to specify PIC options and other stuff to the corresponding
   // LLVM backends.
+#ifdef LLVM_SET_ARCH_OPTIONS
+  LLVM_SET_ARCH_OPTIONS(Args);
+#endif
 #ifdef LLVM_SET_TARGET_OPTIONS
   LLVM_SET_TARGET_OPTIONS(Args);
 #endif
@@ -305,7 +308,7 @@ void llvm_pch_read(const unsigned char *Buffer, unsigned Size) {
     exit(1);
   }
 
-  if (OptimizationPassesCreated) {
+  if (PerFunctionPasses || PerModulePasses) {
     destroyOptimizationPasses();
 
     // Don't run codegen, when we should output PCH
@@ -328,8 +331,6 @@ void llvm_pch_write_init(void) {
   AsmOutRawStream = new raw_os_ostream(*AsmOutStream);
   AsmOutFile = new OStream(*AsmOutStream);
 
-  assert(!OptimizationPassesCreated);
-  OptimizationPassesCreated = true;
   PerModulePasses = new PassManager();
   PerModulePasses->add(new TargetData(*TheTarget->getTargetData()));
 
@@ -351,9 +352,6 @@ void llvm_pch_write_init(void) {
 }
 
 static void destroyOptimizationPasses() {
-  assert(OptimizationPassesCreated ||
-         (!PerFunctionPasses && !PerModulePasses && !CodeGenPasses));
-
   delete PerFunctionPasses;
   delete PerModulePasses;
   delete CodeGenPasses;
@@ -361,16 +359,11 @@ static void destroyOptimizationPasses() {
   PerFunctionPasses = 0;
   PerModulePasses   = 0;
   CodeGenPasses     = 0;
-  OptimizationPassesCreated = false;
 }
 
-static void createOptimizationPasses() {
-  assert(OptimizationPassesCreated ||
-         (!PerFunctionPasses && !PerModulePasses && !CodeGenPasses));
-
-  if (OptimizationPassesCreated)
+static void createPerFunctionOptimizationPasses() {
+  if (PerFunctionPasses) 
     return;
-  OptimizationPassesCreated = true;
 
   // Create and set up the per-function pass manager.
   // FIXME: Move the code generator to be function-at-a-time.
@@ -395,118 +388,15 @@ static void createOptimizationPasses() {
     PerFunctionPasses->add(createInstructionCombiningPass());
   }
 
-  // FIXME: AT -O0/O1, we should stream out functions at a time.
-  PerModulePasses = new PassManager();
-  PerModulePasses->add(new TargetData(*TheTarget->getTargetData()));
-  bool HasPerModulePasses = false;
-  bool NeedAlwaysInliner = false;
-  // Check if AlwaysInliner is needed to handle functions that are 
-  // marked as always_inline.
-  for (Module::iterator I = TheModule->begin(), E = TheModule->end();
-       I != E; ++I)
-    if (I->hasFnAttr(Attribute::AlwaysInline)) {
-      NeedAlwaysInliner = true;
-      break;
-    }
-
-  if (optimize > 0 && !DisableLLVMOptimizations) {
-    HasPerModulePasses = true;
-    PassManager *PM = PerModulePasses;
-    if (flag_unit_at_a_time)
-      PM->add(createRaiseAllocationsPass());      // call %malloc -> malloc inst
-    PM->add(createCFGSimplificationPass());       // Clean up disgusting code
-    PM->add(createPromoteMemoryToRegisterPass()); // Kill useless allocas
-    if (flag_unit_at_a_time) {
-      PM->add(createGlobalOptimizerPass());       // Optimize out global vars
-      PM->add(createGlobalDCEPass());             // Remove unused fns and globs
-      PM->add(createIPConstantPropagationPass()); // IP Constant Propagation
-      PM->add(createDeadArgEliminationPass());    // Dead argument elimination
-    }
-    PM->add(createInstructionCombiningPass());    // Clean up after IPCP & DAE
-    PM->add(createCFGSimplificationPass());       // Clean up after IPCP & DAE
-    if (flag_unit_at_a_time) {
-      if (flag_exceptions)
-        PM->add(createPruneEHPass());             // Remove dead EH info
-      PM->add(createFunctionAttrsPass());         // Deduce function attrs
-    }
-    if (flag_inline_trees > 1)                    // respect -fno-inline-functions
-      PM->add(createFunctionInliningPass());      // Inline small functions
-    else if (NeedAlwaysInliner)
-      PM->add(createAlwaysInlinerPass());         // Inline always_inline functions
-    if (optimize > 2)
-      PM->add(createArgumentPromotionPass());   // Scalarize uninlined fn args
-    if (!flag_no_simplify_libcalls)
-      PM->add(createSimplifyLibCallsPass());    // Library Call Optimizations
-    PM->add(createInstructionCombiningPass());  // Cleanup for scalarrepl.
-    PM->add(createJumpThreadingPass());         // Thread jumps.
-    PM->add(createCFGSimplificationPass());     // Merge & remove BBs
-    PM->add(createScalarReplAggregatesPass());  // Break up aggregate allocas
-    PM->add(createInstructionCombiningPass());  // Combine silly seq's
-    PM->add(createCondPropagationPass());       // Propagate conditionals
-    PM->add(createTailCallEliminationPass());   // Eliminate tail calls
-    PM->add(createCFGSimplificationPass());     // Merge & remove BBs
-    PM->add(createReassociatePass());           // Reassociate expressions
-    PM->add(createLoopRotatePass());            // Rotate Loop
-    PM->add(createLICMPass());                  // Hoist loop invariants
-    PM->add(createLoopUnswitchPass(optimize_size ? true : false));
-    PM->add(createLoopIndexSplitPass());        // Split loop index
-    PM->add(createInstructionCombiningPass());  
-    PM->add(createIndVarSimplifyPass());        // Canonicalize indvars
-    PM->add(createLoopDeletionPass());          // Delete dead loops
-    if (flag_unroll_loops)
-      PM->add(createLoopUnrollPass());          // Unroll small loops
-    PM->add(createInstructionCombiningPass());  // Clean up after the unroller
-    PM->add(createGVNPass());                   // Remove redundancies
-    PM->add(createMemCpyOptPass());             // Remove memcpy / form memset
-    PM->add(createSCCPPass());                  // Constant prop with SCCP
-    
-    // Run instcombine after redundancy elimination to exploit opportunities
-    // opened up by them.
-    PM->add(createInstructionCombiningPass());
-    PM->add(createCondPropagationPass());       // Propagate conditionals
-    PM->add(createDeadStoreEliminationPass());  // Delete dead stores
-    PM->add(createAggressiveDCEPass());   // Delete dead instructions
-    PM->add(createCFGSimplificationPass());     // Merge & remove BBs
-
-    if (flag_unit_at_a_time) {
-      PM->add(createStripDeadPrototypesPass());   // Get rid of dead prototypes
-      PM->add(createDeadTypeEliminationPass());   // Eliminate dead types
-    }
-
-    if (optimize > 1 && flag_unit_at_a_time)
-      PM->add(createConstantMergePass());       // Merge dup global constants 
-  }
-
-  if (!HasPerModulePasses && NeedAlwaysInliner)
-    PerModulePasses->add(createAlwaysInlinerPass());
-
-  if (emit_llvm_bc) {
-    // Emit an LLVM .bc file to the output.  This is used when passed
-    // -emit-llvm -c to the GCC driver.
-    PerModulePasses->add(CreateBitcodeWriterPass(*AsmOutStream));
-    HasPerModulePasses = true;
-  } else if (emit_llvm) {
-    // Emit an LLVM .ll file to the output.  This is used when passed 
-    // -emit-llvm -S to the GCC driver.
-    PerModulePasses->add(createPrintModulePass(AsmOutRawStream));
-    HasPerModulePasses = true;
-  } else {
-    FunctionPassManager *PM;
-    
-    // If there are passes we have to run on the entire module, we do codegen
-    // as a separate "pass" after that happens.
-    // FIXME: This is disabled right now until bugs can be worked out.  Reenable
-    // this for fast -O0 compiles!
-    if (HasPerModulePasses || 1) {
-      CodeGenPasses = PM =
-        new FunctionPassManager(new ExistingModuleProvider(TheModule));
-      PM->add(new TargetData(*TheTarget->getTargetData()));
-    } else {
-      // If there are no module-level passes that have to be run, we codegen as
-      // each function is parsed.
-      PM = PerFunctionPasses;
-      HasPerFunctionPasses = true;
-    }
+  // If there are no module-level passes that have to be run, we codegen as
+  // each function is parsed.
+  // FIXME: We can't figure this out until we know there are no always-inline
+  // functions.
+  // FIXME: This is disabled right now until bugs can be worked out.  Reenable
+  // this for fast -O0 compiles!
+  if (!emit_llvm_bc && !emit_llvm && 0) {
+    FunctionPassManager *PM = PerFunctionPasses;    
+    HasPerFunctionPasses = true;
 
     // Normal mode, emit a .s file by running the code generator.
     // Note, this also adds codegenerator level optimization passes.
@@ -533,12 +423,152 @@ static void createOptimizationPasses() {
     delete PerFunctionPasses;
     PerFunctionPasses = 0;
   }
+}
+
+static void createPerModuleOptimizationPasses() {
+  if (PerModulePasses)
+    // llvm_pch_write_init has already created the per module passes.
+    return;
+
+  // FIXME: AT -O0/O1, we should stream out functions at a time.
+  PerModulePasses = new PassManager();
+  PerModulePasses->add(new TargetData(*TheTarget->getTargetData()));
+  bool HasPerModulePasses = false;
+  bool NeedAlwaysInliner = false;
+  if (flag_inline_trees <= 1) {
+    // If full inliner is not run, check if always-inline is needed to handle
+    // functions that are  marked as always_inline.
+    for (Module::iterator I = TheModule->begin(), E = TheModule->end();
+         I != E; ++I)
+      if (I->hasFnAttr(Attribute::AlwaysInline)) {
+        NeedAlwaysInliner = true;
+        break;
+      }
+  }
+
+  if (!DisableLLVMOptimizations) {
+    HasPerModulePasses = true;
+    PassManager *PM = PerModulePasses;
+    if (optimize == 0) {
+      if (flag_inline_trees > 1)                // respect -fno-inline-functions
+        PM->add(createFunctionInliningPass());    // Inline small functions
+      else if (NeedAlwaysInliner)
+        PM->add(createAlwaysInlinerPass());       // Inline always_inline funcs
+    } else {
+      if (flag_unit_at_a_time)
+        PM->add(createRaiseAllocationsPass());    // call %malloc -> malloc inst
+      PM->add(createCFGSimplificationPass());     // Clean up disgusting code
+      PM->add(createPromoteMemoryToRegisterPass()); // Kill useless allocas
+      if (flag_unit_at_a_time) {
+        PM->add(createGlobalOptimizerPass());     // Optimize out global vars
+        PM->add(createGlobalDCEPass());           // Remove unused fns and globs
+        PM->add(createIPConstantPropagationPass()); // IP Constant Propagation
+        PM->add(createDeadArgEliminationPass());  // Dead argument elimination
+      }
+      PM->add(createInstructionCombiningPass());  // Clean up after IPCP & DAE
+      PM->add(createCFGSimplificationPass());     // Clean up after IPCP & DAE
+      if (flag_unit_at_a_time) {
+        if (flag_exceptions)
+          PM->add(createPruneEHPass());           // Remove dead EH info
+        PM->add(createFunctionAttrsPass());       // Deduce function attrs
+      }
+      if (flag_inline_trees > 1)                // respect -fno-inline-functions
+        PM->add(createFunctionInliningPass());    // Inline small functions
+      else if (NeedAlwaysInliner)
+        PM->add(createAlwaysInlinerPass());       // Inline always_inline funcs
+      if (optimize > 2)
+        PM->add(createArgumentPromotionPass());   // Scalarize uninlined fn args
+      if (!flag_no_simplify_libcalls)
+        PM->add(createSimplifyLibCallsPass());    // Library Call Optimizations
+      PM->add(createInstructionCombiningPass());  // Cleanup for scalarrepl.
+      PM->add(createJumpThreadingPass());         // Thread jumps.
+      PM->add(createCFGSimplificationPass());     // Merge & remove BBs
+      PM->add(createScalarReplAggregatesPass());  // Break up aggregate allocas
+      PM->add(createInstructionCombiningPass());  // Combine silly seq's
+      PM->add(createCondPropagationPass());       // Propagate conditionals
+      PM->add(createTailCallEliminationPass());   // Eliminate tail calls
+      PM->add(createCFGSimplificationPass());     // Merge & remove BBs
+      PM->add(createReassociatePass());           // Reassociate expressions
+      PM->add(createLoopRotatePass());            // Rotate Loop
+      PM->add(createLICMPass());                  // Hoist loop invariants
+      // At -O2, loop unswitch should not increase code size.
+      PM->add(createLoopUnswitchPass(optimize_size || optimize < 3));
+      PM->add(createLoopIndexSplitPass());        // Split loop index
+      PM->add(createInstructionCombiningPass());  
+      PM->add(createIndVarSimplifyPass());        // Canonicalize indvars
+      PM->add(createLoopDeletionPass());          // Delete dead loops
+      if (flag_unroll_loops)
+        PM->add(createLoopUnrollPass());          // Unroll small loops
+      PM->add(createInstructionCombiningPass());  // Clean up after the unroller
+      PM->add(createGVNPass());                   // Remove redundancies
+      PM->add(createMemCpyOptPass());             // Remove memcpy / form memset
+      PM->add(createSCCPPass());                  // Constant prop with SCCP
+    
+      // Run instcombine after redundancy elimination to exploit opportunities
+      // opened up by them.
+      PM->add(createInstructionCombiningPass());
+      PM->add(createCondPropagationPass());       // Propagate conditionals
+      PM->add(createDeadStoreEliminationPass());  // Delete dead stores
+      PM->add(createAggressiveDCEPass());         // Delete dead instructions
+      PM->add(createCFGSimplificationPass());     // Merge & remove BBs
+
+      if (flag_unit_at_a_time) {
+        PM->add(createStripDeadPrototypesPass()); // Get rid of dead prototypes
+        PM->add(createDeadTypeEliminationPass()); // Eliminate dead types
+      }
+
+      if (optimize > 1 && flag_unit_at_a_time)
+        PM->add(createConstantMergePass());       // Merge dup global constants 
+    }
+  }
+
+  if (emit_llvm_bc) {
+    // Emit an LLVM .bc file to the output.  This is used when passed
+    // -emit-llvm -c to the GCC driver.
+    PerModulePasses->add(CreateBitcodeWriterPass(*AsmOutStream));
+    HasPerModulePasses = true;
+  } else if (emit_llvm) {
+    // Emit an LLVM .ll file to the output.  This is used when passed 
+    // -emit-llvm -S to the GCC driver.
+    PerModulePasses->add(createPrintModulePass(AsmOutRawStream));
+    HasPerModulePasses = true;
+  } else {
+    // If there are passes we have to run on the entire module, we do codegen
+    // as a separate "pass" after that happens.
+    // However if there are no module-level passes that have to be run, we
+    // codegen as each function is parsed.
+    // FIXME: This is disabled right now until bugs can be worked out.  Reenable
+    // this for fast -O0 compiles!
+    if (PerModulePasses || 1) {
+      FunctionPassManager *PM = CodeGenPasses =
+        new FunctionPassManager(new ExistingModuleProvider(TheModule));
+      PM->add(new TargetData(*TheTarget->getTargetData()));
+
+      // Normal mode, emit a .s file by running the code generator.
+      // Note, this also adds codegenerator level optimization passes.
+      switch (TheTarget->addPassesToEmitFile(*PM, *AsmOutRawStream,
+                                             TargetMachine::AssemblyFile,
+                                             /*FAST*/optimize == 0)) {
+      default:
+      case FileModel::Error:
+        cerr << "Error interfacing to target machine!\n";
+        exit(1);
+      case FileModel::AsmFile:
+        break;
+      }
+
+      if (TheTarget->addPassesToEmitFileFinish(*PM, 0, /*Fast*/optimize == 0)) {
+        cerr << "Error interfacing to target machine!\n";
+        exit(1);
+      }
+    }
+  }
+
   if (!HasPerModulePasses) {
     delete PerModulePasses;
     PerModulePasses = 0;
   }
 }
-
 
 // llvm_asm_file_start - Start the .s file.
 void llvm_asm_file_start(void) {
@@ -595,7 +625,7 @@ void llvm_asm_file_end(void) {
   timevar_push(TV_LLVM_PERFILE);
 
   performLateBackendInitialization();
-  createOptimizationPasses();
+  createPerFunctionOptimizationPasses();
 
   if (flag_pch_file) {
     writeLLVMTypesStringTable();
@@ -689,7 +719,9 @@ void llvm_asm_file_end(void) {
     delete AsmIntermediateOutFile;
     AsmIntermediateOutFile = 0;
   }
+
   // Run module-level optimizers, if any are present.
+  createPerModuleOptimizationPasses();
   if (PerModulePasses)
     PerModulePasses->run(*TheModule);
   
@@ -755,7 +787,7 @@ void llvm_emit_code_for_current_function(tree fndecl) {
 #endif
 
   performLateBackendInitialization();
-  createOptimizationPasses();
+  createPerFunctionOptimizationPasses();
 
   if (PerFunctionPasses)
     PerFunctionPasses->run(*Fn);
@@ -833,7 +865,9 @@ void emit_alias_to_llvm(tree decl, tree target, tree target_decl) {
   GlobalValue::LinkageTypes Linkage;
 
   // A weak alias has TREE_PUBLIC set but not the other bits.
-  if (DECL_WEAK(decl))
+  if (DECL_LLVM_PRIVATE(decl))
+    Linkage = GlobalValue::PrivateLinkage;
+  else if (DECL_WEAK(decl))
     Linkage = GlobalValue::WeakLinkage;
   else if (!TREE_PUBLIC(decl))
     Linkage = GlobalValue::InternalLinkage;
@@ -845,8 +879,8 @@ void emit_alias_to_llvm(tree decl, tree target, tree target_decl) {
 
   handleVisibility(decl, GA);
 
-  if (V->getType() == GA->getType())
-    V->replaceAllUsesWith(GA);
+  if (GA->getType()->canLosslesslyBitCastTo(V->getType()))
+    V->replaceAllUsesWith(ConstantExpr::getBitCast(GA, V->getType()));
   else if (!V->use_empty()) {
     error ("%J Alias %qD used with invalid type!", decl, decl);
     timevar_pop(TV_LLVM_GLOBALS);
@@ -1085,7 +1119,10 @@ void emit_global_to_llvm(tree decl) {
     GV->setThreadLocal(true);
 
   // Set the linkage.
-  if (!TREE_PUBLIC(decl)) {
+  if (CODE_CONTAINS_STRUCT (TREE_CODE (decl), TS_DECL_WITH_VIS)
+      && DECL_LLVM_PRIVATE(decl)) {
+    GV->setLinkage(GlobalValue::PrivateLinkage);
+  } else if (!TREE_PUBLIC(decl)) {
     GV->setLinkage(GlobalValue::InternalLinkage);
   } else if (DECL_WEAK(decl) || DECL_ONE_ONLY(decl)) {
     GV->setLinkage(GlobalValue::WeakLinkage);
@@ -1115,14 +1152,14 @@ void emit_global_to_llvm(tree decl) {
     }
     
     // Set the alignment for the global if one of the following condition is met
-    // 1) DECL_ALIGN_UNIT is better than the alignment as per ABI specification
+    // 1) DECL_ALIGN is better than the alignment as per ABI specification
     // 2) DECL_ALIGN is set by user.
-    if (DECL_ALIGN_UNIT(decl)) {
+    if (DECL_ALIGN(decl)) {
       unsigned TargetAlign =
         getTargetData().getABITypeAlignment(GV->getType()->getElementType());
       if (DECL_USER_ALIGN(decl) ||
-          TargetAlign < (unsigned)DECL_ALIGN_UNIT(decl))
-        GV->setAlignment(DECL_ALIGN_UNIT(decl));
+          8 * TargetAlign < (unsigned)DECL_ALIGN(decl))
+        GV->setAlignment(DECL_ALIGN(decl) / 8);
     }
 
     // Handle used decls

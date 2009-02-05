@@ -113,7 +113,7 @@ MAJ_VERS=`echo $VERS | sed 's/\([0-9]*\.[0-9]*\)[.-].*/\1/'`
 ARM_SYSROOT="/Developer/SDKs/Extra"
 ARM_LIBSTDCXX_VERSION=4.2.1
 ARM_CONFIGFLAGS="--with-build-sysroot=\"$ARM_SYSROOT\" \
-                 --with-gxx-include-dir=\${prefix}/include/c++/$ARM_LIBSTDCXX_VERSION"
+                 --with-gxx-include-dir=/usr/include/c++/$ARM_LIBSTDCXX_VERSION"
 # APPLE LOCAL end ARM ARM_CONFIGFLAGS
 
 # This is the libstdc++ version to use.

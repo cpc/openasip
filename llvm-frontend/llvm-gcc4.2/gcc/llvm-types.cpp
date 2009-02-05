@@ -1834,7 +1834,8 @@ bool TypeConverter::DecodeStructFields(tree Field,
       // then convert to a packed struct and try again.
       if (TYPE_USER_ALIGN(DECL_BIT_FIELD_TYPE(Field))) {
         const Type *Ty = ConvertType(getDeclaredType(Field));
-        if (TYPE_ALIGN_UNIT(DECL_BIT_FIELD_TYPE(Field)) != Info.getTypeAlignment(Ty))
+        if (TYPE_ALIGN(DECL_BIT_FIELD_TYPE(Field)) !=
+            8 * Info.getTypeAlignment(Ty))
           return false;
       }
     }
@@ -1864,7 +1865,7 @@ bool TypeConverter::DecodeStructFields(tree Field,
     return false;
   } 
   else if (TYPE_USER_ALIGN(TREE_TYPE(Field))
-           && (unsigned)DECL_ALIGN_UNIT(Field) != Info.getTypeAlignment(Ty)
+           && (unsigned)DECL_ALIGN(Field) != 8 * Info.getTypeAlignment(Ty)
            && !Info.isPacked()) {
     // If Field has user defined alignment and it does not match Ty alignment
     // then convert to a packed struct and try again.
@@ -2039,8 +2040,8 @@ const Type *TypeConverter::ConvertRECORD(tree type, tree orig_type) {
   ConvertingStruct = true;
   
   StructTypeConversionInfo *Info = 
-    new StructTypeConversionInfo(*TheTarget, TYPE_ALIGN_UNIT(type), 
-                             TYPE_PACKED(type));
+    new StructTypeConversionInfo(*TheTarget, TYPE_ALIGN(type) / 8,
+                                 TYPE_PACKED(type));
 
   // Alter any fields that appear to represent base classes so their lists
   // of fields bear some resemblance to reality.
@@ -2057,8 +2058,7 @@ const Type *TypeConverter::ConvertRECORD(tree type, tree orig_type) {
 
   if (retryAsPackedStruct) {
     delete Info;
-    Info = new StructTypeConversionInfo(*TheTarget, TYPE_ALIGN_UNIT(type),
-                                        true);
+    Info = new StructTypeConversionInfo(*TheTarget, TYPE_ALIGN(type) / 8, true);
     for (tree Field = TYPE_FIELDS(type); Field; Field = TREE_CHAIN(Field)) {
       if (DecodeStructFields(Field, *Info) == false) {
         assert(0 && "Unable to decode struct fields.");
@@ -2330,7 +2330,7 @@ const Type *TypeConverter::ConvertUNION(tree type, tree orig_type) {
     }
   }
 
-  bool isPacked = EltAlign > TYPE_ALIGN_UNIT(type);
+  bool isPacked = 8 * EltAlign > TYPE_ALIGN(type);
   const Type *ResultTy = StructType::get(UnionElts, isPacked);
   const OpaqueType *OldTy = cast_or_null<OpaqueType>(GET_TYPE_LLVM(type));
   TypeDB.setType(type, ResultTy);

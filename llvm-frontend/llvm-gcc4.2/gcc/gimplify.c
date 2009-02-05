@@ -3096,6 +3096,7 @@ gimplify_init_constructor (tree *expr_p, tree *pre_p,
 		gimple_add_tmp_var (new);
 		TREE_STATIC (new) = 1;
 		TREE_READONLY (new) = 1;
+		DECL_LLVM_PRIVATE (new) = 1;
 		DECL_INITIAL (new) = ctor;
 		if (align > DECL_ALIGN (new))
 		  {

@@ -642,7 +642,9 @@ void TreeToLLVM::StartFunctionBody() {
   // emitted; hack this by pretending they're static.  That will either
   // make them go away or emit a static definition that won't collide with
   // anything.
-  if (!TREE_PUBLIC(FnDecl) /*|| lang_hooks.llvm_is_in_anon(subr)*/) {
+  if (DECL_LLVM_PRIVATE(FnDecl)) {
+    Fn->setLinkage(Function::PrivateLinkage);
+  } else if (!TREE_PUBLIC(FnDecl) /*|| lang_hooks.llvm_is_in_anon(subr)*/) {
     Fn->setLinkage(Function::InternalLinkage);
   } else if (DECL_EXTERNAL(FnDecl) && 
              lookup_attribute ("always_inline", DECL_ATTRIBUTES (FnDecl))) {
@@ -1181,11 +1183,10 @@ LValue TreeToLLVM::EmitLV(tree exp) {
   case WITH_SIZE_EXPR:
     // The address is the address of the operand.
     return EmitLV(TREE_OPERAND(exp, 0));
-  case INDIRECT_REF: {
+  case INDIRECT_REF:
     // The lvalue is just the address.
-    tree Op = TREE_OPERAND(exp, 0);
-    return LValue(Emit(Op, 0), expr_align(Op) / 8);
-  }
+    return LValue(Emit(TREE_OPERAND(exp, 0), 0),
+                  expr_align(exp) / 8);
   }
 }
 
@@ -1699,12 +1700,12 @@ void TreeToLLVM::EmitAutomaticVariableDecl(tree decl) {
   unsigned Alignment = 0; // Alignment in bytes.
 
   // Set the alignment for the local if one of the following condition is met
-  // 1) DECL_ALIGN_UNIT is better than the alignment as per ABI specification
+  // 1) DECL_ALIGN is better than the alignment as per ABI specification
   // 2) DECL_ALIGN is set by user.
-  if (DECL_ALIGN_UNIT(decl)) {
+  if (DECL_ALIGN(decl)) {
     unsigned TargetAlign = getTargetData().getABITypeAlignment(Ty);
-    if (DECL_USER_ALIGN(decl) || TargetAlign < (unsigned)DECL_ALIGN_UNIT(decl))
-      Alignment = DECL_ALIGN_UNIT(decl);
+    if (DECL_USER_ALIGN(decl) || 8 * TargetAlign < (unsigned)DECL_ALIGN(decl))
+      Alignment = DECL_ALIGN(decl) / 8;
   }
 
   const char *Name;      // Name of variable
@@ -2820,7 +2821,7 @@ Value *TreeToLLVM::EmitCallOf(Value *Callee, tree exp, const MemRef *DestLoc,
         const FunctionType *ActualFT =
           cast<FunctionType>(ActualPT->getElementType());
         if (RealFT->getReturnType() == ActualFT->getReturnType() &&
-            ActualFT->getNumParams() == 0)
+            RealFT->getNumParams() == 0)
           Callee = RealCallee;
       }
     }
@@ -5944,9 +5945,9 @@ LValue TreeToLLVM::EmitLV_DECL(tree exp) {
   if (Ty == Type::VoidTy) Ty = StructType::get(NULL, NULL);
   const PointerType *PTy = PointerType::getUnqual(Ty);
   unsigned Alignment = Ty->isSized() ? TD.getABITypeAlignment(Ty) : 1;
-  if (DECL_ALIGN_UNIT(exp)) {
-    if (DECL_USER_ALIGN(exp) || Alignment < (unsigned)DECL_ALIGN_UNIT(exp))
-      Alignment = DECL_ALIGN_UNIT(exp);
+  if (DECL_ALIGN(exp)) {
+    if (DECL_USER_ALIGN(exp) || 8 * Alignment < (unsigned)DECL_ALIGN(exp))
+      Alignment = DECL_ALIGN(exp) / 8;
   }
 
   return LValue(BitCastToType(Decl, PTy), Alignment);
@@ -6070,10 +6071,74 @@ static unsigned getComponentRefOffsetInBits(tree exp) {
   return Result;
 }
 
+Value *TreeToLLVM::EmitFieldAnnotation(Value *FieldPtr, tree FieldDecl) {
+  tree AnnotateAttr = lookup_attribute("annotate", DECL_ATTRIBUTES(FieldDecl));
+
+  const Type *OrigPtrTy = FieldPtr->getType();
+  const Type *SBP = PointerType::getUnqual(Type::Int8Ty);
+  
+  Function *Fn = Intrinsic::getDeclaration(TheModule, 
+                                           Intrinsic::ptr_annotation,
+                                           &SBP, 1);
+  
+  // Get file and line number.  FIXME: Should this be for the decl or the
+  // use.  Is there a location info for the use?
+  Constant *LineNo = ConstantInt::get(Type::Int32Ty,
+                                      DECL_SOURCE_LINE(FieldDecl));
+  Constant *File = ConvertMetadataStringToGV(DECL_SOURCE_FILE(FieldDecl));
+  
+  File = TheFolder->CreateBitCast(File, SBP);
+  
+  // There may be multiple annotate attributes. Pass return of lookup_attr 
+  //  to successive lookups.
+  while (AnnotateAttr) {
+    // Each annotate attribute is a tree list.
+    // Get value of list which is our linked list of args.
+    tree args = TREE_VALUE(AnnotateAttr);
+    
+    // Each annotate attribute may have multiple args.
+    // Treat each arg as if it were a separate annotate attribute.
+    for (tree a = args; a; a = TREE_CHAIN(a)) {
+      // Each element of the arg list is a tree list, so get value
+      tree val = TREE_VALUE(a);
+      
+      // Assert its a string, and then get that string.
+      assert(TREE_CODE(val) == STRING_CST &&
+             "Annotate attribute arg should always be a string");
+      
+      Constant *strGV = TreeConstantToLLVM::EmitLV_STRING_CST(val);
+      
+      // We can not use the IRBuilder because it will constant fold away
+      // the GEP that is critical to distinguish between an annotate 
+      // attribute on a whole struct from one on the first element of the
+      // struct.
+      BitCastInst *CastFieldPtr = new BitCastInst(FieldPtr,  SBP, 
+                                                  FieldPtr->getNameStart());
+      Builder.Insert(CastFieldPtr);
+      
+      Value *Ops[4] = {
+        CastFieldPtr, BitCastToType(strGV, SBP), 
+        File,  LineNo
+      };
+      
+      const Type* FieldPtrType = FieldPtr->getType();
+      FieldPtr = Builder.CreateCall(Fn, Ops, Ops+4);
+      FieldPtr = BitCastToType(FieldPtr, FieldPtrType);
+    }
+    
+    // Get next annotate attribute.
+    AnnotateAttr = TREE_CHAIN(AnnotateAttr);
+    if (AnnotateAttr)
+      AnnotateAttr = lookup_attribute("annotate", AnnotateAttr);
+  }
+  return FieldPtr;
+}
+
+
 LValue TreeToLLVM::EmitLV_COMPONENT_REF(tree exp) {
   LValue StructAddrLV = EmitLV(TREE_OPERAND(exp, 0));
   tree FieldDecl = TREE_OPERAND(exp, 1); 
-  unsigned LVAlign = DECL_PACKED(FieldDecl) ? 1 : StructAddrLV.Alignment;
+  unsigned LVAlign = StructAddrLV.Alignment;
  
   assert((TREE_CODE(DECL_CONTEXT(FieldDecl)) == RECORD_TYPE ||
           TREE_CODE(DECL_CONTEXT(FieldDecl)) == UNION_TYPE  ||
@@ -6111,73 +6176,27 @@ LValue TreeToLLVM::EmitLV_COMPONENT_REF(tree exp) {
       const StructLayout *SL = TD.getStructLayout(cast<StructType>(StructTy));
       unsigned Offset = SL->getElementOffset(MemberIndex);
       BitStart -= Offset * 8;
+      
+      // If the base is known to be 8-byte aligned, and we're adding a 4-byte
+      // offset, the field is known to be 4-byte aligned.
       LVAlign = MinAlign(LVAlign, Offset);
     }
+
+    // There is debate about whether this is really safe or not, be conservative
+    // in the meantime.
+#if 0
+    // If this field is at a constant offset, if the LLVM pointer really points
+    // to it, then we know that the pointer is at least as aligned as the field
+    // is required to be.  Try to round up our alignment info.
+    if (BitStart == 0 && // llvm pointer points to it.
+        !isBitfield(FieldDecl) &&  // bitfield computation might offset pointer.
+        DECL_ALIGN(FieldDecl))
+      LVAlign = std::max(LVAlign, unsigned(DECL_ALIGN(FieldDecl)) / 8);
+#endif
     
     // If the FIELD_DECL has an annotate attribute on it, emit it.
-    
-    // Handle annotate attribute on global.
-    if (tree AnnotateAttr = 
-        lookup_attribute("annotate", DECL_ATTRIBUTES(FieldDecl))) {
-      
-      const Type *OrigPtrTy = FieldPtr->getType();
-      const Type *SBP = PointerType::getUnqual(Type::Int8Ty);
-      
-      Function *Fn = Intrinsic::getDeclaration(TheModule, 
-                                               Intrinsic::ptr_annotation,
-                                               &SBP, 1);
-      
-      // Get file and line number.  FIXME: Should this be for the decl or the
-      // use.  Is there a location info for the use?
-      Constant *LineNo = ConstantInt::get(Type::Int32Ty,
-                                          DECL_SOURCE_LINE(FieldDecl));
-      Constant *File = ConvertMetadataStringToGV(DECL_SOURCE_FILE(FieldDecl));
-      
-      File = TheFolder->CreateBitCast(File, SBP);
-      
-      // There may be multiple annotate attributes. Pass return of lookup_attr 
-      //  to successive lookups.
-      while (AnnotateAttr) {
-        // Each annotate attribute is a tree list.
-        // Get value of list which is our linked list of args.
-        tree args = TREE_VALUE(AnnotateAttr);
-        
-        // Each annotate attribute may have multiple args.
-        // Treat each arg as if it were a separate annotate attribute.
-        for (tree a = args; a; a = TREE_CHAIN(a)) {
-          // Each element of the arg list is a tree list, so get value
-          tree val = TREE_VALUE(a);
-          
-          // Assert its a string, and then get that string.
-          assert(TREE_CODE(val) == STRING_CST &&
-                 "Annotate attribute arg should always be a string");
-          
-          Constant *strGV = TreeConstantToLLVM::EmitLV_STRING_CST(val);
-          
-          // We can not use the IRBuilder because it will constant fold away
-          // the GEP that is critical to distinguish between an annotate 
-          // attribute on a whole struct from one on the first element of the
-          // struct.
-          BitCastInst *CastFieldPtr = new BitCastInst(FieldPtr,  SBP, 
-                                                      FieldPtr->getNameStart());
-          Builder.Insert(CastFieldPtr);
-          
-          Value *Ops[4] = {
-            CastFieldPtr, BitCastToType(strGV, SBP), 
-            File,  LineNo
-          };
-          
-          const Type* FieldPtrType = FieldPtr->getType();
-          FieldPtr = Builder.CreateCall(Fn, Ops, Ops+4);
-          FieldPtr = BitCastToType(FieldPtr, FieldPtrType);
-        }
-        
-        // Get next annotate attribute.
-        AnnotateAttr = TREE_CHAIN(AnnotateAttr);
-        if (AnnotateAttr)
-          AnnotateAttr = lookup_attribute("annotate", AnnotateAttr);
-      }
-    }
+    if (lookup_attribute("annotate", DECL_ATTRIBUTES(FieldDecl)))
+      FieldPtr = EmitFieldAnnotation(FieldPtr, FieldDecl);
   } else {
     Value *Offset = Emit(field_offset, 0);
 
@@ -6197,6 +6216,8 @@ LValue TreeToLLVM::EmitLV_COMPONENT_REF(tree exp) {
       Offset = Builder.CreateAdd(Offset,
         ConstantInt::get(Offset->getType(), ByteOffset));
       BitStart -= ByteOffset*8;
+      // If the base is known to be 8-byte aligned, and we're adding a 4-byte
+      // offset, the field is known to be 4-byte aligned.
       LVAlign = MinAlign(LVAlign, ByteOffset);
     }
 
@@ -6551,7 +6572,7 @@ Constant *TreeConstantToLLVM::ConvertREAL_CST(tree exp) {
     UArr[0] = RealArr[0];   // Long -> int convert
     UArr[1] = RealArr[1];
 
-    if (llvm::sys::bigEndianHost() != FLOAT_WORDS_BIG_ENDIAN)
+    if (llvm::sys::isBigEndianHost() != FLOAT_WORDS_BIG_ENDIAN)
       std::swap(UArr[0], UArr[1]);
 
     return ConstantFP::get(Ty==Type::FloatTy ? APFloat((float)V) : APFloat(V));

@@ -527,7 +527,6 @@ lookup_tramp_for_decl (struct nesting_info *info, tree decl,
       field = make_node (FIELD_DECL);
       DECL_NAME (field) = DECL_NAME (decl);
       /* LLVM LOCAL begin */
-      /* FIXME: Keep the LLVM-way? */
 #ifdef ENABLE_LLVM
       TREE_TYPE (field) = TYPE_POINTER_TO (TREE_TYPE (decl));
 #else
@@ -1732,7 +1731,7 @@ static struct nesting_info *with_chain_worklist;
 
 static void
 initialize_chains (struct nesting_info *root) {
-  do
+  while (root)
     {
       if (root->inner)
         initialize_chains (root->inner);
@@ -1747,7 +1746,6 @@ initialize_chains (struct nesting_info *root) {
 
       root = root->next;
     }
-  while (root);
 }
 
 /* Helper for propagate_chains.  Set the chain flag on a function and all of
@@ -1832,7 +1830,6 @@ convert_tramp_reference (tree *tp, int *walk_subtrees, void *data)
 	continue;
 
       /* LLVM LOCAL begin */
-      /* FIXME: Keep the LLVM-way? */
 #ifdef ENABLE_LLVM
       /* Lookup the trampoline.  */
       x = lookup_tramp_for_decl (i, decl, INSERT);
@@ -1973,7 +1970,6 @@ convert_all_function_calls (struct nesting_info *root)
       walk_function (convert_call_expr, root);
 
       /* LLVM LOCAL begin */
-      /* FIXME: Keep the LLVM-way? */
 #ifdef ENABLE_LLVM
       gcc_assert (!root->outer ||
                   DECL_NO_STATIC_CHAIN (root->context) ==
@@ -2080,7 +2076,6 @@ finalize_nesting_tree_1 (struct nesting_info *root)
 	  arg = tree_cons (NULL, x, arg);
 
 	  /* LLVM LOCAL begin */
-          /* FIXME: Keep the LLVM-way? */
 #ifdef ENABLE_LLVM
 	  /* Create a local variable to hold the trampoline code.  */
 	  y = create_tmp_var_for (root, get_trampoline_type(),

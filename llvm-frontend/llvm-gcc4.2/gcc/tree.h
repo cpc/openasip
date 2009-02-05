@@ -2916,6 +2916,9 @@ struct tree_parm_decl GTY(())
   /* Used to indicate that this DECL has weak linkage.  */
 #define DECL_WEAK(NODE) (DECL_WITH_VIS_CHECK (NODE)->decl_with_vis.weak_flag)
 
+#define DECL_LLVM_PRIVATE(NODE) \
+  (DECL_WITH_VIS_CHECK (NODE)->decl_with_vis.llvm_private_flag)
+
 /* Internal to the gimplifier.  Indicates that the value is a formal
    temporary controlled by the gimplifier.  */
 #define DECL_GIMPLE_FORMAL_TEMP_P(DECL) \
@@ -3052,6 +3055,10 @@ struct tree_decl_with_vis GTY(())
  unsigned weak_flag:1;
  unsigned seen_in_bind_expr : 1;
  unsigned comdat_flag : 1;
+
+ /* LLVM LOCAL */
+ unsigned llvm_private_flag : 1;
+
  ENUM_BITFIELD(symbol_visibility) visibility : 2;
  unsigned visibility_specified : 1;
  /* Belong to FUNCTION_DECL exclusively.  */
@@ -3072,7 +3079,7 @@ struct tree_decl_with_vis GTY(())
  unsigned block_synthesized_function : 1;
  /* APPLE LOCAL radar 5847976 */
  unsigned block_weak : 1;
- /* 5 unused bits. */
+ /* 4 unused bits. */
  /* APPLE LOCAL end radar 5932809 - copyable byref blocks */
  /* APPLE LOCAL end radar 5732232 - blocks */
 };

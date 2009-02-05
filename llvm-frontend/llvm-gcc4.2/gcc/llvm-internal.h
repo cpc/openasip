@@ -580,6 +580,7 @@ private:
   LValue EmitLV_DECL(tree_node *exp);
   LValue EmitLV_ARRAY_REF(tree_node *exp);
   LValue EmitLV_COMPONENT_REF(tree_node *exp);
+  Value *EmitFieldAnnotation(Value *FieldPtr, tree_node *FieldDecl);
   LValue EmitLV_BIT_FIELD_REF(tree_node *exp);
   LValue EmitLV_XXXXPART_EXPR(tree_node *exp, unsigned Idx);
   LValue EmitLV_VIEW_CONVERT_EXPR(tree_node *exp);

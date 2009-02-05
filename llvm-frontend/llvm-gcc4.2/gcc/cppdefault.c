@@ -78,10 +78,7 @@ const struct default_include cpp_include_defaults[]
 #endif
 #ifdef GCC_INCLUDE_DIR
     /* This is the dir for fixincludes and for gcc's private headers.  */
-    /* APPLE LOCAL begin */
-    /* Do not let isysroot override fixincludes and gcc's private headers paths.  */
-    { GCC_INCLUDE_DIR, "GCC", 0, 0, 0, 0 },
-    /* APPLE LOCAL end */
+    { GCC_INCLUDE_DIR, "GCC", 0, 0, ADD_SYSROOT, 0 },
 #endif
 #ifdef CROSS_INCLUDE_DIR
     /* One place the target system's headers might be.  */

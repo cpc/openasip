@@ -251,17 +251,19 @@ def optimizeBytecode(inFile, fileNamePrefix):
         "-deadtypeelim -constmerge -preverify -domtree -verify" + 
         "")
 
-    defOptimization = ""
+    defOptimization = "-O" + str(options.optimization_level)
 
     if options.optimization_level == 0:
         optSwitches = defOptimization
         options.sequential_schedule = True
 
     elif options.optimization_level == 1:
-        optSwitches = defOptimization + tce_std_compile_opts
+        # optSwitches = defOptimization + tce_std_compile_opts
+        optSwitches = defOptimization 
 
     elif options.optimization_level == 2 or options.optimization_level == 3:
-        optSwitches = defOptimization + " -internalize " + tce_std_compile_opts
+        # optSwitches = defOptimization + " -internalize " + tce_std_compile_opts
+        optSwitches = defOptimization
     else:
         exitWithError(
             1, verbose,\
