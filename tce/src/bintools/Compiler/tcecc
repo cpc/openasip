@@ -251,28 +251,21 @@ def optimizeBytecode(inFile, fileNamePrefix):
         "-deadtypeelim -constmerge -preverify -domtree -verify" + 
         "")
 
-    defOptimization = "-O" + str(options.optimization_level)
-
+    # -O0 optimization doesn't exists in opt
+    optSwitches = ""
     if options.optimization_level == 0:
-        optSwitches = defOptimization
         options.sequential_schedule = True
-
-    elif options.optimization_level == 1:
-        # optSwitches = defOptimization + tce_std_compile_opts
-        optSwitches = defOptimization 
-
-    elif options.optimization_level == 2 or options.optimization_level == 3:
-        # optSwitches = defOptimization + " -internalize " + tce_std_compile_opts
-        optSwitches = defOptimization
     else:
-        exitWithError(
-            1, verbose,\
-            "Optimization level " +\
-            str(options.optimization_level) + " not defined.\n")
+        optSwitches = (" -O" + str(options.optimization_level) +
+                       loop_unroll_switches)
 
+    if options.noinline:
+        optSwitches += "-disable-inlining "
+    
     internalize_api_list = " -internalize-public-api-list=_start"
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
+
     optSwitches += internalize_api_list
 
     if options.noinline:

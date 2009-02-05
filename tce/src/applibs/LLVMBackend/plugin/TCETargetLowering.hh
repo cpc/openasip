@@ -72,7 +72,8 @@ namespace llvm {
         LowerArguments(
             llvm::Function& f, 
             llvm::SelectionDAG& dag,
-            SmallVectorImpl<SDValue>& argValues);
+            SmallVectorImpl<SDValue>& argValues,
+            DebugLoc dl);
 
         virtual std::pair<llvm::SDValue, llvm::SDValue>
             LowerCallTo(
@@ -86,7 +87,8 @@ namespace llvm {
                 bool isTailCall,
                 llvm::SDValue callee,
                 llvm::TargetLowering::ArgListTy& args,
-                llvm::SelectionDAG& dag);
+                llvm::SelectionDAG& dag,
+                llvm::DebugLoc dl);
 
         virtual const char* getTargetNodeName(unsigned opcode) const;
 

@@ -146,7 +146,7 @@ worsenedIsErrorLimit = None
 extraCompileFlags = ""
 recompile = False
 makeCommand = "SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS=" + \
-              rootDir + "/compile_sources.make" + " make -s"
+              rootDir + "/compile_sources.make" + " make -s "
 
 # List of architectures given in command line.
 cmdLineArchitectures = []
@@ -851,7 +851,7 @@ close $cycle_file
                 compileRule = "gcc-tce"
             
             command = ("cd src;" +
-                       makeCommand + 'clean;' +
+                       makeCommand + ' clean;' +
                        'SCHEDULER_TESTER_FLAGS="'  + extraFlags + '" ' +                       
                        makeCommand + " GCCLLVM=" + tceccExe + " " + compileRule)
             
