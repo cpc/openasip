@@ -199,6 +199,9 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
 ####
 # Optimizes linked bc. Returns name of the optimized file.
+#
+# You can check default switches with command:
+# opt -O3 -debug-pass=Arguments systemtest/bintools/Scheduler/tests/QuickTests/HelloWorld/program.bc
 ###
 def optimizeBytecode(inFile, fileNamePrefix):
 
@@ -211,52 +214,21 @@ def optimizeBytecode(inFile, fileNamePrefix):
             " -loop-unroll -unroll-allow-partial -unroll-threshold=%d " % \
             options.unroll_threshold
     else:
-        loop_unroll_switches = " "
-    
-    inline_pass = " -inline "
-    if options.noinline:
-        inline_pass = " "
+        loop_unroll_switches = " " 
 
-    tce_std_compile_opts = (" " +
-        "-preverify -domtree -verify -lowersetjmp -raiseallocs -simplifycfg -domtree " + 
-        "-domfrontier -mem2reg -globalopt -globaldce " + 
-        "-ipconstprop -deadargelim -instcombine " +
-        "-simplifycfg -basiccg -prune-eh " +
-        "-addreadattrs " + # Added in LLVM 2.4
-        inline_pass +
-        "-argpromotion " + # Removed in LLVM 2.4: -tailduplicate        
-        "-simplify-libcalls " + 
-        "-instcombine -jump-threading -simplifycfg -domtree -domfrontier -scalarrepl " + 
-        "-instcombine -break-crit-edges -condprop -tailcallelim -simplifycfg -reassociate " + 
-        "-domtree -loops -loopsimplify -domfrontier -scalar-evolution -lcssa -loop-rotate " + 
-        "-licm -lcssa -loop-unswitch -scalar-evolution -lcssa -loop-index-split -instcombine " + 
-        "-scalar-evolution " + # Removed in LLVM 2.4: -domfrontier
-        "-lcssa " + 
-        "-indvars " + # Removed in LLVM 2.4: -domfrontier
-        "-scalar-evolution " +
-        "-lcssa " +
-        "-loop-deletion -domfrontier -lcssa " + # Added in LLVM 2.4
-        loop_unroll_switches +
-        "-instcombine " + # Removed in LLVM 2.4: -domtree 
-        "-memdep -gvn " +
-        "-memdep " + # Added in LLVM 2.4
-#        "-memcpyopt " +
-        "-sccp " + 
-        "-instcombine -break-crit-edges -condprop " +
-        "-domtree " + # Added in LLVM 2.4                     
-        "-memdep -dse " +
-        # Removed in LLVM 2.4: "-mergereturn -postdomtree -postdomfrontier "
-        "-adce -simplifycfg -strip-dead-prototypes " +
-        "-print-used-types " + # Added in LLVM 2.4                            
-        "-deadtypeelim -constmerge -preverify -domtree -verify" + 
-        "")
-
+    # TODO: disable -memcpyopt (might generate memcpy, memset etc. intrinsics)
+       
     # -O0 optimization doesn't exists in opt
     optSwitches = ""
     if options.optimization_level == 0:
         options.sequential_schedule = True
-    else:
-        optSwitches = (" -O" + str(options.optimization_level) +
+
+    elif options.optimization_level >= 1:
+        optSwitches = (" -O1" + loop_unroll_switches)
+        
+    elif options.optimization_level >= 2:
+        optSwitches = (" -internalize -O" +
+                       str(options.optimization_level) +
                        loop_unroll_switches)
 
     if options.noinline:
