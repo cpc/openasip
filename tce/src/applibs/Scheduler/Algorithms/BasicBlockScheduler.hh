@@ -123,6 +123,9 @@ private:
 
     void unscheduleResultReadTempMoves(MoveNode& resultMove);
 
+    void notifyScheduled(
+        MoveNodeGroup& moves, MoveNodeSelector& selector);
+
     MoveNode* succeedingTempMove(MoveNode& current);
     
     /// The target machine we are scheduling the program against.

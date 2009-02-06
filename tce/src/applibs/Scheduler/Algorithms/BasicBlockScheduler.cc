@@ -146,10 +146,9 @@ BasicBlockScheduler::handleDDG(
             throw ModuleRunTimeError(__FILE__, __LINE__, __func__, message);
         }
 
-        for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
-            MoveNode& moveNode = moves.node(moveIndex);
-            selector.notifyScheduled(moveNode);
-        }
+        // notifies successors of the scheduled moves.
+        notifyScheduled(moves, selector);
+
         moves = selector.candidates();
     }
 
@@ -1189,3 +1188,29 @@ BasicBlockScheduler::deleteRM(SimpleResourceManager* rm, BasicBlock& bb) {
         delete rm;
     }
 }
+
+/**
+ * Notifies to the selector that given nodes and their temp reg copies are
+ * scheduled .
+ * 
+ * @param nodes nodes which are scheduled.
+ * @param selector selector which to notify.
+ */
+void BasicBlockScheduler::notifyScheduled(
+    MoveNodeGroup& moves, MoveNodeSelector& selector) {
+    
+    for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
+        MoveNode& moveNode = moves.node(moveIndex);
+        selector.notifyScheduled(moveNode);
+        std::map<const MoveNode*, DataDependenceGraph::NodeSet >::
+            iterator tmIter = scheduledTempMoves_.find(&moveNode);
+        if (tmIter != scheduledTempMoves_.end()) {
+            DataDependenceGraph::NodeSet tempMoves = tmIter->second;
+            for (DataDependenceGraph::NodeSet::iterator i = 
+                     tempMoves.begin(); i != tempMoves.end(); i++) {
+                selector.notifyScheduled(**i);
+            }
+        }
+    }
+}
+
