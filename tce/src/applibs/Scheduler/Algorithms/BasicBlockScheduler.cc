@@ -401,7 +401,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
  * @return The cycle the earliest of the operands got scheduled 
  */
 int
-BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
+BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
     throw (Exception) {
 
     const int EARLY_OPERAND_DIFFERENCE = 15;
@@ -412,7 +412,6 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
     // Counts operands that are not scheduled at beginning.
     int unscheduledMoves = 0;
     MoveNode* trigger = NULL;
-    int minCycle = INT_MAX;
     MoveNode* firstToSchedule = NULL;
 
     // find the movenode which has highest DDG->earliestCycle and limit
@@ -480,7 +479,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
         unscheduleInputOperandTempMoves(moves.node(i));
 
         // Find also smallest of earliestCycles
-        minCycle = std::min(minCycle, earliest);
+        cycle = std::min(cycle, earliest);
     }
 
     int scheduledMoves = 0;
@@ -511,14 +510,13 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
              % moves.toString()).str());
     }
 
-    minCycle = std::max(minCycle, cycle);
     int counter = 0;
 
     // Loops till all moveNodes are scheduled or "timeouts"
     // remove timeout when software bypassing is tested and guaranteed to work
     // TODO: remove this kind of kludges. They just await for code that
     // breaks them.
-    while (unscheduledMoves != scheduledMoves && counter < 25) {
+    while (unscheduledMoves != scheduledMoves && counter < 2) {
         // try to schedule all input moveNodes, also find trigger
         for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
             MoveNode& moveNode = moves.node(moveIndex);
@@ -537,7 +535,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
             // in case the operand move requires register copies due to
             // missing connectivity, schedule them first
             scheduleInputOperandTempMoves(moveNode);            
-            scheduleMove(moveNode, minCycle);
+            scheduleMove(moveNode, cycle);
 
             if (moveNode.isScheduled()) {
                 lastOperandCycle =
@@ -567,7 +565,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
                 unscheduleInputOperandTempMoves(moveNode);
                 trigger = &moveNode;
                 scheduleInputOperandTempMoves(moveNode);
-                scheduleMove(moveNode, std::max(minCycle, lastOperandCycle));
+                scheduleMove(moveNode, std::max(cycle, lastOperandCycle));
                 if (!moveNode.isScheduled()) {
                     unscheduleInputOperandTempMoves(moveNode);
                 }
@@ -598,7 +596,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
             // every operand is scheduled, we can return quickly
             return earliestScheduledOperand;
         }
-        minCycle = std::max(minCycle, earliestScheduledOperand) + 1;
+        cycle = std::max(cycle, earliestScheduledOperand) + 1;
         counter++;
     }
     // If loop timeouts we get here

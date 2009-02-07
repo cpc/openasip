@@ -102,7 +102,7 @@ private:
     void scheduleOperation(MoveNodeGroup& moves)
         throw (Exception);
 
-    int scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
+    int scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
         throw (Exception);
 
     bool scheduleResultReads(MoveNodeGroup& moves)
