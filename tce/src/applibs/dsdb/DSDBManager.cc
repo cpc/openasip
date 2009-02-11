@@ -31,7 +31,7 @@
  */
 
 #include <boost/format.hpp>
-
+#include <utility>
 #include "DSDBManager.hh"
 #include "SQLite.hh"
 #include "RelationalDBConnection.hh"
@@ -43,6 +43,11 @@
 #include "MachineImplementation.hh"
 #include "DataObject.hh"
 
+using std::pair;
+using std::map;
+using std::set;
+using std::vector;
+using std::make_pair;
 using std::string;
 using namespace CostEstimator;
 
@@ -1349,6 +1354,7 @@ DSDBManager::archConfigurationIDs(RowID architectureID) const
     return ids;
 }
 
+
 /**
  * Returs set of ConfigurationCosts ordered by the given ordering.
  *
@@ -1359,45 +1365,138 @@ DSDBManager::archConfigurationIDs(RowID architectureID) const
 std::vector<DSDBManager::ConfigurationCosts>
 DSDBManager::applicationCostEstimatesByConf(Order ordering) const {
 
-    // defaul ordering is by machine configuration
-    string orderBy = "ORDER BY machine_configuration.id";
-    if (ordering == ORDER_BY_CYCLE_COUNT) {
-        orderBy = "ORDER BY cycle_count.cycles";
-    } else if (ordering == ORDER_BY_ENERGY_ESTIMATE) {
-        orderBy = "ORDER BY energy_estimate.energy_estimate";
-    } else if (ordering == ORDER_BY_APPLICATION) {
-        orderBy = "ORDER BY application.path";
+    RelationalDBQueryResult* appResult = NULL;
+    try {
+        appResult = dbConnection_->query("select * from application;");
     }
-
+    catch (const Exception& e) {
+	delete appResult;
+        abortWithError(e.errorMessage());
+    }
+    vector<ApplicationData> appData;
+   
+    while (appResult->hasNext()) {
+	appResult->next();
+	ApplicationData data;
+	data.id = appResult->data(0).stringValue();
+	data.name = appResult->data(1).stringValue();
+	appData.push_back(data);
+    }
+    delete appResult;
     RelationalDBQueryResult* queryResult = NULL;
     try {
         queryResult = dbConnection_->query(
-            "SELECT machine_configuration.id, application.path, "
-            "cycle_count.cycles, energy_estimate.energy_estimate "
-            "FROM machine_configuration, application LEFT JOIN "
-            "cycle_count ON machine_configuration.architecture="
-            "cycle_count.architecture AND application.id="
-            "cycle_count.application LEFT JOIN energy_estimate ON "
-            "application.id=energy_estimate.application AND "
-            "machine_configuration.implementation="
-            "energy_estimate.implementation " + orderBy + ";");
+	    "SELECT id from machine_configuration;");
     } catch (const Exception& e) {
         delete queryResult;
         abortWithError(e.errorMessage());
     }
+   
+    vector<ConfigurationCosts> res;
 
-    std::vector<ConfigurationCosts> results;
+    set<ConfigurationCosts, idComparator> results;
+
     while (queryResult->hasNext()) {
         queryResult->next();
-        ConfigurationCosts row;
-        row.configurationID = queryResult->data(0).integerValue();
-        row.application = queryResult->data(1).stringValue();
-        row.cycleCount = queryResult->data(2).integerValue();
-        row.energyEstimate = queryResult->data(3).doubleValue();
-        results.push_back(row);
+        for (unsigned int i = 0; i < appData.size(); i++) {
+	    ConfigurationCosts cc;
+	    cc.configurationID = queryResult->data(0).integerValue();
+	    cc.application = appData.at(i).name;
+	    RelationalDBQueryResult* impResult = NULL;
+	    
+	    try {
+	        impResult = dbConnection_->query(
+		    "select lpd, area from implementation, machine_configuration "
+		    "where machine_configuration.id=" + queryResult->data(0).stringValue() +
+		    " and machine_configuration.implementation = implementation.id limit 1;");
+	    } catch (const Exception& e) {
+	        delete impResult;
+	        abortWithError(e.errorMessage());
+	    }
+	    if (impResult->hasNext()) {
+	        impResult->next();
+		cc.longestPathDelay = impResult->data(0).doubleValue();
+		cc.area = impResult->data(1).doubleValue();
+	    } else {
+		cc.longestPathDelay = NULL;
+		cc.area = NULL;
+	    }
+	    RelationalDBQueryResult* energyResult = NULL;
+	    try {
+	        energyResult = dbConnection_->query(
+		    "select energy_estimate from energy_estimate, machine_configuration, application "
+		    "where application.id=" + appData[i].id + " and machine_configuration.id="
+		    + queryResult->data(0).stringValue() + " and machine_configuration.implementation="
+		    "energy_estimate.implementation and application.id=energy_estimate.application;");
+	     } catch (const Exception& e) {
+	         delete energyResult;
+		 abortWithError(e.errorMessage());
+	     }
+	     if (energyResult->hasNext()) {
+		 energyResult->next();
+		 cc.energyEstimate = energyResult->data(0).doubleValue();
+	     } else {
+	         cc.energyEstimate = NULL;
+	     }
+	     delete energyResult;
+
+	     RelationalDBQueryResult* cycleResult = NULL;
+	     try {
+	         cycleResult = dbConnection_->query(
+		     "select cycles from cycle_count, application, machine_configuration where application.id="
+	             + appData.at(i).id + " and machine_configuration.id=" + 
+	             queryResult->data(0).stringValue() +
+		     " and machine_configuration.architecture=cycle_count.architecture and application.id="
+		     "cycle_count.application;");
+	     } catch (const Exception& e) {
+	         delete cycleResult;
+		 abortWithError(e.errorMessage());
+	     }
+	     if (cycleResult->hasNext()) {
+	         cycleResult->next();
+		 cc.cycleCount = cycleResult->data(0).integerValue();
+	     } else {
+	         cc.cycleCount = NULL;
+	     }
+	     delete cycleResult;
+	    
+	     results.insert(cc);
+ 	 }
+     }   
+     delete queryResult;   
+     if (ordering == ORDER_BY_CYCLE_COUNT) {
+         set<ConfigurationCosts, cycleComparator> cycleResults;
+         for (set<ConfigurationCosts, idComparator>::iterator i = results.begin(); i != results.end(); i++) {
+	     cycleResults.insert(*i);
+	 }
+	
+         for (set<ConfigurationCosts, cycleComparator>::iterator i = cycleResults.begin(); i != cycleResults.end(); i++) {
+	     res.push_back(*i);
+	 }
+ 	 return res;
+    } else if (ordering == ORDER_BY_APPLICATION) {
+        set<ConfigurationCosts, appComparator> appResults;
+        for (set<ConfigurationCosts, idComparator>::iterator i = results.begin(); i != results.end(); i++) {
+           appResults.insert(*i);
+        }
+        for (set<ConfigurationCosts, appComparator>::iterator i = appResults.begin(); i != appResults.end(); i++) {
+            res.push_back(*i);
+        }
+    } else if (ordering == ORDER_BY_ENERGY_ESTIMATE) {
+        set<ConfigurationCosts, energyComparator> energyResults;
+        for (set<ConfigurationCosts, idComparator>::iterator i = results.begin(); i != results.end(); i++) {
+           energyResults.insert(*i);
+        }
+        for (set<ConfigurationCosts, energyComparator>::iterator i = energyResults.begin(); i != energyResults.end(); i++) {
+            res.push_back(*i);
+        }
+    } else {
+        for (set<ConfigurationCosts, idComparator>::iterator i = results.begin(); i != results.end(); i++) {
+	    res.push_back(*i);
+        }
     }
-    delete queryResult;
-    return results;
+   
+    return res;
 }
 
 /**
