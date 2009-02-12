@@ -105,6 +105,8 @@ namespace llvm {
             return MVT::i1;
         }
 
+        virtual llvm::MVT getSetCCResultType(llvm::MVT VT) const;
+
     private:
         // Frame index to the the start of variadic parameter list.
         int varArgsFrameIndex_;

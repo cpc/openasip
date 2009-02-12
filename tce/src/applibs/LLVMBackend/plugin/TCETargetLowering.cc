@@ -693,3 +693,11 @@ TCETargetLowering::getRegForInlineAsmConstraint(
     }
     return TargetLowering::getRegForInlineAsmConstraint(constraint, vt);
 }
+
+/**
+ * Returns the preferred comparison result type.
+ */
+llvm::MVT
+TCETargetLowering::getSetCCResultType(llvm::MVT VT) const {
+   return llvm::MVT::i1;
+}
