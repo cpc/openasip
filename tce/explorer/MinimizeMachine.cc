@@ -209,7 +209,7 @@ private:
 
         DSDBManager& dsdb = db();
 
-        DSDBManager::MachineConfiguration configuration = 
+        DSDBManager::MachineConfiguration configuration =
             dsdb.configuration(confToMinimize);
 
         TTAMachine::Machine* mach = NULL;
@@ -233,17 +233,25 @@ private:
         explorer.setDSDB(dsdb);
 
         CostEstimates estimates;
-        if (!explorer.evaluate(configuration, estimates, false)) {
+       
+        // new configuration must be created
+        DSDBManager::MachineConfiguration startConf;
+        startConf.architectureID = dsdb.addArchitecture(*mach);
+        startConf.hasImplementation = false;
+        RowID startConfId = dsdb.addConfiguration(startConf);
+        if (!explorer.evaluate(startConf, estimates, false)) {
             delete mach;
             mach = NULL;
-            return confToMinimize;
+            // return the original conf
+	    return confToMinimize;
         }
         
         // check if some apps maxCycles was exceeded
         if (!checkCycleCounts(estimates, maxCycleCounts)) {
             delete mach;
             mach = NULL;
-            return confToMinimize;
+            // return the original conf
+	    return confToMinimize;
         }
          
         MachineResourceModifier modifier;
@@ -406,8 +414,14 @@ private:
         modifier.analyzeRegisters(*origMach, origRegisterMap);
 
         CostEstimates estimates;
+
+        DSDBManager::MachineConfiguration startConf;
+        startConf.architectureID = dsdb.addArchitecture(*origMach);
+        startConf.hasImplementation = false;
+        RowID startConfId = dsdb.addConfiguration(startConf);
+
         // evaluates the desing with all dsdb apps
-        if (!explorer.evaluate(configuration, estimates, false)) {
+        if (!explorer.evaluate(startConf, estimates, false)) {
             // can't evaluate the given configuration
             delete origMach;
             origMach = NULL;
@@ -530,7 +544,11 @@ private:
         modifier.analyzeFunctionUnits(*origMach, origFUMap);
 
         CostEstimates estimates;
-        if (!explorer.evaluate(configuration, estimates, false)) {
+        DSDBManager::MachineConfiguration startConf;
+        startConf.architectureID = dsdb.addArchitecture(*origMach);
+        startConf.hasImplementation = false;
+        RowID startConfId = dsdb.addConfiguration(startConf);
+        if (!explorer.evaluate(startConf, estimates, false)) {
             // can't evaluate the given configuration
             delete origMach;
             origMach = NULL;

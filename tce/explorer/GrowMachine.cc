@@ -113,9 +113,13 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
         DesignSpaceExplorer explorer;
         explorer.setDSDB(dsdb);
         CostEstimates estimates;
+        DSDBManager::MachineConfiguration startConf;
+        startConf.architectureID = dsdb.addArchitecture(*adf);
+        startConf.hasImplementation = false;
+        RowID startConfId = dsdb.addConfiguration(startConf);
         try {
             bool estimate = false;
-            if (!explorer.evaluate(configuration, estimates, estimate)) {
+            if (!explorer.evaluate(startConf, estimates, estimate)) {
                 debugLog(std::string("Evaluate failed in GrowMachine plugin."));
                 result.push_back(configurationID);
                 delete adf;
