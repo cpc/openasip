@@ -91,8 +91,8 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
 
     //setLoadXAction(ISD::EXTLOAD, MVT::f32, Expand);
-//    setLoadXAction(ISD::EXTLOAD, MVT::i1   , Promote);
-//    setLoadXAction(ISD::ZEXTLOAD, MVT::i1   , Expand);
+    //setLoadXAction(ISD::EXTLOAD, MVT::i1 , Promote);
+    //setLoadXAction(ISD::ZEXTLOAD, MVT::i1, Expand);
 
     setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
     setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);
@@ -225,7 +225,7 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
                 cp->getAlignment());
         }
         return dag.getNode(TCEISD::CONST_POOL, MVT::i32, res);
-    } 
+    }     
     }
     op.getNode()->dump(&dag);
     assert(0 && "Custom lowerings not implemented!");

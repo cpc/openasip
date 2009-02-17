@@ -1,1 +1,0 @@
-disabled until fixed  -- vpj, 5.5.2008

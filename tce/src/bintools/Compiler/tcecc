@@ -224,10 +224,10 @@ def optimizeBytecode(inFile, fileNamePrefix):
         options.sequential_schedule = True
 
     elif options.optimization_level >= 1:
-        optSwitches = (" -O1" + loop_unroll_switches)
+        optSwitches = (" -std-compile-opts -O1" + loop_unroll_switches)
         
     elif options.optimization_level >= 2:
-        optSwitches = (" -internalize -O" +
+        optSwitches = (" -internalize -std-compile-opts -O" +
                        str(options.optimization_level) +
                        loop_unroll_switches)
 

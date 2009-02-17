@@ -592,6 +592,7 @@ class TestCase:
         return True
 
     def schedule(self, archFilename, seqProgFileName, dstProgFileName):
+        global extraCompileFlags
 
         if not useLLVM:
             schedulingCommand = schedulerExe + \
@@ -600,7 +601,7 @@ class TestCase:
                             " -a " + archFilename + \
                             " " + seqProgFileName
         else:
-            schedulingCommand = tceccExe + ' '
+            schedulingCommand = tceccExe + ' ' + extraCompileFlags + ' '
             if (leaveDirty):
                 schedulingCommand += '-d '
             
