@@ -1418,8 +1418,8 @@ DSDBManager::applicationCostEstimatesByConf(Order ordering) const {
                 cc.longestPathDelay = impResult->data(0).doubleValue();
                 cc.area = impResult->data(1).doubleValue();
             } else {
-                cc.longestPathDelay = NULL;
-                cc.area = NULL;
+                cc.longestPathDelay = 0.0;
+                cc.area = 0.0;
             }
             RelationalDBQueryResult* energyResult = NULL;
             try {
@@ -1436,7 +1436,7 @@ DSDBManager::applicationCostEstimatesByConf(Order ordering) const {
                  energyResult->next();
                  cc.energyEstimate = energyResult->data(0).doubleValue();
              } else {
-                 cc.energyEstimate = NULL;
+                 cc.energyEstimate = 0.0;
              }
              delete energyResult;
 
@@ -1456,7 +1456,7 @@ DSDBManager::applicationCostEstimatesByConf(Order ordering) const {
                  cycleResult->next();
                  cc.cycleCount = cycleResult->data(0).integerValue();
              } else {
-                 cc.cycleCount = NULL;
+                 cc.cycleCount = 0.0;
              }
              delete cycleResult;
             
