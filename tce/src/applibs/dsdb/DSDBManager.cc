@@ -1370,23 +1370,23 @@ DSDBManager::applicationCostEstimatesByConf(Order ordering) const {
         appResult = dbConnection_->query("select * from application;");
     }
     catch (const Exception& e) {
-	delete appResult;
+        delete appResult;
         abortWithError(e.errorMessage());
     }
     vector<ApplicationData> appData;
    
     while (appResult->hasNext()) {
-	appResult->next();
-	ApplicationData data;
-	data.id = appResult->data(0).stringValue();
-	data.name = appResult->data(1).stringValue();
-	appData.push_back(data);
+        appResult->next();
+        ApplicationData data;
+        data.id = appResult->data(0).stringValue();
+        data.name = appResult->data(1).stringValue();
+        appData.push_back(data);
     }
     delete appResult;
     RelationalDBQueryResult* queryResult = NULL;
     try {
         queryResult = dbConnection_->query(
-	    "SELECT id from machine_configuration;");
+            "SELECT id from machine_configuration;");
     } catch (const Exception& e) {
         delete queryResult;
         abortWithError(e.errorMessage());
@@ -1399,81 +1399,81 @@ DSDBManager::applicationCostEstimatesByConf(Order ordering) const {
     while (queryResult->hasNext()) {
         queryResult->next();
         for (unsigned int i = 0; i < appData.size(); i++) {
-	    ConfigurationCosts cc;
-	    cc.configurationID = queryResult->data(0).integerValue();
-	    cc.application = appData.at(i).name;
-	    RelationalDBQueryResult* impResult = NULL;
-	    
-	    try {
-	        impResult = dbConnection_->query(
-		    "select lpd, area from implementation, machine_configuration "
-		    "where machine_configuration.id=" + queryResult->data(0).stringValue() +
-		    " and machine_configuration.implementation = implementation.id limit 1;");
-	    } catch (const Exception& e) {
-	        delete impResult;
-	        abortWithError(e.errorMessage());
-	    }
-	    if (impResult->hasNext()) {
-	        impResult->next();
-		cc.longestPathDelay = impResult->data(0).doubleValue();
-		cc.area = impResult->data(1).doubleValue();
-	    } else {
-		cc.longestPathDelay = NULL;
-		cc.area = NULL;
-	    }
-	    RelationalDBQueryResult* energyResult = NULL;
-	    try {
-	        energyResult = dbConnection_->query(
-		    "select energy_estimate from energy_estimate, machine_configuration, application "
-		    "where application.id=" + appData[i].id + " and machine_configuration.id="
-		    + queryResult->data(0).stringValue() + " and machine_configuration.implementation="
-		    "energy_estimate.implementation and application.id=energy_estimate.application;");
-	     } catch (const Exception& e) {
-	         delete energyResult;
-		 abortWithError(e.errorMessage());
-	     }
-	     if (energyResult->hasNext()) {
-		 energyResult->next();
-		 cc.energyEstimate = energyResult->data(0).doubleValue();
-	     } else {
-	         cc.energyEstimate = NULL;
-	     }
-	     delete energyResult;
+            ConfigurationCosts cc;
+            cc.configurationID = queryResult->data(0).integerValue();
+            cc.application = appData.at(i).name;
+            RelationalDBQueryResult* impResult = NULL;
+            
+            try {
+                impResult = dbConnection_->query(
+                    "select lpd, area from implementation, machine_configuration "
+                    "where machine_configuration.id=" + queryResult->data(0).stringValue() +
+                    " and machine_configuration.implementation = implementation.id limit 1;");
+            } catch (const Exception& e) {
+                delete impResult;
+                abortWithError(e.errorMessage());
+            }
+            if (impResult->hasNext()) {
+                impResult->next();
+                cc.longestPathDelay = impResult->data(0).doubleValue();
+                cc.area = impResult->data(1).doubleValue();
+            } else {
+                cc.longestPathDelay = NULL;
+                cc.area = NULL;
+            }
+            RelationalDBQueryResult* energyResult = NULL;
+            try {
+                energyResult = dbConnection_->query(
+                    "select energy_estimate from energy_estimate, machine_configuration, application "
+                    "where application.id=" + appData[i].id + " and machine_configuration.id="
+                    + queryResult->data(0).stringValue() + " and machine_configuration.implementation="
+                    "energy_estimate.implementation and application.id=energy_estimate.application;");
+             } catch (const Exception& e) {
+                 delete energyResult;
+                 abortWithError(e.errorMessage());
+             }
+             if (energyResult->hasNext()) {
+                 energyResult->next();
+                 cc.energyEstimate = energyResult->data(0).doubleValue();
+             } else {
+                 cc.energyEstimate = NULL;
+             }
+             delete energyResult;
 
-	     RelationalDBQueryResult* cycleResult = NULL;
-	     try {
-	         cycleResult = dbConnection_->query(
-		     "select cycles from cycle_count, application, machine_configuration where application.id="
-	             + appData.at(i).id + " and machine_configuration.id=" + 
-	             queryResult->data(0).stringValue() +
-		     " and machine_configuration.architecture=cycle_count.architecture and application.id="
-		     "cycle_count.application;");
-	     } catch (const Exception& e) {
-	         delete cycleResult;
-		 abortWithError(e.errorMessage());
-	     }
-	     if (cycleResult->hasNext()) {
-	         cycleResult->next();
-		 cc.cycleCount = cycleResult->data(0).integerValue();
-	     } else {
-	         cc.cycleCount = NULL;
-	     }
-	     delete cycleResult;
-	    
-	     results.insert(cc);
- 	 }
+             RelationalDBQueryResult* cycleResult = NULL;
+             try {
+                 cycleResult = dbConnection_->query(
+                     "select cycles from cycle_count, application, machine_configuration where application.id="
+                     + appData.at(i).id + " and machine_configuration.id=" + 
+                     queryResult->data(0).stringValue() +
+                     " and machine_configuration.architecture=cycle_count.architecture and application.id="
+                     "cycle_count.application;");
+             } catch (const Exception& e) {
+                 delete cycleResult;
+                 abortWithError(e.errorMessage());
+             }
+             if (cycleResult->hasNext()) {
+                 cycleResult->next();
+                 cc.cycleCount = cycleResult->data(0).integerValue();
+             } else {
+                 cc.cycleCount = NULL;
+             }
+             delete cycleResult;
+            
+             results.insert(cc);
+         }
      }   
      delete queryResult;   
      if (ordering == ORDER_BY_CYCLE_COUNT) {
          set<ConfigurationCosts, cycleComparator> cycleResults;
          for (set<ConfigurationCosts, idComparator>::iterator i = results.begin(); i != results.end(); i++) {
-	     cycleResults.insert(*i);
-	 }
-	
+             cycleResults.insert(*i);
+         }
+        
          for (set<ConfigurationCosts, cycleComparator>::iterator i = cycleResults.begin(); i != cycleResults.end(); i++) {
-	     res.push_back(*i);
-	 }
- 	 return res;
+             res.push_back(*i);
+         }
+         return res;
     } else if (ordering == ORDER_BY_APPLICATION) {
         set<ConfigurationCosts, appComparator> appResults;
         for (set<ConfigurationCosts, idComparator>::iterator i = results.begin(); i != results.end(); i++) {
@@ -1492,7 +1492,7 @@ DSDBManager::applicationCostEstimatesByConf(Order ordering) const {
         }
     } else {
         for (set<ConfigurationCosts, idComparator>::iterator i = results.begin(); i != results.end(); i++) {
-	    res.push_back(*i);
+            res.push_back(*i);
         }
     }
    

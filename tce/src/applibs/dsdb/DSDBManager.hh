@@ -76,11 +76,10 @@ public:
         RowID implementationID;
     };
 
-   struct ApplicationData 
-     {
-	std::string id;
-	std::string name;
-     };
+    struct ApplicationData {
+        std::string id;
+        std::string name;
+    };
    
     /// Struct for configuration costs with a specified application
     struct ConfigurationCosts {
@@ -94,33 +93,31 @@ public:
    
     struct idComparator {
         bool operator()(ConfigurationCosts c1, ConfigurationCosts c2) const {
-	    if (c1.configurationID != c2.configurationID)
-	        return (c1.configurationID < c2.configurationID);
-	    // if the id's match then applications must differ
-	    return (c1.application < c2.application);
-	}
+            if (c1.configurationID != c2.configurationID)
+            return (c1.configurationID < c2.configurationID);
+            // if the id's match then applications must differ
+            return (c1.application < c2.application);
+        }
     };
    
-   struct cycleComparator {
-      bool operator()(ConfigurationCosts c1, ConfigurationCosts c2) const 
-	{
-	    if (c1.cycleCount == c2.cycleCount) {
+    struct cycleComparator {
+        bool operator()(ConfigurationCosts c1, ConfigurationCosts c2) const {
+            if (c1.cycleCount == c2.cycleCount) {
                 if (c1.configurationID != c2.configurationID) {
                     return (c1.configurationID < c2.configurationID);
                 } else {
                     return (c1.application < c2.application);
                 }
             }
-	    return (c1.cycleCount < c2.cycleCount);
-	} 
-      
+            return (c1.cycleCount < c2.cycleCount);
+        } 
     };
 
     struct energyComparator {
         bool operator()(ConfigurationCosts c1, ConfigurationCosts c2) const {
             if (c1.energyEstimate == c2.energyEstimate) {
                 if (c1.configurationID != c2.configurationID) {
-	            return (c1.configurationID < c2.configurationID);
+                    return (c1.configurationID < c2.configurationID);
                 } else {
                     return (c1.application < c2.application);
                 }

@@ -120,14 +120,14 @@ parseParameter(
  */
 void
 determineLongest(
-    const vector<DSDBManager::ConfigurationCosts>& confs, int& configurationID,
-    int& applicationPath, int& cycleCount, int& energyEstimate, int& longestPathDelay, 
+    const vector<DSDBManager::ConfigurationCosts>& confs, 
+    int& configurationID,
+    int& applicationPath, 
+    int& cycleCount, 
+    int& energyEstimate, 
+    int& longestPathDelay, 
     int& area) {
 
-  //  configurationID = 0;
-  //  applicationPath = 0;
-  //  cycleCount = 0;
-  //  energyEstimate = 0;
     for (unsigned int i = 0; i < confs.size(); i++) {
         int size = Conversion::toString(confs[i].configurationID).size();
         if (size > configurationID) {
@@ -145,21 +145,15 @@ determineLongest(
         if (size > energyEstimate) {
             energyEstimate = size;
         }
-       size = Conversion::toString(confs[i].longestPathDelay).size();
-       if (size > longestPathDelay) 
-	 {	    
-	    
-    	    longestPathDelay = size; 
-	    
-	 }
-            
-       size = Conversion::toString(confs[i].area).size(); 
-       if (size > area) 
-	 {
+        size = Conversion::toString(confs[i].longestPathDelay).size();
+        if (size > longestPathDelay) {          
+            longestPathDelay = size;
+        }
 
-	    area = size;                                                                                                                                                                          
-	 }
-            
+        size = Conversion::toString(confs[i].area).size(); 
+        if (size > area) {
+            area = size;                                                                                                                                                                          
+        }
     }
 }
 
@@ -488,19 +482,19 @@ int main(int argc, char* argv[]) {
                 energyLength - Conversion::toString(
                     confCosts[i].energyEstimate).size());
             cout << " | ";
-	    cout << confCosts[i].longestPathDelay;
-	    printSpaces(
-			lpdLength - Conversion::toString(
-			confCosts[i].longestPathDelay).size());
-	   cout << " | ";
-	   cout << confCosts[i].area;
-	   printSpaces(
-		       areaLength - Conversion::toString(
-		       confCosts[i].area).size());   
-	   cout << " |" << endl;
+            cout << confCosts[i].longestPathDelay;
+            printSpaces(
+                    lpdLength - Conversion::toString(
+                        confCosts[i].longestPathDelay).size());
+            cout << " | ";
+            cout << confCosts[i].area;
+            printSpaces(
+                    areaLength - Conversion::toString(
+                        confCosts[i].area).size());   
+            cout << " |" << endl;
         }
         cout <<  "-----------------------------------------------------------------------------------------"
-             << endl;
+            << endl;
     }
     
     // Prints the total amount of configurations in the database.

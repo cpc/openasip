@@ -243,7 +243,7 @@ private:
             delete mach;
             mach = NULL;
             // return the original conf
-	    return confToMinimize;
+            return confToMinimize;
         }
         
         // check if some apps maxCycles was exceeded
@@ -251,7 +251,7 @@ private:
             delete mach;
             mach = NULL;
             // return the original conf
-	    return confToMinimize;
+            return confToMinimize;
         }
          
         MachineResourceModifier modifier;
