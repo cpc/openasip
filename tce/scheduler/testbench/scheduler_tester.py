@@ -851,7 +851,7 @@ close $cycle_file
                 compileRule = "gcc-tce"
             
             command = ("cd src;" +
-                       makeCommand + 'clean;' +
+                       makeCommand + ' clean;' +
                        'SCHEDULER_TESTER_FLAGS="'  + extraFlags + '" ' +                       
                        makeCommand + " GCCLLVM=" + tceccExe + " " + compileRule)
             

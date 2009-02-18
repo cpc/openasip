@@ -167,11 +167,25 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     // to be expanded.
     const std::set<unsigned>* missingOps = tm.missingOperations();
     std::set<unsigned>::const_iterator iter = missingOps->begin();
+
+    std::cerr << "Missing ops: ";
+
     while (iter != missingOps->end()) {
-        unsigned nodetype = *iter;
-        setOperationAction(nodetype, MVT::i32, Expand);
-        iter++;
+      switch (*iter) {
+      case ISD::SDIV: std::cerr << "SDIV,"; break;
+      case ISD::UDIV: std::cerr << "UDIV,"; break;
+      case ISD::SREM: std::cerr << "SREM,"; break;
+      case ISD::UREM: std::cerr << "UREM,"; break;
+      case ISD::ROTL: std::cerr << "ROTL,"; break;
+      case ISD::ROTR: std::cerr << "ROTR,"; break;
+      case ISD::MUL:  std::cerr << "MUL,"; break;
+      default: std::cerr << *iter << ", "; break;
+      };
+      unsigned nodetype = *iter;
+      setOperationAction(nodetype, MVT::i32, Expand);
+      iter++;
     }
+    std::cerr << std::endl;
 
     computeRegisterProperties();
 }

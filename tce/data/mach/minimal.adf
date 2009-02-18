@@ -110,27 +110,6 @@
     </writes-to>
   </socket>
 
-  <socket name="mul_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="mul_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="mul_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
   <socket name="ext1_i1">
     <reads-from>
       <bus>B1</bus>
@@ -153,48 +132,6 @@
   </socket>
 
   <socket name="ext2_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
-  <socket name="divs_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="divs_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="divs_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
-  <socket name="divu_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="divu_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="divu_o1">
     <writes-to>
       <bus>B1</bus>
       <segment>seg1</segment>
@@ -626,44 +563,6 @@
     <address-space/>
   </function-unit>
 
-  <function-unit name="mul">
-    <port name="in1t">
-      <connects-to>mul_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>mul_i2</connects-to>
-      <width>32</width>
-    </port>
-    <port name="out1">
-      <connects-to>mul_o1</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>mul</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>1</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
   <function-unit name="ext1">
     <port name="in1t">
       <connects-to>ext1_i1</connects-to>
@@ -715,122 +614,6 @@
         </reads>
         <writes name="2">
           <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="divs">
-    <port name="in1t">
-      <connects-to>divs_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>divs_i2</connects-to>
-      <width>32</width>
-    </port>
-    <port name="out1">
-      <connects-to>divs_o1</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>div</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>6</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>mod</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>6</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="divu">
-    <port name="in1t">
-      <connects-to>divu_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>divu_i2</connects-to>
-      <width>32</width>
-    </port>
-    <port name="out1">
-      <connects-to>divu_o1</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>divu</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>6</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>modu</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>6</start-cycle>
           <cycles>1</cycles>
         </writes>
       </pipeline>

@@ -12,6 +12,6 @@ int main() {
   A1_Cr = (chroma_in0_32b>>16)&0x000000FF;      /* 0x23 = 35 */
 
 
-  _TCE_MUL(A1_Cb, A1_Cr, result);       /* 241*35 = 8435 = 0x20F3 */
+  _TCE_ADD(A1_Cb, A1_Cr, result);       /* 241*35 = 8435 = 0x20F3 */
   return result;
 }
