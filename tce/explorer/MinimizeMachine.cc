@@ -238,7 +238,6 @@ private:
         DSDBManager::MachineConfiguration startConf;
         startConf.architectureID = dsdb.addArchitecture(*mach);
         startConf.hasImplementation = false;
-        RowID startConfId = dsdb.addConfiguration(startConf);
         if (!explorer.evaluate(startConf, estimates, false)) {
             delete mach;
             mach = NULL;
@@ -418,7 +417,6 @@ private:
         DSDBManager::MachineConfiguration startConf;
         startConf.architectureID = dsdb.addArchitecture(*origMach);
         startConf.hasImplementation = false;
-        RowID startConfId = dsdb.addConfiguration(startConf);
 
         // evaluates the desing with all dsdb apps
         if (!explorer.evaluate(startConf, estimates, false)) {
@@ -547,7 +545,6 @@ private:
         DSDBManager::MachineConfiguration startConf;
         startConf.architectureID = dsdb.addArchitecture(*origMach);
         startConf.hasImplementation = false;
-        RowID startConfId = dsdb.addConfiguration(startConf);
         if (!explorer.evaluate(startConf, estimates, false)) {
             // can't evaluate the given configuration
             delete origMach;

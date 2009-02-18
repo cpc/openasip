@@ -116,7 +116,6 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
         DSDBManager::MachineConfiguration startConf;
         startConf.architectureID = dsdb.addArchitecture(*adf);
         startConf.hasImplementation = false;
-        RowID startConfId = dsdb.addConfiguration(startConf);
         try {
             bool estimate = false;
             if (!explorer.evaluate(startConf, estimates, estimate)) {
