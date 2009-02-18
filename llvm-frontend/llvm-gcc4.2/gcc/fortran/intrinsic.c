@@ -126,7 +126,7 @@ conv_name (gfc_typespec * from, gfc_typespec * to)
   sprintf (name, "__convert_%c%d_%c%d", gfc_type_letter (from->type),
 	   from->kind, gfc_type_letter (to->type), to->kind);
 
-  return gfc_get_string (name);
+  return gfc_get_string ("%s", name);
 }
 
 
@@ -249,11 +249,11 @@ add_sym (const char *name, int elemental, int actual_ok, bt type, int kind,
       break;
 
     case SZ_NOTHING:
-      next_sym->name = gfc_get_string (name);
+      next_sym->name = gfc_get_string ("%s", name);
 
       strcpy (buf, "_gfortran_");
       strcat (buf, name);
-      next_sym->lib_name = gfc_get_string (buf);
+      next_sym->lib_name = gfc_get_string ("%s", buf);
 
       next_sym->elemental = elemental;
       next_sym->actual_ok = actual_ok;
@@ -871,7 +871,7 @@ make_alias (const char *name, int standard)
 
     case SZ_NOTHING:
       next_sym[0] = next_sym[-1];
-      next_sym->name = gfc_get_string (name);
+      next_sym->name = gfc_get_string ("%s", name);
       next_sym++;
       break;
 

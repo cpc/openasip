@@ -40,6 +40,7 @@ tree iasm_addr (tree) ATTRIBUTE_WEAK;
 tree iasm_addr (tree e ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return NULL;
 }
 
 
@@ -49,6 +50,7 @@ tree iasm_build_bracket (tree v1 ATTRIBUTE_UNUSED,
 			 tree v2 ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return NULL;
 }
 
 
@@ -80,6 +82,7 @@ bool iasm_is_pseudo (const char *) ATTRIBUTE_WEAK;
 bool iasm_is_pseudo (const char *opcode ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return false;
 }
 
 
@@ -105,6 +108,7 @@ tree build_modify_expr (tree lhs ATTRIBUTE_UNUSED,
 			tree rhs ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return NULL;
 }
 
 
@@ -113,6 +117,7 @@ tree decl_constant_value (tree) ATTRIBUTE_WEAK;
 tree decl_constant_value (tree decl ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return NULL;
 }
 
 
@@ -122,6 +127,7 @@ tree build_function_call (tree function ATTRIBUTE_UNUSED,
 			  tree params ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return NULL;
 }
 
 
@@ -130,6 +136,7 @@ tree build_stmt (enum tree_code, ...) ATTRIBUTE_WEAK;
 tree build_stmt (enum tree_code code ATTRIBUTE_UNUSED, ...)
 {
   gcc_assert(0);
+  return NULL;
 }
 
 
@@ -138,6 +145,7 @@ tree lookup_name (tree) ATTRIBUTE_WEAK;
 tree lookup_name (tree name ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return NULL;
 }
 
 
@@ -148,6 +156,7 @@ tree pointer_int_sum (enum tree_code resultcode ATTRIBUTE_UNUSED,
 		      tree intop ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return NULL;
 }
 
 
@@ -168,6 +177,7 @@ cvt_utf8_utf16 (const unsigned char * inbuf ATTRIBUTE_UNUSED,
                 size_t * numUniChars ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return false;
 }
 
 tree create_init_utf16_var (const unsigned char *, size_t,
@@ -179,4 +189,5 @@ create_init_utf16_var (const unsigned char * inbuf  ATTRIBUTE_UNUSED,
                        size_t * numUniChars ATTRIBUTE_UNUSED)
 {
   gcc_assert(0);
+  return NULL;
 }
