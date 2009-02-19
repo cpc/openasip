@@ -1456,7 +1456,7 @@ DSDBManager::applicationCostEstimatesByConf(Order ordering) const {
                  cycleResult->next();
                  cc.cycleCount = cycleResult->data(0).integerValue();
              } else {
-                 cc.cycleCount = 0.0;
+                 cc.cycleCount = 0;
              }
              delete cycleResult;
             
