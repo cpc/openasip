@@ -984,6 +984,11 @@ BoostGraph<GraphNode, GraphEdge>::removeNode(
             nodeDescriptors_.erase(ndi);
         }
 
+        // removing a node invalidates path length data
+        height_ = -1;
+        sourceDistances_.clear();
+        sinkDistances_.clear();
+
         if (parentGraph_ != NULL && parentGraph_ != modifierGraph) {
             parentGraph_->removeNode(nodeToRemove, this);
         }
