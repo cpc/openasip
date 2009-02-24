@@ -106,8 +106,8 @@ BasicBlockScheduler::handleDDG(
 
 #ifdef DDG_SNAPSHOTS
     static int bbCounter = 0;
-    ddg_->writeToDotFile(
-        (boost::format("bb_%s_0_before_scheduling.dot") % ddg_->name()).str());
+    ddg.writeToDotFile(
+        (boost::format("bb_%s_0_before_scheduling.dot") % ddg.name()).str());
     Application::logStream() << "\nBB " << bbCounter << std::endl;
 #endif
     
@@ -161,12 +161,12 @@ BasicBlockScheduler::handleDDG(
         debugLog("All moves in the DDG didn't get scheduled.");
 //        debugLog("Disassembly of the situation:");
 //        Application::logStream() << bb.disassemble() << std::endl;
-        ddg_->writeToDotFile("failed_bb.dot");
+        ddg.writeToDotFile("failed_bb.dot");
         abortWithError("Should not happen!");
     }
 #ifdef DDG_SNAPSHOTS
-    ddg_->writeToDotFile(
-        (boost::format("bb_%s_0_after_scheduling.dot") % ddg_->name()).str());
+    ddg.writeToDotFile(
+        (boost::format("bb_%s_0_after_scheduling.dot") % ddg.name()).str());
     Application::logStream() << "\nBB " << bbCounter << std::endl;
     bbCounter++;
 #endif
