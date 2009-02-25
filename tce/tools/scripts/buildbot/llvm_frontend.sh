@@ -29,6 +29,10 @@ else
 	rm -rf build_dir
         mkdir build_dir
 fi
+
+export CXXFLAGS="-O2"
+export CFLAGS="-O2"
+
 autoreconf >& /dev/null
 cd build_dir
 ../configure --prefix=$LLVM_FRONTEND_DIR >& compile.log

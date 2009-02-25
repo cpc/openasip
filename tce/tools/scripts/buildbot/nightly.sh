@@ -65,7 +65,7 @@ function start_compiletest {
 
     autoreconf >& /dev/null
 
-    tools/scripts/compiletest.sh $@ >& test.log
+    tools/scripts/compiletest.sh -t $@ >& test.log
 
     ${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache
 }
