@@ -220,7 +220,8 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.address = 0;
         def.alignment = td->getPrefTypeAlignment(type);
         def.size = td->getTypeStoreSize(type);
-        assert(def.size != 0 && def.alignment != 0);
+        
+        assert(def.alignment != 0);
 
         if (isInitialized(initializer)) {
             def.initialize = true;
