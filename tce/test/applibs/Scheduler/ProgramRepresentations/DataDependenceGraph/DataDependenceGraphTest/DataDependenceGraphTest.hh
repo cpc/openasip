@@ -205,6 +205,19 @@ DataDependenceGraphTest::testProcedureDDG() {
                 sg2->removeNode(*mn1);
                 sg2->removeNode(*mn2);
 
+                // check rootGraphInEdges and rootGraphOutEdges
+                MoveNode& mn4 = sg->node(0);
+                MoveNode& mn5 = sg->node(2);
+
+                TS_ASSERT_EQUALS(
+                    sg->rootGraphInEdges(mn4), ddg->inEdges(mn4));
+                TS_ASSERT_EQUALS(
+                    sg->rootGraphOutEdges(mn4), ddg->outEdges(mn4));
+                TS_ASSERT_EQUALS(
+                    sg->rootGraphInEdges(mn5), ddg->inEdges(mn5));
+                TS_ASSERT_EQUALS(
+                    sg->rootGraphOutEdges(mn5), ddg->outEdges(mn5));
+
                 TS_ASSERT_EQUALS(sg2->nodeCount(), nodeCounts1[i]);
                 TS_ASSERT_EQUALS(sg->nodeCount(), nodeCounts1[i]);
                 TS_ASSERT_EQUALS(ddg->nodeCount(), 48);

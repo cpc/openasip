@@ -1,3 +1,22 @@
+1.0           2009-XX-XX
+========================
+
+Code optimizations
+--------------------------
+- Decreased scheduling time
+
+Code generator improvements
+----------------------------
+- Creates slightly faster emulation code for comparion operations 
+  which are missing from the machine.
+- Improved schedule for reduced connectivity machines.
+
+Bug fixes
+---------
+- Compiling simulator simulated some dag-specified operations incorrectly
+  and sometimes failed to generate code to some.
+- Fixed a bug which caused random scheduler failures.
+
 1.0-beta2     2008-11-13
 ========================
 

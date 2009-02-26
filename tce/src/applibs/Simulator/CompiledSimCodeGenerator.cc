@@ -831,7 +831,8 @@ CompiledSimCodeGenerator::handleOperationWithoutDag(
         if (op.port(i)->isOutput()) {
             string outputSymbol = symbolGen_.generateTempVariable();
             operandSymbols.push_back(outputSymbol);
-            ss << "SimValue " << outputSymbol << ";" << endl;
+            ss << "SimValue " << outputSymbol 
+               << "(" << op.port(i)->width() << ");" << endl;
         } else { // input port
             string inputSymbol = symbolGen_.portSymbol(*op.port(i));
             operandSymbols.push_back(inputSymbol);
@@ -1228,7 +1229,7 @@ CompiledSimCodeGenerator::generateTriggerCode(
         if (op.port(i)->isInput()) {
             operands.push_back(symbolGen_.portSymbol(*op.port(i)));
         } else {
-            operands.push_back("outputvalue");
+            operands.push_back(std::string("outputvalue")+Conversion::toString(i));
         }
     }
     
@@ -1240,26 +1241,39 @@ CompiledSimCodeGenerator::generateTriggerCode(
     }
     OperationDAG* dag = &operationPool_.operation(op.name().c_str()).dag(0);
     string simCode = OperationDAGConverter::createSimulationCode(*dag, &operands);
-        
-    // add output values as delayed assignments
-    while (simCode.find("outputvalue = ") != string::npos) {
-        std::size_t begin = simCode.find("outputvalue = ");
-        std::size_t end = simCode.find(";", begin);
-        simCode.erase(begin, end);
-    }
-    
+
     for (int i = 1, tmp=1; op.port(i) != NULL; ++i) {
         if (op.port(i)->isOutput()) {
+
+            std::string outValueStr;
+            // add output values as delayed assignments
+            std::string outputStr = std::string("outputvalue") + Conversion::toString(i);
+            size_t ovLen = outputStr.length() + 3;
+            while (simCode.find(outputStr+" = ") != string::npos) {
+                std::size_t begin = simCode.find(outputStr+" = ");
+                std::size_t end = simCode.find(";", begin);
+                outValueStr = simCode.substr(begin+ovLen,(end-begin-ovLen));
+                simCode.erase(begin, end);
+            }
+
+            if (outValueStr.empty()) {
+                std::string msg = "Machine has bound outport not used by op: ";
+                msg += op.name();
+                msg += " port index: ";
+                msg += Conversion::toString(i);
+                throw IllegalMachine(__FILE__,__LINE__,__func__,msg);
+            }
+
+            // generate new unique name for it
             string tempVariable = symbolGen_.generateTempVariable();
-            string ioSymbol = "tmp" + Conversion::toString(tmp);
-            
-            if (simCode.find(ioSymbol) == string::npos) {
+
+            if (simCode.find(outValueStr) == string::npos) {
                 continue;
             }
 
-            while (simCode.find(ioSymbol) != string::npos) {
-                string::iterator it = simCode.begin() + simCode.find(ioSymbol);
-                simCode.replace(it, it + ioSymbol.length(), tempVariable);
+            while(simCode.find(outValueStr) != string::npos) {
+                string::iterator it = simCode.begin() + simCode.find(outValueStr);
+                simCode.replace(it, it + outValueStr.length(), tempVariable);
             }
             
             simCode.append("\n" + generateAddFUResult(*op.port(i), 
@@ -1267,7 +1281,21 @@ CompiledSimCodeGenerator::generateTriggerCode(
             tmp++;
         } // end isOutput
     } // end for
-    
+
+    // fix the names of the tmp[n] values to unique ones so there can be 
+    // multiple in same BB.
+    while (simCode.find("SimValue tmp") != string::npos) {
+        std::size_t begin = simCode.find("SimValue tmp");
+        std::size_t end = simCode.find(";", begin);
+        std::string tmpName = simCode.substr(begin+9,(end-begin-9));
+        string tempVariable = symbolGen_.generateTempVariable();
+
+        while(simCode.find(tmpName) != string::npos) {
+            string::iterator it = simCode.begin() + simCode.find(tmpName);
+            simCode.replace(it,it + tmpName.length(), tempVariable);
+        }
+    }
+
     return simCode;
 }
 

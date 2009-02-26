@@ -494,6 +494,36 @@ DesignSpaceExplorer::loadExplorerPlugin(
 
 
 /**
+ * 
+ * Parses the plugin search directories and loads all available plugins
+ */
+std::vector<DesignSpaceExplorerPlugin*> DesignSpaceExplorer::getPlugins() {
+    
+    std::vector<DesignSpaceExplorerPlugin*> plugins;
+    vector<string> found_plugins;
+    vector<string> searchPaths = Environment::explorerPluginPaths();
+    for (vector<string>::const_iterator iter = searchPaths.begin();
+            iter != searchPaths.end(); iter++) {
+
+        if (FileSystem::fileExists(*iter)) {
+            FileSystem::findFromDirectory(".*\\.so$", *iter, found_plugins);
+        }
+    }
+    for (unsigned int i = 0; i < found_plugins.size(); ++i) {
+        std::string pluginName = FileSystem::fileNameBody(found_plugins[i]);
+        DesignSpaceExplorerPlugin* plugin = loadExplorerPlugin(pluginName, NULL);
+        if (!plugin) {
+            continue;
+        }
+        
+        plugins.push_back(plugin);
+    }
+    
+    return plugins;
+}
+
+
+/**
  * Selects components for a machine and creates a new configuration.
  * 
  * Also stores the new configuration to the dsdb and returns it's rowID.

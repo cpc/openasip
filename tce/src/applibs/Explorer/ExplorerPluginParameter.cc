@@ -27,7 +27,7 @@
  *
  * Implementation of ExplorerPluginParameter class.
  *
- * @author Esa M√§√§tt√§ 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Esa M‰‰tt‰ 2008 (esa.maatta-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -40,10 +40,10 @@
  * The constructor.
  */
 ExplorerPluginParameter::ExplorerPluginParameter(
-    std::string name, 
+    const std::string& name, 
     ExplorerPluginParameterType type,
     bool compulsory,
-    std::string value): 
+    const std::string& value): 
     name_(name), type_(type), compulsory_(compulsory), value_(value) {
 }
 

@@ -81,6 +81,8 @@ public:
     static DesignSpaceExplorerPlugin* loadExplorerPlugin(
         const std::string& pluginName, DSDBManager* dsdb = NULL)
         throw (FileNotFound, DynamicLibraryException);
+    
+    std::vector<DesignSpaceExplorerPlugin*> getPlugins();
 
     RowID createImplementationAndStore(
         const DSDBManager::MachineConfiguration& conf,

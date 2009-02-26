@@ -281,6 +281,9 @@ SYSTEMTEST_LONGLONG_DIR="systemtest_longlong"
 REAL_ST_DIR="../testsuite/systemtest"
 REAL_ST_LONG_DIR="../testsuite/systemtest_long"
 REAL_ST_LONGLONG_DIR="../testsuite/systemtest_longlong"
+TEST_DENBENCH_DIR="$SYSTEMTEST_LONGLONG_DIR/bintools/Compiler/DENBench"
+REAL_DENBENCH_DIR="$HOME/project/experimental/EEMBC/DENBench"
+
 UNITTEST_DIR="test"
 
 LOG_FILE="$LOG_DIR/compiletest.log"
@@ -326,21 +329,45 @@ currentLine=""
 
 firstDialog=yes
 
+DENBENCH_TESTDESC=$SYSTEMTEST_LONGLONG_DIR/bintools/Compiler/denbench_verification.testdesc
+
 function link_systemtest_dirs {
     if [ ! -h $SYSTEMTEST_DIR ]
     then
-      ln -s $REAL_ST_DIR $SYSTEMTEST_DIR
+      ln -sf $REAL_ST_DIR $SYSTEMTEST_DIR
     fi
 
     if [ ! -h $SYSTEMTEST_LONG_DIR ]
     then
-      ln -s $REAL_ST_LONG_DIR $SYSTEMTEST_LONG_DIR
+      ln -sf $REAL_ST_LONG_DIR $SYSTEMTEST_LONG_DIR
     fi
 
     if [ ! -h $SYSTEMTEST_LONGLONG_DIR ]
     then
-      ln -s $REAL_ST_LONGLONG_DIR $SYSTEMTEST_LONGLONG_DIR
+      ln -sf $REAL_ST_LONGLONG_DIR $SYSTEMTEST_LONGLONG_DIR
     fi
+		
+    # check if DENBench is available
+    if [ -e $REAL_DENBENCH_DIR ]
+    then
+      ln -sf $REAL_DENBENCH_DIR $TEST_DENBENCH_DIR
+      rm -f $DENBENCH_TESTDESC.disabled
+    else
+      touch $DENBENCH_TESTDESC.disabled
+    fi
+}
+
+# called after successfull compiletest
+# tags the revision as fully tested if compile, unit tests, short-, long- 
+# and longlong tests were succesfully
+function tag_fully_tested {
+  if [ "x$skipUnitTests" != "xyes" -a "x$skipCompileTest" != "xyes" -a "x$skipSystemTests" != "xyes" -a "x$quickTest" != "xyes" ]
+  then
+    if [ ! -e $DENBENCH_TESTDESC.disabled ]
+    then
+      bzr tag --force fully_tested
+    fi
+  fi
 }
 
 function debug_print {
@@ -970,7 +997,9 @@ function compile_test_with_all_compilers {
 "the last e-mail." $ERROR_MAIL_ADDRESS 
             fi
             echo -n 0 > $goodRunCountFile
-        fi        
+        fi   
+        # compiletest was succesfull, tag revision if all tests were ran
+        tag_fully_tested     
     fi
 
     rm -f $TEMP_FILE

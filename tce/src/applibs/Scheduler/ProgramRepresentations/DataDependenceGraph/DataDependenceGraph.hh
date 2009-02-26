@@ -88,7 +88,10 @@ public:
 
     using BoostGraph<MoveNode, DataDependenceEdge>::addNode;
 
-    int earliestCycle(const MoveNode& moveNode) const;
+    int earliestCycle(
+        const MoveNode& moveNode, 
+        bool ignoreUnscheduledPredecessors=false) const;
+
     int latestCycle(const MoveNode& moveNode) const;
     
     int smallestCycle() const;

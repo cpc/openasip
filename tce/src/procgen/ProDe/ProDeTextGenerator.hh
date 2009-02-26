@@ -102,6 +102,9 @@ public:
         TXT_RADIO_DIRECTION_OUTPUT,     ///< Label for output radio button.
 
         TXT_COLUMN_NAME,                ///< Label for name column in a list.
+        TXT_COLUMN_COMPULSORY,          ///< Label for compulsory column in a list.
+        TXT_COLUMN_VALUE,               ///< Label for value column in a list.
+        TXT_COLUMN_TYPE,                ///< Label for type column in a list.
         TXT_COLUMN_WIDTH,               ///< Label for width column in a list.
         TXT_COLUMN_MAU,                 ///< Label for MAU column in a list.
         TXT_COLUMN_BIT_WIDTH,           ///< Label for bit width column in a list.
@@ -196,6 +199,10 @@ public:
         TXT_ADDRESS_SPACE_MAX_ADDRESS,  ///< Label for Max-Address box.
 
         TXT_ADDRESS_SPACES_DIALOG_TITLE,///< Address spaces dialog title.
+        
+        TXT_CALL_EXPLORER_PLUGIN_TITLE, ///< Call Explorer plugin title.
+        
+        TXT_EDIT_PARAMETER_TITLE,             ///< Edit parameter title.
 
         TXT_SOCKET_DIALOG_TITLE,        ///< Socket dialog title.
         TXT_SOCKET_ATTACHED_BOX,        ///< Label for Attached buses box.

@@ -27,7 +27,8 @@
  * Declaration of MemoryContents class.
  *
  * @author Jussi Nyk√§nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J√§√§skel√§inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰kel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @note This file is used in compiled simulation. Keep dependencies *clean*
  * @note rating: red
  */
 
@@ -36,6 +37,7 @@
 
 #include "PagedArray.hh"
 #include "Memory.hh"
+
 
 /// Size of a memory chunk in MAUs.
 #define MEM_CHUNK_SIZE (1024)

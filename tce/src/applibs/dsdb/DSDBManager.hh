@@ -76,12 +76,62 @@ public:
         RowID implementationID;
     };
 
+    struct ApplicationData {
+        std::string id;
+        std::string name;
+    };
+   
     /// Struct for configuration costs with a specified application
     struct ConfigurationCosts {
         RowID configurationID;
         std::string application;
         double energyEstimate;
         ClockCycleCount cycleCount;
+        double longestPathDelay;
+        double area;
+    };
+   
+    struct idComparator {
+        bool operator()(ConfigurationCosts c1, ConfigurationCosts c2) const {
+            if (c1.configurationID != c2.configurationID)
+            return (c1.configurationID < c2.configurationID);
+            // if the id's match then applications must differ
+            return (c1.application < c2.application);
+        }
+    };
+   
+    struct cycleComparator {
+        bool operator()(ConfigurationCosts c1, ConfigurationCosts c2) const {
+            if (c1.cycleCount == c2.cycleCount) {
+                if (c1.configurationID != c2.configurationID) {
+                    return (c1.configurationID < c2.configurationID);
+                } else {
+                    return (c1.application < c2.application);
+                }
+            }
+            return (c1.cycleCount < c2.cycleCount);
+        } 
+    };
+
+    struct energyComparator {
+        bool operator()(ConfigurationCosts c1, ConfigurationCosts c2) const {
+            if (c1.energyEstimate == c2.energyEstimate) {
+                if (c1.configurationID != c2.configurationID) {
+                    return (c1.configurationID < c2.configurationID);
+                } else {
+                    return (c1.application < c2.application);
+                }
+            }
+            return (c1.energyEstimate < c2.energyEstimate);
+        }
+    };
+   
+    struct appComparator {
+        bool operator()(ConfigurationCosts c1, ConfigurationCosts c2) const {
+            if (c1.application == c2.application)
+                return (c1.configurationID < c2.configurationID);
+            return (c1.application < c2.application);
+        }
     };
 
     /// Identifiers for ordering results.

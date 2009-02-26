@@ -262,6 +262,8 @@ protected:
     mutable EdgeDescMap edgeDescriptors_;
     mutable NodeDescMap nodeDescriptors_;
 
+    void clearDescriptorCache(EdgeSet edges);
+
     // for subgraphs
     BoostGraph<GraphNode, GraphEdge>* parentGraph_;
     std::vector<BoostGraph<GraphNode,GraphEdge>*> childGraphs_;

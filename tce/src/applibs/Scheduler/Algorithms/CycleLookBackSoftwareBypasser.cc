@@ -145,9 +145,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
 
     // do no bypass from reg-reg moves - antidependencies not handled
     if (source.isSourceOperation() || source.isSourceConstant()) {
-#ifdef MOVE_BYPASSER
         int originalCycle = moveNode.cycle();
-#endif
         rm.unassign(moveNode);
         storedSources_.insert(
             std::pair<MoveNode*,MoveNode*>(&moveNode, &source));
@@ -162,7 +160,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
             ddgCycle = originalCycle;
 #endif
             int cycle = rm.earliestCycle(ddgCycle, moveNode);
-            if (cycle != -1) {
+            if (cycle != -1 && cycle <= originalCycle) {
                 rm.assign(cycle, moveNode);
                 if (!moveNode.isScheduled()){
                     throw InvalidData(

@@ -5,4 +5,4 @@
 #define _TCE_DIVU(i1, i2, o1) do { unsigned __tce_op_output_1 = (unsigned)0; asm volatile ("DIVU":"=r"( __tce_op_output_1):"ir"((unsigned)(i1)), "ir"((unsigned)(i2))); o1 = __tce_op_output_1;} while(0) 
 #define _TCE_ADDF(i1, i2, o1) do { float __tce_op_output_1 = (float)0; asm volatile ("ADDF":"=r"( __tce_op_output_1):"ir"((float)(i1)), "ir"((float)(i2))); o1 = __tce_op_output_1;} while(0) 
 #define _TCE_MULF(i1, i2, o1) do { float __tce_op_output_1 = (float)0; asm volatile ("MULF":"=r"( __tce_op_output_1):"ir"((float)(i1)), "ir"((float)(i2))); o1 = __tce_op_output_1;} while(0) 
-0x000020f3
+0x00000114

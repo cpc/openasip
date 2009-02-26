@@ -102,7 +102,7 @@ private:
     void scheduleOperation(MoveNodeGroup& moves)
         throw (Exception);
 
-    int scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
+    int scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
         throw (Exception);
 
     bool scheduleResultReads(MoveNodeGroup& moves)
@@ -122,6 +122,9 @@ private:
         throw (Exception);
 
     void unscheduleResultReadTempMoves(MoveNode& resultMove);
+
+    void notifyScheduled(
+        MoveNodeGroup& moves, MoveNodeSelector& selector);
 
     MoveNode* succeedingTempMove(MoveNode& current);
     

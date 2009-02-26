@@ -106,8 +106,8 @@ BasicBlockScheduler::handleDDG(
 
 #ifdef DDG_SNAPSHOTS
     static int bbCounter = 0;
-    ddg_->writeToDotFile(
-        (boost::format("bb_%s_0_before_scheduling.dot") % ddg_->name()).str());
+    ddg.writeToDotFile(
+        (boost::format("bb_%s_0_before_scheduling.dot") % ddg.name()).str());
     Application::logStream() << "\nBB " << bbCounter << std::endl;
 #endif
     
@@ -146,10 +146,9 @@ BasicBlockScheduler::handleDDG(
             throw ModuleRunTimeError(__FILE__, __LINE__, __func__, message);
         }
 
-        for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
-            MoveNode& moveNode = moves.node(moveIndex);
-            selector.notifyScheduled(moveNode);
-        }
+        // notifies successors of the scheduled moves.
+        notifyScheduled(moves, selector);
+
         moves = selector.candidates();
     }
 
@@ -162,12 +161,12 @@ BasicBlockScheduler::handleDDG(
         debugLog("All moves in the DDG didn't get scheduled.");
 //        debugLog("Disassembly of the situation:");
 //        Application::logStream() << bb.disassemble() << std::endl;
-        ddg_->writeToDotFile("failed_bb.dot");
+        ddg.writeToDotFile("failed_bb.dot");
         abortWithError("Should not happen!");
     }
 #ifdef DDG_SNAPSHOTS
-    ddg_->writeToDotFile(
-        (boost::format("bb_%s_0_after_scheduling.dot") % ddg_->name()).str());
+    ddg.writeToDotFile(
+        (boost::format("bb_%s_0_after_scheduling.dot") % ddg.name()).str());
     Application::logStream() << "\nBB " << bbCounter << std::endl;
     bbCounter++;
 #endif
@@ -402,17 +401,42 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
  * @return The cycle the earliest of the operands got scheduled 
  */
 int
-BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
+BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
     throw (Exception) {
 
+    const int EARLY_OPERAND_DIFFERENCE = 15;
+    
     int lastOperandCycle = 0;
     int earliestScheduledOperand = INT_MAX;
     int startCycle = 0;
     // Counts operands that are not scheduled at beginning.
     int unscheduledMoves = 0;
     MoveNode* trigger = NULL;
-    int minCycle = INT_MAX;
     MoveNode* firstToSchedule = NULL;
+
+    // find the movenode which has highest DDG->earliestCycle and limit
+    // the starting cycle of all operands close to that.
+    // this should prevent trying to schedule immediate writes very early
+    // and having lots of retries until the cycle has risen to the level of
+    // other moves.
+    // this might make SCHEDULING_WINDOW or SimpleBrokerDirector unnecessary / 
+    // allow groving it much smaller without scheduler slowdown.
+    for (int i = 0; i < moves.nodeCount(); i++) {
+        if (!moves.node(i).isDestinationOperation()) {
+            continue;
+        }
+        // count how many operand moves will need to be scheduled
+        unscheduledMoves++;
+
+        int limit = ddg_->earliestCycle(moves.node(i), true) - 
+            EARLY_OPERAND_DIFFERENCE;
+        if (limit < 0) {
+            limit = 0;
+        }
+        if (limit > cycle) {
+            cycle = limit;
+        }
+    }
 
     // Find and schedule moveNode which has highest "earliest Cycle"
     // other moveNodes could be scheduled in earlier cycle but this
@@ -424,11 +448,10 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
         if (!moves.node(i).isDestinationOperation()) {
             continue;
         }
-        // count how many operand moves will need to be scheduled
-        unscheduledMoves++;
 
         // Temporary moves needs to be scheduled so DDG can find
         // earliest cycle
+        // TODO: this should also have cycle limit?
         scheduleInputOperandTempMoves(moves.node(i));
         int earliestDDG = ddg_->earliestCycle(moves.node(i));
 
@@ -454,8 +477,9 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
             firstToSchedule = &moves.node(i);
         }
         unscheduleInputOperandTempMoves(moves.node(i));
+
         // Find also smallest of earliestCycles
-        minCycle = std::min(minCycle, earliest);
+        cycle = std::min(cycle, earliest);
     }
 
     int scheduledMoves = 0;
@@ -486,14 +510,13 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
              % moves.toString()).str());
     }
 
-    minCycle = std::max(minCycle, cycle);
     int counter = 0;
 
     // Loops till all moveNodes are scheduled or "timeouts"
     // remove timeout when software bypassing is tested and guaranteed to work
     // TODO: remove this kind of kludges. They just await for code that
     // breaks them.
-    while (unscheduledMoves != scheduledMoves && counter < 25) {
+    while (unscheduledMoves != scheduledMoves && counter < 2) {
         // try to schedule all input moveNodes, also find trigger
         for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
             MoveNode& moveNode = moves.node(moveIndex);
@@ -512,7 +535,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
             // in case the operand move requires register copies due to
             // missing connectivity, schedule them first
             scheduleInputOperandTempMoves(moveNode);            
-            scheduleMove(moveNode, minCycle);
+            scheduleMove(moveNode, cycle);
 
             if (moveNode.isScheduled()) {
                 lastOperandCycle =
@@ -542,7 +565,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
                 unscheduleInputOperandTempMoves(moveNode);
                 trigger = &moveNode;
                 scheduleInputOperandTempMoves(moveNode);
-                scheduleMove(moveNode, std::max(minCycle, lastOperandCycle));
+                scheduleMove(moveNode, std::max(cycle, lastOperandCycle));
                 if (!moveNode.isScheduled()) {
                     unscheduleInputOperandTempMoves(moveNode);
                 }
@@ -573,7 +596,7 @@ BasicBlockScheduler::scheduleOperandWrites(int cycle, MoveNodeGroup& moves)
             // every operand is scheduled, we can return quickly
             return earliestScheduledOperand;
         }
-        minCycle = std::max(minCycle, earliestScheduledOperand) + 1;
+        cycle = std::max(cycle, earliestScheduledOperand) + 1;
         counter++;
     }
     // If loop timeouts we get here
@@ -1163,3 +1186,29 @@ BasicBlockScheduler::deleteRM(SimpleResourceManager* rm, BasicBlock& bb) {
         delete rm;
     }
 }
+
+/**
+ * Notifies to the selector that given nodes and their temp reg copies are
+ * scheduled .
+ * 
+ * @param nodes nodes which are scheduled.
+ * @param selector selector which to notify.
+ */
+void BasicBlockScheduler::notifyScheduled(
+    MoveNodeGroup& moves, MoveNodeSelector& selector) {
+    
+    for (int moveIndex = 0; moveIndex < moves.nodeCount(); ++moveIndex) {
+        MoveNode& moveNode = moves.node(moveIndex);
+        selector.notifyScheduled(moveNode);
+        std::map<const MoveNode*, DataDependenceGraph::NodeSet >::
+            iterator tmIter = scheduledTempMoves_.find(&moveNode);
+        if (tmIter != scheduledTempMoves_.end()) {
+            DataDependenceGraph::NodeSet tempMoves = tmIter->second;
+            for (DataDependenceGraph::NodeSet::iterator i = 
+                     tempMoves.begin(); i != tempMoves.end(); i++) {
+                selector.notifyScheduled(**i);
+            }
+        }
+    }
+}
+

@@ -112,6 +112,8 @@ const string ProDeConstants::CMD_NAME_FULLY_CONNECT_BUSSES =
 const string ProDeConstants::CMD_NAME_VERIFY_MACHINE = "Verify Machine";
 const string ProDeConstants::CMD_NAME_IMPLEMENTATION =
     "Processor Implementation";
+    
+const string ProDeConstants::CMD_CALL_EXPLORER_PLUGIN = "Call Explorer Plugin";
 
 const string ProDeConstants::CMD_NAME_EDIT_OPTIONS = "Edit Options";
 const string ProDeConstants::CMD_NAME_LOAD_OPTIONS = "Load Options";
@@ -161,6 +163,7 @@ const string ProDeConstants::CMD_SNAME_EDIT_CONNECTIONS = "Connect";
 const string ProDeConstants::CMD_SNAME_FULLY_CONNECT_BUSSES = "Full IC";
 const string ProDeConstants::CMD_SNAME_VERIFY_MACHINE = "Verify";
 const string ProDeConstants::CMD_SNAME_IMPLEMENTATION = "Implement";
+const string ProDeConstants::CMD_SNAME_EXPLORER_PLUGIN = "Explorer";
 
 const string ProDeConstants::CMD_ICON_DEFAULT = "default.png";
 const string ProDeConstants::CMD_ICON_OPEN_DOC = "fileopen.png";
@@ -188,6 +191,7 @@ const string ProDeConstants::CMD_ICON_EDIT_CONNECTIONS =
 
 const string ProDeConstants::CMD_ICON_VERIFY_MACHINE = "verify_machine.png";
 const string ProDeConstants::CMD_ICON_IMPLEMENTATION = "default.png";
+const string ProDeConstants::CMD_ICON_EXPLORER_PLUGIN = "default.png";
 const string ProDeConstants::CMD_ICON_UNDO = "undo.png";
 const string ProDeConstants::CMD_ICON_REDO = "redo.png";
 const string ProDeConstants::CMD_ICON_COPY = "editcopy.png";

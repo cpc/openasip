@@ -440,7 +440,7 @@ BoostGraph<GraphNode, GraphEdge>::rootGraphInEdges(const GraphNode& node) const
     if (parentGraph_ == NULL) {
         return inEdges(node);
     } else {
-        return parentGraph_->rootGraphOutEdges(node);
+        return parentGraph_->rootGraphInEdges(node);
     }
 }
 
@@ -884,6 +884,18 @@ BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
     }
 }
 
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::clearDescriptorCache(EdgeSet edges) {
+    for (typename EdgeSet::iterator i = edges.begin(); 
+         i != edges.end(); ++i) {
+        typename EdgeDescMap::iterator iedi = edgeDescriptors_.find(*i);
+        if (iedi != edgeDescriptors_.end()) {
+            edgeDescriptors_.erase(iedi);
+        }
+    }
+}
+
 /**
  * Removes a node of the graph, without deleting the associated properties.
  *
@@ -897,24 +909,93 @@ BoostGraph<GraphNode, GraphEdge>::moveOutEdges(
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::removeNode(
-    GraphNode& node, BoostGraph* modifierGraph)
+    GraphNode& nodeToRemove, BoostGraph* modifierGraph)
     throw (InstanceNotFound) {
     
-    if (hasNode(node)) {
-        boost::clear_vertex(descriptor(node), graph_);
-      
-        boost::remove_vertex(descriptor(node), graph_);
-        // edge and node descriptors are invalidated when vertex is removed.
-        edgeDescriptors_.clear();
-        nodeDescriptors_.clear();
+    if (hasNode(nodeToRemove)) {
+        NodeDescriptor nd = descriptor(nodeToRemove);
+        
+        // remove edge cache
+        clearDescriptorCache(inEdges(nodeToRemove));
+        clearDescriptorCache(outEdges(nodeToRemove));
+
+        // clear all edges.
+        boost::clear_vertex(nd, graph_);
+
+        // Move last node to place of deleted node, then delete last node.
+        GraphNode& lastNode = node(nodeCount()-1);
+        NodeDescriptor lnd = descriptor(lastNode);
+        if (&nodeToRemove != &lastNode) {
+            
+            // move in edges from last node to place of deleted node.
+            EdgeSet iEdges = inEdges(lastNode);
+            for (typename EdgeSet::iterator i = iEdges.begin(); 
+                 i != iEdges.end(); ++i) {
+                Edge& e = **i;
+                const GraphNode& tail = tailNode(e);
+                boost::remove_edge(descriptor(e), graph_);
+                
+                typename EdgeDescMap::iterator
+                    edIter = edgeDescriptors_.find(&e);
+                if (edIter != edgeDescriptors_.end()) {
+                    edgeDescriptors_.erase(edIter);
+                }
+                
+                std::pair<EdgeDescriptor,bool> tmpPair = 
+                    boost::add_edge(
+                        descriptor(tail), nd, &e, graph_);
+                edgeDescriptors_[&e] = tmpPair.first;
+            }
+            
+            // move out edges. from last node to place of deleted node.
+            EdgeSet oEdges = outEdges(lastNode);
+            for (typename EdgeSet::iterator i = oEdges.begin(); 
+                 i != oEdges.end(); ++i) {
+                Edge& e = **i;
+                const GraphNode& head = headNode(e);
+                boost::remove_edge(descriptor(e), graph_);
+                
+                typename EdgeDescMap::iterator
+                    edIter = edgeDescriptors_.find(&e);
+                if (edIter != edgeDescriptors_.end()) {
+                    edgeDescriptors_.erase(edIter);
+                }
+                
+                std::pair<EdgeDescriptor,bool> tmpPair = 
+                    boost::add_edge(
+                        nd, descriptor(head), &e, graph_);
+                edgeDescriptors_[&e] = tmpPair.first;
+            }
+
+            // then move the Node class.
+            graph_[nd] = &lastNode;
+
+            // update descriptor map.
+            nodeDescriptors_[&lastNode] = nd;
+        }
+
+        // remove just the last node.
+        boost::remove_vertex(lnd, graph_);
+
+        // remove node from descriptor cache
+        typename NodeDescMap::iterator ndi = 
+            nodeDescriptors_.find(&nodeToRemove);
+        if (ndi != nodeDescriptors_.end()) {
+            nodeDescriptors_.erase(ndi);
+        }
+
+        // removing a node invalidates path length data
+        height_ = -1;
+        sourceDistances_.clear();
+        sinkDistances_.clear();
 
         if (parentGraph_ != NULL && parentGraph_ != modifierGraph) {
-            parentGraph_->removeNode(node, this);
+            parentGraph_->removeNode(nodeToRemove, this);
         }
         
         for (unsigned int i = 0; i < childGraphs_.size(); i++) {
             if (childGraphs_.at(i) != modifierGraph ) {
-                childGraphs_.at(i)->removeNode(node, this);
+                childGraphs_.at(i)->removeNode(nodeToRemove, this);
             }
         }
     } else {

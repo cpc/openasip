@@ -47,10 +47,10 @@ enum ExplorerPluginParameterType { INT, UINT, STRING, BOOL };
 class ExplorerPluginParameter {
 public:
     ExplorerPluginParameter(
-        std::string name, 
+        const std::string& name, 
         ExplorerPluginParameterType type,
         bool compulsory,
-        std::string value);
+        const std::string& value);
 
     virtual ~ExplorerPluginParameter();
 

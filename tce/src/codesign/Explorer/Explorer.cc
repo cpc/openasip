@@ -120,13 +120,14 @@ parseParameter(
  */
 void
 determineLongest(
-    const vector<DSDBManager::ConfigurationCosts>& confs, int& configurationID,
-    int& applicationPath, int& cycleCount, int& energyEstimate) {
+    const vector<DSDBManager::ConfigurationCosts>& confs, 
+    int& configurationID,
+    int& applicationPath, 
+    int& cycleCount, 
+    int& energyEstimate, 
+    int& longestPathDelay, 
+    int& area) {
 
-    configurationID = 0;
-    applicationPath = 0;
-    cycleCount = 0;
-    energyEstimate = 0;
     for (unsigned int i = 0; i < confs.size(); i++) {
         int size = Conversion::toString(confs[i].configurationID).size();
         if (size > configurationID) {
@@ -143,6 +144,15 @@ determineLongest(
         size = Conversion::toString(confs[i].energyEstimate).size();
         if (size > energyEstimate) {
             energyEstimate = size;
+        }
+        size = Conversion::toString(confs[i].longestPathDelay).size();
+        if (size > longestPathDelay) {          
+            longestPathDelay = size;
+        }
+
+        size = Conversion::toString(confs[i].area).size(); 
+        if (size > area) {
+            area = size;                                                                                                                                                                          
         }
     }
 }
@@ -435,20 +445,22 @@ int main(int argc, char* argv[]) {
     if (options.printSummary()) {
         DSDBManager::Order ordering = orderingOfData(options.summaryOrdering());
         cout << "Configurations in DSDB: " << endl;
-        int idLength = 0;
-        int pathLength = 0;
-        int cycleLength = 0;
-        int energyLength = 0;
-        cout << "| Conf ID | Application path | cycle count | energy estimate |"
+        int idLength = 7;
+        int pathLength = 16;
+        int cycleLength = 11;
+        int energyLength = 15;
+        int lpdLength = 18;
+        int areaLength = 4;
+        cout << "| Conf ID | Application path | cycle count | energy estimate | longest path delay | area "
              << endl;
-        cout << "--------------------------------------------------------------"
+        cout << "------------------------------------------------------------------------------------------"
              << endl;
         vector<DSDBManager::ConfigurationCosts> confCosts =
             dsdb->applicationCostEstimatesByConf(ordering);
         // Checks the longes strings of all data values that will be printed.
         // Values are used to create a clean output of the results.
         determineLongest(
-            confCosts, idLength, pathLength, cycleLength, energyLength);
+            confCosts, idLength, pathLength, cycleLength, energyLength, lpdLength, areaLength);
         for (unsigned int i = 0; i < confCosts.size(); i++) {
             cout << "| ";
             cout << confCosts[i].configurationID;
@@ -469,10 +481,20 @@ int main(int argc, char* argv[]) {
             printSpaces(
                 energyLength - Conversion::toString(
                     confCosts[i].energyEstimate).size());
+            cout << " | ";
+            cout << confCosts[i].longestPathDelay;
+            printSpaces(
+                    lpdLength - Conversion::toString(
+                        confCosts[i].longestPathDelay).size());
+            cout << " | ";
+            cout << confCosts[i].area;
+            printSpaces(
+                    areaLength - Conversion::toString(
+                        confCosts[i].area).size());   
             cout << " |" << endl;
         }
-        cout << "--------------------------------------------------------------"
-             << endl;
+        cout <<  "-----------------------------------------------------------------------------------------"
+            << endl;
     }
     
     // Prints the total amount of configurations in the database.
