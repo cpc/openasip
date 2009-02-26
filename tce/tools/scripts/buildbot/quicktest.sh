@@ -35,6 +35,9 @@ touch testsuite/systemtest_longlong/difference.txt
 # (those ENVs are defined in buildbot master.cfg)
 export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
 
+export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
+export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
+
 # run the tests
 cd tce
 tools/scripts/compiletest.sh -q >& test.log

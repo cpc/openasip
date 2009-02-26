@@ -37,6 +37,7 @@ useMutt=no
 findBreakingRev=no
 skipUnitTests=no
 installAfterCompile=no
+tagIfSuccess=no
 
 # These are used by the script to figure out how many successive compile test
 # runs have been executed successfully. After the given count of executions,
@@ -56,7 +57,7 @@ lastOkRevisionFile="${HOME}/tce_last_ok_revision_${BRANCH_NAME}"
 touch -a "${lastOkRevisionFile}"
 
 # Process command line arguments (from Advanced Bash-Scripting Guide).
-while getopts "vhngqckmbsui" Option
+while getopts "vhngqckmbsuit" Option
 do
     case $Option in
         v     ) 
@@ -103,6 +104,10 @@ do
 
         installAfterCompile=yes;;
 
+        t     )
+
+        tagIfSuccess=yes;;
+
         h     ) 
 
         echo "TCE Compile Test (c) 2003-2006 Pekka Jääskeläinen";
@@ -145,6 +150,12 @@ do
         echo "    progress.";
         echo
         echo "-i  Install tce after compile.";
+        echo 
+        echo "-t  Tag current revision as fully_tested if all (unit, short,";
+        echo "    long and longlong) tests pass."
+        echo "    Notice that you shouldn't use this if you have local";
+        echo "    uncommitted changes!";
+        echo 
 
         exit 0;;
 
@@ -998,8 +1009,11 @@ function compile_test_with_all_compilers {
             fi
             echo -n 0 > $goodRunCountFile
         fi   
-        # compiletest was succesfull, tag revision if all tests were ran
-        tag_fully_tested     
+        
+        if [ "x$tagIfSuccess" == "xyes" ]
+        then
+            tag_fully_tested
+        fi
     fi
 
     rm -f $TEMP_FILE

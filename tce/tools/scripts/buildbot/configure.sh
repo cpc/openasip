@@ -22,6 +22,8 @@
 # IN THE SOFTWARE.
 
 cd tce
+export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
+export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
 make clean >& /dev/null
 autoreconf >& reconf.log
 ./configure 1>> reconf.log 2>> reconf.log
