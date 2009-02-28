@@ -86,6 +86,18 @@ NullGuard::isEqual(const Guard&) const {
     return false;
 }
 
+/**
+ * Aborts the program with error message.
+ *
+ * @return Never returns.
+ */
+bool
+NullGuard::isOpposite(const Guard&) const {
+    abortWithError("NullGuard::isEqual");
+    return false;
+}
+
+
 
 /**
  * Aborts the program with error message.

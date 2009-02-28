@@ -235,6 +235,11 @@ private:
         std::map<TTAMachine::Socket*, 
         std::vector<SocketAllocation*> >& fixedSockets) const;
     
+    bool canDestinationBeAssigned(
+        SocketAllocation& alloc,
+        std::map<TTAMachine::Socket*, 
+        std::vector<SocketAllocation*> >& fixedSockets) const;
+
     void resolveSocketAllocations(
         std::vector<SocketAllocation>& allocs) const;
     

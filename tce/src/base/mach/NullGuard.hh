@@ -51,6 +51,7 @@ public:
     virtual bool isLessRestrictive(const Guard&) const;
     virtual bool isDisjoint(const Guard&) const;
 
+    virtual bool isOpposite(const Guard&) const;
     virtual ObjectState* saveState() const;
     virtual void loadState(const ObjectState*)
         throw (ObjectStateLoadingException);

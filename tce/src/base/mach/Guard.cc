@@ -272,6 +272,21 @@ PortGuard::isEqual(const Guard& guard) const {
     }
 }
 
+bool
+PortGuard::isOpposite(const Guard& guard) const { 
+    const PortGuard* portGuard = dynamic_cast<const PortGuard*>(&guard);
+    if (portGuard == NULL) {
+        return false;
+    } else {
+        if (port() == portGuard->port() &&
+            isInverted() != portGuard->isInverted()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
 
 /**
  * Saves the contents to an ObjectState object.
@@ -474,6 +489,23 @@ RegisterGuard::isEqual(const Guard& guard) const {
         if (registerFile() == regGuard->registerFile() &&
             registerIndex() == regGuard->registerIndex() &&
             isInverted() == regGuard->isInverted()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+bool
+RegisterGuard::isOpposite(const Guard& guard) const {
+    const RegisterGuard* regGuard =
+        dynamic_cast<const RegisterGuard*>(&guard);
+    if (regGuard == NULL) {
+        return false;
+    } else {
+        if (registerFile() == regGuard->registerFile() &&
+            registerIndex() == regGuard->registerIndex() &&
+            isInverted() != regGuard->isInverted()) {
             return true;
         } else {
             return false;

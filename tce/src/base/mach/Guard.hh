@@ -60,6 +60,7 @@ public:
     virtual bool isInverted() const;
     virtual bool isMoreRestrictive(const Guard& guard) const;
     virtual bool isLessRestrictive(const Guard& guard) const;
+    virtual bool isOpposite(const Guard& guard) const = 0;
     virtual bool isDisjoint(const Guard& guard) const;
 
     virtual ObjectState* saveState() const;
@@ -104,6 +105,8 @@ public:
     virtual ~PortGuard();
 
     bool isEqual(const Guard& guard) const;
+    bool isOpposite(const Guard& guard) const;
+
     FUPort* port() const;
 
     ObjectState* saveState() const;
@@ -144,6 +147,7 @@ public:
         throw (ObjectStateLoadingException);
     virtual ~RegisterGuard();
 
+    bool isOpposite(const Guard& guard) const;
     bool isEqual(const Guard& guard) const;
     RegisterFile* registerFile() const;
     int registerIndex() const;
@@ -182,6 +186,7 @@ public:
         throw (ObjectStateLoadingException);
     virtual ~UnconditionalGuard();
 
+    bool isOpposite(const Guard& guard) const { return false; }
     bool isEqual(const Guard& guard) const;
     ObjectState* saveState() const;
     void loadState(const ObjectState* state)
