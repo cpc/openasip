@@ -186,7 +186,7 @@ public:
         throw (ObjectStateLoadingException);
     virtual ~UnconditionalGuard();
 
-    bool isOpposite(const Guard& guard) const { return false; }
+    bool isOpposite(const Guard& /*guard*/) const { return false; }
     bool isEqual(const Guard& guard) const;
     ObjectState* saveState() const;
     void loadState(const ObjectState* state)

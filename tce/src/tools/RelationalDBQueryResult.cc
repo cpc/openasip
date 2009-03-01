@@ -143,7 +143,8 @@ RelationalDBQueryResult::next() {
  * Binds int type variable to a prepared sql statement.
  */
 void
-RelationalDBQueryResult::bindInt(unsigned int position, int value) {
+RelationalDBQueryResult::bindInt(
+    unsigned int /*position*/, int /*value*/) {
     return;
 }
 
@@ -151,7 +152,8 @@ RelationalDBQueryResult::bindInt(unsigned int position, int value) {
  * Binds string type variable to a prepared sql statement.
  */
 void
-RelationalDBQueryResult::bindString(unsigned int position, const std::string& value) {
+RelationalDBQueryResult::bindString(
+    unsigned int /*position*/, const std::string& /*value*/) {
     return;
 }
 
