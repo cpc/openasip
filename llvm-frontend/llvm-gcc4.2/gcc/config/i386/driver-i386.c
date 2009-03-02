@@ -26,6 +26,8 @@ Boston, MA 02110-1301, USA.  */
 
 const char *host_detect_local_cpu (int argc, const char **argv);
 
+/* LLVM LOCAL fix bootstrap failure on ppc host */
+#if defined(__i386__) || defined(__x86_64__)
 #ifdef GCC_VERSION
 #define cpuid(num,a,b,c,d) \
   asm volatile ("xchgl %%ebx, %1; cpuid; xchgl %%ebx, %1" \
@@ -298,3 +300,6 @@ const char *host_detect_local_cpu (int argc, const char **argv)
   return concat ("-m", argv[0], "=", cpu, NULL);
 }
 #endif /* GCC_VERSION */
+/* LLVM LOCAL fix bootstrap failure on ppc host */
+#endif 
+

@@ -43,7 +43,7 @@ namespace llvm {
      * Initializes some directice strings etc.
      */
     struct TCETargetAsmInfo : public TargetAsmInfo {
-        TCETargetAsmInfo(const TCETargetMachine& tm);
+        TCETargetAsmInfo(const TargetMachine& tm);
     };
 }
 

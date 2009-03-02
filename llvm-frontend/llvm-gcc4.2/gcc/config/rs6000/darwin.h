@@ -113,8 +113,6 @@
   %{static: %{Zdynamic: %e conflicting code gen style switches are used}}\
   "/* APPLE LOCAL ARM 5683689 */"\
   %{!mmacosx-version-min=*: %{!miphoneos-version-min=*: %(darwin_cc1_minversion)}} \
-  "/* APPLE LOCAL enable format security warnings */"\
-  %{!Wno-format:-Wformat -Wformat-security} \
   "/* APPLE LOCAL -fast or -fastf or -fastcp */"\
   %{!mkernel:%{!static:%{!fast:%{!fastf:%{!fastcp:%{!mdynamic-no-pic:-fPIC}}}}}}"
 

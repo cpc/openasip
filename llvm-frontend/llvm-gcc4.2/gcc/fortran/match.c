@@ -212,7 +212,7 @@ gfc_match_small_int (int *value)
 
   if (p != NULL)
     {
-      gfc_error (p);
+      gfc_error ("%s", p);
       m = MATCH_ERROR;
     }
 

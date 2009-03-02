@@ -1,3 +1,14 @@
+ # APPLE LOCAL begin mainline radar 6194879
+2007-08-22  Jason Merrill  <jason@redhat.com>
+
+	PR c++/29365
+	* pt.c (outermost_tinst_level): New function.
+	* lex.c (in_main_input_context): New function.
+	* cp-tree.h: Declare it.
+	* decl2.c (constrain_class_visibility): Use it to avoid warning
+	about uses of the anonymous namespace in the main input file.
+	
+ # APPLE LOCAL end mainline radar 6194879
  # APPLE LOCAL begin for-fsf-4_4 3274130 5295549
 2007-08-03  Geoffrey Keating  <geoffk@apple.com>
 

@@ -519,11 +519,22 @@ mark_interesting_type (tree type, enum escape_t escape_status)
 /* Return true if PARENT is supertype of CHILD.  Both types must be
    known to be structures or unions. */
  
+/* APPLE LOCAL begin 6107012 */
+static struct pointer_set_t GTY(()) *parent_type_p_pset;
+/* APPLE LOCAL end 6107012 */
+
 static bool
 parent_type_p (tree parent, tree child)
 {
   int i;
   tree binfo, base_binfo;
+
+  /* APPLE LOCAL begin 6107012 */
+  /* Don't walk the same tree twice.  */
+  if (parent_type_p_pset && pointer_set_insert (parent_type_p_pset, parent))
+    return false;
+  /* APPLE LOCAL end 6107012 */
+
   if (TYPE_BINFO (parent)) 
     for (binfo = TYPE_BINFO (parent), i = 0;
 	 BINFO_BASE_ITERATE (binfo, i, base_binfo); i++)
@@ -643,8 +654,18 @@ check_cast_type (tree to_type, tree from_type)
   if (to_type == from_type)
     return CT_USELESS;
 
+  /* APPLE LOCAL 6107012 */
+  parent_type_p_pset = pointer_set_create ();
   if (parent_type_p (to_type, from_type)) return CT_UP;
+  /* APPLE LOCAL begin 6107012 */
+  pointer_set_destroy (parent_type_p_pset);
+  parent_type_p_pset = pointer_set_create ();
+  /* APPLE LOCAL end 6107012 */
   if (parent_type_p (from_type, to_type)) return CT_DOWN;
+  /* APPLE LOCAL begin 6107012 */
+  pointer_set_destroy (parent_type_p_pset);
+  parent_type_p_pset = (struct pointer_set_t *)0;
+  /* APPLE LOCAL end 6107012 */
   return CT_SIDEWAYS;
 }     
 

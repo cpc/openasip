@@ -180,7 +180,7 @@ pop_gimplify_context (tree body)
 #ifndef ENABLE_LLVM
   /* LLVM wants to know about gimple formal temps. */
   for (t = c->temps; t ; t = TREE_CHAIN (t))
-        DECL_GIMPLE_FORMAL_TEMP_P (t) = 0;
+    DECL_GIMPLE_FORMAL_TEMP_P (t) = 0;
 #else
   t = 0; 
 #endif
@@ -1148,8 +1148,9 @@ gimplify_return_expr (tree stmt, tree *pre_p)
   tree result_decl, result;
 
   if (!ret_expr || TREE_CODE (ret_expr) == RESULT_DECL
-      /* APPLE LOCAL radar 6040305 - blocks */
-      || ret_expr == error_mark_node || cur_block)
+      /* APPLE LOCAL radar 6261552 */
+      /* code to check for cur_block is removed. */
+      || ret_expr == error_mark_node)
     return GS_ALL_DONE;
 
   if (VOID_TYPE_P (TREE_TYPE (TREE_TYPE (current_function_decl))))
@@ -3095,6 +3096,7 @@ gimplify_init_constructor (tree *expr_p, tree *pre_p,
 		gimple_add_tmp_var (new);
 		TREE_STATIC (new) = 1;
 		TREE_READONLY (new) = 1;
+		DECL_LLVM_PRIVATE (new) = 1;
 		DECL_INITIAL (new) = ctor;
 		if (align > DECL_ALIGN (new))
 		  {

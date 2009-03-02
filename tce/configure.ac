@@ -450,11 +450,14 @@ case "$LLVM_VERSION" in
      2.4)
      AC_DEFINE([LLVM_2_4], [], "Using LLVM v2.4")
    ;;
+     2.5)
+     AC_DEFINE([LLVM_2_5], [], "Using LLVM v2.5")
+   ;;
    
      *)
    AC_MSG_NOTICE(
    [
-Unsupported LLVM version. Only LLVM version 2.4 is supported.
+Unsupported LLVM version. Only LLVM version 2.4 and 2.5 are supported.
    ])
    LLVM_VERSION=
    ;;
@@ -1280,6 +1283,8 @@ AC_CONFIG_FILES([
   src/ext/llvm/Makefile
   src/ext/llvm/2.4/Makefile
   src/ext/llvm/2.4/TableGen/Makefile 
+  src/ext/llvm/2.5/Makefile
+  src/ext/llvm/2.5/TableGen/Makefile 
   src/applibs/LLVMBackend/Makefile
   src/applibs/LLVMBackend/passes/Makefile
   src/bintools/Compiler/Makefile

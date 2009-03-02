@@ -22,13 +22,12 @@ fi
 # Next, see if we have previously been configured by sensing the presense
 # of the config.status scripts
 config_status="$build_dir/config.status"
-if test ! -d "$config_status" -o "$config_status" -ot "$0" ; then
+if test ! -f "$config_status" -o "$config_status" -ot "$0" ; then
   # We must configure so build a list of configure options
-  config_options="--prefix=$PREFIX --enable-llvm=$LLVM_TOP/llvm "
+  config_options="--prefix=$PREFIX --enable-llvm=$LLVM_TOP/build.llvm "
   config_options="$config_options --program-prefix=llvm-"
   config_options="$config_options --enable-languages=c,c++"
   config_options="$config_options --disable-bootstrap"
-  config_options="$config_options --with-gxx-include-dir=/proj/install/include/c++/4.2.1"
   if test "$OPTIMIZED" -eq 0 ; then
     config_options="$config_options --enable-checking"
   fi
@@ -39,7 +38,15 @@ if test ! -d "$config_status" -o "$config_status" -ot "$0" ; then
   config_options="$config_options $config_opts"
   src_dir=`pwd`
   cd "$build_dir"
-  echo $src_dir/configure $config_options
-  $src_dir/configure $config_options
+  msg 0 Configuring $module with:
+  msg 0 "  $src_dir/configure $config_options"
+  $src_dir/configure $config_options || \
+    die $? "Configuring $module module failed"
+else
+  msg 0 Module $module already configured, ignoring configure options.
+  cd "$build_dir"
 fi
+
+msg 0 Building $module with:
+msg 0 "  make"
 make

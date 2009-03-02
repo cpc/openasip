@@ -370,6 +370,5 @@ def : Pat<(f32 (load ADDRrr:$addr)),
 def : Pat<(f32 (load ADDRri:$addr)),
           (MOVIF32rr (LDWr ADDRri:$addr))>;
 
-
 //def SELECTINT : Pat<(select I1Regs:$which, I32Regs:$src1, I32Regs:$src2),
 //          (CMOV I1Regs:$which, (MOV GR:$src2), GR:$src1)>; // note order!

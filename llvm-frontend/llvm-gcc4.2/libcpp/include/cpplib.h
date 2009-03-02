@@ -184,6 +184,10 @@ struct cpp_string GTY(())
 #define BOL		(1 << 6) /* Token at beginning of line.  */
 #define PURE_ZERO	(1 << 7) /* Single 0 digit, used by the C++ frontend,
 				    set in c-lex.c.  */
+/* APPLE LOCAL begin CW asm blocks C++ comments 6338079 */
+#define ERROR_DEFERRED  PURE_ZERO/* Set when an invalid suffix error is
+				    deferred out of cpp.  */
+/* APPLE LOCAL end CW asm blocks C++ comments 6338079 */
 
 /* Specify which field, if any, of the cpp_token union is used.  */
 
@@ -859,10 +863,13 @@ struct cpp_num
 #define CPP_N_UNSIGNED	0x1000	/* Properties.  */
 #define CPP_N_IMAGINARY	0x2000
 #define CPP_N_DFLOAT	0x4000
+/* APPLE LOCAL CW asm blocks C++ comments 6338079 */
+#define CPP_N_DEFER	0x8000
 
 /* Classify a CPP_NUMBER token.  The return value is a combination of
    the flags from the above sets.  */
-extern unsigned cpp_classify_number (cpp_reader *, const cpp_token *);
+/* APPLE LOCAL CW asm blocks C++ comments 6338079 */
+extern unsigned cpp_classify_number (cpp_reader *, const cpp_token *, int);
 
 /* Evaluate a token classified as category CPP_N_INTEGER.  */
 extern cpp_num cpp_interpret_integer (cpp_reader *, const cpp_token *,

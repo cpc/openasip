@@ -101,7 +101,8 @@ extern enum cpp_ttype pragma_lex (tree *);
 extern const struct cpp_token *c_lex_peek (int);
 extern void c_lex_prepend (const struct cpp_token *, int);
 /* APPLE LOCAL end AltiVec */
-extern enum cpp_ttype c_lex_with_flags (tree *, location_t *, unsigned char *);
+/* APPLE LOCAL CW asm blocks C++ comments 6338079 */
+extern enum cpp_ttype c_lex_with_flags (tree *, location_t *, unsigned char *, int);
 
 /* If 1, then lex strings into the execution character set.
    If 0, lex strings into the host character set.

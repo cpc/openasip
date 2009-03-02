@@ -14,7 +14,7 @@ class InstTCE<dag outOps, dag inOps, string asmstr,
     dag OutOperandList = outOps;
     let AsmString = asmstr;
     let Pattern = pattern;
-}
+ }
 
 class Pseudo<dag outOps, dag inOps,
              string asmstr, list<dag> pattern>

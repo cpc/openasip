@@ -28,6 +28,12 @@ Boston, MA 02110-1301, USA.  */
 #undef  DARWIN_SUBARCH_SPEC
 #define DARWIN_SUBARCH_SPEC DARWIN_ARCH_SPEC
 
+/* APPLE LOCAL begin kext 6400713 */
+#undef ASM_SPEC
+#define ASM_SPEC "-arch %(darwin_arch) -force_cpusubtype_ALL \
+  %{mkernel|static|fapple-kext:%{m32:-static}}"
+/* APPLE LOCAL end kext 6400713 */
+
 #undef SUBTARGET_EXTRA_SPECS
 #define SUBTARGET_EXTRA_SPECS                                   \
   /* APPLE LOCAL 6015949 */					\

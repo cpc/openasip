@@ -46,6 +46,7 @@ extern void machopic_asm_out_constructor (rtx, int);
 extern void machopic_asm_out_destructor (rtx, int);
 /* APPLE LOCAL ARM pic support */
 extern int machopic_data_defined_p (rtx sym_ref);
+extern int indirect_data (rtx sym_ref);
 #endif /* RTX_CODE */
 
 #ifdef TREE_CODE

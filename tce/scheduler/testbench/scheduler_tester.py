@@ -146,7 +146,7 @@ worsenedIsErrorLimit = None
 extraCompileFlags = ""
 recompile = False
 makeCommand = "SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS=" + \
-              rootDir + "/compile_sources.make" + " make -s"
+              rootDir + "/compile_sources.make" + " make -s "
 
 # List of architectures given in command line.
 cmdLineArchitectures = []
@@ -592,6 +592,7 @@ class TestCase:
         return True
 
     def schedule(self, archFilename, seqProgFileName, dstProgFileName):
+        global extraCompileFlags
 
         if not useLLVM:
             schedulingCommand = schedulerExe + \
@@ -600,7 +601,7 @@ class TestCase:
                             " -a " + archFilename + \
                             " " + seqProgFileName
         else:
-            schedulingCommand = tceccExe + ' '
+            schedulingCommand = tceccExe + ' ' + extraCompileFlags + ' '
             if (leaveDirty):
                 schedulingCommand += '-d '
             

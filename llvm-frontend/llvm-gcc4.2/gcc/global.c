@@ -2726,8 +2726,12 @@ dump_global_regs (FILE *file)
       if (!REG_P (regno_reg_rtx[i]))
 	fprintf (file, "pseudo %d: ", i);
       print_inline_rtx (file, regno_reg_rtx[i], 0);
+/* LLVM LOCAL begin */
+#ifdef REWRITE_WEIGHT_COMPUTATION
       if (reg_renumber[i] > -1)
 	fprintf (file, " w=" HOST_WIDE_INT_PRINT_DEC, local_reg_weight[reg_renumber[i]]);
+#endif
+/* LLVM LOCAL end */
       fprintf (file, "\n");
     }
   /* APPLE LOCAL end 5695218 */

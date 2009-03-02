@@ -37,6 +37,7 @@
 #include "TCEInstrInfo.hh"
 #include "TCEAsmPrinter.hh"
 #include "TCETargetMachine.hh"
+#include "TCETargetLowering.hh"
 
 using namespace llvm;
 
@@ -49,6 +50,8 @@ public:
     virtual ~GeneratedTCEPlugin();
     virtual const TargetInstrInfo* getInstrInfo() const;
     virtual const TargetRegisterInfo* getRegisterInfo() const;
+    virtual TargetLowering* getTargetLowering() const;
+
     virtual FunctionPass* createISelPass(TCETargetMachine* tm);
     virtual FunctionPass* createAsmPrinterPass(
         llvm::raw_ostream& o, TCETargetMachine* tm);
@@ -76,6 +79,8 @@ public:
     virtual bool hasROTL() const;
     virtual bool hasROTR() const;
 
+    virtual void registerTargetMachine(TCETargetMachine &tm);
+
 private:
     void initialize();
     
@@ -93,10 +98,10 @@ private:
 /**
  * The Constructor.
  */
-GeneratedTCEPlugin::GeneratedTCEPlugin(): TCETargetMachinePlugin() {
+GeneratedTCEPlugin::GeneratedTCEPlugin() : 
+    TCETargetMachinePlugin() {
 
    instrInfo_ = new TCEInstrInfo();
-
    // Initialize register & opcode maps.
    initialize();
 }
@@ -107,8 +112,19 @@ GeneratedTCEPlugin::GeneratedTCEPlugin(): TCETargetMachinePlugin() {
  */
 GeneratedTCEPlugin::~GeneratedTCEPlugin() {
    delete instrInfo_;
+   if (lowering_ != NULL) {
+       delete lowering_;
+       lowering_ = NULL;
+   }
 }
 
+void 
+GeneratedTCEPlugin::registerTargetMachine(TCETargetMachine &tm) {
+    tm_ = &tm;
+    if (lowering_ == NULL) {
+        lowering_ = new TCETargetLowering(*tm_);
+    }
+}
 
 /**
  * Returns TargetInstrInfo object for TCE target.
@@ -124,6 +140,15 @@ GeneratedTCEPlugin::getInstrInfo() const {
 const TargetRegisterInfo*
 GeneratedTCEPlugin::getRegisterInfo() const {
     return &(dynamic_cast<TCEInstrInfo*>(instrInfo_))->getRegisterInfo();
+}
+
+/**
+ * Returns TargetLowering object for TCE target.
+ */
+TargetLowering* 
+GeneratedTCEPlugin::getTargetLowering() const { 
+    assert(lowering_ != NULL && "TCETargetMachine has not registered to plugin.");
+    return lowering_;
 }
 
 /**

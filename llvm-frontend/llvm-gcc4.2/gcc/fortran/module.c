@@ -716,9 +716,9 @@ find_true_name (const char *name, const char *module)
   gfc_symbol sym;
   int c;
 
-  sym.name = gfc_get_string (name);
+  sym.name = gfc_get_string ("%s", name);
   if (module != NULL)
-    sym.module = gfc_get_string (module);
+    sym.module = gfc_get_string ("%s", module);
   else
     sym.module = NULL;
   t.sym = &sym;
@@ -1404,7 +1404,7 @@ mio_pool_string (const char **stringp)
   else
     {
       require_atom (ATOM_STRING);
-      *stringp = atom_string[0] == '\0' ? NULL : gfc_get_string (atom_string);
+      *stringp = atom_string[0] == '\0' ? NULL : gfc_get_string ("%s", atom_string);
       gfc_free (atom_string);
     }
 }
@@ -2617,7 +2617,7 @@ mio_expr (gfc_expr ** ep)
       else
 	{
 	  require_atom (ATOM_STRING);
-	  e->value.function.name = gfc_get_string (atom_string);
+	  e->value.function.name = gfc_get_string ("%s", atom_string);
 	  gfc_free (atom_string);
 
 	  mio_integer (&flag);
@@ -3198,7 +3198,7 @@ load_needed (pointer_info * p)
 	}
 
       sym = gfc_new_symbol (p->u.rsym.true_name, ns);
-      sym->module = gfc_get_string (p->u.rsym.module);
+      sym->module = gfc_get_string ("%s", p->u.rsym.module);
 
       associate_integer_pointer (p, sym);
     }
@@ -3420,7 +3420,7 @@ read_module (void)
 		      gfc_new_symbol (info->u.rsym.true_name,
 				      gfc_current_ns);
 
-		  sym->module = gfc_get_string (info->u.rsym.module);
+		  sym->module = gfc_get_string ("%s", info->u.rsym.module);
 		}
 
 	      st->n.sym = sym;
@@ -3656,7 +3656,7 @@ write_symbol0 (gfc_symtree * st)
 
   sym = st->n.sym;
   if (sym->module == NULL)
-    sym->module = gfc_get_string (module_name);
+    sym->module = gfc_get_string ("%s", module_name);
 
   if (sym->attr.flavor == FL_PROCEDURE && sym->attr.generic
       && !sym->attr.subroutine && !sym->attr.function)
@@ -3735,7 +3735,7 @@ write_generic (gfc_symbol * sym)
     return;
 
   if (sym->module == NULL)
-    sym->module = gfc_get_string (module_name);
+    sym->module = gfc_get_string ("%s", module_name);
 
   mio_symbol_interface (&sym->name, &sym->module, &sym->generic);
 }

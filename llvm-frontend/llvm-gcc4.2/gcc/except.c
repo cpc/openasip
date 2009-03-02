@@ -4079,13 +4079,24 @@ default_init_unwind_resume_libfunc (void)
   /* The default c++ routines aren't actually c++ specific, so use those.  */
   /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
-  llvm_unwind_resume_libfunc = llvm_init_one_libfunc ( USING_SJLJ_EXCEPTIONS ?
-                                               "_Unwind_SjLj_Resume"
+  /* Create the decl with build_decl instead of using llvm_init_one_libfunc
+     so that we can specify an argument type instead of just using '...'.
+     '...' is functionally correct, but more work for codegen to handle,
+     and even requires additional instructions on some targets. */
+  const char *name = USING_SJLJ_EXCEPTIONS ?
+                       "_Unwind_SjLj_Resume"
 #ifdef LLVM_STACKSENSITIVE_UNWIND_RESUME
-                                               : "_Unwind_Resume_or_Rethrow");
+                       : "_Unwind_Resume_or_Rethrow";
 #else
-                                               : "_Unwind_Resume");
+                       : "_Unwind_Resume";
 #endif
+  tree decl = build_decl (FUNCTION_DECL, get_identifier (name),
+                          build_function_type_list (void_type_node,
+                                                    ptr_type_node, NULL_TREE));
+  DECL_ARTIFICIAL (decl) = 1;
+  DECL_EXTERNAL (decl) = 1;
+  TREE_PUBLIC (decl) = 1;
+  llvm_unwind_resume_libfunc = decl;
 #else
   unwind_resume_libfunc =
     init_one_libfunc ( USING_SJLJ_EXCEPTIONS ? "_Unwind_SjLj_Resume"

@@ -287,6 +287,8 @@ Objective-C and Objective-C++ Dialects}.
 -Wno-format-extra-args -Wformat-nonliteral @gol
 @c APPLE LOCAL default to Wformat-security 5764921
 -Wno-format-security  -Wformat-y2k @gol
+@c APPLE LOCAL Wglobal-constructors 6324584
+-Wglobal-constructors @gol
 -Wimplicit  -Wimplicit-function-declaration  -Wimplicit-int @gol
 -Wimport  -Wno-import  -Winit-self  -Winline @gol
 -Wno-int-to-pointer-cast @gol
@@ -295,6 +297,8 @@ Objective-C and Objective-C++ Dialects}.
 -Wmain  -Wmissing-braces  -Wmissing-field-initializers @gol
 -Wmissing-format-attribute  -Wmissing-include-dirs @gol
 -Wmissing-noreturn @gol
+@c APPLE LOCAL warn missing prototype 6261539
+-Wmissing-prototypes @gol
 @c APPLE LOCAL -Wmost
 -Wmost (APPLE ONLY) @gol
 -Wno-multichar  -Wnonnull  -Wno-overflow @gol
@@ -315,7 +319,8 @@ Objective-C and Objective-C++ Dialects}.
 @c APPLE LOCAL begin -Wdiscard-qual 4086969
 @item C-only Warning Options
 @gccoptlist{-Wbad-function-cast  -Wmissing-declarations @gol
--Wmissing-prototypes  -Wnested-externs  -Wold-style-definition @gol
+@c APPLE LOCAL warn missing prototype 6261539
+-Wnested-externs  -Wold-style-definition @gol
 -Wstrict-prototypes  -Wtraditional @gol
 -Wdeclaration-after-statement -Wno-discard-qual -Wno-pointer-sign}
 @c APPLE LOCAL end -Wdiscard-qual 4086969
@@ -906,7 +911,10 @@ See S/390 and zSeries Options.
 -fargument-alias  -fargument-noalias @gol
 -fargument-noalias-global  -fargument-noalias-anything
 -fleading-underscore  -ftls-model=@var{model} @gol
--ftrapv  -fwrapv  -fbounds-check @gol
+@c APPLE LOCAL begin prune man page 5547358
+@c -ftrapv
+-fwrapv  -fbounds-check @gol
+@c APPLE LOCAL end prune man page
 -fvisibility}
 @end table
 
@@ -2854,6 +2862,15 @@ requiring a non-null value by the @code{nonnull} function attribute.
 @option{-Wnonnull} is included in @option{-Wall} and @option{-Wformat}.  It
 can be disabled with the @option{-Wno-nonnull} option.
 
+@c APPLE LOCAL begin Wglobal-constructors 6324584
+@item -Wglobal-constructors
+@opindex Wglobal-constructors
+Warn about namespace scope data that requires construction or
+destruction, or functions that use the constructor attribute or the
+destructor attribute.  Additionally warn if the Objective-C GNU
+runtime is used to initialize various metadata.
+@c APPLE LOCAL end Wglobal-constructors 6324584
+
 @item -Winit-self @r{(C, C++, Objective-C and Objective-C++ only)}
 @opindex Winit-self
 Warn about uninitialized variables which are initialized with themselves.
@@ -3240,7 +3257,8 @@ undefined signed overflow when estimating how many iterations a loop
 will require, in particular when determining whether a loop will be
 executed at all.
 
-@table @option
+@c APPLE LOCAL mainline man page 6365204
+@table @gcctabopt
 @item -Wstrict-overflow=1
 Warn about cases which are both questionable and easy to avoid.  For
 example: @code{x + 1 > x}; with @option{-fstrict-overflow}, the
@@ -3696,7 +3714,8 @@ types.)
 Warn if an old-style function definition is used.  A warning is given
 even if there is a previous prototype.
 
-@item -Wmissing-prototypes @r{(C only)}
+@c APPLE LOCAL warn missing prototype 6261539
+@item -Wmissing-prototypes
 @opindex Wmissing-prototypes
 Warn if a global function is defined without a previous prototype
 declaration.  This warning is issued even if the definition itself
@@ -8975,12 +8994,16 @@ Enable kernel development mode.  The @option{-mkernel} option sets
 @option{-fno-exceptions}, @option{-fno-non-call-exceptions}, @option{-fno-asynchronous-unwind-tables},
 @option{-fapple-kext}, @option{-fno-weak} and @option{-fno-rtti} where
 applicable.  This mode also sets @option{-mno-altivec},
-@c APPLE LOCAL begin 5731065
-@option{-msoft-float} and @option{-mlong-branch} for PowerPC targets
-and @option{-mno-red-zone} on x86_64.  Of these, only -msoft-float can
-be changed which is useful in a kext that wishes to use the hardware
-floating point unit.
-@c APPLE LOCAL end 5731065
+@c APPLE LOCAL begin 5731065 6268204
+@option{-msoft-float} and @option{-mlong-branch} for PowerPC targets,
+@option{-mno-red-zone} on x86_64, and @option{-mlong-branch} for ARM
+targets.  Of these, only -msoft-float can be changed which is useful in
+a kext that wishes to use the hardware floating point unit.
+@c APPLE LOCAL end 5731065 6268204
+@c APPLE LOCAL begin kext weak_import 5935650
+@option{-dynamic} can be used to override the effects of -static on
+the assembler to enable the use of weak_import.
+@c APPLE LOCAL end kext weak_import 5935650
 
 @item -mone-byte-bool
 @opindex mone-byte-bool
@@ -14212,10 +14235,14 @@ indices used to access arrays are within the declared range.  This is
 currently only supported by the Java and Fortran front-ends, where
 this option defaults to true and false respectively.
 
+@c APPLE LOCAL prune man page 5547358
+@ignore
 @item -ftrapv
 @opindex ftrapv
 This option generates traps for signed overflow on addition, subtraction,
 multiplication operations.
+@c APPLE LOCAL prune man page 5547358
+@end ignore
 
 @item -fwrapv
 @opindex fwrapv

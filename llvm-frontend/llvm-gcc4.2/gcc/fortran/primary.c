@@ -254,7 +254,7 @@ match_hollerith_constant (gfc_expr ** result)
       msg = gfc_extract_int (e, &num);
       if (msg != NULL)
 	{
-	  gfc_error (msg);
+	  gfc_error ("%s", msg);
 	  goto cleanup;
 	}
       if (num == 0)
@@ -925,7 +925,7 @@ match_string_constant (gfc_expr ** result)
       q = gfc_extract_int (sym->value, &kind);
       if (q != NULL)
 	{
-	  gfc_error (q);
+	  gfc_error ("%s", q);
 	  return MATCH_ERROR;
 	}
     }
@@ -1432,7 +1432,7 @@ match_keyword_arg (gfc_actual_arglist * actual, gfc_actual_arglist * base)
 	  }
     }
 
-  actual->name = gfc_get_string (name);
+  actual->name = gfc_get_string ("%s", name);
   return MATCH_YES;
 
 cleanup:

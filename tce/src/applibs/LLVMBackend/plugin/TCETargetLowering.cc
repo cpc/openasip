@@ -91,8 +91,8 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
 
     //setLoadXAction(ISD::EXTLOAD, MVT::f32, Expand);
-//    setLoadXAction(ISD::EXTLOAD, MVT::i1   , Promote);
-//    setLoadXAction(ISD::ZEXTLOAD, MVT::i1   , Expand);
+    //setLoadXAction(ISD::EXTLOAD, MVT::i1 , Promote);
+    //setLoadXAction(ISD::ZEXTLOAD, MVT::i1, Expand);
 
     setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
     setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);
@@ -239,7 +239,7 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
                 cp->getAlignment());
         }
         return dag.getNode(TCEISD::CONST_POOL, MVT::i32, res);
-    }
+    }     
     }
     op.getNode()->dump(&dag);
     assert(0 && "Custom lowerings not implemented!");
@@ -304,7 +304,9 @@ TCETargetLowering::LowerRET(SDValue op, SelectionDAG& dag) {
  */
 void
 TCETargetLowering::LowerArguments(
-    Function& f, SelectionDAG& dag, SmallVectorImpl<SDValue>& argValues) {
+    Function& f, SelectionDAG& dag, 
+    SmallVectorImpl<SDValue>& argValues,
+    DebugLoc /*dl*/) {
  
     MachineFunction& mf = dag.getMachineFunction();
     unsigned argOffset = 0;
@@ -451,7 +453,7 @@ std::pair<SDValue, SDValue>
 TCETargetLowering::LowerCallTo(
     SDValue chain, const Type* retTy, bool retTyIsSigned, bool,
     bool isVarArg, bool,  unsigned cc, bool isTailCall, SDValue callee,
-    ArgListTy& args, SelectionDAG& dag) {
+    ArgListTy& args, SelectionDAG& dag, DebugLoc /*dl*/) {
 
     unsigned argsSize = 0;
     for (unsigned i = 0; i < args.size(); i++) {
@@ -704,4 +706,12 @@ TCETargetLowering::getRegForInlineAsmConstraint(
         }
     }
     return TargetLowering::getRegForInlineAsmConstraint(constraint, vt);
+}
+
+/**
+ * Returns the preferred comparison result type.
+ */
+llvm::MVT
+TCETargetLowering::getSetCCResultType(llvm::MVT VT) const {
+   return llvm::MVT::i1;
 }

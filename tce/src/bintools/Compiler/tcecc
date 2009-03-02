@@ -199,6 +199,9 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
 ####
 # Optimizes linked bc. Returns name of the optimized file.
+#
+# You can check default switches with command:
+# opt -O3 -debug-pass=Arguments systemtest/bintools/Scheduler/tests/QuickTests/HelloWorld/program.bc
 ###
 def optimizeBytecode(inFile, fileNamePrefix):
 
@@ -211,66 +214,175 @@ def optimizeBytecode(inFile, fileNamePrefix):
             " -loop-unroll -unroll-allow-partial -unroll-threshold=%d " % \
             options.unroll_threshold
     else:
-        loop_unroll_switches = " "
-    
-    inline_pass = " -inline "
-    if options.noinline:
-        inline_pass = " "
-
-    tce_std_compile_opts = (" " +
-        "-preverify -domtree -verify -lowersetjmp -raiseallocs -simplifycfg -domtree " + 
-        "-domfrontier -mem2reg -globalopt -globaldce " + 
-        "-ipconstprop -deadargelim -instcombine " +
-        "-simplifycfg -basiccg -prune-eh " +
-        "-addreadattrs " + # Added in LLVM 2.4
-        inline_pass +
-        "-argpromotion " + # Removed in LLVM 2.4: -tailduplicate        
-        "-simplify-libcalls " + 
-        "-instcombine -jump-threading -simplifycfg -domtree -domfrontier -scalarrepl " + 
-        "-instcombine -break-crit-edges -condprop -tailcallelim -simplifycfg -reassociate " + 
-        "-domtree -loops -loopsimplify -domfrontier -scalar-evolution -lcssa -loop-rotate " + 
-        "-licm -lcssa -loop-unswitch -scalar-evolution -lcssa -loop-index-split -instcombine " + 
-        "-scalar-evolution " + # Removed in LLVM 2.4: -domfrontier
-        "-lcssa " + 
-        "-indvars " + # Removed in LLVM 2.4: -domfrontier
-        "-scalar-evolution " +
-        "-lcssa " +
-        "-loop-deletion -domfrontier -lcssa " + # Added in LLVM 2.4
-        loop_unroll_switches +
-        "-instcombine " + # Removed in LLVM 2.4: -domtree 
-        "-memdep -gvn " +
-        "-memdep " + # Added in LLVM 2.4
-#        "-memcpyopt " +
-        "-sccp " + 
-        "-instcombine -break-crit-edges -condprop " +
-        "-domtree " + # Added in LLVM 2.4                     
-        "-memdep -dse " +
-        # Removed in LLVM 2.4: "-mergereturn -postdomtree -postdomfrontier "
-        "-adce -simplifycfg -strip-dead-prototypes " +
-        "-print-used-types " + # Added in LLVM 2.4                            
-        "-deadtypeelim -constmerge -preverify -domtree -verify" + 
-        "")
-
-    defOptimization = ""
-
+        loop_unroll_switches = " " 
+        
+    std_compile_opts = (" " +
+                        "-preverify " +
+                        "-domtree " +
+                        "-verify " +
+                        "-lowersetjmp " +
+                        "-raiseallocs " +
+                        "-simplifycfg " +
+                        "-domtree " +
+                        "-domfrontier " +
+                        "-mem2reg " +
+                        "-globalopt " +
+                        "-globaldce " +
+                        "-ipconstprop " +
+                        "-deadargelim " +
+                        "-instcombine " +
+                        "-simplifycfg " +
+                        "-basiccg " +
+                        "-prune-eh " +
+                        "-functionattrs " +
+                        "-inline " +
+                        "-argpromotion " +
+                        "-simplify-libcalls " +
+                        "-instcombine " +
+                        "-jump-threading " +
+                        "-simplifycfg " +
+                        "-domtree " +
+                        "-domfrontier " +
+                        "-scalarrepl " +
+                        "-instcombine " +
+                        "-break-crit-edges " +
+                        "-condprop " +
+                        "-tailcallelim " +
+                        "-simplifycfg " +
+                        "-reassociate " +
+                        "-domtree " +
+                        "-loops " +
+                        "-loopsimplify " +
+                        "-domfrontier " +
+                        "-scalar-evolution " +
+                        "-lcssa " +
+                        "-loop-rotate " +
+                        "-licm " +
+                        "-lcssa " +
+                        "-loop-unswitch " +
+                        "-scalar-evolution " +
+                        "-lcssa " +
+                        "-loop-index-split " +
+                        "-instcombine " +
+                        "-scalar-evolution " +
+                        "-lcssa " +
+                        "-indvars " +
+                        "-scalar-evolution " +
+                        "-lcssa " +
+                        "-loop-deletion " +
+                        "-domfrontier " +
+                        "-lcssa " +
+                        #"-loop-unroll " +
+                        loop_unroll_switches +
+                        "-instcombine " +
+                        "-memdep " +
+                        "-gvn " +
+                        "-memdep " +
+                        #"-memcpyopt " +
+                        "-sccp " +
+                        "-instcombine " +
+                        "-break-crit-edges " +
+                        "-condprop " +
+                        "-domtree " +
+                        "-memdep " +
+                        "-dse " +
+                        "-adce " +
+                        "-simplifycfg " +
+                        "-strip-dead-prototypes " +
+                        "-print-used-types " +
+                        "-deadtypeelim " +
+                        "-constmerge " +
+                        "-simplifycfg " +
+                        "-domtree " +
+                        "-domfrontier " +
+                        "-mem2reg " +
+                        "-instcombine " +
+                        "-simplifycfg " +
+                        "-basiccg " +                       
+                        "-inline " +
+                        "-argpromotion " +
+                        "-simplify-libcalls " +
+                        "-instcombine " +
+                        "-jump-threading " +
+                        "-simplifycfg " +
+                        "-domtree " +
+                        "-domfrontier " +
+                        "-scalarrepl " +
+                        "-instcombine " +
+                        "-break" +
+                        "-crit" +
+                        "-edges " +
+                        "-condprop " +
+                        "-tailcallelim " +
+                        "-simplifycfg " +
+                        "-reassociate " +
+                        "-domtree " +
+                        "-loops " +
+                        "-loopsimplify " +
+                        "-domfrontier " +
+                        "-scalar-evolution " +
+                        "-lcssa " +
+                        "-loop-rotate " +
+                        "-licm " +
+                        "-lcssa " +
+                        "-loop-unswitch " +
+                        "-scalar-evolution " +
+                        "-lcssa " +
+                        "-loop-index" +
+                        "-split " +
+                        "-instcombine " +
+                        "-scalar-evolution " +
+                        "-lcssa " +
+                        "-indvars " +
+                        "-scalar-evolution " +
+                        "-lcssa " +
+                        "-loop-deletion " +
+                        "-domfrontier " +
+                        "-lcssa " +                       
+                        #"-loop-unroll " +
+                        "-instcombine " +
+                        "-memdep " +
+                        "-gvn " +
+                        "-memdep " +
+                        #"-memcpyopt " +
+                        "-sccp " +
+                        "-instcombine " +
+                        "-break-crit-edges " +
+                        "-condprop " +
+                        "-domtree " +
+                        "-memdep " +
+                        "-dse " +
+                        "-adce " +
+                        "-simplifycfg " +
+                        "-domtree " +
+                        "-loops " +
+                        "-loopsimplify " +
+                        "-domfrontier " +
+                        "-scalar-evolution " +
+                        "-lcssa " +
+                        "-loop-unroll " +
+                        "-preverify " +
+                        "-verify " +
+                        " ")
+       
+    # -O0 optimization doesn't exists in opt
+    optSwitches = ""
     if options.optimization_level == 0:
-        optSwitches = defOptimization
         options.sequential_schedule = True
 
     elif options.optimization_level == 1:
-        optSwitches = defOptimization + tce_std_compile_opts
+        optSwitches = (std_compile_opts)
+        
+    elif options.optimization_level > 1:
+        optSwitches = (" -internalize " + std_compile_opts)
 
-    elif options.optimization_level == 2 or options.optimization_level == 3:
-        optSwitches = defOptimization + " -internalize " + tce_std_compile_opts
-    else:
-        exitWithError(
-            1, verbose,\
-            "Optimization level " +\
-            str(options.optimization_level) + " not defined.\n")
-
+    if options.noinline:
+        optSwitches += "-disable-inlining "
+    
     internalize_api_list = " -internalize-public-api-list=_start"
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
+
     optSwitches += internalize_api_list
 
     if options.noinline:
@@ -282,7 +394,13 @@ def optimizeBytecode(inFile, fileNamePrefix):
               outputName +\
               optSwitches
 
+    if verbose:
+        debugCommand = ("opt -f -debug-pass=Arguments " + inFile + " -o " +
+                        outputName + optSwitches)
+        (exitCode, output) = runCommand(debugCommand, verbose)
+
     (exitCode, output) = runCommand(command, verbose)
+
     if exitCode != 0:
         sys.stderr.write("Error while optimizing bytecode: " + command + "\n")
         exitWithError(1, verbose, output)
@@ -642,7 +760,7 @@ if options.adf_file != "":
 	    # options to passes.
 	    import os
 	    os.environ['MAX_THREAD_SWITCH_LATENCY'] = \
-		str(options.max_thread_latency)
+            str(options.max_thread_latency)
     
     (exitCode, output) = runCommand(command, options.verbose)
     if exitCode != 0:

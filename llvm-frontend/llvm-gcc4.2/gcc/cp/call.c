@@ -797,7 +797,8 @@ standard_conversion (tree to, tree from, tree expr, bool c_cast_p,
       /* Allow conversions among compatible ObjC pointer types (base
 	 conversions have been already handled above).  */
       else if (c_dialect_objc ()
-	       && objc_compare_types (to, from, -4, NULL_TREE))
+	       /* APPLE LOCAL radar 6231433 */
+	       && objc_compare_types (to, from, -4, NULL_TREE, NULL))
 	conv = build_conv (ck_ptr, to, conv);
       /* APPLE LOCAL end 4154928 */
       else if (ptr_reasonably_similar (to_pointee, from_pointee))

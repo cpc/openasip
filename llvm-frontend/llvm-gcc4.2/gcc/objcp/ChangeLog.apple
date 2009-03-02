@@ -1,3 +1,15 @@
+2008-06-03  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5887355
+	* objcp-lang.c (objcp_tsubst_copy_and_build): Build
+	cfstring tree during template instantiation.
+
+2008-02-20  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5732232 - code gen part 2.
+        * objcp-lang.c (c_finish_return): Defined these
+        templates to get a clean compile.
+
 2006-10-04  Fariborz Jahanian <fjahanian@apple.com>
 
 	Radar 3904178

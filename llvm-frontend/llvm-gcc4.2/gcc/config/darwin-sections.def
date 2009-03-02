@@ -89,7 +89,8 @@ DEF_SECTION (machopic_picsymbol_stub4_section, 0,
 	     ".section __TEXT,__picsymbolstub4,symbol_stubs,none,16", 0)
 /* APPLE LOCAL end ARM pic support */
 DEF_SECTION (darwin_exception_section, 0,
-	     ".section __DATA,__gcc_except_tab", 0)
+	    /* APPLE LOCAL EH __TEXT __gcc_except_tab 5819051 */
+	     ".section __TEXT,__gcc_except_tab", 0)
 DEF_SECTION (darwin_eh_frame_section, 0,
 	     ".section " EH_FRAME_SECTION_NAME ",__eh_frame"
 	     EH_FRAME_SECTION_ATTR, 0)
@@ -98,6 +99,12 @@ DEF_SECTION (darwin_eh_frame_section, 0,
 DEF_SECTION (objc_v2_message_refs_section, 0,
 	     ".section __DATA, __objc_msgrefs, coalesced", 0)
 /* APPLE LOCAL end radar 5575115 */
+/* APPLE LOCAL begin radar 6255595 */
+DEF_SECTION (objc_v2_classdefs_section, 0,
+	     ".section __DATA, __objc_data", 0)
+DEF_SECTION (objc_v2_metadata_section, 0,
+	     ".section __DATA, __objc_const", 0)
+/* APPLE LOCAL end radar 6255595 */
 DEF_SECTION (objc_v2_classrefs_section, 0, 
              ".section __DATA, __objc_classrefs, regular, no_dead_strip", 1)
 DEF_SECTION (objc_v2_classlist_section, 0,
@@ -110,10 +117,12 @@ DEF_SECTION (objc_v2_nonlazy_class_section, 0,
 	     ".section __DATA, __objc_nlclslist, regular, no_dead_strip", 1)
 DEF_SECTION (objc_v2_nonlazy_category_section, 0,
 	     ".section __DATA, __objc_nlcatlist, regular, no_dead_strip", 1)
+/* APPLE LOCAL begin radar 6351990 */
 DEF_SECTION (objc_v2_protocollist_section, 0,
-	     ".section __DATA, __objc_protolist, regular, no_dead_strip", 1)
+	     ".section __DATA, __objc_protolist, coalesced, no_dead_strip", 1)
 DEF_SECTION (objc_v2_protocolrefs_section, 0,
-	     ".section __DATA, __objc_protorefs, regular, no_dead_strip", 1)
+	     ".section __DATA, __objc_protorefs, coalesced, no_dead_strip", 1)
+/* APPLE LOCAL end radar 6351990 */
 DEF_SECTION (objc_v2_super_classrefs_section, 0,
 	     ".section __DATA, __objc_superrefs, regular, no_dead_strip", 1)
 DEF_SECTION (objc_v2_image_info_section, 0,

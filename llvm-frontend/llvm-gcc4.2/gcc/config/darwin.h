@@ -156,7 +156,8 @@ extern GTY(()) int darwin_ms_struct;
   { "-seg_addr_table_filename", "-Zfn_seg_addr_table_filename" }, \
   /* APPLE LOCAL mainline */ \
   { "-umbrella", "-Zumbrella" }, \
-  { "-fapple-kext", "-fapple-kext -static -Wa,-static" }, \
+  /* APPLE LOCAL kext weak_import 5935650 */ \
+  { "-fapple-kext", "-fapple-kext -static" }, \
   { "-filelist", "-Xlinker -filelist -Xlinker" },  \
   { "-findirect-virtual-calls", "-fapple-kext" }, \
   { "-flat_namespace", "-Zflat_namespace" },  \
@@ -169,17 +170,20 @@ extern GTY(()) int darwin_ms_struct;
   { "-install_name", "-Zinstall_name" },  \
   /* LLVM LOCAL */ \
   LLVM_FLAG  \
-  { "-mkernel", "-mkernel -static -Wa,-static" }, \
+  /* APPLE LOCAL kext weak_import 5935650 */ \
+  { "-mkernel", "-mkernel -static" }, \
   { "-multiply_defined_unused", "-Zmultiplydefinedunused" },  \
   { "-multiply_defined", "-Zmultiply_defined" },  \
   { "-multi_module", "-Zmulti_module" },  \
-  { "-static", "-static -Wa,-static" },  \
+  /* APPLE LOCAL begin kext weak_import 5935650 */ \
+  /* Removed -static */ \
+  /* APPLE LOCAL end kext weak_import 5935650 */ \
   /* APPLE LOCAL mainline */ \
   { "-shared", "-Zdynamiclib" }, \
   { "-single_module", "-Zsingle_module" },  \
   { "-unexported_symbols_list", "-Zunexported_symbols_list" }, \
-  /* APPLE LOCAL ObjC GC */ \
-  { "-fobjc-gc", "-fobjc-gc -Wno-non-lvalue-assign" }, \
+  /* APPLE LOCAL radar 6269491 */ \
+  /* code removed. */ \
   /* APPLE LOCAL begin constant cfstrings */	\
   { "-fconstant-cfstrings", "-mconstant-cfstrings" }, \
   { "-fno-constant-cfstrings", "-mno-constant-cfstrings" }, \
@@ -340,7 +344,8 @@ do {					\
 #define LINK_COMMAND_SPEC "\
 %{!fdump=*:%{!fsyntax-only:%{!precomp:%{!c:%{!M:%{!MM:%{!E:%{!S:\
     %(linker) %l %X %{d} %{s} %{t} %{Z} %{u*} \
-    %{A} %{e*} %{m} %{r} %{x} \
+"/* LLVM LOCAL lto */"\
+    %{A} %<emit-llvm %{e*} %{m} %{r} %{x} \
     %{o*}%{!o:-o a.out} \
     %{!A:%{!nostdlib:%{!nostartfiles:%S}}} \
     %{L*} %{fopenmp:%:include(libgomp.spec)%(link_gomp)}   \
@@ -353,9 +358,10 @@ do {					\
     %{!A:%{!nostdlib:%{!nostartfiles:%E}}} %{T*} %{F*} }}}}}}}}\n\
 %{!fdump=*:%{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
 "/* APPLE LOCAL end mainline 4.3 2006-10-31 4370146 */"\
-"/* LLVM LOCAL do not use dsymutil with -O1 or higher */"\
     %{.c|.cc|.C|.cpp|.cp|.c++|.cxx|.CPP|.m|.mm: \
-    %{!O: %{!O1: %{!O2: %{!O3: %{!O4: %{!Os: %(darwin_dsymutil) }}}}}}}}}}}}}}"
+    %{!O: %{!O1: %{!O2: %{!O3: %{!O4: %{!Os: \
+"/* LLVM LOCAL do not use dsymutil with -O1 or higher */"\
+    %{g*:%{!gstabs*:%{!g0: dsymutil %{o*:%*}%{!o:a.out}}}}}}}}}}}}}}}}}}"
 #else
 #define LINK_COMMAND_SPEC "\
 %{!fdump=*:%{!fsyntax-only:%{!precomp:%{!c:%{!M:%{!MM:%{!E:%{!S:\
@@ -576,31 +582,22 @@ do {					\
 /* APPLE LOCAL end ARM 5683689 */
 
 /* Default Darwin ASM_SPEC, very simple.  */
+/* APPLE LOCAL begin kext weak_import 5935650 */
 /* APPLE LOCAL begin radar 4161346 */
 #define ASM_SPEC "-arch %(darwin_arch) \
   %{Zforce_cpusubtype_ALL:-force_cpusubtype_ALL} \
-  %{!Zforce_cpusubtype_ALL:%{faltivec:-force_cpusubtype_ALL}}"
+  %{!Zforce_cpusubtype_ALL:%{faltivec:-force_cpusubtype_ALL}} \
+  %{mkernel|static|fapple-kext:%{!Zdynamic:-static}}"
 /* APPLE LOCAL end radar 4161346 */
+/* APPLE LOCAL end kext weak_import 5935650 */
 /* APPLE LOCAL begin mainline 4.3 2006-10-31 4370143 */
 /* We still allow output of STABS.  */
 
 #define DBX_DEBUGGING_INFO 1
 
-/* LLVM LOCAL begin */
-#ifdef ENABLE_LLVM
-/* Prefer DWARF only if appropriate dsymutil is available.  */
-#define DWARF2_DEBUGGING_INFO
-#ifdef HAVE_DSYMUTIL
-  #define PREFERRED_DEBUGGING_TYPE DWARF2_DEBUG
-#else
-  #define PREFERRED_DEBUGGING_TYPE DBX_DEBUG
-#endif
-#else
 /* Prefer DWARF2.  */
 #define DWARF2_DEBUGGING_INFO
 #define PREFERRED_DEBUGGING_TYPE DWARF2_DEBUG
-#endif
-/* LLVM LOCAL end */
 
 /* APPLE LOCAL end mainline 4.3 2006-10-31 4370143 */
 #define DEBUG_FRAME_SECTION	"__DWARF,__debug_frame,regular,debug"
@@ -614,6 +611,8 @@ do {					\
 /* APPLE LOCAL begin pubtypes, approved for 4.3  4535968 */
 #define DEBUG_PUBTYPES_SECTION  "__DWARF,__debug_pubtypes,regular,debug"
 /* APPLE LOCAL end pubtypes, approved for 4.3 4535968 */
+/* APPLE LOCAL radar 6275985 debug inlined section */
+#define DEBUG_INLINED_SECTION   "__DWARF,__debug_inlined,regular,debug"
 #define DEBUG_STR_SECTION	"__DWARF,__debug_str,regular,debug"
 #define DEBUG_RANGES_SECTION	"__DWARF,__debug_ranges,regular,debug"
 
@@ -685,6 +684,24 @@ do {					\
       (FN)->setLinkage(Function::ExternalLinkage);                      \
     }                                                                   \
   } while (0)
+
+/* LLVM LOCAL - begin radar 6389998 */
+/* A const CFString is created as an anonymous global variable. LLVM then gives
+   it the name '__unnamed_#_#'. This causes troubles with the runtime, which
+   expects the name to be internal. Give it an internal name here.  */
+#define TARGET_ADJUST_CFSTRING_NAME(GV, SEC)                            \
+  do {                                                                  \
+    if (!GV->hasName() && GV->hasInternalLinkage() &&                   \
+        strcmp((SEC), "__DATA, __cfstring") == 0) {                     \
+      static unsigned i = 0;                                            \
+      const char *fmt = "\01L_unnamed_cfstring_%d";                     \
+      char *N = (char *)alloca(strlen(fmt) + 37);                       \
+      sprintf(N, fmt, i++);                                             \
+      GV->setName(N);                                                   \
+    }                                                                   \
+  } while (0)
+/* LLVM LOCAL - end radar 6389998 */
+
 #endif
 /* LLVM LOCAL end */
 
@@ -857,6 +874,13 @@ do {					\
 	       MESSAGE);						\
   } while (0)
 /* APPLE LOCAL end radar 4531086 */
+
+/* APPLE LOCAL begin radar 6307941 */
+#undef OBJC2_ABI_DISPATCH
+#define OBJC2_ABI_DISPATCH						\
+(darwin_macosx_version_min						\
+ && strverscmp (darwin_macosx_version_min, "10.6") < 0)
+/* APPLE LOCAL end radar 6307941 */
 
 /* The RTTI data (e.g., __ti4name) is common and public (and static),
    but it does need to be referenced via indirect PIC data pointers.
@@ -1238,7 +1262,8 @@ enum machopic_addr_class {
 
 #undef ASM_PREFERRED_EH_DATA_FORMAT
 #define ASM_PREFERRED_EH_DATA_FORMAT(CODE,GLOBAL)  \
-  (((CODE) == 2 && (GLOBAL) == 1) \
+  /* APPLE LOCAL EH __TEXT __gcc_except_tab 5819051 */	      \
+  ((((CODE) == 2 || (CODE) == 0) && (GLOBAL) == 1)	      \
    ? (DW_EH_PE_pcrel | DW_EH_PE_indirect | DW_EH_PE_sdata4) : \
      ((CODE) == 1 || (GLOBAL) == 0) ? DW_EH_PE_pcrel : DW_EH_PE_absptr)
 
@@ -1422,12 +1447,15 @@ void add_framework_path (char *);
  */
 #define LLVM_IMPLICIT_TARGET_GLOBAL_VAR_SECTION(decl)                   \
   (((DECL_NAME (decl) &&                                                \
-    TREE_CODE (DECL_NAME (decl)) == IDENTIFIER_NODE &&                  \
-    IDENTIFIER_POINTER (DECL_NAME (decl)) &&                            \
-    (!strncmp (IDENTIFIER_POINTER (DECL_NAME (decl)), "L_OBJC_", 7) ||  \
-     !strncmp (IDENTIFIER_POINTER (DECL_NAME (decl)), "l_OBJC_", 7))) ||  \
-   TREE_CODE(decl) == CONST_DECL) ?                                     \
-     darwin_objc_llvm_implicit_target_global_var_section(decl) : 0)
+     TREE_CODE (DECL_NAME (decl)) == IDENTIFIER_NODE &&                 \
+     IDENTIFIER_POINTER (DECL_NAME (decl)) &&                           \
+     (!strncmp (IDENTIFIER_POINTER (DECL_NAME (decl)), "_OBJC_", 6) ||  \
+      !strncmp (IDENTIFIER_POINTER (DECL_NAME (decl)), "OBJC_", 5) ||   \
+      !strncmp (IDENTIFIER_POINTER (DECL_NAME (decl)), "L_OBJC_", 7) || \
+      !strncmp (IDENTIFIER_POINTER (DECL_NAME (decl)), "l_OBJC_", 7) || \
+      !strncmp (IDENTIFIER_POINTER (DECL_NAME (decl)), "l_objc_", 7))) || \
+    TREE_CODE(decl) == CONST_DECL) ?                                    \
+   darwin_objc_llvm_implicit_target_global_var_section(decl) : 0)
 const char *darwin_objc_llvm_implicit_target_global_var_section(tree);
 const char *darwin_objc_llvm_special_name_section(const char*);
 
@@ -1571,4 +1599,17 @@ extern unsigned darwin_llvm_override_target_version(const char*, char**);
 #define LLVM_OVERRIDE_TARGET_VERSION(T,N)        \
   darwin_llvm_override_target_version(T,N)
 /* APPLE LOCAL end radar 6230142 */
+
+/* LLVM LOCAL begin */
+#ifdef WARN_FORMAT_INIT
+#undef WARN_FORMAT_INIT
+#endif
+#define WARN_FORMAT_INIT 1
+
+#ifdef WARN_FORMAT_SECURITY_INIT
+#undef WARN_FORMAT_SECURITY_INIT
+#endif
+#define WARN_FORMAT_SECURITY_INIT 1
+/* LLVM LOCAL end */
+
 #endif /* CONFIG_DARWIN_H */

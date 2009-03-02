@@ -90,6 +90,9 @@ TCETargetMachine::TCETargetMachine(
     if (!plugin_.hasMUL()) missingOps_.insert(llvm::ISD::MUL);
     if (!plugin_.hasROTL()) missingOps_.insert(llvm::ISD::ROTL);
     if (!plugin_.hasROTR()) missingOps_.insert(llvm::ISD::ROTR);
+    
+    // register machine to plugin
+    plugin_.registerTargetMachine(*this);
 }
 
 /**
@@ -144,7 +147,6 @@ TCETargetMachine::addAssemblyEmitter(
     pm.add(plugin_.createAsmPrinterPass(out, this));
     return false;
 }
-
 
 /**
  * Creates a TTAMachine::Machine object of the target architecture.

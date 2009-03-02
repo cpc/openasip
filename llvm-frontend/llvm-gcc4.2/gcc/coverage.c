@@ -77,13 +77,15 @@ static struct function_list **functions_tail = &functions_head;
 static unsigned no_coverage = 0;
 
 /* Cumulative counter information for whole program.  */
-static unsigned prg_ctr_mask; /* Mask of counter types generated.  */
-static unsigned prg_n_ctrs[GCOV_COUNTERS]; /* Total counters allocated.  */
+/* APPLE LOCAL begin 5834718 */
+static GTY (()) unsigned prg_ctr_mask; /* Mask of counter types generated.  */
+static GTY (()) unsigned prg_n_ctrs[GCOV_COUNTERS]; /* Total counters allocated.  */
 
 /* Counter information for current function.  */
-static unsigned fn_ctr_mask; /* Mask of counters used.  */
-static unsigned fn_n_ctrs[GCOV_COUNTERS]; /* Counters allocated.  */
-static unsigned fn_b_ctrs[GCOV_COUNTERS]; /* Allocation base.  */
+static GTY (()) unsigned fn_ctr_mask; /* Mask of counters used.  */
+static GTY (()) unsigned fn_n_ctrs[GCOV_COUNTERS]; /* Counters allocated.  */
+static  GTY (()) unsigned fn_b_ctrs[GCOV_COUNTERS]; /* Allocation base.  */
+/* APPLE LOCAL end 5834718 */
 
 /* Name of the output file for coverage output file.  */
 static char *bbg_file_name;

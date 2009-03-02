@@ -1,4 +1,5 @@
 /* LLVM LOCAL begin (ENTIRE FILE!)  */
+#ifdef ENABLE_LLVM
 /* Some target-specific hooks for gcc->llvm conversion
 Copyright (C) 2007 Free Software Foundation, Inc.
 Contributed by Anton Korobeynikov (asl@math.spbu.ru)
@@ -87,6 +88,10 @@ extern int ix86_regparm;
       }                                                         \
     }                                                           \
   }
+
+#define LLVM_SET_ARCH_OPTIONS(argvec)                           \
+  if (TARGET_NO_RED_ZONE)                                       \
+    argvec.push_back("--disable-red-zone");
 
 #ifdef LLVM_ABI_H
 
@@ -181,6 +186,16 @@ llvm_x86_should_not_return_complex_in_memory(tree type);
 #define LLVM_SHOULD_NOT_RETURN_COMPLEX_IN_MEMORY(X) \
   llvm_x86_should_not_return_complex_in_memory((X))
 
+extern bool
+llvm_x86_should_pass_aggregate_as_fca(tree type, const Type *);
+
+/* LLVM_SHOULD_PASS_AGGREGATE_AS_FCA - Return true if an aggregate of the
+   specified type should be passed as a first-class aggregate. */
+#ifndef LLVM_SHOULD_PASS_AGGREGATE_AS_FCA
+#define LLVM_SHOULD_PASS_AGGREGATE_AS_FCA(X, TY) \
+  llvm_x86_should_pass_aggregate_as_fca(X, TY)
+#endif
+
 extern bool llvm_x86_should_pass_aggregate_in_memory(tree, const Type *);
 
 #define LLVM_SHOULD_PASS_AGGREGATE_USING_BYVAL_ATTR(X, TY)      \
@@ -227,6 +242,6 @@ extern Value *llvm_x86_load_scalar_argument(Value *L,
   llvm_x86_load_scalar_argument((LOC),(TY),(SIZE),(BUILDER))
 
 #endif /* LLVM_ABI_H */
-
+#endif /* ENABLE_LLVM */
 /* LLVM LOCAL end (ENTIRE FILE!)  */
 

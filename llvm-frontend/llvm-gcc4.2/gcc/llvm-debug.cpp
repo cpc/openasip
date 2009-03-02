@@ -37,7 +37,6 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/Target/TargetMachine.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/ADT/SmallVector.h"
-#include "llvm/CodeGen/MachineModuleInfo.h"
 
 extern "C" {
 #include "langhooks.h"
@@ -149,6 +148,9 @@ static const char *GetNodeName(tree Node) {
 static expanded_location GetNodeLocation(tree Node, bool UseStub = true) {
   expanded_location Location = { NULL, 0 };
 
+  if (Node == NULL_TREE)
+    return Location;
+
   tree Name = NULL;
   
   if (DECL_P(Node)) {
@@ -178,134 +180,117 @@ static expanded_location GetNodeLocation(tree Node, bool UseStub = true) {
   return Location;
 }
 
-/// GetGlobalNames - Sets the names for a global descriptor.
-///
-static void GetGlobalNames(tree Node, GlobalDesc *Global) {
+static const char *getLinkageName(tree Node) {
+
   tree decl_name = DECL_NAME(Node);
   if (decl_name != NULL && IDENTIFIER_POINTER (decl_name) != NULL) {
-    Global->setName(lang_hooks.decl_printable_name (Node, 0));
-    Global->setFullName(lang_hooks.decl_printable_name (Node, 1));
-    
     if (TREE_PUBLIC(Node) &&
         DECL_ASSEMBLER_NAME(Node) != DECL_NAME(Node) && 
         !DECL_ABSTRACT(Node)) {
-        Global->setLinkageName(IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(Node)));
-    }
+      return IDENTIFIER_POINTER(DECL_ASSEMBLER_NAME(Node));
+    } 
   }
-}  
+  return "";
+}
 
 DebugInfo::DebugInfo(Module *m)
 : M(m)
-, SR()
+, DebugFactory(*m)
 , CurFullPath("")
 , CurLineNo(0)
 , PrevFullPath("")
 , PrevLineNo(0)
 , PrevBB(NULL)
-, CompileUnitCache()
-, StopPointFn(NULL)
-, FuncStartFn(NULL)
-, RegionStartFn(NULL)
-, RegionEndFn(NULL)
-, DeclareFn(NULL)
-, CompileUnitAnchor(NULL)
-, GlobalVariableAnchor(NULL)
-, SubprogramAnchor(NULL)
 , RegionStack()
-, Subprogram(NULL)
 {
-  // uint64_t and int64_t are used in the debug descriptors for sizes and
-  // offsets.  So, we should make sure we don't lose any accuracy. 
-  DEBUGASSERT(sizeof(HOST_WIDE_INT) <= sizeof(int64_t) &&
-              "Bit size exceeds values stored in debug descriptors");
-         
-  // Let the debug serializer know where the module lives.
-  SR.setModule(M);
-}
 
-/// getValueFor - Return a llvm representation for a given debug information
-/// descriptor.
-Value *DebugInfo::getValueFor(DebugInfoDesc *DD) {
-  return SR.Serialize(DD);
-}
-
-/// getCastValueFor - Return a llvm representation for a given debug information
-/// descriptor cast to an empty struct pointer.
-Value *DebugInfo::getCastValueFor(DebugInfoDesc *DD) {
-  return TheFolder->CreateBitCast(SR.Serialize(DD), SR.getEmptyStructPtrType());
+  // Each input file is encoded as a separate compile unit in LLVM
+  // debugging information output. However, many target specific tool chains
+  // prefer to encode only one compile unit in an object file. In this 
+  // situation, the LLVM code generator will include  debugging information
+  // entities in the compile unit that is marked as main compile unit. The 
+  // code generator accepts maximum one main compile unit per module. If a
+  // module does not contain any main compile unit then the code generator 
+  // will emit multiple compile units in the output object file.
+  DICompileUnit M = getOrCreateCompileUnit(main_input_filename, true);
 }
 
 /// EmitFunctionStart - Constructs the debug code for entering a function -
 /// "llvm.dbg.func.start."
 void DebugInfo::EmitFunctionStart(tree FnDecl, Function *Fn,
                                   BasicBlock *CurBB) {
-  PrevFullPath = "";
-  PrevLineNo = 0;
-  PrevBB = NULL;
-  
-  // Create subprogram descriptor.
-  Subprogram = new SubprogramDesc();
-  
-  // Make sure we have an anchor.
-  if (!SubprogramAnchor) {
-    SubprogramAnchor = new AnchorDesc(Subprogram);
+  // Gather location information.
+  expanded_location Loc = GetNodeLocation(FnDecl, false);
+  const char *FnName = GetNodeName(FnDecl);
+  const char *LinkageName = getLinkageName(FnDecl);
+
+  DISubprogram SP = 
+    DebugFactory.CreateSubprogram(findRegion(FnDecl),
+                                  FnName, FnName, LinkageName,
+                                  getOrCreateCompileUnit(Loc.file), CurLineNo,
+                                  getOrCreateType(TREE_TYPE(FnDecl)),
+                                  Fn->hasInternalLinkage(),
+                                  true /*definition*/);
+
+  DebugFactory.InsertSubprogramStart(SP, CurBB);
+
+  // Push function on region stack.
+  RegionStack.push_back(SP);
+  RegionMap[FnDecl] = SP;
+}
+
+  /// findRegion - Find tree_node N's region.
+DIDescriptor DebugInfo::findRegion(tree Node) {
+  if (Node == NULL_TREE)
+    return getOrCreateCompileUnit(main_input_filename);
+
+  std::map<tree_node *, DIDescriptor>::iterator I = RegionMap.find(Node);
+  if (I != RegionMap.end())
+    return I->second;
+
+  if (TYPE_P (Node)) {
+    if (TYPE_CONTEXT (Node))
+      return findRegion (TYPE_CONTEXT(Node));
+  } else if (DECL_P (Node)) {
+    tree decl = Node;
+    tree context = NULL_TREE;
+    if (TREE_CODE (decl) != FUNCTION_DECL || ! DECL_VINDEX (decl))
+      context = DECL_CONTEXT (decl);
+    else
+      context = TYPE_MAIN_VARIANT
+        (TREE_TYPE (TREE_VALUE (TYPE_ARG_TYPES (TREE_TYPE (decl)))));
+    
+    if (context && !TYPE_P (context))
+      context = NULL_TREE;
+    if (context != NULL_TREE)
+      return findRegion(context);
   }
 
-  // Get name information.
-  GetGlobalNames(FnDecl, Subprogram);
-  
-  // Gather location information.
-  CompileUnitDesc *Unit = getOrCreateCompileUnit(CurFullPath);
-  
-  // Get function type.
-  TypeDesc *SPTy = getOrCreateType(TREE_TYPE(TREE_TYPE(FnDecl)), Unit);
-
-  Subprogram->setAnchor(SubprogramAnchor);
-  Subprogram->setContext(Unit);
-  Subprogram->setFile(Unit);
-  Subprogram->setLine(CurLineNo);
-  Subprogram->setType(SPTy);
-  Subprogram->setIsStatic(Fn->hasInternalLinkage());
-  Subprogram->setIsDefinition(true);
-  
-  // Lazily construct llvm.dbg.func.start.
-  if (!FuncStartFn)
-    FuncStartFn = Intrinsic::getDeclaration(M, Intrinsic::dbg_func_start);
-
-  // Call llvm.dbg.func.start which also implicitly calls llvm.dbg.stoppoint.
-  CallInst::Create(FuncStartFn, getCastValueFor(Subprogram), "", CurBB);
-  
-  // Push function on region stack.
-  RegionStack.push_back(Subprogram);
+  // Otherwise main compile unit covers everything.
+  return getOrCreateCompileUnit(main_input_filename);
 }
 
 /// EmitRegionStart- Constructs the debug code for entering a declarative
 /// region - "llvm.dbg.region.start."
 void DebugInfo::EmitRegionStart(Function *Fn, BasicBlock *CurBB) {
-  BlockDesc *Block = new BlockDesc();
-  Block->setContext(RegionStack.back());
-  RegionStack.push_back(Block);
-
-  // Lazily construct llvm.dbg.region.start function.
-  if (!RegionStartFn)
-    RegionStartFn = Intrinsic::getDeclaration(M, Intrinsic::dbg_region_start);
-  
-  // Call llvm.dbg.func.start.
-  CallInst::Create(RegionStartFn, getCastValueFor(Block), "", CurBB);
+  llvm::DIDescriptor D;
+  if (!RegionStack.empty())
+    D = RegionStack.back();
+  D = DebugFactory.CreateBlock(D);
+  RegionStack.push_back(D);
+  DebugFactory.InsertRegionStart(D, CurBB);
 }
 
 /// EmitRegionEnd - Constructs the debug code for exiting a declarative
 /// region - "llvm.dbg.region.end."
 void DebugInfo::EmitRegionEnd(Function *Fn, BasicBlock *CurBB) {
-  // Lazily construct llvm.dbg.region.end function.
-  if (!RegionEndFn)
-    RegionEndFn = Intrinsic::getDeclaration(M, Intrinsic::dbg_region_end);
-  
+
+  assert(!RegionStack.empty() && "Region stack mismatch, stack empty!");
+
   // Provide an region stop point.
   EmitStopPoint(Fn, CurBB);
   
-  // Call llvm.dbg.func.end.
-  CallInst::Create(RegionEndFn, getCastValueFor(RegionStack.back()), "", CurBB);
+  DebugFactory.InsertRegionEnd(RegionStack.back(), CurBB);
   RegionStack.pop_back();
 }
 
@@ -317,36 +302,18 @@ void DebugInfo::EmitDeclare(tree decl, unsigned Tag, const char *Name,
   if (DECL_IGNORED_P(decl))
     return;
 
-  // Lazily construct llvm.dbg.declare function.
-  const PointerType *EmpPtr = SR.getEmptyStructPtrType();
-  if (!DeclareFn)
-    DeclareFn = Intrinsic::getDeclaration(M, Intrinsic::dbg_declare);
-
-  // Get type information.
-  CompileUnitDesc *Unit = getOrCreateCompileUnit(CurFullPath);
-  TypeDesc *TyDesc = getOrCreateType(type, Unit);
+  assert(!RegionStack.empty() && "Region stack mismatch, stack empty!");
 
   expanded_location Loc = GetNodeLocation(decl, false);
-  CompileUnitDesc *File = Loc.line ? getOrCreateCompileUnit(Loc.file) : NULL;
 
   // Construct variable.
-  VariableDesc *Variable = new VariableDesc(Tag);
-  Variable->setContext(RegionStack.back());
-  Variable->setName(Name);
-  Variable->setFile(File);
-  Variable->setLine(Loc.line);
-  Variable->setType(TyDesc);
+  llvm::DIVariable D =
+    DebugFactory.CreateVariable(Tag, RegionStack.back(), Name, 
+                                getOrCreateCompileUnit(Loc.file),
+                                Loc.line, getOrCreateType(type));
 
-  // Cast the AllocA result to a {}* for the call to llvm.dbg.declare. Since
-  // only pointer types are involved, this is always a BitCast
-  Value *AllocACast = new BitCastInst(AI, EmpPtr, Name, CurBB);
-
-  // Call llvm.dbg.declare.
-  Value *Args[2] = {
-    AllocACast,
-    getCastValueFor(Variable)
-  };
-  CallInst::Create(DeclareFn, Args, Args + 2, "", CurBB);
+  // Insert an llvm.dbg.declare into the current block.
+  DebugFactory.InsertDeclare(AI, D, CurBB);
 }
 
 /// EmitStopPoint - Emit a call to llvm.dbg.stoppoint to indicate a change of 
@@ -364,550 +331,517 @@ void DebugInfo::EmitStopPoint(Function *Fn, BasicBlock *CurBB) {
   PrevLineNo = CurLineNo;
   PrevBB = CurBB;
   
-  // Get the appropriate compile unit.
-  CompileUnitDesc *Unit = getOrCreateCompileUnit(CurFullPath);
-  
-  // Lazily construct llvm.dbg.stoppoint function.
-  if (!StopPointFn)
-    StopPointFn = Intrinsic::getDeclaration(M, Intrinsic::dbg_stoppoint);
-  
-  // Invoke llvm.dbg.stoppoint
-  Value *Args[3] = {
-    ConstantInt::get(Type::Int32Ty, CurLineNo),
-    ConstantInt::get(Type::Int32Ty, 0),
-    getCastValueFor(Unit)
-  };
-  CallInst::Create(StopPointFn, Args, Args+3, "", CurBB);
+  DebugFactory.InsertStopPoint(getOrCreateCompileUnit(CurFullPath), 
+                               CurLineNo, 0 /*column no. */,
+                               CurBB);
 }
 
 /// EmitGlobalVariable - Emit information about a global variable.
 ///
 void DebugInfo::EmitGlobalVariable(GlobalVariable *GV, tree decl) {
-  // FIXME - lots to do here.
-  // Create global variable debug descriptor.
-  GlobalVariableDesc *Global = new GlobalVariableDesc();
-
-  // Make sure we have an anchor.
-  if (!GlobalVariableAnchor) {
-    GlobalVariableAnchor = new AnchorDesc(Global);
-  }
-  
-  // Get name information.
-  GetGlobalNames(decl, Global);
-
   // Gather location information.
-  expanded_location location = expand_location(DECL_SOURCE_LOCATION(decl));
-  CompileUnitDesc *Unit = getOrCreateCompileUnit(location.file);
-  
-  TypeDesc *TyD = getOrCreateType(TREE_TYPE(decl), Unit);
-  
-  // Fill in the blanks.
-  Global->setAnchor(GlobalVariableAnchor);
-  Global->setContext(Unit);
-  Global->setFile(Unit);
-  Global->setLine(location.line);
-  Global->setType(TyD);
-  Global->setIsDefinition(true);
-  Global->setIsStatic(GV->hasInternalLinkage());
-  Global->setGlobalVariable(GV);
-  
-  // Make sure global is created if needed.
-  getValueFor(Global);
+  expanded_location Loc = expand_location(DECL_SOURCE_LOCATION(decl));
+  DIType TyD = getOrCreateType(TREE_TYPE(decl));
+  DebugFactory.CreateGlobalVariable(getOrCreateCompileUnit(Loc.file), 
+                                    GV->getNameStr(), GV->getNameStr(), 
+                                    getLinkageName(decl), 
+                                    getOrCreateCompileUnit(Loc.file), Loc.line,
+                                    TyD, GV->hasInternalLinkage(),
+                                    true/*definition*/, GV);
 }
 
-/// AddTypeQualifiers - Add const/volatile qualifiers prior to the type
-/// descriptor.
-static TypeDesc *AddTypeQualifiers(tree_node *type, CompileUnitDesc *Unit,
-                                   TypeDesc *TyDesc) {
-  if (TYPE_READONLY(type)) {
-    DerivedTypeDesc *DerivedTy = new DerivedTypeDesc(DW_TAG_const_type);
-    DerivedTy->setContext(Unit);
-    DerivedTy->setFromType(TyDesc);
-    TyDesc = DerivedTy;
+/// createBasicType - Create BasicType.
+DIType DebugInfo::createBasicType(tree type) {
+
+  const char *TypeName = GetNodeName(type);
+  uint64_t Size = NodeSizeInBits(type);
+  uint64_t Align = NodeAlignInBits(type);
+
+  unsigned Encoding = 0;
+  
+  switch (TREE_CODE(type)) {
+  case INTEGER_TYPE:
+    if (TYPE_STRING_FLAG (type)) {
+      if (TYPE_UNSIGNED (type))
+        Encoding = DW_ATE_unsigned_char;
+      else
+        Encoding = DW_ATE_signed_char;
+    }
+    else if (TYPE_UNSIGNED (type))
+      Encoding = DW_ATE_unsigned;
+    else
+      Encoding = DW_ATE_signed;
+    break;
+  case REAL_TYPE:
+    Encoding = DW_ATE_float;
+    break;
+  case COMPLEX_TYPE:
+    Encoding = TREE_CODE(TREE_TYPE(type)) == REAL_TYPE ?
+      DW_ATE_complex_float : DW_ATE_lo_user;
+    break;
+  case BOOLEAN_TYPE:
+    Encoding = DW_ATE_boolean;
+    break;
+  default: { 
+    DEBUGASSERT(0 && "Basic type case missing");
+    Encoding = DW_ATE_signed;
+    Size = BITS_PER_WORD;
+    Align = BITS_PER_WORD;
+    break;
   }
+  }
+  return 
+    DebugFactory.CreateBasicType(getOrCreateCompileUnit(main_input_filename),
+                                 TypeName, 
+                                 getOrCreateCompileUnit(main_input_filename),
+                                 0, Size, Align,
+                                 0, 0, Encoding);
+}
+
+/// createMethodType - Create MethodType.
+DIType DebugInfo::createMethodType(tree type) {
+
+  llvm::SmallVector<llvm::DIDescriptor, 16> EltTys;
+  
+  // Add the result type at least.
+  EltTys.push_back(getOrCreateType(TREE_TYPE(type)));
+  
+  // Set up remainder of arguments.
+  for (tree arg = TYPE_ARG_TYPES(type); arg; arg = TREE_CHAIN(arg)) {
+    tree formal_type = TREE_VALUE(arg);
+    if (formal_type == void_type_node) break;
+    EltTys.push_back(getOrCreateType(formal_type));
+  }
+  
+  llvm::DIArray EltTypeArray =
+    DebugFactory.GetOrCreateArray(&EltTys[0], EltTys.size());
+
+  return DebugFactory.CreateCompositeType(llvm::dwarf::DW_TAG_subroutine_type,
+                                          findRegion(type), "", 
+                                          getOrCreateCompileUnit(NULL), 
+                                          0, 0, 0, 0, 0,
+                                          llvm::DIType(), EltTypeArray);
+}
+
+/// createPointerType - Create PointerType.
+DIType DebugInfo::createPointerType(tree type) {
+
+  DIType FromTy = getOrCreateType(TREE_TYPE(type));
+  // type* and type&
+  // FIXME: Should BLOCK_POINTER_TYP have its own DW_TAG?
+  unsigned Tag = (TREE_CODE(type) == POINTER_TYPE ||
+                  TREE_CODE(type) == BLOCK_POINTER_TYPE) ?
+    DW_TAG_pointer_type :
+    DW_TAG_reference_type;
+  expanded_location Loc = GetNodeLocation(type);
+  return  DebugFactory.CreateDerivedType(Tag, findRegion(type), "", 
+                                         getOrCreateCompileUnit(NULL), 
+                                         0 /*line no*/, 
+                                         NodeSizeInBits(type),
+                                         NodeAlignInBits(type),
+                                         0 /*offset */, 
+                                         0 /* flags */, 
+                                         FromTy);
+}
+
+/// createArrayType - Create ArrayType.
+DIType DebugInfo::createArrayType(tree type) {
+
+  // type[n][m]...[p]
+  if (TYPE_STRING_FLAG(type) && TREE_CODE(TREE_TYPE(type)) == INTEGER_TYPE){
+    DEBUGASSERT(0 && "Don't support pascal strings");
+    return DIType();
+  }
+  
+  unsigned Tag = 0;
+  
+  if (TREE_CODE(type) == VECTOR_TYPE) 
+    Tag = DW_TAG_vector_type;
+  else
+    Tag = DW_TAG_array_type;
+  
+  // Add the dimensions of the array.  FIXME: This loses CV qualifiers from
+  // interior arrays, do we care?  Why aren't nested arrays represented the
+  // obvious/recursive way?
+  llvm::SmallVector<llvm::DIDescriptor, 8> Subscripts;
+  
+  // There will be ARRAY_TYPE nodes for each rank.  Followed by the derived
+  // type.
+  tree atype = type;
+  tree EltTy = TREE_TYPE(atype);
+  for (; TREE_CODE(atype) == ARRAY_TYPE; atype = TREE_TYPE(atype)) {
+    tree Domain = TYPE_DOMAIN(atype);
+    if (Domain) {
+      // FIXME - handle dynamic ranges
+      tree MinValue = TYPE_MIN_VALUE(Domain);
+      tree MaxValue = TYPE_MAX_VALUE(Domain);
+      if (MinValue && MaxValue &&
+          isInt64(MinValue, 0) && isInt64(MaxValue, 0)) {
+        uint64_t Low = getInt64(MinValue, 0);
+        uint64_t Hi = getInt64(MaxValue, 0);
+        Subscripts.push_back(DebugFactory.GetOrCreateSubrange(Low, Hi));
+      }
+    }
+    EltTy = TREE_TYPE(atype);
+  }
+  
+  llvm::DIArray SubscriptArray =
+    DebugFactory.GetOrCreateArray(&Subscripts[0], Subscripts.size());
+  expanded_location Loc = GetNodeLocation(type);
+  return DebugFactory.CreateCompositeType(llvm::dwarf::DW_TAG_array_type,
+                                          findRegion(type), "", 
+                                          getOrCreateCompileUnit(Loc.file), 0, 
+                                          NodeSizeInBits(type), 
+                                          NodeAlignInBits(type), 0, 0,
+                                          getOrCreateType(EltTy),
+                                          SubscriptArray);
+}
+
+/// createEnumType - Create EnumType.
+DIType DebugInfo::createEnumType(tree type) {
+  // enum { a, b, ..., z };
+  llvm::SmallVector<llvm::DIDescriptor, 32> Elements;
+  
+  if (TYPE_SIZE(type)) {
+    for (tree Link = TYPE_VALUES(type); Link; Link = TREE_CHAIN(Link)) {
+      tree EnumValue = TREE_VALUE(Link);
+      int64_t Value = getInt64(EnumValue, tree_int_cst_sgn(EnumValue) > 0);
+      const char *EnumName = IDENTIFIER_POINTER(TREE_PURPOSE(Link));
+      Elements.push_back(DebugFactory.CreateEnumerator(EnumName, Value));
+    }
+  }
+  
+  llvm::DIArray EltArray =
+    DebugFactory.GetOrCreateArray(&Elements[0], Elements.size());
+  
+  expanded_location Loc = { NULL, 0 };
+  if (TYPE_SIZE(type)) 
+    // Incomplete enums do not  have any location info.
+    Loc = GetNodeLocation(TREE_CHAIN(type), false);
+
+  return DebugFactory.CreateCompositeType(llvm::dwarf::DW_TAG_enumeration_type,
+                                          findRegion(type), GetNodeName(type), 
+                                          getOrCreateCompileUnit(Loc.file), 
+                                          Loc.line,
+                                          NodeSizeInBits(type), 
+                                          NodeAlignInBits(type), 0, 0,
+                                          llvm::DIType(), EltArray);
+}
+
+/// createStructType - Create StructType for struct or union or class.
+DIType DebugInfo::createStructType(tree type) {
+
+  // struct { a; b; ... z; }; | union { a; b; ... z; };
+  unsigned Tag = TREE_CODE(type) == RECORD_TYPE ? DW_TAG_structure_type :
+    DW_TAG_union_type;
+  
+  // Records and classes and unions can all be recursive.  To handle them,
+  // we first generate a debug descriptor for the struct as a forward 
+  // declaration. Then (if it is a definition) we go through and get debug 
+  // info for all of its members.  Finally, we create a descriptor for the
+  // complete type (which may refer to the forward decl if the struct is 
+  // recursive) and replace all  uses of the forward declaration with the 
+  // final definition. 
+  expanded_location Loc = GetNodeLocation(TREE_CHAIN(type), false);
+  llvm::DIType FwdDecl =
+    DebugFactory.CreateCompositeType(Tag, 
+                                     findRegion(type),
+                                     GetNodeName(type),
+                                     getOrCreateCompileUnit(Loc.file), 
+                                     Loc.line, 
+                                     0, 0, 0, llvm::DIType::FlagFwdDecl,
+                                     llvm::DIType(), llvm::DIArray());
+  
+  // forward declaration, 
+  if (TYPE_SIZE(type) == 0) 
+    return FwdDecl;
+  
+  // Insert into the TypeCache so that recursive uses will find it.
+  TypeCache[type] =  FwdDecl;
+  
+  // Convert all the elements.
+  llvm::SmallVector<llvm::DIDescriptor, 16> EltTys;
+  
+  if (tree binfo = TYPE_BINFO(type)) {
+    VEC (tree, gc) *accesses = BINFO_BASE_ACCESSES (binfo);
+    
+    for (unsigned i = 0, e = BINFO_N_BASE_BINFOS(binfo); i != e; ++i) {
+      tree BInfo = BINFO_BASE_BINFO(binfo, i);
+      tree BInfoType = BINFO_TYPE (BInfo);
+      DIType BaseClass = getOrCreateType(BInfoType);
+      
+      expanded_location loc = GetNodeLocation(type);
+      // FIXME : name, size, align etc...
+      DIType DTy = 
+        DebugFactory.CreateDerivedType(DW_TAG_inheritance, 
+                                       findRegion(type),"", 
+                                       getOrCreateCompileUnit(Loc.file), 
+                                       0,0,0, 
+                                       getInt64(BINFO_OFFSET(BInfo), 0),
+                                       0, BaseClass);
+      EltTys.push_back(DTy);
+    }
+  }
+  
+  // Now add members of this class.
+  for (tree Member = TYPE_FIELDS(type); Member;
+       Member = TREE_CHAIN(Member)) {
+    // Should we skip.
+    if (DECL_P(Member) && DECL_IGNORED_P(Member)) continue;
+    
+    if (TREE_CODE(Member) == FIELD_DECL) {
+      
+      if (DECL_FIELD_OFFSET(Member) == 0 ||
+          TREE_CODE(DECL_FIELD_OFFSET(Member)) != INTEGER_CST)
+        // FIXME: field with variable position, skip it for now.
+        continue;
+      
+      /* Ignore nameless fields.  */
+      if (DECL_NAME (Member) == NULL_TREE)
+        continue;
+      
+      // Get the location of the member.
+      expanded_location MemLoc = GetNodeLocation(Member, false);
+      
+      // Field type is the declared type of the field.
+      tree FieldNodeType = FieldType(Member);
+      DIType MemberType = getOrCreateType(FieldNodeType);
+      const char *MemberName = GetNodeName(Member);
+      unsigned Flags = 0;
+      if (TREE_PROTECTED(Member))
+        Flags = llvm::DIType::FlagProtected;
+      else if (TREE_PRIVATE(Member))
+        Flags = llvm::DIType::FlagPrivate;
+      
+      DIType DTy =
+        DebugFactory.CreateDerivedType(DW_TAG_member, findRegion(Member),
+                                       MemberName, 
+                                       getOrCreateCompileUnit(MemLoc.file),
+                                       MemLoc.line, NodeSizeInBits(Member),
+                                       NodeAlignInBits(FieldNodeType),
+                                       int_bit_position(Member), 
+                                       Flags, MemberType);
+      EltTys.push_back(DTy);
+    } else {
+      DEBUGASSERT(0 && "Unsupported member tree code!");
+    }
+  }
+  
+  for (tree Member = TYPE_METHODS(type); Member;
+       Member = TREE_CHAIN(Member)) {
+    
+    if (DECL_ABSTRACT_ORIGIN (Member)) continue;
+    
+    // Get the location of the member.
+    expanded_location MemLoc = GetNodeLocation(Member, false);
+    
+    const char *MemberName = GetNodeName(Member);                
+    const char *LinkageName = getLinkageName(Member);
+    DIType SPTy = getOrCreateType(TREE_TYPE(Member));
+    DISubprogram SP = 
+      DebugFactory.CreateSubprogram(findRegion(Member), MemberName, MemberName,
+                                    LinkageName, 
+                                    getOrCreateCompileUnit(MemLoc.file),
+                                    MemLoc.line, SPTy, false, false);
+    EltTys.push_back(SP);
+  }
+  
+  llvm::DIArray Elements =
+    DebugFactory.GetOrCreateArray(&EltTys[0], EltTys.size());
+  
+  llvm::DIType RealDecl =
+    DebugFactory.CreateCompositeType(Tag, findRegion(type),
+                                     GetNodeName(type),
+                                     getOrCreateCompileUnit(Loc.file),
+                                     Loc.line, 
+                                     NodeSizeInBits(type), NodeAlignInBits(type),
+                                     0, 0, llvm::DIType(), Elements);
+  
+  // Now that we have a real decl for the struct, replace anything using the
+  // old decl with the new one.  This will recursively update the debug info.
+  FwdDecl.getGV()->replaceAllUsesWith(RealDecl.getGV());
+  FwdDecl.getGV()->eraseFromParent();
+  return RealDecl;
+}
+
+/// createVarinatType - Create variant type or return MainTy.
+DIType DebugInfo::createVariantType(tree type, DIType MainTy) {
+  
+  DIType Ty;
+  if (tree Name = TYPE_NAME(type)) {
+    if (TREE_CODE(Name) == TYPE_DECL &&  DECL_ORIGINAL_TYPE(Name)) {
+      expanded_location TypeDefLoc = GetNodeLocation(Name);
+      Ty = DebugFactory.CreateDerivedType(DW_TAG_typedef, findRegion(type),
+                                          GetNodeName(Name), 
+                                          getOrCreateCompileUnit(TypeDefLoc.file),
+                                          TypeDefLoc.line,
+                                          0 /*size*/,
+                                          0 /*align*/,
+                                          0 /*offset */, 
+                                          0 /*flags*/, 
+                                          MainTy);
+      // Set the slot early to prevent recursion difficulties.
+      TypeCache[type] = Ty;
+      return Ty;
+    }
+  }
+
   if (TYPE_VOLATILE(type)) {
-    DerivedTypeDesc *DerivedTy = new DerivedTypeDesc(DW_TAG_volatile_type);
-    DerivedTy->setContext(Unit);
-    DerivedTy->setFromType(TyDesc);
-    TyDesc = DerivedTy;
+    Ty = DebugFactory.CreateDerivedType(DW_TAG_volatile_type, 
+                                        findRegion(type), "", 
+                                        getOrCreateCompileUnit(NULL), 
+                                        0 /*line no*/, 
+                                        NodeSizeInBits(type),
+                                        NodeAlignInBits(type),
+                                        0 /*offset */, 
+                                        0 /* flags */, 
+                                        MainTy);
+    MainTy = Ty;
   }
+
+  if (TYPE_READONLY(type)) 
+    Ty =  DebugFactory.CreateDerivedType(DW_TAG_const_type, 
+                                         findRegion(type), "", 
+                                         getOrCreateCompileUnit(NULL), 
+                                         0 /*line no*/, 
+                                         NodeSizeInBits(type),
+                                         NodeAlignInBits(type),
+                                         0 /*offset */, 
+                                         0 /* flags */, 
+                                         MainTy);
   
-  // FIXME - Add private/public/protected.
-  
-  return TyDesc;
+  if (TYPE_VOLATILE(type) || TYPE_READONLY(type)) {
+    TypeCache[type] = Ty;
+    return Ty;
+  }
+
+  // If, for some reason, main type varaint type is seen then use it.
+  return MainTy;
 }
 
 /// getOrCreateType - Get the type from the cache or create a new type if
 /// necessary.
-/// FIXME - I hate jumbo methods - split up.
-TypeDesc *DebugInfo::getOrCreateType(tree type, CompileUnitDesc *Unit) {
+DIType DebugInfo::getOrCreateType(tree type) {
   DEBUGASSERT(type != NULL_TREE && type != error_mark_node &&
               "Not a type.");
-  if (type == NULL_TREE || type == error_mark_node) return NULL;
-
-  // Ignore variants such as const, volatile, or restrict.
-  type = TYPE_MAIN_VARIANT(type);
+  if (type == NULL_TREE || type == error_mark_node) return DIType();
 
   // Should only be void if a pointer/reference/return type.  Returning NULL
   // allows the caller to produce a non-derived type.
-  if (TREE_CODE(type) == VOID_TYPE) return NULL;
+  if (TREE_CODE(type) == VOID_TYPE) return DIType();
   
   // Check to see if the compile unit already has created this type.
-  TypeDesc *Slot = TypeCache[type];
-  if (Slot) return Slot;
+  DIType &Slot = TypeCache[type];
+  if (!Slot.isNull())
+    return Slot;
   
-  // Ty will have contain the resulting type.
-  TypeDesc *Ty = NULL;
-  
-  // Get the name and location early to assist debugging.
-  const char *TypeName = GetNodeName(type);
-  expanded_location Loc = GetNodeLocation(type);
-  
-  // Bit size, align and offset of the type.
-  uint64_t Size = NodeSizeInBits(type);
-  uint64_t Align = NodeAlignInBits(type);
-  uint64_t Offset = 0;
-  
-  // Do we have a typedef?
-  if (tree Name = TYPE_NAME(type)) {
-    if (TREE_CODE(Name) == TYPE_DECL &&  DECL_ORIGINAL_TYPE(Name)) {
-      // typedefs are derived from some other type.
-      DerivedTypeDesc *DerivedTy = new DerivedTypeDesc(DW_TAG_typedef);
-      // Set the slot early to prevent recursion difficulties.
-      TypeCache[type] = Ty = DerivedTy;
-      // Handle derived type.
-      TypeDesc *FromTy = getOrCreateType(DECL_ORIGINAL_TYPE(Name), Unit);
-      DerivedTy->setFromType(FromTy);
-      // typedefs size should be fetched from the derived type.
-      Size = Align = 0;
-    }
+  DIType MainTy;
+  if (type != TYPE_MAIN_VARIANT(type)) {
+    if (TYPE_NEXT_VARIANT(type) && type != TYPE_NEXT_VARIANT(type))
+      MainTy = getOrCreateType(TYPE_NEXT_VARIANT(type));
+    else if (TYPE_MAIN_VARIANT(type))
+      MainTy = getOrCreateType(TYPE_MAIN_VARIANT(type));
   }
-  
-  // If no result so far.
-  if (!Ty) {
-    // Work out details of type.
-    switch (TREE_CODE(type)) {
+
+  DIType Ty = createVariantType(type, MainTy);
+  if (!Ty.isNull())
+    return Ty;
+
+  // Work out details of type.
+  switch (TREE_CODE(type)) {
     case ERROR_MARK:
     case LANG_TYPE:
     case TRANSLATION_UNIT_DECL:
     default: {
       DEBUGASSERT(0 && "Unsupported type");
-      return NULL;
+      return DIType();
     }
-
+    
     case POINTER_TYPE:
     case REFERENCE_TYPE:
-    case BLOCK_POINTER_TYPE: {
-      // type* and type&
-      // FIXME: Should BLOCK_POINTER_TYP have its own DW_TAG?
-      unsigned T = (TREE_CODE(type) == POINTER_TYPE ||
-                    TREE_CODE(type) == BLOCK_POINTER_TYPE) ?
-        DW_TAG_pointer_type :
-        DW_TAG_reference_type;
-      DerivedTypeDesc *DerivedTy = new DerivedTypeDesc(T);
-      Ty = DerivedTy;
-      // Set the slot early to prevent recursion difficulties.
-      // Any other use of the type should include the qualifiers.
-      TypeCache[type] = AddTypeQualifiers(type, Unit, DerivedTy);
-      // Handle the derived type.
-      TypeDesc *FromTy = getOrCreateType(TREE_TYPE(type), Unit);
-      DerivedTy->setFromType(FromTy);
+    case BLOCK_POINTER_TYPE:
+      Ty = createPointerType(type);
       break;
-    }
     
     case OFFSET_TYPE: {
       // gen_type_die(TYPE_OFFSET_BASETYPE(type), context_die);
-      
       // gen_type_die(TREE_TYPE(type), context_die);
-      
       // gen_ptr_to_mbr_type_die(type, context_die);
       break;
     }
 
     case FUNCTION_TYPE:
-    case METHOD_TYPE: {
-      CompositeTypeDesc *SubrTy = new CompositeTypeDesc(DW_TAG_subroutine_type);
-      Ty = SubrTy;
-      // Set the slot early to prevent recursion difficulties.
-      // Any other use of the type should include the qualifiers.
-      TypeCache[type] = AddTypeQualifiers(type, Unit, SubrTy);
-      
-      // Prepare to add the arguments for the subroutine.
-      std::vector<DebugInfoDesc *> &Elements = SubrTy->getElements();
-      // Get result type.
-      TypeDesc *ArgTy = getOrCreateType(TREE_TYPE(type), Unit);
-      Elements.push_back(ArgTy);
-
-      // Set up remainder of arguments.
-      for (tree arg = TYPE_ARG_TYPES(type); arg; arg = TREE_CHAIN(arg)) {
-        tree formal_type = TREE_VALUE(arg);
-        
-        if (formal_type == void_type_node) break;
-        
-        ArgTy = getOrCreateType(formal_type, Unit);
-        Elements.push_back(ArgTy);
-      }
-      
+    case METHOD_TYPE: 
+      Ty = createMethodType(type);
       break;
-    }
       
     case VECTOR_TYPE:
-    case ARRAY_TYPE: {
-      // type[n][m]...[p]
-      if (TYPE_STRING_FLAG(type) && TREE_CODE(TREE_TYPE(type)) == INTEGER_TYPE){
-        DEBUGASSERT(0 && "Don't support pascal strings");
-        return NULL;
-      }
-      
-      CompositeTypeDesc *ArrayTy;
-      
-      if (TREE_CODE(type) == VECTOR_TYPE) {
-        Ty = ArrayTy = new CompositeTypeDesc(DW_TAG_vector_type);
-        // Set the slot early to prevent recursion difficulties.
-        // Any other use of the type should include the qualifiers.
-        TypeCache[type] = AddTypeQualifiers(type, Unit, ArrayTy);
-        // Use the element type of the from this point.
-        type = TREE_TYPE(TYPE_FIELDS(TYPE_DEBUG_REPRESENTATION_TYPE(type)));
-      } else {
-        Ty = ArrayTy = new CompositeTypeDesc(DW_TAG_array_type);
-        // Set the slot early to prevent recursion difficulties.
-        // Any other use of the type should include the qualifiers.
-        TypeCache[type] = AddTypeQualifiers(type, Unit, ArrayTy);
-      }
-
-      // Prepare to add the dimensions of the array.
-      std::vector<DebugInfoDesc *> &Elements = ArrayTy->getElements();
-
-      // There will be ARRAY_TYPE nodes for each rank.  Followed by the derived
-      // type.
-      for (; TREE_CODE(type) == ARRAY_TYPE; type = TREE_TYPE(type)) {
-        tree Domain = TYPE_DOMAIN(type);
-        SubrangeDesc *Subrange = new SubrangeDesc();
-
-        if (Domain) {
-          // FIXME - handle dynamic ranges
-          tree MinValue = TYPE_MIN_VALUE(Domain);
-          tree MaxValue = TYPE_MAX_VALUE(Domain);
-          if (MinValue && MaxValue &&
-              isInt64(MinValue, 0) && isInt64(MaxValue, 0)) {
-            Subrange->setLo(getInt64(MinValue, 0));
-            Subrange->setHi(getInt64(MaxValue, 0));
-          }
-        }
-        
-        Elements.push_back(Subrange);
-      }
-      
-      // Now handle the derived type.
-      ArrayTy->setFromType(getOrCreateType(type, Unit));
+    case ARRAY_TYPE: 
+      Ty = createArrayType(type);
       break;
-    }
     
-    case ENUMERAL_TYPE: {
-      // enum { a, b, ..., z };
-      CompositeTypeDesc *Enum = new CompositeTypeDesc(DW_TAG_enumeration_type);
-      Ty = Enum;
-      // Any other use of the type should include the qualifiers.
-      TypeCache[type] = AddTypeQualifiers(type, Unit, Enum);
-      // Prepare to add the enumeration values.
-      std::vector<DebugInfoDesc *> &Elements = Enum->getElements();
-
-      if (TYPE_SIZE(type)) {
-        for (tree Link = TYPE_VALUES(type); Link; Link = TREE_CHAIN(Link)) {
-          EnumeratorDesc *EnumDesc = new EnumeratorDesc();
-
-          tree EnumValue = TREE_VALUE(Link);
-          int64_t Value = getInt64(EnumValue, tree_int_cst_sgn(EnumValue) > 0);
-          const char *EnumName = IDENTIFIER_POINTER(TREE_PURPOSE(Link));
-          EnumDesc->setName(EnumName);
-          EnumDesc->setValue(Value);
-        
-          Elements.push_back(EnumDesc);
-        }
-      }
+    case ENUMERAL_TYPE: 
+      Ty = createEnumType(type);
       break;
-    }
     
     case RECORD_TYPE:
     case QUAL_UNION_TYPE:
-    case UNION_TYPE: {
-      // struct { a; b; ... z; }; | union { a; b; ... z; };
-      unsigned Tag = TREE_CODE(type) == RECORD_TYPE ? DW_TAG_structure_type :
-                                                      DW_TAG_union_type;
-      CompositeTypeDesc *StructTy = new CompositeTypeDesc(Tag);
-      Ty = StructTy;
-      // Set the slot early to prevent recursion difficulties.
-      // Any other use of the type should include the qualifiers.
-      TypeCache[type] = AddTypeQualifiers(type, Unit, StructTy);
-      // Prepare to add the fields.
-      std::vector<DebugInfoDesc *> &Elements = StructTy->getElements();
-      
-      if (tree binfo = TYPE_BINFO(type)) {
-        VEC (tree, gc) *accesses = BINFO_BASE_ACCESSES (binfo);
-        
-        for (unsigned i = 0, e = BINFO_N_BASE_BINFOS(binfo); i != e; ++i) {
-          tree BInfo = BINFO_BASE_BINFO(binfo, i);
-          tree BInfoType = BINFO_TYPE (BInfo);
-          TypeDesc *BaseClass = getOrCreateType(BInfoType, Unit);
-          DerivedTypeDesc *MemberDesc = new DerivedTypeDesc(DW_TAG_inheritance);
-          MemberDesc->setFromType(BaseClass);
-          
-          if (accesses) {
-            tree access = VEC_index(tree, accesses, i);
-            if (access == access_protected_node) {
-              MemberDesc->setIsProtected();
-            } else if (access == access_private_node) {
-              MemberDesc->setIsPrivate();
-            }
-          }
-          
-          MemberDesc->setOffset(getInt64(BINFO_OFFSET(BInfo), 0));
-          Elements.push_back(MemberDesc);
-        }
-      }
-
-      // Now add members of this class.
-      for (tree Member = TYPE_FIELDS(type); Member;
-                Member = TREE_CHAIN(Member)) {
-        // Should we skip.
-        if (DECL_P(Member) && DECL_IGNORED_P(Member)) continue;
-
-        // Get the location of the member.
-        expanded_location MemLoc = GetNodeLocation(Member, false);
-        CompileUnitDesc *MemFile = MemLoc.line ?
-                                   getOrCreateCompileUnit(MemLoc.file) :
-                                   NULL;
-
-        if (TREE_CODE(Member) == FIELD_DECL) {
-          if (DECL_FIELD_OFFSET(Member) == 0 ||
-              TREE_CODE(DECL_FIELD_OFFSET(Member)) != INTEGER_CST)
-            // FIXME: field with variable position, skip it for now.
-            continue;
-
-          DerivedTypeDesc *MemberDesc = new DerivedTypeDesc(DW_TAG_member);
-          // Field type is the declared type of the field.
-          tree FieldNodeType = FieldType(Member);
-          TypeDesc *MemberType = getOrCreateType(FieldNodeType, Unit);
-          const char *MemberName = GetNodeName(Member);
-          
-          MemberDesc->setName(MemberName);
-          MemberDesc->setFile(MemFile);
-          MemberDesc->setLine(MemLoc.line);
-          MemberDesc->setFromType(MemberType);
-          MemberDesc->setSize(NodeSizeInBits(Member));
-          MemberDesc->setAlign(NodeAlignInBits(FieldNodeType));
-          MemberDesc->setOffset(int_bit_position(Member));
-          
-          if (TREE_PROTECTED(Member)) {
-            MemberDesc->setIsProtected();
-          } else if (TREE_PRIVATE(Member)) {
-            MemberDesc->setIsPrivate();
-          }
-
-          Elements.push_back(MemberDesc);
-        } else if (TREE_CODE(Member) == VAR_DECL) {
-          GlobalVariableDesc *Static = new GlobalVariableDesc();
-
-          // Get name information.
-          GetGlobalNames(Member, Static);
-
-          TypeDesc *TyD = getOrCreateType(TREE_TYPE(Member), Unit);
-          
-          // Fill in the blanks.
-          Static->setContext(Unit);
-          Static->setFile(MemFile);
-          Static->setLine(MemLoc.line);
-          Static->setType(TyD);
-          Static->setIsDefinition(false);
-          Static->setIsStatic(!TREE_PUBLIC(Member));
-
-          Elements.push_back(Static);
-        } else {
-          // FIXME - ignoring others for the time being.
-        }
-      }
-      for (tree Member = TYPE_METHODS(type); Member;
-                Member = TREE_CHAIN(Member)) {
-                
-        if (DECL_ABSTRACT_ORIGIN (Member)) continue;
-                
-        // Create subprogram descriptor.
-        Subprogram = new SubprogramDesc();
-        
-        // Get name information.
-        GetGlobalNames(Member, Subprogram);
-        
-        // Get function type.
-        TypeDesc *SPTy = getOrCreateType(TREE_TYPE(Member), Unit);
-
-        if (TREE_PROTECTED(Member)) {
-          SPTy->setIsProtected();
-        } else if (TREE_PRIVATE(Member)) {
-          SPTy->setIsPrivate();
-        }
-
-        Subprogram->setContext(Unit);
-        Subprogram->setFile(Unit);
-        Subprogram->setLine(CurLineNo);
-        Subprogram->setType(SPTy);
-        Subprogram->setIsStatic(!TREE_PUBLIC(Member));
-        Subprogram->setIsDefinition(false);
-
-        Elements.push_back(Subprogram);
-      }
-      
+    case UNION_TYPE: 
+      Ty = createStructType(type);
       break;
-    }
 
     case INTEGER_TYPE:
     case REAL_TYPE:   
     case COMPLEX_TYPE:
-    case BOOLEAN_TYPE: {
-      // char, short, int, long long, bool, float, double.
-      BasicTypeDesc *BTy = new BasicTypeDesc();
-      Ty = BTy;
-      // Any other use of the type should include the qualifiers.
-      TypeCache[type] = AddTypeQualifiers(type, Unit, BTy);
-      // The encoding specific to the type.
-      unsigned Encoding = 0;
-
-      switch (TREE_CODE(type)) {
-      case INTEGER_TYPE:
-        if (TYPE_STRING_FLAG (type)) {
-          if (TYPE_UNSIGNED (type))
-            Encoding = DW_ATE_unsigned_char;
-          else
-            Encoding = DW_ATE_signed_char;
-        }
-        else if (TYPE_UNSIGNED (type))
-          Encoding = DW_ATE_unsigned;
-        else
-          Encoding = DW_ATE_signed;
-        break;
-      case REAL_TYPE:
-        Encoding = DW_ATE_float;
-        break;
-      case COMPLEX_TYPE:
-        Encoding = TREE_CODE(TREE_TYPE(type)) == REAL_TYPE ?
-                             DW_ATE_complex_float : DW_ATE_lo_user;
-        break;
-      case BOOLEAN_TYPE:
-        Encoding = DW_ATE_boolean;
-        break;
-      default: { 
-        DEBUGASSERT(0 && "Basic type case missing");
-        Encoding = DW_ATE_signed;
-        Size = BITS_PER_WORD;
-        Align = BITS_PER_WORD;
-        break;
-      }
-      }
-      
-      BTy->setEncoding(Encoding);
-      // Don't associate basic type with a location.
-      Loc.line = 0;
-    }
-    }
+    case BOOLEAN_TYPE:
+      Ty = createBasicType(type);
+      break;
   }
-
-  // If the type is defined, fill in teh details.
-  if (Ty) {
-    CompileUnitDesc *File = Loc.line ? getOrCreateCompileUnit(Loc.file) : NULL;
- 
-    Ty->setContext(Unit);
-    Ty->setName(TypeName);
-    Ty->setFile(File);
-    Ty->setLine(Loc.line);
-    Ty->setSize(Size);
-    Ty->setAlign(Align);
-    Ty->setOffset(Offset);
-  }
-
-  DEBUGASSERT(TypeCache[type] && "Unimplemented type");
-  return TypeCache[type];
+  TypeCache[type] = Ty;
+  return Ty;
 }
 
-/// getOrCreateCompileUnit - Get the compile unit from the cache or create a new
-/// one if necessary.
-CompileUnitDesc *DebugInfo::getOrCreateCompileUnit(const std::string &FullPath){
-  // See if this compile unit has been used before.
-  CompileUnitDesc *&Slot = CompileUnitCache[FullPath];
-  if (Slot) return Slot;
+/// getOrCreateCompileUnit - Get the compile unit from the cache or 
+/// create a new one if necessary.
+DICompileUnit DebugInfo::getOrCreateCompileUnit(const char *FullPath,
+                                                bool isMain){
 
-  // Create new compile unit.
-  CompileUnitDesc *Unit = new CompileUnitDesc();
-
-  // Make sure we have an anchor.
-  if (!CompileUnitAnchor) {
-    CompileUnitAnchor = new AnchorDesc(Unit);
-  }
+  GlobalVariable *&CU = CUCache[FullPath ? FullPath : main_input_filename];
+  if (CU)
+    return DICompileUnit(CU);
 
   // Get source file information.
   std::string Directory;
   std::string FileName;
   DirectoryAndFile(FullPath, Directory, FileName);
   
-  Unit->setAnchor(CompileUnitAnchor);
-  Unit->setFileName(FileName);
-  Unit->setDirectory(Directory);
-  
-  // Set up producer name.
-  Unit->setProducer(version_string);
-
   // Set up Language number.
-  unsigned Language;
+  unsigned LangTag;
   const std::string LanguageName(lang_hooks.name);
   if (LanguageName == "GNU C")
-    Unit->setLanguage(DW_LANG_C89);
+    LangTag = DW_LANG_C89;
   else if (LanguageName == "GNU C++")
-    Unit->setLanguage(DW_LANG_C_plus_plus);
+    LangTag = DW_LANG_C_plus_plus;
   else if (LanguageName == "GNU Ada")
-    Unit->setLanguage(DW_LANG_Ada95);
+    LangTag = DW_LANG_Ada95;
   else if (LanguageName == "GNU F77")
-    Unit->setLanguage(DW_LANG_Fortran77);
+    LangTag = DW_LANG_Fortran77;
   else if (LanguageName == "GNU Pascal")
-    Unit->setLanguage(DW_LANG_Pascal83);
+    LangTag = DW_LANG_Pascal83;
   else if (LanguageName == "GNU Java")
-    Unit->setLanguage(DW_LANG_Java);
+    LangTag = DW_LANG_Java;
+  else if (LanguageName == "GNU Objective-C")
+    LangTag = DW_LANG_ObjC;
+  else if (LanguageName == "GNU Objective-C++") 
+    LangTag = DW_LANG_ObjC_plus_plus;
   else
-    Unit->setLanguage(DW_LANG_C89);
-    
-  // Update cache.
-  Slot = Unit;
-  
-  return Unit;
+    LangTag = DW_LANG_C89;
+
+  DICompileUnit NewCU = DebugFactory.CreateCompileUnit(LangTag, FileName, 
+                                                       Directory, 
+                                                       version_string, isMain);
+  CU = NewCU.getGV();
+  return NewCU;
 }
 
-/// readLLVMDebugInfo - Read debug info from PCH file. TheModule already
-/// represents module read from PCH file. Restore AnchorDesc from PCH file.
-void DebugInfo::readLLVMDebugInfo() {
-  MachineModuleInfo MMI;
-  MMI.AnalyzeModule(*TheModule);
-
-  std::vector<SubprogramDesc *> Subprograms;
-  MMI.getAnchoredDescriptors<SubprogramDesc>(*TheModule, Subprograms);
-
-  if (!Subprograms.empty())
-    SubprogramAnchor = Subprograms[0]->getAnchor();
-
-  std::vector<CompileUnitDesc *> CUs;
-  MMI.getAnchoredDescriptors<CompileUnitDesc>(*TheModule, CUs);
-
-  if (!CUs.empty())
-    CompileUnitAnchor = CUs[0]->getAnchor();
-
-  std::vector<GlobalVariableDesc *> GVs;
-  MMI.getAnchoredDescriptors<GlobalVariableDesc>(*TheModule, GVs);
-
-  if (!GVs.empty())
-    GlobalVariableAnchor = GVs[0]->getAnchor();
-
-  const std::map<GlobalVariable *, DebugInfoDesc *> &GlobalDescs
-    = MMI.getDIDeserializer()->getGlobalDescs();
-  for (std::map<GlobalVariable *, DebugInfoDesc *>::const_iterator 
-         I = GlobalDescs.begin(), E = GlobalDescs.end(); I != E; ++I) 
-    SR.addDescriptor(I->second, I->first);
-}
-  
 /* LLVM LOCAL end (ENTIRE FILE!)  */
-

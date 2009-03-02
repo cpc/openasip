@@ -1,5 +1,5 @@
-ti64x_subset.adf,/home/tests/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,18.02.09 14:30,14639
-huge.adf,/home/tests/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,18.02.09 14:30,8652
-RF_constrained.adf,/home/tests/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,18.02.09 14:30,11832
-FU_constrained.adf,/home/tests/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,18.02.09 14:30,11552
-minimal_with_io.adf,/home/tests/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,18.02.09 14:30,241448
+ti64x_subset.adf,/home/elhigu/stow_sources/tce-1.0-llvm-2.5/tce/scheduler/passes/default_scheduler.conf,26.02.09 08:00,8037
+huge.adf,/home/elhigu/stow_sources/tce-1.0-llvm-2.5/tce/scheduler/passes/default_scheduler.conf,26.02.09 08:00,4194
+RF_constrained.adf,/home/elhigu/stow_sources/tce-1.0-llvm-2.5/tce/scheduler/passes/default_scheduler.conf,26.02.09 08:00,5167
+FU_constrained.adf,/home/elhigu/stow_sources/tce-1.0-llvm-2.5/tce/scheduler/passes/default_scheduler.conf,26.02.09 08:00,5392
+minimal_with_io.adf,/home/elhigu/stow_sources/tce-1.0-llvm-2.5/tce/scheduler/passes/default_scheduler.conf,26.02.09 08:00,318853

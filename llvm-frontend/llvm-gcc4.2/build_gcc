@@ -113,7 +113,7 @@ MAJ_VERS=`echo $VERS | sed 's/\([0-9]*\.[0-9]*\)[.-].*/\1/'`
 ARM_SYSROOT="/Developer/SDKs/Extra"
 ARM_LIBSTDCXX_VERSION=4.2.1
 ARM_CONFIGFLAGS="--with-build-sysroot=\"$ARM_SYSROOT\" \
-                 --with-gxx-include-dir=\${prefix}/include/c++/$ARM_LIBSTDCXX_VERSION"
+                 --with-gxx-include-dir=/usr/include/c++/$ARM_LIBSTDCXX_VERSION"
 # APPLE LOCAL end ARM ARM_CONFIGFLAGS
 
 # This is the libstdc++ version to use.
@@ -124,7 +124,7 @@ LIBSTDCXX_VERSION=4.2.1
 if [ ! -d "/usr/include/c++/$LIBSTDCXX_VERSION" ]; then
   LIBSTDCXX_VERSION=4.0.0
 fi
-#NON_ARM_CONFIGFLAGS="--with-gxx-include-dir=\${prefix}/include/c++/$LIBSTDCXX_VERSION"
+NON_ARM_CONFIGFLAGS="--with-gxx-include-dir=/usr/include/c++/$LIBSTDCXX_VERSION"
 # LLVM LOCAL end
 
 DARWIN_VERS=`uname -r | sed 's/\..*//'`
@@ -164,7 +164,6 @@ CONFIGFLAGS="$CHECKING_FLAGS \
   --enable-languages=$LANGUAGES \
   --program-prefix=llvm- \
   --program-transform-name=/^[cg][^.-]*$/s/$/-$MAJ_VERS/ \
-  --with-gxx-include-dir=/usr/include/c++/$LIBSTDCXX_VERSION \
   --with-slibdir=/usr/lib \
   --build=$BUILD-apple-darwin$DARWIN_VERS"
 
@@ -513,6 +512,9 @@ done
 # LLVM LOCAL begin
 # Compress manpages
 gzip -f $MDIR/*
+mkdir -p /Developer/usr/share/man/man1
+cp $ORIG_SRC_DIR/gcc/doc/llvm-gcc.1 /Developer/usr/share/man/man1/llvm-gcc.1
+gzip -f /Developer/usr/share/man/man1/llvm-gcc.1
 # LLVM LOCAL end
 
 # Build driver-driver using fully-named drivers
@@ -619,6 +621,13 @@ for t in $TARGETS ; do
     rm libllvmgcc.dylib
     ln -s ../../libllvmgcc.dylib
 done
+
+if [ "x$LLVM_BUILT_ROOTS" == "x" ]; then
+    mkdir -p $DEST_DIR/usr/bin
+    cd $DEST_DIR/usr/bin
+    ln -s /Developer/usr/bin/llvm-gcc-4.2 llvm-gcc-4.2
+    ln -s /Developer/usr/bin/llvm-g++-4.2 llvm-g++-4.2
+fi
 # LLVM LOCAL end
 
 find $DEST_DIR -name \*.dSYM -print | xargs rm -r || exit 1

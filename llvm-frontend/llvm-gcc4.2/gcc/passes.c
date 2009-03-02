@@ -333,10 +333,11 @@ struct tree_opt_pass pass_postreload =
 
 
 /* The root of the compilation pass tree, once constructed.  */
-struct tree_opt_pass *all_passes, *all_ipa_passes, *all_lowering_passes;
 /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
-struct tree_opt_pass *all_extra_lowering_passes;
+struct tree_opt_pass *all_lowering_passes, *all_extra_lowering_passes;
+#else
+struct tree_opt_pass *all_passes, *all_ipa_passes, *all_lowering_passes;
 #endif
 /* LLVM LOCAL end */
 
@@ -479,23 +480,21 @@ init_optimization_passes (void)
   struct tree_opt_pass **p;
 
 #define NEXT_PASS(PASS)  (p = next_pass_1 (p, &PASS))
+  /* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   /* Interprocedural optimization passes.  */
   p = &all_ipa_passes;
-  /* LLVM local begin */
-#ifndef ENABLE_LLVM
   NEXT_PASS (pass_early_ipa_inline);
   NEXT_PASS (pass_early_local_passes);
   NEXT_PASS (pass_ipa_cp);
-#endif
-  NEXT_PASS (pass_ipa_inline); /* LLVM: inline functions marked always_inline */
-#ifndef ENABLE_LLVM
+  NEXT_PASS (pass_ipa_inline);
   NEXT_PASS (pass_ipa_reference);
   NEXT_PASS (pass_ipa_pure_const); 
   NEXT_PASS (pass_ipa_type_escape);
   NEXT_PASS (pass_ipa_pta);
-#endif
-  /* LLVM local end */
   *p = NULL;
+#endif
+  /* LLVM LOCAL end */
 
   /* All passes needed to lower the function into shape optimizers can
      operate on.  */
@@ -526,6 +525,7 @@ init_optimization_passes (void)
   NEXT_PASS (pass_fixup_cfg);
   NEXT_PASS (pass_init_datastructures);
   NEXT_PASS (pass_expand_omp);
+  NEXT_PASS (pass_fold_builtins);
   NEXT_PASS (pass_free_datastructures);
   *p = NULL;
 #endif
@@ -612,13 +612,7 @@ init_optimization_passes (void)
   NEXT_PASS (pass_object_sizes);
   NEXT_PASS (pass_store_ccp);
   NEXT_PASS (pass_store_copy_prop);
-
-#endif
-  /* LLVM LOCAL end */
   NEXT_PASS (pass_fold_builtins);
-  /* LLVM LOCAL begin */
-#ifndef ENABLE_LLVM
-
   /* FIXME: May alias should a TODO but for 4.0.0,
      we add may_alias right after fold builtins
      which can create arbitrary GIMPLE.  */
@@ -770,14 +764,18 @@ init_optimization_passes (void)
   NEXT_PASS (pass_final);
   *p = NULL;
 #endif
-  /* LLVM local end */
+  /* LLVM LOCAL end */
 
 #undef NEXT_PASS
 
   /* Register the passes with the tree dump code.  */
+  /* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
   register_dump_files (all_ipa_passes, true,
 		       PROP_gimple_any | PROP_gimple_lcf | PROP_gimple_leh
 		       | PROP_cfg);
+#endif
+  /* LLVM LOCAL end */
   register_dump_files (all_lowering_passes, false, PROP_gimple_any);
   /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
@@ -855,6 +853,7 @@ execute_todo (unsigned int flags)
                                dump_file, dump_flags);
       else
 	{
+/* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
 	  if (dump_flags & TDF_SLIM)
 	    print_rtl_slim_with_bb (dump_file, get_insns (), dump_flags);
@@ -863,6 +862,7 @@ execute_todo (unsigned int flags)
           else
 	    print_rtl (dump_file, get_insns ());
 #endif
+/* LLVM LOCAL end */
 	  if (curr_properties & PROP_cfg
 	      && graph_dump_format != no_graph
 	      && (dump_flags & TDF_GRAPH))

@@ -9440,6 +9440,12 @@ validate_arglist (tree arglist, ...)
 	      if (! POINTER_TYPE_P (TREE_TYPE (TREE_VALUE (arglist))))
 		goto end;
 	    }
+	  /* APPLE LOCAL begin 5813921 */
+	  else if (code == INTEGER_TYPE
+		   && (TREE_CODE (TREE_TYPE (TREE_VALUE (arglist)))
+		       == ENUMERAL_TYPE))
+	    /* Allow ENUMERAL_TYPE to match INTEGER_TYPE.  */ ;
+	  /* APPLE LOCAL end 5813921 */
 	  else if (code != TREE_CODE (TREE_TYPE (TREE_VALUE (arglist))))
 	    goto end;
 	  break;

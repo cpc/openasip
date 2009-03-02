@@ -938,6 +938,11 @@ warn_deprecated_use (tree node)
   if (node == 0 || !warn_deprecated_decl)
     return;
 
+  /* APPLE LOCAL begin radar 4746503 */
+  if (current_function_decl && TREE_DEPRECATED (current_function_decl))
+    return;
+  /* APPLE LOCAL end radar 4746503 */
+
   if (DECL_P (node))
     {
       expanded_location xloc = expand_location (DECL_SOURCE_LOCATION (node));
@@ -1184,6 +1189,8 @@ compile_file (void)
 #else
   if (!flag_pch_file)
     llvm_asm_file_end();
+  /* Release LLVM global state. */
+  llvm_call_llvm_shutdown();
 #endif
   /* LLVM LOCAL end */
 }
@@ -1224,6 +1231,12 @@ decode_d_option (const char *arg)
 	setup_core_dumping();
 	break;
 
+      /* LLVM LOCAL begin */
+      case 'M':
+         /* Ignore -dM. This is overloaded for rtl pass that 
+            does not exist in llvm-gcc.  */
+         break;
+      /* LLVM LOCAL end */
       case 'a':
       default:
 	if (!enable_rtl_dump_file (c))
@@ -1705,8 +1718,19 @@ general_init (const char *argv0)
   /* Register the language-independent parameters.  */
   add_params (lang_independent_params, LAST_PARAM);
 
-  /* This must be done after add_params but before argument processing.  */
-  init_ggc_heuristics();
+  /* APPLE LOCAL begin retune gc params 6124839 */
+  { int i = 0;
+    bool opt = false;
+    while (save_argv[++i])
+      {
+	if (strncmp (save_argv[i], "-O", 2) == 0
+	    && strcmp (save_argv[i], "-O0") != 0)
+	  opt = true;
+      }
+    /* This must be done after add_params but before argument processing.  */
+    init_ggc_heuristics(opt);
+  }
+  /* APPLE LOCAL end retune gc params 6124839 */
   init_optimization_passes ();
 }
 
@@ -1816,6 +1840,12 @@ process_options (void)
 
   if (flag_value_profile_transformations)
     flag_profile_values = 1;
+
+  /* LLVM LOCAL begin */
+  /* Disable verbose_asm flag if -emit-llvm is used, it's totally bogus then */
+  if (emit_llvm || emit_llvm_bc)
+    flag_verbose_asm = 0;
+  /* LLVM LOCAL end */
 
   /* Warn about options that are not supported on this machine.  */
 #ifndef INSN_SCHEDULING

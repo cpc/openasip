@@ -72,7 +72,8 @@ namespace llvm {
         LowerArguments(
             llvm::Function& f, 
             llvm::SelectionDAG& dag,
-            SmallVectorImpl<SDValue>& argValues);
+            SmallVectorImpl<SDValue>& argValues,
+            DebugLoc dl);
 
         virtual std::pair<llvm::SDValue, llvm::SDValue>
             LowerCallTo(
@@ -86,7 +87,8 @@ namespace llvm {
                 bool isTailCall,
                 llvm::SDValue callee,
                 llvm::TargetLowering::ArgListTy& args,
-                llvm::SelectionDAG& dag);
+                llvm::SelectionDAG& dag,
+                llvm::DebugLoc dl);
 
         virtual const char* getTargetNodeName(unsigned opcode) const;
 
@@ -102,6 +104,8 @@ namespace llvm {
         virtual llvm::MVT getSetCCResultType(const SDValue &) const {
             return MVT::i1;
         }
+
+        virtual llvm::MVT getSetCCResultType(llvm::MVT VT) const;
 
     private:
         // Frame index to the the start of variadic parameter list.

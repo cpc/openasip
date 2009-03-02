@@ -92,6 +92,8 @@ using namespace llvm;
 unsigned LLVMPOMBuilder::MAU_BITS = 8;
 unsigned LLVMPOMBuilder::POINTER_SIZE = 4; // Pointer size in maus.
 
+char LLVMPOMBuilder::ID = 0;
+
 /**
  * The Constructor.
  *
@@ -99,7 +101,7 @@ unsigned LLVMPOMBuilder::POINTER_SIZE = 4; // Pointer size in maus.
  */
 LLVMPOMBuilder::LLVMPOMBuilder(
     TCETargetMachine& tm, TTAMachine::Machine* mach):
-    MachineFunctionPass(static_cast<void*>(0)),
+    MachineFunctionPass(this),
     mod_(NULL), tm_(tm), mach_(mach), umach_(NULL), prog_(NULL),
     mang_(NULL), dmem_(NULL), end_(0), programReady_(false) {
 }
@@ -218,7 +220,8 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.address = 0;
         def.alignment = td->getPrefTypeAlignment(type);
         def.size = td->getTypeStoreSize(type);
-        assert(def.size != 0 && def.alignment != 0);
+        
+        assert(def.alignment != 0);
 
         if (isInitialized(initializer)) {
             def.initialize = true;

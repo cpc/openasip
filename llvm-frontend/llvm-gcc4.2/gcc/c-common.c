@@ -202,11 +202,6 @@ cpp_reader *parse_in;		/* Declared in c-pragma.h.  */
 
 */
 
-/* APPLE LOCAL begin radar 5811943 - Fix type of pointers to Blocks  */
-/* Move declaration of invoke_impl_ptr_type from c-typeck.c  */
-tree invoke_impl_ptr_type;
-/* APPLE LOCAL end radar 5811943 - Fix type of pointers to Blocks  */
-
 tree c_global_trees[CTI_MAX];
 
 /* Switches common to the C front ends.  */
@@ -302,7 +297,18 @@ int warn_unknown_pragmas; /* Tri state variable.  */
 /* Warn about format/argument anomalies in calls to formatted I/O functions
    (*printf, *scanf, strftime, strfmon, etc.).  */
 
-int warn_format;
+/* APPLE LOCAL begin default to Wformat-security 5764921 */
+/* LLVM LOCAL begin initialize via config/darwin.h */
+#ifndef WARN_FORMAT_INIT
+#define WARN_FORMAT_INIT 0
+#endif
+#ifndef WARN_FORMAT_SECURITY_INIT
+#define WARN_FORMAT_SECURITY_INIT 0
+#endif
+int warn_format = WARN_FORMAT_INIT;
+int warn_format_security = WARN_FORMAT_SECURITY_INIT;
+/* LLVM LOCAL end initialize via config/darwin.h */
+/* APPLE LOCAL end default to Wformat-security 5764921 */
 
 /* Warn about using __null (as NULL in C++) as sentinel.  For code compiled
    with GCC this doesn't matter as __null is guaranteed to have the right
@@ -6130,7 +6136,7 @@ handle_blocks_attribute (tree *node, tree name,
   *no_add_attrs = true;
   if (!(*node) || TREE_CODE (*node) != VAR_DECL)
     {
-      warning (OPT_Wattributes, "byref attribute can be specified on variables only - ignored");
+      warning (OPT_Wattributes, "__block attribute can be specified on variables only - ignored");
       return NULL_TREE;
     }
   arg_ident = TREE_VALUE (args);
@@ -6165,7 +6171,7 @@ handle_blocks_attribute (tree *node, tree name,
 /* APPLE LOCAL begin blocks 6040305 */
 
 /* This routine builds:
-   *(id *)(EXP+20) expression which references the object id pointer.
+   *(void **)(EXP+20) expression which references the object pointer.
 */
 tree
 build_indirect_object_id_exp (tree exp)
@@ -6173,7 +6179,7 @@ build_indirect_object_id_exp (tree exp)
   tree dst_obj;
   int  int_size = int_cst_value (TYPE_SIZE_UNIT (unsigned_type_node));
   int offset;
-  /* dst->object = [src->object retail]; In thid case 'object' is the field
+  /* dst->object In thid case 'object' is the field
    of the object passed offset by: void * + void* + int + int + void* + void *
    This must match definition of Block_byref structs. */
   /* APPLE LOCAL radar 6244520 */
@@ -6183,76 +6189,25 @@ build_indirect_object_id_exp (tree exp)
   dst_obj = build2 (PLUS_EXPR, ptr_type_node, exp,
                     build_int_cst (NULL_TREE, offset));
   /* APPLE LOCAL begin radar 6180456 */
-  if (c_dialect_objc ())
-    {
-      /* Type case to: 'id *' */
-      dst_obj = cast_to_pointer_to_id (dst_obj);
-      dst_obj = build_indirect_ref (dst_obj, "unary *");
-    }
+  /* Type case to: 'void **' */
+  dst_obj = build_c_cast (build_pointer_type (ptr_type_node), dst_obj);
+  dst_obj = build_indirect_ref (dst_obj, "unary *");
   /* APPLE LOCAL end radar 6180456 */
   return dst_obj;
 }
 
-/* APPLE LOCAL begin radar 6180456 */
-static tree block_byref_release_decl;
-
-/* Build a: void _Block_byref_release (void *) if not done
-  already. */
-tree
-build_block_byref_release_decl (void)
-{
-  if (!block_byref_release_decl &&
-      !(block_byref_release_decl =
-        lookup_name (get_identifier ("_Block_byref_release"))))
-  {
-    tree func_type =
-    build_function_type (void_type_node,
-                         tree_cons (NULL_TREE, ptr_type_node, void_list_node));
-
-    block_byref_release_decl =
-      builtin_function ("_Block_byref_release", func_type, 0, NOT_BUILT_IN, 
-			0, NULL_TREE);
-
-    TREE_NOTHROW (block_byref_release_decl) = 0;
-  }
-  return block_byref_release_decl;
-}
-/* APPLE LOCAL end radar 6180456 */
-
-static tree block_byref_assign_copy_decl;
-tree
-build_block_byref_assign_copy_decl (void)
-{
-  /* Build a: void _Block_byref_assign_copy (void *, void *) if not done already. */
-  if (!block_byref_assign_copy_decl
-      && !(block_byref_assign_copy_decl
-             = lookup_name (get_identifier ("_Block_byref_assign_copy"))))
-    {
-      tree func_type
-        = build_function_type (void_type_node,
-                               tree_cons (NULL_TREE, ptr_type_node,
-                                          tree_cons (NULL_TREE, ptr_type_node, void_list_node)));
-
-      block_byref_assign_copy_decl
-        = builtin_function ("_Block_byref_assign_copy", func_type,
-                            0, NOT_BUILT_IN, 0, NULL_TREE);
-      TREE_NOTHROW (block_byref_assign_copy_decl) = 0;
-    }
-  return block_byref_assign_copy_decl;
-}
-
 /* This routine builds call to:
- _Block_byref_release(VAR_DECL.forwarding);
+ _Block_object_dispose(VAR_DECL.__forwarding, BLOCK_FIELD_IS_BYREF);
  and adds it to the statement list.
  */
 tree
 build_block_byref_release_exp (tree var_decl)
 {
-  tree exp = var_decl, call_exp, func_params;
+  tree exp = var_decl, call_exp;
   tree type = TREE_TYPE (var_decl);
-  /* __byref variables imported into Blocks are not _Block_byref_released()
+  /* __block variables imported into Blocks are not _Block_object_dispose()
    from within the Block statement itself; otherwise, each envokation of
-   the block causes a release. Make sure to release __byref variables declared 
+   the block causes a release. Make sure to release __block variables declared 
    and used locally in the block though. */
   if (cur_block 
       && (BLOCK_DECL_COPIED (var_decl) || BLOCK_DECL_BYREF (var_decl)))
@@ -6265,10 +6220,9 @@ build_block_byref_release_exp (tree var_decl)
   }
   TREE_USED (var_decl) = 1;
 
-  /* Declare: _Block_byref_release(void*) if not done already. */
-  exp = build_component_ref (exp, get_identifier ("forwarding"));
-  func_params = tree_cons (NULL_TREE, exp, NULL_TREE);
-  call_exp = build_function_call (build_block_byref_release_decl (), func_params);
+  /* Declare: _Block_object_dispose(void*, BLOCK_FIELD_IS_BYREF) if not done already. */
+  exp = build_component_ref (exp, get_identifier ("__forwarding"));
+  call_exp = build_block_object_dispose_call_exp (exp, BLOCK_FIELD_IS_BYREF);
   return call_exp;
 }
 /* APPLE LOCAL end blocks 6040305 */
@@ -6305,8 +6259,11 @@ build_block_helper_name (int unique_count)
   char *buf;
   if (!current_function_decl)
     {
+      /* APPLE LOCAL begin radar 6411649 */
+      static int global_count;
       buf = (char *)alloca (32);
-      sprintf (buf, "__block_global_%d", unique_count);
+      sprintf (buf, "__block_global_%d", ++global_count);
+      /* APPLE LOCAL end radar 6411649 */
     }
   else
     {
@@ -6316,6 +6273,10 @@ build_block_helper_name (int unique_count)
              DECL_CONTEXT (outer_decl) && TREE_CODE (DECL_CONTEXT (outer_decl)) == FUNCTION_DECL)
       /* APPLE LOCAL end radar 6169580 */
         outer_decl = DECL_CONTEXT (outer_decl);
+      /* APPLE LOCAL begin radar 6411649 */
+      if (!unique_count)
+        unique_count = ++DECL_STRUCT_FUNCTION(outer_decl)->unqiue_block_number;
+      /* APPLE LOCAL end radar 6411649 */
       buf = (char *)alloca (IDENTIFIER_LENGTH (DECL_NAME (outer_decl)) + 32); 
       sprintf (buf, "__%s_block_invoke_%d", 
 	       IDENTIFIER_POINTER (DECL_NAME (outer_decl)), unique_count);
@@ -6384,6 +6345,7 @@ handle_annotate_attribute (tree *node, tree name, tree args,
   id = TREE_VALUE (args);
 
   if (TREE_CODE (*node) == FUNCTION_DECL ||
+      TREE_CODE (*node) == FIELD_DECL ||
       TREE_CODE (*node) == VAR_DECL || TREE_CODE (*node) == PARM_DECL)  
   {
   
@@ -7311,6 +7273,13 @@ iasm_op_comp (const void *a, const void *b)
 #define U(X) ""
 /* This is used to denote the size for testcase generation.  */
 #define S(X)
+#define X(X) X
+#define T(X) X
+/* Not for x86_64 mode */
+#define NX ""
+/* Not yet implemented by the 64-bit assembler, but is in 32-bit assembler. */
+#define NY ""
+#define C X(",")
 
 #define m8 "m" S("1")
 #define m16 "m" S("2")
@@ -7321,22 +7290,18 @@ iasm_op_comp (const void *a, const void *b)
 #define r8 "r" S("1")
 #define r16 "r" S("2")
 #define r32 "r" S("4")
-#define r64 U("r" S("8"))
+#define R64 X("r" S("8"))
 #define a8 "a" S("1")
 #define a16 "a" S("2")
 #define a32 "a" S("4")
 #define r16r32 r16 r32
-#define r16r32r64 r16 r32 r64
 #define r8r16r32 r8 r16 r32
 #define rm8 r8 m8
 #define rm16 r16 m16
 #define rm32 r32 m32
-#define rm64 r64 m64
 #define rm8rm16 rm8 rm16
 #define rm8rm16rm32 rm8 rm16 rm32
-#define rm8rm16rm32rm64 rm8 rm16 rm32 rm64
 #define m8m16m32 m8 m16 m32
-#define r32r64 r32 r64
 #define ri8 r8 "i"
 #define ri16 r16 "i"
 #define ri32 r32 "i"
@@ -7346,6 +7311,14 @@ iasm_op_comp (const void *a, const void *b)
 #define m80fp "m" S("7")
 #define m32fpm64fp m32fp m64fp
 #define m32fpm64fpm80fp m32fp m64fp m80fp
+#define M64 X(m64)
+#define RM64 R64 M64
+#define RI64 X(R64 "i")
+#define r32R64 r32 R64
+#define r16r32R64 r16 r32 R64
+#define rm32RM64 rm32 RM64
+#define rm8rm16rm32RM64 rm8 rm16 rm32 RM64
+#define m8m16m32M64 m8 m16 m32 M64
 #endif
 
 #ifndef TARGET_IASM_REORDER_ARG
@@ -7416,6 +7389,14 @@ iasm_constraint_for (const char *opcode, unsigned argnum, unsigned ARG_UNUSED (n
 }
 
 #if defined(TARGET_386)
+#undef U
+#undef S
+#undef X
+#undef T
+#undef NX
+#undef NY
+#undef C
+
 #undef m8
 #undef m16
 #undef m32
@@ -7425,22 +7406,18 @@ iasm_constraint_for (const char *opcode, unsigned argnum, unsigned ARG_UNUSED (n
 #undef r8
 #undef r16
 #undef r32
-#undef r64
+#undef R64
 #undef a8
 #undef a16
 #undef a32
 #undef r16r32
-#undef r16r32r64
 #undef r8r16r32
 #undef rm8
 #undef rm16
 #undef rm32
-#undef rm64
 #undef rm8rm16
 #undef rm8rm16rm32
-#undef rm8rm16rm32rm64
 #undef m8m16m32
-#undef r32r64
 #undef ri8
 #undef ri16
 #undef ri32
@@ -7450,9 +7427,13 @@ iasm_constraint_for (const char *opcode, unsigned argnum, unsigned ARG_UNUSED (n
 #undef m80fp
 #undef m32fpm64fp
 #undef m32fpm64fpm80fp
-
-#undef U
-#undef S
+#undef M64
+#undef RM64
+#undef r32R64
+#undef r16r32R64
+#undef rm32RM64
+#undef rm8rm16rm32RM64
+#undef m8m16m32M64
 #endif
 
 static void
@@ -7974,14 +7955,18 @@ iasm_stmt (tree expr, tree args, int lineno)
     e.no_label_map = true;
 #ifdef TARGET_386
   else if (strcasecmp (opcodename, "call") == 0
-	   || strcasecmp (opcodename, "jmp") == 0)
+	   || strncasecmp (opcodename, "j", 1) == 0)
     {
       if (args
 	  && TREE_CODE (TREE_VALUE (args)) != LABEL_DECL
 	  && TREE_CODE (TREE_VALUE (args)) != FUNCTION_DECL)
 	e.modifier = "A";
       else
-	iasm_force_constraint ("X", &e);
+	{
+	  if (TARGET_64BIT)
+	    e.modifier = "l";
+	  iasm_force_constraint ("X", &e);
+	}
     }
 #endif
 
@@ -8210,6 +8195,9 @@ iasm_expr_val (tree arg)
 #ifndef IASM_VALID_PIC
 #define IASM_VALID_PIC(D,E)
 #endif
+#ifndef IASM_RIP
+#define IASM_RIP(X)
+#endif
 
 /* Force the last operand to have constraint C.  */
 
@@ -8301,6 +8289,10 @@ iasm_print_operand (char *buf, tree arg, unsigned argnum,
 	 :-( Hope this stays working.  */
       iasm_force_constraint ("X", e);
       modifier = "l";
+#ifdef TARGET_386
+      if (TARGET_64BIT)
+	modifier = "a";
+#endif
       if (e->modifier)
 	{
 	  modifier = e->modifier;
@@ -8416,6 +8408,7 @@ iasm_print_operand (char *buf, tree arg, unsigned argnum,
 	      sprintf (buf + strlen (buf), "%s", user_label_prefix);
 	      strcat (buf, IDENTIFIER_POINTER (DECL_ASSEMBLER_NAME (arg)));
 	    }
+	  IASM_RIP (buf);
 
 	  mark_decl_referenced (arg);
 	}
@@ -9141,5 +9134,132 @@ warn_array_subscript_with_type_char (tree index)
     warning (OPT_Wchar_subscripts, "array subscript has type %<char%>");
 }
 
+/* APPLE LOCAL begin radar 6246527 */
+/* This routine is called for a "format" attribute. It adds the number of
+ hidden argument ('1') to the format's 2nd and 3rd argument to compensate
+ for these two arguments. This is to make rest of the "format" attribute
+ processing done in the middle-end to work seemlessly. */
 
+static void
+block_delta_format_args (tree format)
+{
+  tree format_num_expr, first_arg_num_expr;
+  int val; 
+  tree args = TREE_VALUE (format);
+  gcc_assert (TREE_CHAIN (args) && TREE_CHAIN (TREE_CHAIN (args)));
+  format_num_expr = TREE_VALUE (TREE_CHAIN (args));
+  first_arg_num_expr = TREE_VALUE (TREE_CHAIN (TREE_CHAIN (args)));
+  if (format_num_expr && TREE_CODE (format_num_expr) == INTEGER_CST)
+  {
+    val = TREE_INT_CST_LOW (format_num_expr);
+    TREE_VALUE (TREE_CHAIN (args)) = build_int_cst (NULL_TREE, val+1);
+  }
+  if (first_arg_num_expr && TREE_CODE (first_arg_num_expr) == INTEGER_CST)
+  {
+    val = TREE_INT_CST_LOW (first_arg_num_expr);
+    if (val != 0)
+      TREE_VALUE (TREE_CHAIN (TREE_CHAIN (args))) = 
+                                              build_int_cst (NULL_TREE, val+1);
+  }
+}
+
+/* This routine recognizes legal block attributes. In case of block's "format" 
+ attribute, it calls block_delta_format_args to compensate for hidden 
+ argument _self getting passed to block's helper function. */
+bool
+any_recognized_block_attribute (tree attributes)
+{
+  tree chain;
+  bool res = false;
+  for (chain = attributes; chain; chain = TREE_CHAIN (chain))
+  {
+    if (is_attribute_p ("format", TREE_PURPOSE (chain)))
+    {
+      block_delta_format_args (chain);
+      res = true;
+    }
+    else if (is_attribute_p ("sentinel", TREE_PURPOSE (chain)))
+      res = true;	
+  }
+  return res;
+}
+/* APPLE LOCAL end radar 6246527 */
+
+/* APPLE LOCAL begin radar 5847976 */
+static GTY(()) tree block_object_assign_decl;
+static GTY(()) tree block_object_dispose_func_decl;
+/* This routine declares:
+   void _Block_object_assign (void *, void *, int) or uses an
+   existing one.
+*/
+static tree
+build_block_object_assign_decl (void)
+{
+  tree func_type;
+  if (block_object_assign_decl)
+    return block_object_assign_decl;
+  block_object_assign_decl = lookup_name (get_identifier ("_Block_object_assign"));
+  if (block_object_assign_decl)
+    return block_object_assign_decl;
+  func_type =
+            build_function_type (void_type_node,
+              tree_cons (NULL_TREE, ptr_type_node,
+                         tree_cons (NULL_TREE, ptr_type_node,
+                                    tree_cons (NULL_TREE, integer_type_node, void_list_node))));
+
+  block_object_assign_decl = builtin_function ("_Block_object_assign", func_type,
+                                               0, NOT_BUILT_IN, 0, NULL_TREE);
+  TREE_NOTHROW (block_object_assign_decl) = 0;
+  return block_object_assign_decl;
+}
+
+/* This routine builds:
+   _Block_object_assign(dest, src, flag)
+*/
+tree build_block_object_assign_call_exp (tree dst, tree src, int flag)
+{
+  tree func_params = tree_cons (NULL_TREE, dst,
+                               tree_cons (NULL_TREE, src,
+                                          tree_cons (NULL_TREE,
+                                                     build_int_cst (integer_type_node, flag),
+                                                     NULL_TREE)));
+  return build_function_call (build_block_object_assign_decl (), func_params);
+}
+
+/* This routine declares:
+   void _Block_object_dispose (void *, int) or uses an
+   existing one.
+*/
+static tree
+build_block_object_dispose_decl (void)
+{
+  tree func_type;
+  if (block_object_dispose_func_decl)
+    return block_object_dispose_func_decl;
+  block_object_dispose_func_decl = lookup_name (get_identifier ("_Block_object_dispose"));
+  if (block_object_dispose_func_decl)
+    return block_object_dispose_func_decl;
+  func_type =
+      build_function_type (void_type_node,
+                           tree_cons (NULL_TREE, ptr_type_node,
+                                      tree_cons (NULL_TREE, integer_type_node, void_list_node)));
+
+  block_object_dispose_func_decl = builtin_function ("_Block_object_dispose", func_type,
+                                       		     0, NOT_BUILT_IN, 0, NULL_TREE);
+  TREE_NOTHROW (block_object_dispose_func_decl) = 0;
+  return block_object_dispose_func_decl;
+}
+
+/* This routine builds the call tree:
+   _Block_object_dispose(src, flag)
+*/
+tree build_block_object_dispose_call_exp (tree src, int flag)
+{
+  tree func_params = tree_cons (NULL_TREE, src, 
+			        tree_cons (NULL_TREE,
+                                           build_int_cst (integer_type_node, flag),
+                                           NULL_TREE));
+  return build_function_call (build_block_object_dispose_decl (), func_params);
+}
+/* APPLE LOCAL end radar 5847976 */
 #include "gt-c-common.h"

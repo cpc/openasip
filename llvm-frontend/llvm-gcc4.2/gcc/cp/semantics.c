@@ -1930,6 +1930,18 @@ finish_this_expr (void)
       error ("%<this%> is unavailable for static member functions");
       result = error_mark_node;
     }
+  /* APPLE LOCAL begin radar 6275956 */
+  else if (cur_block && current_function_decl 
+           && BLOCK_SYNTHESIZED_FUNC (current_function_decl))
+    {
+      result = lookup_name (this_identifier);
+      if (!result)
+	{
+	  error ("invalid use of %<this%> in a block");
+	  result = error_mark_node;
+	}
+    }
+  /* APPLE LOCAL end radar 6275956 */
   else
     {
       if (current_function_decl)
@@ -2988,7 +3000,7 @@ finish_id_expression (tree id_expression,
 	      /* What we have is an expression which is of type
 		 struct __Block_byref_X. Must get to the value of the variable
 		 embedded in this structure. It is at:
-		 __Block_byref_X.forwarding->x */
+		 __Block_byref_X.__forwarding->x */
 	      decl = build_byref_local_var_access (decl,
 						   DECL_NAME (orig_decl));
 	    }
@@ -3271,6 +3283,11 @@ expand_or_defer_fn (tree fn)
      it.  */
   if (maybe_clone_body (fn))
     {
+      /* APPLE LOCAL begin radar 6305545 */
+	/* Must lower the nested functions which could be, among other
+           things, block helper functions. */
+        lower_if_nested_functions (fn);
+      /* APPLE LOCAL end radar 6305545 */
       /* We don't want to process FN again, so pretend we've written
 	 it out, even though we haven't.  */
       TREE_ASM_WRITTEN (fn) = 1;

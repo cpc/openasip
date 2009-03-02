@@ -1,36 +1,132 @@
-2007-07-19  Geoffrey Keating  <geoffk@apple.com>
-
-	* inclhack.def (darwin_macho_swaph_externc): New fix.
-	* fixincl.x: Regenerate.
-	* tests/base/mach-o/swap.h: New.
-
-/* APPLE LOCAL merge marger */
-/* Stuff above is only in mainline, not the 4.2 branch */
-2007-07-19  Release Manager
-
-	* GCC 4.2.1 released.
-
-2007-07-10  Rainer Orth  <ro@TechFak.Uni-Bielefeld.DE>
+2007-07-05  Rainer Orth  <ro@TechFak.Uni-Bielefeld.DE>
 
 	PR libgcj/28190
 	* inclhack.def (irix_stdint_c99): New fix.
 	* fixincl.x: Regenerate.
 	* tests/base/stdint.h: New test.
 
-2007-05-13  Release Manager
+2007-06-06  Steve Ellcey  <sje@cup.hp.com>
 
-	* GCC 4.2.0 released.
+	PR testsuite/31828
+	* inclhack.def (hppa_hpux_fp_macros): New.
+	* fixincl.x: Regenerate.
+	* tests/base/math.h: Update.
+
+2007-03-26  Jakub Jelinek  <jakub@redhat.com>
+
+	* inclhack.def (glibc_c99_inline_1): Define __USE_EXTERN_INLINES
+	if __extern_inline or __GNUC_GNU_INLINE__ is defined rather than
+	__STDC_VERSION__ < 199901L.
+	(glibc_c99_inline_2): Replace #if __STDC_VERSION__ < 199901L
+	with #ifdef __GNUC_GNU_INLINE__.
+	(glibc_c99_inline_3): Add select.  Replace __STDC_VERSION__ >= 199901L
+	with defined(__GNUC_STDC_INLINE__).
+	(glibc_c99_inline_4): Change select, add second c_fix_arg.
+	Replace #if __STDC_VERSION__ < 199901L with
+	#ifdef __GNUC_GNU_INLINE__.
+	* fixincl.x: Regenerated.
+	* tests/base/bits/string2.h: Update.
+	* tests/base/sys/sysmacros.h: Update.
+	* tests/base/sys/stat.h: Update.
+
+2007-03-18  Krister Walfridsson  <cato@df.lth.se>
+
+	PR target/30058
+	* inclhack.def (netbsd_c99_inline_1): New.
+	* fixincl.x: Regenerate.
+	* tests/base/signal.h: New.
+
+2007-03-12  Brooks Moses  <brooks.moses@codesourcery.com>
+
+	* Makefile.in: Add dummy "install-info" target.
+
+2007-03-06  Joseph Myers  <joseph@codesourcery.com>
+
+	* mkheaders.in: Fix headers for each multilib required.
+
+2007-03-01  Brooks Moses  <brooks.moses@codesourcery.com>
+
+	* Makefile.in: Add dummy install-pdf target.
+
+2007-02-27  Joseph Myers  <joseph@codesourcery.com>
+
+	* mkheaders.in (incdir): Use include-fixed not include.
+
+2007-02-15  Brooks Moses  <brooks.moses@codesourcery.com>
+
+	* Makefile.in: Added "pdf" target to .PHONY.
+
+2007-02-05  Richard Guenther  <rguenther@suse.de>
+
+	* inclhack.def (glibc_c99_inline_4): Adjust selector to cope
+	with older glibc.  Adjust version number for C99.
+	* fixincl.x: Regenerated.
 
 2007-02-04  Mike Stump  <mrs@apple.com>
 
 	* mkheaders.in: Allow optional isysroot parameter.
 
-2006-11-02  Steve Ellcey  <sje@cup.hp.com>
+2007-02-03  Bruce Korb <bkorb@gnu.org>
+
+	* inclhack.def (glibc_c99_inline_4): replace "extern" only if
+	surrounded by space characters.
+
+2007-01-25  Daniel Franke <franke.daniel@gmail.com>
+
+	PR target/30272
+	* inclhack.def(broken_cabs): Also remove definition of cabsl.
+	* fixincl.x: Regenerate.
+	* tests/base/math.h: Update.
+
+2007-01-05  Bruce Korb <bkorb@gnu.org>, 
+            Daniel Franke <franke.daniel@gmail.com>
+
+	PR target/30008
+	* fixincl.tpl (List): separate file name patterns with a NUL byte instead
+	of a vertical bar ("|").
+	* fixincl.c (fix_applies, machine_matches): Use fnmatch for name
+	matching.  Set SKIP_TEST flag if we are not to run a test.
+	* fixincl.x: Regenerate.
+	* inclhack.def (glibc_c99_inline_[1234], broken_cabs, broken_nan,
+	kandr_concat, sco_math): Replace lists of specfic file names by search
+	patterns.
+
+2006-12-12  Olivier Hainque  <hainque@adacore.com>
+
+	* fixincludes/mkfixinc.sh: Add "*-*-vxworks*" to the list of
+	targets for which a no-op fixer is appropriate.
+	
+2006-11-07  Richard Guenther  <rguenther@suse.de>
+
+	* inclhack.def (glibc_c99_inline_2): Adjust for glibc 2.3
+	systems.
+	* fixincl.x: Regenerate.
+
+2006-11-02  Geoffrey Keating  <geoffk@apple.com>
+
+	* inclhack.def (glibc_c99_inline_1): New.
+	* inclhack.def (glibc_c99_inline_2): New.
+	* inclhack.def (glibc_c99_inline_3): New.
+	* inclhack.def (glibc_c99_inline_4): New.
+	* fixincl.x: Regenerate.
+	* tests/base/bits/string2.h: New.
+	* tests/base/sys/sysmacros.h: New.
+	* tests/base/sys/stat.h: Update.
+
+2006-11-01  Steve Ellcey  <sje@cup.hp.com>
+
+	* tests/base/sys/socket.h: Update.
+
+2006-10-31  Steve Ellcey  <sje@cup.hp.com>
 
 	* inclhack.def (hpux11_extern_sendfile): New.
 	(hpux11_extern_sendpath): New.
 	* fixincl.x: Regenerate.
-	* tests/base/sys/socket.h: Update.
+
+2006-10-29  Joseph Myers  <joseph@codesourcery.com>
+
+	* inclhack.def (AAB_fd_zero_asm_posix_types_h): Bypass on x86_64.
+	* fixincl.x: Regenerate.
 
 2006-10-10  Brooks Moses  <bmoses@stanford.edu>
 

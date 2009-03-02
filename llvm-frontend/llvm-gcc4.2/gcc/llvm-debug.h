@@ -28,7 +28,8 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #ifndef LLVM_DEBUG_H
 #define LLVM_DEBUG_H
 
-#include "llvm/CodeGen/MachineModuleInfo.h"
+#include "llvm/Analysis/DebugInfo.h"
+#include "llvm/Support/Dwarf.h"
 
 extern "C" {
 #include "llvm.h"
@@ -36,6 +37,7 @@ extern "C" {
 
 #include <string>
 #include <map>
+#include <vector>
 
 namespace llvm {
 
@@ -51,30 +53,20 @@ class Module;
 class DebugInfo {
 private:
   Module *M;                            // The current module.
-  DISerializer SR;                      // Debug information serializer.
+  DIFactory DebugFactory;               
   const char *CurFullPath;              // Previous location file encountered.
   int CurLineNo;                        // Previous location line# encountered.
   const char *PrevFullPath;             // Previous location file encountered.
   int PrevLineNo;                       // Previous location line# encountered.
   BasicBlock *PrevBB;                   // Last basic block encountered.
-  std::map<std::string, CompileUnitDesc *> CompileUnitCache;
-                                        // Cache of previously constructed 
-                                        // CompileUnits.
-  DenseMap<tree_node *, TypeDesc *> TypeCache;
+  std::map<std::string, GlobalVariable *> CUCache;
+  std::map<tree_node *, DIType> TypeCache;
                                         // Cache of previously constructed 
                                         // Types.
-  Function *StopPointFn;                // llvm.dbg.stoppoint
-  Function *FuncStartFn;                // llvm.dbg.func.start
-  Function *RegionStartFn;              // llvm.dbg.region.start
-  Function *RegionEndFn;                // llvm.dbg.region.end
-  Function *DeclareFn;                  // llvm.dbg.declare
-  AnchorDesc *CompileUnitAnchor;        // Anchor for compile units.
-  AnchorDesc *GlobalVariableAnchor;     // Anchor for global variables.
-  AnchorDesc *SubprogramAnchor;         // Anchor for subprograms.
-  std::vector<DebugInfoDesc *> RegionStack;
+  std::vector<DIDescriptor> RegionStack;
                                         // Stack to track declarative scopes.
-  SubprogramDesc *Subprogram;           // Current subprogram.                                        
   
+  std::map<tree_node *, DIDescriptor> RegionMap;
 public:
   DebugInfo(Module *m);
 
@@ -82,14 +74,6 @@ public:
   void setLocationFile(const char *FullPath) { CurFullPath = FullPath; }
   void setLocationLine(int LineNo)           { CurLineNo = LineNo; }
   
-  /// getValueFor - Return a llvm representation for a given debug information
-  /// descriptor.
-  Value *getValueFor(DebugInfoDesc *DD);
-  
-  /// getCastValueFor - Return a llvm representation for a given debug 
-  /// information descriptor cast to an empty struct pointer.
-  Value *getCastValueFor(DebugInfoDesc *DD);
-
   /// EmitFunctionStart - Constructs the debug code for entering a function -
   /// "llvm.dbg.func.start."
   void EmitFunctionStart(tree_node *FnDecl, Function *Fn, BasicBlock *CurBB);
@@ -118,14 +102,35 @@ public:
 
   /// getOrCreateType - Get the type from the cache or create a new type if
   /// necessary.
-  TypeDesc *getOrCreateType(tree_node *type, CompileUnitDesc *Unit);
+  DIType getOrCreateType(tree_node *type);
 
-  /// getOrCreateCompileUnit - Get the compile unit from the cache or create a
-  /// new one if necessary.
-  CompileUnitDesc *getOrCreateCompileUnit(const std::string &FullPath);
+  /// createBasicType - Create BasicType.
+  DIType createBasicType(tree_node *type);
 
-  /// readLLVMDebugInfo - Read debug info from PCH file.
-  void readLLVMDebugInfo();
+  /// createMethodType - Create MethodType.
+  DIType createMethodType(tree_node *type);
+
+  /// createPointerType - Create PointerType.
+  DIType createPointerType(tree_node *type);
+
+  /// createArrayType - Create ArrayType.
+  DIType createArrayType(tree_node *type);
+
+  /// createEnumType - Create EnumType.
+  DIType createEnumType(tree_node *type);
+
+  /// createStructType - Create StructType for struct or union or class.
+  DIType createStructType(tree_node *type);
+
+  /// createVarinatType - Create variant type or return MainTy.
+  DIType createVariantType(tree_node *type, DIType MainTy);
+
+  /// getOrCreateCompileUnit - Create a new compile unit.
+  DICompileUnit getOrCreateCompileUnit(const char *FullPath,
+                                       bool isMain = false);
+
+  /// findRegion - Find tree_node N's region.
+  DIDescriptor findRegion(tree_node *n);
 };
 
 } // end namespace llvm

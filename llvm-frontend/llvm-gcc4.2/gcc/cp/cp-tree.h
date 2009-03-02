@@ -3983,6 +3983,8 @@ extern tree push_throw_library_fn		(tree, tree);
 extern tree check_tag_decl			(cp_decl_specifier_seq *);
 extern tree shadow_tag				(cp_decl_specifier_seq *);
 extern tree groktypename			(cp_decl_specifier_seq *, const cp_declarator *);
+/* APPLE LOCAL 6339747 */
+extern tree grokblockdecl			(cp_decl_specifier_seq *, const cp_declarator *);
 extern tree start_decl				(const cp_declarator *, cp_decl_specifier_seq *, int, tree, tree, tree *);
 extern void start_decl_1			(tree, bool);
 extern void cp_finish_decl			(tree, tree, bool, tree, int);

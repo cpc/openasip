@@ -527,7 +527,6 @@ lookup_tramp_for_decl (struct nesting_info *info, tree decl,
       field = make_node (FIELD_DECL);
       DECL_NAME (field) = DECL_NAME (decl);
       /* LLVM LOCAL begin */
-      /* FIXME: Keep the LLVM-way? */
 #ifdef ENABLE_LLVM
       TREE_TYPE (field) = TYPE_POINTER_TO (TREE_TYPE (decl));
 #else
@@ -1703,6 +1702,11 @@ construct_reverse_callgraph (tree *tp, int *walk_subtrees, void *data)
       if (TREE_CODE (decl) != FUNCTION_DECL)
         break;
 
+      /* LLVM LOCAL - begin radar 6394879 */
+      if (BLOCK_SYNTHESIZED_FUNC (decl))
+        break;
+      /* LLVM LOCAL - end radar 6394879 */
+
       if (!decl_function_context (decl))
         break;
 
@@ -1727,7 +1731,7 @@ static struct nesting_info *with_chain_worklist;
 
 static void
 initialize_chains (struct nesting_info *root) {
-  do
+  while (root)
     {
       if (root->inner)
         initialize_chains (root->inner);
@@ -1742,7 +1746,6 @@ initialize_chains (struct nesting_info *root) {
 
       root = root->next;
     }
-  while (root);
 }
 
 /* Helper for propagate_chains.  Set the chain flag on a function and all of
@@ -1827,7 +1830,6 @@ convert_tramp_reference (tree *tp, int *walk_subtrees, void *data)
 	continue;
 
       /* LLVM LOCAL begin */
-      /* FIXME: Keep the LLVM-way? */
 #ifdef ENABLE_LLVM
       /* Lookup the trampoline.  */
       x = lookup_tramp_for_decl (i, decl, INSERT);
@@ -1968,7 +1970,6 @@ convert_all_function_calls (struct nesting_info *root)
       walk_function (convert_call_expr, root);
 
       /* LLVM LOCAL begin */
-      /* FIXME: Keep the LLVM-way? */
 #ifdef ENABLE_LLVM
       gcc_assert (!root->outer ||
                   DECL_NO_STATIC_CHAIN (root->context) ==
@@ -2075,7 +2076,6 @@ finalize_nesting_tree_1 (struct nesting_info *root)
 	  arg = tree_cons (NULL, x, arg);
 
 	  /* LLVM LOCAL begin */
-          /* FIXME: Keep the LLVM-way? */
 #ifdef ENABLE_LLVM
 	  /* Create a local variable to hold the trampoline code.  */
 	  y = create_tmp_var_for (root, get_trampoline_type(),
@@ -2221,7 +2221,8 @@ static GTY(()) struct nesting_info *root;
    subroutines and turn them into something less tightly bound.  */
 
 void
-lower_nested_functions (tree fndecl)
+/* APPLE LOCAL radar 6305545 */
+lower_nested_functions (tree fndecl, bool skip_outermost_fndecl)
 {
   struct cgraph_node *cgn;
 
@@ -2236,6 +2237,13 @@ lower_nested_functions (tree fndecl)
 #endif
   /* LLVM LOCAL end */
   root = create_nesting_tree (cgn);
+  /* APPLE LOCAL begin radar 6305545 */
+  /* If skip_outermost_fndecl is true, we are lowering nested functions of
+     a constructor/destructor which are cloned and thrown away. But we
+     still have to lower their nested functions, but not the outermost function. */
+  if (skip_outermost_fndecl)
+    root = root->inner;
+  /* APPLE LOCAL end radar 6305545 */
   walk_all_functions (convert_nonlocal_reference, root);
   walk_all_functions (convert_local_reference, root);
   walk_all_functions (convert_nl_goto_reference, root);

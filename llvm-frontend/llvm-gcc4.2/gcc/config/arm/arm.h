@@ -205,6 +205,12 @@ extern GTY(()) rtx aof_pic_label;
 #define TARGET_HARD_TP			(target_thread_pointer == TP_CP15)
 #define TARGET_SOFT_TP			(target_thread_pointer == TP_SOFT)
 
+/* APPLE LOCAL begin ARM compact switch tables */
+/* Use compact switch tables with libgcc handlers.  */
+#define TARGET_COMPACT_SWITCH_TABLES \
+  (TARGET_THUMB && !TARGET_LONG_CALLS)
+/* APPLE LOCAL end ARM compact switch tables */
+
 /* True iff the full BPABI is being used.  If TARGET_BPABI is true,
    then TARGET_AAPCS_BASED must be true -- but the converse does not
    hold.  TARGET_BPABI implies the use of the BPABI runtime library,
@@ -2094,6 +2100,7 @@ do {							\
 
 #define CASE_VECTOR_SHORTEN_MODE(MIN_OFFSET, MAX_OFFSET, BODY)	\
 (TARGET_ARM ? SImode						\
+ : !TARGET_COMPACT_SWITCH_TABLES ? SImode			\
  : (MIN_OFFSET) >= -256 && (MAX_OFFSET) <= 254			\
  ? (ADDR_DIFF_VEC_FLAGS (BODY).offset_unsigned = 0, QImode)	\
  : (MIN_OFFSET) >= 0 && (MAX_OFFSET) <= 510			\
@@ -2134,7 +2141,7 @@ do {									\
      in final_scan_insn. */						\
   targetm.asm_out.internal_label (file, "L", base_label_no);		\
   /* Default is not included in output count */				\
-  if (TARGET_THUMB)							\
+  if (TARGET_COMPACT_SWITCH_TABLES)					\
     asm_fprintf (file, "\t%s\t%d @ size\n", directive, vlen - 1);	\
   for (idx = 0; idx < vlen; idx++)					\
     {									\
@@ -2153,13 +2160,16 @@ do {									\
       else if (!TARGET_THUMB)						\
 	asm_fprintf (file, "\tb\tL%d\n",				\
 			CODE_LABEL_NUMBER (target_label));		\
-      else								\
+      else if (TARGET_COMPACT_SWITCH_TABLES || flag_pic)		\
 	/* Let the assembler do the computation here; one case that	\
 	   uses is this is when there are asm's, which makes		\
 	   compile time computations unreliable. */			\
 	asm_fprintf (file, "\t%s\tL%d-L%d\n",				\
 	  directive,							\
 	  CODE_LABEL_NUMBER (target_label), base_label_no);		\
+      else								\
+	asm_fprintf (file, "\t%s\tL%d\n", directive,			\
+		     CODE_LABEL_NUMBER (target_label));			\
     }									\
   /* Pad to instruction boundary. */					\
   vlen = (vlen + 1/*count*/) * size;					\

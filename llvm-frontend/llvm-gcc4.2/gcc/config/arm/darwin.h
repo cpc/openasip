@@ -258,6 +258,9 @@ do {									\
     darwin_stubs = true;						\
     if (profile_flag)							\
       error ("function profiling not supported on this target");	\
+    /* Use -mlongcalls for kexts */					\
+    if (flag_mkernel || flag_apple_kext)				\
+      target_flags |= MASK_LONG_CALLS;					\
   }									\
 } while(0)
 

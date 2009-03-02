@@ -1278,14 +1278,15 @@ declare_return_variable (copy_body_data *id, tree return_slot_addr,
 	  var = modify_dest;
 	  use = NULL;
 
-    /* LLVM LOCAL begin */
+          /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
-    /* The return node may not dominate all of its uses.  Because of this,
-       conservatively don't consider it for SSA form anymore.  */
-    if (TREE_CODE (var) == VAR_DECL)
-      DECL_GIMPLE_FORMAL_TEMP_P (var) = 0;
+          /* The return node may not dominate all of its uses.  Because of this,
+             conservatively don't consider it for SSA form anymore.  */
+          if (TREE_CODE (var) == VAR_DECL)
+            DECL_GIMPLE_FORMAL_TEMP_P (var) = 0;
 #endif
     /* LLVM LOCAL end */
+
 	  goto done;
 	}
     }

@@ -20,7 +20,7 @@ EXTRA_GCCTCECFLAGS=\
 # automatically generated from SOURCE_FILES variable
 # OBJECT_FILES=board_test.o
 
-LLVM_PRESERVE_SYMBOLS=main
+#LLVM_PRESERVE_SYMBOLS=main
 
 include $(SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS)
 

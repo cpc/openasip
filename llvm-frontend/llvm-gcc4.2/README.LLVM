@@ -54,43 +54,11 @@ If you get an error message building llvm-gcc like this:
 you are probably hitting http://llvm.org/PR896.  Please reconfigure with the
 --disable-shared option to work around this.
 
+If you want Fortran support:
+    EXTRALANGS=,fortran
+
 //===-----------------------
 X86-64/AMD-64/EM64-T for any OS other than Darwin/Mac OS X:
-
-If you want to build multilib-enabled llvm-gcc (so, it will be able to generate
-32 and 64 bit executables) you need to consider your system default lib directory
-layout. 
-
-Usually, your system uses one of these layouts:
-
-I. /usr/lib    => 32 bit libraries (also in /usr/lib32)
-   /usr/lib64  => 64 bit libraries
-
-You're lucky and don't need to do anything, just proceed to usual configure
-steps.
-
-II. /usr/lib   => 64 bit libraries (also in /usr/lib64)
-    /usr/lib32 => 32 bit libraries
-
-You need to apply the following patch:
-
-<==cut==>
---- gcc/config/i386/t-linux64
-+++ gcc/config/i386/t-linux64
-@@ -6,7 +6,7 @@ SHLIB_MAPFILES = $(srcdir)/libgcc-std.ver \
- 
- MULTILIB_OPTIONS = m64/m32
- MULTILIB_DIRNAMES = 64 32 
--MULTILIB_OSDIRNAMES = ../lib64 ../lib
-+MULTILIB_OSDIRNAMES = ../lib64 ../lib32
- 
- LIBGCC = stmp-multilib
- INSTALL_LIBGCC = install-multilib
-<==cut==>
-
-Note, that usually you don't notice such patching with your native gcc, since
-it's done automatically by your favourite system package manager. Maybe we'll
-add some layout detection routine in the future.
 
 If you want just pure 64 bit compiler, configure with --disable-multilib.
 
@@ -101,17 +69,20 @@ First step: Upgrade your Xcode installation: you need at least Xcode 2.4.
 
 Next, decide if you want Objective-C support.  If so:
     EXTRALANGS=,objc,obj-c++
-
+    
 If building for Darwin/PPC:
-    TRIPLE=powerpc-apple-darwin8
+    TRIPLE=powerpc-apple-darwin8 (Tiger)
+    TRIPLE=powerpc-apple-darwin9 (Leopard)
   
 If building for Darwin/X86 (32- and 64-bit support):
     TARGETOPTIONS='--with-arch=nocona --with-tune=generic'
-    TRIPLE=i686-apple-darwin8
+    TRIPLE=i686-apple-darwin8 (Tiger)
+    TRIPLE=i686-apple-darwin9 (Leopard)
     
 If building for Darwin/X86 (32-bit support only):
-   TARGETOPTIONS='--with-arch=pentium-m --with-tune=prescott --disable-multilib'
-   TRIPLE=i686-apple-darwin8
+    TARGETOPTIONS='--with-arch=pentium-m --with-tune=prescott --disable-multilib'
+    TRIPLE=i686-apple-darwin8 (Tiger)
+    TRIPLE=i686-apple-darwin9 (Leopard)
 
 In addition, you *must* specify the following options to configure:
 
@@ -120,6 +91,13 @@ In addition, you *must* specify the following options to configure:
 
 With these options, llvm-gcc will build the same way as Apple's system GCC.
 
+If you want Fortran support, you need to do the following:
+    Get the GMP, MPFR, and libiconv via MacPorts.
+    You need to add fortran to the list of EXTRALANGS.
+    Then specify these additional options to configure:
+        --with-gmp=/opt/local
+        --with-mpfr=/opt/local
+        --with-libiconv-prefix=/opt/local
 
 //===----------------------------------------------------------------------===//
                                 Build Options
@@ -129,9 +107,9 @@ Version Identifier:
 
   If you want LLVM to include an identifying marker in the --version output,
   build llvm-gcc with LLVM_VERSION_INFO=XXX.  For example, to build the LLVM
-  2.4 Release front-end, use 'make LLVM_VERSION_INFO=2.4'.  This will cause the
+  2.5 Release front-end, use 'make LLVM_VERSION_INFO=2.5'.  This will cause the
   front-end to print: "gcc version 4.2.1 (Based on Apple Inc. build 5555) 
-  (LLVM build 2.4)" as the version number.
+  (LLVM build 2.5)" as the version number.
   
   BUILDOPTIONS=LLVM_VERSION_INFO=whatever
   
@@ -146,7 +124,7 @@ llvm-gcc source directory, and build and install llvm-gcc:
 $ mkdir obj
 $ mkdir install
 $ cd obj
-$ ../llvm-gcc4.2-2.4.source/configure --prefix=`pwd`/../install --program-prefix=llvm- \
+$ ../llvm-gcc4.2-x.y.source/configure --prefix=`pwd`/../install --program-prefix=llvm- \
     --enable-llvm=$LLVMOBJDIR --enable-languages=c,c++$EXTRALANGS $TARGETOPTIONS
 $ make $BUILDOPTIONS
 $ make install

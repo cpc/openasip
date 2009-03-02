@@ -91,10 +91,10 @@ case ${host} in
     # Generic darwin host support.
     out_host_hook_obj=host-darwin.o
     host_xmake_file="${host_xmake_file} x-darwin"
-    /* APPLE LOCAL begin ARM native compiler support */
-    /* Default size of memory to set aside for precompiled headers */
+    # APPLE LOCAL begin ARM native compiler support
+    # Default size of memory to set aside for precompiled headers
     host_xm_defines='DARWIN_PCH_ADDR_SPACE_SIZE=1024*1024*1024'
-    /* APPLE LOCAL end ARM native compiler support */
+    # APPLE LOCAL end ARM native compiler support
     ;;
 esac
 

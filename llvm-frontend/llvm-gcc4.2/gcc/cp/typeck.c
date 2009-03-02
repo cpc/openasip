@@ -239,6 +239,8 @@ original_type (tree t)
       x = DECL_ORIGINAL_TYPE (x);
       if (x == NULL_TREE)
 	break;
+      if (x == t)
+	break;
       t = x;
     }
   return cp_build_qualified_type (t, quals);
@@ -531,8 +533,8 @@ composite_pointer_type (tree t1, tree t2, tree arg1, tree arg2,
   if (c_dialect_objc () && TREE_CODE (t1) == POINTER_TYPE
       && TREE_CODE (t2) == POINTER_TYPE)
     {
-      /* APPLE LOCAL radar 4229905 */
-      if (objc_have_common_type (t1, t2, -3, NULL_TREE))
+      /* APPLE LOCAL radar 4229905 - radar 6231433 */
+      if (objc_have_common_type (t1, t2, -3, NULL_TREE, location))
         /* APPLE LOCAL 4154928 */
         return objc_common_type (t1, t2);
     }
@@ -2762,43 +2764,50 @@ get_member_function_from_ptrfunc (tree *instance_ptrptr, tree function)
 }
 
 /* APPLE LOCAL begin blocks 6040305 (cm) */
+/* APPLE LOCAL begin radar 5847213 - radar 6329245 */
 /**
  build_block_call - Routine to build a block call; as in:
- ((double(*)(struct invok_impl *, int))(BLOCK_PTR_VAR->FuncPtr))(I, 42);
+  ((double(*)(void *, int))(BLOCK_PTR_EXP->__FuncPtr))(I, 42);
  FNTYPE is the original function type derived from the syntax.
- FUNCTION is the4 block pointer variable.
+ BLOCK_PTR_EXP is the block pointer variable.
  PARAMS is the parameter list.
- */
+*/
 static tree
-build_block_call (tree fntype, tree function, tree params)
+build_block_call (tree fntype, tree block_ptr_exp, tree params)
 {
-  tree block_ptr_exp;
   tree function_ptr_exp;
   tree typelist;
   tree result;
+  /* APPLE LOCAL radar 6396238 */
+  bool block_ptr_exp_side_effect = TREE_SIDE_EFFECTS (block_ptr_exp);
   
-  /* (struct invok_impl *)BLOCK_PTR_VAR */
   /* First convert it to 'void *'. */
-  block_ptr_exp = convert (ptr_type_node, function);
-  gcc_assert (invoke_impl_ptr_type);
-  block_ptr_exp = convert (invoke_impl_ptr_type, block_ptr_exp);
-  params = tree_cons (NULL_TREE, block_ptr_exp, params);
-  /* BLOCK_PTR_VAR->FuncPtr */
+  block_ptr_exp = convert (ptr_type_node, block_ptr_exp);
+  gcc_assert (generic_block_literal_struct_type);
+  block_ptr_exp = convert (build_pointer_type (generic_block_literal_struct_type),
+                           block_ptr_exp);
+  if (block_ptr_exp_side_effect)
+    block_ptr_exp = save_expr (block_ptr_exp);
+
+  /* BLOCK_PTR_VAR->__FuncPtr */
   function_ptr_exp =
-  finish_class_member_access_expr (build_indirect_ref (block_ptr_exp, "->"),
-                       get_identifier ("FuncPtr"), false);
+    finish_class_member_access_expr (build_indirect_ref (block_ptr_exp, "->"),
+                       		     get_identifier ("__FuncPtr"), false);
+  gcc_assert (function_ptr_exp);
   
-  /* Build: result_type(*)(struct invok_impl *, function-arg-type-list) */
+  /* Build: result_type(*)(void *, function-arg-type-list) */
   typelist = TYPE_ARG_TYPES (fntype);
-  typelist = tree_cons (NULL_TREE, invoke_impl_ptr_type, typelist);
+  typelist = tree_cons (NULL_TREE, ptr_type_node, typelist);
   fntype = build_function_type (TREE_TYPE (fntype), typelist);
   function_ptr_exp = convert (build_pointer_type (fntype), function_ptr_exp);
+  params = tree_cons (NULL_TREE, block_ptr_exp, params);
   result = build3 (CALL_EXPR, TREE_TYPE (fntype),
 		   function_ptr_exp, params, NULL_TREE);
   /* FIXME: should do more from build_cxx_call */
   result = convert_from_reference (result);
   return result;
 }
+/* APPLE LOCAL end radar 5847213 - radar 6329245 */
 /* APPLE LOCAL end blocks 6040305 (cm) */
 
 tree
@@ -6717,7 +6726,8 @@ convert_for_assignment (tree type, tree rhs,
 	    }
 	}
 
-      if (objc_compare_types (type, rhstype, parmno, rname))
+      /* APPLE LOCAL file radar 6231433 */
+      if (objc_compare_types (type, rhstype, parmno, rname, "comparison"))
 	/* APPLE LOCAL radar 4874632 */
 	new_rhs = convert (type, rhs);
     }

@@ -1,3 +1,671 @@
+2009-01-12  Caroline Tice  <ctice@apple.com>
+
+        Radar 6476836
+        * dwarf2out.c(struct die_struct):  New field, "dead".
+	(size_of_inlined):  Don't count entries whose "dead" field is marked.
+	(output_debug_inlined_section):  Remove code that was commented out; 
+	don't output info for dies whose "dead" field is marked.
+	(prune_unused_types_cleanup_inlining):  New function.
+	(prune_unused_types):  Call prune_unused_types_cleanup_inlining  before
+ 	calling prune_unused_types_prune.
+
+2008-12-21  Caroline Tice  <ctice@apple.com>
+
+        Radar 6455678
+        * cp/typeck.c (original_type):  Stop if the type
+	and its DECL_ORIGINAL_TYPE are the same.
+
+2008-12-18  Bill Wendling  <wendling@apple.com>
+
+        Radar 6457359
+        * c-parser.c (build_block_struct_initlist): Changed type.
+        * cp/parser.c (build_block_struct_initlist): Ditto.
+
+2008-12-18  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6440204
+	* config/i386/sse.md (sse2_ashlti3): Moved from here...
+	* config/i386/i386.md (sse2_ashlti3): ...to here.
+
+2008-12-11  Caroline Tice  <ctice@apple.com>
+
+       Radars 5964438, 6007135
+       * cp/name-lookup.c (pushdecl_maybe_friend):   Copy
+       type decl info to DECL_ORIGINAL_TYPE if the type
+       decl was anonymous.
+       * dwarf2out.c  (gen_variable_die):  Don't attempt to
+       reference an abstract origin unless the die actually
+       exists.
+
+2008-12-10   Jim Grosbach <grosbach@applecom>
+
+	Radar 6387939
+	* config/arm/arm.md (builtin_setjmp_setup): Properly terminate
+	the code snipped to prevent the rtl template from adding an
+	extraneous "use" insn into the instruction list.
+
+2008-12-09  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6414738
+	* var-tracking.c (clobber_variable_part): Update anextp for
+          next iteration.
+
+2008-12-05  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6413140
+	* c-parser.c (c_parser_block_literal_expr): Warn on use of explicit 
+	block return type.
+
+2008-12-05  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6382081
+	* config/i386/i386.md (floatdisf2): Replace SSE code
+	  with x87 code.
+
+2008-12-02  Caroline Tice  <ctice@apple.com>
+
+       Radar 6386976
+       * objcp/objcp-decl.h (TYPE_HAS_OBJCXX_INFO):  New macro.
+       * objcp/objcp-lang.c  (objcp-decl.h):  New include statement, with
+       required define.      
+       (LANG_HOOKS_IS_RUNTIME_SPECIFIC_TYPE):  Redefine for
+       obj-c++.
+       (objcxx_is_runtime_type):  New function.
+
+2008-12-02  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6411649
+	* funciton.h: Added new field.
+	* c-common.c (build_block_helper_name): Produce a unique
+          block number per each enclosing function when building
+          the block helper function name.
+
+2008-12-02  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6396238
+	* c-typeck.c (build_block_call): Handle case of a block
+	expression tree with side-effect when envoking the block.
+
+2008-12-01  Caroline Tice  <ctice@apple.com>
+
+	Radar 6386976
+	* objc/objc-lang.c (objc_is_runtime_type):  New function.
+	(LANG_HOOKS_IS_RUNTIME_SPECIFIC_TYPE):  Re-define new constant.
+	* dwarf2out.c (dwarf_attr_name):  Add case statements for
+	DW_AT_APPLE_major_runtime_vers and DW_AT_APPLE_runtime_class.
+	( gen_struct_or_union_type_die):  Call
+       lang_hooks.types.is_runtime_specific_type, and add runtime attribute
+       if appropriate.
+       (dwarf2out_finish):  Add DW_AT_APPLE_major_runtime_vers to comp_unit
+       die if appropriate.
+       * dwarf2.h (enum dwarf_attribute):  Add two new Apple dwarf attributes:
+       DW_AT_APPLE_major_runtime_vers and DW_AT_APPLE_runtime_class.
+       * langhooks.c (lhd_is_runtime_specific_type):  New generic function.
+       * langhooks.h (struct lang_hooks_for_types):  Add new function field,
+       is_runtime_specific_type.
+       * langhooks-def.h (lhd_is_runtime_specific_type):  New extern decl.
+       (LANG_HOOKS_IS_RUNTIME_SPECIFIC_TYPE):  New constant definition.
+       (LANG_HOOKS_FOR_TYPES_INITIALIZER):  Use new constant definition to
+       initialize new field.
+
+
+2008-12-01  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6404979
+	* c-decl.c (block_build_prologue): Use an internal name for
+	block helper's hidden argument.
+	* c-parser.c (c_parser_block_literal_expr): Ditto.
+
+2008-12-01  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6382081
+	* config/i386/i386.md (floatdisf2): Add SSE code for
+          conversion on x86_32.
+	* config/i386/i386.c (ix86_expand_convert_sign_DI2DF_sse): Typo.
+
+2008-11-24  Stuart Hastings  <stuart@apple.com>
+
+	* config/i386/i386.c (ix86_expand_convert_uns_SI2DF_sse): Fix
+          comment.
+
+2008-11-18  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6353006
+	* tree.c (generic_block_literal_struct_type): Fix APPLE LOCAL.
+	* langhooks-def.h (lhd_build_generic_block_struct_type): Fix
+          APPLE LOCAL.
+
+2008-11-12  Caroline Tice  <ctice@apple.com>
+
+       * tree.c (generic_block_literal_struct_type):  Move global variable
+       decl here from  c-common.c.
+       (build_block_pointer_type):  Change call to
+       build_generic_block_struct_type to go through lang_hooks.
+       * tree.h:  Remove extern function dec, for
+       build_generic_block_struct_type.
+       * cp/cp-objcp-common.h:  Define c++-specific version of
+       LANG_HOOKS_BUILD_GENERIC_BLOCK_STRUCT_TYPE.
+       * cp/parser.c (build_generic_block_struct_type):  Rename function to
+       c_build_generic_block_struct_type.
+       * c-objc-common.h:  Define c-specific version of
+       LANG_HOOKS_BUILD_GENERIC_BLOCK_STRUCT_TYPE.
+       * langhooks.c (lhd_build_generic_block_struct_type):  New generic
+       function.
+       * langhooks.h (struct lang_hooks):  Add new function field,
+       build_generic_block_struct_type.
+       * c-common.c (generic_block_literal_struct_type): Move global variable
+       decl from here to tree.c.
+       * c-common.h  (c_build_generic_block_struct_type):  New extern
+       function decl.
+       * c-parser.c (build_generic_block_struct_type):  Rename function to
+       c_build_generic_block_struct_type.
+       * langhooks-def.h (lhd_build_generic_block_struct_type):  New extern
+       function decl.
+       (LANG_HOOKS_BUILD_GENERIC_BLOCK_STRUCT_TYPE):  New variable
+       definition.
+       (LANG_HOOKS_INITIALIZER):  Initialize new field to
+       LANG_HOOKS_BUILD_GENERIC_BLOCK_STRUCT_TYPE
+
+2008-11-11  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6351990
+	* config/darwin.c (machopic_select_section): Accomodate change
+	for meta-data prefix name.
+	* config/darwin-sections.def (__objc_protorefs, __objc_protolist):
+	These sections are now coalesced.
+
+2008-11-11  Stuart Hastings  <stuart@apple.com>
+
+	Radar 4299257
+	* config/i386/i386.c (bdesc_com): Move ucomXX instructions
+	  from here...  (bdesc_ucomi): ...to here.  New.
+	  (ix86_init_mmx_sse_builtins): Add a loop to walk
+	  bdesc_ucomi[] and instantiate ucomiXX builtins.
+	  (ix86_expand_sse_ucomi): New.  (ix86_expand_builtin): Call
+	  it.
+
+2008-11-07  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 5847976
+	* c-decl.c (synth_block_byref_id_object_copy_func): Takes a new
+	'flag' argument and generates the much simplified API.
+	(synth_block_byref_id_object_dispose_func): Ditto.
+	(new_block_byref_decl): Hack to prevent issuing bogus warning
+	on a field declared as __weak.
+	(init_byref_decl): Takes an additional 'flag' argument
+	and passes it down to synth_block_byref_id_object_copy_func and
+	synth_block_byref_id_object_dispose_func.
+	(finish_decl): Computes the flag for the block variable declaration.
+	* c-common.c (build_block_byref_release_decl, 
+	build_block_byref_assign_copy_decl): Removed.
+	(build_block_byref_release_exp): Use the new API.
+	(build_block_object_assign_decl, build_block_object_assign_call_exp,
+	build_block_object_dispose_decl, build_block_object_dispose_call_exp): New.			
+	(build_indirect_object_id_exp): Fixed a code gen bug which was exposed in
+	c/c++ mode, but not in ObjC/ObjC++ mode.
+	* c-common.h (build_block_object_assign_call_exp,
+	build_block_object_dispose_call_exp,
+	objc_is_gcable_type): New decls.
+	Declaration of several new flags.
+	(cast_to_pointer_to_id): Removed.
+	* stub-objc.c (objc_is_gcable_type): New
+	(copy_in_object, retain_block_component, release_block_component): Removed.
+	(cast_to_pointer_to_id): Removed.
+	* c-parser.c (build_block_struct_initlist): Remove call to copy_in_object.
+	(synth_copy_helper_block_func): Generates much simplified API.
+	(synth_destroy_helper_block_func): Ditto.
+	(block_object_dispose): Removed.
+	* config/darwin-c.c (darwin_cpp_builtins): Define __weak even when
+	-fobjc-gc is off.
+
+2008-11-4   Jim Grosbach <grosbach@apple.com>
+
+	Radar 6327222
+	* config/arm/arm.c (legitimize_pic_address): Be more generous about
+	constants when the operand is of the form  (const (plus (something)
+	(const)).
+
+2008-10-31  Stuart Hastings  <stuart@apple.com>
+
+	Radar 5813921
+	* builtins.c (validate_arglist): Tolerate enums where
+	  INTEGER_TYPE is expected.
+
+2008-10-31  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6175959
+	* stub-objc.c (block_requires_copying): Object pointers with
+	NSObject attribute also require copy/release API.
+        * c-parser.c (synth_copy_helper_block_func): Use the new API
+        _Block_object_assign for ObjC object copying.
+        (block_object_dispose): New
+        (synth_destroy_helper_block_func): Call block_object_dispose
+        to use new _Block_object_dispose API for ObjC object release.
+
+2008-10-30  Stuart Hastings  <stuart@apple.com>
+
+	Radar 5834718
+	* coverage.c (prg_ctr_mask, prg_n_ctrs, fn_ctr_mask,
+          fn_n_ctrs, fn_b_ctrs): Added GTY(()) markers.
+
+2008-10-29  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6329245
+	* c-decl.c (build_block_descriptor_type): Remove
+	"FuncPtr" field decl.
+	* c-typeck.c (build_block_call): Block call is
+	now same as old ABI.
+	* c-parser.c (build_generic_block_struct_type): Primary block
+	type is now reverted to old ABI in its first 4 fields.
+	(build_block_struct_type): Ditto.
+	(build_block_struct_initlist): Primary block initializer
+	list is now reverted to old ABI somewhat.
+	
+2008-10-28  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 6243961
+	* varasm.c (build_constant_desc): With -fwritable-string
+	prefix normal string constants with "lC".
+	(output_constant_def): Turn off -fwritable-string
+	for cf-strings.
+
+2008-10-28  Stuart Hastings  <stuart@apple.com>
+
+	* ggc-common.c (init_ggc_heuristics): Add ATTRIBUTE_UNUSED.
+
+2008-10-27  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6231433
+        * c-typeck.c (objc_compare_types, objc_have_common_type):
+        Take an extra argument for better diagnostics.
+	* c-common.c (objc_compare_types, objc_have_common_type):
+	Take extra argument.
+	* stub-objc.c: Ditto
+	
+2008-10-27  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6302949
+	* c-parser.c (c_parser_objc_property_attrlist): Warn on missing
+	',' separator for property attribute list.
+
+2008-10-24  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 6305545
+	* cgraph.h (lower_if_nested_functions): New decl.
+	* tree-gimple.h (lower_nested_functions): Takes one more arg.
+	* cgraphunit.c (lower_if_nested_functions): New
+	* tree-nested.c (lower_nested_functions): Skip structors.
+
+2008-10-24  Stuart Hastings  <stuart@apple.com>
+
+	Radar 308664 6310728 6311054 6311100
+	* config/i386/i386.c (legitimate_pic_address_disp_p): Local
+          labels should not be affected by -mfix-and-continue.
+
+2008-10-24  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 5847213 (minor tweak)
+	* c-decl.c (build_block_descriptor_type):
+	Make descriptor_ptr_type and descriptor_ptr_type_with_copydispose
+	visible to pch.
+
+2008-10-24  Josh Conner  <jconner@apple.com>
+
+	Radar 6305331
+	* config/arm/arm.h (TARGET_COMPACT_SWITCH_TABLES): Define...
+	(CASE_VECTOR_SHORTEN_MODE): ...use.
+	(ASM_OUTPUT_ADDDR_DIFF_VEC): ...use.
+	* config/arm/arm.md (casesi): ...use.
+	(thumb_casesi_internal): ...use.
+
+2008-10-23  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 6307941
+	* config/darwin.h (OBJC2_ABI_DISPATCH): New macro.
+
+2008-10-23  Caroline Tice  <ctice@apple.com>
+
+        Radar 6300081
+	* tree.c(build_block_pointer_type):  Add call to 
+	build_generic_block_struct_type to initialize 
+	generic_block_literal_struct_type if necessary.
+	* cp/parser.c (build_generic_block_struct_type):  Update comments.
+	(build_block_struct_type):  Remove call to 
+	build_generic_block_struct_type.
+	(make_block_pointer_declarator):  Likewise.
+	* c-decl.c (make_block_pointer_declarator):  Likewise.
+	* c-parser.c (build_block_struct_type):  Likewise.
+	(build_generic_block_struct_type):  Update comments.
+
+2008-10-22  Caroline Tice  <ctice@apple.com>
+
+        Radar 6300081
+        * c-parser.c (build_generic_block_struct_type):  Add comments.
+	* cp/parser.c (build_generic_block_struct_type):  Add comments.
+
+2008-10-22  Caroline Tice  <ctice@apple.com>
+
+        Radar 6300081 & Radar 6163705
+        * tree.h (generic_block_literal_struct_type):  Extern global variable
+        decl.
+        (build_generic_block_struct_type):  New extern function decl.
+        * cp/parser (build_generic_block_struct_type): New function.
+        (build_block_struct_type):   Call build_generic_block_struct_type
+        to initialize generic_block_literal_struct_type.
+        (make_block_pointer_declarator):  Likewise.
+        (declare_block_prologue_local_vars):  Temporarily set input_location
+        to 1 before the start of the block function; re-set input_location at
+        the end of this function.
+        * dwarf2out.c (add_type_attribute):  If the type is a
+        BLOCK_POINTER_TYPE, assign it to be a pointer to a
+        generic_block_literal_struct_type.
+        * c-decl.c (make_block_pointer_declarator): Call
+        build_generic_block_struct_type to initialize
+        generic_block_literal_struct_type.
+        * c-common.c (generic_block_literal_struct_type):  New global variable.
+        * c-parser.c (build_generic_block_struct_type):  New function.
+        (build_block_struct_type):   Call build_generic_block_struct_type
+        to initialize  generic_block_literal_struct_type.
+        * testsuite/gcc.apple/block-debug-1.c:  Fix test to work with new
+        compiler modifications.
+        * testsuite/gcc.apple/block-debug-2.c:  Likewise.
+        * testsuite/g++.apple/block-debug-1.C:  Likewise.
+        * testsuite/g++.apple/block-debug-2.C:  Likewise.
+
+2008-10-22  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6310599
+	* dwarf2out.c: forwarding is now __forwarding
+	* c-decl.c: All internal field names in block internal types
+	have '__' prefix.
+	* c-typeck.c: Ditto
+	* c-common.c: Ditto
+	* c-parser.c: Ditto
+
+2008-10-21  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6187262
+	* tree-ssa-loop-ivopts.c (may_be_nonaddressable): Treat
+          "(vector)scalar" like "(aggregate)scalar".
+
+2008-10-21  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 4746503
+        * toplev.c (warn_deprecated_use): Do not issue
+        any deprecated warning in a function that itself
+        is deprecated.
+
+2008-10-20  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6222167
+	* sse.md (sse_4_1_smax<mode>3, sse_4_1_umax<mode>3,
+          sse_4_1_smin<mode>3, sse_4_1_umin<mode>3): Drop '*' so these
+          are visible...
+	* i386.c (__builtin_ia32_pmaxsb128, __builtin_ia32_pmaxsd128,
+          __builtin_ia32_pmaxud128, __builtin_ia32_pmaxuw128,
+          __builtin_ia32_pminsb128, __builtin_ia32_pminsd128,
+          __builtin_ia32_pminud128, __builtin_ia32_pminuw128):
+          ...here.  Use CODE_FOR_sse4_1_XX codes.
+
+2008-10-20  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6227434
+	* config/i386/i386.c (legitimate_pic_addres_disp_p): Use #if
+          TARGET_MACHO for Linux portability.
+
+2008-10-20  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6255595
+	* config/darwin.c (output_objc_section_asm_op): Add two new section names.
+	(objc_internal_variable_name): New routine.
+	(machopic_select_section): Call objc_internal_variable_name.
+	* config/darwin-sections.def: Define two new kinds of
+	__DATA section.
+
+2008-10-17  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 6289031
+	* c-parser.c: Removed all code related to
+	radar 6083129 (byref escapes).
+	* c-common.h: Removed all declarations 
+	related to radar 6083129 (byref escapes).
+	* c-typeck.c: Removed all code related to
+        radar 6083129 (byref escapes).
+	* c-decl.c: Removed all code related to
+        radar 6083129 (byref escapes).
+	(finish_decl): Add code to cleanup a 
+	__block declared variable.
+	(build_block_byref_decl): Add code to cleanup a 
+        __block declared variable.
+	
+2008-10-15  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6255801
+	* objc/objc-act.c (objc_set_global_decl_fields): Set
+	  DECL_USER_ALIGN on OBJC metadata to keep only word
+	  alignment.
+
+2008-10-17  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6227434
+	* config/i386/i386.c (legitimate_pic_address_disp_p): All
+	static variables are addressed as global under -m64
+	-mfix-and-continue, except Objective-C metadata.
+
+2008-10-17  Caroline Tice  <ctice@apple.com>
+
+       Radar 6292557
+       * dwarf2out.c (add_inlined_section_entry):  If the
+       function does not have any debug info, don't try
+       to add it to the dwarf inlined section.
+       * testsuite/gcc.apple/r6292557.c:  New testcase.
+
+2008-10-16  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6276695
+
+	(Removed all references to __byref and removed '|' syntax for byref decls.)	
+	* cp/decl.c: Modifed
+	* cp/parser.c: Modifed
+	* c-decl.c: Modifed
+	* c-typeck.c: Modifed
+	* c-common.c: Modifed
+	* c-common.h: Modifed
+	* c-parser.c: Modifed
+	* config/darwin-c.c: Modified
+
+2008-10-16  Josh Conner  <jconner@apple.com>
+
+	Radar 6288519
+	* config/arm/arm.md (casesi): Disallow for TARGET_THUMB &&
+	TARGET_LONG_CALLS.
+	(thumb_casesi_internal): Likewise.
+
+2008-10-14  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 6286881
+	* fold-const.c (fold_binary): Type of operands to
+	TRUTH_NOT_EXPR must match.
+
+2008-10-10  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 5847213 - New Block ABI
+	* dwarf2out.c (add_type_attribute): Unusuable code
+	for radar 5811943 is removed.
+	* c-decl.c (build_block_byref_decl): Removed unneeded 
+	build of block_original_byref_decl_list.
+	(build_block_internal_types): Removed.
+	(build_block_descriptor_type): New routine to build the descriptor type.
+	(make_block_pointer_declarator): Unused code is removed.
+	* c-typeck.c (build_block_call): New code gen for block calls.
+	* c-common.c (invoke_impl_ptr_type): Removed.
+	* c-common.h (block_original_byref_decl_list, build_block_internal_types): Removed
+	(build_block_descriptor_type, BLOCK_HAS_DESCRIPTOR): Decls added.
+	* c-parser.c (build_block_struct_type): Block literal expression internal type
+	is redeclared into its new layout.
+	(build_block_struct_initlist): Initializer list for above type is redone.
+	(build_descriptor_block_decl): New routine to declare the descriptor variable
+	(build_block_literal_tmp): Modified for the new type and initiazation.
+		
+2008-10-10  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6107012
+	* ipa-type-escape.c (parent_type_p_pset): New.
+	  (check_cast_type): Initialize it.  (parent_type_p): Use it.
+
+2008-10-10  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6227434
+	* config/i386/i386.c (legitimate_pic_address_disp_p): All
+	static variables are addressed as global under -m64
+	-mfix-and-continue.
+
+2008-10-10  Caroline Tice  <ctice@apple.com>a
+
+       Radar 6275985
+       * dwarf2out.c (debug_inlined_section):  New global variable.
+       (struct indirect_string_node):  Add new field, is_fn_name.
+       (inlined_ref): New typedef.
+       (struct inlined_entry_struct):  New global type.
+       (DWARF_INLINED_HEADER_SIZE):  New constant.
+       (debug_inlined_table):  New global variable.
+       (size_of_inlined):  New function.
+       (add_inlined_section_entry):  New function.
+       (output_debug_inlined_section):  New function.
+       (add_AT_string):  set new field, is_fn_name,  to true if the
+       string is a function name.
+       (AT_string_form):  Force the form to always be a string pointer
+       if the string is a function name.
+       (has_AT): New function.
+       (add_abstract_origin_attribute):  Make sure any function that
+       gets inlined as the DW_AT_inline attribute.
+       (get_inlined_subroutine_die):  Call add_inlined_section_entry, to
+       add it to the new section.
+       (dwarf2init):  Allocate the new debug_inlined_table;  initialize
+       debug_inlined_section if DEBUG_INLINED_SECTION is defined.
+       (prune_unused_types):  Make sure function names always go into
+       the debug_str_hash table.
+       (dwarf2out_finish):  if DEBUG_INLINED_SECTION is defined,
+       switch to the debug_inlined_section and call
+       output_debug_inlined_section.
+       * config/darwin.h:  define DEBUG_INLINED_SECTION.
+       * config/darwin.c (darwin_file_start):  Add DEBUG_INLINED_SECTION
+       to list of debug sections.
+
+2008-10-09  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6269491
+	* config/darwin.h (darwin_ms_struct): Remove addition
+	of -Wno-non-lvalue-assign when -fobjc-gc is specified.
+
+2008-10-09  Caroline Tice  <ctice@apple.com>
+
+       Radar 6163705 (again)
+       *  function.c (find_block_prologue_insns):  Don't worry about
+       other insns before the prologue insns, if the optimization level
+       is zero.
+
+2008-10-07  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6258941
+	gcc/cfgbuild.c (control_flow_insn_p): Treat unconditional TRAP
+	like any conditional TRAP.
+
+2008-10-06  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6268817
+	* c-decl.c (check_for_loop_decls): Block helper function
+	is OK if declared in a for-loop main statement block.
+
+2008-10-03  Josh Conner  <jconner@apple.com>
+
+	Radar 6268204
+	* doc/invoke.texi (-mkernel): Document that -mlong-branch
+	is set for ARM.
+	* config/arm/darwin.h (SUBTARGET_OVERRIDE_OPTIONS): Have -mkernel
+	and -fapple-kext imply -mlong-branch.
+
+2008-10-02  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6246527
+	* attribs.c (decl_attributes): Added support for adding attributes
+	on block pointer variable declarations.
+	* c-common.c (block_delta_format_args): Add
+	(any_recognized_block_attribute): Add
+	* c-common.h (any_recognized_block_attribute): New decl.
+	* c-parser.c (c_parser_block_literal_expr): Call to do the delta
+	on printf attribute.
+
+2008-10-02  Stuart Hastings  <stuart@apple.com>
+
+	Radar 5919583
+	* config/i386/emmintin.h (_mm_srli_si128, _mm_srli_si128):
+	  Revise to invoke __builtin_ia32_pslldqi128_byteshift and
+	  __builtin_ia32_psrldqi128_byteshift, remove parameters and
+	  move multiplication by 8 from here...
+	* config/i386/i386.c (ix86_expand_builtin): ...to here.  Add
+	  support for IX86_BUILTIN_PSLLDQI128_BYTESHIFT and
+	  IX86_BUILTIN_PSRLDQI128_BYTESHIFT.
+	  (IX86_BUILTIN_PSLLDQI128_BYTESHIFT,
+	  IX86_BUILTIN_PSRLDQI128_BYTESHIFT,
+	  __builtin_ia32_pslldqi128_byteshift,
+	  __builtin_ia32_psrldqi128_byteshift): New.
+
+2008-10-01  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6252174
+	* config/darwin.c (machopic_select_section): Send objc_msgSendSuper*
+	symbol to msgrefs section.
+
+2008-09-30  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 6261552
+	* gimplify (gimplify_return_expr): code to check for 
+	cur_block is removed.
+
+2008-09-30  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6230297
+	* c-parser.c (build_block_struct_initlist): 'trivial' 
+	block temporary can be static as well.
+	(build_block_literal_tmp): Accomodate 'trivial' block
+	literal temporary variable as static.
+
+2008-09-30  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6225809
+	* c-decl.c (build_block_byref_decl): Add __block vaiables
+	to intervening blocks.
+
+2008-09-30  Stuart Hastings  <stuart@apple.com>
+
+	Radar 5919583
+	Revert 2008-09-26 patch.
+
+2008-09-30  Caroline Tice  <ctice@apple.com>
+
+      Radars 6237086 & 6237616
+      * dwarf2out.c (find_block_byref_var_real_type):  Fix to work whether 
+      TYPE_NAME (block_struct) is an IDENTIFIER_NODE or a TYPE_DECL.
+      (block_fixup_location_description):   New function.
+      (build_byref_var_location_expression):  Add call to 
+      block_fixup_location_description.
+      (add_block_byref_var_location_attribute):  Fix to work whether 
+      TYPE_NAME (block_struct) is an IDENTIFIER_NODE or a TYPE_DECL.
+      (gen_variable_die): Ditto, when handling block byref variables.
+
+2008-09-28  Caroline Tice  <ctice@apple.com>
+
+	Radar 6163705
+	* function.c (append_insn_list):  Remove function.
+	(find_and_extract_block_prologue_insns):  Renamed (see next entry).
+	(find_block_prologue_insns):  Renamed from 
+	find_and_extract_block_prologue_insns;  instead of extracting a
+	list of prologue insns, it now only finds the prologue insns and 
+	determines if it's safe to move the end-of-prologue note to just 
+	past the last prologue insn; if so it returns the last prologue insn,
+	otherwise just returns null.
+
 2008-09-26  Stuart Hastings  <stuart@apple.com>
 
 	Radar 5919583
