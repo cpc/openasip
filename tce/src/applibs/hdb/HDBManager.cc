@@ -5701,7 +5701,7 @@ HDBManager::addCostEstimationData(const CostEstimationData& data) const
 std::set<RowID>
 HDBManager::costEstimationDataIDs(
     const CostEstimationData& match, 
-    bool useCompiledQueries,
+    bool /*useCompiledQueries*/,
     RelationalDBQueryResult* compiledQuery) const {
 
     std::string query = "";

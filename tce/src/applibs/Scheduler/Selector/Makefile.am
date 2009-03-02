@@ -1,6 +1,5 @@
 lib_LTLIBRARIES = libselector.la
-libselector_la_SOURCES = MoveNodeGroup.cc ScopeSelector.cc \
-	SchedulingScope.cc BasicBlockSelector.cc MoveNodeSelector.cc \
+libselector_la_SOURCES = MoveNodeGroup.cc MoveNodeSelector.cc \
 	CriticalPathBBMoveNodeSelector.cc SequentialMoveNodeSelector.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src

@@ -34,7 +34,6 @@
 #define FU_CRITICAL_PATH_BB_MOVE_NODE_SELECTOR_TEST_HH
 
 #include <TestSuite.h>
-#include "BasicBlockSelector.hh"
 #include "UniversalMachine.hh"
 #include "Program.hh"
 #include "ControlFlowGraph.hh"

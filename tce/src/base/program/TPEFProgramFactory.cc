@@ -1559,7 +1559,9 @@ TPEFProgramFactory::findInstrTemplate(
  * given map of already allocated sockets.
  *
  * If tried socket is already used, it still can be used for another
- * reading if the source register index is same for both of the allocations.
+ * reading if 
+ * 1) the source register index is same for both of the allocations, or 
+ * 2) the moves have opposite guards.
  *
  * @param alloc Socket allocation structure which is checked.
  * @param fixedSockets Map of already made socket allocations.
@@ -1574,18 +1576,65 @@ TPEFProgramFactory::canSourceBeAssigned(
 
     if (MapTools::containsKey(fixedSockets, currentSocket)) {
 
-        Terminal* oldTerminal =
-            &((fixedSockets[currentSocket])[0]->move->source());
+        std::vector<SocketAllocation*>& socketAllocs = fixedSockets[currentSocket];
 
-        if (alloc.move->source().index() == oldTerminal->index()) {
-            return true;
+        // test against all allocations.
+        for (unsigned int i = 0; i < socketAllocs.size(); i++) {
+            // TODO: check against all users.
+            Move * oldMove = socketAllocs[i]->move;
+            Terminal* oldTerminal = &(oldMove->source());
+
+            // allowed for same register of opposite guard.
+            if (alloc.move->source().index() != oldTerminal->index() &&
+                (alloc.move->isUnconditional() || oldMove->isUnconditional() ||
+                 !alloc.move->guard().guard().isOpposite(oldMove->guard().guard()))) {
+                return false;
+            }
         }
-
-        return false;
     }
 
     return true;
 }
+
+
+/**
+ * Checks if the destination of SocketAllocation can be assigned towards
+ * given map of already allocated sockets.
+ *
+ * If tried socket is already used, it still can be used for another
+ * writing if the moves have opposite guards.
+ *
+ * @param alloc Socket allocation structure which is checked.
+ * @param fixedSockets Map of already made socket allocations.
+ * @return True if tried alloc is possible.
+ */
+bool
+TPEFProgramFactory::canDestinationBeAssigned(
+    SocketAllocation& alloc,
+    std::map<Socket*, std::vector<SocketAllocation*> >& fixedSockets) const {
+
+    Socket* currentSocket = alloc.dstSocks[alloc.dst];
+
+    if (MapTools::containsKey(fixedSockets, currentSocket)) {
+
+        std::vector<SocketAllocation*>& socketAllocs = fixedSockets[currentSocket];
+
+        // test against all allocations.
+        for (unsigned int i = 0; i < socketAllocs.size(); i++) {
+            // TODO: check against all users.
+            Move * oldMove = socketAllocs[i]->move;
+            if (alloc.move->isUnconditional() || oldMove->isUnconditional() ||
+                !alloc.move->guard().guard().isOpposite(
+                    oldMove->guard().guard())) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+
 
 /**
  * Resolves sockets that are used for GPR and Immediate Unit reading and
@@ -1710,8 +1759,7 @@ TPEFProgramFactory::resolveSocketAllocations(
 
         // try to get allocation for current element
         if (alloc.dst < alloc.dstSocks.size()) {
-            while (MapTools::containsKey(
-                       fixedSockets, alloc.dstSocks[alloc.dst])) {
+            while (!canDestinationBeAssigned(alloc, fixedSockets)) {
                 alloc.dst++;
 
                 if (alloc.dst == alloc.dstSocks.size()) {

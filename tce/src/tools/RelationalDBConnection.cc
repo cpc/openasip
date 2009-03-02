@@ -80,7 +80,7 @@ RelationalDBConnection::DDLQuery(const std::string&)
  * @exception RelationalDBException In case a database error occured.
  */
 RelationalDBQueryResult*
-RelationalDBConnection::query(const std::string&, bool init)
+RelationalDBConnection::query(const std::string&, bool /*init*/)
     throw (RelationalDBException) {
     return NULL;
 }
