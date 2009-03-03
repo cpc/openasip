@@ -673,18 +673,7 @@ CopyingDelaySlotFiller::tryToFillSlots(
     }
 
     // all ok, add filled nodes and PO's to DDG
-    // first check which PO's to copy
-    for (std::map<ProgramOperation*,bool,ProgramOperation::Comparator>::
-             iterator iter = poOwned_.begin();
-         iter != poOwned_.end(); iter++) {
-        ProgramOperation* po = iter->first;
-        if (wholePOMoved(*po, moves)) {
-            // will be owned by ddg
-            iter->second = false; 
-            ddg_->addProgramOperation(po);
-        }
-    }
-
+    // first movenodes.
     for (int i = 0; i < slotsToFill; i++) {
         list<MoveNode*> movesInThisCycle = moves.at(i);
         for (std::list<MoveNode*>::iterator iter = movesInThisCycle.begin();
@@ -695,28 +684,39 @@ CopyingDelaySlotFiller::tryToFillSlots(
 
             // TODO: this may not work as it should?
             ddg_->copyDependencies(*oldMoveNodes_[&mn],mn);
-            // adjust program operations to original in other BB is not
-            // whole BB copied.
-            if (mn.isSourceOperation()) {
-                ProgramOperation& po = mn.sourceOperation();
-                // whole PO not copied, set to old PO
-                if (poOwned_[&po] == true) {
-                    po.removeOutputNode(mn);
-                    ProgramOperation* oldPO = oldProgramOperations_[&po];
-                    mn.setSourceOperation(*oldPO);
-                    oldPO->addOutputNode(mn);
-                }
+        }
+    }
+
+    // then PO's.
+    for (std::map<ProgramOperation*,bool,ProgramOperation::Comparator>::
+             iterator iter = poOwned_.begin();
+         iter != poOwned_.end(); iter++) {
+        ProgramOperation* po = iter->first;
+        if (poMoved(*po, moves)) {
+            // will be owned by ddg
+            iter->second = false; 
+            ddg_->addProgramOperation(po);
+	    
+	    // then remove linking to nodes which are going to be deleted.
+	    // input moves
+	    for (int i = 0; i < po->inputMoveCount(); i++) {
+		MoveNode& mn = po->inputMove(i);
+		// owned means going to be deleted, not fillit itself
+		if (mnOwned_[&mn]) {
+		    po->removeInputNode(mn);
+		    mn.unsetDestinationOperation();
+		}
             }
-            if (mn.isDestinationOperation()) {
-                ProgramOperation& po = mn.destinationOperation();
-                // whole PO not copied, set to old PO
-                if (poOwned_[&po] == true) {
-                    po.removeInputNode(mn);
-                    ProgramOperation* oldPO = oldProgramOperations_[&po];
-                    mn.setDestinationOperation(*oldPO);
-                    oldPO->addInputNode(mn);
-                }
-            }
+            
+	    // output moves
+            for (int i = 0; i < po->outputMoveCount(); i++) {
+                MoveNode& mn = po->outputMove(i);
+                // owned means going to be deleted, not fillit itself
+                if (mnOwned_[&mn]) {
+                    po->removeOutputNode(mn);
+                    mn.unsetSourceOperation();
+                 }
+             }
         }
     }
 
@@ -973,17 +973,17 @@ CopyingDelaySlotFiller::createInverseGuard(TTAProgram::MoveGuard &mg) {
  *
  * This method may get slow with a big machine
  *
- * Checks whether all the moves in the given programOperation are copied
+ * Checks whether some of the moves in the given programOperation is copied
  * to the given BB. If they are, also the programOperation is copied to the
- * new BB. otherwise the moves will be set to point to the original PO.
+ * new BB.
  * 
  * @param po ProgramOperation to check.
  * @movesToCopy all the moves that are copies from one BB to another
- * @return whether all Moves referenced by po are in movesToCopy.
+ * @return whether some of Moves referenced by po are in movesToCopy.
  */
 bool 
-    CopyingDelaySlotFiller::wholePOMoved(
-        ProgramOperation& po,  MoveNodeListVector& movesToCopy) {
+CopyingDelaySlotFiller::poMoved(
+    ProgramOperation& po,  MoveNodeListVector& movesToCopy) {
     for (int i = 0; i < po.inputMoveCount(); i++) {
         MoveNode& mn = po.inputMove(i);
         bool found = false;
@@ -992,17 +992,10 @@ bool
             for (std::list<MoveNode*>::iterator iter = moveList.begin();
                  iter != moveList.end(); iter++) {
                 if (&mn == *iter) {
-                    found = true;
-                    break; // avoid arguement with pekka, goto better here
+		    return true;
                 }
             }
-            if (found == true) { // as with goto this if not needed
-                break;
-            }
-        }
-        if (found == false) {
-            return false;
         }
     }
-    return true;
+    return false;
 }

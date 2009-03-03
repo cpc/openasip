@@ -101,7 +101,7 @@ private:
     ProgramOperation& getProgramOperation(ProgramOperation& old);
     TTAProgram::Move& getMove(TTAProgram::Move& old);
 
-    bool wholePOMoved(ProgramOperation& po,  MoveNodeListVector& movesToCopy);
+    bool poMoved(ProgramOperation& po,  MoveNodeListVector& movesToCopy);
     
     int slotsFilled_;
     DataDependenceGraph* ddg_;
