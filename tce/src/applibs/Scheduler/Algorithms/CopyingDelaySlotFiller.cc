@@ -986,13 +986,12 @@ CopyingDelaySlotFiller::poMoved(
     ProgramOperation& po,  MoveNodeListVector& movesToCopy) {
     for (int i = 0; i < po.inputMoveCount(); i++) {
         MoveNode& mn = po.inputMove(i);
-        bool found = false;
         for (unsigned int j = 0; j < movesToCopy.size(); j++) {
             std::list<MoveNode*>& moveList = movesToCopy.at(j);
             for (std::list<MoveNode*>::iterator iter = moveList.begin();
                  iter != moveList.end(); iter++) {
                 if (&mn == *iter) {
-		    return true;
+                    return true;
                 }
             }
         }

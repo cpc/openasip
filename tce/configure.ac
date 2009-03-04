@@ -447,9 +447,6 @@ LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     2.4)
-     AC_DEFINE([LLVM_2_4], [], "Using LLVM v2.4")
-   ;;
      2.5)
      AC_DEFINE([LLVM_2_5], [], "Using LLVM v2.5")
    ;;
@@ -457,7 +454,7 @@ case "$LLVM_VERSION" in
      *)
    AC_MSG_NOTICE(
    [
-Unsupported LLVM version. Only LLVM version 2.4 and 2.5 are supported.
+Unsupported LLVM version. 
    ])
    LLVM_VERSION=
    ;;
@@ -1281,8 +1278,6 @@ AC_CONFIG_FILES([
   Python-bindings/test/RunPythonFileTests/Makefile
   src/ext/Makefile
   src/ext/llvm/Makefile
-  src/ext/llvm/2.4/Makefile
-  src/ext/llvm/2.4/TableGen/Makefile 
   src/ext/llvm/2.5/Makefile
   src/ext/llvm/2.5/TableGen/Makefile 
   src/applibs/LLVMBackend/Makefile
