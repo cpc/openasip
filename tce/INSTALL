@@ -51,8 +51,6 @@ These are the current prerequisites for libraries and tools used by TCE:
 Compiler              supported versions
 -----------------     ----------------
 GCC                   3.2.2+
-or
-Intel C++ Compiler    8.0+
 
 Library               supported versions                   library licence
 -----------------     ------------------                   ---------------
@@ -63,10 +61,6 @@ Boost                 1.33+                                very permissive
 sqlite3               3.0.0+                               public domain
 Python                2.4,2.5                              very permissive
 LLVM                  2.5                                  LLVM Release License
-
-
-optional:
-
 Editline              2.9                                  BSD-style
 
     To get line editing capabilities to the command line interface of the simulator.
