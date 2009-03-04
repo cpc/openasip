@@ -153,7 +153,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} \
 	      -I${PROGE_DIR} \
 	      -I${OSAL_DIR} \
 	      -I${EXPLORER_DIR} \
-	      -I${SIMULATOR_DIR} \	
+	      -I${SIMULATOR_DIR} \
 	      -I${ESTIMATOR_DIR} \
 	      -I${DSDB_DIR} \
 	      -I${INTERPRETER_DIR}
