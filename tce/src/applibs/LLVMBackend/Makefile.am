@@ -29,23 +29,21 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS =
 
-#libtcellvmbackend_la_LDFLAGS = ${LLVM_LDFLAGS}
+# compiles with this...
+libtcellvmbackend_la_LDFLAGS = ${LLVM_LDFLAGS}
 
-libtcellvmbackend_la_LDFLAGS =   -L${LLVM_LIBDIR} \
-    -Wl,--whole-archive \
-    -Wl,-lLLVMLinker -Wl,-lLLVMipo \
-    -Wl,-lLLVMInstrumentation -Wl,-lLLVMDebugger -Wl,-lLLVMBitWriter \
-    -Wl,-lLLVMAsmParser -Wl,-lLLVMArchive -Wl,-lLLVMBitReader -Wl,-lLLVMSelectionDAG \
-    -Wl,-lLLVMCodeGen -Wl,-lLLVMScalarOpts -Wl,-lLLVMTransformUtils -Wl,-lLLVMipa \
-    -Wl,-lLLVMAnalysis -Wl,-lLLVMTarget -Wl,-lLLVMCore -Wl,-lLLVMSupport -Wl,-lLLVMSystem \
-	-Wl,-lLLVMAsmPrinter \
-    -Wl,--no-whole-archive
+# this causes some strange linker error on intrepid.. 
+#(/usr/bin/ld:  hidden symbol `stat' in /usr/lib/libc_nonshared.a(stat.oS) is referenced by DSO)
 
-# libtcellvmbackend_la_LDFLAGS = -L${LLVM_LIBDIR} -lLLVMSelectionDAG \
-#    -lLLVMCodeGen -lLLVMScalarOpts -lLLVMipo -lLLVMTransformUtils \
-#    -lLLVMipa -lLLVMAnalysis -lLLVMTarget -lLLVMCore -lLLVMSupport \
-#    -lLLVMSystem -lLLVMBitWriter -lLLVMLinker -lLLVMArchive \
-#   -lLLVMBitReader
+#libtcellvmbackend_la_LDFLAGS = -L${LLVM_LIBDIR}
+#	-Wl,--whole-archive \
+#	-Wl,-lLLVMLinker -Wl,-lLLVMipo \
+#	-Wl,-lLLVMInstrumentation -Wl,-lLLVMDebugger -Wl,-lLLVMBitWriter \
+#	-Wl,-lLLVMAsmParser -Wl,-lLLVMArchive -Wl,-lLLVMBitReader -Wl,-lLLVMSelectionDAG \
+#	-Wl,-lLLVMCodeGen -Wl,-lLLVMScalarOpts -Wl,-lLLVMTransformUtils -Wl,-lLLVMipa \
+#	-Wl,-lLLVMAnalysis -Wl,-lLLVMTarget -Wl,-lLLVMCore -Wl,-lLLVMSupport -Wl,-lLLVMSystem \
+#	-Wl,-lLLVMAsmPrinter \
+#	-Wl,--no-whole-archive
 
 # Static sources for target machine plugins.
 include_HEADERS = \
@@ -67,7 +65,6 @@ include_HEADERS = \
  TCETargetMachine.hh \
  TCETargetMachinePlugin.hh \
  TCESubtarget.hh
-
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
