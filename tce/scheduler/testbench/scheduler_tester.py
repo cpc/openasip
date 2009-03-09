@@ -858,6 +858,10 @@ close $cycle_file
             
             command += ";cp " + seqProgramName + " .."
 
+            # copy generated_program.bc to program.bc to be able to run the
+            # tests with the latest compiled binary
+            command += ";cp " + seqProgramName + " ../program.bc"
+
             if verboseOutput:
                 print command;
 
