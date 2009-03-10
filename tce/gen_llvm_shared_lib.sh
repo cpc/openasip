@@ -74,4 +74,7 @@ echo "Generating ${LLVM_LIBFILE}..."
 $CXX -Wl,--whole-archive $LLVM_LIBFILES -Wl,--no-whole-archive -shared -o $LLVM_LIBFILE || \
     error_exit 2 "Failed. Do you have write access to $LLVM_LIBDIR? Are you root?"
 
+echo "Stripping debugging symbols to save space..."
+strip --strip-debug $LLVM_LIBFILE
+
 
