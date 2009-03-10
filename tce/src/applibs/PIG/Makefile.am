@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libpig.la
+noinst_LTLIBRARIES = libpig.la
 libpig_la_SOURCES = AsciiImageWriter.cc \
 	BitVector.cc CodeCompressorPlugin.cc \
 	InstructionBitVector.cc PIGTextGenerator.cc \

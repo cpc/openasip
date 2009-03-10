@@ -23,15 +23,7 @@ APPLIBS_FSA_DIR = ../../../applibs/FSA
 
 bin_PROGRAMS = testosal
 testosal_SOURCES = TestOsal.cc
-testosal_LDADD = ${LIB_INTERPRETER_DIR}/libinterpreter.la \
-	${LIB_UM_DIR}/libuniversalmachine.la \
-	${LIB_BASE_DIR}/libttabase.la \
-	${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${LIB_APPLIBS_OSAL_DIR}/libapplibsosal.la \
-	${LIB_APPLIBS_HDB_DIR}/libhdb.la \
-	${LIB_APPLIBS_MACH_DIR}/libapplibsmach.la \
-	${APPLIBS_FSA_DIR}/libfsa.la \
-	${DL_FLAGS} -lxerces-c -lpthread \
+testosal_LDADD = ${SRC_ROOT_DIR}/libtce.la \
 	${TCL_LD_FLAGS} ${BOOST_LDFLAGS} ${EDITLINE_LD_FLAGS}
 
 AM_CPPFLAGS = -I${TOOLS_DIR} \

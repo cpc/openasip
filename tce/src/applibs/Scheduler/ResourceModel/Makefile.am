@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libresourcemodel.la
+noinst_LTLIBRARIES = libresourcemodel.la
 libresourcemodel_la_SOURCES = BusResource.cc ExecutionPipelineResource.cc \
 	FUResource.cc InputFUResource.cc InputPSocketResource.cc \
 	ITemplateResource.cc IUResource.cc OutputFUResource.cc \

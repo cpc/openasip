@@ -1,6 +1,6 @@
 SUBDIRS = StackFrameManagement
 
-lib_LTLIBRARIES = libscheduleralgorithms.la
+noinst_LTLIBRARIES = libscheduleralgorithms.la
 libscheduleralgorithms_la_SOURCES = BasicBlockScheduler.cc \
 AddressSpaceMapper.cc SimpleGuardAllocatorCore.cc RegisterMap.cc \
 LinearScanAllocatorCore.cc BasicBlockPass.cc RegisterCopyAdder.cc \

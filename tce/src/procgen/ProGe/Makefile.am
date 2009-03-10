@@ -34,14 +34,7 @@ bin_PROGRAMS = generateprocessor
 generateprocessor_SOURCES = GenerateProcessor.cc \
 ProGeCmdLineOptions.cc
 
-generateprocessor_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-${LIB_TCETOOLS_DIR}/libtcetools.la ${LIB_PROGE_APPLIBS_DIR}/libproge.la \
-${LIB_HDB_DIR}/libhdb.la ${UMACH_DIR}/libuniversalmachine.la \
-${BEM_APPLIBS_DIR}/libapplibsbem.la ${ESTIMATE_DIR}/libestimator.la \
-${TRACEDB_DIR}/libtracedb.la ${MACH_APPLIBS_DIR}/libapplibsmach.la \
-${IDF_APPLIBS_DIR}/libapplibsidf.la ${LIB_BEM_DIR}/libbem.la \
-	${APPLIBS_FSA_DIR}/libfsa.la
-
+generateprocessor_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_CPPFLAGS = -I${HDB_DIR} -I${TOOLS_DIR} -I${PROGE_APPLIBS_DIR} \
 -I${MACH_DIR} -I${BEM_DIR}
@@ -54,8 +47,5 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 #	-I${HDB_DIR}
 AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} ${XERCES_LIBS} \
 	${EDITLINE_LD_FLAGS}
-
-dist-hook:
-	rm -rf $(distdir)/CVS $(distdir)/.deps $2(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da

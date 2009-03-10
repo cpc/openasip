@@ -2,7 +2,7 @@ SUBDIRS = Interpreter Simulator osal TraceDB Disassembler \
 bem PIG Assembler hdb Scheduler Estimator ProGe EPSGenerator mach idf \
 costdb program FSA Explorer dsdb
 
-lib_LTLIBRARIES = libapplibs.la
+noinst_LTLIBRARIES = libapplibs.la
 
 libapplibs_la_SOURCES = 
 libapplibs_la_LIBADD = \
@@ -32,19 +32,12 @@ SUBDIRS += LLVMBackend
 libapplibs_la_LIBADD += LLVMBackend/libtcellvmbackend.la
 endif
 
-EXTRA_DIST = Interpreter Simulator osal TraceDB idf \
-	Disassembler bem PIG Assembler hdb Scheduler ProGe EPSGenerator mach \
-	costdb program FSA Explorer Estimator dsdb LLVMBackend
-
-
 if WX
 
 SUBDIRS += wxToolkit
 libapplibs_la_LIBADD += \
 	wxToolkit/libwxtoolkit.la \
 	wxToolkit/MachineWindow/libmachinewindow.la \
-	wxToolkit/libwxtoolkit.la
-
-EXTRA_DIST += wxToolkit
+	wxToolkit/GUIOptions/libguioptions.la
 
 endif

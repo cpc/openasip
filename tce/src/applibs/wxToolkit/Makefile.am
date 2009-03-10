@@ -1,6 +1,6 @@
 SUBDIRS = MachineWindow GUIOptions
 
-lib_LTLIBRARIES = libwxtoolkit.la
+noinst_LTLIBRARIES = libwxtoolkit.la
 
 libwxtoolkit_la_SOURCES = GUITextGenerator.cc ErrorDialog.cc \
 WarningDialog.cc InformationDialog.cc WidgetTools.cc HelpBrowser.cc \

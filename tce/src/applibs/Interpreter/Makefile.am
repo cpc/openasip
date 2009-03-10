@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libinterpreter.la
+noinst_LTLIBRARIES = libinterpreter.la
 libinterpreter_la_SOURCES = ScriptInterpreter.cc CustomCommand.cc \
 	LineReader.cc Script.cc ExpressionScript.cc \
 	ConditionScript.cc CmdHelp.cc InterpreterContext.cc \

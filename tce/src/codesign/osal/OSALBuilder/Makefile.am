@@ -20,13 +20,7 @@ buildopset_SOURCES = BuildOpset.cc
 
 # -l switches must be after libraries, which needs them 
 # (for some stupido linkers)
-buildopset_LDADD = ${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${UM_DIR}/libuniversalmachine.la \
-	${LIB_BASE_DIR}/libttabase.la \
-	${LIB_OSAL_APPLIB_DIR}/libapplibsosal.la \
-	${LIB_MACH_APPLIB_DIR}/libapplibsmach.la \
-	${LIB_HDB_DIR}/libhdb.la \
-	${APPLIBS_FSA_DIR}/libfsa.la \
+buildopset_LDADD = ${SRC_ROOT_DIR}/libtce.la \
 	-lxerces-c ${DL_FLAGS} -lpthread ${BOOST_LDFLAGS}
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \

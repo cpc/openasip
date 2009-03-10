@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libcostdb.la
+noinst_LTLIBRARIES = libcostdb.la
 
 libcostdb_la_SOURCES = CostDatabase.cc \
 	CostDBEntry.cc CostDBEntryKey.cc \

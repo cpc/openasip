@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libcfg.la
+noinst_LTLIBRARIES = libcfg.la
 libcfg_la_SOURCES = BasicBlockNode.cc ControlFlowEdge.cc ControlFlowGraph.cc \
 BasicBlock.cc CFGStatistics.cc
 

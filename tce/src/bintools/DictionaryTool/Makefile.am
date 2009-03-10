@@ -19,9 +19,7 @@ OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
 bin_PROGRAMS = dictionary_tool
 dictionary_tool_SOURCES = DictionaryTool.cc
 
-dictionary_tool_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-        ${LIB_TCETOOLS_DIR}/libtcetools.la \
-		${LIB_APPLIBS_DIR}/libapplibs.la
+dictionary_tool_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_CPPFLAGS = -I${TOOLS_DIR} \
         -I${MACH_DIR} -I${TPEF_DIR} -I${BEM_DIR} \

@@ -78,21 +78,7 @@ proxim_SOURCES = Proxim.cc ProximMainFrame.cc ConsoleWindow.cc \
 proxim_LDFLAGS = $(GUI_LIBS) $(LIB_INTERPRETER) $(TCL_LD_FLAGS) \
 	${EDITLINE_LD_FLAGS} ${BOOST_LDFLAGS} ${BOOST_PYTHON_LIB}
 
-proxim_LDADD =	${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${LIB_WXTOOLKIT_DIR}/libwxtoolkit.la \
-	${LIB_BASE_DIR}/libttabase.la \
-	${LIB_INTERPRETER_DIR}/libinterpreter.la \
-	${LIB_SIMULATOR_DIR}/libsimulator.la \
-	${LIB_DISASM_DIR}/libdisassembler.la \
-	${LIB_UM_DIR}/libuniversalmachine.la \
-	${TRACE_DB_DIR}/libtracedb.la \
-	${LIB_MACHINE_WINDOW_DIR}/libmachinewindow.la \
-	${LIB_GUI_OPTIONS_DIR}/libguioptions.la \
-	${LIB_EPS_GENERATOR_DIR}/libepsgenerator.la \
-	${LIB_APPLIBS_PROG_DIR}/libapplibsprogram.la \
-	${FSA_APPLIB_DIR}/libfsa.la \
-	${MACH_APPLIBS_DIR}/libapplibsmach.la \
-	${LIB_APPLIBS_SCHED_DIR}/libscheduler.la
+proxim_LDADD =	${SRC_ROOT_DIR}/libtce.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 

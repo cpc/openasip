@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libhdb.la
+noinst_LTLIBRARIES = libhdb.la
 libhdb_la_SOURCES = HDBManager.cc FUEntry.cc RFEntry.cc FUArchitecture.cc \
 FUExternalPort.cc FUImplementation.cc HWBlockImplementation.cc \
 FUPortImplementation.cc RFPortImplementation.cc PortImplementation.cc \

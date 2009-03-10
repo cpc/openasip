@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libguioptions.la
+noinst_LTLIBRARIES = libguioptions.la
 
 libguioptions_la_SOURCES = ToolbarButton.cc KeyboardShortcut.cc \
 	GUIOptions.cc GUIOptionsSerializer.cc OptionsDialog.cc \

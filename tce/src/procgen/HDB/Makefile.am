@@ -27,20 +27,7 @@ LIB_APPLIBS_SCHED_DIR = ../../applibs/Scheduler
 bin_PROGRAMS = createhdb
 createhdb_SOURCES = CreateHDB.cc CreateHDBCmdLineOptions.cc
 
-createhdb_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-	${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${SIM_APPLIB_DIR}/libsimulator.la \
-	${INT_APPLIB_DIR}/libinterpreter.la \
-	${PROGRAM_DIR}/libprogram.la \
-	${DISASM_DIR}/libdisassembler.la \
-	${UMACH_DIR}/libuniversalmachine.la \
-	${TRACEDB_DIR}/libtracedb.la \
-	${LIB_HDB_DIR}/libhdb.la \
-	${MACH_APPLIB_DIR}/libapplibsmach.la \
-	${PROG_APPLIB_DIR}/libapplibsprogram.la \
-	${FSA_APPLIB_DIR}/libfsa.la \
-	${LIB_APPLIBS_SCHED_DIR}/libscheduler.la
-
+createhdb_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_CPPFLAGS = -I${HDB_DIR} -I${TOOLS_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
@@ -52,8 +39,5 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 #	-I${HDB_DIR}
 AM_LDFLAGS = ${BOOST_LIBDIR} ${BOOST_PYTHON_LIB} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} \
 	 ${XERCES_LIBS} ${EDITLINE_LD_FLAGS}
-
-dist-hook:
-	rm -rf $(distdir)/CVS $(distdir)/.deps $2(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da

@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libexplorer.la
+noinst_LTLIBRARIES = libexplorer.la
 libexplorer_la_SOURCES = ComponentImplementationSelector.cc CostEstimates.cc \
 			DesignSpaceExplorer.cc DesignSpaceExplorerPlugin.cc \
 			FrequencySweep.cc ExplorerPluginParameter.cc

@@ -1,5 +1,4 @@
-
-lib_LTLIBRARIES = libtcetools.la
+noinst_LTLIBRARIES = libtcetools.la
 libtcetools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
 	Environment.cc Application.cc XMLSerializer.cc ObjectState.cc \
 	FileSystem.cc DOMBuilderErrorHandler.cc TextGenerator.cc \
@@ -35,8 +34,8 @@ doc:
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
-REVNO=$(shell which bzr > /dev/null && bzr revno || echo "Unknown")
-TCE_VERSION_STRING=@PACKAGE_VERSION@-r$(REVNO)
+REVNO=$(shell which bzr > /dev/null && echo -n "-r" && bzr revno || echo -n "")
+TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)
 
 tce_version_string.h: ../../../.bzr/branch/last-revision
 	@echo "Setting TCE_VERSION_STRING to $(TCE_VERSION_STRING)"

@@ -20,13 +20,7 @@ APPLIBS_FSA_DIR = ../../applibs/FSA
 bin_PROGRAMS = dumptpef
 dumptpef_SOURCES = TPEFDumper.cc TPEFDumper.hh DumpTPEF.cc
 
-dumptpef_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-        ${LIB_TCETOOLS_DIR}/libtcetools.la \
-        ${LIB_DISASM_DIR}/libdisassembler.la \
-        ${UM_DIR}/libuniversalmachine.la \
-        ${APPLIBS_MACH_DIR}/libapplibsmach.la \
-        ${APPLIBS_FSA_DIR}/libfsa.la
-
+dumptpef_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
         -I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \

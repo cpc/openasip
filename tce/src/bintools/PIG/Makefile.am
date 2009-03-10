@@ -19,8 +19,7 @@ bin_SCRIPTS = buildcompressor
 generatebits_SOURCES = PIGCmdLineOptions.cc PIGCLITextGenerator.cc \
 	GenerateBits.cc
 
-generatebits_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-        ${LIB_TCETOOLS_DIR}/libtcetools.la ${LIB_APPLIBS_DIR}/libapplibs.la
+generatebits_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} \
         -I${MACH_DIR} -I${TPEF_DIR} -I${BEM_DIR} \

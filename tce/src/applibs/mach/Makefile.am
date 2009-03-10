@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libapplibsmach.la
+noinst_LTLIBRARIES = libapplibsmach.la
 libapplibsmach_la_SOURCES = MachineValidator.cc MachineValidatorResults.cc \
 ProgrammabilityValidator.cc  ProgrammabilityValidatorResults.cc FUValidator.cc \
 ResourceVector.cc ResourceVectorSet.cc MachineCheck.cc \

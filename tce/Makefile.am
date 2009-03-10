@@ -1,5 +1,5 @@
 if PYTHON_ENABLED
-SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins Python-bindings explorer
+# SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins Python-bindings explorer
 else
 SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins explorer
 endif
@@ -17,7 +17,7 @@ endif
 
 bin_SCRIPTS = tce-config
 
-EXTRA_DIST = README-AUTOTOOLS README-AUTOINSTALL README.txt \
+EXTRA_DIST = README-AUTOTOOLS INSTALL LICENSE.txt gen_llvm_shared_lib.sh \
 	tools/Doxygen/doxygen.config
 
 

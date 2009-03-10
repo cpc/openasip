@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libstackframemanagement.la
+noinst_LTLIBRARIES = libstackframemanagement.la
 libstackframemanagement_la_SOURCES = OldFrontendStackAnalyzer.cc \
 StackFrameCodeCreator.cc StackCodeRemover.cc StackFrameData.cc
 

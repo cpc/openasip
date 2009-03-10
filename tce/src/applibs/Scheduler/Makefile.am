@@ -1,7 +1,7 @@
 SUBDIRS = ProgramRepresentations ResourceModel ResourceManager Selector \
 	Algorithms
 
-lib_LTLIBRARIES = libscheduler.la
+noinst_LTLIBRARIES = libscheduler.la
 
 libscheduler_la_SOURCES = SchedulerFrontend.cc SchedulerCmdLineOptions.cc \
 	BaseSchedulerModule.cc StartableSchedulerModule.cc \

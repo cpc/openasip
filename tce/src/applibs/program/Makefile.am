@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libapplibsprogram.la
+noinst_LTLIBRARIES = libapplibsprogram.la
 libapplibsprogram_la_SOURCES = \
     POMValidator.cc POMValidatorResults.cc StaticProgramAnalyzer.cc
 

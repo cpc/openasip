@@ -12,8 +12,7 @@ TOOLS_DIR = ${SRC_ROOT_DIR}/tools
 bin_PROGRAMS = viewbem
 viewbem_SOURCES = ViewBEM.cc BEMViewerCmdLineOptions.cc
 
-viewbem_LDADD = ${LIB_BEM_DIR}/libbem.la \
-        ${LIB_TCETOOLS_DIR}/libtcetools.la
+viewbem_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${ROOT_DIR} -I${BASE_DIR} \
         -I${BEM_DIR}

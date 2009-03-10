@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libgraph.la
+noinst_LTLIBRARIES = libgraph.la
 libgraph_la_SOURCES = Graph.cc BoostGraph.cc GraphUtilities.cc GraphEdge.cc GraphNode.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src

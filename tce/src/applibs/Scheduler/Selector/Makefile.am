@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libselector.la
+noinst_LTLIBRARIES = libselector.la
 libselector_la_SOURCES = MoveNodeGroup.cc MoveNodeSelector.cc \
 	CriticalPathBBMoveNodeSelector.cc SequentialMoveNodeSelector.cc
 

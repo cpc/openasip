@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libmachinewindow.la
+noinst_LTLIBRARIES = libmachinewindow.la
 
 libmachinewindow_la_SOURCES = MachineEditPartFactory.cc BidirBridgeFigure.cc \
 	BridgeFactory.cc BridgeFigure.cc BusChainFigure.cc \

@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libapplibsidf.la
+noinst_LTLIBRARIES = libapplibsidf.la
 libapplibsidf_la_SOURCES = IDFValidator.cc
 
 PROJECT_ROOT = $(top_srcdir)

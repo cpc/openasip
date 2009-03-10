@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libprogramdependencegraph.la
+noinst_LTLIBRARIES = libprogramdependencegraph.la
 libprogramdependencegraph_la_SOURCES = MoveNode.cc ProgramOperation.cc ProgramGraph.cc MoveNodeSet.cc ProgramDependenceEdge.cc ProgramDependenceNode.cc ProgramDependenceGraph.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src

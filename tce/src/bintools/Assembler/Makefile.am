@@ -18,9 +18,7 @@ UM_DIR = ${SRC_ROOT_DIR}/applibs/umach
 bin_PROGRAMS = tceasm
 tceasm_SOURCES = tceasm.cc
 
-tceasm_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-        ${LIB_TCETOOLS_DIR}/libtcetools.la \
-        ${LIB_APPLIBS_DIR}/libapplibs.la
+tceasm_LDADD = ${SRC_ROOT_DIR}/libtce.la 
 
 AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
         -I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \

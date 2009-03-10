@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libfsa.la
+noinst_LTLIBRARIES = libfsa.la
 libfsa_la_SOURCES = FiniteStateAutomaton.cc FUFiniteStateAutomaton.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src

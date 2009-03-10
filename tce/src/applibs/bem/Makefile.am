@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libapplibsbem.la
+noinst_LTLIBRARIES = libapplibsbem.la
 libapplibsbem_la_SOURCES = BEMGenerator.cc BEMValidator.cc
 
 PROJECT_ROOT = $(top_srcdir)

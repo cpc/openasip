@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libestimator.la
+noinst_LTLIBRARIES = libestimator.la
 libestimator_la_SOURCES = Estimator.cc CostEstimationPlugin.cc \
 RFCostEstimationPlugin.cc FUCostEstimationPlugin.cc TransportPath.cc \
 ICDecoderEstimatorPlugin.cc

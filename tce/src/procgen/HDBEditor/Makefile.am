@@ -40,14 +40,7 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 hdbeditor_LDFLAGS = $(GUI_LIBS) $(LIB_INTERPRETER) $(TCL_LD_FLAGS) \
 	${EDITLINE_LD_FLAGS} ${BOOST_LDFLAGS}
 
-hdbeditor_LDADD = ${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${LIB_WXTOOLKIT_DIR}/libwxtoolkit.la \
-	${LIB_BASE_DIR}/libttabase.la \
-	${LIB_HDB_DIR}/libhdb.la \
-	${LIB_EPSGENERATOR_DIR}/libepsgenerator.la \
-	${LIB_APPLIB_MACH_DIR}/libapplibsmach.la \
-	${APPLIBS_FSA_DIR}/libfsa.la
-
+hdbeditor_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 

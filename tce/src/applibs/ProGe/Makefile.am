@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libproge.la
+noinst_LTLIBRARIES = libproge.la
 libproge_la_SOURCES = Netlist.cc NetlistBlock.cc NetlistPort.cc \
 NetlistGenerator.cc PortConnectionProperty.cc ICDecoderGeneratorPlugin.cc \
 NetlistWriter.cc VHDLNetlistWriter.cc ProGeUI.cc ProcessorGenerator.cc \

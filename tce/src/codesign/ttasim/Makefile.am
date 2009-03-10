@@ -29,19 +29,7 @@ FSA_APPLIB_DIR = ../../applibs/FSA
 bin_PROGRAMS = ttasim
 ttasim_SOURCES = TTASim.cc SimulatorCmdLineOptions.cc
 
-ttasim_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-	${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${LIB_SIM_APPLIB_DIR}/libsimulator.la \
-	${LIB_INT_APPLIB_DIR}/libinterpreter.la \
-	${LIB_PROGRAM_DIR}/libprogram.la \
-	${DISASM_DIR}/libdisassembler.la \
-	${UM_DIR}/libuniversalmachine.la \
-	${TRACEDB_DIR}/libtracedb.la \
-	${PROG_APPLIB_DIR}/libapplibsprogram.la \
-	${LIB_APPLIBS_HDB_DIR}/libhdb.la \
-	${LIB_APPLIBS_MACH_DIR}/libapplibsmach.la \
-	${LIB_APPLIBS_SCHED_DIR}/libscheduler.la \
-	${FSA_APPLIB_DIR}/libfsa.la
+ttasim_LDADD = ${SRC_ROOT_DIR}/libtce.la 
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${BASE_DIR} \

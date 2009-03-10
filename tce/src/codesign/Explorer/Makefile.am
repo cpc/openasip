@@ -52,30 +52,7 @@ bin_PROGRAMS = explore
 bin_SCRIPTS = buildexplorerplugin
 explore_SOURCES = Explorer.cc ExplorerCmdLineOptions.cc
 
-explore_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-	${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${LIB_SIM_APPLIB_DIR}/libsimulator.la \
-	${LIB_INT_APPLIB_DIR}/libinterpreter.la \
-	${LIB_PROGRAM_DIR}/libprogram.la \
-	${DISASM_DIR}/libdisassembler.la \
-	${LIB_UM_DIR}/libuniversalmachine.la \
-	${TRACEDB_DIR}/libtracedb.la \
-	${PROG_APPLIB_DIR}/libapplibsprogram.la \
-	${LIB_APPLIBS_HDB_DIR}/libhdb.la \
-	${LIB_APPLIBS_MACH_DIR}/libapplibsmach.la \
-	${FSA_APPLIB_DIR}/libfsa.la \
-	${LIB_EXPLORER_APPLIBS_DIR}/libexplorer.la \
-	${LIB_SCHEDULER_APPLIBS_DIR}/libscheduler.la \
-	${LIB_ESTIMATOR_APPLIBS_DIR}/libestimator.la \
-	${LIB_COSTDB_DIR}/libcostdb.la \
-	${LIB_DSDB_DIR}/libdsdb.la \
-	${LIB_PROGE_APPLIBS}/libproge.la \
-	${LIB_BEM_APPLIBS}/libapplibsbem.la \
-	${LIB_IDF_APPLIBS}/libapplibsidf.la \
-	${LIB_GRAPH_DIR}/libgraph.la \
-	${LIB_EXPLORER_APPLIBS_DIR}/libexplorer.la \
-	${LIB_LLVMBACKEND_APPLIBS}/libtcellvmbackend.la \
-	${LIB_OSAL_APPLIBS}/libapplibsosal.la
+explore_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${BASE_DIR} \

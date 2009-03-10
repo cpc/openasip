@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libdsdb.la
+noinst_LTLIBRARIES = libdsdb.la
 libdsdb_la_SOURCES = DSDBManager.cc TestApplication.cc
 
 PROJECT_ROOT = $(top_srcdir)

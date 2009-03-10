@@ -44,24 +44,7 @@ bin_PROGRAMS = estimate
 bin_SCRIPTS = buildestimatorplugin
 estimate_SOURCES = EstimatorCmdLineUI.cc EstimatorCmdLineOptions.cc
 
-estimate_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-	${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${LIB_SIM_APPLIB_DIR}/libsimulator.la \
-	${LIB_INT_APPLIB_DIR}/libinterpreter.la \
-	${LIB_PROGRAM_DIR}/libprogram.la \
-	${DISASM_DIR}/libdisassembler.la \
-	${LIB_UMACH_DIR}/libuniversalmachine.la \
-	${LIB_TRACEDB_DIR}/libtracedb.la \
-	${LIB_ESTIMATE_DIR}/libestimator.la \
-	${LIB_HDB_DIR}/libhdb.la \
-	${LIB_PROGE_DIR}/libproge.la \
-	${BEM_APPLIB_DIR}/libapplibsbem.la \
-	${MACH_APPLIB_DIR}/libapplibsmach.la \
-	${IDF_APPLIB_DIR}/libapplibsidf.la \
-	${LIB_COSTDB_DIR}/libcostdb.la \
-	${PROG_APPLIB_DIR}/libapplibsprogram.la \
-	${FSA_APPLIB_DIR}/libfsa.la \
-	${LIB_APPLIBS_SCHED_DIR}/libscheduler.la
+estimate_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \

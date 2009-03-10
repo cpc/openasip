@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libuniversalmachine.la
+noinst_LTLIBRARIES = libuniversalmachine.la
 libuniversalmachine_la_SOURCES = UniversalMachine.cc \
 UniversalFunctionUnit.cc UnboundedRegisterFile.cc UniversalFUPort.cc \
 SmartHWOperation.cc

@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libepsgenerator.la
+noinst_LTLIBRARIES = libepsgenerator.la
 libepsgenerator_la_SOURCES = EPSGenerator.cc VertexList.cc
 
 SRC_ROOT = $(top_srcdir)/src

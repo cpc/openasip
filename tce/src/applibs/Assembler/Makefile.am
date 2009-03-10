@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libassembler.la
+noinst_LTLIBRARIES = libassembler.la
 libassembler_la_SOURCES = CodeSectionCreator.cc DataSectionCreator.cc \
 LabelManager.cc AssemblerParser.cc MachineResourceManager.cc Assembler.cc
 

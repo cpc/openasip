@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libdisassembler.la
+noinst_LTLIBRARIES = libdisassembler.la
 libdisassembler_la_SOURCES = Disassembler.cc DisassemblyElement.cc \
 DisassemblyOperand.cc DisassemblyMove.cc DisassemblyInstruction.cc \
 DisassemblyRegister.cc DisassemblyFUPort.cc DisassemblyFUOpcodePort.cc \

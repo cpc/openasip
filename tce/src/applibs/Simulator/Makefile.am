@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libsimulator.la 
+noinst_LTLIBRARIES = libsimulator.la 
 libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	ClockedState.cc BusState.cc FUState.cc FixedRegisters.cc \
 	GCUState.cc InputPortState.cc LongImmediateRegisterState.cc \

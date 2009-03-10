@@ -37,21 +37,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${LLVM_BACKEND_DIR} -I${PROG_DIR} \
 	-I${UMACH_DIR} -I${SCHED_ALGO_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
-llvm_tce_LDADD = ${LIB_BASE_DIR}/libttabase.la \
-	${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${SIM_APPLIB_DIR}/libsimulator.la \
-	${INT_APPLIB_DIR}/libinterpreter.la \
-	${PROGRAM_DIR}/libprogram.la \
-	${DISASM_DIR}/libdisassembler.la \
-	${UM_DIR}/libuniversalmachine.la \
-	${TRACEDB_DIR}/libtracedb.la \
-	${PROG_APPLIB_DIR}/libapplibsprogram.la \
-	${LIB_APPLIBS_HDB_DIR}/libhdb.la \
-	${LIB_APPLIBS_MACH_DIR}/libapplibsmach.la \
-	${LIB_APPLIBS_SCHED_DIR}/libscheduler.la \
-	${FSA_APPLIB_DIR}/libfsa.la \
-	${LIB_LLVM_BACKEND_DIR}/libtcellvmbackend.la \
-	${LIB_APPLIBS_OSAL_DIR}/libapplibsosal.la
+llvm_tce_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 if PYTHON_ENABLED
 AM_LDFLAGS =  ${TCL_LD_FLAGS} ${BOOST_PYTHON_LIB}

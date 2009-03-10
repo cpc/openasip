@@ -89,11 +89,11 @@ TCE_LIB_DIRS = \
     $(shell find ${TOP_SRCDIR}/src -name .libs)
 LIB_MAGIC = -Wl,--rpath -Wl,
 TCE_LIB_FLAGS = $(addprefix ${LIB_MAGIC},${TCE_LIB_DIRS})
-TCE_LIBS = $(shell find ${TOP_SRCDIR}/src -name "*.so")
+TCE_LIBS = ${TOP_SRCDIR}/src/.libs/libtce.so 
 
 include ${TOP_SRCDIR}/test/Makefile_configure_settings
 
-LIB_FLAGS = ${TCL_LD_FLAGS} ${EDITLINE_LD_FLAGS}
+LIB_FLAGS = ${TCL_LD_FLAGS} ${EDITLINE_LD_FLAGS} ${LLVM_LD_FLAGS}
 
 .PHONY: build_src, dummy
 

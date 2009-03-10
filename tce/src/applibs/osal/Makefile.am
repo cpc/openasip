@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libapplibsosal.la
+noinst_LTLIBRARIES = libapplibsosal.la
 libapplibsosal_la_SOURCES = OperationBuilder.cc OperationSimulator.cc \
 							OperationDAGSelector.cc
 

@@ -44,13 +44,7 @@ osed_SOURCES = OSEd.cc OSEdMainFrame.cc OSEdTreeView.cc OSEdInfoView.cc \
 	OperationDAGDialog.cc
 
 osed_LDFLAGS = ${GUI_LIBS} ${SQLITE_LIBDIR} ${BOOST_LIBDIR}
-osed_LDADD = ${LIB_UM_DIR}/libuniversalmachine.la ${LIB_BASE_DIR}/libttabase.la \
-	${LIB_TOOLS_DIR}/libtcetools.la \
-	${LIB_WXTOOLS_DIR}/libwxtoolkit.la \
-	${LIB_APPLIBS_OSAL_DIR}/libapplibsosal.la \
-	${LIB_EPS_GENERATOR_DIR}/libepsgenerator.la \
-	${LIB_APPLIBS_MACH_DIR}/libapplibsmach.la \
-	${APPLIBS_FSA_DIR}/libfsa.la \
+osed_LDADD = ${SRC_ROOT_DIR}/libtce.la \
 	${BOOST_LDFLAGS} ${TCL_LD_FLAGS} ${EDITLINE_LD_FLAGS}
 
 AM_CXXFLAGS = ${GUI_INCLUDES}

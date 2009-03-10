@@ -114,25 +114,7 @@ prode_SOURCES = Model.cc\
 
 prode_LDFLAGS = $(GUI_LIBS) ${SQLITE_LIBDIR} ${BOOST_LIBDIR}
 
-prode_LDADD =	${LIB_TCETOOLS_DIR}/libtcetools.la \
-	${LIB_WXTOOLKIT_DIR}/libwxtoolkit.la \
-	${LIB_BASE_DIR}/libttabase.la \
-	${LIB_UM_DIR}/libuniversalmachine.la ${BOOST_LDFLAGS} \
-	${LIB_MACHINE_WINDOW_DIR}/libmachinewindow.la \
-	${LIB_EPS_GENERATOR_DIR}/libepsgenerator.la \
-	${LIB_GUI_OPTIONS_DIR}/libguioptions.la \
-	${LIB_MACH_TOOLS_DIR}/libapplibsmach.la \
-	${LIB_HDB_DIR}/libhdb.la \
-	${LIB_IDF_DIR}/libidf.la \
-	${LIB_IDF_TOOLS_DIR}/libapplibsidf.la \
-	${LIB_BEM_DIR}/libbem.la \
-	${LIB_BEM_TOOLS_DIR}/libapplibsbem.la \
-	${LIB_PROGE_DIR}/libproge.la \
-	${LIB_TRACE_DB_DIR}/libtracedb.la \
-	${LIB_ESTIMATOR_DIR}/libestimator.la \
-	${LIB_OSAL_DIR}/libosal.la \
-	${APPLIBS_FSA_DIR}/libfsa.la \
-	${LIB_APPLIBS_DIR}/libapplibs.la
+prode_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 

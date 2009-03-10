@@ -705,14 +705,12 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         pluginTool_.addSearchPath(cachePath_);
         pluginTool_.registerModule(pluginFile);
         pluginTool_.importSymbol(
-            "create_tce_backend_plugin", creator, pluginFile);
-
-        
+            "create_tce_backend_plugin", creator, pluginFile);       
     } catch(Exception& e) {
         FileSystem::removeFileOrDirectory(tmpDir);
         std::string msg = std::string() +
             "Unable to load plugin file '" +
-            pluginFileName + "'.";
+            pluginFileName + "'. Error: " + e.errorMessage();
 
         IOException ne(__FILE__, __LINE__, __func__, msg);
         throw ne;

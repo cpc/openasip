@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libtracedb.la
+noinst_LTLIBRARIES = libtracedb.la
 libtracedb_la_SOURCES = ExecutionTrace.cc InstructionExecution.cc
 
 SIM_APPLIBS_DIR = $(srcdir)/../Simulator

@@ -1,4 +1,4 @@
-lib_LTLIBRARIES = libresourcemanager.la
+noinst_LTLIBRARIES = libresourcemanager.la
 libresourcemanager_la_SOURCES = AssignmentPlan.cc ITemplateBroker.cc \
 	ResourceBuildDirector.cc BrokerDirector.cc IUBroker.cc \
 	ResourceManager.cc BusBroker.cc OutputFUBroker.cc ResourceMapper.cc \

@@ -3,13 +3,13 @@
 
 # Mandatory macro. Set the name of the package and the version number.
 # Email address is for bug reporting. 
-AC_INIT(tce, 1.0-beta2, tce-users@cs.tut.fi)
+AC_INIT([tce],[1.0],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
-REVNO=$(which bzr > /dev/null && bzr revno || echo "unknown")
+REVNO=$(which bzr > /dev/null && echo -n "-r" && bzr revno || echo -n "")
 
-AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION-r${REVNO}"] )
+AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 
 # This indicates a unique source code file. This is a safety check
 # which ensures that source code directory is really source code
@@ -28,8 +28,8 @@ AC_CONFIG_HEADERS(tce_config.h)
 # These are written in the beginning and in the
 # end of header file.
 AH_TOP([
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef TCE_CONFIG_H
+#define TCE_CONFIG_H
 ])
 AH_BOTTOM([
 #endif
@@ -90,11 +90,12 @@ AC_PROG_MAKE_SET
 AC_PROG_INSTALL
 
 # Disable building the static libraries by default. Should halve the
-# compilations.
+# number of compilations.
 AC_DISABLE_STATIC
 
 # Declare that we use libtool.
 AC_PROG_LIBTOOL
+AM_PROG_LIBTOOL
 
 # Declare that we use egrep.
 AC_PROG_EGREP
@@ -288,7 +289,7 @@ AC_DEFINE([DIR_SEPARATOR], ["\\"], [Directory separator for this file system])
 
 # Enable Python bindings
 AC_ARG_ENABLE(python,
-[AC_HELP_STRING([--enable-python], [Build Python bindings for TCE libraries])],
+[AS_HELP_STRING([--enable-python],[Build Python bindings for TCE libraries])],
 [ case "${enableval}" in
   yes) 
     enablepython=true 
@@ -362,7 +363,9 @@ AM_CONDITIONAL([PYTHON_ENABLED], false)
 # boost_python can be used only if python is enabled
 if $enablepython
 then
+
 AX_BOOST_PYTHON
+
 if test -z "$BOOST_PYTHON_LIB"
 then
 # AM_PATH_PYTHON sets PYTHON_VERSION if Python is found
@@ -390,7 +393,7 @@ BOOST_PYTHON_LDFLAGS="$BOOST_PYTHON_LIB"
 #
 ##########################################################################
 AC_ARG_WITH(gcov,
-[AC_HELP_STRING([--with-gcov], [use gcov switches in compilation to produce \
+[AS_HELP_STRING([--with-gcov],[use gcov switches in compilation to produce \
 profiling data])],
 [
 CXXFLAGS="$CXXFLAGS -ftest-coverage -fprofile-arcs"
@@ -417,7 +420,7 @@ CXXFLAGS="$CXXFLAGS -ftest-coverage -fprofile-arcs"
 LLVM_VERSION=
 
 AC_ARG_WITH(llvm,
-[AC_HELP_STRING([--with-llvm], [absolute path to an LLVM installation])],
+[AS_HELP_STRING([--with-llvm],[absolute path to an LLVM installation])],
 [llvmDir="${withval}"
  llvmConf="$llvmDir/bin/llvm-config"
 ],
@@ -433,11 +436,13 @@ AC_MSG_NOTICE([
   systems, development support comes in separate '-dev' packages.])
 else
  
+
 AC_CHECK_FILE($llvmConf, 
 [
+LLVM_SHARED_LIB=$($llvmConf --libdir)/libllvm2.5.so
 LLVM_VERSION=$($llvmConf --version)
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
-LLVM_LDFLAGS="$($llvmConf --libs) $($llvmConf --ldflags)"
+LLVM_LDFLAGS="$LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
 LLVM_LIBDIR=$($llvmConf --libdir)
 
@@ -466,8 +471,16 @@ AC_MSG_NOTICE([
   You have to install LLVM to be able to compile from C.])
 ])
 
+if test ! -e $LLVM_SHARED_LIB;
+then
+        AC_MSG_ERROR([
+$LLVM_SHARED_LIB not found. 
+Use ./gen_llvm_shared_lib.sh to generate it.])
+fi
+
 # test if $llvmConf is empty string
 fi
+
 
 AC_DEFINE_UNQUOTED([LLVM_VERSION], ["$LLVM_VERSION"], 
 "The LLVM version string.")
@@ -507,7 +520,7 @@ AM_CONDITIONAL(LLVM, test x$LLVM_VERSION != x)
 ####################################################################
 
 AC_ARG_WITH(wxwidgets,
-[AC_HELP_STRING([--with-wxwidgets], [absolute path to wxWidgets library])],
+[AS_HELP_STRING([--with-wxwidgets],[absolute path to wxWidgets library])],
 [wxwindows="${withval}"
  wxwindowsBin="$wxwindows/bin/wx-config"
 ],
@@ -669,7 +682,7 @@ AM_CONDITIONAL(WX, test x$DO_WX_COMPILE = xtrue)
 # --with-tcl=<path>.
 AC_LANG(C++)
 AC_ARG_WITH(tcl,
-[AC_HELP_STRING([--with-tcl], [absolute path where tcl is found])],
+[AS_HELP_STRING([--with-tcl],[absolute path where tcl is found])],
 [
   tcl="${withval}" 
   AC_SUBST([TCL_INCLUDES], ["-I$tcl/include"] )
@@ -691,7 +704,7 @@ fi
 # with --with-tcl-headers=<path>.  For example, in Debian the headers for
 # Tcl 8.4 are located at /usr/include/tcl8.4
 AC_ARG_WITH(tcl-headers,
-[AC_HELP_STRING([--with-tcl-headers], [absolute path where tcl include files are found, e.g, /usr/include/tcl8.4])],
+[AS_HELP_STRING([--with-tcl-headers],[absolute path where tcl include files are found, e.g, /usr/include/tcl8.4])],
 [
   tcl_headers="${withval}" 
   AC_SUBST([TCL_INCLUDES], ["-I$tcl_headers"] )
@@ -782,7 +795,7 @@ CPPFLAGS="$TEMP_CPPFLAGS"
 #
 ############################################################################
 AC_ARG_WITH(xerces,
-[AC_HELP_STRING([--with-xerces], [absolute path where Xerces can be found])],
+[AS_HELP_STRING([--with-xerces],[absolute path where Xerces can be found])],
 [xerces="${withval}" 
 AC_SUBST([XERCES_INCLUDES], ["-I$xerces/include"] )
 AC_SUBST([XERCES_LIBDIR], ["-L$xerces/lib"])
@@ -847,7 +860,7 @@ AC_DEFINE_UNQUOTED([TCE_BLD_ROOT], ["`pwd`"], [Build directory for the project])
 
 # Checking for libedit library.
 AC_ARG_WITH(editline,
-[AC_HELP_STRING([--with-editline], [absolute path where editline can be found])],
+[AS_HELP_STRING([--with-editline],[absolute path where editline can be found])],
 [editline="${withval}" 
 AC_SUBST([EDITLINE_INCLUDES], ["-I$editline/include"] )
 AC_SUBST([EDITLINE_LIBDIR], ["-L$editline/lib"])
@@ -925,7 +938,7 @@ AM_CONDITIONAL([RUN_INTERPRETER_TESTS],
 
 # The location of sqlite can be defined with --with-sqlite
 AC_ARG_WITH(sqlite3,
-[AC_HELP_STRING([--with-sqlite3], [absolute path where sqlite3 can be found])],
+[AS_HELP_STRING([--with-sqlite3],[absolute path where sqlite3 can be found])],
 [sqlite3="${withval}" 
 AC_SUBST([SQLITE_INCLUDES], ["-I$sqlite3/include"] )
 AC_SUBST([SQLITE_LIBDIR], ["-L$sqlite3/lib"])
@@ -1041,7 +1054,7 @@ AC_C_BIGENDIAN
 # byte of a word at the lowest address
 # Default target machine byte order is most significant byte first.
 AC_ARG_ENABLE(bigendian,
-[AC_HELP_STRING([--enable-bigendian], [target machine uses bigendian])],
+[AS_HELP_STRING([--enable-bigendian],[target machine uses bigendian])],
 [ case "${enableval}" in
   yes) 
     bigendian=true 
@@ -1092,7 +1105,7 @@ $EDITLINE_INCLUDES $XERCES_INCLUDES $TCL_INCLUDES $GUI_INCLUDES"
 
 # Enable DISTRIBUTED_VERSION
 AC_ARG_ENABLE(distributed,
-              [AC_HELP_STRING([--enable-distributed], [Build TCE as distributed version])],
+              [AS_HELP_STRING([--enable-distributed],[Build TCE as distributed version])],
 [ case "${enableval}" in
   yes) 
   AC_DEFINE(DISTRIBUTED_VERSION, true,
@@ -1148,10 +1161,12 @@ CXX=$CXX
 CPP=$CPP
 CC=$CC
 
+LDFLAGS="$EDITLINE_LD_FLAGS $BOOST_LDFLAGS $SQLITE_LD_FLAGS $XERCES_LIBDIR $XERCES_LIBS $GUI_LIBS $TCL_LD_FLAGS $LLVM_LDFLAGS"
+
 " > $FILENAME
 
 
-LDFLAGS="$EDITLINE_LD_FLAGS $BOOST_LDFLAGS $SQLITE_LD_FLAGS $XERCES_LIBDIR $XERCES_LIBS $GUI_LIBS $TCL_LD_FLAGS"
+LDFLAGS="$EDITLINE_LD_FLAGS $BOOST_LDFLAGS $SQLITE_LD_FLAGS $XERCES_LIBDIR $XERCES_LIBS $GUI_LIBS $TCL_LD_FLAGS $LLVM_LDFLAGS"
 
 AC_DEFINE_UNQUOTED([CONFIGURE_CPPFLAGS], ["$CPPFLAGS"],
                    [CPPFLAGS used during configuration of TCE])
@@ -1261,6 +1276,15 @@ AC_CONFIG_FILES([
   cost_estimator_plugins/rf/Makefile
   cost_estimator_plugins/fu/Makefile
   explorer/Makefile
+  src/ext/Makefile
+  src/ext/llvm/Makefile
+  src/ext/llvm/2.5/Makefile
+  src/ext/llvm/2.5/TableGen/Makefile 
+  src/applibs/LLVMBackend/Makefile
+  src/applibs/LLVMBackend/passes/Makefile
+  src/bintools/Compiler/Makefile
+  src/bintools/Compiler/tceopgen/Makefile
+  src/bintools/Compiler/llvm-tce/Makefile
   Python-bindings/Makefile
   Python-bindings/src/Makefile
   Python-bindings/src/setup.py
@@ -1276,16 +1300,9 @@ AC_CONFIG_FILES([
   Python-bindings/src/tools/Makefile
   Python-bindings/src/ResourceManager/Makefile
   Python-bindings/test/RunPythonFileTests/Makefile
-  src/ext/Makefile
-  src/ext/llvm/Makefile
-  src/ext/llvm/2.5/Makefile
-  src/ext/llvm/2.5/TableGen/Makefile 
-  src/applibs/LLVMBackend/Makefile
-  src/applibs/LLVMBackend/passes/Makefile
-  src/bintools/Compiler/Makefile
-  src/bintools/Compiler/tceopgen/Makefile
-  src/bintools/Compiler/llvm-tce/Makefile
 ])
+
+
 
 # scripts which need to be filled with BOOST_INCLUDES and other variables...
 AC_CONFIG_FILES([src/codesign/Explorer/buildexplorerplugin], 
