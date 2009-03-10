@@ -1,5 +1,1 @@
-ti64x_subset.adf,/home/hkultala/src/tce-1.0/tce/scheduler/passes/default_scheduler.conf,03.03.09 14:31,223206
-huge.adf,/home/hkultala/src/tce-1.0/tce/scheduler/passes/default_scheduler.conf,03.03.09 14:31,121710
-RF_constrained.adf,/home/hkultala/src/tce-1.0/tce/scheduler/passes/default_scheduler.conf,03.03.09 14:31,145018
-FU_constrained.adf,/home/hkultala/src/tce-1.0/tce/scheduler/passes/default_scheduler.conf,03.03.09 14:31,129154
-minimal_with_io.adf,/home/hkultala/src/tce-1.0/tce/scheduler/passes/default_scheduler.conf,03.03.09 14:31,1270846
+misc/1_bus_min_opset.adf,/home/elhigu/stow_sources/tce-1.0/testsuite/systemtest_long/bintools/llvm-frontend/../../../../tce/scheduler/passes/sequential_tcecc_scheduler.conf,09.03.09 17:53,418721

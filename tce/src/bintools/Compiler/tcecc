@@ -211,9 +211,11 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     if options.unroll_threshold > 0:
         loop_unroll_switches = \
-            " -loop-unroll -unroll-allow-partial -unroll-threshold=%d " % \
+            " -unroll-allow-partial -unroll-threshold=%d " % \
             options.unroll_threshold
+        loop_unroll_pass = "-loop-unroll "
     else:
+        loop_unroll_pass = " " 
         loop_unroll_switches = " " 
         
     std_compile_opts = (" " +
@@ -272,8 +274,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
                         "-loop-deletion " +
                         "-domfrontier " +
                         "-lcssa " +
-                        #"-loop-unroll " +
-                        loop_unroll_switches +
+                        loop_unroll_pass +
                         "-instcombine " +
                         "-memdep " +
                         "-gvn " +
@@ -339,7 +340,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
                         "-loop-deletion " +
                         "-domfrontier " +
                         "-lcssa " +                       
-                        #"-loop-unroll " +
+                        loop_unroll_pass +
                         "-instcombine " +
                         "-memdep " +
                         "-gvn " +
@@ -360,9 +361,10 @@ def optimizeBytecode(inFile, fileNamePrefix):
                         "-domfrontier " +
                         "-scalar-evolution " +
                         "-lcssa " +
-                        "-loop-unroll " +
+                        loop_unroll_pass +
                         "-preverify " +
                         "-verify " +
+                        loop_unroll_switches +
                         " ")
        
     # -O0 optimization doesn't exists in opt
