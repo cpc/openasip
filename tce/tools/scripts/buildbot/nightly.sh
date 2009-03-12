@@ -55,8 +55,8 @@ function start_compiletest {
     cd "${BRANCH_DIR}/tce"
 
     # remove the zOMG error mail when testing is finished, buildbot will handle the mails
-    export ERROR_MAIL=yes
-    export ERROR_MAIL_ADDRESS=otto.esko@tut.fi
+    export ERROR_MAIL=no
+    export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
     export CXX="ccache g++${ALTGCC}"
     export CC="ccache gcc${ALTGCC}"
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
@@ -64,6 +64,11 @@ function start_compiletest {
     export TCE_CONFIGURE_SWITCHES="--disable-python"
 
     autoreconf >& /dev/null
+
+    if [ -x gen_llvm_shared_lib.sh ]
+    then
+        ./gen_llvm_shared_lib.sh >& /dev/null
+    fi
 
     tools/scripts/compiletest.sh -t $@ >& test.log
 

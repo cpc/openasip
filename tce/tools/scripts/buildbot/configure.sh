@@ -26,5 +26,11 @@ export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno
 export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
 make clean >& /dev/null
 autoreconf >& reconf.log
+
+if [ -x gen_llvm_shared_lib.sh ]
+then
+   ./gen_llvm_shared_lib.sh >& reconf.log
+fi
+
 ./configure 1>> reconf.log 2>> reconf.log
 exit $?
