@@ -1,46 +1,60 @@
-BUILD_EXPLORER_PLUGIN = ../src/codesign/Explorer/buildexplorerplugin
-basedir = ${prefix}/share/tce/explorer/base
+pkglibdir = ${prefix}/share/tce/explorer/base
+pkglib_LTLIBRARIES = \
+	FrequencySweepExplorer.la SimpleICOptimizer.la \
+	RemoveUnconnectedComponents.la MinimizeMachine.la \
+	GrowMachine.la ImmediateGenerator.la \
+	ImplementationSelector.la ComponentAdder.la \
+	Evaluate.la MinimalOpSet.la
 
-nobase_base_DATA = FrequencySweepExplorer.so SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so GrowMachine.so ImmediateGenerator.so ImplementationSelector.so ComponentAdder.so Evaluate.so MinimalOpSet.so
+# Libtool seems to realize we are compiling from .cc instead of .c
+# just by defining the first source. Without this it fails.
+FrequencySweepExplorer_la_SOURCES = FrequencySweepExplorer.cc
 
-# Force recompilation always, dependency checking does not work here.
-.PHONY: FrequencySweepExplorer.so \
-SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so \
-GrowMachine.so ImmediateGenerator.so ImplementationSelector.so \
-ComponentAdder.so Evaluate.so MinimalOpSet.so
+PROJECT_ROOT = $(top_srcdir)
+SRC_ROOT_DIR = ${PROJECT_ROOT}/src
 
-all-local: FrequencySweepExplorer.so SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so GrowMachine.so ImmediateGenerator.so ImplementationSelector.so ComponentAdder.so Evaluate.so MinimalOpSet.so
+TPEF_DIR = ${SRC_ROOT_DIR}/base/tpef
+MACH_DIR = ${SRC_ROOT_DIR}/base/mach
+OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
+IDF_DIR = ${SRC_ROOT_DIR}/base/idf
+UMACH_DIR = ${SRC_ROOT_DIR}/base/umach
+PROG_DIR = ${SRC_ROOT_DIR}/base/program
+BEM_DIR = ${SRC_ROOT_DIR}/base/bem
+BEM_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/bem
+PIG_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/PIG
+MACH_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/mach
+HDB_DIR = ${SRC_ROOT_DIR}/applibs/hdb
+TRACEDB_DIR = ${SRC_ROOT_DIR}/applibs/TraceDB
+ESTIMATOR_DIR = ${SRC_ROOT_DIR}/applibs/Estimator
+EXPLORER_DIR = ${SRC_ROOT_DIR}/applibs/Explorer
+DSDB_DIR = ${SRC_ROOT_DIR}/applibs/dsdb
+SIM_DIR = ${SRC_ROOT_DIR}/applibs/Simulator
+TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+INTERP_DIR = ${SRC_ROOT_DIR}/applibs/Interpreter
+COSTDB_DIR = ${SRC_ROOT_DIR}/applibs/costdb
+LLVMBACKEND_DIR = ${SRC_ROOT_DIR}/applibs/LLVMBackend
+SCHEDULER_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
+APPLIBS_PROG = ${SRC_ROOT_DIR}/applibs/program
 
-FrequencySweepExplorer.so: FrequencySweepExplorer.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
+AM_CPPFLAGS = \
+        -I${MACH_DIR} -I${UMACH_DIR} -I${OSAL_DIR} -I${TPEF_DIR} -I${BEM_DIR} \
+		-I${BEM_APPLIBS_DIR} -I${PIG_APPLIBS_DIR} -I${ESTIMATOR_DIR} \
+        -I${TOOLS_DIR} -I${PROG_DIR} -I${MACH_APPLIBS_DIR} -I${IDF_DIR} \
+		-I${HDB_DIR} -I${TRACEDB_DIR} -I${SIM_DIR} -I${COSTDB_DIR} \
+		-I${EXPLORER_DIR} -I${DSDB_DIR} -I${INTERP_DIR} \
+		-I${LLVMBACKEND_DIR} -I${SCHEDULER_DIR} -I${APPLIBS_PROG}
 
-SimpleICOptimizer.so: SimpleICOptimizer.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
+AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
-RemoveUnconnectedComponents.so: RemoveUnconnectedComponents.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
+AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} ${XERCES_LIBS} \
+	${EDITLINE_LD_FLAGS} -module
 
-MinimizeMachine.so: MinimizeMachine.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
+all-local: ${pkglib_LTLIBRARIES}
+# Create links to the .so to the current directory just to make 
+# running Explorer from the source tree to find them.
+	@@(for soname in $(shell ls -1 ${srcdir}/.libs/*.so); do \
+		ln -sf $$soname ${srcdir}; \
+	done)
 
-GrowMachine.so: GrowMachine.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
-
-ImmediateGenerator.so: ImmediateGenerator.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
-
-ImplementationSelector.so: ImplementationSelector.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
-
-ComponentAdder.so: ComponentAdder.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
-
-Evaluate.so: Evaluate.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
-
-MinimalOpSet.so: MinimalOpSet.cc
-	${BUILD_EXPLORER_PLUGIN} $@ $^
-
-clean:
-	rm -f FrequencySweepExplorer.so SimpleICOptimizer.so RemoveUnconnectedComponents.so MinimizeMachine.so GrowMachine.so ImmediateGenerator.so ImplementationSelector.so ComponentAdder.so Evaluate.so MinimalOpSet.so
-
+clean-local:
+	rm -f ${srcdir}/*.so

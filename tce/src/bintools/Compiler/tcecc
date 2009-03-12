@@ -641,9 +641,9 @@ if options.verbose:
         print "Running installed TCE from PATH."    
     
 if not runningInstalled:
-    lowerintrinsicsplugin = srcRoot + "/applibs/LLVMBackend/passes/LowerIntrinsics.so"
+    lowerintrinsicsplugin = srcRoot + "/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so"
 else:
-    lowerintrinsicsplugin = tceprefix + "/share/tce/llvm/passes/LowerIntrinsics.so"
+    lowerintrinsicsplugin = tceprefix + "/lib/tce/LowerIntrinsics.so"
     
 namePrefix = tempDir + "/" + os.path.basename(outputName)
 

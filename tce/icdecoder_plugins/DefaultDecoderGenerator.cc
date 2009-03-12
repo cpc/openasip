@@ -508,7 +508,7 @@ DefaultDecoderGenerator::generateInstructionDecoder(
  */
 int
 DefaultDecoderGenerator::requiredRFLatency(
-    const TTAMachine::ImmediateUnit& iu) const {
+    const TTAMachine::ImmediateUnit& /*iu*/) const {
 
     return 1;
 }

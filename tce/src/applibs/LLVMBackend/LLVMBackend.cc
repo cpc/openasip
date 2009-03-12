@@ -552,7 +552,8 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
             " -I/usr/include " +
             " -I" + tmpDir +
-            " -I`llvm-config --includedir`";
+            " -I`llvm-config --includedir`" + 
+            " -I`llvm-config --includedir`/llvm/Target";
     } else {
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
             " -I" + tmpDir + " -I" + LLVM_INCLUDEDIR;

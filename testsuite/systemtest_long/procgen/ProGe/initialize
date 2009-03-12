@@ -3,11 +3,15 @@
 rm -rf *.disabled
 ghdl_bin=$(which ghdl 2> /dev/null)
 if [ "x${ghdl_bin}" != "x" ]; then
-    bash compile_dictionary_compressor.sh > /dev/null
-    cd ../../../../tce/icdecoder_plugins
-    ../src/procgen/ProGe/buildicdecoderplugin DefaultICDecoderPlugin.so \
-    DefaultICDecoderPlugin.cc DefaultDecoderGenerator.cc \
-    DefaultICGenerator.cc CentralizedControlICGenerator.cc > /dev/null
+
+    true
+#    These are already compiled with the build.
+#    bash compile_dictionary_compressor.sh > /dev/null
+#    cd ../../../../tce/icdecoder_plugins
+#    ../src/procgen/ProGe/buildicdecoderplugin DefaultICDecoderPlugin.so \
+#    DefaultICDecoderPlugin.cc DefaultDecoderGenerator.cc \
+#    DefaultICGenerator.cc CentralizedControlICGenerator.cc > /dev/null
+
 else
     touch test_fft_case_with_limm.testdesc.disabled
     touch test_fft_case_with_simm.testdesc.disabled

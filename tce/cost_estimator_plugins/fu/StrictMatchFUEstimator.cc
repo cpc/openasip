@@ -65,7 +65,7 @@ public:
      * from HDB.
      */
     bool estimateArea(
-        const TTAMachine::FunctionUnit& fu,
+        const TTAMachine::FunctionUnit& /*fu*/,
         const IDF::FUImplementationLocation& implementation,
         AreaInGates& area,
         HDB::HDBManager& hdb) {
@@ -170,7 +170,7 @@ public:
      * cost data named 'computation_delay' from HDB.
      */
     bool estimateMaximumComputationDelay(
-        const TTAMachine::FunctionUnit& architecture,
+        const TTAMachine::FunctionUnit& /*architecture*/,
         const IDF::FUImplementationLocation& implementation,
         DelayInNanoSeconds& delay,
         HDB::HDBManager& hdb) {
@@ -208,7 +208,7 @@ public:
     virtual bool estimateEnergy(
         const TTAMachine::FunctionUnit& fu,
         const IDF::FUImplementationLocation& implementation,
-        const TTAProgram::Program& program,
+        const TTAProgram::Program& /*program*/,
         const ExecutionTrace& trace,
         EnergyInMilliJoules& energy,
         HDB::HDBManager& hdb) {

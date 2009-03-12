@@ -64,7 +64,7 @@ public:
      * from HDB.
      */  
     bool estimateArea(
-        const TTAMachine::BaseRegisterFile& rf,
+        const TTAMachine::BaseRegisterFile& /*rf*/,
         const IDF::RFImplementationLocation& implementation,
         AreaInGates& area,
         HDB::HDBManager& hdb) {
@@ -105,7 +105,7 @@ public:
      */
     bool
     estimatePortWriteDelay(
-        const TTAMachine::RFPort& port,
+        const TTAMachine::RFPort& /*port*/,
         const IDF::RFImplementationLocation& implementation,
         DelayInNanoSeconds& delay,
         HDB::HDBManager& hdb) {
@@ -146,7 +146,7 @@ public:
      */
     bool
     estimatePortReadDelay(
-        const TTAMachine::RFPort& port,
+        const TTAMachine::RFPort& /*port*/,
         const IDF::RFImplementationLocation& implementation,
         DelayInNanoSeconds& delay,
         HDB::HDBManager& hdb) {
@@ -183,7 +183,7 @@ public:
      */
     bool
     estimateMaximumComputationDelay(
-        const TTAMachine::BaseRegisterFile& rf,
+        const TTAMachine::BaseRegisterFile& /*rf*/,
         const IDF::RFImplementationLocation& implementation,
         DelayInNanoSeconds& delay,
         HDB::HDBManager& hdb) {

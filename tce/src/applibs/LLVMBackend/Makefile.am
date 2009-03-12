@@ -27,26 +27,6 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${MACH_DIR} \
     -I${MACH_APPLIBS_DIR} -I${SCHED_ALGO_DIR} -I${SCHED_DIR} ${LLVM_CPPFLAGS}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
-AM_CXXFLAGS =
-
-# compiles with this on Intrepid...
-# libtcellvmbackend_la_LDFLAGS = ${LLVM_LDFLAGS}
-
-# this causes some strange linker error on intrepid.. 
-#(/usr/bin/ld:  hidden symbol `stat' in /usr/lib/libc_nonshared.a(stat.oS) is referenced by DSO)
-
-#libtcellvmbackend_la_LDFLAGS = -L${LLVM_LIBDIR} \
-	-Wl,--whole-archive \
-	-Wl,-lLLVMLinker -Wl,-lLLVMipo  \
-	-Wl,-lLLVMInstrumentation -Wl,-lLLVMDebugger -Wl,-lLLVMBitWriter \
-	-Wl,-lLLVMAsmParser -Wl,-lLLVMArchive -Wl,-lLLVMBitReader -Wl,-lLLVMSelectionDAG \
-	-Wl,-lLLVMCodeGen -Wl,-lLLVMScalarOpts -Wl,-lLLVMTransformUtils -Wl,-lLLVMipa \
-	-Wl,-lLLVMAnalysis -Wl,-lLLVMTarget -Wl,-lLLVMCore -Wl,-lLLVMSupport -Wl,-lLLVMSystem \
-	-Wl,-lLLVMAsmPrinter \
-	-Wl,--no-whole-archive
-
-libtcellvmbackend_la_LDFLAGS = -Wl,--whole-archive ${LLVM_LIBFILES} -W,--no-whole-archive
-
 # Static sources for target machine plugins.
 include_HEADERS = \
  plugin/TCEAsmPrinter.cc \

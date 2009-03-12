@@ -118,7 +118,7 @@ LowerIntrinsics::doInitialization(Module &M) {
 }
 
 bool
-LowerIntrinsics::doFinalization(Module& M) {
+LowerIntrinsics::doFinalization(Module& /*M*/) {
     if (iLowering_ != NULL) { 
         delete iLowering_;
         iLowering_ = NULL;

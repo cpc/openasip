@@ -1,22 +1,14 @@
-BUILD_PASS = ./buildllvmpass
+pkglib_LTLIBRARIES = LowerIntrinsics.la LinkBitcode.la MachineDCE.la
 
-SRC_ROOT_DIR = $(top_srcdir)/src
+LowerIntrinsics_la_SOURCES = LowerIntrinsics.cc
+LowerIntrinsics_la_LDFLAGS = -module
 
-basedir = ${prefix}/share/tce/llvm/passes/
-nobase_base_DATA = LowerIntrinsics.so LinkBitcode.so MachineDCE.so
+LinkBitcode_la_SOURCES = LinkBitcode.cc
+LinkBitcode_la_LDFLAGS = -module
 
-.PHONY: ${nobase_base_DATA}
+MachineDCE_la_SOURCES = MachineDCE.cc
+MachineDCE_la_LDFLAGS = -module
 
-all-local: LowerIntrinsics.so LinkBitcode.so MachineDCE.so
+AM_CPPFLAGS = ${LLVM_CPPFLAGS}
+AM_LDFLAGS = ${LLVM_LDFLAGS} -lLLVMCodeGen
 
-LowerIntrinsics.so: LowerIntrinsics.cc
-	${BUILD_PASS} $@ $^
-
-LinkBitcode.so: LinkBitcode.cc
-	${BUILD_PASS} LinkBitcode.so LinkBitcode.cc
-
-MachineDCE.so: MachineDCE.cc
-	${BUILD_PASS} MachineDCE.so MachineDCE.cc
-
-clean:
-	rm -f *.so *~

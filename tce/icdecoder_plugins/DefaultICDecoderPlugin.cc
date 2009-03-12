@@ -333,7 +333,7 @@ public:
         HDB::HDBRegistry& hdbRegistry,
         const TTAMachine::Machine& machine,
         const IDF::MachineImplementation& machineImplementation,
-        const TTAProgram::Program& program,
+        const TTAProgram::Program& /*program*/,
         const ExecutionTrace& traceDB,
         EnergyInMilliJoules& energy) {
     

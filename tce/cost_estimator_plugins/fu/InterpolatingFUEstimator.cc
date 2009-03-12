@@ -83,7 +83,7 @@ public:
      */
     bool estimateArea(
         const TTAMachine::FunctionUnit& fu,
-        const IDF::FUImplementationLocation& implementation,
+        const IDF::FUImplementationLocation& /*implementation*/,
         AreaInGates& area,
         HDB::HDBManager& hdb) {
 
@@ -121,7 +121,7 @@ public:
     bool
     estimatePortWriteDelay(
         const TTAMachine::FUPort& port,
-        const IDF::FUImplementationLocation& implementation,
+        const IDF::FUImplementationLocation& /*implementation*/,
         DelayInNanoSeconds& delay,
         HDB::HDBManager& hdb) {
 
@@ -176,7 +176,7 @@ public:
     bool
     estimatePortReadDelay(
         const TTAMachine::FUPort& port,
-        const IDF::FUImplementationLocation& implementation,
+        const IDF::FUImplementationLocation& /*implementation*/,
         DelayInNanoSeconds& delay,
         HDB::HDBManager& hdb) {
 
@@ -225,7 +225,7 @@ public:
      */
     bool estimateMaximumComputationDelay(
         const TTAMachine::FunctionUnit& fu,
-        const IDF::FUImplementationLocation& implementation,
+        const IDF::FUImplementationLocation& /*implementation*/,
         DelayInNanoSeconds& delay,
         HDB::HDBManager& hdb) {
 
@@ -263,7 +263,7 @@ public:
     virtual bool estimateEnergy(
         const TTAMachine::FunctionUnit& fu,
         const IDF::FUImplementationLocation& implementation,
-        const TTAProgram::Program& program,
+        const TTAProgram::Program& /*program*/,
         const ExecutionTrace& trace,
         EnergyInMilliJoules& energy,
         HDB::HDBManager& hdb) {

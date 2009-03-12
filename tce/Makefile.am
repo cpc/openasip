@@ -1,5 +1,5 @@
 if PYTHON_ENABLED
-# SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins Python-bindings explorer
+SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins Python-bindings explorer
 else
 SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins explorer
 endif
