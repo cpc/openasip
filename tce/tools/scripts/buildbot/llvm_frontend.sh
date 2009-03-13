@@ -32,6 +32,7 @@ fi
 
 export CXXFLAGS="-O2"
 export CFLAGS="-O2"
+export PATH=$LLVM_DIR/bin:$PATH
 
 autoreconf >& /dev/null
 cd build_dir
