@@ -442,7 +442,7 @@ AC_CHECK_FILE($llvmConf,
 LLVM_SHARED_LIB=$($llvmConf --libdir)/libllvm2.5.so
 LLVM_VERSION=$($llvmConf --version)
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
-LLVM_LDFLAGS="$LLVM_SHARED_LIB"
+LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
 LLVM_LIBDIR=$($llvmConf --libdir)
 
