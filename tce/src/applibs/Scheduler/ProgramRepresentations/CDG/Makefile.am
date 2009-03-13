@@ -12,7 +12,7 @@ MACH_DIR = ${BASE_DIR}/mach
 UM_DIR = ${BASE_DIR}/umach
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASSEMBLER_DIR = ${APPLIBS_DIR}/Disassembler
-CFLOWGRAPH_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/ControlFlowGraph
+CFLOWGRAPH_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CFG
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${DISASSEMBLER_DIR} -I${CFLOWGRAPH_DIR}

@@ -18,7 +18,7 @@ UMACH_DIR = ${BASE_DIR}/umach
 UM_DIR = ${BASE_DIR}/umach
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler
 RESOURCE_MODEL_DIR = ${APPLIBS_DIR}/Scheduler/ResourceModel
-PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/ProgramDependenceGraph
+PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
 GRAPH_DIR = ${BASE_DIR}/Graph
 
 AM_CPPFLAGS = -I${RESOURCE_MODEL_DIR} -I${PDG_DIR} -I${TOOLS_DIR} \

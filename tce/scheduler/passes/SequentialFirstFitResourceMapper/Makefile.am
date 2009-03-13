@@ -2,6 +2,8 @@ pkglibdir = ${prefix}/share/tce/scheduler/passes/SequentialFirstFitResourceMappe
 pkglib_LTLIBRARIES = DirectMappingRegisterAllocator.la SequentialFirstFitResourceAllocator.la
 
 DirectMappingRegisterAllocator_la_SOURCES = DirectMappingRegisterAllocator.cc
+SequentialFirstFitResourceAllocator_la_SOURCES = SequentialFirstFitResourceAllocator.cc
+
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -32,7 +34,7 @@ APPLIBS_PROG = ${SRC_ROOT_DIR}/applibs/program
 PROGE_DIR = ${SRC_ROOT_DIR}/applibs/ProGe
 RM_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ResourceManager
 GRAPH_DIR = ${SRC_ROOT_DIR}/base/Graph
-PDG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph
+PDG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/PDG
 DISASM_DIR = ${SRC_ROOT_DIR}/applibs/Disassembler
 
 AM_CPPFLAGS = \

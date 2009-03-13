@@ -9,6 +9,15 @@ pkglib_LTLIBRARIES = \
 # Libtool seems to realize we are compiling from .cc instead of .c
 # just by defining the first source. Without this it fails.
 FrequencySweepExplorer_la_SOURCES = FrequencySweepExplorer.cc
+SimpleICOptimizer_la_SOURCES = SimpleICOptimizer.cc
+RemoveUnconnectedComponents_la_SOURCES = RemoveUnconnectedComponents.cc
+MinimizeMachine_la_SOURCES = MinimizeMachine.cc
+GrowMachine_la_SOURCES = GrowMachine.cc
+ImmediateGenerator_la_SOURCES = ImmediateGenerator.cc
+ImplementationSelector_la_SOURCES = ImplementationSelector.cc
+ComponentAdder_la_SOURCES = ComponentAdder.cc
+Evaluate_la_SOURCES = Evaluate.cc
+MinimalOpSet_la_SOURCES = MinimalOpSet.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src

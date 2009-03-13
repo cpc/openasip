@@ -1256,10 +1256,10 @@ AC_CONFIG_FILES([
   opset/Makefile
   opset/base/Makefile
   src/applibs/Scheduler/ProgramRepresentations/Makefile
-  src/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph/Makefile
-  src/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph/Makefile
-  src/applibs/Scheduler/ProgramRepresentations/ControlDependenceGraph/Makefile
-  src/applibs/Scheduler/ProgramRepresentations/DataDependenceGraph/Makefile
+  src/applibs/Scheduler/ProgramRepresentations/PDG/Makefile
+  src/applibs/Scheduler/ProgramRepresentations/CFG/Makefile
+  src/applibs/Scheduler/ProgramRepresentations/CDG/Makefile
+  src/applibs/Scheduler/ProgramRepresentations/DDG/Makefile
   hdb/Makefile
   compressors/Makefile
   icdecoder_plugins/Makefile

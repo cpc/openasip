@@ -1,9 +1,5 @@
-noinst_LTLIBRARIES = libddg.la
-libddg_la_SOURCES = \
-	DataDependenceEdge.cc DataDependenceGraph.cc DataDependenceGraphBuilder.cc ConstantAliasAnalyzer.cc FalseAliasAnalyzer.cc 
-
-#MNData.cc
-#MemoryAliasAnalyzer.cc
+noinst_LTLIBRARIES = libprogramdependencegraph.la
+libprogramdependencegraph_la_SOURCES = MoveNode.cc ProgramOperation.cc ProgramGraph.cc MoveNodeSet.cc ProgramDependenceEdge.cc ProgramDependenceNode.cc ProgramDependenceGraph.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -15,14 +11,14 @@ OSAL_DIR = ${BASE_DIR}/osal
 MACH_DIR = ${BASE_DIR}/mach
 UM_DIR = ${BASE_DIR}/umach
 GRAPH_DIR = ${BASE_DIR}/Graph
+CDG_DIR=${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CDG
+DDG_DIR=${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DDG
+CFG_DIR=${APPLIBS_DIR}/Scheduler/ProgramRepresentations/CFG
 DISASSEMBLER_DIR = ${APPLIBS_DIR}/Disassembler
-SCHED_DIR = ${APPLIBS_DIR}/Scheduler
-PDG_DIR = ${SCHED_DIR}/ProgramRepresentations/ProgramDependenceGraph
-CFG_DIR = ${SCHED_DIR}/ProgramRepresentations/ControlFlowGraph
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
-	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${PDG_DIR} -I${CFG_DIR} \
-	-I${DISASSEMBLER_DIR}
+	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${DISASSEMBLER_DIR} \
+	-I${CDG_DIR} -I${DDG_DIR} -I${CFG_DIR}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

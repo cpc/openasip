@@ -59,9 +59,9 @@ OSAL_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/osal
 
 SCHED_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
 RESOURCE_MODEL_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ResourceModel
-PDG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph
-CFG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/ControlFlowGraph
-DDG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/DataDependenceGraph
+PDG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/PDG
+CFG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/CFG
+DDG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/DDG
 GRAPH_DIR = ${BASE_DIR}/Graph
 
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools

@@ -4,6 +4,9 @@ pkglib_LTLIBRARIES = \
 	LinearScanAllocatorPass.la OldFrontendStackAnalyzerPass.la 
 
 SimpleGuardAllocatorPass_la_SOURCES = SimpleGuardAllocatorPass.cc
+AddressSpaceMapperPass_la_SOURCES = AddressSpaceMapperPass.cc
+LinearScanAllocatorPass_la_SOURCES = LinearScanAllocatorPass.cc
+OldFrontendStackAnalyzerPass_la_SOURCES = OldFrontendStackAnalyzerPass.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -34,10 +37,10 @@ APPLIBS_PROG = ${SRC_ROOT_DIR}/applibs/program
 PROGE_DIR = ${SRC_ROOT_DIR}/applibs/ProGe
 RM_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ResourceManager
 GRAPH_DIR = ${SRC_ROOT_DIR}/base/Graph
-PDG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/ProgramDependenceGraph
+PDG_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/ProgramRepresentations/PDG
 DISASM_DIR = ${SRC_ROOT_DIR}/applibs/Disassembler
-CFG_DIR = ${SCHEDULER_DIR}/ProgramRepresentations/ControlFlowGraph
-DDG_DIR = ${SCHEDULER_DIR}/ProgramRepresentations/DataDependenceGraph
+CFG_DIR = ${SCHEDULER_DIR}/ProgramRepresentations/CFG
+DDG_DIR = ${SCHEDULER_DIR}/ProgramRepresentations/DDG
 SELECTOR_DIR = ${SCHEDULER_DIR}/Selector
 STACK_FRAME_DIR = ${SCHEDULER_DIR}/Algorithms/StackFrameManagement
 

@@ -13,11 +13,7 @@ MACH_DIR = ${BASE_DIR}/mach
 UMACH_DIR = ${BASE_DIR}/umach
 UM_DIR = ${BASE_DIR}/umach
 SCHED_APPLIBS_DIR = ${APPLIBS_DIR}/Scheduler
-#RESOURCE_MODEL_DIR = ${APPLIBS_DIR}/Scheduler/ResourceModel
-#RESOURCE_MANAGER_DIR = ${APPLIBS_DIR}/Scheduler/ResourceManager
-PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/ProgramDependenceGraph
-#CFG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/ControlFlowGraph
-#DDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/DataDependenceGraph
+PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler
 

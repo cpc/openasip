@@ -14,7 +14,7 @@ OSAL_DIR = ${BASE_DIR}/osal
 MACH_DIR = ${BASE_DIR}/mach
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler
-PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/ProgramDependenceGraph
+PDG_DIR = ${APPLIBS_DIR}/Scheduler/ProgramRepresentations/PDG
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${PDG_DIR} -I${POM_DIR} -I${OSAL_DIR} \
 -I${MACH_DIR} -I${GRAPH_DIR} -I${DISASM_DIR}
 

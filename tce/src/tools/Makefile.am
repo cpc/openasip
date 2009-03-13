@@ -18,7 +18,6 @@ endif
 PROJECT_ROOT = $(top_srcdir)
 DOXYGEN_CONFIG_FILE = ${PROJECT_ROOT}/tools/Doxygen/doxygen.config
 AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/base/memory
-AM_CXXFLAGS = -UNDEBUG
 
 include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseType.hh \
 	SimValue.hh SimValue.icc Serializable.hh ObjectState.icc Conversion.hh \
