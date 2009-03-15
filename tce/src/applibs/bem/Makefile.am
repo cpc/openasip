@@ -10,3 +10,9 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
+
+
+## headers start
+libapplibsbem_la_SOURCES += \
+	BEMGenerator.hh BEMValidator.hh 
+## headers end

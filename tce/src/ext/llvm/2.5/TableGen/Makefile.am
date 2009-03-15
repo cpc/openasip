@@ -36,3 +36,16 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+# headers start
+tblgen_SOURCES += \
+	AsmWriterEmitter.h CodeGenDAGPatterns.h \
+	CodeGenRegisters.h FastISelEmitter.h \
+	IntrinsicEmitter.h RegisterInfoEmitter.h \
+	TGLexer.h CallingConvEmitter.h \
+	CodeGenInstruction.h CodeGenTarget.h \
+    InstrEnumEmitter.h LLVMCConfigurationEmitter.h \
+    SubtargetEmitter.h TGParser.h \
+	CodeEmitterGen.h CodeGenIntrinsics.h \
+	DAGISelEmitter.h InstrInfoEmitter.h \
+    Record.h TableGenBackend.h 

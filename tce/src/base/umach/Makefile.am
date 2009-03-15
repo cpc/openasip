@@ -13,3 +13,11 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libuniversalmachine_la_SOURCES += \
+	SmartHWOperation.hh UnboundedRegisterFile.hh \
+	UniversalFUPort.hh UniversalFunctionUnit.hh \
+	UniversalMachine.hh 
+## headers end

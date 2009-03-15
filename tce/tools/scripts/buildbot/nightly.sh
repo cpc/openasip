@@ -26,8 +26,8 @@ BRANCH_DIR=$PWD
 # build & install llvm-frontend from scratch (from rnc.sh)
 function install_llvm-frontend {
 
-    SOURCE_DIR=${BRANCH_DIR}/llvm-frontend
-    BUILD_DIR=${BRANCH_DIR}/llvm-frontend/build_dir
+    SOURCE_DIR=${BRANCH_DIR}/tce-frontend
+    BUILD_DIR=${BRANCH_DIR}/tce-frontend/build_dir
 
     export MAKEFLAGS=-j1
     export CXX="g++${ALTGCC}"

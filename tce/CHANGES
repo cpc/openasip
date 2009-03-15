@@ -1,6 +1,10 @@
-1.0           2009-XX-XX
-========================
- 
+1.0 first public release, tagged on 2009-03-xx
+==============================================
+
+New features
+------------
+- Support for LLVM 2.5 (dropped support for LLVM 2.4).
+
 Code optimizations
 --------------------------
 - Decreased scheduling time

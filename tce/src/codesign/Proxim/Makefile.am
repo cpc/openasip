@@ -116,3 +116,43 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+proxim_SOURCES += \
+	AddBreakpointDialog.hh AddWatchDialog.hh \
+	BreakpointPropertiesDialog.hh ClearDisassemblyHighlightCmd.hh \
+	ConsoleWindow.hh DisasmExecPercentageAttrProvider.hh \
+	DisasmTopCountAttrProvider.hh DisassemblyGridTable.hh \
+	HighlightExecPercentageCmd.hh HighlightTopExecCountsCmd.hh \
+	Proxim.hh ProximAboutCmd.hh \
+	ProximAboutDialog.hh ProximBreakpointWindow.hh \
+	ProximBusDetailsCmd.hh ProximBusEditPolicy.hh \
+	ProximCDCmd.hh ProximClearConsoleCmd.hh \
+	ProximCmdHistoryWindow.hh ProximComponentStatusCmd.hh \
+	ProximConstants.hh ProximControlWindow.hh \
+	ProximDisasmAttrProvider.hh ProximDisassemblyGridTable.hh \
+	ProximDisassemblyWindow.hh ProximEditPolicyFactory.hh \
+	ProximExecuteFileCmd.hh ProximFUDetailsCmd.hh \
+	ProximFUEditPolicy.hh ProximFUPortDetailsCmd.hh \
+	ProximIUDetailsCmd.hh ProximIUEditPolicy.hh \
+	ProximKillCmd.hh ProximLineReader.hh \
+	ProximMachineCanvasTool.hh ProximMachineStateWindow.hh \
+	ProximMainFrame.hh ProximMemoryWindow.hh \
+	ProximNewPortWindowCmd.hh ProximNewRegisterWindowCmd.hh \
+	ProximNextICmd.hh ProximOpenMachineCmd.hh \
+	ProximOpenProgramCmd.hh ProximOptionsCmd.hh \
+	ProximPortEditPolicy.hh ProximPortWindow.hh \
+	ProximQuitCmd.hh ProximRFDetailsCmd.hh \
+	ProximRFEditPolicy.hh ProximRegisterWindow.hh \
+	ProximResumeCmd.hh ProximRunCmd.hh \
+	ProximRuntimeErrorHandler.hh ProximSetMachineWinStatusCmd.hh \
+	ProximShowPortsCmd.hh ProximShowRegistersCmd.hh \
+	ProximSimulationThread.hh ProximSimulatorSettingsCmd.hh \
+	ProximSimulatorWindow.hh ProximSocketDetailsCmd.hh \
+	ProximSocketEditPolicy.hh ProximStepICmd.hh \
+	ProximStopDialog.hh ProximToolbox.hh \
+	ProximUnitWindow.hh SimulatorEvent.hh \
+	SimulatorSettingsDialog.hh TracedSimulatorFrontend.hh \
+	WatchPropertiesDialog.hh 
+## headers end

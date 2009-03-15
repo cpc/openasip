@@ -49,3 +49,9 @@ AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} ${XERCES_LIBS} \
 	${EDITLINE_LD_FLAGS}
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+generateprocessor_SOURCES += \
+	GenerateProcessor.hh ProGeCmdLineOptions.hh 
+## headers end

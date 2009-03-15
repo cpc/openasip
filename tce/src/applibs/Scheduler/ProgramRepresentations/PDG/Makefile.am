@@ -24,3 +24,12 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libprogramdependencegraph_la_SOURCES += \
+	MoveNode.hh MoveNodeSet.hh \
+	ProgramDependenceEdge.hh ProgramDependenceGraph.hh \
+	ProgramDependenceNode.hh ProgramGraph.hh \
+	ProgramOperation.hh 
+## headers end

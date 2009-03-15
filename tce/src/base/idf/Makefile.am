@@ -17,3 +17,13 @@ dist-hook:
 .PHONY: doc
 
 MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libidf_la_SOURCES += \
+	BusImplementationLocation.hh FUImplementationLocation.hh \
+	IDFSerializer.hh MachineImplementation.hh \
+	NullFUImplementationLocation.hh NullRFImplementationLocation.hh \
+	NullUnitImplementationLocation.hh RFImplementationLocation.hh \
+	SocketImplementationLocation.hh UnitImplementationLocation.hh 
+## headers end

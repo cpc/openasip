@@ -32,3 +32,12 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libexplorer_la_SOURCES += \
+	ComponentImplementationSelector.hh CostEstimates.hh \
+	DesignSpaceExplorer.hh DesignSpaceExplorerPlugin.hh \
+	ExplorerPluginParameter.hh FrequencySweep.hh \
+	DesignSpaceExplorerPlugin.icc 
+## headers end

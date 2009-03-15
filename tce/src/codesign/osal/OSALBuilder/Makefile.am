@@ -33,3 +33,9 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+buildopset_SOURCES += \
+	BuildOpset.hh 
+## headers end

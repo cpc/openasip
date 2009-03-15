@@ -55,3 +55,11 @@ all-local: ${pkglib_LTLIBRARIES}
 
 clean-local:
 	rm -f ${srcdir}/*.so
+
+# headers start
+
+DefaultICDecoderPlugin_la_SOURCES += \
+	CentralizedControlICGenerator.hh DefaultDecoderGenerator.hh \
+	DefaultICGenerator.hh
+
+# headers end

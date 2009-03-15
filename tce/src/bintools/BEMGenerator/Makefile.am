@@ -43,3 +43,9 @@ dist-hook:
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 CLEANFILES = createbem-static
+
+
+## headers start
+createbem_SOURCES += \
+	BEMGeneratorCLITextGenerator.hh BEMGeneratorCmdLineOptions.hh 
+## headers end

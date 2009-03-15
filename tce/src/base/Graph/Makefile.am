@@ -18,3 +18,12 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libgraph_la_SOURCES += \
+	BoostGraph.hh Graph.hh \
+	GraphEdge.hh GraphNode.hh \
+	GraphUtilities.hh BoostGraph.icc \
+	Graph.icc GraphUtilities.icc 
+## headers end

@@ -1,9 +1,10 @@
 pkglibdir = ${prefix}/share/tce/scheduler/passes/SequentialFirstFitResourceMapper
 pkglib_LTLIBRARIES = DirectMappingRegisterAllocator.la SequentialFirstFitResourceAllocator.la
 
-DirectMappingRegisterAllocator_la_SOURCES = DirectMappingRegisterAllocator.cc
-SequentialFirstFitResourceAllocator_la_SOURCES = SequentialFirstFitResourceAllocator.cc
-
+DirectMappingRegisterAllocator_la_SOURCES = \
+	DirectMappingRegisterAllocator.cc DirectMappingRegisterAllocator.hh
+SequentialFirstFitResourceAllocator_la_SOURCES = \
+	SequentialFirstFitResourceAllocator.cc SequentialFirstFitResourceAllocator.hh
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src

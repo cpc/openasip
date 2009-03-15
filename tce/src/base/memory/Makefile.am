@@ -9,7 +9,7 @@ AM_CPPFLAGS = -I${PROJECT_ROOT}/src/tools \
 	          -I${PROJECT_ROOT}/src/applibs/Simulator
 AM_CXXFLAGS = -UNDEBUG
 
-include_HEADERS = Memory.hh Memory.icc WriteRequest.hh
+include_HEADERS = Memory.hh Memory.icc WriteRequest.hh DirectAccessMemory.hh
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
@@ -17,3 +17,12 @@ dist-hook:
 .PHONY: doc
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libmemory_la_SOURCES += \
+	DirectAccessMemory.hh IdealSRAM.hh \
+	Memory.hh MemoryContents.hh \
+	WriteRequest.hh Memory.icc \
+	TargetMemory.icc 
+## headers end

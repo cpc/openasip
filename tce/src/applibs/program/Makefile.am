@@ -13,3 +13,10 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
+
+
+## headers start
+libapplibsprogram_la_SOURCES += \
+	POMValidator.hh POMValidatorResults.hh \
+	StaticProgramAnalyzer.hh 
+## headers end

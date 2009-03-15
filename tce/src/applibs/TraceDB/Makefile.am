@@ -9,3 +9,9 @@ libtracedb_la_LDFLAGS = ${SQLITE_LIBDIR} ${SQLITE_LD_FLAGS}
 PROJECT_ROOT = $(top_srcdir)
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libtracedb_la_SOURCES += \
+	ExecutionTrace.hh InstructionExecution.hh 
+## headers end

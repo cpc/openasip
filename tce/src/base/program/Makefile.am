@@ -35,3 +35,30 @@ dist-hook:
 .PHONY: clean doc
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da *.gcno *.gcda
+
+
+## headers start
+libprogram_la_SOURCES += \
+	Address.hh AnnotatedInstructionElement.hh \
+	CodeLabel.hh CodeSnippet.hh \
+	DataAddressDef.hh DataDefinition.hh \
+	DataInstructionAddressDef.hh DataLabel.hh \
+	DataMemory.hh GlobalScope.hh \
+	Immediate.hh Instruction.hh \
+	InstructionReference.hh InstructionReferenceManager.hh \
+	Label.hh Move.hh \
+	MoveGuard.hh NullAddress.hh \
+	NullGlobalScope.hh NullImmediate.hh \
+	NullInstruction.hh NullInstructionReferenceManager.hh \
+	NullMove.hh NullMoveGuard.hh \
+	NullProcedure.hh NullProgram.hh \
+	NullTerminal.hh Procedure.hh \
+	Program.hh ProgramAnnotation.hh \
+	ProgramWriter.hh Scope.hh \
+	TPEFProgramFactory.hh Terminal.hh \
+	TerminalAddress.hh TerminalFUPort.hh \
+	TerminalImmediate.hh TerminalInstructionAddress.hh \
+	TerminalRegister.hh Address.icc \
+	InstructionReferenceManager.icc Procedure.icc \
+	TerminalRegister.icc 
+## headers end

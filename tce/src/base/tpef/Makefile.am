@@ -47,3 +47,61 @@ dist-hook:
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
+
+
+## headers start
+libtpef_la_SOURCES += \
+	AOutDataSectionReader.hh AOutReader.hh \
+	AOutRelocationSectionReader.hh AOutSectionReader.hh \
+	AOutStringSectionReader.hh AOutSymbolSectionReader.hh \
+	AOutTextSectionReader.hh ASpaceElement.hh \
+	ASpaceSection.hh BasicElement.hh \
+	Binary.hh BinaryReader.hh \
+	BinaryStream.hh BinaryWriter.hh \
+	Chunk.hh CodeSection.hh \
+	CodeSymElement.hh DataSection.hh \
+	DataSymElement.hh DebugElement.hh \
+	DebugSection.hh DebugStabElem.hh \
+	FileOffsetReplacer.hh FileSymElement.hh \
+	ImmediateElement.hh InstructionElement.hh \
+	LineNumElement.hh LineNumProcedure.hh \
+	LineNumSection.hh Locator.hh \
+	MoveElement.hh NoTypeSymElement.hh \
+	NullBinary.hh NullSection.hh \
+	ProcedSymElement.hh ReferenceKey.hh \
+	RelocElement.hh RelocSection.hh \
+	ResourceElement.hh ResourceSection.hh \
+	SafePointable.hh SafePointer.hh \
+	Section.hh SectionElement.hh \
+	SectionIdReplacer.hh SectionIndexReplacer.hh \
+	SectionOffsetReplacer.hh SectionReader.hh \
+	SectionSizeReplacer.hh SectionSymElement.hh \
+	SectionWriter.hh StringSection.hh \
+	Swapper.hh SymbolElement.hh \
+	SymbolSection.hh TPEFASpaceSectionReader.hh \
+	TPEFASpaceSectionWriter.hh TPEFBaseType.hh \
+	TPEFCodeSectionReader.hh TPEFCodeSectionWriter.hh \
+	TPEFDataSectionReader.hh TPEFDataSectionWriter.hh \
+	TPEFDebugSectionReader.hh TPEFDebugSectionWriter.hh \
+	TPEFHeaders.hh TPEFLineNumSectionReader.hh \
+	TPEFLineNumSectionWriter.hh TPEFNullSectionReader.hh \
+	TPEFNullSectionWriter.hh TPEFReader.hh \
+	TPEFRelocSectionReader.hh TPEFRelocSectionWriter.hh \
+	TPEFResourceSectionReader.hh TPEFResourceSectionWriter.hh \
+	TPEFSectionReader.hh TPEFSectionWriter.hh \
+	TPEFStringSectionReader.hh TPEFStringSectionWriter.hh \
+	TPEFSymbolSectionReader.hh TPEFSymbolSectionWriter.hh \
+	TPEFTools.hh TPEFUDataSectionReader.hh \
+	TPEFUDataSectionWriter.hh TPEFWriter.hh \
+	UDataSection.hh ValueReplacer.hh \
+	AOutReader.icc AOutRelocationSectionReader.icc \
+	ASpaceElement.icc BasicElement.icc \
+	Binary.icc BinaryStream.icc \
+	Chunk.icc ImmediateElement.icc \
+	InstructionElement.icc LineNumElement.icc \
+	LineNumProcedure.icc MoveElement.icc \
+	ReferenceKey.icc RelocElement.icc \
+	RelocSection.icc ResourceElement.icc \
+	SafePointer.icc Section.icc \
+	Swapper.icc SymbolElement.icc 
+## headers end

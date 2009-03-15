@@ -35,3 +35,37 @@ AM_CXXFLAGS = $(AM_WXCXXFLAGS)
 libmachinewindow_la_LDFLAGS = $(GUI_LIBS)
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libmachinewindow_la_SOURCES += \
+	BidirBridgeFigure.hh BridgeFactory.hh \
+	BridgeFigure.hh BusChainFigure.hh \
+	BusContainerFigure.hh BusFactory.hh \
+	BusFigure.hh ComponentCommand.hh \
+	ConnectionEditPart.hh ConnectionFactory.hh \
+	ConnectionFigure.hh ContentsFigure.hh \
+	EditPart.hh EditPartFactory.hh \
+	EditPolicy.hh EditPolicyFactory.hh \
+	FUFactory.hh Factory.hh \
+	Figure.hh GCUFactory.hh \
+	IUFactory.hh InputSocketFigure.hh \
+	MachineCanvas.hh MachineCanvasLayoutConstraints.hh \
+	MachineCanvasOptions.hh MachineCanvasTool.hh \
+	MachineEditPartFactory.hh MoveFigure.hh \
+	OutputSocketFigure.hh RFFactory.hh \
+	Request.hh RootEditPart.hh \
+	SegmentFactory.hh SegmentFigure.hh \
+	SelectionFigure.hh SocketBusConnFactory.hh \
+	SocketBusConnFigure.hh SocketContainerFigure.hh \
+	SocketFactory.hh SocketPortConnFactory.hh \
+	SocketPortConnFigure.hh TriggeringPortFigure.hh \
+	UnitContainerFigure.hh UnitFigure.hh \
+	UnitPortFactory.hh UnitPortFigure.hh \
+	UnknownSocketFigure.hh BridgeFigure.icc \
+	ConnectionEditPart.icc ConnectionFigure.icc \
+	EditPart.icc EditPartFactory.icc \
+	EditPolicy.icc EditPolicyFactory.icc \
+	Figure.icc Request.icc \
+	RootEditPart.icc SegmentFigure.icc 
+## headers end

@@ -1,13 +1,12 @@
 noinst_LTLIBRARIES = libtcetools.la
+BUILT_SOURCES = tce_version_string.h
 libtcetools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
 	Environment.cc Application.cc XMLSerializer.cc ObjectState.cc \
 	FileSystem.cc DOMBuilderErrorHandler.cc TextGenerator.cc \
 	PluginTools.cc Conversion.cc StringTools.cc DataObject.cc SimValue.cc \
 	ConfigurationFile.cc ProcessorConfigurationFile.cc Listener.cc \
 	Informer.cc Options.cc OptionValue.cc CmdLineParser.cc MathTools.cc \
-	BitMatrix.cc TCEString.cc 
-
-BUILT_SOURCES = tce_version_string.h
+	BitMatrix.cc TCEString.cc ${BUILT_SOURCES}
 
 if HAVE_SQLITE
   libtcetools_la_SOURCES += SQLiteConnection.cc RelationalDBQueryResult.cc \
@@ -23,17 +22,7 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 	SimValue.hh SimValue.icc Serializable.hh ObjectState.icc Conversion.hh \
 	Conversion.icc MathTools.hh MathTools.icc TCEString.hh
 
-dist-hook:
-	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
-
-.PHONY: clean doc 
-
-doc:
-	doxygen ${DOXYGEN_CONFIG_FILE}
-
-MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
-
-REVNO=$(shell which bzr > /dev/null && echo -n "-r" && bzr revno || echo -n "")
+REVNO=$(shell which bzr > /dev/null && bzr revno > /dev/null 2>&1 && echo -n "-r" && bzr revno 2> /dev/null || echo -n "")
 TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)
 
 tce_version_string.h: ../../../.bzr/branch/last-revision
@@ -43,3 +32,40 @@ tce_version_string.h: ../../../.bzr/branch/last-revision
 # A hack, we'll see if something breaks.
 ../../../.bzr/branch/last-revision:
 	@echo "Not compiling in a bazaar branch"
+
+
+## headers start
+libtcetools_la_SOURCES += \
+	Application.hh AssocTools.hh \
+	BaseType.hh BitMatrix.hh \
+	CmdLineOptionParser.hh CmdLineOptions.hh \
+	CmdLineParser.hh ConfigurationFile.hh \
+	ContainerTools.hh Conversion.hh \
+	DBTypes.hh DOMBuilderErrorHandler.hh \
+	DataObject.hh Environment.hh \
+	Exception.hh FileSystem.hh \
+	Informer.hh Listener.hh \
+	MapTools.hh MathTools.hh \
+	ObjectState.hh OptionValue.hh \
+	Options.hh PagedArray.hh \
+	PluginTools.hh ProcessorConfigurationFile.hh \
+	RelationalDB.hh RelationalDBConnection.hh \
+	RelationalDBQueryResult.hh SQLite.hh \
+	SQLiteConnection.hh SQLiteQueryResult.hh \
+	SequenceTools.hh Serializable.hh \
+	Serializer.hh SetTools.hh \
+	SimValue.hh StringTools.hh \
+	TCEString.hh TextGenerator.hh \
+	VectorTools.hh XMLSerializer.hh \
+	hash_map.hh hash_set.hh \
+	AssocTools.icc BitMatrix.icc \
+	CmdLineOptionParser.icc CmdLineParser.icc \
+	ContainerTools.icc Conversion.icc \
+	DataObject.icc Exception.icc \
+	FileSystem.icc Informer.icc \
+	MapTools.icc MathTools.icc \
+	ObjectState.icc PagedArray.icc \
+	PluginTools.icc SequenceTools.icc \
+	SetTools.icc SimValue.icc \
+	VectorTools.icc 
+## headers end

@@ -5,3 +5,5 @@
 datadir = ${prefix}/share/tce/manual
 
 nobase_data_DATA = TCE_manual.pdf
+EXTRA_DIST = TCE_manual.pdf
+

@@ -3,10 +3,10 @@ pkglib_LTLIBRARIES = \
 	TempRegisterFinderPass.la CopyingDSFillerModule.la \
 	CLBBypasserModule.la BasicBlockSchedulerPass.la 
 
-TempRegisterFinderPass_la_SOURCES = TempRegisterFinderPass.cc
-CopyingDSFillerModule_la_SOURCES = CopyingDSFillerModule.cc
-CLBBypasserModule_la_SOURCES = CLBBypasserModule.cc
-BasicBlockSchedulerPass_la_SOURCES = BasicBlockSchedulerPass.cc
+TempRegisterFinderPass_la_SOURCES = TempRegisterFinderPass.cc TempRegisterFinderPass.hh
+CopyingDSFillerModule_la_SOURCES = CopyingDSFillerModule.cc CopyingDSFillerModule.hh
+CLBBypasserModule_la_SOURCES = CLBBypasserModule.cc CLBBypasserModule.hh
+BasicBlockSchedulerPass_la_SOURCES = BasicBlockSchedulerPass.cc BasicBlockSchedulerPass.hh
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -68,3 +68,4 @@ all-local: ${pkglib_LTLIBRARIES}
 
 clean-local:
 	rm -f ${srcdir}/*.so
+

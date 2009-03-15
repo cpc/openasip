@@ -1,7 +1,8 @@
 pkglibdir = ${prefix}/share/tce/scheduler/passes/SequentialScheduler
 pkglib_LTLIBRARIES = SequentialSchedulerModule.la
 
-SequentialSchedulerModule_la_SOURCES = SequentialSchedulerModule.cc
+SequentialSchedulerModule_la_SOURCES = \
+	SequentialSchedulerModule.cc SequentialSchedulerModule.hh
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src

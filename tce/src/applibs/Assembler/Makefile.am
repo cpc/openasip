@@ -13,3 +13,12 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${TPEF_DIR} -I${MACH_DIR} -I${OSAL_DIR}
 libassembler_la_LDFLAGS = 
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libassembler_la_SOURCES += \
+	Assembler.hh AssemblerParser.hh \
+	CodeSectionCreator.hh DataSectionCreator.hh \
+	LabelManager.hh MachineResourceManager.hh \
+	ParserStructs.hh 
+## headers end

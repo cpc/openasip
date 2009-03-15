@@ -29,3 +29,15 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libpig_la_SOURCES += \
+	ArrayImageWriter.hh ArrayProgramImageWriter.hh \
+	AsciiImageWriter.hh AsciiProgramImageWriter.hh \
+	BitImageWriter.hh BitVector.hh \
+	CodeCompressor.hh CodeCompressorPlugin.hh \
+	DefaultCompressor.hh InstructionBitVector.hh \
+	PIGTextGenerator.hh ProgramImageGenerator.hh \
+	RawImageWriter.hh 
+## headers end

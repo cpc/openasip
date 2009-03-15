@@ -29,3 +29,17 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libresourcemanager_la_SOURCES += \
+	AssignmentPlan.hh BrokerDirector.hh \
+	BusBroker.hh ExecutionPipelineBroker.hh \
+	ITemplateBroker.hh IUBroker.hh \
+	InputFUBroker.hh InputPSocketBroker.hh \
+	OutputFUBroker.hh OutputPSocketBroker.hh \
+	PendingAssignment.hh ResourceBroker.hh \
+	ResourceBuildDirector.hh ResourceManager.hh \
+	ResourceMapper.hh SegmentBroker.hh \
+	SimpleBrokerDirector.hh SimpleResourceManager.hh 
+## headers end

@@ -22,3 +22,15 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libresourcemodel_la_SOURCES += \
+	BusResource.hh ExecutionPipelineResource.hh \
+	FUResource.hh ITemplateResource.hh \
+	IUResource.hh InputFUResource.hh \
+	InputPSocketResource.hh OutputFUResource.hh \
+	OutputPSocketResource.hh PSocketResource.hh \
+	SchedulingResource.hh SegmentResource.hh \
+	ShortImmPSocketResource.hh SchedulingResource.icc 
+## headers end

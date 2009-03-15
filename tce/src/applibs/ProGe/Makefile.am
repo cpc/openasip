@@ -26,3 +26,16 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libproge_la_SOURCES += \
+	BlockSourceCopier.hh ICDecoderGeneratorPlugin.hh \
+	Netlist.hh NetlistBlock.hh \
+	NetlistGenerator.hh NetlistPort.hh \
+	NetlistWriter.hh PortConnectionProperty.hh \
+	ProGeScriptGenerator.hh ProGeTestBenchGenerator.hh \
+	ProGeTypes.hh ProGeUI.hh \
+	ProcessorGenerator.hh VHDLNetlistWriter.hh \
+	ProGeScriptGenerator.icc 
+## headers end

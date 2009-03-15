@@ -1,10 +1,4 @@
-if PYTHON_ENABLED
-# 'make dist' for some reason wants to package Python-bindings also if this is
-# not commented out and 'make dist' does not work for the bindings ATM.
-#SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins Python-bindings explorer
-else
-SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins explorer
-endif
+SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins explorer doc
 
 AUTOMAKE_OPTIONS = foreign
 

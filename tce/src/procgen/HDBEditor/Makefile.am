@@ -56,3 +56,27 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+hdbeditor_SOURCES += \
+	AddBusEntryCmd.hh AddCostFunctionPluginCmd.hh \
+	AddFUArchFromADFCmd.hh AddFUEntryCmd.hh \
+	AddFUImplementationCmd.hh AddRFArchitectureCmd.hh \
+	AddRFEntryCmd.hh AddRFImplementationCmd.hh \
+	AddSocketEntryCmd.hh BlockImplementationFileDialog.hh \
+	CostEstimationDataDialog.hh CostFunctionPluginDialog.hh \
+	CreateHDBCmd.hh FUArchitectureDialog.hh \
+	FUArchitectureParametersDialog.hh FUExternalPortDialog.hh \
+	FUImplementationDialog.hh FUImplementationParameterDialog.hh \
+	FUPortImplementationDialog.hh HDBBrowserInfoPanel.hh \
+	HDBBrowserWindow.hh HDBEditor.hh \
+	HDBEditorAboutCmd.hh HDBEditorAboutDialog.hh \
+	HDBEditorConstants.hh HDBEditorDeleteCmd.hh \
+	HDBEditorMainFrame.hh HDBEditorModifyCmd.hh \
+	HDBEditorQuitCmd.hh HDBToHtml.hh \
+	OpenHDBCmd.hh RFArchitectureDialog.hh \
+	RFImplementationDialog.hh RFPortImplementationDialog.hh \
+	SetCostFunctionPluginCmd.hh SetFUArchitectureCmd.hh \
+	SetRFArchitectureCmd.hh 
+## headers end

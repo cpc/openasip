@@ -21,3 +21,11 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libcfg_la_SOURCES += \
+	BasicBlock.hh BasicBlockNode.hh \
+	CFGStatistics.hh ControlFlowEdge.hh \
+	ControlFlowGraph.hh 
+## headers end

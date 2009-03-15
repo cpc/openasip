@@ -42,3 +42,9 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+ttasim_SOURCES += \
+	SimulatorCmdLineOptions.hh 
+## headers end

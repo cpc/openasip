@@ -28,3 +28,18 @@ libwxtoolkit_la_LDFLAGS = $(GUI_LIBS)
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
+
+
+## headers start
+libwxtoolkit_la_SOURCES += \
+	CommandRegistry.hh ConfirmDialog.hh \
+	EPSDC.hh ErrorDialog.hh \
+	FocusTrackingTextCtrl.hh GUICommand.hh \
+	GUITextGenerator.hh HelpBrowser.hh \
+	InformationDialog.hh MemoryControl.hh \
+	MemoryGridTable.hh MemoryValueDialog.hh \
+	MessageDialog.hh NumberControl.hh \
+	UserManualCmd.hh WarningDialog.hh \
+	WidgetTools.hh WxConversion.hh \
+	CommandRegistry.icc WxConversion.icc 
+## headers end

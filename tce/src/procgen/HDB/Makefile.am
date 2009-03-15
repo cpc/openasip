@@ -41,3 +41,9 @@ AM_LDFLAGS = ${BOOST_LIBDIR} ${BOOST_PYTHON_LIB} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS
 	 ${XERCES_LIBS} ${EDITLINE_LD_FLAGS}
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+createhdb_SOURCES += \
+	CreateHDBCmdLineOptions.hh 
+## headers end

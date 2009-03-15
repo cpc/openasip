@@ -6,6 +6,8 @@ pkglib_LTLIBRARIES = base.la
 
 base_la_SOURCES = base.cc
 
+EXTRA_DIST = ${nobase_base_DATA}
+
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
 

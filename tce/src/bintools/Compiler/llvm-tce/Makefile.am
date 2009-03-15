@@ -39,13 +39,15 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 llvm_tce_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
-if PYTHON_ENABLED
-AM_LDFLAGS =  ${TCL_LD_FLAGS} ${BOOST_PYTHON_LIB}
-else
 AM_LDFLAGS =  ${TCL_LD_FLAGS}
-endif
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+llvm_tce_SOURCES += \
+	LLVMTCECmdLineOptions.hh 
+## headers end

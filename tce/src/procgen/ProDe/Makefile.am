@@ -162,3 +162,78 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+prode_SOURCES += \
+	ADFPrintout.hh AboutCmd.hh \
+	AboutDialog.hh AddASCmd.hh \
+	AddBridgeCmd.hh AddBusCmd.hh \
+	AddFUCmd.hh AddFUFromHDBCmd.hh \
+	AddFUFromHDBDialog.hh AddGCUCmd.hh \
+	AddIUCmd.hh AddIUFromHDBCmd.hh \
+	AddIUFromHDBDialog.hh AddRFCmd.hh \
+	AddRFFromHDBCmd.hh AddRFFromHDBDialog.hh \
+	AddSocketCmd.hh AddressSpaceDialog.hh \
+	AddressSpacesDialog.hh BlockImplementationDialog.hh \
+	BridgeDialog.hh BusDialog.hh \
+	ChildFrame.hh CloseDocumentCmd.hh \
+	ConnectRequest.hh ConnectTool.hh \
+	CopyComponent.hh CopyComponentCmd.hh \
+	CutComponentCmd.hh DeleteBridgeCmd.hh \
+	DeleteBusCmd.hh DeleteComponentCmd.hh \
+	DeleteFUCmd.hh DeleteGCUCmd.hh \
+	DeleteIUCmd.hh DeletePortCmd.hh \
+	DeleteRFCmd.hh DeleteSegmentCmd.hh \
+	DeleteSocketCmd.hh EditAddressSpacesCmd.hh \
+	EditBusOrderCmd.hh EditConnectionsCmd.hh \
+	EditImmediateSlotsCmd.hh EditOptionsCmd.hh \
+	EditTemplatesCmd.hh EditorCommand.hh \
+	FUDialog.hh FUGuardDialog.hh \
+	FUPortDialog.hh FitHeightCmd.hh \
+	FitWidthCmd.hh FitWindowCmd.hh \
+	FullyConnectBussesCmd.hh GCUDialog.hh \
+	GenerateProcessorDialog.hh IUDialog.hh \
+	IUPortDialog.hh ImmediateSlotDialog.hh \
+	ImplementMachineCmd.hh MDFDocument.hh \
+	MDFLayoutConstraints.hh MDFView.hh \
+	MainFrame.hh Model.hh \
+	ModelConstants.hh ModelObserver.hh \
+	ModifyBridgeCmd.hh ModifyBusCmd.hh \
+	ModifyComponentCmd.hh ModifyFUCmd.hh \
+	ModifyFUPortCmd.hh ModifyGCUCmd.hh \
+	ModifyIUCmd.hh ModifyIUPortCmd.hh \
+	ModifyRFCmd.hh ModifyRFPortCmd.hh \
+	ModifySRPortCmd.hh ModifySocketCmd.hh \
+	NewDocumentCmd.hh OpenDocumentCmd.hh \
+	OperationDialog.hh OpsetDialog.hh \
+	PasteComponentCmd.hh PrintCmd.hh \
+	PrintPreviewCmd.hh ProDe.hh \
+	ProDeBridgeEditPolicy.hh ProDeBusEditPolicy.hh \
+	ProDeBusOrderDialog.hh ProDeClipboard.hh \
+	ProDeEditPolicyFactory.hh ProDeExportCmd.hh \
+	ProDeFUEditPolicy.hh ProDeFUPortEditPolicy.hh \
+	ProDeGCUEditPolicy.hh ProDeIUEditPolicy.hh \
+	ProDeIUPortEditPolicy.hh ProDeOptions.hh \
+	ProDeOptionsDialog.hh ProDeOptionsSerializer.hh \
+	ProDePortEditPolicy.hh ProDeRFEditPolicy.hh \
+	ProDeRFPortEditPolicy.hh ProDeSRPortEditPolicy.hh \
+	ProDeSegmentEditPolicy.hh ProDeSocketEditPolicy.hh \
+	CallExplorerPlugin.hh ProcessorImplementationWindow.hh \
+	QuitCmd.hh RFDialog.hh \
+	RFGuardDialog.hh RFPortDialog.hh \
+	RedoCmd.hh SRPortDialog.hh \
+	SaveDocumentAsCmd.hh SaveDocumentCmd.hh \
+	SaveOptionsCmd.hh SelectCmd.hh \
+	SelectTool.hh SetStatusTextCmd.hh \
+	SocketBusConnCmd.hh SocketBusConnToolFigure.hh \
+	SocketDialog.hh SocketPortConnCmd.hh \
+	SocketPortConnToolFigure.hh TemplateListDialog.hh \
+	TemplateSlotDialog.hh ToggleUnitDetailsCmd.hh \
+	UndoCmd.hh ValidateMachineDialog.hh \
+	VerifyMachineCmd.hh ZoomInCmd.hh \
+	ZoomOutCmd.hh CallExplorerPluginCmd.hh \
+	EditParameterDialog.hh ProDeConstants.hh \
+	ProDeTextGenerator.hh MDFView.icc \
+	PasteComponentCmd.icc 
+## headers end

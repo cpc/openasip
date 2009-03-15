@@ -50,3 +50,12 @@ include_HEADERS = \
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
+
+
+## headers start
+libtcellvmbackend_la_SOURCES += \
+	LLVMBackend.hh LLVMPOMBuilder.hh \
+	TCESubtarget.hh TCETargetAsmInfo.hh \
+	TCETargetMachine.hh TCETargetMachinePlugin.hh \
+	TDGen.hh 
+## headers end

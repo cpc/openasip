@@ -3,10 +3,14 @@ pkglib_LTLIBRARIES = \
 	SimpleGuardAllocatorPass.la AddressSpaceMapperPass.la \
 	LinearScanAllocatorPass.la OldFrontendStackAnalyzerPass.la 
 
-SimpleGuardAllocatorPass_la_SOURCES = SimpleGuardAllocatorPass.cc
-AddressSpaceMapperPass_la_SOURCES = AddressSpaceMapperPass.cc
-LinearScanAllocatorPass_la_SOURCES = LinearScanAllocatorPass.cc
-OldFrontendStackAnalyzerPass_la_SOURCES = OldFrontendStackAnalyzerPass.cc
+SimpleGuardAllocatorPass_la_SOURCES = \
+	SimpleGuardAllocatorPass.cc SimpleGuardAllocator.hh  SimpleGuardAllocatorPass.hh
+AddressSpaceMapperPass_la_SOURCES = \
+	AddressSpaceMapperPass.cc AddressSpaceMapperPass.hh
+LinearScanAllocatorPass_la_SOURCES = \
+	LinearScanAllocatorPass.cc LinearScanAllocatorPass.hh
+OldFrontendStackAnalyzerPass_la_SOURCES = \
+	OldFrontendStackAnalyzerPass.cc OldFrontendStackAnalyzerPass.hh
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src

@@ -21,3 +21,10 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libcdg_la_SOURCES += \
+	ControlDependenceEdge.hh ControlDependenceGraph.hh \
+	ControlDependenceNode.hh 
+## headers end

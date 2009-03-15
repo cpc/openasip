@@ -13,3 +13,9 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libfsa_la_SOURCES += \
+	FUFiniteStateAutomaton.hh FiniteStateAutomaton.hh 
+## headers end

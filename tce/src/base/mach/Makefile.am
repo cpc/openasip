@@ -30,3 +30,35 @@ dist-hook:
 .PHONY: doc
 
 MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libmach_la_SOURCES += \
+	ADFSerializer.hh ADFSerializerTextGenerator.hh \
+	AddressSpace.hh BaseFUPort.hh \
+	BaseRegisterFile.hh Bridge.hh \
+	Bus.hh Connection.hh \
+	ControlUnit.hh DummyMachineTester.hh \
+	ExecutionPipeline.hh FUPort.hh \
+	FunctionUnit.hh Guard.hh \
+	HWOperation.hh ImmediateSlot.hh \
+	ImmediateUnit.hh InstructionTemplate.hh \
+	MOMTextGenerator.hh Machine.hh \
+	MachinePart.hh MachineTestReportTextGenerator.hh \
+	MachineTestReporter.hh MachineTester.hh \
+	NullAddressSpace.hh NullBus.hh \
+	NullFunctionUnit.hh NullGuard.hh \
+	NullImmediateUnit.hh NullInstructionTemplate.hh \
+	NullMachine.hh NullPort.hh \
+	NullRegisterFile.hh PipelineElement.hh \
+	Port.hh RFPort.hh \
+	RegisterFile.hh Segment.hh \
+	Socket.hh SpecialRegisterPort.hh \
+	TemplateSlot.hh Unit.hh \
+	BaseRegisterFile.icc Bridge.icc \
+	Connection.icc ControlUnit.icc \
+	Guard.icc Machine.icc \
+	MachinePart.icc PipelineElement.icc \
+	Port.icc Segment.icc \
+	Socket.icc TemplateSlot.icc 
+## headers end

@@ -24,3 +24,21 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${TPEF_DIR} -I${PROG_DIR} -I${MACH_DIR} \
 libdisassembler_la_LDFLAGS = 
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libdisassembler_la_SOURCES += \
+	Disassembler.hh DisassemblyAnnotation.hh \
+	DisassemblyBoolRegister.hh DisassemblyControlUnitPort.hh \
+	DisassemblyElement.hh DisassemblyFPRegister.hh \
+	DisassemblyFUOpcodePort.hh DisassemblyFUOperand.hh \
+	DisassemblyFUPort.hh DisassemblyGuard.hh \
+	DisassemblyImmediate.hh DisassemblyImmediateAssignment.hh \
+	DisassemblyImmediateRegister.hh DisassemblyInstruction.hh \
+	DisassemblyInstructionSlot.hh DisassemblyIntRegister.hh \
+	DisassemblyLabel.hh DisassemblyMove.hh \
+	DisassemblyNOP.hh DisassemblyOperand.hh \
+	DisassemblyRegister.hh DisassemblyReturnAddressRegister.hh \
+	DisassemblySequentialGuard.hh POMDisassembler.hh \
+	TPEFDisassembler.hh 
+## headers end

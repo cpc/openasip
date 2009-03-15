@@ -60,3 +60,28 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+osed_SOURCES += \
+	AddModuleDialog.hh CommandThread.hh \
+	DialogPosition.hh DropDownMenu.hh \
+	InputOperandDialog.hh MemoryDialog.hh \
+	OSEd.hh OSEdAboutCmd.hh \
+	OSEdAboutDialog.hh OSEdAddModuleCmd.hh \
+	OSEdAddOperationCmd.hh OSEdBuildAllCmd.hh \
+	OSEdBuildCmd.hh OSEdConstants.hh \
+	OSEdInfoView.hh OSEdInformer.hh \
+	OSEdListener.hh OSEdMainFrame.hh \
+	OSEdMemoryCmd.hh OSEdModifyBehaviorCmd.hh \
+	OSEdOptions.hh OSEdOptionsCmd.hh \
+	OSEdOptionsDialog.hh OSEdOptionsSerializer.hh \
+	OSEdPropertiesCmd.hh OSEdQuitCmd.hh \
+	OSEdRemoveModuleCmd.hh OSEdRemoveOperationCmd.hh \
+	OSEdSimulateCmd.hh OSEdTextGenerator.hh \
+	OSEdTreeView.hh OSEdUserManualCmd.hh \
+	OperationContainer.hh OperationDAGDialog.hh \
+	OperationPropertyDialog.hh OutputOperandDialog.hh \
+	ResultDialog.hh SimulateDialog.hh \
+	SimulationInfoDialog.hh 
+## headers end

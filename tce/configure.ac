@@ -7,7 +7,7 @@ AC_INIT([tce],[1.0],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
-REVNO=$(which bzr > /dev/null && echo -n "-r" && bzr revno || echo -n "")
+REVNO=$(which bzr > /dev/null && bzr revno >/dev/null 2>&1 && echo -n "-r" && bzr revno 2>/dev/null || echo -n "")
 
 AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 
@@ -287,39 +287,6 @@ AC_DEFINE([DIR_SEPARATOR], ["\\"], [Directory separator for this file system])
 ]
 )
 
-# Enable Python bindings
-AC_ARG_ENABLE(python,
-[AS_HELP_STRING([--enable-python],[Build Python bindings for TCE libraries])],
-[ case "${enableval}" in
-  yes) 
-    enablepython=true 
-    ;;
-  no) 
-    enablepython=false 
-    ;;
-  *) 
-    AC_MSG_ERROR(bad value ${enableval for --enable-python}) 
-    ;;
-  esac], 
-  [enablepython=false]
-)
-
-if $enablepython
-then
-  # Check for Python
-  AM_PATH_PYTHON(2.4)
-  AC_PYTHON_DEVEL
-
-  # Check for gccxml
-  AC_CHECK_PROG([GCCXML], [gccxml], [yes], [no], [], [])
-  if test "$GCCXML" == no
-  then
-  AC_MSG_ERROR(
-  [gccxml not found, needed for generation of Python bindings. See http://www.gccxml.org for more information. You may also be able to install it e.g. with apt-get. ])
-fi
-
-fi
-
 ########################
 # CHECKS FOR LIBRARIES #
 ########################
@@ -357,34 +324,6 @@ then
 AC_MSG_ERROR(
 [boost_thread library not found. Install it or use --with-boost-thread switch])
 fi
-
-AM_CONDITIONAL([PYTHON_ENABLED], false)
-# this uses ax_python.m4 script so... ac_python_devel is unnecessary...
-# boost_python can be used only if python is enabled
-if $enablepython
-then
-
-AX_BOOST_PYTHON
-
-if test -z "$BOOST_PYTHON_LIB"
-then
-# AM_PATH_PYTHON sets PYTHON_VERSION if Python is found
-AC_MSG_NOTICE(
-[boost_python library not found. Install it or use --with-boost-python switch])
-else
-    if test x$PYTHON_VERSION != x
-    then
-       AM_CONDITIONAL([PYTHON_ENABLED], true)
-       AC_DEFINE([PYTHON_ENABLED], [], "Python bindings enabled.")
-    fi
-fi
-fi
-
-# set variables, which were used by old system...
-AC_SUBST([BOOST_INCLUDES], ["$BOOST_CPPFLAGS"] )
-AC_SUBST([BOOST_LIBDIR], ["$BOOST_LDFLAGS"])
-BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB $BOOST_FILESYSTEM_LIB"
-BOOST_PYTHON_LDFLAGS="$BOOST_PYTHON_LIB"
 
 ##########################################################################
 #
@@ -1132,6 +1071,14 @@ AC_ARG_ENABLE(distributed,
              source directory, etc.])]
 )
 
+# set variables, which were used by old system...
+AC_SUBST([BOOST_INCLUDES], ["$BOOST_CPPFLAGS"] )
+AC_SUBST([BOOST_LIBDIR], ["$BOOST_LDFLAGS"])
+
+BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB $BOOST_FILESYSTEM_LIB"
+
+if test -d test
+then
 # Write out a file with flags for unit test Makefiles.
 FILENAME=test/Makefile_configure_settings
 echo "TCL_LD_FLAGS=$TCL_LD_FLAGS
@@ -1164,6 +1111,8 @@ CC=$CC
 LDFLAGS="$EDITLINE_LD_FLAGS $BOOST_LDFLAGS $SQLITE_LD_FLAGS $XERCES_LIBDIR $XERCES_LIBS $GUI_LIBS $TCL_LD_FLAGS $LLVM_LDFLAGS"
 
 " > $FILENAME
+
+fi
 
 
 LDFLAGS="$EDITLINE_LD_FLAGS $BOOST_LDFLAGS $SQLITE_LD_FLAGS $XERCES_LIBDIR $XERCES_LIBS $GUI_LIBS $TCL_LD_FLAGS $LLVM_LDFLAGS"
@@ -1265,13 +1214,6 @@ AC_CONFIG_FILES([
   icdecoder_plugins/Makefile
   scripts/Makefile
   manual/Makefile
-  test/Makefile
-  test/base/Makefile
-  test/procgen/Makefile
-  test/applibs/Makefile
-  test/applibs/wxToolkit/Makefile
-  test/applibs/Scheduler/Makefile
-  test/applibs/Scheduler/ProgramRepresentations/Makefile
   cost_estimator_plugins/Makefile
   cost_estimator_plugins/rf/Makefile
   cost_estimator_plugins/fu/Makefile
@@ -1285,24 +1227,23 @@ AC_CONFIG_FILES([
   src/bintools/Compiler/Makefile
   src/bintools/Compiler/tceopgen/Makefile
   src/bintools/Compiler/llvm-tce/Makefile
-  Python-bindings/Makefile
-  Python-bindings/src/Makefile
-  Python-bindings/src/setup.py
-  Python-bindings/src/Algorithms/Makefile
-  Python-bindings/src/program/Makefile
-  Python-bindings/src/DataDependenceGraph/Makefile
-  Python-bindings/src/ProgramDependenceGraph/Makefile
-  Python-bindings/src/SchedulerModules/Makefile
-  Python-bindings/src/ResourceModel/Makefile
-  Python-bindings/src/osal/Makefile
-  Python-bindings/src/mach/Makefile
-  Python-bindings/src/ControlFlowGraph/Makefile
-  Python-bindings/src/tools/Makefile
-  Python-bindings/src/ResourceManager/Makefile
-  Python-bindings/test/RunPythonFileTests/Makefile
 ])
 
+# Generate unit test makefiles if we have the 'test' dir.
+if test -d test
+then
 
+AC_CONFIG_FILES([
+  test/Makefile
+  test/base/Makefile
+  test/procgen/Makefile
+  test/applibs/Makefile
+  test/applibs/wxToolkit/Makefile
+  test/applibs/Scheduler/Makefile
+  test/applibs/Scheduler/ProgramRepresentations/Makefile
+])
+
+fi
 
 # scripts which need to be filled with BOOST_INCLUDES and other variables...
 AC_CONFIG_FILES([src/codesign/Explorer/buildexplorerplugin], 
@@ -1376,13 +1317,6 @@ then
   echo "NOTE! Supported LLVM version not found. Compiling C programs is disabled."
 else
   echo "Found LLVM version $LLVM_VERSION"
-fi
-
-if test x"$PYTHON_VERSION" = x
-then
-  echo "Python not enabled or not found, Python bindings to TCE libraries will not be built."
-else
-  echo "Found Python version $PYTHON_VERSION"
 fi
 
 echo "***************************************"

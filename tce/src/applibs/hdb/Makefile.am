@@ -15,3 +15,19 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
+
+
+## headers start
+libhdb_la_SOURCES += \
+	BlockImplementationFile.hh CachedHDBManager.hh \
+	CostEstimationData.hh CostFunctionPlugin.hh \
+	FUArchitecture.hh FUEntry.hh \
+	FUExternalPort.hh FUImplementation.hh \
+	FUPortImplementation.hh HDBEntry.hh \
+	HDBManager.hh HDBRegistry.hh \
+	HDBTypes.hh HWBlockArchitecture.hh \
+	HWBlockImplementation.hh PortImplementation.hh \
+	RFArchitecture.hh RFEntry.hh \
+	RFImplementation.hh RFPortImplementation.hh \
+	CostEstimationData.icc 
+## headers end

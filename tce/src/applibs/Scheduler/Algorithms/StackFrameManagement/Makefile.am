@@ -26,3 +26,10 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libstackframemanagement_la_SOURCES += \
+	OldFrontendStackAnalyzer.hh StackCodeRemover.hh \
+	StackFrameCodeCreator.hh StackFrameData.hh 
+## headers end

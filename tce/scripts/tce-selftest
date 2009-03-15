@@ -1,0 +1,250 @@
+#!/usr/bin/env python
+# -*- coding: utf-8
+# Copyright (c) 2002-2009 Tampere University of Technology.
+#
+# This file is part of TTA-Based Codesign Environment (TCE).
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+#
+# Runs basic tests to verify a TCE installation (installed somewhere in PATH)
+# works.
+#
+# Currently tests only compilation and simulation.
+#
+# (C) 2009 Pekka Jääskeläinen
+
+# exploit the unittest framework even though this is actually a system test
+import unittest, os, tempfile, signal, time
+from subprocess import Popen, PIPE
+
+class TCETestCase(unittest.TestCase):
+    def runWithTimeout(self, command, timeoutSecs, inputStream = ""):
+        """
+        Runs the given process until it exits or the given time out is reached.
+
+        Returns a tuple: (bool:timeout, str:stdout, str:stderr, int:exitcode)
+        """
+        timePassed = 0.0
+        increment = 0.01
+
+        stderrFD, errFile = tempfile.mkstemp()
+        stdoutFD, outFile = tempfile.mkstemp()
+
+        process =  Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD, stderr=stderrFD, close_fds=False)
+
+        if process == None:
+            print "Could not create process"
+            sys.exit(1)
+
+        try:
+            if inputStream != "":
+                for line in inputStream:
+                    process.stdin.write(line)
+                    process.stdin.flush()
+
+            while True:
+                status = process.poll()
+                if status != None:
+                    # Process terminated succesfully.
+                    stdoutSize = os.lseek(stdoutFD, 0, 2)
+                    stderrSize = os.lseek(stderrFD, 0, 2)
+
+                    os.lseek(stdoutFD, 0, 0)
+                    os.lseek(stderrFD, 0, 0)
+
+                    stdoutContents = os.read(stdoutFD, stdoutSize)
+                    stderrContents = os.read(stderrFD, stderrSize)
+
+                    os.close(stdoutFD)
+                    os.remove(outFile)
+                    os.close(stderrFD)
+                    os.remove(errFile)
+                    
+                    return (False, stdoutContents, stderrContents, process.returncode)
+
+                if timePassed < timeoutSecs:
+                    time.sleep(increment)
+                    timePassed = timePassed + increment
+                else:
+                    # time out, kill the process.
+                    stdoutSize = os.lseek(stdoutFD, 0, 2)
+                    stderrSize = os.lseek(stderrFD, 0, 2)
+
+                    os.lseek(stdoutFD, 0, 0)
+                    os.lseek(stderrFD, 0, 0)
+
+                    stdoutContents = os.read(stdoutFD, stdoutSize)
+                    stderrContents = os.read(stderrFD, stderrSize)
+
+                    os.close(stdoutFD)
+                    os.remove(outFile)
+                    os.close(stderrFD)
+                    os.remove(errFile)
+                    os.kill(process.pid, signal.SIGTSTP)
+                    return (True, stdoutContents, stderrContents, process.returncode)
+        except Exception, e:
+            # if something threw exception (e.g. ctrl-c)
+            os.kill(process.pid, signal.SIGTSTP)
+            try:
+                # time out, kill the process.
+                # time out, kill the process.
+                stdoutSize = os.lseek(stdoutFD, 0, 2)
+                stderrSize = os.lseek(stderrFD, 0, 2)
+
+                os.lseek(stdoutFD, 0, 0)
+                os.lseek(stderrFD, 0, 0)
+
+                stdoutContents = os.read(stdoutFD, stdoutSize)
+                stderrContents = os.read(stderrFD, stderrSize)
+
+                os.close(stdoutFD)
+                os.remove(outFile)
+                os.close(stderrFD)
+                os.remove(errFile)
+                os.kill(process.pid, signal.SIGTSTP)                
+            except:
+                pass
+
+            return (False, stdoutContents, stderrContents, process.returncode)
+
+    
+    def get_helloWorldCFile(self):
+        "Returns a .c file (name) which contains the Hello World code."
+        
+        hello_world_c = """
+            #include <stdio.h>
+
+            int main() {
+                printf("Hello TTA World!\\n");
+                return 0;
+            }
+            
+            """
+        (fd, c_file_name) = tempfile.mkstemp(".c")
+        os.write(fd, hello_world_c)
+        os.close(fd)
+        return c_file_name
+
+
+    prefix = None
+    def get_tcePrefix(self):
+        "Returns the path where TCE has been installed."
+        if TCETestCase.prefix is None:
+            (timeout, TCETestCase.prefix, stderr, code) = \
+                      self.runWithTimeout("tce-config --prefix", 60)
+            TCETestCase.prefix = TCETestCase.prefix and TCETestCase.prefix.strip()
+            assert TCETestCase.prefix is not None and TCETestCase.prefix != "", \
+                   "Could not find TCE prefix. Is TCE installed in PATH?"
+            
+        return TCETestCase.prefix
+
+
+    minimal_adf = None
+    def get_minimalADF(self):
+        if TCETestCase.minimal_adf is None:
+            TCETestCase.minimal_adf = self.get_tcePrefix() + "/share/tce/data/mach/minimal.adf"
+            assert os.path.exists(TCETestCase.minimal_adf)
+        return TCETestCase.minimal_adf
+
+    minimal_stdout_adf = None
+    def get_minimalStdoutADF(self):
+        if TCETestCase.minimal_stdout_adf is None:
+            TCETestCase.minimal_stdout_adf = self.get_tcePrefix() + "/share/tce/data/mach/minimal_with_stdout.adf"
+            assert os.path.exists(TCETestCase.minimal_stdout_adf), \
+                   "Could not find minimal_with_stdout.adf."
+        return TCETestCase.minimal_stdout_adf
+
+
+class TestCompiler(TCETestCase):
+    """Test compilation from C"""
+
+    def setUp(self):
+        self.hello_world_file = self.get_helloWorldCFile()
+
+    def tearDown(self):
+        os.unlink(self.hello_world_file)
+
+    def _verify_output(self, tpef):
+        (timeout, stdout, stderr, code) = \
+           self.runWithTimeout("ttasim -a %s -p %s --no-debugmode" %
+                               (self.get_minimalStdoutADF(), tpef), 5*60)
+        self.assertEquals(stdout.strip(), "Hello TTA World!")
+        self.assertEquals(stderr, "")
+        self.assertEquals(code, 0)        
+        
+
+    def _test_compilation(self, switches):
+        (fd, tpef_file_name) = tempfile.mkstemp(".tpef")
+        (timeout, stdout, stderr, code) = \
+           self.runWithTimeout("tcecc %s -a %s -o %s %s" % \
+                               (switches, self.get_minimalStdoutADF(),
+                                tpef_file_name, self.get_helloWorldCFile()),
+                               10*60)
+        self.assertEquals(stdout, "")
+        self.assertEquals(stderr, "")
+        self.assertEquals(code, 0)
+
+        self._verify_output(tpef_file_name)
+
+    def test_noOpt(self):
+        "Test C compilation with -O0"
+        self._test_compilation("-O0")
+        
+    def test_opt(self):
+        "Test C compilation with -O3"
+        self._test_compilation("-O3")        
+
+class TestSimulator(TCETestCase):
+    """Tests simulating with the compiled and debugging engines."""
+
+    def setUp(self):
+        if hasattr(self, 'tpef_file_name') and self.tpef_file_name is not None:
+            return
+        self.hello_world_file = self.get_helloWorldCFile()
+        (fd, self.tpef_file_name) = tempfile.mkstemp(".tpef")
+        (timeout, stdout, stderr, code) = \
+           self.runWithTimeout("tcecc %s -a %s -o %s %s" % \
+                               ("-O0", self.get_minimalStdoutADF(),
+                                self.tpef_file_name, self.get_helloWorldCFile()),
+                               10*60)
+
+    def __del__(self):
+        os.unlink(self.tpef_file_name)
+
+    def _test_simulation(self, switches):
+        (timeout, stdout, stderr, code) = \
+           self.runWithTimeout("ttasim %s -a %s -p %s --no-debugmode" %
+                               (switches,
+                                self.get_minimalStdoutADF(),
+                                self.tpef_file_name), 5*60)
+        self.assertEquals(stdout.strip(), "Hello TTA World!")
+        self.assertEquals(stderr, "")
+        self.assertEquals(code, 0)
+
+    def test_debugging_simulation(self):
+        "Test the debugging engine of the simulator"
+        self._test_simulation("")
+
+    def test_compiled_simulation(self):
+        "Test the compiled engine of the simulator"
+        self._test_simulation("-q")    
+
+if __name__ == '__main__':
+    print "Testing TCE installation, this can take several minutes. Use -v to see the progress."
+    unittest.main()

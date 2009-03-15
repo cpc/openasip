@@ -17,3 +17,11 @@ AM_CXXFLAGS = $(AM_WXCXXFLAGS)
 libguioptions_la_LDFLAGS = $(GUI_LIBS)
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libguioptions_la_SOURCES += \
+	GUIOptions.hh GUIOptionsSerializer.hh \
+	KeyboardShortcut.hh KeyboardShortcutDialog.hh \
+	OptionsDialog.hh ToolbarButton.hh 
+## headers end

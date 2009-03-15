@@ -59,3 +59,9 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+estimate_SOURCES += \
+	EstimatorCmdLineOptions.hh 
+## headers end

@@ -22,3 +22,14 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
+
+
+## headers start
+libestimator_la_SOURCES += \
+	CostEstimationPlugin.hh CostEstimationPluginRegistry.hh \
+	CostEstimatorTypes.hh Estimator.hh \
+	FUCostEstimationPlugin.hh FUCostEstimationPluginRegistry.hh \
+	ICDecoderCostEstimationPluginRegistry.hh ICDecoderEstimatorPlugin.hh \
+	RFCostEstimationPlugin.hh RFCostEstimationPluginRegistry.hh \
+	TransportPath.hh CostEstimationPluginRegistry.icc 
+## headers end
