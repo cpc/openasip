@@ -25,7 +25,8 @@
 # Runs basic tests to verify a TCE installation (installed somewhere in PATH)
 # works.
 #
-# Currently tests only compilation and simulation.
+# Does not test the functionality of the tools, just ensures the tools can
+# be executed and do what they are expected to do from installation paths.
 #
 # (C) 2009 Pekka Jääskeläinen
 
@@ -244,6 +245,72 @@ class TestSimulator(TCETestCase):
     def test_compiled_simulation(self):
         "Test the compiled engine of the simulator"
         self._test_simulation("-q")    
+
+class TestCustomOps(TCETestCase):
+    """Tests for custom op functionality."""
+
+    def cleanup_files(self, files):
+        for f in files:
+            if os.path.exists(f):
+                os.unlink(f)
+    
+    def tearDown(self):
+        if hasattr(self, 'temp_dir'):
+            os.chdir(self.temp_dir)
+            self.cleanup_files(['hello.cc', 'hello.opb', 'hello.opp'])
+            os.chdir('..')
+            os.rmdir(self.temp_dir)
+    
+    def test_custom_operation_from_c_code(self):
+        """Tests creating a simple custom operation with simulation code and
+        using it from C code"""
+        opp_contents = """<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">       
+  <operation>
+    <name>HELLO_WORLD</name>
+    <description>Prints hello world to the screen. The most useful operation ever.</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <in id="1" type="SIntWord"/>
+  </operation>
+</osal> 
+  """
+        opb_src = """
+#include "OSAL.hh"
+#include <iostream>
+        
+OPERATION(HELLO_WORLD)
+
+TRIGGER
+    std::cout << "Hello TTA Custom Operation World!" << std::endl;
+END_TRIGGER;
+
+END_OPERATION(HELLO_WORLD)
+
+"""
+        esa = ""
+
+        self.temp_dir = tempfile.mkdtemp()
+        os.chdir(self.temp_dir)
+        opp = open('hello.opp', 'w+')
+        opp.write(opp_contents)
+        opp.close()
+
+        cc = open('hello.cc', 'w+')
+        cc.write(opb_src)
+        cc.close()
+
+        (timeout, stdout, stderr, code) = \
+                  self.runWithTimeout('buildopset hello', 120)
+        self.assertEquals(stdout.strip(), '')
+        self.assertEquals(stderr.strip(), '')
+        self.assertEquals(code, 0)
+        self.assertEquals(os.path.exists('hello.opb'), True)
+
+        (timeout, stdout, stderr, code) = \
+                  self.runWithTimeout('echo HELLO_WORLD 0 | testosal', 120)
+        self.assertEquals(stdout.strip(), 'Hello TTA Custom Operation World!')
+
 
 if __name__ == '__main__':
     print "Testing TCE installation, this can take several minutes. Use -v to see the progress."
