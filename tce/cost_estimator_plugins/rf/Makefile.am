@@ -1,4 +1,4 @@
-pkglibdir = ${prefix}/share/tce/cost_estimation_plugins/rf
+pkglibdir = ${prefix}/share/tce/cost_estimation_plugins/base
 pkglib_LTLIBRARIES = StrictMatchRFEstimator.la InterpolatingRFEstimator.la
 
 StrictMatchRFEstimator_la_SOURCES = StrictMatchRFEstimator.cc
