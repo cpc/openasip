@@ -223,7 +223,9 @@ runner.cpp.*|\
 Inconsistency.detected.by.ld\.so:.*Assertion.*|\
 .*/llvm/Target/TargetLowering.h.*|\
 .*llvm/ADT/STLExtras.h.*|\
-.*llvm/Target/.*unused.parameter.*"
+.*llvm/Target/.*unused.parameter.*|\
+.*declared[[:space:]]with[[:space:]]attribute[[:space:]]warn_unused_result*|\
+In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
