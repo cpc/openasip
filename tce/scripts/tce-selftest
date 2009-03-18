@@ -348,10 +348,9 @@ class TestExplorer(TCETestCase):
         self.assertEquals(code, 0)
 
     def test_basic_plugins(self):
-        "Tests the ImplementationSelector and Evaluate explorer plugins (this takes long!)"
+        "Tests the ImplementationSelector and Evaluate explorer plugins (this takes a while!)"
         # Generate .idf using the ImplementationSelector plugin
 
-        # Generate .idf using the ImplementationSelector plugin
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
             'explore -e ImplementationSelector -u adf=%s test.dsdb' % \
@@ -371,7 +370,6 @@ class TestExplorer(TCETestCase):
         self.assertTrue('Written IDF file of configuration 1' in stdout)      
         self.assertTrue(os.path.exists('1.adf'))
         self.assertTrue(os.path.exists('1.idf'))
-
 
         # Add a dummy test application.
         dummy_app_c = """
@@ -422,7 +420,7 @@ class TestExplorer(TCETestCase):
 
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -e Evaluate -s 1 test.dsdb', 60*15)
+            'explore -e Evaluate -s 1 test.dsdb', 60*20)
 
         self.assertFalse(timeout)
         # Evaluate does not generate new configurations
@@ -452,7 +450,63 @@ class TestExplorer(TCETestCase):
         self.assertTrue("Configurations in DSDB" in stdout)
         self.assertEquals(stderr, '')
         self.assertEquals(code, 0)
+
+class TestEstimator(TCETestCase):
+
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+        os.chdir(self.temp_dir)
+        
+    def tearDown(self):
+        os.chdir("..")
+        os.system('rm -fr %s' % self.temp_dir)
+
+    def test_estimator(self):
+        "Test the cost estimator by estimating the area and delay of minimal.adf (this takes a while!)"
+
+        # Generate .idf using explorer
+        (timeout, stdout, stderr, code) = \
+             self.runWithTimeout(
+            'explore -e ImplementationSelector -u adf=%s test.dsdb' % \
+            self.get_minimalADF(), 120)
+        self.assertTrue('Best result configurations:' in stdout)
+        self.assertTrue('1' in stdout)
+        self.assertEquals(stderr.strip(), '')
+        self.assertEquals(code, 0)
+
+        # Dump the .idf a file.
+        (timeout, stdout, stderr, code) = \
+             self.runWithTimeout(
+            'explore -w 1 test.dsdb', 60)
+        self.assertEquals(stderr.strip(), '')
+        self.assertEquals(code, 0)        
+        self.assertTrue('Written ADF file of configuration 1' in stdout)
+        self.assertTrue('Written IDF file of configuration 1' in stdout)      
+        self.assertTrue(os.path.exists('1.adf'))
+        self.assertTrue(os.path.exists('1.idf'))
        
+        (timeout, stdout, stderr, code) = \
+             self.runWithTimeout(
+            'estimate -l -a 1.adf 1.idf', 20*60)
+
+        self.assertFalse(timeout)
+
+        expected = \
+        """
+total area: 4813 gates
+delay of the longest path: 12 ns
+"""
+
+        #stdout = expected
+
+        rows = stdout.split('\n')
+        area = int(rows[0].split(':')[1].split(' ')[1].strip())
+        delay = int(rows[1].split(':')[1].split(' ')[1].strip())
+
+        self.assertTrue(area > 4500)
+        self.assertTrue(delay > 10)
+        self.assertEquals(stderr, '')
+        self.assertEquals(code, 0)        
 
 if __name__ == '__main__':
     print "Testing TCE installation, this can take several minutes."
