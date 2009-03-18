@@ -548,15 +548,20 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
-
+        // /usr/include needs to be last in case there is old llvm instalation
+        // from packages
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
-            " -I/usr/include " +
             " -I" + tmpDir +
             " -I`llvm-config --includedir`" + 
-            " -I`llvm-config --includedir`/llvm/Target";
+            " -I`llvm-config --includedir`/Target" + 
+            " -I`llvm-config --includedir`/llvm/Target" +
+            " -I/usr/include ";
     } else {
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
-            " -I" + tmpDir + " -I" + LLVM_INCLUDEDIR;
+            " -I" + tmpDir + 
+	    " -I" + LLVM_INCLUDEDIR +
+	    " -I" + LLVM_INCLUDEDIR + "/Target" +
+	    " -I" + LLVM_INCLUDEDIR + "/llvm/Target"; 
     }
 
     tblgenCmd += pluginIncludeFlags;
