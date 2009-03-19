@@ -204,7 +204,7 @@ private:
      * @param estimates The cost estimates to be printed.
      */
     void printEstimates(const CostEstimates& estimates) {
-        std::ostream& log = Application::logStream();
+        std::ostream& log = std::cout;
         log.flags(std::ios::left);
         int fw = 27;
 
