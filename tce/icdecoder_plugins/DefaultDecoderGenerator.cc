@@ -2902,6 +2902,8 @@ DefaultDecoderGenerator::opcode(
             assert(false);
         }
     }
+    assert(false && "should not get here");
+    return -1; // 
 }
 
                                             
