@@ -35,8 +35,7 @@ AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${LIB_BASE_DIR} \
         -I${MACH_DIR} -I${BEM_DIR} -I${APPLIBS_BEM_DIR} -I${TOOLS_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
-AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} \
-	${XERCES_LIBS} ${EDITLINE_LD_FLAGS}
+AM_LDFLAGS = ${TCE_LDFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

@@ -43,7 +43,7 @@ osed_SOURCES = OSEd.cc OSEdMainFrame.cc OSEdTreeView.cc OSEdInfoView.cc \
 	OSEdInformer.cc OSEdListener.cc OSEdAboutDialog.cc \
 	OperationDAGDialog.cc
 
-osed_LDFLAGS = ${GUI_LIBS} ${SQLITE_LIBDIR} ${BOOST_LIBDIR}
+osed_LDFLAGS = ${TCE_LDFLAGS}
 osed_LDADD = ${SRC_ROOT_DIR}/libtce.la \
 	${BOOST_LDFLAGS} ${TCL_LD_FLAGS} ${EDITLINE_LD_FLAGS}
 

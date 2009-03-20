@@ -52,8 +52,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${UMACH_DIR} -I${TRACEDB_DIR} -I${ESTIMATE_DIR} \
 	-I${HDB_DIR} -I${PROGE_DIR} -I${COSTDB_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
-AM_LDFLAGS = ${BOOST_LIBDIR} ${BOOST_PYTHON_LIB} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} \
-	${XERCES_LIBS} ${EDITLINE_LD_FLAGS}
+AM_LDFLAGS = ${TCE_LDFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

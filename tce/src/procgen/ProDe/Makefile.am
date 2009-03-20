@@ -112,7 +112,7 @@ prode_SOURCES = Model.cc\
 		  CallExplorerPlugin.cc CallExplorerPluginCmd.cc \
 		  EditParameterDialog.cc
 
-prode_LDFLAGS = $(GUI_LIBS) ${SQLITE_LIBDIR} ${BOOST_LIBDIR}
+prode_LDFLAGS = $(TCE_LDFLAGS)
 
 prode_LDADD = ${SRC_ROOT_DIR}/libtce.la
 

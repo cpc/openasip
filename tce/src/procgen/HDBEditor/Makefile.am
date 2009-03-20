@@ -37,9 +37,7 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 		  SetCostFunctionPluginCmd.cc HDBEditorAboutCmd.cc \
 		  HDBEditorAboutDialog.cc
 
-hdbeditor_LDFLAGS = $(GUI_LIBS) $(LIB_INTERPRETER) $(TCL_LD_FLAGS) \
-	${EDITLINE_LD_FLAGS} ${BOOST_LDFLAGS}
-
+hdbeditor_LDFLAGS = $(TCE_LDFLAGS)
 hdbeditor_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)

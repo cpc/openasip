@@ -21,7 +21,12 @@ After running configure, it should be enough to just type
       make install
 
 In order to compile C code you need to also compile the C frontend,
-tce-llvm-gcc. It has its own README-INSTALL.
+tce-llvm-gcc. It has its own INSTALL file.
+
+After installing TCE to somewhere in PATH, you can run a "smoke test" suite
+for the most important tools in TCE installation by running the command
+'tce-selftest -v'. This might take up to two hours, depending on your
+computer.
 
 Building the development version
 ================================
@@ -51,12 +56,13 @@ sqlite3               3.0.0+                               public domain
 LLVM                  2.5                                  LLVM Release License
 Editline              2.9                                  BSD-style
 
-    To get line editing capabilities to the command line interface of the simulator.
+    Editline is used for command line editing/history browsing capabilities to 
+    the command line interface of the simulator.
 
     You can download the sources here: http://www.thrysoee.dk/editline/
 
     Note: this library might require 'termcap' library in some distributions. 
-    The package is named 'libedit-dev' in Debian and Ubuntu.
+    The package is named 'libedit-dev' in Debian-based distributions.
 
 The development files of the following Boost libraries are required by TCE:
 . regexp,
@@ -65,18 +71,18 @@ The development files of the following Boost libraries are required by TCE:
 . format,
 . thread,
 . graph,
-. tuple,
+. tuple
 
 Some distributions, like Fedora Core, include all Boost libraries in a 
-single package, but some, like Debian and Ubuntu, have separated them in 
-several packages. 
+single package, but some, like Debian, have separated them in several 
+packages. 
 
 Remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
-For example, to install the required libraries and tools for Ubuntu 7.10
-using its package manager 'apt-get', you need to execute the following command
+For example, to install the required libraries and tools for Ubuntu using 
+its package manager 'apt-get', you need to execute the following command
 as root: 
 
 apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
@@ -85,13 +91,16 @@ apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
 
 NOTE! In order to compile programs from C, you need to install LLVM. There
 are no decent Debian packages available for older Debian/Ubuntu versions, 
-so the best way is to install it from sources. 
+so the best way is to install it from sources. Current Debian Sid and
+the latest Ubuntu (9.04) ship the correct version so you can install
+LLVM for them simply with 'sudo apt-get install llvm-dev'.
 
-You can download the LLVM sources from here: http://www.llvm.org/releases/
+If LLVM 2.5 is not available for your distribution, you can download 
+the LLVM sources from here: http://www.llvm.org/releases/
 Remember to download a supported LLVM version, as listed above.
 
 Note that after installing LLVM, you need to run a script shipped with
-TCE called 'gen_llvm_shared_lib.sh' (usually as a root, e.g., 
+TCE called 'gen_llvm_shared_lib.sh' (usually as root, e.g., 
 'sudo ./gen_llvm_shared_lib.sh')  to generate a shared version of
 LLVM libraries required by TCE. This is due to a broken shared library
 build of LLVM and hopefully is not needed with the future LLVM

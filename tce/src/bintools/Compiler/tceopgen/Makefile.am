@@ -13,8 +13,7 @@ TOOLS_DIR = ${SRC_ROOT_DIR}/tools
 tceopgen_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
 AM_CPPFLAGS = -I${OSAL_DIR} -I${TOOLS_DIR}
-AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} \
-	   ${XERCES_LIBS} ${EDITLINE_LD_FLAGS}
+AM_LDFLAGS = ${TCE_LDFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

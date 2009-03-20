@@ -75,9 +75,7 @@ proxim_SOURCES = Proxim.cc ProximMainFrame.cc ConsoleWindow.cc \
 	ProximDisasmAttrProvider.cc DisasmExecPercentageAttrProvider.cc \
 	HighlightExecPercentageCmd.cc ProximUnitWindow.cc
 
-proxim_LDFLAGS = $(GUI_LIBS) $(LIB_INTERPRETER) $(TCL_LD_FLAGS) \
-	${EDITLINE_LD_FLAGS} ${BOOST_LDFLAGS} ${BOOST_PYTHON_LIB}
-
+proxim_LDFLAGS = $(TCE_LDFLAGS)
 proxim_LDADD =	${SRC_ROOT_DIR}/libtce.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)

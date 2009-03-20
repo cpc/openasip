@@ -27,7 +27,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	      -I${OSAL_APPLIB_DIR} -I${MACH_APPLIB_DIR} -I${HDB_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
-AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR}
+AM_LDFLAGS = ${TCE_LDFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

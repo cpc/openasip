@@ -39,7 +39,7 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 llvm_tce_LDADD = ${SRC_ROOT_DIR}/libtce.la
 
-AM_LDFLAGS =  ${TCL_LD_FLAGS}
+AM_LDFLAGS = ${TCE_LDFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

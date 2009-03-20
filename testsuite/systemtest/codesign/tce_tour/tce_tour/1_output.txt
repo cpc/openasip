@@ -2,4 +2,3 @@
 0x62488e82
 
 0x62488e82
-Warning: Return address port has different width than instruction memory address. ProGe uses the value set in the address space.

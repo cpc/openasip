@@ -149,7 +149,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         }
         
         ProGeUI::generateProcessor(
-            imemWidthInMAUs, language, outputDirectory, std::cout, std::cout);
+            imemWidthInMAUs, language, outputDirectory, std::cerr, std::cerr);
     } catch (ParserStopRequest) {
         return false;
     } catch (const IllegalCommandLine& exception) {

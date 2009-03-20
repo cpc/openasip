@@ -255,8 +255,11 @@ ProcessorGenerator::validateMachine(
     errorsToCheck.insert(MachineValidator::PC_PORT_MISSING);
     errorsToCheck.insert(MachineValidator::RA_PORT_MISSING);
     errorsToCheck.insert(MachineValidator::PC_AND_RA_PORTS_HAVE_UNEQUAL_WIDTH);
-    errorsToCheck.insert(
-        MachineValidator::IMEM_ADDR_WIDTH_DIFFERS_FROM_RA_AND_PC);
+    // we should not check for this as the designer is not supposed to
+    // know the width of these ports before the design has been finalized,
+    // thus we generate them automatically in ProGe
+    //errorsToCheck.insert(
+    //    MachineValidator::IMEM_ADDR_WIDTH_DIFFERS_FROM_RA_AND_PC);
     
     MachineValidatorResults* results = validator.validate(errorsToCheck);
 

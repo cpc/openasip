@@ -122,7 +122,10 @@ BEMValidator::validate() {
         string errorMsg("Error: Couldn't find GCU from machine");
         errorMessages_.push_back(errorMsg);
     } else {
-        checkImemMauWidth(*gcu);
+        // no reason to check this as we are generating the
+        // instruction memory width according to the instruction
+        // width always (instruction indexed imem assumed)
+        // checkImemMauWidth(*gcu);
     }
 
     if (errorCount() == 0) {

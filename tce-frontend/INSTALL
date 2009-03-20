@@ -24,7 +24,28 @@ Library and tools version prerequisites
 
 You need 'flex' or 'bison'. They should be found in all Linux distributions.
 
+Troubleshooting
+===============
+
+Internal compiler error when compiling gcc/unwind-dw2.c
+-------------------------------------------------------
+
+This is a known bug in gcc version 4.1.2, the default compiler of
+Fedora Core 8 and CentOS/RHEL 5.1. There's not much we can do about
+this at this point. Workaround is to use a newer or older gcc for
+compiling the tce-llvm-gcc frontend.
+
+The bug is mentioned here in the LLVM mailing list:
+
+http://lists.cs.uiuc.edu/pipermail/llvmdev/2009-March/020632.html
+
+See also:
+
+http://llvm.org/docs/GettingStarted.html#brokengcc
+
 LLVM-TCE on 64-bit distributions
-================================
+--------------------------------
+
 If you compile LLVM from sources you should give --enable-pic option for
 the LLVM's configure script. Otherwise compilation of LLVM-TCE might fail.
+
