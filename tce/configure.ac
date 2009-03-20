@@ -1042,6 +1042,13 @@ $EDITLINE_INCLUDES $XERCES_INCLUDES $TCL_INCLUDES $GUI_INCLUDES"
 #	fi
 #fi
 
+if test -d test
+then
+DISTRIBUTED_VERSION_DEFAULT=false
+else
+DISTRIBUTED_VERSION_DEFAULT=true
+fi
+
 # Enable DISTRIBUTED_VERSION
 AC_ARG_ENABLE(distributed,
               [AS_HELP_STRING([--enable-distributed],[Build TCE as distributed version])],
@@ -1064,7 +1071,7 @@ AC_ARG_ENABLE(distributed,
     AC_MSG_ERROR(bad value ${enableval for --enable-distributed}) 
     ;;
   esac], 
-  [AC_DEFINE(DISTRIBUTED_VERSION, false,
+  [AC_DEFINE_UNQUOTED(DISTRIBUTED_VERSION, [$DISTRIBUTED_VERSION_DEFAULT],
             [This macro is defined to 'true'  in case the build is going to be \
              distributed to be used in non-developer systems. This results in debug logs \
              etc. being printed to different files, search paths do not include the TCE \
