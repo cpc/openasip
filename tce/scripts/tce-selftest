@@ -33,7 +33,7 @@
 # (C) 2009 Pekka Jääskeläinen
 
 # exploit the unittest framework even though this is actually a system test
-import unittest, os, tempfile, signal, time
+import unittest, os, tempfile, signal, time, glob
 from subprocess import Popen, PIPE
 
 class TCETestCase(unittest.TestCase):
@@ -226,7 +226,7 @@ class TestCompiler(TCETestCase):
         self._test_compilation("-O3")        
 
 class TestSimulator(TCETestCase):
-    """Tests simulating with the compiled and debugging engines."""
+    """Test simulating with the compiled and debugging engines."""
 
     def setUp(self):
         if hasattr(self, 'tpef_file_name') and self.tpef_file_name is not None:
@@ -261,7 +261,7 @@ class TestSimulator(TCETestCase):
         self._test_simulation("-q")    
 
 class TestCustomOps(TCETestCase):
-    """Tests for custom op functionality."""
+    """Test for custom op functionality"""
     
     def tearDown(self):
         if hasattr(self, 'temp_dir'):
@@ -348,9 +348,8 @@ class TestExplorer(TCETestCase):
         self.assertEquals(code, 0)
 
     def test_basic_plugins(self):
-        "Tests the ImplementationSelector and Evaluate explorer plugins (this takes a while!)"
+        "Test the ImplementationSelector and Evaluate explorer plugins (this takes a while!)"
         # Generate .idf using the ImplementationSelector plugin
-
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
             'explore -e ImplementationSelector -u adf=%s test.dsdb' % \
@@ -393,7 +392,6 @@ class TestExplorer(TCETestCase):
              self.runWithTimeout(
             'tcecc test_app/test.c -c -o test_app/program.bc', 120)
 
-
         # description.txt
         f = open('test_app/description.txt', 'w+')
         f.write("Dummy test application for explorer")
@@ -420,7 +418,7 @@ class TestExplorer(TCETestCase):
 
         (timeout, stdout, stderr, code) = \
              self.runWithTimeout(
-            'explore -e Evaluate -s 1 test.dsdb', 60*20)
+            'explore -e Evaluate -s 1 test.dsdb', 60*30)
 
         self.assertFalse(timeout)
         # Evaluate does not generate new configurations
@@ -508,7 +506,97 @@ delay of the longest path: 12 ns
         self.assertEquals(stderr, '')
         self.assertEquals(code, 0)        
 
+class TestProGeAndPIG(TCETestCase):
+    "Tests for the processor generator and the program image generator"
+    def setUp(self):
+        self.temp_dir = tempfile.mkdtemp()
+        os.chdir(self.temp_dir)
+        
+    def tearDown(self):
+        os.chdir("..")
+        os.system('rm -fr %s' % self.temp_dir)
+
+    def test_proge_and_pig(self):
+        "Tests the processor generator and the program image generator (with dictionary instruction compression)"
+
+        # Generate .idf using the ImplementationSelector plugin
+        (timeout, stdout, stderr, code) = \
+             self.runWithTimeout(
+            'explore -e ImplementationSelector -u adf=%s test.dsdb' % \
+            self.get_minimalADF(), 120)
+        self.assertTrue('Best result configurations:' in stdout)
+        self.assertTrue('1' in stdout)
+        self.assertEquals(stderr.strip(), '')
+        self.assertEquals(code, 0)
+
+        # Dump the .idf a file.
+        (timeout, stdout, stderr, code) = \
+             self.runWithTimeout(
+            'explore -w 1 test.dsdb', 120)
+        self.assertEquals(stderr.strip(), '')
+        self.assertEquals(code, 0)        
+        self.assertTrue('Written ADF file of configuration 1' in stdout)
+        self.assertTrue('Written IDF file of configuration 1' in stdout)      
+        self.assertTrue(os.path.exists('1.adf'))
+        self.assertTrue(os.path.exists('1.idf'))
+
+        # Add a dummy test application.
+        dummy_app_c = """
+        volatile int input[100];
+        volatile int output[100];
+        int main() {
+           int i = 0;
+           for (; i < 100; ++i)
+               input[i] = input[i] + output[i]*2;
+           return 0;
+        }
+        """
+
+        f = open('test.c', 'w+')
+        f.write(dummy_app_c)
+        f.close()
+
+        # test.tpef
+        (timeout, stdout, stderr, code) = \
+             self.runWithTimeout(
+            'tcecc -O0 test.c -a 1.adf -o test.tpef', 60*10)
+
+        self.assertFalse(timeout)
+        self.assertEquals(stdout, '')
+        self.assertEquals(stderr, '')
+        self.assert_(os.path.exists('test.tpef'))
+        self.assertEquals(code, 0)        
+
+        # generate VHDL for the processor
+        (timeout, stdout, stderr, code) = \
+             self.runWithTimeout(
+            'generateprocessor -o proc_vhdl -i 1.idf 1.adf', 60*5)
+        self.assertFalse(timeout)
+        self.assertEquals(stdout, '')
+        self.assertEquals(stderr, '')
+        self.assert_(os.path.exists('proc_vhdl'))
+        self.assertEquals(code, 0)
+
+        self.assertTrue(len(glob.glob('proc_vhdl/vhdl/*.vhdl')) > 10)
+
+        # generate the program image
+        (timeout, stdout, stderr, code) = \
+             self.runWithTimeout(
+            'generatebits -c SimpleDictionary.so -d -g -x proc_vhdl -p test.tpef 1.adf', 60*5)
+
+        self.assertFalse(timeout)
+        self.assertEquals(stdout, '')
+        self.assertTrue('BEM file was not given --> Generating default BEM..' in stderr)
+        self.assert_(os.path.exists('proc_vhdl/vhdl/imem_mau_pkg.vhdl'))
+        self.assert_(os.path.exists('test_data.img'))
+        self.assert_(os.path.exists('test.img'))        
+        self.assertEquals(os.path.getsize('test_data.img'), 0) # No global data defs
+        self.assertTrue(os.path.getsize('test.img') > 0)
+        self.assertEquals(len(open('test.img','r').readlines()[0].strip()), 6)
+        self.assertTrue('IMEMMAUWIDTH : positive := 6;' in open('proc_vhdl/vhdl/imem_mau_pkg.vhdl', 'r').read())
+        self.assertEquals(code, 0)
+
 if __name__ == '__main__':
-    print "Testing TCE installation, this can take several minutes."
-    print "Use -v to see the progress."
+    print "Testing TCE installation, this can take up to two hours."
+    print "Time to go for a lunch? Use -v to see the progress."
     unittest.main()
