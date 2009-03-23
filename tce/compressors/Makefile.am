@@ -1,4 +1,4 @@
-pkglibdir = ${prefix}/share/tce/code_compressors/base
+pkglibdir = ${prefix}/share/tce/codecompressors/base
 pkglib_LTLIBRARIES = SimpleDictionary.la
 
 SimpleDictionary_la_SOURCES = SimpleDictionary.cc

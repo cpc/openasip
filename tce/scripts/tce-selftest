@@ -507,7 +507,7 @@ delay of the longest path: 12 ns
         self.assertEquals(code, 0)        
 
 class TestProGeAndPIG(TCETestCase):
-    "Tests for the processor generator and the program image generator"
+    "Test the processor generator and the program image generator"
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
         os.chdir(self.temp_dir)
@@ -517,7 +517,7 @@ class TestProGeAndPIG(TCETestCase):
         os.system('rm -fr %s' % self.temp_dir)
 
     def test_proge_and_pig(self):
-        "Tests the processor generator and the program image generator (with dictionary instruction compression)"
+        "Test the processor generator and the program image generator (with dictionary instruction compression)"
 
         # Generate .idf using the ImplementationSelector plugin
         (timeout, stdout, stderr, code) = \
@@ -586,7 +586,8 @@ class TestProGeAndPIG(TCETestCase):
 
         self.assertFalse(timeout)
         self.assertEquals(stdout, '')
-        self.assertTrue('BEM file was not given --> Generating default BEM..' in stderr)
+        self.assertEquals(code, 0)        
+        self.assertEquals('BEM file was not given --> Generating default BEM..', stderr.strip())
         self.assert_(os.path.exists('proc_vhdl/vhdl/imem_mau_pkg.vhdl'))
         self.assert_(os.path.exists('test_data.img'))
         self.assert_(os.path.exists('test.img'))        
@@ -594,7 +595,6 @@ class TestProGeAndPIG(TCETestCase):
         self.assertTrue(os.path.getsize('test.img') > 0)
         self.assertEquals(len(open('test.img','r').readlines()[0].strip()), 6)
         self.assertTrue('IMEMMAUWIDTH : positive := 6;' in open('proc_vhdl/vhdl/imem_mau_pkg.vhdl', 'r').read())
-        self.assertEquals(code, 0)
 
 if __name__ == '__main__':
     print "Testing TCE installation, this can take up to two hours."
