@@ -30,7 +30,14 @@ export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno
 export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
 
 make clean >& /dev/null
-autoreconf >& reconf.log
+
+# sid wants different flags for autoreconf than others
+if [ ${HOST_DESC}x == "sidx" ]
+then
+    autoreconf -i --force >& reconf.log
+else
+    autoreconf >& reconf.log
+fi
 
 if [ -x gen_llvm_shared_lib.sh ]
 then

@@ -63,7 +63,13 @@ function start_compiletest {
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
     export TCE_CONFIGURE_SWITCHES="--disable-python"
 
-    autoreconf >& /dev/null
+    # sid wants different flags for autoreconf than others
+    if [ ${HOST_DESC}x == "sidx" ]
+    then
+        autoreconf -i --force >& reconf.log
+    else
+        autoreconf >& reconf.log
+    fi
 
     if [ -x gen_llvm_shared_lib.sh ]
     then
