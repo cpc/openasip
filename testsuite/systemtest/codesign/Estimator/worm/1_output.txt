@@ -1,3 +1,3 @@
 total area: 8568 gates
 delay of the longest path: 9179 ns
-total consumed energy: 4395 mJ
+total consumed energy: 4395.2 mJ
