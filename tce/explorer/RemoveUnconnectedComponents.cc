@@ -66,6 +66,12 @@ class RemoveUnconnectedComponents : public DesignSpaceExplorerPlugin {
         addParameter(allowRemovalPN_, BOOL, false, 
             Conversion::toString(allowRemoval_));
     }
+
+    virtual bool producesArchitecture() const { return true; }
+
+    virtual bool requiresHDB() const { return false; }
+
+    virtual bool requiresSimulationData() const { return false; }
     
     /**
      * Removes unconnected components from a configuration.

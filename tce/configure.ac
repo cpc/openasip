@@ -1020,28 +1020,6 @@ fi
 #
 ################################
 
-# Add all include paths to CPPFLAGS to make sure, that headerfiles are found
-CPPFLAGS="$CPPFLAGS $SQLITE_INCLUDES $BOOST_CPPFLAGS \
-$EDITLINE_INCLUDES $XERCES_INCLUDES $TCL_INCLUDES $GUI_INCLUDES"
-
-# This is an ugly fix for the problem that Makefile wants to
-# rerun automake and autoconf after checkout from CVS.
-
-# touch aclocal.m4 configure config.h.in
-
-#if test -a "Makefile.in";
-#then
-#	echo Makefile.in found, not generating new ones.
-#else
-#	echo -n Makefile.in not found, running aclocal and automake...
-#	if test aclocal && automake 
-#	then
-#		echo "OK."
-#	else
-#		echo "ERROR, check auto_output.txt."
-#	fi
-#fi
-
 if test -d test
 then
 DISTRIBUTED_VERSION_DEFAULT=false
@@ -1082,7 +1060,12 @@ AC_ARG_ENABLE(distributed,
 AC_SUBST([BOOST_INCLUDES], ["$BOOST_CPPFLAGS"] )
 AC_SUBST([BOOST_LIBDIR], ["$BOOST_LDFLAGS"])
 
-BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB $BOOST_FILESYSTEM_LIB"
+# Add all include paths to CPPFLAGS to make sure, that headerfiles are found
+CPPFLAGS="$CPPFLAGS $SQLITE_INCLUDES $BOOST_INCLUDES \
+$EDITLINE_INCLUDES $XERCES_INCLUDES $TCL_INCLUDES $GUI_INCLUDES"
+
+BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB \
+$BOOST_FILESYSTEM_LIB"
 
 if test -d test
 then
@@ -1210,8 +1193,6 @@ AC_CONFIG_FILES([
   scheduler/passes/LinearScanAllocator/Makefile
   scheduler/passes/BasicBlockScheduler/Makefile
   scheduler/passes/SequentialScheduler/Makefile
-  scheduler/testbench/Makefile
-  scheduler/testbench/Operations/Makefile
   opset/Makefile
   opset/base/Makefile
   src/applibs/Scheduler/ProgramRepresentations/Makefile
@@ -1239,11 +1220,13 @@ AC_CONFIG_FILES([
   src/bintools/Compiler/llvm-tce/Makefile
 ])
 
-# Generate unit test makefiles if we have the 'test' dir.
+# Generate test makefiles if we have the 'test' dir.
 if test -d test
 then
 
 AC_CONFIG_FILES([
+  scheduler/testbench/Makefile
+  scheduler/testbench/Operations/Makefile
   test/Makefile
   test/base/Makefile
   test/procgen/Makefile

@@ -72,6 +72,13 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
                 Conversion::toString(superiority_));
     }
 
+
+    virtual bool producesArchitecture() const { return true; }
+
+    virtual bool requiresHDB() const { return true; }
+
+    virtual bool requiresSimulationData() const { return false; }
+
     /**
      * Optimizes the architecture in regards of the cycle count.
      *

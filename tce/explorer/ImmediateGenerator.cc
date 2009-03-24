@@ -95,7 +95,12 @@ class ImmediateGenerator : public DesignSpaceExplorerPlugin {
         addParameter(dstImmUnitNamePN_, STRING, false, dstImmUnitName_);
     }
 
-    
+    virtual bool producesArchitecture() const { return true; }
+
+    virtual bool requiresHDB() const { return false; }
+
+    virtual bool requiresSimulationData() const { return false; }
+
     /**
      * Explorer plugin that creates or modifies machine instruction templates.
      * TODO: add some modifying functionality.

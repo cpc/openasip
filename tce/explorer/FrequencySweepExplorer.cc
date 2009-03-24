@@ -119,6 +119,13 @@ class FrequencySweepExplorer : public DesignSpaceExplorerPlugin {
                 Conversion::toString(superiority_));
     }
 
+    virtual bool producesArchitecture() const { return false; }
+
+    virtual bool requiresHDB() const { return true; }
+
+    virtual bool requiresSimulationData() const { return false; }
+
+
     /**
      * Explores from the given start configuration.
      *

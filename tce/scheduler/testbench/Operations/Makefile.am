@@ -7,7 +7,7 @@ OSALBUILDER=../../../src/codesign/osal/OSALBuilder/buildopset
 all-local: $(patsubst %.opp,%.opb,$(notdir $(wildcard $(srcdir)/*.opp)))
 
 %.opb : %.cc %.opp
-	@${OSALBUILDER} $(basename $<) && mv $(basename $<).opb $@
+	@${OSALBUILDER} $(basename $<) && if test ! -e $@; then mv -f $(basename $<).opb $@; fi
 
 clean:
 	rm -f *.opb

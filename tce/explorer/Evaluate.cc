@@ -70,6 +70,12 @@ class Evaluate : public DesignSpaceExplorerPlugin {
     }
 
 
+    virtual bool producesArchitecture() const { return false; }
+
+    virtual bool requiresHDB() const { return false; }
+
+    virtual bool requiresSimulationData() const { return true; }
+
     virtual std::vector<RowID>
     explore(const RowID& configurationID, const unsigned int&) {
         readParameters();

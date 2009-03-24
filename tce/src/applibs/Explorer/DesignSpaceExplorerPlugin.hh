@@ -59,6 +59,12 @@ public:
 
     virtual ~DesignSpaceExplorerPlugin();
     
+    virtual bool producesArchitecture() const = 0;
+
+    virtual bool requiresHDB() const = 0;
+
+    virtual bool requiresSimulationData() const = 0;
+
     typedef std::pair<std::string, 
             ExplorerPluginParameter> Parameter;
     typedef std::map<std::string, 

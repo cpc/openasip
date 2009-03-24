@@ -43,6 +43,12 @@ class TestExplorerPlugin : public DesignSpaceExplorerPlugin {
 public:
     DESCRIPTION("dummy explorer plugin to test the loading system");
 
+    virtual bool producesArchitecture() const { return false; }
+
+    virtual bool requiresHDB() const { return true; }
+
+    virtual bool requiresSimulationData() const { return false; }
+
     virtual std::vector<RowID>
     explore(const RowID&, const unsigned int&) {
         RowID conf1 = 1;

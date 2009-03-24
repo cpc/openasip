@@ -83,6 +83,13 @@ class MinimizeMachine : public DesignSpaceExplorerPlugin {
         addParameter(minRFPN_, BOOL, false, Conversion::toString(minRF_));
     }
     
+
+    virtual bool producesArchitecture() const { return true; }
+
+    virtual bool requiresHDB() const { return true; }
+
+    virtual bool requiresSimulationData() const { return false; }
+
     /**
      * Minimizes given configuration by not exceeding applications max
      * runtime which depends on given frequncy

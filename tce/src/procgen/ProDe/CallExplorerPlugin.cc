@@ -105,7 +105,19 @@ CallExplorerPluginWindow::CallExplorerPluginWindow(
         dynamic_cast<wxButton*>(FindWindow(ID_RUN));
 
     // Get explorer plugin names.
-    plugins_ = explorer_.getPlugins();
+    std::vector<DesignSpaceExplorerPlugin*> plugins = explorer_.getPlugins();
+
+    for (std::size_t i = 0; i < plugins.size(); i++) {
+        DesignSpaceExplorerPlugin *plugin = plugins[i];
+
+        if (plugin->producesArchitecture() &&
+            !plugin->requiresHDB() && 
+            !plugin->requiresSimulationData()) {
+            
+            plugins_.push_back(plugin);
+        }
+
+    }
 
     // set widget texts
     setTexts();

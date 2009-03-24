@@ -70,6 +70,12 @@ class MinimalOpSet : public DesignSpaceExplorerPlugin {
         addParameter(printMissingOpsPN_, BOOL, false, 
             Conversion::toString(printMissingOps_));
     }
+
+    virtual bool producesArchitecture() const { return false; }
+
+    virtual bool requiresHDB() const { return false; }
+
+    virtual bool requiresSimulationData() const { return false; }
     
     /**
      * Explorer plugin that checks that given config or adf meets minimal opset
