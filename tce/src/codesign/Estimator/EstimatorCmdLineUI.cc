@@ -250,9 +250,8 @@ main(int argc, char* argv[]) {
         std::cout << "total consumed energy: ";
         try {
             std::cout 
-                << round(
-                    estimator.totalEnergy(
-                        *machine, *implementation, *program, *trace))
+                << estimator.totalEnergy(
+                        *machine, *implementation, *program, *trace)
                 << " mJ" << std::endl;
         } catch (const Exception& e) {
             std::cerr << "estimation failed: " + e.errorMessage() 
