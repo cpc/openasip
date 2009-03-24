@@ -220,3 +220,28 @@ changing ENVs
 -------------
 export PATH=/opt/tce_libs/bin:$PATH
 export LD_LIBRARY_PATH=/opt/tce-libs/lib:$LD_LIBRARY_PATH
+
+FreeBSD
+=======
+
+All the needed libraries except llvm are available on the ports collection.
+
+Compilation and installation works the same way as in any Linux distro, but
+the fact FreeBSD (at least 6.x-RELEASE) uses gcc-3.x series instead of 4.x, and
+that some headers & libraries are installed in a different location than in
+Ubuntu, makes the use of some configure switches neccessary:
+
+./configure --prefix=INSTALLATION_DIRECTORY                     \
+            --with-tcl-headers=/usr/local/include/tcl8.4        \
+            CPPFLAGS=-I/usr/local/include                       \
+            CXXFLAGS="-O3 -W -Wall -pedantic -Wno-long-long -g" \
+            LDFLAGS=-L/usr/local/lib
+
+After configure step ends, copy /usr/local/bin/libtool to the build directory
+(i.e. the directory you ran configure script in) and then you are ready to
+compile:
+
+gmake && gmake install
+
+(default system make is BSD make in FreeBSD systems, we need to use gmake
+to run GNU make).
