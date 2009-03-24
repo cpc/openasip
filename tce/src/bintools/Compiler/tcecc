@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 #
 # Compiler driver for tce-llvm-gcc toolset
 #

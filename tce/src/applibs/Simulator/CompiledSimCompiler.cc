@@ -54,10 +54,11 @@ using std::time_t;
 const char* CompiledSimCompiler::COMPILED_SIM_CPP_FLAGS = 
     " -fno-working-directory "
     "-fno-enforce-eh-specs "
-    "-fno-rtti "
-    "-fno-threadsafe-statics "
-    "-fvisibility=hidden "
-    "-fvisibility-inlines-hidden ";
+    "-fno-rtti ";
+//     "-fno-rtti "
+//     "-fno-threadsafe-statics "
+//     "-fvisibility=hidden "
+//     "-fvisibility-inlines-hidden ";
 
 // this was not recognized on Ubuntu 6.06's gcc:
 //    "-fno-stack-protector "

@@ -11,6 +11,7 @@ PROG_DIR = ${SRC_ROOT_DIR}/base/program
 MACH_DIR = ${SRC_ROOT_DIR}/base/mach
 UMACH_DIR = ${SRC_ROOT_DIR}/base/umach
 SCHED_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
+OSAL_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/osal
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools
 LLVM_BACKEND_DIR = ${SRC_ROOT_DIR}/applibs/LLVMBackend
 SCHED_ALGO_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler/Algorithms
@@ -37,7 +38,7 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${LLVM_BACKEND_DIR} -I${PROG_DIR} \
 	-I${UMACH_DIR} -I${SCHED_ALGO_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
-llvm_tce_LDADD = ${SRC_ROOT_DIR}/libtce.la
+llvm_tce_LDADD = ../../../libtce.la
 
 AM_LDFLAGS = ${TCE_LDFLAGS}
 

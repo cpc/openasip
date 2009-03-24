@@ -238,11 +238,15 @@ PluginTools::unregisterAllModules()
     MapIter mt;
     for (mt = modules_.begin(); mt != modules_.end(); mt++) {
 	void* handle = (*mt).second;
-        if (dlclose(handle) != 0) {
-            string method = "PluginTools::unregisterAllModules()";
-            string message = dlerror();
-            throw DynamicLibraryException(__FILE__, __LINE__, method, message);
-        }
+	dlclose (handle);
+	// Removing check. This is called on the global destructor
+	// stage and in some systems (FreeBSD) libraries are already
+	// unloaded by then.
+//         if (dlclose(handle) != 0) {
+//             string method = "PluginTools::unregisterAllModules()";
+//             string message = dlerror();
+//             throw DynamicLibraryException(__FILE__, __LINE__, method, message);
+//         }
     }
     modules_.clear();
 }
@@ -288,7 +292,7 @@ PluginTools::loadSym(const std::string& symbolName, const std::string& module)
 
         MapIter mt = modules_.find(path);
         void* handle = (*mt).second;
-        char* error = NULL;
+        const char* error = NULL;
 
         // clear possible old errors
         dlerror();
@@ -307,7 +311,7 @@ PluginTools::loadSym(const std::string& symbolName, const std::string& module)
         // one found
         for (MapIter mt = modules_.begin(); mt != modules_.end(); mt++) {
             void* handle = (*mt).second;
-            char* error = NULL;
+            const char* error = NULL;
             dlerror();
             void* sym = dlsym(handle, symbolName.c_str());
             if ((error = dlerror()) == NULL) {

@@ -23,7 +23,7 @@ APPLIBS_FSA_DIR = ../../../applibs/FSA
 
 bin_PROGRAMS = testosal
 testosal_SOURCES = TestOsal.cc
-testosal_LDADD = ${SRC_ROOT_DIR}/libtce.la \
+testosal_LDADD = ../../../libtce.la \
 	${TCL_LD_FLAGS} ${BOOST_LDFLAGS} ${EDITLINE_LD_FLAGS}
 
 AM_CPPFLAGS = -I${TOOLS_DIR} \

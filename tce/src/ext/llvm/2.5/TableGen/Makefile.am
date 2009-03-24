@@ -23,7 +23,7 @@ tblgen_SOURCES = \
   FastISelEmitter.cpp 
 
 AM_CPPFLAGS = $(LLVM_CPPFLAGS)
-AM_LDFLAGS = -L$(LLVM_LIBDIR) -lLLVMSupport -lLLVMSystem -lpthread -ldl -lm
+AM_LDFLAGS = -L$(LLVM_LIBDIR) -lLLVMSupport -lLLVMSystem -lpthread @DL_FLAGS@ -lm
 
 tblgen_LDFLAGS = $(AM_LDFLAGS)
 

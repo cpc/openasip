@@ -44,7 +44,7 @@ bin_PROGRAMS = estimate
 bin_SCRIPTS = buildestimatorplugin
 estimate_SOURCES = EstimatorCmdLineUI.cc EstimatorCmdLineOptions.cc
 
-estimate_LDADD = ${SRC_ROOT_DIR}/libtce.la
+estimate_LDADD = ../../libtce.la
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \

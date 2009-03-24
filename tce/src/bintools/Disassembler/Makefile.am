@@ -21,7 +21,7 @@ APPLIBS_FSA_DIR = ../../applibs/FSA
 bin_PROGRAMS = tcedisasm
 tcedisasm_SOURCES = tcedisasm.cc
 
-tcedisasm_LDADD = ${SRC_ROOT_DIR}/libtce.la
+tcedisasm_LDADD = ../../libtce.la
 
 AM_CPPFLAGS = -I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \
         -I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${LIB_BASE_DIR} \

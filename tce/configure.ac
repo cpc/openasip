@@ -1021,7 +1021,7 @@ fi
 ################################
 
 # Add all include paths to CPPFLAGS to make sure, that headerfiles are found
-CPPFLAGS="$CPPFLAGS $SQLITE_INCLUDES $BOOST_INCLUDES \
+CPPFLAGS="$CPPFLAGS $SQLITE_INCLUDES $BOOST_CPPFLAGS \
 $EDITLINE_INCLUDES $XERCES_INCLUDES $TCL_INCLUDES $GUI_INCLUDES"
 
 # This is an ugly fix for the problem that Makefile wants to
@@ -1210,6 +1210,8 @@ AC_CONFIG_FILES([
   scheduler/passes/LinearScanAllocator/Makefile
   scheduler/passes/BasicBlockScheduler/Makefile
   scheduler/passes/SequentialScheduler/Makefile
+  scheduler/testbench/Makefile
+  scheduler/testbench/Operations/Makefile
   opset/Makefile
   opset/base/Makefile
   src/applibs/Scheduler/ProgramRepresentations/Makefile

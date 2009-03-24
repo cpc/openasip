@@ -14,7 +14,7 @@ OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
 MACH_DIR = ${SRC_ROOT_DIR}/base/mach
 UM_DIR = ${SRC_ROOT_DIR}/base/umach
 
-schedule_LDADD = ${SRC_ROOT_DIR}/libtce.la
+schedule_LDADD = ../../libtce.la
 
 AM_CPPFLAGS = -I${SCHEDULER_DIR} -I${TOOLS_DIR} -I${MACH_DIR} -I${UM_DIR} \
 	-I${OSAL_DIR} -I${POM_DIR}

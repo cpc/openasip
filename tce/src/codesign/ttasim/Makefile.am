@@ -29,7 +29,7 @@ FSA_APPLIB_DIR = ../../applibs/FSA
 bin_PROGRAMS = ttasim
 ttasim_SOURCES = TTASim.cc SimulatorCmdLineOptions.cc
 
-ttasim_LDADD = ${SRC_ROOT_DIR}/libtce.la 
+ttasim_LDADD = ../../libtce.la 
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${BASE_DIR} \

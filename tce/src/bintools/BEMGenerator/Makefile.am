@@ -16,7 +16,7 @@ bin_PROGRAMS = createbem
 createbem_SOURCES = CreateBEM.cc BEMGeneratorCmdLineOptions.cc \
 	BEMGeneratorCLITextGenerator.cc
 
-createbem_LDADD = ${SRC_ROOT_DIR}/libtce.la
+createbem_LDADD = ../../libtce.la
 
 createbem-static: CreateBEM.o BEMGeneratorCmdLineOptions.o BEMGeneratorCLITextGenerator.o
 	g++ -o createbem-static \

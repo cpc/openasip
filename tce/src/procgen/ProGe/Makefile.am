@@ -34,7 +34,7 @@ bin_PROGRAMS = generateprocessor
 generateprocessor_SOURCES = GenerateProcessor.cc \
 ProGeCmdLineOptions.cc
 
-generateprocessor_LDADD = ${SRC_ROOT_DIR}/libtce.la
+generateprocessor_LDADD = ../../libtce.la
 
 AM_CPPFLAGS = -I${HDB_DIR} -I${TOOLS_DIR} -I${PROGE_APPLIBS_DIR} \
 -I${MACH_DIR} -I${BEM_DIR}

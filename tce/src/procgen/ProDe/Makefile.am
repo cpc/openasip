@@ -114,7 +114,7 @@ prode_SOURCES = Model.cc\
 
 prode_LDFLAGS = $(TCE_LDFLAGS)
 
-prode_LDADD = ${SRC_ROOT_DIR}/libtce.la
+prode_LDADD = ../../libtce.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 

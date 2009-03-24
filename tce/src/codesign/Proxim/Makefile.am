@@ -76,7 +76,7 @@ proxim_SOURCES = Proxim.cc ProximMainFrame.cc ConsoleWindow.cc \
 	HighlightExecPercentageCmd.cc ProximUnitWindow.cc
 
 proxim_LDFLAGS = $(TCE_LDFLAGS)
-proxim_LDADD =	${SRC_ROOT_DIR}/libtce.la
+proxim_LDADD = ../../libtce.la
 
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 

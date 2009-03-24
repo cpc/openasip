@@ -44,7 +44,7 @@ osed_SOURCES = OSEd.cc OSEdMainFrame.cc OSEdTreeView.cc OSEdInfoView.cc \
 	OperationDAGDialog.cc
 
 osed_LDFLAGS = ${TCE_LDFLAGS}
-osed_LDADD = ${SRC_ROOT_DIR}/libtce.la \
+osed_LDADD = ../../../libtce.la \
 	${BOOST_LDFLAGS} ${TCL_LD_FLAGS} ${EDITLINE_LD_FLAGS}
 
 AM_CXXFLAGS = ${GUI_INCLUDES}

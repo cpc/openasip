@@ -52,7 +52,7 @@ bin_PROGRAMS = explore
 bin_SCRIPTS = buildexplorerplugin
 explore_SOURCES = Explorer.cc ExplorerCmdLineOptions.cc
 
-explore_LDADD = ${SRC_ROOT_DIR}/libtce.la
+explore_LDADD = ../../libtce.la
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${BASE_DIR} \
