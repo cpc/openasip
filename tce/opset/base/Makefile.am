@@ -64,7 +64,7 @@ all-local: ${pkglib_LTLIBRARIES}
 	ln -sf ${srcdir}/.libs/base.so ${srcdir}/base.opb
 
 install-exec-hook:
-	ln -sf $(DESTDIR)/${pkglibdir}/base.so $(DESTDIR)/${pkglibdir}/base.opb
+	ln -sf ${pkglibdir}/base.so $(DESTDIR)/${pkglibdir}/base.opb
 
 clean-local:
 	rm -f ${srcdir}/base.opb
