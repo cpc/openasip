@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.0}
-\ver{11}
+\ver{12}
 \firstday{25.10.2006}
-\lastday{12.11.2008}
+\lastday{26.03.2009}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -1025,18 +1025,10 @@ most. Select: \textit{Source>Profile data>Highlight Top Execution Counts}.
 Now the disassembly window has the most executed instructions highlighted.
 You should be able to spot the main loop of the program easily.
 
+You can recompile the program straight from C to TTA code using the
+following command:
 
-As you probably noticed from the processor utilisation, the dividers
-(divs, divu) were not used. Currently the dividers have been implemented
-using Design Ware IP, which isn't freely distributed. In order to generate
-functioning processor you will have to remove these two FUs from the machine.
-Open ProDe and delete the divs and divu FUs and their sockets.Remember to
-save your changes.
-
-In addition it is possible to use division in program even if the
-processor doesn't have a hardware divider since the compiler will use
-software emulation for division. Software emulation is naturally much less
-efficient than a hardware divider.
+\shellcmd{tcecc -O3 -o crc.tpef -k main,result crc.c main.c -a start.adf}
 
 \subsection{Initial optimization}
 
@@ -1089,10 +1081,13 @@ operation that is potentially useful also for other algorithms than CRC.
 
 The first thing to do when trying to optimize code is to profile the execution.
 In Proxim you can trace the most executed instructions (see section
-\ref{sec:ProfileProxim} for more information). Another way is to enable
-``procedure transfer tracking'',  which traces function calls and
-corresponding cycle counts. A call profile helps locating the functions
-that are executed the most. Refer to section \ref{sec:traces} for further
+\ref{sec:ProfileProxim} for more information). Another way to produce 
+program profile data is to enable
+``setting profile\_data\_saving 1'' in ttasim before initializing the simulation.
+This produces a crc.tpef.trace file from which one can dump the function
+profile using a command ``dump\_function\_profile crc.tpef.trace''. 
+A call profile helps locating the functions that are executed the most. 
+Refer to section \ref{sec:traces} for further
 information.
 
 In this case finding the operation to be optimized is quite obvious if you
@@ -1464,11 +1459,12 @@ a FU with the custom operation:
 Simulate the parallel program. You can do it quickly with the command line
 simulator:
 
-\shellcmd{ttasim -a custom.adf -p crc\_with\_custom\_op.tpef}.
+\shellcmd{ttasim -a custom.adf -p crc\_with\_custom\_op.tpef}
 
-Verify that the result is the same as before. Check the cycle count
-\textit{info proc cycles} and compare it to the cycle count of the version 
-which does not use a custom operation. You should see a significant drop.
+Verify that the result is the same as before (\textit{x /u w \_result}). 
+Check the cycle count \textit{info proc cycles} and compare it to the cycle 
+count of the version which does not use a custom operation. You should see 
+a significant drop.
 
 In addition to custom operations, other ways to improve the cycle count 
 further is to add more resources such as registers and transport buses. 
@@ -1577,8 +1573,8 @@ is encoded. You do not have to care about this, it is just for curiosity.
 Maybe the only important part in the printout is the length of the
 instruction word. In this case, even though the processor has only
 one move slot, the instruction word width is more than 40 bits. The size can
-be reduced with instruction compression, which is not used in the tutorial.
-% TODO: add the instruction compression part here also (TEEMU)
+be reduced with instruction compression and smaller immediate width, 
+which is skipped in the tutorial.
 
 Next, we must select implementations for all components in the architecture.
 Each architecture component can be implemented in multiple ways, so we must
@@ -1589,11 +1585,12 @@ This can be done in the ProDe tool:
 
 \shellcmd{prode custom.adf}
 
-If you want to avoid warning messages from ProGe, you should change
-the widths of GCU ports and LSU trigger port. Open the Address Spaces
-dialog and check the bitwidth fields. Then set the GCU port widths according
-the instruction memory's address bitwidth field. Next change the LSU trigger
-port's width. Set it to the same value as the data memory's address bitwidth.
+% These warnings are removed, right?
+% If you want to avoid warning messages from ProGe, you should change
+% the widths of GCU ports and LSU trigger port. Open the Address Spaces
+% dialog and check the bitwidth fields. Then set the GCU port widths according
+% the instruction memory's address bitwidth field. Next change the LSU trigger
+% port's width. Set it to the same value as the data memory's address bitwidth.
 
 Then we'll select implementations for the FUs which can be done in
 \textit{Tools>Processor Implementation...}. Note that the selection window
@@ -1622,7 +1619,8 @@ REFLECT custom operation.
 Finally select the IC/Decoder generator plugin used to generate the
 decoder in the control unit and interconnection network:
 \textit{Browse... (installation\_path)/share/tce/icdecoder\_plugins/base/
-DefaultICDecoderPlugin.so>OK}.
+DefaultICDecoderPlugin.so>OK}. This should be selected by default.
+
 You do not have to care about the HDB file text box because we are not going 
 to use cost estimation data.
 \end{enumerate}
