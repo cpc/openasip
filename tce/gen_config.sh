@@ -28,7 +28,7 @@
 
 rm -f acinclude.m4
 
-autoreconf
+autoreconf -i --force
 
 # In case of libtool 2.x (at least in Ubuntu Intrepid), m4 dir
 # should now contain libtool.m4. If that's the case, we do not
