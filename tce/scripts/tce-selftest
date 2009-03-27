@@ -318,7 +318,7 @@ END_OPERATION(HELLO_WORLD)
 
         (timeout, stdout, stderr, code) = \
                   self.runWithTimeout(\
-            "echo 'HELLO_WORLD 0\\n!quit\' | testosal", 120)
+            "echo 'HELLO_WORLD 0' | testosal", 120)
         self.assertEquals(
             stdout.strip(),
             'Hello TTA Custom Operation World!')
