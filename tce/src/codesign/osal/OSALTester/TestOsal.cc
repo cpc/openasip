@@ -26,8 +26,8 @@
  *
  * Implementation of test_osal.
  *
- * @author Jussi Nyk�nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J��skel�inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -1080,7 +1080,12 @@ int main(int argc, char* argv[]) {
         InterpreterContext& interpCont = interpreter.context();
         TesterContext& testCont = *dynamic_cast<TesterContext*>(&interpCont);
         while (testCont.cont()) {
-            command = reader->readLine();
+            try {
+                command = reader->readLine();
+            } catch (const EndOfFile&) {
+                interpreter.interpret("quit\n");
+                break;
+            }
             command = StringTools::trim(command);
             if (command == "") {
                 continue;
