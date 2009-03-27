@@ -317,8 +317,11 @@ END_OPERATION(HELLO_WORLD)
         self.assertEquals(os.path.exists('hello.opb'), True)
 
         (timeout, stdout, stderr, code) = \
-                  self.runWithTimeout('echo HELLO_WORLD 0 | testosal', 120)
-        self.assert_('Hello TTA Custom Operation World!' in stdout.strip())
+                  self.runWithTimeout(\
+            "echo 'HELLO_WORLD 0\\n!quit\' | testosal", 120)
+        self.assertEquals(
+            stdout.strip(),
+            'Hello TTA Custom Operation World!')
 
 
 class TestExplorer(TCETestCase):
