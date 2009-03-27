@@ -577,7 +577,7 @@ class TestProGeAndPIG(TCETestCase):
         self.assert_(os.path.exists('proc_vhdl'))
         self.assertEquals(code, 0)
 
-        self.assertTrue(len(glob.glob('proc_vhdl/vhdl/*.vhdl')) > 10)
+        self.assertTrue(len(glob.glob('proc_vhdl/vhdl/*.vhdl')) > 9)
 
         # generate the program image
         (timeout, stdout, stderr, code) = \
