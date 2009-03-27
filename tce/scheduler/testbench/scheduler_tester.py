@@ -1116,7 +1116,7 @@ class Tester:
     def initOperations(self):
         curdir = os.getcwd()
         os.chdir(operationDir)
-        callSilent("make -s")
+        callSilent("make -s > /dev/null")
         os.chdir(curdir)
 
     def runTests(self):

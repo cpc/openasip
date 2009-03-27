@@ -208,27 +208,6 @@
     </writes-to>
   </socket>
 
-  <socket name="rotator_i3">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="rotator_i4">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="rotator_o2">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
   <socket name="io_i1">
     <reads-from>
       <bus>B1</bus>
@@ -688,64 +667,6 @@
       <bind name="1">in2</bind>
       <bind name="2">in1t</bind>
       <bind name="3">out</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="rotator">
-    <port name="int1">
-      <connects-to>rotator_i3</connects-to>
-      <width>5</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>rotator_i4</connects-to>
-      <width>32</width>
-    </port>
-    <port name="out1">
-      <connects-to>rotator_o2</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>rotl</name>
-      <bind name="1">in2</bind>
-      <bind name="2">int1</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <operation>
-      <name>rotr</name>
-      <bind name="1">in2</bind>
-      <bind name="2">int1</bind>
-      <bind name="3">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>

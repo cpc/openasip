@@ -217,6 +217,12 @@ def optimizeBytecode(inFile, fileNamePrefix):
     else:
         loop_unroll_pass = " " 
         loop_unroll_switches = " " 
+
+    if options.noinline:
+        inline = ""
+    else:
+        inline = "-inline "
+
         
     std_compile_opts = (" " +
                         "-preverify " +
@@ -237,7 +243,7 @@ def optimizeBytecode(inFile, fileNamePrefix):
                         "-basiccg " +
                         "-prune-eh " +
                         "-functionattrs " +
-                        "-inline " +
+                        inline +
                         "-argpromotion " +
                         "-simplify-libcalls " +
                         "-instcombine " +
@@ -299,8 +305,8 @@ def optimizeBytecode(inFile, fileNamePrefix):
                         "-mem2reg " +
                         "-instcombine " +
                         "-simplifycfg " +
-                        "-basiccg " +                       
-                        "-inline " +
+                        "-basiccg " +
+                        inline +
                         "-argpromotion " +
                         "-simplify-libcalls " +
                         "-instcombine " +
@@ -377,9 +383,6 @@ def optimizeBytecode(inFile, fileNamePrefix):
         
     elif options.optimization_level > 1:
         optSwitches = (" -internalize " + std_compile_opts)
-
-    if options.noinline:
-        optSwitches += "-disable-inlining "
     
     internalize_api_list = " -internalize-public-api-list=_start"
     if options.keep_symbols != "":
