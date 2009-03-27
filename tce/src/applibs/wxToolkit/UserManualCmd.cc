@@ -89,10 +89,19 @@ UserManualCmd::Do() {
     delete ft;
     ft = NULL;
 
-    if (cmd.IsEmpty()) {
+    std::string cmdStr = std::string(cmd.ToAscii());
+
+    // Stupid hack for now. Fedora for some reason this cmd would end up
+    // being 'gimp' which is not very nice ;)
+    if (cmd.IsEmpty() || 
+        !(cmdStr.find("evince") != std::string::npos || 
+          cmdStr.find("kpdf") != std::string::npos || 
+          cmdStr.find("acroread") != std::string::npos || 
+          cmdStr.find("okular") != std::string::npos)) {
         return askFromUser();
     } else {
-        wxExecute(cmd);
+        if (wxExecute(cmd) == -1)
+            askFromUser();
     }
     
     return true;

@@ -73,7 +73,7 @@ string Environment::newConfFile_ = "";
 string Environment::newErrorLogFileDir_ = "";
 
 const string Environment::PDF_MANUAL_INSTALLED = "manual/TCE_manual.pdf";
-const string Environment::PDF_MANUAL_SRC = "doc/man/TCE/TCE.pdf";
+const string Environment::PDF_MANUAL_SRC = "manual/TCE_manual.pdf";
 
 const string Environment::MINIMAL_ADF_INSTALLED = "data/mach/minimal.adf";
 const string Environment::MINIMAL_ADF_SRC = "data/mach/minimal.adf";
@@ -813,9 +813,9 @@ Environment::pdfManual() {
     std::string path =
         string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) +
         PDF_MANUAL_INSTALLED;
-    assert(
-        FileSystem::fileExists(path) && 
-        "Installation broken, manual not found");
+
+    if (!FileSystem::fileExists(path))
+        debugLog("Installation broken, manual not found");
     return path;
 }
 
