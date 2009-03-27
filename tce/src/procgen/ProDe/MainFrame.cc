@@ -298,15 +298,15 @@ MainFrame::onCommandEvent(wxCommandEvent& event) {
 
     wxView* view = wxGetApp().docManager()->GetCurrentView();
     if (view != NULL) {
-	command->setParentWindow(this);
+        command->setParentWindow(this);
         EditorCommand* editorCmd = dynamic_cast<EditorCommand*>(command);
         if (editorCmd != NULL) {
             editorCmd->setView(view);
         }
-	command->Do();
+        command->Do();
         updateUI();
         delete command;
-	return;
+        return;
     }
 
     // set command parent window and view

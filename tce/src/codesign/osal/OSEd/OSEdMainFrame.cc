@@ -50,7 +50,7 @@
 #include "OSEdSimulateCmd.hh"
 #include "OSEdBuildCmd.hh"
 #include "OSEdBuildAllCmd.hh"
-#include "OSEdUserManualCmd.hh"
+#include "UserManualCmd.hh"
 #include "OSEdRemoveModuleCmd.hh"
 #include "OSEdModifyBehaviorCmd.hh"
 #include "OSEdRemoveOperationCmd.hh"
@@ -69,6 +69,7 @@ using std::string;
 
 BEGIN_EVENT_TABLE(OSEdMainFrame, wxFrame)
     EVT_MENU_RANGE(OSEdConstants::CMD_QUIT, OSEdConstants::CMD_MEMORY, OSEdMainFrame::onCommandEvent)
+    EVT_MENU(UserManualCmd::COMMAND_ID, OSEdMainFrame::onCommandEvent)
 END_EVENT_TABLE()
 
 /**
@@ -160,7 +161,7 @@ OSEdMainFrame::OSEdMainFrame(
     menu = new wxMenu;
     fmt = texts.text(OSEdTextGenerator::TXT_MENU_USER_MANUAL);
     menu->Append(
-        OSEdConstants::CMD_USER_MANUAL, WxConversion::toWxString(fmt.str()));
+        UserManualCmd::COMMAND_ID, WxConversion::toWxString(fmt.str()));
     
     fmt = texts.text(OSEdTextGenerator::TXT_MENU_ABOUT);
     menu->Append(
@@ -183,7 +184,7 @@ OSEdMainFrame::OSEdMainFrame(
     registry_->addCommand(new OSEdOptionsCmd());
     registry_->addCommand(new OSEdBuildCmd());
     registry_->addCommand(new OSEdBuildAllCmd());
-    registry_->addCommand(new OSEdUserManualCmd());
+    registry_->addCommand(new UserManualCmd());
     registry_->addCommand(new OSEdRemoveModuleCmd());
     registry_->addCommand(new OSEdModifyBehaviorCmd());
     registry_->addCommand(new OSEdRemoveOperationCmd());

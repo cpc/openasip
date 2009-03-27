@@ -30,6 +30,7 @@
  */
 
 #include <wx/mimetype.h>
+#include <wx/arrstr.h>
 #include <string>
 
 #include "UserManualCmd.hh"
@@ -90,18 +91,17 @@ UserManualCmd::Do() {
     ft = NULL;
 
     std::string cmdStr = std::string(cmd.ToAscii());
-
-    // Stupid hack for now. Fedora for some reason this cmd would end up
-    // being 'gimp' which is not very nice ;)
+    // Stupid hack for now. For fedora some reason this cmd would end up
+    // being 'gimp' which is not very nice PDF reader ;)
     if (cmd.IsEmpty() || 
         !(cmdStr.find("evince") != std::string::npos || 
           cmdStr.find("kpdf") != std::string::npos || 
+          cmdStr.find("kghostview") != std::string::npos || 
           cmdStr.find("acroread") != std::string::npos || 
           cmdStr.find("okular") != std::string::npos)) {
         return askFromUser();
     } else {
-        if (wxExecute(cmd) == -1)
-            askFromUser();
+        wxExecute(cmd);
     }
     
     return true;
