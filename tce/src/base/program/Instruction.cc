@@ -71,7 +71,9 @@ Instruction::Instruction(
     int size,
     const TTAMachine::InstructionTemplate& instructionTemplate) :
     parent_(NULL), size_(size), hasRegisterAccesses_(false),
-    hasConditionalRegisterAccesses_(false), insTemplate_(&instructionTemplate) {
+    hasConditionalRegisterAccesses_(false), 
+    insTemplate_(&instructionTemplate), 
+    positionInProcedure_((InstructionAddress)-1) {
     assert(size == 1 && 
            "Instructions sizes other than 1 not supported in POM at the "
            "moment.");
