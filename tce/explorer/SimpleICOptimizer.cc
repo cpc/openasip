@@ -433,16 +433,15 @@ private:
         // go through every procedure in the program
         for (int i = 0; i < prog.procedureCount(); i++) {
             Procedure& procedure = prog.procedure(i);
-            Instruction* instruction = &procedure.firstInstruction();
 
-            // go through every instruction
-            bool first = true;
-            while (procedure.hasNextInstruction(*instruction) || first) {
-                first = false;
+            // go through every instruction            
+            for (int j = 0; j < procedure.instructionCount(); j++) {
+                Instruction& instruction = procedure.instructionAtIndex(j);
+                
                 // check all moves and add connection from source to bus and
                 // bus to destination
-                for (int m = 0; m < instruction->moveCount(); m++) {
-                    Move& move = instruction->move(m);
+                for (int m = 0; m < instruction.moveCount(); m++) {
+                    Move& move = instruction.move(m);
                     std::string busName = move.bus().name();
                     std::string sourceName = "";
                     try {
@@ -477,7 +476,6 @@ private:
                         }
                     }
                 }
-                instruction = &procedure.nextInstruction(*instruction);
             }
         }
     }
