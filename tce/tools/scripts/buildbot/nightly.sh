@@ -61,7 +61,6 @@ function start_compiletest {
     export CC="ccache gcc${ALTGCC}"
     export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
     export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
-    export TCE_CONFIGURE_SWITCHES="--disable-python"
 
     ./gen_config.sh >& /dev/null
 
