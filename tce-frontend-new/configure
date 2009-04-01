@@ -2263,8 +2263,6 @@ echo "$as_me: error: llvm-config was not found from PATH, please install llvm." 
    { (exit 1); exit 1; }; }
 fi
 
-# TODO: set (AS,LD,NM,RANLIB,AR)_FOR_TARGET to be llvm binutils.
-
 # If we're building in the source directory, error.
 if test "${srcdir}" = "." ; then
   { { echo "$as_me:$LINENO: error: Building in the source directory is not supported in this release. Make separate directory for building the system. See http://gcc.gnu.org/install/configure.html for more details." >&5
@@ -2309,6 +2307,75 @@ echo "$as_me: error: Invalid llvm-gcc dir. Give path to your llvm-gcc sources wi
 fi
 
 
+## Apply tce patch to llvm-gcc if dir is not already patched
+as_ac_File=`echo "ac_cv_file_$use_llvm_gcc/gcc/config/tce/tce.h" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $use_llvm_gcc/gcc/config/tce/tce.h" >&5
+echo $ECHO_N "checking for $use_llvm_gcc/gcc/config/tce/tce.h... $ECHO_C" >&6; }
+if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$use_llvm_gcc/gcc/config/tce/tce.h"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+ac_res=`eval echo '${'$as_ac_File'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  :
+else
+  { echo "$as_me:$LINENO: Patching llvm-gcc with tce target. Patch will not hurt old functionality of sources." >&5
+echo "$as_me: Patching llvm-gcc with tce target. Patch will not hurt old functionality of sources." >&6;};
+     cd $use_llvm_gcc;
+     patch -p1 < $srcdir/llvm-gcc-tce-target.diff;
+     as_ac_File=`echo "ac_cv_file_$use_llvm_gcc/gcc/config/tce/t-tce" | $as_tr_sh`
+{ echo "$as_me:$LINENO: checking for $use_llvm_gcc/gcc/config/tce/t-tce" >&5
+echo $ECHO_N "checking for $use_llvm_gcc/gcc/config/tce/t-tce... $ECHO_C" >&6; }
+if { as_var=$as_ac_File; eval "test \"\${$as_var+set}\" = set"; }; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  test "$cross_compiling" = yes &&
+  { { echo "$as_me:$LINENO: error: cannot check for file existence when cross compiling" >&5
+echo "$as_me: error: cannot check for file existence when cross compiling" >&2;}
+   { (exit 1); exit 1; }; }
+if test -r "$use_llvm_gcc/gcc/config/tce/t-tce"; then
+  eval "$as_ac_File=yes"
+else
+  eval "$as_ac_File=no"
+fi
+fi
+ac_res=`eval echo '${'$as_ac_File'}'`
+	       { echo "$as_me:$LINENO: result: $ac_res" >&5
+echo "${ECHO_T}$ac_res" >&6; }
+if test `eval echo '${'$as_ac_File'}'` = yes; then
+  { echo "$as_me:$LINENO: Patch applied to $use_llvm_gcc." >&5
+echo "$as_me: Patch applied to $use_llvm_gcc." >&6;}
+else
+  { { echo "$as_me:$LINENO: error: Failed patching llvm-gcc sources." >&5
+echo "$as_me: error: Failed patching llvm-gcc sources." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+
+fi
+
+
+## Lets set target tools for compiling gcc and newlib
+
+llvmbindir=`llvm-config --bindir`
+export CC_FOR_TARGET=$ac_top_build_prefix/llvm-gcc-4.2/gcc/xgcc
+export AR_FOR_TARGET=$llvmbindir/llvm-ar
+export RANLIB_FOR_TARGET=$llvmbindir/llvm-ranlib
+export AS_FOR_TARGET=$llvmbindir/llvm-as
+export LD_FOR_TARGET=$llvmbindir/llvm-ld
+export NM_FOR_TARGET=$llvmbindir/llvm-nm
+export CFLAGS_FOR_TARGET="-emit-llvm -B$ac_top_build_prefix/llvm-gcc-4.2/gcc -ffreestanding -fno-unit-at-a-time -fno-inline"
 
 # This does not work because AC_CONFIG_SUBDIRS passes extra 'target_alias=tce-llvm' parameter to configure and gcc (also mainline)
 # tries to recognize tce-llvm to be also --host and --build system.
@@ -2318,6 +2385,7 @@ fi
 #    [ln -s $use_llvm_gcc $srcdir/llvm-gcc-4.2])
 #AC_CONFIG_SUBDIRS(llvm-gcc-4.2)
 
+# Our replacement...
  (
 echo "=== Configuring llvm-gcc-4.2 =====";
 # Make ac_configure args to be nice for passing them to gcc configure.
