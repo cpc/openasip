@@ -37,13 +37,14 @@ AC_CHECK_FILE($use_llvm_gcc/gcc/config/tce/tce.h, [],
 ## Lets set target tools for compiling gcc and newlib
 m4_pattern_allow([^AS_FOR_TARGET$])
 llvmbindir=`llvm-config --bindir`
-export CC_FOR_TARGET=$ac_top_build_prefix/llvm-gcc-4.2/gcc/xgcc 
+set > check_here.txt
+export CC_FOR_TARGET=$ac_pwd/llvm-gcc-4.2/gcc/xgcc 
 export AR_FOR_TARGET=$llvmbindir/llvm-ar 
 export RANLIB_FOR_TARGET=$llvmbindir/llvm-ranlib 
 export AS_FOR_TARGET=$llvmbindir/llvm-as 
 export LD_FOR_TARGET=$llvmbindir/llvm-ld 
 export NM_FOR_TARGET=$llvmbindir/llvm-nm 
-export CFLAGS_FOR_TARGET="-emit-llvm -B$ac_top_build_prefix/llvm-gcc-4.2/gcc -ffreestanding -fno-unit-at-a-time -fno-inline"
+export CFLAGS_FOR_TARGET="-emit-llvm -B$ac_pwd/llvm-gcc-4.2/gcc -ffreestanding -fno-unit-at-a-time -fno-inline"
 
 # This does not work because AC_CONFIG_SUBDIRS passes extra 'target_alias=tce-llvm' parameter to configure and gcc (also mainline) 
 # tries to recognize tce-llvm to be also --host and --build system. 
