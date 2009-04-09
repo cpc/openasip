@@ -71,7 +71,6 @@ architecture rtl_andor of ifetch is
   signal instruction_reg : std_logic_vector (IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
 
   -- internal signals for initializing and locking execution
-  signal fetch_en_reg : std_logic;
   signal lock       : std_logic;
 
   signal reset_cntr : integer;
@@ -95,7 +94,6 @@ begin
   process (clk, rstx)
   begin  -- process immediates
     if rstx = '0' then
-      fetch_en_reg      <= '0';
       pc_reg          <= pc_init;
       pc_prev_reg     <= (others => '0');
       return_addr_reg <= (others => '0');
@@ -103,8 +101,6 @@ begin
       reset_cntr      <= 0;
       reset_lock      <= '1';      
     elsif clk'event and clk = '1' then  -- rising clock edge
-
-      fetch_en_reg <= fetch_en;
 
       
       if fetch_en = '1' and lock = '0' then
@@ -119,7 +115,7 @@ begin
            reset_lock <= '0';
         end if;
         -- instruction register write
-        if fetch_en_reg = '1' then
+        if fetch_en = '1' then
           instruction_reg <= imem_data(instruction_reg'length-1 downto 0);
         end if;
         -- return address
