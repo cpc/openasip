@@ -10,8 +10,9 @@
 #ifndef __TCE__
 #include <stdio.h>
 #else
+#ifndef __TCE_V1__
 #include "userdef.h"
-
+#endif
 
 void putchar(char c) {
 #ifdef __TCE_V1__

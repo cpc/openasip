@@ -73,8 +73,6 @@ int putchar(int ch) {
 
 #if defined(SPECIAL_OPERATION_IO) || defined(DUMP_MEM_BUFFER_TO_SPECIAL_OPERATION)
 
-#include "userdef.h"
-
 #endif
 
 #if defined(SPECIAL_OPERATION_IO)
