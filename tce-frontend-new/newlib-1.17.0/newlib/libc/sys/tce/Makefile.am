@@ -9,7 +9,9 @@ AM_CCASFLAGS = $(INCLUDES)
 noinst_LIBRARIES = lib.a
 
 lib_a_SOURCES = \
-	_exit.c 
+	chown.c close.c environ.c errno.c execve.c _exit.c fork.c fstat.c \
+	getpid.c gettod.c isatty.c kill.c link.c lseek.c open.c read.c \
+	readlink.c sbrk.c stat.c symlink.c times.c unlink.c wait.c write.c
 
 lib_a_CCASFLAGS = $(AM_CCASFLAGS)
 lib_a_CFLAGS = $(AM_CFLAGS)

@@ -36,6 +36,8 @@ _DEFUN(iprintf, (fmt),
   va_start (ap, fmt);
   ret = _vfiprintf_r (ptr, _stdout_r (ptr), fmt, ap);
   va_end (ap);
+
+  fflush(NULL);
   return ret;
 }
 
@@ -53,5 +55,7 @@ _DEFUN(_iprintf_r, (ptr, fmt),
   va_start (ap, fmt);
   ret = _vfiprintf_r (ptr, _stdout_r (ptr), fmt, ap);
   va_end (ap);
+
+  fflush(NULL);
   return ret;
 }

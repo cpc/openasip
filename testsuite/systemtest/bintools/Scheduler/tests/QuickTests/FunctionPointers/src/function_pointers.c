@@ -6,7 +6,6 @@
  * @author Pekka J‰‰skel‰inen 2005 (pjaaskel@cs.tut.fi)
  */
 
-#include "userdef.h"
 #include "functions.h"
 
 typedef struct {

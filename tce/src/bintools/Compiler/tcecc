@@ -173,8 +173,12 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
     
     llvmGccStartFiles = llvmGccPrefix + "/tce-llvm/lib/crt0.o "
 
+    libNoSys = os.path.join(llvmGccPrefix,"tce-llvm/lib/libnosys.a")
+    if not os.path.exists(libNoSys):
+        libNoSys = ""
+    
     llvmGccEndFiles = (llvmGccPrefix + "/tce-llvm/lib/libc.a " +
-                       llvmGccPrefix + "/tce-llvm/lib/libnosys.a " +
+                       libNoSys + " " +
                        llvmGccPrefix + "/tce-llvm/lib/libm.a " +
                        llvmGccPrefix + "/tce-llvm/lib/crtend.o ")
 
