@@ -157,6 +157,8 @@ public:
 
     DataDependenceEdge* onlyIncomingGuard(const MoveNode& mn);
     
+    void moveFUDependenciesToTrigger(MoveNode& trigger);
+
 private:
     bool rWarEdgesOutUncond(MoveNode& mn);
     bool rWawRawEdgesOutUncond(MoveNode& mn);

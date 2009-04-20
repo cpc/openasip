@@ -559,15 +559,30 @@ BasicBlockScheduler::scheduleOperandWrites(int& cycle, MoveNodeGroup& moves)
             }
             // If trigger is too early, try to reschedule it
             if (moveNode.isScheduled() &&
-                moveNode.move().destination().isTriggering() &&
-                moveNode.cycle() < lastOperandCycle) {
-                unschedule(moveNode);
-                unscheduleInputOperandTempMoves(moveNode);
+                moveNode.move().destination().isTriggering()) {
                 trigger = &moveNode;
-                scheduleInputOperandTempMoves(moveNode);
-                scheduleMove(moveNode, std::max(cycle, lastOperandCycle));
-                if (!moveNode.isScheduled()) {
+
+                int triggerMinCycle = lastOperandCycle;
+                if (ddg_->hasNode(moveNode)) {
+                    // handle moving fu deps. 
+                    // they may move trigger to later time.
+                    ddg_->moveFUDependenciesToTrigger(*trigger);
+                    int triggerEarliest = ddg_->earliestCycle(*trigger);
+                    triggerMinCycle = 
+                        std::max(triggerEarliest, triggerMinCycle);
+                }
+                
+                // triger is later than operand OR some new fu dep edges
+                // make trigger's earliestcycle later.
+                if (moveNode.cycle() < triggerMinCycle) {
+                    unschedule(moveNode);
                     unscheduleInputOperandTempMoves(moveNode);
+
+                    scheduleInputOperandTempMoves(moveNode);
+                    scheduleMove(moveNode, std::max(cycle, triggerMinCycle));
+                    if (!moveNode.isScheduled()) {
+                        unscheduleInputOperandTempMoves(moveNode);
+                    }
                 }
             }
             if (moveNode.isScheduled()) {

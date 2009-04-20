@@ -126,6 +126,14 @@ public:
     virtual void moveOutEdges(const Node& source, const Node& destination)
         throw (NotAvailable);
 
+    virtual void moveInEdge(const Node& source, const Node& destination,
+                            Edge& edge, 
+                            const Node* tail = NULL, bool childs = false);
+
+    virtual void moveOutEdge(const Node& source, const Node& destination,
+                             Edge& edge, 
+                             const Node* head = NULL, bool childs = false);
+
     virtual void removeNode(Node& node)
         throw (InstanceNotFound);
     virtual void removeEdge(Edge& e)
@@ -156,6 +164,7 @@ public:
     void detachSubgraph(BoostGraph& subGraph);
 
     BoostGraph* parentGraph();
+    BoostGraph* rootGraph();
 
     bool hasNode(const Node&) const;
 

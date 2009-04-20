@@ -802,6 +802,110 @@ BoostGraph<GraphNode, GraphEdge>::moveInEdges(
 }
 
 /**
+ * Moves an edge which comes into source node to point into another node.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::moveInEdge(
+    const GraphNode& originalHeadNode,
+    const GraphNode& newHeadNode,
+    GraphEdge& edge,
+    const GraphNode* tail,
+    bool childs) {
+
+    // start from the root tree.
+    if (!childs) {
+        BoostGraph<GraphNode,GraphEdge>* rg = rootGraph();
+        if (tail == NULL) {
+            tail = &rg->tailNode(edge);
+        }
+        rg->moveInEdge(originalHeadNode, newHeadNode, edge, tail, true);
+        return;
+    } 
+
+    if (hasNode(*tail) && hasEdge(edge)) {
+        bool hasSource = hasNode(originalHeadNode);
+        bool hasDestination = hasNode(newHeadNode);
+        
+        const GraphNode& head = newHeadNode;
+
+        if (hasSource) {
+            boost::remove_edge(descriptor(edge), graph_);
+        }
+        
+        if (hasDestination) {
+            std::pair<EdgeDescriptor,bool> tmpPair = 
+                boost::add_edge(
+                    descriptor(*tail), descriptor(head), &edge, graph_);
+            edgeDescriptors_[&edge] = tmpPair.first;
+        }
+        // need to process child graphs?
+        if (hasSource | hasDestination) {
+            for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+                childGraphs_.at(i)->moveInEdge(
+                    originalHeadNode, newHeadNode, edge, tail, true);
+            }
+        }
+    } 
+}
+
+/* 
+ * Moves edge which originally comes from originalTailNode to come from
+ * newTailNode
+ * 
+ * @param originalTailNode original tail node of the edge.
+ * @param newTailNode new tail node of the edge.
+ * @param edge edge to be moved
+ * @param head hea dnode of the edge. can be left null, 
+          used just for speed optimization
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::moveOutEdge(
+    const GraphNode& originalTailNode,
+    const GraphNode& newTailNode,
+    GraphEdge& edge,
+    const GraphNode* head,
+    bool childs) {
+
+    if (!childs) {
+        BoostGraph* rg = rootGraph();
+        if (head == NULL) {
+            head = &rg->headNode(edge);
+        }
+        rg->moveOutEdge(originalTailNode, newTailNode, edge, head, true);
+        return;
+    }
+
+    if (hasNode(*head) && hasEdge(edge)) {
+        bool hasSource = hasNode(originalTailNode);
+        bool hasDestination = hasNode(newTailNode);
+
+        const GraphNode& tail = newTailNode;        
+
+        if (hasSource) {
+            boost::remove_edge(descriptor(edge), graph_);
+        }
+
+        if (hasDestination) {
+            std::pair<EdgeDescriptor,bool> tmpPair = 
+                boost::add_edge(
+                    descriptor(tail), descriptor(*head), &edge, graph_);
+            edgeDescriptors_[&edge] = tmpPair.first;
+        }
+
+        // need to process child graphs?
+        if (hasSource | hasDestination) {
+            for (unsigned int i = 0; i < childGraphs_.size(); i++) {
+                childGraphs_.at(i)->moveOutEdge(
+                    originalTailNode, newTailNode, edge, head, true);
+            }
+        }
+    }
+}
+
+
+/**
  * Moves all outgoing edges from a node to another node.
  *
  * This reuses the origial Edge objects, thus should retain the original
@@ -1141,6 +1245,10 @@ BoostGraph<GraphNode, GraphEdge>::removeEdge(
     }
 }
 
+//////////////////////////////////////////////////////////////////////////////
+// Subgraph related public methods 
+//////////////////////////////////////////////////////////////////////////////
+
 /**
  * Returns the parent graph of this subgraph.
  * If the graph has no parent, returns NULL.
@@ -1153,9 +1261,21 @@ BoostGraph<GraphNode, GraphEdge>::parentGraph() {
     return parentGraph_;
 }
 
-//////////////////////////////////////////////////////////////////////////////
-// Subgraph related public methods 
-//////////////////////////////////////////////////////////////////////////////
+/**
+ * Returns the root graph of this subgraph.
+ * If this has no parent, return this.
+ *
+ * @return parent graph of this subgraph.
+ */
+template <typename GraphNode, typename GraphEdge>
+BoostGraph<GraphNode, GraphEdge>*
+BoostGraph<GraphNode, GraphEdge>::rootGraph() {
+    if (parentGraph_ == NULL) {
+        return this;
+    }
+    return parentGraph_;
+}
+
 /**
  * Creates a subgraph from this graph.
  *

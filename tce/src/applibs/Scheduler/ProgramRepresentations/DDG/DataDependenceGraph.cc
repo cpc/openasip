@@ -1803,3 +1803,44 @@ DataDependenceGraph::onlyIncomingGuard(
     }
     return guard;
 }
+
+/** 
+ * Trigger of an operation may change when scheduling.
+ * This method updates fu state dependence edges to point to trigger instead of
+ * some other node of an operation. (they should point to trigger).
+ */
+void 
+DataDependenceGraph::moveFUDependenciesToTrigger(MoveNode& trigger) {
+    if (!trigger.isDestinationOperation()) {
+        return;
+    }
+    ProgramOperation& po = trigger.destinationOperation();
+
+    // move input edges.
+    for (int i = 0; i < po.inputMoveCount(); i++) {
+        MoveNode& node = po.inputMove(i);
+        if (&node != &trigger) {
+            EdgeSet iEdges = rootGraphInEdges(node);
+            for (EdgeSet::iterator i=iEdges.begin(); i != iEdges.end(); i++) {
+                DataDependenceEdge& e = **i;
+                if (e.edgeReason() == DataDependenceEdge::EDGE_FUSTATE) {
+                    moveInEdge(node, trigger, e);
+                }
+            }
+        }
+    }
+
+    // move output edges.
+    for (int i = 0; i < po.inputMoveCount(); i++) {
+        MoveNode& node = po.inputMove(i);
+        if (&node != &trigger) {
+            EdgeSet oEdges = rootGraphOutEdges(node);
+            for (EdgeSet::iterator i=oEdges.begin(); i != oEdges.end(); i++) {
+                DataDependenceEdge& e = **i;
+                if (e.edgeReason() == DataDependenceEdge::EDGE_FUSTATE) {
+                    moveOutEdge(node, trigger, e);
+                }
+            }
+        }
+    }
+}

@@ -1,3 +1,13 @@
+1.0.1 maintainance release, 2009-??-??
+======================================
+
+Bugfixes
+--------
+- Operations with state on machines with trigger bound to operand which is
+  not last operand could be scheduled incorrectly.
+- SimpleICOptimizer explorer plugin could remove connections that were used,
+  resulting a machine where the code does not work.
+
 1.0 first public release, tagged on 2009-03-26
 ==============================================
 
