@@ -27,6 +27,9 @@ AC_CHECK_FILE($use_llvm_gcc/gcc/llvm-backend.cpp, [],
 ## Apply tce patch to llvm-gcc if dir is not already patched
 AC_CHECK_FILE($use_llvm_gcc/gcc/config/tce/tce.h, [],
     [AC_MSG_NOTICE([Patching llvm-gcc with tce target. Patch will not hurt old functionality of sources.]);
+     # Make srcdir to be absolute...
+     cd $srcdir;
+     srcdir=$PWD;
      cd $use_llvm_gcc;
      patch -p1 < $srcdir/llvm-gcc-tce-target.diff;
      AC_CHECK_FILE($use_llvm_gcc/gcc/config/tce/t-tce, 

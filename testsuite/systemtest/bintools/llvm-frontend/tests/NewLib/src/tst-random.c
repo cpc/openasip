@@ -62,22 +62,22 @@ tst_random (void)
 
   /* 1. Generate and store the sequences.  */
 /*  printf ("Generating random sequences.\n"); */
-  for (s = 0; s < nseq; ++s)
-    {
-        srand ( seed[s] );
-        for (i = 0; i < nrnd; ++i)
-            rnd[s][i] = rand ();
-    }
+   for (s = 0; s < nseq; ++s) 
+     { 
+               srand ( seed[s] ); 
+         for (i = 0; i < nrnd; ++i) 
+             rnd[s][i] = rand ();
+     } 
   
   /* 2. Regenerate and check.  */
 /*  printf ("Regenerating and checking sequences.\n"); */
-  for (s = 0; s < nseq; ++s)
-  {
-      srand (seed[s]);
-      for (i = 0; i < nrnd; ++i)
-          if (rnd[s][i] != rand ())
-              return fail ("first regenerate test", s, i);
-  }
+   for (s = 0; s < nseq; ++s) 
+   { 
+       srand (seed[s]); 
+       for (i = 0; i < nrnd; ++i) 
+           if (rnd[s][i] != rand ()) 
+               return fail ("first regenerate test", s, i); 
+   } 
   
   return NULL;
 }

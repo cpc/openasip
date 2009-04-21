@@ -248,11 +248,19 @@ diff -crN llvm-gcc4.2-2.5.source/gcc/config/tce/tce.h llvm-gcc4.2-2.5.withtce/gc
 + #define SHORT_TYPE_SIZE 	    16
 + #define INT_TYPE_SIZE 		    32
 + #define LONG_TYPE_SIZE 		    32
++ 
++ /* Enable this if you like to start fixing 64bit ISEL issues */
++ #if 0
 + #define LONG_LONG_TYPE_SIZE 	64
++ #else
++ #define LONG_LONG_TYPE_SIZE 	32
++ /* to omit compilation of libgcc2 (it wont work without long long 64bit) */
++ #define LIBGCC2_UNITS_PER_WORD  8 
++ #endif
++ 
 + #define FLOAT_TYPE_SIZE 	    32
 + #define DOUBLE_TYPE_SIZE 	    32
 + #define LONG_DOUBLE_TYPE_SIZE 	32
-+ #define __FLT_MANT_DIG__ 	    24 /* for libgcc2 to work */ 
 + 
 + #define POINTER_SIZE			32
 + 

@@ -2332,6 +2332,9 @@ if test `eval echo '${'$as_ac_File'}'` = yes; then
 else
   { echo "$as_me:$LINENO: Patching llvm-gcc with tce target. Patch will not hurt old functionality of sources." >&5
 echo "$as_me: Patching llvm-gcc with tce target. Patch will not hurt old functionality of sources." >&6;};
+     # Make srcdir to be absolute...
+     cd $srcdir;
+     srcdir=$PWD;
      cd $use_llvm_gcc;
      patch -p1 < $srcdir/llvm-gcc-tce-target.diff;
      as_ac_File=`echo "ac_cv_file_$use_llvm_gcc/gcc/config/tce/t-tce" | $as_tr_sh`
