@@ -14,7 +14,7 @@ verbose=""
 #verbose=-v
 
 cd DENBench
-rm -fr DENBench/consumer/llvm-tce-systemtest 
+rm -fr consumer/llvm-tce-systemtest 
 ./run_systemtest.sh -c $tcecc -t $ttasim -a $machine $optlevel -s "$scheduler_flags" $verbose
 
 else
