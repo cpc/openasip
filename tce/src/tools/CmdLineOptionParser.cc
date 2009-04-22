@@ -32,6 +32,7 @@
  * @note rating: red
  */
 
+#include <cstdio>
 #include <iostream>
 #include <string>
 #include <sstream>
