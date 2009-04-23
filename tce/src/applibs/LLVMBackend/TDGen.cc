@@ -657,12 +657,21 @@ TDGen::writeInstrInfo(std::ostream& os) {
             requiredOps.erase(r);
         }
         Operation& op = opPool.operation((*iter).c_str());
-        if (&op == &NullOperation::instance() ||
-            llvmOperationPattern(op.name()) == "") {
-
-            // Unknown operation: skip
+        
+        
+        // TODO: Allow multioutput (remove last or)
+        if (&op == &NullOperation::instance() || 
+            !operationCanBeMatched(op) || 
+            op.numberOfOutputs() > 1) {
+            
+            if (&op != &NullOperation::instance()) {
+                Application::logStream() 
+                    << "Skipped writing operation definition for " << op.name() 
+                    << std::endl;
+            }
             continue;
         }
+
         writeOperationDef(os, op);
     }
     
@@ -694,6 +703,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
                     <<"' not supported." << std::endl;
             }
         } else {
+            // TODO: write all dags of operation
             writeEmulationPattern(os, op, emulationDAGs.smallestNodeCount());
         }
     }
@@ -890,12 +900,6 @@ TDGen::writeOperationDef(
     std::ostream& o,
     Operation& op) {
 
-    if (op.numberOfOutputs() > 1) {
-        // Ignore operations with multiple outputs.
-        // TODO: Separate patterns for each output?
-        return;
-    }
-
     std::string attrs;
 
     // These white listed operations have mayLoad/mayStore flag
@@ -961,7 +965,8 @@ TDGen::writeOperationDef(
         int inputCount = op.numberOfInputs();
         for (int immInput = 0;
              immInput <= inputCount; immInput++) {
-
+	   
+            // check here if nodes connected to inputs are commutative
             if (immInput > 0) {
                 if (immInput == 1 &&
                     ((inputCount == 2 && op.canSwap(1, 2)) ||
@@ -972,6 +977,16 @@ TDGen::writeOperationDef(
                     // op(reg, imm) pattern for them.
                     continue;
                 }
+                
+                // TODO: fancier check if operation dag made operation really should 
+                // have comutative pattern defined               
+                // That would need analyzing nodes which are connected to inputs of DAG
+                // and check if they are comutative or not.
+                if (llvmOperationPattern(op.name()) == "" && 
+                    op.dagCount() != 0) {
+                    continue;
+                }
+
                 if (!(op.operand(immInput).type() == Operand::SINT_WORD ||
                       op.operand(immInput).type() == Operand::UINT_WORD)) {
 
@@ -979,9 +994,9 @@ TDGen::writeOperationDef(
                     continue;
                 }
             }
-	   
+
             std::string outputs, inputs, asmstr, pattern, patSuffix;
-	    outputs = "(outs" + patOutputs(op, boolOut!=0) + ")";
+            outputs = "(outs" + patOutputs(op, boolOut!=0) + ")";
             inputs = "(ins " + patInputs(op, immInput, boolOut==2) + ")";
             asmstr = "\"\"";
             patSuffix = suffix;
@@ -1004,14 +1019,14 @@ TDGen::writeOperationDef(
                 pattern = operationPattern(
                     op, op.dag(0), immInput, boolOut);
             }
-
+            
             if (attrs != "") {
                 o << "let" << attrs << " in { " << std::endl;
             }
             
             std::string opcEnum = 
                 StringTools::stringToUpper(op.name()) + patSuffix;
-
+            
             o << "def " << opcEnum << " : " 
               << "InstTCE<"
               << outputs << ", "
@@ -1043,9 +1058,7 @@ TDGen::writeEmulationPattern(
     const OperationDAG& dag) {
 
     std::string llvmPat = llvmOperationPattern(op.name());
-    if (llvmPat == "") {
-        assert(false && "Unknown operation to emulate.");
-    }
+    assert(llvmPat != "" && "Unknown operation to emulate.");
 
     const OperationDAGNode* res = *(dag.endNodes().begin());
     const OperationNode* opNode = dynamic_cast<const OperationNode*>(res);
@@ -1189,6 +1202,81 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
 }
 
 /**
+ * Check if operation can be matched with llvm pattern.
+ *
+ * Check if operation has llvmOperationPatters or 
+ * one of it's DAGs contain only operations, which can be matched.
+ */
+bool
+TDGen::operationCanBeMatched(const Operation& op, std::set<std::string>* recursionCycleCheck) {
+    
+    // if operation has llvm pattern
+    if (llvmOperationPattern(op.name()) != "") {
+        return true;
+    }
+
+    // just to avoid new delete, always init set and select if we use 
+    // local or the one which was given as parameter
+    std::set<std::string> checkSet;
+    std::set<std::string>* useSet;
+    if (recursionCycleCheck == NULL) {
+        useSet = &checkSet;
+    } else {
+        useSet = recursionCycleCheck;
+    }    
+    
+    // check if one of dags of operation is ok
+    for (int i = 0; i < op.dagCount(); i++) {
+        OperationDAG& dag = op.dag(i);
+        bool dagIsGood = true;
+      
+        for (int j = 0; j < dag.nodeCount(); j++) {
+            OperationNode* opNode = dynamic_cast<OperationNode*>(&dag.node(j));
+            if (opNode != NULL) {
+                Operation& refOp = opNode->referencedOperation();
+
+                // check that the same operation is not used recursively
+                if (useSet->count(refOp.name()) != 0) {
+                    dagIsGood = false;
+                    break;
+                }
+                    
+                // check if referenced op can be matched
+                useSet->insert(refOp.name());                
+                if (!operationCanBeMatched(refOp, useSet)) {
+                    dagIsGood =  false;
+                    useSet->erase(refOp.name());                
+                    break;
+                }
+            }
+        }
+              
+        if (dagIsGood) {
+            return true;
+        }
+
+        // TODO: remove this if really others than 
+        // first dag of operation pattern is written.
+        break;
+    }
+
+    // did not find good dag and operation does not match exact llvm pattern
+    return false;
+}
+
+/**
+ * Pattern for tce generated custom op patterns.
+ */
+std::string
+TDGen::tceOperationPattern(const Operation& op) {
+    std::string opList = "";
+    for (int i = 0; i < op.numberOfInputs(); i++) {
+        opList += " %" + Conversion::toString(i+1) + "%";
+    }
+    return op.name() + opList;
+}
+
+/**
  * Returns operation pattern in llvm .td format.
  *
  * @param op Operation to return pattern for.
@@ -1248,7 +1336,6 @@ TDGen::dagNodeToString(
                 std::string msg = 
                     "Invalid immediate operand for " + op.name() +
                     " operand #" + Conversion::toString(tNode->operandIndex());
-
                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
             }
 
@@ -1360,6 +1447,11 @@ TDGen::operationNodeToString(
         }
     } else {
         operationPat= llvmOperationPattern(operation.name());
+        
+        // generate pattern for operation if not llvmOperation (can match custom op patterns)
+        if (operationPat == "") {
+            operationPat = tceOperationPattern(operation);
+        }
     }
 
     if (operationPat == "") {
@@ -1389,6 +1481,7 @@ TDGen::operationNodeToString(
             }
         }
     }
+
     return std::string("(") + pattern.str() + ")";
 }
 
@@ -1555,25 +1648,27 @@ TDGen::canBeImmediate(
         const OperationNode* opNode =
             dynamic_cast<const OperationNode*>(&dstNode);
 
-        const Operation& operation = opNode->referencedOperation();
-
         if (opNode == NULL) {
             return false;
         }
 
-        if (!operation.operand(edge.dstOperand()).isAddress() &&
-            operation.numberOfInputs() != 2) {
+//        const Operation& operation = opNode->referencedOperation();
 
-            // Only binops and addresses can have immediate operands for now.
-            return false;
-        }
+// TODO: Why is this limited ?
+//        if (!operation.operand(edge.dstOperand()).isAddress() &&
+//            operation.numberOfInputs() != 2) {
+//
+//            // Only binops and addresses can have immediate operands for now.
+//            return false;
+//        }
 
-        if (edge.dstOperand() == 1 &&
-            operation.numberOfInputs() == 2 &&
-            operation.canSwap(1, 2)) {
+// TODO: Why? 
+//       if (edge.dstOperand() == 1 &&
+//           operation.numberOfInputs() == 2 &&
+//           operation.canSwap(1, 2)) {
+//            return false;
+//       }
 
-            return false;
-        }
     }
     return true;
 }

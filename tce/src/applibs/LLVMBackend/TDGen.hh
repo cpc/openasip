@@ -126,6 +126,8 @@ private:
     void writeCallDef(std::ostream& o);
 
     std::string llvmOperationPattern(const std::string& osalOperationName);
+    bool operationCanBeMatched(const Operation& op, std::set<std::string>* recursionCycleCheck = NULL);
+    std::string tceOperationPattern(const Operation& op);
 
     std::string patOutputs(const Operation& op, bool intToBool);
     std::string patInputs(const Operation& op, int immOp, bool intToBool);

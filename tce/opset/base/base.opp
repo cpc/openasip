@@ -1106,14 +1106,12 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>ABS</name>
-    <description/>
-    <inputs>1</inputs>
+    <description>
+
+</description>    <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
     <out id="2" type="SIntWord"/>
-    <trigger-semantics>
-      EXEC_OPERATION(abs, IO(1), IO(2));
-    </trigger-semantics>
   </operation>
 
   <operation>
@@ -1211,17 +1209,39 @@ EXEC_OPERATION(xor,temp1,1, IO(3));
 
   <operation>
     <name>ANDN</name>
-    <description>Does a bitwise negation (NOT) on the 2nd input followed by AND of the 1st input and the negated 2nd output. Special instruction in TI C64X.</description>
+    <description>Does a bitwise negation (NOT) on the 2nd input followed by AND of the 1st input and the negated 2nd output. Special instruction in TI C64X.
+
+
+
+
+
+
+
+
+
+
+
+
+</description>
     <inputs>2</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
     <in id="2" type="UIntWord"/>
     <out id="3" type="UIntWord"/>
-    <trigger-semantics>
-	SimValue negResult;
+    <trigger-semantics>	SimValue negResult, mulin;
 	EXEC_OPERATION(not, IO(2), negResult);
 	EXEC_OPERATION(and, IO(1), negResult, IO(3));
-    </trigger-semantics>
+
+
+
+
+
+
+
+
+
+
+</trigger-semantics>
   </operation>
 
   <operation>

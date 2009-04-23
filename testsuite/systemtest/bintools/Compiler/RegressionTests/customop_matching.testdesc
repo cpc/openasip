@@ -1,0 +1,5 @@
+<?php
+$test_description="Check that at least andn customop is matched. Later maybe few more.";
+$test_bin = "./test_customop_matching.sh";
+$bin_args = "";
+?>

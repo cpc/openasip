@@ -1,0 +1,2 @@
+Cleared plugin cache.
+1
