@@ -92,7 +92,8 @@ LowerIntrinsics::~LowerIntrinsics() {
 
 
 // Publically exposed interface to pass.
-const PassInfo* LowerIntrinsicsID = X.getPassInfo();
+// const PassInfo* LowerIntrinsicsID = X.getPassInfo();
+
 // - Interface to this file...
 Pass* createLowerIntrinsicsPass() {
     return new LowerIntrinsics();

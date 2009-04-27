@@ -378,8 +378,8 @@ else
 
 AC_CHECK_FILE($llvmConf, 
 [
-LLVM_SHARED_LIB=$($llvmConf --libdir)/libllvm2.5.so
 LLVM_VERSION=$($llvmConf --version)
+LLVM_SHARED_LIB=$($llvmConf --libdir)/libllvm$LLVM_VERSION.so
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
@@ -394,7 +394,9 @@ case "$LLVM_VERSION" in
      2.5)
      AC_DEFINE([LLVM_2_5], [], "Using LLVM v2.5")
    ;;
-   
+     *svn)
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn")
+   ;;   
      *)
    AC_MSG_NOTICE(
    [
@@ -1213,6 +1215,8 @@ AC_CONFIG_FILES([
   src/ext/llvm/Makefile
   src/ext/llvm/2.5/Makefile
   src/ext/llvm/2.5/TableGen/Makefile 
+  src/ext/llvm/2.6svn/Makefile
+  src/ext/llvm/2.6svn/TableGen/Makefile 
   src/applibs/LLVMBackend/Makefile
   src/applibs/LLVMBackend/passes/Makefile
   src/bintools/Compiler/Makefile
