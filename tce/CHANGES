@@ -7,6 +7,9 @@ Bugfixes
   not last operand could be scheduled incorrectly.
 - SimpleICOptimizer explorer plugin could remove connections that were used,
   resulting a machine where the code does not work.
+- Instruction fetcher failed to fetch correct instruction when global lock
+  signal was asserted.
+
 
 1.0 first public release, tagged on 2009-03-26
 ==============================================
