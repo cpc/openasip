@@ -25,6 +25,7 @@
  * Architecture plugin generator for LLVM TCE backend.
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  *
  * @note rating: red
  */
@@ -75,8 +76,7 @@ TDGen::TDGen(const TTAMachine::Machine& mach):
  * (excluding static plugin code included from include/llvm/TCE/).
  */
 void
-TDGen::generateBackend(std::string& path) throw (Exception) {
-
+TDGen::generateBackend(std::string& path) throw (Exception) {    
     MachineCheckResults res;
     FullyConnectedCheck fc;
     fullyConnected_ = fc.check(mach_, res);
@@ -89,6 +89,7 @@ TDGen::generateBackend(std::string& path) throw (Exception) {
     std::ofstream instrTD;
     instrTD.open((path + "/GenInstrInfo.td").c_str());
     writeInstrInfo(instrTD);
+//    writeInstrInfo(std::cerr);
     instrTD.close();
 
     std::ofstream pluginInc;
@@ -661,14 +662,18 @@ TDGen::writeInstrInfo(std::ostream& os) {
         
         // TODO: Allow multioutput (remove last or)
         if (&op == &NullOperation::instance() || 
-            !operationCanBeMatched(op) || 
-            op.numberOfOutputs() > 1) {
+            !operationCanBeMatched(op)) {
             
             if (&op != &NullOperation::instance()) {
                 Application::logStream() 
                     << "Skipped writing operation definition for " << op.name() 
                     << std::endl;
             }
+            continue;
+        }
+        
+        // TODO: remove this. For now MIMO operation patterns are not supported by tablegen.
+        if (op.numberOfOutputs() > 1) {
             continue;
         }
 
@@ -703,19 +708,10 @@ TDGen::writeInstrInfo(std::ostream& os) {
                     <<"' not supported." << std::endl;
             }
         } else {
-            // TODO: write all dags of operation
+            // TODO: write all dags of operation (first as normal, the rest as pattern)
             writeEmulationPattern(os, op, emulationDAGs.smallestNodeCount());
         }
     }
-
-    // TODO: Handle missing operations.
-    /*
-    iter = requiredOps.begin();
-    for (; iter != requiredOps.end(); iter++) {
-        Operation& op = opPool.operation(*iter);
-        writeOperationDef(os, op);
-    }
-    */
 }
 
 
@@ -1202,13 +1198,26 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
 }
 
 /**
+ * Pattern for tce generated custom op patterns.
+ */
+std::string
+TDGen::tceOperationPattern(const Operation& op) {
+    std::string opList = "";
+    for (int i = 0; i < op.numberOfInputs(); i++) {
+        opList += " %" + Conversion::toString(i+1) + "%";
+    }
+    return op.name() + opList;
+}
+
+/**
  * Check if operation can be matched with llvm pattern.
  *
  * Check if operation has llvmOperationPatters or 
  * one of it's DAGs contain only operations, which can be matched.
  */
 bool
-TDGen::operationCanBeMatched(const Operation& op, std::set<std::string>* recursionCycleCheck) {
+TDGen::operationCanBeMatched(
+    const Operation& op, std::set<std::string>* recursionCycleCheck) {
     
     // if operation has llvm pattern
     if (llvmOperationPattern(op.name()) != "") {
@@ -1255,25 +1264,13 @@ TDGen::operationCanBeMatched(const Operation& op, std::set<std::string>* recursi
             return true;
         }
 
-        // TODO: remove this if really others than 
-        // first dag of operation pattern is written.
+        // TODO: remove this if we write also others than the
+        // first dag of operation pattern.
         break;
     }
 
     // did not find good dag and operation does not match exact llvm pattern
     return false;
-}
-
-/**
- * Pattern for tce generated custom op patterns.
- */
-std::string
-TDGen::tceOperationPattern(const Operation& op) {
-    std::string opList = "";
-    for (int i = 0; i < op.numberOfInputs(); i++) {
-        opList += " %" + Conversion::toString(i+1) + "%";
-    }
-    return op.name() + opList;
 }
 
 /**
@@ -1292,8 +1289,15 @@ TDGen::operationPattern(
     const OperationDAG& dag,
     int immOp, int intToBool) {
 
-    const OperationDAGNode& res = **(dag.endNodes().begin());
-    return dagNodeToString(op, dag, res, immOp, false, intToBool);
+    std::string retVal;
+    for (OperationDAG::NodeSet::iterator i = dag.endNodes().begin(); i != dag.endNodes().end(); ++i) {
+        if (i != dag.endNodes().begin()) {
+            retVal += ",";
+        }
+        const OperationDAGNode& res = **(i);
+        retVal += dagNodeToString(op, dag, res, immOp, false, intToBool);
+    }
+    return retVal;
 }
 
 /**
@@ -1567,7 +1571,7 @@ TDGen::patInputs(const Operation& op, int immOp, bool intToBool) {
             ins += ",";
         }
         bool imm = (op.operand(i+1).index() == immOp);
-        ins += operandToString(op.operand(i + 1), true, imm, intToBool);
+       ins += operandToString(op.operand(i + 1), true, imm, intToBool);
     }
     return ins;
 }
@@ -1582,16 +1586,12 @@ TDGen::patInputs(const Operation& op, int immOp, bool intToBool) {
 std::string
 TDGen::patOutputs(const Operation& op, bool intToBool) {
     std::string outs;
-    if (op.numberOfOutputs() == 0) {
-        return "";
-    } else if (op.numberOfOutputs() == 1) {
-        assert(op.operand(op.numberOfInputs() + 1).isOutput());
-        outs += " ";
-        outs += operandToString(
-            op.operand(op.numberOfInputs() + 1), true, false, intToBool);
 
-    } else {
-        assert(false);
+    for (int i = 0; i < op.numberOfOutputs(); i++) {
+        assert(op.operand(op.numberOfInputs() + 1 + i).isOutput());
+        outs += (i > 0) ? (",") : (" ");
+        outs += operandToString(
+            op.operand(op.numberOfInputs() + 1 + i), true, false, intToBool);
     }
     return outs;
 }
@@ -1657,17 +1657,9 @@ TDGen::canBeImmediate(
 // TODO: Why is this limited ?
 //        if (!operation.operand(edge.dstOperand()).isAddress() &&
 //            operation.numberOfInputs() != 2) {
-//
 //            // Only binops and addresses can have immediate operands for now.
 //            return false;
 //        }
-
-// TODO: Why? 
-//       if (edge.dstOperand() == 1 &&
-//           operation.numberOfInputs() == 2 &&
-//           operation.canSwap(1, 2)) {
-//            return false;
-//       }
 
     }
     return true;

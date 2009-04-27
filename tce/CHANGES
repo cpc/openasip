@@ -9,7 +9,7 @@ Bugfixes
   resulting a machine where the code does not work.
 - Instruction fetcher failed to fetch correct instruction when global lock
   signal was asserted.
-
+- Better support fot selecting custom ops with DAG definition.
 
 1.0 first public release, tagged on 2009-03-26
 ==============================================
