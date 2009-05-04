@@ -178,11 +178,6 @@
       EXEC_OPERATION(eq, IO(1), IO(2), t1);
       EXEC_OPERATION(xor, t1, 1, IO(3));
     </trigger-semantics>
-    <trigger-semantics> 
-      SimValue t1;
-      EXEC_OPERATION(eq, IO(1), IO(2), t1);
-      EXEC_OPERATION(not, t1, IO(3));
-    </trigger-semantics>
     <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(gt, IO(1), IO(2), t1);
@@ -203,11 +198,6 @@
       SimValue t1;
       EXEC_OPERATION(gt, IO(2), IO(1), t1);
       EXEC_OPERATION(xor, t1, 1, IO(3));
-    </trigger-semantics>
-    <trigger-semantics>
-      SimValue t1;
-      EXEC_OPERATION(gt, IO(2),IO(1), t1);
-      EXEC_OPERATION(not, t1, IO(3));
     </trigger-semantics>
     <trigger-semantics>
       SimValue t1, t2;
@@ -231,11 +221,6 @@
       EXEC_OPERATION(xor, t1, 1, IO(3));
     </trigger-semantics>
     <trigger-semantics>
-      SimValue t1;
-      EXEC_OPERATION(gtu, IO(2),IO(1), t1);
-      EXEC_OPERATION(not, t1, IO(3));
-    </trigger-semantics>
-    <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(gtu, IO(1), IO(2), t1);
       EXEC_OPERATION(eq, IO(1), IO(2), t2);
@@ -257,11 +242,6 @@
       EXEC_OPERATION(xor, t1, 1, IO(3));
     </trigger-semantics>
     <trigger-semantics>
-      SimValue t1;
-      EXEC_OPERATION(gt, IO(1),IO(2), t1);
-      EXEC_OPERATION(not, t1, IO(3));
-    </trigger-semantics>
-    <trigger-semantics>
       SimValue t1, t2;
       EXEC_OPERATION(eq, IO(1), IO(2), t1);
       EXEC_OPERATION(gt, IO(2), IO(1), t2);
@@ -281,11 +261,6 @@
       SimValue t1;
       EXEC_OPERATION(gtu, IO(1),IO(2), t1);
       EXEC_OPERATION(xor, t1, 1, IO(3));
-    </trigger-semantics>
-    <trigger-semantics>
-      SimValue t1;
-      EXEC_OPERATION(gtu, IO(1),IO(2), t1);
-      EXEC_OPERATION(not, t1, IO(3));
     </trigger-semantics>
     <trigger-semantics>
       SimValue t1, t2;
