@@ -209,7 +209,7 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
     case ISD::GlobalAddress: {
         GlobalValue* gv = cast<GlobalAddressSDNode>(op)->getGlobal();
         SDValue ga = dag.getTargetGlobalAddress(gv, MVT::i32);
-        return dag.getNode(TCEISD::GLOBAL_ADDR, MVT::i32, ga);
+        return dag.getNode(TCEISD::GLOBAL_ADDR, op.getDebugLoc(), MVT::i32, ga);
     }
     case ISD::DYNAMIC_STACKALLOC: {
         assert(false && "Dynamic stack allocation not yet implemented.");
@@ -222,7 +222,7 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
         SDValue fr = dag.getFrameIndex(varArgsFrameIndex_, ptrVT);
         SrcValueSDNode* sv = cast<SrcValueSDNode>(op.getOperand(2));
         return dag.getStore(
-            op.getOperand(0), fr, op.getOperand(1), sv->getValue(), 0);
+            op.getOperand(0), op.getDebugLoc(), fr, op.getOperand(1), sv->getValue(), 0);
     }
     case ISD::ConstantPool: {
         // TODO: Check this.
@@ -238,7 +238,7 @@ TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
                 cp->getConstVal(), ptrVT,
                 cp->getAlignment());
         }
-        return dag.getNode(TCEISD::CONST_POOL, MVT::i32, res);
+        return dag.getNode(TCEISD::CONST_POOL, op.getDebugLoc(), MVT::i32, res);
     }     
     }
     op.getNode()->dump(&dag);
@@ -273,7 +273,7 @@ TCETargetLowering::LowerRET(SDValue op, SelectionDAG& dag) {
 	 //case MVT::f64: argReg = TCE::DRES0; break;
         }
         copy = dag.getCopyToReg(
-            op.getOperand(0), argReg, op.getOperand(1),
+            op.getOperand(0), op.getDebugLoc(), argReg, op.getOperand(1),
             SDValue());
         break;
     }
@@ -284,18 +284,18 @@ TCETargetLowering::LowerRET(SDValue op, SelectionDAG& dag) {
         assert(op.getOperand(3).getValueType() == MVT::i32);
 
         copy = dag.getCopyToReg(
-            op.getOperand(0), TCE::IRES0, op.getOperand(3),
+            op.getOperand(0), op.getDebugLoc(), TCE::IRES0, op.getOperand(3),
             SDValue());
 
         copy = dag.getCopyToReg(
-            copy, TCE::KLUDGE_REGISTER, op.getOperand(1),
+            copy, op.getDebugLoc(), TCE::KLUDGE_REGISTER, op.getOperand(1),
             copy.getValue(1));
 
         break;
     }
     }
     return dag.getNode(
-        TCEISD::RET_FLAG, MVT::Other, copy, copy.getValue(1));
+        TCEISD::RET_FLAG, op.getDebugLoc(), MVT::Other, copy, copy.getValue(1));
 
 }
 
@@ -306,7 +306,7 @@ void
 TCETargetLowering::LowerArguments(
     Function& f, SelectionDAG& dag, 
     SmallVectorImpl<SDValue>& argValues,
-    DebugLoc /*dl*/) {
+    DebugLoc dl) {
  
     MachineFunction& mf = dag.getMachineFunction();
     unsigned argOffset = 0;
@@ -335,7 +335,7 @@ TCETargetLowering::LowerArguments(
             SDValue fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
             SDValue load;
             if (objectVT == MVT::i32) {
-                load = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
+                load = dag.getLoad(MVT::i32, dl, root, fiPtr, NULL, 0);
             } else {
                 ISD::LoadExtType loadOp = ISD::SEXTLOAD;
                 unsigned offset = 0;
@@ -347,13 +347,13 @@ TCETargetLowering::LowerArguments(
                     assert(false);
                 }
                 fiPtr = dag.getNode(
-                    ISD::ADD, MVT::i32, fiPtr,
+                    ISD::ADD, dl, MVT::i32, fiPtr,
                     dag.getConstant(offset, MVT::i32));
                     
-                load = dag.getExtLoad(loadOp, MVT::i32, root, fiPtr,
+                load = dag.getExtLoad(loadOp, dl, MVT::i32, root, fiPtr,
                                       NULL, 0, objectVT);
                     
-                load = dag.getNode(ISD::TRUNCATE, objectVT, load);
+                load = dag.getNode(ISD::TRUNCATE, dl, objectVT, load);
             }
             argValues.push_back(load);
             argOffset += 4;
@@ -365,15 +365,15 @@ TCETargetLowering::LowerArguments(
 
             int frameIdx = mf.getFrameInfo()->CreateFixedObject(4, argOffset);
             SDValue fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
-            hiVal = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
+            hiVal = dag.getLoad(MVT::i32, dl, root, fiPtr, NULL, 0);
 
             frameIdx = mf.getFrameInfo()->CreateFixedObject(4, argOffset+4);
             fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
-            loVal = dag.getLoad(MVT::i32, root, fiPtr, NULL, 0);
+            loVal = dag.getLoad(MVT::i32, dl, root, fiPtr, NULL, 0);
 
             // Compose the two halves together into an i64 unit.
             SDValue wholeValue =
-                dag.getNode(ISD::BUILD_PAIR, MVT::i64, loVal, hiVal);
+                dag.getNode(ISD::BUILD_PAIR, dl, MVT::i64, loVal, hiVal);
 
             argValues.push_back(wholeValue);
             argOffset += 8;
@@ -383,7 +383,7 @@ TCETargetLowering::LowerArguments(
             // For now, f32s are always passed in the stack.
             int frameIdx = mf.getFrameInfo()->CreateFixedObject(4, argOffset);
             SDValue fiPtr = dag.getFrameIndex(frameIdx, MVT::i32);
-            SDValue load = dag.getLoad(MVT::f32, root, fiPtr, NULL, 0);
+            SDValue load = dag.getLoad(MVT::f32, dl, root, fiPtr, NULL, 0);
             argValues.push_back(load);
             argOffset += 4;
             break;
@@ -395,17 +395,17 @@ TCETargetLowering::LowerArguments(
                 mf.getFrameInfo()->CreateFixedObject(4, argOffset);
 
             SDValue hiFiPtr = dag.getFrameIndex(frameIdxHi, MVT::i32);
-            hiVal = dag.getLoad(MVT::i32, root, hiFiPtr, NULL, 0);
+            hiVal = dag.getLoad(MVT::i32, dl, root, hiFiPtr, NULL, 0);
 	       
             int frameIdxLo =
                 mf.getFrameInfo()->CreateFixedObject(4, argOffset+4);
 
             SDValue loFiPtr = dag.getFrameIndex(frameIdxLo, MVT::i32);
-            loVal = dag.getLoad(MVT::i32, root, loFiPtr, NULL, 0);
+            loVal = dag.getLoad(MVT::i32, dl, root, loFiPtr, NULL, 0);
 
             // Compose the two halves together into an i64 unit.
             SDValue wholeValue =
-                dag.getNode(ISD::BUILD_PAIR, MVT::f64, loVal, hiVal);
+                dag.getNode(ISD::BUILD_PAIR, dl, MVT::f64, loVal, hiVal);
 
             argValues.push_back(wholeValue);
             argOffset += 8;
@@ -453,7 +453,7 @@ std::pair<SDValue, SDValue>
 TCETargetLowering::LowerCallTo(
     SDValue chain, const Type* retTy, bool retTyIsSigned, bool,
     bool isVarArg, bool,  unsigned cc, bool isTailCall, SDValue callee,
-    ArgListTy& args, SelectionDAG& dag, DebugLoc /*dl*/) {
+    ArgListTy& args, SelectionDAG& dag, DebugLoc dl) {
 
     unsigned argsSize = 0;
     for (unsigned i = 0; i < args.size(); i++) {
@@ -518,7 +518,7 @@ TCETargetLowering::LowerCallTo(
             } else if (args[i].isZExt) {
                 ext = ISD::ZERO_EXTEND;
             }
-            val = dag.getNode(ext, MVT::i32, val);
+            val = dag.getNode(ext, dl, MVT::i32, val);
             // FALL THROUGH
         }
         case MVT::i32: {
@@ -548,9 +548,9 @@ TCETargetLowering::LowerCallTo(
                 stackPtr = dag.getRegister(TCE::SP, MVT::i32);
             }
             SDValue ptrOff = dag.getConstant(argOffset, getPointerTy());
-            ptrOff = dag.getNode(ISD::ADD, MVT::i32, stackPtr, ptrOff);
+            ptrOff = dag.getNode(ISD::ADD, dl, MVT::i32, stackPtr, ptrOff);
             stores.push_back(
-                dag.getStore(chain, valToStore, ptrOff, NULL, 0));
+                dag.getStore(chain, dl, valToStore, ptrOff, NULL, 0));
 
             argOffset += objSize;
         }
@@ -560,7 +560,7 @@ TCETargetLowering::LowerCallTo(
     // Emit all stores, make sure the occur before any copies into physregs.
     if (!stores.empty())
         chain = dag.getNode(
-            ISD::TokenFactor, MVT::Other, &stores[0], stores.size());
+            ISD::TokenFactor, dl, MVT::Other, &stores[0], stores.size());
 
     SDValue inFlag;
 
@@ -574,7 +574,7 @@ TCETargetLowering::LowerCallTo(
     nodeTys.push_back(MVT::Other);
     nodeTys.push_back(MVT::Flag);
     SDValue ops[] = { chain, callee, inFlag };
-    chain = dag.getNode(TCEISD::CALL, nodeTys, ops, inFlag.getNode() ? 3 : 2);
+    chain = dag.getNode(TCEISD::CALL, dl, nodeTys, ops, inFlag.getNode() ? 3 : 2);
     inFlag = chain.getValue(1);
 
     // Return value
@@ -586,42 +586,42 @@ TCETargetLowering::LowerCallTo(
         case MVT::i1:
         case MVT::i8:
         case MVT::i16: {
-            retVal = dag.getCopyFromReg(chain, TCE::IRES0, MVT::i32, inFlag);
+            retVal = dag.getCopyFromReg(chain, dl, TCE::IRES0, MVT::i32, inFlag);
             chain = retVal.getValue(1);
-            retVal = dag.getNode(ISD::TRUNCATE, retTyVT, retVal);
+            retVal = dag.getNode(ISD::TRUNCATE, dl, retTyVT, retVal);
             break;
         }
         case MVT::i32: {
-            retVal = dag.getCopyFromReg(chain, TCE::IRES0, MVT::i32, inFlag);
+            retVal = dag.getCopyFromReg(chain, dl, TCE::IRES0, MVT::i32, inFlag);
             chain = retVal.getValue(1);
             break;
         }
         case MVT::i64: {
             SDValue lo = dag.getCopyFromReg(
-                chain, TCE::IRES0, MVT::i32, inFlag);
+                chain, dl, TCE::IRES0, MVT::i32, inFlag);
 
             SDValue hi = dag.getCopyFromReg(
-                lo.getValue(1), TCE::KLUDGE_REGISTER, MVT::i32, 
+                lo.getValue(1), dl, TCE::KLUDGE_REGISTER, MVT::i32, 
                 lo.getValue(2));
 
-            retVal = dag.getNode(ISD::BUILD_PAIR, MVT::i64, lo, hi);
+            retVal = dag.getNode(ISD::BUILD_PAIR, dl, MVT::i64, lo, hi);
             chain = hi.getValue(1);
             break;
         }
         case MVT::f32: {
-            retVal = dag.getCopyFromReg(chain, TCE::FRES0, MVT::f32, inFlag);
+            retVal = dag.getCopyFromReg(chain, dl, TCE::FRES0, MVT::f32, inFlag);
             chain = retVal.getValue(1);
             break;
         }
         case MVT::f64: {
             SDValue lo = dag.getCopyFromReg(
-                chain, TCE::IRES0, MVT::i32, inFlag);
+                chain, dl, TCE::IRES0, MVT::i32, inFlag);
 
             SDValue hi = dag.getCopyFromReg(
-                lo.getValue(1), TCE::KLUDGE_REGISTER, MVT::i32, 
+                lo.getValue(1), dl, TCE::KLUDGE_REGISTER, MVT::i32, 
                 lo.getValue(2));
 
-            retVal = dag.getNode(ISD::BUILD_PAIR, MVT::i64, lo, hi);
+            retVal = dag.getNode(ISD::BUILD_PAIR, dl, MVT::i64, lo, hi);
             chain = hi.getValue(1);
             break;
         }
@@ -683,7 +683,7 @@ TCETargetLowering::lowerSELECT(
     }
 
     return dag.getNode(
-        opcode, trueVal.getValueType(), trueVal, falseVal, cond);
+        opcode, op.getDebugLoc(), trueVal.getValueType(), trueVal, falseVal, cond);
 }
 
 /**

@@ -60,8 +60,6 @@ namespace llvm {
        virtual TargetLowering* getTargetLowering() const = 0;
 
        virtual FunctionPass* createISelPass(TCETargetMachine* tm) = 0;
-       virtual FunctionPass* createAsmPrinterPass(
-           llvm::raw_ostream& o, TCETargetMachine* tm) = 0;
 
        /// Returns name of the physical register file corresponding
        /// to a generated register ID.

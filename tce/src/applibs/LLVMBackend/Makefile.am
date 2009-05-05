@@ -2,7 +2,7 @@ SUBDIRS = passes
 
 noinst_LTLIBRARIES = libtcellvmbackend.la
 
-libtcellvmbackend_la_SOURCES = TCESubtarget.cc  TCETargetAsmInfo.cc \
+libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
     TCETargetMachine.cc  LLVMPOMBuilder.cc LLVMBackend.cc \
     LowerMissingInstructions.cc TDGen.cc passes/LinkBitcode.cc passes/MachineDCE.cc
 
@@ -29,8 +29,6 @@ AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 # Static sources for target machine plugins.
 include_HEADERS = \
- plugin/TCEAsmPrinter.cc \
- plugin/TCEAsmPrinter.hh \
  plugin/TCEDAGToDAGISel.cc \
  plugin/TCEDAGToDAGISel.hh \
  plugin/TCEInstrFormats.td \
@@ -55,7 +53,7 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 ## headers start
 libtcellvmbackend_la_SOURCES += \
 	LLVMBackend.hh LLVMPOMBuilder.hh \
-	TCESubtarget.hh TCETargetAsmInfo.hh \
+	TCESubtarget.hh \
 	TCETargetMachine.hh TCETargetMachinePlugin.hh \
 	TDGen.hh 
 ## headers end

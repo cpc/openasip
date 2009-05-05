@@ -36,7 +36,6 @@
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 
 #include "TCETargetMachine.hh"
-#include "TCETargetAsmInfo.hh"
 #include "LLVMPOMBuilder.hh"
 #include "PluginTools.hh"
 #include "FileSystem.hh"
@@ -45,15 +44,6 @@
 #include <iostream>
 
 using namespace llvm;
-
-//namespace {
-//    RegisterTarget<TCETargetMachine>  X("tce", "TCE");
-//}
-
-const TargetAsmInfo*
-TCETargetMachine::createTargetAsmInfo() const {
-    return new TCETargetAsmInfo(*this);
-}
 
 //
 // Data layout:
@@ -128,23 +118,6 @@ bool
 TCETargetMachine::addInstSelector(FunctionPassManager& pm, bool /* fast */) {
     FunctionPass* isel = plugin_.createISelPass(this);
     pm.add(isel);
-    return false;
-}
-
-
-/**
- * Creates a code printer instance.
- *
- * @param pm Pass manager where the code printer pass is added.
- * @param fast Unused.
- * @param out Output stream for the code printer.
- */
-bool
-TCETargetMachine::addAssemblyEmitter(
-    FunctionPassManager& pm, bool /* fast */, llvm::raw_ostream& out) {
-
-    // Output assembly language.
-    pm.add(plugin_.createAsmPrinterPass(out, this));
     return false;
 }
 

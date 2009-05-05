@@ -661,12 +661,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
-    // Generate TCEGenAsmWriter.inc
-    cmd = tblgenCmd +
-        " -gen-asm-writer" +
-        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
-        "TCEGenAsmWriter.inc";
-
     ret = system(cmd.c_str());
     if (ret) {
         FileSystem::removeFileOrDirectory(tmpDir);
@@ -682,7 +676,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         srcsPath + "TCEInstrInfo.cc " +
         srcsPath + "TCETargetLowering.cc " +
         srcsPath + "TCEDAGToDAGISel.cc " +
-        srcsPath + "TCEAsmPrinter.cc " +
         srcsPath + "TCETargetMachinePlugin.cc";
 
     // Compile plugin to cache.

@@ -35,7 +35,6 @@
 #include "TCETargetMachinePlugin.hh"
 #include "TCEPlugin.hh"
 #include "TCEInstrInfo.hh"
-#include "TCEAsmPrinter.hh"
 #include "TCETargetMachine.hh"
 #include "TCETargetLowering.hh"
 
@@ -53,8 +52,6 @@ public:
     virtual TargetLowering* getTargetLowering() const;
 
     virtual FunctionPass* createISelPass(TCETargetMachine* tm);
-    virtual FunctionPass* createAsmPrinterPass(
-        llvm::raw_ostream& o, TCETargetMachine* tm);
 
     virtual unsigned spDRegNum() {
         return TCE::SP;
@@ -158,17 +155,6 @@ FunctionPass*
 GeneratedTCEPlugin::createISelPass(TCETargetMachine* tm) {
     return createTCEISelDag(*tm);
 }
-
-/**
- * Creates asm printer pass for TCE target machine.
- */
-FunctionPass*
-GeneratedTCEPlugin::createAsmPrinterPass(
-    llvm::raw_ostream& o, TCETargetMachine* tm) {
-
-    return new TCEAsmPrinter(o, *tm, tm->getTargetAsmInfo());
-}
-
 
 /**
  * Maps llvm target opcodes to target operation names.

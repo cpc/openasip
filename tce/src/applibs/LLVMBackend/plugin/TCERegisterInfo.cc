@@ -118,7 +118,7 @@ TCERegisterInfo::eliminateFrameIndex(
     if (offset != 0) {
         mi.getOperand(i).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
         BuildMI(
-            *mi.getParent(), ii, tii_.get(TCE::ADDri),
+            *mi.getParent(), ii, mi.getDebugLoc(), tii_.get(TCE::ADDri),
             TCE::KLUDGE_REGISTER).addReg(baseRegister).addImm(offset);
     }
 }
@@ -168,11 +168,11 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
 
     MachineBasicBlock::iterator ii = mbb.begin();
 
-    BuildMI(mbb, ii, tii_.get(TCE::SUBri), TCE::SP).addReg(
+    BuildMI(mbb, ii, (*ii).getDebugLoc(), tii_.get(TCE::SUBri), TCE::SP).addReg(
         TCE::SP).addImm(4);
 
     // Save RA to stack.
-    BuildMI(mbb, ii, tii_.get(TCE::STWrr)).addReg(
+    BuildMI(mbb, ii, (*ii).getDebugLoc(), tii_.get(TCE::STWrr)).addReg(
         TCE::SP).addImm(0).addReg(TCE::RA);
 
     if (fp) {
@@ -185,7 +185,7 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
 
     // Adjust stack pointer
    if (numBytes != 0) {
-        BuildMI(mbb, ii, tii_.get(TCE::SUBri), TCE::SP).addReg(
+        BuildMI(mbb, ii, (*ii).getDebugLoc(), tii_.get(TCE::SUBri), TCE::SP).addReg(
             TCE::SP).addImm(numBytes);
    }
 
@@ -214,15 +214,15 @@ TCERegisterInfo::emitEpilogue(
     }
 
     if (numBytes != 4) {
-        BuildMI(mbb, mbbi, tii_.get(TCE::ADDri), TCE::SP).addReg(
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), tii_.get(TCE::ADDri), TCE::SP).addReg(
             TCE::SP).addImm(numBytes - 4);
     }
 
     // Restore RA from stack.
-    BuildMI(mbb, mbbi, tii_.get(TCE::LDWi), TCE::RA).addReg(
+    BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), tii_.get(TCE::LDWi), TCE::RA).addReg(
         TCE::SP).addImm(0);
 
-    BuildMI(mbb, mbbi, tii_.get(TCE::ADDri), TCE::SP).addReg(
+    BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), tii_.get(TCE::ADDri), TCE::SP).addReg(
         TCE::SP).addImm(4);
 }
 
@@ -288,7 +288,7 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
         std::cerr << "sz: " << sz << std::endl;
         if (sz) {
             std::cerr << "TCE::SP ADD " << sz << std::endl;
-            BuildMI(mbb, i, tii_.get(TCE::ADDri), TCE::SP).addReg(
+            BuildMI(mbb, i, mi.getDebugLoc(), tii_.get(TCE::ADDri), TCE::SP).addReg(
                 TCE::SP).addImm(sz);
         }
     }

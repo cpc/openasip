@@ -101,7 +101,7 @@ TCEInstrInfo::InsertBranch(
 
     // Can only insert uncond branches so far.
     assert(cond.empty() && !fbb && tbb && "Can only handle uncond branches!");
-    BuildMI(&mbb, get(TCE::TCEBR)).addMBB(tbb);
+    BuildMI(&mbb, mbb.front().getDebugLoc(), get(TCE::TCEBR)).addMBB(tbb);
     return 1;
 }
 
@@ -183,13 +183,13 @@ TCEInstrInfo::storeRegToStackSlot(
     const TargetRegisterClass* rc) const {
 
     if (rc == TCE::I32RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::STWir))
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::STWir))
             .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
     } else if (rc == TCE::F32RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::STWir))
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::STWir))
             .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
     } else if (rc == TCE::I1RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::STQir))
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::STQir))
             .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
     } else {
         assert(0 && "Can't store this register to stack slot");
@@ -214,15 +214,15 @@ TCEInstrInfo::loadRegFromStackSlot(
 
     if (rc == TCE::I32RegsRegisterClass) {
         BuildMI(
-            mbb, mbbi, get(TCE::LDWi),
+            mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::LDWi),
             destReg).addFrameIndex(fi).addImm(0);
     } else if (rc == TCE::F32RegsRegisterClass) {
         BuildMI(
-            mbb, mbbi, get(TCE::LDWi),
+            mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::LDWi),
             destReg).addFrameIndex(fi).addImm(0);
     } else if (rc == TCE::I1RegsRegisterClass) {
         BuildMI(
-            mbb, mbbi, get(TCE::LDQi),
+            mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::LDQi),
         destReg).addFrameIndex(fi).addImm(0);
     } else {
 
@@ -250,19 +250,19 @@ TCEInstrInfo::copyRegToReg(
     assert(srcRC == dstRC && "not yet implemented");
 
     if (srcRC == TCE::I1RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::MOVI1rr), destReg).addReg(srcReg);
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::MOVI1rr), destReg).addReg(srcReg);
     } else if (srcRC == TCE::I8RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::MOVI8rr), destReg).addReg(srcReg);
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::MOVI8rr), destReg).addReg(srcReg);
     } else if (srcRC == TCE::I16RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::MOVI16rr), destReg).addReg(srcReg);
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::MOVI16rr), destReg).addReg(srcReg);
     } else if (srcRC == TCE::I32RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::MOVI32rr), destReg).addReg(srcReg);
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::MOVI32rr), destReg).addReg(srcReg);
     } else if (srcRC == TCE::I64RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::MOVI64rr), destReg).addReg(srcReg);
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::MOVI64rr), destReg).addReg(srcReg);
     } else if (srcRC == TCE::F32RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::MOVF32rr), destReg).addReg(srcReg);
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::MOVF32rr), destReg).addReg(srcReg);
     } else if (srcRC == TCE::F64RegsRegisterClass) {
-        BuildMI(mbb, mbbi, get(TCE::MOVF64rr), destReg).addReg(srcReg);
+        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), get(TCE::MOVF64rr), destReg).addReg(srcReg);
     } else {
         assert(
             false && "TCERegisterInfo::copyRegToReg(): Can't copy register");

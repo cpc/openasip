@@ -88,8 +88,6 @@ namespace llvm {
         }
         
         virtual bool addInstSelector(FunctionPassManager& pm, bool fast);
-        virtual bool addAssemblyEmitter(
-            FunctionPassManager& pm, bool fast, llvm::raw_ostream& out);
 
         static unsigned getModuleMatchQuality(const Module &M);
 
@@ -121,9 +119,6 @@ namespace llvm {
         }
 
         const std::set<unsigned>* missingOperations();
-
-    protected:
-        const TargetAsmInfo* createTargetAsmInfo() const;
 
     private:
         const TargetData dataLayout_;
