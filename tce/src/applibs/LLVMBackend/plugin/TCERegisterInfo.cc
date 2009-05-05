@@ -68,20 +68,6 @@ TCERegisterInfo::hasFP(const MachineFunction& mf) const {
     return NoFramePointerElim || mf.getFrameInfo()->hasVarSizedObjects();
 }
 
-
-/**
- * Not Implemented yet.
-MachineInstr*
-TCERegisterInfo::foldMemoryOperand(
-    MachineInstr* mi,
-    unsigned opNum,
-    int frameIndex) const {
-
-    // TODO: can we fold something?
-    return NULL;
-}
- */
-
 /**
  * Eliminates abstract frame index operands.
  *
@@ -168,11 +154,14 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
 
     MachineBasicBlock::iterator ii = mbb.begin();
 
-    BuildMI(mbb, ii, (*ii).getDebugLoc(), tii_.get(TCE::SUBri), TCE::SP).addReg(
+    DebugLoc dl = DebugLoc::getUnknownLoc();
+    if (ii != mbb.end()) dl = ii->getDebugLoc();
+
+    BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP).addReg(
         TCE::SP).addImm(4);
 
     // Save RA to stack.
-    BuildMI(mbb, ii, (*ii).getDebugLoc(), tii_.get(TCE::STWrr)).addReg(
+    BuildMI(mbb, ii, dl, tii_.get(TCE::STWrr)).addReg(
         TCE::SP).addImm(0).addReg(TCE::RA);
 
     if (fp) {
@@ -185,7 +174,7 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
 
     // Adjust stack pointer
    if (numBytes != 0) {
-        BuildMI(mbb, ii, (*ii).getDebugLoc(), tii_.get(TCE::SUBri), TCE::SP).addReg(
+        BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP).addReg(
             TCE::SP).addImm(numBytes);
    }
 
@@ -202,6 +191,9 @@ TCERegisterInfo::emitEpilogue(
     MachineFrameInfo* mfi = mf.getFrameInfo();
     MachineBasicBlock::iterator mbbi = prior(mbb.end());
 
+    DebugLoc dl = DebugLoc::getUnknownLoc();
+    if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
+
     if (mbbi->getOpcode() != TCE::RETL) {
         assert(false && "ERROR: Insertiing epilogue w/o return?");
     }
@@ -214,15 +206,15 @@ TCERegisterInfo::emitEpilogue(
     }
 
     if (numBytes != 4) {
-        BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), tii_.get(TCE::ADDri), TCE::SP).addReg(
+        BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP).addReg(
             TCE::SP).addImm(numBytes - 4);
     }
 
     // Restore RA from stack.
-    BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), tii_.get(TCE::LDWi), TCE::RA).addReg(
+    BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWi), TCE::RA).addReg(
         TCE::SP).addImm(0);
 
-    BuildMI(mbb, mbbi, (*mbbi).getDebugLoc(), tii_.get(TCE::ADDri), TCE::SP).addReg(
+    BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP).addReg(
         TCE::SP).addImm(4);
 }
 
@@ -271,11 +263,8 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
         assert (false && "TODO FP support.");
 
         MachineInstr& mi = *i;
-#ifdef LLVM_2_1
-        int sz =  mi.getOperand(0).getImmedValue();
-#else
         int sz =  mi.getOperand(0).getImm();
-#endif
+
         if (mi.getOpcode() == TCE::ADJCALLSTACKDOWN) {
             std::cerr << "TCE::ADJCALLSTACKDOWN" << std::endl;
             sz = -sz;

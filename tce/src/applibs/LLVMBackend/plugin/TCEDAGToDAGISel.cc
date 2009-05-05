@@ -59,11 +59,9 @@ public:
         llvm::SDValue& base, llvm::SDValue& offset);
 
     llvm::SDNode* Select(llvm::SDValue op);
-#ifdef LLVM_2_3
-    virtual void InstructionSelectBasicBlock(llvm::SelectionDAG& dag);
-#else
+
     virtual void InstructionSelect();
-#endif
+
     virtual const char* getPassName() const {
         return "TCE DAG->DAG Pattern Instruction Selection";
     }
@@ -90,39 +88,12 @@ TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
 TCEDAGToDAGISel::~TCEDAGToDAGISel() {
 }
 
-#ifdef LLVM_2_3
-/** 
- * This callback is invoked by SelectionDAGISel when it has created
- * a SelectionDAG for us to codegen.
- */
-void
-TCEDAGToDAGISel::InstructionSelectBasicBlock(SelectionDAG& dag) {
-
-    DEBUG(BB->dump());
-    
-    // Select target instructions for the DAG.
-    dag.setRoot(SelectRoot(dag.getRoot()));
-    dag.RemoveDeadNodes();
-
-    // Emit machine code to BB.
-    ScheduleAndEmitDAG(dag);
-}
-#else
 // from Sparc backend:
 void TCEDAGToDAGISel::InstructionSelect() {
   DEBUG(BB->dump());
-  
-
-#if LLVM_2_4
-  // Select target instructions for the DAG.
-  SelectRoot();
-#else
   SelectRoot(*CurDAG);
-#endif
-
   CurDAG->RemoveDeadNodes();
 }
-#endif
 
 /**
  * Handles custom instruction selections.
@@ -143,10 +114,7 @@ TCEDAGToDAGISel::Select(SDValue op) {
         // TODO: Check this. Following IA64 example..
         SDValue chain = n->getOperand(0);
         SDValue cc = n->getOperand(1);
-#if LLVM_2_4
-        AddToISelQueue(chain);
-        AddToISelQueue(cc);
-#endif
+
         MachineBasicBlock* dest =
             cast<BasicBlockSDNode>(n->getOperand(2))->getBasicBlock();
 
@@ -166,9 +134,7 @@ TCEDAGToDAGISel::Select(SDValue op) {
         //}
     } else if (n->getOpcode() == ISD::BR) {
         SDValue chain = n->getOperand(0);
-#if LLVM_2_4
-        AddToISelQueue(chain);
-#endif
+
         MachineBasicBlock* dest =
             cast<BasicBlockSDNode>(n->getOperand(1))->getBasicBlock();
         return CurDAG->SelectNodeTo(
