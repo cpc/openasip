@@ -33,9 +33,9 @@ Building the development version
 
 The development version does not ship with a pregenerated 'configure' script.
 In order to build the development version, one needs to generate the
-configure script by running 'autoreconf' in the TCE root directory.
-Autoreconf is part of autotools, thus you need to install packages 
-'automake1.9' and 'autoconf'.
+configure script by running './gen_config.sh' in the TCE root directory.
+For this to work you need to install packages 'libtool', 'automake1.9' and 
+'autoconf'.
 
 Library and tools version prerequisites
 =======================================
