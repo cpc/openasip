@@ -888,7 +888,6 @@ OperationPropertyDialog::onOpen(wxCommandEvent&) {
 void
 OperationPropertyDialog::onOpenDAG(wxCommandEvent&) {
     OperationDAGDialog dialog(this, operation_);
-    //ObjectState* orig = op->saveState();
     dialog.ShowModal();
 }
 
@@ -1000,7 +999,6 @@ OperationPropertyDialog::onOk(wxCommandEvent&) {
             }
         }
         
-        //ObjectState* mod = operation_->saveState();                
         ObjectState* mod = saveOperation(); // load modified operation's settings from gui
         ObjectState* orig = orig_;
 
@@ -1042,13 +1040,12 @@ ObjectState*
 OperationPropertyDialog::saveOperation() {
 	
     ObjectState* root = new ObjectState(Operation::OPRN_OPERATION);
-    //ObjectState* root = operation_->saveState();
     root->setAttribute(Operation::OPRN_NAME, WxConversion::toString(name_));
 
     std::string description("");
     wxString wxTemp;
 
-    for(int i = 0; i < editDescription_->GetNumberOfLines(); ++i)
+    for (int i = 0; i < editDescription_->GetNumberOfLines(); ++i)
     {
         wxTemp = editDescription_->GetLineText(i);
 #if wxCHECK_VERSION(2, 6, 0)
@@ -1056,8 +1053,12 @@ OperationPropertyDialog::saveOperation() {
 #else
         std::string stdTemp(wxTemp.c_str());
 #endif
-        description += stdTemp + '\n';
+        if (!StringTools::endsWith(stdTemp, "\n"))
+            stdTemp = stdTemp + "\n";
+        description += stdTemp;
     }
+
+    description = StringTools::trim(description);
 
     root->setAttribute(Operation::OPRN_DESCRIPTION, description);
 
