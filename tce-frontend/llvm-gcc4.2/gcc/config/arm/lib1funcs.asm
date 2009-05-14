@@ -845,7 +845,8 @@ LSYM(Lgot_result):
 	cmp	dividend, divisor
 	blo	LSYM(Lgot_result)
 
-	THUMB_DIV_MOD_BODY 0
+	/* LLVM LOCAL */
+	THUMB_DIV_MOD_BODY(0)
 	
 	mov	r0, result
 	pop	{ work }
@@ -920,7 +921,8 @@ FUNC_START aeabi_uidivmod
 LSYM(Lover10):
 	push	{ work }
 
-	THUMB_DIV_MOD_BODY 1
+	/* LLVM LOCAL */
+	THUMB_DIV_MOD_BODY(1)
 	
 	pop	{ work }
 	RET
@@ -973,7 +975,8 @@ LSYM(Lover11):
 	cmp	dividend, divisor
 	blo	LSYM(Lgot_result)
 
-	THUMB_DIV_MOD_BODY 0
+	/* LLVM LOCAL */
+	THUMB_DIV_MOD_BODY(0)
 	
 	mov	r0, result
 	mov	work, ip
@@ -1076,7 +1079,8 @@ LSYM(Lover11):
 	cmp	dividend, divisor
 	blo	LSYM(Lgot_result)
 
-	THUMB_DIV_MOD_BODY 1
+	/* LLVM LOCAL */
+	THUMB_DIV_MOD_BODY(1)
 		
 	pop	{ work }
 	cmp	work, #0
@@ -1351,6 +1355,24 @@ L10:	cmp	ip, #0
 	FUNC_END switch32
 #endif
 /* APPLE LOCAL end ARM 4790140 compact switch tables */
+
+/* APPLE LOCAL begin 6465387 exception handling interworking VFP save */
+#if (__ARM_ARCH__ == 6)
+#ifdef L_save_vfp_d8_d15_regs 
+        ARM_FUNC_START save_vfp_d8_d15_regs
+        vpush {d8-d15}
+        RET
+        FUNC_END save_vfp_d8_d15_regs
+#endif
+
+#ifdef L_restore_vfp_d8_d15__regs
+        ARM_FUNC_START restore_vfp_d8_d15_regs
+        vpop {d8-d15}
+        RET
+        FUNC_END restore_vfp_d8_d15_regs
+#endif
+#endif
+/* APPLE LOCAL end 6465387 exception handling interworking VFP save */
 
 #endif /* __symbian__ */
 

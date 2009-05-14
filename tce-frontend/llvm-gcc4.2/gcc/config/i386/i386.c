@@ -1778,6 +1778,7 @@ override_options (void)
   else
     {
       /* LLVM LOCAL begin mainline */
+#ifdef ENABLE_LLVM
       /* For TARGET_64BIT_MS_ABI, force pic on, in order to enable the
 	 use of rip-relative addressing.  This eliminates fixups that
 	 would otherwise be needed if this object is to be placed in a
@@ -1788,6 +1789,11 @@ override_options (void)
 	ix86_cmodel = flag_pic ? CM_SMALL_PIC : CM_SMALL;
       else
 	ix86_cmodel = CM_32;
+#else
+      ix86_cmodel = CM_32;
+      if (TARGET_64BIT)
+	ix86_cmodel = flag_pic ? CM_SMALL_PIC : CM_SMALL;
+#endif
       /* LLVM LOCAL end mainline */
     }
   if (ix86_asm_string != 0)
@@ -1905,8 +1911,10 @@ override_options (void)
   if (ix86_regparm_string)
     {
       /* LLVM LOCAL begin mainline */
+#ifdef ENABLE_LLVM
       if (TARGET_64BIT)
 	warning (0, "-mregparm is ignored in 64-bit mode");
+#endif
       /* LLVM LOCAL end mainline */
       i = atoi (ix86_regparm_string);
       if (i < 0 || i > REGPARM_MAX)
@@ -1915,9 +1923,12 @@ override_options (void)
 	ix86_regparm = i;
     }
   /* LLVM LOCAL begin mainline */
-  if (TARGET_64BIT)
-    ix86_regparm = REGPARM_MAX;
+#ifndef ENABLE_LLVM
+  else
+#endif
   /* LLVM LOCAL end mainline */
+   if (TARGET_64BIT)
+     ix86_regparm = REGPARM_MAX;
 
   /* If the user has provided any of the -malign-* options,
      warn and use that value only if -falign-* is not set.
@@ -2021,7 +2032,9 @@ override_options (void)
       /* APPLE LOCAL end radar 4877693 */
 
       /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
       target_flags |= TARGET_SUBTARGET64_DEFAULT & ~target_flags_explicit;
+#endif
       /* LLVM LOCAL end */
 
       /* Enable by default the SSE and MMX builtins.  Do allow the user to
@@ -2029,9 +2042,15 @@ override_options (void)
          MMX for kernel code is extremely useful.  */
       if (!ix86_arch_specified)
       /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
         target_flags
           |= ((MASK_SSE2 | MASK_SSE | MASK_MMX | MASK_128BIT_LONG_DOUBLE)
                & ~target_flags_explicit);
+#else
+        target_flags
+          |= ((MASK_SSE2 | MASK_SSE | MASK_MMX | MASK_128BIT_LONG_DOUBLE
+               | TARGET_SUBTARGET64_DEFAULT) & ~target_flags_explicit);
+#endif
       /* LLVM LOCAL end */
       /* APPLE LOCAL begin mainline candidate */
       /* Disable the red zone for kernel compilation.
@@ -2438,16 +2457,19 @@ optimization_options (int level, int size ATTRIBUTE_UNUSED)
   flag_trapping_math = 0;
   /* APPLE LOCAL end pragma fenv */
 
-  /* APPLE LOCAL begin LLVM */
+  /* LLVM LOCAL begin */
   /* Enable -fno-math-errno by default, even on systems whose libm functions set
      errno.  This is a deviation from what mainline GCC does, but it is a) good
      for performance, b) controllable with -fmath-errno, and c) the default
      behavior most people want anyway.  Numericists and others who play with or
      depend on errno and can use -fmath-errno when they want it.  Because errno
      is not set on all targets anyway, their code is inherently non-portable. */
-  if (TARGET_MACHO || 1)
-  /* APPLE LOCAL end LLVM */
-  
+  if (TARGET_MACHO
+#ifdef ENABLE_LLVM
+      || 1
+#endif
+      )
+  /* LLVM LOCAL end */
     /* The Darwin libraries never set errno, so we might as well
        avoid calling them when that's the only reason we would.  */
     flag_errno_math = 0;
@@ -2728,8 +2750,10 @@ ix86_handle_cconv_attribute (tree *node, tree name,
   if (TARGET_64BIT)
     {
       /* LLVM LOCAL begin mainline */
+#ifdef ENABLE_LLVM
       /* Do not warn when emulating the MS ABI.  */
       if (!TARGET_64BIT_MS_ABI)
+#endif
 	warning (OPT_Wattributes, "%qs attribute ignored",
 		 IDENTIFIER_POINTER (name));
       /* LLVM LOCAL end mainline */
@@ -4090,12 +4114,13 @@ function_arg (CUMULATIVE_ARGS *cum, enum machine_mode orig_mode,
    the argument itself.  The pointer is passed in whatever way is
    appropriate for passing a pointer to that type.  */
 
-/* LLVM LOCAL begin mainline */
 static bool
 ix86_pass_by_reference (CUMULATIVE_ARGS *cum ATTRIBUTE_UNUSED,
 			enum machine_mode mode ATTRIBUTE_UNUSED,
 			tree type, bool named ATTRIBUTE_UNUSED)
 {
+  /* LLVM LOCAL begin mainline */
+#ifdef ENABLE_LLVM
   /* See Windows x64 Software Convention.  */
   if (TARGET_64BIT_MS_ABI)
     {
@@ -4126,8 +4151,21 @@ ix86_pass_by_reference (CUMULATIVE_ARGS *cum ATTRIBUTE_UNUSED,
     return 1;
 
   return 0;
+#else
+  if (!TARGET_64BIT)
+    return 0;
+
+  if (type && int_size_in_bytes (type) == -1)
+    {
+      if (TARGET_DEBUG_ARG)
+	fprintf (stderr, "function_arg_pass_by_reference\n");
+      return 1;
+    }
+
+  return 0;
+#endif
+  /* LLVM LOCAL end mainline */
 }
-/* LLVM LOCAL end mainline */
 
 /* Return true when TYPE should be 128bit aligned for 32bit argument passing
    ABI.  Only called if TARGET_SSE.  */
@@ -10304,11 +10342,13 @@ ix86_expand_convert_uns_SF2SI_sse (rtx operands[])
   real_from_integer (&rvt_int_two31, SFmode, 0x80000000ULL, 0ULL, 1);
   int_two31_as_fp = const_double_from_real_value (rvt_int_two31, SFmode);
 
+  /* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
   /* This warns if HOST_WIDE_INT < 64. */
   real_from_integer (&rvt_int_two32, SFmode, (HOST_WIDE_INT)0x100000000ULL,
 		     0ULL, 1);
 #endif
+  /* LLVM LOCAL end */
   int_two32_as_fp = const_double_from_real_value (rvt_int_two32, SFmode);
 
   incoming_value = force_reg (GET_MODE (operands[1]), operands[1]);
@@ -10474,11 +10514,13 @@ ix86_expand_convert_uns_DI2DF_sse (rtx operands[])
 			    gen_rtx_SUBREG (V2DFmode, int_xmm, 0));
 
   /* Integral versions of the DFmode 'exponents' above.  */
+  /* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
   /* These get warnings if HOST_WIDE_INT < 64 */
   REAL_VALUE_FROM_INT (bias_lo_rvt, 0x00000000000000ULL, 0x100000ULL, DFmode);
   REAL_VALUE_FROM_INT (bias_hi_rvt, 0x10000000000000ULL, 0x000000ULL, DFmode);
 #endif
+  /* LLVM LOCAL end */
   bias_lo_rtx = CONST_DOUBLE_FROM_REAL_VALUE (bias_lo_rvt, DFmode);
   bias_hi_rtx = CONST_DOUBLE_FROM_REAL_VALUE (bias_hi_rvt, DFmode);
   biases_rtvec = gen_rtvec (2, bias_lo_rtx, bias_hi_rtx);
@@ -10575,10 +10617,12 @@ ix86_expand_convert_sign_DI2DF_sse (rtx operands[])
   rtx int_two32_as_fp, int_two32_as_fp_vec;
   rtx target = operands[0];
   rtx input = force_reg (DImode, operands[1]);
+  /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
   gcc_assert(0 && "rtx floating point conversion?");
   return 0;
 #endif
+  /* LLVM LOCAL end */
 
   gcc_assert (ix86_preferred_stack_boundary >= 128);
   gcc_assert (GET_MODE (input) == DImode);
@@ -10589,10 +10633,12 @@ ix86_expand_convert_sign_DI2DF_sse (rtx operands[])
   emit_insn (gen_sse2_cvtsi2sd (fp_value_hi_xmm, fp_value_hi_xmm,
 				gen_rtx_SUBREG (SImode, input, 4)));
 
+  /* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
   /* This gets warnings when HOST_WIDE_INT < 64 */
   real_from_integer (&rvt_int_two32, DFmode, 0x100000000ULL, 0ULL, 1);
 #endif
+  /* LLVM LOCAL end */
   int_two32_as_fp = const_double_from_real_value (rvt_int_two32, DFmode);
   rvt_int_two32_vec = gen_rtx_CONST_VECTOR (V2DFmode,
 				gen_2_4_rtvec (2, int_two32_as_fp, DFmode));
@@ -16469,7 +16515,7 @@ ix86_init_mmx_sse_builtins (void)
   tree float128_type;
   tree ftype;
 
-  /* APPLE LOCAL begin LLVM */
+  /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
   /* LLVM doesn't initialize the RTL backend, so build_vector_type will assign
     all of these types BLKmode.  This interferes with i386.c-specific
@@ -16487,7 +16533,7 @@ ix86_init_mmx_sse_builtins (void)
   TYPE_MODE (V8HI_type_node) = V8HImode;
   TYPE_MODE (V1DI_type_node) = V1DImode;
 #endif
-  /* APPLE LOCAL end LLVM */
+  /* LLVM LOCAL end */
 
   /* The __float80 type.  */
   if (TYPE_MODE (long_double_type_node) == XFmode)
@@ -22106,13 +22152,13 @@ iasm_is_offset (tree v)
       v = TREE_OPERAND (v, 0);
       if (TREE_CODE (v) == VAR_DECL
 	  && TREE_STATIC (v)
-/* APPLE LOCAL begin LLVM */
+/* LLVM LOCAL begin */
 /* DECL_RTL is not set for LLVM */
 #ifndef ENABLE_LLVM
           && MEM_P (DECL_RTL (v))
 #endif
          )
-/* APPLE LOCAL end LLVM */
+/* LLVM LOCAL end */
 	{
 	  note_alternative_entry_points ();
 	  return true;
@@ -22123,13 +22169,13 @@ iasm_is_offset (tree v)
     }
   if (TREE_CODE (v) == VAR_DECL
       && TREE_STATIC (v)
-/* APPLE LOCAL begin LLVM */
+/* LLVM LOCAL begin */
 /* DECL_RTL is not set for LLVM */
 #ifndef ENABLE_LLVM
       && MEM_P (DECL_RTL (v))
 #endif
      )
-/* APPLE LOCAL end LLVM */
+/* LLVM LOCAL end */
     {
       note_alternative_entry_points ();
       return true;
@@ -22786,19 +22832,7 @@ iasm_x86_canonicalize_operands (const char **opcode_p, tree iargs, void *ep)
 	  && (e->mod[0] == e->mod[1]
 	      || e->mod[1] == 0)))
     {
-      if (e->mod[0] == 'q'
-	  && !(strcasecmp (opcode, "inc") == 0
-	       || strcasecmp (opcode, "or") == 0
-	       || strcasecmp (opcode, "idiv") == 0
-	       || strcasecmp (opcode, "movs") == 0
-	       || strcasecmp (opcode, "scas") == 0
-	       || strcasecmp (opcode, "dec") == 0
-	       || strcasecmp (opcode, "push") == 0
-	       || strcasecmp (opcode, "pop") == 0
-	       || strcasecmp (opcode, "mov") == 0))
-	sprintf (buf, "%s%s", opcode, "ll");
-      else
-	sprintf (buf, "%s%c", opcode, e->mod[0]);
+      sprintf (buf, "%s%c", opcode, e->mod[0]);
       *opcode_p = buf;
     }
   else if (argnum == 2 && e->mod[0] && e->mod[1])

@@ -371,6 +371,7 @@ define__GNUC__ (void)
   gcc_assert (!*v || *v == ' ' || *v == '-');
 
   /* LLVM LOCAL no version number */
+#ifdef CONFIG_DARWIN_H
 #ifndef LLVM_VERSION_INFO
 
   /* APPLE LOCAL begin Apple version */
@@ -401,7 +402,6 @@ define__GNUC__ (void)
 
   /* LLVM LOCAL begin version number */
 #else
-#ifdef CONFIG_DARWIN_H
   /* This chunk of code defines __APPLE_CC__ from the version
      string.  It expects to see a substring of the version string of
      the form "build NNNN)", where each N is a digit, and the first
@@ -441,8 +441,8 @@ define__GNUC__ (void)
     else
       builtin_define_with_value_n ("__APPLE_CC__", vt, q - vt);
   }
-#endif /*CONFIG_DARWIN_H*/
 #endif /*LLVM_VERSION_INFO*/
+#endif /*CONFIG_DARWIN_H*/
   /* LLVM LOCAL end version number */
 }
 

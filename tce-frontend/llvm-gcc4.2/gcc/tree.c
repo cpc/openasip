@@ -6834,11 +6834,17 @@ build_common_builtin_nodes (void)
   tmp = tree_cons (NULL_TREE, ptr_type_node, tmp);
   tmp = tree_cons (NULL_TREE, ptr_type_node, tmp);
   /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   ftype = build_function_type (ptr_type_node, tmp);
+#else
+  ftype = build_function_type (void_type_node, tmp);
+#endif
+  /* LLVM LOCAL end */
   local_define_builtin ("__builtin_init_trampoline", ftype,
 			BUILT_IN_INIT_TRAMPOLINE,
 			"__builtin_init_trampoline", ECF_NOTHROW);
 
+  /* LLVM LOCAL begin */
 #ifndef ENABLE_LLVM
   tmp = tree_cons (NULL_TREE, ptr_type_node, void_list_node);
   ftype = build_function_type (ptr_type_node, tmp);
@@ -7942,6 +7948,7 @@ note_alternative_entry_points (void)
 /* APPLE LOCAL end CW asm blocks */
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 /* This data structure keeps gcc's garbage collector from
    deleting types created by the llvm virtual base class handling
    stuff in llvm-types.cpp. */
@@ -7952,5 +7959,21 @@ llvm_note_type_used(tree type)
 {
   VEC_safe_push(tree, gc, llvm_types_used, type);
 }
+#endif
 /* LLVM LOCAL end */
+
+/* APPLE LOCAL begin weak_import on property 6676828 */
+static GTY(()) int objc_property_decl_context;
+
+void note_objc_property_decl_context (void) {
+  objc_property_decl_context = 1;
+}
+void note_end_objc_property_decl_context (void) {
+  objc_property_decl_context = 0;
+}
+bool in_objc_property_decl_context (void) {
+  return objc_property_decl_context;
+}
+/* APPLE LOCAL end weak_import on property 6676828 */
+
 #include "gt-tree.h"

@@ -3096,7 +3096,11 @@ gimplify_init_constructor (tree *expr_p, tree *pre_p,
 		gimple_add_tmp_var (new);
 		TREE_STATIC (new) = 1;
 		TREE_READONLY (new) = 1;
+                /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 		DECL_LLVM_PRIVATE (new) = 1;
+#endif
+                /* LLVM LOCAL end */
 		DECL_INITIAL (new) = ctor;
 		if (align > DECL_ALIGN (new))
 		  {
@@ -5154,10 +5158,12 @@ gimplify_omp_atomic_fetch_op (tree *expr_p, tree addr, tree rhs, int index)
   decl = built_in_decls[base + index + 1];
   itype = TREE_TYPE (TREE_TYPE (decl));
 
+  /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
-  /* LLVM LOCAL fix me. Add target specific check. */
+  /* FIXME: Add target specific check. */
   return GS_UNHANDLED;
 #endif
+  /* LLVM LOCAL end */
   if (optab[TYPE_MODE (itype)] == CODE_FOR_nothing)
     return GS_UNHANDLED;
 
@@ -5234,10 +5240,12 @@ gimplify_omp_atomic_pipeline (tree *expr_p, tree *pre_p, tree addr,
   type = TYPE_MAIN_VARIANT (TREE_TYPE (TREE_TYPE (addr)));
   itype = TREE_TYPE (TREE_TYPE (cmpxchg));
 
+  /* LLVM LOCAL begin */
 #ifdef ENABLE_LLVM
-  /* LLVM LOCAL fix me. Add target specific check. */
+  /* FIXME: Add target specific check. */
   return GS_UNHANDLED;
 #endif
+  /* LLVM LOCAL end */
   if (sync_compare_and_swap[TYPE_MODE (itype)] == CODE_FOR_nothing)
     return GS_UNHANDLED;
 

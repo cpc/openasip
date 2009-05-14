@@ -2545,11 +2545,13 @@ execute_fold_all_builtins (void)
 	    }
 	  fcode = DECL_FUNCTION_CODE (callee);
 	  /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 	  if (fcode != BUILT_IN_CONSTANT_P)
 	    {
 	      bsi_next (&i);
 	      continue;
 	    }
+#endif
 	  /* LLVM LOCAL end */
 
 	  result = ccp_fold_builtin (*stmtp, call);
@@ -2629,13 +2631,23 @@ struct tree_opt_pass pass_fold_builtins =
   0,					/* static_pass_number */
   0,					/* tv_id */
   /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   PROP_cfg,	/* properties_required */
+#else
+  PROP_cfg | PROP_ssa | PROP_alias,	/* properties_required */
+#endif
   /* LLVM LOCAL end */
   0,					/* properties_provided */
   0,					/* properties_destroyed */
   0,					/* todo_flags_start */
   /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
   TODO_dump_func,			/* todo_flags_finish */
+#else
+  TODO_dump_func
+    | TODO_verify_ssa
+    | TODO_update_ssa,			/* todo_flags_finish */
+#endif
   /* LLVM LOCAL end */
   0					/* letter */
 };

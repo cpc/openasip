@@ -131,7 +131,9 @@ extern int time_report;
 /* APPLE LOCAL end optimization pragmas 3124235/3420242 */
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 extern const char *llvm_optns;
+#endif
 /* LLVM LOCAL end */
 
 /* Things to do with target switches.  */

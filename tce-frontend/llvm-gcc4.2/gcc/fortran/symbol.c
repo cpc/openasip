@@ -1327,7 +1327,9 @@ gfc_add_component (gfc_symbol * sym, const char *name, gfc_component ** componen
   else
     tail->next = p;
 
+  /* LLVM LOCAL begin */
   p->name = gfc_get_string ("%s", name);
+  /* LLVM LOCAL end */
   p->loc = gfc_current_locus;
 
   *component = p;
@@ -1788,7 +1790,9 @@ gfc_new_symtree (gfc_symtree ** root, const char *name)
   gfc_symtree *st;
 
   st = gfc_getmem (sizeof (gfc_symtree));
+  /* LLVM LOCAL begin */
   st->name = gfc_get_string ("%s", name);
+  /* LLVM LOCAL end */
 
   gfc_insert_bbt (root, st, compare_symtree);
   return st;
@@ -1804,7 +1808,9 @@ delete_symtree (gfc_symtree ** root, const char *name)
 
   st0 = gfc_find_symtree (*root, name);
 
+  /* LLVM LOCAL begin */
   st.name = gfc_get_string ("%s", name);
+  /* LLVM LOCAL end */
   gfc_delete_bbt (root, &st, compare_symtree);
 
   gfc_free (st0);
@@ -1849,7 +1855,9 @@ gfc_get_uop (const char *name)
   st = gfc_new_symtree (&gfc_current_ns->uop_root, name);
 
   uop = st->n.uop = gfc_getmem (sizeof (gfc_user_op));
+  /* LLVM LOCAL begin */
   uop->name = gfc_get_string ("%s", name);
+  /* LLVM LOCAL end */
   uop->access = ACCESS_UNKNOWN;
   uop->ns = gfc_current_ns;
 
@@ -1919,7 +1927,9 @@ gfc_new_symbol (const char *name, gfc_namespace * ns)
   if (strlen (name) > GFC_MAX_SYMBOL_LEN)
     gfc_internal_error ("new_symbol(): Symbol name too long");
 
+  /* LLVM LOCAL begin */
   p->name = gfc_get_string ("%s", name);
+  /* LLVM LOCAL end */
   return p;
 }
 
@@ -2702,7 +2712,9 @@ gfc_get_gsymbol (const char *name)
 
   s = gfc_getmem (sizeof (gfc_gsymbol));
   s->type = GSYM_UNKNOWN;
+  /* LLVM LOCAL begin */
   s->name = gfc_get_string ("%s", name);
+  /* LLVM LOCAL end */
 
   gfc_insert_bbt (&gfc_gsym_root, s, gsym_compare);
 

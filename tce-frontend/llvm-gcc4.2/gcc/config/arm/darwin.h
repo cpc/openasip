@@ -36,6 +36,10 @@
 %{!fbuiltin-strcpy:-fno-builtin-strcpy} \
 %<fbuiltin-strcat \
 %<fbuiltin-strcpy \
+"/* LLVM LOCAL ignore -g in LTO mode */"\
+"/* On Darwin, debug info is stored in separate .dSYM files. */"\
+"/* This requires special support in LTO mode. */" \
+%{O4|flto: %<g* } \
 %<pg"
 
 #undef LIB_SPEC

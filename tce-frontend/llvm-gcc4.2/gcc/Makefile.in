@@ -273,6 +273,11 @@ ifdef LLVM_VERSION_INFO
 CPPFLAGS += -DLLVM_VERSION_INFO='"$(LLVM_VERSION_INFO)"'
 endif
 # LLVM LOCAL end
+# APPLE LOCAL begin
+ifdef BUILD_LLVM_APPLE_STYLE
+CPPFLAGS += -DBUILD_LLVM_APPLE_STYLE
+endif
+# APPLE LOCAL end
 
 # These exists to be overridden by the x-* and t-* files, respectively.
 X_CFLAGS =

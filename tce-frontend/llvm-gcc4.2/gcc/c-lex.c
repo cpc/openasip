@@ -777,6 +777,7 @@ narrowest_signed_type (unsigned HOST_WIDE_INT low,
 }
 
 /* LLVM LOCAL begin hack for PR1521 */
+#ifdef ENABLE_LLVM
 #define PART_PRECISION (sizeof (cpp_num_part) * CHAR_BIT)
 /* Sign extend a number, with PRECISION significant bits and all
    others assumed clear, to fill out a cpp_num structure.  */
@@ -802,6 +803,7 @@ my_cpp_num_sign_extend (cpp_num num, size_t precision)
 
   return num;
 }
+#endif
 /* LLVM LOCAL end */
 
 /* Interpret TOKEN, an integer with FLAGS as classified by cpplib.  */
@@ -814,8 +816,13 @@ interpret_integer (const cpp_token *token, unsigned int flags)
   cpp_options *options = cpp_get_options (parse_in);
 
   integer = cpp_interpret_integer (parse_in, token, flags);
-  /* LLVM LOCAL hack for PR1521 */
+  /* LLVM LOCAL begin - hack for PR1521 */
+#ifdef ENABLE_LLVM
   integer = my_cpp_num_sign_extend (integer, options->precision);
+#else
+  integer = cpp_num_sign_extend (integer, options->precision);
+#endif
+  /* LLVM LOCAL end - hack for PR1521 */
 
   /* The type of a constant with a U suffix is straightforward.  */
   if (flags & CPP_N_UNSIGNED)

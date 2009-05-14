@@ -1,3 +1,26 @@
+2009-05-06  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6083666
+	* objc-act.c (objc_build_property_reference_expr): Never
+	issue diagnostics on use of an 'ivar' with property type
+        mismatch. Issue warning in all other cases and only in 
+        legitimate property/user declared type mismatches.
+        (objc_build_property_reference_expr): Do not issue any
+	warning or error when property is more specialized than
+        its user declared accessor. 
+
+2009-04-24  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6825962
+	* objc-act.c (objc_declare_property_impl): Issue property in
+	super class diagnostic even if explicitly asked for.
+
+2009-04-20 Fariborz Jahanian <fjahanian@apple.com> 
+        Radar 6803342
+        * objc-act.c (generate_objc_image_info): Set the imfo_info
+        flag to 16 (1<<4) when in objc2, setter/getter issues error
+        on use of super class synthsized ivar.
+
 2009-01-07  Fariborz Jahanian <fjahanian@apple.com>
 
         Radar 6379842

@@ -30,6 +30,11 @@
 /* Overridden by arm/darwin.h, whether it is included first or not. */
 #ifndef TARGET_MACHO
 #define TARGET_MACHO 0
+/* LLVM LOCAL begin */
+#ifndef MACHO_DYNAMIC_NO_PIC_P
+#define MACHO_DYNAMIC_NO_PIC_P 0
+#endif
+/* LLVM LOCAL end */
 #endif
 /* APPLE LOCAL end ARM darwin target */
 
@@ -1870,6 +1875,14 @@ typedef struct
 #define SYMBOL_LONG_CALL_ATTR_P(SYMBOL) \
   (SYMBOL_REF_FLAGS (SYMBOL) & SYMBOL_LONG_CALL)
 
+/* LLVM LOCAL begin encoded call attr */
+#define ENCODED_SHORT_CALL_ATTR_P(SYMBOL_NAME)	\
+  (*(SYMBOL_NAME) == SHORT_CALL_FLAG_CHAR)
+
+#define ENCODED_LONG_CALL_ATTR_P(SYMBOL_NAME)	\
+  (*(SYMBOL_NAME) == LONG_CALL_FLAG_CHAR)
+/* LLVM LOCAL end encoded call attr */
+
 #ifndef SUBTARGET_NAME_ENCODING_LENGTHS
 #define SUBTARGET_NAME_ENCODING_LENGTHS
 #endif
@@ -1878,9 +1891,20 @@ typedef struct
    Each case label should return the number of characters to
    be stripped from the start of a function's name, if that
    name starts with the indicated character.  */
+/* LLVM LOCAL */
+#if TARGET_MACHO
 #define ARM_NAME_ENCODING_LENGTHS		\
   case '*':  return 1;				\
   SUBTARGET_NAME_ENCODING_LENGTHS
+/* LLVM LOCAL begin name encoding */
+#else
+#define ARM_NAME_ENCODING_LENGTHS		\
+  case SHORT_CALL_FLAG_CHAR: return 1;		\
+  case LONG_CALL_FLAG_CHAR:  return 1;		\
+  case '*':  return 1;				\
+  SUBTARGET_NAME_ENCODING_LENGTHS
+#endif
+/* LLVM LOCAL end name encoding */
 /* APPLE LOCAL end ARM longcall */
 
 /* This is how to output a reference to a user-level label named NAME.
@@ -2317,10 +2341,19 @@ extern unsigned arm_pic_register;
    the source code are potential hazards for -mdynamic-no-pic, too.
    This macro is similar in usage to LEGITIMATE_PIC_OPERAND_P, but it
    doesn't assume flag_pic is set.  */
+/* LLVM LOCAL */
+#ifdef TARGET_MACHO
 #define LEGITIMATE_INDIRECT_OPERAND_P(X)				\
 	((! flag_pic || LEGITIMATE_PIC_OPERAND_P(X))			\
 	 && (! MACHO_DYNAMIC_NO_PIC_P					\
 	     || LEGITIMATE_DYNAMIC_NO_PIC_OPERAND_P(X)))
+/* LLVM LOCAL begin */
+#else
+#define LEGITIMATE_INDIRECT_OPERAND_P(X)				\
+	((! flag_pic || LEGITIMATE_PIC_OPERAND_P(X))			\
+	 && (LEGITIMATE_DYNAMIC_NO_PIC_OPERAND_P(X)))
+#endif
+/* LLVM LOCAL end */
 /* APPLE LOCAL end ARM -mdynamic-no-pic support */
 
 /* We need to know when we are making a constant pool; this determines
@@ -2700,6 +2733,36 @@ extern int making_const_table;
 		((FIRST_PARM_OFFSET (FNDECL)) 			\
 		 + (DECL_STRUCT_FUNCTION (FNDECL))->pretend_args_size)
 /* APPLE LOCAL end ARM 6148015 */
+
+/* APPLE LOCAL begin 6186914 */
+/* As per the ARM ABI, for double-width VFP regs:
+     Dx = DW_OP_regx(256+x)
+   For single-width VFP regs:
+     S[2x] = DW_OP_regx(256 + (x >> 1)) DW_OP_bit piece(32, 0)
+     S[2x+1] = DW_OP_regx(256 + (x >> 1)) DW_OP_bit_piece (32, 32)
+   It's unfortunate that we have to put this into inline code, but the
+   interfaces we need from dwarf2out.c aren't exposed.  */
+#define TARGET_DWARF2_REG_HANDLER(reg)					\
+  do {									\
+    if (IS_VFP_REGNUM (REGNO (reg))					\
+	&& (GET_MODE (reg) == SFmode || GET_MODE (reg) == DFmode))	\
+      {									\
+	dw_loc_descr_ref loc_result = NULL;				\
+	dw_loc_descr_ref temp;						\
+	unsigned int relative_regno = REGNO (reg) - FIRST_VFP_REGNUM;	\
+	unsigned int base_reg = 256 + (relative_regno >> 1);		\
+	temp = one_reg_loc_descriptor (base_reg, initialized);		\
+	add_loc_descr (&loc_result, temp);				\
+	if (GET_MODE (reg) == SFmode)					\
+	  {								\
+	    int offset = relative_regno & 0x1 ? 32 : 0;			\
+	    temp = new_loc_descr (DW_OP_bit_piece, 32, offset);		\
+	    add_loc_descr (&loc_result, temp);				\
+	  }								\
+	return loc_result;						\
+      }									\
+  } while (0)
+/* APPLE LOCAL end 6186914 */
 
 enum arm_builtins
 {
@@ -2919,8 +2982,26 @@ enum arm_builtins
     } \
   }
 
-#define LLVM_OVERRIDE_TARGET_ARCH() \
-  (TARGET_THUMB ? "thumb" : "")
+/* Encode arm / thumb modes and arm subversion number in the triplet. e.g.
+ * armv6-apple-darwin, thumbv5-apple-darwin. FIXME: Replace thumb triplets
+ * with function notes.
+ */
+#define LLVM_OVERRIDE_TARGET_ARCH()                                       \
+  (TARGET_THUMB                                                           \
+   ? (arm_arch6                                                           \
+      ? "thumbv6" : (arm_arch5e                                           \
+                     ? "thumbv5e" : (arm_arch5                            \
+                                     ? "thumbv5" : (arm_arch4t            \
+                                                    ? "thumbv4t" : "")))) \
+   : (arm_arch6                                                           \
+      ? "armv6"   : (arm_arch5e                                           \
+                     ? "armv5e"   : (arm_arch5                            \
+                                     ? "armv5"   : (arm_arch4t            \
+                                                    ? "armv4t" : "")))))
+
+#define LLVM_SET_MACHINE_OPTIONS(argvec)               \
+  if (TARGET_SOFT_FLOAT)                               \
+    argvec.push_back("-soft-float");
 
 /* Doing struct copy by partial-word loads and stores is not a good idea on ARM. */
 #define TARGET_LLVM_MIN_BYTES_COPY_BY_MEMCPY 4

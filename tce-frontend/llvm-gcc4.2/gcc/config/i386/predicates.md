@@ -470,7 +470,7 @@
 /* LLVM LOCAL begin non-Darwin hack. */
 #ifdef TARGET_FIX_AND_CONTINUE
       if (!indirect_data (op)
-          || machopic_data_defined_p (op))
+	  || machopic_data_defined_p (op))  
 #endif
 /* LLVM LOCAL end non-Darwin hack */
       return 1;

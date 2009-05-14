@@ -1808,7 +1808,7 @@ convert_tramp_reference (tree *tp, int *walk_subtrees, void *data)
   switch (TREE_CODE (t))
     {
     case ADDR_EXPR:
-      /* LLVM local deleted 5 lines */
+      /* LLVM local deleted comment */
 
       decl = TREE_OPERAND (t, 0);
       if (TREE_CODE (decl) != FUNCTION_DECL)

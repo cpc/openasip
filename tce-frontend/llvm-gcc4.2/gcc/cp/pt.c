@@ -8752,6 +8752,26 @@ tsubst_expr (tree t, tree args, tsubst_flags_t complain, tree in_decl,
 	if (TREE_CODE (asm_expr) == CLEANUP_POINT_EXPR)
 	  asm_expr = TREE_OPERAND (asm_expr, 0);
 	ASM_INPUT_P (asm_expr) = ASM_INPUT_P (t);
+	/* APPLE LOCAL begin inline asm labels in templates 6606502 */
+	/* We have to check to see if we have a CW style inline assembly
+	   label, and mark it as defined, if this asm defines it.  */
+	if (TREE_CODE (TREE_OPERAND (asm_expr, 0)) == STRING_CST
+	    && TREE_STRING_LENGTH (TREE_OPERAND (asm_expr, 0)) >= 5
+	    && strncmp (TREE_STRING_POINTER (TREE_OPERAND (asm_expr, 0)),
+			"%l0:", 4))
+	  {
+	    tree inner = TREE_OPERAND (asm_expr, 2);
+	    if (inner && TREE_CODE (inner) == TREE_LIST)
+	      {
+		inner = TREE_VALUE (inner);
+		if (inner && TREE_CODE (inner) == ADDR_EXPR) {
+		  inner = TREE_OPERAND (inner, 0);
+		  if (TREE_CODE (inner) == LABEL_DECL)
+		    DECL_INITIAL (inner) = error_mark_node;
+		}
+	      }
+	  }
+	/* APPLE LOCAL end inline asm labels in templates 6606502 */
       }
       break;
 

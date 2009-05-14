@@ -6332,12 +6332,12 @@ expand_builtin (tree exp, rtx target, rtx subtarget, enum machine_mode mode,
 
     case BUILT_IN_INIT_TRAMPOLINE:
       return expand_builtin_init_trampoline (arglist);
-    /* LLVM LOCAL begin deleted 2 lines */
+    /* LLVM LOCAL begin disable builtin adjust trampoline */
 #ifndef ENABLE_LLVM
     case BUILT_IN_ADJUST_TRAMPOLINE:
       return expand_builtin_adjust_trampoline (arglist);
 #endif
-    /* LLVM LOCAL end deleted 2 lines */
+    /* LLVM LOCAL end disable builtin adjust trampoline */
 
     case BUILT_IN_FORK:
     case BUILT_IN_EXECL:
@@ -9401,12 +9401,12 @@ build_function_call_expr (tree fn, tree arglist)
    of tree_codes.  If the last specifier is a 0, that represents an
    ellipses, otherwise the last specifier must be a VOID_TYPE.  */
 
-/* LLVM LOCAL begin */
+/* LLVM LOCAL begin export for LLVM to use */
 #ifndef ENABLE_LLVM
 static
 #endif
-int    /* export this for LLVM to use*/
-/* LLVM LOCAL end */
+int
+/* LLVM LOCAL end export for LLVM to use */
 validate_arglist (tree arglist, ...)
 {
   enum tree_code code;

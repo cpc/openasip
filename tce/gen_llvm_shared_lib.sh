@@ -53,15 +53,6 @@ function error_exit() {
 
 which llvm-config > /dev/null || error_exit 1 "llvm-config not found in PATH" 
 
-#if test ! "$(llvm-config --version)" = "2.5";
-#then
-#    if test ! "$(llvm-config --version | cut -b4-)" = "svn";
-#    then
-#        echo "Only LLVM 2.5 supported at the moment." 
-#        exit 2
-#    fi
-#fi
-
 LLVM_LIBFILES=$(llvm-config --libfiles)
 LLVM_LIBDIR=$(llvm-config --libdir)
 LLVM_LIBFILE=${LLVM_LIBDIR}/libllvm${LLVM_VERSION}.so
@@ -77,9 +68,9 @@ echo "Generating ${LLVM_LIBFILE}..."
 $CXX -Wl,--whole-archive $LLVM_LIBFILES -Wl,--no-whole-archive -shared -o $LLVM_LIBFILE || \
     error_exit 2 "Failed. Do you have write access to $LLVM_LIBDIR? Are you root?"
 
-if test "$(llvm-config --version | cut -b4-)" = "svn";
+if test "$(llvm-config --build-mode)" = "Debug";
 then
-    echo "Do not strip svn library." 
+    echo "Do not strip library compiled in Debug mode." 
 else
     echo "Stripping debugging symbols to save space..."
     strip --strip-debug $LLVM_LIBFILE

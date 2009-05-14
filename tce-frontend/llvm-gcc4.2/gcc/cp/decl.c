@@ -5365,6 +5365,11 @@ synth_block_byref_id_object_copy_func (int flag)
   /* APPLE LOCAL begin radar 6180456 */
   /* _Block_object_assign (&_dest->object, _src->object, BLOCK_FIELD_IS_OBJECT) or:
      _Block_object_assign (&_dest->object, _src->object, BLOCK_FIELD_IS_BLOCK) */
+  /* APPLE LOCAL begin radar 6573923 */
+  /* Also add the new flag when calling _Block_object_dispose
+     from byref dispose helper. */
+  flag |= BLOCK_BYREF_CALLER;
+ /* APPLE LOCAL end radar 6573923 */
   call_exp = build_block_object_assign_call_exp (build_fold_addr_expr (dst_obj), src_obj, flag);
   add_stmt (call_exp);
   /* APPLE LOCAL end radar 6180456 */
@@ -5413,6 +5418,11 @@ static void synth_block_byref_id_object_dispose_func (int flag)
   /* APPLE LOCAL begin radar 6180456 */
   /* _Block_object_dispose(_src->object, BLOCK_FIELD_IS_OBJECT) or:
      _Block_object_dispose(_src->object, BLOCK_FIELD_IS_BLOCK) */
+  /* APPLE LOCAL begin radar 6573923 */
+  /* Also add the new flag when calling _Block_object_dispose
+     from byref dispose helper. */
+  flag |= BLOCK_BYREF_CALLER;
+ /* APPLE LOCAL end radar 6573923 */
   rel_exp = build_block_object_dispose_call_exp (src_obj, flag);
   /* APPLE LOCAL end radar 6180456 */
   add_stmt (rel_exp);
@@ -5789,9 +5799,8 @@ cp_finish_decl (tree decl, tree init, bool init_const_expr_p,
       /* APPLE LOCAL begin blocks 6040305 (cq) */
       if (COPYABLE_BYREF_LOCAL_VAR (decl)) {
         if (DECL_EXTERNAL (decl) || TREE_STATIC (decl))
-        {
-	    warning (0,
-		     "__block attribute is only allowed on local variables - ignored");
+	  {
+	    error ("__block attribute on %q+D not allowed, only allowed on local variables", decl);
 	    COPYABLE_BYREF_LOCAL_VAR (decl) = 0;
 	    COPYABLE_BYREF_LOCAL_NONPOD (decl) = 0;
 	  }

@@ -761,6 +761,12 @@ fmudflapir
 Common RejectNegative Report Var(flag_mudflap_ignore_reads)
 Ignore read operations when inserting mudflap instrumentation
 
+; LLVM local begin One Definition Rule
+fone-definition-rule
+Common Report Var(flag_odr)
+Assume all definitions of a multiply defined global are equivalent
+; LLVM local end
+
 ; APPLE LOCAL begin optimization pragmas 3124235/3420242
 freschedule-modulo-scheduled-loops
 Common Report Var(flag_resched_modulo_sched) PerFunc

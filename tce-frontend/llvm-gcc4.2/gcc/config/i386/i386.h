@@ -2515,10 +2515,10 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
 /* Table of instructions that need extra constraints.  Keep this table sorted.  */
 #undef TARGET_IASM_OP_CONSTRAINT
 #define TARGET_IASM_OP_CONSTRAINT \
-  { "adc", 1, "+rm,r" },	\
-  { "adc", 2, "ir,m" },		\
-  { "add", 1, "+rm,r" },	\
-  { "add", 2, "ir,m" },		\
+  { "adc", 1, "+" rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32 C R64 },\
+  { "adc", 2, ri8 "," ri16 "," ri32 C RI64 "," m8 "," m16 "," m32 C M64 },\
+  { "add", 1, "+" rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32 C R64 },\
+  { "add", 2, ri8 "," ri16 "," ri32 C RI64 "," m8 "," m16 "," m32 C M64},\
   { "addpd", 1, "+x"},		\
   { "addpd", 2, "xm"},		\
   { "addps", 1, "+x"},		\
@@ -2531,8 +2531,8 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
   { "addsubpd", 2, "xm"},	\
   { "addsubps", 1, "+x"},	\
   { "addsubps", 2, "xm"},      	\
-  { "and", 1, "+rm,r"},		\
-  { "and", 2, "ir,m"},		\
+  { "and", 1, "+" rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32 C R64},\
+  { "and", 2, ri8 "," ri16 "," ri32 C RI64 "," m8 "," m16 "," m32 C M64},\
   { "andnpd", 1, "+x"},		\
   { "andnpd", 2, "xm"},		\
   { "andnps", 1, "+x"},		\
@@ -2590,8 +2590,8 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
   { "cmovpo", 2, "rm"},		\
   { "cmovs", 2, "rm"},		\
   { "cmovz", 2, "rm"},		\
-  { "cmp", 1, "rm,r"},    	\
-  { "cmp", 2, "ir,m"},    	\
+  { "cmp", 1, rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32 C R64},\
+  { "cmp", 2, ri8 "," ri16 "," ri32 C RI64 "," m8 "," m16 "," m32 C M64},\
   { "cmpeqpd", 1, "=x"},	\
   { "cmpeqpd", 2, "xm"},	\
   { "cmpeqps", 1, "=x"},	\
@@ -2718,7 +2718,7 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
   { "cvttsd2si", 2, "xm"},	\
   { "cvttss2si", 1, "=r"},	\
   { "cvttss2si", 2, "xm"},	\
-  { "dec", 1, "+" rm8rm16rm32},	\
+  { "dec", 1, "+" rm8rm16rm32RM64},\
   { "div", 1, rm8rm16rm32},	\
   { "divpd", 1, "+x"},		\
   { "divpd", 2, "xm"},		\
@@ -2912,8 +2912,8 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
   { "minsd", 2, "xm"},		\
   { "minss", 1, "+x"},		\
   { "minss", 2, "xm"},		\
-  { "mov", 1, "=rm" S("4") ",r"},\
-  { "mov", 2, "ri,rmi"},	\
+  { "mov", 1, "=" rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32 C R64}, \
+  { "mov", 2, ri8 "," ri16 "," ri32 C RI64 "," rmi8 "," rmi16 "," rmi32 C RMI64}, \
   { "movapd", 1, "=x,xm"},	\
   { "movapd", 2, "xm,x"},      	\
   { "movaps", 1, "=x,xm"},	\
@@ -2987,8 +2987,8 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
   { "mulss", 2, "xm"},		\
   { "neg", 1, "+" rm8rm16rm32},	\
   { "not", 1, "+" rm8rm16rm32},	\
-  { "or", 1, "+" rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32},\
-  { "or", 2, ri8 "," ri16 "," ri32 C RI64 "," m8 "," m16 "," m32},\
+  { "or", 1, "+" rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32 C R64},\
+  { "or", 2, ri8 "," ri16 "," ri32 C RI64 "," m8 "," m16 "," m32 C M64},\
   { "orpd", 1, "+x"},		\
   { "orpd", 2, "xm"},		\
   { "orps", 1, "+x"},		\
@@ -3226,8 +3226,8 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
   { "stmxcsr", 1, "m"},		\
   { "stos", 1, "=m"},		\
   { "str", 1, "=q" S("2") "m"},\
-  { "sub", 1, "=rm,r"},		\
-  { "sub", 2, "ir,m"},		\
+  { "sub", 1, "+" rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32 C R64},\
+  { "sub", 2, ri8 "," ri16 "," ri32 C RI64 "," m8 "," m16 "," m32 C M64},\
   { "subpd", 1, "+x"},		\
   { "subpd", 2, "xm"},		\
   { "subps", 1, "+x"},		\
@@ -3254,11 +3254,11 @@ extern tree iasm_x86_canonicalize_operands (const char **, tree, void *);
   { "verw", 1, rm16},		\
   { "xadd", 1, "+" rm8 "," rm16 "," rm32},\
   { "xadd", 2, r8 "," r16 "," r32},\
-  { "xchg", 1, "+rm,r"},	\
-  { "xchg", 2, "+r,m"},		\
+  { "xchg", 1, "+" rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32 C R64},\
+  { "xchg", 2, "+" r8 "," r16 "," r32 C R64 "," m8 "," m16 "," m32 C M64},\
   { "xlat", 1, "m"},		\
-  { "xor", 1, "+rm,r"},		\
-  { "xor", 2, "ri,m"},		\
+  { "xor", 1, "+" rm8 "," rm16 "," rm32 C RM64 "," r8 "," r16 "," r32 C R64},\
+  { "xor", 2, ri8 "," ri16 "," ri32 C RI64 "," m8 "," m16 "," m32 C M64},\
   { "xorpd", 1, "+x"},		\
   { "xorpd", 2, "xm"},		\
   { "xorps", 1, "+x"},		\
@@ -3888,10 +3888,13 @@ enum ix86_builtins
     if (TARGET_SSSE3)   F.AddFeature("ssse3");                \
     if (TARGET_SSE4_1)  F.AddFeature("sse41");                \
     if (TARGET_SSE4_2)  F.AddFeature("sse42");                \
-    if (TARGET_SSE4A)   F.AddFeature("sse4a");                \
     if (TARGET_3DNOW)   F.AddFeature("3dnow");                \
     if (TARGET_3DNOW_A) F.AddFeature("3dnowa");               \
   }
+
+#define LLVM_SET_MACHINE_OPTIONS(argvec)                      \
+  if (!TARGET_80387)                                          \
+    argvec.push_back("-no-implicit-float")
     
 /* LLVM ABI definition macros. */
 

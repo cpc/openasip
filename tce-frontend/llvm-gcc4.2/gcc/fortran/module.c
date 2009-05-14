@@ -716,9 +716,13 @@ find_true_name (const char *name, const char *module)
   gfc_symbol sym;
   int c;
 
+  /* LLVM LOCAL begin */
   sym.name = gfc_get_string ("%s", name);
+  /* LLVM LOCAL end */
   if (module != NULL)
+    /* LLVM LOCAL begin */
     sym.module = gfc_get_string ("%s", module);
+    /* LLVM LOCAL end */
   else
     sym.module = NULL;
   t.sym = &sym;
@@ -1404,7 +1408,9 @@ mio_pool_string (const char **stringp)
   else
     {
       require_atom (ATOM_STRING);
+      /* LLVM LOCAL begin */
       *stringp = atom_string[0] == '\0' ? NULL : gfc_get_string ("%s", atom_string);
+      /* LLVM LOCAL end */
       gfc_free (atom_string);
     }
 }
@@ -2617,7 +2623,9 @@ mio_expr (gfc_expr ** ep)
       else
 	{
 	  require_atom (ATOM_STRING);
+         /* LLVM LOCAL begin */
 	  e->value.function.name = gfc_get_string ("%s", atom_string);
+         /* LLVM LOCAL end */
 	  gfc_free (atom_string);
 
 	  mio_integer (&flag);
@@ -3198,7 +3206,9 @@ load_needed (pointer_info * p)
 	}
 
       sym = gfc_new_symbol (p->u.rsym.true_name, ns);
+      /* LLVM LOCAL begin */
       sym->module = gfc_get_string ("%s", p->u.rsym.module);
+      /* LLVM LOCAL end */
 
       associate_integer_pointer (p, sym);
     }
@@ -3420,7 +3430,9 @@ read_module (void)
 		      gfc_new_symbol (info->u.rsym.true_name,
 				      gfc_current_ns);
 
+                 /* LLVM LOCAL begin */
 		  sym->module = gfc_get_string ("%s", info->u.rsym.module);
+                 /* LLVM LOCAL end */
 		}
 
 	      st->n.sym = sym;
@@ -3656,7 +3668,9 @@ write_symbol0 (gfc_symtree * st)
 
   sym = st->n.sym;
   if (sym->module == NULL)
+    /* LLVM LOCAL begin */
     sym->module = gfc_get_string ("%s", module_name);
+    /* LLVM LOCAL end */
 
   if (sym->attr.flavor == FL_PROCEDURE && sym->attr.generic
       && !sym->attr.subroutine && !sym->attr.function)
@@ -3735,7 +3749,9 @@ write_generic (gfc_symbol * sym)
     return;
 
   if (sym->module == NULL)
+    /* LLVM LOCAL begin */
     sym->module = gfc_get_string ("%s", module_name);
+    /* LLVM LOCAL end */
 
   mio_symbol_interface (&sym->name, &sym->module, &sym->generic);
 }

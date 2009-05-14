@@ -340,7 +340,6 @@ do {					\
    specifying the handling of options understood by generic Unix
    linkers, and for positional arguments like libraries.  */
 /* APPLE LOCAL begin mainline */
-#ifdef ENABLE_LLVM
 #define LINK_COMMAND_SPEC "\
 %{!fdump=*:%{!fsyntax-only:%{!precomp:%{!c:%{!M:%{!MM:%{!E:%{!S:\
     %(linker) %l %X %{d} %{s} %{t} %{Z} %{u*} \
@@ -353,35 +352,14 @@ do {					\
     %(link_libgcc) %o %{fprofile-arcs|fprofile-generate|fcreate-profile|coverage:-lgcov} \
 "/* APPLE LOCAL nested functions 4357979  */"\
     %{fnested-functions: -allow_stack_execute} \
-    %{!nostdlib:%{!nodefaultlibs:%(link_ssp) %G %L}} \
-"/* APPLE LOCAL begin mainline 4.3 2006-10-31 4370146 */"\
-    %{!A:%{!nostdlib:%{!nostartfiles:%E}}} %{T*} %{F*} }}}}}}}}\n\
-%{!fdump=*:%{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
-"/* APPLE LOCAL end mainline 4.3 2006-10-31 4370146 */"\
-    %{.c|.cc|.C|.cpp|.cp|.c++|.cxx|.CPP|.m|.mm: \
-    %{!O: %{!O1: %{!O2: %{!O3: %{!O4: %{!Os: \
-"/* LLVM LOCAL do not use dsymutil with -O1 or higher */"\
-    %{g*:%{!gstabs*:%{!g0: dsymutil %{o*:%*}%{!o:a.out}}}}}}}}}}}}}}}}}}"
-#else
-#define LINK_COMMAND_SPEC "\
-%{!fdump=*:%{!fsyntax-only:%{!precomp:%{!c:%{!M:%{!MM:%{!E:%{!S:\
-    %(linker) %l %X %{d} %{s} %{t} %{Z} %{u*} \
-    %{A} %{e*} %{m} %{r} %{x} \
-    %{o*}%{!o:-o a.out} \
-    %{!A:%{!nostdlib:%{!nostartfiles:%S}}} \
-    %{L*} %{fopenmp:%:include(libgomp.spec)%(link_gomp)}   \
-"/* APPLE LOCAL add fcreate-profile */"\
-    %(link_libgcc) %o %{fprofile-arcs|fprofile-generate|fcreate-profile|coverage:-lgcov} \
-"/* APPLE LOCAL nested functions 4357979  */"\
-    %{fnested-functions: -allow_stack_execute} \
-    %{!nostdlib:%{!nodefaultlibs:%(link_ssp) %G %L}} \
+"/* APPLE LOCAL prefer -lSystem 6645902 */"\
+    %{!nostdlib:%{!nodefaultlibs:%(link_ssp) %(link_gcc_c_sequence)}} \
 "/* APPLE LOCAL begin mainline 4.3 2006-10-31 4370146 */"\
     %{!A:%{!nostdlib:%{!nostartfiles:%E}}} %{T*} %{F*} }}}}}}}}\n\
 %{!fdump=*:%{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
 "/* APPLE LOCAL end mainline 4.3 2006-10-31 4370146 */"\
     %{.c|.cc|.C|.cpp|.cp|.c++|.cxx|.CPP|.m|.mm: \
     %{g*:%{!gstabs*:%{!g0: dsymutil %{o*:%*}%{!o:a.out}}}}}}}}}}}}"
-#endif
 /* APPLE LOCAL end mainline */
 
 #ifdef TARGET_SYSTEM_ROOT
@@ -516,10 +494,12 @@ do {					\
       miphoneos-version-min=*: %(darwin_iphoneos_libgcc);		   \
       shared-libgcc|fexceptions|fgnu-runtime:				   \
        %:version-compare(!> 10.5 mmacosx-version-min= -lgcc_s.10.4)	   \
-       %:version-compare(>= 10.5 mmacosx-version-min= -lgcc_s.10.5)	   \
+       "/* APPLE LOCAL link optimizations 6499452 */"			   \
+       %:version-compare(>< 10.5 10.6 mmacosx-version-min= -lgcc_s.10.5)   \
        -lgcc;								   \
       :%:version-compare(>< 10.3.9 10.5 mmacosx-version-min= -lgcc_s.10.4) \
-       %:version-compare(>= 10.5 mmacosx-version-min= -lgcc_s.10.5)	   \
+       "/* APPLE LOCAL link optimizations 6499452 */"			   \
+       %:version-compare(>< 10.5 10.6 mmacosx-version-min= -lgcc_s.10.5)   \
        -lgcc}"
 
 /* We specify crt0.o as -lcrt0.o so that ld will search the library path.
@@ -533,7 +513,8 @@ do {					\
 #undef  STARTFILE_SPEC
 #define STARTFILE_SPEC							    \
   "%{Zdynamiclib: %(darwin_dylib1) }					    \
-   %{!Zdynamiclib:%{Zbundle:%{!static:-lbundle1.o}}			    \
+   "/* APPLE LOCAL link optimizations 6499452 */"			    \
+   %{!Zdynamiclib:%{Zbundle:%{!static: %(darwin_bundle1)}}		    \
      %{!Zbundle:%{pg:%{static:-lgcrt0.o}				    \
                      %{!static:%{object:-lgcrt0.o}			    \
                                %{!object:%{preload:-lgcrt0.o}		    \
@@ -557,6 +538,8 @@ do {					\
 #define DARWIN_EXTRA_SPECS						\
   { "darwin_crt1", DARWIN_CRT1_SPEC },					\
   { "darwin_dylib1", DARWIN_DYLIB1_SPEC },				\
+  /* APPLE LOCAL link optimizations 6499452 */				\
+  { "darwin_bundle1", DARWIN_BUNDLE1_SPEC },				\
   { "darwin_minversion", DARWIN_MINVERSION_SPEC },			\
 /* APPLE LOCAL end mainline */						\
 /* APPLE LOCAL begin ARM 5683689 */					\
@@ -573,6 +556,11 @@ do {					\
      %:version-compare(!> 10.5 mmacosx-version-min= -ldylib1.o)		\
      %:version-compare(>= 10.5 mmacosx-version-min= -ldylib1.10.5.o)}"
 
+/* APPLE LOCAL begin link optimizations 6499452 */
+#define DARWIN_BUNDLE1_SPEC						\
+  "-lbundle1.o"
+/* APPLE LOCAL end link optimizations 6499452 */
+
 #define DARWIN_CRT1_SPEC						\
 /* APPLE LOCAL ARM 5823776 iphoneos should use crt1.o */		\
   "%{miphoneos-version-min=*: -lcrt1.o}					\
@@ -580,6 +568,10 @@ do {					\
      %:version-compare(!> 10.5 mmacosx-version-min= -lcrt1.o)		\
      %:version-compare(>= 10.5 mmacosx-version-min= -lcrt1.10.5.o)}"
 /* APPLE LOCAL end ARM 5683689 */
+
+/* APPLE LOCAL begin prefer -lSystem 6645902 */
+#define LINK_GCC_C_SEQUENCE_SPEC "%G %L"
+/* APPLE LOCAL end prefer -lSystem 6645902 */
 
 /* Default Darwin ASM_SPEC, very simple.  */
 /* APPLE LOCAL begin kext weak_import 5935650 */
@@ -702,6 +694,9 @@ do {					\
   } while (0)
 /* LLVM LOCAL - end radar 6389998 */
 
+/* Assign STRING_CSTs to the .cstring section.  */
+#define LLVM_CSTRING_SECTION "__TEXT,__cstring,cstring_literals"
+#define LLVM_CONST_DATA_SECTION "__DATA,__const"
 #endif
 /* LLVM LOCAL end */
 
@@ -1176,8 +1171,11 @@ enum machopic_addr_class {
 
 /* Macros defining the various PIC cases.  */
 
-/* APPLE LOCAL mdynamic-no-pic */
+/* APPLE LOCAL begin mdynamic-no-pic */
+/* LLVM LOCAL - possibly redefine MACHO_DYNAMIC_NO_PIC_P */
+#undef MACHO_DYNAMIC_NO_PIC_P
 #define MACHO_DYNAMIC_NO_PIC_P	(TARGET_MACHO_DYNAMIC_NO_PIC)
+/* APPLE LOCAL end mdynamic-no-pic */
 /* APPLE LOCAL begin mach-o cleanup */
 #undef MACHOPIC_INDIRECT
 #define MACHOPIC_INDIRECT	(flag_pic || MACHO_DYNAMIC_NO_PIC_P)

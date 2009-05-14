@@ -35,7 +35,8 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "tm.h"
 
 /* APPLE LOCAL begin instant off 6414141 */
-#if defined(__APPLE__) && !defined(__STATIC__) && !defined(__ppc__) && !defined(__ppc64__)
+/* LLVM LOCAL - not __arm__ */
+#if defined(__APPLE__) && !defined(__STATIC__) && !defined(__ppc__) && !defined(__ppc64__) && !defined(__arm__)
 #include <vproc.h>
 #if defined(VPROC_HAS_TRANSACTIONS)
 vproc_transaction_t vproc_transaction_begin(vproc_t virtual_proc) __attribute__((weak));
@@ -160,7 +161,8 @@ gcov_version (struct gcov_info *ptr, gcov_unsigned_t version,
 }
 
 /* APPLE LOCAL begin instant off 6414141 */
-#if defined(__APPLE__) && !defined(__STATIC__) && !defined(__ppc__) && !defined(__ppc64__)
+/* LLVM LOCAL - not __arm__ */
+#if defined(__APPLE__) && !defined(__STATIC__) && !defined(__ppc__) && !defined(__ppc64__) && !defined(__arm__)
 #if defined(VPROC_HAS_TRANSACTIONS)
 static vproc_transaction_t gcov_trans;
 #endif

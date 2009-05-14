@@ -55,6 +55,9 @@ struct spec_function
   /* APPLE LOCAL ARM iwithsysroot 4917039 */ \
   || !strcmp (STR, "iwithsysroot") \
   || !strcmp (STR, "-param") || !strcmp (STR, "specs") \
+  /* LLVM LOCAL begin */ \
+  || !strcmp (STR, "mllvm") \
+  /* LLVM LOCAL end */ \
   || !strcmp (STR, "MF") || !strcmp (STR, "MT") || !strcmp (STR, "MQ"))
 
 

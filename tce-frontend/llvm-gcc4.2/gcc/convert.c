@@ -38,11 +38,11 @@ Software Foundation, 51 Franklin Street, Fifth Floor, Boston, MA
 #include "langhooks.h"
 #include "real.h"
 
-/* APPLE LOCAL LLVM - begin */
+/* LLVM LOCAL - begin */
 #ifdef ENABLE_LLVM
 #include "llvm.h"
 #endif
-/* APPLE LOCAL LLVM - end */
+/* LLVM LOCAL - end */
 
 /* Convert EXPR to some pointer or reference type TYPE.
    EXPR must be pointer, reference, integer, enumeral, or literal zero;

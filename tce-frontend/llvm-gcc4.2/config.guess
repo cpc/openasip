@@ -4,7 +4,7 @@
 #   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation,
 #   Inc.
 
-timestamp='2006-07-02'
+timestamp='2009-04-21'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -829,7 +829,23 @@ EOF
 	echo ${UNAME_MACHINE}-pc-minix
 	exit ;;
     arm*:Linux:*:*)
-	echo ${UNAME_MACHINE}-unknown-linux-gnu
+	# LLVM LOCAL begin pr4005
+	eval $set_cc_for_build
+	sed 's/^	//' << EOF >$dummy.c
+	#undef eabi
+	#if defined(__ARM_EABI__)
+	ARMABI=eabi
+	#else
+	ARMABI=
+	#endif
+EOF
+	eval "`$CC_FOR_BUILD -E $dummy.c 2>/dev/null | sed -n '
+	    /^ARMABI/{
+		s: ::g
+		p
+	    }'`"
+	echo ${UNAME_MACHINE}-unknown-linux-gnu${ARMABI}
+	# LLVM LOCAL end pr4005
 	exit ;;
     avr32*:Linux:*:*)
 	echo ${UNAME_MACHINE}-unknown-linux-gnu

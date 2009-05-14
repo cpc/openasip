@@ -367,7 +367,9 @@ top_val_list (gfc_data * data)
 	  gfc_free_expr (expr);
 	  if (msg != NULL)
 	    {
+             /* LLVM LOCAL begin */
 	      gfc_error ("%s", msg);
+             /* LLVM LOCAL end */
 	      return MATCH_ERROR;
 	    }
 	  tail->repeat = tmp;
@@ -1450,7 +1452,9 @@ gfc_match_kind_spec (gfc_typespec * ts)
   msg = gfc_extract_int (e, &ts->kind);
   if (msg != NULL)
     {
+      /* LLVM LOCAL begin */
       gfc_error ("%s", msg);
+      /* LLVM LOCAL end */
       m = MATCH_ERROR;
       goto no_match;
     }

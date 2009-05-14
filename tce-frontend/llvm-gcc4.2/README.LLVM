@@ -129,6 +129,10 @@ $ ../llvm-gcc4.2-x.y.source/configure --prefix=`pwd`/../install --program-prefix
 $ make $BUILDOPTIONS
 $ make install
 
+Note that it is currently necessary to use a separate object directory for
+building llvm-gcc. Running configure and make from within the llvm-gcc
+source directory does not work.
+
 //===-----------------------
 Darwin/Mac OS X Specific part:
 

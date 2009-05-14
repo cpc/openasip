@@ -76,8 +76,8 @@ extern int ix86_regparm;
             PAttribute |= Attribute::InReg;                     \
           else                                                  \
             local_fp_regparm = 0;                               \
-      } else if (TREE_CODE(Type) == INTEGER_TYPE ||             \
-                 TREE_CODE(Type) == POINTER_TYPE) {             \
+      } else if (INTEGRAL_TYPE_P(Type) ||                       \
+                 POINTER_TYPE_P(Type)) {                        \
           int words =                                           \
                   (Size + BITS_PER_WORD - 1) / BITS_PER_WORD;   \
           local_regparm -= words;                               \
@@ -222,24 +222,6 @@ bool llvm_x86_64_aggregate_partially_passed_in_regs(std::vector<const Type*>&,
   (TARGET_64BIT ?                                              \
    llvm_x86_64_aggregate_partially_passed_in_regs((E), (SE)) : \
    false)
-
-/* llvm_store_scalar_argument - Store scalar argument ARGVAL of type
-   LLVMTY at location LOC.  */
-extern void llvm_x86_store_scalar_argument(Value *Loc, Value *ArgVal,
-                                           const llvm::Type *LLVMTy,
-                                           unsigned RealSize,
-                                           LLVMBuilder &Builder);
-#define LLVM_STORE_SCALAR_ARGUMENT(LOC,ARG,TYPE,SIZE,BUILDER)   \
-  llvm_x86_store_scalar_argument((LOC),(ARG),(TYPE),(SIZE),(BUILDER))
-
-
-/* llvm_load_scalar_argument - Load value located at LOC. */
-extern Value *llvm_x86_load_scalar_argument(Value *L,
-                                            const llvm::Type *LLVMTy,
-                                            unsigned RealSize,
-                                            LLVMBuilder &Builder);
-#define LLVM_LOAD_SCALAR_ARGUMENT(LOC,TY,SIZE,BUILDER) \
-  llvm_x86_load_scalar_argument((LOC),(TY),(SIZE),(BUILDER))
 
 #endif /* LLVM_ABI_H */
 #endif /* ENABLE_LLVM */

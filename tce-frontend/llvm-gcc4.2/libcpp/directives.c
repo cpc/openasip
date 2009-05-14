@@ -352,7 +352,11 @@ directive_diagnostics (cpp_reader *pfile, const directive *dir, int indented)
   /* Issue -pedantic warnings for extensions.  */
   if (CPP_PEDANTIC (pfile)
       && ! pfile->state.skipping
-      && dir->origin == EXTENSION)
+      /* APPLE LOCAL begin import valid for objc 4588440 */
+      && dir->origin == EXTENSION
+      && (!CPP_OPTION (pfile, objc)
+	  || dir != &dtable[T_IMPORT]))
+      /* APPLE LOCAL end import valid for objc 4588440 */
     cpp_error (pfile, CPP_DL_PEDWARN, "#%s is a GCC extension", dir->name);
 
   /* Traditionally, a directive is ignored unless its # is in

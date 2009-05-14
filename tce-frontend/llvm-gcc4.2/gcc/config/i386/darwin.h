@@ -101,6 +101,10 @@ Boston, MA 02110-1301, USA.  */
   %{!mmacosx-version-min=*: %{!miphoneos-version-min=*: %(darwin_cc1_minversion)}} \
   "/* APPLE LOCAL ignore -mcpu=G4 -mcpu=G5 */"\
   %<faltivec %<mno-fused-madd %<mlong-branch %<mlongcall %<mcpu=G4 %<mcpu=G5 \
+  "/* LLVM LOCAL ignore -g in LTO mode */"\
+  "/* On Darwin, debug info is stored in separate .dSYM files. */"\
+  "/* This requires special support in LTO mode. */" \
+  %{O4|flto: %<g* } \
   %{g: %{!fno-eliminate-unused-debug-symbols: -feliminate-unused-debug-symbols }}"
 
 /* APPLE LOCAL AltiVec */
@@ -141,6 +145,23 @@ Boston, MA 02110-1301, USA.  */
 /* APPLE LOCAL ARM 5681645 */
 #define DARWIN_IPHONEOS_LIBGCC_SPEC "-lgcc_s.10.5 -lgcc"
 
+/* APPLE LOCAL begin link optimizations 6499452 */
+#undef DARWIN_CRT1_SPEC
+#define DARWIN_CRT1_SPEC						\
+  "%:version-compare(!> 10.5 mmacosx-version-min= -lcrt1.o)		\
+   %:version-compare(>< 10.5 10.6 mmacosx-version-min= -lcrt1.10.5.o)	\
+   %:version-compare(>= 10.6 mmacosx-version-min= -lcrt1.10.6.o)"
+
+#undef DARWIN_DYLIB1_SPEC
+#define DARWIN_DYLIB1_SPEC						\
+  "%:version-compare(!> 10.5 mmacosx-version-min= -ldylib1.o)		\
+   %:version-compare(>< 10.5 10.6 mmacosx-version-min= -ldylib1.10.5.o)"
+
+#undef DARWIN_BUNDLE1_SPEC
+#define DARWIN_BUNDLE1_SPEC						\
+  "%:version-compare(!> 10.6 mmacosx-version-min= -lbundle1.o)"
+/* APPLE LOCAL end link optimizations 6499452 */
+
 #undef SUBTARGET_EXTRA_SPECS
 #define SUBTARGET_EXTRA_SPECS                                   \
   DARWIN_EXTRA_SPECS                                            \
@@ -148,6 +169,14 @@ Boston, MA 02110-1301, USA.  */
   { "darwin_crt2", "" },                                        \
   { "darwin_subarch", DARWIN_SUBARCH_SPEC },
 /* APPLE LOCAL end mainline */
+
+/* APPLE LOCAL begin prefer -lSystem 6645902 */
+#undef LINK_GCC_C_SEQUENCE_SPEC
+#define LINK_GCC_C_SEQUENCE_SPEC					\
+  "%{miphoneos-version-min=*: %G %L}					\
+   %{!miphoneos-version-min=*:						\
+     %{!static:%:version-compare(>= 10.6 mmacosx-version-min= -lSystem)} %G %L}"
+/* APPLE LOCAL end prefer -lSystem 6645902 */
 
 /* Use the following macro for any Darwin/x86-specific command-line option
    translation.  */

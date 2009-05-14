@@ -205,7 +205,7 @@ static bool isZeroSizedStructOrUnion(tree type) {
 // target independent implementation.
 static const Type* getLLVMScalarTypeForStructReturn(tree type, unsigned *Offset) {
   const Type *Ty = ConvertType(type);
-  unsigned Size = getTargetData().getTypePaddedSize(Ty);
+  unsigned Size = getTargetData().getTypeAllocSize(Ty);
   *Offset = 0;
   if (Size == 0)
     return Type::VoidTy;
@@ -653,20 +653,20 @@ public:
 
     const StructType *STy = StructType::get(Elts, false);
 
-    unsigned Size = getTargetData().getTypePaddedSize(STy);
+    unsigned Size = getTargetData().getTypeAllocSize(STy);
     const StructType *InSTy = dyn_cast<StructType>(Ty);
     unsigned InSize = 0;
     // If Ty and STy size does not match then last element is accessing
     // extra bits.
     unsigned LastEltSizeDiff = 0;
     if (InSTy) {
-      InSize = getTargetData().getTypePaddedSize(InSTy);
+      InSize = getTargetData().getTypeAllocSize(InSTy);
       if (InSize < Size) {
         unsigned N = STy->getNumElements();
         const llvm::Type *LastEltTy = STy->getElementType(N-1);
         if (LastEltTy->isInteger())
           LastEltSizeDiff = 
-            getTargetData().getTypePaddedSize(LastEltTy) - (Size - InSize);
+            getTargetData().getTypeAllocSize(LastEltTy) - (Size - InSize);
       }
     }
     for (unsigned i = 0, e = Elts.size(); i != e; ++i) {

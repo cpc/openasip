@@ -1216,7 +1216,6 @@ extern enum rs6000_abi rs6000_current_abi;	/* available for use by subtarget */
    arguments.  */
 #define FRAME_GROWS_DOWNWARD (flag_stack_protect != 0)
 
-
 /* Size of the outgoing register save area */
 #define RS6000_REG_SAVE ((DEFAULT_ABI == ABI_AIX			\
 			  || DEFAULT_ABI == ABI_DARWIN)			\
@@ -3463,6 +3462,10 @@ enum rs6000_builtins
     F.AddFeature("fsqrt", TARGET_PPC_GPOPT); \
     F.AddFeature("64bit", TARGET_POWERPC64); \
   }
+
+#define LLVM_SET_MACHINE_OPTIONS(argvec)               \
+  if (TARGET_SOFT_FLOAT)                               \
+    argvec.push_back("-soft-float");
 
 /* When -m64 is specified, set the architecture to powerpc64-os-blah even if the
  * compiler was configured for powerpc-os-blah.

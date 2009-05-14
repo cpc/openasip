@@ -838,22 +838,25 @@ honor_protect_cleanup_actions (struct leh_state *outer_state,
       tree save_eptr, save_filt;
 
       save_eptr = create_tmp_var (ptr_type_node, "save_eptr");
+      /* LLVM LOCAL begin */
 #if ENABLE_LLVM
       /* LLVM exceptions use 64 bits for these on 64-bit targets. */
       save_filt = create_tmp_var (long_integer_type_node, "save_filt");
 #else
       save_filt = create_tmp_var (integer_type_node, "save_filt");
 #endif
+      /* LLVM LOCAL end */
       i = tsi_start (finally);
       x = build0 (EXC_PTR_EXPR, ptr_type_node);
       x = build2 (MODIFY_EXPR, void_type_node, save_eptr, x);
       tsi_link_before (&i, x, TSI_CONTINUE_LINKING);
-
+      /* LLVM LOCAL begin */
 #if ENABLE_LLVM
       x = build0 (FILTER_EXPR, long_integer_type_node);
 #else
       x = build0 (FILTER_EXPR, integer_type_node);
 #endif
+      /* LLVM LOCAL end */
       x = build2 (MODIFY_EXPR, void_type_node, save_filt, x);
       tsi_link_before (&i, x, TSI_CONTINUE_LINKING);
 
@@ -862,11 +865,13 @@ honor_protect_cleanup_actions (struct leh_state *outer_state,
       x = build2 (MODIFY_EXPR, void_type_node, x, save_eptr);
       tsi_link_after (&i, x, TSI_CONTINUE_LINKING);
 
+      /* LLVM LOCAL begin */
 #if ENABLE_LLVM
       x = build0 (FILTER_EXPR, long_integer_type_node);
 #else
       x = build0 (FILTER_EXPR, integer_type_node);
 #endif
+      /* LLVM LOCAL end */
       x = build2 (MODIFY_EXPR, void_type_node, x, save_filt);
       tsi_link_after (&i, x, TSI_CONTINUE_LINKING);
 
@@ -1328,13 +1333,13 @@ decide_copy_try_finally (int ndests, tree finally)
 {
   int f_estimate, sw_estimate;
 
-  /* LLVM local begin - let LLVM make this decision.  */
+  /* LLVM LOCAL begin - let LLVM make this decision.  */
 #ifdef ENABLE_LLVM
   if (1)
 #else
   if (!optimize)
 #endif
-  /* LLVM local end */
+  /* LLVM LOCAL end */
     return false;
 
   /* Finally estimate N times, plus N gotos.  */
@@ -2009,6 +2014,14 @@ tree_could_trap_p (tree expr)
       if (!t || !DECL_P (t) || DECL_WEAK (t))
 	return true;
       return false;
+
+      /* APPLE LOCAL begin weak variables 6822086 */
+    case VAR_DECL:
+      /* Assume that weak variables may trap.  */
+      if (DECL_WEAK (expr))
+	return true;
+      return false;
+      /* APPLE LOCAL end weak variables 6822086 */
 
     default:
       /* Any floating arithmetic may trap.  */

@@ -59,9 +59,11 @@ optab optab_table[OTI_MAX];
 
 rtx libfunc_table[LTI_MAX];
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 /* This needs to be defined even when not building for LLVM because
    the garbage collector logic ignores preprocessor directives. */
 tree llvm_libfunc_table[LTI_MAX];
+#endif
 /* LLVM LOCAL end */
 
 /* Tables of patterns for converting one mode to another.  */

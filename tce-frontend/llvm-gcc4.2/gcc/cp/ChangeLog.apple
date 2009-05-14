@@ -1,3 +1,16 @@
+2009-02-11  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6573923
+        * decl.c (synth_block_byref_id_object_copy_func,
+        synth_block_byref_id_object_dispose_func): Set BLOCK_BYREF_CALLER
+        flag in call to copy/dispose helper functions.
+
+2009-02-11  Fariborz Jahanian <fjahanian@apple.com>
+
+        Radar 6545782
+	* semantics.c (get_final_block_variable): New
+	(finish_id_expression): Call get_final_block_variable.
+
 2008-12-05  Fariborz Jahanian <fjahanian@apple.com>
 
         Radar 6413140

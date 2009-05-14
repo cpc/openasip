@@ -27,6 +27,7 @@
  * TCE compiler backend 
  *
  * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -73,10 +74,6 @@ volatile TargetLowering dummy(TargetMachine());
 Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
 Pass* createLinkBitcodePass(Module& inputCode);
 Pass* createMachineDCE();
-//Pass* createFixLibCalls();
-
-// TODO: uncomment with llvm 2.4
-// extern const PassInfo* UnreachableMachineBlockElimID;
 
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
@@ -477,12 +474,15 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         pluginIncludeFlags =
             " -I" + srcsPath +
             " -I" + std::string(TCE_SRC_ROOT) + DS + " " +
-            " -I" + std::string(TCE_SRC_ROOT) + DS +
-            "src" + DS + "ext" + DS + "llvm" + DS + LLVM_VERSION + DS + "TableGen" + DS +
-            "td" + DS + " -I" + std::string(TCE_SRC_ROOT) + DS +
-            "src" + DS + "applibs" + DS + "LLVMBackend" + DS + " " +
-            " -I" + std::string(TCE_INSTALLATION_ROOT) +  DS + "include" + DS + 
-            " -I`llvm-config --includedir`" + DS + "llvm" + DS + "Target" + DS;
+            
+            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
+            "applibs" + DS + "LLVMBackend" + DS + " " +
+            
+            " -I" + std::string(TCE_INSTALLATION_ROOT) +  DS + 
+            "include" + DS +
+            
+            " -I`llvm-config --includedir`" + DS + "llvm" + DS + 
+            "Target" + DS;
 
     }
 
@@ -522,16 +522,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         ne.setCause(e);
         throw ne;
     }
-
-    std::string tblgenbin;
-    if (useInstalledVersion_) {
-        tblgenbin = std::string(TCE_INSTALLATION_ROOT) + DS + "bin" + DS +
-            "tblgen";
-    } else {
-        tblgenbin = std::string(TCE_SRC_ROOT) + DS +
-            "src" + DS + "ext" + DS + "llvm" + DS + LLVM_VERSION + DS +
-            "TableGen" + DS + "tblgen";
-    }
+    
+    // since llvm-2.6 tblgen is installed
+    std::string tblgenbin = "tblgen";
        
     // Generate TCEGenRegisterNames.inc
     std::string tblgenCmd;

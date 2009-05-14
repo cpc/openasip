@@ -11,12 +11,12 @@
 /* APPLE LOCAL begin Apple version */
 #ifdef ENABLE_LLVM
 #ifdef LLVM_VERSION_INFO
-#define VERSUFFIX " (Based on Apple Inc. build 5636) (LLVM build " LLVM_VERSION_INFO ")"
+#define VERSUFFIX " (Based on Apple Inc. build 5646) (LLVM build " LLVM_VERSION_INFO ")"
 #else
-#define VERSUFFIX " (Based on Apple Inc. build 5636) (LLVM build)"
+#define VERSUFFIX " (Based on Apple Inc. build 5646) (LLVM build)"
 #endif
 #else
-#define VERSUFFIX " (Based on Apple Inc. build 5636)"
+#define VERSUFFIX " (Based on Apple Inc. build 5646)"
 #endif
 /* APPLE LOCAL end Apple version */
 
@@ -27,8 +27,14 @@
    forward us bugs reported to you, if you determine that they are
    not bugs in your modifications.)  */
 
-/* APPLE LOCAL Apple bug-report */
+/* APPLE LOCAL begin Apple bug-report */
+#ifdef BUILD_LLVM_APPLE_STYLE
+/* When llvm-gcc is built "Apple style", use Apple's bugreporter. */
 const char bug_report_url[] = "<URL:http://developer.apple.com/bugreporter>";
+#else
+const char bug_report_url[] = "<URL:http://llvm.org/bugs/>";
+#endif
+/* APPLE LOCAL end Apple bug-report */
 
 /* The complete version string, assembled from several pieces.
    BASEVER, DATESTAMP, and DEVPHASE are defined by the Makefile.  */

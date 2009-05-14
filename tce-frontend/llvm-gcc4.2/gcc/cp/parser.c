@@ -21065,13 +21065,13 @@ build_block_literal_tmp (const char *name,
     TREE_PUBLIC (block_holder_tmp_decl) = 0;
     TREE_STATIC (block_holder_tmp_decl) = 1;
   }
+  cp_finish_decl (block_holder_tmp_decl, constructor, 0, 0, LOOKUP_ONLYCONVERTING);
   /* LLVM LOCAL begin radar 5865221 */
 #ifdef ENABLE_LLVM
   TREE_CONSTANT (block_holder_tmp_decl) = 1;
   TREE_READONLY (block_holder_tmp_decl) = 1;
 #endif
   /* LLVM LOCAL end radar 5865221 */
-  cp_finish_decl (block_holder_tmp_decl, constructor, 0, 0, LOOKUP_ONLYCONVERTING);
   return block_holder_tmp_decl;
 }
 /* APPLE LOCAL end radar 6169527 */
@@ -21461,6 +21461,11 @@ cp_parser_block_literal_expr (cp_parser* parser)
   block_helper_function_decl = build_helper_func_decl (build_block_helper_name (unique_count),
 						       ftype);
   DECL_CONTEXT (block_helper_function_decl) = current_function_decl;
+  /* LLVM LOCAL begin 6530487 - blocks helper functions never need a static chain */
+#ifdef ENABLE_LLVM
+  DECL_NO_STATIC_CHAIN (block_helper_function_decl) = 1;
+#endif
+  /* LLVM LOCAL end 6530487 - blocks helper functions never need a static chain */
   cur_block->helper_func_decl = block_helper_function_decl;
 
   DECL_ARGUMENTS (block_helper_function_decl) = arglist;

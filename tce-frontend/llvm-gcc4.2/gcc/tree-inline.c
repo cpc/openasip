@@ -2037,6 +2037,8 @@ expand_call_inline (basic_block bb, tree stmt, tree *tp, void *data)
      inlining.  */
   if (!cgraph_inline_p (cg_edge, &reason))
     {
+/* LLVM LOCAL begin */
+#ifndef ENABLE_LLVM
       if (lookup_attribute ("always_inline", DECL_ATTRIBUTES (fn))
 	  /* Avoid warnings during early inline pass. */
 	  && (!flag_unit_at_a_time || cgraph_global_info_ready))
@@ -2057,6 +2059,8 @@ expand_call_inline (basic_block bb, tree stmt, tree *tp, void *data)
 		   fn, reason);
 	  warning (OPT_Winline, "called from here");
 	}
+#endif
+/* LLVM LOCAL end */
       goto egress;
     }
   fn = cg_edge->callee->decl;

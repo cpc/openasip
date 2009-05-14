@@ -2487,6 +2487,50 @@ block_var_ok_for_context (tree context)
 
   return false;
 }
+
+/* APPLE LOCAL begin radar 6545782 */
+/** This routine does all the work on use of variables in a block. */
+static tree get_final_block_variable (tree name, tree var) {
+  tree decl = var;
+  
+  if (cur_block
+      && (TREE_CODE (decl) == VAR_DECL
+          || TREE_CODE (decl) == PARM_DECL)
+      && !lookup_name_in_block (name, &decl))
+  { 
+    bool gdecl;
+    /* We are referencing a variable inside a block whose
+     declaration is outside.  */
+    gcc_assert (decl && 
+                (TREE_CODE (decl) == VAR_DECL
+                 || TREE_CODE (decl) == PARM_DECL));
+    gdecl = (TREE_CODE (decl) == VAR_DECL && 
+             (DECL_EXTERNAL (decl) || TREE_STATIC (decl)));
+    /* Treat all 'global' variables as 'byref' by default. */
+    if (gdecl
+        || (TREE_CODE (decl) == VAR_DECL && COPYABLE_BYREF_LOCAL_VAR (decl)))
+    {
+      /* byref globals are directly accessed. */
+      if (!gdecl)
+      /* build a decl for the byref variable. */
+        decl = build_block_byref_decl (name, decl, decl);
+      else
+        add_block_global_byref_list (decl);
+    }
+    else
+    {
+      /* 'byref' globals are never copied-in. So, do not add
+       them to the copied-in list. */
+      if (!in_block_global_byref_list (decl))
+      /* build a new decl node. set its type to 'const' type
+        of the old decl. */
+        decl = build_block_ref_decl (name, decl);
+    }
+  }
+  return decl;
+}
+/* APPLE LOCAL end radar 6545782 */
+
 /* APPLE LOCAL end blocks 6040305 */
 
 /* ID_EXPRESSION is a representation of parsed, but unprocessed,
@@ -2943,47 +2987,11 @@ finish_id_expression (tree id_expression,
 	      path = currently_open_derived_class (DECL_CONTEXT (decl));
 	      perform_or_defer_access_check (TYPE_BINFO (path), decl, decl);
 	    }
-
+          /* APPLE LOCAL radar 6545782 */
+          decl = get_final_block_variable (id_expression, decl);
 	  decl = convert_from_reference (decl);
 	}
     }
-
-  /* APPLE LOCAL begin blocks 6040305 (ci) */
-  if (cur_block
-      && (TREE_CODE (decl) == VAR_DECL
-	  || TREE_CODE (decl) == PARM_DECL)
-      && !lookup_name_in_block (id_expression, &decl))
-    {
-      bool gdecl;
-      /* We are referencing a variable inside a block whose
-	 declaration is outside.  */
-      gcc_assert (decl && 
-		  (TREE_CODE (decl) == VAR_DECL
-		   || TREE_CODE (decl) == PARM_DECL));
-      gdecl = (TREE_CODE (decl) == VAR_DECL && 
-	       (DECL_EXTERNAL (decl) || TREE_STATIC (decl)));
-      /* Treat all 'global' variables as 'byref' by default. */
-      if (gdecl
-	  || (TREE_CODE (decl) == VAR_DECL && COPYABLE_BYREF_LOCAL_VAR (decl)))
-	{
-	  /* byref globals are directly accessed. */
-	  if (!gdecl)
-	    /* build a decl for the byref variable. */
-	    decl = build_block_byref_decl (id_expression, decl, decl);
-	  else
-	    add_block_global_byref_list (decl);
-	}
-      else
-	{
-	  /* 'byref' globals are never copied-in. So, do not add
-	     them to the copied-in list. */
-	  if (!in_block_global_byref_list (decl))
-	    /* build a new decl node. set its type to 'const' type
-	       of the old decl. */
-	    decl = build_block_ref_decl (id_expression, decl);
-	}
-    }
-  /* APPLE LOCAL end blocks 6040305 (ci) */
 
   if (TREE_DEPRECATED (decl))
     warn_deprecated_use (decl);

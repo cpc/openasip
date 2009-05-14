@@ -299,12 +299,14 @@ indirect_data (rtx sym_ref)
   name = XSTR (sym_ref, 0);
 
   lprefix = (((name[0] == '*' || name[0] == '&')
+	      /* APPLE LOCAL begin fix-and-continue 6227434 */
               && (name[1] == 'L'
 		  || (name[1] == '"' && name[2] == 'L')
 		  /* Don't indirect writable strings.  */
 		  || (name[1] == 'l' && name[2] == 'C')))
              || (strncmp (name, "_OBJC_", 6) == 0)
 	     || objc_anonymous_local_objc_name (name));
+	      /* APPLE LOCAL end fix-and-continue 6227434 */
 
   return ! lprefix;
 }
@@ -1758,7 +1760,11 @@ const char *darwin_objc_llvm_implicit_target_global_var_section(tree decl) {
       else
         return "__OBJC, __string_object,no_dead_strip";
     } else if (!strcmp(IDENTIFIER_POINTER(typename), "__builtin_CFString")) {
-      return "__DATA, __cfstring";
+      return
+#ifdef LLVM_CONST_DATA_SECTION
+	(flag_writable_strings) ? LLVM_CONST_DATA_SECTION :
+#endif
+	"__DATA, __cfstring";
     } else {
       return 0;
     }
@@ -2072,7 +2078,17 @@ darwin_handle_weak_import_attribute (tree *node, tree name,
   if (objc_method_decl (TREE_CODE (*node)))
     return NULL_TREE;
   /* APPLE LOCAL end radar 4733555 */
-  if (TREE_CODE (*node) != FUNCTION_DECL && TREE_CODE (*node) != VAR_DECL)
+  /* APPLE LOCAL begin weak_import on property 6676828 */
+  if (in_objc_property_decl_context ())
+    {
+      *no_add_attrs = true;
+      return NULL_TREE;
+    }
+  /* APPLE LOCAL end weak_import on property 6676828 */
+  /* LLVM LOCAL 6652529 begin */
+  if ((TREE_CODE (*node) != FUNCTION_DECL && TREE_CODE (*node) != VAR_DECL)
+      || !DECL_EXTERNAL (*node))
+  /* LLVM LOCAL 6652529 end */
     {
       warning (OPT_Wattributes, "%qs attribute ignored",
 	       IDENTIFIER_POINTER (name));

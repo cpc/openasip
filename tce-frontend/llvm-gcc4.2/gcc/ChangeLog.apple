@@ -1,3 +1,56 @@
+2009-04-08  Jim Grosbach <grosbach@apple.com>
+
+	Radar 6738583
+	* config/arm/arm.c (arm_init_cumulative_args): Always short call local
+	functions.
+
+2009-04-06  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6755006
+	* tree-ssa-loop-ivopts.c (aff_combination_to_tree): Unsigned
+          types can't be negative.
+
+2009-03-12  Caroline Tice  <ctice@apple.com>
+
+        Radar 6144634
+        * c-parser.c (c_parser_statement_after_labels): When
+        re-setting the expression location at the end, use the input
+        location for Block pointer assignments.
+
+2009-02-25  Jim Grosbach <grosbach@apple.com>
+
+	Radar 6465387
+	* gcc/config/arm/t-darwin (LIB1ASMFUNCS): Add _save_vfp_d8_d15_regs,
+	_restore_vfp_d8_d15_regs.
+	* gcc/config/arm/arm.c (handle_thumb_unexpanded_prologue,
+	handle_thumb_unexpanded_epilogue): Add call to 
+	___{save,restore}_vfp_d8_d15_regs when compiling a function
+	w/ a non-local label in Thumb1 mode for a v6 or later processor.
+	* gcc/config/arm/lib1funcs.asm (save_vfp_d8_d15_regs,
+	restore_vfp_d8_d15_regs): New functions, built only for v6 ARM.
+
+2009-02-11  Fariborz Jahanian <fjahanian@apple.com>
+
+	Radar 6573923
+	* c-decl.c (synth_block_byref_id_object_copy_func,
+	synth_block_byref_id_object_dispose_func): Set BLOCK_BYREF_CALLER
+	flag in call to copy/dispose helper functions.
+	* c-common.h (BLOCK_BYREF_CALLER): New flag.
+
+2009-01-29  Josh Conner  <jconner@apple.com>
+
+	Radar 6186914, 6541440
+	* dwarf2out.c (dwarf_stack_op_name): Handle DW_OP_bit_piece.
+	(size_of_loc_descr, output_loc_operands): Likewise.
+	(reg_loc_descriptor): Call TARGET_DWARF2_REG_HANDLER if it is defined.
+	* config/arm/arm.h (TARGET_DWARF2_REG_HANDLER): Define.
+
+2009-01-22  Stuart Hastings  <stuart@apple.com>
+
+	Radar 6515001
+	* ifcvt.c(noce_try_cmove_arith): Use a more conservative trap
+          check.
+
 2009-01-12  Caroline Tice  <ctice@apple.com>
 
         Radar 6476836

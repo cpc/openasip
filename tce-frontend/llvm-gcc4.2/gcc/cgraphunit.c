@@ -384,7 +384,7 @@ cgraph_assemble_pending_functions (void)
       n->next_needed = NULL;
       if (!n->global.inlined_to
 	  && !n->alias
-         /* LLVM LOCAL extern inline */
+          /* LLVM LOCAL extern inline */
 	  && !IS_EXTERN_INLINE (n->decl))
 	{
 	  cgraph_expand_function (n);
@@ -848,8 +848,8 @@ verify_cgraph_node (struct cgraph_node *node)
 
   if (node->analyzed
       && DECL_SAVED_TREE (node->decl) && !TREE_ASM_WRITTEN (node->decl)
-        /* LLVM LOCAL extern inline */ 
-     && (!IS_EXTERN_INLINE (node->decl) || node->global.inlined_to))
+      /* LLVM LOCAL extern inline */ 
+      && (!IS_EXTERN_INLINE (node->decl) || node->global.inlined_to))
     {
       if (this_cfun->cfg)
 	{
@@ -1302,17 +1302,16 @@ cgraph_mark_functions_to_output (void)
 	  /* We should've reclaimed all functions that are not needed.  */
 #ifdef ENABLE_CHECKING
 	  if (!node->global.inlined_to && DECL_SAVED_TREE (decl)
-            /* LLVM LOCAL extern inline */
+              /* LLVM LOCAL extern inline */
 	      && !IS_EXTERN_INLINE (decl))
 	    {
 	      dump_cgraph_node (stderr, node);
 	      internal_error ("failed to reclaim unneeded function");
 	    }
 #endif
+          /* LLVM LOCAL extern inline */
 	  gcc_assert (node->global.inlined_to || !DECL_SAVED_TREE (decl)
-                       /* LLVM LOCAL extern inline */
 		      || IS_EXTERN_INLINE (decl));
-
 	}
 
     }

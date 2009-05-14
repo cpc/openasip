@@ -299,6 +299,7 @@ int warn_unknown_pragmas; /* Tri state variable.  */
 
 /* APPLE LOCAL begin default to Wformat-security 5764921 */
 /* LLVM LOCAL begin initialize via config/darwin.h */
+#ifdef ENABLE_LLVM
 #ifndef WARN_FORMAT_INIT
 #define WARN_FORMAT_INIT 0
 #endif
@@ -307,6 +308,9 @@ int warn_unknown_pragmas; /* Tri state variable.  */
 #endif
 int warn_format = WARN_FORMAT_INIT;
 int warn_format_security = WARN_FORMAT_SECURITY_INIT;
+#else
+int warn_format = 1;
+#endif
 /* LLVM LOCAL end initialize via config/darwin.h */
 /* APPLE LOCAL end default to Wformat-security 5764921 */
 
@@ -4735,9 +4739,12 @@ handle_const_attribute (tree *node, tree name, tree ARG_UNUSED (args),
   tree type = TREE_TYPE (*node);
 
   /* See FIXME comment on noreturn in c_common_attribute_table.  */
-  if (TREE_CODE (*node) == FUNCTION_DECL)
+  /* LLVM LOCAL begin */
+  if (TREE_CODE (*node) == FUNCTION_DECL) {
     TREE_READONLY (*node) = 1;
-  else if (TREE_CODE (type) == POINTER_TYPE
+    TREE_NOTHROW (*node) = 1;
+  } else if (TREE_CODE (type) == POINTER_TYPE
+  /* LLVM LOCAL end */
 	   && TREE_CODE (TREE_TYPE (type)) == FUNCTION_TYPE)
     TREE_TYPE (*node)
       = build_pointer_type
@@ -5169,6 +5176,16 @@ handle_weak_attribute (tree *node, tree name,
       || TREE_CODE (*node) == VAR_DECL)
     declare_weak (*node);
   /* APPLE LOCAL begin weak types 5954418 */
+  else if (!DECL_P (*node)
+	   /* If the weak flag can be associated with something else,
+	      prefer that. */
+	   && (flags & (ATTR_FLAG_FUNCTION_NEXT
+			|ATTR_FLAG_DECL_NEXT
+			|ATTR_FLAG_ARRAY_NEXT)))
+    {
+      *no_add_attrs = true;
+      return tree_cons (name, args, NULL_TREE);
+    }
   else if (! targetm.cxx.class_data_always_comdat ()
 	   && TREE_CODE (*node) == RECORD_TYPE)
     {
@@ -5559,10 +5576,13 @@ static tree
 handle_pure_attribute (tree *node, tree name, tree ARG_UNUSED (args),
 		       int ARG_UNUSED (flags), bool *no_add_attrs)
 {
-  if (TREE_CODE (*node) == FUNCTION_DECL)
+  /* LLVM LOCAL begin */
+  if (TREE_CODE (*node) == FUNCTION_DECL) {
     DECL_IS_PURE (*node) = 1;
-  /* ??? TODO: Support types.  */
-  else
+    TREE_NOTHROW (*node) = 1;
+  } else
+  /* LLVM LOCAL end */
+    /* ??? TODO: Support types.  */
     {
       warning (OPT_Wattributes, "%qE attribute ignored", name);
       *no_add_attrs = true;
@@ -6136,7 +6156,7 @@ handle_blocks_attribute (tree *node, tree name,
   *no_add_attrs = true;
   if (!(*node) || TREE_CODE (*node) != VAR_DECL)
     {
-      warning (OPT_Wattributes, "__block attribute can be specified on variables only - ignored");
+      error ("__block attribute can be specified on variables only");
       return NULL_TREE;
     }
   arg_ident = TREE_VALUE (args);
@@ -7305,6 +7325,9 @@ iasm_op_comp (const void *a, const void *b)
 #define ri8 r8 "i"
 #define ri16 r16 "i"
 #define ri32 r32 "i"
+#define rmi8 ri8 m8
+#define rmi16 ri16 m16
+#define rmi32 ri32 m32
 #define rel8 "s" S("1")
 #define m32fp "m" S("3")
 #define m64fp "m" S("6")
@@ -7314,6 +7337,7 @@ iasm_op_comp (const void *a, const void *b)
 #define M64 X(m64)
 #define RM64 R64 M64
 #define RI64 X(R64 "i")
+#define RMI64 RI64 M64
 #define r32R64 r32 R64
 #define r16r32R64 r16 r32 R64
 #define rm32RM64 rm32 RM64
@@ -7421,6 +7445,9 @@ iasm_constraint_for (const char *opcode, unsigned argnum, unsigned ARG_UNUSED (n
 #undef ri8
 #undef ri16
 #undef ri32
+#undef rmi8
+#undef rmi16
+#undef rmi32
 #undef rel8
 #undef m32fp
 #undef m64fp
@@ -7429,6 +7456,8 @@ iasm_constraint_for (const char *opcode, unsigned argnum, unsigned ARG_UNUSED (n
 #undef m32fpm64fpm80fp
 #undef M64
 #undef RM64
+#undef RI64
+#undef RMI64
 #undef r32R64
 #undef r16r32R64
 #undef rm32RM64

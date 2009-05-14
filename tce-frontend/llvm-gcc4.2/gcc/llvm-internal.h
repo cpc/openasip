@@ -93,16 +93,8 @@ const TargetData &getTargetData();
 ///
 extern llvm::OStream *AsmOutFile;
 
-/// StaticCtors/StaticDtors - The static constructors and destructors that we
-/// need to emit.
-extern std::vector<std::pair<Function*, int> > StaticCtors, StaticDtors;
-
 /// AttributeUsedGlobals - The list of globals that are marked attribute(used).
 extern SmallSetVector<Constant *,32> AttributeUsedGlobals;
-
-/// AttributeNoinlineFunctions - The list of functions that are 
-/// marked attribute(noinline)
-extern std::vector<Constant*> AttributeNoinlineFunctions;
 
 extern Constant* ConvertMetadataStringToGV(const char* str);
 
@@ -110,11 +102,12 @@ extern Constant* ConvertMetadataStringToGV(const char* str);
 /// annotate attribute to a vector to be emitted later.
 extern void AddAnnotateAttrsToGlobal(GlobalValue *GV, union tree_node* decl);
 
-void changeLLVMValue(Value *Old, Value *New);
+void changeLLVMConstant(Constant *Old, Constant *New);
 void readLLVMTypesStringTable();
 void writeLLVMTypesStringTable();
 void readLLVMValues();
 void writeLLVMValues();
+void eraseLocalLLVMValues();
 void clearTargetBuiltinCache();
 const char* extractRegisterName(union tree_node*);
 void handleVisibility(union tree_node* decl, GlobalValue *GV);
@@ -197,6 +190,10 @@ inline unsigned int GetFieldIndex(tree_node *field_decl) {
   return TheTypeConverter->GetFieldIndex(field_decl);
 }
 
+/// getINTEGER_CSTVal - Return the specified INTEGER_CST value as a uint64_t.
+///
+uint64_t getINTEGER_CSTVal(tree_node *exp);
+
 /// isInt64 - Return true if t is an INTEGER_CST that fits in a 64 bit integer.
 /// If Unsigned is false, returns whether it fits in a int64_t.  If Unsigned is
 /// true, returns whether the value is non-negative and fits in a uint64_t.
@@ -216,12 +213,9 @@ bool isPassedByInvisibleReference(tree_node *type);
 
 /// isSequentialCompatible - Return true if the specified gcc array or pointer
 /// type and the corresponding LLVM SequentialType lay out their components
-/// identically in memory.
+/// identically in memory, so doing a GEP accesses the right memory location.
+/// We assume that objects without a known size do not.
 bool isSequentialCompatible(tree_node *type);
-
-/// isArrayCompatible - Return true if the specified gcc array or pointer type
-/// corresponds to an LLVM array type.
-bool isArrayCompatible(tree_node *type);
 
 /// isBitfield - Returns whether to treat the specified field as a bitfield.
 bool isBitfield(tree_node *field_decl);
@@ -436,10 +430,11 @@ private: // Helper functions.
   void EmitAggregateZero(MemRef DestLoc, tree_node *GCCType);
                          
   /// EmitMemCpy/EmitMemMove/EmitMemSet - Emit an llvm.memcpy/llvm.memmove or
-  /// llvm.memset call with the specified operands.
-  void EmitMemCpy(Value *DestPtr, Value *SrcPtr, Value *Size, unsigned Align);
-  void EmitMemMove(Value *DestPtr, Value *SrcPtr, Value *Size, unsigned Align);
-  void EmitMemSet(Value *DestPtr, Value *SrcVal, Value *Size, unsigned Align);
+  /// llvm.memset call with the specified operands.  Returns DestPtr bitcast
+  /// to i8*.
+  Value *EmitMemCpy(Value *DestPtr, Value *SrcPtr, Value *Size, unsigned Align);
+  Value *EmitMemMove(Value *DestPtr, Value *SrcPtr, Value *Size, unsigned Align);
+  Value *EmitMemSet(Value *DestPtr, Value *SrcVal, Value *Size, unsigned Align);
 
   /// EmitLandingPads - Emit EH landing pads.
   void EmitLandingPads();
@@ -515,6 +510,7 @@ private:
                         unsigned Opc);
   Value *EmitFLOOR_MOD_EXPR(tree_node *exp, const MemRef *DestLoc);
   Value *EmitCEIL_DIV_EXPR(tree_node *exp);
+  Value *EmitFLOOR_DIV_EXPR(tree_node *exp);
   Value *EmitROUND_DIV_EXPR(tree_node *exp);
 
   // Exception Handling.
@@ -552,8 +548,9 @@ private:
   bool EmitBuiltinVAStart(tree_node *exp);
   bool EmitBuiltinVAEnd(tree_node *exp);
   bool EmitBuiltinVACopy(tree_node *exp);
-  bool EmitBuiltinMemCopy(tree_node *exp, Value *&Result, bool isMemMove);
-  bool EmitBuiltinMemSet(tree_node *exp, Value *&Result);
+  bool EmitBuiltinMemCopy(tree_node *exp, Value *&Result,
+                          bool isMemMove, bool SizeCheck);
+  bool EmitBuiltinMemSet(tree_node *exp, Value *&Result, bool SizeCheck);
   bool EmitBuiltinBZero(tree_node *exp, Value *&Result);
   bool EmitBuiltinPrefetch(tree_node *exp);
   bool EmitBuiltinReturnAddr(tree_node *exp, Value *&Result, bool isFrame);

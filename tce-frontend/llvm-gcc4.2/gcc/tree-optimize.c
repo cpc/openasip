@@ -439,8 +439,6 @@ tree_rest_of_compilation (tree fndecl)
   cfun->x_dont_save_pending_sizes_p = 1;
   cfun->after_inlining = true;
 
-/* LLVM LOCAL begin */
-#ifndef ENABLE_LLVM
   if (flag_inline_trees)
     {
       struct cgraph_edge *e;
@@ -454,8 +452,6 @@ tree_rest_of_compilation (tree fndecl)
 	  timevar_pop (TV_INTEGRATION);
 	}
     }
-#endif
-/* LLVM LOCAL end */
   /* In non-unit-at-a-time we must mark all referenced functions as needed.
      */
   if (!flag_unit_at_a_time)

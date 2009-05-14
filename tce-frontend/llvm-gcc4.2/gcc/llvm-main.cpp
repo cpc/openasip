@@ -19,7 +19,7 @@ along with GCC; see the file COPYING.  If not, write to the Free
 Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 02111-1307, USA.  */
 
-#include <iostream>
+#include "llvm/Support/PrettyStackTrace.h"
 
 extern "C" {
 #include "config.h"
@@ -33,8 +33,7 @@ extern "C" {
 // We do this so that C++ code has its static constructors called as required.
 //
 
-int
-main (int argc, char **argv)
-{
+int main (int argc, char **argv) {
+  llvm::PrettyStackTraceProgram X(argc, argv);
   return toplev_main (argc, (const char **) argv);
 }

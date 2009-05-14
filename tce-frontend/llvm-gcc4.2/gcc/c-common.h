@@ -467,9 +467,11 @@ extern int warn_unknown_pragmas; /* Tri state variable.  */
 extern int warn_format;
 
 /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
 /* Warn about possible security problems with format functions  */
 
 extern int warn_format_security;
+#endif
 /* LLVM LOCAL end */
 
 /* APPLE LOCAL begin disable_typechecking_for_spec_flag */
@@ -993,6 +995,11 @@ extern bool objc_diagnose_private_ivar (tree);
 /* APPLE LOCAL radar 4507230 */
 bool objc_type_valid_for_messaging (tree);
 extern void objc_volatilize_decl (tree);
+/* LLVM LOCAL begin - rdar 6551276 */
+#ifdef ENABLE_LLVM
+extern tree objc_build_volatilized_type (tree);
+#endif
+/* LLVM LOCAL end - rdar 6551276 */
 extern bool objc_type_quals_match (tree, tree);
 extern tree objc_rewrite_function_call (tree, tree);
 extern tree objc_message_selector (void);
@@ -1137,7 +1144,8 @@ enum {
     BLOCK_FIELD_IS_OBJECT   =  3,  /* id, NSObject, __attribute__((NSObject)), block, ... */
     BLOCK_FIELD_IS_BLOCK    =  7,  /* a block variable */
     BLOCK_FIELD_IS_BYREF    =  8,  /* the on stack structure holding the __block variable */
-    BLOCK_FIELD_IS_WEAK     = 16   /* declared __weak, only used in byref copy helpers */
+    BLOCK_FIELD_IS_WEAK     = 16,  /* declared __weak, only used in byref copy helpers */
+    BLOCK_BYREF_CALLER      = 128  /* called from __block (byref) copy/dispose support routines */
 };
 /* APPLE LOCAL end radar 5847976 */
 /* APPLE LOCAL begin radar 5732232 - blocks */

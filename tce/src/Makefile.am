@@ -1,4 +1,4 @@
-SUBDIRS = base tools applibs ext . bintools procgen codesign 
+SUBDIRS = base tools applibs . bintools procgen codesign 
 
 lib_LTLIBRARIES = libtce.la
 libtce_la_LDFLAGS = ${TCE_LDFLAGS}

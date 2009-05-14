@@ -284,6 +284,60 @@ bool TreeToLLVM::TargetIntrinsicLower(tree exp,
     Result = Builder.CreateBitCast(Result, ResultType, "tmp");
     return true;
   }
+  case IX86_BUILTIN_LOADUPS: {
+    VectorType *v4f32 = VectorType::get(Type::FloatTy, 4);
+    PointerType *v4f32Ptr = PointerType::getUnqual(v4f32);
+    Value *BC = Builder.CreateBitCast(Ops[0], v4f32Ptr, "tmp");
+    LoadInst *LI = Builder.CreateLoad(BC, "tmp");
+    LI->setAlignment(1);
+    Result = LI;
+    return true;
+  }
+  case IX86_BUILTIN_LOADUPD: {
+    VectorType *v2f64 = VectorType::get(Type::DoubleTy, 2);
+    PointerType *v2f64Ptr = PointerType::getUnqual(v2f64);
+    Value *BC = Builder.CreateBitCast(Ops[0], v2f64Ptr, "tmp");
+    LoadInst *LI = Builder.CreateLoad(BC, "tmp");
+    LI->setAlignment(1);
+    Result = LI;
+    return true;
+  }
+  case IX86_BUILTIN_LOADDQU: {
+    VectorType *v16i8 = VectorType::get(Type::Int8Ty, 16);
+    PointerType *v16i8Ptr = PointerType::getUnqual(v16i8);
+    Value *BC = Builder.CreateBitCast(Ops[0], v16i8Ptr, "tmp");
+    LoadInst *LI = Builder.CreateLoad(BC, "tmp");
+    LI->setAlignment(1);
+    Result = LI;
+    return true;
+  }
+  case IX86_BUILTIN_STOREUPS: {
+    VectorType *v4f32 = VectorType::get(Type::FloatTy, 4);
+    PointerType *v4f32Ptr = PointerType::getUnqual(v4f32);
+    Value *BC = Builder.CreateBitCast(Ops[0], v4f32Ptr, "tmp");
+    StoreInst *SI = Builder.CreateStore(Ops[1], BC);
+    SI->setAlignment(1);
+    Result = SI;
+    return true;
+  }
+  case IX86_BUILTIN_STOREUPD: {
+    VectorType *v2f64 = VectorType::get(Type::DoubleTy, 2);
+    PointerType *v2f64Ptr = PointerType::getUnqual(v2f64);
+    Value *BC = Builder.CreateBitCast(Ops[0], v2f64Ptr, "tmp");
+    StoreInst *SI = Builder.CreateStore(Ops[1], BC);
+    SI->setAlignment(1);
+    Result = SI;
+    return true;
+  }
+  case IX86_BUILTIN_STOREDQU: {
+    VectorType *v16i8 = VectorType::get(Type::Int8Ty, 16);
+    PointerType *v16i8Ptr = PointerType::getUnqual(v16i8);
+    Value *BC = Builder.CreateBitCast(Ops[0], v16i8Ptr, "tmp");
+    StoreInst *SI = Builder.CreateStore(Ops[1], BC);
+    SI->setAlignment(1);
+    Result = SI;
+    return true;
+  }
   case IX86_BUILTIN_LOADHPS: {
     PointerType *f64Ptr = PointerType::getUnqual(Type::DoubleTy);
     Ops[1] = Builder.CreateBitCast(Ops[1], f64Ptr, "tmp");
@@ -1020,7 +1074,7 @@ static bool llvm_suitable_multiple_ret_value_type(const Type *Ty,
 const Type *llvm_x86_scalar_type_for_struct_return(tree type, unsigned *Offset) {
   *Offset = 0;
   const Type *Ty = ConvertType(type);
-  unsigned Size = getTargetData().getTypePaddedSize(Ty);
+  unsigned Size = getTargetData().getTypeAllocSize(Ty);
   if (Size == 0)
     return Type::VoidTy;
   else if (Size == 1)
@@ -1383,53 +1437,6 @@ void llvm_x86_extract_multiple_return_value(Value *Src, Value *Dest,
     // Finished building current dest field. 
     ++DNO;
   }
-}
-
-/// llvm_store_scalar_argument - Store scalar argument ARGVAL of type
-/// LLVMTY at location LOC.
-void llvm_x86_store_scalar_argument(Value *Loc, Value *ArgVal,
-                                    const llvm::Type *LLVMTy,
-                                    unsigned RealSize,
-                                    LLVMBuilder &Builder) {
-  if (RealSize) {
-    // Do byte wise store because actaul argument type does not match LLVMTy.
-    Loc = Builder.CreateBitCast(Loc, 
-                                PointerType::getUnqual(llvm::Type::Int8Ty), "bc");
-    Value *ShAmt = ConstantInt::get(LLVMTy, 8);
-    for (unsigned i = 0; i < RealSize; ++i) {
-      Value *AVT = Builder.CreateTrunc(ArgVal, llvm::Type::Int8Ty, "byte");
-      Builder.CreateStore(AVT, Loc);
-      ArgVal = Builder.CreateLShr(ArgVal, ShAmt, "shft");
-      Loc = Builder.CreateGEP(Loc, ConstantInt::get(llvm::Type::Int32Ty, 1), 
-                              "Loc");
-    }
-  } else {
-    // This cast only involves pointers, therefore BitCast.
-    Loc = Builder.CreateBitCast(Loc, PointerType::getUnqual(LLVMTy), "tmp");
-    Builder.CreateStore(ArgVal, Loc);
-  }
-}
-
-/// llvm_load_scalar_argument - Load value located at LOC.
-Value *llvm_x86_load_scalar_argument(Value *L,
-                                     const llvm::Type *LLVMTy,
-                                     unsigned RealSize,
-                                     LLVMBuilder &Builder) {
-  Value *Loc = NULL;
-  L = Builder.CreateBitCast(L, PointerType::getUnqual(llvm::Type::Int8Ty), "bc");
-  // Load each byte individually.
-  for (unsigned i = 0; i < RealSize; ++i) {
-    Value *V = Builder.CreateLoad(L, "val");
-    Value *V2 = Builder.CreateZExt(V, LLVMTy);
-    if (Loc == NULL)
-      Loc = V2;
-    else {
-      Value *ShAmt = ConstantInt::get(LLVMTy, 8*i);
-      Loc = Builder.CreateOr(Loc, Builder.CreateShl(V2, ShAmt, "shl"), "loc");
-    }
-    L = Builder.CreateGEP(L, ConstantInt::get(llvm::Type::Int32Ty, 1), "gep");
-  }
-  return Loc;
 }
 
 /// llvm_x86_should_pass_aggregate_in_integer_regs - x86-32 is same as the

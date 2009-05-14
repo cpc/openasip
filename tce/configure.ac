@@ -1211,12 +1211,6 @@ AC_CONFIG_FILES([
   cost_estimator_plugins/rf/Makefile
   cost_estimator_plugins/fu/Makefile
   explorer/Makefile
-  src/ext/Makefile
-  src/ext/llvm/Makefile
-  src/ext/llvm/2.5/Makefile
-  src/ext/llvm/2.5/TableGen/Makefile 
-  src/ext/llvm/2.6svn/Makefile
-  src/ext/llvm/2.6svn/TableGen/Makefile 
   src/applibs/LLVMBackend/Makefile
   src/applibs/LLVMBackend/passes/Makefile
   src/bintools/Compiler/Makefile

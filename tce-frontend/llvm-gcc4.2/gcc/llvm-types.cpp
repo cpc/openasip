@@ -35,7 +35,7 @@ Software Foundation, 59 Temple Place - Suite 330, Boston, MA
 #include "llvm/Assembly/Writer.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/StringExtras.h"
-#include <iostream>
+#include "llvm/Support/raw_ostream.h"
 #include <map>
 
 extern "C" {
@@ -72,11 +72,11 @@ static LTypesMapTy LTypesMap;
 static const Type * llvm_set_type(tree Tr, const Type *Ty) {
 
   // For x86 long double, llvm records the size of the data (80) while
-  // gcc's TYPE_SIZE including alignment padding.  getTypePaddedSizeInBits
+  // gcc's TYPE_SIZE including alignment padding.  getTypeAllocSizeInBits
   // is used to compensate for this.
   assert((!TYPE_SIZE(Tr) || !Ty->isSized() || !isInt64(TYPE_SIZE(Tr), true) ||
          getInt64(TYPE_SIZE(Tr), true) == 
-            getTargetData().getTypePaddedSizeInBits(Ty))
+            getTargetData().getTypeAllocSizeInBits(Ty))
          && "LLVM type size doesn't match GCC type size!");
 
   unsigned &TypeSlot = LTypesMap[Ty];
@@ -298,7 +298,8 @@ static std::string GetTypeName(const char *Prefix, tree type) {
 
 /// isSequentialCompatible - Return true if the specified gcc array or pointer
 /// type and the corresponding LLVM SequentialType lay out their components
-/// identically in memory.  We assume that objects without a known size do not.
+/// identically in memory, so doing a GEP accesses the right memory location.
+/// We assume that objects without a known size do not.
 bool isSequentialCompatible(tree_node *type) {
   assert((TREE_CODE(type) == ARRAY_TYPE ||
           TREE_CODE(type) == POINTER_TYPE ||
@@ -309,28 +310,6 @@ bool isSequentialCompatible(tree_node *type) {
   // struct foo;  extern foo bar[];
   return TYPE_SIZE(TREE_TYPE(type)) &&
          isInt64(TYPE_SIZE(TREE_TYPE(type)), true);
-}
-
-/// isArrayCompatible - Return true if the specified gcc array or pointer type
-/// corresponds to an LLVM array type.
-bool isArrayCompatible(tree_node *type) {
-  assert((TREE_CODE(type) == ARRAY_TYPE ||
-          TREE_CODE(type) == POINTER_TYPE ||
-          TREE_CODE(type) == REFERENCE_TYPE ||
-          TREE_CODE(type) == BLOCK_POINTER_TYPE) && "not a sequential type!");
-  return
-    (TREE_CODE(type) == ARRAY_TYPE) && (
-      // Arrays with no size are fine as long as their components are layed out
-      // the same way in memory by LLVM.  For example 'int X[]' -> '[0 x i32]'.
-      (!TYPE_SIZE(type) && isSequentialCompatible(type)) ||
-
-      // Arrays with constant size map to LLVM arrays.  If the array has zero
-      // size then there can be two exotic cases: (1) the array might have zero
-      // length and a component type of variable size; or (2) the array could
-      // have variable length and a component type with zero size.  In both
-      // cases we convert to a zero length LLVM array.
-      (TYPE_SIZE(type) && isInt64(TYPE_SIZE(type), true))
-    );
 }
 
 /// isBitfield - Returns whether to treat the specified field as a bitfield.
@@ -498,7 +477,8 @@ void TypeRefinementDatabase::typeBecameConcrete(const DerivedType *AbsTy) {
   AbsTy->removeAbstractTypeUser(this);
 }
 void TypeRefinementDatabase::dump() const {
-  std::cerr << "TypeRefinementDatabase\n";
+  outs() << "TypeRefinementDatabase\n";
+  outs().flush();
 }
 
 //===----------------------------------------------------------------------===//
@@ -518,44 +498,42 @@ static uint64_t getFieldOffsetInBits(tree Field) {
 
 /// FindLLVMTypePadding - If the specified struct has any inter-element padding,
 /// add it to the Padding array.
-static void FindLLVMTypePadding(const Type *Ty, uint64_t BitOffset,
+static void FindLLVMTypePadding(const Type *Ty, tree type, uint64_t BitOffset,
                        SmallVector<std::pair<uint64_t,uint64_t>, 16> &Padding) {
   if (const StructType *STy = dyn_cast<StructType>(Ty)) {
     const TargetData &TD = getTargetData();
     const StructLayout *SL = TD.getStructLayout(STy);
-    uint64_t PrevFieldBitOffset = 0;
+    uint64_t PrevFieldEnd = 0;
     for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
+      // If this field is marked as being padding, then pretend it is not there.
+      // This results in it (or something bigger) being added to Padding.  This
+      // matches the logic in CopyAggregate.
+      if (type && isPaddingElement(type, i))
+        continue;
+
       uint64_t FieldBitOffset = SL->getElementOffset(i)*8;
 
       // Get padding of sub-elements.
-      FindLLVMTypePadding(STy->getElementType(i), 
+      FindLLVMTypePadding(STy->getElementType(i), 0,
                           BitOffset+FieldBitOffset, Padding);
       // Check to see if there is any padding between this element and the
       // previous one.
-      if (i) {
-        uint64_t PrevFieldEnd = 
-          PrevFieldBitOffset+TD.getTypeSizeInBits(STy->getElementType(i-1));
-        if (PrevFieldEnd < FieldBitOffset)
-          Padding.push_back(std::make_pair(PrevFieldEnd+BitOffset,
-                                           FieldBitOffset-PrevFieldEnd));
-      }
-      
-      PrevFieldBitOffset = FieldBitOffset;
+      if (PrevFieldEnd < FieldBitOffset)
+        Padding.push_back(std::make_pair(PrevFieldEnd+BitOffset,
+                                         FieldBitOffset-PrevFieldEnd));
+      PrevFieldEnd =
+        FieldBitOffset + TD.getTypeSizeInBits(STy->getElementType(i));
     }
-    
+
     //  Check for tail padding.
-    if (unsigned EltCount = STy->getNumElements()) {
-      uint64_t PrevFieldEnd = PrevFieldBitOffset +
-           TD.getTypeSizeInBits(STy->getElementType(EltCount-1));
-      if (PrevFieldEnd < SL->getSizeInBytes()*8)
-        Padding.push_back(std::make_pair(PrevFieldEnd,
-                                         SL->getSizeInBytes()*8-PrevFieldEnd));
-    }
-    
+    if (PrevFieldEnd < SL->getSizeInBits())
+      Padding.push_back(std::make_pair(PrevFieldEnd,
+                                       SL->getSizeInBits()-PrevFieldEnd));
   } else if (const ArrayType *ATy = dyn_cast<ArrayType>(Ty)) {
     uint64_t EltSize = getTargetData().getTypeSizeInBits(ATy->getElementType());
     for (unsigned i = 0, e = ATy->getNumElements(); i != e; ++i)
-      FindLLVMTypePadding(ATy->getElementType(), BitOffset+i*EltSize, Padding);
+      FindLLVMTypePadding(ATy->getElementType(), 0, BitOffset+i*EltSize,
+                          Padding);
   }
   
   // primitive and vector types have no padding.
@@ -696,7 +674,7 @@ bool TypeConverter::GCCTypeOverlapsWithLLVMTypePadding(tree type,
   
   // Start by finding all of the padding in the LLVM Type.
   SmallVector<std::pair<uint64_t,uint64_t>, 16> StructPadding;
-  FindLLVMTypePadding(Ty, 0, StructPadding);
+  FindLLVMTypePadding(Ty, type, 0, StructPadding);
   
   for (unsigned i = 0, e = StructPadding.size(); i != e; ++i)
     if (GCCTypeOverlapsWithPadding(type, StructPadding[i].first,
@@ -746,8 +724,7 @@ const Type *TypeConverter::ConvertType(tree orig_type) {
     type = orig_type;
   case INTEGER_TYPE:
     if (const Type *Ty = GET_TYPE_LLVM(type)) return Ty;
-    return SET_TYPE_LLVM(type, 
-                         IntegerType::get(TREE_INT_CST_LOW(TYPE_SIZE(type))));
+    return SET_TYPE_LLVM(type, IntegerType::get(TYPE_PRECISION(type)));
   case REAL_TYPE:
     if (const Type *Ty = GET_TYPE_LLVM(type)) return Ty;
     switch (TYPE_PRECISION(type)) {
@@ -874,44 +851,51 @@ const Type *TypeConverter::ConvertType(tree orig_type) {
     if (const Type *Ty = GET_TYPE_LLVM(type))
       return Ty;
 
-    if (isArrayCompatible(type)) {
-      uint64_t NumElements;
-
-      if (!TYPE_SIZE(type)) {
-        // We get here if we have something that is declared to be an array with
-        // no dimension.  This just becomes a zero length array of the element
-        // type, so 'int X[]' becomes '%X = external global [0 x i32]'.
-        //
-        // Note that this also affects new expressions, which return a pointer
-        // to an unsized array of elements.
-        NumElements = 0;
-      } else if (integer_zerop(TYPE_SIZE(type))) {
-        // An array of zero length, or with an element type of zero size.
-        // Turn it into a zero length array of the element type.
-        NumElements = 0;
-      } else {
-        // Normal constant-size array.
-        NumElements = getInt64(TYPE_SIZE(type), true);
-
-        assert(isInt64(TYPE_SIZE(TREE_TYPE(type)), true)
-               && "Array of constant size with elements of variable size!");
-        uint64_t ElementSize = getInt64(TYPE_SIZE(TREE_TYPE(type)), true);
-        assert(ElementSize
-               && "Array of positive size with elements of zero size!");
-        assert(!(NumElements % ElementSize)
-               && "Array size is not a multiple of the element size!");
-
-        NumElements /= ElementSize;
-      }
-
-      return TypeDB.setType(type, ArrayType::get(ConvertType(TREE_TYPE(type)),
-                                                 NumElements));
+    uint64_t ElementSize;
+    const Type *ElementTy;
+    if (isSequentialCompatible(type)) {
+      // The gcc element type maps to an LLVM type of the same size.
+      // Convert to an LLVM array of the converted element type.
+      ElementSize = getInt64(TYPE_SIZE(TREE_TYPE(type)), true);
+      ElementTy = ConvertType(TREE_TYPE(type));
+    } else {
+      // The gcc element type has no size, or has variable size.  Convert to an
+      // LLVM array of bytes.  In the unlikely but theoretically possible case
+      // that the gcc array type has constant size, using an i8 for the element
+      // type ensures we can produce an LLVM array of the right size.
+      ElementSize = 8;
+      ElementTy = Type::Int8Ty;
     }
 
-    // This handles cases like "int A[n]" which have a runtime constant
-    // number of elements, but is a compile-time variable.  Since these are
-    // variable sized, we just represent them as the element themself.
-    return TypeDB.setType(type, ConvertType(TREE_TYPE(type)));
+    uint64_t NumElements;
+    if (!TYPE_SIZE(type)) {
+      // We get here if we have something that is declared to be an array with
+      // no dimension.  This just becomes a zero length array of the element
+      // type, so 'int X[]' becomes '%X = external global [0 x i32]'.
+      //
+      // Note that this also affects new expressions, which return a pointer
+      // to an unsized array of elements.
+      NumElements = 0;
+    } else if (!isInt64(TYPE_SIZE(type), true)) {
+      // This handles cases like "int A[n]" which have a runtime constant
+      // number of elements, but is a compile-time variable.  Since these
+      // are variable sized, we represent them as [0 x type].
+      NumElements = 0;
+    } else if (integer_zerop(TYPE_SIZE(type))) {
+      // An array of zero length, or with an element type of zero size.
+      // Turn it into a zero length array of the element type.
+      NumElements = 0;
+    } else {
+      // Normal constant-size array.
+      assert(ElementSize
+             && "Array of positive size with elements of zero size!");
+      NumElements = getInt64(TYPE_SIZE(type), true);
+      assert(!(NumElements % ElementSize)
+             && "Array size is not a multiple of the element size!");
+      NumElements /= ElementSize;
+    }
+
+    return TypeDB.setType(type, ArrayType::get(ElementTy, NumElements));
   }
   case OFFSET_TYPE:
     // Handle OFFSET_TYPE specially.  This is used for pointers to members,
@@ -1183,6 +1167,10 @@ ConvertFunctionType(tree type, tree decl, tree static_chain,
   TARGET_ADJUST_LLVM_RETATTR(RAttributes, type);
 #endif
 
+  // The value returned by a 'malloc' function does not alias anything.
+  if (flags & ECF_MALLOC)
+    RAttributes |= Attribute::NoAlias;
+
   if (RAttributes != Attribute::None)
     Attrs.push_back(AttributeWithIndex::get(0, RAttributes));
 
@@ -1253,8 +1241,8 @@ ConvertFunctionType(tree type, tree decl, tree static_chain,
     
 #ifdef LLVM_TARGET_ENABLE_REGPARM
     // Allow the target to mark this as inreg.
-    if (TREE_CODE(ArgTy) == INTEGER_TYPE || TREE_CODE(ArgTy) == POINTER_TYPE ||
-        TREE_CODE(ArgTy) == REAL_TYPE)
+    if (INTEGRAL_TYPE_P(ArgTy) || POINTER_TYPE_P(ArgTy) ||
+        SCALAR_FLOAT_TYPE_P(ArgTy))
       LLVM_ADJUST_REGPARM_ATTRIBUTE(PAttributes, ArgTy,
                                     TREE_INT_CST_LOW(TYPE_SIZE(ArgTy)),
                                     local_regparam, local_fp_regparam);
@@ -1346,7 +1334,7 @@ struct StructTypeConversionInfo {
   /// getTypeSize - Return the size of the specified type in bytes.
   ///
   uint64_t getTypeSize(const Type *Ty) const {
-    return TD.getTypePaddedSize(Ty);
+    return TD.getTypeAllocSize(Ty);
   }
   
   /// getLLVMType - Return the LLVM type for the specified object.
@@ -1358,16 +1346,22 @@ struct StructTypeConversionInfo {
                            Packed || (!Elements.empty() && AllBitFields));
   }
   
+  /// getAlignmentAsLLVMStruct - Return the alignment of this struct if it were
+  /// converted to an LLVM type.
+  uint64_t getAlignmentAsLLVMStruct() const {
+    if (Packed || AllBitFields) return 1;
+    unsigned MaxAlign = 1;
+    for (unsigned i = 0, e = Elements.size(); i != e; ++i)
+      MaxAlign = std::max(MaxAlign, getTypeAlignment(Elements[i]));
+    return MaxAlign;
+  }
+
   /// getSizeAsLLVMStruct - Return the size of this struct if it were converted
   /// to an LLVM type.  This is the end of last element push an alignment pad at
   /// the end.
   uint64_t getSizeAsLLVMStruct() const {
     if (Elements.empty()) return 0;
-    unsigned MaxAlign = 1;
-    if (!Packed && !AllBitFields)
-      for (unsigned i = 0, e = Elements.size(); i != e; ++i)
-        MaxAlign = std::max(MaxAlign, getTypeAlignment(Elements[i]));
-    
+    unsigned MaxAlign = getAlignmentAsLLVMStruct();
     uint64_t Size = ElementOffsetInBytes.back()+ElementSizeInBytes.back();
     return (Size+MaxAlign-1) & ~(MaxAlign-1);
   }
@@ -1619,14 +1613,16 @@ void StructTypeConversionInfo::addNewBitField(uint64_t Size,
 }
 
 void StructTypeConversionInfo::dump() const {
-  std::cerr << "Info has " << Elements.size() << " fields:\n";
+  raw_ostream &OS = outs();
+  OS << "Info has " << Elements.size() << " fields:\n";
   for (unsigned i = 0, e = Elements.size(); i != e; ++i) {
-    std::cerr << "  Offset = " << ElementOffsetInBytes[i]
-              << " Size = " << ElementSizeInBytes[i]
-              << " Type = ";
-    WriteTypeSymbolic(std::cerr, Elements[i], TheModule);
-    std::cerr << "\n";
+    OS << "  Offset = " << ElementOffsetInBytes[i]
+       << " Size = " << ElementSizeInBytes[i]
+       << " Type = ";
+    WriteTypeSymbolic(OS, Elements[i], TheModule);
+    OS << "\n";
   }
+  OS.flush();
 }
 
 std::map<tree, StructTypeConversionInfo *> StructTypeInfoMap;
@@ -1689,11 +1685,11 @@ static tree FixBaseClassField(tree Field) {
   // If already in table, reuse.
   if (!newTy) {
     newTy = copy_node(oldTy);
-    tree F2 = 0, prevF2 = 0;
+    tree F2 = 0, prevF2 = 0, F;
     // Copy the fields up to the TYPE_DECL separator.
     // VAR_DECLs can also appear, representing static members.  Possibly some
     // other junk I haven't hit yet, just skip anything that's not a FIELD:(
-    for (tree F = TYPE_FIELDS(oldTy); F; prevF2 = F2, F = TREE_CHAIN(F)) {
+    for (F = TYPE_FIELDS(oldTy); F; prevF2 = F2, F = TREE_CHAIN(F)) {
       if (TREE_CODE(F) == TYPE_DECL)
         break;
       if (TREE_CODE(F) == FIELD_DECL) {
@@ -1704,6 +1700,14 @@ static tree FixBaseClassField(tree Field) {
           TYPE_FIELDS(newTy) = F2;
         TREE_CHAIN(F2) = 0;
       }
+    }
+    // If we didn't find a TYPE_DECL this isn't the virtual base class case.
+    // The ObjC trees for bitfield instance variables can look similar enough
+    // to the C++ virtual base case to get this far, but these don't have
+    // the TYPE_DECL sentinel, nor the virtual base class allocation problem.
+    if (!F || TREE_CODE(F) != TYPE_DECL) {
+      BaseTypesMap[oldTy] = oldTy;
+      return oldTy;
     }
     BaseTypesMap[oldTy] = newTy;
     BaseTypesMap[newTy] = oldTy;
@@ -2086,7 +2090,9 @@ const Type *TypeConverter::ConvertRECORD(tree type, tree orig_type) {
       if (GCCTypeSize-LLVMLastElementEnd == 1)
         Info->addElement(Type::Int8Ty, 1, 1);
       else {
-        if ( ((GCCTypeSize-LLVMStructSize) % 4) == 0) {
+        if (((GCCTypeSize-LLVMStructSize) % 4) == 0 &&
+            (Info->getAlignmentAsLLVMStruct() %
+             Info->getTypeAlignment(Type::Int32Ty)) == 0) {
           // insert array of i32
           unsigned Int32ArraySize = (GCCTypeSize-LLVMStructSize)/4;
           const Type *PadTy = ArrayType::get(Type::Int32Ty, Int32ArraySize);
@@ -2115,6 +2121,7 @@ const Type *TypeConverter::ConvertRECORD(tree type, tree orig_type) {
         TREE_CODE(DECL_FIELD_OFFSET(Field)) == INTEGER_CST) {
       uint64_t FieldOffsetInBits = getFieldOffsetInBits(Field);
       tree FieldType = getDeclaredType(Field);
+      const Type *FieldTy = ConvertType(FieldType);
 
       // If this is a bitfield, we may want to adjust the FieldOffsetInBits to
       // produce safe code.  In particular, bitfields will be loaded/stored as
@@ -2122,7 +2129,6 @@ const Type *TypeConverter::ConvertRECORD(tree type, tree orig_type) {
       // them.  As such, we need to respect the alignment of the declared type.
       if (isBitfield(Field)) {
         // If this is a bitfield, the declared type must be an integral type.
-        const Type *FieldTy = ConvertType(FieldType);
         unsigned BitAlignment = Info->getTypeAlignment(FieldTy)*8;
 
         FieldOffsetInBits &= ~(BitAlignment-1ULL);
@@ -2136,10 +2142,9 @@ const Type *TypeConverter::ConvertRECORD(tree type, tree orig_type) {
           continue;
       }
 
-      // Figure out if this field is zero bits wide, e.g. {} or [0 x int].  Do
-      // not include variable sized fields here.
-      bool isZeroSizeField = !TYPE_SIZE(FieldType) ||
-        integer_zerop(TYPE_SIZE(FieldType));
+      // Figure out if this field is zero bits wide, e.g. {} or [0 x int].
+      bool isZeroSizeField = FieldTy->isSized() &&
+        getTargetData().getTypeSizeInBits(FieldTy) == 0;
 
       unsigned FieldNo =
         Info->getLLVMFieldFor(FieldOffsetInBits, CurFieldNo, isZeroSizeField);
@@ -2240,6 +2245,13 @@ const Type *TypeConverter::ConvertUNION(tree type, tree orig_type) {
       continue;
 
     tree TheGccTy = TREE_TYPE(Field);
+
+    // Skip zero-length fields; ConvertType refuses to construct a type
+    // of size 0.
+    if (DECL_SIZE(Field) &&
+        TREE_CODE(DECL_SIZE(Field))==INTEGER_CST &&
+        TREE_INT_CST_LOW(DECL_SIZE(Field))==0)
+      continue;
 #ifdef TARGET_POWERPC
     // Normally gcc reduces the size of bitfields to the size necessary
     // to hold the bits, e.g. a 1-bit field becomes QI.  It does not do
@@ -2272,7 +2284,7 @@ const Type *TypeConverter::ConvertUNION(tree type, tree orig_type) {
     }
 #endif
     const Type *TheTy = ConvertType(TheGccTy);
-    unsigned Size  = TD.getTypePaddedSize(TheTy);
+    unsigned Size  = TD.getTypeAllocSize(TheTy);
     unsigned Align = TD.getABITypeAlignment(TheTy);
 
     adjustPaddingElement(GccUnionTy, TheGccTy);
@@ -2309,7 +2321,7 @@ const Type *TypeConverter::ConvertUNION(tree type, tree orig_type) {
   unsigned EltSize = 0;
   if (UnionTy) {            // Not an empty union.
     EltAlign = TD.getABITypeAlignment(UnionTy);
-    EltSize = TD.getTypePaddedSize(UnionTy);
+    EltSize = TD.getTypeAllocSize(UnionTy);
     UnionElts.push_back(UnionTy);
   }
 

@@ -32,8 +32,11 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 #include "cppdefault.h"
 /* APPLE LOCAL headermaps 3871393 */ 
 #include "errors.h"
-/* LLVM LOCAL sysroot */
+/* LLVM LOCAL begin - sysroot */
+#ifdef ENABLE_LLVM
 #include "target-def.h"
+#endif
+/* LLVM LOCAL end - sysroot */
 
 /* Windows does not natively support inodes, and neither does MSDOS.
    Cygwin's emulation can generate non-unique inodes, so don't use it.
@@ -127,11 +130,13 @@ add_env_var_paths (const char *env_var, int chain)
 }
 
 /* LLVM LOCAL begin sysroot */
+#ifdef ENABLE_LLVM
 char *default_build_sysroot_path(const char *sysroot, const char *path);
 char *
 default_build_sysroot_path(const char *sysroot, const char *path) {
   return concat (sysroot, path, NULL);
 }
+#endif
 /* LLVM LOCAL end sysroot */
 
 /* Append the standard include chain defined in cppdefault.c.  */
@@ -175,8 +180,13 @@ add_standard_paths (const char *sysroot, const char *iprefix,
 
 	  /* Should this directory start with the sysroot?  */
 	  if (sysroot && p->add_sysroot)
-            /* LLVM LOCAL sysroot */
+            /* LLVM LOCAL begin sysroot */
+#ifdef ENABLE_LLVM
 	    str = TARGET_BUILD_SYSROOT_PATH(sysroot, p->fname);
+#else
+	    str = concat (sysroot, p->fname, NULL);
+#endif
+            /* LLVM LOCAL end sysroot */
 	  else
 	    str = update_path (p->fname, p->component);
 
@@ -247,9 +257,9 @@ hmap_load_header_map (const char *filepath)
 	  /* If it is a regular file and if it is large enough to be a header-
 	     map, see if it really is one. */
 	  if (fstat (fileno (f), &f_info) == 0 && S_ISREG(f_info.st_mode)
-      /* LLVM LOCAL begin */
-	    && (unsigned) f_info.st_size >= sizeof(struct hmap_header_map))
-      /* LLVM LOCAL end */
+            /* LLVM LOCAL begin */
+              && (unsigned) f_info.st_size >= sizeof(struct hmap_header_map))
+            /* LLVM LOCAL end */
 	    {
 	      unsigned   headermap_size = f_info.st_size;
 

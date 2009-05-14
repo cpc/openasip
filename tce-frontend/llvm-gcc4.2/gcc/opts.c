@@ -906,9 +906,11 @@ common_handle_option (size_t scode, const char *arg, int value,
       break;
       
       /* LLVM LOCAL begin */
+#ifdef ENABLE_LLVM
     case OPT_mllvm:
       llvm_optns = arg;
       break;
+#endif
       /* LLVM LOCAL end */
 
     case OPT_auxbase_strip:

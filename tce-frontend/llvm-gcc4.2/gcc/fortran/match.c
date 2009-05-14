@@ -212,7 +212,9 @@ gfc_match_small_int (int *value)
 
   if (p != NULL)
     {
+      /* LLVM LOCAL begin */
       gfc_error ("%s", p);
+      /* LLVM LOCAL end */
       m = MATCH_ERROR;
     }
 

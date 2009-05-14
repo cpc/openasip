@@ -760,8 +760,10 @@ Foundation, 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 }
 
 /* LLVM LOCAL begin sysroot */
+#ifdef ENABLE_LLVM
 #ifndef TARGET_BUILD_SYSROOT_PATH
 #define TARGET_BUILD_SYSROOT_PATH(S,P) default_build_sysroot_path((S), (P))
+#endif
 #endif
 /* LLVM LOCAL end sysroot */
 #include "hooks.h"
