@@ -37,11 +37,15 @@
 
 #include <map>
 #include <set>
+
+// these need to be included before Boost so we include a working
+// and warning-free hash_map
+#include "hash_set.hh"
+#include "hash_map.hh"
+
 #include <boost/config.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/subgraph.hpp>
-
-#include "hash_map.hh"
 
 #include "Exception.hh"
 #include "Graph.hh"

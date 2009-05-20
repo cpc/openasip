@@ -69,3 +69,7 @@ using std::hash_set;
 /// @todo Check for STLport hash_map
 /// @todo Check for Intel's compiler. It seems Intel's compiler provides
 /// compatibility for GNU so HASHMAP_GNU_EXT gets defined.
+
+// include this header before including adjacency_list.hpp so we get a working
+// hash_set without and deprecation warnings etc.
+#define BOOST_NO_HASH

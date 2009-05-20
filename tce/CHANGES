@@ -1,5 +1,5 @@
-1.0.1 maintainance release, 2009-??-??
-======================================
+1.x
+===
 
 Bugfixes
 --------
@@ -11,9 +11,11 @@ Bugfixes
   signal was asserted.
 - Better support for selecting custom ops with DAG definition.
 - Having not operation on the machine caused incorrectly compiled programs.
+- Better error handling for stale .opb files.
+- Boost should not warn anymore about deprecated hash_set with gcc 4.3.
 
-1.0 first public release, tagged on 2009-03-26
-==============================================
+1.0 first public release, 2009-03-26
+====================================
 
 New features
 ------------

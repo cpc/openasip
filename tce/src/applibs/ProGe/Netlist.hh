@@ -33,6 +33,11 @@
 #ifndef TTA_NETLIST_HH
 #define TTA_NETLIST_HH
 
+// these need to be included before Boost so we include a working
+// and warning-free hash_map
+#include "hash_set.hh"
+#include "hash_map.hh"
+
 #include <boost/graph/adjacency_list.hpp>
 
 #include "PortConnectionProperty.hh"

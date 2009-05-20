@@ -299,8 +299,17 @@ PluginTools::loadSym(const std::string& symbolName, const std::string& module)
 
         void* sym = dlsym(handle, symbolName.c_str());
         if ((error = dlerror()) != NULL) {
-            string method = "PluginTools::loadSym()";
-            throw DynamicLibraryException(__FILE__, __LINE__, method, error);
+            if (sym == NULL) {
+                // it does not seem to be possible to separate the
+                // symbol not found error from other errors, thus this will 
+                // probably always throw SymbolNotFound in case the symbol
+                // could not be loaded for any reason
+                string message = "Symbol not found";
+                throw SymbolNotFound(__FILE__, __LINE__, __func__, message);
+            } else {
+                throw DynamicLibraryException(
+                    __FILE__, __LINE__, __func__, error);
+            }
         }
 
         return sym;

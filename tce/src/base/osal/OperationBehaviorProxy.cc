@@ -158,37 +158,43 @@ OperationBehaviorProxy::canBeSimulated() const {
  * operation behavior model is imported.
  *
  * @exception DynamicLibraryException Leaked from importBehavior in case 
- *                                    behavior not found.
+ *                                    behavior file was invalid.
  */
 void
 OperationBehaviorProxy::initializeBehavior() const {
 
     assert(!initialized_);
     
-    // maybe there is easier check... tried that one.. there was not.
     try {
         OperationBehavior& ob = loader_->importBehavior(*target_);
         target_->setBehavior(ob);
-
-    } catch (Exception &e) {
-        
-        // if there is DAG to create behavior model...
-        if (target_->dagCount() == 0) {
-            return;
-        }
-
-        // there was not behavior plugin so let's use dag for simulation
-        OperationDAGBehavior* behavior = 
-            new OperationDAGBehavior(
-                target_->dag(0), 
-                target_->numberOfInputs() + 
-                target_->numberOfOutputs());        
-        target_->setBehavior(*behavior);
-    
-        // add for cleanup
-        cleanUs_.insert(behavior);
+        return;
+    } catch (FileNotFound& e) {
+        // try loading behavior from DAG
+    } catch (SymbolNotFound& e) {
+        // try loading behavior from DAG
+    } catch (Exception& e) {
+        throw e;
     }
+
+    // no compiled behavior in .opb found
+
+    // if there is DAG to create behavior model...
+    if (target_->dagCount() == 0) {
+        return;
+    }
+
+    // there was not behavior plugin so let's use dag for simulation
+    OperationDAGBehavior* behavior = 
+        new OperationDAGBehavior(
+            target_->dag(0), 
+            target_->numberOfInputs() + 
+            target_->numberOfOutputs());        
+    target_->setBehavior(*behavior);
     
+    // add for cleanup
+    cleanUs_.insert(behavior);
+
     initialized_ = true;
 }
 
