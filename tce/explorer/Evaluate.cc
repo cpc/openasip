@@ -198,8 +198,10 @@ private:
             std::ostringstream msg(std::ostringstream::out);
             msg << "Error loading the adf/idf." << std::endl;
             verboseLog(msg.str());
+            delete mach;
             return false;
         }
+        delete mach;
         return true;
     }
 

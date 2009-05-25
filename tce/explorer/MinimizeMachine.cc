@@ -225,6 +225,7 @@ private:
         } catch (const Exception& e) {
             debugLog(std::string("No machine architecture found in config id "
                         "by MimimizeMachine plugin. "));
+            delete mach;
             return confToMinimize;
         }
 
@@ -413,6 +414,7 @@ private:
         } catch (const Exception& e) {
             debugLog(std::string("No machine architecture found in config id "
                         "by MimimizeMachine plugin. "));
+            delete origMach;
             return confToMinimize;
         }
 
@@ -542,6 +544,7 @@ private:
         } catch (const Exception& e) {
             debugLog(std::string("No machine architecture found in config id "
                         "by MimimizeMachine plugin. "));
+            delete origMach;
             return confToMinimize;
         }
 
