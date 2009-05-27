@@ -27,6 +27,7 @@
  * Implementation of LLVMPOMBuilder class.
  *
  * @author Veli-Pekka J��skel�inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  * @note reting: red
  */
 
@@ -73,9 +74,6 @@
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Target/TargetInstrDesc.h"
-
-// this class was renamed in LLVM 2.2
-typedef llvm::TargetInstrDesc TargetInstrDescriptor;
 
 #include "MapTools.hh"
 #include "StringTools.hh"
@@ -209,7 +207,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         }
 
         if (!i->hasInitializer()) {
-	    assert(false && "No initializer. External linkage?");
+            assert(false && "No initializer. External linkage?");
         }
 
         const Constant* initializer = i->getInitializer();
@@ -220,7 +218,13 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.address = 0;
         def.alignment = td->getPrefTypeAlignment(type);
         def.size = td->getTypeStoreSize(type);
-        
+ 
+        std::cerr << "MARKER: " 
+                  << def.name 
+                  << ":" << def.alignment << ":" << def.size 
+                  << " int16 pref align:" << (int)td->getPrefTypeAlignment(Type::Int16Ty) << std::endl;
+        type->dump();
+
         assert(def.alignment != 0);
 
         if (isInitialized(initializer)) {
@@ -574,7 +578,6 @@ LLVMPOMBuilder::createExprDataDefinition(
 
     unsigned opcode = ce->getOpcode();
     if (opcode == Instruction::GetElementPtr) {
-            
         const Constant* ptr = ce->getOperand(0);
         SmallVector<Value*, 8> idxVec(ce->op_begin() + 1, ce->op_end());
 
@@ -585,7 +588,6 @@ LLVMPOMBuilder::createExprDataDefinition(
             createGlobalValueDataDefinition(addr, gv, ptrOffset);
         } else if (const ConstantExpr* ce =
                    dyn_cast<ConstantExpr>(ptr)) {
-
             createExprDataDefinition(addr, ce, ptrOffset);
         } else {
             assert(false && "Unsuported getElementPtr target!");
@@ -824,7 +826,7 @@ TTAProgram::Instruction*
 LLVMPOMBuilder::emitInstruction(
     const MachineInstr* mi, TTAProgram::Procedure* proc) {
 
-    const TargetInstrDescriptor* opDesc = &mi->getDesc();
+    const llvm::TargetInstrDesc* opDesc = &mi->getDesc();
 
     if (opDesc->isReturn()) {
         return emitReturn(mi, proc);

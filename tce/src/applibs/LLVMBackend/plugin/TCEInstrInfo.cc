@@ -191,13 +191,13 @@ TCEInstrInfo::storeRegToStackSlot(
     
     if (rc == TCE::I32RegsRegisterClass) {
         BuildMI(mbb, mbbi, dl, get(TCE::STWir))
-            .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
+            .addFrameIndex(fi).addImm(0).addReg(srcReg, getKillRegState(isKill));
     } else if (rc == TCE::F32RegsRegisterClass) {
         BuildMI(mbb, mbbi, dl, get(TCE::STWir))
-            .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
+            .addFrameIndex(fi).addImm(0).addReg(srcReg, getKillRegState(isKill));
     } else if (rc == TCE::I1RegsRegisterClass) {
         BuildMI(mbb, mbbi, dl, get(TCE::STQir))
-            .addFrameIndex(fi).addImm(0).addReg(srcReg, false, false, isKill);
+            .addFrameIndex(fi).addImm(0).addReg(srcReg, getKillRegState(isKill));
     } else {
         assert(0 && "Can't store this register to stack slot");
     }

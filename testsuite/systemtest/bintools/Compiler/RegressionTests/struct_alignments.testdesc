@@ -1,0 +1,5 @@
+<?php
+$test_description="Test that offset and static compiletime pointer references mathces.";
+$test_bin = "./test_struct_alignments.sh";
+$bin_args = "";
+?>

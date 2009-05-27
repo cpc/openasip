@@ -35,8 +35,8 @@ void put_data(char c) {
 /* ugly byteorder-kludgefix */
 void fwrite(void* data, int len, int foo, void* foo2) {
     int i;
-    for( i = len -1; i>= 0; i-- ) {
-        put_data(((char*)data)[i]);
+    for( i = len -1; i>= 0; i-- ) {        
+        put_data(((char*)data)[i]);        
     }
 }
 
@@ -47,9 +47,6 @@ void fwrite_nofix(void* data, int len, int foo, void* foo2) {
     }
 }
 #endif
-
-
-/*#include <time.h> */
 
 #include "testimg.h"
 
@@ -156,26 +153,18 @@ void write_buf_to_BMP(BYTE *im_buffer, WORD X_bitmap, WORD Y_bitmap, char *BMPna
 /* void main(int argc, char *argv[]) */
 int main(int argc,char **argv,char **envp)
 {
+
 #ifndef __TCE__
  FILE *fp;
 #endif
+
  DWORD X_image, Y_image;
  BYTE *our_image_buffer;
-/*
- clock_t start_time, finish_time;
- float duration;
-*/
-
-/*
- if (argc<=1) fp=fopen(FileName,"rb");
-  else fp=fopen(argv[1],"rb");
- if (fp==NULL) exitmessage("File not found ?");
-*/
  if (!load_JPEG_header(initial_data,initial_data_size ,&X_image,&Y_image)) {exitmessage(error_string);return;}
-/* fclose(fp); */
+
 #ifndef __TCE__
- printf(" X_image = %d\n",X_image);
- printf(" Y_image = %d\n",Y_image);
+// printf(" X_image = %d\n",X_image);
+// printf(" Y_image = %d\n",Y_image);
 #endif
 
 /*
@@ -189,26 +178,21 @@ int main(int argc,char **argv,char **envp)
 */
 
 #ifndef __TCE__
- printf("Decoding JPEG image...\n");
+// printf("Decoding JPEG image...\n");
 #endif
+
  /* main decoder */
-/*
- start_time = clock();
-*/
+
  decode_JPEG_image();
 
 #ifndef __TCE__
- printf("Decoding finished.\n");
+// printf("Decoding finished.\n");
 #endif
- /* 
- finish_time = clock();
- duration = (double)(finish_time - start_time) / CLK_TCK;
- printf( "Time elapsed: %2.1f seconds\n", duration );
-*/
- if (!get_JPEG_buffer(X_image,Y_image,&our_image_buffer)) {exitmessage(error_string);return;}
 
+ if (!get_JPEG_buffer(X_image,Y_image,&our_image_buffer)) {
+     exitmessage(error_string);return;
+ }
  write_buf_to_BMP(our_image_buffer,X_image,Y_image, "image.bmp");
-/* getch(); */
 }
 
 
