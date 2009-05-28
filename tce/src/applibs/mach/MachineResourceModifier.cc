@@ -472,8 +472,12 @@ MachineResourceModifier::increaseAllFUsThatDiffersByAmount(
         iter--;
         int addedUnits = 0;
         while (addedUnits < unitsToAdd) {
+            ObjectState* newFuState = (*iter).second->saveState();
             TTAMachine::FunctionUnit* newFU = 
-                new TTAMachine::FunctionUnit((*iter).second->saveState());
+                new TTAMachine::FunctionUnit(newFuState);
+            delete newFuState;
+
+            newFuState = NULL;
             int fuNum = 1;
             std::string fuBaseName = "fu";
             TTAMachine::Machine::FunctionUnitNavigator fuNavigator = 
