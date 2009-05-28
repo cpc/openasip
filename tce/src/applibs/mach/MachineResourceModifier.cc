@@ -35,6 +35,7 @@
 #include "MachineResourceModifier.hh"
 #include "FullyConnectedCheck.hh"
 #include "Conversion.hh"
+#include "AssocTools.hh"
 #include "Guard.hh"
 #include "TemplateSlot.hh"
 
@@ -79,8 +80,11 @@ MachineResourceModifier::addBusesByAmount(
 
         while (numberToAdd > 0) {
             if (addedBuses < busesToAdd) {
-                TTAMachine::Bus* newBus = 
-                    new TTAMachine::Bus((*iter).second->saveState());
+                ObjectState* newBusState = (*iter).second->saveState();
+                TTAMachine::Bus* newBus = new TTAMachine::Bus(newBusState);
+                delete newBusState;
+                newBusState = NULL;
+
                 int busNum = 0;
                 std::string busBaseName = "bus";
                 TTAMachine::Machine::BusNavigator busNavigator = 
@@ -121,6 +125,7 @@ MachineResourceModifier::addBusesByAmount(
             numberToAdd--;
         }
     }
+    AssocTools::deleteAllValues(busMap);
 }
 
 /**
@@ -179,6 +184,7 @@ MachineResourceModifier::reduceBuses(
         }
         iter++;
     }
+    AssocTools::deleteAllValues(busMap);
 }
 
 
@@ -337,8 +343,12 @@ MachineResourceModifier::increaseAllRFsThatDiffersByAmount(
         if (!(*iter).second->isUsedAsGuard()) {
             int addedRegisters = 0;
             while (addedRegisters < registersToAdd) {
+                ObjectState* newRFState = (*iter).second->saveState();
                 TTAMachine::RegisterFile* newRF = 
-                    new TTAMachine::RegisterFile((*iter).second->saveState());
+                    new TTAMachine::RegisterFile(newRFState);
+                delete newRFState;
+                newRFState = NULL;
+
                 int rfNum = 1;
                 std::string rfBaseName = "rf";
                 TTAMachine::Machine::RegisterFileNavigator rfNavigator = 
