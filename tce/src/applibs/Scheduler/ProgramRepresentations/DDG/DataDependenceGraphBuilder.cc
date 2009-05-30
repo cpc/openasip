@@ -1149,7 +1149,8 @@ DataDependenceGraphBuilder::processMemWrite(
     // create WaW to another in own bb
     for (RegisterUseSet::iterator iter = currentData_->memDefines_.begin();
          iter != currentData_->memDefines_.end();) {
-        if (checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAW)) {
+        if (checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAW)
+            && mnd.mn_->move().isUnconditional()) {
             // remove current element and update iterator to next.
             currentData_->memDefines_.erase(iter++);
         } else { // just take next from the set
@@ -1160,7 +1161,8 @@ DataDependenceGraphBuilder::processMemWrite(
     // create WaR to reads in same bb
     for (RegisterUseSet::iterator iter = currentData_->memLastUses_.begin();
          iter != currentData_->memLastUses_.end();) {
-        if (checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAR)) {
+        if (checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAR)
+            && mnd.mn_->move().isUnconditional()) {
             // remove current element and update iterator to next.
             currentData_->memLastUses_.erase(iter++);
         } else { // just take next from the set
