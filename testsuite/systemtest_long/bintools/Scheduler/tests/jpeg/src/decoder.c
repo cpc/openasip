@@ -2,12 +2,7 @@
 // JPEG decoder module
 // Copyright 1999 Cristi Cuturicu
 */
-#ifndef TCE
 #include <malloc.h>
-#else
-#include "tcemalloc.h"
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -319,6 +314,21 @@ void load_Huffman_table(Huffman_table *HT)
 	BYTE_p(byte_pos);
 	HT->Length[j]=bp;
   }
+  
+  // DEBUG: struct alignment
+  //if (HT == &HTDC[1]) { 
+  //    int i;
+  //    printf("HT->Length[3] (%i) == HTDC[3].Length[1] (%i)\n", HT->Length[3], HTDC[1].Length[3]);
+  //    for (i=0; i < 17; i++) {
+  //        printf("%i ", HT->Length[i]);
+  //    }  
+  //    printf("\n");
+  //    for (i=0; i < 17; i++) {
+  //        printf("%i ", HTDC[1].Length[i]);
+  //    }
+  //    printf("\n");
+  //}
+
   for (k=1;k<=16;k++)
 	for (j=0;j<HT->Length[k];j++) {
 		BYTE_p(byte_pos);
@@ -335,7 +345,7 @@ void load_Huffman_table(Huffman_table *HT)
 		HT->minor_code[k]=0xFFFF;
 		HT->major_code[k]=0;
 	 }
-  }
+  }  
 }
 
 void process_Huffman_data_unit(BYTE DC_nr, BYTE AC_nr,SWORD *previous_DC)

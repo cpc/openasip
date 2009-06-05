@@ -460,34 +460,17 @@ TCETargetLowering::LowerCallTo(
     for (unsigned i = 0; i < args.size(); i++) {
         switch(getValueType(args[i].Ty).getSimpleVT()) {
         default: assert(false && "Unknown value type!");
-        case MVT::i1: {
+        case MVT::i1: 
+        case MVT::i8: 
+        case MVT::i16: 
+        case MVT::f32: 
+        case MVT::i32:
             argsSize += 4;
-            break;
-        }
-        case MVT::i8: {
-            argsSize += 4;
-            break;
-        }
-        case MVT::i16: {
-            argsSize += 4;
-            break;
-        }
-        case MVT::f32: {
-            argsSize += 4;
-            break;
-        }
-        case MVT::i32: {
-            argsSize += 4;
-            break;
-        }
-        case MVT::i64: {
+            break;        
+        case MVT::i64:
+        case MVT::f64:
             argsSize += 8;
             break;
-        }
-        case MVT::f64: {
-            argsSize += 8;
-            break;
-        }
         }
     }
 
