@@ -833,7 +833,9 @@ TDGen::writeBackendCode(std::ostream& o) {
     bool hasMUL = false;
     bool hasROTL = false;
     bool hasROTR = false;
-
+    bool hasSXHW = false;
+    bool hasSXQW = false;
+   
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
 
@@ -850,6 +852,8 @@ TDGen::writeBackendCode(std::ostream& o) {
             if (opName == "mul") hasMUL = true;
             if (opName == "rotl") hasROTL = true;
             if (opName == "rotr") hasROTR = true;
+            if (opName == "sxhw") hasSXHW = true;
+            if (opName == "sxqw") hasSXQW = true;
         }
     }
 
@@ -866,7 +870,11 @@ TDGen::writeBackendCode(std::ostream& o) {
       << "bool GeneratedTCEPlugin::hasROTL() const { return "
       << hasROTL << "; }" << std::endl
       << "bool GeneratedTCEPlugin::hasROTR() const { return "
-      << hasROTR << "; }" << std::endl;
+      << hasROTR << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSXHW() const { return "
+      << hasSXHW << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSXQW() const { return "
+      << hasSXQW << "; }" << std::endl;
 }
 
 /**

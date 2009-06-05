@@ -90,6 +90,8 @@ namespace llvm {
        virtual bool hasMUL() const = 0;
        virtual bool hasROTL() const = 0;
        virtual bool hasROTR() const = 0;
+       virtual bool hasSXHW() const = 0;
+       virtual bool hasSXQW() const = 0;
 
        /// Plugin needs target machine for TragetLowering generation
        virtual void registerTargetMachine(TCETargetMachine &tm) = 0;

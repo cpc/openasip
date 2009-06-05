@@ -1,3 +1,4 @@
+
 /*
     Copyright (c) 2002-2009 Tampere University of Technology.
 
@@ -164,14 +165,16 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
     setStackPointerRegisterToSaveRestore(TCE::SP);
 
     // Set missing operations that can be emulated with emulation function
-    // to be expanded.
-    const std::set<unsigned>* missingOps = tm.missingOperations();
-    std::set<unsigned>::const_iterator iter = missingOps->begin();
+    // or LLVM built-in emulation pattern to be expanded.
+    const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >* missingOps = tm.missingOperations();
+    std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >::const_iterator iter = missingOps->begin();
 
     std::cerr << "Missing ops: ";
 
     while (iter != missingOps->end()) {
-      switch (*iter) {
+      unsigned nodetype = (*iter).first;
+      llvm::MVT::SimpleValueType valuetype = (*iter).second;
+      switch (nodetype) {
       case ISD::SDIV: std::cerr << "SDIV,"; break;
       case ISD::UDIV: std::cerr << "UDIV,"; break;
       case ISD::SREM: std::cerr << "SREM,"; break;
@@ -179,10 +182,13 @@ TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
       case ISD::ROTL: std::cerr << "ROTL,"; break;
       case ISD::ROTR: std::cerr << "ROTR,"; break;
       case ISD::MUL:  std::cerr << "MUL,"; break;
-      default: std::cerr << *iter << ", "; break;
+      case ISD::SIGN_EXTEND_INREG:
+        if (valuetype == MVT::i8) std::cerr << "SXQW,";
+	if (valuetype == MVT::i16) std::cerr << "SXHW,";
+	break;
+      default: std::cerr << nodetype << ", "; break;
       };
-      unsigned nodetype = *iter;
-      setOperationAction(nodetype, MVT::i32, Expand);
+      setOperationAction(nodetype, valuetype, Expand);
       iter++;
     }
     std::cerr << std::endl;

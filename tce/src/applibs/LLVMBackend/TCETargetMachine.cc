@@ -83,14 +83,20 @@ TCETargetMachine::TCETargetMachine(
       frameInfo_(TargetFrameInfo::StackGrowsDown, 4, -4),
       plugin_(plugin), pluginTool_(NULL) {
 
-    if (!plugin_.hasSDIV()) missingOps_.insert(llvm::ISD::SDIV);
-    if (!plugin_.hasUDIV()) missingOps_.insert(llvm::ISD::UDIV);
-    if (!plugin_.hasSREM()) missingOps_.insert(llvm::ISD::SREM);
-    if (!plugin_.hasUREM()) missingOps_.insert(llvm::ISD::UREM);
-    if (!plugin_.hasMUL()) missingOps_.insert(llvm::ISD::MUL);
-    if (!plugin_.hasROTL()) missingOps_.insert(llvm::ISD::ROTL);
-    if (!plugin_.hasROTR()) missingOps_.insert(llvm::ISD::ROTR);
-    
+    if (!plugin_.hasSDIV()) missingOps_.insert(std::make_pair(llvm::ISD::SDIV, MVT::i32));
+    if (!plugin_.hasUDIV()) missingOps_.insert(std::make_pair(llvm::ISD::UDIV, MVT::i32));
+    if (!plugin_.hasSREM()) missingOps_.insert(std::make_pair(llvm::ISD::SREM, MVT::i32));
+    if (!plugin_.hasUREM()) missingOps_.insert(std::make_pair(llvm::ISD::UREM, MVT::i32));
+    if (!plugin_.hasMUL()) missingOps_.insert(std::make_pair(llvm::ISD::MUL, MVT::i32));
+    if (!plugin_.hasROTL()) missingOps_.insert(std::make_pair(llvm::ISD::ROTL, MVT::i32));
+    if (!plugin_.hasROTR()) missingOps_.insert(std::make_pair(llvm::ISD::ROTR, MVT::i32));
+
+    if (!plugin_.hasSXHW()) missingOps_.insert(
+        std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i16));
+
+    if (!plugin_.hasSXQW()) missingOps_.insert(
+	std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i8));
+
     // register machine to plugin
     plugin_.registerTargetMachine(*this);
 }
@@ -165,7 +171,7 @@ TCETargetMachine::createMachine() {
  * The returned operations have to be expanded to emulation fucntion calls
  * or emulation patterns in TCETargetLowering.
  */
-const std::set<unsigned>*
+const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >*
 TCETargetMachine::missingOperations() {
     return &missingOps_;
 }

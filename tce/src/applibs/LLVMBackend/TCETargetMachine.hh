@@ -120,7 +120,7 @@ namespace llvm {
             return plugin_.spDRegNum();
         }
 
-        const std::set<unsigned>* missingOperations();
+        const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >* missingOperations();
 
     protected:
         const TargetAsmInfo* createTargetAsmInfo() const;
@@ -132,7 +132,7 @@ namespace llvm {
         TCETargetMachinePlugin& plugin_;
         PluginTools* pluginTool_;
         /// llvm::ISD opcode list of operations that have to be expanded.
-        std::set<unsigned> missingOps_;
+        std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> > missingOps_;
     };
 }
 
