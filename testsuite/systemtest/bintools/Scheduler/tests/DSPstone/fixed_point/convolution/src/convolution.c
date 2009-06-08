@@ -25,34 +25,34 @@
  *                      $Revision: 1.2 $
  */
 
-#include "../../../tce_utils/tce_profiling.h"
+#include "scheduler_tester_macros.h"
 
 #define STORAGE_CLASS register
 #define TYPE  int
 #define LENGTH 16
 
-TYPE _Output;
+volatile TYPE init_value = 1;
 
 void pin_down(TYPE * px, TYPE * ph)
 {
-	STORAGE_CLASS TYPE    i;
+	int i;
 
 	for (i = 0; i < LENGTH; ++i) {
-		*px++ = 1;
-		*ph++ = 1;
+		*px++ = init_value;
+		*ph++ = init_value;
 	}
 
 }
-
-TYPE     x[LENGTH];
-TYPE     h[LENGTH];
 
 
 TYPE main()
 {
 
+	static TYPE     x[LENGTH];
+	static TYPE     h[LENGTH];
+
+	int i;
 	STORAGE_CLASS TYPE y;
-	STORAGE_CLASS TYPE i;
 	STORAGE_CLASS TYPE *px = x;
 	STORAGE_CLASS TYPE *ph = &h[LENGTH - 1];
         
@@ -68,7 +68,8 @@ TYPE main()
 
 	END_PROFILING;
 
-    _Output = y;
+    init_value = y;
+    OUTPUT_VAR(init_value);
 
 	return ((TYPE) y);
 

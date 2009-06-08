@@ -51,39 +51,46 @@
  *                     $Revision: 1.2 $
  */
 
-#include "../../../tce_utils/tce_profiling.h"
+#include "scheduler_tester_macros.h"
 
 #define STORAGE_CLASS register
 #define TYPE int
 
 #define NumberOfSections 4
 
-TYPE _Output;
+volatile TYPE init_7 = 7, init_0 = 0, init_1 = 1;
 
 TYPE pin_down(TYPE x, TYPE coefficients[], TYPE wi[])
 {
   int f; 
 
-  for (f = 0 ; f < 5*NumberOfSections; f++)
-    coefficients[f] = 7 ; 
+  for (f = 0 ; f < 5*NumberOfSections; f++) {
+    OUTPUT_VAR(coefficients[f]);
+    coefficients[f] = init_7 ; 
+  }
   
-  for (f = 0 ; f < 2*NumberOfSections; f++)
-    wi[f] = 0 ; 
+  for (f = 0 ; f < 2*NumberOfSections; f++) {
+    OUTPUT_VAR(wi[f]);
+    wi[f] = init_0 ;
+  }
   
-  return ((TYPE) 1) ;
+  OUTPUT_VAR(x);
+  return ((TYPE) init_1) ;
 }
-
-TYPE coefficients[5*NumberOfSections]; 
-TYPE x,y ; 
 
 
 TYPE main()
 {
-  
-  STORAGE_CLASS TYPE w, f ; 
+  int f ;  
+  STORAGE_CLASS TYPE w ; 
   STORAGE_CLASS TYPE *ptr_coeff, *ptr_wi1, *ptr_wi2 ; 
 
-  TYPE wi[2*NumberOfSections] ; 
+  // could not be register class (address requested)
+  //STORAGE_CLASS TYPE wi[2*NumberOfSections] ; 
+  static TYPE wi[2*NumberOfSections] ; 
+
+  static TYPE coefficients[5*NumberOfSections]; 
+  STORAGE_CLASS TYPE x=0,y=0 ; 
 
   ptr_coeff = &coefficients[0] ;
   ptr_wi1 = &wi[0] ; 
@@ -113,8 +120,6 @@ TYPE main()
   
   END_PROFILING;
     
-  _Output = y;
-
   pin_down(y,coefficients,wi) ; 
 
   return((TYPE) y) ; 

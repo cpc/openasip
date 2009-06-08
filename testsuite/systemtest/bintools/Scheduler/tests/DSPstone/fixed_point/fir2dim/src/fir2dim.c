@@ -51,7 +51,7 @@
  *                      $Revision: 1.2 $ 
  */
 
-#include "../../../tce_utils/tce_profiling.h"
+#include "scheduler_tester_macros.h"
 
 #define STORAGE_CLASS register
 #define TYPE          int
@@ -59,59 +59,75 @@
 #define ARRAYDIM      (IMAGEDIM + 2)
 #define COEFFICIENTS  3
 
-TYPE _Output[IMAGEDIM*IMAGEDIM];
+volatile TYPE init_1 = 1, init_0 = 0;
 
 void
 pin_down(TYPE *pimage, TYPE *parray, TYPE *pcoeff, TYPE *poutput)
 {
-  STORAGE_CLASS TYPE    i,f;
+    int i,f;
   
-  for (i = 0 ; i < IMAGEDIM ; i++)
+    for (i = 0 ; i < IMAGEDIM ; i++)
     {
-      for (f = 0 ; f < IMAGEDIM ; f++)
-	*pimage++ = 1 ; 
+        for (f = 0 ; f < IMAGEDIM ; f++) {
+            OUTPUT_VAR(*pimage);
+            *pimage++ = init_1 ; 
+        }
     }
 
-  pimage = pimage - IMAGEDIM*IMAGEDIM  ; 
+    pimage = pimage - IMAGEDIM*IMAGEDIM  ; 
 
-  for (i = 0; i < COEFFICIENTS*COEFFICIENTS; i++) 
-    *pcoeff++ = 1;
-  
-  for (i = 0 ; i < ARRAYDIM ; i++)
-    *parray++ = 0 ; 
-  
-  
-  for (f = 0 ; f < IMAGEDIM; f++)
-    {
-      *parray++ = 0 ; 
-      for (i = 0 ; i < IMAGEDIM ; i++)
-	*parray++ = *pimage++ ; 
-      *parray++ = 0 ;       
+    for (i = 0; i < COEFFICIENTS*COEFFICIENTS; i++) {
+        OUTPUT_VAR(*pcoeff);
+        *pcoeff++ = init_1;
+    }
+
+    for (i = 0 ; i < ARRAYDIM ; i++) {
+        OUTPUT_VAR(*parray);
+        *parray++ = init_0 ; 
     }
   
-  for (i = 0 ; i < ARRAYDIM ; i++)
-    *parray++ = 0 ; 
   
-  for (i = 0 ; i < IMAGEDIM * IMAGEDIM; i++)
-	*poutput++ = 0 ; 
+    for (f = 0 ; f < IMAGEDIM; f++)
+    {      
+        OUTPUT_VAR(*parray);
+        *parray++ = init_0 ; 
+        for (i = 0 ; i < IMAGEDIM ; i++) {
+            OUTPUT_VAR(*parray);
+            *parray++ = *pimage++ ; 
+        }
+        OUTPUT_VAR(*parray);
+        *parray++ = init_0 ;       
+    }
+  
+    for (i = 0 ; i < ARRAYDIM ; i++) {
+        OUTPUT_VAR(*parray) ;
+        *parray++ = init_0 ; 
+    }
+  
+    for (i = 0 ; i < IMAGEDIM * IMAGEDIM; i++) {
+        OUTPUT_VAR(*poutput);
+        *poutput++ = init_0 ; 
+    }
 }
 
 
-TYPE  coefficients[COEFFICIENTS*COEFFICIENTS] ; 
-TYPE  image[IMAGEDIM*IMAGEDIM]  ;
-TYPE  array[ARRAYDIM*ARRAYDIM]  ;
-TYPE  output[IMAGEDIM*IMAGEDIM] ; 
-
 void main()
 {
+
+  static TYPE  coefficients[COEFFICIENTS*COEFFICIENTS] ; 
+  static TYPE  image[IMAGEDIM*IMAGEDIM]  ;
+  static TYPE  array[ARRAYDIM*ARRAYDIM]  ;
+  static TYPE  output[IMAGEDIM*IMAGEDIM] ; 
+
   STORAGE_CLASS TYPE *pimage  = &image[0]        ;
   STORAGE_CLASS TYPE *parray  = &array[0], *parray2, *parray3 ; 
   STORAGE_CLASS TYPE *pcoeff  = &coefficients[0] ;
   STORAGE_CLASS TYPE *poutput = &output[0]       ;  
-  STORAGE_CLASS TYPE k, f, i;
+  int k, f, i;
     
   pin_down(&image[0], &array[0], &coefficients[0], &output[0]);
 
+  // for some reason pointers are assigned again...
   pimage  = &image[0]        ; 
   parray  = &array[0]        ; 
   pcoeff  = &coefficients[0] ; 
@@ -145,10 +161,6 @@ void main()
     }
 
   END_PROFILING;  
-
-  for( i = 0; i < IMAGEDIM*IMAGEDIM; i++ ) {
-      _Output[i] = output[i];
-  }
   
   pin_down(&image[0], &array[0], &coefficients[0], &output[0]);
   

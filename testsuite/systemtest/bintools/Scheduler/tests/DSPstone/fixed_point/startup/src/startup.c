@@ -31,10 +31,7 @@
  *                      $Revision: 1.1 $
  */
 
-
-#include "../../../tce_utils/tce_profiling.h"
-
-int _Output[240];
+#include "scheduler_tester_macros.h"
 
 /* Input sequence for testing the V32-call mode modem startup sequence. 
    It is ordered as follows:
@@ -45,7 +42,7 @@ int _Output[240];
 #define C 3
 #define D 2
 
-  int In[240] =
+volatile int init_In[240] =
     {
       A, C, A, C, A, C, A, C, A, C, A, C, A, C, A, C, 
       C, A, C, A, C, A, C, A, C, A, C, A, C, A, C, A,
@@ -64,23 +61,39 @@ int _Output[240];
       3, 3, 1, 1, 2, 1, 0, 1, 3, 3, 1, 1, 2, 1, 0, 1
       };
 
-void pin_down(int i)
-{
-  i = 0;
+int In[240];
+
+volatile int init_0 = 0;
+
+void zero_table(int *table, int count) {
+    int i; 
+    for (i = 0; i < count; i++) table[i] = 0;
 }
 
-int main(int argc,char **argv,char **envp)
+void pin_down(int *in, int *out)
+{
+    int i = 0;
+    for (i = 0; i < 240; i++) {
+        OUTPUT_VAR(in[i]);
+        in[i] = init_In[i];
+        OUTPUT_VAR(out[i]);
+        out[i] = init_0;
+    }
+}
+
+main(void)
 {
   int i, x, y, Out[240];
-
   int N, tmp;
   int temp1, temp2;
   int *Input, *Output;
 
+  zero_table(&Out[0], 240);
+
   Input = In;
   Output = Out;
 
-  pin_down(i);
+  pin_down(&In[0], &Out[0]);
 
   START_PROFILING;
   
@@ -89,8 +102,7 @@ int main(int argc,char **argv,char **envp)
   
   /* now that the ANS sequence has been detected start Outputmitting signal A
     as long as no signal combination CC is detected. CC is detected when 
-    two successive received samples are equal for the first time */
-  
+    two successive received samples are equal for the first time */  
   
   temp1 = *Input++;
   temp2 = *Input;
@@ -186,10 +198,7 @@ int main(int argc,char **argv,char **envp)
   
   END_PROFILING;
 
-  for (i =0; i < 240; i++ ) 
-      _Output[i] = Out[i];
-
-  pin_down(i);
+  pin_down(&In[0], &Out[0]);
 
   return(0);
 }
