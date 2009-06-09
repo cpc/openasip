@@ -2,8 +2,7 @@
 
 #include <math.h>
 
-int convert(value)
-     float value ; 
+int convert(float value) 
 {
   double man, t_val, frac, m, exponent = NUMBER_OF_BITS;
   int rnd_val;

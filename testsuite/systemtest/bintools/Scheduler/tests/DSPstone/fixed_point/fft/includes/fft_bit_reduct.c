@@ -113,7 +113,7 @@ fft_bit_reduct(int_pointer)
       }
     
     {
-      STORAGE_CLASS TYPE *data_pointer = &twidtable[0] ; 
+      STORAGE_CLASS TYPE *data_pointer = (TYPE*)&twidtable[0] ; 
       STORAGE_CLASS TYPE *p, *q ; 
       STORAGE_CLASS TYPE tmpi, fr = 0, level, k, l ; 
       

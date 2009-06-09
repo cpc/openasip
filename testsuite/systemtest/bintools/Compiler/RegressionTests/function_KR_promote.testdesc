@@ -1,0 +1,5 @@
+<?php
+$test_description="Check that pre ansi C function definition for float is generated correctly.";
+$test_bin = "./test_function_KR_promote.sh";
+$bin_args = "";
+?>
