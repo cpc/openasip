@@ -1,1 +1,5 @@
-misc/1_bus_min_opset.adf,/home/elhigu/stow_sources/tce-1.0/testsuite/systemtest_long/bintools/llvm-frontend/../../../../tce/scheduler/passes/sequential_tcecc_scheduler.conf,09.03.09 17:53,48
+ti64x_subset.adf,/home/elhigu/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,08.06.09 16:45,3392
+huge.adf,/home/elhigu/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,08.06.09 16:45,2414
+RF_constrained.adf,/home/elhigu/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,08.06.09 16:45,2520
+FU_constrained.adf,/home/elhigu/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,08.06.09 16:45,2409
+minimal_with_io.adf,/home/elhigu/stow_sources/tce-1.0/tce/scheduler/passes/default_scheduler.conf,08.06.09 16:45,14553

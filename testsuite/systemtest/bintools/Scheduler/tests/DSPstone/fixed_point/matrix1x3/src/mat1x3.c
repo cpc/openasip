@@ -34,24 +34,50 @@
  *                      $Revision: 1.2 $
  */
 
-#include "../../../tce_utils/tce_profiling.h"
+#include "scheduler_tester_macros.h"
 
 #define STORAGE_CLASS  register
 #define TYPE           int
 
-TYPE _Output[3];
+volatile TYPE init = 0, init_0 = 0;
 
-TYPE h[9]={1,2,3,1,2,3,3,2,1} ; 
-TYPE x[3]={1,1,1} ;
-TYPE y[3]={0,0,0} ; 
+TYPE
+pin_down(TYPE *h, TYPE *y, TYPE *x)
+{
+  int i;
 
-int main(int argc,char **argv,char **envp)
+  for(i=0; i<9; i++){
+    OUTPUT_VAR(*h);
+    init = i;
+    *h++ = init;
+  }
+
+  for(i=0; i<3; i++){
+    OUTPUT_VAR(*x);
+    init = i;
+    *x++ = init;
+
+    OUTPUT_VAR(*y);
+    *y++ = init_0;
+  }
+
+  return(init_0);
+}
+
+TYPE
+main()
 { 
+  static TYPE h[9] ; 
+  static TYPE x[3] ;
+  static TYPE y[3] ; 
+
+  pin_down(&h[0], &x[0], &y[0]);
+
   STORAGE_CLASS TYPE *p_x = &x[0] ;
   STORAGE_CLASS TYPE *p_h = &h[0] ;
   STORAGE_CLASS TYPE *p_y = &y[0] ;
   
-  STORAGE_CLASS TYPE f,i ; 
+  int f,i ; 
 
   START_PROFILING; 
   
@@ -72,9 +98,8 @@ int main(int argc,char **argv,char **envp)
     }
 
   END_PROFILING; 
-
-  for (i = 0; i < 3; i++)
-      _Output[i] = y[i];
+    
+  pin_down(&h[0], &x[0], &y[0]);
 
   return(0)  ; 
   

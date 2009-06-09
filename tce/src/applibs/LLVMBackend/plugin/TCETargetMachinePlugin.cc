@@ -75,6 +75,8 @@ public:
     virtual bool hasMUL() const;
     virtual bool hasROTL() const;
     virtual bool hasROTR() const;
+    virtual bool hasSXHW() const;
+    virtual bool hasSXQW() const;
 
     virtual void registerTargetMachine(TCETargetMachine &tm);
 

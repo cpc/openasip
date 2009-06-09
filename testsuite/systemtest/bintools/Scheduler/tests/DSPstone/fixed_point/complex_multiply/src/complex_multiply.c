@@ -24,30 +24,32 @@
  *                      $Date: 1995/02/01 11:54:14 $
  */
 
-#include "../../../tce_utils/tce_profiling.h"
+#include "scheduler_tester_macros.h"
 
 #define STORAGE_CLASS static
 #define TYPE  int
 
-TYPE _Output[2];
-
+volatile TYPE init_ar = 2, init_ai = 1;
+volatile TYPE init_br = 2, init_bi = 5;
+volatile TYPE cr = 0, ci = 0;
 
 void
 pin_down(TYPE *ar, TYPE *ai, TYPE *br, TYPE *bi, TYPE *cr, TYPE *ci)
 {
-  *ar = 2 ; 
-  *ai = 1 ; 
-  *br = 2 ; 
-  *bi = 5 ; 
+  *ar = init_ar ; 
+  *ai = init_ai ; 
+  *br = init_br ; 
+  *bi = init_bi ;
+  OUTPUT_VAR(*cr);
+  OUTPUT_VAR(*ci);
 }
-
-TYPE ar = 2, ai = 1 ;
-TYPE br = 2, bi = 5;
-TYPE cr, ci ;
 
 void
 main()
 {
+  STORAGE_CLASS TYPE ar, ai ;
+  STORAGE_CLASS TYPE br, bi ;
+
   pin_down(&ar, &ai, &br, &bi, &cr, &ci) ;
   
   START_PROFILING;
@@ -55,10 +57,7 @@ main()
   cr  = ar*br - ai*bi ;
   ci  = ar*bi + ai*br ;
 
-  END_PROFILING; 
-
-  _Output[0] = cr;
-  _Output[1] = ci;
+  END_PROFILING;
 
   pin_down(&ar, &ai, &br, &bi, &cr, &ci) ; 
 

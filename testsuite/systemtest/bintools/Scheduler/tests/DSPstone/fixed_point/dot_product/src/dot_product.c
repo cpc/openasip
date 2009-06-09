@@ -43,43 +43,44 @@
  *                      $Revision: 1.2 $
  */
 
-#include "../../../tce_utils/tce_profiling.h"
+#include "scheduler_tester_macros.h"
 
-#define STORAGE_CLASS   register
-#define TYPE            int
-
+#define STORAGE_CLASS  register
+#define TYPE           int
 
 void pin_down(TYPE *Z)
 {
-  *Z = 0 ;
+  OUTPUT_VAR(*Z);
+  *Z = 0 ; 
 }
 
-TYPE A[2] = {2,1} ; 
-TYPE B[2] = {2,5} ;
-TYPE Z    = 0   ;
+// do not let compiler make assumptions of input values
+volatile TYPE init_A[2] = {2,1} ; 
+volatile TYPE init_B[2] = {2,5} ;
 
-volatile int _Output = 0;
-
-int main(int argc,char **argv,char **envp)
+TYPE main()
 { 
+  // allow register optimizations anyways
+  static  TYPE A[2]; A[0] = init_A[0]; A[1] = init_A[1];
+  static  TYPE B[2]; B[0] = init_B[0]; B[1] = init_B[1];
+  static  TYPE Z    = 0   ;
+
   STORAGE_CLASS TYPE *p_a = &A[0] ;
   STORAGE_CLASS TYPE *p_b = &B[0] ;
   STORAGE_CLASS TYPE *p_z = &Z ;
   
-  STORAGE_CLASS TYPE f ; 
+  int f ; 
 
   pin_down(&Z) ; 
-
-  START_PROFILING;
-
+  
+  START_PROFILING; 
+  
   for (f=0;f<2;f++)
-      *p_z  += *p_a++ * *p_b++ ;  
- 
+    *p_z  += *p_a++ * *p_b++ ;
+  
   END_PROFILING; 
-
-  _Output = Z;
   
   pin_down(&Z) ; 
-   
-  return 0; 
+  
+  return(0)  ; 
 }

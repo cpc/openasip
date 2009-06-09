@@ -36,39 +36,52 @@
  *                      $Revision: 1.2 $
  */
 
-#include "../../../tce_utils/tce_profiling.h"
+#include "scheduler_tester_macros.h"
 
 #define STORAGE_CLASS register
 #define TYPE  int
 #define N             16
 
-TYPE _Output[2*N];
+volatile TYPE init_0 = 0, init_1 = 1, init_2 = 2, init_3 = 3, init_4 = 4, init_5 = 5;
 
 void
 pin_down(TYPE *pa, TYPE *pb, TYPE *pc, TYPE *pd)
 {
-  STORAGE_CLASS int i ; 
+  int i ; 
 
   for (i=0 ; i < N ; i++)
     {
-      *pa++ = 2 ;
-      *pa++ = 1 ;
-      *pb++ = 2 ; 
-      *pb++ = 5 ; 
-      *pc++ = 3 ;
-      *pc++ = 4 ;  
-      *pd++ = 0 ; 
-      *pd++ = 0 ; 
+      OUTPUT_VAR(*pa);
+      *pa++ = init_2 ;
+      OUTPUT_VAR(*pa);
+      *pa++ = init_1 ;
+
+      OUTPUT_VAR(*pb);
+      *pb++ = init_2 ; 
+      OUTPUT_VAR(*pb);
+      *pb++ = init_5 ; 
+
+      OUTPUT_VAR(*pc);
+      *pc++ = init_3 ;
+      OUTPUT_VAR(*pc);
+      *pc++ = init_4 ;  
+
+      OUTPUT_VAR(*pd);
+      *pd++ = init_0 ; 
+      OUTPUT_VAR(*pd);
+      *pd++ = init_0 ; 
     }
 }
 
-TYPE A[2*N], B[2*N], C[2*N], D[2*N] ; 
 
-int main(int argc,char **argv,char **envp)
+TYPE
+main()
 {
+  static TYPE A[2*N], B[2*N], C[2*N], D[2*N] ; 
+  
   STORAGE_CLASS TYPE *p_a = &A[0], *p_b = &B[0] ;
   STORAGE_CLASS TYPE *p_c = &C[0], *p_d = &D[0] ;
-  STORAGE_CLASS TYPE i ; 
+  int i ; 
 
   pin_down(&A[0], &B[0], &C[0], &D[0]) ; 
   
@@ -84,9 +97,6 @@ int main(int argc,char **argv,char **envp)
     }
   
   END_PROFILING; 
-
-  for (i=0 ; i < 2*N; i++ ) 
-      _Output[i] = D[i];
       
   pin_down(&A[0], &B[0], &C[0], &D[0]) ; 
   

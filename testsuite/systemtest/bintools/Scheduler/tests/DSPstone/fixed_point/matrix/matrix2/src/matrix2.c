@@ -62,7 +62,7 @@
  *                      $Revision: 1.3 $
  */
 
-#include "../../../../tce_utils/tce_profiling.h"
+#include "scheduler_tester_macros.h"
 
 #define STORAGE_CLASS  register
 #define TYPE           int
@@ -71,38 +71,44 @@
 #define Y 10 /* second dimension of array A, first dimension of array B */
 #define Z 10 /* second dimension of array B */
 
-TYPE _Output[X*Z];
+volatile TYPE init_0 = 0, init_1 = 1;
 
 TYPE
 pin_down(TYPE A[], TYPE B[], TYPE C[])
 {
   int i ; 
   
-  for (i = 0 ; i < X*Y; i++)
-      A[i] = 1 ; 
+  for (i = 0 ; i < X*Y; i++) {
+      OUTPUT_VAR(A[i]) ;
+      A[i] = init_1 ; 
+  }
   
-  for (i = 0 ; i < Y*Z ; i++)
-      B[i] = 1 ; 
-  
-  for (i = 0 ; i < X*Z ; i++)
-      C[i] = 0 ; 
-  
-  return((TYPE)0) ; 
+  for (i = 0 ; i < Y*Z ; i++) {
+      OUTPUT_VAR(B[i]) ;
+      B[i] = init_1 ; 
+  }
+
+  for (i = 0 ; i < X*Z ; i++) {
+      OUTPUT_VAR(C[i]) ;
+      C[i] = init_0 ; 
+  }
+
+  return((TYPE)init_0) ; 
 
 }
-
-TYPE A[X*Y] ; 
-TYPE B[Y*Z] ;
-TYPE C[X*Z] ;
 
 TYPE
 main()
 { 
+  static  TYPE A[X*Y] ; 
+  static  TYPE B[Y*Z] ;
+  static  TYPE C[X*Z] ;
+
   STORAGE_CLASS TYPE *p_a = &A[0] ;
   STORAGE_CLASS TYPE *p_b = &B[0] ;
   STORAGE_CLASS TYPE *p_c = &C[0] ;
   
-  STORAGE_CLASS TYPE f,i,k ; 
+  int f,i,k ; 
 
   pin_down(&A[0], &B[0], &C[0]) ; 
 
@@ -127,12 +133,6 @@ main()
     }
   
   END_PROFILING; 
-
-  for (k = 0; k < Z; k++) {
-      for ( i = 0; i < X ; i++) {
-          _Output[k+Z*i] = C[k+Z*i];
-      }
-  }
   
   pin_down(&A[0], &B[0], &C[0]) ; 
     

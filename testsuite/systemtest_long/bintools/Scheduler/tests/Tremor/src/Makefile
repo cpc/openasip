@@ -6,7 +6,7 @@ SOURCE_FILES=\
 	res012.c sharedbook.c synthesis.c vorbisfile.c window.c \
 	initial_data_40kB.c
 
-EXTRA_GCCTCECFLAGS=\
+EXTRA_TCECC_FLAGS=\
 	-DTCE \
 	-DUSE_TCE_MALLOC \
 	-DMEMORY_IO \

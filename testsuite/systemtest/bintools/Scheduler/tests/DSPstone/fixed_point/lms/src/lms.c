@@ -76,46 +76,53 @@
  *                      $Revision: 1.2 $  
  */
 
-#include "../../../tce_utils/tce_profiling.h"
+#include "scheduler_tester_macros.h"
 
 #define STORAGE_CLASS  register
 #define TYPE          int
 
-
 #define N 16  /* number of coefficient taps */
 
-TYPE _Output[N+1];
+volatile TYPE init_7 = 7, init_8 = 8, init_1 = 1;
 
 void
 pin_down(TYPE *d, TYPE *x, TYPE *delta, TYPE *p_H, TYPE *p_X)
 {
   int f ; 
 
-  *d = 7 ; 
-  *x = 8 ;
-  *delta = 1 ; 
+  OUTPUT_VAR(*d);
+  *d = init_7 ; 
+
+  OUTPUT_VAR(*x);
+  *x = init_8 ;
+
+  OUTPUT_VAR(*delta);
+  *delta = init_1 ; 
   
   for (f = 0 ; f < N ; f++) 
     {
-      *p_H++ = 1 ; 
-      *p_X++ = 1 ; 
+      OUTPUT_VAR(*p_H);
+      *p_H++ = init_1 ; 
+
+      OUTPUT_VAR(*p_X);
+      *p_X++ = init_1 ; 
     }
 
 }
 
-TYPE H[N] ; /* Filter Coefficient Vector */
-TYPE X[N] ; /* Filter State Variable Vector */
-
 TYPE
 main()
 { 
-  TYPE delta  ;  /* Adaption Gain */
-  TYPE d ;       /* Desired signal */
-  TYPE x ;       /* Input Sample */
-  TYPE y ;       /* FIR LMS Filter Output */
+  static TYPE H[N] ; /* Filter Coefficient Vector */
+  static TYPE X[N] ; /* Filter State Variable Vector */
+  
+  TYPE delta = 0;  /* Adaption Gain */
+  TYPE d = 0;       /* Desired signal */
+  TYPE x = 0;       /* Input Sample */
+  TYPE y = 0;       /* FIR LMS Filter Output */
   STORAGE_CLASS TYPE error ;   /* FIR error */
   
-  STORAGE_CLASS TYPE f ; 
+  int f ; 
   
   STORAGE_CLASS TYPE *p_H, *p_X, *p_X2 ; 
   
@@ -151,11 +158,6 @@ main()
   
   END_PROFILING; 
   
-  for( f = 0; f < N; f++ ) {
-      _Output[f] = X[f];
-  }
-  _Output[N] = y;
-
   pin_down(&d,&x,&y,&H[0],&X[0]) ; 
   
   return(0)  ; 

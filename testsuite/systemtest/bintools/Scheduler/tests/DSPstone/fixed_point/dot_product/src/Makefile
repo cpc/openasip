@@ -6,8 +6,7 @@
 # automatically generated from SOURCE_FILES variable
 # OBJECT_FILES=board_test.o
 
-# Symbols that llvm may not optimize away
-LLVM_PRESERVE_SYMBOLS=main,_profiling,_Output,A,B,Z
+#LLVM_PRESERVE_SYMBOLS=main,_profiling,_Output,A,B,C,D
 
 include $(SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS)
 

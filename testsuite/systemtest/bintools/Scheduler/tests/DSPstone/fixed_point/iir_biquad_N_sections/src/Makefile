@@ -6,7 +6,7 @@
 # automatically generated from SOURCE_FILES variable
 # OBJECT_FILES=board_test.o
 
-LLVM_PRESERVE_SYMBOLS=main,_profiling,_Output,coefficients,x,y
+#LLVM_PRESERVE_SYMBOLS=main,_profiling,_Output,A,B,C,D
 
 include $(SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS)
 

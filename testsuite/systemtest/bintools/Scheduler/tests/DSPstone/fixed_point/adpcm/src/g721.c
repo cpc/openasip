@@ -410,7 +410,6 @@ static void coding_adjustment()
     DQM = IF_ELSE(DS, (-D) & 32767, D);
     MSB1(DQM, EXP);
     DLN = (((EXP << 7) + (LSHIFT(DQM, EXP - 7) & 127)) - (Y >> 2)) & 4095;
-
   }
     	
   /* SYNC */
@@ -779,6 +778,7 @@ static void tone_detector_1(void)
   /* TRANS */
   {
     U16BIT DQMAG, YLINT, YLFRAC, THR2;
+
     DQMAG = DQ & 16383;
     YLINT = x->YL6 >> 9;
     YLFRAC = (x->YL6 >> 4) & 31;
