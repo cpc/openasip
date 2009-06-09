@@ -53,6 +53,15 @@ function error_exit() {
 
 which llvm-config > /dev/null || error_exit 1 "llvm-config not found in PATH" 
 
+#if test ! "$(llvm-config --version)" = "2.5";
+#then
+#    if test ! "$(llvm-config --version | cut -b4-)" = "svn";
+#    then
+#        echo "Only LLVM 2.5 supported at the moment." 
+#        exit 2
+#    fi
+#fi
+
 LLVM_LIBFILES=$(llvm-config --libfiles)
 LLVM_LIBDIR=$(llvm-config --libdir)
 LLVM_LIBFILE=${LLVM_LIBDIR}/libllvm${LLVM_VERSION}.so

@@ -1148,14 +1148,26 @@ DataDependenceGraphBuilder::processMemWrite(
     }
     // create WaW to another in own bb
     for (RegisterUseSet::iterator iter = currentData_->memDefines_.begin();
-         iter != currentData_->memDefines_.end(); iter++) {
-        checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAW);
+         iter != currentData_->memDefines_.end();) {
+        if (checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAW)
+            && mnd.mn_->move().isUnconditional()) {
+            // remove current element and update iterator to next.
+            currentData_->memDefines_.erase(iter++);
+        } else { // just take next from the set
+            iter++;
+        }
     }
 
     // create WaR to reads in same bb
     for (RegisterUseSet::iterator iter = currentData_->memLastUses_.begin();
-         iter != currentData_->memLastUses_.end(); iter++) {
-        checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAR);
+         iter != currentData_->memLastUses_.end();) {
+        if (checkAndCreateMemDep(*iter, mnd, DataDependenceEdge::DEP_WAR)
+            && mnd.mn_->move().isUnconditional()) {
+            // remove current element and update iterator to next.
+            currentData_->memLastUses_.erase(iter++);
+        } else { // just take next from the set
+            iter++;
+        }
     }
 
     // does this kill previous deps?
@@ -1163,10 +1175,10 @@ DataDependenceGraphBuilder::processMemWrite(
         !addressTraceable(addressMove(*mnd.mn_))) {
         currentData_->memLastKill_ = mnd;
         currentData_->memDefines_.clear();
+        currentData_->memLastUses_.clear();
     }
 
     currentData_->memDefines_.insert(mnd);
-    currentData_->memLastUses_.clear();
 }
 
 

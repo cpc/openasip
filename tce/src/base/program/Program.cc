@@ -1006,16 +1006,19 @@ Program::loadFromTPEF(
     TPEF::BinaryStream binaryStream(tpefFileName);
 
     // read to TPEF Handler Module
-    TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+    TPEF::Binary* tpef = TPEF::BinaryReader::readBinary(binaryStream);
 
-    if (tpef_ == NULL) {
+    if (tpef == NULL) {
         throw IOException(
             __FILE__, __LINE__, __func__, "Loading TPEF failed.");
     }
 
     // convert the loaded TPEF to POM
-    TTAProgram::TPEFProgramFactory factory(*tpef_, theMachine, umach);
-    return factory.build();
+    TTAProgram::TPEFProgramFactory factory(*tpef, theMachine, umach);
+    Program* prog = factory.build();
+    delete tpef;
+    tpef = NULL;
+    return prog;
 }
 
 /**
@@ -1035,16 +1038,19 @@ Program::loadFromTPEF(
     TPEF::BinaryStream binaryStream(tpefFileName);
 
     // read to TPEF Handler Module
-    TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+    TPEF::Binary* tpef = TPEF::BinaryReader::readBinary(binaryStream);
 
-    if (tpef_ == NULL) {
+    if (tpef == NULL) {
         throw IOException(
             __FILE__, __LINE__, __func__, "Loading TPEF failed.");
     }
 
     // convert the loaded TPEF to POM
-    TTAProgram::TPEFProgramFactory factory(*tpef_, theMachine);
-    return factory.build();
+    TTAProgram::TPEFProgramFactory factory(*tpef, theMachine);
+    Program* prog = factory.build();
+    delete tpef;
+    tpef = NULL;
+    return prog;
 }
 
 
@@ -1065,16 +1071,19 @@ Program::loadFromTPEF(
     TPEF::BinaryStream binaryStream(tpefFileName);
 
     // read to TPEF Handler Module
-    TPEF::Binary* tpef_ = TPEF::BinaryReader::readBinary(binaryStream);
+    TPEF::Binary* tpef = TPEF::BinaryReader::readBinary(binaryStream);
 
-    if (tpef_ == NULL) {
+    if (tpef == NULL) {
         throw IOException(
             __FILE__, __LINE__, __func__, "Loading TPEF failed.");
     }
 
     // convert the loaded TPEF to POM
-    TTAProgram::TPEFProgramFactory factory(*tpef_, umach);
-    return factory.build();
+    TTAProgram::TPEFProgramFactory factory(*tpef, umach);
+    Program* prog = factory.build();
+    delete tpef;
+    tpef = NULL;
+    return prog;
 }
 
 /**

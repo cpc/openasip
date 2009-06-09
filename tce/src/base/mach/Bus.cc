@@ -1180,7 +1180,11 @@ Bus::isArchitectureEqual(const Bus& bus) const {
  */
 Bus*
 Bus::copy() const {
-    return new Bus(saveState());
+    ObjectState* newBusState = saveState();
+    Bus* newBus = new Bus(newBusState);
+    delete newBusState;
+    newBusState = NULL;
+    return newBus;
 }
 
 }

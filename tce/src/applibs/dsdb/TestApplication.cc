@@ -190,6 +190,9 @@ TestApplication::simulateTTASim() const {
     if (!hasSimulateTTASim()) {
         return ifStream;
     }
+    delete ifStream;
+    ifStream = NULL;
+    
     string simulateFile =
         testApplicationPath_ + FileSystem::DIRECTORY_SEPARATOR +
         SIMULATE_TTASIM_FILE_NAME_;

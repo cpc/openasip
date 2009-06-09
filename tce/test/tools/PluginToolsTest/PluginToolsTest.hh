@@ -143,7 +143,7 @@ PluginToolsTest::testLoadBadSymbol() {
     TS_ASSERT_THROWS_NOTHING(tools.registerModule("foo.so"));
     int (*func)(int);
     TS_ASSERT_THROWS(
-        tools.importSymbol("daa", func, "foo.so"), DynamicLibraryException);
+        tools.importSymbol("daa", func, "foo.so"), SymbolNotFound);
 }
 
 

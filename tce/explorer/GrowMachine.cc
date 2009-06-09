@@ -113,6 +113,7 @@ class GrowMachine : public DesignSpaceExplorerPlugin {
                      + e.errorMessage() + std::string(" ")
                      + e.errorMessageStack());
             result.push_back(configurationID);
+            delete adf;
             return result;
         }
 

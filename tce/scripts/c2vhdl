@@ -30,6 +30,7 @@
 
 # TODO: correct result for simulation should be given?
 # TODO: multiple c programs as parameters.
+# TODO: support for giving ADF as parameter
 
 function pexit {
     [ "${2}x" != "x" ] && echo "${2}"
@@ -89,6 +90,9 @@ tmp_dir="$(mktemp -d)"
 name="$(basename "${1}" .c)"
 tmp_name="${tmp_dir}/${name}"
 tmp_pname="${tmp_dir}/program"
+proge_dir=proge-output
+# this could be a commandline parameter
+dmem_width_in_maus=4
 
 tcecc "${1}" -O2 -o ${tmp_pname}.bc || pexit 1
 explore -a ${adf} -d ${tmp_dir} ${tmp_name}.dsdb &>/dev/null || pexit 1
@@ -114,7 +118,7 @@ mv ${new_conf}.adf ${name}.adf; mv ${new_conf}.idf ${name}.idf
 
 tcecc -a ${name}.adf -o ${tmp_name}.tpef ${tmp_pname}.bc 1>/dev/null || pexit 1
 createbem ${name}.adf 1>/dev/null || pexit 1
-generateprocessor -b ${name}.bem -i ${name}.idf ${name}.adf 1>/dev/null || pexit 1
-generatebits -b ${name}.bem -d -p ${tmp_name}.tpef ${name}.adf 1>/dev/null || pexit 1
+generateprocessor -b ${name}.bem -i ${name}.idf -o ${proge_dir} ${name}.adf 1>/dev/null || pexit 1
+generatebits -b ${name}.bem -d -w ${dmem_width_in_maus} -p ${tmp_name}.tpef -x ${proge_dir} ${name}.adf 1>/dev/null || pexit 1
 
 pexit 0

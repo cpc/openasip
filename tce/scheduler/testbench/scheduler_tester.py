@@ -513,6 +513,11 @@ class TestCase:
         self.seqCycleCount = -1
 
     def setupTestDirectory(self):
+        if os.path.lexists("data") and os.readlink("data") != operationDir:
+            tryRemove("data")
+        if os.path.lexists("src/data") and os.readlink("src/data") != operationDir:
+            tryRemove("src/data")
+
         try:
             os.symlink(operationDir, "data")
         except:

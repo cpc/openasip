@@ -390,11 +390,12 @@ int main(int argc, char* argv[]) {
     dsdbFile = options.argument(1);
 
     // Loads the database.
-    DSDBManager* dsdb;
+    DSDBManager* dsdb = NULL;
     try {
         dsdb = loadDSDB(dsdbFile);
     } catch (const IOException& e) {
         std::cerr << e.errorMessage() << std::endl;
+        delete dsdb;
         return EXIT_FAILURE;
     }
 
@@ -569,6 +570,7 @@ int main(int argc, char* argv[]) {
                           << std::endl;
             }
         }
+        delete dsdb;
         return EXIT_SUCCESS;
     }
 
@@ -595,6 +597,7 @@ int main(int argc, char* argv[]) {
         std::cout << "---------------------------------" << std::endl;
         std::cout << "Total: " << dsdb->applicationCount() 
                   << " applications in DSDB." << std::endl;
+        delete dsdb;
         return EXIT_SUCCESS;
     }
 
@@ -604,8 +607,10 @@ int main(int argc, char* argv[]) {
     if (pluginToUse == "") {
         if (!doneUseful) {
             std::cerr << "No explorer plugin given." << std::endl;
+            delete dsdb;
             return EXIT_FAILURE;
         } else {
+            delete dsdb;
             return EXIT_SUCCESS;
         }
     }
@@ -613,6 +618,7 @@ int main(int argc, char* argv[]) {
     // Try to load the explorer plugin.
     DesignSpaceExplorerPlugin* explorer = loadExplorerPlugin(pluginToUse, dsdb);
     if (!explorer || !loadPluginParameters(explorer, options)) {
+        delete dsdb;
         return EXIT_FAILURE;
     }
     

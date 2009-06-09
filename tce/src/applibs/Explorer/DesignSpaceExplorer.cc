@@ -126,7 +126,7 @@ DesignSpaceExplorer::evaluate(
     const DSDBManager::MachineConfiguration& configuration,
     CostEstimates& result, bool estimate) {
 
-    TTAMachine::Machine* adf;
+    TTAMachine::Machine* adf = NULL;
     IDF::MachineImplementation* idf = NULL;
     if (configuration.hasImplementation) {
         adf = dsdb_->architecture(configuration.architectureID);
@@ -222,6 +222,8 @@ DesignSpaceExplorer::evaluate(
                     idf = NULL;
                     delete adf;
                     adf = NULL;
+                    delete scheduledProgram;
+                    scheduledProgram = NULL;
                     return false;
                 }
                 //std::cerr << "DEBUG: simulation OK" << std::endl;
@@ -248,6 +250,8 @@ DesignSpaceExplorer::evaluate(
                     (*i), configuration.implementationID, programEnergy);
                 result.setEnergy(*scheduledProgram, programEnergy);
             }
+            delete scheduledProgram;
+            scheduledProgram = NULL;
             delete traceDB;
             traceDB = NULL;
         }
@@ -559,6 +563,9 @@ DesignSpaceExplorer::createImplementationAndStore(
         createEstimateData(*mach, *idf, area, longestPathDelay);
     }
 
+    delete mach;
+    mach = NULL;
+
     DSDBManager::MachineConfiguration newConf;
     newConf.architectureID = conf.architectureID;
 
@@ -609,6 +616,9 @@ DesignSpaceExplorer::createImplementation(
     if (createEstimates) {
         createEstimateData(*mach, *idf, area, longestPathDelay);
     }
+
+    delete mach;
+    mach = NULL;
 
     newConf.architectureID = conf.architectureID;
     newConf.implementationID = dsdb_->addImplementation(*idf, longestPathDelay, area);

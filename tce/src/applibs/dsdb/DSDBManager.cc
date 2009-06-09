@@ -190,7 +190,10 @@ DSDBManager::addArchitecture(const TTAMachine::Machine& mom)
         dbConnection_->beginTransaction();
         ADFSerializer serializer;
         serializer.setDestinationString(adf);
-        serializer.writeState(mom.saveState());
+        ObjectState* os = mom.saveState();
+        serializer.writeState(os);
+        delete os;
+        os = NULL;
         
         // limit the size of the adf
         if (adf.size() >= 5000000) {
@@ -247,7 +250,10 @@ DSDBManager::addImplementation(
         IDF::IDFSerializer serializer;
         string idf = "";
         serializer.setDestinationString(idf);
-        serializer.writeState(impl.saveState());
+        ObjectState* is = impl.saveState();
+        serializer.writeState(is);
+        delete is;
+        is = NULL;
     
         dbConnection_->updateQuery(
             std::string(
@@ -632,6 +638,7 @@ DSDBManager::architecture(RowID id) const
     ObjectState* state = serializer.readState();
     TTAMachine::Machine* mach = new TTAMachine::Machine();
     mach->loadState(state);
+    delete state;
 
     return mach;
 }
@@ -717,6 +724,7 @@ DSDBManager::implementation(RowID id) const
     ObjectState* state = serializer.readState();
     IDF::MachineImplementation* impl = new IDF::MachineImplementation();
     impl->loadState(state);
+    delete state;
 
     return impl;
 }

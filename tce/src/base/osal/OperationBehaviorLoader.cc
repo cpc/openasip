@@ -77,10 +77,14 @@ OperationBehaviorLoader::~OperationBehaviorLoader() {
  * @return Operation behavior model of the operation.
  * @exception DynamicLibraryException If an error occurs while accessing the
  *                                    dynamic module.
+ * @exception FileNotFound If the .opb was not found.
+ * @exception SymbolNotFound If the constructor/destructor functions could
+ *            not be imported from the .opb.
  */
 OperationBehavior&
 OperationBehaviorLoader::importBehavior(const Operation& parent) 
-    throw (DynamicLibraryException, InstanceNotFound) {
+    throw (DynamicLibraryException, InstanceNotFound, FileNotFound, 
+           SymbolNotFound) {
        
     string name = parent.name();
     // if behavior was already created, use it
@@ -108,10 +112,14 @@ OperationBehaviorLoader::importBehavior(const Operation& parent)
         destructors_[behavior] = behaviorDestructor;
         return *behavior;
     
+    } catch (const FileNotFound& e) {
+        throw e;
+    } catch (const SymbolNotFound& e) {
+        throw e;
     } catch (const Exception& e) {
         string msg = 
             std::string("Behavior definition for ") + parent.name() + 
-            " not found.";        
+            " could not be loaded.";        
         DynamicLibraryException error(__FILE__, __LINE__, __func__, msg);
         error.setCause(e);
         throw error;

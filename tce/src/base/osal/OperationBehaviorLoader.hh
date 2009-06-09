@@ -57,7 +57,8 @@ public:
     virtual ~OperationBehaviorLoader();
 
     OperationBehavior& importBehavior(const Operation& parent)
-        throw (DynamicLibraryException, InstanceNotFound);
+        throw (DynamicLibraryException, InstanceNotFound, FileNotFound,
+               SymbolNotFound);
 
 private:
     /// Contains operation behavior models indexed by operation names.

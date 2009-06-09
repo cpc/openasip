@@ -141,6 +141,9 @@ SimulationController::~SimulationController() {
 
     delete machineState_;
     machineState_ = NULL;
+    delete instructionMemory_;
+    instructionMemory_ = NULL;
+
 
     AssocTools::deleteAllValues(fuConflictDetectors_);
     conflictDetectorVector_.clear();

@@ -32,17 +32,15 @@
 
 #include <iostream>
 
+#include "tce_config.h"
+
 #include "CmdLineOptions.hh"
-
 #include "Assembler.hh"
-
 #include "ADFSerializer.hh"
 #include "Machine.hh"
-
 #include "Binary.hh"
 #include "TPEFWriter.hh"
-
-#include "tce_config.h"
+#include "FileSystem.hh"
 
 using namespace TTAMachine;
 using namespace TPEF;
@@ -111,12 +109,16 @@ int main(int argc, char *argv[]) {
     std::string asmFileName = options.argument(2);
     
     try {
-        machine = machineReader.readMachine();
-        
+        machine = machineReader.readMachine();        
     } catch ( ... ) {
         std::cerr << "Error: " << adfFileName << " is not valid ADF file.\n\n";
         options.printHelp();
         return 1;
+    }
+
+    if (!FileSystem::fileIsReadable(asmFileName)) {
+        std::cerr << "Error: cannot read " << asmFileName << std::endl;
+        return 2;
     }
         
     // generate default output file name:

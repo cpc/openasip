@@ -263,8 +263,10 @@ MinimalOpSetCheck::missingOperations(
  */
 void 
 MinimalOpSetCheck::buildMinimalOpSet(const TTAMachine::Machine* machine) {
+    bool deleteMach = false;
     if (machine == NULL) {
         machine = TTAMachine::Machine::loadFromADF(Environment::minimalADF());
+        deleteMach = true;
     }
 
     TTAMachine::Machine::FunctionUnitNavigator fuNav = 
@@ -273,6 +275,11 @@ MinimalOpSetCheck::buildMinimalOpSet(const TTAMachine::Machine* machine) {
     for (int i = 0; i < fuNav.count(); i++) {
         TTAMachine::FunctionUnit* fu = fuNav.item(i);
         fu->operationNames(minimalOpSet_);
+    }
+
+    if (deleteMach) {
+        delete machine;
+        machine = NULL;
     }
 }
 
@@ -337,6 +344,7 @@ MinimalOpSetCheck::fix(TTAMachine::Machine& mach) const
             }
         }
     }
+    delete minMach;
     return "Operations were added to fulfill minimal opset requirements.";
 }
 
