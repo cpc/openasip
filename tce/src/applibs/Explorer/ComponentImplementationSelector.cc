@@ -706,16 +706,21 @@ ComponentImplementationSelector::selectFUs(
 
         map<const IDF::FUImplementationLocation*, CostEstimates*> fuMap =
             fuImplementations(*fu, frequency, maxArea);
-        map<const IDF::FUImplementationLocation*,
-            CostEstimates*>::const_iterator iter = fuMap.begin();
-
+	// Create an id ordered set of idf entries to ensure the deterministic behaviour       
+        set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*>, implComp> fuSet;
+        for ( map<const IDF::FUImplementationLocation*, CostEstimates*>::const_iterator i = fuMap.begin();
+ 	      i != fuMap.end(); i++) {	    
+	    fuSet.insert(std::make_pair<const IDF::FUImplementationLocation*, CostEstimates*>(i->first, i->second));
+        }
+       
+        set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*> >::const_iterator iter = fuSet.begin();
         if (fuMap.size() != 0) {
-            map<const IDF::FUImplementationLocation*,
-                CostEstimates*>::const_iterator wanted = iter;
-
+	    set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*> >::const_iterator wanted = iter;
             if (filterLongestPathDelay && maxArea > 0 && frequency > 0) {
                 double longestPathDelay = 0;
-                while (iter != fuMap.end()) {
+	        double area = 0;
+	        bool first = true;
+                while (iter != fuSet.end()) {
                     CostEstimates* estimate = iter->second;
                     if (estimate == NULL) {
                         std::string errorMsg = "When selecting FUs regarding"
@@ -725,10 +730,19 @@ ComponentImplementationSelector::selectFUs(
                                 __FILE__, __LINE__, __func__, errorMsg, 1);
                         break;
                     }
-                    if (longestPathDelay < estimate->longestPathDelay()) {
+		    if (first) {
+		        area = estimate->area();
+		        longestPathDelay = estimate->longestPathDelay();
+		        wanted = iter;
+		        first = false;
+		    } else if (longestPathDelay < estimate->longestPathDelay()) {
                         longestPathDelay = estimate->longestPathDelay();
+		        area = estimate->area();
                         wanted = iter;
-                    }
+                    } else if (longestPathDelay == estimate->longestPathDelay() && area < estimate->area()) {
+			area = estimate->area();
+		        wanted = iter;
+		    }
                     iter++;
                 }
             }
@@ -783,16 +797,21 @@ ComponentImplementationSelector::selectRFs(
             // select from non guarded registers
             rfMap = rfImplementations(*rf, false, frequency, maxArea);
         }
-
-        map<const IDF::RFImplementationLocation*,
-            CostEstimates*>::const_iterator iter = rfMap.begin();
+	// Create an id ordered set of idf entries to ensure the deterministic behaviour
+        set<std::pair<const IDF::RFImplementationLocation*, CostEstimates*>, implComp> rfSet;
+	for ( map<const IDF::RFImplementationLocation*, CostEstimates*>::const_iterator i = rfMap.begin();
+      	      i != rfMap.end(); i++) {
+	    rfSet.insert(std::make_pair<const IDF::RFImplementationLocation*, CostEstimates*>(i->first, i->second));
+        }
+	set<std::pair<const IDF::RFImplementationLocation*, CostEstimates*> >::const_iterator iter = rfSet.begin();
         if (rfMap.size() != 0) {
             double longestPathDelay = 0;
-
-            map<const IDF::RFImplementationLocation*,
-                CostEstimates*>::const_iterator wanted = iter;
+	    double area = 0;
+            bool first = true;
+            set<std::pair<const IDF::RFImplementationLocation*,
+                CostEstimates*> >::const_iterator wanted = iter;
             if (maxArea > 0 && frequency > 0) {
-                while (iter != rfMap.end()) {
+                while (iter != rfSet.end()) {
                     CostEstimates* estimate = iter->second;
                     if (estimate == NULL) {
                         std::string errorMsg = "When selecting RFs regarding"
@@ -802,10 +821,20 @@ ComponentImplementationSelector::selectRFs(
                                 __FILE__, __LINE__, __func__, errorMsg, 1);
                         break;
                     }
-                    if (longestPathDelay < estimate->longestPathDelay()) {
-                        longestPathDelay = estimate->longestPathDelay();
-                        wanted = iter;
-                    }
+		    if (first) {
+                        area = estimate->area();
+		        longestPathDelay = estimate->longestPathDelay();
+		        wanted = iter;
+		        first = false;
+  	            } else if (longestPathDelay < estimate->longestPathDelay()) {
+			longestPathDelay = estimate->longestPathDelay();
+		        area = estimate->area();
+		        wanted = iter;
+		    } else if (longestPathDelay == estimate->longestPathDelay() && area < estimate->area()) {
+			area = estimate->area();
+		        wanted = iter;
+		    }
+		   
                     iter++;
                 }
             }
@@ -849,16 +878,23 @@ ComponentImplementationSelector::selectIUs(
 
         map<const IDF::IUImplementationLocation*, CostEstimates*> iuMap =
             iuImplementations(*iu, frequency, maxArea);
-        map<const IDF::IUImplementationLocation*,
-            CostEstimates*>::const_iterator iter = iuMap.begin();
 
+	// Create an id ordered set of idf entries to ensure the deterministic behaviour
+	set<std::pair<const IDF::IUImplementationLocation*, CostEstimates*>, implComp> iuSet;
+	for ( map<const IDF::IUImplementationLocation*, CostEstimates*>::const_iterator i = iuMap.begin();
+	      i != iuMap.end(); i++) {
+	    iuSet.insert(std::make_pair<const IDF::IUImplementationLocation*, CostEstimates*>(i->first, i->second));
+        }
+	set<std::pair<const IDF::IUImplementationLocation*, CostEstimates*> >::const_iterator iter = iuSet.begin();
         if (iuMap.size() != 0) {
             double longestPathDelay = 0;
+            double area = 0;
+            bool first = true;
+            //map<const IDF::RFImplementationLocation*,
+            //    CostEstimates*>::const_iterator wanted = iter;
+            set<std::pair<const IDF::RFImplementationLocation*, CostEstimates*> >::const_iterator wanted = iter;
 
-            map<const IDF::RFImplementationLocation*,
-                CostEstimates*>::const_iterator wanted = iter;
-
-            while (iter != iuMap.end()) {
+            while (iter != iuSet.end()) {
                 CostEstimates* estimate = iter->second;
                 if (estimate == NULL) {
                     std::string errorMsg = "When selecting IUs regarding"
@@ -868,8 +904,17 @@ ComponentImplementationSelector::selectIUs(
                             __FILE__, __LINE__, __func__, errorMsg, 1);
                     break;
                 }
-                if (longestPathDelay < estimate->longestPathDelay()) {
+   	        if (first) {
+                    area = estimate->area();
                     longestPathDelay = estimate->longestPathDelay();
+                    wanted = iter;
+                    first = false;
+                } else if (longestPathDelay < estimate->longestPathDelay()) {
+                    longestPathDelay = estimate->longestPathDelay();
+                    area = estimate->area();
+                    wanted = iter;
+                } else if (longestPathDelay == estimate->longestPathDelay() && area < estimate->area()) {
+                    area = estimate->area();
                     wanted = iter;
                 }
                 iter++;
