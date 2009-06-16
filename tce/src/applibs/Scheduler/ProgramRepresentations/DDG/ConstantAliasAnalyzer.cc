@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ConstantAliasAnalyzer.hh
+ * @file ConstantAliasAnalyzer.cc
  *
  * Implementation of ConstantAliasAnalyzer class.
  * 

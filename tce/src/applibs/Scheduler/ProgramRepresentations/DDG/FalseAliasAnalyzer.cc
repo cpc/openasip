@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file FalseAliasAnalyzer.hh
+ * @file FalseAliasAnalyzer.cc
  *
  * Implementation of FalseAliasAnalyzer class.
  * 
