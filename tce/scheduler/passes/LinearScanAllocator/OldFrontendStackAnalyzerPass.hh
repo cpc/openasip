@@ -22,12 +22,16 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
+ * @file OldFronendStackAnalyzerPass.hh
+ *
  * Declaration of OldFrontendStackAnalyzer class.
  *
  * This class inserts the annotations to the stack frame initialization
- * and deinitialization core so that it can easily be 
+ * and deinitialization code so that it can easily be 
  * removed and recreated later.
- *
+ * 
+ * @author Heikki Kultala 2006-2007?
+ * @note rating: red
  */
 
 #ifndef TTA_OLD_FRONTEND_STACK_ANALYZER_PASS_HH

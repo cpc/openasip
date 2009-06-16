@@ -21,6 +21,18 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
  */
+/**
+ *
+ * @file CLBBypasserModule.hh
+ * 
+ * Declaration of CLBBypasserModule class
+ *
+ * Helper scheduler module for CycleLookBackSoftwareBypasser class.
+ * Creates a CycleLookBackSoftwareBypasser which is the actual bypasser class.
+ *
+ * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
+ * @note rating: red
+ */
 #ifndef TCE_CLB_BYPASSER_MODULE_HH
 #define TCE_CLB_BYPASSER_MODULE_HH
 
