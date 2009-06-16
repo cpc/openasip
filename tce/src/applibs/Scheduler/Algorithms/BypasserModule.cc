@@ -23,7 +23,7 @@
  */
 /**
  *
- * @file BypasserModule.hh
+ * @file BypasserModule.cc
  * 
  * Dummy implementation of BypasserModule interface class.
  *
