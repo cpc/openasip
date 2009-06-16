@@ -21,6 +21,19 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
  */
+/**
+ *
+ * @file BypasserModule.hh
+ * 
+ * Dummy implementation of BypasserModule interface class.
+ *
+ * Helper scheduler module base class for loading bypasser classes.
+ * Derived classes of this create a Bypasser which is the actual filler class.
+ *
+ * @author Heikki Kultala 2007? (heikki.kultala-no.spam-tut.fi)
+ * @note rating: red
+ */
+
 #include "BypasserModule.hh"
 
 BypasserModule::~BypasserModule() {}
