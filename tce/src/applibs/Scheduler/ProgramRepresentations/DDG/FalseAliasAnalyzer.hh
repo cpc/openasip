@@ -27,7 +27,7 @@
  * Declaration of FalseAliasAnalyzer class.
  * 
  * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
- * @note rating: ref
+ * @note rating: red
  */
 
 #ifndef TTA_FALSE_ALIAS_ANALYZER_HH

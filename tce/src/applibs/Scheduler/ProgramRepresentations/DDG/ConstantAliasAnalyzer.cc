@@ -30,7 +30,7 @@
  * that come directly from immediates.
  *
  * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
- * @note rating: ref
+ * @note rating: red
  */
 
 #include "ConstantAliasAnalyzer.hh"

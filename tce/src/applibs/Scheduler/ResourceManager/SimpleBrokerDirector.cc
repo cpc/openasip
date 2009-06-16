@@ -22,9 +22,9 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file BrokerDirector.cc
+ * @file SimpleBrokerDirector.cc
  *
- * Implementation of BrokerDirector class.
+ * Implementation of not so simple ;) BrokerDirector class.
  *
  * @author Ari Metsähalme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
