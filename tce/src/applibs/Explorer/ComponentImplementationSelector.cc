@@ -772,7 +772,6 @@ ComponentImplementationSelector::selectFUs(
                 throw error;
             }
         } else {
-            mach->writeToADF("debug.adf");
             throw Exception(
                     __FILE__, __LINE__, __func__,
                     "no implementations found for FU: " + fu->name());
