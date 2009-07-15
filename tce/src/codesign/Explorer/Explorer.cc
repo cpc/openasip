@@ -431,13 +431,26 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < testDirectories; i++) {
         std::string testDir = options.testApplicationDirectory(i);
         if (FileSystem::fileExists(testDir) &&
-                FileSystem::fileIsDirectory(testDir)) {
-            if (!dsdb->hasApplication(testDir)) {
+            FileSystem::fileIsDirectory(testDir)) {
+            TestApplication app(testDir);
+            if (!app.isValid()) {
+                std::cerr 
+                    << "Application directory '" << testDir 
+                    << "' is invalid. Ensure that at least program.bc with "
+                    << "the input program exists. Also either " 
+                    << "'correct_simulation_output' or 'verify.sh' is needed "
+                    << "for verifying the program output."
+                    << std::endl;
+            } else if (!dsdb->hasApplication(testDir)) {
                 dsdb->addApplication(testDir);
+            } else {
+                std::cerr 
+                    << "application directory '" << testDir 
+                    << "' has already been added" << std::endl;
             }
         } else {
             std::cerr << "Application directory '" << testDir
-                      << "' does not exists." << std::endl;
+                      << "' does not exist." << std::endl;
         }
         doneUseful = true;
     }

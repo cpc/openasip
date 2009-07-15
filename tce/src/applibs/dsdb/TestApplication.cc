@@ -79,6 +79,8 @@ TestApplication::TestApplication(const string& testApplicationPath)
     }
 }
 
+
+
 /**
  * Destructor.
  */
@@ -217,8 +219,6 @@ TestApplication::cleanupSimulation() const {
 
 /**
  * Returns the maximum runtime that is set in file "max_runtime".
- *
- * @return The maximum runtime of the test application.
  */
 TestApplication::Runtime
 TestApplication::maxRuntime() const {
@@ -227,9 +227,6 @@ TestApplication::maxRuntime() const {
 
 /**
  * Returns true if 'sequential_program' file is in the test application
- * directory.
- *
- * @return True if 'sequential_program' file is in the test application
  * directory.
  */
 bool
@@ -243,8 +240,6 @@ TestApplication::hasApplication() const {
 
 /**
  * Returns true if 'setup.sh' file is in the test application directory.
- *
- * @return True if 'setup.sh' file is in the test application directory.
  */
 bool
 TestApplication::hasSetupSimulation() const {
@@ -257,8 +252,6 @@ TestApplication::hasSetupSimulation() const {
 
 /**
  * Returns true if 'simulate.ttasim' file is in the test application directory.
- *
- * @return True if 'simulate.ttasim' file is in the test application directory.
  */
 bool
 TestApplication::hasSimulateTTASim() const {
@@ -272,9 +265,6 @@ TestApplication::hasSimulateTTASim() const {
 /**
  * Returns true if 'correct_simulation_output' file is in the test 
  * application directory.
- *
- * @return True if 'correct_simulation_output' file is in the test 
- * application directory.
  */
 bool
 TestApplication::hasCorrectOutput() const {
@@ -287,8 +277,6 @@ TestApplication::hasCorrectOutput() const {
 
 /**
  * Returns true if 'verify.sh' file is in the test application directory.
- *
- * @return True if 'verify.sh' file is in the test application directory.
  */
 bool
 TestApplication::hasVerifySimulation() const {
@@ -301,8 +289,6 @@ TestApplication::hasVerifySimulation() const {
 
 /**
  * Returns true if 'cleanup.sh' file is in the test application directory.
- *
- * @return True if 'cleanup.sh' file is in the test application directory.
  */
 bool
 TestApplication::hasCleanupSimulation() const {

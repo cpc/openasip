@@ -65,5 +65,6 @@ bzr status | egrep -v \
 ".*tce/tags|.*doc/man/TCE/TCE/|.*/llvm-tce/llvmtce|.*/tceopgen/tceopgen|"\
 ".*\.l[oa]$|.*/TableGen/tblgen|tce/systemtest/bintools/Scheduler/.*\.tpef|"\
 ".*\.bak|doc/man/html|.*/conflicting_fsa.txt|.*/dot.txt|systemtest/bintools/PIG/.*\.sh|.*/results.tex|"\
-"tce/src/bintools/Compiler/llvm-tce/llvm-tce"\
+"tce/src/bintools/Compiler/llvm-tce/llvm-tce|"\
+".*/program.bc"\
 ")"

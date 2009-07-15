@@ -9,7 +9,7 @@ MINIMAL_ADF_PATH="${_TCE_ROOT}/data/mach/minimal.adf"
 # TODO: fu/rf/bus count check
 SUPERIORITY=5      # superiority percentage
 "${EXPLORE_BIN}" -d data/ growmachine.dsdb 1>/dev/null
-"${EXPLORE_BIN}" -a ${MINIMAL_ADF_PATH} -d data/ growmachine.dsdb 1>/dev/null
+"${EXPLORE_BIN}" -a ${MINIMAL_ADF_PATH} growmachine.dsdb 1>/dev/null
 NEW_CONFIGS=($("${EXPLORE_BIN}" -e GrowMachine -s 1 -u superiority=${SUPERIORITY} growmachine.dsdb \
 | grep -x '[[:space:]][0-9][0-9]*' | xargs))
 

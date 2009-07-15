@@ -15,7 +15,8 @@ verbose=""
 
 cd DENBench
 rm -fr consumer/llvm-tce-systemtest 
-./run_systemtest.sh -c $tcecc -t $ttasim -a $machine $optlevel -s "$scheduler_flags" $verbose
+./run_systemtest.sh -c $tcecc -t $ttasim -a $machine $optlevel -s "$scheduler_flags" $verbose | \
+grep -v mp4decode
 
 else
 

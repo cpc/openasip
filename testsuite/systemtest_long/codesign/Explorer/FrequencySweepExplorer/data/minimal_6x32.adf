@@ -292,13 +292,6 @@
     </writes-to>
   </socket>
 
-  <socket name="output_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
   <function-unit name="lsu">
     <port name="in1t">
       <connects-to>lsu_i1</connects-to>
@@ -976,26 +969,6 @@
           <start-cycle>0</start-cycle>
           <cycles>1</cycles>
         </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="output">
-    <port name="P1">
-      <connects-to>output_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <operation>
-      <name>stdout</name>
-      <bind name="1">P1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
       </pipeline>
     </operation>
     <address-space/>

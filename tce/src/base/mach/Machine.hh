@@ -148,6 +148,9 @@ public:
     static Machine* loadFromADF(const std::string& adfFileName)
         throw (Exception);
 
+    void writeToADF(const std::string& adfFileName) const
+        throw (Exception);
+
     /**
      * A template class which contains machine components.
      */

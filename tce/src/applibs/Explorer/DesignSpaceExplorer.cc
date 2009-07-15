@@ -59,6 +59,7 @@
 #include "OperationGlobals.hh"
 #include "Application.hh"
 #include "ComponentImplementationSelector.hh"
+#include "Exception.hh"
 
 using std::set;
 using std::vector;
@@ -119,6 +120,8 @@ DesignSpaceExplorer::setDSDB(DSDBManager& dsdb) {
  * estimates are stored if the evaluation succeeds. 
  * @param estimate Flag indicating that the evaluate will also estimate the
  *                 given configuration.
+ * @exception InvalidData thrown in case there are flaws in the application 
+ *            configuration which leads to evaluation failure.
  * @return Returns true if the evaluation succeeds false otherwise.
  */
 bool
@@ -164,12 +167,15 @@ DesignSpaceExplorer::evaluate(
 
             // test that program is found
             if (applicationFile.length() < 1) {
-                std::cerr << "No program found from application dir '" 
-                          << applicationPath << std::endl;
                 delete adf;
                 adf = NULL;
                 delete idf;
                 idf = NULL;
+                throw InvalidData(
+                    __FILE__, __LINE__, __func__,
+                    (boost::format(
+                        "No program found from application dir '%s'") 
+                     % applicationPath).str());
                 return false;
             }
             
@@ -396,7 +402,9 @@ DesignSpaceExplorer::simulate(
         SimulatorInterpreterContext interpreterContext(simulator);
         SimulatorInterpreter interpreter(0, NULL, interpreterContext, reader);
         simulator.run();
-        *oStream_ << interpreter.result() << std::endl;
+        if (interpreter.result().size() > 0) {
+            *oStream_ << interpreter.result() << std::endl;
+        }
     }
 
     runnedCycles = simulator.cycleCount();

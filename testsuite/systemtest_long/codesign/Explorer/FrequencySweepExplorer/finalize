@@ -1,2 +1,3 @@
 #!/bin/bash
 rm -rf testi.dsdb
+rm -rf test_app-matrix1/program.bc

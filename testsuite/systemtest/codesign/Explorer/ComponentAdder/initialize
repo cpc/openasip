@@ -2,9 +2,3 @@
 CURDIR=$(pwd)
 rm -rf testi.dsdb
 rm -rf ?.adf
-
-# Compile the initial machine generator estimator plugin.
-pushd . > /dev/null
-cd ../../../../../tce/explorer/ && rm -f *.so
-../src/codesign/Explorer/buildexplorerplugin ComponentAdder.so ComponentAdder.cc > /dev/null
-popd > /dev/null

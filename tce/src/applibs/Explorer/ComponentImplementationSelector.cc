@@ -706,20 +706,27 @@ ComponentImplementationSelector::selectFUs(
 
         map<const IDF::FUImplementationLocation*, CostEstimates*> fuMap =
             fuImplementations(*fu, frequency, maxArea);
-	// Create an id ordered set of idf entries to ensure the deterministic behaviour       
-        set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*>, implComp> fuSet;
-        for ( map<const IDF::FUImplementationLocation*, CostEstimates*>::const_iterator i = fuMap.begin();
- 	      i != fuMap.end(); i++) {	    
-	    fuSet.insert(std::make_pair<const IDF::FUImplementationLocation*, CostEstimates*>(i->first, i->second));
+        // Create an id ordered set of idf entries to ensure
+        // deterministic behaviour       
+        set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*>, 
+            implComp> fuSet;
+        for (map<const IDF::FUImplementationLocation*, 
+                 CostEstimates*>::const_iterator i = fuMap.begin();
+             i != fuMap.end(); i++) {	    
+            fuSet.insert(
+                std::make_pair<const IDF::FUImplementationLocation*, 
+                CostEstimates*>(i->first, i->second));
         }
        
-        set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*> >::const_iterator iter = fuSet.begin();
+        set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*> >::
+            const_iterator iter = fuSet.begin();
         if (fuMap.size() != 0) {
-	    set<std::pair<const IDF::FUImplementationLocation*, CostEstimates*> >::const_iterator wanted = iter;
+            set<std::pair<const IDF::FUImplementationLocation*, 
+                CostEstimates*> >::const_iterator wanted = iter;
             if (filterLongestPathDelay && maxArea > 0 && frequency > 0) {
                 double longestPathDelay = 0;
-	        double area = 0;
-	        bool first = true;
+                double area = 0;
+                bool first = true;
                 while (iter != fuSet.end()) {
                     CostEstimates* estimate = iter->second;
                     if (estimate == NULL) {
@@ -727,22 +734,25 @@ ComponentImplementationSelector::selectFUs(
                             " longest path delay, no cost estimates were"
                             " found for FU: " + fu->name();
                         Application::writeToErrorLog(
-                                __FILE__, __LINE__, __func__, errorMsg, 1);
+                            __FILE__, __LINE__, __func__, errorMsg, 1);
                         break;
                     }
-		    if (first) {
-		        area = estimate->area();
-		        longestPathDelay = estimate->longestPathDelay();
-		        wanted = iter;
-		        first = false;
-		    } else if (longestPathDelay < estimate->longestPathDelay()) {
+                    if (first) {
+                        area = estimate->area();
                         longestPathDelay = estimate->longestPathDelay();
-		        area = estimate->area();
                         wanted = iter;
-                    } else if (longestPathDelay == estimate->longestPathDelay() && area < estimate->area()) {
-			area = estimate->area();
-		        wanted = iter;
-		    }
+                        first = false;
+                    } else if (longestPathDelay < 
+                               estimate->longestPathDelay()) {
+                        longestPathDelay = estimate->longestPathDelay();
+                        area = estimate->area();
+                        wanted = iter;
+                    } else if (longestPathDelay == 
+                               estimate->longestPathDelay() && 
+                               area < estimate->area()) {
+                        area = estimate->area();
+                        wanted = iter;
+                    }
                     iter++;
                 }
             }
@@ -755,12 +765,14 @@ ComponentImplementationSelector::selectFUs(
             try {
                 idf->addFUImplementation(newFUImpl);
             } catch (const Exception& e) {
-                Exception error(__FILE__, __LINE__, __func__, 
-                        e.errorMessage());
+                Exception error(
+                    __FILE__, __LINE__, __func__, 
+                    e.errorMessage());
                 error.setCause(e);
                 throw error;
             }
         } else {
+            mach->writeToADF("debug.adf");
             throw Exception(
                     __FILE__, __LINE__, __func__,
                     "no implementations found for FU: " + fu->name());
