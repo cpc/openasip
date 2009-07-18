@@ -655,8 +655,8 @@ SimpleBrokerDirector::largestCycle() const{
  * instructions when it it destroyed.
  */
 void 
-SimpleBrokerDirector::loseInstructionOwnership() {
-    instructionTemplateBroker().loseInstructionOwnership();
+SimpleBrokerDirector::loseInstructionOwnership(int cycle) {
+    instructionTemplateBroker().loseInstructionOwnership(cycle);
 }
 
 /**

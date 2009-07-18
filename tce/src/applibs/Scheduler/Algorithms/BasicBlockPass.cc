@@ -156,14 +156,13 @@ void BasicBlockPass::copyRMToBB(
         }
 
         bb.add(newInstruction);
+        rm.loseInstructionOwnership(cycle);
         lastNewInstruction = newInstruction;
 
         if (firstNewInstruction == NULL) {
             firstNewInstruction = newInstruction;
         }
     }
-
-    rm.loseInstructionOwnership();
 }
 
 /**

@@ -83,7 +83,7 @@ public:
 
     virtual bool isITemplateBroker() const;
     virtual TTAProgram::Instruction* instruction(int cycle);
-    virtual void loseInstructionOwnership();
+    virtual void loseInstructionOwnership(int cycle);
     virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
 private:
     typedef std::vector<TTAProgram::Move*> Moves;
@@ -110,7 +110,8 @@ private:
     std::map<const MoveNode*, TTAProgram::Immediate*, 
              GraphNode::Comparator> immediateValues_;
     
-    bool ownsInstructions_;
+    std::map<int, bool> instructionsNotOwned_;
+
     // Pointer to resource manager, needed to get information about
     // immediate from IUBroker
     SimpleResourceManager* rm_;
