@@ -15,6 +15,8 @@ Bugfixes
 - Boost should not warn anymore about deprecated hash_set with gcc 4.3.
 - Having lots of parallelism and easily analyzable memory addresses could cause
   incorrectly compiled programs.
+- Simulator on quick mode could fail if some result is never read.
+- Simulator could fail to load some programs.
 - Memory leak fixes.
 
 1.0 first public release, 2009-03-26
