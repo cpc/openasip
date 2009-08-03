@@ -1650,11 +1650,13 @@ TPEFProgramFactory::canDestinationBeAssigned(
  * resolving again and again does not make sense!
  *
  * @param allocs All GPR and IU reads and writes of instruction.
+ * One item in this vector represents one move in the instruction.
  */
 void
 TPEFProgramFactory::resolveSocketAllocations(
     std::vector<SocketAllocation>& allocs) const {
 
+    // map of socket to all moves which use it.
     std::map<Socket*, std::vector<SocketAllocation*> > fixedSockets;
 
     // try to resolve working combination starting from the first allocation
@@ -1718,10 +1720,15 @@ TPEFProgramFactory::resolveSocketAllocations(
             std::vector<SocketAllocation*>& freedAllocs =
                 fixedSockets[socketToFree];
 
+            bool prevFound = false;
             // find first freed allocation where we continue search
-            for (unsigned int j = 0; j < freedAllocs.size(); j++) {
-                if (freedAllocs[j]->index < currIndex) {
-                    currIndex = freedAllocs[j]->index;
+            for (unsigned int k = prevIndex; k >= 0 && !prevFound; k--) {
+                for (unsigned int j = 0; j < freedAllocs.size(); j++) {
+                    if (freedAllocs[j]->index == k) {
+                        currIndex = k;
+                        prevFound = true;
+                        break;
+                    }                        
                 }
             }
 
