@@ -30,6 +30,8 @@
  * @note rating: red
  */
 
+#include "Application.hh"
+
 /**
  * Adds a SimValue to the FU's results list; Used to simulate the FU latency
  * 
@@ -44,10 +46,36 @@ CompiledSimulation::addFUResult(
     ClockCycleCount cycleCount,
     const SimValue& value, 
     int latency) {
-        
+
+    int oldResultIndex = -1;
+
     // Find the next empty slot and put the result there
     for (int i = 0; i < results.size; ++i) {
         FUResultElementType& result = results.data[i];
+
+        // clear overwritten results to make room for the ringbuffer.
+        if (result.used) {
+            // result ready
+            if (result.cycles <= cycleCount) {
+                // first old result
+                if (oldResultIndex == -1) {
+                    oldResultIndex = i;
+                } else {
+                    FUResultElementType& oldResult = 
+                        results.data[oldResultIndex];
+                    if (oldResult.cycles < result.cycles) {
+                        // use the space of the old result for the new one.
+                        oldResult.cycles = cycleCount + latency;
+                        oldResult.value = value;
+                        oldResult.used = true;
+                        return;
+                    } else {
+                        result.used = false;
+                        results.numberOfElements--;
+                    }
+                }
+            }
+        }
         if (!result.used) {
             result.cycles = cycleCount + latency;
             result.value = value;
@@ -56,6 +84,7 @@ CompiledSimulation::addFUResult(
             return;
         }
     }
+    assert(0&&"Ringbuffer full!");
 }
 
 /**
@@ -73,9 +102,36 @@ CompiledSimulation::addFUResult(
     const UIntWord& value, 
     int latency) {
         
+    int oldResultIndex = -1;
+
     // Find the next empty slot and put the result there
     for (int i = 0; i < results.size; ++i) {
         FUResultElementType& result = results.data[i];
+
+        // clear overwritten results to make room for the ringbuffer.
+        if (result.used) {
+            // result ready
+            if (result.cycles <= cycleCount) {
+                // first old result
+                if (oldResultIndex == -1) {
+                    oldResultIndex = i;
+                } else {
+                    FUResultElementType& oldResult = 
+                        results.data[oldResultIndex];
+                    if (oldResult.cycles < result.cycles) {
+                        // use the space of the old result for the new one.
+                        oldResult.cycles = cycleCount + latency;
+                        oldResult.value.value_.uIntWord = value;
+                        oldResult.used = true;
+                        return;
+                    } else {
+                        result.used = false;
+                        results.numberOfElements--;
+                    }
+                }
+            }
+        }
+
         if (!result.used) {
             result.cycles = cycleCount + latency;
             result.value.value_.uIntWord = value;
@@ -84,6 +140,7 @@ CompiledSimulation::addFUResult(
             return;
         }
     }
+    assert(0&&"Ringbuffer full!");
 }
 
 

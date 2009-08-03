@@ -650,7 +650,7 @@ CompiledSimCodeGenerator::updateDeclaredSymbolsList() {
         std::vector<Port*> outPorts = fuOutputPorts(fu);
         for (size_t j = 0; j < outPorts.size(); ++j) {
             *os_ << "\t," << symbolGen_.FUResultSymbol(*outPorts.at(j)) 
-                 << "(" << Conversion::toString(fu.maxLatency()) << ")";
+                 << "(" << Conversion::toString(fu.maxLatency()+1) << ")";
             *os_ << endl;
         }
     }
