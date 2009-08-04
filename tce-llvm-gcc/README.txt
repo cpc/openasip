@@ -5,7 +5,7 @@ Compiles tce-llvm-gcc cross-compiler which tcecc uses for doing compiling C
 sources to llvm bitcode. This (or clang) must be installed before newlib can 
 be compiled.
 
-0. Download llvm-gcc sources for your tce installation llvm.org
+0. Download llvm-gcc sources for your tce installation llvm.org. LLVM-2.5 compatible llvm-gcc is found from http://llvm.org/releases/2.5/llvm-gcc-4.2-2.5.source.tar.gz 
 
 1. Make separate build directory.
    mkdir tce-llvm-gcc-build
@@ -18,6 +18,12 @@ be compiled.
 3. Make and install
    make
    make install
+
+4. Add installation bin dir to path for tcecc.
+
+
+Building hard way
+------------------
 
 This installer is just made for making building cross-compiler easier. You can
 also get llvm-gcc sources (and patch them if the sources are older than llvm-2.6)
