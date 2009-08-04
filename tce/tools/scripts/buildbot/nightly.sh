@@ -23,11 +23,18 @@
 
 BRANCH_DIR=$PWD
 
+function check_llvm_gcc_sources {
+    if [ ! -e "${LLVM_GCC_SOURCES}" ]; then
+        echo "LLVM-GCC source directory: ${LLVM_GCC_SOURCES}, was not found and no tce-llvm-gcc could not be compiled. Unpack correct sources of your llvm version e.g. http://llvm.org/releases/2.5/llvm-gcc-4.2-2.5.source.tar.gz for llvm-2.5." >&2
+        exit 1
+    fi
+}
+
 # build & install llvm-frontend from scratch (from rnc.sh)
 function install_llvm-frontend {
 
-    SOURCE_DIR=${BRANCH_DIR}/tce-frontend
-    BUILD_DIR=${BRANCH_DIR}/tce-frontend/build_dir
+    SOURCE_DIR=${BRANCH_DIR}/tce-llvm-gcc
+    BUILD_DIR=${BRANCH_DIR}/tce-llvm-gcc/build_dir
 
     export MAKEFLAGS=-j1
     export CXX="g++${ALTGCC}"
@@ -43,7 +50,7 @@ function install_llvm-frontend {
     rm -rf ${BUILD_DIR}
     mkdir -p ${BUILD_DIR}
     cd ${BUILD_DIR} || return 1
-    ${SOURCE_DIR}/configure --prefix=${LLVM_FRONTEND_DIR} >& compile.log || return 1
+    ${SOURCE_DIR}/configure --prefix=${LLVM_FRONTEND_DIR} --with-llvm-gcc-sources=${LLVM_GCC_SOURCES} >& compile.log || return 1
 
     make -s >& compile.log || return 1
     rm -rf ${LLVM_FRONTEND_DIR}
@@ -76,6 +83,7 @@ function start_compiletest {
 
 # supercomplex main program
 export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
+check_llvm_gcc_sources
 install_llvm-frontend
 start_compiletest
 

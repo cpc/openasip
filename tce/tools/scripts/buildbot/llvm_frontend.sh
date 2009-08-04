@@ -20,7 +20,12 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
-cd tce-frontend
+cd tce-llvm-gcc
+
+if [ ! -e "${LLVM_GCC_SOURCES}" ]; then
+        echo "LLVM-GCC source directory: ${LLVM_GCC_SOURCES}, was not found and no tce-llvm-gcc could not be compiled. Unpack correct sources of your llvm version e.g. http://llvm.org/releases/2.5/llvm-gcc-4.2-2.5.source.tar.gz for llvm-2.5." >&2
+        exit 1
+fi
 
 if [ ! -e build_dir ]
 then
@@ -36,7 +41,7 @@ export PATH=$LLVM_DIR/bin:$PATH
 
 autoreconf >& /dev/null
 cd build_dir
-../configure --prefix=$LLVM_FRONTEND_DIR >& compile.log
+../configure --prefix=$LLVM_FRONTEND_DIR --with-llvm-gcc-sources=${LLVM_GCC_SOURCES} >& compile.log
 make 1>> compile.log 2>> compile.log || exit 1
 make install 1>> compile.log 2>> compile.log || exit 1
 exit $?
