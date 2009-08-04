@@ -21,6 +21,18 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
  */
+/**
+ *
+ * @file CopyingDSFillerModule.hh
+ * 
+ * Declaration of CopyingDSFillerModule class.
+ *
+ * Helper scheduler module for CopyingDelaySlotFiller.
+ * Creates a CopyingDelaySlotFiller which is the actual filler class.
+ *
+ * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
+ * @note rating: red
+ */
 #ifndef TCE_COPYING_DS_FILLER_MODULE_HH
 #define TCE_COPYING_DS_FILLER_MODULE_HH
 

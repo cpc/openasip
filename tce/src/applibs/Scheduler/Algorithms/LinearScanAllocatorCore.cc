@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
  */
 /** 
- * @file LinearScanAllocator.cc
+ * @file LinearScanAllocatorCore.cc
  *
  * Implmentation of LinearScanAllocator class
  *

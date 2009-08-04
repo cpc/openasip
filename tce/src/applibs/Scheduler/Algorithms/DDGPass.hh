@@ -23,12 +23,12 @@
  */
 /**
  *
- * @file DDGPass
+ * @file DDGPass.hh
  *
  * Definition of a DDGPass interface.
  * 
  * @author Heikki Kultala 2007 (hkultala-no.spam-cs.tut.fi)
- * @note rating:red
+ * @note rating: red
  */
 
 #ifndef TTA_DDG_PASS_HH

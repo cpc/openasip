@@ -139,6 +139,14 @@ private:
     std::set<std::string> usedHDBs_;
     /// Cost estimator to estimate the unit costs.
     CostEstimator::Estimator estimator_;
+   
+    struct implComp {
+       bool operator() (const std::pair<const IDF::UnitImplementationLocation*, CostEstimates*>& p1,
+			const std::pair<const IDF::UnitImplementationLocation*, CostEstimates*>& p2) const {
+	     return p1.first->id() < p2.first->id();
+       }	
+     };
+
 };
 
 #endif

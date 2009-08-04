@@ -308,8 +308,8 @@ SimpleResourceManager::largestCycle() const{
  * instructions when it it destroyed.
  */
 void 
-SimpleResourceManager::loseInstructionOwnership() {
-    director_->loseInstructionOwnership();
+SimpleResourceManager::loseInstructionOwnership(int cycle) {
+    director_->loseInstructionOwnership(cycle);
 }
 
 /**

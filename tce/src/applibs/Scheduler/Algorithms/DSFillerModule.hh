@@ -21,6 +21,18 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
  */
+/**
+ *
+ * @file DSFillerModule.cc
+ * 
+ * Implementation of DSFiller class.
+ *
+ * Base class scheduler modules for delay slot fillers.
+ * Has a method to create the actual bypasser object.
+ *
+ * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
+ * @note rating: red
+ */
 #ifndef TCE_DS_FILLER_MODULE 
 #define TCE_DS_FILLER_MODULE
 

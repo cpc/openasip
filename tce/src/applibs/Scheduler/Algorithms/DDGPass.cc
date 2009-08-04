@@ -23,12 +23,12 @@
  */
 /**
  * 
- * @file DDGPass
+ * @file DDGPass.cc
  * 
  * Definition of a DDGPass class.
  *
-  * @author Heikki Kultala 2007 (hkultala-no.spam-cs.tut.fi)
- * @note rating:red
+ * @author Heikki Kultala 2007 (hkultala-no.spam-cs.tut.fi)
+ * @note rating: red
  */
 
 #include "DDGPass.hh"

@@ -429,6 +429,7 @@ DSDBManager::removeConfiguration(RowID id)
  *
  * @param path Path of the application test case.
  * @return RowID of the added application.
+ * @exception InvalidData in case the application dir is not valid.
  */
 RowID
 DSDBManager::addApplication(const std::string& path) {

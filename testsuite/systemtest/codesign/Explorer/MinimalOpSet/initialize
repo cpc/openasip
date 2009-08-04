@@ -2,9 +2,3 @@
 CURDIR=$(pwd)
 rm -f test.dsdb
 
-# Compile the initial machine generator estimator plugin.
-pushd . > /dev/null
-cd ../../../../../tce/explorer/ && rm -f MinimalOpSet.so
-../src/codesign/Explorer/buildexplorerplugin MinimalOpSet.so MinimalOpSet.cc > /dev/null
-popd > /dev/null
-

@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file DataGraph.cc
+ * @file DataDependenceGraph.cc
  *
  * Implementation of data dependence graph class
  *

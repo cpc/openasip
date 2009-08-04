@@ -22,6 +22,15 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
+ * @file ConstantAliasAnalyzer.hh
+ *
+ * Declaration of ConstantAliasAnalyzer class.
+ * 
+ * This class does simple alias analysis between memove addresses
+ * that come directly from immediates.
+ *
+ * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
+ * @note rating: red
  */
 
 #ifndef TTA_CONSTANT_ALIAS_ANALYZER

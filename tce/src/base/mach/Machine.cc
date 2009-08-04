@@ -895,4 +895,15 @@ Machine::loadFromADF(const std::string& adfFileName)
 }
 
 
+void
+Machine::writeToADF(const std::string& adfFileName) const
+    throw (Exception) {
+
+    ADFSerializer serializer;
+    serializer.setDestinationFile(adfFileName);
+    serializer.writeMachine(*this);
+}
+
+
+
 }

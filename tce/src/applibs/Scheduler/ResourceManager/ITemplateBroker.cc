@@ -57,7 +57,6 @@ using namespace TTAProgram;
  */
 ITemplateBroker::ITemplateBroker(std::string name) :
     ResourceBroker(name),
-    ownsInstructions_(true),
     rm_(NULL) {
 }
 
@@ -68,7 +67,6 @@ ITemplateBroker::ITemplateBroker(
     std::string name,
     SimpleResourceManager* rm) :
     ResourceBroker(name),
-    ownsInstructions_(true),
     rm_(rm) {
 }
 
@@ -76,8 +74,12 @@ ITemplateBroker::ITemplateBroker(
  * Destructor.
  */
 ITemplateBroker::~ITemplateBroker(){
-    if (ownsInstructions_) {
-        MapTools::deleteAllValues(instructions_);
+    for (std::map<int, TTAProgram::Instruction*>::iterator i =
+             instructions_.begin(); i != instructions_.end(); i++) {
+        std::map<int, bool>::iterator j = instructionsNotOwned_.find(i->first);
+        if (j == instructionsNotOwned_.end() || j->second == false) {
+            delete i->second;
+        }
     }
 }
 
@@ -728,8 +730,8 @@ ITemplateBroker::findITemplates(
  * instructions when it it destroyed.
  */
 void
-ITemplateBroker::loseInstructionOwnership() {
-    ownsInstructions_ = false;
+ITemplateBroker::loseInstructionOwnership(int cycle) {
+    instructionsNotOwned_[cycle] = true;
 }
 
 /*

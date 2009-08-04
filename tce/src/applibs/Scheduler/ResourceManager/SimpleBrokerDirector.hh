@@ -83,7 +83,7 @@ public:
     virtual TTAProgram::Instruction* instruction(int cycle) const;
     virtual bool supportsExternalAssignments() const;
     virtual int largestCycle() const;
-    virtual void loseInstructionOwnership();
+    virtual void loseInstructionOwnership(int cycle);
     virtual TTAProgram::Terminal* immediateValue(const MoveNode&);
     virtual int immediateWriteCycle(const MoveNode&) const;
     virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;

@@ -1,13 +1,6 @@
 #!/bin/bash
 rm -rf testi.dsdb
 
-# Compile the initial machine generator estimator plugin.
-pushd . > /dev/null
-cd ../../../../../tce/explorer/ && rm -f *.so
-../src/codesign/Explorer/buildexplorerplugin FrequencySweepExplorer.so FrequencySweepExplorer.cc > /dev/null
-../src/codesign/Explorer/buildexplorerplugin GrowMachine.so GrowMachine.cc > /dev/null
-../src/codesign/Explorer/buildexplorerplugin MinimizeMachine.so MinimizeMachine.cc > /dev/null
-../src/codesign/Explorer/buildexplorerplugin RemoveUnconnectedComponents.so RemoveUnconnectedComponents.cc > /dev/null
-../src/codesign/Explorer/buildexplorerplugin SimpleICOptimizer.so SimpleICOptimizer.cc > /dev/null
-../src/codesign/Explorer/buildexplorerplugin ImmediateGenerator.so ImmediateGenerator.cc > /dev/null
-popd > /dev/null
+# Compile the input program.
+../../../../../tce/src/bintools/Compiler/tcecc test_app-matrix1/src/matrix1.c -o test_app-matrix1/program.bc
+

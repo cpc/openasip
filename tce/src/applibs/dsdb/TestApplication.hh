@@ -60,6 +60,10 @@ public:
     bool hasCorrectOutput() const;
     bool hasVerifySimulation() const;
     bool hasCleanupSimulation() const;
+    bool isValid() const { 
+        return hasApplication() && 
+            (hasCorrectOutput() || hasVerifySimulation());
+    }
 
     const std::string applicationPath() const;
     void setupSimulation() const;

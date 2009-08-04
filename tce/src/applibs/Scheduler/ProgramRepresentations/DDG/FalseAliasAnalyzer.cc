@@ -22,12 +22,12 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file FalseAliasAnalyzer.hh
+ * @file FalseAliasAnalyzer.cc
  *
  * Implementation of FalseAliasAnalyzer class.
  * 
  * @author Heikki Kultala 2007 (heikki.kultala-no.spam-tut.fi)
- * @note rating: ref
+ * @note rating: red
  */
 
 #include "FalseAliasAnalyzer.hh"

@@ -143,6 +143,10 @@ fi
 
 rm -rf $VECTORTEST
 
+# Check for clang or tce-llvm-gcc executables.
+AC_CHECK_PROG([TCELLVMGCC], [tce-llvm-gcc], [yes], [], [], [])
+#AC_CHECK_PROG([CLANG], [clang], [yes], [], [], [])
+AM_CONDITIONAL([COMPILER_FOUND], test ! -z $TCELLVMGCC $CLANG)
 
 # === CHECK for unordered_map/hash_map ===
 # First check whether unordered_map exists.
@@ -781,6 +785,7 @@ CPPFLAGS="$TEMP_CPPFLAGS"
 # then it is set to "/usr/local". Otherwise it is set to user given
 # prefix. Result is written to config.h.
 if test x"$prefix" = xNONE; then
+  prefix=/usr/local
   AC_DEFINE([TCE_INSTALLATION_ROOT],["/usr/local"],[The installation directory])
   AC_DEFINE([CONFIGDIR], ["/etc/tce"], [Directory for configurations])
 else
@@ -1117,6 +1122,7 @@ AC_DEFINE_UNQUOTED([CONFIGURE_CPPFLAGS], ["$CPPFLAGS"],
 AC_DEFINE_UNQUOTED([CONFIGURE_LDFLAGS], ["$LDFLAGS $TCE_LDFLAGS"],
                    [LDFLAGS used during configuration of TCE])
 
+
 # Make AC_OUTPUT to create each file listed here.
 AC_CONFIG_FILES([
   Makefile
@@ -1254,6 +1260,33 @@ AC_CONFIG_FILES([src/procgen/ProGe/buildicdecoderplugin],
 
 AC_CONFIG_FILES([src/applibs/LLVMBackend/passes/buildllvmpass], 
                 [chmod +x src/applibs/LLVMBackend/passes/buildllvmpass])
+
+# Configure newlib as well
+m4_pattern_allow([^AS_FOR_TARGET$])
+
+AC_CONFIG_COMMANDS_POST ([
+echo "=== Configuring newlib =====";
+# make srcdir absolute
+builddirectory=$PWD
+cd $srcdir;
+srcdir=$PWD;
+cd $builddirectory;
+# create builddir (if necessary)
+mkdir -p newlib-1.17.0; 
+cd newlib-1.17.0;
+echo RANLIB_FOR_TARGET=llvm-ranlib \
+NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
+AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
+CXX_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
+CC_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
+$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
+RANLIB_FOR_TARGET=llvm-ranlib \
+NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
+AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
+CXX_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
+CC_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
+$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
+])
 
 # Generate config.status and launch it. config.status then
 # performs all configuration actions.

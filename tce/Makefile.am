@@ -1,4 +1,8 @@
-SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins explorer doc
+SUBDIRS = src data conf opset hdb compressors icdecoder_plugins scheduler scripts manual cost_estimator_plugins explorer doc 
+
+if COMPILER_FOUND
+SUBDIRS += newlib-1.17.0
+endif
 
 AUTOMAKE_OPTIONS = foreign
 
@@ -43,4 +47,4 @@ distclean-local:
 
 dev-install: install
 	@./tools/scripts/install_all_headers ${prefix}
-	
+
