@@ -52,7 +52,7 @@ function install_llvm-frontend {
     cd ${BUILD_DIR} || return 1
     ${SOURCE_DIR}/configure --prefix=${LLVM_FRONTEND_DIR} --with-llvm-gcc-sources=${LLVM_GCC_SOURCES} >& compile.log || return 1
 
-    make -s >& compile.log || return 1
+    make -s >>& compile.log || return 1
     rm -rf ${LLVM_FRONTEND_DIR}
     make install >& compile.log || return 1
 }
