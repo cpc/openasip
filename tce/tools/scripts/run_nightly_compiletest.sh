@@ -44,7 +44,7 @@
 #  BRANCH_NAME                  Branch name                      trunk
 #  LLVM_BIN_DIR                 llvm binary directory            $HOME/llvm/bin
 #  LLVM_FRONTEND_INSTALL_DIR    llvm-frontend install directory  $HOME/llvm-frontend
-
+#  LLVM_GCC_SOURCES             Sources of llvm-gcc-4.2          $HOME/llvm-gcc4.2-2.5.source
 
 function eexit {
     echo $1 >&2
@@ -59,10 +59,16 @@ function addToPath {
     fi  
 }
 
+function check_llvm_gcc_sources {
+    if [ ! -e "${LLVM_GCC_SOURCES}" ]; then
+        eexit "LLVM-GCC source directory: ${LLVM_GCC_SOURCES}, was not found and no tce-llvm-gcc could not be compiled. Unpack correct sources of your llvm version e.g. http://llvm.org/releases/2.5/llvm-gcc-4.2-2.5.source.tar.gz for llvm-2.5."
+    fi
+}
+
 # $1: full, do full rebuild
 function install_llvm-frontend {
     SOURCE_DIR=${BRANCH_DIR}/llvm-frontend
-    BUILD_DIR=${BRANCH_DIR}/llvm-frontend/build
+    BUILD_DIR=${BRANCH_DIR}/llvm-frontend/build    
 
     export MAKEFLAGS=-j1
     export CXX="g++${ALTGCC}"
@@ -78,7 +84,7 @@ function install_llvm-frontend {
         rm -rf ${BUILD_DIR}
         mkdir -p ${BUILD_DIR}
         cd ${BUILD_DIR} || return 1
-        ${SOURCE_DIR}/configure --prefix=${LLVM_FRONTEND_INSTALL_DIR} || return 1
+        ${SOURCE_DIR}/configure --prefix=${LLVM_FRONTEND_INSTALL_DIR} --llvm-gcc-sources=${LLVM_GCC_SOURCES} || return 1
     else
         cd ${BUILD_DIR} || return 1
     fi
@@ -119,6 +125,7 @@ export BRANCH_NAME=${BRANCH_NAME:-trunk}
 export BRANCH_DIR="${REPO_DIR}/${BRANCH_NAME}"
 export LLVM_BIN_DIR=${LLVM_BIN_DIR:-$HOME/llvm/bin}
 export LLVM_FRONTEND_INSTALL_DIR=${LLVM_FRONTEND_INSTALL_DIR:-$HOME/llvm-frontend}
+export LLVM_GCC_SOURCES=${HOME}/llvm-gcc4.2-2.5.source
 
 addToPath "${LLVM_BIN_DIR}"
 addToPath "${LLVM_FRONTEND_INSTALL_DIR}/bin"
@@ -145,6 +152,9 @@ fi
 [ "${1}x" == "altgccx" ] && { shift; ALTGCC="-${ALT_GCC_VERSION}"; } || ALTGCC=""
 
 ##############################################################
+
+# Check that llvm sources are installed
+check_llvm_gcc_sources
 
 # first update repository
 update_repo >>${OUTPUT} 2>&1 || eexit "Updating bzr repository failed."

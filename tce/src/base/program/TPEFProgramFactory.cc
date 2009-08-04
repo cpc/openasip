@@ -1722,9 +1722,9 @@ TPEFProgramFactory::resolveSocketAllocations(
 
             bool prevFound = false;
             // find first freed allocation where we continue search
-            for (unsigned int k = prevIndex; k >= 0 && !prevFound; k--) {
+            for (int k = prevIndex; k >= 0 && !prevFound; k--) {
                 for (unsigned int j = 0; j < freedAllocs.size(); j++) {
-                    if (freedAllocs[j]->index == k) {
+                    if (static_cast<int>(freedAllocs[j]->index) == k) {
                         currIndex = k;
                         prevFound = true;
                         break;

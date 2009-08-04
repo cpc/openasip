@@ -10,7 +10,12 @@ from tempfile import mkdtemp
 from optparse import OptionParser
 from shutil import rmtree
 
+# global variables...
 debugMode = False
+options = None
+newlib_libdir=""
+newlib_includes=""
+lowerintrinsicsplugin=""
 
 def handler(signum, frame):
     cleanup(tempDir)
@@ -52,16 +57,28 @@ def processInputFiles(inFiles, tmpDir, verbose):
     cotaining all the files to link together.
     """
 
-    compileFlags=""
+    compileFlags=newlib_includes
 
     if options.compile_only:
         compileFlags += "-c "
+
+    if options.g_cc_switch:
+        compileFlags += "-g "
 
     for i in options.defines:
         compileFlags += "-D" + i + " "
 
     for i in options.include_dirs:
         compileFlags += "-I" + i + " "
+
+    for i in options.B_cc_switches:
+        compileFlags += "-B" + i + " "
+        
+    for i in options.f_cc_switches:
+        compileFlags += "-f" + i + " "
+
+    for i in options.isystem_cc_switches:
+        compileFlags += "-isystem" + i + " "
 
     # list of valid suffixes
     knownSuffices = [".cpp", ".cc", ".c", ".bc", ".o", ".a"]
@@ -159,7 +176,6 @@ def exitWithError(status, alreadyVerbose, output):
 
 
 def lowerMemIntrinsicCommand(srcFile, dstFile):
-    global lowerintrinsicsplugin
     commandp = "opt -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
     command = commandp + " -o " + dstFile + " " + srcFile
     return command
@@ -169,28 +185,26 @@ def lowerMemIntrinsicCommand(srcFile, dstFile):
 ##
 def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
-    global llvmGccPrefix
-    
-    llvmGccStartFiles = llvmGccPrefix + "/tce-llvm/lib/crt0.o "
+    startFiles = os.path.join(newlib_libdir,"crt0.o ")
 
-    libNoSys = os.path.join(llvmGccPrefix,"tce-llvm/lib/libnosys.a")
+    libNoSys = os.path.join(newlib_libdir,"libnosys.a")
     if not os.path.exists(libNoSys):
         libNoSys = ""
 
     # libm must be linked first to make sure that necessary parts of libc will be linkend in (e.g. errno)
-    llvmGccEndFiles = (llvmGccPrefix + "/tce-llvm/lib/libm.a " +
-                       llvmGccPrefix + "/tce-llvm/lib/libc.a " +
-                       libNoSys + " " +
-                       llvmGccPrefix + "/tce-llvm/lib/crtend.o ")
+    endFiles = (os.path.join(newlib_libdir,"libm.a") + " " +
+                os.path.join(newlib_libdir,"libc.a") + " " +
+                libNoSys + " " +
+                os.path.join(newlib_libdir,"crtend.o") + " ")
 
 
     linkedFileName = fileNamePrefix + "_linked"
     #### Link all binary code together
-    command = "llvm-ld -disable-opt -o " + linkedFileName + " " + llvmGccStartFiles
+    command = "llvm-ld -disable-opt -o " + linkedFileName + " " + startFiles
     for name in linkFiles:
         command += " " + name
 
-    command += " " + llvmGccEndFiles
+    command += " " + endFiles
 
     (exitCode, output) = runCommand(command, options.verbose)
     if exitCode != 0:
@@ -209,8 +223,6 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 # opt -O3 -debug-pass=Arguments systemtest/bintools/Scheduler/tests/QuickTests/HelloWorld/program.bc
 ###
 def optimizeBytecode(inFile, fileNamePrefix):
-
-    global options
 
     verbose = options.verbose
 
@@ -422,12 +434,10 @@ def optimizeBytecode(inFile, fileNamePrefix):
 ###
 def linkEmulationFuncs(inFile, fileNamePrefix):
 
-    global llvmGccPrefix, llvmprefix, tceprefix, options
-
     verbose = options.verbose
 
     # if software floatingpoint should be lowered, link the emulation functions in
-    emulationLib = llvmGccPrefix + "/tce-llvm/lib/float_emulation.o "
+    emulationLib = os.path.join(newlib_libdir,"float_emulation.o") + " "
     linkedName = fileNamePrefix + "_libemul.bc"
         
     command = ("llvm-link -f " + inFile + " " + emulationLib + " -o " + linkedName)
@@ -574,6 +584,26 @@ p.add_option('--debug', action="store_true",
              dest="debug", default=False,
              help="Print LLVM debug data.")
 
+p.add_option('--isystem', 
+             type="string", action="append", metavar='directory',
+             dest="isystem_cc_switches", default=[],
+             help="Passed to gcc as -system switch. Also -isystem is supported.")
+
+p.add_option('-B', 
+             type="string", action="append", metavar='directory',
+             dest="B_cc_switches", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-f', 
+             type="string", action="append", metavar='opt_var',
+             dest="f_cc_switches", default=[],
+             help="Passed to gcc.")
+
+p.add_option('-g', 
+             type="string", action="store", metavar='store_true',
+             dest="g_cc_switch", default=False,
+             help="Passed to gcc.")
+
 p.add_option('--max-thread-latency',
              type="int", action="store", metavar='usec',
              dest='max_thread_latency',
@@ -584,8 +614,16 @@ switch latency (in microseconds). In case the target does not have the RTIMER
 operation, sched_yield() is called in every basic block unconditionally, 
 producing considerable additional overhead to the program exectuion.""")
 
-# get commandline arguments
-options, inFiles = p.parse_args()
+# Commandline argument parsing
+
+# fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
+args = []
+for opt in sys.argv[1:]:
+    if opt.startswith("-isystem"): opt = "-" + opt
+    args.append(opt)
+
+# parse valid args
+options, inFiles = p.parse_args(args)
 
 # create temp dir
 tempDir = mkdtemp("","tcecc-")
@@ -622,7 +660,6 @@ else:
 if exitCode != 0:
     sys.stderr.write("Could not find 'tce-llvm-gcc'. Have you installed it in PATH?\n")
     exitWithError(1, options.verbose, output)
-llvmGccPrefix = output + "/.."
 
 ### tce install prefix
 (exitCode, output) = runCommand("tce-config --prefix", False)
@@ -631,27 +668,31 @@ if exitCode != 0:
 else:
     tceInstalled = True
     tceprefix = output
-
+    
 ## check if we are running from the TCE source tree in which case use only
 ## source tree libraries and binaries
 scriptDir = os.path.abspath(os.path.dirname(sys.argv[0]))
 runningInstalled = 'src/bintools/Compiler' not in scriptDir
 
-if not runningInstalled:
-    srcRoot = scriptDir.split('bintools/Compiler')[0]
-else:
+if runningInstalled:
+    lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
+    newlib_libdir = os.path.join(tceprefix,"tce-llvm/lib")
+    newlib_includes = "-isystem " + os.path.join(tceprefix,"tce-llvm/include") + " "
     srcRoot = None
+else:
+    srcRoot = scriptDir.split('bintools/Compiler')[0]
+    lowerintrinsicsplugin = os.path.join(srcRoot, "applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so")
+    newlib_libdir = os.path.join(srcRoot,"../newlib-1.17.0/tce-llvm/newlib")
+    newlib_includes = ("-isystem " + os.path.join(srcRoot,"../newlib-1.17.0/tce-llvm/newlib/targ-include") +
+                       " -isystem " + os.path.join(srcRoot,"../newlib-1.17.0/newlib/libc/include") +
+                       " -isystem " + os.path.join(srcRoot,"../newlib-1.17.0/newlib/libm/include") + " ")
 
 if options.verbose:
-    if not runningInstalled:
-        print "Running from a TCE source tree rooted at '%s'." % srcRoot
-    else:
+    if runningInstalled:
         print "Running installed TCE from PATH."    
+    else:
+        print "Running from a TCE source tree rooted at '%s'." % srcRoot
     
-if not runningInstalled:
-    lowerintrinsicsplugin = srcRoot + "/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so"
-else:
-    lowerintrinsicsplugin = tceprefix + "/lib/tce/LowerIntrinsics.so"
     
 namePrefix = tempDir + "/" + os.path.basename(outputName)
 
@@ -706,7 +747,7 @@ else:
 
     # convert -l switches to static library link commands.
     for i in options.libs:
-        linkList.append(llvmGccPrefix + "/tce-llvm/lib/lib%s.a" % i)
+        linkList.append(newlibprefix + "/lib%s.a" % i)
     
     linkedFileName = linkBytecode(linkList, namePrefix, options.verbose)
 
@@ -757,7 +798,7 @@ if options.adf_file != "":
     if options.no_schedule is False:
         command += " -c " + options.scheduler_config
 
-    stdEmulationLib = llvmGccPrefix + "/tce-llvm/lib/standard_emulation.o "
+    stdEmulationLib = os.path.join(newlib_libdir, "standard_emulation.o ")
 
     command += (" -a " + options.adf_file +
                 " -o " + outFile +
