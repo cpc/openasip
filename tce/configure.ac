@@ -1287,7 +1287,8 @@ NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
 AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
 CXX_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
 CC_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
-$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
+$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
+2>&1 | egrep -v "to force reconfigure";
 ])
 
 # Generate config.status and launch it. config.status then

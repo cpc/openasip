@@ -1788,9 +1788,9 @@ if test -n "${notsupp}" && test -z "${norecursion}" ; then
   fi
   # Okay, some application will build, or we don't care to check.  Still
   # notify of subdirs not getting built.
-  echo "*** This configuration is not supported in the following subdirectories:" 1>&2
-  echo "    ${notsupp}" 1>&2
-  echo "    (Any other directories should still work fine.)" 1>&2
+#  echo "*** This configuration is not supported in the following subdirectories:" 1>&2
+#  echo "    ${notsupp}" 1>&2
+#  echo "    (Any other directories should still work fine.)" 1>&2
 fi
 
 case "$host" in
