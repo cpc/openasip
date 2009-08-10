@@ -896,7 +896,7 @@ case "${target}" in
   sparc-*-solaris* | sparc64-*-solaris* | sparcv9-*-solaris*)
     ;;
   tce-*)
-    noconfigdirs="$noconfigdirs bfd binutils gas gcc gdb ld target-libstdc++-v3 opcodes target-libgloss ${libgcj}"
+    noconfigdirs="$noconfigdirs etc bfd binutils gas gcc gdb ld target-libstdc++-v3 opcodes target-libgloss ${libgcj}"
     ;;
   v810-*-*)
     noconfigdirs="$noconfigdirs bfd binutils gas gcc gdb ld target-libstdc++-v3 opcodes target-libgloss ${libgcj}"
