@@ -378,7 +378,7 @@ int main(int argc, char* argv[]) {
                         if (diFormat == "binary") {
                             imageGenerator.generateDataImage(
                                 tpefFile, *program, as->name(), stream, 
-                                ProgramImageGenerator::BINARY, 0, true);
+                                ProgramImageGenerator::BINARY, 1, true);
                         } else if (diFormat == "array") {
                             imageGenerator.generateDataImage(
                                 tpefFile, *program, as->name(), stream, 
