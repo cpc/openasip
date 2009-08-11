@@ -267,7 +267,7 @@ WORD(push_number)
 {
     isp++;
     pc++;
-    *isp = (int)(*pc);
+    *isp = *(int*)pc;
     pc++;
     
 }
