@@ -1338,15 +1338,21 @@ else
  
 static void DEFUN_VOID(bang)
 {
-*(int*)isp[0] = *(int*)isp[-1];
-isp-=2;
-pc++;
+    /*
+      Why such hack? Caused warning on AMD64:
+     *(int*)isp[0] = *(int*)isp[-1]; */
+    isp[0] = isp[-1];
+    isp-=2;
+    pc++;
 
 }
 
 WORD(atsign)
 {
-    *(int*)isp[0] = *(int*)isp[0];
+    /*
+      Why such hack? Caused warning on AMD64:
+      *(int*)isp[0] = *(int*)isp[0]; */
+    isp[0] = isp[0];
     pc++;
 }
 

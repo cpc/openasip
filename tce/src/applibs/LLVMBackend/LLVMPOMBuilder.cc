@@ -1108,7 +1108,6 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
         std::string name = mang_->makeNameProper(mo.getSymbolName(), "_");
 
-        std::cerr << "TCE proper name: " << name << std::endl;
 
         TTAProgram::InstructionReference* dummy =
             new TTAProgram::InstructionReference(

@@ -101,12 +101,11 @@ ExecutionPipelineBroker::unassign(MoveNode&) {
  * resource of the type managed by this broker can be assigned to the
  * given node.
  *
+ * Considers source and destination terminals independently
+ * and compares the results. Returns -1 if no assignment is possible.
+ *
  * @param cycle Cycle.
  * @param node Node.
- * @return The earliest cycle, starting from given cycle, where a
- * resource of the type managed by this broker can be assigned to the
- * given node. Considers source and destination terminals independently
- * and compares the results. Returns -1 if no assignment is possible.
  */
 int
 ExecutionPipelineBroker::earliestCycle(int cycle, const MoveNode& node)

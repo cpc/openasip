@@ -108,12 +108,10 @@ bool MachineDCE::canFindStart(const std::string& user, AvoidRecursionSet& avoid_
 
     // current function is actually the start point.. nice job.
     if (baseUsers_.find(user) != baseUsers_.end()) {
-        std::cerr << "Found it!" << std::endl;
         return true;
     }
 
     UserList &usesList = usersOfValue_[user];
-    std::cerr << "Checking " << user << std::endl;
 
     // check if this function is used by start point to be sure...
     for (UserList::iterator i= usesList.begin(); i != usesList.end(); i++) {
@@ -121,20 +119,18 @@ bool MachineDCE::canFindStart(const std::string& user, AvoidRecursionSet& avoid_
             return true;
         }
     }    
-
-    std::cerr << "Done without finding entry point " << user 
-              << std::endl;
     return false;
 }
 
 void MachineDCE::addInitializer(const Constant* init, std::string& name) {
 
     if (const GlobalValue* gv = dyn_cast<GlobalValue>(init)) {
+#if 0
         std::cerr << "Added data " << name 
                   << " to uses of value: " << gv->getNameStr()
                   << " and " << name << " to baseUsers." 
                   <<  std::endl;
-
+#endif
         baseUsers_.insert(name);
         usersOfValue_[gv->getNameStr()].insert(name);
     }
@@ -167,11 +163,11 @@ bool MachineDCE::doInitialization(Module &M) {
         }
         
         const Constant* initializer = i->getInitializer();
+#if 0
         const Type* type = initializer->getType();
-
         std::cerr << "Data name: " << name 
                   << "\ttype: " << type->getDescription() << std::endl;        
-        
+#endif        
         addInitializer(initializer, name);        
     }
 
@@ -220,9 +216,11 @@ bool MachineDCE::doFinalization(Module&) {
         AvoidRecursionSet avoid_recursion;
 
         if (!canFindStart(func->first, avoid_recursion)) {
+#if 0
             std::cerr << "Function was not referred trying to delete all " 
                       << "MachineBasicBlocks of : " << func->first 
                       << std::endl;
+#endif
 
             MachineFunction* mf = func->second;
             while (!mf->empty()) {
