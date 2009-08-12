@@ -1338,7 +1338,7 @@ else
  
 static void DEFUN_VOID(bang)
 {
-*(int *)((isp[0])) = isp[-1];
+*(int*)isp[0] = *(int*)isp[-1];
 isp-=2;
 pc++;
 
@@ -1346,7 +1346,7 @@ pc++;
 
 WORD(atsign)
 {
-    isp[0] = *(int *)(isp[0]);
+    *(int*)isp[0] = *(int*)isp[0];
     pc++;
 }
 
@@ -1462,6 +1462,5 @@ char *av[])
     write_buffer(stack+0);
     return 0;
 }
-
 
 
