@@ -298,6 +298,9 @@ CycleLookBackSoftwareBypasser::bypass(
             int earliestForTrigger = 
                 rm.earliestCycle(moveNode.cycle(), *trigger);
             // reschedule the trigger after the operand move
+            if (earliestForTrigger <0) {
+                return -1;
+            }
             rm.assign(earliestForTrigger, *trigger);
         } else {        
             rm.assign(earliestCycle, moveNode);

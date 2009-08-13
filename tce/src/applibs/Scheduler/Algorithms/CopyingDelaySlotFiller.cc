@@ -132,7 +132,8 @@ void CopyingDelaySlotFiller::fillDelaySlots(
     unsigned int grIndex = 0;
 
     // lets be aggressive, fill more than just slots?
-    int maxFillCount = std::min(delaySlots+3, thisBB.instructionCount());
+    int maxFillCount = std::min(delaySlots+3, thisBB.instructionCount()
+                                - thisBB.skippedFirstInstructions());
 
     // if we have references to instructions in target BB, cannot put anything
     // before them, so limit how many slots fill at maximum.
