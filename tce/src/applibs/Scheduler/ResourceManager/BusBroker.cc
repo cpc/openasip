@@ -603,7 +603,7 @@ BusBroker::isBusBroker() const {
 
 /**
  * Return true if immediate in given node can be transported by any bus
- * in broker.
+ * in broker, with the guard which the move contains.
  *
  * @param node Node that contains immediate read.
  * @return True if immediate in given node can be transported by any bus
@@ -620,7 +620,32 @@ BusBroker::canTransportImmediate(const MoveNode& node) const {
                 "Bus broker has other then Bus Resource registered!");
         }        
         if (canTransportImmediate(node, findImmResource(*busRes))) {
-            return true;
+            if (node.move().isUnconditional()) {
+                return true;
+            } else {
+                // We need to check that the bus contains the guard
+                // which the move has. Only return true if the
+                // guard is found from the bus.
+                const Guard& guard = node.move().guard().guard();
+                if((dynamic_cast<const RegisterGuard*>(&guard) == NULL)) {
+                    throw InvalidData(
+                        __FILE__, __LINE__, __func__,
+                        "Move guard is not register!");        
+                }
+                const Bus* aBus =
+                    dynamic_cast<const Bus*>(&machinePartOf(*busRes));
+                if (aBus == NULL) {
+                    throw InvalidData(
+                        __FILE__, __LINE__, __func__,
+                        "Bus Resource is missing bus in MOM!");
+                }
+                for (int j = 0; j < aBus->guardCount(); j++) {
+                    Guard* busGuard = aBus->guard(j);
+                    if (busGuard->isEqual(guard)) {
+                        return true;
+                    }
+                }
+            }
         }
         resIter++;
     }
