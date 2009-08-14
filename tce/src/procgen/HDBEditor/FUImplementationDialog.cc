@@ -159,11 +159,24 @@ FUImplementationDialog::FUImplementationDialog(
         0, _T("source file"), wxLIST_FORMAT_LEFT, 260);
 
     // Read string attributes from the FUImplementation object.
+    // If implementation attributes are empty, use default values
     name_ = WxConversion::toWxString(implementation_.moduleName());
     opcodePort_ = WxConversion::toWxString(implementation_.opcodePort());
-    clkPort_ = WxConversion::toWxString(implementation_.clkPort());
-    rstPort_ = WxConversion::toWxString(implementation_.rstPort());
-    gLockPort_ = WxConversion::toWxString(implementation_.glockPort());
+    if (implementation_.clkPort().empty()) {
+        clkPort_ = WxConversion::toWxString("clk");
+    } else {
+        clkPort_ = WxConversion::toWxString(implementation_.clkPort());
+    }
+    if (implementation_.rstPort().empty()) {
+        rstPort_ = WxConversion::toWxString("rstx");
+    } else {
+        rstPort_ = WxConversion::toWxString(implementation_.rstPort());
+    }
+    if (implementation_.glockPort().empty()) {
+        gLockPort_ = WxConversion::toWxString("glock");
+    } else {
+        gLockPort_ = WxConversion::toWxString(implementation_.glockPort());
+    }
     gLockReqPort_ = WxConversion::toWxString(implementation_.glockReqPort());
 
 
