@@ -60,6 +60,7 @@
 #include "ProgramWriter.hh"
 #include "BinaryWriter.hh"
 #include "TPEFWriter.hh"
+#include "Immediate.hh"
 
 using std::string;
 
@@ -724,6 +725,8 @@ Program::fixInstructionReferences() {
         Procedure& proc = procedure(k);
         for (int j = 0; j < proc.instructionCount(); j++) {
             Instruction &ins = proc.instructionAtIndex(j);
+
+            // sources of all moves.
             for (int i = 0; i < ins.moveCount(); i++) {
                 Terminal& source = ins.move(i).source();
                 
@@ -740,9 +743,25 @@ Program::fixInstructionReferences() {
                     source.setInstructionReference(newRef);
                 }
             }
+            // values of all immediates
+            for (int i = 0; i < ins.immediateCount(); i++) {
+                Terminal& value = ins.immediate(i).value();
+                if (value.isInstructionAddress()) {
+
+                    Instruction& oldRefIns =
+                        value.instructionReference().instruction();
+                    
+                    Instruction& newRefIns =
+                        instructionAt(oldRefIns.address().location());
+                    
+                    InstructionReference& newRef =
+                        instructionReferenceManager().createReference(
+                            newRefIns);
+                    value.setInstructionReference(newRef);
+                }
+            }
         }
     }
-    
 }
 
 /**
