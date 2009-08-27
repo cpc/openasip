@@ -36,11 +36,14 @@
 #include <map>
 #include <set>
 #include "llvm/CodeGen/MachineFunctionPass.h"
+#include "llvm/CodeGen/MachineConstantPool.h"
+#include "llvm/CodeGen/MachineOperand.h"
+#include "llvm/CodeGen/MachineInstr.h"
+#include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/Support/Mangler.h"
 #include "llvm/Constant.h"
 #include "Exception.hh"
 #include "BaseType.hh"
-#include "TCETargetMachine.hh"
 
 namespace TTAProgram {
     class Program;
@@ -67,6 +70,7 @@ namespace llvm {
     class ConstantInt;
     class ConstantFP;
     class ConstantExpr;
+    class TCETargetMachine;
 
     FunctionPass* createLLVMPOMBuilderPass(
         TCETargetMachine& tm, TTAMachine::Machine* mach);

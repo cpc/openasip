@@ -45,7 +45,7 @@ namespace llvm {
      */
     class TCESubtarget : public TargetSubtarget {
     public:
-        TCESubtarget(const Module& m, const std::string& fs);
+        TCESubtarget(const std::string &TT, const std::string &FS);
         std::string pluginFileName();
     private:
         std::string pluginFile_;

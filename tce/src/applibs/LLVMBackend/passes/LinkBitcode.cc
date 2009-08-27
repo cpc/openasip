@@ -33,6 +33,7 @@
 
 #include "llvm/Support/Compiler.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Linker.h"
@@ -87,7 +88,7 @@ bool
 LinkBitcode::doFinalization(Module& M) {
     std::string errors;
     if (Linker::LinkModules(&M, &inputModule_, &errors)) {
-        DOUT << "Error during linking in LinkBitcodePass: " << errors << std::endl;
+        errs() << "Error during linking in LinkBitcodePass: " << errors << "\n";
     }
     return true;
 }

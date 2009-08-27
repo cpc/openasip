@@ -40,10 +40,12 @@
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/Target/TargetData.h>
 #include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetRegistry.h>
 #include <llvm/CodeGen/Passes.h>
 #include <llvm/Transforms/IPO.h>
 #include <llvm/ModuleProvider.h>
 #include <llvm/Support/Debug.h>
+#include <llvm/LLVMContext.h>
 #include "LLVMBackend.hh"
 #include "TDGen.hh"
 
@@ -67,10 +69,8 @@
 
 using namespace llvm;
 
-#include <llvm/Target/TargetLowering.h>
-volatile TargetLowering dummy(TargetMachine());
-
 #include <llvm/Assembly/PrintModulePass.h>
+
 Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
 Pass* createLinkBitcodePass(Module& inputCode);
 Pass* createMachineDCE();
@@ -84,9 +84,7 @@ const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
  */
 LLVMBackend::LLVMBackend(bool useCache, bool useInstalledVersion):
     useCache_(useCache), useInstalledVersion_(useInstalledVersion) {
-
     cachePath_ = Environment::llvmtceCachePath();
-
 }
 
 /**
@@ -94,7 +92,6 @@ LLVMBackend::LLVMBackend(bool useCache, bool useInstalledVersion):
  */
 LLVMBackend::~LLVMBackend() {
 }
-
 
 /**
  * Compiles bytecode for the given target machine.
@@ -134,13 +131,14 @@ LLVMBackend::compile(
 
     // Load bytecode file.
     std::string errorMessage;
+    LLVMContext &context = getGlobalContext();
 
     // TODO: refactor
     std::auto_ptr<Module> m;
     std::auto_ptr<MemoryBuffer> buffer(
         MemoryBuffer::getFileOrSTDIN(bytecodeFile, &errorMessage));
     if (buffer.get()) {
-        m.reset(ParseBitcodeFile(buffer.get(), &errorMessage));
+        m.reset(ParseBitcodeFile(buffer.get(), context, &errorMessage));
     }
     if (m.get() == 0) {
         std::string msg = "Error reading bytecode file:\n" + errorMessage;
@@ -154,7 +152,7 @@ LLVMBackend::compile(
         std::auto_ptr<MemoryBuffer> emuBuffer(
             MemoryBuffer::getFileOrSTDIN(emulationBytecodeFile, &errorMessage));
         if (emuBuffer.get()) {
-            emuM.reset(ParseBitcodeFile(emuBuffer.get(), &errorMessage));
+            emuM.reset(ParseBitcodeFile(emuBuffer.get(), context, &errorMessage));
         }
         if (emuM.get() == 0) {
             std::string msg = "Error reading bytecode file:\n" + errorMessage;
@@ -203,21 +201,33 @@ LLVMBackend::compile(
     llvm::DebugFlag = debug;
     ipData_ = ipData;
     bool fast = false;
-    std::string fs = "";
+    std::string targetStr = "tce";
+    std::string errorStr;
 
-    TCETargetMachine targetMachine(module, fs, plugin);
+    std::string featureString ="";
+    
+    // get registered target machine and set plugin.
+    const Target* tceTarget = TargetRegistry::lookupTarget(targetStr, errorStr);
+
+    // TODO: try to get rid of backend and use llc directly..
+    TCETargetMachine* targetMachine = 
+        dynamic_cast<TCETargetMachine*>(
+            tceTarget->createTargetMachine("tce-llvm", featureString));
+    
+    // NOTE: maybe this should be done by passing info in featureString
+    dynamic_cast<TCETargetMachine*>(targetMachine)->setTargetMachinePlugin(plugin);
 
     llvm::FunctionPassManager fpm1(new ExistingModuleProvider(&module));
-    fpm1.add(new TargetData(*targetMachine.getTargetData()));
+    fpm1.add(new TargetData(*targetMachine->getTargetData()));
 
     llvm::FunctionPassManager fpm2(new ExistingModuleProvider(&module));
-    fpm2.add(new TargetData(*targetMachine.getTargetData()));
+    fpm2.add(new TargetData(*targetMachine->getTargetData()));
 
     llvm::FunctionPassManager fpm3(new ExistingModuleProvider(&module));
-    fpm3.add(new TargetData(*targetMachine.getTargetData()));
+    fpm3.add(new TargetData(*targetMachine->getTargetData()));
 
     llvm::PassManager pm;
-    pm.add(new TargetData(*targetMachine.getTargetData()));
+    pm.add(new TargetData(*targetMachine->getTargetData()));
 
     // TODO:
     // Loop strength reduction pass?
@@ -246,7 +256,7 @@ LLVMBackend::compile(
     // pm.add(new PrintModulePass());
     
     // Instruction selection.
-    targetMachine.addInstSelector(fpm1, fast);
+    targetMachine->addInstSelector(fpm1, fast);
 
     // Machine DCE pass. 
     fpm2.add(createMachineDCE());
@@ -262,7 +272,7 @@ LLVMBackend::compile(
 
     // In separate function pass manager, because we have to run finalization 
     // of MachineDCE pass before writing POM data.
-    LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(targetMachine, &target);
+    LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
     fpm3.add(pomBuilder);
 
     // Module passes.

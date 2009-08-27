@@ -145,19 +145,19 @@ LowerIntrinsics::runOnBasicBlock(BasicBlock &BB) {
            if (ci != NULL && ci->getNumOperands() != 0) {
                Function* callee = ci->getCalledFunction();
                if (callee != NULL && callee->isIntrinsic() &&
-		   replace_.find(callee->getIntrinsicID()) != replace_.end()) {
+                   replace_.find(callee->getIntrinsicID()) != replace_.end()) {
                    if (callee->getIntrinsicID() == Intrinsic::flt_rounds) {
                        // Replace FLT_ROUNDS intrinsic with the actual
                        // constant value to avoid stupid  "if (1 == 0)"
                        // code even with full optimizations.
                        I->replaceAllUsesWith(
-                           ConstantInt::get(Type::Int32Ty, 0, true));
+                           ConstantInt::get(Type::getInt32Ty(getGlobalContext()), 0, true));
 
                        I->eraseFromParent();
                        changed = true;
-		       break;
+                       break;
                    } else {		       
-		       iLowering_->LowerIntrinsicCall(ci);
+                       iLowering_->LowerIntrinsicCall(ci);
                        changed = true;
                        break;
                    }

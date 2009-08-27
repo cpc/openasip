@@ -49,6 +49,8 @@ class PluginTools;
 
 namespace llvm {
 
+    extern Target TheTCETarget;
+
     class Module;
 
     /**
@@ -57,34 +59,34 @@ namespace llvm {
     class TCETargetMachine : public LLVMTargetMachine {
 
     public:
-        TCETargetMachine(
-	    const Module& m,
-	    const std::string& fs,
-	    TCETargetMachinePlugin& plugin);
+        TCETargetMachine(const Target &T, const std::string &TT,
+                         const std::string &FS);
 
         virtual ~TCETargetMachine();
 
+        virtual void setTargetMachinePlugin(TCETargetMachinePlugin& plugin);
+
         virtual const TargetSubtarget* getSubtargetImpl() const {
-            return &subtarget_; }
+            return &Subtarget; }
 
         virtual const TargetInstrInfo* getInstrInfo() const {
-            return plugin_.getInstrInfo();
+            return plugin_->getInstrInfo();
         }
 
         virtual const TargetRegisterInfo* getRegisterInfo() const {
-            return plugin_.getRegisterInfo();
+            return plugin_->getRegisterInfo();
         }
 
         virtual const TargetData* getTargetData() const {
-            return &dataLayout_;
+            return &DataLayout;
         }
 
         virtual const TargetFrameInfo* getFrameInfo() const {
-            return &frameInfo_;
+            return &FrameInfo;
         }
         
         virtual TargetLowering* getTargetLowering() const { 
-            return plugin_.getTargetLowering();
+            return plugin_->getTargetLowering();
         }
         
         virtual bool addInstSelector(FunctionPassManager& pm, bool fast);
@@ -92,39 +94,43 @@ namespace llvm {
         static unsigned getModuleMatchQuality(const Module &M);
 
         std::string operationName(unsigned opc) {
-            return plugin_.operationName(opc);
+            return plugin_->operationName(opc);
         }
 
         std::string rfName(unsigned dwarfRegNum) {
-            return plugin_.rfName(dwarfRegNum);
+            return plugin_->rfName(dwarfRegNum);
         }
         unsigned registerIndex(unsigned dwarfRegNum) {
-            return plugin_.registerIndex(dwarfRegNum);
+            return plugin_->registerIndex(dwarfRegNum);
         }
 
         TTAMachine::Machine* createMachine();
 
         std::string dataASName() {
-            return plugin_.dataASName();
+            return plugin_->dataASName();
         }
 
         unsigned raPortDRegNum() {
-            return plugin_.raPortDRegNum();
+            return plugin_->raPortDRegNum();
         }
 
         void loadPlugin();
 
         unsigned spDRegNum() {
-            return plugin_.spDRegNum();
+            return plugin_->spDRegNum();
         }
 
-        const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >* missingOperations();
+        const std::set<
+            std::pair<unsigned, 
+                      llvm::MVT::SimpleValueType> >* missingOperations();
 
     private:
-        const TargetData dataLayout_;
-        TCESubtarget subtarget_;
-        TargetFrameInfo frameInfo_;
-        TCETargetMachinePlugin& plugin_;
+        /* more or less llvm naming convention to make it easier to track llvm changes */
+        TCESubtarget        Subtarget;
+        const TargetData    DataLayout; // Calculates type size & alignment
+        TargetFrameInfo     FrameInfo;
+
+        TCETargetMachinePlugin* plugin_;
         PluginTools* pluginTool_;
         /// llvm::ISD opcode list of operations that have to be expanded.
         std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> > missingOps_;

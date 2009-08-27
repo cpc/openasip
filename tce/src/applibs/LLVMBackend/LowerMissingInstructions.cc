@@ -154,23 +154,24 @@ LowerMissingInstructions::LowerMissingInstructions(const TTAMachine::Machine& ma
 
 // convert type name to string
 std::string stringType(const Type* type) {
-    if (type == Type::Int64Ty) {
+    
+    if (type == Type::getInt64Ty(getGlobalContext())) {
         return "i64";
-    } else if (type == Type::Int32Ty) {
+    } else if (type == Type::getInt32Ty(getGlobalContext())) {
         return "i32";
-    }  else if (type == Type::Int16Ty) {
+    }  else if (type == Type::getInt16Ty(getGlobalContext())) {
         return "i16";
-    }  else if (type == Type::Int8Ty) {
+    }  else if (type == Type::getInt8Ty(getGlobalContext())) {
         return "i8";
-    }  else if (type == Type::Int1Ty) {
+    }  else if (type == Type::getInt1Ty(getGlobalContext())) {
         return "i1";
-    }  else if (type == Type::FloatTy) {
+    }  else if (type == Type::getFloatTy(getGlobalContext())) {
         return "f32";
-    }  else if (type == Type::DoubleTy) {
+    }  else if (type == Type::getDoubleTy(getGlobalContext())) {
         return "f64";
-    }  else if (type == Type::LabelTy) {
+    }  else if (type == Type::getLabelTy(getGlobalContext())) {
         return "label";
-    }  else if (type == Type::VoidTy) {
+    }  else if (type == Type::getVoidTy(getGlobalContext())) {
         return "void";
     } else {
         return "unknown";
@@ -185,11 +186,11 @@ const Type* getLLVMType(
     case Operand::UINT_WORD:
         return llvmIntegerType;
     case Operand::FLOAT_WORD:
-        return Type::FloatTy;
+        return Type::getFloatTy(getGlobalContext());
     case Operand::DOUBLE_WORD:
-        return Type::DoubleTy;
+        return Type::getDoubleTy(getGlobalContext());
     default:
-        return Type::VoidTy;
+        return Type::getVoidTy(getGlobalContext());
     }
 }
 
@@ -445,17 +446,17 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
             for (int j = 1; j <= op.numberOfInputs(); j++) { 
                 Operand& operand = op.operand(j);                
                 const Type* llvmOp = getLLVMType(operand.type(), 
-                                                 Type::Int32Ty);
+                                                 Type::getInt32Ty(getGlobalContext()));
                 argList_i32.push_back(llvmOp);
-                if (llvmOp == Type::Int32Ty) {
+                if (llvmOp == Type::getInt32Ty(getGlobalContext())) {
                     useInt = true;
                 }               
             }
             
             Operand& outputOperand = op.operand(op.numberOfInputs() + 1);
-            retVal_i32 = getLLVMType(outputOperand.type(), Type::Int32Ty);
+            retVal_i32 = getLLVMType(outputOperand.type(), Type::getInt32Ty(getGlobalContext()));
 
-            if (retVal_i32 == Type::Int32Ty) {
+            if (retVal_i32 == Type::getInt32Ty(getGlobalContext())) {
                 useInt = true;
             }
                        
@@ -466,10 +467,10 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
             
             // create other function protos for other integer bitwidths
             if (useInt) {
-                if (retVal_i32 == Type::Int32Ty) {
-                    retVal_i16 = Type::Int16Ty;
-                    retVal_i8 = Type::Int8Ty;
-                    retVal_i1 = Type::Int1Ty;
+                if (retVal_i32 == Type::getInt32Ty(getGlobalContext())) {
+                    retVal_i16 = Type::getInt16Ty(getGlobalContext());
+                    retVal_i8 = Type::getInt8Ty(getGlobalContext());
+                    retVal_i1 = Type::getInt1Ty(getGlobalContext());
                 } else {
                     retVal_i16 = retVal_i32;
                     retVal_i8 = retVal_i32;
@@ -478,10 +479,10 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
 
                 for (unsigned int j = 0; j < argList_i32.size(); j++) {
                     const Type* currArg = argList_i32[j];
-                    if (currArg == Type::Int32Ty) {
-                        argList_i16.push_back(Type::Int16Ty);
-                        argList_i8.push_back(Type::Int8Ty);
-                        argList_i1.push_back(Type::Int1Ty);
+                    if (currArg == Type::getInt32Ty(getGlobalContext())) {
+                        argList_i16.push_back(Type::getInt16Ty(getGlobalContext()));
+                        argList_i8.push_back(Type::getInt8Ty(getGlobalContext()));
+                        argList_i1.push_back(Type::getInt1Ty(getGlobalContext()));
                     } else {
                         argList_i16.push_back(currArg);
                         argList_i8.push_back(currArg);
@@ -550,8 +551,8 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
 
             for (unsigned j = 0; j < I->getNumOperands(); j++) {
 
-                if (I->getOperand(j)->getType() == Type::Int16Ty ||
-		    I->getOperand(j)->getType() == Type::Int8Ty) {
+                if (I->getOperand(j)->getType() == Type::getInt16Ty(getGlobalContext()) ||
+                    I->getOperand(j)->getType() == Type::getInt8Ty(getGlobalContext())) {
 
                     // Emulated operations with i1/i8/i16 operands need
                     // their operands extended to 32 bits. However, there's
@@ -564,7 +565,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                         // sign extension needed
                         args.push_back(
                             llvm::CastInst::CreateIntegerCast(
-                                I->getOperand(j), Type::Int32Ty, true, "", I));
+                                I->getOperand(j), Type::getInt32Ty(getGlobalContext()), true, "", I));
 
                     } else if (footPrint == "f32.uitofp.i16" ||
                                footPrint == "f32.uitofp.i8") {
@@ -572,7 +573,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                         // zero extension needed
                         args.push_back(
                             llvm::CastInst::CreateIntegerCast(
-                                I->getOperand(j), Type::Int32Ty,
+                                I->getOperand(j), Type::getInt32Ty(getGlobalContext()),
                                 false, "", I));
                     } else {
                         // unknown extension needed

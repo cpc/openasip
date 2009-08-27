@@ -29,11 +29,10 @@
  * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  */
 
-#include "llvm/Module.h"
 #include "llvm/PassManager.h"
-#include "llvm/Target/TargetMachineRegistry.h"
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
+#include "llvm/Target/TargetRegistry.h"
 
 #include "TCETargetMachine.hh"
 #include "LLVMPOMBuilder.hh"
@@ -44,6 +43,16 @@
 #include <iostream>
 
 using namespace llvm;
+
+
+namespace llvm {
+    Target TheTCETarget;
+}
+
+extern "C" void LLVMInitializeTCETargetInfo() { 
+    RegisterTarget<Triple::tce> X(TheTCETarget, "tce", "TTA Codesign Environment");
+    RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
+}
 
 //
 // Data layout:
@@ -58,9 +67,11 @@ using namespace llvm;
 // -------------
 // Grows down, alignment 4 bytes.
 //
-TCETargetMachine::TCETargetMachine(
-    const Module& m, const std::string& fs, TCETargetMachinePlugin& plugin)
-    : dataLayout_(
+TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
+                                   const std::string &FS)
+    : LLVMTargetMachine(T,TT),
+      Subtarget(TT,FS),
+      DataLayout(
         "E-p:32:32:32"
         "-a0:32:32"
         "-i1:8:8"
@@ -70,26 +81,8 @@ TCETargetMachine::TCETargetMachine(
         "-i64:32:64"
         "-f32:32:32"
         "-f64:32:64"),
-      subtarget_(m, fs),
-      frameInfo_(TargetFrameInfo::StackGrowsDown, 4, -4),
-      plugin_(plugin), pluginTool_(NULL) {
-
-    if (!plugin_.hasSDIV()) missingOps_.insert(std::make_pair(llvm::ISD::SDIV, MVT::i32));
-    if (!plugin_.hasUDIV()) missingOps_.insert(std::make_pair(llvm::ISD::UDIV, MVT::i32));
-    if (!plugin_.hasSREM()) missingOps_.insert(std::make_pair(llvm::ISD::SREM, MVT::i32));
-    if (!plugin_.hasUREM()) missingOps_.insert(std::make_pair(llvm::ISD::UREM, MVT::i32));
-    if (!plugin_.hasMUL()) missingOps_.insert(std::make_pair(llvm::ISD::MUL, MVT::i32));
-    if (!plugin_.hasROTL()) missingOps_.insert(std::make_pair(llvm::ISD::ROTL, MVT::i32));
-    if (!plugin_.hasROTR()) missingOps_.insert(std::make_pair(llvm::ISD::ROTR, MVT::i32));
-
-    if (!plugin_.hasSXHW()) missingOps_.insert(
-        std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i16));
-
-    if (!plugin_.hasSXQW()) missingOps_.insert(
-	std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i8));
-
-    // register machine to plugin
-    plugin_.registerTargetMachine(*this);
+      FrameInfo(TargetFrameInfo::StackGrowsDown, 4, -4),
+      plugin_(NULL), pluginTool_(NULL) {
 }
 
 /**
@@ -102,18 +95,41 @@ TCETargetMachine::~TCETargetMachine() {
     }
 }
 
+void 
+TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
+
+    plugin_ = &plugin;
+    missingOps_.clear();
+    if (!plugin_->hasSDIV()) missingOps_.insert(std::make_pair(llvm::ISD::SDIV, MVT::i32));
+    if (!plugin_->hasUDIV()) missingOps_.insert(std::make_pair(llvm::ISD::UDIV, MVT::i32));
+    if (!plugin_->hasSREM()) missingOps_.insert(std::make_pair(llvm::ISD::SREM, MVT::i32));
+    if (!plugin_->hasUREM()) missingOps_.insert(std::make_pair(llvm::ISD::UREM, MVT::i32));
+    if (!plugin_->hasMUL()) missingOps_.insert(std::make_pair(llvm::ISD::MUL, MVT::i32));
+    if (!plugin_->hasROTL()) missingOps_.insert(std::make_pair(llvm::ISD::ROTL, MVT::i32));
+    if (!plugin_->hasROTR()) missingOps_.insert(std::make_pair(llvm::ISD::ROTR, MVT::i32));
+
+    if (!plugin_->hasSXHW()) missingOps_.insert(
+        std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i16));
+
+    if (!plugin_->hasSXQW()) missingOps_.insert(
+	std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i8));
+
+    // register machine to plugin
+    plugin_->registerTargetMachine(*this);
+}
+
+
 /**
  * Checks how well target triple from llvm-gcc matches with this architecture.
- */
 unsigned 
 TCETargetMachine::getModuleMatchQuality(const Module &M) {
     std::string TT = M.getTargetTriple();
     if (TT.size() >= 4 && std::string(TT.begin(), TT.begin()+4) == "tce-") {
         return 20;
     }
-
     return 0;
 }
+ */
 
 /**
  * Creates an instruction selector instance.
@@ -123,7 +139,7 @@ TCETargetMachine::getModuleMatchQuality(const Module &M) {
  */
 bool
 TCETargetMachine::addInstSelector(FunctionPassManager& pm, bool /* fast */) {
-    FunctionPass* isel = plugin_.createISelPass(this);
+    FunctionPass* isel = plugin_->createISelPass(this);
     pm.add(isel);
     return false;
 }
@@ -134,7 +150,7 @@ TCETargetMachine::addInstSelector(FunctionPassManager& pm, bool /* fast */) {
 TTAMachine::Machine*
 TCETargetMachine::createMachine() {
     ADFSerializer serializer;
-    serializer.setSourceString(*plugin_.adfXML());
+    serializer.setSourceString(*plugin_->adfXML());
     return serializer.readMachine();
 }
 

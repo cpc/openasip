@@ -73,12 +73,15 @@
 #include "llvm/Target/TargetData.h"
 #include "llvm/Target/TargetLowering.h"
 #include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetInstrDesc.h"
 
 #include "MapTools.hh"
 #include "StringTools.hh"
 #include "Operation.hh"
 #include "OperationPool.hh"
+
+#include "TCETargetMachine.hh"
 
 #include "tce_config.h"
 
@@ -199,7 +202,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
     for (Module::const_global_iterator i = m.global_begin();
          i != m.global_end(); i++) {
 
-        std::string name = mang_->getValueName(i);
+        std::string name = mang_->getMangledName(i);
 
         if (name == END_SYMBOL_NAME) {
             // Skip original _end symbol.
@@ -222,7 +225,8 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         std::cerr << "MARKER: " 
                   << def.name 
                   << ":" << def.alignment << ":" << def.size 
-                  << " int16 pref align:" << (int)td->getPrefTypeAlignment(Type::Int16Ty) << std::endl;
+                  << " int16 pref align:" 
+                  << (int)td->getPrefTypeAlignment(Type::getInt16Ty(getGlobalContext())) << std::endl;
         type->dump();
 
         assert(def.alignment != 0);
@@ -323,7 +327,7 @@ LLVMPOMBuilder::emitDataDef(const DataDef& def) {
         for (Module::const_global_iterator i = mod_->global_begin();
              i != mod_->global_end(); i++) {
 
-            if (def.name == mang_->getValueName(i)) {
+            if (def.name == mang_->getMangledName(i)) {
                 var = i;
                 break;
             }
@@ -533,7 +537,7 @@ LLVMPOMBuilder::createGlobalValueDataDefinition(
     unsigned sz = tm_.getTargetData()->getTypeStoreSize(type);
     
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
-    std::string label = mang_->getValueName(gv);
+    std::string label = mang_->getMangledName(gv);
 
     TTAProgram::Address start(addr, *dataAddressSpace_);
 
@@ -638,7 +642,7 @@ LLVMPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
     if (mf.begin() == mf.end()) return true;
 
 
-    std::string fnName = mang_->getValueName(mf.getFunction());
+    std::string fnName = mang_->getMangledName(mf.getFunction());
 
     emitConstantPool(*mf.getConstantPool());
 
@@ -917,8 +921,8 @@ LLVMPOMBuilder::emitInstruction(
         TTAProgram::Terminal* dst = NULL;
         if (!mo.isReg() || mo.isUse()) {
             if (useOps.empty()) {
-                DOUT << " WARNING: Skipping input operand "
-                     << o << " for " << opName << std::endl;
+                errs() << " WARNING: Skipping input operand "
+                       << o << " for " << opName << "\n";
                 continue;
             }
             int opNum = *useOps.begin();
@@ -940,8 +944,8 @@ LLVMPOMBuilder::emitInstruction(
 
         } else {
             if (defOps.empty()) {
-                DOUT << " WARNING: Skipping output operand "
-                     << o << " for " << opName << std::endl;
+                errs() << " WARNING: Skipping output operand "
+                       << o << " for " << opName << "\n";
                 continue;
             }
             int opNum = *defOps.begin();
@@ -1022,7 +1026,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         std::string rfName = tm_.rfName(dRegNum);
         int idx = tm_.registerIndex(dRegNum);
         if (!mach_->registerFileNavigator().hasItem(rfName)) {
-            std::cerr << "regfile: " << rfName << " not found!" << std::endl;
+            std::cerr << "regfile: " << rfName << " not found!" << "\n";
         }
 
         assert(mach_->registerFileNavigator().hasItem(rfName));
@@ -1059,7 +1063,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         return ref;
     } else if (mo.isFI()) {
         std::cerr << " Frame index source operand NOT IMPLEMENTED!"
-                  << std::endl;
+                  << "\n";
         assert(false); 
     } else if (mo.isCPI()) {
         int width = 32; // FIXME
@@ -1072,7 +1076,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
         return new TTAProgram::TerminalImmediate(cpeAddr);
     } else if (mo.isGlobal()) {
-        std::string name = mang_->getValueName(mo.getGlobal());
+        std::string name = mang_->getMangledName(mo.getGlobal());
         if (name == "_end") {
             return &TTAProgram::NullTerminal::instance();
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
@@ -1093,8 +1097,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
             return ref;
         }
     } else if (mo.isJTI()) {
-        std::cerr << " Jump table index operand NOT IMPLEMENTED!"
-                  << std::endl;
+        std::cerr << " Jump table index operand NOT IMPLEMENTED!\n";
         assert(false);
     } else if (mo.isSymbol()) {
         //} else if (mo.isExternalSymbol()) {        
@@ -1108,7 +1111,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
          *       Should be removed after fix is applied to llvm.. (maybe never...)
          */ 
 
-        std::string name = mang_->makeNameProper(mo.getSymbolName(), "_");
+        std::string name = mang_->makeNameProper(mo.getSymbolName());
 
         std::cerr << "TCE proper name: " << name << std::endl;
 
@@ -1320,7 +1323,7 @@ llvm::createLLVMPOMBuilderPass(
  */
 std::string
 LLVMPOMBuilder::mbbName(const MachineBasicBlock& mbb) {
-    std::string name = mang_->getValueName(mbb.getParent()->getFunction());
+    std::string name = mang_->getMangledName(mbb.getParent()->getFunction());
     name += " ";
     name += Conversion::toString(mbb.getNumber());
     return name;

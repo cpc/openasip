@@ -53,6 +53,7 @@ namespace llvm {
 
 class InterPassData;
 
+
 /**
  * LLVM compiler backend and compiler interface for TCE.
  */
@@ -122,6 +123,7 @@ private:
 
     static const std::string PLUGIN_PREFIX;
     static const std::string PLUGIN_SUFFIX;
+
 };
 
 #endif
