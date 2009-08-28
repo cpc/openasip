@@ -63,6 +63,7 @@ Binary::~Binary() {
         sections_[sections_.size() - 1] = NULL;
         sections_.pop_back();
     }
+    SafePointer::cleanup();
 }
 
 }
