@@ -4,6 +4,8 @@
 New features
 ------------
 - Sign extension operations are not required anymore.
+- Program Image Generator supports MIF-format (Memory
+  Initialization File) used by Altera.
 
 Bugfixes
 --------
