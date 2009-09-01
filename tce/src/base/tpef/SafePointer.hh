@@ -324,16 +324,16 @@ private:
     SafePointable* object_;
 
     /// Map of SafePointers that are requested using SectionIndexKeys.
-    static SectionIndexMap sectionIndexMap_;
+    static SectionIndexMap* sectionIndexMap_;
 
     /// Map of SafePointers that are requested using SectionOffsetKeys.
-    static SectionOffsetMap sectionOffsetMap_;
+    static SectionOffsetMap* sectionOffsetMap_;
 
     /// Map of SafePointers that are requested using FileOffsetKeys.
-    static FileOffsetMap fileOffsetMap_;
+    static FileOffsetMap* fileOffsetMap_;
 
     /// Map of SafePointers that are requested using SectionKeys.
-    static SectionMap sectionMap_;
+    static SectionMap* sectionMap_;
 
     /// Map of SafePointers that have resolved references.
     static ReferenceMap* referenceMap_;
