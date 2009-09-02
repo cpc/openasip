@@ -293,7 +293,7 @@ SafePointer::genericKeyFor(const SafePointable* obj, MapType& sourceMap)
     KeyForCacheKey cacheKey(obj, &sourceMap);
 
     // add stuff of requested map to cache if necessary
-    if (!MapTools::containsKey(keyForCache_, cacheKey)) {
+    if (!MapTools::containsKey(*keyForCache_, cacheKey)) {
 
         // add resolved source map elements to cache
         typename MapType::const_iterator i = sourceMap.begin();
@@ -305,7 +305,7 @@ SafePointer::genericKeyFor(const SafePointable* obj, MapType& sourceMap)
             spList->reference() != NULL) {
 
             KeyForCacheKey addKey(spList->reference(), &sourceMap);
-            keyForCache_[addKey] = &(*i).first;
+            (*keyForCache_)[addKey] = &(*i).first;
 
             // keys are connected to the object with the SafePointerList
             //		SafePointerList* theList =
@@ -319,7 +319,7 @@ SafePointer::genericKeyFor(const SafePointable* obj, MapType& sourceMap)
 
     const KeyType *returnKey =
         dynamic_cast<const KeyType*>(
-            MapTools::valueForKey<const ReferenceKey*>(keyForCache_, cacheKey));
+            MapTools::valueForKey<const ReferenceKey*>(*keyForCache_, cacheKey));
 
     return *returnKey;
 

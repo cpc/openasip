@@ -54,12 +54,17 @@ namespace TPEF {
 namespace ReferenceManager {
 
 // static member variable initialization
+// These need to be pointers to be able to call SafePointer::cleanup()
+// safely from ~Binary() (which can be from global objects aswell).
+// Otherwise these globals can be freed before the global Binary is 
+// causing invalid free() calls.
 SectionIndexMap* SafePointer::sectionIndexMap_ = new SectionIndexMap;
 SectionOffsetMap* SafePointer::sectionOffsetMap_ = new SectionOffsetMap;
 FileOffsetMap* SafePointer::fileOffsetMap_ = new FileOffsetMap;
 SectionMap* SafePointer::sectionMap_= new SectionMap;
 
-SafePointer::KeyForCacheMap SafePointer::keyForCache_;
+SafePointer::KeyForCacheMap* SafePointer::keyForCache_ = 
+    new SafePointer::KeyForCacheMap;
 
 // These are constructed to heap to make sure they are not
 // destructed before any global or static object.
@@ -665,7 +670,7 @@ SafePointer::cleanupKeyTables() {
     AssocTools::deleteAllItems(listsToDelete);
 
     // clear keyForCache...
-    keyForCache_.clear();
+    keyForCache_->clear();
 }
 
 /**
