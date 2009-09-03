@@ -1012,9 +1012,8 @@ diff -crN llvm-gcc4.2-2.5.source/gcc/config.gcc llvm-gcc4.2-2.5.withtce/gcc/conf
   v850e1-*-*)
   	target_cpu_default="TARGET_CPU_v850e1"
   	tm_file="dbxelf.h elfos.h svr4.h v850/v850.h"
-diff -crN llvm-gcc4.2-2.5.source/gcc/Makefile.in llvm-gcc4.2-2.5.withtce/gcc/Makefile.in
-*** llvm-gcc4.2-2.5.source/gcc/Makefile.in	2009-01-19 04:35:27.000000000 +0200
---- llvm-gcc4.2-2.5.withtce/gcc/Makefile.in	2009-03-26 11:13:31.000000000 +0200
+*** llvm-gcc4.2-2.5.source.dontpatch/gcc/Makefile.in	2009-01-19 04:35:27.000000000 +0200
+--- llvm-gcc4.2-2.5.source/gcc/Makefile.in		2009-09-03 22:46:58.000000000 +0300
 ***************
 *** 395,401 ****
       if [ "$(host)" = "$(target)" ] ; then \
@@ -1033,8 +1032,42 @@ diff -crN llvm-gcc4.2-2.5.source/gcc/Makefile.in llvm-gcc4.2-2.5.withtce/gcc/Mak
     fi)
   AR_FLAGS_FOR_TARGET =
 ***************
+*** 936,950 ****
+       $(CPPINC) $(GMPINC) $(DECNUMINC)
+  
+  # LLVM LOCAL begin
+- ifneq ($(LLVMOBJDIR),)
+- # If LLVM is built srcdir != objdir, include the objdir headers for configured
+- # headers, like DataTypes.h.
+- ifneq ($(LLVMOBJDIR),$(LLVMSRCDIR))
+- INCLUDES += -I$(LLVMOBJDIR)/include
+- endif
+  
+! INCLUDES += -I$(LLVMSRCDIR)/include
+! endif
+  # LLVM LOCAL end
+  .c.o:
+	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $< $(OUTPUT_OPTION)
+--- 936,951 ----
+       $(CPPINC) $(GMPINC) $(DECNUMINC)
+  
+  # LLVM LOCAL begin
+  
+! # e.g. llvm-2.5 debian packages has includes and libraries installed 
+! # from different prefix so to be able to compile llvm-gcc towards
+! # debian packages ask where correct includes are found from llvm-config
+! 
+! # also remove extra llvm postfix from includedir, because llvm-config
+! # on debian seems to return /usr/include/llvm instead /usr/include
+! LLVMINCLUDEDIR = $(shell $(LLVMBINPATH)/llvm-config --includedir | sed -e 's,include/llvm$$,include,')
+! INCLUDES += -I$(LLVMINCLUDEDIR)
+! 
+  # LLVM LOCAL end
+  .c.o:
+	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $< $(OUTPUT_OPTION)
+***************
 *** 1147,1152 ****
---- 1147,1153 ----
+--- 1148,1154 ----
       sparc-*-*) echo sparc;; \
       sparcv9-*-*) echo sparc;; \
       spu-*-*) echo cellspu;; \
@@ -1044,7 +1077,7 @@ diff -crN llvm-gcc4.2-2.5.source/gcc/Makefile.in llvm-gcc4.2-2.5.withtce/gcc/Mak
   
 ***************
 *** 1154,1159 ****
---- 1155,1166 ----
+--- 1156,1167 ----
   $(error Unsuported LLVM Target $(target))
   endif
   
@@ -1057,3 +1090,36 @@ diff -crN llvm-gcc4.2-2.5.source/gcc/Makefile.in llvm-gcc4.2-2.5.withtce/gcc/Mak
   # If in BUILD_LLVM_INTO_A_DYLIB mode, always link in the x86/ppc backends.
   # See below for more details.
   ifdef BUILD_LLVM_INTO_A_DYLIB
+***************
+*** 2918,2932 ****
+  # LLVM LOCAL begin
+  llvm-main.o : llvm-main.cpp $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) toplev.h
+  llvm-symbol-stubs.o : llvm-symbol-stubs.cpp
+! LLVM_HEADERS := $(wildcard $(LLVMSRCDIR)/include/llvm/*) \
+!                 $(wildcard $(LLVMSRCDIR)/include/llvm/*/*)
+  
+  ALL_HEADERS := $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) \
+              llvm.h llvm-internal.h llvm-file-ostream.h llvm-abi.h llvm-debug.h \
+              $(LLVM_HEADERS)
+  llvm-backend.o : llvm-backend.cpp $(ALL_HEADERS)
+  llvm-convert.o : llvm-convert.cpp $(ALL_HEADERS) \
+!                  $(LLVMOBJDIR)/include/llvm/Intrinsics.gen
+  llvm-types.o : llvm-types.cpp $(ALL_HEADERS)
+  llvm-debug.o : llvm-debug.cpp $(ALL_HEADERS)
+  # LLVM LOCAL end
+--- 2926,2940 ----
+  # LLVM LOCAL begin
+  llvm-main.o : llvm-main.cpp $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) toplev.h
+  llvm-symbol-stubs.o : llvm-symbol-stubs.cpp
+! LLVM_HEADERS := $(wildcard $(LLVMINCLUDEDIR)/llvm/*) \
+!                 $(wildcard $(LLVMINCLUDEDIR)/llvm/*/*)
+  
+  ALL_HEADERS := $(CONFIG_H) $(SYSTEM_H) coretypes.h $(TM_H) \
+              llvm.h llvm-internal.h llvm-file-ostream.h llvm-abi.h llvm-debug.h \
+              $(LLVM_HEADERS)
+  llvm-backend.o : llvm-backend.cpp $(ALL_HEADERS)
+  llvm-convert.o : llvm-convert.cpp $(ALL_HEADERS) \
+!                  $(LLVMINCLUDEDIR)/llvm/Intrinsics.gen
+  llvm-types.o : llvm-types.cpp $(ALL_HEADERS)
+  llvm-debug.o : llvm-debug.cpp $(ALL_HEADERS)
+  # LLVM LOCAL end
