@@ -91,7 +91,7 @@ diff -crN llvm-gcc4.2-2.5.source/gcc/config/tce/tce.h llvm-gcc4.2-2.5.withtce/gc
 --- llvm-gcc4.2-2.5.withtce/gcc/config/tce/tce.h	2009-03-25 16:02:11.000000000 +0200
 ***************
 *** 0 ****
---- 1,843 ----
+--- 1,851 ----
 + /*
 + Definitions of TCE target 
 + Mikael Lepistö (mikael.lepisto@tut.fi)
