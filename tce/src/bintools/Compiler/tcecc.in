@@ -678,20 +678,20 @@ if runningInstalled:
     lowerintrinsicsplugin = os.path.join(tceprefix,"lib/tce/LowerIntrinsics.so")
     newlib_libdir = os.path.join(tceprefix,"tce-llvm/lib")
     newlib_includes = "-isystem " + os.path.join(tceprefix,"tce-llvm/include") + " "
-    srcRoot = None
+    #srcRoot = None
 else:
-    srcRoot = scriptDir.split('bintools/Compiler')[0]
-    lowerintrinsicsplugin = os.path.join(srcRoot, "applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so")
-    newlib_libdir = os.path.join(srcRoot,"../newlib-1.17.0/tce-llvm/newlib")
-    newlib_includes = ("-isystem " + os.path.join(srcRoot,"../newlib-1.17.0/tce-llvm/newlib/targ-include") +
-                       " -isystem " + os.path.join(srcRoot,"../newlib-1.17.0/newlib/libc/include") +
-                       " -isystem " + os.path.join(srcRoot,"../newlib-1.17.0/newlib/libm/include") + " ")
+    #srcRoot = scriptDir.split('bintools/Compiler')[0]
+    lowerintrinsicsplugin = os.path.join("@abs_top_builddir@", "src/applibs/LLVMBackend/passes/.libs/LowerIntrinsics.so")
+    newlib_libdir = os.path.join("@abs_top_builddir@","newlib-1.17.0/tce-llvm/newlib")
+    newlib_includes = ("-isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/tce-llvm/newlib/targ-include") +
+                       " -isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libc/include") +
+                       " -isystem " + os.path.join("@abs_top_srcdir@","newlib-1.17.0/newlib/libm/include") + " ")
 
 if options.verbose:
     if runningInstalled:
         print "Running installed TCE from PATH."    
     else:
-        print "Running from a TCE source tree rooted at '%s'." % srcRoot
+        print "Running from a TCE build tree rooted at '%s'." % "@abs_top_builddir@"
     
     
 namePrefix = tempDir + "/" + os.path.basename(outputName)
@@ -713,7 +713,7 @@ else:
     if runningInstalled:
         tceopgen = "tceopgen"
     else:
-        tceopgen = srcRoot + "/bintools/Compiler/tceopgen/tceopgen"
+        tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceopgen"
         
     (exitCode, output) = runCommand(
         tceopgen + " -o " + tempDir + "/tceops.h" , options.verbose)
@@ -779,13 +779,13 @@ if options.adf_file != "":
                                         "/share/tce/scheduler/passes/" +
                                         scheduler_config_file_name)
         else:
-            options.scheduler_config = os.path.normpath(srcRoot +
-                                                        "../scheduler/passes/" +
+            options.scheduler_config = os.path.normpath("@abs_top_srcdir@" +
+                                                        "scheduler/passes/" +
                                                         scheduler_config_file_name)
 
     #### Compile to unscheduled mixed code for the target architecture
     if not runningInstalled:
-        command = srcRoot + "/bintools/Compiler/llvm-tce/llvm-tce"
+        command = "@abs_top_builddir@" + "/src/bintools/Compiler/llvm-tce/llvm-tce"
     else:
         command = "llvm-tce"
 
