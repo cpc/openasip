@@ -780,7 +780,7 @@ if options.adf_file != "":
                                         scheduler_config_file_name)
         else:
             options.scheduler_config = os.path.normpath("@abs_top_srcdir@" +
-                                                        "scheduler/passes/" +
+                                                        "/scheduler/passes/" +
                                                         scheduler_config_file_name)
 
     #### Compile to unscheduled mixed code for the target architecture
