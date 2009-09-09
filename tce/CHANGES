@@ -27,6 +27,7 @@ Bugfixes
 - Simulator on quick mode could fail if some result is never read.
 - Simulator could fail to load some programs.
 - Memory leak fixes.
+- Toplevel busy signal now locks the core properly
 
 1.0 first public release, 2009-03-26
 ====================================
