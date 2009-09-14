@@ -79,6 +79,15 @@ namespace TPEF {
  */
 class SimulatorFrontend {
 public:
+
+    /// The severities of runtime errors.
+    typedef enum {
+        RES_MINOR, ///< Minor runtime error, no abort necessary.
+        RES_FATAL  ///< Fatal runtime error, there is a serious error in the
+                   /// simulated program, thus it makes no sense to go on
+                   /// with the simulation.
+    } RuntimeErrorSeverity;
+
     SimulatorFrontend(bool useCompiledSimulation = false);
     virtual ~SimulatorFrontend();
 
@@ -226,6 +235,14 @@ public:
     SimulationEventHandler& eventHandler();
 
     double lastRunTime() const;
+
+    void reportSimulatedProgramError(
+        RuntimeErrorSeverity severity, const std::string& description);
+    std::string programErrorReport(
+        RuntimeErrorSeverity severity, std::size_t index);
+    std::size_t programErrorReportCount(
+        RuntimeErrorSeverity severity);
+    void clearProgramErrorReports();
     
     friend void timeoutThread(unsigned int timeout, SimulatorFrontend* simFE);
 
@@ -241,6 +258,12 @@ protected:
 
     void startTimer();
     void stopTimer();
+
+    /// A type for storing a program error description.
+    typedef std::pair<RuntimeErrorSeverity, std::string>
+    ProgramErrorDescription;
+    /// Container for simulated program error descriptions.
+    typedef std::vector<ProgramErrorDescription> ProgramErrorDescriptionList;
     
     /// Machine to run simulation with.
     const TTAMachine::Machine* currentMachine_;
@@ -336,5 +359,7 @@ protected:
     CycleCount startCycleCount_;
     /// Simulation timeout in seconds
     unsigned int simulationTimeout_;
+    /// Runtime error reports.
+    ProgramErrorDescriptionList programErrorReports_;
 };
 #endif

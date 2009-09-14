@@ -27,7 +27,7 @@
  * Definition of SimulationController class.
  *
  * @author Jussi Nyk‰nen 2005 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005-2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -57,7 +57,6 @@
 #include "ASpaceElement.hh"
 #include "Instruction.hh"
 #include "Procedure.hh"
-#include "SimulatorToolbox.hh"
 #include "SimulationEventHandler.hh"
 #include "Move.hh"
 #include "Terminal.hh"
@@ -94,8 +93,8 @@ SimulationController::SimulationController(
     bool fuResourceConflictDetection,
     bool memoryAccessTracking,
     bool directAccessMemory) :
-    TTASimulationController(frontend, machine, program, memoryAccessTracking, 
-        directAccessMemory),
+    TTASimulationController(
+        frontend, machine, program, memoryAccessTracking, directAccessMemory),
     machineState_(NULL), gcu_(NULL) {
 
     MachineStateBuilder builder;
@@ -217,9 +216,8 @@ SimulationController::simulateCycle() {
         }
 
     } catch (const Exception& e) {
-        SimulatorToolbox::reportSimulatedProgramError(
-            frontend_.eventHandler(),
-            SimulatorToolbox::RES_FATAL,
+        frontend_.reportSimulatedProgramError(
+            SimulatorFrontend::RES_FATAL,
             e.errorMessage());
         prepareToStop(SRE_RUNTIME_ERROR);
         return false;

@@ -28,7 +28,7 @@
  *
  * The command line version of the TTA Simulator.
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005-2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -71,9 +71,8 @@ public:
     /**
      * Stops the simulation.
      */
-    virtual void execute(int data, siginfo_t *info) {
+    virtual void execute(int /*data*/, siginfo_t* /*info*/) {
         target_.prepareToStop(SRE_USER_REQUESTED);
-        if (data || info) {}
     }
 private:
     /// Simulator frontend to use when stopping the simulation.
@@ -124,9 +123,8 @@ public:
         }
     
         target_.prepareToStop(SRE_RUNTIME_ERROR);
-        SimulatorToolbox::reportSimulatedProgramError(
-            target_.eventHandler(),
-            SimulatorToolbox::RES_FATAL, msg);
+        target_.reportSimulatedProgramError(
+            SimulatorFrontend::RES_FATAL, msg);
        
         throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__, msg);
     }
@@ -161,9 +159,8 @@ public:
         std::string msg("Invalid memory reference");
              
         target_.prepareToStop(SRE_RUNTIME_ERROR);
-        SimulatorToolbox::reportSimulatedProgramError(
-            target_.eventHandler(),
-            SimulatorToolbox::RES_FATAL, msg);
+        target_.reportSimulatedProgramError(
+            SimulatorFrontend::RES_FATAL, msg);
        
         throw SimulationExecutionError(__FILE__, __LINE__, __FUNCTION__, msg);
     }
@@ -204,18 +201,18 @@ public:
      * @todo TextGenerator.
      */
     virtual void handleEvent() {
-        size_t minorErrors = SimulatorToolbox::programErrorReportCount(
-            SimulatorToolbox::RES_MINOR);
-        size_t fatalErrors = SimulatorToolbox::programErrorReportCount(
-            SimulatorToolbox::RES_FATAL);
+        size_t minorErrors = target_.programErrorReportCount(
+            SimulatorFrontend::RES_MINOR);
+        size_t fatalErrors = target_.programErrorReportCount(
+            SimulatorFrontend::RES_FATAL);
         InstructionAddress currentPC = target_.programCounter();
         InstructionAddress lastPC = target_.lastExecutedInstruction();
 
         if (minorErrors > 0) {
             for (size_t i = 0; i < minorErrors; ++i) {
                 std::cerr << "warning: runtime error: "
-                          << SimulatorToolbox::programErrorReport(
-                              SimulatorToolbox::RES_MINOR, i)
+                          << target_.programErrorReport(
+                              SimulatorFrontend::RES_MINOR, i)
                           << std::endl;
             }
         }
@@ -223,8 +220,8 @@ public:
         if (fatalErrors > 0) {
             for (size_t i = 0; i < fatalErrors; ++i) {
                 std::cerr << "error: runtime error: "
-                          << SimulatorToolbox::programErrorReport(
-                              SimulatorToolbox::RES_FATAL, i) 
+                          << target_.programErrorReport(
+                              SimulatorFrontend::RES_FATAL, i) 
                           << std::endl;
             }
             target_.prepareToStop(SRE_RUNTIME_ERROR);
@@ -232,7 +229,7 @@ public:
         std::cerr 
             << "Current PC: " << currentPC << " last PC: " << lastPC
             << std::endl;
-        SimulatorToolbox::clearProgramErrorReports();
+        target_.clearProgramErrorReports();
     }
 
 private:

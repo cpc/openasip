@@ -45,6 +45,7 @@
 #include "Instruction.hh"
 #include "MathTools.hh"
 #include "Program.hh"
+#include "SimulationEventHandler.hh"
 
 using std::endl;
 using namespace TTAMachine;

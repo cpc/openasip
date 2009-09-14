@@ -92,6 +92,7 @@
 #include "DataDefinition.hh"
 #include "CompiledSimController.hh"
 #include "CompiledSimUtilizationStats.hh"
+#include "SimulationEventHandler.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -155,9 +156,7 @@ SimulatorFrontend::~SimulatorFrontend() {
     lastTraceDB_ = NULL;
     delete eventHandler_;
     eventHandler_ = NULL;
-
-    SimulatorToolbox::clearAll();
-    SimulatorToolbox::clearProgramErrorReports();
+    clearProgramErrorReports();
 }
 
 /**
@@ -2178,3 +2177,73 @@ SimulatorFrontend::lastRunTime() const {
     return lastRunTime_;
 }
 
+/**
+ * This method is used to report a runtime error detected in 
+ * the simulated program.
+ *
+ * An SE_RUNTIME_ERROR event is announced after storing the report.
+ *
+ * @param eventHandler Simulation event handler for the error
+ * @param severity Severity classification of the runtime error.
+ * @param description Textual description of the error.
+ */
+void
+SimulatorFrontend::reportSimulatedProgramError(
+    RuntimeErrorSeverity severity, const std::string& description) {
+    ProgramErrorDescription report;
+    report.first = severity;
+    report.second = description;
+    programErrorReports_.push_back(report);
+    eventHandler().handleEvent(SimulationEventHandler::SE_RUNTIME_ERROR);
+}
+
+/**
+ * Returns a program error report with given severity and index.
+ *
+ * @param severity Severity.
+ * @param index Index.
+ * @return The error report text.
+ */
+std::string
+SimulatorFrontend::programErrorReport(
+    RuntimeErrorSeverity severity, std::size_t index) {
+
+    size_t count = 0;
+    for (ProgramErrorDescriptionList::iterator i = 
+             programErrorReports_.begin(); i != programErrorReports_.end();
+         ++i) {
+        if ((*i).first == severity) {
+            if (count == index)
+                return (*i).second;
+            ++count;
+        }
+    }
+    return "";
+}
+
+/**
+ * Returns the count of program error reports with given severity.
+ *
+ * @param severity The error report severity interested in.
+ * @return The count of error reports.
+ */
+std::size_t 
+SimulatorFrontend::programErrorReportCount(
+    RuntimeErrorSeverity severity) {
+    size_t count = 0;
+    for (ProgramErrorDescriptionList::iterator i = 
+             programErrorReports_.begin(); i != programErrorReports_.end();
+         ++i) {
+        if ((*i).first == severity)
+            ++count;
+    }
+    return count;
+}
+
+/**
+ * Clears the runtime error report list.
+ */
+void 
+SimulatorFrontend::clearProgramErrorReports() {
+    programErrorReports_.clear();
+}
