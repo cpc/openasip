@@ -194,6 +194,13 @@ LLVMPOMBuilder::doInitialization(Module& m) {
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
 
+    // Avoid placing data to address 0, it may break some null pointer
+    // tests.
+    // Waste some valuable byte of memory
+    if (end_ == 0) {
+        end_++;
+    }
+
     const TargetData* td = tm_.getTargetData();
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
 
