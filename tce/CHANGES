@@ -28,6 +28,7 @@ Bugfixes
 - Simulator could fail to load some programs.
 - Memory leak fixes.
 - Toplevel busy signal now locks the core properly.
+- Avoids placing data at address 0 because it is indistinguishable from NULL.
 
 1.0 first public release, 2009-03-26
 ====================================
