@@ -244,7 +244,8 @@ private:
  * @param interpreter Interpreter to use.
  * @param scriptString Script string to execute.
  */
-void interpreteAndPrintResults(
+void 
+interpreteAndPrintResults(
     SimulatorInterpreter& interpreter, const std::string& scriptString) {
     interpreter.interpret(scriptString);
     if (interpreter.result().size() > 0)

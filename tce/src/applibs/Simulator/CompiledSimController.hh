@@ -53,7 +53,8 @@ public:
     CompiledSimController(
         SimulatorFrontend& frontend,
         const TTAMachine::Machine& machine, 
-        const TTAProgram::Program& program);
+        const TTAProgram::Program& program,
+        bool leaveDirty=false);
 
     virtual ~CompiledSimController();
 

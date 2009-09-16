@@ -150,6 +150,7 @@ private:
     void findBasicBlocks() const;
     void generateProcedureCode(const TTAProgram::Procedure& procedure);
     void generateShutdownCode(InstructionAddress address);
+    void generateFUOutputUpdater();
     void generateSimulationGetter();
     std::string generateHaltCode(const std::string& message="");
     void generateAdvanceClockCode();

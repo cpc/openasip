@@ -93,6 +93,9 @@ public:
     virtual void reset() {}
     virtual void fillWithZeros();
 
+    void write(Word address, int count, UIntWord data);
+
+
     using Memory::write;
     using Memory::read;
 

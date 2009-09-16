@@ -26,15 +26,18 @@ LIB_APPLIBS_MACH_DIR = ../../applibs/mach
 LIB_APPLIBS_SCHED_DIR = ../../applibs/Scheduler
 FSA_APPLIB_DIR = ../../applibs/FSA
 
-bin_PROGRAMS = ttasim
-ttasim_SOURCES = TTASim.cc SimulatorCmdLineOptions.cc
+bin_PROGRAMS = ttasim ttasim-tandem
 
+ttasim_SOURCES = TTASim.cc SimulatorCmdLineOptions.cc
 ttasim_LDADD = ../../libtce.la 
+
+ttasim_tandem_SOURCES = TTASimTandem.cc 
+ttasim_tandem_LDADD = ../../libtce.la 
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${OSAL_DIR} \
 	-I${SIM_APPLIB_DIR} -I${INT_APPLIB_DIR} -I${BASE_DIR} \
 	-I${MACH_DIR} -I$(PROGRAM_DIR) -I${APPLIBS_HDB_DIR} \
-	-I${APPLIBS_MACH_DIR} -I${APPLIBS_SCHED_DIR}
+	-I${APPLIBS_MACH_DIR} -I${APPLIBS_SCHED_DIR} -I${DISASM_DIR}
 AM_LDFLAGS = ${TCE_LDFLAGS}
 
 dist-hook:

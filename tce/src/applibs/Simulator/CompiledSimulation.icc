@@ -27,13 +27,16 @@
  * Inline definitions of CompiledSimulation class.
  *
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
 #include "Application.hh"
 
 /**
- * Adds a SimValue to the FU's results list; Used to simulate the FU latency
+ * Adds a SimValue to the FU's results list. 
+ *
+ * Used to simulate the FU latency.
  * 
  * @param results The FU results list
  * @param cycleCount # of cycles at the time of the addition
@@ -84,11 +87,13 @@ CompiledSimulation::addFUResult(
             return;
         }
     }
-    assert(0&&"Ringbuffer full!");
+    assert(0 && "Ringbuffer full!");
 }
 
 /**
- * Adds a UIntWord value to the FU's results; Used to simulate the FU latency
+ * Adds a UIntWord value to the FU's results.
+ *
+ * Used to simulate the FU latency.
  * 
  * @param results The FU results list
  * @param cycleCount # of cycles at the time of the addition
@@ -140,16 +145,19 @@ CompiledSimulation::addFUResult(
             return;
         }
     }
-    assert(0&&"Ringbuffer full!");
+    assert(0 && "Ringbuffer full!");
 }
 
 
 /**
- * Grabs values from the FU results list
+ * Grabs the current value from the FU results list.
+ *
+ * The current value is computed using the current cycle count, 
+ * discarding "too old" (overwritten) results.
  * 
- * @param target Target of the assignment
- * @param results The FU results to be checked for
- * @param cycles The current cyclecount
+ * @param target Target of the assignment.
+ * @param results The FU results to be checked for.
+ * @param cycles The current cyclecount.
  */
 void inline
 CompiledSimulation::FUResult(
@@ -177,7 +185,6 @@ CompiledSimulation::FUResult(
         }
     }
 }
-
 
 void inline
 CompiledSimulation::clearFUResults(FUResultType& results) {

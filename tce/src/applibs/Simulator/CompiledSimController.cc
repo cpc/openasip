@@ -57,12 +57,16 @@ using namespace TTAMachine;
  * @param frontend Simulator frontend
  * @param machine The machine model
  * @param program The program to be simulated
+ * @param leaveDirty Set to true in case the engine should not clean up the
+ *                   source files to the engine (in /tmp) after finishing,
+ *                   e.g., for debugging purposes.
  */
 CompiledSimController::CompiledSimController(
     SimulatorFrontend& frontend, const TTAMachine::Machine& machine, 
-    const TTAProgram::Program& program) : 
+    const TTAProgram::Program& program, bool leaveDirty) : 
     TTASimulationController(frontend, machine, program, false, true),
-    pluginTools_(true), compiledSimulationPath_(""), leaveDirty_(false) {
+    pluginTools_(true), compiledSimulationPath_(""), 
+    leaveDirty_(leaveDirty) {
     reset();
 }
 

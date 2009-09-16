@@ -27,6 +27,7 @@
  * Definition of CompiledSimulation class.
  *
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -354,7 +355,8 @@ CompiledSimulation::isFinished() const {
 }
 
 /**
- * Returns move execution count for move #moveNumber
+ * Returns move execution count for move #moveNumber.
+ *
  * @param moveNumber move number as in POM 
  * @return move execution count
  */
@@ -408,10 +410,13 @@ CompiledSimulation::functionUnit(const char* name) const {
  */
 DirectAccessMemory& 
 CompiledSimulation::FUMemory(const char* FUName) const {
-    assert (machine_.functionUnitNavigator().item(FUName)->addressSpace() 
-        != NULL);
-    return dynamic_cast<DirectAccessMemory&>(memorySystem()->memory(
-        *machine_.functionUnitNavigator().item(FUName)->addressSpace()));
+    assert(
+        machine_.functionUnitNavigator().item(FUName)->addressSpace() != NULL);
+    return 
+        dynamic_cast<DirectAccessMemory&>(
+            memorySystem()->memory(
+                *machine_.functionUnitNavigator().item(
+                    FUName)->addressSpace()));
 }
 
 /**

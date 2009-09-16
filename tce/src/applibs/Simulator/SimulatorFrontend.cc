@@ -119,7 +119,8 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
     staticCompilation_(true), traceFileNameSetByUser_(false), outputStream_(0),
     memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0), 
-    lastRunTime_(0.0), simulationTimeout_(0) {
+    lastRunTime_(0.0), simulationTimeout_(0), leaveCompiledDirty_(false) {
+
     if (compiledSimulation_) {
         setFUResourceConflictDetection(false); // disabled by default
         SimulatorToolbox::textGenerator().generateCompiledSimTexts();
@@ -625,14 +626,17 @@ SimulatorFrontend::initializeSimulation() {
     simCon_ = NULL;
 
     if (isCompiledSimulation()) {
-        simCon_ = new CompiledSimController(*this,
-            *currentMachine_, *currentProgram_);
+        simCon_ = 
+            new CompiledSimController(
+                *this, *currentMachine_, *currentProgram_, 
+                leaveCompiledDirty_);
     } else {
-        simCon_ = new SimulationController(*this,
-        *currentMachine_, *currentProgram_, fuResourceConflictDetection_,
-        memoryAccessTracking_);
-        machineState_ = &(dynamic_cast<SimulationController*>(
-            simCon_)->machineState());
+        simCon_ = 
+            new SimulationController(
+                *this, *currentMachine_, *currentProgram_, 
+                fuResourceConflictDetection_, memoryAccessTracking_);
+        machineState_ = 
+            &(dynamic_cast<SimulationController*>(simCon_)->machineState());
     }
         
     delete stopPointManager_;
@@ -665,7 +669,7 @@ SimulatorFrontend::findBooleanRegister()
         if (rf->width() == 1 && rf->numberOfRegisters() == 1) {
             RegisterFileState& rfState = 
                 machineState_->registerFileState(rf->name());
-	    return rfState.registerState(0);
+            return rfState.registerState(0);
         }
     }
 
@@ -901,8 +905,6 @@ StateData&
 SimulatorFrontend::state(std::string searchString) 
     throw (InstanceNotFound) {
 
-/// @todo Convert to message to use SimulatorTextGenerator, so text can
-/// be displayed in the UI.
     if (machineState_ == NULL || currentMachine_ == NULL) 
         throw InstanceNotFound(
             __FILE__, __LINE__, __func__, "State not found.");
@@ -2061,8 +2063,8 @@ SimulatorFrontend::utilizationStatistics() {
         } else {
             CompiledSimUtilizationStats* compiledSimUtilizationStats =
                 new CompiledSimUtilizationStats();
-            CompiledSimController& compiledSimCon = dynamic_cast<
-                CompiledSimController&>(*simCon_);
+            CompiledSimController& compiledSimCon = 
+                dynamic_cast<CompiledSimController&>(*simCon_);
             compiledSimUtilizationStats->calculate(program(), 
                 *compiledSimCon.compiledSimulation());
             utilizationStats_ = compiledSimUtilizationStats;

@@ -26,7 +26,7 @@
  *
  * Declaration of SimulatorFrontend class
  *
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005-2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -132,7 +132,8 @@ public:
 
     void prepareToStop(StopReason reason);
     unsigned int stopReasonCount() const;
-    StopReason stopReason(unsigned int index) const throw (OutOfRange);
+    StopReason stopReason(unsigned int index) const 
+        throw (OutOfRange);
     bool stoppedByUser() const;
     virtual void killSimulation();
 
@@ -148,6 +149,9 @@ public:
 
     bool isSequentialSimulation() const;
     bool isCompiledSimulation() const;
+    void setCompiledSimulationLeaveDirty(bool dirty) { 
+        leaveCompiledDirty_ = dirty;
+    }
 
     bool executionTracing() const;
     bool busTracing() const;
@@ -361,5 +365,8 @@ protected:
     unsigned int simulationTimeout_;
     /// Runtime error reports.
     ProgramErrorDescriptionList programErrorReports_;
+    /// True in case the compilation simulation should not cleanup at
+    /// destruction the engine source files.
+    bool leaveCompiledDirty_;
 };
 #endif

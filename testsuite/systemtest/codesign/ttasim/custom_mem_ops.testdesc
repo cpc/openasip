@@ -1,0 +1,10 @@
+<?php
+// short test description
+$test_description="simulation of a program using custom memory ops (used to be broken in qttasim)";
+
+// the binary being tested
+$test_bin = "../../../../tce/src/codesign/ttasim/ttasim";
+// args given to program
+$bin_args="-q -p data/custom_mem_ops.tpef -a data/custom_mem_ops.adf --no-debugmode";
+
+?>

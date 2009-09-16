@@ -3,6 +3,7 @@
 
   <operation>
     <name>ID</name>
+    <description/>
     <inputs>4</inputs>
     <outputs>4</outputs>
     <in id="1" type="SIntWord"/>
@@ -13,6 +14,33 @@
     <out id="6" type="SIntWord"/>
     <out id="7" type="SIntWord"/>
     <out id="8" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>WRITE_TEST</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <writes-memory/>
+    <side-effects/>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
+  </operation>
+
+  <operation>
+    <name>READ_TEST</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <reads-memory/>
+    <side-effects/>
+    <affects>
+      <operation name="WRITE_TEST"/>
+    </affects>
+    <in id="1" type="UIntWord">
+      <mem-address/>
+    </in>
   </operation>
 
 </osal>

@@ -103,6 +103,26 @@ DirectAccessMemory::write(Word address, Memory::MAU data) {
 }
 
 /**
+ * A convenience method for writing units of data to the memory.
+ *
+ * The data is stored in an UIntWord. 
+ *
+ * @param address The address to write.
+ * @param count Number of MAUs to write.
+ * @param data The data to write.
+ * @exception OutOfRange in case the address is out of range of the memory.
+ */
+void
+DirectAccessMemory::write(Word address, int count, UIntWord data) {
+    Memory::MAU MAUData[MAX_ACCESS_SIZE];
+    unpack(data, count, MAUData);
+
+    for (int i = address; i < address + count; ++i) {
+        fastWriteMAU(address, MAUData[i - address]);
+    }
+}
+
+/**
  * Reads a single MAU using the fastest possible method.
  *
  * @param address The address.

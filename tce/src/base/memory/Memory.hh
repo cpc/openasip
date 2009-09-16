@@ -98,14 +98,16 @@ public:
     virtual Word end() { return end_; }
     virtual Word MAUSize() { return MAUSize_; }
 
+protected:
+
+    void pack(const Memory::MAUTable data, int size, UIntWord& value);
+    void unpack(const UIntWord& value, int size, Memory::MAUTable data);
+
 private:
     /// Copying not allowed.
     Memory(const Memory&);
     /// Assignment not allowed.
     Memory& operator=(const Memory&);
-
-    void pack(const Memory::MAUTable data, int size, UIntWord& value);
-    void unpack(const UIntWord& value, int size, Memory::MAUTable data);
 
     void checkRange(Word startAddress, int numberOfMAUs);
 
