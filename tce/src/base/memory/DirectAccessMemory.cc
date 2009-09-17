@@ -117,7 +117,7 @@ DirectAccessMemory::write(Word address, int count, UIntWord data) {
     Memory::MAU MAUData[MAX_ACCESS_SIZE];
     unpack(data, count, MAUData);
 
-    for (int i = address; i < address + count; ++i) {
+    for (Word i = address; i < address + count; ++i) {
         fastWriteMAU(address, MAUData[i - address]);
     }
 }
