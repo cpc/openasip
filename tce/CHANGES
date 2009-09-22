@@ -35,6 +35,7 @@ Bugfixes
 - FU outputs are now updated when the compiled simulation is stopped to
   make the machine state correct for inspection.
 - Avoids placing data at address 0 because it is indistinguishable from NULL.
+- Operand type initialized correctly in osed operand editing dialog.
 
 1.0 first public release, 2009-03-26
 ====================================
