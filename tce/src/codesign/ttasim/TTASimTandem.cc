@@ -160,6 +160,9 @@ tandemSimulate(
             TTAMachine::FunctionUnit& fu = *fuNav.item(i);
 
             for (int port = 0; port < fu.portCount(); ++port) {
+                // skip output ports as compiled sim is not exact with them at BB boundaries
+                if (fu.port(port)->isOutput())
+                    continue; 
                 std::string portName = fu.port(port)->name();
                 DisassemblyFUPort portString(fu.name(), portName);
                 SimValue compiledReg = 

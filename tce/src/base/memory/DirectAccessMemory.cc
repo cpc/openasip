@@ -114,12 +114,11 @@ DirectAccessMemory::write(Word address, Memory::MAU data) {
  */
 void
 DirectAccessMemory::write(Word address, int count, UIntWord data) {
-    Memory::MAU MAUData[MAX_ACCESS_SIZE];
-    unpack(data, count, MAUData);
-
-    for (Word i = address; i < address + count; ++i) {
-        fastWriteMAU(address, MAUData[i - address]);
-    }
+    Memory::write(address, count,  data);
+    // compiled simulator does not call advance clock of
+    // memories at every cycle for efficiency, so we have
+    // to "flush" the writes right away
+    Memory::advanceClock();
 }
 
 /**
