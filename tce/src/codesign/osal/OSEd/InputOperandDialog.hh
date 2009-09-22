@@ -67,7 +67,7 @@ private:
     void onSelection(wxListEvent& event);
     void onOk(wxCommandEvent& event);
     void updateOperand();
-    void updateTypes();
+    void updateTypes(int type);
     void setTexts();
     
     /**
