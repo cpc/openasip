@@ -1066,12 +1066,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             move.destination(), move);
         
         lastGuardBool_.clear();
-        
-        if (!move.isUnconditional()) { // has a guard?
-            *os_ << handleGuard(move, move.isControlFlowMove());
-            endGuardBracket = true;
-        }
-        
+
         // increase move count if the move is guarded or it is an exit point
         if (!move.isUnconditional() || exitPoints_.find(
             instruction.address().location()) != exitPoints_.end()) {
@@ -1085,6 +1080,11 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
                     moveSource, symbolGen_.FUResultSymbol(move.source().port())) 
                 << endl;
             gotResults.insert(moveSource);
+        }
+        
+        if (!move.isUnconditional()) { // has a guard?
+            *os_ << handleGuard(move, move.isControlFlowMove());
+            endGuardBracket = true;
         }
         
         // Find all moves that depend on others i.e. those moves that have to
@@ -1278,7 +1278,9 @@ CompiledSimCodeGenerator::generateTriggerCode(
         return generateLoadTrigger(op);
     }
     OperationDAG* dag = &operationPool_.operation(op.name().c_str()).dag(0);
-    string simCode = OperationDAGConverter::createSimulationCode(*dag, &operands);
+
+    std::string simCode = 
+        OperationDAGConverter::createSimulationCode(*dag, &operands);
 
     for (int i = 1, tmp=1; op.port(i) != NULL; ++i) {
         if (op.port(i)->isOutput()) {
