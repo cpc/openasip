@@ -5,10 +5,6 @@ If you want working compiler and libc, before building tce you should
 build and install tce-llvm-gcc compiler. Instructions for doing so is
 found from tce-llvm-gcc/README.txt file.
 
-At first for generating configure script run:
-
-    ./gen_config.sh
-
 Building and installation with the help of autotools should be very easy. 
 First, to create Makefiles you have to run configure as follows:
 
@@ -41,7 +37,7 @@ Building the development version
 
 The development version does not ship with a pregenerated 'configure' script.
 In order to build the development version, one needs to generate the
-configure script by running './gen_config.sh' in the TCE root directory.
+configure script by running 'autoreconf -i --force' in the TCE root directory.
 For this to work you need to install packages 'libtool', 'automake1.9' and 
 'autoconf'.
 

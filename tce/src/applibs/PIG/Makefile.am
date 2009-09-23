@@ -4,7 +4,7 @@ libpig_la_SOURCES = AsciiImageWriter.cc \
 	InstructionBitVector.cc PIGTextGenerator.cc \
 	ProgramImageGenerator.cc RawImageWriter.cc \
 	AsciiProgramImageWriter.cc ArrayProgramImageWriter.cc \
-	ArrayImageWriter.cc
+	ArrayImageWriter.cc MifImageWriter.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src

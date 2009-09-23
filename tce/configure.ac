@@ -395,8 +395,8 @@ LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     2.5)
-     AC_DEFINE([LLVM_2_5], [], "Using LLVM v2.5")
+     2.6)
+     AC_DEFINE([LLVM_2_6], [], "Using LLVM v2.6")
    ;;
      *svn)
      AC_DEFINE([LLVM_SVN], [], "Using LLVM svn")
@@ -1277,15 +1277,18 @@ cd newlib-1.17.0;
 echo RANLIB_FOR_TARGET=llvm-ranlib \
 NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
 AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
+CFLAGS=-O2 \
 CXX_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
 CC_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
 RANLIB_FOR_TARGET=llvm-ranlib \
 NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
 AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
+CFLAGS=-O2 \
 CXX_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
 CC_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
-$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
+$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
+2>&1 | egrep -v "to force reconfigure";
 ])
 
 # Generate config.status and launch it. config.status then

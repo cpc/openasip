@@ -68,7 +68,8 @@ public:
     enum OutputFormat {
         BINARY, ///< Real binary format.
         ASCII, ///< ASCII 1's and 0's.
-        ARRAY ///< ASCII 1's and 0's in array form.
+        ARRAY, ///< ASCII 1's and 0's in array form.
+        MIF ///< MIF Memory Initialization File
     };
     typedef std::map<std::string, TPEF::Binary*> TPEFMap;
 

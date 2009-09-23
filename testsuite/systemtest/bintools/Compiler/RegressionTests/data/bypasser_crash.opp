@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<osal version="0.1">
+
+  <operation>
+    <name>MULT32S</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>MULT31S</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>MULT30S</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+  </operation>
+
+  <operation>
+    <name>MULT31_SHIFT15S</name>
+    <inputs>2</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="SIntWord"/>
+    <in id="2" type="SIntWord"/>
+    <out id="3" type="SIntWord"/>
+  </operation>
+
+</osal>

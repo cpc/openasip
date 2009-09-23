@@ -44,6 +44,7 @@ const std::string LLVMTCECmdLineOptions::SWL_DEBUG_FLAG = "debug";
 const std::string LLVMTCECmdLineOptions::SWL_OPT_LEVEL = "optimize";
 const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
 const std::string LLVMTCECmdLineOptions::VERBOSE_SWITCH = "verbose";
+const std::string LLVMTCECmdLineOptions::LEAVE_DIRTY = "d";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -87,6 +88,10 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() :
     addOption(
         new BoolCmdLineOptionParser(
             VERBOSE_SWITCH, "The verbose switch", "v"));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            LEAVE_DIRTY, "Do not remove temp files", LEAVE_DIRTY));
 
 }
 
@@ -204,6 +209,11 @@ LLVMTCECmdLineOptions::debugFlag() const {
         return true;
     }
     return false;
+}
+
+bool
+LLVMTCECmdLineOptions::leaveDirty() const {
+    return findOption(LEAVE_DIRTY)->isDefined();
 }
 
 /**

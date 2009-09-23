@@ -1,8 +1,15 @@
 1.x
 ===
 
+New features
+------------
+- Sign extension operations are not required anymore.
+
 Bugfixes
 --------
+- Scheduler could fail on machines with different short immediate widths
+  and only some busses guarded.
+- Random scheduler failures when software bypassing.
 - Operations with state on machines with trigger bound to operand which is
   not last operand could be scheduled incorrectly.
 - SimpleICOptimizer explorer plugin could remove connections that were used,

@@ -47,9 +47,10 @@ namespace TTAMachine {
 
 class PluginTools;
 
-namespace llvm {
+// just to be able to manually register tce target if needed.
+extern "C" void LLVMInitializeTCETargetInfo();
 
-    extern Target TheTCETarget;
+namespace llvm {
 
     class Module;
 
@@ -89,9 +90,8 @@ namespace llvm {
             return plugin_->getTargetLowering();
         }
         
-        virtual bool addInstSelector(FunctionPassManager& pm, bool fast);
-
-        static unsigned getModuleMatchQuality(const Module &M);
+        virtual bool addInstSelector(PassManagerBase& pm, 
+                                     CodeGenOpt::Level OptLevel);
 
         std::string operationName(unsigned opc) {
             return plugin_->operationName(opc);

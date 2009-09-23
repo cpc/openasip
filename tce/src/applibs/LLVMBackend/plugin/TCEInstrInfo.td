@@ -314,7 +314,7 @@ let isReturn = 1, isTerminator = 1, hasDelaySlot = 1 in {
 	"return-address -> jump.1; # RETURN", [(retflag)]>;
 }
 
-def : Pat<(ret), (RETL)>;
+// def : Pat<(ret), (RETL)>;
 
 // jump 
 let isTerminator = 1, isBranch = 1 in {

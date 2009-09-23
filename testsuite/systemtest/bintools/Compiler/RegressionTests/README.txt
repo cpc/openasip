@@ -1,1 +1,1 @@
-Tests for compiler old bugs that were fixed.
+Tests for bugs in the compiler which were fixed.

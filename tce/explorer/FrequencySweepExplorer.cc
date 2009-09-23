@@ -383,13 +383,12 @@ private:
                         *applicationIter, configuration.architectureID);
             TestApplication testApplication(
                     dsdb.applicationPath(*applicationIter));
-
             // test if application max runtime is set
-            if (testApplication.maxRuntime() < 1) {
+            if (testApplication.maxRuntime() <= 0) {
                 continue;
             }   
 
-            if ((cycleCount / (freq * 100000)) >
+            if ((static_cast<double>(cycleCount) / (static_cast<double>(freq) * static_cast<double>(1000000))) >
                     testApplication.maxRuntime()) {
                 // we can skip this architecture since it won't
                 // meet the speed requirements

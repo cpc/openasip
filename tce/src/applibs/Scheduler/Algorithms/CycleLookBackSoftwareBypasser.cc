@@ -44,6 +44,11 @@
 #include "MoveGuard.hh"
 #include "Guard.hh"
 
+// DEBUG:
+#include "SimpleResourceManager.hh"
+#include "Instruction.hh"
+#include "POMDisassembler.hh"
+
 //#define MOVE_BYPASSER
 /**
  * Constructor.
@@ -70,7 +75,7 @@ CycleLookBackSoftwareBypasser::~CycleLookBackSoftwareBypasser() {
  * @param moveNode MoveNode to bypass.
  * @param lastOperandCycle in which contains last cycle of operands of the
  *        operation
- * @param ddg The data dependence grap in which the movenodes belong to.
+ * @param ddg The data dependence graph in which the movenodes belong to.
  * @param rm The resource manager which is used to check for resource
  *        availability.
  * @return -1 if failed and need fixup, 1 is succeeded, 0 if did not bypass.
@@ -82,7 +87,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
     DataDependenceGraph& ddg,
     ResourceManager& rm) {
 
-        // result value or already bypassed - don't bypass this
+    // result value or already bypassed - don't bypass this
     if (moveNode.isSourceOperation()) {
         return 0;
     }
@@ -91,15 +96,15 @@ CycleLookBackSoftwareBypasser::bypassNode(
         throw InvalidData(__FILE__, __LINE__, __func__, 
                           "Bypassed move is not Operand move!");
     }
-    DataDependenceGraph::EdgeSet edges= ddg.inEdges(moveNode);
+    DataDependenceGraph::EdgeSet edges = ddg.inEdges(moveNode);
     DataDependenceGraph::EdgeSet::iterator edgeIter = edges.begin();
     DataDependenceEdge* bypassEdge = NULL;
     
     // find one incoming raw edge. if multiple, cannot bypass.
-    while(edgeIter != edges.end()) {
+    while (edgeIter != edges.end()) {
         
         DataDependenceEdge& edge = *(*edgeIter);
-        // if the edge is not a real reg/ra raw edge , skip to net edge
+        // if the edge is not a real reg/ra raw edge, skip to next edge
         if (edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER ||
             edge.dependenceType() != DataDependenceEdge::DEP_RAW ||
             edge.guardUse() ||
@@ -125,7 +130,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
     MoveNode& source = ddg.tailNode(*bypassEdge);
             
     // source node is too far for our purposes
-    ; // do not bypass this operand
+    // do not bypass this operand
     if (cyclesToLookBack_ != INT_MAX &&
         source.cycle() + cyclesToLookBack_ < moveNode.cycle()) {
         return 0;
@@ -227,16 +232,24 @@ CycleLookBackSoftwareBypasser::bypass(
 
         // bypass this node.
         int rv = bypassNode(moveNode, lastOperandCycle, ddg, rm);
-
         if (rv == -1) {
             return -1; // failed, need cleanup
-        }  else {
+        } else {
             bypassCounter += rv; 
-        }
+        } 
     }
+    // at this point the schedule might be broken in case we
+    // managed to bypass the trigger and it got pushed above
+    // an operand move
 
-    // try to reassing also moves that were not bypassed
-    // detects max cycle to make sure trigger is not too early, later on
+    // try to reschedule the moves that were not bypassed because
+    // earlier operand moves might allow scheduling also the trigger
+    // earlier thus shorten the schedule
+
+    // this might fix the schedule in case the previous loop
+    // managed to push trigger above an operand move
+    // if not, the last loop fixes the situation
+
     for (int i = 0; i < candidates.nodeCount(); i++) {
         MoveNode& moveNode = candidates.node(i);
         if (!moveNode.isDestinationOperation() ||
@@ -249,17 +262,48 @@ CycleLookBackSoftwareBypasser::bypass(
             continue;
         }
         int oldCycle = moveNode.cycle();
+
         rm.unassign(moveNode);
-        int earliestCycle = ddg.earliestCycle(moveNode);
+        int earliestCycleDDG = ddg.earliestCycle(moveNode);
+
+        int earliestCycle = earliestCycleDDG;
+
         if (!moveNode.move().isUnconditional()) {
-            earliestCycle = std::max(earliestCycle, moveNode.guardLatency()-1);
+            earliestCycle = 
+                std::max(earliestCycleDDG, moveNode.guardLatency() - 1);
         }
-        earliestCycle = rm.earliestCycle(earliestCycle, moveNode);
-        
-        if (oldCycle > earliestCycle && earliestCycle != -1) {
+        earliestCycle = rm.earliestCycle(earliestCycleDDG, moveNode);
+
+        if (earliestCycle == -1) {
+            
+
+            // this failure is caused by the case
+            // when we have pushed a trigger move too early 
+            // due to eager bypassing and the operand move(s) 
+            // cannot be scheduled before it due to lacking
+            // resources
+            assert(trigger != NULL);
+            assert(trigger->isScheduled());
+            assert(trigger->cycle() < oldCycle);
+                   
+            // unassign trigger so it can be rescheduled after
+            // the operand
+            rm.unassign(*trigger);
+            
+            // now the schedule should not fail anymore
+            earliestCycle = rm.earliestCycle(earliestCycleDDG, moveNode);
+            assert(earliestCycle >= 0);
             rm.assign(earliestCycle, moveNode);
-        } else {
-            rm.assign(oldCycle, moveNode);
+
+            int earliestForTrigger = 
+                rm.earliestCycle(moveNode.cycle(), *trigger);
+            // reschedule the trigger after the operand move
+            if (earliestForTrigger <0) {
+                return -1;
+            }
+            rm.assign(earliestForTrigger, *trigger);
+        } else {        
+            rm.assign(earliestCycle, moveNode);
         }
         lastOperandCycle =
             std::max(lastOperandCycle, moveNode.cycle());

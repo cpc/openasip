@@ -29,7 +29,6 @@
  * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
-
 #include <iostream>
 #include "Application.hh"
 #include "LLVMBackend.hh"
@@ -171,7 +170,7 @@ main(int argc, char* argv[]) {
     try {
         InterPassData* ipData = new InterPassData;
         
-        LLVMBackend compiler(true, useInstalledVersion);
+        LLVMBackend compiler(true, useInstalledVersion, !options.leaveDirty());
         TTAProgram::Program* seqProg =
             compiler.compile(bytecodeFile, emulationCode, *mach, optLevel, debug, ipData);
 

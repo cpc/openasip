@@ -544,8 +544,12 @@ SequentialScheduler::handleProcedure(
     }
 
     copyBasicBlocksToProcedure(procedure, basicBlocks, bbAddresses);
-#endif
 
+    // delete the basic blocks.
+    for (unsigned int i = 0; i < basicBlocks.size();i++) {
+        delete basicBlocks[i];
+    }
+#endif
 }
 
 /**

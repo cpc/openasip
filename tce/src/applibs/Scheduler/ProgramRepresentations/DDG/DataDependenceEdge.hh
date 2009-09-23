@@ -71,9 +71,16 @@ public:
     bool certainAlias() {
         return certainAlias_;
     }
+    /** returns whether the tail of the dependence does not directly 
+        write/read the data but instead is a control flow move which may 
+        cause it to be read/written */
     bool tailPseudo() {
         return tailPseudo_;
     }
+
+    /** returns whether the head of the dependence does not directly write/read
+       the data but instead is a control flow move which may cause it to be
+       read/written */
     bool headPseudo() {
         return headPseudo_;
     }

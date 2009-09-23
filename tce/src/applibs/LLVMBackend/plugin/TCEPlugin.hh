@@ -44,8 +44,7 @@ namespace llvm  {
     class TCETargetMachine;
 
     FunctionPass* createTCEISelDag(TCETargetMachine& tm);
-    FunctionPass* createTCECodePrinterPass(
-        std::ostream& os, TargetMachine& tm);
+    FunctionPass* createTCECodePrinterPass(std::ostream& os, TargetMachine& tm);
 }
 
 #include "TCEGenRegisterNames.inc"

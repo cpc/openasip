@@ -34,18 +34,24 @@
 #include <cstdlib> // system()
 #include <boost/functional/hash.hpp>
 #include <llvm/Module.h>
-#include <llvm/Pass.h>
 #include <llvm/PassManager.h>
+#include <llvm/CodeGen/Passes.h>
+#include <llvm/CodeGen/MachineFunctionAnalysis.h>
+#include <llvm/Analysis/Verifier.h>
 #include <llvm/Support/MemoryBuffer.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/FormattedStream.h>
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <llvm/Target/TargetData.h>
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetRegistry.h>
-#include <llvm/CodeGen/Passes.h>
 #include <llvm/Transforms/IPO.h>
-#include <llvm/ModuleProvider.h>
+#include <llvm/Transforms/Scalar.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/LLVMContext.h>
+#include <llvm/LinkAllVMCore.h>
+#include <llvm/ModuleProvider.h>
+
 #include "LLVMBackend.hh"
 #include "TDGen.hh"
 
@@ -82,9 +88,9 @@ const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
 /**
  * Constructor.
  */
-LLVMBackend::LLVMBackend(bool useCache, bool useInstalledVersion):
-    useCache_(useCache), useInstalledVersion_(useInstalledVersion) {
-    cachePath_ = Environment::llvmtceCachePath();
+LLVMBackend::LLVMBackend(bool useCache, bool useInstalledVersion, bool removeTempFiles):
+    useCache_(useCache), useInstalledVersion_(useInstalledVersion), removeTmp_(removeTempFiles) {
+    cachePath_ = Environment::llvmtceCachePath();    
 }
 
 /**
@@ -175,7 +181,6 @@ LLVMBackend::compile(
     return result;
 }
 
-
 /**
  * Compiles given llvm program module for target machine using the given
  * target machine plugin.
@@ -201,67 +206,206 @@ LLVMBackend::compile(
     llvm::DebugFlag = debug;
     ipData_ = ipData;
     bool fast = false;
-    std::string targetStr = "tce";
+    std::string targetStr = "tce-llvm";
     std::string errorStr;
 
     std::string featureString ="";
-    
-    // get registered target machine and set plugin.
-    const Target* tceTarget = TargetRegistry::lookupTarget(targetStr, errorStr);
 
-    // TODO: try to get rid of backend and use llc directly..
+    // run registering code, which should have been done by LLVM
+    
+    // Initialize targets first. needs 
+    // #include <llvm/Target/TargetSelecty.h>, 
+    // whose defines collide with tce_config.h
+
+    //InitializeAllTargets();
+    //InitializeAllAsmPrinters();
+
+    LLVMInitializeTCETargetInfo();
+
+    // get registered target machine and set plugin.
+    const Target* tceTarget = TargetRegistry::lookupTarget(targetStr, errorStr); 
+    
+    if (!tceTarget) {
+        errs() << errorStr << "\n";
+        errs() << "Available targets:\n";
+        for (TargetRegistry::iterator i = TargetRegistry::begin(); 
+             i != TargetRegistry::end(); i++) {
+            errs() << i->getName() << " : " 
+                   << i->getShortDescription() << "\n";
+        }        
+        return NULL;
+    }
+    
     TCETargetMachine* targetMachine = 
         dynamic_cast<TCETargetMachine*>(
-            tceTarget->createTargetMachine("tce-llvm", featureString));
-    
-    // NOTE: maybe this should be done by passing info in featureString
-    dynamic_cast<TCETargetMachine*>(targetMachine)->setTargetMachinePlugin(plugin);
+            tceTarget->createTargetMachine(targetStr, featureString));
 
-    llvm::FunctionPassManager fpm1(new ExistingModuleProvider(&module));
-    fpm1.add(new TargetData(*targetMachine->getTargetData()));
-
-    llvm::FunctionPassManager fpm2(new ExistingModuleProvider(&module));
-    fpm2.add(new TargetData(*targetMachine->getTargetData()));
-
-    llvm::FunctionPassManager fpm3(new ExistingModuleProvider(&module));
-    fpm3.add(new TargetData(*targetMachine->getTargetData()));
-
-    llvm::PassManager pm;
-    pm.add(new TargetData(*targetMachine->getTargetData()));
-
-    // TODO:
-    // Loop strength reduction pass?
-    // Garbage collection?
-    // lower invoke/unwind
-
-    // LOWER MISSING
-    pm.add(createLowerMissingInstructionsPass(target));
-
-    // DCE
-    pm.add(createUnreachableBlockEliminationPass());
-
-    // Global DCE
-    pm.add(createGlobalDCEPass());
-
-    // this should use scan data to link in needed emulation functions.
-    // emulationModule will be useless after this (linker is not very gentle)..
-    if (emulationModule != NULL) {
-        pm.add(createLinkBitcodePass(*emulationModule));
+    if (!targetMachine) {
+        errs() << "Could not create tce target machine" << "\n";
+        return NULL;
     }
 
-    // to allow machine dead basic block emlination...
-    pm.add(createInternalizePass(true));
+    // NOTE: maybe this should be done by passing info in 
+    //       featureString to TCETargetMachine or Subtarget
+    targetMachine->setTargetMachinePlugin(plugin);
 
-    // just for debugging... disable if needed... 
-    // pm.add(new PrintModulePass());
+    /**
+     * If there is problems with pass constructions 
+     *
+     * check passes which must be generated  from llc.cpp and
+     * llvm/lib/CodeGen/LLVMTargetMachine.cpp
+     * 
+     * Ultimately would be nice that llc could be used to run
+     * the whole pom generation. 
+     * (pass creation should be moved to TCETargetMachine)
+
+     * passes currently ran in addCommonCodeGenPasses (llvm 2.6)
+     
+     createLoopStrengthReducePass(getTargetLowering());
+     createLowerInvokePass(getTargetLowering());
+     createGCLoweringPass();
+     createUnreachableBlockEliminationPass();
+     createCodeGenPreparePass(getTargetLowering());
+     createStackProtectorPass(getTargetLowering());
+     new MachineFunctionAnalysis(*this, OptLevel);
+     addInstSelector(PM, OptLevel); // overload in TargetMachine...
+     createMachineLICMPass();
+     createMachineSinkingPass()
+     addPreRegAlloc(PM, OptLevel); // overload in TargetMachine...
+     createRegisterAllocator()
+     createStackSlotColoringPass(false)
+     addPostRegAlloc(PM, OptLevel); // overload in TargetMachine...
+     createLowerSubregsPass();
+     createPrologEpilogCodeInserter();
+     createPostRAScheduler();
+     createBranchFoldingPass(getEnableTailMergeDefault());
+     createGCMachineCodeAnalysisPass();
+
+     * ------  TCE extra passes.. ------
+     createLowerMissingInstructionsPass(target) // emulation code
+     createLinkBitcodePass(*emulationModule) // link emulation code
+     createMachineDCE() // remove unneeded emulation code
+     */
+
+    CodeGenOpt::Level OptLevel = CodeGenOpt::Aggressive;
+
+    const TargetData *TD = targetMachine->getTargetData();
+    assert(TD);
+
+    ExistingModuleProvider provider(&module);
     
+    llvm::PassManager pm1;
+    pm1.add(new TargetData(*TD));
+
+    // LOWER MISSING divs etc.
+    pm1.add(createLowerMissingInstructionsPass(target));
+    
+    // Some passes from addCommonCodeGen
+    pm1.add(createLoopStrengthReducePass(targetMachine->getTargetLowering()));
+    pm1.add(createLowerInvokePass(targetMachine->getTargetLowering()));
+    pm1.add(createGCLoweringPass());
+    pm1.add(createUnreachableBlockEliminationPass());
+    pm1.add(createCodeGenPreparePass(targetMachine->getTargetLowering()));
+    pm1.add(createStackProtectorPass(targetMachine->getTargetLowering()));
+
+    // Some TCE specific passes
+
+    // this should use scan data to link in needed emulation functions.
+    // emulationModule object will be useless after this 
+    // (linker is not very gentle).
+    if (emulationModule != NULL) {
+        pm1.add(createLinkBitcodePass(*emulationModule));
+    }
+    // to allow machine dead basic block elimination...
+    pm1.add(createInternalizePass(true));
+
+    // More passes from addCommonCodeGen
+    pm1.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
+
+    // TODO: THIS FAILS NOW!
+    targetMachine->addInstSelector(pm1, OptLevel);
+
+    // More TCE passes Machine DCE pass. 
+    pm1.add(createMachineDCE());
+
+/*
+    llvm::PassManager pm2;
+    pm2.add(new TargetData(*TD));
+    pm2.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
+
+    // Yet some more addCommonCodceGen passes
+    pm2.add(createMachineLICMPass());
+    pm2.add(createMachineSinkingPass());
+    targetMachine->addPreRegAlloc(pm2, OptLevel);
+    pm2.add(createRegisterAllocator());
+    pm2.add(createStackSlotColoringPass(false));
+    targetMachine->addPostRegAlloc(pm2, OptLevel);
+    pm2.add(createLowerSubregsPass());
+    pm2.add(createPrologEpilogCodeInserter());
+    pm2.add(createPostRAScheduler());    
+
+    pm2.add(createBranchFoldingPass(
+               targetMachine->getEnableTailMergeDefault()));
+
+    pm2.add(createGCMachineCodeAnalysisPass());
+    
+    // and a pass from addPassesToEmitFile
+    pm2.add(createDebugLabelFoldingPass());
+
+    // finally TCE specific pom builder 
+    llvm::PassManager pm3;
+    pm3.add(new TargetData(*TD));
+    pm3.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
+    LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
+    pm3.add(pomBuilder);
+*/    
+    // run passes (runs automatically initializers and finalize). 
+    std::cerr << "PM1 start\n";
+    pm1.run(module);
+    std::cerr << "PM1 ready\n";
+/*
+    pm2.run(module);
+    std::cerr << "PM2 ready\n";
+    pm3.run(module);
+
+    TTAProgram::Program* prog = pomBuilder->result();
+    assert(prog != NULL);
+
+    if (ipData_ != NULL) {
+        typedef SimpleInterPassDatum<std::pair<std::string, int> > RegData;
+
+        // Stack pointer datum.
+        RegData* spReg = new RegData;
+        spReg->first = plugin.rfName(plugin.spDRegNum());
+        spReg->second = plugin.registerIndex(plugin.spDRegNum());
+        ipData_->setDatum("STACK_POINTER", spReg);
+    }
+    return prog;
+*/
+    
+    // First stage is until finishing isel and making 
+    // machine deadcode elimination
+    llvm::FunctionPassManager fpm1(&provider);
+    fpm1.add(new TargetData(*TD)); 
+    fpm1.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
+   
+    llvm::FunctionPassManager fpm2(&provider);
+    fpm2.add(new TargetData(*TD));
+    fpm2.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
+
+    llvm::FunctionPassManager fpm3(&provider);
+    fpm3.add(new TargetData(*TD));
+    fpm3.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
+
     // Instruction selection.
-    targetMachine->addInstSelector(fpm1, fast);
+    targetMachine->addInstSelector(fpm1, OptLevel);
 
     // Machine DCE pass. 
     fpm2.add(createMachineDCE());
     
-    // TODO: Maybe MachineDCE should be finalized before this... 
+    // TODO: Maybe MachineDCE should be finalized before this to get less
+    //       to allocate 
+
     // Register allocation.
     fpm2.add(createRegisterAllocator());
 
@@ -273,10 +417,7 @@ LLVMBackend::compile(
     // In separate function pass manager, because we have to run finalization 
     // of MachineDCE pass before writing POM data.
     LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
-    fpm3.add(pomBuilder);
-
-    // Module passes.
-    pm.run(module);
+    fpm3.add(pomBuilder);    
 
     // Function passes.
     fpm1.doInitialization();
@@ -316,7 +457,6 @@ LLVMBackend::compile(
         spReg->second = plugin.registerIndex(plugin.spDRegNum());
         ipData_->setDatum("STACK_POINTER", spReg);
     }
-
     return prog;
 }
 
@@ -351,7 +491,9 @@ LLVMBackend::compileAndSchedule(
     try {
         serializer.writeMachine(target);
     } catch (const SerializerException& exception) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         throw IOException(
             __FILE__, __LINE__, __func__, exception.errorMessage());
     } 
@@ -380,7 +522,9 @@ LLVMBackend::compileAndSchedule(
 
     // check if tcecc produced any tpef output
     if (!(FileSystem::fileExists(tpef) && FileSystem::fileIsReadable(tpef))) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         return NULL;    
     } 
 
@@ -388,12 +532,17 @@ LLVMBackend::compileAndSchedule(
     try {
         prog = TTAProgram::Program::loadFromTPEF(tpef, target);
     } catch (const Exception& e) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         IOException error(__FILE__, __LINE__,__func__, e.errorMessage());
         error.setCause(e);
         throw error;
     }
-    FileSystem::removeFileOrDirectory(tmpDir);
+
+    if (removeTmp_) {
+        FileSystem::removeFileOrDirectory(tmpDir);
+    }
 
     return prog;
 }
@@ -507,7 +656,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             pluginTool_.importSymbol(
                 "create_tce_backend_plugin", creator, pluginFile);
 
-            FileSystem::removeFileOrDirectory(tmpDir);
+            if (removeTmp_) {
+                FileSystem::removeFileOrDirectory(tmpDir);
+            }
             return creator();
         } catch(Exception& e) {
             if (Application::verboseLevel() > 0) {
@@ -519,12 +670,14 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         }
     }
 
-    // Create target instruciton and register definitions in .td files.
+    // Create target instruction and register definitions in .td files.
     TDGen plugingen(target);
     try {
         plugingen.generateBackend(tmpDir);
     } catch(Exception& e) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg =
             "Failed to build compiler plugin for target architecture.";
 
@@ -545,7 +698,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         // work if llvm-config is not found in path.
         // First check that llvm-config is found in path.
         if (system("llvm-config --version")) {
-            FileSystem::removeFileOrDirectory(tmpDir);
+            if (removeTmp_) {
+                FileSystem::removeFileOrDirectory(tmpDir);
+            }
             std::string msg = "Unable to determine llvm include dir. "
                 "llvm-config not found in path";
 
@@ -576,7 +731,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     int ret = system(cmd.c_str());
     if (ret) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -592,7 +749,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -608,7 +767,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -624,7 +785,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -640,7 +803,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -655,8 +820,29 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         "TCEGenDAGISel.inc";
 
     ret = system(cmd.c_str());
-    if (ret) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+    if (ret) { 
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
+        std::string msg = std::string() +
+            "Failed to build compiler plugin for target architecture.\n" +
+            "Failed command was: " + cmd;
+
+        throw CompileError(__FILE__, __LINE__, __func__, msg);
+    }
+
+    
+    // Generate TCEGenCallingConv.inc
+    cmd = tblgenCmd +
+        " -gen-callingconv" +
+        " -o " + tmpDir + FileSystem::DIRECTORY_SEPARATOR +
+        "TCEGenCallingConv.inc";
+
+    ret = system(cmd.c_str());
+    if (ret) { 
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -666,7 +852,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -674,12 +862,14 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
+    // NOTE: this could be get from Makefile.am
     std::string pluginSources =
         srcsPath + "TCERegisterInfo.cc " +
         srcsPath + "TCEInstrInfo.cc " +
         srcsPath + "TCETargetLowering.cc " +
         srcsPath + "TCEDAGToDAGISel.cc " +
-        srcsPath + "TCETargetMachinePlugin.cc";
+        srcsPath + "TCETargetObjectFile.cc " +
+        srcsPath + "TCETargetMachinePlugin.cc ";
 
     // Compile plugin to cache.
     // CXX and SHARED_CXX_FLAGS defined in tce_config.h
@@ -693,7 +883,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
     ret = system(cmd.c_str());
     if (ret) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg = std::string() +
             "Failed to build compiler plugin for target architecture.\n" +
             "Failed command was: " + cmd;
@@ -709,7 +901,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         pluginTool_.importSymbol(
             "create_tce_backend_plugin", creator, pluginFile);       
     } catch(Exception& e) {
-        FileSystem::removeFileOrDirectory(tmpDir);
+        if (removeTmp_) {
+            FileSystem::removeFileOrDirectory(tmpDir);
+        }
         std::string msg = std::string() +
             "Unable to load plugin file '" +
             pluginFileName + "'. Error: " + e.errorMessage();
@@ -718,7 +912,9 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         throw ne;
     }
 
-    FileSystem::removeFileOrDirectory(tmpDir);
+    if (removeTmp_) {
+        FileSystem::removeFileOrDirectory(tmpDir);
+    }
     return creator();
 }
 

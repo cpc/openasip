@@ -27,7 +27,7 @@
  * Implementation of the main function of generatebits application.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2009 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -146,16 +146,46 @@ isInstructionMemory(const TTAMachine::AddressSpace& as) {
 
 
 /**
- * Returns the name of the program image file for the given TPEF file.
+ * Returns the name of the program's imem image file for the given TPEF file.
  *
  * @param tpefFile Name of the TPEF file.
+ * @param format The image output format
  * @return Name of the program image file.
  */
 std::string
-programImageFile(const std::string& tpefFile) {
-    return FileSystem::fileNameBody(tpefFile) + ".img";
+programImemImageFile(const std::string& tpefFile, const std::string& format) {
+    string imageFile = FileSystem::fileNameBody(tpefFile);
+    if (format == "mif") {
+        // altera tools want .mif ending for MIF files
+        imageFile += ".mif";
+    } else {
+        imageFile += ".img";
+    }  
+    return imageFile;
 }
 
+/**
+ * Returns the name of the program data image file for the given TPEF file.
+ *
+ * @param tpefFile Name of the TPEF file.
+ * @param format The image output format
+ * @param asName Name of the address space the image belongs to.
+ * @return Name of the program image file.
+ */
+std::string
+programDataImageFile(
+    const std::string& tpefFile,
+    const std::string& format,
+    const std::string& asName) {
+    
+    string imageFile = FileSystem::fileNameBody(tpefFile) + "_" + asName;
+    if (format == "mif") {
+        imageFile += ".mif";
+    } else {
+        imageFile += ".img";
+    }
+    return imageFile;
+}
 
 /**
  * Parses the given parameter which has form 'paramname=paramvalue" to
@@ -302,9 +332,9 @@ int main(int argc, char* argv[]) {
     
     if (adfFile == "" || 
         (piFormat != "" && piFormat != "binary" && piFormat != "ascii" &&
-         piFormat != "array") || 
+         piFormat != "array" && piFormat != "mif") || 
         (diFormat != "" && diFormat != "binary" &&
-         diFormat != "ascii" && diFormat != "array")) {
+         diFormat != "ascii" && diFormat != "array" && diFormat != "mif")) {
         options.printHelp();
         return EXIT_FAILURE;
     }
@@ -347,7 +377,7 @@ int main(int argc, char* argv[]) {
 
             Binary* program = tpefTable[i];
             string tpefFile = FileSystem::fileOfPath(options.tpefFile(i));
-            string imageFile = programImageFile(tpefFile);
+            string imageFile = programImemImageFile(tpefFile, piFormat);
             ofstream piStream(imageFile.c_str());
             if (piFormat == "binary") {
                 imageGenerator.generateProgramImage(
@@ -355,6 +385,10 @@ int main(int argc, char* argv[]) {
             } else if (piFormat == "array") {
                 imageGenerator.generateProgramImage(
                     tpefFile, piStream, ProgramImageGenerator::ARRAY,
+                    imemMAUsPerLine);
+            } else if (piFormat == "mif") {
+                imageGenerator.generateProgramImage(
+                    tpefFile, piStream, ProgramImageGenerator::MIF,
                     imemMAUsPerLine);
             } else {
                 assert(piFormat == "ascii" || piFormat == "");
@@ -372,17 +406,22 @@ int main(int argc, char* argv[]) {
                     AddressSpace* as = asNav.item(i);
                     if (!isInstructionMemory(*as)) {
                         string fileName = 
-                            FileSystem::fileNameBody(tpefFile) + "_" +
-                            as->name() + ".img";
+                            programDataImageFile(
+                                tpefFile, diFormat, as->name());
                         ofstream stream(fileName.c_str());
                         if (diFormat == "binary") {
                             imageGenerator.generateDataImage(
                                 tpefFile, *program, as->name(), stream, 
-                                ProgramImageGenerator::BINARY, 0, true);
+                                ProgramImageGenerator::BINARY, 1, true);
                         } else if (diFormat == "array") {
                             imageGenerator.generateDataImage(
                                 tpefFile, *program, as->name(), stream, 
                                 ProgramImageGenerator::ARRAY,
+                                dmemMAUsPerLine, true);
+                        } else if (diFormat == "mif") {
+                            imageGenerator.generateDataImage(
+                                tpefFile, *program, as->name(), stream, 
+                                ProgramImageGenerator::MIF,
                                 dmemMAUsPerLine, true);
                         } else {
                             assert(diFormat == "ascii" || diFormat == "");

@@ -67,7 +67,7 @@ namespace llvm {
 
         virtual llvm::SDValue LowerOperation(
             llvm::SDValue op, llvm::SelectionDAG& dag);
-
+/*
         virtual void
         LowerArguments(
             llvm::Function& f, 
@@ -89,8 +89,36 @@ namespace llvm {
                 llvm::TargetLowering::ArgListTy& args,
                 llvm::SelectionDAG& dag,
                 llvm::DebugLoc dl);
+*/
 
         virtual const char* getTargetNodeName(unsigned opcode) const;
+
+        virtual unsigned int getFunctionAlignment(const Function*) const {
+            return 4;
+        }
+
+        virtual SDValue
+        LowerFormalArguments(SDValue Chain,
+                             unsigned CallConv,
+                             bool isVarArg,
+                             const SmallVectorImpl<ISD::InputArg> &Ins,
+                             DebugLoc dl, SelectionDAG &DAG,
+                             SmallVectorImpl<SDValue> &InVals);
+
+        virtual SDValue
+        LowerCall(SDValue Chain, SDValue Callee,
+                  unsigned CallConv, bool isVarArg,
+                  bool isTailCall,
+                  const SmallVectorImpl<ISD::OutputArg> &Outs,
+                  const SmallVectorImpl<ISD::InputArg> &Ins,
+                  DebugLoc dl, SelectionDAG &DAG,
+                  SmallVectorImpl<SDValue> &InVals);
+        
+        virtual SDValue
+        LowerReturn(SDValue Chain,
+                    unsigned CallConv, bool isVarArg,
+                    const SmallVectorImpl<ISD::OutputArg> &Outs,
+                    DebugLoc dl, SelectionDAG &DAG);
 
         llvm::SDValue LowerRET(llvm::SDValue op, llvm::SelectionDAG& dag);
 

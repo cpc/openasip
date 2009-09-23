@@ -888,8 +888,10 @@ TDGen::writeTopLevelTD(std::ostream& o) {
    o << "include \"Target.td\"" << std::endl;
    o << "include \"GenRegisterInfo.td\"" << std::endl;
    o << "include \"TCEInstrInfo.td\"" << std::endl;
+   o << "include \"TCECallingConv.td\"" << std::endl;
    o << "def TCEInstrInfo : InstrInfo { }" << std::endl;
-   o << "def TCE : Target { let InstructionSet = TCEInstrInfo; }" << std::endl;
+   o << "def TCE : Target { let InstructionSet = TCEInstrInfo; }" 
+     << std::endl;
 }
 
 

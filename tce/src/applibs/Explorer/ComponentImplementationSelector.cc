@@ -168,7 +168,7 @@ ComponentImplementationSelector::fuImplementations(
                 estimator_.functionUnitMaximumComputationDelay(fu, *(*iter));
             
             // 1000/ns = MHz
-            if ((1000/delayInNanoSeconds) < frequencyMHz) {
+            if (delayInNanoSeconds > 0 && (static_cast<double>(1000) / static_cast<double>(delayInNanoSeconds)) < static_cast<double>(frequencyMHz)) {
                 // FU too slow
                 fuImplementations.erase(iter);
                 continue;
@@ -758,6 +758,7 @@ ComponentImplementationSelector::selectFUs(
             }
 
             const IDF::FUImplementationLocation* fuImpl = (*wanted).first;
+	   
             ObjectState* state = fuImpl->saveState();
             IDF::FUImplementationLocation* newFUImpl =
                 new IDF::FUImplementationLocation(state);
@@ -901,8 +902,6 @@ ComponentImplementationSelector::selectIUs(
             double longestPathDelay = 0;
             double area = 0;
             bool first = true;
-            //map<const IDF::RFImplementationLocation*,
-            //    CostEstimates*>::const_iterator wanted = iter;
             set<std::pair<const IDF::RFImplementationLocation*, CostEstimates*> >::const_iterator wanted = iter;
 
             while (iter != iuSet.end()) {

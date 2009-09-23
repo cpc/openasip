@@ -22,23 +22,15 @@ TESTBENCH_INCLUDE_DIR=$(dir $(SCHEDULER_BENCHMARK_TEST_MAKEFILE_DEFS))
 all: host llvm
 
 llvm:
-<<<<<<< TREE
-	$(GCCLLVM) -I$(TESTBENCH_INCLUDE_DIR) $(EXTRA_FLAGS) -o generated_program.bc $(SCHEDULER_TESTER_FLAGS) $(SOURCE_FILES)
-=======
 	$(GCCLLVM) -I$(TESTBENCH_INCLUDE_DIR) $(EXTRA_FLAGS) $(EXTRA_TCECC_FLAGS) -o generated_program.bc $(SCHEDULER_TESTER_FLAGS) $(SOURCE_FILES)
->>>>>>> MERGE-SOURCE
 
 schedule: llvm
 	echo "There must be link to tce/scheduler/testbench/ADF directory in src dir."
 	$(GCCLLVM) -o 1_bus_scheduled.tpef -a ADF/1_bus_full_connectivity.adf -O3 generated_program.bc
 
 host:
-<<<<<<< TREE
-	$(CC) -I$(TESTBENCH_INCLUDE_DIR)  $(EXTRA_FLAGS) -o native_executable -O3 $(SOURCE_FILES)
-=======
     # sometimes native gcc optimize floating points too much with -O2 optimizaitions
 	$(CC) -I$(TESTBENCH_INCLUDE_DIR)  $(EXTRA_FLAGS) -o native_executable -O1 $(SOURCE_FILES)
->>>>>>> MERGE-SOURCE
 
 clean:
 	@rm -f *.o generated_seq_program* generated_program.bc 1_bus_scheduled.tpef native_executable

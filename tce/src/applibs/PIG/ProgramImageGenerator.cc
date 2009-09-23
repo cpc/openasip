@@ -38,6 +38,7 @@
 #include "AsciiProgramImageWriter.hh"
 #include "ArrayProgramImageWriter.hh"
 #include "RawImageWriter.hh"
+#include "MifImageWriter.hh"
 #include "InstructionBitVector.hh"
 #include "CodeCompressorPlugin.hh"
 #include "DefaultCompressor.hh"
@@ -180,7 +181,6 @@ ProgramImageGenerator::generateProgramImage(
         string errorMsg = "Negative number of MAUs printed per line.";
         throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
     }
-
     InstructionBitVector* programBits = compressor_->compress(programName);
     int mau = compressor_->machine().controlUnit()->addressSpace()->width();
     BitImageWriter* writer = NULL;
@@ -201,6 +201,8 @@ ProgramImageGenerator::generateProgramImage(
         } else {
             writer = new ArrayProgramImageWriter(*programBits);
         }
+    } else if (format == MIF) {
+        writer = new MifImageWriter(*programBits, mau);
     }
 
     writer->writeImage(stream);
@@ -332,6 +334,8 @@ ProgramImageGenerator::generateDataImage(
         writer = new AsciiImageWriter(dataBits, as->width() * mausPerLine);
     } else if (format == ARRAY) {
         writer = new ArrayImageWriter(dataBits, as->width() * mausPerLine);
+    } else if (format == MIF) {
+        writer = new MifImageWriter(dataBits, as->width() * mausPerLine);
     } else {
         assert(false);
     }

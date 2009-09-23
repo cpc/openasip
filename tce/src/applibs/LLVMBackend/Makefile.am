@@ -3,8 +3,9 @@ SUBDIRS = passes
 noinst_LTLIBRARIES = libtcellvmbackend.la
 
 libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
-    TCETargetMachine.cc  LLVMPOMBuilder.cc LLVMBackend.cc \
-    LowerMissingInstructions.cc TDGen.cc passes/LinkBitcode.cc passes/MachineDCE.cc
+    TCETargetMachine.cc TCETargetAsmInfo.cc  LLVMPOMBuilder.cc \
+	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
+	passes/LinkBitcode.cc passes/MachineDCE.cc 
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT = ${PROJECT_ROOT}/src
@@ -25,7 +26,15 @@ AM_CPPFLAGS = -I${TOOLS_DIR} -I${MACH_DIR} \
     -I${PROG_DIR} -I${TPEF_DIR} -I${OSAL_DIR} -I${DISASM_DIR} \
     -I${UMACH_DIR} -I${OSAL_APPLIBS_DIR} -I${GRAPH_DIR} \
     -I${MACH_APPLIBS_DIR} -I${SCHED_ALGO_DIR} -I${SCHED_DIR} ${LLVM_CPPFLAGS}
+
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
+
+# AM_CXXFLAGS is put before CXXFLAGS in compile command and -Wall overrides
+# -Wno-unused-parameter in that case. So to keep correct ordering
+# we move CXXFLAGS to AM_CXXFLAGS with additional -Wno switch 
+# and clean old CXXFLAGS variable
+AM_CXXFLAGS = ${CXXFLAGS} -Wno-unused-parameter
+CXXFLAGS=""
 
 # Static sources for target machine plugins.
 include_HEADERS = \
@@ -40,15 +49,15 @@ include_HEADERS = \
  plugin/TCERegisterInfo.hh \
  plugin/TCETargetLowering.cc \
  plugin/TCETargetLowering.hh \
+ plugin/TCETargetObjectFile.cc \
+ plugin/TCETargetObjectFile.hh \
  plugin/TCETargetMachinePlugin.cc \
- plugin/TCE.td \
+ plugin/TCECallingConv.td \
  TCETargetMachine.hh \
  TCETargetMachinePlugin.hh \
  TCESubtarget.hh
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
-
-
 
 ## headers start
 libtcellvmbackend_la_SOURCES += \

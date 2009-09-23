@@ -62,7 +62,10 @@ public:
     int optLevel() const;
 
     bool isVerboseSwitchDefined() const;
+
     bool debugFlag() const;
+
+    bool leaveDirty() const;
 
     virtual void printVersion() const {
         std::cout << "llvmtce - TCE LLVM compiler " << VERSION
@@ -84,6 +87,7 @@ private:
     static const std::string SWS_OPT_LEVEL;
     /// Switch for verbose output listing scheduler modules
     static const std::string VERBOSE_SWITCH;
+    static const std::string LEAVE_DIRTY;
 
     static const std::string USAGE;
 

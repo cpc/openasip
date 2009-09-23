@@ -26,7 +26,8 @@
  *
  * Declaration of TCETargetMachine class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepist√∂ 2009 (mikael.lepisto-no.spam‚Äîtut.fi)
  */
 
 #include "llvm/PassManager.h"
@@ -35,6 +36,7 @@
 #include "llvm/Target/TargetRegistry.h"
 
 #include "TCETargetMachine.hh"
+#include "TCETargetAsmInfo.hh"
 #include "LLVMPOMBuilder.hh"
 #include "PluginTools.hh"
 #include "FileSystem.hh"
@@ -52,6 +54,7 @@ namespace llvm {
 extern "C" void LLVMInitializeTCETargetInfo() { 
     RegisterTarget<Triple::tce> X(TheTCETarget, "tce", "TTA Codesign Environment");
     RegisterTargetMachine<TCETargetMachine> Y(TheTCETarget);
+    RegisterAsmInfo<TCETargetAsmInfo> Z(TheTCETarget);
 }
 
 //
@@ -118,29 +121,16 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     plugin_->registerTargetMachine(*this);
 }
 
-
-/**
- * Checks how well target triple from llvm-gcc matches with this architecture.
-unsigned 
-TCETargetMachine::getModuleMatchQuality(const Module &M) {
-    std::string TT = M.getTargetTriple();
-    if (TT.size() >= 4 && std::string(TT.begin(), TT.begin()+4) == "tce-") {
-        return 20;
-    }
-    return 0;
-}
- */
-
 /**
  * Creates an instruction selector instance.
  *
  * @param pm Function pass manager to add isel pass.
  * @param fast Not used.
- */
+ */                                     
 bool
-TCETargetMachine::addInstSelector(FunctionPassManager& pm, bool /* fast */) {
-    FunctionPass* isel = plugin_->createISelPass(this);
-    pm.add(isel);
+TCETargetMachine::addInstSelector(
+    PassManagerBase& pm, CodeGenOpt::Level /* OptLevel */) {
+    pm.add(plugin_->createISelPass(this));
     return false;
 }
 

@@ -337,7 +337,14 @@ CodeCompressorPlugin::startNewProgram(const string& programName)
     } catch (const Exception& e) {
         throw InvalidData(__FILE__, __LINE__, __func__, e.errorMessage());
     }
-
+    
+    // clear previous relocations
+    if (immediatesToRelocate_.size() != 0) {
+        immediatesToRelocate_.clear();
+    }
+    if (terminalsToRelocate_.size() != 0) {
+        terminalsToRelocate_.clear();
+    }
     initializeRelocations();
 }
 

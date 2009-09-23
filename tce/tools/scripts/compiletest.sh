@@ -225,7 +225,12 @@ Inconsistency.detected.by.ld\.so:.*Assertion.*|\
 .*llvm/ADT/STLExtras.h.*|\
 .*llvm/Target/.*unused.parameter.*|\
 .*declared[[:space:]]with[[:space:]]attribute[[:space:]]warn_unused_result*|\
-In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*"
+In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
+.*Makefile:.*:.warning:.*commands.for.target.*|\
+.*This.configuration.is.not.supported.in.the.following.subdirectories.*|\
+.*target-libgloss.*|\
+.*Any.other.directories.should.still.work.fine.*|\
+.*removing..*/Makefile.to.force.reconfigure.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
@@ -706,7 +711,8 @@ function compile_test {
     # run configure if not quick tests
     if [ "x$quickTest" == "xno" ]; then
         debug_print_noendl " configure: "
-        reconfigure  
+        reconfigure
+	errors="no"
         debug_print ""
     fi
 

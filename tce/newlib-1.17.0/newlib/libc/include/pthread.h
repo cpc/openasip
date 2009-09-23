@@ -52,7 +52,7 @@ extern "C" {
   
     NOTE: RTEMS does not provide pthread_atfork().  */
 
-#if !defined(__rtems__)
+#if !defined(__rtems__) && !defined(__TCE__)
 #warning "Add pthread_atfork() prototype"
 #endif
 

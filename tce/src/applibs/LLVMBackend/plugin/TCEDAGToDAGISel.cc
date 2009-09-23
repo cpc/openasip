@@ -29,26 +29,21 @@
  * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
  */
 
-#include <assert.h>
-#include <string>
 #include <llvm/Intrinsics.h>
-#include <llvm/CodeGen/MachineFrameInfo.h>
-#include <llvm/CodeGen/MachineInstrBuilder.h>
 #include <llvm/Support/Debug.h>
-#include <llvm/CallingConv.h>
 #include <llvm/Support/Compiler.h>
+#include <llvm/Support/raw_ostream.h>
 
 #include "TCEDAGToDAGISel.hh"
 #include "TCETargetMachine.hh"
 #include "TCESubtarget.hh"
 #include "TCETargetLowering.hh"
 
-#include <iostream>
-
 using namespace llvm;
+
 class TCEDAGToDAGISel : public llvm::SelectionDAGISel {
 public:
-    TCEDAGToDAGISel(llvm::TCETargetMachine& tm);
+    explicit TCEDAGToDAGISel(llvm::TCETargetMachine& tm);
     virtual ~TCEDAGToDAGISel();
     bool SelectADDRrr(
         llvm::SDValue op, llvm::SDValue addr,

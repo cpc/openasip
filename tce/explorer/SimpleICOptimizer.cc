@@ -106,7 +106,9 @@ class SimpleICOptimizer : public DesignSpaceExplorerPlugin {
     
     /**
      * Optimizes the IC of the given configuration by removing not used 
-     * connections. First removes connections and then adds them by looking
+     * connections. 
+     *
+     * First removes connections and then adds them by looking
      * all application domains programs instructions and their moves.
      * Needs the start point configuration to get the architecture
      * which connections are optimized.
