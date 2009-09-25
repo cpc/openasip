@@ -1046,7 +1046,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     DelayedAssignments::iterator it = 
         delayedFUResultWrites_.find(instructionNumber_);
     while (it != delayedFUResultWrites_.end()) {
-        //*os_ << "engine.clearFUResults(" << it->second.fuResultSymbol << ");" << endl;
+        *os_ << "engine.clearFUResults(" << it->second.fuResultSymbol << ");" << endl;
         *os_ << it->second.targetSymbol << " = " << it->second.sourceSymbol 
              << ";" << std::endl;        
         gotResults.insert(it->second.targetSymbol);
