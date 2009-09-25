@@ -33,7 +33,7 @@
 #define TCE_DAG_TO_DAG_ISEL_H
 
 #include <llvm/CodeGen/SelectionDAGISel.h>
-#include "TCETargetLowering.hh"
+#include "TCEISelLowering.hh"
 #include "TCESubtarget.hh"
 
 #endif

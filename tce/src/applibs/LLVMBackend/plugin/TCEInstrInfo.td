@@ -2,6 +2,7 @@
 // TCE Baseopset instruction information.
 //
 // Author: Veli-Pekka Jääskeläinen 2007 (vjaaskel@cs.tut.fi)
+// Author: Mikael Lepistö 2009 (mikael.lepisto@tut.fi)
 //
 
 
@@ -31,12 +32,14 @@ def MEMri : Operand<i32> {
 // ----- Call pseudo instructions -----
 
 // These are target-independent nodes, but have target-specific formats.
-def SDT_TCECallSeq : SDTypeProfile<0, 1, [ SDTCisVT<0, i32> ]>;
-def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_TCECallSeq,
-                           [SDNPHasChain, SDNPOutFlag]>;
+def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32> ]>;
+def SDT_TCECallSeqEnd   : SDCallSeqEnd<[ SDTCisVT<0, i32>,
+                                         SDTCisVT<1, i32> ]>;
 
-def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_TCECallSeq,
+def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_TCECallSeqStart,
                            [SDNPHasChain, SDNPOutFlag]>;
+def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_TCECallSeqEnd,
+                           [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
 
 def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
 def call           : SDNode<"TCEISD::CALL", SDT_TCECall,
@@ -124,14 +127,12 @@ def TCEselectF64 : SDNode<"TCEISD::SELECT_F64", SDT_TCESelect, []>;
 
 
 let Defs = [SP], Uses = [SP] in {
-
 def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i32imm:$amt),
                                "# ADJCALLSTACKDOWN $amt",
-                               [(callseq_start imm:$amt)]>;
-
-def ADJCALLSTACKUP : Pseudo<(outs), (ins i32imm:$amt),
-                            "# ADJCALLSTACKUP $amt",
-                            [(callseq_end imm:$amt)]>;
+                               [(callseq_start timm:$amt)]>;
+def ADJCALLSTACKUP : Pseudo<(outs), (ins i32imm:$amt1, i32imm:$amt2),
+                            "# ADJCALLSTACKUP $amt1",
+                            [(callseq_end timm:$amt1, timm:$amt2)]>;
 
 }
 

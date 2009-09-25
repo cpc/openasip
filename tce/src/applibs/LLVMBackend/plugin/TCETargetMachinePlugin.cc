@@ -36,7 +36,7 @@
 #include "TCEPlugin.hh"
 #include "TCEInstrInfo.hh"
 #include "TCETargetMachine.hh"
-#include "TCETargetLowering.hh"
+#include "TCEISelLowering.hh"
 
 using namespace llvm;
 

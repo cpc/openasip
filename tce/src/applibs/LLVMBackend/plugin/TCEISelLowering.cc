@@ -611,30 +611,14 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
         }
     }
 
-/* Sparcy
-    if (ArgsSize > 4*6)
-        ArgsSize -= 4*6;    // Space for first 6 arguments is prereserved.
-    else
-        ArgsSize = 0;
-    // Keep stack frames 8-byte aligned.
-    ArgsSize = (ArgsSize+7) & ~7;
-*/  
-
     // Keep stack frames 4-byte aligned.
     ArgsSize = (ArgsSize+3) & ~3;
 
-    
     Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true));
-    
-    SmallVector<std::pair<unsigned, SDValue>, 8> RegsToPass;
+    std::cerr << "Created callseq start chain" << std::endl;
+  
     SmallVector<SDValue, 8> MemOpChains;
 
-/*    
-  static const unsigned ArgRegs[] = {
-    SP::I0, SP::I1, SP::I2, SP::I3, SP::I4, SP::I5
-  };
-  unsigned ArgOffset = 68;
-*/
 
   unsigned ArgOffset = 0;
 
@@ -678,32 +662,23 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
       PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
       MemOpChains.push_back(DAG.getStore(Chain, dl, ValToStore, 
                                          PtrOff, NULL, 0));
+      std::cerr << "memop chain" << std::endl;
     }
     ArgOffset += ObjSize;
   }
 
   // Emit all stores, make sure the occur before any copies into physregs.
-  if (!MemOpChains.empty())
+  if (!MemOpChains.empty()) {
+      std::cerr << "added memop chain" << std::endl;
     Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
                         &MemOpChains[0], MemOpChains.size());
+  }
 
   // Build a sequence of copy-to-reg nodes chained together with token
   // chain and flag operands which copy the outgoing args into registers.
   // The InFlag in necessary since all emited instructions must be
   // stuck together.
   SDValue InFlag;
-
-/*
-  for (unsigned i = 0, e = RegsToPass.size(); i != e; ++i) {
-    unsigned Reg = RegsToPass[i].first;
-    // Remap I0->I7 -> O0->O7.
-    if (Reg >= SP::I0 && Reg <= SP::I7)
-      Reg = Reg-SP::I0+SP::O0;
-
-    Chain = DAG.getCopyToReg(Chain, dl, Reg, RegsToPass[i].second, InFlag);
-    InFlag = Chain.getValue(1);
-  }
-*/
 
   // If the callee is a GlobalAddress node (quite common, every direct call is)
   // turn it into a TargetGlobalAddress node so that legalize doesn't hack it.
@@ -718,10 +693,12 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   NodeTys.push_back(MVT::Flag);    // Returns a flag for retval copy to use.
   SDValue Ops[] = { Chain, Callee, InFlag };
   Chain = DAG.getNode(TCEISD::CALL, dl, NodeTys, Ops, InFlag.getNode() ? 3 : 2);
+  std::cerr << "added tceisd::call" << std::endl;
   InFlag = Chain.getValue(1);
 
   Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
                              DAG.getIntPtrConstant(0, true), InFlag);
+  std::cerr << "added callseq_end" << std::endl;
   InFlag = Chain.getValue(1);
 
   // Assign locations to each value returned by this call.
@@ -742,13 +719,13 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
     Chain = DAG.getCopyFromReg(Chain, dl, Reg,
                                RVLocs[i].getValVT(), InFlag).getValue(1);
+    std::cerr << "added copy from regd" << std::endl;
     InFlag = Chain.getValue(2);
     InVals.push_back(Chain.getValue(0));
   }
 
   return Chain;
 }
-
   /* OLD CODE
     std::vector<llvm::EVT> nodeTys;
     nodeTys.push_back(MVT::Other);
@@ -896,4 +873,74 @@ TCETargetLowering::getRegForInlineAsmConstraint(
 llvm::MVT
 TCETargetLowering::getSetCCResultType(llvm::MVT VT) const {
    return llvm::MVT::i1;
+}
+
+//===----------------------------------------------------------------------===//
+//                         Inline Assembly Support
+//===----------------------------------------------------------------------===//
+
+/// getConstraintType - Given a constraint letter, return the type of
+/// constraint it is for this target.
+TCETargetLowering::ConstraintType
+TCETargetLowering::getConstraintType(const std::string &Constraint) const {
+  if (Constraint.size() == 1) {
+    switch (Constraint[0]) {
+    default:  break;
+    case 'r': return C_RegisterClass;
+    }
+  }
+
+  return TargetLowering::getConstraintType(Constraint);
+}
+
+std::pair<unsigned, const TargetRegisterClass*>
+TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
+                                                  EVT VT) const {
+  if (Constraint.size() == 1) {
+    switch (Constraint[0]) {
+    case 'r':
+        return std::make_pair(0U, TCE::I32RegsRegisterClass);
+    case 'f':
+        if (VT == MVT::f32) {
+            return std::make_pair(0U, TCE::F32RegsRegisterClass);
+        } else if (VT == MVT::f64) {
+            return std::make_pair(0U, TCE::F64RegsRegisterClass);
+        }
+    }
+  }
+
+  return TargetLowering::getRegForInlineAsmConstraint(Constraint, VT);
+}
+
+
+std::vector<unsigned> TCETargetLowering::
+getRegClassForInlineAsmConstraint(const std::string &Constraint,
+                                  EVT VT) const {
+  if (Constraint.size() != 1)
+    return std::vector<unsigned>();
+
+  switch (Constraint[0]) {
+  default: break;
+  case 'r':
+      // TODO: WHAT TO DO WITH THESE?!?
+    return make_vector<unsigned>(/*SP::L0, SP::L1, SP::L2, SP::L3,
+                                 SP::L4, SP::L5, SP::L6, SP::L7,
+                                 SP::I0, SP::I1, SP::I2, SP::I3,
+                                 SP::I4, SP::I5,
+                                 SP::O0, SP::O1, SP::O2, SP::O3,
+                                 SP::O4, SP::O5, SP::O7,*/ 0);
+  }
+
+  return std::vector<unsigned>();
+}
+
+bool
+TCETargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
+  // The TCE target isn't yet aware of offsets.
+  return false;
+}
+
+/// getFunctionAlignment - Return the Log2 alignment of this function.
+unsigned TCETargetLowering::getFunctionAlignment(const Function *) const {
+  return 4;
 }

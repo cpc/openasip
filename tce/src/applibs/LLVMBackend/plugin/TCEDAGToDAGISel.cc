@@ -37,7 +37,7 @@
 #include "TCEDAGToDAGISel.hh"
 #include "TCETargetMachine.hh"
 #include "TCESubtarget.hh"
-#include "TCETargetLowering.hh"
+#include "TCEISelLowering.hh"
 
 using namespace llvm;
 

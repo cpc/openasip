@@ -47,8 +47,8 @@ include_HEADERS = \
  plugin/TCEPlugin.hh \
  plugin/TCERegisterInfo.cc \
  plugin/TCERegisterInfo.hh \
- plugin/TCETargetLowering.cc \
- plugin/TCETargetLowering.hh \
+ plugin/TCEISelLowering.cc \
+ plugin/TCEISelLowering.hh \
  plugin/TCETargetObjectFile.cc \
  plugin/TCETargetObjectFile.hh \
  plugin/TCETargetMachinePlugin.cc \
