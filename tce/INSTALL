@@ -95,11 +95,7 @@ apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
 
 NOTE! In order to compile programs from C, you need to install LLVM. There
 are no decent Debian packages available for older Debian/Ubuntu versions, 
-so the best way is to install it from sources. Current Debian Sid and
-the latest Ubuntu (9.04) ship the correct version so you can install
-LLVM for them simply with 'sudo apt-get install llvm-dev'.
-
-If LLVM 2.5 is not available for your distribution, you can download 
+so the best way is to install it from sources. You can download 
 the LLVM sources from here: http://www.llvm.org/releases/
 Remember to download a supported LLVM version, as listed above.
 
