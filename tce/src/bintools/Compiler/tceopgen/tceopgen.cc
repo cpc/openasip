@@ -135,6 +135,10 @@ writeCustomOpMacros(std::ostream& os) {
 
                Use do {} while(0) block instead of {} to allow using the
                custom ops as statements which end with ; etc.
+
+               NOTE: we cannot add "memory" to the clobber list with
+               operations that write to memory because it seems to crash
+               (some versions of) gcc. Thus, they are marked 'volatile'.
             */
 
             for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
@@ -146,10 +150,10 @@ writeCustomOpMacros(std::ostream& os) {
             std::string volatileKeyword = "";
             if (op.writesMemory() || op.hasSideEffects() || 
                 op.affectsCount() > 0 || op.affectedByCount() > 0) {
-                volatileKeyword = "volatile";
+                volatileKeyword = "volatile ";
             }
                
-            os << "asm " << volatileKeyword << " (\"" << opName << "\":";
+            os << "asm " << volatileKeyword << "(\"" << opName << "\":";
 
             for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
                 if (out > 1) os << ", ";
@@ -163,10 +167,6 @@ writeCustomOpMacros(std::ostream& os) {
                 if (in > 1) os << ", ";
                 os << "\"ir\"((" << operandTypeCString(operand) 
                    << ")(i" << in << "))";
-            }
-
-            if (op.writesMemory()) {
-                os << ", \"memory\"";
             }
 
             os << "); ";
