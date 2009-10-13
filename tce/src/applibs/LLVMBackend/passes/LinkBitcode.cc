@@ -85,16 +85,18 @@ Pass* createLinkBitcodePass(Module& input) {
 }
 
 bool
-LinkBitcode::doFinalization(Module& M) {
-    std::string errors;
-    if (Linker::LinkModules(&M, &inputModule_, &errors)) {
-        errs() << "Error during linking in LinkBitcodePass: " << errors << "\n";
-    }
+LinkBitcode::doFinalization(Module& /*M*/) {
     return true;
 }
 
 bool
-LinkBitcode::doInitialization(Module& /*M*/) {
+LinkBitcode::doInitialization(Module& M) {
+    std::string errors;
+    if (Linker::LinkModules(&M, &inputModule_, &errors)) {
+        errs() << "Error during linking in LinkBitcodePass: " << errors << "\n";
+    } else {
+        errs() << "Linked bitcode fine\n";
+    }    
     return true;
 }
 

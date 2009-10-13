@@ -221,14 +221,15 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.address = 0;
         def.alignment = td->getPrefTypeAlignment(type);
         def.size = td->getTypeStoreSize(type);
- 
-        std::cerr << "MARKER: " 
-                  << def.name 
-                  << ":" << def.alignment << ":" << def.size 
-                  << " int16 pref align:" 
-                  << (int)td->getPrefTypeAlignment(Type::getInt16Ty(getGlobalContext())) << std::endl;
-        type->dump();
 
+        /*
+          std::cerr << "MARKER: " 
+          << def.name 
+          << ":" << def.alignment << ":" << def.size 
+          << " int16 pref align:" 
+          << (int)td->getPrefTypeAlignment(Type::getInt16Ty(getGlobalContext())) << std::endl;
+          type->dump();
+        */
         assert(def.alignment != 0);
 
         if (isInitialized(initializer)) {
@@ -441,7 +442,8 @@ LLVMPOMBuilder::createIntDataDefinition(
     }
 
     if (!(sz == 1 || sz == 2 || sz == 4 || sz == 8)) {
-        std::cerr << "## int with size " << sz << "!" << std::endl;
+
+//        std::cerr << "## int with size " << sz << "!" << std::endl;
     }
 
     TTAProgram::Address start(addr, *dataAddressSpace_);
@@ -637,10 +639,24 @@ LLVMPOMBuilder::createExprDataDefinition(
  */
 bool
 LLVMPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
+    return writeMachineFunction(mf);
+//    functions_.push_back(&mf);
+//    return false;
+}
 
+/**
+ * Writes machine function to POM.
+ *
+ * Actually does things to MachineFunction which was supposed to be done
+ * in runOnMachineFunction, but which cannot be done during that, because
+ * MachineDCE is not ready yet at that time...
+ */
+bool
+LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
     // omit empty functions..
     if (mf.begin() == mf.end()) return true;
 
+    // TODO: make list of mf's which for the pass will be ran afterwards..
 
     std::string fnName = mang_->getMangledName(mf.getFunction());
 
@@ -719,6 +735,11 @@ LLVMPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
 bool
 LLVMPOMBuilder::doFinalization(Module& /* m */) {
 
+//    for (unsigned i = 0; i < functions_.size(); i++) {
+//        // TODO: if returns true failed...
+//        writeMachineFunction(*functions_[i]);
+//    }
+    
     // Create data initializers.
     for (unsigned i = 0; i < data_.size(); i++) {
         emitDataDef(data_[i]);
@@ -925,6 +946,7 @@ LLVMPOMBuilder::emitInstruction(
                        << o << " for " << opName << "\n";
                 continue;
             }
+
             int opNum = *useOps.begin();
             assert(operation.operand(opNum).isInput() &&
                                 "Operand mismatch.");
@@ -944,8 +966,10 @@ LLVMPOMBuilder::emitInstruction(
 
         } else {
             if (defOps.empty()) {
+/*
                 errs() << " WARNING: Skipping output operand "
                        << o << " for " << opName << "\n";
+*/
                 continue;
             }
             int opNum = *defOps.begin();

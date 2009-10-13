@@ -208,13 +208,13 @@ TDGen::writeRegisterInfo(std::ostream& o) throw (Exception) {
 
     o << std::endl;
    
-    write64bitRegisterInfo(o);
-    write32bitRegisterInfo(o);
-    write16bitRegisterInfo(o);
-    write8bitRegisterInfo(o);
-    write1bitRegisterInfo(o);
-
     writeRARegisterInfo(o);
+    write1bitRegisterInfo(o);
+    write8bitRegisterInfo(o);
+    write16bitRegisterInfo(o);
+    write32bitRegisterInfo(o);
+    write64bitRegisterInfo(o);
+
     return true;
 }
 
@@ -362,13 +362,17 @@ TDGen::write1bitRegisterInfo(std::ostream& o) {
         }
     }
 
+/*    o << std::endl
+      << "def I1Regs : RegisterClass<\"TCE\", [i1], 8, ["
+      << i1regs << "]>;" << std::endl;
+
+*/
+
     o << std::endl
       << "def I1Regs : RegisterClass<\"TCE\", [i1], 8, ["
-      << i1regs << "]> {" << std::endl;
-    o << " let Size=8;" << std::endl;
-    o << " let Alignment=32;" << std::endl;
-    o << "}" << std::endl;
-
+      << i1regs << "]> {" << std::endl
+      << " let Size=8;" << std::endl
+      << "}" << std::endl;
 }
 
 
@@ -472,7 +476,7 @@ TDGen::write32bitRegisterInfo(std::ostream& o) {
     writeRegisterDef(o, regs32bit_[0], "FSP", "Rf32", "SP", RESERVED);
     writeRegisterDef(o, regs32bit_[1], "FRES0", "Rf32", "IRES0", RESULT);
     writeRegisterDef(o, regs32bit_[2], "FKLUDGE", "Rf32", "KLUDGE_REGISTER",
-                     ARGUMENT);
+                     RESERVED);
     // -------------------------------------
     std::string f32regs;
     for (unsigned i = 3; i < regs32bit_.size(); i++) {
@@ -720,12 +724,15 @@ TDGen::writeInstrInfo(std::ostream& os) {
  */
 void
 TDGen::writeCallDef(std::ostream& o) {
-    o << "let Uses = [";
-    for (unsigned i = 0; i < argRegNames_.size(); i++) {
-        if (i > 0) o << ", ";
-        o << argRegNames_[i];
-    }    
-    o << "],";
+    o << "let ";
+    if (!argRegNames_.empty()) {
+        o << "Uses = [";
+        for (unsigned i = 0; i < argRegNames_.size(); i++) {
+            if (i > 0) o << ", ";
+            o << argRegNames_[i];
+        }    
+        o << "],";
+    }
     o << "hasDelaySlot = 1, isCall = 1,";
     o << "Defs = [";
     for (unsigned i = 0; i < resRegNames_.size(); i++) {
@@ -1663,7 +1670,6 @@ TDGen::canBeImmediate(
         }
 
 //        const Operation& operation = opNode->referencedOperation();
-
 // TODO: Why is this limited ?
 //        if (!operation.operand(edge.dstOperand()).isAddress() &&
 //            operation.numberOfInputs() != 2) {

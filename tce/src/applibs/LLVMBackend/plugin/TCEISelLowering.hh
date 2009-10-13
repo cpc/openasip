@@ -27,30 +27,37 @@
  * Declaration of TCETargetLowering class.
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  */
 
 #ifndef TCE_TARGET_LOWERING_H
 #define TCE_TARGET_LOWERING_H
 
 #include <llvm/Target/TargetLowering.h>
-
 #include "TCEPlugin.hh"
 
 namespace TCEISD {
     enum {
         FIRST_NUMBER = llvm::ISD::BUILTIN_OP_END + llvm::TCE::INSTRUCTION_LIST_END,
-        CALL,
-        RET_FLAG,
-        CONST_POOL,
-        GLOBAL_ADDR,
         SELECT_I1,
         SELECT_I8,
         SELECT_I16,
         SELECT_I32,
         SELECT_I64,
         SELECT_F32,
-        SELECT_F64
-    };
+        SELECT_F64,
+
+        CONST_POOL,
+        GLOBAL_ADDR,
+
+        Hi, Lo,      // Hi/Lo operations, typically on a global address.
+
+        FTOI,        // FP to Int within a FP register.
+        ITOF,        // Int to FP within a FP register.
+
+        CALL,        // A call instruction.
+        RET_FLAG     // Return with a flag operand.
+   };
 }
 
 namespace llvm {
@@ -61,50 +68,40 @@ namespace llvm {
      *  Lowers LLVM code to SelectionDAG for the TCE backend.
      */
     class TCETargetLowering : public llvm::TargetLowering {
+        int VarArgsFrameOffset;   // Frame offset to start of varargs area.
     public:
-        TCETargetLowering(llvm::TCETargetMachine& m);
-        virtual ~TCETargetLowering();
+        TCETargetLowering(TargetMachine& TM);
+        virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG);
 
-        virtual llvm::SDValue LowerOperation(
-            llvm::SDValue op, llvm::SelectionDAG& dag);
-/*
-        virtual void
-        LowerArguments(
-            llvm::Function& f, 
-            llvm::SelectionDAG& dag,
-            SmallVectorImpl<SDValue>& argValues,
-            DebugLoc dl);
+        int getVarArgsFrameOffset() const { return VarArgsFrameOffset; }
 
-        virtual std::pair<llvm::SDValue, llvm::SDValue>
-            LowerCallTo(
-                llvm::SDValue chain,
-                const llvm::Type* retTy,
-                bool retTyIsSigned,
-                bool,
-                bool isVarArg,
-                bool,
-                unsigned cc,
-                bool isTailCall,
-                llvm::SDValue callee,
-                llvm::TargetLowering::ArgListTy& args,
-                llvm::SelectionDAG& dag,
-                llvm::DebugLoc dl);
-*/
+        /// computeMaskedBitsForTargetNode - Determine which of the bits specified
+        /// in Mask are known to be either zero or one and return them in the
+        /// KnownZero/KnownOne bitsets.
+//        virtual void computeMaskedBitsForTargetNode(const SDValue Op,
+//                                                    const APInt &Mask,
+//                                                    APInt &KnownZero,
+//                                                    APInt &KnownOne,
+//                                                    const SelectionDAG &DAG,
+//                                                    unsigned Depth = 0) const;
 
-        virtual const char* getTargetNodeName(unsigned opcode) const;
+//        virtual MachineBasicBlock *EmitInstrWithCustomInserter(MachineInstr *MI,
+//                                                               MachineBasicBlock *MBB) const;
 
-    ConstraintType getConstraintType(const std::string &Constraint) const;
-    std::pair<unsigned, const TargetRegisterClass*>
-    getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const;
-    std::vector<unsigned>
-    getRegClassForInlineAsmConstraint(const std::string &Constraint,
-                                      EVT VT) const;
-
-     virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
-
-    /// getFunctionAlignment - Return the Log2 alignment of this function.
-    virtual unsigned getFunctionAlignment(const Function *F) const;
-
+       virtual const char* getTargetNodeName(unsigned opcode) const;
+        
+        ConstraintType getConstraintType(const std::string &Constraint) const;
+        std::pair<unsigned, const TargetRegisterClass*>
+        getRegForInlineAsmConstraint(const std::string &Constraint, EVT VT) const;
+        std::vector<unsigned>
+        getRegClassForInlineAsmConstraint(const std::string &Constraint,
+                                          EVT VT) const;
+        
+        virtual bool isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const;
+        
+        /// getFunctionAlignment - Return the Log2 alignment of this function.
+        virtual unsigned getFunctionAlignment(const Function *F) const;
+        
         virtual SDValue
         LowerFormalArguments(SDValue Chain,
                              unsigned CallConv,
@@ -112,7 +109,7 @@ namespace llvm {
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
                              SmallVectorImpl<SDValue> &InVals);
-
+        
         virtual SDValue
         LowerCall(SDValue Chain, SDValue Callee,
                   unsigned CallConv, bool isVarArg,
@@ -128,26 +125,22 @@ namespace llvm {
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
                     DebugLoc dl, SelectionDAG &DAG);
 
-        llvm::SDValue LowerRET(llvm::SDValue op, llvm::SelectionDAG& dag);
-
-        virtual std::pair<unsigned, const TargetRegisterClass*>
-            getRegForInlineAsmConstraint(
-                const std::string& constraint,
-                llvm::MVT vt) const;
-
-        SDValue lowerSELECT(SDValue op, SelectionDAG& dag);
-                
-        virtual llvm::MVT getSetCCResultType(const SDValue &) const {
-            return MVT::i1;
-        }
-
-        virtual llvm::MVT getSetCCResultType(llvm::MVT VT) const;
-
+        // ----------------------------------------------------
+        //
+        //  Below here TCE specific stuff is added, which is not copied from Sparc
+        //
+        // ----------------------------------------------------
     private:
-        // Frame index to the the start of variadic parameter list.
-        int varArgsFrameIndex_;
-
         TCETargetMachine& tm_;
+        
+    public:
+        
+        SDValue lowerSELECT(SDValue op, SelectionDAG& dag);
+
+        virtual llvm::MVT::SimpleValueType 
+        getSetCCResultType(llvm::EVT VT) const;
+
+
     };
 }
 

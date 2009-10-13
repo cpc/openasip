@@ -27,6 +27,7 @@
  * Implementation of TCETargetMachinePlugin class.
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -217,11 +218,18 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
 
     if (opc == TCE::INLINEASM) return INLINEASM;
 
-    if (opc == TCE::STQib) return "stq";
-    if (opc == TCE::STQrb) return "stq";
-    if (opc == TCE::LDQUb) return "ldqu";
-    if (opc == TCE::LDQUib) return "ldqu";
-    
+
+    if (opc == TCE::STQBrb) return "stq";
+    if (opc == TCE::STQBib) return "stq";
+    if (opc == TCE::LDQBr) return "ldq";
+    if (opc == TCE::LDQBi) return "ldq";
+    if (opc == TCE::LDQUBr) return "ldqu";
+    if (opc == TCE::LDQUBi) return "ldqu";
+
+    // temporary RA register store/loads
+    if (opc == TCE::STWRArr) return "stw";
+    if (opc == TCE::LDWRAr) return "ldw";
+  
     if (opc == TCE::TCEBRCOND) return "?jump";
     if (opc == TCE::TCEBR) return "jump";
     if (opc == TCE::CALL) return "call";

@@ -94,6 +94,8 @@ namespace llvm {
         bool runOnMachineFunction(MachineFunction &MF);
         bool doFinalization(Module &M);
 
+        bool writeMachineFunction(MachineFunction &MF);
+
     private:
 
         struct DataDef {
@@ -214,7 +216,6 @@ namespace llvm {
             std::string>
             mbbReferences_;
 
-
         /// Dummy references to the _end symbol.
         std::vector<TTAProgram::Move*> endReferences_;
         
@@ -225,6 +226,10 @@ namespace llvm {
         unsigned end_;
 
         bool programReady_;
+
+        /// List of machine functions collected from runForMachineFunction.
+        std::vector<MachineFunction*> functions_;
+
     };
 }
 #endif

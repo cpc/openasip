@@ -60,64 +60,24 @@ TCERegisterInfo::TCERegisterInfo(const TargetInstrInfo& tii) :
 }
 
 /**
- * Return true if the specified function should have a dedicated frame 
- * pointer register.
- */
-bool
-TCERegisterInfo::hasFP(const MachineFunction& mf) const {
-    return NoFramePointerElim || mf.getFrameInfo()->hasVarSizedObjects();
-}
-
-/**
- * Eliminates abstract frame index operands.
- *
- */
-void
-TCERegisterInfo::eliminateFrameIndex(
-    MachineBasicBlock::iterator ii, int adj, RegScavenger* rs) const {
-
-    MachineInstr& mi = *ii;
-    MachineFunction& mf = *mi.getParent()->getParent();
-    bool fp = hasFP(mf);
-
-    // Frame index operand number
-    unsigned i = 0;
-    while (!mi.getOperand(i).isFI()) {
-        i++;
-        assert(i < mi.getNumOperands() && ("No FrameIndex operand found!"));
-    }
-
-    int frameIndex = mi.getOperand(i).getIndex();
-
-    //unsigned baseRegister = fp ? TCE::FP : TCE::SP;
-    assert(!fp);
-    unsigned baseRegister = TCE::SP;
-    mi.getOperand(i).ChangeToRegister(baseRegister, false);
-
-    int offset = mf.getFrameInfo()->getObjectOffset(frameIndex);
-    offset +=  mf.getFrameInfo()->getStackSize();
-
-    // TODO: Use scavenged register instead of a kludge register.
-    //assert(rs != NULL);
-    //unsigned tmp = rs->FindUnusedReg(TCE::I32RegsRegisterClass, true);
-    //assert(tmp != 0);
-    if (offset != 0) {
-        mi.getOperand(i).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
-        BuildMI(
-            *mi.getParent(), ii, mi.getDebugLoc(), tii_.get(TCE::ADDri),
-            TCE::KLUDGE_REGISTER).addReg(baseRegister).addImm(offset);
-    }
-}
-
-/**
  * Returns list of callee saved registers.
  */
 const unsigned* 
 TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
-    static const unsigned calleeSavedRegs[] = {
-        //TCE::RA,
-        0 };
+    static const unsigned calleeSavedRegs[] = { 0 };
     return calleeSavedRegs;
+}
+
+/**
+ * Returns list of reserved registers.
+ */
+BitVector
+TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
+    BitVector reserved(getNumRegs());
+    reserved.set(TCE::SP);
+    reserved.set(TCE::KLUDGE_REGISTER);
+    reserved.set(TCE::RA);
+    return reserved;
 }
 
 /**
@@ -128,11 +88,67 @@ TCERegisterInfo::getCalleeSavedRegs(const MachineFunction *MF) const {
  */
 const TargetRegisterClass* const*
 TCERegisterInfo::getCalleeSavedRegClasses(const MachineFunction *MF) const {
-    static const TargetRegisterClass* const calleeSavedRegClasses[] = {
-        //(&TCE::RARegRegClass),
-        0 };
-
+    static const TargetRegisterClass* const calleeSavedRegClasses[] = { 0 };
     return calleeSavedRegClasses;
+}
+
+/**
+ * Return true if the specified function should have a dedicated frame 
+ * pointer register.
+ */
+bool
+TCERegisterInfo::hasFP(const MachineFunction& mf) const {
+    return false;
+}
+
+/**
+ * Eliminates call frame pseudo instructions by replacing them with suitable
+ * instruction sequence.
+ */
+void
+TCERegisterInfo::eliminateCallFramePseudoInstr(
+    MachineFunction &MF, MachineBasicBlock &MBB,
+    MachineBasicBlock::iterator I) const {
+
+  const TargetInstrInfo &TII = tii_;
+  MachineInstr &MI = *I;
+  DebugLoc dl = MI.getDebugLoc();
+  int Size = MI.getOperand(0).getImm();
+  if (MI.getOpcode() == TCE::ADJCALLSTACKDOWN)
+    Size = -Size;
+  if (Size)
+    BuildMI(MBB, I, dl, TII.get(TCE::ADDri), TCE::SP).addReg(TCE::SP).addImm(Size);
+  MBB.erase(I);
+}
+
+void TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
+                                          int SPAdj, RegScavenger *RS) const {
+    const TargetInstrInfo &TII = tii_;
+    assert(SPAdj == 0 && "Unexpected");
+    unsigned i = 0;
+    MachineInstr &MI = *II;
+    DebugLoc dl = MI.getDebugLoc();
+    while (!MI.getOperand(i).isFI()) {
+        ++i;
+        assert(i < MI.getNumOperands() && "Instr doesn't have FrameIndex operand!");
+    }
+
+    int FrameIndex = MI.getOperand(i).getIndex();
+
+    // Addressable stack objects are accessed using neg. offsets from %fp
+    MachineFunction &MF = *MI.getParent()->getParent();
+
+    int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex) + 
+        MF.getFrameInfo()->getStackSize();
+    
+    if (Offset != 0) {
+        MI.getOperand(i).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
+        BuildMI(
+            *MI.getParent(), II, MI.getDebugLoc(), TII.get(TCE::ADDri),
+            TCE::KLUDGE_REGISTER).addReg(TCE::SP).addImm(Offset);
+    } else {
+        MI.getOperand(i).ChangeToRegister(TCE::SP, false);
+    }
 }
 
 /**
@@ -145,32 +161,18 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
     MachineFrameInfo* mfi = mf.getFrameInfo();
     int numBytes = (int)mfi->getStackSize();
 
-    bool fp = hasFP(mf);
-    if (fp) {
-        numBytes += 4; // FP.
-    }
-
     numBytes = (numBytes + 3) & ~3; // stack size alignment
 
     MachineBasicBlock::iterator ii = mbb.begin();
-
-    DebugLoc dl = DebugLoc::getUnknownLoc();
-    if (ii != mbb.end()) dl = ii->getDebugLoc();
+    DebugLoc dl = (ii != mbb.end() ?
+                   ii->getDebugLoc() : DebugLoc::getUnknownLoc());
 
     BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP).addReg(
         TCE::SP).addImm(4);
 
     // Save RA to stack.
-    BuildMI(mbb, ii, dl, tii_.get(TCE::STWrr)).addReg(
+    BuildMI(mbb, ii, dl, tii_.get(TCE::STWRArr)).addReg(
         TCE::SP).addImm(0).addReg(TCE::RA);
-
-    if (fp) {
-        assert(false);
-        // TODO: stack pointer adjustment
-        // Save old FP to stack.
-        //BuildMI(mbb, ii, tii_.get(TCE::STWrr)).addReg(
-        //TCE::SP).addImm(0).addReg(TCE::FP);
-    }
 
     // Adjust stack pointer
    if (numBytes != 0) {
@@ -190,20 +192,13 @@ TCERegisterInfo::emitEpilogue(
 
     MachineFrameInfo* mfi = mf.getFrameInfo();
     MachineBasicBlock::iterator mbbi = prior(mbb.end());
-
-    DebugLoc dl = DebugLoc::getUnknownLoc();
-    if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
+    DebugLoc dl = mbbi->getDebugLoc();
 
     if (mbbi->getOpcode() != TCE::RETL) {
         assert(false && "ERROR: Insertiing epilogue w/o return?");
     }
-
+    
     unsigned numBytes = mfi->getStackSize();
-
-    if (hasFP(mf)) {
-        // TODO: Restore old FP & handle FP in stack.
-        assert(false);
-    }
 
     if (numBytes != 4) {
         BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP).addReg(
@@ -211,77 +206,11 @@ TCERegisterInfo::emitEpilogue(
     }
 
     // Restore RA from stack.
-    BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWi), TCE::RA).addReg(
+    BuildMI(mbb, mbbi, dl, tii_.get(TCE::LDWRAr), TCE::RA).addReg(
         TCE::SP).addImm(0);
 
     BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP).addReg(
         TCE::SP).addImm(4);
-}
-
-/**
- * Not implemented: When is this method even called?
- */
-unsigned
-TCERegisterInfo::getRARegister() const {
-    assert(false);
-    return 0;
-}
-
-/**
- * Not implemented: When is this method even called?
- */
-unsigned
-TCERegisterInfo::getFrameRegister(MachineFunction& mf) const {
-    assert(false);
-    return 0;
-}
-
-/**
- * Returns list of reserved registers.
- */
-BitVector
-TCERegisterInfo::getReservedRegs(const MachineFunction& mf) const {
-    BitVector reserved(getNumRegs());
-    reserved.set(TCE::SP);
-    reserved.set(TCE::KLUDGE_REGISTER);
-    //reserved.set(TCE::FP);
-    reserved.set(TCE::RA);
-    return reserved;
-}
-
-/**
- * Eliminates call frame pseudo instructions by replacing them with suitable
- * instruction sequence.
- */
-void
-TCERegisterInfo::eliminateCallFramePseudoInstr(
-    MachineFunction& mf,
-    MachineBasicBlock& mbb,
-    MachineBasicBlock::iterator i) const {
-
-    if (hasFP(mf)) {
-        assert (false && "TODO FP support.");
-
-        MachineInstr& mi = *i;
-        int sz =  mi.getOperand(0).getImm();
-
-        if (mi.getOpcode() == TCE::ADJCALLSTACKDOWN) {
-            std::cerr << "TCE::ADJCALLSTACKDOWN" << std::endl;
-            sz = -sz;
-        } else if (mi.getOpcode() == TCE::ADJCALLSTACKUP) {
-            std::cerr << "TCE::ADJCALLSTACKUP" << std::endl;
-        } else {
-            assert(false && "Unknown call frame pseudo instruction!");
-        }
-    
-        std::cerr << "sz: " << sz << std::endl;
-        if (sz) {
-            std::cerr << "TCE::SP ADD " << sz << std::endl;
-            BuildMI(mbb, i, mi.getDebugLoc(), tii_.get(TCE::ADDri), TCE::SP).addReg(
-                TCE::SP).addImm(sz);
-        }
-    }
-    mbb.erase(i);
 }
 
 /**
@@ -299,14 +228,30 @@ TCERegisterInfo::reMaterialize(
     MachineBasicBlock::iterator i,
     unsigned destReg,
     const MachineInstr* orig) const {
-
-#ifdef LLVM_2_3
-    MachineInstr* mi = orig->clone();
-#else
+    
+    assert(false && "It really was used");
     MachineInstr* mi = mbb.getParent()->CloneMachineInstr(orig);
-#endif
     mi->getOperand(0).setReg(destReg);
     mbb.insert(i, mi);
+}
+
+
+/**
+ * Not implemented: When is this method even called?
+ */
+unsigned
+TCERegisterInfo::getRARegister() const {
+    assert(false);
+    return 0;
+}
+
+/**
+ * Not implemented: When is this method even called?
+ */
+unsigned
+TCERegisterInfo::getFrameRegister(MachineFunction& mf) const {
+    assert(false);
+    return 0;
 }
 
 int

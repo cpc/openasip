@@ -93,18 +93,18 @@ FunctionPass* createMachineDCE() {
 bool MachineDCE::canFindStart(const std::string& user, AvoidRecursionSet& avoid_recursion) {
 
     if (avoid_recursion.find(&user) != avoid_recursion.end()) {
-	return false;
+        return false;
     } else {
-	avoid_recursion.insert(&user);
+        avoid_recursion.insert(&user);
     }
-
+    
     // current function is actually the start point.. nice job.
     if (baseUsers_.find(user) != baseUsers_.end()) {
         return true;
     }
 
     UserList &usesList = usersOfValue_[user];
-
+    
     // check if this function is used by start point to be sure...
     for (UserList::iterator i= usesList.begin(); i != usesList.end(); i++) {
         if (canFindStart((*i), avoid_recursion)) {
@@ -212,17 +212,16 @@ bool MachineDCE::doFinalization(Module&) {
         AvoidRecursionSet avoid_recursion;
 
         if (!canFindStart(func->first, avoid_recursion)) {
-#if 0
             errs() << "Function was not referred trying to delete all " 
                    << "MachineBasicBlocks of : " << func->first 
                    << "\n";
-#endif
-
+            
             MachineFunction* mf = func->second;
             while (!mf->empty()) {
-                MachineBasicBlock &BB = mf->front();
+                MachineBasicBlock &BB = mf->front();                
                 BB.eraseFromParent();
             }
+
         }
     }
    

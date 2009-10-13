@@ -31,26 +31,34 @@
  * @note rating: red
  */
 
-#include <cstdlib> // system()
-#include <boost/functional/hash.hpp>
-#include <llvm/Module.h>
 #include <llvm/PassManager.h>
+#include <llvm/Pass.h>
+#include <llvm/ModuleProvider.h>
+
+#include <llvm/CodeGen/AsmPrinter.h>
 #include <llvm/CodeGen/Passes.h>
+#include <llvm/CodeGen/GCStrategy.h>
 #include <llvm/CodeGen/MachineFunctionAnalysis.h>
-#include <llvm/Analysis/Verifier.h>
-#include <llvm/Support/MemoryBuffer.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/FormattedStream.h>
-#include <llvm/Bitcode/ReaderWriter.h>
-#include <llvm/Target/TargetData.h>
+
 #include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/Target/TargetAsmInfo.h>
 #include <llvm/Target/TargetRegistry.h>
+
 #include <llvm/Transforms/IPO.h>
 #include <llvm/Transforms/Scalar.h>
+
+#include <llvm/Support/CommandLine.h>
+#include <llvm/Support/FormattedStream.h>
+#include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/Debug.h>
-#include <llvm/LLVMContext.h>
-#include <llvm/LinkAllVMCore.h>
-#include <llvm/ModuleProvider.h>
+
+#include <llvm/Bitcode/ReaderWriter.h>
+
+#include <llvm/Analysis/Verifier.h>
+
+#include <cstdlib> // system()
+#include <boost/functional/hash.hpp>
 
 #include "LLVMBackend.hh"
 #include "TDGen.hh"
@@ -171,7 +179,7 @@ LLVMBackend::compile(
 
     // Compile.
     TTAProgram::Program* result =
-        compile(*m.get(), emuM.get(), *plugin, target, optLevel, debug, ipData);
+        compile(*m.release(), emuM.release(), *plugin, target, optLevel, debug, ipData);
 
     delete plugin;
     plugin = NULL;
@@ -180,6 +188,16 @@ LLVMBackend::compile(
 
     return result;
 }
+
+/**
+ * Ripped from LLVMTargetMachine.cpp
+ */
+static void printAndVerify(PassManagerBase &PM,
+                           bool allowDoubleDefs = false) {
+//    PM.add(createMachineFunctionPrinterPass(cerr));
+    PM.add(createMachineVerifierPass(allowDoubleDefs));
+}
+
 
 /**
  * Compiles given llvm program module for target machine using the given
@@ -299,7 +317,8 @@ LLVMBackend::compile(
 
     // LOWER MISSING divs etc.
     pm1.add(createLowerMissingInstructionsPass(target));
-    
+      
+
     // Some passes from addCommonCodeGen
     pm1.add(createLoopStrengthReducePass(targetMachine->getTargetLowering()));
     pm1.add(createLowerInvokePass(targetMachine->getTargetLowering()));
@@ -319,55 +338,62 @@ LLVMBackend::compile(
     // to allow machine dead basic block elimination...
     pm1.add(createInternalizePass(true));
 
+
     // More passes from addCommonCodeGen
     pm1.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
 
-    // TODO: THIS FAILS NOW!
     targetMachine->addInstSelector(pm1, OptLevel);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
     // More TCE passes Machine DCE pass. 
-    pm1.add(createMachineDCE());
-
-
-/*
-    llvm::PassManager pm2;
-    pm2.add(new TargetData(*TD));
-    pm2.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
+    //pm1.add(createMachineDCE());
+    //printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
     // Yet some more addCommonCodceGen passes
-    pm2.add(createMachineLICMPass());
-    pm2.add(createMachineSinkingPass());
-    targetMachine->addPreRegAlloc(pm2, OptLevel);
-    pm2.add(createRegisterAllocator());
-    pm2.add(createStackSlotColoringPass(false));
-    targetMachine->addPostRegAlloc(pm2, OptLevel);
-    pm2.add(createLowerSubregsPass());
-    pm2.add(createPrologEpilogCodeInserter());
-    pm2.add(createPostRAScheduler());    
+    pm1.add(createMachineLICMPass());
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
-    pm2.add(createBranchFoldingPass(
-               targetMachine->getEnableTailMergeDefault()));
+    pm1.add(createMachineSinkingPass());
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
-    pm2.add(createGCMachineCodeAnalysisPass());
+    targetMachine->addPreRegAlloc(pm1, OptLevel);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+
+    pm1.add(createRegisterAllocator());
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+
+    pm1.add(createStackSlotColoringPass(false));
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+
+    targetMachine->addPostRegAlloc(pm1, OptLevel);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+
+    pm1.add(createLowerSubregsPass());
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+
+    pm1.add(createPrologEpilogCodeInserter());
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+
+// Breaks something sometimes... gotta check..
+//    pm1.add(createPostRAScheduler());    
+//    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+
+    // TODO: add a InsertBranch method ...
+    //pm1.add(createBranchFoldingPass(
+    //           targetMachine->getEnableTailMergeDefault()));
+
+    pm1.add(createGCMachineCodeAnalysisPass());
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
     
     // and a pass from addPassesToEmitFile
-    pm2.add(createDebugLabelFoldingPass());
+    pm1.add(createDebugLabelFoldingPass());
+    printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
-    // finally TCE specific pom builder 
-    llvm::PassManager pm3;
-    pm3.add(new TargetData(*TD));
-    pm3.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
     LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
-    pm3.add(pomBuilder);
-*/    
+    pm1.add(pomBuilder);
+
     // run passes (runs automatically initializers and finalize). 
-    std::cerr << "PM1 start\n";
     pm1.run(module);
-    std::cerr << "PM1 ready\n";
-/*
-    pm2.run(module);
-    std::cerr << "PM2 ready\n";
-    pm3.run(module);
 
     TTAProgram::Program* prog = pomBuilder->result();
     assert(prog != NULL);
@@ -381,83 +407,7 @@ LLVMBackend::compile(
         spReg->second = plugin.registerIndex(plugin.spDRegNum());
         ipData_->setDatum("STACK_POINTER", spReg);
     }
-    return prog;
-*/
-    
-    // First stage is until finishing isel and making 
-    // machine deadcode elimination
-    llvm::FunctionPassManager fpm1(&provider);
-    fpm1.add(new TargetData(*TD)); 
-    fpm1.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
-   
-    llvm::FunctionPassManager fpm2(&provider);
-    fpm2.add(new TargetData(*TD));
-    fpm2.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
 
-    llvm::FunctionPassManager fpm3(&provider);
-    fpm3.add(new TargetData(*TD));
-    fpm3.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
-
-    // Instruction selection.
-    targetMachine->addInstSelector(fpm1, OptLevel);
-
-    // Machine DCE pass. 
-    fpm2.add(createMachineDCE());
-    
-    // TODO: Maybe MachineDCE should be finalized before this to get less
-    //       to allocate 
-
-    // Register allocation.
-    fpm2.add(createRegisterAllocator());
-
-    // Insert prolog/epilog code.
-    fpm2.add(createPrologEpilogCodeInserter());
-    //fpm.add(createBranchFoldingPass());
-    fpm2.add(createDebugLabelFoldingPass());
-
-    // In separate function pass manager, because we have to run finalization 
-    // of MachineDCE pass before writing POM data.
-    LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
-    fpm3.add(pomBuilder);    
-
-    // Function passes.
-    fpm1.doInitialization();
-    for (Module::iterator i = module.begin(), e = module.end(); i != e; ++i) {
-        if (!i->isDeclaration()) {
-            fpm1.run(*i);
-        }
-    }
-    fpm1.doFinalization();
-
-    // Function passes.
-    fpm2.doInitialization();
-    for (Module::iterator i = module.begin(), e = module.end(); i != e; ++i) {
-        if (!i->isDeclaration()) {
-            fpm2.run(*i);
-        }
-    }
-    fpm2.doFinalization();
-
-    fpm3.doInitialization();
-    for (Module::iterator i = module.begin(), e = module.end(); i != e; ++i) {
-        if (!i->isDeclaration()) {
-            fpm3.run(*i);
-        }
-    }
-    fpm3.doFinalization();
-
-    TTAProgram::Program* prog = pomBuilder->result();
-    assert(prog != NULL);
-
-    if (ipData_ != NULL) {
-        typedef SimpleInterPassDatum<std::pair<std::string, int> > RegData;
-
-        // Stack pointer datum.
-        RegData* spReg = new RegData;
-        spReg->first = plugin.rfName(plugin.spDRegNum());
-        spReg->second = plugin.registerIndex(plugin.spDRegNum());
-        ipData_->setDatum("STACK_POINTER", spReg);
-    }
     return prog;
 }
 
@@ -867,7 +817,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     std::string pluginSources =
         srcsPath + "TCERegisterInfo.cc " +
         srcsPath + "TCEInstrInfo.cc " +
-        srcsPath + "TCETargetLowering.cc " +
+        srcsPath + "TCEISelLowering.cc " +
         srcsPath + "TCEDAGToDAGISel.cc " +
         srcsPath + "TCETargetObjectFile.cc " +
         srcsPath + "TCETargetMachinePlugin.cc ";

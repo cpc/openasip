@@ -53,7 +53,7 @@
 #include "TCETargetMachine.hh"
 #include "TCETargetObjectFile.hh"
 #include "TCESubtarget.hh"
-#include "TCETargetLowering.hh"
+#include "TCEISelLowering.hh"
 #include "tce_config.h"
 
 #include <iostream> // DEBUG
@@ -65,201 +65,6 @@ using namespace llvm;
 //===----------------------------------------------------------------------===//
 
 #include "TCEGenCallingConv.inc"
-
-/**
- * Returns target node opcode names for debugging purposes.
- *
- * @param opcode Opcode to convert to string.
- * @return Opcode name.
- */
-const char*
-TCETargetLowering::getTargetNodeName(unsigned opcode) const {
-    switch (opcode) {
-    default: return NULL;
-    case TCEISD::CALL: return "TCEISD::CALL";
-    case TCEISD::RET_FLAG: return "TCEISD::RET_FLAG";
-    case TCEISD::GLOBAL_ADDR: return "TCEISD::GLOBAL_ADDR";
-    case TCEISD::CONST_POOL: return "TCEISD::CONST_POOL";
-
-    case TCEISD::SELECT_I1: return "TCEISD::SELECT_I1";
-    case TCEISD::SELECT_I8: return "TCEISD::SELECT_I8";
-    case TCEISD::SELECT_I16: return "TCEISD::SELECT_I16";
-    case TCEISD::SELECT_I32: return "TCEISD::SELECT_I32";
-    case TCEISD::SELECT_I64: return "TCEISD::SELECT_I64";
-    case TCEISD::SELECT_F32: return "TCEISD::SELECT_F32";
-    case TCEISD::SELECT_F64: return "TCEISD::SELECT_F64";
-    }
-}
-
-/**
- * The Constructor.
- *
- * Initializes the target lowering.
- */
-TCETargetLowering::TCETargetLowering(TCETargetMachine& tm) :
-    TargetLowering(tm,  new TCETargetObjectFile()), tm_(tm) {
-
-    addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
-    addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);
-    addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
-
-    //setLoadXAction(ISD::EXTLOAD, MVT::f32, Expand);
-    //setLoadXAction(ISD::EXTLOAD, MVT::i1 , Promote);
-    //setLoadXAction(ISD::ZEXTLOAD, MVT::i1, Expand);
-
-    setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
-    setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);
-    setOperationAction(ISD::UINT_TO_FP, MVT::i16  , Promote);
-
-    setOperationAction(ISD::SINT_TO_FP, MVT::i1   , Promote);
-    setOperationAction(ISD::SINT_TO_FP, MVT::i8   , Promote);
-    setOperationAction(ISD::SINT_TO_FP, MVT::i16  , Promote);
-
-    setOperationAction(ISD::FP_TO_UINT, MVT::i1   , Promote);
-    setOperationAction(ISD::FP_TO_UINT, MVT::i8   , Promote);
-    setOperationAction(ISD::FP_TO_UINT, MVT::i16  , Promote);
-
-    setOperationAction(ISD::FP_TO_SINT, MVT::i1   , Promote);
-    setOperationAction(ISD::FP_TO_SINT, MVT::i8   , Promote);
-    setOperationAction(ISD::FP_TO_SINT, MVT::i16  , Promote);
-
-    setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
-    setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
-
-    // SELECT is used instead of SELECT_CC
-    setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
-
-    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
-
-    // Expand indirect branches.
-    setOperationAction(ISD::BRIND, MVT::Other, Expand);
-    // Expand jumptable branches.
-    setOperationAction(ISD::BR_JT, MVT::Other, Expand);
-    // Expand conditional branches.
-    setOperationAction(ISD::BR_CC, MVT::Other, Expand);
-
-    setOperationAction(ISD::MULHU,  MVT::i32, Expand);
-    setOperationAction(ISD::MULHS,  MVT::i32, Expand);
-    setOperationAction(ISD::SHL_PARTS, MVT::i32, Expand);
-    setOperationAction(ISD::SRA_PARTS, MVT::i32, Expand);
-    setOperationAction(ISD::SRL_PARTS, MVT::i32, Expand);
-
-    setOperationAction(ISD::DBG_STOPPOINT, MVT::Other, Expand);
-    setOperationAction(ISD::DEBUG_LOC, MVT::Other, Expand);
-    setOperationAction(ISD::DBG_LABEL, MVT::Other, Expand);
-
-    setOperationAction(ISD::VASTART           , MVT::Other, Custom);
-    setOperationAction(ISD::VAARG             , MVT::Other, Expand);
-    setOperationAction(ISD::VACOPY            , MVT::Other, Expand);
-    setOperationAction(ISD::VAEND             , MVT::Other, Expand);
-
-    setOperationAction(ISD::STACKSAVE         , MVT::Other, Expand);
-    setOperationAction(ISD::STACKRESTORE      , MVT::Other, Expand);
-    setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32  , Expand);
-
-    setOperationAction(ISD::FCOPYSIGN, MVT::f64, Expand);
-    setOperationAction(ISD::FCOPYSIGN, MVT::f32, Expand);
-
-    setOperationAction(ISD::ConstantFP, MVT::f64, Expand);
-    setOperationAction(ISD::ConstantFP, MVT::f32, Expand);
-
-    setOperationAction(ISD::SMUL_LOHI, MVT::i32, Expand);
-    setOperationAction(ISD::UMUL_LOHI, MVT::i32, Expand);
-    setOperationAction(ISD::SMUL_LOHI, MVT::i64, Expand);
-    setOperationAction(ISD::UMUL_LOHI, MVT::i64, Expand);
-
-    setOperationAction(ISD::BSWAP, MVT::i32, Expand);
-
-    setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
-    setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
-
-    setStackPointerRegisterToSaveRestore(TCE::SP);
-
-    // Set missing operations that can be emulated with emulation function
-    // or LLVM built-in emulation pattern to be expanded.
-    const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >* missingOps = tm.missingOperations();
-    std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >::const_iterator iter = missingOps->begin();
-
-    std::cerr << "Missing ops: ";
-
-    while (iter != missingOps->end()) {
-      unsigned nodetype = (*iter).first;
-      llvm::MVT::SimpleValueType valuetype = (*iter).second;
-      switch (nodetype) {
-      case ISD::SDIV: std::cerr << "SDIV,"; break;
-      case ISD::UDIV: std::cerr << "UDIV,"; break;
-      case ISD::SREM: std::cerr << "SREM,"; break;
-      case ISD::UREM: std::cerr << "UREM,"; break;
-      case ISD::ROTL: std::cerr << "ROTL,"; break;
-      case ISD::ROTR: std::cerr << "ROTR,"; break;
-      case ISD::MUL:  std::cerr << "MUL,"; break;
-      case ISD::SIGN_EXTEND_INREG:
-        if (valuetype == MVT::i8) std::cerr << "SXQW,";
-	if (valuetype == MVT::i16) std::cerr << "SXHW,";
-	break;
-      default: std::cerr << nodetype << ", "; break;
-      };
-      setOperationAction(nodetype, valuetype, Expand);
-      iter++;
-    }
-    std::cerr << std::endl;
-
-    computeRegisterProperties();
-}
-
-
-/**
- * The Destructor.
- */
-TCETargetLowering::~TCETargetLowering() {
-}
-
-
-/**
- * Handles custom operation lowerings.
- */
-SDValue
-TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
-
-    switch(op.getOpcode()) {
-    case ISD::GlobalAddress: {
-        GlobalValue* gv = cast<GlobalAddressSDNode>(op)->getGlobal();
-        SDValue ga = dag.getTargetGlobalAddress(gv, MVT::i32);
-        return dag.getNode(TCEISD::GLOBAL_ADDR, op.getDebugLoc(), MVT::i32, ga);
-    }
-    case ISD::DYNAMIC_STACKALLOC: {
-        assert(false && "Dynamic stack allocation not yet implemented.");
-    }
-    case ISD::SELECT: {
-        return lowerSELECT(op, dag);
-    }
-    case ISD::VASTART: {
-        llvm::MVT ptrVT = dag.getTargetLoweringInfo().getPointerTy();
-        SDValue fr = dag.getFrameIndex(varArgsFrameIndex_, ptrVT);
-        SrcValueSDNode* sv = cast<SrcValueSDNode>(op.getOperand(2));
-        return dag.getStore(
-            op.getOperand(0), op.getDebugLoc(), fr, op.getOperand(1), sv->getValue(), 0);
-    }
-    case ISD::ConstantPool: {
-        // TODO: Check this.
-        llvm::MVT ptrVT = op.getValueType().getSimpleVT();
-        ConstantPoolSDNode* cp = cast<ConstantPoolSDNode>(op);
-        SDValue res;
-        if (cp->isMachineConstantPoolEntry()) {
-            res = dag.getTargetConstantPool(
-                cp->getMachineCPVal(), ptrVT,
-                cp->getAlignment());
-        } else {
-            res = dag.getTargetConstantPool(
-                cp->getConstVal(), ptrVT,
-                cp->getAlignment());
-        }
-        return dag.getNode(TCEISD::CONST_POOL, op.getDebugLoc(), MVT::i32, res);
-    }     
-    }
-    op.getNode()->dump(&dag);
-    assert(0 && "Custom lowerings not implemented!");
-}
 
 SDValue
 TCETargetLowering::LowerReturn(SDValue Chain,
@@ -301,72 +106,11 @@ TCETargetLowering::LowerReturn(SDValue Chain,
 
   if (Flag.getNode())
     return DAG.getNode(TCEISD::RET_FLAG, dl, MVT::Other, Chain, Flag);
-
   return DAG.getNode(TCEISD::RET_FLAG, dl, MVT::Other, Chain);
 }
 
 /**
- * Lowers return operation.
- *
- * NOTE: arguments are llvm style to make easier to move target
- *       to llvm side.
-SDValue
-TCETargetLowering::LowerReturn(
-    SDValue Chain, unsigned CallConv, bool isVarArg,
-    const SmallVectorImpl<ISD::OutputArg> &Outs,
-    DebugLoc dl, SelectionDAG &DAG) {
-    
-    SDValue copy;
-    switch (Chain.getNumOperands()) {
-    default: {
-        errs() << "Do not know how to return "
-               << Chain.getNumOperands() << " operands!\n";
-        assert(false);
-    }
-    case 1: {
-        return Chain;
-    }
-    case 3: {
-        unsigned argReg;
-        switch(Chain.getOperand(1).getValueType().getSimpleVT().SimpleTy) {
-        default: assert(0 && "Unknown type to return");
-        case MVT::i32: argReg = TCE::IRES0; break;
-        case MVT::f32: argReg = TCE::FRES0; break;
-        //case MVT::i64: argReg = TCE::DIRES0; break;
-        //case MVT::f64: argReg = TCE::DRES0; break;
-        }
-        copy = DAG.getCopyToReg(
-            Chain.getOperand(0), Chain.getDebugLoc(), argReg, 
-            Chain.getOperand(1), SDValue());
-        break;
-    }
-    case 5: {
-        // TODO: i64 return value is now split in two registers:
-        // lo part in IRES0 and hi part in KLUDGE_REGISTER
-        assert(Chain.getOperand(1).getValueType() == MVT::i32);
-        assert(Chain.getOperand(3).getValueType() == MVT::i32);
-
-        copy = DAG.getCopyToReg(
-            Chain.getOperand(0), Chain.getDebugLoc(), TCE::IRES0, 
-            Chain.getOperand(3), SDValue());
-
-        copy = DAG.getCopyToReg(
-            copy, Chain.getDebugLoc(), TCE::KLUDGE_REGISTER, 
-            Chain.getOperand(1), copy.getValue(1));       
-        break;
-    }
-    }
-    return DAG.getNode(
-        TCEISD::RET_FLAG, Chain.getDebugLoc(), 
-        MVT::Other, copy, copy.getValue(1));
-}
- */
-
-/**
  * Lowers formal arguments.
- *
- * NOTE: arguments are llvm style to make easier to move target
- *       to llvm side.
  */
 SDValue
 TCETargetLowering::LowerFormalArguments(
@@ -522,60 +266,29 @@ TCETargetLowering::LowerFormalArguments(
     }
     
     // Store remaining ArgRegs to the stack if this is a varargs function.
-    if (isVarArg) {
-        
-        /* Sparc code.... 
+    if (isVarArg) {              
         // Remember the vararg offset for the va_start implementation.
         VarArgsFrameOffset = ArgOffset;
         
         std::vector<SDValue> OutChains;
         
-        for (; CurArgReg != ArgRegEnd; ++CurArgReg) {
-            unsigned VReg = RegInfo.createVirtualRegister(&SP::IntRegsRegClass);
-            MF.getRegInfo().addLiveIn(*CurArgReg, VReg);
-            SDValue Arg = DAG.getCopyFromReg(DAG.getRoot(), dl, VReg, MVT::i32);
+//         for (; CurArgReg != ArgRegEnd; ++CurArgReg) {
+//             unsigned VReg = RegInfo.createVirtualRegister(&TCE::IntRegsRegClass);
+//             MF.getRegInfo().addLiveIn(*CurArgReg, VReg);
+//             SDValue Arg = DAG.getCopyFromReg(DAG.getRoot(), dl, VReg, MVT::i32);
             
-            int FrameIdx = MF.getFrameInfo()->CreateFixedObject(4, ArgOffset);
-            SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
+//             int FrameIdx = MF.getFrameInfo()->CreateFixedObject(4, ArgOffset);
+//             SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
             
-            OutChains.push_back(DAG.getStore(DAG.getRoot(), dl, Arg, FIPtr, NULL, 0));
-            ArgOffset += 4;
-        }
+//             OutChains.push_back(DAG.getStore(DAG.getRoot(), dl, Arg, FIPtr, NULL, 0));
+//             ArgOffset += 4;
+//         }
         
         if (!OutChains.empty()) {
             OutChains.push_back(Chain);
             Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
                                 &OutChains[0], OutChains.size());
         }
-        */ 
-
-        // In case of a variadic argument function, all parameters are passed
-        // in the stack.
-        varArgsFrameIndex_ =
-            MF.getFrameInfo()->CreateFixedObject(4, ArgOffset);
-        
-        
-        /* is this still needed for something?
-        switch (getValueType(f.getReturnType()).getSimpleVT().SimpleTy) {
-        default: assert(0 && "Unknown type!");
-        case MVT::isVoid: break;
-        case MVT::i1:
-        case MVT::i8:
-        case MVT::i16:
-        case MVT::i32:
-            RegInfo().addLiveOut(TCE::IRES0);
-            break;
-        case MVT::f32:
-            RegInfo().addLiveOut(TCE::FRES0);
-            break;
-        case MVT::i64:
-        case MVT::f64: {
-            RegInfo().addLiveOut(TCE::IRES0);
-            RegInfo().addLiveOut(TCE::KLUDGE_REGISTER);
-            break;
-        }
-        }
-        */
     }
     
     return Chain;
@@ -615,11 +328,9 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     ArgsSize = (ArgsSize+3) & ~3;
 
     Chain = DAG.getCALLSEQ_START(Chain, DAG.getIntPtrConstant(ArgsSize, true));
-    std::cerr << "Created callseq start chain" << std::endl;
   
     SmallVector<SDValue, 8> MemOpChains;
-
-
+   
   unsigned ArgOffset = 0;
 
   for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
@@ -629,21 +340,21 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     unsigned ObjSize;
     switch (ObjectVT.getSimpleVT().SimpleTy) {
     default: llvm_unreachable("Unhandled argument type!");
-
-//    case MVT::i1:
-//    case MVT::i8:
-//    case MVT::i16: {
-//        // TODO: is actually needed (sparc did not have this)?
-//        // Promote the integer to 32-bits.
+        
+    case MVT::i1:
+    case MVT::i8:
+    case MVT::i16: {
+        // TODO: is actually needed (sparc did not have this)?
+        // Promote the integer to 32-bits.
 //        ISD::NodeType ext = ISD::ANY_EXTEND;
-//        if (args[i].isSExt) {
+//        if (Ins[i].isSExt) {
 //            ext = ISD::SIGN_EXTEND;
-//        } else if (args[i].isZExt) {
+//        } else if (Ins[i].isZExt) {
 //            ext = ISD::ZERO_EXTEND;
 //        }
-//        Val = dag.getNode(ext, dl, MVT::i32, val);
-//        // FALL THROUGH
-//    }
+//        Val = DAG.getNode(ext, dl, MVT::i32, Val);
+        // FALL THROUGH
+    }
     case MVT::f32:
     case MVT::i32:
         ObjSize = 4;
@@ -662,14 +373,12 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
       PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
       MemOpChains.push_back(DAG.getStore(Chain, dl, ValToStore, 
                                          PtrOff, NULL, 0));
-      std::cerr << "memop chain" << std::endl;
     }
     ArgOffset += ObjSize;
   }
 
   // Emit all stores, make sure the occur before any copies into physregs.
   if (!MemOpChains.empty()) {
-      std::cerr << "added memop chain" << std::endl;
     Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
                         &MemOpChains[0], MemOpChains.size());
   }
@@ -678,7 +387,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   // chain and flag operands which copy the outgoing args into registers.
   // The InFlag in necessary since all emited instructions must be
   // stuck together.
-  SDValue InFlag;
+  SDValue InFlag;// = Chain.getValue(0);
 
   // If the callee is a GlobalAddress node (quite common, every direct call is)
   // turn it into a TargetGlobalAddress node so that legalize doesn't hack it.
@@ -693,12 +402,10 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   NodeTys.push_back(MVT::Flag);    // Returns a flag for retval copy to use.
   SDValue Ops[] = { Chain, Callee, InFlag };
   Chain = DAG.getNode(TCEISD::CALL, dl, NodeTys, Ops, InFlag.getNode() ? 3 : 2);
-  std::cerr << "added tceisd::call" << std::endl;
   InFlag = Chain.getValue(1);
 
   Chain = DAG.getCALLSEQ_END(Chain, DAG.getIntPtrConstant(ArgsSize, true),
                              DAG.getIntPtrConstant(0, true), InFlag);
-  std::cerr << "added callseq_end" << std::endl;
   InFlag = Chain.getValue(1);
 
   // Assign locations to each value returned by this call.
@@ -719,7 +426,6 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
     Chain = DAG.getCopyFromReg(Chain, dl, Reg,
                                RVLocs[i].getValVT(), InFlag).getValue(1);
-    std::cerr << "added copy from regd" << std::endl;
     InFlag = Chain.getValue(2);
     InVals.push_back(Chain.getValue(0));
   }
@@ -796,6 +502,185 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   */
 
 
+/**
+ * The Constructor.
+ *
+ * Initializes the target lowering.
+ */
+TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
+    TargetLowering(TM,  new TCETargetObjectFile()), tm_(dynamic_cast<TCETargetMachine&>(TM)) {
+
+    addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
+    addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);
+    addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
+
+    //setLoadXAction(ISD::EXTLOAD, MVT::f32, Expand);
+    //setLoadXAction(ISD::EXTLOAD, MVT::i1 , Promote);
+    //setLoadXAction(ISD::ZEXTLOAD, MVT::i1, Expand);
+
+    setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
+    setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);
+    setOperationAction(ISD::UINT_TO_FP, MVT::i16  , Promote);
+
+    setOperationAction(ISD::SINT_TO_FP, MVT::i1   , Promote);
+    setOperationAction(ISD::SINT_TO_FP, MVT::i8   , Promote);
+    setOperationAction(ISD::SINT_TO_FP, MVT::i16  , Promote);
+
+    setOperationAction(ISD::FP_TO_UINT, MVT::i1   , Promote);
+    setOperationAction(ISD::FP_TO_UINT, MVT::i8   , Promote);
+    setOperationAction(ISD::FP_TO_UINT, MVT::i16  , Promote);
+
+    setOperationAction(ISD::FP_TO_SINT, MVT::i1   , Promote);
+    setOperationAction(ISD::FP_TO_SINT, MVT::i8   , Promote);
+    setOperationAction(ISD::FP_TO_SINT, MVT::i16  , Promote);
+
+    setOperationAction(ISD::GlobalAddress, MVT::i32, Custom);
+    setOperationAction(ISD::ConstantPool , MVT::i32, Custom);
+
+    // SELECT is used instead of SELECT_CC
+    setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
+
+    setOperationAction(ISD::SETCC, MVT::i1, Promote);
+
+    setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
+
+    // Expand indirect branches.
+    setOperationAction(ISD::BRIND, MVT::Other, Expand);
+    // Expand jumptable branches.
+    setOperationAction(ISD::BR_JT, MVT::Other, Expand);
+    // Expand conditional branches.
+    setOperationAction(ISD::BR_CC, MVT::Other, Expand);
+
+    setOperationAction(ISD::MULHU,  MVT::i32, Expand);
+    setOperationAction(ISD::MULHS,  MVT::i32, Expand);
+    setOperationAction(ISD::SHL_PARTS, MVT::i32, Expand);
+    setOperationAction(ISD::SRA_PARTS, MVT::i32, Expand);
+    setOperationAction(ISD::SRL_PARTS, MVT::i32, Expand);
+
+    setOperationAction(ISD::DBG_STOPPOINT, MVT::Other, Expand);
+    setOperationAction(ISD::DEBUG_LOC, MVT::Other, Expand);
+    setOperationAction(ISD::DBG_LABEL, MVT::Other, Expand);
+
+    setOperationAction(ISD::VASTART           , MVT::Other, Custom);
+    setOperationAction(ISD::VAARG             , MVT::Other, Expand);
+    setOperationAction(ISD::VACOPY            , MVT::Other, Expand);
+    setOperationAction(ISD::VAEND             , MVT::Other, Expand);
+
+    setOperationAction(ISD::STACKSAVE         , MVT::Other, Expand);
+    setOperationAction(ISD::STACKRESTORE      , MVT::Other, Expand);
+    setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32  , Expand);
+
+    setOperationAction(ISD::FCOPYSIGN, MVT::f64, Expand);
+    setOperationAction(ISD::FCOPYSIGN, MVT::f32, Expand);
+
+    setOperationAction(ISD::ConstantFP, MVT::f64, Expand);
+    setOperationAction(ISD::ConstantFP, MVT::f32, Expand);
+
+    setOperationAction(ISD::SMUL_LOHI, MVT::i32, Expand);
+    setOperationAction(ISD::UMUL_LOHI, MVT::i32, Expand);
+    setOperationAction(ISD::SMUL_LOHI, MVT::i64, Expand);
+    setOperationAction(ISD::UMUL_LOHI, MVT::i64, Expand);
+
+    setOperationAction(ISD::BSWAP, MVT::i32, Expand);
+
+    setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
+    setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
+
+    setStackPointerRegisterToSaveRestore(TCE::SP);
+
+    // Set missing operations that can be emulated with emulation function
+    // or LLVM built-in emulation pattern to be expanded.
+    const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >* missingOps = tm_.missingOperations();
+    std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >::const_iterator iter = missingOps->begin();
+
+    std::cerr << "Missing ops: ";
+
+    while (iter != missingOps->end()) {
+      unsigned nodetype = (*iter).first;
+      llvm::MVT::SimpleValueType valuetype = (*iter).second;
+      switch (nodetype) {
+      case ISD::SDIV: std::cerr << "SDIV,"; break;
+      case ISD::UDIV: std::cerr << "UDIV,"; break;
+      case ISD::SREM: std::cerr << "SREM,"; break;
+      case ISD::UREM: std::cerr << "UREM,"; break;
+      case ISD::ROTL: std::cerr << "ROTL,"; break;
+      case ISD::ROTR: std::cerr << "ROTR,"; break;
+      case ISD::MUL:  std::cerr << "MUL,"; break;
+      case ISD::SIGN_EXTEND_INREG:
+        if (valuetype == MVT::i8) std::cerr << "SXQW,";
+	if (valuetype == MVT::i16) std::cerr << "SXHW,";
+	break;
+      default: std::cerr << nodetype << ", "; break;
+      };
+      setOperationAction(nodetype, valuetype, Expand);
+      iter++;
+    }
+    std::cerr << std::endl;
+
+    computeRegisterProperties();
+}
+
+/**
+ * Returns target node opcode names for debugging purposes.
+ *
+ * @param opcode Opcode to convert to string.
+ * @return Opcode name.
+ */
+const char*
+TCETargetLowering::getTargetNodeName(unsigned opcode) const {
+    switch (opcode) {
+    default: return NULL;
+    case TCEISD::CALL: return "TCEISD::CALL";
+    case TCEISD::RET_FLAG: return "TCEISD::RET_FLAG";
+    case TCEISD::GLOBAL_ADDR: return "TCEISD::GLOBAL_ADDR";
+    case TCEISD::CONST_POOL: return "TCEISD::CONST_POOL";
+    case TCEISD::Hi: return "TCEISD::Hi";
+    case TCEISD::Lo: return "TCEISD::Lo";
+    case TCEISD::FTOI: return "TCEISD::FTOI";
+    case TCEISD::ITOF: return "TCEISD::ITOF";
+    case TCEISD::SELECT_I1: return "TCEISD::SELECT_I1";
+    case TCEISD::SELECT_I8: return "TCEISD::SELECT_I8";
+    case TCEISD::SELECT_I16: return "TCEISD::SELECT_I16";
+    case TCEISD::SELECT_I32: return "TCEISD::SELECT_I32";
+    case TCEISD::SELECT_I64: return "TCEISD::SELECT_I64";
+    case TCEISD::SELECT_F32: return "TCEISD::SELECT_F32";
+    case TCEISD::SELECT_F64: return "TCEISD::SELECT_F64";
+    }
+}
+
+#if 0
+// isMaskedValueZeroForTargetNode - Return true if 'Op & Mask' is known to
+/// be zero. Op is expected to be a target specific node. Used by DAG
+/// combiner.
+void TCETargetLowering::computeMaskedBitsForTargetNode(const SDValue Op,
+                                                       const APInt &Mask,
+                                                       APInt &KnownZero,
+                                                       APInt &KnownOne,
+                                                       const SelectionDAG &DAG,
+                                                       unsigned Depth) const {
+  APInt KnownZero2, KnownOne2;
+  KnownZero = KnownOne = APInt(Mask.getBitWidth(), 0);   // Don't know anything.
+
+  switch (Op.getOpcode()) {
+  default: break;
+/*
+  case SPISD::SELECT_ICC:
+  case SPISD::SELECT_FCC:
+    DAG.ComputeMaskedBits(Op.getOperand(1), Mask, KnownZero, KnownOne,
+                          Depth+1);
+    DAG.ComputeMaskedBits(Op.getOperand(0), Mask, KnownZero2, KnownOne2,
+                          Depth+1);
+    assert((KnownZero & KnownOne) == 0 && "Bits known to be one AND zero?");
+    assert((KnownZero2 & KnownOne2) == 0 && "Bits known to be one AND zero?");
+
+    // Only known if known in both the LHS and RHS.
+    KnownOne &= KnownOne2;
+    KnownZero &= KnownZero2;
+    break;
+*/
+  }
+}
+#endif
 
 /**
  * Converts SELECT nodes to TCE-specific pseudo instructions.
@@ -845,35 +730,61 @@ TCETargetLowering::lowerSELECT(
         opcode, op.getDebugLoc(), trueVal.getValueType(), trueVal, falseVal, cond);
 }
 
-/**
- * Inline ASM constraint support for custom op definitions.
- */
-std::pair<unsigned, const TargetRegisterClass*>
-TCETargetLowering::getRegForInlineAsmConstraint(
-    const std::string& constraint,
-    llvm::MVT vt) const {
-
-    if (constraint == "r") {
-        return std::make_pair(0U, TCE::I32RegsRegisterClass);
-    }
-
-    if (constraint == "f") {
-        if (vt == MVT::f32) {
-            return std::make_pair(0U, TCE::F32RegsRegisterClass);
-        } else if (vt == MVT::f64) {
-            return std::make_pair(0U, TCE::F64RegsRegisterClass);
-        }
-    }
-    return TargetLowering::getRegForInlineAsmConstraint(constraint, vt);
-}
 
 /**
  * Returns the preferred comparison result type.
  */
-llvm::MVT
-TCETargetLowering::getSetCCResultType(llvm::MVT VT) const {
-   return llvm::MVT::i1;
+MVT::SimpleValueType 
+TCETargetLowering::getSetCCResultType(llvm::EVT VT) const { 
+    return llvm::MVT::i1;
 }
+
+/**
+ * Handles custom operation lowerings.
+ */
+SDValue
+TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
+
+    switch(op.getOpcode()) {
+    case ISD::GlobalAddress: {
+        GlobalValue* gv = cast<GlobalAddressSDNode>(op)->getGlobal();
+        SDValue ga = dag.getTargetGlobalAddress(gv, MVT::i32);
+        return dag.getNode(TCEISD::GLOBAL_ADDR, op.getDebugLoc(), MVT::i32, ga);
+    }
+    case ISD::DYNAMIC_STACKALLOC: {
+        assert(false && "Dynamic stack allocation not yet implemented.");
+    }
+    case ISD::SELECT: {
+        return lowerSELECT(op, dag);
+    }
+    case ISD::VASTART: {
+        llvm::MVT ptrVT = dag.getTargetLoweringInfo().getPointerTy();
+        SDValue fr = dag.getFrameIndex(VarArgsFrameOffset, ptrVT);
+        SrcValueSDNode* sv = cast<SrcValueSDNode>(op.getOperand(2));
+        return dag.getStore(
+            op.getOperand(0), op.getDebugLoc(), fr, op.getOperand(1), sv->getValue(), 0);
+    }
+    case ISD::ConstantPool: {
+        // TODO: Check this.
+        llvm::MVT ptrVT = op.getValueType().getSimpleVT();
+        ConstantPoolSDNode* cp = cast<ConstantPoolSDNode>(op);
+        SDValue res;
+        if (cp->isMachineConstantPoolEntry()) {
+            res = dag.getTargetConstantPool(
+                cp->getMachineCPVal(), ptrVT,
+                cp->getAlignment());
+        } else {
+            res = dag.getTargetConstantPool(
+                cp->getConstVal(), ptrVT,
+                cp->getAlignment());
+        }
+        return dag.getNode(TCEISD::CONST_POOL, op.getDebugLoc(), MVT::i32, res);
+    }     
+    }
+    op.getNode()->dump(&dag);
+    assert(0 && "Custom lowerings not implemented!");
+}
+
 
 //===----------------------------------------------------------------------===//
 //                         Inline Assembly Support

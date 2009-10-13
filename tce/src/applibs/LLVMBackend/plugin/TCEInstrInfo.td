@@ -8,33 +8,98 @@
 
 include "TCEInstrFormats.td"
 
-
 // ----- Addressing modes. -----
+//
+//// base + offset (e.g. label + offset).
+//def ADDRrr : ComplexPattern<i32, 2, "SelectADDRrr", [], []>;
+//// frameindex + offset (simplifies some stack code generation).
+//def ADDRri : ComplexPattern<i32, 2, "SelectADDRri", [frameindex], []>;
+//
+//def calltarget : Operand<i32>;
+//
+//def MEMrr : Operand<i32> {
+//    let PrintMethod = "printMemOperand";
+//    let MIOperandInfo = (ops I32Regs, I32Regs);
+//}
+//
+//def MEMri : Operand<i32> {
+//  let PrintMethod = "printMemOperand";
+//  let MIOperandInfo = (ops I32Regs, i32imm);
+//
+//}
+//
+//// ----- Call pseudo instructions -----
+//
+//// These are target-independent nodes, but have target-specific formats.
+//def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32> ]>;
+//def SDT_TCECallSeqEnd   : SDCallSeqEnd<[ SDTCisVT<0, i32>,
+//                                         SDTCisVT<1, i32> ]>;
+//
+//def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_TCECallSeqStart,
+//                           [SDNPHasChain, SDNPOutFlag]>;
+//def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_TCECallSeqEnd,
+//                           [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
+//
+//def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
+//def call           : SDNode<"TCEISD::CALL", SDT_TCECall,
+//                           [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
+//
+//def SDT_TCERetFlag : SDTypeProfile<0, 0, []>;
+//def retflag : SDNode<"TCEISD::RET_FLAG", SDT_TCERetFlag,
+//	             [SDNPHasChain, SDNPOptInFlag]>;
 
-// base + offset (e.g. label + offset).
+
+// Addressing modes.
 def ADDRrr : ComplexPattern<i32, 2, "SelectADDRrr", [], []>;
-// frameindex + offset (simplifies some stack code generation).
 def ADDRri : ComplexPattern<i32, 2, "SelectADDRri", [frameindex], []>;
 
-def calltarget : Operand<i32>;
-
+// Address operands
 def MEMrr : Operand<i32> {
-    let PrintMethod = "printMemOperand";
-    let MIOperandInfo = (ops I32Regs, I32Regs);
+  let PrintMethod = "printMemOperand";
+  let MIOperandInfo = (ops I32Regs, I32Regs);
 }
-
 def MEMri : Operand<i32> {
   let PrintMethod = "printMemOperand";
   let MIOperandInfo = (ops I32Regs, i32imm);
-
 }
 
-// ----- Call pseudo instructions -----
+// Branch targets have OtherVT type.
+def brtarget : Operand<OtherVT>;
+def calltarget : Operand<i32>;
+
+// Operand for printing out a condition code.
+let PrintMethod = "printCCOperand" in
+  def CCOp : Operand<i32>;
+
+//def SDTTCEcmpfcc : 
+//SDTypeProfile<0, 2, [SDTCisFP<0>, SDTCisSameAs<0, 1>]>;
+//def SDTTCEbrcc : 
+//SDTypeProfile<0, 2, [SDTCisVT<0, OtherVT>, SDTCisVT<1, i32>]>;
+//def SDTTCEselectcc :
+//SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>, SDTCisSameAs<1, 2>, SDTCisVT<3, i32>]>;
+def SDTTCEFTOI :
+SDTypeProfile<1, 1, [SDTCisVT<0, f32>, SDTCisFP<1>]>;
+def SDTTCEITOF :
+SDTypeProfile<1, 1, [SDTCisFP<0>, SDTCisVT<1, f32>]>;
+
+//def TCEcmpicc : SDNode<"TCEISD::CMPICC", SDTIntBinOp, [SDNPOutFlag]>;
+//def TCEcmpfcc : SDNode<"TCEISD::CMPFCC", SDTTCEcmpfcc, [SDNPOutFlag]>;
+//def TCEbricc : SDNode<"TCEISD::BRICC", SDTTCEbrcc, [SDNPHasChain, SDNPInFlag]>;
+//def TCEbrfcc : SDNode<"TCEISD::BRFCC", SDTTCEbrcc, [SDNPHasChain, SDNPInFlag]>;
+
+def TCEhi    : SDNode<"TCEISD::Hi", SDTIntUnaryOp>;
+def TCElo    : SDNode<"TCEISD::Lo", SDTIntUnaryOp>;
+
+def TCEftoi  : SDNode<"TCEISD::FTOI", SDTTCEFTOI>;
+def TCEitof  : SDNode<"TCEISD::ITOF", SDTTCEITOF>;
+
+//def TCEselecticc : SDNode<"TCEISD::SELECT_ICC", SDTTCEselectcc, [SDNPInFlag]>;
+//def TCEselectfcc : SDNode<"TCEISD::SELECT_FCC", SDTTCEselectcc, [SDNPInFlag]>;
 
 // These are target-independent nodes, but have target-specific formats.
 def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32> ]>;
 def SDT_TCECallSeqEnd   : SDCallSeqEnd<[ SDTCisVT<0, i32>,
-                                         SDTCisVT<1, i32> ]>;
+                                        SDTCisVT<1, i32> ]>;
 
 def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_TCECallSeqStart,
                            [SDNPHasChain, SDNPOutFlag]>;
@@ -42,10 +107,11 @@ def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_TCECallSeqEnd,
                            [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
 
 def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
-def call           : SDNode<"TCEISD::CALL", SDT_TCECall,
+def call          : SDNode<"TCEISD::CALL", SDT_TCECall,
                            [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
 
-
+def retflag       : SDNode<"TCEISD::RET_FLAG", SDTNone,
+                           [SDNPHasChain, SDNPOptInFlag]>;
 
 // ==========================================================
 //  SELECT
@@ -54,9 +120,6 @@ def call           : SDNode<"TCEISD::CALL", SDT_TCECall,
 //  Expanded by the scheduler into a branch sequence.
 // ==========================================================
 
-def SDT_TCERetFlag : SDTypeProfile<0, 0, []>;
-def retflag : SDNode<"TCEISD::RET_FLAG", SDT_TCERetFlag,
-	             [SDNPHasChain, SDNPOptInFlag]>;
 
 def SDT_TCESelect : SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>,
                                          SDTCisSameAs<1, 2>,
@@ -326,17 +389,26 @@ let isTerminator = 1, isBranch = 1 in {
                         (ins i32imm:$dst), "$dst -> jump.1;", []>;
 }
 
-// hardcoded boolean loads.
-def LDQUb : InstTCE <(outs I1Regs:$dst), (ins MEMrr:$src), "", [(set I1Regs:$dst, (load ADDRrr:$src))]>;
-def LDQUib : InstTCE<(outs I1Regs:$dst), (ins MEMri:$src), "", [(set I1Regs:$dst, (load ADDRri:$src))]>;
-
-
-// and stores
-def STQib : InstTCE<(outs), (ins MEMri:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRri:$addr)]>;
-def STQrb : InstTCE<(outs), (ins MEMrr:$addr, I1Regs:$data), "",[(store I1Regs:$data, ADDRrr:$addr)]>;
-
-
 include "GenInstrInfo.td"
+
+// boolean store and load
+def STQBrb : InstTCE<(outs), (ins MEMrr:$op1,I1Regs:$op2), "", [(truncstorei8 I1Regs:$op2, ADDRrr:$op1)]>;
+def STQBib : InstTCE<(outs), (ins MEMri:$op1,I1Regs:$op2), "", [(truncstorei8 I1Regs:$op2, ADDRri:$op1)]>;
+def LDQBr : InstTCE<(outs I1Regs:$op2), (ins MEMrr:$op1), "", [(set I1Regs:$op2, (sextloadi8 ADDRrr:$op1))]>;
+def LDQBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2, (sextloadi8 ADDRri:$op1))]>;
+def LDQUBr : InstTCE<(outs I1Regs:$op2), (ins MEMrr:$op1), "", [(set I1Regs:$op2, (zextloadi8 ADDRrr:$op1))]>;
+def LDQUBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2, (zextloadi8 ADDRri:$op1))]>;
+
+// pattern for i1 immediate stores and loads
+def : Pat<(store (i1 imm:$src), ADDRri:$addr), (STQri ADDRrr:$addr, imm:$src)>;
+
+// no idea why this is needed for selecting load with immediate address...
+def : Pat<(i1 (load ADDRri:$addr)), (LDQBi ADDRri:$addr)>;
+
+
+// return address stack store/load
+def STWRArr : InstTCE<(outs), (ins MEMrr:$op1,RAReg:$op2), "", [(store RAReg:$op2, ADDRrr:$op1)]>;
+def LDWRAr : InstTCE<(outs RAReg:$op2), (ins MEMrr:$op1), "", [(set RAReg:$op2, (load ADDRrr:$op1))]>;
 
 // anyextloads -> sextloads
 def : Pat<(i32 (extloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
@@ -345,16 +417,6 @@ def : Pat<(i32 (extloadi8 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
 def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQi ADDRri:$src)>;
 def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
 def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
-
-//  old bool load/store - need to be changed - or not used anymore?
-def : Pat<(i32 (zextloadi1 ADDRrr:$src)), (LDQr ADDRrr:$src)>;
-def : Pat<(i32 (zextloadi1 ADDRri:$src)), (LDQi ADDRri:$src)>;
-
-//def : Pat<(truncstorei1 I32Regs:$src, ADDRrr:$addr),
-//          (STQrr ADDRrr:$addr, I32Regs:$src)>;
-
-//def : Pat<(truncstorei1 I32Regs:$src, ADDRri:$addr),
-//          (STQir ADDRri:$addr, I32Regs:$src)>;
 
 def : Pat<(store F32Regs:$src, ADDRri:$addr),
           (STWir ADDRri:$addr, (MOVFI32rr F32Regs:$src))>;
