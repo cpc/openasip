@@ -1081,7 +1081,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         if (name == "_end") {
             return &TTAProgram::NullTerminal::instance();
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
-            SimValue address(dataLabels_[name], 32);
+            SimValue address(dataLabels_[name] + mo.getOffset(), 32);
             return new TTAProgram::TerminalAddress(
                 address, *dataAddressSpace_);
 

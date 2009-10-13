@@ -36,6 +36,7 @@ Bugfixes
   make the machine state correct for inspection.
 - Avoids placing data at address 0 because it is indistinguishable from NULL.
 - Operand type initialized correctly in osed operand editing dialog.
+- Direct memory accesses to global tables could get wrong address.
 
 1.0 first public release, 2009-03-26
 ====================================
