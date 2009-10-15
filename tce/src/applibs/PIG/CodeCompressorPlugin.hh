@@ -140,7 +140,13 @@ protected:
 
     InstructionBitVector* bemBits(const TTAProgram::Program& program)
         throw (InvalidData);
+    
+    int moveSlotCount() const;
 
+    int moveSlotWidth(int index) const;
+
+    int firstMoveSlotIndex() const;
+    
     void startNewProgram(const std::string& programName)
         throw (InvalidData);
     void addInstruction(
@@ -164,6 +170,8 @@ protected:
     int numberOfPrograms() const;
     
     TPEFMap::const_iterator programElement(int index) const;
+
+    std::string indentation(int level);
 
 private:
 

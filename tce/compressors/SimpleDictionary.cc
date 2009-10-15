@@ -109,8 +109,14 @@ public:
         }            
         if (!dictionaryCreated_) {
             createDictionary();
+
+            unsigned int compressedImemWidth = 
+                MathTools::requiredBits(dictionary_.size());
+            assert(compressedImemWidth <= sizeof(long long unsigned int)*8
+                   && "Compressed instruction width is too big");
+
             // fix imem width (mau == instruction width)
-            setImemWidth(MathTools::requiredBits(dictionary_.size()));
+            setImemWidth(compressedImemWidth);
         }
         startNewProgram(programName);
         setAllInstructionsToStartAtBeginningOfMAU();
@@ -307,19 +313,6 @@ private:
     }
 
 
-    /**
-     * Returns the indentation string of the given level.
-     *
-     * @param level The indentation level.
-     */
-    static std::string 
-    indentation(int level) {
-        string ind;
-        for (int i = 0; i < level; i++) {
-            ind += "  ";
-        }
-        return ind;
-    }
 
     /// The dictionary.
     Dictionary dictionary_;

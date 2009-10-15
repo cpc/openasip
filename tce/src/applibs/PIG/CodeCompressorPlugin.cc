@@ -213,6 +213,36 @@ CodeCompressorPlugin::bemBits(const TTAProgram::Program& program)
     return imageBits;
 }
 
+/**
+ * Returns the number of move slots
+ *
+ */
+int CodeCompressorPlugin::moveSlotCount() const {
+    return bem_->moveSlotCount();
+}
+
+/**
+ * Returns the width of the move slot in the given index
+ *
+ * @param index Index of move slot
+ */
+int CodeCompressorPlugin::moveSlotWidth(int index) const {
+    return bem_->moveSlot(index).width();
+}
+
+/**
+ * Returns the index of first move slot defined in bem
+ */
+int CodeCompressorPlugin::firstMoveSlotIndex() const {
+    int moveSlotIndex = 0;
+    if (bem_->hasImmediateControlField()) {
+        moveSlotIndex = bem_->immediateControlField().width();
+        for (int i = 0; i < bem_->longImmDstRegisterFieldCount(); i++) {
+            moveSlotIndex += bem_->longImmDstRegisterField(i).width();
+        }
+    }
+    return moveSlotIndex;
+}
 
 /**
  * Tells the memory address of the given instruction.
@@ -633,6 +663,20 @@ CodeCompressorPlugin::programElement(int index) const {
         iter++;
     }
     return iter;
+}
+
+/**
+ * Returns the indentation string of the given level.
+ *
+ * @param level The indentation level.
+ */
+std::string 
+CodeCompressorPlugin::indentation(int level) {
+    string ind;
+    for (int i = 0; i < level; i++) {
+        ind += "  ";
+    }
+    return ind;
 }
 
 /**

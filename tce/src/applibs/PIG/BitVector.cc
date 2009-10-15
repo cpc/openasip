@@ -96,7 +96,7 @@ BitVector::~BitVector() {
  * @param size The number of bits to be added.
  */
 void
-BitVector::pushBack(unsigned int integer, int size) {
+BitVector::pushBack(long long unsigned int integer, int size) {
     for (int i = size - 1; i >= 0; i--) {
         push_back(MathTools::bit(integer, i));
     }
