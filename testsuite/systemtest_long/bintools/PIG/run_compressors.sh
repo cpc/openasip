@@ -9,7 +9,7 @@
 # can assure that the compressors will work with up-to-date tce tools.
 # There is no point compressing pre-generated, age old tpefs.
 
-CC=$(which tcecc)
+CC=../../../../tce/src/bintools/Compiler/tcecc
 PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
 PIG=../../../../tce/src/bintools/PIG/generatebits
 CBEM=../../../../tce/src/bintools/BEMGenerator/createbem
@@ -23,10 +23,10 @@ BEM=minimal.bem
 TPEF=app.tpef
 
 DIR0=proge-output-no-compression
-DIR1=proge-output-SimpleDictionary
+DIR1=proge-output-InstructionDictionary
 DIR2=proge-output-MoveSlotDictionary
 
-COMP1=../../../../tce/compressors/SimpleDictionary.so
+COMP1=../../../../tce/compressors/InstructionDictionary.so
 COMP2=../../../../tce/compressors/MoveSlotDictionary.so
 
 IMEM=app.img
@@ -36,12 +36,6 @@ eexit() {
 	echo "$1"
 	exit 1
 }
-
-if [ x$CC = "x" ]
-then
-	echo "tcecc not found from path"
-	exit 1
-fi
 
 # We need to decrease the address spaces in minimal.adf. Otherwise ghdl will
 # initiate a massive swap festival (this will fail if the default values are
@@ -70,12 +64,12 @@ mv $IMEM $DIR0/tb/imem_init.img || eexit "Imem image is missing"
 mv $DMEM $DIR0/tb/dmem_init.img || eexit "Dmem image is missing"
 
 # generate images for processor 1
-$PIG -b $BEM -d -w 4 -p $TPEF -c $COMP1 -g -x $DIR1 $ADF || eexit "PIG failed with SimpleDictionary"
+$PIG -b $BEM -d -w 4 -p $TPEF -c $COMP1 -g -x $DIR1 $ADF || eexit "PIG failed with InstructionDictionary"
 mv $IMEM $DIR1/tb/imem_init.img || eexit "Imem image is missing"
 mv $DMEM $DIR1/tb/dmem_init.img || eexit "Dmem image is missing"
 
 # generate images for processor 2
-$PIG -b $BEM -d -w 4 -p $TPEF -c $COMP2 -g -x $DIR2 $ADF || eexit "PIG failed with MoveSlotDictionary"
+$PIG -b $BEM -d -w 4 -p $TPEF -c $COMP2 -g -x $DIR2 $ADF || eexit "PIG failed with InstructionDictionary"
 mv $IMEM $DIR2/tb/imem_init.img || exit "Imem image is missing"
 mv $DMEM $DIR2/tb/dmem_init.img || exit "Dmem image is missing"
 
@@ -97,13 +91,13 @@ $SIMULATE >& sim.log || eexit "Failed to simulate testbench without compression.
 cd ..
 
 cd $DIR1
-$COMPILE >& compile.log || eexit "Failed to compile testbench without compression. See $DIR1/compile.log"
-$SIMULATE >& sim.log || eexit "Failed to simulate testbench without compression. See $DIR1/sim.log"
+$COMPILE >& compile.log || eexit "Failed to compile testbench with InstructionDictionary. See $DIR1/compile.log"
+$SIMULATE >& sim.log || eexit "Failed to simulate testbench with InstructionDictionary. See $DIR1/sim.log"
 cd ..
 
 cd $DIR2
-$COMPILE >& compile.log || eexit "Failed to compile testbench without compression. See $DIR2/compile.log"
-$SIMULATE >& sim.log || eexit "Failed to simulate testbench without compression. See $DIR2/sim.log"
+$COMPILE >& compile.log || eexit "Failed to compile testbench with MoveSlotDictionary. See $DIR2/compile.log"
+$SIMULATE >& sim.log || eexit "Failed to simulate testbench with MoveSlotDictionary. See $DIR2/sim.log"
 cd ..
 
 DIFF1=simple_diff.txt

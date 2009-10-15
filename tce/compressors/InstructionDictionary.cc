@@ -22,7 +22,7 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file simple_dictionary.cc
+ * @file InstructionDictionary.cc
  *
  * Implementation of a simple dictionary compressor.  Warning! This
  * compressor works correctly only when there is one instruction per
@@ -69,13 +69,13 @@ using namespace TPEF;
 const string ENSURE_PROGRAMMABILITY = "ensure_programmability";
 const string YES = "yes";
 
-class SimpleDictionary : public CodeCompressorPlugin { 
+class InstructionDictionary : public CodeCompressorPlugin { 
 public:
     
     /**
      * The constructor.
      */
-    SimpleDictionary() :
+    InstructionDictionary() :
         CodeCompressorPlugin(), compatibilityProgDone_(false),
         dictionaryCreated_(false) {
     }
@@ -323,4 +323,4 @@ private:
 
 };
 
-EXPORT_CODE_COMPRESSOR(SimpleDictionary)
+EXPORT_CODE_COMPRESSOR(InstructionDictionary)
