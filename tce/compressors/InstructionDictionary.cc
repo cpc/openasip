@@ -35,12 +35,15 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
 #include <vector>
 #include <string>
 #include <iostream>
+#include <cmath>
+#include <boost/format.hpp>
 
 #include "CodeCompressor.hh"
 #include "Program.hh"
@@ -69,6 +72,9 @@ using namespace TPEF;
 const string ENSURE_PROGRAMMABILITY = "ensure_programmability";
 const string YES = "yes";
 
+/**
+ * Implements a simple instruction based dictionary compression scheme.
+ */
 class InstructionDictionary : public CodeCompressorPlugin { 
 public:
     
@@ -85,7 +91,8 @@ public:
      * Creates the compressed code and returns the bit vector of it.
      */
     virtual InstructionBitVector*
-    compress(const std::string& programName) throw (InvalidData) {
+    compress(const std::string& programName) 
+        throw (InvalidData) {
 
         try {
             if (hasParameter(ENSURE_PROGRAMMABILITY) &&
@@ -224,11 +231,12 @@ public:
      */
     virtual void 
     printDescription(std::ostream& stream) {
-        stream  << "Generates the program image using dictionary "
-                << "compression." << endl << endl 
+        stream  << "Generates the program image using instruction-based "
+                << "dictionary compression." << endl << endl 
                 << "Warning! This compressor works correctly only when "
                 << "there is one instruction per MAU in the final program "
-                << "image. That is, the MAU of the address space should be "
+                << "image. That is, the minimum addressable unit of the "
+                << "address space should be "
                 << "the same as the width of the compressed instructions or "
                 << "wider. Otherwise jump and call addresses are invalid in "
                 << "the code. This compressor creates the dictionary on the "
@@ -259,6 +267,18 @@ private:
             updateDictionary(currentProgram());
         }
         dictionaryCreated_ = true;
+        if (Application::verboseLevel() > 0 && dictionary_.size() > 0) {
+            std::size_t keyWidth = 
+                MathTools::requiredBits(dictionary_.size() - 1);
+            std::size_t entrySize = binaryEncoding().width();
+            std::size_t entries = dictionary_.size();
+            Application::logStream() 
+                << (boost::format(                    
+                        "dictionary width: %d bits, entries: %d, "
+                        "total size: %d bits (%d bytes)\n" )
+                    % keyWidth % entries % (entries * entrySize)
+                    % std::size_t(std::ceil(entries * entrySize / 8.0))).str();
+        }
     }
 
     /**
