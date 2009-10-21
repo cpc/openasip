@@ -103,6 +103,25 @@ DirectAccessMemory::write(Word address, Memory::MAU data) {
 }
 
 /**
+ * A convenience method for writing units of data to the memory.
+ *
+ * The data is stored in an UIntWord. 
+ *
+ * @param address The address to write.
+ * @param count Number of MAUs to write.
+ * @param data The data to write.
+ * @exception OutOfRange in case the address is out of range of the memory.
+ */
+void
+DirectAccessMemory::write(Word address, int count, UIntWord data) {
+    Memory::write(address, count,  data);
+    // compiled simulator does not call advance clock of
+    // memories at every cycle for efficiency, so we have
+    // to "flush" the writes right away
+    Memory::advanceClock();
+}
+
+/**
  * Reads a single MAU using the fastest possible method.
  *
  * @param address The address.

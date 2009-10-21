@@ -105,7 +105,7 @@ InputOperandDialog::InputOperandDialog(
     operandTypes_[2] = Operand::FLOAT_WORD;;
     operandTypes_[3] = Operand::DOUBLE_WORD;
 
-    updateTypes();
+    updateTypes(operand_->type());
 
     setTexts();
 }
@@ -168,9 +168,11 @@ InputOperandDialog::setTexts() {
 
 /**
  * Updates the type lists.
- */
+ * 
+ * @param type The type of the operation.
+**/
 void
-InputOperandDialog::updateTypes() {
+InputOperandDialog::updateTypes(int type) {
 
     inputTypesComboBox_->Clear();
     
@@ -179,7 +181,7 @@ InputOperandDialog::updateTypes() {
         inputTypesComboBox_->Append(oper);
     }
 	
-    inputTypesComboBox_->SetSelection(0);
+    inputTypesComboBox_->SetSelection(type);
 }
 
 /**

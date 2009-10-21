@@ -210,7 +210,7 @@ public:
         SimValue& target,
         FUResultType& results,
         ClockCycleCount cycles);
-        
+
 protected:
     TTAMachine::FunctionUnit& functionUnit(const char* name) const;
     

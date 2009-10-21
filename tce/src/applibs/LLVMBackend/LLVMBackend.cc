@@ -338,16 +338,11 @@ LLVMBackend::compile(
     // to allow machine dead basic block elimination...
     pm1.add(createInternalizePass(true));
 
-
     // More passes from addCommonCodeGen
     pm1.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
 
     targetMachine->addInstSelector(pm1, OptLevel);
     printAndVerify(pm1, /* allowDoubleDefs= */ true);
-
-    // More TCE passes Machine DCE pass. 
-    //pm1.add(createMachineDCE());
-    //printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
     // Yet some more addCommonCodceGen passes
     pm1.add(createMachineLICMPass());

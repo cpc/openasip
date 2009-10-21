@@ -7,7 +7,6 @@ MachineDCE_la_SOURCES = MachineDCE.cc
 MachineDCE_la_LDFLAGS = -module
 
 AM_CPPFLAGS = ${LLVM_CPPFLAGS}
-AM_LDFLAGS = ${LLVM_LDFLAGS} -lLLVMCodeGen
 
 # gives automake warning, but is necessary to disable
 # compilation warnings from llvm headers...

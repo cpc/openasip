@@ -84,7 +84,10 @@ main()
   *px = x0 ; 
   
   END_PROFILING ;  
-  
+
+  volatile int printme = y;
+  OUTPUT_VAR(printme);
+
   pin_down(x, h, y);
 
   return ((TYPE) y); 

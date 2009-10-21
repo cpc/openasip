@@ -45,8 +45,8 @@ entity ifetch is
     imem_data         : in  std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
     imem_addr         : out std_logic_vector (IMEMADDRWIDTH-1 downto 0);
     imem_en_x         : out std_logic;
-    fetchblock       : out std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
-    busy             : in  std_logic;
+    fetchblock        : out std_logic_vector(IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0);
+    busy              : in  std_logic;
 
     -- global lock
     glock : out std_logic;
@@ -89,7 +89,7 @@ begin
   ra_out           <= return_addr_reg;
   fetchblock <= instruction_reg;
 
-  lock <= not fetch_en;
+  lock <= not fetch_en or busy;
 
   process (clk, rstx)
   begin  -- process immediates

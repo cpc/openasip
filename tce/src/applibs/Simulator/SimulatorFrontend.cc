@@ -92,6 +92,7 @@
 #include "DataDefinition.hh"
 #include "CompiledSimController.hh"
 #include "CompiledSimUtilizationStats.hh"
+#include "SimulationEventHandler.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -118,7 +119,8 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     printNextInstruction_(true), printSimulationTimeStatistics_(false),
     staticCompilation_(true), traceFileNameSetByUser_(false), outputStream_(0),
     memoryAccessTracking_(false), eventHandler_(NULL), lastRunCycleCount_(0), 
-    lastRunTime_(0.0), simulationTimeout_(0) {
+    lastRunTime_(0.0), simulationTimeout_(0), leaveCompiledDirty_(false) {
+
     if (compiledSimulation_) {
         setFUResourceConflictDetection(false); // disabled by default
         SimulatorToolbox::textGenerator().generateCompiledSimTexts();
@@ -155,9 +157,7 @@ SimulatorFrontend::~SimulatorFrontend() {
     lastTraceDB_ = NULL;
     delete eventHandler_;
     eventHandler_ = NULL;
-
-    SimulatorToolbox::clearAll();
-    SimulatorToolbox::clearProgramErrorReports();
+    clearProgramErrorReports();
 }
 
 /**
@@ -626,14 +626,17 @@ SimulatorFrontend::initializeSimulation() {
     simCon_ = NULL;
 
     if (isCompiledSimulation()) {
-        simCon_ = new CompiledSimController(*this,
-            *currentMachine_, *currentProgram_);
+        simCon_ = 
+            new CompiledSimController(
+                *this, *currentMachine_, *currentProgram_, 
+                leaveCompiledDirty_);
     } else {
-        simCon_ = new SimulationController(*this,
-        *currentMachine_, *currentProgram_, fuResourceConflictDetection_,
-        memoryAccessTracking_);
-        machineState_ = &(dynamic_cast<SimulationController*>(
-            simCon_)->machineState());
+        simCon_ = 
+            new SimulationController(
+                *this, *currentMachine_, *currentProgram_, 
+                fuResourceConflictDetection_, memoryAccessTracking_);
+        machineState_ = 
+            &(dynamic_cast<SimulationController*>(simCon_)->machineState());
     }
         
     delete stopPointManager_;
@@ -666,7 +669,7 @@ SimulatorFrontend::findBooleanRegister()
         if (rf->width() == 1 && rf->numberOfRegisters() == 1) {
             RegisterFileState& rfState = 
                 machineState_->registerFileState(rf->name());
-	    return rfState.registerState(0);
+            return rfState.registerState(0);
         }
     }
 
@@ -902,8 +905,6 @@ StateData&
 SimulatorFrontend::state(std::string searchString) 
     throw (InstanceNotFound) {
 
-/// @todo Convert to message to use SimulatorTextGenerator, so text can
-/// be displayed in the UI.
     if (machineState_ == NULL || currentMachine_ == NULL) 
         throw InstanceNotFound(
             __FILE__, __LINE__, __func__, "State not found.");
@@ -2062,8 +2063,8 @@ SimulatorFrontend::utilizationStatistics() {
         } else {
             CompiledSimUtilizationStats* compiledSimUtilizationStats =
                 new CompiledSimUtilizationStats();
-            CompiledSimController& compiledSimCon = dynamic_cast<
-                CompiledSimController&>(*simCon_);
+            CompiledSimController& compiledSimCon = 
+                dynamic_cast<CompiledSimController&>(*simCon_);
             compiledSimUtilizationStats->calculate(program(), 
                 *compiledSimCon.compiledSimulation());
             utilizationStats_ = compiledSimUtilizationStats;
@@ -2178,3 +2179,73 @@ SimulatorFrontend::lastRunTime() const {
     return lastRunTime_;
 }
 
+/**
+ * This method is used to report a runtime error detected in 
+ * the simulated program.
+ *
+ * An SE_RUNTIME_ERROR event is announced after storing the report.
+ *
+ * @param eventHandler Simulation event handler for the error
+ * @param severity Severity classification of the runtime error.
+ * @param description Textual description of the error.
+ */
+void
+SimulatorFrontend::reportSimulatedProgramError(
+    RuntimeErrorSeverity severity, const std::string& description) {
+    ProgramErrorDescription report;
+    report.first = severity;
+    report.second = description;
+    programErrorReports_.push_back(report);
+    eventHandler().handleEvent(SimulationEventHandler::SE_RUNTIME_ERROR);
+}
+
+/**
+ * Returns a program error report with given severity and index.
+ *
+ * @param severity Severity.
+ * @param index Index.
+ * @return The error report text.
+ */
+std::string
+SimulatorFrontend::programErrorReport(
+    RuntimeErrorSeverity severity, std::size_t index) {
+
+    size_t count = 0;
+    for (ProgramErrorDescriptionList::iterator i = 
+             programErrorReports_.begin(); i != programErrorReports_.end();
+         ++i) {
+        if ((*i).first == severity) {
+            if (count == index)
+                return (*i).second;
+            ++count;
+        }
+    }
+    return "";
+}
+
+/**
+ * Returns the count of program error reports with given severity.
+ *
+ * @param severity The error report severity interested in.
+ * @return The count of error reports.
+ */
+std::size_t 
+SimulatorFrontend::programErrorReportCount(
+    RuntimeErrorSeverity severity) {
+    size_t count = 0;
+    for (ProgramErrorDescriptionList::iterator i = 
+             programErrorReports_.begin(); i != programErrorReports_.end();
+         ++i) {
+        if ((*i).first == severity)
+            ++count;
+    }
+    return count;
+}
+
+/**
+ * Clears the runtime error report list.
+ */
+void 
+SimulatorFrontend::clearProgramErrorReports() {
+    programErrorReports_.clear();
+}

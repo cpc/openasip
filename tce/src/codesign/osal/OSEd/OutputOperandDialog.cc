@@ -115,9 +115,7 @@ OutputOperandDialog::updateTypes(Operand* operand_) {
 
     Operand::OperandType type = operand_->type();
 
-    operandList::iterator i = operandTypes_.find(type);
-
-    outputTypesComboBox_->SetSelection(0);
+    outputTypesComboBox_->SetSelection(type);
 
 }
 

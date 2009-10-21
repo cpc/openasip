@@ -25,6 +25,7 @@
  * TCE custom op macro header generator for LLVM TCE backend.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2009 (pjaaskel-no.spam-cs.tut.fi)
  *
  * @note rating: red
  */
@@ -33,12 +34,13 @@
 #include <fstream>
 #include <set>
 #include <assert.h>
+
 #include "OperationPool.hh"
 #include "Operation.hh"
 #include "Conversion.hh"
 #include "OperationIndex.hh"
 #include "Operand.hh"
-
+#include "Application.hh"
 
 /**
  * Returns a C type string for the given operand type.
@@ -75,6 +77,13 @@ writeCustomOpMacros(std::ostream& os) {
 
     for (int m = 0; m < index.moduleCount(); m++) {
         OperationModule& mod = index.module(m);
+        try {
+            index.operationCount(mod);
+        } catch (const Exception& e) {
+            Application::logStream()
+                << e.errorMessage() << std::endl;
+            continue;
+        }
         for (int o = 0; o < index.operationCount(mod); o++) {
 
             std::string opName = index.operationName(o, mod);
@@ -105,7 +114,7 @@ writeCustomOpMacros(std::ostream& os) {
 
             os << ") do { ";
 
-            /* Generate the temporary variables to ensure casting to
+            /* Generate temporary variables to ensure casting to
                a correct value from the inline assembly statement.
 
                Without this, LLVM inline assembly used i8 for the
@@ -126,6 +135,10 @@ writeCustomOpMacros(std::ostream& os) {
 
                Use do {} while(0) block instead of {} to allow using the
                custom ops as statements which end with ; etc.
+
+               NOTE: we cannot add "memory" to the clobber list with
+               operations that write to memory because it seems to crash
+               (some versions of) gcc. Thus, they are marked 'volatile'.
             */
 
             for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
@@ -133,8 +146,14 @@ writeCustomOpMacros(std::ostream& os) {
                 os << operandTypeCString(operand) << " __tce_op_output_" << out
                    << " = (" << operandTypeCString(operand) << ")0; ";
             }
+
+            std::string volatileKeyword = "";
+            if (op.writesMemory() || op.hasSideEffects() || 
+                op.affectsCount() > 0 || op.affectedByCount() > 0) {
+                volatileKeyword = "volatile ";
+            }
                
-            os << "asm volatile (\"" << opName << "\":";
+            os << "asm " << volatileKeyword << "(\"" << opName << "\":";
 
             for (int out = 1; out < op.numberOfOutputs() + 1; out++) {
                 if (out > 1) os << ", ";

@@ -45,6 +45,8 @@
 #include "Exception.hh"
 #include "BaseType.hh"
 
+#include "passes/MachineDCE.hh"
+
 namespace TTAProgram {
     class Program;
     class Procedure;
@@ -88,6 +90,12 @@ namespace llvm {
 
         TTAProgram::Program* result() throw (NotAvailable);
 
+        void getAnalysisUsage(AnalysisUsage &AU) const {
+            AU.addRequired<MachineDCE>();
+            AU.addPreserved<MachineDCE>();
+            MachineFunctionPass::getAnalysisUsage(AU);
+        }
+ 
     protected:
 
         bool doInitialization(Module &M);

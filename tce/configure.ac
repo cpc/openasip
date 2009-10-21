@@ -1261,6 +1261,9 @@ AC_CONFIG_FILES([src/procgen/ProGe/buildicdecoderplugin],
 AC_CONFIG_FILES([src/applibs/LLVMBackend/passes/buildllvmpass], 
                 [chmod +x src/applibs/LLVMBackend/passes/buildllvmpass])
 
+AC_CONFIG_FILES([src/bintools/Compiler/tcecc], 
+                [chmod +x src/bintools/Compiler/tcecc])
+
 # Configure newlib as well
 m4_pattern_allow([^AS_FOR_TARGET$])
 
@@ -1278,15 +1281,15 @@ echo RANLIB_FOR_TARGET=llvm-ranlib \
 NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
 AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
 CFLAGS=-O2 \
-CXX_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
-CC_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
+CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
+CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
 RANLIB_FOR_TARGET=llvm-ranlib \
 NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
 AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
 CFLAGS=-O2 \
-CXX_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
-CC_FOR_TARGET=$srcdir/src/bintools/Compiler/tcecc \
+CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
+CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
 2>&1 | egrep -v "to force reconfigure";
 ])

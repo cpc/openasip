@@ -54,12 +54,17 @@ namespace TPEF {
 namespace ReferenceManager {
 
 // static member variable initialization
-SectionIndexMap SafePointer::sectionIndexMap_;
-SectionOffsetMap SafePointer::sectionOffsetMap_;
-FileOffsetMap SafePointer::fileOffsetMap_;
-SectionMap SafePointer::sectionMap_;
+// These need to be pointers to be able to call SafePointer::cleanup()
+// safely from ~Binary() (which can be from global objects aswell).
+// Otherwise these globals can be freed before the global Binary is 
+// causing invalid free() calls.
+SectionIndexMap* SafePointer::sectionIndexMap_ = new SectionIndexMap;
+SectionOffsetMap* SafePointer::sectionOffsetMap_ = new SectionOffsetMap;
+FileOffsetMap* SafePointer::fileOffsetMap_ = new FileOffsetMap;
+SectionMap* SafePointer::sectionMap_= new SectionMap;
 
-SafePointer::KeyForCacheMap SafePointer::keyForCache_;
+SafePointer::KeyForCacheMap* SafePointer::keyForCache_ = 
+    new SafePointer::KeyForCacheMap;
 
 // These are constructed to heap to make sure they are not
 // destructed before any global or static object.
@@ -194,7 +199,7 @@ SafePointer::null(static_cast<SafePointable*>(NULL));
 SafePointer::SafePointer(SectionIndexKey key) :
     object_(NULL) {
 
-    genericRegisterPointer(key, sectionIndexMap_, this);
+    genericRegisterPointer(key, *sectionIndexMap_, this);
 }
 
 /**
@@ -205,7 +210,7 @@ SafePointer::SafePointer(SectionIndexKey key) :
 SafePointer::SafePointer(SectionOffsetKey key) :
     object_(NULL) {
 
-    genericRegisterPointer(key, sectionOffsetMap_, this);
+    genericRegisterPointer(key, *sectionOffsetMap_, this);
 }
 
 /**
@@ -216,7 +221,7 @@ SafePointer::SafePointer(SectionOffsetKey key) :
 SafePointer::SafePointer(FileOffsetKey key) :
     object_(NULL) {
 
-    genericRegisterPointer(key, fileOffsetMap_, this);
+    genericRegisterPointer(key, *fileOffsetMap_, this);
 }
 
 /**
@@ -227,7 +232,7 @@ SafePointer::SafePointer(FileOffsetKey key) :
 SafePointer::SafePointer(SectionKey key) :
     object_(NULL) {
 
-    genericRegisterPointer(key, sectionMap_, this);
+    genericRegisterPointer(key, *sectionMap_, this);
 }
 
 /**
@@ -301,7 +306,7 @@ void
 SafePointer::addObjectReference(SectionIndexKey key, const SafePointable* obj)
     throw (KeyAlreadyExists) {
 
-    genericAddObjectReference(key, sectionIndexMap_, obj);
+    genericAddObjectReference(key, *sectionIndexMap_, obj);
 }
 
 /**
@@ -319,7 +324,7 @@ SafePointer::addObjectReference(
     SectionOffsetKey key, const SafePointable* obj)
     throw (KeyAlreadyExists) {
 
-    genericAddObjectReference(key, sectionOffsetMap_, obj);
+    genericAddObjectReference(key, *sectionOffsetMap_, obj);
 }
 
 /**
@@ -336,7 +341,7 @@ void
 SafePointer::addObjectReference(FileOffsetKey key, const SafePointable* obj)
     throw (KeyAlreadyExists) {
 
-    genericAddObjectReference(key, fileOffsetMap_, obj);
+    genericAddObjectReference(key, *fileOffsetMap_, obj);
 }
 
 /**
@@ -353,7 +358,7 @@ void
 SafePointer::addObjectReference(SectionKey key, const SafePointable* obj)
     throw (KeyAlreadyExists) {
 
-    genericAddObjectReference(key, sectionMap_, obj);
+    genericAddObjectReference(key, *sectionMap_, obj);
 }
 
 /**
@@ -369,7 +374,7 @@ SectionIndexKey
 SafePointer::sectionIndexKeyFor(const SafePointable* obj)
     throw (KeyNotFound) {
 
-    return genericKeyFor<SectionIndexKey>(obj, sectionIndexMap_);
+    return genericKeyFor<SectionIndexKey>(obj, *sectionIndexMap_);
 }
 
 /**
@@ -385,7 +390,7 @@ SectionOffsetKey
 SafePointer::sectionOffsetKeyFor(const SafePointable* obj)
     throw (KeyNotFound) {
 
-    return genericKeyFor<SectionOffsetKey>(obj, sectionOffsetMap_);
+    return genericKeyFor<SectionOffsetKey>(obj, *sectionOffsetMap_);
 }
 
 /**
@@ -401,7 +406,7 @@ FileOffsetKey
 SafePointer::fileOffsetKeyFor(const SafePointable* obj)
     throw (KeyNotFound) {
 
-    return genericKeyFor<FileOffsetKey>(obj, fileOffsetMap_);
+    return genericKeyFor<FileOffsetKey>(obj, *fileOffsetMap_);
 }
 
 /**
@@ -417,7 +422,7 @@ SectionKey
 SafePointer::sectionKeyFor(const SafePointable* obj)
     throw (KeyNotFound) {
 
-    return genericKeyFor<SectionKey>(obj, sectionMap_);
+    return genericKeyFor<SectionKey>(obj, *sectionMap_);
 }
 
 /**
@@ -445,10 +450,10 @@ SafePointer::notifyDeleted(const SafePointable* obj) {
 
     // TODO: for hashmap implementation this will take *very* long time
     //       so fix this before change typedefs in SafePointer.hh
-    if (!MapTools::containsValue(sectionMap_,       listOfObj) &&
-        !MapTools::containsValue(sectionIndexMap_,  listOfObj) &&
-        !MapTools::containsValue(sectionOffsetMap_, listOfObj) &&
-        !MapTools::containsValue(fileOffsetMap_,    listOfObj)) {
+    if (!MapTools::containsValue(*sectionMap_,       listOfObj) &&
+        !MapTools::containsValue(*sectionIndexMap_,  listOfObj) &&
+        !MapTools::containsValue(*sectionOffsetMap_, listOfObj) &&
+        !MapTools::containsValue(*fileOffsetMap_,    listOfObj)) {
         delete listOfObj;
     }
 
@@ -492,8 +497,8 @@ SafePointer::resolve()
     throw (UnresolvedReference) {
 
     // try to resolve references in sectionOffsetMap
-    for (SectionOffsetMap::iterator i = sectionOffsetMap_.begin();
-         i != sectionOffsetMap_.end(); i++) {
+    for (SectionOffsetMap::iterator i = sectionOffsetMap_->begin();
+         i != sectionOffsetMap_->end(); i++) {
 
         SectionOffsetKey key = (*i).first;
 
@@ -509,7 +514,7 @@ SafePointer::resolve()
         // there is no section with the identification code of the section
         // offset key
         if (!MapTools::containsKey(
-                sectionMap_, SectionKey(key.sectionId()))) {
+                *sectionMap_, SectionKey(key.sectionId()))) {
             std::stringstream errorMessage;
             errorMessage << "Cannot find section with identification code "
                          << key.sectionId() << " in the section map.";
@@ -525,7 +530,7 @@ SafePointer::resolve()
 
         // try to get the pointer to the section to request chunk from
         SafePointerList* pointersToSection =
-            sectionMap_[SectionKey(key.sectionId())];
+            (*sectionMap_)[SectionKey(key.sectionId())];
 
         assert(pointersToSection != NULL);
 
@@ -579,7 +584,7 @@ SafePointer::resolve()
     const ReferenceKey *unresolvedKey = NULL;
     SafePointer *firstUnresolvedPointerOfList = NULL;
 
-    if (unresolvedReferences(sectionMap_, &unresolvedKey)) {
+    if (unresolvedReferences(*sectionMap_, &unresolvedKey)) {
         const SectionKey *sectionKey =
             dynamic_cast<const SectionKey*>(unresolvedKey);
 
@@ -588,10 +593,10 @@ SafePointer::resolve()
 
         // get first of unresolved pointers in safe pointer list
         firstUnresolvedPointerOfList =
-            (*sectionMap_.find(*sectionKey)).second->front();
+            (*sectionMap_->find(*sectionKey)).second->front();
     }
 
-    if (unresolvedReferences(sectionIndexMap_,  &unresolvedKey)) {
+    if (unresolvedReferences(*sectionIndexMap_,  &unresolvedKey)) {
         const SectionIndexKey *indexKey =
             dynamic_cast<const SectionIndexKey*>(unresolvedKey);
 
@@ -602,10 +607,10 @@ SafePointer::resolve()
                      << indexKey->index() << std::endl;
 
         firstUnresolvedPointerOfList =
-            (*sectionIndexMap_.find(*indexKey)).second->front();
+            (*sectionIndexMap_->find(*indexKey)).second->front();
     }
 
-    if (unresolvedReferences(sectionOffsetMap_,  &unresolvedKey)) {
+    if (unresolvedReferences(*sectionOffsetMap_,  &unresolvedKey)) {
 
         const SectionOffsetKey *sectionOffsetKey =
             dynamic_cast<const SectionOffsetKey*>(unresolvedKey);
@@ -617,10 +622,10 @@ SafePointer::resolve()
                      << sectionOffsetKey->offset() << std::endl;
 
         firstUnresolvedPointerOfList =
-            (*sectionOffsetMap_.find(*sectionOffsetKey)).second->front();
+            (*sectionOffsetMap_->find(*sectionOffsetKey)).second->front();
     }
 
-    if (unresolvedReferences(fileOffsetMap_,  &unresolvedKey)) {
+    if (unresolvedReferences(*fileOffsetMap_,  &unresolvedKey)) {
         const FileOffsetKey *fileOffsetKey =
             dynamic_cast<const FileOffsetKey*>(unresolvedKey);
 
@@ -629,7 +634,7 @@ SafePointer::resolve()
                      << fileOffsetKey->fileOffset() << std::endl;
 
         firstUnresolvedPointerOfList =
-            (*fileOffsetMap_.find(*fileOffsetKey)).second->front();
+            (*fileOffsetMap_->find(*fileOffsetKey)).second->front();
     }
 
     if (errorMessage.str() != "") {
@@ -657,15 +662,15 @@ void
 SafePointer::cleanupKeyTables() {
 
     set<SafePointerList*> listsToDelete;
-    safelyCleanupKeyTable(sectionIndexMap_, listsToDelete);
-    safelyCleanupKeyTable(sectionOffsetMap_, listsToDelete);
-    safelyCleanupKeyTable(fileOffsetMap_, listsToDelete);
-    safelyCleanupKeyTable(sectionMap_, listsToDelete);
+    safelyCleanupKeyTable(*sectionIndexMap_, listsToDelete);
+    safelyCleanupKeyTable(*sectionOffsetMap_, listsToDelete);
+    safelyCleanupKeyTable(*fileOffsetMap_, listsToDelete);
+    safelyCleanupKeyTable(*sectionMap_, listsToDelete);
 
     AssocTools::deleteAllItems(listsToDelete);
 
     // clear keyForCache...
-    keyForCache_.clear();
+    keyForCache_->clear();
 }
 
 /**
@@ -692,28 +697,28 @@ SafePointer::cleanup() {
 // functions for testing
 const SectionIndexMap*
 SafePointer::SIMap() {
-    return &sectionIndexMap_;
+    return sectionIndexMap_;
 }
 
 const SafePointerList*
 SafePointer::SIMapAt(SectionIndexKey k) {
     // make sure we don't change the map
-    if (MapTools::containsKey(sectionIndexMap_, k)) {
-        return sectionIndexMap_[k];
+    if (MapTools::containsKey(*sectionIndexMap_, k)) {
+        return (*sectionIndexMap_)[k];
     }
     return NULL;
 }
 
 const SectionOffsetMap*
 SafePointer::SOMap() {
-    return &sectionOffsetMap_;
+    return sectionOffsetMap_;
 }
 
 const SafePointerList*
 SafePointer::SOMapAt(SectionOffsetKey k) {
     // make sure we don't change the map
-    if (MapTools::containsKey(sectionOffsetMap_, k)) {
-        return sectionOffsetMap_[k];
+    if (MapTools::containsKey(*sectionOffsetMap_, k)) {
+        return (*sectionOffsetMap_)[k];
     }
     return NULL;
 }
@@ -721,14 +726,14 @@ SafePointer::SOMapAt(SectionOffsetKey k) {
 const FileOffsetMap*
 SafePointer::FOMap() {
 
-    return &fileOffsetMap_;
+    return fileOffsetMap_;
 }
 
 const SafePointerList*
 SafePointer::FOMapAt(FileOffsetKey k) {
     // make sure we don't change the map
-    if (MapTools::containsKey(fileOffsetMap_, k)) {
-        return fileOffsetMap_[k];
+    if (MapTools::containsKey(*fileOffsetMap_, k)) {
+        return (*fileOffsetMap_)[k];
     }
     return NULL;
 }
@@ -749,14 +754,14 @@ SafePointer::RMapAt(SafePointable* k) {
 
 const SectionMap*
 SafePointer::SMap() {
-    return &sectionMap_;
+    return sectionMap_;
 }
 
 const SafePointerList*
 SafePointer::SMapAt(SectionKey k) {
     // make sure we don't change the map
-    if (MapTools::containsKey(sectionMap_, k)) {
-        return sectionMap_[k];
+    if (MapTools::containsKey(*sectionMap_, k)) {
+        return (*sectionMap_)[k];
     }
     return NULL;
 }

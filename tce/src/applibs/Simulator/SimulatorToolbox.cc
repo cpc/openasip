@@ -43,9 +43,6 @@
 
 OperationPool* SimulatorToolbox::pool_(NULL);
 SimulatorTextGenerator SimulatorToolbox::textGenerator_;
-SimulationEventHandler* SimulatorToolbox::eventHandler_(NULL);
-SimulatorToolbox::ProgramErrorDescriptionList 
-SimulatorToolbox::programErrorReports_;
 
 /**
  * Constructor.
@@ -74,102 +71,6 @@ SimulatorToolbox::operationPool() {
 SimulatorTextGenerator&
 SimulatorToolbox::textGenerator() {
     return textGenerator_;
-}
-
-/**
- * Clears all simulation specific data.
- *
- * This should be called before starting a new simulation.
- */
-void
-SimulatorToolbox::clearSimulationSpecific() {
-    clearProgramErrorReports();
-}
-
-/**
- * Clears all initialized instances.
- *
- * This should be called when memory is wanted to be freed.
- */
-void
-SimulatorToolbox::clearAll() {
-    clearSimulationSpecific();
-    delete pool_;
-    pool_ = NULL;
-    delete eventHandler_;
-    eventHandler_ = NULL;
-}
-
-/**
- * This method is used to report a runtime error detected in 
- * the simulated program.
- *
- * An SE_RUNTIME_ERROR event is announced after storing the report.
- *
- * @param eventHandler Simulation event handler for the error
- * @param severity Severity classification of the runtime error.
- * @param description Textual description of the error.
- */
-void
-SimulatorToolbox::reportSimulatedProgramError(
-    SimulationEventHandler& eventHandler,
-    RuntimeErrorSeverity severity, const std::string& description) {
-    ProgramErrorDescription report;
-    report.first = severity;
-    report.second = description;
-    programErrorReports_.push_back(report);
-    eventHandler.handleEvent(SimulationEventHandler::SE_RUNTIME_ERROR);
-}
-
-/**
- * Returns a program error report with given severity and index.
- *
- * @param severity Severity.
- * @param index Index.
- * @return The error report text.
- */
-std::string
-SimulatorToolbox::programErrorReport(
-    RuntimeErrorSeverity severity, std::size_t index) {
-
-    size_t count = 0;
-    for (ProgramErrorDescriptionList::iterator i = 
-             programErrorReports_.begin(); i != programErrorReports_.end();
-         ++i) {
-        if ((*i).first == severity) {
-            if (count == index)
-                return (*i).second;
-            ++count;
-        }
-    }
-    return "";
-}
-
-/**
- * Returns the count of program error reports with given severity.
- *
- * @param severity The error report severity interested in.
- * @return The count of error reports.
- */
-std::size_t 
-SimulatorToolbox::programErrorReportCount(
-    RuntimeErrorSeverity severity) {
-    size_t count = 0;
-    for (ProgramErrorDescriptionList::iterator i = 
-             programErrorReports_.begin(); i != programErrorReports_.end();
-         ++i) {
-        if ((*i).first == severity)
-            ++count;
-    }
-    return count;
-}
-
-/**
- * Clears the runtime error report list.
- */
-void 
-SimulatorToolbox::clearProgramErrorReports() {
-    programErrorReports_.clear();
 }
 
 /**

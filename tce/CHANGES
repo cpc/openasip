@@ -4,6 +4,10 @@
 New features
 ------------
 - Sign extension operations are not required anymore.
+- Program Image Generator supports MIF-format (Memory
+  Initialization File) used by Altera.
+- ttasim-tandem: a tool for comparing the two simulation engines
+  to assist in tracking simulation bugs.
 
 Bugfixes
 --------
@@ -25,6 +29,14 @@ Bugfixes
 - Simulator on quick mode could fail if some result is never read.
 - Simulator could fail to load some programs.
 - Memory leak fixes.
+- Toplevel busy signal now locks the core properly.
+- Compiled simulator failed to simulate custom memory writing operations
+  correctly.
+- FU outputs are now updated when the compiled simulation is stopped to
+  make the machine state correct for inspection.
+- Avoids placing data at address 0 because it is indistinguishable from NULL.
+- Operand type initialized correctly in osed operand editing dialog.
+- Direct memory accesses to global tables could get wrong address.
 
 1.0 first public release, 2009-03-26
 ====================================

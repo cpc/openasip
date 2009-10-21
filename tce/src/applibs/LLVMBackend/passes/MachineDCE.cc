@@ -1,4 +1,4 @@
-//===-- UnreachableBlockElim.cpp - Remove unreachable blocks for codegen --===//
+//===-- MachineDCE.cc - Find unreachable functions for codegen --===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,91 +7,24 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This pass is an extremely simple version of the SimplifyCFG pass.  Its sole
-// job is to delete LLVM basic blocks that are not reachable from the entry
-// node.  To do this, it performs a simple depth first traversal of the CFG,
-// then deletes any unvisited nodes.
-//
-// Note that this pass is really a hack.  In particular, the instruction
-// selectors for various targets should just not generate code for unreachable
-// blocks.  Until LLVM has a more systematic way of defining instruction
-// selectors, however, we cannot really expect them to handle additional
-// complexity.
+// Simple symbol based bookkeeping of which functions are really referred in code.
+// Analyse is used by code generator finalization. (Removes unneeded functions)
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/CodeGen/Passes.h"
-#include "llvm/Constant.h"
-#include "llvm/Constants.h"
-#include "llvm/Instructions.h"
-#include "llvm/Function.h"
-#include "llvm/Pass.h"
-#include "llvm/Type.h"
-#include "llvm/CodeGen/MachineFunctionPass.h"
-#include "llvm/CodeGen/MachineRegisterInfo.h"
-#include "llvm/Support/CFG.h"
-#include "llvm/Support/Compiler.h"
-#include "llvm/Target/TargetInstrInfo.h"
-#include "llvm/ADT/DepthFirstIterator.h"
-
-#include "llvm/Analysis/CallGraph.h"
-#include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/Analysis/Passes.h"
-#include "llvm/Module.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/raw_ostream.h"
-
-#include "llvm/ADT/StringMap.h"
-
-#include <map>
+#include "MachineDCE.hh"
 
 using namespace llvm;
 
-namespace {    
-  struct VISIBILITY_HIDDEN MachineDCE : public MachineFunctionPass {
-    static char ID;
-    MachineDCE() : MachineFunctionPass(&ID) {}
-      
-    typedef std::map<std::string, MachineFunction*> FunctionMap;
-    typedef std::set<std::string> UserList;
-    typedef std::map<std::string, UserList> UserRelations;
-    typedef std::set<const std::string*> AvoidRecursionSet;
-
-    /// Function name to MachineFunction map.
-    FunctionMap functionMappings_;
-
-    /// List of users of a symbol.
-    UserRelations usersOfValue_;
-      
-    /// If users are traced to this list it means that function 
-    /// cannot be eliminated.
-    UserList baseUsers_;
-
-    virtual bool doInitialization(Module &M);
-    virtual bool runOnMachineFunction(MachineFunction &F);
-    virtual bool doFinalization(Module &M);
-
-    virtual const char *getPassName() const {
-        return "TCE deadcode elimination of unused emulation functions";
-    }
-
-    bool canFindStart(const std::string& user, AvoidRecursionSet& avoid_recursion);
-    void addInitializer(const Constant* init, std::string& name);
-  };
-}
-
+// register as analysis pass...
+static RegisterPass<MachineDCE> 
+R("machinedce","Symbol string based machine DCE for removing not used emulation functions", false, true);
 char MachineDCE::ID = 0;
-FunctionPass* createMachineDCE() {
-//    static RegisterPass<MachineDCE> 
-//        X("machinedce","Symbol string based machine DCE for removing not used emulation functions");
-    return new MachineDCE();
-}
 
 /**
  * Returns true if can find startpoint.
  */ 
 bool MachineDCE::canFindStart(const std::string& user, AvoidRecursionSet& avoid_recursion) {
-
     if (avoid_recursion.find(&user) != avoid_recursion.end()) {
         return false;
     } else {
@@ -140,7 +73,7 @@ void MachineDCE::addInitializer(const Constant* init, std::string& name) {
 
 bool MachineDCE::doInitialization(Module &M) {    
 
-    errs() << "Initializing MachineDCE\n";
+    // errs() << "Initializing MachineDCE\n";
 
     // add first function to baseUsers
     baseUsers_.insert(M.begin()->getNameStr());
@@ -203,7 +136,7 @@ bool MachineDCE::runOnMachineFunction(MachineFunction &F) {
 
 bool MachineDCE::doFinalization(Module&) {    
 
-    errs() << "Finalizing MachineDCE\n";
+    // errs() << "Finalizing MachineDCE\n";
     
     // For all functions check that they are reached from entrypoint of module.
     for (FunctionMap::iterator func = functionMappings_.begin(); 
@@ -212,16 +145,9 @@ bool MachineDCE::doFinalization(Module&) {
         AvoidRecursionSet avoid_recursion;
 
         if (!canFindStart(func->first, avoid_recursion)) {
-            errs() << "Function was not referred trying to delete all " 
-                   << "MachineBasicBlocks of : " << func->first 
-                   << "\n";
-            
-            MachineFunction* mf = func->second;
-            while (!mf->empty()) {
-                MachineBasicBlock &BB = mf->front();                
-                BB.eraseFromParent();
-            }
-
+            //errs() << "Function was not referred add it to dce data: " 
+            //       << func->first << "\n";
+            removeableFunctions.insert(func->first);
         }
     }
    

@@ -121,7 +121,6 @@ LLVMPOMBuilder::~LLVMPOMBuilder() {
     }
 }
 
-
 /**
  * Initializer creates a new POM and adds all global data initializations.
  *
@@ -194,6 +193,13 @@ LLVMPOMBuilder::doInitialization(Module& m) {
     mang_ = new Mangler(m, "_"); // Use prefix _ for all value names.
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
+
+    // Avoid placing data to address 0, it may break some null pointer
+    // tests.
+    // Waste some valuable byte of memory
+    if (end_ == 0) {
+        end_++;
+    }
 
     const TargetData* td = tm_.getTargetData();
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
@@ -734,12 +740,21 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
  */
 bool
 LLVMPOMBuilder::doFinalization(Module& /* m */) {
-
-//    for (unsigned i = 0; i < functions_.size(); i++) {
-//        // TODO: if returns true failed...
-//        writeMachineFunction(*functions_[i]);
-//    }
     
+    // errs() << "Finalize LLVMPOM builder\n";
+
+    // get machine dce analysis
+    MachineDCE& MDCE = getAnalysis<MachineDCE>();
+
+    for (MachineDCE::UnusedFunctionsList::iterator i = MDCE.removeableFunctions.begin();
+         i != MDCE.removeableFunctions.end(); i++) {        
+        std::string name = "_" + *i;
+        // errs() << "Deleting unused function from pom: " 
+        //        << name << "\n";
+        TTAProgram::Procedure& notUsedProc = prog_->procedure(name);
+        prog_->removeProcedure(notUsedProc);
+    }
+             
     // Create data initializers.
     for (unsigned i = 0; i < data_.size(); i++) {
         emitDataDef(data_[i]);
@@ -1104,7 +1119,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         if (name == "_end") {
             return &TTAProgram::NullTerminal::instance();
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
-            SimValue address(dataLabels_[name], 32);
+            SimValue address(dataLabels_[name] + mo.getOffset(), 32);
             return new TTAProgram::TerminalAddress(
                 address, *dataAddressSpace_);
 

@@ -243,9 +243,9 @@ public:
  *
  * Just calls debugCreate method, with full parameters.
  *
- * Creation place of SafePointer is very important to know,
- * because it's very hard to find, where SafePointer that points
- * to wrong place, was created.
+ * Creation place of SafePointer is very important to know
+ * because it's very hard to find where SafePointer that points
+ * to wrong place was created.
  */
 #define CREATE_SAFEPOINTER(x) \
     ReferenceManager::SafePointer::debugCreate( x , __FILE__, __LINE__)
@@ -324,16 +324,16 @@ private:
     SafePointable* object_;
 
     /// Map of SafePointers that are requested using SectionIndexKeys.
-    static SectionIndexMap sectionIndexMap_;
+    static SectionIndexMap* sectionIndexMap_;
 
     /// Map of SafePointers that are requested using SectionOffsetKeys.
-    static SectionOffsetMap sectionOffsetMap_;
+    static SectionOffsetMap* sectionOffsetMap_;
 
     /// Map of SafePointers that are requested using FileOffsetKeys.
-    static FileOffsetMap fileOffsetMap_;
+    static FileOffsetMap* fileOffsetMap_;
 
     /// Map of SafePointers that are requested using SectionKeys.
-    static SectionMap sectionMap_;
+    static SectionMap* sectionMap_;
 
     /// Map of SafePointers that have resolved references.
     static ReferenceMap* referenceMap_;
@@ -351,7 +351,7 @@ private:
     typedef std::map<KeyForCacheKey,const ReferenceKey*> KeyForCacheMap;
 
     /// Map for cache.
-    static KeyForCacheMap keyForCache_;
+    static KeyForCacheMap* keyForCache_;
 
     /// Assignment not allowed.
     SafePointer& operator=(SafePointer&);

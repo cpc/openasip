@@ -24,8 +24,8 @@
 # Script that shows commit status of source codes of local copy.
 # This should help noticing uncommitted source files.
 #
-# (c) 2005 pekka.jaaskelainen@tut.fi
-bzr status | egrep -v \
+# (c) 2005,2009 pekka.jaaskelainen@tut.fi
+bzr status $* | egrep -v \
 "^[^MC].*("\
 ".*\.cls$|.*\.sty$|.*\.bib$|.*\.log$|.*\.toc$|.*\.blg$|.*\.pdf$|.*\.ps$|"\
 ".*\.dvi$|.*\.aux$|.*\.bbl$|.*/fig|.*/eps|.*\.so|.*\.ind|.*\.idx|.*Makefile$|"\
@@ -66,5 +66,5 @@ bzr status | egrep -v \
 ".*\.l[oa]$|.*/TableGen/tblgen|tce/systemtest/bintools/Scheduler/.*\.tpef|"\
 ".*\.bak|doc/man/html|.*/conflicting_fsa.txt|.*/dot.txt|systemtest/bintools/PIG/.*\.sh|.*/results.tex|"\
 "tce/src/bintools/Compiler/llvm-tce/llvm-tce|"\
-".*/program.bc"\
+".*/program.bc|.*/topresults.csv.moved|.*tce/Python-bindings/.*"\
 ")"

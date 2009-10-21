@@ -368,7 +368,7 @@ Memory::reset() {
  * @param size The number of MAUs.
  * @param value The target of the packing.
  */
-inline void
+void
 Memory::pack(const Memory::MAUTable data, int size, UIntWord& value) {
 
     value = 0;
@@ -389,7 +389,7 @@ Memory::pack(const Memory::MAUTable data, int size, UIntWord& value) {
  * @param size The number of MAUs.
  * @param data The target of unpacking.
  */
-inline void
+void
 Memory::unpack(
     const UIntWord& value,
     int size,

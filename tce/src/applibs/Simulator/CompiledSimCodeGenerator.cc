@@ -27,6 +27,7 @@
  * Definition of CompiledSimCodeGenerator class.
  *
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -381,9 +382,11 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     
     // Generate dummy destructor
     *os_ << "EXPORT virtual ~" << className_ << "() { }" << endl << endl;
+    *os_ << "EXPORT virtual void simulateCycle();" << endl << endl << "}; // end class" << endl;
 
-    *os_ << "EXPORT virtual void simulateCycle();" << endl << endl << "}; // end class"
-         << endl << endl << "#endif // include once" << endl << endl;
+    *os_ << "extern \"C\" EXPORT void updateFUOutputs(CompiledSimulationEngine&);" << endl;
+
+    *os_ << endl << endl << "#endif // include once" << endl << endl;
 
     // header written
     currentFile_.close();
@@ -487,7 +490,8 @@ CompiledSimCodeGenerator::generateConstructorCode() {
     *os_ << conflictDetectionGenerator_.notifyOfConflicts()
          << "}" << endl << endl;
     
-    generateSimulationGetter(); // generate the simulation getter
+    generateSimulationGetter(); 
+    generateFUOutputUpdater();    
 }
 
 /**
@@ -562,6 +566,33 @@ CompiledSimCodeGenerator::generateShutdownCode(InstructionAddress address) {
     *os_ << "/* PROGRAM EXIT */" << endl
          << "engine.programCounter_ = " << address << ";" << endl
          << "engine.isFinished_ = true; return;" << endl;
+}
+
+/**
+ * Generates a function that is used to update all FU outputs
+ * from the "result buffer".
+ */
+void
+CompiledSimCodeGenerator::generateFUOutputUpdater() {
+    // use C-style functions only! (C++ name mangling complicates stuff)
+    *os_ << "/* Updates all FU outputs to correct the visible machine state */" << endl
+         << "extern \"C\" EXPORT void updateFUOutputs(CompiledSimulationEngine& engine) {" << endl;
+
+    const Machine::FunctionUnitNavigator& fus = machine_.functionUnitNavigator();    
+    for (int i = 0; i < fus.count(); ++i) {
+        const FunctionUnit& fu = *fus.item(i);
+        std::vector<Port*> outPorts = fuOutputPorts(fu);
+        for (size_t j = 0; j < outPorts.size(); ++j) {
+            symbolGen_.enablePrefix("engine.");
+            *os_ << "\t" << generateFUResultRead(
+                symbolGen_.portSymbol(*outPorts.at(j)), 
+                symbolGen_.FUResultSymbol(*outPorts.at(j)));
+        }
+    }
+
+    *os_
+        << "}" << endl
+        << endl;
 }
 
 /**
@@ -1012,8 +1043,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     
     // Get FU Results if there are any ready
     std::set<std::string> gotResults; // used to get FU results only once/instr.
-    DelayedAssignments::iterator it= delayedFUResultWrites_.find(
-        instructionNumber_);
+    DelayedAssignments::iterator it = 
+        delayedFUResultWrites_.find(instructionNumber_);
     while (it != delayedFUResultWrites_.end()) {
         *os_ << "engine.clearFUResults(" << it->second.fuResultSymbol << ");" << endl;
         *os_ << it->second.targetSymbol << " = " << it->second.sourceSymbol 
@@ -1035,12 +1066,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             move.destination(), move);
         
         lastGuardBool_.clear();
-        
-        if (!move.isUnconditional()) { // has a guard?
-            *os_ << handleGuard(move, move.isControlFlowMove());
-            endGuardBracket = true;
-        }
-        
+
         // increase move count if the move is guarded or it is an exit point
         if (!move.isUnconditional() || exitPoints_.find(
             instruction.address().location()) != exitPoints_.end()) {
@@ -1049,9 +1075,16 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
 
         if (move.source().isFUPort() && gotResults.find(moveSource) == gotResults.end() &&  
             dynamic_cast<const ControlUnit*>(&move.source().functionUnit()) == NULL) {
-            *os_ << generateFUResultRead(moveSource,
-                symbolGen_.FUResultSymbol(move.source().port())) << endl;
+            *os_ 
+                << generateFUResultRead(
+                    moveSource, symbolGen_.FUResultSymbol(move.source().port())) 
+                << endl;
             gotResults.insert(moveSource);
+        }
+        
+        if (!move.isUnconditional()) { // has a guard?
+            *os_ << handleGuard(move, move.isControlFlowMove());
+            endGuardBracket = true;
         }
         
         // Find all moves that depend on others i.e. those moves that have to
@@ -1111,12 +1144,14 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         if (move.source().isFUPort() && gotResults.find(moveSource) == 
             gotResults.end() && dynamic_cast<const ControlUnit*>(
                 &move.source().functionUnit()) == NULL) {
-            *os_ << generateFUResultRead(moveDestination,
-                symbolGen_.FUResultSymbol(move.source().port()))
+            *os_ 
+                << generateFUResultRead(
+                    moveDestination, 
+                    symbolGen_.FUResultSymbol(move.source().port()))
                  << endl;
 
-            gotResults.insert(symbolGen_.moveOperandSymbol(move.source(),
-                move));
+            gotResults.insert(
+                symbolGen_.moveOperandSymbol(move.source(), move));
         }
         
         const TerminalFUPort& tfup = 
@@ -1179,9 +1214,12 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
 
     // Create code for a possible exit after the basic block
     if (bbEnd != bbEnds_.end()) {
-        *os_ << "if (engine.cycleCount_ >= engine.cyclesToSimulate_) {" << endl
-           << "\t" << "engine.programCounter_ = " << bbEnd->first + 1 << "; "
-           << "engine.stopRequested_ = true;" << endl << "}" << endl; 
+        *os_ 
+            << "if (engine.cycleCount_ >= engine.cyclesToSimulate_) {" << endl
+            << "\t" << "engine.programCounter_ = " << bbEnd->first + 1 << ";" << endl
+            << "\t" << "engine.stopRequested_ = true;" << endl 
+            << "\t" << "updateFUOutputs(engine);" << endl
+            << "}" << endl; 
     }
     
     // Is there a jump waiting for execution?
@@ -1240,7 +1278,9 @@ CompiledSimCodeGenerator::generateTriggerCode(
         return generateLoadTrigger(op);
     }
     OperationDAG* dag = &operationPool_.operation(op.name().c_str()).dag(0);
-    string simCode = OperationDAGConverter::createSimulationCode(*dag, &operands);
+
+    std::string simCode = 
+        OperationDAGConverter::createSimulationCode(*dag, &operands);
 
     for (int i = 1, tmp=1; op.port(i) != NULL; ++i) {
         if (op.port(i)->isOutput()) {
@@ -1335,7 +1375,7 @@ CompiledSimCodeGenerator::generateLoadTrigger(
     string memory = symbolGen_.DAMemorySymbol(op.parentUnit()->name());
     string MAUSize = Conversion::toString(fu.addressSpace()->width());
     string method;
-    string extensionMode="SIGN_EXTEND";
+    string extensionMode = "SIGN_EXTEND";
     string resultSignExtend;
     string temp = symbolGen_.generateTempVariable();
     

@@ -27,13 +27,13 @@
  * Implementation of ProximRuntimeErrorHandler class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
 #include <string>
 #include "ProximRuntimeErrorHandler.hh"
 #include "SimulationEventHandler.hh"
-#include "SimulatorToolbox.hh"
 #include "SimulatorEvent.hh"
 
 using std::string;
@@ -77,43 +77,43 @@ ProximRuntimeErrorHandler::~ProximRuntimeErrorHandler() {
 void
 ProximRuntimeErrorHandler::handleEvent() {
 
-    size_t minorErrors = SimulatorToolbox::programErrorReportCount(
-	SimulatorToolbox::RES_MINOR);
-    size_t fatalErrors = SimulatorToolbox::programErrorReportCount(
-	SimulatorToolbox::RES_FATAL);
-
+    size_t minorErrors = frontend_.programErrorReportCount(
+        SimulatorFrontend::RES_MINOR);
+    size_t fatalErrors = frontend_.programErrorReportCount(
+        SimulatorFrontend::RES_FATAL);
 
     // Send runtime warning event if minor errors occured.
     if (minorErrors > 0) {
-	string message;
-	for (size_t i = 0; i < minorErrors; ++i) {
-	    message += "warning: runtime error: \n";
-	    message += SimulatorToolbox::programErrorReport(
-		SimulatorToolbox::RES_MINOR, i) + "\n\n";
-	}    
-	SimulatorEvent simEvent(
-	    SimulatorEvent::EVT_SIMULATOR_RUNTIME_WARNING, message);
-	wxPostEvent(&gui_, simEvent);
+        string message;
+        for (size_t i = 0; i < minorErrors; ++i) {
+            message += "warning: runtime error: \n";
+            message += frontend_.programErrorReport(
+                SimulatorFrontend::RES_MINOR, i) + "\n\n";
+        }    
+        SimulatorEvent simEvent(
+            SimulatorEvent::EVT_SIMULATOR_RUNTIME_WARNING, message);
+        wxPostEvent(&gui_, simEvent);
     }
 
     // Send runtime error event if fatal errors occured.
     if (fatalErrors > 0) {
-	string message;
-	for (size_t i = 0; i < fatalErrors; ++i) {
-	    message += "error: runtime error: \n";
-	    message += SimulatorToolbox::programErrorReport(
-		SimulatorToolbox::RES_FATAL, i) + "\n";
+        string message;
+        for (size_t i = 0; i < fatalErrors; ++i) {
+            message += "error: runtime error: \n";
+            message += 
+                frontend_.programErrorReport(
+                    SimulatorFrontend::RES_FATAL, i) + "\n";
+            
+        }
 
-	}
-
-	SimulatorEvent simEvent(
-	    SimulatorEvent::EVT_SIMULATOR_RUNTIME_ERROR, message);
-	wxPostEvent(&gui_, simEvent);
-
-	// Stop simulation.
-	frontend_.prepareToStop(SRE_RUNTIME_ERROR);
+        SimulatorEvent simEvent(
+            SimulatorEvent::EVT_SIMULATOR_RUNTIME_ERROR, message);
+        wxPostEvent(&gui_, simEvent);
+        
+        // Stop simulation.
+        frontend_.prepareToStop(SRE_RUNTIME_ERROR);
     }
 
-    SimulatorToolbox::clearProgramErrorReports();
+    frontend_.clearProgramErrorReports();
 }
 

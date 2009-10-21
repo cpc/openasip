@@ -270,15 +270,15 @@ ITemplateBroker::assignImmediate(
             // If it is not floating point or instruction address
             // we recreate SimValue with proper bit width based on destination
             if (iu.extensionMode() == Machine::ZERO) {
-                SimValue* sim = new SimValue(
+                SimValue sim(
                     immediate.value().value().unsignedValue(), neededBitWidth);
-                TerminalImmediate* ti = new TerminalImmediate(*sim);
+                TerminalImmediate* ti = new TerminalImmediate(sim);
                 immediate.setValue(ti);                
             }
             if (iu.extensionMode() == Machine::SIGN) {
-                SimValue* sim = new SimValue(
+                SimValue sim(
                     immediate.value().value().intValue(), neededBitWidth);
-                TerminalImmediate* ti = new TerminalImmediate(*sim);
+                TerminalImmediate* ti = new TerminalImmediate(sim);
                 immediate.setValue(ti);                
             }
         }
