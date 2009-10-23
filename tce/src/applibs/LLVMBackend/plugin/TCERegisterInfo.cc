@@ -102,25 +102,15 @@ TCERegisterInfo::hasFP(const MachineFunction& mf) const {
 }
 
 /**
- * Eliminates call frame pseudo instructions by replacing them with suitable
- * instruction sequence.
+ * Eliminates call frame pseudo instructions. 
+ *
+ * Stack space is already reserved in caller stack.
  */
 void
 TCERegisterInfo::eliminateCallFramePseudoInstr(
     MachineFunction &MF, MachineBasicBlock &MBB,
     MachineBasicBlock::iterator I) const {
-
-  const TargetInstrInfo &TII = tii_;
-  MachineInstr &MI = *I;
-  DebugLoc dl = MI.getDebugLoc();
-  int Size = MI.getOperand(0).getImm();
-  if (MI.getOpcode() == TCE::ADJCALLSTACKDOWN)
-    Size = -Size;
-
-  // if (Size)
-  //  BuildMI(MBB, I, dl, TII.get(TCE::ADDri), TCE::SP).addReg(TCE::SP).addImm(Size);
-
-  MBB.erase(I);
+    MBB.erase(I);
 }
 
 void TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
