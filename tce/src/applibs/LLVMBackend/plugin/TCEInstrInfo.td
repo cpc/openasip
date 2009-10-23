@@ -196,7 +196,6 @@ def ADJCALLSTACKDOWN : Pseudo<(outs), (ins i32imm:$amt),
 def ADJCALLSTACKUP : Pseudo<(outs), (ins i32imm:$amt1, i32imm:$amt2),
                             "# ADJCALLSTACKUP $amt1",
                             [(callseq_end timm:$amt1, timm:$amt2)]>;
-
 }
 
 // def IMPLICIT_DEF_I1 : Pseudo<(outs I1Regs:$dst),

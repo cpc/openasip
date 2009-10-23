@@ -27,6 +27,7 @@
  * Implementation of TCEInstrInfo class.
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  */
 
 
@@ -114,17 +115,16 @@ TCEInstrInfo::InsertBranch(
  */
 unsigned
 TCEInstrInfo::isLoadFromStackSlot(
-    MachineInstr* mi, int& frameIndex) const {
+    const MachineInstr* mi, int& frameIndex) const {
 
-    if (mi->getOpcode() == TCE::LDQi ||
-        mi->getOpcode() == TCE::LDHi ||
-        mi->getOpcode() == TCE::LDWi) {
-
+    if (mi->getOpcode() == TCE::LDWi) {
+        
         if (mi->getOperand(1).isFI() &&
             mi->getOperand(2).isImm() &&
             mi->getOperand(2).getImm() == 0) {
             
             frameIndex = mi->getOperand(1).getIndex();
+
             return mi->getOperand(0).getReg();
         }
     }
@@ -136,18 +136,17 @@ TCEInstrInfo::isLoadFromStackSlot(
  * Returns true if the instruction is a store to stack slot.
  */
 unsigned
-TCEInstrInfo::isStoreToStackSlot(MachineInstr* mi, int& frameIndex) const {
+TCEInstrInfo::isStoreToStackSlot(
+    const MachineInstr* mi, int& frameIndex) const {
     
-    if (mi->getOpcode() == TCE::STQri ||
-        mi->getOpcode() == TCE::STHri ||
-        mi->getOpcode() == TCE::STWir) {
+    if (mi->getOpcode() == TCE::STWir) {
+        if (mi->getOperand(0).isFI() &&
+            mi->getOperand(1).isImm() &&
+            mi->getOperand(1).getImm() == 0) {
 
-       if (mi->getOperand(0).isFI() &&
-           mi->getOperand(1).isImm() &&
-           mi->getOperand(1).getImm() == 0) {
+            frameIndex = mi->getOperand(0).getIndex();
            
-           frameIndex = mi->getOperand(0).getIndex();
-           return mi->getOperand(2).getReg();
+            return mi->getOperand(2).getReg();
         }
     }
     return 0;
@@ -169,82 +168,49 @@ TCEInstrInfo::BlockHasNoFallThrough(MachineBasicBlock& mbb) const {
     return false;
 }
 
+#include <iostream>
 
-/**
- * Creates instructions for storing value from a register to stack slot.
- *
- * @param mbb Basic block where the store is done.
- * @param mbbi Iterator to the place where the store instruction is added.
- * @param srcReg Register to store.
- * @param fi Frame index of the stack slot.
- * @param rc Class of the register to store.
- */
-void
-TCEInstrInfo::storeRegToStackSlot(
-    MachineBasicBlock& mbb,
-    MachineBasicBlock::iterator mbbi,
-    unsigned srcReg, bool isKill, int fi,
-    const TargetRegisterClass* rc) const {
- 
-    DebugLoc dl = DebugLoc::getUnknownLoc();
-    if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
-    
-    if (rc == TCE::I32RegsRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::STWir))
-            .addFrameIndex(fi).addImm(0).addReg(srcReg, getKillRegState(isKill));
-    } else if (rc == TCE::F32RegsRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::STWir))
-            .addFrameIndex(fi).addImm(0).addReg(srcReg, getKillRegState(isKill));
-    } else if (rc == TCE::RARegRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::STWRArr))
-            .addFrameIndex(fi).addImm(0).addReg(srcReg, getKillRegState(isKill));
-    } else if (rc == TCE::I1RegsRegisterClass) {
-        BuildMI(mbb, mbbi, dl, get(TCE::STQBib))
-            .addFrameIndex(fi).addImm(0).addReg(srcReg, getKillRegState(isKill));
-    } else {
-        assert(0 && "Can't store this register to stack slot");
-    }
+void TCEInstrInfo::
+storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
+                    unsigned SrcReg, bool isKill, int FI,
+                    const TargetRegisterClass *RC) const {
+  DebugLoc DL = DebugLoc::getUnknownLoc();
+  if (I != MBB.end()) DL = I->getDebugLoc();
+
+  // On the order of operands here: think "[FrameIdx + 0] = SrcReg".
+  if (RC == TCE::I32RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::STWir)).addFrameIndex(FI).addImm(0)
+      .addReg(SrcReg, getKillRegState(isKill));
+  else if (RC == TCE::F32RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::STWir)).addFrameIndex(FI).addImm(0)
+      .addReg(SrcReg, getKillRegState(isKill));
+  else if (RC == TCE::RARegRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::STWRArr)).addFrameIndex(FI).addImm(0)
+      .addReg(SrcReg, getKillRegState(isKill));
+  else if (RC == TCE::I1RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::STQBib)).addFrameIndex(FI).addImm(0)
+      .addReg(SrcReg, getKillRegState(isKill));
+  else
+    assert(0 && "Can't store this register to stack slot");
 }
 
-/**
- * Creates instructions for loading value from a stack slot to a register.
- *
- * @param mbb Basic block where the load is done.
- * @param mbbi Iterator to the place where the load instruction is added.
- * @param destReg Register where the value is loaded.
- * @param fi Frame index of the stack slot.
- * @param rc Class of the register to load.
- */
-void
-TCEInstrInfo::loadRegFromStackSlot(
-    MachineBasicBlock& mbb,
-    MachineBasicBlock::iterator mbbi,
-    unsigned destReg, int fi,
-    const TargetRegisterClass* rc) const {
+void TCEInstrInfo::
+loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
+                     unsigned DestReg, int FI,
+                     const TargetRegisterClass *RC) const {
+  DebugLoc DL = DebugLoc::getUnknownLoc();
+  if (I != MBB.end()) DL = I->getDebugLoc();
 
-    DebugLoc dl = DebugLoc::getUnknownLoc();
-    if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
-
-    if (rc == TCE::I32RegsRegisterClass) {
-        BuildMI(
-            mbb, mbbi, dl, get(TCE::LDWi),
-            destReg).addFrameIndex(fi).addImm(0);
-    } else if (rc == TCE::F32RegsRegisterClass) {
-        BuildMI(
-            mbb, mbbi, dl, get(TCE::LDWi),
-            destReg).addFrameIndex(fi).addImm(0);
-    } else if (rc == TCE::RARegRegisterClass) {
-        BuildMI(
-            mbb, mbbi, dl, get(TCE::LDWRAr),
-            destReg).addFrameIndex(fi).addImm(0);
-    } else if (rc == TCE::I1RegsRegisterClass) {
-        BuildMI(
-            mbb, mbbi, dl, get(TCE::LDQBr),
-        destReg).addFrameIndex(fi).addImm(0);
-    } else {
-
-        assert(0 && "Can't load this register from stack slot");
-    }  
+  if (RC == TCE::I32RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::LDWi), DestReg).addFrameIndex(FI).addImm(0);
+  else if (RC == TCE::F32RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::LDWi), DestReg).addFrameIndex(FI).addImm(0);
+  else if (RC == TCE::RARegRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::LDWRAr), DestReg).addFrameIndex(FI).addImm(0);
+  else if (RC == TCE::I1RegsRegisterClass)
+    BuildMI(MBB, I, DL, get(TCE::LDQBr), DestReg).addFrameIndex(FI).addImm(0);
+  else
+    assert(0 && "Can't load this register from stack slot");
 }
 
 /**

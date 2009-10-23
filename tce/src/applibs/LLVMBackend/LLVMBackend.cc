@@ -193,8 +193,11 @@ LLVMBackend::compile(
  * Ripped from LLVMTargetMachine.cpp
  */
 static void printAndVerify(PassManagerBase &PM,
-                           bool allowDoubleDefs = false) {
-//    PM.add(createMachineFunctionPrinterPass(cerr));
+                           bool allowDoubleDefs = false,
+                           bool printMF = false) {
+    if (printMF) {
+        PM.add(createMachineFunctionPrinterPass(cerr));
+    }
     PM.add(createMachineVerifierPass(allowDoubleDefs));
 }
 
@@ -342,7 +345,7 @@ LLVMBackend::compile(
     pm1.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
 
     targetMachine->addInstSelector(pm1, OptLevel);
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ true);
 
     // Yet some more addCommonCodceGen passes
     pm1.add(createMachineLICMPass());
@@ -352,10 +355,10 @@ LLVMBackend::compile(
     printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
     targetMachine->addPreRegAlloc(pm1, OptLevel);
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ true);
 
     pm1.add(createRegisterAllocator());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ true);
 
     pm1.add(createStackSlotColoringPass(false));
     printAndVerify(pm1, /* allowDoubleDefs= */ true);
@@ -367,7 +370,7 @@ LLVMBackend::compile(
     printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
     pm1.add(createPrologEpilogCodeInserter());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ true);
 
 // Breaks something sometimes... gotta check..
 //    pm1.add(createPostRAScheduler());    

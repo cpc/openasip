@@ -116,8 +116,10 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
   int Size = MI.getOperand(0).getImm();
   if (MI.getOpcode() == TCE::ADJCALLSTACKDOWN)
     Size = -Size;
-  if (Size)
-    BuildMI(MBB, I, dl, TII.get(TCE::ADDri), TCE::SP).addReg(TCE::SP).addImm(Size);
+
+  // if (Size)
+  //  BuildMI(MBB, I, dl, TII.get(TCE::ADDri), TCE::SP).addReg(TCE::SP).addImm(Size);
+
   MBB.erase(I);
 }
 
@@ -138,9 +140,10 @@ void TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     // Addressable stack objects are accessed using neg. offsets from %fp
     MachineFunction &MF = *MI.getParent()->getParent();
 
-    int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex) + 
-        MF.getFrameInfo()->getStackSize();
-    
+    int Offset = MF.getFrameInfo()->getObjectOffset(FrameIndex) + MF.getFrameInfo()->getStackSize();
+
+    std::cerr << "Eliminate frame index offset: " << Offset << std::endl;
+
     if (Offset != 0) {
         MI.getOperand(i).ChangeToRegister(TCE::KLUDGE_REGISTER, false);
         BuildMI(
@@ -160,6 +163,8 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
     MachineBasicBlock& mbb = mf.front();
     MachineFrameInfo* mfi = mf.getFrameInfo();
     int numBytes = (int)mfi->getStackSize();
+
+    std::cerr << "Stack size in prolog: " << numBytes << "\n";
 
     numBytes = (numBytes + 3) & ~3; // stack size alignment
 
@@ -199,6 +204,8 @@ TCERegisterInfo::emitEpilogue(
     }
     
     unsigned numBytes = mfi->getStackSize();
+
+    std::cerr << "Stack size in epilog: " << numBytes << "\n";
 
     if (numBytes != 4) {
         BuildMI(mbb, mbbi, dl, tii_.get(TCE::ADDri), TCE::SP).addReg(

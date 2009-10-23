@@ -47,11 +47,10 @@ pin_down(TYPE * px, TYPE * ph, TYPE y)
       initializer = i;
       *px++ = initializer;
       *ph++ = initializer;
-    }
-  
+    }  
 }
 
-TYPE
+int
 main()
 {
   static TYPE  x[LENGTH];
@@ -85,10 +84,7 @@ main()
   
   END_PROFILING ;  
 
-  volatile int printme = y;
-  OUTPUT_VAR(printme);
-
   pin_down(x, h, y);
 
-  return ((TYPE) y); 
+  return (int)y; 
 }

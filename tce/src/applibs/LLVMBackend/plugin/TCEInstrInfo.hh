@@ -54,10 +54,10 @@ namespace llvm {
             unsigned& dstReg) const;
 
         virtual unsigned isLoadFromStackSlot(
-            MachineInstr* mi, int& frameIndex) const;
+            const MachineInstr* mi, int& frameIndex) const;
 
         virtual unsigned isStoreToStackSlot(
-            MachineInstr* mi, int& frameIndex) const;
+            const MachineInstr* mi, int& frameIndex) const;
 
         virtual unsigned InsertBranch(
             MachineBasicBlock& mbb,
