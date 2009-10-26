@@ -5,7 +5,8 @@ noinst_LTLIBRARIES = libtcellvmbackend.la
 libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
     TCETargetMachine.cc TCETargetAsmInfo.cc  LLVMPOMBuilder.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
-	passes/LinkBitcode.cc passes/MachineDCE.cc 
+	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc
+
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT = ${PROJECT_ROOT}/src
