@@ -49,7 +49,6 @@ using namespace llvm;
  * Constructor.
  */
 TCEInstrInfo::TCEInstrInfo() :
-    //TargetInstrInfo(TCEInsts, sizeof(TCEInsts) / sizeof(TCEInsts[0])),
     TargetInstrInfoImpl(TCEInsts, sizeof(TCEInsts) / sizeof(TCEInsts[0])),
     ri_(*this) {
 
@@ -168,8 +167,6 @@ TCEInstrInfo::BlockHasNoFallThrough(MachineBasicBlock& mbb) const {
     return false;
 }
 
-#include <iostream>
-
 void TCEInstrInfo::
 storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                     unsigned SrcReg, bool isKill, int FI,
@@ -182,7 +179,7 @@ storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
     BuildMI(MBB, I, DL, get(TCE::STWir)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else if (RC == TCE::F32RegsRegisterClass)
-    BuildMI(MBB, I, DL, get(TCE::STWir)).addFrameIndex(FI).addImm(0)
+    BuildMI(MBB, I, DL, get(TCE::STWFir)).addFrameIndex(FI).addImm(0)
       .addReg(SrcReg, getKillRegState(isKill));
   else if (RC == TCE::RARegRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::STWRArr)).addFrameIndex(FI).addImm(0)
@@ -204,7 +201,7 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
   if (RC == TCE::I32RegsRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::LDWi), DestReg).addFrameIndex(FI).addImm(0);
   else if (RC == TCE::F32RegsRegisterClass)
-    BuildMI(MBB, I, DL, get(TCE::LDWi), DestReg).addFrameIndex(FI).addImm(0);
+    BuildMI(MBB, I, DL, get(TCE::LDWFi), DestReg).addFrameIndex(FI).addImm(0);
   else if (RC == TCE::RARegRegisterClass)
     BuildMI(MBB, I, DL, get(TCE::LDWRAr), DestReg).addFrameIndex(FI).addImm(0);
   else if (RC == TCE::I1RegsRegisterClass)

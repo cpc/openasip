@@ -229,6 +229,12 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     // temporary RA register store/loads
     if (opc == TCE::STWRArr) return "stw";
     if (opc == TCE::LDWRAr) return "ldw";
+    
+    // floatingpoint store/load
+    if (opc == TCE::STWFrr) return "stw";
+    if (opc == TCE::STWFir) return "stw";
+    if (opc == TCE::LDWFr) return "ldw";
+    if (opc == TCE::LDWFi) return "ldw";
   
     if (opc == TCE::TCEBRCOND) return "?jump";
     if (opc == TCE::TCEBR) return "jump";

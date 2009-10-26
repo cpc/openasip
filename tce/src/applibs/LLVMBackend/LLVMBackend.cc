@@ -318,7 +318,7 @@ LLVMBackend::compile(
     llvm::PassManager pm1;
     pm1.add(new TargetData(*TD));
 
-    // LOWER MISSING divs etc.
+    // lower floating point stuff..
     pm1.add(createLowerMissingInstructionsPass(target));
       
 

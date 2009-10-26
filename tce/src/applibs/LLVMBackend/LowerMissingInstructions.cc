@@ -75,22 +75,6 @@ STATISTIC(NumLowered, "Number of instructions lowered");
 #include <iostream>
 
 namespace {
-    // ADF file which for optimization is done
-    cl::opt<std::string>
-    ADFFile("adf-file", cl::value_desc("filename"),
-            cl::desc("A machine which for program is optimized"));
-
-    cl::opt<std::string>
-    EmulationFunctionsFile("emulation-lib", cl::value_desc("filename"),
-                           cl::desc("Bytecode functions for emulating "
-                                    "missing instructions. If not given, "
-                                    "pass will assume that needed functions "
-                                    "are already found from program. NOTE: "
-                                    "right now switch does not have any effect"));
-    
-    /// LowerAllocations - Turn malloc and free instructions into %malloc and
-    /// %free calls.
-    ///
     class VISIBILITY_HIDDEN LowerMissingInstructions : public BasicBlockPass {
         std::map< std::string, Constant*> replaceFunctions;        
         const TTAMachine::Machine* mach_;
@@ -100,34 +84,8 @@ namespace {
         static char ID; // Pass ID, replacement for typeid       
         LowerMissingInstructions(const TTAMachine::Machine& mach);
 
-        virtual void getAnalysisUsage(AnalysisUsage &AU) const {
-            AU.addRequired<TargetData>();
-            AU.setPreservesCFG();
-
-            // This is a cluster of orthogonal Transforms:
-            AU.addPreserved<UnifyFunctionExitNodes>();
-            AU.addPreservedID(PromoteMemoryToRegisterID);
-            //in LLVM 2.2:
-            //AU.addPreservedID(LowerSelectID);
-            AU.addPreservedID(LowerSwitchID);
-            AU.addPreservedID(LowerInvokePassID);
-        }
-
-        /// doPassInitialization - For the lower allocations pass, this 
-        /// ensures that a module contains a declaration for a malloc and 
-        /// a free function.
-        ///
         bool doInitialization(Module &M);
         bool doFinalization (Module &M);
-
-        virtual bool doInitialization(Function &F) {
-            return BasicBlockPass::doInitialization(F);
-        }
-
-        /// runOnBasicBlock - This method does the actual work of converting
-        /// instructions over, assuming that the pass has already been 
-        /// initialized.
-        ///
         bool runOnBasicBlock(BasicBlock &BB);
 
         void addFunctionForFootprints(
@@ -136,19 +94,19 @@ namespace {
     };
 
     char LowerMissingInstructions::ID = 0;    
+
+// When we got another way for passing machine we can register pass to manager
 //    RegisterPass<LowerMissingInstructions>
 //    X("lowermissing", "Lower missing instructions to libcalls");
 }
-
-// Publically exposed interface to pass...
-// const PassInfo* LowerMissingInstructionsID = X.getPassInfo();
 
 // - Interface to this file...
 Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach) {
     return new LowerMissingInstructions(mach);
 }
 
-LowerMissingInstructions::LowerMissingInstructions(const TTAMachine::Machine& mach) : 
+LowerMissingInstructions::LowerMissingInstructions(
+    const TTAMachine::Machine& mach) : 
     BasicBlockPass((intptr_t)&ID), mach_(&mach) {
 }
 
@@ -221,10 +179,10 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
 //         footprints["MUL.i16"].push_back("i16.mul.i16.i16");
 //         footprints["MUL.i8"].push_back("i8.mul.i8.i8");
 
-        footprints["ADDF.i32"].push_back("f32.add.f32.f32");
-        footprints["SUBF.i32"].push_back("f32.sub.f32.f32");
+        footprints["ADDF.i32"].push_back("f32.fadd.f32.f32");
+        footprints["SUBF.i32"].push_back("f32.fsub.f32.f32");
         footprints["NEGF.i32"].push_back("f32.fneg.f32");
-        footprints["MULF.i32"].push_back("f32.mul.f32.f32");
+        footprints["MULF.i32"].push_back("f32.fmul.f32.f32");
         footprints["DIVF.i32"].push_back("f32.fdiv.f32.f32");
 
         footprints["CFI.i32"].push_back("i32.fptosi.f32");
@@ -368,16 +326,14 @@ void LowerMissingInstructions::addFunctionForFootprints(
     for (unsigned int j = 0; j < footprints.size(); j++) {                
         Function* func = M.getFunction(op.emulationFunctionName());
         replaceFunctions[footprints[j]] = func;
-
-//        replaceFunctions[footprints[j]] = 
-//            M.getOrInsertFunction(op.emulationFunctionName(), fType);
-
-#if 0
-       std::cerr << "Operation: " << op.name()
+        
+#if 0 
+        std::cerr << "Operation: " << op.name()
                   << " is emulated with: " << op.emulationFunctionName() 
                   << " footprint: " << footprints[j]
                   << std::endl;
 #endif
+
         if (replaceFunctions[footprints[j]] == NULL) {
             std::cerr << " ERROR: suitable function wasn't found" << std::endl;
         }
@@ -534,12 +490,14 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
         
         // get footprint of instruction
         std::string footPrint = getFootprint(*I);
-
+        
         std::map<std::string, Constant*>::iterator 
             replaceFunc =  replaceFunctions.find(footPrint);        
+ 
+        // std::cerr << "Footprint: " << footPrint << "\n";
 
         if (replaceFunc != replaceFunctions.end()) {
-
+            
             if (Application::verboseLevel() >
                 Application::VERBOSE_LEVEL_DEFAULT) {
 

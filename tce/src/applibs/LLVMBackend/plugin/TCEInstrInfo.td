@@ -8,47 +8,6 @@
 
 include "TCEInstrFormats.td"
 
-// ----- Addressing modes. -----
-//
-//// base + offset (e.g. label + offset).
-//def ADDRrr : ComplexPattern<i32, 2, "SelectADDRrr", [], []>;
-//// frameindex + offset (simplifies some stack code generation).
-//def ADDRri : ComplexPattern<i32, 2, "SelectADDRri", [frameindex], []>;
-//
-//def calltarget : Operand<i32>;
-//
-//def MEMrr : Operand<i32> {
-//    let PrintMethod = "printMemOperand";
-//    let MIOperandInfo = (ops I32Regs, I32Regs);
-//}
-//
-//def MEMri : Operand<i32> {
-//  let PrintMethod = "printMemOperand";
-//  let MIOperandInfo = (ops I32Regs, i32imm);
-//
-//}
-//
-//// ----- Call pseudo instructions -----
-//
-//// These are target-independent nodes, but have target-specific formats.
-//def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32> ]>;
-//def SDT_TCECallSeqEnd   : SDCallSeqEnd<[ SDTCisVT<0, i32>,
-//                                         SDTCisVT<1, i32> ]>;
-//
-//def callseq_start : SDNode<"ISD::CALLSEQ_START", SDT_TCECallSeqStart,
-//                           [SDNPHasChain, SDNPOutFlag]>;
-//def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_TCECallSeqEnd,
-//                           [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
-//
-//def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
-//def call           : SDNode<"TCEISD::CALL", SDT_TCECall,
-//                           [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
-//
-//def SDT_TCERetFlag : SDTypeProfile<0, 0, []>;
-//def retflag : SDNode<"TCEISD::RET_FLAG", SDT_TCERetFlag,
-//	             [SDNPHasChain, SDNPOptInFlag]>;
-
-
 // Addressing modes.
 def ADDRrr : ComplexPattern<i32, 2, "SelectADDRrr", [], []>;
 def ADDRri : ComplexPattern<i32, 2, "SelectADDRri", [frameindex], []>;
@@ -71,30 +30,18 @@ def calltarget : Operand<i32>;
 let PrintMethod = "printCCOperand" in
   def CCOp : Operand<i32>;
 
-//def SDTTCEcmpfcc : 
-//SDTypeProfile<0, 2, [SDTCisFP<0>, SDTCisSameAs<0, 1>]>;
-//def SDTTCEbrcc : 
-//SDTypeProfile<0, 2, [SDTCisVT<0, OtherVT>, SDTCisVT<1, i32>]>;
-//def SDTTCEselectcc :
-//SDTypeProfile<1, 3, [SDTCisSameAs<0, 1>, SDTCisSameAs<1, 2>, SDTCisVT<3, i32>]>;
 def SDTTCEFTOI :
 SDTypeProfile<1, 1, [SDTCisVT<0, f32>, SDTCisFP<1>]>;
+
 def SDTTCEITOF :
 SDTypeProfile<1, 1, [SDTCisFP<0>, SDTCisVT<1, f32>]>;
 
-//def TCEcmpicc : SDNode<"TCEISD::CMPICC", SDTIntBinOp, [SDNPOutFlag]>;
-//def TCEcmpfcc : SDNode<"TCEISD::CMPFCC", SDTTCEcmpfcc, [SDNPOutFlag]>;
-//def TCEbricc : SDNode<"TCEISD::BRICC", SDTTCEbrcc, [SDNPHasChain, SDNPInFlag]>;
-//def TCEbrfcc : SDNode<"TCEISD::BRFCC", SDTTCEbrcc, [SDNPHasChain, SDNPInFlag]>;
-
+// not used for anything?
 def TCEhi    : SDNode<"TCEISD::Hi", SDTIntUnaryOp>;
 def TCElo    : SDNode<"TCEISD::Lo", SDTIntUnaryOp>;
 
 def TCEftoi  : SDNode<"TCEISD::FTOI", SDTTCEFTOI>;
 def TCEitof  : SDNode<"TCEISD::ITOF", SDTTCEITOF>;
-
-//def TCEselecticc : SDNode<"TCEISD::SELECT_ICC", SDTTCEselectcc, [SDNPInFlag]>;
-//def TCEselectfcc : SDNode<"TCEISD::SELECT_FCC", SDTTCEselectcc, [SDNPInFlag]>;
 
 // These are target-independent nodes, but have target-specific formats.
 def SDT_TCECallSeqStart : SDCallSeqStart<[ SDTCisVT<0, i32> ]>;
@@ -197,36 +144,6 @@ def ADJCALLSTACKUP : Pseudo<(outs), (ins i32imm:$amt1, i32imm:$amt2),
                             "# ADJCALLSTACKUP $amt1",
                             [(callseq_end timm:$amt1, timm:$amt2)]>;
 }
-
-// def IMPLICIT_DEF_I1 : Pseudo<(outs I1Regs:$dst),
-//                               (ins),
-//                               "# IMPLICIT_DEF $dst",
-//                               [(set I1Regs:$dst, (undef))]>;
-
-// def IMPLICIT_DEF_I8 : Pseudo<(outs I8Regs:$dst), (ins),
-//                               "# IMPLICIT_DEF $dst",
-//                               [(set I8Regs:$dst, (undef))]>;
-
-// def IMPLICIT_DEF_I16 : Pseudo<(outs I16Regs:$dst), (ins),
-//                               "# IMPLICIT_DEF $dst",
-//                               [(set I16Regs:$dst, (undef))]>;
-
-// def IMPLICIT_DEF_I32 : Pseudo<(outs I32Regs:$dst), (ins),
-//                               "# IMPLICIT_DEF $dst",
-//                               [(set I32Regs:$dst, (undef))]>;
-
-// def IMPLICIT_DEF_I64 : Pseudo<(outs I64Regs:$dst), (ins),
-//                               "# IMPLICIT_DEF $dst",
-//                               [(set I64Regs:$dst, (undef))]>;
-
-// def IMPLICIT_DEF_F32  : Pseudo<(outs F32Regs:$dst), (ins),
-//                               "# IMPLICIT_DEF $dst",
-//                               [(set F32Regs:$dst, (undef))]>;
-
-// def IMPLICIT_DEF_F64  : Pseudo<(outs F64Regs:$dst), (ins),
-//                               "# IMPLICIT_DEF $dst",
-//                               [(set F64Regs:$dst, (undef))]>;
-
 
 // =========================
 //  Moves
@@ -357,7 +274,6 @@ def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;
 def : Pat<(i32 imm:$val), (MOVI32ri imm:$val)>;
 def : Pat<(i64 imm:$val), (MOVI64ri imm:$val)>;
 
-
 // ----- Global addresses, constant pool entries ------
 def TCEGlobalAddr : SDNode<"TCEISD::GLOBAL_ADDR", SDTIntUnaryOp>;
 def TCEConstPool : SDNode<"TCEISD::CONST_POOL", SDTIntUnaryOp>;
@@ -365,7 +281,6 @@ def : Pat<(TCEGlobalAddr tglobaladdr:$in), (MOVI32ri tglobaladdr:$in)>;
 def : Pat<(TCEGlobalAddr tconstpool:$in), (MOVI32ri tconstpool:$in)>;
 def : Pat<(TCEConstPool tglobaladdr:$in), (MOVI32ri tglobaladdr:$in)>;
 def : Pat<(TCEConstPool tconstpool:$in), (MOVI32ri tconstpool:$in)>;
-
 
 // ============================
 //  Control flow
@@ -398,12 +313,17 @@ def LDQBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2,
 def LDQUBr : InstTCE<(outs I1Regs:$op2), (ins MEMrr:$op1), "", [(set I1Regs:$op2, (zextloadi8 ADDRrr:$op1))]>;
 def LDQUBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2, (zextloadi8 ADDRri:$op1))]>;
 
+// float store and load in a way that validator likes them
+def STWFir : InstTCE<(outs), (ins MEMri:$op1, F32Regs:$op2), "", [(store F32Regs:$op2, ADDRri:$op1)]>;
+def STWFrr : InstTCE<(outs), (ins MEMrr:$op1, F32Regs:$op2), "", [(store F32Regs:$op2, ADDRrr:$op1)]>;
+def LDWFi : InstTCE<(outs F32Regs:$op2), (ins MEMri:$op1), "", [(set F32Regs:$op2, (load ADDRri:$op1))]>;
+def LDWFr : InstTCE<(outs F32Regs:$op2), (ins MEMrr:$op1), "", [(set F32Regs:$op2, (load ADDRrr:$op1))]>;
+
 // pattern for i1 immediate stores and loads
 def : Pat<(store (i1 imm:$src), ADDRri:$addr), (STQri ADDRrr:$addr, imm:$src)>;
 
 // no idea why this is needed for selecting load with immediate address...
 def : Pat<(i1 (load ADDRri:$addr)), (LDQBi ADDRri:$addr)>;
-
 
 // return address stack store/load
 def STWRArr : InstTCE<(outs), (ins MEMrr:$op1,RAReg:$op2), "", [(store RAReg:$op2, ADDRrr:$op1)]>;
@@ -417,17 +337,4 @@ def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQi ADDRri:$src)>;
 def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
 def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
 
-def : Pat<(store F32Regs:$src, ADDRri:$addr),
-          (STWir ADDRri:$addr, (MOVFI32rr F32Regs:$src))>;
 
-def : Pat<(store F32Regs:$src, ADDRrr:$addr),
-          (STWrr ADDRrr:$addr, (MOVFI32rr F32Regs:$src))>;
-
-def : Pat<(f32 (load ADDRrr:$addr)),
-          (MOVIF32rr (LDWr ADDRrr:$addr))>;
-
-def : Pat<(f32 (load ADDRri:$addr)),
-          (MOVIF32rr (LDWr ADDRri:$addr))>;
-
-//def SELECTINT : Pat<(select I1Regs:$which, I32Regs:$src1, I32Regs:$src2),
-//          (CMOV I1Regs:$which, (MOV GR:$src2), GR:$src1)>; // note order!

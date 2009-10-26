@@ -169,7 +169,6 @@ TDGen::writeRegisterInfo(std::ostream& o) throw (Exception) {
     o << "//" << std::endl;
     o << std::endl;
 
-    // TODO: Move the following to a static include file?
     o << "class TCEReg<string n, list<Register> aliases> : "
       << "Register<n> {"
       << std::endl;
@@ -1668,14 +1667,6 @@ TDGen::canBeImmediate(
         if (opNode == NULL) {
             return false;
         }
-
-//        const Operation& operation = opNode->referencedOperation();
-// TODO: Why is this limited ?
-//        if (!operation.operand(edge.dstOperand()).isAddress() &&
-//            operation.numberOfInputs() != 2) {
-//            // Only binops and addresses can have immediate operands for now.
-//            return false;
-//        }
 
     }
     return true;
