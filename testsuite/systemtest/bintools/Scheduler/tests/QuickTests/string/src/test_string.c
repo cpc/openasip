@@ -13,7 +13,8 @@
 #include "userdef.h"
 #endif
 
-char in[] = "hello12345";
+//some extra space there for strcat, but make it end earlier
+char in[] = "hello12345          ";
 char out[] = "0123456789";
 char foo[] = "Foo";
 
@@ -44,7 +45,9 @@ void printstring(char* string) {
  */
 int main() {
 
-   char* pos, pos2, pos3, pos4, catenated = NULL;
+    in[10] = 0; //some extra space there for strcat, but make it end earlier
+
+   char* pos, *pos2, *pos3, *pos4, *catenated = NULL;
    int n,i = 0;
    
    /* strcmp */
