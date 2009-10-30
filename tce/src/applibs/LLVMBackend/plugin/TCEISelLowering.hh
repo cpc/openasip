@@ -133,10 +133,7 @@ namespace llvm {
     private:
         TCETargetMachine& tm_;
         
-    public:
-        
-        SDValue lowerSELECT(SDValue op, SelectionDAG& dag);
-
+    public:        
         virtual llvm::MVT::SimpleValueType 
         getSetCCResultType(llvm::EVT VT) const;
 

@@ -127,6 +127,7 @@ TCETargetLowering::LowerFormalArguments(
     SmallVector<CCValAssign, 16> ArgLocs;
     CCState CCInfo(CallConv, isVarArg, getTargetMachine(),
                    ArgLocs, *DAG.getContext());
+
     CCInfo.AnalyzeFormalArguments(Ins, CC_TCE);
 
 /*
@@ -136,7 +137,6 @@ TCETargetLowering::LowerFormalArguments(
   const unsigned *CurArgReg = ArgRegs, *ArgRegEnd = ArgRegs+6;
   unsigned ArgOffset = 68;
 */
-
     
     unsigned ArgOffset = 0;
   
@@ -270,7 +270,9 @@ TCETargetLowering::LowerFormalArguments(
         // Remember the vararg offset for the va_start implementation.
         VarArgsFrameOffset = ArgOffset;
         
-        std::vector<SDValue> OutChains;
+        std::cerr << "VarArgOffset:" << ArgOffset << "\n";
+      
+//        std::vector<SDValue> OutChains;
         
 //         for (; CurArgReg != ArgRegEnd; ++CurArgReg) {
 //             unsigned VReg = RegInfo.createVirtualRegister(&TCE::IntRegsRegClass);
@@ -284,11 +286,11 @@ TCETargetLowering::LowerFormalArguments(
 //             ArgOffset += 4;
 //         }
         
-        if (!OutChains.empty()) {
-            OutChains.push_back(Chain);
-            Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-                                &OutChains[0], OutChains.size());
-        }
+//        if (!OutChains.empty()) {
+//            OutChains.push_back(Chain);
+//            Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
+//                                &OutChains[0], OutChains.size());
+//        }
     }
     
     return Chain;
@@ -562,10 +564,10 @@ TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
     setOperationAction(ISD::DBG_LABEL, MVT::Other, Expand);
 
     setOperationAction(ISD::VASTART           , MVT::Other, Custom);
+
     setOperationAction(ISD::VAARG             , MVT::Other, Expand);
     setOperationAction(ISD::VACOPY            , MVT::Other, Expand);
     setOperationAction(ISD::VAEND             , MVT::Other, Expand);
-
     setOperationAction(ISD::STACKSAVE         , MVT::Other, Expand);
     setOperationAction(ISD::STACKRESTORE      , MVT::Other, Expand);
     setOperationAction(ISD::DYNAMIC_STACKALLOC, MVT::i32  , Expand);
@@ -682,11 +684,7 @@ void TCETargetLowering::computeMaskedBitsForTargetNode(const SDValue Op,
 }
 #endif
 
-/**
- * Converts SELECT nodes to TCE-specific pseudo instructions.
- */
-SDValue
-TCETargetLowering::lowerSELECT(
+static SDValue LowerSELECT(
     SDValue op, SelectionDAG& dag) {
 
     SDValue cond = op.getOperand(0);
@@ -730,6 +728,88 @@ TCETargetLowering::lowerSELECT(
         opcode, op.getDebugLoc(), trueVal.getValueType(), trueVal, falseVal, cond);
 }
 
+static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
+
+    GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
+    SDValue ga = DAG.getTargetGlobalAddress(gv, MVT::i32);
+    return DAG.getNode(TCEISD::GLOBAL_ADDR, Op.getDebugLoc(), MVT::i32, ga);
+
+/* Check if this code should work as well
+  GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
+  // FIXME there isn't really any debug info here
+  DebugLoc dl = Op.getDebugLoc();
+  SDValue GA = DAG.getTargetGlobalAddress(GV, MVT::i32);
+  SDValue Hi = DAG.getNode(SPISD::Hi, dl, MVT::i32, GA);
+  SDValue Lo = DAG.getNode(SPISD::Lo, dl, MVT::i32, GA);
+  return DAG.getNode(ISD::ADD, dl, MVT::i32, Lo, Hi);
+*/
+}
+
+
+static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
+    // TODO: Check this.
+    llvm::MVT ptrVT = Op.getValueType().getSimpleVT();
+    ConstantPoolSDNode* cp = cast<ConstantPoolSDNode>(Op);
+    SDValue res;
+    if (cp->isMachineConstantPoolEntry()) {
+        res = DAG.getTargetConstantPool(
+            cp->getMachineCPVal(), ptrVT,
+            cp->getAlignment());
+    } else {
+        res = DAG.getTargetConstantPool(
+            cp->getConstVal(), ptrVT,
+            cp->getAlignment());
+    }
+    return DAG.getNode(TCEISD::CONST_POOL, Op.getDebugLoc(), MVT::i32, res);
+}
+
+static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
+                              TCETargetLowering &TLI) {
+   
+
+  // vastart just stores the address of the VarArgsFrameIndex slot into the
+  // memory location argument.
+  MachineFunction &MF = DAG.getMachineFunction();
+  DebugLoc dl = Op.getDebugLoc();
+
+
+  MachineFrameInfo* MFI = MF.getFrameInfo();
+
+  // calculate frame size of function 
+  int size = 0;  
+  for (int i = MFI->getObjectIndexBegin(); 
+       i != MFI->getObjectIndexEnd(); i++) {
+      // TODO: fix alignment before getting size
+      size += MFI->getObjectSize(i);
+      assert(size % 4 == 0 && "Fix stack alignment");
+  }
+  std::cerr << "Calculated size:" << size << "\n";
+
+  SDValue Offset = DAG.getNode(ISD::ADD, dl, MVT::i32,
+                               DAG.getRegister(TCE::SP, MVT::i32),
+                               DAG.getConstant(TLI.getVarArgsFrameOffset() + size, MVT::i32));
+
+  const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
+  return DAG.getStore(Op.getOperand(0), dl, Offset, Op.getOperand(1), SV, 0);
+ 
+/* ARM ripoff 
+  // vastart just stores the address of the VarArgsFrameIndex slot into the
+  // memory location argument.
+  DebugLoc dl = Op.getDebugLoc();
+  EVT PtrVT = DAG.getTargetLoweringInfo().getPointerTy();
+  SDValue FR = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), PtrVT);
+  const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
+  return DAG.getStore(Op.getOperand(0), dl, FR, Op.getOperand(1), SV, 0);
+*/
+/*
+  llvm::MVT ptrVT = DAG.getTargetLoweringInfo().getPointerTy();
+  SDValue fr = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), ptrVT);
+  SrcValueSDNode* sv = cast<SrcValueSDNode>(Op.getOperand(2));
+  return DAG.getStore(
+      Op.getOperand(0), Op.getDebugLoc(), fr, Op.getOperand(1), sv->getValue(), 0);
+*/
+}
+
 
 /**
  * Returns the preferred comparison result type.
@@ -746,41 +826,16 @@ SDValue
 TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
 
     switch(op.getOpcode()) {
-    case ISD::GlobalAddress: {
-        GlobalValue* gv = cast<GlobalAddressSDNode>(op)->getGlobal();
-        SDValue ga = dag.getTargetGlobalAddress(gv, MVT::i32);
-        return dag.getNode(TCEISD::GLOBAL_ADDR, op.getDebugLoc(), MVT::i32, ga);
-    }
+    case ISD::GlobalAddress: return LowerGLOBALADDRESS(op, dag);
+    case ISD::SELECT: return LowerSELECT(op, dag);
+    case ISD::VASTART: return LowerVASTART(op, dag, *this);
+    case ISD::ConstantPool: return LowerCONSTANTPOOL(op, dag);
+    
     case ISD::DYNAMIC_STACKALLOC: {
         assert(false && "Dynamic stack allocation not yet implemented.");
     }
-    case ISD::SELECT: {
-        return lowerSELECT(op, dag);
     }
-    case ISD::VASTART: {
-        llvm::MVT ptrVT = dag.getTargetLoweringInfo().getPointerTy();
-        SDValue fr = dag.getFrameIndex(VarArgsFrameOffset, ptrVT);
-        SrcValueSDNode* sv = cast<SrcValueSDNode>(op.getOperand(2));
-        return dag.getStore(
-            op.getOperand(0), op.getDebugLoc(), fr, op.getOperand(1), sv->getValue(), 0);
-    }
-    case ISD::ConstantPool: {
-        // TODO: Check this.
-        llvm::MVT ptrVT = op.getValueType().getSimpleVT();
-        ConstantPoolSDNode* cp = cast<ConstantPoolSDNode>(op);
-        SDValue res;
-        if (cp->isMachineConstantPoolEntry()) {
-            res = dag.getTargetConstantPool(
-                cp->getMachineCPVal(), ptrVT,
-                cp->getAlignment());
-        } else {
-            res = dag.getTargetConstantPool(
-                cp->getConstVal(), ptrVT,
-                cp->getAlignment());
-        }
-        return dag.getNode(TCEISD::CONST_POOL, op.getDebugLoc(), MVT::i32, res);
-    }     
-    }
+
     op.getNode()->dump(&dag);
     assert(0 && "Custom lowerings not implemented!");
 }

@@ -1,5 +1,9 @@
 #include <stdio.h>
 
+#ifndef __TCE__
+#define iprintf printf
+#endif
+
 typedef union {
    int a;
    short b[2];

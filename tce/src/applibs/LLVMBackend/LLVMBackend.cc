@@ -338,6 +338,7 @@ LLVMBackend::compile(
     if (emulationModule != NULL) {
         pm1.add(createLinkBitcodePass(*emulationModule));
     }
+ 
     // to allow machine dead basic block elimination...
     pm1.add(createInternalizePass(true));
 
@@ -345,7 +346,7 @@ LLVMBackend::compile(
     pm1.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
 
     targetMachine->addInstSelector(pm1, OptLevel);
-    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ false);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ true);
 
     // Yet some more addCommonCodceGen passes
     pm1.add(createMachineLICMPass());
@@ -355,10 +356,10 @@ LLVMBackend::compile(
     printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
     targetMachine->addPreRegAlloc(pm1, OptLevel);
-    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ false);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ true);
 
     pm1.add(createRegisterAllocator());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ false);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ true);
 
     pm1.add(createStackSlotColoringPass(false));
     printAndVerify(pm1, /* allowDoubleDefs= */ true);
@@ -370,11 +371,21 @@ LLVMBackend::compile(
     printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
     pm1.add(createPrologEpilogCodeInserter());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ false);
+    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ true);
 
-// Breaks something sometimes... gotta check..
-//    pm1.add(createPostRAScheduler());    
-//    printAndVerify(pm1, /* allowDoubleDefs= */ true);
+    // Following pass breaks something ...
+    // e.g.
+    //*** Bad machine code: Using an undefined physical register ***
+    //- function:    float32_sqrt
+    //- basic block: bb16 0xa1a1d8c (#18)
+    //- instruction: %I10<def> = SHLri %I8, 17 
+    //[dbg: newlib/libc/sys/tce/float_emulation.c,426,0]
+    //- operand 1:   %I8
+    //LLVM ERROR: Found 1 machine code errors.
+    //]
+  
+    //pm1.add(createPostRAScheduler());    
+    //printAndVerify(pm1, /* allowDoubleDefs= */ true);
 
     // TODO: add a InsertBranch method ...
     //pm1.add(createBranchFoldingPass(
