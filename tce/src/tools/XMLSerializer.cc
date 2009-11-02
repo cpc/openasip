@@ -33,11 +33,21 @@
 
 #include <fstream>
 
+#include <xercesc/util/XercesVersion.hpp>
+
+#if XERCES_VERSION_MAJOR >= 3
+#include <xercesc/dom/DOMLSParser.hpp>
+#include <xercesc/dom/DOMLSSerializer.hpp>
+#include <xercesc/dom/DOMDocument.hpp>
+#include <xercesc/dom/DOMLSOutput.hpp>
+#else
 #include <xercesc/dom/DOMWriter.hpp>
+#include <xercesc/dom/DOMBuilder.hpp>
+#endif
+
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMText.hpp>
-#include <xercesc/dom/DOMBuilder.hpp>
 #include <xercesc/dom/DOMNamedNodeMap.hpp>
 #include <xercesc/dom/DOMException.hpp>
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
@@ -75,8 +85,13 @@ XMLSerializer::XMLSerializer() :
     domImplementation_ =
         DOMImplementationRegistry::getDOMImplementation(gLS);
 
-    parser_ = domImplementation_->createDOMBuilder(
-        DOMImplementationLS::MODE_SYNCHRONOUS, 0);
+#if XERCES_VERSION_MAJOR >= 3
+    parser_ = domImplementation_->createLSParser(
+            DOMImplementationLS::MODE_SYNCHRONOUS, 0);
+#else
+     parser_ = domImplementation_->createDOMBuilder(
+         DOMImplementationLS::MODE_SYNCHRONOUS, 0);
+#endif
 }
 
 /**
@@ -224,7 +239,7 @@ XMLSerializer::initializeParser() {
             ensureValidStream(schemaFile_);
         } catch (UnreachableStream& exception) {
             SerializerException error(__FILE__, __LINE__, __func__,
-                                      exception.errorMessage());
+                exception.errorMessage());
             
             error.setCause(exception);            
             throw error;
@@ -238,20 +253,36 @@ XMLSerializer::initializeParser() {
                 FileSystem::DIRECTORY_SEPARATOR + schemaFile_;
         }
 
+        XMLCh* filePath = Conversion::toXMLCh(absoluteSchemaFile);
+#if XERCES_VERSION_MAJOR >= 3
+        parser_->getDomConfig()->setParameter(XMLUni::fgXercesSchema, true);
+        parser_->getDomConfig()->setParameter(XMLUni::fgDOMValidate, true);
+        parser_->getDomConfig()->setParameter(XMLUni::fgDOMNamespaces, true);
+        parser_->getDomConfig()->setParameter(
+            XMLUni::fgXercesSchemaFullChecking, true);
+        parser_->getDomConfig()->setParameter(
+            XMLUni::fgXercesSchemaExternalNoNameSpaceSchemaLocation,
+            filePath);
+#else
         parser_->setFeature(XMLUni::fgXercesSchema, true);
         parser_->setFeature(XMLUni::fgDOMValidation, true);
         parser_->setFeature(XMLUni::fgDOMNamespaces, true);
         parser_->setFeature(XMLUni::fgXercesSchemaFullChecking, true);
-        XMLCh* filePath = Conversion::toXMLCh(absoluteSchemaFile);
         parser_->setProperty(
             XMLUni::fgXercesSchemaExternalNoNameSpaceSchemaLocation,
             filePath);
+#endif
 
         XMLString::release(&filePath);
     }
-
+#if XERCES_VERSION_MAJOR >= 3
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgDOMElementContentWhitespace, false);
+    parser_->getDomConfig()->setParameter(XMLUni::fgDOMComments, false);
+#else
     parser_->setFeature(XMLUni::fgDOMWhitespaceInElementContent, false);
     parser_->setFeature(XMLUni::fgDOMComments, false);
+#endif    
 }
 
 /**
@@ -268,7 +299,12 @@ XMLSerializer::readString(const std::string& source)
     initializeParser();
     DOMDocument* dom = NULL;
     DOMBuilderErrorHandler* errHandler = new DOMBuilderErrorHandler();
+#if XERCES_VERSION_MAJOR >= 3
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgDOMErrorHandler, errHandler);
+#else    
     parser_->setErrorHandler(errHandler);
+#endif
 
     // build the DOM object
     try {
@@ -281,7 +317,11 @@ XMLSerializer::readString(const std::string& source)
             false);
 
         Wrapper4InputSource* domBuf = new Wrapper4InputSource(buf);
+#if XERCES_VERSION_MAJOR >= 3
+        dom = parser_->parse(domBuf);
+#else        
         dom = parser_->parse(*domBuf);
+#endif        
         delete domBuf;
     } catch(...) {
         string errorLog = errHandler->errorLog();
@@ -302,7 +342,7 @@ XMLSerializer::readString(const std::string& source)
     if (dom == NULL || dom->getDocumentElement() == NULL) {
         delete errHandler;
         throw SerializerException(
-	    __FILE__, __LINE__, __func__, "Illegal file: " + source);
+	        __FILE__, __LINE__, __func__, "Illegal file: " + source);
     }
     ObjectState* rootState = createState(dom->getDocumentElement());
     delete errHandler;
@@ -339,11 +379,16 @@ XMLSerializer::readFile(const std::string& sourceFile)
         ensureValidStream(sourceFile);
     } catch (UnreachableStream& exception) {
         throw SerializerException(__FILE__, __LINE__, __func__,
-                                  exception.errorMessage());
+            exception.errorMessage());
     }
 
     DOMBuilderErrorHandler* errHandler = new DOMBuilderErrorHandler();
+#if XERCES_VERSION_MAJOR >= 3
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgDOMErrorHandler, errHandler);
+#else    
     parser_->setErrorHandler(errHandler);
+#endif
 
     try {
         parser_->resetDocumentPool();
@@ -359,7 +404,7 @@ XMLSerializer::readFile(const std::string& sourceFile)
     if (dom == NULL || dom->getDocumentElement() == NULL) {
         delete errHandler;
         throw SerializerException(
-	    __FILE__, __LINE__, __func__, "Illegal file: " + sourceFile);
+	        __FILE__, __LINE__, __func__, "Illegal file: " + sourceFile);
 
     }
 
@@ -391,19 +436,31 @@ void
 XMLSerializer::writeFile(
     const std::string& destinationFile, const ObjectState* rootState)
     throw (SerializerException) {
-
+    
+#if XERCES_VERSION_MAJOR >= 3
+    DOMLSSerializer* domWriter = domImplementation_->createLSSerializer();
+    domWriter->getDomConfig()->setParameter(
+        XMLUni::fgDOMWRTFormatPrettyPrint, true);
+    DOMLSOutput* lsOutput = domImplementation_->createLSOutput();
+#else
     DOMWriter* domWriter = domImplementation_->createDOMWriter();
     domWriter->setFeature(XMLUni::fgDOMWRTFormatPrettyPrint, true);
-
+#endif
     DOMDocument* document = createDOMDocument(rootState);
 
     try {
 	if (!FileSystem::fileIsCreatable(destinationFile) &&
 	    !FileSystem::fileIsWritable(destinationFile)) {
-	    throw "";
+	      throw "";
         }
+#if XERCES_VERSION_MAJOR >= 3
+        LocalFileFormatTarget targetFile(destinationFile.c_str());
+        lsOutput->setByteStream(&targetFile);
+        domWriter->write(document, lsOutput);
+#else        
         LocalFileFormatTarget targetFile(destinationFile.c_str());
         domWriter->writeNode(&targetFile, *document);
+#endif        
         domWriter->release();
         delete document;
     } catch (...) {
@@ -411,7 +468,7 @@ XMLSerializer::writeFile(
         delete document;
         string errorMessage = "Cannot write to " + destinationFile;
         throw SerializerException(__FILE__, __LINE__, __func__,
-                                  errorMessage);
+            errorMessage);
     }
 }
 
@@ -425,16 +482,28 @@ void
 XMLSerializer::writeString(
     std::string& target, const ObjectState* rootState)
     throw (SerializerException) {
-
+    
+#if XERCES_VERSION_MAJOR >= 3
+    DOMLSSerializer* domWriter = domImplementation_->createLSSerializer();
+    domWriter->getDomConfig()->setParameter(
+        XMLUni::fgDOMWRTFormatPrettyPrint, true);
+    DOMLSOutput* lsOutput = domImplementation_->createLSOutput();
+#else
     DOMWriter* domWriter = domImplementation_->createDOMWriter();
     domWriter->setFeature(XMLUni::fgDOMWRTFormatPrettyPrint, true);
-
+#endif
     DOMDocument* document = createDOMDocument(rootState);
 
     try {
         target.clear();
+#if XERCES_VERSION_MAJOR >= 3
+        MemBufFormatTarget* buf = new MemBufFormatTarget();
+        lsOutput->setByteStream(buf);
+        domWriter->write(document, lsOutput);
+#else        
         MemBufFormatTarget* buf = new MemBufFormatTarget();
         domWriter->writeNode(buf, *document);
+#endif        
         target.append((char*)(buf->getRawBuffer()));
         domWriter->release();
         delete buf;
@@ -444,7 +513,7 @@ XMLSerializer::writeString(
         delete document;
         string errorMessage = "Error writing xml to a string.";
         throw SerializerException(__FILE__, __LINE__, __func__,
-                                  errorMessage);
+            errorMessage);
     }
 }
 

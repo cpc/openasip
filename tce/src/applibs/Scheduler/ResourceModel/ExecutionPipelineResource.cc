@@ -30,6 +30,8 @@
  * @author Vladimir Guzma 2006 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
+ 
+#include <climits>
 
 #include "ExecutionPipelineResource.hh"
 #include "MapTools.hh"

@@ -30,6 +30,8 @@
  * @note rating: red
  */
 
+#include <climits>
+
 #include "TTASimulationController.hh"
 #include "MemorySystem.hh"
 #include "Machine.hh"

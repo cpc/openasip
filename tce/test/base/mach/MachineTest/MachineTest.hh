@@ -33,6 +33,7 @@
 #define MachineTest_HH
 
 #include <string>
+#include <climits>
 
 #include <TestSuite.h>
 #include "Machine.hh"

@@ -36,8 +36,15 @@
 
 #include <string>
 
-#include <xercesc/dom/DOMDocument.hpp>
+#include <xercesc/util/XercesVersion.hpp>
+
+#if XERCES_VERSION_MAJOR >= 3
+#include <xercesc/dom/DOMLSParser.hpp>
+#else
 #include <xercesc/dom/DOMBuilder.hpp>
+#endif
+#include <xercesc/dom/DOMDocument.hpp>
+
 
 #include "Serializable.hh"
 #include "ObjectState.hh"
@@ -117,7 +124,11 @@ private:
     /// Indicates if xml file is validated using schema.
     bool useSchema_;
     /// The parser that checks the XML file for errors with the Schema.
-    DOMBuilder* parser_;
+#if XERCES_VERSION_MAJOR >= 3
+    DOMLSParser* parser_;
+#else
+     DOMBuilder* parser_;
+#endif
     /// Implementation of the DOM.
     DOMImplementation* domImplementation_;
 

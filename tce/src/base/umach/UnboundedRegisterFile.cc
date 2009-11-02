@@ -30,6 +30,8 @@
  * @note rating: yellow
  */
 
+#include <climits>
+
 #include "UnboundedRegisterFile.hh"
 #include "Port.hh"
 
