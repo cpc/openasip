@@ -198,7 +198,7 @@ static void printAndVerify(PassManagerBase &PM,
     if (printMF) {
         PM.add(createMachineFunctionPrinterPass(cerr));
     }
-    PM.add(createMachineVerifierPass(allowDoubleDefs));
+//    PM.add(createMachineVerifierPass(allowDoubleDefs));
 }
 
 

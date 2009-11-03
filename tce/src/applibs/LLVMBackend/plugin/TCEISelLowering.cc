@@ -265,32 +265,10 @@ TCETargetLowering::LowerFormalArguments(
         
     }
     
-    // Store remaining ArgRegs to the stack if this is a varargs function.
-    if (isVarArg) {              
-        // Remember the vararg offset for the va_start implementation.
-        VarArgsFrameOffset = ArgOffset;
-        
-        std::cerr << "VarArgOffset:" << ArgOffset << "\n";
-      
-//        std::vector<SDValue> OutChains;
-        
-//         for (; CurArgReg != ArgRegEnd; ++CurArgReg) {
-//             unsigned VReg = RegInfo.createVirtualRegister(&TCE::IntRegsRegClass);
-//             MF.getRegInfo().addLiveIn(*CurArgReg, VReg);
-//             SDValue Arg = DAG.getCopyFromReg(DAG.getRoot(), dl, VReg, MVT::i32);
-            
-//             int FrameIdx = MF.getFrameInfo()->CreateFixedObject(4, ArgOffset);
-//             SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-            
-//             OutChains.push_back(DAG.getStore(DAG.getRoot(), dl, Arg, FIPtr, NULL, 0));
-//             ArgOffset += 4;
-//         }
-        
-//        if (!OutChains.empty()) {
-//            OutChains.push_back(Chain);
-//            Chain = DAG.getNode(ISD::TokenFactor, dl, MVT::Other,
-//                                &OutChains[0], OutChains.size());
-//        }
+    // inspired from ARM
+    if (isVarArg) {        
+        // This will point to the next argument passed via stack.
+        VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(4, ArgOffset);
     }
     
     return Chain;
@@ -765,49 +743,15 @@ static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
 
 static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
                               TCETargetLowering &TLI) {
-   
 
-  // vastart just stores the address of the VarArgsFrameIndex slot into the
-  // memory location argument.
-  MachineFunction &MF = DAG.getMachineFunction();
-  DebugLoc dl = Op.getDebugLoc();
-
-
-  MachineFrameInfo* MFI = MF.getFrameInfo();
-
-  // calculate frame size of function 
-  int size = 0;  
-  for (int i = MFI->getObjectIndexBegin(); 
-       i != MFI->getObjectIndexEnd(); i++) {
-      // TODO: fix alignment before getting size
-      size += MFI->getObjectSize(i);
-      assert(size % 4 == 0 && "Fix stack alignment");
-  }
-  std::cerr << "Calculated size:" << size << "\n";
-
-  SDValue Offset = DAG.getNode(ISD::ADD, dl, MVT::i32,
-                               DAG.getRegister(TCE::SP, MVT::i32),
-                               DAG.getConstant(TLI.getVarArgsFrameOffset() + size, MVT::i32));
-
-  const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
-  return DAG.getStore(Op.getOperand(0), dl, Offset, Op.getOperand(1), SV, 0);
- 
-/* ARM ripoff 
-  // vastart just stores the address of the VarArgsFrameIndex slot into the
-  // memory location argument.
-  DebugLoc dl = Op.getDebugLoc();
-  EVT PtrVT = DAG.getTargetLoweringInfo().getPointerTy();
-  SDValue FR = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), PtrVT);
-  const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
-  return DAG.getStore(Op.getOperand(0), dl, FR, Op.getOperand(1), SV, 0);
-*/
-/*
-  llvm::MVT ptrVT = DAG.getTargetLoweringInfo().getPointerTy();
-  SDValue fr = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), ptrVT);
-  SrcValueSDNode* sv = cast<SrcValueSDNode>(Op.getOperand(2));
-  return DAG.getStore(
-      Op.getOperand(0), Op.getDebugLoc(), fr, Op.getOperand(1), sv->getValue(), 0);
-*/
+    /* ARM ripoff */
+    // vastart just stores the address of the VarArgsFrameIndex slot into the
+    // memory location argument.
+    DebugLoc dl = Op.getDebugLoc();
+    EVT PtrVT = DAG.getTargetLoweringInfo().getPointerTy();
+    SDValue FR = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), PtrVT);
+    const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
+    return DAG.getStore(Op.getOperand(0), dl, FR, Op.getOperand(1), SV, 0);
 }
 
 

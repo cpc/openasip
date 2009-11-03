@@ -20,14 +20,15 @@ int varargs_test(int i, ... ) {
 
 int varargs_test2(int i, ... ) __attribute__((noinline));
 
-// print int values until 0 is read
+// calculate until 0 is read 
 int varargs_test2(int i, ... ) {
     va_list vl;
     va_start( vl, i );
+    int a=1,b=1,c=1,d=1,e=1,f=1,g=1;
     int j;
-    int a=0,b,c,d,e,f,g=0;
-    for (j = 0; j < 3; j++) {
-        i += i;
+    do {
+        j = va_arg(vl, int);
+
         switch (j%7) {
         case 0:
             a=i;
@@ -45,17 +46,15 @@ int varargs_test2(int i, ... ) {
             g=f+f;
         }        
         i += a+b+c+d+e+f+g;
-    }
+    } while(j);
     
     OUTPUT_VAR(i);
 
     va_end( vl );
 }
 
-
-
 int main() {
-    varargs_test(1,2,3,4,5,6,0);
+    varargs_test(1,2,0);
     varargs_test(3, -123, 321, 0);
-    varargs_test2(3, 123, 321, 0, 12, 31,4);
+    varargs_test2(3, 123, 321, 0, 12, 31, 4, 0);
 }
