@@ -51,10 +51,11 @@ void output_32bit(unsigned int val) {
 
 // target independent big endian hex form for 1,2 and 4 byte variables
 #define OUTPUT_VAR(x) {\
+int intVal = *(int*)(&x);\
 switch (sizeof(x)) {\
- case 1: output_8bit(x);break;\
- case 2: output_16bit(x);break;\
- case 4: output_32bit(x);break;\
+ case 1: output_8bit(intVal);break;\
+ case 2: output_16bit(intVal);break;\
+ case 4: output_32bit(intVal);break;\
 }\
 }
 

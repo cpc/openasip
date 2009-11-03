@@ -412,75 +412,6 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
   return Chain;
 }
-  /* OLD CODE
-    std::vector<llvm::EVT> nodeTys;
-    nodeTys.push_back(MVT::Other);
-    nodeTys.push_back(MVT::Flag);
-    SDValue ops[] = { chain, callee, inFlag };
-    chain = dag.getNode(TCEISD::CALL, dl, nodeTys, ops, inFlag.getNode() ? 3 : 2);
-    inFlag = chain.getValue(1);
-
-    // Return value
-    MVT retTyVT = getValueType(retTy).getSimpleVT();
-    SDValue retVal;
-    if (retTyVT.SimpleTy != MVT::isVoid) {
-        switch (retTyVT.SimpleTy) {
-        default: assert(false && "Unsupported return value type.");
-        case MVT::i1:
-        case MVT::i8:
-        case MVT::i16: {
-            retVal = dag.getCopyFromReg(chain, dl, TCE::IRES0, MVT::i32, inFlag);
-            chain = retVal.getValue(1);
-            retVal = dag.getNode(ISD::TRUNCATE, dl, retTyVT, retVal);
-            break;
-        }
-        case MVT::i32: {
-            retVal = dag.getCopyFromReg(chain, dl, TCE::IRES0, MVT::i32, inFlag);
-            chain = retVal.getValue(1);
-            break;
-        }
-        case MVT::i64: {
-            SDValue lo = dag.getCopyFromReg(
-                chain, dl, TCE::IRES0, MVT::i32, inFlag);
-
-            SDValue hi = dag.getCopyFromReg(
-                lo.getValue(1), dl, TCE::KLUDGE_REGISTER, MVT::i32, 
-                lo.getValue(2));
-
-            retVal = dag.getNode(ISD::BUILD_PAIR, dl, MVT::i64, lo, hi);
-            chain = hi.getValue(1);
-            break;
-        }
-        case MVT::f32: {
-            retVal = dag.getCopyFromReg(chain, dl, TCE::FRES0, MVT::f32, inFlag);
-            chain = retVal.getValue(1);
-            break;
-        }
-        case MVT::f64: {
-            SDValue lo = dag.getCopyFromReg(
-                chain, dl, TCE::IRES0, MVT::i32, inFlag);
-
-            SDValue hi = dag.getCopyFromReg(
-                lo.getValue(1), dl, TCE::KLUDGE_REGISTER, MVT::i32, 
-                lo.getValue(2));
-
-            retVal = dag.getNode(ISD::BUILD_PAIR, dl, MVT::i64, lo, hi);
-            chain = hi.getValue(1);
-            break;
-        }
-        }
-    }
-
-    // copied from SPARC backend:
-    chain = 
-        dag.getCALLSEQ_END(
-            chain, dag.getConstant(argsSize, getPointerTy()),
-            dag.getConstant(0, MVT::i32), chain.getValue(1));
-
-    return std::make_pair(retVal, chain);
-}
-  */
-
 
 /**
  * The Constructor.
@@ -707,22 +638,10 @@ static SDValue LowerSELECT(
 }
 
 static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
-
     GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
     SDValue ga = DAG.getTargetGlobalAddress(gv, MVT::i32);
     return DAG.getNode(TCEISD::GLOBAL_ADDR, Op.getDebugLoc(), MVT::i32, ga);
-
-/* Check if this code should work as well
-  GlobalValue *GV = cast<GlobalAddressSDNode>(Op)->getGlobal();
-  // FIXME there isn't really any debug info here
-  DebugLoc dl = Op.getDebugLoc();
-  SDValue GA = DAG.getTargetGlobalAddress(GV, MVT::i32);
-  SDValue Hi = DAG.getNode(SPISD::Hi, dl, MVT::i32, GA);
-  SDValue Lo = DAG.getNode(SPISD::Lo, dl, MVT::i32, GA);
-  return DAG.getNode(ISD::ADD, dl, MVT::i32, Lo, Hi);
-*/
 }
-
 
 static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
     // TODO: Check this.
@@ -744,7 +663,8 @@ static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
 static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
                               TCETargetLowering &TLI) {
 
-    /* ARM ripoff */
+    // ARM ripoff 
+
     // vastart just stores the address of the VarArgsFrameIndex slot into the
     // memory location argument.
     DebugLoc dl = Op.getDebugLoc();
@@ -768,18 +688,15 @@ TCETargetLowering::getSetCCResultType(llvm::EVT VT) const {
  */
 SDValue
 TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
-
     switch(op.getOpcode()) {
     case ISD::GlobalAddress: return LowerGLOBALADDRESS(op, dag);
     case ISD::SELECT: return LowerSELECT(op, dag);
     case ISD::VASTART: return LowerVASTART(op, dag, *this);
-    case ISD::ConstantPool: return LowerCONSTANTPOOL(op, dag);
-    
+    case ISD::ConstantPool: return LowerCONSTANTPOOL(op, dag);    
     case ISD::DYNAMIC_STACKALLOC: {
         assert(false && "Dynamic stack allocation not yet implemented.");
     }
     }
-
     op.getNode()->dump(&dag);
     assert(0 && "Custom lowerings not implemented!");
 }
@@ -799,7 +716,6 @@ TCETargetLowering::getConstraintType(const std::string &Constraint) const {
     case 'r': return C_RegisterClass;
     }
   }
-
   return TargetLowering::getConstraintType(Constraint);
 }
 
@@ -818,7 +734,6 @@ TCETargetLowering::getRegForInlineAsmConstraint(const std::string &Constraint,
         }
     }
   }
-
   return TargetLowering::getRegForInlineAsmConstraint(Constraint, VT);
 }
 
@@ -832,7 +747,7 @@ getRegClassForInlineAsmConstraint(const std::string &Constraint,
   switch (Constraint[0]) {
   default: break;
   case 'r':
-      // TODO: WHAT TO DO WITH THESE?!?
+      // TODO: WHAT TO DO WITH THESE?
     return make_vector<unsigned>(/*SP::L0, SP::L1, SP::L2, SP::L3,
                                  SP::L4, SP::L5, SP::L6, SP::L7,
                                  SP::I0, SP::I1, SP::I2, SP::I3,
