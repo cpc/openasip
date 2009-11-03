@@ -19,8 +19,8 @@ call_struct(s):
     *s.g.b:-120
     *s.g.c:100
     *s.g.u.a:123456789
-    *s.g.u.b[0]:-13035
-    *s.g.u.b[1]:1883
+    *s.g.u.b[0]:1883
+    *s.g.u.b[1]:-13035
 ------
 123580122
 
@@ -35,8 +35,9 @@ recurse(recurse(recurse(recurse(recurse(recurse(recurse(recurse(recurse(recurse(
     *s.g.b:-120
     *s.g.c:100
     *s.g.u.a:123456789
-    *s.g.u.b[0]:-13035
-    *s.g.u.b[1]:1883
+    *s.g.u.b[0]:1883
+    *s.g.u.b[1]:-13035
 
 ------
 123580368
+
