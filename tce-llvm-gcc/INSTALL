@@ -10,9 +10,15 @@ be compiled.
    LLVM 2.5 compatible llvm-gcc is found in 
    http://llvm.org/releases/2.5/llvm-gcc-4.2-2.5.source.tar.gz 
 
-0.2 (optional, if installing from the version control system)
+0.2 Install Flex and Bison.
 
-   Generate the required build scripts by executing 'autoreconf'.
+   These are needed to compile llvm-gcc.
+   
+   For example: "sudo apt-get install flex bison".
+
+0.3 (optional, if installing from the version control system)
+
+   Generate the required build scripts by executing 'autoreconf'
 
 1. Make a separate build directory.
 
