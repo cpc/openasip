@@ -98,6 +98,14 @@ TCETargetMachine::~TCETargetMachine() {
     }
 }
 
+/**
+ * InsertBranch caused some bad results.. so disable need for that.
+bool 
+TCETargetMachine::getEnableTailMergeDefault() const { 
+    return false; 
+}
+ */
+
 void 
 TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
 

@@ -35,13 +35,16 @@
 
 #include <map>
 #include <set>
-#include "llvm/CodeGen/MachineFunctionPass.h"
-#include "llvm/CodeGen/MachineConstantPool.h"
-#include "llvm/CodeGen/MachineOperand.h"
-#include "llvm/CodeGen/MachineInstr.h"
-#include "llvm/CodeGen/MachineBasicBlock.h"
-#include "llvm/Support/Mangler.h"
-#include "llvm/Constant.h"
+#include <llvm/CodeGen/MachineFunctionPass.h>
+#include <llvm/CodeGen/MachineConstantPool.h>
+#include <llvm/CodeGen/MachineOperand.h>
+#include <llvm/CodeGen/MachineInstr.h>
+#include <llvm/CodeGen/MachineBasicBlock.h>
+#include <llvm/Support/Mangler.h>
+#include <llvm/Constant.h>
+
+#include <llvm/Transforms/IPO.h>
+
 #include "Exception.hh"
 #include "BaseType.hh"
 

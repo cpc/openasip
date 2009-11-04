@@ -25,18 +25,28 @@
  * @file TCEInstrInfo.cpp
  *
  * Implementation of TCEInstrInfo class.
+ * 
+ * NOTE: Normal TCE coding guidelines do not apply here to makeo it
+ *       easier to track and copy paste changes from LLVM.
+ *       So please follow LLVM style when adding or fixing things.
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  */
 
 
-#include <iostream>
+#include "TCEInstrInfo.hh"
+#include "TCETargetMachine.hh"
+
+#include <llvm/ADT/STLExtras.h>
+#include <llvm/CodeGen/MachineInstrBuilder.h>
+#include <llvm/CodeGen/MachineRegisterInfo.h>
+#include <llvm/Support/ErrorHandling.h>
 #include <llvm/CodeGen/MachineInstrBuilder.h>
 
-#include "TCEInstrInfo.hh"
-#include "TCEPlugin.hh"
 
+#include <iostream>
+#include "TCEPlugin.hh"
 #include "tce_config.h"
 
 // Include code generated with tceplugingen:
@@ -92,20 +102,20 @@ TCEInstrInfo::isMoveInstr(
 /**
  * Inserts a branch instruction.
  */
-unsigned
+unsigned 
 TCEInstrInfo::InsertBranch(
-    MachineBasicBlock& mbb,
-    MachineBasicBlock* tbb,
-    MachineBasicBlock* fbb,
-    const std::vector<MachineOperand>& cond) const {
+    MachineBasicBlock &MBB,
+    MachineBasicBlock *TBB,
+    MachineBasicBlock *FBB,
+    const SmallVectorImpl<llvm::MachineOperand> &Cond) const {
 
     // Can only insert uncond branches so far.
-    assert(cond.empty() && !fbb && tbb && "Can only handle uncond branches!");
-
+    assert(Cond.empty() && !FBB && TBB && 
+           "Can only handle uncond branches!");
+    
     DebugLoc dl = DebugLoc::getUnknownLoc();
-    if (mbb.begin() != mbb.end()) dl = mbb.front().getDebugLoc();
 
-    BuildMI(&mbb, dl, get(TCE::TCEBR)).addMBB(tbb);
+    BuildMI(&MBB, dl, get(TCE::TCEBR)).addMBB(TBB);
     return 1;
 }
 
@@ -156,15 +166,15 @@ TCEInstrInfo::isStoreToStackSlot(
  * in the basic block, false otherwise.
  */
 bool
-TCEInstrInfo::BlockHasNoFallThrough(MachineBasicBlock& mbb) const {
-
-    if (mbb.empty()) return false;
-
-    if (mbb.back().getOpcode() ==  TCE::TCEBR) {
-        return true; // Unconditional branch.
+TCEInstrInfo::BlockHasNoFallThrough(const MachineBasicBlock& MBB) const {
+    /* Mips inspired */
+    if (MBB.empty()) return false;
+    switch (MBB.back().getOpcode()) {
+    case TCE::RETL:    // Return.
+    case TCE::TCEBR:  // Uncond branch.
+        return true;
+    default: return false;
     }
-
-    return false;
 }
 
 void TCEInstrInfo::

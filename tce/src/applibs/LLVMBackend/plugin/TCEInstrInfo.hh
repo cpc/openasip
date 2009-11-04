@@ -32,8 +32,8 @@
 #ifndef TCE_INSTR_INFO_H
 #define TCE_INSTR_INFO_H
 
+#include <llvm/Support/ErrorHandling.h>
 #include <llvm/Target/TargetInstrInfo.h>
-#include <llvm/Target/TargetRegisterInfo.h>
 #include "TCERegisterInfo.hh"
 
 namespace llvm {
@@ -60,13 +60,12 @@ namespace llvm {
             const MachineInstr* mi, int& frameIndex) const;
 
         virtual unsigned InsertBranch(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock* tbb,
-            MachineBasicBlock* fbb,
-            const std::vector<MachineOperand>& cond) const;
+            MachineBasicBlock &MBB, MachineBasicBlock *TBB,
+            MachineBasicBlock *FBB,
+            const SmallVectorImpl<MachineOperand> &Cond) const;
 
         virtual bool BlockHasNoFallThrough(
-            MachineBasicBlock& mbb) const;
+            const MachineBasicBlock &MBB) const;
 
         virtual void storeRegToStackSlot(
             MachineBasicBlock& mbb,

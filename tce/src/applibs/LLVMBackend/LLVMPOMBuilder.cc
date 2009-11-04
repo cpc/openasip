@@ -26,7 +26,7 @@
  *
  * Implementation of LLVMPOMBuilder class.
  *
- * @author Veli-Pekka J��skel�inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  * @note reting: red
  */
@@ -196,9 +196,12 @@ LLVMPOMBuilder::doInitialization(Module& m) {
 
     // Avoid placing data to address 0, it may break some null pointer
     // tests.
-    // Waste some valuable byte of memory
+
+    // Waste a valuable word of memory 
+    // (word to prevent writing bytes to 1,2,3 
+    //  addresses and then reading word from 0)
     if (end_ == 0) {
-        end_++;
+        end_ += 4;
     }
 
     const TargetData* td = tm_.getTargetData();
@@ -209,12 +212,12 @@ LLVMPOMBuilder::doInitialization(Module& m) {
          i != m.global_end(); i++) {
 
         std::string name = mang_->getMangledName(i);
-
+        
         if (name == END_SYMBOL_NAME) {
             // Skip original _end symbol.
             continue;
         }
-
+                       
         if (!i->hasInitializer()) {
             assert(false && "No initializer. External linkage?");
         }

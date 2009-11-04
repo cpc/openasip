@@ -338,9 +338,14 @@ LLVMBackend::compile(
     if (emulationModule != NULL) {
         pm1.add(createLinkBitcodePass(*emulationModule));
     }
- 
-    // to allow machine dead basic block elimination...
+  
+      // to allow machine dead basic block elimination...
     pm1.add(createInternalizePass(true));
+
+    // NOTE: This must be added before Machine function analysis pass..
+    // needed by POMBuilder to prevent writing debug data to data section
+    // might be good to disable when printing out machine function code...
+    pm1.add(createStripSymbolsPass(/*bool OnlyDebugInfo=*/true));
 
     // More passes from addCommonCodeGen
     pm1.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
@@ -373,7 +378,8 @@ LLVMBackend::compile(
     pm1.add(createPrologEpilogCodeInserter());
     printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ true);
 
-    // Following pass breaks something ...
+    // Following pass breaks something ... 
+    // and also causes invalid results.
     // e.g.
     //*** Bad machine code: Using an undefined physical register ***
     //- function:    float32_sqrt
@@ -382,15 +388,13 @@ LLVMBackend::compile(
     //[dbg: newlib/libc/sys/tce/float_emulation.c,426,0]
     //- operand 1:   %I8
     //LLVM ERROR: Found 1 machine code errors.
-    //]
-  
+    //]  
     //pm1.add(createPostRAScheduler());    
     //printAndVerify(pm1, /* allowDoubleDefs= */ true);
-
-    // TODO: add a InsertBranch method ...
-    //pm1.add(createBranchFoldingPass(
-    //           targetMachine->getEnableTailMergeDefault()));
-
+    
+    pm1.add(createBranchFoldingPass(
+                targetMachine->getEnableTailMergeDefault()));
+    
     pm1.add(createGCMachineCodeAnalysisPass());
     printAndVerify(pm1, /* allowDoubleDefs= */ true);
     

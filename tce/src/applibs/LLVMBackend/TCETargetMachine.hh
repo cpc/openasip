@@ -27,6 +27,7 @@
  * Declaration of TCETargetMachine class.
  *
  * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  */
 
 #ifndef TCE_TARGET_MACHINE_H
@@ -92,6 +93,10 @@ namespace llvm {
         
         virtual bool addInstSelector(PassManagerBase& pm, 
                                      CodeGenOpt::Level OptLevel);
+        
+        /* enabled by default. requires InsertBranch in TCEInstrInfo
+        virtual bool getEnableTailMergeDefault() const;
+        */
 
         std::string operationName(unsigned opc) {
             return plugin_->operationName(opc);
