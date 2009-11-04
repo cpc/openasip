@@ -31,6 +31,8 @@
  * @note rating: red
  */
 
+#include <climits>
+
 #include "ExecutionPipelineBroker.hh"
 #include "ExecutionPipelineResource.hh"
 #include "Machine.hh"

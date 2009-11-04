@@ -35,8 +35,15 @@
 
 #include <string>
 
-#include <xercesc/dom/DOM.hpp>
+#include <xercesc/util/XercesVersion.hpp>
+
+#if XERCES_VERSION_MAJOR >= 3
+#include <xercesc/dom/DOMLSParser.hpp>
+#else
 #include <xercesc/dom/DOMBuilder.hpp>
+#endif
+
+#include <xercesc/dom/DOM.hpp>
 #include <xercesc/validators/common/Grammar.hpp>
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
@@ -68,7 +75,11 @@ public:
 
 private:
     /// The XML parser.
+#if XERCES_VERSION_MAJOR >= 3
+    DOMLSParser* parser_;
+#else
     DOMBuilder* parser_;
+#endif
     /// Error handler for the parser.
     DOMBuilderErrorHandler* errHandler_;
     /// Implementation of the DOM.
@@ -103,25 +114,40 @@ OperationSchemaTest::setUp() {
     domImplementation_ =
         DOMImplementationRegistry::getDOMImplementation(gLS);
 
+    string fullPath = FileSystem::currentWorkingDir() +
+        FileSystem::DIRECTORY_SEPARATOR + "data/Operation_Schema.xsd";
+    schema_ = Conversion::toXMLCh(fullPath);
+    errHandler_ = new DOMBuilderErrorHandler();
+
+#if XERCES_VERSION_MAJOR >= 3
+    parser_ = domImplementation_->createLSParser(
+        DOMImplementationLS::MODE_SYNCHRONOUS, 0);
+    parser_->getDomConfig()->setParameter(XMLUni::fgXercesSchema, true);
+    parser_->getDomConfig()->setParameter(XMLUni::fgDOMValidate, true);
+    parser_->getDomConfig()->setParameter(XMLUni::fgDOMNamespaces, true);
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgXercesSchemaFullChecking, true);
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgXercesSchemaExternalNoNameSpaceSchemaLocation, schema_);
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgDOMErrorHandler, errHandler_);
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgDOMElementContentWhitespace, false);
+    parser_->getDomConfig()->setParameter(XMLUni::fgDOMComments, false);
+#else
     parser_ = domImplementation_->createDOMBuilder(
         DOMImplementationLS::MODE_SYNCHRONOUS, 0);
-
     parser_->setFeature(XMLUni::fgXercesSchema, true);
     parser_->setFeature(XMLUni::fgDOMValidation, true);
     parser_->setFeature(XMLUni::fgDOMNamespaces, true);
     parser_->setFeature(XMLUni::fgXercesSchemaFullChecking, true);
-
-    string fullPath = FileSystem::currentWorkingDir() +
-        FileSystem::DIRECTORY_SEPARATOR + "data/Operation_Schema.xsd";
-    schema_ = Conversion::toXMLCh(fullPath);
     parser_->setProperty(
         XMLUni::fgXercesSchemaExternalNoNameSpaceSchemaLocation, schema_);
-
-    errHandler_ = new DOMBuilderErrorHandler();
     parser_->setErrorHandler(errHandler_);
-
     parser_->setFeature(XMLUni::fgDOMWhitespaceInElementContent, false);
     parser_->setFeature(XMLUni::fgDOMComments, false);
+#endif
+
 }
 
 
@@ -153,7 +179,7 @@ OperationSchemaTest::tearDown() {
 inline void
 OperationSchemaTest::testSimpleFile() {
 
-    string xmlFileString = "./data/simple.opp"; 
+    string xmlFileString = "./data/simple.opp";
     const char* xmlFile = xmlFileString.c_str();
     TS_ASSERT_THROWS_NOTHING(dom_ = parser_->parseURI(xmlFile));
 
@@ -168,7 +194,7 @@ OperationSchemaTest::testSimpleFile() {
 inline void
 OperationSchemaTest::testComplexFile() {
 
-    string xmlFileString = "./data/complex.opp"; 
+    string xmlFileString = "./data/complex.opp";
     const char* xmlFile = xmlFileString.c_str();
     TS_ASSERT_THROWS_NOTHING(dom_ = parser_->parseURI(xmlFile));
 

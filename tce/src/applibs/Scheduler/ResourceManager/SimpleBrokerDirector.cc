@@ -32,6 +32,7 @@
  */
 
 #include <string>
+#include <climits>
 
 #include "Application.hh"
 #include "SimpleBrokerDirector.hh"

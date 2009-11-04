@@ -50,7 +50,7 @@ public:
         throw (OutOfRange);
     virtual ~BitVector();
 
-    void pushBack(unsigned int integer, int size);
+    void pushBack(long long unsigned int integer, int size);
     void pushBack(const BitVector& bits);
 };
 

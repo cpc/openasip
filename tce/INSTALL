@@ -85,13 +85,12 @@ Remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
-For example, to install the required libraries and tools for Ubuntu using 
-its package manager 'apt-get', you need to execute the following command
-as root: 
+For example, to install the required libraries and tools for a recent
+Debian or Ubuntu using its package manager 'apt-get', you need to execute 
+the following command: 
 
-apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
-                tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 \
-                libxerces27-dev g++ make latex2html
+sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
+tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html
 
 NOTE! In order to compile programs from C, you need to install LLVM. There
 are no decent Debian packages available for older Debian/Ubuntu versions, 
@@ -105,14 +104,6 @@ TCE called 'gen_llvm_shared_lib.sh' (usually as root, e.g.,
 LLVM libraries required by TCE. This is due to a broken shared library
 build of LLVM and hopefully is not needed with the future LLVM
 versions.
-
-Tcl 8.5 has a bug with stack size detection which causes Proxim's interpreter
-to not work at all with it, therefore it's not supported by TCE at the moment.
-
-See the TCE Bug report for more info.
-
-  http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=14
-
 
 Troubleshooting
 ===============
@@ -153,6 +144,15 @@ After this TCE should build and install with:
 
 	make && sudo make install
 
+A stack size error in Proxim's console
+--------------------------------------
+
+Tcl 8.5 has a bug with stack size detection which causes Proxim's interpreter
+to not work at all with it, therefore it's not supported by TCE at the moment.
+
+See the TCE Bug report for more info.
+
+  http://tce.cs.tut.fi/cgi-bin/tce-bugzilla/show_bug.cgi?id=14
 
 Red Hat Enterprise Linux 4.x (or CentOS 4.x) libraries from sources
 ===================================================================

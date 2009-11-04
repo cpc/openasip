@@ -26,14 +26,14 @@
 \makeindex
 
 \begin{document}
-\title{TTA Codesign Environment v1.0}
-\ver{12}
+\title{TTA Codesign Environment v1.1}
+\ver{13}
 \firstday{25.10.2006}
-\lastday{26.03.2009}
+\lastday{28.10.2009}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
-\state{review}
+\state{complete}
 \maketitle
 
 % Table of contents
@@ -5417,7 +5417,7 @@ memory address outside the processor is 2 bits narrower than inside the
 processor. When you set the data address space width in ProDe, the width
 is the address width inside the processor.
 
-\subsection{Instruction memory}
+\subsection{Instruction Memory}
 The default GCU assumes that instruction memory is intruction addressable. In
 other words the instruction word must fit in the MAU of the instruction
 memory. This way the next instruction can be referenced by incrementing the
@@ -5429,6 +5429,7 @@ possibilities. But as an advantage this gives the user free hands to
 implement almost any kind of memory hierarchy the user wants. Most probably
 you must implement a memory adapter to bind the memory chip and the TTA
 processor interfaces together.
+
 
 
 \chapter{TROUBLESHOOTING}
@@ -5457,8 +5458,7 @@ toolset version.
 \subsection{Integer Width}
 
 The simulator supports only integer computations with maximum word width of
-32 bits. Floating point computations can use the single (32 bits) or double
-(64 bits) precision floating point types.
+32 bits. 
 
 \subsection{Instruction Addressing During Simulation}
 
@@ -5529,6 +5529,16 @@ TCE uses XML to store data of the architectures and implementation
 locations (see Section~\ref{sec:adf} and Section~\ref{sec:idf}). The
 encoding of the XML files must be in 7-bit ascii. If other encodings are
 used, the result is undefined.
+
+\subsection{Floating Point Support}
+
+The simulator supports both the single (32 bits) and double
+(64 bits) precision floating point types. However, at this time only
+single precision float operations (ADDF, MULF, etc.) are selected 
+automatically when starting from C/C++ code. Currently, the compiler 
+converts doubles to floats to allow compiling and running code with 
+doubles with reduced precision.
+
 
 \chapter{Copyright notices}
 

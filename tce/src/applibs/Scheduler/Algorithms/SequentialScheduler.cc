@@ -35,6 +35,7 @@
 //#define USE_CFG
 
 #include <string>
+#include <climits>
 
 #include <boost/config.hpp>
 #include <boost/format.hpp>

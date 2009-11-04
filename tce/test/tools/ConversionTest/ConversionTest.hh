@@ -35,6 +35,7 @@
 
 #include <TestSuite.h>
 #include <string>
+#include <climits>
 
 #include "Conversion.hh"
 #include "Exception.hh"

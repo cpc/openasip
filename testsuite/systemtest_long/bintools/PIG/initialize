@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# delete old diffs if present
+rm -f simple_diff.txt
+rm -f move_slot_diff.txt
+
+# compile the plugins
+cd ../../../../tce/compressors/ && make >& /dev/null
+

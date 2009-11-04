@@ -37,6 +37,7 @@
  */
 
 #include <iostream>
+#include <climits>
 #include <boost/format.hpp>
 
 #include "MoveNode.hh"

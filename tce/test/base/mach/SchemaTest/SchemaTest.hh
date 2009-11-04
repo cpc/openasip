@@ -36,8 +36,15 @@
 #include <string>
 #include <iostream>
 
-#include <xercesc/dom/DOM.hpp>
+#include <xercesc/util/XercesVersion.hpp>
+
+#if XERCES_VERSION_MAJOR >= 3
+#include <xercesc/dom/DOMLSParser.hpp>
+#else
 #include <xercesc/dom/DOMBuilder.hpp>
+#endif
+
+#include <xercesc/dom/DOM.hpp>
 #include <xercesc/validators/common/Grammar.hpp>
 #include <xercesc/util/XMLString.hpp>
 #include <xercesc/util/PlatformUtils.hpp>
@@ -90,7 +97,11 @@ public:
 
 private:
     /// The XML parser.
+#if XERCES_VERSION_MAJOR >= 3
+    DOMLSParser* parser_;
+#else    
     DOMBuilder* parser_;
+#endif
     /// Error handler for the parser.
     DOMBuilderErrorHandler* errHandler_;
     /// Implementation of the DOM.
@@ -124,25 +135,40 @@ SchemaTest::setUp() {
     const XMLCh gLS[] = { chLatin_L, chLatin_S, chNull };
     domImplementation_ =
         DOMImplementationRegistry::getDOMImplementation(gLS);
-
+        
+    string fullPath = Environment::schemaDirPath(ADF_SCHEMA_FILE);
+    schema_ = Conversion::toXMLCh(fullPath);        
+    errHandler_ = new DOMBuilderErrorHandler();
+    
+#if XERCES_VERSION_MAJOR >= 3
+    parser_ = domImplementation_->createLSParser(
+        DOMImplementationLS::MODE_SYNCHRONOUS, 0);
+    parser_->getDomConfig()->setParameter(XMLUni::fgXercesSchema, true);
+    parser_->getDomConfig()->setParameter(XMLUni::fgDOMValidate, true);
+    parser_->getDomConfig()->setParameter(XMLUni::fgDOMNamespaces, true);
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgXercesSchemaFullChecking, true);
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgXercesSchemaExternalNoNameSpaceSchemaLocation, schema_);
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgDOMErrorHandler, errHandler_);
+    parser_->getDomConfig()->setParameter(
+        XMLUni::fgDOMElementContentWhitespace, false);
+    parser_->getDomConfig()->setParameter(XMLUni::fgDOMComments, false);
+#else
     parser_ = domImplementation_->createDOMBuilder(
         DOMImplementationLS::MODE_SYNCHRONOUS, 0);
-
     parser_->setFeature(XMLUni::fgXercesSchema, true);
     parser_->setFeature(XMLUni::fgDOMValidation, true);
     parser_->setFeature(XMLUni::fgDOMNamespaces, true);
     parser_->setFeature(XMLUni::fgXercesSchemaFullChecking, true);
-
-    string fullPath = Environment::schemaDirPath(ADF_SCHEMA_FILE);
-    schema_ = Conversion::toXMLCh(fullPath);
     parser_->setProperty(
         XMLUni::fgXercesSchemaExternalNoNameSpaceSchemaLocation, schema_);
-
-    errHandler_ = new DOMBuilderErrorHandler();
     parser_->setErrorHandler(errHandler_);
-
     parser_->setFeature(XMLUni::fgDOMWhitespaceInElementContent, false);
     parser_->setFeature(XMLUni::fgDOMComments, false);
+#endif    
+
 }
 
 
