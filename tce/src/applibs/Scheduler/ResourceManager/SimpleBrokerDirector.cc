@@ -65,8 +65,8 @@ using namespace TTAProgram;
  */
 SimpleBrokerDirector::SimpleBrokerDirector(
     const TTAMachine::Machine& machine,
-    AssignmentPlan& plan):
-    BrokerDirector(machine, plan) {
+    AssignmentPlan& plan) :
+    BrokerDirector(machine, plan), busCount_(machine.busNavigator().count()) {
     knownMaxCycle_ = -1;
 }
 
@@ -98,6 +98,14 @@ SimpleBrokerDirector::canAssign(int cycle, MoveNode& node) const {
     if (node.isScheduled()) {
         return false;
     }
+
+    // fast way to reject some cases. Makes scheduling faster
+    // for bus-limited machines.
+    std::map<int,int>::const_iterator i = moveCounts_.find(cycle);
+    if (i != moveCounts_.end() && i->second >= busCount_) {
+        return false;
+    }
+
     // Store original resources of node
     OriginalResources oldRes(
         node.move().source().copy(),
@@ -222,7 +230,7 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
     if (knownMaxCycle_ < cycle) {
         knownMaxCycle_ = cycle;
     }
-
+    moveCounts_[cycle]++;
 }
 
 /**
@@ -247,6 +255,8 @@ SimpleBrokerDirector::unassign(MoveNode& node)
     }
 
     int nodeCycle = node.cycle();
+
+    moveCounts_[nodeCycle]--;
 
     plan_->resetAssignments(node);
 

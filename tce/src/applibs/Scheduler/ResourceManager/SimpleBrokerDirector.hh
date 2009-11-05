@@ -115,6 +115,9 @@ private:
     std::map<const MoveNode*, OriginalResources*, MoveNode::Comparator> 
     origResMap_;
     int knownMaxCycle_;
+    // how many moves in each cycle, for quick bus check fail.
+    std::map<int,int> moveCounts_;
+    int busCount_;
 };
 
 #endif
