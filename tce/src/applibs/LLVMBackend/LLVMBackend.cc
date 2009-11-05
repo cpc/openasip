@@ -280,7 +280,7 @@ LLVMBackend::compile(
      * the whole pom generation. 
      * (pass creation should be moved to TCETargetMachine)
 
-     * passes currently ran in addCommonCodeGenPasses (llvm 2.6)
+     * passes ran in addCommonCodeGenPasses (llvm 2.6)
      
      createLoopStrengthReducePass(getTargetLowering());
      createLowerInvokePass(getTargetLowering());
@@ -306,6 +306,8 @@ LLVMBackend::compile(
      createLowerMissingInstructionsPass(target) // emulation code
      createLinkBitcodePass(*emulationModule) // link emulation code
      createMachineDCE() // remove unneeded emulation code
+     // remove debug GlobalValues
+     createStripSymbolsPass(/*bool OnlyDebugInfo=*/true) 
      */
 
     CodeGenOpt::Level OptLevel = CodeGenOpt::Aggressive;
