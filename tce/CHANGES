@@ -9,6 +9,10 @@ New features
 - ttasim-tandem: a tool for comparing the two simulation engines
   to assist in tracking simulation bugs.
 
+Code optimizations
+------------------
+- Decreased scheduling time
+
 Bugfixes
 --------
 - Scheduler could fail on machines with different short immediate widths

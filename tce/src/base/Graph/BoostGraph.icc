@@ -137,12 +137,9 @@ template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::addNode(GraphNode& node)
     throw (ObjectAlreadyExists) {
-    if (hasNode(node)) {
-        string procName("BoostGraph::addNode");
-        string errorMsg("Node already belongs to this graph.");
-        throw ObjectAlreadyExists(__FILE__, __LINE__, procName, errorMsg);
-    }
-    boost::add_vertex(&node, graph_);
+
+    NodeDescriptor nd = boost::add_vertex(&node, graph_);
+    nodeDescriptors_[&node] = nd;
 
     // add node also to parent graph
     if (parentGraph_ != NULL) {
@@ -327,21 +324,11 @@ BoostGraph<GraphNode, GraphEdge>::inEdge(
     const int index) const
     throw (OutOfRange, InstanceNotFound) {
 
-    const string procName("BoostGraph::inEdge");
-
-    if (inDegree(node) <= index) {
-        boost::format errorMsg(
-            "Incoming edge at index %1% is out of range. The node "
-            "in-degree is %2%.");
-        errorMsg % index % inDegree(node);
-        throw OutOfRange(__FILE__, __LINE__, procName, errorMsg.str());
-    }
-
     std::pair<InEdgeIter, InEdgeIter> edges =
         boost::in_edges(descriptor(node), graph_);
     if (edges.first == edges.second) {
         string errorMsg("Node does not belong to this graph.");
-        throw InstanceNotFound(__FILE__, __LINE__, procName, errorMsg);
+        throw InstanceNotFound(__FILE__, __LINE__, __func__, errorMsg);
     }
 
     GraphEdge* result = NULL;
@@ -354,7 +341,13 @@ BoostGraph<GraphNode, GraphEdge>::inEdge(
             n++;
         }
     }
-    assert(result != NULL);
+    if (result == NULL) {
+        boost::format errorMsg(
+            "Incoming edge at index %1% is out of range. The node "
+            "in-degree is %2%.");
+        errorMsg % index % inDegree(node);
+        throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg.str());
+    }
 
     return *result;
 }
@@ -642,20 +635,20 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
     }
 
     if (hasEdge(nTail, nHead, e)) {
-        string procName("BoostGraph::addEdge");
         string errorMsg("Edge already belongs to this graph.");
-        throw ObjectAlreadyExists(__FILE__, __LINE__, procName, errorMsg);
+        throw ObjectAlreadyExists(__FILE__, __LINE__, __func__, errorMsg);
     }
 
     if (parentGraph_ == NULL && !creatingSG) {
         ownedEdges_.push_back(&e);
     }
 
-    boost::add_edge(descriptor(nTail), descriptor(nHead), &e, graph_);
+    edgeDescriptors_[&e] =
+        boost::add_edge(descriptor(nTail), descriptor(nHead), &e, graph_).
+        first;
 
     // If we have calculated path lenght data, keep it in sync.
     if (height_ != -1) {
-
         int eWeight = edgeWeight(e, nHead); 
         
         typename std::map<const GraphNode*,int,
@@ -675,10 +668,10 @@ BoostGraph<GraphNode, GraphEdge>::connectNodes(
         
         if( tailIter == sourceDistances_.end()) {
             sourceDistances_[&nTail] = 0;
-            calculateSourceDistance(nHead, eWeight );
+            calculateSourceDistances(&nHead, eWeight );
         } else {
-            calculateSourceDistance(
-                nHead, sourceDistances_[&nTail] + eWeight);
+            calculateSourceDistances(
+                &nHead, sourceDistances_[&nTail] + eWeight);
         }
     }
 
@@ -710,15 +703,22 @@ BoostGraph<GraphNode, GraphEdge>::disconnectNodes(
     const GraphNode& nHead) {
 
     while (hasEdge(nTail, nHead)) {
-        EdgeDescriptor e = connectingEdge(nTail, nHead);
-        GraphEdge* theEdge = graph_[e];
-        removeEdge(*theEdge);
+        EdgeDescriptor ed = connectingEdge(nTail, nHead);
+        GraphEdge* e = graph_[ed];
+        if (height_ != -1) {
+            int eWeight = edgeWeight(*e, nHead);
+            if (sourceDistances_[&nTail] + eWeight ==
+                sourceDistances_[&nHead] ||
+                sinkDistances_[&nHead] + eWeight ==
+                sinkDistances_[&nTail]) {
+                // removing a edge may invalidate path length data
+                height_ = -1;
+                sourceDistances_.clear();
+                sinkDistances_.clear();
+            }
+        }
+        removeEdge(*e, &nTail, &nHead);
     }
-
-    // removing a node invalidates path length data
-    height_ = -1;
-    sourceDistances_.clear();
-    sinkDistances_.clear();
 }
 
 /**
@@ -782,8 +782,8 @@ BoostGraph<GraphNode, GraphEdge>::moveInEdges(
             // if dest not in this graph, just remove
             if (hasNode(destination)) {
                 std::pair<EdgeDescriptor,bool> tmpPair = 
-                boost::add_edge(
-                    descriptor(tail), descriptor(head), &e, graph_);
+                    boost::add_edge(
+                        descriptor(tail), descriptor(head), &e, graph_);
                 edgeDescriptors_[&e] = tmpPair.first;
             }
         }
@@ -1017,81 +1017,7 @@ BoostGraph<GraphNode, GraphEdge>::removeNode(
     throw (InstanceNotFound) {
     
     if (hasNode(nodeToRemove)) {
-        NodeDescriptor nd = descriptor(nodeToRemove);
-        
-        // remove edge cache
-        clearDescriptorCache(inEdges(nodeToRemove));
-        clearDescriptorCache(outEdges(nodeToRemove));
-
-        // clear all edges.
-        boost::clear_vertex(nd, graph_);
-
-        // Move last node to place of deleted node, then delete last node.
-        GraphNode& lastNode = node(nodeCount()-1);
-        NodeDescriptor lnd = descriptor(lastNode);
-        if (&nodeToRemove != &lastNode) {
-            
-            // move in edges from last node to place of deleted node.
-            EdgeSet iEdges = inEdges(lastNode);
-            for (typename EdgeSet::iterator i = iEdges.begin(); 
-                 i != iEdges.end(); ++i) {
-                Edge& e = **i;
-                const GraphNode& tail = tailNode(e);
-                boost::remove_edge(descriptor(e), graph_);
-                
-                typename EdgeDescMap::iterator
-                    edIter = edgeDescriptors_.find(&e);
-                if (edIter != edgeDescriptors_.end()) {
-                    edgeDescriptors_.erase(edIter);
-                }
-                
-                std::pair<EdgeDescriptor,bool> tmpPair = 
-                    boost::add_edge(
-                        descriptor(tail), nd, &e, graph_);
-                edgeDescriptors_[&e] = tmpPair.first;
-            }
-            
-            // move out edges. from last node to place of deleted node.
-            EdgeSet oEdges = outEdges(lastNode);
-            for (typename EdgeSet::iterator i = oEdges.begin(); 
-                 i != oEdges.end(); ++i) {
-                Edge& e = **i;
-                const GraphNode& head = headNode(e);
-                boost::remove_edge(descriptor(e), graph_);
-                
-                typename EdgeDescMap::iterator
-                    edIter = edgeDescriptors_.find(&e);
-                if (edIter != edgeDescriptors_.end()) {
-                    edgeDescriptors_.erase(edIter);
-                }
-                
-                std::pair<EdgeDescriptor,bool> tmpPair = 
-                    boost::add_edge(
-                        nd, descriptor(head), &e, graph_);
-                edgeDescriptors_[&e] = tmpPair.first;
-            }
-
-            // then move the Node class.
-            graph_[nd] = &lastNode;
-
-            // update descriptor map.
-            nodeDescriptors_[&lastNode] = nd;
-        }
-
-        // remove just the last node.
-        boost::remove_vertex(lnd, graph_);
-
-        // remove node from descriptor cache
-        typename NodeDescMap::iterator ndi = 
-            nodeDescriptors_.find(&nodeToRemove);
-        if (ndi != nodeDescriptors_.end()) {
-            nodeDescriptors_.erase(ndi);
-        }
-
-        // removing a node invalidates path length data
-        height_ = -1;
-        sourceDistances_.clear();
-        sinkDistances_.clear();
+        replaceNodeWithLastNode(nodeToRemove);
 
         if (parentGraph_ != NULL && parentGraph_ != modifierGraph) {
             parentGraph_->removeNode(nodeToRemove, this);
@@ -1146,18 +1072,107 @@ BoostGraph<GraphNode, GraphEdge>::dropNode(GraphNode& node)
         return;
     }
 
-    // second, detach edges from node to delete
-    boost::clear_vertex(descriptor(node), graph_);
-
-    boost::remove_vertex(descriptor(node), graph_);
-    // edge descriptors are incalidated when vertex is removed.
-    edgeDescriptors_.clear();
-    nodeDescriptors_.clear();
+    replaceNodeWithLastNode(node);
 
     for (unsigned int i = 0; i < childGraphs_.size(); i++) {
         childGraphs_.at(i)->dropNode(node);
     }
+}
 
+/**
+ * Replaces a node with properties of the last node and then removes the
+ * last node from the graph. This is semantically equal to removing
+ * a node from the graph but runs much faster.
+ * Does not remove anything from subgraphs.
+ *
+ * @param dest node to be removed/replaced with last one.
+ */
+template <typename GraphNode, typename GraphEdge>
+void
+BoostGraph<GraphNode, GraphEdge>::replaceNodeWithLastNode(GraphNode& dest) {
+
+    NodeDescriptor nd = descriptor(dest);
+
+    // remove edge cache
+    clearDescriptorCache(inEdges(dest));
+    clearDescriptorCache(outEdges(dest));
+
+    // clear all edges. from to node to remove/drop.
+    boost::clear_vertex(nd, graph_);
+
+    // Move last node to place of deleted node, then delete last node.
+    GraphNode& lastNode = node(nodeCount()-1);
+
+    NodeDescriptor lnd = descriptor(lastNode);
+    if (&dest != &lastNode) {
+        // move in edges from last node to place of deleted node.
+        EdgeSet iEdges = inEdges(lastNode);
+        for (typename EdgeSet::iterator i = iEdges.begin();
+             i != iEdges.end(); ++i) {
+            Edge& e = **i;
+            const GraphNode& tail = tailNode(e);
+            // remove the edge pointing to old place of last node
+            boost::remove_edge(descriptor(e), graph_);
+
+            // clear descriptor cache for that edge
+            typename EdgeDescMap::iterator
+                edIter = edgeDescriptors_.find(&e);
+            if (edIter != edgeDescriptors_.end()) {
+                edgeDescriptors_.erase(edIter);
+            }
+
+            // add the edge back, pointing to the new place
+            // of the last node.
+            std::pair<EdgeDescriptor,bool> tmpPair =
+                boost::add_edge(
+                    descriptor(tail), nd, &e, graph_);
+            edgeDescriptors_[&e] = tmpPair.first;
+        }
+
+        // move out edges. from last node to place of deleted node.
+        EdgeSet oEdges = outEdges(lastNode);
+        for (typename EdgeSet::iterator i = oEdges.begin();
+             i != oEdges.end(); ++i) {
+            Edge& e = **i;
+            const GraphNode& head = headNode(e);
+            // remove the edge pointing to old place of last node
+            boost::remove_edge(descriptor(e), graph_);
+
+            // clear descriptor cache for that edge
+            typename EdgeDescMap::iterator
+                edIter = edgeDescriptors_.find(&e);
+            if (edIter != edgeDescriptors_.end()) {
+                edgeDescriptors_.erase(edIter);
+            }
+
+            // add the edge back, originating from the new place
+            // of the last node.
+            std::pair<EdgeDescriptor,bool> tmpPair =
+                boost::add_edge(
+                    nd, descriptor(head), &e, graph_);
+            edgeDescriptors_[&e] = tmpPair.first;
+        }
+
+        // then move the Node class.
+        graph_[nd] = &lastNode;
+
+        // update descriptor map.
+        nodeDescriptors_[&lastNode] = nd;
+    }
+
+    height_ = -1;
+    sourceDistances_.clear();
+    sinkDistances_.clear();
+
+    // remove just the last node.
+    boost::remove_vertex(lnd, graph_);
+
+    // remove node from descriptor cache
+    typename NodeDescMap::iterator ndi =
+        nodeDescriptors_.find(&dest);
+    if (ndi != nodeDescriptors_.end()) {
+        nodeDescriptors_.erase(ndi);
+    }
 }
 
 /**
@@ -1177,7 +1192,7 @@ template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::removeEdge(GraphEdge& e)
     throw (InstanceNotFound) {
-    removeEdge(e, NULL);
+    removeEdge(e, NULL, NULL, NULL);
 }
 
 /**
@@ -1222,9 +1237,10 @@ BoostGraph<GraphNode, GraphEdge>::dropEdge(GraphEdge& e)
 template <typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::removeEdge(
-    GraphEdge& e, BoostGraph* modifierGraph)
+    GraphEdge& e, const GraphNode* tailNode, const GraphNode* headNode, 
+    BoostGraph* modifierGraph)
     throw (InstanceNotFound) {
-    if (hasEdge(e)) {
+    if (hasEdge(e, tailNode, headNode)) {
         boost::remove_edge(descriptor(e), graph_);
 
         typename EdgeDescMap::iterator
@@ -1234,12 +1250,12 @@ BoostGraph<GraphNode, GraphEdge>::removeEdge(
         }
         
         if (parentGraph_ != NULL && parentGraph_ != modifierGraph) {
-            parentGraph_->removeEdge(e, this);
+            parentGraph_->removeEdge(e, tailNode, headNode, this);
         }
         
         for (unsigned int i = 0; i < childGraphs_.size(); i++) {
             if (childGraphs_.at(i) != modifierGraph ) {
-                childGraphs_.at(i)->removeEdge(e, this);
+                childGraphs_.at(i)->removeEdge(e, tailNode, headNode, this);
             }
         }    
     }
@@ -1428,12 +1444,44 @@ BoostGraph<GraphNode, GraphEdge>::hasEdge(
 template <typename GraphNode, typename GraphEdge>
 bool
 BoostGraph<GraphNode, GraphEdge>::hasEdge(
-    const GraphEdge& e) const {
+    const GraphEdge& e,
+    const GraphNode* nTail,
+    const GraphNode* nHead) const {
 
     if (AssocTools::containsKey(edgeDescriptors_,&e)) {
         return true;
     }
-        
+
+    // if we have tails, check if's out edges
+    if (nTail != NULL && hasNode(*nTail)) {
+        typedef std::pair<OutEdgeIter, OutEdgeIter> OutEdgeIterPair;
+
+        OutEdgeIterPair edges = boost::out_edges(descriptor(*nTail), graph_);
+
+        for (OutEdgeIter i = edges.first; i != edges.second; i++) {
+            if (graph_[*i] == &e) {
+                edgeDescriptors_[&e] = *i;
+                return true;
+            }
+        }
+        return false;
+    } else { // if we have head, check it's in edges.
+        if (nHead != NULL && hasNode(*nHead)) {
+            typedef std::pair<InEdgeIter, InEdgeIter> InEdgeIterPair;
+
+            InEdgeIterPair edges = boost::in_edges(descriptor(*nHead), graph_);
+
+            for (InEdgeIter i = edges.first; i != edges.second; i++) {
+                if (graph_[*i] == &e) {
+                    edgeDescriptors_[&e] = *i;
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    // we don't have head or tail, slowly go thru all edges.
     typedef std::pair<EdgeIter, EdgeIter> EdgeIterPair;
     EdgeIterPair edges = boost::edges(graph_);
 
@@ -1450,8 +1498,9 @@ template <typename GraphNode, typename GraphEdge>
 typename BoostGraph<GraphNode, GraphEdge>::EdgeDescriptor
 BoostGraph<GraphNode, GraphEdge>::descriptor(const GraphEdge& e) const {
 
-    if (AssocTools::containsKey(edgeDescriptors_,&e)) {
-        return edgeDescriptors_[&e];
+    typename EdgeDescMap::iterator cacheIter = edgeDescriptors_.find(&e);
+    if (cacheIter != edgeDescriptors_.end()) {
+        return cacheIter->second;
     }
 
     typedef std::pair<EdgeIter, EdgeIter> EdgeIterPair;
@@ -1472,6 +1521,11 @@ typename BoostGraph<GraphNode, GraphEdge>::EdgeDescriptor
 BoostGraph<GraphNode, GraphEdge>::edgeDescriptor(
     const GraphEdge& e, const NodeDescriptor& headNode) const {
 
+    typename EdgeDescMap::iterator cacheIter = edgeDescriptors_.find(&e);
+    if (cacheIter != edgeDescriptors_.end()) {
+        return cacheIter->second;
+    }
+
     typedef std::pair<InEdgeIter, InEdgeIter> EdgeIterPair;
     EdgeIterPair edges = boost::in_edges(headNode,graph_);
 
@@ -1489,11 +1543,17 @@ typename BoostGraph<GraphNode, GraphEdge>::EdgeDescriptor
 BoostGraph<GraphNode, GraphEdge>::edgeDescriptor(
     const NodeDescriptor& tailNode, const GraphEdge& e) const {
 
+    typename EdgeDescMap::iterator cacheIter = edgeDescriptors_.find(&e);
+    if (cacheIter != edgeDescriptors_.end()) {
+        return cacheIter->second;
+    }
+
     typedef std::pair<OutEdgeIter, OutEdgeIter> EdgeIterPair;
     EdgeIterPair edges = boost::out_edges(tailNode,graph_);
 
     for (OutEdgeIter i = edges.first; i != edges.second; i++) {
         if (graph_[*i] == &e) {
+            edgeDescriptors_[&e] = *i;
             return *i;
         }
     }
@@ -1505,8 +1565,9 @@ template <typename GraphNode, typename GraphEdge>
 typename BoostGraph<GraphNode, GraphEdge>::NodeDescriptor
 BoostGraph<GraphNode, GraphEdge>::descriptor(const GraphNode& n) const {
 
-    if (AssocTools::containsKey(nodeDescriptors_,&n)) {
-        return nodeDescriptors_[&n];
+    typename NodeDescMap::iterator cacheIter = nodeDescriptors_.find(&n);
+    if (cacheIter != nodeDescriptors_.end()) {
+        return cacheIter->second;
     }
 
     typedef std::pair<NodeIter, NodeIter> NodeIterPair;
@@ -1622,58 +1683,118 @@ template<typename GraphNode, typename GraphEdge>
 void
 BoostGraph<GraphNode, GraphEdge>::calculatePathLengths() const {
 
-    for (int i = 0; i < nodeCount(); i++ ) {
-        if (inDegree(node(i)) == 0) {
-            calculateSourceDistance(node(i),0);
-        }
-    }
+    calculateSourceDistances();
 
     // priority queue of all sink nodes.
     std::priority_queue<PathLengthHelper> sinkDistanceQueue;
     
     // insert all sink nodes to the pqueue
     for (int i = nodeCount() -1 ; i >= 0 ; i--) {
-        if (outDegree(node(i)) == 0) {
+
+        NodeDescriptor nd = descriptor(node(i));
+        if (boost::out_degree(nd, graph_) == 0) {
             sinkDistanceQueue.push(
-                PathLengthHelper(i, sourceDistances_[&node(i)]));
+                PathLengthHelper(nd, 0, sourceDistances_[&node(i)]));
         }
     }
 
     // and then start sink calculation from each of them.
     while (!sinkDistanceQueue.empty()) {
-        calculateSinkDistance(node(sinkDistanceQueue.top().index_),0);
+        calculateSinkDistance(*graph_[sinkDistanceQueue.top().nd_],0);
         sinkDistanceQueue.pop();
     }
 }
 
 /**
- * Recursively calculates path lenght from source nodes to sink nodes
- * Loops.
+ * Calculates source distances of nodes.
  *
- * @param node Node curently being processed
- * @param len Current lenght from source
+ * Iterative algorithm, starts from given node or all source nodes.
+ *
+ * Does a breadth-first search, prioritizating first nodes in thr graph.
+ *
+ * @param startingNode node whose successors's source dist to calculate,
+ * or NULL if start from all sources.
+ *
+ * @param startingLength source distance of the startingnode.
  */
 template<typename GraphNode, typename GraphEdge>
 void
-BoostGraph<GraphNode, GraphEdge>::calculateSourceDistance( 
-    const Node& node, int len ) const {
-    if (sourceDistances_.find(&node) == sourceDistances_.end() || 
-        sourceDistances_[&node] < len ) {
-        sourceDistances_[&node] = len;
+BoostGraph<GraphNode, GraphEdge>::calculateSourceDistances(
+    const GraphNode* startingNode, int startingLength) const {
 
-        if (len > height_) {
-            height_ = len;
+    // priority queue of nodes to be processed
+    typename std::map <NodeDescriptor, int> sourceDistanceQueue;
+
+    // first initialize starting nodes to the queue
+
+    // one starting ndoe?
+    if (startingNode != NULL) {
+        sourceDistances_[startingNode] = startingLength;
+        sourceDistanceQueue[descriptor(*startingNode)] = startingLength;
+    } else {
+        // insert all source nodes to the pqueue
+        for (int i = 0; i < nodeCount(); i++) {
+            NodeDescriptor nd = boost::vertex(i, graph_);
+            if (boost::in_degree(nd, graph_) == 0) {
+                sourceDistances_[graph_[nd]] = startingLength;
+                sourceDistanceQueue[nd] = startingLength;
+            }
         }
-        
-        NodeDescriptor nd = descriptor(node);
-        EdgeSet out = outEdges(node);
-        for (typename EdgeSet::iterator i = out.begin(); 
-             i != out.end(); i++) {
-            Edge* edge = *i;
-            Node& hNode = headNode(*edge,nd);
-            int eWeight = edgeWeight(*edge, hNode);
+    }
 
-            calculateSourceDistance( hNode, len + eWeight );
+    // and then start sink calculation from each of them.
+    while (!sourceDistanceQueue.empty()) {
+        typename std::map <NodeDescriptor, int>::iterator sdBegin =
+            sourceDistanceQueue.begin();
+
+        NodeDescriptor nd = sdBegin->first;
+        int len = sdBegin->second;
+        sourceDistanceQueue.erase(sdBegin);
+
+        // then test all successors..
+        std::pair <OutEdgeIter, OutEdgeIter> edges = boost::out_edges(
+            nd, graph_);
+        for (OutEdgeIter oi = edges.first; oi != edges.second; oi++) {
+            EdgeDescriptor ed = *oi;
+            GraphEdge *edge = graph_[ed];
+            NodeDescriptor headDesc = boost::target(ed, graph_);
+            Node* headNode = graph_[headDesc];
+            int eWeight = edgeWeight(*edge, *headNode);
+            int destLen = len + eWeight;
+
+             // find the place in the sourcedistances table
+            typename std::map<
+                const GraphNode*,int, typename GraphNode::Comparator>
+                ::iterator sdIter = sourceDistances_.find(headNode);
+
+            // if not yet there, add
+            if (sdIter == sourceDistances_.end()) {
+                sourceDistances_[headNode] = destLen;
+            } else {
+                // this is longer? replace with this
+                if (sdIter->second < destLen ) {
+                    sdIter->second = destLen;
+                } else {
+                    // we have already been here, with bigger path.
+                    // no need to check successors.
+                    continue;
+                }
+            }
+
+            // then may enqueue the successor for processing it.
+            typename std::map <NodeDescriptor, int>::iterator qiter =
+                sourceDistanceQueue.find(headDesc);
+            if (qiter == sourceDistanceQueue.end()) {
+                // not found from queue, add it there.
+                sourceDistanceQueue[headDesc] = destLen;
+            } else {
+                // already is in queue.
+                if (qiter->second < destLen) {
+                    // if this one has longer path, replace the queued
+                    // ath lenght with this path length.
+                    qiter->second = destLen;
+                }
+            }
         }
     }
 }
@@ -1686,38 +1807,77 @@ BoostGraph<GraphNode, GraphEdge>::calculateSourceDistance(
  */
 template<typename GraphNode, typename GraphEdge>
 void
-BoostGraph<GraphNode, GraphEdge>::calculateSinkDistance( 
-    const Node& node, int len ) const {
-    if (sinkDistances_.find(&node) == sinkDistances_.end() || 
-        sinkDistances_[&node] < len ) {
+BoostGraph<GraphNode, GraphEdge>::calculateSinkDistance(
+    const Node& node, int len) const {
+    if (len > 450000) {
+        GraphBase<GraphNode,GraphEdge>::writeToDotFile("not_dag.dot");
+        assert(false&&"cannot calc sink distance for graph which is not dag");
+    }
+
+    // find the place in the sourcedistances table
+    typename std::map<
+        const GraphNode*,int, typename GraphNode::Comparator>
+        ::iterator sdIter = sinkDistances_.find(&node);
+
+    // if not yet there, add
+    if (sdIter == sinkDistances_.end()) {
         sinkDistances_[&node] = len;
-        
-        if (len > height_) {
-            height_ = len;
+    } else {
+        // this is longer? replace with this
+        if (sdIter->second <= len ) {
+            sdIter->second = len;
+        } else {
+            // we have already been here, with bigger path.
+            // no need to check successors.
+            return;
         }
-        
-        // priority queue of predecessor nodes. recurse always
-        // to one with highest source distance
-        std::priority_queue<PathLengthHelper> predecessorQueue;
+    }
 
-        NodeDescriptor nd = descriptor(node);
-        // inEdge is expensive. but hopefully not too many incoming edges.
-        int ieCount = inDegree(node);
-        for (int i = 0; i < ieCount; i++) {
-            Edge& e = inEdge(node, i); 
-            Node& tail = tailNode(e, nd);
-            predecessorQueue.push(
-                PathLengthHelper(i, sourceDistances_[&tail]));
-        }
+    if (len > height_) {
+        height_ = len;
+    }
 
-        // all predecessors are in the queue, loop it thru in
-        // correct order.
-        while (!predecessorQueue.empty()) {
-            Edge& e = inEdge(node, predecessorQueue.top().index_);
-            int eWeight = edgeWeight(e, node);
-            predecessorQueue.pop();
-            calculateSinkDistance(tailNode(e,nd), len + eWeight);
+    // priority queue of predecessor nodes. recurse always
+    // to one with highest source distance
+    std::priority_queue<PathLengthHelper> predecessorQueue;
+    NodeDescriptor nd = descriptor(node);
+    std::pair <InEdgeIter, InEdgeIter> edges = boost::in_edges(nd, graph_);
+    for (InEdgeIter ii = edges.first; ii != edges.second; ii++) {
+        EdgeDescriptor ed = *ii;
+        Edge* edge = graph_[ed];
+
+        NodeDescriptor td = boost::source(*ii, graph_);
+        Node* tailNode = graph_[td];
+        int eWeight = edgeWeight(*edge, node);
+        int sdLen = len + eWeight;
+        
+        sdIter = sinkDistances_.find(tailNode);
+        // if not yet there, add
+        if (sdIter == sinkDistances_.end()) {
+            sinkDistances_[tailNode] = sdLen;
+        } else {
+            // this is longer? replace with this
+            if (sdIter->second < sdLen ) {
+                sdIter->second = sdLen;
+            } else {
+                // we have already been here, with bigger path.
+                // no need to check successors.
+                continue;
+            }
         }
+        predecessorQueue.push(
+            PathLengthHelper(
+                td, sdLen, sourceDistances_[tailNode]));
+    }
+
+    // all predecessors are in the queue, loop it thru in
+    // correct order.
+    while (!predecessorQueue.empty()) {
+
+        PathLengthHelper plh = predecessorQueue.top();
+        calculateSinkDistance(
+            *graph_[plh.nd_], plh.len_);
+        predecessorQueue.pop();
     }
 }
 
@@ -1855,4 +2015,6 @@ BoostGraph<GraphNode, GraphEdge>::PathLengthHelper::operator<(
 
 template <typename GraphNode, typename GraphEdge>
 BoostGraph<GraphNode, GraphEdge>::PathLengthHelper::PathLengthHelper(
-    int index, int sd) : index_(index), sd_(sd) {}
+    typename BoostGraph<GraphNode,GraphEdge>::NodeDescriptor nd,
+    int len, int sd) :
+    nd_(nd), len_(len), sd_(sd) {}
