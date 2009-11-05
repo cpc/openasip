@@ -49,7 +49,7 @@ public:
         throw (ComponentAlreadyExists, InvalidName);
     virtual ~PipelineElement();
 
-    std::string name() const;
+    const std::string& name() const;
     void setName(const std::string& name)
         throw (ComponentAlreadyExists, InvalidName);
     FunctionUnit* parentUnit() const;

@@ -581,13 +581,12 @@ FunctionUnit::hasPipelineElement(const std::string& name) const {
  * Returns the pipeline element which has the given name.
  *
  * @param name Name of the pipeline element.
- * @return The pipeline element which has the given name.
- * @exception InstanceNotFound If there is no pipeline element by the given
+ * @return The pipeline element which has the given name, or NULL
+ *         If there is no pipeline element by the given
  *                             name.
  */
 PipelineElement*
-FunctionUnit::pipelineElement(const std::string& name) const
-    throw (InstanceNotFound) {
+FunctionUnit::pipelineElement(const std::string& name) const {
 
     PipelineElementTable::const_iterator iter = pipelineElements_.begin();
     while (iter != pipelineElements_.end()) {
@@ -596,8 +595,7 @@ FunctionUnit::pipelineElement(const std::string& name) const
         }
         iter++;
     }
-    string procName = "FunctionUnit::pipelineElement";
-    throw InstanceNotFound(__FILE__, __LINE__, procName);
+    return NULL;
 }
 
 

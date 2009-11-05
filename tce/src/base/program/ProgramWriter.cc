@@ -942,14 +942,13 @@ ProgramWriter::createCodeSection(
     for (int i = 0; i < prog_.procedureCount(); i++) {
         Procedure &currProcedure = prog_.procedure(i);
 
-        Instruction *currInstr = &currProcedure.firstInstruction();
-        HalfWord immediateIndex = 0;
-
-        while (currInstr != &NullInstruction::instance()) {
+        for (int j = 0; j < currProcedure.instructionCount(); j++) {
+            Instruction &currInstr = currProcedure.instructionAtIndex(j);
+            HalfWord immediateIndex = 0;
             bool beginFlag = true;
 
-            for (int k = 0; k < currInstr->moveCount(); k++) {
-                Move& progMove = currInstr->move(k);
+            for (int k = 0; k < currInstr.moveCount(); k++) {
+                Move& progMove = currInstr.move(k);
                 MoveElement* tpefMove = new MoveElement();
 
                 tpefMove->setBegin(beginFlag);
@@ -1193,8 +1192,8 @@ ProgramWriter::createCodeSection(
             }
 
             // write long immediates
-            for (int k = 0; k < currInstr->immediateCount(); k++) {
-                Immediate& imm = currInstr->immediate(k);
+            for (int k = 0; k < currInstr.immediateCount(); k++) {
+                Immediate& imm = currInstr.immediate(k);
 
                 ImmediateElement* tpefImm = new ImmediateElement();
 
@@ -1237,16 +1236,14 @@ ProgramWriter::createCodeSection(
             }
 
             // add empty instruction (instruction containing one empty move)
-            if (currInstr->moveCount() == 0 &&
-                currInstr->immediateCount() == 0) {
+            if (currInstr.moveCount() == 0 &&
+                currInstr.immediateCount() == 0) {
 
                 MoveElement *tpefNOP = new MoveElement();
                 tpefNOP->setBegin(true);
                 tpefNOP->setEmpty(true);
                 code->addElement(tpefNOP);
             }
-
-            currInstr = &currProcedure.nextInstruction(*currInstr);
         }
     }
 }

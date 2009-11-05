@@ -103,8 +103,7 @@ public:
     virtual PipelineElement* pipelineElement(int index) const
         throw (OutOfRange);
     virtual bool hasPipelineElement(const std::string& name) const;
-    virtual PipelineElement* pipelineElement(const std::string& name) const
-        throw (InstanceNotFound);
+    virtual PipelineElement* pipelineElement(const std::string& name) const;
 
     virtual AddressSpace* addressSpace() const;
     virtual void setAddressSpace(AddressSpace* as)
