@@ -1333,11 +1333,7 @@ ExecutionPipeline::usedResources() const {
 PipelineElement*
 ExecutionPipeline::pipelineElement(const std::string& name) const {
     FunctionUnit* fu = parent_->parentUnit();
-    if (!fu->hasPipelineElement(name)) {
-        return NULL;
-    } else {
-        return fu->pipelineElement(name);
-    }
+    return fu->pipelineElement(name);
 }
 
 

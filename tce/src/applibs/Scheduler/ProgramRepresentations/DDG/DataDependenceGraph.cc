@@ -668,11 +668,14 @@ DataDependenceGraph::dotString() const {
           << std::endl;
     }
 
-    // edges
-    for (int i = 0, count = edgeCount(); i < count; ++i) {
-        Edge& e = edge(i);
-        Node& tail = tailNode(e);
-        Node& head = headNode(e);
+    // edges. optimized low-level routines.
+    typedef std::pair<EdgeIter, EdgeIter> EdgeIterPair;
+    EdgeIterPair edges = boost::edges(graph_);
+    for (EdgeIter i = edges.first; i != edges.second; i++) {
+        EdgeDescriptor ed = *i;
+        Edge& e = *graph_[ed];
+        Node& tail = *graph_[boost::source(ed, graph_)];
+        Node& head = *graph_[boost::target(ed, graph_)];
 
         s << "\tn" << tail.nodeID() 
           << " -> n" << head.nodeID() << "[" 

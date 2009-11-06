@@ -36,7 +36,7 @@ namespace TTAMachine {
  *
  * @return The name of the pipeline element.
  */
-inline std::string
+inline const std::string&
 PipelineElement::name() const {
     return name_;
 }

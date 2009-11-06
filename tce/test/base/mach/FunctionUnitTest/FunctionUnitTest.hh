@@ -239,7 +239,7 @@ FunctionUnitTest::testPipelineElementGetters() {
     TS_ASSERT(fu.pipelineElement(res1Name)->name() == res1Name);
     TS_ASSERT_THROWS(fu.pipelineElement(-1), OutOfRange);
     TS_ASSERT_THROWS(fu.pipelineElement(1), OutOfRange);
-    TS_ASSERT_THROWS(fu.pipelineElement("nonExisting"), InstanceNotFound);
+    TS_ASSERT(fu.pipelineElement("nonExisting") == NULL);
 }
 
 

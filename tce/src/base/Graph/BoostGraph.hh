@@ -232,7 +232,8 @@ protected:
         const Node& nHead,
         const Edge& edge) const;
     bool hasEdge(
-        const Edge& edge) const;
+        const Edge& edge, const Node* nTail = NULL, const Node* nHead = NULL) 
+        const;
     
     EdgeDescriptor connectingEdge(
         const Node& nTail,
@@ -247,11 +248,16 @@ protected:
     Node& headNode(const Edge& edge, const NodeDescriptor& tailNode) const
         throw (InstanceNotFound);
     
+    // fast node removal
+    void replaceNodeWithLastNode(GraphNode& dest);
+
     // internal implementation of path-length-related things.
     void calculatePathLengths() const;
-    void calculateSourceDistance(const GraphNode& node, int len) const;
     void calculateSinkDistance(const GraphNode& node, int len) const;
     
+    void calculateSourceDistances(
+        const GraphNode* startNode = NULL, int startingLength = 0) const;
+
     virtual int edgeWeight( GraphEdge& e, const GraphNode& n) const;
     
     // Calculated path lengths
@@ -285,7 +291,9 @@ protected:
 
     virtual void removeNode(Node& node, BoostGraph* modifierGraph)
         throw (InstanceNotFound);
-    virtual void removeEdge(Edge& e, BoostGraph* modifierGraph)
+    virtual void removeEdge(
+        Edge& e, const GraphNode* tailNode, 
+        const GraphNode* headNode, BoostGraph* modifierGraph = NULL)
         throw (InstanceNotFound);    
 
     virtual void connectNodes(
@@ -306,8 +314,10 @@ protected:
      * This class is used in the pririty queue, to select which node to
      * start sink distance calculations */
     struct PathLengthHelper {
-        inline PathLengthHelper(int index, int sd);
-        int index_;
+        inline PathLengthHelper(
+            NodeDescriptor nd, int len, int sd);
+        NodeDescriptor nd_;
+        int len_;
         int sd_;
         inline bool operator< (const PathLengthHelper& other) const;
     };
