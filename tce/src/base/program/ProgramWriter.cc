@@ -1015,9 +1015,8 @@ ProgramWriter::createCodeSection(
                             }
                         }
 
-                        unsigned int uvalue = progMove.source().value().unsignedValue();
-
-                        int location =  progMove.parent().address().location();
+                        unsigned int uvalue = 
+                            progMove.source().value().unsignedValue();
 
                         // check that inline immediate fits to bus's 
                         // inline immediate field
@@ -1044,6 +1043,8 @@ ProgramWriter::createCodeSection(
                                 MathTools::zeroExtendTo(wordToStore, fieldWidth);
                             
                         } else {
+                            int location =  
+                                progMove.parent().address().location();
                             throw NotAvailable(
                                 __FILE__, __LINE__, __func__, 
                                 "Inline immediate value "
