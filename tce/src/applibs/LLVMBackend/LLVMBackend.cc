@@ -307,7 +307,7 @@ LLVMBackend::compile(
      createLinkBitcodePass(*emulationModule) // link emulation code
      createMachineDCE() // remove unneeded emulation code
      // remove debug GlobalValues
-     createStripSymbolsPass(/*bool OnlyDebugInfo=*/true) 
+     createStripSymbolsPass(bool OnlyDebugInfo=true) 
      */
 
     CodeGenOpt::Level OptLevel = CodeGenOpt::Aggressive;
