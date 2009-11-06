@@ -99,12 +99,12 @@ TCETargetMachine::~TCETargetMachine() {
 }
 
 /**
- * InsertBranch caused some bad results.. so disable need for that.
+ * Branch folding pass does worse than normal, so currently disabled.
+ */
 bool 
 TCETargetMachine::getEnableTailMergeDefault() const { 
     return false; 
 }
- */
 
 void 
 TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {

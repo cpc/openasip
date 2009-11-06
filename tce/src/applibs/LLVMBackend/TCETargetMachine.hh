@@ -94,9 +94,8 @@ namespace llvm {
         virtual bool addInstSelector(PassManagerBase& pm, 
                                      CodeGenOpt::Level OptLevel);
         
-        /* enabled by default. requires InsertBranch in TCEInstrInfo
+        // we do not want branch folder pass
         virtual bool getEnableTailMergeDefault() const;
-        */
 
         std::string operationName(unsigned opc) {
             return plugin_->operationName(opc);
