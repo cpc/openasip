@@ -13,5 +13,5 @@ AM_CPPFLAGS = ${LLVM_CPPFLAGS}
 
 # gives automake warning, but is necessary to disable
 # compilation warnings from llvm headers...
-AM_CXXFLAGS = ${CXXFLAGS} -Wno-unused-parameter
-CXXFLAGS=""
+AM_CXXFLAGS = ${CXXFLAGS} 
+CXXFLAGS=-Wno-unused-parameter
