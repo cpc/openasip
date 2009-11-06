@@ -221,6 +221,9 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
 
     if (opc == TCE::STQBrb) return "stq";
     if (opc == TCE::STQBib) return "stq";
+//    if (opc == TCE::STQBri) return "stq";
+//    if (opc == TCE::STQBii) return "stq";
+
     if (opc == TCE::LDQBr) return "ldq";
     if (opc == TCE::LDQBi) return "ldq";
     if (opc == TCE::LDQUBr) return "ldqu";

@@ -308,22 +308,26 @@ include "GenInstrInfo.td"
 // boolean store and load
 def STQBrb : InstTCE<(outs), (ins MEMrr:$op1,I1Regs:$op2), "", [(truncstorei8 I1Regs:$op2, ADDRrr:$op1)]>;
 def STQBib : InstTCE<(outs), (ins MEMri:$op1,I1Regs:$op2), "", [(truncstorei8 I1Regs:$op2, ADDRri:$op1)]>;
-def LDQBr : InstTCE<(outs I1Regs:$op2), (ins MEMrr:$op1), "", [(set I1Regs:$op2, (sextloadi8 ADDRrr:$op1))]>;
-def LDQBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2, (sextloadi8 ADDRri:$op1))]>;
-def LDQUBr : InstTCE<(outs I1Regs:$op2), (ins MEMrr:$op1), "", [(set I1Regs:$op2, (zextloadi8 ADDRrr:$op1))]>;
-def LDQUBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2, (zextloadi8 ADDRri:$op1))]>;
+def : Pat<(store I1Regs:$src, ADDRrr:$addr), (STQBrb ADDRrr:$addr, I1Regs:$src)>;
+def : Pat<(store I1Regs:$src, ADDRri:$addr), (STQBib ADDRri:$addr, I1Regs:$src)>;
+def : Pat<(store (i1 imm:$src), ADDRrr:$addr), (STQBrb ADDRrr:$addr, imm:$src)>;
+def : Pat<(store (i1 imm:$src), ADDRri:$addr), (STQBib ADDRri:$addr, imm:$src)>;
 
-// float store and load in a way that validator likes them
+def LDQBr : InstTCE<(outs I1Regs:$op2), (ins MEMrr:$op1), "", [(set I1Regs:$op2, (sextloadi1 ADDRrr:$op1))]>;
+def LDQBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2, (sextloadi1 ADDRri:$op1))]>;
+def LDQUBr : InstTCE<(outs I1Regs:$op2), (ins MEMrr:$op1), "", [(set I1Regs:$op2, (zextloadi1 ADDRrr:$op1))]>;
+def LDQUBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2, (zextloadi1 ADDRri:$op1))]>;
+def : Pat<(i1 (load ADDRrr:$addr)), (LDQBr ADDRrr:$addr)>;
+def : Pat<(i1 (load ADDRri:$addr)), (LDQBi ADDRri:$addr)>;
+def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (MOVI1I32rr (LDQBr ADDRrr:$addr))>;
+def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (MOVI1I32rr (LDQBi ADDRri:$addr))>;
+
+
+// float store and load in a way that machine code validator likes them
 def STWFir : InstTCE<(outs), (ins MEMri:$op1, F32Regs:$op2), "", [(store F32Regs:$op2, ADDRri:$op1)]>;
 def STWFrr : InstTCE<(outs), (ins MEMrr:$op1, F32Regs:$op2), "", [(store F32Regs:$op2, ADDRrr:$op1)]>;
 def LDWFi : InstTCE<(outs F32Regs:$op2), (ins MEMri:$op1), "", [(set F32Regs:$op2, (load ADDRri:$op1))]>;
 def LDWFr : InstTCE<(outs F32Regs:$op2), (ins MEMrr:$op1), "", [(set F32Regs:$op2, (load ADDRrr:$op1))]>;
-
-// pattern for i1 immediate stores and loads
-def : Pat<(store (i1 imm:$src), ADDRri:$addr), (STQri ADDRrr:$addr, imm:$src)>;
-
-// no idea why this is needed for selecting load with immediate address...
-def : Pat<(i1 (load ADDRri:$addr)), (LDQBi ADDRri:$addr)>;
 
 // return address stack store/load
 def STWRArr : InstTCE<(outs), (ins MEMrr:$op1,RAReg:$op2), "", [(store RAReg:$op2, ADDRrr:$op1)]>;
