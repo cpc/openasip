@@ -15,6 +15,7 @@ Code optimizations
 
 Bugfixes
 --------
+- rand() might now return something else than 0
 - Scheduler could fail on machines with different short immediate widths
   and only some busses guarded.
 - Random scheduler failures when software bypassing.
