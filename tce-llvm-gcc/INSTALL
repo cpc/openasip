@@ -7,8 +7,8 @@ be compiled.
 
 0.1 Download llvm-gcc sources for your tce installation llvm.org.
 
-   LLVM 2.5 compatible llvm-gcc is found in 
-   http://llvm.org/releases/2.5/llvm-gcc-4.2-2.5.source.tar.gz 
+   LLVM 2.6 compatible llvm-gcc is found in 
+   http://llvm.org/releases/2.6/llvm-gcc-4.2-2.6.source.tar.gz
 
 0.2 Install Flex and Bison.
 
