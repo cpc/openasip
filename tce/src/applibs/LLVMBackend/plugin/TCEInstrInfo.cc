@@ -76,25 +76,46 @@ TCEInstrInfo:: ~TCEInstrInfo() {
  */
 bool
 TCEInstrInfo::isMoveInstr(
-    const MachineInstr& mi, 
-    unsigned& srcReg,
-    unsigned& dstReg) const {
+    const MachineInstr &MI, unsigned &SrcReg, unsigned &DstReg, 
+    unsigned &SrcSubIdx, unsigned &DstSubIdx) const {   
 
-    if (mi.getOpcode() == TCE::MOVI1rr ||
-        mi.getOpcode() == TCE::MOVI8rr ||
-        mi.getOpcode() == TCE::MOVI16rr ||
-        mi.getOpcode() == TCE::MOVI32rr ||
-        mi.getOpcode() == TCE::MOVI64rr ||
-        mi.getOpcode() == TCE::MOVF32rr ||
-        mi.getOpcode() == TCE::MOVF64rr) {
+    // No sub registers
+    SrcSubIdx = DstSubIdx = 0;
+    
+    if (MI.getOpcode() == TCE::MOVI1rr ||
+        MI.getOpcode() == TCE::MOVI8rr ||
+        MI.getOpcode() == TCE::MOVI16rr ||
+        MI.getOpcode() == TCE::MOVI32rr ||
+        MI.getOpcode() == TCE::MOVI64rr ||
 
-        assert(mi.getOperand(0).isReg());
-        assert(mi.getOperand(1).isReg());
+        MI.getOpcode() == TCE::MOVI8I1rr ||
+        MI.getOpcode() == TCE::MOVI16I1rr ||
+        MI.getOpcode() == TCE::MOVI32I1rr ||
+        MI.getOpcode() == TCE::MOVI64I1rr ||
 
-        dstReg = mi.getOperand(0).getReg();
-        srcReg = mi.getOperand(1).getReg();
+        MI.getOpcode() == TCE::MOVI16I8rr ||
+        MI.getOpcode() == TCE::MOVI32I8rr ||
+        MI.getOpcode() == TCE::MOVI64I8rr ||
+
+        MI.getOpcode() == TCE::MOVI32I16rr ||
+        MI.getOpcode() == TCE::MOVI64I16rr ||
+
+        MI.getOpcode() == TCE::MOVI64I32rr ||
+
+        MI.getOpcode() == TCE::MOVF32rr ||
+        MI.getOpcode() == TCE::MOVF64rr ||
+        MI.getOpcode() == TCE::MOVFI32rr ||
+        MI.getOpcode() == TCE::MOVIF32rr ||
+
+        MI.getOpcode() == TCE::MOVI1I32rr) {
+
+        assert(MI.getOperand(0).isReg());
+        assert(MI.getOperand(1).isReg());
+
+        DstReg = MI.getOperand(0).getReg();
+        SrcReg = MI.getOperand(1).getReg();
         return true;
-    }
+    }        
 
     return false;
 }
@@ -238,11 +259,11 @@ TCEInstrInfo::copyRegToReg(
     const TargetRegisterClass* srcRC) const {
 
     assert(srcRC == dstRC && "not yet implemented");
-    
+
     DebugLoc dl = DebugLoc::getUnknownLoc();
     if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
 
-    if (srcRC == TCE::I1RegsRegisterClass) {
+    if (srcRC == TCE::I1RegsRegisterClass) {        
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI1rr), destReg).addReg(srcReg);
     } else if (srcRC == TCE::I8RegsRegisterClass) {
         BuildMI(mbb, mbbi, dl, get(TCE::MOVI8rr), destReg).addReg(srcReg);

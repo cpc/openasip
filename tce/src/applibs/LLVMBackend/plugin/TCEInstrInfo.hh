@@ -38,6 +38,15 @@
 
 namespace llvm {
 
+    /** !! Important !! *************
+     * ON EVERY LLVM UPDATE CHECK THESE INTERFACES VERY CAREFULLY
+     * FROM include/llvm/TargetInstrInfo.h
+     *
+     * Compiler doesn warn or give error if parameter lists are changed.
+     * Many times also base class implementation works, but does not do
+     * very good job.
+     */
+
     class TCEInstrInfo : public TargetInstrInfoImpl {
 
     public:
@@ -47,11 +56,10 @@ namespace llvm {
         virtual const TargetRegisterInfo& getRegisterInfo() const { 
             return ri_; 
         }
-
-        virtual bool isMoveInstr(
-            const MachineInstr& mi, 
-            unsigned& srcReg,
-            unsigned& dstReg) const;
+        
+        virtual bool isMoveInstr (
+            const MachineInstr &MI, unsigned &SrcReg, unsigned &DstReg, 
+            unsigned &SrcSubIdx, unsigned &DstSubIdx) const;
 
         virtual unsigned isLoadFromStackSlot(
             const MachineInstr* mi, int& frameIndex) const;

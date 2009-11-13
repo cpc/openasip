@@ -85,10 +85,6 @@ using namespace llvm;
 
 #include <llvm/Assembly/PrintModulePass.h>
 
-Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach);
-Pass* createLinkBitcodePass(Module& inputCode);
-Pass* createMachineDCE();
-
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
@@ -198,7 +194,7 @@ static void printAndVerify(PassManagerBase &PM,
     if (printMF) {
         PM.add(createMachineFunctionPrinterPass(cerr));
     }
-//    PM.add(createMachineVerifierPass(allowDoubleDefs));
+    PM.add(createMachineVerifierPass(allowDoubleDefs));
 }
 
 
@@ -241,6 +237,7 @@ LLVMBackend::compile(
     //InitializeAllTargets();
     //InitializeAllAsmPrinters();
 
+    // Register target to llvm for using lookupTarget
     LLVMInitializeTCETargetInfo();
 
     // get registered target machine and set plugin.
@@ -266,150 +263,34 @@ LLVMBackend::compile(
         return NULL;
     }
 
-    // NOTE: maybe this should be done by passing info in 
-    //       featureString to TCETargetMachine or Subtarget
+    // This hack must be cleaned up before adding TCE target to llvm upstream
+    // these are needed by TCETargetMachine::addInstSelector passes
     targetMachine->setTargetMachinePlugin(plugin);
+    targetMachine->setTTAMach(&target);
+    targetMachine->setEmulationModule(emulationModule);
 
     /**
-     * If there is problems with pass constructions 
-     *
-     * check passes which must be generated  from llc.cpp and
-     * llvm/lib/CodeGen/LLVMTargetMachine.cpp
-     * 
-     * Ultimately would be nice that llc could be used to run
-     * the whole pom generation. 
-     * (pass creation should be moved to TCETargetMachine)
-
-     * passes ran in addCommonCodeGenPasses (llvm 2.6)
-     
-     createLoopStrengthReducePass(getTargetLowering());
-     createLowerInvokePass(getTargetLowering());
-     createGCLoweringPass();
-     createUnreachableBlockEliminationPass();
-     createCodeGenPreparePass(getTargetLowering());
-     createStackProtectorPass(getTargetLowering());
-     new MachineFunctionAnalysis(*this, OptLevel);
-     addInstSelector(PM, OptLevel); // overload in TargetMachine...
-     createMachineLICMPass();
-     createMachineSinkingPass()
-     addPreRegAlloc(PM, OptLevel); // overload in TargetMachine...
-     createRegisterAllocator()
-     createStackSlotColoringPass(false)
-     addPostRegAlloc(PM, OptLevel); // overload in TargetMachine...
-     createLowerSubregsPass();
-     createPrologEpilogCodeInserter();
-     createPostRAScheduler();
-     createBranchFoldingPass(getEnableTailMergeDefault());
-     createGCMachineCodeAnalysisPass();
-
-     * ------  TCE extra passes.. ------
-     createLowerMissingInstructionsPass(target) // emulation code
-     createLinkBitcodePass(*emulationModule) // link emulation code
-     createMachineDCE() // remove unneeded emulation code
-     // remove debug GlobalValues
-     createStripSymbolsPass(bool OnlyDebugInfo=true) 
-     */
-
-    CodeGenOpt::Level OptLevel = CodeGenOpt::Aggressive;
-
+     * This is quite straight copy how llc actually creates passes for target.
+     */       
+    CodeGenOpt::Level OptLevel = CodeGenOpt::Aggressive;    
+    ExistingModuleProvider provider(&module);    
+    llvm::PassManager Passes;
+    
     const TargetData *TD = targetMachine->getTargetData();
     assert(TD);
+    Passes.add(new TargetData(*TD));
+    ObjectCodeEmitter *OCE = 0;
 
-    ExistingModuleProvider provider(&module);
-    
-    llvm::PassManager pm1;
-    pm1.add(new TargetData(*TD));
+    targetMachine->addPassesToEmitFile(Passes, fouts(), TargetMachine::AssemblyFile, OptLevel);
+    targetMachine->addPassesToEmitFileFinish(Passes, OCE, OptLevel);
 
-    // lower floating point stuff..
-    pm1.add(createLowerMissingInstructionsPass(target));
-      
-
-    // Some passes from addCommonCodeGen
-    pm1.add(createLoopStrengthReducePass(targetMachine->getTargetLowering()));
-    pm1.add(createLowerInvokePass(targetMachine->getTargetLowering()));
-    pm1.add(createGCLoweringPass());
-    pm1.add(createUnreachableBlockEliminationPass());
-    pm1.add(createCodeGenPreparePass(targetMachine->getTargetLowering()));
-    pm1.add(createStackProtectorPass(targetMachine->getTargetLowering()));
-
-    // Some TCE specific passes
-
-    // this should use scan data to link in needed emulation functions.
-    // emulationModule object will be useless after this 
-    // (linker is not very gentle).
-    if (emulationModule != NULL) {
-        pm1.add(createLinkBitcodePass(*emulationModule));
-    }
-  
-      // to allow machine dead basic block elimination...
-    pm1.add(createInternalizePass(true));
-
-    // NOTE: This must be added before Machine function analysis pass..
-    // needed by POMBuilder to prevent writing debug data to data section
-    // might be good to disable when printing out machine function code...
-    pm1.add(createStripSymbolsPass(/*bool OnlyDebugInfo=*/true));
-
-    // More passes from addCommonCodeGen
-    pm1.add(new MachineFunctionAnalysis(*targetMachine, OptLevel));
-
-    targetMachine->addInstSelector(pm1, OptLevel);
-    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ false);
-
-    // Yet some more addCommonCodceGen passes
-    pm1.add(createMachineLICMPass());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
-
-    pm1.add(createMachineSinkingPass());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
-
-    targetMachine->addPreRegAlloc(pm1, OptLevel);
-    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ false);
-
-    pm1.add(createRegisterAllocator());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ false);
-
-    pm1.add(createStackSlotColoringPass(false));
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
-
-    targetMachine->addPostRegAlloc(pm1, OptLevel);
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
-
-    pm1.add(createLowerSubregsPass());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
-
-    pm1.add(createPrologEpilogCodeInserter());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true, /* printMF=*/ false);
-
-    // Following pass breaks something ... 
-    // and also causes invalid results.
-    // e.g.
-    //*** Bad machine code: Using an undefined physical register ***
-    //- function:    float32_sqrt
-    //- basic block: bb16 0xa1a1d8c (#18)
-    //- instruction: %I10<def> = SHLri %I8, 17 
-    //[dbg: newlib/libc/sys/tce/float_emulation.c,426,0]
-    //- operand 1:   %I8
-    //LLVM ERROR: Found 1 machine code errors.
-    //]  
-    //pm1.add(createPostRAScheduler());    
-    //printAndVerify(pm1, /* allowDoubleDefs= */ true);
-    
-    pm1.add(createBranchFoldingPass(
-                targetMachine->getEnableTailMergeDefault()));
-    
-    pm1.add(createGCMachineCodeAnalysisPass());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
-    
-    // and a pass from addPassesToEmitFile
-    pm1.add(createDebugLabelFoldingPass());
-    printAndVerify(pm1, /* allowDoubleDefs= */ true);
-
+    // TODO: This should be moved to emit file pass maybe
     LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
-    pm1.add(pomBuilder);
+    Passes.add(pomBuilder);
 
-    // run passes (runs automatically initializers and finalize). 
-    pm1.run(module);
+    Passes.run(module);
 
+    // get and write out pom
     TTAProgram::Program* prog = pomBuilder->result();
     assert(prog != NULL);
 
