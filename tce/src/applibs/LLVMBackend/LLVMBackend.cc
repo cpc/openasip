@@ -187,7 +187,7 @@ LLVMBackend::compile(
 
 /**
  * Ripped from LLVMTargetMachine.cpp
- */
+ 
 static void printAndVerify(PassManagerBase &PM,
                            bool allowDoubleDefs = false,
                            bool printMF = false) {
@@ -196,7 +196,7 @@ static void printAndVerify(PassManagerBase &PM,
     }
     PM.add(createMachineVerifierPass(allowDoubleDefs));
 }
-
+*/
 
 /**
  * Compiles given llvm program module for target machine using the given
@@ -222,7 +222,6 @@ LLVMBackend::compile(
 
     llvm::DebugFlag = debug;
     ipData_ = ipData;
-    bool fast = false;
     std::string targetStr = "tce-llvm";
     std::string errorStr;
 

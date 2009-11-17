@@ -12,7 +12,8 @@ New features
 
 Code optimizations
 ------------------
-- Decreased scheduling time
+- Decreased scheduling time for big programs. 
+  Unfortunately compiling time increased for small programs.
 
 Bugfixes
 --------
