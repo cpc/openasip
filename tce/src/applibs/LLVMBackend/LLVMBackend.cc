@@ -215,7 +215,7 @@ LLVMBackend::compile(
     llvm::Module* emulationModule,
     TCETargetMachinePlugin& plugin,
     TTAMachine::Machine& target,
-    int /* optLevel */,
+    int optLevel,
     bool debug,
     InterPassData* ipData)
     throw (Exception) {
@@ -271,7 +271,12 @@ LLVMBackend::compile(
     /**
      * This is quite straight copy how llc actually creates passes for target.
      */       
-    CodeGenOpt::Level OptLevel = CodeGenOpt::Aggressive;    
+
+    // if opt level is less than 2 we will not run extra optimization passes
+    // after linking emulation function code
+    CodeGenOpt::Level OptLevel = 
+        (optLevel < 2) ? (CodeGenOpt::None) : (CodeGenOpt::Aggressive);
+
     ExistingModuleProvider provider(&module);    
     llvm::PassManager Passes;
     

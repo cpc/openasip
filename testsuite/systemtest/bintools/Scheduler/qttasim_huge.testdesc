@@ -2,5 +2,5 @@
 // short test description
 $test_description="Short test cases with tcecc huge machine and running them with qttasim";
 $test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
-$bin_args = "-vrx -w 0.0 -q -a huge.adf ";
+$bin_args = "-vrx -w 0.0 -q -g -O3 -a huge.adf ";
 ?>

@@ -226,169 +226,26 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     verbose = options.verbose
 
-    if options.unroll_threshold > 0:
-        loop_unroll_switches = \
-            " -unroll-allow-partial -unroll-threshold=%d " % \
-            options.unroll_threshold
-        loop_unroll_pass = "-loop-unroll "
-    else:
-        loop_unroll_pass = " " 
-        loop_unroll_switches = " " 
+    # no inline 
+    default_opts = options.noinline and " -disable-inlining " or " "
 
-    if options.noinline:
-        inline = ""
-    else:
-        inline = "-inline "
+    # lets trust llvm team that they know which is the best
+    # optimization set for overall performance... since when separately
+    # adding own set we just end up tuning denbench / fft optimed switches
+    # (its practically impossible to know how switches effect on any other case)
+    default_opts += "-O3 "
 
-        
-    std_compile_opts = (" " +
-                        "-preverify " +
-                        "-domtree " +
-                        "-verify " +
-                        "-lowersetjmp " +
-                        "-raiseallocs " +
-                        "-simplifycfg " +
-                        "-domtree " +
-                        "-domfrontier " +
-                        "-mem2reg " +
-                        "-globalopt " +
-                        "-globaldce " +
-                        "-ipconstprop " +
-                        "-deadargelim " +
-                        "-instcombine " +
-                        "-simplifycfg " +
-                        "-basiccg " +
-                        "-prune-eh " +
-                        "-functionattrs " +
-                        inline +
-                        "-argpromotion " +
-                        "-simplify-libcalls " +
-                        "-instcombine " +
-                        "-jump-threading " +
-                        "-simplifycfg " +
-                        "-domtree " +
-                        "-domfrontier " +
-                        "-scalarrepl " +
-                        "-instcombine " +
-                        "-break-crit-edges " +
-                        "-condprop " +
-                        "-tailcallelim " +
-                        "-simplifycfg " +
-                        "-reassociate " +
-                        "-domtree " +
-                        "-loops " +
-                        "-loopsimplify " +
-                        "-domfrontier " +
-                        "-scalar-evolution " +
-                        "-lcssa " +
-                        "-loop-rotate " +
-                        "-licm " +
-                        "-lcssa " +
-                        "-loop-unswitch " +
-                        "-scalar-evolution " +
-                        "-lcssa " +
-                        "-loop-index-split " +
-                        "-instcombine " +
-                        "-scalar-evolution " +
-                        "-lcssa " +
-                        "-indvars " +
-                        "-scalar-evolution " +
-                        "-lcssa " +
-                        "-loop-deletion " +
-                        "-domfrontier " +
-                        "-lcssa " +
-                        loop_unroll_pass +
-                        "-instcombine " +
-                        "-memdep " +
-                        "-gvn " +
-                        "-memdep " +
-                        #"-memcpyopt " +
-                        "-sccp " +
-                        "-instcombine " +
-                        "-break-crit-edges " +
-                        "-condprop " +
-                        "-domtree " +
-                        "-memdep " +
-                        "-dse " +
-                        "-adce " +
-                        "-simplifycfg " +
-                        "-strip-dead-prototypes " +
-                        "-print-used-types " +
-                        "-deadtypeelim " +
-                        "-constmerge " +
-                        "-simplifycfg " +
-                        "-domtree " +
-                        "-domfrontier " +
-                        "-mem2reg " +
-                        "-instcombine " +
-                        "-simplifycfg " +
-                        "-basiccg " +
-                        inline +
-                        "-argpromotion " +
-                        "-simplify-libcalls " +
-                        "-instcombine " +
-                        "-jump-threading " +
-                        "-simplifycfg " +
-                        "-domtree " +
-                        "-domfrontier " +
-                        "-scalarrepl " +
-                        "-instcombine " +
-                        "-break" +
-                        "-crit" +
-                        "-edges " +
-                        "-condprop " +
-                        "-tailcallelim " +
-                        "-simplifycfg " +
-                        "-reassociate " +
-                        "-domtree " +
-                        "-loops " +
-                        "-loopsimplify " +
-                        "-domfrontier " +
-                        "-scalar-evolution " +
-                        "-lcssa " +
-                        "-loop-rotate " +
-                        "-licm " +
-                        "-lcssa " +
-                        "-loop-unswitch " +
-                        "-scalar-evolution " +
-                        "-lcssa " +
-                        "-loop-index" +
-                        "-split " +
-                        "-instcombine " +
-                        "-scalar-evolution " +
-                        "-lcssa " +
-                        "-indvars " +
-                        "-scalar-evolution " +
-                        "-lcssa " +
-                        "-loop-deletion " +
-                        "-domfrontier " +
-                        "-lcssa " +                       
-                        loop_unroll_pass +
-                        "-instcombine " +
-                        "-memdep " +
-                        "-gvn " +
-                        "-memdep " +
-                        #"-memcpyopt " +
-                        "-sccp " +
-                        "-instcombine " +
-                        "-break-crit-edges " +
-                        "-condprop " +
-                        "-domtree " +
-                        "-memdep " +
-                        "-dse " +
-                        "-adce " +
-                        "-simplifycfg " +
-                        "-domtree " +
-                        "-loops " +
-                        "-loopsimplify " +
-                        "-domfrontier " +
-                        "-scalar-evolution " +
-                        "-lcssa " +
-                        loop_unroll_pass +
-                        "-preverify " +
-                        "-verify " +
-                        loop_unroll_switches +
-                        " ")
+    # no need to run this, since intrinsics are lowered in isel...
+
+    # hower if it's run before some optimizations is might be still
+    # possible before isel in that case later optimization passes
+    # must be selected very carefully in TCETargetMachine::addPreISel()
+    
+    #lowerIntrinsicsPass = " -load=" + lowerintrinsicsplugin + " -lowerintrinsics "
+    #default_opts += lowerIntrinsicsPass
+
+    # unroll swithes and disabling (threshold 0 should work as disable in opt)
+    default_opts += "-unroll-allow-partial -unroll-threshold=%d " % options.unroll_threshold
        
     # -O0 optimization doesn't exists in opt
     optSwitches = ""
@@ -396,19 +253,16 @@ def optimizeBytecode(inFile, fileNamePrefix):
         options.sequential_schedule = True
 
     elif options.optimization_level == 1:
-        optSwitches = (std_compile_opts)
+        optSwitches = (default_opts + "-disable-internalize ") 
         
     elif options.optimization_level > 1:
-        optSwitches = (" -internalize " + std_compile_opts)
+        optSwitches = (" -internalize "+ default_opts)
     
     internalize_api_list = " -internalize-public-api-list=_start"
     if options.keep_symbols != "":
         internalize_api_list += "," + options.keep_symbols
-
+        
     optSwitches += internalize_api_list
-
-    if options.noinline:
-        optSwitches += " -disable-inlining"
 
     outputName = fileNamePrefix + "_optimized.bc"
         
@@ -741,10 +595,6 @@ else:
         cleanup(tempDir)
         sys.exit(0)
 
-    # lower memset intrinsics
-    # loweredList = lowerMemIntrinsics(linkList, options.verbose)
-    # linkedFileName = linkBytecode(loweredList, namePrefix, options.verbose)
-
     # convert -l switches to static library link commands.
     for i in options.libs:
         linkList.append(newlibprefix + "/lib%s.a" % i)
@@ -765,7 +615,7 @@ if options.adf_file != "":
     outFile = outputName
     seqFile = tempDir + "/" + os.path.basename(outFile) + ".seq"
 
-    # optimize and lower flaotingpoint
+    # optimize and lower floatingpoint
     emulationLinkedFileName = linkEmulationFuncs(optimizedFileName, namePrefix)
 
     if options.sequential_schedule or options.optimization_level == 0:

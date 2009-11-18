@@ -34,6 +34,7 @@
 #include "llvm/Target/TargetRegisterInfo.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/Target/TargetRegistry.h"
+#include "llvm/Support/StandardPasses.h"
 
 #include "TCETargetMachine.hh"
 #include "TCETargetAsmInfo.hh"
@@ -153,10 +154,8 @@ TCETargetMachine::addInstSelector(
  */                                     
 bool
 TCETargetMachine::addPreISel(
-    PassManagerBase& PM, CodeGenOpt::Level /* OptLevel */) {
+    PassManagerBase& PM, CodeGenOpt::Level OptLevel) {
     
-    std::cerr << "EXTRA PASSES WERE ADDED\n";
-
     // lower floating point stuff.. maybe could use plugin as param instead machine...    
     PM.add(createLowerMissingInstructionsPass(*ttaMach_));
 
@@ -164,9 +163,35 @@ TCETargetMachine::addPreISel(
         PM.add(createLinkBitcodePass(*emulationModule_));
     }
   
-    // to allow machine dead basic block elimination for emulation code
-    PM.add(createInternalizePass(true));
-
+    // if llvm-tce opt level is -O2 or -O3
+    if (OptLevel != CodeGenOpt::None) {
+        // get some pass lists from llvm/Support/StandardPasses.h from 
+        // createStandardLTOPasses function. (do not add memcpyopt or dce!)
+        PM.add(createInternalizePass(true));
+        
+        // TODO: find out which optimizations are beneficial here..
+        //PM.add(createIPSCCPPass());
+        //PM.add(createGlobalOptimizerPass());
+        //PM.add(createConstantMergePass());
+        //PM.add(createDeadArgEliminationPass());
+        //PM.add(createInstructionCombiningPass());
+        //PM.add(createFunctionInliningPass());
+        //PM.add(createPruneEHPass());   // Remove dead EH info.
+        //PM.add(createGlobalOptimizerPass());
+        //PM.add(createArgumentPromotionPass());
+        //PM.add(createInstructionCombiningPass());
+        //PM.add(createJumpThreadingPass());
+        //PM.add(createScalarReplAggregatesPass());
+        //PM.add(createFunctionAttrsPass()); // Add nocapture.
+        //PM.add(createGlobalsModRefPass()); // IP alias analysis.
+        //PM.add(createLICMPass());      // Hoist loop invariants.
+        //PM.add(createGVNPass());       // Remove redundancies.
+        //PM.add(createDeadStoreEliminationPass());
+        //PM.add(createInstructionCombiningPass());
+        //PM.add(createJumpThreadingPass());
+        // PM.add(createCFGSimplificationPass()); 
+    }
+    
     // NOTE: This must be added before Machine function analysis pass..
     // needed by POMBuilder to prevent writing debug data to data section
     // might be good to disable when printing out machine function code...
@@ -189,7 +214,7 @@ TCETargetMachine::createMachine() {
  * Returns list of llvm::ISD SelectionDAG opcodes for operations that are not
  * supported in the target architecture.
  *
- * The returned operations have to be expanded to emulation fucntion calls
+ * The returned operations have to be expanded to emulation function calls
  * or emulation patterns in TCETargetLowering.
  */
 const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >*
@@ -329,13 +354,13 @@ bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
   // Make sure that no unreachable blocks are instruction selected.
   PM.add(createUnreachableBlockEliminationPass());
 
+  if (addPreISel(PM, OptLevel))
+      return true;
+
   if (OptLevel != CodeGenOpt::None)
     PM.add(createCodeGenPreparePass(getTargetLowering()));
 
   PM.add(createStackProtectorPass(getTargetLowering()));
-
-  if (addPreISel(PM, OptLevel))
-      return true;
 
   if (PrintISelInput)
     PM.add(createPrintFunctionPass("\n\n"
