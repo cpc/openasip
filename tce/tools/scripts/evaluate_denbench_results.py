@@ -14,7 +14,7 @@ then weight is a bit bigger.
 author Mikael Lepistö 2009
 """
 
-compare_version = "tce-1.1 r"
+compare_version = "tce-1.1 rev 532"
 normalize_cycles_and_weight = dict(aes=(3261322550, 1.0),
                                    cjpegv2data1=(18142671, 0.6),
                                    djpegv2data1=(25810024, 0.6),
