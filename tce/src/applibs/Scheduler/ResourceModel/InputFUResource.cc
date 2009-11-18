@@ -47,7 +47,8 @@ using TTAMachine::Port;
  *
  * @param name Name of resource
  */
-InputFUResource::InputFUResource(const std::string& name) : FUResource(name) {
+InputFUResource::InputFUResource(const std::string& name, int opCount) : 
+    FUResource(name, opCount) {
 }
 
 /**

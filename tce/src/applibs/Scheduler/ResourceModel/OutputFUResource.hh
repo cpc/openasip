@@ -48,7 +48,7 @@
 class OutputFUResource : public FUResource {
 public:
     virtual ~OutputFUResource();
-    OutputFUResource(const std::string& name);
+    OutputFUResource(const std::string& name, int opCount);
 
     virtual bool canAssign(const int cycle, const MoveNode& node) const;
     virtual bool canAssign(

@@ -45,8 +45,8 @@ using TTAMachine::Port;
  * Constructor with resource name
  * @param name Name of resource
  */
-OutputFUResource::OutputFUResource(const std::string& name) :
-    FUResource(name) {}
+OutputFUResource::OutputFUResource(const std::string& name, int opCount) :
+    FUResource(name, opCount) {}
 
 /**
  * Empty destructor

@@ -48,6 +48,7 @@
 #include "MoveNode.hh"
 #include "MachineConnectivityCheck.hh"
 #include "SequenceTools.hh"
+#include "TemplateSlot.hh"
 
 using std::string;
 using std::set;
@@ -510,10 +511,30 @@ void
 BusBroker::buildResources(const TTAMachine::Machine& target) {
 
     Machine::BusNavigator navi = target.busNavigator();
+    Machine::InstructionTemplateNavigator itn = 
+        target.instructionTemplateNavigator();
+
+    std::map<const Bus*,int> limmSlotCounts;
+    
+    // calculate count of limm slots associated with each bus.
+    // used to priorize busses which do not get into way of limm writes.
+    for (int i = 0; i < itn.count(); i++) {
+        InstructionTemplate* it = itn.item(i);
+        for (int j = 0; j < it->slotCount(); j++) {
+            TemplateSlot* itSlot = it->slot(j);
+            if (itSlot->destination() != NULL) {
+                limmSlotCounts[itSlot->bus()]++; 
+            }
+        }
+    }
 
     for (int i = 0; i < navi.count(); i++) {
         Bus* bus = navi.item(i);
-        BusResource* busResource = new BusResource(bus->name(), bus->width());
+        assert(bus->segmentCount() == 1);
+        int socketCount = bus->segment(0)->connectionCount();
+        BusResource* busResource = new BusResource(
+            bus->name(), bus->width(),limmSlotCounts[bus], bus->guardCount(),
+            bus->immediateWidth(), socketCount);
         ResourceBroker::addResource(*bus, busResource);
     }
 }

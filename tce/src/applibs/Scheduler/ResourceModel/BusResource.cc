@@ -42,9 +42,15 @@
  * Constructor
  * Creates new resource with defined name
  * @param name Name of resource
+ * @param width short immediate width of the bus
+ * @param limmSlotCount how many itemplates use this bus in limm field
  */
-BusResource::BusResource(const std::string& name, int width) : 
-    SchedulingResource(name), busWidth_(width) {    
+BusResource::BusResource(
+    const std::string& name, int width, int limmSlotCount, int guardCount,
+    int immSize, int socketCount) : 
+    SchedulingResource(name), busWidth_(width), 
+    limmSlotCount_(limmSlotCount), guardCount_(guardCount), 
+    immSize_(immSize), socketCount_(socketCount) {
 }
 
 /**
@@ -188,10 +194,10 @@ BusResource::isAvailable(
 
     for (int i = 0; i < dependentResourceGroupCount(); i++) {
         for (int j = 0, count = dependentResourceCount(i); j < count; j++) {
-            if (dependentResource(i, j).hasRelatedResource(inputPSocket)) {
-                SegmentResource* start = NULL;
-                start =
-                    dynamic_cast<SegmentResource*>(&dependentResource(i, j));
+            SchedulingResource& depRes = dependentResource(i,j);
+            if (depRes.hasRelatedResource(inputPSocket)) {
+                SegmentResource* start = 
+                    static_cast<SegmentResource*>(&depRes);
                 if (!start->isAvailable(cycle)) {
                     return false;
                 }
@@ -207,15 +213,14 @@ BusResource::isAvailable(
                     }
                     // get next destination - terrible semantics
                     destination =
-                        dynamic_cast<SegmentResource*>
+                        static_cast<SegmentResource*>
                             (&destination->dependentResource(1, 0));
                 }
                 return true;
             }
-            if (dependentResource(i, j).hasRelatedResource(outputPSocket)) {
-                SegmentResource* start = NULL;
-                start = dynamic_cast<SegmentResource*>
-                    (&dependentResource(i, j));
+            if (depRes.hasRelatedResource(outputPSocket)) {
+                SegmentResource* start = 
+                    static_cast<SegmentResource*>(&depRes);
                 if (!start->isAvailable(cycle)) {
                     return false;
                 }
@@ -230,7 +235,7 @@ BusResource::isAvailable(
                         return false;
                     }
                     // get next source - terrible semantics
-                    source = dynamic_cast<SegmentResource*>
+                    source = static_cast<SegmentResource*>
                         (&source->dependentResource(0, 0));
                 }
                 return true;
@@ -549,4 +554,55 @@ BusResource::validateRelatedGroups() {
         }
     }
     return true;
+}
+
+/**
+ * Comparison operator.
+ * 
+ * Favours busses which have less limm slots associated to then in
+ * instruction templates, ie. busses which do not get into way of
+ * limm writes.
+ */
+bool 
+BusResource::operator< (const SchedulingResource& other) const {
+    const BusResource *busr = dynamic_cast<const BusResource*>(&other);
+    if (busr == NULL) {
+        return false;
+    }
+
+    // first priority are limm slots.
+    if (limmSlotCount_ < busr->limmSlotCount_) {
+        return true;
+    } 
+    if (limmSlotCount_ > busr->limmSlotCount_) {
+        return false;
+    }
+
+    // then try to use busses without guards, if possible.
+    if (guardCount_ < busr->guardCount_) {
+        return true;
+    }
+    if (guardCount_ > busr->guardCount_) {
+        return false;
+    }
+
+    // then favour busses with less sockets.
+    if (socketCount_ < busr->socketCount_) {
+        return true;
+    }
+    if (socketCount_ > busr->socketCount_) {
+        return false;
+    }
+
+    // then favour busses with smallest immediate.
+    if (immSize_ < busr->immSize_) {
+        return true;
+    }
+    if (immSize_ > busr->immSize_) {
+        return false;
+    }
+
+    // then use the default use count, name comparison,
+    // but in opposite direction, facouring already used 
+    return other.SchedulingResource::operator<(*this);
 }

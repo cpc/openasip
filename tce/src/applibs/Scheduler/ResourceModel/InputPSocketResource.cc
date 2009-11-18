@@ -86,3 +86,54 @@ InputPSocketResource::validateRelatedGroups() {
     }
     return true;
 }
+
+/**
+ * Comparison operator.
+ * 
+ * Favours sockets which have less connections.
+ */
+bool 
+InputPSocketResource::operator< (const SchedulingResource& other) const {
+    const InputPSocketResource *ipsr = 
+        dynamic_cast<const InputPSocketResource*>(&other);
+    if (ipsr == NULL) {
+        return false;
+    }
+    
+    // favour sockets which have connections to busses with fewest connections
+    // calculate the connections..
+    int connCount = 0;
+    int connCount2 = 0;
+
+    for (int i = 0; i < relatedResourceCount(1); i++) {
+        SchedulingResource& r = relatedResource(1,i);
+        connCount += r.relatedResourceCount(0);
+    }
+
+    for (int i = 0; i < other.relatedResourceCount(1); i++) {
+        SchedulingResource& r = other.relatedResource(1,i);
+        connCount2 += r.relatedResourceCount(0);
+    }
+    
+    // then the comparison.
+    if (connCount < connCount2) {
+        return true;
+    }
+
+    if (connCount > connCount2) {
+        return false;
+    }
+
+
+    // favour sockets with less buses.
+    if (relatedResourceCount(1) < ipsr->relatedResourceCount(1)) {
+        return true;
+    }
+    if (relatedResourceCount(1) > ipsr->relatedResourceCount(1)) {
+        return false;
+    }
+
+    // then use the default use count, name comparison,
+    // but in opposite direction, facouring already used 
+    return other.SchedulingResource::operator<(*this);
+}

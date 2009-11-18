@@ -51,6 +51,7 @@ public:
 
     virtual bool isInputPSocketResource() const;
 
+    virtual bool operator < (const SchedulingResource& other) const;
 protected:
     virtual bool validateDependentGroups() ;
     virtual bool validateRelatedGroups() ;

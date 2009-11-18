@@ -190,10 +190,10 @@ RegisterCopyAdderPassTest::testPass() {
                         disassembly.find("i1.0 -> float1.15") == 
                         std::string::npos);
                     TS_ASSERT(
-                        disassembly.find("i1.0 -> fu15.o0") != 
+                        disassembly.find("i1.0 -> fu16.o0") != 
                         std::string::npos);
                     TS_ASSERT(
-                        disassembly.find("i1.0 -> fu15.trigger.add") !=
+                        disassembly.find("i1.0 -> fu16.trigger.add") !=
                         std::string::npos);
                 }
             } catch (const Exception& e) {

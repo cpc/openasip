@@ -48,7 +48,7 @@
 class InputFUResource : public FUResource {
 public:
     virtual ~InputFUResource();
-    InputFUResource(const std::string& name);
+    InputFUResource(const std::string& name, int opCount);
 
     virtual bool canAssign(const int cycle, const MoveNode& node) const;
     virtual void assign(const int cycle, MoveNode& node)
