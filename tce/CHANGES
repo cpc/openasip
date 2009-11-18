@@ -3,6 +3,7 @@
 
 New features
 ------------
+- Support for LLVM 2.6 (dropped support for LLVM 2.5)
 - Sign extension operations are not required anymore.
 - Program Image Generator supports MIF-format (Memory
   Initialization File) used by Altera.
@@ -11,10 +12,12 @@ New features
 
 Code optimizations
 ------------------
-- Decreased scheduling time
+- Decreased scheduling time for big programs. 
+  Unfortunately compiling time increased for small programs.
 
 Bugfixes
 --------
+- rand() might now return something else than 0
 - Scheduler could fail on machines with different short immediate widths
   and only some busses guarded.
 - Random scheduler failures when software bypassing.
@@ -28,8 +31,8 @@ Bugfixes
 - Having not operation on the machine caused incorrectly compiled programs.
 - Better error handling for stale .opb files.
 - Boost should not warn anymore about deprecated hash_set with gcc 4.3.
-- Having lots of parallelism and easily analyzable memory addresses could cause
-  incorrectly compiled programs.
+- Having lots of parallelism and easily analyzable memory addresses could
+  cause incorrectly compiled programs.
 - Simulator on quick mode could fail if some result is never read.
 - Simulator could fail to load some programs.
 - Memory leak fixes.

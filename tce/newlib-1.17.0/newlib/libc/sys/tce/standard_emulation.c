@@ -130,6 +130,297 @@ __mulsi3(uint32 a, uint32 b) {
     return res;
 }
 
+/////////////////////////////////////////////////
+//
+// add memcpy, memset and memmove functions back 
+// if they were optimized out by accident
+//
+/////////////////////////////////////////
+
+/* Part of the ht://Dig package   <http://www.htdig.org/> */
+/* Copyright (c) 1999-2004 The ht://Dig Group */
+/* For copyright details, see the file COPYING in your distribution */
+/* or the GNU Library General Public License (LGPL) version 2 or later */
+/* <http://www.gnu.org/copyleft/lgpl.html> */
+
+/*-
+ * See the file LICENSE for redistribution information.
+ *
+ * Copyright (c) 1996, 1997, 1998, 1999
+ *	Sleepycat Software.  All rights reserved.
+ */
+/*
+ * Copyright (c) 1990, 1993
+ *	The Regents of the University of California.  All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ */
+
+#include <string.h>
+
+/*
+ * sizeof(word) MUST BE A POWER OF TWO
+ * SO THAT wmask BELOW IS ALL ONES
+ */
+typedef	int word;		/* "word" used for optimal copy speed */
+
+#undef	wsize
+#define	wsize	sizeof(word)
+#undef	wmask
+#define	wmask	(wsize - 1)
+
+/*
+ * Copy a block of memory, handling overlap.
+ * This is the routine that actually implements
+ * (the portable versions of) bcopy, memcpy, and memmove.
+ */
+
+/*
+ * PUBLIC: #ifndef HAVE_MEMCPY
+ * PUBLIC: void *memcpy __P((void *, const void *, size_t));
+ * PUBLIC: #endif
+ */
+void *
+memcpy(dst0, src0, length)
+	void *dst0;
+	const void *src0;
+	register size_t length;
+{
+	register char *dst = dst0;
+	register const char *src = src0;
+	register size_t t;
+
+	if (length == 0 || dst == src)		/* nothing to do */
+        return (dst0);
+
+	/*
+	 * Macros: loop-t-times; and loop-t-times, t>0
+	 */
+#undef	TLOOP
+#define	TLOOP(s) if (t) TLOOP1(s)
+#undef	TLOOP1
+#define	TLOOP1(s) do { s; } while (--t)
+
+	if ((unsigned long)dst < (unsigned long)src) {
+		/*
+		 * Copy forward.
+		 */
+		t = (int)src;	/* only need low bits */
+		if ((t | (int)dst) & wmask) {
+			/*
+			 * Try to align operands.  This cannot be done
+			 * unless the low bits match.
+			 */
+			if ((t ^ (int)dst) & wmask || length < wsize)
+				t = length;
+			else
+				t = wsize - (t & wmask);
+			length -= t;
+			TLOOP1(*dst++ = *src++);
+		}
+		/*
+		 * Copy whole words, then mop up any trailing bytes.
+		 */
+		t = length / wsize;
+		TLOOP(*(word *)dst = *(word *)src; src += wsize; dst += wsize);
+		t = length & wmask;
+		TLOOP(*dst++ = *src++);
+	} else {
+		/*
+		 * Copy backwards.  Otherwise essentially the same.
+		 * Alignment works as before, except that it takes
+		 * (t&wmask) bytes to align, not wsize-(t&wmask).
+		 */
+		src += length;
+		dst += length;
+		t = (int)src;
+		if ((t | (int)dst) & wmask) {
+			if ((t ^ (int)dst) & wmask || length <= wsize)
+				t = length;
+			else
+				t &= wmask;
+			length -= t;
+			TLOOP1(*--dst = *--src);
+		}
+		t = length / wsize;
+		TLOOP(src -= wsize; dst -= wsize; *(word *)dst = *(word *)src);
+		t = length & wmask;
+		TLOOP(*--dst = *--src);
+	}
+
+	return (dst0);
+}
+
+/*
+ * sizeof(word) MUST BE A POWER OF TWO
+ * SO THAT wmask BELOW IS ALL ONES
+ */
+
+/*
+ * Copy a block of memory, handling overlap.
+ * This is the routine that actually implements
+ * (the portable versions of) bcopy, memcpy, and memmove.
+ */
+/*
+ * PUBLIC: #ifndef HAVE_MEMMOVE
+ * PUBLIC: void *memmove __P((void *, const void *, size_t));
+ * PUBLIC: #endif
+ */
+void *
+memmove(dst0, src0, length)
+	void *dst0;
+	const void *src0;
+	register size_t length;
+{
+	register char *dst = dst0;
+	register const char *src = src0;
+	register size_t t;
+
+	if (length == 0 || dst == src)		/* nothing to do */
+        return (dst0);
+
+	/*
+	 * Macros: loop-t-times; and loop-t-times, t>0
+	 */
+#undef	TLOOP
+#define	TLOOP(s) if (t) TLOOP1(s)
+#undef	TLOOP1
+#define	TLOOP1(s) do { s; } while (--t)
+
+	if ((unsigned long)dst < (unsigned long)src) {
+		/*
+		 * Copy forward.
+		 */
+		t = (int)src;	/* only need low bits */
+		if ((t | (int)dst) & wmask) {
+			/*
+			 * Try to align operands.  This cannot be done
+			 * unless the low bits match.
+			 */
+			if ((t ^ (int)dst) & wmask || length < wsize)
+				t = length;
+			else
+				t = wsize - (t & wmask);
+			length -= t;
+			TLOOP1(*dst++ = *src++);
+		}
+		/*
+		 * Copy whole words, then mop up any trailing bytes.
+		 */
+		t = length / wsize;
+		TLOOP(*(word *)dst = *(word *)src; src += wsize; dst += wsize);
+		t = length & wmask;
+		TLOOP(*dst++ = *src++);
+	} else {
+		/*
+		 * Copy backwards.  Otherwise essentially the same.
+		 * Alignment works as before, except that it takes
+		 * (t&wmask) bytes to align, not wsize-(t&wmask).
+		 */
+		src += length;
+		dst += length;
+		t = (int)src;
+		if ((t | (int)dst) & wmask) {
+			if ((t ^ (int)dst) & wmask || length <= wsize)
+				t = length;
+			else
+				t &= wmask;
+			length -= t;
+			TLOOP1(*--dst = *--src);
+		}
+		t = length / wsize;
+		TLOOP(src -= wsize; dst -= wsize; *(word *)dst = *(word *)src);
+		t = length & wmask;
+		TLOOP(*--dst = *--src);
+	}
+
+	return (dst0);
+}
+
+/** 
+ * This is from newlib...
+ */
+
+#define LBLOCKSIZE (sizeof(long))
+#define UNALIGNED(X)   ((long)X & (LBLOCKSIZE - 1))
+#define TOO_SMALL(LEN) ((LEN) < LBLOCKSIZE)
+
+void *
+memset(m, c, n)
+	void *m;
+	int c;
+	size_t n;
+{
+    char *s = (char *) m;
+    
+    int i;
+    unsigned long buffer;
+    unsigned long *aligned_addr;
+    unsigned int d = c & 0xff;	/* To avoid sign extension, copy C to an
+                                   unsigned variable.  */
+
+    while (UNALIGNED (s))
+    {
+        if (n--)
+            *s++ = (char) c;
+        else
+            return m;
+    }
+    
+    if (!TOO_SMALL (n))
+    {
+        /* If we get this far, we know that n is large and s is word-aligned. */
+        aligned_addr = (unsigned long *) s;
+        
+        /* Store D into each char sized location in BUFFER so that
+           we can set large blocks quickly.  */
+        buffer = (d << 8) | d;
+        buffer |= (buffer << 16);
+        for (i = 32; i < LBLOCKSIZE * 8; i <<= 1)
+            buffer = (buffer << i) | buffer;
+        
+        /* Unroll the loop.  */
+        while (n >= LBLOCKSIZE*4)
+        {
+            *aligned_addr++ = buffer;
+            *aligned_addr++ = buffer;
+            *aligned_addr++ = buffer;
+            *aligned_addr++ = buffer;
+            n -= 4*LBLOCKSIZE;
+        }
+        
+        while (n >= LBLOCKSIZE)
+        {
+            *aligned_addr++ = buffer;
+            n -= LBLOCKSIZE;
+        }
+        /* Pick up the remainder with a bytewise loop.  */
+        s = (char*)aligned_addr;
+    }
+}
+
 /**************************************************************************
  **
  ** Disabled 64bit support functions.
@@ -366,8 +657,6 @@ int64_t _emulate_i64_mul_i64_i64(int64_t p1, int64_t p2) {
 
     return ret.val;
 }
-
-
 
 #endif
 

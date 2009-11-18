@@ -68,6 +68,20 @@ namespace llvm {
 
         virtual void setTargetMachinePlugin(TCETargetMachinePlugin& plugin);
 
+        /**
+         * These two parameter passing should be rethought... maybe TTAMach can be avoided
+         * by changing pass to use plugin_ instead.
+         */
+        Module* emulationModule_;
+        virtual void setEmulationModule(Module* mod) {
+            emulationModule_ = mod;
+        }
+
+        TTAMachine::Machine* ttaMach_;
+        virtual void setTTAMach(TTAMachine::Machine* mach) {
+            ttaMach_ = mach;
+        }
+
         virtual const TargetSubtarget* getSubtargetImpl() const {
             return &Subtarget; }
 
@@ -90,8 +104,26 @@ namespace llvm {
         virtual TargetLowering* getTargetLowering() const { 
             return plugin_->getTargetLowering();
         }
+                
+        /// llvm-2.6 does not have hook for adding target dependent
+        // preisel llvm level passes so we override the whole methods
+        // we had to actually override also addPassesToEmitFile
+        // because addCommonCodeGenPasses was not virtual...
+
+        virtual FileModel::Model addPassesToEmitFile(PassManagerBase &,
+                                                     formatted_raw_ostream &,
+                                                     CodeGenFileType,
+                                                     CodeGenOpt::Level);
+
+        bool addCommonCodeGenPasses(PassManagerBase &PM,
+                                    CodeGenOpt::Level OptLevel);
         
-        virtual bool addInstSelector(PassManagerBase& pm, 
+        // ------------- end of duplicated methods ------------
+
+       virtual bool addPreISel(PassManagerBase& PM, 
+                               CodeGenOpt::Level OptLevel);
+
+       virtual bool addInstSelector(PassManagerBase& pm, 
                                      CodeGenOpt::Level OptLevel);
         
         // we do not want branch folder pass

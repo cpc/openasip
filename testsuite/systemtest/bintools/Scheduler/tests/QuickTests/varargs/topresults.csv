@@ -1,0 +1,5 @@
+ti64x_subset.adf,/home/elhigu/stow_sources/tce-1.1/tce/scheduler/passes/default_scheduler.conf,18.11.09 10:01,1196
+huge.adf,/home/elhigu/stow_sources/tce-1.1/tce/scheduler/passes/default_scheduler.conf,18.11.09 10:01,820
+RF_constrained.adf,/home/elhigu/stow_sources/tce-1.1/tce/scheduler/passes/default_scheduler.conf,18.11.09 10:01,865
+FU_constrained.adf,/home/elhigu/stow_sources/tce-1.1/tce/scheduler/passes/default_scheduler.conf,18.11.09 10:01,839
+minimal_with_io.adf,/home/elhigu/stow_sources/tce-1.1/tce/scheduler/passes/default_scheduler.conf,18.11.09 10:01,6055

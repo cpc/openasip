@@ -57,7 +57,7 @@ wxWidgets             2.6.0+                               wxWidgets
 Tcl                   8.0-8.4                              BSD-style
 Boost                 1.33+                                very permissive
 sqlite3               3.0.0+                               public domain
-LLVM                  2.5                                  LLVM Release License
+LLVM                  2.6                                  LLVM Release License
 Editline              2.9                                  BSD-style
 
     Editline is used for command line editing/history browsing capabilities to 
@@ -209,10 +209,10 @@ unzipped to /home/<user>/pkg_src/boost_1_36_0
 $ cd /home/<user>/pkg_src/boost_1_36_0
 $ ./configure --prefix=/opt/tce_libs
 
-llvm-2.5:
+llvm-2.6:
 ---------
-unzipped to /home/<user>/pkg_src/llvm-2.5
-$ cd /home/<user>/pkg_src/llvm-2.5
+unzipped to /home/<user>/pkg_src/llvm-2.6
+$ cd /home/<user>/pkg_src/llvm-2.6
 $ mkdir build && cd build
 $ ../configure --prefix=/opt/tce_libs --enable-pic
 
