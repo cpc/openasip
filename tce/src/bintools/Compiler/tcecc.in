@@ -226,14 +226,14 @@ def optimizeBytecode(inFile, fileNamePrefix):
 
     verbose = options.verbose
 
-    # no inline 
-    default_opts = options.noinline and " -disable-inlining " or " "
-
     # lets trust llvm team that they know which is the best
     # optimization set for overall performance... since when separately
     # adding own set we just end up tuning denbench / fft optimed switches
     # (its practically impossible to know how switches effect on any other case)
-    default_opts += "-O3 "
+    default_opts = " -O3 "
+
+    # no inline 
+    default_opts += options.noinline and "-disable-inlining " or "-inline-threshold=%d " % options.inline_threshold
 
     # no need to run this, since intrinsics are lowered in isel...
 
@@ -303,7 +303,6 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
         exitWithError(1, verbose, output)
 
     outputName = fileNamePrefix + "_emul_internalized.bc"
-
 
     internalize_api_list = " -internalize-public-api-list=_start"
     if options.keep_symbols != "":
@@ -429,6 +428,11 @@ p.add_option('--unroll-threshold',
              help="Unroll loops in case the unrolled loop body size will be less " + \
              "than the given number of LLVM instructions. Use 0 to disable " + \
              "loop unrolling.")
+
+p.add_option('--inline-threshold',
+             type="int", action="store",
+             dest='inline_threshold', default=200,
+             help="Control the amount of inlining.")
 
 p.add_option('--sequential-schedule', action="store_true",
              dest="sequential_schedule", default=False,

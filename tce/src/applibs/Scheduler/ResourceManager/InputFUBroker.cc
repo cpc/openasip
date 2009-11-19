@@ -483,12 +483,14 @@ InputFUBroker::buildResources(const TTAMachine::Machine& target) {
     Machine::FunctionUnitNavigator navi = target.functionUnitNavigator();
     for (int i = 0; i < navi.count(); i++) {
         FunctionUnit* fu = navi.item(i);
-        InputFUResource* fuResource = new InputFUResource(fu->name());
+        InputFUResource* fuResource = new InputFUResource(
+            fu->name(), fu->operationCount());
         ResourceBroker::addResource(*fu, fuResource);
     }
 
     ControlUnit* gcu = target.controlUnit();
-    InputFUResource* fuResource = new InputFUResource(gcu->name());
+    InputFUResource* fuResource = new InputFUResource(
+        gcu->name(), gcu->operationCount());
     ResourceBroker::addResource(*gcu, fuResource);
 }
 

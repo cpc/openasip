@@ -69,6 +69,7 @@ public:
 
     ObjectState* saveState() const;
 
+    const Bus* bus() const;
     /// ObjectState name for template slot.
     static const std::string OSNAME_TEMPLATE_SLOT;
     /// ObjectState attribute key for slot name.

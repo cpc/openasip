@@ -14,6 +14,9 @@ Code optimizations
 ------------------
 - Decreased scheduling time for big programs. 
   Unfortunately compiling time increased for small programs.
+- Smarter heuristics for selecting which bus and FU to use, leads to
+  programs which use fever connections, allowing more of them to be
+  removed.
 
 Bugfixes
 --------

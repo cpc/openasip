@@ -757,6 +757,15 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         otherTarget->setSourceOperation(*po1);
         po1->addOutputNode(*otherTarget);
 
+        // fu selection logic changed. use annotation to force original
+        // fu selection.
+        TTAProgram::ProgramAnnotation dstCandidate15(
+            TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST, 
+            "fu15");
+        node1->move().addAnnotation(dstCandidate15);
+        node2->move().addAnnotation(dstCandidate15);
+        node3->move().addAnnotation(dstCandidate15);
+
         TS_ASSERT_EQUALS(bypassed->isSourceOperation(), true);
         TS_ASSERT_EQUALS(bypassed->isDestinationOperation(), true);
 

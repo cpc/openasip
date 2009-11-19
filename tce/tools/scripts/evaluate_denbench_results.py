@@ -37,7 +37,7 @@ import sys
 # calculate goodness
 goodness = 0.0
 weight_sum = 0.0
-print "%20s%10s,%10s" % ("case","compared","weighted")
+print "%20s%20s,%10s" % ("case","orig/cur cycles","weighted")
 for line in sys.stdin:
     try: 
         case,result = line.strip().split(' ')
@@ -47,8 +47,7 @@ for line in sys.stdin:
     result = float(compare_cycles)/float(result)
     weighted_result = result*weight
     weight_sum += weight
-    print "%20s%10f%10f" %(case,result,weighted_result)
+    print "%20s%20f%10f" %(case,result,weighted_result)
     goodness += weighted_result
     
-print "Overall goodness points compared to %s is %f" % (compare_version,
-                                                        goodness/weight_sum)
+print "\nOverall performance (bigger is better) compared to %s is %f" % (compare_version, goodness/weight_sum)

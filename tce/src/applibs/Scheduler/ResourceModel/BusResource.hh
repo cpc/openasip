@@ -45,7 +45,9 @@
 
 class BusResource : public SchedulingResource {
 public:
-    BusResource(const std::string& name, int width);
+    BusResource(
+        const std::string& name, int width, int limmSlotCount, int guardCount,
+        int immSize, int socketCount);
     virtual ~BusResource();
 
     virtual bool isInUse(const int cycle) const;
@@ -82,6 +84,8 @@ public:
         throw (Exception);
     virtual bool isBusResource() const;
 
+    virtual bool operator < (const SchedulingResource& other) const;
+
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();
@@ -93,7 +97,14 @@ private:
     BusResource& operator=(const BusResource&);
     // Bus width in bits
     int busWidth_;
-
+    // count of limm slots associated into this bus resource.
+    int limmSlotCount_;
+    // coutn of guard associated to this bus.
+    int guardCount_;
+    // bitwidth of imm.
+    int immSize_;
+    // number of connected sockets
+    int socketCount_;
 };
 
 #endif

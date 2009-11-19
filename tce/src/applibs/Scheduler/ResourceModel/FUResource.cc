@@ -34,11 +34,14 @@
 #include "FUResource.hh"
 #include "Application.hh"
 #include "Conversion.hh"
+#include "InputPSocketResource.hh"
+
 /**
  * Constructor defining resource name
  * @param name Name of resource
  */
-FUResource::FUResource(const std::string& name) : SchedulingResource(name) {}
+FUResource::FUResource(const std::string& name, int opCount) : 
+    SchedulingResource(name) , opCount_(opCount) {}
 
 /**
  * Empty destructor
@@ -120,4 +123,65 @@ FUResource::canAssign(const int, const MoveNode&) const {
     // Implemented in derived classes
     abortWithError("canAssign of FUResource called!");
     return false;
+}
+
+/**
+ * Comparison operator.
+ * 
+ * Favours least used FU's and FU's with less operations.
+ */
+bool 
+FUResource::operator< (const SchedulingResource& other) const {
+
+    const FUResource *fur = dynamic_cast<const FUResource*>(&other);
+    if (fur == NULL) {
+        return false;
+    }
+
+    if (opCount_ < fur->opCount_) {
+        return true;
+    } 
+    if (opCount_ > fur->opCount_) {
+        return false;
+    }
+
+    // favours FU's with connections to less busses.
+    int connCount = 0;
+    int connCount2 = 0;
+
+    // count the connections.
+    for (int i = 0; i < dependentResourceCount(0); i++) {
+        SchedulingResource& r = dependentResource(0,i);
+        if (dynamic_cast<InputPSocketResource*>(&r)) {
+            connCount += r.relatedResourceCount(1);
+        } else {
+            connCount += r.relatedResourceCount(2);
+        }
+    }
+
+    for (int i = 0; i < other.dependentResourceCount(0); i++) {
+        SchedulingResource& r = other.dependentResource(0,i);
+        if (dynamic_cast<InputPSocketResource*>(&r)) {
+            connCount2 += r.relatedResourceCount(1);
+        } else {
+            connCount2 += r.relatedResourceCount(2);
+        }
+    }
+
+    if (connCount < connCount2) {
+        return true;
+    } 
+    if (connCount > connCount2) {
+        return false;
+    }
+
+    // then use count
+    if (useCount() < other.useCount()) {
+        return true;
+    } 
+    if (useCount() > other.useCount()) {
+        return false;
+    }
+
+    return name() < other.name();
 }

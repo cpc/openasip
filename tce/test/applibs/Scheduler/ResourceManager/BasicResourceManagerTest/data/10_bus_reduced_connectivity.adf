@@ -173,12 +173,6 @@
       </inverted-expr>
     </guard>
     <segment name="seg1">
-      <writes-to>seg2</writes-to>
-    </segment>
-    <segment name="seg2">
-      <writes-to>seg3</writes-to>
-    </segment>
-    <segment name="seg3">
       <writes-to/>
     </segment>
     <short-immediate>
@@ -194,7 +188,7 @@
     </reads-from>
     <reads-from>
       <bus>m12</bus>
-      <segment>seg3</segment>
+      <segment>seg1</segment>
     </reads-from>
     <reads-from>
       <bus>m7</bus>
@@ -209,7 +203,7 @@
     </reads-from>
     <reads-from>
       <bus>m12</bus>
-      <segment>seg2</segment>
+      <segment>seg1</segment>
     </reads-from>
     <reads-from>
       <bus>m7</bus>
@@ -860,7 +854,7 @@
     </writes-to>
     <writes-to>
       <bus>m12</bus>
-      <segment>seg2</segment>
+      <segment>seg1</segment>
     </writes-to>
   </socket>
 
@@ -1184,7 +1178,7 @@
     </reads-from>
     <reads-from>
       <bus>m12</bus>
-      <segment>seg3</segment>
+      <segment>seg1</segment>
     </reads-from>
   </socket>
 

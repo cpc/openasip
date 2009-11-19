@@ -151,3 +151,19 @@ inline bool
 SchedulingResource::validateRelatedGroups() {
     return false;
 }
+
+/**
+ * Comparison operator. favours least used resources.
+ * @param other other schedulignresource which with to compare.
+ */
+inline bool 
+SchedulingResource::operator < (const SchedulingResource& other) const
+{
+    if (useCount() < other.useCount()) {
+        return true;
+    } 
+    if (useCount() > other.useCount()) {
+        return false;
+    }
+    return name() < other.name();
+}

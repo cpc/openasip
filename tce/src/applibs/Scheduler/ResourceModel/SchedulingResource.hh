@@ -114,6 +114,7 @@ public:
     
     friend class ResourceBroker;
 
+    virtual bool operator < (const SchedulingResource& other) const;
 protected:
     // Tests if all referenced resources in dependent groups are of correct
     // type
@@ -168,13 +169,7 @@ private:
     
     struct less_name {
         bool operator()(SchedulingResource* x, SchedulingResource* y) {
-            if (x->useCount() < y->useCount()) {
-                return true;
-            } 
-            if (x->useCount() > y->useCount()) {
-                return false;
-            }
-            return x->name() < y->name();
+            return *x < *y;
         }
     };
     

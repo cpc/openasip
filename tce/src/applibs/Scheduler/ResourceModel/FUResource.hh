@@ -45,7 +45,7 @@
 
 class FUResource : public SchedulingResource {
 public:
-    FUResource(const std::string& name);
+    FUResource(const std::string& name, int operationCount);
     virtual ~FUResource();
 
     virtual bool isInUse(const int cycle) const;
@@ -56,11 +56,13 @@ public:
     virtual void unassign(const int cycle, MoveNode& node)
         throw (Exception);
 
+    virtual bool operator < (const SchedulingResource& other) const;
 private:
     // Copying forbidden
     FUResource(const FUResource&);
     // Assignment forbidden
     FUResource& operator=(const FUResource&);
+    int opCount_;
 };
 
 #endif

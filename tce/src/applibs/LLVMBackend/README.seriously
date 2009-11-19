@@ -1,0 +1,175 @@
+Some notes for updating llvm backend and future development
+--------------------------------------------------------------
+
+Version history:
+------------------
+18.11.2009 First draft by Mikael Lepistö 
+
+! PLEASE UPDATE THIS DOCUMENT IF THERE IS MAJOR CHANGES HOW THINGS ARE DONE !
+
+Table of contents:
+------------------
+1. Getting latest probably working llvm svn version
+2. Track changes what has happened in backends and LLVM API
+3. LLVM passmanager related
+4. TDGen and td files plugin generation
+5. Finding, where compilation error happens.
+6. Plan for adding tce target to llvm upstream
+
+---------------------------------------------------
+1. Getting latest probably working llvm svn version
+---------------------------------------------------
+
+1. Check last "stable" version of llvm with 
+	tools/scripts/find_good_llvm_svn_revision.py
+
+2. Update all llvm repos to same version llvm / cland and llvm-gcc 
+	elhigu@mr-lenovo:~/stow_sources$ cat update_llvm_svn.sh 
+	GOOD_REVISION=`~/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/find_good_llvm_svn_revision.py`
+	cd ~/stow_sources/llvm-svn; svn up -r $GOOD_REVISION
+	cd ~/stow_sources/llvm-svn/tools/clang;svn up -r $GOOD_REVISION
+	cd ~/stow_sources/llvm-gcc-4.2-svn;svn up -r $GOOD_REVISION
+	cd
+
+3. Use latest doxygen 
+	cd ~/stow_sources/llvm-svn/docs
+	make doxygen
+
+
+-------------------------------------------------------------
+2. Track changes what has happened in backends and LLVM API
+-------------------------------------------------------------
+
+2.1 Backend files
+
+Check what have changed in sparc backend since last llvm revision 
+
+	diff -rNu -U10 -x '.svn*' -x 'Debug*' -x 'Release*' -x '*.inc' -x '#*#' llvm-older/lib/Target/Sparc llvm-current/lib/Target/Sparc
+
+Do not add passes to LLVMBackend.cc after tce-1.1 LLVM backend has been 
+changed to be very similair with llc, so all target dependent passes should 
+be set in TCETargetMachine overrided methods. 
+
+Check that API has not changed "secretly". Many times one of the target APIs 
+parameters or function names are changed and those functions have also base 
+implementation in llvm side. Beacause the base implementation, compiler will 
+not give any warnings or errors and backend may even produce valid code, 
+but resulted code might be really bad...
+
+Important files TCETargetMachine.hh, plugin/TCEISelLowering.hh, 
+plugin/TCEInstrInfo.hh, plugin/TCEIRegisterInfo.hh plugin/TCEDAGToDAGISel.cc
+
+Sometimes new td files are added to system like CallingConv.td in llvm-2.6.
+
+2.1 Other API Changes
+
+Also other that Target APIs changes quite a lot e.g. passes which are in
+TCE side must be updated frequently to match latest API. So you can try to
+find where old style API was use in old llvm and diff it with new one to 
+see how in llvm that API change is handled.
+
+2.2 Coding style
+
+Normal TCE coding guidelines are not followed here. So we try to keep the 
+files as much llvm style coded as possible, to find differences and copy-paste
+code easier from llvm. e.g. if you rewrite any old interfaces, please 
+copypaste function declarations and definitions as directly as possible from 
+llvm without changing parameter names.
+
+-----------------------------
+3. LLVM passmanager related
+-----------------------------
+
+When llvm runs function passes it takes one function at time and runs _all_ 
+the passes for that function and then deletes MachineInstructions before 
+starting handling next function. 
+
+So this means that you cannot e.g. store pointers to 
+MachineInsteructions in runForFunction() method and then use them in 
+doFinalize method. 
+
+MachineDCE.cc pass has an example how analyze pass is registered to llvm pass 
+manager and it is set to be required pass for LLVMPOMBuilder so when 
+LLVMPOMBuilder pass is created, also MachineDCE will be created automatically.
+
+gdb is very nice tool for finding out what happens inside llvm passes
+
+	list of my most used commands:
+	break filename.c:545 
+	call variable->method()
+	display variable->method()
+	continue
+
+!! Super USEFUL !!! many llvm objects like MachineInstruction, MachineFunction
+LiveInterval FrameInfo etc. hasdump method, which prints object to std::cerr
+	
+	e.g. call MI->dump()
+
+-----------------------------------------------
+4. TDGen and td files plugin generation
+-----------------------------------------------
+
+If -d switch is passed to llvm-tce it should leave plugin generatioin files to
+/tmp/tmp_* directory. In TDGen.cc there is also in comments some code, which
+prints generated instruction patterns to stdcerr.
+
+After enabling machine code verifier pass, it is more strict that correct 
+register class is handled with correct MachineInstruction e.g. now there is 
+new machine instruction for loading and storing RA register.
+
+TDGen generates toplevel td file which includes all other static and generated
+td files there.
+
+TD definitions are found include/llvm/Target/*.td contains td file 
+definitions, which are not found from llvm doxygen. Those td files have quite 
+good comments.
+
+
+-----------------------------------------------
+5. Finding, where compilation error happens.
+-----------------------------------------------
+
+1. Compile program.bc or something like that and check if error or strange 
+   code is already there.
+
+2. Enable machine code printing after each machine function pass in 
+   TCETargetMachine.cc (There is some static global variable)
+
+3. Check machine instruction code, after each pass. 
+   (Remember clear plugin cache when necessary)
+
+4. Take compile code to tpef and compare generated tce code to last 
+   llvm machine code.
+
+
+-------------------------------------------------
+6. Plan for adding tce target to llvm upstream
+-------------------------------------------------
+
+1. Clear dependencies from machines target plugin to tce and add generated 
+   plugin files from minimal machine.
+
+2. Create LLVMPOMBuilder based plugin does not write llvm machine functions to
+   program but as a minimal assembler format, which can be read directly to 
+   POM or ddg in tce side.
+
+This format must be very simple and limited, it is enough that it may be read 
+as sequential register allocated input for generating pom.
+
+3. Move Target to llvm side and add some tests, which compiles some example 
+   code form bc to llc to our llvm - tce format and verifies output.
+
+4. Fix llvm-gcc-4.2/gcc/config/tce to recognize tce as tce, not mips target.
+
+5. When our generated backend code is changed in llvm we have to keep up td 
+   gen stuff. Probably plugin interface headers must be copied to include/llvm
+   to be able to use them in tce plugin generation.
+
+Benefits: 
+
+Only few file generation must be fixed by us and we will get example how to 
+fix it directly from td files which are fixed in llvm side. Basically updating
+would be automatic after change (llvm people find that our backend does 
+not compile or its test fail after change and fix it). Now keeping our target 
+uptodate is really painful running competition with llvm changes.
+

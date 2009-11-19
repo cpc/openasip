@@ -76,4 +76,13 @@ inline ImmediateUnit*
 TemplateSlot::destination() const {
     return destination_;
 }
+
+/**
+ * Returns the bus this template slot is related to.
+ */
+inline const Bus*
+TemplateSlot::bus() const { 
+    return bus_; 
+}
+
 }
