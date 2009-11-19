@@ -10,10 +10,10 @@ Version history:
 Table of contents:
 ------------------
 1. Getting latest probably working llvm svn version
-2. Track changes what has happened in backends
+2. Track changes what has happened in backends and LLVM API
 3. LLVM passmanager related
 4. TDGen and td files plugin generation
-5. Finding, where compile error happens.
+5. Finding, where compilation error happens.
 6. Plan for adding tce target to llvm upstream
 
 ---------------------------------------------------
@@ -31,16 +31,20 @@ Table of contents:
 	cd ~/stow_sources/llvm-gcc-4.2-svn;svn up -r $GOOD_REVISION
 	cd
 
+3. Use latest doxygen 
+	cd ~/stow_sources/llvm-svn/docs
+	make doxygen
 
--------------------------------------------------
-2. Track changes what has happened in backends
--------------------------------------------------
+
+-------------------------------------------------------------
+2. Track changes what has happened in backends and LLVM API
+-------------------------------------------------------------
 
 2.1 Backend files
 
 Check what have changed in sparc backend since last llvm revision 
 
-	diff -rNu -U10 -x '.svn*' -x 'Debug*' -x 'Release*' -x '*.inc' llvm-older/lib/Target/Sparc llvm-current/lib/Target/Sparc
+	diff -rNu -U10 -x '.svn*' -x 'Debug*' -x 'Release*' -x '*.inc' -x '#*#' llvm-older/lib/Target/Sparc llvm-current/lib/Target/Sparc
 
 Do not add passes to LLVMBackend.cc after tce-1.1 LLVM backend has been 
 changed to be very similair with llc, so all target dependent passes should 
@@ -53,11 +57,18 @@ not give any warnings or errors and backend may even produce valid code,
 but resulted code might be really bad...
 
 Important files TCETargetMachine.hh, plugin/TCEISelLowering.hh, 
-plugin/TCEInstrInfo.hh, plugin/TCEIRegisterInfo.hh
+plugin/TCEInstrInfo.hh, plugin/TCEIRegisterInfo.hh plugin/TCEDAGToDAGISel.cc
 
 Sometimes new td files are added to system like CallingConv.td in llvm-2.6.
 
-2.1 Coding style
+2.1 Other API Changes
+
+Also other that Target APIs changes quite a lot e.g. passes which are in
+TCE side must be updated frequently to match latest API. So you can try to
+find where old style API was use in old llvm and diff it with new one to 
+see how in llvm that API change is handled.
+
+2.2 Coding style
 
 Normal TCE coding guidelines are not followed here. So we try to keep the 
 files as much llvm style coded as possible, to find differences and copy-paste
@@ -114,9 +125,9 @@ definitions, which are not found from llvm doxygen. Those td files have quite
 good comments.
 
 
-----------------------------------------
-5. Finding, where compile error happens.
-----------------------------------------
+-----------------------------------------------
+5. Finding, where compilation error happens.
+-----------------------------------------------
 
 1. Compile program.bc or something like that and check if error or strange 
    code is already there.
