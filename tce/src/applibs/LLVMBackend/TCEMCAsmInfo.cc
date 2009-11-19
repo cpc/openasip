@@ -1,4 +1,4 @@
-//===-- TCETargetAsmInfo.cpp - TCE asm properties -------------------------===//
+//===------ TCEMCAsmInfo.cpp - TCE asm properties -------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,15 +7,16 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file contains the declarations of the TCETargetAsmInfo properties.
+// This file contains the declarations of the TCEMCAsmInfo properties.
 //
 //===----------------------------------------------------------------------===//
 
-#include "TCETargetAsmInfo.hh"
+#include <cstdlib> // NULL
+#include "TCEMCAsmInfo.hh"
 
 using namespace llvm;
 
-TCETargetAsmInfo::TCETargetAsmInfo(const Target &T, const StringRef &TT) {
+TCEMCAsmInfo::TCEMCAsmInfo(const Target &T, const StringRef &TT) {
     AlignmentIsInBytes          = true;
     COMMDirectiveTakesAlignment = true;
     Data8bitsDirective          = "DA 1\t";

@@ -409,7 +409,8 @@ LLVMPOMBuilder::createDataDefinition(
         (dyn_cast<ConstantVector>(cv) != NULL)) {
 
         for (unsigned i = 0, e = cv->getNumOperands(); i != e; ++i) {
-            unsigned dataAddr = createDataDefinition(addr, cv->getOperand(i));
+            //unsigned dataAddr = createDataDefinition(addr, cv->getOperand(i));
+            unsigned dataAddr = createDataDefinition(addr, cast<Constant>(cv->getOperand(i)));
             // First element of structured data should be in the paddedAddr.
             assert (i > 0 || dataAddr == paddedAddr);
         }
@@ -1384,7 +1385,9 @@ LLVMPOMBuilder::isInitialized(const Constant* cv) {
         (dyn_cast<ConstantVector>(cv) != NULL)) {
 
         for (unsigned i = 0, e = cv->getNumOperands(); i != e; ++i) {
-            if (isInitialized(cv->getOperand(i))) {
+            
+            //if (isInitialized(cv->getOperand(i))) {
+            if (isInitialized(cast<Constant>(cv->getOperand(i)))) {
                 return true;
             }
         }

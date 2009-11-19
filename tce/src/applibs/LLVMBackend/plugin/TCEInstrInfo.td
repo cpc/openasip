@@ -54,6 +54,7 @@ def callseq_end   : SDNode<"ISD::CALLSEQ_END",   SDT_TCECallSeqEnd,
                            [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
 
 def SDT_TCECall    : SDTypeProfile<0, 1, [SDTCisVT<0, i32>]>;
+
 def call          : SDNode<"TCEISD::CALL", SDT_TCECall,
                            [SDNPHasChain, SDNPOptInFlag, SDNPOutFlag]>;
 
@@ -79,8 +80,6 @@ def TCEselectI32 : SDNode<"TCEISD::SELECT_I32", SDT_TCESelect, []>;
 def TCEselectI64 : SDNode<"TCEISD::SELECT_I64", SDT_TCESelect, []>;
 def TCEselectF32 : SDNode<"TCEISD::SELECT_F32", SDT_TCESelect, []>;
 def TCEselectF64 : SDNode<"TCEISD::SELECT_F64", SDT_TCESelect, []>;
-
-//let usesCustomDAGSchedInserter = 0 in {    // Expanded by the scheduler.
 
   def SELECT_I1 : InstTCE<(outs I1Regs:$dst),
                           (ins I1Regs:$c, I1Regs:$T, I1Regs:$F),
@@ -129,7 +128,6 @@ def TCEselectF64 : SDNode<"TCEISD::SELECT_F64", SDT_TCESelect, []>;
                           [(set F64Regs:$dst,
                             (select I1Regs:$c, F64Regs:$T, F64Regs:$F))]>;
 
-//}
 
 // =========================
 //  Pseudo instructions
@@ -287,20 +285,18 @@ def : Pat<(TCEConstPool tconstpool:$in), (MOVI32ri tconstpool:$in)>;
 // ============================
 
 // Return
-let isReturn = 1, isTerminator = 1, hasDelaySlot = 1 in {
+let Uses = [RA], isReturn = 1, isTerminator = 1, 
+    hasDelaySlot = 1, isBarrier = 1 in {
     def RETL: InstTCE<(outs), (ins),
-	"return-address -> jump.1; # RETURN", [(retflag)]>;
+   	"return-address -> jump.1; # RETURN", [(retflag)]>;
 }
-
-// def : Pat<(ret), (RETL)>;
 
 // jump 
 let isTerminator = 1, isBranch = 1 in {
     def TCEBRCOND : InstTCE<(outs), (ins I1Regs:$gr, i32imm:$dst),
         "? $gr $dst -> jump.1;", []>;
 
-    def TCEBR : InstTCE<(outs),
-                        (ins i32imm:$dst), "$dst -> jump.1;", []>;
+    def TCEBR : InstTCE<(outs), (ins i32imm:$dst), "$dst -> jump.1;", []>;
 }
 
 include "GenInstrInfo.td"

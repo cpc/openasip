@@ -37,27 +37,21 @@
 //===----------------------------------------------------------------------===
 
 #define DEBUG_TYPE "lowermissing"
+
+#include "llvm/LLVMContext.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/UnifyFunctionExitNodes.h"
 #include "llvm/Module.h"
 #include "llvm/DerivedTypes.h"
 #include "llvm/Instructions.h"
 #include "llvm/Constants.h"
-// #include "llvm/Pass.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/Support/Compiler.h"
 
-// #include "llvm/ParameterAttributes.h"
 #include "llvm/Support/CallSite.h"
 #include "llvm/ADT/STLExtras.h" // array_endof
 #include "llvm/Support/CommandLine.h" // cl::opt
-
-// Stuff needed by linker feature
-#include "llvm/Linker.h"
-#include "llvm/Bitcode/ReaderWriter.h"
-#include "llvm/Support/MemoryBuffer.h"
-#include "llvm/System/Path.h"
 
 // TCE headers
 #include "Machine.hh"
@@ -95,7 +89,8 @@ namespace {
 
     char LowerMissingInstructions::ID = 0;    
 
-// When we got another way for passing machine we can register pass to manager
+// When we got another way than parameter 
+// for passing machine we can register pass to manager
 //    RegisterPass<LowerMissingInstructions>
 //    X("lowermissing", "Lower missing instructions to libcalls");
 }

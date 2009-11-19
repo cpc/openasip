@@ -50,10 +50,6 @@ namespace llvm {
         TCERegisterInfo(const TargetInstrInfo& tii);
         virtual ~TCERegisterInfo() {};
   
-        virtual void reMaterialize(
-            MachineBasicBlock &MBB, MachineBasicBlock::iterator MI,
-            unsigned DestReg, const MachineInstr *Orig) const;
-
         bool hasFP(const MachineFunction& mf) const;
 
         void eliminateCallFramePseudoInstr(
@@ -61,21 +57,23 @@ namespace llvm {
             MachineBasicBlock &MBB,
             MachineBasicBlock::iterator I) const;
 
-        void eliminateFrameIndex(MachineBasicBlock::iterator ii) const;        
         const unsigned *getCalleeSavedRegs(const MachineFunction *MF = 0) const;
+
         const TargetRegisterClass* const* getCalleeSavedRegClasses(
             const MachineFunction *MF = 0) const;
 
         void emitPrologue(MachineFunction& mf) const;
         void emitEpilogue(MachineFunction& mf, MachineBasicBlock& mbb) const;
 
-        unsigned getRARegister() const;
-        unsigned getFrameRegister(MachineFunction& mf) const;
-
         BitVector getReservedRegs(const MachineFunction &MF) const;
 
-        void eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                 int adj, RegScavenger *RS = NULL) const;
+        unsigned eliminateFrameIndex(MachineBasicBlock::iterator II,
+                                     int SPAdj, int *Value,
+                                     RegScavenger *RS = NULL) const;
+
+        unsigned getRARegister() const;
+
+        unsigned getFrameRegister(const MachineFunction& mf) const;
 
         int getDwarfRegNum(unsigned regNum, bool isEH) const;
 

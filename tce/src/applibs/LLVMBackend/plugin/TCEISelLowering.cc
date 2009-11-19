@@ -68,7 +68,7 @@ using namespace llvm;
 
 SDValue
 TCETargetLowering::LowerReturn(SDValue Chain,
-                               unsigned CallConv, bool isVarArg,
+                               CallingConv::ID CallConv, bool isVarArg,
                                const SmallVectorImpl<ISD::OutputArg> &Outs,
                                DebugLoc dl, SelectionDAG &DAG) {
 
@@ -115,7 +115,7 @@ TCETargetLowering::LowerReturn(SDValue Chain,
 SDValue
 TCETargetLowering::LowerFormalArguments(
     SDValue Chain,
-    unsigned CallConv, bool isVarArg,
+    CallingConv::ID CallConv, bool isVarArg,
     const SmallVectorImpl<ISD::InputArg> &Ins,
     DebugLoc dl, SelectionDAG &DAG,
     SmallVectorImpl<SDValue> &InVals) {
@@ -129,15 +129,6 @@ TCETargetLowering::LowerFormalArguments(
                    ArgLocs, *DAG.getContext());
 
     CCInfo.AnalyzeFormalArguments(Ins, CC_TCE);
-
-/*
-  static const unsigned ArgRegs[] = {
-      SP::I0, SP::I1, SP::I2, SP::I3, SP::I4, SP::I5
-  };
-  const unsigned *CurArgReg = ArgRegs, *ArgRegEnd = ArgRegs+6;
-  unsigned ArgOffset = 68;
-*/
-    
     unsigned ArgOffset = 0;
   
     for (unsigned i = 0, e = ArgLocs.size(); i != e; ++i) {
@@ -147,32 +138,18 @@ TCETargetLowering::LowerFormalArguments(
         // because it doesn't know how to split a double into two i32 registers.
         EVT ObjectVT = VA.getValVT();
         switch (ObjectVT.getSimpleVT().SimpleTy) {
-        default: llvm_unreachable("Unhandled argument type!");
+        default: assert(false && "Unhandled argument type!");
         case MVT::i1:
         case MVT::i8:
         case MVT::i16:
         case MVT::i32: {
             if (!Ins[i].Used) {
-                // if (CurArgReg < ArgRegEnd) ++CurArgReg;
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
-                
-                /* we do not have argument registers currently 
-                   } else if (CurArgReg < ArgRegEnd) {  // Lives in an incoming GPR
-                   unsigned VReg = RegInfo.createVirtualRegister(&SP::IntRegsRegClass);
-                   MF.getRegInfo().addLiveIn(*CurArgReg++, VReg);
-                   SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, MVT::i32);
-                   if (ObjectVT != MVT::i32) {
-                   unsigned AssertOp = ISD::AssertSext;
-                   Arg = DAG.getNode(AssertOp, dl, MVT::i32, Arg,
-                   DAG.getValueType(ObjectVT));
-                   Arg = DAG.getNode(ISD::TRUNCATE, dl, ObjectVT, Arg);
-                   }
-                   InVals.push_back(Arg);
-                */
             } else {
-            int FrameIdx = MF.getFrameInfo()->CreateFixedObject(4, ArgOffset);
-            SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-            SDValue Load;
+                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                    4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
+                SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
+                SDValue Load;
             if (ObjectVT == MVT::i32) {
                 Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0);
             } else {
@@ -195,21 +172,10 @@ TCETargetLowering::LowerFormalArguments(
             
         case MVT::f32: {
             if (!Ins[i].Used) {                  // Argument is dead.
-                //if (CurArgReg < ArgRegEnd) ++CurArgReg;
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
-                
-                /*
-                  } else if (CurArgReg < ArgRegEnd) {  // Lives in an incoming GPR
-                  // FP value is passed in an integer register.
-                  unsigned VReg = RegInfo.createVirtualRegister(&SP::IntRegsRegClass);
-                  MF.getRegInfo().addLiveIn(*CurArgReg++, VReg);
-                  SDValue Arg = DAG.getCopyFromReg(Chain, dl, VReg, MVT::i32);
-                  
-                  Arg = DAG.getNode(ISD::BIT_CONVERT, dl, MVT::f32, Arg);
-                  InVals.push_back(Arg);
-                */
             } else {
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(4, ArgOffset);
+                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                    4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr, NULL, 0);
                 InVals.push_back(Load);
@@ -219,34 +185,21 @@ TCETargetLowering::LowerFormalArguments(
         }
             
         case MVT::i64:
-        case MVT::f64: {
-            
+        case MVT::f64: {            
             if (!Ins[i].Used) {                // Argument is dead.
-                //if (CurArgReg < ArgRegEnd) ++CurArgReg;
-                //if (CurArgReg < ArgRegEnd) ++CurArgReg;
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
                 SDValue HiVal;
-                //if (CurArgReg < ArgRegEnd) {  // Lives in an incoming GPR
-                //    unsigned VRegHi = RegInfo.createVirtualRegister(&SP::IntRegsRegClass);
-                //    MF.getRegInfo().addLiveIn(*CurArgReg++, VRegHi);
-                //    HiVal = DAG.getCopyFromReg(Chain, dl, VRegHi, MVT::i32);
-                //} else {
-                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(4, ArgOffset);
+                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                    4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 HiVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0);
-                //}
                 
                 SDValue LoVal;
-                //if (CurArgReg < ArgRegEnd) {  // Lives in an incoming GPR
-                //    unsigned VRegLo = RegInfo.createVirtualRegister(&SP::IntRegsRegClass);
-                //    MF.getRegInfo().addLiveIn(*CurArgReg++, VRegLo);
-                //    LoVal = DAG.getCopyFromReg(Chain, dl, VRegLo, MVT::i32);
-                //} else {
-                FrameIdx = MF.getFrameInfo()->CreateFixedObject(4, ArgOffset+4);
+                FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                    4, ArgOffset+4, /*immutable=*/true, /*isSpillSlot=*/false);
                 FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 LoVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0);
-                //}
                 
                 // Compose the two halves together into an i64 unit.
                 SDValue WholeValue =
@@ -268,7 +221,8 @@ TCETargetLowering::LowerFormalArguments(
     // inspired from ARM
     if (isVarArg) {        
         // This will point to the next argument passed via stack.
-        VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(4, ArgOffset);
+        VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(
+            4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
     }
     
     return Chain;
@@ -276,7 +230,7 @@ TCETargetLowering::LowerFormalArguments(
 
 SDValue
 TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
-                             unsigned CallConv, bool isVarArg,
+                             CallingConv::ID CallConv, bool isVarArg,
                              bool isTailCall,
                              const SmallVectorImpl<ISD::OutputArg> &Outs,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
@@ -289,7 +243,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     unsigned ArgsSize = 0;
     for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
         switch (Outs[i].Val.getValueType().getSimpleVT().SimpleTy) {
-        default: llvm_unreachable("Unknown value type!");
+        default: assert(false && "Unknown value type!");
         case MVT::i1:
         case MVT::i8:
         case MVT::i16:
@@ -319,20 +273,20 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     SDValue ValToStore(0, 0);
     unsigned ObjSize;
     switch (ObjectVT.getSimpleVT().SimpleTy) {
-    default: llvm_unreachable("Unhandled argument type!");
+    default: assert(false && "Unhandled argument type!");
         
     case MVT::i1:
     case MVT::i8:
     case MVT::i16: {
         // TODO: is actually needed (sparc did not have this)?
         // Promote the integer to 32-bits.
-//        ISD::NodeType ext = ISD::ANY_EXTEND;
-//        if (Ins[i].isSExt) {
-//            ext = ISD::SIGN_EXTEND;
-//        } else if (Ins[i].isZExt) {
-//            ext = ISD::ZERO_EXTEND;
-//        }
-//        Val = DAG.getNode(ext, dl, MVT::i32, Val);
+        //        ISD::NodeType ext = ISD::ANY_EXTEND;
+        //        if (Ins[i].isSExt) {
+        //            ext = ISD::SIGN_EXTEND;
+        //        } else if (Ins[i].isZExt) {
+        //            ext = ISD::ZERO_EXTEND;
+        //        }
+        //        Val = DAG.getNode(ext, dl, MVT::i32, Val);
         // FALL THROUGH
     }
     case MVT::f32:
@@ -367,7 +321,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   // chain and flag operands which copy the outgoing args into registers.
   // The InFlag in necessary since all emited instructions must be
   // stuck together.
-  SDValue InFlag;// = Chain.getValue(0);
+  SDValue InFlag;
 
   // If the callee is a GlobalAddress node (quite common, every direct call is)
   // turn it into a TargetGlobalAddress node so that legalize doesn't hack it.
@@ -399,11 +353,6 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   for (unsigned i = 0; i != RVLocs.size(); ++i) {
     unsigned Reg = RVLocs[i].getLocReg();
    
-    /*
-    // Remap I0->I7 -> O0->O7.
-    if (Reg >= SP::I0 && Reg <= SP::I7) Reg = Reg-SP::I0+SP::O0;
-    */
-
     Chain = DAG.getCopyFromReg(Chain, dl, Reg,
                                RVLocs[i].getValVT(), InFlag).getValue(1);
     InFlag = Chain.getValue(2);
@@ -424,10 +373,6 @@ TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
     addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
     addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);
     addRegisterClass(MVT::f32, TCE::F32RegsRegisterClass);
-
-    //setLoadXAction(ISD::EXTLOAD, MVT::f32, Expand);
-    //setLoadXAction(ISD::EXTLOAD, MVT::i1 , Promote);
-    //setLoadXAction(ISD::ZEXTLOAD, MVT::i1, Expand);
 
     setOperationAction(ISD::UINT_TO_FP, MVT::i1   , Promote);
     setOperationAction(ISD::UINT_TO_FP, MVT::i8   , Promote);
@@ -501,8 +446,11 @@ TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
 
     // Set missing operations that can be emulated with emulation function
     // or LLVM built-in emulation pattern to be expanded.
-    const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >* missingOps = tm_.missingOperations();
-    std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >::const_iterator iter = missingOps->begin();
+    const std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >* 
+        missingOps = tm_.missingOperations();
+    
+    std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >::const_iterator 
+        iter = missingOps->begin();
 
     std::cerr << "Missing ops: ";
 
@@ -558,40 +506,6 @@ TCETargetLowering::getTargetNodeName(unsigned opcode) const {
     case TCEISD::SELECT_F64: return "TCEISD::SELECT_F64";
     }
 }
-
-#if 0
-// isMaskedValueZeroForTargetNode - Return true if 'Op & Mask' is known to
-/// be zero. Op is expected to be a target specific node. Used by DAG
-/// combiner.
-void TCETargetLowering::computeMaskedBitsForTargetNode(const SDValue Op,
-                                                       const APInt &Mask,
-                                                       APInt &KnownZero,
-                                                       APInt &KnownOne,
-                                                       const SelectionDAG &DAG,
-                                                       unsigned Depth) const {
-  APInt KnownZero2, KnownOne2;
-  KnownZero = KnownOne = APInt(Mask.getBitWidth(), 0);   // Don't know anything.
-
-  switch (Op.getOpcode()) {
-  default: break;
-/*
-  case SPISD::SELECT_ICC:
-  case SPISD::SELECT_FCC:
-    DAG.ComputeMaskedBits(Op.getOperand(1), Mask, KnownZero, KnownOne,
-                          Depth+1);
-    DAG.ComputeMaskedBits(Op.getOperand(0), Mask, KnownZero2, KnownOne2,
-                          Depth+1);
-    assert((KnownZero & KnownOne) == 0 && "Bits known to be one AND zero?");
-    assert((KnownZero2 & KnownOne2) == 0 && "Bits known to be one AND zero?");
-
-    // Only known if known in both the LHS and RHS.
-    KnownOne &= KnownOne2;
-    KnownZero &= KnownZero2;
-    break;
-*/
-  }
-}
-#endif
 
 static SDValue LowerSELECT(
     SDValue op, SelectionDAG& dag) {
@@ -761,11 +675,11 @@ getRegClassForInlineAsmConstraint(const std::string &Constraint,
 
 bool
 TCETargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
-  // The TCE target isn't yet aware of offsets.
-  return false;
+  // should be legal since we do not emi PIC code
+  return true;
 }
 
 /// getFunctionAlignment - Return the Log2 alignment of this function.
 unsigned TCETargetLowering::getFunctionAlignment(const Function *) const {
-  return 4;
+  return 1;
 }

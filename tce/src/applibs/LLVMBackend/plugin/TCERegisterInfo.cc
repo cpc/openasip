@@ -114,8 +114,9 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
     MBB.erase(I);
 }
 
-void TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                          int SPAdj, RegScavenger *RS) const {
+unsigned TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
+                                              int SPAdj, int *Value,
+                                              RegScavenger *RS) const {
     const TargetInstrInfo &TII = tii_;
     assert(SPAdj == 0 && "Unexpected");
     unsigned i = 0;
@@ -141,6 +142,7 @@ void TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     } else {
         MI.getOperand(i).ChangeToRegister(TCE::SP, false);
     }
+    return 0;
 }
 
 /**
@@ -205,44 +207,15 @@ TCERegisterInfo::emitEpilogue(
         TCE::SP).addImm(4);
 }
 
-/**
- * Re-issue the specified 'original' instruction at the specific location 
- * targeting a new destination register.
- *
- * @param mbb Machine basic block of the new instruction.
- * @param i Position of the new instruction in the basic block.
- * @param destReg New destination register.
- * @param orig Original instruction.
- */
-void
-TCERegisterInfo::reMaterialize(
-    MachineBasicBlock& mbb,
-    MachineBasicBlock::iterator i,
-    unsigned destReg,
-    const MachineInstr* orig) const {
-    
-    assert(false && "It really was used");
-    MachineInstr* mi = mbb.getParent()->CloneMachineInstr(orig);
-    mi->getOperand(0).setReg(destReg);
-    mbb.insert(i, mi);
-}
-
-
-/**
- * Not implemented: When is this method even called?
- */
 unsigned
 TCERegisterInfo::getRARegister() const {
-    assert(false);
-    return 0;
+    assert(false && "Remove this assert if this is really called.");
+    return TCE::RA;
 }
 
-/**
- * Not implemented: When is this method even called?
- */
 unsigned
-TCERegisterInfo::getFrameRegister(MachineFunction& mf) const {
-    assert(false);
+TCERegisterInfo::getFrameRegister(const MachineFunction& mf) const {
+    assert(false && "Remove this assert if this is really called.");
     return 0;
 }
 

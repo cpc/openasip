@@ -141,7 +141,7 @@ TCEDAGToDAGISel::Select(SDValue op) {
                 n, TCE::MOVI32ri, MVT::i32,
                 CurDAG->getTargetFrameIndex(fi, MVT::i32));
         } else {
-            return CurDAG->getTargetNode(
+            return CurDAG->getMachineNode(
                 TCE::MOVI32ri, op.getDebugLoc(), MVT::i32,
                 CurDAG->getTargetFrameIndex(fi, MVT::i32));
         }

@@ -3,7 +3,7 @@ SUBDIRS = passes
 noinst_LTLIBRARIES = libtcellvmbackend.la
 
 libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
-    TCETargetMachine.cc TCETargetAsmInfo.cc  LLVMPOMBuilder.cc \
+    TCETargetMachine.cc TCEMCAsmInfo.cc  LLVMPOMBuilder.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc
 

@@ -1,4 +1,4 @@
-//=====-- TCETargetAsmInfo.h - TCE asm properties -------------*- C++ -*--====//
+//=====------ TCEMCAsmInfo.h - TCE asm properties -------------*- C++ -*--====//
 //
 //                     The LLVM Compiler Infrastructure
 //
@@ -7,22 +7,22 @@
 //
 //===----------------------------------------------------------------------===//
 //
-// This file contains the declaration of the TCETargetAsmInfo class.
+// This file contains the declaration of the TCEMCAsmInfo class.
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef TCETARGETASMINFO_H
-#define TCETARGETASMINFO_H
+#ifndef TCEMCASMINFO_H
+#define TCEMCASMINFO_H
 
-#include <llvm/Target/TargetAsmInfo.h>
+#include <llvm/MC/MCAsmInfo.h>
 
 namespace llvm {
   class Target;
   class StringRef;
   
-  class TCETargetAsmInfo : public TargetAsmInfo {
+  class TCEMCAsmInfo : public MCAsmInfo {
   public:    
-    explicit TCETargetAsmInfo(const Target &T, const StringRef &TT);
+    explicit TCEMCAsmInfo(const Target &T, const StringRef &TT);
   };
 
 } // namespace llvm

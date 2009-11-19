@@ -34,6 +34,7 @@
 #include <llvm/PassManager.h>
 #include <llvm/Pass.h>
 #include <llvm/ModuleProvider.h>
+#include <llvm/LLVMContext.h>
 
 #include <llvm/CodeGen/AsmPrinter.h>
 #include <llvm/CodeGen/Passes.h>
