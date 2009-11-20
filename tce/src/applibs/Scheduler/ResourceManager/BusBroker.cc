@@ -58,7 +58,8 @@ using namespace TTAMachine;
 /**
  * Constructor.
  */
-BusBroker::BusBroker(std::string name) : ResourceBroker(name) {
+BusBroker::BusBroker(std::string name) : 
+    ResourceBroker(name), hasLimm_(false) {
 }
 
 /**
@@ -509,7 +510,7 @@ BusBroker::isApplicable(const MoveNode&) const {
  */
 void
 BusBroker::buildResources(const TTAMachine::Machine& target) {
-
+    hasLimm_ = target.immediateUnitNavigator().count() > 0;
     Machine::BusNavigator navi = target.busNavigator();
     Machine::InstructionTemplateNavigator itn = 
         target.instructionTemplateNavigator();
@@ -634,35 +635,32 @@ bool
 BusBroker::canTransportImmediate(const MoveNode& node) const {
     ResourceMap::const_iterator resIter = resMap_.begin();
     while (resIter != resMap_.end()) {
-        BusResource* busRes = dynamic_cast<BusResource*>((*resIter).second);
-        if (busRes == NULL) {
-            throw InvalidData(
-                __FILE__, __LINE__, __func__,
-                "Bus broker has other then Bus Resource registered!");
-        }        
+        BusResource* busRes = static_cast<BusResource*>((*resIter).second);
         if (canTransportImmediate(node, findImmResource(*busRes))) {
+            bool guardOK = false;
+            const Bus* aBus =
+                static_cast<const Bus*>(&machinePartOf(*busRes));
             if (node.move().isUnconditional()) {
-                return true;
+                guardOK = true;
             } else {
                 // We need to check that the bus contains the guard
                 // which the move has. Only return true if the
                 // guard is found from the bus.
                 const Guard& guard = node.move().guard().guard();
-                if((dynamic_cast<const RegisterGuard*>(&guard) == NULL)) {
-                    throw InvalidData(
-                        __FILE__, __LINE__, __func__,
-                        "Move guard is not register!");        
-                }
-                const Bus* aBus =
-                    dynamic_cast<const Bus*>(&machinePartOf(*busRes));
-                if (aBus == NULL) {
-                    throw InvalidData(
-                        __FILE__, __LINE__, __func__,
-                        "Bus Resource is missing bus in MOM!");
-                }
                 for (int j = 0; j < aBus->guardCount(); j++) {
                     Guard* busGuard = aBus->guard(j);
                     if (busGuard->isEqual(guard)) {
+                        guardOK = true;
+                        break;
+                    }
+                }
+            }
+            if (guardOK) {
+                if (!hasLimm_) {
+                    return true;
+                } else {
+                    if (MachineConnectivityCheck::busConnectedToDestination(
+                            *aBus, node)) {
                         return true;
                     }
                 }
@@ -672,7 +670,6 @@ BusBroker::canTransportImmediate(const MoveNode& node) const {
     }
     return false;
 }
-
 
 /**
  * Return true if immediate in given node can be transported by bus

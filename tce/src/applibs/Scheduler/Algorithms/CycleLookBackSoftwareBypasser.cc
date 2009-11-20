@@ -128,6 +128,13 @@ CycleLookBackSoftwareBypasser::bypassNode(
     }
 
     MoveNode& source = ddg.tailNode(*bypassEdge);
+
+    // don't bypass from incoming tempregcopies of immediates
+    if (source.isSourceConstant() &&
+        source.move().hasAnnotations(
+            TTAProgram::ProgramAnnotation::ANN_CONNECTIVITY_MOVE)) {
+        return 0;
+    }
             
     // source node is too far for our purposes
     // do not bypass this operand
