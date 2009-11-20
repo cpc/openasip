@@ -230,6 +230,10 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.address = 0;
         def.alignment = td->getPrefTypeAlignment(type);
         def.size = td->getTypeStoreSize(type);
+        // memcpy seems to assume global values are aligned by 4
+        if (def.size > def.alignment) {
+            def.alignment = std::max(def.alignment,4u);
+        }
 
         /*
           std::cerr << "MARKER: " 
