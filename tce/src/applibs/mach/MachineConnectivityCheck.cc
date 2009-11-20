@@ -880,8 +880,6 @@ MachineConnectivityCheck::busConnectedToAnyFU(
             if (busConnectedToFU(bus, fu, opName, opIndex)) {
                 return true;
             }
-
-//            return true;
         }
     }
     return false;
