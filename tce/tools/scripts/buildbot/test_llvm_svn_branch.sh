@@ -82,7 +82,7 @@ then
     ./gen_llvm_shared_lib.sh
 fi
 
-tools/scripts/compiletest.sh -t
+tools/scripts/compiletest.sh 
 
 if [ -s compiletest.error.log ]
 then
