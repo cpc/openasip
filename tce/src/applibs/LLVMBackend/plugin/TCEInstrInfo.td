@@ -285,7 +285,7 @@ def : Pat<(TCEConstPool tconstpool:$in), (MOVI32ri tconstpool:$in)>;
 // ============================
 
 // Return
-let Uses = [RA], isReturn = 1, isTerminator = 1, 
+let isReturn = 1, isTerminator = 1, 
     hasDelaySlot = 1, isBarrier = 1 in {
     def RETL: InstTCE<(outs), (ins),
    	"return-address -> jump.1; # RETURN", [(retflag)]>;

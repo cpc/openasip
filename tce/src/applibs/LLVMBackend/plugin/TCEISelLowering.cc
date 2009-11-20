@@ -675,8 +675,7 @@ getRegClassForInlineAsmConstraint(const std::string &Constraint,
 
 bool
 TCETargetLowering::isOffsetFoldingLegal(const GlobalAddressSDNode *GA) const {
-  // should be legal since we do not emi PIC code
-  return true;
+  return false;
 }
 
 /// getFunctionAlignment - Return the Log2 alignment of this function.
