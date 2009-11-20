@@ -21,32 +21,35 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
-# Set these optional variables, if reposity is not checkouted or configured yet
 #
-# DEFAULT_CONFIGURE_COMMAND
-# SVN_REPO_URL
-
-# example variable settings:
-# 
-# SVN_REPO_DIR="/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/chekcout"
+# Checkouts or updates requested SVN repo revision to requested directory
+# and runs configure, make and make install to repo.
+#
+# Set following variables:
+#
+# SVN_REPO_DIR="/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/llvm-trunk"
+# BUILD_DIR="/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/llvm-build"
 # SVN_REPO_URL="http://llvm.org/svn/llvm-project/llvm/trunk"
-# DEFAULT_CONFIGURE_COMMAND="/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/chekcout/configure --enable-optimized --prefix=/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/install"
-# BUILD_DIR="/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/build"
+# SVN_REV="-r 8301" empty if latest revision is wanted
+# CONFIGURE_COMMAND="$SVN_REPO_DIR/configure --enable-optimized --prefix=/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/install"
+
+#
+# author Mikael Lepistö 2009 
+#
 
 # check that required parameters are defined SVN_REPO_DIR, BUILD_DIR 
 
 # TODO: check that directories are absolute (first letter should be /)
-
 if [ -z ${SVN_REPO_DIR} ]
 then
     echo "ERROR: Define SVN_REPO_DIR where svn reposity will be checkouted if not already exists."
-    return 1;
+    exit 1;
 fi
 
 if [ -z ${BUILD_DIR} ]
 then
     echo "ERROR: Define BUILD_DIR where sources are configured and built."
-    return 1;
+    exit 1;
 fi
 
 # make repo dir if not exist
@@ -55,7 +58,7 @@ then
     if [ -z ${SVN_REPO_URL} ]
     then
         echo "ERROR: Define SVN_REPO_URL where from reposity will be checkouted."
-        return 1;
+        exit 1;
     fi
     echo "---------- SVN Checkout ---------------"
     echo "svn co ${SVN_REPO_URL} ${SVN_REPO_DIR}"
@@ -67,13 +70,13 @@ cd ${SVN_REPO_DIR}
 if [ ! -d .svn ]
 then
     echo "${SVN_REPO_DIR} directory is not valid svn checkout"
-    return 1
+    exit 1
 fi
 
 # update sources
 echo "---------- Updating svn directory ----------"
-echo "$PWD\$ svn up"
-svn up
+echo "$PWD\$ svn up $SVN_REV"
+svn up $SVN_REV
 
 # go to build dir
 mkdir -p ${BUILD_DIR}
@@ -85,24 +88,23 @@ echo "$PWD\$ make uninstall"
 make uninstall
 
 # get configure command if not defined
-if [ -z "${DEFAULT_CONFIGURE_COMMAND}" ]
+if [ -z "${CONFIGURE_COMMAND}" ]
 then
     if [ ! -e config.log ]
     then
-        echo "ERROR: old configure was not found set DEFAULT_CONFIGURE_COMMAND variable!"
-        return 1;
+        echo "ERROR: old configure was not found set CONFIGURE_COMMAND variable!"
+        exit 1;
     else
         # NOTE: This is a bit fragile
-        DEFAULT_CONFIGURE_COMMAND=`head -7 config.log|tail -1|cut -b5-`
-        echo 'Found old configure command to use: '${DEFAULT_CONFIGURE_COMMAND}
+        CONFIGURE_COMMAND=`head -7 config.log|tail -1|cut -b5-`
+        echo 'Found old configure command to use: '${CONFIGURE_COMMAND}
     fi
 fi
 
-
 # run configure and install
 echo "---------- Running configure ----------"
-echo "$PWD\$" ${DEFAULT_CONFIGURE_COMMAND}
-${DEFAULT_CONFIGURE_COMMAND}
+echo "$PWD\$" ${CONFIGURE_COMMAND}
+${CONFIGURE_COMMAND}
 
 echo "---------- Make and install ----------"
 echo "$PWD\$ make"
