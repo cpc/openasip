@@ -63,31 +63,23 @@ export CONFIGURE_COMMAND="$TCE_LLVM_BZR_ROOT/tce-llvm-gcc/configure --prefix=$IN
 
 $TCE_LLVM_BZR_ROOT/tce/tools/scripts/buildbot/update_svn_installation.sh
 
-# update and test tce
-
-# copied from nightly.sh.
-function start_compiletest {
-    cd "${BRANCH_DIR}/tce"
-
-    # remove the zOMG error mail when testing is finished, buildbot will handle the mails
-    export ERROR_MAIL=no
-    export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
-    export CXX="ccache g++${ALTGCC}"
-    export CC="ccache gcc${ALTGCC}"
-    export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
-    export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
-
-    ./gen_config.sh >& /dev/null
-
-    if [ -x gen_llvm_shared_lib.sh ]
-    then
-        ./gen_llvm_shared_lib.sh >& /dev/null
-    fi
-
-    tools/scripts/compiletest.sh -t $@ >& test.log
-
-    ${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache
-}
-
+# update and test tce copied from nightly test...
 BRANCH_DIR=$TCE_LLVM_BZR_ROOT
-start_compiletest
+cd "${BRANCH_DIR}/tce"
+${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache
+
+# remove the zOMG error mail when testing is finished, buildbot will handle the mails
+export ERROR_MAIL=no
+export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
+#export CXX="ccache g++${ALTGCC}"
+#export CC="ccache gcc${ALTGCC}"
+#export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
+#export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
+
+./gen_config.sh
+if [ -x gen_llvm_shared_lib.sh ] 
+then
+    ./gen_llvm_shared_lib.sh
+fi
+
+tools/scripts/compiletest.sh -t
