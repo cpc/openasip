@@ -83,3 +83,9 @@ then
 fi
 
 tools/scripts/compiletest.sh -t
+
+if [ -s compiletest.error.log ]
+then
+   exit 1
+fi
+exit 0
