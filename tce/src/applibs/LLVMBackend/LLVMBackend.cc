@@ -43,7 +43,6 @@
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Target/TargetOptions.h>
-#include <llvm/Target/TargetAsmInfo.h>
 #include <llvm/Target/TargetRegistry.h>
 
 #include <llvm/Transforms/IPO.h>
