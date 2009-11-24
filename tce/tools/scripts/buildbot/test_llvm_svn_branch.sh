@@ -61,6 +61,12 @@ export BUILD_DIR="$TEST_DIRECTORY/llvm-gcc-build"
 export SVN_REPO_URL="http://llvm.org/svn/llvm-project/llvm-gcc-4.2/trunk"
 export CONFIGURE_COMMAND="$TCE_LLVM_BZR_ROOT/tce-llvm-gcc/configure --prefix=$INSTALL_DIRECTORY --with-llvm-gcc-sources=$TEST_DIRECTORY/llvm-gcc-trunk"
 
+# run autoreconf if there's no configure
+if [ ! -e $TCE_LLVM_BZR_ROOT/tce-llvm-gcc/configure ]
+then
+	autoreconf $TCE_LLVM_BZR_ROOT/tce-llvm-gcc/
+fi
+
 $TCE_LLVM_BZR_ROOT/tce/tools/scripts/buildbot/update_svn_installation.sh
 
 # update and test tce copied from nightly test...
@@ -68,9 +74,6 @@ BRANCH_DIR=$TCE_LLVM_BZR_ROOT
 cd "${BRANCH_DIR}/tce"
 ${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache
 
-# remove the zOMG error mail when testing is finished, buildbot will handle the mails
-export ERROR_MAIL=no
-export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
 #export CXX="ccache g++${ALTGCC}"
 #export CC="ccache gcc${ALTGCC}"
 #export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
