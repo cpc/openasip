@@ -601,7 +601,7 @@ else:
 
     # convert -l switches to static library link commands.
     for i in options.libs:
-        linkList.append(newlibprefix + "/lib%s.a" % i)
+        linkList.append(newlib_libdir + "/lib%s.a" % i)
     
     linkedFileName = linkBytecode(linkList, namePrefix, options.verbose)
 
