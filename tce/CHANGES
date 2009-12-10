@@ -9,6 +9,9 @@ New features
   Initialization File) used by Altera.
 - ttasim-tandem: a tool for comparing the two simulation engines
   to assist in tracking simulation bugs.
+- Operation code numbering guideline changed. Operation codes should be
+  numbered according to the their alphabetical order. HDBEditor and ProGe
+  issue a warning message if this convention is violated.
 
 Code optimizations
 ------------------

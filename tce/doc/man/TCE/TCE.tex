@@ -29,7 +29,7 @@
 \title{TTA Codesign Environment v1.1}
 \ver{13}
 \firstday{25.10.2006}
-\lastday{28.10.2009}
+\lastday{10.12.2009}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -2673,11 +2673,11 @@ needed.
 The names you set for the ports in VHDL code is up to you. When you define
 an FU implementation in HDB you'll have to do port mapping where you map the
 VHDL implementation names to the HDB counterparts. I strongly recommend to
-use a consistent naming convention to avoid confusion. In the future,
-HDBEditor might include prefilled dialog fields with the defacto standard
+use a consistent naming convention to avoid confusion. HDBEditor prefills 
+the common control signal dialog fields with the defacto standard
 names. If you use your own naming style for the ports I still recommend to
 use the standard names for control signals which are used in the example
-above (glock = Global Lock, rstx = reset, x stands for active low, clk =
+above (glock = Global Lock, rstx = reset (x stands for active low), clk =
 clock).
 
 The input ports have also load ports. The load signal is active high when the
@@ -2697,6 +2697,30 @@ these ports must be defined as external in HDB.
 
 See the TCE Tour-tutorial (section \ref{sec:tcetour}) for an example how to
 add an FU implementation to hdb.
+
+\subsection{Operation code order}
+\label{sec:opcodeorder}
+If there are multiple operations in a Function Unit the operation codes
+should be numbered according to their alphabetical order. E.g. if there is
+an ALU with following operations: `Add', `Sub', `And', `Xor' and `Not' the
+operation codes should be ordered as following:
+
+\begin{tabular}{|c|c|}
+ \hline
+ Operation name & Operation code \\ \hline
+ Add & 0 \\ \hline
+ And & 1 \\ \hline
+ Not & 2 \\ \hline
+ Sub & 3 \\ \hline
+ Xor & 4 \\ \hline
+\end{tabular}
+
+HDBEditor and Processor Generator will issue a warning message if this
+guideline is not used in operation code numbering. Currently other
+numbering conventions can still be used but the support might be dropped
+in future versions of TCE. In order to ensure compatibility it is recommended
+that you use this new convention.
+
 
 \subsection{Summary of interface ports}
 \subsubsection{Input/Output operand ports}
@@ -5430,6 +5454,18 @@ implement almost any kind of memory hierarchy the user wants. Most probably
 you must implement a memory adapter to bind the memory chip and the TTA
 processor interfaces together.
 
+\subsection{Warnings from Processor Generator}
+\subsubsection{Warning: Processor Generator failed to generate a test bench}
+The automatic testbench generator currently does not support any special
+function units that connect signals out from toplevel.vhdl. This warning
+can be ignored if you are not planning to use the automatically generated
+test bench.
+
+\subsubsection{Warning: Opcode defined in HDB for operation ...}
+Processor Generator gives a warning message if the operation codes in FU
+are not numbered according to the alphabetical order of the operations.
+The vhdl implementation and hdb entry of the FU should be fixed to use this
+kind of numbering. See section \ref{sec:opcodeorder} for more details.
 
 
 \chapter{TROUBLESHOOTING}
