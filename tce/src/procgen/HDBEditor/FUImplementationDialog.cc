@@ -77,8 +77,10 @@ BEGIN_EVENT_TABLE(FUImplementationDialog, wxDialog)
     EVT_BUTTON(ID_EDIT_PARAMETER, FUImplementationDialog::onEditParameter)
     EVT_BUTTON(ID_DELETE_PARAMETER, FUImplementationDialog::onDeleteParameter)
 
+#ifdef ALLOW_OPCODE_EDITING
     EVT_BUTTON(ID_SET_OPCODE, FUImplementationDialog::onSetOpcode)
     EVT_BUTTON(ID_CLEAR_OPCODE, FUImplementationDialog::onClearOpcode)
+#endif
 
     EVT_BUTTON(ID_ADD_SOURCE, FUImplementationDialog::onAddSourceFile)
     EVT_BUTTON(ID_DELETE_SOURCE, FUImplementationDialog::onDeleteSourceFile)
@@ -97,12 +99,12 @@ BEGIN_EVENT_TABLE(FUImplementationDialog, wxDialog)
         ID_PARAMETER_LIST, FUImplementationDialog::onParameterSelection)
     EVT_LIST_ITEM_DESELECTED(
         ID_PARAMETER_LIST, FUImplementationDialog::onParameterSelection)
-
+#ifdef ALLOW_OPCODE_EDITING
     EVT_LIST_ITEM_SELECTED(
         ID_OPCODE_LIST, FUImplementationDialog::onOpcodeSelection)
     EVT_LIST_ITEM_DESELECTED(
         ID_OPCODE_LIST, FUImplementationDialog::onOpcodeSelection)
-
+#endif
     EVT_BUTTON(wxID_OK, FUImplementationDialog::onOK)
 
     EVT_LIST_ITEM_SELECTED(
@@ -123,7 +125,8 @@ FUImplementationDialog::FUImplementationDialog(
     wxWindow* parent, wxWindowID id, FUImplementation& implementation,
     const TTAMachine::FunctionUnit& architecture) :
     wxDialog(parent, id, _T("Function Unit Implementation")),
-    implementation_(implementation), architecture_(architecture) {
+    implementation_(implementation), architecture_(architecture),
+    opcodeWarningShowed_(false) {
 
     createContents(this, true, true);
 
@@ -200,8 +203,10 @@ FUImplementationDialog::FUImplementationDialog(
     FindWindow(ID_DELETE_EXTERNAL_PORT)->Disable();
     FindWindow(ID_EDIT_PARAMETER)->Disable();
     FindWindow(ID_DELETE_PARAMETER)->Disable();
-    FindWindow(ID_SET_OPCODE)->Disable();
-    FindWindow(ID_CLEAR_OPCODE)->Disable();
+#ifdef ALLOW_OPCODE_EDITING
+     FindWindow(ID_SET_OPCODE)->Disable();
+     FindWindow(ID_CLEAR_OPCODE)->Disable();
+#endif
     FindWindow(ID_DELETE_SOURCE)->Disable();
 
     update();
@@ -277,16 +282,57 @@ FUImplementationDialog::update() {
 
     // Update operation list.
     opcodeList_->DeleteAllItems();
+    // arrange operations in alphabetical order
+    std::set<std::string> opcodeSet;
     for (int i = 0; i < architecture_.operationCount(); i++) {
         std::string operation = architecture_.operation(i)->name();
+        opcodeSet.insert(operation);
+    }
+    // operation opcodes should be generated according to the alphabetical
+    // order
+    int index = 0;
+    for (std::set<std::string>::iterator i = opcodeSet.begin();
+         i != opcodeSet.end(); i++) {
+        std::string operation = *i;
         wxString opcode = _T("");
         if (implementation_.hasOpcode(operation)) {
+            int opcodeIndex = implementation_.opcode(operation);
+            if (opcodeIndex != index && !opcodeWarningShowed_) {
+#ifdef ALLOW_OPCODE_EDITING
+                // show warning about future incompatibility
+                wxMessageDialog errorDialog(
+                    this,
+                    _T("Illegal opcodes. Design might not work in future. "
+                       "Opcode IDs must be generated according to the "
+                       "alphabetical order of operation names. Please fix "
+                       "FU's vhdl code and HDB entry"),
+                    _T("Illegal opcodes"), wxOK);
+#else
+                // operations must be in alphaberical order
+                wxMessageDialog errorDialog(
+                    this,
+                    _T("Illegal opcodes. Design won't work. Opcode IDs must "
+                       "be generated according to the alphabetical order of "
+                       "operation names."),
+                    _T("Illegal opcodes"), wxOK);
+#endif
+                opcodeWarningShowed_ = true;
+                errorDialog.ShowModal();
+            }
             opcode =
                 WxConversion::toWxString(implementation_.opcode(operation));
         }
+#ifndef ALLOW_OPCODE_EDITING
+        else {
+            // add default opcode (without ability to modify it)
+            opcode =
+                WxConversion::toWxString(index);
+        }
+#endif
         wxString operationName = WxConversion::toWxString(operation);
-        opcodeList_->InsertItem(i, operationName);
-        opcodeList_->SetItem(i, 1, opcode);
+        opcodeList_->InsertItem(index, operationName);
+        opcodeList_->SetItem(index, 1, opcode);
+        ++index;
     }
 
     wxListEvent dummy;
@@ -575,7 +621,7 @@ FUImplementationDialog::selectedParameter() {
     return implementation_.parameter(item);
 }
 
-
+#ifdef ALLOW_OPCODE_EDITING
 /**
  * Event handler for the opcode list selection changes.
  *
@@ -653,6 +699,7 @@ FUImplementationDialog::onSetOpcode(wxCommandEvent&) {
 
     update();
 }
+#endif
 
 /**
  * Event handler for the add source file button.
@@ -749,7 +796,7 @@ FUImplementationDialog::onOK(wxCommandEvent&) {
             return;            
         }
     }
-
+#ifdef ALLOW_OPCODE_EDITING 
     if (architecture_.operationCount() > 1) {
         for (int i = 0; i < architecture_.operationCount(); i++) {
             if (!implementation_.hasOpcode(
@@ -766,6 +813,7 @@ FUImplementationDialog::onOK(wxCommandEvent&) {
             }
         }
     }
+#endif
 
     implementation_.setModuleName(WxConversion::toString(name_));
     implementation_.setClkPort(WxConversion::toString(clkPort_));
@@ -869,7 +917,7 @@ FUImplementationDialog::createContents(
     item26->Add( item28, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
     wxBoxSizer *item29 = new wxBoxSizer( wxHORIZONTAL );
-
+#ifdef ALLOW_OPCODE_EDITING
     wxSpinCtrl *item30 = new wxSpinCtrl( parent, ID_OPCODE, wxT("0"), wxDefaultPosition, wxSize(60,-1), 0, 0, 100, 0 );
     item29->Add( item30, 0, wxALIGN_CENTER|wxALL, 5 );
 
@@ -878,7 +926,7 @@ FUImplementationDialog::createContents(
 
     wxButton *item32 = new wxButton( parent, ID_CLEAR_OPCODE, wxT("Clear"), wxDefaultPosition, wxDefaultSize, 0 );
     item29->Add( item32, 0, wxALIGN_CENTER|wxALL, 5 );
-
+#endif
     item26->Add( item29, 0, wxALIGN_RIGHT|wxALIGN_CENTER_VERTICAL, 5 );
 
     item1->Add( item26, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );

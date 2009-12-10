@@ -50,13 +50,19 @@ $CC -O2 -a $ADF -o $TPEF $INC $SRC || eexit "Failed to compile app"
 $CBEM $ADF || eexit "Createbem failed"
 
 # generate processor without compression (0)
-$PROGE -b $BEM -i $IDF -o $DIR0 $ADF || eexit "ProGe failed! Check that data/minimal.idf is up to date!"
+$PROGE -b $BEM -i $IDF -o $DIR0 $ADF >& proge.out || eexit "ProGe failed! Check that data/minimal.idf is up to date!"
+cat proge.out | grep -v "Warning: Opcode defined in HDB for operation"
+rm -f proge.out
 
 # generate processor for simple dictionary (1)
-$PROGE -b $BEM -i $IDF -o $DIR1 $ADF || eexit "ProGe failed! Check that data/minimal.idf is up to date!"
+$PROGE -b $BEM -i $IDF -o $DIR1 $ADF >& proge.out || eexit "ProGe failed! Check that data/minimal.idf is up to date!"
+cat proge.out | grep -v "Warning: Opcode defined in HDB for operation"
+rm -f proge.out
 
 # generate processor for move slot dictionary (2)
-$PROGE -b $BEM -i $IDF -o $DIR2 $ADF || eexit "ProGe failed! Check that data/minimal.idf is up to date!"
+$PROGE -b $BEM -i $IDF -o $DIR2 $ADF >& proge.out || eexit "ProGe failed! Check that data/minimal.idf is up to date!"
+cat proge.out | grep -v "Warning: Opcode defined in HDB for operation"
+rm -f proge.out
 
 # generate images for processor 0
 $PIG -b $BEM -d -w 4 -p $TPEF -x $DIR0 $ADF || eexit "PIG failed (without compression)!"

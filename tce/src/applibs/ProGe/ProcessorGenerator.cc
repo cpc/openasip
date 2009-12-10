@@ -133,7 +133,8 @@ ProcessorGenerator::generateProcessor(
     checkIULatencies(machine, implementation, plugin);
 
     NetlistGenerator netlistGenerator(machine, implementation, plugin);
-    Netlist* netlist = netlistGenerator.generate(imemWidthInMAUs);
+    Netlist* netlist = netlistGenerator.generate(
+        imemWidthInMAUs, warningStream);
 
     string pluginDstDir = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         "gcu_ic";

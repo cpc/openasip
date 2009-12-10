@@ -34,6 +34,7 @@
 #define TTA_NETLIST_GENERATOR_HH
 
 #include <map>
+#include <iostream>
 
 #include "RFImplementationLocation.hh"
 #include "FUImplementationLocation.hh"
@@ -75,7 +76,7 @@ public:
         ICDecoderGeneratorPlugin& plugin);
     virtual ~NetlistGenerator();
 
-    Netlist* generate(int imemWidthInMAUs)
+    Netlist* generate(int imemWidthInMAUs, std::ostream& warningStream)
         throw (IOException, InvalidData, OutOfRange, InstanceNotFound);
 
     NetlistPort& netlistPort(const TTAMachine::Port& port) const
@@ -150,7 +151,7 @@ private:
     void addGCUToNetlist(NetlistBlock& toplevelBlock, int imemWidthInMAUs);
     void addFUToNetlist(
         const IDF::FUImplementationLocation& location,
-        Netlist& netlist)
+        Netlist& netlist, std::ostream& warningStream)
         throw (IOException, InvalidData);
     void addRFToNetlist(
         const IDF::RFImplementationLocation& location,
@@ -191,7 +192,8 @@ private:
         const HDB::FUEntry* fuEntry) const;
     unsigned int calculateAddressWidth(TTAMachine::FunctionUnit const* fu) const;
 
-    static int opcodePortWidth(const HDB::FUEntry& fu)
+    static int opcodePortWidth(
+        const HDB::FUEntry& fu, std::ostream& warningStream)
         throw (InvalidData);
     static TTAMachine::FUPort& findCorrespondingPort(
         const TTAMachine::FunctionUnit& fuToSearch,
@@ -244,7 +246,6 @@ private:
     NetlistPort* raInPort_;
     /// Returns address out port in GCU (ifetch).
     NetlistPort* raOutPort_;
-
 };
 }
 

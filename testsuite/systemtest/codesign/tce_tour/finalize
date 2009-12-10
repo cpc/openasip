@@ -9,6 +9,7 @@ rm -f custom.bem
 rm -f custom_data.img
 rm -f custom.img
 rm -rf proge-output
+rm -f proge.msg
 
 exit 0
 

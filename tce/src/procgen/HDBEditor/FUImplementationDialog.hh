@@ -35,6 +35,10 @@
 
 #include "FUImplementation.hh"
 
+// Remove this define when opcode editing should be disabled.
+// Also edit hdb/HDBManager.cc not to write opcodes into hdb anymore.
+#define ALLOW_OPCODE_EDITING
+
 class wxListCtrl;
 
 namespace TTAMachine {
@@ -80,9 +84,11 @@ private:
     void onAddSourceFile(wxCommandEvent& event);
     void onDeleteSourceFile(wxCommandEvent& even);
 
+#ifdef ALLOW_OPCODE_EDITING
     void onOpcodeSelection(wxListEvent& event);
     void onSetOpcode(wxCommandEvent& event);
     void onClearOpcode(wxCommandEvent& event);
+#endif
 
     wxSizer* createContents(wxWindow* parent, bool call_fit, bool set_sizer);
 
@@ -99,8 +105,11 @@ private:
         ID_LABEL_GLOCK_REQ_PORT,
         ID_GLOCK_REQ_PORT,
         ID_OPCODE_LIST,
+#ifdef ALLOW_OPCODE_EDITING
         ID_CLEAR_OPCODE,
         ID_SET_OPCODE,
+        ID_OPCODE, 
+#endif
         ID_EXTERNAL_PORT_LIST,
         ID_ADD_EXTERNAL_PORT,
         ID_EDIT_EXTERNAL_PORT,
@@ -116,7 +125,6 @@ private:
         ID_OPCODE_PORT,
         ID_ARCH_PORT_LIST,
         ID_EDIT_ARCH_PORT,
-        ID_OPCODE,
         ID_LINE
     };
 
@@ -124,6 +132,8 @@ private:
     HDB::FUImplementation& implementation_;
     /// Function unit architecture the FUImplementation implements.
     const TTAMachine::FunctionUnit& architecture_;
+
+    bool opcodeWarningShowed_;
 
     /// Pointer to the architecture port list widget.
     wxListCtrl* archPortList_;
