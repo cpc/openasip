@@ -3,7 +3,9 @@ tce-llvm-gcc cross-compiler installer
 
 Compiles tce-llvm-gcc cross-compiler which tcecc uses for doing compiling C 
 sources to llvm bitcode. This (or clang) must be installed before newlib can 
-be compiled.
+be compiled. 
+
+Note: you need to have LLVM 2.6 installed to compile the cross-compiler.
 
 0.1 Download llvm-gcc sources for your tce installation llvm.org.
 
