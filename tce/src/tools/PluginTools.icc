@@ -57,6 +57,16 @@ PluginTools::importSymbol(
     throw (MultipleInstancesFound, FileNotFound, DynamicLibraryException,
            SymbolNotFound) {
 
+    /* This produces warnings with newer gcc's, but it seems it's 
+       a known problem with dlsym():
+
+       http://www.opengroup.org/onlinepubs/009695399/functions/dlsym.html
+       (see its rationale)
+
+       http://stackoverflow.com/questions/1096341/function-pointers-casting-in-c
+       http://www.trilithium.com/johan/2004/12/problem-with-dlsym/
+       http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#573       
+    */
     *reinterpret_cast<void**>(&target) = loadSym(symbolName, module);
 }
 
