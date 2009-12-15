@@ -5,7 +5,8 @@
  *
  * Modified to do other things that just validating.
  *
- * @author Mikael LepistÃ¶ 2007 (mikael.lepisto-no.spam-tut.fi)
+ * @author Mikael Lepistö 2007 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2009
  * @rating red 
  */
 
@@ -61,10 +62,32 @@
 #define BOOST_SPIRIT_DEBUG
 #endif // defined(_DEBUG)
 
+#include <boost/version.hpp>
+
+#if BOOST_VERSION >= 103800
+
+#include <boost/spirit/include/classic.hpp>
+#include <boost/spirit/include/classic_utility.hpp>
+#include <boost/spirit/include/classic_symbols.hpp>
+#include <boost/spirit/include/classic_assign_actor.hpp>
+#include <boost/spirit/include/classic_assign_key_actor.hpp>
+#include <boost/spirit/include/classic_clear_actor.hpp>
+#include <boost/spirit/include/classic_decrement_actor.hpp>
+#include <boost/spirit/include/classic_erase_actor.hpp> 
+#include <boost/spirit/include/classic_increment_actor.hpp>
+#include <boost/spirit/include/classic_insert_key_actor.hpp>
+#include <boost/spirit/include/classic_insert_at_actor.hpp>
+#include <boost/spirit/include/classic_push_back_actor.hpp>
+#include <boost/spirit/include/classic_push_front_actor.hpp>
+#include <boost/spirit/include/classic_swap_actor.hpp>
+
+using namespace boost::spirit::classic;
+
+#else
+
 #include <boost/spirit/core.hpp>
 #include <boost/spirit/utility.hpp>
 #include <boost/spirit/symbols.hpp>
-
 #include <boost/spirit/actor/assign_actor.hpp>
 #include <boost/spirit/actor/assign_key_actor.hpp>
 #include <boost/spirit/actor/clear_actor.hpp>
@@ -76,6 +99,10 @@
 #include <boost/spirit/actor/push_back_actor.hpp>
 #include <boost/spirit/actor/push_front_actor.hpp>
 #include <boost/spirit/actor/swap_actor.hpp>
+
+using namespace boost::spirit;
+
+#endif
 
 #include "OperationDAG.hh"
 #include "Conversion.hh"
