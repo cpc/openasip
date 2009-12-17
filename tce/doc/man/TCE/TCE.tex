@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.1}
-\ver{13}
+\ver{14}
 \firstday{25.10.2006}
-\lastday{10.12.2009}
+\lastday{17.12.2009}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -5442,6 +5442,7 @@ processor. When you set the data address space width in ProDe, the width
 is the address width inside the processor.
 
 \subsection{Instruction Memory}
+
 The default GCU assumes that instruction memory is intruction addressable. In
 other words the instruction word must fit in the MAU of the instruction
 memory. This way the next instruction can be referenced by incrementing the
@@ -5454,7 +5455,18 @@ implement almost any kind of memory hierarchy the user wants. Most probably
 you must implement a memory adapter to bind the memory chip and the TTA
 processor interfaces together.
 
-\subsection{Warnings from Processor Generator}
+\subsection{Stack and Heap}
+
+The heap (allocated with 'malloc' in C or 'new' in C++) and stack grow 
+towards each other. Stack growes from the end of the data address space 
+towards the beginning of the address space, while heap grows towards 
+the end of the address space starting from the end of the global data area.
+
+Thus, the correct way to increase the space for heap/stack is to increase
+the size of your data memory address space in the ADF. 
+
+\section{Processor Generator}
+
 \subsubsection{Warning: Processor Generator failed to generate a test bench}
 The automatic testbench generator currently does not support any special
 function units that connect signals out from toplevel.vhdl. This warning
@@ -5462,10 +5474,12 @@ can be ignored if you are not planning to use the automatically generated
 test bench.
 
 \subsubsection{Warning: Opcode defined in HDB for operation ...}
+
 Processor Generator gives a warning message if the operation codes in FU
 are not numbered according to the alphabetical order of the operations.
-The vhdl implementation and hdb entry of the FU should be fixed to use this
-kind of numbering. See section \ref{sec:opcodeorder} for more details.
+The VHDL implementation and the HDB entry of the FU should be fixed to use 
+this kind of opcode numbering. See section \ref{sec:opcodeorder} for more 
+details.
 
 
 \chapter{TROUBLESHOOTING}

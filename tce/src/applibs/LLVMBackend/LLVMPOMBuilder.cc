@@ -26,8 +26,8 @@
  *
  * Implementation of LLVMPOMBuilder class.
  *
- * @author Veli-Pekka J√§√§skel√§inen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepist√∂ 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2007-2009 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistˆ 2009 (mikael.lepisto-no.spam-tut.fi)
  * @note reting: red
  */
 
