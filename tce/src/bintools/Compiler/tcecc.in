@@ -122,19 +122,19 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # even thoug it does it very bad, it shorten optimizetime)
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":                    
-                    command = "tce-llvm-gcc --emit-llvm -O2 -ffreestanding "\
+                    command = ("tce-llvm-gcc --emit-llvm -O%d -ffreestanding "\
                               "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
                               " " + compileFlags + baseName + suffix + " -o " +\
-                              outFileName + ".tobelowered;"  
+                              outFileName + ".tobelowered;") % options.gcc_optlevel
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
                     
                    
                 elif suffix == ".cpp" or suffix == ".cc":
-                    command = "tce-llvm-g++ --emit-llvm -O2 -ffreestanding "\
+                    command = ("tce-llvm-g++ --emit-llvm -O%d -ffreestanding "\
                               "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
                               " " + compileFlags + baseName + suffix + " -o " +\
-                              outFileName + ".tobelowered;" 
+                              outFileName + ".tobelowered;") % options.gcc_optlevel
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
 
@@ -472,6 +472,13 @@ switch latency (in microseconds). In case the target does not have the RTIMER
 operation, sched_yield() is called in every basic block unconditionally, 
 producing considerable additional overhead to the program exectuion.""")
 
+p.add_option('--gcc-optlevel',
+             type="int", action="store", dest="gcc_optlevel",
+             default=2,
+             help=\
+"""The level of optimization done by the llvm-gcc frontend,
+if applicable.""")             
+
 # Commandline argument parsing
 
 # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
@@ -605,7 +612,7 @@ else:
     
     linkedFileName = linkBytecode(linkList, namePrefix, options.verbose)
 
-    # optimize
+    # optimize the fully linked program also
     optimizedFileName = optimizeBytecode(linkedFileName, namePrefix)
 
     if (options.adf_file == ""):

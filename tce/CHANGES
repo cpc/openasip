@@ -12,6 +12,7 @@ New features
 - Operation code numbering guideline changed. Operation codes should be
   numbered according to the their alphabetical order. HDBEditor and ProGe
   issue a warning message if this convention is violated.
+- tcecc: added a switch for setting the llvm-gcc optimization level
 
 Code optimizations
 ------------------
