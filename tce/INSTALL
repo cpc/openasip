@@ -245,3 +245,61 @@ gmake && gmake install
 
 (default system make is BSD make in FreeBSD systems, we need to use gmake
 to run GNU make).
+
+Installing prerequisite libraries without superuser priviledges
+===============================================================
+When installing as a normal user, it is likely that the development
+packages of the required librariers are missing in the system and they
+can be installed only by the superuser system widely.  In this case, the
+solution is to download respective source packages, compile them, and
+install also them in a user's directory just like the TCE itself.
+
+In this example, it is assumed that the tce will be installed in
+/share/userdir/tce/tce-v.n where th v.n is substituted with the version
+number of the TCE. First, the following packages (as tar archieves) are 
+downloaded from the webpages of boost, tcl, wxWidgets, xerces, and sqlite 
+projects:
+
+boost_1_41_0.tar.gz                
+tcl8.4.19-src.tar.gz
+wxWidgets-2.8.10.tar.gz
+xerces-c_2_8_0-x86-linux-gcc_3_4.tar.gz
+sqlite-amalgamation-3.6.22.tar.gz
+
+compiled, and installed on /share/userdir/tce/extras in the following 
+directories (directories must be created with mkdir before the
+installation): 
+
+$ ls extras/
+boost  sqlite3  tcldevel  wxWidgets  xerces
+
+For the tcl a symbolic link libtcl.so -> libtcl8.4.so must be created 
+in extras/tcldevel/lib/
+
+Next, the tce sources are obtained with bzr (bzr requires python2.4),
+the TCE instructions are followed, and as instructed the 
+
+llvm-2.6.tar
+llvm-gcc-4.2-2.6.source.tar 
+
+are downloaded and compiled. The llvm-2.6 is installed in  
+/share/userdir/tce/llvm-2.6 instead of extras/ in this example.
+
+Naturally, the compilation of TCE requires defining the libraries explicitly.
+Therefore, before TCE compilation the environment has to be set:
+
+export PATH=/share/userdir/tce/tce-v.n/bin:share/userdir/tce/llvm-2.6/bin:$PATH
+
+export LD_LIBRARY_PATH=/share/userdir/tce/llvm-2.6/lib:/share/userdir/tce/extras/boost/lib:/share/userdir/tce/extras/tcldevel/lib:/share/userdir/tce/extras/wxWidgets/lib:/share/userdir/tce/extras/xerces/lib:/share/userdir/tce/extras/sqlite3:$LD_LIBRARY_PATH
+
+export LDFLAGS="-L/share/userdir/tce/extras/tcldevel/lib -L/share/userdir/tce/extras/xerces/lib"
+
+and the paths must be given also for the configure command of the TCE 
+compilation:
+
+./configure --with-boost=/share/userdir/tce/extras/boost --with-wxwidgets=/share/userdir/tce/extras/wxWidgets --with-tcl-headers=/share/userdir/tce/extras/tcldevel/include --with-xerces=/share/userdir/tce/extras/xerces --with-sqlite3=/share/userdir/tce/extras/sqlite3 --prefix=/share/userdir/tce/tce-v.n
+
+Thereafter, make && make install should work fine. Remeber also to set
+the LD_LIBRARY_PATH and PATH variables after the installation when you
+try to run the tce for the first time in a new shell.
+
