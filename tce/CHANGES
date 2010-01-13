@@ -21,6 +21,7 @@ Code optimizations
 - Smarter heuristics for selecting which bus and FU to use, leads to
   programs which use fever connections, allowing more of them to be
   removed.
+- Eliminates some stupid register to itself moves.
 
 Bugfixes
 --------

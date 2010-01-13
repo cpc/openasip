@@ -1221,6 +1221,11 @@ LLVMPOMBuilder::emitMove(
     assert(!src.isReg() || src.isUse());
     assert(dst.isDef());
 
+    // eliminate register-to-itself moves
+    if (dst.isReg() && src.isReg() && dst.getReg() == src.getReg()) {
+        return NULL;
+    }
+
     Bus& bus = umach_->universalBus();
     TTAProgram::Move* move = createMove(
         createTerminal(src), createTerminal(dst), bus);
