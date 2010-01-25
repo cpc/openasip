@@ -23,9 +23,7 @@ addToPath "${TCE_ROOT}/src/procgen/ProGe"
 addToPath "${TCE_ROOT}/src/bintools/PIG"
 [ -e "${TCE_ROOT}/src/bintools/PIG/generatebits" ] || { echo "generatebits not found from source path."; exit 1; }
 
-${TCE_ROOT}/scripts/c2vhdl data/application1/complex_multiply.c >& output || { echo "c2vhdl script failed."; exit 1; }
-cat output | grep -v "Warning: Opcode defined in HDB for operation"
-rm -f output
+${TCE_ROOT}/scripts/c2vhdl data/application1/complex_multiply.c || { echo "c2vhdl script failed."; exit 1; }
 
 # check that image files were created
 if [ ! -e "complex_multiply_data.img" ]; then

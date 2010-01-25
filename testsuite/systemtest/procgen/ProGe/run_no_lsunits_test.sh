@@ -13,7 +13,4 @@ rm -rf 3rd.bem
 ${srcDir}/${createbem} ${dataDir}/3rd.adf
 
 rm -rf ${progeOutDir}
-${srcDir}/${genproc} -b 3rd.bem -i ${dataDir}/3rd.idf -o ${progeOutDir} ${dataDir}/3rd.adf >& proge.msg
-# filter operation warnings away
-cat proge.msg | grep -v "Warning: Opcode defined in HDB for operation"
-rm -f proge.msg
+${srcDir}/${genproc} -b 3rd.bem -i ${dataDir}/3rd.idf -o ${progeOutDir} ${dataDir}/3rd.adf 

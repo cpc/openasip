@@ -72,7 +72,7 @@ void VhdlProgramImageWriter::writeHeader(std::ostream& stream) const {
     stream << "library ieee;" << endl
            << "use ieee.std_logic_1164.all;" << endl
            << "use ieee.std_logic_arith.all;" << endl
-           << "use work.imem_mau_pkg.all;" << endl << endl;
+           << "use work.imem_mau.all;" << endl << endl;
 
     stream << "package imem_image is" << endl << endl
            << "  type std_logic_imem_matrix is array (natural range <>) of "

@@ -63,11 +63,8 @@ test_success "Failed to create bem"
 
 # use processor generator
 rm -rf $PROGE_OUT
-$PROGE -i $IDF -b $BEM -o $PROGE_OUT $MACH2 >& proge.msg
+$PROGE -i $IDF -b $BEM -o $PROGE_OUT $MACH2 
 test_success "Failed to generate processor"
-
-# check if proge's messages had anything significant
-cat proge.msg | grep -v "Warning: Opcode defined in HDB for operation"
 
 # generate bit images
 $PIG -b $BEM -d -w 4 -p $PROG2 -x $PROGE_OUT $MACH2
