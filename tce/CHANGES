@@ -13,6 +13,7 @@ New features
   numbered according to the their alphabetical order. HDBEditor and ProGe
   issue a warning message if this convention is violated.
 - tcecc: added a switch for setting the llvm-gcc optimization level
+- Program Image Generator supports writing binary image to vhdl package
 
 Code optimizations
 ------------------

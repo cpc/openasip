@@ -4,7 +4,8 @@ libpig_la_SOURCES = AsciiImageWriter.cc \
 	InstructionBitVector.cc PIGTextGenerator.cc \
 	ProgramImageGenerator.cc RawImageWriter.cc \
 	AsciiProgramImageWriter.cc ArrayProgramImageWriter.cc \
-	ArrayImageWriter.cc MifImageWriter.cc
+	ArrayImageWriter.cc MifImageWriter.cc VhdlProgramImageWriter.cc \
+	VhdlImageWriter.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -39,5 +40,6 @@ libpig_la_SOURCES += \
 	CodeCompressor.hh CodeCompressorPlugin.hh \
 	DefaultCompressor.hh InstructionBitVector.hh \
 	PIGTextGenerator.hh ProgramImageGenerator.hh \
-	RawImageWriter.hh 
+	RawImageWriter.hh MifImageWriter.hh VhdlProgramImageWriter.hh \
+	VhdlImageWriter.hh
 ## headers end
