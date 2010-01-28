@@ -29,7 +29,7 @@
 \title{TTA Codesign Environment v1.1}
 \ver{14}
 \firstday{25.10.2006}
-\lastday{17.12.2009}
+\lastday{28.01.2010}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -1553,6 +1553,7 @@ Now you are done with adding the FU implementation. Click OK.
 \end{enumerate}
 
 \subsection{Generating the Final Products}
+\label{ssec:tcetour_final_products}
 
 In this step we generate the VHDL implementation of the processor, and the
 bit image of the parallel program.
@@ -2098,6 +2099,305 @@ one assembly code has 52 instructions and it runs the DCT8x8 in
 3298 cycles.
 
 
+\section{Running TTA on FPGA}
+\label{sec:fpgatutorial}
+
+\subsection{Introduction}
+This tutorial illustrates how you can run your TTA designs on a FPGA board.
+Tutorial consists of two simple example sections and a more general case
+description section.
+
+Download the tutorial file package from:
+
+\url{http://tce.cs.tut.fi/tutorial_files/tce_tutorials.tar.gz}\\
+
+Unpack it to a working directory and cd to tce\_tutorials/fpga\_tutorial
+
+\subsection{Simplest example: No data memory}
+\subsubsection{Introduction}
+This is the most FPGA board independent TTA tutorial one can make. The
+application is a simple led blinker which has been implemented using register
+optimized handwritten TTA assembly. In other words the application
+doesn't need a load store unit so there is no need to provide data memory. In
+addition the instruction memory will be implemented as a logic array.
+
+\subsubsection{Application}
+The application performs a 8 leds wide sweep in an endless loop. Sweep 
+illuminates one led at a time and starts again from first led after reaching
+the last led. There is also a delay between the iterations so that the sweep
+can be seen with human eye.
+
+As stated in the introduction the application is coded in assembly. If you went
+through the assembly tutorial the code is probably easy to understand. The code
+is in file \file{blink.tceasm}. The same application is also written in C code
+in file \file{blink.c}.
+
+\subsubsection{Create TTA processor core and instruction image}
+The architecture we're using for this tutorial is \file{tutorial1.adf}. Open it
+in ProDe to take a look at it:
+
+\shellcmd{prode tutorial1.adf}
+
+As you can see it is a simple one bus architecture without a LSU. There are
+also 2 ``new'' function units: rtimer and leds. Rtimer is a simple tick
+counter which provides real time clock or countdown timer operations. Leds is
+function unit that can write '0' or '1' to FPGA output port. If those ports
+are connected to leds the FU can control them.
+
+Leds FU requires a new operation definition and the operation is defined in
+\file{led.opp} and \file{led.cc}. You need to build this operation defintion:
+
+\shellcmd{buildopset led}
+
+Now you can compile the assembly code:
+
+\shellcmd{tceasm -o asm.tpef tutorial1.adf blink.tceasm}
+
+If you wish you can simulate the program with proxim and see how it works but
+the program runs in endless loop and most of the time it stays in the
+``sleep'' loop.
+
+Now you need to select implementations for the function units. This can be
+done in ProDe. See TCE tour section \ref{ssec:tcetour_final_products} for more
+information. Implementations for leds and rtimer are found from the fpga.hdb
+shipped with the tutorial files. Notice that there are 2 implementations for
+the rtimer. ID 3 is for 50 MHz clock frequency and ID 4 for 100 MHz. All other
+FUs are found from the default hdb.
+
+After you have generated \file{tutorial1.idf} generate the binary encoding for
+the arhitecture:
+
+\shellcmd{createbem tutorial1.adf}
+
+Next step is to generate vhdl of the processor:
+
+\shellcmd{generateprocessor -b tutorial1.bem -i tutorial1.idf -o asm\_vhdl/proge-output tutorial1.adf}
+
+And after that create proram image:
+
+\shellcmd{generatebits -b tutorial1.bem -f vhdl -p asm.tpef -x asm\_vhdl/proge-output tutorial1.adf}
+
+Notice that the instruction image format is ``vhdl'' and we request
+generatebits to create data image at all. Now move the generated 
+\file{asm\_imem\_pkg.vhdl} to the asm\_vhdl directory and cd there.
+
+\shellcmd{mv asm\_imem\_pkg.vhdl asm\_vhdl/}
+
+\shellcmd{cd asm\_vhdl}
+
+\subsubsection{Final steps to FPGA}
+We have successfully created the processor core and instruction memory image.
+Now we need an instruction memory component that can use the generated image.
+Luckily you don't have to create it as it is shipped with the tutorial files.
+The component is in file \file{inst\_mem\_logic.vhd} in asm\_vhdl directory
+and it can use the generated \file{asm\_imem\_pkg.vhdl} without any
+modifications.
+
+Next step is to connect TTA toplevel core to the memory component and connect
+the global signals out from that component. This has also been done for you in
+file \file{tutorial\_processor1.vhdl}. If you are curious how this is done
+open the file with your preferred text editor. All the signals coming out of
+this component are later connected to FPGA pins.
+
+Now you need to open your FPGA tool vendor's FPGA design/synthesis program and
+create a new project for your target FPGA. Add the three files in 
+asm\_vhdl-directory (toplevel file \file{tutorial\_processor1.vhdl}, 
+\file{inst\_mem\_logic.vhd} and \file{asm\_imem\_pkg.vhdl}) and all the
+files in proge-output/gcu\_ic/ and proge-output/vhdl directories to the
+project.
+
+Then connect the toplevel signals to appropriate FPGA pins. The pins are most
+probably described in the FPGA board's user manual. Signal 'clk' is obviously
+connected to the pin that provides clock signal. Signal 'rstx' is the reset
+signal of the system and it is active low. Connect it to a switch or
+pushbutton that provides '1' when not pressed. Signal bus 'leds' is 8 bits
+wide and every bit of the bus should be connected to an individual led. Don't
+worry if your board doesn't have 8 user controllable leds, you can leave some
+of them unconnected. In that case all of the leds are off some of the time.
+
+Compile and synthesize your design with the FPGA tools, program your FPGA and
+behold the light show!
+
+\subsection{Second example: Adding data memory}
+\subsubsection{Introduction}
+In this tutorial we will implement the same kind of system as above but this
+time we include data memory and use C coded application. The application 
+algorithm is the same as earlier. Take a look at file \file{blink.c} to see
+how the timer and led operations are used in C code.
+
+\subsubsection{Create TTA processor core and binary images}
+The architecture for this tutorial is \file{tutorial2.adf}. This architecture
+is the same as \file{tutorial1.adf} with the exception that now it has a load
+store unit to interface it with data memory.
+
+You need to compile the operation behaviour for the led function unit if you
+already haven't done it:
+
+\shellcmd{buildopset led}
+
+Then compile the program:
+
+\shellcmd{tcecc -O3 -a tutorial2.adf -o blink.tpef blink.c}
+
+Before you can generate processor vhdl you must select implementations for
+the function units. Open the architecture in ProDe and select Tools->Processor
+Implementation...
+
+\shellcmd{prode tutorial2.adf}
+
+It is important that you choose the implementation for LSU from the fpga.hdb
+shipped with the tutorial files. This implementation has more FPGA friendly
+byte enable definition. Also the implementations for leds and timer FUs are
+found from fpga.hdb. As mentioned in the previous tutorial, timer
+implementation ID 3 is meant for 50 MHz clock frequency and ID 4 for 100 MHz
+clock. Other FUs are found from the default hdb.
+
+Now create binary enconding for the architecture and generate the processor:
+
+\shellcmd{createbem tutorial2.adf}
+
+\shellcmd{generateprocessor -b tutorial2.bem -i tutorial2.idf -o 
+c\_vhdl/proge-output tutorial2.adf}
+
+Next step is to generate binary images of the program. Instruction image will
+be generated again as a vhdl array package. But the data memory image needs
+some consideration. If you're using Altera FPGA board the Program Image
+Generator can output Altera's Memory Initialization Format (mif) by default.
+Otherwise you need to consult the FPGA vendor's documentation to see what kind
+of format is used for memory instantiation. Then select the PIG output format
+that you can convert to the needed format with the least amount of work. Of
+course you can also implement a new image writer class to PIG. Patches are
+welcome.
+
+Image generation command is basically the following:
+
+\shellcmd{generatebits -b tutorial2.bem -f vhdl -d -w 4 -o mif -p blink.tpef 
+-x c\_vhdl/proge-output tutorial2.adf}
+
+Switch '-d' tells PIG to generate data image. Switch '-o' defines the data
+image output format. Change it suite your needs if necessary. Switch '-w'
+defines the width of data memory in MAUs. By default MAU is assumed to be 8
+bits and the default LSU implementations are made for memories with 32-bit
+data width. Thus the width of data memory is 4 MAUs.
+
+Move the created images to the vhdl directory:
+
+\shellcmd{mv blink\_imem\_pkg.vhdl c\_vhdl/}
+
+\shellcmd{mv blink\_data.mif c\_vhdl/}
+
+\subsubsection{Towards FPGA}
+Go to the vhdl directory:
+
+\shellcmd{cd c\_vhdl}
+
+TTA vhdl codes are in the proge-output directory. Like in the previous
+tutorial file \file{inst\_mem\_logic.vhd} holds the instruction memory
+component which uses the created \file{blink\_imem\_pkg.vhdl}. File
+\file{tutorial\_processor2.vhdl} is the toplevel design file and again the
+TTA core toplevel is connected to the instruction memory component and global
+signals are connected out from this design file.
+
+\textbf{Creating data memory component} \\
+Virtually all FPGA chips have some amount of internal memory which can be used
+in your own designs. FPGA design tools usually provide some method to easily
+create memory controllers for those internal memory blocks. For example
+Altera's Quartus II design toolset has a MegaWizard Plug-In Manager utility
+which can be used to create RAM memory which utilizes FPGA's internal
+resources.
+
+There are few points to consider when creating a data memory controller:
+\begin{enumerate}
+ \item%
+ \textbf{Latency.} Latency of the memory should be one clock cycle. When LSU 
+ asserts a read command the result should be readable after one clock
+ cycle. This means that the memory controller shouldn't register the memory
+ output because the registering is done in LSU. Adding an output register
+ would increase read latency and the default LSU wouldn't work properly.
+\item%
+ \textbf{Address width.}
+ As stated before the minimal addressable unit from the TTA programmer's point
+ of view is 8 bits by default. However the width of data memory bus is 32 bits
+ wide in the default implementations. This also means that the address bus to
+ data memory is 2 bits smaller because it only needs to address 32-bit units.
+ To convert 8-bit MAU addresses to 32-bit MAU addresses one needs to leave the
+ 2 bits out from LSB side.
+
+ How this all shows in TCE is that data memory address width defined in ADF is
+ 2 bits wider than the actual address bus coming out of LSU. When you are
+ creating the memory component you should consider this.
+\item%
+ \textbf{Byte enable.}
+ In case you were already wondering how can you address 8-bit or 16-bit wide
+ areas from a 32-bit addressable memory the answer is byte enable (or byte
+ mask) signals. These signals can be used to enable individual bytes from
+ 32-bit words which are read from or written to the memory. And those two
+ leftover bits from the memory address are used, together with the memory
+ operation code, to determine the correct byte enable signal combination.
+
+ When you are creating the memory controller you should add support for byte
+ enable signals.
+\item%
+ \textbf{Initialization.}
+ Usually the internal memory of FPGA can be automatically initialized during
+ FPGA configuration. You should find an option to initialize the memory with
+ a specific initialization file.
+\end{enumerate}
+
+\textbf{Connecting the data memory component} \\
+Next step is to interface the newly generated data memory component to TTA
+core. LSU interface is the following:
+\begin{verbatim}
+ fu_lsu_data_in     : in  std_logic_vector(fu_lsu_dataw-1 downto 0);
+ fu_lsu_data_out    : out std_logic_vector(fu_lsu_dataw-1 downto 0);
+ fu_lsu_addr        : out std_logic_vector(fu_lsu_addrw-2-1 downto 0);
+ fu_lsu_mem_en_x    : out std_logic_vector(0 downto 0);
+ fu_lsu_wr_en_x     : out std_logic_vector(0 downto 0);
+ fu_lsu_bytemask    : out std_logic_vector(fu_lsu_dataw/8-1 downto 0);
+\end{verbatim}
+
+Meanings of these signals are:
+
+\begin{tabular}{p{0.25\textwidth}p{0.75\textwidth}}
+ \textbf{Signal name} & \textbf{Description} \\
+ fu\_lsu\_data\_in & Data from the memory to LSU \\
+ fu\_lsu\_data\_out & Data from LSU to memory \\
+ fu\_lsu\_addr & Address to memory \\
+ fu\_lsu\_mem\_en\_x & Memory enable signal which is active low. LSU asserts
+ this signal to '0' when memory operations are performed. Otherwise it is '1'.
+ Connect this to memory enable or clock enable signal of the memory
+ controller. \\
+ fu\_lsu\_wr\_en\_x & Write enable signal which is active low. During write
+ operation this signal is '0'. Read operation is performed when this signal
+ '1'. Depending on the memory controller you might need to invert this
+ signal. \\
+ fu\_lsu\_bytemask & Byte mask / byte enable signal. In this case the signal
+ width is 4 bits and each bit represents a single byte. When the enable bit is
+ '1' the corresponding byte is enabled and value '0' means that the byte is
+ ignored. \\
+\end{tabular} \\
+
+Open file \file{tutorial\_processor2.vhdl} with your preferred text editor.
+From the comments you can see where you should add the memory component
+declaration and component instantiation. Notice that those LSU signals are 
+connected to wires (signals with appendix '\_w' in the name). Use these wires
+to connect the memory component.
+
+\textbf{Final steps} \\
+After you have successfully created the data memory component and connected it
+you should add the rest of the design VHDL files to the design project. All of
+the files in proge-output/gcu\_ic/ and proge-output/vhdl/ directories need to
+be added.
+
+Next phase is to connect toplevel signals to FPGA pins. Look at the final
+section of the previous tutorial for more verbose instructions how to
+perform pin mapping.
+
+Final step is to synthesize the design and configure the FPGA board. Then sit
+back and enjoy the light show.
+
+\subsection{FPGA process in general}
+Yet to be written.
 
 \chapter{PROCESSOR DESIGN TOOLS}
 \label{chapter:procgen}
