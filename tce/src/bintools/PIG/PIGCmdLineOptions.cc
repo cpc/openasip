@@ -67,12 +67,12 @@ PIGCmdLineOptions::PIGCmdLineOptions() : CmdLineOptions("") {
     StringCmdLineOptionParser* piOutputMode = new StringCmdLineOptionParser(
         PI_FORMAT_PARAM_NAME,
         "The output format of program image(s) ('ascii', 'array', 'mif', "
-        "'vhdl' or 'binary'). Default is 'ascii'.", "f");
+        "'coe', 'vhdl' or 'binary'). Default is 'ascii'.", "f");
     addOption(piOutputMode);
     StringCmdLineOptionParser* diOutputMode = new StringCmdLineOptionParser(
         DI_FORMAT_PARAM_NAME, "The output format of data image(s) "
-        "('ascii', 'array', 'mif', 'vhdl' or 'binary'). Default is 'ascii'.",
-        "o");
+        "('ascii', 'array', 'mif', 'coe', 'vhdl' or 'binary'). Default is "
+        "'ascii'.", "o");
     addOption(diOutputMode);
     StringCmdLineOptionParser* pluginFile = new StringCmdLineOptionParser(
         COMPRESSOR_PARAM_NAME, "Name of the code compressor plugin file.", 

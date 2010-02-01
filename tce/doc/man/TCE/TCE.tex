@@ -2221,9 +2221,11 @@ behold the light show!
 \subsection{Second example: Adding data memory}
 \subsubsection{Introduction}
 In this tutorial we will implement the same kind of system as above but this
-time we include data memory and use C coded application. The application 
-algorithm is the same as earlier. Take a look at file \file{blink.c} to see
-how the timer and led operations are used in C code.
+time we include data memory and use C coded application. Application has
+the same functionality but algorithm is bit different. This time we read the
+led pattern from a look up table and to also test store operation the pattern
+is stored back to the look up table. Take a look at file \file{blink\_mem.c}
+to see how the timer and led operations are used in C code.
 
 \subsubsection{Create TTA processor core and binary images}
 The architecture for this tutorial is \file{tutorial2.adf}. This architecture
@@ -2237,7 +2239,7 @@ already haven't done it:
 
 Then compile the program:
 
-\shellcmd{tcecc -O3 -a tutorial2.adf -o blink.tpef blink.c}
+\shellcmd{tcecc -O3 -a tutorial2.adf -o blink.tpef blink\_mem.c}
 
 Before you can generate processor vhdl you must select implementations for
 the function units. Open the architecture in ProDe and select Tools->Processor
@@ -2395,6 +2397,26 @@ perform pin mapping.
 
 Final step is to synthesize the design and configure the FPGA board. Then sit
 back and enjoy the light show.
+
+\subsubsection{More to test}
+If you simulate the program you will notice that the program uses only STW and
+LDW operations. Reason for this can be easily seen from the source code. Open
+\file{blink\_mem.c} and you will notice that the look up table 'patterns' is
+defined as 'volatile unsigned int'. If you change this to 'volatile unsigned
+char' or 'volatile unsigned short int' you can test STQ and LDQU or STH and
+LDHU operations. Using these operations also means that the LSU uses byte
+enable signals.
+
+Whenever you change the source code you need to recompile your program and
+generate the binary images again. And move the images to right folder if it's
+necessary.
+
+In addition you can compile the code without optimizations. This way the
+compiler leaves function calls in place and uses stack. The compilation
+command is then:
+
+\shellcmd{tcecc -O0 -a tutorial2.adf -o blink.tpef blink\_mem.c}
+
 
 \subsection{FPGA process in general}
 Yet to be written.

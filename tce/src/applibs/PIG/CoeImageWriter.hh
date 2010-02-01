@@ -22,36 +22,32 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file VhdlImageWriter.hh
+ * @file CoeImageWriter.hh
  *
- * Declaration of VhdlImageWriter class
+ * Declaration of CoeImageWriter class
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
-#include <iostream>
-#include "BitVector.hh"
-#include "ArrayImageWriter.hh"
+#ifndef TTA_COE_IMAGE_WRITER_HH
+#define TTA_COE_IMAGE_WRITER_HH
 
-#ifndef TTA_VHDL_IMAGE_WRITER_HH
-#define TTA_VHDL_IMAGE_WRITER_HH
+#include "AsciiImageWriter.hh"
 
 /**
- * Writes the (instruction) bit image to a vhdl package.
+ * Writes the bit image in COE format. It's used at least by Xilinx tools
  */
-class VhdlImageWriter : public ArrayImageWriter {
+class CoeImageWriter : public AsciiImageWriter {
 public:
-    VhdlImageWriter(const BitVector& bits, int rowLength);
-    virtual ~VhdlImageWriter();
+    CoeImageWriter(const BitVector& bits, int rowLength);
+    virtual ~CoeImageWriter();
 
-    virtual void writeImage(std::ostream& stream) const;    
+    virtual void writeImage(std::ostream& stream) const;
 
 private:
     void writeHeader(std::ostream& stream) const;
     
-    void writeEnding(std::ostream& stream) const;
-
 };
 
 #endif

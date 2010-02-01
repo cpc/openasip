@@ -22,18 +22,19 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file VhdlImageWriter.cc
+ * @file CoeImageWriter.cc
  *
- * Implementation of VhdlImageWriter class.
+ * Implementation of CoeImageWriter class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
+#include <cmath>
 #include <iostream>
-#include "InstructionBitVector.hh"
-#include "ArrayImageWriter.hh"
-#include "VhdlImageWriter.hh"
+#include "AsciiImageWriter.hh"
+#include "CoeImageWriter.hh"
+#include "BitVector.hh"
 using std::endl;
 
 /**
@@ -42,15 +43,14 @@ using std::endl;
  * @param bits The bits to write.
  * @param rowLength Length of the rows to write.
  */
-VhdlImageWriter::VhdlImageWriter(
-    const BitVector& bits, int rowLength) :
-    ArrayImageWriter(bits, rowLength) {
+CoeImageWriter::CoeImageWriter(const BitVector& bits, int rowLength) :
+    AsciiImageWriter(bits, rowLength) {
 }
 
 /**
  * The destructor.
  */
-VhdlImageWriter::~VhdlImageWriter() {
+CoeImageWriter::~CoeImageWriter() {
 }
 
 /**
@@ -58,33 +58,35 @@ VhdlImageWriter::~VhdlImageWriter() {
  *
  * @param stream The stream to write.
  */
-void VhdlImageWriter::writeImage(std::ostream& stream) const {
+void CoeImageWriter::writeImage(std::ostream& stream) const {
+    int lineCount =  static_cast<int>(
+        ceil(static_cast<double>(bits().size()) / rowLength()));
     writeHeader(stream);
-    ArrayImageWriter::writeImage(stream);
-    writeEnding(stream);
-}
-
-
-/**
- * Writes the vhdl declaration stuff to the beginning of the stream
- */
-void VhdlImageWriter::writeHeader(std::ostream& stream) const {
-    stream << "library ieee;" << endl
-           << "use ieee.std_logic_1164.all;" << endl
-           << "use ieee.std_logic_arith.all;" << endl << endl;
-
-    stream << "package dmem_image is" << endl << endl
-           << "  type std_logic_dmem_matrix is array (natural range <>) of "
-           << "std_logic_vector(" << rowLength() << "-1 downto 0);" 
-           << endl << endl;
-
-    stream << "  constant dmem_array : std_logic_dmem_matrix := (" << endl;
+    if (lineCount == 0) {
+        for (int i = 0; i < rowLength(); i++) {
+            stream << "0";
+        }
+    } else {
+        bool padEndings = false;
+        for (int i = 0; i < lineCount-1; i++) {
+            writeSequence(stream, rowLength(), padEndings);
+            stream << "," << endl;
+        }
+        // last line might need padding
+        padEndings = true;
+        writeSequence(stream, rowLength(), padEndings);
+    }
+    // format requires semicolon at the end
+    stream << ";" << endl;
 }
 
 /**
- * Writes the end declarations to the stream
+ * Writes header to the given stream.
+ *
+ * @param stream The stream to write.
  */
-void VhdlImageWriter::writeEnding(std::ostream& stream) const {
-    stream << ");" << endl << endl
-           << "end dmem_image;" << endl;
+void CoeImageWriter::writeHeader(std::ostream& stream) const {
+    stream << "; Created by generatebits" << endl;
+    stream << "memory_initialization_radix=2;" << endl
+           << "memory_initialization_vector=" << endl;
 }
