@@ -9,7 +9,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>bool</name>
+          <name>BOOL</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -17,7 +17,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>bool</name>
+          <name>BOOL</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -25,7 +25,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>bool</name>
+          <name>BOOL</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -33,7 +33,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>bool</name>
+          <name>BOOL</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -66,76 +66,6 @@
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
-  </socket>
-
-  <socket name="alu_comp_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="alu_comp_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="alu_comp_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
-  <socket name="logic_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="logic_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="logic_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
-  <socket name="ext1_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="ext1_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
-  </socket>
-
-  <socket name="ext2_i1">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="ext2_o1">
-    <writes-to>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </writes-to>
   </socket>
 
   <socket name="RF_i1">
@@ -187,28 +117,28 @@
     </writes-to>
   </socket>
 
-  <socket name="shifter_i3">
+  <socket name="ALU_i1">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="shifter_i4">
+  <socket name="ALU_i2">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="shifter_o2">
+  <socket name="ALU_o1">
     <writes-to>
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
 
-  <function-unit name="lsu">
+  <function-unit name="LSU">
     <port name="in1t">
       <connects-to>lsu_i1</connects-to>
       <width>32</width>
@@ -346,19 +276,19 @@
     <address-space>data</address-space>
   </function-unit>
 
-  <function-unit name="alu_comp">
+  <function-unit name="ALU">
     <port name="in1t">
-      <connects-to>alu_comp_i1</connects-to>
+      <connects-to>ALU_i1</connects-to>
       <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in2">
-      <connects-to>alu_comp_i2</connects-to>
+      <connects-to>ALU_i2</connects-to>
       <width>32</width>
     </port>
     <port name="out1">
-      <connects-to>alu_comp_o1</connects-to>
+      <connects-to>ALU_o1</connects-to>
       <width>32</width>
     </port>
     <operation>
@@ -382,7 +312,7 @@
       </pipeline>
     </operation>
     <operation>
-      <name>sub</name>
+      <name>and</name>
       <bind name="1">in1t</bind>
       <bind name="2">in2</bind>
       <bind name="3">out1</bind>
@@ -461,44 +391,6 @@
         </writes>
       </pipeline>
     </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="logic">
-    <port name="in1t">
-      <connects-to>logic_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>logic_i2</connects-to>
-      <width>32</width>
-    </port>
-    <port name="out1">
-      <connects-to>logic_o1</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>and</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
     <operation>
       <name>ior</name>
       <bind name="1">in1t</bind>
@@ -520,106 +412,10 @@
       </pipeline>
     </operation>
     <operation>
-      <name>xor</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">in2</bind>
-      <bind name="3">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <reads name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="3">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="ext1">
-    <port name="in1t">
-      <connects-to>ext1_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="out1">
-      <connects-to>ext1_o1</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>sxhw</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="ext2">
-    <port name="in1t">
-      <connects-to>ext2_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="out1">
-      <connects-to>ext2_o1</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
-      <name>sxqw</name>
-      <bind name="1">in1t</bind>
-      <bind name="2">out1</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-        <writes name="2">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </writes>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="shifter">
-    <port name="in1t">
-      <connects-to>shifter_i3</connects-to>
-      <width>5</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <port name="in2">
-      <connects-to>shifter_i4</connects-to>
-      <width>32</width>
-    </port>
-    <port name="out">
-      <connects-to>shifter_o2</connects-to>
-      <width>32</width>
-    </port>
-    <operation>
       <name>shl</name>
       <bind name="1">in2</bind>
       <bind name="2">in1t</bind>
-      <bind name="3">out</bind>
+      <bind name="3">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
@@ -639,7 +435,7 @@
       <name>shr</name>
       <bind name="1">in2</bind>
       <bind name="2">in1t</bind>
-      <bind name="3">out</bind>
+      <bind name="3">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
@@ -659,7 +455,77 @@
       <name>shru</name>
       <bind name="1">in2</bind>
       <bind name="2">in1t</bind>
-      <bind name="3">out</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sub</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <reads name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="3">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sxhw</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>sxqw</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">out1</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+        <writes name="2">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </writes>
+      </pipeline>
+    </operation>
+    <operation>
+      <name>xor</name>
+      <bind name="1">in1t</bind>
+      <bind name="2">in2</bind>
+      <bind name="3">out1</bind>
       <pipeline>
         <reads name="1">
           <start-cycle>0</start-cycle>
@@ -692,7 +558,7 @@
     </port>
   </register-file>
 
-  <register-file name="bool">
+  <register-file name="BOOL">
     <type>normal</type>
     <size>2</size>
     <width>1</width>
@@ -709,13 +575,13 @@
   <address-space name="data">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>8191</max-address>
+    <max-address>16777215</max-address>
   </address-space>
 
   <address-space name="instructions">
     <width>8</width>
     <min-address>0</min-address>
-    <max-address>8191</max-address>
+    <max-address>1048576</max-address>
   </address-space>
 
   <global-control-unit name="gcu">
