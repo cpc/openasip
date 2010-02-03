@@ -9,7 +9,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>bool</name>
+          <name>BOOL</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -17,7 +17,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>bool</name>
+          <name>BOOL</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -25,7 +25,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>bool</name>
+          <name>BOOL</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -33,7 +33,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>bool</name>
+          <name>BOOL</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -117,35 +117,35 @@
     </writes-to>
   </socket>
 
-  <socket name="io_i1">
+  <socket name="ALU_i1">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="alu_i1">
+  <socket name="ALU_i2">
     <reads-from>
       <bus>B1</bus>
       <segment>seg1</segment>
     </reads-from>
   </socket>
 
-  <socket name="alu_i2">
-    <reads-from>
-      <bus>B1</bus>
-      <segment>seg1</segment>
-    </reads-from>
-  </socket>
-
-  <socket name="alu_o1">
+  <socket name="ALU_o1">
     <writes-to>
       <bus>B1</bus>
       <segment>seg1</segment>
     </writes-to>
   </socket>
 
-  <function-unit name="lsu">
+  <socket name="IO_i1">
+    <reads-from>
+      <bus>B1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <function-unit name="LSU">
     <port name="in1t">
       <connects-to>lsu_i1</connects-to>
       <width>32</width>
@@ -283,39 +283,19 @@
     <address-space>data</address-space>
   </function-unit>
 
-  <function-unit name="io">
-    <port name="in">
-      <connects-to>io_i1</connects-to>
-      <width>32</width>
-      <triggers/>
-      <sets-opcode/>
-    </port>
-    <operation>
-      <name>stdout</name>
-      <bind name="1">in</bind>
-      <pipeline>
-        <reads name="1">
-          <start-cycle>0</start-cycle>
-          <cycles>1</cycles>
-        </reads>
-      </pipeline>
-    </operation>
-    <address-space/>
-  </function-unit>
-
-  <function-unit name="alu">
+  <function-unit name="ALU">
     <port name="in1t">
-      <connects-to>alu_i1</connects-to>
+      <connects-to>ALU_i1</connects-to>
       <width>32</width>
       <triggers/>
       <sets-opcode/>
     </port>
     <port name="in2">
-      <connects-to>alu_i2</connects-to>
+      <connects-to>ALU_i2</connects-to>
       <width>32</width>
     </port>
     <port name="out1">
-      <connects-to>alu_o1</connects-to>
+      <connects-to>ALU_o1</connects-to>
       <width>32</width>
     </port>
     <operation>
@@ -571,6 +551,26 @@
     <address-space/>
   </function-unit>
 
+  <function-unit name="IO">
+    <port name="T">
+      <connects-to>IO_i1</connects-to>
+      <width>32</width>
+      <triggers/>
+      <sets-opcode/>
+    </port>
+    <operation>
+      <name>stdout</name>
+      <bind name="1">T</bind>
+      <pipeline>
+        <reads name="1">
+          <start-cycle>0</start-cycle>
+          <cycles>1</cycles>
+        </reads>
+      </pipeline>
+    </operation>
+    <address-space/>
+  </function-unit>
+
   <register-file name="RF">
     <type>normal</type>
     <size>5</size>
@@ -585,7 +585,7 @@
     </port>
   </register-file>
 
-  <register-file name="bool">
+  <register-file name="BOOL">
     <type>normal</type>
     <size>2</size>
     <width>1</width>

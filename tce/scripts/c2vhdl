@@ -48,16 +48,19 @@ function check_in_path {
 }
 
 function check_minimal_adf {
+
+    src_path=`dirname $0`/../data/mach/minimal.adf
+    if [ -e "${src_path}" ]; then 
+        adf="${src_path}"
+        return
+    fi
+
+
     if which "tce-config" &>/dev/null; then 
         adf="$(tce-config --prefix)/share/tce/data/mach/minimal.adf"
         if [ -e "${adf}" ]; then
             return
         fi
-    fi
-
-    if [ -e "${TCE_ROOT}/data/mach/minimal.adf" ]; then 
-        adf="${TCE_ROOT}/data/mach/minimal.adf"
-        return
     fi
 
     echo "minimal.adf not found."
