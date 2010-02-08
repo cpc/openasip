@@ -177,8 +177,13 @@ int main(int argc, char *argv[]) {
     Word first = disassembler.startAddress();
     *output<< "CODE " << first << " ;" << endl << endl;
 
-    *output << POMDisassembler::disassemble(*program,options.lineNumbers())
-            << endl << endl;
+    try {
+        *output << POMDisassembler::disassemble(*program,options.lineNumbers())
+                << endl << endl;
+    } catch (Exception& e) {
+        std::cerr << "Disassebly failed because of exception: " <<
+            e.errorMessage() << std::endl;
+    }
 
     // Write data memory initializations.
     for (int i = 0; i < program->dataMemoryCount(); i++) {
