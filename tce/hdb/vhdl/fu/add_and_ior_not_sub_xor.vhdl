@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : 
 -- Created    : 2003-03-12
--- Last update: 2010-01-15
+-- Last update: 2010-02-08
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -158,7 +158,7 @@ begin
       when OPC_AND => Z <= A and B;
       when OPC_IOR => Z <= A or B;
       when OPC_XOR => Z <= A xor B;
-      when others  => Z <= not B;
+      when others  => Z <= not A;
     end case;
   end process sel;
 end comb;
@@ -248,9 +248,9 @@ begin  -- rtl
     generic map (
       dataw => dataw)
     port map(
-      A   => o1reg,
+      A   => t1reg,
       opc => opc1reg,
-      B   => t1reg,
+      B   => o1reg,
       Z   => r1);
 
   r1data <= r1;
@@ -351,9 +351,9 @@ begin  -- rtl
     generic map (
       dataw => dataw)
     port map(
-      A   => o1reg,
+      A   => t1reg,
       opc => opc1reg,
-      B   => t1reg,
+      B   => o1reg,
       Z   => r1);
 
   r1data <= r1reg;

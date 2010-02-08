@@ -27,7 +27,7 @@
 -- Author     : Teemu Pitkänen <teemu.pitkanen@tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2010-01-15
+-- Last update: 2010-02-08
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Revisions  :

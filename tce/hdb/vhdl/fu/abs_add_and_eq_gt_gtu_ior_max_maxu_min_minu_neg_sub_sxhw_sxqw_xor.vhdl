@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : 
 -- Created    : 2003-03-11
--- Last update: 2010-01-15
+-- Last update: 2010-02-08
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -151,12 +151,12 @@ begin
         Z <= A xor B;
 
       when OPC_SXQW =>
-        Z <= SXT(B(7 downto 0), Z'length);
+        Z <= SXT(A(7 downto 0), Z'length);
       when OPC_SXHW =>
-        Z <= SXT(B(dataw/2-1 downto 0), Z'length);
+        Z <= SXT(A(dataw/2-1 downto 0), Z'length);
 
       when OPC_NEG =>
-        Z <= conv_std_logic_vector(conv_signed(0,Z'length) - signed(B), Z'length);        
+        Z <= conv_std_logic_vector(conv_signed(0,Z'length) - signed(A), Z'length);        
         --Z <= not B;
 
       when OPC_MIN =>
@@ -184,10 +184,10 @@ begin
           Z <= B;
         end if;
       when OPC_ABS =>
-        if signed(B) < conv_signed(0,B'length) then
+        if signed(A) < conv_signed(0,B'length) then
           Z <= conv_std_logic_vector(conv_signed(0,Z'length) - signed(B), Z'length);
         else
-          Z <= B;
+          Z <= A;
         end if;
       when others =>
         if (A = B) then
@@ -286,9 +286,9 @@ begin  -- rtl
     generic map (
       dataw => dataw)
     port map(
-      A   => o1reg,
+      A   => t1reg,
       opc => opc1reg,
-      B   => t1reg,
+      B   => o1reg,
       Z   => r1);
 
   output: process (r1)
@@ -398,9 +398,9 @@ begin  -- rtl
     generic map (
       dataw => dataw)
     port map(
-      A   => o1reg,
+      A   => t1reg,
       opc => opc1reg,
-      B   => t1reg,
+      B   => o1reg,
       Z   => r1);
 
   output: process (r1reg)

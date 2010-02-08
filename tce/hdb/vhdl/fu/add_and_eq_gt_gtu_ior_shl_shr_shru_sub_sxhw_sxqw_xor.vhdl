@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : 
 -- Created    : 2003-03-12
--- Last update: 2010-01-28
+-- Last update: 2010-02-08
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -199,9 +199,9 @@ begin
        when OPC_SUB =>
         Z <=  conv_std_logic_vector(signed(A) - signed(B), Z'length);
       when OPC_SXQW =>
-        Z <= SXT(B(7 downto 0), Z'length);
+        Z <= SXT(A(7 downto 0), Z'length);
       when OPC_SXHW =>
-        Z <= SXT(B(dataw/2-1 downto 0), Z'length);
+        Z <= SXT(A(dataw/2-1 downto 0), Z'length);
         
       when others => Z <= A xor B;
     end case;
@@ -295,9 +295,9 @@ begin  -- rtl
       dataw => dataw,
       shiftw => shiftw)
     port map(
-      A   => o1reg,
+      A   => t1reg,
       opc => opc1reg,
-      B   => t1reg,
+      B   => o1reg,
       Z   => r1);
 
   r1data <= r1;
@@ -400,9 +400,9 @@ begin  -- rtl
       dataw => dataw,
       shiftw => shiftw)
     port map(
-      A   => o1reg,
+      A   => t1reg,
       opc => opc1reg,
-      B   => t1reg,
+      B   => o1reg,
       Z   => r1);
 
   r1data <= r1reg;
