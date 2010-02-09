@@ -7,6 +7,7 @@
  */
 
 #include "functions.h"
+#include "stdio.h"
 
 typedef struct {
     int (*first)(int, int);
@@ -17,9 +18,9 @@ typedef struct {
    compiler optimizing them away (like it was with -O2 when called directly
    from main()). */
 void doit(int a, int b, funcs funcs_to_exec) {
-    printint(funcs_to_exec.first(a, b));
+    putchar(funcs_to_exec.first(a, b)+48);
     printstring("\n");
-    printint(funcs_to_exec.second(a, b));
+    putchar(funcs_to_exec.second(a, b)+48);
     printstring("\n");
 }
 
@@ -28,8 +29,8 @@ int main(int argc,char **argv,char **envp) {
     funcs my_funcs;
     my_funcs.first = sum;
     my_funcs.second = sub;
-    a = 27;
-    b = 6;
+    a = 7;
+    b = 2;
     doit(a, b, my_funcs);
 
     return 0;

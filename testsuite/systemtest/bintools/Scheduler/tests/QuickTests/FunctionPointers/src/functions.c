@@ -7,7 +7,7 @@
  */
 
 #include "functions.h"
-
+#include "stdio.h"
 
 #ifdef __TCE_V1__
 #include "tceops.h"
@@ -18,29 +18,20 @@
 
 int sum(int a, int b) {
     printstring("Sum of ");
-    printint(a);
+    putchar(a+'0');
     printstring(" and ");
-    printint(b);
+    putchar(b+'0');
     printstring(" is ");
     return a + b;
 }
 
 int sub(int a, int b) {
     printstring("Difference of ");
-    printint(a);
+    putchar(a+48);
     printstring(" and ");
-    printint(b);
+    putchar(b+48);
     printstring(" is ");
     return a - b;
-}
-
-void printint(int int_to_print) {
-#ifdef __TCE_V1__
-    _TCE_PRINT_INT(int_to_print);
-#else
-    WRITETO(print_int.1, int_to_print);
-#endif
-
 }
 
 void printstring(char* string) {

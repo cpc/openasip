@@ -11,7 +11,6 @@
 
 int sum(int a, int b);
 int sub(int a, int b);
-void printint(int int_to_print);
 void printstring(char* string);
 
 #endif
