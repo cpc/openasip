@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Definition of SegmentFactory class.
  *
  * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  * @note rating: yellow
  * @note reviewed Jul 14 2004 by jm, ll, jn, am
  */
@@ -73,36 +74,36 @@ SegmentFactory::createEditPart(MachinePart* component) {
     Segment* segment = dynamic_cast<Segment*>(component);
 
     if (segment != NULL) {
-	EditPart* segmentEditPart = new EditPart();
-	segmentEditPart->setModel(segment);
+        EditPart* segmentEditPart = new EditPart();
+        segmentEditPart->setModel(segment);
 
-	SegmentFigure* fig = new SegmentFigure();
-	segmentEditPart->setFigure(fig);
+        SegmentFigure* fig = new SegmentFigure();
+        segmentEditPart->setFigure(fig);
 
-	SocketBusConnFactory connFactory;
+        SocketBusConnFactory connFactory;
 
-	for (int j = 0; j < segment->connectionCount(); j++) {
-	    vector<Factory*>::const_iterator i = factories_.begin();
-	    for (i = factories_.begin(); i != factories_.end(); i++) {
-		EditPart* socketEditPart =
-		    (*i)->createEditPart((MachinePart*)segment->connection(j));
-		if (socketEditPart != NULL) {
-		    socketEditPart->addChild(
-			connFactory.createConnection(
-			    socketEditPart, segmentEditPart));
-		    break;
-		}
-	    }
-	}
+        for (int j = 0; j < segment->connectionCount(); j++) {
+            vector<Factory*>::const_iterator i = factories_.begin();
+            for (i = factories_.begin(); i != factories_.end(); i++) {
+                EditPart* socketEditPart =
+                    (*i)->createEditPart((MachinePart*)segment->connection(j));
+                if (socketEditPart != NULL) {
+                    socketEditPart->addChild(
+                        connFactory.createConnection(
+                            socketEditPart, segmentEditPart));
+                    break;
+                }
+            }
+        }
 
-	EditPolicy* editPolicy = editPolicyFactory_.createSegmentEditPolicy();
-	if (editPolicy != NULL) {
-	    segmentEditPart->installEditPolicy(editPolicy);
-	}
+        EditPolicy* editPolicy = editPolicyFactory_.createSegmentEditPolicy();
+        if (editPolicy != NULL) {
+            segmentEditPart->installEditPolicy(editPolicy);
+        }
 
-	return segmentEditPart;
-
+        return segmentEditPart;
+        
     } else {
-	return NULL;
+        return NULL;
     } 
 }

@@ -54,6 +54,8 @@ Bugfixes
 - Avoids placing data at address 0 because it is indistinguishable from NULL.
 - Operand type initialized correctly in osed operand editing dialog.
 - Direct memory accesses to global tables could get wrong address.
+- ProDe: segments cannot be selected anymore (selects the bus always instead),
+  an irritating long standing bug.
 
 1.0 first public release, 2009-03-26
 ====================================

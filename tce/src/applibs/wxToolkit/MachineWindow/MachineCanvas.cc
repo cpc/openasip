@@ -34,6 +34,7 @@
 #include <wx/dc.h>
 #include <wx/dcclient.h>
 #include <wx/event.h>
+#include "Segment.hh"
 #include "MachineCanvas.hh"
 #include "MachineCanvasTool.hh"
 #include "MachineEditPartFactory.hh"
@@ -363,6 +364,16 @@ MachineCanvas::select(EditPart* part) {
     if (selection_ != NULL) {
         selection_->setSelected(false);
     }
+
+    // segments are not supported so we should select the parent
+    // bus instead the segment (a very long standing irritating bug)
+    TTAMachine::Segment* segment = 
+        dynamic_cast<TTAMachine::Segment*>(part->model());
+    if (segment != NULL) {
+        // clicked segment, selecting parent bus instead
+        part = part->parent();
+    }
+
     selection_ = part;
     if (selection_ != NULL) {
         selection_->setSelected(true);

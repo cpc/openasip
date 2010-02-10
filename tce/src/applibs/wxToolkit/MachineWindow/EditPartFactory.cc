@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Definition of EditPartFactory class.
  *
  * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  * @note rating: yellow
  * @note reviewed Jul 13 2004 by vpj, ll, jn, am
  */
@@ -72,9 +73,9 @@ EditPartFactory::checkCache(const MachinePart* component) const {
     // check if an EditPart has already been created of the component
     vector<EditPart*>::const_iterator i = created_.begin();
     for (; i != created_.end(); i++) {
-	if ((*i)->model() == component) {
-	    return *i;
-	}
+        if ((*i)->model() == component) {
+            return *i;
+        }
     }
     return NULL;
 }
