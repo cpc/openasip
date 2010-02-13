@@ -116,3 +116,12 @@ BitVector::pushBack(const BitVector& bits) {
         push_back(*iter);
     }
 }
+/**
+ * Pushes back the given bit.
+ *
+ * @param bit The bit to be added.
+ */
+void
+BitVector::pushBack(bool bit) {
+    push_back(bit);
+}

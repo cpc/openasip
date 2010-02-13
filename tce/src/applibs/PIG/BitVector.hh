@@ -52,6 +52,7 @@ public:
 
     void pushBack(long long unsigned int integer, int size);
     void pushBack(const BitVector& bits);
+    void pushBack(bool bit);
 };
 
 #endif
