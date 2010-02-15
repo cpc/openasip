@@ -33,7 +33,7 @@
 
 #include <llvm/PassManager.h>
 #include <llvm/Pass.h>
-#include <llvm/ModuleProvider.h>
+//#include <llvm/ModuleProvider.h>
 #include <llvm/LLVMContext.h>
 
 #include <llvm/CodeGen/AsmPrinter.h>
@@ -56,6 +56,8 @@
 #include <llvm/Bitcode/ReaderWriter.h>
 
 #include <llvm/Analysis/Verifier.h>
+
+#include <llvm/CodeGen/ObjectCodeEmitter.h>
 
 #include <cstdlib> // system()
 #include <boost/functional/hash.hpp>
@@ -277,7 +279,7 @@ LLVMBackend::compile(
     CodeGenOpt::Level OptLevel = 
         (optLevel < 2) ? (CodeGenOpt::None) : (CodeGenOpt::Aggressive);
 
-    ExistingModuleProvider provider(&module);    
+//    ExistingModuleProvider provider(&module);    
     llvm::PassManager Passes;
     
     const TargetData *TD = targetMachine->getTargetData();
@@ -285,8 +287,15 @@ LLVMBackend::compile(
     Passes.add(new TargetData(*TD));
     ObjectCodeEmitter *OCE = 0;
 
-    targetMachine->addPassesToEmitFile(Passes, fouts(), TargetMachine::AssemblyFile, OptLevel);
-    targetMachine->addPassesToEmitFileFinish(Passes, OCE, OptLevel);
+    targetMachine->addPassesToEmitFile(
+	Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
+//    targetMachine->addPassesToEmitFileFinish(Passes, OCE, OptLevel);
+
+    // inlined from old, removed addPassesToEmitFileFinish();
+//    setCodeModelForStatic();
+    Passes.add(createGCInfoDeleter());
+
+
 
     // TODO: This should be moved to emit file pass maybe
     LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);

@@ -190,7 +190,8 @@ LLVMPOMBuilder::doInitialization(Module& m) {
     }
     
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
-    mang_ = new Mangler(m, "_"); // Use prefix _ for all value names.
+//    mang_ = new Mangler(m, "_"); // Use prefix _ for all value names.
+    mang_ = new Mangler(*tm_.getMCAsmInfo());
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
 
@@ -211,7 +212,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
     for (Module::const_global_iterator i = m.global_begin();
          i != m.global_end(); i++) {
 
-        std::string name = mang_->getMangledName(i);
+        std::string name = mang_->getNameWithPrefix(i);
         
         if (name == END_SYMBOL_NAME) {
             // Skip original _end symbol.
@@ -337,7 +338,7 @@ LLVMPOMBuilder::emitDataDef(const DataDef& def) {
         for (Module::const_global_iterator i = mod_->global_begin();
              i != mod_->global_end(); i++) {
 
-            if (def.name == mang_->getMangledName(i)) {
+            if (def.name == mang_->getNameWithPrefix(i)) {
                 var = i;
                 break;
             }
@@ -549,7 +550,7 @@ LLVMPOMBuilder::createGlobalValueDataDefinition(
     unsigned sz = tm_.getTargetData()->getTypeStoreSize(type);
     
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
-    std::string label = mang_->getMangledName(gv);
+    std::string label = mang_->getNameWithPrefix(gv);
 
     TTAProgram::Address start(addr, *dataAddressSpace_);
 
@@ -668,7 +669,7 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
 
     // TODO: make list of mf's which for the pass will be ran afterwards..
 
-    std::string fnName = mang_->getMangledName(mf.getFunction());
+    std::string fnName = mang_->getNameWithPrefix(mf.getFunction());
 
     emitConstantPool(*mf.getConstantPool());
 
@@ -1119,7 +1120,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
         return new TTAProgram::TerminalImmediate(cpeAddr);
     } else if (mo.isGlobal()) {
-        std::string name = mang_->getMangledName(mo.getGlobal());
+        std::string name = mang_->getNameWithPrefix(mo.getGlobal());
         if (name == "_end") {
             return &TTAProgram::NullTerminal::instance();
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
@@ -1154,8 +1155,9 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
          *       Should be removed after fix is applied to llvm.. (maybe never...)
          */ 
 
-        std::string name = mang_->makeNameProper(mo.getSymbolName());
-
+	/// TODO: FIXME: HOW TO DO THIS??
+//        std::string name = mang_->makeNameProper(mo.getSymbolName());
+	std::string name = mo.getSymbolName();
 
         TTAProgram::InstructionReference* dummy =
             new TTAProgram::InstructionReference(
@@ -1365,7 +1367,8 @@ llvm::createLLVMPOMBuilderPass(
  */
 std::string
 LLVMPOMBuilder::mbbName(const MachineBasicBlock& mbb) {
-    std::string name = mang_->getMangledName(mbb.getParent()->getFunction());
+    std::string name = mang_->getNameWithPrefix(
+	mbb.getParent()->getFunction());
     name += " ";
     name += Conversion::toString(mbb.getNumber());
     return name;

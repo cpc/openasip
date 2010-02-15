@@ -40,7 +40,7 @@
 #include <llvm/CodeGen/MachineOperand.h>
 #include <llvm/CodeGen/MachineInstr.h>
 #include <llvm/CodeGen/MachineBasicBlock.h>
-#include <llvm/Support/Mangler.h>
+#include <llvm/Target/Mangler.h>
 #include <llvm/Constant.h>
 
 #include <llvm/Transforms/IPO.h>

@@ -110,10 +110,13 @@ namespace llvm {
         // we had to actually override also addPassesToEmitFile
         // because addCommonCodeGenPasses was not virtual...
 
-        virtual FileModel::Model addPassesToEmitFile(PassManagerBase &,
-                                                     formatted_raw_ostream &,
-                                                     CodeGenFileType,
-                                                     CodeGenOpt::Level);
+
+        virtual bool addPassesToEmitFile(PassManagerBase &,
+					 formatted_raw_ostream &,
+					 CodeGenFileType,
+					 CodeGenOpt::Level);
+
+	
 
         bool addCommonCodeGenPasses(PassManagerBase &PM,
                                     CodeGenOpt::Level OptLevel);

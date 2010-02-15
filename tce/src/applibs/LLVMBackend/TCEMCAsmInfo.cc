@@ -18,7 +18,9 @@ using namespace llvm;
 
 TCEMCAsmInfo::TCEMCAsmInfo(const Target &T, const StringRef &TT) {
     AlignmentIsInBytes          = true;
-    COMMDirectiveTakesAlignment = true;
+    COMMDirectiveAlignmentIsInBytes = true;
+
+    //COMMDirectiveTakesAlignment = true;
     Data8bitsDirective          = "DA 1\t";
     Data16bitsDirective         = NULL;
     Data32bitsDirective         = NULL;

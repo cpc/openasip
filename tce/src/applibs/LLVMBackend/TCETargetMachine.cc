@@ -35,6 +35,8 @@
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/Target/TargetRegistry.h"
 #include "llvm/Support/StandardPasses.h"
+#include "llvm/MC/MCContext.h"
+#include "llvm/MC/MCStreamer.h"
 
 #include "TCETargetMachine.hh"
 #include "TCEMCAsmInfo.hh"
@@ -295,31 +297,56 @@ static void printAndVerify(PassManagerBase &PM,
     PM.add(createMachineVerifierPass(allowDoubleDefs));
 }
 
-FileModel::Model
+//FileModel::Model
+bool
 TCETargetMachine::addPassesToEmitFile(PassManagerBase &PM,
                                       formatted_raw_ostream &Out,
                                       CodeGenFileType FileType,
                                       CodeGenOpt::Level OptLevel) {
   // Add common CodeGen passes.
   if (addCommonCodeGenPasses(PM, OptLevel))
-    return FileModel::Error;
+      return true;
 
   switch (FileType) {
   default:
     break;
-  case TargetMachine::AssemblyFile:
-    if (addAssemblyEmitter(PM, OptLevel, getAsmVerbosityDefault(), Out))
-      return FileModel::Error;
-    return FileModel::AsmFile;
-  case TargetMachine::ObjectFile:
-    if (getMachOWriterInfo())
-      return FileModel::MachOFile;
-    else if (getELFWriterInfo())
-      return FileModel::ElfFile;
+  case TargetMachine::CGFT_AssemblyFile: {
+      const MCAsmInfo &MAI = *getMCAsmInfo();
+      OwningPtr<MCContext> Context(new MCContext());
+      OwningPtr<MCStreamer> AsmStreamer;
+      MCInstPrinter *InstPrinter =
+	  getTarget().createMCInstPrinter(MAI.getAssemblerDialect(), MAI, Out);
+      AsmStreamer.reset(createAsmStreamer(
+			    *Context, Out, MAI,
+			    getTargetData()->isLittleEndian(),
+			    TargetMachine::getAsmVerbosityDefault(),
+			    InstPrinter,
+//					  getVerboseAsm(), InstPrinter,
+			    /*codeemitter*/0));
+   
+
+      FunctionPass *Printer =
+	  getTarget().createAsmPrinter(
+	      Out, *this, *Context, *AsmStreamer, &MAI);
+
+      if (Printer == 0) break;
+      PM.add(Printer);
+      return false;
+  }
+  case TargetMachine::CGFT_ObjectFile:
+//    if (getMachOWriterInfo())
+//	return false;
+      return true;
+//    else if (getELFWriterInfo())
+//	return false;
+      return false;
   }
 
-  return FileModel::Error;
+  return true;
 }
+
+
+
 
 bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
                                                CodeGenOpt::Level OptLevel) {
@@ -444,8 +471,9 @@ bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
     PM.add(createGCInfoPrinter(errs()));
 
   // Fold redundant debug labels.
-  PM.add(createDebugLabelFoldingPass());
-  printAndVerify(PM, "After DebugLabelFolding");
+
+//  PM.add(createDebugLabelFoldingPass());
+//  printAndVerify(PM, "After DebugLabelFolding");
 
   if (OptLevel != CodeGenOpt::None && !DisableCodePlace) {
     PM.add(createCodePlacementOptPass());
