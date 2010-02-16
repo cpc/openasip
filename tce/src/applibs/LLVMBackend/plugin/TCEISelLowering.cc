@@ -368,7 +368,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
  * Initializes the target lowering.
  */
 TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
-    TargetLowering(TM,  new TCETargetObjectFile()), tm_(dynamic_cast<TCETargetMachine&>(TM)) {
+    TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) {
 
     addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
     addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);

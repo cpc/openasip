@@ -74,7 +74,7 @@ private:
  */
 TCEDAGToDAGISel::TCEDAGToDAGISel(TCETargetMachine& tm):
     SelectionDAGISel(tm), 
-    lowering_(*dynamic_cast<TCETargetLowering*>(tm.getTargetLowering())),
+    lowering_(*static_cast<TCETargetLowering*>(tm.getTargetLowering())),
     subtarget_(tm.getSubtarget<TCESubtarget>()) {
 }
 

@@ -256,7 +256,7 @@ LLVMBackend::compile(
     }
     
     TCETargetMachine* targetMachine = 
-        dynamic_cast<TCETargetMachine*>(
+        static_cast<TCETargetMachine*>(
             tceTarget->createTargetMachine(targetStr, featureString));
 
     if (!targetMachine) {
