@@ -15,6 +15,8 @@ New features
 - tcecc: added a switch for setting the llvm-gcc optimization level
 - Program Image Generator supports writing binary image to vhdl package
 - Program Image Generator has (experimental) support for COE image files
+- a helper script 'minimize-ic' for invoking the SimpleICOptimizer
+  explorer plugin
 
 Code optimizations
 ------------------

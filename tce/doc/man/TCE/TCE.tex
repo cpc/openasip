@@ -5549,9 +5549,22 @@ And their parameters with a command:
 These commands can help if, for some reason, this documentation is not up-to-date.
 
 \subsection{Explorer Plugin: SimpleICOptimizer}
+
 SimpleICOptimizer is an explorer plugin that optimizes the interconnection
 network of the given configuration by removing the connections that are not
-used in the parallel program. Parameters that can be passed to the
+used in the parallel program. 
+
+This is so useful functionality especially when generating ASIPs for
+FPGAs that there's a shortcut script for invoking the plugin.
+
+Usage: 
+\begin{verbatim}
+ minimize-ic unoptimized.adf program.tpef target-ic-optimized.adf
+\end{verbatim}
+
+However, if you want more customized execution, you should read on.
+
+Parameters that can be passed to the
 SimpleICOptimizer are:
 
 \begin{tabular}{p{0.20\textwidth}p{0.20\textwidth}
@@ -5559,9 +5572,9 @@ SimpleICOptimizer are:
 \textbf{Param Name} &\textbf{Default Value} &\textbf{Description} \\
 \hline
 tpef & no default value &  name of the scheduled program file \\
-add\_only & false &  Boolean value. If set true the connections of the given \\
-evaluate & true &  Boolean value. True evaluates the result config. \\
+add\_only & false &  Boolean value. If set true the connections of the given 
 configuration won't be emptied, only new ones may be added\\
+evaluate & true &  Boolean value. True evaluates the result config. \\
 \end{tabular}\\
 
 If you pass a scheduled tpef to the plugin, it tries to optimize the configuration
