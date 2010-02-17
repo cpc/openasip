@@ -1220,6 +1220,7 @@ AC_CONFIG_FILES([
   src/bintools/Compiler/Makefile
   src/bintools/Compiler/tceopgen/Makefile
   src/bintools/Compiler/llvm-tce/Makefile
+  src/applibs/ImplementationTester/Makefile
 ])
 
 # Generate test makefiles if we have the 'test' dir.

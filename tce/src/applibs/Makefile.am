@@ -1,6 +1,6 @@
 SUBDIRS = Interpreter Simulator osal TraceDB Disassembler \
 bem PIG Assembler hdb Scheduler Estimator ProGe EPSGenerator mach idf \
-costdb program FSA Explorer dsdb  LLVMBackend
+costdb program FSA Explorer dsdb  LLVMBackend ImplementationTester
 
 noinst_LTLIBRARIES = libapplibs.la
 
@@ -26,7 +26,8 @@ libapplibs_la_LIBADD = \
 	Explorer/libexplorer.la \
 	Estimator/libestimator.la \
 	dsdb/libdsdb.la \
-	LLVMBackend/libtcellvmbackend.la
+	LLVMBackend/libtcellvmbackend.la \
+	ImplementationTester/libimpltester.la
 
 if WX
 
