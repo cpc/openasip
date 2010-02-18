@@ -176,6 +176,9 @@ ImplementationTester::canTestFU(const int entryID, string& reason) {
 
 bool 
 ImplementationTester::canTestRF(const int entryID, string& reason) {
+    int dummy = entryID;
+    dummy = dummy;
+    reason = reason;
     return true;
 }
 
@@ -237,6 +240,9 @@ ImplementationTester::validateFU(const int entryID, vector<string>& errors) {
 
 bool 
 ImplementationTester::validateRF(const int entryID, vector<string>& errors) {
+    int dummy = entryID;
+    dummy = dummy;
+    errors = errors; 
     return true;
 }
 

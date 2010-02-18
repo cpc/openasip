@@ -149,6 +149,8 @@ bool testOneFU(int id, ImplementationTester* tester) {
 
 bool testOneRF(int id, ImplementationTester* tester) {
     // write me
+    id = id;
+    tester = tester;
     return true;
 }
 
