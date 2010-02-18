@@ -45,7 +45,9 @@ Bugfixes
 - Boost should not warn anymore about deprecated hash_set with gcc 4.3.
 - Having lots of parallelism and easily analyzable memory addresses could
   cause incorrectly compiled programs.
-- Simulator on quick mode could fail if some result is never read.
+- ttasim -q: could fail if some result is never read.
+- ttasim -q: fixed wrong simulation of instructions with predicate moves
+  and the same predicate written at the same cycle
 - Simulator could fail to load some programs.
 - Memory leak fixes.
 - Toplevel busy signal now locks the core properly.
@@ -58,7 +60,7 @@ Bugfixes
 - Direct memory accesses to global tables could get wrong address.
 - ProDe: segments cannot be selected anymore (selects the bus always instead),
   an irritating long standing bug.
-
+  
 1.0 first public release, 2009-03-26
 ====================================
 

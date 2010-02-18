@@ -167,7 +167,8 @@ private:
     std::string handleOperation(const TTAMachine::HWOperation& op);
     std::string handleOperationWithoutDag(const TTAMachine::HWOperation& op);
     std::string detectConflicts(const TTAMachine::HWOperation& op);
-    std::string handleGuard(const TTAProgram::Move& move, bool isJumpGuard);
+    std::string generateGuardRead(const TTAProgram::Move& move);
+    std::string generateGuardCondition(const TTAProgram::Move& move);
     void generateInstruction(const TTAProgram::Instruction& instruction);
     std::string generateTriggerCode(const TTAMachine::HWOperation& op);
     std::string generateStoreTrigger(const TTAMachine::HWOperation& op);
@@ -230,12 +231,8 @@ private:
     /// Pointer to the current Procedure being processed
     const TTAProgram::Procedure* currentProcedure_;
     
-    /// number of cycles after jump-code is to be generated
-    int pendingJumpDelay_;
     /// last instruction of the current basic block
     InstructionAddress lastInstructionOfBB_;
-    /// last bool used for guard check. needed for guarded jumps with latency
-    std::string lastJumpGuardBool_;
     /// name of the last used guard variable
     std::string lastGuardBool_;
     /// Temporary list of the used guard bool symbols per instruction
@@ -277,10 +274,15 @@ private:
 
     /// Conflict detection code generator
     ConflictDetectionCodeGenerator conflictDetectionGenerator_;
+
+    /// Maximum number of instructions per engine source code file,
+    /// computed from the instruction width (bus count) to control
+    /// simulation engine code size explosion with wider simulated
+    /// machines.
+    unsigned maxInstructionsPerFile_;
+    /// Max for each simulation function.
+    unsigned maxInstructionsPerSimulationFunction_;
     
-    // Compiled Simulator Code Generator constants:
-    /// Maximum amount of instructions per code file
-    static const int MAX_INSTRUCTIONS_PER_FILE = 1000;
 };
 
 #endif // include once
