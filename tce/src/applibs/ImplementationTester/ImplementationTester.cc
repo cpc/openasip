@@ -220,7 +220,7 @@ ImplementationTester::validateFU(const int entryID, vector<string>& errors) {
     ImplementationSimulator* sim = NULL;
     if (simulator_ == SIM_GHDL) {
         sim = new GhdlSimulator(fileName, hdlFiles, verbose_);
-    } else if (simulator_ = SIM_MODELSIM) {
+    } else if (simulator_ == SIM_MODELSIM) {
         sim = new ModelsimSimulator(fileName, hdlFiles, verbose_);
     }
     
