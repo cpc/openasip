@@ -3,6 +3,7 @@
 #define LLVM_TARGET_TCE_TARGETOBJECTFILE_H
 
 #include <llvm/Target/TargetLoweringObjectFile.h>
+#include "llvm/CodeGen/TargetLoweringObjectFileImpl.h"
 
 namespace llvm {
 

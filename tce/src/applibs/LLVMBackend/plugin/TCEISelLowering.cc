@@ -151,7 +151,8 @@ TCETargetLowering::LowerFormalArguments(
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 SDValue Load;
             if (ObjectVT == MVT::i32) {
-                Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0);
+                Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
+                             false, false, 0);
             } else {
                 ISD::LoadExtType LoadOp = ISD::SEXTLOAD;
                 
@@ -160,7 +161,7 @@ TCETargetLowering::LowerFormalArguments(
                 FIPtr = DAG.getNode(ISD::ADD, dl, MVT::i32, FIPtr,
                                     DAG.getConstant(Offset, MVT::i32));
                 Load = DAG.getExtLoad(LoadOp, dl, MVT::i32, Chain, FIPtr,
-                                      NULL, 0, ObjectVT);
+                                NULL, 0, ObjectVT, false, false, 0);
                 Load = DAG.getNode(ISD::TRUNCATE, dl, ObjectVT, Load);
             }
             InVals.push_back(Load);
@@ -177,7 +178,8 @@ TCETargetLowering::LowerFormalArguments(
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-                SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr, NULL, 0);
+                SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr, NULL, 0,
+                             false, false, 0);
                 InVals.push_back(Load);
             }
             ArgOffset += 4;
@@ -193,14 +195,16 @@ TCETargetLowering::LowerFormalArguments(
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-                HiVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0);
-                
+                HiVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
+                             false, false, 0);
+
                 SDValue LoVal;
                 FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset+4, /*immutable=*/true, /*isSpillSlot=*/false);
                 FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
-                LoVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0);
-                
+                LoVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
+                             false, false, 0);
+
                 // Compose the two halves together into an i64 unit.
                 SDValue WholeValue =
                     DAG.getNode(ISD::BUILD_PAIR, dl, MVT::i64, LoVal, HiVal);
@@ -306,7 +310,8 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
       SDValue PtrOff = DAG.getConstant(ArgOffset, MVT::i32);
       PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
       MemOpChains.push_back(DAG.getStore(Chain, dl, ValToStore, 
-                                         PtrOff, NULL, 0));
+                                         PtrOff, NULL, 0,
+                                       false, false, 0));
     }
     ArgOffset += ObjSize;
   }
@@ -585,7 +590,8 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
     EVT PtrVT = DAG.getTargetLoweringInfo().getPointerTy();
     SDValue FR = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), PtrVT);
     const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
-    return DAG.getStore(Op.getOperand(0), dl, FR, Op.getOperand(1), SV, 0);
+    return DAG.getStore(
+	Op.getOperand(0), dl, FR, Op.getOperand(1), SV, 0, false, false, 0);
 }
 
 
