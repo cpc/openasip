@@ -106,5 +106,5 @@ ${DEFAULT_CONFIGURE_COMMAND}
 
 echo "---------- Make and install ----------"
 echo "$PWD\$ make"
-make 
+make REQUIRES_RTTI=1 
 make install
