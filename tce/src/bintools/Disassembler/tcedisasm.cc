@@ -163,10 +163,14 @@ int main(int argc, char *argv[]) {
     if ((!FileSystem::fileExists(options.outputFile()) &&
          FileSystem::fileIsCreatable(options.outputFile()))) {
         FileSystem::createFile(options.outputFile());
-        file.open(options.outputFile().c_str());
+        file.open(
+            options.outputFile().c_str(),
+            std::fstream::trunc | std::fstream::out);
         output = &file;        
     } else if (FileSystem::fileIsWritable(options.outputFile())) {
-        file.open(options.outputFile().c_str());
+        file.open(
+            options.outputFile().c_str(),
+            std::fstream::trunc | std::fstream::out);
         if (file.is_open()) {
             output = &file;
         }
