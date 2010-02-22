@@ -47,14 +47,14 @@ public:
     explicit TCEDAGToDAGISel(llvm::TCETargetMachine& tm);
     virtual ~TCEDAGToDAGISel();
     bool SelectADDRrr(
-        llvm::SDValue op, llvm::SDValue addr,
+        llvm::SDNode* op, llvm::SDValue addr,
         llvm::SDValue& r1, llvm::SDValue& r2);
 
     bool SelectADDRri(
-        llvm::SDValue op, llvm::SDValue addr,
+        llvm::SDNode* op, llvm::SDValue addr,
         llvm::SDValue& base, llvm::SDValue& offset);
 
-    llvm::SDNode* Select(llvm::SDValue op);
+    llvm::SDNode* Select(llvm::SDNode* op);
 
     virtual void InstructionSelect();
 
@@ -97,9 +97,9 @@ void TCEDAGToDAGISel::InstructionSelect() {
  * @param op Operation to select.
  */
 SDNode*
-TCEDAGToDAGISel::Select(SDValue op) {
+TCEDAGToDAGISel::Select(SDNode* n) {
 
-    SDNode* n = op.getNode();
+    DebugLoc dl = n->getDebugLoc();
 
     if (n->getOpcode() >= ISD::BUILTIN_OP_END &&
         n->getOpcode() < TCEISD::FIRST_NUMBER) {
@@ -143,13 +143,13 @@ TCEDAGToDAGISel::Select(SDValue op) {
                 CurDAG->getTargetFrameIndex(fi, MVT::i32));
         } else {
             return CurDAG->getMachineNode(
-                TCE::MOVI32ri, op.getDebugLoc(), MVT::i32,
+                TCE::MOVI32ri, dl, MVT::i32,
                 CurDAG->getTargetFrameIndex(fi, MVT::i32));
         }
     }
 
    
-    SDNode* res =  SelectCode(op);
+    SDNode* res =  SelectCode(n);
     return res;
 }
 
@@ -158,7 +158,7 @@ TCEDAGToDAGISel::Select(SDValue op) {
  */
 bool
 TCEDAGToDAGISel::SelectADDRri(
-    SDValue op, SDValue addr, SDValue& base, SDValue& offset) {
+    SDNode* op, SDValue addr, SDValue& base, SDValue& offset) {
 
     if (FrameIndexSDNode* fin = dyn_cast<FrameIndexSDNode>(addr)) {
         base = CurDAG->getTargetFrameIndex(fin->getIndex(), MVT::i32);
@@ -194,7 +194,7 @@ TCEDAGToDAGISel::SelectADDRri(
  */
 bool
 TCEDAGToDAGISel::SelectADDRrr(
-    SDValue op, SDValue addr, SDValue& r1, SDValue& r2) {
+    SDNode* op, SDValue addr, SDValue& r1, SDValue& r2) {
 
     if (addr.getOpcode() == ISD::TargetGlobalAddress) {
         //r1 = addr.getOperand(0);
