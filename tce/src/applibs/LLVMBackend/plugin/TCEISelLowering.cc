@@ -235,12 +235,15 @@ TCETargetLowering::LowerFormalArguments(
 SDValue
 TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                              CallingConv::ID CallConv, bool isVarArg,
-                             bool isTailCall,
+                             bool &isTailCall,
                              const SmallVectorImpl<ISD::OutputArg> &Outs,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
                              SmallVectorImpl<SDValue> &InVals) {
-    
+
+    // we do not yet support tail call optimization.
+    isTailCall = false;
+
     (void)CC_TCE;
 
     // Count the size of the outgoing arguments.
@@ -418,9 +421,11 @@ TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
     setOperationAction(ISD::SRA_PARTS, MVT::i32, Expand);
     setOperationAction(ISD::SRL_PARTS, MVT::i32, Expand);
 
+/*TODO: how are these handled in 2.7?
     setOperationAction(ISD::DBG_STOPPOINT, MVT::Other, Expand);
     setOperationAction(ISD::DEBUG_LOC, MVT::Other, Expand);
     setOperationAction(ISD::DBG_LABEL, MVT::Other, Expand);
+*/
 
     setOperationAction(ISD::VASTART           , MVT::Other, Custom);
 
