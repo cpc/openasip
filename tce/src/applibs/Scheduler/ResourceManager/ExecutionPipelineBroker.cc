@@ -497,13 +497,13 @@ ExecutionPipelineBroker::latestFromDestination(
     }
     if (triggerNode != NULL) {
         if (cycle < triggerNode->cycle()) {
-            return -1;
+            return cycle;
         }
         return triggerNode->cycle();
     }
     if (maxTriggerCycle != INT_MAX) {
         if (cycle < maxTriggerCycle) {
-            return -1;
+            return cycle;
         }
         return maxTriggerCycle;
     }
