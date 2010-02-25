@@ -383,7 +383,7 @@ else
 AC_CHECK_FILE($llvmConf, 
 [
 LLVM_VERSION=$($llvmConf --version)
-LLVM_SHARED_LIB=$($llvmConf --libdir)/libllvm$LLVM_VERSION.so
+LLVM_SHARED_LIB=$($llvmConf --libdir)/libLLVM-$LLVM_VERSION.so
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
@@ -420,7 +420,8 @@ if test ! -e $LLVM_SHARED_LIB;
 then
         AC_MSG_ERROR([
 $LLVM_SHARED_LIB not found. 
-Use ./gen_llvm_shared_lib.sh to generate it.])
+Either recompile and install LLVM after ./configure --enable-shared
+or use ./gen_llvm_shared_lib.sh to generate it.])
 fi
 
 # test if $llvmConf is empty string

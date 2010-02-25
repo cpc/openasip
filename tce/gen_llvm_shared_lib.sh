@@ -64,7 +64,7 @@ which llvm-config > /dev/null || error_exit 1 "llvm-config not found in PATH"
 
 LLVM_LIBFILES=$(llvm-config --libfiles)
 LLVM_LIBDIR=$(llvm-config --libdir)
-LLVM_LIBFILE=${LLVM_LIBDIR}/libllvm${LLVM_VERSION}.so
+LLVM_LIBFILE=${LLVM_LIBDIR}/libLLVM-${LLVM_VERSION}.so
 
 if test -e $LLVM_LIBFILE;
 then
