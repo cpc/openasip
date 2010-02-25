@@ -13,8 +13,8 @@ from shutil import rmtree
 # global variables...
 debugMode = False
 options = None
-newlib_libdir=""
-newlib_includes=""
+newlib_libdir = ""
+newlib_includes = ""
 lowerintrinsicsplugin=""
 
 def handler(signum, frame):
@@ -59,7 +59,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
     compileFlags=newlib_includes
 
-    if options.compile_only:
+    if options.compile_only and not options.use_clang:
         compileFlags += "-c "
 
     if options.g_cc_switch:
@@ -121,11 +121,18 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 # (ld knows how to select only needed parts from libc.a,
                 # even thoug it does it very bad, it shorten optimizetime)
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
-                if suffix == ".c":                    
-                    command = ("tce-llvm-gcc --emit-llvm -O%d -ffreestanding "\
-                              "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
-                              " " + compileFlags + baseName + suffix + " -o " +\
-                              outFileName + ".tobelowered;") % options.gcc_optlevel
+                if suffix == ".c":
+                    if options.use_clang:
+                        command = ("clang -ccc-host-triple tce-tut-none -v -emit-llvm -c -O%d "\
+                                       "-I" + tmpDir +\
+                                       " " + compileFlags + baseName + suffix + " -o " +\
+                                       outFileName + ".tobelowered;") % \
+                                       (options.gcc_optlevel)
+                    else:
+                        command = ("tce-llvm-gcc --emit-llvm -O%d -ffreestanding "\
+                                       "-fno-unit-at-a-time -fno-inline -c -I" + tmpDir +\
+                                       " " + compileFlags + baseName + suffix + " -o " +\
+                                       outFileName + ".tobelowered;") % options.gcc_optlevel
 
                     command += lowerMemIntrinsicCommand(outFileName + ".tobelowered", outFileName)
                     
@@ -478,6 +485,10 @@ p.add_option('--gcc-optlevel',
              help=\
 """The level of optimization done by the llvm-gcc frontend,
 if applicable.""")             
+
+p.add_option('--clang', action='store_true', dest='use_clang', default=False,
+             help=\
+"Use clang for C compilation instead of llvm-gcc.")
 
 # Commandline argument parsing
 

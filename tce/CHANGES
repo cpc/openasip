@@ -17,6 +17,9 @@ New features
 - Program Image Generator has (experimental) support for COE image files
 - a helper script 'minimize-ic' for invoking the SimpleICOptimizer
   explorer plugin
+- support for using the Clang as the C frontend via 'tcecc --clang'.
+  NOTE: Clang 1.0 (released with LLVM 2.6) needs to be patched with
+  tools/patches/clang-1.0-tce-support.patch for the TCE support.
 
 Code optimizations
 ------------------
