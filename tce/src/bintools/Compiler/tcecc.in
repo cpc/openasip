@@ -123,7 +123,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":
                     if options.use_clang:
-                        command = ("clang -ccc-host-triple tce-tut-none -v -emit-llvm -c -O%d "\
+                        command = ("clang -ccc-host-triple tce-tut-none -emit-llvm -c -O%d "\
                                        "-I" + tmpDir +\
                                        " " + compileFlags + baseName + suffix + " -o " +\
                                        outFileName + ".tobelowered;") % \
