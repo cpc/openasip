@@ -297,8 +297,10 @@ OperationDAGDialog::updateDAG() {
                 std::string("echo 'digraph G {n140545368 [label=\"") + errText + 
                 "\", shape=plaintext, fontsize=12]; }' | dot -Tpng > " + pngDag;
 
-            system(dotCmd.c_str());
-
+            if (system(dotCmd.c_str()) != 0) {
+                debugLog("Error executing dot.");
+            }
+	      
             delete dotImage_;
             dotImage_ = new wxBitmap(100,100);
             wxString wxTemp(wxString::FromAscii(pngDag.c_str()));
@@ -323,7 +325,9 @@ OperationDAGDialog::updateDAG() {
 
             // generate png from dot
             std::string dotCmd = "dot -Tpng " + dotDag + " > " + pngDag;
-            system(dotCmd.c_str());
+            if (system(dotCmd.c_str()) != 0) {
+                debugLog("Error executing dot.");
+            }
 
             delete dotImage_;
             dotImage_ = new wxBitmap(300,100);
