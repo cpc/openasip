@@ -290,7 +290,7 @@ TTASimulationController::findProgramExitPoints(
     // as an exit point.
     for(int i = 0; i < program.procedureCount(); i++) {
         Procedure &currProc = program.procedure(i);
-        if (currProc.name() == "_exit") {
+        if (currProc.name() == "_exit" || currProc.name() == "__exit") {
             exitPoints.insert(currProc.firstInstruction().address().location());
             automaticFinishImpossible_ = false;
        }
