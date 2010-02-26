@@ -11,6 +11,24 @@ Index: include/clang/Driver/HostInfo.h
  const HostInfo *createUnknownHostInfo(const Driver &D, 
                                        const llvm::Triple& Triple);
  
+Index: lib/Basic/Targets.cpp
+===================================================================
+--- lib/Basic/Targets.cpp	(revision 97136)
++++ lib/Basic/Targets.cpp	(working copy)
+@@ -1523,9 +1523,10 @@
+       FloatFormat = &llvm::APFloat::IEEEsingle;
+       DoubleFormat = &llvm::APFloat::IEEEsingle;
+       LongDoubleFormat = &llvm::APFloat::IEEEsingle;
+-      DescriptionString = "E-p:32:32:32-a0:32:32"
+-                          "-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64"
+-                          "-f32:32:32-f64:32:64";
++      DescriptionString = "E-p:32:32:32-i1:8:8-i8:8:32-"
++                          "i16:16:32-i32:32:32-i64:32:64-"
++                          "f32:32:32-f64:64:64-v64:64:64-"
++                          "v128:128:128-a0:0:64";
+     }
+ 
+     virtual void getTargetDefines(const LangOptions &Opts,
 Index: lib/Driver/ToolChains.cpp
 ===================================================================
 --- lib/Driver/ToolChains.cpp	(revision 97136)

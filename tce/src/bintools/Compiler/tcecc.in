@@ -71,8 +71,9 @@ def processInputFiles(inFiles, tmpDir, verbose):
     for i in options.include_dirs:
         compileFlags += "-I" + i + " "
 
-    for i in options.B_cc_switches:
-        compileFlags += "-B" + i + " "
+    if not options.use_clang: # Clang 1.0 does not support -B
+        for i in options.B_cc_switches:
+            compileFlags += "-B" + i + " "
         
     for i in options.f_cc_switches:
         compileFlags += "-f" + i + " "
@@ -123,7 +124,7 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 outFileName = tmpDir + "/" + os.path.basename(baseName) + ".o"
                 if suffix == ".c":
                     if options.use_clang:
-                        command = ("clang -ccc-host-triple tce-tut-none -emit-llvm -c -O%d "\
+                        command = ("clang -ccc-host-triple tce-tut-llvm -emit-llvm -c -O%d "\
                                        "-I" + tmpDir +\
                                        " " + compileFlags + baseName + suffix + " -o " +\
                                        outFileName + ".tobelowered;") % \
