@@ -669,7 +669,9 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
 
     // TODO: make list of mf's which for the pass will be ran afterwards..
 
-    std::string fnName = mang_->getNameWithPrefix(mf.getFunction());
+    std::string fnName = mf.getFunction()->getNameStr();
+    Application::logStream() << "writing func: " << fnName << std::endl;
+      //mang_->getNameWithPrefix(mf.getFunction());
 
     emitConstantPool(*mf.getConstantPool());
 
@@ -753,7 +755,7 @@ LLVMPOMBuilder::doFinalization(Module& /* m */) {
 
     for (MachineDCE::UnusedFunctionsList::iterator i = MDCE.removeableFunctions.begin();
          i != MDCE.removeableFunctions.end(); i++) {        
-        std::string name = "_" + *i;
+        std::string name = *i;
         // errs() << "Deleting unused function from pom: " 
         //        << name << "\n";
         TTAProgram::Procedure& notUsedProc = prog_->procedure(name);
