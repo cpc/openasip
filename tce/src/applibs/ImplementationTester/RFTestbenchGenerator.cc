@@ -36,6 +36,7 @@
 #include <boost/random.hpp>
 #include <boost/nondet_random.hpp>
 #include <ctime>
+#include <stdint.h>
 #include "HDBManager.hh"
 #include "RFEntry.hh"
 #include "TestbenchGenerator.hh"

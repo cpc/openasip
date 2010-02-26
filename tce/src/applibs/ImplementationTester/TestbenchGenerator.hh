@@ -38,6 +38,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <stdint.h>
 #include "HWBlockImplementation.hh"
 
 class TestbenchGenerator {

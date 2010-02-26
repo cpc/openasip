@@ -35,6 +35,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <stdint.h>
 #include <boost/format.hpp>
 #include "TestbenchGenerator.hh"
 #include "StringTools.hh"

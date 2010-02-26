@@ -39,6 +39,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <stdint.h>
 #include "HDBManager.hh"
 #include "FUEntry.hh"
 #include "MachineState.hh"
