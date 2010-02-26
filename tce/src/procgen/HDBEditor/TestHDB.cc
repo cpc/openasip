@@ -46,6 +46,7 @@ const string GHDL_SIM = "ghdl";
 const string VSIM_SIM = "modelsim";
 
 int main(int argc, char* argv[]) {
+
     TestHDBCmdLineOptions options;
     try {
         options.parse(argv, argc);
@@ -121,7 +122,17 @@ int main(int argc, char* argv[]) {
     return EXIT_SUCCESS;
 }
 
-bool testOneFU(int id, ImplementationTester* tester) {
+
+/**
+ * Tests one FU entry from the hdb
+ *
+ * @param id Entry id of the FU to be tested
+ * @param tester The tester
+ * @return False if the test failed
+ */
+bool 
+testOneFU(int id, ImplementationTester* tester) {
+
     string reason = "";
     if (!tester->canTestFU(id, reason)) {
         std::cout << "Cannot test FU id " << id << " because: " << reason
@@ -147,14 +158,50 @@ bool testOneFU(int id, ImplementationTester* tester) {
     return success;
 }
 
-bool testOneRF(int id, ImplementationTester* tester) {
-    // write me
-    id = id;
-    tester = tester;
-    return true;
+
+/**
+ * Tests one RF entry from the hdb
+ *
+ * @param id Entry id of the RF to be tested
+ * @param tester The tester
+ * @return False if the test failed
+ */
+bool 
+testOneRF(int id, ImplementationTester* tester) {
+
+    string reason = "";
+    if (!tester->canTestRF(id, reason)) {
+        std::cout << "Cannot test RF id " << id << " because: " << reason
+                  << std::endl;
+        // this is not failure
+        return true;
+    }
+    vector<string> errors;
+    bool success = false;
+    try {
+        success = tester->validateRF(id, errors);
+    } catch (Exception& e) {
+        std:: cerr << "Runtime error: " << e.errorMessage() << std::endl;
+        return false;
+    }
+    if (!errors.empty()) {
+        for (unsigned int i = 0; i < errors.size(); i++) {
+            std::cerr << errors.at(i);
+        }
+        success = false;
+    }
+    return success;
 }
 
-bool testAllEntries(ImplementationTester* tester) {
+/**
+ * Tests all FU and RF entries from the hdb
+ *
+ * @param tester The tester
+ * @return False if there were failing tests
+ */
+bool 
+testAllEntries(ImplementationTester* tester) {
+
     bool noFailures = true;
     set<int> fus = tester->fuEntryIDs();
     for (set<int>::iterator iter = fus.begin(); iter != fus.end(); iter++) {

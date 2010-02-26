@@ -22,77 +22,82 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file FUTestbenchGenerator.hh
+ * @file RFTestbenchGenerator.hh
  *
- * Declaration of FUTestbenchGenerator class
+ * Declaration of RFTestbenchGenerator class
  *
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_FU_TESTBENCH_GENERATOR_HH
-#define TTA_FU_TESTBENCH_GENERATOR_HH
+#ifndef TTA_RF_TESTBENCH_GENERATOR_HH
+#define TTA_RF_TESTBENCH_GENERATOR_HH
 
 #include <string>
-#include <sstream>
 #include <fstream>
 #include <vector>
-#include <map>
+#include "TestbenchGenerator.hh"
 #include "HDBManager.hh"
-#include "FUEntry.hh"
+#include "RFEntry.hh"
 #include "MachineState.hh"
 #include "Machine.hh"
 #include "MemorySystem.hh"
 #include "GlobalLock.hh"
-#include "TestbenchGenerator.hh"
 
-class FUTestbenchGenerator : public TestbenchGenerator {
+class RFTestbenchGenerator : public TestbenchGenerator {
 public:
-    FUTestbenchGenerator(HDB::FUEntry* fu);
+    RFTestbenchGenerator(HDB::RFEntry* rf);
 
-    virtual ~FUTestbenchGenerator();
+    virtual ~RFTestbenchGenerator();
 
     virtual void generateTestbench(std::ofstream& file);
 
 private:
-
-    void parseFuPorts();
-
     void createMachineState();
 
-    void createTbInstantiation();
+    void parseRfPorts();
+
+    void createTbInstantiation();    
 
     void createStimulus();
 
     void createTbCode();
 
-    void
-    writeInputPortStimulus(
-        PortDataArray& inputs,
-        const std::string& operation,
-        const std::string& portName, uint32_t stimulus);
-
-    void readValuesFromOutPorts(PortDataArray& outputs);
-
     void 
     createStimulusArrays(
-        PortDataArray& inputStimulus, 
-        std::vector<uint32_t>& loadStimulus,
-        std::vector<std::string>& operations, PortDataArray& outputStimulus);
+        PortDataArray& inputData,
+        PortDataArray& inputOpcode,
+        PortDataArray& inputLoad,
+        PortDataArray& outputData,
+        PortDataArray& outputOpcode,
+        PortDataArray& outputLoad);
 
-    HDB::FUEntry* fuEntry_;
-    HDB::FUImplementation* fuImpl_;
-    HDB::FUArchitecture* fuArch_;
+    void
+    writeDataArrays(
+     std::ostringstream& stream,
+     PortDataArray& array,
+     int portWidth);
+
+    int opcodePortWidth() const;
+
+    HDB::RFEntry* rfEntry_;
+    HDB::RFImplementation* rfImpl_;
+    HDB::RFArchitecture* rfArch_;
+    TTAMachine::RegisterFile* machRf_;
 
     MachineState* msm_;
-    std::vector<std::string> inputPorts_;
-    std::vector<std::string> outputPorts_;
-    std::string opcodePort_;
-
     TTAMachine::Machine* machine_;
     MemorySystem* memSystem_;
     GlobalLock* glock_;
+
+    std::vector<std::string> inputPorts_;
+    std::vector<std::string> inputLoadPorts_;
+    std::vector<std::string> inputOpcodePorts_;
+    std::vector<std::string> outputPorts_;
+    std::vector<std::string> outputLoadPorts_;
+    std::vector<std::string> outputOpcodePorts_;
+
+    static const std::string RF_NAME_;
 };
 
 #endif

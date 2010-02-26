@@ -39,7 +39,9 @@
 #include <set>
 #include "HDBManager.hh"
 #include "FUEntry.hh"
+#include "RFEntry.hh"
 #include "MachineState.hh"
+#include "HWBlockImplementation.hh"
 
 enum VhdlSim {
     SIM_GHDL, 
@@ -82,7 +84,9 @@ private:
 
     bool fuHasExternalPorts(HDB::FUEntry* fuEntry) const;
 
-    HDB::FUEntry* entryFromHdb(int entryID) const;
+    HDB::FUEntry* fuEntryFromHdb(int entryID) const;
+
+    HDB::RFEntry* rfEntryFromHdb(int entryID) const;
 
     bool createTempDir();
 
@@ -94,7 +98,8 @@ private:
 
     void
     createListOfSimulationFiles(
-        HDB::FUEntry* fuEntry, std::vector<std::string>& files) const;
+        HDB::HWBlockImplementation* impl,
+        std::vector<std::string>& files) const;
 
     std::string hdbFile_;
     HDB::HDBManager* hdb_;

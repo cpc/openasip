@@ -46,6 +46,10 @@
 #include "CachedHDBManager.hh"
 #include "FUEntry.hh"
 #include "FUArchitecture.hh"
+#include "FUImplementation.hh"
+#include "RFEntry.hh"
+#include "RFArchitecture.hh"
+#include "RFImplementation.hh"
 #include "FunctionUnit.hh"
 #include "Machine.hh"
 #include "MachineState.hh"
@@ -54,63 +58,70 @@
 #include "GlobalLock.hh"
 #include "OutputPortState.hh"
 #include "InputPortState.hh"
-#include "FUImplementation.hh"
 #include "FUTestbenchGenerator.hh"
+#include "RFTestbenchGenerator.hh"
 #include "ImplementationSimulator.hh"
 #include "GhdlSimulator.hh"
 #include "ModelsimSimulator.hh"
+#include "HWBlockImplementation.hh"
 
 using std::string;
 using std::vector;
 using std::ofstream;
 
+/**
+ * Default constructor
+ */
 ImplementationTester::ImplementationTester(): 
     hdbFile_(""),
     hdb_(NULL),
     simulator_(SIM_GHDL), verbose_(false), leaveDirty_(false), tempDir_("") {
-    if (!createTempDir()) {
-        IOException exp(__FILE__, __LINE__, "ImplementationTester",
-                        "Couldn't create temp directory");
-        throw exp;
-    }
 }
 
+/**
+ * Constructor
+ *
+ * @param hdbFile Name of the hdb file
+ * @param simulator Name of the HDL simulator to be used
+ */
 ImplementationTester::ImplementationTester(
     std::string hdbFile, VhdlSim simulator): 
     hdbFile_(hdbFile),
     hdb_(NULL),
     simulator_(simulator),
     verbose_(false), leaveDirty_(false), tempDir_("") {
-    if (!createTempDir()) {
-        IOException exp(__FILE__, __LINE__, "ImplementationTester",
-                        "Couldn't create temp directory");
-        throw exp;
-    }
     hdbFile_ = FileSystem::absolutePathOf(hdbFile_);
 }
 
+
+/**
+ * Constructor
+ *
+ * @param hdbFile Name of the hdb file
+ * @param simulator Name of the HDL simulator to be used
+ * @param verbose Enable verbose messages
+ * @param leaveDirty Don't delete created testbench files
+ */
 ImplementationTester::ImplementationTester(
-    string hdbFile, VhdlSim simulator, bool verbose, bool leaveDirty):
+    std::string hdbFile, VhdlSim simulator, bool verbose, bool leaveDirty):
     hdbFile_(hdbFile),
     hdb_(NULL),
     simulator_(simulator),
     verbose_(verbose), leaveDirty_(leaveDirty), tempDir_("") {
 
     openHdb(hdbFile_);
-    if (!createTempDir()) {
-        IOException exp(__FILE__, __LINE__, "ImplementationTester",
-                        "Couldn't create temp directory");
-        throw exp;
-    }
     hdbFile_ = FileSystem::absolutePathOf(hdbFile_);
 }
+
+/**
+ * Destructor
+ */
 
 ImplementationTester::~ImplementationTester() {
     if (hdb_) {
         delete(hdb_);
     }
     if (leaveDirty_) {
-        // TODO: get correct stream from outside
         std::cout << "Testbench files are stored at " << tempDir_ 
                   << std::endl;
     } else {
@@ -121,11 +132,26 @@ ImplementationTester::~ImplementationTester() {
     }
 }
 
-void ImplementationTester::setVhdlSimulator(VhdlSim simulator) {
+
+/**
+ * Set VHDL simulator to be used in simulation
+ *
+ * @param simulator Name of the HDL simulator to be used
+ */
+void 
+ImplementationTester::setVhdlSimulator(VhdlSim simulator) {
     simulator_ = simulator;
 }
 
-void ImplementationTester::openHdb(string hdbFile) {
+
+/**
+ * Tries to open hdb file
+ *
+ * @param hdbFile Name of the hdb file
+ */
+void 
+ImplementationTester::openHdb(std::string hdbFile) {
+
     if (hdb_) {
         delete hdb_;
     }
@@ -140,13 +166,14 @@ void ImplementationTester::openHdb(string hdbFile) {
     hdbFile_ = hdbFile;
 }
 
+
 bool 
-ImplementationTester::canTestFU(const int entryID, string& reason) {
+ImplementationTester::canTestFU(const int entryID, std::string& reason) {
     bool canTest = true;
     
     HDB::FUEntry* fuEntry = NULL;
     try {
-        fuEntry = entryFromHdb(entryID);
+        fuEntry = fuEntryFromHdb(entryID);
     } catch (KeyNotFound& e) {
         std::ostringstream errorStream;
         errorStream << "ID " << entryID << " does not exist in HDB "
@@ -174,16 +201,57 @@ ImplementationTester::canTestFU(const int entryID, string& reason) {
     return canTest;
 }
 
-bool 
-ImplementationTester::canTestRF(const int entryID, string& reason) {
-    int dummy = entryID;
-    dummy = dummy;
-    reason = reason;
-    return true;
-}
 
 bool 
-ImplementationTester::validateFU(const int entryID, vector<string>& errors) {
+ImplementationTester::canTestRF(const int entryID, std::string& reason) {
+
+    bool canTest = true;
+    HDB::RFEntry* rfEntry = NULL;
+    try {
+        rfEntry = rfEntryFromHdb(entryID);
+    } catch (KeyNotFound& e) {
+        std::ostringstream errorStream;
+        errorStream << "ID " << entryID << " does not exist in HDB "
+                    << hdbFile_;
+        reason = errorStream.str();
+        return false;
+    }
+    if (!rfEntry->hasArchitecture()) {
+        reason = "RF entry does not have architecture";
+        canTest = false;
+    } else if (!rfEntry->hasImplementation()) {
+        reason = "RF entry does not have implementation";
+        canTest = false;
+    } else if (rfEntry->architecture().readPortCount() == 0) {
+        reason = "RF does not have a read port";
+        canTest = false;
+    } else if (rfEntry->architecture().writePortCount() == 0) {
+        reason = "RF does not have a write port";
+        canTest = false;
+    } else if (rfEntry->architecture().bidirPortCount() != 0) {
+        reason = "RF has bidirectional ports";
+        canTest = false;
+    } else if (rfEntry->architecture().latency() != 1) {
+        reason = "RF does not have latency of 1 cycle";
+        canTest = false;
+    }
+    delete(rfEntry);
+    return canTest;
+}
+
+
+bool 
+ImplementationTester::validateFU(
+    const int entryID, std::vector<std::string>& errors) {
+
+    if (tempDir_.empty()) {
+        if (!createTempDir()) {
+            IOException exp(__FILE__, __LINE__, "ImplementationTester",
+                            "Couldn't create temp directory");
+            throw exp;
+        }
+    }
+
     string reason;
     if (!canTestFU(entryID, reason)) {
         InvalidData e(
@@ -192,10 +260,9 @@ ImplementationTester::validateFU(const int entryID, vector<string>& errors) {
         throw e;
     }
     
-    HDB::FUEntry* fuEntry = entryFromHdb(entryID);
-
+    HDB::FUEntry* fuEntry = NULL;
     try {
-        fuEntry = entryFromHdb(entryID);
+        fuEntry = fuEntryFromHdb(entryID);
     } catch (KeyNotFound& e) {
         std::ostringstream errorStream;
         errorStream << "ID " << entryID << " does not exist in HDB "
@@ -204,7 +271,7 @@ ImplementationTester::validateFU(const int entryID, vector<string>& errors) {
         errors.push_back(errorMsg);
         return false;
     }
-     
+    
     FUTestbenchGenerator tbGen(fuEntry);
     
     ofstream fileStream;
@@ -214,9 +281,8 @@ ImplementationTester::validateFU(const int entryID, vector<string>& errors) {
     fileStream.close();
 
     vector<string> hdlFiles;
-    createListOfSimulationFiles(fuEntry, hdlFiles);
+    createListOfSimulationFiles(&fuEntry->implementation(), hdlFiles);
 
-    // call testbench runner here
     ImplementationSimulator* sim = NULL;
     if (simulator_ == SIM_GHDL) {
         sim = new GhdlSimulator(fileName, hdlFiles, verbose_);
@@ -234,42 +300,117 @@ ImplementationTester::validateFU(const int entryID, vector<string>& errors) {
     if (!leaveDirty_) {
         FileSystem::removeFileOrDirectory(fileName);
     }
+    delete(fuEntry);
     delete(sim);
     return success;
 }
 
+
 bool 
-ImplementationTester::validateRF(const int entryID, vector<string>& errors) {
-    int dummy = entryID;
-    dummy = dummy;
-    errors = errors; 
-    return true;
+ImplementationTester::validateRF(
+    const int entryID, std::vector<std::string>& errors) {
+
+    if (tempDir_.empty()) {
+        if (!createTempDir()) {
+            IOException exp(__FILE__, __LINE__, "ImplementationTester",
+                            "Couldn't create temp directory");
+            throw exp;
+        }
+    }
+
+    string reason;
+    if (!canTestRF(entryID, reason)) {
+        InvalidData e(
+            __FILE__, __LINE__, "ImplementationTester",
+            "Cannot test RF: " + reason);
+        throw e;
+    }
+    
+    HDB::RFEntry* rfEntry = NULL;
+    try {
+        rfEntry = rfEntryFromHdb(entryID);
+    } catch (KeyNotFound& e) {
+        std::ostringstream errorStream;
+        errorStream << "ID " << entryID << " does not exist in HDB "
+                    << hdbFile_;
+        string errorMsg = errorStream.str();
+        errors.push_back(errorMsg);
+        return false;
+    }
+
+    RFTestbenchGenerator tbGen(rfEntry);
+    
+    ofstream fileStream;
+    string fileName = rfTbName(entryID);
+    openTbFile(fileStream, fileName);
+    tbGen.generateTestbench(fileStream);
+    fileStream.close();
+
+    vector<string> hdlFiles;
+    createListOfSimulationFiles(&rfEntry->implementation(), hdlFiles);
+
+    ImplementationSimulator* sim = NULL;
+    if (simulator_ == SIM_GHDL) {
+        sim = new GhdlSimulator(fileName, hdlFiles, verbose_);
+    } else if (simulator_ == SIM_MODELSIM) {
+        sim = new ModelsimSimulator(fileName, hdlFiles, verbose_);
+    }
+    
+    bool success = false;
+    if (sim->compile(errors)) {
+        if (sim->simulate(errors)) {
+            success = true;
+        }
+    }
+    
+    if (!leaveDirty_) {
+        FileSystem::removeFileOrDirectory(fileName);
+    }
+    delete(rfEntry);
+    delete(sim);
+    return success;
 }
 
-std::set<int> ImplementationTester::fuEntryIDs() const {
+
+std::set<int> 
+ImplementationTester::fuEntryIDs() const {
     return hdb_->fuEntryIDs();
 }
 
-std::set<int> ImplementationTester::rfEntryIDs() const {
+
+std::set<int> 
+ImplementationTester::rfEntryIDs() const {
     return hdb_->rfEntryIDs();
 }
 
-bool ImplementationTester::fuHasMemoryAccess(HDB::FUEntry* fuEntry) const {
+
+bool 
+ImplementationTester::fuHasMemoryAccess(HDB::FUEntry* fuEntry) const {
+
     HDB::FUArchitecture arch = fuEntry->architecture();
     return arch.architecture().hasAddressSpace();
 }
 
-bool ImplementationTester::fuFullyPipelined(HDB::FUEntry* fuEntry) const  {
+
+bool 
+ImplementationTester::fuFullyPipelined(HDB::FUEntry* fuEntry) const  {
+
     HDB::FUArchitecture arch = fuEntry->architecture();
     return arch.architecture().pipelineElementCount() == 0;
 }
 
-bool ImplementationTester::fuHasExternalPorts(HDB::FUEntry* fuEntry) const {
+
+bool 
+ImplementationTester::fuHasExternalPorts(HDB::FUEntry* fuEntry) const {
+
     HDB::FUImplementation* fuImpl = &fuEntry->implementation();
     return fuImpl->externalPortCount() != 0;
 }
 
-HDB::FUEntry* ImplementationTester::entryFromHdb(int entryID) const {
+
+HDB::FUEntry* 
+ImplementationTester::fuEntryFromHdb(int entryID) const {
+
     if (!hdb_) {
       InvalidData e(
             __FILE__, __LINE__, "ImplementationTester",
@@ -279,26 +420,52 @@ HDB::FUEntry* ImplementationTester::entryFromHdb(int entryID) const {
     return hdb_->fuByEntryID(entryID);
 }
 
-bool ImplementationTester::createTempDir() {
+
+HDB::RFEntry* 
+ImplementationTester::rfEntryFromHdb(int entryID) const {
+
+    if (!hdb_) {
+      InvalidData e(
+            __FILE__, __LINE__, "ImplementationTester",
+            "HDB is not defined");
+        throw e;
+    }
+    return hdb_->rfByEntryID(entryID);
+}
+
+
+bool 
+ImplementationTester::createTempDir() {
+
     tempDir_ = FileSystem::createTempDirectory();
     return !tempDir_.empty();
 }
 
-string ImplementationTester::fuTbName(int id) {
+
+std::string 
+ImplementationTester::fuTbName(int id) {
+
     std::ostringstream name;
     name << tempDir_ << FileSystem::DIRECTORY_SEPARATOR
          << "tb_fu_" << id << ".vhdl";
     return name.str();
 }
 
-string ImplementationTester::rfTbName(int id) {
+
+std::string 
+ImplementationTester::rfTbName(int id) {
+
     std::ostringstream name;
     name << tempDir_ << FileSystem::DIRECTORY_SEPARATOR
          << "tb_rf_" << id << ".vhdl";
     return name.str();
 }
 
-void ImplementationTester::openTbFile(ofstream& fileStream, string fileName) {
+
+void 
+ImplementationTester::openTbFile(
+    std::ofstream& fileStream, std::string fileName) {
+
     fileStream.open(fileName.c_str());
     if (!fileStream) {
         IOException(__FILE__, __LINE__, "ImplementationTester",
@@ -306,13 +473,15 @@ void ImplementationTester::openTbFile(ofstream& fileStream, string fileName) {
     }
 }
 
+
 void
 ImplementationTester::createListOfSimulationFiles(
-    HDB::FUEntry* fuEntry, vector<string>& files) const {
-    HDB::FUImplementation* fuImpl = &fuEntry->implementation();
-    for (int i = 0; i < fuImpl->implementationFileCount(); i++) {
+    HDB::HWBlockImplementation* impl,
+    std::vector<std::string>& files) const {
+
+    for (int i = 0; i < impl->implementationFileCount(); i++) {
         string fullPath = "";
-        string filename = fuImpl->file(i).pathToFile();
+        string filename = impl->file(i).pathToFile();
         if (FileSystem::isAbsolutePath(filename)) {
             fullPath = filename;
         } else {
