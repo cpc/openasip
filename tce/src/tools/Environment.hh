@@ -86,6 +86,8 @@ public:
 
     static std::string llvmtceCachePath();
 
+    static std::vector<std::string> implementationTesterTemplatePaths();
+
 private:
     Environment();
     ~Environment();

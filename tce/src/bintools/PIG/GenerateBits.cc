@@ -158,6 +158,10 @@ programImemImageFile(const std::string& tpefFile, const std::string& format) {
     if (format == "mif") {
         // altera tools want .mif ending for MIF files
         imageFile += ".mif";
+    } else if (format == "vhdl") {
+        imageFile += "_imem_pkg.vhdl";
+    } else if (format == "coe") {
+        imageFile += ".coe";
     } else {
         imageFile += ".img";
     }  
@@ -181,6 +185,10 @@ programDataImageFile(
     string imageFile = FileSystem::fileNameBody(tpefFile) + "_" + asName;
     if (format == "mif") {
         imageFile += ".mif";
+    } else if (format == "vhdl") {
+        imageFile += "_pkg.vhdl";
+    } else if (format == "coe") {
+        imageFile += ".coe";
     } else {
         imageFile += ".img";
     }
@@ -332,9 +340,11 @@ int main(int argc, char* argv[]) {
     
     if (adfFile == "" || 
         (piFormat != "" && piFormat != "binary" && piFormat != "ascii" &&
-         piFormat != "array" && piFormat != "mif") || 
+         piFormat != "array" && piFormat != "mif" && piFormat != "vhdl" &&
+         piFormat != "coe") || 
         (diFormat != "" && diFormat != "binary" &&
-         diFormat != "ascii" && diFormat != "array" && diFormat != "mif")) {
+         diFormat != "ascii" && diFormat != "array" && diFormat != "mif" &&
+         diFormat != "vhdl" && diFormat != "coe")) {
         options.printHelp();
         return EXIT_FAILURE;
     }
@@ -390,6 +400,14 @@ int main(int argc, char* argv[]) {
                 imageGenerator.generateProgramImage(
                     tpefFile, piStream, ProgramImageGenerator::MIF,
                     imemMAUsPerLine);
+            } else if (piFormat == "vhdl") {
+                imageGenerator.generateProgramImage(
+                    tpefFile, piStream, ProgramImageGenerator::VHDL,
+                    imemMAUsPerLine);
+            } else if (piFormat == "coe") {
+                imageGenerator.generateProgramImage(
+                    tpefFile, piStream, ProgramImageGenerator::COE,
+                    imemMAUsPerLine);
             } else {
                 assert(piFormat == "ascii" || piFormat == "");
                 imageGenerator.generateProgramImage(
@@ -422,6 +440,16 @@ int main(int argc, char* argv[]) {
                             imageGenerator.generateDataImage(
                                 tpefFile, *program, as->name(), stream, 
                                 ProgramImageGenerator::MIF,
+                                dmemMAUsPerLine, true);
+                        } else if (diFormat == "vhdl") {
+                            imageGenerator.generateDataImage(
+                                tpefFile, *program, as->name(), stream, 
+                                ProgramImageGenerator::VHDL,
+                                dmemMAUsPerLine, true);
+                        } else if (diFormat == "coe") {
+                            imageGenerator.generateDataImage(
+                                tpefFile, *program, as->name(), stream, 
+                                ProgramImageGenerator::COE,
                                 dmemMAUsPerLine, true);
                         } else {
                             assert(diFormat == "ascii" || diFormat == "");

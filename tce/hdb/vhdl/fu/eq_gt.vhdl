@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-25
--- Last update: 2006/11/10
+-- Last update: 2010-02-15
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Comparator for signed integers
@@ -126,7 +126,7 @@ begin  -- rtl_1_stage_gated_clock
           r1 <= "0";
         end if;
       when others =>
-        if (signed(t1reg) < signed(o1reg)) then
+        if (signed(t1reg) > signed(o1reg)) then
           r1 <= "1";
         else
           r1 <= "0";
@@ -220,7 +220,7 @@ begin  -- rtl_1_stage_gated_clock
           r1 <= "0";
         end if;
       when others =>
-        if (signed(t1reg) < signed(o1reg)) then
+        if (signed(t1reg) > signed(o1reg)) then
           r1 <= "1";
         else
           r1 <= "0";

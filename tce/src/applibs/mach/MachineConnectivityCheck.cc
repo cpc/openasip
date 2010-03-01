@@ -43,6 +43,15 @@
 #include "SpecialRegisterPort.hh"
 #include "MathTools.hh"
 #include "TerminalImmediate.hh"
+#include "Move.hh"
+#include "TerminalFUPort.hh"
+#include "HWOperation.hh"
+#include "TCEString.hh"
+#include "Operation.hh"
+#include "FUPort.hh"
+#include "ProgramOperation.hh"
+#include "AssocTools.hh"
+#include "StringTools.hh"
 
 using namespace TTAMachine;
 /**
@@ -750,6 +759,158 @@ MachineConnectivityCheck::requiredImmediateWidth(
     }
     return bits;
 }
+
+bool MachineConnectivityCheck::busConnectedToPort(
+    const TTAMachine::Bus& bus, const TTAMachine::Port& port) {
+    const TTAMachine::Socket* inputS = port.inputSocket();
+    if (inputS != NULL) {
+        for (int i = 0; i < inputS->segmentCount(); ++i) {
+            if (inputS->segment(i)->parentBus() == &bus) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool MachineConnectivityCheck::busConnectedToRF(
+    const TTAMachine::Bus& bus, const TTAMachine::Unit& destRF) {
+    for (int i = 0; i < destRF.portCount(); i++) {
+        const TTAMachine::Port& port = *destRF.port(i);
+        if (MachineConnectivityCheck::busConnectedToPort(bus, port)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool
+MachineConnectivityCheck::busConnectedToFU(
+    const TTAMachine::Bus& bus, const FunctionUnit& fu, 
+    const TCEString& opName, int opIndex) {
+
+    if (fu.hasOperationLowercase(opName)) {
+        const TTAMachine::HWOperation& hwop = 
+            *fu.operationLowercase(opName);
+        
+        TTAMachine::FUPort* port = hwop.port(opIndex);
+        if (port == NULL){
+            throw IllegalMachine(
+                __FILE__, __LINE__, __func__, 
+                "Target is missing operand bindings for: "
+                + opName);
+        }
+        return MachineConnectivityCheck::busConnectedToPort(bus, *port);
+    }
+    return false;
+}
+
+
+bool 
+MachineConnectivityCheck::busConnectedToAnyFU(
+    const TTAMachine::Bus& bus, const MoveNode& moveNode) {
+
+    const TTAProgram::Move& move = moveNode.move();
+    TTAProgram::TerminalFUPort* tfp = 
+        static_cast<TTAProgram::TerminalFUPort*>(&move.destination());
+    int opIndex = tfp->operationIndex();
+
+    TTAMachine::Unit* unit = NULL;
+    ProgramOperation& po = moveNode.destinationOperation();
+    for (int i = 0; i < po.inputMoveCount(); i++ ) {
+        MoveNode& inputNode = po.inputMove(i);
+        if (inputNode.isAssigned()) {
+            unit = inputNode.move().destination().port().parentUnit();
+            break;
+        }
+    }
+    if (unit == NULL) { // goto over this would have been better
+        for (int i = 0; i < po.outputMoveCount(); i++ ) {
+            MoveNode& outputNode = po.outputMove(i);
+            if (outputNode.isAssigned()) {
+                unit = outputNode.move().source().port().parentUnit();
+                break;
+            }
+        }
+    }
+
+    Operation& op = move.destination().hintOperation();
+    TCEString opName = StringTools::stringToLower(op.name());
+
+    if (unit != NULL) {
+        FunctionUnit* fu = dynamic_cast<FunctionUnit*>(unit);
+        assert(fu != NULL);
+        return busConnectedToFU(bus, *fu, opName, opIndex);
+    }
+
+    // check if the move has a candidate FU set which limits the
+    // choice of FU for the node
+    std::set<std::string> candidateFUs;
+
+    if (move.hasAnnotations(
+            TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST)) {
+
+        const int annotationCount =
+            move.annotationCount(
+                TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST);
+        for (int i = 0; i < annotationCount; ++i) {
+            std::string candidateFU =
+                move.annotation(
+                    i, TTAProgram::ProgramAnnotation::ANN_CANDIDATE_UNIT_DST).
+                stringValue();
+            candidateFUs.insert(candidateFU);
+        }
+    }
+
+    TTAMachine::ControlUnit* gcu = bus.machine()->controlUnit();
+    if (candidateFUs.empty() || AssocTools::containsKey(
+            candidateFUs,gcu->name())) {
+        if (busConnectedToFU(bus, *gcu, opName, opIndex)) {
+            return true;
+        }
+    }    
+
+
+    const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
+        bus.machine()->functionUnitNavigator();
+    for (int i = 0; i < fuNav.count(); i++) {
+        TTAMachine::FunctionUnit& fu = *fuNav.item(i);
+        if (candidateFUs.empty() || AssocTools::containsKey(
+                candidateFUs,fu.name())) {
+            if (busConnectedToFU(bus, fu, opName, opIndex)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool MachineConnectivityCheck::busConnectedToDestination(
+    const TTAMachine::Bus& bus, const MoveNode& moveNode) {
+    const TTAProgram::Move& move = moveNode.move();
+    if (move.destination().isGPR()) {
+        TTAMachine::Unit& destRF = 
+            *move.destination().port().parentUnit();
+        return MachineConnectivityCheck::busConnectedToRF(bus, destRF);
+        
+    }
+    if (move.destination().isFUPort()) {
+        if (move.destination().isRA()) {
+            const TTAMachine::ControlUnit* gcu = bus.machine()->controlUnit();
+            const TTAMachine::SpecialRegisterPort* ra = 
+                gcu->returnAddressPort();
+            // TODO:: machineconcctivitycheck, bus connected to port?
+            if (MachineConnectivityCheck::busConnectedToPort(bus, *ra)) {
+                return true;
+            }
+        } else {
+            return MachineConnectivityCheck::busConnectedToAnyFU(
+                bus, moveNode);
+        }
+    }
+    return false;
+}
+
 
 /* These are static */
 MachineConnectivityCheck::PortPortBoolMap MachineConnectivityCheck::portPortCache_;

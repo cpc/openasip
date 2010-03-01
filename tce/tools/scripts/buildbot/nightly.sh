@@ -66,8 +66,8 @@ function start_compiletest {
     export ERROR_MAIL_ADDRESS=tce-logs@cs.tut.fi
     export CXX="ccache g++${ALTGCC}"
     export CC="ccache gcc${ALTGCC}"
-    export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
-    export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
+    export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
+    export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
 
     ./gen_config.sh >& /dev/null
 

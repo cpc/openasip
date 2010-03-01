@@ -26,8 +26,8 @@
  *
  * Implementation of LLVMPOMBuilder class.
  *
- * @author Veli-Pekka JÃ¤Ã¤skelÃ¤inen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael LepistÃ¶ 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2007-2009 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
  * @note reting: red
  */
 
@@ -231,6 +231,10 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.address = 0;
         def.alignment = td->getPrefTypeAlignment(type);
         def.size = td->getTypeStoreSize(type);
+        // memcpy seems to assume global values are aligned by 4
+        if (def.size > def.alignment) {
+            def.alignment = std::max(def.alignment,4u);
+        }
 
         /*
           std::cerr << "MARKER: " 
@@ -1221,6 +1225,11 @@ LLVMPOMBuilder::emitMove(
     const MachineOperand& src = mi->getOperand(1);
     assert(!src.isReg() || src.isUse());
     assert(dst.isDef());
+
+    // eliminate register-to-itself moves
+    if (dst.isReg() && src.isReg() && dst.getReg() == src.getReg()) {
+        return NULL;
+    }
 
     Bus& bus = umach_->universalBus();
     TTAProgram::Move* move = createMove(

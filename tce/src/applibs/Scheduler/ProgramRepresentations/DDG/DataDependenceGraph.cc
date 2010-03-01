@@ -349,7 +349,7 @@ DataDependenceGraph::latestCycle(const MoveNode& moveNode) const {
                     } else {
                         // RAW
                         if (edge.guardUse()) {
-                            latency = moveNode.guardLatency();
+                            latency = head.guardLatency();
                         }
                         // in case of RAW, value must be written latency
                         // cycles before it is used

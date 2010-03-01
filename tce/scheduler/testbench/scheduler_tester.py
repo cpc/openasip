@@ -76,7 +76,9 @@ Options:
   -r Regression test mode. Do not output anything unless there's an error, in
      which case output as normal.  
   -s Stop testing after the first FAILED test encountered.
-  -t Update top results if all tests passed.
+  -t Update top results (only the improved cycle counts) if all tests passed.
+  -T Update top results (even the worsened ones) if all tests passed, thus
+     make this run the "baseline" to which future runs are compared against.
   -v Verbose output. Print error messages from scheduler, etc.
   -V Even more verbose. Print all commands executed.
   -w [limit] Consider worsened results to be an error (when -r is used) in
@@ -129,6 +131,7 @@ latexTable = False
 normalOutput = True
 moreStats = None
 topStatsUpdates = False
+baselineUpdate = False
 verboseOutput = False
 veryVerboseOutput = False
 saveParallelPrograms = False
@@ -162,7 +165,7 @@ if len(allArchitectures) == 0:
 def ParseCommandLine():
 
     global configFileName, stopTestingAfterFailingTest, csvFormat, \
-           topStatsUpdates, verboseOutput, veryVerboseOutput, \
+           topStatsUpdates, baselineUpdate, verboseOutput, veryVerboseOutput, \
            saveParallelPrograms, \
            deleteOSALLink, outputOnlyIfFailure, architectures, \
            recompile, leaveDirty, configFileDefined, latexTable, moreStats, \
@@ -175,7 +178,7 @@ def ParseCommandLine():
         args_start = 1
             
         opts, args = getopt.getopt(\
-            sys.argv[args_start:], "g:a:b:shtvVc:Copqrxw:dli:", ["help"])
+            sys.argv[args_start:], "g:a:b:shtTvVc:Copqrxw:dli:", ["help"])
 
     except getopt.GetoptError, e:
         # print help information and exit:
@@ -190,6 +193,8 @@ def ParseCommandLine():
             stopTestingAfterFailingTest = True
         elif o == "-t":
             topStatsUpdates = True
+        elif o == "-T":
+            baselineUpdate = True
         elif o == "-v":
             verboseOutput = True
         elif o == "-V":
@@ -948,18 +953,24 @@ close $cycle_file
             lastRunWriter.writerow([arch, configFileName, timeStamp, "%.0f" %
                                     self.results[arch][0]])       
 
-        if topStatsUpdates and self.improvedRuns:
+        if (topStatsUpdates and self.improvedRuns) or baselineUpdate:
             topStatsWriter = csv.writer(__builtin__.open(self.directory + "/topresults.csv", "w"))
             
-            for arch in self.architectures:
+            for arch in set(self.architectures + self.oldResults.keys()):
                 oldResult = None
-                if self.oldResults != None and arch in self.oldResults:
+                if self.oldResults is not None and arch in self.oldResults:
                     oldResult = self.oldResults[arch]
-                cycles = self.results[arch][0]
-                if oldResult == None or oldResult[-1] > cycles:
-                    topStatsWriter.writerow([arch, configFileName, timeStamp, "%.0f" % cycles])
+
+                # Do not discard the rows for architectures we did not test.
+                if arch in self.results:
+                    cycles = self.results[arch][0]
+                    if oldResult is None or oldResult[-1] > cycles or baselineUpdate:
+                        topStatsWriter.writerow([arch, configFileName, timeStamp, "%.0f" % cycles])
+                    else:
+                        topStatsWriter.writerow([arch] + oldResult)
                 else:
                     topStatsWriter.writerow([arch] + oldResult)
+
 
 def get_subdirectories(root):
     "Walk does not follow symbolic links. So here's replacement."

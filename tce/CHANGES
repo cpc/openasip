@@ -9,6 +9,17 @@ New features
   Initialization File) used by Altera.
 - ttasim-tandem: a tool for comparing the two simulation engines
   to assist in tracking simulation bugs.
+- Operation code numbering guideline changed. Operation codes should be
+  numbered according to the their alphabetical order. HDBEditor and ProGe
+  issue a warning message if this convention is violated.
+- tcecc: added a switch for setting the llvm-gcc optimization level
+- Program Image Generator supports writing binary image to vhdl package
+- Program Image Generator has (experimental) support for COE image files
+- a helper script 'minimize-ic' for invoking the SimpleICOptimizer
+  explorer plugin
+- support for using the Clang as the C frontend via 'tcecc --clang'.
+  NOTE: Clang 1.0 (released with LLVM 2.6) needs to be patched with
+  tools/patches/clang-1.0-tce-support.patch for the TCE support.
 
 Code optimizations
 ------------------
@@ -17,6 +28,7 @@ Code optimizations
 - Smarter heuristics for selecting which bus and FU to use, leads to
   programs which use fever connections, allowing more of them to be
   removed.
+- Eliminates some stupid register to itself moves.
 
 Bugfixes
 --------
@@ -36,7 +48,9 @@ Bugfixes
 - Boost should not warn anymore about deprecated hash_set with gcc 4.3.
 - Having lots of parallelism and easily analyzable memory addresses could
   cause incorrectly compiled programs.
-- Simulator on quick mode could fail if some result is never read.
+- ttasim -q: could fail if some result is never read.
+- ttasim -q: fixed wrong simulation of instructions with predicate moves
+  and the same predicate written at the same cycle
 - Simulator could fail to load some programs.
 - Memory leak fixes.
 - Toplevel busy signal now locks the core properly.
@@ -47,7 +61,9 @@ Bugfixes
 - Avoids placing data at address 0 because it is indistinguishable from NULL.
 - Operand type initialized correctly in osed operand editing dialog.
 - Direct memory accesses to global tables could get wrong address.
-
+- ProDe: segments cannot be selected anymore (selects the bus always instead),
+  an irritating long standing bug.
+  
 1.0 first public release, 2009-03-26
 ====================================
 

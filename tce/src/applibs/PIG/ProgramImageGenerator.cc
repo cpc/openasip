@@ -27,7 +27,7 @@
  * Implementation of ProgramImageGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -39,6 +39,9 @@
 #include "ArrayProgramImageWriter.hh"
 #include "RawImageWriter.hh"
 #include "MifImageWriter.hh"
+#include "VhdlImageWriter.hh"
+#include "VhdlProgramImageWriter.hh"
+#include "CoeImageWriter.hh"
 #include "InstructionBitVector.hh"
 #include "CodeCompressorPlugin.hh"
 #include "DefaultCompressor.hh"
@@ -203,7 +206,14 @@ ProgramImageGenerator::generateProgramImage(
         }
     } else if (format == MIF) {
         writer = new MifImageWriter(*programBits, mau);
+    } else if (format == VHDL) {
+        writer = new VhdlProgramImageWriter(*programBits);
+    } else if (format == COE) {
+        writer = new CoeImageWriter(*programBits, mau);
+    } else {
+        assert(false);
     }
+    
 
     writer->writeImage(stream);
 
@@ -336,6 +346,10 @@ ProgramImageGenerator::generateDataImage(
         writer = new ArrayImageWriter(dataBits, as->width() * mausPerLine);
     } else if (format == MIF) {
         writer = new MifImageWriter(dataBits, as->width() * mausPerLine);
+    } else if (format == VHDL) {
+        writer = new VhdlImageWriter(dataBits, as->width() * mausPerLine);
+    } else if (format == COE) {
+        writer = new CoeImageWriter(dataBits, as->width() * mausPerLine);
     } else {
         assert(false);
     }

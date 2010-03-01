@@ -32,6 +32,7 @@
 
 #include <string>
 #include <set>
+#include <map>
 
 #include "BEMGenerator.hh"
 #include "BinaryEncoding.hh"
@@ -68,6 +69,7 @@ using std::pair;
 using std::set;
 using std::vector;
 using std::multiset;
+using std::map;
 using namespace TTAMachine;
 
 /**
@@ -771,13 +773,27 @@ BEMGenerator::addPortCodes(
                     BaseFUPort* fuPort = dynamic_cast<BaseFUPort*>(port);
                     assert(fuPort != NULL);
                     if (fuPort->isOpcodeSetting()) {
+                        // map<operation name, operation index in FU>
+                        map<string,int> opcodeSet;
                         assert(*indexWidthIter == 0);
+                        // operation indeces are numbered according to the
+                        // alphabetical order of opertations
                         for (int opIndex = 0;
                              opIndex < fuParent->operationCount();
                              opIndex++) {
+                            opcodeSet.insert(
+                                make_pair(
+                                    fuParent->operation(opIndex)->name(),
+                                    opIndex));
+                        }
+                        
+                        for (map<string,int>::iterator 
+                                 iter = opcodeSet.begin();
+                             iter != opcodeSet.end(); iter++) {
                             Encoding enc = *encIter;
                             HWOperation* operation = 
-                                fuParent->operation(opIndex);
+                                fuParent->operation(iter->second);
+                            assert(operation->name() == iter->first);
                             new FUPortCode(
                                 fuParent->name(), fuPort->name(),
                                 operation->name(), enc.first, enc.second,

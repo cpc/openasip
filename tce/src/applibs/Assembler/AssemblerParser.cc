@@ -27,7 +27,7 @@
  * Syntax declarations and callbacks of assembler language.
  *
  * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2006,2009
  *
  * @note rating: yellow
  */
@@ -251,7 +251,11 @@ AssemblerParser::cleanup() {
 
 bool
 AssemblerParser::compile(std::string& asmCode) const {
+#if BOOST_VERSION >= 103800
+    return boost::spirit::classic::parse(asmCode.c_str(), *this).full;
+#else
     return boost::spirit::parse(asmCode.c_str(), *this).full;
+#endif
 }
 
 /**

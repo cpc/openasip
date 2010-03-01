@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Definition of SegmentFigure class.
  *
  * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  * @note rating: yellow
  * @note reviewed Jul 27 2004 by ml, pj, am
  */

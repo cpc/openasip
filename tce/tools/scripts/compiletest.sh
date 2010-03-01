@@ -230,7 +230,9 @@ In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 .*This.configuration.is.not.supported.in.the.following.subdirectories.*|\
 .*target-libgloss.*|\
 .*Any.other.directories.should.still.work.fine.*|\
-.*removing..*/Makefile.to.force.reconfigure.*"
+.*removing..*/Makefile.to.force.reconfigure.*|\
+.*PluginTools.icc.*warning:.dereferencing.*|\
+.*PluginTools.icc.*note:.initialized.from.here.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\

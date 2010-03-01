@@ -550,7 +550,8 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
             interPassData_.datum("SCRATCH_REGISTERS"))).size() == 0)
         throw IllegalProgram(
             __FILE__, __LINE__, __func__,
-            "No scratch registers available for temporary moves.");
+            "No scratch registers available for temporary move for: " + 
+            originalMove.toString());
 
     const TempRegData& tempRegs = 
         dynamic_cast<TempRegData&>(interPassData_.datum("SCRATCH_REGISTERS"));

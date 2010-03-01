@@ -35,6 +35,7 @@
 #include <string>
 #include <utility> // for make_pair()
 #include <boost/format.hpp>
+#include <set>
 
 #include "NetlistGenerator.hh"
 #include "Netlist.hh"
@@ -75,6 +76,7 @@ using namespace IDF;
 using namespace HDB;
 using namespace TTAMachine;
 
+using std::set;
 using std::string;
 using boost::format;
 
@@ -168,7 +170,7 @@ NetlistGenerator::~NetlistGenerator() {
  * @exception InstanceNotFound Something missing missing from HDB.
  */
 Netlist*
-NetlistGenerator::generate(int imemWidthInMAUs)
+NetlistGenerator::generate(int imemWidthInMAUs, std::ostream& warningStream)
     throw (IOException, InvalidData, OutOfRange, InstanceNotFound) {
 
     if (imemWidthInMAUs < 1) {
@@ -189,7 +191,7 @@ NetlistGenerator::generate(int imemWidthInMAUs)
     for (int i = 0; i < machImplementation_.fuImplementationCount(); i++) {
         IDF::FUImplementationLocation& location =
             machImplementation_.fuImplementation(i);
-        addFUToNetlist(location, *netlist);
+        addFUToNetlist(location, *netlist, warningStream);
     }
 
     // add register files to the netlist
@@ -765,7 +767,7 @@ NetlistGenerator::addGCUToNetlist(
 void
 NetlistGenerator::addFUToNetlist(
     const FUImplementationLocation& location,
-    Netlist& netlist)
+    Netlist& netlist, std::ostream& warningStream)
     throw (IOException, InvalidData) {
 
     string hdbFile = location.hdbFile();
@@ -915,8 +917,9 @@ NetlistGenerator::addFUToNetlist(
     if (fuImplementation.opcodePort() != "") {
         NetlistPort* opcodePort = new NetlistPort(
             fuImplementation.opcodePort(),
-            Conversion::toString(opcodePortWidth(*entry)),
-            opcodePortWidth(*entry), BIT_VECTOR, HDB::IN, *block);
+            Conversion::toString(opcodePortWidth(*entry, warningStream)),
+            opcodePortWidth(*entry, warningStream), 
+            BIT_VECTOR, HDB::IN, *block);
         mapFUOpcodePort(*block, *opcodePort);
     }
 
@@ -1477,11 +1480,13 @@ NetlistGenerator::calculateAddressWidth(
  * Calculates the required opcode port width for the given FU.
  *
  * @param fu The FU.
+ * @param warningStream Output stream where warnings are written
  * @return The required width of opcode port.
  * @exception InvalidData If the HDB is missing some information.
  */
 int
-NetlistGenerator::opcodePortWidth(const HDB::FUEntry& fu)
+NetlistGenerator::opcodePortWidth(
+    const HDB::FUEntry& fu, std::ostream& warningStream)
     throw (InvalidData) {
 
     assert(fu.hasImplementation());
@@ -1490,23 +1495,35 @@ NetlistGenerator::opcodePortWidth(const HDB::FUEntry& fu)
     FunctionUnit& architecture = fu.architecture().architecture();
     int portWidth = 0;
 
+    // operation codes are now numbered according to their alphabetical
+    // order
+    set<string> opcodeSet;
     for (int i = 0; i < architecture.operationCount(); i++) {
         HWOperation* operation = architecture.operation(i);
-        if (architecture.operationCount() != 1 &&
-            !implementation.hasOpcode(operation->name())) {
-            string errorMsg =
-                "Error in HDB: Opcode not defined for operation " +
-                operation->name();
-            throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
-        }
-        int opcode = 0;
-        if (architecture.operationCount() != 1) {
-            opcode = implementation.opcode(operation->name());
+        opcodeSet.insert(operation->name());
+    }
+
+    int opcode = 0;
+    for (set<string>::iterator iter = opcodeSet.begin();
+         iter != opcodeSet.end(); iter++) {
+        // there is an old opcode value in hdb
+        if (opcodeSet.size() != 1 && implementation.hasOpcode(*iter)) {
+            // old value differs from current guide line
+            if (opcode != implementation.opcode(*iter)) {
+                warningStream << "Warning: Opcode defined in HDB for " 
+                              << "operation " << *iter 
+                              << " does not comply with the requirement "
+                              << "for numbering the operation codes "
+                              << "according to alphabetical order of "
+                              << "operations. Please fix the vhdl and "
+                              << "hdb entry." << std::endl;
+            }
         }
         int requiredBits = MathTools::requiredBits(opcode);
         if (requiredBits > portWidth) {
             portWidth = requiredBits;
         }
+        opcode++;
     }
 
     return portWidth;
@@ -1551,6 +1568,7 @@ NetlistGenerator::findCorrespondingPort(
                 throw InstanceNotFound(__FILE__, __LINE__, __func__);
             }
         }
+
     }
 
     if (correspondingPort == NULL) {

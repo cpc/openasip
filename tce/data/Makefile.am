@@ -12,6 +12,7 @@ nobase_data_DATA = $(srcdir)/ProDe/confschema.xsd \
                    $(srcdir)/ProGe/highest_pkg.vhdl ProGe/opcodes_pkg.vhdl \
                    $(srcdir)/icons/*.png \
                    $(srcdir)/ProGe/tb/*.vhdl \
-                   $(srcdir)/Proxim/confschema.xsd
+                   $(srcdir)/Proxim/confschema.xsd \
+                   $(srcdir)/hdb/*.vhdl.template
 
 EXTRA_DIST = ${nobase_data_DATA}

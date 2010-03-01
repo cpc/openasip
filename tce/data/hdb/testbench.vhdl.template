@@ -1,0 +1,157 @@
+library IEEE;
+use IEEE.Std_Logic_1164.all;
+use IEEE.Std_Logic_arith.all;
+use std.textio.all;
+
+entity testbench is
+end testbench;
+
+architecture behav of testbench is
+
+  -- convert std_logic_vector to a string of '1' and '0'
+  -- from VHDL Made Easy!
+  function stdvec_to_str(inp : std_logic_vector)
+    return string is
+    variable temp            : string(inp'left+1 downto 1) := (others => 'X');
+  begin  -- str_to_stdvec(inp: string)
+    for i in inp'reverse_range loop
+      if (inp(i) = '1') then
+        temp(i+1)                                          := '1';
+      elsif (inp(i) = '0') then
+        temp(i+1)                                          := '0';
+      end if;
+    end loop;  -- i
+    return temp;
+  end function stdvec_to_str;
+
+  -- chr() and str() from http://www.stefanvhdl.com/vhdl/vhdl/txt_util.vhd
+  -- convert an integer to a character
+  function chr(int : integer) return character is
+    variable c     : character;
+  begin
+    case int is
+      when 0      => c := '0';
+      when 1      => c := '1';
+      when 2      => c := '2';
+      when 3      => c := '3';
+      when 4      => c := '4';
+      when 5      => c := '5';
+      when 6      => c := '6';
+      when 7      => c := '7';
+      when 8      => c := '8';
+      when 9      => c := '9';
+      when 10     => c := 'A';
+      when 11     => c := 'B';
+      when 12     => c := 'C';
+      when 13     => c := 'D';
+      when 14     => c := 'E';
+      when 15     => c := 'F';
+      when 16     => c := 'G';
+      when 17     => c := 'H';
+      when 18     => c := 'I';
+      when 19     => c := 'J';
+      when 20     => c := 'K';
+      when 21     => c := 'L';
+      when 22     => c := 'M';
+      when 23     => c := 'N';
+      when 24     => c := 'O';
+      when 25     => c := 'P';
+      when 26     => c := 'Q';
+      when 27     => c := 'R';
+      when 28     => c := 'S';
+      when 29     => c := 'T';
+      when 30     => c := 'U';
+      when 31     => c := 'V';
+      when 32     => c := 'W';
+      when 33     => c := 'X';
+      when 34     => c := 'Y';
+      when 35     => c := 'Z';
+      when others => c := '?';
+    end case;
+    return c;
+  end chr;
+
+  -- convert an integer to a string
+  function str(int : integer; base : integer) return string is
+
+    variable temp    : string(1 to 10);
+    variable num     : integer;
+    variable abs_int : integer;
+    variable len     : integer := 1;
+    variable power   : integer := 1;
+
+  begin
+
+    -- bug fix for negative numbers
+    abs_int := abs(int);
+
+    num := abs_int;
+
+    while num >= base loop              -- Determine how many
+      len := len + 1;                   -- characters required
+      num := num / base;                -- to represent the
+    end loop;  -- number.
+
+    for i in len downto 1 loop                 -- Convert the number to
+      temp(i) := chr(abs_int/power mod base);  -- a string starting
+      power   := power * base;                 -- with the right hand
+    end loop;  -- side.
+
+    -- return result and add sign if required
+    if int < 0 then
+      return '-'& temp(1 to len);
+    else
+      return temp(1 to len);
+    end if;
+
+  end str;
+
+  --  Declaration and binding of the component that will be instantiated.
+%1%
+
+%2%
+  --  Specify registers for the ports.
+%3%
+  
+begin
+  --  Map ports of the FU to registers.
+%4%
+  process
+
+    -- Arrays for stimulus.
+%5%
+    -- Opcodes for each clock cycle.
+%6%
+    -- Load signals for each cycle
+%7%
+    -- Arrays for expected outputs for each output port.
+%8%
+
+     variable current_cycle : integer;
+  begin
+
+    -- Initialize the clock signal.
+    %9% <= '0';
+    -- Release reset.
+    %10% <= '1';
+    -- Global lock off.
+    %11% <= '0';
+
+
+    for current_cycle in 0 to TOTAL_CYCLE_COUNT - 1 loop
+
+    -- The actual test bench code.
+%12%     
+      -- Generate a clock pulse.
+      -- TODO: Generate the clock in a separate component.
+      wait for 1 ns;
+      %9% <= not %9%;
+      wait for 1 ns;
+      %9% <= not %9%;
+
+    end loop;  -- current_cycle
+
+    -- Ends the simulation (at least in case of ghdl).
+    wait;
+  end process;
+end behav;

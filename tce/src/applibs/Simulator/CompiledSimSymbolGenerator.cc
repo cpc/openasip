@@ -39,6 +39,7 @@
 #include "SpecialRegisterPort.hh"
 #include "Move.hh"
 #include "MathTools.hh"
+#include "DisassemblyRegister.hh"
 
 #include <string>
 #include <ctime>
@@ -107,24 +108,28 @@ CompiledSimSymbolGenerator::timeStamp() const {
 std::string 
 CompiledSimSymbolGenerator::portSymbol(const TTAMachine::Port& port) const {
     string symbolName;
-    
+    // just speed opt. no need to reserve more at every append.
+    symbolName = prefix_;
+    symbolName.reserve(40);
     Unit* unit = port.parentUnit();    
     if (dynamic_cast<const FunctionUnit*>(unit) != NULL) {
-        symbolName = "FU";
+        symbolName += "FU_";
         if (dynamic_cast<const ControlUnit*>(unit) != NULL) {
-            symbolName = "GCU";
+            symbolName += "GCU_";
         }
     } else if (dynamic_cast<const RegisterFile*>(unit) != NULL) {
-        symbolName = "RF";
+        symbolName += "RF_";
         if (dynamic_cast<const ImmediateUnit*>(unit) != NULL) {
-            symbolName = "IU";
+            symbolName += "IU_";
         }
     } else {
-        symbolName = "unknown";
+        symbolName += "unknown_";
     }
 
-    symbolName += "_" + unit->name() + "_" + port.name();
-    return prefix_ + symbolName;
+    symbolName += unit->name();
+    symbolName += "_";
+    symbolName += port.name();
+    return symbolName;
 }
 
 /**
@@ -150,7 +155,8 @@ std::string
 CompiledSimSymbolGenerator::registerSymbol(
     const TTAMachine::RegisterFile& rf, 
     int index) const {  
-    return prefix_ + "RF_" + rf.name() + "_" + Conversion::toString(index);
+    return prefix_ + "RF_" + 
+        DisassemblyRegister::registerName(rf, index, '_');
 }
 
 
@@ -177,7 +183,8 @@ std::string
 CompiledSimSymbolGenerator::immediateRegisterSymbol(
     const TTAMachine::ImmediateUnit& iu, 
     int index) const {  
-    return prefix_ + "IU_" + iu.name() + "_" + Conversion::toString(index);
+    return prefix_ + "IU_" + DisassemblyRegister::registerName(iu, index, '_');
+    //.name() + "_" + Conversion::toString(index);
 }
 
 /**

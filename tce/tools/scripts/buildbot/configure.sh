@@ -22,8 +22,8 @@
 # IN THE SOFTWARE.
 
 cd tce
-export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
-export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
+export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
+export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated -Wextra"
 
 # export PATH to include llvm and llvm-frontend
 # (those ENVs are defined in buildbot master.cfg)

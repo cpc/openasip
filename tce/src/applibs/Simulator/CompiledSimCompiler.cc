@@ -54,7 +54,7 @@ using std::time_t;
 const char* CompiledSimCompiler::COMPILED_SIM_CPP_FLAGS = 
     " -fno-working-directory "
     "-fno-enforce-eh-specs "
-    "-fno-rtti ";
+    "-fno-rtti -DNDEBUG ";
 //     "-fno-rtti "
 //     "-fno-threadsafe-statics "
 //     "-fvisibility=hidden "
@@ -64,7 +64,11 @@ const char* CompiledSimCompiler::COMPILED_SIM_CPP_FLAGS =
 //    "-fno-stack-protector "
 
 // Flags when compiling shared libraries
+#ifdef __APPLE__
+const char* CompiledSimCompiler::COMPILED_SIM_SO_FLAGS = SHARED_CXX_FLAGS;
+#else
 const char* CompiledSimCompiler::COMPILED_SIM_SO_FLAGS = " -shared -fpic ";
+#endif
 
 /**
  * The constructor

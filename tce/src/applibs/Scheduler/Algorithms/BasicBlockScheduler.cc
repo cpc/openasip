@@ -893,10 +893,12 @@ BasicBlockScheduler::scheduleInputOperandTempMoves(MoveNode& operandMove)
 
     if (tempMove2 != NULL) {
         scheduleMove(*tempMove2, lastUse2);
+        assert(tempMove2->isScheduled());
         scheduledTempMoves_[&operandMove].insert(tempMove2);
 
     }
     scheduleMove(*tempMove, lastUse1);
+    assert(tempMove->isScheduled());
     scheduledTempMoves_[&operandMove].insert(tempMove);
 }
 
@@ -965,6 +967,7 @@ BasicBlockScheduler::scheduleResultReadTempMoves(MoveNode& resultMove)
     }
 
     scheduleMove(*tempMove1, lastUse2);
+    assert(tempMove1->isScheduled());
     scheduledTempMoves_[&resultMove].insert(tempMove1);
 
     // the temp move should have maximum of one unscheduled
@@ -972,6 +975,7 @@ BasicBlockScheduler::scheduleResultReadTempMoves(MoveNode& resultMove)
     // schedule it also if found
     if (tempMove2 != NULL) {
         scheduleMove(*tempMove2, lastUse2+1);
+        assert(tempMove2->isScheduled());
         scheduledTempMoves_[&resultMove].insert(tempMove2);
     }
 }
@@ -1218,7 +1222,7 @@ void BasicBlockScheduler::notifyScheduled(
         std::map<const MoveNode*, DataDependenceGraph::NodeSet >::
             iterator tmIter = scheduledTempMoves_.find(&moveNode);
         if (tmIter != scheduledTempMoves_.end()) {
-            DataDependenceGraph::NodeSet tempMoves = tmIter->second;
+            DataDependenceGraph::NodeSet& tempMoves = tmIter->second;
             for (DataDependenceGraph::NodeSet::iterator i = 
                      tempMoves.begin(); i != tempMoves.end(); i++) {
                 selector.notifyScheduled(**i);

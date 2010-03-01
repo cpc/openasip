@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2006/11/14
+-- Last update: 2010-02-15
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Comparator functional unit
@@ -127,29 +127,22 @@ begin  -- case2
   process (t1reg, opc1reg, o1reg)
   begin
     case opc1reg is
-      when "00" =>
-        if (t1reg = o1reg) then
-          r1 <= "1";
-        else
-          r1 <= "0";
-        end if;
-
       when "01" =>
-        if (signed(t1reg) < signed(o1reg)) then
+        if (signed(t1reg) > signed(o1reg)) then
           r1 <= "1";
         else
           r1 <= "0";
         end if;
 
       when "10" =>
-        if (unsigned(t1reg) < unsigned(o1reg)) then
+        if (unsigned(t1reg) > unsigned(o1reg)) then
           r1 <= "1";
         else
           r1 <= "0";
         end if;
 
       when others =>
-        if (signed(t1reg) < signed(o1reg)) then
+        if (t1reg = o1reg) then
           r1 <= "1";
         else
           r1 <= "0";
@@ -233,33 +226,27 @@ begin  -- rtl
   process (t1reg, opc1reg, o1reg)
   begin
     case opc1reg is
-      when "00" =>
-        if (t1reg = o1reg) then
-          r1 <= "1";
-        else
-          r1 <= "0";
-        end if;
-
       when "01" =>
-        if (signed(t1reg) < signed(o1reg)) then
+        if (signed(t1reg) > signed(o1reg)) then
           r1 <= "1";
         else
           r1 <= "0";
         end if;
 
       when "10" =>
-        if (unsigned(t1reg) < unsigned(o1reg)) then
+        if (unsigned(t1reg) > unsigned(o1reg)) then
           r1 <= "1";
         else
           r1 <= "0";
         end if;
 
       when others =>
-        if (signed(t1reg) < signed(o1reg)) then
+        if (t1reg = o1reg) then
           r1 <= "1";
         else
           r1 <= "0";
         end if;
+
     end case;
     
   end process;

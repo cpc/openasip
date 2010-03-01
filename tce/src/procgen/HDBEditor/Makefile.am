@@ -7,6 +7,9 @@ HDB_DIR = ${SRC_ROOT_DIR}/applibs/hdb
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools
 MACH_DIR = ${SRC_ROOT_DIR}/base/mach
 WXTOOLKIT_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit
+IMPL_TEST_DIR = ../../applibs/ImplementationTester
+MACH_SIM_DIR = ${SRC_ROOT_DIR}/applibs/Simulator
+OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
 
 LIB_HDB_DIR = ../../applibs/hdb
 LIB_TCETOOLS_DIR = ../../tools
@@ -17,7 +20,8 @@ LIB_EPSGENERATOR_DIR = ../../applibs/EPSGenerator
 LIB_APPLIB_MACH_DIR = ../../applibs/mach
 APPLIBS_FSA_DIR = ../../applibs/FSA
 
-bin_PROGRAMS = hdbeditor
+
+bin_PROGRAMS = hdbeditor testhdb
 
 hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 		  AddRFArchitectureCmd.cc \
@@ -40,15 +44,24 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 hdbeditor_LDFLAGS = $(TCE_LDFLAGS)
 hdbeditor_LDADD = ../../libtce.la
 
+testhdb_SOURCES = TestHDB.cc TestHDBCmdLineOptions.cc
+testhdb_LDFLAGS = $(TCE_LDFLAGS)
+testhdb_LDADD = ../../libtce.la
+
 AM_WXCXXFLAGS = $(GUI_INCLUDES)
 
 AM_CPPFLAGS = -I${TOOLS_DIR} \
 	      -I${HDB_DIR} \
 	      -I${MACH_DIR} \
-	      -I${WXTOOLKIT_DIR}
+	      -I${WXTOOLKIT_DIR} \
+				-I${IMPL_TEST_DIR} \
+				-I${MACH_SIM_DIR} \
+				-I${OSAL_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 AM_CXXFLAGS = -UNDEBUG ${AM_WXCXXFLAGS} 
+
+AM_LDFLAGS = ${TCE_LDFLAGS}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
@@ -77,4 +90,6 @@ hdbeditor_SOURCES += \
 	RFImplementationDialog.hh RFPortImplementationDialog.hh \
 	SetCostFunctionPluginCmd.hh SetFUArchitectureCmd.hh \
 	SetRFArchitectureCmd.hh 
+
+testhdb_SOURCES += TestHDB.hh TestHDBCmdLineOptions.hh
 ## headers end

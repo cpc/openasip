@@ -27,11 +27,29 @@
  * Syntax declarations and callbacks of assembler language.
  *
  * @author Mikael Lepistö 2005 (tmlepist-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2009
  * @note rating: yellow
  */
 
 #ifndef TCEASM_ASSEMBLER_PARSER_HH
 #define TCEASM_ASSEMBLER_PARSER_HH
+
+#include <boost/version.hpp>
+
+#if BOOST_VERSION >= 103800
+
+#include <boost/spirit/include/classic.hpp>
+#include <boost/spirit/include/classic_push_back_actor.hpp>
+#include <boost/spirit/include/classic_clear_actor.hpp>
+#include <boost/spirit/include/classic_assign_actor.hpp>
+#include <boost/spirit/include/classic_increment_actor.hpp>
+#include <boost/spirit/include/classic_assign_key_actor.hpp>
+#include <boost/spirit/include/classic_insert_at_actor.hpp>
+#include <boost/spirit/include/classic_file_iterator.hpp>
+
+using namespace boost::spirit::classic;
+
+#else
 
 #include <boost/spirit.hpp>
 #include <boost/spirit/actor/push_back_actor.hpp>
@@ -40,6 +58,12 @@
 #include <boost/spirit/actor/increment_actor.hpp>
 #include <boost/spirit/actor/assign_key_actor.hpp>
 #include <boost/spirit/actor/insert_at_actor.hpp>
+#include <boost/spirit/iterator/file_iterator.hpp>
+
+using namespace boost::spirit;
+
+#endif
+
 
 #include "Exception.hh"
 
@@ -50,8 +74,6 @@
 #include "LabelManager.hh"
 
 #include "Assembler.hh"
-
-using namespace boost::spirit;
 
 typedef char                    char_t;
 typedef file_iterator <char_t>  iterator_t;

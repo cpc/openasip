@@ -116,12 +116,16 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     instructionNumber_(0), instructionCounter_(0),
     moveCounter_(0),                      
     isProcedureBegin_(true), currentProcedure_(0),
-    pendingJumpDelay_(0), lastInstructionOfBB_(0),
+    lastInstructionOfBB_(0),
     className_("CompiledSimulationEngine"),
-    os_(NULL),
-    symbolGen_(),
+    os_(NULL), symbolGen_(),
     conflictDetectionGenerator_(
         machine_, symbolGen_, fuResourceConflictDetection) {
+
+    // this should result in roughly 100K-400K .cpp files
+    maxInstructionsPerFile_ = 2000 / machine.busNavigator().count();
+    // roughly 300-600 c++ lines per simulation function
+    maxInstructionsPerSimulationFunction_ = 500 / machine.busNavigator().count();
 }
 
 /**
@@ -178,7 +182,8 @@ CompiledSimCodeGenerator::generateMakefile() {
         
         << "all: CompiledSimulationEngine.so" << endl << endl
 
-        << "CompiledSimulationEngine.so: CompiledSimulationEngine.hh.gch $(dobjects) CompiledSimulationEngine.cc" << endl
+        << "CompiledSimulationEngine.so: CompiledSimulationEngine.hh.gch "
+        << "$(dobjects) CompiledSimulationEngine.cc" << endl
         << "\t#@echo Compiling CompiledSimulationEngine.so" << endl
         << "\t$(CC) $(soflags) $(cppflags) -O0 $(includes) CompiledSimulationEngine.cc "
         << "-c -o CompiledSimulationEngine.o" << endl 
@@ -519,6 +524,9 @@ CompiledSimCodeGenerator::generateSimulationCode() {
 
 /**
  * Finds all basic blocks of the program and stores them in two std::maps
+ *
+ * Big basic blocks are split to smaller ones to reduce the engine 
+ * compilation memory consumption.
  */
 void
 CompiledSimCodeGenerator::findBasicBlocks() const {
@@ -526,11 +534,59 @@ CompiledSimCodeGenerator::findBasicBlocks() const {
         ControlFlowGraph cfg(program_.procedure(i));
         for (int i = 0; i < cfg.nodeCount(); ++i) {
             BasicBlockNode& node = cfg.node(i);
-            const InstructionAddress start = node.originalStartAddress();
+            if (!node.isNormalBB()) continue;
+
+            InstructionAddress blockStart = node.originalStartAddress();
             const InstructionAddress end = node.originalEndAddress();
-            if (end != 0) {
-                bbEnds_[end] = start;
-                bbStarts_[start] = end;
+
+            if (end - blockStart > maxInstructionsPerSimulationFunction_) {
+                // split the real basic block to smaller ones in case
+                // there are too many instructions (huge basic blocks might 
+                // explode the engine compiler memory consumption)
+                InstructionAddress blockEnd = blockStart;
+#if 0
+                Application::logStream()
+                    << "splitting a bb " << blockStart << " to " << end 
+                    << " with size " << end - blockStart << std::endl;
+#endif
+                for (; blockStart < end; blockStart = blockEnd + 1) {
+                    blockEnd =
+                        std::min(
+                            blockStart + maxInstructionsPerSimulationFunction_,
+                            end);
+
+                    // we must ensure that the branch and its delay slots
+                    // end up in the same block due to the way guard 
+                    // reads are handled as local variables in the simulation 
+                    // func
+                    if (blockEnd + machine_.controlUnit()->delaySlots() >= end) {
+                        blockEnd = end;
+                    }
+                    
+                    bbEnds_[blockEnd] = blockStart;
+                    bbStarts_[blockStart] = blockEnd;
+#if 0
+                    Application::logStream()
+                        << "small block: " << blockStart << " to " 
+                        << blockEnd << std::endl;
+#endif
+                }
+                // the "leftover" block:
+
+                
+                blockStart = blockEnd + 1;
+                if (blockStart <= end) {
+#if 0
+                    Application::logStream()
+                        << "leftover block: " << blockStart << " to " 
+                        << end << std::endl;
+#endif
+                    bbEnds_[end] = blockStart;
+                    bbStarts_[blockStart] = end;
+                }
+            } else {
+                bbEnds_[end] = blockStart;            
+                bbStarts_[blockStart] = end;                
             }
         }
     }
@@ -800,12 +856,11 @@ CompiledSimCodeGenerator::handleJump(const TTAMachine::HWOperation& op) {
     assert(op.name() == "call" || op.name() == "jump");
     
     std::stringstream ss;
-    pendingJumpDelay_ = gcu_.delaySlots() + 1;
     ss << "engine.jumpTarget_ = " 
        << symbolGen_.portSymbol(*op.port(1)) << ".value_.sIntWord;";
     if (op.name() == "call") { // save return address
         ss << symbolGen_.returnAddressSymbol(gcu_) << ".value_.uIntWord = " 
-           << instructionNumber_ + pendingJumpDelay_ << "u;" << endl;
+           << instructionNumber_ + gcu_.delaySlots() + 1 << "u;" << endl;
     }
     return ss.str();
 }
@@ -904,16 +959,15 @@ CompiledSimCodeGenerator::handleOperationWithoutDag(
 }
 
 /**
- * Generates code for a guard
+ * Generates code for reading a guard value before an instruction
+ * with moves guarded with the value is simulated.
  * 
  * @param move guarded move
- * @param isJumpGuard Is this a guard with jump or call instruction in it?
  * @return a std::string containing generated code for the guard check
  */
 string 
-CompiledSimCodeGenerator::handleGuard(
-    const TTAProgram::Move& move,
-    bool isJumpGuard) {
+CompiledSimCodeGenerator::generateGuardRead(
+    const TTAProgram::Move& move) {
         
     std::stringstream ss;
     string guardSymbolName;
@@ -944,16 +998,46 @@ CompiledSimCodeGenerator::handleGuard(
     } else {
         lastGuardBool_ = usedGuardSymbols_[guardSymbolName];
     }
-    
-    // Setup a "last known" jump guard in case of guarded jumps
-    if (isJumpGuard) {
-        lastJumpGuardBool_ = "";
-        if (guard.isInverted()) { 
-            lastJumpGuardBool_ = "!";
-        }
-        lastJumpGuardBool_ += lastGuardBool_;
-    }
+    return ss.str();
+}
 
+/**
+ * Generates the condition simulation code for a guarded move.
+ * 
+ * @param move guarded move
+ * @return a std::string containing generated code for the guard check
+ */
+string 
+CompiledSimCodeGenerator::generateGuardCondition(
+    const TTAProgram::Move& move) {
+        
+    std::stringstream ss;
+    string guardSymbolName;
+    
+    TTAMachine::Guard& guard = move.guard().guard();
+    
+    // Find out the guard type
+    if (dynamic_cast<const RegisterGuard*>(&guard) != NULL) {
+        const RegisterGuard& rg = dynamic_cast<const RegisterGuard&>(guard);
+        RegisterFile& rf = *rg.registerFile();
+        guardSymbolName = symbolGen_.registerSymbol(rf, rg.registerIndex());        
+    } else if (dynamic_cast<const PortGuard*>(&guard) != NULL) {
+        const PortGuard& pg = dynamic_cast<const PortGuard&>(guard);
+        guardSymbolName = symbolGen_.portSymbol(*pg.port());
+    } else {
+        ss << endl << "#error unknown guard type!" << endl;
+    }
+    
+    lastGuardBool_ = "";
+        
+    // Make sure to create only one bool per guard read and store the symbol
+    if (usedGuardSymbols_.find(guardSymbolName) == usedGuardSymbols_.end()) {
+        lastGuardBool_ = symbolGen_.guardBoolSymbol();
+        usedGuardSymbols_[guardSymbolName] = lastGuardBool_;
+    } else {
+        lastGuardBool_ = usedGuardSymbols_[guardSymbolName];
+    }
+    
     // Handle inverted guards
     ss << endl << "if (";
     if (guard.isInverted()) {
@@ -963,6 +1047,7 @@ CompiledSimCodeGenerator::handleGuard(
     
     return ss.str();
 }
+
 
 /**
  * Generates simulation code of the given instruction
@@ -980,7 +1065,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         // Should we start with a new file?
         if (instructionCounter_ <= 0 || basicBlockPerFile_ ||
             (functionPerFile_ && isProcedureBegin_)) {
-            instructionCounter_ = MAX_INSTRUCTIONS_PER_FILE;
+            instructionCounter_ = maxInstructionsPerFile_;
             
             if (currentFile_.is_open()) {
                 currentFile_.close();
@@ -1003,7 +1088,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         
         // Save basic block<->procedure related information
         InstructionAddress procedureStart = currentProcedure_->
-            firstInstruction().address().location();
+            startAddress().location();
         procedureBBRelations_.procedureStart[address] = procedureStart;
         procedureBBRelations_.basicBlockFiles[address] = currentFileName_;
         procedureBBRelations_.basicBlockStarts.insert(std::make_pair(
@@ -1019,6 +1104,18 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
              << "(CompiledSimulationEngine& engine) {" << endl;
         symbolGen_.enablePrefix("engine.");
         lastFUWrites_.clear();
+
+        // initialize jump target to next BB.
+        int bbEndAddr = -1;
+        for (int addr = address; bbEndAddr == -1; addr++) {
+            if (AssocTools::containsKey(bbEnds_, addr)) {
+                bbEndAddr = addr;
+            }
+        }        
+        
+        *os_ << "/* First instruction of BB - initialize address of next BB"
+             << " */" << endl;
+        *os_ << "engine.jumpTarget_ = " << bbEndAddr + 1 << ";" << endl;
     }
 
     *os_ << endl << "/* Instruction " << instructionNumber_ << " */" << endl;
@@ -1058,6 +1155,16 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     
     // Do moves
     std::vector<CompiledSimMove> lateMoves; // moves with buses
+
+    // generate the possible guard value reads before the
+    // actual moves
+    for (int i = 0; i < instruction.moveCount(); ++i) {
+        const Move& move = instruction.move(i);
+        if (!move.isUnconditional()) {
+            *os_ << generateGuardRead(move) << std::endl;
+        }
+    }
+
     for (int i = 0; i < instruction.moveCount(); ++i, moveCounter_++) {
         const Move& move = instruction.move(i);
         string moveSource = symbolGen_.moveOperandSymbol(
@@ -1066,12 +1173,6 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             move.destination(), move);
         
         lastGuardBool_.clear();
-
-        // increase move count if the move is guarded or it is an exit point
-        if (!move.isUnconditional() || exitPoints_.find(
-            instruction.address().location()) != exitPoints_.end()) {
-            *os_ << " ++engine.moveExecCounts_[" << moveCounter_ << "]; ";
-        }
 
         if (move.source().isFUPort() && gotResults.find(moveSource) == gotResults.end() &&  
             dynamic_cast<const ControlUnit*>(&move.source().functionUnit()) == NULL) {
@@ -1083,8 +1184,14 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
         }
         
         if (!move.isUnconditional()) { // has a guard?
-            *os_ << handleGuard(move, move.isControlFlowMove());
+            *os_ << generateGuardCondition(move);
             endGuardBracket = true;
+        }
+
+   // increase move count if the move is guarded or it is an exit point
+        if (!move.isUnconditional() || exitPoints_.find(
+            instruction.address().location()) != exitPoints_.end()) {
+            *os_ << " ++engine.moveExecCounts_[" << moveCounter_ << "]; ";
         }
         
         // Find all moves that depend on others i.e. those moves that have to
@@ -1137,7 +1244,7 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             move.destination(), move);
         
         if (!move.isUnconditional()) { // has a guard?
-            *os_ << handleGuard(move, move.isControlFlowMove());
+            *os_ << generateGuardCondition(move);
             endGuardBracket = true;
         }
         
@@ -1202,8 +1309,8 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     
     // Increase basic block execution count
     if (bbEnd != bbEnds_.end()) {
-        InstructionAddress bbStart = bbEnds_.lower_bound(
-            instructionNumber_)->second;
+        InstructionAddress bbStart = 
+            bbEnds_.lower_bound(instructionNumber_)->second;
         *os_ << "++engine.bbExecCounts_[" << bbStart << "];" << endl;
     }
     
@@ -1216,30 +1323,13 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     if (bbEnd != bbEnds_.end()) {
         *os_ 
             << "if (engine.cycleCount_ >= engine.cyclesToSimulate_) {" << endl
-            << "\t" << "engine.programCounter_ = " << bbEnd->first + 1 << ";" << endl
             << "\t" << "engine.stopRequested_ = true;" << endl 
             << "\t" << "updateFUOutputs(engine);" << endl
             << "}" << endl; 
-    }
-    
-    // Is there a jump waiting for execution?
-    if (pendingJumpDelay_ > 0) {
-        pendingJumpDelay_--;
-        if (pendingJumpDelay_ == 0) {
-            if (lastJumpGuardBool_ != "") { // is it a conditional jump?
-                *os_ << "if (" << lastJumpGuardBool_ << ") ";
-            }
-            *os_ << "{ engine.programCounter_ = engine.jumpTarget_; "
-                 << "engine.lastExecutedInstruction_ = " << address << "; return; }" 
-                 << endl;
-            lastJumpGuardBool_ = "";
-        }
-    }
-   
-    if (bbEnd != bbEnds_.end()) {
-        *os_ << "engine.jumpTarget_ = " << address + 1 << ";" << endl
-             << "engine.lastExecutedInstruction_ = " << address << ";" << endl;
-        
+
+        *os_ << "{ engine.programCounter_ = engine.jumpTarget_; "
+             << "engine.lastExecutedInstruction_ = " << address 
+             << "; return; }" << endl;
         // Generate shutdown code after the last instruction
         if (address == program_.lastInstruction().address().location()) {
             generateShutdownCode(address);

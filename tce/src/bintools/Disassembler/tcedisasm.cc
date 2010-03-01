@@ -163,10 +163,14 @@ int main(int argc, char *argv[]) {
     if ((!FileSystem::fileExists(options.outputFile()) &&
          FileSystem::fileIsCreatable(options.outputFile()))) {
         FileSystem::createFile(options.outputFile());
-        file.open(options.outputFile().c_str());
+        file.open(
+            options.outputFile().c_str(),
+            std::fstream::trunc | std::fstream::out);
         output = &file;        
     } else if (FileSystem::fileIsWritable(options.outputFile())) {
-        file.open(options.outputFile().c_str());
+        file.open(
+            options.outputFile().c_str(),
+            std::fstream::trunc | std::fstream::out);
         if (file.is_open()) {
             output = &file;
         }
@@ -177,8 +181,13 @@ int main(int argc, char *argv[]) {
     Word first = disassembler.startAddress();
     *output<< "CODE " << first << " ;" << endl << endl;
 
-    *output << POMDisassembler::disassemble(*program,options.lineNumbers())
-            << endl << endl;
+    try {
+        *output << POMDisassembler::disassemble(*program,options.lineNumbers())
+                << endl << endl;
+    } catch (Exception& e) {
+        std::cerr << "Disassebly failed because of exception: " <<
+            e.errorMessage() << std::endl;
+    }
 
     // Write data memory initializations.
     for (int i = 0; i < program->dataMemoryCount(); i++) {

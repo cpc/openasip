@@ -70,6 +70,11 @@ using std::string;
 using boost::format;
 using namespace TTAMachine;
 
+// Remove this define when opcode editing should be disabled.
+// Also edit HDBEditor/FUImplementationDialog.hh/.cc to hide the ability to
+// modify opcodes
+#define ALLOW_OPCODE_EDITING
+
 const bool READ_ACTION = true;
 const bool WRITE_ACTION = false;
 
@@ -1018,7 +1023,7 @@ HDBManager::addFUImplementation(const FUEntry& entry) const
                 throw InvalidData(__FILE__, __LINE__, __func__);
             }
         }
-
+#ifdef ALLOW_OPCODE_EDITING
         // insert into opcode_map table
         for (int i = 0; i < fu.operationCount(); i++) {
             HWOperation* operation = fu.operation(i);
@@ -1047,7 +1052,7 @@ HDBManager::addFUImplementation(const FUEntry& entry) const
                         Conversion::toString(implID) + ");"));
             }
         }
-
+#endif
         // insert into fu_external_port table
         for (int i = 0; i < impl.externalPortCount(); i++) {
             FUExternalPort& port = impl.externalPort(i);

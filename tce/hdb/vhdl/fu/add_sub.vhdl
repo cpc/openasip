@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2007/02/07
+-- Last update: 2010-02-15
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Adder/Subtractor functional unit
@@ -140,8 +140,8 @@ begin
     generic map (
       dataw => dataw)
     port map(
-      A   => o1reg,
-      B   => t1reg,
+      A   => t1reg,
+      B   => o1reg,
       opc => t1opc_reg,
       S   => r1);
 
@@ -242,8 +242,8 @@ begin
     generic map (
       dataw => dataw)
     port map(
-      A   => o1reg,
-      B   => t1reg,
+      A   => t1reg,
+      B   => o1reg,
       opc => t1opc_reg,
       S   => r1);
 

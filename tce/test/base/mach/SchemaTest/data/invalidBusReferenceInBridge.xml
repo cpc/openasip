@@ -50,17 +50,17 @@
 
 <bridge name="bridge1">
     <reads-from>bus1</reads-from>
-    <writes-to>invalidName</writes-to> <!-- error here -->
+    <writes-to>invalidName1</writes-to> <!-- error here -->
 </bridge>
 
 <bridge name="bridge2">
-    <reads-from>invalidName</reads-from> <!-- error here -->
+    <reads-from>invalidName2</reads-from> <!-- error here -->
     <writes-to>bus2</writes-to>
 </bridge>
 
 <bridge name="bridge3">
-    <reads-from>invalidName</reads-from> <!-- error here -->
-    <writes-to>invalidName</writes-to> <!-- error here -->
+    <reads-from>invalidName3</reads-from> <!-- error here -->
+    <writes-to>invalidName4</writes-to> <!-- error here -->
 </bridge>
 
 <function-unit name="fu1">

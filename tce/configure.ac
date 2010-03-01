@@ -152,7 +152,6 @@ AM_CONDITIONAL([COMPILER_FOUND], test ! -z $TCELLVMGCC $CLANG)
 # First check whether unordered_map exists.
 # now using unordered_map/set needs gcc flag -std=c++0x
 # later when hash_map/set are removed compiling without c++0x flag should work
-AC_LANG(C++)
 AC_MSG_CHECKING([whether unordered_map/hash_map is available])
 AC_LANG_CONFTEST(
                  [AC_LANG_PROGRAM(
@@ -164,7 +163,7 @@ AC_LANG_CONFTEST(
 # temporary file
 HASHMAP_TEST=hashmaptest123456
 rm -f $HASHMAP_TEST
-$CXX conftest.cpp 2> $HASHMAP_TEST
+$CXX conftest.c 2> $HASHMAP_TEST
 
 # if failed then
 if test -s ${HASHMAP_TEST}; then
@@ -179,7 +178,7 @@ if test -s ${HASHMAP_TEST}; then
                    ])
 
   rm -f $HASHMAP_TEST
-  $CXX -Wno-deprecated conftest.cpp 2> $HASHMAP_TEST
+  $CXX -Wno-deprecated conftest.c 2> $HASHMAP_TEST
 
   # if failed again
   if test -s ${HASHMAP_TEST}; then
@@ -192,7 +191,7 @@ if test -s ${HASHMAP_TEST}; then
                      ])
 
     rm -f $HASHMAP_TEST
-    $CXX -Wno-deprecated conftest.cpp 2> $HASHMAP_TEST
+    $CXX -Wno-deprecated conftest.c 2> $HASHMAP_TEST
 
     # if failed again
     if test -s ${HASHMAP_TEST}; then
@@ -231,7 +230,7 @@ then
 
   AC_MSG_CHECKING([whether compiler understands -Wno-system-headers flag])
 
-  $CXX -Wno-system-headers conftest.cpp 2> $FLAGTEST
+  $CXX -Wno-system-headers conftest.c 2> $FLAGTEST
 
   if test -s $FLAGTEST
   then
@@ -251,7 +250,7 @@ AC_LANG_CONFTEST(
 ])
 
 RDYNAMICTEST=rdynamictest13224
-$CXX -rdynamic conftest.cpp 2> $RDYNAMICTEST
+$CXX -rdynamic conftest.c 2> $RDYNAMICTEST
 
 AC_MSG_CHECKING([whether compiler supports -rdynamic])
 if test -s $RDYNAMICTEST
@@ -626,7 +625,6 @@ AM_CONDITIONAL(WX, test x$DO_WX_COMPILE = xtrue)
 
 # If tcl is not in standard path, its location can be given with
 # --with-tcl=<path>.
-AC_LANG(C++)
 AC_ARG_WITH(tcl,
 [AS_HELP_STRING([--with-tcl],[absolute path where tcl is found])],
 [
@@ -695,7 +693,7 @@ AC_PREPROC_IFELSE(
   [[
   printf(TCL_VERSION"\n");
   ]])])
-  $CXX $CPPFLAGS -o tclversiontest conftest.cpp
+  $CXX $CPPFLAGS -o tclversiontest conftest.c
   TCL_VERSION=`./tclversiontest`
   rm -f ./tclversiontest
   AC_MSG_RESULT([yes ($TCL_VERSION)])
@@ -1223,6 +1221,7 @@ AC_CONFIG_FILES([
   src/bintools/Compiler/Makefile
   src/bintools/Compiler/tceopgen/Makefile
   src/bintools/Compiler/llvm-tce/Makefile
+  src/applibs/ImplementationTester/Makefile
 ])
 
 # Generate test makefiles if we have the 'test' dir.

@@ -109,8 +109,6 @@ public:
             // add limm fields, if any
             imemWidth += firstMoveSlotIndex();
             compressedWidth_ = imemWidth;
-            assert(compressedWidth_ <= sizeof(long long unsigned int)*8
-                   && "Compressed instruction width is too big");
             setImemWidth(compressedWidth_);
 
             if (Application::verboseLevel() > 0 && dictionary_.size() > 0) {
@@ -227,19 +225,16 @@ private:
             InstructionBitVector* bemBits = bemInstructionBits(*instruction);
             InstructionBitVector* compressedInstruction = 
                 new InstructionBitVector();
-            // This is bit ugly. And this will only work if the
-            // compressed instruction width is <= width of 
-            // long long unsigned int. There is an assert
-            // earlier to check that.
-            // Add a new push_back method to BitVector?
-            long long unsigned int key = 0;
+            // Take a BitVector pointer to the compressed instruction because
+            // we _need_ to use BitVector pushBack-methods!
+            BitVector* compressPtr = 
+                static_cast<BitVector*>(compressedInstruction);
+
             // handle limm fields, if any
             if (firstMoveSlotIndex() != 0) {
                 for (int i = 0; i < firstMoveSlotIndex(); i++) {
-                    key <<= 1;
-                    if (bemBits->at(i) == 1) {
-                        key++;
-                    }
+                    // false is defined as 0, true is then != 0
+                    compressPtr->pushBack(bemBits->at(i) != 0);
                 }
             }
             unsigned int begin = firstMoveSlotIndex();
@@ -249,12 +244,12 @@ private:
                 BitVector moveSlot(*bemBits, begin, end);
                 unsigned int code = MapTools::valueForKey<unsigned int>(
                     *(dictionary_.at(i)), moveSlot);
-                key <<= MathTools::requiredBits(dictionary_.at(i)->size());
-                key += code;
+                // add move slot key to compressed instruction
+                compressPtr->pushBack(
+                    code, MathTools::requiredBits(dictionary_.at(i)->size()));
+
                 begin = end + 1;
             }
-            static_cast<BitVector*>(compressedInstruction)->pushBack(
-                key, compressedWidth_);
             addInstruction(*instruction, compressedInstruction);
             instruction = &currentProgram().nextInstruction(*instruction);
             delete bemBits;

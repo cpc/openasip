@@ -39,6 +39,8 @@
 #include "MachineCheckResults.hh"
 #include "MachineCheck.hh"
 
+class TCEString;
+class MoveNode;
 
 namespace TTAMachine {
     class Port;
@@ -51,6 +53,7 @@ namespace TTAMachine {
 
 namespace TTAProgram {
     class TerminalImmediate;
+    class Move;
 }
 
 /**
@@ -123,6 +126,22 @@ public:
     static int requiredImmediateWidth(
         bool signExtension,
         const TTAProgram::TerminalImmediate& source);
+
+    static bool busConnectedToPort(
+        const TTAMachine::Bus& bus, const TTAMachine::Port& port);
+    
+    static bool busConnectedToRF(
+        const TTAMachine::Bus& bus, const TTAMachine::Unit& destRF);
+
+    static bool busConnectedToFU(
+        const TTAMachine::Bus& bus, const TTAMachine::FunctionUnit& fu, 
+        const TCEString& opName, int opIndex);
+
+    static bool busConnectedToAnyFU(
+        const TTAMachine::Bus& bus, const MoveNode& moveNode);
+
+    static bool busConnectedToDestination(
+        const TTAMachine::Bus& bus, const MoveNode& moveNode);
 
     MachineConnectivityCheck();
     virtual ~MachineConnectivityCheck();

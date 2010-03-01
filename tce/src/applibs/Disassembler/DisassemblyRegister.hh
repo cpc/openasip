@@ -36,7 +36,15 @@
 #include <string>
 #include "DisassemblyElement.hh"
 #include "BaseType.hh"
+#include "TCEString.hh"
 
+namespace TTAMachine {
+    class RegisterFile;
+}
+
+namespace TTAProgram {
+    class Terminal;
+}
 /**
  * Represents a register in the disassembler.
  */
@@ -45,6 +53,20 @@ public:
     DisassemblyRegister(std::string rfName, Word index);
     virtual ~DisassemblyRegister();
     std::string toString() const;
+
+    static TCEString registerName(
+        const TTAMachine::RegisterFile& rf,
+        int index, 
+        char delim = '.');
+
+    static TCEString registerName(
+        const TTAProgram::Terminal& term);
+
+    static TCEString registerName(
+        const TCEString& registerFileName,
+        int index, 
+        char delim = '.');
+
 private:
     /// Name of the register file.
     std::string rfName_;

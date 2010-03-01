@@ -91,6 +91,7 @@ private:
     virtual ShortImmPSocketResource& findImmResource(
         BusResource& busRes) const;
     std::list<SchedulingResource*> shortImmPSocketResources_;
+    bool hasLimm_;
 };
 
 #endif

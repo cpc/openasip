@@ -27,11 +27,14 @@
  * Implementation of DisassemblyRegister class.
  *
  * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Heikki Kultala 2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
 #include "DisassemblyRegister.hh"
 #include "Conversion.hh"
+#include "RegisterFile.hh"
+#include "Terminal.hh"
 
 /**
  * The constructor.
@@ -61,5 +64,44 @@ DisassemblyRegister::~DisassemblyRegister() {
  */
 std::string
 DisassemblyRegister::toString() const {
-    return rfName_ + "." + Conversion::toString(index_);
+    return registerName(rfName_, index_);
+}
+
+/**
+ * Returns a name of the register.
+ *
+ * Does the int -> string conversion itself, because
+ * Conversion::toString() uses stringstream which is slow.
+ */
+TCEString
+DisassemblyRegister::registerName(
+    const TCEString& rfName, int index, char delim) {
+    char buf[12];
+    char *ptr = buf + sizeof(buf);
+    *--ptr = 0; // last to terminating zero.
+    // conversion from 2 to 10 base
+    do {
+        *--ptr = (index%10) + 48; // 48 is conversion to ascii.
+        index /= 10;
+    } while (index);
+    *--ptr = delim;
+    return rfName + ptr;
+}
+
+/**
+ * Returns name of a register.
+ */
+TCEString
+DisassemblyRegister::registerName(
+    const TTAMachine::RegisterFile& rf, int index, char delim) {
+    return registerName(rf.name(), index, delim);
+}
+
+/**
+ * Returns name of a register which is in a terminalregister.
+ */
+TCEString 
+DisassemblyRegister::registerName(
+    const TTAProgram::Terminal& term) {
+    return registerName(term.registerFile(), term.index());
 }

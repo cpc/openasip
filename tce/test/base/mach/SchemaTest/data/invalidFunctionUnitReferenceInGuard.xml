@@ -7,7 +7,7 @@
     <guard>
         <simple-expr>
             <unit>
-                <name>incorrectName</name> <!-- error here -->
+                <name>incorrectName1</name> <!-- error here -->
                 <port>P1</port>
             </unit>
         </simple-expr>
@@ -30,13 +30,13 @@
         <and-expr>
             <simple-expr>
                 <unit>
-                    <name>incorrectName</name> <!-- error here -->
+                    <name>incorrectName2</name> <!-- error here -->
                     <port>P1</port>
                 </unit>
             </simple-expr>
             <inverted-expr>
                 <unit>
-                    <name>incorrectName</name> <!-- error here -->
+                    <name>incorrectName3</name> <!-- error here -->
                     <port>P1</port>
                 </unit>
             </inverted-expr>

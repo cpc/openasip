@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Definition of EditPart class.
  *
  * @author Ari Mets‰halme 2003 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  * @note rating: yellow
  * @note reviewed Jul 13 2004 by vpj, ll, jn, am
  */
@@ -66,7 +67,7 @@ EditPart::EditPart():
 EditPart::~EditPart() {
     assert(garbageCollected_);
     for (unsigned int i = 0; i < editPolicies_.size(); i++) {
-	delete editPolicies_[i];
+        delete editPolicies_[i];
     }
     editPolicies_.clear();
     delete figure_;
@@ -80,7 +81,7 @@ EditPart::~EditPart() {
 void
 EditPart::putGarbage(std::set<EditPart*>& trashbag) {
     for (unsigned i = 0; i < children_.size(); i++) {
-	children_[i]->putGarbage(trashbag);
+        children_[i]->putGarbage(trashbag);
     }
     trashbag.insert(this);
     garbageCollected_ = true;
@@ -111,9 +112,9 @@ EditPart::find(wxPoint point) {
 #else
     if (selectable_ && figure_->virtualBounds().Inside(point)) {
 #endif     
-	return this;
+        return this;
     } else {
-	return NULL;
+        return NULL;
     }
 }
 
@@ -128,17 +129,17 @@ EditPart*
 EditPart::find(const TTAMachine::MachinePart* model) {
 
     if (model == model_) {
-	return this;
+        return this;
     }
-
+    
     EditPart* found = NULL;
 
     // Check if the component is child of this edit part.
     for (unsigned int i = 0; i < children_.size(); i++) {
-	found = children_[i]->find(model);
-	if (found != NULL) {
-	    return found;
-	}
+        found = children_[i]->find(model);
+        if (found != NULL) {
+            return found;
+        }
     }
 
     return NULL;
@@ -155,7 +156,7 @@ EditPart::find(const TTAMachine::MachinePart* model) {
 void
 EditPart::installEditPolicy(EditPolicy* editpolicy) {
     if (editpolicy->host() == NULL) {
-	editpolicy->setHost(this);
+        editpolicy->setHost(this);
     }
     editPolicies_.push_back(editpolicy);
 }
@@ -168,9 +169,9 @@ EditPart::installEditPolicy(EditPolicy* editpolicy) {
 void
 EditPart::addChild(EditPart* child) {
     if (child != NULL && !ContainerTools::containsValue(children_, child)) {
-	assert(figure_ != NULL);
-	figure_->addChild(child->figure());
-	children_.push_back(child);
+        assert(figure_ != NULL);
+        figure_->addChild(child->figure());
+        children_.push_back(child);
     }
 }
 
@@ -187,10 +188,10 @@ ComponentCommand*
 EditPart::performRequest(Request* request) const {
     vector<EditPolicy*>::const_iterator i = editPolicies_.begin();
     for (; i != editPolicies_.end(); i++) {
-	ComponentCommand* command = (*i)->getCommand(request);
-	if (command != NULL) {
-	    return command;
-	}
+        ComponentCommand* command = (*i)->getCommand(request);
+        if (command != NULL) {
+            return command;
+        }
     }
     return NULL;
 }
@@ -206,9 +207,9 @@ bool
 EditPart::canHandle(Request* request) const {
     vector<EditPolicy*>::const_iterator i = editPolicies_.begin();
     for (; i != editPolicies_.end(); i++) {
-	if ((*i)->canHandle(request)) {
-	    return true;
-	}
+        if ((*i)->canHandle(request)) {
+            return true;
+        }
     }
     return false;
 }

@@ -1043,3 +1043,22 @@ Environment::llvmtceCachePath() {
 
     return path;
 }
+
+/**
+ * Returns full paths to implementation tester vhdl testbench template 
+ * directory
+ *
+ * @return Paths to testbench templates
+ */
+std::vector<std::string> Environment::implementationTesterTemplatePaths() {
+    std::vector<std::string> paths;
+    std::string DS = FileSystem::DIRECTORY_SEPARATOR;
+    if (!DISTRIBUTED_VERSION) {
+        string path = string(TCE_SRC_ROOT) + DS + "data" + DS + "hdb";
+        paths.push_back(path);
+    }
+    string path = string(TCE_INSTALLATION_ROOT) + string(INSTALLATION_DIR) 
+        + "data" + DS + "hdb";
+    paths.push_back(path);
+    return paths;
+}

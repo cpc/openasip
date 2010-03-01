@@ -62,6 +62,11 @@ typedef long _ssize_t;
 #define __need_wint_t
 #include <stddef.h>
 
+#ifdef __clang__
+/* stddef.h from Clang does not provide wint_t */
+typedef unsigned int wint_t;
+#endif
+
 #ifndef __mbstate_t_defined
 /* Conversion state information.  */
 typedef struct

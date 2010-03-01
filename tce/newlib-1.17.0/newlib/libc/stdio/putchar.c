@@ -75,6 +75,16 @@ static char sccsid[] = "%W% (Berkeley) %G%";
 
 #undef putchar
 
+#ifdef __TCE_V1__
+#include "tceops.h"
+int
+_DEFUN(putchar, (c),
+       int c)
+{
+    _TCE_STDOUT((int)(c));
+}
+#else
+
 int
 _DEFUN(_putchar_r, (ptr, c),
        struct _reent *ptr _AND
@@ -94,4 +104,5 @@ _DEFUN(putchar, (c),
   return _putc_r (_REENT, c, _stdout_r (_REENT));
 }
 
+#endif
 #endif
