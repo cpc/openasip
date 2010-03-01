@@ -11,6 +11,6 @@ $tcecc -O0 -a $adf -o $tpef \
 
 $tceopgen 2>&1 | egrep "STW|MUL|ADD|DIVU|XOR" | egrep -v "_MULT"
 
-echo $($ttasim -p $tpef -a $adf -e "run; puts [x /u w _result]; quit;" --no-debugmode)
+echo $($ttasim -p $tpef -a $adf -e "run; puts [x /u w result]; quit;" --no-debugmode)
 
 rm -f $tpef
