@@ -144,6 +144,14 @@ static _CONST double tinytens[] = { 1e-16, 1e-32, 1e-64, 1e-128,
 #define Check_FLT_ROUNDS
 #else
 #define Rounding Flt_Rounds
+
+#if defined(__tce__) && defined(__clang__)
+
+/* This was not defined in Clang compilation as of 2010-03-01. */
+#define Flt_Rounds 0
+
+#endif
+
 #endif
 
 #ifndef NO_HEX_FP
