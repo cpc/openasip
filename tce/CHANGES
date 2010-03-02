@@ -20,6 +20,10 @@ New features
 - support for using the Clang as the C frontend via 'tcecc --clang'.
   NOTE: Clang 1.0 (released with LLVM 2.6) needs to be patched with
   tools/patches/clang-1.0-tce-support.patch for the TCE support.
+- Utility programs to test that OSAL behaviour definitions and HDL
+  implementations of function units are equal.
+  - testhdb command line tool to test FU and RF implementations in HDB
+  - ttaunittester to test the FUs and RFs implementations defined in IDF
 
 Code optimizations
 ------------------
