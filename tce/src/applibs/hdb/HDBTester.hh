@@ -22,66 +22,50 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ImplementationSimulator.hh
+ * @file HDBTester.hh
  *
- * Declaration of ImplementationSimulator
+ * Declaration of HDBTester
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
+#ifndef TTA_HDB_TESTER_HH
+#define TTA_HDB_TESTER_HH
 
-#ifndef TTA_IMPLEMENTATION_SIMULATOR_HH
-#define TTA_IMPLEMENTATION_SIMULATOR_HH
-
+#include <iostream>
 #include <string>
-#include <vector>
+#include "ImplementationTester.hh"
 
-class ImplementationSimulator {
+class HDBTester {
 public:
-    ImplementationSimulator(
-        std::string tbFile,
-        std::vector<std::string> hdlFiles, bool verbose);
+    HDBTester();
 
-    virtual ~ImplementationSimulator();
+    HDBTester(
+        std::ostream& infoStream,
+        std::ostream& errorStream,
+        VhdlSim simulator, bool verbose, bool leaveDirty);
 
-    virtual bool compile(std::vector<std::string>& errors) = 0;
+    virtual ~HDBTester();
+
+    bool testAllEntries(std::string hdbFile);
+
+    bool testOneRF(std::string hdbFile, int entryId);
+
+    bool testOneFU(std::string hdbFile, int entryId);
     
-    virtual bool simulate(std::vector<std::string>& errors) = 0;
-
-protected:
-    virtual std::string createWorkDir();
-
-    void setWorkDir(std::string dir);
-
-    std::string workDir() const;
-
-    std::string tbDirectory() const;
-
-    std::string tbFile() const;
-
-    int hdlFileCount() const;
-
-    std::string file(int index) const;
-
-    bool verbose();
-
-    void 
-    parseErrorMessages(
-        std::vector<std::string>& inputMsg, std::vector<std::string>& errors);
-
 private:
-    /// Testbench file name with path
-    std::string tbFile_;
-    /// Vector containing other vhdl files needed to compile testbench
-    std::vector<std::string> hdlFiles_;
-    /// Directory path of testbench file
-    std::string baseDir_;
-    /// Working directory where testbench is compiled and simulated
-    std::string workDir_;
-    /// Old current working directory (before changing to workDir_)
-    std::string oldCwd_;
-    /// Enable verbose output
+
+    ImplementationTester* initializeTester(std::string hdbFile);
+
+    bool testFU(int id, ImplementationTester* tester);
+
+    bool testRF(int id, ImplementationTester* tester);
+
+    std::ostream* infoStream_;
+    std::ostream* errorStream_;
+    VhdlSim sim_;
     bool verbose_;
+    bool leaveDirty_;
 };
 
 #endif
