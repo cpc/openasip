@@ -76,6 +76,10 @@ def processInputFiles(inFiles, tmpDir, verbose):
             compileFlags += "-B" + i + " "
         
     for i in options.f_cc_switches:
+        if options.use_clang:
+            # Some of the gcc -f flags not supported by clang,
+            # just skip them silently for now for gcc compatibility.
+            if i == "short-enums": continue
         compileFlags += "-f" + i + " "
 
     for i in options.isystem_cc_switches:
@@ -533,9 +537,10 @@ else:
     outputName = options.output_name
 
 ### llvm-gcc install prefix
-(exitCode, output) = runCommand("dirname `which tce-llvm-gcc`", False)
-if exitCode != 0:
-    sys.stderr.write("Could not find 'tce-llvm-gcc'. Have you installed it in PATH?\n")
+(exitCode1, output) = runCommand("dirname `which tce-llvm-gcc`", False)
+(exitCode2, output) = runCommand("dirname `which clang`", False)
+if exitCode1 != 0 and exitCode2 != 0:
+    sys.stderr.write("Could not find 'tce-llvm-gcc' nor 'clang'. Have you installed one of them in PATH?\n")
     exitWithError(1, options.verbose, output)
 
 ### tce install prefix

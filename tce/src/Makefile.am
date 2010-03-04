@@ -1,7 +1,12 @@
 SUBDIRS = base tools applibs . bintools procgen codesign 
 
 lib_LTLIBRARIES = libtce.la
-libtce_la_LDFLAGS = ${TCE_LDFLAGS} -version-info 1:0:0
+
+# NOTE: TCE 1.2 should be fully API compatible with TCE 1.1 libs,
+# therefore the '1' as the 'age' of the libtool version string. 
+# Usually backwards compatibility probably won't be maintained.
+
+libtce_la_LDFLAGS = ${TCE_LDFLAGS} -version-info 2:0:1
 
 # http://www.gnu.org/software/hello/manual/automake/Libtool-Convenience-Libraries.html
 # Dummy C++ source to cause C++ linking.

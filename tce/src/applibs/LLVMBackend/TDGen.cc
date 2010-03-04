@@ -89,7 +89,7 @@ TDGen::generateBackend(std::string& path) throw (Exception) {
     std::ofstream instrTD;
     instrTD.open((path + "/GenInstrInfo.td").c_str());
     writeInstrInfo(instrTD);
-//    writeInstrInfo(std::cerr);
+    //writeInstrInfo(std::cerr);
     instrTD.close();
 
     std::ofstream pluginInc;

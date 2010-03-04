@@ -1,3 +1,11 @@
+1.2, 20xx-xx-xx
+===============
+New features
+------------
+- Support for LLVM 2.7 (dropped support for LLVM 2.6)
+- Proper support for Clang, compiles "Hello World" with Clang compiled
+  Newlib.
+
 1.1, 20xx-xx-xx
 ===============
 

@@ -86,7 +86,7 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
 
 // from Sparc backend:
 void TCEDAGToDAGISel::InstructionSelect() {
-  DEBUG(BB->dump());
+    //DEBUG(BB->dump());
   SelectRoot(*CurDAG);
   CurDAG->RemoveDeadNodes();
 }

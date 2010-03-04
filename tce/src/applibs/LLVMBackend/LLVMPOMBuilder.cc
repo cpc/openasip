@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,8 +26,9 @@
  *
  * Implementation of LLVMPOMBuilder class.
  *
- * @author Veli-Pekka Jääskeläinen 2007-2009 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2007-2010 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jaaskelainen 2010
  * @note reting: red
  */
 
@@ -233,7 +234,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.size = td->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
-            def.alignment = std::max(def.alignment,4u);
+            def.alignment = std::max(def.alignment, 4u);
         }
 
         /*
@@ -383,8 +384,7 @@ LLVMPOMBuilder::createDataDefinition(
         dmem_->addDataDefinition(
             new TTAProgram::DataDefinition(address, zeros));
 
-        addr += pad;
-        
+        addr += pad;        
     }
 
     // paddedAddr is the actual address data was put to
@@ -393,8 +393,8 @@ LLVMPOMBuilder::createDataDefinition(
 
     // Initialize with zeros if this is an uninitialized part of a partially
     // initialized data structure.
-    if (cv->isNullValue()) {
-
+    if (cv->isNullValue() || (dyn_cast<UndefValue>(cv) != NULL)) {
+        
         std::vector<MinimumAddressableUnit> maus;
         for (unsigned i = 0; i < sz; i++) {
             maus.push_back(0);
@@ -428,7 +428,8 @@ LLVMPOMBuilder::createDataDefinition(
     } else if (const ConstantExpr* ce = dyn_cast<ConstantExpr>(cv)) {
         createExprDataDefinition(addr, ce);
     } else {
-        assert(false && "Unknown cv type.");
+        cv->dump();
+        abortWithError("Unknown cv type.");
     }
 
     return paddedAddr;
@@ -481,7 +482,6 @@ LLVMPOMBuilder::createIntDataDefinition(
     addr += def->size();
     dmem_->addDataDefinition(def);
 }
-
 
 /**
  * Creates data definition of a floating point constant.
@@ -1565,7 +1565,7 @@ LLVMPOMBuilder::emitInlineAsm(
                   << useOps.size() << " input operands." << std::endl;
 
         mi->dump();
-        assert(false);
+        abortWithError("Cannot continue.");
     }
     
 

@@ -1,6 +1,6 @@
 Index: include/clang/Driver/HostInfo.h
 ===================================================================
---- include/clang/Driver/HostInfo.h	(revision 97443)
+--- include/clang/Driver/HostInfo.h	(revision 97574)
 +++ include/clang/Driver/HostInfo.h	(working copy)
 @@ -80,6 +80,8 @@
                                          const llvm::Triple& Triple);
@@ -13,7 +13,7 @@ Index: include/clang/Driver/HostInfo.h
  
 Index: lib/Basic/Targets.cpp
 ===================================================================
---- lib/Basic/Targets.cpp	(revision 97443)
+--- lib/Basic/Targets.cpp	(revision 97574)
 +++ lib/Basic/Targets.cpp	(working copy)
 @@ -1892,9 +1892,10 @@
        FloatFormat = &llvm::APFloat::IEEEsingle;
@@ -23,17 +23,17 @@ Index: lib/Basic/Targets.cpp
 -                          "-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:32:64"
 -                          "-f32:32:32-f64:32:64-n32";
 +      DescriptionString = "E-p:32:32:32-i1:8:8-i8:8:32-"
-+                          "i16:16:32-i32:32:32-i64:32:64-"
++                          "i16:16:32-i32:32:32-i64:32:32-"
 +                          "f32:32:32-f64:64:64-v64:64:64-"
-+                          "v128:128:128-a0:0:64";
++                          "v128:128:128-a0:0:64-n32";
      }
  
      virtual void getTargetDefines(const LangOptions &Opts,
 Index: lib/Driver/ToolChains.cpp
 ===================================================================
---- lib/Driver/ToolChains.cpp	(revision 97443)
+--- lib/Driver/ToolChains.cpp	(revision 97574)
 +++ lib/Driver/ToolChains.cpp	(working copy)
-@@ -728,6 +728,67 @@
+@@ -728,6 +728,66 @@
    return new DerivedArgList(Args, true);
  }
  
@@ -43,8 +43,7 @@ Index: lib/Driver/ToolChains.cpp
 +/// Currently does not support anything else but compilation.
 +
 +TCEToolChain::TCEToolChain(const HostInfo &Host, const llvm::Triple& Triple)
-+  : ToolChain(Host, Triple) 
-+{
++  : ToolChain(Host, Triple) {
 +  // Path mangling to find libexec
 +  std::string Path(getDriver().Dir);
 +
@@ -103,7 +102,7 @@ Index: lib/Driver/ToolChains.cpp
  OpenBSD::OpenBSD(const HostInfo &Host, const llvm::Triple& Triple)
 Index: lib/Driver/ToolChains.h
 ===================================================================
---- lib/Driver/ToolChains.h	(revision 97443)
+--- lib/Driver/ToolChains.h	(revision 97574)
 +++ lib/Driver/ToolChains.h	(working copy)
 @@ -267,6 +267,26 @@
  };
@@ -134,7 +133,7 @@ Index: lib/Driver/ToolChains.h
  } // end namespace clang
 Index: lib/Driver/HostInfo.cpp
 ===================================================================
---- lib/Driver/HostInfo.cpp	(revision 97443)
+--- lib/Driver/HostInfo.cpp	(revision 97574)
 +++ lib/Driver/HostInfo.cpp	(working copy)
 @@ -157,6 +157,46 @@
    return TC;
@@ -198,7 +197,7 @@ Index: lib/Driver/HostInfo.cpp
    return new UnknownHostInfo(D, Triple);
 Index: lib/Driver/Driver.cpp
 ===================================================================
---- lib/Driver/Driver.cpp	(revision 97443)
+--- lib/Driver/Driver.cpp	(revision 97574)
 +++ lib/Driver/Driver.cpp	(working copy)
 @@ -1145,6 +1145,10 @@
    llvm::PrettyStackTraceString CrashInfo("Constructing host");

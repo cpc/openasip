@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -21,20 +21,23 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
     DEALINGS IN THE SOFTWARE.
  */
-//===- LowerMissingInstructions.cpp - 
-//
-// Convert instruction which are not supported by the machine to
-// function calls.
-//
-// NOTE: Right now system is limited to replace only those operations, which
-//       use only one bitwidth integers for example i1.icmp.i32.i32 cannot
-//       be lowered to function call.
-//       However i16.mul.i16.i16 works.
-//
-//       Maybe better way would be to take llvm footprints which must be
-//       emulated and create function prototype directly for them.
-//
-//===----------------------------------------------------------------------===
+/**
+ * @file LowerMissingInstructions.cc
+ *
+ * Convert instruction which are not supported by the machine to
+ * function calls.
+ *
+ * NOTE: Right now system is limited to replace only those operations, which
+ *       use only one bitwidth integers for example i1.icmp.i32.i32 cannot
+ *       be lowered to function call.
+ *       However i16.mul.i16.i16 works.
+ *
+ *       Maybe better way would be to take llvm footprints which must be
+ *       emulated and create function prototype directly for them.
+ * @author Mikael Lepisto 2008-2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jaaskelainen 2010
+ * @note reting: red
+ */
 
 #define DEBUG_TYPE "lowermissing"
 
@@ -330,7 +333,10 @@ void LowerMissingInstructions::addFunctionForFootprints(
 #endif
 
         if (replaceFunctions[footprints[j]] == NULL) {
-            std::cerr << " ERROR: suitable function wasn't found" << std::endl;
+            abortWithError(
+                (boost::format("ERROR: emulation function '%s' for operation "
+                               "'%s' wasn't found") % op.emulationFunctionName() 
+                 % op.name()).str());
         }
     }
 }
