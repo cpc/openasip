@@ -59,7 +59,7 @@ void pin_down(TYPE *Z)
 volatile TYPE init_A[2] = {2,1} ; 
 volatile TYPE init_B[2] = {2,5} ;
 
-TYPE main()
+int main()
 { 
   // allow register optimizations anyways
   static  TYPE A[2]; A[0] = init_A[0]; A[1] = init_A[1];

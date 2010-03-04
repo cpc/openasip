@@ -46,7 +46,7 @@ void pin_down(TYPE * px, TYPE * ph)
 }
 
 
-TYPE main()
+int main()
 {
 
 	static TYPE     x[LENGTH];
@@ -71,6 +71,5 @@ TYPE main()
     init_value = y;
     OUTPUT_VAR(init_value);
 
-	return ((TYPE) y);
-
+    return 0;
 }

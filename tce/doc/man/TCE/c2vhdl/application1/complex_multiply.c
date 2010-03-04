@@ -42,8 +42,7 @@ TYPE ar = 2, ai = 1;
 TYPE br = 2, bi = 5;
 TYPE cr, ci ;
 
-void
-main()
+int main()
 {
     int i;
   
@@ -54,4 +53,5 @@ main()
 
     _Output[0] = cr;
     _Output[1] = ci;
+    return 0;
 }

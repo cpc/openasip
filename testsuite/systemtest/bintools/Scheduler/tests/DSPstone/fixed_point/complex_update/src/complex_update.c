@@ -51,8 +51,7 @@ volatile TYPE init_A[2] = { 2,1 } ;
 volatile TYPE init_B[2] = { 2,5 } ;
 volatile TYPE init_C[2] = { 3,4 } ; 
 
-TYPE
-main()
+int main()
 {
   // Load from memory but allow register optimize in between calculation
   static TYPE A[2]; A[0] = init_A[0]; A[1] = init_A[1];

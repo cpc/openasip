@@ -64,8 +64,7 @@ pin_down(TYPE *h, TYPE *y, TYPE *x)
   return(init_0);
 }
 
-TYPE
-main()
+int main()
 { 
   static TYPE h[9] ; 
   static TYPE x[3] ;

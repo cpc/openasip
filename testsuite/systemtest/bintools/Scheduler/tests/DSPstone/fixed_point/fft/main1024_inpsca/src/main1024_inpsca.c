@@ -94,8 +94,7 @@ pin_down(input_data)
 }
 
 
-TYPE 
-main()
+int main()
 {
   int i;
   STORAGE_CLASS TYPE input_data[2*N_FFT];   

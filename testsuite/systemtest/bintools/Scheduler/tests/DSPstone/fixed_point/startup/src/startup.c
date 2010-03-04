@@ -81,7 +81,7 @@ void pin_down(int *in, int *out)
     }
 }
 
-main(void)
+int main()
 {
   int i, x, y, Out[240];
   int N, tmp;

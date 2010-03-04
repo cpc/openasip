@@ -44,8 +44,7 @@ pin_down(TYPE *ar, TYPE *ai, TYPE *br, TYPE *bi, TYPE *cr, TYPE *ci)
   OUTPUT_VAR(*ci);
 }
 
-void
-main()
+int main()
 {
   STORAGE_CLASS TYPE ar, ai ;
   STORAGE_CLASS TYPE br, bi ;
@@ -60,6 +59,6 @@ main()
   END_PROFILING;
 
   pin_down(&ar, &ai, &br, &bi, &cr, &ci) ; 
-
+  return 0;
 }
 

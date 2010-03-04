@@ -97,8 +97,7 @@ pin_down(TYPE A[], TYPE B[], TYPE C[])
 
 }
 
-TYPE
-main()
+int main()
 { 
   static  TYPE A[X*Y] ; 
   static  TYPE B[Y*Z] ;

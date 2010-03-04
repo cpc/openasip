@@ -42,8 +42,7 @@ pin_down(TYPE *p)
 }
 
 
-TYPE
-main()
+int main()
 {
   static TYPE A; A = init_10 ;
   static TYPE B; B = init_2 ;

@@ -51,8 +51,7 @@ pin_down(TYPE * px, TYPE * ph, TYPE y)
   
 }
 
-TYPE
-main()
+int main()
 {
   static TYPE  x[LENGTH];
   static TYPE  h[LENGTH];

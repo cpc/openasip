@@ -58,7 +58,7 @@ pin_down(TYPE *pa, TYPE *pb, TYPE *pc, TYPE *pd)
     }
 }
 
-TYPE main()
+int main()
 {
   static TYPE A[N], B[N], C[N], D[N] ; 
   

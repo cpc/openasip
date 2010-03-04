@@ -111,7 +111,7 @@ pin_down(TYPE *pimage, TYPE *parray, TYPE *pcoeff, TYPE *poutput)
 }
 
 
-void main()
+int main()
 {
 
   static TYPE  coefficients[COEFFICIENTS*COEFFICIENTS] ; 
@@ -163,6 +163,6 @@ void main()
   END_PROFILING;  
   
   pin_down(&image[0], &array[0], &coefficients[0], &output[0]);
-  
+  return 0;
 } 
      

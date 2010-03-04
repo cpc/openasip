@@ -60,7 +60,7 @@ pin_down(TYPE x)
 }
 
 
-TYPE main()
+int main()
 {
   
   STORAGE_CLASS TYPE y, w ; 
@@ -98,5 +98,5 @@ TYPE main()
   
   x = y;
   OUTPUT_VAR(x);
-  return((TYPE) y) ; 
+  return 0;
 }

@@ -80,7 +80,7 @@ TYPE pin_down(TYPE x, TYPE coefficients[], TYPE wi[])
 }
 
 
-TYPE main()
+int main()
 {
   int f ;
   STORAGE_CLASS TYPE w ; 
@@ -122,7 +122,7 @@ TYPE main()
   END_PROFILING;
     
   pin_down(y,coefficients,wi) ; 
-
-  return((TYPE) y) ; 
+  
+  return 0;
 }
 

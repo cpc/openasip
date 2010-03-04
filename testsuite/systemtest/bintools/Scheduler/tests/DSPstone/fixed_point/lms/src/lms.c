@@ -110,8 +110,7 @@ pin_down(TYPE *d, TYPE *x, TYPE *delta, TYPE *p_H, TYPE *p_X)
 
 }
 
-TYPE
-main()
+int main()
 { 
   static TYPE H[N] ; /* Filter Coefficient Vector */
   static TYPE X[N] ; /* Filter State Variable Vector */
