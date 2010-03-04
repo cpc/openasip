@@ -24,6 +24,7 @@ New features
   implementations of function units are equal.
   - testhdb command line tool to test FU and RF implementations in HDB
   - ttaunittester to test the FUs and RFs implementations defined in IDF
+- ProDe: when copying a bus, also copy its guards
 
 Code optimizations
 ------------------

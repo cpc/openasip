@@ -56,12 +56,16 @@ public:
     virtual ~Guard();
 
     virtual Bus* parentBus() const;
+    virtual void setParentBus(Bus& parentBus) {
+        parent_ = &parentBus;
+    }
     virtual bool isEqual(const Guard& guard) const = 0;
     virtual bool isInverted() const;
     virtual bool isMoreRestrictive(const Guard& guard) const;
     virtual bool isLessRestrictive(const Guard& guard) const;
     virtual bool isOpposite(const Guard& guard) const = 0;
     virtual bool isDisjoint(const Guard& guard) const;
+    virtual void copyTo(Bus& parentBus) const = 0;
 
     virtual ObjectState* saveState() const;
     virtual void loadState(const ObjectState* state)
@@ -108,6 +112,10 @@ public:
     bool isOpposite(const Guard& guard) const;
 
     FUPort* port() const;
+    virtual void copyTo(Bus& parentBus) const {
+        new PortGuard(
+            isInverted(), *port_, parentBus);
+    }
 
     ObjectState* saveState() const;
     void loadState(const ObjectState* state)
@@ -151,6 +159,11 @@ public:
     bool isEqual(const Guard& guard) const;
     RegisterFile* registerFile() const;
     int registerIndex() const;
+    virtual void copyTo(Bus& parentBus) const {
+        new RegisterGuard(
+            isInverted(), *regFile_, registerIndex_,
+            parentBus);
+    }
 
     ObjectState* saveState() const;
     void loadState(const ObjectState* state)
@@ -191,6 +204,9 @@ public:
     ObjectState* saveState() const;
     void loadState(const ObjectState* state)
         throw (ObjectStateLoadingException);
+    virtual void copyTo(Bus& parentBus) const {
+        new UnconditionalGuard(isInverted(), parentBus);
+    }
 
     /// ObjectState name for UnconditionalGuard.
     static const std::string OSNAME_UNCONDITIONAL_GUARD;

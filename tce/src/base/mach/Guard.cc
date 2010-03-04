@@ -175,8 +175,9 @@ Guard::loadState(const ObjectState* state)
         inverted_ = state->intAttribute(OSKEY_INVERTED);
     } catch (Exception& e) {
         string procName = "Guard::loadState";
-        throw ObjectStateLoadingException(__FILE__, __LINE__, procName,
-                                          e.errorMessage());
+        throw ObjectStateLoadingException(
+            __FILE__, __LINE__, procName,
+            e.errorMessage());
     }
 }
 
@@ -633,7 +634,7 @@ UnconditionalGuard::UnconditionalGuard(bool inverted, Bus& parentBus)
 
 
 /**
- * Constructor.
+ * Constructor.
  *
  * Loads its state from the given ObjectState instance.
  *

@@ -54,9 +54,9 @@ PasteComponentCmd::paste(
     // an integer to the end of the name.
     if (navigator.hasItem(component->name())) {
         int i = 1;
-        while (navigator.hasItem(component->name() + "_" +
-                                 Conversion::toString(i))) {
-
+        while (navigator.hasItem(
+                   component->name() + "_" +
+                   Conversion::toString(i))) {
             i++;
         }
         component->setName(component->name()+"_"+Conversion::toString(i));

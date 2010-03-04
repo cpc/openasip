@@ -51,6 +51,7 @@
 #include "RegisterFile.hh"
 #include "ImmediateUnit.hh"
 #include "ControlUnit.hh"
+#include "Guard.hh"
 
 using std::string;
 using boost::format;
@@ -131,7 +132,19 @@ PasteComponentCmd::Do() {
         // register file
         Machine::BusNavigator navigator =
             machine->busNavigator();
-        paste(*machine, new Bus(contents), navigator);
+        TTAMachine::Bus* copiedBus = new Bus(contents);
+        TTAMachine::Bus& original = 
+            *navigator.item(copiedBus->name());
+
+        // register the bus to the machine, possibly rename it to
+        // avoid name clashes
+        paste(*machine, copiedBus, navigator);
+
+        // also copy the guards from the original Bus 
+        assert(copiedBus->guardCount() == 0);
+        for (int i = 0; i < original.guardCount(); ++i) {
+            original.guard(i)->copyTo(*copiedBus);
+        }
 
     } else if (contents->name() == ControlUnit::OSNAME_CONTROL_UNIT) {
         // control unit
@@ -216,13 +229,13 @@ PasteComponentCmd::isEnabled() {
     wxDocManager* manager = wxGetApp().docManager();
     MDFView* mdfView = dynamic_cast<MDFView*>(manager->GetCurrentView());
     if (mdfView == NULL) {
-	return false;
+        return false;
     }
 
     // check that the clipboard is not empty
     ProDeClipboard* clipboard = ProDeClipboard::instance();
     if (clipboard->isEmpty()) {
-	return false;
+        return false;
     }
     return true;
 }
