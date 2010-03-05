@@ -78,6 +78,8 @@ TCE_INCLUDE_DIRS = \
 TCE_INCLUDES = $(addprefix -I,${TCE_INCLUDE_DIRS})
 TCE_INCLUDES += -I ${TOP_SRCDIR}
 
+include ${TOP_SRCDIR}/test/Makefile_configure_settings
+
 # Link the TCE libraries dynamically. Ensure that we link against the
 # libs in the source dir, not the (possibly) installed libs in the system.
 # This is done by the LIB_MAGIC switch set below. It's copied from the
@@ -87,11 +89,10 @@ TCE_INCLUDES += -I ${TOP_SRCDIR}
 # the system directories are checked only in case not found in these.
 TCE_LIB_DIRS = \
     $(shell find ${TOP_SRCDIR}/src -name .libs)
-LIB_MAGIC = -Wl,--rpath -Wl,
+LIB_MAGIC = -Wl,-rpath -Wl,
 TCE_LIB_FLAGS = $(addprefix ${LIB_MAGIC},${TCE_LIB_DIRS})
-TCE_LIBS = ${TOP_SRCDIR}/src/.libs/libtce.so 
+TCE_LIBS = ${TOP_SRCDIR}/src/.libs/libtce${LIBRARY_SUFFIX} 
 
-include ${TOP_SRCDIR}/test/Makefile_configure_settings
 
 LIB_FLAGS = ${TCL_LD_FLAGS} ${EDITLINE_LD_FLAGS} ${LLVM_LD_FLAGS}
 

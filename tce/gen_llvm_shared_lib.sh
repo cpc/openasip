@@ -62,9 +62,29 @@ which llvm-config > /dev/null || error_exit 1 "llvm-config not found in PATH"
 #    fi
 #fi
 
+## Darwin uses 'dylib' as library suffix, and -all_load to include everything into
+## shared library.
+if test `uname -s` = Darwin;
+then
+  LIBRARY_SUFFIX=.dylib
+  ## On Darwin, check with what architecture option was LLVM build
+  ## x86_64 or i386 and add it to link flags
+  RELEASE=`uname -r`
+  if test "$(llvm-config --host-target)" = "x86_64-apple-darwin$RELEASE";
+  then
+      ARCH="-arch x86_64"
+  else
+      ARCH="-arch i386"
+  fi
+else
+  LIBRARY_SUFFIX=.so
+fi
+
+
 LLVM_LIBFILES=$(llvm-config --libfiles)
 LLVM_LIBDIR=$(llvm-config --libdir)
-LLVM_LIBFILE=${LLVM_LIBDIR}/libLLVM-${LLVM_VERSION}.so
+LLVM_LDFLAGS=$(llvm-config --ldflags)
+LLVM_LIBFILE=${LLVM_LIBDIR}/libLLVM-${LLVM_VERSION}${LIBRARY_SUFFIX}
 
 if test -e $LLVM_LIBFILE;
 then
@@ -74,15 +94,22 @@ fi
 CXX=g++
 
 echo "Generating ${LLVM_LIBFILE}..."
-$CXX -Wl,--whole-archive $LLVM_LIBFILES -Wl,--no-whole-archive -shared -o $LLVM_LIBFILE || \
+if test ${LIBRARY_SUFFIX} = .dylib
+then
+$CXX $LLVM_LDFLAGS $ARCH -Wl,-all_load $LLVM_LIBFILES -dynamiclib -o ${LLVM_LIBFILE} || \
     error_exit 2 "Failed. Do you have write access to $LLVM_LIBDIR? Are you root?"
+    echo $CXX $LLVM_LDFLAGS $ARCH -Wl,-all_load $LLVM_LIBFILES -dynamiclib -o ${LLVM_LIBFILE} 
+else
+$CXX $LLVM_LDFLAGS -Wl,--whole-archive $LLVM_LIBFILES -Wl,--no-whole-archive -shared -o ${LLVM_LIBFILE} || \
+    error_exit 2 "Failed. Do you have write access to $LLVM_LIBDIR? Are you root?"
+fi
 
 if test "$(llvm-config --build-mode)" = "Debug";
 then
     echo "Do not strip library compiled in Debug mode." 
 else
     echo "Stripping debugging symbols to save space..."
-    strip --strip-debug $LLVM_LIBFILE
+    strip -S $LLVM_LIBFILE
 fi
 
 

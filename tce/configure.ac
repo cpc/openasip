@@ -7,7 +7,8 @@ AC_INIT([tce],[1.2],[tce-users@cs.tut.fi])
 
 # Get the current revision number so we can print it out in
 # tce-config --version
-REVNO=$(which bzr > /dev/null && bzr revno >/dev/null 2>&1 && echo -n "-r" && bzr revno 2>/dev/null || echo -n "")
+REVNO=$(which bzr > /dev/null && bzr revno >/dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2>/dev/null || echo "" | tr -d "\n")
+
 
 AC_SUBST([VERSION_STRING], ["$PACKAGE_VERSION${REVNO}"] )
 
@@ -38,6 +39,26 @@ AH_BOTTOM([
 # This macro does several things that are necessary for the 
 # proper automake functioning.
 AM_INIT_AUTOMAKE
+#
+# Platform specific setup
+#
+#############################
+AC_CANONICAL_HOST
+# Check for which host we are on and setup a few things
+# specifically based on the host
+AM_CONDITIONAL([DARWIN_HOST_OS], false)
+case $host_os in
+  darwin* )
+    AM_CONDITIONAL([DARWIN_HOST_OS], true)
+    AC_SUBST([LIBRARY_SUFFIX], [".dylib"] )
+    AC_SUBST([CXXFLAGS], ["$CXXFLAGS -arch $host_cpu"])
+
+         ;;
+  *)
+    #Default Case
+    AC_SUBST([LIBRARY_SUFFIX], [".so"] )
+         ;;
+esac
 
 #######################
 # CHECKS FOR PROGRAMS #
@@ -54,7 +75,15 @@ fi
 # set SHARED_CXX_FLAGS, if it is not set already
 if test -z "$SHARED_CXX_FLAGS"
 then
-  AC_SUBST([SHARED_CXX_FLAGS], ["-lgcc -shared -g -fPIC -Wno-deprecated"])
+   case $host_os in
+     darwin* )
+          # Pass selected host architecture to plugin building as well.
+          AC_SUBST([SHARED_CXX_FLAGS], ["-flat_namespace -bundle -undefined dynamic_lookup -arch $host_cpu -fPIC"])
+            ;;
+     *)
+          AC_SUBST([SHARED_CXX_FLAGS], ["-lgcc -shared -g -fPIC -Wno-deprecated"])
+            ;;
+    esac
 fi
 
 # Determine which C++ compiler to use. If CXX is not set,
@@ -99,6 +128,9 @@ AM_PROG_LIBTOOL
 
 # Declare that we use egrep.
 AC_PROG_EGREP
+
+lt_objdir=$lt_cv_objdir
+AC_SUBST(lt_objdir)
 
 # Check for latex and latex2html executables.
 AC_CHECK_PROG([LATEX], [latex], [yes], [no], [], [])
@@ -313,6 +345,12 @@ then
 AC_MSG_ERROR(
 [boost_filesystem library not found. Install it or use --with-boost-filesystem switch])
 fi
+AX_BOOST_SYSTEM
+if test -z "$BOOST_SYSTEM_LIB"
+then
+AC_MSG_ERROR(
+[boost_filesystem library not found. Install it or use --with-boost-system switch])
+fi
 
 AX_BOOST_REGEX
 if test -z "$BOOST_REGEX_LIB"
@@ -382,11 +420,11 @@ else
 AC_CHECK_FILE($llvmConf, 
 [
 LLVM_VERSION=$($llvmConf --version)
-LLVM_SHARED_LIB=$($llvmConf --libdir)/libLLVM-$LLVM_VERSION.so
+LLVM_LIBDIR=$($llvmConf --libdir)
+LLVM_SHARED_LIB=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
-LLVM_LIBDIR=$($llvmConf --libdir)
 
 # Hack for debian sid packages
 if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
@@ -421,6 +459,7 @@ then
 $LLVM_SHARED_LIB not found. 
 Either recompile and install LLVM after ./configure --enable-shared
 or use ./gen_llvm_shared_lib.sh to generate it.])
+
 fi
 
 # test if $llvmConf is empty string
@@ -615,6 +654,17 @@ fi
 
 CPPFLAGS=${oldCPPFLAGS}
 
+# If some of the wxWidgets tests failed, clean previously stored
+# GUI_LIBS and GUI_INCLUDES with partial information.
+
+if test x$DO_WX_COMPILE = xfalse
+then
+  GUI_LIBS=""
+  GUI_INCLUDES=""
+  AC_SUBST([GUI_LIBS])
+  AC_SUBST([GUI_INCLUDES])
+fi
+
 AM_CONDITIONAL(WX, test x$DO_WX_COMPILE = xtrue)
 
 ####################################################################
@@ -675,9 +725,9 @@ AC_PREPROC_IFELSE(
 ][
 #endif
 ][
-#if TCL_MINOR_VERSION > 4
+#if TCL_MINOR_VERSION == 5
 ][
-#error tcl minor version is higher than 4
+#error tcl minor version is equal to 5, Proxim won't work 
 ][
 #endif
 ]],
@@ -1071,7 +1121,7 @@ CPPFLAGS="$CPPFLAGS $SQLITE_INCLUDES $BOOST_INCLUDES \
 $EDITLINE_INCLUDES $XERCES_INCLUDES $TCL_INCLUDES $GUI_INCLUDES"
 
 BOOST_LDFLAGS="$BOOST_LDFLAGS $BOOST_REGEX_LIB $BOOST_THREAD_LIB \
-$BOOST_FILESYSTEM_LIB"
+$BOOST_FILESYSTEM_LIB $BOOST_SYSTEM_LIB"
 
 if test -d test
 then
@@ -1093,7 +1143,7 @@ XERCES_LDFLAGS=$XERCES_LIBDIR $XERCES_LIBS
 GUI_LDFLAGS=$GUI_LIBS 
 
 SHARED_CXX_FLAGS=$SHARED_CXX_FLAGS
-
+LIBRARY_SUFFIX=$LIBRARY_SUFFIX
 DL_FLAGS=$DL_FLAGS
 
 CPPFLAGS=$CPPFLAGS
