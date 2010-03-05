@@ -22,7 +22,7 @@ include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseT
 	SimValue.hh SimValue.icc Serializable.hh ObjectState.icc Conversion.hh \
 	Conversion.icc MathTools.hh MathTools.icc TCEString.hh
 
-REVNO=$(shell which bzr > /dev/null && bzr revno > /dev/null 2>&1 && echo -n "-r" && bzr revno 2> /dev/null || echo -n "")
+REVNO=$(shell which bzr > /dev/null && bzr revno > /dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2> /dev/null || echo -n "")
 TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)
 
 tce_version_string.h: ../../../.bzr/branch/last-revision
