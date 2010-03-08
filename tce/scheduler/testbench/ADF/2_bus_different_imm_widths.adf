@@ -9,7 +9,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>RF</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -17,26 +17,26 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>RF</name>
+          <name>boolean</name>
           <index>1</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean</name>
+          <index>0</index>
         </bool>
       </inverted-expr>
     </guard>
     <guard>
       <simple-expr>
         <bool>
-          <name>RF</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>RF</name>
-          <index>0</index>
-        </bool>
-      </inverted-expr>
     </guard>
     <segment name="seg1">
       <writes-to/>
@@ -55,34 +55,34 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>RF</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean</name>
+          <index>0</index>
+        </bool>
+      </inverted-expr>
+    </guard>
+    <guard>
+      <inverted-expr>
+        <bool>
+          <name>boolean</name>
+          <index>1</index>
+        </bool>
+      </inverted-expr>
     </guard>
     <guard>
       <simple-expr>
         <bool>
-          <name>RF</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>RF</name>
-          <index>0</index>
-        </bool>
-      </inverted-expr>
-    </guard>
-    <guard>
-      <inverted-expr>
-        <bool>
-          <name>RF</name>
-          <index>1</index>
-        </bool>
-      </inverted-expr>
     </guard>
     <segment name="seg1">
       <writes-to/>
@@ -245,6 +245,28 @@
   </socket>
 
   <socket name="IU_1x32_o1">
+    <writes-to>
+      <bus>condbus</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>rfread</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="boolean_s1">
+    <reads-from>
+      <bus>condbus</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>rfread</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="boolean_s2">
     <writes-to>
       <bus>condbus</bus>
       <segment>seg1</segment>
@@ -678,6 +700,20 @@
     </port>
     <port name="rd">
       <connects-to>RF_o1</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="boolean">
+    <type>normal</type>
+    <size>2</size>
+    <width>1</width>
+    <max-reads>0</max-reads>
+    <max-writes>0</max-writes>
+    <port name="RD">
+      <connects-to>boolean_s1</connects-to>
+    </port>
+    <port name="WR">
+      <connects-to>boolean_s2</connects-to>
     </port>
   </register-file>
 

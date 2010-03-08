@@ -9,7 +9,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -17,7 +17,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -25,7 +25,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -33,7 +33,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -41,7 +41,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -49,7 +49,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -71,7 +71,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -79,7 +79,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -87,7 +87,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -95,7 +95,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -103,7 +103,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -111,7 +111,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -133,7 +133,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -141,7 +141,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -149,7 +149,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -157,7 +157,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -165,7 +165,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -173,7 +173,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -195,7 +195,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -203,7 +203,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -211,7 +211,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -219,7 +219,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -227,7 +227,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -235,7 +235,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -257,7 +257,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -265,7 +265,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -273,7 +273,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -281,7 +281,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -289,7 +289,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -297,7 +297,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1357,6 +1357,76 @@
       <bus>CL1_5_3</bus>
       <segment>seg1</segment>
     </writes-to>
+  </socket>
+
+  <socket name="boolean_o1">
+    <writes-to>
+      <bus>CL1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_4</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_5</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_5_1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_5_2</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>CL1_5_3</bus>
+      <segment>seg1</segment>
+    </writes-to>
+  </socket>
+
+  <socket name="boolean_i1">
+    <reads-from>
+      <bus>CL1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_4</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_5</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_5_1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_5_2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>CL1_5_3</bus>
+      <segment>seg1</segment>
+    </reads-from>
   </socket>
 
   <function-unit name="ALU1">
@@ -2821,8 +2891,8 @@
     <type>normal</type>
     <size>8</size>
     <width>64</width>
-    <max-reads>3</max-reads>
-    <max-writes>3</max-writes>
+    <max-reads>2</max-reads>
+    <max-writes>2</max-writes>
     <port name="IN">
       <connects-to>B_i1</connects-to>
     </port>
@@ -2834,6 +2904,20 @@
     </port>
     <port name="OUT2">
       <connects-to>A_i7</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="boolean">
+    <type>normal</type>
+    <size>3</size>
+    <width>1</width>
+    <max-reads>0</max-reads>
+    <max-writes>0</max-writes>
+    <port name="RD">
+      <connects-to>boolean_o1</connects-to>
+    </port>
+    <port name="WR">
+      <connects-to>boolean_i1</connects-to>
     </port>
   </register-file>
 

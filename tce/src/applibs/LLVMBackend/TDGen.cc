@@ -323,13 +323,15 @@ TDGen::analyzeRegisters() {
                     if (guardedRegs_.find(reg) == guardedRegs_.end()) {
                         ri->push_back(reg);
                     } else {
-                        regs1bit_.push_back(reg);
+			// n-bit guarded registers not used by the compiler.
                     }
                 } else {
                     // if it is 1-bit, it has to have guard.
                     if (!(guardedRegs_.find(reg) == guardedRegs_.end())) {
                         ri->push_back(reg);
-                    }
+                    } else {
+			// 1-bit non-guarded regs not used by the compiler.
+		    }
                 }
                 regsFound = true;
             }

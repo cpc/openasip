@@ -9,7 +9,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -17,7 +17,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -25,7 +25,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -33,7 +33,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -41,7 +41,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -49,7 +49,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -71,7 +71,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -79,7 +79,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -87,7 +87,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -95,7 +95,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -103,7 +103,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -111,7 +111,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -133,7 +133,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -141,7 +141,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -149,7 +149,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -157,7 +157,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -165,7 +165,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -173,7 +173,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -195,7 +195,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -203,7 +203,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -211,7 +211,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -219,7 +219,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -227,7 +227,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -235,7 +235,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -257,7 +257,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -265,7 +265,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -273,7 +273,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -281,7 +281,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -289,7 +289,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -297,7 +297,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -319,7 +319,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -327,7 +327,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -335,7 +335,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -343,7 +343,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -351,7 +351,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -359,7 +359,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -381,7 +381,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -389,7 +389,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -397,7 +397,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -405,7 +405,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -413,7 +413,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -421,7 +421,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -443,7 +443,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -451,7 +451,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -459,7 +459,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -467,7 +467,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -475,7 +475,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -483,7 +483,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -505,7 +505,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -513,7 +513,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -521,7 +521,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -529,7 +529,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -537,7 +537,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -545,7 +545,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -567,7 +567,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -575,7 +575,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -583,7 +583,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -591,7 +591,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -599,7 +599,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -607,7 +607,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -629,7 +629,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -637,7 +637,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -645,7 +645,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -653,7 +653,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -661,7 +661,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -669,7 +669,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -691,7 +691,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -699,7 +699,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -707,7 +707,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -715,7 +715,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -723,7 +723,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -731,7 +731,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -753,7 +753,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -761,7 +761,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -769,7 +769,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -777,7 +777,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -785,7 +785,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -793,7 +793,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -815,7 +815,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -823,7 +823,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -831,7 +831,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -839,7 +839,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -847,7 +847,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -855,7 +855,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -877,7 +877,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -885,7 +885,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -893,7 +893,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -901,7 +901,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -909,7 +909,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -917,7 +917,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -939,7 +939,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -947,7 +947,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -955,7 +955,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -963,7 +963,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -971,7 +971,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -979,7 +979,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1001,7 +1001,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1009,7 +1009,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1017,7 +1017,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1025,7 +1025,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1033,7 +1033,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1041,7 +1041,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1063,7 +1063,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1071,7 +1071,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1079,7 +1079,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1087,7 +1087,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1095,7 +1095,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1103,7 +1103,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1125,7 +1125,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1133,7 +1133,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1141,7 +1141,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1149,7 +1149,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1157,7 +1157,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1165,7 +1165,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1187,7 +1187,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1195,7 +1195,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1203,7 +1203,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1211,7 +1211,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1219,7 +1219,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1227,7 +1227,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1249,7 +1249,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1257,7 +1257,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1265,7 +1265,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1273,7 +1273,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1281,7 +1281,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1289,7 +1289,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1311,7 +1311,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1319,7 +1319,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1327,7 +1327,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1335,7 +1335,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1343,7 +1343,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1351,7 +1351,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1373,7 +1373,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1381,7 +1381,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1389,7 +1389,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1397,7 +1397,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1405,7 +1405,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1413,7 +1413,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1435,7 +1435,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1443,7 +1443,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1451,7 +1451,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1459,7 +1459,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1467,7 +1467,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1475,7 +1475,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1497,7 +1497,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1505,7 +1505,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1513,7 +1513,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1521,7 +1521,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1529,7 +1529,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1537,7 +1537,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -1559,7 +1559,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </simple-expr>
@@ -1567,7 +1567,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>0</index>
         </bool>
       </inverted-expr>
@@ -1575,7 +1575,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </simple-expr>
@@ -1583,7 +1583,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>1</index>
         </bool>
       </inverted-expr>
@@ -1591,7 +1591,7 @@
     <guard>
       <simple-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </simple-expr>
@@ -1599,7 +1599,7 @@
     <guard>
       <inverted-expr>
         <bool>
-          <name>A</name>
+          <name>boolean</name>
           <index>2</index>
         </bool>
       </inverted-expr>
@@ -2254,6 +2254,28 @@
       <bus>X2</bus>
       <segment>seg1</segment>
     </reads-from>
+  </socket>
+
+  <socket name="BOOL_IN">
+    <reads-from>
+      <bus>X1</bus>
+      <segment>seg1</segment>
+    </reads-from>
+    <reads-from>
+      <bus>X2</bus>
+      <segment>seg1</segment>
+    </reads-from>
+  </socket>
+
+  <socket name="BOOL_OUT">
+    <writes-to>
+      <bus>X1</bus>
+      <segment>seg1</segment>
+    </writes-to>
+    <writes-to>
+      <bus>X2</bus>
+      <segment>seg1</segment>
+    </writes-to>
   </socket>
 
   <function-unit name="L1">
@@ -4722,6 +4744,20 @@
     </port>
     <port name="OUT2">
       <connects-to>A_i7</connects-to>
+    </port>
+  </register-file>
+
+  <register-file name="boolean">
+    <type>normal</type>
+    <size>3</size>
+    <width>1</width>
+    <max-reads>0</max-reads>
+    <max-writes>0</max-writes>
+    <port name="RD">
+      <connects-to>BOOL_OUT</connects-to>
+    </port>
+    <port name="WR">
+      <connects-to>BOOL_IN</connects-to>
     </port>
   </register-file>
 
