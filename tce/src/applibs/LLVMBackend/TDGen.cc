@@ -1108,14 +1108,7 @@ TDGen::writeEmulationPattern(
         // todo: b versions of those
         o << "def : Pat<(" << match1.str() << "), "
           << dagNodeToString(op, dag, *res, 0, true, 1)
-          << ">;" << std::endl;
-
-        // todo: b versions of those
-        o << "def : Pat<(" << match2.str() << "), "
-          << dagNodeToString(op, dag, *res, 0, true, 2)
-          << ">;" << std::endl;
-        
-        
+          << ">;" << std::endl;        
     }
 }
 

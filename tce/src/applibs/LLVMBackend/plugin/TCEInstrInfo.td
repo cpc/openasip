@@ -338,3 +338,11 @@ def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
 def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
 
 
+// 1-bit comparison
+def : Pat<(i1 (setne I1Regs:$op1, I1Regs:$op2)), (XORbb I1Regs:$op1, I1Regs:$op2)>;
+
+//def : Pat<(i1 (setne (trunc I32Regs:$op1), I1Regs:$op2)), (XORrb I1Regs:$op1, I1Regs:$op2)>;
+
+def : Pat<(i1 (seteq I1Regs:$op1, I1Regs:$op2)), (XORbj (XORbb I1Regs:$op1, I1Regs:$op2), 1)>;
+
+//def : Pat<(i1 (seteq (trunc I1Regs:$op1), I1Regs:$op2)), (XORbj (XORrb I32Regs:$op1, I1Regs:$op2), 1)>;
