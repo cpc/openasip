@@ -278,6 +278,7 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
          << "#include \"OperationContext.hh\"" << endl
          << "#include \"CompiledSimulation.hh\"" << endl
          << "#include \"BaseType.hh\"" << endl
+	 << "#include \"MathTools.hh\"" << endl
          << conflictDetectionGenerator_.includes() << endl
          << endl;
     
@@ -993,8 +994,10 @@ CompiledSimCodeGenerator::generateGuardRead(
         lastGuardBool_ = symbolGen_.guardBoolSymbol();
         usedGuardSymbols_[guardSymbolName] = lastGuardBool_;
         
-        ss << "const bool " << lastGuardBool_ << " = !(" 
-           << guardSymbolName << ".value_.uIntWord == 0u);";
+        ss << "const bool " << lastGuardBool_ << 
+	    " = !(MathTools::fastZeroExtendTo(" 
+           << guardSymbolName << ".value_.uIntWord, " <<
+	    guardSymbolName << ".width()) == 0u);";
     } else {
         lastGuardBool_ = usedGuardSymbols_[guardSymbolName];
     }
