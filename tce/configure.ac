@@ -345,12 +345,14 @@ then
 AC_MSG_ERROR(
 [boost_filesystem library not found. Install it or use --with-boost-filesystem switch])
 fi
-AX_BOOST_SYSTEM
-if test -z "$BOOST_SYSTEM_LIB"
-then
-AC_MSG_ERROR(
-[boost_filesystem library not found. Install it or use --with-boost-system switch])
-fi
+
+#boost::system is not needed for anything AFAIK, works without...
+#AX_BOOST_SYSTEM
+#if test -z "$BOOST_SYSTEM_LIB"
+#then
+#AC_MSG_ERROR(
+#[boost_filesystem library not found. Install it or use --with-boost-system switch])
+#fi
 
 AX_BOOST_REGEX
 if test -z "$BOOST_REGEX_LIB"
