@@ -983,43 +983,32 @@ executed with the processor design \file{start.adf}.  The parallel
 program is now tied to a specified architecture, so it is no longer
 architecture independent like the bitcode program.
 
-After successfully compiling the program we can now simulate it. Lets use
-the command line based simulator called ttasim. Start the simulator with:
-
-\shellcmd{ttasim -a start.adf -p crc.tpef}
-
-The simulator will load the architecture definition and the program and
-execute it. After this you should see ttasim prompt: \textit{(ttasim)}.
-The simulator can show various pieces of information about the execution of
-the program and utilization of processor resources. As we gave the DEBUG
-define to the compiler program execution will also print the correct result
-and produced result of crc.
-
-To see the cycle count use the following command in ttasim:
-
-\shellcmd{info proc cycles}
-
-Lets take a look at the processor utilization. Enter:
-
-\shellcmd{info proc stats}
-
-This will output a lot of information about the execution, like
-utilization of transport busses, register files and function units.
-
-You can also check the result straight from processor memory with command:
-
-\shellcmd{x /u w \_result}
-
-The checksum should be \textbf{0x62488e82} like in the debug printing.
-Next take a look at the graphical user interface of the simulator called Proxim
+After successfully compiling the program we can now simulate it. Let's use
+graphical user interface version of the simulator called Proxim
 (Section~\ref{section:proxim}). You can start it with:
 
 \shellcmd{proxim start.adf crc.tpef \&}
 
-Run the simulation and check the final cycle count it took to execute the
-program. The cycle count is written in the bottom bar of the simulator.
+The simulator will load the architecture definition and the program and wait
+for commands. To execute the program click ``Run''. Simulator will then execute
+the program code and display the cycle count in the bottom bar of the
+simulator.
 
-Proxim can also show various pieces of information about a program's execution and
+As we gave the DEBUG define to the compiler program execution will also print
+the correct result and produced result of crc. You can also check the result
+straight the from processor's memory by writing this command to the command
+line at the bottom of the simulator:
+
+\shellcmd{x /u w \_result}
+
+Processor resource utilization data can be viewed with command:
+
+\shellcmd{info proc stats}
+
+This will output a lot of information  like the utilization of transport buses,
+register files and function units.
+
+Proxim can also show othes various pieces of information about a program's execution and
 resource utilization. To check the utilization of the resources of our
 architecture, select \textit{View>Machine Window} from the top menu. 
 Then enable the utilization visualization: \textit{Right click the machine
@@ -1032,15 +1021,27 @@ Now the disassembly window has the most executed instructions highlighted.
 You should be able to spot the main loop of the program easily.
 
 Now that we have verified that the application works we can disable debug
-printing. Recompile the code and simulate it to get the starting point cycle
-count.
+printing. Recompile the code:
 
 \shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k result crc.c main.c}
 
+And simulate it to get the starting point cycle count. But this time let's use
+the command line simulator called ttasim:
+
 \shellcmd{ttasim -a start.adf -p crc.tpef}
 
-You should see a huge drop in the cycle count. Write down the cycle count as
-a baseline for future comparison.
+The simulator will load the architecture definition and the program and
+execute it right away. After this you should see ttasim prompt:
+\textit{(ttasim)}. The commands we gave earlier to Proxim will also work with
+ttasim. To get the cycle count enter this command:
+
+\shellcmd{info proc cycles}
+
+You should see a huge drop in the cycle count compared to the version that
+prints debug information. Write down the cycle count as a baseline for future
+comparison. To exit ttasim give this command:
+
+\shellcmd{quit}
 
 \subsection{Accelerating the Algorithm}
 
@@ -1126,7 +1127,7 @@ to move the 8 MSB bits to the LSB end and zero the rest. This moving can be
 implemented using multiplexers. So concerning the latency this can all be done
 easily within one clock cycle as there is not much logic needed.
 
-\subsection{Using the Custom Operation}
+\subsection{Creating the Custom Operation}
 \label{section:customOperations}
 % includes adding a FU that implements the custom operation to HDB and
 % adding the operation to OSAL
@@ -1303,36 +1304,41 @@ operation, the module must be compiled.
   help of the diagnostic information displayed in the build dialog.
 \end{enumerate}
 
-\paragraph{Simulating the operation behavior.} Now the operation simulation
-behavior definition can be tested.
 
-\begin{enumerate}
-\item%
-  Right-click on the operation name displayed in the left area of the
-  main window, under the operation module that contains it.
-\item%
-  Select \textbf{Simulate} menu item from the drop-down menu. 
-\item%
-  Edit the input values of REFLECT8 (or REFLECT32) by selecting the input
-  operand from the list and typing the values in the text input field and
-  pressing the \emph{Update} button next to the field. In this case it is
-  handy to choose the format to be binary.
-\item%
-  Press the \emph{Trigger} button. The value of the output should be updated.
-\item%
-  The format of the displayed input and output values can be modified by
-  selecting different formats from the choice list next to the label
-  `Format:'. It might be more illustrating if you change input and output
-   format to binary.  This way we can enter binary patterns, 
-   for example '11001100' (as binary) for the first operand. The trigger
-   should produce the reflected value '00110011' for operation REFLECT8
+\paragraph{Simulating the operation behavior.}
+After the operation simulation model has been added and compiled the operation
+can be simulated. But for the sake of speed up we will skip the operation
+simulation here. However if you are interested in the operation simulation,
+see chapter~\ref{sec:osed}
 
-\item%
-  The state of operation can be reset by pressing the \emph{Reset} button.
-\item%
-  Repeat the test with different input values. After you are convinced
-  the behavior definition works, close the dialog by clicking on the \emph{OK} button.
-\end{enumerate}
+%  Simulation section removed
+% \begin{enumerate}
+% \item%
+%   Right-click on the operation name displayed in the left area of the
+%   main window, under the operation module that contains it.
+% \item%
+%   Select \textbf{Simulate} menu item from the drop-down menu. 
+% \item%
+%   Edit the input values of REFLECT8 (or REFLECT32) by selecting the input
+%   operand from the list and typing the values in the text input field and
+%   pressing the \emph{Update} button next to the field. In this case it is
+%   handy to choose the format to be binary.
+% \item%
+%   Press the \emph{Trigger} button. The value of the output should be updated.
+% \item%
+%   The format of the displayed input and output values can be modified by
+%   selecting different formats from the choice list next to the label
+%   `Format:'. It might be more illustrating if you change input and output
+%    format to binary.  This way we can enter binary patterns, 
+%    for example '11001100' (as binary) for the first operand. The trigger
+%    should produce the reflected value '00110011' for operation REFLECT8
+% 
+% \item%
+%   The state of operation can be reset by pressing the \emph{Reset} button.
+% \item%
+%   Repeat the test with different input values. After you are convinced
+%   the behavior definition works, close the dialog by clicking on the \emph{OK} button.
+% \end{enumerate}
 
 Now the operation definitions of the custom operations have been added to the
 Operation Set Abstraction Layer (OSAL) database. Next, we need to add at
