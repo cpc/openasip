@@ -177,8 +177,7 @@ SimulatorFrontend::~SimulatorFrontend() {
  * @todo Implement checking for already running simulation.
  */
 void 
-SimulatorFrontend::loadProgram(const Program& program)
-    throw (Exception) {
+SimulatorFrontend::loadProgram(const Program& program) {
 
     assert(currentMachine_ != NULL);
 
@@ -269,8 +268,7 @@ SimulatorFrontend::program() const {
  * @todo Implement checking for already running simulation.
  */
 void 
-SimulatorFrontend::loadProgram(const std::string& fileName)
-    throw (Exception) {
+SimulatorFrontend::loadProgram(const std::string& fileName) {
 
     SimulatorTextGenerator& textGen = SimulatorToolbox::textGenerator();
     

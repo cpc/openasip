@@ -68,6 +68,8 @@ Bugfixes
 - Direct memory accesses to global tables could get wrong address.
 - ProDe: segments cannot be selected anymore (selects the bus always instead),
   an irritating long standing bug.
+- Proxim: crashed when unable the load the program due to missing
+  operation simulation models.
   
 1.0 first public release, 2009-03-26
 ====================================
