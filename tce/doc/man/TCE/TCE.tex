@@ -927,11 +927,11 @@ We first generate LLVM bitcode from the C code. The bitcode
 will be later compiled to an architecture dependent TTA program.
 Compile the C code with the 'tcecc' compiler:
 
-\shellcmd{tcecc -O3 -o crc.bc -k main,result -D\_DEBUG crc.c main.c}
+\shellcmd{tcecc -O3 -o crc.bc -k result -D\_DEBUG crc.c main.c}
 
 This produces an architecture independent bitcode program \file{crc.bc}
 of the C code. The switch -k was used to tell the
-compiler to keep the \textit{main} and \textit{result} symbols in the
+compiler to keep the \textit{result} symbol in the
 generated program in order to access them by name in the simulator.
 
 \subsection{Starting Point Processor Architecture}
@@ -939,7 +939,7 @@ generated program in order to access them by name in the simulator.
 We use the {\em minimal architecture} as the starting point. File
 \file{minimal\_with\_stdout.adf} describes a minimalistic architecture containing
 just enough resources that the TCE compiler can still compile programs for it
-with the exeption that it also has a function unit for implementing STDOUT in
+with the exception that it also has a function unit for implementing STDOUT in
 simulation. Function units in \file{minimal.adf} are selected from the hardware
 database (HDB, Section~\ref{section:hdb}) so we are able to generate a VHDL
 implementation of the processor automatically later in the tutorial. With the
@@ -976,7 +976,7 @@ to the parallel architecture we examined in the previous section. This can be
 done by compiling the bitcode program against the processor architecture
 with the command:
 
-\shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k main,result -D\_DEBUG crc.bc}
+\shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k result -D\_DEBUG crc.bc}
 
 This will produce a parallel program called \file{crc.tpef} that can be
 executed with the processor design \file{start.adf}.  The parallel
@@ -1031,117 +1031,22 @@ most. Select: \textit{Source>Profile data>Highlight Top Execution Counts}.
 Now the disassembly window has the most executed instructions highlighted.
 You should be able to spot the main loop of the program easily.
 
-
-\subsection{Initial optimization}
-
-As you noticed the cycle count is tremendous. There are two clear reasons for
-this. The first one is the use of printing functions. They are quite heavy and
-they are used for debugging and verification. But as we saw earlier the
-produced can be checked without printing so for benchmarking we can turn the
-printouts off. This is done by recompiling the program without -D\_DEBUG option.
-The other reason is that the crcTable array is evaluated at runtime in
-crcInit function. In an actual system the evaluation would only be done once
-at startup, so the impact on cycle count would be miniscule in the long run.
-Nevertheless, we will remove this overhead and precalculate the values so we
-can consentrate on the optimization of the main CRC algorithm instead of the
-initialization routines.
-
-A simple method to precalculate the array values is to modify the
-crcInit function so that it prints the array after it has been
-calculated. The values obtained are included in the tutorial as the
-file \file{crcTable.dat}. Open \file{crc.c} and find the line:
-
-\begin{verbatim}
- crc crcTable[256];
-\end{verbatim}
-
-To load the precalculated values, modify the line to read:
-
-\begin{verbatim}
- crc crcTable[256] = {
- #include "crcTable.dat"
- };
-\end{verbatim}
-
-Next open \file{main.c} and remove or comment out the crcInit() function call because
-we now use the precalculated crcTable. Then recompile the code (this time compile it
-straight from C-code):
-
-\shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k main,result crc.c main.c}
-
-And then simulate it again. Verify the result from memory and check cycle
-count as done earlier. This time you should see a huge drop in the cycle
-count. Write down the cycle count as a baseline for future comparison.
-
-\subsection{Modifying the architecture}
-
-As the architecture has only one transport bus the compiler can't exploit much
-concurrency. So let's start architecture customization by adding another
-transport bus. First copy the starting point architecture:
-
-\shellcmd{cp start.adf modified.adf}
-
-and open the new architecture in ProDe:
-
-\shellcmd{prode modified.adf \&}
-
-A new transport bus can be added simply by selecting the current bus and
-pressing ``ctrl+c'' to copy the bus and then pressing ``ctrl+v'' to paste it.
-Then double click the new bus and change its name to ``B2''.
-Another way to add a bus is to select ``Edit->Add..->Transport Bus...''.
-After you have added the bus in either way you have to connect it to the
-sockets. Easiest way to do this is to select ``Tools->Fully connect IC''.
-Save the architecture, recompile the source code for the new architecture
-and simulate.
-
-\shellcmd{tcecc -O3 -a modified.adf -o crc.tpef -k main,result crc.c main.c}
-
-\shellcmd{ttasim -a modified.adf -p crc.tpef}
-
-Now when you check the cycle count from the simulator:
-
-\shellcmd{info proc cycles}
-
-you should see an significant drop in cycles. Try adding a 3rd bus to the
-architecture and see how it affects the performance. Again a drop in cycle
-count is expected. This time also check the processor utilization statistics
-from the simulator with command:
-
-\shellcmd{info proc stats}
-
-You can see from the ``operations'' table that there are a lot of load and
-store operations being executed. As the architecture has only 5 general purpose
-registers this tells us that there are a lot of register spilling. Let's try
-how the amount of registers affect the cycle count. In ProDe double click the
-RF-component and double the amount of registers by changing the size to 10.
-Then save the architecture, recompile and simulate. Check the cycle count and
-utilization statistics and you should see that indeed the amount of load and
-store operations decreased.
-
-Because the register file has only one read port and one write port only one
-register can be read and written on one clock cycle. Let's add another register
-file to increase the amount of register accesses per cycle. This can be done by
-selecting the RF and using copy and paste. Then connect it to the IC. Simulation
-statistics should indicate performance increase.
-
-Next subject for the bottleneck is the ALU as now all the non-memory operations
-are performed in a single function unit. From the simulator statistics you can
-see that logical operations and equal comparison are heavily utilized. Instead
-of dublicating the ALU let's add more specific FUs from the Hardware Database.
-Select ``Edit->Add From HDB->Function Unit...''. Select a FU which has
-operations eq(1), gt(1) and click ``Add''. Then select FU with operations
-and(1), ior(1), xor(1) and click ``Add''. Close the dialog and save the
-architecture. Recompile and simulate to see the effect on cycle count.
-
-The architecture could be still modified even further to drop the cycle count.
-But let's settle for this now and move on to another approach to lower the cycle
+Now that we have verified that the application works we can disable debug
+printing. Recompile the code and simulate it to get the starting point cycle
 count.
+
+\shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k result crc.c main.c}
+
+\shellcmd{ttasim -a start.adf -p crc.tpef}
+
+You should see a huge drop in the cycle count. Write down the cycle count as
+a baseline for future comparison.
 
 \subsection{Accelerating the Algorithm}
 
 Custom operations implement application specific functionality in TTA
 processors. In this part of the tutorial we accelerate the CRC computation
-by adding a custom operation to the processor design.
+by adding a custom operation to the starting point processor design.
 
 \subsubsection{Evaluating Custom Operation Candidates}
 
@@ -1436,10 +1341,10 @@ can be used in the processor design. Note the separation between ''operation`` a
 an ''function unit`` that implements the operation(s) which allows using the
 same OSAL operation definitions in multiple FUs with different latencies.
 
-First, add the architecture of the FU that implements the custom operationa
-to the processor design we defined in the previous step. Let us first backup
-our starting point processor design to another file so we can later more
-easily compare the architecture with and without the custom operation support:
+First, add the architecture of the FU that implements the custom operations
+to the starting point processor architecture. Let's take a copy of the starting
+point processor design which we can freely modify and still be able to easily
+compare the architecture with and without the custom operation support later on:
 
 \shellcmd{cp start.adf custom.adf}
 
@@ -1558,7 +1463,7 @@ This time we skip the bitcode phase and compile directly from C to
 a parallel TTA program using the new architecture which includes
 a FU with the custom operation:
 
-\shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k main,result }\verb#\#\\
+\shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k result }\verb#\#\\
 \shellcmd{\ \ crc\_with\_custom\_op.c main.c}
 
 \item%
@@ -1572,7 +1477,10 @@ Check the cycle count \textit{info proc cycles} and compare it to the cycle
 count of the version which does not use a custom operation. You should see 
 a significant drop compared to the starting point architecture.
 
-In addition to custom operations, other ways to improve the cycle count 
+In addition to using these custom operations, we could also modify the
+architecture as earlier. Adding more transport buses and registers will
+increase the performance even further.
+other ways to improve the cycle count 
 further is to add more resources such as registers and transport buses. 
 You can play around with these parameters easily with ProDe. After 
 modifying the architecture, recompile and simulate the code to see 
@@ -1724,13 +1632,6 @@ This can be done in the ProDe tool:
 
 \shellcmd{prode custom.adf}
 
-% These warnings are removed, right?
-% If you want to avoid warning messages from ProGe, you should change
-% the widths of GCU ports and LSU trigger port. Open the Address Spaces
-% dialog and check the bitwidth fields. Then set the GCU port widths according
-% the instruction memory's address bitwidth field. Next change the LSU trigger
-% port's width. Set it to the same value as the data memory's address bitwidth.
-
 Then we'll select implementations for the FUs which can be done in
 \textit{Tools>Processor Implementation...}. Note that the selection window
 is not currently very informative about the different implementations, so a
@@ -1771,6 +1672,7 @@ You do not have to care about the HDB file text box because we are not going
 to use cost estimation data.
 \end{enumerate}
 
+% TODO: Add this when unit tester is stable enough
 %\paragraph{Unit testing}
 %
 %Now that we have selected the implementations for FUs we can run unit tests on
@@ -1812,7 +1714,7 @@ we use generatebits to create instruction memory and data memory images:
 -x proge-output custom.adf} 
 
 Now the file \file{crc\_with\_custom\_op.img} includes the instruction memory
-image in ``ascii 0/1'' format . Each line in that file represents a single
+image in ``ascii 0/1'' format. Each line in that file represents a single
 instruction. Thus, you can get the count of instructions by counting the
 lines in that file:
 
@@ -1859,53 +1761,97 @@ execution. Then compare the trace dumps:
 
 If the command does not print anything the dumps were equal.
 
+
+\subsection{Increasing performance by adding resources}
+
+As the current architecture is minimalistic we can increase the performance
+even further by adding resources to the processor.
+
+\paragraph{Transport buses.} 
+The architecture has only one transport bus the compiler can't exploit much
+concurrency. Let's start architecture customization by adding another
+transport bus. After this there can be 2 moves per clock cycle. First copy
+the current architecture:
+
+\shellcmd{cp custom.adf modified.adf}
+
+and open the new architecture in ProDe:
+
+\shellcmd{prode modified.adf \&}
+
+A new transport bus can be added simply by selecting the current bus and
+pressing ``ctrl+c'' to copy the bus and then pressing ``ctrl+v'' to paste it.
+Then double click the new bus and change its name to ``B2''.
+Another way to add a bus is to select ``Edit->Add..->Transport Bus...''.
+After you have added the bus in either way you have to connect it to the
+sockets. Easiest way to do this is to select ``Tools->Fully connect IC''.
+Save the architecture, recompile the source code for the new architecture
+and simulate.
+
+\shellcmd{tcecc -O3 -a modified.adf -o crc.tpef -k result crc.c main.c}
+
+\shellcmd{ttasim -a modified.adf -p crc.tpef}
+
+Now when you check the cycle count from the simulator:
+
+\shellcmd{info proc cycles}
+
+you should see an significant drop in cycles. Try adding a 3rd bus to the
+architecture and see how it affects the performance. Again a drop in cycle
+count is expected. This time also check the processor utilization statistics
+from the simulator with command:
+
+\shellcmd{info proc stats}
+
+\paragraph{Register files.}
+From the previous simulator statistics you can see from ``operations'' table
+that there are a lot of load and store operations being executed. As the
+architecture has only 5 general purpose registers this tells us that there
+are a lot of register spilling. Let's try how the amount of registers affect
+the cycle count. There are two options how we can add registers. We can either
+increase the number of registers in a register file or add a new register file.
+
+Let's try the latter option because this way we increase the number of registers
+that can be accessed simultaneously on one clock cycle. This can be done by
+selecting the RF and using copy and paste. Then connect it to the IC.
+Simulation statistics should indicate performance increase. As expected, the
+number of load and store opertations decreased. But notice also that the number
+of add operations decreased quite a lot. The reason is simple, addition is used
+to calculate memory addresses.
+
+\paragraph{Function units.}
+Next subject for the bottleneck is the ALU as now all the basic operations
+are performed in a single function unit. From the simulator statistics you can
+see that logical operations and addition are quite heavily utilized. Instead
+of dublicating the ALU let's add more specific FUs from the Hardware Database.
+Select ``Edit->Add From HDB->Function Unit...''. Select a FU which has
+operations and(1), ior(1), xor(1) and click ``Add''. Then select FU with operation
+add(1) and click ``Add''. Close the dialog, connect the function units and save the
+architecture. Recompile and simulate to see the effect on cycle count.
+
+The architecture could be still modified even further to drop the cycle count
+but let's settle for this now. If you are interested, you can test how low
+cycle count can be achieved!
+
+
 \subsection{Final Words}
 
-This tutorial is now finished. Now you should know
-how to make and use your own custom operations and generate the
-processor implementation along with its instruction memory bit image.
-
-% If given a functional testbench you could simulate the generated 
-% VHDL implementation of the processor with a VHDL
-% simulator. You could also synthesize the processor implementation with
-% appropriate application. There are some scripts in the produced
-% \file{proge-output} directory you can use as a starting point for synthesis
-% and VHDL simulation.
-% 
-% You can go to the proge\_output directory and compile the testbench with if
-% you have GHDL installed in your system. After that you must move the data
-% images to the tb directory:
-% 
-% \shellcmd{cd proge\_output}
-% 
-% \shellcmd{./ghdl\_compile.sh} 
-% 
-% \shellcmd{cp ../crc\_with\_custom\_op\_data.img tb/dmem\_init.img}
-% 
-% \shellcmd{cp ../crc\_with\_custom\_op.img tb/imem\_init.img}
-% 
-% Then you can try and simulate the design:
-% 
-% \shellcmd{./ghdl\_simulate.sh}
-% 
-% Please notice that GHDL is a work in progress VHDL compiler/simulator so it
-% is recommended to use some other VHDL tool.
-% 
-% If you want a more detailed information about what happens in the testbench
-% simulation you can enable bustracing from the Processor
-% Implementation-dialog's IC / Decoder Plugin tab in ProDE. To enable this, set
-% the bustrace plugin parameter to ``yes'' and the bustracestartingcycle to
-% ``5''. Then save the .idf and generate the processor again. Notice that you'll
-% have to remove the existing proge-output dircetory or generate the new
-% processor in another directory. Now the testbench will create a file called
-% \file{bus.dump} which holds the values of every bus on every cycle.
+This tutorial is now finished. Now you should know how to make and use your
+own custom operations, how to customize the processor architecture and
+generate the processor implementation along with its instruction memory bit
+image.
 
 In this tutorial we used a ``minimalistic'' processor architecture as our
 starting point. The machine had only one transport bus and 5 registers so it
-could not fully exploit the parallel capabilities of TTA. As mentioned 
-earlier, if you are interested you can open the custom.adf in ProDe and 
-add more transport buses, register files and function units and see how 
-they affect the performance.
+could not fully exploit the parallel capabilities of TTA.  Then we added two
+simple custom operations to the starting point architecture and saw a huge
+improvement in cycle count. Then we increased resources in the processor and
+the cycle count dropped even further.
+
+If you have interest you can also add more resources to the starting point
+architecture and see how good cycle counts you can get out of it without
+using custom operations!
+
 
 \section{From C to VHDL as Quickly as Possible}
 \label{section:fromCtoVHDL}
