@@ -921,39 +921,37 @@ main difference between the crcSlow and crcFast implementations is that
 crcFast exploits precalculated table values. This is a quite usual method of
 algorithm optimization.
 
-\subsection{Generating LLVM Bitcode}
-
-We first generate LLVM bitcode from the C code. The bitcode
-will be later compiled to an architecture dependent TTA program.
-Compile the C code with the 'tcecc' compiler:
-
-\shellcmd{tcecc -O3 -o crc.bc -k result -D\_DEBUG crc.c main.c}
-
-This produces an architecture independent bitcode program \file{crc.bc}
-of the C code. The switch -k was used to tell the
-compiler to keep the \textit{result} symbol in the
-generated program in order to access them by name in the simulator.
+% \subsection{Generating LLVM Bitcode}
+% 
+% We first generate LLVM bitcode from the C code. The bitcode
+% will be later compiled to an architecture dependent TTA program.
+% Compile the C code with the 'tcecc' compiler:
+% 
+% \shellcmd{tcecc -O3 -o crc.bc -k result -D\_DEBUG crc.c main.c}
+% 
+% This produces an architecture independent bitcode program \file{crc.bc}
+% of the C code. The switch -k was used to tell the
+% compiler to keep the \textit{result} symbol in the
+% generated program in order to access them by name in the simulator.
 
 \subsection{Starting Point Processor Architecture}
 
 We use the {\em minimal architecture} as the starting point. File
-\file{minimal\_with\_stdout.adf} describes a minimalistic architecture containing
-just enough resources that the TCE compiler can still compile programs for it
-with the exception that it also has a function unit for implementing STDOUT in
-simulation. Function units in \file{minimal.adf} are selected from the hardware
+\file{minimal.adf} describes a minimalistic architecture containing
+just enough resources that the TCE compiler can still compile programs for it. 
+Function units in \file{minimal.adf} are selected from the hardware
 database (HDB, Section~\ref{section:hdb}) so we are able to generate a VHDL
-implementation of the processor automatically later in the tutorial. With the
-exception that the STDOUT function unit is not implemented as it's for debugging.
+implementation of the processor automatically later in the tutorial.
 % It is also possible to
 % design all the components from scratch in order to evaluate the architecture
 % without actually implementing the components in VHDL.
 
-Copy the \file{minimal\_with\_stdout.adf} included in TCE distribution to a new
+Copy the \file{minimal.adf} included in TCE distribution to a new
 ADF file which is your starting point architecture:
 
 %% TODO: Change this back if STDOUT is not wanted to be used in this tutorial
 %\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
-\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal\_with\_stdout.adf start.adf}
+\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
 
 Take a look at the starting point architecture using the graphical Processor
 Designer (ProDe, Section~\ref{sec:prode}) tool. The Start ProDe with:
@@ -976,12 +974,18 @@ to the parallel architecture we examined in the previous section. This can be
 done by compiling the bitcode program against the processor architecture
 with the command:
 
-\shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k result -D\_DEBUG crc.bc}
+Now we want to know how well the starting point architecture executes our
+program. We must compile the source code for our starting point architecture.
+This can be done with command:
+
+\shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k result main.c crc.c}
 
 This will produce a parallel program called \file{crc.tpef} that can be
 executed with the processor design \file{start.adf}.  The parallel
-program is now tied to a specified architecture, so it is no longer
-architecture independent like the bitcode program.
+program is now tied to a specified architecture, so it can only be executed
+on that architecture. The switch -k was used to tell the
+compiler to keep the \textit{result} symbol in the generated program in order
+to access them by name in the simulator later on.
 
 After successfully compiling the program we can now simulate it. Let's use
 graphical user interface version of the simulator called Proxim
@@ -992,14 +996,14 @@ graphical user interface version of the simulator called Proxim
 The simulator will load the architecture definition and the program and wait
 for commands. To execute the program click ``Run''. Simulator will then execute
 the program code and display the cycle count in the bottom bar of the
-simulator.
+simulator. Write down this cycle count for future comparison.
 
-As we gave the DEBUG define to the compiler program execution will also print
-the correct result and produced result of crc. You can also check the result
-straight the from processor's memory by writing this command to the command
-line at the bottom of the simulator:
+You can check the result straight the from processor's memory by writing this
+command to the command line at the bottom of the simulator:
 
 \shellcmd{x /u w \_result}
+
+The correct checksum result is \textbf{0x62488e82}.
 
 Processor resource utilization data can be viewed with command:
 
@@ -1009,39 +1013,17 @@ This will output a lot of information  like the utilization of transport buses,
 register files and function units.
 
 Proxim can also show othes various pieces of information about a program's execution and
-resource utilization. To check the utilization of the resources of our
+resource utilization. For example to check the utilization of the resources of our
 architecture, select \textit{View>Machine Window} from the top menu. 
 Then enable the utilization visualization: \textit{Right click the machine
 window > Display utilizations}. The parts of the processor that are utilized
 the most are visualized with darker red color.
 
-Next, check the profiling data to see which instructions were executed the
-most. Select: \textit{Source>Profile data>Highlight Top Execution Counts}.
-Now the disassembly window has the most executed instructions highlighted.
-You should be able to spot the main loop of the program easily.
+% Next, check the profiling data to see which instructions were executed the
+% most. Select: \textit{Source>Profile data>Highlight Top Execution Counts}.
+% Now the disassembly window has the most executed instructions highlighted.
+% You should be able to spot the main loop of the program easily.
 
-Now that we have verified that the application works we can disable debug
-printing. Recompile the code:
-
-\shellcmd{tcecc -O3 -a start.adf -o crc.tpef -k result crc.c main.c}
-
-And simulate it to get the starting point cycle count. But this time let's use
-the command line simulator called ttasim:
-
-\shellcmd{ttasim -a start.adf -p crc.tpef}
-
-The simulator will load the architecture definition and the program and
-execute it right away. After this you should see ttasim prompt:
-\textit{(ttasim)}. The commands we gave earlier to Proxim will also work with
-ttasim. To get the cycle count enter this command:
-
-\shellcmd{info proc cycles}
-
-You should see a huge drop in the cycle count compared to the version that
-prints debug information. Write down the cycle count as a baseline for future
-comparison. To exit ttasim give this command:
-
-\shellcmd{quit}
 
 \subsection{Accelerating the Algorithm}
 
@@ -1060,23 +1042,23 @@ operation that is potentially useful also for other algorithms than CRC.
 
 \subsubsection{Finding the Bottlenecks}
 
-The first thing to do when trying to optimize code is to profile the execution.
-In Proxim you can trace the most executed instructions (see section
-\ref{sec:ProfileProxim} for more information). Another way to produce 
-program profile data is to enable
-``setting profile\_data\_saving 1'' in ttasim before initializing the simulation.
-This produces a crc.tpef.trace file from which one can dump the function
-profile using a command ``dump\_function\_profile crc.tpef.trace''. 
-A call profile helps locating the functions that are executed the most. 
-Refer to section \ref{sec:traces} for further
-information.
+% The first thing to do when trying to optimize code is to profile the execution.
+% In Proxim you can trace the most executed instructions (see section
+% \ref{sec:ProfileProxim} for more information). Another way to produce 
+% program profile data is to enable
+% ``setting profile\_data\_saving 1'' in ttasim before initializing the simulation.
+% This produces a crc.tpef.trace file from which one can dump the function
+% profile using a command ``dump\_function\_profile crc.tpef.trace''. 
+% A call profile helps locating the functions that are executed the most. 
+% Refer to section \ref{sec:traces} for further
+% information.
 
 In this case finding the operation to be optimized is quite obvious if you
 look at function crcFast(). It consists of a for-loop in which the 
 function reflect() is called through the macro REFLECT\_DATA. If you look at 
 the actual function you can see that it is quite simple to implement on 
 hardware, but requires many instructions if done with basic operations in
-software. The function ``reflects'' the bitpattern around the middle point like
+software. The function ``reflects'' the bit pattern around the middle point like
 a mirror. For example,
 the bit pattern \textbf{0101 0100} would look like this after reflection:
 \textbf{0010 1010}. The main complexity of the function is that the bit pattern width is not
@@ -1465,32 +1447,43 @@ replace the original macro with the variable output:
 And now we are ready. Remember to save the file.
 
 \item%
-This time we skip the bitcode phase and compile directly from C to 
-a parallel TTA program using the new architecture which includes
-a FU with the custom operation:
+Compile directly from C to a parallel TTA program using the new architecture
+which includes a FU with the custom operation:
 
 \shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k result }\verb#\#\\
 \shellcmd{\ \ crc\_with\_custom\_op.c main.c}
 
 \item%
-Simulate the parallel program. You can do it quickly with the command line
-simulator:
+Simulate the parallel program. This time we will use the command line simulator
+ttasim. We will also enable writing of bus trace. It means that the simulator
+writes a text file containing the bus values of the processor from every
+executed clock cycle. This bus trace data will be used to verify the processor
+RTL implementation. Start the simulator with command:
 
-\shellcmd{ttasim -a custom.adf -p crc\_with\_custom\_op.tpef}
+\shellcmd{ttasim}
 
-Verify that the result is the same as before (\textit{x /u w \_result}). 
+Then enable the bus trace setting:
+
+\shellcmd{setting bus\_trace 1}
+
+Load architecture and program and run the simulation
+
+\shellcmd{mach custom.adf}
+
+\shellcmd{prog crc\_with\_custom\_op.tpef}
+
+\shellcmd{run}
+
+Verify that the result is the same as before (\textit{x /u w \_result}). It
+should be the same as earlier (\textbf{0x62488e82}).
 Check the cycle count \textit{info proc cycles} and compare it to the cycle 
 count of the version which does not use a custom operation. You should see 
-a significant drop compared to the starting point architecture.
+a huge drop compared to the starting point architecture. Write down this cycle
+count.
 
-In addition to using these custom operations, we could also modify the
-architecture as earlier. Adding more transport buses and registers will
-increase the performance even further.
-other ways to improve the cycle count 
-further is to add more resources such as registers and transport buses. 
-You can play around with these parameters easily with ProDe. After 
-modifying the architecture, recompile and simulate the code to see 
-the effect to the cycle count.
+The simulator execution also created file \file{crc\_with\_custom\_op.tpef.bustrace}
+which contains the bus trace.
+
 \end{enumerate}
 
 \subsection{Adding an implementation of the FU to the hardware database
@@ -1500,6 +1493,9 @@ the effect to the cycle count.
 Now we have seen that the custom operation accelerates our application. Next
 we'll add a VHDL implementation of the custom FU to Hardware Database (hdb).
 This way we will be able to generate a VHDL implementation of our processor.
+
+If you want to skip this phase you can use the given \file{tour\_example.hdb}
+instead of creating it yourself.
 
 Start HDBEditor (see Section~\ref{sec:hdbedit}):
 
@@ -1534,7 +1530,12 @@ text boxes. You do not have to fill the Opcode port or Global lock req. port
 fields because the function unit has only one opcode and does not need to 
 cause a global lock to the processor during its execution.
 
-\textbf{2. Parameters.}
+\textbf{2. Opcodes.}
+
+Set the operation codes as they are in the top of the vhdl file. REFLECT32
+has operation code ``0'' and REFLECT8 has operation code ``1''.
+
+\textbf{3. Parameters.}
 
 Parameters can be found from the VHDL file. On top of the file there is one
 parameter: busw. It tells the width of transport bus and thus the maximum
@@ -1542,7 +1543,7 @@ width of input and output operands.
 
 Thus, add a 32-bit integer parameter named busw to the Parameter dialog.
 
-\textbf{3. Architecture ports.}
+\textbf{4. Architecture ports.}
 
 This settings defines the connection between the ports in the
 architectural description of the FU and the VHDL implementation.
@@ -1557,7 +1558,7 @@ Name the output port (p2) to r1data and the width formula is now busw
 because the output port writes to the bus.
 The output port does not have a load port.
 
-\textbf{4. Add VHDL source file.}
+\textbf{5. Add VHDL source file.}
 
 Add the VHDL source file into the Source code dialog. Notice that the HDL
 files must be added in the compilation order (see section \ref{sec:hdbedit}).
@@ -1574,60 +1575,64 @@ Now you are done with adding the FU implementation. Click OK.
 In this step we generate the VHDL implementation of the processor, and the
 bit image of the parallel program.
 
-\paragraph{Preparations for verification}
+% \paragraph{Preparations for verification}
+% 
+% Before continuing any further remove the IO-function unit from the
+% architecture as it is not implemented on hardware. Use Prode to
+% delete the FU:
+% 
+% \shellcmd{prode custom.adf \&}
+% 
+% Save the architecture and compile the program without -D\_DEBUG option.
+% 
+% \shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k result }\verb#\#\\
+% \shellcmd{\ \ crc\_with\_custom\_op.c main.c}
+% 
+% Next we need to generate bus trace from the instruction set simulator so we can
+% verify the RTL simulation. Launch ttasim:
+% 
+% \shellcmd{ttasim}
+% 
+% Set bus trace option on:
+% 
+% \shellcmd{setting bus\_trace 1}
+% 
+% and then load architecture and program:
+% 
+% \shellcmd{mach custom.adf}
+% 
+% \shellcmd{prog crc\_with\_custom\_op.tpef}
+% 
+% \shellcmd{run}
+% 
+% and after simulation check the cycle count and write it down. You can now quit
+% the simulator. The simulator execution created file
+% \file{crc\_with\_custom\_op.tpef.bustrace} which contains the bus trace.
 
-Before continuing any further remove the IO-function unit from the
-architecture as it is not implemented on hardware. Use Prode to
-delete the FU:
+\paragraph{Select Function Unit Implementations}
 
-\shellcmd{prode custom.adf \&}
-
-Save the architecture and compile the program without -D\_DEBUG option.
-
-\shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k main,result }\verb#\#\\
-\shellcmd{\ \ crc\_with\_custom\_op.c main.c}
-
-Next we need to generate bus trace from the instruction set simulator so we can
-verify the RTL simulation. Launch ttasim:
-
-\shellcmd{ttasim}
-
-Set bus trace option on:
-
-\shellcmd{setting bus\_trace 1}
-
-and then load architecture and program:
-
-\shellcmd{mach custom.adf}
-
-\shellcmd{prog crc\_with\_custom\_op.tpef}
-
-\shellcmd{run}
-
-and after simulation check the cycle count and write it down. You can now quit
-the simulator. The simulator execution created file
-\file{crc\_with\_custom\_op.tpef.bustrace} which contains the bus trace.
-
-\paragraph{Creating binary encoding and selection implementations}
-
-Then create an encoding for the instructions in the architecture:
-
-\shellcmd{createbem custom.adf}
-
-This should generate \file{custom.bem} which is a description on how
-instructions should be encoded in the architecture.
-
-You can print the encoding info in a more human readable format with:
-
-\shellcmd{viewbem custom.bem}
-
-The program should print details on how each type of source/destination, etc.
-is encoded. You do not have to care about this, it is just for curiosity.
-Maybe the only important part in the printout is the length of the
-instruction word. In this case, even though the processor has only
-one move slot, the instruction word width is more than 40 bits. The size can
-be reduced with instruction compression and smaller immediate width, 
-which is skipped in the tutorial.
+% Then create an encoding for the instructions in the architecture:
+% 
+% \shellcmd{createbem custom.adf}
+% 
+% This should generate \file{custom.bem} which is a description on how
+% instructions should be encoded in the architecture.
+% 
+% You can print the encoding info in a more human readable format with:
+% 
+% \shellcmd{viewbem custom.bem}
+% 
+% The program should print details on how each type of source/destination, etc.
+% is encoded. You do not have to care about this, it is just for curiosity.
+% Maybe the only important part in the printout is the length of the
+% instruction word. In this case, even though the processor has only
+% one move slot, the instruction word width is more than 40 bits. The size can
+% be reduced with instruction compression and smaller immediate width, 
+% which is skipped in the tutorial.
+You can either use the given \file{custom\_operations.idf} included in the
+tutorial files or select the implementations yourself. If you use the given
+file replace \file{custom.idf} with \file{custom\_operations.idf} in the
+following commands.
 
 Next, we must select implementations for all components in the architecture.
 Each architecture component can be implemented in multiple ways, so we must
@@ -1676,7 +1681,12 @@ is synthesized.
 
 You do not have to care about the HDB file text box because we are not going 
 to use cost estimation data.
+
+\item%
+Click ``Save IDF...''
 \end{enumerate}
+
+
 
 % TODO: Add this when unit tester is stable enough
 %\paragraph{Unit testing}
@@ -1691,16 +1701,19 @@ to use cost estimation data.
 %external ports. This is not a failure. If some implementation is not equal
 %to operation definitions
 
+
 \paragraph{Generate the VHDL for the processor using Processor Generator
 (ProGe).} 
 
 You can start processor generation from the implementation selection dialog:
 Click ``Generate Processor''. For Binary Encoding Map: Select the
-previously generated .bem (Load from file...). Create and set target directory
-\file{proge-output}. Or alternatively, save the .idf file and execute ProGe from
-command line:
+Generate new. For the target directory click ``Browse'' and create a new
+directory \file{proge-output} and select it. Then click OK to create the
+processor.
 
-\shellcmd{generateprocessor -b custom.bem -i custom.idf -o proge-output
+Or alternatively execute ProGe from command line:
+
+\shellcmd{generateprocessor -i custom.idf -o proge-output
 custom.adf}
 
 Now directory \file{proge-output} includes the VHDL implementation of the
@@ -1716,8 +1729,7 @@ testbench files for the processor core.
 Finally, to get our shiny new processor some bits to chew on,
 we use generatebits to create instruction memory and data memory images:
 
-\shellcmd{generatebits -b custom.bem -d -w 4 -p crc\_with\_custom\_op.tpef
--x proge-output custom.adf} 
+\shellcmd{generatebits -d -w 4 -p crc\_with\_custom\_op.tpef -x proge-output custom.adf} 
 
 Now the file \file{crc\_with\_custom\_op.img} includes the instruction memory
 image in ``ascii 0/1'' format. Each line in that file represents a single
