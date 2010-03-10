@@ -491,7 +491,7 @@ p.add_option('--gcc-optlevel',
 """The level of optimization done by the llvm-gcc frontend,
 if applicable.""")             
 
-p.add_option('--clang', action='store_true', dest='use_clang', default=True,
+p.add_option('--clang', action='store_true', dest='use_clang', default=False,
              help=\
 "Use clang for C compilation instead of llvm-gcc.")
 
