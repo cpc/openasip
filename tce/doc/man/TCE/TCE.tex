@@ -949,8 +949,6 @@ implementation of the processor automatically later in the tutorial.
 Copy the \file{minimal.adf} included in TCE distribution to a new
 ADF file which is your starting point architecture:
 
-%% TODO: Change this back if STDOUT is not wanted to be used in this tutorial
-%\shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
 \shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
 
 Take a look at the starting point architecture using the graphical Processor
@@ -967,12 +965,6 @@ set them to 15 bits which should be plenty for our case.
 
 
 \subsection{Evaluating the Starting Point Architecture}
-
-Now we want to know how well the starting point architecture executes our
-program. First we need to map (``schedule'') the generic bitcode program
-to the parallel architecture we examined in the previous section. This can be
-done by compiling the bitcode program against the processor architecture
-with the command:
 
 Now we want to know how well the starting point architecture executes our
 program. We must compile the source code for our starting point architecture.
@@ -1344,8 +1336,8 @@ Then:
 \begin{enumerate}
 \item%
 Add a new function unit to the design, right click the canvas and select:
-\textit{Add>Function Unit}. Name the FU ''reflecter``. Add one input
-port (named astrigger) and an output port (output1) to the FU in
+\textit{Add>Function Unit}. Name the FU ''REFLECTER``. Add one input
+port (named as trigger) and an output port (output1) to the FU in
 the Function unit dialog. Set the input port (trigger)
 triggering (\textit{Click the port named trigger->Edit->Check dialog 
 ''triggers``}). This port starts the execution of the operation when
@@ -1705,9 +1697,9 @@ Click ``Save IDF...''
 \paragraph{Generate the VHDL for the processor using Processor Generator
 (ProGe).} 
 
-You can start processor generation from the implementation selection dialog:
+You can start processor generation from ProDe's implementation selection dialog:
 Click ``Generate Processor''. For Binary Encoding Map: Select the
-Generate new. For the target directory click ``Browse'' and create a new
+``Generate new''. In the target directory click ``Browse'' and create a new
 directory \file{proge-output} and select it. Then click OK to create the
 processor.
 
