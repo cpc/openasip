@@ -60,7 +60,6 @@
 #include "InterPassDatum.hh"
 #include "InterPassData.hh"
 #include "TCEString.hh"
-#include "FullyConnectedCheck.hh"
 
 //using std::set;
 using std::list;
@@ -76,8 +75,7 @@ using namespace TTAMachine;
  * @param fillFallThru fill from Fall-thru of jump BB?
  */
 void CopyingDelaySlotFiller::fillDelaySlots(
-    BasicBlockNode &jumpingBB, int delaySlots, bool fillFallThru,
-    bool fullyConnected)
+    BasicBlockNode &jumpingBB, int delaySlots, bool fillFallThru)
     throw (Exception) {
 
     
@@ -183,9 +181,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
             // all edges, at least if filling fall-thru jumps.
             // so always run the routine until fixed,
             // if-fall-thru jumps enabled.
-            if (!fullyConnected) {
-                ddg_->fixInterBBAntiEdges(jumpingBB, nextBBN);
-            }
+            ddg_->fixInterBBAntiEdges(jumpingBB, nextBBN);
 
             // also try to fill into jump instruction.
             // fillSize = delaySlots still adpcm-3-full-fails, should be +1
@@ -267,9 +263,6 @@ CopyingDelaySlotFiller::fillDelaySlots(
 
     um_ = &um;
     int delaySlots = machine.controlUnit()->delaySlots();
-    MachineCheckResults mcr;
-    FullyConnectedCheck fcc;
-    bool fullyConnected = fcc.check(machine, mcr);
 
     cfg_ = &cfg;
     ddg_ = &ddg;
@@ -278,7 +271,7 @@ CopyingDelaySlotFiller::fillDelaySlots(
         BasicBlockNode& bbn = cfg.node(i);
         if (bbn.isNormalBB()) {
             fillDelaySlots(
-                bbn, delaySlots, false, fullyConnected);
+                bbn, delaySlots, false);
         }
     }
 
@@ -287,7 +280,7 @@ CopyingDelaySlotFiller::fillDelaySlots(
         BasicBlockNode& bbn = cfg.node(i);
         if (bbn.isNormalBB()) {
             fillDelaySlots(
-                bbn, delaySlots, true, fullyConnected);
+                bbn, delaySlots, true);
         }
     }
 
