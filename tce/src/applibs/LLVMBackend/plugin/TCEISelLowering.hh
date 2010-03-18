@@ -26,8 +26,8 @@
  *
  * Declaration of TCETargetLowering class.
  *
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
  */
 
 #ifndef TCE_TARGET_LOWERING_H
@@ -38,7 +38,7 @@
 
 namespace TCEISD {
     enum {
-        FIRST_NUMBER = llvm::ISD::BUILTIN_OP_END + llvm::TCE::INSTRUCTION_LIST_END,
+        FIRST_NUMBER = llvm::ISD::BUILTIN_OP_END,
         SELECT_I1,
         SELECT_I8,
         SELECT_I16,

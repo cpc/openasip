@@ -26,8 +26,8 @@
  *
  * TCE DAG to DAG instruction selector implementation.
  *
- * @author Veli-Pekka Jääskeläinen 2007 (vjaaskel-no.spam-cs.tut.fi)
- * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Mikael Lepistï¿½ 2009 (mikael.lepisto-no.spam-tut.fi)
  */
 
 #include <llvm/Intrinsics.h>
@@ -56,7 +56,7 @@ public:
 
     llvm::SDNode* Select(llvm::SDNode* op);
 
-    virtual void InstructionSelect();
+//    virtual void InstructionSelect();
 
     virtual const char* getPassName() const {
         return "TCE DAG->DAG Pattern Instruction Selection";
@@ -85,11 +85,11 @@ TCEDAGToDAGISel::~TCEDAGToDAGISel() {
 }
 
 // from Sparc backend:
-void TCEDAGToDAGISel::InstructionSelect() {
+//void TCEDAGToDAGISel::InstructionSelect() {
     //DEBUG(BB->dump());
-  SelectRoot(*CurDAG);
-  CurDAG->RemoveDeadNodes();
-}
+//  SelectRoot(*CurDAG);
+//  CurDAG->RemoveDeadNodes();
+//}
 
 /**
  * Handles custom instruction selections.
