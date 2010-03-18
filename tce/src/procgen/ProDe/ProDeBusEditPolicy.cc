@@ -119,11 +119,11 @@ bool
 ProDeBusEditPolicy::canHandle(Request* request) const {
     Request::RequestType type = request->type();
     if (type == Request::MODIFY_REQUEST ||
-	type == Request::DELETE_REQUEST ||
+        type == Request::DELETE_REQUEST ||
         type == Request::COPY_REQUEST ||
         type == Request::STATUS_REQUEST) {
-	return true;
+        return true;
     } else {
-	return false;
+        return false;
     }
 }

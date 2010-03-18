@@ -42,6 +42,7 @@
 #include "RFEntry.hh"
 #include "MachineState.hh"
 #include "HWBlockImplementation.hh"
+#include "TestbenchGenerator.hh"
 
 enum VhdlSim {
     SIM_GHDL, 
@@ -58,7 +59,7 @@ public:
         std::string hdbFile,
         VhdlSim simulator, bool verbose, bool leaveDirty);
 
-    ~ImplementationTester();
+    virtual ~ImplementationTester();
 
     void setVhdlSimulator(VhdlSim simulator);
 
@@ -90,16 +91,25 @@ private:
 
     bool createTempDir();
 
-    std::string fuTbName(int id);
+    std::string fuTbName(int id) const;
     
-    std::string rfTbName(int id);
+    std::string rfTbName(int id) const;
 
-    void openTbFile(std::ofstream& fileStream, std::string fileName);
+    void openTbFile(std::ofstream& fileStream, std::string fileName) const;
 
     void
     createListOfSimulationFiles(
-        HDB::HWBlockImplementation* impl,
+        const HDB::HWBlockImplementation* impl,
         std::vector<std::string>& files) const;
+
+    void
+    createTestbench(TestbenchGenerator* tbGen, std::string tbName) const;
+
+    bool 
+    simulateTestbench(
+        std::string testbench, 
+        const HDB::HWBlockImplementation* implementation,
+        std::vector<std::string>& errors) const;
 
     std::string hdbFile_;
     HDB::HDBManager* hdb_;

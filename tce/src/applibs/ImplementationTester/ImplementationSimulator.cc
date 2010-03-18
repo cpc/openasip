@@ -42,14 +42,19 @@ using std::vector;
 ImplementationSimulator::ImplementationSimulator(
     std::string tbFile, std::vector<std::string> hdlFiles, bool verbose): 
     tbFile_(tbFile),
-    hdlFiles_(hdlFiles), baseDir_(""), workDir_(""), verbose_(verbose) {
+    hdlFiles_(hdlFiles), baseDir_(""), workDir_(""), oldCwd_(""),
+    verbose_(verbose) {
 
     baseDir_ = FileSystem::directoryOfPath(tbFile);
+    oldCwd_ = FileSystem::currentWorkingDir();
 }
 
 ImplementationSimulator::~ImplementationSimulator() {
     if (!workDir_.empty() && FileSystem::fileExists(workDir_)) {
         FileSystem::removeFileOrDirectory(workDir_);
+    }
+    if (!oldCwd_.empty()) {
+        FileSystem::changeWorkingDir(oldCwd_);
     }
 }
 

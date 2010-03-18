@@ -53,7 +53,7 @@
   </fu>
 
   <fu name="reflecter">
-    <hdb-file>data/tour.hdb</hdb-file>
+    <hdb-file>tour.hdb</hdb-file>
     <fu-id>1</fu-id>
   </fu>
 

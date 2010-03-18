@@ -363,7 +363,7 @@ InstructionBitVector::fixBits(
         throw OutOfRange(__FILE__, __LINE__, __func__, errorMsg);
     }
 
-    unsigned int currentBit(0);
+    int currentBit(0);
 
     for (IndexBoundTable::const_reverse_iterator iter = indexes.rbegin();
          iter != indexes.rend(); iter++) {
@@ -372,7 +372,12 @@ InstructionBitVector::fixBits(
         unsigned int endIndex = (*iter).second;
 
         for (unsigned int index = endIndex; index >= startIndex; index--) {
-            operator[](index) = MathTools::bit(value, currentBit);
+            // Rewrite with new value required bits, zero the higher ones
+            if (currentBit <= requiredSize) {
+                operator[](index) = MathTools::bit(value, currentBit);
+            } else {
+                operator[](index) = false;
+            }
             currentBit++;
         }
     }

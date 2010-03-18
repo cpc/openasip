@@ -28,6 +28,11 @@ New features
 - support for using the Clang as the C frontend via 'tcecc --clang'.
   NOTE: Clang 1.0 (released with LLVM 2.6) needs to be patched with
   tools/patches/clang-1.0-tce-support.patch for the TCE support.
+- Utility programs to test that OSAL behaviour definitions and HDL
+  implementations of function units are equal.
+  - testhdb command line tool to test FU and RF implementations in HDB
+  - ttaunittester to test the FUs and RFs implementations defined in IDF
+- ProDe: when copying a bus, also copy its guards
 
 Code optimizations
 ------------------
@@ -71,6 +76,8 @@ Bugfixes
 - Direct memory accesses to global tables could get wrong address.
 - ProDe: segments cannot be selected anymore (selects the bus always instead),
   an irritating long standing bug.
+- Proxim: crashed when unable the load the program due to missing
+  operation simulation models.
   
 1.0 first public release, 2009-03-26
 ====================================

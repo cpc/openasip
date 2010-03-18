@@ -91,15 +91,13 @@ public:
     SimulatorFrontend(bool useCompiledSimulation = false);
     virtual ~SimulatorFrontend();
 
-    virtual void loadProgram(const std::string& fileName)
-        throw (Exception);
+    virtual void loadProgram(const std::string& fileName);
 
     virtual void loadMachine(const std::string& fileName)
         throw (FileNotFound, IOException, SimulationStillRunning, 
                IllegalMachine);
 
-    void loadProgram(const TTAProgram::Program& program)
-        throw (Exception);
+    void loadProgram(const TTAProgram::Program& program);
 
     void loadMachine(const TTAMachine::Machine& machine)
         throw (SimulationStillRunning, IllegalProgram);

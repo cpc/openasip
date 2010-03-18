@@ -7,9 +7,6 @@ HDB_DIR = ${SRC_ROOT_DIR}/applibs/hdb
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools
 MACH_DIR = ${SRC_ROOT_DIR}/base/mach
 WXTOOLKIT_DIR = ${SRC_ROOT_DIR}/applibs/wxToolkit
-IMPL_TEST_DIR = ../../applibs/ImplementationTester
-MACH_SIM_DIR = ${SRC_ROOT_DIR}/applibs/Simulator
-OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
 
 LIB_HDB_DIR = ../../applibs/hdb
 LIB_TCETOOLS_DIR = ../../tools
@@ -19,7 +16,9 @@ LIB_BASE_DIR = ../../base
 LIB_EPSGENERATOR_DIR = ../../applibs/EPSGenerator
 LIB_APPLIB_MACH_DIR = ../../applibs/mach
 APPLIBS_FSA_DIR = ../../applibs/FSA
-
+IMPL_TEST_DIR = ${SRC_ROOT_DIR}/applibs/ImplementationTester
+MACH_SIM_DIR = ${SRC_ROOT_DIR}/applibs/Simulator
+OSAL_DIR = ${SRC_ROOT_DIR}/base/osal
 
 bin_PROGRAMS = hdbeditor testhdb
 
@@ -91,5 +90,5 @@ hdbeditor_SOURCES += \
 	SetCostFunctionPluginCmd.hh SetFUArchitectureCmd.hh \
 	SetRFArchitectureCmd.hh 
 
-testhdb_SOURCES += TestHDB.hh TestHDBCmdLineOptions.hh
+testhdb_SOURCES += TestHDBCmdLineOptions.hh
 ## headers end

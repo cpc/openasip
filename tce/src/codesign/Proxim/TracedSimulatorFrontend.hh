@@ -55,9 +55,7 @@ public:
 	throw (FileNotFound, IOException, SimulationStillRunning,
                IllegalMachine);
 
-    virtual void loadProgram(const std::string& fileName)
-	throw (FileNotFound, IOException, SimulationStillRunning,
-	       IllegalProgram, IllegalMachine);
+    virtual void loadProgram(const std::string& fileName);
 
     virtual void run()
 	throw (SimulationExecutionError);

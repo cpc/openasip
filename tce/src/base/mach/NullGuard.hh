@@ -50,6 +50,9 @@ public:
     virtual bool isMoreRestrictive(const Guard&) const;
     virtual bool isLessRestrictive(const Guard&) const;
     virtual bool isDisjoint(const Guard&) const;
+    virtual void copyTo(Bus&) const {
+        abortWithError("Should not copy NullGuards!");
+    }
 
     virtual bool isOpposite(const Guard&) const;
     virtual ObjectState* saveState() const;

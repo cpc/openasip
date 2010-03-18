@@ -70,10 +70,17 @@ protected:
         std::vector<std::string>& inputMsg, std::vector<std::string>& errors);
 
 private:
+    /// Testbench file name with path
     std::string tbFile_;
+    /// Vector containing other vhdl files needed to compile testbench
     std::vector<std::string> hdlFiles_;
+    /// Directory path of testbench file
     std::string baseDir_;
+    /// Working directory where testbench is compiled and simulated
     std::string workDir_;
+    /// Old current working directory (before changing to workDir_)
+    std::string oldCwd_;
+    /// Enable verbose output
     bool verbose_;
 };
 

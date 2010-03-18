@@ -55,7 +55,9 @@ class Machine;
 class MachinePart : public Serializable {
 public:
     struct Comparator {
-        bool operator() (const MachinePart* mp1, const MachinePart* mp2) const;
+        inline bool operator() (
+            const MachinePart* mp1, 
+            const MachinePart* mp2) const;
     };
 protected:
     MachinePart();

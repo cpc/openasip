@@ -32,15 +32,10 @@
 
 #include <cstdlib>
 #include <iostream>
-#include <vector>
 #include <string>
-#include <set>
-#include "ImplementationTester.hh"
-#include "TestHDB.hh"
+#include "HDBTester.hh"
 #include "TestHDBCmdLineOptions.hh"
 using std::string;
-using std::vector;
-using std::set;
 
 const string GHDL_SIM = "ghdl";
 const string VSIM_SIM = "modelsim";
@@ -84,136 +79,28 @@ int main(int argc, char* argv[]) {
     bool verbose = options.verbose();
     bool leaveDirty = options.leaveDirty();
 
-    ImplementationTester* tester = NULL;
-    try {
-        tester = 
-            new ImplementationTester(hdbFile, sim, verbose, leaveDirty);
-    } catch (Exception& e) {
-        std::cerr << "Failed to create implementation tester: "
-                  << e.errorMessage() << std::endl;
-        return EXIT_FAILURE;
-    }
-
+    HDBTester tester(std::cout, std::cerr, sim, verbose, leaveDirty);
+    
     bool testAll = true;
     if (options.isFUEntryIDGiven()) {
         testAll = false;
         int entryID = options.fuEntryID();
-        if (!testOneFU(entryID, tester)) {
-            delete(tester);
+        if (!tester.testOneFU(hdbFile, entryID)) {
             return EXIT_FAILURE;
         }
     }
     if (options.isRFEntryIDGiven()) {
         testAll = false;
         int entryID = options.rfEntryID();
-        if (!testOneRF(entryID, tester)) {
-            delete(tester);
+        if (!tester.testOneRF(hdbFile, entryID)) {
             return EXIT_FAILURE;
         }
     }
     if (testAll) {
-        if (!testAllEntries(tester)) {
-            delete(tester);
+        if (!tester.testAllEntries(hdbFile)) {
             return EXIT_FAILURE;
         }   
     }
 
-    delete(tester);
     return EXIT_SUCCESS;
-}
-
-
-/**
- * Tests one FU entry from the hdb
- *
- * @param id Entry id of the FU to be tested
- * @param tester The tester
- * @return False if the test failed
- */
-bool 
-testOneFU(int id, ImplementationTester* tester) {
-
-    string reason = "";
-    if (!tester->canTestFU(id, reason)) {
-        std::cout << "Cannot test FU id " << id << " because: " << reason
-                  << std::endl;
-        // this is not failure
-        return true;
-    }
-    vector<string> errors;
-    bool success = false;
-    try {
-        success = tester->validateFU(id, errors);
-    } catch (Exception& e) {
-        std:: cerr << "Runtime error: " << e.errorMessage() << std::endl;
-        return false;
-    }
-    
-    if (!errors.empty()) {
-        for (unsigned int i = 0; i < errors.size(); i++) {
-            std::cerr << errors.at(i);
-        }
-        success = false;
-    }
-    return success;
-}
-
-
-/**
- * Tests one RF entry from the hdb
- *
- * @param id Entry id of the RF to be tested
- * @param tester The tester
- * @return False if the test failed
- */
-bool 
-testOneRF(int id, ImplementationTester* tester) {
-
-    string reason = "";
-    if (!tester->canTestRF(id, reason)) {
-        std::cout << "Cannot test RF id " << id << " because: " << reason
-                  << std::endl;
-        // this is not failure
-        return true;
-    }
-    vector<string> errors;
-    bool success = false;
-    try {
-        success = tester->validateRF(id, errors);
-    } catch (Exception& e) {
-        std:: cerr << "Runtime error: " << e.errorMessage() << std::endl;
-        return false;
-    }
-    if (!errors.empty()) {
-        for (unsigned int i = 0; i < errors.size(); i++) {
-            std::cerr << errors.at(i);
-        }
-        success = false;
-    }
-    return success;
-}
-
-/**
- * Tests all FU and RF entries from the hdb
- *
- * @param tester The tester
- * @return False if there were failing tests
- */
-bool 
-testAllEntries(ImplementationTester* tester) {
-
-    bool noFailures = true;
-    set<int> fus = tester->fuEntryIDs();
-    for (set<int>::iterator iter = fus.begin(); iter != fus.end(); iter++) {
-        if (!testOneFU(*iter, tester)) {
-            noFailures = false;
-        }
-    }
-    set<int> rfs = tester->rfEntryIDs();
-    for (set<int>::iterator iter = rfs.begin(); iter != rfs.end(); iter++) {
-        if (!testOneRF(*iter, tester)) {
-            noFailures = false;
-        }
-    }
-    return noFailures;
 }
