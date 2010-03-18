@@ -12,6 +12,6 @@ $tcecc --clear-plugin-cache
 $tcecc -O1 -a $adf -o $tpef data/customop_matching.c
 
 #$tcedisasm $adf $tpef
-$tcedisasm $adf $tpef | grep andn |wc -l
+$tcedisasm $adf $tpef | grep andn |wc -l |tr -d "\ "
 
 rm -f $tpef

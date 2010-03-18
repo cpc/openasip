@@ -88,7 +88,7 @@ check_minimal_adf
 
 # ------------------------------------------------------------------------- #
 
-tmp_dir="$(mktemp -d)"
+tmp_dir="$(mktemp -d tmpXXXXX)"
 
 name="$(basename "${1}" .c)"
 tmp_name="${tmp_dir}/${name}"

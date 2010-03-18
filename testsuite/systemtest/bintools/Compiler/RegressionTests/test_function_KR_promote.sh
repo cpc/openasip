@@ -1,6 +1,6 @@
 #!/bin/bash
 tcecc=../../../../../tce/src/bintools/Compiler/tcecc
-bc=$(mktemp)
+bc=$(mktemp tempXXXXX)
 
 # if mktemp is not installed fall back to "random" name
 if [ "x$bc" == "x" ]
