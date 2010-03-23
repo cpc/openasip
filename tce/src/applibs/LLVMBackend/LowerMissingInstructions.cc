@@ -325,7 +325,7 @@ void LowerMissingInstructions::addFunctionForFootprints(
         Function* func = M.getFunction(op.emulationFunctionName());
         replaceFunctions[footprints[j]] = func;
         
-#if 1 
+#if 0 
         std::cerr << "Operation: " << op.name()
                   << " is emulated with: " << op.emulationFunctionName() 
                   << " footprint: " << footprints[j]
