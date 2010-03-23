@@ -674,8 +674,6 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
     // TODO: make list of mf's which for the pass will be ran afterwards..
 
     std::string fnName = mf.getFunction()->getNameStr();
-    Application::logStream() << "writing func: " << fnName << std::endl;
-      //mang_->getNameWithPrefix(mf.getFunction());
 
     emitConstantPool(*mf.getConstantPool());
 

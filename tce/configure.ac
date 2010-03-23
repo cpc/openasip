@@ -434,8 +434,8 @@ LLVM_INCLUDEDIR=/usr/include
 fi
 
 case "$LLVM_VERSION" in
-     2.6)
-     AC_DEFINE([LLVM_2_6], [], "Using LLVM v2.6")
+     2.7)
+     AC_DEFINE([LLVM_2_7], [], "Using LLVM v2.7")
    ;;
      *svn)
      AC_DEFINE([LLVM_SVN], [], "Using LLVM svn")
