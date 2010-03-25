@@ -222,7 +222,6 @@ LLVMBackend::compile(
     InterPassData* ipData)
     throw (Exception) {
 
-    llvm::DebugFlag = debug;
     ipData_ = ipData;
     std::string targetStr = "tce-llvm";
     std::string errorStr;

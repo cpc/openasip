@@ -85,22 +85,22 @@ Remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
-For example, to install the required libraries and tools for a recent
-Debian or Ubuntu using its package manager 'apt-get', you need to execute 
+For example, to install the required libraries and tools for Ubuntu
+10.04 using its package manager 'apt-get', you need to execute 
 the following command: 
 
 sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
-tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html
+tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
+llvm-dev clang
 
-NOTE! In order to compile programs from C, you need to install LLVM. There
-are no decent Debian packages available for older Debian/Ubuntu versions, 
-so the best way is to install it from sources. You can download 
-the LLVM sources from here: http://www.llvm.org/releases/
+NOTE! In order to compile programs from C, you need to install LLVM. 
+Unless the correct LLVM version is available for your distribution 
+(Ubuntu 10.04 is known to ship it), the best way is to install it from 
+the sources. You can download the LLVM sources from here: 
+
+ http://www.llvm.org/releases/
+
 Remember to download a supported LLVM version, as listed above.
 
-Note that after installing LLVM, you need to run a script shipped with
-TCE called 'gen_llvm_shared_lib.sh' (usually as root, e.g., 
-'sudo ./gen_llvm_shared_lib.sh')  to generate a shared version of
-LLVM libraries required by TCE. This is due to a broken shared library
-build of LLVM and hopefully is not needed with the future LLVM
-versions.
+NOTE! In order to use LLVM with TCE you need to configure LLVM 
+with '--enable-shared' switch and compile it with 'make REQUIRES_RTTI=1'.
