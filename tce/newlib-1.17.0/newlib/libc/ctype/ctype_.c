@@ -73,7 +73,7 @@ static char sccsid[] = "@(#)ctype_.c	5.6 (Berkeley) 6/1/90";
 	0,	0,	0,	0,	0,	0,	0,	0, \
 	0,	0,	0,	0,	0,	0,	0,	0
 
-#if defined(__GNUC__) && !defined(__CHAR_UNSIGNED__) && !defined(COMPACT_CTYPE)
+#if defined(__GNUC__) && !defined(__CHAR_UNSIGNED__) && !defined(COMPACT_CTYPE) && !defined(__clang__)
 #define ALLOW_NEGATIVE_CTYPE_INDEX
 #endif
 
