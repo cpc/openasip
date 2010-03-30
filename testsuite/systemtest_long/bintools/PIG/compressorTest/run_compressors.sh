@@ -9,14 +9,14 @@
 # can assure that the compressors will work with up-to-date tce tools.
 # There is no point compressing pre-generated, age old tpefs.
 
-CC=../../../../tce/src/bintools/Compiler/tcecc
-PROGE=../../../../tce/src/procgen/ProGe/generateprocessor
-PIG=../../../../tce/src/bintools/PIG/generatebits
-CBEM=../../../../tce/src/bintools/BEMGenerator/createbem
+CC=../../../../../tce/src/bintools/Compiler/tcecc
+PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
+PIG=../../../../../tce/src/bintools/PIG/generatebits
+CBEM=../../../../../tce/src/bintools/BEMGenerator/createbem
 
 SRC="data/crc.c data/main.c"
 INC="-Idata/"
-ORIG=../../../../tce/data/mach/minimal.adf
+ORIG=../../../../../tce/data/mach/minimal.adf
 ADF=minimal.adf
 IDF=data/minimal.idf
 BEM=minimal.bem
@@ -26,8 +26,8 @@ DIR0=proge-output-no-compression
 DIR1=proge-output-InstructionDictionary
 DIR2=proge-output-MoveSlotDictionary
 
-COMP1=../../../../tce/compressors/InstructionDictionary.so
-COMP2=../../../../tce/compressors/MoveSlotDictionary.so
+COMP1=../../../../../tce/compressors/InstructionDictionary.so
+COMP2=../../../../../tce/compressors/MoveSlotDictionary.so
 
 IMEM=app.img
 DMEM=app_data.img
@@ -69,7 +69,7 @@ mv $IMEM $DIR1/tb/imem_init.img || eexit "Imem image is missing"
 mv $DMEM $DIR1/tb/dmem_init.img || eexit "Dmem image is missing"
 
 # generate images for processor 2
-$PIG -b $BEM -d -w 4 -p $TPEF -c $COMP2 -g -x $DIR2 $ADF || eexit "PIG failed with InstructionDictionary"
+$PIG -b $BEM -d -w 4 -p $TPEF -c $COMP2 -g -x $DIR2 $ADF || eexit "PIG failed with MoveSlotDictionary"
 mv $IMEM $DIR2/tb/imem_init.img || exit "Imem image is missing"
 mv $DMEM $DIR2/tb/dmem_init.img || exit "Dmem image is missing"
 

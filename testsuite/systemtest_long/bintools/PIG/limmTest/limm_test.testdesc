@@ -1,0 +1,7 @@
+<?php
+// short test description
+$test_description="if PIG generates LIMMs that work on HW (also with compression)";
+
+// script to run the tour
+$test_bin="./run_limm_test.sh";
+?>
