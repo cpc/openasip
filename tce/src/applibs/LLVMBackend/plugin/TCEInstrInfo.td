@@ -259,13 +259,23 @@ def NOP : InstTCE<(outs), (ins), "...;", []>;
 
 // zero extending moves
 
+def ANDext : InstTCE<(outs I32Regs:$dst), (ins I1Regs:$src, i32imm:$val),
+	"", []>;
+
+
 def MOVI1I32rr : InstTCE<(outs I32Regs:$dst), (ins I1Regs:$src),
                     "$src -> $dst;",
-                    [(set I32Regs:$dst, (zext I1Regs:$src))]>;
+                    []>;
+
+// (set I32Regs:$dst, (zext I1Regs:$src))]>;
+
+def: Pat <(i32 (anyext I1Regs:$src)), (ANDext I1Regs:$src, 1)>;
+def: Pat <(i32 (zext I1Regs:$src)), (ANDext I1Regs:$src, 1)>;
+
 
 // for some reason it cannot automatically use zext for anyext,
 // so pattern here for it.
-def : Pat <(i32 (anyext I1Regs:$src)),(MOVI1I32rr I1Regs:$src)>;
+//def : Pat <(i32 (anyext I1Regs:$src)),(MOVI1I32rr I1Regs:$src)>;
 
 // ----- Immediates -----
 def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;

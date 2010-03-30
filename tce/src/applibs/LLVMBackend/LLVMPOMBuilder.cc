@@ -221,6 +221,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         }
                        
         if (!i->hasInitializer()) {
+	    std::cerr << "Initializer missing for: " << name << std::endl;
             assert(false && "No initializer. External linkage?");
         }
 

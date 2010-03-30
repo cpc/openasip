@@ -218,6 +218,7 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
 
     if (opc == TCE::INLINEASM) return INLINEASM;
 
+    if (opc == TCE::ANDext) return "and";
 
     if (opc == TCE::STQBrb) return "stq";
     if (opc == TCE::STQBib) return "stq";
