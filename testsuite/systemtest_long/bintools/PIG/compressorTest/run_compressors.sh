@@ -60,18 +60,12 @@ $PROGE -b $BEM -i $IDF -o $DIR2 $ADF || eexit "ProGe failed! Check that data/min
 
 # generate images for processor 0
 $PIG -b $BEM -d -w 4 -p $TPEF -x $DIR0 $ADF || eexit "PIG failed (without compression)!"
-mv $IMEM $DIR0/tb/imem_init.img || eexit "Imem image is missing"
-mv $DMEM $DIR0/tb/dmem_init.img || eexit "Dmem image is missing"
 
 # generate images for processor 1
 $PIG -b $BEM -d -w 4 -p $TPEF -c $COMP1 -g -x $DIR1 $ADF || eexit "PIG failed with InstructionDictionary"
-mv $IMEM $DIR1/tb/imem_init.img || eexit "Imem image is missing"
-mv $DMEM $DIR1/tb/dmem_init.img || eexit "Dmem image is missing"
 
 # generate images for processor 2
 $PIG -b $BEM -d -w 4 -p $TPEF -c $COMP2 -g -x $DIR2 $ADF || eexit "PIG failed with MoveSlotDictionary"
-mv $IMEM $DIR2/tb/imem_init.img || exit "Imem image is missing"
-mv $DMEM $DIR2/tb/dmem_init.img || exit "Dmem image is missing"
 
 GHDL=$(which ghdl)
 

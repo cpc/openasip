@@ -27,7 +27,7 @@
  * Implementation of the main function of generatebits application.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Otto Esko 2009 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -59,10 +59,15 @@ using std::ofstream;
 using namespace TPEF;
 using namespace TTAMachine;
 
-int const DEFAULT_IMEMWIDTH_IN_MAUS = 1;
-int const PERIOD = 10;
-string const IMEM_MAU_PKG = "imem_mau_pkg.vhdl";
-string const DECOMPRESSOR_FILE = "decompressor.vhdl";
+const int DEFAULT_IMEMWIDTH_IN_MAUS = 1;
+const int PERIOD = 10;
+const string IMEM_MAU_PKG = "imem_mau_pkg.vhdl";
+const string DECOMPRESSOR_FILE = "decompressor.vhdl";
+
+const string TB_DIR = "tb";
+const string DIR_SEP = FileSystem::DIRECTORY_SEPARATOR;
+const string TB_IMEM_FILE = "imem_init.img";
+const string TB_DMEM_FILE = "dmem_init.img";
 
 /**
  * Loads the given TPEF file and creates a Binary instance from it.
@@ -154,6 +159,7 @@ isInstructionMemory(const TTAMachine::AddressSpace& as) {
  */
 std::string
 programImemImageFile(const std::string& tpefFile, const std::string& format) {
+
     string imageFile = FileSystem::fileNameBody(tpefFile);
     if (format == "mif") {
         // altera tools want .mif ending for MIF files
@@ -226,6 +232,7 @@ parseParameter(
 
 void 
 createMauPkg(int imemMauWidth, string fileName) {
+
     string indentation = "   ";
  
     if (!FileSystem::fileExists(fileName) 
@@ -249,6 +256,7 @@ createMauPkg(int imemMauWidth, string fileName) {
 
 void
 createCompressor(string fileName, ProgramImageGenerator& imageGenerator) {
+
     bool created = FileSystem::createFile(fileName);
     if (!created) {
         string errorMsg = "Unable to create file " + 
@@ -259,6 +267,27 @@ createCompressor(string fileName, ProgramImageGenerator& imageGenerator) {
         fileName.c_str(), std::ofstream::out);
     imageGenerator.generateDecompressor(decompressorStream);
     decompressorStream.close();
+}
+
+void
+copyImageToTb(
+    const string& source,
+    const string& progeDir,
+    const string& newImage) {
+
+    if (!progeDir.empty()) {
+        string tbDir = progeDir + DIR_SEP + TB_DIR;
+        string tbImage = tbDir + DIR_SEP + newImage;
+        if (FileSystem::fileIsDirectory(tbDir) 
+            && (FileSystem::fileIsWritable(tbImage) 
+                || FileSystem::fileIsCreatable(tbImage))) {
+            try {
+                FileSystem::copy(source, tbImage);
+            } catch (Exception& e) {
+                cerr << e.errorMessage() << endl;
+            }
+        }
+    }
 }
 
 /**
@@ -413,9 +442,12 @@ int main(int argc, char* argv[]) {
                 imageGenerator.generateProgramImage(
                     tpefFile, piStream, ProgramImageGenerator::ASCII,
                     imemMAUsPerLine);
-            }
-            
+            }         
             piStream.close();
+
+            if (piFormat == "ascii" || piFormat == "") {
+                copyImageToTb(imageFile, progeOutputDir, TB_IMEM_FILE);
+            }
 
             if (generateDataImages) {
                 Machine::AddressSpaceNavigator asNav = 
@@ -459,6 +491,11 @@ int main(int argc, char* argv[]) {
                                 dmemMAUsPerLine, true);
                         }
                         stream.close();
+
+                        if (diFormat == "ascii" || piFormat == "") {
+                            copyImageToTb(
+                                fileName, progeOutputDir, TB_DMEM_FILE);
+                        }
                     }
                 }
             }
@@ -467,9 +504,8 @@ int main(int argc, char* argv[]) {
         if (generateDecompressor) {
             string decomp = DECOMPRESSOR_FILE;
             if (!progeOutputDir.empty()) {
-                string temp = progeOutputDir 
-                    + FileSystem::DIRECTORY_SEPARATOR
-                    + "gcu_ic" + FileSystem::DIRECTORY_SEPARATOR 
+                string temp =
+                    progeOutputDir + DIR_SEP + "gcu_ic" + DIR_SEP 
                     + DECOMPRESSOR_FILE;
                if ( (FileSystem::fileExists(temp) 
                   &&FileSystem::fileIsWritable(temp)) 
@@ -483,9 +519,8 @@ int main(int argc, char* argv[]) {
         int compressedInstructionWidth = imageGenerator.imemMauWidth();
         string imemMauPkg = IMEM_MAU_PKG;
         if (!progeOutputDir.empty()) {
-             string temp = progeOutputDir 
-                + FileSystem::DIRECTORY_SEPARATOR
-                + "vhdl" + FileSystem::DIRECTORY_SEPARATOR + IMEM_MAU_PKG;
+             string temp = 
+                 progeOutputDir + DIR_SEP + "vhdl" + DIR_SEP + IMEM_MAU_PKG;
             if ( (FileSystem::fileExists(temp) 
                   &&FileSystem::fileIsWritable(temp)) 
                  || FileSystem::fileIsCreatable(temp)) {

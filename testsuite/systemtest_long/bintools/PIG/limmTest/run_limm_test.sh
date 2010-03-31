@@ -90,31 +90,21 @@ cp -r $P_DIR2 $P_DIR2_MS
 
 # create images for 2 bus limm without compression
 $PIG -d -w 4 -x $P_DIR1 -p $TPEF1 $ADF1 2>&1 || eexit "PIG failed..oink oink"
-mv $IMEM1 $P_DIR1/tb/imem_init.img
-mv $DMEM1 $P_DIR1/tb/dmem_init.img
 
 # create images for 2 bus limm using instruction dictionary compression
 $PIG -d -w 4 -x $P_DIR1_ID -p $TPEF1 -g -c $COMP1 $ADF1 2>&1 || eexit "PIG failed with InstructionDictionary"
-mv $IMEM1 $P_DIR1_ID/tb/imem_init.img
-mv $DMEM1 $P_DIR1_ID/tb/dmem_init.img
 
 # create images for 2 bus limm using moveslot dictionary compression
 $PIG -d -w 4 -x $P_DIR1_MS -p $TPEF1 -g -c $COMP2 $ADF1 2>&1 || eexit "PIG failed with MoveSlotDictionary"
-mv $IMEM1 $P_DIR1_MS/tb/imem_init.img
-mv $DMEM1 $P_DIR1_MS/tb/dmem_init.img
 
-
+# create images for 3 bus limm without compression
 $PIG -d -w 4 -x $P_DIR2 -p $TPEF2 $ADF2 2>&1 || eexit "PIG failed..oink oink"
-mv $IMEM2 $P_DIR2/tb/imem_init.img
-mv $DMEM2 $P_DIR2/tb/dmem_init.img
 
+# create images for 3 bus limm using instruction dictionary compression
 $PIG -d -w 4 -x $P_DIR2_ID -p $TPEF2 -g -c $COMP1 $ADF2 2>&1 || eexit "PIG failed with InstructionDictionary"
-mv $IMEM2 $P_DIR2_ID/tb/imem_init.img
-mv $DMEM2 $P_DIR2_ID/tb/dmem_init.img
 
+# create images for 3 bus limm using moveslot dictionary compression
 $PIG -d -w 4 -x $P_DIR2_MS -p $TPEF2 -g -c $COMP2 $ADF2 2>&1 || eexit "PIG failed with MoveSlotDictionary"
-mv $IMEM2 $P_DIR2_MS/tb/imem_init.img
-mv $DMEM2 $P_DIR2_MS/tb/dmem_init.img
 
 
 cd $P_DIR1
