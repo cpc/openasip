@@ -107,7 +107,7 @@ OperationModule::behaviorModule() const
     
     if (!definesBehavior()) {
         std::string method = "OperationModule::behaviorModule()";
-        std::string msg = "Behavior file not found.";
+        std::string msg = "Behavior file not found: " + behaviorFileName();
         throw FileNotFound(__FILE__, __LINE__, method, msg);
     }
 

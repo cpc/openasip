@@ -70,6 +70,8 @@ Bugfixes
   an irritating long standing bug.
 - Proxim: crashed when unable the load the program due to missing
   operation simulation models.
+- Missing .opb file no longer causes ttasim to go to forever loop,
+  now exits with a meaningful error message.
   
 1.0 first public release, 2009-03-26
 ====================================
