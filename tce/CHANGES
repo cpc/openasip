@@ -25,6 +25,8 @@ New features
   - testhdb command line tool to test FU and RF implementations in HDB
   - ttaunittester to test the FUs and RFs implementations defined in IDF
 - ProDe: when copying a bus, also copy its guards
+- PIG now automatically copies memory images to ${proge-output}/tb directory
+  if image type is ascii and -x flag is given.
 
 Code optimizations
 ------------------
@@ -72,6 +74,7 @@ Bugfixes
   operation simulation models.
 - Missing .opb file no longer causes ttasim to go to forever loop,
   now exits with a meaningful error message.
+- LIMM write to IU works if glock is issued on the same cycle
   
 1.0 first public release, 2009-03-26
 ====================================

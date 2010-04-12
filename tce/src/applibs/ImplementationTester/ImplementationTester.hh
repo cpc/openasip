@@ -85,6 +85,8 @@ private:
 
     bool fuHasExternalPorts(HDB::FUEntry* fuEntry) const;
 
+    bool fuHasOnePort(HDB::FUEntry* fuEntry) const;
+
     HDB::FUEntry* fuEntryFromHdb(int entryID) const;
 
     HDB::RFEntry* rfEntryFromHdb(int entryID) const;

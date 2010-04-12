@@ -201,6 +201,9 @@ ImplementationTester::canTestFU(const int entryID, std::string& reason) {
     } else if (fuHasExternalPorts(fuEntry)) {
         reason = "Simulation of FUs with external ports is not supported";
         canTest = false;
+    } else if (fuHasOnePort(fuEntry)) {
+        reason = "FU has only one port";
+        canTest = false;
     }
     delete fuEntry;
     return canTest;
@@ -410,6 +413,14 @@ ImplementationTester::fuHasExternalPorts(HDB::FUEntry* fuEntry) const {
 
     HDB::FUImplementation* fuImpl = &fuEntry->implementation();
     return fuImpl->externalPortCount() != 0;
+}
+
+
+bool 
+ImplementationTester::fuHasOnePort(HDB::FUEntry* fuEntry) const {
+
+    HDB::FUImplementation* fuImpl = &fuEntry->implementation();
+    return fuImpl->architecturePortCount() == 1;
 }
 
 
