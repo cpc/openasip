@@ -13,6 +13,9 @@ rm -f limm_test_3bus*.img
 rm -f sim_in1
 rm -f sim_in2
 
+rm -f limm_2bus.bem
+rm -f limm_3bus.bem
+
 rm -rf proge-output_2bus
 rm -rf proge-output_2bus_simple
 rm -rf proge-output_2bus_moveslot

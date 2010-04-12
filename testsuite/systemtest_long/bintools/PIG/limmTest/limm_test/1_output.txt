@@ -2,9 +2,3 @@
 
 1
 
-BEM file was not given --> Generating default BEM..
-BEM file was not given --> Generating default BEM..
-BEM file was not given --> Generating default BEM..
-BEM file was not given --> Generating default BEM..
-BEM file was not given --> Generating default BEM..
-BEM file was not given --> Generating default BEM..

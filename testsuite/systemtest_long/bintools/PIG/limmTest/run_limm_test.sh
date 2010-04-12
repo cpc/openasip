@@ -14,6 +14,7 @@ TCEASM=../../../../../tce/src/bintools/Assembler/tceasm
 TTASIM=../../../../../tce/src/codesign/ttasim/ttasim
 PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
 PIG=../../../../../tce/src/bintools/PIG/generatebits
+CREATEBEM=../../../../../tce/src/bintools/BEMGenerator/createbem
 
 COMP1=../../../../../tce/compressors/InstructionDictionary.so
 COMP2=../../../../../tce/compressors/MoveSlotDictionary.so
@@ -30,12 +31,14 @@ IDF1=data/limm_2bus.idf
 TPEF1=limm_test_2bus.tpef
 IMEM1=limm_test_2bus.img
 DMEM1=limm_test_2bus_data.img
+BEM1=limm_2bus.bem
 
 ADF2=data/limm_3bus.adf
 IDF2=data/limm_3bus.idf
 TPEF2=limm_test_3bus.tpef
 IMEM2=limm_test_3bus.img
 DMEM2=limm_test_3bus_data.img
+BEM2=limm_3bus.bem
 
 P_DIR1=proge-output_2bus
 P_DIR1_ID=proge-output_2bus_simple
@@ -79,32 +82,35 @@ $TTASIM < $SIM_IN1 || eexit "Failed to simulate"
 $TTASIM < $SIM_IN2 || eexit "Failed to simulate"
 
 
-$PROGE -o $P_DIR1 -i $IDF1 $ADF1 2>&1 || eexit "ProGe failed"
+$CREATEBEM $ADF1 || eexit "Failed to create bem"
+$CREATEBEM $ADF2 || eexit "Failed to create bem"
+
+$PROGE -b $BEM1 -o $P_DIR1 -i $IDF1 $ADF1 2>&1 || eexit "ProGe failed"
 cp -r $P_DIR1 $P_DIR1_ID
 cp -r $P_DIR1 $P_DIR1_MS
 
-$PROGE -o $P_DIR2 -i $IDF2 $ADF2 2>&1 || eexit "ProGe failed"
+$PROGE -b $BEM2 -o $P_DIR2 -i $IDF2 $ADF2 2>&1 || eexit "ProGe failed"
 cp -r $P_DIR2 $P_DIR2_ID
 cp -r $P_DIR2 $P_DIR2_MS
 
 
 # create images for 2 bus limm without compression
-$PIG -d -w 4 -x $P_DIR1 -p $TPEF1 $ADF1 2>&1 || eexit "PIG failed..oink oink"
+$PIG -b $BEM1 -d -w 4 -x $P_DIR1 -p $TPEF1 $ADF1 2>&1 || eexit "PIG failed..oink oink"
 
 # create images for 2 bus limm using instruction dictionary compression
-$PIG -d -w 4 -x $P_DIR1_ID -p $TPEF1 -g -c $COMP1 $ADF1 2>&1 || eexit "PIG failed with InstructionDictionary"
+$PIG -b $BEM1 -d -w 4 -x $P_DIR1_ID -p $TPEF1 -g -c $COMP1 $ADF1 2>&1 || eexit "PIG failed with InstructionDictionary"
 
 # create images for 2 bus limm using moveslot dictionary compression
-$PIG -d -w 4 -x $P_DIR1_MS -p $TPEF1 -g -c $COMP2 $ADF1 2>&1 || eexit "PIG failed with MoveSlotDictionary"
+$PIG -b $BEM1 -d -w 4 -x $P_DIR1_MS -p $TPEF1 -g -c $COMP2 $ADF1 2>&1 || eexit "PIG failed with MoveSlotDictionary"
 
 # create images for 3 bus limm without compression
-$PIG -d -w 4 -x $P_DIR2 -p $TPEF2 $ADF2 2>&1 || eexit "PIG failed..oink oink"
+$PIG -b $BEM2 -d -w 4 -x $P_DIR2 -p $TPEF2 $ADF2 2>&1 || eexit "PIG failed..oink oink"
 
 # create images for 3 bus limm using instruction dictionary compression
-$PIG -d -w 4 -x $P_DIR2_ID -p $TPEF2 -g -c $COMP1 $ADF2 2>&1 || eexit "PIG failed with InstructionDictionary"
+$PIG -b $BEM2 -d -w 4 -x $P_DIR2_ID -p $TPEF2 -g -c $COMP1 $ADF2 2>&1 || eexit "PIG failed with InstructionDictionary"
 
 # create images for 3 bus limm using moveslot dictionary compression
-$PIG -d -w 4 -x $P_DIR2_MS -p $TPEF2 -g -c $COMP2 $ADF2 2>&1 || eexit "PIG failed with MoveSlotDictionary"
+$PIG -b $BEM2 -d -w 4 -x $P_DIR2_MS -p $TPEF2 -g -c $COMP2 $ADF2 2>&1 || eexit "PIG failed with MoveSlotDictionary"
 
 
 cd $P_DIR1
