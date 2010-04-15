@@ -109,7 +109,9 @@ main ()
           
        if(main_result != 0)
        {
-             puts("FAIL!\n");
+           puts("FAIL!\n");
+       } else {
+           puts("OK\n");
        }
       return main_result;
     }
