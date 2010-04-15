@@ -177,7 +177,7 @@ rm -rf $VECTORTEST
 
 # Check for clang or tce-llvm-gcc executables.
 AC_CHECK_PROG([TCELLVMGCC], [tce-llvm-gcc], [yes], [], [], [])
-#AC_CHECK_PROG([CLANG], [clang], [yes], [], [], [])
+AC_CHECK_PROG([CLANG], [clang], [yes], [], [], [])
 AM_CONDITIONAL([COMPILER_FOUND], test ! -z $TCELLVMGCC $CLANG)
 
 # === CHECK for unordered_map/hash_map ===
