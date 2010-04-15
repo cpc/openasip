@@ -175,10 +175,19 @@ fi
 
 rm -rf $VECTORTEST
 
-# Check for clang or tce-llvm-gcc executables.
+# Check for clang or tce-llvm-gcc executables. 
 AC_CHECK_PROG([TCELLVMGCC], [tce-llvm-gcc], [yes], [], [], [])
 AC_CHECK_PROG([CLANG], [clang], [yes], [], [], [])
-AM_CONDITIONAL([COMPILER_FOUND], test ! -z $TCELLVMGCC $CLANG)
+AM_CONDITIONAL([COMPILER_FOUND], test ! -z $CLANG$TCELLVMGCC)
+
+AC_SUBST([CLANG_AS_DEFAULT], ["True"])
+if test -z $CLANG
+then
+   if test ! -z $TCELLVMGCC
+   then 
+       AC_SUBST([CLANG_AS_DEFAULT], ["False"])
+   fi
+fi 
 
 # === CHECK for unordered_map/hash_map ===
 # First check whether unordered_map exists.
@@ -1400,5 +1409,20 @@ then
 else
   echo "Found LLVM version $LLVM_VERSION"
 fi
+
+if test x"$CLANG" != x
+then
+  echo "Using Clang as the default C compiler."
+elif test x"$TCELLVMGCC" != x
+  then
+     echo "Using tce-llvm-gcc as the default C compiler."
+else
+     echo "!WARNING! No compiler frontend (clang nor tce-llvm-gcc) found. C compilation support disabled!" 
+fi
+
+
+#  else
+#     
+#  fi
 
 echo "***************************************"

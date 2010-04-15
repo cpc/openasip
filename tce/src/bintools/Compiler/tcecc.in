@@ -491,9 +491,14 @@ p.add_option('--gcc-optlevel',
 """The level of optimization done by the llvm-gcc frontend,
 if applicable.""")             
 
-p.add_option('--llvm-gcc', action='store_false', dest='use_clang', default=True,
-             help=\
+if @CLANG_AS_DEFAULT@:
+    p.add_option('--llvm-gcc', action='store_false', dest='use_clang', default=True,
+                 help=\
 "Use llvm-gcc for C compilation instead of Clang.")
+else:
+    p.add_option('--clang', action='store_true', dest='use_clang', default=False,
+                 help=\
+"Use Clang for C compilation instead of llvm-gcc.")
 
 # Commandline argument parsing
 
