@@ -58,6 +58,7 @@ Supporting OS subroutines required: <<close>>, <<fstat>>, <<isatty>>,
 <<lseek>>, <<read>>, <<sbrk>>, <<write>>.
 */
 
+
 #if defined(LIBC_SCCS) && !defined(lint)
 static char sccsid[] = "%W% (Berkeley) %G%";
 #endif /* LIBC_SCCS and not lint */
@@ -68,6 +69,21 @@ static char sccsid[] = "%W% (Berkeley) %G%";
 #include <string.h>
 #include "fvwrite.h"
 #include "local.h"
+
+#ifdef __TCE_V1__
+#include "tceops.h"
+int 
+_DEFUN(puts, (s),
+       char _CONST * s) 
+{
+    char c;
+    while ((c =*s) != 0) {
+        _TCE_STDOUT((int)(c));
+        s++;
+    }
+    _TCE_STDOUT('\n');
+}
+#else
 
 /*
  * Write the given string to stdout, appending a newline.
@@ -104,3 +120,4 @@ _DEFUN(puts, (s),
 }
 
 #endif
+#endif /* !TCE */
