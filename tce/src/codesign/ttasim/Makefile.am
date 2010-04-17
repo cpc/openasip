@@ -11,6 +11,7 @@ PROGRAM_DIR = ${SRC_ROOT_DIR}/base/program
 APPLIBS_HDB_DIR = ${SRC_ROOT_DIR}/applibs/hdb
 APPLIBS_MACH_DIR = ${SRC_ROOT_DIR}/applibs/mach
 APPLIBS_SCHED_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
+DISASM_DIR = ${SRC_ROOT_DIR}/applibs/Disassembler
 
 LIB_TCETOOLS_DIR = ../../tools
 LIB_BASE_DIR = ../../base
@@ -18,7 +19,7 @@ LIB_PROGRAM_DIR = ../../base/program
 LIB_SIM_APPLIB_DIR = ../../applibs/Simulator
 UM_DIR = ../../base/umach
 LIB_INT_APPLIB_DIR = ../../applibs/Interpreter
-DISASM_DIR = ../../applibs/Disassembler
+
 TRACEDB_DIR = ../../applibs/TraceDB
 PROG_APPLIB_DIR = ../../applibs/program
 LIB_APPLIBS_HDB_DIR = ../../applibs/hdb
