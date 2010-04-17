@@ -61,7 +61,7 @@ AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LIBDIR} ${TCL_LD_FLAGS} ${XE
 	${EDITLINE_LD_FLAGS} -module
 
 all-local: ${pkglib_LTLIBRARIES}
-	ln -sf ${srcdir}/.libs/base.so ${srcdir}/base.opb
+	ln -sf ${builddir}/.libs/base.so ${builddir}/base.opb
 
 install-exec-hook:
 	ln -sf ${pkglibdir}/base.so $(DESTDIR)/${pkglibdir}/base.opb
