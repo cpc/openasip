@@ -35,9 +35,9 @@ AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LD_FLAGS} ${XERCES_LIBS} \
 all-local: ${pkglib_LTLIBRARIES}
 # Create links to the .so to the current directory just to make 
 # running ProGe from the source tree to find them.
-	@@(for soname in $(shell ls -1 ${srcdir}/.libs/*.so); do \
-		ln -sf $$soname ${srcdir}; \
+	@@(for soname in `ls -1 ${builddir}/.libs/*.so`; do \
+		ln -sf $$soname ${builddir}; \
 	done)
 
 clean-local:
-	rm -f ${srcdir}/*.so
+	rm -f ${builddir}/*.so

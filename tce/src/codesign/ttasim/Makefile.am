@@ -13,20 +13,6 @@ APPLIBS_MACH_DIR = ${SRC_ROOT_DIR}/applibs/mach
 APPLIBS_SCHED_DIR = ${SRC_ROOT_DIR}/applibs/Scheduler
 DISASM_DIR = ${SRC_ROOT_DIR}/applibs/Disassembler
 
-LIB_TCETOOLS_DIR = ../../tools
-LIB_BASE_DIR = ../../base
-LIB_PROGRAM_DIR = ../../base/program
-LIB_SIM_APPLIB_DIR = ../../applibs/Simulator
-UM_DIR = ../../base/umach
-LIB_INT_APPLIB_DIR = ../../applibs/Interpreter
-
-TRACEDB_DIR = ../../applibs/TraceDB
-PROG_APPLIB_DIR = ../../applibs/program
-LIB_APPLIBS_HDB_DIR = ../../applibs/hdb
-LIB_APPLIBS_MACH_DIR = ../../applibs/mach
-LIB_APPLIBS_SCHED_DIR = ../../applibs/Scheduler
-FSA_APPLIB_DIR = ../../applibs/FSA
-
 bin_PROGRAMS = ttasim ttasim-tandem
 
 ttasim_SOURCES = TTASim.cc SimulatorCmdLineOptions.cc
