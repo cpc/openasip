@@ -59,9 +59,9 @@ AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LIBDIR} ${TCL_LD_FLAGS} ${XE
 all-local: ${pkglib_LTLIBRARIES}
 # Create links to the .so to the current directory just to make 
 # running Scheduler from the source tree to find them.
-	@@(for soname in `ls -1 ${builddir}/.libs/*.so`; do \
-		ln -sf $$soname ${builddir}; \
+	@@(for soname in `ls -1 ./.libs/*.so`; do \
+		ln -sf $$soname .; \
 	done)
 
 clean-local:
-	rm -f ${builddir}/*.so
+	rm -f ./*.so
