@@ -4592,7 +4592,8 @@ double hyphen (- -) prefix must be used, respectively.
 
 \subsubsection{An example of the usage}
 
-The following example generates a program image and data images of the address spaces in ASCII format without code compression.
+The following example generates a program image and data images of the address
+spaces in ASCII format without code compression.
 
 \begin{verbatim}
 generatebits -b encodings.bem -t program.tpef -f ascii -d machine.adf
@@ -4602,6 +4603,61 @@ generatebits -b encodings.bem -t program.tpef -f ascii -d machine.adf
 % The default plugin shipped with TCE.
 % TODO: dictionary_tool.
 % TODO: describe usage
+
+TCE toolset includes two different code compressors: \file{InstructionDictionary}
+compressor and \file{MoveSlotDictionary} compressor. It is also possible to
+create new code compressors.
+
+How these compressors work is that they analyze program's instruction memory and
+create a compressed instruction memory image. In order to use the compressed
+image the compressor also creates a decompressor module which replaces the
+default decompressor in the instruction decoder unit of a processor.
+
+You can list the available compressor and their descriptions with
+
+\shellcmd{generatebits -s processor.adf}
+
+\subsubsection{Instruction Dictionary compressor}
+
+Instruction dictionary compressor analyzes a program and creates a look up table
+of all the unique instructions. Compressed instruction image then consists of
+indices to the created look up table. Decompressor module includes the look up
+table and it outputs the uncompressed instruction defined by the input index.
+
+Here is an example how to use the instruction dictionary compressor:
+
+\shellcmd{generatebits -c InstructionDictionary.so -g -p program.tpef processor.adf}
+
+Command creates the compressed instruction memory image \file{program.img} and
+\file{imem\_mau\_pkg.vhdl} using InstructionDictionary.so plugin defined with the
+-c parameter. As the command also has -g parameter compressor creates the
+\file{decompressor.vhdl} file which defines the decompressor unit.
+
+You can also give the existing proge-output directory (in this case
+processor\_files) to generatebits:
+
+\shellcmd{generatebits -c InstructionDictionary.so -g -p program.tpef -x
+processor\_files processor.adf}
+
+Now PIG will automatically write the \file{imem\_mau\_pkg.vhdl} and
+\file{decompressor.vhdl} to the right places in processor\_files directory.
+
+\subsubsection{Move Slot Dictionary compressor}
+
+Move slot dictionary compressor analyzes the program and creates a separate
+look up table for each of the move slots in the processor. Every move slot in
+the compressed instruction then has an index to its look up table. As with the
+instruction dictionary compressor the decompressor module holds the look up
+tables and it decompresses the instruction on move slot basis.
+
+Here is an example how to use the move slot dictionary compressor:
+
+\shellcmd{generatebits -c MoveSlotDictionary.so -g -p program.tpef processor.adf}
+
+Like earlier you can also use the proge-output folder parameter:
+
+\shellcmd{generatebits -c MoveSlotDictionary.so -g -p program.tpef
+-x processor\_file processor.adf}
 
 \subsubsection{Defining New Code Compressors}
 
