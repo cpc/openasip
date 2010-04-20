@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : 
 -- Created    : 2003-03-12
--- Last update: 2010-02-08
+-- Last update: 2010-04-20
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -191,11 +191,11 @@ begin
           Z <= ext("0",Z'length);
         end if;
       when OPC_SHL =>
-        Z <= shift_func(B,A,OPC_SHL,dataw,shiftw);
+        Z <= shift_func(B,A(shiftw-1 downto 0),OPC_SHL,dataw,shiftw);
       when OPC_SHR =>
-        Z <= shift_func(B,A,OPC_SHR,dataw,shiftw);
+        Z <= shift_func(B,A(shiftw-1 downto 0),OPC_SHR,dataw,shiftw);
       when OPC_SHRU =>
-        Z <= shift_func(B,A,OPC_SHRU,dataw,shiftw);
+        Z <= shift_func(B,A(shiftw-1 downto 0),OPC_SHRU,dataw,shiftw);
        when OPC_SUB =>
         Z <=  conv_std_logic_vector(signed(A) - signed(B), Z'length);
       when OPC_SXQW =>

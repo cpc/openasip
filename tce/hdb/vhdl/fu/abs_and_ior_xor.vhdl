@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2010-01-15
+-- Last update: 2010-04-20
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Logical functional unit for TTA
@@ -44,7 +44,7 @@
 -------------------------------------------------------------------------------
 
 
-library IEEE, DW01;
+library IEEE;--, DW01;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;
 --use DW01.DW01_components.all;

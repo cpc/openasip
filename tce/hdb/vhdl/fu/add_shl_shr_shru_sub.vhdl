@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : 
 -- Created    : 2003-03-11
--- Last update: 2010-01-15
+-- Last update: 2010-04-20
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -50,8 +50,8 @@
 -------------------------------------------------------------------------------
 
 library IEEE;
-use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
+use IEEE.std_Logic_1164.all;
+use IEEE.numeric_std.all;
 use work.util.all;
 
 
@@ -80,9 +80,9 @@ begin
 
 
   process(A, shft_amount, opc)
-    variable opc_shl  : std_logic_vector(1 downto 0);
-    variable opc_shr  : std_logic_vector(1 downto 0);
-    variable opc_shru : std_logic_vector(1 downto 0);
+    variable opc_shl_v  : std_logic_vector(1 downto 0);
+    variable opc_shr_v  : std_logic_vector(1 downto 0);
+    variable opc_shru_v : std_logic_vector(1 downto 0);
 
     variable shift_in : std_logic;
 
@@ -92,25 +92,25 @@ begin
     
   begin
 
-    opc_shl := conv_std_logic_vector(
-      conv_unsigned(gen_opc_shl, opc_shl'length), opc_shl'length);
-    opc_shr := conv_std_logic_vector(
-      conv_unsigned(gen_opc_shr, opc_shr'length), opc_shr'length);
-    opc_shru := conv_std_logic_vector(
-      conv_unsigned(gen_opc_shru, opc_shru'length), opc_shru'length);
+    opc_shl_v := std_logic_vector(
+      to_unsigned(gen_opc_shl, opc_shl_v'length));
+    opc_shr_v := std_logic_vector(
+      to_unsigned(gen_opc_shr, opc_shr_v'length));
+    opc_shru_v := std_logic_vector(
+      to_unsigned(gen_opc_shru, opc_shru_v'length));
 
     -- Left or Rigth shift
-    if (opc = opc_shru) or (opc = opc_shr) then
+    if (opc = opc_shru_v) or (opc = opc_shr_v) then
       y_temp(0) := flip_bits(A);
     else
       y_temp(0) := A;
     end if;
 
-    if (opc = opc_shr) then      -- was if ((opc=SHRU) or (opc=SHL)) then
-      shift_in := y_temp(0)(0);         -- was shift_in := '0'
-    else
+    --if (opc = opc_shr_v) then      -- was if ((opc=SHRU) or (opc=SHL)) then
+    --  shift_in := y_temp(0)(0);         -- was shift_in := '0'
+    --else
       shift_in := '0';                  -- was shift_in := y_temp(0)(0)
-    end if;
+    --end if;
 
 
     for i in 0 to max_shift-1 loop
@@ -123,7 +123,7 @@ begin
     end loop;  -- i
 
 
-    if (opc = opc_shr) or (opc = opc_shru) then
+    if (opc = opc_shr_v) or (opc = opc_shru_v) then
       Y <= flip_bits(y_temp(max_shift));
     else
       Y <= y_temp(max_shift);
@@ -150,8 +150,8 @@ end add_shl_shr_shru_sub_opcodes;
 
 
 library IEEE;
-use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
+use IEEE.std_Logic_1164.all;
+use IEEE.numeric_std.all;
 use work.add_shl_shr_shru_sub_opcodes.all;
 use work.util.all;
 
@@ -198,10 +198,10 @@ begin
     port map (
       shft_amount => shft_amount,
       opc         => shl_shr_shru_opc,
-      A           => A,
+      A           => B,
       Y           => shl_shr_shru_res);
 
-  shft_amount      <= B(bit_width(dataw)-1 downto 0);
+  shft_amount      <= A(bit_width(dataw)-1 downto 0);
   shl_shr_shru_opc <= opc(1 downto 0);
 
   process (A, B, shl_shr_shru_res, opc)
@@ -209,17 +209,25 @@ begin
     
   begin  -- process
 
-    sel := conv_integer(unsigned(opc));
+    sel := to_integer(unsigned(opc));
     case sel is
+      --"000" add
+      --"001" shl
+      --"010" shr
+      --"011" shru
+      --"100" sub
       
       when OPC_ADD =>
-        Z <= conv_std_logic_vector(signed(A) + signed(B), Z'length);
+        Z <= std_logic_vector(signed(A) + signed(B));
       when OPC_SUB =>
-        Z <= conv_std_logic_vector(signed(A) - signed(B), Z'length);
-        
+        Z <= std_logic_vector(signed(A) - signed(B));
       when others =>
+        --if(to_integer ( unsigned(A(dataw-1 downto (bit_width(dataw)-1) ))) = 0) then
         Z <= shl_shr_shru_res;
-
+        --else
+        --  Z <= (others => '0');
+        --end if;
+          
     end case;
 
   end process;
@@ -230,7 +238,7 @@ end comb;
 -------------------------------------------------------------------------------
 
 library IEEE;
-use IEEE.Std_Logic_1164.all;
+use IEEE.std_Logic_1164.all;
 use IEEE.std_logic_arith.all;
 
 entity fu_add_shl_shr_shru_sub_always_1 is
@@ -311,9 +319,9 @@ begin  -- rtl
     generic map (
       dataw => dataw)
     port map(
-      A   => o1reg,
+      A   => t1reg,
       opc => opc1reg,
-      B   => t1reg,
+      B   => o1reg,
       Z   => r1);
 
   r1data <= r1;
@@ -325,7 +333,7 @@ end rtl;
 -------------------------------------------------------------------------------
 
 library IEEE;
-use IEEE.Std_Logic_1164.all;
+use IEEE.std_Logic_1164.all;
 use IEEE.std_logic_arith.all;
 
 entity fu_add_shl_shr_shru_sub_always_2 is
@@ -416,9 +424,9 @@ begin  -- rtl
     generic map (
       dataw => dataw)
     port map(
-      A   => o1reg,
+      A   => t1reg,
       opc => opc1reg,
-      B   => t1reg,
+      B   => o1reg,
       Z   => r1);
 
   r1data <= r1reg;
