@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2010-04-20
+-- Last update: 2010-04-23
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Logical functional unit for TTA
@@ -75,7 +75,7 @@ begin
     case opc is
       when 0 =>
         if signed(T1) < conv_signed(0,T1'length) then
-          R1 <= conv_std_logic_vector(conv_signed(0,Z'length) - signed(T1), R1'length);
+          R1 <= conv_std_logic_vector(conv_signed(0,R1'length) - signed(T1), R1'length);
         else
           R1 <= T1;
         end if;
