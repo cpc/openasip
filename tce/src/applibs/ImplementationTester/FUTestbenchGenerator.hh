@@ -82,6 +82,10 @@ private:
         std::vector<uint32_t>& loadStimulus,
         std::vector<std::string>& operations, PortDataArray& outputStimulus);
 
+    bool isShiftOrRotOp(const std::string& operation) const;
+
+    uint32_t truncateStimulus(uint32_t operand, int nBits) const;
+
     HDB::FUEntry* fuEntry_;
     HDB::FUImplementation* fuImpl_;
     HDB::FUArchitecture* fuArch_;

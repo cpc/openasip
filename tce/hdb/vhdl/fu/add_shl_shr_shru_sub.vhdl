@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@vlad.cs.tut.fi>
 -- Company    : 
 -- Created    : 2003-03-11
--- Last update: 2010-04-20
+-- Last update: 2010-04-23
 -- Platform   : 
 -- Standard   : VHDL'87
 -------------------------------------------------------------------------------
@@ -106,11 +106,11 @@ begin
       y_temp(0) := A;
     end if;
 
-    --if (opc = opc_shr_v) then      -- was if ((opc=SHRU) or (opc=SHL)) then
-    --  shift_in := y_temp(0)(0);         -- was shift_in := '0'
-    --else
+    if (opc = opc_shr_v) then      -- was if ((opc=SHRU) or (opc=SHL)) then
+      shift_in := y_temp(0)(0);         -- was shift_in := '0'
+    else
       shift_in := '0';                  -- was shift_in := y_temp(0)(0)
-    --end if;
+    end if;
 
 
     for i in 0 to max_shift-1 loop
