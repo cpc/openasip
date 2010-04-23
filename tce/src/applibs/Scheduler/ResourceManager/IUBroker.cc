@@ -41,6 +41,7 @@
 #include "ResourceMapper.hh"
 #include "OutputPSocketResource.hh"
 #include "MoveNode.hh"
+#include "TCEString.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -240,7 +241,9 @@ IUBroker::assign(int useCycle, MoveNode& node, SchedulingResource& res)
 void
 IUBroker::unassign(MoveNode& node) {
     if (!MapTools::containsKey(assignedResources_, &node)) {
-        abort();
+        TCEString msg = "Trying to unassign Long Immediate register ";
+        msg += "that was not assigned previously: " + node.toString();
+        abortWithError(msg);
         return;
     }
     IUResource* iuRes = dynamic_cast<IUResource*>(

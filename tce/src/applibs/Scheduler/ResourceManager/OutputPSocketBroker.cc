@@ -51,7 +51,16 @@ using namespace TTAProgram;
  * Constructor.
  */
 OutputPSocketBroker::OutputPSocketBroker(std::string name) : 
-    ResourceBroker(name) {
+    ResourceBroker(name), rm_(NULL) {
+}
+
+/**
+ * Constructor.
+ */
+OutputPSocketBroker::OutputPSocketBroker(
+    std::string name,
+    SimpleResourceManager* rm) : 
+    ResourceBroker(name), rm_(rm) {
 }
 
 /**
@@ -199,7 +208,8 @@ OutputPSocketBroker::assign(
 void
 OutputPSocketBroker::unassign(MoveNode& node) {
     if (!isApplicable(node)) {
-        return;
+        string msg = "Broker not capable of unassigning resources from node!";
+        throw WrongSubclass(__FILE__, __LINE__, __func__, msg);
     }
     if (MapTools::containsKey(assignedResources_, &node)) {
         SchedulingResource* res = 
@@ -266,7 +276,9 @@ OutputPSocketBroker::isAlreadyAssigned(
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
         return true;
     }    
-
+    if (node.isSourceConstant() && rm_ && !rm_->canTransportImmediate(node)) {
+        return true;
+    }
     Terminal& src = const_cast<MoveNode&>(node).move().source();
     if (src.isFUPort() || src.isGPR() || src.isImmediateRegister()) {
         const Port& port = src.port();
@@ -296,6 +308,9 @@ OutputPSocketBroker::isApplicable(const MoveNode& node) const {
             TTAProgram::ProgramAnnotation::ANN_REQUIRES_LIMM)) {
         return true;
     }    
+    if (node.isSourceConstant() && rm_ && !rm_->canTransportImmediate(node)) {
+        return true;
+    }
     return (move.source().isFUPort() ||
         move.source().isGPR() ||
         move.source().isImmediateRegister());

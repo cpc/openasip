@@ -34,6 +34,7 @@
 #define TTA_OUTPUT_PSOCKET_BROKER_HH
 
 #include "ResourceBroker.hh"
+#include "SimpleResourceManager.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -50,6 +51,7 @@ class SchedulingResource;
 class OutputPSocketBroker : public ResourceBroker {
 public:
     OutputPSocketBroker(std::string name);
+    OutputPSocketBroker(std::string name, SimpleResourceManager*);
     virtual ~OutputPSocketBroker();
 
     virtual SchedulingResourceSet allAvailableResources(
@@ -64,6 +66,10 @@ public:
     virtual bool isApplicable(const MoveNode& node) const;
     virtual void buildResources(const TTAMachine::Machine& target);
     virtual void setupResourceLinks(const ResourceMapper& mapper);
+private:
+    // Pointer to resource manager, needed to get information about
+    // immediate from IUBroker
+    SimpleResourceManager* rm_;    
 };
 
 #endif
