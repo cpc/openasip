@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,8 +26,23 @@
  *
  * Definition of Environment class.
  *
+ * *
+ * @todo DISTRIBUTED_VERSION compile time variable does not make much sense.
+ *
+ * Currently the paths include the src dir first and then from the 
+ * installation path which might cause strange behavior when running
+ * a differing (usually old) installed version than the src dir has.
+ *
+ * In case DISTRIBUTED_VERSION is 'true' then the src dirs are excluded
+ * from the search path for efficiency etc. One way to fix this is
+ * to make DISTRIBUTED_VERSION a function call which determines somehow
+ * if the binary is executed from the build path or from the installation
+ * prefix. Anyways, it works fine as long as the developers know about
+ * this issue.
+ *
+ *
  * @author Atte Oksman 2003 (oksman-no.spam-cs.tut.fi)
- * @author Pekka J√§√§skel√§inen 2007 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007,2010 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  *
  * @note reviewed 19 May 2004 by ao, jn, ml, am
@@ -94,8 +109,9 @@ Environment::initialize() {
         return;
     }
 
-    errorPaths_.push_back(FileSystem::homeDirectory() +
-                          FileSystem::DIRECTORY_SEPARATOR + string(".tce"));
+    errorPaths_.push_back(
+        FileSystem::homeDirectory() +
+        FileSystem::DIRECTORY_SEPARATOR + string(".tce"));
 
     if (!DISTRIBUTED_VERSION) {
         schemaPaths_.push_back(string(TCE_SRC_ROOT));
@@ -340,9 +356,9 @@ Environment::includeDirPaths() {
         includes.push_back(APPLIBS + DS + "mach");
         includes.push_back(APPLIBS + DS + "FSA");
         includes.push_back(TCE_BLD_ROOT);
-    } else {
-        includes.push_back(string(TCE_INSTALLATION_ROOT) + DS + "include");
-    }
+    } 
+    includes.push_back(string(TCE_INSTALLATION_ROOT) + DS + "include");
+    
     return includes;
 }
 
@@ -939,7 +955,8 @@ Environment::defaultICDecoderPlugin() {
 
         return path;
     } catch(FileNotFound e) {
-        assert(false && "Installation broken, DefaultICDecoderPlugin.so not found.");
+        abortWithError(
+            "Installation broken, DefaultICDecoderPlugin.so not found.");
     }
 }
 
