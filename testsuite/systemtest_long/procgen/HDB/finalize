@@ -1,0 +1,4 @@
+#!/bin/bash
+
+# rename the disabled test back to normal
+rm -f test_default_hdb.testdesc.disabled
