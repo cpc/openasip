@@ -1087,7 +1087,10 @@ fi
 #
 ################################
 
-if test -d test
+# The tarball releases of TCE do not include the 'test' dir which
+# should indicate we are building a release tree. This is a bit
+# hackish way to detect it but should do for now.
+if test -d $srcdir/test
 then
 DISTRIBUTED_VERSION_DEFAULT=false
 else
