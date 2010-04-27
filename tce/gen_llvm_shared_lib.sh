@@ -98,7 +98,6 @@ if test ${LIBRARY_SUFFIX} = .dylib
 then
 $CXX $LLVM_LDFLAGS $ARCH -Wl,-all_load $LLVM_LIBFILES -dynamiclib -o ${LLVM_LIBFILE} || \
     error_exit 2 "Failed. Do you have write access to $LLVM_LIBDIR? Are you root?"
-    echo $CXX $LLVM_LDFLAGS $ARCH -Wl,-all_load $LLVM_LIBFILES -dynamiclib -o ${LLVM_LIBFILE} 
 else
 $CXX $LLVM_LDFLAGS -Wl,--whole-archive $LLVM_LIBFILES -Wl,--no-whole-archive -shared -o ${LLVM_LIBFILE} || \
     error_exit 2 "Failed. Do you have write access to $LLVM_LIBDIR? Are you root?"
