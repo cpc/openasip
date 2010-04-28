@@ -104,3 +104,17 @@ Remember to download a supported LLVM version, as listed above.
 
 NOTE! In order to use LLVM with TCE you need to configure LLVM 
 with '--enable-shared' switch and compile it with 'make REQUIRES_RTTI=1'.
+
+Here are the steps needed to install LLVM and Clang from the
+sources:
+
+ 1) wget http://llvm.org/releases/2.7/llvm-2.7.tgz
+ 2) tar xfz llvm-2.7.tgz
+ 3) cd llvm-2.7/tools
+ 4) wget http://llvm.org/releases/2.7/clang-2.7.tgz
+ 5) tar xfz clang-2.7.tgz
+ 6) mv clang-2.7 clang
+ 7) cd ..
+ 8) ./configure --prefix=YOUR_INSTALLATION_PREFIX_HERE --enable-shared
+ 9) make REQUIRES_RTTI=1 && make install
+

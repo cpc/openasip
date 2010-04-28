@@ -957,6 +957,7 @@ Environment::defaultICDecoderPlugin() {
     } catch(FileNotFound e) {
         abortWithError(
             "Installation broken, DefaultICDecoderPlugin.so not found.");
+        return ""; // just to remove a warning
     }
 }
 
