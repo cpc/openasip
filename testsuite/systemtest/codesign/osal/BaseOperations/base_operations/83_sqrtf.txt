@@ -1,0 +1,4 @@
+!output float
+sqrtf 4.0f
+sqrtf 9.0f
+!quit

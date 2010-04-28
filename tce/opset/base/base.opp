@@ -1405,4 +1405,14 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
 </trigger-semantics>
   </operation>
 
+  <operation>
+    <name>SQRTF</name>
+    <description>Performs a square root of a single precision floating point. For example, the MIPS R4000 FPU implements it.
+</description>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="FloatWord"/>
+    <out id="2" type="FloatWord"/>
+  </operation>
+
 </osal>

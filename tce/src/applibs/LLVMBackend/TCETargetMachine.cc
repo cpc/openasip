@@ -131,6 +131,11 @@ TCETargetMachine::setTargetMachinePlugin(TCETargetMachinePlugin& plugin) {
     if (!plugin_->hasSXQW()) missingOps_.insert(
 	std::make_pair(llvm::ISD::SIGN_EXTEND_INREG, MVT::i8));
 
+    if (!plugin_->hasSQRTF()) {
+	missingOps_.insert(std::make_pair(llvm::ISD::FSQRT, MVT::f32));
+	missingOps_.insert(std::make_pair(llvm::ISD::FSQRT, MVT::f64));
+    }
+
     // register machine to plugin
     plugin_->registerTargetMachine(*this);
 }

@@ -452,9 +452,6 @@ TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
     setOperationAction(ISD::SDIVREM, MVT::i32, Expand);
     setOperationAction(ISD::UDIVREM, MVT::i32, Expand);
 
-    setOperationAction(ISD::FSQRT, MVT::f32, Expand);
-    setOperationAction(ISD::FSQRT, MVT::f64, Expand);
-
     setStackPointerRegisterToSaveRestore(TCE::SP);
 
     // Set missing operations that can be emulated with emulation function

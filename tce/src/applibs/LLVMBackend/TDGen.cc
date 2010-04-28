@@ -843,6 +843,7 @@ TDGen::writeBackendCode(std::ostream& o) {
     bool hasROTR = false;
     bool hasSXHW = false;
     bool hasSXQW = false;
+    bool hasSQRTF = false;
    
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
@@ -862,6 +863,7 @@ TDGen::writeBackendCode(std::ostream& o) {
             if (opName == "rotr") hasROTR = true;
             if (opName == "sxhw") hasSXHW = true;
             if (opName == "sxqw") hasSXQW = true;
+	    if (opName == "sqrtf") hasSQRTF = true;
         }
     }
 
@@ -882,7 +884,10 @@ TDGen::writeBackendCode(std::ostream& o) {
       << "bool GeneratedTCEPlugin::hasSXHW() const { return "
       << hasSXHW << "; }" << std::endl
       << "bool GeneratedTCEPlugin::hasSXQW() const { return "
-      << hasSXQW << "; }" << std::endl;
+      << hasSXQW << "; }" << std::endl
+      << "bool GeneratedTCEPlugin::hasSQRTF() const { return "
+      << hasSQRTF << "; }" << std::endl;
+    
 }
 
 /**
@@ -1180,6 +1185,7 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
     if (opName == "divf") return "fdiv %1%, %2%";
     if (opName == "absf") return "fabs %1%";
     if (opName == "negf") return "fneg %1%";
+    if (opName == "sqrtf") return "fsqrt %1%";
 
     if (opName == "cif") return "sint_to_fp %1%";
     if (opName == "cfi") return "fp_to_sint %1%";
