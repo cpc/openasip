@@ -1,6 +1,6 @@
-ti64x_subset.adf,/home/hkultala26/src/foo/tce-1.0-llvm-svn/tce/scheduler/passes/default_scheduler.conf,08.03.10 15:47,743
-huge.adf,/home/hkultala26/src/foo/tce-1.0-llvm-svn/tce/scheduler/passes/default_scheduler.conf,08.03.10 15:47,195
-minimal_with_io.adf,/home/hkultala26/src/foo/tce-1.0-llvm-svn/tce/scheduler/passes/default_scheduler.conf,08.03.10 15:47,5295
+ti64x_subset.adf,/home/visit0r/repo/tce-1.2/tce/scheduler/passes/default_scheduler.conf,26.04.10 19:27,738
+huge.adf,/home/visit0r/repo/tce-1.2/tce/scheduler/passes/default_scheduler.conf,26.04.10 19:27,194
+minimal_with_io.adf,/home/visit0r/repo/tce-1.2/tce/scheduler/passes/default_scheduler.conf,26.04.10 19:27,5251
 3_bus_short_immediate_fields_and_reduced_connectivity.adf,/home/hkultala26/src/foo/tce-1.0-llvm-svn/tce/scheduler/passes/default_scheduler.conf,08.03.10 15:47,602
-FU_constrained.adf,/home/hkultala26/src/foo/tce-1.0-llvm-svn/tce/scheduler/passes/default_scheduler.conf,08.03.10 15:47,193
-RF_constrained.adf,/home/hkultala26/src/foo/tce-1.0-llvm-svn/tce/scheduler/passes/default_scheduler.conf,08.03.10 15:47,194
+FU_constrained.adf,/home/visit0r/repo/tce-1.2/tce/scheduler/passes/default_scheduler.conf,26.04.10 19:27,192
+RF_constrained.adf,/home/visit0r/repo/tce-1.2/tce/scheduler/passes/default_scheduler.conf,26.04.10 19:27,192
