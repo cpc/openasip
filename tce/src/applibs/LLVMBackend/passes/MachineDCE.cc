@@ -66,7 +66,7 @@ void MachineDCE::addInitializer(const Constant* init, std::string& name) {
         (dyn_cast<ConstantExpr>(init) != NULL)) {
         
         for (unsigned i = 0, e = init->getNumOperands(); i != e; ++i) {
-            init->getOperand(i)->dump();
+            //init->getOperand(i)->dump();
             //addInitializer(dyn_cast<const Constant*>(init->getOperand(i)), name);
             addInitializer(cast<Constant>(init->getOperand(i)), name);
         }
