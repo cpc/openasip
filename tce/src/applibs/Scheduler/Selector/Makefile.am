@@ -30,9 +30,11 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libselector_la_SOURCES += \
-	CriticalPathBBMoveNodeSelector.hh MoveNodeGroup.hh \
-	MoveNodeSelector.hh ReadyMoveNodeGroupList.hh \
-	SequentialMoveNodeSelector.hh 
+	MoveNodeSelector.hh MoveNodeGroup.hh \
+	SequentialMoveNodeSelector.hh ReadyMoveNodeGroupList.hh \
+	CriticalPathBBMoveNodeSelector.hh 
 ## headers end

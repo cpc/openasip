@@ -35,11 +35,13 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libscheduler_la_SOURCES += \
-	BaseSchedulerModule.hh HelperSchedulerModule.hh \
-	PythonSchedulerModule.hh SchedulerCmdLineOptions.hh \
-	SchedulerConfigurationSerializer.hh SchedulerFrontend.hh \
-	SchedulerPluginLoader.hh SchedulingPlan.hh \
-	StartableSchedulerModule.hh 
+	BaseSchedulerModule.hh SchedulerFrontend.hh \
+	SchedulingPlan.hh PythonSchedulerModule.hh \
+	SchedulerConfigurationSerializer.hh SchedulerPluginLoader.hh \
+	SchedulerCmdLineOptions.hh StartableSchedulerModule.hh \
+	HelperSchedulerModule.hh 
 ## headers end

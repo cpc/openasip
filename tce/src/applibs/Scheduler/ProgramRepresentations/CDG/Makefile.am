@@ -23,8 +23,10 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libcdg_la_SOURCES += \
-	ControlDependenceEdge.hh ControlDependenceGraph.hh \
+	ControlDependenceGraph.hh ControlDependenceEdge.hh \
 	ControlDependenceNode.hh 
 ## headers end

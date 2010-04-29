@@ -15,10 +15,12 @@ libassembler_la_LDFLAGS =
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libassembler_la_SOURCES += \
-	Assembler.hh AssemblerParser.hh \
-	CodeSectionCreator.hh DataSectionCreator.hh \
 	LabelManager.hh MachineResourceManager.hh \
-	ParserStructs.hh 
+	CodeSectionCreator.hh AssemblerParser.hh \
+	Assembler.hh ParserStructs.hh \
+	DataSectionCreator.hh 
 ## headers end

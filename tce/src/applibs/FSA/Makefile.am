@@ -15,7 +15,9 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libfsa_la_SOURCES += \
-	FUFiniteStateAutomaton.hh FiniteStateAutomaton.hh 
+	FiniteStateAutomaton.hh FUFiniteStateAutomaton.hh 
 ## headers end

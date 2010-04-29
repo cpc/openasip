@@ -30,19 +30,21 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 
+
+
 ## headers start
 libapplibsmach_la_SOURCES += \
-	AddressSpaceCheck.hh BasicMachineCheckSuite.hh \
-	CollisionMatrix.hh FUCollisionMatrixIndex.hh \
-	FUReservationTableIndex.hh FUValidator.hh \
-	FullyConnectedCheck.hh MachineCheck.hh \
-	MachineCheckResults.hh MachineCheckSuite.hh \
-	MachineConnectivityCheck.hh MachineInfo.hh \
-	MachineResourceModifier.hh MachineValidator.hh \
-	MachineValidatorResults.hh MinimalOpSetCheck.hh \
-	OperationBindingCheck.hh ProgrammabilityValidator.hh \
-	ProgrammabilityValidatorResults.hh RFPortCheck.hh \
-	RegisterQuantityCheck.hh ReservationTable.hh \
-	ResourceVector.hh ResourceVectorSet.hh \
+	MachineCheckResults.hh MachineValidator.hh \
+	FUReservationTableIndex.hh MachineResourceModifier.hh \
+	ProgrammabilityValidator.hh ProgrammabilityValidatorResults.hh \
+	CollisionMatrix.hh RegisterQuantityCheck.hh \
+	MachineValidatorResults.hh ResourceVector.hh \
+	ReservationTable.hh MachineCheckSuite.hh \
+	MinimalOpSetCheck.hh FUCollisionMatrixIndex.hh \
+	BasicMachineCheckSuite.hh MachineCheck.hh \
+	MachineInfo.hh OperationBindingCheck.hh \
+	FullyConnectedCheck.hh MachineConnectivityCheck.hh \
+	AddressSpaceCheck.hh RFPortCheck.hh \
+	ResourceVectorSet.hh FUValidator.hh \
 	ReservationTable.icc 
 ## headers end

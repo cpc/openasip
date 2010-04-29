@@ -32,14 +32,17 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libpig_la_SOURCES += \
-	ArrayImageWriter.hh ArrayProgramImageWriter.hh \
+	InstructionBitVector.hh PIGTextGenerator.hh \
+	VhdlImageWriter.hh ArrayImageWriter.hh \
+	CoeImageWriter.hh RawImageWriter.hh \
 	AsciiImageWriter.hh AsciiProgramImageWriter.hh \
-	BitImageWriter.hh BitVector.hh \
-	CodeCompressor.hh CodeCompressorPlugin.hh \
-	DefaultCompressor.hh InstructionBitVector.hh \
-	PIGTextGenerator.hh ProgramImageGenerator.hh \
-	RawImageWriter.hh MifImageWriter.hh VhdlProgramImageWriter.hh \
-	VhdlImageWriter.hh CoeImageWriter.hh
+	VhdlProgramImageWriter.hh DefaultCompressor.hh \
+	BitVector.hh ProgramImageGenerator.hh \
+	MifImageWriter.hh BitImageWriter.hh \
+	CodeCompressor.hh ArrayProgramImageWriter.hh \
+	CodeCompressorPlugin.hh 
 ## headers end

@@ -30,9 +30,11 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libddg_la_SOURCES += \
-	ConstantAliasAnalyzer.hh DataDependenceEdge.hh \
-	DataDependenceGraph.hh DataDependenceGraphBuilder.hh \
-	FalseAliasAnalyzer.hh MemoryAliasAnalyzer.hh 
+	DataDependenceGraphBuilder.hh ConstantAliasAnalyzer.hh \
+	MemoryAliasAnalyzer.hh DataDependenceEdge.hh \
+	DataDependenceGraph.hh FalseAliasAnalyzer.hh 
 ## headers end

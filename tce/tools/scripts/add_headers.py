@@ -35,10 +35,30 @@ for root, dirs, files in os.walk(start_dir):
     headers = glob.glob("*.hh") + glob.glob("*.icc") + glob.glob("*.h")
     # print path, headers
 
-    if len(headers) == 0 or os.path.exists('Makefile.am') and \
-       '## headers start' in open('Makefile.am').read():
+    if len(headers) == 0:
         os.chdir(old_dir)
         continue
+
+    if os.path.exists('Makefile.am'):
+        file_contents = open('Makefile.am').readlines()
+        old_start = -1
+        old_end = -1
+        row_no = 0
+        for row in file_contents:
+            if '## headers start' in row:
+                old_start = row_no
+            if '## headers end' in row:
+                old_end = row_no
+            row_no += 1
+
+        if old_start >= 0 and old_end >= 0:
+            print "Strip out the old generated headers list."
+            file_contents = \
+                file_contents[0:old_start] + file_contents[old_end+1:]
+        new_file = open('Makefile.am', 'w+')
+        new_file.write("".join(file_contents))
+        new_file.close()            
+    
 
     libname = find_libname()
     if libname is None:

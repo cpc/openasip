@@ -37,35 +37,37 @@ libmachinewindow_la_LDFLAGS = $(GUI_LIBS)
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libmachinewindow_la_SOURCES += \
-	BidirBridgeFigure.hh BridgeFactory.hh \
-	BridgeFigure.hh BusChainFigure.hh \
-	BusContainerFigure.hh BusFactory.hh \
-	BusFigure.hh ComponentCommand.hh \
-	ConnectionEditPart.hh ConnectionFactory.hh \
-	ConnectionFigure.hh ContentsFigure.hh \
-	EditPart.hh EditPartFactory.hh \
-	EditPolicy.hh EditPolicyFactory.hh \
-	FUFactory.hh Factory.hh \
-	Figure.hh GCUFactory.hh \
-	IUFactory.hh InputSocketFigure.hh \
-	MachineCanvas.hh MachineCanvasLayoutConstraints.hh \
-	MachineCanvasOptions.hh MachineCanvasTool.hh \
-	MachineEditPartFactory.hh MoveFigure.hh \
-	OutputSocketFigure.hh RFFactory.hh \
+	EditPolicy.hh SegmentFactory.hh \
+	UnknownSocketFigure.hh EditPolicyFactory.hh \
+	TriggeringPortFigure.hh MachineCanvasTool.hh \
 	Request.hh RootEditPart.hh \
-	SegmentFactory.hh SegmentFigure.hh \
-	SelectionFigure.hh SocketBusConnFactory.hh \
-	SocketBusConnFigure.hh SocketContainerFigure.hh \
-	SocketFactory.hh SocketPortConnFactory.hh \
-	SocketPortConnFigure.hh TriggeringPortFigure.hh \
-	UnitContainerFigure.hh UnitFigure.hh \
+	RFFactory.hh SocketBusConnFactory.hh \
+	BusChainFigure.hh BidirBridgeFigure.hh \
+	GCUFactory.hh ComponentCommand.hh \
 	UnitPortFactory.hh UnitPortFigure.hh \
-	UnknownSocketFigure.hh BridgeFigure.icc \
-	ConnectionEditPart.icc ConnectionFigure.icc \
-	EditPart.icc EditPartFactory.icc \
-	EditPolicy.icc EditPolicyFactory.icc \
-	Figure.icc Request.icc \
-	RootEditPart.icc SegmentFigure.icc 
+	MachineCanvasOptions.hh Figure.hh \
+	BridgeFactory.hh IUFactory.hh \
+	MachineCanvas.hh SelectionFigure.hh \
+	SocketFactory.hh EditPart.hh \
+	OutputSocketFigure.hh UnitContainerFigure.hh \
+	ConnectionFactory.hh ConnectionFigure.hh \
+	BusFactory.hh SocketContainerFigure.hh \
+	MoveFigure.hh Factory.hh \
+	FUFactory.hh UnitFigure.hh \
+	ConnectionEditPart.hh SocketPortConnFigure.hh \
+	ContentsFigure.hh BridgeFigure.hh \
+	SocketBusConnFigure.hh InputSocketFigure.hh \
+	EditPartFactory.hh MachineEditPartFactory.hh \
+	SegmentFigure.hh MachineCanvasLayoutConstraints.hh \
+	BusFigure.hh BusContainerFigure.hh \
+	SocketPortConnFactory.hh EditPolicy.icc \
+	RootEditPart.icc EditPartFactory.icc \
+	ConnectionEditPart.icc Request.icc \
+	SegmentFigure.icc Figure.icc \
+	ConnectionFigure.icc EditPolicyFactory.icc \
+	BridgeFigure.icc EditPart.icc 
 ## headers end

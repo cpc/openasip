@@ -23,9 +23,11 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libcfg_la_SOURCES += \
-	BasicBlock.hh BasicBlockNode.hh \
-	CFGStatistics.hh ControlFlowEdge.hh \
-	ControlFlowGraph.hh 
+	CFGStatistics.hh ControlFlowGraph.hh \
+	ControlFlowEdge.hh BasicBlock.hh \
+	BasicBlockNode.hh 
 ## headers end

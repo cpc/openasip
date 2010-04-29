@@ -12,7 +12,9 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 
+
+
 ## headers start
 libapplibsbem_la_SOURCES += \
-	BEMGenerator.hh BEMValidator.hh 
+	BEMValidator.hh BEMGenerator.hh 
 ## headers end

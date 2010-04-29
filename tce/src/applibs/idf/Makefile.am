@@ -12,6 +12,8 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 
+
+
 ## headers start
 libapplibsidf_la_SOURCES += \
 	IDFValidator.hh 

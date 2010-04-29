@@ -18,15 +18,17 @@ PROJECT_ROOT = $(top_srcdir)
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libinterpreter_la_SOURCES += \
-	BaseLineReader.hh CmdHelp.hh \
-	ConditionScript.hh CustomCommand.hh \
-	EditLineReader.hh ExpressionScript.hh \
-	InterpreterContext.hh LineReader.hh \
-	LineReaderFactory.hh Script.hh \
-	ScriptInterpreter.hh SimpleScriptInterpreter.hh \
-	TclConditionScript.hh TclInterpreter.hh \
-	CustomCommand.icc LineReader.icc \
-	Script.icc 
+	ExpressionScript.hh ScriptInterpreter.hh \
+	TclConditionScript.hh CustomCommand.hh \
+	CmdHelp.hh ConditionScript.hh \
+	LineReader.hh BaseLineReader.hh \
+	Script.hh SimpleScriptInterpreter.hh \
+	EditLineReader.hh LineReaderFactory.hh \
+	InterpreterContext.hh TclInterpreter.hh \
+	LineReader.icc Script.icc \
+	CustomCommand.icc 
 ## headers end

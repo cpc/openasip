@@ -49,59 +49,61 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
 
+
+
 ## headers start
 libtpef_la_SOURCES += \
-	AOutDataSectionReader.hh AOutReader.hh \
-	AOutRelocationSectionReader.hh AOutSectionReader.hh \
-	AOutStringSectionReader.hh AOutSymbolSectionReader.hh \
-	AOutTextSectionReader.hh ASpaceElement.hh \
+	SectionOffsetReplacer.hh TPEFSymbolSectionWriter.hh \
+	TPEFResourceSectionWriter.hh SectionReader.hh \
+	ReferenceKey.hh MoveElement.hh \
 	ASpaceSection.hh BasicElement.hh \
-	Binary.hh BinaryReader.hh \
-	BinaryStream.hh BinaryWriter.hh \
-	Chunk.hh CodeSection.hh \
-	CodeSymElement.hh DataSection.hh \
-	DataSymElement.hh DebugElement.hh \
-	DebugSection.hh DebugStabElem.hh \
-	FileOffsetReplacer.hh FileSymElement.hh \
-	ImmediateElement.hh InstructionElement.hh \
-	LineNumElement.hh LineNumProcedure.hh \
-	LineNumSection.hh Locator.hh \
-	MoveElement.hh NoTypeSymElement.hh \
-	NullBinary.hh NullSection.hh \
-	ProcedSymElement.hh ReferenceKey.hh \
-	RelocElement.hh RelocSection.hh \
-	ResourceElement.hh ResourceSection.hh \
-	SafePointable.hh SafePointer.hh \
-	Section.hh SectionElement.hh \
-	SectionIdReplacer.hh SectionIndexReplacer.hh \
-	SectionOffsetReplacer.hh SectionReader.hh \
-	SectionSizeReplacer.hh SectionSymElement.hh \
-	SectionWriter.hh StringSection.hh \
-	Swapper.hh SymbolElement.hh \
-	SymbolSection.hh TPEFASpaceSectionReader.hh \
-	TPEFASpaceSectionWriter.hh TPEFBaseType.hh \
-	TPEFCodeSectionReader.hh TPEFCodeSectionWriter.hh \
-	TPEFDataSectionReader.hh TPEFDataSectionWriter.hh \
-	TPEFDebugSectionReader.hh TPEFDebugSectionWriter.hh \
-	TPEFHeaders.hh TPEFLineNumSectionReader.hh \
-	TPEFLineNumSectionWriter.hh TPEFNullSectionReader.hh \
-	TPEFNullSectionWriter.hh TPEFReader.hh \
-	TPEFRelocSectionReader.hh TPEFRelocSectionWriter.hh \
-	TPEFResourceSectionReader.hh TPEFResourceSectionWriter.hh \
-	TPEFSectionReader.hh TPEFSectionWriter.hh \
-	TPEFStringSectionReader.hh TPEFStringSectionWriter.hh \
-	TPEFSymbolSectionReader.hh TPEFSymbolSectionWriter.hh \
-	TPEFTools.hh TPEFUDataSectionReader.hh \
-	TPEFUDataSectionWriter.hh TPEFWriter.hh \
-	UDataSection.hh ValueReplacer.hh \
-	AOutReader.icc AOutRelocationSectionReader.icc \
-	ASpaceElement.icc BasicElement.icc \
-	Binary.icc BinaryStream.icc \
-	Chunk.icc ImmediateElement.icc \
-	InstructionElement.icc LineNumElement.icc \
-	LineNumProcedure.icc MoveElement.icc \
-	ReferenceKey.icc RelocElement.icc \
-	RelocSection.icc ResourceElement.icc \
-	SafePointer.icc Section.icc \
-	Swapper.icc SymbolElement.icc 
+	ProcedSymElement.hh NullSection.hh \
+	SymbolSection.hh TPEFStringSectionWriter.hh \
+	TPEFASpaceSectionReader.hh ResourceElement.hh \
+	AOutTextSectionReader.hh TPEFSymbolSectionReader.hh \
+	TPEFBaseType.hh SectionSymElement.hh \
+	TPEFCodeSectionReader.hh TPEFUDataSectionWriter.hh \
+	SafePointer.hh AOutDataSectionReader.hh \
+	SymbolElement.hh InstructionElement.hh \
+	AOutSymbolSectionReader.hh Binary.hh \
+	ImmediateElement.hh TPEFLineNumSectionWriter.hh \
+	Locator.hh SectionSizeReplacer.hh \
+	LineNumSection.hh TPEFNullSectionWriter.hh \
+	RelocElement.hh TPEFSectionWriter.hh \
+	FileSymElement.hh BinaryWriter.hh \
+	SectionElement.hh SectionIndexReplacer.hh \
+	UDataSection.hh CodeSymElement.hh \
+	TPEFRelocSectionReader.hh TPEFNullSectionReader.hh \
+	ASpaceElement.hh TPEFTools.hh \
+	StringSection.hh AOutReader.hh \
+	TPEFDataSectionReader.hh ValueReplacer.hh \
+	TPEFUDataSectionReader.hh TPEFDebugSectionReader.hh \
+	Chunk.hh DataSection.hh \
+	TPEFDebugSectionWriter.hh TPEFCodeSectionWriter.hh \
+	SectionWriter.hh DebugSection.hh \
+	ResourceSection.hh CodeSection.hh \
+	BinaryReader.hh AOutRelocationSectionReader.hh \
+	FileOffsetReplacer.hh LineNumElement.hh \
+	AOutStringSectionReader.hh SectionIdReplacer.hh \
+	TPEFRelocSectionWriter.hh DebugElement.hh \
+	TPEFSectionReader.hh TPEFHeaders.hh \
+	NullBinary.hh TPEFResourceSectionReader.hh \
+	DataSymElement.hh TPEFLineNumSectionReader.hh \
+	TPEFWriter.hh Section.hh \
+	TPEFReader.hh AOutSectionReader.hh \
+	RelocSection.hh Swapper.hh \
+	DebugStabElem.hh TPEFStringSectionReader.hh \
+	SafePointable.hh TPEFASpaceSectionWriter.hh \
+	NoTypeSymElement.hh TPEFDataSectionWriter.hh \
+	LineNumProcedure.hh BinaryStream.hh \
+	ImmediateElement.icc RelocSection.icc \
+	BinaryStream.icc ASpaceElement.icc \
+	SymbolElement.icc Section.icc \
+	SafePointer.icc MoveElement.icc \
+	Binary.icc Chunk.icc \
+	LineNumElement.icc RelocElement.icc \
+	LineNumProcedure.icc Swapper.icc \
+	BasicElement.icc AOutReader.icc \
+	AOutRelocationSectionReader.icc ResourceElement.icc \
+	InstructionElement.icc ReferenceKey.icc 
 ## headers end

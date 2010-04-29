@@ -38,7 +38,46 @@ hdbeditor_SOURCES = AddFUArchFromADFCmd.cc AddFUImplementationCmd.cc \
 		  AddCostFunctionPluginCmd.cc AddBusEntryCmd.cc \
 		  AddSocketEntryCmd.cc AddFUEntryCmd.cc AddRFEntryCmd.cc \
 		  SetCostFunctionPluginCmd.cc HDBEditorAboutCmd.cc \
-		  HDBEditorAboutDialog.cc
+		  HDBEditorAboutDialog.cc \
+	AddBusEntryCmd.hh \
+	AddCostFunctionPluginCmd.hh \
+	AddFUArchFromADFCmd.hh \
+	AddFUEntryCmd.hh \
+	AddFUImplementationCmd.hh \
+	AddRFArchitectureCmd.hh \
+	AddRFEntryCmd.hh \
+	AddRFImplementationCmd.hh \
+	AddSocketEntryCmd.hh \
+	BlockImplementationFileDialog.hh \
+	CostEstimationDataDialog.hh \
+	CostFunctionPluginDialog.hh \
+	CreateHDBCmd.hh \
+	FUArchitectureDialog.hh \
+	FUArchitectureParametersDialog.hh \
+	FUExternalPortDialog.hh \
+	FUImplementationDialog.hh \
+	FUImplementationParameterDialog.hh \
+	FUPortImplementationDialog.hh \
+	HDBBrowserInfoPanel.hh \
+	HDBBrowserWindow.hh \
+	HDBEditorAboutCmd.hh \
+	HDBEditorAboutDialog.hh \
+	HDBEditorConstants.hh \
+	HDBEditorDeleteCmd.hh \
+	HDBEditor.hh \
+	HDBEditorMainFrame.hh \
+	HDBEditorModifyCmd.hh \
+	HDBEditorQuitCmd.hh \
+	HDBToHtml.hh \
+	OpenHDBCmd.hh \
+	RFArchitectureDialog.hh \
+	RFImplementationDialog.hh \
+	RFPortImplementationDialog.hh \
+	SetCostFunctionPluginCmd.hh \
+	SetFUArchitectureCmd.hh \
+	SetRFArchitectureCmd.hh \
+	TestHDBCmdLineOptions.hh
+
 
 hdbeditor_LDFLAGS = $(TCE_LDFLAGS)
 hdbeditor_LDADD = ../../libtce.la
@@ -68,27 +107,3 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
-## headers start
-hdbeditor_SOURCES += \
-	AddBusEntryCmd.hh AddCostFunctionPluginCmd.hh \
-	AddFUArchFromADFCmd.hh AddFUEntryCmd.hh \
-	AddFUImplementationCmd.hh AddRFArchitectureCmd.hh \
-	AddRFEntryCmd.hh AddRFImplementationCmd.hh \
-	AddSocketEntryCmd.hh BlockImplementationFileDialog.hh \
-	CostEstimationDataDialog.hh CostFunctionPluginDialog.hh \
-	CreateHDBCmd.hh FUArchitectureDialog.hh \
-	FUArchitectureParametersDialog.hh FUExternalPortDialog.hh \
-	FUImplementationDialog.hh FUImplementationParameterDialog.hh \
-	FUPortImplementationDialog.hh HDBBrowserInfoPanel.hh \
-	HDBBrowserWindow.hh HDBEditor.hh \
-	HDBEditorAboutCmd.hh HDBEditorAboutDialog.hh \
-	HDBEditorConstants.hh HDBEditorDeleteCmd.hh \
-	HDBEditorMainFrame.hh HDBEditorModifyCmd.hh \
-	HDBEditorQuitCmd.hh HDBToHtml.hh \
-	OpenHDBCmd.hh RFArchitectureDialog.hh \
-	RFImplementationDialog.hh RFPortImplementationDialog.hh \
-	SetCostFunctionPluginCmd.hh SetFUArchitectureCmd.hh \
-	SetRFArchitectureCmd.hh 
-
-testhdb_SOURCES += TestHDBCmdLineOptions.hh
-## headers end

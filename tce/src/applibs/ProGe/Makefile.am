@@ -28,14 +28,16 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libproge_la_SOURCES += \
-	BlockSourceCopier.hh ICDecoderGeneratorPlugin.hh \
-	Netlist.hh NetlistBlock.hh \
-	NetlistGenerator.hh NetlistPort.hh \
-	NetlistWriter.hh PortConnectionProperty.hh \
-	ProGeScriptGenerator.hh ProGeTestBenchGenerator.hh \
-	ProGeTypes.hh ProGeUI.hh \
-	ProcessorGenerator.hh VHDLNetlistWriter.hh \
+	ProGeUI.hh ICDecoderGeneratorPlugin.hh \
+	ProGeTestBenchGenerator.hh NetlistWriter.hh \
+	PortConnectionProperty.hh ProGeTypes.hh \
+	NetlistGenerator.hh ProGeScriptGenerator.hh \
+	NetlistPort.hh ProcessorGenerator.hh \
+	BlockSourceCopier.hh NetlistBlock.hh \
+	Netlist.hh VHDLNetlistWriter.hh \
 	ProGeScriptGenerator.icc 
 ## headers end

@@ -24,12 +24,14 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libestimator_la_SOURCES += \
-	CostEstimationPlugin.hh CostEstimationPluginRegistry.hh \
-	CostEstimatorTypes.hh Estimator.hh \
-	FUCostEstimationPlugin.hh FUCostEstimationPluginRegistry.hh \
-	ICDecoderCostEstimationPluginRegistry.hh ICDecoderEstimatorPlugin.hh \
+	FUCostEstimationPluginRegistry.hh CostEstimatorTypes.hh \
+	TransportPath.hh CostEstimationPluginRegistry.hh \
+	Estimator.hh ICDecoderCostEstimationPluginRegistry.hh \
+	FUCostEstimationPlugin.hh CostEstimationPlugin.hh \
 	RFCostEstimationPlugin.hh RFCostEstimationPluginRegistry.hh \
-	TransportPath.hh CostEstimationPluginRegistry.icc 
+	ICDecoderEstimatorPlugin.hh CostEstimationPluginRegistry.icc 
 ## headers end

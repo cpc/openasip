@@ -26,10 +26,12 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libprogramdependencegraph_la_SOURCES += \
-	MoveNode.hh MoveNodeSet.hh \
-	ProgramDependenceEdge.hh ProgramDependenceGraph.hh \
-	ProgramDependenceNode.hh ProgramGraph.hh \
-	ProgramOperation.hh 
+	MoveNodeSet.hh MoveNode.hh \
+	ProgramGraph.hh ProgramOperation.hh \
+	ProgramDependenceGraph.hh ProgramDependenceNode.hh \
+	ProgramDependenceEdge.hh 
 ## headers end

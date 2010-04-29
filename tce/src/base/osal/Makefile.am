@@ -31,24 +31,26 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
 
+
+
 ## headers start
 libosal_la_SOURCES += \
+	OperationContextPimpl.hh OperationDAGEdge.hh \
+	OperationState.hh OperationDAGNode.hh \
+	OperationPimpl.hh OperationDAGBuilder.hh \
+	OperationDAG.hh Operation.hh \
+	OperationPool.hh OperationBehaviorProxy.hh \
+	OperationGlobals.hh OperationDAGConverter.hh \
+	OperationIndex.hh OperationDAGLanguageParser.hh \
+	OperationPropertyLoader.hh OperationContext.hh \
+	OperationBehavior.hh OperationNode.hh \
 	ConstantNode.hh OSAL.hh \
-	Operand.hh Operation.hh \
-	OperationBehavior.hh OperationBehaviorLoader.hh \
-	OperationBehaviorProxy.hh OperationContext.hh \
-	OperationContextPimpl.hh OperationDAG.hh \
-	OperationDAGBehavior.hh OperationDAGBuilder.hh \
-	OperationDAGConverter.hh OperationDAGEdge.hh \
-	OperationDAGNode.hh OperationGlobals.hh \
-	OperationIndex.hh OperationModule.hh \
-	OperationNode.hh OperationPimpl.hh \
-	OperationPool.hh OperationPoolPimpl.hh \
-	OperationPropertyLoader.hh OperationSerializer.hh \
-	OperationState.hh OperationDAGLanguageParser.hh \
-	TerminalNode.hh Operand.icc \
-	Operation.icc OperationBehavior.icc \
-	OperationIndex.icc OperationModule.icc \
-	OperationPool.icc OperationState.icc \
-	SimulateTriggerWrappers.icc 
+	OperationBehaviorLoader.hh OperationModule.hh \
+	OperationDAGBehavior.hh OperationPoolPimpl.hh \
+	OperationSerializer.hh TerminalNode.hh \
+	Operand.hh SimulateTriggerWrappers.icc \
+	OperationModule.icc Operation.icc \
+	OperationBehavior.icc OperationState.icc \
+	OperationPool.icc Operand.icc \
+	OperationIndex.icc 
 ## headers end

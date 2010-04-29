@@ -28,8 +28,10 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libstackframemanagement_la_SOURCES += \
-	OldFrontendStackAnalyzer.hh StackCodeRemover.hh \
-	StackFrameCodeCreator.hh StackFrameData.hh 
+	StackCodeRemover.hh OldFrontendStackAnalyzer.hh \
+	StackFrameData.hh StackFrameCodeCreator.hh 
 ## headers end

@@ -32,28 +32,30 @@ dist-hook:
 MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libbem_la_SOURCES += \
-	BEMSerializer.hh BEMTester.hh \
-	BEMTextGenerator.hh BinaryEncoding.hh \
-	BridgeEncoding.hh DestinationField.hh \
-	Encoding.hh FUGuardEncoding.hh \
-	FUPortCode.hh GPRGuardEncoding.hh \
-	GuardEncoding.hh GuardField.hh \
-	IUPortCode.hh ImmediateControlField.hh \
-	ImmediateEncoding.hh ImmediateSlotField.hh \
-	InstructionField.hh LImmDstRegisterField.hh \
-	MoveSlot.hh NOPEncoding.hh \
-	NullBridgeEncoding.hh NullDestinationField.hh \
-	NullFUGuardEncoding.hh NullFUPortCode.hh \
-	NullGPRGuardEncoding.hh NullGuardField.hh \
-	NullIUPortCode.hh NullImmediateControlField.hh \
-	NullImmediateEncoding.hh NullInstructionField.hh \
-	NullMoveSlot.hh NullNOPEncoding.hh \
-	NullRFPortCode.hh NullSocketCodeTable.hh \
-	NullSocketEncoding.hh NullSourceField.hh \
-	NullUnconditionalGuardEncoding.hh PortCode.hh \
-	RFPortCode.hh SlotField.hh \
-	SocketCodeTable.hh SocketEncoding.hh \
-	SourceField.hh UnconditionalGuardEncoding.hh 
+	SourceField.hh NullImmediateEncoding.hh \
+	FUPortCode.hh NullFUGuardEncoding.hh \
+	DestinationField.hh PortCode.hh \
+	NullGuardField.hh NOPEncoding.hh \
+	NullRFPortCode.hh RFPortCode.hh \
+	BridgeEncoding.hh BEMTester.hh \
+	NullSourceField.hh NullUnconditionalGuardEncoding.hh \
+	NullFUPortCode.hh NullSocketEncoding.hh \
+	NullImmediateControlField.hh NullSocketCodeTable.hh \
+	LImmDstRegisterField.hh IUPortCode.hh \
+	FUGuardEncoding.hh NullDestinationField.hh \
+	GuardField.hh SlotField.hh \
+	ImmediateEncoding.hh NullInstructionField.hh \
+	NullMoveSlot.hh NullBridgeEncoding.hh \
+	GPRGuardEncoding.hh InstructionField.hh \
+	GuardEncoding.hh BEMSerializer.hh \
+	SocketEncoding.hh ImmediateSlotField.hh \
+	SocketCodeTable.hh UnconditionalGuardEncoding.hh \
+	ImmediateControlField.hh NullGPRGuardEncoding.hh \
+	BEMTextGenerator.hh NullNOPEncoding.hh \
+	Encoding.hh BinaryEncoding.hh \
+	MoveSlot.hh NullIUPortCode.hh 
 ## headers end

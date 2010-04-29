@@ -34,38 +34,40 @@ tce_version_string.h: ../../../.bzr/branch/last-revision
 	@echo "Not compiling in a bazaar branch"
 
 
+
+
 ## headers start
 libtcetools_la_SOURCES += \
-	Application.hh AssocTools.hh \
-	BaseType.hh BitMatrix.hh \
-	CmdLineOptionParser.hh CmdLineOptions.hh \
-	CmdLineParser.hh ConfigurationFile.hh \
-	ContainerTools.hh Conversion.hh \
-	DBTypes.hh DOMBuilderErrorHandler.hh \
-	DataObject.hh Environment.hh \
-	Exception.hh FileSystem.hh \
-	Informer.hh Listener.hh \
-	MapTools.hh MathTools.hh \
-	ObjectState.hh OptionValue.hh \
-	Options.hh PagedArray.hh \
-	PluginTools.hh ProcessorConfigurationFile.hh \
-	RelationalDB.hh RelationalDBConnection.hh \
-	RelationalDBQueryResult.hh SQLite.hh \
-	SQLiteConnection.hh SQLiteQueryResult.hh \
-	SequenceTools.hh Serializable.hh \
-	Serializer.hh SetTools.hh \
-	SimValue.hh StringTools.hh \
-	TCEString.hh TextGenerator.hh \
-	VectorTools.hh XMLSerializer.hh \
-	hash_map.hh hash_set.hh \
-	AssocTools.icc BitMatrix.icc \
-	CmdLineOptionParser.icc CmdLineParser.icc \
-	ContainerTools.icc Conversion.icc \
-	DataObject.icc Exception.icc \
-	FileSystem.icc Informer.icc \
-	MapTools.icc MathTools.icc \
-	ObjectState.icc PagedArray.icc \
-	PluginTools.icc SequenceTools.icc \
-	SetTools.icc SimValue.icc \
-	VectorTools.icc 
+	SequenceTools.hh CmdLineParser.hh \
+	RelationalDBConnection.hh MathTools.hh \
+	PluginTools.hh ContainerTools.hh \
+	SQLite.hh OptionValue.hh \
+	ObjectState.hh Serializable.hh \
+	Listener.hh hash_set.hh \
+	SQLiteConnection.hh CmdLineOptions.hh \
+	BitMatrix.hh XMLSerializer.hh \
+	Exception.hh SetTools.hh \
+	SimValue.hh Environment.hh \
+	RelationalDBQueryResult.hh TCEString.hh \
+	DOMBuilderErrorHandler.hh SQLiteQueryResult.hh \
+	DBTypes.hh Informer.hh \
+	StringTools.hh Conversion.hh \
+	TextGenerator.hh ConfigurationFile.hh \
+	CmdLineOptionParser.hh FileSystem.hh \
+	Options.hh BaseType.hh \
+	Serializer.hh ProcessorConfigurationFile.hh \
+	hash_map.hh RelationalDB.hh \
+	VectorTools.hh AssocTools.hh \
+	MapTools.hh Application.hh \
+	PagedArray.hh DataObject.hh \
+	AssocTools.icc CmdLineOptionParser.icc \
+	SetTools.icc ContainerTools.icc \
+	ObjectState.icc CmdLineParser.icc \
+	DataObject.icc SimValue.icc \
+	SequenceTools.icc Exception.icc \
+	MathTools.icc MapTools.icc \
+	BitMatrix.icc FileSystem.icc \
+	VectorTools.icc PagedArray.icc \
+	PluginTools.icc Informer.icc \
+	Conversion.icc tce_version_string.h 
 ## headers end

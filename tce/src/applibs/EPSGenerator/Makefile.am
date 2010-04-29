@@ -11,7 +11,9 @@ libepsgenerator_la_LDFLAGS =
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libepsgenerator_la_SOURCES += \
-	EPSGenerator.hh VertexList.hh 
+	VertexList.hh EPSGenerator.hh 
 ## headers end

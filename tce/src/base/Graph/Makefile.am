@@ -20,10 +20,12 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libgraph_la_SOURCES += \
-	BoostGraph.hh Graph.hh \
-	GraphEdge.hh GraphNode.hh \
-	GraphUtilities.hh BoostGraph.icc \
-	Graph.icc GraphUtilities.icc 
+	GraphUtilities.hh Graph.hh \
+	GraphEdge.hh BoostGraph.hh \
+	GraphNode.hh Graph.icc \
+	GraphUtilities.icc BoostGraph.icc 
 ## headers end

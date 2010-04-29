@@ -19,11 +19,13 @@ dist-hook:
 MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libidf_la_SOURCES += \
-	BusImplementationLocation.hh FUImplementationLocation.hh \
-	IDFSerializer.hh MachineImplementation.hh \
-	NullFUImplementationLocation.hh NullRFImplementationLocation.hh \
-	NullUnitImplementationLocation.hh RFImplementationLocation.hh \
-	SocketImplementationLocation.hh UnitImplementationLocation.hh 
+	NullFUImplementationLocation.hh MachineImplementation.hh \
+	SocketImplementationLocation.hh BusImplementationLocation.hh \
+	NullRFImplementationLocation.hh NullUnitImplementationLocation.hh \
+	FUImplementationLocation.hh UnitImplementationLocation.hh \
+	RFImplementationLocation.hh IDFSerializer.hh 
 ## headers end

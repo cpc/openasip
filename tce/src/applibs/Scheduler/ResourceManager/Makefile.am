@@ -31,15 +31,17 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libresourcemanager_la_SOURCES += \
-	AssignmentPlan.hh BrokerDirector.hh \
-	BusBroker.hh ExecutionPipelineBroker.hh \
-	ITemplateBroker.hh IUBroker.hh \
-	InputFUBroker.hh InputPSocketBroker.hh \
-	OutputFUBroker.hh OutputPSocketBroker.hh \
-	PendingAssignment.hh ResourceBroker.hh \
-	ResourceBuildDirector.hh ResourceManager.hh \
-	ResourceMapper.hh SegmentBroker.hh \
-	SimpleBrokerDirector.hh SimpleResourceManager.hh 
+	BrokerDirector.hh OutputFUBroker.hh \
+	ResourceManager.hh BusBroker.hh \
+	SimpleBrokerDirector.hh ITemplateBroker.hh \
+	ResourceBuildDirector.hh ResourceBroker.hh \
+	ExecutionPipelineBroker.hh PendingAssignment.hh \
+	IUBroker.hh SegmentBroker.hh \
+	ResourceMapper.hh InputFUBroker.hh \
+	SimpleResourceManager.hh InputPSocketBroker.hh \
+	OutputPSocketBroker.hh AssignmentPlan.hh 
 ## headers end

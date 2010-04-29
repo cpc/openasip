@@ -15,8 +15,10 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 
+
+
 ## headers start
 libapplibsprogram_la_SOURCES += \
-	POMValidator.hh POMValidatorResults.hh \
-	StaticProgramAnalyzer.hh 
+	StaticProgramAnalyzer.hh POMValidator.hh \
+	POMValidatorResults.hh 
 ## headers end

@@ -23,17 +23,19 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 
+
+
 ## headers start
 libhdb_la_SOURCES += \
-	BlockImplementationFile.hh CachedHDBManager.hh \
-	CostEstimationData.hh CostFunctionPlugin.hh \
-	FUArchitecture.hh FUEntry.hh \
-	FUExternalPort.hh FUImplementation.hh \
-	FUPortImplementation.hh HDBEntry.hh \
-	HDBManager.hh HDBRegistry.hh \
-	HDBTypes.hh HWBlockArchitecture.hh \
-	HWBlockImplementation.hh PortImplementation.hh \
-	RFArchitecture.hh RFEntry.hh \
-	RFImplementation.hh RFPortImplementation.hh \
-	CostEstimationData.icc HDBTester.hh
+	FUArchitecture.hh RFPortImplementation.hh \
+	FUPortImplementation.hh HWBlockImplementation.hh \
+	CachedHDBManager.hh RFEntry.hh \
+	RFArchitecture.hh HDBEntry.hh \
+	HDBManager.hh PortImplementation.hh \
+	CostEstimationData.hh BlockImplementationFile.hh \
+	HWBlockArchitecture.hh FUEntry.hh \
+	RFImplementation.hh FUImplementation.hh \
+	HDBRegistry.hh HDBTester.hh \
+	HDBTypes.hh FUExternalPort.hh \
+	CostFunctionPlugin.hh CostEstimationData.icc 
 ## headers end

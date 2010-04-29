@@ -33,11 +33,12 @@ bin_SCRIPTS = buildicdecoderplugin
 bin_PROGRAMS = generateprocessor ttaunittester
 
 generateprocessor_SOURCES = GenerateProcessor.cc \
-ProGeCmdLineOptions.cc
+ProGeCmdLineOptions.cc ProGeCmdLineOptions.hh GenerateProcessor.hh
 
 generateprocessor_LDADD = ../../libtce.la
 
-ttaunittester_SOURCES = TTAUnitTester.cc TTAUnitTesterCmdLineOptions.cc
+ttaunittester_SOURCES = TTAUnitTester.cc TTAUnitTesterCmdLineOptions.cc \
+TTAUnitTesterCmdLineOptions.hh TTAUnitTester.hh
 
 ttaunittester_LDADD = ../../libtce.la
 
@@ -56,9 +57,3 @@ AM_LDFLAGS = ${TCE_LDFLAGS}
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
-## headers start
-generateprocessor_SOURCES += \
-	GenerateProcessor.hh ProGeCmdLineOptions.hh 
-ttaunittester_SOURCES += \
-	TTAUnitTester.hh TTAUnitTesterCmdLineOptions.hh
-## headers end

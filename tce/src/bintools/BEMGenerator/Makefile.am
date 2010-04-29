@@ -44,7 +44,9 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 CLEANFILES = createbem-static
 
 
+
+
 ## headers start
 createbem_SOURCES += \
-	BEMGeneratorCLITextGenerator.hh BEMGeneratorCmdLineOptions.hh 
+	BEMGeneratorCmdLineOptions.hh BEMGeneratorCLITextGenerator.hh 
 ## headers end

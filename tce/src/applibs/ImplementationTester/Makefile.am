@@ -28,9 +28,12 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libimpltester_la_SOURCES += \
-	ImplementationTester.hh FUTestbenchGenerator.hh ImplementationSimulator.hh \
-	GhdlSimulator.hh ModelsimSimulator.hh RFTestbenchGenerator.hh \
-	TestbenchGenerator.hh
+	TestbenchGenerator.hh GhdlSimulator.hh \
+	ImplementationSimulator.hh RFTestbenchGenerator.hh \
+	FUTestbenchGenerator.hh ImplementationTester.hh \
+	ModelsimSimulator.hh 
 ## headers end

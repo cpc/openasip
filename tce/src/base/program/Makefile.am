@@ -37,28 +37,30 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da *.gcno *.gcda
 
 
+
+
 ## headers start
 libprogram_la_SOURCES += \
-	Address.hh AnnotatedInstructionElement.hh \
-	CodeLabel.hh CodeSnippet.hh \
-	DataAddressDef.hh DataDefinition.hh \
-	DataInstructionAddressDef.hh DataLabel.hh \
-	DataMemory.hh GlobalScope.hh \
-	Immediate.hh Instruction.hh \
-	InstructionReference.hh InstructionReferenceManager.hh \
-	Label.hh Move.hh \
-	MoveGuard.hh NullAddress.hh \
-	NullGlobalScope.hh NullImmediate.hh \
-	NullInstruction.hh NullInstructionReferenceManager.hh \
-	NullMove.hh NullMoveGuard.hh \
-	NullProcedure.hh NullProgram.hh \
-	NullTerminal.hh Procedure.hh \
-	Program.hh ProgramAnnotation.hh \
-	ProgramWriter.hh Scope.hh \
-	TPEFProgramFactory.hh Terminal.hh \
-	TerminalAddress.hh TerminalFUPort.hh \
-	TerminalImmediate.hh TerminalInstructionAddress.hh \
-	TerminalRegister.hh Address.icc \
-	InstructionReferenceManager.icc Procedure.icc \
-	TerminalRegister.icc 
+	Program.hh TPEFProgramFactory.hh \
+	NullMoveGuard.hh Address.hh \
+	Scope.hh DataLabel.hh \
+	DataDefinition.hh Label.hh \
+	MoveGuard.hh Move.hh \
+	NullImmediate.hh InstructionReferenceManager.hh \
+	AnnotatedInstructionElement.hh Procedure.hh \
+	NullProcedure.hh NullGlobalScope.hh \
+	NullTerminal.hh ProgramWriter.hh \
+	TerminalAddress.hh CodeLabel.hh \
+	Terminal.hh TerminalRegister.hh \
+	DataAddressDef.hh Immediate.hh \
+	NullProgram.hh TerminalImmediate.hh \
+	DataInstructionAddressDef.hh TerminalInstructionAddress.hh \
+	NullAddress.hh CodeSnippet.hh \
+	DataMemory.hh NullInstructionReferenceManager.hh \
+	ProgramAnnotation.hh NullMove.hh \
+	InstructionReference.hh Instruction.hh \
+	NullInstruction.hh TerminalFUPort.hh \
+	GlobalScope.hh InstructionReferenceManager.icc \
+	TerminalRegister.icc Address.icc \
+	Procedure.icc 
 ## headers end

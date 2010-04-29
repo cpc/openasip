@@ -14,7 +14,9 @@ dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
 
 
+
+
 ## headers start
 libdsdb_la_SOURCES += \
-	DSDBManager.hh TestApplication.hh 
+	TestApplication.hh DSDBManager.hh 
 ## headers end

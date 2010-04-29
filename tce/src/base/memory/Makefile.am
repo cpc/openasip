@@ -19,10 +19,12 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libmemory_la_SOURCES += \
-	DirectAccessMemory.hh IdealSRAM.hh \
-	Memory.hh MemoryContents.hh \
-	WriteRequest.hh Memory.icc \
+	WriteRequest.hh DirectAccessMemory.hh \
+	Memory.hh IdealSRAM.hh \
+	MemoryContents.hh Memory.icc \
 	TargetMemory.icc 
 ## headers end

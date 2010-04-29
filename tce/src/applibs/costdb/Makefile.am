@@ -27,21 +27,23 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
 
+
+
 ## headers start
 libcostdb_la_SOURCES += \
-	CostDBEntry.hh CostDBEntryKey.hh \
+	CostDBEntryStatsRF.hh CostDBEntry.hh \
+	EntryKeyData.hh Matcher.hh \
+	CostDBTypes.hh CostDatabase.hh \
+	EntryKeyFieldProperty.hh SelectSet.hh \
+	EntryKeyField.hh CostDatabaseRegistry.hh \
+	CostDBEntryKey.hh SearchStrategy.hh \
+	Interpolation.hh EntryKeyProperty.hh \
 	CostDBEntryStats.hh CostDBEntryStatsFU.hh \
-	CostDBEntryStatsRF.hh CostDBTypes.hh \
-	CostDatabase.hh CostDatabaseRegistry.hh \
-	EntryKeyData.hh EntryKeyField.hh \
-	EntryKeyFieldProperty.hh EntryKeyProperty.hh \
-	ExactMatch.hh FilterSearch.hh \
-	Interpolation.hh MatchType.hh \
-	Matcher.hh SearchStrategy.hh \
-	SelectSet.hh SubSet.hh \
-	SuperSet.hh CostDBEntryKey.icc \
-	CostDBEntryStats.icc EntryKeyField.icc \
-	EntryKeyFieldProperty.icc EntryKeyProperty.icc \
-	MatchType.icc Matcher.icc \
-	SelectSet.icc 
+	ExactMatch.hh SuperSet.hh \
+	MatchType.hh FilterSearch.hh \
+	SubSet.hh SelectSet.icc \
+	CostDBEntryKey.icc MatchType.icc \
+	EntryKeyProperty.icc Matcher.icc \
+	EntryKeyFieldProperty.icc CostDBEntryStats.icc \
+	EntryKeyField.icc 
 ## headers end

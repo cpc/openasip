@@ -47,16 +47,18 @@ dist-hook:
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
+
+
 ## headers start
 libscheduleralgorithms_la_SOURCES += \
-	AddressSpaceMapper.hh BasicBlockPass.hh \
-	BasicBlockScheduler.hh BypasserModule.hh \
-	ControlFlowGraphPass.hh CopyingDelaySlotFiller.hh \
-	CycleLookBackSoftwareBypasser.hh DDGPass.hh \
+	ProcedurePass.hh LinearScanAllocatorCore.hh \
+	CycleLookBackSoftwareBypasser.hh SequentialScheduler.hh \
 	DSFillerModule.hh InterPassData.hh \
-	InterPassDatum.hh LinearScanAllocatorCore.hh \
-	ProcedurePass.hh ProgramPass.hh \
-	RegisterCopyAdder.hh RegisterMap.hh \
-	SchedulerPass.hh SequentialScheduler.hh \
-	SimpleGuardAllocatorCore.hh SoftwareBypasser.hh 
+	RegisterCopyAdder.hh CopyingDelaySlotFiller.hh \
+	SchedulerPass.hh BasicBlockPass.hh \
+	BypasserModule.hh DDGPass.hh \
+	RegisterMap.hh AddressSpaceMapper.hh \
+	SoftwareBypasser.hh ControlFlowGraphPass.hh \
+	SimpleGuardAllocatorCore.hh ProgramPass.hh \
+	BasicBlockScheduler.hh InterPassDatum.hh 
 ## headers end
