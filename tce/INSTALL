@@ -24,13 +24,13 @@ Remember to install the '-dev' versions of the packages in order to get
 the library headers which are need to compile client code against them.
 You also need a version of "GNU Make" to build TCE.
 
-For example, to install the required libraries and tools for Ubuntu
-10.04 using its package manager 'apt-get', you need to execute 
-the following command: 
+For example, to install the required libraries and tools for Ubuntu 10.04 
+using its package manager 'apt-get', you need to execute the following 
+command: 
 
-sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
-tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
-llvm-dev clang
+  sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
+    tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
+    llvm-dev clang
 
 Editline
 --------
@@ -59,13 +59,15 @@ packages.
 
 LLVM and Clang
 --------------
-In order to compile programs from C with TCE, you need to install LLVM and
-Clang.
+In order to compile programs from C/C++ with TCE, you need to install 
+LLVM and Clang.
 
 Unless the correct LLVM version is available for your distribution 
 (at least Ubuntu 10.04 includes LLVM 2.7), the best way is to install it from 
-the sources. You can download the LLVM sources from http://www.llvm.org/releases/
-or follow the 9 steps below:
+the sources. 
+
+Please follow the steps below to ensure LLVM and Clang are built
+correctly to be used by TCE:
 
  1) wget http://llvm.org/releases/2.7/llvm-2.7.tgz
  2) tar xfz llvm-2.7.tgz
@@ -79,58 +81,62 @@ or follow the 9 steps below:
 
 Remember to download a supported LLVM version, as listed above.
 
-NOTE! In order to use LLVM with TCE you need to configure LLVM 
-with '--enable-shared' switch and compile it with 'make REQUIRES_RTTI=1'.
-
+IMPORTANT NOTE! In order to use LLVM with TCE you need to configure LLVM 
+with '--enable-shared' switch and compile it with 'make REQUIRES_RTTI=1',
+as noted in the above steps.
 
 Building and installing TCE
 ===========================
 
-The following steps show how to install the actual TCE toolset:
+Finally, after the required libraries have been installed,
+the following steps show how to build and install the TCE toolset.
 
-Compile the tce-llvm-gcc compiler
----------------------------------
-If you want a working compiler and libc, before building TCE you should 
-build and install the tce-llvm-gcc compiler. Instructions for doing so are
-found in the tce-llvm-gcc/INSTALL file. After you have installed
-tce-llvm-gcc, read on.
+optional: Running autoreconf
+----------------------------
+If you have downloaded a TCE release package, you can omit this step.
+However, if you checkout TCE from the version control, you noticed that
+the development version does not ship with a pregenerated 'configure' script.
 
-Running autoreconf (if necessary)
----------------------------------
-If you have downloaded a stable TCE release, you can omit this step.
-The development version does not ship with a pregenerated 'configure' script.
 In order to build the development version, one needs to generate the
 configure script by running 'autoreconf -i --force' in the TCE root directory.
-For this to work you need to install packages 'libtool', 'automake1.9' and 
+For this to work you need to install packages 'libtool', 'automake' and 
 'autoconf'.
 
 Setting compiler options
 ------------------------
 Be sure to set CXXFLAGS environment variable to include aggressive 
 optimization flags (e.g., "export CXXFLAGS=-O3") before running 
-the 'configure' script. This results in a much more efficient TCE toolset, 
-most notably the simulator can be more than 10x faster when compiled 
-with aggressive compilation flags.
+the 'configure' script. This results in a much more efficient TCE toolset.
+Most notably the architecture simulator can be more than 10x faster when 
+compiled with aggressive compilation flags.
 
 Configuring TCE
 ---------------
-Building and installation with the help of autotools should be very easy. 
 First, to create Makefiles you have to run configure as follows:
 
     ./configure --prefix=INSTALLATION_DIRECTORY
 
-If you don't give a prefix, the software will be installed in /usr/local/.
-In that case you have to install TCE as root. 
+If you don't give a prefix, TCE will be installed under /usr/local/.
+In that case you have to install TCE as the root user.
 
 Running 'make'
 --------------
 After running configure, it should be enough to just type
 
-      make
-      make install
+      make && make install
 
 After installing TCE to somewhere in PATH, you can run a "smoke test" suite
-for the most important tools in TCE installation by running the command
-'tce-selftest -v'. This might take up to two hours, depending on your
-computer.
+for the most important tools in the TCE installation by running the command
+'tce-selftest -v'. This might take a couple of hours, depending on your
+computer's speed.
 
+optional: Compiling the tce-llvm-gcc compiler
+---------------------------------------------
+
+As of TCE 1.2 Clang became the default compiler frontend. However, the
+old tce-llvm-gcc cross-compiler should work as a secondary option, and
+for better C++ language support.
+
+Further instructions for building and installing the llvm-gcc-based compiler
+can be found in the tce-llvm-gcc/INSTALL file. In order to use it instead of Clang, 
+use the switch '--llvm-gcc' with tcecc.

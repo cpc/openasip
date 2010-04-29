@@ -55841,4 +55841,6 @@ $(srcdir)/configure: @MAINT@ $(srcdir)/configure.ac $(srcdir)/config/acx.m4 \
 .NOEXPORT:
 MAKEOVERRIDES=
 
+distdir:
+	@true
 # end of Makefile.in

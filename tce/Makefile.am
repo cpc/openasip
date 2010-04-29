@@ -17,9 +17,18 @@ endif
 
 bin_SCRIPTS = tce-config
 
+# Note: as newlib makefiles do not support 'dist' have to include
+# the whole newlib-1.17.0 dir here.
 EXTRA_DIST = README-AUTOTOOLS INSTALL LICENSE.txt gen_llvm_shared_lib.sh \
-	tools/Doxygen/doxygen.config
-
+		tools/Doxygen/doxygen.config \
+		tce-llvm-gcc/INSTALL \
+		tce-llvm-gcc/config.guess \
+		tce-llvm-gcc/config.sub \
+		tce-llvm-gcc/configure.ac \
+		tce-llvm-gcc/install-sh \
+		tce-llvm-gcc/llvm-gcc-4.2 \
+		tce-llvm-gcc/Makefile.am \
+		tce-llvm-gcc/missing newlib-1.17.0
 
 dist-hook:
 	@(sed '/INPUT[[:space:]]*=/ s,\(.*\)=\(.*\) test\($$\| .*\),\1=\2\3,g' \

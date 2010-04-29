@@ -147,5 +147,5 @@ libsimulator_la_SOURCES += \
 	GCUState.icc InstructionMemory.icc \
 	MachineState.icc MemorySystem.icc \
 	OperationExecutor.icc ReservationTableFUResourceConflictDetector.icc \
-	SettingCommand.icc SimulatorToolbox.icc 
+	SettingCommand.icc 
 ## headers end

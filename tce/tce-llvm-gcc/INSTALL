@@ -5,17 +5,18 @@ Compiles tce-llvm-gcc cross-compiler which tcecc uses for doing compiling C
 sources to llvm bitcode. This (or clang) must be installed before any 
 C/C++ program can be compiled with TCE.
 
-Note: you need to have LLVM 2.6 installed to compile the cross-compiler.
+Note: you need to have LLVM 2.7 installed to compile the cross-compiler.
 
 0.1 Download llvm-gcc sources for your tce installation from llvm.org.
 
-   LLVM 2.6 compatible llvm-gcc is found in 
-   http://llvm.org/releases/2.6/llvm-gcc-4.2-2.6.source.tar.gz
+   LLVM 2.7 compatible llvm-gcc is found in 
+   http://llvm.org/releases/2.7/llvm-gcc-4.2-2.7.source.tgz
+
+   Unpack this package to somewhere, it will be needed later in step 2.
 
 0.2 Install Flex and Bison.
 
-   These are needed to compile llvm-gcc.
-   
+   These are needed to compile llvm-gcc.  
    For example: "sudo apt-get install flex bison".
 
 0.3 (optional, if installing from the version control system)
@@ -36,15 +37,15 @@ Note: you need to have LLVM 2.6 installed to compile the cross-compiler.
    make
    make install
 
-4. Add the target binary dir to path so tcecc can find it.
+4. Add the target binary dir to the PATH environment variable (if not already)
+   so tcecc can find it. You can verify it by executing 'tce-llvm-gcc' command
+   without the full path.
 
-
-Building hard way
-------------------
+Building the hard way
+---------------------
 
 This installer is just made for making building cross-compiler easier. You can
-also get llvm-gcc sources (and patch them if the sources are older than llvm-2.6)
-and compile them directly with following commands.
+also get llvm-gcc sources and compile them directly with following commands.
 
 llvmbindir=`llvm-config --bindir`
 AR_FOR_TARGET=$llvmbindir/llvm-ar 
