@@ -1,0 +1,5 @@
+<?php
+$test_description="sqrt(), both with HW op and soft emulated.";
+$test_bin = "./test_sqrt.sh";
+$bin_args = "";
+?>

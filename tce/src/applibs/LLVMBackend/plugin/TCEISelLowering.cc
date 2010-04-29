@@ -476,9 +476,9 @@ TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
       case ISD::ROTR: std::cerr << "ROTR,"; break;
       case ISD::MUL:  std::cerr << "MUL,"; break;
       case ISD::SIGN_EXTEND_INREG:
-        if (valuetype == MVT::i8) std::cerr << "SXQW,";
-	if (valuetype == MVT::i16) std::cerr << "SXHW,";
-	break;
+          if (valuetype == MVT::i8) std::cerr << "SXQW,";
+          if (valuetype == MVT::i16) std::cerr << "SXHW,";
+          break;
       default: std::cerr << nodetype << ", "; break;
       };
       setOperationAction(nodetype, valuetype, Expand);

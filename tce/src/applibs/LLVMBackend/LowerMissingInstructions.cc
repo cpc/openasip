@@ -182,6 +182,7 @@ const std::vector<std::string>& llvmFootprints(std::string tceOp) {
         footprints["NEGF.i32"].push_back("f32.fneg.f32");
         footprints["MULF.i32"].push_back("f32.fmul.f32.f32");
         footprints["DIVF.i32"].push_back("f32.fdiv.f32.f32");
+        footprints["SQRTF.i32"].push_back("f32.sqrt.f32");
 
         footprints["CFI.i32"].push_back("i32.fptosi.f32");
         footprints["CFIU.i32"].push_back("i32.fptoui.f32");
@@ -300,6 +301,18 @@ std::string getFootprint(Instruction& I) {
             footPrint += "PREDFAIL";
         }
     } break;
+
+    case Instruction::Call: {
+        if (dynamic_cast<CallInst*>(&I) == NULL ||
+            dynamic_cast<CallInst*>(&I)->getCalledFunction() == NULL)
+            break;
+        std::string calledName = 
+            dynamic_cast<CallInst*>(&I)->getCalledFunction()->getNameStr();
+        if (calledName == "llvm.sqrt.f32") {
+            return "f32.sqrt.f32";
+        }
+        
+    } break;
     
     default:
         footPrint += std::string(".") + I.getOpcodeName();
@@ -325,7 +338,7 @@ void LowerMissingInstructions::addFunctionForFootprints(
         Function* func = M.getFunction(op.emulationFunctionName());
         replaceFunctions[footprints[j]] = func;
         
-#if 0 
+#if 0
         std::cerr << "Operation: " << op.name()
                   << " is emulated with: " << op.emulationFunctionName() 
                   << " footprint: " << footprints[j]
@@ -383,7 +396,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
                     "LowerMissing supports only 1 output instructions.");
 
             // Make parameter list for operation with all needed integer 
-            // widths if pure floatingpoint just i32 is used. 
+            // widths. If pure floating point just i32 is used. 
             // 
             // If there is also 
             // IntWord or UIntWord parameters all vectors are filled.
@@ -524,7 +537,8 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                         // sign extension needed
                         args.push_back(
                             llvm::CastInst::CreateIntegerCast(
-                                I->getOperand(j), Type::getInt32Ty(getGlobalContext()), true, "", I));
+                                I->getOperand(j), 
+                                Type::getInt32Ty(getGlobalContext()), true, "", I));
 
                     } else if (footPrint == "f32.uitofp.i16" ||
                                footPrint == "f32.uitofp.i8") {
@@ -539,6 +553,10 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                         assert(false && "Unknown operation footprint "
                                "requiring operand extension.");
                     }
+                } else if (I->getOpcode() == llvm::Instruction::Call && j == 0) {                    
+                    // the first operand of a Call is the called function pointer, 
+                    // ignore it
+                    continue;                    
                 } else {
                     args.push_back(I->getOperand(j));
                 }
@@ -561,7 +579,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
                         NewCall, false, I->getType(), false);
 
                 MCast = llvm::CastInst::Create(
-                    castOps ,NewCall, I->getType(), "", I);
+                    castOps, NewCall, I->getType(), "", I);
                 I->replaceAllUsesWith(MCast);                                
 
             } else {
@@ -573,7 +591,7 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
             Changed = true;
             
             NumLowered++;
-        }
+        } 
     }
 
     return Changed;

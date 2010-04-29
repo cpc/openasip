@@ -3,11 +3,20 @@
 New features
 ------------
 - Support for LLVM 2.7 (dropped support for LLVM 2.6)
-- Proper support for Clang, compiles "Hello World" with Clang compiled
-  Newlib.
+- Proper support for Clang. Clang now the default frontend compiler
+  in tcecc.
 
-1.1, 20xx-xx-xx
+Bugfixes
+--------
+- sqrt() calls are now correctly converted to SQRTF operations
+  only in case the operation is supported by the ADF, otherwise
+  to emulation function calls.
+
+1.1, unreleased
 ===============
+
+This version was never released as tar balls, but can be checked out
+from the version control system.
 
 New features
 ------------

@@ -3139,6 +3139,11 @@ uint32 __emulate_CFI_1_1_f32_i32(float a) {
     return float32_to_int32_round_to_zero(*((float32*)&a));
 }
 
+float __emulate_SQRTF_1_1_f32_f32(float a) {
+    float32 retVal = float32_sqrt(*((float32*)&a)); 
+    return *((float*)&retVal);
+}
+
 /*----------------------------------------------------------------------------
   Modified from float32_to_int32_round_to_zero
   ---------------------------------------------------------------------------*/

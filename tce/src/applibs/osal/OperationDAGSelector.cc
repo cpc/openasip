@@ -92,6 +92,7 @@ OperationDAGSelector::llvmRequiredOpset() {
     requiredOps.insert("MULF");
     requiredOps.insert("DIVF");
     requiredOps.insert("NEGF");
+    requiredOps.insert("SQRTF");
 
     requiredOps.insert("CFI");
     requiredOps.insert("CFIU");
