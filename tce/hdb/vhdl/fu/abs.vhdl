@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2007/10/15
+-- Last update: 2010-04-20
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Logical functional unit for TTA
@@ -43,10 +43,9 @@
 -- 2002-06-24  1.0      sertamo Created
 -------------------------------------------------------------------------------
 
-library IEEE, DW01;
+library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;
-use DW01.DW01_components.all;
 
 entity abs_arith is
   generic (
@@ -67,7 +66,12 @@ architecture comb of abs_arith is
 begin
   sel : process(T1)
   begin
-    R1 <= std_logic_vector(DWF_absval(signed(T1)));
+    if signed(T1) < 0 then
+      R1 <= conv_std_logic_vector(conv_signed(0,R1'length) - signed(T1), R1'length);             
+    else
+      R1 <= T1;
+    end if;
+    --R1 <= std_logic_vector(DWF_absval(signed(T1)));
   end process;
 end comb;
 

@@ -439,12 +439,15 @@ FUTestbenchGenerator::writeInputPortStimulus(
 
     string operationString = "";
     PortState* simulatedPort = NULL;
+    bool isOpcodePort = false;
     // fetch the virtual opcode setting port for the triggered operation
     if (portName == opcodePort_) {
         operationString = 
             StringTools::stringToLower(
                 std::string(".") + operation);
+        isOpcodePort = true;
     }
+
     simulatedPort = &msm_->portState(
         portName + operationString,
         fuArch_->architecture().name());
@@ -452,9 +455,15 @@ FUTestbenchGenerator::writeInputPortStimulus(
     const int inputWidth = simulatedPort->value().width();
     SimValue value(inputWidth);
 
-    stimulus = (stimulus << (32 - inputWidth) >> (32 - inputWidth));
-    inputs[portName].push_back(stimulus);
+    int wantedBits = inputWidth;
+    if (isShiftOrRotOp(operation) && isOpcodePort
+        && inputWidth > 5) {
+        // log2(32) = 5 bits needed to express max shift
+        wantedBits = 5;
+    }
+    stimulus = truncateStimulus(stimulus, wantedBits);
 
+    inputs[portName].push_back(stimulus);
     value = stimulus;
     simulatedPort->setValue(value);
 }
@@ -561,4 +570,45 @@ FUTestbenchGenerator::createStimulusArrays(
         writeStimulusArray(outputArrayStream(), data, hwPortName, 
                            hwPortWidth);
     }
+}
+
+
+/**
+ * Test if operation is shift or rotation operation
+ *
+ * @param operation Name of the operation
+ * @return Is operation shift or rotate
+ */
+bool
+FUTestbenchGenerator::isShiftOrRotOp(const std::string& operation) const {
+
+    string opName = StringTools::stringToLower(operation);
+    
+    if (opName == "shl" || opName == "shr" || opName == "shru") {
+        return true;
+    } else if (opName == "rotl" || opName == "rotr") {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Truncates shift operand to log2(32) bits
+ *
+ * @param operand Operand to be truncated
+ * @return Truncated operand
+ */
+uint32_t
+FUTestbenchGenerator::truncateStimulus(uint32_t operand, int nBits) const {
+    
+    if (nBits < 0) {
+        InvalidData exc(__FILE__, __LINE__, "ImplementationTester",
+                        "Negative amount f wanted bits");
+        throw exc;
+    }
+
+    unsigned int dataWidth = 32;
+    uint32_t truncated =
+        (operand << (dataWidth - nBits) >> (dataWidth - nBits));
+    return truncated;
 }

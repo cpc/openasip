@@ -171,8 +171,14 @@ OperationBehaviorProxy::initializeBehavior() const {
         return;
     } catch (FileNotFound& e) {
         // try loading behavior from DAG
+        if (target_->dagCount() == 0) {
+            throw e;
+        }
     } catch (SymbolNotFound& e) {
         // try loading behavior from DAG
+        if (target_->dagCount() == 0) {
+            throw e;
+        }
     } catch (Exception& e) {
         throw e;
     }

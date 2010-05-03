@@ -81,6 +81,7 @@ public:
     void testRestorationOfResources();
     void testWAWEarliestLatestCycle();
     void testMULConflict();
+    void testLIMMPSocketReads();
 
     void wholeProgramAssignment(
         const std::string& adf,
@@ -1016,5 +1017,52 @@ BasicResourceManagerTest::testMULConflict() {
     TS_ASSERT_THROWS_NOTHING(rm.assign(5,*node6));
     
 }
+
+void
+BasicResourceManagerTest::testLIMMPSocketReads() {
+
+    UniversalMachine umach;
+
+    /// The tested input program with registers allocated.
+    TTAProgram::Program* srcProgram = NULL;
+    /// Target machine to schedule the program for.
+    TTAMachine::Machine* targetMachine = NULL;
+    
+    CATCH_ANY(
+        targetMachine =
+        TTAMachine::Machine::loadFromADF(
+            "data/limmpsocktest.adf"));
+    
+    CATCH_ANY(
+        srcProgram =
+        TTAProgram::Program::loadFromTPEF(
+            "data/arrmul_reg_allocated_10_bus.tpef",
+             *targetMachine, umach));
+    
+    TTAProgram::Procedure& procedure = srcProgram->procedure(0);
+    ControlFlowGraph cfg(procedure);
+    SimpleResourceManager rm(*targetMachine);
+    //std::cerr << POMDisassembler::disassemble(procedure,1);
+    MoveNode* node1 = new MoveNode(procedure.instructionAt(0).move(0));
+    MoveNode* node2 = new MoveNode(procedure.instructionAt(1).move(0));
+    MoveNode* node3 = new MoveNode(procedure.instructionAt(2).move(0));
+    ProgramOperation *po1 = new ProgramOperation(node2->move().destination().operation());
+    po1->addNode(*node1);
+    po1->addNode(*node2);
+    po1->addNode(*node3);
+    node1->setDestinationOperation(*po1);
+    node2->setDestinationOperation(*po1);
+    node3->setSourceOperation(*po1);
+
+    TS_ASSERT_EQUALS(rm.earliestCycle(*node1), 1);
+    TS_ASSERT_EQUALS(rm.earliestCycle(*node2), 1);
+
+    TS_ASSERT_THROWS_NOTHING(rm.assign(2,*node1));
+    TS_ASSERT_EQUALS(rm.earliestCycle(*node2), 3);
+
+    delete srcProgram;
+    delete targetMachine;
+}
+
 
 #endif

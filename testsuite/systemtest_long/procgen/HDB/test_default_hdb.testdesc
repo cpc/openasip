@@ -1,0 +1,10 @@
+<?php
+// file: test_default_hdb.testdesc
+
+// short test description
+$test_description="test the default HDB with hdbtester";
+// the binary being tested
+$test_bin="./run_testhdb.sh";
+// arguments given to the program
+$bin_args="";
+?>

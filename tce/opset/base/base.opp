@@ -581,7 +581,7 @@
 
   <operation>
     <name>SXQW</name>
-    <description/>
+    <description>sign extend from 8 bits</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>
@@ -593,7 +593,7 @@
 
   <operation>
     <name>SXHW</name>
-    <description/>
+    <description>sign extend from 16 bits</description>
     <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="SIntWord"/>

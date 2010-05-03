@@ -38,20 +38,6 @@
 #include "Conversion.hh"
 
 //////////////////////////////////////////////////////////////////////////////
-// STDOUT - treats the only input as a char and prints it to the output stream
-//          thus simulating output from the TTA
-//////////////////////////////////////////////////////////////////////////////
-OPERATION(STDOUT)
-
-TRIGGER
-    OUTPUT_STREAM << static_cast<char>(INT(1));
-    RETURN_READY;
-END_TRIGGER;
-
-END_OPERATION(STDOUT)
-
-
-//////////////////////////////////////////////////////////////////////////////
 // INPUT_DATA - When operand 1 written arbitrary data, a new byte is read from
 //              the input file and made readable in the second operand.
 //              3rd operand is 1 in case there is more data to read, and 0 

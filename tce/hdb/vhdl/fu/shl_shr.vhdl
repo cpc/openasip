@@ -27,7 +27,7 @@
 -- Author     : Jaakko Sertamo  <sertamo@jaguar.cs.tut.fi>
 -- Company    : 
 -- Created    : 2002-07-01
--- Last update: 2008/02/05
+-- Last update: 2010-04-23
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Shift Functional unit for signed integers
@@ -49,7 +49,7 @@
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
+use IEEE.numeric_std.all;
 
 -------------------------------------------------------------------------------
 -- Package declaration for add_sub_shl_shr_ unit's opcodes
@@ -58,13 +58,13 @@ use IEEE.Std_Logic_arith.all;
 package shl_shr_opcodes is
 
   constant OPC_SHL : std_logic_vector(0 downto 0) := "0";
-  constant OPC_SHR : std_logic_vector(0 downto 0) := "0";
+  constant OPC_SHR : std_logic_vector(0 downto 0) := "1";
 
 end shl_shr_opcodes;
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
+use IEEE.numeric_std.all;
 use work.util.all;
 use work.shl_shr_opcodes.all;
 
@@ -80,7 +80,7 @@ package body shl_shr_pkg is
 
   function shift_func (input: std_logic_vector; shft_amount : std_logic_vector;
                        opc : std_logic_vector;
-                   dataw : integer; busw : integer; shiftw : integer) 
+                       dataw : integer; busw : integer; shiftw : integer) 
     return std_logic_vector is
     
     constant max_shift : integer := shiftw;        
@@ -96,9 +96,12 @@ package body shl_shr_pkg is
     if opc = OPC_SHR then
       y_temp(0) := flip_bits(input);
       shift_in := y_temp(0)(0);      
-    else
+    elsif opc = OPC_SHL then
       y_temp(0) := input;
       shift_in := '0';
+    else
+      y_temp(0) := input;
+      shift_in := '0';      
     end if;
     
     for i in 0 to max_shift-1 loop
@@ -110,10 +113,12 @@ package body shl_shr_pkg is
       end if;
     end loop;  -- i
 
-    if opc = OPC_SHR then
+    if opc = OPC_SHR then 
       y := flip_bits(y_temp(max_shift));
+    elsif opc = OPC_SHL then 
+      y :=  y_temp(max_shift);
     else
-      y :=  y_temp(max_shift);    
+      y :=  y_temp(max_shift);
     end if;
     return y;
   end shift_func;
@@ -124,7 +129,7 @@ end shl_shr_pkg;
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
+use IEEE.numeric_std.all;
 use work.util.all;
 use work.shl_shr_pkg.all;
 use work.shl_shr_opcodes.all;
@@ -149,7 +154,7 @@ end shl_shr_arith;
 
 
 architecture comb of shl_shr_arith is
-  constant temp : std_logic_vector(0 downto 0) := std_logic_vector(conv_unsigned(gen_opc_shl,opc'length));
+  --constant temp : std_logic_vector(0 downto 0) := std_logic_vector(to_unsigned(gen_opc_shl,opc'length));
 begin
   process (A,shft_amount,opc)
   begin
@@ -164,7 +169,7 @@ end comb;
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
+use IEEE.numeric_std.all;
 use work.shl_shr_opcodes.all;
 use work.util.all;
 
@@ -257,7 +262,7 @@ end rtl;
 
 library IEEE;
 use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
+use IEEE.numeric_std.all;
 use work.shl_shr_opcodes.all;
 use work.util.all;
 
@@ -283,7 +288,8 @@ architecture rtl of fu_shl_shr_always_2 is
   component shl_shr_arith
     generic (
       dataw       : integer := 32;
-      shiftw      : integer := 5);
+      shiftw      : integer := 5
+      );
     port (
       shft_amount : in  std_logic_vector(shiftw-1 downto 0);
       opc         : in  std_logic_vector(0 downto 0);

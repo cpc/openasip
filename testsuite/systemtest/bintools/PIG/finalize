@@ -9,5 +9,9 @@ rm -rf printchar_output.txt
 rm -rf 1kr4ditfft.tce.img 
 rm -rf func_ptr_data_memory.img
 
+rm -f imem_mau_pkg.vhdl
+rm -f func_ptr.img
+rm -f func_ptr_data.img
+
 #renames the disables test back to normal
 rm -f *.disabled

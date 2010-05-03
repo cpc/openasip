@@ -26,7 +26,7 @@
  *
  * Implementation of not so simple ;) BrokerDirector class.
  *
- * @author Ari Metsähalme 2006 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Metsï¿½halme 2006 (ari.metsahalme-no.spam-tut.fi)
  * @author Vladimir Guzma 2007 (vladimir.guzma-no.spam-tut.fi)
  * @note rating: red
  */
@@ -211,7 +211,8 @@ SimpleBrokerDirector::assign(int cycle, MoveNode& node)
         if (!plan_->isTestedAssignmentPossible()) {
             if (&plan_->currentBroker() == &plan_->firstBroker()) {
                 string msg = "No resource assignment found for ";
-                msg += node.toString() + "!";
+                msg += node.toString() + " in cycle ";
+                msg += Conversion::toString(cycle) + "!";
                 throw ModuleRunTimeError(__FILE__, __LINE__, __func__, msg);
 
             } else {

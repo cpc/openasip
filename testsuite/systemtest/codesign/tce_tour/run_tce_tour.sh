@@ -63,7 +63,7 @@ test_success "Failed to create bem"
 
 # use processor generator
 rm -rf $PROGE_OUT
-$PROGE -i $IDF -b $BEM -o $PROGE_OUT $MACH2 
+$PROGE -i $IDF -b $BEM -o $PROGE_OUT $MACH2
 test_success "Failed to generate processor"
 
 # generate bit images
@@ -77,10 +77,6 @@ then
   cd $PROGE_OUT
   ./ghdl_compile.sh >& /dev/null
   test_success "Failed to compile testbench"
-  cp ../$DMEM_IMG tb/dmem_init.img
-	test_success "Failed to copy bit image"
-  cp ../$IMEM_IMG tb/imem_init.img
-	test_success "Failed to copy bit image"
   ./ghdl_simulate.sh >& /dev/null
   test_success "Failed to simulate testbench"
 fi

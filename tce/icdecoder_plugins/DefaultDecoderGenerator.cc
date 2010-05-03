@@ -1106,29 +1106,34 @@ DefaultDecoderGenerator::writeLongImmediateWriteProcess(
     }
     // else
     stream << indentation(2)  << "elsif (clk'event and clk = '1') then" << endl;
+    // global lock test
+    stream << indentation(3)  << "if lock = '0' then" << endl;
     for (int i = 0; i < itNav.count(); i++) {
         InstructionTemplate* iTemp = itNav.item(i);
-        int indLevel = 3;
+        int indLevel = 4;
         if (bem_.hasImmediateControlField()) {
-            indLevel = 4;
+            indLevel = 5;
             if (i == 0) {
-                stream << indentation(3) << "if ("
+                stream << indentation(4) << "if ("
                        << instructionTemplateCondition(iTemp->name()) 
                        << ") then" << endl;
             } else if (i+1 < itNav.count()) {
-                stream << indentation(3) << "elsif ("
+                stream << indentation(4) << "elsif ("
                        << instructionTemplateCondition(iTemp->name())
                        << ") then" << endl;
             } else {
-                stream << indentation(3) << "else" << endl;
+                stream << indentation(4) << "else" << endl;
             }
         }
         writeInstructionTemplateProcedures(*iTemp, indLevel, stream);
     }
 
     if (bem_.hasImmediateControlField()) {
-        stream << indentation(3) << "end if;" << endl;
+        stream << indentation(4) << "end if;" << endl;
     }
+    // global lock test endif
+    stream << indentation(3) << "end if;" << endl;
+    // reset endif
     stream << indentation(2) << "end if;" << endl;
     stream << indentation(1) << "end process;" << endl;
 }

@@ -279,6 +279,9 @@ FUImplementationDialog::update() {
             implementation_.file(i).pathToFile());
         sourceList_->InsertItem(i, fileName);
     }
+    if (implementation_.implementationFileCount() != 0) {
+        sourceList_->SetColumnWidth(0, wxLIST_AUTOSIZE);
+    }
 
     // Update operation list.
     opcodeList_->DeleteAllItems();

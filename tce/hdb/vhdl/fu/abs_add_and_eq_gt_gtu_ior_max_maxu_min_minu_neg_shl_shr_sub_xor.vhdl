@@ -27,7 +27,7 @@
 -- Author     : Teemu Pitkänen <teemu.pitkanen@tut.fi>
 -- Company    : 
 -- Created    : 2002-06-24
--- Last update: 2010-02-08
+-- Last update: 2010-04-20
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Revisions  :
@@ -122,12 +122,9 @@ end shl_shr_pkg;
 library IEEE;
 use IEEE.Std_Logic_1164.all;
 use IEEE.Std_Logic_arith.all;
-
-library IEEE;
-use IEEE.Std_Logic_1164.all;
-use IEEE.Std_Logic_arith.all;
 use work.opcodes_abs_add_and_eq_gt_gtu_ior_max_maxu_min_minu_neg_shl_shr_sub_xor.all;
 use work.shl_shr_pkg.all;
+
 entity abs_add_and_eq_gt_gtu_ior_max_maxu_min_minu_neg_shl_shr_sub_xor_arith is
   generic (
     dataw  : integer := 32;
@@ -177,11 +174,11 @@ begin
           R <= ext("0",R'length);
         end if;
       when SHL_OPC =>
-        R <= shift_func(B,A,opc,dataw,shiftw);
+        R <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
       when SHR_OPC =>
-        R <= shift_func(B,A,opc,dataw,shiftw);
+        R <= shift_func(B,A(shiftw-1 downto 0),opc,dataw,shiftw);
       when MAX_OPC=>
-        if (signed(A) >= signed(A)) then
+        if (signed(A) >= signed(B)) then
           R <= A;
         else
           R <= B;
@@ -214,7 +211,7 @@ begin
         R <= conv_std_logic_vector(conv_signed(0,R'length) - signed(A),R'length);    
       when ABS_OPC =>
         if signed(A) < 0 then
-          R <= conv_std_logic_vector(conv_signed(0,R'length) - signed(A), r'length);             
+          R <= conv_std_logic_vector(conv_signed(0,R'length) - signed(A), R'length);             
         else
           R <= A;
         end if;

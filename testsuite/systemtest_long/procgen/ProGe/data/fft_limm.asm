@@ -46,15 +46,16 @@ CODE ;
 # r21 store the end-index of the kernel (1004)
 # r20 store base address of input buffer in BB0, after that this register is used for the storage of operand addresses.
 # r22 base address of output buffer 
-..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer4.1 [i1.0=0];
-..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer5.1 [i1.0=0];
-..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer6.1 [i1.0=1];
-..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer7.1 [i1.0=2];
-..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer8.1 [i1.0=3];
-..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer0.0 [i1.0=4];
-..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer9.1 [i1.0=0];
-..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer0.2 [i1.0=4096];
-..., integer9.1 -> fu1.o0.ag, integer0.2 -> fu1.o1.ag, ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer10.1 [i1.0=1004];
+..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ... [i1.0=0];
+#..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer5.1, i1.0 -> integer4.1 [i1.0=1];
+..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer5.1 [i1.0=1];
+..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer6.1 [i1.0=2];
+..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer7.1 [i1.0=3];
+..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer8.1 [i1.0=4];
+..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer0.0 [i1.0=0];
+..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer9.1 [i1.0=4096];
+..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer0.2 [i1.0=1004];
+..., integer9.1 -> fu1.o0.ag, integer0.2 -> fu1.o1.ag, ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., i1.0 -> integer10.1;
 
 # BB1  
 # purpose      : Upkeeping of the outer loop
@@ -96,8 +97,8 @@ fu8.r0.eq -> boolean0.0, ..., integer5.1 -> fu4.o0.add, integer5.1 -> fu4.trigge
 ..., fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer5.0, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> integer3.1, integer8.1 -> fu3.trigger.cadd, integer7.0 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, ..., ..., ..., ... ;
 ..., fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer6.0, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> fu3.o3.cadd, integer5.1 -> fu3.trigger.cadd, integer8.0 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, integer0.1 -> fu3.o0.cadd, integer2.1 -> fu3.o1.cadd, integer3.1 -> fu3.o2.cadd, ... ;
 ..., fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer7.0, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> integer0.1, integer6.1 -> fu3.trigger.cadd, integer9.0 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, fu4.r0.add -> fu8.o0.gtu, integer10.1 -> fu8.trigger.gtu, ..., ... ;
-fu8.r0.gtu -> boolean0.1, fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer8.0, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> integer2.1, integer7.1 -> fu3.trigger.cadd, integer10.0 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, ..., ..., ..., ... ;
-..., fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer9.0, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> integer3.1, integer8.1 -> fu3.trigger.cadd, integer9.1 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, ..., ..., ..., ! boolean0.1 i1.0 -> gcu.pc.jump [i1.0=25];
+fu8.r0.gtu -> boolean0.1, fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer8.0, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> integer2.1, integer7.1 -> fu3.trigger.cadd, integer10.0 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, ..., ..., ..., ... [i1.0=25];
+..., fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer9.0, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> integer3.1, integer8.1 -> fu3.trigger.cadd, integer9.1 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, ..., ..., ..., ! boolean0.1 i1.0 -> gcu.pc.jump;
 ..., fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer10.0, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> fu3.o3.cadd, integer5.1 -> fu3.trigger.cadd, integer1.1 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, integer0.1 -> fu3.o0.cadd, integer2.1 -> fu3.o1.cadd, integer3.1 -> fu3.o2.cadd, ... ;
 ..., fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer9.1, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> integer0.1, integer6.1 -> fu3.trigger.cadd, integer1.0 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, ..., ..., ..., ... ;
 ..., fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag, integer6.1 -> fu4.trigger.add, ? boolean0.0 fu1.r0.ag -> fu6.trigger.ldw, ! boolean0.0 fu1.r1.ag -> fu6.trigger.ldw, fu1.r1.ag -> integer1.1, fu6.r0.ldw -> fu2.o0.cmul, fu5.r0.fgen -> fu2.trigger.cmul, fu4.r0.add -> fu5.trigger.fgen, fu2.r0.cmul -> integer2.1, integer7.1 -> fu3.trigger.cadd, integer2.0 -> fu7.trigger.stw, fu3.r0.cadd -> fu7.o0.stw, ..., ..., ..., ... ;
@@ -129,8 +130,8 @@ fu8.r0.gtu -> boolean0.1, fu4.r0.add -> fu4.o0.add, fu4.r0.add -> fu1.trigger.ag
 # moves/cycle  : xx
 ..., integer4.1 -> fu4.o0.add, ..., integer6.1 -> fu4.trigger.add, ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ... ;
 ..., ..., fu4.r0.add -> fu8.o0.gtu, integer0.0 -> fu8.trigger.gtu, ..., ..., fu4.r0.add -> integer4.1, ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ... ;
-fu8.r0.gtu -> boolean0.0, ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ... ;
-..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ! boolean0.0 i1.0 -> gcu.pc.jump [i1.0=9];
+fu8.r0.gtu -> boolean0.0, ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ... [i1.0=9];
+..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ! boolean0.0 i1.0 -> gcu.pc.jump;
 ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ... ;
 ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ... ;
 ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ..., ... ;

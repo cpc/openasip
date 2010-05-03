@@ -1172,16 +1172,12 @@ CodeCompressorPlugin::encodeLongImmediate(
                 if (MapTools::containsKey(indexTable_, &imm)) {
                     indexes = MapTools::valueForKey<vector<unsigned int> >(
                         indexTable_, &imm);
-                } else {
-                    // If there was no immediate key in map, add empty one
-                    indexTable_.insert(
-                        pair<const Immediate*, vector<unsigned int> >(
-                        &imm, indexes));
-                }
+                } 
                 indexes.push_back(startIndex);
                 indexes.push_back(endIndex);
-                // overwrite vector of indexes with new value
-                indexTable_[&imm] = indexes;
+                indexTable_.insert(
+                    pair<const Immediate*, vector<unsigned int> >(
+                        &imm, indexes));
             }
 
             return;

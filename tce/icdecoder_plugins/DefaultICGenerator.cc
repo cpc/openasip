@@ -362,7 +362,9 @@ DefaultICGenerator::generateSockets(const std::string& dstDirectory) const
                 socket->direction(), socket->portCount(),
                 socket->segmentCount(), dstDirectory);
             generatedSockets.insert(socket);
-            if (socket->portCount() == 1 && socket->segmentCount() == 1) {
+
+            if (socket->portCount() == 1 && socket->segmentCount() == 1
+                && socket->direction() == Socket::OUTPUT) {
                 needSimmSocket = false;
             }
         }
