@@ -373,7 +373,7 @@ LLVMPOMBuilder::createDataDefinition(
 
     const TargetData* td = tm_.getTargetData();
     unsigned sz = td->getTypeStoreSize(cv->getType());
-    unsigned align = td->getPrefTypeAlignment(cv->getType());
+    unsigned align = td->getABITypeAlignment(cv->getType());
 
     unsigned pad = 0;
     while ((addr + pad) % align != 0) pad++;
@@ -491,7 +491,7 @@ void
 LLVMPOMBuilder::createFPDataDefinition(
     unsigned& addr, const ConstantFP* cfp) {
 
-    assert(addr % (tm_.getTargetData()->getPrefTypeAlignment(cfp->getType()))
+    assert(addr % (tm_.getTargetData()->getABITypeAlignment(cfp->getType()))
            == 0 && "Invalid alignment for constant fp!");
 
     TTAProgram::Address start(addr, *dataAddressSpace_);
@@ -593,7 +593,7 @@ void
 LLVMPOMBuilder::createExprDataDefinition(
     unsigned& addr, const ConstantExpr* ce, int offset) {
 
-    assert(addr % (tm_.getTargetData()->getPrefTypeAlignment(ce->getType()))
+    assert(addr % (tm_.getTargetData()->getABITypeAlignment(ce->getType()))
            == 0 && "Invalid alignment for constant expr!");
 
     const TargetData* td = tm_.getTargetData();
