@@ -9,6 +9,20 @@ import os.path
 from tempfile import mkdtemp
 from optparse import OptionParser
 from shutil import rmtree
+from subprocess import Popen, PIPE
+
+def runCommandBuffered(command, echoOutput):
+    """Runs a command and prints everything if requested."""
+
+    if echoOutput:
+        print command
+
+    (exitCode, output) = commands.getstatusoutput(command)
+
+    if echoOutput:
+        print output
+
+    return (exitCode, output)
 
 # global variables...
 debugMode = False
@@ -36,18 +50,26 @@ def tryRemove(filename):
     except:
         pass
 
-def runCommand(command, echoOutput):
-    """Runs a command and prints everything if requested."""
+def runCommand(command, echoOutput=True, echoStderr=False, stdoutFD=None):
+    """Runs the given shell command and returns its exit code.
 
+    If echoOutput is False, stdout and stderr are redirected to /dev/null."""
+       
     if echoOutput:
         print command
+        stderrFD = None
+    else:
+        if stdoutFD is None:
+            stdoutFD = open('/dev/null')
+        if not echoStderr:
+            stderrFD = open('/dev/null')
+        else:
+            stderrFD = None
 
-    (exitCode, output) = commands.getstatusoutput(command)
-
-    if echoOutput:
-        print output
-
-    return (exitCode, output)
+    process = \
+       Popen(command, shell=True, stdin=PIPE, stdout=stdoutFD,
+             stderr=stderrFD, close_fds=False)
+    return process.wait()
     
 
 # TODO: add support for ll and check if file is .bc object from magic number...
@@ -70,6 +92,18 @@ def processInputFiles(inFiles, tmpDir, verbose):
 
     for i in options.include_dirs:
         compileFlags += "-I" + i + " "
+
+    for w in options.warnings:
+        # Types of warnings supported by the compiler:
+        white_list = []
+        if options.use_clang:
+            white_list = ['no-bad-literal', 
+                          'no-pointer-sign',
+                          'no-return-type', 
+                          'no-unused-value',
+                          'no-implicit-function-declaration']
+        if w in white_list:
+            compileFlags += "-W" + w + " "
 
     if not options.use_clang: # Clang 1.0 does not support -B
         for i in options.B_cc_switches:
@@ -166,12 +200,12 @@ def processInputFiles(inFiles, tmpDir, verbose):
                 linkList += [outFileName]
 
                 if command != "":                    
-                    (exitCode, output) = runCommand(command, verbose)
+                    exitCode = runCommand(command, verbose, echoStderr=True)
                     if exitCode != 0:
                         exitWithError(
                             1, verbose,
                             "Error while compiling file: " +\
-                            baseName + suffix + "\n" + output + "\n")
+                            baseName + suffix + "\n")
             else:
                 exitWithError(
                     1, verbose,\
@@ -218,7 +252,7 @@ def linkBytecode(linkFiles, fileNamePrefix, verbose):
 
     command += " " + endFiles
 
-    (exitCode, output) = runCommand(command, options.verbose)
+    (exitCode, output) = runCommandBuffered(command, options.verbose)
     if exitCode != 0:
         sys.stderr.write("Error while linking bytecode: " + command + "\n")
         exitWithError(1, verbose, output)
@@ -285,9 +319,9 @@ def optimizeBytecode(inFile, fileNamePrefix):
     if verbose:
         debugCommand = ("opt -f -debug-pass=Arguments " + inFile + " -o " +
                         outputName + optSwitches)
-        (exitCode, output) = runCommand(debugCommand, verbose)
+        (exitCode, output) = runCommandBuffered(debugCommand, verbose)
 
-    (exitCode, output) = runCommand(command, verbose)
+    (exitCode, output) = runCommandBuffered(command, verbose)
 
     if exitCode != 0:
         sys.stderr.write("Error while optimizing bytecode: " + command + "\n")
@@ -308,7 +342,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
         
     command = ("llvm-link -f " + inFile + " " + emulationLib + " -o " + linkedName)
 
-    (exitCode, output) = runCommand(command, verbose)
+    (exitCode, output) = runCommandBuffered(command, verbose)
 
     if exitCode != 0:
         sys.stderr.write("Error while linking emulation lib: " + command + "\n")
@@ -327,7 +361,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     command = ("opt " + linkedName + no_inline +
                " -f -internalize " + internalize_api_list + " -o " + outputName)
 
-    (exitCode, output) = runCommand(command, verbose)
+    (exitCode, output) = runCommandBuffered(command, verbose)
 
     if exitCode != 0:
         sys.stderr.write("Error while internalizing emulation functions: " + command + "\n")
@@ -542,14 +576,14 @@ else:
     outputName = options.output_name
 
 ### llvm-gcc install prefix
-(exitCode1, output) = runCommand("dirname `which tce-llvm-gcc`", False)
-(exitCode2, output) = runCommand("dirname `which clang`", False)
+(exitCode1, output) = runCommandBuffered("dirname `which tce-llvm-gcc`", False)
+(exitCode2, output) = runCommandBuffered("dirname `which clang`", False)
 if exitCode1 != 0 and exitCode2 != 0:
     sys.stderr.write("Could not find 'tce-llvm-gcc' nor 'clang'. Have you installed one of them in PATH?\n")
     exitWithError(1, options.verbose, output)
 
 ### tce install prefix
-(exitCode, output) = runCommand("tce-config --prefix", False)
+(exitCode, output) = runCommandBuffered("tce-config --prefix", False)
 if exitCode != 0:
     tceInstalled = False
 else:
@@ -602,7 +636,7 @@ else:
     else:
         tceopgen = "@abs_top_builddir@" + "/src/bintools/Compiler/tceopgen/tceopgen"
         
-    (exitCode, output) = runCommand(
+    (exitCode, output) = runCommandBuffered(
         tceopgen + " -o " + tempDir + "/tceops.h" , options.verbose)
     
     if exitCode != 0:
@@ -614,7 +648,7 @@ else:
     # if only compiling
     if options.compile_only:
         if options.output_name != "":
-            (exitCode, output) = runCommand(
+            (exitCode, output) = runCommandBuffered(
                 "mv " + linkList[0] + " " + options.output_name,
                 options.verbose)
 
@@ -623,7 +657,7 @@ else:
             for fName in linkList:
                 cmd += fName + " "
             cmd += "."
-            (exitCode, output) = runCommand(cmd, options.verbose)
+            (exitCode, output) = runCommandBuffered(cmd, options.verbose)
 
         cleanup(tempDir)
         sys.exit(0)
@@ -638,7 +672,7 @@ else:
     optimizedFileName = optimizeBytecode(linkedFileName, namePrefix)
 
     if (options.adf_file == ""):
-        (exitCode, output) = runCommand(
+        (exitCode, output) = runCommandBuffered(
             "mv " +  optimizedFileName + " " + outputName,
             options.verbose)
         
@@ -696,7 +730,7 @@ if options.adf_file != "":
 	    os.environ['MAX_THREAD_SWITCH_LATENCY'] = \
             str(options.max_thread_latency)
     
-    (exitCode, output) = runCommand(command, options.verbose)
+    (exitCode, output) = runCommandBuffered(command, options.verbose)
     if exitCode != 0:
         sys.stderr.write("Error while compiling " + command + "\n")
         exitWithError(1, options.verbose, output)

@@ -11,6 +11,8 @@ Bugfixes
 - sqrt() calls are now correctly converted to SQRTF operations
   only in case the operation is supported by the ADF, otherwise
   to emulation function calls.
+- tcecc: compilation warnings and errors are now always output to
+  stderr unbuffered (used to output only in case of compilation error)
 
 1.1, unreleased
 ===============

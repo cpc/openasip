@@ -1341,17 +1341,17 @@ cd $builddirectory;
 # create builddir (if necessary)
 mkdir -p newlib-1.17.0; 
 cd newlib-1.17.0;
-echo RANLIB_FOR_TARGET=llvm-ranlib \
-NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
-AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
-CFLAGS=-O2 \
-CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
-CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
-$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
+#echo RANLIB_FOR_TARGET=llvm-ranlib \
+#NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
+#AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
+#CFLAGS=-O2 \
+#CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
+#CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
+#$srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss ;
 RANLIB_FOR_TARGET=llvm-ranlib \
 NM_FOR_TARGET=llvm-nm AR_FOR_TARGET=llvm-ar \
 AS_FOR_TARGET=llvm-as LD_FOR_TARGET=llvm-ld \
-CFLAGS=-O2 \
+CFLAGS="-O2 -Wno-bad-literal -Wno-pointer-sign -Wno-return-type -Wno-implicit-function-declaration -Wno-unused-value" \
 CXX_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 CC_FOR_TARGET=`pwd`/../src/bintools/Compiler/tcecc \
 $srcdir/newlib-1.17.0/configure --prefix=$prefix --target=tce-llvm --disable-multilib --disable-libgloss \
