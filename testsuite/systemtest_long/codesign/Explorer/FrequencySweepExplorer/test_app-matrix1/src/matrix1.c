@@ -124,7 +124,7 @@ int main(int argc,char **argv,char **envp)
 	  for (f = 0 ; f < Y; f++) /* do multiply */
 	    *p_c += *p_a++ * *p_b++ ;
 	  
-	  *p_c++  ; 
+      p_c++  ;  
 	  	  
 	}
     }
