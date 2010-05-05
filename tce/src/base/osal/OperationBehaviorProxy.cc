@@ -163,17 +163,15 @@ OperationBehaviorProxy::canBeSimulated() const {
 void
 OperationBehaviorProxy::initializeBehavior() const {
 
-    assert(!initialized_);
+    if (initialized_) {
+        return;
+    }
     
     try {
         OperationBehavior& ob = loader_->importBehavior(*target_);
         target_->setBehavior(ob);
         return;
-    } catch (FileNotFound& e) {
-        // try loading behavior from DAG
-        if (target_->dagCount() == 0) {
-            throw e;
-        }
+    } catch (FileNotFound&) {
     } catch (SymbolNotFound& e) {
         // try loading behavior from DAG
         if (target_->dagCount() == 0) {
@@ -187,6 +185,7 @@ OperationBehaviorProxy::initializeBehavior() const {
 
     // if there is DAG to create behavior model...
     if (target_->dagCount() == 0) {
+        initialized_ = true;
         return;
     }
 
