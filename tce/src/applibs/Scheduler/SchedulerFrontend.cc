@@ -137,8 +137,9 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
         if (tpefBin->type() == Binary::FT_OBJSEQ ||
             tpefBin->type() == Binary::FT_PURESEQ ||
             tpefBin->type() == Binary::FT_LIBSEQ) {
-            progFactory = new TPEFProgramFactory(*tpefBin, universalMachine);
-
+            progFactory = 
+                new TPEFProgramFactory(
+                    *tpefBin, new UniversalMachine());
         } else if (tpefBin->type() == Binary::FT_MIXED) {
             if (target == NULL) {
                 string msg = "ADF file required to open source program that "
@@ -146,7 +147,7 @@ SchedulerFrontend::schedule(SchedulerCmdLineOptions& options)
                 throw IOException(__FILE__, __LINE__, __func__, msg);
             } else {
                 progFactory = new TPEFProgramFactory(
-                    *tpefBin, *target, universalMachine);
+                    *tpefBin, *target, new UniversalMachine());
             }
 
         } else if (tpefBin->type() == Binary::FT_PARALLEL) {

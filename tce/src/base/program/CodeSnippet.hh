@@ -120,6 +120,10 @@ public:
     virtual void insertAfter(const Instruction& pos, const CodeSnippet& cs);
     virtual void insertAfter(const Instruction& pos, CodeSnippet* cs);
 
+    bool hasReturn() const;
+
+    virtual std::string disassembly() const;
+
 protected:
     /// List of instructions.
     typedef std::vector<Instruction*> InsList;

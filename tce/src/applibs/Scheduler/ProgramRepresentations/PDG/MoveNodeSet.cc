@@ -31,7 +31,6 @@
  */
 
 #include "MoveNodeSet.hh"
-#include "NullMove.hh"
 
 /**
  * Fairly empty constructor.

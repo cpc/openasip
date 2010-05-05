@@ -36,6 +36,8 @@
 #include "Machine.hh"
 #include "BasicBlockPass.hh"
 #include "ControlFlowGraph.hh"
+#include "InstructionReference.hh"
+#include "InstructionReferenceManager.hh"
 
 /**
  * Constructor.

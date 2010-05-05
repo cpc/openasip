@@ -36,7 +36,6 @@
 
 #include "MoveNode.hh"
 #include "Exception.hh"
-#include "NullMove.hh"
 #include <vector>
 
 class MoveNodeSet{

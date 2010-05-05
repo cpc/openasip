@@ -51,19 +51,22 @@ namespace TTAProgram {
 class AnnotatedInstructionElement {
 public:
     AnnotatedInstructionElement();
-    virtual ~AnnotatedInstructionElement();
+    ~AnnotatedInstructionElement();
 
-    virtual void addAnnotation(const ProgramAnnotation& annotation);
-    virtual void setAnnotation(const ProgramAnnotation& annotation);
-    virtual ProgramAnnotation annotation(
+    void addAnnotation(const ProgramAnnotation& annotation);
+    void setAnnotation(const ProgramAnnotation& annotation);
+    ProgramAnnotation annotation(
         int index, ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID)
         const throw (OutOfRange);
-    virtual int annotationCount(
+    int annotationCount(
         ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID) const;
-    virtual void removeAnnotations(
+    void removeAnnotations(
         ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID);
-    virtual bool hasAnnotations(
+    bool hasAnnotations(
         ProgramAnnotation::Id id = ProgramAnnotation::ANN_UNDEF_ID) const;
+
+    void copyAnnotationsFrom(const AnnotatedInstructionElement& other);
+
 private:
     /// a type for the container of the annotations
     typedef std::multimap<ProgramAnnotation::Id, ProgramAnnotation> 

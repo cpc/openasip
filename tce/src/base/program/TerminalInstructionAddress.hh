@@ -34,6 +34,7 @@
 #define TTA_TERMINAL_INSTRUCTION_ADDRESS_HH
 
 #include "TerminalAddress.hh"
+#include "InstructionReference.hh"
 
 namespace TTAProgram {
 
@@ -44,15 +45,17 @@ class InstructionReference;
  */
 class TerminalInstructionAddress : public TerminalImmediate {
 public:
-    TerminalInstructionAddress(InstructionReference& ref);
+    TerminalInstructionAddress(InstructionReference ref);
     virtual ~TerminalInstructionAddress();
 
     virtual bool isInstructionAddress() const;
     virtual SimValue value() const throw (WrongSubclass);
-    virtual InstructionReference& instructionReference() const
+    virtual const InstructionReference& instructionReference() const
         throw (WrongSubclass);
-    virtual void setInstructionReference(InstructionReference& ref)
-        throw(WrongSubclass);
+    virtual InstructionReference& instructionReference() 
+        throw (WrongSubclass);
+    virtual void setInstructionReference(InstructionReference ref) 
+        throw (WrongSubclass);
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
 
@@ -60,7 +63,7 @@ private:
     /// Assignment not allowed.
     TerminalInstructionAddress& operator=(const TerminalInstructionAddress&);
     /// Referred instruction.
-    InstructionReference* ref_;
+    InstructionReference ref_;
 };
 
 }

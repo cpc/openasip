@@ -39,7 +39,6 @@
 #include "ProgramOperation.hh"
 #include "MoveNode.hh"
 #include "MoveNodeSet.hh"
-#include "NullMove.hh"
 #include "Operation.hh"
 #include "MapTools.hh"
 #include "TerminalFUPort.hh"

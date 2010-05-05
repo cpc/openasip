@@ -191,6 +191,10 @@ UniversalMachine::construct() {
 UniversalMachine::~UniversalMachine() {
 }
 
+bool
+UniversalMachine::isUniversalMachine() const {
+    return true;
+}
 
 /**
  * Returns the universal function unit of the machine.

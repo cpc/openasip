@@ -34,7 +34,6 @@
 #include "NullInstructionTemplate.hh"
 #include "NullProcedure.hh"
 #include "NullImmediate.hh"
-#include "NullMove.hh"
 #include "NullAddress.hh"
 
 namespace TTAProgram {
@@ -128,7 +127,7 @@ int NullInstruction::moveCount() {
 const Move&
 NullInstruction::move(int) const throw (OutOfRange) {
     abortWithError("addMove()");
-    return NullMove::instance();
+    throw OutOfRange(__FILE__,__LINE__,__func__, "Null intruction is empty.");
 }
 
 /**

@@ -70,6 +70,7 @@
 
 #include "LinearScanAllocatorCore.hh"
 #include "ProcedurePass.hh"
+#include "InstructionReferenceManager.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;
@@ -82,14 +83,6 @@ LinearScanAllocatorCore::LinearScanAllocatorCore() :
     stackFrameData_(NULL) {}
 
 LinearScanAllocatorCore::~LinearScanAllocatorCore() {
-    if(ddg_ != NULL) {
-        delete ddg_; 
-        ddg_ = NULL;
-    }
-    if(cfg_ != NULL) {
-        delete cfg_; 
-        cfg_ = NULL;
-    }
     if(regMap_ != NULL) {
         delete regMap_; 
         regMap_ = NULL;
@@ -123,13 +116,19 @@ LinearScanAllocatorCore::allocateProcedure(TTAProgram::Procedure& procedure) {
     // updates moves to contain new ??
     updateMoves();
 
+    // delete DDG first as deleting CFG deletes stuff DDG refers to
+    delete ddg_; ddg_ = NULL;
+    delete cfg_; cfg_ = NULL;
+
     // updates sp-related addresses
     updateStackReferences();
     
-    
     // create context-save-code
     createCSCode();
-    
+
+    delete stackFrameData_; stackFrameData_ = NULL;
+    AssocTools::deleteAllValues(variables_);
+    AssocTools::deleteAllValues(regAllocations_);
 }
 
 void
@@ -205,13 +204,12 @@ void LinearScanAllocatorCore::initProcedure(Procedure& proc) {
     cfg_ = new ControlFlowGraph(proc);
 
     DataDependenceGraphBuilder ddgb;
-    ddg_ = ddgb.build(*cfg_,um_);
+    // no mem deps, no antideps, death information.
+    ddg_ = ddgb.build(*cfg_, um_);
 
     variablesByBirth_.clear();
     variablesByDeath_.clear(); 
 
-    AssocTools::deleteAllValues(variables_);
-    AssocTools::deleteAllValues(regAllocations_);
 
     regValuesByAllocatedIndex_.clear();
     regAllocatedIndecesByValue_.clear();

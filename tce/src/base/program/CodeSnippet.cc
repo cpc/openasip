@@ -32,6 +32,7 @@
 
 #include "CodeSnippet.hh"
 #include "ContainerTools.hh"
+#include "POMDisassembler.hh"
 
 #include "NullAddressSpace.hh"
 #include "NullInstruction.hh"
@@ -114,7 +115,7 @@ CodeSnippet::parent() const throw (IllegalRegistration) {
     if (parent_ != NULL) {
         return *parent_;
     } else {
-        throw IllegalRegistration(__FILE__, __LINE__);
+        throw IllegalRegistration(__FILE__, __LINE__,__func__,"no parent");
     }
 }
 
@@ -202,11 +203,13 @@ CodeSnippet::instructionCount() const {
  * @exception InstanceNotFound if there are no instructions in the code snippet.
  */
 Instruction&
-CodeSnippet::firstInstruction() const throw (InstanceNotFound) {
+CodeSnippet::firstInstruction() const 
+    throw (InstanceNotFound) {
     if (!instructions_.empty()) {
         return *instructions_.at(0);
     } else {
-        throw InstanceNotFound(__FILE__, __LINE__);
+        throw InstanceNotFound(
+            __FILE__, __LINE__, __func__, "No instructions.");
     }
 }
 
@@ -237,7 +240,12 @@ CodeSnippet::instructionAt(UIntWord address) const
         }
 
     } else {
-        throw KeyNotFound(__FILE__, __LINE__);
+        std::string msg = "Address " + Conversion::toString(address) + 
+            " not in this codesnippet( " + 
+            Conversion::toString(start_.location()) + "-" +
+            Conversion::toString(start_.location() + instructions_.size()-1)
+            + " )";
+        throw KeyNotFound(__FILE__, __LINE__, __func__, msg );
     }
 }
 
@@ -399,7 +407,11 @@ CodeSnippet::add(Instruction* ins)
         instructions_.push_back(ins);
 
     } else {
-        throw IllegalRegistration(__FILE__, __LINE__);
+        throw IllegalRegistration(__FILE__, __LINE__, __func__,
+                                  "Instruction: " +
+                                  POMDisassembler::disassemble(*ins)
+                                  + " allready has parent:\n " + 
+                                  ins->parent().disassembly());
     }
 }
 
@@ -763,4 +775,38 @@ CodeSnippet::endAddress() const {
     return Address(endLocation, start_.space());
 }
 
+/**
+ * Returns true in case there is at least one procedure return in the
+ * code snippet.
+ */
+bool
+CodeSnippet::hasReturn() const {
+    const int iCount = instructionCount();
+    for (int i = 0; i < iCount; ++i) {
+        if (instructionAtIndex(i).hasReturn()) {
+            return true;
+        }
+    }
+    return false;
 }
+
+/**
+ * Returns the disassembly of the basic block as string.
+ *
+ * @return The disassembly of the basic block.
+ */
+std::string
+CodeSnippet::disassembly() const {
+
+    std::string content = "";
+    const int iCount = instructionCount();
+    for (int i = 0; i < iCount; ++i) {
+        const TTAProgram::Instruction& instr = instructionAtIndex(i);
+        content += POMDisassembler::disassemble(instr);
+        content += "\n";
+    }
+    return content;
+}
+
+}
+

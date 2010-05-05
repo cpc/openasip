@@ -106,10 +106,7 @@ ProgramWriterTest::testSequentialFromAOut() {
 
     Binary* origBin = BinaryReader::readBinary(aOutFile);
     
-    OperationPool opPool;
-    UniversalMachine universalMach(opPool);
-
-    TPEFProgramFactory progFactory(*origBin, universalMach);
+    TPEFProgramFactory progFactory(*origBin, new UniversalMachine());
     
     Program* prog = progFactory.build();
     
@@ -185,32 +182,31 @@ ProgramWriterTest::testParallelFromTPEF() {
 void
 ProgramWriterTest::testCreateSequential() {
     
-    OperationPool operations;
-    UniversalMachine uMach(operations);
+    UniversalMachine* uMach = new UniversalMachine();
     
     DataMemory* dataMemory = 
-        new DataMemory(uMach.dataAddressSpace());
+        new DataMemory(uMach->dataAddressSpace());
 
-    Program seqProgram(uMach.instructionAddressSpace());
+    Program seqProgram(uMach->instructionAddressSpace());
     seqProgram.addDataMemory(dataMemory);
 
     dataMemory->addDataDefinition(
-        new DataDefinition(Address(12, uMach.dataAddressSpace()), 1));
+        new DataDefinition(Address(12, uMach->dataAddressSpace()), 1));
 
     Instruction* instr = new Instruction();
 
     // create a reference to address 12 in data memory
     TerminalAddress* srcTerminal = 
-        new TerminalAddress(SimValue(12, 32), uMach.dataAddressSpace());
+        new TerminalAddress(SimValue(12, 32), uMach->dataAddressSpace());
 
     // move it to a register r13
     TerminalRegister* dstTerminal =
-        new TerminalRegister(*uMach.integerRegisterFile().port(1), 13);
+        new TerminalRegister(*uMach->integerRegisterFile().port(1), 13);
             
-    instr->addMove(new Move(srcTerminal, dstTerminal, uMach.universalBus()));
+    instr->addMove(new Move(srcTerminal, dstTerminal, uMach->universalBus()));
 
     Procedure* procedure = 
-        new Procedure("main", uMach.instructionAddressSpace());
+        new Procedure("main", uMach->instructionAddressSpace());
     TS_ASSERT_THROWS_NOTHING(seqProgram.addProcedure(procedure));
     TS_ASSERT_THROWS_NOTHING(seqProgram.addInstruction(instr));
 
@@ -327,15 +323,14 @@ void
 ProgramWriterTest::testAnnotationReadingAndWriting() {
 
     typedef TTAProgram::ProgramAnnotation::Id annotationId;
-    OperationPool operationPool;    
-    UniversalMachine universalMachine(operationPool);
+    UniversalMachine* universalMachine = new UniversalMachine();
 
     TTAMachine::AddressSpace& dataAddressSpace =
-        universalMachine.dataAddressSpace();
+        universalMachine->dataAddressSpace();
 
     DataMemory* dataMemory1 = new TTAProgram::DataMemory(dataAddressSpace);
 
-    Program program1(universalMachine.instructionAddressSpace());
+    Program program1(universalMachine->instructionAddressSpace());
 
     program1.addDataMemory(dataMemory1);
 
@@ -343,7 +338,7 @@ ProgramWriterTest::testAnnotationReadingAndWriting() {
 
     TTAProgram::DataDefinition* dataDef = 
         new TTAProgram::DataDefinition(
-            TTAProgram::Address(0, universalMachine.dataAddressSpace()), 1);
+            TTAProgram::Address(0, universalMachine->dataAddressSpace()), 1);
 
     dataMemory1->addDataDefinition(dataDef);
 
@@ -381,10 +376,10 @@ ProgramWriterTest::testAnnotationReadingAndWriting() {
     // move it to a register r12
     TTAProgram::TerminalRegister* dstTerminal =
         new TTAProgram::TerminalRegister(
-            *universalMachine.integerRegisterFile().port(1), 12);
+            *universalMachine->integerRegisterFile().port(1), 12);
 
     TTAProgram::Move* aMove = new TTAProgram::Move(
-        termAddr, dstTerminal, universalMachine.universalBus());
+        termAddr, dstTerminal, universalMachine->universalBus());
 
     // test the move annotation support
     TTAProgram::ProgramAnnotation moveAnnotation1(
@@ -410,7 +405,7 @@ ProgramWriterTest::testAnnotationReadingAndWriting() {
 
     TTAProgram::Procedure* proc = 
         new TTAProgram::Procedure(
-            "main", universalMachine.instructionAddressSpace());
+            "main", universalMachine->instructionAddressSpace());
 
     program1.addProcedure(proc);
 
@@ -461,7 +456,6 @@ ProgramWriterTest::testAnnotationReadingAndWriting() {
     TS_ASSERT_EQUALS(theMove.annotationCount((annotationId)0xFFFF01), 1);
     TS_ASSERT(theMove.hasAnnotations((annotationId)0xFF00FF));
     TS_ASSERT(!theMove.hasAnnotations((annotationId)0xEFEFEF));
-    
 }
 
 #endif

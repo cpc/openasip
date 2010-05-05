@@ -39,7 +39,7 @@
 #include "BaseType.hh"
 #include "Exception.hh"
 #include "GlobalScope.hh"
-#include "InstructionReferenceManager.hh"
+#include "Instruction.hh"
 
 namespace TTAMachine {
     class Machine;
@@ -50,9 +50,9 @@ class UniversalMachine;
 namespace TTAProgram {
 
 class Procedure;
-class Instruction;
 class DataMemory;
 class Move;
+class InstructionReferenceManager;
 
 /**
  * Represents a TTA program.
@@ -74,6 +74,8 @@ public:
     const GlobalScope& globalScopeConst() const;
 
     TTAMachine::Machine& targetProcessor() const;
+    UniversalMachine& universalMachine() const;
+    void setUniversalMachine(UniversalMachine* umach) { umach_ = umach; }
 
     Address startAddress() const;
     void setStartAddress(Address start);
@@ -93,10 +95,14 @@ public:
     Procedure& procedure(int index) const throw (OutOfRange);
     Procedure& procedure(const std::string& name) const
         throw (KeyNotFound);
+    bool hasProcedure(const std::string& name) const;
 
     Instruction& firstInstruction() const throw (InstanceNotFound);
     Instruction& instructionAt(InstructionAddress address) const
         throw (KeyNotFound);
+    int instructionCount() const { 
+        return lastInstruction().address().location() - start_.location();
+    }
     
     const Move& moveAt(int number) const throw (KeyNotFound);
     int moveCount() const;
@@ -122,12 +128,11 @@ public:
 
     void replaceUniversalAddressSpaces(const TTAMachine::AddressSpace& space);
 
-    InstructionVector instructionVector() const;
+    InstructionVector instructionVector() const; 
 
-    static Program* loadFromTPEF(
+    static Program* loadFromUnscheduledTPEF(
         const std::string& tpefFileName,
-        const TTAMachine::Machine& theMachine,
-        const UniversalMachine& umach)
+        const TTAMachine::Machine& theMachine)
         throw (Exception);
 
     static Program* loadFromTPEF(
@@ -135,9 +140,8 @@ public:
         const TTAMachine::Machine& theMachine)
         throw (Exception);
     
-    static Program* loadFromTPEF(
-        const std::string& tpefFileName,
-        const UniversalMachine& umach)
+    static Program* loadFromUnscheduledTPEF(
+        const std::string& tpefFileName)
         throw (Exception);
 
     static void writeToTPEF(
@@ -185,6 +189,10 @@ private:
     /// Keeps book of all instruction to instruction (jumps and calls)
     /// references in the program.
     InstructionReferenceManager* refManager_;
+
+    /// The UniversalMachine instance used to refer to in case of the 
+    /// unscheduled/unassigned parts of the program.
+    mutable UniversalMachine* umach_;
 };
 
 }

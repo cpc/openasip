@@ -284,11 +284,12 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
 
     BinaryStream binaryStream(fileName);
 
+    UniversalMachine* umach = NULL;
     if (currentMachine_ == NULL) {
-        currentMachine_ = 
-            new UniversalMachine(SimulatorToolbox::operationPool());
-
-        machineOwnedByFrontend_ = true;
+        umach = new UniversalMachine();        
+        currentMachine_ = umach;
+        // umach now owned by the Program
+        machineOwnedByFrontend_ = false;
         sequentialSimulation_ = true;
     }
 
@@ -302,8 +303,13 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
         assert(currentMachine_ != NULL);
 
         // convert the loaded TPEF to POM
-        TPEFProgramFactory factory(*tpef_, *currentMachine_);
-        currentProgram_ = factory.build();
+        if (!sequentialSimulation_) {
+            TPEFProgramFactory factory(*tpef_, *currentMachine_);
+            currentProgram_ = factory.build();
+        } else {
+            TPEFProgramFactory factory(*tpef_, umach);
+            currentProgram_ = factory.build();
+        }
        
     } catch (const Exception& e) {
         delete tpef_;
@@ -316,21 +322,23 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
         if (e.errorMessage() != "")
             errorMsg += " " + e.errorMessage();
             
-        throw IllegalProgram(__FILE__, __LINE__, __func__, errorMsg);
+        IllegalProgram illegp(__FILE__, __LINE__, __func__, errorMsg);
+        illegp.setCause(e);
+        throw illegp;
     }
 
     // Validate the program against the current machine using POMValidator.
+    // TODO: this should be refactored -- the loadProgram(Program) is not
+    // checking these?
     POMValidator validator(*currentMachine_, *currentProgram_);
     std::set<POMValidator::ErrorCode> checks;
     checks.insert(POMValidator::CONNECTION_MISSING);
     checks.insert(POMValidator::LONG_IMMEDIATE_NOT_SUPPORTED);
     checks.insert(POMValidator::SIMULATION_NOT_POSSIBLE);
 
-    //#if 0
     if (isCompiledSimulation()) {
         checks.insert(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
     }
-    //#endif
 
     std::auto_ptr<POMValidatorResults> results(validator.validate(checks));
     if (results->errorCount() > 0) {
@@ -341,14 +349,12 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
             errorMsg += "\n" + results->error(i).second;
         }
         
-        //#if 0
         if (isCompiledSimulation()) {
             // Attempt without compiled simulator
             setCompiledSimulation(false);
             checks.erase(POMValidator::COMPILED_SIMULATION_NOT_POSSIBLE);
             results.reset(validator.validate(checks));
         }
-        //#endif
               
         if (results->errorCount() > 0) {
             delete tpef_;
@@ -379,12 +385,11 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
 
     programOwnedByFrontend_ = true;
 
-    // REMOVE THIS!!!
-    CATCH_ANY(initializeSimulation());
+    initializeSimulation();
     initializeDataMemories();
 
     programFileName_ = fileName;
-    // tracing can be enabled before loading program so try to initialize
+    // tracing can't be enabled before loading program so try to initialize
     // the tracing after program is loaded
     initializeTracing();
 }
@@ -392,13 +397,9 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
 /**
  * Resets and writes initial data to the memory system stored in simulation 
  * controller from loaded TPEF.
- *
- * @exception IllegalProgram In case the data memory initialization fails
- *                           for the loaded machine.
  */
 void
-SimulatorFrontend::initializeDataMemories() 
-    throw (IllegalProgram) {
+SimulatorFrontend::initializeDataMemories() {
 
     // we need tpef to get the initialization data and simcon to fetch
     // the memory system from
@@ -421,7 +422,7 @@ SimulatorFrontend::initializeDataMemories()
   
 
             const UniversalMachine* umach =
-                dynamic_cast<const UniversalMachine*>(currentMachine_);
+                &currentProgram_->universalMachine();
 
             assert(umach != NULL);
 
@@ -745,7 +746,7 @@ SimulatorFrontend::findRegister(
     std::string regFileName = rfName;
     if (sequential) {
         const UniversalMachine* mach = 
-            dynamic_cast<const UniversalMachine*>(currentMachine_);
+            &currentProgram_->universalMachine();
         assert(mach != NULL);
         RegisterFile* rf = NULL;
         if (StringTools::ciEqual(rfName, "r")) {
@@ -1010,8 +1011,8 @@ SimulatorFrontend::run()
     throw (SimulationExecutionError) {
  
     startTimer();
-    boost::thread timeout(boost::bind(timeoutThread, 
-        simulationTimeout_, this));
+    boost::thread timeout(
+        boost::bind(timeoutThread, simulationTimeout_, this));
     simCon_->run();
     stopTimer();
     // invalidate utilization statistics (they are not fresh anymore)
@@ -1101,8 +1102,6 @@ SimulatorFrontend::next(int count)
 std::string 
 SimulatorFrontend::disassembleInstruction(UIntWord instructionAddress) const {
 
-    initializeDisassembler();
-
     const Instruction& theInstruction =
         currentProgram_->instructionAt(instructionAddress);
     const Procedure& currentProc = dynamic_cast<const Procedure&>(
@@ -1111,8 +1110,6 @@ SimulatorFrontend::disassembleInstruction(UIntWord instructionAddress) const {
     bool firstInstructionInProcedure = 
         (currentProc.startAddress().location() == instructionAddress);
 
-    DisassemblyInstruction* disassembledInstruction = 
-        disassembler_->createInstruction(instructionAddress);
     std::string disassembly = "";
 
     /// @todo print all labels associated at address
@@ -1123,8 +1120,7 @@ SimulatorFrontend::disassembleInstruction(UIntWord instructionAddress) const {
 
     disassembly +=
         Conversion::toString(instructionAddress) + ":\t\t" + 
-        disassembledInstruction->toString();
-    delete disassembledInstruction;
+        POMDisassembler::disassemble(theInstruction, false);
     return disassembly;
 }
 
@@ -1346,7 +1342,7 @@ SimulatorFrontend::isCompiledSimulation() const {
  * Signals the simulator engine to stop simulation after the current
  * simulated clock cycle.
  *
- * Does nothing if simulation is not initializaed or simulation is not
+ * Does nothing if simulation is not initialized or simulation is not
  * running.
  *
  * @param reason The reason for stopping.

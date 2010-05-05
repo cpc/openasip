@@ -42,6 +42,7 @@
 #include "OperationNode.hh"
 #include "OperationDAGEdge.hh"
 #include "TerminalNode.hh"
+#include "ConstantNode.hh"
 #include "Operation.hh"
 #include "TCEString.hh"
 
@@ -189,16 +190,24 @@ OperationDAGConverter::writeNode(
         
         const TerminalNode* termNode = 
             dynamic_cast<const TerminalNode*>(&node);
-        
-        if (termNode != NULL) {
-            // Node is input or output terminal. Either set 
+        const ConstantNode* constNode = 
+            dynamic_cast<const ConstantNode*>(&node);
+
+        if (constNode != NULL) {
+            currentlyHandling.erase(constNode);
+            alreadyHandled.insert(constNode);
+            VariableKey termKey(constNode, 0);
+            varBindings[termKey] = constNode->toString();
+            return true;
+        } else if (termNode != NULL) {
+            // Node is input or output terminal or a const. Either set 
             // variablename e.g. IO(1) to node to varBindings or 
             // write variable
             // value to output node e.g. "IO(4) = tmp12;\n"
             
-            std::string ioName;
+            std::string ioName = "";
             if (!varReplacements || 
-                 (termNode->operandIndex() - 1) > (int)varReplacements->size()) {
+                (termNode->operandIndex() - 1) > (int)varReplacements->size()) {
                 ioName = "IO(" +  
                     Conversion::toString(termNode->operandIndex()) + ")";
             } else {
@@ -211,10 +220,10 @@ OperationDAGConverter::writeNode(
                        << "**** Started handling term node " << int(&node) 
                        << ":" << currentStepsToRoot << ":" + ioName + "\n";);
             
-            if (dag.inDegree(*termNode) == 0) {
+            const bool inputTerminalNode = dag.inDegree(*termNode) == 0;
+            if (inputTerminalNode) {
                 // set veriable binding for reading terminal value
                 varBindings[termKey] = ioName;                
-
                 DEBUG_CODE(std::cerr << recursion_level 
                            << "Added input terminal: " + ioName + "\n";);
                 
@@ -228,7 +237,9 @@ OperationDAGConverter::writeNode(
                 DEBUG_CODE(std::cerr << recursion_level 
                            << "** Read input of terminal " << ioName << "\n";);
 
-                writeNode(retVal, dag, tail, varBindings, alreadyHandled, tempVarCount, currentlyHandling, opReplace, varReplacements);
+                writeNode(
+                    retVal, dag, tail, varBindings, alreadyHandled, 
+                    tempVarCount, currentlyHandling, opReplace, varReplacements);
                 DEBUG_CODE(std::cerr << recursion_level 
                            << "** Ready reading input of terminal " << ioName << "\n";);
                 VariableKey srcKey(&tail, srcEdge.srcOperand());
@@ -251,9 +262,13 @@ OperationDAGConverter::writeNode(
             
             const OperationNode* opNode = 
                 dynamic_cast<const OperationNode*>(&node);
-
-            assert(opNode != NULL && 
-                   "Must be either OperationNode or Terminal Node.");
+            
+            if (opNode == NULL) {
+                abortWithError(
+                    (boost::format(
+                        "Must be either OperationNode or Terminal Node. "
+                        "Got: %s.") % node.toString()).str());
+            }
 
             Operation &refOp = opNode->referencedOperation();
             
@@ -265,6 +280,14 @@ OperationDAGConverter::writeNode(
             // EXEC_OPERATION
             
             std::vector<std::string> operandVec(
+                refOp.numberOfInputs() + refOp.numberOfOutputs());
+
+            // kludge: this vector has 'true' in the operand's
+            // position only if the operand is a constant and
+            // thus needs not to be casted to IntWord with
+            // castedVar later when generating the operation
+            // parameters
+            std::vector<bool> isConstOperand(
                 refOp.numberOfInputs() + refOp.numberOfOutputs());
             
             // input parameters
@@ -282,7 +305,14 @@ OperationDAGConverter::writeNode(
                     srcOperand = edge.srcOperand();
                 }
                 
-                VariableKey sourceKey(&tail, srcOperand);
+                VariableKey sourceKey;
+                if (dynamic_cast<const ConstantNode*>(&tail) != NULL) {
+                    sourceKey = VariableKey(&tail, 0);
+                    isConstOperand[edge.dstOperand()-1] = true;
+                } else {
+                    sourceKey = VariableKey(&tail, srcOperand);
+                    isConstOperand[edge.dstOperand()-1] = false;
+                }
                 
                 // if input not already handled, treat it first.
                 DEBUG_CODE(std::cerr << recursion_level 
@@ -356,17 +386,29 @@ OperationDAGConverter::writeNode(
                 opReplace->find(refOp.name()) != opReplace->end()) {
                 std::string simOp = (*opReplace)[refOp.name()];
 
-                std::string rightSide = 
-                    castedVar(operandVec[0], refOp.operand(1).type());
+                std::string rightSide = "";
+                if (isConstOperand[0]) {
+                    // the consts need not to be casted
+                    rightSide = operandVec[0];
+                } else {
+                    rightSide = castedVar(operandVec[0], refOp.operand(1).type());
+                }
 
                 // if unary operator
                 if (refOp.numberOfInputs() == 1) {
                     rightSide = simOp + rightSide;
                 } else {                   
                     for (int i = 1; i < refOp.numberOfInputs(); i++) {
-                        rightSide += " " + simOp + " " + 
-                            castedVar(operandVec[i], 
-                                      refOp.operand(i+1).type());
+                        if (isConstOperand[i]) {
+                            rightSide += 
+                                " " + simOp + " " + operandVec[i];
+                        } else {
+                            rightSide += 
+                                " " + simOp + " " + 
+                                castedVar(
+                                    operandVec[i], 
+                                    refOp.operand(i+1).type());
+                        }
                     }
                 }
                 
@@ -417,6 +459,9 @@ OperationDAGConverter::writeNode(
     return true;
 }
 
+/**
+ * Cast variable to be correct type.
+ */
 std::string 
 OperationDAGConverter::castedVar(
     std::string var, Operand::OperandType type) {
@@ -437,7 +482,9 @@ OperationDAGConverter::castedVar(
 
 
 /**
- * 
+ * Write OSAL DAG code for graph.
+ *
+ * @param dag Graph to write as OSAL code (basically C subset)
  */    
 std::string 
 OperationDAGConverter::createOsalCode(const OperationDAG& dag) {
@@ -451,6 +498,7 @@ OperationDAGConverter::createOsalCode(const OperationDAG& dag) {
         return retVal;
     }
 
+    // Writes recursively all the DAG from node(0)
     writeNode(retVal, dag, dag.node(0), varBindings, 
               alreadyHandled, tempVarCount, currentlyHandling);
     
@@ -458,7 +506,10 @@ OperationDAGConverter::createOsalCode(const OperationDAG& dag) {
 }
 
 /**
+ * Optimizations, when compiled simulation code is created from DAG.
  *
+ * OSAL implementations of operantions will not be called for calculating
+ * basic C operations.
  */
 std::string 
 OperationDAGConverter::createSimulationCode(
@@ -499,7 +550,8 @@ OperationDAGConverter::createSimulationCode(
     opReplacements["CDF"] = "(FloatWord)";
     opReplacements["MOD"] = "%";
     opReplacements["MODU"] = "%";
-        
+
+    // Writes recursively all the DAG from node(0)
     writeNode(retVal, dag, dag.node(0), varBindings, 
               alreadyHandled, tempVarCount, currentlyHandling,
               &opReplacements, varReplacements);

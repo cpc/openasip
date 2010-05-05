@@ -35,6 +35,8 @@
 #include "InstructionReference.hh"
 #include "Procedure.hh"
 #include "Program.hh"
+#include "InstructionReference.hh"
+#include "NullInstruction.hh"
 
 using std::string;
 
@@ -58,7 +60,7 @@ namespace TTAProgram {
 CodeLabel::CodeLabel(const InstructionReference& ins, std::string name)
     throw (IllegalRegistration) :
 
-    ins_(&ins) {
+    ins_(ins) {
     proc_ = NULL;
     setName(name);
     setAddress(ins.instruction().address());
@@ -74,8 +76,7 @@ CodeLabel::CodeLabel(const InstructionReference& ins, std::string name)
  *            to a program.
  */
 CodeLabel::CodeLabel(const Procedure& proc) throw (IllegalRegistration):
-    proc_(&proc) {
-    ins_ = NULL;
+    ins_(InstructionReference(NULL)), proc_(&proc) {
     setName(proc.name());
     setAddress(proc.startAddress());
     // scope is the global scope for now
@@ -97,8 +98,8 @@ CodeLabel::~CodeLabel() {
  */
 Address
 CodeLabel::address() const {
-    if (ins_ != NULL) {
-        return ins_->instruction().address();
+    if (&ins_.instruction() != &NullInstruction::instance()) {
+        return ins_.instruction().address();
     } else {
         return proc_->startAddress();
     }
@@ -111,10 +112,10 @@ CodeLabel::address() const {
  * @exception IllegalRegistration if the label points to a procedure that
  *            has no instructions.
  */
-const InstructionReference&
+const InstructionReference
 CodeLabel::instructionReference() const throw (IllegalRegistration) {
-    if (ins_ != NULL) {
-        return *ins_;
+    if (&ins_.instruction() != &NullInstruction::instance()) {
+        return ins_;
     } else if (proc_->instructionCount() == 0) {
         throw IllegalRegistration(__FILE__, __LINE__);
     } else {
@@ -134,7 +135,7 @@ const Procedure&
 CodeLabel::procedure() const throw (IllegalRegistration) {
     if (proc_ == NULL) {
         const Procedure* proc = dynamic_cast<const Procedure*>(
-            &(ins_->instruction().parent()));
+            &(ins_.instruction().parent()));
         assert(proc != NULL);
         return *proc;
     } else {

@@ -35,6 +35,8 @@
 #include "DataLabel.hh"
 #include "SequenceTools.hh"
 #include "Program.hh"
+#include "InstructionReference.hh"
+#include "InstructionReferenceManager.hh"
 
 namespace TTAProgram {
 

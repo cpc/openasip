@@ -36,7 +36,6 @@
 #include "Port.hh"
 #include "Bus.hh"
 #include "UniversalMachine.hh"
-#include "NullMove.hh"
 #include "NullProgram.hh"
 #include "ControlFlowGraph.hh"
 #include "ControlDependenceGraph.hh"
@@ -98,7 +97,7 @@ ProgramGraph::generateProgram() const {
 MoveNode&
 ProgramGraph::nodeOf(const TTAProgram::Move&) const{
     ///TODO: find a move and return corresponding MoveNode
-    return *(new MoveNode(TTAProgram::NullMove::instance()));
+    return *(new MoveNode(NULL));
 }
 
 /**

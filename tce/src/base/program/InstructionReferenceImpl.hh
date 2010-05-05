@@ -22,47 +22,53 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file InstructionReference.hh
+ * @file InstructionReferenceImpl.hh
  *
- * Declaration of InstructionReference class.
+ * Declaration of InstructionReferenceImpl class.
  *
- * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * This class provides the internal tracking of instruction references to
+ * a single instruction. This class contains information about
+ * all references pointing to this instructions. When the reference count
+ * reaches 0, this class is automatically deleted.
+ *
  * @author Heikki Kultala 2009 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_INSTRUCTION_REFERENCE_HH
-#define TTA_INSTRUCTION_REFERENCE_HH
+#ifndef TTA_INSTRUCTION_REFERENCE_IMPL_HH
+#define TTA_INSTRUCTION_REFERENCE_IMPL_HH
 
-#include "Exception.hh"
+#include <set>
 
 namespace TTAProgram {
+    class Instruction;
+    class InstructionReference;
+    class InstructionReferenceManager;
 
-class Instruction;
-class InstructionReferenceImpl;
-
-/**
- * Represents a reference to an Instruction instance.
- *
- * The target of the reference can be changed as needed.
- */
-class InstructionReference {
+class InstructionReferenceImpl {
 public:
-    explicit InstructionReference(InstructionReferenceImpl* impl);
-    InstructionReference(const InstructionReference &ir);
-    virtual ~InstructionReference();
+    InstructionReferenceImpl(
+        TTAProgram::Instruction& ins, 
+        TTAProgram::InstructionReferenceManager& irm);
 
-    InstructionReference& operator=(const InstructionReference&);
-
-    Instruction& instruction() const;
-
-    bool setImpl(InstructionReferenceImpl* impl);
+    ~InstructionReferenceImpl();
+    void nullify();
+    void addRef(InstructionReference& ref);
+    bool removeRef(InstructionReference& ref);
+    InstructionReferenceManager& referencemanager();
+    void setInstruction(Instruction& ins);
+    void merge(InstructionReferenceImpl& other);
+    inline Instruction& instruction();
+    inline unsigned int count();
+    const InstructionReference& ref();
 private:
-
-    InstructionReferenceImpl* impl_;
-    /// Referred instruction.
+    Instruction* ins_;
+    std::set<InstructionReference*> refs_;
+    InstructionReferenceManager* refMan_;
+    InstructionReferenceImpl();
+    InstructionReferenceImpl(const InstructionReferenceImpl&);
 };
 
+#include "InstructionReferenceImpl.icc"
 }
-
 #endif

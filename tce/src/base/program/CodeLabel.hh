@@ -36,6 +36,8 @@
 #include <string>
 #include "Label.hh"
 #include "Exception.hh"
+#include "InstructionReference.hh"
+#include "InstructionReferenceManager.hh"
 
 namespace TTAProgram {
 
@@ -56,13 +58,13 @@ public:
 
     virtual Address address() const;
 
-    const InstructionReference& instructionReference() const
+    const InstructionReference instructionReference() const
         throw (IllegalRegistration);
     const Procedure& procedure() const throw (IllegalRegistration);
 
 private:
     /// Reference to instruction corresponding to this label.
-    const InstructionReference* ins_;
+    const InstructionReference ins_;
     /// Procedure corresponding to this label.
     const Procedure* proc_;
 };

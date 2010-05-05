@@ -31,10 +31,11 @@
  * @note rating: red
  */
 
+#include <climits>
+
 #include "Move.hh"
 #include "Socket.hh"
 #include "Port.hh"
-#include "NullMoveGuard.hh"
 #include "NullTerminal.hh"
 #include "NullInstruction.hh"
 #include "TerminalFUPort.hh"
@@ -45,6 +46,7 @@
 #include "ControlUnit.hh"
 #include "SpecialRegisterPort.hh"
 #include "TCEString.hh"
+#include "POMDisassembler.hh"
 
 using namespace TTAMachine;
 
@@ -85,7 +87,7 @@ Move::Move(
 Move::Move(
     Terminal* src, Terminal* dst, Bus& bus):
     parent_(NULL), src_(src), dst_(dst), bus_(&bus),
-    guard_(&NullMoveGuard::instance()){
+    guard_(NULL) {
 }
 
 /**
@@ -100,7 +102,7 @@ Move::~Move() {
         delete src_;
         src_ = NULL;
     }
-    if (guard_ != &NullMoveGuard::instance()) {
+    if (guard_ != NULL) {
         delete guard_;
         guard_ = NULL;
     }
@@ -114,7 +116,7 @@ Move::~Move() {
  */
 Instruction&
 Move::parent() const throw (IllegalRegistration) {
-    if (parent_ != NULL) {
+    if (parent_ != NULL && parent_ != &NullInstruction::instance()) {
         return *parent_;
     } else {
         throw IllegalRegistration(__FILE__, __LINE__, __func__,
@@ -143,7 +145,7 @@ Move::setParent(Instruction& ins) {
  */
 bool
 Move::isInInstruction() const {
-    return parent_ != NULL;
+    return parent_ != NULL && parent_ != &NullInstruction::instance();
 }
 
 /**
@@ -153,7 +155,7 @@ Move::isInInstruction() const {
  */
 bool
 Move::isUnconditional() const {
-    return (guard_ == &NullMoveGuard::instance());
+    return (guard_ == NULL);
 }
 
 /**
@@ -219,26 +221,22 @@ Move::isControlFlowMove() const {
  *
  * Note: the detection is not always reliable, this method can return false
  * even in case the move actually is a return in some cases.
- *
- * @return true if this move is known to be a procedure return.
  */
 bool
 Move::isReturn() const {
 
-    if (!isJump())
+    if (!isJump()) {
         return false;
+    }
 
-    // direct ra -> jump.1 is considered a jump
-    if (source().isFUPort() && 
-        source().functionUnit().name() == 
-        source().functionUnit().machine()->controlUnit()->name() &&
-        source().port().name() ==
-        source().functionUnit().machine()->controlUnit()->
-        returnAddressPort()->name())
+    // direct gcu.ra -> gcu.jump.1 is considered a return
+    if (source().isRA()) {
         return true;
+    }
 
-    if (hasAnnotations(ProgramAnnotation::ANN_STACKFRAME_PROCEDURE_RETURN))
+    if (hasAnnotations(ProgramAnnotation::ANN_STACKFRAME_PROCEDURE_RETURN)) {
         return true;
+    }
     
     return false;
 }
@@ -315,7 +313,7 @@ Move::setDestination(Terminal* dst) {
  * @exception InvalidData if the move is not predicated.
  */
 MoveGuard& Move::guard() const throw (InvalidData) {
-    if (guard_ != &NullMoveGuard::instance()) {
+    if (guard_ != NULL) {
         return *guard_;
     } else {
         throw InvalidData(
@@ -330,7 +328,7 @@ MoveGuard& Move::guard() const throw (InvalidData) {
  */
 void
 Move::setGuard(MoveGuard* guard) {
-    if (guard_ != &NullMoveGuard::instance()) {
+    if (guard_ != NULL) {
         delete guard_;
     }
     guard_ = guard;
@@ -401,5 +399,46 @@ Move::copy() const {
 
     return newMove;
 }
+
+/**
+ * Returns the disassembly of the move.
+ */
+std::string
+Move::toString() const {
+    return POMDisassembler::disassemble(*this);
+}
+
+/**
+ * Returns true in case at least one source code line number
+ * is known for this move.
+ */
+bool
+Move::hasSourceLineNumber() const {
+    return sourceLineNumber() != -1;
+}
+
+/**
+ * Returns one source code line number for this move.
+ *
+ * There can be at most two source code line numbers associated
+ * to a move in case it's bypassed. This method returns the smaller of
+ * them.
+ * 
+ * Returns -1 if no source code line info has been set.
+ */
+int
+Move::sourceLineNumber() const {
+    int lineNumber =  -1;
+    const TTAProgram::ProgramAnnotation::Id id = 
+        TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE;
+    if (hasAnnotations(id)) {
+        lineNumber = INT_MAX;
+        for (int i = 0; i < annotationCount(id); ++i) {            
+            lineNumber = std::min(lineNumber, annotation(i, id).intValue());
+        }
+    }
+    return lineNumber;
+}
+
 
 }

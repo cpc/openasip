@@ -27,6 +27,7 @@
  * Implementation of POMDisassembler class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2008 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -55,6 +56,7 @@
 #include "Guard.hh"
 #include "Machine.hh"
 #include "TCEString.hh"
+#include "InstructionReference.hh"
 
 #include "DisassemblyMove.hh"
 #include "DisassemblyRegister.hh"
@@ -281,7 +283,7 @@ POMDisassembler::createFUPort(const Terminal& terminal)
         dynamic_cast<const TerminalFUPort&>(terminal);
 
     if (dynamic_cast<const UniversalFunctionUnit*>(fu) != NULL ||
-        (dynamic_cast<const UniversalMachine*>(fu->machine()) != NULL &&
+        (fu->machine()->isUniversalMachine() &&
          dynamic_cast<const ControlUnit*>(fu) != NULL)) {
 
         // The terminal is a UniversalFunctionUnit operation or
@@ -591,10 +593,28 @@ POMDisassembler::isCallOrJump(const Terminal& terminal) {
  */
 std::string
 POMDisassembler::disassemble(const TTAProgram::Move& move) {
-    DisassemblyMove* dMove = createMove(move);
-    std::string disasm = dMove->toString();
-    delete dMove;
-    return disasm;
+   
+    // special handling for calls: find out the procedure name to make
+    // the disassembly a bit more readable
+    if (move.isCall() && move.source().isInstructionAddress()) {
+
+        DisassemblyMove* dMove = createMove(move);
+        std::string disasm = "";
+        disasm = dMove->toString();
+
+        Procedure* proc = dynamic_cast<TTAProgram::Procedure*>(
+            &move.source().instructionReference().instruction().parent());
+        std::string procName = 
+            proc != NULL ? proc->name() : "unknown_proc";
+        return (boost::format("%s -> %s.call.1") 
+                % procName % move.destination().functionUnit().name()).str();
+    } else {
+        DisassemblyMove* dMove = createMove(move);
+        std::string disasm = "";
+        disasm = dMove->toString();
+        delete dMove;
+        return disasm;
+    }
 }
 
 /**
@@ -691,9 +711,27 @@ POMDisassembler::disassemble(
             // a sequential program
         }
 
-        if (indices)
+        if (indices) {
             disasm += 
-                "\t# @" + Conversion::toString(instruction.address().location());
+                "\t# @" + 
+                Conversion::toString(instruction.address().location());
+        }
+
+        // check for soure code line number info
+        TCEString lineNumberStr = "";
+        for (int i = 0; i < instruction.moveCount(); ++i) {
+            const TTAProgram::Move& m = instruction.move(i);
+            if (m.hasSourceLineNumber()) {
+                if (lineNumberStr != "") {
+                    lineNumberStr += ", ";
+                }
+                lineNumberStr += 
+                    Conversion::toString(m.sourceLineNumber());
+            }
+        }
+
+        if (lineNumberStr != "")
+            disasm += "\t# src lines: " + lineNumberStr;        
     }
     return disasm;
 }

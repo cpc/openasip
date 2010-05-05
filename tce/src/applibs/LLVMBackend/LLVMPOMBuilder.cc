@@ -22,15 +22,20 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file LLVMPOMBuilder.cpp
+ * @file LLVMPOMBuilder.cc
  *
  * Implementation of LLVMPOMBuilder class.
  *
- * @author Veli-Pekka J‰‰skel‰inen 2007-2010 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka J‰‰skel‰inen 2007-2009 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistˆ 2009 (mikael.lepisto-no.spam-tut.fi)
- * @author Pekka Jaaskelainen 2010
+ * @author Esa M‰‰tt‰ 2009 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007-2010
  * @note reting: red
  */
+
+#include <list>
+
+#include <boost/format.hpp>
 
 #include "LLVMPOMBuilder.hh"
 #include "Program.hh"
@@ -63,19 +68,25 @@
 #include "LLVMPOMBuilder.hh"
 #include "NullTerminal.hh"
 #include "Operand.hh"
+#include "CodeGenerator.hh"
+#include "ProgramAnnotation.hh"
+#include "TCEString.hh"
 
-#include "llvm/Constants.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/Module.h"
-#include "llvm/CodeGen/MachineInstr.h"
-#include "llvm/CodeGen/MachineConstantPool.h"
-#include "llvm/Target/TargetInstrInfo.h"
-#include "llvm/Target/TargetMachine.h"
-#include "llvm/Target/TargetData.h"
-#include "llvm/Target/TargetLowering.h"
-#include "llvm/Support/Debug.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/Target/TargetInstrDesc.h"
+#include <llvm/Constants.h>
+#include <llvm/DerivedTypes.h>
+#include <llvm/Module.h>
+#include <llvm/CodeGen/MachineInstr.h>
+#include <llvm/CodeGen/MachineMemOperand.h>
+#include <llvm/CodeGen/MachineConstantPool.h>
+#include <llvm/Target/TargetInstrInfo.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetData.h>
+#include <llvm/Target/TargetLowering.h>
+#include <llvm/Support/Debug.h>
+#include <llvm/Target/TargetInstrDesc.h>
+#include <llvm/Support/PluginLoader.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Analysis/DebugInfo.h>
 
 #include "MapTools.hh"
 #include "StringTools.hh"
@@ -90,6 +101,7 @@
 
 using namespace TTAMachine;
 using namespace llvm;
+using TTAProgram::CodeGenerator;
 
 unsigned LLVMPOMBuilder::MAU_BITS = 8;
 unsigned LLVMPOMBuilder::POINTER_SIZE = 4; // Pointer size in maus.
@@ -102,10 +114,13 @@ char LLVMPOMBuilder::ID = 0;
  * @param tm Target machine description.
  */
 LLVMPOMBuilder::LLVMPOMBuilder(
-    TCETargetMachine& tm, TTAMachine::Machine* mach):
+    TCETargetMachine& tm,
+    TTAMachine::Machine* mach):
     MachineFunctionPass(this),
     mod_(NULL), tm_(tm), mach_(mach), umach_(NULL), prog_(NULL),
-    mang_(NULL), dmem_(NULL), end_(0), programReady_(false) {
+    mang_(NULL), dmem_(NULL), end_(0), programReady_(false),
+    noAliasFound_(false), multiAddrSpacesFound_(false),
+    spillMoveCount_(0) {
 }
 
 /**
@@ -129,18 +144,14 @@ LLVMPOMBuilder::~LLVMPOMBuilder() {
  */
 bool
 LLVMPOMBuilder::doInitialization(Module& m) {
-
     assert(mach_ != NULL);
-
+    
     if (prog_ != NULL) {
         delete prog_;
         prog_ = NULL;
     }
 
     mod_ = &m;
-
-    // FIXME: Program owns umach?
-    umach_ = new UniversalMachine();
 
     // List of supported operations.
     opset_.insert("jump");
@@ -162,7 +173,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
 
         assert(false);
     }
-   
+
     instrAddressSpace_ = mach_->controlUnit()->addressSpace();
     if (instrAddressSpace_ == NULL) {
         std::cerr << "ERROR: Address space set for the control unit in the "
@@ -176,7 +187,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
     const TTAMachine::Machine::AddressSpaceNavigator nav =
         mach_->addressSpaceNavigator();
 
-    for (int i = 0; i <nav.count(); i++) {
+    for (int i = 0; i < nav.count(); i++) {
         if (nav.item(i) != instrAddressSpace_) {
             dataAddressSpace_ = nav.item(i);
             break;
@@ -189,12 +200,12 @@ LLVMPOMBuilder::doInitialization(Module& m) {
 
         assert(false);
     }
-    
+
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
-//    mang_ = new Mangler(m, "_"); // Use prefix _ for all value names.
-    mang_ = new Mangler(*tm_.getMCAsmInfo());
+    mang_ = new Mangler(*tm_.getMCAsmInfo()); // Use prefix _ for all value names.
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
+    umach_ = &prog_->universalMachine();
 
     // Avoid placing data to address 0, it may break some null pointer
     // tests.
@@ -213,8 +224,15 @@ LLVMPOMBuilder::doInitialization(Module& m) {
     for (Module::const_global_iterator i = m.global_begin();
          i != m.global_end(); i++) {
 
-        std::string name = mang_->getNameWithPrefix(i);
+        TCEString name = mang_->getNameWithPrefix(i);
         
+        const llvm::GlobalValue& gv = *i;
+
+        if (gv.hasSection() && gv.getSection() == "llvm.metadata") {
+            // do not write debug constants to the data section
+            continue; 
+        }
+
         if (name == END_SYMBOL_NAME) {
             // Skip original _end symbol.
             continue;
@@ -235,17 +253,9 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         def.size = td->getTypeStoreSize(type);
         // memcpy seems to assume global values are aligned by 4
         if (def.size > def.alignment) {
-            def.alignment = std::max(def.alignment, 4u);
+            def.alignment = std::max(def.alignment,4u);
         }
 
-        /*
-          std::cerr << "MARKER: " 
-          << def.name 
-          << ":" << def.alignment << ":" << def.size 
-          << " int16 pref align:" 
-          << (int)td->getPrefTypeAlignment(Type::getInt16Ty(getGlobalContext())) << std::endl;
-          type->dump();
-        */
         assert(def.alignment != 0);
 
         if (isInitialized(initializer)) {
@@ -268,7 +278,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
             TTAProgram::Address address(end_, *dataAddressSpace_);
             dmem_->addDataDefinition(
                 new TTAProgram::DataDefinition(address, zeros));
-            
+
             end_ += pad;
         }
 
@@ -281,6 +291,8 @@ LLVMPOMBuilder::doInitialization(Module& m) {
             new TTAProgram::DataLabel(data_[i].name, addr, gscope);
 
         gscope.addDataLabel(label);
+
+
         end_ += data_[i].size;
     }
 
@@ -294,7 +306,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
             TTAProgram::Address address(end_, *dataAddressSpace_);
             dmem_->addDataDefinition(
                 new TTAProgram::DataDefinition(address, pad));
-            
+
             end_ += pad;
         }
 
@@ -313,6 +325,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
     return false;
 }
 
+
 /**
  * Creates data definition from a Constant initializer and adds it to the
  * machine data memory.
@@ -325,7 +338,7 @@ LLVMPOMBuilder::emitDataDef(const DataDef& def) {
 
     if (!def.initialize) {
 
-        if(def.address % def.alignment != 0) {
+        if (def.address % def.alignment != 0) {
             std::cerr << def.name << " misaligned!" << std::endl;
             std::cerr << "    address: " << def.address
                       << "  alignment: " << def.alignment << std::endl;
@@ -343,26 +356,28 @@ LLVMPOMBuilder::emitDataDef(const DataDef& def) {
         const  GlobalVariable* var = NULL;
         for (Module::const_global_iterator i = mod_->global_begin();
              i != mod_->global_end(); i++) {
-
+	    
             if (def.name == mang_->getNameWithPrefix(i)) {
                 var = i;
                 break;
             }
         }
 
+        unsigned addr = def.address;
+
         assert(var != NULL && "Variable not found!");
 
-        unsigned addr = def.address;
+#ifndef NDEBUG
         unsigned paddedAddr =
-            createDataDefinition(addr, var->getInitializer());
-
+#endif
+        createDataDefinition(addr, var->getInitializer());
         assert(paddedAddr == def.address);
     }
 }
 
 /**
  * Creates POM data definition from a llvm data initializer.
- * 
+ *
  * @param addr Address for the POM data.
  * @param cv Initializer for the data in llvm.
  * @return POM data address after padding data to correct alignment.
@@ -385,7 +400,8 @@ LLVMPOMBuilder::createDataDefinition(
         dmem_->addDataDefinition(
             new TTAProgram::DataDefinition(address, zeros));
 
-        addr += pad;        
+        addr += pad;
+
     }
 
     // paddedAddr is the actual address data was put to
@@ -394,8 +410,8 @@ LLVMPOMBuilder::createDataDefinition(
 
     // Initialize with zeros if this is an uninitialized part of a partially
     // initialized data structure.
-    if (cv->isNullValue() || (dyn_cast<UndefValue>(cv) != NULL)) {
-        
+    if (cv->isNullValue() || dyn_cast<UndefValue>(cv) != NULL) {
+
         std::vector<MinimumAddressableUnit> maus;
         for (unsigned i = 0; i < sz; i++) {
             maus.push_back(0);
@@ -415,10 +431,15 @@ LLVMPOMBuilder::createDataDefinition(
         (dyn_cast<ConstantVector>(cv) != NULL)) {
 
         for (unsigned i = 0, e = cv->getNumOperands(); i != e; ++i) {
-            //unsigned dataAddr = createDataDefinition(addr, cv->getOperand(i));
-            unsigned dataAddr = createDataDefinition(addr, cast<Constant>(cv->getOperand(i)));
+
+#ifndef NDEBUG
+            unsigned dataAddr = createDataDefinition(
+		addr, cast<Constant>(cv->getOperand(i)));
             // First element of structured data should be in the paddedAddr.
             assert (i > 0 || dataAddr == paddedAddr);
+#else
+            createDataDefinition(addr, cast<Constant>(cv->getOperand(i)));
+#endif
         }
     } else if (const ConstantInt* ci = dyn_cast<ConstantInt>(cv)) {
         createIntDataDefinition(addr, ci);
@@ -429,7 +450,7 @@ LLVMPOMBuilder::createDataDefinition(
     } else if (const ConstantExpr* ce = dyn_cast<ConstantExpr>(cv)) {
         createExprDataDefinition(addr, ce);
     } else {
-        cv->dump();
+	cv->dump();
         abortWithError("Unknown cv type.");
     }
 
@@ -451,7 +472,7 @@ LLVMPOMBuilder::createIntDataDefinition(
            == 0 && "Invalid alignment for constant int!");
 
     std::vector<MinimumAddressableUnit> maus;
-    
+
     unsigned sz = (ci->getBitWidth() / MAU_BITS);
 
     if (isPointer) {
@@ -483,6 +504,7 @@ LLVMPOMBuilder::createIntDataDefinition(
     addr += def->size();
     dmem_->addDataDefinition(def);
 }
+
 
 /**
  * Creates data definition of a floating point constant.
@@ -553,7 +575,7 @@ LLVMPOMBuilder::createGlobalValueDataDefinition(
     const Type* type = gv->getType();
 
     unsigned sz = tm_.getTargetData()->getTypeStoreSize(type);
-    
+
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
     std::string label = mang_->getNameWithPrefix(gv);
 
@@ -566,7 +588,7 @@ LLVMPOMBuilder::createGlobalValueDataDefinition(
             "Instruction reference with an offset not supported yet.");
 
         TTAProgram::Instruction* instr = codeLabels_[label];
-        TTAProgram::InstructionReference& ref =
+        TTAProgram::InstructionReference ref =
             prog_->instructionReferenceManager().createReference(*instr);
 
         def = new TTAProgram::DataInstructionAddressDef(start, sz, ref);
@@ -622,9 +644,13 @@ LLVMPOMBuilder::createExprDataDefinition(
             createGlobalValueDataDefinition(addr, gv, offset);
         } else {
             assert(offset == 0);
+#ifndef NDEBUG
             unsigned dataAddr = createDataDefinition(addr, ptr);
             // Data should have been padded already:
             assert(dataAddr == addr);
+#else
+            createDataDefinition(addr, ptr);
+#endif
         }
     } else if (opcode == Instruction::IntToPtr) {
         assert(offset == 0);
@@ -634,7 +660,10 @@ LLVMPOMBuilder::createExprDataDefinition(
     } else if (opcode == Instruction::PtrToInt) {
         assert(offset == 0);
         // Data should have been padded already:
-        unsigned dataAddr = createDataDefinition(addr, ce->getOperand(0));
+#ifndef NDEBUG
+        unsigned dataAddr = 
+#endif
+        createDataDefinition(addr, ce->getOperand(0));
         assert(dataAddr == addr);
     } else if (opcode == Instruction::Add) {
         assert(false && "NOT IMPLEMENTED");
@@ -674,7 +703,7 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
 
     // TODO: make list of mf's which for the pass will be ran afterwards..
 
-    std::string fnName = mf.getFunction()->getNameStr();
+    std::string fnName = mang_->getNameWithPrefix(mf.getFunction());
 
     emitConstantPool(*mf.getConstantPool());
 
@@ -685,11 +714,15 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
 
     std::set<std::string> emptyMBBs;
 
+    bool firstInsOfProc = true;
+    spillMoveCount_ = 0;
+    // iterate basic blocks from MachineFunction
     for (MachineFunction::const_iterator i = mf.begin();
          i != mf.end(); i++) {
 
         bool newMBB = true;
 
+        // iterate MachineInstr from basic blocks
         for (MachineBasicBlock::const_iterator j = i->begin();
              j != i->end(); j++) {
 
@@ -714,17 +747,18 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
                 newMBB = false;
                 assert(!MapTools::containsKey(mbbs_, mbb));
                 mbbs_[mbb] = instr;
+                bbIndex_[(*i).getBasicBlock()] = instr;
             }
 
-            // Keep book of first instructions in functions.
-            if (j == i->begin() && i == mf.begin()) {
-
-                TTAProgram::InstructionReference& ref = prog_->
+            // Keep book of first instructions in functions.            
+            if (firstInsOfProc) {
+                TTAProgram::InstructionReference ref = prog_->
                     instructionReferenceManager().createReference(*instr);
                 prog_->globalScope().addCodeLabel(
                     new TTAProgram::CodeLabel(ref, fnName));
 
                 codeLabels_[fnName] = instr;
+                firstInsOfProc = false;
             }
         }
 
@@ -735,10 +769,28 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
         if (newMBB) {
             emptyMBBs.insert(mbbName(*i));
         }
-
-        
     }
 
+    // if the procedure would otherwise be empty, add a dummy instruction there,
+    // and make the procedure cdelabel to point it.
+    if (firstInsOfProc) {
+        TTAProgram::Instruction* dummyIns = new TTAProgram::Instruction;
+        proc->add(dummyIns);
+
+        TTAProgram::InstructionReference ref = prog_->
+            instructionReferenceManager().createReference(*dummyIns);
+        prog_->globalScope().addCodeLabel(
+            new TTAProgram::CodeLabel(ref, fnName));
+        
+        codeLabels_[fnName] = dummyIns;
+    }
+#if 0
+    if (Application::verboseLevel() > 0) {
+        Application::logStream() 
+            << "spill moves in " << mf.getFunction()->getNameStr() << ": " 
+            << spillMoveCount_ << std::endl;
+    }
+#endif
     return false;
 }
 
@@ -746,7 +798,7 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
  * Finalizes the POM building.
  *
  * Creates data initializers.
- * Fixes dummy code references to point the actual instructions. 
+ * Fixes dummy code references to point the actual instructions.
  */
 bool
 LLVMPOMBuilder::doFinalization(Module& /* m */) {
@@ -772,7 +824,6 @@ LLVMPOMBuilder::doFinalization(Module& /* m */) {
     for (unsigned i = 0; i < udata_.size(); i++) {
         emitDataDef(udata_[i]);
     }
-
 
     // Create new _end symbol at the end of the data memory definitions.
     DataDef def;
@@ -816,16 +867,9 @@ LLVMPOMBuilder::doFinalization(Module& /* m */) {
             assert(false && "MBB not found from book keeping.");
         }
         TTAProgram::Instruction& instr = *mbbs_[mbb];
-        TTAProgram::InstructionReference& newRef =
+        TTAProgram::InstructionReference newRef =
             prog_->instructionReferenceManager().createReference(instr);
-
-        TTAProgram::InstructionReference* dummyRef =
-            &term->instructionReference();
-
         term->setInstructionReference(newRef);
-
-        // Delete old dummy reference as it's not owned by any manager.
-        delete dummyRef;
     }
 
     // Fix references to code labels.
@@ -837,23 +881,17 @@ LLVMPOMBuilder::doFinalization(Module& /* m */) {
         TTAProgram::TerminalInstructionAddress* term = codeRefIter->first;
         std::string label = codeRefIter->second;
         if (codeLabels_.find(label) == codeLabels_.end()) {
-            std::cerr << "Error: code label '" << label << "' not defined."
-                      << std::endl;
-
-            
-            assert(false);
+            std::cerr << (boost::format(
+                              "Function '%s' not defined.\n") %
+                          label).str();
+            exit(EXIT_FAILURE);
         }
 
         TTAProgram::Instruction& instr = *codeLabels_[label];
-        TTAProgram::InstructionReference& newRef =
+        TTAProgram::InstructionReference newRef =
             prog_->instructionReferenceManager().createReference(instr);
 
-        TTAProgram::InstructionReference* dummyRef =
-            &term->instructionReference();
-
         term->setInstructionReference(newRef);
-        // Delete old dummy reference as it's not owned by any manager.
-        delete dummyRef;
     }
 
     // Add stackpointer initialization.
@@ -864,6 +902,12 @@ LLVMPOMBuilder::doFinalization(Module& /* m */) {
     return false;
 }
 
+/*
+void
+LLVMPOMBuilder::getAnalysisUsage(AnalysisUsage &AU) const {
+    AU.setPreservesAll();
+}
+*/
 
 /**
  * Creates POM instructions for a llvm instruction.
@@ -895,8 +939,16 @@ LLVMPOMBuilder::emitInstruction(
     }
 
     bool hasGuard = false;
+    bool trueGuard = true;
+
     if (opName[0] == '?') {
         hasGuard = true;
+        opName = opName.substr(1);
+    }
+
+    if (opName[0] == '!') {
+        hasGuard = true;
+        trueGuard = false;
         opName = opName.substr(1);
     }
 
@@ -911,7 +963,7 @@ LLVMPOMBuilder::emitInstruction(
     Bus& bus = umach_->universalBus();
     const TTAMachine::FunctionUnit* fu = NULL;
 
-    if ((opDesc->isCall() || opDesc->isBranch())) {
+    if (opDesc->isCall() || opDesc->isBranch()) {
         // Control flow operations.
         fu = umach_->controlUnit();
     } else {
@@ -919,7 +971,7 @@ LLVMPOMBuilder::emitInstruction(
         fu = &umach_->universalFunctionUnit();
     }
 
-    if(!fu->hasOperation(opName)) {
+    if (!fu->hasOperation(opName)) {
         std::cerr << "ERROR: Operation '" << opName << "' not found!"
                   << std::endl;
 
@@ -939,15 +991,14 @@ LLVMPOMBuilder::emitInstruction(
     const Operation& operation = pool.operation(opName.c_str());
     HWOperation* op = fu->operation(opName);
 
-    ExecutionPipeline::OperandSet useOps = op->pipeline()->readOperands();
-    ExecutionPipeline::OperandSet defOps = op->pipeline()->writtenOperands();
-
     std::vector<TTAProgram::Instruction*> operandMoves;
     std::vector<TTAProgram::Instruction*> resultMoves;
 
+    int inputOperand = 0;
+    int outputOperand = operation.numberOfInputs();
     TTAProgram::MoveGuard* guard = NULL;
     for (unsigned o = 0; o < mi->getNumOperands(); o++) {
-        
+
         const MachineOperand& mo = mi->getOperand(o);
 
         // Guarded operations have the guarded element as the first
@@ -957,7 +1008,7 @@ LLVMPOMBuilder::emitInstruction(
             // which is used by the guard.
             TTAProgram::Terminal *t = createTerminal(mo);
             // inv guards not yet supported
-            guard = createGuard(t,true);
+            guard = createGuard(t, trueGuard);
             delete t;
             assert(guard != NULL);
             continue;
@@ -966,74 +1017,84 @@ LLVMPOMBuilder::emitInstruction(
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
         if (!mo.isReg() || mo.isUse()) {
-            if (useOps.empty()) {
-                errs() << " WARNING: Skipping input operand "
-                       << o << " for " << opName << "\n";
+            ++inputOperand;
+            if (inputOperand > operation.numberOfInputs())
                 continue;
-            }
 
-            int opNum = *useOps.begin();
-            assert(operation.operand(opNum).isInput() &&
-                                "Operand mismatch.");
+            assert(operation.operand(inputOperand).isInput() &&
+                   "Operand mismatch.");
 
-            dst = new TTAProgram::TerminalFUPort(*op, (*useOps.begin()));
-            useOps.erase(useOps.begin());
-
-            if (operation.operand(opNum).isAddress()) {
+            // currently the input operand of the base+offset mem operations
+            // are not marked as addresses as alias analysis does not work
+            // in that case correctly, thus we have to treat those operations
+            // as special cases for the time being
+            if (operation.operand(inputOperand).isAddress() ||
+                (isBaseOffsetMemOperation(operation) && inputOperand == 1)) {
                 // MachineInstructions have two operands for each Operation
-                // address operand: base and offset immediate.
-                o += 1;
+                // address operand: base and offset immediate, split it to
+                // two in case of an add+ld/st.
+                const MachineOperand& base = mo;
+                src = createTerminal(base);
+                dst = new TTAProgram::TerminalFUPort(*op, inputOperand);
+
+                TTAProgram::Move* move = createMove(src, dst, bus, guard);
+                TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+                instr->addMove(move);
+            
+                operandMoves.push_back(instr);
+
+                debugDataToAnnotations(mi, move);
+                addPointerAnnotations(mi, move);
+                o += 1;                  
                 const MachineOperand& offset = mi->getOperand(o);
-                src = createAddrTerminal(mo, offset);
+                if (isBaseOffsetMemOperation(operation)) {
+                    ++inputOperand;
+                    // the offset is always the 2nd operand for the standard
+                    // base+offset ops
+                    assert(inputOperand == 2);
+
+                    // create the offset operand move
+                    src = createTerminal(offset);                
+                    dst = new TTAProgram::TerminalFUPort(*op, inputOperand);
+                    TTAProgram::MoveGuard* guardCopy = NULL;
+                    if (guard != NULL)
+                        guardCopy = guard->copy();
+                    
+                    move = createMove(src, dst, bus, guardCopy);
+                    instr = new TTAProgram::Instruction();
+                    instr->addMove(move);           
+                    operandMoves.push_back(instr);
+                    debugDataToAnnotations(mi, move);
+                } else {
+                    assert(offset.getImm() == 0);
+                }
             } else {
                 src = createTerminal(mo);
+                dst = new TTAProgram::TerminalFUPort(*op, inputOperand);
+                TTAProgram::Move* move = createMove(src, dst, bus, guard);
+                TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+                instr->addMove(move);
+                operandMoves.push_back(instr);
+                debugDataToAnnotations(mi, move);
             }
-
         } else {
-            if (defOps.empty()) {
-/*
-                errs() << " WARNING: Skipping output operand "
-                       << o << " for " << opName << "\n";
-*/
+            ++outputOperand;
+            if (operation.operand(outputOperand).isNull())
                 continue;
-            }
-            int opNum = *defOps.begin();
-            assert(operation.operand(opNum).isOutput() &&
-                   !operation.operand(opNum).isAddress() &&
-                "Operand mismatch.");
 
-            src = new TTAProgram::TerminalFUPort(*op, (*defOps.begin()));
+            assert(operation.operand(outputOperand).isOutput() &&
+                   !operation.operand(outputOperand).isAddress() &&
+                   "Operand mismatch.");
+
+            src = new TTAProgram::TerminalFUPort(*op, outputOperand);
             dst = createTerminal(mo);
-            defOps.erase(defOps.begin());
 
-        }
-
-        TTAProgram::Move* move = createMove(src, dst, bus, guard);
-/*
-        if (hasGuard) {
-            TTAMachine::Guard* nonInvGuard = NULL;
-            for (int g = 0; g < bus.guardCount(); g++) {
-                if (!bus.guard(g)->isInverted()) {
-                    nonInvGuard = bus.guard(g);
-                }
-            }
-            assert(nonInvGuard != NULL);
-            TTAProgram::MoveGuard* guard =
-                new TTAProgram::MoveGuard(*nonInvGuard);
-
-        if (guard != NULL) {
-            move->setGuard(guard);        
-        }
-*/
-        TTAProgram::Instruction* instr = new TTAProgram::Instruction();
-        instr->addMove(move);
-
-        if (!mo.isReg() || mo.isUse()) {
-            operandMoves.push_back(instr);
-        } else {
+            TTAProgram::Move* move = createMove(src, dst, bus, guard);
+            TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+            instr->addMove(move);
             resultMoves.push_back(instr);
+            debugDataToAnnotations(mi, move);
         }
-
     }
 
     // Return the first instruction of the whole operation.
@@ -1045,6 +1106,7 @@ LLVMPOMBuilder::emitInstruction(
     } else {
         assert(false && "No moves?");
     }
+
     for (unsigned i = 0; i < operandMoves.size(); i++) {
         proc->add(operandMoves[i]);
     }
@@ -1054,6 +1116,225 @@ LLVMPOMBuilder::emitInstruction(
     return first;
 }
 
+/**
+ * Returns true in case the operation is one of the standard base+offset
+ * operations with operand 1 the base address and operand 2 the offset.
+ */
+bool
+LLVMPOMBuilder::isBaseOffsetMemOperation(const Operation& operation) const {
+    std::string name = operation.name().upper();
+
+    return name == "ALDW" || name == "ALDHU" || 
+        name == "ALDH" || name == "ALDQU" ||
+        name == "ALDQ" || name == "ASTW" ||
+        name == "ASTH" || name == "ASTQ";
+}
+
+/**
+ * Adds annotations to a pointer register Move that assist the
+ * TCE-side alias analysis.
+ */
+void
+LLVMPOMBuilder::addPointerAnnotations(
+    const llvm::MachineInstr* mi, TTAProgram::Move* move) {
+     
+    // copy some pointer data to Move annotations
+
+    for (MachineInstr::mmo_iterator i = mi->memoperands_begin();
+         i != mi->memoperands_end(); i++) {
+        
+        // annotate only RF -> {ld,st}.1 moves
+        // @todo make this more foolproof
+        if (!(move->source().isGPR() && 
+              move->destination().operationIndex() == 1))
+            continue;
+            
+        const llvm::Value* memOpValue = (*i)->getValue();
+        if (memOpValue != NULL) {
+            std::string pointerName = "";
+            // can we get the name right away or have to through
+            // GetElemntPtrInst
+                
+            if (memOpValue->hasName()) {
+                pointerName = memOpValue->getNameStr();
+            } else if (isa<GetElementPtrInst>(memOpValue)) {
+                memOpValue =
+                    cast<GetElementPtrInst>(
+                        memOpValue)->getPointerOperand();
+                if (memOpValue->hasName()) {
+                    pointerName = memOpValue->getNameStr();
+                }
+            } 
+
+            /// TODO: this is not very optimal, it gets the offset
+            /// info only for the memory accesses to function argument
+            /// pointers?
+            if (pointerName.length() > 0 && 
+                isa<Argument>(memOpValue)) {
+                unsigned offset;
+                offset = (*i)->getOffset();
+                TTAProgram::ProgramAnnotation progAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_POINTER_OFFSET, 
+                    offset);
+                move->addAnnotation(progAnnotation); 
+            }
+
+            // try to find the origin for the pointer which can be
+            // a function argument with 'noalias' attribute set
+            const llvm::Value* originMemOpValue = memOpValue;
+            while (originMemOpValue != NULL) {
+                TCEString currentPointerName = originMemOpValue->getNameStr();
+
+                // the OpenCL work item pointer variables start with __wi_,
+                // annotate the move with the work item offset so we can
+                // use it in AA
+                if (currentPointerName.startsWith("__wi_") &&
+                    currentPointerName.size() > 16) {
+                    int x, y, z;
+                    sscanf(
+                        currentPointerName.c_str(), 
+                        "__wi_%03d_%03d_%03d", &x, &y, &z);
+
+                    int id = (z & 0x0FF) | ((y & 0x0FF) << 8) | ((x & 0x0FF) << 16);
+                    TTAProgram::ProgramAnnotation progAnnotation(
+                        TTAProgram::ProgramAnnotation::
+                        ANN_OPENCL_WORK_ITEM_ID, id);
+                    move->addAnnotation(progAnnotation);                     
+                }
+                    
+                if (isa<Argument>(originMemOpValue) && 
+                    cast<Argument>(originMemOpValue)->hasNoAliasAttr()) {
+                    TTAProgram::ProgramAnnotation progAnnotation(
+                        TTAProgram::ProgramAnnotation::
+                        ANN_POINTER_NOALIAS, 1);
+                    move->addAnnotation(progAnnotation); 
+                    noAliasFound_ = true;
+
+
+                    /// TODO: this is not correct, especially
+                    /// when the above offset info is set!
+
+                    /*
+                      As the restrict keyword is assigned only to the pointer
+                      we found, we now pretend we are accessing through
+                      that pointer even though we might not be as the
+                      new pointer might be created through pointer 
+                      arithmetic. In case
+                      we are not, the offset in the pointer arithmetic
+                      should be associated with the real pointer, not
+                      the origin pointer with the restrict keyword!
+
+                      Correct way is to add another annotation from
+                      which restrict pointer the current pointer is
+                      derived from and separate annotation for the 
+                      real pointer name + offset.
+                    */
+
+                    pointerName = originMemOpValue->getNameStr();
+                    break;
+                } else if (isa<GetElementPtrInst>(originMemOpValue)) {
+                    originMemOpValue =
+                        cast<GetElementPtrInst>(originMemOpValue)->
+                        getPointerOperand();
+                } else if (isa<BitCastInst>(originMemOpValue)) {
+                    originMemOpValue =                            
+                        cast<BitCastInst>(originMemOpValue)->
+                        getOperand(0);
+                } else {
+                    break;
+                }
+            }
+
+            if (pointerName != "") {
+                TTAProgram::ProgramAnnotation pointerAnn(
+                    TTAProgram::ProgramAnnotation::ANN_POINTER_NAME, 
+                    pointerName);
+                move->addAnnotation(pointerAnn); 
+            }
+
+            int addrSpaceId =
+                cast<PointerType>(memOpValue->getType())->
+                getAddressSpace();
+            if (addrSpaceId != 0) {
+                std::string addressSpace =
+                    (boost::format("%d") % addrSpaceId).str();
+                TTAProgram::ProgramAnnotation progAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_POINTER_ADDR_SPACE, 
+                    addressSpace);
+                move->addAnnotation(progAnnotation); 
+                multiAddrSpacesFound_ = true;
+            }                
+        }
+    }
+}
+
+/**
+ * Helper method that converts LLVM debug data markers to Move annotations.
+ */
+void
+LLVMPOMBuilder::debugDataToAnnotations(
+    const llvm::MachineInstr* mi, TTAProgram::Move* move) {
+
+    DebugLoc dl = mi->getDebugLoc();
+
+    // annotate the moves generated from known spill instructions
+    if (dl.getIndex() == 0xFFFFFFF0) {
+        TTAProgram::ProgramAnnotation progAnnotation(
+            TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL);
+        move->setAnnotation(progAnnotation); 
+        ++spillMoveCount_;
+    } else {
+        // annotate the moves generated from known ra save.
+        if (dl.getIndex() == 0xFFFFFFF1) {
+            TTAProgram::ProgramAnnotation progAnnotation(
+                TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE);
+            move->setAnnotation(progAnnotation); 
+        } else {
+
+#if 0 
+		// some api change in llvm 2.7, this does not compile so disabled
+            
+            // handle file+line number debug info
+            if (!dl.isUnknown()) {
+		
+		
+                int sourceLineNumber = -1;
+                TCEString sourceFileName = "";
+                
+                DebugLocTuple dlt = 
+                    mi->getParent()->getParent()->getDebugLocTuple(dl);
+                sourceLineNumber = dlt.Line;
+                if (dlt.CompileUnit != NULL) {
+                    sourceFileName = 
+                        DICompileUnit(dlt.CompileUnit).getFilename(
+                            sourceFileName);
+                }
+                TTAProgram::ProgramAnnotation progAnnotation(
+                    TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
+                    sourceLineNumber);
+                move->addAnnotation(progAnnotation); 
+		
+#if 0
+                // do not add the source code file name to each move, it
+                // explodes the TPEF file size for large programs!
+                    
+                /// @todo: implement the TPEF debug section support where 
+                /// the file 
+                /// names are stored only once.
+                        
+                if (sourceFileName != "") {
+                    TTAProgram::ProgramAnnotation progAnnotation(
+                        TTAProgram::ProgramAnnotation::
+                        ANN_DEBUG_SOURCE_CODE_PATH, 
+                        sourceLineNumber);
+                    move->addAnnotation(sourceFileName); 
+                }
+#endif
+            }
+#endif
+        }
+    }
+}
 
 /**
  * Creates a POM source terminal from a llvm machine operand.
@@ -1069,7 +1350,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
 
         if (dRegNum == tm_.raPortDRegNum()) {
             return new TTAProgram::TerminalFUPort(
-                *umach_->controlUnit()->returnAddressPort());            
+                *umach_->controlUnit()->returnAddressPort());
         }
 
         std::string rfName = tm_.rfName(dRegNum);
@@ -1099,21 +1380,18 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         return new TTAProgram::TerminalImmediate(val);
     } else if (mo.isMBB()) {
 
-        TTAProgram::InstructionReference* dummy =
-            new TTAProgram::InstructionReference(
-                TTAProgram::NullInstruction::instance());
+        TTAProgram::InstructionReference dummy(NULL);
 
         TTAProgram::TerminalInstructionAddress* ref =
-            new TTAProgram::TerminalInstructionAddress(
-                *dummy);
+            new TTAProgram::TerminalInstructionAddress(dummy);
 
 
         mbbReferences_[ref] = mbbName(*mo.getMBB());
         return ref;
     } else if (mo.isFI()) {
         std::cerr << " Frame index source operand NOT IMPLEMENTED!"
-                  << "\n";
-        assert(false); 
+                  << std::endl;
+        assert(false);
     } else if (mo.isCPI()) {
         int width = 32; // FIXME
         unsigned idx = mo.getIndex();
@@ -1134,13 +1412,10 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
                 address, *dataAddressSpace_);
 
         } else {
-            TTAProgram::InstructionReference* dummy =
-                new TTAProgram::InstructionReference(
-                    TTAProgram::NullInstruction::instance());
+            TTAProgram::InstructionReference dummy(NULL);
 
             TTAProgram::TerminalInstructionAddress* ref =
-                new TTAProgram::TerminalInstructionAddress(
-                    *dummy);
+                new TTAProgram::TerminalInstructionAddress(dummy);
 
             codeLabelReferences_[ref] = name;
             return ref;
@@ -1149,39 +1424,38 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         std::cerr << " Jump table index operand NOT IMPLEMENTED!\n";
         assert(false);
     } else if (mo.isSymbol()) {
-        //} else if (mo.isExternalSymbol()) {        
-        
+        //} else if (mo.isExternalSymbol()) {
+
         /**
-         * NOTE: Hack to get code compiling even if llvm falsely makes libcalls to 
+         * NOTE: Hack to get code compiling even if llvm falsely makes libcalls to
          *       external functions even if they are found from currently lowered program.
-         *       
-         *       http://llvm.org/bugs/show_bug.cgi?id=2673 
+         *
+         *       http://llvm.org/bugs/show_bug.cgi?id=2673
          *
          *       Should be removed after fix is applied to llvm.. (maybe never...)
-         */ 
+         */
 
-	/// TODO: FIXME: HOW TO DO THIS??
-//        std::string name = mang_->makeNameProper(mo.getSymbolName());
-	std::string name = mo.getSymbolName();
+        std::string name = mo.getSymbolName();
 
         TTAProgram::InstructionReference* dummy =
-            new TTAProgram::InstructionReference(
-                TTAProgram::NullInstruction::instance());
-        
+            new TTAProgram::InstructionReference(NULL);
+
+
         TTAProgram::TerminalInstructionAddress* ref =
             new TTAProgram::TerminalInstructionAddress(
                 *dummy);
-        
+
         codeLabelReferences_[ref] = name;
         return ref;
         /**
-         * END OF HACK 
+         * END OF HACK
          */
     } else {
         std::cerr << "Unknown src operand type!" << std::endl;
         assert(false);
     }
-    assert(false);
+    abortWithError("Should not get here!");
+    return NULL;
 }
 
 
@@ -1224,7 +1498,7 @@ LLVMPOMBuilder::emitMove(
     const MachineOperand& src = mi->getOperand(1);
     assert(!src.isReg() || src.isUse());
     assert(dst.isDef());
-
+    
     // eliminate register-to-itself moves
     if (dst.isReg() && src.isReg() && dst.getReg() == src.getReg()) {
         return NULL;
@@ -1310,7 +1584,7 @@ LLVMPOMBuilder::emitSelect(
         proc->add(trueIns);
         lastIns = trueIns;
     }
-    
+
     // do no create X -> X moves.
     if (dstF->equals(*srcF)) {
         delete srcF;
@@ -1330,26 +1604,6 @@ LLVMPOMBuilder::emitSelect(
 
     assert(lastIns != NULL);
     return lastIns;
-}
-
-
-
-
-
-/**
- * Creates an address terminal.
- *
- * @param base Base address operand.
- * @param offset Offset operand for the base address.
- * @return Address terminal for POM.
- */
-TTAProgram::Terminal*
-LLVMPOMBuilder::createAddrTerminal(
-    const MachineOperand& base, const MachineOperand& offset) {
-
-    assert(offset.isImm());
-    assert(offset.getImm() == 0);
-    return createTerminal(base);
 }
 
 
@@ -1377,8 +1631,7 @@ llvm::createLLVMPOMBuilderPass(
  */
 std::string
 LLVMPOMBuilder::mbbName(const MachineBasicBlock& mbb) {
-    std::string name = mang_->getNameWithPrefix(
-	mbb.getParent()->getFunction());
+    std::string name = mang_->getNameWithPrefix(mbb.getParent()->getFunction());
     name += " ";
     name += Conversion::toString(mbb.getNumber());
     return name;
@@ -1398,8 +1651,6 @@ LLVMPOMBuilder::isInitialized(const Constant* cv) {
         (dyn_cast<ConstantVector>(cv) != NULL)) {
 
         for (unsigned i = 0, e = cv->getNumOperands(); i != e; ++i) {
-            
-            //if (isInitialized(cv->getOperand(i))) {
             if (isInitialized(cast<Constant>(cv->getOperand(i)))) {
                 return true;
             }
@@ -1419,7 +1670,7 @@ LLVMPOMBuilder::isInitialized(const Constant* cv) {
  */
 void
 LLVMPOMBuilder::emitSPInitialization() {
-    
+
     unsigned spDRN = tm_.spDRegNum();
     std::string rfName = tm_.rfName(spDRN);
     int idx = tm_.registerIndex(spDRN);
@@ -1437,7 +1688,7 @@ LLVMPOMBuilder::emitSPInitialization() {
     TTAProgram::TerminalRegister* dst = new
         TTAProgram::TerminalRegister(*port, idx);
 
-    
+
     unsigned ival = (dataAddressSpace_->end() & 0xfffffff8);
     SimValue val(ival, 32);
     TTAProgram::TerminalImmediate* src =
@@ -1461,13 +1712,18 @@ LLVMPOMBuilder::emitSPInitialization() {
  *
  * Currently the inline assembly string is expected to be just a name
  * of a (custom) operation. Operation operands are expected to be listed
- * as the inline assembly use and def registers.
+ * as the inline assembly use and def registers. Architecture specific
+ * pseudo assembly constructs are also supported (they start with dot) and
+ * are delegated to emitSpecialInlineAsm().
  */
 TTAProgram::Instruction*
 LLVMPOMBuilder::emitInlineAsm(
     const MachineInstr* mi, TTAProgram::Procedure* proc) {
 
-    unsigned numOperands = mi->getNumOperands();
+#ifndef NDEBUG
+    unsigned numOperands = 
+#endif
+    mi->getNumOperands();
     // Count the number of register definitions.
     unsigned numDefs = 0;
     for (; mi->getOperand(numDefs).isReg() &&
@@ -1475,9 +1731,21 @@ LLVMPOMBuilder::emitInlineAsm(
          ++numDefs) {
 
     }
+    std::string opName =  mi->getOperand(numDefs).getSymbolName();
+    
+    // ignore the dummy placeholder asm string
+    if (opName == "") {
+        return NULL;
+    }
+
+    if (opName[0] == '.') {
+        // Special handling for dotted architecture-dependant asm contructs.
+        return emitSpecialInlineAsm(opName, mi, proc);
+    }
+
     assert(numDefs != numOperands-1 && "No asm string?");
     assert(mi->getOperand(numDefs).isSymbol() && "No asm string?");
-    std::string opName =  mi->getOperand(numDefs).getSymbolName();
+
 
     if (StringTools::containsChar(opName, ' ') ||
         StringTools::containsChar(opName, ';') ||
@@ -1489,15 +1757,14 @@ LLVMPOMBuilder::emitInlineAsm(
     }
 
     const UniversalFunctionUnit& fu = umach_->universalFunctionUnit();
-    if(!fu.hasOperation(opName)) {
+    if (!fu.hasOperation(opName)) {
         std::cerr << "ERROR: Custom operation '" << opName << "' not found."
-                  << std::endl;
-
+                  << std::endl;        
         assert(false);
     }
 
     HWOperation* op = fu.operation(opName);
-    
+
     Bus& bus = umach_->universalBus();
     std::vector<TTAProgram::Instruction*> operandMoves;
     std::vector<TTAProgram::Instruction*> resultMoves;
@@ -1510,9 +1777,9 @@ LLVMPOMBuilder::emitInlineAsm(
         const MachineOperand& mo = mi->getOperand(o);
         if (!(mo.isReg() || mo.isImm() || mo.isGlobal()))   {
             // All operands should be in registers. Everything else is ignored.
+            std::cerr << "Ignoring an operand of " << opName << std::endl;
             continue;
         }
-
 
         TTAProgram::Terminal* src = NULL;
         TTAProgram::Terminal* dst = NULL;
@@ -1551,7 +1818,7 @@ LLVMPOMBuilder::emitInlineAsm(
             resultMoves.push_back(instr);
         }
 
-        // this is Operand #2n+2, let's skip the #2n+3 because it's 
+        // this is Operand #2n+2, let's skip the #2n+3 because it's
         // the TargetConstant indicating if the reg is a use/def
         ++o;
     }
@@ -1564,9 +1831,9 @@ LLVMPOMBuilder::emitInlineAsm(
                   << useOps.size() << " input operands." << std::endl;
 
         mi->dump();
-        abortWithError("Cannot continue.");
+	abortWithError("Cannot continue");
     }
-    
+
 
 
     // Return the first instruction of the whole operation.
@@ -1586,6 +1853,407 @@ LLVMPOMBuilder::emitInlineAsm(
         proc->add(resultMoves[i]);
     }
     return first;
+}
+
+/**
+ * Constructs moves for architecture-dependant special asm.
+ *
+ * @param op Assembly instruction string.
+ * @param mi Machine instruction including the inline asm.
+ * @param proc TTA procedure to emit moves into.
+ *
+ * @return First instruction in emitted block.
+ */
+
+TTAProgram::Instruction*
+LLVMPOMBuilder::emitSpecialInlineAsm(
+    const std::string op, const MachineInstr* mi, TTAProgram::Procedure* proc) {
+
+    assert(op[0] == '.');
+
+    TCEString subOp(std::string(op, 1, op.length() - 1));
+
+    if (subOp == "setjmp")
+        return emitSetjmp(mi, proc);
+
+    if (subOp == "longjmp")
+        return emitLongjmp(mi, proc);
+
+    if (subOp == "call_global_ctors")
+        return emitGlobalXXtructorCalls(mi, proc, true);
+
+    if (subOp == "call_global_dtors")
+        return emitGlobalXXtructorCalls(mi, proc, false);
+
+    if (subOp == "read_sp") 
+        return emitReadSP(mi, proc);
+
+    // memory_category pseudo asms can be used to define
+    // categories for different pointers. They mark those
+    // pointers to alias only with others pointers in the
+    // same category.
+    if (subOp.startsWith("pointer_category"))
+        return handleMemoryCategoryInfo(mi, proc);
+
+    debugLog(subOp);
+    abortWithError("Undetected special inline asm.");
+
+    return NULL;
+}
+
+
+/**
+ * Emits moves to read the stack pointer value.
+ */
+TTAProgram::Instruction*
+LLVMPOMBuilder::emitReadSP(
+    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+
+    if (mi->getNumOperands() != 3) {
+        abortWithError(
+            "ERROR: wrong number of operands in \".read_sp\"");
+    }
+
+    // Get the stack pointer. It will be used as index into
+    // the buffer.
+    unsigned spDRN = tm_.spDRegNum();
+    TCEString sp = (boost::format("%s.%d") %
+                    tm_.rfName(spDRN) %
+                    tm_.registerIndex(spDRN)).str();
+
+    // We need to know where current procedure ends to
+    // be able to return first generated instruction.
+    TTAProgram::Instruction& lastInstruction =
+        proc->lastInstruction();
+
+    CodeGenerator codeGenerator(*mach_, *umach_);
+
+    TTAProgram::Terminal* srcTerminal =
+        codeGenerator.createTerminalRegister(sp, false);
+
+    const MachineOperand& dest = mi->getOperand(2);
+    // Save SP at the first position in the buffer.
+    TTAProgram::Terminal* destTerminal = createTerminal(dest);
+
+    codeGenerator.addMoveToProcedure(*proc, srcTerminal, destTerminal);
+    return &(proc->nextInstruction(lastInstruction));
+}
+
+/** 
+ * Handles the .pointer_category pseudo assembler instruction.
+ * 
+ * First argument is a string defining the category, second refers to
+ * the pointer.
+ */
+TTAProgram::Instruction*
+LLVMPOMBuilder::handleMemoryCategoryInfo(
+    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+
+    if (mi->getNumOperands() != 5) {
+        Application::logStream() 
+            << "got " << mi->getNumOperands() << " operands" << std::endl;
+        mi->dump();
+        abortWithError(
+            "ERROR: wrong number of operands in \".pointer_category\"");
+    }
+
+    TTAProgram::Instruction& lastInstruction =
+        proc->lastInstruction();
+
+    CodeGenerator codeGenerator(*mach_, *umach_);
+
+    TTAProgram::Terminal* srcTerminal = 
+        createTerminal(mi->getOperand(4));
+
+    TTAProgram::Terminal* dstTerminal = 
+        createTerminal(mi->getOperand(2));
+
+    codeGenerator.addMoveToProcedure(*proc, srcTerminal, dstTerminal);
+    return &(proc->nextInstruction(lastInstruction));
+}
+
+
+/*
+ * setjmp/longjmp buffer structure description:
+ *
+ * buffer -> |-----------------|
+ *           |       SP        |
+ *           |-----------------|
+ *           |       RA        |
+ *           |-----------------|
+ *           | Return value    |
+ *           |-----------------|
+ *           |       ...       |
+ *           | All RF regs     |
+ *           | except SP       |
+ *           |       ...       |
+ *           |-----------------|
+ *           | Return address  |
+ *           | (to setjmp tail |
+ *           | code)           |
+ *           |-----------------| <- buffer +
+ *                                  <number regs in all RFs> + 3
+ */
+
+/**
+ * Constructs moves for ".setjmp"
+ *
+ * @param mi Machine instruction including the inline asm.
+ * @param proc TTA procedure to emit moves into.
+ *
+ * @return First instruction in emmited block.
+ */
+
+TTAProgram::Instruction*
+LLVMPOMBuilder::emitSetjmp(
+    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+
+    if (mi->getNumOperands() != 5) {
+        std::cerr << "ERROR: wrong number of operands in "".setjmp"""
+            << std::endl;
+        assert(false);
+    }
+
+    const MachineOperand& val = mi->getOperand(2);
+    const MachineOperand& env = mi->getOperand(4);
+
+    // Get the stack pointer. It will be used as index into
+    // the buffer.
+    unsigned spDRN = tm_.spDRegNum();
+    TCEString sp = (boost::format("%s.%d") %
+                    tm_.rfName(spDRN) %
+                    tm_.registerIndex(spDRN)).str();
+
+    // We need to know where current procedure ends to
+    // be able to return first generated instruction.
+    TTAProgram::Instruction& last_instruction =
+        proc->lastInstruction();
+
+    CodeGenerator codeGenerator(*mach_, *umach_);
+
+    // Save SP at the first position in the buffer.
+    TTAProgram::Terminal* buffer = createTerminal(env);
+    codeGenerator.storeToAddress(*proc, buffer, sp);
+
+    // Now we can scratch the stack pointer.
+
+    // First thing we need is to store buffer address in SP.
+    buffer = createTerminal(env);
+    TTAProgram::Terminal* spTerminal =
+        codeGenerator.createTerminalRegister(sp, false);
+
+    codeGenerator.addMoveToProcedure(*proc, buffer, spTerminal);
+
+    // Increment index to jump over the place where SP was
+    // stored.
+    codeGenerator.incrementRegisterAddress(*proc, sp);
+
+    // Save RA first (special register).
+    codeGenerator.pushRegisterToBuffer(*proc, sp, "RA");
+
+    // Now save the desired return value.
+    SimValue immVal(32);
+    immVal = 0;
+    TTAProgram::TerminalImmediate *immTerminal =
+        new TTAProgram::TerminalImmediate(immVal);
+    codeGenerator.pushToBuffer(*proc, sp, immTerminal);
+
+    // Now we can save every register there.
+    const TTAMachine::Machine::RegisterFileNavigator nav =
+        mach_->registerFileNavigator();
+
+    int buffer_words = 0;
+
+    for (int i = 0; i < nav.count(); i++) {
+        const TTAMachine::RegisterFile& rf = *nav.item(i);
+        for (int j = 0; j < rf.numberOfRegisters(); j++) {
+            TCEString reg =
+                (boost::format("%s.%d") % rf.name() % j).str();
+            if (reg != sp) { // sp already saved, ignore it.
+                codeGenerator.pushRegisterToBuffer(*proc, sp, reg);
+                buffer_words++;
+            }
+        }
+    }
+
+    // Save the setjmp return point.
+    TTAProgram::Instruction* returnInstruction =
+        new TTAProgram::Instruction(
+            TTAMachine::NullInstructionTemplate::instance());
+
+    TTAProgram::InstructionReference returnReference =
+        prog_->instructionReferenceManager().createReference(
+            *returnInstruction);
+
+    codeGenerator.pushInstructionReferenceToBuffer(
+        *proc, sp, returnReference);
+
+    codeGenerator.decrementRegisterAddress(*proc, sp);
+
+    proc->add(returnInstruction);
+
+    // Move back the stored registers.
+    for (int i = 0; i < buffer_words; i++)
+        codeGenerator.decrementRegisterAddress(*proc, sp);
+
+    // Get return value.
+    TTAProgram::Terminal* rv = createTerminal(val);
+    codeGenerator.popFromBuffer(*proc, sp, rv);
+
+    // Restore original RA.
+    codeGenerator.popRegisterFromBuffer(*proc, sp, "RA");
+
+    // Restore SP from first position in the buffer.
+    codeGenerator.popRegisterFromBuffer(*proc, sp, sp);
+
+    return &(proc->nextInstruction(last_instruction));
+}
+
+/**
+ * Constructs moves for calling all global constructors or
+ * destructors, if any.
+ *
+ * @param mi Machine instruction including the inline asm.
+ * @param proc TTA procedure to append moves into.
+ * @param constructors True, if emitting constructors, otherwise 
+ *                     destructors.
+ */
+TTAProgram::Instruction*
+LLVMPOMBuilder::emitGlobalXXtructorCalls(
+    const MachineInstr* /*mi*/, TTAProgram::Procedure* proc,
+    bool constructors) {
+
+    std::string globalName = 
+        constructors ? 
+        ("llvm.global_ctors") : ("llvm.global_dtors");
+    
+    TTAProgram::Instruction* firstInstruction = NULL;
+
+    // find the _llvm.global_Xtors global with the
+    // function pointers and priorities
+
+    for (Module::const_global_iterator i = mod_->global_begin();
+         i != mod_->global_end(); i++) {
+
+        const GlobalVariable* gv = i;
+
+        if (gv->getName() == globalName && gv->use_empty()) {
+            // The initializer should be an array of '{ int, void ()* }' structs.  
+            // The first value is the init priority, which we ignore.
+            ConstantArray* initList = cast<ConstantArray>(gv->getInitializer());
+            for (unsigned i = 0, e = initList->getNumOperands(); i != e; ++i) {
+                if (ConstantStruct* cs = 
+                    dyn_cast<ConstantStruct>(initList->getOperand(i))) {
+                    if (cs->getNumOperands() != 2) return firstInstruction;  // Not array of 2-element structs.
+
+                    if (cs->getOperand(1)->isNullValue())
+                        return firstInstruction;  // Found a null terminator, exit printing.
+                    // Emit the call.
+
+                    TTAProgram::InstructionReference* dummy =
+                        new TTAProgram::InstructionReference(NULL);
+
+                    TTAProgram::TerminalInstructionAddress* xtorRef =
+                        new TTAProgram::TerminalInstructionAddress(
+                            *dummy);
+
+		    GlobalValue* gv =  dynamic_cast<GlobalValue*>(
+			cs->getOperand(1));
+		    assert(gv != NULL&&"global constructor name not constv");
+		    std::string name = mang_->getNameWithPrefix(gv);
+                    codeLabelReferences_[xtorRef] = name; // who deletes xtorRef?
+
+                    CodeGenerator codeGenerator(*mach_, *umach_); 
+                    codeGenerator.addMoveToProcedure(
+                        *proc, xtorRef, 
+                        codeGenerator.createTerminalFUPort("call", 1));
+
+                    if (firstInstruction == NULL)
+                        firstInstruction = &proc->lastInstruction();
+                }
+            }
+            return firstInstruction;
+        }
+    }
+    return NULL;
+}
+
+/**
+ * Constructs moves for ".longjmp"
+ *
+ * @param mi Machine instruction including the inline asm.
+ * @param proc TTA procedure to emit moves into.
+ *
+ * @return First instruction in emitted block.
+ */
+
+TTAProgram::Instruction*
+LLVMPOMBuilder::emitLongjmp(
+    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+
+    if (mi->getNumOperands() != 5) {
+        std::cerr << "ERROR: wrong number of operands in "".longjmp"""
+            << std::endl;
+        assert(false);
+    }
+
+    const MachineOperand& env = mi->getOperand(2);
+    const MachineOperand& val = mi->getOperand(4);
+
+    // Get the stack pointer. It will be used as index into
+    // the buffer.
+    unsigned spDRN = tm_.spDRegNum();
+    TCEString sp = (boost::format("%s.%d") %
+                    tm_.rfName(spDRN) %
+                    tm_.registerIndex(spDRN)).str();
+
+    // We need to know where current procedure ends to
+    // be able to return first generated instruction.
+    TTAProgram::Instruction& last_instruction =
+        proc->lastInstruction();
+
+    CodeGenerator codeGenerator(*mach_, *umach_);
+
+    // First thing we need is to load buffer address in SP.
+    TTAProgram::Terminal* buffer = createTerminal(env);
+    TTAProgram::Terminal* spTerminal =
+        codeGenerator.createTerminalRegister(sp, false);
+
+    codeGenerator.addMoveToProcedure(*proc, buffer, spTerminal);
+
+    // Increment index to jump over the place where SP was
+    // stored.
+    codeGenerator.incrementRegisterAddress(*proc, sp);
+
+    // Jump over RA (will be restored in setjmp tail).
+    codeGenerator.incrementRegisterAddress(*proc, sp);
+
+    // Now save the desired return value.
+    TTAProgram::Terminal* rv = createTerminal(val);
+    codeGenerator.pushToBuffer(*proc, sp, rv);
+
+    // Reload all registers but SP.
+    const TTAMachine::Machine::RegisterFileNavigator nav =
+        mach_->registerFileNavigator();
+
+    for (int i = 0; i < nav.count(); i++) {
+        const TTAMachine::RegisterFile& rf = *nav.item(i);
+        for (int j = 0; j < rf.numberOfRegisters(); j++) {
+            TCEString reg =
+                (boost::format("%s.%d") % rf.name() % j).str();
+            if (reg != sp) {
+                // Using fromStack as I am restoring towards
+                // higher memory addresses.
+                codeGenerator.popRegisterFromStack(*proc, sp, reg);
+            }
+        }
+    }
+
+    // Done, jump to setjmp ending code.
+    codeGenerator.loadFromRegisterAddress(*proc, sp, "RA");
+    codeGenerator.registerJump(*proc, "RA");
+
+    return &(proc->nextInstruction(last_instruction));
 }
 
 /**
@@ -1646,7 +2314,7 @@ LLVMPOMBuilder::result() throw (NotAvailable) {
 
     if (!programReady_) {
         std::string msg = "No result program ready.";
-        throw (NotAvailable(__FILE__, __LINE__, __func__, msg));
+        throw NotAvailable(__FILE__, __LINE__, __func__, msg);
     }
 
     TTAProgram::Program* result = prog_;
@@ -1663,12 +2331,12 @@ LLVMPOMBuilder::result() throw (NotAvailable) {
  */
 TTAProgram::MoveGuard* LLVMPOMBuilder::createGuard(
     const TTAProgram::Terminal* terminal, bool trueOrFalse) {
-    const TTAProgram::TerminalRegister* guardReg = 
+    const TTAProgram::TerminalRegister* guardReg =
         dynamic_cast<const TTAProgram::TerminalRegister*>(terminal);
     if ( guardReg == NULL) {
         return NULL;
     }
-    
+
     Machine::BusNavigator busNav = mach_->busNavigator();
     for (int i = 0; i < busNav.count(); i++) {
         Bus* bus = busNav.item(i);

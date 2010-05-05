@@ -26,7 +26,7 @@
  *
  * Declaration of ProgramAnnotation class.
  *
- * @author Pekka Jï¿½ï¿½skelï¿½inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -83,11 +83,12 @@ public:
         ANN_STACKUSE_BEGIN              = 0x00012000,
         ANN_STACKUSE_OUT_PARAM          = 0x00012010,///<output parameter.
         ANN_STACKUSE_LOCAL_VARIABLE     = 0x00012011,///<local variable
-        ANN_STACKUSE_RA                 = 0x00012012,///<return address port
+        ANN_STACKUSE_RA                 = 0x00012012,///<ra, old frontend
         ANN_STACKUSE_IN_PARAM           = 0x00012013,///<input parameter
         ANN_STACKUSE_SAVED_GPR          = 0x00012014,///<saved GPR
         ANN_STACKUSE_SAVED_FPR          = 0x00012015,///<saved FPR
         ANN_STACKUSE_SPILL              = 0x00012016,///<spilled variable
+        ANN_STACKUSE_RA_SAVE            = 0x00012017,///<ra, new frontend
         ANN_STACKUSE_END                = 0x00012FFF,
         
         ANN_REGISTER_BEGIN              = 0x00020000,
@@ -125,7 +126,38 @@ public:
 
         /// The line number in the source code file the annotated move
         /// originates from
-        ANN_DEBUG_SOURCE_CODE_LINE,
+        ANN_DEBUG_SOURCE_CODE_LINE      = 0x00040001,
+
+
+        /* Moves with this annotation are from an OpenCL work item at
+           the given local ID "offset". The ID does not necessarily map 
+           to real work item local ids, but depends on the work group 
+           loop parallelization level ("warp size") etc. 
+
+           The local ID components are stored to the same integer payload 
+           to make ID comparisons fast and easy:
+
+           (z & 0x0FF) | ((y & 0x0FF) << 8) | ((x & 0x0FF) << 16)
+
+           Thus, the maximum allowed WI "offset" is (255, 255, 255). */
+
+        ANN_OPENCL_WORK_ITEM_ID        =  0x00050000,
+
+        ANN_JUMP_TO_NEXT                = 0x00500001,
+
+        /// An instruction annotated with this annotation is the first
+        /// instruction of a basic block in a loop with the 
+        /// trip count stored in the annotation payload.
+        ANN_LOOP_TRIP_COUNT             = 0x00600000,
+        /// An instruction annotated with this annotation is the first
+        /// instruction of a basic block in an inner loop.
+        ANN_LOOP_INNER,
+
+        /// information retrieved (from LLVM) about a pointer access
+        ANN_POINTER_NAME                = 0x00700000,
+        ANN_POINTER_OFFSET              = 0x00700001,
+        ANN_POINTER_NOALIAS             = 0x00700002,
+        ANN_POINTER_ADDR_SPACE          = 0x00700003,
 
         /// an illegal annotation ID (the id is only 24 bits, this has more
         /// meaningful bits)        
@@ -133,16 +165,24 @@ public:
 
     };
 
-
-
+    ProgramAnnotation(Id id, int value);
     ProgramAnnotation(Id id, const std::string& data = "");
     ProgramAnnotation(Id id, const std::vector<Byte>& payload);
 
-    virtual ~ProgramAnnotation();
+    ~ProgramAnnotation();
+    
+    ProgramAnnotation::Id id() const;
 
-    virtual ProgramAnnotation::Id id() const;
-    virtual std::string stringValue() const;
-    virtual const std::vector<Byte>& payload() const;
+    std::string stringValue() const;
+
+    inline void setStringValue(const std::string& data) {
+        payload_ = std::vector<Byte>(data.begin(), data.end());
+    };
+
+    int intValue() const;
+    void setIntValue(int value);
+
+    const std::vector<Byte>& payload() const;
 private:
     /// the id
     Id id_;

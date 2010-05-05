@@ -46,8 +46,8 @@ namespace TTAProgram {
  * @param ref The instruction this address refers to.
  */
 TerminalInstructionAddress::TerminalInstructionAddress(
-    InstructionReference& ref):
-    TerminalImmediate(SimValue(0, WORD_BITWIDTH)), ref_(&ref) {
+    InstructionReference ref):
+    TerminalImmediate(SimValue(0, WORD_BITWIDTH)), ref_(ref) {
 }
 
 /**
@@ -76,7 +76,7 @@ SimValue
 TerminalInstructionAddress::value() const throw (WrongSubclass) {
     try {
         return SimValue(
-            ref_->instruction().address().location(), WORD_BITWIDTH);
+            ref_.instruction().address().location(), WORD_BITWIDTH);
     } catch (const Exception& e) {
         // Instruction::address() might throw IllegalRegistration in case of
         // a broken program
@@ -91,10 +91,22 @@ TerminalInstructionAddress::value() const throw (WrongSubclass) {
  * @return A reference to the instruction to which the immediate points.
  * @exception WrongSubclass never.
  */
-InstructionReference&
+const InstructionReference&
 TerminalInstructionAddress::instructionReference() const
     throw (WrongSubclass) {
-    return *ref_;
+    return ref_;
+}
+
+/**
+ * Returns a reference to the instruction to which the immediate points.
+ *
+ * @return A reference to the instruction to which the immediate points.
+ * @exception WrongSubclass never.
+ */
+InstructionReference&
+TerminalInstructionAddress::instructionReference()
+    throw (WrongSubclass) {
+    return ref_;
 }
 
 /**
@@ -105,9 +117,8 @@ TerminalInstructionAddress::instructionReference() const
  */
 void
 TerminalInstructionAddress::setInstructionReference(
-    InstructionReference& ref)
-    throw(WrongSubclass) {
-    ref_ = &ref;
+    InstructionReference ref) throw (WrongSubclass) {
+    ref_ = ref;
 }
 
 /**
@@ -117,7 +128,7 @@ TerminalInstructionAddress::setInstructionReference(
  */
 Terminal*
 TerminalInstructionAddress::copy() const {
-    return new TerminalInstructionAddress(*ref_);
+    return new TerminalInstructionAddress(ref_);
 }
 
 /**

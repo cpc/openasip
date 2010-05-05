@@ -27,6 +27,7 @@
  * Declaration of TerminalFUPort class.
  *
  * @author Ari Mets‰halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2008 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -39,6 +40,7 @@
 namespace TTAMachine {
     class HWOperation;
     class BaseFUPort;
+    class FUPort;
 }
 
 namespace TTAProgram {
@@ -52,6 +54,10 @@ namespace TTAProgram {
  */
 class TerminalFUPort : public Terminal {
 public:
+    TerminalFUPort(
+        const TTAMachine::FUPort& opcodeSettingPort, 
+        TTAMachine::HWOperation& opcode);
+
     TerminalFUPort(const TTAMachine::BaseFUPort& port)
         throw (IllegalParameters);
     TerminalFUPort(TTAMachine::HWOperation& operation, int opIndex)

@@ -63,6 +63,38 @@ TerminalFUPort::TerminalFUPort(
 }
 
 /**
+ * Creates a destination that writes to an opcode setting FU port.
+ *
+ * @param opcodeSettingPort The port of the terminal.
+ * @param opcode The operation to trigger.
+ */
+TerminalFUPort::TerminalFUPort(
+    const TTAMachine::FUPort& opcodeSettingPort,
+    TTAMachine::HWOperation& opcode) :
+    port_(opcodeSettingPort), operation_(&opcode), opcode_(NULL) {
+
+    assert(opcodeSettingPort.isOpcodeSetting());
+
+    opIndex_ = opcode.io(opcodeSettingPort);
+
+    static OperationPool pool;
+    // opcode is NullOperation instance if operation for that name was not
+    // found
+    try {
+        opcode_ = &pool.operation(operation_->name().c_str());
+    } catch (const Exception& e) {
+        IllegalParameters ip(
+            __FILE__, __LINE__, __func__, 
+            (boost::format(
+                "Error loading the operation '%s' definition: '%s'.")
+             % operation_->name() % e.errorMessage()).str());
+        ip.setCause(e);
+        throw ip;
+    }
+}
+
+
+/**
  * Constructor.
  *
  * @param operation Operation of terminal.

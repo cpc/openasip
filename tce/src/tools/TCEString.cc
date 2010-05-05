@@ -32,31 +32,37 @@
 #include <string>
 #include "TCEString.hh"
 
-
-/**
- * Default constructor
- */
 TCEString::TCEString() : std::string() {
 }
 
-/**
- * Constructor
- * 
- * @param text text to set
- */
 TCEString::TCEString(const char* text) : std::string(text) {
 }
 
-/**
- * Constructor.
- * 
- * @param text text to set
- */
 TCEString::TCEString(const std::string& text) : std::string(text) {
+}
+TCEString::~TCEString() {
 }
 
 /**
- * Default destructor
+ * Returns true if two strings are equal if the case is not taken into account.
+ *
+ * @param a A string.
+ * @param b Another string.
+ * @return True if strings equal case-insensitively.
  */
-TCEString::~TCEString() {
+bool
+TCEString::ciEqual(const TCEString& other) const {
+    return (lower() == other.lower());
 }
+
+TCEString
+TCEString::lower() const {
+    return StringTools::stringToLower(*this);
+}
+
+
+TCEString
+TCEString::upper() const {
+    return StringTools::stringToUpper(*this);
+}
+

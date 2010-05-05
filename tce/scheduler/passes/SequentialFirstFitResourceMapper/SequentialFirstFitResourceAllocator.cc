@@ -66,6 +66,7 @@ using std::endl;
 #include "ProgramOperation.hh"
 #include "POMDisassembler.hh"
 #include "TCEString.hh"
+#include "InstructionReferenceManager.hh"
                  
 using std::vector;
 using std::list;

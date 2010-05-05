@@ -27,9 +27,11 @@
  * Implementation of InstructionReference class.
  *
  * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Heikki Kultala 2009 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
+#include "InstructionReferenceImpl.hh"
 #include "InstructionReference.hh"
 #include "NullInstruction.hh"
 
@@ -46,33 +48,79 @@ namespace TTAProgram {
  * InstructionReferenceManager.
  * @param ins Referred instruction.
  */
-InstructionReference::InstructionReference(Instruction& ins):
-    ins_(&ins) {
+InstructionReference::InstructionReference(InstructionReferenceImpl* impl):
+    impl_(impl) {
+    if (impl_ != NULL) {
+        impl_->addRef(*this);
+    }
 }
 
 /**
- * Destructor.
+ * Constructor.
+ *
+ * @note Instruction references should be created using
+ * InstructionReferenceManager.
+ * @param ins Referred instruction.
+ */
+InstructionReference::InstructionReference(const InstructionReference& ref):
+    impl_(ref.impl_) {
+    if (impl_ != NULL) {
+        impl_->addRef(*this);
+    }
+}
+
+/**
+ * Assignment operator. 
+ * 
+ * Changes this reference to point to another instruction. Only changes
+ * this reference, not other references pointing to same instruction.
+ */
+InstructionReference& InstructionReference::operator=(
+    const InstructionReference& ref) {
+    // if both point to same instruction, no need to do anything.
+    if (ref.impl_ != impl_) {
+        // stop pointing to old instruction
+        if (impl_ != NULL) {
+            impl_->removeRef(*this);
+        }
+        // pointing to new instruction
+        impl_ = ref.impl_;
+        if (impl_ != NULL) {
+            impl_->addRef(*this);
+        } 
+    }
+    return *this;
+}
+
+
+/**
+ * Destructor. Tells the impl that we are no longer pointing to it.
+ * It may get also deleted if this was the last reference to it.
  */
 InstructionReference::~InstructionReference() {
+    if (impl_ != NULL) {
+        impl_->removeRef(*this);
+    }
 }
 
 /**
  * Sets a new referred instruction.
  *
  * @param ins New referred instruction.
- * @exception IllegalParameters if the instruction is a null instruction.
+ * @return true if old impl stays alive, false if it is deleted.
  */
-void
-InstructionReference::setInstruction(Instruction& ins)
-    throw (IllegalParameters) {
-
-    if (&ins != &NullInstruction::instance()) {
-        ins_ = &ins;
-    } else {
-        throw IllegalParameters(
-            __FILE__, __LINE__, "InstructionReference::setInstruction()",
-            "Cannot refer to a null instruction.");
+bool
+InstructionReference::setImpl(InstructionReferenceImpl* newImpl) {
+    bool staysAlive = true;
+    assert(newImpl != impl_);
+    if (impl_ != NULL) {
+        staysAlive = impl_->removeRef(*this);
     }
+    impl_ = newImpl;
+    if (impl_ != NULL) {
+        impl_->addRef(*this);
+    }
+    return staysAlive;
 }
 
 /**
@@ -82,7 +130,11 @@ InstructionReference::setInstruction(Instruction& ins)
  */
 Instruction&
 InstructionReference::instruction() const {
-    return *ins_;
+    if (impl_ == NULL) {
+        return NullInstruction::instance();
+    } else {
+        return impl_->instruction();
+    }
 }
 
 }

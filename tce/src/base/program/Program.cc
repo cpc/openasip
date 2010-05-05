@@ -42,6 +42,7 @@
 #include "TerminalAddress.hh"
 #include "Move.hh"
 #include "InstructionReference.hh"
+#include "InstructionReferenceManager.hh"
 #include "NullProgram.hh"
 #include "AddressSpace.hh"
 #include "DataMemory.hh"
@@ -83,7 +84,7 @@ namespace TTAProgram {
  * @param space The address space of the program.
  */
 Program::Program(const AddressSpace& space):
-    start_(0, space), entry_(0, space) {
+    start_(0, space), entry_(0, space), umach_(NULL) {
     globalScope_ = new GlobalScope();
     refManager_ = new InstructionReferenceManager();
 }
@@ -97,7 +98,7 @@ Program::Program(const AddressSpace& space):
  * @param start The start address of the program.
  */
 Program::Program(const AddressSpace& space, Address start):
-    start_(start), entry_(0, space) {
+    start_(start), entry_(0, space), umach_(NULL) {
     globalScope_ = new GlobalScope();
     refManager_ = new InstructionReferenceManager();
 }
@@ -114,7 +115,7 @@ Program::Program(const AddressSpace& space, Address start):
  */
 Program::Program(
     const AddressSpace&, Address start, Address entry):
-    start_(start), entry_(entry) {
+    start_(start), entry_(entry), umach_(NULL) {
     globalScope_ = new GlobalScope();
     refManager_ = new InstructionReferenceManager();
 }
@@ -128,6 +129,8 @@ Program::~Program() {
     globalScope_ = NULL;
     delete refManager_;
     refManager_ = NULL;
+    delete umach_;
+    umach_ = NULL;
 }
 
 /**
@@ -465,6 +468,7 @@ Program::moveAt(int number) const throw (KeyNotFound) {
 
 /**
  * Returns the total count of moves used in the program
+ *
  * @return the total count of moves used in the program
  */
 int 
@@ -635,6 +639,21 @@ Program::procedure(const std::string& name) const
 }
 
 /**
+ * Returns true in case the program has a procedure with the given name.
+ */
+bool
+Program::hasProcedure(const std::string& name) const {
+    ProcList::const_iterator i = procedures_.begin();
+    while (i != procedures_.end()) {
+        if ((*i)->name() == name) {
+            return true;
+        }
+        ++i;
+    }
+    return false;
+}
+
+/**
  * Return the instruction reference manager.
  */
 InstructionReferenceManager&
@@ -713,6 +732,7 @@ Program::copyFrom(const Program& source) {
     delete globalScope_;
     globalScope_ = dynamic_cast<GlobalScope*>(
         source.globalScopeConst().copyAndRelocate(*this));
+
 }
 
 /**
@@ -737,7 +757,7 @@ Program::fixInstructionReferences() {
                     Instruction& newRefIns =
                         instructionAt(oldRefIns.address().location());
                     
-                    InstructionReference& newRef =
+                    InstructionReference newRef =
                         instructionReferenceManager().createReference(
                             newRefIns);
                     source.setInstructionReference(newRef);
@@ -754,7 +774,7 @@ Program::fixInstructionReferences() {
                     Instruction& newRefIns =
                         instructionAt(oldRefIns.address().location());
                     
-                    InstructionReference& newRef =
+                    InstructionReference newRef =
                         instructionReferenceManager().createReference(
                             newRefIns);
                     value.setInstructionReference(newRef);
@@ -789,7 +809,7 @@ Program::copyDataMemoriesFrom(const Program& srcProg) {
                 Instruction& dstInstr = instructionAt(
                     currDef.destinationAddress().location());
                 
-                InstructionReference& dstRef = 
+                InstructionReference dstRef = 
                     instructionReferenceManager().createReference(
                         dstInstr);
                 
@@ -1011,15 +1031,13 @@ Program::replaceUniversalAddressSpaces(const TTAMachine::AddressSpace& space) {
  *
  * @param tpefFileName The file name of the TPEF.
  * @param theMachine The target machine.
- * @param umach The universal machine for the unscheduled parts.
  * @return Created program.
  * @exception Exception if the TPEF or program in it is somehow broken.
  */
 Program*
-Program::loadFromTPEF(
+Program::loadFromUnscheduledTPEF(
     const std::string& tpefFileName,
-    const TTAMachine::Machine& theMachine,
-    const UniversalMachine& umach) 
+    const TTAMachine::Machine& theMachine) 
     throw (Exception) {
 
     TPEF::BinaryStream binaryStream(tpefFileName);
@@ -1033,7 +1051,8 @@ Program::loadFromTPEF(
     }
 
     // convert the loaded TPEF to POM
-    TTAProgram::TPEFProgramFactory factory(*tpef, theMachine, umach);
+    TTAProgram::TPEFProgramFactory factory(
+        *tpef, theMachine, new UniversalMachine());
     Program* prog = factory.build();
     delete tpef;
     tpef = NULL;
@@ -1074,17 +1093,16 @@ Program::loadFromTPEF(
 
 
 /**
- * A shortcut for loading a sequential program from a TPEF file.
+ * A shortcut for loading a sequential program (from the old gcc 2.7.0
+ * frontend) from a TPEF file.
  *
  * @param tpefFileName The file name of the TPEF.
- * @param umach The universal machine for the unscheduled parts.
+ * @param umach The universal machine for the unscheduled parts. 
  * @return Created program.
  * @exception Exception if the TPEF or program in it is somehow broken.
  */
 Program*
-Program::loadFromTPEF(
-    const std::string& tpefFileName,
-    const UniversalMachine& umach) 
+Program::loadFromUnscheduledTPEF(const std::string& tpefFileName) 
     throw (Exception) {
 
     TPEF::BinaryStream binaryStream(tpefFileName);
@@ -1098,7 +1116,7 @@ Program::loadFromTPEF(
     }
 
     // convert the loaded TPEF to POM
-    TTAProgram::TPEFProgramFactory factory(*tpef, umach);
+    TTAProgram::TPEFProgramFactory factory(*tpef, new UniversalMachine());
     Program* prog = factory.build();
     delete tpef;
     tpef = NULL;
@@ -1134,6 +1152,22 @@ Program::writeToTPEF(
 
 
 /**
+ * Returns the UniversalMachine instance used to refer in 
+ * unscheduled/unassigned parts of the program.
+ *
+ * The program owns the UniversalMachine instance. In case there was
+ * no UniversalMachine associated with the program yet, it is created
+ * and returned.
+ */
+UniversalMachine& 
+Program::universalMachine() const {
+    if (umach_ == NULL) {
+        umach_ = new UniversalMachine();
+    }
+    return *umach_;
+}
+
+/**
  * Returns all Instructions in the program as random accessible vector.
  *
  * The returned vector can be used for faster traversal of the program's
@@ -1157,3 +1191,4 @@ Program::instructionVector() const {
 }
 
 } // namespace TTAProgram
+

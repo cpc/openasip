@@ -53,6 +53,7 @@
 #include "UniversalMachine.hh"
 #include "Instruction.hh"
 #include "InstructionReference.hh"
+#include "InstructionReferenceManager.hh"
 #include "BasicBlock.hh"
 #include "ControlFlowGraphPass.hh"
 #include "RegisterCopyAdder.hh"

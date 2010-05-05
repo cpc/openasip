@@ -9,13 +9,13 @@ ttasim=../../../../../tce/src/codesign/ttasim/ttasim
 $tcecc -O0 -a $soft_float_adf -o $tpef data/test_sqrt.c
 $ttasim -p $tpef -a $soft_float_adf -e "run; quit;"
 # There should be no calls to sqrtf operations, of course.
-$tcedisasm $soft_float_adf $tpef | grep -ic t.sqrtf
+$tcedisasm -s $soft_float_adf $tpef | grep -ic t.sqrtf
 
 $tcecc -O0 -a $hw_sqrt_adf -o $tpef data/test_sqrt.c
 $ttasim -p $tpef -a $hw_sqrt_adf -e "run; quit;"
 
 # There should be two calls to sqrtf.
-$tcedisasm $hw_sqrt_adf $tpef | grep -ic t.sqrtf
+$tcedisasm -s $hw_sqrt_adf $tpef | grep -ic t.sqrtf
 
 
 rm -f $tpef

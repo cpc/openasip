@@ -30,7 +30,9 @@
  * @note rating: red
  */
 
+#include <string>
 #include "ProgramAnnotation.hh"
+#include "Conversion.hh"
 
 namespace TTAProgram {
 
@@ -46,7 +48,12 @@ namespace TTAProgram {
  */
 ProgramAnnotation::ProgramAnnotation(Id id, const std::string& data) :
     id_(id) {
-    payload_ = std::vector<Byte>(data.begin(), data.end());
+    setStringValue(data);
+}
+
+ProgramAnnotation::ProgramAnnotation(Id id, int value) :
+    id_(id) {
+    setIntValue(value);
 }
 
 /**
@@ -74,6 +81,17 @@ ProgramAnnotation::~ProgramAnnotation() {
 std::string
 ProgramAnnotation::stringValue() const {
     return std::string(payload_.begin(), payload_.end());
+}
+
+int
+ProgramAnnotation::intValue() const {
+    return Conversion::toInt(stringValue());
+}
+
+void
+ProgramAnnotation::setIntValue(int value) {
+    std::string data = Conversion::toString(value);
+    payload_ = std::vector<Byte>(data.begin(), data.end());
 }
 
 /**

@@ -1,4 +1,4 @@
-SUBDIRS = Interpreter Simulator osal TraceDB Disassembler \
+SUBDIRS = Interpreter Simulator osal TraceDB \
 bem PIG Assembler hdb Scheduler Estimator ProGe EPSGenerator mach idf \
 costdb program FSA Explorer dsdb  LLVMBackend ImplementationTester
 
@@ -7,7 +7,6 @@ noinst_LTLIBRARIES = libapplibs.la
 libapplibs_la_SOURCES = 
 libapplibs_la_LIBADD = \
 	Assembler/libassembler.la \
-	Disassembler/libdisassembler.la \
 	Interpreter/libinterpreter.la \
 	Simulator/libsimulator.la \
 	TraceDB/libtracedb.la \

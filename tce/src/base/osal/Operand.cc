@@ -49,6 +49,7 @@ using std::set;
 const string Operand::OPRND_ID = "id";
 const string Operand::OPRND_TYPE = "type";
 const string Operand::OPRND_MEM_ADDRESS = "mem-address";
+const string Operand::OPRND_MEM_UNITS = "mem-units";
 const string Operand::OPRND_MEM_DATA = "mem-data";
 const string Operand::OPRND_CAN_SWAP = "can-swap";
 const string Operand::OPRND_IN = "in";
@@ -65,7 +66,7 @@ const std::string Operand::UNKNOWN_TYPE_STRING = "InvalidValue";
  */
 Operand::Operand(bool isInput) : 
     Serializable(), index_(0), isInput_(isInput), type_(SINT_WORD),
-    isAddress_(false), isMemoryData_(false) {
+    isAddress_(false), addressUnits_(0), isMemoryData_(false) {
 }
 
 /**
@@ -75,7 +76,7 @@ Operand::Operand(bool isInput) :
  */ 
 Operand::Operand(bool isInput, int index, OperandType type) : 
     Serializable(), index_(index), isInput_(isInput), type_(type),
-    isAddress_(false), isMemoryData_(false) {
+    isAddress_(false), addressUnits_(0), isMemoryData_(false) {
 }
 
 /**
@@ -86,7 +87,8 @@ Operand::Operand(bool isInput, int index, OperandType type) :
 Operand::Operand(const Operand& op) : 
     Serializable(), index_(op.index()), isInput_(op.isInput()),
     type_(op.type()), isAddress_(op.isAddress()), 
-    isMemoryData_(op.isMemoryData()), swap_(op.swap()) {
+    addressUnits_(op.addressUnits_), isMemoryData_(op.isMemoryData()),
+    swap_(op.swap()) {
 }
 
 /**
@@ -187,6 +189,19 @@ Operand::isAddress() const {
 }
 
 /**
+ * Returns the count of MAU's which this operand addresses.
+ *
+ * returns 0 if the operand is not a memory address,
+ * or the size of the memory access int MAU's this operation accesses.
+ *
+ * @return count of MAUs addressed by this operand.
+ */
+int
+Operand::memoryUnits() const {
+    return addressUnits_;
+}
+
+/**
  * Returns true if Operand is memory data.
  *
  * @return True if Operand is memory data, false otherwise.
@@ -250,14 +265,18 @@ Operand::loadState(const ObjectState* state)
     
         isAddress_ = state->boolAttribute(OPRND_MEM_ADDRESS);
         isMemoryData_ = state->boolAttribute(OPRND_MEM_DATA);
-     
+
+        if (state->hasAttribute(OPRND_MEM_UNITS)) {
+            addressUnits_ = state->intAttribute(OPRND_MEM_UNITS);
+        }
+
         if (state->childCount() > 1) {
             string msg = "Erronous number of children";
             throw Exception(__FILE__, __LINE__, method, msg);
         }
-
-        if (state->childCount() == 1) {
-            ObjectState* child = state->child(0);
+     
+        for (int j = 0; j < state->childCount(); j++) {
+            ObjectState* child = state->child(j);
             if (child->name() == OPRND_CAN_SWAP) {
                 for (int i = 0; i < child->childCount(); i++) {
                     ObjectState* canSwap = child->child(i);
@@ -331,7 +350,10 @@ Operand::saveState() const {
     
     root->setAttribute(OPRND_MEM_ADDRESS, isAddress_);
     root->setAttribute(OPRND_MEM_DATA, isMemoryData_);
-       
+    if (addressUnits_ != 0) {
+        root->setAttribute(OPRND_MEM_UNITS, addressUnits_);
+    }
+
     if (swap_.size() > 0) {
         ObjectState* canSwap = new ObjectState(OPRND_CAN_SWAP);
         set<int>::const_iterator it = swap_.begin();

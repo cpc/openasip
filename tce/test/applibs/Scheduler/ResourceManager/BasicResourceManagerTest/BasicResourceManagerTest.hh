@@ -127,8 +127,6 @@ void
 BasicResourceManagerTest::testMissingConnection() {
 
     try{
-    /// Universal Machine for the unscheduled part.
-        UniversalMachine umach_;
 
         /// The tested input program with registers allocated.
         TTAProgram::Program* srcProgram = NULL;
@@ -142,9 +140,9 @@ BasicResourceManagerTest::testMissingConnection() {
 
         CATCH_ANY(
             srcProgram =
-            TTAProgram::Program::loadFromTPEF(
+            TTAProgram::Program::loadFromUnscheduledTPEF(
                 "data/arrmul_reg_allocated_10_disconnected.tpef",
-                *targetMachine, umach_));
+                *targetMachine));
 
         TTAProgram::Procedure& procedure = srcProgram->procedure(0);
         ControlFlowGraph cfg(procedure);
@@ -193,9 +191,6 @@ BasicResourceManagerTest::testBasicFunctionality() {
     selector.notifyScheduled(moves.node(X__));
 
         try {
-        /// Universal Machine for the unscheduled part.
-        UniversalMachine umach_;
-
         /// The tested input program with registers allocated.
         TTAProgram::Program* srcProgram = NULL;
         /// Target machine to schedule the program for.
@@ -208,9 +203,9 @@ BasicResourceManagerTest::testBasicFunctionality() {
 
         CATCH_ANY(
             srcProgram =
-            TTAProgram::Program::loadFromTPEF(
+            TTAProgram::Program::loadFromUnscheduledTPEF(
                 "data/arrmul_reg_allocated_10_bus.tpef",
-                *targetMachine, umach_));
+                *targetMachine));
 
         TTAProgram::Procedure& procedure = srcProgram->procedure(0);
 
@@ -328,9 +323,6 @@ BasicResourceManagerTest::wholeProgramAssignment(
     const std::string& tpef) {
     
     try {
-        /// Universal Machine for the unscheduled part.
-        UniversalMachine umach_;
-
         /// The tested input program with registers allocated.
         TTAProgram::Program* srcProgram = NULL;
         /// Target machine to schedule the program for.
@@ -342,8 +334,8 @@ BasicResourceManagerTest::wholeProgramAssignment(
 
         CATCH_ANY(
             srcProgram =
-            TTAProgram::Program::loadFromTPEF(
-                tpef, *targetMachine, umach_));
+            TTAProgram::Program::loadFromUnscheduledTPEF(
+                tpef, *targetMachine));
 
         int j = 0;
         int minCycle=0;
@@ -416,9 +408,6 @@ BasicResourceManagerTest::wholeProgramAssignment(
 void
 BasicResourceManagerTest::testRestorationOfResources() {
     
-    /// Universal Machine for the unscheduled part.
-    UniversalMachine umach_;
-
     /// The tested input program with registers allocated.
     TTAProgram::Program* srcProgram = NULL;
     /// Target machine to schedule the program for.
@@ -431,9 +420,9 @@ BasicResourceManagerTest::testRestorationOfResources() {
 
     CATCH_ANY(
         srcProgram =
-        TTAProgram::Program::loadFromTPEF(
+        TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.tpef",
-            *targetMachine, umach_));
+            *targetMachine));
 
     TTAProgram::Procedure& procedure = srcProgram->procedure(0);
 
@@ -570,8 +559,6 @@ BasicResourceManagerTest::testLongImmediates() {
     
     /// Universal Machine for the unscheduled part.
     try{
-        UniversalMachine umach_;
-
         /// The tested input program with registers allocated.
         TTAProgram::Program* srcProgram = NULL;
         /// Target machine to schedule the program for.
@@ -584,9 +571,9 @@ BasicResourceManagerTest::testLongImmediates() {
 
         CATCH_ANY(
             srcProgram =
-            TTAProgram::Program::loadFromTPEF(
+            TTAProgram::Program::loadFromUnscheduledTPEF(
                 "data/arrmul_reg_allocated_10_bus.tpef",
-                *targetMachine, umach_));
+                *targetMachine));
 
         TTAProgram::Procedure& procedure = srcProgram->procedure(0);
 
@@ -673,8 +660,6 @@ void
 BasicResourceManagerTest::testWAWEarliestLatestCycle() {
     
     try{
-        UniversalMachine umach_;
-
         /// The tested input program with registers allocated.
         TTAProgram::Program* srcProgram = NULL;
         /// Target machine to schedule the program for.
@@ -685,9 +670,9 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
                     "data/10_bus_full_connectivity.adf"));
         CATCH_ANY(
             srcProgram =
-                TTAProgram::Program::loadFromTPEF(
+                TTAProgram::Program::loadFromUnscheduledTPEF(
                     "data/arrmul_reg_allocated_10_bus.tpef",
-                    *targetMachine, umach_));
+                    *targetMachine));
         TTAProgram::Procedure& procedure = srcProgram->procedure(0);
         ControlFlowGraph* cfg = new ControlFlowGraph(procedure);
 
@@ -943,8 +928,6 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
 void
 BasicResourceManagerTest::testMULConflict() {
 
-    UniversalMachine umach_;
-    
     /// The tested input program with registers allocated.
     TTAProgram::Program* srcProgram = NULL;
     /// Target machine to schedule the program for.
@@ -957,9 +940,9 @@ BasicResourceManagerTest::testMULConflict() {
     
     CATCH_ANY(
         srcProgram =
-        TTAProgram::Program::loadFromTPEF(
+        TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.tpef",
-             *targetMachine, umach_));
+             *targetMachine));
     
     TTAProgram::Procedure& procedure = srcProgram->procedure(1);
     ControlFlowGraph cfg(procedure);
@@ -1021,8 +1004,6 @@ BasicResourceManagerTest::testMULConflict() {
 void
 BasicResourceManagerTest::testLIMMPSocketReads() {
 
-    UniversalMachine umach;
-
     /// The tested input program with registers allocated.
     TTAProgram::Program* srcProgram = NULL;
     /// Target machine to schedule the program for.
@@ -1035,9 +1016,9 @@ BasicResourceManagerTest::testLIMMPSocketReads() {
     
     CATCH_ANY(
         srcProgram =
-        TTAProgram::Program::loadFromTPEF(
+        TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.tpef",
-             *targetMachine, umach));
+             *targetMachine));
     
     TTAProgram::Procedure& procedure = srcProgram->procedure(0);
     ControlFlowGraph cfg(procedure);

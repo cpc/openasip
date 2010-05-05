@@ -74,7 +74,6 @@
 #include "UDataSection.hh"
 #include "DataSection.hh"
 #include "NullInstruction.hh"
-#include "NullMove.hh"
 #include "Chunk.hh"
 #include "InstructionReference.hh"
 #include "TPEFTools.hh"
@@ -956,8 +955,6 @@ ProgramWriter::createCodeSection(
                 tpefMove->setBus(updater.bus(progMove.bus()).id());
                 tpefMove->setEmpty(false);
 
-                assert(&progMove != &NullMove::instance());
-
                 // add the possible move annotations
                 if (progMove.hasAnnotations()) {
                     for (int annotationIndex = 0; 
@@ -1025,14 +1022,8 @@ ProgramWriter::createCodeSection(
 
                         int requiredBits = 0;
                         int fieldWidth = progMove.bus().immediateWidth();
-                        
-                        if (progMove.source().isInstructionAddress()) {
-                            // program writer can't check if an instruction
-                            // address immediate fits the bus, since it doesn't
-                            // know about the final addresses after code
-                            // compression etc.
-                            requiredBits = 1;
-                        } else if (progMove.bus().signExtends()) {
+
+			if (progMove.bus().signExtends()) {
                             requiredBits = MathTools::requiredBitsSigned(uvalue);
                         } else {
                             requiredBits = MathTools::requiredBits(uvalue);

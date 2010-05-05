@@ -85,7 +85,7 @@ private:
     /// Port of the unit.
     const TTAMachine::Port& port_;
     /// Index of the register of the register file or immediate unit.
-    int index_;
+    short index_;
     /// Unit type flag: true if immediate unit, false if register file.
     bool isImmUnit_;
 };

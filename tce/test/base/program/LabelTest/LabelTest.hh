@@ -40,6 +40,7 @@
 #include "DataLabel.hh"
 #include "CodeLabel.hh"
 #include "AddressSpace.hh"
+#include "InstructionReference.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -92,7 +93,7 @@ LabelTest::testLabels() {
     const string CODE_1_NAME = "code1";
 
     Instruction* badIns = new Instruction();
-    InstructionReference& badInsRef =
+    InstructionReference badInsRef =
         program.instructionReferenceManager().createReference(*badIns);
 
     TS_ASSERT_THROWS(
@@ -104,7 +105,7 @@ LabelTest::testLabels() {
     program.addProcedure(proc);
     Instruction* ins = new Instruction();
     program.addInstruction(ins);
-    InstructionReference& insRef =
+    InstructionReference insRef =
         program.instructionReferenceManager().createReference(*ins);
 
     TS_ASSERT_THROWS_NOTHING(CodeLabel testCode(insRef, CODE_1_NAME));

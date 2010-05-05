@@ -217,7 +217,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
                         (*nextBBs.begin())->basicBlock().instructionCount()
                         != 0);
                     
-                    InstructionReference& ir = irm.createReference(
+                    InstructionReference ir = irm.createReference(
                         (*nextBBs.begin())->basicBlock().instructionAtIndex(
                             0));
                     if (jumpImm == NULL) {
@@ -226,7 +226,7 @@ void CopyingDelaySlotFiller::fillDelaySlots(
                         jumpImm->setValue(new TerminalInstructionAddress(ir));
                     }
                 } else {
-                    InstructionReference& ir = irm.createReference(
+                    InstructionReference ir = irm.createReference(
                         nextBBN.basicBlock().instructionAtIndex(slotsFilled));
                     
                     if (jumpImm == NULL) {

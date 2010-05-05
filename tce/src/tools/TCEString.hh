@@ -38,7 +38,7 @@
 /**
  * A simple wrapper around std::string to make forward declarations possible.
  * 
- * Also used if TCE needs a special string class some nice day.
+ * Also provides additional string helpers.
  */
 class TCEString : public std::string {
 public:
@@ -46,7 +46,17 @@ public:
     TCEString(const char* text);
     TCEString(const std::string& text);
     virtual ~TCEString();
+
+    void replaceString(const std::string& old, const std::string& newString);
+    bool startsWith(const std::string& str) const;
+    bool ciEqual(const TCEString& other) const;
+
+    TCEString lower() const;
+    TCEString upper() const;
+
 private:
 };
+
+#include "TCEString.icc"
 
 #endif

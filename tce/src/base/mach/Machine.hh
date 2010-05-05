@@ -84,6 +84,8 @@ public:
     Machine(const Machine& old);
     virtual ~Machine();
 
+    virtual bool isUniversalMachine() const;
+
     virtual void addBus(Bus& bus)
         throw (ComponentAlreadyExists);
     virtual void addSocket(Socket& socket)

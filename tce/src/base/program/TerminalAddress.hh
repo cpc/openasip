@@ -44,7 +44,7 @@ namespace TTAMachine {
 namespace TTAProgram {
 
 /**
- * Represents an inline immediate that refers to an address.
+ * Represents an inline immediate that refers to a data address.
  */
 class TerminalAddress : public TerminalImmediate {
 public:

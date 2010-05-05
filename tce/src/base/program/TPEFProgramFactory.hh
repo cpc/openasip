@@ -68,13 +68,17 @@ class TPEFProgramFactory {
 
 public:
     TPEFProgramFactory(
-        const TPEF::Binary &aBinary,
-        const TTAMachine::Machine &aMachine,
-        const UniversalMachine &aUniversalMachine);
+        const TPEF::Binary& aBinary,
+        const TTAMachine::Machine& aMachine,
+        UniversalMachine* aUniversalMachine);
     
     TPEFProgramFactory(
         const TPEF::Binary &aBinary,
-        const TTAMachine::Machine &aMachine);
+        const TTAMachine::Machine& aMachine);
+
+    TPEFProgramFactory(
+        const TPEF::Binary &aBinary,
+        UniversalMachine* aMachine);
     
     virtual ~TPEFProgramFactory();
 
@@ -252,7 +256,7 @@ private:
     /// Target machine of program.
     const TTAMachine::Machine* machine_;
     /// Universal machine of program.
-    const UniversalMachine* universalMachine_;
+    UniversalMachine* universalMachine_;
 
     /// TPEFTools object for helper functions.
     TPEF::TPEFTools tpefTools_;

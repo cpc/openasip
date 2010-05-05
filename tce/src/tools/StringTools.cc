@@ -142,20 +142,21 @@ StringTools::endsWith(
  */
 string
 StringTools::stringToUpper(const std::string& source) {
-    string upString = source;
-    for (unsigned int i = 0; i < upString.length(); ++i) {
-        upString[i] = toupper(upString[i]);
-        switch (upString[i]) {
+    string upString;
+    upString.reserve(source.length());
+    for (unsigned int i = 0; i < source.length(); ++i) {
+        switch (source[i]) {
         case 'ö':
-            upString[i] = 'Ö';
+            upString.push_back('Ö');
             break;
         case 'ä':
-            upString[i] = 'Ä';
+            upString.push_back('Ä');
             break;
         case 'å':
-            upString[i] = 'Å';
+            upString.push_back('Å');
             break;
         default:
+            upString.push_back(toupper(source[i]));
             break;
         }
     }
@@ -172,20 +173,21 @@ StringTools::stringToUpper(const std::string& source) {
 string
 StringTools::stringToLower(const std::string& source) {
 
-    string lowString = source;
-    for (unsigned int i = 0; i < lowString.length(); ++i) {
-        lowString[i] = tolower(lowString[i]);
-        switch (lowString[i]) {
+    string lowString;
+    lowString.reserve(source.length());
+    for (unsigned int i = 0; i < source.length(); ++i) {
+        switch (source[i]) {
         case 'Ö':
-            lowString[i] = 'ö';
+            lowString.push_back('ö');
             break;
         case 'Ä':
-            lowString[i] = 'ä';
+            lowString.push_back('ä');
             break;
         case 'Å':
-            lowString[i] = 'å';
+            lowString.push_back('å');
             break;
         default:
+            lowString.push_back(tolower(source[i]));
             break;
         }
     }

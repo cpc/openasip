@@ -253,8 +253,7 @@ protected:
 
     void initializeTracing() 
         throw (IOException);
-    void initializeDataMemories()
-        throw (IllegalProgram);
+    void initializeDataMemories();
     void initializeDisassembler() const;
     bool hasStopReason(StopReason reason) const;
 

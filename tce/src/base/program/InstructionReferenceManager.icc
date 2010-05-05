@@ -44,28 +44,9 @@ InstructionReferenceManager::Iterator::operator++() {
  * Overloaded pointer reference operator.
  * Gets the InstructionReference this iterator points to.
  */
-InstructionReference& 
-InstructionReferenceManager::Iterator::operator*() { 
-    return *iter_->second; 
-}
-
-/**
- * Overloaded pointer reference operator.
- * Gets the InstructionReference this iterator points to.
- */
 const InstructionReference& 
 InstructionReferenceManager::Iterator::operator*() const { 
-    return *iter_->second; 
-}
-
-/**
- * Overloaded arrow operator.
- *
- * Gets the InstructionReference this iterator points to.
- */
-InstructionReference*
-InstructionReferenceManager::Iterator::operator->() { 
-    return iter_->second; 
+    return iter_->second->ref();
 }
 
 /**
@@ -75,7 +56,7 @@ InstructionReferenceManager::Iterator::operator->() {
  */
 const InstructionReference*
 InstructionReferenceManager::Iterator::operator->() const { 
-    return iter_->second; 
+    return &iter_->second->ref();
 }
 
 /**
@@ -120,3 +101,4 @@ InstructionReferenceManager::Iterator
 InstructionReferenceManager::end() {
     return Iterator(references_.end());
 }
+

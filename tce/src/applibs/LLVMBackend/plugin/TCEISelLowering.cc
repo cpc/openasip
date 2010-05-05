@@ -53,6 +53,7 @@
 #include "TCETargetMachine.hh"
 #include "TCETargetObjectFile.hh"
 #include "TCESubtarget.hh"
+#include "Application.hh"
 #include "TCEISelLowering.hh"
 #include "tce_config.h"
 
@@ -272,7 +273,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   
     SmallVector<SDValue, 8> MemOpChains;
    
-  unsigned ArgOffset = 0;
+    unsigned ArgOffset = 0;
 
   for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
     SDValue Val = Outs[i].Val;
@@ -359,7 +360,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
   // Copy all of the result registers out of their specified physreg.
   for (unsigned i = 0; i != RVLocs.size(); ++i) {
-    unsigned Reg = RVLocs[i].getLocReg();
+      unsigned Reg = RVLocs[i].getLocReg();
    
     Chain = DAG.getCopyFromReg(Chain, dl, Reg,
                                RVLocs[i].getValVT(), InFlag).getValue(1);
@@ -462,30 +463,36 @@ TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
     std::set<std::pair<unsigned, llvm::MVT::SimpleValueType> >::const_iterator 
         iter = missingOps->begin();
 
-    std::cerr << "Missing ops: ";
+    if (Application::verboseLevel() > 0) {
+        Application::logStream() << "Missing ops: ";
+    }
 
     while (iter != missingOps->end()) {
-      unsigned nodetype = (*iter).first;
-      llvm::MVT::SimpleValueType valuetype = (*iter).second;
-      switch (nodetype) {
-      case ISD::SDIV: std::cerr << "SDIV,"; break;
-      case ISD::UDIV: std::cerr << "UDIV,"; break;
-      case ISD::SREM: std::cerr << "SREM,"; break;
-      case ISD::UREM: std::cerr << "UREM,"; break;
-      case ISD::ROTL: std::cerr << "ROTL,"; break;
-      case ISD::ROTR: std::cerr << "ROTR,"; break;
-      case ISD::MUL:  std::cerr << "MUL,"; break;
-      case ISD::SIGN_EXTEND_INREG:
-          if (valuetype == MVT::i8) std::cerr << "SXQW,";
-          if (valuetype == MVT::i16) std::cerr << "SXHW,";
-          break;
-      default: std::cerr << nodetype << ", "; break;
-      };
-      setOperationAction(nodetype, valuetype, Expand);
-      iter++;
+        unsigned nodetype = (*iter).first;
+        llvm::MVT::SimpleValueType valuetype = (*iter).second;
+        if (Application::verboseLevel() > 0) {
+            switch (nodetype) {
+            case ISD::SDIV: std::cerr << "SDIV,"; break;
+            case ISD::UDIV: std::cerr << "UDIV,"; break;
+            case ISD::SREM: std::cerr << "SREM,"; break;
+            case ISD::UREM: std::cerr << "UREM,"; break;
+            case ISD::ROTL: std::cerr << "ROTL,"; break;
+            case ISD::ROTR: std::cerr << "ROTR,"; break;
+            case ISD::MUL:  std::cerr << "MUL,"; break;
+            case ISD::SIGN_EXTEND_INREG:
+                if (valuetype == MVT::i8) std::cerr << "SXQW,";
+                if (valuetype == MVT::i16) std::cerr << "SXHW,";
+                break;
+            default: std::cerr << nodetype << ", "; break;
+            };
+        }
+        setOperationAction(nodetype, valuetype, Expand);
+        iter++;
     }
-    std::cerr << std::endl;
 
+    if (Application::verboseLevel() > 0) {
+        std::cerr << std::endl;
+    }
     computeRegisterProperties();
 }
 

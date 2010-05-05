@@ -56,6 +56,7 @@
 #include "TCEString.hh"
 #include "Operand.hh"
 #include "Application.hh"
+#include "LLVMBackend.hh" // llvmRequiredOps..
 
 // SP, RES, KLUDGE, 2 GPRs?
 unsigned const TDGen::REQUIRED_I32_REGS = 5;
@@ -89,7 +90,9 @@ TDGen::generateBackend(std::string& path) throw (Exception) {
     std::ofstream instrTD;
     instrTD.open((path + "/GenInstrInfo.td").c_str());
     writeInstrInfo(instrTD);
-    //writeInstrInfo(std::cerr);
+#ifdef DEBUG_TDGEN
+    writeInstrInfo(std::cerr);
+#endif
     instrTD.close();
 
     std::ofstream pluginInc;
@@ -120,8 +123,7 @@ TDGen::writeRegisterDef(
     const std::string regName,
     const std::string regTemplate,
     const std::string aliases,
-    RegType type
-    ) {
+    RegType type) {
 
     o << "def " << regName << " : " << regTemplate
       << "<\"" << reg.rf << "." << reg.idx
@@ -153,7 +155,8 @@ TDGen::writeRegisterDef(
  * @return True, if the definitions were succesfully generated.
  */
 bool
-TDGen::writeRegisterInfo(std::ostream& o) throw (Exception) {
+TDGen::writeRegisterInfo(std::ostream& o) 
+    throw (Exception) {
 
     analyzeRegisters();
 
@@ -309,7 +312,7 @@ TDGen::analyzeRegisters() {
 
             int lastIdx = rf->size();
             // todo: find a good solution to use just one big rf for this.
-            if (!fullyConnected_&& width >1) {
+            if (!fullyConnected_ && width > 1) {
                 // If the machine is not fully connected,
                 // preserve last register
                 // of all registers for bypassing values.
@@ -317,7 +320,7 @@ TDGen::analyzeRegisters() {
             }
 
             if (currentIdx < lastIdx) {
-                RegInfo reg = { rf->name(), currentIdx };
+                RegInfo reg = {rf->name(), currentIdx};
                 if (width != 1) {
                     // if has guard, set as 1-bit reg
                     if (guardedRegs_.find(reg) == guardedRegs_.end()) {
@@ -350,7 +353,7 @@ TDGen::write1bitRegisterInfo(std::ostream& o) {
     std::string i1regs;
 
     if (regs1bit_.size() < 1) {
-        RegInfo reg = { "dummy1", 0 };
+        RegInfo reg = {"dummy1", 0};
         std::string name = "I1DUMMY";
         writeRegisterDef(o, reg, name, "Ri1", "", RESERVED);
         i1regs += name;
@@ -607,7 +610,8 @@ TDGen::writeRARegisterInfo(std::ostream& o) {
  * @return True if required registers were found, false if not.
  */
 bool
-TDGen::checkRequiredRegisters() throw (Exception) {
+TDGen::checkRequiredRegisters() 
+    throw (Exception) {
 
     if (regs32bit_.size() < REQUIRED_I32_REGS) {
         std::string msg =
@@ -641,7 +645,7 @@ TDGen::writeInstrInfo(std::ostream& os) {
 
     std::set<std::string> opNames;
     OperationDAGSelector::OperationSet requiredOps =
-        OperationDAGSelector::llvmRequiredOpset();
+        LLVMBackend::llvmRequiredOpset();
 
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
@@ -655,6 +659,29 @@ TDGen::writeInstrInfo(std::ostream& os) {
             opNames.insert(StringTools::stringToUpper(opName));
         }
     }
+
+    // add the floating point load and store patterns first so they will
+    // be selected instead of i32 ldw/stw to avoid dummy castings
+    os << "def LDWfr : InstTCE<(outs F32Regs:$op2), " 
+       << "(ins MEMrr:$op1), \"\", [(set F32Regs:$op2, " 
+       << "(load ADDRrr:$op1))]>;" << std::endl;
+
+    os << "def LDWfi : InstTCE<(outs F32Regs:$op2), " 
+       << "(ins MEMri:$op1), \"\", [(set F32Regs:$op2, " 
+       << "(load ADDRri:$op1))]>;" << std::endl;
+
+    os << "def STWfrr : InstTCE<(outs), " 
+       << "(ins MEMrr:$op1, F32Regs:$op2), \"\"," 
+       << "[(store F32Regs:$op2, ADDRrr:$op1)]>;" << std::endl;
+
+    os << "def STWfir : InstTCE<(outs), " 
+       << "(ins MEMri:$op1, F32Regs:$op2), \"\"," 
+       << "[(store F32Regs:$op2, ADDRri:$op1)]>;" << std::endl;
+
+    opNames_["LDWfr"] = "LDW";
+    opNames_["LDWfi"] = "LDW";
+    opNames_["STWfrr"] = "STW";
+    opNames_["STWfir"] = "STW";
 
     std::set<std::string>::const_iterator iter = opNames.begin();
     for (; iter != opNames.end(); iter++) {
@@ -670,14 +697,17 @@ TDGen::writeInstrInfo(std::ostream& os) {
             !operationCanBeMatched(op)) {
             
             if (&op != &NullOperation::instance()) {
-                Application::logStream() 
-                    << "Skipped writing operation definition for " << op.name() 
-                    << std::endl;
+                if (Application::verboseLevel() > 0) {
+                    Application::logStream() 
+                        << "Skipped writing operation definition for " 
+                        << op.name() << std::endl;
+                }
             }
             continue;
         }
         
-        // TODO: remove this. For now MIMO operation patterns are not supported by tablegen.
+        // TODO: remove this. For now MIMO operation patterns are not 
+        // supported by tablegen.
         if (op.numberOfOutputs() > 1) {
             continue;
         }
@@ -713,7 +743,8 @@ TDGen::writeInstrInfo(std::ostream& os) {
                     <<"' not supported." << std::endl;
             }
         } else {
-            // TODO: write all dags of operation (first as normal, the rest as pattern)
+            // TODO: write all dags of operation (first as normal, the rest 
+            // as pattern)
             writeEmulationPattern(os, op, emulationDAGs.smallestNodeCount());
         }
     }
@@ -928,7 +959,12 @@ TDGen::writeOperationDef(
         op.name() != "LDH" && op.name() != "LDHU" &&
         op.name() != "LDW" && op.name() != "LDD" &&
         op.name() != "STQ" && op.name() != "STH" &&
-        op.name() != "STW" && op.name() != "STD") {
+        op.name() != "STW" && op.name() != "STD" &&
+        op.name() != "ALDQ" && op.name() != "ALDQU" &&
+        op.name() != "ALDH" && op.name() != "ALDHU" &&
+        op.name() != "ALDW" && op.name() != "ALDD" &&
+        op.name() != "ASTQ" && op.name() != "ASTH" &&
+        op.name() != "ASTW" && op.name() != "ASTD") {
 
         if (op.readsMemory()) attrs += " mayLoad = 1";
         if (op.writesMemory()) attrs += " mayStore = 1";
@@ -976,7 +1012,7 @@ TDGen::writeOperationDef(
         std::string suffix(op.numberOfInputs(), regInputChar);
 
         // for n x n -> 1 bit ops postfix another b letter to the name
-        if ( boolOut == 1) {
+        if (boolOut == 1) {
             suffix += 'b';
         }
         
@@ -997,10 +1033,10 @@ TDGen::writeOperationDef(
                     continue;
                 }
                 
-                // TODO: fancier check if operation dag made operation really should 
-                // have comutative pattern defined               
-                // That would need analyzing nodes which are connected to inputs of DAG
-                // and check if they are comutative or not.
+                // TODO: fancier check if operation dag made operation really 
+                // should have a commutative pattern defined.
+                // That would need analyzing nodes which are connected to 
+                // inputs of DAG and check if they are comutative or not.
                 if (llvmOperationPattern(op.name()) == "" && 
                     op.dagCount() != 0) {
                     continue;
@@ -1307,7 +1343,8 @@ TDGen::operationPattern(
     int immOp, int intToBool) {
 
     std::string retVal;
-    for (OperationDAG::NodeSet::iterator i = dag.endNodes().begin(); i != dag.endNodes().end(); ++i) {
+    for (OperationDAG::NodeSet::iterator i = dag.endNodes().begin(); 
+         i != dag.endNodes().end(); ++i) {
         if (i != dag.endNodes().begin()) {
             retVal += ",";
         }
@@ -1338,8 +1375,9 @@ TDGen::dagNodeToString(
 
     const OperationNode* oNode = dynamic_cast<const OperationNode*>(&node);
     if (oNode != NULL) {
-        assert( dag.inDegree(*oNode) ==
-                oNode->referencedOperation().numberOfInputs());
+        assert(
+            dag.inDegree(*oNode) ==
+            oNode->referencedOperation().numberOfInputs());
 
         return operationNodeToString(
             op, dag, *oNode, immOp, emulationPattern, intToBool);
@@ -1360,8 +1398,7 @@ TDGen::dagNodeToString(
                 throw InvalidData(__FILE__, __LINE__, __func__, msg);
             }
 
-            return operandToString(
-                operand, false, imm, intToBool==2);
+            return operandToString(operand, false, imm, intToBool == 2);
         } else {
 
             // Output operand for the whole operation.
@@ -1381,7 +1418,6 @@ TDGen::dagNodeToString(
                 (intToBool != 2) ? 
                 dagNodeToString(
                     op, dag, srcNode, immOp, emulationPattern, 0) :
-
                 dagNodeToString(
                     op, dag, srcNode, immOp, emulationPattern, 2);
             
@@ -1420,7 +1456,8 @@ TDGen::dagNodeToString(
         return Conversion::toString(cNode->value());
     }
 
-    assert(false && "Unknown OperationDAG node type.");
+    abortWithError("Unknown OperationDAG node type.");
+    return "";
 }
 
 /**
@@ -1453,7 +1490,7 @@ TDGen::operationNodeToString(
         operationPat = StringTools::stringToUpper(operation.name()) +
             std::string(operation.numberOfInputs(), regInputChar);
 
-        if (intToBool==1) {
+        if (intToBool == 1) {
             operationPat += 'b';
         }
 
@@ -1469,7 +1506,8 @@ TDGen::operationNodeToString(
     } else {
         operationPat= llvmOperationPattern(operation.name());
         
-        // generate pattern for operation if not llvmOperation (can match custom op patterns)
+        // generate pattern for operation if not llvmOperation (can match 
+        // custom op patterns)
         if (operationPat == "") {
             operationPat = tceOperationPattern(operation);
         }
@@ -1479,13 +1517,16 @@ TDGen::operationNodeToString(
         std::string msg("Unknown operation node in dag: " + 
             std::string(operation.name()));
         
-        throw (InvalidData(__FILE__, __LINE__, __func__, msg));
+        throw InvalidData(__FILE__, __LINE__, __func__, msg);
     }
 
     boost::format pattern(operationPat);
 
     int inputs = operation.numberOfInputs();
-    int outputs = operation.numberOfOutputs();
+#ifndef NDEBUG
+    int outputs = 
+#endif
+    operation.numberOfOutputs();
 
     assert(outputs == 0 || outputs == 1);
 
@@ -1570,7 +1611,8 @@ TDGen::operandToString(
     } else {
         assert(false && "Unknown operand type.");
     }
-
+    abortWithError("Should not get here.");
+    return "";
 }
 
 /**

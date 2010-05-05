@@ -34,11 +34,13 @@
 #define TTA_PROCEDURE_HH
 
 #include <vector>
-#include <string>
 
+#include "TCEString.hh"
 #include "Exception.hh"
 #include "Address.hh"
 #include "CodeSnippet.hh"
+
+class TCEString;
 
 namespace TTAProgram {
 
@@ -50,16 +52,17 @@ class Program;
  * Represents a TTA procedure.
  */
 class Procedure : public CodeSnippet {
-public:
-    Procedure(const std::string& name,
+
+    public:
+    Procedure(const TCEString& name,
               const TTAMachine::AddressSpace& space);
     Procedure(
-        const std::string& name,
+        const TCEString& name,
         const TTAMachine::AddressSpace& space,
         UIntWord startLocation);
     virtual ~Procedure();
 
-    std::string name() const;
+    TCEString name() const { return name_; }
 
     int alignment() const;
 
@@ -95,7 +98,7 @@ private:
     Procedure& operator=(const Procedure&);
 
     /// The name of the procedure.
-    const std::string name_;
+    const TCEString name_;
     /// The alignment of instructions.
     int alignment_;
     /// The default alignment of instructions.

@@ -35,6 +35,7 @@
 #include "NullProgram.hh"
 #include "NullProcedure.hh"
 #include "NullInstruction.hh"
+#include "InstructionReferenceManager.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -55,7 +56,7 @@ const int Procedure::INSTRUCTION_INDEX_ALIGNMENT = 1;
  * @param space The address space of the procedure.
  */
 Procedure::Procedure(
-    const std::string& name, const AddressSpace& space):
+    const TCEString& name, const AddressSpace& space):
     CodeSnippet(Address(0, space)) , name_(name) {
 }
 
@@ -67,7 +68,7 @@ Procedure::Procedure(
  * @param startLocation The start location of the procedure.
  */
 Procedure::Procedure(
-    const std::string& name, const AddressSpace& space,
+    const TCEString& name, const AddressSpace& space,
     UIntWord startLocation):
     CodeSnippet(Address(startLocation,space)), name_(name) {
 }
@@ -76,16 +77,6 @@ Procedure::Procedure(
  * Destructor
  */
 Procedure::~Procedure() {
-}
-
-/**
- * Returns the name of the procedure.
- *
- * @return The name of the procedure.
- */
-string
-Procedure::name() const {
-    return name_;
 }
 
 /**
@@ -362,6 +353,9 @@ Procedure::remove(Instruction& ins) throw (IllegalRegistration) {
     }
 }
 
+/**
+ * Clears a procedure, updates addresses of following addresses.
+ */
 void
 Procedure::clear() {
     int insCount = instructionCount();

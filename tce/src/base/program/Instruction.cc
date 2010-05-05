@@ -41,6 +41,7 @@
 #include "Terminal.hh"
 #include "NullInstructionTemplate.hh"
 #include "NullProcedure.hh"
+#include "POMDisassembler.hh"
 
 namespace TTAProgram {
 
@@ -55,9 +56,9 @@ namespace TTAProgram {
  */
 Instruction::Instruction(
     const TTAMachine::InstructionTemplate& instructionTemplate) :
-    parent_(NULL), size_(1), hasRegisterAccesses_(false),
-    hasConditionalRegisterAccesses_(false), insTemplate_(&instructionTemplate),
-    positionInProcedure_((InstructionAddress)-1) {
+    parent_(NULL), insTemplate_(&instructionTemplate), 
+    positionInProcedure_((InstructionAddress)-1),
+    size_(1), hasRegisterAccesses_(false), hasConditionalRegisterAccesses_(false) {
 }
 
 /**
@@ -70,10 +71,9 @@ Instruction::Instruction(
 Instruction::Instruction(
     int size,
     const TTAMachine::InstructionTemplate& instructionTemplate) :
-    parent_(NULL), size_(size), hasRegisterAccesses_(false),
-    hasConditionalRegisterAccesses_(false), 
-    insTemplate_(&instructionTemplate), 
-    positionInProcedure_((InstructionAddress)-1) {
+    parent_(NULL), insTemplate_(&instructionTemplate), 
+    positionInProcedure_((InstructionAddress)-1),
+    size_(size), hasRegisterAccesses_(false), hasConditionalRegisterAccesses_(false) {
     assert(size == 1 && 
            "Instructions sizes other than 1 not supported in POM at the "
            "moment.");
@@ -255,9 +255,11 @@ Instruction::address() const
     throw (IllegalRegistration) {
 
     if (!isInProcedure()) {
+        TCEString msg = "Instruction is not registered in a procedure: ";
+        msg += POMDisassembler::disassemble(*this);
         throw IllegalRegistration(
             __FILE__, __LINE__, __func__,
-            "Instruction is not registered in a procedure.");
+            msg);
     }
     // speed up by caching the Instruction's position in the Procedure
     if (positionInProcedure_ != (InstructionAddress)-1 &&
@@ -308,6 +310,9 @@ Instruction::copy() const {
     for (int i = 0; i < immediateCount(); i++) {
         newIns->addImmediate(immediate(i).copy());
     }
+    newIns->hasRegisterAccesses_ = hasRegisterAccesses_;
+    newIns->hasConditionalRegisterAccesses_ = hasConditionalRegisterAccesses_;
+    newIns->copyAnnotationsFrom(*this);
     return newIns;
 }
 
@@ -367,6 +372,21 @@ Instruction::hasCall() const {
     }
     return false;
 }
+
+/**
+ * Returns whether this instruction contains a procedure return move.
+ */
+bool
+Instruction::hasReturn() const {
+
+    for (int i = 0; i < moveCount(); i++ ) {
+        if (move(i).isReturn()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 
 /**
  * Returns whether this instruction contains moves that affect the 
@@ -445,6 +465,14 @@ Instruction::removeImmediate(Immediate& imm) throw (IllegalRegistration) {
         }
     }
     throw IllegalRegistration(__FILE__, __LINE__);
+}
+
+/**
+ * Returns the disassembly of the instruction.
+ */
+std::string
+Instruction::toString() const {
+    return POMDisassembler::disassemble(*this);
 }
 
 }

@@ -80,12 +80,9 @@ AnnotatedInstructionElement::setAnnotation(
     
     // hmm.. does multimap::erase(key) remove *all* elements with the given
     // key, or just first found?
-    do {
-        AnnotationIndex::iterator i = annotations_.find(annotation.id());
-        if (i == annotations_.end())
-            break;
-        annotations_.erase(i);
-    } while (true);
+    // multimap::erase(key) returns the number of elements removed as
+    // size_type, so it erases all matching elements
+    annotations_.erase(annotation.id());
     annotations_.insert(
         std::pair<ProgramAnnotation::Id, ProgramAnnotation>(
             annotation.id(), annotation));
@@ -168,6 +165,17 @@ AnnotatedInstructionElement::removeAnnotations(ProgramAnnotation::Id id) {
 bool
 AnnotatedInstructionElement::hasAnnotations(ProgramAnnotation::Id id) const {
     return annotationCount(id) > 0;
+}
+
+/**
+ * Copies annotations from another annotated element.
+ *
+ * Possible old annotations are deleted.
+ */
+void
+AnnotatedInstructionElement::copyAnnotationsFrom(
+    const AnnotatedInstructionElement& other) {
+    annotations_ = other.annotations_;
 }
 
 } // namespace TTAProgram

@@ -26,7 +26,8 @@
  *
  * TCE parallel disassembler.
  *
- * @author Veli-Pekka Jï¿½ï¿½skelï¿½inen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Veli-Pekka Jääskeläinen 2006 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -60,22 +61,48 @@ public:
     DisasmCmdLineOptions() :
         CmdLineOptions("Usage: tcedisasm [options] adffile tpeffile") {
 
-        StringCmdLineOptionParser* outputFile = new StringCmdLineOptionParser(
+        StringCmdLineOptionParser* outputFile = 
+            new StringCmdLineOptionParser(
                 "outputfile", "Name of the output file.", "o");
 
-        BoolCmdLineOptionParser* lineNumbers = new BoolCmdLineOptionParser(
-            "linenumbers", "Print line numbers","n");
+        BoolCmdLineOptionParser* lineNumbers = 
+            new BoolCmdLineOptionParser(
+                "linenumbers", "Print line numbers","n");
+
+        BoolCmdLineOptionParser* flatFile = 
+            new BoolCmdLineOptionParser(
+                "flat", "The instructions only with file line numbers "
+                "matching instruction indices","F");
+
+        BoolCmdLineOptionParser* toStdout = 
+            new BoolCmdLineOptionParser(
+                "stdout", "Print to standard output","s");
 
         addOption(lineNumbers);
         addOption(outputFile);
+        addOption(flatFile);
+        addOption(toStdout);
     }
 
     std::string outputFile() {
         return findOption("outputfile")->String();
     }
 
+    bool outputFileDefined() {
+        return findOption("outputfile")->isDefined();
+    }
+
     bool lineNumbers() {
         return findOption("linenumbers")->isFlagOn();
+    }
+
+    bool flatFile() {
+        return findOption("flat")->isFlagOn();
+    }
+
+    bool printToStdout() {
+        return findOption("stdout")->isDefined() && 
+            findOption("stdout")->isFlagOn();
     }
 
     void printVersion() const {
@@ -110,8 +137,9 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    std::string inputFileName = options.argument(2);
     // Load TPEF.
-    TPEF::BinaryStream stream(options.argument(2));
+    TPEF::BinaryStream stream(inputFileName);
     TPEF::Binary* tpef = NULL;
     try {
         tpef = TPEF::BinaryReader::readBinary(stream);
@@ -137,8 +165,6 @@ int main(int argc, char *argv[]) {
     
     // Create POM.
     TTAProgram::Program* program = NULL;
-    // This might be needed if mixed code is inputted
-    UniversalMachine umach;
 
     try {
         TTAProgram::TPEFProgramFactory factory(*tpef, *machine);
@@ -147,7 +173,8 @@ int main(int argc, char *argv[]) {
         
         // Try if mixed code
         try {
-            TTAProgram::TPEFProgramFactory factory(*tpef, *machine, umach);
+            TTAProgram::TPEFProgramFactory factory(
+                *tpef, *machine, new UniversalMachine());
             program = factory.build();
         } catch (Exception& e1) {
             cerr << "Error: " << e.errorMessage() << " and " 
@@ -160,67 +187,84 @@ int main(int argc, char *argv[]) {
 
     std::ostream* output = &std::cout;
     std::fstream file;
-    if ((!FileSystem::fileExists(options.outputFile()) &&
-         FileSystem::fileIsCreatable(options.outputFile()))) {
-        FileSystem::createFile(options.outputFile());
-        file.open(
-            options.outputFile().c_str(),
-            std::fstream::trunc | std::fstream::out);
-        output = &file;        
-    } else if (FileSystem::fileIsWritable(options.outputFile())) {
-        file.open(
-            options.outputFile().c_str(),
-            std::fstream::trunc | std::fstream::out);
-        if (file.is_open()) {
-            output = &file;
+    std::string outputFileName = 
+        options.outputFileDefined() ? 
+        options.outputFile() : inputFileName + ".S";
+    if (!options.printToStdout()) {
+        if ((!FileSystem::fileExists(outputFileName) &&
+             FileSystem::fileIsCreatable(outputFileName))) {
+            FileSystem::createFile(outputFileName);
+            file.open(
+                outputFileName.c_str(), 
+                std::fstream::trunc | std::fstream::out);
+            output = &file;        
+        } else if (FileSystem::fileIsWritable(outputFileName)) {
+            file.open(
+                outputFileName.c_str(), 
+                std::fstream::trunc | std::fstream::out);
+            if (file.is_open()) {
+                output = &file;
+            }
         }
     }
 
     // Write code section disassembly.
     POMDisassembler disassembler(*program);
     Word first = disassembler.startAddress();
-    *output<< "CODE " << first << " ;" << endl << endl;
+    if (!options.flatFile()) {
+        *output << "CODE " << first << " ;" << endl << endl;
+        try {
+            *output << POMDisassembler::disassemble(
+                *program, options.lineNumbers())
+                    << endl << endl;
 
-    try {
-        *output << POMDisassembler::disassemble(*program,options.lineNumbers())
-                << endl << endl;
-    } catch (Exception& e) {
-        std::cerr << "Disassebly failed because of exception: " <<
-            e.errorMessage() << std::endl;
-    }
-
-    // Write data memory initializations.
-    for (int i = 0; i < program->dataMemoryCount(); i++) {
-
-        const TTAProgram::DataMemory& mem = program->dataMemory(i);
-        const TTAMachine::AddressSpace& aSpace = mem.addressSpace();
-
-        *output << "DATA " << aSpace.name() << " "
-               << aSpace.start() << " ;" << endl;
-
-        // Definitions are put in a map to order them.
-        std::map<Word, const TTAProgram::DataDefinition*> definitions;
-        for (int d = 0; d < mem.dataDefinitionCount(); d++) {
-            const TTAProgram::DataDefinition& def = mem.dataDefinition(d);
-            definitions[def.startAddress().location()] = &def;
+        } catch (Exception& e) {
+            std::cerr << "Disassebly failed because of exception: " <<
+                e.errorMessage() << std::endl;
         }
+        
+        // Write data memory initializations.
+        for (int i = 0; i < program->dataMemoryCount(); i++) {
 
-        std::map<Word, const TTAProgram::DataDefinition*>::iterator iter =
-            definitions.begin();
+            const TTAProgram::DataMemory& mem = program->dataMemory(i);
+            const TTAMachine::AddressSpace& aSpace = mem.addressSpace();
 
-        for (; iter != definitions.end(); iter++) {
-            const TTAProgram::DataDefinition* def = (*iter).second;
-            *output << endl << "DA " << std::dec << def->size();
-            if (def->isInitialized())  {
-                for (int mau = 0; mau < def->size(); mau++) {
-                    *output << endl << "1:0x" << std::hex << def->MAU(mau);
-                }
+            *output << "DATA " << aSpace.name() << " "
+                    << aSpace.start() << " ;" << endl;
+
+            // Definitions are put in a map to order them.
+            std::map<Word, const TTAProgram::DataDefinition*> definitions;
+            for (int d = 0; d < mem.dataDefinitionCount(); d++) {
+                const TTAProgram::DataDefinition& def = mem.dataDefinition(d);
+                definitions[def.startAddress().location()] = &def;
             }
-            *output << " ;" << endl;
+
+            std::map<Word, const TTAProgram::DataDefinition*>::iterator iter =
+                definitions.begin();
+
+            for (; iter != definitions.end(); iter++) {
+                const TTAProgram::DataDefinition* def = (*iter).second;
+                *output << endl << "DA " << std::dec << def->size();
+                if (def->isInitialized())  {
+                    for (int mau = 0; mau < def->size(); mau++) {
+                        *output << endl << "1:0x" << std::hex << def->MAU(mau);
+                    }
+                }
+                *output << " ;" << endl;
+            }
         }
-    }
-    
-    *output << endl;
+        *output << endl;
+    } else {
+        // assumes instruction addresses always start from 0
+        TTAProgram::Program::InstructionVector instr =
+            program->instructionVector();
+        for (TTAProgram::Program::InstructionVector::const_iterator i =
+                 instr.begin(); i != instr.end(); ++i) {
+            *output 
+                << POMDisassembler::disassemble(**i, options.lineNumbers())
+                << std::endl;
+        }
+    }  
 
     return 0;
 }

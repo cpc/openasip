@@ -34,6 +34,7 @@
 #define TTA_DATA_INSTRUCTION_ADDRESS_DEF_HH
 
 #include "DataDefinition.hh"
+#include "InstructionReference.hh"
 
 namespace TTAProgram {
     
@@ -61,7 +62,7 @@ public:
 
 private:
     /// Destination instruction of data area.
-    InstructionReference& dest_;
+    InstructionReference dest_;
 };
 
 }

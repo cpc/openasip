@@ -60,8 +60,6 @@ public:
     
 private:
     int countOfGuardedMoves(const TTAProgram::Program& prog);
-    /// Universal Machine for the unscheduled part.
-    UniversalMachine umach_;
 };
 
 RegisterCopyAdderPassTest::RegisterCopyAdderPassTest() {
@@ -122,9 +120,9 @@ RegisterCopyAdderPassTest::testPass() {
 
     CATCH_ANY(
         srcProgram = 
-        TTAProgram::Program::loadFromTPEF(
+        TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated.tpef",
-            *targetMachine, umach_));
+            *targetMachine));
 
     const int ORIGINAL_GUARD_COUNT = countOfGuardedMoves(*srcProgram);
 #if 1

@@ -41,6 +41,7 @@
 #include "DataLabel.hh"
 #include "Instruction.hh"
 #include "NullAddressSpace.hh"
+#include "InstructionReference.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -91,7 +92,7 @@ ScopeTest::testBasicFunctionality() {
 
     Instruction* ins = new Instruction();
     program.addInstruction(ins);
-    InstructionReference& insRef =
+    InstructionReference insRef =
         program.instructionReferenceManager().createReference(*ins);
 
     CodeLabel* codeLabel = new CodeLabel(insRef, "code_label1");
@@ -118,7 +119,7 @@ ScopeTest::testBasicFunctionality() {
 
     Instruction* ins2 = new Instruction();
     program.addInstruction(ins2);
-    InstructionReference& insRef2 =
+    InstructionReference insRef2 =
         program.instructionReferenceManager().createReference(*ins2);
 
     CodeLabel* badCodeLabel = new CodeLabel(insRef2, "code_label1");
@@ -152,9 +153,9 @@ ScopeTest::testBookkeeping() {
     program.addInstruction(ins);
     Instruction* ins2 = new Instruction;
     program.addInstruction(ins2);
-    InstructionReference& insRef =
+    InstructionReference insRef =
         program.instructionReferenceManager().createReference(*ins);
-    InstructionReference& insRef2 =
+    InstructionReference insRef2 =
         program.instructionReferenceManager().createReference(*ins2);
 
     CodeLabel* codeLabel1 = new CodeLabel(insRef, "code_label1");

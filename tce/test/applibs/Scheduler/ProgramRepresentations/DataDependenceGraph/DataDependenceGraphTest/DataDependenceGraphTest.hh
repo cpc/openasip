@@ -105,7 +105,7 @@ void
 DataDependenceGraphTest::testProcedureDDG() {
 
     OperationPool opool;
-    UniversalMachine umach(opool);
+    UniversalMachine* umach = new UniversalMachine(opool);
     TPEF::BinaryStream binaryStream("data/arrmul.tpef");
 
     // read to TPEF Handler Module
@@ -123,7 +123,7 @@ DataDependenceGraphTest::testProcedureDDG() {
 
     DataDependenceGraphBuilder builder;
 
-    ddg = builder.build(cfg,&umach);
+    ddg = builder.build(cfg, umach);
 
     TS_ASSERT_EQUALS(ddg->programOperationCount(), 18);
     TS_ASSERT_EQUALS(ddg->nodeCount(), 48);
@@ -247,7 +247,7 @@ DataDependenceGraphTest::testBBDDG() {
 
     try {
         OperationPool opool;
-        UniversalMachine umach(opool);
+        UniversalMachine* umach = new UniversalMachine(opool);
         TPEF::BinaryStream binaryStream("data/arrmul.tpef");
         
         // read to TPEF Handler Module
@@ -273,7 +273,7 @@ DataDependenceGraphTest::testBBDDG() {
         for (int i = 0; i < cfg0.nodeCount(); i++) {
             BasicBlockNode& bb = cfg0.node(i);
             if (bb.isNormalBB()) {
-                ddg0 = builder.build(bb.basicBlock(), &umach);
+                ddg0 = builder.build(bb.basicBlock(), umach);
 
                 // check for edges to itself, should not be
                 for( int j = 0; j < ddg0->nodeCount(); j++ ) {
@@ -289,7 +289,7 @@ DataDependenceGraphTest::testBBDDG() {
         for (int i = 0; i < cfg1.nodeCount(); i++) {
             BasicBlockNode& bb = cfg1.node(i);
             if (bb.isNormalBB()) {
-                ddg1 = builder.build(bb.basicBlock(), &umach);
+                ddg1 = builder.build(bb.basicBlock(), umach);
 
                 // check for edges to itself, should not be
                 for( int j = 0; j < ddg1->nodeCount(); j++ ) {
@@ -309,7 +309,7 @@ DataDependenceGraphTest::testBBDDG() {
         for (int i = 0; i < cfg2.nodeCount(); i++) {
             BasicBlockNode& bb = cfg2.node(i);
             if (bb.isNormalBB()) {
-                ddg2 = builder.build(bb.basicBlock(), &umach);            
+                ddg2 = builder.build(bb.basicBlock(), umach);            
 
                 // check for edges to itself, should not be
                 for( int j = 0; j < ddg2->nodeCount(); j++ ) {
@@ -350,7 +350,7 @@ DataDependenceGraphTest::testBBDDG() {
 void
 DataDependenceGraphTest::testRallocatedDDG() {
     try {
-        UniversalMachine umach;
+        UniversalMachine* umach = new UniversalMachine();
         TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
         
         ADFSerializer adfSerializer;
@@ -449,7 +449,7 @@ DataDependenceGraphTest::testRallocatedBBDDG() {
     
     try {
         
-        UniversalMachine umach;
+        UniversalMachine* umach = new UniversalMachine();
         TPEF::BinaryStream binaryStream("data/rallocated_arrmul.tpef");
         
         ADFSerializer adfSerializer;
@@ -542,7 +542,7 @@ DataDependenceGraphTest::testPathCalculation() {
     int longestPathLengths2[] = { 18, -1,12};
     int longestPathLengths2M[] = { 18, -1,18};
     try {
-        UniversalMachine umach;
+        UniversalMachine* umach = new UniversalMachine();
         TPEF::BinaryStream binaryStream("data/arrmul.tpef");
         
         // read to TPEF Handler Module
@@ -577,7 +577,7 @@ DataDependenceGraphTest::testPathCalculation() {
                 Move* move2 = 
                     bb.basicBlock().instructionAtIndex(0).move(0).copy();
 
-                ddg = builder.build(bb.basicBlock(), &umach);
+                ddg = builder.build(bb.basicBlock(), umach);
                 TS_ASSERT_EQUALS(ddg->height(), longestPathLengths0[i]);
 
                 // test adding a new node into graph which forces a 
@@ -813,7 +813,7 @@ DataDependenceGraphTest::testPathCalculation() {
 void
 DataDependenceGraphTest::testSWBypassing() {
 
-    UniversalMachine umach;
+    UniversalMachine* umach = new UniversalMachine();
     TPEF::BinaryStream binaryStream("data/arrmul.tpef");
 
     // read to TPEF Handler Module
@@ -831,7 +831,7 @@ DataDependenceGraphTest::testSWBypassing() {
 
     DataDependenceGraphBuilder builder;
 
-    ddg = builder.build(cfg,&umach);
+    ddg = builder.build(cfg, umach);
 
     // these do not exist at the beginning..
     TS_ASSERT(!ddg->hasEdge(ddg->node(6), ddg->node(27)));

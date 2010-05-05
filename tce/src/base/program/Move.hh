@@ -60,7 +60,7 @@ public:
         MoveGuard* guard);
     Move(
         Terminal* src, Terminal* dst, TTAMachine::Bus& bus);
-    virtual ~Move();
+    ~Move();
 
     Instruction& parent() const throw (IllegalRegistration);
     void setParent(Instruction& ins);
@@ -86,6 +86,11 @@ public:
     TTAMachine::Socket& sourceSocket() const throw (WrongSubclass);
 
     Move* copy() const;
+
+    std::string toString() const;
+
+    bool hasSourceLineNumber() const;
+    int sourceLineNumber() const;
 
 private:
     /// Copying not allowed.

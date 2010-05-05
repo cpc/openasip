@@ -90,6 +90,87 @@ using namespace llvm;
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
 const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
+
+/**
+ * Returns minimum opset that is required by llvm.
+ *
+ * @return Minimumn opset that is required for llvm.
+ */
+OperationDAGSelector::OperationSet 
+LLVMBackend::llvmRequiredOpset() {
+    OperationDAGSelector::OperationSet requiredOps;
+       
+    requiredOps.insert("ADD");
+    requiredOps.insert("SUB");
+    requiredOps.insert("MUL");
+    requiredOps.insert("DIV");
+    requiredOps.insert("DIVU");
+    requiredOps.insert("DIV");
+    requiredOps.insert("MOD");
+    requiredOps.insert("MODU");
+
+    requiredOps.insert("LDW");
+    requiredOps.insert("LDH");
+    requiredOps.insert("LDHU");
+    requiredOps.insert("LDQ");
+    requiredOps.insert("LDQU");
+    requiredOps.insert("STW");
+    requiredOps.insert("STH");
+    requiredOps.insert("STQ");
+
+    requiredOps.insert("SXHW");
+    requiredOps.insert("SXQW");
+
+    requiredOps.insert("AND");
+    requiredOps.insert("XOR");
+    requiredOps.insert("IOR");
+
+    requiredOps.insert("SHL");
+    requiredOps.insert("SHR");
+    requiredOps.insert("SHRU");
+
+    requiredOps.insert("EQ");
+    requiredOps.insert("NE");
+    requiredOps.insert("LT");
+    requiredOps.insert("LTU");
+    requiredOps.insert("LE");
+    requiredOps.insert("LEU");
+    requiredOps.insert("GT");
+    requiredOps.insert("GTU");
+    requiredOps.insert("GE");
+    requiredOps.insert("GEU");
+
+   
+    // -- Floating point operations --
+    requiredOps.insert("ADDF");
+    requiredOps.insert("SUBF");
+    requiredOps.insert("MULF");
+    requiredOps.insert("DIVF");
+    requiredOps.insert("NEGF");
+
+    requiredOps.insert("CFI");
+    requiredOps.insert("CFIU");
+    requiredOps.insert("CIF");
+    requiredOps.insert("CIFU");
+
+    // Ordered FP comparison operations
+    requiredOps.insert("EQF");
+    requiredOps.insert("NEF");
+    requiredOps.insert("LTF");
+    requiredOps.insert("LEF");
+    requiredOps.insert("GTF");
+    requiredOps.insert("GEF");
+
+    // Unordered FP comparison operations
+    requiredOps.insert("EQUF");
+    requiredOps.insert("NEUF");
+    requiredOps.insert("LTUF");
+    requiredOps.insert("LEUF");
+    requiredOps.insert("GTUF");
+    requiredOps.insert("GEUF");
+
+    return requiredOps;
+}
     
 /**
  * Constructor.
@@ -490,11 +571,17 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             "src" + DS + "applibs" + DS + "LLVMBackend" + DS + "plugin" + DS;
 
         pluginIncludeFlags =
-            " -I" + srcsPath +
+            " -I" + srcsPath + 
             " -I" + std::string(TCE_SRC_ROOT) + DS + " " +
-            
+            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + "tools" +              
             " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
             "applibs" + DS + "LLVMBackend" + DS + " " +
+
+            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
+            "applibs" + DS + "Scheduler" + DS + " " +
+
+            " -I" + std::string(TCE_SRC_ROOT) + DS + "src" + DS + 
+            "applibs" + DS + "Scheduler" + DS + "Algorithms" + " " +
             
             " -I" + std::string(TCE_INSTALLATION_ROOT) +  DS + 
             "include" + DS +
@@ -565,9 +652,10 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
 
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
-        // /usr/include needs to be last in case there is old llvm instalation
+        // /usr/include needs to be last in case there is old llvm installation
         // from packages
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
+            pluginIncludeFlags + 
             " -I" + tmpDir +
             " -I`llvm-config --includedir`" + 
             " -I`llvm-config --includedir`/Target" + 
@@ -575,13 +663,13 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
             " -I/usr/include ";
     } else {
         tblgenCmd = tblgenbin + " " + TBLGEN_INCLUDES +
+            pluginIncludeFlags +
             " -I" + tmpDir + 
-	    " -I" + LLVM_INCLUDEDIR +
-	    " -I" + LLVM_INCLUDEDIR + "/Target" +
-	    " -I" + LLVM_INCLUDEDIR + "/llvm/Target"; 
+            " -I" + LLVM_INCLUDEDIR +
+            " -I" + LLVM_INCLUDEDIR + "/Target" +
+            " -I" + LLVM_INCLUDEDIR + "/llvm/Target"; 
     }
 
-    tblgenCmd += pluginIncludeFlags;
     tblgenCmd += " " + tmpDir + FileSystem::DIRECTORY_SEPARATOR + "TCE.td";
 
     std::string cmd = tblgenCmd + " -gen-register-enums" +
@@ -776,6 +864,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     }
     return creator();
 }
+
 
 /**
  * Returns (hopefully) unique plugin filename for target architecture.

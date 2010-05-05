@@ -111,6 +111,11 @@ Machine::~Machine() {
     // NOTE! other components are deleted in ComponentContainer's destructor
 }
 
+bool
+Machine::isUniversalMachine() const {
+    return false;
+}
+
 /**
  * Adds a bus into the machine.
  *

@@ -27,6 +27,7 @@
  * Implementation of DisassemblyMove class.
  *
  * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2008 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -56,7 +57,8 @@ DisassemblyMove::~DisassemblyMove() {
     delete source_;
     delete destination_;
     if (guard_ != NULL) {
-	delete guard_;
+        delete guard_;
+        guard_ = NULL;
     }
 }
 
@@ -71,11 +73,11 @@ DisassemblyMove::toString() const {
 
     std::string disassembly;
     if (guard_ != NULL) {
-	disassembly = guard_->toString();
+        disassembly = guard_->toString();
     }
-
-    disassembly = disassembly + source_->toString() + " -> " +
-        destination_->toString();
+   
+    disassembly = 
+        disassembly + source_->toString() + " -> " + destination_->toString();
 
     for (int i = 0; i < annotationCount(); i++) {
         disassembly += annotation(i).toString();

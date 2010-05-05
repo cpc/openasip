@@ -1,0 +1,9 @@
+
+
+unsigned int InstructionReferenceImpl::count() {
+    return refs_.size();
+}
+
+TTAProgram::Instruction& InstructionReferenceImpl::instruction() {
+    return *ins_;
+}

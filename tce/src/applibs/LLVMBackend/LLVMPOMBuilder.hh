@@ -64,6 +64,7 @@ namespace TTAProgram {
 }
 
 class UniversalMachine;
+class Operation;
 
 namespace TTAMachine {
     class Machine;
@@ -93,12 +94,28 @@ namespace llvm {
 
         TTAProgram::Program* result() throw (NotAvailable);
 
+        TTAProgram::Instruction* firstInstructionOfBasicBlock(
+            llvm::BasicBlock* bb) {
+            return bbIndex_[bb];
+        }
+        bool isProgramUsingRestrictedPointers() const { return noAliasFound_; }
+        bool isProgramUsingAddressSpaces() const {
+            return  multiAddrSpacesFound_;
+        }
+
         void getAnalysisUsage(AnalysisUsage &AU) const {
             AU.addRequired<MachineDCE>();
             AU.addPreserved<MachineDCE>();
+
+	    // this code will move here in the future when pipelineloopfinder
+	    // is register as an analyzer pass to llvm pass manager
+	    // (like MachineDCE)
+	    //AU.addRequired<PipelineableLoopFinder>();
+	    //AU.addPreserved<PipelineableLoopFinder>();
+
             MachineFunctionPass::getAnalysisUsage(AU);
         }
- 
+
     protected:
 
         bool doInitialization(Module &M);
@@ -162,7 +179,28 @@ namespace llvm {
         TTAProgram::Instruction* emitInlineAsm(
             const MachineInstr* mi, TTAProgram::Procedure* proc);
 
+        TTAProgram::Instruction* emitSpecialInlineAsm(
+            const std::string op,
+            const MachineInstr* mi,
+            TTAProgram::Procedure* proc);
+
+        TTAProgram::Instruction* emitSetjmp(
+            const MachineInstr* mi, TTAProgram::Procedure* proc);
+
+        TTAProgram::Instruction* emitLongjmp(
+            const MachineInstr* mi, TTAProgram::Procedure* proc);
+
         TTAProgram::Instruction* emitSelect(
+            const MachineInstr* mi, TTAProgram::Procedure* proc);
+        
+        TTAProgram::Instruction* emitGlobalXXtructorCalls(
+            const MachineInstr* mi, TTAProgram::Procedure* proc,
+            bool constructors);
+
+        TTAProgram::Instruction* emitReadSP(
+            const MachineInstr* mi, TTAProgram::Procedure* proc);
+
+        TTAProgram::Instruction* handleMemoryCategoryInfo(
             const MachineInstr* mi, TTAProgram::Procedure* proc);
 
         std::string mbbName(const MachineBasicBlock& mbb);
@@ -178,7 +216,14 @@ namespace llvm {
             TTAProgram::Terminal* dst,
             TTAMachine::Bus &bus,
             TTAProgram::MoveGuard *guard = NULL);
+
+        void debugDataToAnnotations(
+            const llvm::MachineInstr* mi, TTAProgram::Move* move);
+        void addPointerAnnotations(
+            const llvm::MachineInstr* mi, TTAProgram::Move* move);
         
+        bool isBaseOffsetMemOperation(const Operation& operation) const;
+
         /// Target architechture MAU size in bits.
         static unsigned MAU_BITS;
 
@@ -208,8 +253,11 @@ namespace llvm {
         std::vector<DataDef> data_;
         std::vector<DataDef> udata_;
 
-        /// Basic block -> first instruction in the BB map.
+        /// Machine basic block -> first instruction in the BB map.
         std::map<std::string, TTAProgram::Instruction*> mbbs_;
+
+        /// Basic Block -> first instruction in the BB map
+        std::map<const llvm::BasicBlock*, TTAProgram::Instruction*> bbIndex_;
 
         /// Code labels.
         std::map<std::string, TTAProgram::Instruction*> codeLabels_;
@@ -237,10 +285,18 @@ namespace llvm {
         unsigned end_;
 
         bool programReady_;
+        
+        /// set to true in case at least one 'noalias' attribute (from
+        /// the use of 'restricted' pointers) has been found
+        bool noAliasFound_;
+        /// set to true in case at least one non-default address space
+        /// memory access has been found
+        bool multiAddrSpacesFound_;
 
         /// List of machine functions collected from runForMachineFunction.
         std::vector<MachineFunction*> functions_;
 
+        int spillMoveCount_;
     };
 }
 #endif

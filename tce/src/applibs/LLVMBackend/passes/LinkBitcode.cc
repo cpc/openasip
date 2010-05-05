@@ -94,9 +94,7 @@ LinkBitcode::doInitialization(Module& M) {
     std::string errors;
     if (Linker::LinkModules(&M, &inputModule_, &errors)) {
         errs() << "Error during linking in LinkBitcodePass: " << errors << "\n";
-    } else {
-        errs() << "Linked bitcode fine\n";
-    }    
+    } 
     return true;
 }
 

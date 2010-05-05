@@ -77,7 +77,7 @@ const RegisterFile&
 TerminalRegister::registerFile() const throw (WrongSubclass) {
 
     if (isImmUnit_ == false) {
-        return dynamic_cast<const RegisterFile&>(unit_);
+        return static_cast<const RegisterFile&>(unit_);
     } else {
         throw WrongSubclass(
             __FILE__, __LINE__, "TerminalRegister::registerFile()",
@@ -99,7 +99,7 @@ const ImmediateUnit&
 TerminalRegister::immediateUnit() const throw (WrongSubclass) {
 
     if (isImmUnit_ == true) {
-        return dynamic_cast<const ImmediateUnit&>(unit_);
+        return static_cast<const ImmediateUnit&>(unit_);
     } else {
         throw WrongSubclass(
             __FILE__, __LINE__, "TerminalRegister::immediateUnit()",

@@ -68,7 +68,9 @@ public:
     virtual bool isRA() const;
     virtual SimValue value() const throw (WrongSubclass);
     virtual Address address() const throw (WrongSubclass);
-    virtual InstructionReference& instructionReference() const
+    virtual const InstructionReference& instructionReference() const
+        throw (WrongSubclass);
+    virtual InstructionReference& instructionReference()
         throw (WrongSubclass);
     virtual const TTAMachine::RegisterFile& registerFile() const
         throw (WrongSubclass);
@@ -96,7 +98,7 @@ public:
 
     virtual const TTAMachine::Port& port() const throw (WrongSubclass);
     virtual void setIndex(int index) throw (WrongSubclass, OutOfRange);
-    virtual void setInstructionReference(InstructionReference& ref)
+    virtual void setInstructionReference(InstructionReference ref)
         throw(WrongSubclass);
 
     virtual Terminal* copy() const = 0;

@@ -72,6 +72,8 @@ public:
     static const std::string OPRND_TYPE;
     /// Object state name for memory address.
     static const std::string OPRND_MEM_ADDRESS;
+    /// Object state name for memory unit count.
+    static const std::string OPRND_MEM_UNITS;
     /// Object state name for memory data.
     static const std::string OPRND_MEM_DATA;
     /// Object state name for can swap.
@@ -92,6 +94,7 @@ public:
     virtual OperandType type() const;
     virtual const std::string& typeString() const;
     virtual bool isAddress() const;
+    virtual int memoryUnits() const;
     virtual bool isMemoryData() const;
     virtual bool canSwap(const Operand& op) const;
     virtual const std::set<int>& swap() const;
@@ -99,6 +102,8 @@ public:
     virtual void loadState(const ObjectState* state)
         throw (ObjectStateLoadingException);
     virtual ObjectState* saveState() const;
+
+    virtual bool isNull() const { return false; }
 
 private:
     void clear();
@@ -114,6 +119,8 @@ private:
     OperandType type_;
     /// Flag indicating whether Operand is address or not.
     bool isAddress_;
+    /// size of the data this operation addresses. 0 if unknown.
+    int addressUnits_;
     /// Flag indicating whether Operand is memory data or not.
     bool isMemoryData_;
     /// Indexes of Operands which can be swapped with this Operand.
@@ -143,6 +150,7 @@ public:
     virtual bool isMemoryData() const;
     virtual bool canSwap(const Operand& op) const;
     virtual const std::set<int>& swap() const;
+    virtual bool isNull() const { return true; }
 
 private:
     NullOperand();

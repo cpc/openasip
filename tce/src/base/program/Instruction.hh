@@ -26,7 +26,7 @@
  *
  * Declaration of Instruction class.
  *
- * @author Ari Metsï¿½halme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -38,6 +38,7 @@
 #include "Address.hh"
 #include "Exception.hh"
 #include "NullInstructionTemplate.hh"
+#include "AnnotatedInstructionElement.hh"
 
 namespace TTAProgram {
 
@@ -48,8 +49,11 @@ class CodeSnippet;
 
 /**
  * Represents a TTA instruction.
+ *
+ * @note: The annotations added with the AnnotatedInstructionElement
+ * are not saved to a TPEF file when the program is written!
  */
-class Instruction {
+class Instruction : public AnnotatedInstructionElement {
 public:
     
 #ifdef TCE_PYTHON_BINDINGS
@@ -70,7 +74,7 @@ public:
         int size, const TTAMachine::InstructionTemplate& instructionTemplate =
         TTAMachine::NullInstructionTemplate::instance());
 #endif
-    virtual ~Instruction();
+    ~Instruction();
 
     CodeSnippet& parent() const throw (IllegalRegistration);
     void setParent(CodeSnippet& proc);
@@ -80,6 +84,8 @@ public:
     int moveCount() const;
     Move& move(int i) const throw (OutOfRange);
     void removeMove(Move& move) throw (IllegalRegistration);
+
+    bool isNOP() const { return moveCount() == 0 && immediateCount() == 0; }
 
     void addImmediate(Immediate* imm) throw (ObjectAlreadyExists);
     int immediateCount() const;
@@ -94,6 +100,7 @@ public:
     bool hasConditionalRegisterAccesses() const;
     bool hasJump() const;
     bool hasCall() const;
+    bool hasReturn() const;
     bool hasControlFlowMove() const;
 
     Instruction* copy() const;
@@ -101,6 +108,8 @@ public:
     void setInstructionTemplate(
         const TTAMachine::InstructionTemplate& insTemp);
     const TTAMachine::InstructionTemplate& instructionTemplate() const;
+
+    std::string toString() const;
 
 private:
     /// List for moves.
@@ -119,17 +128,22 @@ private:
     ImmList immediates_;
     /// Parent procedure.
     CodeSnippet* parent_;
+
+    /// Instruction template that is used for this instruction.
+    const TTAMachine::InstructionTemplate* insTemplate_;
+
+    /// cache the instruction's index in the its procedure for faster address()
+    mutable InstructionAddress positionInProcedure_;
+
+    unsigned tripCount_;
+
     /// Size of instruction in MAU's.
-    int size_;
+    short size_;
     /// Set to true in case this instruction has moves that access registers.
     bool hasRegisterAccesses_;
     /// Set to true in case this instruction has moves that access registers
     /// and are conditional.
     bool hasConditionalRegisterAccesses_;
-    /// Instruction template that is used for this instruction.
-    const TTAMachine::InstructionTemplate* insTemplate_;
-    /// cache the instruction's index in the its procedure for faster address()
-    mutable InstructionAddress positionInProcedure_;
 };
 
 }

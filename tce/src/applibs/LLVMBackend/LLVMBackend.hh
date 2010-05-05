@@ -37,6 +37,7 @@
 #include "Exception.hh"
 #include "PluginTools.hh"
 #include "SchedulingPlan.hh"
+#include "OperationDAGSelector.hh"
 
 namespace TTAProgram {
     class Program;
@@ -59,6 +60,7 @@ class InterPassData;
  */
 class LLVMBackend {
 public:
+    static OperationDAGSelector::OperationSet llvmRequiredOpset();
 
     LLVMBackend(bool useCache = true, bool useInstalledVersion = false, bool removeTempFiles = true);
     virtual ~LLVMBackend();

@@ -57,6 +57,7 @@ public:
     UniversalMachine(OperationPool&);
     virtual ~UniversalMachine();
 
+    virtual bool isUniversalMachine() const;
     UniversalFunctionUnit& universalFunctionUnit() const;
     TTAMachine::RegisterFile& booleanRegisterFile() const;
     UnboundedRegisterFile& integerRegisterFile() const;

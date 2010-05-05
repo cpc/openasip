@@ -27,6 +27,7 @@
  * Declaration of InstructionReferenceManager class.
  *
  * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Heikki Kultala 2009 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -35,11 +36,13 @@
 
 #include <map>
 #include "Exception.hh"
+#include "InstructionReferenceImpl.hh"
 
 namespace TTAProgram {
 
 class Instruction;
 class InstructionReference;
+class InstructionReferenceImpl;
 
 /**
  * Helps in keeping instructions referenced in POM up-to-date.
@@ -53,17 +56,20 @@ public:
     InstructionReferenceManager();
     virtual ~InstructionReferenceManager();
 
-    InstructionReference& createReference(Instruction& ins);
-    InstructionReference& replace(Instruction& insA, Instruction& insB)
+    InstructionReference createReference(Instruction& ins);
+    void replace(Instruction& insA, Instruction& insB)
         throw (InstanceNotFound);
     void clearReferences();
     bool hasReference(Instruction& ins) const;
-    InstructionReferenceManager* copy() const;
-
-       
+    unsigned int referenceCount(Instruction& ins) const;
+    void referenceDied(Instruction* ins);
 private:
+    // disable copying and assignment.
+    InstructionReferenceManager(const InstructionReferenceManager&);
+    InstructionReferenceManager& operator=(const InstructionReferenceManager&);
+
     /// Map for instruction references. faster to search than list.
-    typedef std::multimap<Instruction*,InstructionReference*> RefMap;
+    typedef std::map<Instruction*, InstructionReferenceImpl*> RefMap;
 
     /// Instruction references to maintain.
     RefMap references_;
@@ -72,9 +78,7 @@ public:
     class Iterator {
     public:
         inline Iterator& operator++(); // ++i
-        inline InstructionReference& operator*();
         inline const InstructionReference& operator*() const;
-        inline InstructionReference* operator->();
         inline const InstructionReference* operator->() const;
         inline bool operator !=(const Iterator& i) const;
         inline Iterator(RefMap::iterator iter);

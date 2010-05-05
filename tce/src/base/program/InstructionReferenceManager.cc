@@ -27,11 +27,16 @@
  * Implementation of InstructionReferenceManager class.
  *
  * @author Ari Metsähalme 2005 (ari.metsahalme-no.spam-tut.fi)
+ * @author Heikki Kultala 2009 (heikki.kultala-no.spam-tut.fi)
  * @note rating: red
  */
 
+#include <iostream>
+
 #include "InstructionReferenceManager.hh"
 #include "InstructionReference.hh"
+#include "InstructionReferenceImpl.hh"
+#include "Application.hh"
 
 namespace TTAProgram {
 
@@ -51,6 +56,7 @@ InstructionReferenceManager::InstructionReferenceManager() {
  * Destructor.  Clears all instruction references.
  */
 InstructionReferenceManager::~InstructionReferenceManager() {
+//    assert(references_.empty());
     clearReferences();
 }
 
@@ -61,16 +67,17 @@ InstructionReferenceManager::~InstructionReferenceManager() {
  * @return A new reference to an instruction, or if one already exists,
  *         return it.
  */
-InstructionReference&
+InstructionReference
 InstructionReferenceManager::createReference(Instruction& ins) {
+    assert(&ins != NULL);
     RefMap::const_iterator iter = references_.find(&ins);
     if (iter == references_.end()) {
-        InstructionReference* newRef = new InstructionReference(ins);
-        references_.insert(
-            std::pair<Instruction*,InstructionReference*>(&ins, newRef));
-        return *newRef;
+        InstructionReferenceImpl* newRef = 
+            new InstructionReferenceImpl(ins, *this);
+        references_[&ins] = newRef;
+        return InstructionReference(newRef);
     } else {
-        return *iter->second;
+        return InstructionReference(iter->second);
     }
 }
 
@@ -83,41 +90,49 @@ InstructionReferenceManager::createReference(Instruction& ins) {
  * @exception InstanceNotFound if the instruction to be replaced is not
  *            found.
  */
-InstructionReference&
+void
 InstructionReferenceManager::replace(Instruction& insA, Instruction& insB)
     throw (InstanceNotFound) {
 
-    InstructionReference* ir = NULL;
-    RefMap::iterator iter = references_.find(&insA);
-    while (iter != references_.end()) {
-        ir = iter->second;
-        ir->setInstruction(insB);
-        references_.erase(iter);
-        references_.insert(
-            std::pair<Instruction*,InstructionReference*>(&insB, ir));
-        iter = references_.find(&insA);
+    assert(&insB != NULL);
+    RefMap::iterator itera = references_.find(&insA);
+    if (itera == references_.end()) {
+        throw InstanceNotFound(
+            __FILE__, __LINE__, "InstructionReferenceManager::replace()",
+            "Instruction reference to be replaced not found.");
     }
-    if (ir != NULL) {
-        return *ir;
+
+    RefMap::iterator iterb = references_.find(&insB);
+    if (iterb == references_.end()) { // just update one.
+        // no ref to b, just update a to point to b.
+        InstructionReferenceImpl* impl = itera->second;
+        impl->setInstruction(insB);
+        references_.erase(itera);
+        references_[&insB] = impl;
+        return;
     }
-    throw InstanceNotFound(
-        __FILE__, __LINE__, "InstructionReferenceManager::replace()",
-        "Instruction reference to be replaced not found.");
+
+    // merge the two ref implementations.
+    iterb->second->merge(*itera->second);
 }
 
 /**
  * Clears all instruction references. The result is a totally empty
- * instruction reference manager.
- */
+ * instruction reference manager. This nullifies all instructionreferences
+ * handled by this reference manager.
+ */ 
 void
 InstructionReferenceManager::clearReferences() {
+    // nullify modifies so take new iter every round.
     for (RefMap::iterator iter = references_.begin(); 
-         iter != references_.end(); iter++) {
-        delete iter->second;
-        iter->second = NULL;
+         iter != references_.end(); iter = references_.begin()) {
+        assert(iter->second != NULL);
+        // nullify causes use count to drop to 0 which kills this.
+        iter->second->nullify();
     }
     references_.clear();
 }
+
 
 /**
  * Tells whether the manager has created a reference to the given instruction.
@@ -130,20 +145,29 @@ InstructionReferenceManager::hasReference(Instruction& ins) const {
 }
 
 /**
- * Creates and returns an exact copy of the reference manager.
- *
- * @return An exact copy of the reference manager.
+ * Tells how many alive references there are to an instruction.
  */
-InstructionReferenceManager*
-InstructionReferenceManager::copy() const {
-    InstructionReferenceManager* newManager;
-    newManager = new InstructionReferenceManager();
-    for (RefMap::const_iterator iter = references_.begin(); 
-         iter != references_.end(); iter++) {
-        newManager->createReference(*iter->first);
+unsigned int
+InstructionReferenceManager::referenceCount(Instruction& ins) const {
+    RefMap::const_iterator iter = references_.find(&ins);
+    if (iter == references_.end()) {
+        return 0;
     }
-    return newManager;
+    return iter->second->count();
 }
-    
+
+/**
+ * Notifies instructionreferencemanager that a reference has completely died.
+ * This causes the reference manager to remove the 
+ * reference impl object.
+ */
+void 
+InstructionReferenceManager::referenceDied(Instruction* ins) {
+    RefMap::iterator iter = references_.find(ins);
+    assert (iter != references_.end());
+    assert (iter->second->count() == 0);
+    delete iter->second; iter->second = NULL;
+    references_.erase(iter);
+}
 
 } // namespace TTAProgram

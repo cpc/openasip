@@ -114,37 +114,48 @@ private:
  * @param relocs Managed collection of relocation points in the program.
  */
 TPEFProgramFactory::TPEFProgramFactory(
-    const Binary &aBinary,
-    const Machine &aMachine,
-    const UniversalMachine &aUniversalMachine):
+    const Binary& aBinary,
+    const Machine& aMachine,
+    UniversalMachine* aUniversalMachine):
     binary_(&aBinary), machine_(&aMachine),
-    universalMachine_(&aUniversalMachine),
+    universalMachine_(aUniversalMachine),
     tpefTools_(aBinary),
     adfInstrASpace_(NULL),
     tpefInstrASpace_(NULL) {
 }
 
 /**
- * Constructor for fully scheduled or unscheduled code. 
+ * Constructor for fully scheduled code. 
  *
  * @param aBinary Binary that contains a program's instructions and data.
  * @param aMachine Machine to which code refers.
  * @param relocs Managed collection of relocation points in the program.
  */
 TPEFProgramFactory::TPEFProgramFactory(
-    const Binary &aBinary, const Machine &aMachine):
-    binary_(&aBinary), machine_(NULL),
+    const Binary& aBinary, const Machine& aMachine):
+    binary_(&aBinary), machine_(&aMachine),
     universalMachine_(NULL),
     tpefTools_(aBinary),
     adfInstrASpace_(NULL),
     tpefInstrASpace_(NULL) {
-
-    universalMachine_ = dynamic_cast<const UniversalMachine*>(&aMachine);
-
-    if (universalMachine_ == NULL) {
-        machine_ = &aMachine;
-    }
 }
+
+/**
+ * Constructor for fully unscheduled code. 
+ *
+ * @param aBinary Binary that contains a program's instructions and data.
+ * @param uMachine Universal Machine to which code refers.
+ * @param relocs Managed collection of relocation points in the program.
+ */
+TPEFProgramFactory::TPEFProgramFactory(
+    const Binary &aBinary, UniversalMachine* aMachine):
+    binary_(&aBinary), machine_(NULL),
+    universalMachine_(aMachine),
+    tpefTools_(aBinary),
+    adfInstrASpace_(NULL),
+    tpefInstrASpace_(NULL) {
+}
+
 
 /**
  * Destructor.
@@ -262,6 +273,7 @@ TPEFProgramFactory::build()
     seekFunctionStartPoints();
 
     Program* newProgram = new Program(*adfInstrASpace_);
+    newProgram->setUniversalMachine(universalMachine_);
 
     // create all the code
     addProcedures(*newProgram, *adfInstrASpace_);
@@ -284,7 +296,7 @@ TPEFProgramFactory::build()
         Instruction& referencedInstruction =
             *allInstructions.at(addressTerm.address().location() - startAddress);
 
-        InstructionReference &instructionReference =
+        InstructionReference instructionReference =
             newProgram->instructionReferenceManager().createReference(
                 referencedInstruction);
 
@@ -306,7 +318,7 @@ TPEFProgramFactory::build()
         Instruction& referencedInstruction =
             *allInstructions.at(addressTerm.address().location() - startAddress);
 
-        InstructionReference& instructionReference =
+        InstructionReference instructionReference =
             newProgram->instructionReferenceManager().createReference(
                 referencedInstruction);
 
@@ -2097,7 +2109,7 @@ TPEFProgramFactory::createLabels(Program &prog) {
                     assert(MapTools::containsKey(
                         instructionMap_, codeSym->reference()));
 
-                    InstructionReference &refIns =
+                    InstructionReference refIns =
                         prog.instructionReferenceManager().createReference(
                             *instructionMap_[codeSym->reference()]);
 
@@ -2242,7 +2254,7 @@ TPEFProgramFactory::createDataMemories(Program &prog) {
                             assert(tpefInstr != NULL);
                             
                             // get the instruction reference of destination
-                            InstructionReference& instrRef = 
+                            InstructionReference instrRef = 
                                 prog.instructionReferenceManager().
                                 createReference(*instructionMap_[tpefInstr]);
                             

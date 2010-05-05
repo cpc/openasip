@@ -49,7 +49,7 @@ namespace TTAProgram {
 class MoveGuard {
 public:
     MoveGuard(TTAMachine::Guard& guard);
-    virtual ~MoveGuard();
+    ~MoveGuard();
 
     bool isUnconditional() const;
     bool isInverted() const;

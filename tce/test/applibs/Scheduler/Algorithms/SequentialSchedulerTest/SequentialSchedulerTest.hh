@@ -63,8 +63,6 @@ public:
 
 private:
     int countOfGuardedMoves(const TTAProgram::Program& prog);
-    /// Universal Machine for the unscheduled part.
-    UniversalMachine umach_;
 };
 
 SequentialSchedulerTest::SequentialSchedulerTest() {
@@ -97,9 +95,9 @@ SequentialSchedulerTest::testScheduleShortImmAndReducedConnectivity() {
 
     CATCH_ANY(
         srcProgram =
-        TTAProgram::Program::loadFromTPEF(
+        TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.tpef",
-            *targetMachine, umach_));
+            *targetMachine));
 
     const int ORIGINAL_PROCEDURE_COUNT = srcProgram->procedureCount();
     const int ORIGINAL_LABEL_COUNT =
@@ -152,9 +150,9 @@ SequentialSchedulerTest::testScheduleShortImmAndReducedConnectivity() {
 
     // test that the written TPEF is loadable back to POM
     CATCH_ANY(
-        delete TTAProgram::Program::loadFromTPEF(
+        delete TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/out.par.tpef",
-            *targetMachine, umach_));
+            *targetMachine));
 }
 
 
@@ -177,9 +175,9 @@ SequentialSchedulerTest::testScheduleShortImm() {
 
     CATCH_ANY(
         srcProgram =
-        TTAProgram::Program::loadFromTPEF(
+        TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.tpef",
-            *targetMachine, umach_));
+            *targetMachine));
 
     const int ORIGINAL_PROCEDURE_COUNT = srcProgram->procedureCount();
     const int ORIGINAL_LABEL_COUNT =
@@ -226,9 +224,9 @@ SequentialSchedulerTest::testScheduleShortImm() {
 
     // test that the written TPEF is loadable back to POM
     CATCH_ANY(
-        delete TTAProgram::Program::loadFromTPEF(
+        delete TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.par.tpef",
-            *targetMachine, umach_));
+            *targetMachine));
 }
 
 /**
@@ -275,9 +273,9 @@ SequentialSchedulerTest::testSchedule() {
 
     CATCH_ANY(
         srcProgram =
-        TTAProgram::Program::loadFromTPEF(
+        TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.tpef",
-            *targetMachine, umach_));
+            *targetMachine));
 
     const int ORIGINAL_PROCEDURE_COUNT = srcProgram->procedureCount();
     const int ORIGINAL_LABEL_COUNT =
@@ -324,9 +322,9 @@ SequentialSchedulerTest::testSchedule() {
 
     // test that the written TPEF is loadable back to POM
     CATCH_ANY(
-        delete TTAProgram::Program::loadFromTPEF(
+        delete TTAProgram::Program::loadFromUnscheduledTPEF(
             "data/arrmul_reg_allocated_10_bus.par.tpef",
-            *targetMachine, umach_));
+            *targetMachine));
 }
 
 

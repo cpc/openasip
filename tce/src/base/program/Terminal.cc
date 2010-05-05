@@ -32,6 +32,7 @@
 
 #include "Exception.hh"
 #include "Terminal.hh"
+#include "InstructionReference.hh"
 
 using namespace TTAMachine;
 
@@ -147,13 +148,24 @@ Terminal::value() const throw(WrongSubclass) {
  *
  * @return A reference to the instruction to which the immediate points.
  */
-InstructionReference&
+const InstructionReference&
 Terminal::instructionReference() const
     throw (WrongSubclass) {
 
     throw WrongSubclass(__FILE__, __LINE__);
 }
 
+/**
+ * Returns a reference to the instruction to which the immediate points.
+ *
+ * @return A reference to the instruction to which the immediate points.
+ */
+InstructionReference&
+Terminal::instructionReference()
+    throw (WrongSubclass) {
+
+    throw WrongSubclass(__FILE__, __LINE__);
+}
 
 /**
  * Returns the address held by this terminal.
@@ -354,7 +366,7 @@ Terminal::setIndex(int) throw (WrongSubclass, OutOfRange) {
  *            TerminalInstructionAddress
  */
 void
-Terminal::setInstructionReference(InstructionReference&)
+Terminal::setInstructionReference(InstructionReference)
     throw(WrongSubclass) {
     throw WrongSubclass(__FILE__, __LINE__);
 }

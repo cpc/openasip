@@ -26,6 +26,8 @@
  *
  * Helper functions for handling strings.
  *
+ * @deprecated New helpers should be added to TCEString instead.
+ *
  * Declarations.
  *
  * @author Pekka J‰‰skel‰inen 2004 (pjaaskel-no.spam-cs.tut.fi)
