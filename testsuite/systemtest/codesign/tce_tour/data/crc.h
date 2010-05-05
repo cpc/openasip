@@ -40,8 +40,6 @@ typedef unsigned long  crc;
 #define POLYNOMIAL			0x04C11DB7
 #define INITIAL_REMAINDER	0xFFFFFFFF
 #define FINAL_XOR_VALUE		0xFFFFFFFF
-#define REFLECT_DATA		TRUE
-#define REFLECT_REMAINDER	TRUE
 #define CHECK_VALUE			0x62488E82
 
 
