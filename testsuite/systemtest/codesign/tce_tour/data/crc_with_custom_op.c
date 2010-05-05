@@ -221,7 +221,7 @@ crcFast(unsigned char const message[], int nBytes)
     for (byte = 0; byte < nBytes; ++byte)
     {
         input = message[byte];
-        _TCE_REFLECT(input, 8, output);
+        _TCE_REFLECT8(input, output);
         data = (unsigned char) output ^ (remainder >> (WIDTH - 8));
         remainder = crcTable[data] ^ (remainder << 8);
     }
@@ -229,6 +229,6 @@ crcFast(unsigned char const message[], int nBytes)
     /*
      * The final remainder is the CRC.
      */
-    _TCE_REFLECT(remainder, WIDTH, output);
+    _TCE_REFLECT32(remainder, output);
     return (output ^ FINAL_XOR_VALUE);
 }   /* crcFast() */

@@ -2,13 +2,21 @@
 <osal version="0.1">
 
   <operation>
-    <name>REFLECT</name>
-    <description>
-</description>    <inputs>2</inputs>
+    <name>REFLECT8</name>
+    <description/>
+    <inputs>1</inputs>
     <outputs>1</outputs>
     <in id="1" type="UIntWord"/>
-    <in id="2" type="UIntWord"/>
-    <out id="3" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
+  </operation>
+
+  <operation>
+    <name>REFLECT32</name>
+    <description/>
+    <inputs>1</inputs>
+    <outputs>1</outputs>
+    <in id="1" type="UIntWord"/>
+    <out id="2" type="UIntWord"/>
   </operation>
 
 </osal>
