@@ -1,0 +1,37 @@
+/**
+ * @file TCEString.icc
+ *
+ * Inline implementations of TCEString class.
+ *
+ * @author Pekka Jääskeläinen 2008 (pekka.jaaskelainen@tut.fi)
+ * @note rating: red
+ */
+
+#include "StringTools.hh"
+
+/**
+ * Replaces all occurences of string 'old' with 'newString'
+ */
+inline void
+TCEString::replaceString(
+    const std::string& old, const std::string& newString) {
+        
+    TCEString modifiedString(*this);
+    std::string::size_type location = modifiedString.find(old);
+    while (location != std::string::npos) {
+        modifiedString.replace(
+            modifiedString.begin() + location,
+            modifiedString.begin() + location + old.length(),
+            newString.c_str());
+        location = modifiedString.find(old);
+    }
+    *this = modifiedString;
+}
+
+/**
+ * Returns true in case the string starts with the given string.
+ */
+inline bool
+TCEString::startsWith(const std::string& str) const {
+    return str.size() <= size() && substr(0, str.size()) == str;
+}
