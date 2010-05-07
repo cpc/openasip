@@ -236,6 +236,8 @@ In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
+Warning:.Directive.'register_long_arrays'.is.deprecated.*|\
+Warning:.Directive.'magic_quotes_gpc'.is.deprecated.*|\
 ^$"
 
 MAIL_FILTER="\
