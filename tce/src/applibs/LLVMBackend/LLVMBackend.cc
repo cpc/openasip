@@ -99,7 +99,7 @@ const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
 OperationDAGSelector::OperationSet 
 LLVMBackend::llvmRequiredOpset() {
     OperationDAGSelector::OperationSet requiredOps;
-       
+
     requiredOps.insert("ADD");
     requiredOps.insert("SUB");
     requiredOps.insert("MUL");
@@ -147,6 +147,7 @@ LLVMBackend::llvmRequiredOpset() {
     requiredOps.insert("MULF");
     requiredOps.insert("DIVF");
     requiredOps.insert("NEGF");
+    requiredOps.insert("SQRTF");
 
     requiredOps.insert("CFI");
     requiredOps.insert("CFIU");
@@ -168,6 +169,10 @@ LLVMBackend::llvmRequiredOpset() {
     requiredOps.insert("LEUF");
     requiredOps.insert("GTUF");
     requiredOps.insert("GEUF");
+
+    // Ordered/unordered operations
+    requiredOps.insert("ORDF");
+    requiredOps.insert("UORDF");
 
     return requiredOps;
 }

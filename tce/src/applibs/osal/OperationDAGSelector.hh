@@ -87,8 +87,6 @@ public:
     static OperationDAG* createExpandedDAG(
         const Operation& op, OperationSet& opSet);
     
-    static OperationSet llvmRequiredOpset();
-
 private:
     OperationDAGSelector();
     virtual ~OperationDAGSelector();

@@ -65,6 +65,8 @@
 #include "TCEString.hh"
 using TTAMachine::Machine;
 
+#include "LLVMBackend.hh" // llvmRequiredOps()
+
 using namespace llvm;
 
 STATISTIC(NumLowered, "Number of instructions lowered");
@@ -371,7 +373,7 @@ bool LowerMissingInstructions::doInitialization(Module &M) {
         opSet = MachineInfo::getOpset(*mach_);
     
     OperationDAGSelector::OperationSet
-        requiredSet = OperationDAGSelector::llvmRequiredOpset();
+        requiredSet = LLVMBackend::llvmRequiredOpset();
     
     OperationPool osal;
     
@@ -511,10 +513,8 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
         // std::cerr << "Footprint: " << footPrint << "\n";
 
         if (replaceFunc != replaceFunctions.end()) {
-            
             if (Application::verboseLevel() >
                 Application::VERBOSE_LEVEL_DEFAULT) {
-
                 Application::logStream()
                     << "Replacing: " << footPrint
                     << " with emulation function." << std::endl;
