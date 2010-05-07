@@ -109,6 +109,10 @@ private:
         RegisterCopyAdder::AddedRegisterCopies& regCopies)
         throw (Exception);
 
+    void unscheduleInputOperandTempMoves(
+	MoveNode& operandMove, 
+	RegisterCopyAdder::AddedRegisterCopies& regCopies);
+
     int scheduleResultTempMoves(
         int cycle, MoveNode& resultMove, 
         RegisterCopyAdder::AddedRegisterCopies& regCopies)
