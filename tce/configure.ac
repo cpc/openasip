@@ -1234,7 +1234,6 @@ AC_CONFIG_FILES([
   src/applibs/wxToolkit/Makefile
   src/applibs/osal/Makefile
   src/applibs/TraceDB/Makefile
-  src/applibs/Disassembler/Makefile
   src/applibs/bem/Makefile
   src/applibs/mach/Makefile
   src/applibs/idf/Makefile
