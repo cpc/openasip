@@ -2,5 +2,5 @@
 rm -rf testi.dsdb
 
 # Compile the input program.
-../../../../../tce/src/bintools/Compiler/tcecc test_app-matrix1/src/matrix1.c -o test_app-matrix1/program.bc
+../../../../../tce/src/bintools/Compiler/tcecc test_app-matrix1/src/matrix1.c -k_Output -o test_app-matrix1/program.bc
 

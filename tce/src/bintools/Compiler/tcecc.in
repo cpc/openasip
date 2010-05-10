@@ -383,7 +383,7 @@ p.add_option('-s', '--scheduler-config',
 
 p.add_option('-O', '--optimization-level',
              type="int", action="store", metavar='level',
-             dest='optimization_level', default=0,
+             dest='optimization_level', default=3,
              help="Optimization level. 0=no optimizations, "
              "1=preserve program API, 2=don't respect original API, "
              "3 = same that 2. NOTE: For optimal floating point performance,"
