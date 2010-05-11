@@ -83,8 +83,8 @@ function start_compiletest {
 
 # supercomplex main program
 export PATH=$LLVM_DIR/bin:$LLVM_FRONTEND_DIR/bin:$PATH
-check_llvm_gcc_sources
-install_llvm-frontend
+#check_llvm_gcc_sources
+#install_llvm-frontend
 start_compiletest
 
 # ugly way to determine whether compiletest succeeded or not :)
