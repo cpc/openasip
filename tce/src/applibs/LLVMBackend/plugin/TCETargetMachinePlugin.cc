@@ -215,8 +215,6 @@ GeneratedTCEPlugin::operationName(unsigned opc) {
     if (opc == TCE::MOVFI32rr) return MOVE;
     if (opc == TCE::MOVIF32rr) return MOVE;
 
-    if (opc == TCE::MOVI1I32rr) return MOVE;
-
     if (opc == TCE::INLINEASM) return INLINEASM;
 
     if (opc == TCE::ANDext) return "and";

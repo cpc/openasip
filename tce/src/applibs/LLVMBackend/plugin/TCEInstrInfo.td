@@ -262,11 +262,6 @@ def NOP : InstTCE<(outs), (ins), "...;", []>;
 def ANDext : InstTCE<(outs I32Regs:$dst), (ins I1Regs:$src, i32imm:$val),
 	"", []>;
 
-
-def MOVI1I32rr : InstTCE<(outs I32Regs:$dst), (ins I1Regs:$src),
-                    "$src -> $dst;",
-                    []>;
-
 // (set I32Regs:$dst, (zext I1Regs:$src))]>;
 
 def: Pat <(i32 (anyext I1Regs:$src)), (ANDext I1Regs:$src, 1)>;
@@ -325,8 +320,10 @@ def LDQUBr : InstTCE<(outs I1Regs:$op2), (ins MEMrr:$op1), "", [(set I1Regs:$op2
 def LDQUBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2, (zextloadi1 ADDRri:$op1))]>;
 def : Pat<(i1 (load ADDRrr:$addr)), (LDQBr ADDRrr:$addr)>;
 def : Pat<(i1 (load ADDRri:$addr)), (LDQBi ADDRri:$addr)>;
-def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (MOVI1I32rr (LDQBr ADDRrr:$addr))>;
-def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (MOVI1I32rr (LDQBi ADDRri:$addr))>;
+
+// TODO: these waste a bool reg. create versions which uses i32 reg.
+def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (ANDext (LDQBr ADDRrr:$addr),1)>;
+def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (ANDext (LDQBi ADDRri:$addr),1)>;
 
 
 // float store and load in a way that machine code validator likes them

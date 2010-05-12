@@ -105,9 +105,7 @@ TCEInstrInfo::isMoveInstr(
         MI.getOpcode() == TCE::MOVF32rr ||
         MI.getOpcode() == TCE::MOVF64rr ||
         MI.getOpcode() == TCE::MOVFI32rr ||
-        MI.getOpcode() == TCE::MOVIF32rr ||
-
-        MI.getOpcode() == TCE::MOVI1I32rr) {
+        MI.getOpcode() == TCE::MOVIF32rr) {
 
         assert(MI.getOperand(0).isReg());
         assert(MI.getOperand(1).isReg());
