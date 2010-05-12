@@ -82,14 +82,14 @@ TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
       Subtarget(TT,FS),
       DataLayout(
         "E-p:32:32:32"
-        "-a0:32:32"
+        "-a0:0:64"
         "-i1:8:8"
-        "-i8:8:8"
-        "-i16:16:16"
+        "-i8:8:32"
+        "-i16:16:32"
         "-i32:32:32"
         "-i64:32:64"
         "-f32:32:32"
-        "-f64:32:64"),
+        "-f64:64:64"),
       FrameInfo(TargetFrameInfo::StackGrowsDown, 4, -4),
       plugin_(NULL), pluginTool_(NULL) {
 }

@@ -1,0 +1,1 @@
+test that offsets are calculated correctly into small structs that are in table
