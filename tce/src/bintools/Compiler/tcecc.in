@@ -337,8 +337,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
     (exitCode, output) = runCommandBuffered(command, verbose)
 
     if exitCode != 0:
-        sys.stderr.write("Error while linking emulation lib: " + command + "\n")
-        exitWithError(1, verbose, output)
+        exitWithError(1, "Error while linking emulation lib: " + command + "\n")
 
     outputName = fileNamePrefix + "_emul_internalized.bc"
 
