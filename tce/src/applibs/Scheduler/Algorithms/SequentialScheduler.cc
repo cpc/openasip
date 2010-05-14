@@ -250,6 +250,7 @@ SequentialScheduler::scheduleOperandWrites(
             
             // if all operands not scheduled, delay trigger
             if (scheduledMoves < po.inputMoveCount()) {
+		unscheduleInputOperandTempMoves(node, regCopies);
                 trigger = &node;
                 unschedule(node);
                 scheduledMoves--;
@@ -261,6 +262,7 @@ SequentialScheduler::scheduleOperandWrites(
     // trigger scheduling delayed, schedule at end
     if (trigger != NULL && !trigger->isScheduled()) {
         assert(scheduledMoves == po.inputMoveCount()-1);
+	cycle = scheduleInputOperandTempMoves(cycle, *trigger, regCopies);
         return scheduleMove(cycle, *trigger);
     }
     return cycle-1;
@@ -446,6 +448,25 @@ SequentialScheduler::scheduleInputOperandTempMoves(
     }
     return cycle;
 }
+
+void
+SequentialScheduler::unscheduleInputOperandTempMoves(
+    MoveNode& operandMove, RegisterCopyAdder::AddedRegisterCopies& regCopies) {
+    
+    if (regCopies.count_ > 0) {
+        if (AssocTools::containsKey(regCopies.copies_,&operandMove)) {
+            RegisterCopyAdder::MoveNodePair& mnp = 
+                regCopies.copies_[&operandMove];
+            if (mnp.second != NULL) {
+                unschedule(*mnp.second);
+            }
+            if (mnp.first != NULL) {
+                unschedule(*mnp.first);
+            }
+        }
+    }
+}
+
 
 /**
  * Schedules the (possible) temporary register copy moves (due to missing
