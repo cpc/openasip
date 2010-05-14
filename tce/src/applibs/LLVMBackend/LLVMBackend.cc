@@ -370,7 +370,6 @@ LLVMBackend::compile(
     const TargetData *TD = targetMachine->getTargetData();
     assert(TD);
     Passes.add(new TargetData(*TD));
-    ObjectCodeEmitter *OCE = 0;
 
     targetMachine->addPassesToEmitFile(
 	Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
