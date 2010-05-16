@@ -16,7 +16,7 @@
 
 using namespace llvm;
 
-TCEMCAsmInfo::TCEMCAsmInfo(const Target &T, const StringRef &TT) {
+TCEMCAsmInfo::TCEMCAsmInfo(const Target &, const StringRef &) {
     AlignmentIsInBytes          = true;
     COMMDirectiveAlignmentIsInBytes = true;
 
