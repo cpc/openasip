@@ -13,6 +13,8 @@ Bugfixes
   to emulation function calls.
 - tcecc: compilation warnings and errors are now always output to
   stderr unbuffered (used to output only in case of compilation error)
+- Data alignment rules of data types fixed to be same in backend
+  and frontend. 
 
 1.1, unreleased
 ===============
