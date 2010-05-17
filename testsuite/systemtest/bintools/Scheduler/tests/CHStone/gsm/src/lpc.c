@@ -314,7 +314,7 @@ void
 Gsm_LPC_Analysis (word * s /* 0..159 signals       IN/OUT  */ ,
 		  word * LARc /* 0..7   LARc's        OUT     */ )
 {
-  longword L_ACF[9];
+  longword L_ACF[10];
 
   Autocorrelation (s, L_ACF);
   Reflection_coefficients (L_ACF, LARc);
