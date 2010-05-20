@@ -93,6 +93,7 @@
 #include "CompiledSimController.hh"
 #include "CompiledSimUtilizationStats.hh"
 #include "SimulationEventHandler.hh"
+#include "MachineInfo.hh"
 
 using namespace TTAMachine;
 using namespace TTAProgram;
@@ -223,6 +224,15 @@ SimulatorFrontend::loadMachine(const Machine& machine)
     // thus we are not running a sequential simulation anymore,
     // but using the loaded machine
     sequentialSimulation_ = false;
+
+    // compiled sim does not handle long guard latencies correctly.
+    // remove when fixed.
+    if (compiledSimulation_ == true && 
+        MachineInfo::longestGuardLatency(machine) > 1) {
+        compiledSimulation_ = false;
+        // TODO: warn about this, when the warning can be ignored
+        // by tests.
+    }
 }
 
 /**
@@ -562,6 +572,15 @@ SimulatorFrontend::loadMachine(const std::string& fileName)
     }
     delete simCon_;
     simCon_ = NULL;
+
+    // compiled sim does not handle long guard latencies correctly.
+    // remove when fixed.
+    if (compiledSimulation_ == true && 
+        MachineInfo::longestGuardLatency(*currentMachine_) > 1) {
+        compiledSimulation_ = false;
+        // TODO: warn about this, when the warning can be ignored
+        // by tests.
+    }
 }
 
 /**

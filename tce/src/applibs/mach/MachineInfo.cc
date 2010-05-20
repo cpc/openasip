@@ -36,6 +36,9 @@
 #include "Machine.hh"
 #include "HWOperation.hh"
 #include "OperationPool.hh"
+#include "ControlUnit.hh"
+#include "RegisterFile.hh"
+#include "Guard.hh"
 
 using namespace TTAMachine;
 
@@ -65,4 +68,33 @@ MachineInfo::getOpset(const TTAMachine::Machine &mach) {
     }
     
     return opNames;
+}
+
+int 
+MachineInfo::longestGuardLatency(
+    const TTAMachine::Machine& mach) {
+    int ggLatency = mach.controlUnit()->globalGuardLatency();
+
+    const TTAMachine::Machine::BusNavigator busNav =
+        mach.busNavigator();
+
+    for (int i = 0; i < busNav.count(); i++) {
+        const TTAMachine::Bus* bus = busNav.item(i);
+        for (int j = 0; j < bus->guardCount(); j++) {
+            Guard* guard = bus->guard(j);
+            RegisterGuard* rg = dynamic_cast<RegisterGuard*>(guard);
+            if (rg != NULL) {
+                int rgLat = rg->registerFile()->guardLatency();
+                if (rgLat != 0) {
+                    assert(rgLat == 1);
+                    return ggLatency + 1;
+                }
+            } else {
+                if (dynamic_cast<PortGuard*>(guard) != NULL) {
+                    return ggLatency + 1;
+                }
+            }
+        }
+    }
+    return ggLatency;
 }
