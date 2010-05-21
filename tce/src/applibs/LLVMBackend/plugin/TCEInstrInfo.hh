@@ -40,7 +40,7 @@ namespace llvm {
 
     /** !! Important !! *************
      * ON EVERY LLVM UPDATE CHECK THESE INTERFACES VERY CAREFULLY
-     * FROM include/llvm/TargetInstrInfo.h
+     * FROM include/llvm/Target/TargetInstrInfo.h
      *
      * Compiler doesn warn or give error if parameter lists are changed.
      * Many times also base class implementation works, but does not do
@@ -81,18 +81,47 @@ namespace llvm {
             unsigned srcReg, bool isKill, int frameIndex,
             const TargetRegisterClass* rc) const;
 
+        // changed in LLVM 2.8:
+        virtual void storeRegToStackSlot(
+            MachineBasicBlock& mbb,
+            MachineBasicBlock::iterator mbbi,
+            unsigned srcReg, bool isKill, int frameIndex,
+            const TargetRegisterClass* rc, const TargetRegisterInfo*) const {
+            storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc);
+        }
+
         virtual void loadRegFromStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned destReg, int frameIndex,
             const TargetRegisterClass* rc) const;
 
+        // changed in LLVM 2.8:
+        virtual void loadRegFromStackSlot(
+            MachineBasicBlock& mbb,
+            MachineBasicBlock::iterator mbbi,
+            unsigned destReg, int frameIndex,
+            const TargetRegisterClass* rc, const TargetRegisterInfo*) const {
+            loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc);
+        }
+
+
+#ifdef LLVM_2_7
         virtual bool copyRegToReg(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned destReg, unsigned srcReg,
             const TargetRegisterClass* dstRC,
             const TargetRegisterClass* srcRC) const;
+#else
+        virtual bool copyRegToReg(
+            MachineBasicBlock& mbb,
+            MachineBasicBlock::iterator mbbi,
+            unsigned destReg, unsigned srcReg,
+            const TargetRegisterClass* dstRC,
+            const TargetRegisterClass* srcRC,
+            DebugLoc dl) const;
+#endif
 
     private:
         const TCERegisterInfo ri_;

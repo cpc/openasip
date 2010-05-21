@@ -131,8 +131,12 @@ TCEInstrInfo::InsertBranch(
     // Can only insert uncond branches so far.
     assert(Cond.empty() && !FBB && TBB && 
            "Can only handle uncond branches!");
-    
+
+#ifdef LLVM_2_7    
     DebugLoc dl = DebugLoc::getUnknownLoc();
+#else
+    DebugLoc dl;
+#endif
 
     BuildMI(&MBB, dl, get(TCE::TCEBR)).addMBB(TBB);
     return 1;
@@ -200,7 +204,11 @@ void TCEInstrInfo::
 storeRegToStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                     unsigned SrcReg, bool isKill, int FI,
                     const TargetRegisterClass *RC) const {
+#ifdef LLVM_2_7
   DebugLoc DL = DebugLoc::getUnknownLoc();
+#else
+  DebugLoc DL;
+#endif
   if (I != MBB.end()) DL = I->getDebugLoc();
 
   // On the order of operands here: think "[FrameIdx + 0] = SrcReg".
@@ -224,7 +232,11 @@ void TCEInstrInfo::
 loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
                      unsigned DestReg, int FI,
                      const TargetRegisterClass *RC) const {
+#ifdef LLVM_2_7
   DebugLoc DL = DebugLoc::getUnknownLoc();
+#else
+  DebugLoc DL;
+#endif
   if (I != MBB.end()) DL = I->getDebugLoc();
 
   if (RC == TCE::I32RegsRegisterClass)
@@ -248,17 +260,29 @@ loadRegFromStackSlot(MachineBasicBlock &MBB, MachineBasicBlock::iterator I,
  * @param destReg Register where the value is copied to.
  * @param rc Class of the register to copy.
  */
+#ifdef LLVM_2_7
 bool
 TCEInstrInfo::copyRegToReg(
     MachineBasicBlock& mbb,
     MachineBasicBlock::iterator mbbi,
     unsigned destReg, unsigned srcReg,
     const TargetRegisterClass* dstRC,
-    const TargetRegisterClass* srcRC) const {
-
+    const TargetRegisterClass* srcRC) const 
+#else
+bool TCEInstrInfo::copyRegToReg(
+    MachineBasicBlock& mbb,
+    MachineBasicBlock::iterator mbbi,
+    unsigned destReg, unsigned srcReg,
+    const TargetRegisterClass* dstRC,
+    const TargetRegisterClass* srcRC,
+    DebugLoc dl) const 
+#endif
+{
     assert(srcRC == dstRC && "not yet implemented");
 
+#ifdef LLVM_2_7
     DebugLoc dl = DebugLoc::getUnknownLoc();
+#endif
     if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
 
     if (srcRC == TCE::I1RegsRegisterClass) {        

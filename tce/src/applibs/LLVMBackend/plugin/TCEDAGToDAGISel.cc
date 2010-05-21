@@ -56,8 +56,6 @@ public:
 
     llvm::SDNode* Select(llvm::SDNode* op);
 
-//    virtual void InstructionSelect();
-
     virtual const char* getPassName() const {
         return "TCE DAG->DAG Pattern Instruction Selection";
     }

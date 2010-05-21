@@ -37,6 +37,7 @@
 #include "TCESubtarget.hh"
 
 #include "TCEGenRegisterInfo.h.inc"
+#include "tce_config.h"
 
 namespace llvm {
     class TargetInstrInfo;
@@ -67,9 +68,15 @@ namespace llvm {
 
         BitVector getReservedRegs(const MachineFunction &MF) const;
 
+#ifdef LLVM_2_7
         unsigned eliminateFrameIndex(MachineBasicBlock::iterator II,
                                      int SPAdj, int *Value,
                                      RegScavenger *RS = NULL) const;
+#else
+        unsigned eliminateFrameIndex(MachineBasicBlock::iterator II,
+                                     int SPAdj, FrameIndexValue *Value,
+                                     RegScavenger *RS = NULL) const;
+#endif
 
         unsigned getRARegister() const;
 

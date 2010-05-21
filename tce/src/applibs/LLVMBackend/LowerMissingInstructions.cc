@@ -74,7 +74,7 @@ STATISTIC(NumLowered, "Number of instructions lowered");
 #include <iostream>
 
 namespace {
-    class VISIBILITY_HIDDEN LowerMissingInstructions : public BasicBlockPass {
+    class LowerMissingInstructions : public BasicBlockPass {
         std::map< std::string, Constant*> replaceFunctions;        
         const TTAMachine::Machine* mach_;
         Module* dstModule_;

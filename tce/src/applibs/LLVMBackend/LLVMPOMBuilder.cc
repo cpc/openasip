@@ -87,6 +87,7 @@
 #include <llvm/Support/PluginLoader.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Analysis/DebugInfo.h>
+#include <llvm/MC/MCContext.h>
 
 #include "MapTools.hh"
 #include "StringTools.hh"
@@ -202,7 +203,14 @@ LLVMPOMBuilder::doInitialization(Module& m) {
     }
 
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
+#ifdef LLVM_2_7
     mang_ = new Mangler(*tm_.getMCAsmInfo()); // Use prefix _ for all value names.
+#else
+    // this doesn't look right, creating a MCContext just to get the
+    // mangler initialized... --Pekka
+    MCContext* ctx = new MCContext(*tm_.getMCAsmInfo());
+    mang_ = new Mangler(*ctx, *tm_.getTargetData()); 
+#endif
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
     umach_ = &prog_->universalMachine();
@@ -239,7 +247,7 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         }
                        
         if (!i->hasInitializer()) {
-	    std::cerr << "Initializer missing for: " << name << std::endl;
+            std::cerr << "Initializer missing for: " << name << std::endl;
             assert(false && "No initializer. External linkage?");
         }
 
@@ -1278,14 +1286,22 @@ LLVMPOMBuilder::debugDataToAnnotations(
     DebugLoc dl = mi->getDebugLoc();
 
     // annotate the moves generated from known spill instructions
+#ifdef LLVM_2_7
     if (dl.getIndex() == 0xFFFFFFF0) {
+#else
+    if (dl.getLine() == 0xFFFFFFF0) {
+#endif
         TTAProgram::ProgramAnnotation progAnnotation(
             TTAProgram::ProgramAnnotation::ANN_STACKUSE_SPILL);
         move->setAnnotation(progAnnotation); 
         ++spillMoveCount_;
     } else {
         // annotate the moves generated from known ra save.
+#ifdef LLVM_2_7
         if (dl.getIndex() == 0xFFFFFFF1) {
+#else
+        if (dl.getLine() == 0xFFFFFFF1) {
+#endif
             TTAProgram::ProgramAnnotation progAnnotation(
                 TTAProgram::ProgramAnnotation::ANN_STACKUSE_RA_SAVE);
             move->setAnnotation(progAnnotation); 

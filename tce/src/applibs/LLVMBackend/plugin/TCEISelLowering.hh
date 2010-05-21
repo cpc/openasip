@@ -60,6 +60,20 @@ namespace TCEISD {
    };
 }
 
+// some const function qualifiers were added after LLVM 2.7
+#ifdef LLVM_2_7
+#define LFA_CONST
+#define LC_CONST
+#define LO_CONST
+#define LR_CONST
+#else
+#define LFA_CONST const
+#define LC_CONST const
+#define LO_CONST const
+#define LR_CONST const
+#endif
+
+
 namespace llvm {
 
     class TCETargetMachine;
@@ -68,10 +82,10 @@ namespace llvm {
      *  Lowers LLVM code to SelectionDAG for the TCE backend.
      */
     class TCETargetLowering : public llvm::TargetLowering {
-        int VarArgsFrameOffset;   // Frame offset to start of varargs area.
+        mutable int VarArgsFrameOffset;   // Frame offset to start of varargs area.
     public:
         TCETargetLowering(TargetMachine& TM);
-        virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG);
+        virtual SDValue LowerOperation(SDValue Op, SelectionDAG &DAG) LO_CONST;
 
         int getVarArgsFrameOffset() const { return VarArgsFrameOffset; }
 
@@ -95,7 +109,7 @@ namespace llvm {
                              bool isVarArg,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
-                             SmallVectorImpl<SDValue> &InVals);
+                             SmallVectorImpl<SDValue> &InVals) LFA_CONST;
         
         virtual SDValue
         LowerCall(SDValue Chain, SDValue Callee,
@@ -104,13 +118,13 @@ namespace llvm {
                   const SmallVectorImpl<ISD::OutputArg> &Outs,
                   const SmallVectorImpl<ISD::InputArg> &Ins,
                   DebugLoc dl, SelectionDAG &DAG,
-                  SmallVectorImpl<SDValue> &InVals);
+                  SmallVectorImpl<SDValue> &InVals) LC_CONST;
         
         virtual SDValue
         LowerReturn(SDValue Chain,
                     CallingConv::ID CallConv, bool isVarArg,
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
-                    DebugLoc dl, SelectionDAG &DAG);
+                    DebugLoc dl, SelectionDAG &DAG) LR_CONST;
 
         // ----------------------------------------------------
         //

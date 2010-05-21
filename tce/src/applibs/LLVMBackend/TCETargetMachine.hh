@@ -41,6 +41,7 @@
 #include "llvm/PassManager.h"
 #include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
+#include "tce_config.h"
 
 namespace TTAMachine {
     class Machine;
@@ -110,16 +111,24 @@ namespace llvm {
         // we had to actually override also addPassesToEmitFile
         // because addCommonCodeGenPasses was not virtual...
 
-
+//#ifdef LLVM_2_7
+        // for LLVM 2.8 and later, use the default one
         virtual bool addPassesToEmitFile(PassManagerBase &,
 					 formatted_raw_ostream &,
 					 CodeGenFileType,
 					 CodeGenOpt::Level);
+//#endif
 
-	
-
+#ifdef LLVM_2_7
         bool addCommonCodeGenPasses(PassManagerBase &PM,
                                     CodeGenOpt::Level OptLevel);
+#else
+	bool addCommonCodeGenPasses(PassManagerBase &PM,
+				    CodeGenOpt::Level OptLevel,
+				    bool DisableVerify,
+				    MCContext *&OutContext);
+#endif
+
         
         // ------------- end of duplicated methods ------------
 

@@ -114,9 +114,15 @@ TCERegisterInfo::eliminateCallFramePseudoInstr(
     MBB.erase(I);
 }
 
+#ifdef LLVM_2_7
 unsigned TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                               int SPAdj, int *Value,
                                               RegScavenger *RS) const {
+#else
+unsigned TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
+                                              int SPAdj, FrameIndexValue *Value,
+                                              RegScavenger *RS) const {
+#endif
     const TargetInstrInfo &TII = tii_;
     assert(SPAdj == 0 && "Unexpected");
     unsigned i = 0;
@@ -158,8 +164,13 @@ TCERegisterInfo::emitPrologue(MachineFunction& mf) const {
     numBytes = (numBytes + 3) & ~3; // stack size alignment
 
     MachineBasicBlock::iterator ii = mbb.begin();
+#ifdef LLVM_2_7
     DebugLoc dl = (ii != mbb.end() ?
                    ii->getDebugLoc() : DebugLoc::getUnknownLoc());
+#else
+    DebugLoc dl = (ii != mbb.end() ?
+                   ii->getDebugLoc() : DebugLoc());
+#endif
 
     BuildMI(mbb, ii, dl, tii_.get(TCE::SUBri), TCE::SP).addReg(
         TCE::SP).addImm(4);

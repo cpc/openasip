@@ -71,7 +71,7 @@ SDValue
 TCETargetLowering::LowerReturn(SDValue Chain,
                                CallingConv::ID CallConv, bool isVarArg,
                                const SmallVectorImpl<ISD::OutputArg> &Outs,
-                               DebugLoc dl, SelectionDAG &DAG) {
+                               DebugLoc dl, SelectionDAG &DAG) LR_CONST {
 
   // CCValAssign - represent the assignment of the return value to locations.
   SmallVector<CCValAssign, 16> RVLocs;
@@ -119,7 +119,7 @@ TCETargetLowering::LowerFormalArguments(
     CallingConv::ID CallConv, bool isVarArg,
     const SmallVectorImpl<ISD::InputArg> &Ins,
     DebugLoc dl, SelectionDAG &DAG,
-    SmallVectorImpl<SDValue> &InVals) {
+    SmallVectorImpl<SDValue> &InVals) LFA_CONST {
 
     MachineFunction &MF = DAG.getMachineFunction();
     MachineRegisterInfo &RegInfo = MF.getRegInfo();
@@ -240,7 +240,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                              const SmallVectorImpl<ISD::OutputArg> &Outs,
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
-                             SmallVectorImpl<SDValue> &InVals) {
+                             SmallVectorImpl<SDValue> &InVals) LC_CONST {
 
     // we do not yet support tail call optimization.
     isTailCall = false;
@@ -569,7 +569,7 @@ static SDValue LowerSELECT(
 }
 
 static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
-    GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
+    const GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
     SDValue ga = DAG.getTargetGlobalAddress(gv, MVT::i32);
     return DAG.getNode(TCEISD::GLOBAL_ADDR, Op.getDebugLoc(), MVT::i32, ga);
 }
@@ -592,7 +592,7 @@ static SDValue LowerCONSTANTPOOL(SDValue Op, SelectionDAG &DAG) {
 }
 
 static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
-                              TCETargetLowering &TLI) {
+                            const TCETargetLowering &TLI) {
 
     // ARM ripoff 
 
@@ -603,7 +603,7 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
     SDValue FR = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), PtrVT);
     const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
     return DAG.getStore(
-	Op.getOperand(0), dl, FR, Op.getOperand(1), SV, 0, false, false, 0);
+        Op.getOperand(0), dl, FR, Op.getOperand(1), SV, 0, false, false, 0);
 }
 
 
@@ -619,7 +619,7 @@ TCETargetLowering::getSetCCResultType(llvm::EVT VT) const {
  * Handles custom operation lowerings.
  */
 SDValue
-TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) {
+TCETargetLowering::LowerOperation(SDValue op, SelectionDAG& dag) LO_CONST {
     switch(op.getOpcode()) {
     case ISD::GlobalAddress: return LowerGLOBALADDRESS(op, dag);
     case ISD::SELECT: return LowerSELECT(op, dag);

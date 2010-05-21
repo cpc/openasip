@@ -53,7 +53,7 @@ using namespace llvm;
 #include <set>
 
 namespace {
-    class VISIBILITY_HIDDEN LowerIntrinsics : public BasicBlockPass {
+    class LowerIntrinsics : public BasicBlockPass {
 
         Module* dstModule_;
         

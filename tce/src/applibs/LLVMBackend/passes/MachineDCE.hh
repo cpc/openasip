@@ -24,7 +24,7 @@
 #include <map>
 
 namespace llvm {    
-  struct VISIBILITY_HIDDEN MachineDCE : public MachineFunctionPass {
+  struct MachineDCE : public MachineFunctionPass {
     static char ID;
     MachineDCE() : MachineFunctionPass(&ID) {}
       

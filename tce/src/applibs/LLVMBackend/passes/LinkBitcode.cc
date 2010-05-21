@@ -44,7 +44,7 @@ using namespace llvm;
 #include <map>
 
 namespace {
-    class VISIBILITY_HIDDEN LinkBitcode : public BasicBlockPass {
+    class LinkBitcode : public BasicBlockPass {
     public:
         static char ID; // Pass ID, replacement for typeid       
         LinkBitcode(Module& input);
