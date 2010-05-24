@@ -81,7 +81,7 @@ public:
     virtual void addDataLabel(const DataLabel* dataLabel)
         throw (KeyAlreadyExists);
     virtual void removeCodeLabels(InstructionAddress address);
-
+    virtual void removeDataLabels(const int index);
     virtual Scope* copy() const = 0;
 
 protected:

@@ -56,6 +56,8 @@ namespace llvm {
 
   public:
     typedef std::set<std::string> UnusedFunctionsList;
+    typedef std::set<std::string> UnusedSymbolsList;
     UnusedFunctionsList removeableFunctions;
+    UnusedSymbolsList removeableSymbols;
   };
 }

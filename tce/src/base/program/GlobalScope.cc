@@ -381,6 +381,22 @@ GlobalScope::removeCodeLabels(InstructionAddress address) {
     }
 }
 
+/**
+ * Removes data label at the given index.
+ *
+ * @param address The data label index.
+ */
+void
+GlobalScope::removeDataLabels(const int index) {
+
+    if (index >= 0 && index < dataLabels_.size()) {
+        LabelOwnerList::iterator i = allDataLabels_.begin();
+        i += index;
+        delete(*i);
+        allDataLabels_.erase(i);
+    }
+    
+}
 /////////////////////////////////////////////////////////////////////////////
 // LabelOwner
 /////////////////////////////////////////////////////////////////////////////
