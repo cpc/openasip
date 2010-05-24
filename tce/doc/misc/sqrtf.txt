@@ -1,0 +1,71 @@
+about automatic selection of SQRTF
+----------------------------------
+
+TCE 1.2 with LLVM 2.7 (and probably some earlier TCE versions) can 
+use SQRTF operation automatically when the target supports it 
+and math.h sqrtf() is called. 
+
+C99 standard says:
+
+1 The behavior of each of the functions in <math.h> is specifed for 
+  all representable values of its input arguments, except where stated 
+  otherwise. Each function shall execute as if it were a single operation 
+  without generating any externally visible exceptional conditions.
+
+2 For all functions, a domain error occurs if an input argument is 
+  outside the domain over which the mathematical function is defined. 
+  The description of each function lists any required domain errors; 
+  an implementation may define additional domain errors, provided
+  that such errors are consistent with the mathematical 
+  definition of the function.  On a domain error, the function returns 
+  an implementation-defined value; 
+
+  if the integer expression math_errhandling & MATH_ERRNO is nonzero, 
+  the integer expression errno acquires the value EDOM; if the integer 
+  expression math_errhandling & MATH_ERREXCEPT is nonzero, the invalid
+  floating-point exception is raised.
+
+Thus, it's not mandatory to update the errno in sqrtf() which the
+hardware operation does not. We just have to make sure 
+'math_errhandling & MATH_ERRNO' is zero. Similarly, as we do not support
+exceptions, 'math_errhandling & MATH_ERREXCEPT' should be zero aswell.
+
+On the other hand, it seems from this sentence that the standard requires 
+exceptions (from F.9 point 4):
+
+  The expression math_errhandling & MATH_ERREXCEPT shall evaluate to a
+  nonzero value.
+
+This part seems to imply that one should define at least one of MATH_ERRNO or
+MATH_ERREXCEPT-based error handling:
+
+
+  The macros
+
+       MATH_ERRNO
+       MATH_ERREXCEPT
+
+  expand to the integer constants 1 and 2, respectively; the macro
+  math_errhandling expands to an expression that has type int and 
+  the value MATH_ERRNO, MATH_ERREXCEPT, or the bitwise OR of both. 
+  The value of math_errhandling is constant for the duration of the 
+  program. It is unspecified whether math_errhandling is a macro or 
+  an identifier with external linkage. If a macro definition is 
+  suppressed or a program defines an identifier with the name
+  math_errhandling, the behavior is undefined.
+
+  If the expression math_errhandling & MATH_ERREXCEPT can be nonzero, 
+  the implementation shall define the macros FE_DIVBYZERO, FE_INVALID, 
+  and FE_OVERFLOW in <fenv.h>.
+
+http://www.open-std.org/jtc1/sc22/wg14/www/standards.html
+
+
+
+My (Pekka J. 2010-05-24) current conclusion of this is that 
+selecting SQRTF automatically as a replacement to a sqrtf() call
+is not safe as the programmer might not realize that it does not 
+support error handling of any kind. He might have code written that
+assumes errno is updated.
+
+
