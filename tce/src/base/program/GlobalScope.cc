@@ -388,8 +388,8 @@ GlobalScope::removeCodeLabels(InstructionAddress address) {
  */
 void
 GlobalScope::removeDataLabels(const int index) {
-
-    if (index >= 0 && index < dataLabels_.size()) {
+    int dataSize = dataLabels_.size();
+    if (index >= 0 && index < dataSize) {
         LabelOwnerList::iterator i = allDataLabels_.begin();
         i += index;
         delete(*i);

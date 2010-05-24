@@ -481,7 +481,8 @@ Scope::removeCodeLabels(InstructionAddress address) {
 void
 Scope::removeDataLabels(const int index) {
     
-    if (index >= 0 && index < dataLabels_.size()) {
+    int dataSize = dataLabels_.size();
+    if (index >= 0 && index < dataSize) {
         DataLabelList::iterator i = dataLabels_.begin();
         i += index;
         delete(*i);
