@@ -16,8 +16,8 @@ Bugfixes
 - Data alignment rules of data types fixed to be same in backend
   and frontend. 
 - Compiling simulator does not handle long guard latencies well,
-  implemented fallback to intepreted more with machines which have
-  long guard latencies.
+  implemented fallback to intepreted engine when simulating machines which 
+  have long guard latencies.
 
 1.1, unreleased
 ===============
