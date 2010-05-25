@@ -59,6 +59,8 @@ using std::cerr;
 using std::endl;
 using std::string;
 
+const string EXPLORER_DEFAULT_HDB = "asic_130nm_1.5V.hdb";
+
 /**
  * Loads the output Design Space Database file and creates a DSDB from it.
  * 
@@ -644,6 +646,25 @@ int main(int argc, char* argv[]) {
                 std::cerr << "Could not find HDB file " 
                           << options.hdbFileName(i) << std::endl;
             }
+        }
+    } else {
+        // if no hdb was given, use default hdb
+        string pathToHdb = EXPLORER_DEFAULT_HDB;
+        vector<string> hdbPaths = Environment::hdbPaths();
+        for (unsigned int i = 0; i < hdbPaths.size(); i++) {
+            string tempPath =
+                hdbPaths.at(i) + FileSystem::DIRECTORY_SEPARATOR
+                + EXPLORER_DEFAULT_HDB;
+            if (FileSystem::fileExists(tempPath)) {
+                pathToHdb = tempPath;
+                break;
+            }
+        }
+        try {
+            HDB::HDBRegistry::instance().hdb(pathToHdb);
+        } catch (const FileNotFound& e) {
+            std::cerr << "Could not find HDB file " 
+                      << pathToHdb << std::endl;
         }
     }
 

@@ -176,7 +176,8 @@ ExplorerCmdLineOptions::ExplorerCmdLineOptions() : CmdLineOptions("") {
     addOption(
         new StringListCmdLineOptionParser(
             SWL_HDB_FILE,
-            "HDB to use with exploration.",
+            "HDB to use with exploration. If not given 'asic_130nm_1.5V.hdb' "
+            "will be used.",
             SWS_HDB_FILE));
     addOption(
         new StringListCmdLineOptionParser(
