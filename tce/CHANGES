@@ -18,8 +18,8 @@ Bugfixes
 - Compiling simulator does not handle long guard latencies well,
   implemented fallback to intepreted engine when simulating machines which 
   have long guard latencies.
-- Floating point emulation code does not get into the data image if the
-  floating point emulation functions which require it are removed.
+- Global tables from floating point emulation do not get into the data image 
+  if the floating point emulation functions are not needed.
 
 1.1, unreleased
 ===============
