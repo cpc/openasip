@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-# Copyright (c) 2002-2009 Tampere University of Technology.
+# -*- coding: utf-8 -*-
+# 
+# Copyright (c) 2002-2010 Tampere University of Technology.
 #
 # This file is part of TTA-Based Codesign Environment (TCE).
 # 
@@ -20,6 +22,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
+#
+# @author 2006-2010 Pekka Jääskeläinen
+#
+
 import getopt, sys, os, glob, __builtin__, subprocess, time, signal, csv, tempfile
 from os import *
 from subprocess import *
@@ -67,6 +73,9 @@ Options:
      opc=ops/cycle, and 'all' which includes all stats. Example: 'rr,rw'
      prints register read and write stats.
   -l Output as LaTeX table.
+  -L Loosen the topresults. Set the worsened result as the new topresult to
+     compare the future runs against but do not touch the results that
+     improved.
   -o Delete the symbolic link 'data' pointing to the Operations directory
      containing the OSAL operations needed by the tests after the test
      cases have been executed.
@@ -140,6 +149,7 @@ outputOnlyIfFailure = False
 leaveDirty = False
 testCaseFilters = None
 compiledSimulation = False
+loosenResults = False
 
 # How large can the average worsening be without it being
 # an error, thus affect the result of -r
@@ -170,7 +180,8 @@ def ParseCommandLine():
            deleteOSALLink, outputOnlyIfFailure, architectures, \
            recompile, leaveDirty, configFileDefined, latexTable, moreStats, \
            normalOutput, testCaseFilters, useLLVM, schedulerConfDir, \
-           extraCompileFlags, compiledSimulation, worsenedIsErrorLimit
+           extraCompileFlags, compiledSimulation, worsenedIsErrorLimit,\
+           loosenResults    
 
     configFileDefined = False
         
@@ -178,7 +189,7 @@ def ParseCommandLine():
         args_start = 1
             
         opts, args = getopt.getopt(\
-            sys.argv[args_start:], "g:a:b:shtTvVc:Copqrxw:dli:", ["help"])
+            sys.argv[args_start:], "g:a:b:shtTvVc:Copqrxw:dlLi:", ["help"])
 
     except getopt.GetoptError, e:
         # print help information and exit:
@@ -225,6 +236,8 @@ def ParseCommandLine():
             leaveDirty = True
         elif o == '-l':
             latexTable = True
+        elif o == '-L':
+            loosenResults = True
         elif o == '-q':
             compiledSimulation = True
         elif o == '-i':
@@ -953,7 +966,7 @@ close $cycle_file
             lastRunWriter.writerow([arch, configFileName, timeStamp, "%.0f" %
                                     self.results[arch][0]])       
 
-        if (topStatsUpdates and self.improvedRuns) or baselineUpdate:
+        if (topStatsUpdates and self.improvedRuns) or baselineUpdate or loosenResults:
             topStatsWriter = csv.writer(__builtin__.open(self.directory + "/topresults.csv", "w"))
             
             for arch in set(self.architectures + self.oldResults.keys()):
@@ -963,8 +976,17 @@ close $cycle_file
 
                 # Do not discard the rows for architectures we did not test.
                 if arch in self.results:
-                    cycles = self.results[arch][0]
-                    if oldResult is None or oldResult[-1] > cycles or baselineUpdate:
+                    cycles = int(self.results[arch][0])
+                    if loosenResults:
+                        if oldResult is None: continue
+                        # "loosen results" mode only makes some topresults worse to
+                        # give headroom for worsening (useful e.g. when supporting two LLVM 
+                        # versions)
+                        if int(oldResult[-1]) < cycles:
+                            topStatsWriter.writerow([arch, configFileName, timeStamp, "%.0f" % cycles])
+                        else:
+                            topStatsWriter.writerow([arch] + oldResult)
+                    elif oldResult is None or int(oldResult[-1]) > cycles or baselineUpdate:
                         topStatsWriter.writerow([arch, configFileName, timeStamp, "%.0f" % cycles])
                     else:
                         topStatsWriter.writerow([arch] + oldResult)
