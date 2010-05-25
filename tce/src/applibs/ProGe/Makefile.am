@@ -17,10 +17,11 @@ BEM_APPLIBS_DIR = ${APPLIBS_DIR}/bem
 MACH_APPLIBS_DIR = ${APPLIBS_DIR}/mach
 IDF_APPLIBS_DIR = ${APPLIBS_DIR}/idf
 TOOLS_DIR = ${SRC_ROOT_DIR}/tools
+PLATFORM_DIR=${APPLIBS_DIR}/PlatformIntegrator
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${MACH_DIR} -I${BEM_DIR} -I${ESTIMATOR_DIR} \
 -I${IDF_DIR} -I${HDB_DIR} -I${BEM_APPLIBS_DIR} -I${MACH_APPLIBS_DIR} \
--I${IDF_APPLIBS_DIR}
+-I${IDF_APPLIBS_DIR} -I${PLATFORM_DIR}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

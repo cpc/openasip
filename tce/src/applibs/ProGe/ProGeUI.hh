@@ -41,6 +41,7 @@
 #include "ICDecoderGeneratorPlugin.hh"
 #include "Exception.hh"
 #include "PluginTools.hh"
+#include "MemoryGenerator.hh"
 
 
 namespace TTAMachine {
@@ -94,9 +95,24 @@ protected:
         const std::string& progeOutDir,
         const std::string& testBenchDir);
 
+    void integrateProcessor(
+        std::ostream& warningStream,
+        std::ostream& errorStream,
+        std::string progeOutDir,
+        const std::string& platformIntegrator,
+        const std::string& entityName,
+        const std::string& programName,
+        MemType imem,
+        MemType dmem,
+        int fmax,
+        int imemWidth);
+
 private:
     void checkIfNull(void * nullPointer, const std::string& errorMsg)
         throw (InvalidData);
+
+    void readLSUParameters(PlatformIntegrator::MemInfo& dmem) const;
+
     /// The loaded machine.
     TTAMachine::Machine* machine_;
     /// The loaded binary encoding map.

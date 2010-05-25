@@ -77,6 +77,8 @@ public:
         const std::string& source,
         const std::string& occurrence,
         const std::string& newString);
+
+    static std::string indent(int level);
 };
 
 #endif

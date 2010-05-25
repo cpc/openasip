@@ -7,6 +7,7 @@ HDB_DIR = ${SRC_ROOT_DIR}/applibs/hdb
 PROGE_APPLIBS_DIR = ${SRC_ROOT_DIR}/applibs/ProGe
 BEM_DIR = ${SRC_ROOT_DIR}/base/bem
 IMPL_TESTER_DIR = ${SRC_ROOT_DIR}/applibs/ImplementationTester
+INTEGRATOR_DIR = ${SRC_ROOT_DIR}/applibs/PlatformIntegrator
 
 LIB_TCETOOLS_DIR = ../../tools
 LIB_BASE_DIR = ../../base
@@ -44,7 +45,8 @@ ttaunittester_LDADD = ../../libtce.la
 
 AM_CPPFLAGS = -I${HDB_DIR} -I${TOOLS_DIR} -I${PROGE_APPLIBS_DIR} \
 -I${MACH_DIR} -I${BEM_DIR} -I${IMPL_TESTER_DIR} -I${IDF_DIR} \
--I${IDF_APPLIBS_DIR} -I${SIM_APPLIB_DIR} -I${OSAL_DIR}
+-I${IDF_APPLIBS_DIR} -I${SIM_APPLIB_DIR} -I${OSAL_DIR} \
+-I${INTEGRATOR_DIR}
 AM_CPPFLAGS += -I${PROJECT_ROOT} # Needed for config.h
 
 #-I${LIB_TCETOOLS_DIR} -I${ROOT_DIR} -I${OSAL_DIR} \

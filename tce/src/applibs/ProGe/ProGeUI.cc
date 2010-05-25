@@ -35,12 +35,16 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <cmath>
 
 #include "ProGeUI.hh"
 #include "ProcessorGenerator.hh"
 
 #include "Machine.hh"
 #include "ADFSerializer.hh"
+#include "ControlUnit.hh"
+#include "SpecialRegisterPort.hh"
+#include "FUPort.hh"
 
 #include "BinaryEncoding.hh"
 #include "BEMSerializer.hh"
@@ -57,6 +61,10 @@
 
 #include "ProGeScriptGenerator.hh"
 #include "ProGeTestBenchGenerator.hh"
+
+#include "MathTools.hh"
+#include "PlatformIntegrator.hh"
+#include "Stratix2DSPBoardIntegrator.hh"
 
 using namespace IDF;
 using std::string;
@@ -382,6 +390,112 @@ ProGeUI::checkIfNull(void * nullPointer, const std::string& errorMsg)
     if (nullPointer == NULL) {
         throw InvalidData(__FILE__, __LINE__, __func__, errorMsg);
     }
+}
+
+void
+ProGeUI::integrateProcessor(
+    std::ostream& warningStream,
+    std::ostream& errorStream,
+    std::string progeOutDir,
+    const std::string& platformIntegrator,
+    const std::string& entityName,
+    const std::string& programName,
+    MemType imem,
+    MemType dmem,
+    int fmax,
+    int imemWidth) {
+
+    string platformDir = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
+        "platform";
+
+    PlatformIntegrator* integrator = NULL;
+    // TODO: append new integrators here
+    if (platformIntegrator == "Stratix2DSP") {
+        integrator = new Stratix2DSPBoardIntegrator(
+            progeOutDir, entityName, platformDir, programName, fmax, 
+            warningStream, errorStream);
+    } else {
+        string errorMsg = "Unknown platform integrator: "
+            + platformIntegrator;
+        InvalidData exc(__FILE__, __LINE__, __func__, errorMsg);
+        throw exc;
+    }
+    
+    PlatformIntegrator::MemInfo imemInfo;
+    imemInfo.type = imem;
+    if (imemWidth == 0) {
+        imemInfo.mauWidth = bem_->width();
+    } else {
+        imemInfo.mauWidth = imemWidth;
+    }
+    // imem width in MAUs is fixed to 1 in ProGe
+    imemInfo.widthInMaus = 1;
+    imemInfo.addrw = machine_->controlUnit()->returnAddressPort()->width();
+    imemInfo.asName = machine_->controlUnit()->addressSpace()->name();
+
+    PlatformIntegrator::MemInfo dmemInfo;
+    dmemInfo.type = dmem;
+    if (dmemInfo.type != NONE) {
+        readLSUParameters(dmemInfo);
+    }
+
+    try {
+        integrator->integrateProcessor(imemInfo, dmemInfo);
+    } catch (Exception& e) {
+        delete integrator;
+        throw e;
+    }
+    delete integrator;
+}
+
+void
+ProGeUI::readLSUParameters(PlatformIntegrator::MemInfo& dmem) const {
+    
+    TTAMachine::FunctionUnit* lsu = NULL;
+    TTAMachine::Machine::FunctionUnitNavigator fuNav = 
+        machine_->functionUnitNavigator();
+    for (int i = 0; i < fuNav.count(); i++) {
+        TTAMachine::FunctionUnit* fu = fuNav.item(i);
+        if (fu->hasAddressSpace()) {
+            if (lsu != NULL) {
+                string errorMsg = "Error: Architecture has multiple LSUs";
+                InvalidData exc(__FILE__, __LINE__, __func__, errorMsg);          
+                throw exc;
+            } else {
+                lsu = fu;
+            }
+        }
+    }
+    
+    if (lsu == NULL) {
+        string errorMsg = "No LSU found from machine";
+        InvalidData exc(__FILE__, __LINE__, __func__, errorMsg);
+        throw exc;
+    }
+    
+    dmem.mauWidth = lsu->addressSpace()->width();
+    int internalAddrw = 0;
+    int dataWidth = 0;
+    for (int i = 0; i < lsu->operationPortCount(); i++) {
+        TTAMachine::FUPort* port = lsu->operationPort(i);
+        if (port->isInput()) {
+            if (port->isTriggering()) {
+                internalAddrw = port->width();
+            } else {
+                dataWidth = port->width();
+            }
+        }
+    }
+    dmem.widthInMaus = static_cast<int>(
+        ceil(static_cast<double>(dataWidth)/dmem.mauWidth));
+
+    int bytemaskWidth = 0;
+    if (dmem.widthInMaus > 1) {
+        unsigned int maus = static_cast<unsigned int>(dmem.widthInMaus) - 1;
+        bytemaskWidth = MathTools::requiredBits(maus);
+    }
+    dmem.addrw = internalAddrw - bytemaskWidth;
+    dmem.asName = lsu->addressSpace()->name();
 }
 
 } // end of namespace ProGe

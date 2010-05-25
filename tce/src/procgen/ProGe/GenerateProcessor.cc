@@ -43,6 +43,9 @@
 #include "ICDecoderGeneratorPlugin.hh"
 #include "Machine.hh"
 #include "BinaryEncoding.hh"
+#include "Stratix2DSPBoardIntegrator.hh"
+#include "MemoryGenerator.hh"
+#include "StringTools.hh"
 
 using namespace ProGe;
 using std::string;
@@ -95,22 +98,31 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
     try {
 
         options.parse(argv, argc);
-        
-        getOutputDir(options, outputDirectory);
-        
-        if(FileSystem::fileExists(outputDirectory)) {
-            cerr << "Error: Output directory " << outputDirectory
-                 << " already exists." << endl;
-            return false;
-        }
-        
+            
         std::string pluginParamQuery = options.pluginParametersQuery();
         if (pluginParamQuery != "") {
             return listICDecPluginParameters(pluginParamQuery);
         }
+
+        if (options.listAvailableIntegrators()) {
+            listIntegrators();
+            return true;
+        }
         
-        if (options.numberOfArguments() == 0) {
+        if (options.numberOfArguments() == 0 ||
+            !validIntegratorParameters(options)) {
             options.printHelp();
+            return false;
+        }
+
+        if (!validIntegratorParameters(options)) {
+            return false;
+        }
+
+        getOutputDir(options, outputDirectory);
+        if(FileSystem::fileExists(outputDirectory)) {
+            cerr << "Error: Output directory " << outputDirectory
+                 << " already exists." << endl;
             return false;
         }
         
@@ -180,6 +192,35 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
                   << "generate simulation/compilation scripts."
                   << std::endl;
         std::cerr << e.errorMessage() << std::endl;
+    }
+    
+    string integrator = options.integratorName();
+    if (!integrator.empty()) {
+        string progeOutDir = outputDirectory;
+        if (!options.useAbsolutePaths()) {
+            string cwd = FileSystem::currentWorkingDir();
+            FileSystem::relativeDir(cwd, progeOutDir);
+        }
+
+        string platformDir = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
+        "platform";
+        string entity = options.entityName();
+        string program = 
+            StringTools::chopString(options.tpefName(), ".tpef").at(0);
+        MemType imem = string2MemType(options.imemType());
+        MemType dmem = string2MemType(options.dmemType());
+        int imemWidth = options.imemWidth();
+        int fmax = options.clockFrequency();
+        
+        try {
+            ProGeUI::integrateProcessor(
+                std::cout, std::cerr, progeOutDir, integrator, entity,
+                program, imem, dmem, fmax, imemWidth);
+        } catch (const Exception& e) {
+            std::cerr << "Processor integration failed: "
+                      << e.errorMessage() << endl;
+            return false;
+        }
     }
     
     return true;
@@ -292,3 +333,121 @@ GenerateProcessor::listICDecPluginParameters(
     delete plugin;
     return true;
 }
+
+
+void
+GenerateProcessor::listIntegrators() const {
+    
+    // append new integrators here
+    Stratix2DSPBoardIntegrator stratix2;
+    stratix2.printInfo(std::cout);
+}
+
+
+bool
+GenerateProcessor::validIntegratorParameters(
+    const ProGeCmdLineOptions& options) const {
+
+    if (options.integratorName().empty()) {
+        return true;
+    }
+    string entity = options.entityName();
+    if (entity.empty()) {
+        std::cerr << "Entity name must be given" << endl;
+        return false;
+    }
+    string program = options.tpefName();
+    if (program.empty()) {
+        std::cerr
+            << "Tpef is required for platform integration" << endl;
+        return false;
+    }
+    if (!StringTools::endsWith(program, ".tpef")) {
+        std::cerr << "Program does not have '.tpef' ending" << endl;
+        return false;
+    }
+
+    string imem = options.imemType();
+    if (imem.empty()) {
+        std::cerr << "Instruction memory type is required for platform "
+                  << "integration" << endl;
+        return false;
+    }
+    string dmem = options.dmemType();
+    if (dmem.empty()) {
+        std::cerr << "Data memory type is required for platform integration"
+                  << endl;
+        return false;
+    }
+    if (string2MemType(imem) == UNKNOWN) {
+        std::cerr
+            << "Invalid instruction memory type " << imem << endl;
+        return false;
+    }
+    if (string2MemType(dmem) == UNKNOWN) {
+        std::cerr << "Invalid data memory type " << dmem << endl;
+        return false;
+    }
+    return true;
+}
+
+
+MemType
+GenerateProcessor::string2MemType(const std::string& memoryString) const {
+
+    MemType memory = UNKNOWN;
+    if (memoryString == "none") {
+        memory = NONE;
+    } else if (memoryString == "vhdl_array") {
+        memory = VHDL_ARRAY;
+    } else if (memoryString == "onchip") {
+        memory = ONCHIP;
+    } else if (memoryString == "sram") {
+        memory = SRAM;
+    } else if (memoryString == "dram") {
+        memory = DRAM;
+    }
+    return memory;
+}
+
+#if 0
+bool 
+GenerateProcessor::integrateProcessor(
+    std::string progeOutDir, ProGeCmdLineOptions& options) const {
+
+    if (!options.useAbsolutePaths()) {
+        string cwd = FileSystem::currentWorkingDir();
+        FileSystem::relativeDir(cwd, progeOutDir);
+    }
+    
+    string newEntity = options.entityName();
+    string platformDir = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
+        "platform";
+
+    string platformIntegrator = options.integratorName();
+    PlatformIntegrator* integrator = NULL;
+
+    // TODO: append new integrators here
+    if (platformIntegrator == "Stratix2DSP") {
+        integrator = new Stratix2DSPBoardIntegrator(
+            progeOutDir, newEntity, platformDir, std::cout, std::cerr);
+    } else {
+        std::cerr << "Unknown platform integrator: " << platformIntegrator
+                  << std::endl;
+        return false;
+    }
+    
+    MemType imem = string2MemType(options.imemType());
+    MemType dmem = string2MemType(options.dmemType());
+    bool success = true;
+    try {
+        integrator->integrateProcessor(imem, dmem);
+    } catch (Exception& e) {
+        std::cerr << "Platform integration failed: " << e.errorMessage()
+                  << std::endl;
+        success = false;
+    }
+    delete integrator;
+    return success;
+}
+#endif

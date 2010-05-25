@@ -52,6 +52,17 @@ public:
     std::string outputDirectory() const;
     std::string pluginParametersQuery() const;
 
+    // platform integrator params
+    std::string integratorName() const;
+    std::string imemType() const;
+    std::string dmemType() const;
+    int imemWidth() const;
+    int clockFrequency() const;
+    std::string tpefName() const;
+    std::string entityName() const;
+    bool useAbsolutePaths() const;
+    bool listAvailableIntegrators() const;
+
     virtual void printVersion() const;
     virtual void printHelp() const;
 };

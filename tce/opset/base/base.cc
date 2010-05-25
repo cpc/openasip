@@ -1388,3 +1388,17 @@ TRIGGER
 END_TRIGGER;
 
 END_OPERATION_WITH_STATE(RTC)
+
+//////////////////////////////////////////////////////////////////////////////
+// LEDS - Switches leds on and off.
+//
+// Bit 1 switches led on and 0 switches it off. Bit position corresponds to
+// the led position
+//////////////////////////////////////////////////////////////////////////////
+OPERATION(LEDS)
+
+TRIGGER
+     unsigned int dummy = UINT(1);
+END_TRIGGER;
+
+END_OPERATION(LEDS)

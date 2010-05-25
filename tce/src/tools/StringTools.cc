@@ -335,3 +335,18 @@ StringTools::replaceAllOccurrences(
     
     return modifiedString;
 }
+
+/**
+ * Returns a (vhdl) indention string 
+ *
+ * @param level Indention level (one level is 2 spaces)
+ * @return Indention string
+ */
+std::string 
+StringTools::indent(int level) {
+    string indent;
+    for (int i = 0; i < level; i++) {
+        indent += "  ";
+    }
+    return indent;
+}

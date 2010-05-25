@@ -1415,4 +1415,12 @@ EXEC_OPERATION(xor, temp3, 1, IO(3));
     <out id="2" type="FloatWord"/>
   </operation>
 
+  <operation>
+    <name>LEDS</name>
+    <description>Control leds by writing a bit pattern. Bit 1 switches a led on and 0 switches off.</description>
+    <inputs>1</inputs>
+    <outputs>0</outputs>
+    <in id="1" type="UIntWord"/>
+  </operation>
+
 </osal>

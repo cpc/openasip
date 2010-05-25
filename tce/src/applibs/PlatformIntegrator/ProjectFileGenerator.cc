@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,49 +22,64 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file GenerateProcessor.hh
+ * @file ProjectFileGenerator.cc
  *
- * Declaration of GenerateProcessor class.
+ * Implementation of ProjectFileGenerator class.
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_GENERATE_PROCESSOR_HH
-#define TTA_GENERATE_PROCESSOR_HH
+#include <string>
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include "ProjectFileGenerator.hh"
 
-#include "ProGeUI.hh"
-#include "ProGeCmdLineOptions.hh"
-#include "Exception.hh"
-#include "MemoryGenerator.hh"
+ProjectFileGenerator::ProjectFileGenerator(
+    std::string toplevelEntity,
+    PlatformIntegrator* integrator):
+    toplevelEntity_(toplevelEntity), integrator_(integrator) {
+}
 
-/**
- * Implements the command line user interface 'generateprocessor'.
- */
-class GenerateProcessor : public ProGe::ProGeUI {
-public:
-    GenerateProcessor();
-    virtual ~GenerateProcessor();
+ProjectFileGenerator::~ProjectFileGenerator() {
+}
 
-    bool generateProcessor(int argc, char* argv[]);
 
-private:
-    void getOutputDir(
-        const ProGeCmdLineOptions& options,
-        std::string& outputDir);
-    bool listICDecPluginParameters(const std::string& pluginFile) const;
+void
+ProjectFileGenerator::addHdlFile(const std::string& file) {
 
-    void listIntegrators() const;
+    hdlFiles_.push_back(file);
+}
 
-    bool validIntegratorParameters(const ProGeCmdLineOptions& options) const;
 
-    MemType string2MemType(const std::string& memoryString) const;
+void
+ProjectFileGenerator::addPinMapping(const std::string& mapping) {
+    
+    pinMapping_ << mapping << std::endl;
+}
 
-#if 0
-    bool integrateProcessor(
-        std::string progeOutDir,
-        ProGeCmdLineOptions& options) const;
-#endif
-};
 
-#endif
+const std::vector<std::string>&
+ProjectFileGenerator::hdlFileList() const {
+
+    return hdlFiles_;
+}
+    
+std::string
+ProjectFileGenerator::pinMappings() const {
+
+    return pinMapping_.str();
+}
+
+const PlatformIntegrator*
+ProjectFileGenerator::integrator() const {
+
+    return integrator_;
+}
+
+std::string
+ProjectFileGenerator::toplevelEntity() const {
+
+    return toplevelEntity_;
+}

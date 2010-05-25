@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,49 +22,50 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file GenerateProcessor.hh
+ * @file ProjectFileGenerator.hh
  *
- * Declaration of GenerateProcessor class.
+ * Declaration of ProjectFileGenerator class.
  *
- * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
+#ifndef TTA_PROJECT_FILE_GENERATOR_HH
+#define TTA_PROJECT_FILE_GENERATOR_HH
 
-#ifndef TTA_GENERATE_PROCESSOR_HH
-#define TTA_GENERATE_PROCESSOR_HH
+#include <string>
+#include <vector>
+#include <iostream>
+#include <sstream>
+#include "PlatformIntegrator.hh"
 
-#include "ProGeUI.hh"
-#include "ProGeCmdLineOptions.hh"
-#include "Exception.hh"
-#include "MemoryGenerator.hh"
-
-/**
- * Implements the command line user interface 'generateprocessor'.
- */
-class GenerateProcessor : public ProGe::ProGeUI {
+class ProjectFileGenerator {
 public:
-    GenerateProcessor();
-    virtual ~GenerateProcessor();
+    ProjectFileGenerator(std::string toplevelEntity,
+                         PlatformIntegrator* integrator);
+    virtual ~ProjectFileGenerator();
 
-    bool generateProcessor(int argc, char* argv[]);
+    virtual void writeProjectFiles() = 0;
+
+    void addHdlFile(const std::string& file);
+
+    void addPinMapping(const std::string& mapping);
+
+protected:
+
+    const std::vector<std::string>& hdlFileList() const;
+    
+    std::string pinMappings() const;
+
+    const PlatformIntegrator* integrator() const;
+
+    std::string toplevelEntity() const;
 
 private:
-    void getOutputDir(
-        const ProGeCmdLineOptions& options,
-        std::string& outputDir);
-    bool listICDecPluginParameters(const std::string& pluginFile) const;
-
-    void listIntegrators() const;
-
-    bool validIntegratorParameters(const ProGeCmdLineOptions& options) const;
-
-    MemType string2MemType(const std::string& memoryString) const;
-
-#if 0
-    bool integrateProcessor(
-        std::string progeOutDir,
-        ProGeCmdLineOptions& options) const;
-#endif
+    std::string toplevelEntity_;
+    const PlatformIntegrator* integrator_;
+    
+    std::vector<std::string> hdlFiles_;
+    std::ostringstream pinMapping_;
 };
 
 #endif

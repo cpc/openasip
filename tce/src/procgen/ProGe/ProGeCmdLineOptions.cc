@@ -46,6 +46,17 @@ const string HDL_PARAM_NAME = "hdl";
 const string OUTPUTDIR_PARAM_NAME = "output";
 const string PLUGIN_PARAMETERS_PARAM_NAME = "pluginparameters";
 
+const string INTEGRATOR_NAME = "integrator";
+const string IMEM_TYPE = "imem";
+const string DMEM_TYPE = "dmem";
+const string IMEM_WIDTH = "imem-width";
+const string CLK_FREQUENCY = "clock-frequency";
+const string TPEF_NAME = "program";
+const string ENTITY_NAME = "entity-name";
+const string USE_ABSOLUTE_PATHS = "absolute-paths";
+const string LIST_INTEGRATORS = "list-integrators";
+
+
 /**
  * The constructor.
  */
@@ -70,6 +81,52 @@ ProGeCmdLineOptions::ProGeCmdLineOptions() :
             PLUGIN_PARAMETERS_PARAM_NAME, "List plugin parameters for an "
             "IC/Decoder generator plugin file.", "u");
     addOption(pluginParameters);
+
+    StringCmdLineOptionParser* integratorName =
+        new StringCmdLineOptionParser(
+            INTEGRATOR_NAME, "Select the target for platform integration.",
+            "g");
+    addOption(integratorName);
+    StringCmdLineOptionParser* imemType =
+        new StringCmdLineOptionParser(
+            IMEM_TYPE, "Instruction memory type. Available types depends on "
+            "the platform integrator. Types are 'vhdl_array', 'onchip', "
+            "'sram' and 'dram'", "f");
+    addOption(imemType);
+    StringCmdLineOptionParser* dmemType =
+        new StringCmdLineOptionParser(
+            DMEM_TYPE, "Data memory type. Available types depends on the "
+            "platform integrator. Types are 'vhdl_array', 'onchip', 'sram',"
+            " 'dram' and 'none'", "d");
+    addOption(dmemType);
+    IntegerCmdLineOptionParser* imemWidth =
+        new IntegerCmdLineOptionParser(
+            IMEM_WIDTH, "Defines instruction memory width. This value "
+            "overrides the instruction width from BEM.", "w");
+    addOption(imemWidth);
+    IntegerCmdLineOptionParser* fmax =
+        new IntegerCmdLineOptionParser(
+            CLK_FREQUENCY, "Defines the target clock frequency.", "c");
+    addOption(fmax);
+    StringCmdLineOptionParser* programName =
+        new StringCmdLineOptionParser(
+            TPEF_NAME, "Name of tpef program.", "p");
+    addOption(programName);
+    StringCmdLineOptionParser* entityName = 
+        new StringCmdLineOptionParser(
+            ENTITY_NAME, "Name of the entity which platform integrator "
+            "creates", "e");
+    addOption(entityName);
+    BoolCmdLineOptionParser* useAbsolutePaths = 
+        new BoolCmdLineOptionParser(
+            USE_ABSOLUTE_PATHS, "Use absolute paths in generated platform "
+            "integrator files.", "a");
+    addOption(useAbsolutePaths);
+    BoolCmdLineOptionParser* listIntegrators = 
+        new BoolCmdLineOptionParser(
+            LIST_INTEGRATORS, "List available integrators and information "
+            "about them.", "n");
+    addOption(listIntegrators);
 }
 
 
@@ -142,6 +199,69 @@ ProGeCmdLineOptions::outputDirectory() const {
 std::string
 ProGeCmdLineOptions::pluginParametersQuery() const {
     return findOption(PLUGIN_PARAMETERS_PARAM_NAME)->String();
+}
+
+
+std::string
+ProGeCmdLineOptions::integratorName() const {
+    return findOption(INTEGRATOR_NAME)->String();
+}
+
+
+std::string
+ProGeCmdLineOptions::imemType() const {
+    return findOption(IMEM_TYPE)->String();
+}
+
+
+std::string
+ProGeCmdLineOptions::dmemType() const {
+    return findOption(DMEM_TYPE)->String();
+}
+
+
+int
+ProGeCmdLineOptions::imemWidth() const {
+
+    int width = 0;
+    if (findOption(IMEM_WIDTH)->isDefined()) {
+        width = findOption(IMEM_WIDTH)->integer();
+    }
+    return width;
+}
+
+
+int
+ProGeCmdLineOptions::clockFrequency() const {
+
+    int freq = 0;
+    if (findOption(CLK_FREQUENCY)->isDefined()) {
+        freq = findOption(CLK_FREQUENCY)->integer();
+    }
+    return freq;
+}
+
+
+std::string
+ProGeCmdLineOptions::tpefName() const {
+    return findOption(TPEF_NAME)->String();
+}
+
+
+std::string
+ProGeCmdLineOptions::entityName() const {
+    return findOption(ENTITY_NAME)->String();
+}
+
+bool
+ProGeCmdLineOptions::useAbsolutePaths() const {
+    return findOption(USE_ABSOLUTE_PATHS)->isFlagOn();
+}
+
+
+bool
+ProGeCmdLineOptions::listAvailableIntegrators() const {
+    return findOption(LIST_INTEGRATORS)->isFlagOn();
 }
 
 
