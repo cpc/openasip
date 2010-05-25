@@ -1,0 +1,3 @@
+leds 3
+leds 42
+!quit

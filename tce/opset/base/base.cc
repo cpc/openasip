@@ -1399,6 +1399,7 @@ OPERATION(LEDS)
 
 TRIGGER
      unsigned int dummy = UINT(1);
+     dummy = dummy;
 END_TRIGGER;
 
 END_OPERATION(LEDS)
