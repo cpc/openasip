@@ -3012,6 +3012,62 @@ be valid.
 \end{longtable}
 \end{center}
 
+\subsubsection{Platform Integrator}
+
+Processor Generator also has an experimental support for integrating TTA core
+to standalone processor on FPGA. Another use case for platform integrator is to
+create IP-components out of TTAs for SoC designs. Platform Integrator is invoked
+with \textit{generateprocessor} command.
+
+Platform Integrator specific command line parameters are the following:
+
+\begin{center}
+\begin{longtable}[htb]{@{}p{.10\textwidth}@{}p{.20\textwidth}%
+                     @{}p{.65\textwidth}}
+
+\textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
+\hline
+
+a & \verb|absolute-paths| &
+Use absolute paths in generated platform integrator files. By default
+integrator uses relative paths.\\
+
+c & \verb|clock-frequency| &
+Defines the target clock frequency. If not given integrator specific default
+value will be used. \\
+
+d & \verb|dmem| &
+Data memory type. Available types depends on the platform integrator. Types are
+'vhdl\_array', 'onchip', 'sram', 'dram' and 'none' \\
+
+e & \verb|entity-name| &
+Name of the toplevel entity which platform integrator creates \\
+
+i & \verb|imem| &
+Instruction memory type. Available types depends on the platform integrator.
+Types are 'vhdl\_array', 'onchip', 'sram' and 'dram'. \\
+
+w & \verb|imem-width| &
+Defines instruction memory width. This value overrides the instruction width
+from BEM. \\
+
+g & \verb|integrator| &
+Selects the platform integrator. \\
+
+n & \verb|list-integrators| &
+List available integrators and information about them. \\
+
+p & \verb|program| &
+Name of tpef program.
+
+\end{longtable}
+\end{center}
+
+Parameters 'dmem', 'imem', 'entity-name', 'program' and 'integrator' are
+required. Here is an example how to use platform integrator:
+
+\shellcmd{generateprocessor -i arch.idf -o proge-output -g Stratix2DSP
+-d onchip -f vhdl\_array -e FFTmuncher -p fft\_app.tpef arch.adf}
 
 \subsubsection{IC/Decoder Generators}
 
@@ -3091,6 +3147,156 @@ is first in the list and so on.
 \caption{HDB Editor Main window.}
 \label{fig:hdbeditor_main_window}
 \end{figure}
+
+\section{Hardware Database Tester}
+\label{sec:hdbtester}
+
+HDB tester is an utility program which tests that a function unit or register
+file implementation in HDB is equal to its simulation model. Tester can be used
+to test one or all implementations from HDB.
+
+HDB tester uses simulation behaviour models to create reference output values
+from input stimulus. Then it creates an RTL testbench with the unit under test
+and compares the output to the reference. HDB tester requires an RTL simulator
+to be installed. Currently 'ghdl' and 'modelsim' are supported.
+
+\subsection{Usage}
+
+HDB tester executable is called \textit{testhdb} and it is used as follows:
+
+\shellcmd{testhdb <options> hdb-file}
+
+HDB tester accepts following command line options:
+
+\begin{center}
+\begin{longtable}[htb]{@{}p{.10\textwidth}@{}p{.20\textwidth}%
+                     @{}p{.65\textwidth}}
+
+\textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
+\hline
+
+f & \verb|fuid| &
+Entry id of FU component to be tested. If this is or RF ID are not defined
+whole HDB will be tested. \\
+
+d & \verb|leave-dirty| &
+Don't delete created files \\
+
+r & \verb|rfid| &
+Entry id of RF component to be tested. If this is or FU ID are not defined
+whole HDB will be tested. \\
+
+s & \verb|simulator| &
+HDL simulator used to simulate testbench. Accepted values are 'ghdl' and
+'modelsim'. Default is ghdl. Simulator executable must be found from PATH. \\
+
+v & \verb|verbose| &
+Enable verbose output. Prints all executed commands. \\
+
+\end{longtable}
+\end{center}
+
+Example: test all FU and RF implementations in HDB:
+
+\shellcmd{testhdb asic\_130nm\_1.5V.hdb}
+
+Example: test FU implementation id 1 from HDB, keep testbench files and print
+commands:
+
+\shellcmd{testhdb -d -v -f 1 asic\_130nm\_1.5V.hdb}
+
+Example: test RF implementation id 125 from HDB and use modelsim as RTL
+simulator:
+
+\shellcmd{testhdb -r 125 -s modelsim asic\_130nm\_1.5V.hdb}
+
+If 'verbose' option is not defined HDB tester won't output anything when test
+passes.
+
+\subsection{Test conditions}
+
+Function units is \textbf{not} tested if it meets one of these conditions:
+
+\begin{enumerate}
+ \item Function unit does not have an architecture in HDB
+
+ \item Function unit does not have an implementation in HDB
+
+ \item Function unit accesses memory
+
+ \item Function unit is not pipelined
+
+ \item Function unit has external ports
+
+ \item Function unit has only one port
+\end{enumerate}
+
+Register file is \textbf{not} tested if it meets one of these conditions:
+
+\begin{enumerate}
+ \item register file does not have an architecture in HDB
+
+ \item Register file does not have an implementation in HDB
+
+ \item Register file does not have a read port
+
+ \item Register file does not have a write port
+
+ \item Register file has bidirectional port(s)
+
+ \item Register file does not have latency of 1 cycle
+\end{enumerate}
+
+
+\section{Processor unit tester}
+
+Processor unit tester validates that the function units and register files of
+a processor are equal to their simulation models. Basic operation of processor
+unit tester is similar to HDB tester (section \ref{sec:hdbtester}).
+
+\section{Usage}
+
+Processor unit tester is invoked as follows:
+
+\shellcmd{ttaunittester <options> idf-file}
+
+Accepted command line options are:
+
+\begin{center}
+\begin{longtable}[htb]{@{}p{.10\textwidth}@{}p{.20\textwidth}%
+                     @{}p{.65\textwidth}}
+
+\textbf{Short Name} &\textbf{Long Name} &\textbf{Description} \\
+\hline
+
+a & \verb|adf| &
+If ADF file is given IDF will be validated \\
+
+d & \verb|leave-dirty| &
+Don't delete created files \\
+
+s & \verb|simulator| &
+HDL simulator used to simulate testbench. Accepted values are 'ghdl' and
+'modelsim'. Default is ghdl. Simulator executable must be found from PATH. \\
+
+v & \verb|verbose| &
+Enable verbose output. Prints all executed commands. \\
+
+\end{longtable}
+\end{center}
+
+Example: Test units defined in idf:
+
+\shellcmd{ttaunittester arch.idf}
+
+Example: Test units defined in idf and validate idf against adf:
+
+\shellcmd{ttaunittester -a arch.adf arch.idf}
+
+Example: Test units defined in idf, enable verbose output, don't delete created
+files and use modelsim:
+
+\shellcmd{ttaunittester -v -d -s modelsim arch.idf}
 
 
 \section{Function Unit Interface}

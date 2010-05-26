@@ -372,6 +372,151 @@ Stratix2DSPBoardIntegrator::createPinMap() {
     ledMapping->push_back(
         "set_location_assignment PIN_A6 -to STRATIXII_LED[7]");
     stratixPins_["STRATIXII_LED"] = ledMapping;
+
+    // sram data signals
+    vector<string>* sramData = new vector<string>;
+    sramData->push_back(
+        "set_location_assignment PIN_AD18 -to STRATIXII_SRAM_DQ[0]");
+    sramData->push_back(
+        "set_location_assignment PIN_AB18 -to STRATIXII_SRAM_DQ[1]");
+    sramData->push_back(
+        "set_location_assignment PIN_AB19 -to STRATIXII_SRAM_DQ[2]");
+    sramData->push_back(
+        "set_location_assignment PIN_AC20 -to STRATIXII_SRAM_DQ[3]");
+    sramData->push_back(
+        "set_location_assignment PIN_AD20 -to STRATIXII_SRAM_DQ[4]");
+    sramData->push_back(
+        "set_location_assignment PIN_AE20 -to STRATIXII_SRAM_DQ[5]");
+    sramData->push_back(
+        "set_location_assignment PIN_AB20 -to STRATIXII_SRAM_DQ[6]");
+    sramData->push_back(
+        "set_location_assignment PIN_AF20 -to STRATIXII_SRAM_DQ[7]");
+    sramData->push_back(
+        "set_location_assignment PIN_AC21 -to STRATIXII_SRAM_DQ[8]");
+    sramData->push_back(
+        "set_location_assignment PIN_AD21 -to STRATIXII_SRAM_DQ[9]");
+    sramData->push_back(
+        "set_location_assignment PIN_AB21 -to STRATIXII_SRAM_DQ[10]");
+    sramData->push_back(
+        "set_location_assignment PIN_AE21 -to STRATIXII_SRAM_DQ[11]");
+    sramData->push_back(
+        "set_location_assignment PIN_AG20 -to STRATIXII_SRAM_DQ[12]");
+    sramData->push_back(
+        "set_location_assignment PIN_AF21 -to STRATIXII_SRAM_DQ[13]");
+    sramData->push_back(
+        "set_location_assignment PIN_AD22 -to STRATIXII_SRAM_DQ[14]");
+    sramData->push_back(
+        "set_location_assignment PIN_AF22 -to STRATIXII_SRAM_DQ[15]");
+    sramData->push_back(
+        "set_location_assignment PIN_AE22 -to STRATIXII_SRAM_DQ[16]");    
+    sramData->push_back(
+        "set_location_assignment PIN_AC17 -to STRATIXII_SRAM_DQ[17]");
+    sramData->push_back(
+        "set_location_assignment PIN_AE19 -to STRATIXII_SRAM_DQ[18]");
+    sramData->push_back(
+        "set_location_assignment PIN_AD19 -to STRATIXII_SRAM_DQ[19]");
+    sramData->push_back(
+        "set_location_assignment PIN_AC18 -to STRATIXII_SRAM_DQ[20]");
+    sramData->push_back(
+        "set_location_assignment PIN_AB17 -to STRATIXII_SRAM_DQ[21]");
+    sramData->push_back(
+        "set_location_assignment PIN_AC19 -to STRATIXII_SRAM_DQ[22]");
+    sramData->push_back(
+        "set_location_assignment PIN_AL26 -to STRATIXII_SRAM_DQ[23]");
+    sramData->push_back(
+        "set_location_assignment PIN_AL27 -to STRATIXII_SRAM_DQ[24]");
+    sramData->push_back(
+        "set_location_assignment PIN_AL28 -to STRATIXII_SRAM_DQ[25]");
+    sramData->push_back(
+        "set_location_assignment PIN_AK28 -to STRATIXII_SRAM_DQ[26]");
+    sramData->push_back(
+        "set_location_assignment PIN_AK29 -to STRATIXII_SRAM_DQ[27]");
+    sramData->push_back(
+        "set_location_assignment PIN_AC13 -to STRATIXII_SRAM_DQ[28]");
+    sramData->push_back(
+        "set_location_assignment PIN_AD10 -to STRATIXII_SRAM_DQ[29]");
+    sramData->push_back(
+        "set_location_assignment PIN_AC11 -to STRATIXII_SRAM_DQ[30]");
+    sramData->push_back(
+        "set_location_assignment PIN_AE11 -to STRATIXII_SRAM_DQ[31]");
+    stratixPins_["STRATIXII_SRAM_DQ"] = sramData;
+
+     // sram address signals
+    vector<string>* sramAddr = new vector<string>;
+    sramAddr->push_back(
+        "set_location_assignment PIN_AD8 -to STRATIXII_SRAM_ADDR[0]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AM27 -to STRATIXII_SRAM_ADDR[1]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AM28 -to STRATIXII_SRAM_ADDR[2]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AJ27 -to STRATIXII_SRAM_ADDR[3]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AK27 -to STRATIXII_SRAM_ADDR[4]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AL29 -to STRATIXII_SRAM_ADDR[5]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AM29 -to STRATIXII_SRAM_ADDR[6]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AJ28 -to STRATIXII_SRAM_ADDR[7]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AH28 -to STRATIXII_SRAM_ADDR[8]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AK20 -to STRATIXII_SRAM_ADDR[9]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AJ20 -to STRATIXII_SRAM_ADDR[10]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AL21 -to STRATIXII_SRAM_ADDR[11]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AL22 -to STRATIXII_SRAM_ADDR[12]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AJ22 -to STRATIXII_SRAM_ADDR[13]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AH22 -to STRATIXII_SRAM_ADDR[14]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AL23 -to STRATIXII_SRAM_ADDR[15]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AL24 -to STRATIXII_SRAM_ADDR[16]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AJ25 -to STRATIXII_SRAM_ADDR[17]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AH25 -to STRATIXII_SRAM_ADDR[18]");
+    sramAddr->push_back(
+        "set_location_assignment PIN_AL25 -to STRATIXII_SRAM_ADDR[19]");
+    stratixPins_["STRATIXII_SRAM_ADDR"] = sramAddr;
+
+    // sram control signals
+    vector<string>* sramWe = new vector<string>;
+    sramWe->push_back(
+        "set_location_assignment PIN_AH14 -to STRATIXII_SRAM_WE_N");
+    stratixPins_["STRATIXII_SRAM_WE_N"] = sramWe;
+
+    vector<string>* sramOe = new vector<string>;
+    sramOe->push_back(
+        "set_location_assignment PIN_AG14 -to STRATIXII_SRAM_OE_N");
+    stratixPins_["STRATIXII_SRAM_OE_N"] = sramOe;
+
+    vector<string>* sramCs = new vector<string>;
+    sramCs->push_back(
+        "set_location_assignment PIN_AL12 -to STRATIXII_SRAM_CS_N");
+    stratixPins_["STRATIXII_SRAM_CS_N"] = sramCs;
+
+    vector<string>* sramB0 = new vector<string>;
+    vector<string>* sramB1 = new vector<string>;
+    vector<string>* sramB2 = new vector<string>;
+    vector<string>* sramB3 = new vector<string>;
+    sramB0->push_back(
+        "set_location_assignment PIN_AG11 -to STRATIXII_SRAM_BE_N0");
+    sramB1->push_back(
+        "set_location_assignment PIN_AK10 -to STRATIXII_SRAM_BE_N1");
+    sramB2->push_back(
+        "set_location_assignment PIN_AK11 -to STRATIXII_SRAM_BE_N2");
+    sramB3->push_back(
+        "set_location_assignment PIN_AL11 -to STRATIXII_SRAM_BE_N3");
+    stratixPins_["STRATIXII_SRAM_BE_N0"] = sramB0;
+    stratixPins_["STRATIXII_SRAM_BE_N1"] = sramB1;
+    stratixPins_["STRATIXII_SRAM_BE_N2"] = sramB2;
+    stratixPins_["STRATIXII_SRAM_BE_N3"] = sramB3;
 }
 
 

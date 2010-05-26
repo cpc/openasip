@@ -5,6 +5,8 @@ New features
 - Support for LLVM 2.7 (dropped support for LLVM 2.6)
 - Proper support for Clang. Clang now the default frontend compiler
   in tcecc.
+- Preliminary support for platform integration. Stratix II dsp board
+  is supported.
 
 Bugfixes
 --------
