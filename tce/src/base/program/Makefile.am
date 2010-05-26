@@ -46,9 +46,6 @@ dist-hook:
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da *.gcno *.gcda
 
-
-
-
 ## headers start
 libprogram_la_SOURCES += \
 	Address.hh AnnotatedInstructionElement.hh \
@@ -72,5 +69,14 @@ libprogram_la_SOURCES += \
 	TerminalImmediate.hh TerminalInstructionAddress.hh \
 	TerminalRegister.hh Address.icc \
 	InstructionReferenceManager.icc Procedure.icc \
-	TerminalRegister.icc 
+	TerminalRegister.icc InstructionReferenceImpl.hh \
+	Disassembler.hh DisassemblyElement.hh DisassemblyOperand.hh \
+	DisassemblyInstruction.hh DisassemblyRegister.hh DisassemblyFUPort.hh \
+	DisassemblyIntRegister.hh DisassemblyFPRegister.hh DisassemblyImmediate.hh \
+	DisassemblyGuard.hh DisassemblyBoolRegister.hh TPEFDisassembler.hh \
+	DisassemblyNOP.hh DisassemblyReturnAddressRegister.hh DisassemblyControlUnitPort.hh \
+	DisassemblyAnnotation.hh DisassemblyImmediateAssignment.hh DisassemblyLabel.hh \
+	DisassemblySequentialGuard.hh CodeGenerator.hh InstructionReferenceImpl.icc \
+	DisassemblyFUOpcodePort.hh DisassemblyMove.hh DisassemblyImmediateRegister.hh \
+	DisassemblyFUOperand.hh DisassemblyInstructionSlot.hh 
 ## headers end

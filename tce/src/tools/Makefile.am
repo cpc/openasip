@@ -20,7 +20,7 @@ AM_CPPFLAGS = -I${PROJECT_ROOT} -I${PROJECT_ROOT}/src/base/memory
 
 include_HEADERS = Application.hh ObjectState.hh Exception.hh Exception.icc BaseType.hh \
 	SimValue.hh SimValue.icc Serializable.hh ObjectState.icc Conversion.hh \
-	Conversion.icc MathTools.hh MathTools.icc TCEString.hh
+	Conversion.icc MathTools.hh MathTools.icc TCEString.hh TCEString.icc
 
 REVNO=$(shell which bzr > /dev/null && bzr revno > /dev/null 2>&1 && echo "-r" | tr -d "\n" && bzr revno 2> /dev/null || echo -n "")
 TCE_VERSION_STRING=@PACKAGE_VERSION@$(REVNO)
