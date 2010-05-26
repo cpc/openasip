@@ -30,7 +30,7 @@
 # It's sort of a "smoke test" that tells whether there is something seriously
 # broken with the TCE installation.
 #
-# (C) 2009 Pekka J√§√§skel√§inen
+# (C) 2009 Pekka J‰‰skel‰inen
 
 # exploit the unittest framework even though this is actually a system test
 import unittest, os, tempfile, signal, time, glob
@@ -146,7 +146,11 @@ class TCETestCase(unittest.TestCase):
             #include <stdio.h>
 
             int main() {
-                printf("Hello TTA World!\\n");
+                /* test that the common printout functions work */
+                putchar('H');
+                puts("ello ");
+                iprintf("TTA ");
+                printf("World!\\n");
                 return 0;
             }
             
