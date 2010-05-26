@@ -1,5 +1,5 @@
-1.2, 20xx-xx-xx
-===============
+1.2    June 2010
+================
 New features
 ------------
 - Support for LLVM 2.7 (dropped support for LLVM 2.6)
@@ -21,8 +21,8 @@ Bugfixes
 - Global tables from floating point emulation do not get into the data image 
   if the floating point emulation functions are not needed.
 
-1.1, unreleased
-===============
+1.1 unreleased
+==============
 
 This version was never released as tar balls, but can be checked out
 from the version control system.
