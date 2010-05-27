@@ -519,7 +519,7 @@ Environment::osalPaths() {
 
     // tce/opset/base -- these are needed during newlib build,
     // specifically STDOUT is needed to build puts() correctly.
-    string src = string(TCE_SRC_ROOT) + DS + "opset" + DS + "base";
+    string src = string(TCE_BLD_ROOT) + DS + "opset" + DS + "base";
     paths.push_back(data);
     paths.push_back(src);
 

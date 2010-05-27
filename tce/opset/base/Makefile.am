@@ -62,6 +62,10 @@ AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LIBDIR} ${TCL_LD_FLAGS} ${XE
 
 all-local: ${pkglib_LTLIBRARIES}
 	ln -sf ./.libs/base.so ./base.opb
+# Ugly hack to ensure we have a proper 'base' OSAL module (opp,opb) in the
+# build dir so a) newlib builds OK b) in case the user does not remove the
+# installation dir, simulation still works.
+	if test "${srcdir}" != "."; then  ln -sf ${srcdir}/base.opp base.opp; fi;
 
 install-exec-hook:
 	ln -sf ${pkglibdir}/base.so $(DESTDIR)/${pkglibdir}/base.opb
