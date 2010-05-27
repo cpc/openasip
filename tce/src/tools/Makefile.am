@@ -1,12 +1,17 @@
 noinst_LTLIBRARIES = libtcetools.la
+
+# This should be always regenerated during a build and not
+# distributed.
+nodist_libtcetools_la_SOURCES = tce_version_string.h
 BUILT_SOURCES = tce_version_string.h
+
 libtcetools_la_SOURCES = Exception.cc CmdLineOptions.cc CmdLineOptionParser.cc \
 	Environment.cc Application.cc XMLSerializer.cc ObjectState.cc \
 	FileSystem.cc DOMBuilderErrorHandler.cc TextGenerator.cc \
 	PluginTools.cc Conversion.cc StringTools.cc DataObject.cc SimValue.cc \
 	ConfigurationFile.cc ProcessorConfigurationFile.cc Listener.cc \
 	Informer.cc Options.cc OptionValue.cc CmdLineParser.cc MathTools.cc \
-	BitMatrix.cc TCEString.cc ${BUILT_SOURCES}
+	BitMatrix.cc TCEString.cc 
 
 if HAVE_SQLITE
   libtcetools_la_SOURCES += SQLiteConnection.cc RelationalDBQueryResult.cc \
@@ -32,9 +37,6 @@ tce_version_string.h: ../../../.bzr/branch/last-revision
 # A hack, we'll see if something breaks.
 ../../../.bzr/branch/last-revision:
 	@echo "Not compiling in a bazaar branch"
-
-
-
 
 ## headers start
 libtcetools_la_SOURCES += \
@@ -69,5 +71,5 @@ libtcetools_la_SOURCES += \
 	BitMatrix.icc FileSystem.icc \
 	VectorTools.icc PagedArray.icc \
 	PluginTools.icc Informer.icc \
-	Conversion.icc tce_version_string.h 
+	Conversion.icc
 ## headers end
