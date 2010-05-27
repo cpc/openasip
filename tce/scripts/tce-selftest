@@ -252,7 +252,7 @@ class TestSimulator(TCETestCase):
                                (switches,
                                 self.get_minimalStdoutADF(),
                                 self.tpef_file_name), 5*60)
-        self.assertEquals(stdout.strip(), "Hello TTA World!")
+        self.assertEquals(stdout.strip(), "Hello \nTTA World!")
         self.assertEquals(stderr, "")
         self.assertEquals(code, 0)
 
