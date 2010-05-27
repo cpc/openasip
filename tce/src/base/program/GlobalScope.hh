@@ -73,7 +73,6 @@ public:
 
     virtual void removeCodeLabels(InstructionAddress address);
 
-    virtual void removeDataLabels(const int index);
     virtual Scope* copy() const;
 
     virtual Scope* copyAndRelocate(const TTAProgram::Program& program) const;

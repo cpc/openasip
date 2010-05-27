@@ -346,13 +346,6 @@ void LowerMissingInstructions::addFunctionForFootprints(
                   << " footprint: " << footprints[j]
                   << std::endl;
 #endif
-
-        if (replaceFunctions[footprints[j]] == NULL) {
-            abortWithError(
-                (boost::format("ERROR: emulation function '%s' for operation "
-                               "'%s' wasn't found") % op.emulationFunctionName() 
-                 % op.name()).str());
-        }
     }
 }
 
@@ -513,6 +506,13 @@ bool LowerMissingInstructions::runOnBasicBlock(BasicBlock &BB) {
         // std::cerr << "Footprint: " << footPrint << "\n";
 
         if (replaceFunc != replaceFunctions.end()) {
+            if (replaceFunc->second == NULL) {
+                abortWithError(
+                    (boost::format("ERROR: emulation function "
+                                   "'%s' wasn't found. Floating point"
+                                   " emulation required but --no-fp-emu"
+                                   "parameter given?") % footPrint).str());
+            }
             if (Application::verboseLevel() >
                 Application::VERBOSE_LEVEL_DEFAULT) {
                 Application::logStream()

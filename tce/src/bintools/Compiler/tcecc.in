@@ -488,6 +488,13 @@ p.add_option('--disable-inlining', action="store_true",
              dest="noinline", default=False,
              help="Disable function inlining.")
 
+p.add_option('--no-fp-emu', action="store_true",
+             dest="disable_fp_emu", default=False,
+             help="Disable floating point emulation. May cause programs"
+             + " which use floating point code or printf to not to compile."
+             + " Disabling floating point emulation may reduce memory usage"
+             + " and binary size of compiled programs.")
+
 p.add_option('--unroll-threshold',
              type="int", action="store", metavar='LLVM_INSTRUCTION_COUNT',
              dest='unroll_threshold', default=100,
@@ -708,7 +715,10 @@ if options.adf_file != "":
     seqFile = tempDir + "/" + os.path.basename(outFile) + ".seq"
 
     # optimize and lower floatingpoint
-    emulationLinkedFileName = linkEmulationFuncs(optimizedFileName, namePrefix)
+    if options.disable_fp_emu is False:
+        emulationLinkedFileName = linkEmulationFuncs(optimizedFileName, namePrefix)
+    else:
+        emulationLinkedFileName = optimizedFileName
 
     if options.sequential_schedule or options.optimization_level == 0:
         scheduler_config_file_name = "sequential_tcecc_scheduler.conf"

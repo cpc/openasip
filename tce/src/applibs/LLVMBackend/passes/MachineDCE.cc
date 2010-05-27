@@ -13,8 +13,6 @@
 //===----------------------------------------------------------------------===//
 
 #include "MachineDCE.hh"
-#include <iostream>
-//#include "AssocTools.hh"
 
 using namespace llvm;
 
@@ -154,18 +152,6 @@ bool MachineDCE::doFinalization(Module&) {
             removeableFunctions.insert(func->first);
         }
     }
-    // Find global symbols that are only referred from the functions that
-    // are to be removed. We delete those when creating POM.
-    for (UserRelations::iterator i =  usersOfValue_.begin();
-         i != usersOfValue_.end(); ++i) {
-        std::set<std::string> difference;
-        std::set_difference(i->second.begin(), i->second.end(),
-            removeableFunctions.begin(), removeableFunctions.end(),
-            inserter(difference, difference.begin()));
-        // Symbols we are interested contains "method_name.data_name"
-        if (difference.size() == 0 && i->first.find(".") != std::string::npos) {
-            removeableSymbols.insert(i->first);            
-        }
-    }
+   
     return true;
 }

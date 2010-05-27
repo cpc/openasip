@@ -826,37 +826,11 @@ LLVMPOMBuilder::doFinalization(Module& /* m */) {
     }
              
     // Create data initializers.
-    TTAProgram::GlobalScope& gscope = prog_->globalScope();    
     for (unsigned i = 0; i < data_.size(); i++) {
-        if (MDCE.removeableSymbols.find(data_[i].name) == MDCE.removeableSymbols.end()) {
-            emitDataDef(data_[i]);
-        } else {
-            // Data definitions that are referenced exclusively from the functions which
-            // are removed will not be emitted, and their global data labes will be deleted.
-            dataLabels_.erase(data_[i].name);
-            end_ -= data_[i].size;
-            for (int j = 0; j < gscope.globalDataLabelCount(); j++) {
-                if (data_[i].name == gscope.globalDataLabel(j).name()) {
-                    gscope.removeDataLabels(j);
-                }
-            }
-        }
-
+        emitDataDef(data_[i]);
     }
     for (unsigned i = 0; i < udata_.size(); i++) {
-        if (MDCE.removeableSymbols.find(udata_[i].name) == MDCE.removeableSymbols.end()) {
-            emitDataDef(udata_[i]);
-        } else {            
-            // Data definitions that are referenced exclusively from the functions which
-            // are removed will not be emitted, and their global data labes will be deleted.
-            end_ -= udata_[i].size;
-            dataLabels_.erase(udata_[i].name);            
-            for (int j = 0; j < gscope.globalDataLabelCount(); j++) {
-                if (udata_[i].name == gscope.globalDataLabel(j).name()) {
-                    gscope.removeDataLabels(j);
-                }
-            }            
-        }        
+        emitDataDef(udata_[i]);
     }
 
     // Create new _end symbol at the end of the data memory definitions.

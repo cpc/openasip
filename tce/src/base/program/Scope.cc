@@ -473,21 +473,4 @@ Scope::removeCodeLabels(InstructionAddress address) {
     }
 }
 
-/**
- * Removes data label at the given index.
- *
- * @param address The data label index.
- */
-void
-Scope::removeDataLabels(const int index) {
-    
-    int dataSize = dataLabels_.size();
-    if (index >= 0 && index < dataSize) {
-        DataLabelList::iterator i = dataLabels_.begin();
-        i += index;
-        delete(*i);
-        dataLabels_.erase(i);
-    }
-}
-    
 }
