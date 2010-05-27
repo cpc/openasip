@@ -203,7 +203,7 @@ class TestCompiler(TCETestCase):
         (timeout, stdout, stderr, code) = \
            self.runWithTimeout("ttasim -a %s -p %s --no-debugmode" %
                                (self.get_minimalStdoutADF(), tpef), 5*60)
-        self.assertEquals(stdout.strip(), "Hello TTA World!")
+        self.assertEquals(stdout.strip(), "Hello \nTTA World!")
         self.assertEquals(stderr, "")
         self.assertEquals(code, 0)        
         
