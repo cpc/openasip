@@ -77,6 +77,11 @@ private:
 
     bool createMemories(const MemInfo& imem, const MemInfo& dmem);
 
+    bool generateMemory(
+        MemoryGenerator& memGen, 
+        std::vector<std::string>& toplevelSignals,
+        std::ostream& memInstStream);
+
     void writeProjectFiles();
 
     void createPinMap();

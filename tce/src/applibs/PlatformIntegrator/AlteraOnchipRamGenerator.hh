@@ -66,6 +66,8 @@ public:
         std::ostream& toplevelInstantiation,
         std::ostream& memInstantiation);
 
+    virtual bool generatesComponentHdlFile() const;
+
     virtual std::vector<std::string>
     generateComponentFile(std::string outputPath);
 

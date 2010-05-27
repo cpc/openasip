@@ -27,7 +27,7 @@
 -- Author     : Otto Esko
 -- Company    : 
 -- Created    : 2009-07-16
--- Last update: 2010-03-04
+-- Last update: 2010-05-27
 -- Platform   : 
 -------------------------------------------------------------------------------
 -- Description: Load Store functional unit
@@ -115,17 +115,10 @@ architecture rtl of fu_lsu_sram_static is
   signal bytemask        : std_logic_vector(3 downto 0);
   signal cs_n_r          : std_logic;
 
-  ------------------------------------------------------------------------
-  --2nd hw (15:0)|next address (17:0)|bytemask (1:0)|opcode (2:0)|nop (1)|
-  ------------------------------------------------------------------------
-  -- NOP = 0, real op = 1
---  type reg_array is array (natural range <>) of std_logic_vector(40-1 downto 0);
---  signal cmd_reg : reg_array(1 downto 0);
-
   -----------------------------------------------------------------------------
   -- bytemask (3:0) | opcode(2:0) | nop(1) ['1' = real operation, '0' = nop]
   -----------------------------------------------------------------------------
-  signal cmd_reg : std_logic_vector(6 downto 0);
+  signal cmd_reg : std_logic_vector(7 downto 0);
 
   constant ZEROES   : std_logic_vector(7 downto 0)  := (others => '0');
   constant ZEROADDR : std_logic_vector(17 downto 0) := (others => '0');
@@ -159,7 +152,7 @@ begin  -- rtl
         if t1load = '1' then
           case t1opcode is
             when OPC_LDW =>
-              addr_to_sram <= t1data(addrw-1 downto 1);
+              addr_to_sram <= t1data(addrw-1 downto 2);
               bytemask     <= "0000";
               cs_n_r       <= '0';
               we_n_r       <= '1';
@@ -167,7 +160,7 @@ begin  -- rtl
               cmd_reg      <= "0000" & t1opcode & ACT_OP;
 
             when OPC_LDH =>
-              addr_to_sram <= t1data(addrw-1 downto 1);
+              addr_to_sram <= t1data(addrw-1 downto 2);
               -- check the bytemasks!
               if t1data(1) = '0' then
                 bytemask <= "0011";
@@ -200,13 +193,13 @@ begin  -- rtl
                 bytemask            <= "1110";
                 cmd_reg(7 downto 4) <= "1110";
               end if;
-              addr_to_sram <= t1data(addrw-1 downto 1);
+              addr_to_sram <= t1data(addrw-1 downto 2);
               cs_n_r       <= '0';
               we_n_r       <= '1';
               oe_n_r       <= '0';
               
             when OPC_LDHU =>
-              addr_to_sram <= t1data(addrw-1 downto 1);
+              addr_to_sram <= t1data(addrw-1 downto 2);
               -- check the bytemasks!
               if t1data(1) = '0' then
                 bytemask <= "0011";
@@ -241,14 +234,13 @@ begin  -- rtl
                 cmd_reg(7 downto 4) <= "1110";
               end if;
 
-              addr_to_sram <= t1data(addrw-1 downto 1);
+              addr_to_sram <= t1data(addrw-1 downto 2);
               cs_n_r       <= '0';
               we_n_r       <= '1';
               oe_n_r       <= '0';
 
             when OPC_STW =>
-              addr_to_sram <= t1data(addrw-1 downto 1);
-              cmd_reg      <=
+              addr_to_sram <= t1data(addrw-1 downto 2);
               if o1load = '1' then
                 data_to_sram <= o1data;
               else
@@ -261,15 +253,15 @@ begin  -- rtl
               oe_n_r   <= '1';
 
             when OPC_STH =>
-              addr_to_sram <= t1data(addrw-1 downto 1);
+              addr_to_sram <= t1data(addrw-1 downto 2);
               if o1load = '1' then
                 data_to_sram <= o1data;
               else
                 data_to_sram <= o1data_shadow_r;
               end if;
               if t1data(1) = '0' then
-                bytemask   <= "0011";
-                cmd_reg(0) <= "0011" & t1opcode & ACT_OP;
+                bytemask <= "0011";
+                cmd_reg  <= "0011" & t1opcode & ACT_OP;
                 -- data from o1 port or shadow register
                 if o1load = '1' then
                   data_to_sram <= o1data(15 downto 0)&ZEROHW;
@@ -277,8 +269,8 @@ begin  -- rtl
                   data_to_sram <= o1data_shadow_r(15 downto 0)&ZEROHW;
                 end if;
               else
-                bytemask   <= "1100";
-                cmd_reg(0) <= "1100" & t1opcode & ACT_OP;
+                bytemask <= "1100";
+                cmd_reg  <= "1100" & t1opcode & ACT_OP;
                 if o1load = '1' then
                   data_to_sram <= ZEROHW&o1data(15 downto 0);
                 else
@@ -290,7 +282,7 @@ begin  -- rtl
               oe_n_r <= '1';
 
             when OPC_STQ =>
-              cmd_reg(0) <= "1111" & t1opcode & "1";
+              cmd_reg <= "1111" & t1opcode & "1";
 
               if t1data(1 downto 0) = "00" then
                 bytemask            <= "0111";
@@ -328,7 +320,7 @@ begin  -- rtl
                   data_to_sram <= ZEROES&ZEROES&ZEROES&o1data_shadow_r(7 downto 0);
                 end if;
               end if;
-              addr_to_sram <= t1data(addrw-1 downto 1);
+              addr_to_sram <= t1data(addrw-1 downto 2);
               cs_n_r       <= '0';
               we_n_r       <= '0';
               oe_n_r       <= '1';
@@ -347,7 +339,7 @@ begin  -- rtl
       -- if current command is not NOP
       if cmd_reg(0 downto 0) = ACT_OP then
         -- case opcode
-        case cmd_reg(0)(3 downto 1) is
+        case cmd_reg(3 downto 1) is
           when OPC_STW =>
             -- DON'T touch these signals if new op is triggered
             if t1load = '0' then
@@ -445,8 +437,7 @@ begin  -- rtl
 
   r1data <= r1data_r;
 
-  STRATIXII_STRATIXII_SRAM_DQ <= data_to_sram when we_n_r = '0' else (others => 'Z');
-
+  STRATIXII_SRAM_DQ <= data_to_sram when we_n_r = '0' else (others => 'Z');
   STRATIXII_SRAM_ADDR     <= addr_to_sram;
   STRATIXII_SRAM_CS_N(0)  <= cs_n_r;
   STRATIXII_SRAM_WE_N(0)  <= we_n_r;

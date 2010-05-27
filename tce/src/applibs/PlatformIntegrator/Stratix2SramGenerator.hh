@@ -22,16 +22,15 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file AlteraOnchipRomGenerator.hh
+ * @file Stratix2SramGenerator.hh
  *
- * Declaration of AlteraOnchipRomGenerator class.
+ * Declaration of Stratix2SramGenerator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-
-#ifndef TTA_ALTERA_ONCHIP_ROM_GENERATOR_HH
-#define TTA_ALTERA_ONCHIP_ROM_GENERATOR_HH
+#ifndef TTA_STRATIX2_SRAM_GENERATOR_HH
+#define TTA_STRATIX2_SRAM_GENERATOR_HH
 
 #include <iostream>
 #include <string>
@@ -39,10 +38,10 @@
 #include "MemoryGenerator.hh"
 #include "PlatformIntegrator.hh"
 
-class AlteraOnchipRomGenerator : public MemoryGenerator {
+class Stratix2SramGenerator : public MemoryGenerator {
 public:
 
-    AlteraOnchipRomGenerator(
+    Stratix2SramGenerator(
         int memMauWidth,
         int widthInMaus,
         int addrWidth,
@@ -51,14 +50,14 @@ public:
         std::ostream& warningStream,
         std::ostream& errorStream);
 
-    virtual ~AlteraOnchipRomGenerator();
+    virtual ~Stratix2SramGenerator();
 
     virtual bool isCompatible(
         const std::vector<std::string>& ttaCore,
         std::vector<std::string>& reasons);
 
     virtual void writeComponentDeclaration(std::ostream& stream);
-
+    
     virtual void writeComponentInstantiation(
         const std::vector<std::string>& toplevelSignals,
         std::ostream& signalStream,
@@ -70,14 +69,10 @@ public:
 
     virtual std::vector<std::string>
     generateComponentFile(std::string outputPath);
-
+    
 private:
-    void connectSignals(
-        std::string line, 
-        std::ostream& toplevelInstantiation,
-        std::ostream& memInstantiation);
 
-    std::string createMemParameters() const;
+    std::vector<std::string> sramSignals_;
 };
 
 #endif

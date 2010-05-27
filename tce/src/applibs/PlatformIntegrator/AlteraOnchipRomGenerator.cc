@@ -142,6 +142,13 @@ AlteraOnchipRomGenerator::writeComponentInstantiation(
 
 }
 
+
+bool
+AlteraOnchipRomGenerator::generatesComponentHdlFile() const {
+    return true;
+}
+
+
 std::vector<std::string>
 AlteraOnchipRomGenerator::generateComponentFile(std::string outputPath) {
 

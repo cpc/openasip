@@ -155,6 +155,13 @@ VhdlRomGenerator::writeComponentInstantiation(
 
 }
 
+
+bool
+VhdlRomGenerator::generatesComponentHdlFile() const {
+    return true;
+}
+
+
 std::vector<std::string>
 VhdlRomGenerator::generateComponentFile(std::string outputPath) {
 

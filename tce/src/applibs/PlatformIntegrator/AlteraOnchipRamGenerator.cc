@@ -181,6 +181,11 @@ AlteraOnchipRamGenerator::writeComponentInstantiation(
 
 }
 
+bool
+AlteraOnchipRamGenerator::generatesComponentHdlFile() const {
+    return true;
+}
+
 std::vector<std::string>
 AlteraOnchipRamGenerator::generateComponentFile(std::string outputPath) {
     

@@ -41,6 +41,7 @@
 #include "MemoryGenerator.hh"
 #include "AlteraOnchipRamGenerator.hh"
 #include "AlteraOnchipRomGenerator.hh"
+#include "Stratix2SramGenerator.hh"
 #include "VhdlRomGenerator.hh"
 #include "StringTools.hh"
 using std::string;
@@ -150,7 +151,7 @@ Stratix2DSPBoardIntegrator::createSignals(const MemInfo& imem,
 
             newEntityStream() 
                 << ";" << endl
-                << StringTools::indent(2) << entitySignal << endl;
+                << StringTools::indent(2) << entitySignal;
 
             ttaToplevelInstStream()
                 << "," << endl
@@ -191,8 +192,9 @@ Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
     if (imem.type == ONCHIP) {
         string initFile = programName() + ".mif";
         imemGen = 
-            new AlteraOnchipRomGenerator(42, 1, 12, "imem_init.mif", this,
-                                         warningStream(), errorStream());
+            new AlteraOnchipRomGenerator(
+                imem.mauWidth, imem.widthInMaus, imem.addrw, initFile, this,
+                warningStream(), errorStream());
     } else if (imem.type == VHDL_ARRAY) {
         string initFile = programName() + "_imem_pkg.vhdl";
         imemGen = new VhdlRomGenerator(
@@ -205,32 +207,12 @@ Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
         throw exc;
     }
 
-    vector<string> reasonsImem;
-    if (!imemGen->isCompatible(strippedToplevel, reasonsImem)) {
-        errorStream() << "TTA core doesn't have compatible instruction "
-                      << "memory interface:" << std::endl;
-        for (unsigned int i = 0; i < reasonsImem.size(); i++) {
-            errorStream() << reasonsImem.at(i) << std::endl;
-        }
+    if (!generateMemory(*imemGen, strippedToplevel, imemInstStream())) {
         delete imemGen;
         return false;
     }
-    imemGen->writeComponentDeclaration(componentStream());
-    imemGen->writeComponentInstantiation(
-        strippedToplevel, signalStream(), signalConnectionStream(),
-        ttaToplevelInstStream(), imemInstStream());
-
-    vector<string> imemFiles = imemGen->generateComponentFile(outputPath());
     delete imemGen;
-    if (imemFiles.size() == 0) {
-        errorStream() << "Failed to create imem component" << endl;
-        return false;
-    }
-    for (unsigned int i = 0; i < imemFiles.size(); i++) {
-        quartusGen_->addHdlFile(imemFiles.at(i));
-    }
 
-    
     MemoryGenerator* dmemGen = NULL;
     if (dmem.type == ONCHIP) {
         string initFile = programName() + "_" + dmem.asName + ".mif";
@@ -238,6 +220,14 @@ Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
             new AlteraOnchipRamGenerator(
                 dmem.mauWidth, dmem.widthInMaus, dmem.addrw, initFile, this,
                 warningStream(), errorStream());
+    } else if (dmem.type == SRAM) {
+        string initFile = programName() + "_" + dmem.asName + ".img";
+        dmemGen =
+            new Stratix2SramGenerator(
+                dmem.mauWidth, dmem.widthInMaus, dmem.addrw, initFile, this,
+                warningStream(), errorStream());
+        warningStream() << "Warning: Data memory is not initialized during "
+                        << "FPGA programming." << endl;
     } else {
         string msg = "Unsupported data memory type";
         InvalidData exc(__FILE__, __LINE__, "Stratix2DSPBoardIntegrator",
@@ -245,34 +235,46 @@ Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
         throw exc;
     }
     
-    vector<string> reasonsDmem;
-    if (!dmemGen->isCompatible(strippedToplevel, reasonsDmem)) {
-        errorStream() << "TTA core doesn't have compatible data memory "
-                      <<"interface:" << std::endl;
-        for (unsigned int i = 0; i < reasonsDmem.size(); i++) {
-            errorStream() << reasonsDmem.at(i) << std::endl;
-        }
-        delete dmemGen;
-        return false;
-    }
-
-    dmemGen->writeComponentDeclaration(componentStream());
-    dmemGen->writeComponentInstantiation(
-        strippedToplevel, signalStream(), signalConnectionStream(),
-        ttaToplevelInstStream(), dmemInstStream());
-
-    vector<string> dmemFiles = dmemGen->generateComponentFile(outputPath());
+    bool success =
+        generateMemory(*dmemGen, strippedToplevel, dmemInstStream());
     delete dmemGen;
-    if (dmemFiles.size() == 0) {
-        errorStream() << "Failed to create dmem component" << endl;
+    return success;
+}
+
+bool
+Stratix2DSPBoardIntegrator::generateMemory(
+    MemoryGenerator& memGen, 
+    std::vector<std::string>& toplevelSignals,
+    std::ostream& memInstStream) {
+    
+    vector<string> reasons;
+    if (!memGen.isCompatible(toplevelSignals, reasons)) {
+        errorStream() << "TTA core doesn't have compatible memory "
+                      <<"interface:" << std::endl;
+        for (unsigned int i = 0; i < reasons.size(); i++) {
+            errorStream() << reasons.at(i) << std::endl;
+        }
         return false;
     }
-    for (unsigned int i = 0; i < dmemFiles.size(); i++) {
-        quartusGen_->addHdlFile(dmemFiles.at(i));
+
+    memGen.writeComponentDeclaration(componentStream());
+    memGen.writeComponentInstantiation(
+        toplevelSignals, signalStream(), signalConnectionStream(),
+        ttaToplevelInstStream(), memInstStream);
+
+    if (memGen.generatesComponentHdlFile()) {
+        vector<string> memFiles =
+            memGen.generateComponentFile(outputPath());
+        if (memFiles.size() == 0) {
+            errorStream() << "Failed to create mem component" << endl;
+            return false;
+        }
+        for (unsigned int i = 0; i < memFiles.size(); i++) {
+            quartusGen_->addHdlFile(memFiles.at(i));
+        }
     }
     return true;
 }
-
 
 std::string
 Stratix2DSPBoardIntegrator::deviceFamily() const {

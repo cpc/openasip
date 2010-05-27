@@ -2,7 +2,7 @@ noinst_LTLIBRARIES = libplatformintegrator.la
 libplatformintegrator_la_SOURCES = \
 	PlatformIntegrator.cc MemoryGenerator.cc Stratix2DSPBoardIntegrator.cc \
 	AlteraOnchipRamGenerator.cc AlteraOnchipRomGenerator.cc VhdlRomGenerator.cc \
-	ProjectFileGenerator.cc QuartusProjectGenerator.cc
+	ProjectFileGenerator.cc QuartusProjectGenerator.cc Stratix2SramGenerator.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -33,5 +33,5 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 libplatformintegrator_la_SOURCES += \
 	PlatformIntegrator.hh MemoryGenerator.hh Stratix2DSPBoardIntegrator.hh \
 	AlteraOnchipRamGenerator.hh AlteraOnchipRomGenerator.hh VhdlRomGenerator.hh \
-	ProjectFileGenerator.hh QuartusProjectGenerator.hh
+	ProjectFileGenerator.hh QuartusProjectGenerator.hh Stratix2SramGenerator.hh
 ## headers end
