@@ -514,12 +514,14 @@ Environment::osalPaths() {
 
 	string DS = FileSystem::DIRECTORY_SEPARATOR;
 
-    if (!DISTRIBUTED_VERSION) {
-        string data = FileSystem::currentWorkingDir() + DS + "data";
-        string src = string(TCE_SRC_ROOT) + DS + "opset" + DS + "base";
-        paths.push_back(data);
-        paths.push_back(src);
-    }
+    // ./data
+    string data = FileSystem::currentWorkingDir() + DS + "data";
+
+    // tce/opset/base -- these are needed during newlib build,
+    // specifically STDOUT is needed to build puts() correctly.
+    string src = string(TCE_SRC_ROOT) + DS + "opset" + DS + "base";
+    paths.push_back(data);
+    paths.push_back(src);
 
 	// default path for predefined and "standard" operations
 	string basePath =
