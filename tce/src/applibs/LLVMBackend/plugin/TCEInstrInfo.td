@@ -321,10 +321,8 @@ def LDQUBi : InstTCE<(outs I1Regs:$op2), (ins MEMri:$op1), "", [(set I1Regs:$op2
 def : Pat<(i1 (load ADDRrr:$addr)), (LDQBr ADDRrr:$addr)>;
 def : Pat<(i1 (load ADDRri:$addr)), (LDQBi ADDRri:$addr)>;
 
-// TODO: these waste a bool reg. create versions which uses i32 reg.
-def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (ANDext (LDQBr ADDRrr:$addr),1)>;
-def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (ANDext (LDQBi ADDRri:$addr),1)>;
-
+def : Pat<(i32 (zextloadi1 ADDRrr:$addr)), (ANDri (LDQr ADDRrr:$addr),1)>;
+def : Pat<(i32 (zextloadi1 ADDRri:$addr)), (ANDri (LDQi ADDRri:$addr),1)>;
 
 // float store and load in a way that machine code validator likes them
 def STWFir : InstTCE<(outs), (ins MEMri:$op1, F32Regs:$op2), "", [(store F32Regs:$op2, ADDRri:$op1)]>;
