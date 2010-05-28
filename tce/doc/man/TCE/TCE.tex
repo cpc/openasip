@@ -993,7 +993,7 @@ simulator. Write down this cycle count for future comparison.
 You can check the result straight the from processor's memory by writing this
 command to the command line at the bottom of the simulator:
 
-\shellcmd{x /u w \_result}
+\shellcmd{x /u w result}
 
 The correct checksum result is \textbf{0x62488e82}.
 
@@ -1466,7 +1466,7 @@ Load architecture and program and run the simulation
 
 \shellcmd{run}
 
-Verify that the result is the same as before (\textit{x /u w \_result}). It
+Verify that the result is the same as before (\textit{x /u w result}). It
 should be the same as earlier (\textbf{0x62488e82}).
 Check the cycle count \textit{info proc cycles} and compare it to the cycle 
 count of the version which does not use a custom operation. You should see 
@@ -1517,9 +1517,9 @@ The HDB implementation dialog needs the following information from the VHDL:\\
 Name the implemention after the top level entity: ``fu\_reflect''.
 
 By examining the VHDL code you can easily spot the clock port (clk),
-reset (rstx) and global lock port (glock). Write these into the appropriate
-text boxes. You do not have to fill the Opcode port or Global lock req. port
-fields because the function unit has only one opcode and does not need to 
+reset (rstx) and global lock port (glock). Operation code (opcode) port is
+t1opcode. Write these into the appropriate text boxes. You do not have to fill
+the or Global lock req. port field because the function unit does not need to
 cause a global lock to the processor during its execution.
 
 \textbf{2. Opcodes.}
@@ -1654,9 +1654,10 @@ has word ``guarded\_0'' in its name.
 
 \item%
 Similarly, select implementations for the function units from TCE's default
-HDB. Then select implementation for the custom\_adder but this time you have to
-use the \file{tour.hdb} created earlier to find the FU we added that supports the
-REFLECT custom operations.
+HDB. Notice that it is vital that you choose the implementation for LSU from
+the asic\_130nm\_1.5V.hdb. Then select implementation for the reflecter but
+this time you have to use the \file{tour.hdb} created earlier to find the FU
+we added that supports the REFLECT custom operations.
 
 \item%
 Next select the IC/Decoder generator plugin used to generate the
@@ -1743,13 +1744,9 @@ MAU width for the instruction memory.
 \paragraph{Simulation and verification}
 
 If you have GHDL installed you can now simulate the processor VHDL. First
-copy the memory images to the testbench directory:
+cd to proge-output directory:
 
 \shellcmd{cd proge\_output}
-
-\shellcmd{cp ../crc\_with\_custom\_op\_data.img tb/dmem\_init.img}
-
-\shellcmd{cp ../crc\_with\_custom\_op.img tb/imem\_init.img}
 
 Then compile and simulate the testbench:
 
