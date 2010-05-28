@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.2}
-\ver{14}
+\ver{15}
 \firstday{25.10.2006}
-\lastday{29.04.2010}
+\lastday{28.05.2010}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -1533,7 +1533,8 @@ Parameters can be found from the VHDL file. On top of the file there is one
 parameter: busw. It tells the width of transport bus and thus the maximum
 width of input and output operands.
 
-Thus, add a 32-bit integer parameter named busw to the Parameter dialog.
+Thus, add parameter named busw, type it as integer and width of 32 to the
+Parameter dialog.
 
 \textbf{4. Architecture ports.}
 
@@ -1733,8 +1734,9 @@ lines in that file:
  wc -l crc_with_custom_op.img
 \end{verbatim}
 
-By multiplying the count with the instruction width we found earlier you
-can get the required size of instruction memory for the program.
+%% NOTE: bem is not generated in this version of tutorial
+%By multiplying the count with the instruction width we found earlier you
+%can get the required size of instruction memory for the program.
 
 Accoringly the file \file{crc\_with\_custom\_op\_data.img} contains the data
 memory image of the processor. Program Image Generator also created file
