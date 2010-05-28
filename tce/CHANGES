@@ -7,6 +7,9 @@ New features
   in tcecc.
 - Preliminary support for platform integration. Stratix II dsp board
   is supported.
+- Added parameter --no-fp-emu to tcecc. This parameter disables floating point
+  emulation, to make the compiled binary smaller and to make it use
+  less memory.
 
 Bugfixes
 --------
@@ -20,8 +23,6 @@ Bugfixes
 - Compiling simulator does not handle long guard latencies well,
   implemented fallback to intepreted engine when simulating machines which 
   have long guard latencies.
-- Global tables from floating point emulation do not get into the data image 
-  if the floating point emulation functions are not needed.
 
 1.1 unreleased
 ==============
