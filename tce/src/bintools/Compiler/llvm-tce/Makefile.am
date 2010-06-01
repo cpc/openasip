@@ -1,6 +1,6 @@
 bin_PROGRAMS = llvm-tce
 
-llvm_tce_SOURCES = LLVMTCE.cc LLVMTCECmdLineOptions.cc
+llvm_tce_SOURCES = LLVMTCE.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -35,6 +35,4 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 
 ## headers start
-llvm_tce_SOURCES += \
-	LLVMTCECmdLineOptions.hh 
 ## headers end

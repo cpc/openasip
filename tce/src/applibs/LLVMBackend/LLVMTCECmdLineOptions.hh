@@ -67,6 +67,8 @@ public:
 
     bool leaveDirty() const;
 
+    bool conservativePreRAScheduler() const;
+
     virtual void printVersion() const {
         std::cout << "llvmtce - TCE LLVM compiler " << VERSION
                   << std::endl;
@@ -88,6 +90,7 @@ private:
     /// Switch for verbose output listing scheduler modules
     static const std::string VERBOSE_SWITCH;
     static const std::string LEAVE_DIRTY;
+    static const std::string CONSERVATIVE_PRE_RA_SCHEDULER;
 
     static const std::string USAGE;
 

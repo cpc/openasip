@@ -495,6 +495,14 @@ p.add_option('--no-fp-emu', action="store_true",
              + " Disabling floating point emulation may reduce memory usage"
              + " and binary size of compiled programs.")
 
+p.add_option('--conservative-pre-ra-scheduler', action="store_true",
+             dest="conservative_pre_ra_scheduler", default=False,
+             help="Use pre-regalloc-scheduler which tries to minimize"
+             + " register usage instead of maximizing ILP."
+             + " Should improve performance with machines with"
+             + " low amount of registers, decrease peformance with machines"
+             + " which have big number of registers.")
+
 p.add_option('--unroll-threshold',
              type="int", action="store", metavar='LLVM_INSTRUCTION_COUNT',
              dest='unroll_threshold', default=100,
@@ -747,6 +755,9 @@ if options.adf_file != "":
     if options.debug:
         command += " --debug"
 
+    if options.conservative_pre_ra_scheduler:
+        command += " --conservative-pre-ra-scheduler"
+        
     if options.no_schedule is False:
         command += " -c " + options.scheduler_config
 

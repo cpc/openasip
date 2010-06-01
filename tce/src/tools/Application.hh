@@ -122,6 +122,8 @@ const int MAX_OUTPUT_LINE_LENGTH = 512;
  *
  * Should be used by every standalone application of the toolset.
  */
+class CmdLineOptions;
+
 class Application {
 public:
     static void initialize();
@@ -149,6 +151,9 @@ public:
     static int verboseLevel() {return verboseLevel_;}
     static void setVerboseLevel(const int level = VERBOSE_LEVEL_DEFAULT)
         {verboseLevel_ = level;}
+
+    static void setCmdLineOptions(CmdLineOptions* options_);
+    static CmdLineOptions* cmdLineOptions();
 
     /**
      * An interface for classes that can receive notification when a Unix
@@ -193,6 +198,8 @@ private:
     /// Verbose level directs how much output will be printed to console
     static int verboseLevel_;
 
+    /// Holds command line options passed to program
+    static CmdLineOptions* cmdLineOptions_;
 };
 
 #endif

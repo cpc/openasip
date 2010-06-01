@@ -46,6 +46,8 @@
 const int CmdLineOptions::SHORT_FLAG = 2;
 const int CmdLineOptions::LONG_FLAG = 22;
 
+const std::string CmdLineOptions::VERBOSE_SWITCH = "verbose";
+
 using std::vector;
 using std::map;
 using std::string;
@@ -68,6 +70,11 @@ CmdLineOptions::CmdLineOptions(
     progName_(""),
     description_(description),
     version_(version) {
+
+    BoolCmdLineOptionParser* verboseSwitch = 
+        new BoolCmdLineOptionParser(
+            VERBOSE_SWITCH, "The verbose switch", "v");
+    addOption(verboseSwitch);
 }
 
 /**
@@ -238,4 +245,14 @@ CmdLineOptions::printHelp() const {
              << left << setw(LONG_FLAG) << "--" + opt->longName()
              << opt->description() << endl;
     }
+}
+
+/**
+ * Return true if the verbose switch was defined in the command line.
+ *
+ * @return True if the verbose switch was defined in the command line.
+ */
+bool
+CmdLineOptions::isVerboseSwitchDefined() const {
+    return findOption(VERBOSE_SWITCH)->isDefined();
 }

@@ -56,6 +56,7 @@
 #include "Application.hh"
 #include "TCEISelLowering.hh"
 #include "tce_config.h"
+#include "LLVMTCECmdLineOptions.hh"
 
 #include <iostream> // DEBUG
 
@@ -376,8 +377,16 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
  *
  * Initializes the target lowering.
  */
-TCETargetLowering::TCETargetLowering(TargetMachine& TM) :
+TCETargetLowering::TCETargetLowering(
+    TargetMachine& TM) :
     TargetLowering(TM,  new TCETargetObjectFile()), tm_(static_cast<TCETargetMachine&>(TM)) {
+
+    LLVMTCECmdLineOptions* opts = dynamic_cast<LLVMTCECmdLineOptions*>(
+        Application::cmdLineOptions());
+
+    if (opts != NULL && opts->conservativePreRAScheduler()) {
+            setSchedulingPreference(SchedulingForRegPressure);
+    }
 
     addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
     addRegisterClass(MVT::i32, TCE::I32RegsRegisterClass);

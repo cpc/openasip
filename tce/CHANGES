@@ -11,6 +11,9 @@ New features
 - Added parameter --no-fp-emu to tcecc. This parameter disables floating point
   emulation, to make the compiled binary smaller and to make it use
   less memory.
+- Added parameter --conservative-pre-ra-scheduler which leads to 
+  faster schedule with machines with low amount of registers but usually
+  decrease performance with machines with lots of registers.
 
 Bugfixes
 --------

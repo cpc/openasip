@@ -61,6 +61,8 @@ public:
     virtual void printHelp() const;
     virtual void printVersion() const = 0;
 
+    virtual bool isVerboseSwitchDefined() const;
+
 private:
     /// For adding new values to maps.
     typedef  std::map<std::string, CmdLineOptionParser*>::value_type valType;
@@ -91,6 +93,10 @@ private:
     /// Number of characters reserved for printing long version
     /// of commandline flag.
     static const int LONG_FLAG;
+
+    /// Switch for verbose output listing scheduler modules
+    static const std::string VERBOSE_SWITCH;
+
 };
 
 #endif

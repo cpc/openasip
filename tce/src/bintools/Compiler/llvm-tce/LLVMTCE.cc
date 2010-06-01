@@ -57,12 +57,11 @@ main(int argc, char* argv[]) {
 
     Application::initialize();
 
-    LLVMTCECmdLineOptions options;
-
+    LLVMTCECmdLineOptions* options = new LLVMTCECmdLineOptions();
 
     // Parse command line options.
     try {
-        options.parse(argv, argc);
+        options->parse(argv, argc);
     } catch (ParserStopRequest) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& e) {
@@ -70,17 +69,19 @@ main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (options.numberOfArguments() != 1) {
-        options.printHelp();
+    if (options->numberOfArguments() != 1) {
+        options->printHelp();
         return EXIT_FAILURE;
     }
 
-    if (options.isVerboseSwitchDefined()) {
+    Application::setCmdLineOptions(options);
+
+    if (options->isVerboseSwitchDefined()) {
         Application::setVerboseLevel(Application::VERBOSE_LEVEL_INCREASED);
     }
 
     // --- Target ADF ---
-    if (!options.isMachineFileDefined()) {
+    if (!options->isMachineFileDefined()) {
         std::cerr << "ERROR: No target architecture (.adf) defined."
                   << std::endl;
 
@@ -88,7 +89,7 @@ main(int argc, char* argv[]) {
     }
 
     TTAMachine::Machine* mach = NULL;
-    std::string targetADF = options.machineFile();
+    std::string targetADF = options->machineFile();
 
     if (!FileSystem::fileExists(targetADF) ||
         !FileSystem::fileIsReadable(targetADF) ||
@@ -114,8 +115,8 @@ main(int argc, char* argv[]) {
     }
 
     SchedulingPlan* plan = NULL;
-    if (options.isSchedulerConfigFileDefined()) {
-        std::string schedulerConf = options.schedulerConfigFile();
+    if (options->isSchedulerConfigFileDefined()) {
+        std::string schedulerConf = options->schedulerConfigFile();
 
         try {
             plan = SchedulingPlan::loadFromFile(schedulerConf);
@@ -130,9 +131,9 @@ main(int argc, char* argv[]) {
    
     // --- Output file name ---
     std::string outputFileName = DEFAULT_OUTPUT_FILENAME;
-    if (options.isOutputFileDefined()) {
+    if (options->isOutputFileDefined()) {
         // Test if output file can be opened
-        outputFileName = options.outputFile();
+        outputFileName = options->outputFile();
     }
     if (!FileSystem::fileIsWritable(outputFileName) &&
         !FileSystem::fileIsCreatable(outputFileName)) {
@@ -144,13 +145,13 @@ main(int argc, char* argv[]) {
 
     // --- optimization level ---
     int optLevel = DEFAULT_OPT_LEVEL;
-    if (options.isOptLevelDefined()) {
-        optLevel = options.optLevel();
+    if (options->isOptLevelDefined()) {
+        optLevel = options->optLevel();
     }
 
-    std::string bytecodeFile = options.argument(1);
+    std::string bytecodeFile = options->argument(1);
 
-    bool debug = options.debugFlag();
+    bool debug = options->debugFlag();
     
     //--- check if program was ran in src dir or from install dir ---
     std::string runPath = string(argv[0]);
@@ -162,15 +163,15 @@ main(int argc, char* argv[]) {
     // executed, for emulation of instructions which are generated during 
     // lowering. Un necessary functions are optimized by MachineDCE pass.
     std::string emulationCode;    
-    if (options.isStandardEmulationLibDefined()) {
-        emulationCode = options.standardEmulationLib();
+    if (options->isStandardEmulationLibDefined()) {
+        emulationCode = options->standardEmulationLib();
     }
             
     // ---- Run compiler ----
     try {
         InterPassData* ipData = new InterPassData;
         
-        LLVMBackend compiler(true, useInstalledVersion, !options.leaveDirty());
+        LLVMBackend compiler(true, useInstalledVersion,!options->leaveDirty());
         TTAProgram::Program* seqProg =
             compiler.compile(bytecodeFile, emulationCode, *mach, optLevel, debug, ipData);
 

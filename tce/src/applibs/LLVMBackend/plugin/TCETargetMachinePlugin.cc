@@ -120,7 +120,8 @@ GeneratedTCEPlugin::~GeneratedTCEPlugin() {
 }
 
 void 
-GeneratedTCEPlugin::registerTargetMachine(TCETargetMachine &tm) {
+GeneratedTCEPlugin::registerTargetMachine(
+    TCETargetMachine &tm) {
     tm_ = &tm;
     if (lowering_ == NULL) {
         lowering_ = new TCETargetLowering(*tm_);

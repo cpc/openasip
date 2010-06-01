@@ -43,11 +43,12 @@ using std::endl;
  */
 int main(int argc, char* argv[]) {
 
-    SchedulerCmdLineOptions options;
+    SchedulerCmdLineOptions* options = 
+        new SchedulerCmdLineOptions();
     SchedulerFrontend frontend;
 
     try {
-        options.parse(argv, argc);
+        options->parse(argv, argc);
     } catch (ParserStopRequest) {
         return EXIT_SUCCESS;
     } catch (const IllegalCommandLine& e) {
@@ -55,16 +56,17 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (options.numberOfArguments() == 0) {
-        options.printHelp();
+    if (options->numberOfArguments() == 0) {
+        options->printHelp();
         return EXIT_SUCCESS;
-    } else if (options.numberOfArguments() > 1) {
+    } else if (options->numberOfArguments() > 1) {
         cerr << "Illegal number of arguments" << endl;
         return EXIT_FAILURE;
     }
 
+    Application::setCmdLineOptions(options);
     try {
-        frontend.schedule(options);
+        frontend.schedule(*options);
     } catch (const Exception& e) {
         cerr << "Run-time error in a scheduler pass:"
              << e.errorMessageStack() << endl;

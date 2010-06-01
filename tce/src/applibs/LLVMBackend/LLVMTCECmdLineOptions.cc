@@ -45,6 +45,8 @@ const std::string LLVMTCECmdLineOptions::SWL_OPT_LEVEL = "optimize";
 const std::string LLVMTCECmdLineOptions::SWS_OPT_LEVEL = "O";
 const std::string LLVMTCECmdLineOptions::VERBOSE_SWITCH = "verbose";
 const std::string LLVMTCECmdLineOptions::LEAVE_DIRTY = "d";
+const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER= 
+    "conservative-pre-ra-scheduler";
 
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
@@ -93,6 +95,12 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() :
         new BoolCmdLineOptionParser(
             LEAVE_DIRTY, "Do not remove temp files", LEAVE_DIRTY));
 
+    addOption(
+        new BoolCmdLineOptionParser(
+            CONSERVATIVE_PRE_RA_SCHEDULER, 
+            "Conservative pre-ra-scheduler. May decrease register usage but"
+            " limit ILP. good for machines with low amount of registers."));
+            
 }
 
 /**
@@ -224,4 +232,13 @@ LLVMTCECmdLineOptions::leaveDirty() const {
 bool
 LLVMTCECmdLineOptions::isVerboseSwitchDefined() const {
     return findOption(VERBOSE_SWITCH)->isDefined();
+}
+
+bool
+LLVMTCECmdLineOptions::conservativePreRAScheduler() const {
+    if (findOption(CONSERVATIVE_PRE_RA_SCHEDULER)->isDefined() &&
+        findOption(CONSERVATIVE_PRE_RA_SCHEDULER)->isFlagOn()) {
+        return true;
+    }
+    return false;
 }
