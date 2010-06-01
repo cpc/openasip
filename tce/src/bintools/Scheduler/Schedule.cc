@@ -58,6 +58,7 @@ int main(int argc, char* argv[]) {
 
     if (options->numberOfArguments() == 0) {
         options->printHelp();
+        delete options; // not yet given to application so it does not delete
         return EXIT_SUCCESS;
     } else if (options->numberOfArguments() > 1) {
         cerr << "Illegal number of arguments" << endl;
