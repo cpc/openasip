@@ -40,9 +40,10 @@
 #include <string>
 
 #include "CmdLineParser.hh"
-#include "CmdLineOptionParser.hh"
 #include "Exception.hh"
 #include "Application.hh"
+
+class CmdLineOptionParser;
 
 /**
  * Abstract base class for command line parsers.
@@ -56,7 +57,7 @@ public:
 
     void parse(char* argv[], int argc)
 	throw (IllegalCommandLine, ParserStopRequest);
-    void parse(string argv[], int argc)
+    void parse(std::string argv[], int argc)
 	throw (IllegalCommandLine, ParserStopRequest);
     virtual void printHelp() const;
     virtual void printVersion() const = 0;

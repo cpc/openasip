@@ -273,8 +273,8 @@ GenerateProcessor::listICDecPluginParameters(
 
     // initialize plugin tool
     PluginTools pluginTool;
-    vector<string> pluginPaths = Environment::icDecoderPluginPaths();
-    for (vector<string>::const_iterator iter = pluginPaths.begin();
+    std::vector<string> pluginPaths = Environment::icDecoderPluginPaths();
+    for (std::vector<string>::const_iterator iter = pluginPaths.begin();
          iter != pluginPaths.end(); iter++) {
         try {
             pluginTool.addSearchPath(*iter);

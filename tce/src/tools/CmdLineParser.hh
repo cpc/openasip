@@ -42,8 +42,8 @@
 #include "CmdLineOptionParser.hh"
 #include "Exception.hh"
 #include "Application.hh"
-#include "Options.hh"
-#include "OptionValue.hh"
+
+class Options;
 
 /**
  * Abstract base class for command line parsers.

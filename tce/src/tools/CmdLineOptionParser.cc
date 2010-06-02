@@ -40,6 +40,7 @@
 #include "Application.hh"
 #include "CmdLineOptionParser.hh"
 #include "Exception.hh"
+#include "OptionValue.hh"
 
 using std::cerr;
 using std::endl;

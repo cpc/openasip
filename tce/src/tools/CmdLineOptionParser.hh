@@ -37,7 +37,8 @@
 #include <string>
 #include <vector>
 #include "Exception.hh"
-#include "OptionValue.hh"
+
+class OptionValue;
 
 //////////////////////////////////////////////////////////////////////////////
 // CmdLineOptionParser

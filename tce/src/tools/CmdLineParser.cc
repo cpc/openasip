@@ -39,6 +39,7 @@
 
 #include "CmdLineParser.hh"
 #include "Exception.hh"
+#include "Options.hh"
 
 const int CmdLineParser::SHORT_FLAG = 2;
 const int CmdLineParser::LONG_FLAG = 22;
