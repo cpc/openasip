@@ -385,7 +385,11 @@ TCETargetLowering::TCETargetLowering(
         Application::cmdLineOptions());
 
     if (opts != NULL && opts->conservativePreRAScheduler()) {
-            setSchedulingPreference(SchedulingForRegPressure);
+#ifdef LLVM_2_7
+	setSchedulingPreference(SchedulingForRegPressure);
+#else
+	setSchedulingPreference(llvm::Sched::RegPressure);
+#endif
     }
 
     addRegisterClass(MVT::i1, TCE::I1RegsRegisterClass);
