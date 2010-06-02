@@ -259,10 +259,10 @@ loadExplorerPlugin(const std::string& plugin, DSDBManager* dsdb) {
 void
 printPlugins() {
     vector<string> found_plugins;
+    vector<string> stripped_plugins;
     vector<string> searchPaths = Environment::explorerPluginPaths();
     for (vector<string>::const_iterator iter = searchPaths.begin();
             iter != searchPaths.end(); iter++) {
-
         if (FileSystem::fileExists(*iter)) {
             // now list all files with postfix ".so"
             verboseLogC("Fetching plugins from directory: " + *iter, 1)
@@ -272,8 +272,23 @@ printPlugins() {
     cout << "| Plugin name                 | Description " << endl
          << "--------------------------------------------" << endl;
     cout.flags(std::ios::left);
+    // Eliminate duplicates such as ComponentAdded.0.so ComponentAdded.so
     for (unsigned int i = 0; i < found_plugins.size(); ++i) {
-        std::string pluginName = FileSystem::fileNameBody(found_plugins[i]);
+        std::string finalPluginName = found_plugins[i];        
+        std::string pluginName = FileSystem::fileNameBody(found_plugins[i]); 
+        // Repeat "basename" until all .0.0. are removed so symbol can be found
+        // correctly
+        while (pluginName != finalPluginName) {
+            finalPluginName = pluginName;
+            pluginName = FileSystem::fileNameBody(pluginName); 
+        }
+        if(find(stripped_plugins.begin(), stripped_plugins.end(), pluginName)
+            == stripped_plugins.end()) {
+            stripped_plugins.push_back(pluginName);
+        }
+    }
+    for (unsigned int i = 0; i < stripped_plugins.size(); ++i) {
+        std::string pluginName = stripped_plugins[i];        
         DesignSpaceExplorerPlugin* plugin = loadExplorerPlugin(pluginName, NULL);
         if (!plugin) {
             return;
