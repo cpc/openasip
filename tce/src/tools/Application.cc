@@ -274,10 +274,6 @@ Application::setCmdLineOptions(CmdLineOptions* options) {
     // delete the possible old instance first
     delete cmdLineOptions_;
     cmdLineOptions_ = options;
-
-    if (options->isVerboseSwitchDefined()) {
-        setVerboseLevel(Application::VERBOSE_LEVEL_INCREASED);
-    }
 }
 
 CmdLineOptions*
