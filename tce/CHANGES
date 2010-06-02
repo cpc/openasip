@@ -4,16 +4,17 @@
 New features
 ------------
 - Support for LLVM 2.7 (dropped support for LLVM 2.6)
-- Proper support for Clang. Clang now the default frontend compiler
+- Proper support for Clang. Clang now the default compiler frontend
   in tcecc.
-- Preliminary support for platform integration. Stratix II dsp board
-  is supported.
-- Added parameter --no-fp-emu to tcecc. This parameter disables floating point
-  emulation, to make the compiled binary smaller and to make it use
-  less memory.
+- Preliminary support for automated platform integration. 
+  First supported platform is the Stratix II DSP board.
+- Added parameter --no-fp-emu to tcecc. This parameter disables 
+  linking any floating point emulation code. It can be used to
+  make the compiled program smaller in the case the dead code 
+  elimination fails to remove unused FP code.
 - Added parameter --conservative-pre-ra-scheduler which leads to 
   faster schedule with machines with low amount of registers but usually
-  decrease performance with machines with lots of registers.
+  decreases performance with machines with lots of registers.
 
 Bugfixes
 --------
@@ -24,15 +25,15 @@ Bugfixes
   stderr unbuffered (used to output only in case of compilation error)
 - Data alignment rules of data types fixed to be same in backend
   and frontend. 
-- Compiling simulator does not handle long guard latencies well,
-  implemented fallback to intepreted engine when simulating machines which 
-  have long guard latencies.
+- Compiled simulation does not handle long guard latencies,
+  implemented fallback to the interpreted engine when simulating 
+  machines which have long guard latencies.
 
 1.1 unreleased
 ==============
 
-This version was never released as tar balls, but can be checked out
-from the version control system.
+This version was never released as tar balls, but can be only 
+checked out from the version control system.
 
 New features
 ------------
