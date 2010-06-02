@@ -52,6 +52,7 @@ case $host_os in
     AM_CONDITIONAL([DARWIN_HOST_OS], true)
     AC_SUBST([LIBRARY_SUFFIX], [".dylib"] )
     AC_SUBST([CXXFLAGS], ["$CXXFLAGS -arch $host_cpu"])
+    AC_SUBST([LDFLAGS], ["$LDFLAGS -arch $host_cpu"])    
 
          ;;
   *)
@@ -676,8 +677,23 @@ then
   AC_SUBST([GUI_INCLUDES])
 fi
 
+case $host_os in
+  darwin* )
+    # No wxWidgets compatible with TCE 1.2 on Darwin
+    GUI_LIBS=""
+    GUI_INCLUDES=""
+    AC_SUBST([GUI_LIBS])
+    AC_SUBST([GUI_INCLUDES])
+    DO_WX_COMPILE=false
+    AC_MSG_NOTICE(
+    [
+    wxWidgets present on Mac OSX is not compatible with the TCE 1.2.
+    ])    
+    ;;
+   *)
+   ;;
+esac
 AM_CONDITIONAL(WX, test x$DO_WX_COMPILE = xtrue)
-
 ####################################################################
 #
 # Check TCL.. TODO: replace with ready macro if possible.
