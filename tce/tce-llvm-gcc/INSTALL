@@ -19,9 +19,7 @@ Note: you need to have LLVM 2.7 installed to compile the cross-compiler.
    These are needed to compile llvm-gcc.  
    For example: "sudo apt-get install flex bison".
 
-0.3 (optional, if installing from the version control system)
-
-   Generate the required build scripts by executing 'autoreconf'
+0.3 Generate the required build scripts by executing 'autoreconf'
 
 1. Make a separate build directory.
 
