@@ -28,6 +28,10 @@ Bugfixes
 - Compiled simulation does not handle long guard latencies,
   implemented fallback to the interpreted engine when simulating 
   machines which have long guard latencies.
+- Multi-bit registers can no longer be used as boolean registers by the 
+  compiler; support for them was buggy and using them could cause incorrectly
+  scheduled programs. Now every machine has to have at least 2 one-bit
+  registers which are used for guards(predicates) and boolean values.
 
 1.1 unreleased
 ==============
