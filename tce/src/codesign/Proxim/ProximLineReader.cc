@@ -108,6 +108,7 @@ ProximLineReader::readLine(std::string prompt)
 
     if (inputQueue_.empty()) {
         output(prompt);
+        mutex_->TryLock();
         input_->Wait();
     }
     std::string input = inputQueue_.front();
