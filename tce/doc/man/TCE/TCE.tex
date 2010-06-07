@@ -27,9 +27,9 @@
 
 \begin{document}
 \title{TTA Codesign Environment v1.2}
-\ver{15}
-\firstday{25.10.2006}
-\lastday{28.05.2010}
+\ver{16}
+\firstday{2006-10-25}
+\lastday{2010-06-07}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -952,7 +952,7 @@ ADF file which is your starting point architecture:
 \shellcmd{cp \$(tce-config -{}-prefix)/share/tce/data/mach/minimal.adf start.adf}
 
 Take a look at the starting point architecture using the graphical Processor
-Designer (ProDe, Section~\ref{sec:prode}) tool. The Start ProDe with:
+Designer (ProDe, Section~\ref{sec:prode}) tool. Then Start ProDe with:
 
 \shellcmd{prode start.adf \&}
 
@@ -990,7 +990,7 @@ for commands. To execute the program click ``Run''. Simulator will then execute
 the program code and display the cycle count in the bottom bar of the
 simulator. Write down this cycle count for future comparison.
 
-You can check the result straight the from processor's memory by writing this
+You can check the result straight from the processor's memory by writing this
 command to the command line at the bottom of the simulator:
 
 \shellcmd{x /u w result}
@@ -1004,11 +1004,10 @@ Processor resource utilization data can be viewed with command:
 This will output a lot of information  like the utilization of transport buses,
 register files and function units.
 
-Proxim can also show othes various pieces of information about a program's execution and
-resource utilization. For example to check the utilization of the resources of our
+Proxim can also show othes various pieces of information about the program's execution and
+its processor resource utilization. For example to check the utilization of the resources of our
 architecture, select \textit{View>Machine Window} from the top menu. 
-Then enable the utilization visualization: \textit{Right click the machine
-window > Display utilizations}. The parts of the processor that are utilized
+The parts of the processor that are utilized
 the most are visualized with darker red color.
 
 % Next, check the profiling data to see which instructions were executed the
@@ -1071,7 +1070,8 @@ of the design, but
 can evaluate different custom operation possibilities at the architectural
 level. However, this brings up an awkward question: how to determine 
 the latency of the operation? Unrealistic or too pessimistic 
-latency estimates can give inaccurate results or bias the analysis.
+latency estimates can produce inaccurate performance results and bias 
+the analysis.
 
 One approach to the problem is to take an educated guess and simulate
 some test cases with different custom operation latencies. This way you can
@@ -1091,7 +1091,7 @@ accurate size estimation you need to have the actual implementation and synthesi
 
 Let us consider the reflect function. If we had fixed width we could implement
 the reflect by hard wiring (and registering the output) because the operation
-only moves bits about. This could be done easily in one clock cycle. But we
+only moves bits to other locations in the word. This could be done easily in one clock cycle. But we
 need two different bit widths so things would be a bit more complicated. We
 could design the hardware in such way that it has two operations: one for 8-bit
 data and another for 32-bit data. On hardware one way to implement this is to
@@ -1161,7 +1161,7 @@ definitions to the newly created operation module.
   Type `REFLECT8' as the name of the operation.
 \item%
   Add one input by pressing the \emph{Add} button under the operation input
-  list repeatedly. Select \textit{UIntWord} as type.
+  list. Select \textit{UIntWord} as type.
 \item%
   Add one output by pressing the \emph{Add} button under the operation output
   list. Select \textit{UIntWord} as type.
@@ -1174,13 +1174,13 @@ definitions to the newly created operation module.
   Then repeat the steps for operation `REFLECT32'
 \end{enumerate}
 
-\paragraph{Adding simulation behaviour to the operations} The new operations
-REFLECT8 and REFLECT32 does not yet have simulation behavior models, so we
+\paragraph{Defining the simulation behaviour of the operations} The new operations
+REFLECT8 and REFLECT32 do not yet have simulation behavior models, so we
 cannot simulate programs that use these operations with the TCE processor
 simulator. Open again the operation property dialog by right-clicking REFLECT8,
 then choosing \emph{Modify properties}. Now press the \emph{Open} button to
-open an empty behavior source file for the module. Type in the following code
-in the editor window:
+open an empty behavior source file for the module. Copy-paste (or type if you
+have the time!) the following code in the editor window:
 
 \begin{verbatim}
 #include "OSAL.hh"
@@ -1254,21 +1254,21 @@ that all results are computed successfully.
 
 Open file \file{crc.c} in your preferred editor. Compare the behaviour definition
 of reflect operations and the original reflect-function. The function is mostly
-similar except for parameter passing. On hardware the function unit's data is read
-from input ports and written to output ports and the nBits-value is hardcoded into
-the operations. So in the source code, we write the input data to FU port 1 and
-read the output from port 2.
+similar except for parameter passing. On the custom hardware operation behavior definition
+the data is read from the function unit input ports and written to output ports and 
+the nBits-value is determined from the operation code (REFLECT8 or REFLECT32). 
 
 Save the code and close the editor. REFLECT8 and REFLECT32 operations now have 
 TCE simulator behaviour models.
 
 \paragraph{Compiling operation behavior.} REFLECT-operations have been
 added to the test module. Before we can simulate the behavior of our
-operation, the module must be compiled.
+operation, the C++-based behavior description must be compiled to a plugin
+module that the simulator can call.
 
 \begin{enumerate}
 \item%
-  Right-click on the module name displayed in the left area to bring up the
+  Right-click on the module name ('tutorial') displayed in the left area to bring up the
   drop down menu.
 \item%
   Select \textbf{Build} menu item. 
@@ -1278,8 +1278,6 @@ operation, the module must be compiled.
   help of the diagnostic information displayed in the build dialog.
 \end{enumerate}
 
-
-\paragraph{Simulating the operation behavior.}
 After the operation simulation model has been added and compiled the operation
 can be simulated. But for the sake of speed up we will skip the operation
 simulation here. However if you are interested in the operation simulation,
@@ -1314,8 +1312,10 @@ see chapter~\ref{sec:osed}
 %   the behavior definition works, close the dialog by clicking on the \emph{OK} button.
 % \end{enumerate}
 
+\paragraph{Adding a Customized Function Unit to the Architecture.}
+
 Now the operation definitions of the custom operations have been added to the
-Operation Set Abstraction Layer (OSAL) database. Next, we need to add at
+Operation Set Abstraction Layer (OSAL) database. Next we need to add at
 least one functional unit (FU) which implements these operations so that they
 can be used in the processor design. Note the separation between ''operation`` and
 an ''function unit`` that implements the operation(s) which allows using the
@@ -1353,10 +1353,10 @@ the operation is 1 clock cycles.
 \item%
 Repeat the previous step for operation ''REFLECT32``
 \item%
-Now an FU that supports the custom operation has been added to the architecture. 
-Finally, fully connect the machine to connect the
+Now an FU that supports the custom operations has been added to the architecture. 
+Next, fully connect the machine to connect the
 FU to the rest of the architecture. This can be done by selecting
-\textit{Tools->Fully Connect IC}. Finally save the architecture.
+\textit{Tools->Fully Connect IC}. Save the architecture description by clicking Save.
 \end{enumerate}
 
 
@@ -1390,8 +1390,8 @@ operands depends on the operation. Input operands are given first and they are
 followed by output operands if any. 
 
 In our case we need to write operands into the reflecter and read the
-result from it. We named the operations ``REFLECT8'' and so ``REFLECT32'' the
-macros we are going to use are these:
+result from it. We named the operations ``REFLECT8'' and ``REFLECT32'', thus
+the macros we are going to use are as follows:
 
 \begin{verbatim}
  _TCE_REFLECT8(input1, output);
@@ -1439,8 +1439,8 @@ replace the original macro with the variable output:
 And now we are ready. Remember to save the file.
 
 \item%
-Compile directly from C to a parallel TTA program using the new architecture
-which includes a FU with the custom operation:
+Compile the custom operation using C code to a parallel TTA program using the new 
+architecture which includes a FU with the custom operation:
 
 \shellcmd{tcecc -O3 -a custom.adf -o crc\_with\_custom\_op.tpef -k result }\verb#\#\\
 \shellcmd{\ \ crc\_with\_custom\_op.c main.c}
@@ -1470,10 +1470,10 @@ Verify that the result is the same as before (\textit{x /u w result}). It
 should be the same as earlier (\textbf{0x62488e82}).
 Check the cycle count \textit{info proc cycles} and compare it to the cycle 
 count of the version which does not use a custom operation. You should see 
-a huge drop compared to the starting point architecture. Write down this cycle
-count.
+a very noticeable drop compared to the starting point architecture without
+the custom operations. Write this cycle count down for a later step.
 
-The simulator execution also created file \file{crc\_with\_custom\_op.tpef.bustrace}
+The simulator execution also created a file \file{crc\_with\_custom\_op.tpef.bustrace}
 which contains the bus trace.
 
 \end{enumerate}
@@ -1525,12 +1525,16 @@ cause a global lock to the processor during its execution.
 \textbf{2. Opcodes.}
 
 Set the operation codes as they are in the top of the vhdl file. REFLECT32
-has operation code ``0'' and REFLECT8 has operation code ``1''.
+has operation code ``0'' and REFLECT8 has operation code ``1''. 
+
+The operation codes must be always numbered according to the alphabetical order of 
+the OSAL operation names, starting at 0. For example, in this case REFLECT8 is 
+earlier than REFLECT32 in the alphabetical order.
 
 \textbf{3. Parameters.}
 
 Parameters can be found from the VHDL file. On top of the file there is one
-parameter: busw. It tells the width of transport bus and thus the maximum
+parameter: busw. It tells the width of the transport bus and thus the maximum
 width of input and output operands.
 
 Thus, add parameter named busw, type it as integer and width of 32 to the
@@ -1538,7 +1542,7 @@ Parameter dialog.
 
 \textbf{4. Architecture ports.}
 
-This settings defines the connection between the ports in the
+These settings define the connection between the ports in the
 architectural description of the FU and the VHDL implementation.
 Each input data port in the FU is accompanied with a load port that
 controls the updating of the FU input port registers.
@@ -1748,7 +1752,7 @@ MAU width for the instruction memory.
 If you have GHDL installed you can now simulate the processor VHDL. First
 cd to proge-output directory:
 
-\shellcmd{cd proge\_output}
+\shellcmd{cd proge-output}
 
 Then compile and simulate the testbench:
 
@@ -1764,7 +1768,8 @@ verification. This can be done with command:
 \shellcmd{head -n <number of cycles> bus.dump > sim.dump}
 
 where the <number of cycles> is the number of cycles in the previous ttasim
-execution. Then compare the trace dumps:
+execution. Then compare the trace dumps from the VHDL simulation and the
+architecture simulation:
 
 \shellcmd{diff -u sim.dump ../crc\_with\_custom\_op.tpef.bustrace}
 
@@ -1777,8 +1782,8 @@ As the current architecture is minimalistic we can increase the performance
 even further by adding resources to the processor.
 
 \paragraph{Transport buses.} 
-The architecture has only one transport bus the compiler can't exploit much
-concurrency. Let's start architecture customization by adding another
+The architecture has only one transport bus the compiler can't exploit 
+instruction level parallelism. Let's start architecture customization by adding another
 transport bus. After this there can be 2 moves per clock cycle. First copy
 the current architecture:
 
@@ -1790,9 +1795,7 @@ and open the new architecture in ProDe:
 
 A new transport bus can be added simply by selecting the current bus and
 pressing ``ctrl+c'' to copy the bus and then pressing ``ctrl+v'' to paste it.
-Then double click the new bus and change its name to ``B2''.
-Another way to add a bus is to select ``Edit->Add..->Transport Bus...''.
-After you have added the bus in either way you have to connect it to the
+Add 3 more buses. After you have added the buses you have to connect it to the
 sockets. Easiest way to do this is to select ``Tools->Fully connect IC''.
 Save the architecture, recompile the source code for the new architecture
 and simulate.
@@ -1805,10 +1808,8 @@ Now when you check the cycle count from the simulator:
 
 \shellcmd{info proc cycles}
 
-you should see an significant drop in cycles. Try adding a 3rd bus to the
-architecture and see how it affects the performance. Again a drop in cycle
-count is expected. This time also check the processor utilization statistics
-from the simulator with command:
+you might a significant drop in cycles. Also check the processor 
+utilization statistics from the simulator with command:
 
 \shellcmd{info proc stats}
 
@@ -1839,8 +1840,7 @@ add(1) and click ``Add''. Close the dialog, connect the function units and save 
 architecture. Recompile and simulate to see the effect on cycle count.
 
 The architecture could be still modified even further to drop the cycle count
-but let's settle for this now. If you are interested, you can test how low
-cycle count can be achieved!
+but let's settle for this now. 
 
 
 \subsection{Final Words}
