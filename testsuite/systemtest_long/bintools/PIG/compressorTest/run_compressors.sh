@@ -67,7 +67,7 @@ $PIG -b $BEM -d -w 4 -p $TPEF -c $COMP1 -g -x $DIR1 $ADF || eexit "PIG failed wi
 # generate images for processor 2
 $PIG -b $BEM -d -w 4 -p $TPEF -c $COMP2 -g -x $DIR2 $ADF || eexit "PIG failed with MoveSlotDictionary"
 
-GHDL=$(which ghdl)
+GHDL=$(which ghdl 2> /dev/null)
 
 if [ x$GHDL = "x" ]
 then
