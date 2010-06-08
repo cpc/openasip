@@ -92,6 +92,9 @@ TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
         "-f32:32:32"
         "-f64:64:64"),
       FrameInfo(TargetFrameInfo::StackGrowsDown, 4, -4),
+#ifndef LLVM_2_7
+      tsInfo(*this),
+#endif
       plugin_(NULL), pluginTool_(NULL) {
 }
 
@@ -651,7 +654,7 @@ bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
                    /* allowDoubleDefs= */ true);
 
   // Perform register allocation.
-  PM.add(createRegisterAllocator());
+  PM.add(createRegisterAllocator(OptLevel));
   printAndVerify(PM, "After Register Allocation");
 
   // Perform stack slot coloring and post-ra machine LICM.

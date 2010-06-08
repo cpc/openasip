@@ -41,6 +41,7 @@
 #include "llvm/PassManager.h"
 #include "TCESubtarget.hh"
 #include "TCETargetMachinePlugin.hh"
+#include "TCETargetSelectionDAGInfo.hh"
 #include "tce_config.h"
 
 namespace TTAMachine {
@@ -105,7 +106,11 @@ namespace llvm {
         virtual TargetLowering* getTargetLowering() const { 
             return plugin_->getTargetLowering();
         }
-                
+#ifndef LLVM_2_7
+	virtual const TCESelectionDAGInfo* getSelectionDAGInfo() const {
+	    return &tsInfo;
+	}
+#endif
         /// llvm-2.6 does not have hook for adding target dependent
         // preisel llvm level passes so we override the whole methods
         // we had to actually override also addPassesToEmitFile
@@ -178,6 +183,9 @@ namespace llvm {
         const TargetData    DataLayout; // Calculates type size & alignment
         TargetFrameInfo     FrameInfo;
 
+#ifndef LLVM_2_7
+	TCESelectionDAGInfo tsInfo;
+#endif
         TCETargetMachinePlugin* plugin_;
         PluginTools* pluginTool_;
         /// llvm::ISD opcode list of operations that have to be expanded.

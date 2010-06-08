@@ -6,7 +6,7 @@ libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
     TCETargetMachine.cc TCEMCAsmInfo.cc  LLVMPOMBuilder.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
-	LLVMTCECmdLineOptions.cc
+	LLVMTCECmdLineOptions.cc TCETargetSelectionDAGInfo.cc
 
 
 PROJECT_ROOT = $(top_srcdir)
@@ -58,6 +58,7 @@ include_HEADERS = \
  TCETargetMachine.hh \
  TCETargetMachinePlugin.hh \
  TCESubtarget.hh \
+ TCETargetSelectionDAGInfo.hh \
  LLVMTCECmdLineOptions.hh
 
 MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
@@ -70,5 +71,6 @@ libtcellvmbackend_la_SOURCES += \
 	TCEMCAsmInfo.hh TCESubtarget.hh \
 	LLVMPOMBuilder.hh TDGen.hh \
 	TCETargetMachinePlugin.hh \
-	LLVMTCECmdLineOptions.hh
+	LLVMTCECmdLineOptions.hh \
+	TCETargetSelectionDAGInfo.hh
 ## headers end
