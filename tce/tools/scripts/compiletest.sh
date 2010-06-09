@@ -232,7 +232,8 @@ In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 .*Any.other.directories.should.still.work.fine.*|\
 .*removing..*/Makefile.to.force.reconfigure.*|\
 .*PluginTools.icc.*warning:.dereferencing.*|\
-.*PluginTools.icc.*note:.initialized.from.here.*"
+.*PluginTools.icc.*note:.initialized.from.here.*|\
+.*newlib/doc/makedoc.c:.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
