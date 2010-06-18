@@ -64,7 +64,13 @@ typedef long _ssize_t;
 
 #ifdef __clang__
 /* stddef.h from Clang does not provide wint_t */
-typedef unsigned int wint_t;
+/* Yes it does with llvm 2.8, but it is not always turned on. */
+/* Copied this definition from clan's stddef.h */
+#if defined(__need_wint_t) && !defined(_WINT_T)
+#define _WINT_T
+typedef __WINT_TYPE__ wint_t;
+#endif
+
 #endif
 
 #ifndef __mbstate_t_defined
