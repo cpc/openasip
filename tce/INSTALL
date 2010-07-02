@@ -30,7 +30,7 @@ command:
 
   sudo apt-get install libwxgtk2.8-dev libboost-{filesystem,graph,regex,thread}-dev \
     tcl8.4-dev libedit-dev libsqlite3-dev sqlite3 libxerces-c2-dev g++ make latex2html \
-    llvm-dev clang
+    llvm-dev clang libffi-dev
 
 Editline
 --------
