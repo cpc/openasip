@@ -148,8 +148,13 @@ TCETargetLowering::LowerFormalArguments(
             if (!Ins[i].Used) {
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
+#ifdef LLVM_2_7
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
+#else
+                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                    4, ArgOffset, /*immutable=*/true);
+#endif		
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 SDValue Load;
             if (ObjectVT == MVT::i32) {
@@ -177,8 +182,13 @@ TCETargetLowering::LowerFormalArguments(
             if (!Ins[i].Used) {                  // Argument is dead.
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
+#ifdef LLVM_2_7
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
+#else
+                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                    4, ArgOffset, /*immutable=*/true);
+#endif
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr, NULL, 0,
                              false, false, 0);
@@ -194,15 +204,25 @@ TCETargetLowering::LowerFormalArguments(
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
             } else {
                 SDValue HiVal;
+#ifdef LLVM_2_7
                 int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
+#else
+                int FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                    4, ArgOffset, /*immutable=*/true);
+#endif
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 HiVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
                              false, false, 0);
 
                 SDValue LoVal;
+#ifdef LLVM_2_7
                 FrameIdx = MF.getFrameInfo()->CreateFixedObject(
                     4, ArgOffset+4, /*immutable=*/true, /*isSpillSlot=*/false);
+#else
+                FrameIdx = MF.getFrameInfo()->CreateFixedObject(
+                    4, ArgOffset+4, /*immutable=*/true);
+#endif
                 FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 LoVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
                              false, false, 0);
@@ -227,8 +247,14 @@ TCETargetLowering::LowerFormalArguments(
     // inspired from ARM
     if (isVarArg) {        
         // This will point to the next argument passed via stack.
+#ifdef LLVM_2_7
         VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(
             4, ArgOffset, /*immutable=*/true, /*isSpillSlot=*/false);
+#else
+        VarArgsFrameOffset = MF.getFrameInfo()->CreateFixedObject(
+            4, ArgOffset, /*immutable=*/true);
+#endif
+
     }
     
     return Chain;
