@@ -87,9 +87,11 @@ def runCommand(command, echoOutput=True, echoStderr=False, stdoutFD=None):
         stderrFD = None
     else:
         if stdoutFD is None:
-            stdoutFD = open('/dev/null')
+            stdoutRedir = open('/dev/null', 'w')
+            stdoutFD = stdoutRedir.fileno()
         if not echoStderr:
-            stderrFD = open('/dev/null')
+            stderrRedir = open('/dev/null', 'w')
+            stderrFD = stderrRedir.fileno()
         else:
             stderrFD = None
 

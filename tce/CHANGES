@@ -6,6 +6,11 @@ Usability features
 - ProDe: when copying a load-store unit (FU), also copies the address 
   space parameter.
 
+Bugfixes
+--------
+- tcecc: stdout/stderr redirection was broken for running subcommands
+  and caused occasional false failures.
+
 1.2    June 2010
 ================
 
