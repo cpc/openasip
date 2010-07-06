@@ -1,3 +1,11 @@
+1.x not yet released
+====================
+
+Usability features
+------------------
+- ProDe: when copying a load-store unit (FU), also copies the address 
+  space parameter.
+
 1.2    June 2010
 ================
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of PasteComponentCmd class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2004 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #include <wx/docview.h>
@@ -109,12 +110,20 @@ PasteComponentCmd::Do() {
             return false;
         }
 
-
     } else if (contents->name() == FunctionUnit::OSNAME_FU) {
         // function unit
         Machine::FunctionUnitNavigator navigator =
             machine->functionUnitNavigator();
-        paste(*machine, new FunctionUnit(contents), navigator);
+        TTAMachine::FunctionUnit* copiedFU = new FunctionUnit(contents);
+        TTAMachine::FunctionUnit& original = 
+            *navigator.item(copiedFU->name());
+        paste(*machine, copiedFU, navigator);
+
+        // need to do this after paste() as the FU must be registered to
+        // the machine before the address space can be set
+        if (original.hasAddressSpace()) {
+            copiedFU->setAddressSpace(original.addressSpace());
+        }
 
     } else if (contents->name() == ImmediateUnit::OSNAME_IMMEDIATE_UNIT) {
         // immediate unit
