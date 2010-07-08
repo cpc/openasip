@@ -53,7 +53,12 @@ InstructionMemory::InstructionMemory(
  * Destructor.
  */
 InstructionMemory::~InstructionMemory() {
-    SequenceTools::deleteAllItems(instructions_);
+
+    for (InstructionContainer::const_iterator i = instructions_.begin();
+         i != instructions_.end();  ++i) {
+        delete (*i);
+    }   
+    instructions_.clear();
 }
 
 /**

@@ -95,6 +95,8 @@ ProcedureTransferTracker::handleEvent() {
     }
 
     bool entry = true;
+    // the address of the call or the return
+    InstructionAddress lastControlFlowInstructionAddress = 0;
     // in case this is the first instruction, consider this a procedure
     // entry (to the first procedure)
     if (previousInstruction_ != NULL) {
@@ -102,7 +104,7 @@ ProcedureTransferTracker::handleEvent() {
         // change: it should be the instruction at the last executed
         // instruction at the source procedure minus the count of delay
         // slots
-        const InstructionAddress lastControlFlowInstructionAddress = 
+        lastControlFlowInstructionAddress = 
             previousInstruction_->address().location() - 
             subject_.machine().controlUnit()->delaySlots();
         const TTAProgram::Instruction& lastControlFlowInstruction =
@@ -129,11 +131,11 @@ ProcedureTransferTracker::handleEvent() {
         if (entry) {
             traceDB_.addProcedureTransfer(
                 subject_.cycleCount(), subject_.lastExecutedInstruction(), 
-                ExecutionTrace::PT_ENTRY);
+                lastControlFlowInstructionAddress, ExecutionTrace::PT_ENTRY);
         } else {
             traceDB_.addProcedureTransfer(
                 subject_.cycleCount(), subject_.lastExecutedInstruction(), 
-                ExecutionTrace::PT_EXIT);
+                lastControlFlowInstructionAddress, ExecutionTrace::PT_EXIT);
         }
     } catch (const Exception& e) {
         debugLog("Error while writing TraceDB: " + e.errorMessage());

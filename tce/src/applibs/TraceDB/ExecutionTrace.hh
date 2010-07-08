@@ -26,7 +26,7 @@
  *
  * Declaration of ExecutionTrace class.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004,2009 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef TTA_EXECUTION_TRACE_HH
@@ -35,6 +35,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <fstream>
 
 #include "boost/tuple/tuple.hpp"
 
@@ -181,6 +182,7 @@ public:
     void addProcedureTransfer(
         ClockCycleCount cycle,
         InstructionAddress address,
+        InstructionAddress sourceAddress,
         ProcedureEntryType type)
         throw (IOException);        
 
@@ -221,18 +223,18 @@ private:
     
     void initialize() throw (IOException);
     
-    /// Filename of the database.
+    /// Filename of the trace database (sqlite file).
     const std::string& fileName_;
-
+    /// The call trace file.
+    std::fstream callTrace_;
+    /// The instruction profile file.
+    std::fstream instructionProfile_;
     /// Is the database access mode read-only?
     bool readOnly_;
-
-    /// Handle to the database.
+    /// Handle to the sqlite trace database.
     RelationalDB* db_;
-
     /// Handle to the database connection;
     RelationalDBConnection* dbConnection_;
-
     /// Handle object for the queries of instruction executions.
     InstructionExecution* instructionExecution_;
     

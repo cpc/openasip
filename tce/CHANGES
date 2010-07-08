@@ -1,6 +1,12 @@
 1.x not yet released
 ====================
 
+New features
+------------
+- ttasim: call info (setting profile_transfer_tracking) and the instruction
+  profile (ttasim setting profile_data_saving) are now saved to separate
+  pure text files to speed up simulation when these traces are enabled.
+
 Usability features
 ------------------
 - ProDe: when copying a load-store unit (FU), also copies the address 
@@ -10,6 +16,11 @@ Bugfixes
 --------
 - tcecc: stdout/stderr redirection was broken for running subcommands
   and caused occasional false failures.
+
+Optimizations
+-------------
+- ttasim: destruction was extremely slow after simulating large
+  programs due to extremely slow destructor of InstructionMemory
 
 1.2    June 2010
 ================

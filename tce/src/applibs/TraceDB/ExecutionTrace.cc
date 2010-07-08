@@ -26,7 +26,7 @@
  *
  * Definition of ExecutionTrace class.
  *
- * @author Pekka Jääskeläinen 2004 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2004, 2009 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -54,17 +54,6 @@ const std::string CQ_INSTRUCTION_EXECUTION =
 "CREATE TABLE instruction_execution (" 
 "       cycle INTEGER PRIMARY KEY," 
 "       address INTEGER NOT NULL);";
-
-const std::string CQ_PROCEDURE_TRANSFER =
-"CREATE TABLE procedure_transfer (" 
-"       cycle INTEGER PRIMARY KEY," 
-"       address INTEGER NOT NULL, "
-"       type INTEGER NOT NULL);";
-
-const std::string CQ_INSTRUCTION_EXECUTION_COUNT =
-"CREATE TABLE instruction_execution_count ("
-"       address INTEGER PRIMARY KEY, "
-"       count INTEGER);"; 
 
 const std::string CQ_PROCEDURE_ADDRESS_RANGE =
 "CREATE TABLE procedure_address_range ("
@@ -123,9 +112,22 @@ const int DB_VERSION = 1;
  * Creates a new execution trace database.
  *
  * If the database file cannot be found, creates a new database file and 
- * initializes it.
+ * initializes it. Some of the bigger traces are written to separate ascii 
+ * files to speed up trace generation.
+ * 
+ * The filenames are formed as follows:
  *
- * @param fileName Full path to the database to be opened.
+ * fileName             The main traceDB relational database file,
+ *                      always created
+ *                      (e.g. foobar.tpef.1.trace).
+ * fileName.calls       The call trace, produced with 
+ *                      'procedure_transfer_tracking' setting of ttasim 
+ *                      (e.g. foobar.tpef.1.trace.calls).
+ * fileName.profile     The instruction execution counts, produced with
+ *                      'profile_data_saving' setting of ttasim
+ *                      (e.g. foobar.tpef.1.trace.profile).
+ *
+ * @param fileName Full path to the traceDB file to be opened.
  * @return A pointer to opened execution trace database instance. Instance
  *         is owned by the client and should be deleted after use.
  * @exception IOException If there was a problem opening the database,
@@ -159,16 +161,17 @@ ExecutionTrace::open(const std::string& fileName)
 }
 
 /**
- * Opens a new connection to the data base.
+ * Initializes the trace files.
  *
- * Starts a new transaction. Transaction is committed in destructor. This
- * consumes lots of memory but should reduce I/O to the minimum.
+ * For the traceDB sqlite file, starts a new transaction. Transaction is 
+ * committed in destructor. This consumes lots of memory but should 
+ * reduce I/O to the minimum.
  */
 void
 ExecutionTrace::open() 
     throw (RelationalDBException) {
     dbConnection_ = &db_->connect(fileName_);
-    dbConnection_->beginTransaction();    
+    dbConnection_->beginTransaction();
 }
 
 /**
@@ -178,7 +181,17 @@ ExecutionTrace::open()
  * @param readOnly Is the database read-only?
  */
 ExecutionTrace::ExecutionTrace(const std::string& fileName, bool readOnly) : 
-    fileName_(fileName), readOnly_(readOnly), db_(new SQLite()), 
+    fileName_(fileName), callTrace_(
+        (fileName + ".calls").c_str(), 
+        (FileSystem::fileExists(fileName) || readOnly) ? 
+        std::fstream::in : 
+        std::fstream::out | std::fstream::trunc),
+    instructionProfile_(
+        (fileName + ".profile").c_str(), 
+        (FileSystem::fileExists(fileName) || readOnly) ? 
+        std::fstream::in : 
+        std::fstream::out | std::fstream::trunc),
+    readOnly_(readOnly), db_(new SQLite()), 
     dbConnection_(NULL), instructionExecution_(NULL)  {
 }
 
@@ -209,6 +222,9 @@ ExecutionTrace::~ExecutionTrace() {
             }
         }
 
+        callTrace_.close();
+        instructionProfile_.close();
+
         if (db_ != NULL) {
             delete db_;
             db_ = NULL;
@@ -234,8 +250,6 @@ ExecutionTrace::initialize() throw (IOException) {
     try {
         dbConnection_->DDLQuery(CQ_DATABASE_INFO);
         dbConnection_->DDLQuery(CQ_INSTRUCTION_EXECUTION);
-        dbConnection_->DDLQuery(CQ_PROCEDURE_TRANSFER);
-        dbConnection_->DDLQuery(CQ_INSTRUCTION_EXECUTION_COUNT);
         dbConnection_->DDLQuery(CQ_PROCEDURE_ADDRESS_RANGE);
         dbConnection_->DDLQuery(CQ_BUS_ACTIVITY);
         dbConnection_->DDLQuery(CQ_REGISTER_ACCESS);
@@ -299,6 +313,8 @@ ExecutionTrace::addInstructionExecutionCount(
     ClockCycleCount count) 
     throw (IOException) {
     
+    instructionProfile_ << address << "\t" << count << std::endl;
+#if 0
     const std::string query =
         "INSERT INTO instruction_execution_count(address, count) VALUES(" + 
         Conversion::toString(address) + ", " + 
@@ -311,6 +327,7 @@ ExecutionTrace::addInstructionExecutionCount(
     } catch (const RelationalDBException& e) {
         throw IOException(__FILE__, __LINE__, __func__, e.errorMessage());
     }
+#endif
 }
 
 /**
@@ -586,28 +603,20 @@ ExecutionTrace::addFunctionUnitOperationTriggerCount(
  *
  * @param cycle The clock cycle in which the transfer occured.
  * @param address The instruction address to which the execution changed.
+ * @param callAddress The address of the call.
  * @param type Type of the transfer.
  */
 void 
 ExecutionTrace::addProcedureTransfer(
     ClockCycleCount cycle,
     InstructionAddress address,
+    InstructionAddress sourceAddress,
     ProcedureEntryType type)
     throw (IOException) {
 
-    const std::string query =
-        (boost::format(
-            "INSERT INTO procedure_transfer(cycle, address, type) "
-            "VALUES(%.0f, %d, %d)") % cycle % address % type).str();
-
-    assert(dbConnection_ != NULL);
-
-    try {
-        dbConnection_->updateQuery(query);
-    } catch (const RelationalDBException& e) {
-        debugLog(query + " failed!");
-        throw IOException(__FILE__, __LINE__, __func__, e.errorMessage());
-    }
+    callTrace_ 
+        << cycle << "\t" << address << "\t" << sourceAddress << "\t" 
+        << type << std::endl;
 }
 
 /**

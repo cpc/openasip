@@ -1,0 +1,6 @@
+<?php
+// short test description
+$test_description="Test the generate_cachegrind script.";
+$test_bin = "./generate_cachegrind.testdesc.sh";
+$bin_args = "";
+?>

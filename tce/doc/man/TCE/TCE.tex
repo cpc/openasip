@@ -26,10 +26,10 @@
 \makeindex
 
 \begin{document}
-\title{TTA Codesign Environment v1.2}
-\ver{16}
+\title{TTA Codesign Environment v1.2.1}
+\ver{17}
 \firstday{2006-10-25}
-\lastday{2010-06-07}
+\lastday{2010-07-08}
 % id number in P- sequence
 \docnum{1000}
 % draft/complete/committedt
@@ -5615,72 +5615,63 @@ command file.
 \label{sec:traces}
 % TODO: Add examples of usage!
 
-All simulation traces are stored in a SQLite 3 binary file. The file is
-named after the program file by appending '.trace' to its end. This file can be
-browsed with the sqlite client. The sqlite client allows browsing contents of
-the tables using standard SQL queries.
+Simulation traces are stored in a SQLite 3 binary file and multiple pure
+ascii files. The SQLite file is named after the program file by appending '.trace' 
+to its end. The additional trace files append yet another extension to this,
+such as '.calls' for the call profile and '.profile' for the instruction
+execution profile. The SQLite file can be browsed by executing SQL queries
+using the sqlite client and the pure text files can be browsed using any 
+text viewer/editor.
 
-\subsection{Example Queries}
-\label{ssec:tracedb_tables}
+\subsubsection{Profile Data}
 
-This section provides several useful example SQL queries to retrieve data from
-the trace database. To query data in a generated trace database file, one should
-use the 'sqlite3' client to open the database after which any SQL query can
-be entered. The most useful queries are provides as scripts of which
-names start with 'dump\_*'.
+The simulator is able to produce enough data to provide an inclusive call 
+profile. In order to visualize this data in a call graph, the \textit{kcachegrind}
+GUI tool can be used.
 
-\paragraph{Instruction Execution Statistics}
-
-Following query returns the instruction execution counts starting from the
-most frequently executed instruction. In addition, the procedure name to which
-each instruction belongs is printed.
+First, produce a trace by running the following commands
+before initializing the simulation by loading a machine and a program:
 
 \begin{verbatim}
-
-SELECT instruction_execution_count.address AS address, 
-       instruction_execution_count.count AS count, 
-       procedure_address_range.procedure_name AS procedure 
-FROM instruction_execution_count, procedure_address_range 
-WHERE address >= procedure_address_range.first_address AND 
-      address <= procedure_address_range.last_address
-ORDER BY count DESC;
-
+ setting profile_data_saving 1
+ setting procedure_transfer_tracking 1
 \end{verbatim}
 
-\paragraph{Procedure Execution Profile}
-
-Following query returns the count of clock cycles spent in each procedure of
-the program. Listing is ordered such that the procedure in which most time was
-spent is printed first.
+It's recommend to produce an assembly file from the program to make the
+profile data contain information about the program and the 
+\textit{kcachegrind} able to show the assembly lines for the cost data:
 
 \begin{verbatim}
-SELECT procedure_address_range.procedure_name AS procedure, 
-      SUM(instruction_execution_count.count) AS cycles 
-FROM instruction_execution_count, procedure_address_range 
-WHERE address >= procedure_address_range.first_address AND
-      address <= procedure_address_range.last_address
-GROUP BY procedure
-ORDER BY cycles DESC;
+ tcedisasm -F mymachine.adf myprogram.tpef
 \end{verbatim}
 
-This query is provided in script \emph{dump\_function\_profile}.
-
-\paragraph{Procedure Transfer Trace}
-
-This query lists the order in which each procedure was executed in the program.
+After this, the simulation should collect the information necessary to build
+a \textit{kcachegrind} compatible trace file. The file can be produced with an
+helper script shipped with TCE as follows:
 
 \begin{verbatim}
-SELECT procedure_transfer.cycle AS cycle,
-       procedure_transfer.address AS address,
-       procedure_transfer.type AS is_exit,
-       procedure_address_range.procedure_name AS procedure
-FROM procedure_transfer,procedure_address_range
-WHERE address >= procedure_address_range.first_address AND
-      address <= procedure_address_range.last_address
-ORDER BY cycle;
+ generate_cachegrind myprogram.tpef.trace
 \end{verbatim}
 
-This query is provided in script \emph{dump\_call\_trace}.
+This command generates a file \textit{myprogram.tpef.trace.cachegrind} which 
+can be loaded to the \textit{kcachegrind} for visualized inclusive call
+profile:
+
+\begin{verbatim}
+ kcachegrind myprogram.tpef.trace.cachegrind
+\end{verbatim}
+
+Alternatively, the call profile can be dumped to the command line using
+the 'callgrind\_annotate' tool from the 'valgrind' package:
+
+\begin{verbatim}
+ callgrind_annotate myprogram.tpef.trace.cachegrind --inclusive=yes
+\end{verbatim}
+
+In case --inclusive=yes is not given, exclusive call profile is printed.
+Exclusive profile shows the cycles for each function itself and does not
+include the cost from the called functions.
+
 
 \subsection{Processor Simulator GUI (Proxim)}
 \label{section:proxim}
