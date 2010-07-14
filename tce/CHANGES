@@ -16,6 +16,8 @@ Bugfixes
 --------
 - tcecc: stdout/stderr redirection was broken for running subcommands
   and caused occasional false failures.
+- tcecc: sometimes generated incorrect code when there was a jump to 
+  llvm select instruction (usually c/c++ ?-operator).
 
 Optimizations
 -------------

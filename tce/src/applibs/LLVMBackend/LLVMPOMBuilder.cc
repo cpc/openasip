@@ -1585,7 +1585,7 @@ LLVMPOMBuilder::emitSelect(
     TTAProgram::Terminal* srcF = createTerminal(mi->getOperand(3));
 
     Bus& bus = umach_->universalBus();
-    TTAProgram::Instruction *lastIns = NULL;
+    TTAProgram::Instruction *firstIns = NULL;
 
     // do no create X -> X moves.
     if (dstT->equals(*srcT)) {
@@ -1598,7 +1598,7 @@ LLVMPOMBuilder::emitSelect(
         TTAProgram::Instruction *trueIns = new TTAProgram::Instruction;
         trueIns->addMove(trueMove);
         proc->add(trueIns);
-        lastIns = trueIns;
+        firstIns = trueIns;
     }
 
     // do no create X -> X moves.
@@ -1612,14 +1612,16 @@ LLVMPOMBuilder::emitSelect(
         TTAProgram::Instruction *falseIns = new TTAProgram::Instruction;
         falseIns->addMove(falseMove);
         proc->add(falseIns);
-        lastIns = falseIns;
+        if (firstIns == NULL) {
+            firstIns = falseIns;
+        }
     }
 
     // guardTerminal was just temporary used as helper when creating guards.
     delete guardTerminal;
 
-    assert(lastIns != NULL);
-    return lastIns;
+    assert(firstIns != NULL);
+    return firstIns;
 }
 
 
