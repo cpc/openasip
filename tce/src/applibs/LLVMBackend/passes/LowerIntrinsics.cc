@@ -46,6 +46,7 @@
 #include "llvm/CodeGen/IntrinsicLowering.h"
 #include "llvm/Target/TargetData.h"
 #include "llvm/LLVMContext.h"
+#include "tce_config.h"
 
 using namespace llvm;
 
