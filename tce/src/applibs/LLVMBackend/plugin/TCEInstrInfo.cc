@@ -268,21 +268,11 @@ TCEInstrInfo::copyRegToReg(
     unsigned destReg, unsigned srcReg,
     const TargetRegisterClass* dstRC,
     const TargetRegisterClass* srcRC) const 
-#else
-bool TCEInstrInfo::copyRegToReg(
-    MachineBasicBlock& mbb,
-    MachineBasicBlock::iterator mbbi,
-    unsigned destReg, unsigned srcReg,
-    const TargetRegisterClass* dstRC,
-    const TargetRegisterClass* srcRC,
-    DebugLoc dl) const 
-#endif
 {
     assert(srcRC == dstRC && "not yet implemented");
 
-#ifdef LLVM_2_7
     DebugLoc dl = DebugLoc::getUnknownLoc();
-#endif
+
     if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
 
     if (srcRC == TCE::I1RegsRegisterClass) {        
@@ -305,3 +295,43 @@ bool TCEInstrInfo::copyRegToReg(
     }
     return true;
 }
+
+#else
+
+void TCEInstrInfo::copyPhysReg(
+    MachineBasicBlock& mbb,
+    MachineBasicBlock::iterator mbbi, DebugLoc DL,
+    unsigned destReg, unsigned srcReg,
+    bool killSrc) const
+{
+    DebugLoc dl;
+    if (mbbi != mbb.end()) dl = mbbi->getDebugLoc();
+
+    if (TCE::I1RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVI1rr), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::I8RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVI8rr), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::I16RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVI16rr), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::I32RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVI32rr), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::I64RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVI64rr), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::F32RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVF32rr), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else if (TCE::F64RegsRegisterClass->contains(destReg, srcReg)) {
+        BuildMI(mbb, mbbi, dl, get(TCE::MOVF64rr), destReg)
+	    .addReg(srcReg, getKillRegState(killSrc));
+    } else {
+        assert(
+            false && "TCERegisterInfo::copyPhysReg(): Can't copy register");
+    }
+}
+
+#endif

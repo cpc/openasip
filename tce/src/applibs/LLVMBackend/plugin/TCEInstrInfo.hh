@@ -114,13 +114,11 @@ namespace llvm {
             const TargetRegisterClass* dstRC,
             const TargetRegisterClass* srcRC) const;
 #else
-        virtual bool copyRegToReg(
-            MachineBasicBlock& mbb,
-            MachineBasicBlock::iterator mbbi,
-            unsigned destReg, unsigned srcReg,
-            const TargetRegisterClass* dstRC,
-            const TargetRegisterClass* srcRC,
-            DebugLoc dl) const;
+	virtual void copyPhysReg(
+	    MachineBasicBlock& mbb,
+	    MachineBasicBlock::iterator mbbi, DebugLoc DL,
+	    unsigned destReg, unsigned srcReg,
+	    bool KillSrc) const;
 #endif
 
     private:
