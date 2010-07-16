@@ -72,6 +72,9 @@ SDValue
 TCETargetLowering::LowerReturn(SDValue Chain,
                                CallingConv::ID CallConv, bool isVarArg,
                                const SmallVectorImpl<ISD::OutputArg> &Outs,
+#ifndef LLVM_2_7
+                                 const SmallVectorImpl<SDValue> &OutVals,
+#endif
                                DebugLoc dl, SelectionDAG &DAG) LR_CONST {
 
   // CCValAssign - represent the assignment of the return value to locations.
@@ -100,7 +103,7 @@ TCETargetLowering::LowerReturn(SDValue Chain,
     assert(VA.isRegLoc() && "Can only return in registers!");
 
     Chain = DAG.getCopyToReg(Chain, dl, VA.getLocReg(), 
-                             Outs[i].Val, Flag);
+                             OutVals[i], Flag);
 
     // Guarantee that all emitted copies are stuck together with flags.
     Flag = Chain.getValue(1);
@@ -167,8 +170,13 @@ TCETargetLowering::LowerFormalArguments(
                 unsigned Offset = 4-std::max(1U, ObjectVT.getSizeInBits()/8);
                 FIPtr = DAG.getNode(ISD::ADD, dl, MVT::i32, FIPtr,
                                     DAG.getConstant(Offset, MVT::i32));
+#ifdef LLVM_2_7
                 Load = DAG.getExtLoad(LoadOp, dl, MVT::i32, Chain, FIPtr,
                                 NULL, 0, ObjectVT, false, false, 0);
+#else
+                Load = DAG.getExtLoad(LoadOp, MVT::i32, dl, Chain, FIPtr,
+                                NULL, 0, ObjectVT, false, false, 0);
+#endif
                 Load = DAG.getNode(ISD::TRUNCATE, dl, ObjectVT, Load);
             }
             InVals.push_back(Load);
@@ -265,6 +273,9 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                              CallingConv::ID CallConv, bool isVarArg,
                              bool &isTailCall,
                              const SmallVectorImpl<ISD::OutputArg> &Outs,
+#ifndef LLVM_2_7
+                             const SmallVectorImpl<SDValue> &OutVals,
+#endif
                              const SmallVectorImpl<ISD::InputArg> &Ins,
                              DebugLoc dl, SelectionDAG &DAG,
                              SmallVectorImpl<SDValue> &InVals) LC_CONST {
@@ -277,7 +288,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     // Count the size of the outgoing arguments.
     unsigned ArgsSize = 0;
     for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
-        switch (Outs[i].Val.getValueType().getSimpleVT().SimpleTy) {
+        switch (Outs[i].VT.getSimpleVT().SimpleTy) {
         default: assert(false && "Unknown value type!");
         case MVT::i1:
         case MVT::i8:
@@ -303,7 +314,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     unsigned ArgOffset = 0;
 
   for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
-    SDValue Val = Outs[i].Val;
+    SDValue Val = OutVals[i];
     EVT ObjectVT = Val.getValueType();
     SDValue ValToStore(0, 0);
     unsigned ObjSize;
@@ -363,7 +374,11 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   // turn it into a TargetGlobalAddress node so that legalize doesn't hack it.
   // Likewise ExternalSymbol -> TargetExternalSymbol.
   if (GlobalAddressSDNode *G = dyn_cast<GlobalAddressSDNode>(Callee))
-    Callee = DAG.getTargetGlobalAddress(G->getGlobal(), MVT::i32);
+#ifdef LLVM_2_7
+      Callee = DAG.getTargetGlobalAddress(G->getGlobal(), MVT::i32);
+#else
+      Callee = DAG.getTargetGlobalAddress(G->getGlobal(), dl, MVT::i32);
+#endif
   else if (ExternalSymbolSDNode *E = dyn_cast<ExternalSymbolSDNode>(Callee))
     Callee = DAG.getTargetExternalSymbol(E->getSymbol(), MVT::i32);
 
@@ -609,7 +624,13 @@ static SDValue LowerSELECT(
 
 static SDValue LowerGLOBALADDRESS(SDValue Op, SelectionDAG &DAG) {
     const GlobalValue* gv = cast<GlobalAddressSDNode>(Op)->getGlobal();
+#ifdef LLVM_2_7
     SDValue ga = DAG.getTargetGlobalAddress(gv, MVT::i32);
+#else
+  // FIXME there isn't really any debug info here
+    DebugLoc dl = Op.getDebugLoc();
+    SDValue ga = DAG.getTargetGlobalAddress(gv, dl, MVT::i32);
+#endif
     return DAG.getNode(TCEISD::GLOBAL_ADDR, Op.getDebugLoc(), MVT::i32, ga);
 }
 

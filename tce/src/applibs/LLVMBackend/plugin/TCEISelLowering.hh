@@ -116,6 +116,9 @@ namespace llvm {
                   CallingConv::ID CallConv, bool isVarArg,
                   bool& isTailCall,
                   const SmallVectorImpl<ISD::OutputArg> &Outs,
+#ifndef LLVM_2_7
+                  const SmallVectorImpl<SDValue> &OutVals,
+#endif
                   const SmallVectorImpl<ISD::InputArg> &Ins,
                   DebugLoc dl, SelectionDAG &DAG,
                   SmallVectorImpl<SDValue> &InVals) LC_CONST;
@@ -124,6 +127,9 @@ namespace llvm {
         LowerReturn(SDValue Chain,
                     CallingConv::ID CallConv, bool isVarArg,
                     const SmallVectorImpl<ISD::OutputArg> &Outs,
+#ifndef LLVM_2_7
+                    const SmallVectorImpl<SDValue> &OutVals,
+#endif
                     DebugLoc dl, SelectionDAG &DAG) LR_CONST;
 
         // ----------------------------------------------------
