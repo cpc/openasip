@@ -1790,8 +1790,11 @@ LLVMPOMBuilder::emitInlineAsm(
     ExecutionPipeline::OperandSet defOps = op->pipeline()->writtenOperands();
 
     // go through the operands (0 is the chain, 1 is the asm string)
+#ifdef LLVM_2_7
     for (unsigned o = 2; o < mi->getNumOperands(); o++) {
-
+#else
+    for (unsigned o = 3; o < mi->getNumOperands(); o++) {
+#endif
         const MachineOperand& mo = mi->getOperand(o);
         if (!(mo.isReg() || mo.isImm() || mo.isGlobal()))   {
             // All operands should be in registers. Everything else is ignored.
