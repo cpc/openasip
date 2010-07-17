@@ -103,7 +103,11 @@ TCETargetLowering::LowerReturn(SDValue Chain,
     assert(VA.isRegLoc() && "Can only return in registers!");
 
     Chain = DAG.getCopyToReg(Chain, dl, VA.getLocReg(), 
+#ifdef LLVM_2_7
+                             Outs[i].Val, Flag);
+#else
                              OutVals[i], Flag);
+#endif
 
     // Guarantee that all emitted copies are stuck together with flags.
     Flag = Chain.getValue(1);
@@ -288,7 +292,11 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     // Count the size of the outgoing arguments.
     unsigned ArgsSize = 0;
     for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
+#ifdef LLVM_2_7
+        switch (Outs[i].Val.getValueType().getSimpleVT().SimpleTy) {
+#else
         switch (Outs[i].VT.getSimpleVT().SimpleTy) {
+#endif
         default: assert(false && "Unknown value type!");
         case MVT::i1:
         case MVT::i8:
@@ -314,7 +322,11 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     unsigned ArgOffset = 0;
 
   for (unsigned i = 0, e = Outs.size(); i != e; ++i) {
+#ifdef LLVM_2_7
+      SDValue Val = Outs[i].Val;
+#else
     SDValue Val = OutVals[i];
+#endif
     EVT ObjectVT = Val.getValueType();
     SDValue ValToStore(0, 0);
     unsigned ObjSize;
