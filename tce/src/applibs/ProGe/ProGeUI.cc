@@ -67,8 +67,6 @@
 #include "NetlistBlock.hh"
 #include "PlatformIntegrator.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
-#include "KoskiIntegrator.hh"
-#include "NetlistPort.hh" /**/
 
 using namespace IDF;
 using std::string;
