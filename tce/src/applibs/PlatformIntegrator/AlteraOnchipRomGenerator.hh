@@ -36,10 +36,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "MemoryGenerator.hh"
+#include "AlteraMegawizMemGenerator.hh"
 #include "PlatformIntegrator.hh"
 
-class AlteraOnchipRomGenerator : public MemoryGenerator {
+class AlteraOnchipRomGenerator : public AlteraMegawizMemGenerator {
 public:
 
     AlteraOnchipRomGenerator(
@@ -53,31 +53,19 @@ public:
 
     virtual ~AlteraOnchipRomGenerator();
 
-    virtual bool isCompatible(
-        const std::vector<std::string>& ttaCore,
-        std::vector<std::string>& reasons);
-
-    virtual void writeComponentDeclaration(std::ostream& stream);
-
-    virtual void writeComponentInstantiation(
-        const std::vector<std::string>& toplevelSignals,
-        std::ostream& signalStream,
-        std::ostream& signalConnections,
-        std::ostream& toplevelInstantiation,
-        std::ostream& memInstantiation);
-
     virtual bool generatesComponentHdlFile() const;
 
     virtual std::vector<std::string>
     generateComponentFile(std::string outputPath);
 
-private:
-    void connectSignals(
-        std::string line, 
-        std::ostream& toplevelInstantiation,
-        std::ostream& memInstantiation);
+protected:
 
-    std::string createMemParameters() const;
+    virtual std::string createMemParameters() const;
+
+    virtual std::string moduleName() const;
+    
+    virtual std::string instanceName() const;
+
 };
 
 #endif

@@ -27,6 +27,7 @@
  * Declaration of Netlist class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -75,6 +76,10 @@ public:
         NetlistPort& port1,
         NetlistPort& port2);
 
+    void connectPortsInverted(
+        NetlistPort& port1,
+        NetlistPort& port2);
+
     bool isEmpty() const;
     NetlistBlock& topLevelBlock() const
         throw (InstanceNotFound);
@@ -102,6 +107,10 @@ private:
     DescriptorMap vertexDescriptorMap_;
     /// Parameters of the netlist.
     ParameterTable parameters_;
+
+    static const std::string INVERTER_MODULE;
+    static const std::string INVERTER_INPUT;
+    static const std::string INVERTER_OUTPUT;
 };
 }
 

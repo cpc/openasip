@@ -47,6 +47,7 @@
 #include "Conversion.hh"
 #include "ContainerTools.hh"
 #include "AssocTools.hh"
+#include "StringTools.hh"
 
 using std::string;
 using std::endl;
@@ -176,6 +177,7 @@ VHDLNetlistWriter::writeBlock(
     outFile << "use work.globals.all;" << endl;
     outFile << "use work.util.all;" << endl;
     outFile << "use work.imem_mau.all;" << endl;
+
 
     if (netlist().parameterCount() > 0) {
         outFile << "use work." << netlistParameterPkgName() << ".all;"
@@ -317,7 +319,11 @@ VHDLNetlistWriter::writeSignalDeclarations(
     typedef std::set<NetlistBlock*> BlockSet;
     BlockSet subBlocks;
     for (int i = 0; i < block.subBlockCount(); i++) {
-        subBlocks.insert(&block.subBlock(i));
+        // ports belonging to virtual blocks have static values, thus they are
+        // excluded
+        if (!block.subBlock(i).isVirtual()) {
+            subBlocks.insert(&block.subBlock(i));
+        }
     }
 
     // create a signal for each port in the sub-blocks
@@ -521,6 +527,11 @@ VHDLNetlistWriter::writeComponentDeclarations(
         if (AssocTools::containsKey(declaredModules, component.moduleName())) {
             continue;
         }
+        // virtual NetlistBlocks are omitted
+        if (component.isVirtual()) {
+            continue;
+        }
+
         declaredModules.insert(component.moduleName());
         stream << indentation(1) << "component " << component.moduleName()
                << endl;
@@ -580,6 +591,12 @@ VHDLNetlistWriter::writePortMappings(
 
     for (int i = 0; i < block.subBlockCount(); i++) {
         NetlistBlock& component = block.subBlock(i);
+
+        // virtual NetlistBlocks are omitted
+        if (component.isVirtual()) {
+            continue;
+        }
+
         stream << indentation(1) << component.instanceName() << " : "
                << component.moduleName() << endl;
 
@@ -676,9 +693,8 @@ VHDLNetlistWriter::isNumber(const std::string& formula) {
  */
 std::string
 VHDLNetlistWriter::indentation(unsigned int level) const {
-    return generateIndentation(level, "  ");
+    return StringTools::indent(level);
 }
-
 
 /**
  * Generates an indentation string with the given parameters.
@@ -707,8 +723,26 @@ VHDLNetlistWriter::generateIndentation(
  */
 std::string
 VHDLNetlistWriter::portSignalName(const NetlistPort& port) {
+
     NetlistBlock* parentBlock = port.parentBlock();
-    return parentBlock->instanceName() + "_" + port.name() + "_wire";
+    string signalName = "";
+    if (port.hasStaticValue()) {
+        string bit = "";
+        if (port.staticValue() == ProGe::VCC) {
+            bit = "1";
+        } else {
+            bit = "0";
+        }
+        if (port.dataType() == BIT) {
+            signalName = "'" + bit + "'";
+        } else {
+            signalName = "(others => '" + bit + "')";
+        }
+    } else {
+        signalName = parentBlock->instanceName() + "_" + port.name() +
+            "_wire";
+    }
+    return signalName;
 }
 
 

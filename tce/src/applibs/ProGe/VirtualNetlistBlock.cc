@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,71 +22,35 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProjectFileGenerator.cc
+ * @file VirtualNetlistBlock.cc
  *
- * Implementation of ProjectFileGenerator class.
+ * Implementation of VirtualNetlistBlock class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-
 #include <string>
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include "ProjectFileGenerator.hh"
+#include "Netlist.hh"
+#include "VirtualNetlistBlock.hh"
 
-ProjectFileGenerator::ProjectFileGenerator(
-    std::string toplevelEntity,
-    PlatformIntegrator* integrator):
-    toplevelEntity_(toplevelEntity), integrator_(integrator) {
-}
+namespace ProGe {
 
-ProjectFileGenerator::~ProjectFileGenerator() {
-}
+VirtualNetlistBlock::VirtualNetlistBlock(
+    const std::string& moduleName,
+    const std::string& instanceName,
+    Netlist& netlist):
+    NetlistBlock(moduleName, instanceName, netlist) {
 
-
-void
-ProjectFileGenerator::addHdlFile(const std::string& file) {
-
-    hdlFiles_.push_back(file);
 }
 
 
-void
-ProjectFileGenerator::addSignalMapping(const SignalMapping& mapping) {
-    
-    signalMap_.push_back(mapping);
+VirtualNetlistBlock::~VirtualNetlistBlock() {
 }
 
 
-const std::vector<std::string>&
-ProjectFileGenerator::hdlFileList() const {
-
-    return hdlFiles_;
+bool
+VirtualNetlistBlock::isVirtual() const {
+    return true;
 }
 
-const PlatformIntegrator*
-ProjectFileGenerator::integrator() const {
-
-    return integrator_;
-}
-
-std::string
-ProjectFileGenerator::toplevelEntity() const {
-
-    return toplevelEntity_;
-}
-
-
-int
-ProjectFileGenerator::signalMappingCount() const {
-
-    return signalMap_.size();
-}
-
-const SignalMapping*
-ProjectFileGenerator::signalMapping(int index) const {
-
-    return &signalMap_.at(index);
 }

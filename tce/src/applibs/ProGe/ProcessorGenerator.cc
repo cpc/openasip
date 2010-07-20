@@ -28,7 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
- * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -40,6 +40,8 @@
 #include <algorithm>
 #include <boost/format.hpp>
 
+#include "NetlistBlock.hh"
+#include "NetlistPort.hh"
 #include "ProcessorGenerator.hh"
 #include "NetlistGenerator.hh"
 #include "ICDecoderGeneratorPlugin.hh"
@@ -81,7 +83,7 @@ namespace ProGe {
 /**
  * The constructor.
  */
-ProcessorGenerator::ProcessorGenerator() {
+ProcessorGenerator::ProcessorGenerator(): netlist_(NULL) {
 }
 
 
@@ -89,6 +91,7 @@ ProcessorGenerator::ProcessorGenerator() {
  * The destructor.
  */
 ProcessorGenerator::~ProcessorGenerator() {
+    delete netlist_;
 }
 
 
@@ -133,14 +136,13 @@ ProcessorGenerator::generateProcessor(
     checkIULatencies(machine, implementation, plugin);
 
     NetlistGenerator netlistGenerator(machine, implementation, plugin);
-    Netlist* netlist = netlistGenerator.generate(
+    netlist_ = netlistGenerator.generate(
         imemWidthInMAUs, warningStream);
 
     string pluginDstDir = dstDirectory + FileSystem::DIRECTORY_SEPARATOR +
         "gcu_ic";
     bool created = FileSystem::createDirectory(pluginDstDir);
     if (!created) {
-        delete netlist;
         string errorMsg = "Unable to create directory " + pluginDstDir;
         throw IOException(__FILE__, __LINE__, __func__, errorMsg);
     }
@@ -149,7 +151,7 @@ ProcessorGenerator::generateProcessor(
 
     NetlistWriter* writer;
     if (language == VHDL) {
-        writer = new VHDLNetlistWriter(*netlist);
+        writer = new VHDLNetlistWriter(*netlist_);
     } else {
         assert(false);
     }
@@ -163,11 +165,8 @@ ProcessorGenerator::generateProcessor(
     }
 
     writer->write(topLevelDir);
-
     delete writer;
     writer = NULL;
-    delete netlist;
-    netlist = NULL;
 
     BlockSourceCopier copier(implementation);
     copier.copy(dstDirectory);
@@ -410,5 +409,10 @@ ProcessorGenerator::iMemWidth(
 
     return iMem->width() * imemWidthInMAUs;
 }
-    
+
+const Netlist*
+ProcessorGenerator::netlist() const {
+
+    return netlist_;
+}   
 } // namespace ProGe

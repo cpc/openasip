@@ -36,18 +36,24 @@
 #include <vector>
 #include <string>
 #include "Exception.hh"
-#include "PlatformIntegrator.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
-#include "MemoryGenerator.hh"
 #include "AlteraOnchipRamGenerator.hh"
 #include "AlteraOnchipRomGenerator.hh"
 #include "Stratix2SramGenerator.hh"
 #include "VhdlRomGenerator.hh"
 #include "StringTools.hh"
+#include "Netlist.hh"
+#include "NetlistBlock.hh"
+#include "VirtualNetlistBlock.hh"
+#include "NetlistPort.hh"
+#include "FileSystem.hh"
 using std::string;
 using std::vector;
 using std::endl;
-
+using ProGe::Netlist;
+using ProGe::NetlistBlock;
+using ProGe::VirtualNetlistBlock;
+using ProGe::NetlistPort;
 
 const std::string Stratix2DSPBoardIntegrator::DEVICE_FAMILY_ = "Stratix II";
 const std::string Stratix2DSPBoardIntegrator::DEVICE_NAME_ =
@@ -64,15 +70,17 @@ Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator():
 }
 
 Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator(
-        std::string progeOutputDir,
-        std::string entityName,
-        std::string outputDir,
-        std::string programName,
-        int targetClockFreq,
-        std::ostream& warningStream,
-        std::ostream& errorStream):
-    PlatformIntegrator(progeOutputDir, entityName, outputDir, programName,
-                       targetClockFreq, warningStream, errorStream),
+    ProGe::HDL hdl,
+    std::string progeOutputDir,
+    std::string entityName,
+    std::string outputDir,
+    std::string programName,
+    int targetClockFreq,
+    std::ostream& warningStream,
+    std::ostream& errorStream):
+    PlatformIntegrator(hdl, progeOutputDir, entityName, outputDir,
+                       programName, targetClockFreq, warningStream,
+                       errorStream),
     quartusGen_(new QuartusProjectGenerator(entityName, this)) {
 
  }
@@ -83,8 +91,10 @@ Stratix2DSPBoardIntegrator::~Stratix2DSPBoardIntegrator() {
     for (PinMap::iterator iter = stratixPins_.begin();
          iter != stratixPins_.end(); iter++) {
         if (iter->second != NULL) {
+            for (unsigned int i = 0; i < iter->second->size(); i++) {
+                delete iter->second->at(i);
+            }
             delete iter->second;
-            iter->second = NULL;
         }
     }
     if (quartusGen_ != NULL) {
@@ -93,85 +103,57 @@ Stratix2DSPBoardIntegrator::~Stratix2DSPBoardIntegrator() {
 }
 
 void
-Stratix2DSPBoardIntegrator::integrateProcessor(MemInfo& imem, MemInfo& dmem) {
+Stratix2DSPBoardIntegrator::integrateProcessor(
+    const ProGe::NetlistBlock* ttaCore,
+    MemInfo& imem,
+    MemInfo& dmem) {
 
-    createPinMap();
+    generatePinMap();
 
-    readTTAToplevel();
-
-    if(!createSignals(imem, dmem)) {
+    if(!createPorts(ttaCore)) {
         return;
     }
+ 
+    if (!createMemories(imem, dmem)) {
+        return;
+    }
+
+    mapToplevelPorts();
 
     finishNewToplevel();
 
     writeProjectFiles();
 }
 
+
 bool
-Stratix2DSPBoardIntegrator::createSignals(const MemInfo& imem,
-                                          const MemInfo& dmem) {
+Stratix2DSPBoardIntegrator::createPorts(
+    const ProGe::NetlistBlock* ttaCore) {
+
+    NetlistBlock* highestBlock =
+        new NetlistBlock(entityName(), entityName(), *netlist());
+
+    // must add ports to highest block *before* copying tta toplevel
+    NetlistPort* clk = new NetlistPort("clk", "0", 1, ProGe::BIT, HDB::IN,
+                                       *highestBlock);
+    NetlistPort* rstx = new NetlistPort("rstx", "0", 1, ProGe::BIT, HDB::IN,
+                                        *highestBlock);
+
+    copyTTACoreToNetlist(ttaCore);
+
+    const NetlistBlock& core = ttaCoreBlock();
+
+    NetlistPort* coreClk = core.portByName("clk");
+    NetlistPort* coreRstx = core.portByName("rstx");
+    netlist()->connectPorts(*clk, *coreClk);
+    netlist()->connectPorts(*rstx, *coreRstx);
     
-    newEntityStream()
-        << "entity " << entityName() << " is" << endl
-        << StringTools::indent(1) << "port (" << endl;
-
-    ttaToplevelInstStream()
-        << StringTools::indent(1) << "core : toplevel" << endl
-        << StringTools::indent(2) << "port map (" << endl;
-
-    ttaToplevelInstStream()
-        << StringTools::indent(3) << "clk => clk," << endl;
-    addSignalMapping("clk");
-    newEntityStream() 
-        << StringTools::indent(2) << "clk : in std_logic;" << endl;
- 
-    ttaToplevelInstStream()
-       << StringTools::indent(3) << "rstx => rstx," << endl;
-    addSignalMapping("rstx");
-    // No semicolon at the end!
-    newEntityStream() << StringTools::indent(2) << "rstx : in std_logic";
-
-    ttaToplevelInstStream()
-        << StringTools::indent(3) << "busy => '0'," << endl;
-
-    ttaToplevelInstStream()
-        << StringTools::indent(3) << "pc_init => (others => '0')";
-
-    for (unsigned int i = 0; i < ttaToplevel().size(); i++) {
-        string line = ttaToplevel().at(i);
-        // port has pin tag and it is not data memory signal
-        if (line.find(PIN_TAG_) != string::npos
-            && line.find("dmem") == string::npos) {
-
-            string entitySignal = 
-                stripSignalEnd(chopSignalToTag(line, PIN_TAG_));
-            string toplevelSignal = chopToSignalName(line);
-            string mappingSignal = chopSignalToTag(toplevelSignal, PIN_TAG_);
-
-            newEntityStream() 
-                << ";" << endl
-                << StringTools::indent(2) << entitySignal;
-
-            ttaToplevelInstStream()
-                << "," << endl
-                << StringTools::indent(3) << toplevelSignal << " => "
-                << mappingSignal;
-            
-            addSignalMapping(mappingSignal);
+    for (int i = 0; i < core.portCount(); i++) {
+        string portName = core.port(i).name();
+        if (hasPinTag(portName) && !isDataMemorySignal(portName)) {
+            connectToplevelPort(core.port(i));
         }
     }
-
-    newEntityStream()
-        << ");" << endl << "end " << entityName() << ";" << endl;
-
-    if (!createMemories(imem, dmem)) {
-        return false;
-    }
-    
-    // finishing brace and semicolon for toplevel instantiation
-    ttaToplevelInstStream()
-        << StringTools::indent(1) << ");" << endl;
     return true;
 }
 
@@ -180,25 +162,17 @@ bool
 Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
                                            const MemInfo& dmem) {
     
-    // strip the toplevel signal names
-    vector<string> strippedToplevel;
-    for (unsigned int i = 0; i < ttaToplevel().size(); i++) {
-        string strippedSignal = chopToSignalName(ttaToplevel().at(i));
-        strippedToplevel.push_back(strippedSignal);
-    }
-
-    
     MemoryGenerator* imemGen = NULL;
     if (imem.type == ONCHIP) {
         string initFile = programName() + ".mif";
         imemGen = 
             new AlteraOnchipRomGenerator(
-                imem.mauWidth, imem.widthInMaus, imem.addrw, initFile, this,
+                imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
                 warningStream(), errorStream());
     } else if (imem.type == VHDL_ARRAY) {
         string initFile = programName() + "_imem_pkg.vhdl";
         imemGen = new VhdlRomGenerator(
-            imem.mauWidth, imem.widthInMaus, imem.addrw, initFile, this,
+            imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
             warningStream(), errorStream());
     } else {
         string msg = "Unsupported instruction memory type";
@@ -207,7 +181,7 @@ Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
         throw exc;
     }
 
-    if (!generateMemory(*imemGen, strippedToplevel, imemInstStream())) {
+    if (!generateMemory(*imemGen)) {
         delete imemGen;
         return false;
     }
@@ -216,16 +190,20 @@ Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
     MemoryGenerator* dmemGen = NULL;
     if (dmem.type == ONCHIP) {
         string initFile = programName() + "_" + dmem.asName + ".mif";
+        // onchip mem size is scalable, use value from adf's Address Space
+        int addrw = dmem.asAddrw;
         dmemGen =
             new AlteraOnchipRamGenerator(
-                dmem.mauWidth, dmem.widthInMaus, dmem.addrw, initFile, this,
-                warningStream(), errorStream());
+                dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
+                this, warningStream(), errorStream());
     } else if (dmem.type == SRAM) {
         string initFile = programName() + "_" + dmem.asName + ".img";
+        // SRAM component has a fixed size, thus use the addr width from hdb
+        int addrw = dmem.portAddrw;
         dmemGen =
             new Stratix2SramGenerator(
-                dmem.mauWidth, dmem.widthInMaus, dmem.addrw, initFile, this,
-                warningStream(), errorStream());
+                dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
+                this, warningStream(), errorStream());
         warningStream() << "Warning: Data memory is not initialized during "
                         << "FPGA programming." << endl;
     } else {
@@ -235,20 +213,16 @@ Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
         throw exc;
     }
     
-    bool success =
-        generateMemory(*dmemGen, strippedToplevel, dmemInstStream());
+    bool success = generateMemory(*dmemGen);
     delete dmemGen;
     return success;
 }
 
 bool
-Stratix2DSPBoardIntegrator::generateMemory(
-    MemoryGenerator& memGen, 
-    std::vector<std::string>& toplevelSignals,
-    std::ostream& memInstStream) {
+Stratix2DSPBoardIntegrator::generateMemory(MemoryGenerator& memGen) {
     
     vector<string> reasons;
-    if (!memGen.isCompatible(toplevelSignals, reasons)) {
+    if (!memGen.isCompatible(ttaCoreBlock(), reasons)) {
         errorStream() << "TTA core doesn't have compatible memory "
                       <<"interface:" << std::endl;
         for (unsigned int i = 0; i < reasons.size(); i++) {
@@ -257,10 +231,7 @@ Stratix2DSPBoardIntegrator::generateMemory(
         return false;
     }
 
-    memGen.writeComponentDeclaration(componentStream());
-    memGen.writeComponentInstantiation(
-        toplevelSignals, signalStream(), signalConnectionStream(),
-        ttaToplevelInstStream(), memInstStream);
+    memGen.addMemory(*netlist());
 
     if (memGen.generatesComponentHdlFile()) {
         vector<string> memFiles =
@@ -275,6 +246,95 @@ Stratix2DSPBoardIntegrator::generateMemory(
     }
     return true;
 }
+
+
+void
+Stratix2DSPBoardIntegrator::mapToplevelPorts() {
+
+    NetlistBlock& tl = netlist()->topLevelBlock();
+    for (int i = 0; i < tl.portCount(); i++) {
+        addSignalMapping(tl.port(i).name());
+    }
+}
+
+void
+Stratix2DSPBoardIntegrator::writeProjectFiles() {
+
+    vector<string> progeOutFiles;
+    progeOutputHdlFiles(progeOutFiles);
+    for (unsigned int i = 0; i < progeOutFiles.size(); i++) {
+        quartusGen_->addHdlFile(progeOutFiles.at(i));
+    }
+    quartusGen_->writeProjectFiles();
+}
+
+void
+Stratix2DSPBoardIntegrator::finishNewToplevel() {
+    
+    string toplevelFile = writeNewToplevel();
+    quartusGen_->addHdlFile(toplevelFile);
+    
+    string paramFile = outputFilePath(entityName() + "_params_pkg.vhdl");
+    if (FileSystem::fileExists(paramFile)) {
+        quartusGen_->addHdlFile(paramFile);
+    }
+}
+
+
+void
+Stratix2DSPBoardIntegrator::connectToplevelPort(NetlistPort& corePort) {
+
+    string topName = chopSignalToTag(corePort.name(), PIN_TAG_);
+    NetlistPort* topPort = NULL;
+    if (corePort.realWidthAvailable()) {
+        topPort = new NetlistPort(
+            topName, corePort.widthFormula(), corePort.realWidth(),
+            corePort.dataType(), corePort.direction(),
+            netlist()->topLevelBlock());
+    } else {
+        topPort = new NetlistPort(
+            topName, corePort.widthFormula(), corePort.dataType(),
+            corePort.direction(), netlist()->topLevelBlock());
+    }
+    netlist()->connectPorts(*topPort, corePort);
+}
+
+
+void
+Stratix2DSPBoardIntegrator::addSignalMapping(const std::string& signal) {
+    
+    if (stratixPins_.find(signal) == stratixPins_.end()) {
+        warningStream() << "Warning: didn't find mapping for signal name "
+                        << signal << endl;
+        return;
+    }
+
+    MappingList* mappings = stratixPins_.find(signal)->second;
+    for (unsigned int i = 0; i < mappings->size(); i++) {
+        quartusGen_->addSignalMapping(*mappings->at(i));
+    }
+}
+
+
+bool
+Stratix2DSPBoardIntegrator::hasPinTag(const std::string& signalName) const {
+
+    return signalName.find(PIN_TAG_) != string::npos;
+}
+
+
+bool
+Stratix2DSPBoardIntegrator::isDataMemorySignal(
+    const std::string& signalName) const {
+
+    if (signalName.find("dmem") != string::npos) {
+        return true;
+    } else if (signalName.find("SRAM") != string::npos) {
+        return true;
+    }
+    return false;
+}
+
 
 std::string
 Stratix2DSPBoardIntegrator::deviceFamily() const {
@@ -329,219 +389,158 @@ Stratix2DSPBoardIntegrator::printInfo(std::ostream& stream) const {
         << "Default clock frequency is 100 MHz." << std::endl << std::endl;
 }
 
-void
-Stratix2DSPBoardIntegrator::writeProjectFiles() {
-
-    vector<string> progeOutFiles;
-    progeOutputHdlFiles(progeOutFiles);
-    for (unsigned int i = 0; i < progeOutFiles.size(); i++) {
-        quartusGen_->addHdlFile(progeOutFiles.at(i));
-    }
-    quartusGen_->writeProjectFiles();
-}
 
 // keep this in sync with stratixII.hdb
 void
-Stratix2DSPBoardIntegrator::createPinMap() {
+Stratix2DSPBoardIntegrator::generatePinMap() {
 
     // clk
-    vector<string>* clk = new vector<string>;
-    clk->push_back("set_location_assignment PIN_AM17 -to clk");
+    MappingList* clk = new MappingList;
+    clk->push_back(new SignalMapping("PIN_AM17","clk"));
     stratixPins_["clk"] = clk;
 
     // reset to push button USER_PB3
-    vector<string>* rstx = new vector<string>;
-    rstx->push_back("set_location_assignment PIN_J13 -to rstx");
+    MappingList* rstx = new MappingList;
+    rstx->push_back(new SignalMapping("PIN_J13","rstx"));
     stratixPins_["rstx"] = rstx;
     
-
     // leds
-    vector<string>* ledMapping = new vector<string>;
-    ledMapping->push_back(
-        "set_location_assignment PIN_B4 -to STRATIXII_LED[0]");
-    ledMapping->push_back(
-        "set_location_assignment PIN_D5 -to STRATIXII_LED[1]");
-    ledMapping->push_back(
-        "set_location_assignment PIN_E5 -to STRATIXII_LED[2]");
-    ledMapping->push_back(
-        "set_location_assignment PIN_A4 -to STRATIXII_LED[3]");
-    ledMapping->push_back(
-        "set_location_assignment PIN_A5 -to STRATIXII_LED[4]");
-    ledMapping->push_back(
-        "set_location_assignment PIN_D6 -to STRATIXII_LED[5]");
-    ledMapping->push_back(
-        "set_location_assignment PIN_C6 -to STRATIXII_LED[6]");
-    ledMapping->push_back(
-        "set_location_assignment PIN_A6 -to STRATIXII_LED[7]");
+    MappingList* ledMapping = new MappingList;
+    ledMapping->push_back(new SignalMapping("PIN_B4","STRATIXII_LED[0]"));
+    ledMapping->push_back(new SignalMapping("PIN_D5","STRATIXII_LED[1]"));
+    ledMapping->push_back(new SignalMapping("PIN_E5","STRATIXII_LED[2]"));
+    ledMapping->push_back(new SignalMapping("PIN_A4","STRATIXII_LED[3]"));
+    ledMapping->push_back(new SignalMapping("PIN_A5","STRATIXII_LED[4]"));
+    ledMapping->push_back(new SignalMapping("PIN_D6","STRATIXII_LED[5]"));
+    ledMapping->push_back(new SignalMapping("PIN_C6","STRATIXII_LED[6]"));
+    ledMapping->push_back(new SignalMapping("PIN_A6","STRATIXII_LED[7]"));
     stratixPins_["STRATIXII_LED"] = ledMapping;
 
     // sram data signals
-    vector<string>* sramData = new vector<string>;
+    MappingList* sramData = new MappingList;
+    sramData->push_back(new SignalMapping("PIN_AD18","STRATIXII_SRAM_DQ[0]"));
+    sramData->push_back(new SignalMapping("PIN_AB18","STRATIXII_SRAM_DQ[1]"));
+    sramData->push_back(new SignalMapping("PIN_AB19","STRATIXII_SRAM_DQ[2]"));
+    sramData->push_back(new SignalMapping("PIN_AC20","STRATIXII_SRAM_DQ[3]"));
+    sramData->push_back(new SignalMapping("PIN_AD20","STRATIXII_SRAM_DQ[4]"));
+    sramData->push_back(new SignalMapping("PIN_AE20","STRATIXII_SRAM_DQ[5]"));
+    sramData->push_back(new SignalMapping("PIN_AB20","STRATIXII_SRAM_DQ[6]"));
+    sramData->push_back(new SignalMapping("PIN_AF20","STRATIXII_SRAM_DQ[7]"));
+    sramData->push_back(new SignalMapping("PIN_AC21","STRATIXII_SRAM_DQ[8]"));
+    sramData->push_back(new SignalMapping("PIN_AD21","STRATIXII_SRAM_DQ[9]"));
     sramData->push_back(
-        "set_location_assignment PIN_AD18 -to STRATIXII_SRAM_DQ[0]");
+        new SignalMapping("PIN_AB21","STRATIXII_SRAM_DQ[10]"));
     sramData->push_back(
-        "set_location_assignment PIN_AB18 -to STRATIXII_SRAM_DQ[1]");
+        new SignalMapping("PIN_AE21","STRATIXII_SRAM_DQ[11]"));
     sramData->push_back(
-        "set_location_assignment PIN_AB19 -to STRATIXII_SRAM_DQ[2]");
+        new SignalMapping("PIN_AG20","STRATIXII_SRAM_DQ[12]"));
     sramData->push_back(
-        "set_location_assignment PIN_AC20 -to STRATIXII_SRAM_DQ[3]");
+        new SignalMapping("PIN_AF21","STRATIXII_SRAM_DQ[13]"));
     sramData->push_back(
-        "set_location_assignment PIN_AD20 -to STRATIXII_SRAM_DQ[4]");
+        new SignalMapping("PIN_AD22","STRATIXII_SRAM_DQ[14]"));
     sramData->push_back(
-        "set_location_assignment PIN_AE20 -to STRATIXII_SRAM_DQ[5]");
+        new SignalMapping("PIN_AF22","STRATIXII_SRAM_DQ[15]"));
     sramData->push_back(
-        "set_location_assignment PIN_AB20 -to STRATIXII_SRAM_DQ[6]");
+        new SignalMapping("PIN_AE22","STRATIXII_SRAM_DQ[16]"));
     sramData->push_back(
-        "set_location_assignment PIN_AF20 -to STRATIXII_SRAM_DQ[7]");
+        new SignalMapping("PIN_AC17","STRATIXII_SRAM_DQ[17]"));
     sramData->push_back(
-        "set_location_assignment PIN_AC21 -to STRATIXII_SRAM_DQ[8]");
+        new SignalMapping("PIN_AE19","STRATIXII_SRAM_DQ[18]"));
     sramData->push_back(
-        "set_location_assignment PIN_AD21 -to STRATIXII_SRAM_DQ[9]");
+        new SignalMapping("PIN_AD19","STRATIXII_SRAM_DQ[19]"));
     sramData->push_back(
-        "set_location_assignment PIN_AB21 -to STRATIXII_SRAM_DQ[10]");
+        new SignalMapping("PIN_AC18","STRATIXII_SRAM_DQ[20]"));
     sramData->push_back(
-        "set_location_assignment PIN_AE21 -to STRATIXII_SRAM_DQ[11]");
+        new SignalMapping("PIN_AB17","STRATIXII_SRAM_DQ[21]"));
     sramData->push_back(
-        "set_location_assignment PIN_AG20 -to STRATIXII_SRAM_DQ[12]");
+        new SignalMapping("PIN_AC19","STRATIXII_SRAM_DQ[22]"));
     sramData->push_back(
-        "set_location_assignment PIN_AF21 -to STRATIXII_SRAM_DQ[13]");
+        new SignalMapping("PIN_AL26","STRATIXII_SRAM_DQ[23]"));
     sramData->push_back(
-        "set_location_assignment PIN_AD22 -to STRATIXII_SRAM_DQ[14]");
+        new SignalMapping("PIN_AL27","STRATIXII_SRAM_DQ[24]"));
     sramData->push_back(
-        "set_location_assignment PIN_AF22 -to STRATIXII_SRAM_DQ[15]");
+        new SignalMapping("PIN_AL28","STRATIXII_SRAM_DQ[25]"));
     sramData->push_back(
-        "set_location_assignment PIN_AE22 -to STRATIXII_SRAM_DQ[16]");    
+        new SignalMapping("PIN_AK28","STRATIXII_SRAM_DQ[26]"));
     sramData->push_back(
-        "set_location_assignment PIN_AC17 -to STRATIXII_SRAM_DQ[17]");
+        new SignalMapping("PIN_AK29","STRATIXII_SRAM_DQ[27]"));
     sramData->push_back(
-        "set_location_assignment PIN_AE19 -to STRATIXII_SRAM_DQ[18]");
+        new SignalMapping("PIN_AC13","STRATIXII_SRAM_DQ[28]"));
     sramData->push_back(
-        "set_location_assignment PIN_AD19 -to STRATIXII_SRAM_DQ[19]");
+        new SignalMapping("PIN_AD10","STRATIXII_SRAM_DQ[29]"));
     sramData->push_back(
-        "set_location_assignment PIN_AC18 -to STRATIXII_SRAM_DQ[20]");
+        new SignalMapping("PIN_AC11","STRATIXII_SRAM_DQ[30]"));
     sramData->push_back(
-        "set_location_assignment PIN_AB17 -to STRATIXII_SRAM_DQ[21]");
-    sramData->push_back(
-        "set_location_assignment PIN_AC19 -to STRATIXII_SRAM_DQ[22]");
-    sramData->push_back(
-        "set_location_assignment PIN_AL26 -to STRATIXII_SRAM_DQ[23]");
-    sramData->push_back(
-        "set_location_assignment PIN_AL27 -to STRATIXII_SRAM_DQ[24]");
-    sramData->push_back(
-        "set_location_assignment PIN_AL28 -to STRATIXII_SRAM_DQ[25]");
-    sramData->push_back(
-        "set_location_assignment PIN_AK28 -to STRATIXII_SRAM_DQ[26]");
-    sramData->push_back(
-        "set_location_assignment PIN_AK29 -to STRATIXII_SRAM_DQ[27]");
-    sramData->push_back(
-        "set_location_assignment PIN_AC13 -to STRATIXII_SRAM_DQ[28]");
-    sramData->push_back(
-        "set_location_assignment PIN_AD10 -to STRATIXII_SRAM_DQ[29]");
-    sramData->push_back(
-        "set_location_assignment PIN_AC11 -to STRATIXII_SRAM_DQ[30]");
-    sramData->push_back(
-        "set_location_assignment PIN_AE11 -to STRATIXII_SRAM_DQ[31]");
+        new SignalMapping("PIN_AE11","STRATIXII_SRAM_DQ[31]"));
     stratixPins_["STRATIXII_SRAM_DQ"] = sramData;
 
      // sram address signals
-    vector<string>* sramAddr = new vector<string>;
+    MappingList* sramAddr = new MappingList;
     sramAddr->push_back(
-        "set_location_assignment PIN_AD8 -to STRATIXII_SRAM_ADDR[0]");
+        new SignalMapping("PIN_AD8","STRATIXII_SRAM_ADDR[0]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AM27 -to STRATIXII_SRAM_ADDR[1]");
+        new SignalMapping("PIN_AM27","STRATIXII_SRAM_ADDR[1]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AM28 -to STRATIXII_SRAM_ADDR[2]");
+        new SignalMapping("PIN_AM28","STRATIXII_SRAM_ADDR[2]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AJ27 -to STRATIXII_SRAM_ADDR[3]");
+        new SignalMapping("PIN_AJ27","STRATIXII_SRAM_ADDR[3]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AK27 -to STRATIXII_SRAM_ADDR[4]");
+        new SignalMapping("PIN_AK27","STRATIXII_SRAM_ADDR[4]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AL29 -to STRATIXII_SRAM_ADDR[5]");
+        new SignalMapping("PIN_AL29","STRATIXII_SRAM_ADDR[5]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AM29 -to STRATIXII_SRAM_ADDR[6]");
+        new SignalMapping("PIN_AM29","STRATIXII_SRAM_ADDR[6]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AJ28 -to STRATIXII_SRAM_ADDR[7]");
+        new SignalMapping("PIN_AJ28","STRATIXII_SRAM_ADDR[7]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AH28 -to STRATIXII_SRAM_ADDR[8]");
+        new SignalMapping("PIN_AH28","STRATIXII_SRAM_ADDR[8]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AK20 -to STRATIXII_SRAM_ADDR[9]");
+        new SignalMapping("PIN_AK20","STRATIXII_SRAM_ADDR[9]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AJ20 -to STRATIXII_SRAM_ADDR[10]");
+        new SignalMapping("PIN_AJ20","STRATIXII_SRAM_ADDR[10]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AL21 -to STRATIXII_SRAM_ADDR[11]");
+        new SignalMapping("PIN_AL21","STRATIXII_SRAM_ADDR[11]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AL22 -to STRATIXII_SRAM_ADDR[12]");
+        new SignalMapping("PIN_AL22","STRATIXII_SRAM_ADDR[12]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AJ22 -to STRATIXII_SRAM_ADDR[13]");
+        new SignalMapping("PIN_AJ22","STRATIXII_SRAM_ADDR[13]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AH22 -to STRATIXII_SRAM_ADDR[14]");
+        new SignalMapping("PIN_AH22","STRATIXII_SRAM_ADDR[14]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AL23 -to STRATIXII_SRAM_ADDR[15]");
+        new SignalMapping("PIN_AL23","STRATIXII_SRAM_ADDR[15]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AL24 -to STRATIXII_SRAM_ADDR[16]");
+        new SignalMapping("PIN_AL24","STRATIXII_SRAM_ADDR[16]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AJ25 -to STRATIXII_SRAM_ADDR[17]");
+        new SignalMapping("PIN_AJ25","STRATIXII_SRAM_ADDR[17]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AH25 -to STRATIXII_SRAM_ADDR[18]");
+        new SignalMapping("PIN_AH25","STRATIXII_SRAM_ADDR[18]"));
     sramAddr->push_back(
-        "set_location_assignment PIN_AL25 -to STRATIXII_SRAM_ADDR[19]");
+        new SignalMapping("PIN_AL25","STRATIXII_SRAM_ADDR[19]"));
     stratixPins_["STRATIXII_SRAM_ADDR"] = sramAddr;
 
     // sram control signals
-    vector<string>* sramWe = new vector<string>;
-    sramWe->push_back(
-        "set_location_assignment PIN_AH14 -to STRATIXII_SRAM_WE_N");
+    MappingList* sramWe = new MappingList;
+    sramWe->push_back(new SignalMapping("PIN_AH14","STRATIXII_SRAM_WE_N"));
     stratixPins_["STRATIXII_SRAM_WE_N"] = sramWe;
 
-    vector<string>* sramOe = new vector<string>;
-    sramOe->push_back(
-        "set_location_assignment PIN_AG14 -to STRATIXII_SRAM_OE_N");
+    MappingList* sramOe = new MappingList;
+    sramOe->push_back(new SignalMapping("PIN_AG14","STRATIXII_SRAM_OE_N"));
     stratixPins_["STRATIXII_SRAM_OE_N"] = sramOe;
 
-    vector<string>* sramCs = new vector<string>;
-    sramCs->push_back(
-        "set_location_assignment PIN_AL12 -to STRATIXII_SRAM_CS_N");
+    MappingList* sramCs = new MappingList;
+    sramCs->push_back(new SignalMapping("PIN_AL12","STRATIXII_SRAM_CS_N"));
     stratixPins_["STRATIXII_SRAM_CS_N"] = sramCs;
 
-    vector<string>* sramB0 = new vector<string>;
-    vector<string>* sramB1 = new vector<string>;
-    vector<string>* sramB2 = new vector<string>;
-    vector<string>* sramB3 = new vector<string>;
-    sramB0->push_back(
-        "set_location_assignment PIN_AG11 -to STRATIXII_SRAM_BE_N0");
-    sramB1->push_back(
-        "set_location_assignment PIN_AK10 -to STRATIXII_SRAM_BE_N1");
-    sramB2->push_back(
-        "set_location_assignment PIN_AK11 -to STRATIXII_SRAM_BE_N2");
-    sramB3->push_back(
-        "set_location_assignment PIN_AL11 -to STRATIXII_SRAM_BE_N3");
+    MappingList* sramB0 = new MappingList;
+    MappingList* sramB1 = new MappingList;
+    MappingList* sramB2 = new MappingList;
+    MappingList* sramB3 = new MappingList;
+    sramB0->push_back(new SignalMapping("PIN_AG11","STRATIXII_SRAM_BE_N0"));
+    sramB1->push_back(new SignalMapping("PIN_AK10","STRATIXII_SRAM_BE_N1"));
+    sramB2->push_back(new SignalMapping("PIN_AK11","STRATIXII_SRAM_BE_N2"));
+    sramB3->push_back(new SignalMapping("PIN_AL11","STRATIXII_SRAM_BE_N3"));
     stratixPins_["STRATIXII_SRAM_BE_N0"] = sramB0;
     stratixPins_["STRATIXII_SRAM_BE_N1"] = sramB1;
     stratixPins_["STRATIXII_SRAM_BE_N2"] = sramB2;
     stratixPins_["STRATIXII_SRAM_BE_N3"] = sramB3;
 }
-
-
-void
-Stratix2DSPBoardIntegrator::finishNewToplevel() {
-    
-    string toplevelFile = writeNewToplevel();
-    quartusGen_->addHdlFile(toplevelFile);
-}
-
-void
-Stratix2DSPBoardIntegrator::addSignalMapping(const std::string& signal) {
-    
-    if (stratixPins_.find(signal) == stratixPins_.end()) {
-        warningStream() << "Warning: didn't find mapping for signal name "
-                        << signal << endl;
-        return;
-    }
-
-    vector<string>* mappings = stratixPins_.find(signal)->second;
-    for (unsigned int i = 0; i < mappings->size(); i++) {
-        quartusGen_->addPinMapping(mappings->at(i));
-    }
-}
-
-

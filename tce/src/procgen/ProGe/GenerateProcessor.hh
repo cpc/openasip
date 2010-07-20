@@ -60,11 +60,6 @@ private:
 
     MemType string2MemType(const std::string& memoryString) const;
 
-#if 0
-    bool integrateProcessor(
-        std::string progeOutDir,
-        ProGeCmdLineOptions& options) const;
-#endif
 };
 
 #endif

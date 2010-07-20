@@ -42,8 +42,15 @@
 #include "MemoryGenerator.hh"
 #include "AlteraOnchipRomGenerator.hh"
 #include "PlatformIntegrator.hh"
+#include "NetlistBlock.hh"
+#include "NetlistPort.hh"
+#include "HDLPort.hh"
 using std::string;
 using std::endl;
+using ProGe::NetlistBlock;
+using ProGe::NetlistPort;
+using ProGe::StaticSignal;
+
 
 AlteraOnchipRomGenerator::AlteraOnchipRomGenerator(
     int memMauWidth,
@@ -53,95 +60,40 @@ AlteraOnchipRomGenerator::AlteraOnchipRomGenerator(
     const PlatformIntegrator* integrator,
     std::ostream& warningStream,
     std::ostream& errorStream): 
-    MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
-                    integrator, warningStream, errorStream) {
+    AlteraMegawizMemGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
+                              integrator, warningStream, errorStream) {
+    
+    bool noInvert = false;
+    
+    addPort("clk",
+            new HDLPort("clock", "1", ProGe::BIT, HDB::IN, noInvert, 1));
 
+    addPort("imem_addr",
+            new HDLPort("address", "IMEMADDRWIDTH", ProGe::BIT_VECTOR,
+                        HDB::IN, noInvert));
+
+    // imem_en_x signal is left unconnected on purpose
+
+    addPort("imem_data",
+            new HDLPort("q", "IMEMWIDTHINMAUS*IMEMMAUWIDTH",
+                        ProGe::BIT_VECTOR, HDB::OUT, noInvert));
+
+    // these signals are not driven by the imem component, connect to zero
+    HDLPort* busyToGnd =
+        new HDLPort("wait", "1", ProGe::BIT, HDB::OUT, noInvert, 1);
+    busyToGnd->setToStatic(ProGe::GND);
+    addPort("busy", busyToGnd);
+
+    
+    HDLPort* initToZero = new HDLPort("startAddr", "IMEMADDRWIDTH",
+                                      ProGe::BIT_VECTOR, HDB::OUT, noInvert);
+    initToZero->setToStatic(ProGe::GND);
+    addPort("pc_init", initToZero);
 }
+
 
 AlteraOnchipRomGenerator::~AlteraOnchipRomGenerator() {
 }
-
-
-bool
-AlteraOnchipRomGenerator::isCompatible(
-        const std::vector<std::string>& ttaCore,
-        std::vector<std::string>& reasons) {
-
-    bool foundAll = true;
-    if (findSignal("imem_addr", ttaCore) < 0) {
-        reasons.push_back("Compatible address signal not found");
-        foundAll = false;
-    }
-    if (findSignal("imem_en_x", ttaCore) < 0) {
-        reasons.push_back("Compatible memory enable signal not found");
-        foundAll = false;
-    }
-    if (findSignal("imem_data", ttaCore) < 0) {
-        reasons.push_back("Compatible data signal not found");
-        foundAll = false;
-    }
-    return foundAll;
-}
-
-void 
-AlteraOnchipRomGenerator::writeComponentDeclaration(std::ostream& stream) {
-
-    stream 
-        << StringTools::indent(1) << "component altera_onchip_rom_comp" 
-        << endl << StringTools::indent(2) << "port (" << endl
-        << StringTools::indent(3) 
-        << "address : in  std_logic_vector(IMEMADDRWIDTH-1 downto 0);" << endl
-        << StringTools::indent(3)
-        << "clock   : in  std_logic;" << endl
-        << StringTools::indent(3)
-        << "q       : out std_logic_vector(" 
-        << "IMEMWIDTHINMAUS*IMEMMAUWIDTH-1 downto 0));" << endl
-        << StringTools::indent(1)
-        << "end component;" << endl << endl;
-}
-
-void 
-AlteraOnchipRomGenerator::writeComponentInstantiation(
-    const std::vector<std::string>& toplevelSignals,
-    std::ostream& signalStream,
-    std::ostream& signalConnections,
-    std::ostream& toplevelInstantiation,
-    std::ostream& memInstantiation) {
-
-    // write signals for connections
-    signalStream 
-        << StringTools::indent(1)
-        << "signal imem_en_x_w : std_logic;" << endl
-        << StringTools::indent(1)
-        << "signal imem_addr_w : std_logic_vector(IMEMADDRWIDTH-1 downto 0);"
-        << endl << StringTools::indent(1)
-        << "signal imem_data_w : std_logic_vector(IMEMMAUWIDTH-1 downto 0);"
-        << endl;
-
-    // make signal connections
-    signalConnections << endl;
-
-    // connect toplevel and dmem
-    memInstantiation 
-        << StringTools::indent(1)
-        << "onchip_imem : altera_onchip_rom_comp" << endl
-        << StringTools::indent(2)
-        << StringTools::indent(2)
-        << "port map (" << endl
-        << StringTools::indent(3)
-        << "clock => clk";
-        
-    for (unsigned int i = 0; i < toplevelSignals.size(); i++) {
-        string line = toplevelSignals.at(i);
-        if (line.find("imem") != string::npos) {
-            connectSignals(line, toplevelInstantiation, memInstantiation);
-        }
-    }
-    memInstantiation 
-        << ");" << endl;
-
-}
-
 
 bool
 AlteraOnchipRomGenerator::generatesComponentHdlFile() const {
@@ -152,84 +104,12 @@ AlteraOnchipRomGenerator::generatesComponentHdlFile() const {
 std::vector<std::string>
 AlteraOnchipRomGenerator::generateComponentFile(std::string outputPath) {
 
-    std::vector<string> componentFiles;
-    string tempDir = FileSystem::createTempDirectory();
-    if (tempDir.empty()) {
-        string msg = "Couldn't create temp directory";
-        IOException exc(__FILE__, __LINE__, "AlteraOnchipRomGenerator",
-                        msg);
-        throw exc;
-    }
-    string parameterFile = tempDir + FileSystem::DIRECTORY_SEPARATOR + 
-        "imem.parameters";
-    
-    std::ofstream file;
-    file.open(parameterFile.c_str());
-    if (!file) {
-        string msg = "Couldn't open file " + parameterFile + " for writing";
-        IOException exc(__FILE__, __LINE__, "AlteraOnchipRamGenerator",
-                        msg);
-        throw exc;
-    }
-    file << createMemParameters();
-    file.close();
-
     // extension must be .vhd
     string outputFile = outputPath + FileSystem::DIRECTORY_SEPARATOR + 
         "altera_onchip_rom_comp.vhd";
     
-    // execute "Altera MegaWizard Plug-In Manager(c)"
-    string command = "qmegawiz -silent module=altsyncram -f:" +
-        parameterFile + " " + outputFile + " 2>&1";
-    std::vector<string> output;
-    int rv = Application::runShellCommandAndGetOutput(command, output);
-    
-    if (rv != 0 || output.size() != 0) {
-        errorStream() 
-            << "Failed to create memory component. Make sure 'qmegawiz' "
-            << "is in PATH" << endl;
-        for (unsigned int i = 0; i < output.size(); i++) {
-            errorStream() << output.at(i) << endl;
-        }
-    } else {
-        componentFiles.push_back(outputFile);
-    }
-
-    // clean up
-    FileSystem::removeFileOrDirectory(tempDir);
-    return componentFiles;
-} 
-
-
-void
-AlteraOnchipRomGenerator::connectSignals(
-    std::string line, 
-    std::ostream& toplevelInstantiation,
-    std::ostream& memInstantiation) {
-
-    if (line.find("imem_en_x") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => " << line + "_w";
-    } else if (line.find("imem_addr") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => " << line + "_w";
-        memInstantiation
-            << "," << endl 
-            << StringTools::indent(3) << "address => " << line + "_w";
-    } else if (line.find("imem_data") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => " << line + "_w";
-        memInstantiation
-            << "," << endl 
-            << StringTools::indent(3) << "q => " << line + "_w";
-    } else {
-        std::cerr << "Unknown signal " << line << std::endl;
-    }
+    return runMegawizard(outputFile);
 }
-
 
 std::string
 AlteraOnchipRomGenerator::createMemParameters() const {
@@ -272,4 +152,18 @@ AlteraOnchipRomGenerator::createMemParameters() const {
         << "wren_a=unused " << "clock1=unused " << "wren_b=unused " << endl;
 
     return parameters.str();
+}
+
+
+std::string
+AlteraOnchipRomGenerator::moduleName() const {
+
+    return "altera_onchip_rom_comp";
+}
+    
+
+std::string
+AlteraOnchipRomGenerator::instanceName() const {
+
+    return "onchip_imem";
 }

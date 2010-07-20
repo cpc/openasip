@@ -36,10 +36,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "MemoryGenerator.hh"
+#include "AlteraMegawizMemGenerator.hh"
 #include "PlatformIntegrator.hh"
 
-class AlteraOnchipRamGenerator : public MemoryGenerator {
+class AlteraOnchipRamGenerator : public AlteraMegawizMemGenerator {
 public:
 
     AlteraOnchipRamGenerator(
@@ -49,36 +49,23 @@ public:
         std::string initFile,
         const PlatformIntegrator* integrator,
         std::ostream& warningStream,
-        std::ostream& errorStream );
+        std::ostream& errorStream);
     
     virtual ~AlteraOnchipRamGenerator();
-
-    virtual bool isCompatible(
-        const std::vector<std::string>& ttaCore,
-        std::vector<std::string>& reasons);
     
-    virtual void writeComponentDeclaration(std::ostream& stream);
-
-    virtual void writeComponentInstantiation(
-        const std::vector<std::string>& toplevelSignals,
-        std::ostream& signalStream,
-        std::ostream& signalConnections,
-        std::ostream& toplevelInstantiation,
-        std::ostream& memInstantiation);
-
     virtual bool generatesComponentHdlFile() const;
 
     virtual std::vector<std::string>
     generateComponentFile(std::string outputPath);
 
-private:
+protected:
 
-    void connectSignals(
-        std::string line, 
-        std::ostream& toplevelInstantiation,
-        std::ostream& memInstantiation) const;
+    virtual std::string createMemParameters() const;
 
-    std::string createMemParameters() const;
+    virtual std::string moduleName() const;
+    
+    virtual std::string instanceName() const;
+
 };
 
 #endif

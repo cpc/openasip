@@ -22,71 +22,43 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProjectFileGenerator.cc
+ * @file AlterMegaWizRamGenerator.hh
  *
- * Implementation of ProjectFileGenerator class.
+ * Declaration of AlteraMegawizMemGenerator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
+#ifndef TTA_ALTERA_MEGAWIZ_MEM_GENERATOR_HH
+#define TTA_ALTERA_MEGAWIZ_MEM_GENERATOR_HH
+
+#include <iostream>
 #include <string>
 #include <vector>
-#include <iostream>
-#include <sstream>
-#include "ProjectFileGenerator.hh"
+#include "MemoryGenerator.hh"
+#include "PlatformIntegrator.hh"
 
-ProjectFileGenerator::ProjectFileGenerator(
-    std::string toplevelEntity,
-    PlatformIntegrator* integrator):
-    toplevelEntity_(toplevelEntity), integrator_(integrator) {
-}
+class AlteraMegawizMemGenerator : public MemoryGenerator {
+public:
 
-ProjectFileGenerator::~ProjectFileGenerator() {
-}
-
-
-void
-ProjectFileGenerator::addHdlFile(const std::string& file) {
-
-    hdlFiles_.push_back(file);
-}
-
-
-void
-ProjectFileGenerator::addSignalMapping(const SignalMapping& mapping) {
+    AlteraMegawizMemGenerator(
+        int memMauWidth,
+        int widthInMaus,
+        int addrWidth,
+        std::string initFile,
+        const PlatformIntegrator* integrator,
+        std::ostream& warningStream,
+        std::ostream& errorStream);
     
-    signalMap_.push_back(mapping);
-}
+    virtual ~AlteraMegawizMemGenerator();
 
+protected:
 
-const std::vector<std::string>&
-ProjectFileGenerator::hdlFileList() const {
+    virtual std::vector<std::string> runMegawizard(std::string outputFile);
 
-    return hdlFiles_;
-}
+    virtual std::string createMemParameters() const = 0;
 
-const PlatformIntegrator*
-ProjectFileGenerator::integrator() const {
+};
 
-    return integrator_;
-}
-
-std::string
-ProjectFileGenerator::toplevelEntity() const {
-
-    return toplevelEntity_;
-}
-
-
-int
-ProjectFileGenerator::signalMappingCount() const {
-
-    return signalMap_.size();
-}
-
-const SignalMapping*
-ProjectFileGenerator::signalMapping(int index) const {
-
-    return &signalMap_.at(index);
-}
+#endif

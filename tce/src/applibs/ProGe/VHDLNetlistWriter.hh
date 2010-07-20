@@ -95,6 +95,7 @@ private:
         const NetlistBlock& block,
         std::ofstream& stream) const;
     std::string indentation(unsigned int level) const;
+
     static std::string directionString(HDB::Direction direction);
     static std::string generateIndentation(
         unsigned int level, const std::string& indentation);

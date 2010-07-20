@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2010 Tampere University of Technology.
+    Copyright (c) 2002-2009 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,71 +22,43 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProjectFileGenerator.cc
+ * @file VirtualNetlistBlock.hh
  *
- * Implementation of ProjectFileGenerator class.
+ * Declaration of VirtualNetlistBlock class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
+#ifndef TTA_VIRTUAL_NETLIST_BLOCK_HH
+#define TTA_VIRTUAL_NETLIST_BLOCK_HH
+
 #include <string>
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include "ProjectFileGenerator.hh"
 
-ProjectFileGenerator::ProjectFileGenerator(
-    std::string toplevelEntity,
-    PlatformIntegrator* integrator):
-    toplevelEntity_(toplevelEntity), integrator_(integrator) {
+#include "Exception.hh"
+#include "NetlistBlock.hh"
+
+namespace ProGe {
+
+class Netlist;
+
+/**
+ * Represents a virtual block in the netlist.
+ *
+ * Virtual blocks are not written to HDL files so they can include special
+ * ports such as all zero or all one connections.
+ * Ports belonging to a virtual block do not generate into signals in HDL.
+ */
+class VirtualNetlistBlock : public NetlistBlock {
+public:
+    VirtualNetlistBlock(
+        const std::string& moduleName,
+        const std::string& instanceName,
+        Netlist& netlist);
+    virtual ~VirtualNetlistBlock();
+
+    virtual bool isVirtual() const;
+};
 }
 
-ProjectFileGenerator::~ProjectFileGenerator() {
-}
-
-
-void
-ProjectFileGenerator::addHdlFile(const std::string& file) {
-
-    hdlFiles_.push_back(file);
-}
-
-
-void
-ProjectFileGenerator::addSignalMapping(const SignalMapping& mapping) {
-    
-    signalMap_.push_back(mapping);
-}
-
-
-const std::vector<std::string>&
-ProjectFileGenerator::hdlFileList() const {
-
-    return hdlFiles_;
-}
-
-const PlatformIntegrator*
-ProjectFileGenerator::integrator() const {
-
-    return integrator_;
-}
-
-std::string
-ProjectFileGenerator::toplevelEntity() const {
-
-    return toplevelEntity_;
-}
-
-
-int
-ProjectFileGenerator::signalMappingCount() const {
-
-    return signalMap_.size();
-}
-
-const SignalMapping*
-ProjectFileGenerator::signalMapping(int index) const {
-
-    return &signalMap_.at(index);
-}
+#endif

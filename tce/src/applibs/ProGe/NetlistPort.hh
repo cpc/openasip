@@ -27,6 +27,7 @@
  * Declaration of NetlistPort class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -39,6 +40,11 @@
 #include "Exception.hh"
 
 namespace ProGe {
+
+enum StaticSignal {
+    GND,
+    VCC
+};
 
 class NetlistBlock;
 
@@ -75,6 +81,12 @@ public:
 
     NetlistBlock* parentBlock() const;
 
+    void setToStatic(StaticSignal value);
+
+    bool hasStaticValue() const;
+
+    StaticSignal staticValue() const;
+
 private:
     /// Name of the port.
     std::string name_;
@@ -88,6 +100,10 @@ private:
     HDB::Direction direction_;
     /// The parent netlist block.
     NetlistBlock* parent_;
+    /// Indicates if port is connected to vcc or gnd
+    bool hasStaticValue_;
+    /// Static signal value
+    StaticSignal staticValue_;
 };
 }
 

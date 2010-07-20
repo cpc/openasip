@@ -42,8 +42,13 @@
 #include "MemoryGenerator.hh"
 #include "VhdlRomGenerator.hh"
 #include "PlatformIntegrator.hh"
+#include "NetlistBlock.hh"
+#include "NetlistPort.hh"
+#include "HDLPort.hh"
 using std::string;
 using std::endl;
+using ProGe::NetlistBlock;
+using ProGe::NetlistPort;
 
 VhdlRomGenerator::VhdlRomGenerator(
     int memMauWidth,
@@ -56,103 +61,33 @@ VhdlRomGenerator::VhdlRomGenerator(
     MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
                     integrator, warningStream, errorStream) {
 
+    addPort("clk", new HDLPort("clock", "1", ProGe::BIT, HDB::IN, false, 1));
+    addPort("imem_addr", new HDLPort("addr", "addrw", ProGe::BIT_VECTOR,
+                                     HDB::IN, false, memoryAddrWidth()));
+
+    // imem_en_x signal is left unconnected on purpose
+
+    addPort("imem_data", new HDLPort("dataout", "instrw", ProGe::BIT_VECTOR,
+                                     HDB::OUT, false, memoryTotalWidth()));
+
+    HDLPort* busyToGnd = new HDLPort("wait", "1", ProGe::BIT, HDB::OUT, false,
+                                     1);
+    busyToGnd->setToStatic(ProGe::GND);
+    addPort("busy", busyToGnd);
+
+    HDLPort* initToZero = new HDLPort("startAddr", "IMEMADDRWIDTH",
+                                      ProGe::BIT_VECTOR, HDB::OUT, false);
+    initToZero->setToStatic(ProGe::GND);
+    addPort("pc_init", initToZero);
+
+    ProGe::Netlist::Parameter addr = {"addrw", "integer", "IMEMADDRWIDTH"};
+    ProGe::Netlist::Parameter data = {"instrw", "integer",
+                                      "IMEMMAUWIDTH*IMEMWIDTHINMAUS"};
+    addParameter(addr);
+    addParameter(data);
 }
 
 VhdlRomGenerator::~VhdlRomGenerator() {
-}
-
-
-bool
-VhdlRomGenerator::isCompatible(
-    const std::vector<std::string>& ttaCore,
-    std::vector<std::string>& reasons) {
-
-    bool foundAll = true;
-    if (findSignal("imem_addr", ttaCore) < 0) {
-        reasons.push_back("Compatible address signal not found");
-        foundAll = false;
-    }
-    if (findSignal("imem_en_x", ttaCore) < 0) {
-        reasons.push_back("Compatible memory enable signal not found");
-        foundAll = false;
-    }
-    if (findSignal("imem_data", ttaCore) < 0) {
-        reasons.push_back("Compatible data signal not found");
-        foundAll = false;
-    }
-    return foundAll;
-}
-
-
-void 
-VhdlRomGenerator::writeComponentDeclaration(std::ostream& stream) {
-
-    stream 
-        << StringTools::indent(1) << "component rom_array_comp" 
-        << endl << StringTools::indent(2) << "generic (" << endl
-        << StringTools::indent(2)
-        << "addrw  : integer := 10;" << endl
-        << StringTools::indent(2)
-        << "instrw : integer := 100);" << endl
-        << endl << StringTools::indent(2) << "port (" << endl
-        << StringTools::indent(3) 
-        << "clock   : in  std_logic;" << endl
-        << StringTools::indent(3) 
-        << "addr    : in  std_logic_vector(addrw-1 downto 0);" << endl
-        << StringTools::indent(3) 
-        << "dataout : out std_logic_vector(instrw-1 downto 0));" << endl
-        << StringTools::indent(1)
-        << "end component;" << endl << endl;
-}
-
-void 
-VhdlRomGenerator::writeComponentInstantiation(
-    const std::vector<std::string>& toplevelSignals,
-    std::ostream& signalStream,
-    std::ostream& signalConnections,
-    std::ostream& toplevelInstantiation,
-    std::ostream& memInstantiation) {
-
-    // write signals for connections
-    signalStream 
-        << StringTools::indent(1)
-        << "signal imem_en_x_w : std_logic;" << endl
-        << StringTools::indent(1)
-        << "signal imem_addr_w : std_logic_vector(IMEMADDRWIDTH-1 downto 0);"
-        << endl << StringTools::indent(1)
-        << "signal imem_data_w : std_logic_vector(IMEMMAUWIDTH-1 downto 0);"
-        << endl;
-
-    // make signal connections
-    signalConnections << endl;
-
-    // connect toplevel and dmem
-    memInstantiation 
-        << StringTools::indent(1)
-        << "imem_array : rom_array_comp" << endl
-        << StringTools::indent(2)
-        << "generic map (" << endl
-        << StringTools::indent(3)
-        << "addrw => IMEMADDRWIDTH," << endl
-        << StringTools::indent(3)
-        << "instrw => IMEMMAUWIDTH" << endl
-        << StringTools::indent(2)
-        << ")" << endl;
-    memInstantiation 
-        << StringTools::indent(2)
-        << "port map (" << endl
-        << StringTools::indent(3)
-        << "clock => clk";
-        
-    for (unsigned int i = 0; i < toplevelSignals.size(); i++) {
-        string line = toplevelSignals.at(i);
-        if (line.find("imem") != string::npos) {
-            connectSignals(line, toplevelInstantiation, memInstantiation);
-        }
-    }
-    memInstantiation 
-        << ");" << endl;
-
 }
 
 
@@ -166,7 +101,7 @@ std::vector<std::string>
 VhdlRomGenerator::generateComponentFile(std::string outputPath) {
 
     string outputFile = outputPath + FileSystem::DIRECTORY_SEPARATOR + 
-        "rom_array_comp.vhd";
+        moduleName() + ".vhd";
 
     std::ofstream file;
     file.open(outputFile.c_str());
@@ -182,7 +117,7 @@ VhdlRomGenerator::generateComponentFile(std::string outputPath) {
         << "use ieee.std_logic_1164.all;" << endl
         << "use ieee.std_logic_arith.all;" << endl
         << "use work.imem_image.all;" << endl << endl
-        << "entity rom_array_comp is" << endl << endl
+        << "entity " << moduleName() << " is" << endl << endl
         << StringTools::indent(1) << "generic (" << endl
         << StringTools::indent(2) << "addrw  : integer := 10;" << endl
         << StringTools::indent(2) << "instrw : integer := 100);" << endl
@@ -192,10 +127,10 @@ VhdlRomGenerator::generateComponentFile(std::string outputPath) {
         << "addr    : in  std_logic_vector(addrw-1 downto 0);" << endl
         << StringTools::indent(2)
         << "dataout : out std_logic_vector(instrw-1 downto 0));" << endl
-        << "end rom_array_comp;" << endl << endl;
+        << "end " << moduleName() << ";" << endl << endl;
 
     stream
-        << "architecture rtl of rom_array_comp is" << endl << endl
+        << "architecture rtl of " << moduleName() << " is" << endl << endl
         << StringTools::indent(1)
         << "subtype imem_index is integer range 0 to imem_array'length-1;"
         << endl 
@@ -223,34 +158,15 @@ VhdlRomGenerator::generateComponentFile(std::string outputPath) {
 } 
 
 
-void
-VhdlRomGenerator::connectSignals(
-    std::string line, 
-    std::ostream& toplevelInstantiation,
-    std::ostream& memInstantiation) {
+std::string
+VhdlRomGenerator::moduleName() const {
 
-    if (line.find("imem_en_x") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => " << line + "_w";
+    return "rom_array_comp";
+}
 
-    } else if (line.find("imem_addr") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => " << line + "_w";
-        memInstantiation
-            << "," << endl 
-            << StringTools::indent(3) << "addr => " << line + "_w";
+    
+std::string
+VhdlRomGenerator::instanceName() const {
 
-    } else if (line.find("imem_data") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => " << line + "_w";
-        memInstantiation
-            << "," << endl 
-            << StringTools::indent(3) << "dataout => " << line + "_w";
-
-    } else {
-        std::cerr << "Unknown signal " << line << std::endl;
-    }
+    return "imem_array_instance";
 }

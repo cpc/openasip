@@ -27,7 +27,7 @@
  * Declaration of ProcessorGenerator class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
- * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -50,6 +50,7 @@ class BinaryEncoding;
 namespace ProGe {
 
 class ICDecoderGeneratorPlugin;
+class Netlist;
 
 /**
  * Controller class of ProGe.
@@ -78,6 +79,8 @@ public:
     static int iMemWidth(
         const TTAMachine::Machine& mach, int imemWidthInMAUs);
 
+    const Netlist* netlist() const;
+
 private:
     void validateMachine(
         const TTAMachine::Machine& machine,
@@ -95,6 +98,8 @@ private:
         int imemWidthInMAUs,
         const std::string& dstDirectory)
         throw (IOException);
+
+    Netlist* netlist_;
 };
 }
 

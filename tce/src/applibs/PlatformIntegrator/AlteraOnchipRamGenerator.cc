@@ -40,10 +40,17 @@
 #include "StringTools.hh"
 #include "FileSystem.hh"
 #include "Application.hh"
+#include "Conversion.hh"
 #include "MemoryGenerator.hh"
 #include "AlteraOnchipRamGenerator.hh"
+#include "NetlistBlock.hh"
+#include "NetlistPort.hh"
+#include "HDLPort.hh"
 using std::string;
 using std::endl;
+using ProGe::NetlistBlock;
+using ProGe::NetlistPort;
+
 
 AlteraOnchipRamGenerator::AlteraOnchipRamGenerator(
     int memMauWidth,
@@ -53,132 +60,36 @@ AlteraOnchipRamGenerator::AlteraOnchipRamGenerator(
     const PlatformIntegrator* integrator,
     std::ostream& warningStream,
     std::ostream& errorStream): 
-    MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
-                    integrator, warningStream, errorStream) {
-
+    AlteraMegawizMemGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
+                              integrator, warningStream, errorStream) {
+    
+    bool inverted = true;
+    bool noInvert = false;
+    addPort("dmem_data_in", 
+            new HDLPort("q", Conversion::toString(memoryTotalWidth()),
+                        ProGe::BIT_VECTOR, HDB::OUT, noInvert,
+                        memoryTotalWidth()));
+    addPort("dmem_data_out",
+            new HDLPort("data", Conversion::toString(memoryTotalWidth()),
+                        ProGe::BIT_VECTOR, HDB::IN, noInvert,
+                        memoryTotalWidth()));
+    addPort("dmem_addr",
+            new HDLPort("address", Conversion::toString(memoryAddrWidth()),
+                        ProGe::BIT_VECTOR, HDB::IN, noInvert,
+                        memoryAddrWidth()));
+    addPort("dmem_mem_en_x",
+            new HDLPort("clken", "1", ProGe::BIT, HDB::IN, inverted, 1));
+    addPort("dmem_wr_en_x",
+            new HDLPort("wren", "1", ProGe::BIT, HDB::IN, inverted, 1));
+    addPort("dmem_bytemask",
+            new HDLPort("byteena", Conversion::toString(memoryWidthInMaus()),
+                        ProGe::BIT_VECTOR, HDB::IN, noInvert,
+                        memoryWidthInMaus()));
+    addPort("clk",
+            new HDLPort("clock", "1", ProGe::BIT, HDB::IN, noInvert, 1));
 }
 
 AlteraOnchipRamGenerator::~AlteraOnchipRamGenerator() {
-}
-
-void 
-AlteraOnchipRamGenerator::writeComponentDeclaration(std::ostream& stream) {
-
-    stream 
-        << StringTools::indent(1) << "component altera_onchip_ram_comp" 
-        << endl << StringTools::indent(2) << "port (" << endl
-        << StringTools::indent(3) 
-        << "address : in  std_logic_vector(" << memoryAddrWidth() 
-        << "-1 downto 0);" << endl
-        << StringTools::indent(3)
-        << "byteena : in  std_logic_vector(" << memoryWidthInMaus()
-        << "-1 downto 0);" << endl
-        << StringTools::indent(3)
-        << "clken   : in  std_logic;" << endl
-        << StringTools::indent(3)
-        << "clock   : in  std_logic;" << endl
-        << StringTools::indent(3)
-        << "data    : in  std_logic_vector(" << memoryTotalWidth()
-        << "-1 downto 0);" << endl
-        << StringTools::indent(3)
-        << "wren    : in  std_logic;" << endl
-        << StringTools::indent(3)
-        << "q       : out std_logic_vector(" << memoryTotalWidth()
-        << "-1 downto 0));" << endl
-        << StringTools::indent(1)
-        << "end component;" << endl;
-}
-
-bool
-AlteraOnchipRamGenerator::isCompatible(
-    const std::vector<std::string>& ttaCore,
-    std::vector<std::string>& reasons) {
-
-    bool foundAll = true;
-    if (findSignal("dmem_data_in", ttaCore) < 0) {
-        reasons.push_back("Compatible data input signal not found");
-        foundAll = false;
-    }
-    if (findSignal("dmem_data_out", ttaCore) < 0) {
-        reasons.push_back("Compatible data output signal not found");
-        foundAll = false;
-    }  
-    if (findSignal("dmem_addr", ttaCore) < 0) {
-        reasons.push_back("Compatible memory address signal not found");
-        foundAll = false;
-    }
-    if (findSignal("dmem_mem_en_x", ttaCore) < 0) {
-        reasons.push_back("Compatible memory enable signal not found");
-        foundAll = false;
-    }
-    if (findSignal("dmem_wr_en_x", ttaCore) < 0) {
-        reasons.push_back("Compatible write enable signal not found");
-        foundAll = false;
-    }
-    if (findSignal("dmem_bytemask", ttaCore) < 0) {
-        reasons.push_back("Compatible bytemask signal not found");
-        foundAll = false;
-    }
-    return foundAll;
-}
-
-
-void 
-AlteraOnchipRamGenerator::writeComponentInstantiation(
-    const std::vector<std::string>& toplevelSignals,
-    std::ostream& signalStream,
-    std::ostream& signalConnections,
-    std::ostream& toplevelInstantiation,
-    std::ostream& memInstantiation) {
-
-    // write signals for connections
-    signalStream 
-        << StringTools::indent(1)
-        << "signal dmem_data_in_w : std_logic_vector(" << memoryTotalWidth()
-        << "-1 downto 0);" << endl
-        << StringTools::indent(1)
-        << "signal dmem_data_out_w : std_logic_vector(" << memoryTotalWidth()
-        << "-1 downto 0);" << endl
-        << StringTools::indent(1)
-        << "signal dmem_addr_w : std_logic_vector(" << memoryAddrWidth()
-        << "-1 downto 0);" << endl
-        << StringTools::indent(1)
-        << "signal dmem_mem_en_x_w : std_logic;" << endl
-        << StringTools::indent(1)
-        << "signal dmem_mem_en_w : std_logic;" << endl
-        << StringTools::indent(1)
-        << "signal dmem_wr_en_x_w : std_logic;" << endl
-        << StringTools::indent(1)
-        << "signal dmem_wr_en_w : std_logic;" << endl
-        << StringTools::indent(1)
-        << "signal dmem_bytemask_w : std_logic_vector("
-        << memoryWidthInMaus() << "-1 downto 0);" << endl;
-
-    // make signal connections
-    signalConnections
-        << StringTools::indent(1)
-        << "dmem_mem_en_w <= not dmem_mem_en_x_w;" << endl
-        << StringTools::indent(1)
-        << "dmem_wr_en_w <= not dmem_wr_en_x_w;" << endl;
-
-    // connect toplevel and dmem
-    memInstantiation 
-        << StringTools::indent(1)
-        << "onchip_dmem : altera_onchip_ram_comp" << endl
-        << StringTools::indent(2)
-        << "port map (" << endl
-        << StringTools::indent(3)
-        << "clock => clk";
-        
-    for (unsigned int i = 0; i < toplevelSignals.size(); i++) {
-        string line = toplevelSignals.at(i);
-        if (line.find("dmem") != string::npos) {
-            connectSignals(line, toplevelInstantiation, memInstantiation);
-        }
-    }
-    memInstantiation 
-        << ");" << endl;
-
 }
 
 bool
@@ -186,117 +97,15 @@ AlteraOnchipRamGenerator::generatesComponentHdlFile() const {
     return true;
 }
 
+
 std::vector<std::string>
 AlteraOnchipRamGenerator::generateComponentFile(std::string outputPath) {
-    
-    std::vector<string> componentFiles;
-    string tempDir = FileSystem::createTempDirectory();
-    if (tempDir.empty()) {
-        string msg = "Couldn't create temp directory";
-        IOException exc(__FILE__, __LINE__, "AlteraOnchipRamGenerator",
-                        msg);
-        throw exc;
-    }
-    string parameterFile = tempDir + FileSystem::DIRECTORY_SEPARATOR + 
-        "dmem.parameters";
-
-    std::ofstream file;
-    file.open(parameterFile.c_str());
-    if (!file) {
-        string msg = "Couldn't open file " + parameterFile + " for writing";
-        IOException exc(__FILE__, __LINE__, "AlteraOnchipRamGenerator",
-                        msg);
-        throw exc;
-    }
-    file << createMemParameters();
-    file.close();
 
     // extension must be .vhd
     string outputFile = outputPath + FileSystem::DIRECTORY_SEPARATOR + 
         "altera_onchip_ram_comp.vhd";
     
-    // execute "Altera MegaWizard Plug-In Manager(c)"
-    string command = "qmegawiz -silent module=altsyncram -f:" +
-        parameterFile + " " + outputFile + " 2>&1";
-    std::vector<string> output;
-    int rv = Application::runShellCommandAndGetOutput(command, output);
-    
-    if (rv != 0 || output.size() != 0) {
-        errorStream() 
-            << "Failed to create memory component. Make sure 'qmegawiz' "
-            << "is in PATH" << endl;
-        for (unsigned int i = 0; i < output.size(); i++) {
-            errorStream() << output.at(i) << endl;
-        }
-    } else {
-        componentFiles.push_back(outputFile);
-    }
-
-    // clean up
-    FileSystem::removeFileOrDirectory(tempDir);
-    return componentFiles;
-}
-
-
-void
-AlteraOnchipRamGenerator::connectSignals(
-    std::string line, 
-    std::ostream& toplevelInstantiation,
-    std::ostream& memInstantiation) const {
-
-    if (line.find("dmem_data_in") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => " << "dmem_data_in_w";
-        memInstantiation
-            << "," << endl 
-            << StringTools::indent(3) << "q => dmem_data_in_w";
-
-    } else if (line.find("dmem_data_out") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => dmem_data_out_w";
-        memInstantiation
-            << "," << endl
-            << StringTools::indent(3)  << "data => dmem_data_out_w";
-
-    } else if (line.find("dmem_addr") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => dmem_addr_w";
-        memInstantiation
-            << "," << endl
-            << StringTools::indent(3) << "address => dmem_addr_w";
-
-    } else if (line.find("dmem_mem_en_x") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line + "(0)" 
-            << " => dmem_mem_en_x_w";
-        memInstantiation
-            << "," << endl
-            << StringTools::indent(3) << "clken => dmem_mem_en_w";
-
-    } else if (line.find("dmem_wr_en_x") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line + "(0)"
-            << " => dmem_wr_en_x_w";
-        memInstantiation
-            << "," << endl 
-            << StringTools::indent(3) << "wren => dmem_wr_en_w";
-
-    } else if (line.find("dmem_bytemask") != string::npos) {
-        toplevelInstantiation
-            << "," << endl
-            << StringTools::indent(3) << line << " => " << "dmem_bytemask_w";
-        memInstantiation
-            << "," << endl
-            << StringTools::indent(3) << "byteena => dmem_bytemask_w";
-
-    } else {
-        std::cerr << "Unknown signal " << line << std::endl;
-    }
+    return runMegawizard(outputFile);
 }
 
 
@@ -316,8 +125,12 @@ AlteraOnchipRamGenerator::createMemParameters() const {
     parameters 
         << "WIDTH_A=" << dataWidth << endl << "WIDTHAD_A=" << addrWidth 
         << endl << "NUMWORDS_A=" << sizeInWords << endl << "WIDTH_BYTEENA_A="
-        << bytemaskWidth << endl << "INTENDED_DEVICE_FAMILY=\"" 
-        << deviceFamily << "\"" << endl << "INIT_FILE=" << initFile << endl;
+        << bytemaskWidth << endl << "INIT_FILE=" << initFile << endl;
+
+    if (!deviceFamily.empty()) {
+        parameters
+            << "INTENDED_DEVICE_FAMILY=\"" << deviceFamily << "\"" << endl;
+    }
 
     parameters
         << "INIT_FILE_LAYOUT=PORT_A ADDRESS_ACLR_A=UNUSED " 
@@ -341,4 +154,19 @@ AlteraOnchipRamGenerator::createMemParameters() const {
         << "wren_b=unused" << endl;
     
     return parameters.str();
+}
+
+
+std::string
+AlteraOnchipRamGenerator::moduleName() const {
+
+    return "altera_onchip_ram_comp";
+}
+    
+
+std::string
+AlteraOnchipRamGenerator::instanceName() const {
+    
+    // TODO: variable instance name? Needed if more than 1 data memory
+    return "onchip_dmem";
 }

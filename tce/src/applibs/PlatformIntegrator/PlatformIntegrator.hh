@@ -38,22 +38,20 @@
 #include <string>
 #include <vector>
 #include "MemoryGenerator.hh"
+#include "ProGeTypes.hh"
+
+namespace ProGe {
+    class Netlist;
+    class NetlistBlock;
+}
 
 class PlatformIntegrator {
 public:
     
-    // structure for memory information
-    struct MemInfo {
-        MemType type;
-        int mauWidth;
-        int widthInMaus;
-        int addrw;
-        std::string asName;
-    };
-
     PlatformIntegrator();
 
     PlatformIntegrator(
+        ProGe::HDL hdl,
         std::string progeOutputDir,
         std::string entityName,
         std::string outputDir,
@@ -64,7 +62,10 @@ public:
 
     virtual ~PlatformIntegrator();
 
-    virtual void integrateProcessor(MemInfo& imem, MemInfo& dmem) = 0;
+    virtual void integrateProcessor(
+        const ProGe::NetlistBlock* ttaCore,
+        MemInfo& imem,
+        MemInfo& dmem) = 0;
 
     /**
      * Returns the FPGA device family
@@ -100,9 +101,13 @@ public:
     virtual void printInfo(std::ostream& stream) const = 0;
 
 
+    const ProGe::NetlistBlock& ttaCoreBlock() const;
+
 protected:
 
-    virtual void createNewToplevelTemplate();
+    ProGe::Netlist* netlist();
+
+    void copyTTACoreToNetlist(const ProGe::NetlistBlock* original);
 
     virtual std::string writeNewToplevel();
     
@@ -146,17 +151,6 @@ protected:
      * Utility function for processing vhdl signals.
      *
      * Signal name format is fu_name_<TAG>_name : <dir> <type> {);}
-     * This function return "fu_name_<TAG>_name" part of the name
-     *
-     * @param original Original signal name
-     * @return Signal name which has been stripped from direction and type
-     */
-    std::string chopToSignalName(const std::string& original) const;
-
-    /**
-     * Utility function for processing vhdl signals.
-     *
-     * Signal name format is fu_name_<TAG>_name : <dir> <type> {);}
      * This function chops the signal name in such way that the name starts
      * from <TAG> i.e. returns <TAG>_name : <dir> <type> {);}
      *
@@ -168,18 +162,6 @@ protected:
         const std::string& original, const std::string& tag) const;
 
     /**
-     * Utility function for processing vhdl signals.
-     *
-     * Signal name format is fu_name_<TAG>_name : <dir> <type> {);}
-     * This function strips the semicolon and possible duplicate ')' braces
-     * from the signal i.e. returns fu_name_<TAG>_name : <dir> <type>
-     * 
-     * @param original Original signal name
-     * @return Stripped signal name 
-     */
-    std::string stripSignalEnd(const std::string& original) const;
-
-    /**
      * Appends all the vhdl files from ProGe output directory's vhdl and
      * gcu_ic subdirectories to the given vector.
      *
@@ -187,56 +169,31 @@ protected:
      */
     void progeOutputHdlFiles(std::vector<std::string>& files) const;
 
-    /**
-     * Reads TTA toplevel from file and writes it to componentStream
-     */
-    void readTTAToplevel();
-
-    /**
-     * Return TTA toplevel as string vector.
-     * readTTAToplevel() must be called before this
-     */
-    const std::vector<std::string>& ttaToplevel() const;
-
     std::ostream& warningStream();
 
     std::ostream& errorStream();
-
-    std::ostream& newToplevelStream();
-    std::ostream& newEntityStream();
-    std::ostream& componentStream();
-    std::ostream& signalStream();
-    std::ostream& ttaToplevelInstStream();
-    std::ostream& imemInstStream();
-    std::ostream& dmemInstStream();
-    std::ostream& signalConnectionStream();
-    
 
 private:
 
     void createOutputDir();
 
+    ProGe::Netlist* netlist_;
     
-
+    ProGe::HDL hdl_;
+    
     std::string progeOutputDir_;
     std::string entityName_;
     std::string outputDir_;
     bool outputDirCreated_;
     std::string programName_;
     int targetFrequency_;
-    
+
     std::ostream& warningStream_;
     std::ostream& errorStream_;
 
-    std::vector<std::string> ttaToplevel_;
-    
-    std::ostringstream newToplevelStream_;
-    std::ostringstream newEntityStream_;
-    std::ostringstream componentStream_;
-    std::ostringstream signalStream_;
-    std::ostringstream toplevelInstantiationStream_;
-    std::ostringstream imemInstantiationStream_;
-    std::ostringstream dmemInstantiationStream_;
-    std::ostringstream signalConnectionStream_;
+    ProGe::NetlistBlock* ttaCore_;
+
+    static const std::string TTA_CORE_NAME;  
+
 };
 #endif

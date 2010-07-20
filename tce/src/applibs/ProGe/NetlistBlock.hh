@@ -27,6 +27,7 @@
  * Declaration of NetlistBlock class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -67,6 +68,8 @@ public:
         const std::string& name,
         const std::string& type,
         const std::string& value);
+    void setParameter(const Netlist::Parameter& param);
+
     bool hasParameter(const std::string& name) const;
     Netlist::Parameter parameter(const std::string& name) const
         throw (NotAvailable);
@@ -80,6 +83,8 @@ public:
     NetlistPort& port(int index) const
         throw (OutOfRange);
 
+    NetlistPort* portByName(const std::string& name) const;
+
     void addSubBlock(NetlistBlock* block)
         throw (IllegalRegistration);
     int subBlockCount() const;
@@ -92,6 +97,12 @@ public:
         throw (InstanceNotFound);
 
     Netlist& netlist() const;
+
+    NetlistBlock* copyToNewNetlist(
+        const std::string& instanceName,
+        Netlist& destination) const;
+
+    virtual bool isVirtual() const;
 
 private:
     /// Vector type for NetlistBlock.

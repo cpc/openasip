@@ -40,34 +40,50 @@
 #include "FileSystem.hh"
 #include "StringTools.hh"
 #include "Exception.hh"
+#include "Netlist.hh"
+#include "NetlistBlock.hh"
+#include "NetlistPort.hh"
+#include "VHDLNetlistWriter.hh"
 using std::string;
 using std::vector;
 using std::endl;
+using ProGe::NetlistBlock;
+using ProGe::NetlistPort;
 
-PlatformIntegrator::PlatformIntegrator(): 
-    progeOutputDir_(""), entityName_(""), outputDir_(""),
-    outputDirCreated_(false), programName_(""), targetFrequency_(0),
-    warningStream_(std::cout), errorStream_(std::cerr) {
+const std::string PlatformIntegrator::TTA_CORE_NAME = "toplevel";
+
+PlatformIntegrator::PlatformIntegrator():
+    netlist_(NULL),  hdl_(ProGe::VHDL), progeOutputDir_(""), entityName_(""),
+    outputDir_(""), outputDirCreated_(false), programName_(""),
+    targetFrequency_(0), warningStream_(std::cout), errorStream_(std::cerr),
+    ttaCore_(NULL) {
     
 }
 
+
 PlatformIntegrator::PlatformIntegrator(
-        std::string progeOutputDir,
-        std::string entityName,
-        std::string outputDir,
-        std::string programName,
-        int targetClockFreq,
-        std::ostream& warningStream,
-        std::ostream& errorStream): 
+    ProGe::HDL hdl,
+    std::string progeOutputDir,
+    std::string entityName,
+    std::string outputDir,
+    std::string programName,
+    int targetClockFreq,
+    std::ostream& warningStream,
+    std::ostream& errorStream): 
+    netlist_(new ProGe::Netlist()), hdl_(hdl),
     progeOutputDir_(progeOutputDir), entityName_(entityName),
     outputDir_(outputDir), outputDirCreated_(false),
-    programName_(programName), targetFrequency_(targetClockFreq), 
-    warningStream_(warningStream), errorStream_(errorStream) {
+    programName_(programName), targetFrequency_(targetClockFreq),
+    warningStream_(warningStream), errorStream_(errorStream), ttaCore_(NULL) {
 
 }
+
 
 PlatformIntegrator::~PlatformIntegrator() {
+    
+    delete netlist_;
 }
+
 
 std::string 
 PlatformIntegrator::entityName() const {
@@ -95,6 +111,7 @@ PlatformIntegrator::progeFilePath(std::string fileName, bool absolute) const {
 
     return pathToFile;
 }
+
 
 std::string
 PlatformIntegrator::outputFilePath(std::string fileName, bool absolute) {
@@ -126,17 +143,6 @@ PlatformIntegrator::outputPath() {
 
 
 std::string
-PlatformIntegrator::chopToSignalName(const std::string& original) const {
-
-    vector<string> lines;
-    StringTools::chopString(original, ":", lines);
-    assert(lines.size() != 0);
-
-    return StringTools::trim(lines.at(0));
-}
-
-
-std::string
 PlatformIntegrator::chopSignalToTag(
     const std::string& original,
     const std::string& tag) const {
@@ -146,33 +152,6 @@ PlatformIntegrator::chopSignalToTag(
         signal = original.substr(original.find(tag));
     }
     return StringTools::trim(signal);
-}
-
-
-std::string
-PlatformIntegrator::stripSignalEnd(const std::string& original) const {
-
-    string signal = original;
-    if (original.empty()) {
-        return signal;
-    }
-    
-    // remove semicolon
-    int lastIndex = original.size()-1;
-    if (original.at(lastIndex) == ';') {
-        signal = original.substr(0, lastIndex);
-        signal = StringTools::trim(signal);
-    }
-    
-    // remove duplicate braces
-    if (signal.size() > 2) {
-        int lastIndex = signal.size()-1;
-        if (signal.at(lastIndex) == ')' && signal.at(lastIndex-1) == ')') {
-            signal = signal.substr(0, lastIndex);
-            signal = StringTools::trim(signal);
-        }
-    }
-    return signal;
 }
 
 
@@ -217,8 +196,10 @@ PlatformIntegrator::progeOutputHdlFiles(
         }
     } catch (FileNotFound& e) {
         std::cerr << "Error: " << e.errorMessage() << std::endl;
+        throw e;
     }
 }
+
 
 void
 PlatformIntegrator::createOutputDir() {
@@ -239,11 +220,13 @@ PlatformIntegrator::warningStream() {
     return warningStream_;
 }
 
+
 std::ostream&
 PlatformIntegrator::errorStream() {
 
     return errorStream_;
 }
+
 
 int
 PlatformIntegrator::targetClockFrequency() const {
@@ -251,159 +234,58 @@ PlatformIntegrator::targetClockFrequency() const {
     return targetFrequency_;
 }
 
-std::ostream&
-PlatformIntegrator::newToplevelStream() {
 
-    return newToplevelStream_;
-}
-
-std::ostream&
-PlatformIntegrator::newEntityStream() {
-
-    return newEntityStream_;
-}
-
-std::ostream&
-PlatformIntegrator::componentStream() {
-
-    return componentStream_;
-}
-
-std::ostream&
-PlatformIntegrator::signalStream() {
-
-    return signalStream_;
-}
-
-std::ostream&
-PlatformIntegrator::ttaToplevelInstStream() {
-
-    return toplevelInstantiationStream_;
-}
-
-std::ostream&
-PlatformIntegrator::imemInstStream() {
-
-    return imemInstantiationStream_;
-}
-
-std::ostream&
-PlatformIntegrator::dmemInstStream() {
-
-    return dmemInstantiationStream_;
-}
-
-std::ostream&
-PlatformIntegrator::signalConnectionStream() {
-
-    return signalConnectionStream_;
-}
-
-const std::vector<std::string>&
-PlatformIntegrator::ttaToplevel() const {
-
-    assert(ttaToplevel_.size() != 0);
-    return ttaToplevel_;
+ProGe::Netlist*
+PlatformIntegrator::netlist() {
+    
+    assert(netlist_ != NULL);
+    return netlist_;
 }
 
 
 void
-PlatformIntegrator::readTTAToplevel() {
+PlatformIntegrator::copyTTACoreToNetlist(
+    const ProGe::NetlistBlock* original) {
     
-    string fileName = 
-        "vhdl" + FileSystem::DIRECTORY_SEPARATOR + "toplevel.vhdl";
-    string fullPath = progeFilePath(fileName);
-    string startRE = ".*entity.toplevel.is.*";
-    string endRE = ".*end.toplevel;.*";
-    string block = "";
-    FileSystem::readBlockFromFile(fullPath, startRE, endRE, block, false);
+    ttaCore_ = original->copyToNewNetlist("core", *netlist_);
+    NetlistBlock& top = netlist_->topLevelBlock();
+    top.addSubBlock(ttaCore_);
 
-    StringTools::chopString(block, "\n", ttaToplevel_);
-
-    componentStream() 
-        << StringTools::indent(1) << "component toplevel is" << std::endl;
-    for (unsigned int i = 0; i < ttaToplevel_.size(); i++) {
-        componentStream()
-            << StringTools::indent(2) << ttaToplevel_.at(i) << endl;
+    // copy parameters to the current toplevel
+    for (int i = 0; i < ttaCore_->parameterCount(); i++) {
+        top.setParameter(ttaCore_->parameter(i));
     }
-    componentStream()
-        << StringTools::indent(1) << "end component;" << endl << endl;
 }
 
 
-void
-PlatformIntegrator::createNewToplevelTemplate() {
+const ProGe::NetlistBlock&
+PlatformIntegrator::ttaCoreBlock() const {
     
-    newToplevelStream() 
-       << "library ieee;" << endl
-       << "use ieee.std_logic_1164.all;" << endl
-       << "use ieee.std_logic_arith.all;" << endl
-       << "use work.imem_mau.all;" << endl
-       << "use work.toplevel_params.all;" << endl
-       << "use work.globals.all;" << endl << endl;
-
-    newToplevelStream()
-        << "-- new toplevel entity" << endl
-        << "%1%" << endl << endl
-        << "architecture structural of " << entityName() << " is" << endl; 
-
-    newToplevelStream()
-        << "  -- component declarations" << endl << endl
-        << "%2%" << endl << endl;
-
-    newToplevelStream()
-        << "-- signal declarations" << endl
-        << "%3%" << endl << endl
-        << "begin -- structural" << endl << endl;
-    
-    newToplevelStream()
-        << "  -- tta toplevel instantion" << endl
-        << "%4%" << endl << endl;
-    
-    newToplevelStream()
-        << "  -- imem component instantion" << endl
-        << "%5%" << endl << endl;
-
-    newToplevelStream()
-        << "  -- dmem component instantion" << endl
-        << "%6%" << endl << endl;
-
-    newToplevelStream()
-        << "  -- other signal mappings" << endl
-        << "%7%" << endl << endl
-        << "end structural;" << endl;
+    assert(ttaCore_ != NULL);
+    return *ttaCore_;
 }
 
 
 std::string
 PlatformIntegrator::writeNewToplevel() {
     
-    createNewToplevelTemplate();
+    ProGe::NetlistWriter* writer;
+    if (hdl_ == ProGe::VHDL) {
+        writer = new ProGe::VHDLNetlistWriter(*netlist_);
+    } else {
+        assert(false);
+    }
+
+    string platformDir = outputPath();
+    writer->write(platformDir);
+    delete writer;
 
     string fileName = entityName() + ".vhdl";
     string fullPath = outputFilePath(fileName);
-    
-    std::ofstream file;
-    file.open(fullPath.c_str());
-
-    if (!file) {
-        string msg = "Couldn't open file " + fullPath + " for writing";
-        IOException exc(__FILE__, __LINE__, "PlatformIntegrator",
-                        msg);
+    if (!FileSystem::fileExists(fullPath)) {
+        string msg = "NetlistWriter failed to create file " + fullPath;
+        FileNotFound exc(__FILE__, __LINE__, "platformIntegrator", msg);
         throw exc;
     }
-
-    string newToplevel = 
-        (boost::format(newToplevelStream_.str())
-         % newEntityStream_.str()
-         % componentStream_.str()
-         % signalStream_.str()
-         % toplevelInstantiationStream_.str()
-         % imemInstantiationStream_.str()
-         % dmemInstantiationStream_.str()
-         % signalConnectionStream_.str()).str();
-        
-    file << newToplevel;
-    file.close();
     return fullPath;
 }

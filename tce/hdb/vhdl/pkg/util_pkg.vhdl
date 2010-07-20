@@ -19,6 +19,9 @@
 -- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 -- FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 -- DEALINGS IN THE SOFTWARE.
+
+
+
 library ieee;
 use ieee.std_logic_1164.all;
 package util is
@@ -26,20 +29,26 @@ package util is
   function flip_bits(in_vec : std_logic_vector)  -- make unconstrained
     return std_logic_vector;
 
-  function int_to_str (InputInt  : Integer           )
+  function int_to_str (InputInt : integer)
     return string;
 
-  FUNCTION bit_width (num : integer)
-    RETURN integer;
+  function bit_width (num : integer)
+    return integer;
+
+  component util_inverter is  
+  port (
+    data_in  : in  std_logic;
+    data_out : out std_logic);
+  end component;
 
 end package util;
 
 package body util is
-
+  
   function flip_bits(in_vec : std_logic_vector)  -- make unconstrained
     return std_logic_vector is
 
-    variable flipped_vec : std_logic_vector(in_vec'Reverse_range);
+    variable flipped_vec : std_logic_vector(in_vec'reverse_range);
   begin
     for i in in_vec'range loop
       flipped_vec(i) := in_vec(i);
@@ -61,12 +70,12 @@ package body util is
   --
   -- ------------------------------------------------------------------------
 
-  function int_to_str (InputInt : INTEGER )
-    return string is 
+  function int_to_str (InputInt : integer)
+    return string is
 
     -- Look-up table.  Given an int, we can get the character.
-    TYPE integer_table_type IS ARRAY (0 TO 9) OF CHARACTER;
-    CONSTANT integer_table : integer_table_type :=
+    type     integer_table_type is array (0 to 9) of character;
+    constant integer_table : integer_table_type :=
       (
         '0', '1', '2', '3', '4',
         '5', '6', '7', '8', '9'
@@ -74,79 +83,87 @@ package body util is
 
     --  Local variables used in this function.
     
-    VARIABLE inpVal      : INTEGER := inputInt;
-    VARIABLE divisor     : INTEGER := 10;
-    VARIABLE tmpStrIndex : INTEGER := 1;
-    VARIABLE tmpStr      : STRING ( 1 TO 256 );
-    variable ResultStr   : STRING ( 1 TO 256);
-    variable appendPos : integer := 1;
+    variable inpVal      : integer := inputInt;
+    variable divisor     : integer := 10;
+    variable tmpStrIndex : integer := 1;
+    variable tmpStr      : string (1 to 256);
+    variable ResultStr   : string (1 to 256);
+    variable appendPos   : integer := 1;
     
-  BEGIN
+  begin
     
-    IF ( inpVal = 0 ) THEN
-      tmpStr(tmpStrIndex) := integer_table ( 0 );
+    if (inpVal = 0) then
+      tmpStr(tmpStrIndex) := integer_table (0);
       tmpStrIndex         := tmpStrIndex + 1;
-    ELSE
-      WHILE ( inpVal > 0 ) LOOP
-        tmpStr(tmpStrIndex) := integer_table ( inpVal mod divisor );
+    else
+      while (inpVal > 0) loop
+        tmpStr(tmpStrIndex) := integer_table (inpVal mod divisor);
         tmpStrIndex         := tmpStrIndex + 1;
         inpVal              := inpVal / divisor;
-      END LOOP;
-    END IF;
+      end loop;
+    end if;
 
-    IF ( appendPos /= 1 ) THEN
+    if (appendPos /= 1) then
       resultStr(appendPos) := ',';
       appendPos            := appendPos + 1;
-    END IF;
+    end if;
 
-    FOR i IN tmpStrIndex-1 DOWNTO 1 LOOP
+    for i in tmpStrIndex-1 downto 1 loop
       resultStr(appendPos) := tmpStr(i);
       appendPos            := appendPos + 1;
-    END LOOP;
+    end loop;
 
     return ResultStr;
     
-  END int_to_str;
+  end int_to_str;
 
-  FUNCTION bit_width (num : integer) RETURN integer IS
-         variable count : integer;
-         Begin
-           count := 1;
-           if (num <= 0) then return 0;
-           elsif (num <= 2**10) then
-            for i in 1 to 10 loop
-             if (2**count >= num)  then
-              return i; 
-             end if;
-             count := count + 1;
-            end loop;
-           elsif (num <= 2**20) then
-            for i in 1 to 20 loop
-             if (2**count >= num)  then
-              return i; 
-             end if;
-             count := count + 1;
-            end loop;
-           elsif (num <= 2**30) then
-            for i in 1 to 30 loop
-             if (2**count >= num)  then
-              return i; 
-             end if;
-             count := count + 1;
-            end loop;
-           else
-            for i in 1 to num loop
-             if (2**i >= num)  then
-              return i; 
-             end if;
-            end loop;
-          end if;
-         end bit_width;
+  function bit_width (num : integer) return integer is
+    variable count : integer;
+  begin
+    count      := 1;
+    if (num    <= 0) then return 0;
+    elsif (num <= 2**10) then
+      for i in 1 to 10 loop
+        if (2**count >= num) then
+          return i;
+        end if;
+        count := count + 1;
+      end loop;
+    elsif (num <= 2**20) then
+      for i in 1 to 20 loop
+        if (2**count >= num) then
+          return i;
+        end if;
+        count := count + 1;
+      end loop;
+    elsif (num <= 2**30) then
+      for i in 1 to 30 loop
+        if (2**count >= num) then
+          return i;
+        end if;
+        count := count + 1;
+      end loop;
+    else
+      for i in 1 to num loop
+        if (2**i >= num) then
+          return i;
+        end if;
+      end loop;
+    end if;
+  end bit_width;
 
-  
 end package body util;
 
+library ieee;
+use ieee.std_logic_1164.all;
 
+entity util_inverter is  
+  port (
+    data_in  : in  std_logic;
+    data_out : out std_logic);
+end util_inverter;
 
-
-
+architecture rtl of util_inverter is
+begin  -- rtl
+  data_out <= not data_in;
+end rtl;

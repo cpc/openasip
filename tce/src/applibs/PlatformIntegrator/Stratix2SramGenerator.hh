@@ -52,27 +52,19 @@ public:
 
     virtual ~Stratix2SramGenerator();
 
-    virtual bool isCompatible(
-        const std::vector<std::string>& ttaCore,
-        std::vector<std::string>& reasons);
-
-    virtual void writeComponentDeclaration(std::ostream& stream);
-    
-    virtual void writeComponentInstantiation(
-        const std::vector<std::string>& toplevelSignals,
-        std::ostream& signalStream,
-        std::ostream& signalConnections,
-        std::ostream& toplevelInstantiation,
-        std::ostream& memInstantiation);
+    virtual void addMemory(ProGe::Netlist& netlist);
 
     virtual bool generatesComponentHdlFile() const;
 
     virtual std::vector<std::string>
     generateComponentFile(std::string outputPath);
-    
-private:
 
-    std::vector<std::string> sramSignals_;
+protected:
+    
+    virtual std::string moduleName() const;
+    
+    virtual std::string instanceName() const;
+    
 };
 
 #endif

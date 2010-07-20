@@ -94,7 +94,8 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
 
     ProGeCmdLineOptions options;
     string outputDirectory = "";
-    
+    ProGe::HDL language = ProGe::VHDL;
+
     try {
 
         options.parse(argv, argc);
@@ -152,7 +153,6 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
             loadMachineImplementation(idf);
         }
 
-        ProGe::HDL language;
         if (hdl == "vhdl" || hdl == "") {
             language = ProGe::VHDL;
         } else {
@@ -215,7 +215,7 @@ GenerateProcessor::generateProcessor(int argc, char* argv[]) {
         try {
             ProGeUI::integrateProcessor(
                 std::cout, std::cerr, progeOutDir, integrator, entity,
-                program, imem, dmem, fmax, imemWidth);
+                program, imem, dmem, language, fmax, imemWidth);
         } catch (const Exception& e) {
             std::cerr << "Processor integration failed: "
                       << e.errorMessage() << endl;
@@ -338,9 +338,14 @@ GenerateProcessor::listICDecPluginParameters(
 void
 GenerateProcessor::listIntegrators() const {
     
+    std::vector<PlatformIntegrator*> integrators;
     // append new integrators here
-    Stratix2DSPBoardIntegrator stratix2;
-    stratix2.printInfo(std::cout);
+    integrators.push_back(new Stratix2DSPBoardIntegrator());
+
+    for (unsigned int i = 0; i < integrators.size(); i++) {
+        integrators.at(i)->printInfo(std::cout);
+        delete integrators.at(i);
+    }
 }
 
 

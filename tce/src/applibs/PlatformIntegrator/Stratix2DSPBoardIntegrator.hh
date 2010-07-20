@@ -40,6 +40,13 @@
 #include <string>
 #include "PlatformIntegrator.hh"
 #include "QuartusProjectGenerator.hh"
+#include "ProGeTypes.hh"
+
+namespace ProGe {
+    class Netlist;
+    class NetlistBlock;
+    class NetlistPort;
+}
 
 class Stratix2DSPBoardIntegrator : public PlatformIntegrator {
 public:
@@ -47,6 +54,7 @@ public:
     Stratix2DSPBoardIntegrator();
 
     Stratix2DSPBoardIntegrator(
+        ProGe::HDL hdl,
         std::string progeOutputDir,
         std::string entityName,
         std::string outputDir,
@@ -57,7 +65,10 @@ public:
     
     virtual ~Stratix2DSPBoardIntegrator();
 
-    virtual void integrateProcessor(MemInfo& imem, MemInfo& dmem);
+    virtual void integrateProcessor(
+        const ProGe::NetlistBlock* ttaCore,
+        MemInfo& imem,
+        MemInfo& dmem);
 
     virtual std::string deviceFamily() const;
 
@@ -73,26 +84,35 @@ public:
 
 private:
 
-    bool createSignals(const MemInfo& imem, const MemInfo& dmem);
+
+    bool createPorts(const ProGe::NetlistBlock* ttaCore);
 
     bool createMemories(const MemInfo& imem, const MemInfo& dmem);
 
-    bool generateMemory(
-        MemoryGenerator& memGen, 
-        std::vector<std::string>& toplevelSignals,
-        std::ostream& memInstStream);
+    bool generateMemory(MemoryGenerator& memGen);
 
     void writeProjectFiles();
 
-    void createPinMap();
+    void generatePinMap();
 
     void finishNewToplevel();
 
+    void connectToplevelPort(ProGe::NetlistPort& corePort);
+
+    void mapToplevelPorts();
+
     void addSignalMapping(const std::string& signal);
 
-    QuartusProjectGenerator* quartusGen_; 
+    bool hasPinTag(const std::string& signalName) const;
 
-    typedef std::map<std::string, std::vector<std::string>*> PinMap;
+    bool isDataMemorySignal(const std::string& signalName) const;
+
+    QuartusProjectGenerator* quartusGen_;
+
+    typedef std::vector<SignalMapping*> MappingList;
+
+    typedef std::map<std::string, MappingList*> PinMap;
+
     PinMap stratixPins_;
 
     static const std::string DEVICE_FAMILY_;

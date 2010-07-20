@@ -117,7 +117,12 @@ QuartusProjectGenerator::writeQSFFile() {
         qsfFile << "set_global_assignment -name VHDL_FILE \"" 
                 << hdlFileList().at(i) << "\"" << endl;
     }
-    qsfFile << pinMappings() << endl;
+
+    for (int i = 0; i < signalMappingCount(); i++) {
+        const SignalMapping* mapping = signalMapping(i);
+        qsfFile << "set_location_assignment " << mapping->first
+                << " -to " << mapping->second << endl;
+    }
     qsfFile.close();
 }
 

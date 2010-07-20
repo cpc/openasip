@@ -38,6 +38,8 @@
 #include <sstream>
 #include "PlatformIntegrator.hh"
 
+typedef std::pair<std::string, std::string> SignalMapping;
+
 class ProjectFileGenerator {
 public:
     ProjectFileGenerator(std::string toplevelEntity,
@@ -48,24 +50,26 @@ public:
 
     void addHdlFile(const std::string& file);
 
-    void addPinMapping(const std::string& mapping);
+    void addSignalMapping(const SignalMapping& mapping);
 
 protected:
 
     const std::vector<std::string>& hdlFileList() const;
     
-    std::string pinMappings() const;
-
     const PlatformIntegrator* integrator() const;
 
     std::string toplevelEntity() const;
+
+    int signalMappingCount() const;
+
+    const SignalMapping* signalMapping(int index) const;
 
 private:
     std::string toplevelEntity_;
     const PlatformIntegrator* integrator_;
     
     std::vector<std::string> hdlFiles_;
-    std::ostringstream pinMapping_;
+    std::vector<SignalMapping> signalMap_;
 };
 
 #endif

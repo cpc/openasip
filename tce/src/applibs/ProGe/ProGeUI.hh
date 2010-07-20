@@ -37,6 +37,7 @@
 
 #include <string>
 
+#include "ProcessorGenerator.hh"
 #include "ProGeTypes.hh"
 #include "ICDecoderGeneratorPlugin.hh"
 #include "Exception.hh"
@@ -104,6 +105,7 @@ protected:
         const std::string& programName,
         MemType imem,
         MemType dmem,
+        HDL language,
         int fmax,
         int imemWidth);
 
@@ -111,7 +113,10 @@ private:
     void checkIfNull(void * nullPointer, const std::string& errorMsg)
         throw (InvalidData);
 
-    void readLSUParameters(PlatformIntegrator::MemInfo& dmem) const;
+    void readLSUParameters(MemInfo& dmem) const;
+
+    void
+    readImemParameters(int imemWidthFromCmdline, MemInfo& imem) const;
 
     /// The loaded machine.
     TTAMachine::Machine* machine_;
@@ -125,6 +130,8 @@ private:
     ICDecoderGeneratorPlugin* plugin_;
     /// The plugin file.
     std::string pluginFile_;
+    
+    ProcessorGenerator generator_;
 };
 }
 

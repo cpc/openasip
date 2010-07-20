@@ -36,7 +36,10 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
+#include "Netlist.hh"
 
+class HDLPort;
 class PlatformIntegrator;
 
 enum MemType {
@@ -48,7 +51,21 @@ enum MemType {
     DRAM
 };
 
-#include "PlatformIntegrator.hh"
+// structure for memory information
+struct MemInfo {
+    MemType type; 
+    int mauWidth;
+    int widthInMaus;
+    int portAddrw;  //< port address width = port width - bytemask bits
+    int asAddrw;    //< address width from ADF address space
+    std::string asName;
+};
+
+namespace ProGe {
+    class NetlistBlock;
+    class NetlistPort;
+}
+
 
 class MemoryGenerator {
 public:
@@ -68,22 +85,15 @@ public:
      * Tests that the memory generator is compatible with TTA core.
      * If incompatible, reasons are appended to the reasons vector
      *
-     * @param ttaCore TTA toplevel signals
+     * @param ttaCore TTA toplevel
      * @param reasons Reasons why incompatible
      * @return is memory generator compatible with the TTA core
      */
     virtual bool isCompatible(
-        const std::vector<std::string>& ttaCore,
-        std::vector<std::string>& reasons) = 0;
+        const ProGe::NetlistBlock& ttaCore,
+        std::vector<std::string>& reasons) const;
 
-    virtual void writeComponentDeclaration(std::ostream& stream) = 0;
-
-    virtual void writeComponentInstantiation(
-        const std::vector<std::string>& toplevelSignals,
-        std::ostream& signalStream,
-        std::ostream& signalConnections,
-        std::ostream& toplevelInstantiation,
-        std::ostream& memInstantiation) = 0;
+    virtual void addMemory(ProGe::Netlist& netlist);
 
     virtual bool generatesComponentHdlFile() const = 0;
 
@@ -102,27 +112,40 @@ public:
 
 protected:
 
+    // Key: LSU port name
+    // Value: pointer to corresponding memory component/controller port
+    typedef std::map<std::string, HDLPort*> PortMap;
+
     const PlatformIntegrator* platformIntegrator() const;
 
     std::ostream& warningStream();
 
     std::ostream& errorStream();
+    
+    int portCount() const;
+    
+    const HDLPort* port(int index) const;
 
-    /**
-     * Tries to find signal which contains the given name. Returns the index
-     * or negative number in case signal was not found. First occurance of the
-     * name is returned.
-     *
-     * @param name Name to be searched
-     * @param signals Vector of signals from where the signal is searched
-     * @return Index to the vector where the name is found. Negative if not
-     * found
-     */
-    int findSignal(
-        const std::string& name,
-        const std::vector<std::string>& signals);
+    const HDLPort* portByKeyName(std::string name) const;
+
+    std::string portKeyName(const HDLPort* port) const;
+
+    void addPort(const std::string& name, HDLPort* port);
+
+    int parameterCount() const;
+    
+    const ProGe::Netlist::Parameter& parameter(int index) const;
+
+    void addParameter(const ProGe::Netlist::Parameter& add);
+
+    virtual std::string moduleName() const = 0;
+    
+    virtual std::string instanceName() const = 0;
 
 private:
+    
+    typedef std::vector<ProGe::Netlist::Parameter> ParameterList;
+
     int mauWidth_;
     int widthInMaus_;
     int addrWidth_;
@@ -133,6 +156,12 @@ private:
 
     std::ostream& warningStream_;
     std::ostream& errorStream_;
+
+    PortMap memPorts_;
+    ParameterList params_;
+
+    static const std::string CLOCK_PORT;
+    static const std::string RESET_PORT;
 };
 
 #endif

@@ -28,7 +28,7 @@
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
  * @author Esa Määttä 2007 (esa.maatta-no.spam-tut.fi)
- * @author Otto Esko 2008 (otto.esko-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -63,8 +63,12 @@
 #include "ProGeTestBenchGenerator.hh"
 
 #include "MathTools.hh"
+#include "Netlist.hh"
+#include "NetlistBlock.hh"
 #include "PlatformIntegrator.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
+#include "KoskiIntegrator.hh"
+#include "NetlistPort.hh" /**/
 
 using namespace IDF;
 using std::string;
@@ -328,8 +332,7 @@ ProGeUI::generateProcessor(
         }
     }
 
-    ProcessorGenerator generator;
-    generator.generateProcessor(
+    generator_.generateProcessor(
         language, *machine_, *idf_, *plugin_, imemWidthInMAUs,
         dstDirectory, errorStream, warningStream);
 }
@@ -402,6 +405,7 @@ ProGeUI::integrateProcessor(
     const std::string& programName,
     MemType imem,
     MemType dmem,
+    HDL language,
     int fmax,
     int imemWidth) {
 
@@ -412,7 +416,7 @@ ProGeUI::integrateProcessor(
     // TODO: append new integrators here
     if (platformIntegrator == "Stratix2DSP") {
         integrator = new Stratix2DSPBoardIntegrator(
-            progeOutDir, entityName, platformDir, programName, fmax, 
+            language, progeOutDir, entityName, platformDir, programName, fmax,
             warningStream, errorStream);
     } else {
         string errorMsg = "Unknown platform integrator: "
@@ -421,26 +425,20 @@ ProGeUI::integrateProcessor(
         throw exc;
     }
     
-    PlatformIntegrator::MemInfo imemInfo;
+    MemInfo imemInfo;
     imemInfo.type = imem;
-    if (imemWidth == 0) {
-        imemInfo.mauWidth = bem_->width();
-    } else {
-        imemInfo.mauWidth = imemWidth;
-    }
-    // imem width in MAUs is fixed to 1 in ProGe
-    imemInfo.widthInMaus = 1;
-    imemInfo.addrw = machine_->controlUnit()->returnAddressPort()->width();
-    imemInfo.asName = machine_->controlUnit()->addressSpace()->name();
+    readImemParameters(imemWidth, imemInfo);
 
-    PlatformIntegrator::MemInfo dmemInfo;
+    MemInfo dmemInfo;
     dmemInfo.type = dmem;
     if (dmemInfo.type != NONE) {
         readLSUParameters(dmemInfo);
     }
 
+    NetlistBlock& ttaToplevel = generator_.netlist()->topLevelBlock();
+
     try {
-        integrator->integrateProcessor(imemInfo, dmemInfo);
+        integrator->integrateProcessor(&ttaToplevel,imemInfo, dmemInfo);
     } catch (Exception& e) {
         delete integrator;
         throw e;
@@ -449,7 +447,29 @@ ProGeUI::integrateProcessor(
 }
 
 void
-ProGeUI::readLSUParameters(PlatformIntegrator::MemInfo& dmem) const {
+ProGeUI::readImemParameters(
+    int imemWidthFromCmdline,
+    MemInfo& imem) const {
+        
+    if (imemWidthFromCmdline == 0) {
+        imem.mauWidth = bem_->width();
+    } else {
+        imem.mauWidth = imemWidthFromCmdline;
+    }
+    // imem width in MAUs is fixed to 1 in ProGe
+    imem.widthInMaus = 1;
+    imem.asName = machine_->controlUnit()->addressSpace()->name();
+    imem.portAddrw = machine_->controlUnit()->returnAddressPort()->width();
+    
+    int lastAddr = machine_->controlUnit()->addressSpace()->end();
+    imem.asAddrw = MathTools::requiredBits(lastAddr);
+}
+    
+    
+
+
+
+void ProGeUI::readLSUParameters(MemInfo& dmem) const {
     
     TTAMachine::FunctionUnit* lsu = NULL;
     TTAMachine::Machine::FunctionUnitNavigator fuNav = 
@@ -494,7 +514,9 @@ ProGeUI::readLSUParameters(PlatformIntegrator::MemInfo& dmem) const {
         unsigned int maus = static_cast<unsigned int>(dmem.widthInMaus) - 1;
         bytemaskWidth = MathTools::requiredBits(maus);
     }
-    dmem.addrw = internalAddrw - bytemaskWidth;
+    dmem.portAddrw = internalAddrw - bytemaskWidth;
+    int lastAddr = lsu->addressSpace()->end();
+    dmem.asAddrw = MathTools::requiredBits(lastAddr) - bytemaskWidth;
     dmem.asName = lsu->addressSpace()->name();
 }
 

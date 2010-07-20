@@ -27,6 +27,7 @@
  * Implementation of NetlistBlock class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -120,6 +121,13 @@ NetlistBlock::setParameter(
 
     Netlist::Parameter toAdd = {name, type, value};
     parameters_.push_back(toAdd);
+}
+
+
+void
+NetlistBlock::setParameter(const Netlist::Parameter& param) {
+
+    setParameter(param.name, param.type, param.value);
 }
 
 
@@ -257,6 +265,26 @@ NetlistBlock::port(int index) const
 
 
 /**
+ * Returns a port that matches (partially) the given name.
+ *
+ * @param name Name to be searched
+ * @return First port that matches the search
+ */
+NetlistPort* 
+NetlistBlock::portByName(const std::string& name) const {
+
+    NetlistPort* port = NULL;
+    for (unsigned int i = 0; i < ports_.size(); i++) {
+        if (ports_.at(i)->name().find(name) != string::npos) {
+            port = ports_.at(i);
+            break;
+        }
+    }
+    return port;
+}
+
+
+/**
  * Adds the given block as sub block of this block.
  *
  * @param block The block.
@@ -358,6 +386,50 @@ NetlistBlock::parentBlock() const
 Netlist&
 NetlistBlock::netlist() const {
     return netlist_;
+}
+
+
+/**
+ * Copies the toplevel block and it's parameters to the given netlist.
+ * Sub blocks are not copied.
+ *
+ * @param instanceName New instance name for the copy
+ * @param destination Destination netlist
+ * @return Pointer to the netlist block copy
+ */
+NetlistBlock*
+NetlistBlock::copyToNewNetlist(
+    const std::string& instanceName,
+    Netlist& destination) const {
+
+    NetlistBlock* core = new NetlistBlock(moduleName_, instanceName,
+                                          destination);
+    for (int i = 0; i < netlist_.parameterCount(); i++) {
+        Netlist::Parameter param = netlist_.parameter(i);
+        destination.setParameter(param.name, param.type, param.value);
+    }
+    
+    for (int i = 0; i < portCount(); i++) {
+        NetlistPort* srcPort = &port(i);
+        NetlistPort* copy = NULL;
+        if (srcPort->realWidthAvailable()) {
+            copy = new NetlistPort(srcPort->name(), srcPort->widthFormula(),
+                                   srcPort->realWidth(), srcPort->dataType(),
+                                   srcPort->direction(), *core);
+        } else {
+            copy = new NetlistPort(srcPort->name(), srcPort->widthFormula(),
+                                   srcPort->dataType(), srcPort->direction(),
+                                   *core);
+        }
+    }
+    return core;
+}
+
+
+bool
+NetlistBlock::isVirtual() const {
+
+    return false;
 }
 
 } // namespace ProGe

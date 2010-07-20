@@ -39,9 +39,15 @@
 #include "StringTools.hh"
 #include "MemoryGenerator.hh"
 #include "Stratix2SramGenerator.hh"
+#include "Netlist.hh"
+#include "NetlistBlock.hh"
+#include "NetlistPort.hh"
+#include "HDLPort.hh"
 using std::string;
 using std::vector;
 using std::endl;
+using ProGe::NetlistBlock;
+using ProGe::NetlistPort;
 
 Stratix2SramGenerator::Stratix2SramGenerator(
     int memMauWidth,
@@ -54,63 +60,69 @@ Stratix2SramGenerator::Stratix2SramGenerator(
     MemoryGenerator(memMauWidth, widthInMaus, addrWidth, initFile,
                     integrator, warningStream, errorStream) {
 
-    sramSignals_.push_back("STRATIXII_SRAM_DQ");
-    sramSignals_.push_back("STRATIXII_SRAM_ADDR");
-    sramSignals_.push_back("STRATIXII_SRAM_WE_N");
-    sramSignals_.push_back("STRATIXII_SRAM_OE_N");
-    sramSignals_.push_back("STRATIXII_SRAM_CS_N");
-    sramSignals_.push_back("STRATIXII_SRAM_BE_N0");
-    sramSignals_.push_back("STRATIXII_SRAM_BE_N1");
-    sramSignals_.push_back("STRATIXII_SRAM_BE_N2");
-    sramSignals_.push_back("STRATIXII_SRAM_BE_N3");
+    ProGe::Netlist::Parameter dataw = {"sram_dataw", "integer", "32"};
+    ProGe::Netlist::Parameter addrw = {"sram_addrw", "integer", "20"};
+    addParameter(dataw);
+    addParameter(addrw);
+    addPort("STRATIXII_SRAM_DQ",
+            new HDLPort("STRATIXII_SRAM_DQ", "sram_dataw", ProGe::BIT_VECTOR,
+                        HDB::BIDIR, false, 32));
+    addPort("STRATIXII_SRAM_ADDR",
+            new HDLPort("STRATIXII_SRAM_ADDR", "sram_addrw",
+                        ProGe::BIT_VECTOR, HDB::OUT, false, 20));
+    addPort("STRATIXII_SRAM_WE_N",
+            new HDLPort("STRATIXII_SRAM_WE_N", "1", ProGe::BIT_VECTOR,
+                        HDB::OUT, false, 1));
+    addPort("STRATIXII_SRAM_OE_N",
+            new HDLPort("STRATIXII_SRAM_OE_N", "1", ProGe::BIT_VECTOR,
+                        HDB::OUT, false, 1));
+    addPort("STRATIXII_SRAM_CS_N",
+            new HDLPort("STRATIXII_SRAM_CS_N", "1", ProGe::BIT_VECTOR,
+                        HDB::OUT, false, 1));
+    addPort("STRATIXII_SRAM_BE_N0",
+            new HDLPort("STRATIXII_SRAM_BE_N0", "1", ProGe::BIT_VECTOR,
+                        HDB::OUT, false, 1));
+    addPort("STRATIXII_SRAM_BE_N1",
+            new HDLPort("STRATIXII_SRAM_BE_N1", "1", ProGe::BIT_VECTOR,
+                        HDB::OUT, false, 1));
+    addPort("STRATIXII_SRAM_BE_N2",
+            new HDLPort("STRATIXII_SRAM_BE_N2", "1", ProGe::BIT_VECTOR,
+                        HDB::OUT, false, 1));
+    addPort("STRATIXII_SRAM_BE_N3",
+            new HDLPort("STRATIXII_SRAM_BE_N3", "1", ProGe::BIT_VECTOR,
+                        HDB::OUT, false, 1));
 }
 
 
 Stratix2SramGenerator::~Stratix2SramGenerator() {
 }
 
-bool
-Stratix2SramGenerator::isCompatible(
-    const std::vector<std::string>& ttaCore,
-    std::vector<std::string>& reasons) {
 
-    bool foundAll = true;
-    for (unsigned int i = 0; i < sramSignals_.size(); i++) {
-        string signalName = sramSignals_.at(i);
-        if (findSignal(signalName, ttaCore) < 0) {
-            string message = "Signal " + signalName + " not found from "
-                + "TTA core";
-            reasons.push_back(message);
-            foundAll = false;
+void
+Stratix2SramGenerator::addMemory(ProGe::Netlist& netlist) {
+    
+    const NetlistBlock& core = platformIntegrator()->ttaCoreBlock();
+    NetlistBlock& toplevel = netlist.topLevelBlock();
+
+    for (int i = 0; i < portCount(); i++) {
+        const HDLPort* hdlPort = port(i);
+        NetlistPort* memPort = hdlPort->convertToNetlistPort(toplevel);
+        string corePortName = portKeyName(hdlPort);
+
+        NetlistPort* corePort = core.portByName(corePortName);
+        // clock and reset must be connected to new toplevel ports
+        assert(corePort != NULL);
+        if (memPort->dataType() == corePort->dataType()) {
+            netlist.connectPorts(*memPort, *corePort);
+        } else {
+            // bit to bit vector connection, connect lowest bits
+            netlist.connectPorts(*memPort, *corePort, 0, 0, 1);
         }
     }
-    return foundAll;
-}
-
-void
-Stratix2SramGenerator::writeComponentDeclaration(std::ostream& stream) {
-
-    stream << StringTools::indent(1) 
-           << "-- Sram controller is integrated to LSU" << endl;
-}
-    
-void
-Stratix2SramGenerator::writeComponentInstantiation(
-    const std::vector<std::string>&,
-    std::ostream& signalStream,
-    std::ostream& signalConnections,
-    std::ostream& toplevelInstantiation,
-    std::ostream& memInstantiation) {
-
-    // sram pins are mapped by the integrator
-    signalStream << "";
-    signalConnections << "";
-    toplevelInstantiation << "";
-    memInstantiation 
-        << StringTools::indent(1) 
-        << "-- SRAM signals are directly connected to toplevel" << endl;
-    
-
+    for (int i = 0; i < parameterCount(); i++) {
+        toplevel.setParameter(parameter(i).name, parameter(i).type,
+                              parameter(i).value);
+    }
 }
 
 bool
@@ -124,8 +136,20 @@ Stratix2SramGenerator::generatesComponentHdlFile() const {
 std::vector<std::string>
 Stratix2SramGenerator::generateComponentFile(std::string) {
 
-    // TODO: create simulation model for sram?
     vector<string> noFileToGenerate;
     return noFileToGenerate;
 }
 
+
+std::string
+Stratix2SramGenerator::moduleName() const {
+
+    return "stratixII_sram_comp";
+}
+    
+
+std::string
+Stratix2SramGenerator::instanceName() const {
+
+    return "stratixII_sram";
+}

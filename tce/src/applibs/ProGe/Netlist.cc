@@ -27,10 +27,12 @@
  * Implementation of the Netlist class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
 #include <cstdlib>
+#include <string>
 
 #include "Netlist.hh"
 #include "NetlistPort.hh"
@@ -41,6 +43,10 @@
 #include "Conversion.hh"
 
 namespace ProGe {
+
+const std::string Netlist::INVERTER_MODULE = "util_inverter";
+const std::string Netlist::INVERTER_INPUT = "data_in";
+const std::string Netlist::INVERTER_OUTPUT = "data_out";
 
 /**
  * The constructor.
@@ -117,6 +123,28 @@ Netlist::connectPorts(
     boost::add_edge(port1Descriptor, port2Descriptor, property, *this);
     // create the opposite edge
     boost::add_edge(port2Descriptor, port1Descriptor, property, *this);
+}
+
+/**
+ * TODO: partial connection version and support BIT_VECTOR length > 1
+ */
+void
+Netlist::connectPortsInverted(
+        NetlistPort& input,
+        NetlistPort& output) {
+
+    std::string instance = input.name() + "_" + INVERTER_MODULE;
+    NetlistBlock* inverter =
+        new NetlistBlock(INVERTER_MODULE, instance, *this);
+    NetlistPort* inverterInput =
+        new NetlistPort(INVERTER_INPUT, "1", 1, ProGe::BIT, HDB::IN,
+                        *inverter);
+    NetlistPort* inverterOutput =
+        new NetlistPort(INVERTER_OUTPUT, "1", 1, ProGe::BIT, HDB::OUT,
+                        *inverter);
+    this->topLevelBlock().addSubBlock(inverter);
+    this->connectPorts(input, *inverterInput, 0, 0, 1);
+    this->connectPorts(output, *inverterOutput, 0, 0 ,1);
 }
 
 

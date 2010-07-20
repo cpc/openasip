@@ -27,6 +27,7 @@
  * Implementation of NetlistPort class.
  *
  * @author Lasse Laasonen 2005 (lasse.laasonen-no.spam-tut.fi)
+ * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -64,7 +65,8 @@ NetlistPort::NetlistPort(
     HDB::Direction direction,
     NetlistBlock& parent) :
     name_(name), widthFormula_(widthFormula), realWidth_(realWidth),
-    dataType_(dataType), direction_(direction), parent_(NULL) {
+    dataType_(dataType), direction_(direction), parent_(NULL),
+    hasStaticValue_(false), staticValue_(GND) {
 
     // TODO: there might still be possible regressions from changing realWidth
     // check to "< 0" from "< 1" 
@@ -97,7 +99,8 @@ NetlistPort::NetlistPort(
     HDB::Direction direction,
     NetlistBlock& parent) :
     name_(name), widthFormula_(widthFormula), realWidth_(-1),
-    dataType_(dataType), direction_(direction), parent_(NULL) {
+    dataType_(dataType), direction_(direction), parent_(NULL),
+    hasStaticValue_(false), staticValue_(GND) {
 
     parent.addPort(this);
     parent_ = &parent;
@@ -198,6 +201,26 @@ NetlistPort::direction() const {
 NetlistBlock*
 NetlistPort::parentBlock() const {
     return parent_;
+}
+
+
+void
+NetlistPort::setToStatic(StaticSignal value) {
+
+    hasStaticValue_ = true;
+    staticValue_ = value;
+}
+
+
+bool
+NetlistPort::hasStaticValue() const {
+    return hasStaticValue_;
+}
+
+
+StaticSignal
+NetlistPort::staticValue() const {
+    return staticValue_;
 }
 
 } // namespace ProGe
