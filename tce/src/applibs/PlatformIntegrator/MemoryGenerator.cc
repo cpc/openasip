@@ -32,6 +32,7 @@
 
 #include <iostream>
 #include <string>
+#include <map>
 #include "MemoryGenerator.hh"
 #include "PlatformIntegrator.hh"
 #include "NetlistBlock.hh"
@@ -256,7 +257,7 @@ void
 MemoryGenerator::addPort(const std::string& name, HDLPort* port) {
 
     assert(port != NULL);
-    memPorts_[name] = port;
+    memPorts_.insert(std::pair<string, HDLPort*>(name, port));
 }
 
 

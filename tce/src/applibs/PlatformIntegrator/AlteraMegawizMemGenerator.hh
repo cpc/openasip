@@ -59,6 +59,8 @@ protected:
 
     virtual std::string createMemParameters() const = 0;
 
+    std::string defaultDeviceFamily() const;
+
 };
 
 #endif

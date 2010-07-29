@@ -22,56 +22,47 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProjectFileGenerator.hh
+ * @file IPXactFileGenerator.hh
  *
- * Declaration of ProjectFileGenerator class.
+ * Declaration of IPXactFileGenerator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#ifndef TTA_PROJECT_FILE_GENERATOR_HH
-#define TTA_PROJECT_FILE_GENERATOR_HH
+#ifndef TTA_IP_XACT_FILE_GENERATOR_HH
+#define TTA_IP_XACT_FILE_GENERATOR_HH
 
 #include <string>
 #include <vector>
+#include "ProjectFileGenerator.hh"
+#include "IPXactModel.hh"
 
 class PlatformIntegrator;
+class IPXactSerializer;
 
-typedef std::pair<std::string, std::string> SignalMapping;
-typedef std::vector<SignalMapping> SignalMappingList;
-
-class ProjectFileGenerator {
+class IPXactFileGenerator : public ProjectFileGenerator {
 public:
-    ProjectFileGenerator(std::string toplevelEntity,
-                         const PlatformIntegrator* integrator);
-    virtual ~ProjectFileGenerator();
 
-    virtual void writeProjectFiles() = 0;
+    IPXactFileGenerator(std::string toplevelEntity,
+                        const PlatformIntegrator* integrator);
 
-    void addHdlFile(const std::string& file);
+    virtual ~IPXactFileGenerator();
 
-    void addHdlFiles(const std::vector<std::string>& files);
-
-    void addSignalMapping(const SignalMapping& mapping);
-
-protected:
-
-    const std::vector<std::string>& hdlFileList() const;
-    
-    const PlatformIntegrator* integrator() const;
-
-    std::string toplevelEntity() const;
-
-    int signalMappingCount() const;
-
-    const SignalMapping* signalMapping(int index) const;
+    virtual void writeProjectFiles();
 
 private:
-    std::string toplevelEntity_;
-    const PlatformIntegrator* integrator_;
-    
-    std::vector<std::string> hdlFiles_;
-    SignalMappingList signalMap_;
-};
 
+    void addBusInterfaces(IPXactModel* model);
+
+    bool searchInterface(
+        const SignalMappingList& search,
+        SignalMappingList& found) const;
+
+    std::string outputFileName() const;
+
+    IPXactSerializer* ipXactWriter_;
+
+    typedef std::map<IPXactModel::IPXactBus, SignalMappingList*> BusMapping;
+    BusMapping busInterfaces_;
+};
 #endif

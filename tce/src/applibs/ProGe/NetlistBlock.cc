@@ -32,6 +32,7 @@
  */
 
 #include <string>
+#include <iostream>
 
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
@@ -41,6 +42,7 @@
 #include "ContainerTools.hh"
 #include "MapTools.hh"
 #include "Application.hh"
+#include "Conversion.hh"
 
 using std::string;
 
@@ -417,9 +419,16 @@ NetlistBlock::copyToNewNetlist(
                                    srcPort->realWidth(), srcPort->dataType(),
                                    srcPort->direction(), *core);
         } else {
-            copy = new NetlistPort(srcPort->name(), srcPort->widthFormula(),
-                                   srcPort->dataType(), srcPort->direction(),
-                                   *core);
+            int width = 0;
+            if (resolveRealWidth(srcPort, width)) {
+                copy = new NetlistPort(
+                    srcPort->name(), srcPort->widthFormula(),
+                    width, srcPort->dataType(), srcPort->direction(), *core);
+            } else {
+                copy = new NetlistPort(
+                    srcPort->name(), srcPort->widthFormula(),
+                    srcPort->dataType(), srcPort->direction(), *core);
+            }
         }
     }
     return core;
@@ -430,6 +439,30 @@ bool
 NetlistBlock::isVirtual() const {
 
     return false;
+}
+
+bool
+NetlistBlock::resolveRealWidth(const NetlistPort* port, int& width) const {
+    
+    string formula = port->widthFormula();
+    // check if it is a parameter
+    for (int i = 0; i < netlist_.parameterCount(); i++) {
+        Netlist::Parameter param = netlist_.parameter(i);
+        if (param.name == formula) {
+            width = Conversion::toInt(param.value);
+            return true;
+        }
+    }
+    
+    // check if formula is a plain number
+    bool success = false;
+    try {
+        width = Conversion::toInt(formula);
+        success = true;
+    } catch (Exception& e) {
+        success = false;
+    }
+    return success;
 }
 
 } // namespace ProGe

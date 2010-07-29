@@ -112,6 +112,8 @@ private:
     /// Vector type for parameters.
     typedef std::vector<Netlist::Parameter> ParameterTable;
 
+    bool resolveRealWidth(const NetlistPort* port, int& width) const;
+
     /// Name of the module.
     std::string moduleName_;
     /// Name of the block instance.

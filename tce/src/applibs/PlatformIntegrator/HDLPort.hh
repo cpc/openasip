@@ -64,6 +64,10 @@ public:
         bool needsInversion,
         int width);
 
+    HDLPort(const HDLPort& old);
+
+    HDLPort(const ProGe::NetlistPort& port);
+
     std::string name() const;
 
     std::string widthFormula() const;

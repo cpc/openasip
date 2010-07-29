@@ -22,56 +22,43 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProjectFileGenerator.hh
+ * @file IPXactFileSerializer.hh
  *
- * Declaration of ProjectFileGenerator class.
+ * Declaration of IPXactFileSerializer class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#ifndef TTA_PROJECT_FILE_GENERATOR_HH
-#define TTA_PROJECT_FILE_GENERATOR_HH
+#ifndef TTA_IP_XACT_SERIALIZER_HH
+#define TTA_IP_XACT_SERIALIZER_HH
 
-#include <string>
-#include <vector>
+#include "XMLSerializer.hh"
 
-class PlatformIntegrator;
+class IPXactModel;
 
-typedef std::pair<std::string, std::string> SignalMapping;
-typedef std::vector<SignalMapping> SignalMappingList;
-
-class ProjectFileGenerator {
+class IPXactSerializer : public XMLSerializer {
 public:
-    ProjectFileGenerator(std::string toplevelEntity,
-                         const PlatformIntegrator* integrator);
-    virtual ~ProjectFileGenerator();
-
-    virtual void writeProjectFiles() = 0;
-
-    void addHdlFile(const std::string& file);
-
-    void addHdlFiles(const std::vector<std::string>& files);
-
-    void addSignalMapping(const SignalMapping& mapping);
-
-protected:
-
-    const std::vector<std::string>& hdlFileList() const;
     
-    const PlatformIntegrator* integrator() const;
+    IPXactSerializer();
+    virtual ~IPXactSerializer();
 
-    std::string toplevelEntity() const;
+    
+    virtual void writeState(const ObjectState* ipXactState)
+        throw (SerializerException);
 
-    int signalMappingCount() const;
-
-    const SignalMapping* signalMapping(int index) const;
+    void writeIPXactModel(const IPXactModel& model);
 
 private:
-    std::string toplevelEntity_;
-    const PlatformIntegrator* integrator_;
-    
-    std::vector<std::string> hdlFiles_;
-    SignalMappingList signalMap_;
-};
+    /// Copying forbidden.
+    IPXactSerializer(const IPXactSerializer&);
+    /// Assingment forbidden.
+    IPXactSerializer& operator=(const IPXactSerializer&);
 
+    /// Reading is not (yet) implemented
+    ObjectState* readState()
+        throw (SerializerException);
+
+    static const std::string SPIRIT_NS_URI;
+
+};
 #endif

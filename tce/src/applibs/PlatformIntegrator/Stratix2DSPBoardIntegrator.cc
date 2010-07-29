@@ -120,48 +120,16 @@ Stratix2DSPBoardIntegrator::integrateProcessor(
 
     mapToplevelPorts();
 
-    finishNewToplevel();
+    writeNewToplevel();
 
-    writeProjectFiles();
+    addProGeFiles();
+
+    quartusGen_->writeProjectFiles();
 }
 
+MemoryGenerator*
+Stratix2DSPBoardIntegrator::imemInstance(const MemInfo& imem) {
 
-bool
-Stratix2DSPBoardIntegrator::createPorts(
-    const ProGe::NetlistBlock* ttaCore) {
-
-    NetlistBlock* highestBlock =
-        new NetlistBlock(entityName(), entityName(), *netlist());
-
-    // must add ports to highest block *before* copying tta toplevel
-    NetlistPort* clk = new NetlistPort("clk", "0", 1, ProGe::BIT, HDB::IN,
-                                       *highestBlock);
-    NetlistPort* rstx = new NetlistPort("rstx", "0", 1, ProGe::BIT, HDB::IN,
-                                        *highestBlock);
-
-    copyTTACoreToNetlist(ttaCore);
-
-    const NetlistBlock& core = ttaCoreBlock();
-
-    NetlistPort* coreClk = core.portByName("clk");
-    NetlistPort* coreRstx = core.portByName("rstx");
-    netlist()->connectPorts(*clk, *coreClk);
-    netlist()->connectPorts(*rstx, *coreRstx);
-    
-    for (int i = 0; i < core.portCount(); i++) {
-        string portName = core.port(i).name();
-        if (hasPinTag(portName) && !isDataMemorySignal(portName)) {
-            connectToplevelPort(core.port(i));
-        }
-    }
-    return true;
-}
-
-
-bool
-Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
-                                           const MemInfo& dmem) {
-    
     MemoryGenerator* imemGen = NULL;
     if (imem.type == ONCHIP) {
         string initFile = programName() + ".mif";
@@ -180,12 +148,12 @@ Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
                         msg);
         throw exc;
     }
+    return imemGen;
+}
+    
 
-    if (!generateMemory(*imemGen)) {
-        delete imemGen;
-        return false;
-    }
-    delete imemGen;
+MemoryGenerator*
+Stratix2DSPBoardIntegrator::dmemInstance(const MemInfo& dmem) {
 
     MemoryGenerator* dmemGen = NULL;
     if (dmem.type == ONCHIP) {
@@ -212,41 +180,8 @@ Stratix2DSPBoardIntegrator::createMemories(const MemInfo& imem,
                         msg);
         throw exc;
     }
-    
-    bool success = generateMemory(*dmemGen);
-    delete dmemGen;
-    return success;
+    return dmemGen;
 }
-
-bool
-Stratix2DSPBoardIntegrator::generateMemory(MemoryGenerator& memGen) {
-    
-    vector<string> reasons;
-    if (!memGen.isCompatible(ttaCoreBlock(), reasons)) {
-        errorStream() << "TTA core doesn't have compatible memory "
-                      <<"interface:" << std::endl;
-        for (unsigned int i = 0; i < reasons.size(); i++) {
-            errorStream() << reasons.at(i) << std::endl;
-        }
-        return false;
-    }
-
-    memGen.addMemory(*netlist());
-
-    if (memGen.generatesComponentHdlFile()) {
-        vector<string> memFiles =
-            memGen.generateComponentFile(outputPath());
-        if (memFiles.size() == 0) {
-            errorStream() << "Failed to create mem component" << endl;
-            return false;
-        }
-        for (unsigned int i = 0; i < memFiles.size(); i++) {
-            quartusGen_->addHdlFile(memFiles.at(i));
-        }
-    }
-    return true;
-}
-
 
 void
 Stratix2DSPBoardIntegrator::mapToplevelPorts() {
@@ -256,49 +191,6 @@ Stratix2DSPBoardIntegrator::mapToplevelPorts() {
         addSignalMapping(tl.port(i).name());
     }
 }
-
-void
-Stratix2DSPBoardIntegrator::writeProjectFiles() {
-
-    vector<string> progeOutFiles;
-    progeOutputHdlFiles(progeOutFiles);
-    for (unsigned int i = 0; i < progeOutFiles.size(); i++) {
-        quartusGen_->addHdlFile(progeOutFiles.at(i));
-    }
-    quartusGen_->writeProjectFiles();
-}
-
-void
-Stratix2DSPBoardIntegrator::finishNewToplevel() {
-    
-    string toplevelFile = writeNewToplevel();
-    quartusGen_->addHdlFile(toplevelFile);
-    
-    string paramFile = outputFilePath(entityName() + "_params_pkg.vhdl");
-    if (FileSystem::fileExists(paramFile)) {
-        quartusGen_->addHdlFile(paramFile);
-    }
-}
-
-
-void
-Stratix2DSPBoardIntegrator::connectToplevelPort(NetlistPort& corePort) {
-
-    string topName = chopSignalToTag(corePort.name(), PIN_TAG_);
-    NetlistPort* topPort = NULL;
-    if (corePort.realWidthAvailable()) {
-        topPort = new NetlistPort(
-            topName, corePort.widthFormula(), corePort.realWidth(),
-            corePort.dataType(), corePort.direction(),
-            netlist()->topLevelBlock());
-    } else {
-        topPort = new NetlistPort(
-            topName, corePort.widthFormula(), corePort.dataType(),
-            corePort.direction(), netlist()->topLevelBlock());
-    }
-    netlist()->connectPorts(*topPort, corePort);
-}
-
 
 void
 Stratix2DSPBoardIntegrator::addSignalMapping(const std::string& signal) {
@@ -316,10 +208,10 @@ Stratix2DSPBoardIntegrator::addSignalMapping(const std::string& signal) {
 }
 
 
-bool
-Stratix2DSPBoardIntegrator::hasPinTag(const std::string& signalName) const {
+std::string
+Stratix2DSPBoardIntegrator::pinTag() const {
 
-    return signalName.find(PIN_TAG_) != string::npos;
+    return PIN_TAG_;
 }
 
 
@@ -334,6 +226,14 @@ Stratix2DSPBoardIntegrator::isDataMemorySignal(
     }
     return false;
 }
+
+
+ProjectFileGenerator*
+Stratix2DSPBoardIntegrator::projectFileGenerator() const {
+
+    return quartusGen_;
+}
+
 
 
 std::string

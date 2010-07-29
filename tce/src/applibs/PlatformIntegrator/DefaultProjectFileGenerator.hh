@@ -22,56 +22,31 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProjectFileGenerator.hh
+ * @file DefaultProjectFileGenerator.hh
  *
- * Declaration of ProjectFileGenerator class.
+ * Declaration of DefaultProjectFileGenerator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#ifndef TTA_PROJECT_FILE_GENERATOR_HH
-#define TTA_PROJECT_FILE_GENERATOR_HH
+#ifndef TTA_DEFAULT_PROJECT_FILE_GENERATOR_HH
+#define TTA_DEFAULT_PROJECT_FILE_GENERATOR_HH
 
 #include <string>
 #include <vector>
+#include "ProjectFileGenerator.hh"
 
-class PlatformIntegrator;
-
-typedef std::pair<std::string, std::string> SignalMapping;
-typedef std::vector<SignalMapping> SignalMappingList;
-
-class ProjectFileGenerator {
+/**
+ * DefaultProjectFileGenerator can be used when there's no need for any
+ * specific project files when integrating to a platform
+ */
+class DefaultProjectFileGenerator : public ProjectFileGenerator {
 public:
-    ProjectFileGenerator(std::string toplevelEntity,
-                         const PlatformIntegrator* integrator);
-    virtual ~ProjectFileGenerator();
+    DefaultProjectFileGenerator(std::string toplevelEntity,
+                         PlatformIntegrator* integrator);
+    virtual ~DefaultProjectFileGenerator();
 
-    virtual void writeProjectFiles() = 0;
-
-    void addHdlFile(const std::string& file);
-
-    void addHdlFiles(const std::vector<std::string>& files);
-
-    void addSignalMapping(const SignalMapping& mapping);
-
-protected:
-
-    const std::vector<std::string>& hdlFileList() const;
-    
-    const PlatformIntegrator* integrator() const;
-
-    std::string toplevelEntity() const;
-
-    int signalMappingCount() const;
-
-    const SignalMapping* signalMapping(int index) const;
-
-private:
-    std::string toplevelEntity_;
-    const PlatformIntegrator* integrator_;
-    
-    std::vector<std::string> hdlFiles_;
-    SignalMappingList signalMap_;
+    virtual void writeProjectFiles();
 };
 
 #endif

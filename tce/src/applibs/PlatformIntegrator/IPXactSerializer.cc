@@ -22,56 +22,49 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProjectFileGenerator.hh
+ * @file IPXactFileSerializer.cc
  *
- * Declaration of ProjectFileGenerator class.
+ * Implementation of IPXactFileSerializer class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#ifndef TTA_PROJECT_FILE_GENERATOR_HH
-#define TTA_PROJECT_FILE_GENERATOR_HH
 
-#include <string>
-#include <vector>
+#include "IPXactSerializer.hh"
+#include "IPXactModel.hh"
 
-class PlatformIntegrator;
+const std::string IPXactSerializer::SPIRIT_NS_URI = 
+    "http://www.spiritconsortium.org/XMLSchema/SPIRIT/1.2";
 
-typedef std::pair<std::string, std::string> SignalMapping;
-typedef std::vector<SignalMapping> SignalMappingList;
-
-class ProjectFileGenerator {
-public:
-    ProjectFileGenerator(std::string toplevelEntity,
-                         const PlatformIntegrator* integrator);
-    virtual ~ProjectFileGenerator();
-
-    virtual void writeProjectFiles() = 0;
-
-    void addHdlFile(const std::string& file);
-
-    void addHdlFiles(const std::vector<std::string>& files);
-
-    void addSignalMapping(const SignalMapping& mapping);
-
-protected:
-
-    const std::vector<std::string>& hdlFileList() const;
+IPXactSerializer::IPXactSerializer(): XMLSerializer() {
     
-    const PlatformIntegrator* integrator() const;
+    setUseSchema(false);
+}
 
-    std::string toplevelEntity() const;
 
-    int signalMappingCount() const;
+IPXactSerializer::~IPXactSerializer() {
+}
 
-    const SignalMapping* signalMapping(int index) const;
 
-private:
-    std::string toplevelEntity_;
-    const PlatformIntegrator* integrator_;
+void
+IPXactSerializer::writeState(const ObjectState* ipXactState) 
+    throw (SerializerException){
     
-    std::vector<std::string> hdlFiles_;
-    SignalMappingList signalMap_;
-};
+    XMLSerializer::setXMLNamespace(SPIRIT_NS_URI);
+    XMLSerializer::writeState(ipXactState);
+}
 
-#endif
+void
+IPXactSerializer::writeIPXactModel(const IPXactModel& model) {
+
+    ObjectState* omState = model.saveState();
+    writeState(omState);
+    delete omState;
+}
+
+
+ObjectState*
+IPXactSerializer::readState() throw (SerializerException) {
+    
+    return NULL;
+}

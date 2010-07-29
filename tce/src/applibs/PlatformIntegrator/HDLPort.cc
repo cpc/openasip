@@ -60,6 +60,26 @@ HDLPort::HDLPort(
                 staticValue_(ProGe::GND) {
 }
 
+HDLPort::HDLPort(const HDLPort& old):
+    name_(old.name_), widthFormula_(old.widthFormula_), type_(old.type_),
+    direction_(old.direction_), needsInversion_(old.needsInversion_),
+    hasWidth_(old.hasWidth_), width_(old.width_),
+    hasStaticValue_(old.hasStaticValue_), staticValue_(old.staticValue_) {
+}
+
+
+HDLPort::HDLPort(const ProGe::NetlistPort& port):
+    name_(port.name()), widthFormula_(port.widthFormula()),
+    type_(port.dataType()), direction_(port.direction()),
+    needsInversion_(false), hasWidth_(port.realWidthAvailable()), width_(0),
+    hasStaticValue_(false), staticValue_(ProGe::GND) {
+    
+    if (port.realWidthAvailable()) {
+        width_ = port.realWidth();
+    }
+}
+
+
 std::string 
 HDLPort::name() const {
     return name_;

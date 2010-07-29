@@ -619,25 +619,38 @@ VHDLNetlistWriter::writePortMappings(
         stream << indentation(2) << "port map (" << endl;
         for (int i = 0; i < component.portCount(); i++) {
             NetlistPort& port = component.port(i);
-            stream << indentation(3) << port.name() << " => ";
             size_t vertexDescriptor = netlist().descriptor(port);
             std::pair<out_edge_iterator, out_edge_iterator> edges =
                 boost::out_edges(vertexDescriptor, netlist());
 
+            string srcConn = port.name();
+            string dstConn = "";
             if (edges.first != edges.second) {
                 edge_descriptor edgeDescriptor = *edges.first;
                 vertex_descriptor dstVertex = boost::target(
                     edgeDescriptor, netlist());
                 NetlistPort* dstPort = netlist()[dstVertex];
+                
                 if (dstPort->parentBlock() == &block) {
-                    stream << dstPort->name();
+                    if (port.dataType() != dstPort->dataType()) {
+                        if (port.dataType() == BIT) {
+                            assert(dstPort->dataType() == BIT_VECTOR);
+                            dstConn = dstPort->name() + "(0)";
+                        } else {
+                            assert(dstPort->dataType() == BIT);
+                            srcConn += "(0)";
+                            dstConn = dstPort->name();
+                        }
+                    } else {
+                        dstConn = dstPort->name();
+                    }
                 } else {
-                    stream << portSignalName(port);
+                    dstConn = portSignalName(port);
                 }
             } else {
-                stream << portSignalName(port);
+                dstConn = portSignalName(port);
             }
-
+            stream << indentation(3) << srcConn << " => " << dstConn;
             if (i+1 < component.portCount()) {
                 stream << "," << endl;
             }

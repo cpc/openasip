@@ -116,7 +116,7 @@ AlteraOnchipRamGenerator::createMemParameters() const {
     int dataWidth = memoryTotalWidth();
     int bytemaskWidth = memoryWidthInMaus();
     // 2^addrWidth
-    int sizeInWords = 1 << addrWidth;
+    unsigned int sizeInWords = 1 << addrWidth;
     string initFile = initializationFile();
     string deviceFamily = platformIntegrator()->deviceFamily();
 
@@ -130,6 +130,9 @@ AlteraOnchipRamGenerator::createMemParameters() const {
     if (!deviceFamily.empty()) {
         parameters
             << "INTENDED_DEVICE_FAMILY=\"" << deviceFamily << "\"" << endl;
+    } else {
+        parameters << "INTENDED_DEVICE_FAMILY=\"" << defaultDeviceFamily()
+                   << "\"" << endl;
     }
 
     parameters

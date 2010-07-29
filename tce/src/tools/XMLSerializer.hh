@@ -74,6 +74,8 @@ public:
     void setSchemaFile(const std::string& fileName);
     void setUseSchema(bool useSchema);
 
+    void setXMLNamespace(std::string nsUri);
+
     virtual ObjectState* readState()
         throw (SerializerException);
 
@@ -136,6 +138,9 @@ private:
     const std::string* sourceString_;
     /// Destination string to write.
     std::string* destinationString_;
+
+    /// XML namespace URI
+    std::string nsUri_;
 };
 
 #endif

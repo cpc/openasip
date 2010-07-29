@@ -35,10 +35,11 @@
 #include <iostream>
 #include <sstream>
 #include "ProjectFileGenerator.hh"
+#include "PlatformIntegrator.hh"
 
 ProjectFileGenerator::ProjectFileGenerator(
     std::string toplevelEntity,
-    PlatformIntegrator* integrator):
+    const PlatformIntegrator* integrator):
     toplevelEntity_(toplevelEntity), integrator_(integrator) {
 }
 
@@ -50,6 +51,15 @@ void
 ProjectFileGenerator::addHdlFile(const std::string& file) {
 
     hdlFiles_.push_back(file);
+}
+
+
+void
+ProjectFileGenerator::addHdlFiles(const std::vector<std::string>& files) {
+
+    for (unsigned int i = 0; i < files.size(); i++) {
+        hdlFiles_.push_back(files.at(i));
+    }
 }
 
 

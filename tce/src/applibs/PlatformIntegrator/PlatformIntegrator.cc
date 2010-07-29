@@ -44,6 +44,7 @@
 #include "NetlistBlock.hh"
 #include "NetlistPort.hh"
 #include "VHDLNetlistWriter.hh"
+#include "ProjectFileGenerator.hh"
 using std::string;
 using std::vector;
 using std::endl;
@@ -51,6 +52,9 @@ using ProGe::NetlistBlock;
 using ProGe::NetlistPort;
 
 const std::string PlatformIntegrator::TTA_CORE_NAME = "toplevel";
+const std::string PlatformIntegrator::TTA_CORE_CLK = "clk";
+const std::string PlatformIntegrator::TTA_CORE_RSTX = "rstx";
+
 
 PlatformIntegrator::PlatformIntegrator():
     netlist_(NULL),  hdl_(ProGe::VHDL), progeOutputDir_(""), entityName_(""),
@@ -243,6 +247,72 @@ PlatformIntegrator::netlist() {
 }
 
 
+bool
+PlatformIntegrator::createPorts(const ProGe::NetlistBlock* ttaCore) {
+
+    NetlistBlock* highestBlock =
+        new NetlistBlock(entityName(), entityName(), *netlist());
+    
+    // Must add ports to highest block *before* copying tta toplevel
+    NetlistPort* clk = new NetlistPort(TTA_CORE_CLK, "0", 1, ProGe::BIT,
+                                       HDB::IN,*highestBlock);
+    NetlistPort* rstx = new NetlistPort(TTA_CORE_RSTX, "0", 1, ProGe::BIT,
+                                        HDB::IN, *highestBlock);
+    copyTTACoreToNetlist(ttaCore);
+
+    const NetlistBlock& core = ttaCoreBlock();
+    NetlistPort* coreClk = core.portByName(TTA_CORE_CLK);
+    NetlistPort* coreRstx = core.portByName(TTA_CORE_RSTX);
+    netlist()->connectPorts(*clk, *coreClk);
+    netlist()->connectPorts(*rstx, *coreRstx);
+    
+    for (int i = 0; i < core.portCount(); i++) {
+        string portName = core.port(i).name();
+        if (hasPinTag(portName) && !isDataMemorySignal(portName)) {
+            connectToplevelPort(core.port(i));
+        }
+    }
+    return true;
+}
+
+void
+PlatformIntegrator::connectToplevelPort(ProGe::NetlistPort& corePort) {
+
+    string topName = chopSignalToTag(corePort.name(), pinTag());
+    NetlistPort* topPort = NULL;
+    if (corePort.realWidthAvailable()) {
+        int width = corePort.realWidth();
+        if (width == 0 || width == 1) {
+            topPort = new NetlistPort(
+                topName, corePort.widthFormula(), corePort.realWidth(),
+                ProGe::BIT, corePort.direction(),
+                netlist()->topLevelBlock());
+        } else {
+            topPort = new NetlistPort(
+                topName, corePort.widthFormula(), corePort.realWidth(),
+                ProGe::BIT_VECTOR, corePort.direction(),
+                netlist()->topLevelBlock());
+        }
+    } else {
+        topPort = new NetlistPort(
+            topName, corePort.widthFormula(), corePort.dataType(),
+            corePort.direction(), netlist()->topLevelBlock());
+    }
+    if (topPort->dataType() == corePort.dataType()) {
+        netlist()->connectPorts(*topPort, corePort);
+    } else {
+        netlist()->connectPorts(*topPort, corePort, 0, 0, 1);
+    }
+}
+
+
+bool
+PlatformIntegrator::hasPinTag(const std::string& signal) const {
+    
+    return signal.find(pinTag()) != string::npos;
+}
+
+
 void
 PlatformIntegrator::copyTTACoreToNetlist(
     const ProGe::NetlistBlock* original) {
@@ -266,7 +336,69 @@ PlatformIntegrator::ttaCoreBlock() const {
 }
 
 
-std::string
+const ProGe::NetlistBlock&
+PlatformIntegrator::toplevelBlock() const {
+
+    return netlist_->topLevelBlock();
+}
+
+
+bool
+PlatformIntegrator::createMemories(const MemInfo& imem,
+                                   const MemInfo& dmem) {
+    
+    MemoryGenerator* imemGen = imemInstance(imem);
+    vector<string> imemFiles;
+    if (!generateMemory(*imemGen, imemFiles)) {
+        delete imemGen;
+        return false;
+    }
+    if (imemFiles.size() != 0) {
+        projectFileGenerator()->addHdlFiles(imemFiles);
+    }
+    delete imemGen;
+
+    MemoryGenerator* dmemGen = dmemInstance(dmem);
+    vector<string> dmemFiles;
+    bool success = generateMemory(*dmemGen, dmemFiles);
+    if (dmemFiles.size() != 0) {
+        projectFileGenerator()->addHdlFiles(dmemFiles);
+    }
+    delete dmemGen;
+    return success;
+}
+
+bool
+PlatformIntegrator::generateMemory(
+    MemoryGenerator& memGen,
+    std::vector<std::string>& generatedFiles) {
+
+    vector<string> reasons;
+    if (!memGen.isCompatible(ttaCoreBlock(), reasons)) {
+        errorStream() << "TTA core doesn't have compatible memory "
+                      <<"interface:" << std::endl;
+        for (unsigned int i = 0; i < reasons.size(); i++) {
+            errorStream() << reasons.at(i) << std::endl;
+        }
+        return false;
+    }
+
+    memGen.addMemory(*netlist());
+
+    if (memGen.generatesComponentHdlFile()) {
+        generatedFiles =
+            memGen.generateComponentFile(outputPath());
+        if (generatedFiles.size() == 0) {
+            errorStream() << "Failed to create mem component" << endl;
+            //return false;
+        }
+    }
+
+    return true;
+}
+
+
+void
 PlatformIntegrator::writeNewToplevel() {
     
     ProGe::NetlistWriter* writer;
@@ -280,12 +412,27 @@ PlatformIntegrator::writeNewToplevel() {
     writer->write(platformDir);
     delete writer;
 
-    string fileName = entityName() + ".vhdl";
-    string fullPath = outputFilePath(fileName);
-    if (!FileSystem::fileExists(fullPath)) {
-        string msg = "NetlistWriter failed to create file " + fullPath;
+    string toplevelFile = outputFilePath(entityName() + ".vhdl");
+    if (!FileSystem::fileExists(toplevelFile)) {
+        string msg = "NetlistWriter failed to create file " + toplevelFile;
         FileNotFound exc(__FILE__, __LINE__, "platformIntegrator", msg);
         throw exc;
     }
-    return fullPath;
+    projectFileGenerator()->addHdlFile(toplevelFile);
+
+    string paramFile = outputFilePath(entityName() + "_params_pkg.vhdl");
+    if (FileSystem::fileExists(paramFile)) {
+        projectFileGenerator()->addHdlFile(paramFile);
+    }
+}
+
+
+void
+PlatformIntegrator::addProGeFiles() const {
+
+    vector<string> progeOutFiles;
+    progeOutputHdlFiles(progeOutFiles);
+    for (unsigned int i = 0; i < progeOutFiles.size(); i++) {
+        projectFileGenerator()->addHdlFile(progeOutFiles.at(i));
+    }
 }

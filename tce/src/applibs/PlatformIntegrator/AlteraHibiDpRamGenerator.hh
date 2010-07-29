@@ -22,56 +22,52 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file ProjectFileGenerator.hh
+ * @file AlteraHibiDpRamGenerator.hh
  *
- * Declaration of ProjectFileGenerator class.
+ * Declaration of AlteraHibiDpRamGenerator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
-#ifndef TTA_PROJECT_FILE_GENERATOR_HH
-#define TTA_PROJECT_FILE_GENERATOR_HH
 
+#ifndef TTA_ALTERA_HIBI_DP_RAM_GENERATOR_HH
+#define TTA_ALTERA_HIBI_DP_RAM_GENERATOR_HH
+
+#include <iostream>
 #include <string>
 #include <vector>
+#include "AlteraMegawizMemGenerator.hh"
+#include "PlatformIntegrator.hh"
 
-class PlatformIntegrator;
-
-typedef std::pair<std::string, std::string> SignalMapping;
-typedef std::vector<SignalMapping> SignalMappingList;
-
-class ProjectFileGenerator {
+class AlteraHibiDpRamGenerator : public AlteraMegawizMemGenerator {
 public:
-    ProjectFileGenerator(std::string toplevelEntity,
-                         const PlatformIntegrator* integrator);
-    virtual ~ProjectFileGenerator();
 
-    virtual void writeProjectFiles() = 0;
+    AlteraHibiDpRamGenerator(
+        int memMauWidth,
+        int widthInMaus,
+        int addrWidth,
+        std::string initFile,
+        const PlatformIntegrator* integrator,
+        std::ostream& warningStream,
+        std::ostream& errorStream);
 
-    void addHdlFile(const std::string& file);
+    virtual ~AlteraHibiDpRamGenerator();
 
-    void addHdlFiles(const std::vector<std::string>& files);
+    virtual void addMemory(ProGe::Netlist& netlist);
 
-    void addSignalMapping(const SignalMapping& mapping);
+    virtual bool generatesComponentHdlFile() const;
+
+    virtual std::vector<std::string>
+    generateComponentFile(std::string outputPath);
 
 protected:
 
-    const std::vector<std::string>& hdlFileList() const;
+    virtual std::string createMemParameters() const;
+
+    virtual std::string moduleName() const;
     
-    const PlatformIntegrator* integrator() const;
+    virtual std::string instanceName() const;
 
-    std::string toplevelEntity() const;
-
-    int signalMappingCount() const;
-
-    const SignalMapping* signalMapping(int index) const;
-
-private:
-    std::string toplevelEntity_;
-    const PlatformIntegrator* integrator_;
-    
-    std::vector<std::string> hdlFiles_;
-    SignalMappingList signalMap_;
 };
 
 #endif

@@ -38,13 +38,14 @@
 #include "Exception.hh"
 #include "FileSystem.hh"
 #include "QuartusProjectGenerator.hh"
+#include "PlatformIntegrator.hh"
 using std::string;
 using std::ofstream;
 using std::endl;
 
 QuartusProjectGenerator::QuartusProjectGenerator(
     std::string toplevelEntity,
-    PlatformIntegrator* integrator):
+    const PlatformIntegrator* integrator):
     ProjectFileGenerator(toplevelEntity,integrator) {
 }
 

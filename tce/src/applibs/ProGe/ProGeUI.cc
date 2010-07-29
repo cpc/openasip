@@ -67,6 +67,7 @@
 #include "NetlistBlock.hh"
 #include "PlatformIntegrator.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
+#include "KoskiIntegrator.hh"
 
 using namespace IDF;
 using std::string;
@@ -416,6 +417,10 @@ ProGeUI::integrateProcessor(
         integrator = new Stratix2DSPBoardIntegrator(
             language, progeOutDir, entityName, platformDir, programName, fmax,
             warningStream, errorStream);
+    } else if (platformIntegrator == "KoskiIntegrator") {
+        integrator = new KoskiIntegrator(
+            language, progeOutDir, entityName, platformDir, programName, fmax,
+            warningStream, errorStream);
     } else {
         string errorMsg = "Unknown platform integrator: "
             + platformIntegrator;
@@ -436,7 +441,7 @@ ProGeUI::integrateProcessor(
     NetlistBlock& ttaToplevel = generator_.netlist()->topLevelBlock();
 
     try {
-        integrator->integrateProcessor(&ttaToplevel,imemInfo, dmemInfo);
+        integrator->integrateProcessor(&ttaToplevel, imemInfo, dmemInfo);
     } catch (Exception& e) {
         delete integrator;
         throw e;

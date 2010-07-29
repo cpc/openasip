@@ -22,16 +22,16 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file Stratix2DSPBoardIntegrator.hh
+ * @file KoskiIntegrator.hh
  *
- * Declaration of Stratix2DSPBoardIntegrator class.
+ * Declaration of KoskiIntegrator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_STRATIX2_DSP_BOARD_INTEGRATOR_HH
-#define TTA_STRATIX2_DSP_BOARD_INTEGRATOR_HH
+#ifndef TTA_KOSKI_INTEGRATOR_HH
+#define TTA_KOSKI_INTEGRATOR_HH
 
 #include <iostream>
 #include <sstream>
@@ -39,21 +39,13 @@
 #include <vector>
 #include <string>
 #include "PlatformIntegrator.hh"
-#include "QuartusProjectGenerator.hh"
-#include "ProGeTypes.hh"
 
-namespace ProGe {
-    class Netlist;
-    class NetlistBlock;
-    class NetlistPort;
-}
 
-class Stratix2DSPBoardIntegrator : public PlatformIntegrator {
+class KoskiIntegrator : public PlatformIntegrator {
 public:
+    KoskiIntegrator();
 
-    Stratix2DSPBoardIntegrator();
-
-    Stratix2DSPBoardIntegrator(
+    KoskiIntegrator(
         ProGe::HDL hdl,
         std::string progeOutputDir,
         std::string entityName,
@@ -62,8 +54,8 @@ public:
         int targetClockFreq,
         std::ostream& warningStream,
         std::ostream& errorStream);
-    
-    virtual ~Stratix2DSPBoardIntegrator();
+
+    virtual ~KoskiIntegrator();
 
     virtual void integrateProcessor(
         const ProGe::NetlistBlock* ttaCore,
@@ -84,43 +76,22 @@ public:
 
 protected:
 
-    MemoryGenerator* imemInstance(const MemInfo& imem);
-    
-    MemoryGenerator* dmemInstance(const MemInfo& dmem);
-
     virtual std::string pinTag() const;
-
+    
     virtual bool isDataMemorySignal(const std::string& signalName) const;
 
     virtual ProjectFileGenerator* projectFileGenerator() const;
 
+    virtual MemoryGenerator* imemInstance(const MemInfo& imem);
+
+    virtual MemoryGenerator* dmemInstance(const MemInfo& dmem);
+
 private:
 
-    void generatePinMap();
-
-    void mapToplevelPorts();
-
-    void addSignalMapping(const std::string& signal);
-
-    QuartusProjectGenerator* quartusGen_;
-
-    typedef std::vector<SignalMapping*> MappingList;
-
-    typedef std::map<std::string, MappingList*> PinMap;
-
-    PinMap stratixPins_;
-
-    static const std::string DEVICE_FAMILY_;
-
-    static const std::string DEVICE_NAME_;
-
-    static const std::string DEVICE_PACKAGE_;
-
-    static const std::string DEVICE_SPEED_CLASS_;
+    ProjectFileGenerator* ipXactGen_;
 
     static const std::string PIN_TAG_;
-
-    static const int DEFAULT_FREQ_;
 };
+
 
 #endif

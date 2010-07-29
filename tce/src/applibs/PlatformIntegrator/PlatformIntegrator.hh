@@ -45,6 +45,8 @@ namespace ProGe {
     class NetlistBlock;
 }
 
+class ProjectFileGenerator;
+
 class PlatformIntegrator {
 public:
     
@@ -103,13 +105,39 @@ public:
 
     const ProGe::NetlistBlock& ttaCoreBlock() const;
 
+    const ProGe::NetlistBlock& toplevelBlock() const;
+
 protected:
 
     ProGe::Netlist* netlist();
 
+    virtual bool createPorts(const ProGe::NetlistBlock* ttaCore);
+
+    virtual void connectToplevelPort(ProGe::NetlistPort& corePort);
+
+    virtual std::string pinTag() const = 0;
+
+    virtual bool hasPinTag(const std::string& signal) const;
+
+    virtual bool isDataMemorySignal(const std::string& signalName) const = 0;
+
     void copyTTACoreToNetlist(const ProGe::NetlistBlock* original);
 
-    virtual std::string writeNewToplevel();
+    virtual bool createMemories(const MemInfo& imem, const MemInfo& dmem);
+
+    virtual bool generateMemory(
+        MemoryGenerator& memGen,
+        std::vector<std::string>& generatedFiles);
+
+    virtual MemoryGenerator* imemInstance(const MemInfo& imem) = 0;
+
+    virtual MemoryGenerator* dmemInstance(const MemInfo& imem) = 0;
+
+    virtual void writeNewToplevel();
+
+    virtual ProjectFileGenerator* projectFileGenerator() const = 0;
+
+    void addProGeFiles() const;
     
     /**
      * Return new toplevel entity name
@@ -193,7 +221,9 @@ private:
 
     ProGe::NetlistBlock* ttaCore_;
 
-    static const std::string TTA_CORE_NAME;  
+    static const std::string TTA_CORE_NAME;
+    static const std::string TTA_CORE_CLK;
+    static const std::string TTA_CORE_RSTX;
 
 };
 #endif

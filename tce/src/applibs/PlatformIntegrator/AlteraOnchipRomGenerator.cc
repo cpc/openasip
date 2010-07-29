@@ -117,7 +117,7 @@ AlteraOnchipRomGenerator::createMemParameters() const {
     int addrWidth = memoryAddrWidth();
     int dataWidth = memoryTotalWidth();
     // 2^addrWidth
-    int sizeInWords = 1 << addrWidth;
+    unsigned int sizeInWords = 1 << addrWidth;
     string initFile = initializationFile();
     string deviceFamily = platformIntegrator()->deviceFamily();
     
@@ -126,8 +126,15 @@ AlteraOnchipRomGenerator::createMemParameters() const {
     parameters
         << "WIDTH_A=" << dataWidth << endl << "WIDTHAD_A=" << addrWidth
         << endl << "NUMWORDS_A=" << sizeInWords << endl 
-        << "INTENDED_DEVICE_FAMILY=\"" << deviceFamily << "\"" << endl
         << "INIT_FILE=" << initFile << endl;
+
+    if (!deviceFamily.empty()) {
+        parameters
+            << "INTENDED_DEVICE_FAMILY=\"" << deviceFamily << "\"" << endl;
+    } else {
+        parameters << "INTENDED_DEVICE_FAMILY=\"" << defaultDeviceFamily()
+                   << "\"" << endl;
+    }
 
     parameters
         << "INIT_FILE_LAYOUT=PORT_A " << "ADDRESS_ACLR_A=UNUSED "

@@ -108,3 +108,14 @@ AlteraMegawizMemGenerator::runMegawizard(std::string outputFile) {
     FileSystem::removeFileOrDirectory(tempDir);
     return componentFiles;
 }
+
+/**
+ * Defines the default device family which qmegawizard should use if no
+ * specific device is specified.
+ */
+std::string
+AlteraMegawizMemGenerator::defaultDeviceFamily() const {
+
+    return "Stratix II";
+}
+

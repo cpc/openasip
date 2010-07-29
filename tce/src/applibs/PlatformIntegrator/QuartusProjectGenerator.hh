@@ -36,13 +36,12 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-#include "PlatformIntegrator.hh"
 #include "ProjectFileGenerator.hh"
 
 class QuartusProjectGenerator : public ProjectFileGenerator {
 public:
     QuartusProjectGenerator(std::string toplevelEntity,
-                            PlatformIntegrator* integrator);
+                            const PlatformIntegrator* integrator);
     virtual ~QuartusProjectGenerator();
 
     virtual void writeProjectFiles();

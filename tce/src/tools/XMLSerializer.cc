@@ -77,7 +77,7 @@ using std::ifstream;
 XMLSerializer::XMLSerializer() :
     Serializer(), sourceFile_(""), destinationFile_(""), schemaFile_(""),
     useSchema_(false), parser_(NULL), domImplementation_(NULL),
-    sourceString_(NULL), destinationString_(NULL){
+    sourceString_(NULL), destinationString_(NULL), nsUri_("") {
 
     XMLPlatformUtils::Initialize();
 
@@ -177,6 +177,15 @@ XMLSerializer::setSchemaFile(const std::string& fileName) {
 void
 XMLSerializer::setUseSchema(bool useSchema) {
     useSchema_ = useSchema;
+}
+
+/**
+ * Sets the XML namespace URI to be used when creating a DOM document
+ *
+ */
+void
+XMLSerializer::setXMLNamespace(std::string nsUri) {
+    nsUri_ = nsUri;
 }
 
 /**
@@ -536,9 +545,17 @@ XMLSerializer::sourceFile() const {
 DOMDocument*
 XMLSerializer::createDOMDocument(const ObjectState* state) const {
 
+    XMLCh* nsUri = NULL;
+    if (!nsUri_.empty()) {
+        nsUri = Conversion::toXMLCh(nsUri_);
+    }
     XMLCh* docName = Conversion::toXMLCh(state->name());
-    DOMDocument* doc = domImplementation_->createDocument(0, docName, 0);
+    DOMDocument* doc = domImplementation_->createDocument(nsUri, docName, 0);
     XMLString::release(&docName);
+    if (nsUri != NULL) {
+        XMLString::release(&nsUri);
+        nsUri = NULL;
+    }
     DOMElement* rootElem = doc->getDocumentElement();
 
     for (int i = 0; i < state->attributeCount(); i++) {

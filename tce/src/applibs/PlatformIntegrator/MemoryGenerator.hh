@@ -114,7 +114,7 @@ protected:
 
     // Key: LSU port name
     // Value: pointer to corresponding memory component/controller port
-    typedef std::map<std::string, HDLPort*> PortMap;
+    typedef std::multimap<std::string, HDLPort*> PortMap;
 
     const PlatformIntegrator* platformIntegrator() const;
 

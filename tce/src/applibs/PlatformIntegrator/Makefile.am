@@ -3,9 +3,10 @@ libplatformintegrator_la_SOURCES = \
 	Stratix2DSPBoardIntegrator.cc PlatformIntegrator.cc MemoryGenerator.cc  \
 	AlteraOnchipRamGenerator.cc AlteraOnchipRomGenerator.cc VhdlRomGenerator.cc \
 	ProjectFileGenerator.cc QuartusProjectGenerator.cc Stratix2SramGenerator.cc \
-	AlteraMegawizMemGenerator.cc HDLPort.cc
+	AlteraMegawizMemGenerator.cc HDLPort.cc KoskiIntegrator.cc \
+	AlteraHibiDpRamGenerator.cc DefaultProjectFileGenerator.cc \
+	IPXactFileGenerator.cc IPXactSerializer.cc IPXactModel.cc
 
-# KoskiIntegrator.cc AlteraHibiDpRamGenerator.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base
@@ -38,8 +39,10 @@ libplatformintegrator_la_SOURCES += \
 	Stratix2DSPBoardIntegrator.hh PlatformIntegrator.hh MemoryGenerator.hh \
 	AlteraOnchipRamGenerator.hh AlteraOnchipRomGenerator.hh VhdlRomGenerator.hh \
 	ProjectFileGenerator.hh QuartusProjectGenerator.hh Stratix2SramGenerator.hh \
-	AlteraMegawizMemGenerator.hh HDLPort.hh
+	AlteraMegawizMemGenerator.hh HDLPort.hh KoskiIntegrator.hh \
+	AlteraHibiDpRamGenerator.hh DefaultProjectFileGenerator.hh \
+	IPXactFileGenerator.hh IPXactSerializer.hh IPXactModel.hh
 	
 ## headers end
 
-# KoskiIntegrator.hh AlteraHibiDpRamGenerator.hh
+
