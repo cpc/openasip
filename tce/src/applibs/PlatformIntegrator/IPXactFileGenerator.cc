@@ -90,8 +90,12 @@ IPXactFileGenerator::writeProjectFiles() {
         HDLPort port(toplevel.port(i));
         ip->addSignal(port);
     }
-    ip->setHdlFiles(hdlFileList());
     addBusInterfaces(ip);
+
+    ip->setHdlFiles(hdlFileList());
+    for (unsigned int i = 0; i < memInitFileList().size(); i++) {
+        ip->setFile(memInitFileList().at(i));
+    }
     
     ipXactWriter_->setDestinationFile(outputFileName());
     ipXactWriter_->writeIPXactModel(*ip);

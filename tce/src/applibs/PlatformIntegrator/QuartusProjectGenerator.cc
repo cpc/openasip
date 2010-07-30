@@ -39,6 +39,7 @@
 #include "FileSystem.hh"
 #include "QuartusProjectGenerator.hh"
 #include "PlatformIntegrator.hh"
+#include "StringTools.hh"
 using std::string;
 using std::ofstream;
 using std::endl;
@@ -117,6 +118,16 @@ QuartusProjectGenerator::writeQSFFile() {
     for (unsigned int i = 0; i < hdlFileList().size(); i++) {
         qsfFile << "set_global_assignment -name VHDL_FILE \"" 
                 << hdlFileList().at(i) << "\"" << endl;
+    }
+
+    for (unsigned int i = 0; i < memInitFileList().size(); i++) {
+        if (StringTools::endsWith(memInitFileList().at(i), ".mif")) {
+            qsfFile << "set_global_assignment -name MIF_FILE \""
+                    << memInitFileList().at(i) << "\"" << endl;
+        } else if (StringTools::endsWith(memInitFileList().at(i), ".hex")) {
+            qsfFile << "set_global_assignment -name HEX_FILE \""
+                    << memInitFileList().at(i) << "\"" << endl;
+        }
     }
 
     for (int i = 0; i < signalMappingCount(); i++) {

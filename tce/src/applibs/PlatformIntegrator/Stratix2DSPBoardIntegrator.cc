@@ -137,6 +137,7 @@ Stratix2DSPBoardIntegrator::imemInstance(const MemInfo& imem) {
             new AlteraOnchipRomGenerator(
                 imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
                 warningStream(), errorStream());
+        quartusGen_->addMemInitFile(initFile);
     } else if (imem.type == VHDL_ARRAY) {
         string initFile = programName() + "_imem_pkg.vhdl";
         imemGen = new VhdlRomGenerator(
@@ -164,6 +165,7 @@ Stratix2DSPBoardIntegrator::dmemInstance(const MemInfo& dmem) {
             new AlteraOnchipRamGenerator(
                 dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
                 this, warningStream(), errorStream());
+        quartusGen_->addMemInitFile(initFile);
     } else if (dmem.type == SRAM) {
         string initFile = programName() + "_" + dmem.asName + ".img";
         // SRAM component has a fixed size, thus use the addr width from hdb

@@ -64,6 +64,13 @@ ProjectFileGenerator::addHdlFiles(const std::vector<std::string>& files) {
 
 
 void
+ProjectFileGenerator::addMemInitFile(const std::string& memInit) {
+    
+    memInitFiles_.push_back(memInit);
+}
+
+
+void
 ProjectFileGenerator::addSignalMapping(const SignalMapping& mapping) {
     
     signalMap_.push_back(mapping);
@@ -74,6 +81,12 @@ const std::vector<std::string>&
 ProjectFileGenerator::hdlFileList() const {
 
     return hdlFiles_;
+}
+
+const std::vector<std::string>&
+ProjectFileGenerator::memInitFileList() const {
+
+    return memInitFiles_;
 }
 
 const PlatformIntegrator*

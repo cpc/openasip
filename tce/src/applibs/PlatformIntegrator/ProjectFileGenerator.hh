@@ -52,11 +52,15 @@ public:
 
     void addHdlFiles(const std::vector<std::string>& files);
 
+    void addMemInitFile(const std::string& memInit);
+
     void addSignalMapping(const SignalMapping& mapping);
 
 protected:
 
     const std::vector<std::string>& hdlFileList() const;
+
+    const std::vector<std::string>& memInitFileList() const;
     
     const PlatformIntegrator* integrator() const;
 
@@ -71,6 +75,7 @@ private:
     const PlatformIntegrator* integrator_;
     
     std::vector<std::string> hdlFiles_;
+    std::vector<std::string> memInitFiles_;
     SignalMappingList signalMap_;
 };
 

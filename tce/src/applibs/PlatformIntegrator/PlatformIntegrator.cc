@@ -390,7 +390,7 @@ PlatformIntegrator::generateMemory(
             memGen.generateComponentFile(outputPath());
         if (generatedFiles.size() == 0) {
             errorStream() << "Failed to create mem component" << endl;
-            //return false;
+            return false;
         }
     }
 

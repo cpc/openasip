@@ -133,6 +133,7 @@ KoskiIntegrator::imemInstance(const MemInfo& imem) {
             new AlteraOnchipRomGenerator(
                 imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
                 warningStream(), errorStream());
+        ipXactGen_->addMemInitFile(initFile);
     } else if (imem.type == VHDL_ARRAY) {
         string initFile = programName() + "_imem_pkg.vhdl";
         imemGen = new VhdlRomGenerator(
@@ -160,6 +161,7 @@ KoskiIntegrator::dmemInstance(const MemInfo& dmem) {
             new AlteraHibiDpRamGenerator(
                 dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
                 this, warningStream(), errorStream());
+        ipXactGen_->addMemInitFile(initFile);
     } else {
         string msg = "Unsupported data memory type";
         InvalidData exc(__FILE__, __LINE__, "KoskiIntegrator",
