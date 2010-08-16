@@ -303,7 +303,11 @@ static void printAndVerify(PassManagerBase &PM,
     PM.add(createMachineFunctionPrinterPass(errs(), Banner));
 
   if (VerifyMachineCode)
+#ifdef LLVM_2_7
     PM.add(createMachineVerifierPass(allowDoubleDefs));
+#else
+    PM.add(createMachineVerifierPass());
+#endif
 }
 
 
@@ -624,13 +628,22 @@ bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
   if (OptLevel != CodeGenOpt::None)
     PM.add(createOptimizePHIsPass());
 
-  // Delete dead machine instructions regardless of optimization level.
-  PM.add(createDeadMachineInstructionElimPass());
-  printAndVerify(PM, "After codegen DCE pass",
-                 /* allowDoubleDefs= */ true);
+  // Assign local variables to stack slots relative to one another and simplify
+  // frame index references where possible. Final stack slot locations will be
+  // assigned in PEI.
+//TODO: should this be on or off?
+//  if (EnableLocalStackAlloc)
+//    PM.add(createLocalStackSlotAllocationPass());
 
   if (OptLevel != CodeGenOpt::None) {
-    PM.add(createOptimizeExtsPass());
+    // With optimization, dead code should already be eliminated. However
+    // there is one known exception: lowered code for arguments that are only
+    // used by tail calls, where the tail calls reuse the incoming stack
+    // arguments directly (see t11 in test/CodeGen/X86/sibcall.ll).
+    PM.add(createDeadMachineInstructionElimPass());
+    printAndVerify(PM, "After codegen DCE pass", /* allowDoubleDefs= */ true);
+
+    PM.add(createPeepholeOptimizerPass());
     if (!DisableMachineLICM)
       PM.add(createMachineLICMPass());
     PM.add(createMachineCSEPass());

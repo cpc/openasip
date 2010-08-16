@@ -107,7 +107,12 @@ Pass* createLowerMissingInstructionsPass(const TTAMachine::Machine& mach) {
 
 LowerMissingInstructions::LowerMissingInstructions(
     const TTAMachine::Machine& mach) : 
-    BasicBlockPass((intptr_t)&ID), mach_(&mach) {
+#ifdef LLVM_2_7
+    BasicBlockPass((intptr_t)&ID), 
+#else
+    BasicBlockPass(ID), 
+#endif
+    mach_(&mach) {
 }
 
 // convert type name to string

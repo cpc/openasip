@@ -21,13 +21,18 @@
 
 #include "llvm/ADT/StringMap.h"
 
+#include "tce_config.h"
+
 #include <map>
 
 namespace llvm {    
   struct MachineDCE : public MachineFunctionPass {
     static char ID;
+#ifdef LLVM_2_7
     MachineDCE() : MachineFunctionPass(&ID) {}
-      
+#else
+    MachineDCE() : MachineFunctionPass(ID) {}
+#endif
     typedef std::map<std::string, MachineFunction*> FunctionMap;
     typedef std::set<std::string> UserList;
     typedef std::map<std::string, UserList> UserRelations;

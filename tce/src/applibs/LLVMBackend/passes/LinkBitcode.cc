@@ -37,6 +37,7 @@
 #include "llvm/Module.h"
 #include "llvm/Pass.h"
 #include "llvm/Linker.h"
+#include "tce_config.h"
 
 using namespace llvm;
 
@@ -68,7 +69,12 @@ namespace {
  * Constructor
  */
 LinkBitcode::LinkBitcode(Module& input) :
-    BasicBlockPass((intptr_t)&ID), inputModule_(input) {
+#ifdef LLVM_2_7
+    BasicBlockPass((intptr_t)&ID), 
+#else
+    BasicBlockPass(ID), 
+#endif
+    inputModule_(input) {
 }
 
 /**

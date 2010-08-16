@@ -117,7 +117,11 @@ char LLVMPOMBuilder::ID = 0;
 LLVMPOMBuilder::LLVMPOMBuilder(
     TCETargetMachine& tm,
     TTAMachine::Machine* mach):
+#ifdef LLVM_2_7
     MachineFunctionPass(this),
+#else
+    MachineFunctionPass(ID),
+#endif
     mod_(NULL), tm_(tm), mach_(mach), umach_(NULL), prog_(NULL),
     mang_(NULL), dmem_(NULL), end_(0), programReady_(false),
     noAliasFound_(false), multiAddrSpacesFound_(false),
