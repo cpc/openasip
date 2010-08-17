@@ -765,10 +765,11 @@ int load_JPEG_header(char* buffer, int bufSize, DWORD *X_image, DWORD *Y_image)
  if (vers!=1) exit_func("JFIF version not supported");
  BYTE_p(byte_pos); /* vers_lo=bp; */
  BYTE_p(byte_pos);  units=bp;
- if (units!=0) /*exit_func("JPG format not supported");
+/* if (units!=0) exit_func("JPG format not supported");
                  ;//	printf("units = %d\n", units); */;
  WORD_p(byte_pos); Xdensity=wp; WORD_p(byte_pos); Ydensity=wp;
- if ((Xdensity!=1)||(Ydensity!=1)) /*exit_func("JPG format not supported"); 
+/*
+ if ((Xdensity!=1)||(Ydensity!=1)) exit_func("JPG format not supported"); 
 	 ;  //{printf("X density = %d\n",Xdensity); printf("Y density = %d\n",Ydensity);}
                                    */;
  BYTE_p(byte_pos);Xthumbnail=bp;BYTE_p(byte_pos);Ythumbnail=bp;

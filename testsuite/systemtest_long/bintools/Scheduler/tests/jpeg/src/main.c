@@ -171,7 +171,7 @@ int main(int argc,char **argv,char **envp)
   else fp=fopen(argv[1],"rb");
  if (fp==NULL) exitmessage("File not found ?");
 */
- if (!load_JPEG_header(initial_data,initial_data_size ,&X_image,&Y_image)) {exitmessage(error_string);return;}
+ if (!load_JPEG_header(initial_data,initial_data_size ,&X_image,&Y_image)) {exitmessage(error_string);return 0;}
 /* fclose(fp); */
 #ifndef __TCE__
  printf(" X_image = %d\n",X_image);
@@ -205,7 +205,7 @@ int main(int argc,char **argv,char **envp)
  duration = (double)(finish_time - start_time) / CLK_TCK;
  printf( "Time elapsed: %2.1f seconds\n", duration );
 */
- if (!get_JPEG_buffer(X_image,Y_image,&our_image_buffer)) {exitmessage(error_string);return;}
+ if (!get_JPEG_buffer(X_image,Y_image,&our_image_buffer)) {exitmessage(error_string);return 0;}
 
  write_buf_to_BMP(our_image_buffer,X_image,Y_image, "image.bmp");
 /* getch(); */
