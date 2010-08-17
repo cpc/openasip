@@ -193,7 +193,7 @@ AlteraHibiDpRamGenerator::createMemParameters() const {
         << " WIDTHAD_A=" << addrWidth << " WIDTHAD_B=" << addrWidth
         << " NUMWORDS_A=" << sizeInWords << " NUMWORDS_B=" << sizeInWords
         << " WIDTH_BYTEENA_A=" << bytemaskWidth << " WIDTH_BYTEENA_B="
-        << bytemaskWidth << " INITFILE=" << initFile << endl;
+        << bytemaskWidth << " INIT_FILE=" << initFile << endl;
     
     if (!deviceFamily.empty()) {
         parameters
