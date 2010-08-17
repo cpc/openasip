@@ -68,7 +68,7 @@ typedef union {
  * memory address to be returned is always formed by adding the manipulated lini dx
  * together with the base address of the input- or output-array.
  */
-inline void
+static inline void
 ag(int **in_addr, int **out_addr, int *base_address_in,
    int *base_address_out, unsigned int stage, unsigned int linidx) {
     /* Local variables for the input permutation. */
@@ -124,7 +124,7 @@ ag(int **in_addr, int **out_addr, int *base_address_in,
 }
 
 /*This function simulates the multiplication of two complex numbers.*/
-inline int 
+static inline int 
 cmul(int in1, int in2) {
     Complex num1, num2, prod;
     Word(num1) = in1;
@@ -158,7 +158,7 @@ cmul(int in1, int in2) {
  * sligthly different forms needed in the butterfly calculations of radix-4 
  * DIT FFT.
  */
-inline int 
+static inline int 
 cadd(int in1, int in2, int in3, int in4, unsigned char format) {
     Complex num1, num2, num3, num4, sum;
     Word(num1) = in1;
@@ -201,7 +201,7 @@ static int modifyCoeff(int coeff, unsigned char oper);
 /* The following function simulates the functionality of the coefficient generator in different
  * computation stages.
  */
-inline int
+static inline int
 fgen(unsigned int stage, unsigned int linidx) {
   unsigned k = 0; unsigned i = 0;
   unsigned block_size = 4; unsigned bits_to_pick = 0;
