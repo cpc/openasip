@@ -679,7 +679,8 @@ bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
 
     // stupid llvm static cpp variables.
     // Run post-ra machine LICM to hoist reloads / remats.
-    if (true /*!DisablePostRAMachineLICM*/)
+    // This causes buggy code to be generated on TCE, so disabled.
+    if (false /*!DisablePostRAMachineLICM*/)
       PM.add(createMachineLICMPass(false));
 
     printAndVerify(PM, "After StackSlotColoring and postra Machine LICM");
