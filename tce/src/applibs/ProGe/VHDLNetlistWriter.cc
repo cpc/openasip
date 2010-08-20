@@ -56,6 +56,7 @@ using std::set;
 using std::pair;
 
 const std::string GROUND_SIGNAL = "ground_signal";
+const std::string PARAM_STRING = "string";
 
 namespace ProGe {
 
@@ -605,8 +606,12 @@ VHDLNetlistWriter::writePortMappings(
             stream << indentation(2) << "generic map (" << endl;
             for (int i = 0; i < component.parameterCount(); i++) {
                 Netlist::Parameter param = component.parameter(i);
-                stream << indentation(3) << param.name << " => "
-                       << param.value;
+                stream << indentation(3) << param.name << " => ";
+                if (StringTools::stringToLower(param.type) == PARAM_STRING) {
+                    stream << "\"" << param.value << "\"";
+                } else {
+                    stream << param.value;
+                }
                 if (i == component.parameterCount() - 1) {
                     stream << ")" << endl;
                 } else {
