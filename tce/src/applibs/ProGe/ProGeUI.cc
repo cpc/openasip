@@ -353,8 +353,7 @@ ProGeUI::generateTestBench(
     checkIfNull(machine_, "ADF not loaded");
     checkIfNull(idf_, "IDF not loaded");
     
-    ProGeTestBenchGenerator::ProGeTestBenchGenerator tbGen = 
-        ProGeTestBenchGenerator::ProGeTestBenchGenerator();
+    ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
     tbGen.generate(*machine_, *idf_, dstDir, progeOutDir);
 }
 
@@ -371,8 +370,7 @@ ProGeUI::generateScripts(
     const std::string& progeOutDir,
     const std::string& testBenchDir) {
 
-    ProGeScriptGenerator::ProGeScriptGenerator sGen(dstDir, progeOutDir, 
-        testBenchDir);
+    ProGeScriptGenerator sGen(dstDir, progeOutDir, testBenchDir);
     sGen.generateAll();
 }
 

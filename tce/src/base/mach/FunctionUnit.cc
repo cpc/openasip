@@ -821,8 +821,7 @@ FunctionUnit::isArchitectureEqual(
             }
        }
     }
-    if (!(ResourceVectorSet::ResourceVectorSet(*this) ==
-          ResourceVectorSet::ResourceVectorSet(*fu))) {
+    if (!(ResourceVectorSet(*this) == ResourceVectorSet(*fu))) {
         return false;
     }
     return true;

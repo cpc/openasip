@@ -221,8 +221,7 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
     string testbenchDir = targetDir + FileSystem::DIRECTORY_SEPARATOR +
         "tb";
     try {
-        ProGeTestBenchGenerator::ProGeTestBenchGenerator tbGen =
-            ProGeTestBenchGenerator::ProGeTestBenchGenerator();
+        ProGeTestBenchGenerator tbGen = ProGeTestBenchGenerator();
         tbGen.generate(machine_, impl_, testbenchDir, targetDir);
     } catch (const Exception& e) {
         string errorMsg = "Warning: Processor Generator failed to "
@@ -235,8 +234,7 @@ GenerateProcessorDialog::onOK(wxCommandEvent&) {
 
     // generate vhdl compilation and simulation scripts
     try {
-        ProGeScriptGenerator::ProGeScriptGenerator sGen(targetDir, targetDir, 
-                testbenchDir);
+        ProGeScriptGenerator sGen(targetDir, targetDir, testbenchDir);
         sGen.generateAll();
     } 
     catch (const Exception& e) {
