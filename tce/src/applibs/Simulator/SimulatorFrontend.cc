@@ -1064,7 +1064,8 @@ SimulatorFrontend::runUntil(UIntWord address)
 /**
  * Advance simulation by a given amout of cycles.
  *
- * @param count The number of cycles the simulation is advanced.
+ * @note Does not create a timeout thread. Does not make sense here as
+ * the step() always finishes.
  * @exception SimulationExecutionError If a runtime error occurs in 
  *                                     the simulated program.
  * @todo Throw exception if simulation is not initialized.
@@ -1075,11 +1076,7 @@ SimulatorFrontend::step(double count)
 
     assert(simCon_ != NULL);
 
-    startTimer();
-    boost::thread timeout(boost::bind(timeoutThread, 
-        simulationTimeout_, this));
     simCon_->step(count);
-    stopTimer();
     // invalidate utilization statistics (they are not fresh anymore)
     delete utilizationStats_;
     utilizationStats_ = NULL;

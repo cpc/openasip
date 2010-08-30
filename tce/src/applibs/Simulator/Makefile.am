@@ -39,12 +39,16 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	CompiledSimSymbolGenerator.cc ConflictDetectionCodeGenerator.cc \
 	CompiledSimMove.cc CompiledSimInterpreter.cc CompiledSimSettingCommand.cc \
 	CompiledSimulationPimpl.cc FSAFUResourceConflictDetectorPimpl.cc \
-	OperationIDIndex.cc CompiledSimUtilizationStats.cc
+	OperationIDIndex.cc CompiledSimUtilizationStats.cc \
+	SimpleSimulatorFrontend.cc
 
 # Required by compiled simulator to compile simulation engines.
 include_HEADERS = \
 	CompiledSimulation.hh CompiledSimulation.icc \
-	SimulatorConstants.hh 
+	SimulatorConstants.hh tce_systemc.hh 
+
+# Headers required by the SystemC wrapper.
+include_HEADERS += SimpleSimulatorFrontend.hh
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -149,5 +153,5 @@ libsimulator_la_SOURCES += \
 	OperationExecutor.icc ExecutableInstruction.icc \
 	InstructionMemory.icc ReservationTableFUResourceConflictDetector.icc \
 	GCUState.icc SettingCommand.icc \
-	DCMFUResourceConflictDetector.icc 
+	DCMFUResourceConflictDetector.icc SimpleSimulatorFrontend.hh
 ## headers end
