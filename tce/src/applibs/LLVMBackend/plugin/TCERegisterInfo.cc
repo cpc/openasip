@@ -119,9 +119,8 @@ unsigned TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
                                               int SPAdj, int *Value,
                                               RegScavenger *RS) const {
 #else
-unsigned TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                              int SPAdj, FrameIndexValue *Value,
-                                              RegScavenger *RS) const {
+void TCERegisterInfo::eliminateFrameIndex(
+    MachineBasicBlock::iterator II, int SPAdj, RegScavenger *RS) const {
 #endif
     const TargetInstrInfo &TII = tii_;
     assert(SPAdj == 0 && "Unexpected");
@@ -148,7 +147,9 @@ unsigned TCERegisterInfo::eliminateFrameIndex(MachineBasicBlock::iterator II,
     } else {
         MI.getOperand(i).ChangeToRegister(TCE::SP, false);
     }
+#ifdef LLVM_2_7
     return 0;
+#endif
 }
 
 /**

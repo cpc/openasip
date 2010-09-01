@@ -73,9 +73,8 @@ namespace llvm {
                                      int SPAdj, int *Value,
                                      RegScavenger *RS = NULL) const;
 #else
-        unsigned eliminateFrameIndex(MachineBasicBlock::iterator II,
-                                     int SPAdj, FrameIndexValue *Value,
-                                     RegScavenger *RS = NULL) const;
+        void eliminateFrameIndex(MachineBasicBlock::iterator II,
+                                     int SPAdj, RegScavenger *RS = NULL) const;
 #endif
 
         unsigned getRARegister() const;
