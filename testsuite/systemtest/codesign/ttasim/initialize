@@ -2,9 +2,7 @@
 CURDIR=${PWD}
 ../../../../tce/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/test
 ../../../../tce/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/debug
-#../../../../tce/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/MOVEoperations
 ../../../../tce/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/FFT_testcase
-../../../../tce/src/codesign/osal/OSALBuilder/buildopset ${CURDIR}/data/operations_with_state
 chmod +x run_*.sh
 rm -f data/*.bustrace
 rm -f data/*.trace.*

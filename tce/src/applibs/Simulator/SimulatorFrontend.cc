@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Implementation of SimulatorFrontend class
  *
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
  *
  * @note rating: red
  */
@@ -107,7 +107,7 @@ SimulatorFrontend::SimulatorFrontend(bool useCompiledSimulation) :
     currentMachine_(NULL), machineState_(NULL), simCon_(NULL),
     machineOwnedByFrontend_(false), currentProgram_(NULL), 
     programFileName_(""), programOwnedByFrontend_(false), 
-    sequentialSimulation_(true), compiledSimulation_(useCompiledSimulation),
+    compiledSimulation_(useCompiledSimulation),
     disassembler_(NULL), traceFileName_(""), executionTracing_(false),
     busTracing_(false), 
     rfAccessTracing_(false), procedureTransferTracing_(false), 
@@ -166,21 +166,23 @@ SimulatorFrontend::~SimulatorFrontend() {
  *
  * The loaded program is not owned by SimulatorFrontend and thus won't be
  * deleted by it when not needed anymore. Simulation is initialized using
- * the previously loaded machine, or as sequential simulation. This
- * function assumes that machine is loaded before calling it. Program
- * is aborted otherwise.
+ * the previously loaded machine. This function assumes that machine is 
+ * loaded before calling it. Program is aborted otherwise.
  *
  * @param program The program to be loaded.
  * @exception IOException If tracing is enabled and could not be initialized.
  * @exception Exception Any exception thrown while building the simulation
  * models are passed on.
- * @todo Throw when machine is not loaded and program is not sequential.
+ * @todo Throw when machine is not loaded.
  * @todo Implement checking for already running simulation.
  */
 void 
 SimulatorFrontend::loadProgram(const Program& program) {
 
-    assert(currentMachine_ != NULL);
+    if (currentMachine_ == NULL)
+        throw Exception(
+            __FILE__, __LINE__, __func__,
+            "Cannot load a program without loading a machine first.");
 
     if (programOwnedByFrontend_) {
         delete currentProgram_;
@@ -220,10 +222,6 @@ SimulatorFrontend::loadMachine(const Machine& machine)
     }
     delete simCon_;
     simCon_ = NULL;
-
-    // thus we are not running a sequential simulation anymore,
-    // but using the loaded machine
-    sequentialSimulation_ = false;
 
     // compiled sim does not handle long guard latencies correctly.
     // remove when fixed.
@@ -274,11 +272,16 @@ SimulatorFrontend::program() const {
  * @exception Exception Any exception thrown while building the simulation
  * models are passed on.
  * @todo Implement after Program builder is done.
- * @todo Throw when machine is not loaded and program is not sequential.
+ * @todo Throw when machine is not loaded.
  * @todo Implement checking for already running simulation.
  */
 void 
 SimulatorFrontend::loadProgram(const std::string& fileName) {
+
+    if (currentMachine_ == NULL)
+        throw Exception(
+            __FILE__, __LINE__, __func__,
+            "Cannot load a program without loading a machine first.");
 
     SimulatorTextGenerator& textGen = SimulatorToolbox::textGenerator();
     
@@ -294,15 +297,6 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
 
     BinaryStream binaryStream(fileName);
 
-    UniversalMachine* umach = NULL;
-    if (currentMachine_ == NULL) {
-        umach = new UniversalMachine();        
-        currentMachine_ = umach;
-        // umach now owned by the Program
-        machineOwnedByFrontend_ = false;
-        sequentialSimulation_ = true;
-    }
-
     const Program* oldProgram = currentProgram_;
 
     try {
@@ -313,14 +307,8 @@ SimulatorFrontend::loadProgram(const std::string& fileName) {
         assert(currentMachine_ != NULL);
 
         // convert the loaded TPEF to POM
-        if (!sequentialSimulation_) {
-            TPEFProgramFactory factory(*tpef_, *currentMachine_);
-            currentProgram_ = factory.build();
-        } else {
-            TPEFProgramFactory factory(*tpef_, umach);
-            currentProgram_ = factory.build();
-        }
-       
+        TPEFProgramFactory factory(*tpef_, *currentMachine_);
+        currentProgram_ = factory.build();       
     } catch (const Exception& e) {
         delete tpef_;
         tpef_ = NULL;
@@ -423,91 +411,60 @@ SimulatorFrontend::initializeDataMemories() {
 
     // data memory initialization
     if (dataSections > 0) {
-        if (sequentialSimulation_) {
-            if (dataSections > 1) {
-                abortWithError(
-                    "More than one data section in sequential simulation is "
-                    "not supported.");
-            }
-  
+        for (int i = 0; i < dataSections; ++i) {
 
-            const UniversalMachine* umach =
-                &currentProgram_->universalMachine();
+            // initialize the data memory
+            const DataMemory& data = currentProgram_->dataMemory(i);
+            const std::string addressSpaceName = 
+                data.addressSpace().name();
 
-            assert(umach != NULL);
+            try {
+                Memory& dataMemory =
+                    simCon_->memorySystem().memory(addressSpaceName);
 
-            const DataMemory& data =
-                currentProgram_->dataMemory(0);
+                const AddressSpace& addressSpace =
+                    simCon_->memorySystem().addressSpace(
+                        addressSpaceName);
 
-            Memory& dataMem =
-                simCon_->memorySystem().memory(umach->dataAddressSpace());
-
-            for (int i = 0; i < data.dataDefinitionCount(); ++i) {
-                const DataDefinition& def = data.dataDefinition(i);
-                if (!def.isInitialized()) {
-                    continue;
-                }
-                Word startAddress = def.startAddress().location();
-                for (int m = 0; m < def.size(); m++) {
-                    dataMem.write(startAddress + m, def.MAU(m));
-                }
-            }
-        } else {
-            for (int i = 0; i < dataSections; ++i) {
-
-                // initialize the data memory
-                const DataMemory& data = currentProgram_->dataMemory(i);
-                const std::string addressSpaceName = 
-                    data.addressSpace().name();
-
-                try {
-                    Memory& dataMemory =
-                        simCon_->memorySystem().memory(addressSpaceName);
-
-                    const AddressSpace& addressSpace =
-                        simCon_->memorySystem().addressSpace(
-                            addressSpaceName);
-
-                    for (int d = 0; d < data.dataDefinitionCount(); ++d) {
-                        const DataDefinition& def = data.dataDefinition(d);
-                        if (!def.isInitialized()) {
-                            continue;
-                        }
-
-                        Address startAddress = def.startAddress();
-                        // Check that the defined data is inside the address
-                        // space.
-                        if (def.startAddress().space().name() !=
-                            addressSpaceName ||
-                            startAddress.location() < addressSpace.start() ||
-                            (startAddress.location() + def.size() - 1)
-                            > addressSpace.end()) {
-
-                            throw IllegalProgram(
-                                __FILE__, __LINE__, __func__,
-                                std::string("Initialization data for ") +
-                                addressSpace.name() +
-                                " is out of address space bounds.");
-                        } 
-                        for (int m = 0; m < def.size(); m++) {
-                            dataMemory.write(
-                                startAddress.location() + m, def.MAU(m));
-                        }
+                for (int d = 0; d < data.dataDefinitionCount(); ++d) {
+                    const DataDefinition& def = data.dataDefinition(d);
+                    if (!def.isInitialized()) {
+                        continue;
                     }
 
-                } catch (const InstanceNotFound& inf) {
-                    std::string errorMsg = 
-                        SimulatorToolbox::textGenerator().text(
-                        Texts::TXT_ILLEGAL_INPUT_FILE).str();
-                    if (inf.errorMessage() != "")
-                        errorMsg += " Reason: " + inf.errorMessage();
-                    delete tpef_;
-                    tpef_ = NULL;
-                    delete simCon_;
-                    simCon_ = NULL;
-                    throw IllegalProgram(
-                        __FILE__, __LINE__, __func__, errorMsg);
+                    Address startAddress = def.startAddress();
+                    // Check that the defined data is inside the address
+                    // space.
+                    if (def.startAddress().space().name() !=
+                        addressSpaceName ||
+                        startAddress.location() < addressSpace.start() ||
+                        (startAddress.location() + def.size() - 1)
+                        > addressSpace.end()) {
+
+                        throw IllegalProgram(
+                            __FILE__, __LINE__, __func__,
+                            std::string("Initialization data for ") +
+                            addressSpace.name() +
+                            " is out of address space bounds.");
+                    } 
+                    for (int m = 0; m < def.size(); m++) {
+                        dataMemory.write(
+                            startAddress.location() + m, def.MAU(m));
+                    }
                 }
+
+            } catch (const InstanceNotFound& inf) {
+                std::string errorMsg = 
+                    SimulatorToolbox::textGenerator().text(
+                        Texts::TXT_ILLEGAL_INPUT_FILE).str();
+                if (inf.errorMessage() != "")
+                    errorMsg += " Reason: " + inf.errorMessage();
+                delete tpef_;
+                tpef_ = NULL;
+                delete simCon_;
+                simCon_ = NULL;
+                throw IllegalProgram(
+                    __FILE__, __LINE__, __func__, errorMsg);
             }
         }
     }
@@ -555,10 +512,6 @@ SimulatorFrontend::loadMachine(const std::string& fileName)
         ime.setCause(e);
         throw ime;
     }
-    // load of the new machine was succesful, thus we are not running 
-    // a sequential simulation anymore, but using the loaded machine
-    sequentialSimulation_ = false;
-
     if (machineOwnedByFrontend_) {
         delete oldMachine;
         oldMachine = NULL;
@@ -745,16 +698,14 @@ SimulatorFrontend::FUPortValue(
  *
  * @todo Improve evaluation when the parallel assembler syntax is known.
  *
- * @param rfName The name of the register file ('r' or 'f' in case of
- *               sequential code.
+ * @param rfName The name of the register file.
  * @param registerIndex Index of the register in the register file.
- * @param sequential True if this is from sequential assembly syntax.
  * @return State connected to the register.
  * @exception InstanceNotFound If the register cannot be found.
  */
 StateData&
 SimulatorFrontend::findRegister(
-    const std::string& rfName, int registerIndex, bool sequential = false) 
+    const std::string& rfName, int registerIndex) 
     throw (InstanceNotFound) {
 
     assert(currentMachine_ != NULL);
@@ -763,30 +714,11 @@ SimulatorFrontend::findRegister(
         currentMachine_->registerFileNavigator();
 
     std::string regFileName = rfName;
-    if (sequential) {
-        const UniversalMachine* mach = 
-            &currentProgram_->universalMachine();
-        assert(mach != NULL);
-        RegisterFile* rf = NULL;
-        if (StringTools::ciEqual(rfName, "r")) {
-            rf = &mach->integerRegisterFile();
-        } else if (StringTools::ciEqual(rfName, "f")) {
-            rf = &mach->doubleRegisterFile();
-        } else if (StringTools::ciEqual(rfName, "bool") ||
-                   StringTools::ciEqual(rfName, "boolean")) {
-            rf = &mach->booleanRegisterFile();            
-            registerIndex = 0;
-        }
-        assert(rf != NULL);
-        regFileName = rf->name();
-    } else {
-        if (!navigator.hasItem(rfName)) {
-            throw InstanceNotFound(
-                __FILE__, __LINE__, __func__, 
-                "Register file " + rfName + " not found.");
-        }
+    if (!navigator.hasItem(rfName)) {
+        throw InstanceNotFound(
+            __FILE__, __LINE__, __func__, 
+            "Register file " + rfName + " not found.");
     }
-
     try {
         return machineState_->registerFileState(
             regFileName).registerState(registerIndex);
@@ -801,8 +733,7 @@ SimulatorFrontend::findRegister(
  * Finds the port using a search string.
  *
  * The search string supported currently is of format 
- * {operation}.{operandnumber} for sequential and
- * {function unit name].{port name} for parallel.
+ * {function unit name].{port name}.
  *
  * @param fuName The name of the operation or the function unit.
  * @param portName The name of the operand or the port.
@@ -815,9 +746,6 @@ SimulatorFrontend::findPort(
     throw (InstanceNotFound) {
 
     assert(currentMachine_ != NULL);
-
-    const UniversalMachine* mach = 
-        dynamic_cast<const UniversalMachine*>(currentMachine_);
 
     const std::string exceptionMessage =
         std::string("No port ") + fuName + "." + portName + " found.";
@@ -853,33 +781,9 @@ SimulatorFrontend::findPort(
             currentMachine_->controlUnit()->name());
     }
 
-    bool sequential = mach != NULL;
-    if (sequential) {
-        // we'll try finding it in the UniversalFU operation set.
-        int operandNumber = -1;
-        try {
-            operandNumber = Conversion::toInt(portName);
-        } catch (const NumberFormatException&) {
-            // portName was not a number, we cannot find it in the
-            // sequential machine for sure
-            throw InstanceNotFound(
-                __FILE__, __LINE__, __func__, exceptionMessage);
-        }
-
-        // try to fetch the port from the universal FU
-        PortState& stateFromUFU = machineState_->portState(
-            mach->universalFunctionUnit().operation(fuName)->port(
-                operandNumber)->name(), 
-            mach->universalFunctionUnit().name());
-	
-        if (&stateFromUFU != &NullPortState::instance()) {
-            return stateFromUFU;
-        }	
-    } else {
-        return machineState_->portState(
-            StringTools::stringToLower(portName), 
-            StringTools::stringToLower(fuName));
-    }
+    return machineState_->portState(
+        StringTools::stringToLower(portName), 
+        StringTools::stringToLower(fuName));
     throw InstanceNotFound(
         __FILE__, __LINE__, __func__, exceptionMessage);
 }
@@ -890,14 +794,9 @@ SimulatorFrontend::findPort(
  *
  * For a syntax of valid search strings, consult the TCE TTA assembler
  * syntax description. All valid sources and destinations except
- * immediate sources are valid search strings. This function tries to
- * be intelligent in the search in case of sequential code. In case it
- * does not find a function unit with the given name, it tries to search
- * a port binding by treating the function unit part of the string as
- * an operation. For example, "add.3" could return a value of the
- * universal function unit port 5. 
+ * immediate sources are valid search strings. 
  *
- * @param searchString The string to use in search, e.g., (alu.p3 or add.3).
+ * @param searchString The string to use in search, e.g., (alu.p3).
  * @return Current value of the state (read-only).
  * @exception InstanceNotFound In case state couldn't be found using the
  *            search string.
@@ -938,20 +837,13 @@ SimulatorFrontend::state(std::string searchString)
             return findPort(
                 currentMachine_->controlUnit()->name(),
                 currentMachine_->controlUnit()->returnAddressPort()->name());
-        } else
+        } else 
             if (regex_match(
                     searchString, parsed, 
-                    SimulatorToolbox::sequentialRegisterRegex())) {
-                /// @todo Parallel register file access.
-                return findRegister(
-                    parsed[1], Conversion::toInt(parsed[2]), true);
-            } else
-                if (regex_match(
-                        searchString, parsed, 
-                        SimulatorToolbox::fuPortRegex())) {
-                    /// @todo Parallel fu port access (syntax?)
-                    return findPort(parsed[1], parsed[2]);
-                }
+                    SimulatorToolbox::fuPortRegex())) {
+                /// @todo Parallel fu port access (syntax?)
+                return findPort(parsed[1], parsed[2]);
+            }
     
     throw InstanceNotFound(
         __FILE__, __LINE__, __func__, 
@@ -1332,17 +1224,6 @@ SimulatorFrontend::hasSimulationEnded() const {
             simCon_->state() == SimulationController::STA_FINISHED);
 }
 
-/**
- * Returns true if current simulation is sequential simulation.
- *
- * If the simulation is not initialized, the return value is undefined.
- *
- * @return true if current simulation is sequential simulation.
- */
-bool 
-SimulatorFrontend::isSequentialSimulation() const {
-    return sequentialSimulation_;
-}
 
 /**
  * Returns true if the current simulation engine uses compiled simulation
@@ -1556,9 +1437,6 @@ SimulatorFrontend::finishSimulation() {
 
         if (saveUtilizationData_) {
             const UtilizationStats& stats = utilizationStatistics();
-            /// @todo special way of saving this data in case of sequential 
-            /// simulation
-
             // save the function unit operation execution counts
             const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
                 machine().functionUnitNavigator();
@@ -1625,15 +1503,7 @@ SimulatorFrontend::finishSimulation() {
                 assert(rf != NULL);
 
                 int maxRegs = 0;
-                if (isSequentialSimulation()) {    
-                    // it's not legal to ask universal machine how many
-                    // register it has, because in theory it has unlimited
-                    // registers, so we'll ask from the stats counter
-                    // the largerst used register index   
-                    maxRegs = stats.highestUsedRegisterIndex();
-                } else {
-                    maxRegs = rf->numberOfRegisters();
-                }
+                maxRegs = rf->numberOfRegisters();
                 for (int reg = 0; reg < maxRegs; ++reg) {
                     ClockCycleCount reads = 
                         stats.registerReads(rf->name(), reg);

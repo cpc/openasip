@@ -1,4 +1,0 @@
-prog data/hello
-run
-info proc cycles
-

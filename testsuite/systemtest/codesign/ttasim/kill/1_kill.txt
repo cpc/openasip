@@ -1,6 +1,0 @@
-prog data/datamem_init_test
-run
-kill
-y
-run
-quit

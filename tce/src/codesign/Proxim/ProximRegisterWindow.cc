@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Definition of ProximRegisterWindow class.
  *
  * @author Veli-Pekka Jääskeläinen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2010
  * @note rating: red
  */
 
@@ -39,13 +40,10 @@
 #include "ProximMainFrame.hh"
 
 #include "Machine.hh"
-#include "UniversalMachine.hh"
 #include "RegisterFile.hh"
-#include "UnboundedRegisterFile.hh"
-
+#include "RegisterFileState.hh"
 #include "MachineState.hh"
 #include "RegisterState.hh"
-#include "UnboundRegisterFileState.hh"
 #include "StateData.hh"
 #include "SimValue.hh"
 #include "LongImmediateUnitState.hh"
@@ -60,10 +58,6 @@
 
 using std::string;
 using namespace TTAMachine;
-
-const wxString ProximRegisterWindow::UNIVERSAL_INT_RF = _T("int RF");
-const wxString ProximRegisterWindow::UNIVERSAL_DOUBLE_RF = _T("double RF");
-const wxString ProximRegisterWindow::UNIVERSAL_BOOL_RF = _T("bool RF");
 
 const std::string ProximRegisterWindow::RF_PREFIX = "RF: ";
 const std::string ProximRegisterWindow::IMM_PREFIX = "IMM: ";
@@ -84,13 +78,12 @@ ProximRegisterWindow::ProximRegisterWindow(
     modeChoice_->Disable();
 
     if (simulator_->isSimulationInitialized() ||
-	simulator_->isSimulationStopped() ||
-	simulator_->hasSimulationEnded()) {
+        simulator_->isSimulationStopped() ||
+        simulator_->hasSimulationEnded()) {
 
-	reinitialize();
+        reinitialize();
     }
 }
-
 
 /**
  * Destructor.
@@ -106,16 +99,6 @@ void
 ProximRegisterWindow::reinitialize() {
 
     unitChoice_->Clear();
-
-    if (simulator_->isSequentialSimulation()) {
-        // Append universal machine register names.
-        unitChoice_->Append(UNIVERSAL_INT_RF);
-        unitChoice_->Append(UNIVERSAL_DOUBLE_RF);
-        unitChoice_->Append(UNIVERSAL_BOOL_RF);
-        unitChoice_->SetSelection(0);
-        update();
-        return;
-    }
 
     // parallel simulation
     const Machine::RegisterFileNavigator& rfNavigator =
@@ -149,37 +132,19 @@ ProximRegisterWindow::update() {
 
     int rfIndex = unitChoice_->GetSelection();
 
-    modeChoice_->Disable();
+    modeChoice_->Disable();   
+    modeChoice_->Enable();
     
-    // Universal machine choices:
-    if (simulator_->isSequentialSimulation()) {
-
-	if (rfIndex == 0) {
-	    modeChoice_->Enable();
-	    loadUniversalIntegerRF();
-	}
-	if (rfIndex == 1) {
-	    loadUniversalFloatRF();
-	}
-	if (rfIndex == 2) {
-	    loadUniversalBoolRF();
-	}
-	return;
-
-    } else {
-        modeChoice_->Enable();
-    }
-
     // Machine is not a universal machine.
     const Machine::RegisterFileNavigator& rfNavigator =
-	simulator_->machine().registerFileNavigator();
-
+        simulator_->machine().registerFileNavigator();
+    
     if (rfIndex < rfNavigator.count()) {
         loadRegisterFile(*rfNavigator.item(rfIndex));
     } else {
         const Machine::ImmediateUnitNavigator& immNavigator =
             simulator_->machine().immediateUnitNavigator();
-
+        
         rfIndex = rfIndex - rfNavigator.count();
         loadImmediateUnit(*immNavigator.item(rfIndex));
     }
@@ -277,138 +242,15 @@ ProximRegisterWindow::loadImmediateUnit(const ImmediateUnit& imm) {
 
 
 /**
- * Loads universal machine integer registerfile to the register list.
- *
- * Only registers that are actually used by the simualted program are appended
- * to the list.
- */
-void
-ProximRegisterWindow::loadUniversalIntegerRF() {
-
-    valueList_->DeleteAllItems();
-
-    string rfName = dynamic_cast<const UniversalMachine&>(
-	simulator_->machine()).integerRegisterFile().name();
-
-    UnboundRegisterFileState& rfState =
-	dynamic_cast<UnboundRegisterFileState&>(
-	    simulator_->machineState().registerFileState(rfName));
-
-    // Append all used registers to the register list.
-    int row = 0;
-    for (unsigned i = 0; i < rfState.registerCount(); i++) {
-	wxString value;
-	if (rfState.isRegisterInUse(i)) {
-	    const RegisterState& state = rfState.registerState(i);
-            wxString mode = modeChoice_->GetStringSelection();
-            if (mode == MODE_UNSIGNED) {
-                value = WxConversion::toWxString(
-                    state.value().unsignedValue());
-
-            } else if (mode == MODE_INT) {
-                int intValue = state.value().intValue();
-
-                value = WxConversion::toWxString(intValue);
-            } else if (mode == MODE_HEX) {
-                value = WxConversion::toWxString(
-                    Conversion::toHexString(state.value().unsignedValue()));
-
-            } else if (mode == MODE_BIN) {
-                int intValue = static_cast<int>(state.value().unsignedValue());
-                value = WxConversion::toWxString(
-                    Conversion::toBinString(intValue));
-            }
-	    DisassemblyIntRegister r(i);
-	    valueList_->InsertItem(
-		row, WxConversion::toWxString(r.toString()));
-	    valueList_->SetItem(row, 1, value);
-	    row++;
-	}
-    }
-}
-
-
-/**
- * Loads universal machine floating point registerfile to the register list.
- *
- * Only registers that are actually used by the simualted program are appended
- * to the list.
- */
-void
-ProximRegisterWindow::loadUniversalFloatRF() {
-
-    valueList_->DeleteAllItems();
-
-    string rfName = dynamic_cast<const UniversalMachine&>(
-	simulator_->machine()).doubleRegisterFile().name();
-    UnboundRegisterFileState& rfState =
-	dynamic_cast<UnboundRegisterFileState&>(
-	    simulator_->machineState().registerFileState(rfName));
-
-    // Append all used registers to the register list.
-    int row = 0;
-    for (unsigned i = 0; i < rfState.registerCount(); i++) {
-	if (rfState.isRegisterInUse(i)) {
-	    const RegisterState& state = rfState.registerState(i);
-	    wxString value = WxConversion::toWxString(
-                static_cast<FloatWord>(state.value().floatWordValue()));
-
-	    DisassemblyFPRegister r(i);
-	    valueList_->InsertItem(
-		row, WxConversion::toWxString(r.toString()));
-
-	    valueList_->SetItem(row, 1, value);
-	    row++;
-	}
-    }
-}
-
-
-/**
- * Loads universal machine bool register to the register list.
- */
-void
-ProximRegisterWindow::loadUniversalBoolRF() {
-    valueList_->DeleteAllItems();
-
-    const StateData& state = simulator_->findBooleanRegister();
-    bool boolValue = bool(state.value().uIntWordValue());
-    wxString value;
-    if (boolValue) {
-	value = _T("true");
-    } else {
-	value = _T("false");
-    }
-    DisassemblyBoolRegister reg;
-    valueList_->InsertItem(0, WxConversion::toWxString(reg.toString()));
-    valueList_->SetItem(0, 1, value);
-}
-
-
-/**
- * Sets the registerfile dipslayed in the window.
+ * Sets the registerfile displayed in the window.
  *
  * @param name Name of the register file.
  */
 void
 ProximRegisterWindow::showRegisterFile(const std::string& name) {
 
-    if (simulator_->isSequentialSimulation()) {
-
-        const UniversalMachine& machine =
-            dynamic_cast<const UniversalMachine&>(simulator_->machine());
-
-        if (name == machine.integerRegisterFile().name()) {
-            unitChoice_->SetStringSelection(UNIVERSAL_INT_RF);
-        } else if (name == machine.doubleRegisterFile().name()) {
-            unitChoice_->SetStringSelection(UNIVERSAL_DOUBLE_RF);
-        } else if (name == machine.booleanRegisterFile().name()) {
-            unitChoice_->SetStringSelection(UNIVERSAL_BOOL_RF);
-        }
-    } else {
-        unitChoice_->SetStringSelection(
-            WxConversion::toWxString(RF_PREFIX + name));
-    }
+    unitChoice_->SetStringSelection(
+        WxConversion::toWxString(RF_PREFIX + name));
     update();
 }
 
@@ -420,10 +262,7 @@ ProximRegisterWindow::showRegisterFile(const std::string& name) {
 void
 ProximRegisterWindow::showImmediateUnit(const std::string& name) {
 
-    assert(!simulator_->isSequentialSimulation());
-
     unitChoice_->SetStringSelection(
         WxConversion::toWxString(IMM_PREFIX + name));
-
     update();
 }

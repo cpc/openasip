@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of ProximRegisterWindow class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2005 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  * @note rating: red
  */
 
@@ -60,18 +61,8 @@ public:
 private:
     void loadRegisterFile(const TTAMachine::RegisterFile& rf);
     void loadImmediateUnit(const TTAMachine::ImmediateUnit& iu);
-    void loadUniversalIntegerRF();
-    void loadUniversalFloatRF();
-    void loadUniversalBoolRF();
     virtual void reinitialize();
     virtual void update();
-
-    /// Unit choicer string for universal machine integer register file.
-    static const wxString UNIVERSAL_INT_RF;
-    /// Unit choicer string for universal machine double register file.
-    static const wxString UNIVERSAL_DOUBLE_RF;
-    /// Unit choicer string for universal machine boolean register file.
-    static const wxString UNIVERSAL_BOOL_RF;
 
     /// Prefix for register files in the unit choicer.
     static const std::string RF_PREFIX;

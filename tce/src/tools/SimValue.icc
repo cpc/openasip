@@ -38,7 +38,7 @@
  * width of SIMULATOR_MAX_INTWORD_BITWIDTH (32) bits.
  */
 inline SimValue::SimValue() :
-    bitWidth_(SIMULATOR_MAX_INTWORD_BITWIDTH), active_(false),
+    bitWidth_(SIMULATOR_MAX_INTWORD_BITWIDTH), 
     mask_(~UIntWord(0)) {
 
     value_.sIntWord = 0;
@@ -53,7 +53,7 @@ inline SimValue::SimValue() :
  * @param width The bit width of the created SimValue.
  */
 inline SimValue::SimValue(int width) :
-    bitWidth_(width), active_(false), mask_(~UIntWord(0)) {
+    bitWidth_(width), mask_(~UIntWord(0)) {
 
     value_.uIntWord = 0;
     value_.sIntWord = 0;
@@ -72,7 +72,7 @@ inline SimValue::SimValue(int width) :
  * @param width The bit width of the created SimValue.
  */
 inline SimValue::SimValue(int value, int width) :
-    bitWidth_(width), active_(true), mask_(~UIntWord(0)) {
+    bitWidth_(width), mask_(~UIntWord(0)) {
 
     value_.sIntWord = value;
 
@@ -91,7 +91,6 @@ inline
 SimValue::SimValue(const SimValue& source) :
     value_(source.value_),
     bitWidth_(source.bitWidth_),
-    active_(source.active_),
     mask_(source.mask_) {
 }
 
@@ -106,36 +105,6 @@ SimValue::width() const {
 }
 
 /**
- * Returns the active status of the SimValue.
- *
- * @return The active status.
- */
-inline bool
-SimValue::isActive() const {
-    return active_;
-}
-
-/**
- * Sets the active status of the SimValue to true.
- *
- * @todo This should be inlined because it's called every time SimValue
- *       is assigned a value.
- */
-inline void
-SimValue::setActive() {
-    active_ = true;
-}
-
-/**
- * Sets the active status of the SimValue to false.
- *
- */
-inline void
-SimValue::clearActive() {
-    active_ = false;
-}
-
-/**
  * Assignment operator for source value of type int.
  *
  * @param source The source value.
@@ -144,7 +113,6 @@ SimValue::clearActive() {
 inline SimValue&
 SimValue::operator=(const SIntWord& source) {
     value_.sIntWord = source;
-    setActive();
     return (*this);
 }
 
@@ -157,7 +125,6 @@ SimValue::operator=(const SIntWord& source) {
 inline SimValue&
 SimValue::operator=(const UIntWord& source) {
     value_.uIntWord = source;
-    setActive();
     return (*this);
 }
 
@@ -170,7 +137,6 @@ SimValue::operator=(const UIntWord& source) {
 inline SimValue&
 SimValue::operator=(const FloatWord& source) {
     value_.floatWord = source;
-    setActive();
     return (*this);
 }
 
@@ -183,7 +149,6 @@ SimValue::operator=(const FloatWord& source) {
 inline SimValue&
 SimValue::operator=(const DoubleWord& source) {
     value_.doubleWord = source;
-    setActive();
     return (*this);
 }
 
@@ -203,7 +168,6 @@ SimValue::operator=(const DoubleWord& source) {
 inline SimValue&
 SimValue::operator=(const SimValue& source) {
     value_ = source.value_;
-    active_ = source.active_;
     return *this;
 }
 

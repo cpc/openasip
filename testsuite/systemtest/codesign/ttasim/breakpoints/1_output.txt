@@ -3,7 +3,7 @@
      2: at address 2 will be deleted after triggered 
      1: at address 1 
      2: at address 2 will be deleted after triggered 
-      1                      <_crt0+1>: ra -> stw.2 ;
+      1                     <_start+1>: 4 -> ALU.in2 ;
 Stopped at breakpoint 1.
      1: at address 1 
      2: at address 2 will be deleted after triggered 
@@ -19,7 +19,7 @@ mark 3
      2: at address 2 will be deleted after triggered 
      2: at address 2 will be deleted after triggered 
 mark 4
-      2                      <_crt0+2>: sp -> add.1 ;
+      2                     <_start+2>: RF.0 -> ALU.in1t.sub ;
 Program stopped at address 2.
 mark 5
      3: at address 4 has condition '[info proc cycles] > 1' 
@@ -27,7 +27,7 @@ mark 5
      4: at address 5 has condition '[info proc cycles] < 1' 
 mark 7: conditions set
      5: at address 6 
-      4                      <_crt0+4>: add.3 -> sp ;
+      4                     <_start+4>: gcu.ra -> LSU.in2 ;
 Stopped at breakpoint 3.
 Program stopped at address 4.
 Stopped at breakpoint 3.
@@ -38,7 +38,7 @@ executing 'kill'
      3: at address 4 has condition '[info proc cycles] > 1' 
      4: at address 5 has condition '[info proc cycles] < 1' 
      5: at address 6 
-      4                      <_crt0+4>: add.3 -> sp ;
+      4                     <_start+4>: gcu.ra -> LSU.in2 ;
 Stopped at breakpoint 3.
 Program stopped at address 4.
 Stopped at breakpoint 3.
@@ -48,16 +48,18 @@ Stopped at breakpoint 3.
 testing the ignore count feature
      6: at address 20 
      6: at address 20 will be ignored 3 time(s) 
-Hel     20               <_printstring+7>: iarg2 -> ldq.1 ;
+Hel     20                    <_start+20>: -1 -> ALU.in2 ;
 Stopped at breakpoint 6.
      6: at address 20 
-l     20               <_printstring+7>: iarg2 -> ldq.1 ;
+l     20                    <_start+20>: -1 -> ALU.in2 ;
 Stopped at breakpoint 6.
      6: at address 20 
-o     20               <_printstring+7>: iarg2 -> ldq.1 ;
+o     20                    <_start+20>: -1 -> ALU.in2 ;
 Stopped at breakpoint 6.
  TTA world!
+
 Yeah!Yeah!Yeah!Yeah!Yeah!Bye!
+
 
 Simulation finished.
 No simulation running.

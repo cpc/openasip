@@ -1,0 +1,178 @@
+
+How the basic case of part private data memory, part I/O memory through
+a single load-store unit could be implemented and simulated in SystemC
+with the ttasim as the instruction simulator modeling TTA cores?
+What about shared memories with cycle-accurate SystemC models?
+
+For a functional model, we can add a SystemC wrapper to the ttasim's 
+Memory interface. In that case, a Memory (e.g.IdealSRAM) is instantiated for
+each data memory mapped to the address space. The problem with the ttasim's
+Memory model is that it's not timing accurate, but a fast simplified functional 
+model which assumes the memory latencies are accounted by the operation
+latency and the memory accesses thus need not be simulated cycle-by-cycle.
+
+This can be seen in the OSAL LDW description:
+
+OPERATION(LDW)
+
+TRIGGER
+    if (UINT(1) % 4 != 0)
+        RUNTIME_ERROR("Memory access alignment error.")
+
+    UIntWord data;
+    MEMORY.read(UINT(1), 4, data);
+    IO(2) = data;
+END_TRIGGER;
+
+END_OPERATION(LDW)
+
+Thus, the data is expected to be readable immediately when triggered.
+
+In case wanting to integrate ttasim to a system level model with cycle
+accurate non-ideal memory models, the basic memory accessing operations 
+need to be reimplemented to access the memory at cycle-by-cycle basis. 
+In that case the basic memory operations would be reimplemented as 'clocked' 
+operations.
+
+The old LATE_RESULT interface of OSAL was meant exactly for this single
+case of cycle-accurate memory reads. It would have allowed defining 
+a dummy TRIGGER for LDW that does not read any results but just initiates
+the read, and a LATE_RESULT definition that polls the memory data bus 
+until it receives the data and places it to the FU result register. 
+
+However, that interface was removed because: 
+
+a) it was only useful for memory reads or any other cycle-accurate
+   input simulation,
+b) the current simpler and faster functional (not cycle accurate in case of
+   non-ideal SRAM) memory model is accurate enough for the standalone 
+   ttasim (compiled simulator simplifies the access model even further
+   to a simple C++ array access),
+c) the 'clocked' interface and the ADVANCE_CLOCK definition is more generic
+   and allows simulating this case also
+d) it did not really make sense to poll the memory bus at each cycle, as 
+   the minimal latency is known, it should read after that latency has passed, 
+   and in case result not yet arrived, lock the processor until it arrives. 
+
+Currently, in case of a system level simulation with cycle-accurate memory
+models, one must implement the OSAL memory access operations as clocked
+operations with cycle accurate behavior.
+
+The SystemC integration should support the following cases:
+
+a) a TTA core with a fast internal private memory, simulated with the
+   current simplified memory model
+
+This works easily, just wrap the TTA cores inside a SC_MODULE and leave
+the memory modeling fully to the ttasim code.
+
+b) part of the address space mapped to SystemC ports/signals (memory mapped I/O
+   simulation)
+
+This is not so easy in case we still want to model the private memories
+with the fast non-cycle-accurate models and all accesses that go outside
+the memory's address range would be mapped to SystemC model that simulates
+the I/O registers/devices.
+
+The problem is how to create a call back system to the LDW implementation.
+It sees a single MEMORY object of which read() it calls. In case of addresses
+mapped to the internal private memory, it should just delegate it to
+the IdealSRAM or similar, otherwise, call a SystemC simulation model to
+get the data. In the latter the problem is that the SystemC simulation model
+*can be* a cycle accurate model, thus the I/O registers might not be
+readable at the trigger cycle. 
+
+A realistic case could be that the other part of the address space
+is mapped to a shared memory with a cycle-accurate model in which case the
+read() is not doable in a single cycle of ttasim execution.
+
+In order to make things simpler, the LSU model should be either cycle-accurate
+or functional, not both. Thus, in order to model this case,
+also the private memory would need to be a cycle accurate SystemC model, or
+also the I/O model should be functional, implementing only the read()/write() API and
+the rest of the cycle-accuracy would be assumed to be implemented at SC side.
+
+c) integration with a model with a cycle-accurate (shared) memory model
+
+Need to reimplement the memory operations of OSAL with cycle accurate models
+that interface with SystemC ports. Which signals and ports to use? Does it
+use a Memory wrapper at all in that case? It probably has to so dmem
+initialization works in the beginning of the simulation etc.
+
+One additional problem is the globality of OSAL: only single LDW implementation
+can be defined per simulation. Thus, the best way would be to really have a single
+LDW with the memory model details abstracted outside in the Memory model. 
+The old LATE_RESULT and the initiateRead() etc. API way could work and should
+be reconsidered. Or just implement the default LDW with a clocked model. Of course,
+the qttasim would not support it as it's meant for fast standalone tta simulation
+with shortcuts anyways.
+
+Still, the problem is what to do at each of those cycles? Each different memory
+interface cannot be of course supported, thus the Memory model wrapper has to
+take care of most of the interfacing to the external memory model in the
+system simulation. The old initiateRead() could be implemented as setuping the
+read request. What else would be needed? In order to simulate the fixed latency
+in LSU, it should be enough to assume the data is ready to be read after the
+latency, in case not, it should be the memory interface that locks the processor.
+
+In the current model the locking happens after the fixed latency unconditionally,
+regardless if the result is tried to be read or not (with a move). An optimization
+would be to lock only at the cycle one tries to read an unarrived memory word but
+requires thinking on the architecture (in case of a pipeline LSU, the output has
+a valid word, the previous one, thus there should be a logic that determines
+if the fixed latency has been exceeded and the program wants to read the new
+yet unarrived one). This is up to the control unit implementation: there has
+to be a check for validity of the source to be read, if it's invalid one has
+to stall the processor and redo the moves of the cycle until all the source
+values are valid. 
+
+d) simulating a shared memory with only TTA cores accessing the shared memory
+
+This is the current homogeneous multicore model but when using SystemC, the cores
+need not to be identical. Should be doable by just allowing setting the Memory
+models to each of the cores and moving the cycle advancing outside.
+
+How about going to a higher level and allowing defining full FU models in
+SystemC? This would make it possible to model any kind of I/O units (including
+complex LSUs with address decoding logic deciding to which SC_MODULE to
+forward the request) in system level simulation models.
+
+
+AddressDecoder 
+--------------
+
+AddressDecoder is a special Memory model implementation which delegates
+its addresses to other models. The model is for implementing memory mapped I/O 
+in SystemC simulation models. It can be also used for mapping the address
+space to multiple Memory models of which, for example, part is
+shared between multiple cores, part private.
+
+AddressDecoder : public Memory
+
+This Memory model is handed to the OSAL simulation models so LDW etc. work
+as assumed. It has the following additional methods to the basic Memory
+interface:
+
+/* Delegates accesses to [startAddres...endAddress] to the given Memory
+void setAddressMapping(Memory&, startAddress, endAddress);
+
+/* This does nothing as it's assumed that each clocked memory model is
+   notified of the clock events from the main simulation model (in this
+   case SystemC). Otherwise there's a problem who advances each Memory
+   model's clock in case the Memory is shared between multiple cores. */
+void advanceClock();
+
+
+How to create an IOMemory model that allows assigning memory positions to
+SC signals and variables with sensitivity lists? Each memory position a
+pointer to the storage location to write? Or just assume each SystemC
+simulation defines what happens at each write separately. Might be
+more generic, flexible and easier to implement.
+
+e.g.
+
+/* A SystemC wrapper for IdealSRAM */
+IdealSRAM_SC privateDatamemCore0(0, 2048, 8);
+privateDatamemCore0.clock(clk);
+
+/* A SystemC wrapper for

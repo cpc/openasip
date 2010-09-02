@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of CompiledSimCodeGenerator class.
  *
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
- * @author Pekka J‰‰skel‰inen 2009 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2009-2010 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -91,7 +91,6 @@ using std::vector;
  * @param machine The machine to run the simulation on
  * @param program The simulated program
  * @param controller Compiled Simulation controller
- * @param sequentialSimulation Is it a sequential simulation?
  * @param fuResourceConflictDetection is the conflict detection on?
  * @param handleCycleEnd should we let frontend handle each cycle end
  * @param basicBlockPerFile Should we generate only one BB per code file?
@@ -100,7 +99,6 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     const TTAMachine::Machine& machine,
     const TTAProgram::Program& program,
     const TTASimulationController& controller,
-    bool sequentialSimulation,
     bool fuResourceConflictDetection,
     bool handleCycleEnd,
     bool dynamicCompilation,
@@ -108,7 +106,6 @@ CompiledSimCodeGenerator::CompiledSimCodeGenerator(
     bool functionPerFile) :
     machine_(machine), program_(program), simController_(controller),
     gcu_(*machine.controlUnit()),
-    isSequentialSimulation_(sequentialSimulation),
     handleCycleEnd_(handleCycleEnd),
     dynamicCompilation_(dynamicCompilation),
     basicBlockPerFile_(basicBlockPerFile),
@@ -359,18 +356,14 @@ CompiledSimCodeGenerator::generateHeaderAndMainCode() {
     }
     
     // Register files
-    if (!isSequentialSimulation_) {
-        const Machine::RegisterFileNavigator& rfs = 
-            machine_.registerFileNavigator();
-        for (int i = 0; i < rfs.count(); ++i) {
-            const RegisterFile& rf = *rfs.item(i);
-            for (int j = 0; j < rf.numberOfRegisters(); ++j) {
-                addDeclaredSymbol(symbolGen_.registerSymbol(rf, j), 
-                    rf.width());
-            }
+    const Machine::RegisterFileNavigator& rfs = 
+        machine_.registerFileNavigator();
+    for (int i = 0; i < rfs.count(); ++i) {
+        const RegisterFile& rf = *rfs.item(i);
+        for (int j = 0; j < rf.numberOfRegisters(); ++j) {
+            addDeclaredSymbol(symbolGen_.registerSymbol(rf, j), 
+                              rf.width());
         }
-    } else {
-        addUsedRFSymbols();
     }
     
     // Buses
@@ -817,34 +810,6 @@ CompiledSimCodeGenerator::addDeclaredSymbol(const string& name, int width) {
     declaredSymbols_[name] = width;
 }
 
-/**
- * Finds the used RF symbols in sequential simulation
- */
-void 
-CompiledSimCodeGenerator::addUsedRFSymbols() {
-    assert (isSequentialSimulation_);
-    
-    // Loop all moves of the program and find the used RFs
-    for (int procIndx = 0; procIndx < program_.procedureCount(); procIndx++) {
-        Procedure& proc = program_.procedure(procIndx);
-        for (int insIndx = 0; insIndx < proc.instructionCount(); insIndx++) {
-            const Instruction& instruction = proc.instructionAtIndex(insIndx);
-            for (int i = 0; i < instruction.moveCount(); ++i) {
-                const Move& move = instruction.move(i);
-                if (move.source().isGPR()) {
-                    addDeclaredSymbol(symbolGen_.registerSymbol(
-                                          move.source()), 
-                                      move.source().port().width());
-                }
-                if (move.destination().isGPR()) {
-                    addDeclaredSymbol(symbolGen_.registerSymbol(
-                                          move.destination()), 
-                                      move.destination().port().width());
-                }
-            }
-        }
-    }
-}
 
 /**
  * Generates code for a jump operation

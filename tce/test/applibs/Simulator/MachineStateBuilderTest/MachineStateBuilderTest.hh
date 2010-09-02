@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * A test suite for MachineStateBuilder.
  *
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef MACHINE_STATE_BUILDER_TEST_HH
@@ -50,8 +50,6 @@
 #include "MemoryAccessingFUState.hh"
 #include "MemorySystem.hh"
 #include "IdealSRAM.hh"
-#include "UniversalMachine.hh"
-#include "UnboundRegisterFileState.hh"
 #include "GlobalLock.hh"
 
 using namespace TTAMachine;
@@ -65,7 +63,6 @@ public:
     void tearDown();
 
     void testBuildMachineState();
-    void testBuildFromUniversalMachine();
 };
 
 
@@ -180,54 +177,6 @@ MachineStateBuilderTest::testBuildMachineState() {
     delete machine;
     delete state;
 
-}
-
-/**
- * Test that MachineState is correctly built from UniversalMachine.
- */
-void
-MachineStateBuilderTest::testBuildFromUniversalMachine() {
-
-    OperationPool pool;
-    UniversalMachine um(pool);
-    Machine::AddressSpaceNavigator aNavigator = um.addressSpaceNavigator();
-    AddressSpace* as = aNavigator.item(UM_DMEM_NAME);
-    MemorySystem memSys(um);
-    IdealSRAM* sram = new IdealSRAM(as->start(), as->end(), 8);
-
-    memSys.addAddressSpace(*as, sram);
-    MachineStateBuilder builder;
-    GlobalLock lock;
-    
-    MachineState* machineState = builder.build(um, memSys, lock);
-    BusState& bus = machineState->busState(UM_BUS_NAME);
-    TS_ASSERT_DIFFERS(&bus, &NullBusState::instance());
-
-    FUState& univFU = 
-        machineState->fuState(UM_UNIVERSAL_FU_NAME);
-    TS_ASSERT_DIFFERS(&univFU, &NullFUState::instance());
-
-    RegisterFileState& regFile = 
-        machineState->registerFileState(UM_DOUBLE_URF_NAME);
-    TS_ASSERT(dynamic_cast<UnboundRegisterFileState*>(&regFile) != NULL);
-
-    RegisterFileState& regFile2 = 
-        machineState->registerFileState(UM_INTEGER_URF_NAME);
-    TS_ASSERT(dynamic_cast<UnboundRegisterFileState*>(&regFile2) != NULL);
-
-    RegisterFileState& regFile3 =
-        machineState->registerFileState(UM_BOOLEAN_RF_NAME);
-    TS_ASSERT_DIFFERS(&regFile3, &NullRegisterFileState::instance());
-    TS_ASSERT(dynamic_cast<UnboundRegisterFileState*>(&regFile3) == NULL);
-
-    RegisterFileState& regFile4 =
-        machineState->registerFileState(UM_SPECIAL_RF_NAME);
-    TS_ASSERT_DIFFERS(&regFile4, &NullRegisterFileState::instance());
-    TS_ASSERT(dynamic_cast<UnboundRegisterFileState*>(&regFile4) == NULL);
-
-    delete machineState;
-
-    OperationPool::cleanupCache();
 }
 
 #endif

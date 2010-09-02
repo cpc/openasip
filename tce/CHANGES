@@ -26,6 +26,12 @@ Optimizations
 -------------
 - ttasim: destruction was extremely slow after simulating large
   programs due to extremely slow destructor of InstructionMemory
+  
+Misc
+----
+- ttasim: removed support for simulating the experimental 'sequential
+  TTA programs'. Sequential a.out programs was the intermediate representation 
+  from the old (now unsupported) gcc 2.7.0 compiler frontend.
 
 1.2    June 2010
 ================

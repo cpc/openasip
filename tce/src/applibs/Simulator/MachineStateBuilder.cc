@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of MachineStateBuilder class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
  * @note rating: red
  */
@@ -54,7 +54,6 @@
 #include "OneCycleOperationExecutor.hh"
 #include "SimpleOperationExecutor.hh"
 #include "ConflictDetectingOperationExecutor.hh"
-#include "UnboundRegisterFileState.hh"
 #include "GCUState.hh"
 #include "ControlUnit.hh"
 #include "Operation.hh"
@@ -62,7 +61,6 @@
 #include "Memory.hh"
 #include "MemorySystem.hh"
 #include "MemoryAccessingFUState.hh"
-#include "UnboundedRegisterFile.hh"
 #include "StateLocator.hh"
 #include "TransportPipeline.hh"
 #include "GlobalLock.hh"
@@ -265,12 +263,8 @@ MachineStateBuilder::buildMachineState(
     for (int i = 0; i < registers.count(); i++) {
         RegisterFile* regFile = registers.item(i);
         RegisterFileState* state = NULL;
-        if (typeid(*regFile) == typeid(UnboundedRegisterFile)) {
-            state = new UnboundRegisterFileState(); 
-        } else {
-            state = new RegisterFileState(
-                regFile->numberOfRegisters(), regFile->width());
-        }
+        state = new RegisterFileState(
+            regFile->numberOfRegisters(), regFile->width());
         machineState->addRegisterFileState(state, regFile->name());
     }
 

@@ -99,7 +99,7 @@ SimulationController::SimulationController(
 
     MachineStateBuilder builder;
 
-    if (fuResourceConflictDetection && !sequentialSimulation_)
+    if (fuResourceConflictDetection)
         buildFUResourceConflictDetectors(machine);
 
     try {
@@ -436,29 +436,6 @@ SimulationController::reset() {
         FUResourceConflictDetector& detector = *(*d).second;
         detector.reset();
     }
-
-    // initialize stack pointer to end of address space.
-    if (sequentialSimulation_) {
-        const UniversalMachine& uMach =             
-            dynamic_cast<const UniversalMachine&>(sourceMachine_);
-       
-        std::string rfName = uMach.integerRegisterFile().name();
-        int regWidth = uMach.integerRegisterFile().width();
-
-        // leave some space for putting first ra register value in...
-        unsigned int lastDataAddress = (unsigned)-8;
-               
-        // set stack pointer (r1) to be in the end of data memory
-        RegisterState& stackPointerState = 
-            machineState().registerFileState(rfName).registerState(1);
-        
-        stackPointerState.setValue(SimValue(lastDataAddress, regWidth));
-
-        unsigned int lastInstrAddress = 
-            uMach.instructionAddressSpace().end();
-
-        gcu_->setReturnAddress(lastInstrAddress);
-    }
 }
 
 /**
@@ -500,8 +477,8 @@ SimulationController::registerFileValue(
 
     if (registerIndex >= 0) {
         stringValue += Conversion::toString(
-            frontend_.findRegister(rfName, registerIndex, 
-                sequentialSimulation_).value().intValue());
+            frontend_.findRegister(rfName, registerIndex).value().
+            intValue());
     } else {
         Machine::RegisterFileNavigator navigator = 
             sourceMachine_.registerFileNavigator();
@@ -513,8 +490,7 @@ SimulationController::registerFileValue(
                 stringValue += "\n";
             const std::string registerName = 
                 rfName + "." + Conversion::toString(i);
-            SimValue value = frontend_.findRegister(rfName, i, 
-                sequentialSimulation_).value();
+            SimValue value = frontend_.findRegister(rfName, i).value();
             stringValue += registerName + " " + Conversion::toHexString(
                 static_cast<unsigned int>(MathTools::zeroExtendTo(
                     value.uIntWordValue(), value.width()))) + " " 

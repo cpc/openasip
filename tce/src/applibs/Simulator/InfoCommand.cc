@@ -62,7 +62,6 @@
 #include "StringTools.hh"
 #include "StopPointManager.hh"
 #include "UniversalMachine.hh"
-#include "UnboundRegisterFileState.hh"
 #include "UnboundedRegisterFile.hh"
 #include "MachineState.hh"
 #include "RegisterFileState.hh"
@@ -122,13 +121,7 @@ public:
         }
 
         const int argumentCount = arguments.size() - 2;
-        const bool sequentialSimulation = 
-            parent().simulatorFrontend().isSequentialSimulation();
-
-        if ((sequentialSimulation && 
-             !parent().checkArgumentCount(argumentCount, 0, 1)) ||
-            (!sequentialSimulation && 
-             !parent().checkArgumentCount(argumentCount, 1, 2))) {
+        if (!parent().checkArgumentCount(argumentCount, 1, 2)) {
             return false;
         }
         
@@ -137,74 +130,7 @@ public:
         std::string registerString = "";
         int registerIndex = -1;
 
-        if (argumentCount == 0) {
-            assert(sequentialSimulation);
-            // prints out all registers used by the loaded program and their 
-            // values
-            const UniversalMachine& umach = 
-                dynamic_cast<const UniversalMachine&>(
-                    parent().simulatorFrontend().machine());
-            
-            MachineState& machineState = 
-                parent().simulatorFrontend().machineState();
-
-            const UnboundRegisterFileState& integerRF = 
-                dynamic_cast<const UnboundRegisterFileState&>(
-                    machineState.registerFileState(
-                        umach.integerRegisterFile().name()));
-
-            const UnboundRegisterFileState& doubleRF = 
-                dynamic_cast<const UnboundRegisterFileState&>(
-                    machineState.registerFileState(
-                        umach.doubleRegisterFile().name()));              
-
-            std::string output = "";
-            bool firstReg = true;
-            for (std::size_t i = 0; i < integerRF.registerCount(); ++i) {
-                if (!integerRF.isRegisterInUse(i))
-                    continue;
-                
-                if (!firstReg) 
-                    output += "\n";
-                StateData& data = 
-                    parent().simulatorFrontend().findRegister("r", i, true);
-
-                const std::string registerName = 
-                    "r" + Conversion::toString(i);
-
-                output += registerDescription(registerName, data.value());
-                firstReg = false;
-            }
-
-            /// @note Printing floating point register list is not tested.
-            for (std::size_t i = 0; i < doubleRF.registerCount(); ++i) {
-                if (!doubleRF.isRegisterInUse(i))
-                    continue;
-                                
-                StateData& data = 
-                    parent().simulatorFrontend().findRegister("f", i, true);
-
-                const std::string registerName = 
-                    "f" + Conversion::toString(i);
-
-                output += "\n";
-                output += registerDescription(registerName, data.value());
-            }
-
-            StateData& booleanData = 
-                parent().simulatorFrontend().findRegister("boolean", 0, true);
-
-            if (!firstReg)
-                output += "\n";
-            output += registerDescription("bool", booleanData.value());
-
-            
-            parent().interpreter()->setResult(output);
-            return true;
-        } else if (argumentCount == 1) {
-            // sequential simulation: print out the value of the given 
-            // register
-
+        if (argumentCount == 1) {
             // 'ra' is treated as a special case
             if (StringTools::ciEqual(registerString, "ra")) {
                 StateData& data = 
@@ -215,74 +141,28 @@ public:
                 return true;      
             } 
             
-            if (sequentialSimulation) {
-
-                registerString = arguments[2].stringValue();
-                if (StringTools::ciEqual(registerString, "bool") ||
-                    StringTools::ciEqual(registerString, "boolean")) {
-                    // handle the boolean register as a special case
-                    registerFile = "bool";
-                    registerIndex = 0;
-                    registerName = "bool";
-                } else {
-                    // 'rv', 'sp' and 'fv' are converted to the actual 
-                    // registers
-                    if (StringTools::ciEqual(registerString, "rv")) {
-                        registerString = "r0";
-                    } else if (StringTools::ciEqual(registerString, "fv")) {
-                        registerString = "f0";
-                    } else if (StringTools::ciEqual(registerString, "sp")) {
-                        registerString = "r1";
-                    }
-
-
-                    boost::smatch parsed;
-                    
-                    if (!regex_match(
-                            registerString, parsed, 
-                            SimulatorToolbox::sequentialRegisterRegex())) {
-                        parent().interpreter()->setError(
-                            SimulatorToolbox::textGenerator().text(
-                                Texts::TXT_REGISTER_NOT_FOUND).str());
-                        return false;
-                    }
-                    registerIndex = Conversion::toInt(parsed[2]);
-                    // Boost::regex seems to have a bug with icc, parsed[1] 
-                    // contained an empty etring, thus couldn't be used here
-                    registerFile = (registerString)[0];
-                    registerName = registerString;
-                }
-            } else {
-                registerFile = arguments[2].stringValue();
+            registerFile = arguments[2].stringValue();
                 
-                try {
+            try {
                 parent().interpreter()->setResult(
                     parent().simulatorFrontend().registerFileValue(registerFile));
-                } catch (const InstanceNotFound&) {
-                    parent().interpreter()->setError(
-                        SimulatorToolbox::textGenerator().text(
-                            Texts::TXT_REGISTER_NOT_FOUND).str());
-                    return false;
-                }
-                return true;
+            } catch (const InstanceNotFound&) {
+                parent().interpreter()->setError(
+                    SimulatorToolbox::textGenerator().text(
+                        Texts::TXT_REGISTER_NOT_FOUND).str());
+                return false;
             }
+            return true;
 
         } else if (argumentCount == 2) {
-            if (!sequentialSimulation) {
             // prints out the register in the given register file
-                if (!parent().checkPositiveIntegerArgument(arguments[3])) {
-                    return false;
-                }
-                registerFile = arguments[2].stringValue();
-                registerIndex = arguments[3].integerValue();
-                registerName = 
-                    registerFile + "." + Conversion::toString(registerIndex);
-
-            } else {
-                abortWithError(
-                    "We shouldn't get to this branch in sequential "\
-                    "simulation");
+            if (!parent().checkPositiveIntegerArgument(arguments[3])) {
+                return false;
             }
+            registerFile = arguments[2].stringValue();
+            registerIndex = arguments[3].integerValue();
+            registerName = 
+                registerFile + "." + Conversion::toString(registerIndex);
         } else {
             abortWithError("Illegal count of arguments.");
         }
@@ -446,10 +326,6 @@ public:
      */
     virtual bool execute(const std::vector<DataObject>& arguments) {
 
-        if (!parent().checkParallelSimulation()) {
-            return false;
-        }
-
         const int argumentCount = arguments.size() - 2;
 
         if (!parent().checkArgumentCount(argumentCount, 0, 0)) {
@@ -501,10 +377,6 @@ public:
      */
     virtual bool execute(const std::vector<DataObject>& arguments) {
 
-        if (!parent().checkParallelSimulation()) {
-            return false;
-        }
-
         const int argumentCount = arguments.size() - 2;
 
         if (!parent().checkArgumentCount(argumentCount, 0, 0)) {
@@ -554,10 +426,6 @@ public:
      * @return Always true.
      */
     virtual bool execute(const std::vector<DataObject>& arguments) {
-
-        if (!parent().checkParallelSimulation()) {
-            return false;
-        }
 
         const int argumentCount = arguments.size() - 2;
 
@@ -646,10 +514,6 @@ public:
      * @return Always true.
      */
     virtual bool execute(const std::vector<DataObject>& arguments) {
-
-        if (!parent().checkParallelSimulation()) {
-            return false;
-        }
 
         const int argumentCount = arguments.size() - 2;
 
@@ -741,10 +605,6 @@ public:
      */
     virtual bool execute(const std::vector<DataObject>& arguments) {
 
-        if (!parent().checkParallelSimulation()) {
-            return false;
-        }
-
         const int argumentCount = arguments.size() - 2;
 
         if (!parent().checkArgumentCount(argumentCount, 1, 2)) {
@@ -812,10 +672,6 @@ public:
      * @return Always true.
      */
     virtual bool execute(const std::vector<DataObject>& arguments) {
-
-        if (!parent().checkParallelSimulation()) {
-            return false;
-        }
 
         const int argumentCount = arguments.size() - 2;
 
@@ -892,9 +748,6 @@ public:
         } else if (command == "stats") {
             std::stringstream result;
             
-            const bool sequentialSimulation =
-                parent().simulatorFrontend().isSequentialSimulation();
-
             const ClockCycleCount totalCycles = 
                 parent().simulatorFrontend().cycleCount();
             
@@ -918,121 +771,106 @@ public:
                 parent().simulatorFrontend().machine();
             std::set<std::string> operationsOfMachine;
 
-            if (!sequentialSimulation) {
-                result
-                    << std::endl << "buses:" << std::endl << std::endl;
+            result
+                << std::endl << "buses:" << std::endl << std::endl;
             
-                const TTAMachine::Machine::BusNavigator& busNav = 
-                    mach.busNavigator();
-
-                for (int i = 0; i < busNav.count(); ++i) {
-                    TTAMachine::Bus* bus = busNav.item(i);
-                    assert(bus != NULL);
-                    const ClockCycleCount writes = 
-                        stats.busWrites(bus->name());
-                    if (writes == 0)
-                        continue;
-
-                    result                    
-                        << std::left << std::setw(COLUMN_WIDTH)
-                        << bus->name() << " " 
-                        << std::left << std::setw(COLUMN_WIDTH)
-                        << Conversion::toString(writes * 100.0 / totalCycles) +
-                        "% (" + Conversion::toString(writes) + " writes)"
-                        << std::endl;
-                }
-                
-                result
-                    << std::endl
-                    << "sockets:" << std::endl << std::endl;
+            const TTAMachine::Machine::BusNavigator& busNav = 
+                mach.busNavigator();
             
-                const TTAMachine::Machine::SocketNavigator& socketNav = 
-                    mach.socketNavigator();
-                for (int i = 0; i < socketNav.count(); ++i) {
-                    TTAMachine::Socket* socket = socketNav.item(i);
-                    assert(socket != NULL);
-                    const ClockCycleCount writes = 
-                        stats.socketWrites(socket->name());
-                    if (writes == 0) 
-                        continue;
+            for (int i = 0; i < busNav.count(); ++i) {
+                TTAMachine::Bus* bus = busNav.item(i);
+                assert(bus != NULL);
+                const ClockCycleCount writes = 
+                    stats.busWrites(bus->name());
+                if (writes == 0)
+                    continue;
 
-                    result
-                        << std::left << std::setw(COLUMN_WIDTH)
-                        << socket->name() << " " 
-                        << std::left << std::setw(COLUMN_WIDTH)
-                        << Conversion::toString(writes * 100.0 / totalCycles) +
-                        "% (" + Conversion::toString(writes) + " writes)"
-                        << std::endl;
-                }            
-             
                 result                    
-                    << std::endl
-                    << "operations executed in function units:" 
-                    << std::endl << std::endl;
+                    << std::left << std::setw(COLUMN_WIDTH)
+                    << bus->name() << " " 
+                    << std::left << std::setw(COLUMN_WIDTH)
+                    << Conversion::toString(writes * 100.0 / totalCycles) +
+                    "% (" + Conversion::toString(writes) + " writes)"
+                    << std::endl;
+            }
+                
+            result
+                << std::endl
+                << "sockets:" << std::endl << std::endl;
             
-                const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
-                    mach.functionUnitNavigator();
-                for (int i = 0; i <= fuNav.count(); ++i) {
-                    TTAMachine::FunctionUnit* fu = NULL;
-                    if (i < fuNav.count())
-                        fu = fuNav.item(i);
-                    else
-                        fu = mach.controlUnit();
-                    assert(fu != NULL);
-                    const ClockCycleCount totalTriggersOfFU = 
-                        stats.triggerCount(fu->name());
+            const TTAMachine::Machine::SocketNavigator& socketNav = 
+                mach.socketNavigator();
+            for (int i = 0; i < socketNav.count(); ++i) {
+                TTAMachine::Socket* socket = socketNav.item(i);
+                assert(socket != NULL);
+                const ClockCycleCount writes = 
+                    stats.socketWrites(socket->name());
+                if (writes == 0) 
+                    continue;
 
-                    if (totalTriggersOfFU == 0)
-                        continue;
+                result
+                    << std::left << std::setw(COLUMN_WIDTH)
+                    << socket->name() << " " 
+                    << std::left << std::setw(COLUMN_WIDTH)
+                    << Conversion::toString(writes * 100.0 / totalCycles) +
+                    "% (" + Conversion::toString(writes) + " writes)"
+                    << std::endl;
+            }            
+             
+            result                    
+                << std::endl
+                << "operations executed in function units:" 
+                << std::endl << std::endl;
+            
+            const TTAMachine::Machine::FunctionUnitNavigator& fuNav = 
+                mach.functionUnitNavigator();
+            for (int i = 0; i <= fuNav.count(); ++i) {
+                TTAMachine::FunctionUnit* fu = NULL;
+                if (i < fuNav.count())
+                    fu = fuNav.item(i);
+                else
+                    fu = mach.controlUnit();
+                assert(fu != NULL);
+                const ClockCycleCount totalTriggersOfFU = 
+                    stats.triggerCount(fu->name());
 
-                    result                        
-                        << fu->name() << ":" << std::endl;
+                if (totalTriggersOfFU == 0)
+                    continue;
 
-                    for (int j = 0; j < fu->operationCount(); ++j) {
-                        const TTAMachine::HWOperation* op = fu->operation(j);
-                        assert(op != NULL);
-                        const std::string operationUpper = 
-                            StringTools::stringToUpper(op->name());
-                        operationsOfMachine.insert(operationUpper);
-                        const ClockCycleCount executions = 
-                            stats.operationExecutions(
-                                fu->name(), operationUpper);
-                        if (executions == 0) 
-                            continue;
+                result                        
+                    << fu->name() << ":" << std::endl;
 
-                        result
-                            << std::left << std::setw(COLUMN_WIDTH)
-                            << operationUpper << " " 
-                            << std::left << std::setw(COLUMN_WIDTH)
-                            << Conversion::toString(
-                                executions * 100.0 / totalTriggersOfFU) + 
-                            "% of FU total (" + 
-                            Conversion::toString(executions) + " executions)"
-                            << std::endl;
-                    }
-
-                    result                   
-                        << std::left << std::setw(COLUMN_WIDTH)
-                        << "TOTAL" << " " 
-                        << std::left << std::setw(COLUMN_WIDTH)
-                        << Conversion::toString(
-                            totalTriggersOfFU * 100.0 / totalCycles) + "% (" +
-                        Conversion::toString(totalTriggersOfFU) + 
-                        " triggers)" << std::endl << std::endl;
-                }
-
-            } else {
-                // sequentialSimulation -- collect operations
-                const TTAMachine::FunctionUnit& fu = 
-                    dynamic_cast<const UniversalMachine&>(
-                        mach).universalFunctionUnit();
-                for (int j = 0; j < fu.operationCount(); ++j) {
-                    const TTAMachine::HWOperation* op = fu.operation(j);
+                for (int j = 0; j < fu->operationCount(); ++j) {
+                    const TTAMachine::HWOperation* op = fu->operation(j);
                     assert(op != NULL);
                     const std::string operationUpper = 
                         StringTools::stringToUpper(op->name());
                     operationsOfMachine.insert(operationUpper);
+                    const ClockCycleCount executions = 
+                        stats.operationExecutions(
+                            fu->name(), operationUpper);
+                    if (executions == 0) 
+                        continue;
+
+                    result
+                        << std::left << std::setw(COLUMN_WIDTH)
+                        << operationUpper << " " 
+                        << std::left << std::setw(COLUMN_WIDTH)
+                        << Conversion::toString(
+                            executions * 100.0 / totalTriggersOfFU) + 
+                        "% of FU total (" + 
+                        Conversion::toString(executions) + " executions)"
+                        << std::endl;
                 }
+
+                result                   
+                    << std::left << std::setw(COLUMN_WIDTH)
+                    << "TOTAL" << " " 
+                    << std::left << std::setw(COLUMN_WIDTH)
+                    << Conversion::toString(
+                        totalTriggersOfFU * 100.0 / totalCycles) + "% (" +
+                    Conversion::toString(totalTriggersOfFU) + 
+                    " triggers)" << std::endl << std::endl;
             }
 
             const TTAMachine::FunctionUnit& gcu = *mach.controlUnit();
@@ -1112,15 +950,7 @@ public:
 
                 int regsUsedInFile = 0;
                 int lastReg = 0;
-                if (sequentialSimulation) {    
-                    // it's not legal to ask universal machine how many
-                    // registers it has, because in theory it has unlimited
-                    // registers, so we'll ask from the stats counter
-                    // the largest used register index   
-                    lastReg = stats.highestUsedRegisterIndex();
-                } else {
-                    lastReg = rf->numberOfRegisters() - 1;
-                }
+                lastReg = rf->numberOfRegisters() - 1;
 
                 for (int reg = 0; reg <= lastReg; ++reg) {
                     ClockCycleCount reads = 
@@ -1164,16 +994,8 @@ public:
 
                 int usedRegCount = 0;
                 int lastReg = 0;
-                if (sequentialSimulation) {    
-                    // it's not legal to ask universal machine how many
-                    // registers it has, because in theory it has unlimited
-                    // registers, so we'll ask from the stats counter
-                    // the largerst used register index   
-                    lastReg = stats.highestUsedRegisterIndex();
-                } else {
-                    lastReg = iu->numberOfRegisters() - 1;
-                }
-
+                lastReg = iu->numberOfRegisters() - 1;
+                
                 for (int reg = 0; reg <= lastReg; ++reg) {
                     ClockCycleCount reads = 
                         stats.registerReads(iu->name(), reg);
@@ -1197,9 +1019,8 @@ public:
             }            
 
 
-            if (!sequentialSimulation && 
-                parent().simulatorFrontend().rfAccessTracing()) {
-
+            if (parent().simulatorFrontend().rfAccessTracing()) {
+                
                 try {
                     const RFAccessTracker& rfAccessTracker = 
                         parent().simulatorFrontend().rfAccessTracker();
@@ -1322,10 +1143,7 @@ public:
         
         const UtilizationStats& stats = 
             parent().simulatorFrontend().utilizationStatistics();
-        
-        const bool sequentialSimulation =
-            parent().simulatorFrontend().isSequentialSimulation();
-            
+                   
         const TTAMachine::Machine& mach = 
             parent().simulatorFrontend().machine();
         
@@ -1370,11 +1188,7 @@ public:
                 assert(rf != NULL);
 
                 int lastReg = 0;
-                if (sequentialSimulation) {    
-                    lastReg = stats.highestUsedRegisterIndex();
-                } else {
-                    lastReg = rf->numberOfRegisters() - 1;
-                }
+                lastReg = rf->numberOfRegisters() - 1;
                 for (int reg = 0; reg <= lastReg; ++reg) {
                     totalRegisterReads += stats.registerReads(rf->name(), reg);
                 }
@@ -1389,11 +1203,7 @@ public:
                 assert(rf != NULL);
 
                 int lastReg = 0;
-                if (sequentialSimulation) {    
-                    lastReg = stats.highestUsedRegisterIndex();
-                } else {
-                    lastReg = rf->numberOfRegisters() - 1;
-                }
+                lastReg = rf->numberOfRegisters() - 1;
                 for (int reg = 0; reg <= lastReg; ++reg) {
                     totalRegisterWrites += stats.registerWrites(rf->name(), reg);
                 }

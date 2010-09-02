@@ -77,7 +77,6 @@ public:
     bool checkSimulationNotAlreadyRunning();
     bool checkSimulationStopped();
     bool checkSimulationEnded();
-    bool checkParallelSimulation();
     bool checkProgramLoaded();
 
     InstructionAddress parseInstructionAddressExpression(

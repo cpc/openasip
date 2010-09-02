@@ -169,31 +169,6 @@ SimControlLanguageCommand::checkSimulationEnded() {
     return true;
 }
 
-/**
- * Checks that the simulation is running a parallel simulation.
- *
- * Sets errors message and returns false if no parallel simulation is
- * running.
- *
- * @return True if parallel simulation is running.
- */
-bool
-SimControlLanguageCommand::checkParallelSimulation() {
-
-    if (!checkSimulationInitialized() &&
-        !checkSimulationStopped() &&
-        !simulatorFrontend().isSimulationRunning()) {
-        return false;
-    }
-
-    if (simulatorFrontend().isSequentialSimulation()) {
-        interpreter()->setError(
-            SimulatorToolbox::textGenerator().text(
-                Texts::TXT_NOT_RUNNING_PARALLEL_SIMULATION).str());
-        return false;
-    }        
-    return true;
-}
 
 /**
  * Checks that the simulated program has been loaded successfully.

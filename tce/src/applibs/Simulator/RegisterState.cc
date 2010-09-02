@@ -76,7 +76,6 @@ RegisterState::~RegisterState() {
 void
 RegisterState::setValue(const SimValue& value) {
     value_ = value;
-    value_.setActive();
 }
 
 /**

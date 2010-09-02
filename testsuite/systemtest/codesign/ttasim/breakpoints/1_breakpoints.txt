@@ -1,3 +1,4 @@
+mach data/hello.adf
 prog data/hello
 bp 1
 info breakpoints

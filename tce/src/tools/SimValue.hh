@@ -59,10 +59,6 @@ public:
     inline SimValue(const SimValue& source);
 
     int width() const;
-    bool isActive() const;
-    void setActive();
-    //void setWidth(std::size_t bitWidth);
-    void clearActive();
 
     SimValue& operator=(const SIntWord& source);
     SimValue& operator=(const UIntWord& source);
@@ -119,10 +115,6 @@ public:
     int bitWidth_;
 
 private:
-
-    /// True if the value represents a valid data word, false otherwise.
-    bool active_;
-
     /// Mask for masking extra bits when returning unsigned value.
     UIntWord mask_;
 };

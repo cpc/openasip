@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Declaration of SimulatorToolbox class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005,2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2009-2010 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -56,7 +56,6 @@ public:
     static OperationPool& operationPool();
     static SimulatorTextGenerator& textGenerator();
     
-    static boost::regex sequentialRegisterRegex();
     static boost::regex fuPortRegex();
 
 protected:

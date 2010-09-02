@@ -72,9 +72,8 @@ TTASimulationController::TTASimulationController(
     state_(STA_INITIALIZING), clockCount_(0), 
     initialPC_( program.entryAddress().location()),  
     automaticFinishImpossible_(true),
-    memoryTracking_(memoryAccessTracking),                        
-    sequentialSimulation_(dynamic_cast<const UniversalMachine*>(&machine) != 
-        NULL), firstIllegalInstructionIndex_(UINT_MAX),
+    memoryTracking_(memoryAccessTracking),
+    firstIllegalInstructionIndex_(UINT_MAX),
     directAccessMemory_(directAccessMemory) {
 
     initializeMemorySystem(machine);

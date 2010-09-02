@@ -1,3 +1,4 @@
+mach data/hello.adf
 prog data/broken.tpf
 prog foobar.tpf
 prog data/broken.tpf

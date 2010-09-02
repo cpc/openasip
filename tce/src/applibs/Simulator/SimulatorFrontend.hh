@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of SimulatorFrontend class
  *
- * @author Pekka J‰‰skel‰inen 2005-2009 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005-2010 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -145,7 +145,6 @@ public:
     bool isMachineLoaded() const;
     bool hasSimulationEnded() const;
 
-    bool isSequentialSimulation() const;
     bool isCompiledSimulation() const;
     void setCompiledSimulationLeaveDirty(bool dirty) { 
         leaveCompiledDirty_ = dirty;
@@ -198,8 +197,7 @@ public:
 
     StateData& findRegister(
         const std::string& rfName, 
-        int registerIndex, 
-        bool sequential) 
+        int registerIndex) 
         throw (InstanceNotFound);
 
     StateData& findBooleanRegister() 
@@ -283,9 +281,6 @@ protected:
     std::string programFileName_;
     /// Is the program owned by SimulatorFrontend or by the client?
     bool programOwnedByFrontend_;   
-    /// Is this sequential simulation, that is, is the currentMachine_
-    /// an UniversalMachine or not?
-    bool sequentialSimulation_;
     /// Is this a compiled simulation or not
     bool compiledSimulation_;
     /// The disassembler used to print out instructions. This is

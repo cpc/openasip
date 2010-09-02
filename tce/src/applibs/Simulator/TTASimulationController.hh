@@ -168,8 +168,6 @@ protected:
     mutable bool automaticFinishImpossible_;
     /// True if memory access tracking is enabled.
     bool memoryTracking_;
-    /// True if simulation is done with sequential machine.
-    bool sequentialSimulation_;
     /// The index of the first illegal instruction in the instruction
     /// sequence.
     mutable InstructionAddress firstIllegalInstructionIndex_;

@@ -1,6 +1,7 @@
+mach data/hello.adf
 prog data/hello
 watch
-info registers sp
+info registers RF 0
 run
 resume
 quit

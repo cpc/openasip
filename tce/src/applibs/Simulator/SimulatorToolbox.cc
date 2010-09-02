@@ -74,17 +74,6 @@ SimulatorToolbox::textGenerator() {
 }
 
 /**
- * Returns a regular expression to parse a sequential register 
- * string.
- *
- * @return The regular expression.
- */
-boost::regex
-SimulatorToolbox::sequentialRegisterRegex() {
-    return boost::regex("([rR]|[fF])([0-9]+)");
-}
-
-/**
  * Returns a regular expression to parse a FU port string.
  *
  * @return The regular expression.

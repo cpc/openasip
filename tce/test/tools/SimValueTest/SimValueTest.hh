@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  * 
  * A test suite for SimValue.
  *
- * @author Pekka J‰‰skel‰inen 2004 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2004,2010 (pekka.jaaskelainen-no.spam-tut.fi)
  */
 
 #ifndef SIM_VALUE_TEST_HH
@@ -71,41 +71,27 @@ SimValueTest::testAssignment() {
     SIntWord test1 = 12;
 
     TS_ASSERT_EQUALS(val.width(), 10);
-    TS_ASSERT_EQUALS(val.isActive(), false);
 
     val = test1;
-    val.setActive();
 
     TS_ASSERT_EQUALS(val.sIntWordValue(), test1);
-    TS_ASSERT_EQUALS(val.isActive(), true);
 
     FloatWord test5 = 4.4;
 
-    val.clearActive();
-    TS_ASSERT_EQUALS(val.isActive(), false);
-
     val = test5;
-    val.setActive();
 
     TS_ASSERT_EQUALS(val.floatWordValue(), test5);
-    TS_ASSERT_EQUALS(val.isActive(), true);
 
     DoubleWord test6 = 54.332;
 
-    val.clearActive();
-    TS_ASSERT_EQUALS(val.isActive(), false);
 
     val = test6;
-    val.setActive();
     TS_ASSERT_EQUALS(val.doubleWordValue(), test6);
-    TS_ASSERT_EQUALS(val.isActive(), true);
 
     SimValue val2(10);
 
     val2 = val;
-    val2.setActive();
     TS_ASSERT_EQUALS(val2.doubleWordValue(), test6);
-    TS_ASSERT_EQUALS(val2.isActive(), true);
 
     // Test unsigned bit masking.
     SimValue val3(3);

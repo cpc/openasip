@@ -1,3 +1,0 @@
-prog data/endianess_test
-run
-quit

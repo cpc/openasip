@@ -8,7 +8,7 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	OutputPortState.cc PortState.cc RegisterFileState.cc \
 	RegisterState.cc SimpleOperationExecutor.cc \
 	TriggeringInputPortState.cc \
-	UnboundRegisterFileState.cc SimulatorToolbox.cc MemorySystem.cc \
+	SimulatorToolbox.cc MemorySystem.cc \
 	StateLocator.cc TransportPipeline.cc SimulationController.cc \
 	GlobalLock.cc ExecutableMove.cc ExecutableInstruction.cc \
 	InstructionMemory.cc LongImmUpdateAction.cc SimProgramBuilder.cc \
@@ -103,7 +103,7 @@ libsimulator_la_SOURCES += \
 	MachCommand.hh MemoryAccessingFUState.hh \
 	CommandsCommand.hh FUConflictDetectorIndex.hh \
 	SimulatorToolbox.hh RunCommand.hh \
-	OperationExecutor.hh UnboundRegisterFileState.hh \
+	OperationExecutor.hh \
 	ExecutableInstruction.hh OutputPortState.hh \
 	StepiCommand.hh MachineStateBuilder.hh \
 	CompiledSimulation.hh FUState.hh \

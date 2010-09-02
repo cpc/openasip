@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of CompiledSimCodeGenerator class.
  *
  * @author Viljami Korhonen 2007 (viljami.korhonen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  * @note rating: red
  */
 
@@ -104,7 +105,6 @@ public:
         const TTAMachine::Machine& machine,
         const TTAProgram::Program& program,
         const TTASimulationController& controller,
-        bool sequentialSimulation,
         bool fuResourceConflictDetection,
         bool handleCycleEnd,
         bool dynamicCompilation,
@@ -197,8 +197,6 @@ private:
     /// GCU
     const TTAMachine::ControlUnit& gcu_;
     
-    /// Is the simulation sequential code or not
-    bool isSequentialSimulation_;
     /// Should we let frontend handle each cycle end
     bool handleCycleEnd_;
     /// Is this a dynamic compiled simulation?
