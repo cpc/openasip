@@ -33,7 +33,6 @@
 #include "NullTerminal.hh"
 #include "Application.hh"
 #include "NullRegisterFile.hh"
-#include "NullImmediateUnit.hh"
 #include "NullFunctionUnit.hh"
 #include "Operation.hh"
 #include "NullPort.hh"
@@ -159,7 +158,8 @@ const ImmediateUnit&
 NullTerminal::immediateUnit() const throw (WrongSubclass) {
 
     abortWithError("immediateUnit()");
-    return NullImmediateUnit::instance();
+    // to avoid warning:
+    throw WrongSubclass(__FILE__,__LINE__,__func__,"");
 }
 
 /**

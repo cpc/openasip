@@ -79,7 +79,6 @@
 #include "RFAccessTracker.hh"
 #include "LongImmediateUnitState.hh"
 #include "LongImmediateRegisterState.hh"
-#include "NullImmediateUnit.hh"
 
 using std::string;
 

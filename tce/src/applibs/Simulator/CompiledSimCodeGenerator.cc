@@ -51,7 +51,6 @@
 #include "ExecutableInstruction.hh"
 #include "NullInstruction.hh"
 #include "NullRegisterFile.hh"
-#include "NullImmediateUnit.hh"
 #include "Move.hh"
 #include "Guard.hh"
 #include "MoveGuard.hh"

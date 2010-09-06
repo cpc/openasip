@@ -10,7 +10,7 @@ libmach_la_SOURCES =							     \
 	MachineTestReporter.cc MOMTextGenerator.cc ImmediateSlot.cc          \
 	ADFSerializerTextGenerator.cc BaseFUPort.cc RFPort.cc                \
         SpecialRegisterPort.cc NullAddressSpace.cc NullBus.cc                \
-	NullFunctionUnit.cc NullImmediateUnit.cc NullInstructionTemplate.cc  \
+	NullFunctionUnit.cc NullInstructionTemplate.cc  \
         NullPort.cc NullRegisterFile.cc NullMachine.cc NullGuard.cc          \
 	DummyMachineTester.cc
 
@@ -53,7 +53,7 @@ libmach_la_SOURCES += \
 	ADFSerializerTextGenerator.hh Bridge.hh \
 	Segment.hh MachineTestReporter.hh \
 	BaseFUPort.hh ImmediateUnit.hh \
-	MachineTestReportTextGenerator.hh NullImmediateUnit.hh \
+	MachineTestReportTextGenerator.hh \
 	NullInstructionTemplate.hh NullFunctionUnit.hh \
 	RegisterFile.hh NullRegisterFile.hh \
 	NullAddressSpace.hh Machine.hh \
