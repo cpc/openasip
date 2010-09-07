@@ -66,7 +66,6 @@
 #include "DataLabel.hh"
 #include "BinaryStream.hh"
 #include "LLVMPOMBuilder.hh"
-#include "NullTerminal.hh"
 #include "Operand.hh"
 #include "CodeGenerator.hh"
 #include "ProgramAnnotation.hh"
@@ -1425,7 +1424,7 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
     } else if (mo.isGlobal()) {
         std::string name = mang_->getNameWithPrefix(mo.getGlobal());
         if (name == "_end") {
-            return &TTAProgram::NullTerminal::instance();
+            return NULL;
         } else if (dataLabels_.find(name) != dataLabels_.end()) {
             SimValue address(dataLabels_[name] + mo.getOffset(), 32);
             return new TTAProgram::TerminalAddress(
@@ -2303,7 +2302,7 @@ LLVMPOMBuilder::createMove(
 
     bool endRef = false;
 
-    if (src == &TTAProgram::NullTerminal::instance()) {
+    if (src == NULL) {
         // Create a dummy source Terminal so the move can be added to an
         // instruction.
         SimValue val(0, 32);

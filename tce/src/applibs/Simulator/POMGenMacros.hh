@@ -60,7 +60,6 @@
 #include "RegisterFile.hh"
 #include "FunctionUnit.hh"
 #include "ControlUnit.hh"
-#include "NullPort.hh"
 #include "AssocTools.hh"
 #include "StringTools.hh"
 #include "Conversion.hh"

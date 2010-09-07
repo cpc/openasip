@@ -33,7 +33,6 @@
 #include "NullInstruction.hh"
 #include "NullInstructionTemplate.hh"
 #include "NullProcedure.hh"
-#include "NullImmediate.hh"
 #include "NullAddress.hh"
 
 namespace TTAProgram {
@@ -157,7 +156,8 @@ int NullInstruction::immediateCount() {
 Immediate&
 NullInstruction::immediate(int) throw (OutOfRange) {
     abortWithError("addMove()");
-    return NullImmediate::instance();
+    // to avoid warning:
+    throw new OutOfRange(__FILE__,__LINE__,__func__,"");
 }
 
 /**

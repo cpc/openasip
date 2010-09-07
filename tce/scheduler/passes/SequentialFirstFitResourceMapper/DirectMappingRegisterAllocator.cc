@@ -38,7 +38,6 @@
 #include "CodeSnippet.hh"
 #include "RegisterFile.hh"
 #include "TerminalRegister.hh"
-#include "NullPort.hh"
 #include "Instruction.hh"
 #include "Move.hh"
 #include "UniversalMachine.hh"

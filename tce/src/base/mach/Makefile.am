@@ -10,8 +10,8 @@ libmach_la_SOURCES =							     \
 	MachineTestReporter.cc MOMTextGenerator.cc ImmediateSlot.cc          \
 	ADFSerializerTextGenerator.cc BaseFUPort.cc RFPort.cc                \
         SpecialRegisterPort.cc NullAddressSpace.cc NullBus.cc                \
-	NullFunctionUnit.cc NullInstructionTemplate.cc  \
-        NullPort.cc NullRegisterFile.cc NullMachine.cc NullGuard.cc          \
+	NullInstructionTemplate.cc  \
+        NullRegisterFile.cc NullMachine.cc          \
 	DummyMachineTester.cc
 
 libmach_la_LDFLAGS = ${XERCES_LIBDIR} -lxerces-c -lpthread
@@ -36,7 +36,7 @@ MAINTAINERCLEAN = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libmach_la_SOURCES += \
-	HWOperation.hh NullPort.hh \
+	HWOperation.hh \
 	DummyMachineTester.hh ExecutionPipeline.hh \
 	ControlUnit.hh Connection.hh \
 	FUPort.hh Socket.hh \
@@ -44,7 +44,7 @@ libmach_la_SOURCES += \
 	TemplateSlot.hh SpecialRegisterPort.hh \
 	ImmediateSlot.hh Unit.hh \
 	RFPort.hh PipelineElement.hh \
-	AddressSpace.hh NullGuard.hh \
+	AddressSpace.hh \
 	Port.hh Bus.hh \
 	Guard.hh MOMTextGenerator.hh \
 	InstructionTemplate.hh ADFSerializer.hh \
@@ -54,7 +54,7 @@ libmach_la_SOURCES += \
 	Segment.hh MachineTestReporter.hh \
 	BaseFUPort.hh ImmediateUnit.hh \
 	MachineTestReportTextGenerator.hh \
-	NullInstructionTemplate.hh NullFunctionUnit.hh \
+	NullInstructionTemplate.hh \
 	RegisterFile.hh NullRegisterFile.hh \
 	NullAddressSpace.hh Machine.hh \
 	Socket.icc TemplateSlot.icc \

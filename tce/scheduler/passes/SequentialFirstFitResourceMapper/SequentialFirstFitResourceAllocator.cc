@@ -58,7 +58,6 @@ using std::endl;
 #include "FUPort.hh"
 #include "MathTools.hh"
 #include "AssocTools.hh"
-#include "NullFunctionUnit.hh"
 #include "Segment.hh"
 #include "Guard.hh"
 #include "MoveGuard.hh"

@@ -32,7 +32,6 @@
 
 #include "Immediate.hh"
 #include "Terminal.hh"
-#include "NullTerminal.hh"
 #include "InstructionTemplate.hh"
 #include "TerminalImmediate.hh"
 
@@ -76,7 +75,7 @@ Immediate::Immediate(
  * The destructor.
  */
 Immediate::~Immediate() {
-    if (dst_ != NULL && dst_ != &NullTerminal::instance()) {
+    if (dst_ != NULL) {
         delete dst_;
         dst_ = NULL;
     }

@@ -69,7 +69,6 @@
 #include "InstructionReference.hh"
 #include "RelocSection.hh"
 #include "ProcedSymElement.hh"
-#include "NullPort.hh"
 #include "NullBus.hh"
 #include "Immediate.hh"
 #include "NullInstructionTemplate.hh"

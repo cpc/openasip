@@ -43,7 +43,6 @@
 #include "BaseFUPort.hh"
 #include "FUPort.hh"
 #include "Guard.hh"
-#include "NullMoveGuard.hh"
 #include "MoveGuard.hh"
 #include "hash_set.hh"
 #include "Application.hh"

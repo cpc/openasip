@@ -13,7 +13,6 @@ libprogram_la_SOURCES = Program.cc Address.cc Instruction.cc Terminal.cc \
 	TerminalImmediate.cc TerminalRegister.cc TerminalFUPort.cc \
 	Immediate.cc MoveGuard.cc Procedure.cc TPEFProgramFactory.cc Move.cc\
 	CodeSnippet.cc NullProcedure.cc NullProgram.cc NullInstruction.cc \
-	NullImmediate.cc NullTerminal.cc \
 	NullAddress.cc Label.cc CodeLabel.cc DataLabel.cc Scope.cc \
 	GlobalScope.cc TerminalAddress.cc TerminalInstructionAddress.cc \
 	InstructionReference.cc InstructionReferenceManager.cc \
@@ -57,11 +56,10 @@ libprogram_la_SOURCES += \
 	InstructionReference.hh InstructionReferenceManager.hh \
 	Label.hh Move.hh \
 	MoveGuard.hh NullAddress.hh \
-	NullGlobalScope.hh NullImmediate.hh \
+	NullGlobalScope.hh \
 	NullInstruction.hh NullInstructionReferenceManager.hh \
-	NullMoveGuard.hh \
 	NullProcedure.hh NullProgram.hh \
-	NullTerminal.hh POMDisassembler.hh Procedure.hh \
+	POMDisassembler.hh Procedure.hh \
 	Program.hh ProgramAnnotation.hh \
 	ProgramWriter.hh Scope.hh \
 	TPEFProgramFactory.hh Terminal.hh \

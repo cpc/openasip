@@ -36,7 +36,6 @@
 #include "Move.hh"
 #include "Socket.hh"
 #include "Port.hh"
-#include "NullTerminal.hh"
 #include "NullInstruction.hh"
 #include "TerminalFUPort.hh"
 #include "StringTools.hh"
@@ -94,14 +93,12 @@ Move::Move(
  * The destructor.
  */
 Move::~Move() {
-    if (dst_ != &NullTerminal::instance()) {
-        delete dst_;
-        dst_ = NULL;
-    }
-    if (src_ != &NullTerminal::instance()) {
-        delete src_;
-        src_ = NULL;
-    }
+    delete dst_;
+    dst_ = NULL;
+
+    delete src_;
+    src_ = NULL;
+
     if (guard_ != NULL) {
         delete guard_;
         guard_ = NULL;
@@ -277,9 +274,7 @@ Move::source() const {
  */
 void
 Move::setSource(Terminal* src) {
-    if (src_ != &NullTerminal::instance()) {
-        delete src_;
-    }
+    delete src_;
     src_ = src;
 }
 
@@ -300,9 +295,7 @@ Move::destination() const {
  */
 void
 Move::setDestination(Terminal* dst) {
-    if (dst_ != &NullTerminal::instance()) {
-        delete dst_;
-    }
+    delete dst_;
     dst_ = dst;
 }
 
