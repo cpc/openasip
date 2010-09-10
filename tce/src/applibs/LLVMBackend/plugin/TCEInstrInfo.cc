@@ -70,7 +70,7 @@ TCEInstrInfo::TCEInstrInfo() :
 TCEInstrInfo:: ~TCEInstrInfo() {   
 }
 
-			       
+#ifdef LLVM_2_7		       
 /**
  * Returns true if the instruction is a register to register move.
  */
@@ -117,16 +117,27 @@ TCEInstrInfo::isMoveInstr(
 
     return false;
 }
+#endif
 
 /**
  * Inserts a branch instruction.
  */
+#ifdef LLVM_2_7
 unsigned 
 TCEInstrInfo::InsertBranch(
     MachineBasicBlock &MBB,
     MachineBasicBlock *TBB,
     MachineBasicBlock *FBB,
     const SmallVectorImpl<llvm::MachineOperand> &Cond) const {
+#else
+unsigned 
+TCEInstrInfo::InsertBranch(
+    MachineBasicBlock &MBB,
+    MachineBasicBlock *TBB,
+    MachineBasicBlock *FBB,
+    const SmallVectorImpl<llvm::MachineOperand> &Cond,
+    DebugLoc dl) const {
+#endif
 
     // Can only insert uncond branches so far.
     assert(Cond.empty() && !FBB && TBB && 
@@ -134,8 +145,6 @@ TCEInstrInfo::InsertBranch(
 
 #ifdef LLVM_2_7    
     DebugLoc dl = DebugLoc::getUnknownLoc();
-#else
-    DebugLoc dl;
 #endif
 
     BuildMI(&MBB, dl, get(TCE::TCEBR)).addMBB(TBB);

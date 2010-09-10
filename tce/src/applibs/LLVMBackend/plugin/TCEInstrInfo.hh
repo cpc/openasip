@@ -56,10 +56,12 @@ namespace llvm {
         virtual const TargetRegisterInfo& getRegisterInfo() const { 
             return ri_; 
         }
-        
+
+#ifdef LLVM_2_7        
         virtual bool isMoveInstr (
             const MachineInstr &MI, unsigned &SrcReg, unsigned &DstReg, 
             unsigned &SrcSubIdx, unsigned &DstSubIdx) const;
+#endif
 
         virtual unsigned isLoadFromStackSlot(
             const MachineInstr* mi, int& frameIndex) const;
@@ -67,10 +69,18 @@ namespace llvm {
         virtual unsigned isStoreToStackSlot(
             const MachineInstr* mi, int& frameIndex) const;
 
+#ifdef LLVM_2_7
         virtual unsigned InsertBranch(
             MachineBasicBlock &MBB, MachineBasicBlock *TBB,
             MachineBasicBlock *FBB,
             const SmallVectorImpl<MachineOperand> &Cond) const;
+#else
+        virtual unsigned InsertBranch(
+            MachineBasicBlock &MBB, MachineBasicBlock *TBB,
+            MachineBasicBlock *FBB,
+            const SmallVectorImpl<MachineOperand> &Cond,
+	    DebugLoc DL) const;
+#endif
 
         virtual bool BlockHasNoFallThrough(
             const MachineBasicBlock &MBB) const;
@@ -81,6 +91,7 @@ namespace llvm {
             unsigned srcReg, bool isKill, int frameIndex,
             const TargetRegisterClass* rc) const;
 
+#ifndef LLVM_2_7
         // changed in LLVM 2.8:
         virtual void storeRegToStackSlot(
             MachineBasicBlock& mbb,
@@ -89,13 +100,14 @@ namespace llvm {
             const TargetRegisterClass* rc, const TargetRegisterInfo*) const {
             storeRegToStackSlot(mbb, mbbi, srcReg, isKill, frameIndex, rc);
         }
-
+#endif
         virtual void loadRegFromStackSlot(
             MachineBasicBlock& mbb,
             MachineBasicBlock::iterator mbbi,
             unsigned destReg, int frameIndex,
             const TargetRegisterClass* rc) const;
 
+#ifndef LLVM_2_7
         // changed in LLVM 2.8:
         virtual void loadRegFromStackSlot(
             MachineBasicBlock& mbb,
@@ -104,7 +116,7 @@ namespace llvm {
             const TargetRegisterClass* rc, const TargetRegisterInfo*) const {
             loadRegFromStackSlot(mbb, mbbi, destReg, frameIndex, rc);
         }
-
+#endif
 
 #ifdef LLVM_2_7
         virtual bool copyRegToReg(
