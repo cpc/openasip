@@ -10,6 +10,11 @@ New features
   cores in SystemC models. No I/O from the cores yet so it's quite useless 
   at the moment.
 
+Code generator improvements
+---------------------------
+- New register assignment strategy that avoids reuse of registers to
+  produce more ILP for the post-pass scheduler
+
 Usability features
 ------------------
 - ProDe: when copying a load-store unit (FU), also copies the address 

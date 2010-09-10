@@ -555,6 +555,13 @@ switch latency (in microseconds). In case the target does not have the RTIMER
 operation, sched_yield() is called in every basic block unconditionally, 
 producing considerable additional overhead to the program exectuion.""")
 
+p.add_option('--default-regalloc',
+             action='store_true', dest='default_regalloc', default=False,
+             help=\
+"""Use the default register allocator of LLVM instead of the register allocator
+that aims to maximize the instruction level parallelism available for
+the post-pass scheduler.""")
+
 p.add_option('--extra-llvm-opts',
              type="string", action="store",
              metavar='opt1,opt2,opt3', dest='extra_llvm_opts', default="",
@@ -759,6 +766,9 @@ if options.adf_file != "":
 
     if options.conservative_pre_ra_scheduler:
         command += " --conservative-pre-ra-scheduler"
+
+    if not options.default_regalloc:
+        command += " --experimental-ra"
         
     if options.no_schedule is False:
         command += " -c " + options.scheduler_config

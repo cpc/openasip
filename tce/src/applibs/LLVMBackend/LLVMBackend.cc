@@ -52,6 +52,8 @@
 #include <llvm/Support/FormattedStream.h>
 #include <llvm/Support/MemoryBuffer.h>
 #include <llvm/Support/Debug.h>
+#include <llvm/CodeGen/RegAllocRegistry.h>
+#include "Application.hh"
 
 #include <llvm/Bitcode/ReaderWriter.h>
 
@@ -63,6 +65,7 @@
 #include <boost/functional/hash.hpp>
 
 #include "LLVMBackend.hh"
+#include "LLVMTCECmdLineOptions.hh"
 #include "TDGen.hh"
 
 #include "tce_config.h" // CXX, SHARED_CXX_FLAGS, LLVM LD&CPP flags
@@ -86,6 +89,9 @@
 using namespace llvm;
 
 #include <llvm/Assembly/PrintModulePass.h>
+
+// From passes/RegAllocLinearScanILP.cc:
+FunctionPass* createILPLinearScanRegisterAllocator();
 
 const std::string LLVMBackend::TBLGEN_INCLUDES = "";
 const std::string LLVMBackend::PLUGIN_PREFIX = "tcecc-";
@@ -354,6 +360,13 @@ LLVMBackend::compile(
     targetMachine->setTargetMachinePlugin(plugin);
     targetMachine->setTTAMach(&target);
     targetMachine->setEmulationModule(emulationModule);
+
+    LLVMTCECmdLineOptions* options =
+        dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
+    if (options->useExperimentalRegAllocator()) {
+        llvm::RegisterRegAlloc::setDefault(
+            createILPLinearScanRegisterAllocator);
+    }
 
     /**
      * This is quite straight copy how llc actually creates passes for target.

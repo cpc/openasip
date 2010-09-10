@@ -46,6 +46,8 @@ public:
     LLVMTCECmdLineOptions();
     ~LLVMTCECmdLineOptions();
 
+    virtual bool useExperimentalRegAllocator() const;
+
     bool isMachineFileDefined() const;
     std::string machineFile() const;
 
@@ -87,6 +89,7 @@ private:
     static const std::string SWL_DEBUG_FLAG;
     static const std::string SWL_OPT_LEVEL;
     static const std::string SWS_OPT_LEVEL;
+    static const std::string SWL_EXPERIMENTAL_REGALLOC;
     /// Switch for verbose output listing scheduler modules
     static const std::string VERBOSE_SWITCH;
     static const std::string LEAVE_DIRTY;
