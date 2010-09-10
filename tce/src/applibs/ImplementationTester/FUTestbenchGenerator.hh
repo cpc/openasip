@@ -26,7 +26,7 @@
  *
  * Declaration of FUTestbenchGenerator class
  *
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006,2010 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
@@ -45,7 +45,6 @@
 #include "MachineState.hh"
 #include "Machine.hh"
 #include "MemorySystem.hh"
-#include "GlobalLock.hh"
 #include "TestbenchGenerator.hh"
 
 class FUTestbenchGenerator : public TestbenchGenerator {
@@ -97,7 +96,6 @@ private:
 
     TTAMachine::Machine* machine_;
     MemorySystem* memSystem_;
-    GlobalLock* glock_;
 };
 
 #endif

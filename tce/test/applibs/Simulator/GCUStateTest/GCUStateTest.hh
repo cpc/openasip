@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * A test suite for GCUState.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -44,7 +44,6 @@
 #include "OpcodeSettingVirtualInputPortState.hh"
 #include "OperationPool.hh"
 #include "Operation.hh"
-#include "GlobalLock.hh"
 #include "Application.hh"
 #include "BaseType.hh"
 
@@ -85,8 +84,7 @@ GCUStateTest::tearDown() {
 void
 GCUStateTest::testPipeline() {
 
-    GlobalLock lock;
-    GCUState gcu(3, 4, lock);
+    GCUState gcu(3, 4);
 
     gcu.advanceClock(); // cycle 1
 
@@ -119,8 +117,7 @@ GCUStateTest::testPipeline() {
 void
 GCUStateTest::testOperations() {
 
-    GlobalLock lock;
-    GCUState gcu(2, 4, lock);
+    GCUState gcu(2, 4);
     TransportPipeline sysPipeline(gcu);
     TransportPipeline jumpPipeline(gcu);
     OperationPool pool;

@@ -42,7 +42,6 @@
 #include "Program.hh"
 #include "InstructionMemory.hh"
 #include "GCUState.hh"
-#include "GlobalLock.hh"
 #include "ExecutableInstruction.hh"
 #include "Exception.hh"
 #include "UniversalMachine.hh"
@@ -104,7 +103,7 @@ SimulationController::SimulationController(
 
     try {
         machineState_ = builder.build(
-            machine, *memorySystem_, lock_, fuConflictDetectors_);
+            machine, *memorySystem_, fuConflictDetectors_);
         // set the real time clock source to be the simulation
         // cycle counter
         for (int i = 0; i < machineState_->FUStateCount(); ++i) {

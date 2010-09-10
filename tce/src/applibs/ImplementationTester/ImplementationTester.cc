@@ -26,7 +26,7 @@
  *
  * Implementation of ImplementationTester class.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006,2010 (pekka.jaaskelainen-no.spam-tut.fi)
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
@@ -55,7 +55,6 @@
 #include "MachineState.hh"
 #include "MachineStateBuilder.hh"
 #include "MemorySystem.hh"
-#include "GlobalLock.hh"
 #include "OutputPortState.hh"
 #include "InputPortState.hh"
 #include "FUTestbenchGenerator.hh"

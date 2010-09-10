@@ -49,7 +49,6 @@
 #include "TriggeringInputPortState.hh"
 #include "OpcodeSettingVirtualInputPortState.hh"
 #include "MapTools.hh"
-#include "GlobalLock.hh"
 #include "StringTools.hh"
 #include "Application.hh"
 #include "GuardState.hh"

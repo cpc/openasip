@@ -42,7 +42,6 @@
 #include "MachineState.hh"
 #include "Machine.hh"
 #include "MemorySystem.hh"
-#include "GlobalLock.hh"
 
 class RFTestbenchGenerator : public TestbenchGenerator {
 public:
@@ -88,7 +87,6 @@ private:
     MachineState* msm_;
     TTAMachine::Machine* machine_;
     MemorySystem* memSystem_;
-    GlobalLock* glock_;
 
     std::vector<std::string> inputPorts_;
     std::vector<std::string> inputLoadPorts_;

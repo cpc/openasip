@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * A test suite for FUState.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef FU_STATE_TEST_HH
@@ -52,7 +52,6 @@
 #include "SimpleOperationExecutor.hh"
 #include "IdealSRAM.hh"
 #include "MemoryAccessingFUState.hh"
-#include "GlobalLock.hh"
 #include "MachineStateBuilder.hh"
 #include "MemorySystem.hh"
 #include "MachineState.hh"
@@ -195,8 +194,7 @@ FUStateTest::testOneCycleOperationExecutor() {
     TS_ASSERT_DIFFERS(&add, &NullOperation::instance());
     TS_ASSERT_DIFFERS(&sub, &NullOperation::instance());
 
-    GlobalLock lock;
-    FUState fu(lock);
+    FUState fu;
     OneCycleOperationExecutor executor(fu);
    
     InputPortState port1(fu, 32);
@@ -264,8 +262,7 @@ FUStateTest::testSimpleOperationExecutor() {
     Operation& mul = pool.operation("TESTMUL");
     TS_ASSERT_DIFFERS(&mul, &NullOperation::instance());
 
-    GlobalLock lock;
-    FUState fu(lock);
+    FUState fu;
     SimpleOperationExecutor executor1(7, fu);
     SimpleOperationExecutor executor2(5, fu);
     SimpleOperationExecutor executor3(2, fu);
@@ -381,8 +378,7 @@ FUStateTest::testMemoryAccessingFUState() {
     Operation& store = pool.operation("TESTSTORE");
 
     IdealSRAM sram(0, 1000, 8);
-    GlobalLock lock;
-    MemoryAccessingFUState fu(sram, lock);
+    MemoryAccessingFUState fu(sram);
     OneCycleOperationExecutor loadExecutor(fu);
     OneCycleOperationExecutor storeExecutor(fu);
 
@@ -451,7 +447,7 @@ FUStateTest::testMemoryAccessingFUState() {
         if (detector != NULL) detectors[#FU_MACH] = detector;\
         MemorySystem memSys(srcMach);\
 \
-        delete builder.build(srcMach, memSys, glock, detectors, false);\
+        delete builder.build(srcMach, memSys, detectors, false);\
         delete detector;\
     }\
     last = t.elapsed();\
@@ -462,7 +458,6 @@ FUStateTest::testMemoryAccessingFUState() {
     std::cout \
         << "Initializing " #FU_MACH " " << INIT_COUNT << " times..."; \
     boost::timer t;\
-    GlobalLock glock;\
     double best = DBL_MAX;\
     double last = 0.0;\
     const TTAMachine::Machine& srcMach = *FU_MACH##Mach;\
@@ -545,7 +540,6 @@ FUStateTest::benchmarkInitLazyFSA() {
             << "Executing operations in " #FU_MACH " " << EXEC_COUNT << " times..."; \
         boost::timer t;\
         std::cout.flush();\
-        GlobalLock glock;\
         double best = DBL_MAX;\
         double last = 0.0;\
         const TTAMachine::Machine& srcMach = *FU_MACH##Mach;\
@@ -560,7 +554,7 @@ FUStateTest::benchmarkInitLazyFSA() {
             MemorySystem memSys(srcMach);\
 \
             MachineState* msm = NULL;\
-            CATCH_ANY(msm = builder.build(srcMach, memSys, glock, detectors, false));\
+            CATCH_ANY(msm = builder.build(srcMach, memSys, detectors, false));\
             FUState& fuState = msm->fuState(#FU_MACH);\
 \
             std::vector<ExecutableMove*> execMoves;\

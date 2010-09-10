@@ -34,7 +34,6 @@
 #include "GCUState.hh"
 #include "SequenceTools.hh"
 #include "OperationContext.hh"
-#include "GlobalLock.hh"
 #include "Application.hh"
 
 using std::string;
@@ -48,9 +47,8 @@ using std::string;
  */
 GCUState::GCUState(
     int latency, 
-    int nww, 
-    GlobalLock& lock) : 
-    FUState(lock), naturalWordWidth_(nww), returnAddressRegister_(32), 
+    int nww) : 
+    naturalWordWidth_(nww), returnAddressRegister_(32), 
     programCounter_(0), newProgramCounter_(0), latency_(latency), 
     operationPending_(false), operationPendingTime_(0),
     operationContext_(

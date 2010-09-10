@@ -66,14 +66,12 @@ public:
 
     MachineState* build(
         const TTAMachine::Machine& machine, 
-        MemorySystem& memSys,
-        GlobalLock& lock)
+        MemorySystem& memSys)
         throw (IllegalMachine);
 
     MachineState* build(
         const TTAMachine::Machine& machine, 
         MemorySystem& memSys,
-        GlobalLock& lock,
         FUConflictDetectorIndex& detectors,
         bool throwWhenConflict=true)
         throw (IllegalMachine);
@@ -81,8 +79,8 @@ public:
     MachineState* build(
         const TTAMachine::Machine& machine,
         MemorySystem& memSys,
-        StateLocator& locator,
-        GlobalLock& lock) throw (IllegalMachine);
+        StateLocator& locator) 
+    throw (IllegalMachine);
 
 private:
     /// Copying not allowed.
@@ -93,8 +91,7 @@ private:
     MachineState* buildMachineState(
         const TTAMachine::Machine& machine,
         MemorySystem& memSys,
-        StateLocator& locator,
-        GlobalLock& lock)
+        StateLocator& locator)
         throw (IllegalMachine);
 
     void addPortToFU(

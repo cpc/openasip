@@ -36,7 +36,6 @@
 #include <set>
 #include <vector>
 
-#include "GlobalLock.hh"
 #include "Exception.hh"
 #include "BaseType.hh"
 #include "SimulatorConstants.hh"

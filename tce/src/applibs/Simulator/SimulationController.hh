@@ -101,8 +101,6 @@ private:
     
     /// Machine state to be simulated.
     MachineState* machineState_;
-    /// Represents a lock signal.
-    GlobalLock lock_;
     /// Global control unit.
     GCUState* gcu_; 
 

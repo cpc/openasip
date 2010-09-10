@@ -40,14 +40,12 @@
 #include "SimValue.hh"
 #include "SimulatorConstants.hh"
 
-class GlobalLock;
-
 /**
  * Models the global control unit state.
  */
 class GCUState : public FUState {
 public:
-    GCUState(int latency, int nww, GlobalLock& lock);
+    GCUState(int latency, int nww);
     virtual ~GCUState();
 
     InstructionAddress& programCounter();

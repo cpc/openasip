@@ -35,7 +35,6 @@
 #include "Memory.hh"
 #include "OperationContext.hh"
 #include "Memory.hh"
-#include "GlobalLock.hh"
 
 /**
  * Constructor.
@@ -46,9 +45,8 @@
  * @todo Do not hard code the MAU or NW sizes!
  */
 MemoryAccessingFUState::MemoryAccessingFUState(
-    Memory& memory,
-    GlobalLock& lock) : 
-    FUState(lock), memory_(memory), operationContext_() {
+    Memory& memory) : 
+    FUState(), memory_(memory), operationContext_() {
        
     operationContext_.setMemory(&memory_);
 }

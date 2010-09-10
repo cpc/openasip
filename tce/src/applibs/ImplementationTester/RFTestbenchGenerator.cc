@@ -46,7 +46,6 @@
 #include "MachineState.hh"
 #include "MachineStateBuilder.hh"
 #include "MemorySystem.hh"
-#include "GlobalLock.hh"
 #include "RegisterFileState.hh"
 #include "RFPortImplementation.hh"
 #include "RFImplementation.hh"
@@ -78,9 +77,6 @@ RFTestbenchGenerator::~RFTestbenchGenerator() {
      }
      if (memSystem_) {
          delete(memSystem_);
-     }
-     if (glock_) {
-         delete(glock_);
      }
 }
 
@@ -138,9 +134,7 @@ RFTestbenchGenerator::createMachineState() {
     
     memSystem_ = new MemorySystem(*machine_);
 
-    glock_ = new GlobalLock();
-    
-    msm_ = msmBuilder.build(*machine_, *memSystem_, *glock_);
+    msm_ = msmBuilder.build(*machine_, *memSystem_);
 }
 
 

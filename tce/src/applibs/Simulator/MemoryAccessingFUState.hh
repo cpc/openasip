@@ -37,16 +37,13 @@
 #include "FUState.hh"
 
 class Memory;
-class GlobalLock;
 
 /**
  * Models function unit that access memory.
  */
 class MemoryAccessingFUState : public FUState {
 public:
-    MemoryAccessingFUState(
-        Memory& memory, 
-        GlobalLock& lock);
+    MemoryAccessingFUState(Memory& memory);
     virtual ~MemoryAccessingFUState();
 
 protected:

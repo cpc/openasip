@@ -53,13 +53,18 @@ inline SimValue::SimValue() :
  * @param width The bit width of the created SimValue.
  */
 inline SimValue::SimValue(int width) :
-    bitWidth_(width), mask_(~UIntWord(0)) {
+    mask_(~UIntWord(0)) {
 
     value_.uIntWord = 0;
     value_.sIntWord = 0;
     value_.floatWord = 0;
     value_.doubleWord = 0;
+    setBitWidth(width);
+}
 
+inline void
+SimValue::setBitWidth(int width) {
+    bitWidth_ = width;
     if (8*sizeof(mask_) > static_cast<unsigned>(width)) {
         mask_ = ~((~UIntWord(0)) << bitWidth_);
     }

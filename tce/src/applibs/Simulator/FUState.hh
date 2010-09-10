@@ -46,18 +46,17 @@
 class Operation;
 class OperationExecutor;
 class OperationContext;
-class GlobalLock;
 
 //////////////////////////////////////////////////////////////////////////////
 // FUState
 //////////////////////////////////////////////////////////////////////////////
 
 /**
- * Models the state of the function unit of TTA processor.
+ * Models the state of the function unit of a TTA processor.
  */
 class FUState : public ClockedState {
 public:
-    FUState(GlobalLock& lock);
+    FUState();
     virtual ~FUState();
 
     void setTriggered();
@@ -74,7 +73,14 @@ public:
     virtual void addOperationExecutor(
         OperationExecutor& opExec, 
         Operation& op);
+#if 0
+    virtual void replaceOperationExecutor(
+        Operation& op, 
+        OperationExecutor* opExec);
 
+    virtual void replaceOperationExecutors(
+        OperationExecutor* opExec);
+#endif
     virtual OperationExecutor* executor(Operation& op);
 
     virtual OperationContext& context();
@@ -104,8 +110,6 @@ private:
 
     /// True if operation is triggered in current clock cycle.
     bool trigger_;
-    /// The global lock to use.
-    GlobalLock* lock_;
     /// Operation to be triggered next.
     Operation* nextOperation_;
     /// OperationExecutor to be used for the next operation (an optimization).
@@ -153,13 +157,11 @@ public:
     virtual OperationExecutor* executor(Operation& op);
     
 private:
-    NullFUState(GlobalLock& lock);
+    NullFUState();
     /// Copying not allowed.
     NullFUState(const NullFUState&);
     /// Assignment not allowed.
     NullFUState& operator=(const NullFUState&);
-    
-    static GlobalLock lock_;
     /// Unique instance of NullFUState.
     static NullFUState instance_;
 };

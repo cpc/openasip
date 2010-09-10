@@ -10,7 +10,7 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	TriggeringInputPortState.cc \
 	SimulatorToolbox.cc MemorySystem.cc \
 	StateLocator.cc TransportPipeline.cc SimulationController.cc \
-	GlobalLock.cc ExecutableMove.cc ExecutableInstruction.cc \
+	ExecutableMove.cc ExecutableInstruction.cc \
 	InstructionMemory.cc LongImmUpdateAction.cc SimProgramBuilder.cc \
 	SimulatorInterpreterContext.cc SimulatorFrontend.cc \
 	SimulatorInterpreter.cc ProgCommand.cc SimulatorTextGenerator.cc \
@@ -111,7 +111,7 @@ libsimulator_la_SOURCES += \
 	ReadableState.hh OpcodeSettingVirtualInputPortState.hh \
 	DeleteBPCommand.hh BuslessExecutableMove.hh \
 	CompiledSimulationPimpl.hh QuitCommand.hh \
-	DisableBPCommand.hh GlobalLock.hh \
+	DisableBPCommand.hh \
 	StateData.hh EnableBPCommand.hh \
 	Watch.hh SimulationEventHandler.hh \
 	ResourceVectorFUResourceConflictDetector.hh NextiCommand.hh \

@@ -46,12 +46,10 @@ using std::string;
  *
  * @param targetRegister The target register this guard watches.
  * @param latency The total guard latency modeled.
- * @param lock Global lock signal (currently unused).
  */
 GuardState::GuardState(
     const ReadableState& targetRegister, 
-    int latency, 
-    GlobalLock&) :
+    int latency) :
     target_(&targetRegister) {
 
     for (int i = 0; i < latency; ++i) {

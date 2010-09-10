@@ -50,7 +50,6 @@
 #include "MemoryAccessingFUState.hh"
 #include "MemorySystem.hh"
 #include "IdealSRAM.hh"
-#include "GlobalLock.hh"
 
 using namespace TTAMachine;
 
@@ -102,9 +101,8 @@ MachineStateBuilderTest::testBuildMachineState() {
     TS_ASSERT_THROWS_NOTHING(memSys.addAddressSpace(*as1, sram));
 
     MachineStateBuilder builder;
-    GlobalLock lock;
 
-    MachineState* state = builder.build(*machine, memSys, lock);
+    MachineState* state = builder.build(*machine, memSys);
 
     TS_ASSERT_EQUALS(state->FUStateCount(), 2);
     

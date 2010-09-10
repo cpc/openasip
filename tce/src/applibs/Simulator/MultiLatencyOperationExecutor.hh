@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of MultiLatencyOperationExecutor class.
  *
- * @author Pekka J‰‰skel‰inen 2008 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2008,2010 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -43,9 +43,17 @@
 
 class OperationContext;
 
+
 /**
  * OperationExecutor that supports multi-output operation pipelines with 
  * different latencies for results.
+ *
+ * Can be also used for cycle-accurate modeling of the operation pipeline.
+ * In addition to simulate the execution of operations with multiple outputs
+ * with different latencies in the standalone TTA simulation, this execution 
+ * model is used in the SystemC TTA core function unit simulation model.
+ *
+ * @see tce_systemc.hh
  */
 class MultiLatencyOperationExecutor : public OperationExecutor {
 public:
@@ -59,79 +67,113 @@ public:
     virtual OperationExecutor* copy();
     virtual void setContext(OperationContext& context);
 
+protected:
+
+    /**
+     * Models an operation executing in the FU pipeline.
+     */
+    class ExecutingOperation {
+    public:
+        ExecutingOperation() : stage_(0), free_(true) {}
+
+        void start() {
+            for (std::size_t i = 0; i < pendingResults_.size(); ++i) 
+                pendingResults_[i].reset();
+            free_ = false;
+            stage_ = 0;
+        }
+
+        void stop() {
+            free_ = true;            
+        }
+
+        void advanceCycle() {
+            for (std::size_t i = 0; i < pendingResults_.size(); ++i)
+                pendingResults_[i].advanceCycle();
+            ++stage_;
+        }
+
+        /**
+         * Models the latency of an operation result.
+         *
+         * This is used to make results visible in the output ports of the FU at
+         * the correct time.
+         */
+        struct PendingResult {
+            PendingResult(SimValue& result, PortState& targetPort, int latency) : 
+                result_(&result), target_(&targetPort), cyclesToGo_(latency),
+                resultLatency_(latency) {
+            }
+
+            /**
+             * Signals a cycle advance.
+             *
+             * Makes the result visible to the output port in time.
+             */
+            void advanceCycle() {
+                if (--cyclesToGo_ == 0) {
+                    target_->setValue(*result_);
+                    cyclesToGo_ = INT_MAX;
+                } 
+            }
+
+            void reset() {
+                cyclesToGo_ = resultLatency_;
+            }
+
+            /// The value that will be written to the target after the
+            /// latency has passed.
+            SimValue* result_;
+            /// The target port to which the result will be written after the
+            /// latency.
+            PortState* target_;
+            /// How many cycles to wait until the result will be written to
+            /// the target.
+            int cyclesToGo_;       
+            int resultLatency_;
+        };
+
+        void initIOVec() {
+            for (std::size_t i = 0; i < iostorage_.size(); ++i) 
+                iovec_.push_back(&iostorage_.at(i));
+        }
+        /* The input and output values of operation, in their OSAL order.
+
+           The execution model can freely modify them duing the operation 
+           execution simulation.
+        */
+        std::vector<SimValue> iostorage_;
+        /// OSAL simulateTrigger() compatible I/O vector for fast execution 
+        std::vector<SimValue*> iovec_;
+        /* Buffer for results that have latency cycles left. After cycles
+           have passed, the results are removed from the queue.
+           The outputs are made visible to the FU output registers 
+           automatically after the ADF declared execution latency. */
+        std::vector<PendingResult> pendingResults_;
+        // the stage of execution the operation is in 
+        int stage_;
+        bool free_;
+    };
+    virtual bool simulateStage(ExecutingOperation& operation);
+
 private:
     /// Assignment not allowed.
     MultiLatencyOperationExecutor& operator=(
         const MultiLatencyOperationExecutor&);
 
-    /**
-     * Models the latency of an operation result.
-     */
-    class PendingResult {
-    public:
-        /**
-         * Constructor.
-         *
-         * @param result A result of an operation.
-         * @param target The target where to write the result.
-         * @param cyclesToGo How many cycles to wait before writing.
-         */
-        PendingResult(PortState& target, int cyclesToGo) : 
-            target_(target), cyclesToGo_(cyclesToGo) {
-        }
+    ExecutingOperation& findFreeExecutingOperation();
 
-        /**
-         * Signals a cycle advance.
-         *
-         * In case the set latency has passed, writes the result to the
-         * target. This method should not be called anymore after the cycle 
-         * count has reached 0!
-         *
-         * @return Return true in case the latency was passed and the
-         * result is not pending anymore, thus the object can be deleted.
-         */
-        bool
-        advanceCycle() {
-            --cyclesToGo_;
-            if (cyclesToGo_ <= 0) {
-                target_.setValue(result_);
-                return true;
-            } else {
-                return false;
-            }            
-        }
-
-        SimValue& 
-        resultValue() {
-            return result_;
-        }
-
-    private:
-        /// The value that will be written to the target after the
-        /// latency has passed.
-        SimValue result_;
-        /// The target to which the result will be written after the
-        /// latency.
-        PortState& target_;
-        /// How many cycles to wait until the result will be written to
-        /// the target.
-        int cyclesToGo_;        
-    };
-
-    /// Queue for pending (waiting for the latency to pass) results.
-    typedef std::list<PendingResult*> PendingResultQueue;
-    /// Buffer for results that have latency cycles left. After cycles
-    /// have passed, the results are removed from the queue.
-    PendingResultQueue pendingResults_;
     /// Operation context.
     OperationContext* context_;
     /// The hardware operation this executor simulates.
     TTAMachine::HWOperation& hwOperation_;
-    /// Vector for the inputs and ouputs for the operation, required
-    /// by the OSAL interface. Allocated here to avoid runtime overhead
-    /// of allocation.
-    SimValue* iovec_[EXECUTOR_MAX_OPERAND_COUNT];
-
+    /// The OSAL operation.
+    Operation* operation_;
+    /// The operations "on flight" in this operation executor.
+    std::vector<ExecutingOperation> executingOps_;
+    /// If non-NULL, points to a known free ExecutingOperation slot.
+    ExecutingOperation* freeExecOp_;
+    bool execOperationsInitialized_;
 };
 
 #endif

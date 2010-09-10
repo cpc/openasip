@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  * 
  * A test suite for FUResourceConflictDetector.
  *
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006,2010 (pjaaskel-no.spam-cs.tut.fi)
  */
 
 #ifndef RESOURCE_CONFLICT_DETECTOR_TEST_HH
@@ -38,7 +38,6 @@
 #include "ResourceVectorFUResourceConflictDetector.hh"
 #include "FunctionUnit.hh"
 #include "ADFSerializer.hh"
-#include "GlobalLock.hh"
 #include "ConflictDetectingOperationExecutor.hh"
 #include "MachineStateBuilder.hh"
 #include "MachineState.hh"
@@ -264,7 +263,6 @@ FUResourceConflictDetectorTest::testInsideFUState() {
 
     MemorySystem dummyMS(*testMachine);
 
-    GlobalLock lock;
     MachineStateBuilder builder;
     MachineState* machineState = NULL;
 
@@ -288,7 +286,7 @@ FUResourceConflictDetectorTest::testInsideFUState() {
 
 
     CATCH_ANY(
-        machineState = builder.build(*testMachine, dummyMS, lock, detectors));
+        machineState = builder.build(*testMachine, dummyMS, detectors));
 
     OperationPool opPool;
 
@@ -349,7 +347,6 @@ FUResourceConflictDetectorTest::testInsideFUState2() {
 
     MemorySystem dummyMS(*testMachine);
 
-    GlobalLock lock;
     MachineStateBuilder builder;
     MachineState* machineState = NULL;
 
@@ -364,7 +361,7 @@ FUResourceConflictDetectorTest::testInsideFUState2() {
     detectors["mixed_latency"] = detector;
 
     CATCH_ANY(
-        machineState = builder.build(*testMachine, dummyMS, lock, detectors));
+        machineState = builder.build(*testMachine, dummyMS, detectors));
 
     OperationPool opPool;
 

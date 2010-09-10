@@ -59,6 +59,7 @@ public:
     inline SimValue(const SimValue& source);
 
     int width() const;
+    void setBitWidth(int width);
 
     SimValue& operator=(const SIntWord& source);
     SimValue& operator=(const UIntWord& source);

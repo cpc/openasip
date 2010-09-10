@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of FUState class.
  *
  * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka Jääskeläinen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2005,2010 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -46,7 +46,6 @@
 #include "OperationContext.hh"
 #include "SimulatorToolbox.hh"
 #include "OperationPool.hh"
-#include "GlobalLock.hh"
 #include "Application.hh"
 #include "SequenceTools.hh"
 
@@ -62,8 +61,8 @@ using std::string;
  *
  * @param lock Global lock signal.
  */
-FUState::FUState(GlobalLock& lock) : 
-    ClockedState(), idle_(false), trigger_(false), lock_(&lock),
+FUState::FUState() : 
+    ClockedState(), idle_(false), trigger_(false),
     nextOperation_(NULL), nextExecutor_(NULL), operationContext_(), 
     activeExecutors_(0) {
 }
@@ -213,6 +212,66 @@ FUState::addOperationExecutor(OperationExecutor& opExec, Operation& op) {
     executors_[&op] = newExecutor;
 }
 
+#if 0
+/**
+ * Replaces the operation executor model for an operation.
+ *
+ * This method is useful in system simulations where one might want to
+ * replace the default operation execution model with a more detailed one that
+ * possibly connects to the other models in the system.
+ *
+ * Does not copy the operation executor but uses the given instance.
+ * The method copies the I/O bindings and sets the parent FUState from 
+ * the old model.
+ *
+ * The OperationExecutor instance ownership is transferred to the FUState 
+ * object, thus it should never be reused nor deleted by the caller. 
+ *
+ * @param op Operation of which executor is added.
+ * @param newExecutor Operation executor to be set.
+ */
+void
+FUState::replaceOperationExecutor(
+    Operation& op, 
+    OperationExecutor* newExecutor) {
+
+    op.createState(context());
+    newExecutor->setContext(context());
+
+    OperationExecutor* oldExecutor = executors_[&op];
+    newExecutor->setParent(oldExecutor->parent());
+
+    /* Copy the operand-port bindings. */
+    for (int ioId = 1; 
+         ioId <= op.numberOfInputs() + op.numberOfOutputs(); ++ioId) {
+        newExecutor->addBinding(ioId, oldExecutor->binding(ioId));
+    }
+    assert(sameBindings(*oldExecutor, *newExecutor, op));
+
+    /* Replace the executor in the execution list. */
+    for (std::size_t i = 0; i < execList_.size(); ++i) {
+        if (execList_.at(i) == oldExecutor) {
+            execList_[i] = newExecutor;
+            break;
+        }
+    }
+    executors_[&op] = newExecutor;
+    delete oldExecutor;
+}
+
+/**
+ * Replaces the operation executor model for all operations with the given
+ * one.
+ */
+void
+FUState::replaceOperationExecutors(
+    Operation& op, 
+    OperationExecutor* newExecutor) {
+    abortWithError("Not implemented.");
+}
+#endif
+
+
 /**
  * Returns true if the two OperationExecutors have the same bindings.
  *
@@ -282,8 +341,7 @@ FUState::context() {
 // NullFUState
 //////////////////////////////////////////////////////////////////////////////
 
-GlobalLock NullFUState::lock_;
-NullFUState NullFUState::instance_(lock_);
+NullFUState NullFUState::instance_;
 
 /**
  * Returns the instance of NullFUState.
@@ -298,8 +356,7 @@ NullFUState::instance() {
 /**
  * Constructor.
  */
-NullFUState::NullFUState(GlobalLock& lock) : 
-    FUState(lock) {
+NullFUState::NullFUState() {
 }
 
 /**

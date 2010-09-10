@@ -61,8 +61,7 @@ class GuardState : public ClockedState, public ReadableState {
 public:
     GuardState(
         const ReadableState& targetRegister, 
-        int latency, 
-        GlobalLock& lock);
+        int latency);
 
     virtual ~GuardState();
 

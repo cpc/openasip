@@ -48,7 +48,6 @@
 #include "MachineState.hh"
 #include "MachineStateBuilder.hh"
 #include "MemorySystem.hh"
-#include "GlobalLock.hh"
 #include "OutputPortState.hh"
 #include "InputPortState.hh"
 #include "FUPortImplementation.hh"
@@ -66,8 +65,7 @@ using std::ofstream;
 
 FUTestbenchGenerator::FUTestbenchGenerator(HDB::FUEntry* fu): 
     fuEntry_(fu), fuImpl_(NULL), fuArch_(NULL), msm_(NULL), inputPorts_(),
-    outputPorts_(), opcodePort_(), machine_(NULL), memSystem_(NULL),
-    glock_(NULL) {
+    outputPorts_(), opcodePort_(), machine_(NULL), memSystem_(NULL) {
 }
 
 FUTestbenchGenerator::~FUTestbenchGenerator() {
@@ -80,9 +78,6 @@ FUTestbenchGenerator::~FUTestbenchGenerator() {
     }
     if (memSystem_) {
         delete(memSystem_);
-    }
-    if (glock_) {
-        delete(glock_);
     }
 }
 
@@ -114,9 +109,7 @@ FUTestbenchGenerator::createMachineState() {
     
     memSystem_ = new MemorySystem(*machine_);
 
-    glock_ = new GlobalLock();
-    
-    msm_ = msmBuilder.build(*machine_, *memSystem_, *glock_);
+    msm_ = msmBuilder.build(*machine_, *memSystem_);
 }
 
 

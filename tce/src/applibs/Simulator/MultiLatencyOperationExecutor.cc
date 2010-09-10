@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Definition of MultiLatencyOperationExecutor class.
  *
- * @author Pekka Jääskeläinen 2008 (pekka.jaaskelainen-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2008,2010 (pekka.jaaskelainen-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -50,14 +50,54 @@ using std::string;
  */
 MultiLatencyOperationExecutor::MultiLatencyOperationExecutor(
     FUState& parent, TTAMachine::HWOperation& hwOp) :
-    OperationExecutor(parent), context_(NULL), hwOperation_(hwOp) {
+    OperationExecutor(parent), context_(NULL), hwOperation_(hwOp),
+    freeExecOp_(NULL), execOperationsInitialized_(false) {
+
+    OperationPool ops;
+    operation_ = &ops.operation(hwOp.name().c_str());
+    /**
+     * Initialize a list of pending executing operations that is the
+     * size of the maximum on flight operations. Each element in the
+     * list is initialized to contain a large enough I/O vector for
+     * inputs and outputs. In addition, the models for simulating the
+     * output latencies are initialized so it's as fast as possible
+     * to trigger new operations.
+     */
+    const std::size_t inputOperands = operation_->numberOfInputs();
+    const std::size_t outputOperands = operation_->numberOfOutputs();
+    const std::size_t operandCount = inputOperands + outputOperands;
+
     hasPendingOperations_ = true;
+    ExecutingOperation eop;
+    eop.iostorage_.resize(operandCount);
+    executingOps_.resize(hwOp.latency(), eop);
+
 }
 
 /**
  * Destructor.
  */
 MultiLatencyOperationExecutor::~MultiLatencyOperationExecutor() {
+}
+
+
+MultiLatencyOperationExecutor::ExecutingOperation&
+MultiLatencyOperationExecutor::findFreeExecutingOperation() {
+    ExecutingOperation* execOp = NULL;
+    if (freeExecOp_ != NULL) {
+        execOp = freeExecOp_;
+        freeExecOp_ = NULL;
+    } else {
+        for (std::size_t i = 0; i < executingOps_.size(); ++i) {
+            execOp = &executingOps_[i];
+            if (execOp->free_) {
+                break;
+            }
+        }
+    }
+    assert(execOp != NULL &&
+           "Did not find a free ExecutingOperation.");
+    return *execOp;
 }
 
 /**
@@ -71,54 +111,92 @@ MultiLatencyOperationExecutor::~MultiLatencyOperationExecutor() {
  *       as possible.
  */
 void
-MultiLatencyOperationExecutor::startOperation(Operation& op) {
+MultiLatencyOperationExecutor::startOperation(Operation&) {
 
-    const std::size_t inputOperands = op.numberOfInputs();
-    const std::size_t outputOperands = op.numberOfOutputs();
+    const std::size_t inputOperands = operation_->numberOfInputs();
+    const std::size_t outputOperands = operation_->numberOfOutputs();
     const std::size_t operandCount = inputOperands + outputOperands;
+    ExecutingOperation& execOp = findFreeExecutingOperation();
 
-    // set the inputs to point directly to the input ports
+    if (!execOperationsInitialized_) {
+        // cannot initialize in the constructor as the
+        // FUPort -> operand bindings have not been initialized at
+        // that point
+        for (std::size_t i = 0; i < executingOps_.size(); ++i) {
+            ExecutingOperation& execOp = executingOps_[i];
+            execOp.initIOVec();
+            // set the widths of the storage values to enforce correct 
+            // clipping of values
+            for (std::size_t o = 1; o <= operandCount; ++o) {
+                execOp.iostorage_[o - 1].setBitWidth(
+                    binding(o).value().width());
+            }
+            // set operation output storages to point to the corresponding 
+            // output ports and setup their delayed appearance 
+            for (std::size_t o = inputOperands + 1; o <= operandCount; ++o) {
+                PortState& port = binding(o);
+                const int resultLatency = hwOperation_.latency(o);
+
+                ExecutingOperation::PendingResult res(
+                    execOp.iostorage_[o - 1], port, resultLatency);
+                execOp.pendingResults_.push_back(res);
+            }
+        }
+        execOperationsInitialized_ = true;
+    }
+    // copy the input values to the on flight operation executor model
     for (std::size_t i = 1; i <= inputOperands; ++i) {
-        /// @todo create valueConst() and value() to avoid these uglies
-        iovec_[i - 1] = &(const_cast<SimValue&>(binding(i).value()));
+        execOp.iostorage_[i - 1] = binding(i).value();
     }
-    
-    // set outputs to point to a value in a result queue
-    for (std::size_t i = inputOperands + 1; i <= operandCount; ++i) {
-        PortState& port = binding(i);
-        const int resultLatency = hwOperation_.latency(i);
-
-        PendingResult* res = new PendingResult(port, resultLatency);
-
-        iovec_[i - 1] = &res->resultValue();
-        pendingResults_.push_back(res);
-    }
-    op.simulateTrigger(iovec_, *context_);
+    execOp.start();
     hasPendingOperations_ = true;
 }
 
 /**
- * Advances clock by one cycle.
+ * Simulate a single stage in the operation's execution.
  *
- * Takes the oldest result in the pipeline and makes it visible in the
- * function unit's ports.
+ * This can be used in more detailed simulation models (SystemC at the moment)
+ * to more accurately simulate each stage of operation's execution. 
+ *
+ * @param operation The operation being simulated.
+ * @param cycle The stage/cycle to simulate, 0 being the trigger cycle.
+ * @return Return true in case the simulation behavior was overridden by
+ * the method implementation. In case false is returned, the default behavior
+ * simulation is performed (by calling the OSAL TRIGGER at cycle 0 to produce
+ * the results and just simulating the latency by making the result(s) visible 
+ * at correct time).
+ *
+ */
+bool
+MultiLatencyOperationExecutor::simulateStage(
+    ExecutingOperation& /*operation*/) {
+    return false;
+}
+
+/**
+ * Advances clock by one cycle.
  */
 void
 MultiLatencyOperationExecutor::advanceClock() {
 
-    // advance clock of all pending results and remove from
-    // queue if ready
-    for (PendingResultQueue::iterator i = pendingResults_.begin();
-         i != pendingResults_.end();) {
-        PendingResult* res = *i;
-        if (res->advanceCycle()) {
-            i = pendingResults_.erase(i);
-            delete res;
-        } else {
-            ++i;
+    bool foundActiveOperation = false;
+    for (std::size_t i = 0; i < executingOps_.size(); ++i) {
+        ExecutingOperation& execOp = executingOps_[i];
+        if (execOp.free_) {
+            freeExecOp_ = &execOp;
+            continue;
         }
+            
+        foundActiveOperation = true;
+        bool customSimulated = simulateStage(execOp);
+        if (execOp.stage_ == 0 && !customSimulated)
+            operation_->simulateTrigger(&execOp.iovec_[0], *context_);
+        execOp.advanceCycle();
+        
+        if (execOp.stage_ == hwOperation_.latency())
+            execOp.stop();
     }
-    hasPendingOperations_ = pendingResults_.size() > 0;
+    hasPendingOperations_ = foundActiveOperation;
 }
 
 /**

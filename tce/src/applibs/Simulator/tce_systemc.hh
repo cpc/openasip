@@ -24,37 +24,83 @@
 /**
  * @file tce_systemc.hh
  *
- * A SC_MODULE wrapper for a single TTA core for use in SystemC simulations.
+ * Wrappers and utilities for connecting TTA core simulation models to
+ * SystemC simulations.
  *
  * @author Pekka J‰‰skel‰inen 2010 (pjaaskel-no.spam-cs.tut.fi)
- * @note rating: red
  */
 
 #ifndef TCE_SYSTEMC_HH
 #define TCE_SYSTEMC_HH
 
+#include "Operation.hh"
+#include "OperationExecutor.hh"
 #include "SimpleSimulatorFrontend.hh"
 #include "systemc.h"
 
-SC_MODULE(TTACore) {
+/**
+ * A sc_module wrapper for the whole TTA core simulation model.
+ *
+ * This model is sentive to clock signal. Propagates the clock signal
+ * internally to other clocked datapath models (mainly FU models).
+ */
+class TTACore : public sc_module, SimpleSimulatorFrontend {
+public:
     sc_in<bool> clock;
 
-    void simulateCycle() {
-        ttasim_.step();
-    }
+    void step() { SimpleSimulatorFrontend::step(); }
 
     SC_HAS_PROCESS(TTACore);
 
     TTACore(
         sc_module_name name, 
         std::string machineFile, std::string programFile) :
-        sc_module(name), ttasim_(machineFile, programFile) {
-        SC_METHOD(simulateCycle);
+        sc_module(name), 
+        SimpleSimulatorFrontend(machineFile, programFile) {
+        SC_METHOD(step);
         sensitive << clock;
     }
+};
 
-private:
-    SimpleSimulatorFrontend ttasim_;
+
+/**
+ * An sc_module wrapper for a single FU simulation model.
+ *
+ * Can be used to replace the default FU simulation models with
+ * SystemC-defined ones in order to model more detailed communication
+ * behavior with other modules. Note: this module is not sensitive to SystemC
+ * clock signal because the TTACore simulation model is responsible for
+ * notifying it about clock events.
+ */
+class TTAFUState : public sc_module, FUState {
+public:
+    TTAFUState() : triggered_(false), idle_(false) {};
+    virtual ~TTAFUState() {};
+
+    /* More readable method names to override. Note: the results should
+       be made visible at the end of cycle so the moves in the same
+       instruction reading the FU read the old result. */
+    virtual void cycleStart() {}
+    virtual void cycleEnd() {}
+
+
+    virtual void advanceClock() { cycleStart(); }
+    virtual void endClock() { cycleEnd(); triggered_ = false; }
+    void setTriggered() { triggered_ = true; idle_ = false; }
+    void setOperation(Operation& op) { operation = &op; }
+
+    SimValue& port(Operation& op, int operand) { 
+        return *(bindings_[&op][operand - 1]);
+    }
+
+protected:
+    bool triggered;
+    Operation* operation;
+
+    /* The operand to FU port bindings need to be initialized to point to
+       the original port models. */
+    typedef std::map<Operation*, std::vector<PortState*> > BindingIndex;
+    BindingIndex bindings_;
 };
 
 #endif

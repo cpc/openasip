@@ -63,7 +63,6 @@
 #include "MemoryAccessingFUState.hh"
 #include "StateLocator.hh"
 #include "TransportPipeline.hh"
-#include "GlobalLock.hh"
 #include "StringTools.hh"
 #include "SpecialRegisterPort.hh"
 #include "SimValue.hh"
@@ -94,20 +93,18 @@ MachineStateBuilder::~MachineStateBuilder() {
  *
  * @param machine The machine of which machine state is built from.
  * @param memSys Memory system instance.
- * @param lock Global lock signal.
  * @return The created machine state.
  * @exception IllegalMachine If machine state building fails.
  */
 MachineState*
 MachineStateBuilder::build(
     const Machine& machine, 
-    MemorySystem& memSys,
-    GlobalLock& lock) 
+    MemorySystem& memSys) 
     throw (IllegalMachine) {
 
     StateLocator locator;
     detectors_ = NULL;
-    return buildMachineState(machine, memSys, locator, lock);
+    return buildMachineState(machine, memSys, locator);
 }
 
 /**
@@ -118,7 +115,6 @@ MachineStateBuilder::build(
  *
  * @param machine The machine of which machine state is built from.
  * @param memSys Memory system instance.
- * @param lock Global lock signal.
  * @param detectors The FU resource conflict detectors.
  * @param throwWhenConflict Builds a model that throws an exception in case of
  *        resource conflict is detected.
@@ -129,7 +125,6 @@ MachineState*
 MachineStateBuilder::build(
     const Machine& machine, 
     MemorySystem& memSys,
-    GlobalLock& lock,
     FUConflictDetectorIndex& detectors,
     bool throwWhenConflict) 
     throw (IllegalMachine) {
@@ -137,7 +132,7 @@ MachineStateBuilder::build(
     StateLocator locator;
     detectors_ = &detectors;
     throwWhenConflict_ = throwWhenConflict;
-    return buildMachineState(machine, memSys, locator, lock);
+    return buildMachineState(machine, memSys, locator);
 }
 
 /**
@@ -146,7 +141,6 @@ MachineStateBuilder::build(
  * @param machine Machine of which machine state is build from.
  * @param memSys Memory system.
  * @param locator Indexes states with components as keys.
- * @param lock Global lock signal.
  * @return The created machine state instance.
  * @exception IllegalMachine If machine state building fails.
  */
@@ -154,11 +148,10 @@ MachineState*
 MachineStateBuilder::build(
     const Machine& machine,
     MemorySystem& memSys,
-    StateLocator& locator,
-    GlobalLock& lock) 
+    StateLocator& locator) 
     throw (IllegalMachine) {
     detectors_ = NULL;
-    return buildMachineState(machine, memSys, locator, lock);
+    return buildMachineState(machine, memSys, locator);
 }
 
 /**
@@ -167,7 +160,6 @@ MachineStateBuilder::build(
  * @param machine Machine.
  * @param memSys Memory system.
  * @param locator State locator.
- * @param lock Global lock signal.
  * @return The created MachineState.
  * @exception IllegalMachine If machine state building fails.
  */
@@ -175,8 +167,7 @@ MachineState*
 MachineStateBuilder::buildMachineState(
     const Machine& machine, 
     MemorySystem& memSys,
-    StateLocator& locator,
-    GlobalLock& lock)
+    StateLocator& locator)
     throw (IllegalMachine) {
     
     MachineState* machineState = new MachineState();
@@ -186,7 +177,7 @@ MachineStateBuilder::buildMachineState(
         ControlUnit* controlUnit = machine.controlUnit();
         /// @todo This assumes that natural word width of GCU is 4 MAUs!
         GCUState* gcu = new GCUState(
-            controlUnit->delaySlots() + 1, 4, lock);
+            controlUnit->delaySlots() + 1, 4);
         machineState->addGCUState(gcu);
         controlUnitGuardLatency  = controlUnit->globalGuardLatency();
 
@@ -224,14 +215,14 @@ MachineStateBuilder::buildMachineState(
         if (unit->addressSpace() != NULL) {
             try {
                 Memory& memory = memSys.memory(*unit->addressSpace());
-                state = new MemoryAccessingFUState(memory, lock);
+                state = new MemoryAccessingFUState(memory);
             } catch (const Exception& i) {
                 string msg = "Problems building machine state: " +
                     i.errorMessage();
                 throw IllegalMachine(__FILE__, __LINE__, __func__, msg);
             }
         } else {
-            state = new FUState(lock);
+            state = new FUState;
         }        
         machineState->addFUState(state, unit->name());
         
@@ -340,7 +331,7 @@ MachineStateBuilder::buildMachineState(
                 machineState->addGuardState(guardState, *guard);
             } else {
                 GuardState* guardState = 
-                    new GuardState(*targetRegister, guardLatency, lock);
+                    new GuardState(*targetRegister, guardLatency);
                 machineState->addGuardState(guardState, *guard);
             }
         }
