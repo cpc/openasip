@@ -1,0 +1,7 @@
+<?php
+$test_description = "SystemC/ttasim integration";
+
+// the binary being tested
+$test_bin = "./test_systemc.sh";
+
+?>

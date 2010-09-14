@@ -36,8 +36,17 @@
 SimpleSimulatorFrontend::SimpleSimulatorFrontend(
     TCEString machineFile, TCEString programFile) {
     simFront_ = new SimulatorFrontend();
-    simFront_->loadMachine(machineFile);
-    simFront_->loadProgram(programFile);
+    try {
+        simFront_->loadMachine(machineFile);
+        simFront_->loadProgram(programFile);
+    } catch (Exception& e) {
+        std::cerr 
+            << e.errorMessage() + " in " +   
+            e.fileName() + ":" +
+            e.procedureName() + ":" 
+            << e.lineNum() << std::endl;
+        abort();
+    }
 }
 
 SimpleSimulatorFrontend::~SimpleSimulatorFrontend() {

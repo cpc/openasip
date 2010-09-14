@@ -75,10 +75,6 @@ public:
         OperationExecutor& opExec, 
         Operation& op);
 
-    virtual void setOperationSimulator(
-        Operation& op, 
-        DetailedOperationSimulator& sim);
-
     virtual void setOperationSimulator(DetailedOperationSimulator& sim);
 
     virtual void replaceOperationExecutor(
@@ -107,6 +103,10 @@ private:
         OperationExecutor& exec2,
         Operation& op);
 
+    virtual void setOperationSimulator(
+        Operation& op, 
+        DetailedOperationSimulator& sim);
+
     /// Maps operations to executors.
     typedef std::map<Operation*, OperationExecutor*> ExecutorContainer;
     /// Contains all the different instances of executors.
@@ -131,6 +131,10 @@ private:
     /// Count of active executors (to allow returning instantly
     /// from advanceClock())
     std::size_t activeExecutors_;
+    /// Optional detailed operation simulation model. Assume there's one
+    /// such model per FU or none at all for now (could be possible to
+    /// be one model per Operation).
+    DetailedOperationSimulator* detailedModel_;
 };
 
 #include "FUState.icc"

@@ -40,7 +40,11 @@ class ExecutingOperation;
  * behaviors.
  *
  * Used by MultiCycleOperationExecutor and the SystemC integration
- * layer (tce_systemc.hh).
+ * layer (tce_systemc.hh). 
+ *
+ * @note each instance should be used to model the operation pipeline of 
+ * a single FU only. Otherwise multiple cycle start notifications will be
+ * recevied.
  */
 class DetailedOperationSimulator {
 public:
@@ -60,5 +64,13 @@ public:
     *
     */
     virtual bool simulateStage(ExecutingOperation& operation) = 0;
+
+    /**
+     * This is called once at the beginning of the TTA instruction cycle
+     * before any simulateStage() calls for that cycle.
+     *
+     * Useful for initializing signals to their default values etc.
+     */
+    virtual void simulateCycleStart() {}
 };
 #endif

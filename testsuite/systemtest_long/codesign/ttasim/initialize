@@ -1,0 +1,26 @@
+#!/bin/sh
+test_sc_src=`mktemp`.cc
+test_sc_out=`mktemp`
+
+cat > $test_sc_src <<EOF
+#include <systemc>
+
+int sc_main(int argc, char* argv[]) {
+    return EXIT_SUCCESS;
+}
+EOF
+
+${CXX} $test_sc_src -lsystemc -o $test_sc_out >/dev/null 2>&1 && \
+$test_sc_out >/dev/null 2>&1
+systemc_found=$?
+
+if test $systemc_found -eq 0; 
+then
+#        echo SystemC found
+         rm -f systemc.testdesc.disabled
+else
+#        echo SystemC not found
+         touch systemc.testdesc.disabled
+fi
+
+rm -f ${test_sc_src} ${test_sc_out}

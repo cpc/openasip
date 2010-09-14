@@ -67,7 +67,7 @@ using std::string;
 FUState::FUState() : 
     ClockedState(), idle_(false), trigger_(false),
     nextOperation_(NULL), nextExecutor_(NULL), operationContext_(), 
-    activeExecutors_(0) {
+    activeExecutors_(0), detailedModel_(NULL) {
 }
 
 /**
@@ -125,6 +125,9 @@ FUState::endClock() {
  */
 void
 FUState::advanceClock() {
+
+    if (detailedModel_ != NULL)
+        detailedModel_->simulateCycleStart();
 
     // in case there are no active operations and there are no states
     // which need clock advancing, the FU is in idle state
@@ -285,6 +288,7 @@ FUState::setOperationSimulator(DetailedOperationSimulator& sim) {
         Operation* op = (*i).first;
         setOperationSimulator(*op, sim);
     }
+    detailedModel_ = &sim;
 }
 
 

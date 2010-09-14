@@ -6,9 +6,9 @@ New features
 - ttasim: call info (setting profile_transfer_tracking) and the instruction
   profile (ttasim setting profile_data_saving) are now saved to separate
   pure text files to speed up simulation when these traces are enabled.
-- system level integration: a simple SC_MODULE wrapper for simulating TTA
-  cores in SystemC models. No I/O from the cores yet so it's quite useless 
-  at the moment.
+- SystemC integration: Possibility to add TTA simulation models to system
+  level simulations with the ability to override the operation pipeline 
+  simulation models for the function units.
 
 Code generator improvements
 ---------------------------

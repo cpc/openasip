@@ -51,7 +51,6 @@ public:
     sc_in<bool> clock;
     sc_in<bool> global_lock;
 
-
     SC_HAS_PROCESS(TTACore);
 
     TTACore(
@@ -60,21 +59,25 @@ public:
         sc_module(name), 
         SimpleSimulatorFrontend(machineFile, programFile) {
         SC_METHOD(step);
-        sensitive << clock;
+        sensitive << clock.pos();
         lockCycles_ = 0;
+        instructionCycles_ = 0;
     }
 
     // number of cycles the tta has been locked during the simulation
     uint64_t lockCycles() const { return lockCycles_; }
+    // number of instructions executed
+    uint64_t instructionCycles() const { return instructionCycles_; }
 private:
     void step() { 
         if (!global_lock) {
             SimpleSimulatorFrontend::step();
+            ++instructionCycles_;
         } else {
             ++lockCycles_;
         }
     }
-
+    uint64_t instructionCycles_;
     uint64_t lockCycles_;
 };
 
@@ -92,17 +95,24 @@ private:
 #define TCE_SC_SIMULATE_STAGE \
     bool simulateStage(ExecutingOperation& __eop)
 
+#define TCE_SC_SIMULATE_CYCLE_START \
+    void simulateCycleStart()
+
+
 #define TCE_SC_OPNAME \
     (__eop.operation().name())
 
-#define TCE_SC_STAGE \
+#define TCE_SC_OPSTAGE \
     (__eop.stage())
 
-#define TCE_SC_INT(OPERAND) (__eop.io((OPERAND) - 1).intValue())
-#define TCE_SC_UINT(OPERAND)(__eop.io((OPERAND) - 1).unsignedValue())
-#define TCE_SC_FLT(OPERAND) (__eop.io((OPERAND) - 1).floatWordValue())
-#define TCE_SC_DBL(OPERAND) (__eop.io((OPERAND) - 1).doubleWordValue())
-#define TCE_SC_FUPORT(OPERAND) (__eop.io((OPERAND) - 1))
-#define TCE_SC_FUPORT_BWIDTH(OPERAND) (((__eop.io((OPERAND) - 1]).width()))
+#define TCE_SC_OPERATION \
+    __eop.operation()
+
+#define TCE_SC_INT(OPERAND) (__eop.io(OPERAND).intValue())
+#define TCE_SC_UINT(OPERAND)(__eop.io(OPERAND).unsignedValue())
+#define TCE_SC_FLT(OPERAND) (__eop.io(OPERAND).floatWordValue())
+#define TCE_SC_DBL(OPERAND) (__eop.io(OPERAND).doubleWordValue())
+#define TCE_SC_OUTPUT(OPERAND) (__eop.io(OPERAND))
+#define TCE_SC_FUPORT_BWIDTH(OPERAND) (__eop.io(OPERAND).width())
 
 #endif
