@@ -35,6 +35,7 @@
 
 #include <string>
 #include <list>
+#include <climits>
 
 #include "OperationExecutor.hh"
 #include "SequenceTools.hh"
