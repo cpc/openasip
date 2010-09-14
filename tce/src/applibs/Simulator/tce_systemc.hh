@@ -36,6 +36,8 @@
 #include "Operation.hh"
 #include "OperationExecutor.hh"
 #include "SimpleSimulatorFrontend.hh"
+#include "DetailedOperationSimulator.hh"
+#include "ExecutingOperation.hh"
 #include "systemc.h"
 
 /**
@@ -44,63 +46,63 @@
  * This model is sentive to clock signal. Propagates the clock signal
  * internally to other clocked datapath models (mainly FU models).
  */
-class TTACore : public sc_module, SimpleSimulatorFrontend {
+class TTACore : public sc_module, public SimpleSimulatorFrontend {
 public:
     sc_in<bool> clock;
+    sc_in<bool> global_lock;
 
-    void step() { SimpleSimulatorFrontend::step(); }
 
     SC_HAS_PROCESS(TTACore);
 
     TTACore(
-        sc_module_name name, 
-        std::string machineFile, std::string programFile) :
+        sc_module_name name, std::string machineFile, 
+        std::string programFile) :
         sc_module(name), 
         SimpleSimulatorFrontend(machineFile, programFile) {
         SC_METHOD(step);
         sensitive << clock;
+        lockCycles_ = 0;
     }
-};
 
+    // number of cycles the tta has been locked during the simulation
+    uint64_t lockCycles() const { return lockCycles_; }
+private:
+    void step() { 
+        if (!global_lock) {
+            SimpleSimulatorFrontend::step();
+        } else {
+            ++lockCycles_;
+        }
+    }
+
+    uint64_t lockCycles_;
+};
 
 /**
- * An sc_module wrapper for a single FU simulation model.
- *
- * Can be used to replace the default FU simulation models with
- * SystemC-defined ones in order to model more detailed communication
- * behavior with other modules. Note: this module is not sensitive to SystemC
- * clock signal because the TTACore simulation model is responsible for
- * notifying it about clock events.
+ * Macros used to override FU operation simulation behavior.
  */
-class TTAFUState : public sc_module, FUState {
-public:
-    TTAFUState() : triggered_(false), idle_(false) {};
-    virtual ~TTAFUState() {};
 
-    /* More readable method names to override. Note: the results should
-       be made visible at the end of cycle so the moves in the same
-       instruction reading the FU read the old result. */
-    virtual void cycleStart() {}
-    virtual void cycleEnd() {}
+#define TCE_SC_OPERATION_SIMULATOR(__CLASS__) \
+    struct __CLASS__ : public DetailedOperationSimulator, public sc_module  
 
+#define TCE_SC_OPERATION_SIMULATOR_CTOR(__CLASS__) \
+    SC_HAS_PROCESS(__CLASS__); \
+    __CLASS__(sc_module_name name) : sc_module(name)
 
-    virtual void advanceClock() { cycleStart(); }
-    virtual void endClock() { cycleEnd(); triggered_ = false; }
-    void setTriggered() { triggered_ = true; idle_ = false; }
-    void setOperation(Operation& op) { operation = &op; }
+#define TCE_SC_SIMULATE_STAGE \
+    bool simulateStage(ExecutingOperation& __eop)
 
-    SimValue& port(Operation& op, int operand) { 
-        return *(bindings_[&op][operand - 1]);
-    }
+#define TCE_SC_OPNAME \
+    (__eop.operation().name())
 
-protected:
-    bool triggered;
-    Operation* operation;
+#define TCE_SC_STAGE \
+    (__eop.stage())
 
-    /* The operand to FU port bindings need to be initialized to point to
-       the original port models. */
-    typedef std::map<Operation*, std::vector<PortState*> > BindingIndex;
-    BindingIndex bindings_;
-};
+#define TCE_SC_INT(OPERAND) (__eop.io((OPERAND) - 1).intValue())
+#define TCE_SC_UINT(OPERAND)(__eop.io((OPERAND) - 1).unsignedValue())
+#define TCE_SC_FLT(OPERAND) (__eop.io((OPERAND) - 1).floatWordValue())
+#define TCE_SC_DBL(OPERAND) (__eop.io((OPERAND) - 1).doubleWordValue())
+#define TCE_SC_FUPORT(OPERAND) (__eop.io((OPERAND) - 1))
+#define TCE_SC_FUPORT_BWIDTH(OPERAND) (((__eop.io((OPERAND) - 1]).width()))
 
 #endif

@@ -46,6 +46,7 @@
 class Operation;
 class OperationExecutor;
 class OperationContext;
+class DetailedOperationSimulator;
 
 //////////////////////////////////////////////////////////////////////////////
 // FUState
@@ -73,14 +74,17 @@ public:
     virtual void addOperationExecutor(
         OperationExecutor& opExec, 
         Operation& op);
-#if 0
+
+    virtual void setOperationSimulator(
+        Operation& op, 
+        DetailedOperationSimulator& sim);
+
+    virtual void setOperationSimulator(DetailedOperationSimulator& sim);
+
     virtual void replaceOperationExecutor(
         Operation& op, 
-        OperationExecutor* opExec);
+        OperationExecutor* newExecutor);
 
-    virtual void replaceOperationExecutors(
-        OperationExecutor* opExec);
-#endif
     virtual OperationExecutor* executor(Operation& op);
 
     virtual OperationContext& context();

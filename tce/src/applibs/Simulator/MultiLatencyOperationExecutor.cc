@@ -32,12 +32,13 @@
 
 #include "MultiLatencyOperationExecutor.hh"
 #include "Operation.hh"
-#include "SequenceTools.hh"
 #include "OperationContext.hh"
 #include "PortState.hh"
 #include "SimulatorToolbox.hh"
 #include "OperationPool.hh"
 #include "Application.hh"
+#include "HWOperation.hh"
+#include "DetailedOperationSimulator.hh"
 
 using std::vector;
 using std::string;
@@ -50,8 +51,9 @@ using std::string;
  */
 MultiLatencyOperationExecutor::MultiLatencyOperationExecutor(
     FUState& parent, TTAMachine::HWOperation& hwOp) :
-    OperationExecutor(parent), context_(NULL), hwOperation_(hwOp),
-    freeExecOp_(NULL), execOperationsInitialized_(false) {
+    OperationExecutor(parent), context_(NULL), hwOperation_(&hwOp),
+    freeExecOp_(NULL), execOperationsInitialized_(false),
+    opSimulator_(NULL) {
 
     OperationPool ops;
     operation_ = &ops.operation(hwOp.name().c_str());
@@ -68,7 +70,7 @@ MultiLatencyOperationExecutor::MultiLatencyOperationExecutor(
     const std::size_t operandCount = inputOperands + outputOperands;
 
     hasPendingOperations_ = true;
-    ExecutingOperation eop;
+    ExecutingOperation eop(*operation_);
     eop.iostorage_.resize(operandCount);
     executingOps_.resize(hwOp.latency(), eop);
 
@@ -81,7 +83,7 @@ MultiLatencyOperationExecutor::~MultiLatencyOperationExecutor() {
 }
 
 
-MultiLatencyOperationExecutor::ExecutingOperation&
+ExecutingOperation&
 MultiLatencyOperationExecutor::findFreeExecutingOperation() {
     ExecutingOperation* execOp = NULL;
     if (freeExecOp_ != NULL) {
@@ -135,7 +137,7 @@ MultiLatencyOperationExecutor::startOperation(Operation&) {
             // output ports and setup their delayed appearance 
             for (std::size_t o = inputOperands + 1; o <= operandCount; ++o) {
                 PortState& port = binding(o);
-                const int resultLatency = hwOperation_.latency(o);
+                const int resultLatency = hwOperation_->latency(o);
 
                 ExecutingOperation::PendingResult res(
                     execOp.iostorage_[o - 1], port, resultLatency);
@@ -153,27 +155,6 @@ MultiLatencyOperationExecutor::startOperation(Operation&) {
 }
 
 /**
- * Simulate a single stage in the operation's execution.
- *
- * This can be used in more detailed simulation models (SystemC at the moment)
- * to more accurately simulate each stage of operation's execution. 
- *
- * @param operation The operation being simulated.
- * @param cycle The stage/cycle to simulate, 0 being the trigger cycle.
- * @return Return true in case the simulation behavior was overridden by
- * the method implementation. In case false is returned, the default behavior
- * simulation is performed (by calling the OSAL TRIGGER at cycle 0 to produce
- * the results and just simulating the latency by making the result(s) visible 
- * at correct time).
- *
- */
-bool
-MultiLatencyOperationExecutor::simulateStage(
-    ExecutingOperation& /*operation*/) {
-    return false;
-}
-
-/**
  * Advances clock by one cycle.
  */
 void
@@ -188,12 +169,13 @@ MultiLatencyOperationExecutor::advanceClock() {
         }
             
         foundActiveOperation = true;
-        bool customSimulated = simulateStage(execOp);
+        bool customSimulated = 
+            opSimulator_ != NULL && opSimulator_->simulateStage(execOp);
         if (execOp.stage_ == 0 && !customSimulated)
             operation_->simulateTrigger(&execOp.iovec_[0], *context_);
         execOp.advanceCycle();
         
-        if (execOp.stage_ == hwOperation_.latency())
+        if (execOp.stage_ == hwOperation_->latency())
             execOp.stop();
     }
     hasPendingOperations_ = foundActiveOperation;

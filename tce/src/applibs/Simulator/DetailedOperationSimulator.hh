@@ -22,50 +22,43 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file SimpleSimulatorFrontend.cc
+ * @file DetailedOperationSimulator.hh
  *
- * Implementation of SimpleSimulatorFrontend class.
+ * Declaration of DetailedOperationSimulator class.
  *
  * @author Pekka Jääskeläinen 2010 (pjaaskel-no.spam-cs.tut.fi)
+ * @note rating: red
  */
-#include "SimpleSimulatorFrontend.hh"
-#include "SimulatorFrontend.hh"
-#include "MachineState.hh"
-#include "DetailedOperationSimulator.hh"
 
-SimpleSimulatorFrontend::SimpleSimulatorFrontend(
-    TCEString machineFile, TCEString programFile) {
-    simFront_ = new SimulatorFrontend();
-    simFront_->loadMachine(machineFile);
-    simFront_->loadProgram(programFile);
-}
+#ifndef TTA_DETAILED_OPERATION_SIMULATOR_HH
+#define TTA_DETAILED_OPERATION_SIMULATOR_HH
 
-SimpleSimulatorFrontend::~SimpleSimulatorFrontend() {
-    delete simFront_;
-}
-
-void
-SimpleSimulatorFrontend::step() {
-    if (!simFront_->hasSimulationEnded())
-        simFront_->step();
-}
+class ExecutingOperation;
 
 /**
- * Replaces all operation executors in the given FU with the
- * given one.
+ * Interface to allow modeling cycle-by-cycle operation simulation
+ * behaviors.
+ *
+ * Used by MultiCycleOperationExecutor and the SystemC integration
+ * layer (tce_systemc.hh).
  */
-void
-SimpleSimulatorFrontend::setOperationSimulator(
-    const TCEString& fuName, DetailedOperationSimulator& sim) {
-    try {
-        simFront_->machineState().fuState(fuName).
-            setOperationSimulator(sim);
-    } catch (Exception& e) {
-        std::cerr 
-            << e.errorMessage() + " in " +   
-            e.fileName() + ":" +
-            e.procedureName() + ":" 
-            << e.lineNum() << std::endl;
-        abort();
-    }
-}
+class DetailedOperationSimulator {
+public:
+   /**
+    * Simulate a single stage in the operation's execution.
+    *
+    * This can be used in more detailed simulation models (SystemC at the moment)
+    * to more accurately simulate each stage of operation's execution. 
+    *
+    * @param operation The operation being simulated.
+    * @param cycle The stage/cycle to simulate, 0 being the trigger cycle.
+    * @return Return true in case the simulation behavior was overridden by
+    * the method implementation. In case false is returned, the default behavior
+    * simulation is performed (by calling the OSAL TRIGGER at cycle 0 to produce
+    * the results and just simulating the latency by making the result(s) 
+    * visible at correct time).
+    *
+    */
+    virtual bool simulateStage(ExecutingOperation& operation) = 0;
+};
+#endif

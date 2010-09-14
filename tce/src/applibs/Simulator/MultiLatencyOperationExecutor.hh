@@ -38,12 +38,14 @@
 #include <climits>
 
 #include "OperationExecutor.hh"
-#include "SequenceTools.hh"
+#include "ExecutingOperation.hh"
 #include "SimValue.hh"
-#include "HWOperation.hh"
 
+namespace TTAMachine {
+    class HWOperation;
+}
 class OperationContext;
-
+class DetailedOperationSimulator;
 
 /**
  * OperationExecutor that supports multi-output operation pipelines with 
@@ -60,6 +62,7 @@ class MultiLatencyOperationExecutor : public OperationExecutor {
 public:
     MultiLatencyOperationExecutor(
         FUState& parent, TTAMachine::HWOperation& hwOp);
+    MultiLatencyOperationExecutor() : hwOperation_(NULL) {}
     virtual ~MultiLatencyOperationExecutor();
 
     virtual void startOperation(Operation& op);
@@ -67,95 +70,10 @@ public:
     virtual void advanceClock();
     virtual OperationExecutor* copy();
     virtual void setContext(OperationContext& context);
-
-protected:
-
-    /**
-     * Models an operation executing in the FU pipeline.
-     */
-    class ExecutingOperation {
-    public:
-        ExecutingOperation() : stage_(0), free_(true) {}
-
-        void start() {
-            for (std::size_t i = 0; i < pendingResults_.size(); ++i) 
-                pendingResults_[i].reset();
-            free_ = false;
-            stage_ = 0;
-        }
-
-        void stop() {
-            free_ = true;            
-        }
-
-        void advanceCycle() {
-            for (std::size_t i = 0; i < pendingResults_.size(); ++i)
-                pendingResults_[i].advanceCycle();
-            ++stage_;
-        }
-
-        /**
-         * Models the latency of an operation result.
-         *
-         * This is used to make results visible in the output ports of the FU at
-         * the correct time.
-         */
-        struct PendingResult {
-            PendingResult(SimValue& result, PortState& targetPort, int latency) : 
-                result_(&result), target_(&targetPort), cyclesToGo_(latency),
-                resultLatency_(latency) {
-            }
-
-            /**
-             * Signals a cycle advance.
-             *
-             * Makes the result visible to the output port in time.
-             */
-            void advanceCycle() {
-                if (--cyclesToGo_ == 0) {
-                    target_->setValue(*result_);
-                    cyclesToGo_ = INT_MAX;
-                } 
-            }
-
-            void reset() {
-                cyclesToGo_ = resultLatency_;
-            }
-
-            /// The value that will be written to the target after the
-            /// latency has passed.
-            SimValue* result_;
-            /// The target port to which the result will be written after the
-            /// latency.
-            PortState* target_;
-            /// How many cycles to wait until the result will be written to
-            /// the target.
-            int cyclesToGo_;       
-            int resultLatency_;
-        };
-
-        void initIOVec() {
-            for (std::size_t i = 0; i < iostorage_.size(); ++i) 
-                iovec_.push_back(&iostorage_.at(i));
-        }
-        /* The input and output values of operation, in their OSAL order.
-
-           The execution model can freely modify them duing the operation 
-           execution simulation.
-        */
-        std::vector<SimValue> iostorage_;
-        /// OSAL simulateTrigger() compatible I/O vector for fast execution 
-        std::vector<SimValue*> iovec_;
-        /* Buffer for results that have latency cycles left. After cycles
-           have passed, the results are removed from the queue.
-           The outputs are made visible to the FU output registers 
-           automatically after the ADF declared execution latency. */
-        std::vector<PendingResult> pendingResults_;
-        // the stage of execution the operation is in 
-        int stage_;
-        bool free_;
-    };
-    virtual bool simulateStage(ExecutingOperation& operation);
+    virtual void setOperationSimulator(
+        DetailedOperationSimulator& sim) {
+        opSimulator_ = &sim;
+    }
 
 private:
     /// Assignment not allowed.
@@ -167,7 +85,7 @@ private:
     /// Operation context.
     OperationContext* context_;
     /// The hardware operation this executor simulates.
-    TTAMachine::HWOperation& hwOperation_;
+    TTAMachine::HWOperation* hwOperation_;
     /// The OSAL operation.
     Operation* operation_;
     /// The operations "on flight" in this operation executor.
@@ -175,6 +93,9 @@ private:
     /// If non-NULL, points to a known free ExecutingOperation slot.
     ExecutingOperation* freeExecOp_;
     bool execOperationsInitialized_;
+    /// If non-NULL, points to a detailed cycle-by-cycle simulation
+    /// model for the operation simulated by this executor.
+    DetailedOperationSimulator* opSimulator_;
 };
 
 #endif

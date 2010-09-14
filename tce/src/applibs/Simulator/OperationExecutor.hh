@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Declaration of OperationExecutor class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2006,2010 (pjaaskel-no.spam-cs.tut.fi)
  * @note rating: red
  */
 
@@ -48,10 +48,12 @@ class OperationContext;
  */
 class OperationExecutor {
 public:
+    OperationExecutor() : hasPendingOperations_(false), parent_(NULL) {}
     explicit OperationExecutor(FUState& parent);
     virtual ~OperationExecutor();
 
     FUState& parent() const;
+    void setParent(FUState& parent) { parent_ = &parent; }
 
     void addBinding(int io, PortState& port)
         throw (IllegalRegistration);

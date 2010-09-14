@@ -48,7 +48,8 @@ include_HEADERS = \
 	SimulatorConstants.hh tce_systemc.hh 
 
 # Headers required by the SystemC wrapper.
-include_HEADERS += SimpleSimulatorFrontend.hh
+include_HEADERS += SimpleSimulatorFrontend.hh DetailedOperationSimulator.hh \
+	ExecutingOperation.hh
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src

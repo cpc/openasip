@@ -36,6 +36,8 @@
 #include "TCEString.hh"
 
 class SimulatorFrontend;
+class OperationExecutor;
+class DetailedOperationSimulator;
 
 /**
  * Simplified simulator frontend e.g. for calling from system level simulators
@@ -47,6 +49,9 @@ public:
     SimpleSimulatorFrontend(TCEString machineFile, TCEString programFile);
     virtual ~SimpleSimulatorFrontend();
     void step();
+    virtual void setOperationSimulator(
+        const TCEString& fuName, DetailedOperationSimulator& sim);
+
 private:
     SimulatorFrontend* simFront_;
 };

@@ -48,6 +48,9 @@
 #include "OperationPool.hh"
 #include "Application.hh"
 #include "SequenceTools.hh"
+#include "Conversion.hh"
+#include "DetailedOperationSimulator.hh"
+#include "MultiLatencyOperationExecutor.hh"
 
 using std::vector;
 using std::string;
@@ -212,20 +215,12 @@ FUState::addOperationExecutor(OperationExecutor& opExec, Operation& op) {
     executors_[&op] = newExecutor;
 }
 
-#if 0
 /**
  * Replaces the operation executor model for an operation.
- *
- * This method is useful in system simulations where one might want to
- * replace the default operation execution model with a more detailed one that
- * possibly connects to the other models in the system.
  *
  * Does not copy the operation executor but uses the given instance.
  * The method copies the I/O bindings and sets the parent FUState from 
  * the old model.
- *
- * The OperationExecutor instance ownership is transferred to the FUState 
- * object, thus it should never be reused nor deleted by the caller. 
  *
  * @param op Operation of which executor is added.
  * @param newExecutor Operation executor to be set.
@@ -260,16 +255,37 @@ FUState::replaceOperationExecutor(
 }
 
 /**
- * Replaces the operation executor model for all operations with the given
- * one.
+ * Sets a detailed operation simulation model for all operations in 
+ * the FU.
  */
 void
-FUState::replaceOperationExecutors(
+FUState::setOperationSimulator(
     Operation& op, 
-    OperationExecutor* newExecutor) {
-    abortWithError("Not implemented.");
+    DetailedOperationSimulator& sim) {
+
+    MultiLatencyOperationExecutor* oe = 
+        dynamic_cast<MultiLatencyOperationExecutor*>(executor(op));
+    if (oe == NULL) {
+        // only MultiCycleOperationExecutor supports the detailed
+        // cycle-basis simulation of operations, need to replace
+        // the current simulation model with that
+        replaceOperationExecutor(op, new MultiLatencyOperationExecutor());
+    }
+    oe->setOperationSimulator(sim);
 }
-#endif
+
+/**
+ * Sets a detailed operation simulation model for all operations in the FU.
+ */
+void
+FUState::setOperationSimulator(DetailedOperationSimulator& sim) {
+    
+    for (ExecutorContainer::iterator i = executors_.begin(); 
+         i != executors_.end(); ++i) {
+        Operation* op = (*i).first;
+        setOperationSimulator(*op, sim);
+    }
+}
 
 
 /**
