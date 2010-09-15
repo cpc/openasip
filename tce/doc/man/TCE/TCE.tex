@@ -20,7 +20,7 @@
 % FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 % IN THE SOFTWARE.
 \documentclass[twoside]{tceusermanual}
-\usepackage{pslatex,listings,color}
+\usepackage{pslatex,verbatim}
 
 % for index
 \makeindex
@@ -5824,9 +5824,7 @@ and the program to be loaded to the TTA.
 
 For example:
 
-\lstset{emph={TTACore}, emphstyle=\color{red}}
-
-\begin{lstlisting}[language=C++,basicstyle=\ttfamily]
+\begin{verbatim}
 ...
 #include <tce_systemc.hh>
 ...
@@ -5837,7 +5835,7 @@ int sc_main(int argc, char* argv[]) {
    tta.global_lock(glock);
    ...
 }
-\end{lstlisting}
+\end{verbatim}
 
 As you can see, the TTA core model presents only two external ports that
 must be connected in your simulation model: the clock and the
@@ -5855,7 +5853,7 @@ system, the input and output behavior must be modeled accurately.
 The TCE SystemC API provides a way to override functional unit simulation
 models with more detailed SystemC modules. This is done by describing
 one or more ``operation simulation models'' with the macro
-\textit{TCE\_SC\_OPERATION\_SIMULATOR} and defining more accurate
+\textbf{TCE\_SC\_OPERATION\_SIMULATOR} and defining more accurate
 simulation behavior for operation pipelines.
 
 In the following, a simulation model to replace the default load-store
@@ -5863,11 +5861,7 @@ simulation model is described. This model simulates memory mapped I/O
 by redirecting accesses outside the data memory address space of the
 internal TTA memory to I/O registers.
 
-\lstset{emph={TCE\_SC\_OPERATION\_SIMULATOR,TCE\_SC_OPERATION\_SIMULATOR\_CTOR,
-TCE\_SC\_SIMULATE\_CYCLE\_START,TCE\_SC\_SIMULATE\_STAGE,TCE\_SC\_UINT,
-TCE\_SC\_OPSTAGE,TCE\_SC\_OPERATION,TCE\_SC\_OUTPUT,TCE\_SC\_INT}, emphstyle=\color{red}}
-
-\begin{lstlisting}[language=C++,basicstyle=\ttfamily]
+\begin{verbatim}
 
 TCE_SC_OPERATION_SIMULATOR(LSUModel) {
     sc_in<int> reg_value_in;
@@ -5901,16 +5895,16 @@ TCE_SC_OPERATION_SIMULATOR(LSUModel) {
     }
 };
 
-\end{lstlisting}
+\end{verbatim}
 
-In the above example, $TCE\_SC\_SIMULATE\_CYCLE\_START$ is used to
+In the above example, \textbf{TCE\_SC\_SIMULATE\_CYCLE\_START} is used to
 describe behavior that is produced once per each simulated TTA cycle,
 before any of the operation stages are simulated. In this case,
 the update signal of the I/O register is initialized to 0 to avoid
 garbage to be written to the register in case write operation is not
 triggered at that cycle. 
 
-$TCE\_SC\_SIMULATE\_STAGE$ is used to define the parts of the operation 
+\textbf{TCE\_SC\_SIMULATE\_STAGE} is used to define the parts of the operation 
 pipeline to override. The code overrides the default LSU operation stage
 0 in case the address is greater than LAST\_DMEM\_ADDR which in this simulation
 stores the last address in the TTA's local data memory. Otherwise, it falls 
@@ -5928,12 +5922,13 @@ load-store unit with only memory accessing operations), it reads the
 shared register value and places it in the output queue of the
 functional unit. 
 
-In more detail: $TCE\_SC\_OUTPUT(2) = value$ instructs
+In more detail: \textbf{TCE\_SC\_OUTPUT(2) = value} instructs
 the simulator to write the given value to the functional unit port
 bound to the operand 2 of the executed operation (in this case operand 2
 of a load operation is the first result operand. This follows the
 convention of OSAL operation behavior models (see Section~\ref{ssec:operation-behavior}
-for further details). Similarly, $TCE\_SC\_UINT(2)$ and $TCE\_SC\_INT(1)$
+for further details). Similarly, \textbf{TCE\_SC\_UINT(2)} and 
+\textbf{TCE\_SC\_INT(1)}
 are used to read the value written to the operand 2 and 1 of the
 operation as unsigned and signed integers, respectively. In case of 
 the basic load/store operations, operand 1 is the memory address and in 
@@ -5942,14 +5937,12 @@ case of stores, operand 2 is the value to write.
 Finally, the simulation model is instantiated and the original LSU 
 simulation model of TTACore is replaced with the newly defined one:
 
-\lstset{emph={LSUModel}, emphstyle=\color{red}}
-
-\begin{lstlisting}[language=C++,basicstyle=\ttfamily]
+\begin{verbatim}
     ...
     LSUModel lsu("LSU");
     tta.setOperationSimulator("LSU", lsu);
     ...
-\end{lstlisting}
+\end{verbatim}
 
 
 \section{Processor Cost/Performance Estimator (estimate)}
@@ -6484,89 +6477,46 @@ This SystemC simulation example simulates a system with two TTA cores
 communicating through two shared registers with memory mapped access.
 One of the registers (busyReg) is used to denote that the ``receiver TTA'' is
 busy processing the previously written data which the ``sender TTA'' writes
-(to dataReg). The receiver uses $iprintf$ to print out the received data.
+(to dataReg). The receiver uses \textbf{iprintf} to print out the received data.
 
-The C source codes for the programs running in the two TTAs are shown
-in Fig.~\ref{fig:recv.c} and Fig.~\ref{fig:send.c}. $mem\_map.h$ 
-(Fig.~\ref{fig:memmap.h})
-defines constants for the memory mapped I/O addresses. This file is 
+The C source codes for the programs running in the two TTAs 
+are shown below:. \textbf{mem\_map.h} defines constants for the memory 
+mapped I/O addresses. This file is 
 included by both TTA programs and the SystemC simulation code presented
 later.
 
-\lstset{emph={}}
+\textbf{mmio\_recv.c: The C program running in the receiver TTA:}
 
-\begin{figure}
+\verbatiminput{systemc_example/mmio_recv.c}
 
-\lstinputlisting[language=C,basicstyle=\ttfamily]{
-systemc_example/mmio_recv.c
-}
-\caption{mmio\_recv.c: The C program running in the receiver TTA.}
-\label{fig:recv.c}
+\textbf{mmio\_send.c: The C program running in the sender TTA.}
+\verbatiminput{systemc_example/mmio_send.c}
 
-\end{figure}
-
-\begin{figure}
+\textbf{mem\_map.h: The memory mapped I/O addresses as constants:}
  
-\lstinputlisting[language=C,basicstyle=\ttfamily]{
-systemc_example/mmio_send.c
-}
-\caption{mmio\_send.c: The C program running in the sender TTA.}
-\label{fig:send.c}
+\verbatiminput{systemc_example/mem_map.h}
 
-\end{figure}
-
-
-\begin{figure}
- 
-\lstinputlisting[language=C,basicstyle=\ttfamily]{
-systemc_example/mem_map.h
-}
-\caption{mem\_map.h: The memory mapped I/O addresses as constants.}
-\label{fig:memmap.h}
-
-\end{figure}
-
-The simple register is defined in Fig.~\ref{fig:register.hh} and the
+The simple register is defined in \textbf{register.hh} and the
 load-store unit simulation model that overrides the default TTA simulator
-one in Fig.~\ref{fig:lsu_model.hh}.
+one in \textbf{lsu\_model.hh}.
 
-\begin{figure}
+\textbf{register.hh: SystemC model for an integer register:}
  
-\lstinputlisting[language=C++,basicstyle=\ttfamily]{
-systemc_example/register.hh
-}
-\caption{register.hh: SystemC model for an integer register.}
-\label{fig:register.hh}
+\verbatiminput{systemc_example/register.hh}
 
-\end{figure}
+\textbf{lsu\_model.hh: The load-store unit model for the TTAs:}
 
-
-\begin{figure}
- 
-\lstinputlisting[language=C++,basicstyle=\ttfamily]{
-systemc_example/lsu_model.hh
-}
-\caption{lsu\_model.hh: The load-store unit model for the TTAs.}
-\label{fig:memmap.h}
-
-\end{figure}
-
+\verbatiminput{systemc_example/lsu_model.hh}
 
 Finally, the actual main SystemC simulation code is defined as follows.
 As can be noted, both of the TTA cores use the same architecture loaded from
-$mmio.adf$ which is not represented here. In order to make this example work,
-the TCE-included $minimal\_with\_io.adf$ architecture can be used.
+\textbf{mmio.adf} of which contents are not presented here. In order to 
+make this example work, the TCE-included \textbf{minimal\_with\_io.adf} 
+architecture can be used instead.
 
-%\begin{figure}
-%cannot use a figure as it does not fit on a page
+\textbf{simulator.cc: The main simulation code:}
  
-\lstinputlisting[language=C++,basicstyle=\ttfamily]{
-systemc_example/simulator.cc
-}
-%\caption{simulator.cc: The SystemC simulation model.}
-%\label{fig:simulator.cc}
-
-%\end{figure}
+\verbatiminput{systemc_example/simulator.cc}
 
 The simulator can be compiled with the following command (assuming gcc
 used):
