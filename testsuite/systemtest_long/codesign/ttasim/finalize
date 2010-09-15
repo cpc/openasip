@@ -1,1 +1,1 @@
-make -s -C systemc clean
+make -s -C ../../../../tce/doc/man/TCE/systemc_example clean

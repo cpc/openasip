@@ -33,12 +33,12 @@
 #ifndef TCE_SYSTEMC_HH
 #define TCE_SYSTEMC_HH
 
-#include "Operation.hh"
-#include "OperationExecutor.hh"
-#include "SimpleSimulatorFrontend.hh"
-#include "DetailedOperationSimulator.hh"
-#include "ExecutingOperation.hh"
-#include "systemc.h"
+#include <systemc.h>
+#include <Operation.hh>
+#include <SimpleSimulatorFrontend.hh>
+#include <DetailedOperationSimulator.hh>
+#include <ExecutingOperation.hh>
+#include <SimValue.hh>
 
 /**
  * A sc_module wrapper for the whole TTA core simulation model.

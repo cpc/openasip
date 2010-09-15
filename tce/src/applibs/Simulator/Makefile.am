@@ -35,12 +35,12 @@ libsimulator_la_SOURCES = WritableState.cc ReadableState.cc StateData.cc \
 	MultiLatencyOperationExecutor.cc SymbolAddressCommand.cc \
 	CompiledSimCodeGenerator.cc CompiledSimController.cc \
 	CompiledSimCompiler.cc TTASimulationController.cc \
-        CompiledSimulation.cc AssignmentQueue.cc \
+    CompiledSimulation.cc AssignmentQueue.cc \
 	CompiledSimSymbolGenerator.cc ConflictDetectionCodeGenerator.cc \
 	CompiledSimMove.cc CompiledSimInterpreter.cc CompiledSimSettingCommand.cc \
 	CompiledSimulationPimpl.cc FSAFUResourceConflictDetectorPimpl.cc \
 	OperationIDIndex.cc CompiledSimUtilizationStats.cc \
-	SimpleSimulatorFrontend.cc
+	SimpleSimulatorFrontend.cc ExecutingOperation.cc
 
 # Required by compiled simulator to compile simulation engines.
 include_HEADERS = \

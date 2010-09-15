@@ -31,6 +31,11 @@
 #define TTA_EXECUTING_OPERATION_HH
 
 #include <climits>
+#include <vector>
+
+class Operation;
+class PortState;
+class SimValue;
 
 /**
  * Models an operation executing in the FU pipeline.
@@ -52,9 +57,7 @@ public:
      * the outputs follow sequentially.
      */
          
-    SimValue& io(int operand) {
-        return iostorage_[operand - 1];
-    }
+    SimValue& io(int operand);
 
     const Operation& operation() const { return *op_; }
 
@@ -63,23 +66,9 @@ public:
     /**
      * Methods that should not be called from SystemC models.
      */
-    void start() {
-        for (std::size_t i = 0; i < pendingResults_.size(); ++i) 
-            pendingResults_[i].reset();
-        free_ = false;
-        stage_ = 0;
-    }
-
-    void stop() {
-        free_ = true;            
-    }
-
-
-    void advanceCycle() {
-        for (std::size_t i = 0; i < pendingResults_.size(); ++i)
-            pendingResults_[i].advanceCycle();
-        ++stage_;
-    }
+    void start();
+    void stop();
+    void advanceCycle();
 
     /**
      * Models the latency of an operation result.
@@ -98,16 +87,8 @@ public:
          *
          * Makes the result visible to the output port in time.
          */
-        void advanceCycle() {
-            if (--cyclesToGo_ == 0) {
-                target_->setValue(*result_);
-                cyclesToGo_ = INT_MAX;
-            } 
-        }
-
-        void reset() {
-            cyclesToGo_ = resultLatency_;
-        }
+        void advanceCycle();
+        void reset();
 
         /// The value that will be written to the target after the
         /// latency has passed.
