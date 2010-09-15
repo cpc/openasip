@@ -20,8 +20,8 @@ SIMLIB_DIR = ${TOP_SRCDIR}/src/applibs/Simulator
 TOOLS_DIR = ${TOP_SRCDIR}/src/tools
 MEM_DIR = ${TOP_SRCDIR}/src/base/memory
 
-COMPILE_FLAGS = ${CPPFLAGS} -I${TOP_SRCDIR} -I${TOOLS_DIR} -I${OSAL_DIR} \
-                -I${TOP_SRCDIR}/src/base/memory -I${TOOLS_DIR} 
+COMPILE_FLAGS = -I${TOP_SRCDIR} -I${TOOLS_DIR} -I${OSAL_DIR} \
+                -I${TOP_SRCDIR}/src/base/memory -I${TOOLS_DIR} ${CPPFLAGS}
 
 # 'dynamic_modules' rule compiles the dynamic modules representing OSAL
 # behavior definitions.

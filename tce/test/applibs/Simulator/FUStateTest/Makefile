@@ -10,8 +10,8 @@ OSAL_DIR = ${TOP_SRCDIR}/src/base/osal
 TOOLS_DIR = ${TOP_SRCDIR}/src/tools
 MEM_DIR = ${TOP_SRCDIR}/src/base/memory
 
-COMPILE_FLAGS = ${CPPFLAGS} -I${TOP_SRCDIR} -I${TOOLS_DIR} -I${OSAL_DIR} \
-	-I${MEM_DIR}
+COMPILE_FLAGS = -I${TOP_SRCDIR} -I${TOOLS_DIR} -I${OSAL_DIR} \
+	-I${MEM_DIR} ${CPPFLAGS}
 
 dynamic_modules:
 	@${CXX} ${COMPILE_FLAGS} data/example.cc ${SHARED_CXX_FLAGS} -o \
