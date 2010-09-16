@@ -12,12 +12,15 @@
  */
 int main() {
     /* These should get printed to the console through the another TTA. */
+    char old_values_received = 0, values_received = 0;
     for (int i = 1; i <= 10; ++i) {
         int new_value = 1234 * i;
-        while (*BUSY_ADDR); /* Wait until not busy anymore. */
-        // should place a barrier here to ensure the compiler doesn't
-        // move the write above the loop or the iprintf call
         *DATA_ADDR = new_value;
+        /* Wait until the other TTA has processed the value. This is
+           signalled by writing the count of values received so far
+           to the BUSY_ADDR. */
+        while ((values_received = *BUSY_ADDR) == old_values_received); 
+        old_values_received = values_received;
     }
     return EXIT_SUCCESS;
 }
