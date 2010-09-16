@@ -447,6 +447,9 @@ case "$LLVM_VERSION" in
      2.7)
      AC_DEFINE([LLVM_2_7], [], "Using LLVM v2.7")
    ;;
+     2.8*)
+     AC_DEFINE([LLVM_2_8], [], "Using LLVM v2.8")
+   ;;
      *svn)
      AC_DEFINE([LLVM_SVN], [], "Using LLVM svn")
    ;;   
