@@ -1,4 +1,4 @@
-#!/usr/bin/php -qC
+#!/usr/bin/env php
 <?php
 /*
     Copyright (c) 2002-2009 Tampere University of Technology.
