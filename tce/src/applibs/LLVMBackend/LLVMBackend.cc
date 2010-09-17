@@ -243,9 +243,14 @@ LLVMBackend::compile(
         MemoryBuffer::getFileOrSTDIN(bytecodeFile, &errorMessage));
     if (buffer.get()) {
         m.reset(ParseBitcodeFile(buffer.get(), context, &errorMessage));
+    } else {
+	std::string msg = "Error reading bytecode file: " + bytecodeFile +
+	    "\n" + errorMessage;
+        throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
     if (m.get() == 0) {
-        std::string msg = "Error reading bytecode file:\n" + errorMessage;
+        std::string msg = "Error parsing bytecode file: " + bytecodeFile +
+	    "\n" + errorMessage;
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
@@ -256,10 +261,16 @@ LLVMBackend::compile(
         std::auto_ptr<MemoryBuffer> emuBuffer(
             MemoryBuffer::getFileOrSTDIN(emulationBytecodeFile, &errorMessage));
         if (emuBuffer.get()) {
-            emuM.reset(ParseBitcodeFile(emuBuffer.get(), context, &errorMessage));
-        }
+            emuM.reset(
+		ParseBitcodeFile(emuBuffer.get(), context, &errorMessage));
+        } else {
+	    std::string msg = "Error reading bytecode file: " + bytecodeFile +
+		" of emulation library:\n" + errorMessage;
+	    throw CompileError(__FILE__, __LINE__, __func__, msg);
+	}
         if (emuM.get() == 0) {
-            std::string msg = "Error reading bytecode file:\n" + errorMessage;
+            std::string msg = "Error parsing bytecode file: " + bytecodeFile 
+		+ " of emulation library \n" + errorMessage;
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
     }

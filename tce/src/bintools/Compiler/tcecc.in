@@ -387,7 +387,7 @@ def linkEmulationFuncs(inFile, fileNamePrefix):
 
     if exitCode != 0:
         sys.stderr.write("Error while internalizing emulation functions: " + command + "\n")
-        exitWithError(1, verbose, output)
+        exitWithError(1, output)
 
     return outputName
 
@@ -629,7 +629,7 @@ else:
 (exitCode2, output) = runCommandBuffered("dirname `which clang`", False)
 if exitCode1 != 0 and exitCode2 != 0:
     sys.stderr.write("Could not find 'tce-llvm-gcc' nor 'clang'. Have you installed one of them in PATH?\n")
-    exitWithError(1, options.verbose, output)
+    exitWithError(1, output)
 
 ### tce install prefix
 (exitCode, output) = runCommandBuffered("tce-config --prefix", False)
@@ -690,7 +690,7 @@ else:
     
     if exitCode != 0:
         sys.stderr.write("Error while generating custom operation macros:\n")
-        exitWithError(1, options.verbose, output)
+        exitWithError(1, output)
     
     linkList = processInputFiles(inFiles, tempDir, options.verbose)
 
