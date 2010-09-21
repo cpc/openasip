@@ -48,6 +48,9 @@ class ExecutingOperation;
  */
 class DetailedOperationSimulator {
 public:
+
+    virtual ~DetailedOperationSimulator() {}
+
    /**
     * Simulate a single stage in the operation's execution.
     *
