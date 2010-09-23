@@ -13,7 +13,8 @@ New features
 Code generator improvements
 ---------------------------
 - New register assignment strategy that avoids reuse of registers to
-  produce more ILP for the post-pass scheduler
+  produce more ILP for the post-pass scheduler.
+- Improved code generation for comparisons of boolean values.
 
 Usability features
 ------------------
