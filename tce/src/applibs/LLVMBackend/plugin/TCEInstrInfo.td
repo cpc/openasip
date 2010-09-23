@@ -262,6 +262,9 @@ def NOP : InstTCE<(outs), (ins), "...;", []>;
 def ANDext : InstTCE<(outs I32Regs:$dst), (ins I1Regs:$src, i32imm:$val),
 	"", []>;
 
+def XORbicmp: InstTCE<(outs I1Regs:$dst),(ins I1Regs:$src, i32imm:$val),
+    "", []>;
+
 // (set I32Regs:$dst, (zext I1Regs:$src))]>;
 
 def: Pat <(i32 (anyext I1Regs:$src)), (ANDext I1Regs:$src, 1)>;
@@ -342,12 +345,18 @@ def : Pat<(i32 (extloadi8 ADDRri:$src)), (LDQi ADDRri:$src)>;
 def : Pat<(i32 (extloadi16 ADDRrr:$src)), (LDHr ADDRrr:$src)>;
 def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
 
+// 1-bit comparison with constant - xor or move.
+// 1-bit one becomes -1 as i1 is signed, so the incoming imm is -1, not 1.
+def : Pat<(i1 (setne I1Regs:$op1, (i1 -1))), (XORbicmp I1Regs:$op1, 1)>;
+def : Pat<(i1 (seteq I1Regs:$op1, (i1 0))), (XORbicmp I1Regs:$op1, 1)>;
+def : Pat<(i1 (setne I1Regs:$op1, (i1 0))), (MOVI1rr I1Regs:$op1)>;
+def : Pat<(i1 (seteq I1Regs:$op1, (i1 -1))), (MOVI1rr I1Regs:$op1)>;
 
-// 1-bit comparison
+
+// 1-bit comparison between booleans - xor or xnor(implemented with 2 xors)
 def : Pat<(i1 (setne I1Regs:$op1, I1Regs:$op2)), (XORbb I1Regs:$op1, I1Regs:$op2)>;
-
-//def : Pat<(i1 (setne (trunc I32Regs:$op1), I1Regs:$op2)), (XORrb I1Regs:$op1, I1Regs:$op2)>;
-
 def : Pat<(i1 (seteq I1Regs:$op1, I1Regs:$op2)), (XORbj (XORbb I1Regs:$op1, I1Regs:$op2), 1)>;
 
+
+//def : Pat<(i1 (setne (trunc I32Regs:$op1), I1Regs:$op2)), (XORrb I1Regs:$op1, I1Regs:$op2)>;
 //def : Pat<(i1 (seteq (trunc I1Regs:$op1), I1Regs:$op2)), (XORbj (XORrb I32Regs:$op1, I1Regs:$op2), 1)>;

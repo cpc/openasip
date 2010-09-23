@@ -979,7 +979,7 @@ TDGen::writeOperationDef(
         Operand& operand = op.operand(op.numberOfInputs()+1);
         if (operand.type() == Operand::UINT_WORD || 
             operand.type() == Operand::SINT_WORD) {
-            intOutCount = 2;
+            intOutCount = 1;
         }
         // no bool outs for some operatios
         if (op.name() == "CFI" || op.name() == "CFIU") {
@@ -994,7 +994,8 @@ TDGen::writeOperationDef(
         }
         
         // these can have 1-bit inputs
-        if (op.name() == "XOR" || op.name() == "IOR" || op.name() == "IAND") {
+        if (op.name() == "XOR" || op.name() == "IOR" || op.name() == "AND" ||
+            op.name() == "ANDN" || op.name() == "ADD" || op.name() == "SUB") {
             intOutCount = 2;
         }
         if (op.readsMemory() && intOutCount == 2 ) {

@@ -471,7 +471,8 @@ TCETargetLowering::TCETargetLowering(
     // SELECT is used instead of SELECT_CC
     setOperationAction(ISD::SELECT_CC, MVT::Other, Expand);
 
-    setOperationAction(ISD::SETCC, MVT::i1, Promote);
+    // not needed when we uses xor for boolean comparison
+//    setOperationAction(ISD::SETCC, MVT::i1, Promote);
 
     setOperationAction(ISD::SIGN_EXTEND_INREG, MVT::i1 , Expand);
 
