@@ -1198,13 +1198,22 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
     
     endGuardBracket = false;
     
-    // Do moves with triggers
+    // Do moves with triggers, except stores.
     for (int i = 0; i < instruction.moveCount(); ++i) {
         const Move& move = instruction.move(i);
         if (!move.isTriggering()) {
             continue;
         }
         
+        const TerminalFUPort& tfup = 
+            static_cast<const TerminalFUPort&>(move.destination());
+        HWOperation& hwOperation = *tfup.hwOperation();
+
+        if (hwOperation.name() == "stw" ||hwOperation.name() == "sth" || 
+            hwOperation.name() == "stq") {
+            continue;
+        }
+
         string moveSource = symbolGen_.moveOperandSymbol(
             move.source(), move);
         string moveDestination = symbolGen_.moveOperandSymbol(
@@ -1228,10 +1237,6 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
                 symbolGen_.moveOperandSymbol(move.source(), move));
         }
         
-        const TerminalFUPort& tfup = 
-            dynamic_cast<const TerminalFUPort&>(move.destination());
-        HWOperation& hwOperation = *tfup.hwOperation();
-
         *os_ << handleOperation(hwOperation)
              << conflictDetectionGenerator_.detectConflicts(hwOperation);
 
@@ -1240,6 +1245,58 @@ CompiledSimCodeGenerator::generateInstruction(const Instruction& instruction) {
             endGuardBracket = false;
         }
     } // end for
+
+
+
+
+    // Do moves with store triggers.
+    for (int i = 0; i < instruction.moveCount(); ++i) {
+        const Move& move = instruction.move(i);
+        if (!move.isTriggering()) {
+            continue;
+        }
+        
+        const TerminalFUPort& tfup = 
+            static_cast<const TerminalFUPort&>(move.destination());
+        HWOperation& hwOperation = *tfup.hwOperation();
+
+        if (!(hwOperation.name() == "stw" || hwOperation.name() == "sth" || hwOperation.name() == "stq")) {
+            continue;
+        }
+
+        string moveSource = symbolGen_.moveOperandSymbol(
+            move.source(), move);
+        string moveDestination = symbolGen_.moveOperandSymbol(
+            move.destination(), move);
+        
+        if (!move.isUnconditional()) { // has a guard?
+            *os_ << generateGuardCondition(move);
+            endGuardBracket = true;
+        }
+        
+        if (move.source().isFUPort() && gotResults.find(moveSource) == 
+            gotResults.end() && dynamic_cast<const ControlUnit*>(
+                &move.source().functionUnit()) == NULL) {
+            *os_ 
+                << generateFUResultRead(
+                    moveDestination, 
+                    symbolGen_.FUResultSymbol(move.source().port()))
+                 << endl;
+
+            gotResults.insert(
+                symbolGen_.moveOperandSymbol(move.source(), move));
+        }
+        
+        *os_ << handleOperation(hwOperation)
+             << conflictDetectionGenerator_.detectConflicts(hwOperation);
+
+        if (endGuardBracket) {
+            *os_ << "}" << endl;
+            endGuardBracket = false;
+        }
+    } // end for
+
+
     
     // Do immediate assignments for everything else
     for (int i = 0; i < instruction.immediateCount(); ++i) {

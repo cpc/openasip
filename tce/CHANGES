@@ -27,6 +27,9 @@ Bugfixes
   and caused occasional false failures.
 - tcecc: sometimes generated incorrect code when there was a jump to 
   llvm select instruction (usually c/c++ ?-operator).
+- ttasim: In compiling mode value written to memory sometimes appeared
+  to load operations triggered at same cycle. Those should read
+  the old value from the memory.
 
 Optimizations
 -------------
