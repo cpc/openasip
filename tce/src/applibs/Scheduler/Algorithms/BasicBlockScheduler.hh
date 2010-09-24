@@ -27,6 +27,7 @@
  * Declaration of BasicBlockScheduler class.
  *
  * @author Pekka J��skel�inen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -118,7 +119,7 @@ private:
 
     void unscheduleInputOperandTempMoves(MoveNode& operandMove);
 
-    void scheduleResultReadTempMoves(MoveNode& resultMove)
+    void scheduleResultReadTempMoves(MoveNode& resultMove, int lastUse)
         throw (Exception);
 
     void unscheduleResultReadTempMoves(MoveNode& resultMove);

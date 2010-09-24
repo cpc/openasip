@@ -27,7 +27,8 @@
  * Declaration of RegisterCopyAdder class.
  *
  * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
- * @note rating: yellow
+ * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
+ * @note rating: yellow 
  * @note reviewed 16-17 January 2008 by pj, pk, ml, hk
  */
 
@@ -133,16 +134,38 @@ private:
         ProgramOperation& programOperation,
         const TTAMachine::Machine& machine);
 
+    void fixDDGEdgesInTempReg(
+        DataDependenceGraph& ddg,
+        MoveNode& originalMove,
+        MoveNode* firstMove,
+        MoveNode* lastMove,
+        const TTAMachine::RegisterFile* lastRF,
+        int lastRegisterIndex);
+
     void fixDDGEdgesInTempRegChain(
         DataDependenceGraph& ddg,
         MoveNode& originalMove,
         MoveNode* firstMove,
-        MoveNode* regToRegCopy,
+        std::vector<MoveNode*> intMoves,
         MoveNode* lastMove,
-        const TTAMachine::RegisterFile* tempRF1,
-        const TTAMachine::RegisterFile* tempRF2,
-        int tempRegisterIndex1,
-        int tempRegisterIndex2);
+        const TTAMachine::RegisterFile* firstRF,
+	std::vector<TTAMachine::RegisterFile*> intRF, 
+        const TTAMachine::RegisterFile* lastRF,
+        int firstRegisterIndex,
+	std::vector<int> intRegisterIndex,
+        int lastRegisterIndex,
+	int regsRequired);
+
+  void fixDDGEdgesInTempRegChainImmediate(
+    DataDependenceGraph& ddg,
+    MoveNode& originalMove,
+    MoveNode* firstMove,
+    MoveNode* regToRegCopy,
+    MoveNode* lastMove,
+    const TTAMachine::RegisterFile* tempRF1, 
+    const TTAMachine::RegisterFile* tempRF2, 
+    int tempRegisterIndex1,
+    int tempRegisterIndex2);
 
     /// container for storing the required register copies if the operation
     /// was bound to the given FU

@@ -29,6 +29,7 @@
  * @todo rename the file to match the class name
  *
  * @author Pekka Jääskeläinen 2007 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Fabio Garzia 2010 (fabio.garzia-no.spam-cs.tut.fi)
  * @note rating: orange
  * @note reviewed 16-17 January 2008 by pj, pk, ml, hk
  */
@@ -280,12 +281,32 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     const int minRegisterWidth = 
         std::min(sourcePort.width(), destinationPort.width());
 
-    int tempRegisterIndex1 = -1;
-    // try to find a RF which is connected both to source and destination
-    // ports
-    const TTAMachine::RegisterFile* connectionRF = NULL;
-    const TTAMachine::RegisterFile* sourceConnectedRF = NULL;
+    // initialize to 0 -> at default the register file has no connectivity
+    // information
+    // tempRegsDist defines the "distance" (=connectivity level) in terms of
+    // reg copies from the source port; 0 = cannot be reached from the source;
+    // tempRegsConn stores the index of the register file of the previous
+    // connectivity level to which the current register file is connected
+    std::vector<int> tempRegsDist(tempRegs.size(), 0);
+    std::vector<int> tempRegsConn(tempRegs.size(), 0);
+    bool connectionFound = false;
+
+    int lastRegisterIndex = -1;
+    int firstRegisterIndex = -1;
+    int regsRequired = INT_MAX;
+    int lastRegID = -1;
+
+    // find a sequence of temp register moves from source to destination
+    // (this algorithm is based on the maze algorithm for ASIC place & route;
+    // it assigns to each register file a number that is equal to the 
+    // distance from the source port; at each level check if the register file 
+    // can be connected to the destination port)
+    const TTAMachine::RegisterFile* lastRF = NULL;
+    const TTAMachine::RegisterFile* firstRF = NULL;
     int correctSizeTempsFound = 0;
+
+    // analyze the first level of connections
+    // check the temp regs directly connected to source
     for (std::size_t i = 0; i < tempRegs.size(); ++i) {
         const TTAMachine::RegisterFile& rf = *tempRegs.at(i).first;
         if (rf.width() < minRegisterWidth) {
@@ -293,22 +314,79 @@ RegisterCopyAdder::addConnectionRegisterCopies(
         }
         ++correctSizeTempsFound;
         if (MachineConnectivityCheck::isConnected(sourcePort, rf)) {
-
+	    
             // found a RF that is connected to the source port
-            sourceConnectedRF = &rf;
-            tempRegisterIndex1 = tempRegs.at(i).second;
+            tempRegsDist[i] = 1; 
+	  
             if (MachineConnectivityCheck::isConnected(rf, destinationPort)) {
-                /// @todo check that the buses support the guard of the
-                /// original move? This is not critical now as we are writing
-                /// to a scratch register, we can do that speculatively without
-                /// breaking anything.
-
                 // found a RF that is connected both to the src and dst
-                connectionRF = &rf;
+                lastRegID = i;
+                lastRegisterIndex = tempRegs.at(i).second;
+                lastRF = &rf;
+                connectionFound = true;
+                regsRequired = 1;
                 break;
             }
         }
     }
+
+    int level = 1;
+    int connCount;
+
+    while (!connectionFound) {
+        // analyze higher levels of register connections
+        connCount = 0;
+        level++;
+        for (std::size_t i = 0; i < tempRegs.size(); ++i) {
+            // select a temp reg without an assigned connections (dist=0)
+            if (connectionFound)
+                break;
+            if (tempRegsDist[i] == 0) {
+                const TTAMachine::RegisterFile& rf = *tempRegs.at(i).first;
+                if (rf.width() < minRegisterWidth) {
+                    continue;
+                }
+                ++correctSizeTempsFound;
+	  
+                // check if the selected temp reg can be connected with any of the registers 
+                // assigned to the previous level
+                for (std::size_t j = 0; j < tempRegs.size(); ++j) {
+                    if (tempRegsDist[j] == level - 1) {	    
+                        const TTAMachine::RegisterFile& srcRF = *tempRegs.at(j).first;
+                        if (MachineConnectivityCheck::isConnected(srcRF, rf)) {
+	    
+                            // found a RF that is connected to the previous level
+                            // => assign it to the current level of connections
+                            tempRegsDist[i] = level;
+                            // => increase the number of connections established at this level
+                            // this is needed to stop the algorithm if no new connection is 
+                            // established
+                            connCount++;
+                            // record the source register for the connection
+                            // this is needed to reconstruct the path
+                            tempRegsConn[i] = j;
+                            if (MachineConnectivityCheck::isConnected(rf, destinationPort)) {
+                                // found a RF that is connected to the dst
+                                lastRegID = i;
+                                lastRegisterIndex = tempRegs.at(i).second;
+                                lastRF = &rf;
+                                connectionFound = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (connCount == 0){
+            // no new connection established; the current level is 
+            // isolated => algorithm stops
+            break;
+        }
+    }
+    
+    
+    regsRequired = level;	
     
     if (correctSizeTempsFound == 0) {
         throw IllegalProgram(
@@ -319,50 +397,11 @@ RegisterCopyAdder::addConnectionRegisterCopies(
              % originalMove.toString()).str());
     }
 
-    // the RF for the first temp reg copy
-    const TTAMachine::RegisterFile* tempRF1 = NULL;
-    // the RF for the (optional) second temp reg copy
-    const TTAMachine::RegisterFile* tempRF2 = NULL;
-
-    int regsRequired = INT_MAX;
-
-    int tempRegisterIndex2 = -1;
-    if (connectionRF != NULL) {
-        // found a RF for the temporary register (src -> temp1 -> dst)
-        // already, no 2nd route register needed
-        tempRF1 = connectionRF;
-        regsRequired = 1;
-    } else if (sourceConnectedRF != NULL) {
-        // need two register copies, first add the temp reg copy to the
-        // first RF
-        tempRF1 = sourceConnectedRF;
-        // find the second temporary RF (temp1 -> temp2 -> dst)
-        for (std::size_t i = 0; i < tempRegs.size(); i++) {
-            const TTAMachine::RegisterFile& rf = *tempRegs.at(i).first;
-
-            
-            if (rf.width() < minRegisterWidth) {
-                continue;
-            }
-            if (MachineConnectivityCheck::isConnected(*tempRF1, rf) &&
-                MachineConnectivityCheck::isConnected(rf, destinationPort)) {
-                tempRF2 = &rf;
-                tempRegisterIndex2 = tempRegs.at(i).second;
-                /// @todo check that the buses support the guard of the
-                /// original move? This is not critical now as we are writing
-                /// to a scratch register.
-                regsRequired = 2;
-                break;
-            }
-        }
-    } 
-    
-
     if (countOnly) {
         return regsRequired;
     }
-
-    if (regsRequired > 2) {
+    
+    if (!connectionFound){
         throw IllegalMachine(
             __FILE__, __LINE__, __func__, 
             std::string("Cannot schedule ") + 
@@ -373,17 +412,6 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     }
     
 
-    /* two options:
-       1:
-       src -> temp1;
-       temp1 -> dst;
-
-       2:
-       src -> temp1;
-       temp1 -> temp2;
-       temp2 -> dst;
-    */
-
     // before splitting, annotate the possible return move so we can still
     // detect a procedure return in simulator
     if (originalMove.move().isReturn()) {
@@ -393,22 +421,21 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     }
 
     // add the register copy moves
+    // starting from the destination port and creating all the needed moves
 
-    // create the first temporary move 'src -> temp1'
-    // find a connected port in the temp reg file
+    // find a connected port in the last temp reg file of the chain
     const TTAMachine::RFPort* dstRFPort = NULL;
-    for (int p = 0; p < tempRF1->portCount(); ++p) {
-        const TTAMachine::RFPort* RFport = tempRF1->port(p);
-
-        if (MachineConnectivityCheck::isConnected(sourcePort, *RFport)) {
+    for (int p = 0; p < lastRF->portCount(); ++p) {
+        const TTAMachine::RFPort* RFport = lastRF->port(p);
+        if (MachineConnectivityCheck::isConnected(*RFport, destinationPort)) {
             dstRFPort = RFport;
             break;
         }
     }
     assert(dstRFPort != NULL);
 
-    TTAProgram::TerminalRegister* temp1 =  
-        new TTAProgram::TerminalRegister(*dstRFPort, tempRegisterIndex1);
+    TTAProgram::TerminalRegister* temp =         
+        new TTAProgram::TerminalRegister(*dstRFPort, lastRegisterIndex);
 
     TTAProgram::Terminal* originalDestination = 
         originalMove.move().destination().copy();
@@ -418,7 +445,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
 
     TTAProgram::ProgramAnnotation connMoveAnnotation(
         TTAProgram::ProgramAnnotation::ANN_CONNECTIVITY_MOVE);
-
+      
     /* Make sure that the original move is still the one that should
        be in the ProgramOperation, i.e., an operation move. The original
        move should be either the last of the chain or the first, in case
@@ -456,55 +483,94 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     } else {
         abortWithError("Can add temp regs only for operation moves.");
     }
-  
-    // src -> temp1
-    firstMove->move().setDestination(temp1->copy());
 
-    TTAProgram::TerminalRegister* lastMoveSrc = temp1;
+    // adding the last move: tempN -> dst
+    TTAProgram::TerminalRegister* lastMoveSrc = temp;
 
-    /// in the case 2, add the extra register copy 'temp1 -> temp2'
-    MoveNode* regToRegCopy = NULL;
-    if (tempRF2 != NULL) {
-        regToRegCopy = new MoveNode(originalMove.move().copy());
-
-        // find a connected port in the temp2 reg file
-        const TTAMachine::RFPort* dstRFPort2 = NULL;
-        for (int p = 0; p < tempRF2->portCount(); ++p) {
-            const TTAMachine::RFPort* RFport = tempRF2->port(p);
-            if (MachineConnectivityCheck::isConnected(
-                    *RFport, destinationPort)) {
-                dstRFPort2 = RFport;
-                break;
-            }
-        }
-        assert(dstRFPort2 != NULL);
-        TTAProgram::TerminalRegister* temp2 =         
-            new TTAProgram::TerminalRegister(*dstRFPort2, tempRegisterIndex2);
-
-        // temp1 -> temp2
-        regToRegCopy->move().setSource(temp1); // temp1 now owned by the regCopy
-        regToRegCopy->move().setDestination(temp2->copy());
-        lastMoveSrc = temp2;
-        
-        if (ddg != NULL) {
-            BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);        
-            ddg->addNode(*regToRegCopy,bbn);
-        }
-        if (addedNodes != NULL) {
-            addedNodes->second = regToRegCopy;
-        }
-        regToRegCopy->move().addAnnotation(connMoveAnnotation);
-    }
-
-    // lastMoveSrc={temp1|temp2} -> dst
     lastMove->move().setSource(lastMoveSrc);
     lastMove->move().setDestination(originalDestination);
 
+    // the lastRF becomes the dst of the following
+    // moves
+    TTAProgram::TerminalRegister* moveDst = temp;
+    MoveNode* regToRegCopy = NULL;
+
+    // add the intermediate moves
+    std::vector<MoveNode*> intMoves(regsRequired - 1);      
+    std::vector<TTAMachine::RegisterFile*> intRF(regsRequired - 1);
+    std::vector<int> intRegisterIndex(regsRequired - 1);
+
+
+    if (regsRequired >= 2) {
+        int tempRegisterIndexDst = lastRegisterIndex;      
+        int dstID = lastRegID;
+        // for each level
+        for (int i = 0; i < regsRequired - 1; ++i){
+            regToRegCopy = new MoveNode(originalMove.move().copy());
+            // retrieving the source and destination  of the current move from tempRegs
+            int srcID = tempRegsConn[dstID];
+            int tempRegisterIndexSrc = tempRegs.at(srcID).second;      
+            const TTAMachine::RegisterFile& dstRF = *tempRegs.at(dstID).first;
+            const TTAMachine::RegisterFile& srcRF = *tempRegs.at(srcID).first;
+            const TTAMachine::RFPort* srcRFPort = NULL;
+            for (int p = 0; p < srcRF.portCount(); ++p) {
+                const TTAMachine::RFPort* RFport = srcRF.port(p);
+                if (MachineConnectivityCheck::isConnected(*RFport, dstRF)) {
+                    srcRFPort = RFport;
+                    break;
+                }
+            }
+            assert(srcRFPort != NULL);
+
+            TTAProgram::TerminalRegister* moveSrc =         
+                new TTAProgram::TerminalRegister(*srcRFPort, tempRegisterIndexSrc);
+
+            regToRegCopy->move().setSource(moveSrc); // temp1 now owned by the regCopy
+            regToRegCopy->move().setDestination(moveDst->copy());
+        
+            if (ddg != NULL) {
+                BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);        
+                ddg->addNode(*regToRegCopy,bbn);
+            }
+            if (addedNodes != NULL) {
+                addedNodes->second = regToRegCopy;
+            }
+            regToRegCopy->move().addAnnotation(connMoveAnnotation);
+	
+            //store the intermediate move, its destination RF and related index in a vector
+            intMoves[regsRequired - 2 - i] = regToRegCopy;
+            intRF[regsRequired - 2 - i] = tempRegs.at(dstID).first;
+            intRegisterIndex[regsRequired - 2 - i] = tempRegisterIndexDst;
+
+            // set the current source as destination of the next move
+            moveDst = moveSrc;
+            tempRegisterIndexDst = tempRegisterIndexSrc;      
+            dstID = srcID;
+	
+        }
+
+        firstRF = tempRegs.at(dstID).first;
+        firstRegisterIndex = tempRegisterIndexDst;
+
+    }
+
+    // add the first move
+    // src -> temp1
+    firstMove->move().setDestination(moveDst->copy());
+  
     if (ddg != NULL) {
         // update the DDG edges
-        fixDDGEdgesInTempRegChain(
-            *ddg, originalMove, firstMove, regToRegCopy, lastMove, tempRF1,
-            tempRF2, tempRegisterIndex1, tempRegisterIndex2);
+        if (regsRequired >= 2) {
+            fixDDGEdgesInTempRegChain(
+                *ddg, originalMove, firstMove, intMoves, lastMove, firstRF,
+                intRF, lastRF, firstRegisterIndex, intRegisterIndex, lastRegisterIndex, regsRequired);
+        }
+
+        else {
+            fixDDGEdgesInTempReg(
+                *ddg, originalMove, firstMove, lastMove, lastRF,
+                lastRegisterIndex);
+        }
     }
     
     return regsRequired;
@@ -777,7 +843,7 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
 
     if (ddg != NULL) {
         // update the DDG edges
-        fixDDGEdgesInTempRegChain(
+        fixDDGEdgesInTempRegChainImmediate(
             *ddg, originalMove, firstMove, regToRegCopy, lastMove, tempRF1,
             tempRF2, tempRegisterIndex1, tempRegisterIndex2);
     }
@@ -786,7 +852,325 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
 }
 
 /**
+ * Fixes edges in DDG when only one additional register is required.
+ *
+ * @todo currently leaves some inter-bb-antidependencies out,
+ * these are caught later when doing delay slot filling in order 
+ * to get it working.
+ *
+ * @param ddg The DDG to fix.
+ * @param originalMove The move which got the temp reg chain added.
+ * @param firstMove First move in the chain.
+ * @param lastMove The last move in the chain.
+ * @param tempRF The RF used for the temp move.
+ * @param lastRegisterIndex The index of the temp register.
+ *
+ */
+void
+RegisterCopyAdder::fixDDGEdgesInTempReg(
+    DataDependenceGraph& ddg,
+    MoveNode& originalMove,
+    MoveNode* firstMove,
+    MoveNode* lastMove,
+    const TTAMachine::RegisterFile* lastRF, 
+    int lastRegisterIndex) {
+
+    // the guard edge needs to be copied to all new nodes
+    DataDependenceEdge* guardEdge = NULL;
+    MoveNode* guardDef = NULL;
+    // move the possible WAW/WAR edge(s) pointing to the first move to point to
+    // the last move in the chain (in case of output move)
+    DataDependenceGraph::EdgeSet inEdges = ddg.inEdges(originalMove);
+    for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); 
+         i != inEdges.end(); ++i) {
+       DataDependenceEdge& edge = **i;
+        if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
+            edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+
+            MoveNode& source = ddg.tailNode(edge);
+            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
+            ddg.removeEdge(edge);
+            ddg.connectNodes(source, *lastMove, *edgeCopy);
+        } else if (edge.guardUse()) {
+            assert(guardEdge == NULL && "Multiple guard edges not supported.");
+            // save the guard edge for later
+            guardEdge = new DataDependenceEdge(edge);
+            guardDef = &ddg.tailNode(edge);
+            // remove it for now, and add it back later
+            ddg.removeEdge(edge);
+        }
+    }    
+
+    // move the possible WAW/WAR edge(s) going out from the original move 
+    // to point to the first move in the chain except M_waw, it should still
+    // stay between the store operand moves
+    DataDependenceGraph::EdgeSet outEdges = ddg.outEdges(originalMove);
+    for (DataDependenceGraph::EdgeSet::iterator i = outEdges.begin(); 
+         i != outEdges.end(); ++i) {
+        DataDependenceEdge& edge = **i;
+        MoveNode& dest = ddg.headNode(edge);
+        if ((edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
+             edge.dependenceType() == DataDependenceEdge::DEP_WAW) &&
+            !edge.guardUse()) {
+            // do not touch memory edges, they should still be going out from
+            // original moves
+            if (edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) {
+                continue;
+            }
+
+            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
+            ddg.removeEdge(edge);
+            ddg.connectNodes(*firstMove, dest, *edgeCopy);
+        }        
+    }    
+
+
+    // move the rest of the edges, incoming to the first node, outgoing to
+    // the last
+    ddg.moveInEdges(originalMove, *firstMove);
+    ddg.moveOutEdges(originalMove, *lastMove);
+
+    // special case: the RV edge should still point to the original in
+    // case of a jump, also M_raw should point to the mem operation operand
+    // move instead of the operand temp move
+    inEdges = ddg.inEdges(*firstMove);
+    for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); i != inEdges.end(); ++i) {
+        DataDependenceEdge& edge = **i;
+        MoveNode& source = ddg.tailNode(edge);
+        if (edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
+            ((originalMove.move().isJump() && 
+             !source.move().destination().equals(
+                 firstMove->move().source()) && 
+             !source.move().destination().isFUPort()) ||
+            edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY)) {
+            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
+            ddg.removeEdge(edge);
+            ddg.connectNodes(source, originalMove, *edgeCopy);
+        }
+    }    
+
+    // add the new edge(s)
+    DataDependenceEdge* edge1 = 
+    new DataDependenceEdge(
+                DataDependenceEdge::EDGE_REGISTER, 
+                DataDependenceEdge::DEP_RAW);
+        ddg.connectNodes(*firstMove, *lastMove, *edge1);
+
+    MoveNode* lastUse =
+        ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);
+
+    if (lastUse != NULL) {
+        DataDependenceEdge* war = 
+            new DataDependenceEdge(
+                DataDependenceEdge::EDGE_REGISTER, 
+                DataDependenceEdge::DEP_WAR);
+
+        ddg.connectNodes(*lastUse, *firstMove, *war);
+    }
+
+    if (!originalMove.move().isUnconditional()) {
+        // copy the guard RAW edge to all nodes
+        // TODO: breaks if guard comes outside of the BB.
+        if (guardEdge != NULL) {
+            ddg.connectNodes(*guardDef, *firstMove, *guardEdge);
+            ddg.connectNodes(
+                *guardDef, *lastMove, *(new DataDependenceEdge(*guardEdge)));
+        }
+    }
+}
+
+/**
  * Fixes edges in DDG after creating the temporary register chain.
+ *
+ * @todo currently leaves some inter-bb-antidependencies out,
+ * these are caught later when doing delay slot filling in order 
+ * to get it working.
+ *
+ * @param ddg The DDG to fix.
+ * @param originalMove The move which got the temp reg chain added.
+ * @param firstMove First move in the chain.
+ * @param intMov A vector containing all the intermediate
+          register to register copies.
+ * @param lastMove The last move in the chain.
+ * @param firstRF The RF used for the 1st temp move.
+ * @param lastRF The RF used for the last temp move.
+ * @param firstRegisterIndex The index of the 1st temp register.
+ * @param lastRegisterIndex The index of the last temp register.
+ * @param regsRequired The number of temp register required.
+ *
+ */
+void
+RegisterCopyAdder::fixDDGEdgesInTempRegChain(
+    DataDependenceGraph& ddg,
+    MoveNode& originalMove,
+    MoveNode* firstMove,
+    std::vector<MoveNode*> intMoves,
+    MoveNode* lastMove,
+    const TTAMachine::RegisterFile* firstRF, 
+    std::vector<TTAMachine::RegisterFile*> intRF, 
+    const TTAMachine::RegisterFile* lastRF, 
+    int firstRegisterIndex,
+    std::vector<int> intRegisterIndex,
+    int lastRegisterIndex,
+    int regsRequired) {
+  
+    // the guard edge needs to be copied to all new nodes
+    DataDependenceEdge* guardEdge = NULL;
+    MoveNode* guardDef = NULL;
+    // move the possible WAW/WAR edge(s) pointing to the first move to point to
+    // the last move in the chain (in case of output move)
+    DataDependenceGraph::EdgeSet inEdges = ddg.inEdges(originalMove);
+    for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); 
+         i != inEdges.end(); ++i) {
+        DataDependenceEdge& edge = **i;
+        if (edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
+            edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
+
+            MoveNode& source = ddg.tailNode(edge);
+            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
+            ddg.removeEdge(edge);
+            ddg.connectNodes(source, *lastMove, *edgeCopy);
+        } else if (edge.guardUse()) {
+            assert(guardEdge == NULL && "Multiple guard edges not supported.");
+            // save the guard edge for later
+            guardEdge = new DataDependenceEdge(edge);
+            guardDef = &ddg.tailNode(edge);
+            // remove it for now, and add it back later
+            ddg.removeEdge(edge);
+        }
+    }    
+
+    // move the possible WAW/WAR edge(s) going out from the original move 
+    // to point to the first move in the chain except M_waw, it should still
+    // stay between the store operand moves
+    DataDependenceGraph::EdgeSet outEdges = ddg.outEdges(originalMove);
+    for (DataDependenceGraph::EdgeSet::iterator i = outEdges.begin(); 
+         i != outEdges.end(); ++i) {
+        DataDependenceEdge& edge = **i;
+        MoveNode& dest = ddg.headNode(edge);
+        if ((edge.dependenceType() == DataDependenceEdge::DEP_WAR ||
+             edge.dependenceType() == DataDependenceEdge::DEP_WAW) &&
+            !edge.guardUse()) {
+            // do not touch memory edges, they should still be going out from
+            // original moves
+            if (edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY) {
+                continue;
+            }
+
+            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
+            ddg.removeEdge(edge);
+            ddg.connectNodes(*firstMove, dest, *edgeCopy);
+        }        
+    }    
+
+
+    // move the rest of the edges, incoming to the first node, outgoing to
+    // the last
+    ddg.moveInEdges(originalMove, *firstMove);
+    ddg.moveOutEdges(originalMove, *lastMove);
+
+    // special case: the RV edge should still point to the original in
+    // case of a jump, also M_raw should point to the mem operation operand
+    // move instead of the operand temp move
+    inEdges = ddg.inEdges(*firstMove);
+    for (DataDependenceGraph::EdgeSet::iterator i = inEdges.begin(); 
+         i != inEdges.end(); ++i) {
+        DataDependenceEdge& edge = **i;
+        MoveNode& source = ddg.tailNode(edge);
+        if (edge.dependenceType() == DataDependenceEdge::DEP_RAW &&
+            ((originalMove.move().isJump() && 
+             !source.move().destination().equals(
+                 firstMove->move().source()) && 
+             !source.move().destination().isFUPort()) ||
+            edge.edgeReason() == DataDependenceEdge::EDGE_MEMORY)) {
+            DataDependenceEdge* edgeCopy = new DataDependenceEdge(edge);
+            ddg.removeEdge(edge);
+            ddg.connectNodes(source, originalMove, *edgeCopy);
+        }
+    }    
+
+    // add the new edge(s)
+    DataDependenceEdge* edgeFirst = 
+    new DataDependenceEdge(
+                DataDependenceEdge::EDGE_REGISTER, 
+                DataDependenceEdge::DEP_RAW);
+        ddg.connectNodes(*firstMove, *intMoves[0], *edgeFirst);
+	
+    MoveNode* lastUse =
+      ddg.lastScheduledRegisterRead(*firstRF, firstRegisterIndex);
+
+    if (lastUse != NULL) {
+      // the WAR edges from the last (scheduled) use of the temporary
+      // registers
+      DataDependenceEdge* war = 
+            new DataDependenceEdge(
+                DataDependenceEdge::EDGE_REGISTER, 
+                DataDependenceEdge::DEP_WAR);
+
+        ddg.connectNodes(*lastUse, *firstMove, *war);
+    }
+
+
+    for (int i = 0; i < regsRequired - 2; ++i) {
+        DataDependenceEdge* edgeInt = 
+            new DataDependenceEdge(
+                DataDependenceEdge::EDGE_REGISTER, 
+                DataDependenceEdge::DEP_RAW);
+        ddg.connectNodes(*intMoves[i], *intMoves[i + 1], *edgeInt);
+        lastUse =
+            ddg.lastScheduledRegisterRead(*intRF[i], intRegisterIndex[i]);
+
+        if (lastUse != NULL) {
+            // the WAR edges from the last (scheduled) use of the temporary
+            // registers
+            DataDependenceEdge* war = 
+                new DataDependenceEdge(
+                    DataDependenceEdge::EDGE_REGISTER, 
+                    DataDependenceEdge::DEP_WAR);
+
+            ddg.connectNodes(*lastUse, *intMoves[i], *war);
+        }
+    }
+
+    DataDependenceEdge* edgeLast = 
+      new DataDependenceEdge(DataDependenceEdge::EDGE_REGISTER, 
+			     DataDependenceEdge::DEP_RAW);
+    ddg.connectNodes(*intMoves[regsRequired - 2], *lastMove, *edgeLast);
+
+    lastUse =
+      ddg.lastScheduledRegisterRead(*lastRF, lastRegisterIndex);
+
+    if (lastUse != NULL) {
+      // the WAR edges from the last (scheduled) use of the temporary
+      // registers
+      DataDependenceEdge* edgeWAR = 
+	new DataDependenceEdge(
+			       DataDependenceEdge::EDGE_REGISTER, 
+			       DataDependenceEdge::DEP_WAR);
+
+      ddg.connectNodes(*lastUse, *intMoves[regsRequired - 2], *edgeWAR);
+      
+    } 
+
+    if (!originalMove.move().isUnconditional()) {
+        // copy the guard RAW edge to all nodes
+        // TODO: breaks if guard comes outside of the BB.
+        if (guardEdge != NULL) {
+            ddg.connectNodes(*guardDef, *firstMove, *guardEdge);
+            ddg.connectNodes(
+                *guardDef, *lastMove, *(new DataDependenceEdge(*guardEdge)));
+	    for (int i = 0; i < regsRequired - 1; ++i) {
+                ddg.connectNodes(
+                    *guardDef, *intMoves[i], 
+                    *(new DataDependenceEdge(*guardEdge)));
+            }
+        }
+    }
+}
+
+/**
+ * Fixes edges in DDG after creating the temporary register chain
+ * for the Immediate Transport.
  *
  * @todo currently leaves some inter-bb-antidependencies out,
  * these are caught later when doing delay slot filling in order 
@@ -805,7 +1189,7 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
  *
  */
 void
-RegisterCopyAdder::fixDDGEdgesInTempRegChain(
+RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
     DataDependenceGraph& ddg,
     MoveNode& originalMove,
     MoveNode* firstMove,
@@ -974,7 +1358,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     bool countOnly,
     DataDependenceGraph* ddg,
     MoveNodePair* addedNodes) {
-    
+  
     // collect the set of possible candidate destination ports (in case of 
     // RFs, there can be multiple ports)
     TTAProgram::Terminal& dest = moveNode.move().destination();

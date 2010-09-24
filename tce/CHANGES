@@ -1,4 +1,4 @@
-1.x not yet released
+1.3 not yet released
 ====================
 
 New features
@@ -9,6 +9,9 @@ New features
 - SystemC integration: Possibility to add TTA simulation models to system
   level simulations with the ability to override the operation pipeline 
   simulation models for the function units.
+- Improved the scheduling for unconnected machines through temporary
+  register copies based on the maze algorithm for ASIC place & route.
+  Not restricted to maximum of two copies anymore.
 
 Code generator improvements
 ---------------------------

@@ -27,6 +27,7 @@
  * Implementation of data dependence graph class
  *
  * @author Heikki Kultala 2006-2008 (heikki.kultala-no.spam-tut.fi)
+ * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -558,7 +559,15 @@ DataDependenceGraph::sanityCheck() const
                 headDestination.hintOperation().writesMemory())
                 break;
             
-            // call parameter register
+	    // memory WAR between memory op and call
+            if (e.edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
+                tailDestination.isFUPort() && 
+                tailDestination.hintOperation().readsMemory() &&
+                headDestination.isFUPort() &&
+                head.move().isCall())
+                break;
+            
+	    // call parameter register
             if (tailDestination.isFUPort() &&
                 tailSource.isGPR() &&
                 head.move().isCall())
@@ -591,6 +600,14 @@ DataDependenceGraph::sanityCheck() const
                 tailDestination.hintOperation().writesMemory() &&
                 headDestination.isFUPort() &&
                 headDestination.hintOperation().writesMemory())
+                break;
+
+	    // memory WAW between memory op and call
+            if (e.edgeReason() == DataDependenceEdge::EDGE_MEMORY &&
+                tailDestination.isFUPort() && 
+                tailDestination.hintOperation().writesMemory() &&
+                headDestination.isFUPort() &&
+                head.move().isCall())
                 break;
 
             // function parameter registers

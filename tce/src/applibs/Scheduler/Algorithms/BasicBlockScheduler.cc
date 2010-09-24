@@ -27,6 +27,7 @@
  * Definition of BasicBlockScheduler class.
  *
  * @author Pekka Jääskeläinen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -655,7 +656,6 @@ BasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves)
                     tempRegLimitCycle = lastRead->cycle();
                 }
             }
-            
             scheduleMove(moveNode, tempRegLimitCycle);
             if (!moveNode.isScheduled()) {
                 // Result can not be scheduled even when operands were,
@@ -665,7 +665,7 @@ BasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves)
                 // target register in most cases)
                 return false;
             }
-            scheduleResultReadTempMoves(moveNode);
+            scheduleResultReadTempMoves(moveNode, 0);
             if (!moveNode.isScheduled()) {
                 throw InvalidData(
                     __FILE__, __LINE__, __func__,
@@ -756,7 +756,7 @@ BasicBlockScheduler::scheduleMove(
     // for result moves.
     int minCycle = std::max(earliestCycle, ddgCycle);
     minCycle = std::max(minCycle, sourceReadyCycle);
-
+    
     // RM hasConnection takes MoveNodeSet, however is called only for one
     // moveNode here.
     MoveNodeSet tempSet;
@@ -823,9 +823,13 @@ BasicBlockScheduler::scheduleMove(
     }
 }
 
+
 /**
  * Schedules the (possible) temporary register copy moves (due to missing
- * connectivity) preceeding the given input move.
+ * connectivity) preceeding the given input move. 
+ *
+ * The function recursively goes through all the temporary moves added to 
+ * the given input move.
  *
  * @param operandMove The move of which temp moves to schedule.
  */
@@ -838,8 +842,7 @@ BasicBlockScheduler::scheduleInputOperandTempMoves(MoveNode& operandMove)
        the same operation, we have to limit the scheduling of the new
        temp reg move to the last use of the same temp register so
        we don't overwrite the temp registers of other operands. */
-    int lastUse1 = 0, lastUse2 = 0;
-
+    int lastUse = 0;
     // find all unscheduled preceeding temp moves of the operand move
     DataDependenceGraph::NodeSet pred = ddg_->predecessors(operandMove);
     MoveNode* tempMove = NULL;
@@ -860,44 +863,18 @@ BasicBlockScheduler::scheduleInputOperandTempMoves(MoveNode& operandMove)
                 tempMove->move().destination().registerFile(),
                 tempMove->move().destination().index());
         if (lastRead != NULL)
-            lastUse1 = lastRead->cycle();
+            lastUse = lastRead->cycle();
     }
 
     if (tempMove == NULL)
         return; // no temp moves found
 
     // the temp move should have maximum of one unscheduled
-    // preceeding reg to reg copy (in case of two temp reg copies),
-    // schedule it first if found
-    pred = ddg_->predecessors(*tempMove);
-    MoveNode* tempMove2 = NULL;
-    for (DataDependenceGraph::NodeSet::iterator i = pred.begin(); 
-         i != pred.end(); ++i) {
-        MoveNode& m = **i;
-        if (m.isScheduled() ||
-            !m.move().hasAnnotations(
-                TTAProgram::ProgramAnnotation::ANN_CONNECTIVITY_MOVE))
-            continue;
-
-        assert(tempMove2 == NULL &&
-               "Multiple unscheduled moves for the operand move, should have "
-               "max. one (the temporary move)!");
-        tempMove2 = &m;
-        MoveNode* lastRead2 =
-            ddg_->lastScheduledRegisterRead(
-                tempMove2->move().destination().registerFile(),
-                tempMove2->move().destination().index());
-        if (lastRead2 != NULL)
-            lastUse2 = lastRead2->cycle();
-    }
-
-    if (tempMove2 != NULL) {
-        scheduleMove(*tempMove2, lastUse2);
-        assert(tempMove2->isScheduled());
-        scheduledTempMoves_[&operandMove].insert(tempMove2);
-
-    }
-    scheduleMove(*tempMove, lastUse1);
+    // preceeding reg to reg copy (in case of and additional temp reg copy),
+    // schedule it first if found, recursively calling this function
+    scheduleInputOperandTempMoves(*tempMove);
+    
+    scheduleMove(*tempMove, lastUse);
     assert(tempMove->isScheduled());
     scheduledTempMoves_[&operandMove].insert(tempMove);
 }
@@ -930,15 +907,21 @@ BasicBlockScheduler::succeedingTempMove(MoveNode& current) {
     return result;
 }
 
-
 /**
  * Schedules the (possible) temporary register copy moves (due to missing
- * connectivity) succeeding the given result read move.
+ * connectivity) succeeding the given result read move. 
+ *
+ * The function recursively goes through all the temporary moves added to
+ * the given input move.
  *
  * @param resultMove The move of which temp moves to schedule.
+ * @param lastUse Recursive function parameter, it should be set as 0 
+ * for the first function call.
  */
 void
-BasicBlockScheduler::scheduleResultReadTempMoves(MoveNode& resultMove)
+BasicBlockScheduler::scheduleResultReadTempMoves(
+    MoveNode& resultMove, 
+    int lastUse)
     throw (Exception) {
 
     /* Because temporary register moves do not have WaR/WaW dependency edges
@@ -946,7 +929,7 @@ BasicBlockScheduler::scheduleResultReadTempMoves(MoveNode& resultMove)
        the same operation, we have to limit the scheduling of the new
        temp reg move to the last use of the same temp register so
        we don't overwrite the temp registers of the other operands. */
-    int lastUse2 = 0;
+
 
     // find all unscheduled succeeding moves of the result read move
     // there should be only only one with the only dependence edge (RaW) to
@@ -963,21 +946,18 @@ BasicBlockScheduler::scheduleResultReadTempMoves(MoveNode& resultMove)
                 tempMove1->move().destination().registerFile(),
                 tempMove1->move().destination().index());
         if (lastRead != NULL)
-            lastUse2 = lastRead->cycle();
+            lastUse = lastRead->cycle();
     }
 
-    scheduleMove(*tempMove1, lastUse2);
+    scheduleMove(*tempMove1, lastUse);
     assert(tempMove1->isScheduled());
     scheduledTempMoves_[&resultMove].insert(tempMove1);
 
     // the temp move should have maximum of one unscheduled
     // succeeding additional reg to reg copy (in case of two temp reg copies),
     // schedule it also if found
-    if (tempMove2 != NULL) {
-        scheduleMove(*tempMove2, lastUse2+1);
-        assert(tempMove2->isScheduled());
-        scheduledTempMoves_[&resultMove].insert(tempMove2);
-    }
+    scheduleResultReadTempMoves(*tempMove1, lastUse+1);
+
 }
 
 /**
@@ -1031,6 +1011,7 @@ BasicBlockScheduler::unscheduleInputOperandTempMoves(MoveNode& operandMove) {
     }
     scheduledTempMoves_.erase(&operandMove);
 }
+
 
 /**
  * Unschedules the (possible) temporary register copy moves (due to missing
