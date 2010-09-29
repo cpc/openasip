@@ -157,7 +157,7 @@ QuartusProjectGenerator::writeScripts() {
     synthesis.close();
     FileSystem::setFileExecutable(synthesisScript);
 
-    string programmingScript = "quartus_program_fgpa.sh";
+    string programmingScript = "quartus_program_fpga.sh";
     ofstream programming;
     programming.open(programmingScript.c_str());
     if (!programming) {

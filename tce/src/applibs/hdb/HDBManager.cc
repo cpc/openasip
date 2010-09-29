@@ -32,6 +32,7 @@
  */
 
 #include <string>
+#include <sstream>
 #include <list>
 #include <map>
 #include <boost/format.hpp>
@@ -2068,7 +2069,10 @@ HDBManager::fuByEntryID(RowID id) const
         result = NULL;
     } else {
         delete result;
-        throw KeyNotFound(__FILE__, __LINE__, __func__);
+        std::ostringstream stream;
+        stream << "FU entry with id " << id << " not found from hdb "
+               << hdbFile_;
+        throw KeyNotFound(__FILE__, __LINE__, __func__, stream.str());
     }
 
     FUEntry* entry = new FUEntry();
