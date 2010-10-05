@@ -1,0 +1,75 @@
+LLVM 2.8 may incorrectly optimize comparison of lowest bit of two values into
+comparison of the values, comparing all bits. This patch fixes this.
+
+This patch is same as change r115561 in llvm trunk, so if using llvm trunk
+version r115571 or newer, or later llvm revision (2.9+) this patch is not
+needed.
+
+LLVM 2.7 may have the same bug, but we have not encountered it occuring with LLVM 2.7.
+
+LLVM 2.6 is not affected by this bug.
+
+Index: lib/CodeGen/SelectionDAG/DAGCombiner.cpp
+===================================================================
+--- lib/CodeGen/SelectionDAG/DAGCombiner.cpp	(revision 115593)
++++ lib/CodeGen/SelectionDAG/DAGCombiner.cpp	(working copy)
+@@ -5084,14 +5084,17 @@
+                        N1.getOperand(0), N1.getOperand(1), N2);
+   }
+ 
+-  SDNode *Trunc = 0;
+-  if (N1.getOpcode() == ISD::TRUNCATE && N1.hasOneUse()) {
+-    // Look past truncate.
+-    Trunc = N1.getNode();
+-    N1 = N1.getOperand(0);
+-  }
++  if ((N1.hasOneUse() && N1.getOpcode() == ISD::SRL) ||
++      ((N1.getOpcode() == ISD::TRUNCATE && N1.hasOneUse()) &&
++       (N1.getOperand(0).hasOneUse() &&
++        N1.getOperand(0).getOpcode() == ISD::SRL))) {
++    SDNode *Trunc = 0;
++    if (N1.getOpcode() == ISD::TRUNCATE) {
++      // Look pass the truncate.
++      Trunc = N1.getNode();
++      N1 = N1.getOperand(0);
++    }
+ 
+-  if (N1.hasOneUse() && N1.getOpcode() == ISD::SRL) {
+     // Match this pattern so that we can generate simpler code:
+     //
+     //   %a = ...
+@@ -5146,6 +5149,10 @@
+         }
+       }
+     }
++
++    if (Trunc)
++      // Restore N1 if the above transformation doesn't match.
++      N1 = N->getOperand(1);
+   }
+   
+   // Transform br(xor(x, y)) -> br(x != y)
+@@ -5181,9 +5188,7 @@
+           Equal = true;
+         }
+ 
+-      SDValue NodeToReplace = Trunc ? SDValue(Trunc, 0) : N1;
+-      
+-      EVT SetCCVT = NodeToReplace.getValueType();
++      EVT SetCCVT = N1.getValueType();
+       if (LegalTypes)
+         SetCCVT = TLI.getSetCCResultType(SetCCVT);
+       SDValue SetCC = DAG.getSetCC(TheXor->getDebugLoc(),
+@@ -5192,9 +5197,9 @@
+                                    Equal ? ISD::SETEQ : ISD::SETNE);
+       // Replace the uses of XOR with SETCC
+       WorkListRemover DeadNodes(*this);
+-      DAG.ReplaceAllUsesOfValueWith(NodeToReplace, SetCC, &DeadNodes);
+-      removeFromWorkList(NodeToReplace.getNode());
+-      DAG.DeleteNode(NodeToReplace.getNode());
++      DAG.ReplaceAllUsesOfValueWith(N1, SetCC, &DeadNodes);
++      removeFromWorkList(N1.getNode());
++      DAG.DeleteNode(N1.getNode());
+       return DAG.getNode(ISD::BRCOND, N->getDebugLoc(),
+                          MVT::Other, Chain, SetCC, N2);
+     }
