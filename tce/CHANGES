@@ -12,6 +12,7 @@ New features
 - Improved the scheduling for unconnected machines through temporary
   register copies based on the maze algorithm for ASIC place & route.
   Not restricted to maximum of two copies anymore.
+- Support for LLVM 2.8 (support for LLVM 2.7 retained)
 
 Code generator improvements
 ---------------------------
@@ -45,6 +46,19 @@ Misc
   TTA programs'. Sequential a.out programs was the intermediate representation 
   from the old (now unsupported) gcc 2.7.0 compiler frontend.
 
+Known problems
+--------------
+- LLVM 2.8 has a bug which may cause incorrectly compiled programs when
+  the is a comparison of (only) lowest bits of integers in the code 
+  being compiled.
+  A patch for this bug is included in TCE release, it should be applied
+  to the LLVM source tree and LLVM recompiled and reinstalled with the patch.
+  LLVM 2.7 might also be affected, but we have not seen the bug appear with
+  LLVM 2.7.
+- Clang has a bug related to code generation of bitfields, illegal
+  code may be generated if the code contains bitfield and clang is used 
+  as C frontend(which is the default)
+  
 1.2    June 2010
 ================
 
