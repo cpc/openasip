@@ -165,8 +165,13 @@ TCETargetLowering::LowerFormalArguments(
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
                 SDValue Load;
             if (ObjectVT == MVT::i32) {
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
                 Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
                              false, false, 0);
+#else // LLVM-29-svn
+                Load = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, 
+                                   MachinePointerInfo(), false, false, 0);
+#endif
             } else {
                 ISD::LoadExtType LoadOp = ISD::SEXTLOAD;
                 
@@ -178,8 +183,14 @@ TCETargetLowering::LowerFormalArguments(
                 Load = DAG.getExtLoad(LoadOp, dl, MVT::i32, Chain, FIPtr,
                                 NULL, 0, ObjectVT, false, false, 0);
 #else
+#ifdef LLVM_2_8
                 Load = DAG.getExtLoad(LoadOp, MVT::i32, dl, Chain, FIPtr,
                                 NULL, 0, ObjectVT, false, false, 0);
+#else // LLVM_29_svn
+                Load = DAG.getExtLoad(LoadOp, MVT::i32, dl, Chain, FIPtr,
+                                      MachinePointerInfo(), ObjectVT, 
+                                      false, false,0);
+#endif
 #endif
                 Load = DAG.getNode(ISD::TRUNCATE, dl, ObjectVT, Load);
             }
@@ -202,8 +213,14 @@ TCETargetLowering::LowerFormalArguments(
                     4, ArgOffset, /*immutable=*/true);
 #endif
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
                 SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr, NULL, 0,
                              false, false, 0);
+#else // LLVM_29-svn
+                SDValue Load = DAG.getLoad(MVT::f32, dl, Chain, FIPtr,
+                                           MachinePointerInfo(),
+                                           false, false, 0);
+#endif
                 InVals.push_back(Load);
             }
             ArgOffset += 4;
@@ -224,9 +241,13 @@ TCETargetLowering::LowerFormalArguments(
                     4, ArgOffset, /*immutable=*/true);
 #endif
                 SDValue FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
+#if defined(LLVM_2_7) || defined(LLVM_2_8) 
                 HiVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
                              false, false, 0);
-
+#else // LLVM_29-svn
+		HiVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
+				    false, false, 0);
+#endif
                 SDValue LoVal;
 #ifdef LLVM_2_7
                 FrameIdx = MF.getFrameInfo()->CreateFixedObject(
@@ -236,9 +257,14 @@ TCETargetLowering::LowerFormalArguments(
                     4, ArgOffset+4, /*immutable=*/true);
 #endif
                 FIPtr = DAG.getFrameIndex(FrameIdx, MVT::i32);
+#if defined(LLVM_2_7) || defined(LLVM_2_8) 
+
                 LoVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, NULL, 0,
                              false, false, 0);
-
+#else // LLVM_29-svn
+		LoVal = DAG.getLoad(MVT::i32, dl, Chain, FIPtr, MachinePointerInfo(),
+				    false, false, 0);
+#endif
                 // Compose the two halves together into an i64 unit.
                 SDValue WholeValue =
                     DAG.getNode(ISD::BUILD_PAIR, dl, MVT::i64, LoVal, HiVal);
@@ -363,9 +389,15 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
       SDValue StackPtr = DAG.getRegister(TCE::SP, MVT::i32);
       SDValue PtrOff = DAG.getConstant(ArgOffset, MVT::i32);
       PtrOff = DAG.getNode(ISD::ADD, dl, MVT::i32, StackPtr, PtrOff);
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
       MemOpChains.push_back(DAG.getStore(Chain, dl, ValToStore, 
                                          PtrOff, NULL, 0,
                                        false, false, 0));
+#else // LLVM_29-svn
+      MemOpChains.push_back(DAG.getStore(Chain, dl, ValToStore, 
+                                         PtrOff, MachinePointerInfo(),
+                                         false, false, 0));
+#endif
     }
     ArgOffset += ObjSize;
   }
@@ -675,8 +707,14 @@ static SDValue LowerVASTART(SDValue Op, SelectionDAG &DAG,
     EVT PtrVT = DAG.getTargetLoweringInfo().getPointerTy();
     SDValue FR = DAG.getFrameIndex(TLI.getVarArgsFrameOffset(), PtrVT);
     const Value *SV = cast<SrcValueSDNode>(Op.getOperand(2))->getValue();
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
     return DAG.getStore(
         Op.getOperand(0), dl, FR, Op.getOperand(1), SV, 0, false, false, 0);
+#else // LLVM_29-svn
+    return DAG.getStore(
+	Op.getOperand(0), dl, FR, Op.getOperand(1), MachinePointerInfo(SV), 
+	false, false, 0);
+#endif
 }
 
 

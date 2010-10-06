@@ -46,13 +46,18 @@ class TCEDAGToDAGISel : public llvm::SelectionDAGISel {
 public:
     explicit TCEDAGToDAGISel(llvm::TCETargetMachine& tm);
     virtual ~TCEDAGToDAGISel();
+
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
     bool SelectADDRrr(
         llvm::SDNode* op, llvm::SDValue addr,
         llvm::SDValue& r1, llvm::SDValue& r2);
-
     bool SelectADDRri(
         llvm::SDNode* op, llvm::SDValue addr,
         llvm::SDValue& base, llvm::SDValue& offset);
+#else // LLVM_29-svn
+    bool SelectADDRrr(SDValue N, SDValue &R1, SDValue &R2);
+    bool SelectADDRri(SDValue N, SDValue &Base, SDValue &Offset);
+#endif
 
     llvm::SDNode* Select(llvm::SDNode* op);
 
@@ -154,9 +159,15 @@ TCEDAGToDAGISel::Select(SDNode* n) {
 /**
  * Handles ADDRri operands.
  */
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
 bool
 TCEDAGToDAGISel::SelectADDRri(
     SDNode* op, SDValue addr, SDValue& base, SDValue& offset) {
+#else // LLVM_29-svn
+bool
+TCEDAGToDAGISel::SelectADDRri(
+    SDValue addr, SDValue& base, SDValue& offset) {
+#endif
 
     if (FrameIndexSDNode* fin = dyn_cast<FrameIndexSDNode>(addr)) {
         base = CurDAG->getTargetFrameIndex(fin->getIndex(), MVT::i32);
@@ -190,9 +201,15 @@ TCEDAGToDAGISel::SelectADDRri(
 /**
  * Handles ADDRrr operands.
  */
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
 bool
 TCEDAGToDAGISel::SelectADDRrr(
     SDNode* op, SDValue addr, SDValue& r1, SDValue& r2) {
+#else // LLVM_29-svn
+bool
+TCEDAGToDAGISel::SelectADDRrr(
+    SDValue addr, SDValue& r1, SDValue& r2) {
+#endif
 
     if (addr.getOpcode() == ISD::TargetGlobalAddress) {
         //r1 = addr.getOperand(0);
