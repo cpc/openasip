@@ -198,7 +198,7 @@ RegisterCopyAdder::addRegisterCopies(
     int registerCopyCount = 0;
     for (int input = 0; input < programOperation.inputMoveCount(); ++input) {
         MoveNode& m = programOperation.inputMove(input);                
-        MoveNodePair addedNodes(NULL,NULL);
+        DataDependenceGraph::NodeSet addedNodes;
         const int count = addConnectionRegisterCopies(
             m, fu, countOnly, ddg, &addedNodes);
         if (count == INT_MAX) {
@@ -216,7 +216,7 @@ RegisterCopyAdder::addRegisterCopies(
     for (int output = 0; output < programOperation.outputMoveCount(); 
          ++output) {
         MoveNode& m = programOperation.outputMove(output);
-        MoveNodePair addedNodes(NULL,NULL);
+        DataDependenceGraph::NodeSet addedNodes;
         const int count = addConnectionRegisterCopies(
             m, fu, countOnly, ddg, &addedNodes);
         if (count == INT_MAX) {
@@ -258,7 +258,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     const TTAMachine::Port& destinationPort,
     bool countOnly,
     DataDependenceGraph* ddg,
-    MoveNodePair* addedNodes) {
+    DataDependenceGraph::NodeSet* addedNodes) { 
 
     if (MachineConnectivityCheck::isConnected(sourcePort, destinationPort))
         return 0;
@@ -445,7 +445,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
 
     TTAProgram::ProgramAnnotation connMoveAnnotation(
         TTAProgram::ProgramAnnotation::ANN_CONNECTIVITY_MOVE);
-      
+
     /* Make sure that the original move is still the one that should
        be in the ProgramOperation, i.e., an operation move. The original
        move should be either the last of the chain or the first, in case
@@ -462,7 +462,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
             ddg->addNode(*firstMove,bbn);
         }
         if (addedNodes != NULL) {
-            addedNodes->first = firstMove;
+            addedNodes->insert(firstMove);
         }
 
         firstMove->move().addAnnotation(connMoveAnnotation);
@@ -476,7 +476,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
             ddg->addNode(*lastMove,bbn);
         }
         if (addedNodes != NULL) {
-            addedNodes->first = lastMove;
+            addedNodes->insert(lastMove);
         }
 
         lastMove->move().addAnnotation(connMoveAnnotation);
@@ -533,10 +533,10 @@ RegisterCopyAdder::addConnectionRegisterCopies(
                 ddg->addNode(*regToRegCopy,bbn);
             }
             if (addedNodes != NULL) {
-                addedNodes->second = regToRegCopy;
+                addedNodes->insert(regToRegCopy);
             }
             regToRegCopy->move().addAnnotation(connMoveAnnotation);
-	
+
             //store the intermediate move, its destination RF and related index in a vector
             intMoves[regsRequired - 2 - i] = regToRegCopy;
             intRF[regsRequired - 2 - i] = tempRegs.at(dstID).first;
@@ -603,7 +603,7 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
     const TTAMachine::Port& destinationPort,
     bool countOnly,
     DataDependenceGraph* ddg,
-    MoveNodePair* addedNodes) {
+    DataDependenceGraph::NodeSet* addedNodes) {
        
     assert(originalMove.isSourceConstant());
 
@@ -789,7 +789,7 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
             ddg->addNode(*firstMove,bbn);
         } 
         if (addedNodes != NULL) {
-            addedNodes->first = firstMove;
+            addedNodes->insert(firstMove);
         }
             
         firstMove->move().addAnnotation(connMoveAnnotation);
@@ -831,7 +831,7 @@ RegisterCopyAdder::addConnectionRegisterCopiesImmediate(
             ddg->addNode(*regToRegCopy,bbn);
         } 
         if (addedNodes != NULL) {
-            addedNodes->second = regToRegCopy;
+            addedNodes->insert(regToRegCopy);
         }
 
         regToRegCopy->move().addAnnotation(connMoveAnnotation);
@@ -1357,7 +1357,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     const TTAMachine::FunctionUnit& fu,
     bool countOnly,
     DataDependenceGraph* ddg,
-    MoveNodePair* addedNodes) {
+    DataDependenceGraph::NodeSet* addedNodes) {
   
     // collect the set of possible candidate destination ports (in case of 
     // RFs, there can be multiple ports)

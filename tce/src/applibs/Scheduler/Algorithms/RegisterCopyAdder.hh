@@ -28,7 +28,7 @@
  *
  * @author Pekka J‰‰skel‰inen 2007 (pjaaskel-no.spam-cs.tut.fi)
  * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
- * @note rating: yellow 
+ * @note rating: yellow
  * @note reviewed 16-17 January 2008 by pj, pk, ml, hk
  */
 
@@ -38,6 +38,7 @@
 #include <map>
 
 #include "SimpleResourceManager.hh"
+#include "DataDependenceGraph.hh"
 
 class ProgramOperation;
 class MoveNode;
@@ -85,9 +86,9 @@ public:
     RegisterCopyAdder(InterPassData& data, SimpleResourceManager& rm);
     virtual ~RegisterCopyAdder();
 
-    typedef std::pair<MoveNode*,MoveNode*> MoveNodePair;
-    typedef std::map<const MoveNode*, MoveNodePair>
+    typedef std::map<const MoveNode*, DataDependenceGraph::NodeSet> 
     AddedRegisterCopyMap;
+    
 
     struct AddedRegisterCopies {
         AddedRegisterCopies(int count);
@@ -114,21 +115,21 @@ private:
         const TTAMachine::Port& destinationPort,
         bool countOnly = true,
         DataDependenceGraph* ddg = NULL,
-        MoveNodePair* addedNodes = NULL);
+        DataDependenceGraph::NodeSet* addedNodes = NULL);
 
     int addConnectionRegisterCopiesImmediate(
         MoveNode& originalMove,
         const TTAMachine::Port& destinationPort,
         bool countOnly = true,
         DataDependenceGraph* ddg = NULL,
-        MoveNodePair* addedNodes = NULL);
+        DataDependenceGraph::NodeSet* addedNodes = NULL);
 
     int addConnectionRegisterCopies(
         MoveNode& moveNode,
         const TTAMachine::FunctionUnit& fu,
         bool countOnly = true,
         DataDependenceGraph* ddg = NULL,
-        MoveNodePair* addedNodes = NULL);
+        DataDependenceGraph::NodeSet* addedNodes = NULL);
 
     void addCandidateSetAnnotations(
         ProgramOperation& programOperation,

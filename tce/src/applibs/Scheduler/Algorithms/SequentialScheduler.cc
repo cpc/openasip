@@ -27,6 +27,7 @@
  * Definition of SequentialScheduler class.
  *
  * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
+ * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
  * @note rating: red
  */
 
@@ -45,6 +46,7 @@
 #endif
 
 #include "AssocTools.hh"
+#include "MapTools.hh"
 #include "SimpleResourceManager.hh"
 #include "Procedure.hh"
 #include "ProgramOperation.hh"
@@ -250,7 +252,7 @@ SequentialScheduler::scheduleOperandWrites(
             
             // if all operands not scheduled, delay trigger
             if (scheduledMoves < po.inputMoveCount()) {
-		unscheduleInputOperandTempMoves(node, regCopies);
+                unscheduleInputOperandTempMoves(node, regCopies);
                 trigger = &node;
                 unschedule(node);
                 scheduledMoves--;
@@ -426,8 +428,8 @@ SequentialScheduler::scheduleMove(
  * connectivity) preceeding the given input move.
  *
  * @param operandMove The move of which temp moves to schedule.
+ * @param regCopies   Temp register copy moves associated with operandMove
  * @return cycle next available cycle
- *
  */
 int
 SequentialScheduler::scheduleInputOperandTempMoves(
@@ -435,33 +437,42 @@ SequentialScheduler::scheduleInputOperandTempMoves(
     throw (Exception) {
     
     if (regCopies.count_ > 0) {
-        if (AssocTools::containsKey(regCopies.copies_,&operandMove)) {
-            RegisterCopyAdder::MoveNodePair& mnp = 
-                regCopies.copies_[&operandMove];
-            if (mnp.second != NULL) {
-                cycle = scheduleMove(cycle, *mnp.second) +1;
-            }
-            if (mnp.first != NULL) {
-                cycle = scheduleMove(cycle, *mnp.first) +1;
+        if (MapTools::containsKey(regCopies.copies_,&operandMove)) {
+            DataDependenceGraph::NodeSet tempMoves = regCopies.copies_[&operandMove]; 
+            //in the tempMoves nodeset, the first move is the original one;
+            //in case of input operand temp moves, it must be scheduled first
+            DataDependenceGraph::NodeSet::iterator i = tempMoves.begin();
+            cycle = scheduleMove(cycle, **i) + 1;
+            //then all the other moves follows;
+            //they must be scheduled in reverse order
+            i = tempMoves.end();
+            --i;
+            while(i != tempMoves.begin()){
+                cycle = scheduleMove(cycle, **i) + 1;
+                --i;
             }
         }
     }
     return cycle;
 }
 
+/**
+ * Unschedules the (possible) temporary register copy moves (due to missing
+ * connectivity) preceeding the given input move.
+ *
+ * @param operandMove Move to unschedule.
+ * @param regCopies   Temp register copy moves associated with operandMove
+ */
 void
 SequentialScheduler::unscheduleInputOperandTempMoves(
     MoveNode& operandMove, RegisterCopyAdder::AddedRegisterCopies& regCopies) {
     
     if (regCopies.count_ > 0) {
-        if (AssocTools::containsKey(regCopies.copies_,&operandMove)) {
-            RegisterCopyAdder::MoveNodePair& mnp = 
-                regCopies.copies_[&operandMove];
-            if (mnp.second != NULL) {
-                unschedule(*mnp.second);
-            }
-            if (mnp.first != NULL) {
-                unschedule(*mnp.first);
+        if (MapTools::containsKey(regCopies.copies_,&operandMove)) {
+            DataDependenceGraph::NodeSet tempMoves = regCopies.copies_[&operandMove];
+            for (DataDependenceGraph::NodeSet::iterator i = tempMoves.begin();
+                 i != tempMoves.end(); ++i) {
+                unschedule(**i);
             }
         }
     }
@@ -483,12 +494,15 @@ SequentialScheduler::scheduleResultTempMoves(
     throw (Exception) {
     
     if (regCopies.count_ > 0) {
-        if (AssocTools::containsKey(regCopies.copies_,&resultMove)) {
-            RegisterCopyAdder::MoveNodePair& mnp = 
-                regCopies.copies_[&resultMove];
-            assert(mnp.second == NULL && "no two temp moves for result");
-            if (mnp.first != NULL) {
-                cycle = scheduleMove(cycle, *mnp.first) +1;
+        if (MapTools::containsKey(regCopies.copies_,&resultMove)) {
+            DataDependenceGraph::NodeSet tempMoves = regCopies.copies_[&resultMove];
+            //in the tempMoves nodeset, the first move is the original one,
+            //in case of result temp moves it must be scheduled at the end;
+            //all the temp moves must be scheduled in reverse order            
+            DataDependenceGraph::NodeSet::iterator i = tempMoves.end();
+            while(i != tempMoves.begin()){
+                --i;
+	    	    cycle = scheduleMove(cycle, **i) + 1;
             }
         }
     }
