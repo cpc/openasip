@@ -1024,14 +1024,20 @@ TDGen::writeOperationDef(
 	   
             // check here if nodes connected to inputs are commutative
             if (immInput > 0) {
-                if (immInput == 1 &&
-                    ((inputCount == 2 && op.canSwap(1, 2)) ||
-                     (inputCount == 1 && !op.input(0).isAddress()))) {
-
+                if (immInput == 1) {
                     // Don't create op(imm, reg) patterns for commutative
                     // binary operations. tablegen wants only
                     // op(reg, imm) pattern for them.
-                    continue;
+                    if (inputCount == 2 && op.canSwap(1, 2)) {
+                        // LLVM does not understand that setne and seteq
+                        // are commutative. so make both versions of them.
+                        if (op.name() != "EQ" && op.name() != "NE") {
+                            continue;
+                        }
+                    }
+                    if (inputCount == 1 && !op.input(0).isAddress()) {
+                        continue;
+                    }
                 }
                 
                 // TODO: fancier check if operation dag made operation really 

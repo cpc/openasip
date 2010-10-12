@@ -347,10 +347,15 @@ def : Pat<(i32 (extloadi16 ADDRri:$src)), (LDHi ADDRri:$src)>;
 
 // 1-bit comparison with constant - xor or move.
 // 1-bit one becomes -1 as i1 is signed, so the incoming imm is -1, not 1.
+// do these comparisons both ways, reg first and imm first.
 def : Pat<(i1 (setne I1Regs:$op1, (i1 -1))), (XORbicmp I1Regs:$op1, 1)>;
+def : Pat<(i1 (setne (i1 -1), I1Regs:$op1)), (XORbicmp I1Regs:$op1, 1)>;
 def : Pat<(i1 (seteq I1Regs:$op1, (i1 0))), (XORbicmp I1Regs:$op1, 1)>;
+def : Pat<(i1 (seteq (i1 0), I1Regs:$op1)), (XORbicmp I1Regs:$op1, 1)>;
 def : Pat<(i1 (setne I1Regs:$op1, (i1 0))), (MOVI1rr I1Regs:$op1)>;
+def : Pat<(i1 (setne (i1 0), I1Regs:$op1)), (MOVI1rr I1Regs:$op1)>;
 def : Pat<(i1 (seteq I1Regs:$op1, (i1 -1))), (MOVI1rr I1Regs:$op1)>;
+def : Pat<(i1 (seteq (i1 -1), I1Regs:$op1)), (MOVI1rr I1Regs:$op1)>;
 
 
 // 1-bit comparison between booleans - xor or xnor(implemented with 2 xors)
