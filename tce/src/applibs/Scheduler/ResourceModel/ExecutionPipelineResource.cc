@@ -878,3 +878,22 @@ void ExecutionPipelineResource::setLatency(
     }
     operationLatencies_[pIndex][output] = latency;
 }
+
+/**
+ * Clears bookkeeping of the scheduling resource. 
+ * 
+ * After this call the state of the resource should be identical to a 
+ * newly-created and initialized resource.
+ */
+void
+ExecutionPipelineResource::clear() {
+    SchedulingResource::clear();
+    fuExecutionPipeline_.clear();
+    resultWriten_.clear();
+    resultRead_.clear();
+    operandsWriten_.clear();
+    storedResultCycles_.clear();
+    assignedSourceNodes_.clear();
+    assignedDestinationNodes_.clear();
+    cachedSize_ = 0;
+}

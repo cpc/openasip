@@ -68,6 +68,7 @@ public:
     int brokerCount() const;
     ResourceBroker& broker(int index) const throw (OutOfRange);
 
+    void clear();
 private:
     /// Sequence of pending assignments.
     std::vector<PendingAssignment*> assignments_;

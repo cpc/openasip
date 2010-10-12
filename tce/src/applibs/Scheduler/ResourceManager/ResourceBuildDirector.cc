@@ -90,3 +90,13 @@ ResourceBuildDirector::build(const TTAMachine::Machine& machine) {
         brokers_[i]->validateResources();
     }
 }
+
+/**
+ * Clears all resources of the resouce manager so that the RM can be reused.
+ */
+void 
+ResourceBuildDirector::clear() {
+    for (size_t i = 0; i < brokers_.size(); i++) {
+        brokers_[i]->clear();
+    }
+}

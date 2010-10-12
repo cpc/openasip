@@ -147,7 +147,12 @@ ResourceBroker::resourceOf(const TTAMachine::MachinePart& mp) const
     throw (WrongSubclass, KeyNotFound) {
     SchedulingResource* resource = NULL;
     if (!MapTools::containsKey(resMap_, &mp)) {
-        abortWithError("ResourceOf(machine part) failed");
+        std::string txt=  "ResourceOf(machine part) failed: ";
+        const Component* component = dynamic_cast<const Component*>(&mp);
+        if (component != NULL) {
+            txt += component->name();
+        }
+        abortWithError( txt);
     }
     try {
         resource = MapTools::valueForKey<SchedulingResource*>(resMap_, &mp);
@@ -303,4 +308,17 @@ ResourceBroker::validateResources() const {
 std::string
 ResourceBroker::brokerName() const {
     return brokerName_;
+}
+
+/**
+ * Clears all resources managed by the broker so that the broker
+ * can be reused.
+ */
+void
+ResourceBroker::clear() {
+    // Call clear for all resources.
+    for (ResourceMap::iterator i = resMap_.begin(); i != resMap_.end(); i++) {
+        i->second->clear();
+    }
+    assignedResources_.clear();
 }

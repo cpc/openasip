@@ -62,6 +62,7 @@ public:
         throw (Exception);
     virtual bool isSegmentResource() const;
 
+    void clear();
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();

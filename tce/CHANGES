@@ -39,7 +39,8 @@ Optimizations
 -------------
 - ttasim: destruction was extremely slow after simulating large
   programs due to extremely slow destructor of InstructionMemory
-  
+- tcecc: Decreased scheduling time.
+
 Misc
 ----
 - ttasim: removed support for simulating the experimental 'sequential

@@ -781,3 +781,31 @@ ITemplateBroker::isTemplateAvailable(
         findITemplates(defCycle, moves, immediates).count();
     return availableCount > 0;
 }
+
+/**
+ * Clears bookkeeping which is needed for unassigning previously assigned
+ * moves. After this call these cannot be unassigned, but new moves which
+ * are assigned after this call can still be unassigned.
+ */
+void 
+ITemplateBroker::clearOldResources() {
+    oldParentInstruction_.clear();
+}
+
+void
+ITemplateBroker::clear() {
+    ResourceBroker::clear();
+    clearOldResources();
+
+    for (std::map<int, TTAProgram::Instruction*>::iterator i =
+             instructions_.begin(); i != instructions_.end(); i++) {
+        std::map<int, bool>::iterator j = instructionsNotOwned_.find(i->first);
+        if (j == instructionsNotOwned_.end() || j->second == false) {
+            delete i->second;
+        }
+    }
+    instructions_.clear();
+    instructionsNotOwned_.clear();
+    immediateCycles_.clear();
+    immediateValues_.clear();
+}

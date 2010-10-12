@@ -131,3 +131,15 @@ PSocketResource::canAssign(const int cycle, const MoveNode&) const {
         return false;
     }
 }
+
+/**
+ * Clears bookkeeping of the scheduling resource. 
+ * 
+ * After this call the state of the resource should be identical to a 
+ * newly-created and initialized resource.
+ */
+void
+PSocketResource::clear() {
+    SchedulingResource::clear();
+    resourceRecord_.clear();
+}

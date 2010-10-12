@@ -491,3 +491,16 @@ IUBroker::immediateWriteCycle(const MoveNode& node) const {
     throw KeyNotFound(__FILE__, __LINE__, __func__,
         "MoveNode was not assigned Immediate resource.");
 }
+
+/**
+ * Clears bookkeeping which is needed for unassigning previously assigned
+ * moves. After this call these cannot be unassigned, but new moves which
+ * are assigned after this call can still be unassigned.
+ */
+void 
+IUBroker::clearOldResources() {
+    for (ResourceMap::iterator i = resMap_.begin(); i != resMap_.end(); i++) {
+        IUResource* iuRes = static_cast<IUResource*>(i->second);
+        iuRes->clearOldResources();
+    }
+}

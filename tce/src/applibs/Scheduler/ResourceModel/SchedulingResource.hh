@@ -115,6 +115,7 @@ public:
     friend class ResourceBroker;
 
     virtual bool operator < (const SchedulingResource& other) const;
+    virtual void clear();
 protected:
     // Tests if all referenced resources in dependent groups are of correct
     // type
@@ -163,6 +164,7 @@ public:
         throw (KeyNotFound);
     SchedulingResourceSet& operator=(const SchedulingResourceSet& newSet);
     void sort();
+    void clear();
 private:
     // List for resources.
     typedef std::vector<SchedulingResource*> ResourceList;

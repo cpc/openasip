@@ -303,3 +303,15 @@ AssignmentPlan::broker(int index) const throw (OutOfRange) {
         return *brokers_[index];
     }
 }
+
+void
+AssignmentPlan::clear() {
+    node_= NULL;
+    cycle_ = 0;
+    currentBroker_ = 0;
+    resourceFound_ = false;
+    for (size_t i = 0; i < assignments_.size(); i++) {
+        assignments_[i]->clear();
+    }
+    applicableAssignments_.clear();
+}

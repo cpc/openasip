@@ -81,6 +81,8 @@ public:
         throw (KeyNotFound);    
     int width() const;
 
+    void clearOldResources();
+    void clear();
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();

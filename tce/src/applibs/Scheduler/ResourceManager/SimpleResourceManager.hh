@@ -44,9 +44,8 @@
  */
 class SimpleResourceManager : public ResourceManager {
 public:
-    SimpleResourceManager(const TTAMachine::Machine& machine);
-    virtual ~SimpleResourceManager();
-
+    static SimpleResourceManager* createRM(const TTAMachine::Machine& mach);
+    static void disposeRM(SimpleResourceManager* rm);
     virtual bool canAssign(int cycle, MoveNode& node) const;
     virtual bool canTransportImmediate(const MoveNode& node) const;
     virtual void assign(int cycle, MoveNode& node)
@@ -69,13 +68,24 @@ public:
     virtual TTAProgram::Terminal* immediateValue(const MoveNode&);
     virtual int immediateWriteCycle(const MoveNode&) const;
     virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
+    virtual void clearOldResources();
 private:
+    SimpleResourceManager(const TTAMachine::Machine& machine);
+    virtual ~SimpleResourceManager();
+
+    /// Clears all bookkeeping done by this RM. 
+    /// The RM can then be reused for different BB.
+    void clear();
+
     /// Resource manager's broker director.
     SimpleBrokerDirector* director_;
     /// Resource assignment plan.
     AssignmentPlan plan_;
     /// Resource build director.
     ResourceBuildDirector buildDirector_;
+
+    static std::map<const TTAMachine::Machine*, std::list<SimpleResourceManager*> >rmPool_;
+
 };
 
 #endif

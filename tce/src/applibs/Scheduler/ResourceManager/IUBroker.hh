@@ -82,8 +82,8 @@ public:
     virtual bool isIUBroker() const;
     virtual TTAProgram::Terminal* immediateValue(const MoveNode& node) const;
     virtual int immediateWriteCycle(const MoveNode& node) const;
-    
 
+    void clearOldResources();
 private:
     /// Target machine.
     const TTAMachine::Machine* target_;

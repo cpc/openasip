@@ -759,3 +759,14 @@ BusBroker::hasGuard(const MoveNode& node) const {
     }
     return false;
 }
+
+void
+BusBroker::clear() {
+    ResourceBroker::clear();
+    for (std::list<SchedulingResource*>::iterator i = 
+             shortImmPSocketResources_.begin(); 
+         i != shortImmPSocketResources_.end(); i++) {
+        (*i)->clear();
+    }
+}
+ 

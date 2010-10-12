@@ -84,6 +84,7 @@ public:
     virtual bool isInUse(int cycle, const MoveNode& node) const;
     virtual bool hasGuard(const MoveNode& node) const;
 
+    void clear();
 private:
     virtual bool canTransportImmediate(
         const MoveNode& node,

@@ -87,6 +87,8 @@ public:
     virtual TTAProgram::Terminal* immediateValue(const MoveNode&);
     virtual int immediateWriteCycle(const MoveNode&) const;
     virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
+    void clearOldResources();
+    void clear();
 private:
     struct OriginalResources {
         OriginalResources(

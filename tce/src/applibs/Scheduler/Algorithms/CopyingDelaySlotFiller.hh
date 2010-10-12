@@ -44,7 +44,7 @@ class BasicBlock;
 class ControlFlowGraph;
 class ControlFlowEdge;
 class DataDependenceGraph;
-class ResourceManager;
+class SimpleResourceManager;
 class UniversalMachine;
 class InterPassData;
 class MoveNode;
@@ -70,7 +70,7 @@ public:
         ControlFlowGraph& cfg, DataDependenceGraph& ddg, 
         const TTAMachine::Machine& machine, UniversalMachine& um,
         bool releteRMs = true) throw (Exception);
-    void addResourceManager(BasicBlock& bbn,ResourceManager& rm);
+    void addResourceManager(BasicBlock& bbn, SimpleResourceManager& rm);
 protected:
         void fillDelaySlots(
             BasicBlockNode& jumpingBB, int delaySlots, bool fillFallThru)
@@ -105,7 +105,7 @@ private:
     int slotsFilled_;
     DataDependenceGraph* ddg_;
     ControlFlowGraph* cfg_;
-    std::map<BasicBlock*,ResourceManager*> resourceManagers_;
+    std::map<BasicBlock*, SimpleResourceManager*> resourceManagers_;
     UniversalMachine* um_;
 
     // indexed by the original PO's

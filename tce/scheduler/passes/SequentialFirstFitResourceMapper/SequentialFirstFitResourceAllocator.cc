@@ -90,7 +90,7 @@ SequentialFirstFitResourceAllocator::SequentialFirstFitResourceAllocator():
  * Destructor.
  */
 SequentialFirstFitResourceAllocator::~SequentialFirstFitResourceAllocator() {
-    delete resMan_;
+    SimpleResourceManager::disposeRM(resMan_);
 }
 
 void
@@ -102,7 +102,7 @@ SequentialFirstFitResourceAllocator::start()
             "Source program and/or target architecture not defined!";
         throw ObjectNotInitialized(__FILE__, __LINE__, method, msg);
     }
-    resMan_ = new SimpleResourceManager(*target_);
+    resMan_ = SimpleResourceManager::createRM(*target_);
     assignResources();
 }
 

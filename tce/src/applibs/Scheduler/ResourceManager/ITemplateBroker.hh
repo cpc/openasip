@@ -85,6 +85,8 @@ public:
     virtual TTAProgram::Instruction* instruction(int cycle);
     virtual void loseInstructionOwnership(int cycle);
     virtual bool isTemplateAvailable(int, TTAProgram::Immediate*) const;
+    void clearOldResources();
+    void clear();
 private:
     typedef std::vector<TTAProgram::Move*> Moves;
     typedef std::vector<TTAProgram::Immediate*> Immediates;

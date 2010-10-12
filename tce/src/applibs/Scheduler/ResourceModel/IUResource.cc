@@ -453,6 +453,18 @@ IUResource::findAvailable(const int defCycle, const int useCycle) const {
     return -1;
 }
 
+void 
+IUResource::clearOldResources() {
+    for (int i = 0; i < registerCount(); i++) {
+        for (int j = 0; 
+             j < static_cast<int>(resourceRecord_.at(i).size()); j++) {
+            ResourceRecordType* rec = resourceRecord_.at(i).at(j);
+            delete rec->immediateValue_;
+            rec->immediateValue_ = NULL;
+        }
+    }
+}
+
 /**
  * Destructor for internal storage for assignment records.
  * Deletes a backup copy of original terminal when the node is unassigned.
@@ -478,4 +490,18 @@ IUResource::ResourceRecordType::ResourceRecordType() :
 int
 IUResource::width() const {
     return width_;
+}
+
+/**
+ * Clears bookkeeping of the scheduling resource. 
+ * 
+ * After this call the state of the resource should be identical to a 
+ * newly-created and initialized resource.
+ */
+void
+IUResource::clear() {
+    SchedulingResource::clear();
+    for (int i = 0; i < registerCount(); i++) {
+        SequenceTools::deleteAllItems(resourceRecord_.at(i));
+    }
 }

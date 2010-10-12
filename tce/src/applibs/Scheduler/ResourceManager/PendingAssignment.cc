@@ -153,3 +153,17 @@ PendingAssignment::forget() {
     }
     lastTriedAssignment_ = -1;
 }
+
+/**
+ * Clears the pending assignmen. 
+ *
+ * Does not unassign anything.
+ */
+void
+PendingAssignment::clear() {
+    cycle_ = 0;
+    node_ = NULL;
+    assignmentTried_ = false;
+    lastTriedAssignment_ = -1;
+    availableResources_.clear();
+}

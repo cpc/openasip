@@ -96,8 +96,8 @@ public:
     virtual bool isExecutionPipelineBroker() const;
     void validateResources() const;
     virtual std::string brokerName() const;
+    virtual void clear();
 protected:
-    // TODO: this causes indeterministicity
     typedef std::map<
     const TTAMachine::MachinePart*, SchedulingResource*,
     TTAMachine::MachinePart::Comparator> ResourceMap;

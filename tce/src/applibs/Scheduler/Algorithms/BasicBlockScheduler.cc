@@ -1184,9 +1184,10 @@ BasicBlockScheduler::deleteRM(SimpleResourceManager* rm, BasicBlock& bb) {
 
     // TODO: nobody currently deletes those
     if (delaySlotFiller_ != NULL) {
+        rm->clearOldResources();
         delaySlotFiller_->addResourceManager(bb, *rm);
     } else {
-        delete rm;
+        SimpleResourceManager::disposeRM(rm);
     }
 }
 

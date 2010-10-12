@@ -62,7 +62,7 @@ public:
     virtual void unassign(const int cycle)
         throw (Exception);
     virtual bool isITemplateResource() const;
-
+    void clear();
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();

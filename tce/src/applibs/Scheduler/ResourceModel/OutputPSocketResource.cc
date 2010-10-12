@@ -218,3 +218,15 @@ OutputPSocketResource::operator< (const SchedulingResource& other) const {
     // but in opposite direction, facouring already used 
     return other.SchedulingResource::operator<(*this);
 }
+
+/**
+ * Clears bookkeeping of the scheduling resource. 
+ * 
+ * After this call the state of the resource should be identical to a 
+ * newly-created and initialized resource.
+ */
+void
+OutputPSocketResource::clear() {
+    PSocketResource::clear();
+    storedPorts_.clear();
+}

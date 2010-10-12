@@ -82,6 +82,39 @@ SimpleResourceManager::SimpleResourceManager(
 }
 
 /**
+ * Factory method for creating resource managers.
+ *
+ * Checks a RM pool if a recyclable RM is found for same machine with same II,
+ * if found gives that. If not found, creates a new RM.
+ */
+SimpleResourceManager* 
+SimpleResourceManager::createRM(
+    const TTAMachine::Machine& machine) {
+
+    std::list< SimpleResourceManager* >& pool = rmPool_[&machine];
+
+    if (pool.empty()) {
+        return new SimpleResourceManager(machine);
+    } else {
+        SimpleResourceManager* rm = pool.back();
+        pool.pop_back();
+        return rm; 
+    }
+}
+
+/*
+ * Method which should be called when RM no longer needed. 
+ *
+ * This puts the RM into a pool of resource managers which can be recycled.
+ */
+void SimpleResourceManager::disposeRM(SimpleResourceManager* rm) {
+    std::list< SimpleResourceManager* >& pool = rmPool_[&rm->machine()];
+    pool.push_back(rm);
+    rm->clear();
+}
+
+
+/**
  * Destructor.
  */
 SimpleResourceManager::~SimpleResourceManager(){
@@ -341,3 +374,27 @@ SimpleResourceManager::isTemplateAvailable(
     
     return director_->isTemplateAvailable(defCycle, immediate);
 }
+
+/**
+ * Clears bookkeeping which is needed for unassigning previously assigned
+ * moves. After this call these cannot be unassigned, but new moves which
+ * are assigned after this call can still be unassigned.
+ */
+void 
+SimpleResourceManager::clearOldResources() {
+    director_->clearOldResources();
+}
+
+/*
+ * Clears a resource manager so that it can be reused for different BB.
+ *
+ * After this call the state of the RM should be identical to a new RM.
+ */
+void SimpleResourceManager::clear() {
+    director_->clearOldResources();
+    buildDirector_.clear();
+    director_->clear();
+}
+
+std::map<const TTAMachine::Machine*, std::list<SimpleResourceManager*> > 
+SimpleResourceManager::rmPool_;

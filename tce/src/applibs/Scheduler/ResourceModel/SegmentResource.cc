@@ -199,3 +199,15 @@ SegmentResource::validateRelatedGroups() {
     }
     return true;
 }
+
+/**
+ * Clears bookkeeping of the scheduling resource. 
+ * 
+ * After this call the state of the resource should be identical to a 
+ * newly-created and initialized resource.
+ */
+void
+SegmentResource::clear() {
+    SchedulingResource::clear();
+    resourceRecord_.clear();
+}

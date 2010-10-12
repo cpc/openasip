@@ -189,3 +189,15 @@ ITemplateResource::validateRelatedGroups() {
     }
     return true;
 }
+
+/**
+ * Clears bookkeeping of the scheduling resource. 
+ * 
+ * After this call the state of the resource should be identical to a 
+ * newly-created and initialized resource.
+ */
+void
+ITemplateResource::clear() {
+    SchedulingResource::clear();
+    resourceRecord_.clear();
+}

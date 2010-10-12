@@ -97,7 +97,7 @@ BasicBlockPass::executeDDGPass(
     Application::logStream() << "\nBB " << bbCounter << std::endl;
 #endif
     
-    SimpleResourceManager* rm = new SimpleResourceManager(targetMachine);
+    SimpleResourceManager* rm = SimpleResourceManager::createRM(targetMachine);
     ddgPass.handleDDG(*ddg, *rm, targetMachine);
 
 #ifdef DDG_SNAPSHOTS
@@ -190,7 +190,7 @@ BasicBlockPass::createDDGFromBB(BasicBlock& bb) {
  */
 void 
 BasicBlockPass::deleteRM(SimpleResourceManager* rm, BasicBlock& bb) {
-    delete rm;
+    SimpleResourceManager::disposeRM(rm);
 
     // to avoid warnings.
     bb.instructionCount();

@@ -364,6 +364,14 @@ SchedulingResourceSet::sort() {
 }
 
 /**
+ * Clears the scheduling resource set.
+ */
+void 
+SchedulingResourceSet::clear() {
+    resources_.clear();
+}
+
+/**
  * Returns how many times particular scheduling resource was used
  * 
  * @return number of times resource was already used
@@ -389,4 +397,15 @@ SchedulingResource::increaseUseCount() {
 void
 SchedulingResource::decreaseUseCount() {
     useCount_--;
+}
+
+/**
+ * Clears bookkeeping of the scheduling resource. 
+ * 
+ * After this call the state of the resource should be identical to a 
+ * newly-created and initialized resource.
+ */
+void
+SchedulingResource::clear() {
+    useCount_ = 0;
 }

@@ -58,6 +58,7 @@ public:
     throw(Exception);
     virtual bool canAssign(const int cycle, const MoveNode& node) const;
     virtual bool operator < (const SchedulingResource& other) const;
+    void clear();
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();

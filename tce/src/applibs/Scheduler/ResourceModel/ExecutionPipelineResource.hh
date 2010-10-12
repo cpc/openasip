@@ -84,7 +84,8 @@ public:
         const int latency);
     int highestKnownCycle() const;
     int nextResultCycle(int cycle, const MoveNode& node) const;
-
+    
+    void clear();
 protected:
     virtual bool validateDependentGroups();
     virtual bool validateRelatedGroups();

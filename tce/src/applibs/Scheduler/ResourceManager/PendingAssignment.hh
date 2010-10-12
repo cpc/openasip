@@ -51,7 +51,7 @@ public:
     void tryNext() throw (ModuleRunTimeError);
     void undoAssignment();
     void forget();
-
+    void clear();
 private:
     /// Corresponding resource broker.
     ResourceBroker& broker_;

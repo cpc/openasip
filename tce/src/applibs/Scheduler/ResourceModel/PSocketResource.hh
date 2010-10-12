@@ -58,6 +58,7 @@ public:
     virtual void unassign(const int cycle, MoveNode& node)
         throw (Exception);
 
+    void clear();
 protected:
 
 private:

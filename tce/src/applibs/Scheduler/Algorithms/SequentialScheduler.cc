@@ -83,7 +83,7 @@ SequentialScheduler::SequentialScheduler(
     ControlFlowGraphPass(data),
     ProcedurePass(data),
     ProgramPass(data), 
-     rm_(NULL) {
+    rm_(NULL) {
 }
 
 /**
@@ -110,7 +110,7 @@ SequentialScheduler::handleBasicBlock(
         return;
 
     targetMachine_ = &targetMachine;
-    rm_ = new SimpleResourceManager(targetMachine);
+    rm_ = SimpleResourceManager::createRM(targetMachine);
 
     int cycle = 0;
 
@@ -132,6 +132,7 @@ SequentialScheduler::handleBasicBlock(
             for (int i = 0; i < moves.nodeCount(); i++) {
                 message += moves.node(i).toString() + " ";
             }
+            SimpleResourceManager::disposeRM(rm_); rm_ = NULL; 
             throw ModuleRunTimeError(__FILE__, __LINE__, __func__, message);
         }
 
@@ -144,7 +145,7 @@ SequentialScheduler::handleBasicBlock(
 
     copyRMToBB(*rm_, bb, targetMachine);
 
-    delete rm_; rm_ = NULL; 
+    SimpleResourceManager::disposeRM(rm_); rm_ = NULL; 
 }
 
 #ifdef DEBUG_REG_COPY_ADDER

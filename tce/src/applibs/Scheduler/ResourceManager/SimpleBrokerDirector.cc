@@ -49,7 +49,7 @@
 #include "IUResource.hh"
 #include "Immediate.hh"
 #include "MapTools.hh"
-
+#include "AssocTools.hh"
 #include "POMDisassembler.hh"
 
 using std::string;
@@ -700,4 +700,28 @@ SimpleBrokerDirector::isTemplateAvailable(
     
     return instructionTemplateBroker().isTemplateAvailable(
         defCycle, immediate);
+}
+
+/**
+ * Clears bookkeeping which is needed for unassigning previously assigned
+ * moves. After this call these cannot be unassigned, but new moves which
+ * are assigned after this call can still be unassigned.
+ */
+void 
+SimpleBrokerDirector::clearOldResources() {
+    AssocTools::deleteAllValues(origResMap_);
+    immediateUnitBroker().clearOldResources();
+    instructionTemplateBroker().clearOldResources();
+}
+
+/**
+ * Clears the bookkeeping so that the same RM can be reused for different BB.
+ * 
+ * After this call the state of the RM should be identical to a new RM.
+ */
+void
+SimpleBrokerDirector::clear() {
+    knownMaxCycle_ = -1;
+    moveCounts_.clear();
+    plan_->clear();
 }

@@ -75,19 +75,19 @@ BasicResourceModelTest::testBasicConstruction() {
         targetMachine1 =
         TTAMachine::Machine::loadFromADF(
             "data/1_bus_full_connectivity.adf"));
-    TS_ASSERT_THROWS_NOTHING(SimpleResourceManager rm1(*targetMachine1));
+    TS_ASSERT_THROWS_NOTHING(SimpleResourceManager::createRM(*targetMachine1));
 
     CATCH_ANY(
         targetMachine2 =
         TTAMachine::Machine::loadFromADF(
             "data/10_bus_full_connectivity.adf"));
-    TS_ASSERT_THROWS_NOTHING(SimpleResourceManager rm2(*targetMachine2));
+    TS_ASSERT_THROWS_NOTHING(SimpleResourceManager::createRM(*targetMachine2));
 
     CATCH_ANY(
         targetMachine3 =
         TTAMachine::Machine::loadFromADF(
             "data/10_bus_reduced_connectivity.adf-disabled"));
-    TS_ASSERT_THROWS_NOTHING(SimpleResourceManager rm3(*targetMachine3));
+    TS_ASSERT_THROWS_NOTHING(SimpleResourceManager::createRM(*targetMachine3));
 
 
     delete targetMachine1;

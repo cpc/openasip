@@ -55,6 +55,7 @@ public:
     void addBroker(ResourceBroker& broker) throw (ObjectAlreadyExists);
     void build(const TTAMachine::Machine& machine);
 
+    void clear();
 private:
     /// Resource brokers.
     std::vector<ResourceBroker*> brokers_;

@@ -50,7 +50,7 @@
 
 #include "MoveNode.hh"
 #include "ProgramOperation.hh"
-#include "ResourceManager.hh"
+#include "SimpleResourceManager.hh"
 #include "ControlFlowGraph.hh"
 #include "DataDependenceGraph.hh"
 
@@ -285,8 +285,13 @@ CopyingDelaySlotFiller::fillDelaySlots(
     }
 
     if (deleteRMs) {
-        AssocTools::deleteAllValues(resourceManagers_);
+        for (std::map<BasicBlock*, SimpleResourceManager*>::iterator i =
+                 resourceManagers_.begin(); i != resourceManagers_.end(); 
+             i++) {
+            SimpleResourceManager::disposeRM(i->second);
+        }
     }
+    resourceManagers_.clear();
 }
 
 /*
@@ -297,7 +302,7 @@ CopyingDelaySlotFiller::fillDelaySlots(
  */
 void 
 CopyingDelaySlotFiller::addResourceManager(
-    BasicBlock& bb,ResourceManager& rm) {
+    BasicBlock& bb, SimpleResourceManager& rm) {
     resourceManagers_[&bb] = &rm;
 }
 
@@ -406,7 +411,8 @@ CopyingDelaySlotFiller::tryToFillSlots(
     int grIndex, RegisterFile* grFile) 
     throw (Exception) {
 
-    ResourceManager& rm = *resourceManagers_[&blockToFillNode.basicBlock()];
+    SimpleResourceManager& rm = 
+        *resourceManagers_[&blockToFillNode.basicBlock()];
     BasicBlock& blockToFill = blockToFillNode.basicBlock();
     BasicBlock& nextBB = nextBBNode.basicBlock();
 
