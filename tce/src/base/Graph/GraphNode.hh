@@ -49,17 +49,21 @@ public:
 
     virtual GraphNode* clone() const;
 
-    virtual int nodeID() const;
+    inline int nodeID() const;
     virtual std::string toString() const;
     virtual std::string dotString() const;
 
     class Comparator {
     public:
-        bool operator()(const GraphNode* gn1, const GraphNode* gn2) const;
+        inline bool operator()(
+            const GraphNode* gn1, const GraphNode* gn2) const;
+
     };
 private:
     int nodeID_;
     static int idCounter_;
 };
+
+#include "GraphNode.icc"
 
 #endif

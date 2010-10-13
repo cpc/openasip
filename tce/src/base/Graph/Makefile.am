@@ -27,5 +27,6 @@ libgraph_la_SOURCES += \
 	GraphUtilities.hh Graph.hh \
 	GraphEdge.hh BoostGraph.hh \
 	GraphNode.hh Graph.icc \
-	GraphUtilities.icc BoostGraph.icc 
+	GraphUtilities.icc BoostGraph.icc \
+	GraphNode.icc
 ## headers end

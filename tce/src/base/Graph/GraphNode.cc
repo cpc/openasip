@@ -77,31 +77,5 @@ GraphNode::dotString() const {
     return std::string("label=\"") + toString() + "\"";
 }
 
-/**
- * Returns a node ID as integer.
- *
- * This id is unique among all the nodes in the graph.
- *
- * @return The nodeID as integer.
- */
-int
-GraphNode::nodeID() const {
-    return nodeID_;
-}
-
-/**
- * Comparison based on node ID's for maps and sets.
- */
-bool 
-GraphNode::Comparator::operator()(
-    const GraphNode* mn1, const GraphNode* mn2) const {
-    if (mn1 == NULL) {
-        return false;
-    }
-    if (mn2 == NULL) {
-        return true;
-    }
-    return mn1->nodeID() < mn2->nodeID();
-}
 
 int GraphNode::idCounter_ = 0;

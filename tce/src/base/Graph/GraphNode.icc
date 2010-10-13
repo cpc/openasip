@@ -1,0 +1,30 @@
+/**
+ * @file GraphNode.icc
+ *
+ * Prototype of graph-based program representation: inline implementation of
+ * node.
+ *
+ * @author Heikki Kultala 2008 (hkultala@cs.tut.fi)
+ * @note rating: red
+ */
+
+/**
+ * Returns a node ID as integer.
+ *
+ * This id is unique among all the nodes in the graph.
+ *
+ * @return The nodeID as integer.
+ */
+int
+GraphNode::nodeID() const {
+    return nodeID_;
+}
+
+/**
+ * Comparison based on node ID's for maps and sets.
+ */
+bool 
+GraphNode::Comparator::operator()(
+    const GraphNode* mn1, const GraphNode* mn2) const {
+    return mn1->nodeID() < mn2->nodeID();
+}
