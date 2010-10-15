@@ -14,6 +14,10 @@ typedef struct {
     int (*second)(int, int);    
 } funcs;
 
+/* Make sure it really uses the function pointers instead of inlining the 
+   calls away */
+void doit(int a, int b, funcs funcs_to_exec) __attribute__((__noinline__));
+
 /* Function pointers are passed as arguments to another function to avoid
    compiler optimizing them away (like it was with -O2 when called directly
    from main()). */

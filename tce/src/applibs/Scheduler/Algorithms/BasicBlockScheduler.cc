@@ -1076,7 +1076,9 @@ BasicBlockScheduler::handleProcedure(
     cfg.writeToDotFile(procedure.name() + "_cfg.dot");    
 #endif
     // create the procedure-wide ddg.
-    DataDependenceGraphBuilder ddgBuilder;
+
+    DataDependenceGraphBuilder ddgBuilder(BasicBlockPass::interPassData());
+
     bigDDG_ = ddgBuilder.build(cfg);
 
 #ifdef BIG_DDG_SNAPSHOTS

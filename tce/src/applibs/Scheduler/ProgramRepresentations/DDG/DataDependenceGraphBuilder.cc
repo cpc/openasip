@@ -65,6 +65,8 @@
 #include "ConstantAliasAnalyzer.hh"
 #include "FalseAliasAnalyzer.hh"
 #include "TCEString.hh"
+#include "InterPassData.hh"
+#include "InterPassDatum.hh"
 
 using namespace TTAProgram;
 using namespace TTAMachine;
@@ -81,13 +83,51 @@ class BasicBlockNode;
 /**
  * Constructor of Data Dependence graph builder
  */
-DataDependenceGraphBuilder::DataDependenceGraphBuilder() { 
+DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
+    interPassData_(NULL) {
 
+    // alias analyzers.
+    
+    // constant alias AA check aa between global variables.
     addAliasAnalyzer(new ConstantAliasAnalyzer);
 
     // uncommenting the following line results in faster but
-    // broken code. just for testing theoritical benefits.
-    // addAliasAnalyzer(new FalseAliasAnalyzer); 
+    // broken code. just for testing theoretical benefits.
+//     addAliasAnalyzer(new FalseAliasAnalyzer); 
+
+}
+
+/**
+ * Constructor of Data Dependence graph builder
+ */
+DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
+    interPassData_(&ipd) {
+
+    static const TCEString SP_DATUM = "STACK_POINTER";
+    static const TCEString RV_DATUM = "RV_REGISTER";
+    
+    typedef SimpleInterPassDatum<std::pair<std::string, int> > RegDatum;
+
+    if (ipd.hasDatum(SP_DATUM)) {
+        RegDatum& sp = dynamic_cast<RegDatum&>(ipd.datum(SP_DATUM));
+        specialRegisters_[REG_SP] = 
+            sp.first + '.' + Conversion::toString(sp.second);
+    }
+
+    if (ipd.hasDatum(RV_DATUM)) {
+        RegDatum& rv = dynamic_cast<RegDatum&>(ipd.datum(RV_DATUM));
+        specialRegisters_[REG_RV] = 
+            rv.first + '.' + Conversion::toString(rv.second);
+    }
+    
+    // alias analyzers.
+    
+    // constant alias AA check aa between global variables.
+    addAliasAnalyzer(new ConstantAliasAnalyzer);
+
+    // uncommenting the following line results in faster but
+    // broken code. just for testing theoretical benefits.
+//     addAliasAnalyzer(new FalseAliasAnalyzer); 
 }
 
 /**
@@ -154,6 +194,7 @@ DataDependenceGraphBuilder::build(
     }
 
     constructIndividualBB();
+
     delete currentData_;
     currentData_ = NULL;
     return currentDDG_;
@@ -170,7 +211,8 @@ DataDependenceGraphBuilder::build(
     // @TODO: when CFG subgraphs are in use, 2nd param not always true
     DataDependenceGraph* ddg = new DataDependenceGraph(
         cfg.procedureName(), true);
-    
+
+
     if (um != NULL) {
         getStaticRegisters(*um, specialRegisters_);
     } else {
@@ -626,7 +668,7 @@ DataDependenceGraphBuilder::processGuard(MoveNode& moveNode) {
     Guard& g = moveNode.move().guard().guard();
     RegisterGuard* rg = dynamic_cast<RegisterGuard*>(&g);
     if (rg != NULL) {
-        string regName = rg->registerFile()->name() + 
+        string regName = rg->registerFile()->name() + '.' +
             Conversion::toString(rg->registerIndex());
         processRegUse(MNData2(moveNode, true),regName);
     } else {
@@ -790,8 +832,7 @@ void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
     std::string sp = specialRegisters_[REG_SP];
     if (sp != "") {
         currentData_->regDefReaches_[sp].insert(mnd2);
-    }
-
+    } 
     // params
     for (int i = 0; i < 4;i++) {
         std::string paramReg = specialRegisters_[REG_IPARAM+i];
@@ -829,6 +870,7 @@ void DataDependenceGraphBuilder::processRegUse(
     } 
     // can be multiple if some write predicated
     std::set<MNData2>& defines_ = currentData_->regDefines_[reg];
+
     for (std::set<MNData2>::iterator i = defines_.begin();
          i != defines_.end(); i++) {
         createRegRaw(*i,mnd);
@@ -1012,7 +1054,7 @@ DataDependenceGraphBuilder::processDestination(MoveNode& moveNode) {
  */
 std::string
 DataDependenceGraphBuilder::trName(TerminalRegister& tr) {
-    return tr.registerFile().name() + 
+    return tr.registerFile().name() + '.' +
         Conversion::toString(tr.index());
 }
 
@@ -1286,8 +1328,8 @@ void DataDependenceGraphBuilder::processCall(MoveNode& mn) {
     MNData2 mnd2(mn, false,false, true);
     std::string sp = specialRegisters_[REG_SP];
     if (sp != "") {
-        processRegUse(mnd2,sp);
-    }
+       processRegUse(mnd2,sp);
+    } 
 
     std::string rv = specialRegisters_[REG_RV];
     if (rv != "") {

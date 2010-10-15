@@ -321,9 +321,6 @@ SchedulerFrontend::schedule(
 
     // use this if none given at command line.
     InterPassData ipd2;
-    if (interPassData == NULL)
-        interPassData = &ipd2;
-
     for (int i = 0; i < schedulingPlan.passCount(); i++) {
         StartableSchedulerModule& pass = schedulingPlan.pass(i);
         try {
@@ -334,7 +331,7 @@ SchedulerFrontend::schedule(
                     "module.";
                 throw Exception(__FILE__, __LINE__, __func__, message);
             }
-            pass.setInterPassData(*interPassData);
+            pass.setInterPassData(interPassData!=NULL?*interPassData:ipd2);
         if (Application::verboseLevel() >=
             Application::VERBOSE_LEVEL_INCREASED) {
             /// Prints out info about modules starting and their execution
