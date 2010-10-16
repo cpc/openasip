@@ -25,7 +25,7 @@ def RetCC_TCE : CallingConv<[
 def CC_TCE : CallingConv<[
   CCIfType<[i1, i8, i16], CCPromoteToType<i32>>,
 
-    CCIfType<[i32], CCAssignToReg<[IRES0]>>,
+//    CCIfType<[i32], CCAssignToReg<[IRES0]>>,
   // Integer values get stored in stack slots that are 4 bytes in
   // size and 4-byte aligned.
   CCIfType<[i32, f32], CCAssignToStack<4, 4>>,

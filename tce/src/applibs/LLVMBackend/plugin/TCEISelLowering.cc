@@ -72,6 +72,10 @@ static const unsigned ArgRegs[] = {
     TCE::IRES0
 };
 
+static const int argRegCount = 0;
+
+
+
 SDValue
 TCETargetLowering::LowerReturn(SDValue Chain,
                                CallingConv::ID CallConv, bool isVarArg,
@@ -143,7 +147,7 @@ TCETargetLowering::LowerFormalArguments(
 
     CCInfo.AnalyzeFormalArguments(Ins, CC_TCE);
   
-    const unsigned *CurArgReg = ArgRegs, *ArgRegEnd = ArgRegs+1;
+    const unsigned *CurArgReg = ArgRegs, *ArgRegEnd = ArgRegs + argRegCount;
 
     unsigned ArgOffset = 0;
 
@@ -345,8 +349,6 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
     (void)CC_TCE;
 
-    #define ARG_REG_COUNT 1
-
     int regParams = 0;
 
     // Count the size of the outgoing arguments.
@@ -362,7 +364,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
         case MVT::i8:
         case MVT::i16:
         case MVT::i32:
-            if (regParams < ARG_REG_COUNT) {
+            if (regParams < argRegCount) {
                 regParams++;
             } else {
                 ArgsSize += 4;
@@ -385,7 +387,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
   
     SmallVector<SDValue, 8> MemOpChains;
    
-    SmallVector<std::pair<unsigned, SDValue>, ARG_REG_COUNT> RegsToPass;
+    SmallVector<std::pair<unsigned, SDValue>, argRegCount> RegsToPass;
 
     unsigned ArgOffset = 0;
 
@@ -417,7 +419,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     }
     case MVT::i32:
         ObjSize = 4;
-        if (RegsToPass.size() >= ARG_REG_COUNT) {
+        if (RegsToPass.size() >= argRegCount) {
             ValToStore = Val;
         } else {
             RegsToPass.push_back(
