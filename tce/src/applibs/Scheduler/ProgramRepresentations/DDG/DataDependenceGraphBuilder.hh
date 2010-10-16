@@ -26,7 +26,7 @@
  *
  * Declaration of data dependence graph builder class
  *
- * @author Heikki Kultala 2006 (heikki.kultala-no.spam-tut.fi)
+ * @author Heikki Kultala 2006-2010 (heikki.kultala@tut.fi)
  * @note rating: red
  */
 
@@ -41,8 +41,7 @@
 #include "ControlFlowGraph.hh"
 
 #include "MemoryAliasAnalyzer.hh"
-
-//#include "MNData.hh"
+#include "TCEString.hh"
 
 namespace TTAProgram {
     class Program;
@@ -58,6 +57,7 @@ namespace TTAMachine {
 class MemoryAliasAnalyzer;
 class BasicBlock;
 class UniversalMachine;
+class InterPassData;
 
 /**
  * DataDependenceGraphBuilder class is repsonsible for building data 
@@ -66,6 +66,7 @@ class UniversalMachine;
 class DataDependenceGraphBuilder {
 public:
     DataDependenceGraphBuilder();
+    DataDependenceGraphBuilder(InterPassData& ipd);
     
     virtual ~DataDependenceGraphBuilder();
    
@@ -314,11 +315,12 @@ private:
     std::vector<MemoryAliasAnalyzer*> aliasAnalyzers_;
 
     // contains stack pointer, RV and parameter registers.
+//    typedef std::map<int, TCEString> SpecialRegisters;
+//    SpecialRegisters
     std::map<int, std::string> specialRegisters_;
 
     static const std::string RA_NAME;
-
-            
+    InterPassData* interPassData_;
 };
 
 #endif
