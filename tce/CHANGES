@@ -21,7 +21,6 @@ Code generator improvements
 - Improved code generation for comparisons of boolean values.
 - Avoids putting immediate value into register with some comparisons,
   more often passes the immediate directly to the comparison operation.
-- Now passes the first function parameter in a register instead of stack.
 
 Usability features
 ------------------
