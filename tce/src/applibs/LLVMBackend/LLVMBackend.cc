@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,10 +28,16 @@
  *
  * @author Veli-Pekka Jääskeläinen 2008 (vjaaskel-no.spam-cs.tut.fi)
  * @author Mikael Lepistö 2009 (mikael.lepisto-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2009-2010
  * @note rating: red
  */
 
+#include <llvm/Module.h>
+#include <llvm/Analysis/LoopInfo.h>
+#include <llvm/Analysis/LoopPass.h>
+#include <llvm/Analysis/Dominators.h>
 #include <llvm/PassManager.h>
+#include <llvm/Target/TargetData.h>
 #include <llvm/Pass.h>
 //#include <llvm/ModuleProvider.h>
 #include <llvm/LLVMContext.h>
@@ -62,6 +68,7 @@
 #include <llvm/CodeGen/ObjectCodeEmitter.h>
 
 #include <cstdlib> // system()
+#include <fstream>
 #include <boost/functional/hash.hpp>
 
 #include "LLVMBackend.hh"
@@ -82,13 +89,19 @@
 #include "SchedulerFrontend.hh"
 #include "MachineValidator.hh"
 #include "MachineValidatorResults.hh"
+#include "Instruction.hh"
+#include "ProgramAnnotation.hh"
 
 #include "InterPassData.hh"
 #include "InterPassDatum.hh"
 
+//#define DEBUG_TDGEN
+
 using namespace llvm;
 
 #include <llvm/Assembly/PrintModulePass.h>
+
+extern const PassInfo* LowerMissingInstructionsID;
 
 // From passes/RegAllocLinearScanILP.cc:
 FunctionPass* createILPLinearScanRegisterAllocator();
@@ -182,12 +195,13 @@ LLVMBackend::llvmRequiredOpset() {
 
     return requiredOps;
 }
-    
 /**
  * Constructor.
  */
-LLVMBackend::LLVMBackend(bool useCache, bool useInstalledVersion, bool removeTempFiles):
-    useCache_(useCache), useInstalledVersion_(useInstalledVersion), removeTmp_(removeTempFiles) {
+LLVMBackend::LLVMBackend(
+    bool useCache, bool useInstalledVersion, bool removeTempFiles):
+    useCache_(useCache), useInstalledVersion_(useInstalledVersion), 
+    removeTmp_(removeTempFiles) {
     cachePath_ = Environment::llvmtceCachePath();    
 }
 
@@ -280,7 +294,8 @@ LLVMBackend::compile(
 
     // Compile.
     TTAProgram::Program* result =
-        compile(*m.release(), emuM.release(), *plugin, target, optLevel, debug, ipData);
+        compile(*m.release(), emuM.release(), *plugin, target, optLevel, debug, 
+                ipData);
 
     delete plugin;
     plugin = NULL;
@@ -321,7 +336,7 @@ LLVMBackend::compile(
     TCETargetMachinePlugin& plugin,
     TTAMachine::Machine& target,
     int optLevel,
-    bool debug,
+    bool /*debug*/,
     InterPassData* ipData)
     throw (Exception) {
 
@@ -344,7 +359,8 @@ LLVMBackend::compile(
     LLVMInitializeTCETargetInfo();
 
     // get registered target machine and set plugin.
-    const Target* tceTarget = TargetRegistry::lookupTarget(targetStr, errorStr); 
+    const Target* tceTarget = 
+	TargetRegistry::lookupTarget(targetStr, errorStr); 
     
     if (!tceTarget) {
         errs() << errorStr << "\n";
@@ -393,17 +409,17 @@ LLVMBackend::compile(
     
     const TargetData *TD = targetMachine->getTargetData();
     assert(TD);
+
     Passes.add(new TargetData(*TD));
 
     targetMachine->addPassesToEmitFile(
 	Passes, fouts(), TargetMachine::CGFT_AssemblyFile, OptLevel);
 //    targetMachine->addPassesToEmitFileFinish(Passes, OCE, OptLevel);
+// TODO: should the above be on===
 
     // inlined from old, removed addPassesToEmitFileFinish();
 //    setCodeModelForStatic();
     Passes.add(createGCInfoDeleter());
-
-
 
     // TODO: This should be moved to emit file pass maybe
     LLVMPOMBuilder* pomBuilder = new LLVMPOMBuilder(*targetMachine, &target);
@@ -416,18 +432,35 @@ LLVMBackend::compile(
     assert(prog != NULL);
 
     if (ipData_ != NULL) {
-        typedef SimpleInterPassDatum<std::pair<std::string, int> > RegData;
-
+        
         // Stack pointer datum.
-        RegData* spReg = new RegData;
+        RegDatum* spReg = new RegDatum;
         spReg->first = plugin.rfName(plugin.spDRegNum());
         spReg->second = plugin.registerIndex(plugin.spDRegNum());
         ipData_->setDatum("STACK_POINTER", spReg);
+
+        // Return value register datum.
+        RegDatum* rvReg = new RegDatum;
+        rvReg->first = plugin.rfName(plugin.rvDRegNum());
+        rvReg->second = plugin.registerIndex(plugin.rvDRegNum());
+        ipData_->setDatum("RV_REGISTER", rvReg);
+
+        // high-part of 64-bit RV datum
+        RegDatum* rvHighReg = new RegDatum;
+        rvHighReg->first = plugin.rfName(plugin.rvHighDRegNum());
+        rvHighReg->second = plugin.registerIndex(plugin.rvHighDRegNum());
+        ipData_->setDatum("RV_HIGH_REGISTER", rvHighReg);
+        
+        if (pomBuilder->isProgramUsingRestrictedPointers()) {
+            ipData_->setDatum("RESTRICTED_POINTERS_FOUND", NULL);
+        }
+        if (pomBuilder->isProgramUsingAddressSpaces()) {
+            ipData_->setDatum("MULTIPLE_ADDRESS_SPACES_FOUND", NULL);
+        }
     }
 
     return prog;
 }
-
 
 /**
  * Compiles bytecode for the given target machine and calls scheduler.
@@ -536,13 +569,18 @@ LLVMBackend::schedule(
     SchedulingPlan* plan)
     throw (Exception) {
 
+    InterPassData ipData;
+
     TTAProgram::Program* prog = 
-        compile(bytecodeFile, emulationBytecodeFile, target, optLevel, debug);
+        compile(
+            bytecodeFile, emulationBytecodeFile, target, optLevel, 
+            debug, &ipData);
 
     // load default scheduler plan if no plan given
     if (plan == NULL) {
         try {
-            plan = SchedulingPlan::loadFromFile(
+            plan = 
+                SchedulingPlan::loadFromFile(
                     Environment::defaultSchedulerConf());
         } catch (const Exception& e) {
             std::string msg = "Unable to load default scheduler config '" +
@@ -555,7 +593,7 @@ LLVMBackend::schedule(
     }
 
     SchedulerFrontend scheduler;
-    prog = scheduler.schedule(*prog, target, *plan);
+    prog = scheduler.schedule(*prog, target, *plan, &ipData);
 
     return prog;
 }
@@ -892,7 +930,6 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
     }
     return creator();
 }
-
 
 /**
  * Returns (hopefully) unique plugin filename for target architecture.

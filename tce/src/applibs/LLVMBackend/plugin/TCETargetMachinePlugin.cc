@@ -38,6 +38,7 @@
 #include "TCEInstrInfo.hh"
 #include "TCETargetMachine.hh"
 #include "TCEISelLowering.hh"
+#include "MapTools.hh"
 
 using namespace llvm;
 
@@ -57,7 +58,15 @@ public:
     virtual unsigned spDRegNum() {
         return TCE::SP;
     }
-   
+
+    virtual unsigned rvDRegNum() {
+        return TCE::IRES0;
+    }
+
+    virtual unsigned rvHighDRegNum() {
+        return TCE::KLUDGE_REGISTER;
+    }
+
     virtual const std::string* adfXML() {
         return &adfXML_;
     }
@@ -65,6 +74,14 @@ public:
     virtual std::string rfName(unsigned dwarfRegNum);
     virtual unsigned registerIndex(unsigned dwarfRegNum);
     virtual std::string operationName(unsigned opc);
+
+    virtual bool hasOperation(TCEString operationName) const {
+        return MapTools::containsValue(opNames_, operationName.upper());
+    }
+
+    virtual unsigned opcode(TCEString operationName) const {
+        return MapTools::keyForValue<unsigned>(opNames_, operationName.upper());
+    }
 
     unsigned int raPortDRegNum();
     std::string dataASName();
@@ -85,8 +102,8 @@ public:
 private:
     void initialize();
     
-    std::map<unsigned, std::string> opNames_;
-    std::map<unsigned, std::string> regNames_;
+    std::map<unsigned, TCEString> opNames_;
+    std::map<unsigned, TCEString> regNames_;
     std::map<unsigned, unsigned> regIndices_;
 
     std::string adfXML_;

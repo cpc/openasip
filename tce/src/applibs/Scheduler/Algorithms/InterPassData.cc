@@ -92,6 +92,13 @@ InterPassData::setDatum(const std::string& key, InterPassDatum* datum) {
 
     if (MapTools::containsKey(data_, key))
         delete data_[key];
-
     data_[key] = datum;
+}
+
+void
+InterPassData::removeDatum(const std::string& key) {
+    if (MapTools::containsKey(data_, key)) {
+        delete data_[key];
+        data_.erase(key);
+    }    
 }

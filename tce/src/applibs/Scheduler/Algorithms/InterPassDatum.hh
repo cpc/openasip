@@ -34,7 +34,10 @@
 #define TTA_INTER_PASS_DATUM_HH
 
 #include <map>
+#include <set>
 #include <string>
+
+#include "TCEString.hh"
 
 class InterPassDatum;
 
@@ -63,5 +66,28 @@ public:
     SimpleInterPassDatum() : InterPassDatum(), T() {}
     virtual ~SimpleInterPassDatum() {};
 };
+
+/** 
+ * A templated class for storing pointer to inter-pass data
+ * 
+ * Takes ownership of the data and calls delete for it.
+ */
+template <typename T>
+class SimplePointerInterPassDatum : public InterPassDatum {
+public:
+    SimplePointerInterPassDatum() : InterPassDatum(), data(NULL) {}
+    virtual ~SimplePointerInterPassDatum() { delete data; };
+
+    T* data;
+};
+
+/// Datum type for transferring register name as a data.
+/// Stack pointer register is saved with key STACK_POINTER by LLVMBackend.cc
+typedef SimpleInterPassDatum<
+    std::pair<TCEString, unsigned int> > RegDatum;
+
+/// This datum is set in case the pass should only process (or ignore) 
+/// certain functions. The key is FUNCTIONS_TO_PROCESS/IGNORE.
+typedef SimpleInterPassDatum<std::set<std::string> > FunctionNameList;
 
 #endif

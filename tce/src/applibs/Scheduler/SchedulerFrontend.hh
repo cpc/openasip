@@ -34,15 +34,16 @@
 #ifndef TTA_SCHEDULER_FRONTEND_HH
 #define TTA_SCHEDULER_FRONTEND_HH
 
+#include <set>
+#include <string>
+
 #include "Exception.hh"
 #include "SchedulerPluginLoader.hh"
 #include "SchedulingPlan.hh"
 #include "OperationPool.hh"
-#include "UniversalMachine.hh"
 
 class SchedulerCmdLineOptions;
 class BaseSchedulerModule;
-class UniversalMachine;
 
 namespace TTAProgram {
     class Program;
@@ -57,6 +58,7 @@ namespace TPEF {
 }
 
 class InterPassData;
+
 
 /**
  * The top-level component of the Scheduler that the clients use to

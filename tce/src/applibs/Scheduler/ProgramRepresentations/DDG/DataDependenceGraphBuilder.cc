@@ -76,6 +76,7 @@ using std::list;
 static const int REG_SP = 1;
 static const int REG_RV = 0;
 static const int REG_IPARAM = 2;
+static const int REG_RV_HIGH = 6;
 
 class DataDependenceGraph;
 class BasicBlockNode;
@@ -105,19 +106,53 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
 
     static const TCEString SP_DATUM = "STACK_POINTER";
     static const TCEString RV_DATUM = "RV_REGISTER";
-    
-    typedef SimpleInterPassDatum<std::pair<std::string, int> > RegDatum;
+    // high part of 64-bit return values.
+    static const TCEString RV_HIGH_DATUM = "RV_HIGH_REGISTER";
 
     if (ipd.hasDatum(SP_DATUM)) {
         RegDatum& sp = dynamic_cast<RegDatum&>(ipd.datum(SP_DATUM));
         specialRegisters_[REG_SP] = 
             sp.first + '.' + Conversion::toString(sp.second);
+    } else {
+        if (Application::verboseLevel() > 
+            Application::VERBOSE_LEVEL_DEFAULT) {
+            Application::logStream() 
+                << "Warning: Stack pointer datum not found "
+                << "in interpassdata given to ddg builder. "
+                << "May generate invalid code if stack used."
+                << std::endl;
+        }
     }
 
     if (ipd.hasDatum(RV_DATUM)) {
         RegDatum& rv = dynamic_cast<RegDatum&>(ipd.datum(RV_DATUM));
-        specialRegisters_[REG_RV] = 
+        specialRegisters_[REG_RV] =
             rv.first + '.' + Conversion::toString(rv.second);
+    } else {
+        if (Application::verboseLevel() > 
+            Application::VERBOSE_LEVEL_DEFAULT) {
+            Application::logStream() 
+                << "Warning: Return value register datum not found "
+                << "in interpassdata given to ddg builder. "
+                << "May generate invalid code if return values used."
+                << std::endl;
+        }
+    }
+
+    if (ipd.hasDatum(RV_HIGH_DATUM)) {
+        RegDatum& rvh = dynamic_cast<RegDatum&>(ipd.datum(RV_HIGH_DATUM));
+        specialRegisters_[REG_RV_HIGH] =
+            rvh.first + '.' + Conversion::toString(rvh.second);
+    } else {
+        if (Application::verboseLevel() > 
+            Application::VERBOSE_LEVEL_DEFAULT) {
+            Application::logStream() 
+                << "Warning: Return value hi register datum not "
+                << "found in interpassdata given to ddg builder. "
+                << "May generate invalid code if "
+                << "64-bit (struct) return values used."
+                << std::endl;
+        }
     }
     
     // alias analyzers.

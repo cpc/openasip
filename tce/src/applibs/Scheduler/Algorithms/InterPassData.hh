@@ -54,6 +54,7 @@ public:
         throw (KeyNotFound);
     bool hasDatum(const std::string& key) const;
     void setDatum(const std::string& key, InterPassDatum* datum);
+    void removeDatum(const std::string& key);
 private:
     /// container for the data
     std::map<std::string, InterPassDatum*> data_;

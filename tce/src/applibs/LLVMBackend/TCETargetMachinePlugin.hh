@@ -36,6 +36,9 @@
 #include <iostream>
 #include <llvm/Target/TargetInstrInfo.h>
 
+#include "MapTools.hh"
+#include "TCEString.hh"
+
 namespace TTAMachine {
     class Machine;
 }
@@ -71,6 +74,10 @@ namespace llvm {
 
        /// Returns operation name corresponding to llvm target opcode.
        virtual std::string operationName(unsigned opc) = 0;
+       /// Returns true in case the target supports the given osal operation
+       virtual bool hasOperation(TCEString operationName) const = 0;
+       /// Returns the opcode for the given osal operation, undefined if not found.
+       virtual unsigned opcode(TCEString operationName) const = 0;
 
        /// Returns pointer to xml string of the target machine .adf
        virtual const std::string* adfXML() = 0;
@@ -80,6 +87,10 @@ namespace llvm {
        virtual unsigned raPortDRegNum() = 0;
        /// Returns ID number of the stack pointer register.
        virtual unsigned spDRegNum() = 0;
+
+       virtual unsigned rvDRegNum() = 0;
+
+       virtual unsigned rvHighDRegNum() = 0;
 
        virtual bool hasUDIV() const = 0;
        virtual bool hasSDIV() const = 0;
