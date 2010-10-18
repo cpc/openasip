@@ -1346,6 +1346,12 @@ void DataDependenceGraphBuilder::processReturn(MoveNode& moveNode) {
     if (rv != "") {
         processRegUse(MNData2(moveNode,false,false,true),rv);
     }
+
+    // return is also considered as read of RV high(for 64-bit RV's)
+    TCEString rvh = specialRegisters_[REG_RV_HIGH];
+    if (rvh != "") {
+        processRegUse(MNData2(moveNode,false,false,true),rvh);
+    }
 }
 
 /**
@@ -1369,6 +1375,12 @@ void DataDependenceGraphBuilder::processCall(MoveNode& mn) {
     std::string rv = specialRegisters_[REG_RV];
     if (rv != "") {
         processRegWrite(mnd2,rv);
+    }
+
+    // call is considered as write of RV high (64-bit return values)
+    TCEString rvh = specialRegisters_[REG_RV_HIGH];
+    if (rvh != "") {
+        processRegWrite(mnd2, rvh);
     }
 
     // params
