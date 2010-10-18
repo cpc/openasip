@@ -541,7 +541,7 @@ p.add_option('-f',
              help="Passed to gcc.")
 
 p.add_option('-g', 
-             type="string", action="store", metavar='store_true',
+             action="store_true",
              dest="g_cc_switch", default=False,
              help="Passed to gcc.")
 
