@@ -124,7 +124,7 @@ SequentialScheduler::handleBasicBlock(
         if (firstMove.isOperationMove()) {
             cycle = scheduleOperation(moves,cycle) + 1;
         } else {
-            cycle = scheduleMove(cycle, firstMove) +1;
+            cycle = scheduleRRMove(cycle, firstMove) +1;
         }
 
         if (!moves.isScheduled()) {
@@ -313,6 +313,32 @@ SequentialScheduler::scheduleResultReads(
 }
 
 /**
+ * Schedules a RR move and its temp compies.
+ *
+ * @param cycle The earliest cycle to try.
+ * @param moveNode R-R Move to schedule.
+ * @return Last cycle where the moves got scheduled.
+ */
+int
+SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode)
+    throw (Exception) {
+
+    RegisterCopyAdder regCopyAdder(BasicBlockPass::interPassData(), *rm_);
+
+    RegisterCopyAdder::AddedRegisterCopies addedCopies =
+      regCopyAdder.addRegisterCopiesToRRMove(moveNode, NULL);
+
+#ifdef DEBUG_REG_COPY_ADDER
+    const int tempsAdded = addedCopies.count_;
+#endif
+
+    cycle = scheduleMove(cycle, moveNode) + 1;
+    cycle = scheduleRRTempMoves(cycle, moveNode, addedCopies); 
+
+    return cycle-1;
+}
+
+/**
  * Schedules a single move to the earliest possible cycle, taking in
  * account the DDG, resource constraints, and latencies in producing
  * source values.
@@ -422,6 +448,42 @@ SequentialScheduler::scheduleMove(
             % moveNode.toString()).str());
     }
     return earliestCycle;
+}
+
+ /**
+  * Schedules the (possible) temporary register copy moves (due to missing
+ * connectivity) succeeding the given RR move. 
+ *
+ * The function recursively goes through all the temporary moves added to 
+ * the given RR move.
+ *
+ * @param cycle Earliest cycle for starting scheduling 
+ * @param regToRegMove  A temp move whose successor has to be scheduled.
+ * @param lastUse Recursive function parameter, it should be set as 0 
+ * for the first function call.
+ * @return cycle next available cycle
+ */
+int
+SequentialScheduler::scheduleRRTempMoves(
+    int cycle, MoveNode& regToRegMove, 
+    RegisterCopyAdder::AddedRegisterCopies& regCopies)
+    throw (Exception) {
+
+    if (regCopies.count_ > 0) {
+        if (MapTools::containsKey(regCopies.copies_,&regToRegMove)) {
+            DataDependenceGraph::NodeSet tempMoves = 
+                regCopies.copies_[&regToRegMove];
+            //in the tempMoves nodeset, the first move is the original one,
+            //in case of RR temp moves it must be scheduled at the end;
+            //all the temp moves must be scheduled in reverse order            
+            DataDependenceGraph::NodeSet::iterator i = tempMoves.end();
+            while(i != tempMoves.begin()){
+                --i;
+                cycle = scheduleMove(cycle, **i) + 1;
+            }
+        }
+    }
+    return cycle;
 }
 
 /**

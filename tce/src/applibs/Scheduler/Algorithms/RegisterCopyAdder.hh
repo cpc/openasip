@@ -102,6 +102,10 @@ public:
         const TTAMachine::Machine& targetMachine,
         DataDependenceGraph* ddg);
 
+    AddedRegisterCopies addRegisterCopiesToRRMove(
+        MoveNode& moveNode, 
+        DataDependenceGraph* ddg);
+
 private:
     AddedRegisterCopies addRegisterCopies(
         ProgramOperation& programOperation,
@@ -128,6 +132,11 @@ private:
         MoveNode& moveNode,
         const TTAMachine::FunctionUnit& fu,
         bool countOnly = true,
+        DataDependenceGraph* ddg = NULL,
+        DataDependenceGraph::NodeSet* addedNodes = NULL);
+
+    int countAndAddConnectionRegisterCopiesToRR(
+        MoveNode& moveNode,
         DataDependenceGraph* ddg = NULL,
         DataDependenceGraph::NodeSet* addedNodes = NULL);
 

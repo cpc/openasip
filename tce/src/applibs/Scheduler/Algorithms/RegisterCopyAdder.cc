@@ -55,6 +55,8 @@
 #include "BusBroker.hh"
 #include "TCEString.hh"
 
+//#define DEBUG_REG_COPY_ADDER
+
 /**
  * Constructor.
  *
@@ -127,6 +129,13 @@ RegisterCopyAdder::addMinimumRegisterCopies(
     const TTAMachine::Machine& targetMachine,
     DataDependenceGraph* ddg) {
 
+#ifdef DEBUG_REG_COPY_ADDER
+    Application::logStream() 
+        << "# Add minimum register copies for the following operation: "  
+        << std::endl 
+        << "# " << programOperation.toString() << std::endl << std::endl;
+#endif
+
     RegisterCopyCountIndex 
         registerCopiesRequired = 
         requiredRegisterCopiesForEachFU(targetMachine, programOperation);
@@ -177,6 +186,49 @@ RegisterCopyAdder::addMinimumRegisterCopies(
 }
 
 /**
+ * Adds or counts register copies required for a given R-R move to be 
+ * assigned without connectivity problems.
+ *
+ * @param The given R-R move.
+ * @param ddg ddg to update, or NULL.
+ * @return Returns data about register copies required if the given operation
+ * execution was assigned to the given FU.
+ */
+RegisterCopyAdder::AddedRegisterCopies
+RegisterCopyAdder::addRegisterCopiesToRRMove(    
+    MoveNode& moveNode,
+    DataDependenceGraph* ddg) {
+
+    AddedRegisterCopies copies;
+    int registerCopyCount = 0;
+    DataDependenceGraph::NodeSet addedNodes;
+
+#ifdef DEBUG_REG_COPY_ADDER
+    Application::logStream() 
+        << "# Add register copies to \""
+        << moveNode.toString() << "\" R-R move."
+        << std::endl << std::endl;
+#endif
+
+    const int count = countAndAddConnectionRegisterCopiesToRR(
+        moveNode, ddg, &addedNodes);
+
+    if (count == INT_MAX) {
+        assert(false && 
+               "Temp moves not possible for the Register-Register move.");
+    }
+    registerCopyCount += count;
+    if (count != 0) {
+        copies.copies_[&moveNode] = addedNodes;
+    }
+        
+    copies.count_ = registerCopyCount;
+    return copies;
+
+}
+
+
+/**
  * Adds or counts register copies required for the given operation to be 
  * assigned without connectivity problems to the given FU.
  *
@@ -216,6 +268,12 @@ RegisterCopyAdder::addRegisterCopies(
     for (int output = 0; output < programOperation.outputMoveCount(); 
          ++output) {
         MoveNode& m = programOperation.outputMove(output);
+#ifdef DEBUG_REG_COPY_ADDER
+        if (!countOnly)
+            Application::logStream() << "# Add register copies to \""
+                                     << m.toString() << "\" output move."
+                                     << std::endl;
+#endif
         DataDependenceGraph::NodeSet addedNodes;
         const int count = addConnectionRegisterCopies(
             m, fu, countOnly, ddg, &addedNodes);
@@ -406,8 +464,7 @@ RegisterCopyAdder::addConnectionRegisterCopies(
             __FILE__, __LINE__, __func__, 
             std::string("Cannot schedule ") + 
             originalMove.toString() + 
-            " ensure that all FUs are connected to at least one RF and " +
-            "all RFs are connected to each other. " + 
+            " ensure that all FUs are connected to at least one RF." +
             destinationPort.parentUnit()->name() + " cannot be reached.");
     }
     
@@ -449,7 +506,9 @@ RegisterCopyAdder::addConnectionRegisterCopies(
     /* Make sure that the original move is still the one that should
        be in the ProgramOperation, i.e., an operation move. The original
        move should be either the last of the chain or the first, in case
-       it's input or output move, respectively. */
+       it's input or output move, respectively. In case of register move, 
+       the original move is considered the fisrt of the chain */
+
 
     TTAProgram::Terminal& omDest = originalMove.move().destination();
     // may not catch RA on this one.
@@ -481,7 +540,17 @@ RegisterCopyAdder::addConnectionRegisterCopies(
 
         lastMove->move().addAnnotation(connMoveAnnotation);
     } else {
-        abortWithError("Can add temp regs only for operation moves.");
+        firstMove = &originalMove;
+        lastMove = new MoveNode(originalMove.move().copy());
+        if (ddg != NULL) {
+            BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);        
+            ddg->addNode(*lastMove,bbn);
+        }
+        if (addedNodes != NULL) {
+            addedNodes->insert(lastMove);
+        }
+
+        lastMove->move().addAnnotation(connMoveAnnotation);
     }
 
     // adding the last move: tempN -> dst
@@ -489,6 +558,13 @@ RegisterCopyAdder::addConnectionRegisterCopies(
 
     lastMove->move().setSource(lastMoveSrc);
     lastMove->move().setDestination(originalDestination);
+
+#ifdef DEBUG_REG_COPY_ADDER
+    Application::logStream() 
+        << "# Last move of the chain: "  
+        << std::endl 
+        << "# " << lastMove->toString() << std::endl;
+#endif
 
     // the lastRF becomes the dst of the following
     // moves
@@ -507,7 +583,8 @@ RegisterCopyAdder::addConnectionRegisterCopies(
         // for each level
         for (int i = 0; i < regsRequired - 1; ++i){
             regToRegCopy = new MoveNode(originalMove.move().copy());
-            // retrieving the source and destination  of the current move from tempRegs
+            // retrieving the source and destination  of the current move 
+            // from tempRegs
             int srcID = tempRegsConn[dstID];
             int tempRegisterIndexSrc = tempRegs.at(srcID).second;      
             const TTAMachine::RegisterFile& dstRF = *tempRegs.at(dstID).first;
@@ -523,13 +600,14 @@ RegisterCopyAdder::addConnectionRegisterCopies(
             assert(srcRFPort != NULL);
 
             TTAProgram::TerminalRegister* moveSrc =         
-                new TTAProgram::TerminalRegister(*srcRFPort, tempRegisterIndexSrc);
-
-            regToRegCopy->move().setSource(moveSrc); // temp1 now owned by the regCopy
+                new TTAProgram::TerminalRegister(
+                    *srcRFPort, tempRegisterIndexSrc);
+            // temp1 now owned by the regCopy
+            regToRegCopy->move().setSource(moveSrc); 
             regToRegCopy->move().setDestination(moveDst->copy());
         
             if (ddg != NULL) {
-                BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);        
+                BasicBlockNode& bbn = ddg->getBasicBlockNode(originalMove);
                 ddg->addNode(*regToRegCopy,bbn);
             }
             if (addedNodes != NULL) {
@@ -537,10 +615,18 @@ RegisterCopyAdder::addConnectionRegisterCopies(
             }
             regToRegCopy->move().addAnnotation(connMoveAnnotation);
 
-            //store the intermediate move, its destination RF and related index in a vector
+            //store the intermediate move,
+            // its destination RF and related index in a vector
             intMoves[regsRequired - 2 - i] = regToRegCopy;
             intRF[regsRequired - 2 - i] = tempRegs.at(dstID).first;
             intRegisterIndex[regsRequired - 2 - i] = tempRegisterIndexDst;
+
+#ifdef DEBUG_REG_COPY_ADDER
+            Application::logStream() 
+                << "# Intermediate move #" << regsRequired - 2 - i << " :"
+                << std::endl 
+                << "# " << regToRegCopy->toString() << std::endl;
+#endif
 
             // set the current source as destination of the next move
             moveDst = moveSrc;
@@ -1337,6 +1423,123 @@ RegisterCopyAdder::fixDDGEdgesInTempRegChainImmediate(
             }
         }
     }
+}
+
+/**
+ * Adds register copies required for the given RR transport.
+ *
+ * Returns 0 in case there is a connection already.
+ *
+ * @param moveNode The transport.
+ * @param fu The assumed function unit assigned to the operation of the move.
+ * @param countOnly whether to just count or really do the reg copies.
+ * @param ddg ddg to be updated.
+ * @param addedNode place to put data about added regcopies.
+ * @return Returns the count of register copies required.
+ */
+int 
+RegisterCopyAdder::countAndAddConnectionRegisterCopiesToRR(
+    MoveNode& moveNode,
+    DataDependenceGraph* ddg,
+    DataDependenceGraph::NodeSet* addedNodes) {
+  
+    // collect the set of possible candidate destination ports (in case of 
+    // RFs, there can be multiple ports)
+    TTAProgram::Terminal& dest = moveNode.move().destination();
+    std::set<const TTAMachine::Port*> dstPorts;
+    if (dest.isGPR()) {
+        // add all write ports of the RF to the dstPorts
+        const TTAMachine::RegisterFile& rf = dest.registerFile();
+        const int ports = rf.portCount();
+        for (int p = 0; p < ports; ++p) {
+            const TTAMachine::RFPort* port = rf.port(p);
+            if (port->isInput())
+                dstPorts.insert(port);
+        }
+    } else {
+        abortWithError(
+            "Unsupported move destination type in move '" + 
+            moveNode.toString() + "'.");
+    } 
+
+    // collect the set of possible candidate source ports (in case of 
+    // RFs, there can be multiple)
+    std::set<const TTAMachine::Port*> srcPorts;
+    TTAProgram::Terminal& source = moveNode.move().source();
+    if (source.isGPR()) {
+        // add all read ports of the RF to the srcPorts
+        const TTAMachine::RegisterFile& rf = source.registerFile();
+        const int ports = rf.portCount();
+        for (int p = 0; p < ports; ++p) {
+            const TTAMachine::RFPort* port = rf.port(p);
+            if (port->isOutput()) {
+                srcPorts.insert(port);
+            }
+        }
+    } else if (source.isImmediate() && dest.isGPR()) {
+        // IMM -> REG should always be possible, at least after LIMM
+        // conversion (all IUs must be connected to all RFs), so no temp 
+        // registers needed
+        // register copy adder should not get single immediate moves,
+        // only operations anyways
+        return 0;                        
+    } else {
+        abortWithError(
+            "Unsupported move source type in move '" + 
+            moveNode.toString() + "'.");
+    }
+
+    // go through all srcPorts,dstPorts pairs and see which of them require
+    // least connection registers and finally select one pair and add
+    // connection registers accordingly
+
+    typedef std::set<
+    std::pair<const TTAMachine::Port*, const TTAMachine::Port*>,
+        TTAMachine::Port::PairComparator >
+        CombinationSet;
+
+    CombinationSet pairs = AssocTools::pairs<TTAMachine::Port::PairComparator>(
+        srcPorts, dstPorts);
+
+    const std::pair<const TTAMachine::Port*, const TTAMachine::Port*>*
+        bestConnection = NULL;
+    int registersRequired = INT_MAX;
+    for (CombinationSet::const_iterator i = pairs.begin(); i != pairs.end();
+         ++i) {
+        const TTAMachine::Port& src = *(*i).first;
+        const TTAMachine::Port& dst = *(*i).second;
+        if ((&src == NULL) || (&dst == NULL)) {
+            throw IllegalMachine(
+                __FILE__, __LINE__, __func__,
+                "Could not schedule move " + moveNode.toString());
+        }
+        int regCount = addConnectionRegisterCopies(moveNode, src, dst);
+
+        if (regCount == 0) {
+            return 0;
+        }
+
+        if (regCount < registersRequired) {
+            bestConnection = &(*i);
+            registersRequired = regCount;
+        }
+    }
+
+    if (bestConnection == NULL) {
+        throw IllegalMachine(
+            __FILE__, __LINE__, __func__,
+            "Could not schedule move '" + moveNode.toString() + 
+            "' due to missing connectivity. "
+            "Add a connection or a register file that connects "
+            "the source and the destination.");
+    }
+
+    const TTAMachine::Port& src = *(bestConnection->first);
+    const TTAMachine::Port& dst = *(bestConnection->second);
+
+    // actually add the connection now that we have found the best way
+    return addConnectionRegisterCopies(
+        moveNode, src, dst, false, ddg, addedNodes);
 }
 
 /**

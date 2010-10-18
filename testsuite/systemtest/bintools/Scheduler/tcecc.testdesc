@@ -7,5 +7,6 @@ $bin_args = "-vrx -w 1 -g \"-O3 -k_Output\" ".
     "-a huge.adf ".    
     "-a RF_constrained.adf ".    
     "-a FU_constrained.adf ".
+    "-a 2regcopies.adf ".
     "-a minimal_with_io.adf";
 ?>

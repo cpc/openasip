@@ -136,7 +136,7 @@ BasicBlockScheduler::handleDDG(
         if (firstMove.isOperationMove()) {
             scheduleOperation(moves);
         } else {
-            scheduleMove(firstMove, 0);
+            scheduleRRMove(firstMove);
         }
 
         if (!moves.isScheduled()) {
@@ -678,6 +678,49 @@ BasicBlockScheduler::scheduleResultReads(MoveNodeGroup& moves)
 }
 
 /**
+ * Schedules moves in a single operation execution.
+ *
+ * Assumes the given MoveNodeGroup contains all moves in the operation
+ * execution. Also assumes that all inputs to the MoveNodeGroup have
+ * been scheduled.
+ *
+ * @param moveNode R-R Move to schedule.
+ */
+void
+BasicBlockScheduler::scheduleRRMove(MoveNode& moveNode)
+    throw (Exception) {
+    
+#ifdef DEBUG_REG_COPY_ADDER
+    ddg_->setCycleGrouping(true);
+    ddg_->writeToDotFile(
+        (boost::format("%s_before_ddg.dot") % ddg_->name()).str());
+#endif
+
+    RegisterCopyAdder regCopyAdder(BasicBlockPass::interPassData(), *rm_);
+
+#ifdef DEBUG_REG_COPY_ADDER
+    const int tempsAdded =
+#endif
+
+        regCopyAdder.addRegisterCopiesToRRMove(moveNode, ddg_)
+#ifdef DEBUG_REG_COPY_ADDER
+        .count_
+#endif    
+        ;
+#ifdef DEBUG_REG_COPY_ADDER
+    if (tempsAdded > 0) {
+        ddg_->writeToDotFile(
+            (boost::format("%s_after_regcopy_ddg.dot") % ddg_->name()).str());
+    }
+    ddg_->sanityCheck();
+#endif
+
+    scheduleMove(moveNode, 0);
+    scheduleRRTempMoves(moveNode, moveNode, 0); //Fabio: 0 or more?!?
+
+}
+
+/**
  * Schedules a single move to the earliest possible cycle, taking in
  * account the DDG, resource constraints, and latencies in producing
  * source values.
@@ -823,6 +866,57 @@ BasicBlockScheduler::scheduleMove(
     }
 }
 
+/**
+ * Schedules the (possible) temporary register copy moves (due to missing
+ * connectivity) succeeding the given RR move. 
+ *
+ * The function recursively goes through all the temporary moves added to 
+ * the given RR move.
+ *
+ * @param regToRegMove  A temp move whose successor has to be scheduled.
+ * @param firstMove     The original move of which temp moves to schedule.
+ * @param lastUse Recursive function parameter, it should be set as 0 
+ * for the first function call.
+ */
+void
+BasicBlockScheduler::scheduleRRTempMoves(
+    MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
+    throw (Exception) {
+
+    /* Because temporary register moves do not have WaR/WaW dependency edges
+       between the other possible uses of the same temp register in
+       the same operation, we have to limit the scheduling of the new
+       temp reg move to the last use of the same temp register so
+       we don't overwrite the temp registers of the other operands. */
+
+    // find all unscheduled succeeding moves of the result read move
+    // there should be only only one with the only dependence edge (RaW) to
+    // the result move
+
+    MoveNode* tempMove1 = succeedingTempMove(regToRegMove);
+    if (tempMove1 == NULL)
+        return; // no temp moves found
+    
+    MoveNode* tempMove2 = succeedingTempMove(*tempMove1);
+    if (tempMove2 != NULL) {
+        MoveNode* lastRead =
+            ddg_->lastScheduledRegisterRead(
+                tempMove1->move().destination().registerFile(),
+                tempMove1->move().destination().index());
+        if (lastRead != NULL)
+            lastUse = lastRead->cycle();
+    }
+
+    scheduleMove(*tempMove1, lastUse);
+    assert(tempMove1->isScheduled());
+    scheduledTempMoves_[&firstMove].insert(tempMove1);
+
+    // the temp move should have maximum of one unscheduled
+    // succeeding additional reg to reg copy (in case of two temp reg copies),
+    // schedule it also if found
+    scheduleResultReadTempMoves(*tempMove1, firstMove, lastUse+1);
+
+}
 
 /**
  * Schedules the (possible) temporary register copy moves (due to missing

@@ -100,6 +100,9 @@ protected:
     virtual void deleteRM(SimpleResourceManager* rm, BasicBlock& bb);
 
 private:
+    void scheduleRRMove(MoveNode& moveNode)
+        throw (Exception);
+
     void scheduleOperation(MoveNodeGroup& moves)
         throw (Exception);
 
@@ -112,14 +115,20 @@ private:
     void scheduleMove(MoveNode& move, int earliestCycle)
         throw (Exception);
 
-    void scheduleInputOperandTempMoves(MoveNode& operandMove, MoveNode& operandWrite)
+    void scheduleRRTempMoves(
+        MoveNode& regToRegMove, MoveNode& firstMove, int lastUse)
+        throw (Exception);
+
+    void scheduleInputOperandTempMoves(
+        MoveNode& operandMove, MoveNode& operandWrite)
         throw (Exception);
 
     void unschedule(MoveNode& moveNode);
 
     void unscheduleInputOperandTempMoves(MoveNode& operandMove);
 
-    void scheduleResultReadTempMoves(MoveNode& resultMove, MoveNode& resultRead, int lastUse)
+    void scheduleResultReadTempMoves(
+        MoveNode& resultMove, MoveNode& resultRead, int lastUse)
         throw (Exception);
 
     void unscheduleResultReadTempMoves(MoveNode& resultMove);

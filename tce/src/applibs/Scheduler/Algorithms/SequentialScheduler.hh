@@ -101,6 +101,14 @@ private:
         RegisterCopyAdder::AddedRegisterCopies& regCopies)
         throw (Exception);
 
+    int scheduleRRMove(int cycle, MoveNode& moveNode)
+        throw (Exception);
+
+    int scheduleRRTempMoves(
+        int cycle, MoveNode& regToRegMove, 
+        RegisterCopyAdder::AddedRegisterCopies& regCopies)
+        throw (Exception);
+
     int scheduleMove(int earliestCycle, MoveNode& move)
         throw (Exception);
 
