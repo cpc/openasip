@@ -124,7 +124,11 @@ SequentialScheduler::handleBasicBlock(
         if (firstMove.isOperationMove()) {
             cycle = scheduleOperation(moves,cycle) + 1;
         } else {
-            cycle = scheduleRRMove(cycle, firstMove) +1;
+            if (firstMove.move().destination().isRA()) {
+                cycle = scheduleMove(cycle, firstMove) +1;
+            } else {
+                cycle = scheduleRRMove(cycle, firstMove) +1;
+            }
         }
 
         if (!moves.isScheduled()) {

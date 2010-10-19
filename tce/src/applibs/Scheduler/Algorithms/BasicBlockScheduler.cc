@@ -136,7 +136,11 @@ BasicBlockScheduler::handleDDG(
         if (firstMove.isOperationMove()) {
             scheduleOperation(moves);
         } else {
-            scheduleRRMove(firstMove);
+            if (firstMove.move().destination().isRA()) {
+                scheduleMove(firstMove, 0);
+            } else {
+                scheduleRRMove(firstMove);
+            }
         }
 
         if (!moves.isScheduled()) {
