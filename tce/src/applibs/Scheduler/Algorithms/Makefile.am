@@ -62,3 +62,5 @@ libscheduleralgorithms_la_SOURCES += \
 	SimpleGuardAllocatorCore.hh ProgramPass.hh \
 	BasicBlockScheduler.hh InterPassDatum.hh 
 ## headers end
+
+include_HEADERS = InterPassDatum.hh
