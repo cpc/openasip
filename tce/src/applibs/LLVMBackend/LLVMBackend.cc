@@ -202,7 +202,19 @@ LLVMBackend::LLVMBackend(
     bool useCache, bool useInstalledVersion, bool removeTempFiles):
     useCache_(useCache), useInstalledVersion_(useInstalledVersion), 
     removeTmp_(removeTempFiles) {
-    cachePath_ = Environment::llvmtceCachePath();    
+    cachePath_ = Environment::llvmtceCachePath();
+
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+    PassRegistry &Registry = *llvm::PassRegistry::getPassRegistry();
+    initializeCore(Registry);
+    initializeScalarOpts(Registry);
+    initializeIPO(Registry);
+    initializeAnalysis(Registry);
+    initializeIPA(Registry);
+    initializeTransformUtils(Registry);
+    initializeInstCombine(Registry);
+    initializeTarget(Registry);
+#endif
 }
 
 /**
@@ -388,12 +400,17 @@ LLVMBackend::compile(
     targetMachine->setTTAMach(&target);
     targetMachine->setEmulationModule(emulationModule);
 
+
+// Disabled on llvm-trunk because of missing pass intialization causes
+// segfault.
+#if (defined(LLVM_2_7) || (defined(LLVM_2_8)))
     LLVMTCECmdLineOptions* options =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
     if (options->useExperimentalRegAllocator()) {
         llvm::RegisterRegAlloc::setDefault(
             createILPLinearScanRegisterAllocator);
     }
+#endif
 
     /**
      * This is quite straight copy how llc actually creates passes for target.
