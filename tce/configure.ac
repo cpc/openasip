@@ -437,7 +437,7 @@ LLVM_SHARED_LIB=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
-
+LLVM_FIXED_28=$($llvmConf --has-lowest-bit-compare-fix)
 # Hack for debian sid packages
 if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
@@ -449,6 +449,14 @@ case "$LLVM_VERSION" in
    ;;
      2.8*)
      AC_DEFINE([LLVM_2_8], [], "Using LLVM v2.8")
+     if test "$LLVM_FIXED_28" != YES;
+	then
+	AC_MSG_ERROR(
+	[
+LLVM 2.8 needs a bugfix. Apply tce/tools/patches/llvm-2.6-lowest-bit-compare.patch to your LLVM 2.8 source, reconfigure, recompile and re-install your LLVM.
+	])
+	LLVM_VERSION=
+	fi
    ;;
      *svn)
      AC_DEFINE([LLVM_SVN], [], "Using LLVM svn")

@@ -9,6 +9,21 @@ LLVM 2.7 may have the same bug, but we have not encountered it occuring with LLV
 
 LLVM 2.6 is not affected by this bug.
 
+Index: tools/llvm-config/llvm-config.in.in
+===================================================================
+--- tools/llvm-config/llvm-config.in.in (revision 117257)
++++ tools/llvm-config/llvm-config.in.in (working copy)
+@@ -132,7 +132,9 @@
+             $has_opt = 1; print abs_path("$LLVM_OBJ_ROOT/");
+         } elsif ($arg eq "--src-root") {
+             $has_opt = 1; print abs_path("$LLVM_SRC_ROOT/");
+-        } else {
++        } elsif ($arg eq "--has-lowest-bit-compare-fix") {
++           $has_opt = 1; print "YES";
++       } else {
+             usage();
+         }
+     } else {
 Index: lib/CodeGen/SelectionDAG/DAGCombiner.cpp
 ===================================================================
 --- lib/CodeGen/SelectionDAG/DAGCombiner.cpp	(revision 115593)
