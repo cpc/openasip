@@ -437,7 +437,7 @@ LLVM_SHARED_LIB=$LLVM_LIBDIR/libLLVM-$LLVM_VERSION$LIBRARY_SUFFIX
 LLVM_CPPFLAGS=$($llvmConf --cppflags)
 LLVM_LDFLAGS="$($llvmConf --ldflags) $LLVM_SHARED_LIB"
 LLVM_INCLUDEDIR=$($llvmConf --includedir)
-LLVM_FIXED_28=$($llvmConf --has-lowest-bit-compare-fix)
+LLVM_FIXED_28=$($llvmConf --has-lowest-bit-compare-fix 2>/dev/null)
 # Hack for debian sid packages
 if test x"$LLVM_INCLUDEDIR" == x/usr/include/llvm; then
 LLVM_INCLUDEDIR=/usr/include
@@ -453,7 +453,11 @@ case "$LLVM_VERSION" in
 	then
 	AC_MSG_ERROR(
 	[
-LLVM 2.8 needs a bugfix. Apply tce/tools/patches/llvm-2.6-lowest-bit-compare.patch to your LLVM 2.8 source, reconfigure, recompile and re-install your LLVM.
+Your LLVM 2.8 contains a bug causing miscompilation on TTAs. 
+Apply tce/tools/patches/llvm-2.6-lowest-bit-compare.patch to your 
+LLVM 2.8 source, reconfigure, recompile and re-install your LLVM.
+
+Please refer to INSTALL for instructions on how to do this correctly.
 	])
 	LLVM_VERSION=
 	fi
