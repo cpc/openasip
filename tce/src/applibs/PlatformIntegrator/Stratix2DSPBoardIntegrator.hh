@@ -38,7 +38,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include "PlatformIntegrator.hh"
+#include "AlteraIntegrator.hh"
 #include "QuartusProjectGenerator.hh"
 #include "ProGeTypes.hh"
 
@@ -48,7 +48,7 @@ namespace ProGe {
     class NetlistPort;
 }
 
-class Stratix2DSPBoardIntegrator : public PlatformIntegrator {
+class Stratix2DSPBoardIntegrator : public AlteraIntegrator {
 public:
 
     Stratix2DSPBoardIntegrator();
@@ -61,14 +61,13 @@ public:
         std::string programName,
         int targetClockFreq,
         std::ostream& warningStream,
-        std::ostream& errorStream);
+        std::ostream& errorStream,
+        const MemInfo& imem,
+        const MemInfo& dmem);
     
     virtual ~Stratix2DSPBoardIntegrator();
 
-    virtual void integrateProcessor(
-        const ProGe::NetlistBlock* ttaCore,
-        MemInfo& imem,
-        MemInfo& dmem);
+    virtual void integrateProcessor(const ProGe::NetlistBlock* ttaCore);
 
     virtual std::string deviceFamily() const;
 
@@ -83,12 +82,12 @@ public:
     virtual void printInfo(std::ostream& stream) const;
 
 protected:
-
-    MemoryGenerator* imemInstance(const MemInfo& imem);
     
-    MemoryGenerator* dmemInstance(const MemInfo& dmem);
+    virtual MemoryGenerator* dmemInstance();
 
     virtual std::string pinTag() const;
+
+    virtual bool chopTaggedSignals() const;
 
     virtual bool isDataMemorySignal(const std::string& signalName) const;
 

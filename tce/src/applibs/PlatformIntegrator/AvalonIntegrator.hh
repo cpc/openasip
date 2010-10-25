@@ -22,26 +22,26 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file KoskiIntegrator.hh
+ * @file AvalonIntegrator.hh
  *
- * Declaration of KoskiIntegrator class.
+ * Declaration of AvalonIntegrator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_KOSKI_INTEGRATOR_HH
-#define TTA_KOSKI_INTEGRATOR_HH
+#ifndef TTA_AVALON_INTEGRATOR_HH
+#define TTA_AVALON_INTEGRATOR_HH
 
-#include <map>
 #include "AlteraIntegrator.hh"
+#include "ProjectFileGenerator.hh"
 
-
-class KoskiIntegrator : public AlteraIntegrator {
+class AvalonIntegrator : public AlteraIntegrator {
 public:
-    KoskiIntegrator();
+    
+    AvalonIntegrator();
 
-    KoskiIntegrator(
+    AvalonIntegrator(
         ProGe::HDL hdl,
         std::string progeOutputDir,
         std::string entityName,
@@ -53,7 +53,7 @@ public:
         const MemInfo& imem,
         const MemInfo& dmem);
 
-    virtual ~KoskiIntegrator();
+    virtual ~AvalonIntegrator();
 
     virtual std::string deviceFamily() const;
 
@@ -68,21 +68,18 @@ public:
     virtual void printInfo(std::ostream& stream) const;
 
 protected:
+    
+    virtual MemoryGenerator* dmemInstance();
 
     virtual std::string pinTag() const;
 
     virtual bool chopTaggedSignals() const;
-    
-    virtual ProjectFileGenerator* projectFileGenerator() const;
 
-    virtual MemoryGenerator* dmemInstance();
+    virtual ProjectFileGenerator* projectFileGenerator() const;
 
 private:
 
-    ProjectFileGenerator* ipXactGen_;
-
-    static const std::string PIN_TAG_;
+    ProjectFileGenerator* sopcGenerator_;
 };
-
 
 #endif

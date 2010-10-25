@@ -22,26 +22,25 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file KoskiIntegrator.hh
+ * @file AlteraIntegrator.hh
  *
- * Declaration of KoskiIntegrator class.
+ * Declaration of AlteraIntegrator class.
  *
  * @author Otto Esko 2010 (otto.esko-no.spam-tut.fi)
  * @note rating: red
  */
 
-#ifndef TTA_KOSKI_INTEGRATOR_HH
-#define TTA_KOSKI_INTEGRATOR_HH
+#ifndef TTA_ALTERA_INTEGRATOR_HH
+#define TTA_ALTERA_INTEGRATOR_HH
 
-#include <map>
-#include "AlteraIntegrator.hh"
+#include "PlatformIntegrator.hh"
 
-
-class KoskiIntegrator : public AlteraIntegrator {
+class AlteraIntegrator : public PlatformIntegrator {
 public:
-    KoskiIntegrator();
 
-    KoskiIntegrator(
+    AlteraIntegrator();
+
+    AlteraIntegrator(
         ProGe::HDL hdl,
         std::string progeOutputDir,
         std::string entityName,
@@ -53,36 +52,17 @@ public:
         const MemInfo& imem,
         const MemInfo& dmem);
 
-    virtual ~KoskiIntegrator();
+    virtual ~AlteraIntegrator();
 
-    virtual std::string deviceFamily() const;
-
-    virtual std::string deviceName() const;
-    
-    virtual std::string devicePackage() const;
-
-    virtual std::string deviceSpeedClass() const;
-
-    virtual int targetClockFrequency() const;
-
-    virtual void printInfo(std::ostream& stream) const;
+    virtual void integrateProcessor(const ProGe::NetlistBlock* ttaCore);
 
 protected:
 
-    virtual std::string pinTag() const;
-
-    virtual bool chopTaggedSignals() const;
-    
-    virtual ProjectFileGenerator* projectFileGenerator() const;
+    virtual MemoryGenerator* imemInstance();
 
     virtual MemoryGenerator* dmemInstance();
 
-private:
-
-    ProjectFileGenerator* ipXactGen_;
-
-    static const std::string PIN_TAG_;
+    virtual bool isDataMemorySignal(const std::string& signalName) const;
 };
-
 
 #endif

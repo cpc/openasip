@@ -68,6 +68,7 @@
 #include "PlatformIntegrator.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
 #include "KoskiIntegrator.hh"
+#include "AvalonIntegrator.hh"
 
 using namespace IDF;
 using std::string;
@@ -409,23 +410,6 @@ ProGeUI::integrateProcessor(
     string platformDir = progeOutDir + FileSystem::DIRECTORY_SEPARATOR +
         "platform";
 
-    PlatformIntegrator* integrator = NULL;
-    // TODO: append new integrators here
-    if (platformIntegrator == "Stratix2DSP") {
-        integrator = new Stratix2DSPBoardIntegrator(
-            language, progeOutDir, entityName, platformDir, programName, fmax,
-            warningStream, errorStream);
-    } else if (platformIntegrator == "KoskiIntegrator") {
-        integrator = new KoskiIntegrator(
-            language, progeOutDir, entityName, platformDir, programName, fmax,
-            warningStream, errorStream);
-    } else {
-        string errorMsg = "Unknown platform integrator: "
-            + platformIntegrator;
-        InvalidData exc(__FILE__, __LINE__, __func__, errorMsg);
-        throw exc;
-    }
-    
     MemInfo imemInfo;
     imemInfo.type = imem;
     readImemParameters(imemWidth, imemInfo);
@@ -436,10 +420,31 @@ ProGeUI::integrateProcessor(
         readLSUParameters(dmemInfo);
     }
 
+    PlatformIntegrator* integrator = NULL;
+    // TODO: append new integrators here
+    if (platformIntegrator == "Stratix2DSP") {
+        integrator = new Stratix2DSPBoardIntegrator(
+            language, progeOutDir, entityName, platformDir, programName, fmax,
+            warningStream, errorStream, imemInfo, dmemInfo);
+    } else if (platformIntegrator == "KoskiIntegrator") {
+        integrator = new KoskiIntegrator(
+            language, progeOutDir, entityName, platformDir, programName, fmax,
+            warningStream, errorStream, imemInfo, dmemInfo);
+    } else if (platformIntegrator == "AvalonIntegrator") {
+        integrator = new AvalonIntegrator(
+            language, progeOutDir, entityName, platformDir, programName, fmax,
+            warningStream, errorStream, imemInfo, dmemInfo);
+    } else {
+        string errorMsg = "Unknown platform integrator: "
+            + platformIntegrator;
+        InvalidData exc(__FILE__, __LINE__, __func__, errorMsg);
+        throw exc;
+    }
+
     NetlistBlock& ttaToplevel = generator_.netlist()->topLevelBlock();
 
     try {
-        integrator->integrateProcessor(&ttaToplevel, imemInfo, dmemInfo);
+        integrator->integrateProcessor(&ttaToplevel);
     } catch (Exception& e) {
         delete integrator;
         throw e;

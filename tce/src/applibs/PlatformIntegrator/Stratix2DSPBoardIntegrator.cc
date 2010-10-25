@@ -37,10 +37,7 @@
 #include <string>
 #include "Exception.hh"
 #include "Stratix2DSPBoardIntegrator.hh"
-#include "AlteraOnchipRamGenerator.hh"
-#include "AlteraOnchipRomGenerator.hh"
 #include "Stratix2SramGenerator.hh"
-#include "VhdlRomGenerator.hh"
 #include "StringTools.hh"
 #include "Netlist.hh"
 #include "NetlistBlock.hh"
@@ -65,7 +62,7 @@ const int Stratix2DSPBoardIntegrator::DEFAULT_FREQ_ = 100;
 
 
 Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator():
-    PlatformIntegrator(), quartusGen_(NULL) {
+    AlteraIntegrator(), quartusGen_(NULL) {
 
 }
 
@@ -77,10 +74,12 @@ Stratix2DSPBoardIntegrator::Stratix2DSPBoardIntegrator(
     std::string programName,
     int targetClockFreq,
     std::ostream& warningStream,
-    std::ostream& errorStream):
-    PlatformIntegrator(hdl, progeOutputDir, entityName, outputDir,
-                       programName, targetClockFreq, warningStream,
-                       errorStream),
+    std::ostream& errorStream,
+    const MemInfo& imem,
+    const MemInfo& dmem):
+    AlteraIntegrator(hdl, progeOutputDir, entityName, outputDir,
+                     programName, targetClockFreq, warningStream,
+                     errorStream, imem, dmem),
     quartusGen_(new QuartusProjectGenerator(entityName, this)) {
 
  }
@@ -104,9 +103,7 @@ Stratix2DSPBoardIntegrator::~Stratix2DSPBoardIntegrator() {
 
 void
 Stratix2DSPBoardIntegrator::integrateProcessor(
-    const ProGe::NetlistBlock* ttaCore,
-    MemInfo& imem,
-    MemInfo& dmem) {
+    const ProGe::NetlistBlock* ttaCore) {
 
     generatePinMap();
 
@@ -114,7 +111,7 @@ Stratix2DSPBoardIntegrator::integrateProcessor(
         return;
     }
  
-    if (!createMemories(imem, dmem)) {
+    if (!createMemories()) {
         return;
     }
 
@@ -125,48 +122,16 @@ Stratix2DSPBoardIntegrator::integrateProcessor(
     addProGeFiles();
 
     quartusGen_->writeProjectFiles();
-}
+}   
 
 MemoryGenerator*
-Stratix2DSPBoardIntegrator::imemInstance(const MemInfo& imem) {
+Stratix2DSPBoardIntegrator::dmemInstance() {
 
-    MemoryGenerator* imemGen = NULL;
-    if (imem.type == ONCHIP) {
-        string initFile = programName() + ".mif";
-        imemGen = 
-            new AlteraOnchipRomGenerator(
-                imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
-                warningStream(), errorStream());
-        quartusGen_->addMemInitFile(initFile);
-    } else if (imem.type == VHDL_ARRAY) {
-        string initFile = programName() + "_imem_pkg.vhdl";
-        imemGen = new VhdlRomGenerator(
-            imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
-            warningStream(), errorStream());
-    } else {
-        string msg = "Unsupported instruction memory type";
-        InvalidData exc(__FILE__, __LINE__, "Stratix2DSPBoardIntegrator",
-                        msg);
-        throw exc;
-    }
-    return imemGen;
-}
-    
-
-MemoryGenerator*
-Stratix2DSPBoardIntegrator::dmemInstance(const MemInfo& dmem) {
-
+    const MemInfo& dmem = dmemInfo();
     MemoryGenerator* dmemGen = NULL;
     if (dmem.type == ONCHIP) {
-        string initFile = programName() + "_" + dmem.asName + ".mif";
-        // onchip mem size is scalable, use value from adf's Address Space
-        int addrw = dmem.asAddrw;
-        dmemGen =
-            new AlteraOnchipRamGenerator(
-                dmem.mauWidth, dmem.widthInMaus, addrw, initFile,
-                this, warningStream(), errorStream());
-        quartusGen_->addMemInitFile(initFile);
-    } else if (dmem.type == SRAM) {
+        dmemGen = AlteraIntegrator::dmemInstance();
+    } else if (dmemInfo().type == SRAM) {
         string initFile = programName() + "_" + dmem.asName + ".img";
         // SRAM component has a fixed size, thus use the addr width from hdb
         int addrw = dmem.portAddrw;
@@ -218,15 +183,25 @@ Stratix2DSPBoardIntegrator::pinTag() const {
 
 
 bool
+Stratix2DSPBoardIntegrator::chopTaggedSignals() const {
+
+    return true;
+}
+
+
+bool
 Stratix2DSPBoardIntegrator::isDataMemorySignal(
     const std::string& signalName) const {
 
-    if (signalName.find("dmem") != string::npos) {
-        return true;
-    } else if (signalName.find("SRAM") != string::npos) {
-        return true;
+    bool isDmemSignal = false;
+    if (dmemInfo().type == ONCHIP) {
+        isDmemSignal = AlteraIntegrator::isDataMemorySignal(signalName);
+    } else if (dmemInfo().type == SRAM) {
+        isDmemSignal = signalName.find("SRAM") != string::npos;
+    } else {
+        isDmemSignal = false;
     }
-    return false;
+    return isDmemSignal;
 }
 
 

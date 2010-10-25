@@ -5,7 +5,9 @@ libplatformintegrator_la_SOURCES = \
 	ProjectFileGenerator.cc QuartusProjectGenerator.cc Stratix2SramGenerator.cc \
 	AlteraMegawizMemGenerator.cc HDLPort.cc KoskiIntegrator.cc \
 	AlteraHibiDpRamGenerator.cc DefaultProjectFileGenerator.cc \
-	IPXactFileGenerator.cc IPXactSerializer.cc IPXactModel.cc
+	IPXactFileGenerator.cc IPXactSerializer.cc IPXactModel.cc \
+	AlteraIntegrator.cc AvalonIntegrator.cc SOPCBuilderFileGenerator.cc \
+	SOPCInterface.cc AvalonMMMasterInterface.cc
 
 
 SRC_ROOT_DIR = $(top_srcdir)/src
@@ -41,7 +43,9 @@ libplatformintegrator_la_SOURCES += \
 	ProjectFileGenerator.hh QuartusProjectGenerator.hh Stratix2SramGenerator.hh \
 	AlteraMegawizMemGenerator.hh HDLPort.hh KoskiIntegrator.hh \
 	AlteraHibiDpRamGenerator.hh DefaultProjectFileGenerator.hh \
-	IPXactFileGenerator.hh IPXactSerializer.hh IPXactModel.hh
+	IPXactFileGenerator.hh IPXactSerializer.hh IPXactModel.hh \
+	AlteraIntegrator.hh AvalonIntegrator.hh SOPCBuilderFileGenerator.hh \
+	SOPCInterface.hh AvalonMMMasterInterface.hh
 	
 ## headers end
 

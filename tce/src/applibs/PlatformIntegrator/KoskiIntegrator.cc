@@ -30,18 +30,10 @@
  * @note rating: red
  */
 
-#include <iostream>
-#include <sstream>
-#include <map>
-#include <vector>
-#include <string>
 #include "Exception.hh"
-#include "PlatformIntegrator.hh"
 #include "KoskiIntegrator.hh"
 #include "MemoryGenerator.hh"
-#include "AlteraOnchipRomGenerator.hh"
 #include "AlteraHibiDpRamGenerator.hh"
-#include "VhdlRomGenerator.hh"
 #include "StringTools.hh"
 #include "NetlistBlock.hh"
 #include "IPXactFileGenerator.hh"
@@ -52,7 +44,7 @@ using std::endl;
 
 const std::string KoskiIntegrator::PIN_TAG_ = "hibi";
 
-KoskiIntegrator::KoskiIntegrator(): PlatformIntegrator(), ipXactGen_(NULL) {
+KoskiIntegrator::KoskiIntegrator(): AlteraIntegrator(), ipXactGen_(NULL) {
 }
 
 
@@ -64,10 +56,12 @@ KoskiIntegrator::KoskiIntegrator(
     std::string programName,
     int targetClockFreq,
     std::ostream& warningStream,
-    std::ostream& errorStream):
-    PlatformIntegrator(hdl, progeOutputDir, entityName, outputDir,
+    std::ostream& errorStream,
+    const MemInfo& imem,
+    const MemInfo& dmem):
+    AlteraIntegrator(hdl, progeOutputDir, entityName, outputDir,
                        programName, targetClockFreq, warningStream,
-                       errorStream),
+                     errorStream, imem, dmem),
     ipXactGen_(new IPXactFileGenerator(entityName, this)) {
 }
 
@@ -79,39 +73,17 @@ KoskiIntegrator::~KoskiIntegrator() {
     }
 }
 
-
-void
-KoskiIntegrator::integrateProcessor(
-    const ProGe::NetlistBlock* ttaCore, 
-    MemInfo& imem,
-    MemInfo& dmem) {
-
-    if(!createPorts(ttaCore)) {
-        return;
-    }
-
-    if (!createMemories(imem, dmem)) {
-        return;
-    }
-
-    writeNewToplevel();
-    
-    addProGeFiles();
-    ipXactGen_->writeProjectFiles();
-}
-
-
 std::string
 KoskiIntegrator::pinTag() const {
 
     return PIN_TAG_;
 }
 
-   
-bool
-KoskiIntegrator::isDataMemorySignal(const std::string& signalName) const {
 
-    return signalName.find("dmem") != string::npos;
+bool
+KoskiIntegrator::chopTaggedSignals() const {
+
+    return false;
 }
 
 
@@ -122,36 +94,10 @@ KoskiIntegrator::projectFileGenerator() const {
 }
 
 
-
 MemoryGenerator*
-KoskiIntegrator::imemInstance(const MemInfo& imem) {
+KoskiIntegrator::dmemInstance() {
 
-    MemoryGenerator* imemGen = NULL;
-    if (imem.type == ONCHIP) {
-        string initFile = programName() + ".mif";
-        imemGen = 
-            new AlteraOnchipRomGenerator(
-                imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
-                warningStream(), errorStream());
-        ipXactGen_->addMemInitFile(initFile);
-    } else if (imem.type == VHDL_ARRAY) {
-        string initFile = programName() + "_imem_pkg.vhdl";
-        imemGen = new VhdlRomGenerator(
-            imem.mauWidth, imem.widthInMaus, imem.portAddrw, initFile, this,
-            warningStream(), errorStream());
-    } else {
-        string msg = "Unsupported instruction memory type";
-        InvalidData exc(__FILE__, __LINE__, "KoskiIntegrator",
-                        msg);
-        throw exc;
-    }
-    return imemGen;
-}
-
-
-MemoryGenerator*
-KoskiIntegrator::dmemInstance(const MemInfo& dmem) {
-
+    const MemInfo& dmem = dmemInfo();
     MemoryGenerator* dmemGen = NULL;
     if (dmem.type == ONCHIP) {
         string initFile = programName() + "_" + dmem.asName + ".mif";
@@ -181,6 +127,9 @@ KoskiIntegrator::printInfo(std::ostream& stream) const {
         << "Integrates TTA core to Koski flow compatible IP-block. "
         << "Processor must have a HiBi-LSU. " << endl
         << "Creates an IP-XACT description of the created IP." << endl
+        << "This integrator works with Altera tools and FPGAs." << endl
+        << "Requires Altera's 'qmegawiz' program to be found from PATH." 
+        << endl
         << "Supported instruction memory types are 'onchip' and 'vhdl_array."
         << endl << "Supported data memory type is 'onchip'." << endl << endl;
 }

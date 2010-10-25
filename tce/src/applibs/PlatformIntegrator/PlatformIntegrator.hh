@@ -60,14 +60,13 @@ public:
         std::string programName,
         int targetClockFreq,
         std::ostream& warningStream,
-        std::ostream& errorStream);
+        std::ostream& errorStream,
+        const MemInfo& imem,
+        const MemInfo& dmem);
 
     virtual ~PlatformIntegrator();
 
-    virtual void integrateProcessor(
-        const ProGe::NetlistBlock* ttaCore,
-        MemInfo& imem,
-        MemInfo& dmem) = 0;
+    virtual void integrateProcessor(const ProGe::NetlistBlock* ttaCore) = 0;
 
     /**
      * Returns the FPGA device family
@@ -107,31 +106,58 @@ public:
 
     const ProGe::NetlistBlock& toplevelBlock() const;
 
+    /**
+     * Returns the platform integrator output path string. Might not exist.
+     *
+     * @return Platform Integrator output path
+     */
+    std::string outputPath() const;
+
+    /**
+     * Returns string to the platform integrator output path of the fileName
+     *
+     * @param filename Name of file
+     * @param absolute Return absolute path
+     * @return Path to file
+     */
+    std::string outputFilePath(std::string fileName, bool absolute = false) 
+        const;
+
 protected:
 
     ProGe::Netlist* netlist();
 
     virtual bool createPorts(const ProGe::NetlistBlock* ttaCore);
 
-    virtual void connectToplevelPort(ProGe::NetlistPort& corePort);
+    virtual void connectToplevelPort(
+        const std::string& toplevelName, 
+        ProGe::NetlistPort& corePort);
 
     virtual std::string pinTag() const = 0;
 
+    virtual bool chopTaggedSignals() const = 0;
+
     virtual bool hasPinTag(const std::string& signal) const;
+
+    bool isInstructionMemorySignal(const std::string& signalName) const;
 
     virtual bool isDataMemorySignal(const std::string& signalName) const = 0;
 
     void copyTTACoreToNetlist(const ProGe::NetlistBlock* original);
 
-    virtual bool createMemories(const MemInfo& imem, const MemInfo& dmem);
+    const MemInfo& imemInfo() const;
+    
+    const MemInfo& dmemInfo() const;
+
+    virtual bool createMemories();
 
     virtual bool generateMemory(
         MemoryGenerator& memGen,
         std::vector<std::string>& generatedFiles);
 
-    virtual MemoryGenerator* imemInstance(const MemInfo& imem) = 0;
+    virtual MemoryGenerator* imemInstance() = 0;
 
-    virtual MemoryGenerator* dmemInstance(const MemInfo& imem) = 0;
+    virtual MemoryGenerator* dmemInstance() = 0;
 
     virtual void writeNewToplevel();
 
@@ -158,22 +184,6 @@ protected:
      */
     std::string
     progeFilePath(std::string fileName, bool absolute = false) const;
-    
-    /**
-     * Returns string to the platform integrator output path of the fileName
-     *
-     * @param filename Name of file
-     * @param absolute Return absolute path
-     * @return Path to file
-     */
-    std::string outputFilePath(std::string fileName, bool absolute = false);
-
-    /**
-     * Returns the platform integrator output path string
-     *
-     * @return Platform Integrator output path
-     */
-    std::string outputPath();
 
     /**
      * Utility function for processing vhdl signals.
@@ -212,7 +222,6 @@ private:
     std::string progeOutputDir_;
     std::string entityName_;
     std::string outputDir_;
-    bool outputDirCreated_;
     std::string programName_;
     int targetFrequency_;
 
@@ -220,6 +229,11 @@ private:
     std::ostream& errorStream_;
 
     ProGe::NetlistBlock* ttaCore_;
+
+    MemInfo imem_;
+    MemInfo dmem_;
+
+    std::vector<std::string> imemSignals_;
 
     static const std::string TTA_CORE_NAME;
     static const std::string TTA_CORE_CLK;

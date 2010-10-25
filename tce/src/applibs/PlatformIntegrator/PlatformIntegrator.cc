@@ -58,10 +58,16 @@ const std::string PlatformIntegrator::TTA_CORE_RSTX = "rstx";
 
 PlatformIntegrator::PlatformIntegrator():
     netlist_(NULL),  hdl_(ProGe::VHDL), progeOutputDir_(""), entityName_(""),
-    outputDir_(""), outputDirCreated_(false), programName_(""),
-    targetFrequency_(0), warningStream_(std::cout), errorStream_(std::cerr),
-    ttaCore_(NULL) {
+    outputDir_(""), programName_(""), targetFrequency_(0),
+    warningStream_(std::cout), errorStream_(std::cerr), ttaCore_(NULL),
+    imem_(), dmem_() {
     
+    imem_.type = UNKNOWN;
+    dmem_.type = UNKNOWN;
+
+    imemSignals_.push_back("imem_");
+    imemSignals_.push_back("pc_init");
+    imemSignals_.push_back("busy");
 }
 
 
@@ -73,13 +79,21 @@ PlatformIntegrator::PlatformIntegrator(
     std::string programName,
     int targetClockFreq,
     std::ostream& warningStream,
-    std::ostream& errorStream): 
+    std::ostream& errorStream,
+    const MemInfo& imem,
+    const MemInfo& dmem): 
     netlist_(new ProGe::Netlist()), hdl_(hdl),
     progeOutputDir_(progeOutputDir), entityName_(entityName),
-    outputDir_(outputDir), outputDirCreated_(false),
-    programName_(programName), targetFrequency_(targetClockFreq),
-    warningStream_(warningStream), errorStream_(errorStream), ttaCore_(NULL) {
+    outputDir_(outputDir), programName_(programName),
+    targetFrequency_(targetClockFreq), warningStream_(warningStream),
+    errorStream_(errorStream), ttaCore_(NULL), imem_(imem),
+    dmem_(dmem) {
 
+    imemSignals_.push_back("imem_");
+    imemSignals_.push_back("pc_init");
+    imemSignals_.push_back("busy"); 
+
+    createOutputDir();
 }
 
 
@@ -118,11 +132,8 @@ PlatformIntegrator::progeFilePath(std::string fileName, bool absolute) const {
 
 
 std::string
-PlatformIntegrator::outputFilePath(std::string fileName, bool absolute) {
-
-    if (!outputDirCreated_) {
-        createOutputDir();
-    }
+PlatformIntegrator::outputFilePath(
+    std::string fileName, bool absolute) const {
 
     std::string pathToFile =
         outputDir_ + FileSystem::DIRECTORY_SEPARATOR + fileName;
@@ -136,12 +147,7 @@ PlatformIntegrator::outputFilePath(std::string fileName, bool absolute) {
 
 
 std::string
-PlatformIntegrator::outputPath() {
-
-    if (!outputDirCreated_) {
-        createOutputDir();
-    }
-
+PlatformIntegrator::outputPath() const {
     return outputDir_;
 }
 
@@ -214,7 +220,6 @@ PlatformIntegrator::createOutputDir() {
                         "Couldn't create dir " + absolute);
         throw exc;
     }
-    outputDirCreated_ = true;
 }
 
 
@@ -268,34 +273,43 @@ PlatformIntegrator::createPorts(const ProGe::NetlistBlock* ttaCore) {
     
     for (int i = 0; i < core.portCount(); i++) {
         string portName = core.port(i).name();
-        if (hasPinTag(portName) && !isDataMemorySignal(portName)) {
-            connectToplevelPort(core.port(i));
+        if (portName == TTA_CORE_CLK || portName == TTA_CORE_RSTX) {
+            continue;
+        } else if (!isInstructionMemorySignal(portName) 
+            && !isDataMemorySignal(portName)) {
+
+            string toplevelName = portName;
+            if (chopTaggedSignals() && hasPinTag(portName)) {
+                toplevelName = chopSignalToTag(portName, pinTag());
+            }
+            connectToplevelPort(toplevelName, core.port(i));
         }
     }
     return true;
 }
 
-void
-PlatformIntegrator::connectToplevelPort(ProGe::NetlistPort& corePort) {
 
-    string topName = chopSignalToTag(corePort.name(), pinTag());
+void
+PlatformIntegrator::connectToplevelPort(
+    const std::string& toplevelName, ProGe::NetlistPort& corePort) {
+
     NetlistPort* topPort = NULL;
     if (corePort.realWidthAvailable()) {
         int width = corePort.realWidth();
         if (width == 0 || width == 1) {
             topPort = new NetlistPort(
-                topName, corePort.widthFormula(), corePort.realWidth(),
+                toplevelName, corePort.widthFormula(), corePort.realWidth(),
                 ProGe::BIT, corePort.direction(),
                 netlist()->topLevelBlock());
         } else {
             topPort = new NetlistPort(
-                topName, corePort.widthFormula(), corePort.realWidth(),
+                toplevelName, corePort.widthFormula(), corePort.realWidth(),
                 ProGe::BIT_VECTOR, corePort.direction(),
                 netlist()->topLevelBlock());
         }
     } else {
         topPort = new NetlistPort(
-            topName, corePort.widthFormula(), corePort.dataType(),
+            toplevelName, corePort.widthFormula(), corePort.dataType(),
             corePort.direction(), netlist()->topLevelBlock());
     }
     if (topPort->dataType() == corePort.dataType()) {
@@ -310,6 +324,21 @@ bool
 PlatformIntegrator::hasPinTag(const std::string& signal) const {
     
     return signal.find(pinTag()) != string::npos;
+}
+
+
+bool
+PlatformIntegrator::isInstructionMemorySignal(
+    const std::string& signalName) const {
+
+    bool isMatch = false;
+    for (unsigned int i = 0; i < imemSignals_.size(); i++) {
+        if (signalName.find(imemSignals_.at(i)) != string::npos) {
+            isMatch = true;
+            break;
+        }
+    }
+    return isMatch;
 }
 
 
@@ -344,10 +373,12 @@ PlatformIntegrator::toplevelBlock() const {
 
 
 bool
-PlatformIntegrator::createMemories(const MemInfo& imem,
-                                   const MemInfo& dmem) {
-    
-    MemoryGenerator* imemGen = imemInstance(imem);
+PlatformIntegrator::createMemories() {
+
+    assert(imem_.type != UNKNOWN);
+    assert(dmem_.type != UNKNOWN);
+
+    MemoryGenerator* imemGen = imemInstance();
     vector<string> imemFiles;
     if (!generateMemory(*imemGen, imemFiles)) {
         delete imemGen;
@@ -358,13 +389,16 @@ PlatformIntegrator::createMemories(const MemInfo& imem,
     }
     delete imemGen;
 
-    MemoryGenerator* dmemGen = dmemInstance(dmem);
-    vector<string> dmemFiles;
-    bool success = generateMemory(*dmemGen, dmemFiles);
-    if (dmemFiles.size() != 0) {
-        projectFileGenerator()->addHdlFiles(dmemFiles);
+    bool success = true;
+    if (dmem_.type != NONE) {
+        MemoryGenerator* dmemGen = dmemInstance();
+        vector<string> dmemFiles;
+        success = generateMemory(*dmemGen, dmemFiles);
+        if (dmemFiles.size() != 0) {
+            projectFileGenerator()->addHdlFiles(dmemFiles);
+        }
+        delete dmemGen;
     }
-    delete dmemGen;
     return success;
 }
 
@@ -435,4 +469,18 @@ PlatformIntegrator::addProGeFiles() const {
     for (unsigned int i = 0; i < progeOutFiles.size(); i++) {
         projectFileGenerator()->addHdlFile(progeOutFiles.at(i));
     }
+}
+
+
+const MemInfo&
+PlatformIntegrator::imemInfo() const {
+
+    return imem_;
+}
+ 
+   
+const MemInfo&
+PlatformIntegrator::dmemInfo() const {
+
+    return dmem_;
 }
