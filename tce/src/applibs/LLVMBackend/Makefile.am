@@ -7,7 +7,8 @@ libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
 	LLVMTCECmdLineOptions.cc TCETargetSelectionDAGInfo.cc \
-	passes/RegAllocLinearScanILP.cc 
+	passes/RegAllocLinearScanILP.cc \
+	LLVMTCEDDGBuilder.cc
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT = ${PROJECT_ROOT}/src
