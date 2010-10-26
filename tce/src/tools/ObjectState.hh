@@ -65,7 +65,7 @@ public:
         std::string value; ///< Value of the attribute.
     };
 
-    ObjectState(const std::string& name);
+    ObjectState(const std::string& name, ObjectState* parent=NULL);
     ObjectState(const ObjectState& old);
     ~ObjectState();
 

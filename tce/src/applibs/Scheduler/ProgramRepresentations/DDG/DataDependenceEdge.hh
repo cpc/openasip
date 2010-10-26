@@ -37,13 +37,18 @@
 
 #include "GraphEdge.hh"
 
+class ObjectState;
+class DataDependenceGraph;
+class MoveNode;
+
 class DataDependenceEdge : public GraphEdge {
 public:
     enum DependenceType {
         DEP_UNKNOWN = 0,
         DEP_RAW     = 1,
         DEP_WAR     = 2,
-        DEP_WAW     = 3};
+        DEP_WAW     = 3,
+        DEP_TRIGGER = 4};
 
     enum EdgeReason {
         EDGE_REGISTER,
@@ -59,6 +64,12 @@ public:
     virtual ~DataDependenceEdge() {}
 
     std::string toString() const;
+
+    // For xml dumping
+    ObjectState* saveState(
+        const MoveNode& tail,
+        const MoveNode& head);
+
     DependenceType dependenceType() {
         return dependenceType_;
     }

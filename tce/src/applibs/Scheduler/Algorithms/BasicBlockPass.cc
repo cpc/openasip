@@ -116,7 +116,6 @@ BasicBlockPass::executeDDGPass(
     delete ddg;
 }
 
-
 /** 
  * Copies moves back from resourcemanager to basicblock,
  * putting them to correct instructions based in their cycle,

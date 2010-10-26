@@ -583,6 +583,18 @@ else:
                  help=\
 "Use Clang for C compilation instead of llvm-gcc.")
 
+p.add_option('--dump-ddgs-dot', action='store_true', dest='dump_ddgs_dot', default=False,
+             help=\
+"""Dumps DDGs in dot format before and after scheduling.""")
+
+p.add_option('--dump-ddgs-xml', action='store_true', dest='dump_ddgs_xml', default=False,
+             help=\
+"""Dumps DDGs in XML format before and after scheduling.""")
+
+p.add_option('--dump-ddgs', action='store_true', dest='dump_ddgs', default=False,
+             help=\
+"""Equivalent to --dump-ddgs-dot --dump-ddgs-xml.""")
+
 # Commandline argument parsing
 
 # fix gcc switches, which cannot be represented in OptionParser format by adding extra "-" before switch
@@ -739,6 +751,9 @@ if options.adf_file != "":
 
     if options.sequential_schedule or options.optimization_level == 0:
         scheduler_config_file_name = "sequential_tcecc_scheduler.conf"
+        if options.dump_ddgs or options.dump_ddgs_dot or options.dump_ddgs_xml:
+            exitWithError(1, 
+            "Error: Conflicting options. Dumping of DDGs is enabled only at optimization levels > 0.\n")
     else:
         scheduler_config_file_name = "default_scheduler.conf"        
         
@@ -770,6 +785,15 @@ if options.adf_file != "":
     if not options.default_regalloc:
         command += " --experimental-ra"
         
+    if options.dump_ddgs:
+        command += " --dump-ddgs-dot --dump-ddgs-xml"
+    else:
+        if options.dump_ddgs_dot:
+            command += " --dump-ddgs-dot"
+
+        if options.dump_ddgs_xml:
+            command += " --dump-ddgs-xml"
+
     if options.no_schedule is False:
         command += " -c " + options.scheduler_config
 

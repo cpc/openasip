@@ -33,13 +33,13 @@ SFM_DIR = $(srcdir)/StackFrameManagement
 SELECTOR_DIR = ${APPLIBS_DIR}/Scheduler/Selector
 GRAPH_DIR = ${BASE_DIR}/Graph
 DISASM_DIR = ${APPLIBS_DIR}/Disassembler
-
+LLVM_BACKEND_DIR = ${APPLIBS_DIR}/LLVMBackend
 
 AM_CPPFLAGS = -I${RESOURCE_MODEL_DIR} -I${TOOLS_DIR} -I${POM_DIR} \
 	-I${OSAL_DIR} -I${MACH_DIR} -I${GRAPH_DIR} -I${SCHED_APPLIBS_DIR} \
 	-I${RESOURCE_MODEL_DIR} -I${RESOURCE_MANAGER_DIR} -I${CFG_DIR} \
 	-I${DDG_DIR} -I${PDG_DIR} -I${DISASM_DIR} -I${SELECTOR_DIR} -I${SFM_DIR} \
-	-I${UM_DIR} -I${MACH_APPLIB_DIR}
+	-I${UM_DIR} -I${MACH_APPLIB_DIR} -I${LLVM_BACKEND_DIR}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile

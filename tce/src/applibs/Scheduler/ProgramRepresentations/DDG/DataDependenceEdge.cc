@@ -31,6 +31,9 @@
  */
 
 #include "DataDependenceEdge.hh"
+#include "ObjectState.hh"
+#include "MoveNode.hh"
+#include "HWOperation.hh"
 
 using std::string;
 
@@ -100,3 +103,74 @@ DataDependenceEdge::operator ==(const DataDependenceEdge& other) const {
         tailPseudo_ == other.tailPseudo_ &&
         headPseudo_ == other.headPseudo_;
 }
+
+/**
+ * State dumping for XML generation.
+ *
+ * @param tail source node of the edge
+ * @param head sink node of the edge
+ */
+
+ObjectState*
+DataDependenceEdge::saveState(
+    const MoveNode& tail,
+    const MoveNode& head) {
+
+    ObjectState* edgeOS = new ObjectState("edge");
+    ObjectState* tailOS = new ObjectState("nref", edgeOS);
+    ObjectState* headOS = new ObjectState("nref", edgeOS);
+    ObjectState* typeOS = new ObjectState("type", edgeOS);
+    ObjectState* reasonOS = new ObjectState("reason", edgeOS);
+
+    tailOS->setValue(tail.nodeID());
+    headOS->setValue(head.nodeID());
+
+    switch (dependenceType_) {
+    case DEP_UNKNOWN:
+	typeOS->setName("unknown");
+	break;
+    case DEP_RAW:
+	typeOS->setName("raw");
+	break;
+    case DEP_WAR:
+	typeOS->setName("war");
+	break;
+    case DEP_WAW:
+	typeOS->setName("waw");
+	break;
+    case DEP_TRIGGER:
+	typeOS->setName("trg");
+	break;
+    }
+
+    switch (edgeReason_) {
+    case EDGE_REGISTER:
+	reasonOS->setName("reg");
+	break;
+    case EDGE_MEMORY:
+	reasonOS->setName("mem");
+	break;
+    case EDGE_FUSTATE:
+	reasonOS->setName("fu");
+	break;
+    case EDGE_OPERATION:
+	reasonOS->setName("op");
+	break;
+    case EDGE_RA:
+	reasonOS->setName("ra");
+	break;
+    }
+
+    // Add operation latency information to trigger moves
+    if (tail.isMove() && tail.move().isTriggering()) {
+	TTAProgram::TerminalFUPort &tfu
+	    = dynamic_cast<TTAProgram::TerminalFUPort&>
+	    (tail.move().destination());
+
+	ObjectState* latencyOS = new ObjectState("lat", edgeOS);
+	latencyOS->setValue(Conversion::toString(tfu.hwOperation()->latency()));
+    }
+
+    return edgeOS;
+}
+

@@ -73,6 +73,9 @@ public:
 
     bool conservativePreRAScheduler() const;
 
+    virtual bool dumpDDGsDot() const;
+    virtual bool dumpDDGsXML() const;
+
     virtual void printVersion() const {
         std::cout << "llvmtce - TCE LLVM compiler " << VERSION
                   << std::endl;
@@ -96,6 +99,8 @@ private:
     static const std::string VERBOSE_SWITCH;
     static const std::string LEAVE_DIRTY;
     static const std::string CONSERVATIVE_PRE_RA_SCHEDULER;
+    static const std::string SWL_DUMP_DDGS_DOT;
+    static const std::string SWL_DUMP_DDGS_XML;
 
     static const std::string USAGE;
 

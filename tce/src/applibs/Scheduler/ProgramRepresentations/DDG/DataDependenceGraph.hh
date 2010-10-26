@@ -62,8 +62,13 @@ namespace TTAProgram {
 }
 
 class DataDependenceGraph : 
-    public BoostGraph<MoveNode,DataDependenceEdge> {
+    public BoostGraph<MoveNode, DataDependenceEdge> {
 public:
+
+    enum DumpFileFormat {
+        DUMP_DOT,
+        DUMP_XML
+    };
 
     DataDependenceGraph(
         const std::string& name="", bool containsProcedure=false);
@@ -113,6 +118,9 @@ public:
     /// Dot printing related methods
     virtual std::string dotString() const;
     virtual void setCycleGrouping(bool flag);
+
+    // XML dumping
+    void writeToXMLFile(std::string fileName) const;
 
     void mergeAndKeep(MoveNode& resultNode, MoveNode& userNode);
     void unMerge(MoveNode& resultNode, MoveNode& mergedNode);

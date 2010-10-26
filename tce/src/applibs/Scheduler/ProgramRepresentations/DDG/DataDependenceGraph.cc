@@ -50,6 +50,9 @@
 #include "BasicBlockNode.hh"
 #include "TCEString.hh"
 #include "Guard.hh"
+#include "ObjectState.hh"
+#include "XMLSerializer.hh"
+
 
 /**
  * Sets bookkeeping that the given movende belongs to the given basic block.
@@ -709,6 +712,74 @@ DataDependenceGraph::dotString() const {
 void
 DataDependenceGraph::setCycleGrouping(bool flag) {
     cycleGrouping_ = flag;
+}
+
+/**
+ * Writes the graph into an XML file.
+ *
+ */
+void
+DataDependenceGraph::writeToXMLFile(std::string fileName) const {
+
+    XMLSerializer serializer;
+    ObjectState topOS = ObjectState("dependenceinfo");
+    ObjectState* labelOS = new ObjectState("label", &topOS);
+    ObjectState* nodesOS = new ObjectState("nodes", &topOS);
+    ObjectState* edgesOS = new ObjectState("edges", &topOS);
+
+    // Name of the unit
+    labelOS->setValue(name());
+
+    // Populate the nodes element
+    for (int i = 0; i < nodeCount(); ++i) {
+	ObjectState* nodeOS = new ObjectState("node", nodesOS);
+	ObjectState* idOS = new ObjectState("id", nodeOS);
+	ObjectState* labelOS = new ObjectState("label", nodeOS);
+
+        Node& n = node(i);
+
+	idOS->setValue(n.nodeID());
+	labelOS->setValue(n.toString());
+
+	if (n.isPlaced()) {
+	    ObjectState* cycleOS = new ObjectState("cycle", nodeOS);
+	    ObjectState* busOS = new ObjectState("slot", nodeOS);
+
+	    cycleOS->setValue(Conversion::toString(n.cycle()));
+	    busOS->setValue(n.move().bus().name());
+	}
+    }
+
+    // Populate the edges element
+    typedef std::pair<EdgeIter, EdgeIter> EdgeIterPair;
+    EdgeIterPair edges = boost::edges(graph_);
+    for (EdgeIter i = edges.first; i != edges.second; i++) {
+        Edge& e = *graph_[*i];
+        Node& tail = *graph_[boost::source(*i, graph_)];
+        Node& head = *graph_[boost::target(*i, graph_)];
+	edgesOS->addChild(e.saveState(tail, head));
+    }
+
+    // Implicit operand to trigger edges
+    for (int i = 0; i < nodeCount(); ++i) {
+	Node& n = node(i);
+	if (n.isPlaced() && n.isMove() && n.move().isTriggering() &&
+            n.isDestinationOperation()) {
+	    ProgramOperation &dst = n.destinationOperation();
+	    for (int j = 0; j < dst.inputMoveCount(); ++j) {
+		if (dst.inputMove(j).nodeID() != n.nodeID()) {
+
+		    // Create a dummy edge and dump it
+		    DataDependenceEdge e(DataDependenceEdge::EDGE_OPERATION,
+					 DataDependenceEdge::DEP_TRIGGER);
+		    edgesOS->addChild(e.saveState(dst.inputMove(j), n));
+		}
+	    }
+	}
+    }
+
+    serializer.setDestinationFile(fileName);
+    serializer.writeState(&topOS);
 }
 
 /**

@@ -45,6 +45,7 @@
 #include "ProgramPass.hh"
 #include "DDGPass.hh"
 #include "DataDependenceGraph.hh"
+#include "LLVMTCECmdLineOptions.hh"
 
 class BasicBlockNode;
 class SimpleResourceManager;
@@ -136,6 +137,13 @@ private:
     void notifyScheduled(
         MoveNodeGroup& moves, MoveNodeSelector& selector);
 
+    void ddgSnapshot(
+        DataDependenceGraph& ddg, 
+        const std::string& name,
+        DataDependenceGraph::DumpFileFormat format,
+        bool final,
+        bool resetCounter = false) const;
+
     MoveNode* succeedingTempMove(MoveNode& current);
     
     /// The target machine we are scheduling the program against.
@@ -157,6 +165,8 @@ private:
 
     int bypassedCount_;
     int deadResults_;
+
+    LLVMTCECmdLineOptions* options_;
 };
 
 #endif

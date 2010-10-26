@@ -45,8 +45,11 @@ using std::string;
  *
  * @param name Name of the ObjectState.
  */
-ObjectState::ObjectState(const std::string& name) :
-    name_(name), value_(""), parent_(NULL) {
+ObjectState::ObjectState(const std::string& name, ObjectState* parent) :
+    name_(name), value_(""), parent_(parent) {
+    if(parent != NULL) {
+        parent->addChild(this);
+    }
 }
 
 /**

@@ -49,6 +49,9 @@ const std::string LLVMTCECmdLineOptions::LEAVE_DIRTY = "d";
 const std::string LLVMTCECmdLineOptions::CONSERVATIVE_PRE_RA_SCHEDULER= 
     "conservative-pre-ra-scheduler";
 
+const std::string LLVMTCECmdLineOptions::SWL_DUMP_DDGS_DOT = "dump-ddgs-dot";
+const std::string LLVMTCECmdLineOptions::SWL_DUMP_DDGS_XML = "dump-ddgs-xml";
+
 const std::string LLVMTCECmdLineOptions::USAGE =
     "Usage: llvmtce [OPTION]... BYTECODE\n"
     "Compile LLVM bytecode for target TCE architecture.\n";
@@ -105,7 +108,16 @@ LLVMTCECmdLineOptions::LLVMTCECmdLineOptions() :
             CONSERVATIVE_PRE_RA_SCHEDULER, 
             "Conservative pre-ra-scheduler. May decrease register usage but"
             " limit ILP. good for machines with low amount of registers."));
-            
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_DUMP_DDGS_DOT, 
+            "Dump DDGs in dot format before and after scheduling."));
+
+    addOption(
+        new BoolCmdLineOptionParser(
+            SWL_DUMP_DDGS_XML, 
+            "Dump DDGs in XML format before and after scheduling."));
 }
 
 /**
@@ -252,4 +264,14 @@ LLVMTCECmdLineOptions::conservativePreRAScheduler() const {
         return true;
     }
     return false;
+}
+
+bool
+LLVMTCECmdLineOptions::dumpDDGsDot() const {
+    return findOption(SWL_DUMP_DDGS_DOT)->isDefined();
+}
+
+bool
+LLVMTCECmdLineOptions::dumpDDGsXML() const {
+    return findOption(SWL_DUMP_DDGS_XML)->isDefined();
 }

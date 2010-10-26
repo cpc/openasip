@@ -1,0 +1,270 @@
+#!/usr/bin/python
+# -*- python -*-
+#
+# A graphical browser for TCE schedules.
+#
+# Pertti Kellomaki 2009
+#
+
+import sys
+import re
+try:
+    import wx
+    import wx.lib.scrolledpanel
+    import wx.html
+except:
+    print "You must have wxPython installed (e.g. python-wxgtk-2.8)"
+    exit(1)
+    
+from copy import copy
+from collections import defaultdict
+
+from XMLScheduleParser import XMLScheduleParser
+from ScheduleBrowsingGrid import ScheduleBrowsingGrid
+from Utils import dependence_label
+
+html_help = """<html>
+<title>Schedule Browser Help</title>
+<h1>Schedule Browser Help</h1>
+
+The schedule browser allows you to browse scheduled code and examine
+dependences between moves.  Schedule dump files are produced by
+compiling the program with the <i>--dump-ddgs-xml</i> flag to
+<i>tcecc</i>.
+<p>
+Opening an XML file using <b>File-&gt;Open</b> opens the piece of
+scheduled code in a table where the columns correspond to buses and the
+rows correspond to cycles. 
+<p>
+The two rows of buttons, <i>Sources</i> and <i>Sinks</i>, highlight
+the sources and sinks of the various dependences.
+Clicking on a move in the schedule highlights the moves it depends
+on, and the moves that depend on it. The selected move is displayed
+in one of the text boxes above the schedule, and the other box displays
+the move under the cursor.
+<p>
+Right clicking on a move opens a new window summarizing its
+dependences. Double clicking on a move widens the column so that all
+the moves in it fit.
+<p>
+Typing a Python regexp in the search box at the bottom of the frame
+highlights all moves that match the regexp.
+<p>
+The menu item <b>Schedule-&gt;Show resource constrained moves</b>
+highlights the moves that could potentially be scheduled earlier
+if more resources were available.
+This is based on the dumped dependences, so it is an approximation only.
+</html>
+"""
+
+class BrowserFrame(wx.Frame):
+
+    RESOURCE_CONSTRAINED_MENU_ITEM_ID = wx.NewId()
+    
+    def __init__(self, parent, log, schedule_file=None):
+
+        def bind_dependence_button_callback(button, dep_kind,
+                                            label,
+                                            show_source=False,
+                                            show_sink=False):
+            def evt_handler(evt):
+                if self.grid_:
+                    self.grid_.highlight_dependence_kind(dep_kind, show_source, show_sink)
+
+            if show_source:
+                dep_end = "sources"
+            else:
+                dep_end = "sinks"
+
+            button.Bind(wx.EVT_BUTTON, evt_handler)
+            button.SetToolTip(wx.ToolTip("Click to highlight %s of %s" % (dep_end, label)))
+        
+        def bind_search_callback(search):
+            def evt_handler(evt):
+                regexp = search.GetValue()
+                if self.grid_:
+                    self.grid_.highlight_matching_cells(regexp)
+            search.Bind(wx.EVT_TEXT_ENTER, evt_handler)
+            search.SetToolTip(wx.ToolTip("Search for cells matching a Python regexp"))
+
+        wx.Frame.__init__(self, parent, -1, "(No file)", size=(640,480))
+
+        self.statistics_ = defaultdict(int)
+        self.grid_ = None
+        
+        self.menu_setup()
+        self.help_setup()
+	self.top_sizer_ = wx.BoxSizer(wx.VERTICAL)
+        buttons_sizer = wx.BoxSizer(wx.VERTICAL)
+        sources_row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sinks_row_sizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        buttons_panel = wx.lib.scrolledpanel.ScrolledPanel(self, -1, size=(-1,100), style=wx.SUNKEN_BORDER)
+        sources_row_sizer.Add(wx.StaticText(buttons_panel, -1, label="Sources", size=(80,20)), flag=wx.EXPAND)
+        sinks_row_sizer.Add(wx.StaticText(buttons_panel, -1, label="Sinks", size=(80,20)), flag=wx.EXPAND)
+        
+        self.dependence_colour_ = {}
+        self.source_buttons_ = []
+        self.sink_buttons_ = []
+        for dep, colour in [((u'reg', u'raw'), 'green'),
+                            ((u'reg', u'war'), 'yellow'),
+                            ((u'reg', u'waw'), 'orange'),
+                            ((u'ra', u'raw'), 'turquoise'),
+                            ((u'ra', u'war'), 'cornflower blue'),
+                            ((u'ra', u'waw'), 'cadet blue'),
+                            ((u'mem', u'raw'), 'salmon'),
+                            ((u'mem', u'war'), 'red'),
+                            ((u'mem', u'waw'), 'purple'),
+                            ((u'op', u'unknown'), 'sea green'),
+                            ((u'fu', u'unknown'), 'sky blue'),
+                            ((u'op', u'trg'), 'brown'),
+                            ]:
+            label = dependence_label(dep)
+            b = wx.Button(buttons_panel, label="%s(%s)" % (label, self.statistics_[dep]))
+            b.SetBackgroundColour(colour)
+            self.source_buttons_.append((b, dep))
+            bind_dependence_button_callback(b, dep, label, show_source=True)
+            sources_row_sizer.Add(b, flag=wx.EXPAND)
+            b = wx.Button(buttons_panel, label="%s(%s)" % (label, self.statistics_[dep]))
+            b.SetBackgroundColour(colour)
+            self.sink_buttons_.append((b, dep))
+            bind_dependence_button_callback(b, dep, label, show_sink=True)
+            sinks_row_sizer.Add(b, flag=wx.EXPAND)
+            self.dependence_colour_[dep] = colour
+
+        buttons_sizer.Add(sources_row_sizer)
+        buttons_sizer.Add(sinks_row_sizer)
+        buttons_panel.SetSizer(buttons_sizer)
+        buttons_panel.SetAutoLayout(1)
+        buttons_panel.SetupScrolling(scroll_y=False)
+        buttons_panel.Fit()
+        self.top_sizer_.Add(buttons_panel, proportion=0, flag=wx.EXPAND)
+
+        self.cursor_instruction_ = wx.TextCtrl(self, -1)
+        self.selected_instruction_ = wx.TextCtrl(self, -1)
+        self.top_sizer_.Add(self.cursor_instruction_, proportion=0, flag=wx.EXPAND)
+        self.top_sizer_.Add(self.selected_instruction_, proportion=0, flag=wx.EXPAND)
+
+        self.grid_panel_ = wx.Panel(self, -1, name="filler")
+        self.top_sizer_.Add(self.grid_panel_, flag=wx.EXPAND, proportion=1)
+
+        search_ctrl = wx.SearchCtrl(self, -1, style=wx.TE_PROCESS_ENTER)
+        bind_search_callback(search_ctrl)
+        self.top_sizer_.Add(search_ctrl, flag=wx.EXPAND | wx.ALIGN_BOTTOM)
+
+	self.SetSizer(self.top_sizer_)
+
+        self.statusbar_ = self.CreateStatusBar(2)
+        self.SetStatusFields(["0 incoming dependences",
+                              "0 outgoing dependences"])
+
+        if schedule_file:
+            self.grid_setup(schedule_file)
+            
+	self.Layout()
+
+    def update_button_labels(self):
+        for b, dep in self.source_buttons_:
+            b.SetLabel("%s(%s)" % (dependence_label(dep), self.statistics_[dep]))
+        for b, dep in self.sink_buttons_:
+            b.SetLabel("%s(%s)" % (dependence_label(dep), self.statistics_[dep]))
+        self.Layout()
+            
+
+    def grid_setup(self, schedule_file):
+        self.GetTopLevelParent().SetTitle(schedule_file)
+        for child in self.grid_panel_.GetChildren():
+            child.Destroy()
+            
+        parser = XMLScheduleParser()
+        schedule, deps, reverse_deps, labels, statistics = parser.parse(schedule_file)
+        self.statistics_ = statistics
+        self.grid_ = ScheduleBrowsingGrid(self.grid_panel_, schedule, deps, reverse_deps, labels,
+                                          self.dependence_colour_, self.selected_instruction_,
+                                          self.cursor_instruction_)
+        s = wx.BoxSizer(wx.VERTICAL)
+        s.Add(self.grid_, flag=wx.EXPAND, proportion=1)
+        self.grid_panel_.SetSizer(s)
+        self.update_button_labels()
+
+        menubar = self.GetMenuBar()
+        menubar.FindItemById(self.RESOURCE_CONSTRAINED_MENU_ITEM_ID).Enable()
+        self.Layout()
+
+    def help_setup(self):
+        self.help_frame_ = wx.Frame(self, -1, "Schedule browser help")
+        html = wx.html.HtmlWindow(self.help_frame_, -1)
+        html.SetPage(html_help)
+
+    def menu_setup(self):
+        menubar = wx.MenuBar()
+
+        file_menu = wx.Menu()
+        menubar.Append(file_menu, "&File")
+        open_item = file_menu.Append(-1, "&Open")
+        exit_item = file_menu.Append(-1, "&Exit")
+
+        schedule_menu = wx.Menu()
+        menubar.Append(schedule_menu, "&Schedule")
+        resource_constrained_item = schedule_menu.Append(self.RESOURCE_CONSTRAINED_MENU_ITEM_ID,
+                                                         "&Show resource constrained moves")
+        resource_constrained_item.Enable(False)
+
+        help_menu = wx.Menu()
+        menubar.Append(help_menu, "&Help")
+        help_item = help_menu.Append(-1, "&Help")
+        about_item = help_menu.Append(-1, "&About")
+        
+        self.SetMenuBar(menubar)
+        self.Bind(wx.EVT_MENU, self.on_menu_open, open_item)
+        self.Bind(wx.EVT_MENU, self.on_menu_exit, exit_item)
+        self.Bind(wx.EVT_MENU, self.on_resource_constrained_moves, resource_constrained_item)
+        self.Bind(wx.EVT_MENU, self.on_help, help_item)
+        self.Bind(wx.EVT_MENU, self.on_about, about_item)
+
+    def on_menu_open(self, event):
+        dialog = wx.FileDialog(self,
+                               "Choose a schedule dump file.",
+                               wildcard="*after_scheduling.xml",
+                               style=wx.FD_FILE_MUST_EXIST)
+        if dialog.ShowModal() == wx.ID_OK:
+            self.grid_setup(dialog.GetPath())
+
+    def on_menu_exit(self, event):
+        self.Close(True)
+
+    def on_resource_constrained_moves(self, event):
+        if self.grid_:
+            self.grid_.highlight_resource_constrained_cells()
+
+    def on_help(self, event):
+        self.help_setup()
+        self.help_frame_.Show()
+
+    def on_about(self, event):
+        info = wx.AboutDialogInfo()
+        info.SetName("TCE Schedule Browser")
+        info.SetDescription("Tool for browsing code "
+                            "scheduled by the TCE compiler.")
+        info.AddDeveloper("Pertti Kellomaki")
+
+        wx.AboutBox(info);
+
+
+    def SetStatusFields(self, fields):
+        i = 0
+        for f in fields:
+            self.SetStatusText(f, i)
+            i += 1
+
+if __name__ == '__main__':
+    app = wx.PySimpleApp()
+    if len(sys.argv) == 1:
+        frame = BrowserFrame(None, sys.stdout)
+    elif len(sys.argv) == 2:
+        frame = BrowserFrame(None, sys.stdout, schedule_file=sys.argv[1])
+    else:
+        print "Usage: ScheduleBrowser [file.xml]"
+        exit(1)
+    frame.Show(True)
+    app.MainLoop()

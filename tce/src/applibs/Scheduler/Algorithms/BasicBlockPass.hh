@@ -36,9 +36,9 @@
 #include "NullMachine.hh"
 #include "Exception.hh"
 #include "SchedulerPass.hh"
+#include "DataDependenceGraph.hh"
 
 class DDGPass;
-class DataDependenceGraph;
 class SimpleResourceManager;
 
 class BasicBlock;
@@ -64,7 +64,9 @@ public:
         const TTAMachine::Machine& targetMachine, 
         DDGPass& ddgPass)
         throw (Exception);
+
 protected:
+
     virtual DataDependenceGraph* createDDGFromBB(BasicBlock& bb);
     virtual void deleteRM(SimpleResourceManager* rm, BasicBlock& bb);
     virtual void copyRMToBB(

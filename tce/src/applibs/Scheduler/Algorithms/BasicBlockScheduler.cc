@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -56,6 +56,7 @@
 #include "SchedulerPass.hh"
 #include "CycleLookBackSoftwareBypasser.hh"
 #include "CopyingDelaySlotFiller.hh"
+#include "LLVMTCECmdLineOptions.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
@@ -79,6 +80,9 @@ BasicBlockScheduler::BasicBlockScheduler(
     ProgramPass(data), DDGPass(data), ddg_(NULL), bigDDG_(NULL), rm_(NULL),
     softwareBypasser_(bypasser), delaySlotFiller_(delaySlotFiller),
     bypassedCount_(0), deadResults_(0) {
+
+    CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
+    options_ = dynamic_cast<LLVMTCECmdLineOptions*>(cmdLineOptions);
 }
 
 /**
@@ -105,18 +109,21 @@ BasicBlockScheduler::handleDDG(
     ddg_ = &ddg;
     targetMachine_ = &targetMachine;
 
-#ifdef DDG_SNAPSHOTS
-    static int bbCounter = 0;
-    ddg.writeToDotFile(
-        (boost::format("bb_%s_0_before_scheduling.dot") % ddg.name()).str());
-    Application::logStream() << "\nBB " << bbCounter << std::endl;
-#endif
+    if (options_ != NULL && options_->dumpDDGsDot()) {
+        ddgSnapshot(
+            ddg, std::string("0"), DataDependenceGraph::DUMP_DOT, false);
+    }
+
+    if (options_ != NULL && options_->dumpDDGsXML()) {
+        ddgSnapshot(
+            ddg, std::string("0"), DataDependenceGraph::DUMP_XML, false);
+    }
     
     scheduledTempMoves_.clear();
 
     // empty need not to be scheduled
-    if ( ddg.nodeCount() == 0 || 
-         (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
+    if (ddg.nodeCount() == 0 || 
+        (ddg.nodeCount() == 1 && !ddg.node(0).isMove())) {
         return;
     }
 
@@ -169,13 +176,17 @@ BasicBlockScheduler::handleDDG(
         ddg.writeToDotFile("failed_bb.dot");
         abortWithError("Should not happen!");
     }
-#ifdef DDG_SNAPSHOTS
-    ddg.writeToDotFile(
-        (boost::format("bb_%s_0_after_scheduling.dot") % ddg.name()).str());
-    Application::logStream() << "\nBB " << bbCounter << std::endl;
-    bbCounter++;
-#endif
+
+    if (options_ != NULL && options_->dumpDDGsDot()) {
+        std::string wtf = "0";
+        ddgSnapshot(
+            ddg, wtf, DataDependenceGraph::DUMP_DOT, true);
+    }
     
+    if (options_ != NULL && options_->dumpDDGsXML()) {
+        ddgSnapshot(
+            ddg, std::string("0"), DataDependenceGraph::DUMP_XML, true);
+    }
 }
 
 /**
@@ -979,6 +990,55 @@ BasicBlockScheduler::scheduleInputOperandTempMoves(MoveNode& operandMove, MoveNo
     scheduledTempMoves_[&operandWrite].insert(tempMove);
 }
 
+/** 
+ * Prints DDG to a dot file before and after scheudling
+ * 
+ * @param ddg to print
+ * @param name operation name for ddg
+ * @param final specify if ddg is after scheduling
+ * @param resetCounter
+ * @param format format of the file
+ * @return number of cycles/instructions copied.
+ */
+void
+BasicBlockScheduler::ddgSnapshot(
+        DataDependenceGraph& ddg,
+        const std::string& name,
+        DataDependenceGraph::DumpFileFormat format,
+        bool final,
+        bool resetCounter) const {
+
+    static int bbCounter = 0;
+
+    if (resetCounter) {
+        bbCounter = 0;
+    }
+
+    if (final) {
+        if (format == DataDependenceGraph::DUMP_DOT) {
+            ddg.writeToDotFile(
+                (boost::format("bb_%s_%s_after_scheduling.dot") % 
+                 ddg_->name() % name).str());
+        } else {
+            ddg.writeToXMLFile(
+                (boost::format("bb_%s_%s_after_scheduling.xml") %
+                 ddg_->name() % name).str());
+        }
+        
+    } else {
+        if (format == DataDependenceGraph::DUMP_DOT) {
+            ddg.writeToDotFile(
+                (boost::format("bb_%s_%d_%s_before_scheduling.dot")
+                 % ddg.name() % bbCounter % name).str());
+        } else {
+            ddg.writeToXMLFile(
+                (boost::format("bb_%s_%d_%s_before_scheduling.xml")
+                 % ddg.name() % bbCounter % name).str());
+        }
+    }
+    ++bbCounter;
+}
+
 /**
  * Finds the temp move succeeding the given movenode.
  *
@@ -1162,10 +1222,18 @@ BasicBlockScheduler::handleProcedure(
     DataDependenceGraphBuilder ddgBuilder(BasicBlockPass::interPassData());
 
     bigDDG_ = ddgBuilder.build(cfg);
+    if (options_ != NULL && options_->dumpDDGsDot()) {
+        bigDDG_->writeToDotFile( 
+            (boost::format("proc_%s_before_scheduling.dot") % 
+             bigDDG_->name()).str());
+    }    
 
-#ifdef BIG_DDG_SNAPSHOTS
-    bigDDG_->writeToDotFile(bigDDG_->name() + "_ddg.dot");
-#endif
+    if (options_ != NULL && options_->dumpDDGsXML()) {
+        bigDDG_->writeToXMLFile( 
+            (boost::format("proc_%s_before_scheduling.xml") % 
+                bigDDG_->name()).str());
+    }
+
     UniversalMachine um;
 
     handleControlFlowGraph(cfg, targetMachine);
@@ -1180,6 +1248,17 @@ BasicBlockScheduler::handleProcedure(
 
     copyCfgToProcedure(procedure, cfg);
 
+    if (options_ != NULL && options_->dumpDDGsDot()) {
+        bigDDG_->writeToDotFile(
+            (boost::format("proc_%s_after_scheduling.dot") % bigDDG_->name())
+            .str());
+    } 
+
+    if (options_ != NULL && options_->dumpDDGsXML()) {
+        bigDDG_->writeToXMLFile(
+            (boost::format("proc_%s_after_scheduling.xml") % bigDDG_->name())
+            .str());
+    } 
     delete bigDDG_;
 }
 
