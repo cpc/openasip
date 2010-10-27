@@ -38,14 +38,22 @@ namespace llvm {
 char LLVMTCEDDGBuilder::ID = 0;
 
 bool
-LLVMTCEDDGBuilder::runOnMachineFunction(MachineFunction& /*tm*/) {
+LLVMTCEDDGBuilder::runOnMachineFunction(MachineFunction& mf) {
     
-    // TODO: implement me
+    std::cerr << __func__ << " called" << std::endl;   
+    for (llvm::MachineFunction::const_iterator bbi = mf.begin(); 
+         bbi != mf.end(); ++bbi) {
+        const llvm::MachineBasicBlock& bb = *bbi;
+        for (llvm::MachineBasicBlock::const_iterator ii = bb.begin(); 
+             ii != bb.end(); ++ii) {
+            const llvm::MachineInstr& i = *ii;
+            i.dump();
+        }
+    }
     return true;
 }
 
-extern "C" MachineFunctionPass* createLLVMTCEDDGBuilderPass(
-    TargetMachine& tm) {
+extern "C" MachineFunctionPass* createLLVMTCEDDGBuilderPass() {
     return new llvm::LLVMTCEDDGBuilder();
 }
 

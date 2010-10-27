@@ -53,8 +53,7 @@
 
 namespace llvm {
 
-    extern "C" MachineFunctionPass* createLLVMTCEDDGBuilderPass(
-        TargetMachine& tm);
+    extern "C" MachineFunctionPass* createLLVMTCEDDGBuilderPass();
 
     class LLVMTCEDDGBuilder : public MachineFunctionPass {
     public:

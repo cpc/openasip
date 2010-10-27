@@ -1,14 +1,17 @@
 SUBDIRS = passes
 
-noinst_LTLIBRARIES = libtcellvmbackend.la
+noinst_LTLIBRARIES = libtcellvmbackend.la 
+pkglib_LTLIBRARIES = LLVMTCEDDGBuilder.la
 
 libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
     TCETargetMachine.cc TCEMCAsmInfo.cc  LLVMPOMBuilder.cc \
 	LLVMBackend.cc LowerMissingInstructions.cc TDGen.cc \
 	passes/LinkBitcode.cc passes/MachineDCE.cc passes/LowerIntrinsics.cc \
 	LLVMTCECmdLineOptions.cc TCETargetSelectionDAGInfo.cc \
-	passes/RegAllocLinearScanILP.cc \
-	LLVMTCEDDGBuilder.cc
+	passes/RegAllocLinearScanILP.cc 
+
+LLVMTCEDDGBuilder_la_SOURCES = LLVMTCEDDGBuilder.cc LLVMTCEDDGBuilder.hh
+LLVMTCEDDGBuilder_la_LDFLAGS = -module
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT = ${PROJECT_ROOT}/src
