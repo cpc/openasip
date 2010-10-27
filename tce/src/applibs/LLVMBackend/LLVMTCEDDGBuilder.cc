@@ -38,7 +38,10 @@ namespace llvm {
 char LLVMTCEDDGBuilder::ID = 0;
 
 bool
-LLVMTCEDDGBuilder::runOnMachineFunction(MachineFunction& tm) {
+LLVMTCEDDGBuilder::runOnMachineFunction(MachineFunction& /*tm*/) {
+    
+    // TODO: implement me
+    return true;
 }
 
 extern "C" MachineFunctionPass* createLLVMTCEDDGBuilderPass(
