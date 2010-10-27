@@ -48,7 +48,7 @@ int call_ints(int a, int b, int c, int d, int e, int f,
 	      )  {
    
    iprintf("call_ints(%d, %d, %d, %d, %d, %d,%d, %d, %d, %d, %d,%d, %d, %d, %d, %d,%d, %d, %d, %d, %d)",
-	  a,b,c,d,e,f,g,h,j,i,k,l,m,n,o,p,q,e,r,s,t,u,v,w,x);
+	  a,b,c,d,e,f,g,h,j,i,k,l,m,n,o,p,q,e,r,s,t);
    
    return a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x;
 }
@@ -72,7 +72,7 @@ short call_shorts(short a, short b, short c, short d, short e, short f,
 	      )  {
    
    iprintf("call_shorts(%d, %d, %d, %d, %d, %d,%d, %d, %d, %d, %d,%d, %d, %d, %d, %d,%d, %d, %d, %d, %d)",
-	  a,b,c,d,e,f,g,h,j,i,k,l,m,n,o,p,q,e,r,s,t,u,v,w,x);
+	  a,b,c,d,e,f,g,h,j,i,k,l,m,n,o,p,q,e,r,s,t);
    
    return a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x;
 }
@@ -95,7 +95,7 @@ char call_chars(char a, char b, char c, char d, char e, char f,
 	      )  {
    
    iprintf("call_chars(%d, %d, %d, %d, %d, %d,%d, %d, %d, %d, %d,%d, %d, %d, %d, %d,%d, %d, %d, %d, %d)",
-	  a,b,c,d,e,f,g,h,j,i,k,l,m,n,o,p,q,e,r,s,t,u,v,w,x);
+	  a,b,c,d,e,f,g,h,j,i,k,l,m,n,o,p,q,e,r,s,t);
    
    return a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x;
 }
@@ -107,8 +107,8 @@ int call_mixed(long a, char b, int c, unsigned int d, short e,
 	       int v, int w, char x, long y, long z
 	      )  {
    
-   iprintf("call_mixed(%d, %d, %d, %d, %d, %d,%d, %d, %d, %d, %d,%d, %d, %d, %d, %d,%d, %d, %d, %d, %d, %d, %d)",
-	  a,b,c,d,e,f,g,h,j,i,k,l,m,n,o,p,q,e,r,s,t,u,v,w,x,y,z);
+   iprintf("call_mixed(%ld, %d, %d, %d, %d, %d,%ld, %d, %d, %ld, %d,%d, %d, %d, %d, %d,%d, %d, %d, %d, %d, %d, %d)",
+           a,b,c,d,e,f,g,h,j,i,k,l,m,n,o,p,q,e,r,s,t,u,v);
    
    return a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z;
 }
