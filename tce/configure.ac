@@ -463,7 +463,8 @@ Please refer to INSTALL for instructions on how to do this correctly.
 	fi
    ;;
      *svn)
-     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn")
+     AC_DEFINE([LLVM_SVN], [], "Using LLVM svn (upcoming 2.9)")     
+     AC_DEFINE([LLVM_2_9], [], "Using LLVM 2.9")
    ;;   
      *)
    AC_MSG_NOTICE(

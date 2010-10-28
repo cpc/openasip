@@ -116,24 +116,25 @@ namespace llvm {
         // we had to actually override also addPassesToEmitFile
         // because addCommonCodeGenPasses was not virtual...
 
-//#ifdef LLVM_2_7
+#ifndef LLVM_2_9
         // for LLVM 2.8 and later, use the default one
         virtual bool addPassesToEmitFile(PassManagerBase &,
 					 formatted_raw_ostream &,
 					 CodeGenFileType,
 					 CodeGenOpt::Level);
-//#endif
-
-#ifdef LLVM_2_7
-        bool addCommonCodeGenPasses(PassManagerBase &PM,
-                                    CodeGenOpt::Level OptLevel);
-#else
-	bool addCommonCodeGenPasses(PassManagerBase &PM,
-				    CodeGenOpt::Level OptLevel,
-				    bool DisableVerify,
-				    MCContext *&OutContext);
 #endif
 
+#if defined(LLVM_2_7)
+        bool addCommonCodeGenPasses(PassManagerBase &PM,
+                                    CodeGenOpt::Level OptLevel);
+#elif defined(LLVM_2_8)
+        bool addCommonCodeGenPasses(PassManagerBase &PM,
+                                    CodeGenOpt::Level OptLevel,
+                                    bool DisableVerify,
+                                    MCContext *&OutContext);
+#else
+        // use the default addCommonCodeGenPasses()
+#endif
         
         // ------------- end of duplicated methods ------------
 

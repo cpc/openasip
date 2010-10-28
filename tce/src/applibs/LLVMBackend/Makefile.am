@@ -1,7 +1,7 @@
 SUBDIRS = passes
 
 noinst_LTLIBRARIES = libtcellvmbackend.la 
-pkglib_LTLIBRARIES = LLVMTCEDDGBuilder.la
+pkglib_LTLIBRARIES = LLVMTCEDDGBuilder.la LLVMTCEPOMBuilder.la
 
 libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
     TCETargetMachine.cc TCEMCAsmInfo.cc  LLVMPOMBuilder.cc \
@@ -10,12 +10,16 @@ libtcellvmbackend_la_SOURCES = TCESubtarget.cc  \
 	LLVMTCECmdLineOptions.cc TCETargetSelectionDAGInfo.cc \
 	passes/RegAllocLinearScanILP.cc 
 
+TOOLS_DIR = ${SRC_ROOT}/tools
+
 LLVMTCEDDGBuilder_la_SOURCES = LLVMTCEDDGBuilder.cc LLVMTCEDDGBuilder.hh
 LLVMTCEDDGBuilder_la_LDFLAGS = -module
 
+LLVMTCEPOMBuilder_la_SOURCES = LLVMTCEPOMBuilder.cc LLVMTCEPOMBuilder.hh
+LLVMTCEPOMBuilder_la_LDFLAGS = -module
+
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT = ${PROJECT_ROOT}/src
-TOOLS_DIR = ${SRC_ROOT}/tools
 MACH_DIR = ${SRC_ROOT}/base/mach
 PROG_DIR = ${SRC_ROOT}/base/program
 TPEF_DIR  = ${SRC_ROOT}/base/tpef

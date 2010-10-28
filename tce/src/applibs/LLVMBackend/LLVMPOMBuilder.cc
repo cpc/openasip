@@ -83,7 +83,6 @@
 #include <llvm/Target/TargetLowering.h>
 #include <llvm/Support/Debug.h>
 #include <llvm/Target/TargetInstrDesc.h>
-#include <llvm/Support/PluginLoader.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Analysis/DebugInfo.h>
 #include <llvm/MC/MCContext.h>

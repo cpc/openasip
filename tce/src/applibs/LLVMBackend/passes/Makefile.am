@@ -1,7 +1,7 @@
 pkglib_LTLIBRARIES = LowerIntrinsics.la LinkBitcode.la MachineDCE.la
 
 LowerIntrinsics_la_SOURCES = LowerIntrinsics.cc 
-LowerIntrinsics_la_LDFLAGS = -module ${LLVM_LDFLAGS} -lLLVMCodeGen
+LowerIntrinsics_la_LDFLAGS = -module 
 
 LinkBitcode_la_SOURCES = LinkBitcode.cc 
 LinkBitcode_la_LDFLAGS = -module

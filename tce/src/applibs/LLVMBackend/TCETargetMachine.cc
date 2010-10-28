@@ -261,6 +261,12 @@ namespace llvm {
   bool EnableFastISel;
 }
 
+// let's start cleaning this file in LLVM_2_9 (and drop support for 2.8 and
+// previous. These cause errors when libtce loaded with llc --load as they
+// are already in LLVMTargetMachine.cc, thus shouldn't be here
+#if !defined(LLVM_2_9)
+
+// These are multiply defined. Why they are here? A copy paste leftover?
 static cl::opt<bool> DisablePostRA("disable-post-ra", cl::Hidden,
     cl::desc("Disable Post Regalloc"));
 static cl::opt<bool> DisableBranchFold("disable-branch-fold", cl::Hidden,
@@ -296,6 +302,10 @@ static cl::opt<cl::boolOrDefault>
 EnableFastISelOption("fast-isel", cl::Hidden,
   cl::desc("Enable the \"fast\" instruction selector"));
 
+#endif
+
+#if !defined(LLVM_2_9)
+
 static void printAndVerify(PassManagerBase &PM,
                            const char *Banner,
                            bool allowDoubleDefs = false) {
@@ -310,8 +320,9 @@ static void printAndVerify(PassManagerBase &PM,
 #endif
 }
 
+#endif
 
-
+#if !defined(LLVM_2_9)
 //#ifdef LLVM_2_7
 //FileModel::Model
 bool
@@ -379,9 +390,10 @@ TCETargetMachine::addPassesToEmitFile(PassManagerBase &PM,
 
   return true;
 }
-//#endif
+#endif
 
-#ifdef LLVM_2_7
+#if defined(LLVM_2_7)
+
 bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
                                                CodeGenOpt::Level OptLevel) {
   // Standard LLVM-Level Passes.
@@ -520,7 +532,7 @@ bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
   return false;
 }
 
-#else // LLVM 2.8svn
+#elif defined(LLVM_2_8)
 
 
 /// addCommonCodeGenPasses - Add standard LLVM codegen passes used for both
@@ -734,4 +746,6 @@ bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
 
   return false;
 }
+#elif defined(LLVM_2_9)
+// use LLVMTargetMachine:::addCommonCodeGenPasses()
 #endif

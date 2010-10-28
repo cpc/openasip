@@ -78,17 +78,17 @@ STATISTIC(NumCoalesce,   "Number of copies coalesced");
 STATISTIC(NumDowngrade,  "Number of registers downgraded");
 
 static cl::opt<bool>
-NewHeuristic("new-spilling-heuristic",
+NewHeuristic("ilpra-new-spilling-heuristic",
              cl::desc("Use new spilling heuristic"),
              cl::init(false), cl::Hidden);
 
 static cl::opt<bool>
-PreSplitIntervals("pre-alloc-split",
+PreSplitIntervals("ilpra-pre-alloc-split",
                   cl::desc("Pre-register allocation live interval splitting"),
                   cl::init(false), cl::Hidden);
 
 static cl::opt<bool>
-TrivCoalesceEnds("trivial-coalesce-ends",
+TrivCoalesceEnds("ilpra-trivial-coalesce-ends",
                   cl::desc("Attempt trivial coalescing of interval ends"),
                   cl::init(false), cl::Hidden);
 #if 0
@@ -115,7 +115,7 @@ namespace {
   // different register classes. So on x86-64, if there is xmm register
   // pressure, it can caused fewer GPRs to be held in the queue.
   static cl::opt<unsigned>
-  NumRecentlyUsedRegs("linearscan-skip-count",
+  NumRecentlyUsedRegs("ilpra-linearscan-skip-count",
                       cl::desc("Number of registers for linearscan to remember to skip."),
                       cl::init(0),
                       cl::Hidden);
