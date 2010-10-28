@@ -49,21 +49,19 @@
 
 #include "Exception.hh"
 #include "BaseType.hh"
-#include "passes/MachineDCE.hh"
+#include "LLVMPOMBuilder.hh"
 
 namespace llvm {
 
     extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass();
 
-    class LLVMTCEPOMBuilder : public MachineFunctionPass {
+    class LLVMTCEPOMBuilder : public LLVMPOMBuilder {
     public:
         static char ID;
-        LLVMTCEPOMBuilder() : MachineFunctionPass(ID) {
-            std::cerr << "LLVMTCEPOMBuilder constructed" << std::endl;
-        }
+        LLVMTCEPOMBuilder();
         virtual ~LLVMTCEPOMBuilder() {}
 
-        virtual bool runOnMachineFunction(MachineFunction& tm);
+//        virtual bool runOnMachineFunction(MachineFunction& tm);
     };
 }
 

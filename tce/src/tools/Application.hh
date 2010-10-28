@@ -68,10 +68,14 @@
     Application::abortProgram();
 
 // provide a TCE version of assert macro for error logging
+#ifdef NDEBUG
+#define assert(condition)
+#else
 #define assert(condition) \
     if (!(condition)) { \
         abortWithError("Assertion failed: " #condition); \
     }
+#endif
 
 // provide an easy way to "debug print"
 #define debugLog(text) \

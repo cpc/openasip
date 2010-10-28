@@ -47,8 +47,9 @@
 
 #include "Exception.hh"
 #include "BaseType.hh"
-
+#include "TCEString.hh"
 #include "passes/MachineDCE.hh"
+#include "TCETargetMachine.hh"
 
 namespace TTAProgram {
     class Program;
@@ -85,9 +86,11 @@ namespace llvm {
 
     public:
         static char ID; // Pass identification, replacement for typeid
-        
+
+        LLVMPOMBuilder(char& ID);
+
         LLVMPOMBuilder(
-            TCETargetMachine& tm,
+            TargetMachine& tm,
             TTAMachine::Machine* mach);
 
         virtual ~LLVMPOMBuilder();
@@ -124,6 +127,49 @@ namespace llvm {
 
         bool writeMachineFunction(MachineFunction &MF);
 
+        /* Methods used for overriding TTA backend-specific behavior.
+
+           Two backends are supported by this base class
+           1) The old LLVM backend (mainly by Veli-Pekka J‰‰skel‰inen).
+           
+           This is the default implementation (for now).
+
+           2) The new LLVM TTA backend (mainly by Carlos S·nchez de La Lama).
+
+           Implemented in LLVMTCEPOMBuilder.cc
+        */
+        // the stack pointer register's llvm reg number
+        virtual unsigned spDRegNum() const { 
+            return dynamic_cast<const TCETargetMachine*>(tm_)->spDRegNum(); 
+        }
+
+        // the return address register's llvm reg number
+        virtual unsigned raPortDRegNum() const { 
+            return dynamic_cast<const TCETargetMachine*>(tm_)->
+                raPortDRegNum(); 
+        }
+
+        // the ADF register file name of the llvm reg number
+        virtual TCEString registerFileName(unsigned llvmRegNum) const { 
+            return dynamic_cast<const TCETargetMachine*>(tm_)->
+                rfName(llvmRegNum); 
+        }
+
+        // the ADF register index of the llvm reg number
+        virtual int registerIndex(unsigned llvmRegNum) const {
+            return dynamic_cast<const TCETargetMachine*>(tm_)->
+                registerIndex(llvmRegNum); 
+        }
+
+        // OSAL operation name from a LLVM MachineInstr
+        virtual TCEString operationName(const MachineInstr& mi) const {
+            return dynamic_cast<const TCETargetMachine*>(tm_)->
+                operationName(mi.getDesc().getOpcode());
+        }
+
+        /// Machine for building the program.
+        TTAMachine::Machine* mach_;
+
     private:
 
         struct DataDef {
@@ -134,6 +180,8 @@ namespace llvm {
             unsigned size;
             bool initialize;
         };
+        void initMembers();
+        void initDataSections();
 
         void emitDataDef(const DataDef& def);
 
@@ -233,9 +281,7 @@ namespace llvm {
         llvm::Module* mod_;
 
         /// Target machine description.
-        llvm::TCETargetMachine& tm_;
-        /// Machine for building the program.
-        TTAMachine::Machine* mach_;
+        const llvm::TargetMachine* tm_;
         /// Univeral machine for building the program.
         UniversalMachine* umach_;
 
@@ -297,6 +343,8 @@ namespace llvm {
         std::vector<MachineFunction*> functions_;
 
         int spillMoveCount_;
+
+        bool dataInitialized_;
     };
 }
 #endif

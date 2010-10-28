@@ -147,14 +147,14 @@ namespace llvm {
         // we do not want branch folder pass
         virtual bool getEnableTailMergeDefault() const;
 
-        std::string operationName(unsigned opc) {
+        std::string operationName(unsigned opc) const {
             return plugin_->operationName(opc);
         }
 
-        std::string rfName(unsigned dwarfRegNum) {
+        std::string rfName(unsigned dwarfRegNum) const {
             return plugin_->rfName(dwarfRegNum);
         }
-        unsigned registerIndex(unsigned dwarfRegNum) {
+        unsigned registerIndex(unsigned dwarfRegNum) const {
             return plugin_->registerIndex(dwarfRegNum);
         }
 
@@ -164,13 +164,13 @@ namespace llvm {
             return plugin_->dataASName();
         }
 
-        unsigned raPortDRegNum() {
+        unsigned raPortDRegNum() const {
             return plugin_->raPortDRegNum();
         }
 
         void loadPlugin();
 
-        unsigned spDRegNum() {
+        unsigned spDRegNum() const {
             return plugin_->spDRegNum();
         }
 

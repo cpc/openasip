@@ -34,16 +34,23 @@
 #include <iostream>
 #include <string>
 
+#include "Machine.hh"
 #include "TCEString.hh"
 
 namespace llvm {
 
 char LLVMTCEPOMBuilder::ID = 0;
 
+LLVMTCEPOMBuilder::LLVMTCEPOMBuilder() : LLVMPOMBuilder(ID) {
+    std::cerr << "LLVMTCEPOMBuilder constructed" << std::endl;
+    mach_ = TTAMachine::Machine::loadFromADF("tta/4bus_minimal.adf");
+}
+
+
+#if 0    
 bool
 LLVMTCEPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
-    
-    std::cerr << __func__ << " called" << std::endl;   
+
     for (llvm::MachineFunction::const_iterator bbi = mf.begin(); 
          bbi != mf.end(); ++bbi) {
         const llvm::MachineBasicBlock& bb = *bbi;
@@ -79,6 +86,7 @@ LLVMTCEPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
     }
     return true;
 }
+#endif
 
 extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass() {
     return new llvm::LLVMTCEPOMBuilder();

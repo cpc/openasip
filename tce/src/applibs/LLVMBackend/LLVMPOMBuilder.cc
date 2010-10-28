@@ -113,17 +113,42 @@ char LLVMPOMBuilder::ID = 0;
  * @param tm Target machine description.
  */
 LLVMPOMBuilder::LLVMPOMBuilder(
-    TCETargetMachine& tm,
-    TTAMachine::Machine* mach):
+    TargetMachine& tm,
+    TTAMachine::Machine* mach) :
 #ifdef LLVM_2_7
-    MachineFunctionPass(this),
+    MachineFunctionPass(this)
 #else
-    MachineFunctionPass(ID),
+    MachineFunctionPass(ID)
 #endif
-    mod_(NULL), tm_(tm), mach_(mach), umach_(NULL), prog_(NULL),
-    mang_(NULL), dmem_(NULL), end_(0), programReady_(false),
-    noAliasFound_(false), multiAddrSpacesFound_(false),
-    spillMoveCount_(0) {
+{
+    initMembers();
+    tm_ = &tm;
+    mach_ = mach;
+}
+
+/**
+ * The derived builders should use this constructor with their own
+ * pass ID.
+ */
+LLVMPOMBuilder::LLVMPOMBuilder(char& ID) : MachineFunctionPass(ID) {
+    initMembers();
+}
+
+void
+LLVMPOMBuilder::initMembers() {    
+    mod_ = NULL; 
+    tm_ = NULL; 
+    mach_ = NULL; 
+    umach_ = NULL; 
+    prog_ = NULL;
+    mang_ = NULL; 
+    dmem_ = NULL; 
+    end_ = 0;
+    programReady_ = false;
+    noAliasFound_ = false; 
+    multiAddrSpacesFound_ = false;
+    spillMoveCount_ = 0;
+    dataInitialized_ = false;
 }
 
 /**
@@ -141,20 +166,28 @@ LLVMPOMBuilder::~LLVMPOMBuilder() {
 }
 
 /**
- * Initializer creates a new POM and adds all global data initializations.
+ * Initializes the data sections of the POM.
  *
- * @param m Module to initialize the writer for.
+ * Can be called multiple times. Doesn't do anything after the first
+ * successful call.
  */
-bool
-LLVMPOMBuilder::doInitialization(Module& m) {
+void
+LLVMPOMBuilder::initDataSections() {
+
+    if (dataInitialized_) 
+        return;
+
+    dataInitialized_ = true;    
+
     assert(mach_ != NULL);
+    assert(tm_ != NULL);
+    assert(mod_ != NULL);
     
     if (prog_ != NULL) {
         delete prog_;
         prog_ = NULL;
     }
 
-    mod_ = &m;
 
     // List of supported operations.
     opset_.insert("jump");
@@ -206,12 +239,12 @@ LLVMPOMBuilder::doInitialization(Module& m) {
 
     prog_ = new TTAProgram::Program(*instrAddressSpace_);
 #ifdef LLVM_2_7
-    mang_ = new Mangler(*tm_.getMCAsmInfo()); // Use prefix _ for all value names.
+    mang_ = new Mangler(*tm_->getMCAsmInfo()); // Use prefix _ for all value names.
 #else
     // this doesn't look right, creating a MCContext just to get the
     // mangler initialized... --Pekka
-    MCContext* ctx = new MCContext(*tm_.getMCAsmInfo());
-    mang_ = new Mangler(*ctx, *tm_.getTargetData()); 
+    MCContext* ctx = new MCContext(*tm_->getMCAsmInfo());
+    mang_ = new Mangler(*ctx, *tm_->getTargetData()); 
 #endif
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);
     end_ = dmem_->addressSpace().start();
@@ -227,12 +260,12 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         end_ += 4;
     }
 
-    const TargetData* td = tm_.getTargetData();
+    const TargetData* td = tm_->getTargetData();
     TTAProgram::GlobalScope& gscope = prog_->globalScope();
 
     // Global variables.
-    for (Module::const_global_iterator i = m.global_begin();
-         i != m.global_end(); i++) {
+    for (Module::const_global_iterator i = mod_->global_begin();
+         i != mod_->global_end(); i++) {
 
         TCEString name = mang_->getNameWithPrefix(i);
         
@@ -331,6 +364,18 @@ LLVMPOMBuilder::doInitialization(Module& m) {
         gscope.addDataLabel(label);
         end_ += udata_[i].size;
     }
+}
+
+/**
+ * Initializer creates a new POM and adds all global data initializations.
+ *
+ * @param m Module to initialize the writer for.
+ */
+bool
+LLVMPOMBuilder::doInitialization(Module& m) {
+    mod_ = &m;
+    dataInitialized_ = false;
+
 
     return false;
 }
@@ -396,7 +441,7 @@ unsigned
 LLVMPOMBuilder::createDataDefinition(
     unsigned& addr, const Constant* cv) {
 
-    const TargetData* td = tm_.getTargetData();
+    const TargetData* td = tm_->getTargetData();
     unsigned sz = td->getTypeStoreSize(cv->getType());
     unsigned align = td->getABITypeAlignment(cv->getType());
 
@@ -478,7 +523,7 @@ void
 LLVMPOMBuilder::createIntDataDefinition(
     unsigned& addr, const ConstantInt* ci, bool isPointer) {
 
-    assert(addr % (tm_.getTargetData()->getABITypeAlignment(ci->getType()))
+    assert(addr % (tm_->getTargetData()->getABITypeAlignment(ci->getType()))
            == 0 && "Invalid alignment for constant int!");
 
     std::vector<MinimumAddressableUnit> maus;
@@ -523,14 +568,14 @@ void
 LLVMPOMBuilder::createFPDataDefinition(
     unsigned& addr, const ConstantFP* cfp) {
 
-    assert(addr % (tm_.getTargetData()->getABITypeAlignment(cfp->getType()))
+    assert(addr % (tm_->getTargetData()->getABITypeAlignment(cfp->getType()))
            == 0 && "Invalid alignment for constant fp!");
 
     TTAProgram::Address start(addr, *dataAddressSpace_);
     std::vector<MinimumAddressableUnit> maus;
 
     const Type* type = cfp->getType();
-    unsigned sz = tm_.getTargetData()->getTypeStoreSize(type);
+    unsigned sz = tm_->getTargetData()->getTypeStoreSize(type);
     TTAProgram::DataDefinition* def = NULL;
 
     if (type->getTypeID() == Type::DoubleTyID) {
@@ -584,7 +629,7 @@ LLVMPOMBuilder::createGlobalValueDataDefinition(
 
     const Type* type = gv->getType();
 
-    unsigned sz = tm_.getTargetData()->getTypeStoreSize(type);
+    unsigned sz = tm_->getTargetData()->getTypeStoreSize(type);
 
     assert(sz == POINTER_SIZE && "Unexpected pointer size!");
     std::string label = mang_->getNameWithPrefix(gv);
@@ -625,10 +670,10 @@ void
 LLVMPOMBuilder::createExprDataDefinition(
     unsigned& addr, const ConstantExpr* ce, int offset) {
 
-    assert(addr % (tm_.getTargetData()->getABITypeAlignment(ce->getType()))
+    assert(addr % (tm_->getTargetData()->getABITypeAlignment(ce->getType()))
            == 0 && "Invalid alignment for constant expr!");
 
-    const TargetData* td = tm_.getTargetData();
+    const TargetData* td = tm_->getTargetData();
 
     unsigned opcode = ce->getOpcode();
     if (opcode == Instruction::GetElementPtr) {
@@ -708,6 +753,14 @@ LLVMPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
  */
 bool
 LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
+
+    // the new TTA backend does not initialize TCETargetMachine
+    // in construction (at least not yet)
+    if (tm_ == NULL)
+        tm_ = &mf.getTarget();
+    // ensure data sections have been initialized
+    initDataSections();
+
     // omit empty functions..
     if (mf.begin() == mf.end()) return true;
 
@@ -937,7 +990,7 @@ LLVMPOMBuilder::emitInstruction(
     }
 
     unsigned opc = mi->getDesc().getOpcode();
-    std::string opName = tm_.operationName(opc);
+    std::string opName = operationName(*mi);
 
     // Pseudo instructions don't require any actual instructions.
     if (opName == "PSEUDO") {
@@ -1366,13 +1419,13 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
     if (mo.isReg()) {
         unsigned dRegNum = mo.getReg();
 
-        if (dRegNum == tm_.raPortDRegNum()) {
+        if (dRegNum == raPortDRegNum()) {
             return new TTAProgram::TerminalFUPort(
                 *umach_->controlUnit()->returnAddressPort());
         }
 
-        std::string rfName = tm_.rfName(dRegNum);
-        int idx = tm_.registerIndex(dRegNum);
+        std::string rfName = registerFileName(dRegNum);
+        int idx = registerIndex(dRegNum);
         if (!mach_->registerFileNavigator().hasItem(rfName)) {
             std::cerr << "regfile: " << rfName << " not found!" << "\n";
         }
@@ -1691,9 +1744,9 @@ LLVMPOMBuilder::isInitialized(const Constant* cv) {
 void
 LLVMPOMBuilder::emitSPInitialization() {
 
-    unsigned spDRN = tm_.spDRegNum();
-    std::string rfName = tm_.rfName(spDRN);
-    int idx = tm_.registerIndex(spDRN);
+    unsigned spDRN = spDRegNum();
+    std::string rfName = registerFileName(spDRN);
+    int idx = registerIndex(spDRN);
     assert(mach_->registerFileNavigator().hasItem(rfName));
     const RegisterFile* rf = mach_->registerFileNavigator().item(rfName);
     assert(idx >= 0 && idx < rf->size());
@@ -1939,10 +1992,10 @@ LLVMPOMBuilder::emitReadSP(
 
     // Get the stack pointer. It will be used as index into
     // the buffer.
-    unsigned spDRN = tm_.spDRegNum();
+    unsigned spDRN = spDRegNum();
     TCEString sp = (boost::format("%s.%d") %
-                    tm_.rfName(spDRN) %
-                    tm_.registerIndex(spDRN)).str();
+                    registerFileName(spDRN) %
+                    registerIndex(spDRN)).str();
 
     // We need to know where current procedure ends to
     // be able to return first generated instruction.
@@ -2042,10 +2095,10 @@ LLVMPOMBuilder::emitSetjmp(
 
     // Get the stack pointer. It will be used as index into
     // the buffer.
-    unsigned spDRN = tm_.spDRegNum();
+    unsigned spDRN = spDRegNum();
     TCEString sp = (boost::format("%s.%d") %
-                    tm_.rfName(spDRN) %
-                    tm_.registerIndex(spDRN)).str();
+                    registerFileName(spDRN) %
+                    registerIndex(spDRN)).str();
 
     // We need to know where current procedure ends to
     // be able to return first generated instruction.
@@ -2225,10 +2278,10 @@ LLVMPOMBuilder::emitLongjmp(
 
     // Get the stack pointer. It will be used as index into
     // the buffer.
-    unsigned spDRN = tm_.spDRegNum();
+    unsigned spDRN = spDRegNum();
     TCEString sp = (boost::format("%s.%d") %
-                    tm_.rfName(spDRN) %
-                    tm_.registerIndex(spDRN)).str();
+                    registerFileName(spDRN) %
+                    registerIndex(spDRN)).str();
 
     // We need to know where current procedure ends to
     // be able to return first generated instruction.
