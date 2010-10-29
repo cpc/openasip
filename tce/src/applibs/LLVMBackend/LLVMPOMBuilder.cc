@@ -107,6 +107,8 @@ unsigned LLVMPOMBuilder::POINTER_SIZE = 4; // Pointer size in maus.
 
 char LLVMPOMBuilder::ID = 0;
 
+//#define DEBUG_LLVMPOMBUILDER
+
 /**
  * The Constructor.
  *
@@ -375,8 +377,6 @@ bool
 LLVMPOMBuilder::doInitialization(Module& m) {
     mod_ = &m;
     dataInitialized_ = false;
-
-
     return false;
 }
 
@@ -790,6 +790,11 @@ LLVMPOMBuilder::writeMachineFunction(MachineFunction& mf) {
              j != i->end(); j++) {
 
             TTAProgram::Instruction* instr = NULL;
+#ifdef DEBUG_LLVMPOMBUILDER
+            std::cerr << "### converting: ";
+            j->dump();
+            std::cerr << std::endl;
+#endif
             instr = emitInstruction(j, proc);
 
             // Pseudo instructions:
@@ -1407,7 +1412,7 @@ LLVMPOMBuilder::debugDataToAnnotations(
 }
 
 /**
- * Creates a POM source terminal from a llvm machine operand.
+ * Creates a POM source terminal from an LLVM machine operand.
  *
  * @param mo LLVM machine operand.
  * @return POM terminal.
@@ -1418,11 +1423,18 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
     if (mo.isReg()) {
         unsigned dRegNum = mo.getReg();
 
+        // is it the RA register?
         if (dRegNum == raPortDRegNum()) {
             return new TTAProgram::TerminalFUPort(
                 *umach_->controlUnit()->returnAddressPort());
         }
 
+        // an FU port register?
+        TTAProgram::Terminal* term = createFUTerminal(mo);
+        if (term != NULL)
+            return term;
+
+        // a general purpose register?
         std::string rfName = registerFileName(dRegNum);
         int idx = registerIndex(dRegNum);
         if (!mach_->registerFileNavigator().hasItem(rfName)) {
@@ -1430,7 +1442,8 @@ LLVMPOMBuilder::createTerminal(const MachineOperand& mo) {
         }
 
         assert(mach_->registerFileNavigator().hasItem(rfName));
-        const RegisterFile* rf = mach_->registerFileNavigator().item(rfName);
+        const RegisterFile* rf = 
+            mach_->registerFileNavigator().item(rfName);
         assert(idx >= 0 && idx < rf->size());
         const RFPort* port = NULL;
         for (int i = 0; i < rf->portCount(); i++) {
@@ -1555,17 +1568,13 @@ LLVMPOMBuilder::emitConstantPool(const MachineConstantPool& mcp) {
 /**
  * Creates POM instruction for a move.
  *
- * @param mi Move machine instruction.
- * @param proc POM procedure to add the move to.
- * @return Emitted POM instruction.
+ * @param src The source operand.
+ * @param dst The dst operand.
+ * @return POM Move.
  */
-TTAProgram::Instruction*
-LLVMPOMBuilder::emitMove(
-    const MachineInstr* mi, TTAProgram::Procedure* proc) {
-
-    assert(mi->getNumOperands() == 2); // src, dst
-    const MachineOperand& dst = mi->getOperand(0);
-    const MachineOperand& src = mi->getOperand(1);
+TTAProgram::Move*
+LLVMPOMBuilder::createMove(
+    const MachineOperand& src, const MachineOperand& dst) {
     assert(!src.isReg() || src.isUse());
     assert(dst.isDef());
     
@@ -1577,6 +1586,25 @@ LLVMPOMBuilder::emitMove(
     Bus& bus = umach_->universalBus();
     TTAProgram::Move* move = createMove(
         createTerminal(src), createTerminal(dst), bus);
+
+    return move;
+}
+
+/**
+ * Creates POM instruction for a move.
+ *
+ * @param mi Move machine instruction.
+ * @param proc POM procedure to add the move to.
+ * @return Emitted POM instruction.
+ */
+TTAProgram::Instruction*
+LLVMPOMBuilder::emitMove(
+    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+
+    assert(mi->getNumOperands() == 2); // src, dst
+    const MachineOperand& dst = mi->getOperand(0);
+    const MachineOperand& src = mi->getOperand(1);
+    TTAProgram::Move* move = createMove(src, dst);
 
     TTAProgram::Instruction* instr = new TTAProgram::Instruction();
 
@@ -1759,7 +1787,6 @@ LLVMPOMBuilder::emitSPInitialization() {
     assert(port != NULL);
     TTAProgram::TerminalRegister* dst = new
         TTAProgram::TerminalRegister(*port, idx);
-
 
     unsigned ival = (dataAddressSpace_->end() & 0xfffffff8);
     SimValue val(ival, 32);

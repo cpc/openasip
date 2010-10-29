@@ -34,62 +34,243 @@
 #include <iostream>
 #include <string>
 
+#include "POMDisassembler.hh"
+#include "UniversalMachine.hh"
+#include "TerminalFUPort.hh"
 #include "Machine.hh"
+#include "HWOperation.hh"
+#include "Program.hh"
+#include "Procedure.hh"
+#include "Instruction.hh"
 #include "TCEString.hh"
+#include "Conversion.hh"
+#include "ControlUnit.hh"
+#include "SpecialRegisterPort.hh"
 
 namespace llvm {
 
 char LLVMTCEPOMBuilder::ID = 0;
 
 LLVMTCEPOMBuilder::LLVMTCEPOMBuilder() : LLVMPOMBuilder(ID) {
-    std::cerr << "LLVMTCEPOMBuilder constructed" << std::endl;
-    mach_ = TTAMachine::Machine::loadFromADF("tta/4bus_minimal.adf");
+}
+
+unsigned
+LLVMTCEPOMBuilder::spDRegNum() const {
+    return 1000000; // ;)
+}
+
+unsigned
+LLVMTCEPOMBuilder::raPortDRegNum() const {
+    return 1000001; // ;D
+}
+
+TCEString
+LLVMTCEPOMBuilder::registerFileName(unsigned llvmRegNum) const {
+
+    if (llvmRegNum == 1000000) 
+        return "RF"; /* temp hack, always assume SP is the RF.4 */
+
+    TCEString regName(
+        targetMachine().getRegisterInfo()->getName(llvmRegNum));
+    return "RF";
+}
+
+int
+LLVMTCEPOMBuilder::registerIndex(unsigned llvmRegNum) const {
+
+    if (llvmRegNum == 1000000) 
+        return 4; /* temp hack, always assume SP is the RF.4 */
+
+    TCEString regName(
+        targetMachine().getRegisterInfo()->getName(llvmRegNum));
+    
+    TCEString indexStr = regName.split("_").at(1);
+
+    return Conversion::toInt(indexStr);
+}
+
+TTAProgram::Instruction*
+LLVMTCEPOMBuilder::emitMove(
+    const MachineInstr* mi, TTAProgram::Procedure* proc) {
+
+    TCEString opName(mi->getDesc().getName());
+    /* Non-trigger move. */
+    if (opName == "MOVE")
+        return LLVMPOMBuilder::emitMove(mi, proc);
+
+    /* A trigger move. */
+
+    // strip the 'r' or 'i' from the end of the operation name
+    // e.g. ADDr
+    opName = opName.substr(0, opName.size() - 1);
+
+    TTAProgram::Terminal* src = 
+        createTerminal(mi->getOperand(mi->getNumOperands() - 1));
+
+    // always assume it's the ALU of minimal.adf for now
+    // should be parsed from the regName
+    TTAMachine::FunctionUnit* fu = mach_->functionUnitNavigator().item("ALU");
+
+    // always assume the operation is ADD for now
+    // should be parsed from the regName
+    TCEString operationName = "ADD";
+
+    int operand = 1; /* always assume trigger operand = 1 */
+
+    TTAProgram::Terminal* dst = new TTAProgram::TerminalFUPort(
+        *fu->operation(operationName), operand);
+
+    TTAMachine::Bus& bus = builtProgram().universalMachine().universalBus();
+    TTAProgram::Move* move = createMove(src, dst, bus);
+
+    TTAProgram::Instruction* instr = new TTAProgram::Instruction();
+
+    instr->addMove(move);
+    proc->add(instr);
+    return instr;
 }
 
 
-#if 0    
-bool
-LLVMTCEPOMBuilder::runOnMachineFunction(MachineFunction& mf) {
+TCEString
+LLVMTCEPOMBuilder::operationName(const MachineInstr& mi) const {
+    return "MOVE";
+}
 
-    for (llvm::MachineFunction::const_iterator bbi = mf.begin(); 
-         bbi != mf.end(); ++bbi) {
-        const llvm::MachineBasicBlock& bb = *bbi;
-        for (llvm::MachineBasicBlock::const_iterator ii = bb.begin(); 
-             ii != bb.end(); ++ii) {
-            const llvm::MachineInstr& i = *ii;
+TTAProgram::Terminal*
+LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
+    TCEString regName(
+        targetMachine().getRegisterInfo()->getName(mo.getReg()));
 
-            if (TCEString(i.getDesc().getName()) == "MOVE") {
-                std::cerr << "got MOVE: ";
-                for (unsigned oi = 0; oi < i.getNumOperands(); ++oi) {
-                    const llvm::MachineOperand& operand = i.getOperand(oi);
-                    if (operand.isReg()) {
-                        TCEString regName(
-                            mf.getTarget().getRegisterInfo()->getName(
-                                operand.getReg()));
-                        std::cerr << regName << " ";
-                    } else if (operand.isImm()) {
-                        std::cerr << operand.getImm() << " ";
-                    } else {
-                        std::cerr << __func__ << "unsupported operand type: ";
-                        //operand.dump();
-                        std::cerr << std::endl;
-                        assert(false);
-                    }
-                }
-                std::cerr << std::endl;
-            } else {
-                std::cerr 
-                    << "unknown opcode: " << i.getDesc().getName() << std::endl;
-            }
+    // todo fix:
+    if (!regName.startsWith("FU"))
+        return NULL;
 
-        }
+    // always assume it's the ALU of minimal.adf for now
+    // should be parsed from the regName
+    TTAMachine::FunctionUnit* fu = mach_->functionUnitNavigator().item("ALU");
+
+    // always assume the operation is ADD for now
+    // should be parsed from the regName
+    TCEString operationName = "ADD";
+
+    int operand;
+    if (regName.endsWith("i")) {
+        // always assume the "input operand" is the operand 2 as in minimal.adf
+        operand = 2;
+    } else if (regName.endsWith("o")) {
+        operand = 3;
+    } else {
+        operand = 1;
     }
-    return true;
+
+    return new TTAProgram::TerminalFUPort(
+        *fu->operation(operationName), operand);
 }
-#endif
 
 extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass() {
     return new llvm::LLVMTCEPOMBuilder();
 }
+
+bool
+LLVMTCEPOMBuilder::doInitialization(Module &M) {
+    mach_ = TTAMachine::Machine::loadFromADF("tta/4bus_minimal.adf");
+    return LLVMPOMBuilder::doInitialization(M);
+}
+
+void
+LLVMTCEPOMBuilder::assignBuses() {
+    TTAProgram::Program& prog = builtProgram();
+    TTAProgram::Program::InstructionVector ivec =
+        prog.instructionVector();
+    for (TTAProgram::Program::InstructionVector::const_iterator i = 
+             ivec.begin(); i != ivec.end(); ++i) {
+        TTAProgram::Instruction& instr = **i;
+        for (int m = 0; m < instr.moveCount(); ++m) {
+            TTAProgram::Move& move = instr.move(m);
+            move.setBus(*mach_->busNavigator().item(0));
+        }
+    }
+}
+
+void
+LLVMTCEPOMBuilder::addNOPs() {
+    TTAProgram::Program& prog = builtProgram();
+    TTAProgram::Program::InstructionVector ivec =
+        prog.instructionVector();
+    for (TTAProgram::Program::InstructionVector::const_iterator i = 
+             ivec.begin(); i != ivec.end(); ++i) {
+        TTAProgram::Instruction& instr = **i;
+        for (int m = 0; m < instr.moveCount(); ++m) {
+            TTAProgram::Move& move = instr.move(m);
+            if (move.isTriggering()) {
+                /* TODO: branch delay slots! */
+                TTAProgram::TerminalFUPort& fuPort =
+                    dynamic_cast<TTAProgram::TerminalFUPort&>(
+                        move.destination());
+                TTAMachine::HWOperation& operation = *fuPort.hwOperation();
+                int nopsToAdd;
+                if (move.isControlFlowMove()) {
+                    nopsToAdd = mach_->controlUnit()->delaySlots() + 1;
+                } else {
+                    nopsToAdd = operation.latency();
+                }
+                
+                while (--nopsToAdd > 0) {
+                    instr.parent().insertAfter(
+                        instr, 
+                        new TTAProgram::Instruction(
+                            *mach_->instructionTemplateNavigator().item(0)));
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Assigns the control unit to control flow operation targets.
+ */
+void
+LLVMTCEPOMBuilder::assignControlUnit() {
+    TTAProgram::Program& prog = builtProgram();
+    TTAProgram::Program::InstructionVector ivec =
+        prog.instructionVector();
+    for (TTAProgram::Program::InstructionVector::const_iterator i = 
+             ivec.begin(); i != ivec.end(); ++i) {
+        TTAProgram::Instruction& instr = **i;
+        for (int m = 0; m < instr.moveCount(); ++m) {
+            TTAProgram::Move& move = instr.move(m);
+            if (move.isControlFlowMove()) {
+                TTAProgram::TerminalFUPort& fuPort =
+                    dynamic_cast<TTAProgram::TerminalFUPort&>(
+                        move.destination());
+                TTAMachine::HWOperation& operation = *fuPort.hwOperation();
+
+                move.setDestination(
+                    new TTAProgram::TerminalFUPort(
+                        *mach_->controlUnit()->operation(operation.name()),
+                        fuPort.operationIndex()));
+
+                if (move.source().isRA()) {
+                    move.setSource(
+                        new TTAProgram::TerminalFUPort(
+                            *mach_->controlUnit()->returnAddressPort()));
+                }
+            }
+        }
+    }
+}
+
+bool
+LLVMTCEPOMBuilder::doFinalization(Module& m) {
+    LLVMPOMBuilder::doFinalization(m);
+
+    assignBuses();
+    assignControlUnit();
+    addNOPs();
+
+    std::cout << POMDisassembler::disassemble(builtProgram()) << std::endl;
+    TTAProgram::Program::writeToTPEF(builtProgram(), "sequential.tpef");
+}
+
 
 }

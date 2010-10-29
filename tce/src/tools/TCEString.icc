@@ -35,3 +35,11 @@ inline bool
 TCEString::startsWith(const std::string& str) const {
     return str.size() <= size() && substr(0, str.size()) == str;
 }
+
+/**
+ * Returns true in case the string ends with the given string.
+ */
+inline bool
+TCEString::endsWith(const std::string& str) const {
+    return str.size() <= size() && substr(size() - str.size(), size()) == str;
+}

@@ -61,7 +61,20 @@ namespace llvm {
         LLVMTCEPOMBuilder();
         virtual ~LLVMTCEPOMBuilder() {}
 
-//        virtual bool runOnMachineFunction(MachineFunction& tm);
+        virtual unsigned spDRegNum() const;
+        virtual unsigned raPortDRegNum() const;
+        virtual TCEString registerFileName(unsigned llvmRegNum) const;
+        virtual int registerIndex(unsigned llvmRegNum) const;
+        virtual TCEString operationName(const MachineInstr& mi) const;
+        virtual TTAProgram::Terminal* createFUTerminal(
+            const MachineOperand&) const;
+        bool doFinalization(Module& m);
+        bool doInitialization(Module &M);
+        TTAProgram::Instruction* emitMove(
+            const MachineInstr* mi, TTAProgram::Procedure* proc);
+        void assignBuses();
+        void addNOPs();
+        void assignControlUnit();
     };
 }
 

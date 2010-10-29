@@ -34,6 +34,7 @@
 #define TCE_STRING_HH
 
 #include <string>
+#include <vector>
 
 /**
  * A simple wrapper around std::string to make forward declarations possible.
@@ -49,7 +50,9 @@ public:
 
     void replaceString(const std::string& old, const std::string& newString);
     bool startsWith(const std::string& str) const;
+    bool endsWith(const std::string& str) const;
     bool ciEqual(const TCEString& other) const;
+    std::vector<std::string> split(const std::string& delim) const;
 
     TCEString lower() const;
     TCEString upper() const;

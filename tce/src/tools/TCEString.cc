@@ -66,3 +66,8 @@ TCEString::upper() const {
     return StringTools::stringToUpper(*this);
 }
 
+std::vector<std::string>
+TCEString::split(const std::string& delim) const {
+    return StringTools::chopString(*this, delim);
+}
+

@@ -127,6 +127,11 @@ namespace llvm {
 
         bool writeMachineFunction(MachineFunction &MF);
 
+        TTAProgram::Move* createMove(
+            const MachineOperand& src, const MachineOperand& dst);
+
+        const TargetMachine& targetMachine() const { return *tm_; }
+        TTAProgram::Program& builtProgram() { return *prog_; }
         /* Methods used for overriding TTA backend-specific behavior.
 
            Two backends are supported by this base class
@@ -167,6 +172,23 @@ namespace llvm {
                 operationName(mi.getDesc().getOpcode());
         }
 
+        virtual TTAProgram::Terminal* createFUTerminal(
+            const MachineOperand&) const {
+            // no FU terminals in the RISC-style backend, always through GPRs
+            return NULL; 
+        }
+
+        TTAProgram::Terminal* createTerminal(const MachineOperand& mo);
+
+        TTAProgram::Move* createMove(
+            TTAProgram::Terminal* src,
+            TTAProgram::Terminal* dst,
+            TTAMachine::Bus &bus,
+            TTAProgram::MoveGuard *guard = NULL);
+
+        virtual TTAProgram::Instruction* emitMove(
+            const MachineInstr* mi, TTAProgram::Procedure* proc);
+
         /// Machine for building the program.
         TTAMachine::Machine* mach_;
 
@@ -205,14 +227,10 @@ namespace llvm {
 
         //TTAProgram::Terminal* createSrcTerminal(const MachineOperand& mo);
         //TTAProgram::Terminal* createDstTerminal(const MachineOperand& mo);
-        TTAProgram::Terminal* createTerminal(const MachineOperand& mo);
         TTAProgram::Terminal* createAddrTerminal(
             const MachineOperand& base, const MachineOperand& offset);
 
         TTAProgram::Instruction* emitInstruction(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        TTAProgram::Instruction* emitMove(
             const MachineInstr* mi, TTAProgram::Procedure* proc);
 
         TTAProgram::Instruction* emitLoad(
@@ -258,12 +276,6 @@ namespace llvm {
         
         TTAProgram::MoveGuard* createGuard(
             const TTAProgram::Terminal* guardReg, bool trueOrFalse);
-
-        TTAProgram::Move* createMove(
-            TTAProgram::Terminal* src,
-            TTAProgram::Terminal* dst,
-            TTAMachine::Bus &bus,
-            TTAProgram::MoveGuard *guard = NULL);
 
         void debugDataToAnnotations(
             const llvm::MachineInstr* mi, TTAProgram::Move* move);
