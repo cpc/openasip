@@ -989,7 +989,6 @@ LLVMPOMBuilder::emitInstruction(
         return emitReturn(mi, proc);
     }
 
-    unsigned opc = mi->getDesc().getOpcode();
     std::string opName = operationName(*mi);
 
     // Pseudo instructions don't require any actual instructions.
