@@ -51,7 +51,7 @@ namespace llvm {
 
 char LLVMTCEPOMBuilder::ID = 0;
 
-LLVMTCEPOMBuilder::LLVMTCEPOMBuilder() : LLVMPOMBuilder(ID) {
+LLVMTCEPOMBuilder::LLVMTCEPOMBuilder() : LLVMTCEBuilder(ID) {
 }
 
 unsigned
@@ -96,7 +96,7 @@ LLVMTCEPOMBuilder::emitMove(
     TCEString opName(mi->getDesc().getName());
     /* Non-trigger move. */
     if (opName == "MOVE")
-        return LLVMPOMBuilder::emitMove(mi, proc);
+        return LLVMTCEBuilder::emitMove(mi, proc);
 
     /* A trigger move. */
 
@@ -120,7 +120,7 @@ LLVMTCEPOMBuilder::emitMove(
     TTAProgram::Terminal* dst = new TTAProgram::TerminalFUPort(
         *fu->operation(operationName), operand);
 
-    TTAMachine::Bus& bus = builtProgram().universalMachine().universalBus();
+    TTAMachine::Bus& bus = result()->universalMachine().universalBus();
     TTAProgram::Move* move = createMove(src, dst, bus);
 
     TTAProgram::Instruction* instr = new TTAProgram::Instruction();
@@ -174,12 +174,12 @@ extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass() {
 bool
 LLVMTCEPOMBuilder::doInitialization(Module &M) {
     mach_ = TTAMachine::Machine::loadFromADF("tta/4bus_minimal.adf");
-    return LLVMPOMBuilder::doInitialization(M);
+    return LLVMTCEBuilder::doInitialization(M);
 }
 
 void
 LLVMTCEPOMBuilder::assignBuses() {
-    TTAProgram::Program& prog = builtProgram();
+    TTAProgram::Program& prog = *result();
     TTAProgram::Program::InstructionVector ivec =
         prog.instructionVector();
     for (TTAProgram::Program::InstructionVector::const_iterator i = 
@@ -194,7 +194,7 @@ LLVMTCEPOMBuilder::assignBuses() {
 
 void
 LLVMTCEPOMBuilder::addNOPs() {
-    TTAProgram::Program& prog = builtProgram();
+    TTAProgram::Program& prog = *result();
     TTAProgram::Program::InstructionVector ivec =
         prog.instructionVector();
     for (TTAProgram::Program::InstructionVector::const_iterator i = 
@@ -231,7 +231,7 @@ LLVMTCEPOMBuilder::addNOPs() {
  */
 void
 LLVMTCEPOMBuilder::assignControlUnit() {
-    TTAProgram::Program& prog = builtProgram();
+    TTAProgram::Program& prog = *result();
     TTAProgram::Program::InstructionVector ivec =
         prog.instructionVector();
     for (TTAProgram::Program::InstructionVector::const_iterator i = 
@@ -262,14 +262,15 @@ LLVMTCEPOMBuilder::assignControlUnit() {
 
 bool
 LLVMTCEPOMBuilder::doFinalization(Module& m) {
-    LLVMPOMBuilder::doFinalization(m);
+
+    LLVMTCEBuilder::doFinalization(m);
 
     assignBuses();
     assignControlUnit();
     addNOPs();
 
-    std::cout << POMDisassembler::disassemble(builtProgram()) << std::endl;
-    TTAProgram::Program::writeToTPEF(builtProgram(), "sequential.tpef");
+    std::cout << POMDisassembler::disassemble(*result()) << std::endl;
+    TTAProgram::Program::writeToTPEF(*result(), "sequential.tpef");
 }
 
 

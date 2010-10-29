@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,149 +27,70 @@
  * Declaration of LLVMPOMBuilder class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2007 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2007-2010
  * @note reting: red
  */
 
 #ifndef LLVM_POM_BUILDER_H
 #define LLVM_POM_BUILDER_H
 
-#include <map>
-#include <set>
-#include <llvm/CodeGen/MachineFunctionPass.h>
-#include <llvm/CodeGen/MachineConstantPool.h>
-#include <llvm/CodeGen/MachineOperand.h>
-#include <llvm/CodeGen/MachineInstr.h>
-#include <llvm/CodeGen/MachineBasicBlock.h>
-#include <llvm/Target/Mangler.h>
-#include <llvm/Constant.h>
-
-#include <llvm/Transforms/IPO.h>
-
-#include "Exception.hh"
-#include "BaseType.hh"
-#include "TCEString.hh"
-#include "passes/MachineDCE.hh"
+#include "LLVMTCEBuilder.hh"
 #include "TCETargetMachine.hh"
-
-namespace TTAProgram {
-    class Program;
-    class Procedure;
-    class Terminal;
-    class TerminalRegister;
-    class TerminalInstructionAddress;
-    class Instruction;
-    class DataMemory;
-    class DataDefinition;
-    class Move;
-    class MoveGuard;
-}
-
-class UniversalMachine;
-class Operation;
 
 namespace TTAMachine {
     class Machine;
-    class AddressSpace;
-    class Bus;
 }
-namespace llvm {
 
-    class ConstantInt;
-    class ConstantFP;
-    class ConstantExpr;
-    class TCETargetMachine;
+namespace llvm {
 
     FunctionPass* createLLVMPOMBuilderPass(
         TCETargetMachine& tm, TTAMachine::Machine* mach);
 
-    class LLVMPOMBuilder : public MachineFunctionPass {
-
+    /**
+     * Implements building TCE POM from RISC-style sequential input 
+     * from LLVM codegen.
+     */
+    class LLVMPOMBuilder : public LLVMTCEBuilder {
     public:
         static char ID; // Pass identification, replacement for typeid
 
         LLVMPOMBuilder(char& ID);
 
         LLVMPOMBuilder(
-            TargetMachine& tm,
+            TCETargetMachine& tm,
             TTAMachine::Machine* mach);
 
-        virtual ~LLVMPOMBuilder();
-
-        TTAProgram::Program* result() throw (NotAvailable);
-
-        TTAProgram::Instruction* firstInstructionOfBasicBlock(
-            llvm::BasicBlock* bb) {
-            return bbIndex_[bb];
-        }
-        bool isProgramUsingRestrictedPointers() const { return noAliasFound_; }
-        bool isProgramUsingAddressSpaces() const {
-            return  multiAddrSpacesFound_;
-        }
-
-        void getAnalysisUsage(AnalysisUsage &AU) const {
-            AU.addRequired<MachineDCE>();
-            AU.addPreserved<MachineDCE>();
-
-	    // this code will move here in the future when pipelineloopfinder
-	    // is register as an analyzer pass to llvm pass manager
-	    // (like MachineDCE)
-	    //AU.addRequired<PipelineableLoopFinder>();
-	    //AU.addPreserved<PipelineableLoopFinder>();
-
-            MachineFunctionPass::getAnalysisUsage(AU);
-        }
+        virtual ~LLVMPOMBuilder() {}
 
     protected:
 
-        bool doInitialization(Module &M);
-        bool runOnMachineFunction(MachineFunction &MF);
-        bool doFinalization(Module &M);
-
-        bool writeMachineFunction(MachineFunction &MF);
-
-        TTAProgram::Move* createMove(
-            const MachineOperand& src, const MachineOperand& dst);
-
-        const TargetMachine& targetMachine() const { return *tm_; }
-        TTAProgram::Program& builtProgram() { return *prog_; }
-        /* Methods used for overriding TTA backend-specific behavior.
-
-           Two backends are supported by this base class
-           1) The old LLVM backend (mainly by Veli-Pekka J‰‰skel‰inen).
-           
-           This is the default implementation (for now).
-
-           2) The new LLVM TTA backend (mainly by Carlos S·nchez de La Lama).
-
-           Implemented in LLVMTCEPOMBuilder.cc
-        */
-        // the stack pointer register's llvm reg number
         virtual unsigned spDRegNum() const { 
-            return dynamic_cast<const TCETargetMachine*>(tm_)->spDRegNum(); 
+            return dynamic_cast<const TCETargetMachine&>(
+                targetMachine()).spDRegNum(); 
         }
 
         // the return address register's llvm reg number
         virtual unsigned raPortDRegNum() const { 
-            return dynamic_cast<const TCETargetMachine*>(tm_)->
-                raPortDRegNum(); 
+            return dynamic_cast<const TCETargetMachine&>(
+                targetMachine()).raPortDRegNum(); 
         }
 
         // the ADF register file name of the llvm reg number
         virtual TCEString registerFileName(unsigned llvmRegNum) const { 
-            return dynamic_cast<const TCETargetMachine*>(tm_)->
-                rfName(llvmRegNum); 
+            return dynamic_cast<const TCETargetMachine&>(
+                targetMachine()).rfName(llvmRegNum); 
         }
 
         // the ADF register index of the llvm reg number
         virtual int registerIndex(unsigned llvmRegNum) const {
-            return dynamic_cast<const TCETargetMachine*>(tm_)->
-                registerIndex(llvmRegNum); 
+            return dynamic_cast<const TCETargetMachine&>(
+                targetMachine()).registerIndex(llvmRegNum); 
         }
 
         // OSAL operation name from a LLVM MachineInstr
         virtual TCEString operationName(const MachineInstr& mi) const {
-            return dynamic_cast<const TCETargetMachine*>(tm_)->
-                operationName(mi.getDesc().getOpcode());
+            return dynamic_cast<const TCETargetMachine&>(
+                targetMachine()).operationName(mi.getDesc().getOpcode());
         }
 
         virtual TTAProgram::Terminal* createFUTerminal(
@@ -177,186 +98,6 @@ namespace llvm {
             // no FU terminals in the RISC-style backend, always through GPRs
             return NULL; 
         }
-
-        TTAProgram::Terminal* createTerminal(const MachineOperand& mo);
-
-        TTAProgram::Move* createMove(
-            TTAProgram::Terminal* src,
-            TTAProgram::Terminal* dst,
-            TTAMachine::Bus &bus,
-            TTAProgram::MoveGuard *guard = NULL);
-
-        virtual TTAProgram::Instruction* emitMove(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        /// Machine for building the program.
-        TTAMachine::Machine* mach_;
-
-    private:
-
-        struct DataDef {
-            std::string name;
-            //llvm::Constant* initializer;
-            unsigned address;
-            unsigned alignment;
-            unsigned size;
-            bool initialize;
-        };
-        void initMembers();
-        void initDataSections();
-
-        void emitDataDef(const DataDef& def);
-
-        unsigned createDataDefinition(
-            unsigned& addr,  const Constant* cv);
-
-        void createIntDataDefinition(
-            unsigned& addr, const llvm::ConstantInt* ci,
-            bool isPointer = false);
-
-        void createFPDataDefinition(
-           unsigned& addr, const llvm::ConstantFP* cfp);
-
-        void createGlobalValueDataDefinition(
-            unsigned& addr, const GlobalValue* gv, int offset = 0);
-
-        void createExprDataDefinition(
-            unsigned& addr, const ConstantExpr* gv, int offset = 0);
-
-        void emitConstantPool(const llvm::MachineConstantPool& cp);
-
-        //TTAProgram::Terminal* createSrcTerminal(const MachineOperand& mo);
-        //TTAProgram::Terminal* createDstTerminal(const MachineOperand& mo);
-        TTAProgram::Terminal* createAddrTerminal(
-            const MachineOperand& base, const MachineOperand& offset);
-
-        TTAProgram::Instruction* emitInstruction(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        TTAProgram::Instruction* emitLoad(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-        
-        TTAProgram::Instruction* emitStore(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        TTAProgram::Instruction* emitReturn(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        TTAProgram::Instruction* emitInlineAsm(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        TTAProgram::Instruction* emitSpecialInlineAsm(
-            const std::string op,
-            const MachineInstr* mi,
-            TTAProgram::Procedure* proc);
-
-        TTAProgram::Instruction* emitSetjmp(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        TTAProgram::Instruction* emitLongjmp(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        TTAProgram::Instruction* emitSelect(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-        
-        TTAProgram::Instruction* emitGlobalXXtructorCalls(
-            const MachineInstr* mi, TTAProgram::Procedure* proc,
-            bool constructors);
-
-        TTAProgram::Instruction* emitReadSP(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        TTAProgram::Instruction* handleMemoryCategoryInfo(
-            const MachineInstr* mi, TTAProgram::Procedure* proc);
-
-        std::string mbbName(const MachineBasicBlock& mbb);
-        bool isInitialized(const Constant* cv);
-
-        void emitSPInitialization();
-        
-        TTAProgram::MoveGuard* createGuard(
-            const TTAProgram::Terminal* guardReg, bool trueOrFalse);
-
-        void debugDataToAnnotations(
-            const llvm::MachineInstr* mi, TTAProgram::Move* move);
-        void addPointerAnnotations(
-            const llvm::MachineInstr* mi, TTAProgram::Move* move);
-        
-        bool isBaseOffsetMemOperation(const Operation& operation) const;
-
-        /// Target architechture MAU size in bits.
-        static unsigned MAU_BITS;
-
-        /// Target architecture pointer size in maus.
-        static unsigned POINTER_SIZE;
-
-        llvm::Module* mod_;
-
-        /// Target machine description.
-        const llvm::TargetMachine* tm_;
-        /// Univeral machine for building the program.
-        UniversalMachine* umach_;
-
-        TTAMachine::AddressSpace* instrAddressSpace_;
-        TTAMachine::AddressSpace* dataAddressSpace_;
-
-        /// Current program being built.
-        TTAProgram::Program* prog_;
-        /// Mangler for mangling label strings.
-        llvm::Mangler* mang_;
-        /// Data memory initializations.
-        TTAProgram::DataMemory* dmem_;
-
-        /// Data definitions.
-        std::vector<DataDef> data_;
-        std::vector<DataDef> udata_;
-
-        /// Machine basic block -> first instruction in the BB map.
-        std::map<std::string, TTAProgram::Instruction*> mbbs_;
-
-        /// Basic Block -> first instruction in the BB map
-        std::map<const llvm::BasicBlock*, TTAProgram::Instruction*> bbIndex_;
-
-        /// Code labels.
-        std::map<std::string, TTAProgram::Instruction*> codeLabels_;
-        /// Data labels.
-        std::map<std::string, unsigned> dataLabels_;
-
-        /// Dummy code label references that have to be fixed after
-        /// all instrutions have been built.
-        std::map<TTAProgram::TerminalInstructionAddress*, std::string>
-            codeLabelReferences_;
-
-        /// Dummy basic block references that have to be fixed after
-        /// all basic blocks have been built.
-        std::map<TTAProgram::TerminalInstructionAddress*,
-            std::string>
-            mbbReferences_;
-
-        /// Dummy references to the _end symbol.
-        std::vector<TTAProgram::Move*> endReferences_;
-        
-        std::map<unsigned, unsigned> currentFnCP_;
-
-        std::set<std::string> opset_;
-
-        unsigned end_;
-
-        bool programReady_;
-        
-        /// set to true in case at least one 'noalias' attribute (from
-        /// the use of 'restricted' pointers) has been found
-        bool noAliasFound_;
-        /// set to true in case at least one non-default address space
-        /// memory access has been found
-        bool multiAddrSpacesFound_;
-
-        /// List of machine functions collected from runForMachineFunction.
-        std::vector<MachineFunction*> functions_;
-
-        int spillMoveCount_;
-
-        bool dataInitialized_;
     };
 }
 #endif

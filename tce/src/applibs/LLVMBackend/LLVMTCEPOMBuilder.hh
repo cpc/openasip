@@ -55,7 +55,14 @@ namespace llvm {
 
     extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass();
 
-    class LLVMTCEPOMBuilder : public LLVMPOMBuilder {
+    /**
+     * Implements building TCE POM from TTA-style (MOVE) sequential input 
+     * from LLVM codegen.
+     *
+     * @note Experimental and still lots to do before can be considered for 
+     * real use.
+     */
+    class LLVMTCEPOMBuilder : public LLVMTCEBuilder {
     public:
         static char ID;
         LLVMTCEPOMBuilder();
