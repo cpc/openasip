@@ -271,6 +271,7 @@ LLVMTCEPOMBuilder::doFinalization(Module& m) {
 
     std::cout << POMDisassembler::disassemble(*result()) << std::endl;
     TTAProgram::Program::writeToTPEF(*result(), "sequential.tpef");
+    return true;
 }
 
 
