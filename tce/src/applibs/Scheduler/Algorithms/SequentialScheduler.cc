@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,11 +27,14 @@
  * Definition of SequentialScheduler class.
  *
  * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2010 (pjaaskel)
  * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
  * @note rating: red
  */
 
-// using CFG causes some 9% slowdown.
+// using CFG causes some 9% slowdown.--Heikki
+//  What's the point for CFG then? --Pekka
+
 // even if this is not defined schedling is still done one BB at time.
 //#define USE_CFG
 
@@ -69,7 +72,6 @@
 //#define DEBUG_REG_COPY_ADDER
 //#define CFG_SNAPSHOTS
 
-
 class SequentialSelector;
 
 /**
@@ -77,8 +79,7 @@ class SequentialSelector;
  *
  * @param data Interpass data
  */
-SequentialScheduler::SequentialScheduler(
-    InterPassData& data) :
+SequentialScheduler::SequentialScheduler(InterPassData& data) :
     BasicBlockPass(data), 
     ControlFlowGraphPass(data),
     ProcedurePass(data),
@@ -125,9 +126,9 @@ SequentialScheduler::handleBasicBlock(
             cycle = scheduleOperation(moves,cycle) + 1;
         } else {
             if (firstMove.move().destination().isRA()) {
-                cycle = scheduleMove(cycle, firstMove) +1;
+                cycle = scheduleMove(cycle, firstMove) + 1;
             } else {
-                cycle = scheduleRRMove(cycle, firstMove) +1;
+                cycle = scheduleRRMove(cycle, firstMove) + 1;
             }
         }
 
@@ -146,7 +147,6 @@ SequentialScheduler::handleBasicBlock(
         }
         moves = selector.candidates();
     }
-
     copyRMToBB(*rm_, bb, targetMachine);
 
     SimpleResourceManager::disposeRM(rm_); rm_ = NULL; 
@@ -269,10 +269,10 @@ SequentialScheduler::scheduleOperandWrites(
     // trigger scheduling delayed, schedule at end
     if (trigger != NULL && !trigger->isScheduled()) {
         assert(scheduledMoves == po.inputMoveCount()-1);
-	cycle = scheduleInputOperandTempMoves(cycle, *trigger, regCopies);
+        cycle = scheduleInputOperandTempMoves(cycle, *trigger, regCopies);
         return scheduleMove(cycle, *trigger);
     }
-    return cycle-1;
+    return cycle - 1;
 }
 
 /**
@@ -313,7 +313,7 @@ SequentialScheduler::scheduleResultReads(
             }
         }
     }
-    return cycle-1;
+    return cycle - 1;
 }
 
 /**
@@ -332,19 +332,15 @@ SequentialScheduler::scheduleRRMove(int cycle, MoveNode& moveNode)
     RegisterCopyAdder::AddedRegisterCopies addedCopies =
       regCopyAdder.addRegisterCopiesToRRMove(moveNode, NULL);
 
-#ifdef DEBUG_REG_COPY_ADDER
-    const int tempsAdded = addedCopies.count_;
-#endif
-
     cycle = scheduleMove(cycle, moveNode) + 1;
     cycle = scheduleRRTempMoves(cycle, moveNode, addedCopies); 
 
-    return cycle-1;
+    return cycle - 1;
 }
 
 /**
  * Schedules a single move to the earliest possible cycle, taking in
- * account the DDG, resource constraints, and latencies in producing
+ * account the resource constraints, and latencies in producing
  * source values.
  *
  * This method assumes the move is possible to schedule with regards to
@@ -454,8 +450,8 @@ SequentialScheduler::scheduleMove(
     return earliestCycle;
 }
 
- /**
-  * Schedules the (possible) temporary register copy moves (due to missing
+/**
+ * Schedules the (possible) temporary register copy moves (due to missing
  * connectivity) succeeding the given RR move. 
  *
  * The function recursively goes through all the temporary moves added to 
@@ -500,12 +496,14 @@ SequentialScheduler::scheduleRRTempMoves(
  */
 int
 SequentialScheduler::scheduleInputOperandTempMoves(
-    int cycle, MoveNode& operandMove, RegisterCopyAdder::AddedRegisterCopies& regCopies)
+    int cycle, MoveNode& operandMove, 
+    RegisterCopyAdder::AddedRegisterCopies& regCopies)
     throw (Exception) {
     
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.copies_,&operandMove)) {
-            DataDependenceGraph::NodeSet tempMoves = regCopies.copies_[&operandMove]; 
+            DataDependenceGraph::NodeSet tempMoves = 
+                regCopies.copies_[&operandMove]; 
             //in the tempMoves nodeset, the first move is the original one;
             //in case of input operand temp moves, it must be scheduled first
             DataDependenceGraph::NodeSet::iterator i = tempMoves.begin();
@@ -536,7 +534,8 @@ SequentialScheduler::unscheduleInputOperandTempMoves(
     
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.copies_,&operandMove)) {
-            DataDependenceGraph::NodeSet tempMoves = regCopies.copies_[&operandMove];
+            DataDependenceGraph::NodeSet tempMoves = 
+                regCopies.copies_[&operandMove];
             for (DataDependenceGraph::NodeSet::iterator i = tempMoves.begin();
                  i != tempMoves.end(); ++i) {
                 unschedule(**i);
@@ -562,7 +561,8 @@ SequentialScheduler::scheduleResultTempMoves(
     
     if (regCopies.count_ > 0) {
         if (MapTools::containsKey(regCopies.copies_,&resultMove)) {
-            DataDependenceGraph::NodeSet tempMoves = regCopies.copies_[&resultMove];
+            DataDependenceGraph::NodeSet tempMoves = 
+                regCopies.copies_[&resultMove];
             //in the tempMoves nodeset, the first move is the original one,
             //in case of result temp moves it must be scheduled at the end;
             //all the temp moves must be scheduled in reverse order            
@@ -575,8 +575,6 @@ SequentialScheduler::scheduleResultTempMoves(
     }
     return cycle;
 }
-
-
 
 /**
  * Unschedules the given move.

@@ -291,7 +291,7 @@ BasicBlockScheduler::scheduleOperation(MoveNodeGroup& moves)
                     moveNode.isDestinationOperation()) {
                     unschedule(moveNode);
                     unscheduleInputOperandTempMoves(moveNode);
-                    }
+                }
             }
             operandsFailed = true;
             operandsStartCycle++;

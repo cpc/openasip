@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -28,6 +28,7 @@
  * Implementation of SequentialModeNodeSelector class.
  *
  * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2010 (pjaaskel)
  * @note rating: red
  */
 
@@ -37,6 +38,10 @@
 #include "SpecialRegisterPort.hh"
 #include "TerminalFUPort.hh"
 #include "ProgramOperation.hh"
+#include "FunctionUnit.hh"
+#include "TCEString.hh"
+
+//#define DEBUG_SMNS
 
 namespace TTAProgram {
 }
@@ -101,18 +106,68 @@ SequentialMoveNodeSelector::mightBeReady(MoveNode&) {
 }
 
 void 
-SequentialMoveNodeSelector::notifyScheduled(MoveNode&) {}
+SequentialMoveNodeSelector::notifyScheduled(MoveNode&) {
+}
 
 /**
- * Creates movenodes and programoperations from the given bb.
+ * Creates movenodes and programoperations from the given BB.
+ *
+ * This supports also input that is already bypassed.
  */
 void
 SequentialMoveNodeSelector::createMoveNodes(BasicBlock& bb) {
 
+    /*
+      Process each input move from the sequential unscheduled stream. 
+      Input moves can be already bypassed and operand shared.
+
+      In case the move
+      a) is a reg/imm -> FU.in: 
+
+         And if the 'in' is a non-triggering input move,
+         add the move to a PO that has not been triggered yet in the FU. 
+
+         If it's a trigger move, set the PO to "triggered" state. The previous
+         PO in "triggered" state can be set to "finished" state as there cannot
+         be no more bypassed reads from the previous one as the new PO
+         is overwriting its results and the input sequential code is not cycle
+         accurately scheduled.
+      b) is an FU.out -> reg: 
+         add it to an PO that has been triggered in the FU.
+      c) is a FUA.out -> FUB.in: find the last PO started in FUA, add it there
+         as an output move. Find the unstarted PO in FUB, add it there as
+         an input move.
+      d) reg/imm -> reg:
+         just create the MNG
+
+      Thus, there are two types of POs during the algorithm execution:
+      1) untriggered: POs with operand moves still coming in, trigger not
+         encountered.
+      2) triggered: POs which are "on flight", thus the POs of which results
+         can be still read to the upcoming POs.
+      3) finished: these POs are just in the finished PO list
+
+      There can be only one unstarted and only one started PO per FU in the
+      sequential input, thus the indices are be per FU.
+
+      The same input move can belong to multiple POs (operand sharing).
+      How to treat those?
+
+      At the moment an operation is moved to "started", check if all its
+      input operand moves are found. If not, find the PO which had the
+      original OperandMove (TODO: how?) and add them as inputs.
+
+     */
+
+    typedef std::map<std::string, ProgramOperation*> 
+        FUProgramOperationIndex;
+
+    FUProgramOperationIndex untriggered, triggered;
+    // programOperations_ is the finished set
+    
+    MoveNodeGroup* mng = NULL;
     // PO which is being constructed.
     ProgramOperation* po = NULL;
-    MoveNodeGroup* mng = NULL;
-
     for (int i = 0; i < bb.instructionCount(); i++) {
         TTAProgram::Instruction& ins = bb.instructionAtIndex(i);
         for (int j = 0; j < ins.moveCount(); j++) {
@@ -121,87 +176,158 @@ SequentialMoveNodeSelector::createMoveNodes(BasicBlock& bb) {
             MoveNode* moveNode = new MoveNode(move);
             TTAProgram::Terminal& source = move.source();
             TTAProgram::Terminal& dest = move.destination();
-            bool isInOp = false;
+            
+            if (mng == NULL)
+                mng = new MoveNodeGroup();
 
-            // handle dest of move, ie operand writes
-            if( dest.isFUPort() &&
+            bool sourceIsFU = 
+                (source.isFUPort() &&
+                 !(dynamic_cast<const TTAMachine::SpecialRegisterPort*>(
+                       &source.port())));
+
+            bool destIsFU = (dest.isFUPort() &&
                 !(dynamic_cast<const TTAMachine::SpecialRegisterPort*>(
-                      &dest.port()))) {
-                
-                isInOp = true;
-                TTAProgram::TerminalFUPort& tfpd=
-                    dynamic_cast<TTAProgram::TerminalFUPort&>(dest);
+                      &dest.port())));
 
-                Operation* op = NULL;
-                // if trigger
-                if( tfpd.isOpcodeSetting()) {
-                    op = &tfpd.operation();
-                } else {
-                    op = &tfpd.hintOperation();
-                }
+#ifdef DEBUG_SMNS
+            Application::logStream()
+                << "processing move: " << move.toString() << " " 
+                << sourceIsFU << " " << destIsFU;
+            Application::logStream() << std::endl;
+#endif
+            if (!sourceIsFU && destIsFU) {
+                po = untriggered[dest.functionUnit().name()];
                 if (po == NULL) {
-                    assert(mng == NULL);
+                    Operation* op;
+                    if (dest.isOpcodeSetting()) {
+                        op = &dest.operation();
+                    } else {
+                        op = &dest.hintOperation();
+                    }
                     po = new ProgramOperation(*op);
-                    mng = new MoveNodeGroup();
+                    untriggered[dest.functionUnit().name()] = po;
+                    if (mng->nodeCount() > 0) {
+                        // start a new move node group as it has to be
+                        // a new operation as no previous untriggered
+                        // operation was found for this FU
+                        mngs_.push_back(mng);
+                        mng = new MoveNodeGroup();
+                    }
                 }
-
-                moveNode->setDestinationOperation(*po);
                 po->addInputNode(*moveNode);
+                moveNode->setDestinationOperation(*po);
                 mng->addNode(*moveNode);
+                if (dest.isTriggering()) {
+                    untriggered[dest.functionUnit().name()] = NULL;
+                    ProgramOperation* previousTriggered =
+                        triggered[dest.functionUnit().name()];
+                    triggered[dest.functionUnit().name()] = po;
 
-                // if no result reads, like store.
-                if (po->isComplete()) {
-                    programOperations_.push_back(po);
-                    po = NULL;
+                    if (previousTriggered != NULL)
+                        programOperations_.push_back(previousTriggered);
+#if 0
                     mngs_.push_back(mng);
-                    mng = NULL;
-                }
-            }
-
-            // check source of move, ie handle result reads.
-            if (source.isFUPort() &&
-                !(dynamic_cast<const TTAMachine::SpecialRegisterPort*>(
-                      &source.port()))) {
-                
-                isInOp = true;
-
-                if (po == NULL || mng == NULL) {
-                    throw IllegalProgram(
-                        __FILE__,__LINE__,__func__,"Orphan result read");
-                }
-                
-                if (!po->isReady()) {
-                    throw IllegalProgram(
-                        __FILE__,__LINE__,__func__,"Missing some operand");
-                }
-
+                    mng = new MoveNodeGroup();
+#endif
+                } 
+            } else if (sourceIsFU && !destIsFU) {
+                po = triggered[source.functionUnit().name()];
+                assert(
+                    po != NULL &&
+                    "Encountered an FU read without a triggered operation.");
                 po->addOutputNode(*moveNode);
                 moveNode->setSourceOperation(*po);
                 mng->addNode(*moveNode);
+            } else if (sourceIsFU && destIsFU) {
+                po = triggered[source.functionUnit().name()];
+                assert(
+                    po != NULL &&
+                    "Encountered an FU read without a triggered operation.");
+                po->addOutputNode(*moveNode);
+                moveNode->setSourceOperation(*po);
+                mng->addNode(*moveNode);
+                po = untriggered[dest.functionUnit().name()];
+                if (po == NULL) {
+                    Operation* op;
+                    if (dest.isOpcodeSetting()) {
+                        op = &dest.operation();
+                    } else {
+                        op = &dest.hintOperation();
+                    }
+                    po = new ProgramOperation(*op);
+                    untriggered[dest.functionUnit().name()] = po;
+                }
+                po->addInputNode(*moveNode);
+                moveNode->setDestinationOperation(*po);
+                if (dest.isTriggering()) {
+                    untriggered[dest.functionUnit().name()] = NULL;
+                    ProgramOperation* previousTriggered =
+                        triggered[dest.functionUnit().name()];
+                    triggered[dest.functionUnit().name()] = po;
+                    if (previousTriggered != NULL)
+                        programOperations_.push_back(previousTriggered);
+                }
+            } else if (!sourceIsFU && !destIsFU) {
 
-                if (po->isComplete()) {
-                    programOperations_.push_back(po);
-                    po = NULL;
+                if (mng->nodeCount() > 0)
                     mngs_.push_back(mng);
-                    mng = NULL;
 
-                }
-            }
-            // register-to-register move.
-            if (!isInOp) {
-                if (mng != NULL) {
-                    throw IllegalProgram(
-                        __FILE__,__LINE__,__func__,
-                        "reg-to-reg move in the middle of an operation!");
-                }
-                MoveNodeGroup* mng2 = new MoveNodeGroup;
-                mng2->addNode(*moveNode);
-                mngs_.push_back(mng2);
-            }
+                // reg copies are always scheduled independently
+                mng = new MoveNodeGroup();
+                mng->addNode(*moveNode);
+                mngs_.push_back(mng);
+
+                mng = new MoveNodeGroup();
+            } else {
+                abortWithError(moveNode->toString() + " is not implemented.");
+            }  
+        }             
+    }
+
+    if (mng != NULL && mng->nodeCount() > 0) {
+        mngs_.push_back(mng);      
+    }
+        
+    // add the unfinished POs remaining at the end of the BB
+    for (FUProgramOperationIndex::const_iterator i = triggered.begin();
+         i != triggered.end(); ++i) {
+        ProgramOperation* po = (*i).second;
+        if (po == NULL) continue;
+        programOperations_.push_back(po);
+    }
+
+    // untriggered POs are considered errors at this point as no
+    // BB-crossing operations are supported in the sequential code
+    for (FUProgramOperationIndex::const_iterator i = untriggered.begin();
+         i != untriggered.end(); ++i) {
+        ProgramOperation* po = (*i).second;
+        if (po != NULL && po->inputMoveCount() > 0) {
+            abortWithError(
+                TCEString(
+                    "Encountered an untriggered&unfinished "
+                    "ProgramOperation\nat the end of the BB. "
+                    "BB-crossing operations are not\nsupported "
+                    "at this point." + po->toString()));
         }
     }
-    if (po != NULL || mng != NULL) {
-        throw IllegalProgram(
-            __FILE__,__LINE__,__func__,"Uncomplete operation at end of BB");
+
+#ifdef DEBUG_SMNS
+    int count = 0;
+    Application::logStream() << "### ProgramOperations built:" << std::endl;
+    for (ProgramOperationList::const_iterator i = programOperations_.begin();
+         i != programOperations_.end(); ++i, ++count) {
+        ProgramOperation* po = *i;
+        Application::logStream() << count << " " <<po->toString() << std::endl;
     }
+
+    Application::logStream() << "### MoveNodeGroups built:" << std::endl;
+    count = 0;
+    for (MNGList::const_iterator i = mngs_.begin(); 
+         i != mngs_.end(); ++i, ++count) {
+        MoveNodeGroup* mng = *i;
+        Application::logStream() 
+            << count << ": " << mng->toString() << std::endl;
+    }
+
+#endif
 }                

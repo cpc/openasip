@@ -107,8 +107,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
         // if the edge is not a real reg/ra raw edge, skip to next edge
         if (edge.edgeReason() != DataDependenceEdge::EDGE_REGISTER ||
             edge.dependenceType() != DataDependenceEdge::DEP_RAW ||
-            edge.guardUse() ||
-            edge.headPseudo()) {
+            edge.guardUse() || edge.headPseudo()) {
             edgeIter++;
             continue;
         }
@@ -201,7 +200,7 @@ CycleLookBackSoftwareBypasser::bypassNode(
  * It tries to bypass all the operand write moves.
  *
  * @param candidates The moves to which apply software bypassing, if possible.
- * @param ddg The data dependence grap in which the movenodes belong to.
+ * @param ddg The data dependence graph in which the movenodes belong to.
  * @param rm The resource manager which is used to check for resource
  *        availability.
  * @return The count of bypassed moves.
@@ -281,9 +280,7 @@ CycleLookBackSoftwareBypasser::bypass(
         }
         earliestCycle = rm.earliestCycle(earliestCycleDDG, moveNode);
 
-        if (earliestCycle == -1) {
-            
-
+        if (earliestCycle == -1) {            
             // this failure is caused by the case
             // when we have pushed a trigger move too early 
             // due to eager bypassing and the operand move(s) 
@@ -343,7 +340,6 @@ CycleLookBackSoftwareBypasser::bypass(
 /**
  * Remove software bypassing from all moves in the given MoveNodeGroup
  * if possible.
- *
  *
  * @param candidates The moves from which to remove software bypassing, if
  * possible.

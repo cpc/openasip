@@ -46,6 +46,8 @@
 #include "Conversion.hh"
 #include "ControlUnit.hh"
 #include "SpecialRegisterPort.hh"
+#include "SequentialScheduler.hh"
+#include "InterPassData.hh"
 
 namespace llvm {
 
@@ -265,9 +267,14 @@ LLVMTCEPOMBuilder::doFinalization(Module& m) {
 
     LLVMTCEBuilder::doFinalization(m);
 
+#if 0
     assignBuses();
     assignControlUnit();
     addNOPs();
+#endif
+    InterPassData data;
+    SequentialScheduler scheduler(data);
+    scheduler.handleProgram(*result(), *mach_);
 
     std::cout << POMDisassembler::disassemble(*result()) << std::endl;
     TTAProgram::Program::writeToTPEF(*result(), "sequential.tpef");

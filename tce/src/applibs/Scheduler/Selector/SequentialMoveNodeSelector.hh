@@ -57,15 +57,15 @@ public:
 private:
     void createMoveNodes(BasicBlock& bb);
 
-    // list of movenodegroups
-    std::list<MoveNodeGroup*> mngs_;
+    typedef std::list<ProgramOperation*> ProgramOperationList;
+    typedef std::list<MoveNodeGroup*> MNGList;
 
+    MNGList mngs_;
     // returns the movenodegroups in order.
     // thiskeep track where we are going.
-    std::list<MoveNodeGroup*>::iterator mngIter_;
-
+    MNGList::iterator mngIter_;
     // list of all programoperations.
-    std::list<ProgramOperation*> programOperations_;
+    ProgramOperationList programOperations_;
 };
 
 #endif
