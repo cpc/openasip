@@ -37,6 +37,8 @@ class InterPassData;
 
 #include <string>
 
+#include "DataDependenceGraphBuilder.hh"
+
 /**
  * Interface for scheduler passes with different scopes.
  */
@@ -49,6 +51,7 @@ public:
 
     virtual std::string shortDescription() const = 0;
     virtual std::string longDescription() const;
+
 private:
     /// arbitrary data stored by different passes for inter-pass communication
     InterPassData* data_;

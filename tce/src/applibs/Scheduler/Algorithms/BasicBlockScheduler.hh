@@ -51,6 +51,7 @@ class BasicBlockNode;
 class SimpleResourceManager;
 class SoftwareBypasser;
 class CopyingDelaySlotFiller;
+class DataDependenceGraphBuilder;
 
 /**
  * A class that implements the functionality of a basic block scheduler.
@@ -95,6 +96,8 @@ public:
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
+
+    using BasicBlockPass::ddgBuilder;
 
 protected:
     virtual DataDependenceGraph* createDDGFromBB(BasicBlock& bb);

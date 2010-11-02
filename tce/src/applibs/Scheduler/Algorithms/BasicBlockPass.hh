@@ -65,6 +65,8 @@ public:
         DDGPass& ddgPass)
         throw (Exception);
 
+    virtual DataDependenceGraphBuilder& ddgBuilder() { return ddgBuilder_; }
+
 protected:
 
     virtual DataDependenceGraph* createDDGFromBB(BasicBlock& bb);
@@ -73,5 +75,7 @@ protected:
         SimpleResourceManager& rm, BasicBlock& bb, 
         const TTAMachine::Machine& targetMachine);
 
+private:
+    DataDependenceGraphBuilder ddgBuilder_;
 };
 #endif

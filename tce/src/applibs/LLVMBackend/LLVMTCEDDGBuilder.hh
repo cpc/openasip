@@ -33,34 +33,16 @@
 #ifndef LLVM_TCE_DDG_BUILDER_H
 #define LLVM_TCE_DDG_BUILDER_H
 
-#include <map>
-#include <set>
-#include <iostream>
-
-#include <llvm/CodeGen/MachineFunctionPass.h>
-#include <llvm/CodeGen/MachineConstantPool.h>
-#include <llvm/CodeGen/MachineOperand.h>
-#include <llvm/CodeGen/MachineInstr.h>
-#include <llvm/CodeGen/MachineBasicBlock.h>
-#include <llvm/Target/Mangler.h>
-#include <llvm/Constant.h>
-
-#include <llvm/Transforms/IPO.h>
-
-#include "Exception.hh"
-#include "BaseType.hh"
-#include "passes/MachineDCE.hh"
+#include "LLVMTCEPOMBuilder.hh"
 
 namespace llvm {
 
     extern "C" MachineFunctionPass* createLLVMTCEDDGBuilderPass();
 
-    class LLVMTCEDDGBuilder : public MachineFunctionPass {
+    class LLVMTCEDDGBuilder : public LLVMTCEPOMBuilder {
     public:
         static char ID;
-        LLVMTCEDDGBuilder() : MachineFunctionPass(ID) {
-            std::cerr << "LLVMTCEDDGBuilder constructed" << std::endl;
-        }
+        LLVMTCEDDGBuilder() : LLVMTCEPOMBuilder(ID) {}
         virtual ~LLVMTCEDDGBuilder() {}
 
         virtual bool runOnMachineFunction(MachineFunction& tm);

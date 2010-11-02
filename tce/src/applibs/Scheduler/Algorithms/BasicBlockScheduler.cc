@@ -57,6 +57,7 @@
 #include "CycleLookBackSoftwareBypasser.hh"
 #include "CopyingDelaySlotFiller.hh"
 #include "LLVMTCECmdLineOptions.hh"
+#include "InterPassData.hh"
 
 //#define DEBUG_OUTPUT
 //#define DEBUG_REG_COPY_ADDER
@@ -1219,9 +1220,9 @@ BasicBlockScheduler::handleProcedure(
 #endif
     // create the procedure-wide ddg.
 
-    DataDependenceGraphBuilder ddgBuilder(BasicBlockPass::interPassData());
+    DataDependenceGraphBuilder& ddgBldr = ddgBuilder();
 
-    bigDDG_ = ddgBuilder.build(cfg);
+    bigDDG_ = ddgBldr.build(cfg);
     if (options_ != NULL && options_->dumpDDGsDot()) {
         bigDDG_->writeToDotFile( 
             (boost::format("proc_%s_before_scheduling.dot") % 
@@ -1344,8 +1345,7 @@ BasicBlockScheduler::createDDGFromBB(BasicBlock& bb) {
     if (bigDDG_ != NULL) {
         return bigDDG_->createSubgraph(bb);
     } else {
-        DataDependenceGraphBuilder ddgb;
-        return ddgb.build(bb);
+        return this->ddgBuilder().build(bb);
     }
 }
 
@@ -1394,4 +1394,3 @@ void BasicBlockScheduler::notifyScheduled(
         }
     }
 }
-

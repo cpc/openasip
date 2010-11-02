@@ -72,10 +72,10 @@ public:
    
     void addAliasAnalyzer(MemoryAliasAnalyzer* analyzer);
     
-    DataDependenceGraph* build(
+    virtual DataDependenceGraph* build(
         ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
 
-    DataDependenceGraph* build(
+    virtual DataDependenceGraph* build(
         BasicBlock& bb, const UniversalMachine* um = NULL) 
         throw (IllegalProgram);    
 

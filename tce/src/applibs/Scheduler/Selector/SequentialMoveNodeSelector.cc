@@ -41,7 +41,7 @@
 #include "FunctionUnit.hh"
 #include "TCEString.hh"
 
-//#define DEBUG_SMNS
+// #define DEBUG_SMNS
 
 namespace TTAProgram {
 }

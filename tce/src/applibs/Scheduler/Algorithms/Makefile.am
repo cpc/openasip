@@ -7,7 +7,7 @@ LinearScanAllocatorCore.cc BasicBlockPass.cc RegisterCopyAdder.cc \
 SchedulerPass.cc ControlFlowGraphPass.cc ProgramPass.cc ProcedurePass.cc \
 InterPassData.cc SoftwareBypasser.cc CycleLookBackSoftwareBypasser.cc \
 DDGPass.cc CopyingDelaySlotFiller.cc BypasserModule.cc DSFillerModule.cc \
-SequentialScheduler.cc
+SequentialScheduler.cc PreBypassBasicBlockScheduler.cc
 
 
 libscheduleralgorithms_la_LIBADD = \

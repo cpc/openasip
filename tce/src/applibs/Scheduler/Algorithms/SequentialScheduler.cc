@@ -123,7 +123,7 @@ SequentialScheduler::handleBasicBlock(
 
         MoveNode& firstMove = moves.node(0);
         if (firstMove.isOperationMove()) {
-            cycle = scheduleOperation(moves,cycle) + 1;
+            cycle = scheduleOperation(moves, cycle) + 1;
         } else {
             if (firstMove.move().destination().isRA()) {
                 cycle = scheduleMove(cycle, firstMove) + 1;

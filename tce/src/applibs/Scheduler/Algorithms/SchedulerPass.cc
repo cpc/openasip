@@ -37,7 +37,8 @@
  *
  * @param data The container that stores data passed between scheduler passes.
  */
-SchedulerPass::SchedulerPass(InterPassData& data) : data_(&data) {
+SchedulerPass::SchedulerPass(InterPassData& data) : 
+    data_(&data) {
 }
 
 /**

@@ -48,12 +48,15 @@
 #include "SpecialRegisterPort.hh"
 #include "SequentialScheduler.hh"
 #include "InterPassData.hh"
+#include "PreBypassBasicBlockScheduler.hh"
+#include "LLVMTCEDataDependenceGraphBuilder.hh"
 
 namespace llvm {
 
 char LLVMTCEPOMBuilder::ID = 0;
 
-LLVMTCEPOMBuilder::LLVMTCEPOMBuilder() : LLVMTCEBuilder(ID) {
+LLVMTCEPOMBuilder::LLVMTCEPOMBuilder(bool parallelize) : 
+    LLVMTCEBuilder(ID), parallelize_(parallelize) {
 }
 
 unsigned
@@ -169,8 +172,8 @@ LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
         *fu->operation(operationName), operand);
 }
 
-extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass() {
-    return new llvm::LLVMTCEPOMBuilder();
+extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass(bool parallelize) {
+    return new llvm::LLVMTCEPOMBuilder(parallelize);
 }
 
 bool
@@ -266,18 +269,25 @@ bool
 LLVMTCEPOMBuilder::doFinalization(Module& m) {
 
     LLVMTCEBuilder::doFinalization(m);
-
 #if 0
+    // these are not needed if the SequentialScheduler works, as it seems
+    // for now -- remove after testing more
     assignBuses();
     assignControlUnit();
     addNOPs();
 #endif
-    InterPassData data;
-    SequentialScheduler scheduler(data);
-    scheduler.handleProgram(*result(), *mach_);
-
+    InterPassData ipData;
+    if (parallelize_) {        
+        LLVMTCEDataDependenceGraphBuilder ddgBuilder(ipData);
+        PreBypassBasicBlockScheduler parScheduler(ipData, ddgBuilder);
+        parScheduler.handleProgram(*result(), *mach_);
+        TTAProgram::Program::writeToTPEF(*result(), "parallel.tpef");
+    } else {
+        SequentialScheduler seqScheduler(ipData);
+        seqScheduler.handleProgram(*result(), *mach_);
+        TTAProgram::Program::writeToTPEF(*result(), "sequential.tpef");
+    }
     std::cout << POMDisassembler::disassemble(*result()) << std::endl;
-    TTAProgram::Program::writeToTPEF(*result(), "sequential.tpef");
     return true;
 }
 

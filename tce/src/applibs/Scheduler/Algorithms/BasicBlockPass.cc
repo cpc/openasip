@@ -43,7 +43,7 @@
  * Constructor.
  */
 BasicBlockPass::BasicBlockPass(InterPassData& data) : 
-    SchedulerPass(data) {
+    SchedulerPass(data), ddgBuilder_(data) {
 }
 
 /**
@@ -174,8 +174,7 @@ void BasicBlockPass::copyRMToBB(
  */
 DataDependenceGraph*
 BasicBlockPass::createDDGFromBB(BasicBlock& bb) {
-    DataDependenceGraphBuilder ddgb;
-    return ddgb.build(bb);
+    return ddgBuilder().build(bb);
 }
 
 /**

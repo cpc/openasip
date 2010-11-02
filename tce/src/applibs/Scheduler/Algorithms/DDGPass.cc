@@ -50,7 +50,7 @@ DDGPass::~DDGPass() {
 }
 
 /**
- * Handless a given DDG.
+ * Handles a given DDG.
  *
  * @param ddg DDG to handle
  * @param rm Resource manager that is to be used.
