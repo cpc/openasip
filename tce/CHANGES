@@ -1,8 +1,9 @@
 1.3 not yet released
 ====================
 
-New features
-------------
+Notable new features
+--------------------
+- Support for LLVM 2.8 (support for LLVM 2.7 retained)
 - ttasim: call info (setting profile_transfer_tracking) and the instruction
   profile (ttasim setting profile_data_saving) are now saved to separate
   pure text files to speed up simulation when these traces are enabled.
@@ -12,7 +13,9 @@ New features
 - Improved the scheduling for unconnected machines through temporary
   register copies based on the maze algorithm for ASIC place & route.
   Not restricted to maximum of two copies anymore.
-- Support for LLVM 2.8 (support for LLVM 2.7 retained)
+- Basic support for debugging info when compiled with 'tcecc -g'. 
+  The source code line numbers are displayed as comments in 'tcedisasm' 
+  output and ttasim's disassembly.
 
 Code generator improvements
 ---------------------------
@@ -60,7 +63,8 @@ Known problems
   LLVM 2.7.
 - Clang has a bug related to code generation of bitfields, illegal
   code may be generated if the code contains bitfield and clang is used 
-  as C frontend(which is the default)
+  as C frontend (which is the default). This bug appears with libmad.
+  See http://llvm.org/bugs/show_bug.cgi?id=8171 for the bug report.
   
 1.2    June 2010
 ================

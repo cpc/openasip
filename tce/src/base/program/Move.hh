@@ -91,6 +91,8 @@ public:
 
     bool hasSourceLineNumber() const;
     int sourceLineNumber() const;
+    bool hasSourceFileName() const;
+    std::string sourceFileName() const;   
 
 private:
     /// Copying not allowed.

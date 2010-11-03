@@ -717,6 +717,21 @@ POMDisassembler::disassemble(
                 Conversion::toString(instruction.address().location());
         }
 
+//to display source filename and line number
+//check for source code filename, we just use the file filename, 
+//assume the all the move belong the same file
+        TCEString fileNameStr = "";
+        for (int i = 0; i < instruction.moveCount(); ++i) {
+            const TTAProgram::Move& m = instruction.move(i);
+            if (m.hasSourceFileName()) {
+                fileNameStr += m.sourceFileName();
+                break;
+            }
+        }	
+
+	if (fileNameStr != "")
+            disasm += "\t# file: " + fileNameStr;        
+	
         // check for soure code line number info
         TCEString lineNumberStr = "";
         for (int i = 0; i < instruction.moveCount(); ++i) {
@@ -731,7 +746,7 @@ POMDisassembler::disassemble(
         }
 
         if (lineNumberStr != "")
-            disasm += "\t# src lines: " + lineNumberStr;        
+            disasm += "\t# slines: " + lineNumberStr;        
     }
     return disasm;
 }

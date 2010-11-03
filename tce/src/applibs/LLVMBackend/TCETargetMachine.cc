@@ -206,7 +206,8 @@ TCETargetMachine::addPreISel(
     // NOTE: This must be added before Machine function analysis pass..
     // needed by POMBuilder to prevent writing debug data to data section
     // might be good to disable when printing out machine function code...
-    PM.add(createStripSymbolsPass(/*bool OnlyDebugInfo=*/true));
+    // However, it need to comment out to support debug info
+//    PM.add(createStripSymbolsPass(/*bool OnlyDebugInfo=*/true));
 
     return false;
 }

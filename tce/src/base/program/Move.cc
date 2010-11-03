@@ -434,4 +434,31 @@ Move::sourceLineNumber() const {
 }
 
 
+/**
+ * Returns true in case at least one source code filename
+ * is known for this move.
+ */
+bool
+Move::hasSourceFileName() const {
+    return sourceFileName() != "";
+}
+
+/**
+ * Returns one source code filename for this move.
+ * 
+ * Returns "" if no source code line info has been set.
+ */
+std::string
+Move::sourceFileName() const {
+    std::string fileName = "";
+    const TTAProgram::ProgramAnnotation::Id id = 
+        TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_PATH;
+    if (hasAnnotations(id)) {		
+        fileName=annotation(0,id).stringValue();
+    }
+    return fileName; 
+  
+}
+
+
 }

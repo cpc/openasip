@@ -969,6 +969,15 @@ LLVMTCEBuilder::emitInstruction(
         return emitReturn(mi, proc);
     }
 
+    unsigned opc = mi->getDesc().getOpcode();
+
+    // when the -g option turn on, this will come up opc with this, therefore
+    // add this to ignore however, it is uncertain whether the debug "-g" will
+    // generate more opc, need to verify
+    if (opc == TargetOpcode::DBG_VALUE) {
+        return NULL;
+    }	
+
     std::string opName = operationName(*mi);
 
     // Pseudo instructions don't require any actual instructions.
@@ -1341,47 +1350,31 @@ LLVMTCEBuilder::debugDataToAnnotations(
             move->setAnnotation(progAnnotation); 
         } else {
 
-#if 0 
-		// some api change in llvm 2.7, this does not compile so disabled
-            
             // handle file+line number debug info
             if (!dl.isUnknown()) {
-		
 		
                 int sourceLineNumber = -1;
                 TCEString sourceFileName = "";
                 
-                DebugLocTuple dlt = 
-                    mi->getParent()->getParent()->getDebugLocTuple(dl);
-                sourceLineNumber = dlt.Line;
-                if (dlt.CompileUnit != NULL) {
-                    sourceFileName = 
-                        DICompileUnit(dlt.CompileUnit).getFilename(
-                            sourceFileName);
-                }
+                // inspired from lib/codegen/MachineInstr.cpp
+                const LLVMContext &Ctx = 
+	           mi->getParent()->getParent()->getFunction()->getContext();
+                DIScope scope(dl.getScope(Ctx));
+                sourceLineNumber = dl.getLine();
+                sourceFileName = static_cast<TCEString>(scope.getFilename());
+
                 TTAProgram::ProgramAnnotation progAnnotation(
                     TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_LINE, 
                     sourceLineNumber);
                 move->addAnnotation(progAnnotation); 
-		
-#if 0
-                // do not add the source code file name to each move, it
-                // explodes the TPEF file size for large programs!
-                    
-                /// @todo: implement the TPEF debug section support where 
-                /// the file 
-                /// names are stored only once.
-                        
+                       
                 if (sourceFileName != "") {
                     TTAProgram::ProgramAnnotation progAnnotation(
-                        TTAProgram::ProgramAnnotation::
-                        ANN_DEBUG_SOURCE_CODE_PATH, 
-                        sourceLineNumber);
-                    move->addAnnotation(sourceFileName); 
+                    TTAProgram::ProgramAnnotation::ANN_DEBUG_SOURCE_CODE_PATH, 
+                        sourceFileName);
+	            move->addAnnotation(progAnnotation); 
                 }
-#endif
             }
-#endif
         }
     }
 }
