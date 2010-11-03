@@ -1,0 +1,2 @@
+ file: data/lineno.c	 slines: 16
+ file: data/lineno.c	 slines: 17
