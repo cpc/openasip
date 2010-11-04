@@ -655,44 +655,6 @@ SequentialScheduler::handleProcedure(
 }
 
 /**
- * Schedules all nodes in a control flow graph.
- *
- * The original control flow graph nodes are modified during scheduling.
- *
- * @param cfg The control flow graph to schedule.
- * @param targetMachine The target machine.
- * @exception Exception In case of an error during scheduling. The exception
- *            type can be any subtype of Exception.
- */
-void
-SequentialScheduler::handleControlFlowGraph(
-    ControlFlowGraph& cfg,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
-    ControlFlowGraphPass::executeBasicBlockPass(cfg, targetMachine, *this);
-}
-
-/**
- * Schedules a program.
- *
- * The original program is modified during scheduling.
- *
- * @param program The program to schedule.
- * @param targetMachine The target machine.
- * @exception Exception In case of an error during scheduling. The exception
- *            type can be any subtype of Exception.
- */
-void
-SequentialScheduler::handleProgram(
-    TTAProgram::Program& program,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
-    ProgramPass::executeProcedurePass(program, targetMachine, *this);
-}
-
-/**
  * A short description of the pass, usually the optimization name,
  * such as "basic block scheduler".
  *

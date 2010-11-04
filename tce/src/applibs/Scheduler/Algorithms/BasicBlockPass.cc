@@ -71,11 +71,16 @@ BasicBlockPass::handleBasicBlock(
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
 
-    // just to avoid warnings -- need to keep the argument names for
-    // Doxygen comments ;)
-    basicBlock.instructionCount();
-    targetMachine.machineTester();
-    abortWithError("Should never call this.");
+    if (basicBlock.instructionCount() == 0)
+        return;
+
+    DDGPass* ddgPass = dynamic_cast<DDGPass*>(this);
+    if (ddgPass != NULL) {
+        executeDDGPass(basicBlock, targetMachine, *ddgPass);
+    } else {
+        abortWithError("basic block pass is not also a ddg pass so you "
+                       "must overload handleBasicBlock method!");
+    }
 }
 
 /**

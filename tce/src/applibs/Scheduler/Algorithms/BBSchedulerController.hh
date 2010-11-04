@@ -75,16 +75,12 @@ public:
         BasicBlock& bb, const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
-    virtual void handleControlFlowGraph(
-        ControlFlowGraph& cfg,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
-
     virtual void handleProcedure(
         TTAProgram::Procedure& procedure,
         const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
+    // is needed only for some sw bypass statistics
     virtual void handleProgram(
         TTAProgram::Program& program,
         const TTAMachine::Machine& targetMachine)
@@ -93,7 +89,6 @@ public:
     void executeDDGPass(
         BasicBlock& bb,
         const TTAMachine::Machine& targetMachine, 
-//        TTAProgram::InstructionReferenceManager& irm,  
         DDGPass& ddgPass)
         throw (Exception);
 

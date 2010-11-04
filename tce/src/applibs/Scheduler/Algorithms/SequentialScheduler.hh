@@ -69,18 +69,8 @@ public:
         BasicBlock& bb, const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
-    virtual void handleControlFlowGraph(
-        ControlFlowGraph& cfg,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
-
     virtual void handleProcedure(
         TTAProgram::Procedure& procedure,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
-
-    virtual void handleProgram(
-        TTAProgram::Program& program,
         const TTAMachine::Machine& targetMachine)
         throw (Exception);
 

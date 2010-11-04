@@ -190,27 +190,6 @@ BasicBlockScheduler::handleDDG(
     }
 }
 
-/**
- * Schedules a single basic block.
- *
- * @param bb The basic block to schedule.
- * @param targetMachine The target machine.
- * @exception Exception several TCE exceptions can be thrown in case of
- *            a scheduling error.
- */
-void
-BasicBlockScheduler::handleBasicBlock(
-    BasicBlock& bb, 
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
-    if (bb.instructionCount() == 0)
-        return;
-
-
-    BasicBlockPass::executeDDGPass(bb, targetMachine, *this);
-}
-
 #ifdef DEBUG_REG_COPY_ADDER
 static int graphCount = 0;
 #endif

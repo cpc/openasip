@@ -76,3 +76,17 @@ ProgramPass::executeProcedurePass(
         procedurePass.handleProcedure(proc, targetMachine);
     }
 }
+
+void ProgramPass::handleProgram(
+    TTAProgram::Program& program,
+    const TTAMachine::Machine& targetMachine)
+    throw (Exception) {
+
+    ProcedurePass* procPass = dynamic_cast<ProcedurePass*>(this);
+    if (procPass != NULL) {
+        executeProcedurePass(program, targetMachine, *procPass);
+    } else {
+        abortWithError("Program pass is not also a procedure pass so you "
+                       "must overload handleProgram method!");
+    }
+}

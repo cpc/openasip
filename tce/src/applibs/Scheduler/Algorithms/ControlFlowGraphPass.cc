@@ -67,11 +67,13 @@ ControlFlowGraphPass::handleControlFlowGraph(
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
     
-    // just to avoid warnings -- need to keep the argument names for
-    // Doxygen comments ;)
-    cfg.nodeCount();
-    targetMachine.machineTester();
-    abortWithError("Should never call this.");
+    BasicBlockPass* bbPass = dynamic_cast<BasicBlockPass*>(this);
+    if (bbPass != NULL) {
+        executeBasicBlockPass(cfg, targetMachine, *bbPass);
+    } else {
+        abortWithError("CFG Pass is not also a BB pass so you "
+                       "must overload handleControlFlowGraph method!");
+    }
 }
 
 /**

@@ -66,10 +66,6 @@ public:
         CopyingDelaySlotFiller* delaySlotFiller=NULL);
     virtual ~BasicBlockScheduler();
 
-    virtual void handleBasicBlock(
-        BasicBlock& bb, const TTAMachine::Machine& targetMachine)
-        throw (Exception);
-
     virtual void handleDDG(
         DataDependenceGraph& ddg,
         SimpleResourceManager& rm,

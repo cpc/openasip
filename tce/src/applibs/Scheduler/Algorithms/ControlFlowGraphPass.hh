@@ -53,7 +53,7 @@ public:
     virtual void handleControlFlowGraph(
         ControlFlowGraph& cfg,
         const TTAMachine::Machine& targetMachine)
-        throw (Exception) = 0;
+        throw (Exception);
 
     static void executeBasicBlockPass(
         ControlFlowGraph& cfg,

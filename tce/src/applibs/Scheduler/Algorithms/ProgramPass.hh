@@ -57,7 +57,7 @@ public:
     virtual void handleProgram(
         TTAProgram::Program& program,
         const TTAMachine::Machine& targetMachine)
-        throw (Exception) = 0;
+        throw (Exception);
 
     static void executeProcedurePass(
         TTAProgram::Program& program,
