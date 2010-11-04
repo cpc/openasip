@@ -1,5 +1,5 @@
 <?php
-$test_description="macros generated with tceop should contain casts for the operands";
-$test_bin = "./test_tceop_casting.sh";
+$test_description="source code filename and line number information";
+$test_bin = "./test_lineno_debug_info.sh";
 $bin_args = "";
 ?>
