@@ -38,7 +38,6 @@
 #include "NetlistPort.hh"
 #include "Exception.hh"
 #include "FileSystem.hh"
-#include "StringTools.hh"
 #include "AvalonMMMasterInterface.hh"
 #include "MapTools.hh"
 using std::ofstream;
@@ -292,19 +291,7 @@ SOPCBuilderFileGenerator::writeInterfaces(std::ostream& stream) const {
 }
 
 
-std::string
-SOPCBuilderFileGenerator::extractFUName(
-    const std::string& port,
-    const std::string& delimiter) const {
 
-    string::size_type pos = port.find(delimiter);
-    if (pos == string::npos || pos == 0) {
-        return port;
-    }
-
-    string fuName = port.substr(0, pos);
-    return StringTools::trim(fuName);
-}
 
 
 AvalonMMMasterInterface*

@@ -36,12 +36,15 @@
 #include <sstream>
 #include "ProjectFileGenerator.hh"
 #include "PlatformIntegrator.hh"
+#include "StringTools.hh"
+using std::string;
 
 ProjectFileGenerator::ProjectFileGenerator(
     std::string toplevelEntity,
     const PlatformIntegrator* integrator):
     toplevelEntity_(toplevelEntity), integrator_(integrator) {
 }
+
 
 ProjectFileGenerator::~ProjectFileGenerator() {
 }
@@ -83,17 +86,20 @@ ProjectFileGenerator::hdlFileList() const {
     return hdlFiles_;
 }
 
+
 const std::vector<std::string>&
 ProjectFileGenerator::memInitFileList() const {
 
     return memInitFiles_;
 }
 
+
 const PlatformIntegrator*
 ProjectFileGenerator::integrator() const {
 
     return integrator_;
 }
+
 
 std::string
 ProjectFileGenerator::toplevelEntity() const {
@@ -108,8 +114,24 @@ ProjectFileGenerator::signalMappingCount() const {
     return signalMap_.size();
 }
 
+
 const SignalMapping*
 ProjectFileGenerator::signalMapping(int index) const {
 
     return &signalMap_.at(index);
+}
+
+
+std::string
+ProjectFileGenerator::extractFUName(
+    const std::string& port,
+    const std::string& delimiter) const {
+    
+    string::size_type pos = port.find(delimiter);
+    if (pos == string::npos || pos == 0) {
+        return port;
+    }
+
+    string fuName = port.substr(0, pos);
+    return StringTools::trim(fuName);
 }

@@ -108,6 +108,7 @@ private:
     IPXactModel(const IPXactModel& old);    
 
     void addBusInterfaceObject(
+        int id,
         IPXactBus bus,
         const SignalMappingList* signalMap,
         ObjectState* parent) const;

@@ -108,30 +108,54 @@ IPXactFileGenerator::addBusInterfaces(IPXactModel* model) {
     while (iter != busInterfaces_.end()) {
         IPXactModel::IPXactBus bus = iter->first;
         const SignalMappingList& search = *iter->second;
-        SignalMappingList mapping;
-        if (searchInterface(search, mapping)) {
-            model->addBusInterface(bus, mapping);
-        }
+        searchInterface(bus, search, model);
         iter++;
     }
 }
 
-bool
+
+void
 IPXactFileGenerator::searchInterface(
+    const IPXactModel::IPXactBus& bus,
     const SignalMappingList& search,
-    SignalMappingList& found) const {;
+    IPXactModel* model) {
+    
+    assert(search.size() > 0);
     
     const ProGe::NetlistBlock& toplevel = integrator()->toplevelBlock();
     for (int i = 0; i < toplevel.portCount(); i++) {
         NetlistPort& port = toplevel.port(i);
+        string interfaceSignal = search.at(0).first;
+        if (port.name().find(interfaceSignal) != string::npos) {
+            string fuName = extractFUName(port.name(), interfaceSignal);
+            SignalMappingList mapping;
+            if (mapFUToInterface(fuName, search, mapping)) {
+                model->addBusInterface(bus, mapping);
+            }
+        }
+    }
+}
+
+
+bool
+IPXactFileGenerator::mapFUToInterface(
+    const std::string& fuName,
+    const SignalMappingList& search,
+    SignalMappingList& found) const {
+
+    const ProGe::NetlistBlock& toplevel = integrator()->toplevelBlock();
+    for (int i = 0; i < toplevel.portCount(); i++) {
+        NetlistPort& port = toplevel.port(i);
         for (unsigned int j = 0; j < search.size(); j++) {
-            if (port.name().find(search.at(j).first) != string::npos) {
+            string fullName = fuName + search.at(j).first;
+            if (port.name().find(fullName) != string::npos) {
                 // add mapping from toplevel signal name to bus signal name
                 found.push_back(
                     pair<string,string>(port.name(), search.at(j).second));
             }
         }
     }
+
     bool foundAll = false;
     if (search.size() == found.size()) {
         foundAll = true;

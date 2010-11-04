@@ -3011,7 +3011,20 @@ be valid.
 \end{longtable}
 \end{center}
 
-\subsubsection{Platform Integrator}
+\subsection{IC/Decoder Generators}
+
+IC/Decoder generators are implemented as external plug-in
+modules. This enables users to provide customizable instruction
+decoder and IC implementations without recompiling or modifying the
+existing code base. One can easily add different plug-ins to
+experiment with different implementation alternatives, and as easily
+switch from one to another plug-in. To create a new plug-in, a
+software module that implements a certain interface must be created,
+compiled to a shared object file and copied to appropriate
+directory. Then it can be given as command line parameter to the
+generator.
+
+\subsection{Platform Integrator}
 
 Processor Generator also has an experimental support for integrating TTA core
 to standalone processor on FPGA. Another use case for platform integrator is to
@@ -3037,49 +3050,282 @@ value will be used. \\
 
 d & \verb|dmem| &
 Data memory type. Available types depends on the platform integrator. Types are
-'vhdl\_array', 'onchip', 'sram', 'dram' and 'none' \\
+'vhdl\_array', 'onchip', 'sram', 'dram' and 'none'. \textbf{Required}. \\
 
 e & \verb|entity-name| &
-Name of the toplevel entity which platform integrator creates \\
+Name of the toplevel entity which platform integrator creates.
+\textbf{Required}. \\
 
 i & \verb|imem| &
 Instruction memory type. Available types depends on the platform integrator.
-Types are 'vhdl\_array', 'onchip', 'sram' and 'dram'. \\
+Types are 'vhdl\_array', 'onchip', 'sram' and 'dram'. \textbf{Required}. \\
 
 w & \verb|imem-width| &
 Defines instruction memory width. This value overrides the instruction width
 from BEM. \\
 
 g & \verb|integrator| &
-Selects the platform integrator. \\
+Selects the platform integrator. \textbf{Required}. \\
 
 n & \verb|list-integrators| &
 List available integrators and information about them. \\
 
 p & \verb|program| &
-Name of tpef program.
+Name of tpef program. \textbf{Required}.
 
 \end{longtable}
 \end{center}
 
-Parameters 'dmem', 'imem', 'entity-name', 'program' and 'integrator' are
-required. Here is an example how to use platform integrator:
+Here is an example how to use platform integrator:
 
 \shellcmd{generateprocessor -i arch.idf -o proge-output -g Stratix2DSP
 -d onchip -f vhdl\_array -e FFTmuncher -p fft\_app.tpef arch.adf}
 
-\subsubsection{IC/Decoder Generators}
+This command would try to integrate processor arch.adf to Stratix2DSP FPGA
+board using vhdl rom array for instruction memory and FPGA's onchip memory for
+data memory. HDL files created by Platform Integrator be stored to directory
+proge-output/platform and project files etc. are written to current working
+directory.
 
-IC/Decoder generators are implemented as external plug-in
-modules. This enables users to provide customizable instruction
-decoder and IC implementations without recompiling or modifying the
-existing code base. One can easily add different plug-ins to
-experiment with different implementation alternatives, and as easily
-switch from one to another plug-in. To create a new plug-in, a
-software module that implements a certain interface must be created,
-compiled to a shared object file and copied to appropriate
-directory. Then it can be given as command line parameter to the
-generator.
+\subsection{Platform Integrator components included in TCE}
+
+This section introduces the Platform Integrators which are shipped with TCE.
+
+\subsubsection{Stratix2DSP}
+\label{stratix2dspIntegrator}
+
+Stratix2DSP integrator is targeted to integrate TTA core onto a Stratix~II
+DSP Pro board with EP2S180F1020C3 FPGA device. This integrator requires that
+Altera Quartus~II has been installed and the executables are found from PATH.
+Integrator automatically invokes 'qmegawiz' program to generate onchip
+memories.
+
+By default, integrator maps processor clock signal (clk) to FPGA pin AM17
+which provides 100 MHz clock signal from oscillator. Reset signal (rstx),
+which is active low, is mapped to FPGA pin J13 which is connected SW7/USER\_PB
+pushbutton on the FPGA board. Pin J13 will be connected to ground when this
+button is pressed down thus reseting the processor.
+
+Interfacing to FPGA board components can be done by using function units
+stored in stratixII.hdb. External ports of these function units will be
+automatically mapped to FPGA pins. It is also vital that the load store unit
+of the processor is selected from this HDB, otherwise integrator will fail to
+create memory component mappings. Unidentified external ports will be connected
+to the new toplevel entity but they are not mapped to any FPGA pin by default.
+In this case, integrator will give a warning message: ``Warning: didn't find
+mapping for signal name <signal>''.
+
+Stratix2DSP integrator will also generate project files for Altera Quartus~II
+software. These files will be written to the current working directory and they
+are named as <entity\_name>.qpf and <entity\_name>.qsf. Project files contain
+device settings, pin mappings and lists design HDL files. Integrator also
+creates quartus\_synthesize.sh shell script which will execute the synthesis
+process and quartus\_program\_fpga.sh which can be used to program the FPGA
+after successful synthesis.
+
+Available instruction memory types are:
+\begin{center}
+\begin{longtable}[htb]{@{}p{.20\textwidth}%
+                     @{}p{.80\textwidth}}
+
+\textbf{Mem Type} &\textbf{Description} \\
+\hline
+onchip & Instruction memory is reserved from FPGAs internal memory blocks and
+the memory contents will be automatically instantiated during FPGA programming.
+Designer must ensure that instruction memory contents will fit on the FPGA.
+Otherwise synthesis process will fail. \\
+vhdl\_array & Instruction memory is written as a vhdl ROM array and it is
+synthesized into the design. Increased synthesis time can be expected when this
+memory type is used. Updating instruction memory requires resynthesis.
+\end{longtable}
+\end{center}
+
+Available data memory types are:
+\begin{center}
+\begin{longtable}[htb]{@{}p{.20\textwidth}%
+                     @{}p{.80\textwidth}}
+
+\textbf{Mem Type} &\textbf{Description} \\
+\hline
+none & Indicates that the processor doesn't have a load store unit or that the
+integrator shouldn't try to make memory connections. \\
+
+onchip & Data memory is reserved from FPGA's internal memory blocks. Memory
+contents will be initialized during FPGA programming. When this option is used,
+load store unit implementation must be selected as
+fu\_lsu\_with\_bytemask\_always\_3 which is stored in stratixII.hdb.\\
+
+sram & SRAM chip on the FPGA board will be used as data memory. Load store unit
+implementation must be selected as fu\_lsu\_sram\_static which is stored in
+stratixII.hdb. Notice that data memory will be uninitialized when this option
+is used.
+\end{longtable}
+\end{center}
+
+\textbf{Usage examples:} 
+\begin{enumerate}
+
+% use case: onchip mem for dmem and imem
+ \item There's a processor with onchip memory compatible LSU and instruction
+memory will also use onchip memory. Let the name of the new toplevel entity
+be example1. Command to execute Stratix2DSP integrator is \\
+\shellcmd{generateprocessor -i proc.idf -o proge-out -g Stratix2DSP -d onchip
+-f onchip -e example1 -p program.tpef proc.adf}
+
+% use case: user defined clock freq
+\item Same case as before, but now we want to specify target clock frequency
+of 150~MHz. Quartus~II will then try to reach the specified clock frequency in
+synthesis process. Command is \\
+\shellcmd{generateprocessor -i proc.idf -o proge-out -c 150 -g Stratix2DSP
+-d onchip -f onchip -e example1 -p program.tpef proc.adf}
+
+Notice that the clock signal will still be connected to 100~MHz clock
+oscillator. You'll have to provide the 150~MHz clock signal yourself. This can
+be done for example by instantiating and connecting a PLL component in
+proge-out/platform/example1.vhdl file, which is the new toplevel HDL file.
+
+% use case: SRAM for dmem, onchip mem for imem and use absolute paths
+\item There's a processor with SRAM compatible LSU and instruction memory will
+be implemented as VHDL array. In addition we wish to use absolute paths in
+project files. Command is then \\
+\shellcmd{generateprocessor -i proc.idf -o proge-out -a -g Stratix2DSP -d sram
+-f vhdl\_array -e example1 -p program.tpef proc.adf}
+
+\end{enumerate}
+
+
+\subsubsection{AvalonIntegrator}
+
+AvalonIntegrator can be used to create an Altera SOPC Builder component from
+TTA processor which includes a function unit that implements Avalon Memory
+Mapped Master interface. This integrator requires that Altera Quartus~II has
+been installed and the executables are found from PATH. Integrator
+automatically invokes 'qmegawiz' program to generate onchip memories.
+
+Function units which implement Avalon Memory Mapped Master interface are stored
+in avalon.hdb. There are two ways of using Avalon:
+\begin{enumerate}
+ \item \textbf{Load store unit implements Avalon MM Master interface.} Load
+store unit implementation must be mapped to avalon\_lsu which is stored in
+avalon.hdb. In this method the data memory is selected in SOPC Builder and thus
+the data memory type parameter must be set to 'none' when integrator is
+executed. Due to the lack of memory mapper in current TCE version, data memory
+address space must be set to start from 0 in SOPC Builder. Also the size of
+data memory should match to the data memory address space size defined in ADF.
+It is also possible to include Avalon SFU (see the next bullet) to a processor
+which has Avalon LSU but the same data memory restrictions still apply.
+
+ \item \textbf{Special function unit implements Avalon MM Master interface.}
+In this case a special function unit (SFU) is used to interface with Avalon and
+custom operation macros must be used to communicate with other Avalon
+components. It is also possible to include multiple Avalon SFUs to the
+processor but currently there is no method to differentiate which SFU is used
+from C code.
+
+\end{enumerate}
+
+In both cases the instruction memory of TTA is not visible to nor accessible
+via Avalon. Instruction memory options are the same for Avalon Integrator as
+for Stratix2DSP Integrator. See section~\ref{stratix2dspIntegrator} for more
+information.
+
+Supported data memory configurations are:
+\begin{center}
+\begin{longtable}[htb]{@{}p{.20\textwidth}%
+                     @{}p{.80\textwidth}}
+
+\textbf{Mem Type} &\textbf{Description} \\
+\hline
+none & This option indicates that data memory type will be selected in SOPC
+Builder and data memory is accessed through Avalon. LSU implementation must
+be mapped to avalon\_lsu which is stored in avalon.hdb.\\
+onchip & Data memory will be reserved from FPGA's internal memory blocks and
+the data memory is not visible to Avalon. LSU implementation must be mapped to
+fu\_lsu\_with\_bytemask\_always\_3 which is stored in stratixII.hdb (despite
+the name, the LSU implementation is quite generic for Altera onchip memories).
+\end{longtable}
+\end{center}
+
+Avalon Integrator creates a SOPC Builder component file <entity\_name>\_hw.tcl
+to current working directory. This file can be used to import the TTA processor
+to SOPC Builder component library. You must either edit IP search path
+from SOPC Builder's options or add new component using the created tcl-file.
+
+\textbf{Usage examples:}
+
+\begin{enumerate}
+% use case: avalon LSU
+ \item There is a processor with Avalon LSU. Because of this, data memory type
+must be set to 'none. Instruction memory is reserved from onchip memory in this
+case. Let the name of the new toplevel entity be tta\_sopc.
+Command to execute Avalon Integrator is
+
+\shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AvalonIntegrator
+-d none -f onchip -e tta\_sopc -p program.tpef proc.adf}
+
+Integrator will generate file tta\_sopc\_hw.tcl which can be used to import the
+component to SOPC Builder
+
+% use case: avalon SFU
+\item There is a processor with Avalon SFU and instruction memory is implemented
+as VHDL array and data memory is reserved from FPGA's internal memory. Let the
+name of the new toplevel entity be tta\_sopc. Command is
+
+\shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AvalonIntegrator
+-d onchip -f vhdl\_array -e tta\_sopc -p program.tpef proc.adf}
+
+Integrator will generate file tta\_sopc\_hw.tcl which can be used to import the
+component to SOPC Builder
+
+% use case: both avalon LSU and avalon SFU
+\item There is a processor with Avalon LSU and Avalon SFU. Because Avalon LSU is
+used, data memory type must be set to 'none'. Instruction memory is reserved
+from onchip memory in this case. Let the name of the new toplevel entity be
+dual\_avalon\_tta\_sopc. Command is
+
+\shellcmd{generateprocessor -i proc.idf -o proge-out -a -g AvalonIntegrator
+-d none -f onchip -e dual\_avalon\_tta\_sopc -p program.tpef proc.adf}
+
+Integrator will generate file dual\_avalon\_tta\_sopc\_hw.tcl which can be
+used to import the component to SOPC Builder. Component will now have 2 Avalon
+Memory Mapped Master interfaces.
+
+\end{enumerate}
+
+
+\subsubsection{KoskiIntegrator}
+
+Koski Integrator can be used to create a Koski toolset compatible IP block from
+TTA processor. Processor must have a function unit that interfaces with HiBi
+bus to be compatible with this integrator. Currently this integrator only works
+with Altera FPGAs and requires Quartus~II toolset to be installed and found
+from PATH.
+
+HiBi compatible load store unit can be found from hibi\_adapter.hdb. Currently
+it is the only function unit shipped with TCE which implements HiBi interface.
+This means that the only option for data memory type is 'onchip'. In addition
+the onchip memory is generated as dual port ram which means that the FPGA
+device must have support for dual port onchip memories.
+
+Instruction memory options are the same as for Stratix2DSP integrator. See
+section~\ref{stratix2dspIntegrator} for more information.
+
+Koski Integrator will generate an IP-XACT (version 1.2) description file of the
+integrated component. File is written to the current working directory and it
+is named as spirit\_comp\_def\_<entity\_name>.xml. This file is used to import
+the created TTA IP-component to Koski tools.
+
+\textbf{Usage example:} \\
+There's a processor with HiBi LSU and instruction memory is implemented using
+FPGA's internal memory and toplevel entity will be named as 'koski\_tta'.
+Command is then:
+
+\shellcmd{generateprocessor -i proc.idf -o proge-out -a -g KoskiIntegrator
+-d onchip -f onchip -e koski\_tta -p program.tpef proc.adf}
+
+Integrator creates IP-XACT file 'spirit\_comp\_def\_koski\_tta.xml' to
+current working directory.
+
 
 \section{Hardware Database Editor (HDB Editor)}
 \label{sec:hdbedit}

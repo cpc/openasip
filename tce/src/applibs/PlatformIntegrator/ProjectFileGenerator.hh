@@ -70,6 +70,10 @@ protected:
 
     const SignalMapping* signalMapping(int index) const;
 
+    std::string extractFUName(
+        const std::string& port,
+        const std::string& delimiter) const;
+
 private:
     std::string toplevelEntity_;
     const PlatformIntegrator* integrator_;

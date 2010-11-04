@@ -54,7 +54,13 @@ private:
 
     void addBusInterfaces(IPXactModel* model);
 
-    bool searchInterface(
+    void searchInterface(
+        const IPXactModel::IPXactBus& bus,
+        const SignalMappingList& search,
+        IPXactModel* model);
+
+    bool mapFUToInterface(
+        const std::string& fuName,
         const SignalMappingList& search,
         SignalMappingList& found) const;
 

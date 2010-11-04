@@ -150,7 +150,7 @@ IPXactModel::saveState() const {
         IPXactBus bus = busInterfaces_.at(i).first;
         const SignalMappingList* signalMap = busInterfaces_.at(i).second;
         ObjectState* busInterface = new ObjectState(OSNAME_BUS_INTERFACE);
-        addBusInterfaceObject(bus, signalMap, busInterface);
+        addBusInterfaceObject(i, bus, signalMap, busInterface);
         busInterfaces->addChild(busInterface);
     }
     
@@ -234,8 +234,10 @@ IPXactModel::addBusInterface(
     IPXactBus busType,
     const SignalMappingList& signalMap) {
 
-    // todo: proper checking for bus type
-    assert(busType == HIBI);
+    // TODO: change if new bus interfaces are supported
+    if (busType != HIBI) {
+        return false;
+    }
 
     SignalMappingList* mappings = new SignalMappingList();
     for (unsigned int i = 0; i < signalMap.size(); i++) {
@@ -249,6 +251,7 @@ IPXactModel::addBusInterface(
 
 void
 IPXactModel::addBusInterfaceObject(
+    int id,
     IPXactBus bus,
     const SignalMappingList* signalMap,
     ObjectState* parent) const {
@@ -258,7 +261,8 @@ IPXactModel::addBusInterfaceObject(
     ObjectState* role = NULL;
     if (bus == IPXactModel::HIBI) {
         busName = new ObjectState(OSNAME_NAME);
-        busName->setValue(HIBI_BUS_NAME);
+        string busInstName = HIBI_BUS_NAME + "_" + Conversion::toString(id);
+        busName->setValue(busInstName);
         busType = new ObjectState(OSNAME_BUS_TYPE);
         busType->setAttribute(OSNAME_VENDOR, HIBI_VENDOR);
         busType->setAttribute(OSNAME_LIBRARY, HIBI_LIBRARY);

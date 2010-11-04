@@ -68,10 +68,6 @@ private:
 
     void writeInterfaces(std::ostream& stream) const;
 
-    std::string extractFUName(
-        const std::string& port,
-        const std::string& delimiter) const;
-
     AvalonMMMasterInterface* getMaster(const std::string& fuName);
 
     SOPCInterface* clock_;
