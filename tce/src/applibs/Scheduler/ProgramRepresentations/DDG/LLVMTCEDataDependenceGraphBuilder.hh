@@ -42,7 +42,8 @@
  * Currently used to produce DDGs from the prebypassed sequential code 
  * input from the TTA-like LLVM backend.
  */
-class LLVMTCEDataDependenceGraphBuilder : public DataDependenceGraphBuilder {
+class LLVMTCEDataDependenceGraphBuilder : 
+    public DataDependenceGraphBuilder {
 public:
     LLVMTCEDataDependenceGraphBuilder(InterPassData& ipd) {}        
     virtual ~LLVMTCEDataDependenceGraphBuilder() {}

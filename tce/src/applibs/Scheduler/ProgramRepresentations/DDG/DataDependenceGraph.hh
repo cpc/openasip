@@ -85,8 +85,9 @@ public:
     DataDependenceEdge* onlyRegisterEdgeIn(MoveNode& mn);
     DataDependenceEdge* onlyRegisterEdgeOut(MoveNode& mn);
 
-    // should not be called by the user
-    void addNode(MoveNode& moveNode) throw (ObjectAlreadyExists);
+    // should not be called by the user, only by a DataDependenceGraphBuilder
+    void addNode(MoveNode& moveNode) 
+        throw (ObjectAlreadyExists);
     void addNode(MoveNode& moveNode, MoveNode& relatedNode);
     void addNode(MoveNode& moveNode, BasicBlockNode& bblock);
     void addProgramOperation(ProgramOperation* po);

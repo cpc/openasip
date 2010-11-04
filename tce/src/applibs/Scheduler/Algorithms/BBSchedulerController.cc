@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Definition of BBSchedulerController class.
  *
- * @author Pekka Jääskeläinen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka Jääskeläinen 2006-2010 (pjaaskel-no.spam-cs.tut.fi)
  * @author Heikki Kultala 2009 (hkultala-no.spam-cs.tut.fi)
  * @note rating: red
  */
@@ -60,11 +60,11 @@
 #include "Application.hh"
 #include "LLVMTCECmdLineOptions.hh"
 #include "SchedulerCmdLineOptions.hh"
-#include "BasicBlockScheduler.hh"
 #include "MachineConnectivityCheck.hh"
 #include "InterPassData.hh"
 #include "TerminalFUPort.hh"
 #include "HWOperation.hh"
+#include "BasicBlockScheduler.hh"
 
 namespace TTAMachine {
     class UniversalMachine;
@@ -196,9 +196,7 @@ BBSchedulerController::handleProcedure(
     cfg.writeToDotFile(procedure.name() + "_cfg.dot");
 #endif
 
-    // create the procedure-wide ddg.
-    DataDependenceGraphBuilder ddgBuilder(BasicBlockPass::interPassData());
-    bigDDG_ = ddgBuilder.build(cfg);
+    bigDDG_ = ddgBuilder().build(cfg);
     
     if (options_ != NULL && options_->dumpDDGsDot()) {
         bigDDG_->writeToDotFile( 
@@ -315,13 +313,6 @@ BBSchedulerController::createDDGFromBB(BasicBlock& bb) {
         return bigDDG_->createSubgraph(bb);
     } else {
         return this->ddgBuilder().build(bb);
-/*
-        DataDependenceGraphBuilder ddgb(BasicBlockPass::interPassData());
-        return ddgb.build(
-            bb, scheduledProcedure_->name() + '_' + 
-            Conversion::toString(basicBlocksScheduled_) + ".dot");
-*/
-
     }
 }
 

@@ -36,11 +36,12 @@
 #include "Application.hh"
 #include "DataDependenceGraph.hh"
 #include "POMDisassembler.hh"
+#include "ProgramOperation.hh"
 
 /**
  * Constructor.
  */
-MoveNodeGroup::MoveNodeGroup() : ddg_(NULL) {
+MoveNodeGroup::MoveNodeGroup() : ddg_(NULL), operation_(NULL) {
 }
 
 /**
@@ -210,6 +211,10 @@ MoveNodeGroup::toString() const {
     std::string result = "";
     for (int i = 0; i < nodeCount(); i++) {
         result += node(i).toString() + " ; ";
+    }
+
+    if (isOperation()) {
+        result += "[PO: " + programOperation().toString() + "] ";
     }
     return result;
 }

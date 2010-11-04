@@ -80,9 +80,6 @@ namespace llvm {
         bool doInitialization(Module &M);
         TTAProgram::Instruction* emitMove(
             const MachineInstr* mi, TTAProgram::Procedure* proc);
-        void assignBuses();
-        void addNOPs();
-        void assignControlUnit();
     private:
         // after converting from the LLVM MachineInstrs, parallelize the
         // program as well as possible

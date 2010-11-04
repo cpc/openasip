@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libselector.la
 libselector_la_SOURCES = MoveNodeGroup.cc MoveNodeSelector.cc \
-	CriticalPathBBMoveNodeSelector.cc SequentialMoveNodeSelector.cc
+	CriticalPathBBMoveNodeSelector.cc SequentialMoveNodeSelector.cc \
+	MoveNodeGroupBuilder.cc
 
 SRC_ROOT_DIR = $(top_srcdir)/src
 BASE_DIR = ${SRC_ROOT_DIR}/base

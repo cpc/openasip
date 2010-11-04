@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -53,7 +53,8 @@ public:
     void addNode(MoveNode& node);
     
     int earliestCycle() const;
-    int latestCycle() const throw (NotAvailable);
+    int latestCycle() const 
+        throw (NotAvailable);
 
     int maxSinkDistance() const;
     int maxSourceDistance() const;
@@ -64,11 +65,20 @@ public:
     bool isScheduled() const;
     std::string toString() const;
 
+    /// in case this MNG contains strictly the nodes of a single operation,
+    /// it can be set and queried with these methods
+    void setProgramOperation(ProgramOperation& op) { operation_ = &op; }
+    bool isOperation() const { return operation_ != NULL; }
+    ProgramOperation& programOperation() const { return *operation_; }
+
 private:
     std::vector<MoveNode*> nodes_;
     /// The data dependence graph the moves in this group belong to 
     /// (optional).
     const DataDependenceGraph* ddg_;
+    /// in case this MNG contains strictly the nodes of a single operation
+    /// this can be set to point to it (optional)
+    ProgramOperation* operation_;
 };
 
 #endif

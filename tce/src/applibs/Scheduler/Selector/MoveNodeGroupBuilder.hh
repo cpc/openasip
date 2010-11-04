@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,45 +22,43 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file SequentialMoveNodeSelector.hh
- *
- * Declaration of SequentialModeNodeSelector class.
- *
- * @author Heikki Kultala 2008 (hkultala-no.spam-cs.tut.fi)
+ * @file MoveNodeGroupBuilder.hh
+ * 
+ * Declaration of MoveNodeGroupBuilder class 
+ * 
+ * @author Pekka Jääskeläinen 2010
  * @note rating: red
  */
 
-#ifndef TTA_SEQUENTIAL_MOVE_NODE_SELECTOR_HH
-#define TTA_SEQUENTIAL_MOVE_NODE_SELECTOR_HH
+#ifndef TTA_MOVE_NODE_GROUP_BUILDER_HH
+#define TTA_MOVE_NODE_GROUP_BUILDER_HH
 
 #include <list>
 
-#include "MoveNodeSelector.hh"
-#include "BasicBlock.hh"
+class ProgramOperation;
+class MoveNodeGroup;
+class BasicBlock;
 
 /**
- * Selects move nodes from a basic block in their sequential input order.
+ * Builds a list of MoveNodeGroups (MNG) from the input basic block.
+ *
+ * Also builds MoveNodes and ProgramOperations and ensures the produced
+ * MNG list is in the input sequential order and that each MNG contains
+ * either one MoveNode or a set of MoveNodes consisting a ProgramOperation.
  */
-class SequentialMoveNodeSelector : public MoveNodeSelector {
+class MoveNodeGroupBuilder {
 public:
-    SequentialMoveNodeSelector(BasicBlock& bb);
+    typedef std::list<MoveNodeGroup*> MoveNodeGroupList;
 
-    virtual ~SequentialMoveNodeSelector();
+    MoveNodeGroupBuilder() {}
+    virtual ~MoveNodeGroupBuilder() {}    
 
-    virtual MoveNodeGroup candidates();
-    virtual void notifyScheduled(MoveNode& node);
-
-    void mightBeReady(MoveNode& node);
+    MoveNodeGroupList* build(BasicBlock& bb);    
+    
 private:
-    void createMoveNodes(BasicBlock& bb);
 
     typedef std::list<ProgramOperation*> ProgramOperationList;
-    typedef std::list<MoveNodeGroup*> MNGList;
-
-    MNGList* mngs_;
-    // returns the movenodegroups in order.
-    // thiskeep track where we are going.
-    MNGList::iterator mngIter_;
+    ProgramOperationList programOperations_;
 };
 
 #endif

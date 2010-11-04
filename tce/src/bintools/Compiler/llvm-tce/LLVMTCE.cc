@@ -171,7 +171,7 @@ main(int argc, char* argv[]) {
     try {
         InterPassData* ipData = new InterPassData;
         
-        LLVMBackend compiler(true, useInstalledVersion,!options->leaveDirty());
+        LLVMBackend compiler(true, useInstalledVersion, !options->leaveDirty());
         TTAProgram::Program* seqProg =
             compiler.compile(bytecodeFile, emulationCode, *mach, optLevel, debug, ipData);
 

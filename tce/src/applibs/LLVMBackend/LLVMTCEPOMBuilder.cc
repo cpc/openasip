@@ -182,100 +182,10 @@ LLVMTCEPOMBuilder::doInitialization(Module &M) {
     return LLVMTCEBuilder::doInitialization(M);
 }
 
-void
-LLVMTCEPOMBuilder::assignBuses() {
-    TTAProgram::Program& prog = *result();
-    TTAProgram::Program::InstructionVector ivec =
-        prog.instructionVector();
-    for (TTAProgram::Program::InstructionVector::const_iterator i = 
-             ivec.begin(); i != ivec.end(); ++i) {
-        TTAProgram::Instruction& instr = **i;
-        for (int m = 0; m < instr.moveCount(); ++m) {
-            TTAProgram::Move& move = instr.move(m);
-            move.setBus(*mach_->busNavigator().item(0));
-        }
-    }
-}
-
-void
-LLVMTCEPOMBuilder::addNOPs() {
-    TTAProgram::Program& prog = *result();
-    TTAProgram::Program::InstructionVector ivec =
-        prog.instructionVector();
-    for (TTAProgram::Program::InstructionVector::const_iterator i = 
-             ivec.begin(); i != ivec.end(); ++i) {
-        TTAProgram::Instruction& instr = **i;
-        for (int m = 0; m < instr.moveCount(); ++m) {
-            TTAProgram::Move& move = instr.move(m);
-            if (move.isTriggering()) {
-                /* TODO: branch delay slots! */
-                TTAProgram::TerminalFUPort& fuPort =
-                    dynamic_cast<TTAProgram::TerminalFUPort&>(
-                        move.destination());
-                TTAMachine::HWOperation& operation = *fuPort.hwOperation();
-                int nopsToAdd;
-                if (move.isControlFlowMove()) {
-                    nopsToAdd = mach_->controlUnit()->delaySlots() + 1;
-                } else {
-                    nopsToAdd = operation.latency();
-                }
-                
-                while (--nopsToAdd > 0) {
-                    instr.parent().insertAfter(
-                        instr, 
-                        new TTAProgram::Instruction(
-                            *mach_->instructionTemplateNavigator().item(0)));
-                }
-            }
-        }
-    }
-}
-
-/**
- * Assigns the control unit to control flow operation targets.
- */
-void
-LLVMTCEPOMBuilder::assignControlUnit() {
-    TTAProgram::Program& prog = *result();
-    TTAProgram::Program::InstructionVector ivec =
-        prog.instructionVector();
-    for (TTAProgram::Program::InstructionVector::const_iterator i = 
-             ivec.begin(); i != ivec.end(); ++i) {
-        TTAProgram::Instruction& instr = **i;
-        for (int m = 0; m < instr.moveCount(); ++m) {
-            TTAProgram::Move& move = instr.move(m);
-            if (move.isControlFlowMove()) {
-                TTAProgram::TerminalFUPort& fuPort =
-                    dynamic_cast<TTAProgram::TerminalFUPort&>(
-                        move.destination());
-                TTAMachine::HWOperation& operation = *fuPort.hwOperation();
-
-                move.setDestination(
-                    new TTAProgram::TerminalFUPort(
-                        *mach_->controlUnit()->operation(operation.name()),
-                        fuPort.operationIndex()));
-
-                if (move.source().isRA()) {
-                    move.setSource(
-                        new TTAProgram::TerminalFUPort(
-                            *mach_->controlUnit()->returnAddressPort()));
-                }
-            }
-        }
-    }
-}
-
 bool
 LLVMTCEPOMBuilder::doFinalization(Module& m) {
 
     LLVMTCEBuilder::doFinalization(m);
-#if 0
-    // these are not needed if the SequentialScheduler works, as it seems
-    // for now -- remove after testing more
-    assignBuses();
-    assignControlUnit();
-    addNOPs();
-#endif
     InterPassData ipData;
     if (parallelize_) {        
         LLVMTCEDataDependenceGraphBuilder ddgBuilder(ipData);
