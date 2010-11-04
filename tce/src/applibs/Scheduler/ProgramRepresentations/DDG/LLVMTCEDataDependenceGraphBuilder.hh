@@ -50,12 +50,14 @@ public:
     virtual DataDependenceGraph* build(
         ControlFlowGraph& cGraph, const UniversalMachine* um = NULL) {
         abortWithError("to implement");
+        return NULL;
     }
 
     virtual DataDependenceGraph* build(
         BasicBlock& bb, const UniversalMachine* um = NULL) 
         throw (IllegalProgram) {
         abortWithError("to implement");
+        return NULL;
     }
 };
 
