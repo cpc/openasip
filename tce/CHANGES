@@ -16,6 +16,11 @@ Notable new features
 - Basic support for debugging info when compiled with 'tcecc -g'. 
   The source code line numbers are displayed as comments in 'tcedisasm' 
   output and ttasim's disassembly.
+- Platform Integration support is improved. New integrator components
+  include AvalonIntegrator which can be used to integrate TTA to a
+  Altera SOPC Builder component and KoskiIntegrator which can be used
+  to integrate TTA processor to Koski toolset compatible IP blocks with
+  IP-XACT 1.2 component description file.
 
 Code generator improvements
 ---------------------------
