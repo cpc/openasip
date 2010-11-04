@@ -39,11 +39,9 @@
 #include "MoveNodeGroup.hh"
 #include "CriticalPathBBMoveNodeSelector.hh"
 #include "FunctionUnit.hh"
-#include "BasicBlockPass.hh"
-#include "ControlFlowGraphPass.hh"
-#include "ProcedurePass.hh"
-#include "ProgramPass.hh"
 #include "DDGPass.hh"
+#include "BasicBlockPass.hh"
+#include "BBSchedulerController.hh"
 #include "DataDependenceGraph.hh"
 #include "LLVMTCECmdLineOptions.hh"
 
@@ -61,7 +59,7 @@ class DataDependenceGraphBuilder;
  * instruction importing).
  */
 class BasicBlockScheduler :
-    public BasicBlockPass, public DDGPass {
+    public BBSchedulerController, public DDGPass {
 public:
     BasicBlockScheduler(
         InterPassData& data, SoftwareBypasser* bypasser=NULL, 

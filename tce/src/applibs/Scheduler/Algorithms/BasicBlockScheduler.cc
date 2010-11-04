@@ -77,7 +77,8 @@ BasicBlockScheduler::BasicBlockScheduler(
     InterPassData& data, 
     SoftwareBypasser* bypasser, 
     CopyingDelaySlotFiller* delaySlotFiller) :
-    BasicBlockPass(data), DDGPass(data), ddg_(NULL), bigDDG_(NULL), rm_(NULL),
+    BBSchedulerController(data, bypasser, delaySlotFiller, NULL),
+    DDGPass(data), ddg_(NULL), bigDDG_(NULL), rm_(NULL),
     softwareBypasser_(bypasser), delaySlotFiller_(delaySlotFiller),
     bypassedCount_(0), deadResults_(0) {
 
