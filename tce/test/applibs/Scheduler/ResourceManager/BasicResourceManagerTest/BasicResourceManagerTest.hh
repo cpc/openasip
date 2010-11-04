@@ -304,8 +304,8 @@ BasicResourceManagerTest::testBasicFunctionality() {
         TS_ASSERT(moves.node(0).cycle() == 4);
         TS_ASSERT(rm->instruction(5)->moveCount() == 0);
         TS_ASSERT(rm->instruction(4)->moveCount() == 1);
-        SimpleResourceManager::disposeRM(rm);
         delete cpSelector;
+        SimpleResourceManager::disposeRM(rm);
         delete targetMachine;
         delete srcProgram;
     } catch (const Exception& e) {
@@ -549,11 +549,12 @@ BasicResourceManagerTest::testRestorationOfResources() {
     TS_ASSERT(!(moves.node(0).cycle() == moves.node(1).cycle() &&
           moves.node(1).cycle() == moves.node(2).cycle()));
 
+    delete cpSelector; // need to be deleted first
+
     SimpleResourceManager::disposeRM(rm);
     delete source;
     delete destination;
 
-    delete cpSelector; // need to be deleted first
     delete targetMachine;
     delete srcProgram;
 
@@ -648,8 +649,8 @@ BasicResourceManagerTest::testLongImmediates() {
         TS_ASSERT_EQUALS(rm->instruction(2)->moveCount(), 3);
         TS_ASSERT_EQUALS(rm->instruction(3)->moveCount(), 2);
         TS_ASSERT_EQUALS(rm->instruction(4)->moveCount(), 1);
-        SimpleResourceManager::disposeRM(rm);
         delete selector;
+        SimpleResourceManager::disposeRM(rm);
         delete targetMachine;
         delete srcProgram;
 
@@ -914,8 +915,6 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
 
         TS_ASSERT_EQUALS(po1->isAssigned(), true);
         
-        SimpleResourceManager::disposeRM(rm);
-
         delete node1;
         delete node2;
         delete node3;
@@ -930,6 +929,8 @@ BasicResourceManagerTest::testWAWEarliestLatestCycle() {
         delete targetMachine;
         delete po1;
         delete po2;        
+
+        SimpleResourceManager::disposeRM(rm);
 
     } catch (const Exception& e) {
         std::cout << e.fileName() << " " << e.procedureName() << " ";
