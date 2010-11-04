@@ -106,13 +106,10 @@ BasicBlockPass::executeDDGPass(
     ++bbCounter;
 #endif
 
-    // Find largest cycle any move was scheduled in DDG
-//    const int ddgLastCycle = ddg->largestCycle();
-
     copyRMToBB(*rm, bb, targetMachine);
 
     // deletes or stores rm for future use
-    deleteRM(rm, bb);
+    SimpleResourceManager::disposeRM(rm);
     delete ddg;
 }
 
@@ -175,21 +172,4 @@ void BasicBlockPass::copyRMToBB(
 DataDependenceGraph*
 BasicBlockPass::createDDGFromBB(BasicBlock& bb) {
     return ddgBuilder().build(bb);
-}
-
-/**
- * Helper function used to delete resourcemanager.
- *
- * By overriding this in derived class RM can be stored for a future use,
- * and releted later.
- *
- * @param rm ResourceManager to delete or store for future use.
- * @param bb BasicBlock which the RM relates to.
- */
-void 
-BasicBlockPass::deleteRM(SimpleResourceManager* rm, BasicBlock& bb) {
-    SimpleResourceManager::disposeRM(rm);
-
-    // to avoid warnings.
-    bb.instructionCount();
 }

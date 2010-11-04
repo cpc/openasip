@@ -34,7 +34,7 @@
 #define FU_BASIC_BLOCK_SCHEDULER_TEST_HH
 
 #include <TestSuite.h>
-#include "BasicBlockScheduler.hh"
+#include "BBSchedulerController.hh"
 #include "OperationPool.hh"
 #include "UniversalMachine.hh"
 #include "BinaryStream.hh"
@@ -113,7 +113,7 @@ BasicBlockSchedulerTest::testScheduleShortImmAndReducedConnectivity() {
     TS_ASSERT_EQUALS(
         ORIGINAL_GUARD_COUNT, countOfGuardedMoves(*srcProgram));
 
-    BasicBlockScheduler scheduler(interPassData);
+    BBSchedulerController scheduler(interPassData);
 
     try {
         scheduler.handleProgram(*srcProgram, *targetMachine);
@@ -190,7 +190,7 @@ BasicBlockSchedulerTest::testScheduleShortImm() {
             procedure, *targetMachine, interPassData);
     }
 
-    BasicBlockScheduler scheduler(interPassData);
+    BBSchedulerController scheduler(interPassData);
 
     CATCH_ANY(
         scheduler.handleProgram(*srcProgram, *targetMachine));
@@ -290,7 +290,7 @@ BasicBlockSchedulerTest::testSchedule() {
 
     TS_ASSERT_EQUALS(ORIGINAL_GUARD_COUNT, countOfGuardedMoves(*srcProgram));
 
-    BasicBlockScheduler scheduler(interPassData);
+    BBSchedulerController scheduler(interPassData);
 
     CATCH_ANY(
         scheduler.handleProgram(*srcProgram, *targetMachine));

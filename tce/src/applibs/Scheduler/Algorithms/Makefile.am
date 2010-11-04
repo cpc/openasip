@@ -7,7 +7,8 @@ LinearScanAllocatorCore.cc BasicBlockPass.cc RegisterCopyAdder.cc \
 SchedulerPass.cc ControlFlowGraphPass.cc ProgramPass.cc ProcedurePass.cc \
 InterPassData.cc SoftwareBypasser.cc CycleLookBackSoftwareBypasser.cc \
 DDGPass.cc CopyingDelaySlotFiller.cc BypasserModule.cc DSFillerModule.cc \
-SequentialScheduler.cc PreBypassBasicBlockScheduler.cc
+SequentialScheduler.cc PreBypassBasicBlockScheduler.cc \
+BBSchedulerController.cc
 
 
 libscheduleralgorithms_la_LIBADD = \
@@ -51,6 +52,7 @@ MAINTAINERCLEANFILES = *~ *.gcov *.bbg *.bb *.da
 
 ## headers start
 libscheduleralgorithms_la_SOURCES += \
+	BBSchedulerController.hh \
 	ProcedurePass.hh LinearScanAllocatorCore.hh \
 	CycleLookBackSoftwareBypasser.hh SequentialScheduler.hh \
 	DSFillerModule.hh InterPassData.hh \

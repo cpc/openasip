@@ -42,12 +42,33 @@
  *
  * Uses LLVM MachineInstruction info for assiting in building the DDGs.
  */
-class PreBypassBasicBlockScheduler : public BasicBlockScheduler {
+class PreBypassBasicBlockScheduler : public ProgramPass, ProcedurePass, 
+    ControlFlowGraphPass, BasicBlockScheduler {
 public:
     PreBypassBasicBlockScheduler(
         InterPassData& data, DataDependenceGraphBuilder& ddgBuilder) : 
+        ProgramPass(data),
+        ProcedurePass(data),
+        ControlFlowGraphPass(data),
         BasicBlockScheduler(data, NULL, new CopyingDelaySlotFiller()),
         ddgBuilder_(&ddgBuilder) {}    
+
+    virtual void handleControlFlowGraph(
+        ControlFlowGraph& cfg,
+        const TTAMachine::Machine& targetMachine)
+        throw (Exception);
+
+    virtual void handleProcedure(
+        TTAProgram::Procedure& procedure,
+        const TTAMachine::Machine& targetMachine)
+        throw (Exception);
+
+    virtual void handleProgram(
+        TTAProgram::Program& program,
+        const TTAMachine::Machine& targetMachine)
+        throw (Exception);
+
+    virtual std::string shortDescription() const;
 
     virtual DataDependenceGraphBuilder& ddgBuilder() {
         return *ddgBuilder_;

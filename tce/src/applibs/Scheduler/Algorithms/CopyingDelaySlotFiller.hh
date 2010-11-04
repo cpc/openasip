@@ -69,7 +69,7 @@ public:
     void fillDelaySlots(
         ControlFlowGraph& cfg, DataDependenceGraph& ddg, 
         const TTAMachine::Machine& machine, UniversalMachine& um,
-        bool releteRMs = true) throw (Exception);
+        bool deleteRMs = true) throw (Exception);
     void addResourceManager(BasicBlock& bbn, SimpleResourceManager& rm);
 protected:
         void fillDelaySlots(

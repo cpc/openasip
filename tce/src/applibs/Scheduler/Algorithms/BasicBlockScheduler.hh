@@ -61,8 +61,7 @@ class DataDependenceGraphBuilder;
  * instruction importing).
  */
 class BasicBlockScheduler :
-    public BasicBlockPass, public ControlFlowGraphPass, public ProcedurePass,
-    public ProgramPass, public DDGPass {
+    public BasicBlockPass, public DDGPass {
 public:
     BasicBlockScheduler(
         InterPassData& data, SoftwareBypasser* bypasser=NULL, 
@@ -71,21 +70,6 @@ public:
 
     virtual void handleBasicBlock(
         BasicBlock& bb, const TTAMachine::Machine& targetMachine)
-        throw (Exception);
-
-    virtual void handleControlFlowGraph(
-        ControlFlowGraph& cfg,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
-
-    virtual void handleProcedure(
-        TTAProgram::Procedure& procedure,
-        const TTAMachine::Machine& targetMachine)
-        throw (Exception);
-
-    virtual void handleProgram(
-        TTAProgram::Program& program,
-        const TTAMachine::Machine& targetMachine)
         throw (Exception);
 
     virtual void handleDDG(
@@ -101,7 +85,6 @@ public:
 
 protected:
     virtual DataDependenceGraph* createDDGFromBB(BasicBlock& bb);
-    virtual void deleteRM(SimpleResourceManager* rm, BasicBlock& bb);
 
 private:
     void scheduleRRMove(MoveNode& moveNode)

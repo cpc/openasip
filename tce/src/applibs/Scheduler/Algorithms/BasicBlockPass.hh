@@ -70,7 +70,6 @@ public:
 protected:
 
     virtual DataDependenceGraph* createDDGFromBB(BasicBlock& bb);
-    virtual void deleteRM(SimpleResourceManager* rm, BasicBlock& bb);
     virtual void copyRMToBB(
         SimpleResourceManager& rm, BasicBlock& bb, 
         const TTAMachine::Machine& targetMachine);

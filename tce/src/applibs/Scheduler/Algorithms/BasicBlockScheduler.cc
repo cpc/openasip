@@ -77,8 +77,7 @@ BasicBlockScheduler::BasicBlockScheduler(
     InterPassData& data, 
     SoftwareBypasser* bypasser, 
     CopyingDelaySlotFiller* delaySlotFiller) :
-    BasicBlockPass(data), ControlFlowGraphPass(data), ProcedurePass(data),
-    ProgramPass(data), DDGPass(data), ddg_(NULL), bigDDG_(NULL), rm_(NULL),
+    BasicBlockPass(data), DDGPass(data), ddg_(NULL), bigDDG_(NULL), rm_(NULL),
     softwareBypasser_(bypasser), delaySlotFiller_(delaySlotFiller),
     bypassedCount_(0), deadResults_(0) {
 
@@ -1196,115 +1195,6 @@ BasicBlockScheduler::unscheduleResultReadTempMoves(MoveNode& resultMove) {
     scheduledTempMoves_.erase(&resultMove);
 }
 
-
-/**
- * Schedules a procedure.
- *
- * The original procedure is modified during scheduling.
- *
- * @param procedure The procedure to schedule.
- * @param targetMachine The target machine.
- * @exception Exception In case of an error during scheduling. The exception
- *            type can be any subtype of Exception.
- */
-void
-BasicBlockScheduler::handleProcedure(
-    TTAProgram::Procedure& procedure,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
-    ControlFlowGraph cfg(procedure);
-
-#ifdef CFG_SNAPSHOTS
-    cfg.writeToDotFile(procedure.name() + "_cfg.dot");    
-#endif
-    // create the procedure-wide ddg.
-
-    DataDependenceGraphBuilder& ddgBldr = ddgBuilder();
-
-    bigDDG_ = ddgBldr.build(cfg);
-    if (options_ != NULL && options_->dumpDDGsDot()) {
-        bigDDG_->writeToDotFile( 
-            (boost::format("proc_%s_before_scheduling.dot") % 
-             bigDDG_->name()).str());
-    }    
-
-    if (options_ != NULL && options_->dumpDDGsXML()) {
-        bigDDG_->writeToXMLFile( 
-            (boost::format("proc_%s_before_scheduling.xml") % 
-                bigDDG_->name()).str());
-    }
-
-    UniversalMachine um;
-
-    handleControlFlowGraph(cfg, targetMachine);
-
-    if (delaySlotFiller_ != NULL) {
-        delaySlotFiller_->fillDelaySlots(
-            cfg, *bigDDG_, targetMachine, um, true);
-    }
-
-    // now all basic blocks are scheduled, let's put them back to the
-    // original procedure
-
-    copyCfgToProcedure(procedure, cfg);
-
-    if (options_ != NULL && options_->dumpDDGsDot()) {
-        bigDDG_->writeToDotFile(
-            (boost::format("proc_%s_after_scheduling.dot") % bigDDG_->name())
-            .str());
-    } 
-
-    if (options_ != NULL && options_->dumpDDGsXML()) {
-        bigDDG_->writeToXMLFile(
-            (boost::format("proc_%s_after_scheduling.xml") % bigDDG_->name())
-            .str());
-    } 
-    delete bigDDG_;
-}
-
-/**
- * Schedules all nodes in a control flow graph.
- *
- * The original control flow graph nodes are modified during scheduling.
- *
- * @param cfg The control flow graph to schedule.
- * @param targetMachine The target machine.
- * @exception Exception In case of an error during scheduling. The exception
- *            type can be any subtype of Exception.
- */
-void
-BasicBlockScheduler::handleControlFlowGraph(
-    ControlFlowGraph& cfg,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
-    ControlFlowGraphPass::executeBasicBlockPass(cfg, targetMachine, *this);
-}
-
-/**
- * Schedules a program.
- *
- * The original program is modified during scheduling.
- *
- * @param program The program to schedule.
- * @param targetMachine The target machine.
- * @exception Exception In case of an error during scheduling. The exception
- *            type can be any subtype of Exception.
- */
-void
-BasicBlockScheduler::handleProgram(
-    TTAProgram::Program& program,
-    const TTAMachine::Machine& targetMachine)
-    throw (Exception) {
-
-    ProgramPass::executeProcedurePass(program, targetMachine, *this);
-#ifdef SW_BYPASSING_STATISTICS
-    Application::logStream() << bypassedCount_ << " moves were bypassed and "
-        << deadResults_ << " dead results were removed." << std::endl;
-#endif
-}
-
 /**
  * A short description of the pass, usually the optimization name,
  * such as "basic block scheduler".
@@ -1346,27 +1236,6 @@ BasicBlockScheduler::createDDGFromBB(BasicBlock& bb) {
         return bigDDG_->createSubgraph(bb);
     } else {
         return this->ddgBuilder().build(bb);
-    }
-}
-
-/**
- * Helper function used to delete resourcemanager.
- *
- * Does not delete the resourcemanager but gives it to 
- * delay slot filler.
- *
- * @param rm ResourceManager to delete or store for future use.
- * @param bb BasicBlock which the RM relates to.
- */
-void 
-BasicBlockScheduler::deleteRM(SimpleResourceManager* rm, BasicBlock& bb) {
-
-    // TODO: nobody currently deletes those
-    if (delaySlotFiller_ != NULL) {
-        rm->clearOldResources();
-        delaySlotFiller_->addResourceManager(bb, *rm);
-    } else {
-        SimpleResourceManager::disposeRM(rm);
     }
 }
 

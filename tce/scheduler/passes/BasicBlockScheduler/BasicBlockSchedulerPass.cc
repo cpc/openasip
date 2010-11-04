@@ -36,7 +36,7 @@
 
 
 #include "BasicBlockSchedulerPass.hh"
-#include "BasicBlockScheduler.hh"
+#include "BBSchedulerController.hh"
 #include "BypasserModule.hh"
 #include "DSFillerModule.hh"
 
@@ -71,7 +71,7 @@ BasicBlockSchedulerPass::start()
         filler = &fillerModule_->filler();
     }
 
-    BasicBlockScheduler scheduler(interPassData(),bypasser, filler);
+    BBSchedulerController scheduler(interPassData(),bypasser, filler);
     scheduler.handleProgram(*program_, *target_);
 }
 
