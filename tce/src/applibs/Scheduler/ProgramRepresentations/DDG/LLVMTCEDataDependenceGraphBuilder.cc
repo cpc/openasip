@@ -26,4 +26,80 @@
  *
  * @author Pekka Jääskeläinen 2010 (pjaaskel)
  */
+
 #include "LLVMTCEDataDependenceGraphBuilder.hh"
+#include "MoveNodeGroupBuilder.hh"
+#include "MoveNodeGroup.hh"
+#include "ProgramOperation.hh"
+
+DataDependenceGraph*
+LLVMTCEDataDependenceGraphBuilder::build(
+    ControlFlowGraph& cGraph, const UniversalMachine*) {
+
+    currentDDG_ = new DataDependenceGraph();
+    for (int bbi = 0; bbi < cGraph.nodeCount(); ++bbi) {
+        BasicBlockNode& bbnode = cGraph.node(bbi);
+        buildLocalDDG(bbnode.basicBlock());
+    }
+    /* TODO: 
+       buildGlobalEdges(cGraph);
+    */
+    currentDDG_->writeToDotFile("ddg.dot");
+    return currentDDG_;
+}
+
+DataDependenceGraph*
+LLVMTCEDataDependenceGraphBuilder::build(
+    BasicBlock& bb, const UniversalMachine*) 
+    throw (IllegalProgram) {
+    currentDDG_ = new DataDependenceGraph();
+    buildLocalDDG(bb);
+    return currentDDG_;
+}
+
+void
+LLVMTCEDataDependenceGraphBuilder::buildLocalDDG(BasicBlock& bb) {
+    MoveNodeGroupBuilder mngb;
+    MoveNodeGroupBuilder::MoveNodeGroupList* mngs =
+        mngb.build(bb);
+
+    /*
+      For starters, ensure the original order by chaining the
+      MNs with UNKNOWN edges and add operation edges also.
+
+      This should trigger the problems with RM so those can be
+      worked on simultaneously.
+     */
+    MoveNode* lastMN = NULL;
+    for (MoveNodeGroupBuilder::MoveNodeGroupList::const_iterator i =
+             mngs->begin(); i != mngs->end(); ++i) {
+        MoveNodeGroup& mng = **i;
+//        PRINT_VAR(mng.toString());
+        if (mng.isOperation()) {
+            currentDDG_->addProgramOperation(&mng.programOperation());
+        }
+        MoveNode* newLastMN = &mng.node(0);
+        for (int mni = 0; mni < mng.nodeCount(); ++mni) {
+            MoveNode& mn = mng.node(mni);
+            currentDDG_->addNode(mn);
+            if (lastMN != NULL) {
+                DataDependenceEdge* edge =
+                    new DataDependenceEdge(
+                        DataDependenceEdge::EDGE_REGISTER, 
+                        DataDependenceEdge::DEP_UNKNOWN);             
+                currentDDG_->connectNodes(*lastMN, mn, *edge);
+            }
+            if (mn.move().source().isFUPort())
+                newLastMN = &mn;
+        }
+        lastMN = newLastMN;
+    }
+
+    for (MoveNodeGroupBuilder::MoveNodeGroupList::const_iterator i =
+             mngs->begin(); i != mngs->end(); ++i) {
+        MoveNodeGroup& mng = **i;
+        if (mng.isOperation()) {
+            createOperationEdges(mng.programOperation());
+        }
+    }   
+}

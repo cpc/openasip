@@ -34,6 +34,8 @@
 #include <iostream>
 #include <string>
 
+#include "llvm/Support/CommandLine.h"
+
 #include "POMDisassembler.hh"
 #include "UniversalMachine.hh"
 #include "TerminalFUPort.hh"
@@ -53,10 +55,16 @@
 
 namespace llvm {
 
+static cl::opt<bool>
+ParallelizeMoves(
+    "parallelize-moves",
+    cl::desc("Parallelize the TTA moves as efficiently as possible."),
+    cl::init(false), cl::Hidden);
+
 char LLVMTCEPOMBuilder::ID = 0;
 
-LLVMTCEPOMBuilder::LLVMTCEPOMBuilder(bool parallelize) : 
-    LLVMTCEBuilder(ID), parallelize_(parallelize) {
+LLVMTCEPOMBuilder::LLVMTCEPOMBuilder() : 
+    LLVMTCEBuilder(ID) {
 }
 
 unsigned
@@ -172,8 +180,8 @@ LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
         *fu->operation(operationName), operand);
 }
 
-extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass(bool parallelize) {
-    return new llvm::LLVMTCEPOMBuilder(parallelize);
+extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass() {
+    return new llvm::LLVMTCEPOMBuilder();
 }
 
 bool
@@ -187,10 +195,10 @@ LLVMTCEPOMBuilder::doFinalization(Module& m) {
 
     LLVMTCEBuilder::doFinalization(m);
     InterPassData ipData;
-    if (parallelize_) {        
+    if (ParallelizeMoves) {        
         LLVMTCEDataDependenceGraphBuilder ddgBuilder(ipData);
         PreBypassBasicBlockScheduler parScheduler(ipData, ddgBuilder);
-        parScheduler.handleProgram(*result(), *mach_);
+        CATCH_ANY(parScheduler.handleProgram(*result(), *mach_));
         TTAProgram::Program::writeToTPEF(*result(), "parallel.tpef");
     } else {
         SequentialScheduler seqScheduler(ipData);

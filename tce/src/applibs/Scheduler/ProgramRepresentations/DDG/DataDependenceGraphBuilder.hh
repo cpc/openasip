@@ -79,7 +79,7 @@ public:
         BasicBlock& bb, const UniversalMachine* um = NULL) 
         throw (IllegalProgram);    
 
-private:
+protected:
 
     typedef ControlFlowGraph::NodeSet BBNodeSet;
     typedef DataDependenceGraph::NodeSet MNodeSet;

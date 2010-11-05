@@ -64,7 +64,7 @@ class DataDependenceGraph;
 class CriticalPathBBMoveNodeSelector : public MoveNodeSelector {
 public:
     CriticalPathBBMoveNodeSelector(
-        BasicBlock& bb, const TTAMachine::Machine &machine);
+        BasicBlock& bb, const TTAMachine::Machine& machine);
     CriticalPathBBMoveNodeSelector(
         DataDependenceGraph& bigDDG, BasicBlock& bb,
         const TTAMachine::Machine &machine)

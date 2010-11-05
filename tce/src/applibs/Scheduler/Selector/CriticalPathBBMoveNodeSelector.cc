@@ -240,7 +240,7 @@ CriticalPathBBMoveNodeSelector::mightBeReady(MoveNode& node) {
         // moves of the operation are ready to be scheduled
         ProgramOperation& operation = 
             (node.isDestinationOperation()?
-             (node.destinationOperation()):node.sourceOperation());
+             (node.destinationOperation()) : node.sourceOperation());
 
         bool allReady = true;
         MoveNodeGroup moves(*ddg_);
@@ -277,7 +277,8 @@ CriticalPathBBMoveNodeSelector::mightBeReady(MoveNode& node) {
             }
         }
     } else if ((node.isSourceVariable() || node.move().source().isRA()) &&
-               (node.isDestinationVariable() || node.move().destination().isRA())) {
+               (node.isDestinationVariable() || 
+                node.move().destination().isRA())) {
         // it's a register to register move, we can always schedule these
         // as soon as all the dependencies are satisfied
         // handle RA -> ireg also as a register to register move

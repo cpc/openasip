@@ -45,21 +45,17 @@
 class LLVMTCEDataDependenceGraphBuilder : 
     public DataDependenceGraphBuilder {
 public:
-    LLVMTCEDataDependenceGraphBuilder(InterPassData& ipd) {}        
+    LLVMTCEDataDependenceGraphBuilder(InterPassData&) {}        
     virtual ~LLVMTCEDataDependenceGraphBuilder() {}
 
     virtual DataDependenceGraph* build(
-        ControlFlowGraph& cGraph, const UniversalMachine* um = NULL) {
-        abortWithError("to implement");
-        return NULL;
-    }
+        ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
 
     virtual DataDependenceGraph* build(
         BasicBlock& bb, const UniversalMachine* um = NULL) 
-        throw (IllegalProgram) {
-        abortWithError("to implement");
-        return NULL;
-    }
+        throw (IllegalProgram);
+private:
+    void buildLocalDDG(BasicBlock& bb);
 };
 
 #endif

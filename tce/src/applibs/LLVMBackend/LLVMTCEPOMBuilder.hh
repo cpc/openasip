@@ -53,8 +53,7 @@
 
 namespace llvm {
 
-    extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass(
-        bool parallelize);
+    extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass();
 
     /**
      * Implements building TCE POM from TTA-style (MOVE) sequential input 
@@ -66,7 +65,7 @@ namespace llvm {
     class LLVMTCEPOMBuilder : public LLVMTCEBuilder {
     public:
         static char ID;
-        LLVMTCEPOMBuilder(bool parallelize);
+        LLVMTCEPOMBuilder();
         virtual ~LLVMTCEPOMBuilder() {}
 
         virtual unsigned spDRegNum() const;
@@ -81,9 +80,6 @@ namespace llvm {
         TTAProgram::Instruction* emitMove(
             const MachineInstr* mi, TTAProgram::Procedure* proc);
     private:
-        // after converting from the LLVM MachineInstrs, parallelize the
-        // program as well as possible
-        bool parallelize_;
     };
 }
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of BasicBlockScheduler class.
  *
- * @author Pekka J��skel�inen 2006 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J��skel�inen 2006,2010 (pjaaskel-no.spam-cs.tut.fi)
  * @author Fabio Garzia 2010 (fabio.garzia-no.spam-tut.fi)
  * @note rating: red
  */
@@ -74,6 +74,12 @@ public:
 
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
+
+    virtual MoveNodeSelector* createSelector( 
+        BasicBlock& bb, const TTAMachine::Machine& machine) {
+        return new CriticalPathBBMoveNodeSelector(bb, machine);
+    }
+
 
     using BasicBlockPass::ddgBuilder;
 

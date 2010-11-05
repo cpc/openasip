@@ -341,12 +341,12 @@ MoveNode::isAssigned() const {
         if ((isSourceOperation() ||
             isSourceVariable() ||
             isSourceImmediateRegister()) &&
-            (move_->source().port().parentUnit()->machine()!=
+            (move_->source().port().parentUnit()->machine() !=
              move_->bus().machine())) {
             return false;
         }
         if ((isDestinationOperation() || isDestinationVariable()) &&
-            (move_->destination().port().parentUnit()->machine()!=
+            (move_->destination().port().parentUnit()->machine() !=
              move_->bus().machine())) {
             return false;
         }

@@ -627,8 +627,8 @@ bool DataDependenceGraphBuilder::updateAliveAfter(BBData& bbd) {
     AssocTools::append(bbd.memLastUses_, bbd.memUseAfter_);
     AssocTools::append(bbd.fuDeps_, bbd.fuDepAfter_);
     
-    if (  bbd.memDefAfter_.size() + bbd.memUseAfter_.size() +
-          bbd.fuDepAfter_.size() > size) {
+    if (bbd.memDefAfter_.size() + bbd.memUseAfter_.size() +
+        bbd.fuDepAfter_.size() > size) {
         changed = true;
     }
     return changed;
@@ -660,16 +660,15 @@ void DataDependenceGraphBuilder::createOperationEdges(
         for (int inp = 0; inp < mnsi.count(); inp++) {
             
             // Loop thru all output parameters
-            for( int outps = op.numberOfInputs()+1;
+            for (int outps = op.numberOfInputs()+1;
                  outps <=
                      op.numberOfInputs()+op.numberOfOutputs();
                  outps++ ) {
-                if( po.hasOutputNode(outps)) {
+                if (po.hasOutputNode(outps)) {
                     MoveNodeSet& mnso = po.outputNode(outps);
                     // exactly once on unscheduled code
                     // but still nice to not assume anything.
-                    for (int outp = 0; outp<mnso.count(); outp++)
-                    {
+                    for (int outp = 0; outp<mnso.count(); outp++) {
                         // and create operation edges
                         // from all input nodes to all
                         // output nodes.

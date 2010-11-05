@@ -1,6 +1,7 @@
 noinst_LTLIBRARIES = libddg.la
 libddg_la_SOURCES = \
-	DataDependenceEdge.cc DataDependenceGraph.cc DataDependenceGraphBuilder.cc ConstantAliasAnalyzer.cc FalseAliasAnalyzer.cc 
+	DataDependenceEdge.cc DataDependenceGraph.cc DataDependenceGraphBuilder.cc ConstantAliasAnalyzer.cc FalseAliasAnalyzer.cc \
+	LLVMTCEDataDependenceGraphBuilder.cc
 
 #MNData.cc
 #MemoryAliasAnalyzer.cc
@@ -20,10 +21,11 @@ SCHED_DIR = ${APPLIBS_DIR}/Scheduler
 PDG_DIR = ${SCHED_DIR}/ProgramRepresentations/PDG
 CFG_DIR = ${SCHED_DIR}/ProgramRepresentations/CFG
 ALGO_DIR = ${SCHED_DIR}/Algorithms
+SELECTOR_DIR = ${SCHED_DIR}/Selector
 
 AM_CPPFLAGS = -I${TOOLS_DIR} -I${POM_DIR} -I${TPEF_DIR} -I${OSAL_DIR} \
 	-I${MACH_DIR} -I${UM_DIR} -I${GRAPH_DIR} -I${PDG_DIR} -I${CFG_DIR} \
-	-I${DISASSEMBLER_DIR} -I${ALGO_DIR}
+	-I${DISASSEMBLER_DIR} -I${ALGO_DIR} -I${SELECTOR_DIR}
 
 dist-hook:
 	rm -rf $(distdir)/CVS $(distdir)/.deps $(distdir)/Makefile
