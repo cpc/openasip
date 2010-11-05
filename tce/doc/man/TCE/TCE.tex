@@ -3220,11 +3220,11 @@ which has an Avalon LSU but the same data memory restrictions still apply.
 
  \item \textbf{A special function unit implements the Avalon MM Master interface.}
 In this case a special function unit (SFU) is used to interface with Avalon and
-custom operation macros must be used to communicate with other Avalon
-components. It is also possible to include multiple Avalon SFUs to the
-processor but currently there is no method to differentiate which SFU is used
-from C code.
-% TODO: which is the SFU to add?
+custom operation macros must be used to communicate with other Avalon components.
+This SFU is called \textit{avalon\_sfu} and it's stored in \textit{avalon.hdb}.
+It is also possible to include multiple Avalon SFUs to the processor but
+currently there is no method to differentiate which SFU is used from C code.
+
 
 \end{enumerate}
 
@@ -3256,6 +3256,12 @@ to the SOPC Builder component library. It can be done by either editing
 the IP search path from SOPC Builder's options or adding a new component using 
 the created tcl-file.
 
+If the processor has other function units with external ports, these external
+ports are connected to the interface of the new toplevel entity. These
+ports are then added to a conduit interface in the SOPC Builder component
+file which means that they will also be exported out of the SOPC Builder
+design.
+
 \textbf{Usage examples:}
 
 \begin{enumerate}
@@ -3269,7 +3275,7 @@ The command to execute Avalon Integrator is
 -d none -f onchip -e tta\_sopc -p program.tpef proc.adf}
 
 The integrator will generate file tta\_sopc\_hw.tcl which can be used to import the
-component to SOPC Builder
+component to SOPC Builder.
 
 % use case: avalon SFU
 \item A TTA with an Avalon SFU, the instruction memory is implemented
@@ -3280,7 +3286,10 @@ name of the new toplevel entity be tta\_sopc. Command is
 -d onchip -f vhdl\_array -e tta\_sopc -p program.tpef proc.adf}
 
 Integrator will generate file tta\_sopc\_hw.tcl which can be used to import the
-component to SOPC Builder
+component to SOPC Builder. Avalon SFU must be used with custom operation macros
+from C code. These macros are named as \textit{\_TCE\_AVALON\_<memory\_operation>}.
+For example \textit{\_TCE\_AVALON\_STW(addr, data)} performs 32-bit store operation
+to address addr.
 
 % use case: both avalon LSU and avalon SFU
 \item A TTA with an Avalon LSU and an Avalon SFU. Because Avalon LSU is

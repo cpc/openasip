@@ -1,0 +1,13 @@
+#!/bin/bash
+rm -rf proge-out-avalon-lsu
+rm -f tta_avalon_lsu_hw.tcl
+rm -f run_avalon_lsu.log
+
+
+rm -rf proge-out-avalon-sfu
+rm -f tta_avalon_sfu_hw.tcl
+rm -f run_avalon_sfu.log
+
+rm -rf proge-out-avalon-lsu-sfu
+rm -f tta_avalon_lsu_sfu_hw.tcl
+rm -f run_avalon_lsu_sfu.log

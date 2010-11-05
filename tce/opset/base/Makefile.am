@@ -1,12 +1,15 @@
 basedir = ${prefix}/share/tce/opset/base
-nobase_base_DATA = base.cc base.opp 
+avalondir = ${prefix}/share/tce/opset/base
+nobase_base_DATA = base.cc base.opp
+nobase_avalon_DATA = avalon.cc avalon.opp
 
 pkglibdir = ${prefix}/share/tce/opset/base
-pkglib_LTLIBRARIES = base.la
+pkglib_LTLIBRARIES = base.la avalon.la
 
 base_la_SOURCES = base.cc
+avalon_la_SOURCES = avalon.cc
 
-EXTRA_DIST = ${nobase_base_DATA}
+EXTRA_DIST = ${nobase_base_DATA} ${nobase_avalon_DATA}
 
 PROJECT_ROOT = $(top_srcdir)
 SRC_ROOT_DIR = ${PROJECT_ROOT}/src
@@ -62,6 +65,7 @@ AM_LDFLAGS = ${BOOST_LIBDIR} ${SQLITE_LIBDIR} ${TCL_LIBDIR} ${TCL_LD_FLAGS} ${XE
 
 all-local: ${pkglib_LTLIBRARIES}
 	ln -sf ./.libs/base.so ./base.opb
+	ln -sf ./.libs/avalon.so ./avalon.opb
 # Ugly hack to ensure we have a proper 'base' OSAL module (opp,opb) in the
 # build dir so a) newlib builds OK b) in case the user does not remove the
 # installation dir, simulation still works.
@@ -69,6 +73,9 @@ all-local: ${pkglib_LTLIBRARIES}
 
 install-exec-hook:
 	ln -sf ${pkglibdir}/base.so $(DESTDIR)/${pkglibdir}/base.opb
+	ln -sf ${pkglibdir}/avalon.so $(DESTDIR)/${pkglibdir}/avalon.opb
 
 clean-local:
 	rm -f ./base.opb
+	rm -f ./avalon.opb
+
