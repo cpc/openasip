@@ -1,1 +1,2 @@
-SUBDIRS = passes
+SUBDIRS = passes testbench
+
