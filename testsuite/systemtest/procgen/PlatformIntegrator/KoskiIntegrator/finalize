@@ -1,0 +1,5 @@
+#!/bin/bash
+rm -rf proge-out-koski
+rm -f spirit_comp_def_koskenlaskija.xml
+rm -f koski_integrator.runlog
+

@@ -1,0 +1,11 @@
+<?php
+// file: koski_integrator_test.testdesc
+
+// short test description
+$test_description="Koski Integrator with vhdl array imem";
+// the binary being tested
+$test_bin="./run_koski_integrator_test.sh";
+// arguments given to the program
+$bin_args="";
+?>
+
