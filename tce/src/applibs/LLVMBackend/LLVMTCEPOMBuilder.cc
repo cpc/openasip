@@ -137,7 +137,7 @@ LLVMTCEPOMBuilder::emitMove(
 
 
 TCEString
-LLVMTCEPOMBuilder::operationName(const MachineInstr& mi) const {
+LLVMTCEPOMBuilder::operationName(const MachineInstr&) const {
     return "MOVE";
 }
 

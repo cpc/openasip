@@ -112,10 +112,11 @@ char LLVMTCEBuilder::ID = 0;
 LLVMTCEBuilder::LLVMTCEBuilder(
     TargetMachine& tm,
     TTAMachine::Machine* mach,
-    char& ID) :
 #ifdef LLVM_2_7
+    char&) :
     MachineFunctionPass(this)
 #else
+    char& ID) :
     MachineFunctionPass(ID)
 #endif
 {
@@ -1350,6 +1351,9 @@ LLVMTCEBuilder::debugDataToAnnotations(
             move->setAnnotation(progAnnotation); 
         } else {
 
+// these interfaces are different in llvm 2.7.
+// not going to backport this to llvm 2.7 so disabled with that
+#ifndef LLVM_2_7
             // handle file+line number debug info
             if (!dl.isUnknown()) {
 		
@@ -1375,6 +1379,7 @@ LLVMTCEBuilder::debugDataToAnnotations(
 	            move->addAnnotation(progAnnotation); 
                 }
             }
+#endif
         }
     }
 }
