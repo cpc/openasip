@@ -1,11 +1,7 @@
 #!/bin/bash
 
-MEGAWIZ=$(which qmegawiz 2> /dev/null)
-if [ "x$MEGAWIZ" == "x" ]
-then
-    # qmegawiz is not in PATH, use hoax script to emulate it
-    export PATH=$PWD/data:$PATH
-fi
+# Emulate qmegawiz with a script
+export PATH=$PWD/data:$PATH
 
 PROGE=../../../../../tce/src/procgen/ProGe/generateprocessor
 INTEG=Stratix2DSP
