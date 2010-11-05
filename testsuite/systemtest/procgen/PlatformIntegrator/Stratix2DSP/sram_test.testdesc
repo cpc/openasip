@@ -1,0 +1,10 @@
+<?php
+// file: test_no_lsunits.testdesc
+
+// short test description
+$test_description="stratix2dsp integrator with sram";
+// the binary being tested
+$test_bin="./run_sram.sh";
+// arguments given to the program
+$bin_args="";
+?>

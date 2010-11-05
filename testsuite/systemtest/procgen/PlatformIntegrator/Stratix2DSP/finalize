@@ -1,0 +1,15 @@
+#!/bin/bash
+rm -f quartus_program_fpga.sh quartus_synthesize.sh
+
+rm -rf proge-out-sram
+rm -f stratix_test_array_sram.qpf stratix_test_array_sram.qsf
+rm -f run_sram.log
+
+rm -rf proge-out-onchip
+rm -f stratix_test_onchip_onchip.qpf stratix_test_onchip_onchip.qsf
+rm -f run_onchip.log
+
+rm -rf proge-out-export
+rm -f stratix_export_test.qpf stratix_export_test.qsf
+rm -f run_export.log
+

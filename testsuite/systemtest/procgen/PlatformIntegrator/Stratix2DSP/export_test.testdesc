@@ -1,0 +1,10 @@
+<?php
+// file: test_no_lsunits.testdesc
+
+// short test description
+$test_description="exporting unknown signals with stratix2dsp integrator";
+// the binary being tested
+$test_bin="./run_export_test.sh";
+// arguments given to the program
+$bin_args="";
+?>

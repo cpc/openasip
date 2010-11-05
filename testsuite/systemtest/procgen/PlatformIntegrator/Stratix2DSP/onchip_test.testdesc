@@ -1,0 +1,10 @@
+<?php
+// file: test_no_lsunits.testdesc
+
+// short test description
+$test_description="stratix2dsp integrator with onchip mem";
+// the binary being tested
+$test_bin="./run_onchip.sh";
+// arguments given to the program
+$bin_args="";
+?>
