@@ -55,7 +55,6 @@
 #include "RegisterCopyAdder.hh"
 #include "SchedulerPass.hh"
 #include "CycleLookBackSoftwareBypasser.hh"
-#include "CopyingDelaySlotFiller.hh"
 #include "LLVMTCECmdLineOptions.hh"
 #include "InterPassData.hh"
 
@@ -65,6 +64,8 @@
 //#define BIG_DDG_SNAPSHOTS
 //#define DDG_SNAPSHOTS
 //#define SW_BYPASSING_STATISTICS
+
+class CopyingDelaySlotFiller;
 
 /**
  * Constructs the basic block scheduler.
@@ -78,8 +79,7 @@ BasicBlockScheduler::BasicBlockScheduler(
     SoftwareBypasser* bypasser, 
     CopyingDelaySlotFiller* delaySlotFiller) :
     BBSchedulerController(data, bypasser, delaySlotFiller, NULL),
-    DDGPass(data), ddg_(NULL), bigDDG_(NULL), rm_(NULL),
-    softwareBypasser_(bypasser), delaySlotFiller_(delaySlotFiller),
+    DDGPass(data), ddg_(NULL), rm_(NULL), softwareBypasser_(bypasser),
     bypassedCount_(0), deadResults_(0) {
 
     CmdLineOptions *cmdLineOptions = Application::cmdLineOptions();
@@ -1200,23 +1200,6 @@ BasicBlockScheduler::longDescription() const {
         "Basic block scheduler that uses the longest path information of "
         "data dependency graph to prioritize the ready list. Assumes that "
         "the input has registers allocated and no connectivity missing.";
-}
-
-
-/**
- * Helper function used to create DDG for BBPass.
- *
- * Overrided version in order to use subgraphs.
- *
- * @param bb BasicBlock where DDG is to be created from
- */
-DataDependenceGraph*
-BasicBlockScheduler::createDDGFromBB(BasicBlock& bb) {
-    if (bigDDG_ != NULL) {
-        return bigDDG_->createSubgraph(bb);
-    } else {
-        return this->ddgBuilder().build(bb);
-    }
 }
 
 /**

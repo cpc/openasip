@@ -77,9 +77,6 @@ public:
 
     using BasicBlockPass::ddgBuilder;
 
-protected:
-    virtual DataDependenceGraph* createDDGFromBB(BasicBlock& bb);
-
 private:
     void scheduleRRMove(MoveNode& moveNode)
         throw (Exception);
@@ -130,8 +127,6 @@ private:
     const TTAMachine::Machine* targetMachine_;
     /// DDG of the currently scheduled BB.
     DataDependenceGraph* ddg_;
-    /// whole-procedure DDG.
-    DataDependenceGraph* bigDDG_;
     /// Resource Manager of the currently scheduled BB.
     SimpleResourceManager* rm_;
     /// Stores the MoveNodes that were scheduled as temp moves during
@@ -140,8 +135,6 @@ private:
     scheduledTempMoves_;
     /// The software bypasser to use to bypass registers when possible.
     SoftwareBypasser* softwareBypasser_;
-
-    CopyingDelaySlotFiller* delaySlotFiller_;
 
     int bypassedCount_;
     int deadResults_;
