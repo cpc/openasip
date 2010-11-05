@@ -49,6 +49,16 @@
 class BasicBlockNode;
 class SimpleResourceManager;
 
+// using CFG causes some 9% slowdown.--Heikki
+//  What's the point for CFG then? --Pekka
+// If we use better CFG serialization routine, we might get back more 
+// than that. 
+// And having both options was a good way to test the changes to the pass
+// hierarchy. --Heikki
+//
+// even if this is not defined schedling is still done one BB at time.
+//#define USE_CFG
+
 /**
  * A class that implements the functionality of a basic block scheduler.
  *
@@ -57,7 +67,11 @@ class SimpleResourceManager;
  * instruction importing).
  */
 class SequentialScheduler :
-    public BasicBlockPass, public ControlFlowGraphPass, public ProcedurePass,
+    public BasicBlockPass, 
+#ifdef USE_CFG
+    public ControlFlowGraphPass, 
+#endif
+    public ProcedurePass,
     public ProgramPass {
 public:
     SequentialScheduler(
@@ -68,12 +82,12 @@ public:
     virtual void handleBasicBlock(
         BasicBlock& bb, const TTAMachine::Machine& targetMachine)
         throw (Exception);
-
+#ifndef USE_CFG
     virtual void handleProcedure(
         TTAProgram::Procedure& procedure,
         const TTAMachine::Machine& targetMachine)
         throw (Exception);
-
+#endif
     virtual std::string shortDescription() const;
     virtual std::string longDescription() const;
 
@@ -108,8 +122,8 @@ private:
         throw (Exception);
 
     void unscheduleInputOperandTempMoves(
-	MoveNode& operandMove, 
-	RegisterCopyAdder::AddedRegisterCopies& regCopies);
+        MoveNode& operandMove, 
+        RegisterCopyAdder::AddedRegisterCopies& regCopies);
 
     int scheduleResultTempMoves(
         int cycle, MoveNode& resultMove, 

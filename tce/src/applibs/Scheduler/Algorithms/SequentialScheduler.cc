@@ -32,21 +32,11 @@
  * @note rating: red
  */
 
-// using CFG causes some 9% slowdown.--Heikki
-//  What's the point for CFG then? --Pekka
-
-// even if this is not defined schedling is still done one BB at time.
-//#define USE_CFG
-
 #include <string>
 #include <climits>
 
 #include <boost/config.hpp>
 #include <boost/format.hpp>
-
-#ifdef USE_CFG
-#include "ControlFlowGraph.hh"
-#endif
 
 #include "AssocTools.hh"
 #include "MapTools.hh"
@@ -81,7 +71,9 @@ class SequentialSelector;
  */
 SequentialScheduler::SequentialScheduler(InterPassData& data) :
     BasicBlockPass(data), 
+#ifdef USE_CFG
     ControlFlowGraphPass(data),
+#endif
     ProcedurePass(data),
     ProgramPass(data), 
     rm_(NULL) {
@@ -607,6 +599,10 @@ SequentialScheduler::unschedule(MoveNode& moveNode) {
     }
 }
 
+
+// if uses CFG, procedure pass handles this.
+#ifndef USE_CFG
+
 /**
  * Schedules a procedure.
  *
@@ -623,20 +619,6 @@ SequentialScheduler::handleProcedure(
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
 
-#ifdef USE_CFG
-    ControlFlowGraph cfg(procedure);
-
-#ifdef CFG_SNAPSHOTS
-    cfg.writeToDotFile(procedure.name() + "_cfg.dot");    
-#endif
-
-    handleControlFlowGraph(cfg, targetMachine);
-
-    // now all basic blocks are scheduled, let's put them back to the
-    // original procedure
-    copyCfgToProcedure(procedure, cfg);
-
-#else
     std::vector<BasicBlock*> basicBlocks;
     std::vector<int> bbAddresses;
     createBasicBlocks(procedure, basicBlocks, bbAddresses);
@@ -651,9 +633,9 @@ SequentialScheduler::handleProcedure(
     for (unsigned int i = 0; i < basicBlocks.size();i++) {
         delete basicBlocks[i];
     }
-#endif
 }
 
+#endif
 /**
  * A short description of the pass, usually the optimization name,
  * such as "basic block scheduler".

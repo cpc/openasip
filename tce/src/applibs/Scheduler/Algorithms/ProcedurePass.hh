@@ -45,6 +45,7 @@ namespace TTAProgram {
 }
 
 class ControlFlowGraph;
+class ControlFlowGraphPass;
 
 /**
  * Interface for scheduler passes that handle procedures.
@@ -57,11 +58,16 @@ public:
     virtual void handleProcedure(
         TTAProgram::Procedure& procedure,
         const TTAMachine::Machine& targetMachine)
-        throw (Exception) = 0;
+        throw (Exception);
 
     static void copyCfgToProcedure(
         TTAProgram::Procedure& procedure, ControlFlowGraph& cfg)
         throw (Exception);
+
+    static void executeControlFlowGraphPass(
+        TTAProgram::Procedure& procedure,
+        const TTAMachine::Machine& targetmachine,
+        ControlFlowGraphPass& cfgp) throw (Exception);
     
 };
 #endif

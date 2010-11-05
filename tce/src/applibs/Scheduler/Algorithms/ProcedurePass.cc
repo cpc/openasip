@@ -36,6 +36,7 @@
 #include "Machine.hh"
 #include "BasicBlockPass.hh"
 #include "ControlFlowGraph.hh"
+#include "ControlFlowGraphPass.hh"
 #include "InstructionReference.hh"
 #include "InstructionReferenceManager.hh"
 
@@ -67,11 +68,13 @@ ProcedurePass::handleProcedure(
     const TTAMachine::Machine& targetMachine)
     throw (Exception) {
     
-    // just to avoid warnings -- need to keep the argument names for
-    // Doxygen comments ;)
-    procedure.instructionCount();
-    targetMachine.machineTester();
-    abortWithError("Should never call this.");
+    ControlFlowGraphPass* cfgPass = dynamic_cast<ControlFlowGraphPass*>(this);
+    if (cfgPass != NULL) {
+        executeControlFlowGraphPass(procedure, targetMachine, *cfgPass);
+    } else {
+        abortWithError("Procedure pass is not also a cfg pass so you "
+                       "must overload handleProcedure method!");
+    }
 }
 
 void
@@ -146,5 +149,15 @@ ProcedurePass::copyCfgToProcedure(
 
         // ...and we're done with this basic block
     }
+}
 
+void 
+ProcedurePass::executeControlFlowGraphPass(
+        TTAProgram::Procedure& procedure,
+        const TTAMachine::Machine& targetMachine,
+        ControlFlowGraphPass& cfgp) throw (Exception) {
+
+    ControlFlowGraph cfg(procedure);
+    cfgp.handleControlFlowGraph(cfg, targetMachine);
+    copyCfgToProcedure(procedure, cfg);
 }
