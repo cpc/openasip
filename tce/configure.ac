@@ -1318,6 +1318,8 @@ AC_CONFIG_FILES([
   src/bintools/Compiler/llvm-tce/Makefile
   src/applibs/ImplementationTester/Makefile
   src/applibs/PlatformIntegrator/Makefile
+  scheduler/testbench/Makefile
+  scheduler/testbench/Operations/Makefile
 ])
 
 # Generate test makefiles if we have the 'test' dir.
@@ -1325,8 +1327,6 @@ if test -d test
 then
 
 AC_CONFIG_FILES([
-  scheduler/testbench/Makefile
-  scheduler/testbench/Operations/Makefile
   test/Makefile
   test/base/Makefile
   test/procgen/Makefile

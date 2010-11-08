@@ -86,5 +86,10 @@ libtcellvmbackend_la_SOURCES += \
 	LLVMPOMBuilder.hh TDGen.hh \
 	TCETargetMachinePlugin.hh \
 	LLVMTCECmdLineOptions.hh \
-	TCETargetSelectionDAGInfo.hh
+	TCETargetSelectionDAGInfo.hh \
+	LLVMTCEBuilder.hh \
+	passes/VirtRegMap.h \
+	passes/VirtRegRewriter.h \
+	passes/Spiller.h 
+
 ## headers end
