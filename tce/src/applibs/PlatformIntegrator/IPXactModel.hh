@@ -74,6 +74,7 @@ public:
     void addSignal(const HDLPort& signal);
 
     bool addBusInterface(
+        const std::string& fuName,
         IPXactBus busType,
         const SignalMappingList& signalMap);
 
@@ -105,12 +106,16 @@ public:
 
 private:
 
+    struct BusInterfaceMapping {
+        std::string ifName;
+        IPXactBus busType;
+        SignalMappingList* signalMapList;
+    };
+
     IPXactModel(const IPXactModel& old);    
 
     void addBusInterfaceObject(
-        int id,
-        IPXactBus bus,
-        const SignalMappingList* signalMap,
+        const BusInterfaceMapping* bus,
         ObjectState* parent) const;
 
     void addSignalObject(const HDLPort* port, ObjectState* parent) const;
@@ -131,6 +136,10 @@ private:
     void extractSignals(const ObjectState* signals);
 
     void extractFiles(const ObjectState* fileSets);
+
+    std::string interfaceName(
+        const std::string& fuName,
+        IPXactBus busType) const;
     
     std::string vendor_;
     std::string library_;
@@ -139,7 +148,7 @@ private:
     
     std::vector<HDLPort*> signals_;
 
-    std::vector<std::pair<IPXactBus, SignalMappingList*> > busInterfaces_;
+    std::vector<BusInterfaceMapping*> busInterfaces_;
 
     std::vector<std::string> hdlFiles_;
     std::vector<std::string> otherFiles_;

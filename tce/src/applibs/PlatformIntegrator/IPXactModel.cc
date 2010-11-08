@@ -97,7 +97,10 @@ IPXactModel::~IPXactModel() {
         delete signals_.at(i);
     }
     for (unsigned int i = 0; i < busInterfaces_.size(); i++) {
-        delete busInterfaces_.at(i).second;
+        if (busInterfaces_.at(i)->signalMapList != NULL) {
+            delete busInterfaces_.at(i)->signalMapList;
+        }
+        delete busInterfaces_.at(i);
     }
 }
 
@@ -147,10 +150,8 @@ IPXactModel::saveState() const {
     ObjectState* busInterfaces = new ObjectState(OSNAME_BUS_INTERFACES);
     root->addChild(busInterfaces);
     for (unsigned int i = 0; i < busInterfaces_.size(); i++) {        
-        IPXactBus bus = busInterfaces_.at(i).first;
-        const SignalMappingList* signalMap = busInterfaces_.at(i).second;
         ObjectState* busInterface = new ObjectState(OSNAME_BUS_INTERFACE);
-        addBusInterfaceObject(i, bus, signalMap, busInterface);
+        addBusInterfaceObject(busInterfaces_.at(i), busInterface);
         busInterfaces->addChild(busInterface);
     }
     
@@ -231,6 +232,7 @@ IPXactModel::addSignal(const HDLPort& signal) {
 
 bool
 IPXactModel::addBusInterface(
+    const std::string& fuName,
     IPXactBus busType,
     const SignalMappingList& signalMap) {
 
@@ -239,30 +241,29 @@ IPXactModel::addBusInterface(
         return false;
     }
 
-    SignalMappingList* mappings = new SignalMappingList();
+    BusInterfaceMapping* bus = new BusInterfaceMapping;
+    bus->ifName = interfaceName(fuName, busType);
+    bus->busType = busType;
+    bus->signalMapList = new SignalMappingList();
     for (unsigned int i = 0; i < signalMap.size(); i++) {
-        mappings->push_back(signalMap.at(i));
+        bus->signalMapList->push_back(signalMap.at(i));
     }
     
-    busInterfaces_.push_back(
-        std::pair<IPXactBus, SignalMappingList*>(busType, mappings));
+    busInterfaces_.push_back(bus);
     return true;
 }
 
 void
 IPXactModel::addBusInterfaceObject(
-    int id,
-    IPXactBus bus,
-    const SignalMappingList* signalMap,
+    const BusInterfaceMapping* bus,
     ObjectState* parent) const {
 
     ObjectState* busName = NULL;
     ObjectState* busType = NULL;
     ObjectState* role = NULL;
-    if (bus == IPXactModel::HIBI) {
+    if (bus->busType == IPXactModel::HIBI) {
         busName = new ObjectState(OSNAME_NAME);
-        string busInstName = HIBI_BUS_NAME + "_" + Conversion::toString(id);
-        busName->setValue(busInstName);
+        busName->setValue(bus->ifName);
         busType = new ObjectState(OSNAME_BUS_TYPE);
         busType->setAttribute(OSNAME_VENDOR, HIBI_VENDOR);
         busType->setAttribute(OSNAME_LIBRARY, HIBI_LIBRARY);
@@ -284,12 +285,12 @@ IPXactModel::addBusInterfaceObject(
     
     ObjectState* signalMapping = new ObjectState(OSNAME_BUS_SIGNAL_MAP);
     parent->addChild(signalMapping);
-    for (unsigned int i = 0; i < signalMap->size(); i++) {
+    for (unsigned int i = 0; i < bus->signalMapList->size(); i++) {
         ObjectState* signal = new ObjectState(OSNAME_BUS_SIGNAL_MAP_NAME);
         ObjectState* compSignal = new ObjectState(OSNAME_BUS_SIGNAL_MAP_COMP);
         ObjectState* busSignal = new ObjectState(OSNAME_BUS_SIGNAL_MAP_BUS);
-        compSignal->setValue(signalMap->at(i).first);
-        busSignal->setValue(signalMap->at(i).second);
+        compSignal->setValue(bus->signalMapList->at(i).first);
+        busSignal->setValue(bus->signalMapList->at(i).second);
         signal->addChild(compSignal);
         signal->addChild(busSignal);
         signalMapping->addChild(signal);
@@ -414,6 +415,11 @@ IPXactModel::extractBusInterface(const ObjectState* busInterface) {
                                             "IPXactModel");
         throw exc;
     }
+    if (!busInterface->hasChild(OSNAME_NAME)) {
+        return;
+    }
+    string ifName = busInterface->childByName(OSNAME_NAME)->stringValue();
+
     if (!busInterface->hasChild(OSNAME_BUS_SIGNAL_MAP)) {
         return;
     }
@@ -435,7 +441,10 @@ IPXactModel::extractBusInterface(const ObjectState* busInterface) {
             busSignals->push_back(signalMap);
         }
     }
-    std::pair<IPXactBus, SignalMappingList*> busIf(bus, busSignals);
+    BusInterfaceMapping* busIf = new BusInterfaceMapping;
+    busIf->ifName = ifName;
+    busIf->busType = bus;
+    busIf->signalMapList = busSignals;
     busInterfaces_.push_back(busIf);
 }
 
@@ -448,7 +457,7 @@ IPXactModel::busType(const ObjectState* busInterface) {
      if (busInterface->hasChild(OSNAME_NAME)) {
          string busName = 
              busInterface->childByName(OSNAME_NAME)->stringValue();
-         if (busName == HIBI_BUS_NAME) {
+         if (busName.find(HIBI_BUS_NAME) != string::npos) {
              busType = HIBI;
          }
      }
@@ -567,4 +576,17 @@ IPXactModel::extractFiles(const ObjectState* fileSets) {
             }
         }
     }
+}
+
+
+std::string
+IPXactModel::interfaceName(const std::string& fuName, IPXactBus busType) const {
+
+    string ifName = "";
+    if (busType == HIBI) {
+        ifName = fuName + HIBI_BUS_NAME;
+    } else {
+        ifName = fuName;
+    }
+    return ifName;
 }

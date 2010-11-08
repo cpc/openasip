@@ -99,6 +99,7 @@ IPXactFileGenerator::writeProjectFiles() {
     
     ipXactWriter_->setDestinationFile(outputFileName());
     ipXactWriter_->writeIPXactModel(*ip);
+    delete ip;
 }
 
 void
@@ -130,7 +131,7 @@ IPXactFileGenerator::searchInterface(
             string fuName = extractFUName(port.name(), interfaceSignal);
             SignalMappingList mapping;
             if (mapFUToInterface(fuName, search, mapping)) {
-                model->addBusInterface(bus, mapping);
+                model->addBusInterface(fuName, bus, mapping);
             }
         }
     }
