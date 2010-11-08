@@ -1,0 +1,40 @@
+TTA-Based Codesign Environment (TCE) v1.3 released
+--------------------------------------------------
+
+TTA-Based Codesign Environment (TCE) is a toolset for designing 
+application-specific processors (ASP) based on the Transport Triggered 
+Architecture (TTA). The toolset provides a complete retargetable codesign 
+flow from C programs down to synthesizable VHDL and parallel program 
+binaries. Processor customization points include the register files, 
+function units, supported operations, and the interconnection network.
+
+Notable new features
+--------------------
+- Support for LLVM 2.8 (support for LLVM 2.7 retained)
+- ttasim: call info (setting profile_transfer_tracking) and the instruction
+  profile (ttasim setting profile_data_saving) are now saved to separate
+  pure text files to speed up simulation when these traces are enabled.
+- ttasim: instruction profile can be converted to cachegrind-compatible 
+  traces which can be visualized with kcachegrind.
+- SystemC integration: Possibility to add TTA simulation models to system
+  level simulations with the ability to override the operation pipeline 
+  simulation models for the function units.
+- Improved the scheduling for unconnected machines through temporary
+  register copies based on the maze algorithm for ASIC place & route.
+  Not restricted to maximum of two copies anymore.
+- Basic support for debugging info when compiled with 'tcecc -g'. 
+  The source code line numbers are displayed as comments in 'tcedisasm' 
+  output and ttasim's disassembly.
+- Platform Integration support is improved. New integrator components
+  include AvalonIntegrator which can be used to integrate TTA to a
+  Altera SOPC Builder component and KoskiIntegrator which can be used
+  to integrate TTA processor to Koski toolset compatible IP blocks with
+  IP-XACT 1.2 component description file.
+
+Links
+-----
+
+TCE home page: http://tce.cs.tut.fi
+Download:      http://tce.cs.tut.fi/downloads
+Change log:    http://tce.cs.tut.fi/downloads/CHANGES
+
