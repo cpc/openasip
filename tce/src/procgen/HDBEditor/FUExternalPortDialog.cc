@@ -149,9 +149,11 @@ FUExternalPortDialog::onOK(wxCommandEvent&) {
     }
 
     for (int i = 0; i < fu_.parameterCount(); i++) {
-        if (depList_->IsChecked(i)) {
-            string parameter = WxConversion::toString(depList_->GetString(i));
+        string parameter = WxConversion::toString(depList_->GetString(i));
+        if (depList_->IsChecked(i)) {          
             port_.setParameterDependency(parameter);
+        } else {
+            port_.unsetParameterDependency(parameter);
         }
     }
 
