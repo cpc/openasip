@@ -1,7 +1,13 @@
 pkglib_LTLIBRARIES = LowerIntrinsics.la LinkBitcode.la MachineDCE.la
 
 LowerIntrinsics_la_SOURCES = LowerIntrinsics.cc 
-LowerIntrinsics_la_LDFLAGS = -module 
+# Static linking here is needed in FreeBSD and possibly other
+# targets were --enable-shared does not compile llvm. In that
+# case the TCE script is used to generate the LLVM dynamic library.
+# This means that opt or llc do not have a reference to that
+# dynamic library thus cannot find the symbols needed when the
+# LowerIntrinsics.so is loaded in tcecc.
+LowerIntrinsics_la_LDFLAGS = -module ${LLVM_LDFLAGS} -lLLVMCodeGen
 
 LinkBitcode_la_SOURCES = LinkBitcode.cc 
 LinkBitcode_la_LDFLAGS = -module
