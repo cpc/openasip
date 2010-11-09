@@ -7,6 +7,11 @@ nobase_base_DATA = $(srcdir)/asic_130nm_1.5V.hdb \
                    $(srcdir)/stratixII_vhdl/fpga_lsu/* \
                    $(srcdir)/stratixII_vhdl/led_io/* \
                    $(srcdir)/stratixII_vhdl/rtc/* \
-                   $(srcdir)/stratixII_vhdl/sram_lsu/*
+                   $(srcdir)/stratixII_vhdl/sram_lsu/* \
+                   $(srcdir)/avalon.hdb \
+                   $(srcdir)/avalon_hdb_vhdl/* \
+                   $(srcdir)/hibi_adapter.hdb \
+                   $(srcdir)/hibi_adapter_vhdl/*
+
 
 EXTRA_DIST = ${nobase_base_DATA}
