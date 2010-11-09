@@ -31,6 +31,11 @@ Notable new features
   to integrate TTA processor to Koski toolset compatible IP blocks with
   IP-XACT 1.2 component description file.
 
+Acknowledgements
+----------------
+Thanks to Fabio Garzia and Andy Lam who contributed their first patches
+to this release!
+
 Links
 -----
 
