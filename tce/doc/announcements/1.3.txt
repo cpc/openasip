@@ -39,7 +39,7 @@ to this release!
 Links
 -----
 
-TCE home page: http://tce.cs.tut.fi
-Download:      http://tce.cs.tut.fi/downloads
-Change log:    http://tce.cs.tut.fi/downloads/CHANGES
-
+TCE home page:     http://tce.cs.tut.fi
+This announcement: http://tce.cs.tut.fi/downloads/ANNOUNCEMENT
+Download:          http://tce.cs.tut.fi/downloads
+Change log:        http://tce.cs.tut.fi/downloads/CHANGES
