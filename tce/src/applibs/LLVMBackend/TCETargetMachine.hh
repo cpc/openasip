@@ -127,13 +127,11 @@ namespace llvm {
 #if defined(LLVM_2_7)
         bool addCommonCodeGenPasses(PassManagerBase &PM,
                                     CodeGenOpt::Level OptLevel);
-#elif defined(LLVM_2_8)
+#else
         bool addCommonCodeGenPasses(PassManagerBase &PM,
                                     CodeGenOpt::Level OptLevel,
                                     bool DisableVerify,
                                     MCContext *&OutContext);
-#else
-        // use the default addCommonCodeGenPasses()
 #endif
         
         // ------------- end of duplicated methods ------------

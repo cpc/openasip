@@ -747,6 +747,184 @@ bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
 
   return false;
 }
-#elif defined(LLVM_2_9)
-// use LLVMTargetMachine:::addCommonCodeGenPasses()
+
+#else
+
+// LLVM 2.9 / LLVM-svn
+
+/// addCommonCodeGenPasses - Add standard LLVM codegen passes used for both
+/// emitting to assembly files or machine code output.
+///
+bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
+					      CodeGenOpt::Level OptLevel,
+					      bool DisableVerify,
+					      MCContext *&OutContext) {
+  // Standard LLVM-Level Passes.
+
+  // Before running any passes, run the verifier to determine if the input
+  // coming from the front-end and/or optimizer is valid.
+  if (!DisableVerify)
+    PM.add(createVerifierPass());
+
+  // stupid LLVM creates some pseudo-global static variables into cpp file.
+  // and these are not visible here.
+  // Optionally, tun split-GEPs and no-load GVN.
+  if (false /*LLVMTargetMachine::EnableSplitGEPGVN*/) {
+    PM.add(createGEPSplitterPass());
+    PM.add(createGVNPass(/*NoLoads=*/true));
+  }
+
+  // Run loop strength reduction before anything else.
+  if (OptLevel != CodeGenOpt::None) {
+      PM.add(createLoopStrengthReducePass(getTargetLowering()));
+  }
+  
+  // Turn exception handling constructs into something the code generators can
+  // handle.
+  switch (getMCAsmInfo()->getExceptionHandlingType()) {
+  case ExceptionHandling::SjLj:
+    // SjLj piggy-backs on dwarf for this bit. The cleanups done apply to both
+    // Dwarf EH prepare needs to be run after SjLj prepare. Otherwise,
+    // catch info can get misplaced when a selector ends up more than one block
+    // removed from the parent invoke(s). This could happen when a landing
+    // pad is shared by multiple invokes and is also a target of a normal
+    // edge from elsewhere.
+    PM.add(createSjLjEHPass(getTargetLowering()));
+    // FALLTHROUGH
+  case ExceptionHandling::Dwarf:
+    PM.add(createDwarfEHPass(this));
+    break;
+  case ExceptionHandling::None:
+    PM.add(createLowerInvokePass(getTargetLowering()));
+    break;
+  }
+
+  PM.add(createGCLoweringPass());
+
+  // Make sure that no unreachable blocks are instruction selected.
+  PM.add(createUnreachableBlockEliminationPass());
+
+  // TCE 
+  if (addPreISel(PM, OptLevel))
+      return true;
+  /// /TCE
+
+  if (OptLevel != CodeGenOpt::None) 
+    PM.add(createCodeGenPreparePass(getTargetLowering()));
+
+  PM.add(createStackProtectorPass(getTargetLowering()));
+
+  // All passes which modify the LLVM IR are now complete; run the verifier
+  // to ensure that the IR is valid.
+  if (!DisableVerify)
+    PM.add(createVerifierPass());
+
+  // Standard Lower-Level Passes.
+  
+  // Install a MachineModuleInfo class, which is an immutable pass that holds
+  // all the per-module stuff we're generating, including MCContext.
+  MachineModuleInfo *MMI = new MachineModuleInfo(*getMCAsmInfo());
+  PM.add(MMI);
+  OutContext = &MMI->getContext(); // Return the MCContext specifically by-ref.
+  
+
+  // Set up a MachineFunction for the rest of CodeGen to work on.
+  PM.add(new MachineFunctionAnalysis(*this, OptLevel));
+
+  // Enable FastISel with -fast, but allow that to be overridden.
+  if (OptLevel == CodeGenOpt::None)
+    EnableFastISel = true;
+
+  // Ask the target for an isel.
+  if (addInstSelector(PM, OptLevel))
+    return true;
+
+  // Optimize PHIs before DCE: removing dead PHI cycles may make more
+  // instructions dead.
+  if (OptLevel != CodeGenOpt::None)
+    PM.add(createOptimizePHIsPass());
+
+  // Assign local variables to stack slots relative to one another and simplify
+  // frame index references where possible. Final stack slot locations will be
+  // assigned in PEI.
+//TODO: should this be on or off?
+//  if (EnableLocalStackAlloc)
+//    PM.add(createLocalStackSlotAllocationPass());
+
+  if (OptLevel != CodeGenOpt::None) {
+    // With optimization, dead code should already be eliminated. However
+    // there is one known exception: lowered code for arguments that are only
+    // used by tail calls, where the tail calls reuse the incoming stack
+    // arguments directly (see t11 in test/CodeGen/X86/sibcall.ll).
+    PM.add(createDeadMachineInstructionElimPass());
+
+    PM.add(createPeepholeOptimizerPass());
+    PM.add(createMachineLICMPass());
+    PM.add(createMachineCSEPass());
+    PM.add(createMachineSinkingPass());
+  }
+
+  // stupid llvm static cpp variables again.
+  // Pre-ra tail duplication.
+  if (OptLevel != CodeGenOpt::None && true /*!DisableEarlyTailDup*/) {
+    PM.add(createTailDuplicatePass(true));
+  }
+
+  // Run pre-ra passes.
+  addPreRegAlloc(PM, OptLevel);
+
+  // Perform register allocation.
+  PM.add(createRegisterAllocator(OptLevel));
+
+  // Perform stack slot coloring and post-ra machine LICM.
+  if (OptLevel != CodeGenOpt::None) {
+    // FIXME: Re-enable coloring with register when it's capable of adding
+    // kill markers.
+      PM.add(createStackSlotColoringPass(false));
+
+    // Run post-ra machine LICM to hoist reloads / remats.
+    // This causes buggy code to be generated on TCE, so disabled.
+      // the bug might be in isStoreFromStackSlot, isLoadFromStackSlot methods
+      // TCE (commenting out, originally enabled)
+      // PM.add(createMachineLICMPass(false));
+      // /TCE
+  }
+
+  // Run post-ra passes.
+  addPostRegAlloc(PM, OptLevel);
+
+  PM.add(createLowerSubregsPass());
+  // Insert prolog/epilog code.  Eliminate abstract frame index references...
+  PM.add(createPrologEpilogCodeInserter());
+
+  // Run pre-sched2 passes.
+  addPreSched2(PM, OptLevel);
+
+  // Second pass scheduler.
+  if (OptLevel != CodeGenOpt::None) {
+    PM.add(createPostRAScheduler(OptLevel));
+  }
+
+  // Branch folding must be run after regalloc and prolog/epilog insertion.
+  if (OptLevel != CodeGenOpt::None) {
+    PM.add(createBranchFoldingPass(getEnableTailMergeDefault()));
+  }
+
+  // Tail duplication.
+  if (OptLevel != CodeGenOpt::None && true /*!DisableTailDuplicate*/) {
+    PM.add(createTailDuplicatePass(false));
+  }
+
+  PM.add(createGCMachineCodeAnalysisPass());
+
+  if (OptLevel != CodeGenOpt::None) {
+    PM.add(createCodePlacementOptPass());
+  }
+
+  addPreEmitPass(PM, OptLevel); //)
+
+  return false;
+}
+
+
 #endif
