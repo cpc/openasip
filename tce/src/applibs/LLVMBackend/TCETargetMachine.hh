@@ -100,7 +100,7 @@ namespace llvm {
         }
 
         virtual const TargetFrameInfo* getFrameInfo() const {
-            return &FrameInfo;
+            return plugin_->getFrameInfo();
         }
         
         virtual TargetLowering* getTargetLowering() const { 
@@ -180,7 +180,6 @@ namespace llvm {
         /* more or less llvm naming convention to make it easier to track llvm changes */
         TCESubtarget        Subtarget;
         const TargetData    DataLayout; // Calculates type size & alignment
-        TargetFrameInfo     FrameInfo;
 
 #ifndef LLVM_2_7
 	TCESelectionDAGInfo tsInfo;

@@ -67,6 +67,8 @@ include_HEADERS = \
  plugin/TCEISelLowering.hh \
  plugin/TCETargetObjectFile.cc \
  plugin/TCETargetObjectFile.hh \
+ plugin/TCEFrameInfo.hh \
+ plugin/TCEFrameInfo.cc \
  plugin/TCETargetMachinePlugin.cc \
  plugin/TCECallingConv.td \
  TCETargetMachine.hh \

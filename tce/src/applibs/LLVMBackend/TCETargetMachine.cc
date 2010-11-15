@@ -91,7 +91,6 @@ TCETargetMachine::TCETargetMachine(const Target &T, const std::string &TT,
         "-i64:32:64"
         "-f32:32:32"
         "-f64:64:64"),
-      FrameInfo(TargetFrameInfo::StackGrowsDown, 4, -4),
 #ifndef LLVM_2_7
       tsInfo(*this),
 #endif

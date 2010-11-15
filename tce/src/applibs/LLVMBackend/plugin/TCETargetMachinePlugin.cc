@@ -37,6 +37,7 @@
 #include "TCEPlugin.hh"
 #include "TCEInstrInfo.hh"
 #include "TCETargetMachine.hh"
+#include "TCEFrameInfo.hh"
 #include "TCEISelLowering.hh"
 #include "MapTools.hh"
 
@@ -51,6 +52,7 @@ public:
     virtual ~GeneratedTCEPlugin();
     virtual const TargetInstrInfo* getInstrInfo() const;
     virtual const TargetRegisterInfo* getRegisterInfo() const;
+    virtual const TargetFrameInfo* getFrameInfo() const;
     virtual TargetLowering* getTargetLowering() const;
 
     virtual FunctionPass* createISelPass(TCETargetMachine* tm);
@@ -122,6 +124,8 @@ GeneratedTCEPlugin::GeneratedTCEPlugin() :
    instrInfo_ = new TCEInstrInfo();
    // Initialize register & opcode maps.
    initialize();
+   frameInfo_ = new TCEFrameInfo(
+       static_cast<const TCERegisterInfo*>(getRegisterInfo()));
 }
 
 
@@ -158,7 +162,15 @@ GeneratedTCEPlugin::getInstrInfo() const {
  */
 const TargetRegisterInfo*
 GeneratedTCEPlugin::getRegisterInfo() const {
-    return &(dynamic_cast<TCEInstrInfo*>(instrInfo_))->getRegisterInfo();
+    return &(static_cast<TCEInstrInfo*>(instrInfo_))->getRegisterInfo();
+}
+
+/**
+ * Returns TargetFrameInfo object for TCE target.
+ */
+const TargetFrameInfo* 
+GeneratedTCEPlugin::getFrameInfo() const {
+    return frameInfo_;
 }
 
 /**

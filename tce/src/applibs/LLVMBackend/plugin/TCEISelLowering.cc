@@ -357,7 +357,11 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 #ifdef LLVM_2_7
         switch (Outs[i].Val.getValueType().getSimpleVT().SimpleTy) {
 #else
+#ifdef LLVM_2_8
         switch (Outs[i].VT.getSimpleVT().SimpleTy) {
+#else
+        switch (Outs[i].VT.SimpleTy) {
+#endif
 #endif
         default: assert(false && "Unknown value type!");
         case MVT::i1:

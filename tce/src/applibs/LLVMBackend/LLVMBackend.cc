@@ -899,6 +899,7 @@ LLVMBackend::createPlugin(const TTAMachine::Machine& target)
         srcsPath + "TCEISelLowering.cc " +
         srcsPath + "TCEDAGToDAGISel.cc " +
         srcsPath + "TCETargetObjectFile.cc " +
+        srcsPath + "TCEFrameInfo.cc " +
         srcsPath + "TCETargetMachinePlugin.cc ";
 
     // Compile plugin to cache.
