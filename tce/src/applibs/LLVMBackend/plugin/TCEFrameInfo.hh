@@ -36,6 +36,8 @@
 #include <llvm/Target/TargetFrameInfo.h>
 #include "TCERegisterInfo.hh"
 
+#include "tce_config.h"
+
 namespace llvm {
 
     /** !! Important !! *************
@@ -51,11 +53,13 @@ namespace llvm {
     public:
 	TCEFrameInfo(const TCERegisterInfo* tri)
 	    : TargetFrameInfo(
-		TargetFrameInfo::StackGrowsDown, 4, -4), tri_(tri) {}
 #if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+            TargetFrameInfo::StackGrowsDown, 4, -4), tri_(tri) {}
 	void emitPrologue(MachineFunction &mf) const;
 	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const;
 	const TCERegisterInfo* tri_;
+#else
+        TargetFrameInfo::StackGrowsDown, 4, -4) {}
 #endif
     };
 } // /namespace
