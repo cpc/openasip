@@ -233,6 +233,7 @@ In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 .*removing..*/Makefile.to.force.reconfigure.*|\
 .*PluginTools.icc.*warning:.dereferencing.*|\
 .*PluginTools.icc.*note:.initialized.from.here.*|\
+.*TargetLowering.h:1307|\
 .*newlib/doc/makedoc.c:.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
