@@ -124,6 +124,14 @@ namespace llvm {
 					 CodeGenOpt::Level);
 #endif
 
+	// This method is overridden and modified to comment out
+	// LICM optimization pass after regalloc, because it breaks things. 
+	// The reason to this breakage might be TII::isStoreToStackSlot,
+	// TII::isLoadFromStackSlot not being implemented correctly.
+	// This overridden method can be removed and the llvm default used
+	// when these methods have been fixed and LICM after regalloc
+	// is tested to work
+
 #if defined(LLVM_2_7)
         bool addCommonCodeGenPasses(PassManagerBase &PM,
                                     CodeGenOpt::Level OptLevel);
