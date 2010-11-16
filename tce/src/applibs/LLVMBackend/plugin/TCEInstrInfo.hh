@@ -63,12 +63,6 @@ namespace llvm {
             unsigned &SrcSubIdx, unsigned &DstSubIdx) const;
 #endif
 
-        virtual unsigned isLoadFromStackSlot(
-            const MachineInstr* mi, int& frameIndex) const;
-
-        virtual unsigned isStoreToStackSlot(
-            const MachineInstr* mi, int& frameIndex) const;
-
 #ifdef LLVM_2_7
         virtual unsigned InsertBranch(
             MachineBasicBlock &MBB, MachineBasicBlock *TBB,

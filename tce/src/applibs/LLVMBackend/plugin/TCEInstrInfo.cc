@@ -152,48 +152,6 @@ TCEInstrInfo::InsertBranch(
 }
 
 /**
- * Returns true if the instruction is a load from stack slot.
- */
-unsigned
-TCEInstrInfo::isLoadFromStackSlot(
-    const MachineInstr* mi, int& frameIndex) const {
-
-    if (mi->getOpcode() == TCE::LDWi) {
-        
-        if (mi->getOperand(1).isFI() &&
-            mi->getOperand(2).isImm() &&
-            mi->getOperand(2).getImm() == 0) {
-            
-            frameIndex = mi->getOperand(1).getIndex();
-
-            return mi->getOperand(0).getReg();
-        }
-    }
-    return 0;
-}
-
-
-/**
- * Returns true if the instruction is a store to stack slot.
- */
-unsigned
-TCEInstrInfo::isStoreToStackSlot(
-    const MachineInstr* mi, int& frameIndex) const {
-    
-    if (mi->getOpcode() == TCE::STWir) {
-        if (mi->getOperand(0).isFI() &&
-            mi->getOperand(1).isImm() &&
-            mi->getOperand(1).getImm() == 0) {
-
-            frameIndex = mi->getOperand(0).getIndex();
-           
-            return mi->getOperand(2).getReg();
-        }
-    }
-    return 0;
-}
-
-/**
  * Returns true if program control can't fall through the last instruction
  * in the basic block, false otherwise.
  */

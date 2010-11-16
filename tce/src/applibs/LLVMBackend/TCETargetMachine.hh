@@ -135,7 +135,7 @@ namespace llvm {
 #if defined(LLVM_2_7)
         bool addCommonCodeGenPasses(PassManagerBase &PM,
                                     CodeGenOpt::Level OptLevel);
-#else
+#elif defined(LLVM_2_8)
         bool addCommonCodeGenPasses(PassManagerBase &PM,
                                     CodeGenOpt::Level OptLevel,
                                     bool DisableVerify,
