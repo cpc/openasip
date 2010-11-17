@@ -277,6 +277,9 @@ static cl::opt<bool> DisableSSC("disable-ssc", cl::Hidden,
     cl::desc("Disable Stack Slot Coloring"));
 static cl::opt<bool> DisableMachineLICM("disable-machine-licm", cl::Hidden,
     cl::desc("Disable Machine LICM"));
+static cl::opt<bool> DisablePostRAMachineLICM("disable-postra-machine-licm",
+    cl::Hidden,
+    cl::desc("Disable Machine LICM"));
 static cl::opt<bool> DisableMachineSink("disable-machine-sink", cl::Hidden,
     cl::desc("Disable Machine Sinking"));
 static cl::opt<bool> DisableLSR("disable-lsr", cl::Hidden,
@@ -691,7 +694,7 @@ bool TCETargetMachine::addCommonCodeGenPasses(PassManagerBase &PM,
     // stupid llvm static cpp variables.
     // Run post-ra machine LICM to hoist reloads / remats.
     // This causes buggy code to be generated on TCE, so disabled.
-    if (false /*!DisablePostRAMachineLICM*/)
+    if (!DisablePostRAMachineLICM)
       PM.add(createMachineLICMPass(false));
 
     printAndVerify(PM, "After StackSlotColoring and postra Machine LICM");
