@@ -12,7 +12,7 @@
 /**
  * Replaces all occurences of string 'old' with 'newString'
  */
-inline void
+inline TCEString&
 TCEString::replaceString(
     const std::string& old, const std::string& newString) {
         
@@ -26,6 +26,7 @@ TCEString::replaceString(
         location = modifiedString.find(old);
     }
     *this = modifiedString;
+    return *this;
 }
 
 /**

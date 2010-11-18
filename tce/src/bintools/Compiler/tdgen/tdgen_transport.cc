@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -22,50 +22,48 @@
     DEALINGS IN THE SOFTWARE.
  */
 /**
- * @file TCEString.hh
+ * LLVM backend generator for the transport style backend.
  *
- * Declaration of TCEString class.
+ * @author Pekka Jääskeläinen 2010
  *
- * @author Viljami Korhonen 2008 (viljami.korhonen-no.spam-tut.fi)
  * @note rating: red
  */
+#include "TCEString.hh"
+#include "TransportTDGen.hh"
+#include "Machine.hh"
 
-#ifndef TCE_STRING_HH
-#define TCE_STRING_HH
+int main(int argc, char* argv[]) {
 
-#include <string>
-#include <vector>
-
-/**
- * A simple wrapper around std::string to make forward declarations possible.
- * 
- * Also provides additional string helpers.
- */
-class TCEString : public std::string {
-public:
-    TCEString();
-    TCEString(const char* text);
-    TCEString(const std::string& text);
-    virtual ~TCEString();
-
-    TCEString& replaceString(
-        const std::string& old, const std::string& newString);
-    bool startsWith(const std::string& str) const;
-    bool endsWith(const std::string& str) const;
-    bool ciEqual(const TCEString& other) const;
-    std::vector<std::string> split(const std::string& delim) const;
-
-    TCEString lower() const;
-    TCEString upper() const;
-    TCEString capitalize() const;
-
-    TCEString& operator<<(const TCEString& rhs);
-    TCEString& operator<<(const char* rhs);
-    TCEString& operator<<(const int rhs);
-
-private:
-};
-
-#include "TCEString.icc"
-
+    if (argc != 3) {
+        std::cout 
+            << "Usage: tdgen_transport adf_file output_dir"
+            << std::endl;
+        return EXIT_FAILURE;
+    }
+    TTAMachine::Machine* machine = NULL;
+    try {
+        machine = TTAMachine::Machine::loadFromADF(TCEString(argv[1]));
+    } catch (const Exception& e) {
+        std::cerr
+            << "Unable to load the ADF. "
+            << e.errorMessage() << std::endl;
+        return EXIT_FAILURE;
+    }
+    std::string outDir = TCEString(argv[2]);
+    try {
+        TransportTDGen gen(*machine);
+        gen.generateBackend(outDir);
+    } catch (const Exception& e) {
+        std::cerr
+            << "Error: " << e.errorMessage() << std::endl;
+#if 0
+            << e.fileName() << ":" << e.procedureName() << ":"
+            << e.lineNum() << std::endl;
 #endif
+        
+        return EXIT_FAILURE;
+    }
+
+    delete machine; machine = NULL;
+    return EXIT_SUCCESS;   
+}

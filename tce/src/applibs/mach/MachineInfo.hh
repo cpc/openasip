@@ -39,9 +39,6 @@ namespace TTAMachine {
 
 #include "OperationDAGSelector.hh"
 
-/**
- * Validator for function units.
- */
 class MachineInfo {
 public:
     static OperationDAGSelector::OperationSet getOpset(

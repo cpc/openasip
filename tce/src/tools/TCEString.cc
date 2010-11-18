@@ -31,6 +31,7 @@
  */
 #include <string>
 #include "TCEString.hh"
+#include "Conversion.hh"
 
 TCEString::TCEString() : std::string() {
 }
@@ -66,8 +67,38 @@ TCEString::upper() const {
     return StringTools::stringToUpper(*this);
 }
 
+/**
+ * Return a copy of the string with its first character in upper case and 
+ * the rest in lower case.
+ */
+TCEString
+TCEString::capitalize() const {
+    if (size() == 0) return "";
+    if (size() == 1) return upper();
+    return StringTools::stringToUpper(substr(0, 1)) + 
+        StringTools::stringToLower(substr(1, size() - 1));
+}
+
 std::vector<std::string>
 TCEString::split(const std::string& delim) const {
     return StringTools::chopString(*this, delim);
 }
 
+// stream operators for easier string construction
+TCEString&
+TCEString::operator<<(const TCEString& rhs) {
+    *this += rhs;
+    return *this;
+}
+
+TCEString&
+TCEString::operator<<(const char* rhs) {
+    *this += TCEString(rhs);
+    return *this;
+}
+
+TCEString&
+TCEString::operator<<(const int rhs) {
+    *this += Conversion::toString(rhs);
+    return *this;
+}

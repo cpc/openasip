@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -67,9 +67,11 @@ unsigned const TDGen::REQUIRED_I32_REGS = 5;
  *
  * @param mach Machine to generate plugin for.
  */
-TDGen::TDGen(const TTAMachine::Machine& mach):
-    mach_(mach), dregNum_(0), fullyConnected_(false) {
-
+TDGen::TDGen(const TTAMachine::Machine& mach) :
+    mach_(mach), dregNum_(0) {
+    FullyConnectedCheck fc;
+    MachineCheckResults res;
+    fullyConnected_ = fc.check(mach_, res);
 }
 
 /**
@@ -78,9 +80,6 @@ TDGen::TDGen(const TTAMachine::Machine& mach):
  */
 void
 TDGen::generateBackend(std::string& path) throw (Exception) {    
-    MachineCheckResults res;
-    FullyConnectedCheck fc;
-    fullyConnected_ = fc.check(mach_, res);
 
     std::ofstream regTD;
     regTD.open((path + "/GenRegisterInfo.td").c_str());
@@ -315,7 +314,7 @@ TDGen::analyzeRegisters() {
             if (!fullyConnected_ && width > 1) {
                 // If the machine is not fully connected,
                 // preserve last register
-                // of all registers for bypassing values.
+                // of all register files for routing values.
                 lastIdx--;
             }
 
@@ -326,15 +325,15 @@ TDGen::analyzeRegisters() {
                     if (guardedRegs_.find(reg) == guardedRegs_.end()) {
                         ri->push_back(reg);
                     } else {
-			// n-bit guarded registers not used by the compiler.
+                        // n-bit guarded registers not used by the compiler.
                     }
                 } else {
                     // if it is 1-bit, it has to have guard.
                     if (!(guardedRegs_.find(reg) == guardedRegs_.end())) {
                         ri->push_back(reg);
                     } else {
-			// 1-bit non-guarded regs not used by the compiler.
-		    }
+                        // 1-bit non-guarded regs not used by the compiler.
+                    }
                 }
                 regsFound = true;
             }
@@ -616,15 +615,15 @@ TDGen::checkRequiredRegisters()
     if (regs32bit_.size() < REQUIRED_I32_REGS) {
         std::string msg =
             (boost::format(
-                "Architecture doesn't meet the minimal requirements. "
-                "Only %d 32 bit general purpose registers found. At least %d "
+                "Architecture doesn't meet the minimal requirements.\n"
+                "Only %d 32 bit general purpose registers found. At least %d\n"
                 "needed. ")
              % regs32bit_.size() % REQUIRED_I32_REGS)
             .str();
 
         if (!fullyConnected_) {
-            msg += "Your machine is not fully connected, thus one register "
-                "from each register file are reserved for temp moves and "
+            msg += "Your machine is not fully connected, thus one register\n"
+                "from each register file are reserved for temp moves and\n"
                 "not used as general purpose registers.";
         }
 
@@ -1256,6 +1255,97 @@ TDGen::llvmOperationPattern(const std::string& osalOperationName) {
     // Unknown operation name.
     return "";
 }
+
+/**
+ * Returns llvm operation name for the given OSAL operation name,
+ * if any.
+ */
+std::string
+TDGen::llvmOperationName(const std::string& osalOperationName) {
+
+    const std::string opName = StringTools::stringToLower(osalOperationName);
+
+    if (opName == "add") return "add";
+    if (opName == "sub") return "sub";
+    if (opName == "mul") return "mul";
+    if (opName == "div") return "sdiv";
+    if (opName == "divu") return "udiv";
+    if (opName == "mod") return "srem";
+    if (opName == "modu") return "urem";
+
+    if (opName == "shl") return "shl";
+    if (opName == "shr") return "sra";
+    if (opName == "shru") return "srl";
+    if (opName == "rotl") return "rotl";
+    if (opName == "rotr") return "rotr";
+
+    if (opName == "and") return "and";
+    if (opName == "ior") return "or";
+    if (opName == "xor") return "xor";
+
+    if (opName == "eq") return "seteq";
+    if (opName == "ne") return "setne";
+    if (opName == "lt") return "setlt";
+    if (opName == "le") return "setle";
+    if (opName == "gt") return "setgt";
+    if (opName == "ge") return "setge";
+    if (opName == "ltu") return "setult";
+    if (opName == "leu") return "setule";
+    if (opName == "gtu") return "setugt";
+    if (opName == "geu") return "setuge";
+
+    if (opName == "eqf") return "setoeq";
+    if (opName == "nef") return "setone";
+    if (opName == "ltf") return "setolt";
+    if (opName == "lef") return "setole";
+    if (opName == "gtf") return "setogt";
+    if (opName == "gef") return "setoge";
+
+    if (opName == "equf") return "setueq";
+    if (opName == "neuf") return "setune";
+    if (opName == "ltuf") return "setult";
+    if (opName == "leuf") return "setule";
+    if (opName == "gtuf") return "setugt";
+    if (opName == "geuf") return "setuge";
+
+    if (opName == "ordf") return "seto";
+    if (opName == "uordf") return "setuo";
+
+    if (opName == "addf") return "fadd";
+    if (opName == "subf") return "fsub";
+    if (opName == "mulf") return "fmul";
+    if (opName == "divf") return "fdiv";
+    if (opName == "absf") return "fabs";
+    if (opName == "negf") return "fneg";
+    if (opName == "sqrtf") return "fsqrt";
+
+    if (opName == "cif") return "sint_to_fp";
+    if (opName == "cfi") return "fp_to_sint";
+    if (opName == "cifu") return "uint_to_fp";
+    if (opName == "cfiu") return "fp_to_uint";
+
+    if (opName == "ldq") return "sextloadi8";
+    if (opName == "ldqu") return "zextloadi8";
+    if (opName == "ldh") return "sextloadi16";
+    if (opName == "ldhu") return "zextloadi16";
+    if (opName == "ldw") return "load";
+    //if (opName == "ldd") return "load";
+
+    if (opName == "stq") return "truncstorei8";
+    if (opName == "sth") return "truncstorei16";
+    if (opName == "stw") return "store";
+    //if (opName == "std") return "load";
+
+    if (opName == "sxhw") return "sext_inreg";
+    if (opName == "sxqw") return "sext_inreg";
+
+    if (opName == "neg") return "ineg";
+    if (opName == "not") return "not";
+
+    // Unknown operation name.
+    return "";
+}
+
 
 /**
  * Pattern for tce generated custom op patterns.

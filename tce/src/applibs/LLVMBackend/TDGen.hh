@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Declaration of TDGen class.
  *
  * @author Veli-Pekka J‰‰skel‰inen 2008 (vjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2010
  */
 
 #ifndef TTA_TDGEN_HH
@@ -54,16 +55,21 @@ namespace TTAMachine {
  * TCE Backend plugin source code and .td definition generator.
  *
  * Generates files for building target architecture plugin for LLVM-TCE
- * backend.
+ * backend. This version generates the backend files for the "RISC
+ * instruction set style" output and provides useful methods for the
+ * derived TDGen(s) (currently only TransportTDGen).
  */
 class TDGen {
 public:
     TDGen(const TTAMachine::Machine& mach);
-    void generateBackend(std::string& path) throw (Exception);
+    virtual ~TDGen() {}
+    virtual void generateBackend(std::string& path) 
+        throw (Exception);
 
-private:
-    bool writeRegisterInfo(std::ostream& o) throw (Exception);
-    void writeInstrInfo(std::ostream& o);
+protected:
+    virtual bool writeRegisterInfo(std::ostream& o) 
+        throw (Exception);
+    virtual void writeInstrInfo(std::ostream& o);
     void writeBackendCode(std::ostream& o);
     void writeTopLevelTD(std::ostream& o);
    
@@ -107,8 +113,7 @@ private:
         const std::string regName,
         const std::string regTemplate,
         const std::string aliases,
-        RegType type
-        );
+        RegType type);
 
     void write64bitRegisterInfo(std::ostream& o);
     void write32bitRegisterInfo(std::ostream& o);
@@ -126,7 +131,9 @@ private:
     void writeCallDef(std::ostream& o);
 
     std::string llvmOperationPattern(const std::string& osalOperationName);
-    bool operationCanBeMatched(const Operation& op, std::set<std::string>* recursionCycleCheck = NULL);
+    std::string llvmOperationName(const std::string& osalOperationName);
+    bool operationCanBeMatched(
+        const Operation& op, std::set<std::string>* recursionCycleCheck = NULL);
     std::string tceOperationPattern(const Operation& op);
 
     std::string patOutputs(const Operation& op, bool intToBool);
