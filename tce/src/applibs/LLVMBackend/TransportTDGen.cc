@@ -80,7 +80,7 @@ TransportTDGen::writeCallingConv() {
     TCEString parameterRegList = "";
     // reg 0 = SP
     // reg 1 = FP
-    for (int i = FIXED_REGISTERS; 
+    for (std::size_t i = FIXED_REGISTERS; 
          i < regs32bit_.size() && i < FIXED_REGISTERS + funcArgRegs_; 
          ++i) {
         RegInfo reg = regs32bit_.at(i);
