@@ -50,8 +50,9 @@ namespace llvm {
     public:
         TCERegisterInfo(const TargetInstrInfo& tii);
         virtual ~TCERegisterInfo() {};
-  
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
         bool hasFP(const MachineFunction& mf) const;
+#endif
 
         void eliminateCallFramePseudoInstr(
             MachineFunction &MF,

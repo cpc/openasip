@@ -57,6 +57,9 @@ namespace llvm {
             TargetFrameInfo::StackGrowsDown, 4, -4), tri_(tri) {}
 	void emitPrologue(MachineFunction &mf) const;
 	void emitEpilogue(MachineFunction &mf, MachineBasicBlock &MBB) const;
+	bool hasFP(const MachineFunction &MF) const { return false; }
+
+    private:
 	const TCERegisterInfo* tri_;
 #else
         TargetFrameInfo::StackGrowsDown, 4, -4) {}

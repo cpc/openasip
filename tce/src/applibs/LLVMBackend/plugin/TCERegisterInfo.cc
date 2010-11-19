@@ -93,6 +93,8 @@ TCERegisterInfo::getCalleeSavedRegClasses(const MachineFunction *MF) const {
     return calleeSavedRegClasses;
 }
 
+
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
 /**
  * Return true if the specified function should have a dedicated frame 
  * pointer register.
@@ -101,6 +103,7 @@ bool
 TCERegisterInfo::hasFP(const MachineFunction& mf) const {
     return false;
 }
+#endif
 
 /**
  * Eliminates call frame pseudo instructions. 
