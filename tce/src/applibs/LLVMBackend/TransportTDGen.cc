@@ -43,7 +43,7 @@
 #include "LLVMBackend.hh"
 #include "Guard.hh"
 
-const int FIXED_REGISTERS = 2; // SP + FP
+const std::size_t FIXED_REGISTERS = 2; // SP + FP
 
 TransportTDGen::TransportTDGen(const TTAMachine::Machine& mach) :
     TDGen(mach), funcArgRegs_(4) {

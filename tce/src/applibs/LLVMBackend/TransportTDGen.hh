@@ -72,7 +72,7 @@ private:
 
     TCEString directoryRoot_;
     // number of GPRs to use for passing function arguments
-    int funcArgRegs_;
+    std::size_t funcArgRegs_;
 };
 
 #endif
