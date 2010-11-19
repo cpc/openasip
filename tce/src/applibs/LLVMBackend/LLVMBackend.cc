@@ -116,7 +116,7 @@ const std::string LLVMBackend::PLUGIN_SUFFIX = ".so";
  * @return Minimumn opset that is required for llvm.
  */
 OperationDAGSelector::OperationSet 
-LLVMBackend::llvmRequiredOpset() {
+LLVMBackend::llvmRequiredOpset(bool includeFloatOps) {
     OperationDAGSelector::OperationSet requiredOps;
 
     requiredOps.insert("ADD");
@@ -161,38 +161,39 @@ LLVMBackend::llvmRequiredOpset() {
 
    
     // -- Floating point operations --
-    requiredOps.insert("ADDF");
-    requiredOps.insert("SUBF");
-    requiredOps.insert("MULF");
-    requiredOps.insert("DIVF");
-    requiredOps.insert("NEGF");
-    requiredOps.insert("SQRTF");
+    if (includeFloatOps) {
+        requiredOps.insert("ADDF");
+        requiredOps.insert("SUBF");
+        requiredOps.insert("MULF");
+        requiredOps.insert("DIVF");
+        requiredOps.insert("NEGF");
+        requiredOps.insert("SQRTF");
 
-    requiredOps.insert("CFI");
-    requiredOps.insert("CFIU");
-    requiredOps.insert("CIF");
-    requiredOps.insert("CIFU");
+        requiredOps.insert("CFI");
+        requiredOps.insert("CFIU");
+        requiredOps.insert("CIF");
+        requiredOps.insert("CIFU");
 
-    // Ordered FP comparison operations
-    requiredOps.insert("EQF");
-    requiredOps.insert("NEF");
-    requiredOps.insert("LTF");
-    requiredOps.insert("LEF");
-    requiredOps.insert("GTF");
-    requiredOps.insert("GEF");
+        // Ordered FP comparison operations
+        requiredOps.insert("EQF");
+        requiredOps.insert("NEF");
+        requiredOps.insert("LTF");
+        requiredOps.insert("LEF");
+        requiredOps.insert("GTF");
+        requiredOps.insert("GEF");
 
-    // Unordered FP comparison operations
-    requiredOps.insert("EQUF");
-    requiredOps.insert("NEUF");
-    requiredOps.insert("LTUF");
-    requiredOps.insert("LEUF");
-    requiredOps.insert("GTUF");
-    requiredOps.insert("GEUF");
+        // Unordered FP comparison operations
+        requiredOps.insert("EQUF");
+        requiredOps.insert("NEUF");
+        requiredOps.insert("LTUF");
+        requiredOps.insert("LEUF");
+        requiredOps.insert("GTUF");
+        requiredOps.insert("GEUF");
 
-    // Ordered/unordered operations
-    requiredOps.insert("ORDF");
-    requiredOps.insert("UORDF");
-
+        // Ordered/unordered operations
+        requiredOps.insert("ORDF");
+        requiredOps.insert("UORDF");
+    }
     return requiredOps;
 }
 /**

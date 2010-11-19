@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,6 +27,7 @@
  * Implementation of MinimalOpSetCheck class.
  *
  * @author Esa Määttä 2008 (esa.maatta-no.spam-tut.fi)
+ * @author Pekka Jääskeläinen 2010
  * @note rating: red
  */
 
@@ -35,31 +36,19 @@
 #include <string>
 
 #include "MinimalOpSetCheck.hh"
-
 #include "FunctionUnit.hh"
 #include "Machine.hh"
-
 #include "Environment.hh"
 #include "FullyConnectedCheck.hh"
+#include "CIStringSet.hh"
 
-//using namespace TTAMachine;
-
-/**
- * Constructor for using this generic class directly.
- */
 MinimalOpSetCheck::MinimalOpSetCheck() : 
     MachineCheck("Common helper functionality for minimal opset checks.") {
-
     buildMinimalOpSet();
 }
 
-
-/**
- * Destructor.
- */
 MinimalOpSetCheck::~MinimalOpSetCheck() {
 }
-
 
 /**
  * Checks if machine has all operations in minimal opset.
@@ -71,7 +60,7 @@ bool
 MinimalOpSetCheck::check(const TTAMachine::Machine& machine) const {
     TTAMachine::Machine::FunctionUnitNavigator fuNav = 
         machine.functionUnitNavigator();
-    std::set<std::string> opSet;
+    TCETools::CIStringSet opSet;
     // construct the opset list
     for (int i = 0; i < fuNav.count(); i++) {
         TTAMachine::FunctionUnit* fu = fuNav.item(i);
@@ -83,11 +72,11 @@ MinimalOpSetCheck::check(const TTAMachine::Machine& machine) const {
         return false;
     }
 
-    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
-    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
+    TCETools::CIStringSet::const_iterator first1 = minimalOpSet_.begin();
+    TCETools::CIStringSet::const_iterator last1 = minimalOpSet_.end();
 
-    std::set<std::string>::iterator first2 = opSet.begin();
-    std::set<std::string>::iterator last2 = opSet.end();
+    TCETools::CIStringSet::iterator first2 = opSet.begin();
+    TCETools::CIStringSet::iterator last2 = opSet.end();
 
     // return false if missing operation was found
     while (first1 != last1 && first2 != last2) {
@@ -120,17 +109,17 @@ MinimalOpSetCheck::check(
     // construct the opset list
     TTAMachine::Machine::FunctionUnitNavigator fuNav = 
         machine.functionUnitNavigator();
-    std::set<std::string> opSet;
+    TCETools::CIStringSet opSet;
     for (int i = 0; i < fuNav.count(); i++) {
         TTAMachine::FunctionUnit* fu = fuNav.item(i);
         fu->operationNames(opSet);
     }
 
-    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
-    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
+    TCETools::CIStringSet::iterator first1 = minimalOpSet_.begin();
+    TCETools::CIStringSet::iterator last1 = minimalOpSet_.end();
 
-    std::set<std::string>::iterator first2 = opSet.begin();
-    std::set<std::string>::iterator last2 = opSet.end();
+    TCETools::CIStringSet::iterator first2 = opSet.begin();
+    TCETools::CIStringSet::iterator last2 = opSet.end();
 
     std::string eMsg = "Operation missing from the minimal operation set: ";
 
@@ -172,7 +161,7 @@ MinimalOpSetCheck::checkWithIgnore(
 
     TTAMachine::Machine::FunctionUnitNavigator fuNav = 
         machine.functionUnitNavigator();
-    std::set<std::string> opSet;
+    TCETools::CIStringSet opSet;
     // construct the opset list
     for (int i = 0; i < fuNav.count(); i++) {
         TTAMachine::FunctionUnit* fu = fuNav.item(i);
@@ -186,11 +175,11 @@ MinimalOpSetCheck::checkWithIgnore(
         return false;
     }
 
-    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
-    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
+    TCETools::CIStringSet::const_iterator first1 = minimalOpSet_.begin();
+    TCETools::CIStringSet::const_iterator last1 = minimalOpSet_.end();
 
-    std::set<std::string>::iterator first2 = opSet.begin();
-    std::set<std::string>::iterator last2 = opSet.end();
+    TCETools::CIStringSet::iterator first2 = opSet.begin();
+    TCETools::CIStringSet::iterator last2 = opSet.end();
 
     // return false if missing operation was found
     while (first1 != last1 && first2 != last2) {
@@ -227,17 +216,17 @@ MinimalOpSetCheck::missingOperations(
     // construct the opset list
     TTAMachine::Machine::FunctionUnitNavigator fuNav = 
         machine.functionUnitNavigator();
-    std::set<std::string> opSet;
+    TCETools::CIStringSet opSet;
     for (int i = 0; i < fuNav.count(); i++) {
         TTAMachine::FunctionUnit* fu = fuNav.item(i);
         fu->operationNames(opSet);
     }
 
-    std::set<std::string>::const_iterator first1 = minimalOpSet_.begin();
-    std::set<std::string>::const_iterator last1 = minimalOpSet_.end();
+    TCETools::CIStringSet::const_iterator first1 = minimalOpSet_.begin();
+    TCETools::CIStringSet::const_iterator last1 = minimalOpSet_.end();
 
-    std::set<std::string>::iterator first2 = opSet.begin();
-    std::set<std::string>::iterator last2 = opSet.end();
+    TCETools::CIStringSet::iterator first2 = opSet.begin();
+    TCETools::CIStringSet::iterator last2 = opSet.end();
 
     // missing opset is the difference towards minimalOpSet_
     while (first1 != last1 && first2 != last2) {
@@ -289,7 +278,7 @@ MinimalOpSetCheck::buildMinimalOpSet(const TTAMachine::Machine* machine) {
  *
  * @return Minimal opset as strings in a set.
  */
-std::set<std::string> 
+TCETools::CIStringSet
 MinimalOpSetCheck::minimalOpSet() const {
     return minimalOpSet_;
 }

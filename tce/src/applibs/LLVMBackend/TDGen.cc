@@ -642,7 +642,7 @@ TDGen::checkRequiredRegisters()
 void
 TDGen::writeInstrInfo(std::ostream& os) {
 
-    std::set<std::string> opNames;
+    OperationDAGSelector::OperationSet opNames;
     OperationDAGSelector::OperationSet requiredOps =
         LLVMBackend::llvmRequiredOpset();
 
@@ -682,9 +682,11 @@ TDGen::writeInstrInfo(std::ostream& os) {
     opNames_["STWfrr"] = "STW";
     opNames_["STWfir"] = "STW";
 
-    std::set<std::string>::const_iterator iter = opNames.begin();
+
+    OperationDAGSelector::OperationSet::const_iterator iter = opNames.begin();
     for (; iter != opNames.end(); iter++) {
-        std::set<std::string>::iterator r = requiredOps.find(*iter);
+        OperationDAGSelector::OperationSet::iterator r = 
+            requiredOps.find(*iter);
         if (r != requiredOps.end()) {
             requiredOps.erase(r);
         }
@@ -1601,7 +1603,7 @@ TDGen::operationNodeToString(
                 operationPat + "%" + Conversion::toString(i + 1) + "%";
         }
     } else {
-        operationPat= llvmOperationPattern(operation.name());
+        operationPat = llvmOperationPattern(operation.name());
         
         // generate pattern for operation if not llvmOperation (can match 
         // custom op patterns)

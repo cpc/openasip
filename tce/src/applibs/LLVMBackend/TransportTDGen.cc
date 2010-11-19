@@ -36,6 +36,7 @@
 #include "BaseFUPort.hh"
 #include "FUPort.hh"
 #include "Operation.hh"
+#include "Operand.hh"
 #include "DisassemblyFUPort.hh"
 #include "DisassemblyFUOpcodePort.hh"
 #include "TCEString.hh"
@@ -130,7 +131,8 @@ TransportTDGen::writeInstrInfo() {
       << "include \"TTAInstrInfo.inc\"" << std::endl 
       << std::endl;
 
-    std::set<std::string> opNames;
+    OperationDAGSelector::OperationSet opNames = 
+        LLVMBackend::llvmRequiredOpset(false);
 
     const TTAMachine::Machine::FunctionUnitNavigator fuNav =
         mach_.functionUnitNavigator();
@@ -138,13 +140,10 @@ TransportTDGen::writeInstrInfo() {
     OperationPool opPool;
     for (int i = 0; i < fuNav.count(); i++) {
         const TTAMachine::FunctionUnit* fu = fuNav.item(i);
-        for (int o = 0; o < fu->operationCount(); o++) {
-            const std::string opName = fu->operation(o)->name();
-            opNames.insert(StringTools::stringToUpper(opName));
-        }
+        fu->operationNames(opNames);
     }
 
-    std::set<std::string>::const_iterator iter = opNames.begin();
+    TCETools::CIStringSet::const_iterator iter = opNames.begin();
     for (; iter != opNames.end(); iter++) {
         Operation& op = opPool.operation((*iter).c_str());
         if (&op == &NullOperation::instance()) {
@@ -178,26 +177,95 @@ TransportTDGen::writeInstrInfo() {
             f << " " << opname.capitalize() << "Regs:$o";
         }
         f << "), (ins ";
+        bool inputOnly = op.numberOfOutputs() == 0;
 
         for (int i = 0; i < op.numberOfInputs(); ++i) {
-            if (i > 0) f << ", ";
-            f << "ReadableRegs:$" << char('a' + i);
+            if (i > 0) f << ", ";            
+
+            if (inputOnly && i == 0) {
+                // stores use the first operand reg as the "FU reg"
+                f << opname.capitalize() << "Regs:$o";
+            } else {
+                f << "ReadableRegs:$" << char('a' + i);
+            }
         }
         f << "), " << std::endl;
-        f << "\t\t\"" << llvmOpName << " %o";
+        f << "\t\t\"" << llvmOpName << " ";
+        if (!inputOnly)
+            f << "%o, ";
         
         for (int i = 0; i < op.numberOfInputs(); ++i) {
-            f << ", ";
-            f << "%" << char('a' + i);
+            if (i > 0) f << ", ";
+            TCEString operandName(char('a' + i));
+            if (inputOnly && i == 0) operandName = "o";
+
+            if (op.operand(i + 1).isAddress()) {
+                f << "[$" << operandName << "]";
+            } else {
+                f << "%" << operandName;
+            }
         }
+        if (llvmOpName == "sext_inreg") {
+            f << ", ";
+            if (opname.lower() == "sxhw") {
+                f << "i16";
+            } else if (opname.lower() == "sxqw") {
+                f << "i8";
+            } else {
+                abortWithError(
+                    TCEString("Unknown sign extension width (operation ") +
+                    opname + ").");
+            }
+        }
+
+
+/*
+-  def STW : InstTTA<(outs), (ins StwRegs:$i, ReadableRegs:$addr),
+-            "store $i, [$addr]",
+-           [(store StwRegs:$i, ReadableRegs:$addr)]>;
+-}
+
+
+
++def STW : InstTTA<(outs), (ins ReadableRegs:$a, ReadableRegs:$b),
++               "store %o, %a, %b",
++       [(set StwRegs:$o, (store ReadableRegs:$a, ReadableRegs:$b))]>;
+
+*/
+
         f << "\"," << std::endl
-          << "\t(set " << opname.capitalize() << " Regs:$o, ("
-          << opname.lower() << " ";
+          << "\t["; 
+        if (!inputOnly) {
+            f << "(set " << opname.capitalize() << "Regs:$o, ";
+        }
+        f << "(" << llvmOperationName(opname.lower()) << " ";
         for (int i = 0; i < op.numberOfInputs(); ++i) {
             if (i > 0) f << ", ";
-            f << "ReadableRegs:$" << char('a' + i);
+
+            if (inputOnly && i == 0) {
+                // stores use the first operand reg as the "FU reg"
+                f << opname.capitalize() << "Regs:$o";
+            } else {
+                f << "ReadableRegs:$" << char('a' + i);
+            }
         }
-        f << "))]>;" << std::endl << std::endl;
+        if (llvmOpName == "sext_inreg") {
+            f << ", ";
+            if (opname.lower() == "sxhw") {
+                f << "i16";
+            } else if (opname.lower() == "sxqw") {
+                f << "i8";
+            } else {
+                abortWithError(
+                    TCEString("Unknown sign extension width (operation ") +
+                    opname + ").");
+            }
+        }
+
+        if (!inputOnly) {
+            f << ")";
+        }
+        f << ")]>;" << std::endl << std::endl;
     }
     f.close();
 }
@@ -214,7 +282,7 @@ TransportTDGen::writeRegisterInfo() {
         mach_.functionUnitNavigator();
 
     OperationDAGSelector::OperationSet opsToPrint =
-        LLVMBackend::llvmRequiredOpset();
+        LLVMBackend::llvmRequiredOpset(false);
 
     std::set<TCEString> outputPortNames;
     std::set<TCEString> readableRegs;
@@ -226,6 +294,7 @@ TransportTDGen::writeRegisterInfo() {
     writableRegs.insert("RA");
 
     std::set<TCEString> guardableRegs;
+    std::set<TCEString> triggerRegs;
     OperationPool opPool;
     int maxVirtualTriggers = 0;
     // print the port reg defs
@@ -244,6 +313,7 @@ TransportTDGen::writeRegisterInfo() {
                         assemblyPortName(port, operationName);
                     f << "def " << underscoredPortNameStr << " : TTAReg<\""
                       << asmPortNameStr << "\">;" << std::endl;
+                    triggerRegs.insert(underscoredPortNameStr);
                 }
             } else {
                 TCEString underscoredPortNameStr = 
@@ -280,7 +350,8 @@ TransportTDGen::writeRegisterInfo() {
         for (int i = 0; i < fuNav.count(); i++) {
             const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
             
-            if (!fu.hasOperation(operationName)) continue;
+            if (!fu.hasOperation(operationName))
+                continue;
 
             TTAMachine::FUPort* thePort = NULL;
             if (osalOp.numberOfOutputs() == 0) {
@@ -373,26 +444,14 @@ TransportTDGen::writeRegisterInfo() {
 
     widthPrinted = false;
     first = true;
-    f << "def TriggerRegs : RegisterClass<\"TTA\", [i";
-    for (int i = 0; i < fuNav.count(); i++) {
-        const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
-        for (int p = 0; p < fu.portCount(); ++p) {
-            TTAMachine::BaseFUPort& port = *fu.port(p);
-            if (AssocTools::containsKey(outputPortNames, port.name()) ||
-                !port.isTriggering())
-                continue;
-            // assume for now that all outputs are of the same width
-            if (!widthPrinted) {
-                f << port.width() << "], " << port.width() << ", [";
-                widthPrinted = true;
-            }
-            if (!first) {
-                f << ", ";
-            }
-            first = false;
-            f << underScoredPortName(port);
-        }
-    }   
+    f << "def TriggerRegs : RegisterClass<\"TTA\", [i32], 32, [";
+
+    for (std::set<TCEString>::const_iterator i = triggerRegs.begin();
+         i != triggerRegs.end(); ++i) {
+        if (i != triggerRegs.begin()) 
+            f << ", ";
+        f << *i;
+    }
     f << "]>;" << std::endl << std::endl;
 
     const TTAMachine::Machine::RegisterFileNavigator rfNav =
@@ -492,8 +551,8 @@ TransportTDGen::writeRegisterInfo() {
     }
     f << "]>;" << std::endl << std::endl;
 
-    f << "let namespace = \"TTA\" in {" << std::endl
-      << "def output\t: SubRegIndex;" << std::endl;
+    f << "let Namespace = \"TTA\" in {" << std::endl
+      << "\tdef output\t: SubRegIndex;" << std::endl;
     for (int input = 1; input <= maxInputs; ++input) {
         f << "\tdef input" << input << "\t: SubRegIndex;" << std::endl;
     }
@@ -510,7 +569,7 @@ TransportTDGen::writeRegisterInfo() {
         int triggers = fu.operationCount();
         int outputs = 0;
         f << "def " << fu.name() << " : TTARegWithSubRegs<\"" << fu.name()
-          << ", [";
+          << "\", [";
         for (int p = 0; p < fu.portCount(); ++p) {
             TTAMachine::BaseFUPort& port = *fu.port(p);
             if (p > 0) f << ", ";
@@ -621,7 +680,8 @@ TransportTDGen::writeRegisterInfo() {
                 f << "]>;" << std::endl;
             }
         }
-        f << "}" << std::endl << std::endl;
+        if (headerPrinted)
+            f << "}" << std::endl << std::endl;
     }
 
     f << "def Bindings : RegisterClass<\"TTA\", [i32], 32," << std::endl
@@ -638,87 +698,89 @@ TransportTDGen::writeRegisterInfo() {
     int maxLatency = 0;
     for (int i = 0; i < fuNav.count(); i++) {
         const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
-        for (int op = 0; op < fu.operationCount(); ++op) {
-            TTAMachine::HWOperation& hwop = *fu.operation(op);
-            maxLatency = std::max(maxLatency, hwop.latency());
-        }
+        maxLatency = std::max(maxLatency, fu.maxLatency());
     }
 
-    f << "let Namespace = \"TTA\" in {" << std::endl;
-    for (int i = 0; i < maxLatency - 1; ++i) {
-        f << "\tdef latency" << i << " : SubRegIndex;" << std::endl;
-    }
-    f << "}" << std::endl << std::endl;
-    
-    std::set<TCEString> latencyRegs;
-    for (int i = 0; i < fuNav.count(); i++) {
-        const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
-        for (int lat = 1; lat < fu.maxLatency(); ++lat) {
-            TCEString latencyReg = fu.name() + "_lat";
-            latencyReg << lat;
-            f << "def " << latencyReg << " : TTAReg<\"" 
-              << latencyReg << "\">;"
-              << std::endl;
-            latencyRegs.insert(latencyReg);
-        }
-    }
-    f << std::endl;
-    
-    f << "def LatencyRegs : RegisterClass<\"TTA\", [i32], 32, [";
-    for (std::set<TCEString>::const_iterator i = latencyRegs.begin();
-         i != latencyRegs.end(); ++i) {
-        if (i != latencyRegs.begin())
-            f << ", ";
-        f << *i;
-    }
-    f << "]>;" << std::endl << std::endl;
+    // TODO: the backend currently doesn't compile in case there are
+    // no operations with latency in the ADF
+    if (maxLatency > 1) {
 
-    std::set<TCEString> latencies;
-    for (int latency = 1; latency < maxLatency; ++latency) {
-        bool headerPrinted = false;
+        f << "let Namespace = \"TTA\" in {" << std::endl;
+        for (int i = 0; i < maxLatency; ++i) {
+            f << "\tdef latency" << i << " : SubRegIndex;" << std::endl;
+        }
+        f << "}" << std::endl << std::endl;
+    
+        std::set<TCEString> latencyRegs;
         for (int i = 0; i < fuNav.count(); i++) {
             const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
-            for (int op = 0; op < fu.operationCount(); ++op) {
-                TTAMachine::HWOperation& hwop = *fu.operation(op);
-                Operation& osalOp = 
-                    opPool.operation(fu.operation(op)->name().c_str());
-                if (hwop.latency() != latency)
-                    continue;
-                if (!headerPrinted) {
-                    f << "let SubRegIndices = [";
-                    for (int lat = 0; lat < latency - 1; ++lat) {
-                        if (lat > 0) f << ", ";
-                        f << "latency" << lat;
-                    }
-                    f << "] in {" << std::endl;
-                    headerPrinted = true;
-                }
-                TCEString latencyReg = "LAT_";
-                latencyReg << fu.name() + "_" + osalOp.name();
-                f << "\tdef " << latencyReg << " TTARegWithSubRegs<\""
-                  << latencyReg << "\", [" 
-                  << underScoredPortName(
-                      *triggerPorts[fu.name()], osalOp.name());
-                for (int lat = 1; lat < latency; ++lat) {
-                    f << ", " << fu.name() << "_lat" << lat;
-                }
-                f << "]>;" << std::endl;
-                latencies.insert(latencyReg);
+            for (int lat = 1; lat < fu.maxLatency(); ++lat) {
+                TCEString latencyReg = fu.name() + "_lat";
+                latencyReg << lat;
+                f << "def " << latencyReg << " : TTAReg<\"" 
+                  << latencyReg << "\">;"
+                  << std::endl;
+                latencyRegs.insert(latencyReg);
             }
         }
-        if (headerPrinted) {
-            f << "}" << std::endl << std::endl;
+        f << std::endl;
+    
+        f << "def LatencyRegs : RegisterClass<\"TTA\", [i32], 32, [";
+        for (std::set<TCEString>::const_iterator i = latencyRegs.begin();
+             i != latencyRegs.end(); ++i) {
+            if (i != latencyRegs.begin())
+                f << ", ";
+            f << *i;
         }
-    }
+        f << "]>;" << std::endl << std::endl;
+        
+        std::set<TCEString> latencies;
+        for (int latency = 2; latency <= maxLatency; ++latency) {
+            bool headerPrinted = false;
+            for (int i = 0; i < fuNav.count(); i++) {
+                const TTAMachine::FunctionUnit& fu = *fuNav.item(i);
+                for (int op = 0; op < fu.operationCount(); ++op) {
+                    TTAMachine::HWOperation& hwop = *fu.operation(op);
+                    Operation& osalOp = 
+                        opPool.operation(fu.operation(op)->name().c_str());
+                    if (hwop.latency() != latency)
+                        continue;
+                    if (!headerPrinted) {
+                        f << "let SubRegIndices = [";
+                        for (int lat = 0; lat < latency; ++lat) {
+                            if (lat > 0) f << ", ";
+                            f << "latency" << lat;
+                        }
+                        f << "] in {" << std::endl;
+                        headerPrinted = true;
+                    }
+                    TCEString latencyReg = "LAT_";
+                    latencyReg << fu.name() + "_" + osalOp.name();
+                    f << "\tdef " << latencyReg << " : TTARegWithSubRegs<\""
+                      << latencyReg << "\", [" 
+                      << underScoredPortName(
+                          *triggerPorts[fu.name()], osalOp.name());
+                    for (int lat = 1; lat < latency; ++lat) {
+                        f << ", " << fu.name() << "_lat" << lat;
+                    }
+                    f << "]>;" << std::endl;
+                    latencies.insert(latencyReg);
+                }
+            }
+            if (headerPrinted) {
+                f << "}" << std::endl << std::endl;
+            }
+        }
 
-    f << "def Latencies : RegisterClass<\"TTA\", [i32], 32, [";
-    for (std::set<TCEString>::const_iterator i = latencies.begin();
-         i != latencies.end(); ++i) {
-        if (i != latencies.begin())
-            f << ", ";
-        f << *i;
+        f << "def Latencies : RegisterClass<\"TTA\", [i32], 32, [";
+        for (std::set<TCEString>::const_iterator i = latencies.begin();
+             i != latencies.end(); ++i) {
+            if (i != latencies.begin())
+                f << ", ";
+            f << *i;
+        }
+        f << "]>;" << std::endl << std::endl;
     }
-    f << "]>;" << std::endl << std::endl;
     
     // TODO: fully pipelined FUs
     f << "def PipelineRegs : RegisterClass<\"TTA\", [i32], 32, [NONE]>;"

@@ -39,6 +39,8 @@
 
 #include "OperationDAG.hh"
 #include "Operation.hh"
+#include "CIStringSet.hh"
+#include "TCEString.hh"
 
 /**
  * Class that search DAGs from operation set.
@@ -76,10 +78,12 @@ public:
             return *leastNodes;
         }        
     };
-    
-    /// @todo this should be gotten from tta machine applib, machine function
-    /// for requesting native opset of a machine.
-    typedef std::set<std::string> OperationSet;
+    struct CaseInsensitiveCmp {
+        bool operator()(const TCEString& s1, const TCEString& s2) const {
+            return s1.ciEqual(s2);
+        }
+    };
+    typedef TCETools::CIStringSet OperationSet;
 
     static OperationDAGList findDags(
         const std::string& opName, OperationSet opSet);

@@ -46,6 +46,7 @@ public:
     TCEString();
     TCEString(const char* text);
     TCEString(const std::string& text);
+    TCEString(const char c); 
     virtual ~TCEString();
 
     TCEString& replaceString(

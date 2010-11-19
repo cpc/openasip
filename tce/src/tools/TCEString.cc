@@ -41,6 +41,10 @@ TCEString::TCEString(const char* text) : std::string(text) {
 
 TCEString::TCEString(const std::string& text) : std::string(text) {
 }
+
+TCEString::TCEString(const char c) : std::string(std::string("") + c) {
+}
+
 TCEString::~TCEString() {
 }
 

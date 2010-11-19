@@ -60,7 +60,8 @@ class InterPassData;
  */
 class LLVMBackend {
 public:
-    static OperationDAGSelector::OperationSet llvmRequiredOpset();
+    static OperationDAGSelector::OperationSet 
+    llvmRequiredOpset(bool includeFloatOps=true);
 
     LLVMBackend(bool useCache = true, bool useInstalledVersion = false, bool removeTempFiles = true);
     virtual ~LLVMBackend();

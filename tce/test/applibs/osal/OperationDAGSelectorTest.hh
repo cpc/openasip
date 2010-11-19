@@ -65,40 +65,36 @@ void
 OperationDAGSelectorTest::testDAGSelection() {
 
     // only mul op 0 dags
-    std::set<std::string> opSet1;
+    TCETools::CIStringSet opSet1;
     opSet1.insert("MUL");
     TS_ASSERT_EQUALS(
         OperationDAGSelector::findDags("test", opSet1).size(), (unsigned)0);
 
     // with sub,mul = 1
-    std::set<std::string> opSet2;
+    TCETools::CIStringSet opSet2;
     opSet2.insert("MUL");
     opSet2.insert("SUB");
     TS_ASSERT_EQUALS(
         OperationDAGSelector::findDags("test", opSet2).size(), (unsigned)1);
 
-
-
     // with addsub, mul = 1   
-    std::set<std::string> opSet3;
+    TCETools::CIStringSet opSet3;
     opSet3.insert("ADDSUB");
     opSet3.insert("MUL");
     TS_ASSERT_EQUALS(
         OperationDAGSelector::findDags("test", opSet3).size(), (unsigned)1);
 
     // with addsub, sub, mul = 3
-    std::set<std::string> opSet4;
+    TCETools::CIStringSet opSet4;
     opSet4.insert("ADDSUB");
     opSet4.insert("SUB");
     opSet4.insert("MUL");
     TS_ASSERT_EQUALS(
         OperationDAGSelector::findDags("test", opSet4).size(), (unsigned)3);
-
-    
-
+  
     // TODO: after recursive search there should be also 3 hits with
     // add, sub, mul 
-    std::set<std::string> opSet5;
+    TCETools::CIStringSet opSet5;
     opSet5.insert("ADD");
     opSet5.insert("SUB");
     opSet5.insert("MUL");

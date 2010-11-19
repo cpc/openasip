@@ -41,6 +41,7 @@
 #include "MachineCheck.hh"
 #include "MachineCheckResults.hh"
 #include "Machine.hh"
+#include "CIStringSet.hh"
 
 /**
  * MachineCheck to check is the machine fully connected.
@@ -65,7 +66,7 @@ public:
         std::vector<std::string>& missingOps) const;
 
     void buildMinimalOpSet(const TTAMachine::Machine* machine = NULL);
-    std::set<std::string> minimalOpSet() const;
+    TCETools::CIStringSet minimalOpSet() const;
 
     virtual bool canFix(const TTAMachine::Machine& mach) const;
     virtual std::string fix(TTAMachine::Machine& machine) const
@@ -73,7 +74,7 @@ public:
 
 private:
     // minimal opset
-    std::set<std::string> minimalOpSet_;
+    TCETools::CIStringSet minimalOpSet_;
 };
 
 #endif

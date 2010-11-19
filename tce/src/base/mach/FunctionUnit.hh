@@ -38,6 +38,7 @@
 #include "Unit.hh"
 #include "ObjectState.hh"
 #include "BaseFUPort.hh"
+#include "CIStringSet.hh"
 
 namespace TTAMachine {
 
@@ -91,7 +92,7 @@ public:
         throw (OutOfRange);
     virtual int operationCount() const;
 
-    virtual void operationNames(std::set<std::string>& opNames) const;
+    virtual void operationNames(TCETools::CIStringSet& opNames) const;
 
     virtual int maxLatency() const;
 
