@@ -39,8 +39,7 @@
 #include "TCEString.hh"
 #include "SpecialRegisterPort.hh"
 
-
-// #define DEBUG_MNGBUILDER
+//#define DEBUG_MNGBUILDER
 
 /**
  * Creates movenodes and programoperations from the given BB.
@@ -166,6 +165,7 @@ MoveNodeGroupBuilder::build(BasicBlock& bb) {
                 assert(
                     po != NULL &&
                     "Encountered an FU read without a triggered operation.");
+
                 po->addOutputNode(*moveNode);
                 moveNode->setSourceOperation(*po);
                 mng->addNode(*moveNode);

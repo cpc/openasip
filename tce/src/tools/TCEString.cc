@@ -83,7 +83,7 @@ TCEString::capitalize() const {
         StringTools::stringToLower(substr(1, size() - 1));
 }
 
-std::vector<std::string>
+std::vector<TCEString>
 TCEString::split(const std::string& delim) const {
     return StringTools::chopString(*this, delim);
 }

@@ -122,7 +122,7 @@ SimpleScriptInterpreter::interpret(const std::string& commandLine) {
 
     string line = StringTools::trim(commandLine);
     if (commandLine != "") {
-        vector<string> commands = StringTools::chopString(commandLine, " ");
+        vector<TCEString> commands = StringTools::chopString(commandLine, " ");
         
         CustomCommand* custCommand = customCommand(commands[0]);
         if (custCommand == NULL) {

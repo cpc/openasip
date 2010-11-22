@@ -80,13 +80,20 @@ public:
         throw (WrongSubclass, InvalidData);
     virtual Operation& hintOperation() const
         throw (WrongSubclass, InvalidData);
+    // sets the "hint operation" for moves which are not opcode setting
+    // but are known to be part of an operation execution
+    virtual void setOperation(TTAMachine::HWOperation& hwOp);
     virtual int operationIndex() const 
         throw (WrongSubclass, InvalidData);
+    virtual void setOperationIndex(int index) { opIndex_ = index; }
     virtual const TTAMachine::Port& port() const throw (WrongSubclass);
     virtual Terminal* copy() const;
     virtual bool equals(const Terminal& other) const;
     
     virtual TTAMachine::HWOperation* hwOperation() const;
+
+    virtual TCEString toString() const;
+
 
 private:
     // copy constructor used internally by copy();

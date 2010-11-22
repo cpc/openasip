@@ -107,7 +107,7 @@ unsigned LLVMTCEBuilder::POINTER_SIZE = 4; // Pointer size in maus.
 
 char LLVMTCEBuilder::ID = 0;
 
-//#define DEBUG_LLVMPOMBUILDER
+// #define DEBUG_LLVMPOMBUILDER
 
 LLVMTCEBuilder::LLVMTCEBuilder(
     TargetMachine& tm,

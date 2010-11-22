@@ -51,6 +51,10 @@
 #include "BaseType.hh"
 #include "LLVMPOMBuilder.hh"
 
+namespace TTAProgram {
+    class TerminalFUPort;
+}
+
 namespace llvm {
 
     extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass();
@@ -79,7 +83,6 @@ namespace llvm {
         bool doInitialization(Module &M);
         TTAProgram::Instruction* emitMove(
             const MachineInstr* mi, TTAProgram::Procedure* proc);
-    private:
     };
 }
 

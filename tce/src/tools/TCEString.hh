@@ -54,7 +54,7 @@ public:
     bool startsWith(const std::string& str) const;
     bool endsWith(const std::string& str) const;
     bool ciEqual(const TCEString& other) const;
-    std::vector<std::string> split(const std::string& delim) const;
+    std::vector<TCEString> split(const std::string& delim) const;
 
     TCEString lower() const;
     TCEString upper() const;

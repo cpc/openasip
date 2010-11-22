@@ -52,6 +52,7 @@
 #include "InterPassData.hh"
 #include "PreBypassBasicBlockScheduler.hh"
 #include "LLVMTCEDataDependenceGraphBuilder.hh"
+#include "FUPort.hh"
 
 namespace llvm {
 
@@ -98,8 +99,13 @@ LLVMTCEPOMBuilder::registerIndex(unsigned llvmRegNum) const {
         targetMachine().getRegisterInfo()->getName(llvmRegNum));
     
     TCEString indexStr = regName.split("_").at(1);
-
-    return Conversion::toInt(indexStr);
+    try {
+        return Conversion::toInt(indexStr);
+    } catch (Exception& e) {
+        Application::logStream() 
+            << e.errorMessage() << " " << indexStr << " " << regName 
+            << std::endl;
+    }
 }
 
 TTAProgram::Instruction*
@@ -111,27 +117,11 @@ LLVMTCEPOMBuilder::emitMove(
     if (opName == "MOVE")
         return LLVMTCEBuilder::emitMove(mi, proc);
 
-    /* A trigger move. */
-
-    // strip the 'r' or 'i' from the end of the operation name
-    // e.g. ADDr
-    opName = opName.substr(0, opName.size() - 1);
-
+    /* A trigger move. The source is the 2nd last argument. */
     TTAProgram::Terminal* src = 
+        createTerminal(mi->getOperand(mi->getNumOperands() - 2));
+    TTAProgram::Terminal* dst = /* defined as implicit def */
         createTerminal(mi->getOperand(mi->getNumOperands() - 1));
-
-    // always assume it's the ALU of minimal.adf for now
-    // should be parsed from the regName
-    TTAMachine::FunctionUnit* fu = mach_->functionUnitNavigator().item("ALU");
-
-    // always assume the operation is ADD for now
-    // should be parsed from the regName
-    TCEString operationName = "ADD";
-
-    int operand = 1; /* always assume trigger operand = 1 */
-
-    TTAProgram::Terminal* dst = new TTAProgram::TerminalFUPort(
-        *fu->operation(operationName), operand);
 
     TTAMachine::Bus& bus = result()->universalMachine().universalBus();
     TTAProgram::Move* move = createMove(src, dst, bus);
@@ -151,33 +141,50 @@ LLVMTCEPOMBuilder::operationName(const MachineInstr&) const {
 
 TTAProgram::Terminal*
 LLVMTCEPOMBuilder::createFUTerminal(const MachineOperand& mo) const {
+
     TCEString regName(
         targetMachine().getRegisterInfo()->getName(mo.getReg()));
+    
+    // test for _number which indicates a RF access
+    std::vector<TCEString> pieces = regName.split("_");
+    if (pieces.size() == 2) {
+        TCEString indexStr = pieces.at(1);
+        try {
+            Conversion::toInt(indexStr);
+            return NULL;
+        } catch (Exception&) {
+        }
+    } 
 
-    // todo fix:
-    if (!regName.startsWith("FU"))
-        return NULL;
+    assert(pieces.size() > 0);
+
+    TCEString fuName = pieces.at(0);
+    TCEString portName = pieces.at(1);
+    TCEString operationName = "";
+    if (pieces.size() == 3) {
+        // FU_triggerport_OP
+        operationName = pieces.at(2);
+    }
 
     // always assume it's the ALU of minimal.adf for now
     // should be parsed from the regName
-    TTAMachine::FunctionUnit* fu = mach_->functionUnitNavigator().item("ALU");
+    TTAMachine::FunctionUnit* fu = 
+        mach_->functionUnitNavigator().item(fuName);
 
-    // always assume the operation is ADD for now
-    // should be parsed from the regName
-    TCEString operationName = "ADD";
-
-    int operand;
-    if (regName.endsWith("i")) {
-        // always assume the "input operand" is the operand 2 as in minimal.adf
-        operand = 2;
-    } else if (regName.endsWith("o")) {
-        operand = 3;
+    assert(fu != NULL);
+    
+    TTAMachine::FUPort* fuPort = 
+        dynamic_cast<TTAMachine::FUPort*>(fu->port(portName));
+    assert(fuPort != NULL);
+    if (operationName != "") {
+        assert(fuPort->isTriggering());
+        TTAMachine::HWOperation& hwOp = *fu->operation(operationName);
+        return new TTAProgram::TerminalFUPort(hwOp, hwOp.io(*fuPort));
     } else {
-        operand = 1;
+        TTAProgram::TerminalFUPort* term = 
+            new TTAProgram::TerminalFUPort(*fuPort);
+        return term;
     }
-
-    return new TTAProgram::TerminalFUPort(
-        *fu->operation(operationName), operand);
 }
 
 extern "C" MachineFunctionPass* createLLVMTCEPOMBuilderPass() {
@@ -194,18 +201,84 @@ bool
 LLVMTCEPOMBuilder::doFinalization(Module& m) {
 
     LLVMTCEBuilder::doFinalization(m);
+
+    TTAProgram::Program& prog = *result();
+    /* update the operation and operand info of non-trigger moves */
+    for (int procIndex = 0; procIndex < prog.procedureCount(); ++procIndex) {
+
+        std::map<std::string, TTAMachine::HWOperation*> lastTriggeredOperations;
+        std::map<std::string, std::set<TTAProgram::TerminalFUPort*> > 
+            pendingOperandTerminals;
+        const TTAProgram::Procedure& proc = prog.procedureAtIndex(procIndex);
+        for (int instrIndex = 0; instrIndex < proc.instructionCount(); 
+             ++instrIndex) {
+            TTAProgram::Instruction& instr = 
+                proc.instructionAtIndex(instrIndex);     
+            
+            TTAProgram::TerminalFUPort* termFUportSrc = 
+                dynamic_cast<TTAProgram::TerminalFUPort*>(
+                    &instr.move(0).source());
+            TTAProgram::TerminalFUPort* termFUportDst = 
+                dynamic_cast<TTAProgram::TerminalFUPort*>(
+                    &instr.move(0).destination());
+
+            if (termFUportDst != NULL) {
+                if (termFUportDst->isTriggering()) {
+                    lastTriggeredOperations[
+                        termFUportDst->functionUnit().name()] =
+                        termFUportDst->hwOperation();
+
+                    std::set<TTAProgram::TerminalFUPort*>& pending =
+                        pendingOperandTerminals[
+                            termFUportDst->functionUnit().name()];
+                    std::set<TTAProgram::TerminalFUPort*>::const_iterator i = 
+                        pending.begin();
+                    TTAMachine::HWOperation& hwOp = 
+                        *termFUportDst->hwOperation();
+                    for (; i != pending.end(); ++i) {
+                        TTAProgram::TerminalFUPort& term = (**i);
+                        term.setOperation(hwOp);
+                        term.setOperationIndex(
+                            hwOp.io(
+                                dynamic_cast<const TTAMachine::FUPort&>(
+                                    term.port())));
+                    }
+                    pendingOperandTerminals.clear();
+                } else { 
+                    // operand move 
+                    pendingOperandTerminals[
+                        termFUportDst->functionUnit().name()].insert(
+                            termFUportDst);
+                }
+            }
+
+            if (termFUportSrc != NULL && !termFUportSrc->isRA()) {
+                // fix the output moves, assume the operation is the
+                // previously triggered one in the FU
+                TTAMachine::HWOperation& hwOp = 
+                    *lastTriggeredOperations[
+                        termFUportSrc->functionUnit().name()];
+                termFUportSrc->setOperation(hwOp);
+                termFUportSrc->setOperationIndex(
+                    hwOp.io(
+                        dynamic_cast<const TTAMachine::FUPort&>(
+                            termFUportSrc->port())));
+            }
+        }
+    }    
+
     InterPassData ipData;
     if (ParallelizeMoves) {        
         LLVMTCEDataDependenceGraphBuilder ddgBuilder(ipData);
         PreBypassBasicBlockScheduler parScheduler(ipData, ddgBuilder);
-        CATCH_ANY(parScheduler.handleProgram(*result(), *mach_));
-        TTAProgram::Program::writeToTPEF(*result(), "parallel.tpef");
+        CATCH_ANY(parScheduler.handleProgram(prog, *mach_));
+        TTAProgram::Program::writeToTPEF(prog, "parallel.tpef");
     } else {
         SequentialScheduler seqScheduler(ipData);
         seqScheduler.handleProgram(*result(), *mach_);
-        TTAProgram::Program::writeToTPEF(*result(), "sequential.tpef");
+        TTAProgram::Program::writeToTPEF(prog, "sequential.tpef");
     }
-    std::cout << POMDisassembler::disassemble(*result()) << std::endl;
+    std::cout << POMDisassembler::disassemble(prog) << std::endl;
     return true;
 }
 

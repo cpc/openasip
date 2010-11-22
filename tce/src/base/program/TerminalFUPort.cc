@@ -40,6 +40,8 @@
 #include "HWOperation.hh"
 #include "FUPort.hh"
 #include "SpecialRegisterPort.hh"
+#include "DisassemblyFUOpcodePort.hh"
+#include "DisassemblyFUPort.hh"
 
 using std::string;
 using namespace TTAMachine;
@@ -290,6 +292,13 @@ TerminalFUPort::hintOperation() const
     }
 }
 
+void
+TerminalFUPort::setOperation(TTAMachine::HWOperation& hwOp) { 
+    OperationPool opPool;
+    opcode_ = &opPool.operation(hwOp.name().c_str());
+    operation_ = &hwOp;
+}
+
 /**
  * Return the port.
  *
@@ -381,9 +390,21 @@ TerminalFUPort::findNewOperationIndex() const {
  * 
  * @return a pointer to the HW operation
  */
-HWOperation* TerminalFUPort::hwOperation() const {
+HWOperation*
+TerminalFUPort::hwOperation() const {
      return operation_; 
 }
 
+TCEString
+TerminalFUPort::toString() const {
+    if (operation_ != NULL) {
+        DisassemblyFUOpcodePort disasm(
+            port().parentUnit()->name(), port().name(), operation_->name());
+        return disasm.toString();
+    } else {
+        DisassemblyFUPort disasm(port().parentUnit()->name(), port().name());
+        return disasm.toString();
+    }
+}
 
 }

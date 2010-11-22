@@ -144,7 +144,7 @@ StringToolsTest::testChopString() {
     string testString2 = "foo bar foo";
     string testString3 = "foobar    ";
 
-    vector<string> results = StringTools::chopString(testString1, ",");
+    vector<TCEString> results = StringTools::chopString(testString1, ",");
     TS_ASSERT_EQUALS(static_cast<int>(results.size()), 3);
     TS_ASSERT_EQUALS(results[0], "jussi");
     TS_ASSERT_EQUALS(results[1], "pekka");

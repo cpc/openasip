@@ -204,13 +204,13 @@ StringTools::stringToLower(const std::string& source) {
  * @param delimiter Delimiter used.
  * @return A vector that contains chopped strings.
  */
-vector<string>
+vector<TCEString>
 StringTools::chopString(
     const std::string& source,
     const std::string& delimiter) {
 
     string line = trim(source);
-    vector<string> results;
+    vector<TCEString> results;
     while (line.length() > 0) {
         string::size_type location = line.find(delimiter);
         if (location == string::npos) {

@@ -37,6 +37,8 @@
 #include "SimValue.hh"
 #include "Address.hh"
 #include "Exception.hh"
+#include "TCEString.hh"
+#include "Application.hh"
 
 class Operation;
 
@@ -95,7 +97,6 @@ public:
 
     virtual int operationIndex() const 
         throw (WrongSubclass, InvalidData);
-
     virtual const TTAMachine::Port& port() const throw (WrongSubclass);
     virtual void setIndex(int index) throw (WrongSubclass, OutOfRange);
     virtual void setInstructionReference(InstructionReference ref)
@@ -106,6 +107,9 @@ public:
     bool operator==(const Terminal& other) const;
 
     virtual bool equals(const Terminal& other) const = 0;
+
+    virtual TCEString toString() const { 
+        abortWithError("unimplemented"); return ""; }
 };
 
 }

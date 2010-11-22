@@ -158,7 +158,7 @@ ProgramOperation::addOutputNode(MoveNode& node)
     throw (IllegalParameters) {
 
     int outputIndex = node.move().source().operationIndex();
-    if (MapTools::containsKey(outputMoves_,outputIndex)) {
+    if (MapTools::containsKey(outputMoves_, outputIndex)) {
         MoveNodeSet* nodeSet =
             MapTools::valueForKey<MoveNodeSet*>(outputMoves_,outputIndex);
         nodeSet->addMoveNode(node);

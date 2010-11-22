@@ -39,7 +39,7 @@
 
 #include <string>
 #include <vector>
-
+#include "TCEString.hh"
 
 class StringTools {
 
@@ -60,7 +60,7 @@ public:
     static std::string stringToLower(const std::string& source);
     static bool ciEqual(const std::string& a, const std::string& b);
 
-    static std::vector<std::string> chopString(
+    static std::vector<TCEString> chopString(
         const std::string& source,
         const std::string& delimiter);
 

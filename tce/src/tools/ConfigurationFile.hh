@@ -39,6 +39,7 @@
 #include <vector>
 
 #include "Exception.hh"
+#include "TCEString.hh"
 
 /**
  * Class that is able to read files with key-value-pairs, such as the processor
@@ -108,7 +109,7 @@ protected:
 
 private:
     struct Key;
-    typedef std::map<std::string, std::vector<std::string> > ValueContainer;
+    typedef std::map<TCEString, std::vector<TCEString> > ValueContainer;
 
     // potential indeterminism?
     typedef std::map<Key*, ConfigurationValueType> KeyContainer;

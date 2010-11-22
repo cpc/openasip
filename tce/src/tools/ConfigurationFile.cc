@@ -49,6 +49,7 @@
 #include "Conversion.hh"
 #include "StringTools.hh"
 #include "MapTools.hh"
+#include "TCEString.hh"
 
 using std::tm;
 using std::mktime;
@@ -353,12 +354,12 @@ ConfigurationFile::parse(std::istream& inputStream) {
                 }
             }
 
-            string key = what[1];
-            string value = what[2];
+            TCEString key = std::string(what[1]);
+            TCEString value = std::string(what[2]);
             key = StringTools::trim(key);
             value = StringTools::trim(value);
 
-            vector<string> values = StringTools::chopString(value, " ");
+            vector<TCEString> values = StringTools::chopString(value, " ");
 
             if (value == "") {
                 if (!handleError(lineNumber, FE_MISSING_VALUE, line)) {
