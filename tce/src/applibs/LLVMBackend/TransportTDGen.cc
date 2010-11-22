@@ -192,7 +192,7 @@ TransportTDGen::writeInstrInfo() {
         f << "), " << std::endl;
         f << "\t\t\"" << llvmOpName << " ";
         if (!inputOnly)
-            f << "%o, ";
+            f << "$o, ";
         
         for (int i = 0; i < op.numberOfInputs(); ++i) {
             if (i > 0) f << ", ";
@@ -202,7 +202,7 @@ TransportTDGen::writeInstrInfo() {
             if (op.operand(i + 1).isAddress()) {
                 f << "[$" << operandName << "]";
             } else {
-                f << "%" << operandName;
+                f << "$" << operandName;
             }
         }
         if (llvmOpName == "sext_inreg") {
@@ -801,9 +801,8 @@ TransportTDGen::assemblyPortName(
     const TTAMachine::BaseFUPort& port, 
     TCEString opName) {
     if (opName != "") {
-        DisassemblyFUOpcodePort dis(
-            port.parentUnit()->name(), port.name(), opName);
-        return dis.toString();
+        return port.parentUnit()->name() + "." + 
+            port.name() + "." + opName.upper();
     } else {
         DisassemblyFUPort dis(
             port.parentUnit()->name(), port.name());
