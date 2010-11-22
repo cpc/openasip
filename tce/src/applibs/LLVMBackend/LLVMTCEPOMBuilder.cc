@@ -99,13 +99,7 @@ LLVMTCEPOMBuilder::registerIndex(unsigned llvmRegNum) const {
         targetMachine().getRegisterInfo()->getName(llvmRegNum));
     
     TCEString indexStr = regName.split("_").at(1);
-    try {
-        return Conversion::toInt(indexStr);
-    } catch (Exception& e) {
-        Application::logStream() 
-            << e.errorMessage() << " " << indexStr << " " << regName 
-            << std::endl;
-    }
+    return Conversion::toInt(indexStr);
 }
 
 TTAProgram::Instruction*
