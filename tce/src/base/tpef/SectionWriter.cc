@@ -62,8 +62,7 @@ void
 SectionWriter::writeHeader(
     BinaryStream& stream,
     const Section* sect,
-    const BinaryWriter* writer)
-    throw (InstanceNotFound) {
+    const BinaryWriter* writer) {
 
     findSectionWriter(sect->type(), writer)->actualWriteHeader(stream, sect);
 }
@@ -80,8 +79,7 @@ void
 SectionWriter::writeData(
     BinaryStream& stream,
     const Section* sect,
-    const BinaryWriter* writer)
-    throw (InstanceNotFound) {
+    const BinaryWriter* writer) {
 
     findSectionWriter(sect->type(), writer)->actualWriteData(stream, sect);
 }

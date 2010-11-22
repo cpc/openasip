@@ -57,14 +57,12 @@ public:
     static void writeHeader(
         BinaryStream& stream,
         const Section* sect,
-        const BinaryWriter* writer)
-        throw (InstanceNotFound);
+        const BinaryWriter* writer);
 
     static void writeData(
         BinaryStream& stream,
         const Section* sect,
-        const BinaryWriter* writer)
-        throw (InstanceNotFound);
+        const BinaryWriter* writer);
 
     static void finalizeBinary(
         BinaryStream& stream,
