@@ -302,9 +302,17 @@ TCETargetLowering::LowerFormalArguments(
                     DAG.getNode(ISD::BUILD_PAIR, dl, MVT::i64, LoVal, HiVal);
                 
                 // If we want a double, do a bit convert.
-                if (ObjectVT == MVT::f64)
-                    WholeValue = DAG.getNode(ISD::BIT_CONVERT, dl, MVT::f64, WholeValue);
-                
+                if (ObjectVT == MVT::f64) {
+#if defined(LLVM_2_7) || defined(LLVM_2_8)
+                    WholeValue = 
+			DAG.getNode(
+			    ISD::BIT_CONVERT, dl, MVT::f64, WholeValue);
+#else                    
+		    WholeValue = 
+			DAG.getNode(
+			    ISD::BITCAST, dl, MVT::f64, WholeValue);
+#endif
+		}
                 InVals.push_back(WholeValue);
             }
             ArgOffset += 8;
