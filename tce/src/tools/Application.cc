@@ -294,7 +294,8 @@ Application::setSignalHandler(int signalNum, UnixSignalHandler& handler) {
     struct sigaction action;
     action.sa_flags = SA_SIGINFO;
     action.sa_sigaction = signalRedirector;
-
+    // valgrind complains if this is uninitialized
+    sigemptyset(&action.sa_mask);
     sigaction(signalNum, &action, NULL);
 }
 

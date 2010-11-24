@@ -141,6 +141,6 @@ Texts::TextGenerator::replaceText(int textId, const std::string& newString) {
 
     delete dataBase_[textId];
     string* toBeAdded = new string(newString);
-    dataBase_.insert(ValType(textId, toBeAdded));
+    dataBase_[textId] = toBeAdded;
 }
 
