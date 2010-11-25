@@ -64,6 +64,10 @@
 
 #include "tce_config.h"
 
+namespace llvm {
+    void initializeRALinScanILPPass(llvm::PassRegistry&);
+}
+
 using namespace llvm;
 
 
@@ -426,6 +430,24 @@ namespace {
   };
   char RALinScanILP::ID = 0;
 }
+
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+
+INITIALIZE_PASS_BEGIN(RALinScanILP, "linearscan-regalloc",
+                "Linear Scan Register Allocator", false, false)
+INITIALIZE_PASS_DEPENDENCY(LiveIntervals)
+INITIALIZE_PASS_DEPENDENCY(StrongPHIElimination)
+INITIALIZE_PASS_DEPENDENCY(CalculateSpillWeights)
+INITIALIZE_PASS_DEPENDENCY(PreAllocSplitting)
+INITIALIZE_PASS_DEPENDENCY(LiveStacks)
+INITIALIZE_PASS_DEPENDENCY(MachineLoopInfo)
+INITIALIZE_PASS_DEPENDENCY(VirtRegMap)
+INITIALIZE_AG_DEPENDENCY(RegisterCoalescer)
+INITIALIZE_AG_DEPENDENCY(AliasAnalysis)
+INITIALIZE_PASS_END(RALinScanILP, "linearscan-regalloc",
+                "Linear Scan Register Allocator", false, false)
+
+#endif
 
 #if 0
 static RegisterPass<RALinScanILP>

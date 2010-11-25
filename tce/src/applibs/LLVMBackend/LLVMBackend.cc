@@ -97,6 +97,12 @@
 
 //#define DEBUG_TDGEN
 
+#if !(defined(LLVM_2_7) || defined(LLVM_2_8))
+namespace llvm {
+    void initializeRALinScanILPPass(llvm::PassRegistry&);
+}
+#endif
+
 using namespace llvm;
 
 #include <llvm/Assembly/PrintModulePass.h>
@@ -215,6 +221,8 @@ LLVMBackend::LLVMBackend(
     initializeTransformUtils(Registry);
     initializeInstCombine(Registry);
     initializeTarget(Registry);
+
+    initializeRALinScanILPPass(Registry);
 #endif
 }
 
@@ -401,17 +409,12 @@ LLVMBackend::compile(
     targetMachine->setTTAMach(&target);
     targetMachine->setEmulationModule(emulationModule);
 
-
-// Disabled on llvm-trunk because of missing pass intialization causes
-// segfault.
-#if (defined(LLVM_2_7) || (defined(LLVM_2_8)))
     LLVMTCECmdLineOptions* options =
         dynamic_cast<LLVMTCECmdLineOptions*>(Application::cmdLineOptions());
     if (options->useExperimentalRegAllocator()) {
         llvm::RegisterRegAlloc::setDefault(
             createILPLinearScanRegisterAllocator);
     }
-#endif
 
     /**
      * This is quite straight copy how llc actually creates passes for target.
