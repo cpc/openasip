@@ -70,7 +70,12 @@ BinaryWriter::writeBinary(BinaryStream& stream, const Binary* bin) const {
     ValueReplacer::initialize(stream);
     SectionSizeReplacer::clear();
 
-    writerToUse_->actualWriteBinary(stream, bin);
+    try {
+        writerToUse_->actualWriteBinary(stream, bin);
+    } catch (Exception& e) {
+        std::cerr << "Failed to write binary. Maybe the disk is full?" << std::endl << std::endl;;
+        exit(-1);
+    }
 
     // try catch blocks are just for debug use right now
     try {
@@ -91,7 +96,12 @@ BinaryWriter::writeBinary(BinaryStream& stream, const Binary* bin) const {
     // finalize was called successfully so init must be run again
     ValueReplacer::initialize(stream);
 
-    SectionWriter::finalizeBinary(stream, bin, writerToUse_);
+    try {
+        SectionWriter::finalizeBinary(stream, bin, writerToUse_);
+    } catch (Exception& e) {
+        std::cerr << "Failed to finalize binary." << std::endl;
+        exit(-1);
+    }
 
     // try catch blocks are just for debug use right now
     try {
