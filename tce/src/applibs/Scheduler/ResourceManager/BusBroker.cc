@@ -148,7 +148,7 @@ BusBroker::allAvailableResources(
     InputPSocketResource* iPSocket = NULL;
     try {
         iPSocket = 
-            dynamic_cast<InputPSocketResource*>(
+            static_cast<InputPSocketResource*>(
             &resourceMapper().resourceOf(*inputSocket));
     } catch (const KeyNotFound& e) {
         std::string msg = "BusBroker: finding ";
@@ -170,7 +170,7 @@ BusBroker::allAvailableResources(
             // look for bus resources with appropriate related shortimmsocket
             // resources
             BusResource* busRes =
-                dynamic_cast<BusResource*>((*resIter).second);
+                static_cast<BusResource*>((*resIter).second);
             if (busRes == NULL) {
                 throw InvalidData(
                     __FILE__, __LINE__, __func__,
@@ -202,7 +202,7 @@ BusBroker::allAvailableResources(
         oPSocket = NULL;
         try {
             oPSocket =
-                dynamic_cast<OutputPSocketResource*>(
+                static_cast<OutputPSocketResource*>(
                 &resourceMapper().resourceOf(*outputSocket));
         } catch (const KeyNotFound& e) {
             std::string msg = "BusBroker: finding ";
@@ -216,13 +216,7 @@ BusBroker::allAvailableResources(
         ResourceMap::const_iterator resIter = resMap_.begin();
         while (resIter != resMap_.end()) {
             BusResource* busRes =
-                dynamic_cast<BusResource*>((*resIter).second);
-            if (busRes == NULL) {
-                throw InvalidData(
-                    __FILE__, __LINE__, __func__,
-                    "Bus broker has other then Bus Resource registered!");
-            }
-
+                static_cast<BusResource*>((*resIter).second);
             if (busRes->canAssign(cycle, node, *oPSocket, *iPSocket)) {
                 candidates.insert(*busRes);
             }
@@ -241,7 +235,7 @@ BusBroker::allAvailableResources(
         for (int i = 0; i < candidates.count(); i++) {
             SchedulingResource& busResource = candidates.resource(i);
             const Bus* aBus =
-                dynamic_cast<const Bus*>(&machinePartOf(busResource));
+                static_cast<const Bus*>(&machinePartOf(busResource));
             if (aBus == NULL) {
                 throw InvalidData(
                     __FILE__, __LINE__, __func__,
@@ -285,11 +279,11 @@ void
 BusBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
     throw (Exception) {
 
-    BusResource& busRes = dynamic_cast<BusResource&>(res);
+    BusResource& busRes = static_cast<BusResource&>(res);
     Move& move = const_cast<MoveNode&>(node).move();
     if (hasResource(res)) {
         Bus& bus =
-            const_cast<Bus&>(dynamic_cast<const Bus&>(machinePartOf(res)));
+            const_cast<Bus&>(static_cast<const Bus&>(machinePartOf(res)));
         move.setBus(bus);
         if (!move.isUnconditional()) {
             for (int j = 0; j < bus.guardCount(); j++) {
@@ -309,11 +303,11 @@ BusBroker::assign(int cycle, MoveNode& node, SchedulingResource& res)
             if (move.source().isImmediate()) {
                 oPSocket = &findImmResource(busRes);
             } else {
-                oPSocket = &dynamic_cast<OutputPSocketResource&>
+                oPSocket = &static_cast<OutputPSocketResource&>
                     (resourceMapper().resourceOf(
                     *move.source().port().outputSocket()));
             }
-            iPSocket = &dynamic_cast<InputPSocketResource&>
+            iPSocket = &static_cast<InputPSocketResource&>
                 (resourceMapper().resourceOf(
                 *move.destination().port().inputSocket()));
             busRes.assign(cycle, node, *oPSocket, *iPSocket);
@@ -345,7 +339,7 @@ BusBroker::unassign(MoveNode& node) {
         Move& move = const_cast<MoveNode&>(node).move();
         Bus& bus = move.bus();
         SchedulingResource& res = resourceOf(bus);
-        BusResource& busRes = dynamic_cast<BusResource&>(res);
+        BusResource& busRes = static_cast<BusResource&>(res);
 
         if (move.source().isGPR() ||
             move.source().isFUPort() ||
@@ -356,11 +350,11 @@ BusBroker::unassign(MoveNode& node) {
             if (move.source().isImmediate()) {
                 oPSocket = &findImmResource(busRes);
             } else {
-                oPSocket = &dynamic_cast<PSocketResource&>
+                oPSocket = &static_cast<PSocketResource&>
                     (resourceMapper().resourceOf(
                     *move.source().port().outputSocket()));
             }
-            iPSocket = &dynamic_cast<PSocketResource&>
+            iPSocket = &static_cast<PSocketResource&>
                 (resourceMapper().resourceOf(
                 *move.destination().port().inputSocket()));
             busRes.unassign(node.cycle(), node, *oPSocket, *iPSocket);
@@ -444,7 +438,7 @@ BusBroker::isInUse(int cycle, const MoveNode& node) const {
 
     Move& move = const_cast<MoveNode&>(node).move();
     SchedulingResource& res = resourceOf(bus);
-    BusResource& busRes = dynamic_cast<BusResource&>(res);
+    BusResource& busRes = static_cast<BusResource&>(res);
 
     if (move.source().isGPR() ||
         move.source().isFUPort() ||
@@ -453,7 +447,7 @@ BusBroker::isInUse(int cycle, const MoveNode& node) const {
         PSocketResource* iPSocket = NULL;
         PSocketResource* oPSocket = NULL;
         try {
-            iPSocket = &dynamic_cast<PSocketResource&>
+            iPSocket = &static_cast<PSocketResource&>
                 (resourceMapper().resourceOf(
                 *move.destination().port().inputSocket()));
         } catch (const KeyNotFound& e) {
@@ -469,7 +463,7 @@ BusBroker::isInUse(int cycle, const MoveNode& node) const {
             oPSocket = &findImmResource(busRes);
         } else {
             try {
-            oPSocket = &dynamic_cast<PSocketResource&>
+            oPSocket = &static_cast<PSocketResource&>
                 (resourceMapper().resourceOf(
                 *move.source().port().outputSocket()));
             } catch (const KeyNotFound& e) {
@@ -690,7 +684,7 @@ BusBroker::canTransportImmediate(
     Move& move = const_cast<MoveNode&>(node).move();
     int bits = MachineConnectivityCheck::requiredImmediateWidth(
         immRes.signExtends(),
-        dynamic_cast<const TTAProgram::TerminalImmediate&>(move.source()));
+        static_cast<const TTAProgram::TerminalImmediate&>(move.source()));
     if (bits <= immRes.immediateWidth()) {
         return true;
     } else {
@@ -747,7 +741,7 @@ BusBroker::hasGuard(const MoveNode& node) const {
     while (resIter != resMap_.end()) {
         SchedulingResource& busResource = *(*resIter).second;
         const Bus* aBus =
-            dynamic_cast<const Bus*>(&machinePartOf(busResource));
+            static_cast<const Bus*>(&machinePartOf(busResource));
 
         for (int j = 0; j < aBus->guardCount(); j++) {
             Guard* busGuard = aBus->guard(j);

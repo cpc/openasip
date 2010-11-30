@@ -187,12 +187,15 @@ OutputPSocketResource::operator< (const SchedulingResource& other) const {
     int connCount = 0;
     int connCount2 = 0;
 
-    for (int i = 0; i < relatedResourceCount(2); i++) {
+    int rrCount2 = relatedResourceCount(2);
+    for (int i = 0; i < rrCount2; i++) {
         SchedulingResource& r = relatedResource(2,i);
         connCount += r.relatedResourceCount(0);
     }
 
-    for (int i = 0; i < other.relatedResourceCount(2); i++) {
+    int oRRCount2 = other.relatedResourceCount(2);
+
+    for (int i = 0; i < oRRCount2; i++) {
         SchedulingResource& r = other.relatedResource(2,i);
         connCount2 += r.relatedResourceCount(0);
     }
@@ -207,10 +210,10 @@ OutputPSocketResource::operator< (const SchedulingResource& other) const {
     }
 
     // favour sockets with less buses.
-    if (relatedResourceCount(2) < opsr->relatedResourceCount(2)) {
+    if (rrCount2 < oRRCount2) {
         return true;
     }
-    if (relatedResourceCount(2) > opsr->relatedResourceCount(2)) {
+    if (rrCount2 > oRRCount2) {
         return false;
     }
 

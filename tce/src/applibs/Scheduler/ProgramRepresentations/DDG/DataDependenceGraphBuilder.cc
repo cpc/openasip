@@ -356,9 +356,6 @@ bool DataDependenceGraphBuilder::appendUseMapSets(
         AssocTools::append(srcSet, dstSet);
         // if size has changed, dest is changed.
         if (dstSet.size() > size) {
-            for (RegisterUseSet::iterator i = dstSet.begin();
-                 i != dstSet.end(); i++) {
-            }
             changed = true;
         }
     }
