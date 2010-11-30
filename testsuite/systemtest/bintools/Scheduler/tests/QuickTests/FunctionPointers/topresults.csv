@@ -1,6 +1,6 @@
-ti64x_subset.adf,/home/hkultala/src/tce-1.2/tce/scheduler/passes/default_scheduler.conf,15.10.10 12:36,582
-huge.adf,/home/hkultala/src/tce-1.2/tce/scheduler/passes/default_scheduler.conf,15.10.10 12:36,374
+ti64x_subset.adf,/home/hkultala/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,30.11.10 14:08,120
+huge.adf,/home/hkultala/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,30.11.10 14:08,95
 minimal_with_io.adf,/home/hkultala/src/tce-1.2/tce/scheduler/passes/default_scheduler.conf,15.10.10 12:36,2325
-3_bus_short_immediate_fields_and_reduced_connectivity.adf,/home/hkultala/src/tce-1.2/tce/scheduler/passes/default_scheduler.conf,15.10.10 12:36,1109
-FU_constrained.adf,/home/hkultala/src/tce-1.2/tce/scheduler/passes/default_scheduler.conf,15.10.10 12:36,439
-RF_constrained.adf,/home/hkultala/src/tce-1.2/tce/scheduler/passes/default_scheduler.conf,15.10.10 12:36,373
+3_bus_short_immediate_fields_and_reduced_connectivity.adf,/home/hkultala/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,30.11.10 14:08,218
+FU_constrained.adf,/home/hkultala/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,30.11.10 14:08,96
+RF_constrained.adf,/home/hkultala/src/tce-1.4/tce/scheduler/passes/default_scheduler.conf,30.11.10 14:08,96
