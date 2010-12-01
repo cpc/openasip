@@ -1,2 +1,3 @@
 Release branch:
-tce-1.4 r824: llvm-trunk r120390 OK (topresult fails)
+tce-1.4 r826: llvm-trunk r120560 OK (topresult fails)
+-------
