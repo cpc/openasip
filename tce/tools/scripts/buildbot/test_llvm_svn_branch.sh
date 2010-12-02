@@ -66,13 +66,7 @@ ${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache
 #export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
 #export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
 
-./gen_config.sh
-if [ -x gen_llvm_shared_lib.sh ] 
-then
-    ./gen_llvm_shared_lib.sh
-fi
-
-tools/scripts/compiletest.sh 
+tools/scripts/compiletest.sh > test.log
 
 if [ -s compiletest.error.log ]
 then

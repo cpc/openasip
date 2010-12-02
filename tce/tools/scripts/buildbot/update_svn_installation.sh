@@ -115,6 +115,6 @@ echo "$PWD\$" ${CONFIGURE_COMMAND}
 ${CONFIGURE_COMMAND}
 
 echo "---------- Make and install ----------"
-echo "$PWD\$ make"
-make REQUIRES_RTTI=1 -j 2 > build.log 
+echo "$PWD\$ make REQUIRES_RTTI=1 -j 3"
+make REQUIRES_RTTI=1 -j 3 > build.log 
 make install >install.log
