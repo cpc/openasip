@@ -27,11 +27,12 @@
 #
 # Set following variables:
 #
-# SVN_REPO_DIR="/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/llvm-trunk"
-# BUILD_DIR="/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/llvm-build"
+# SVN_REPO_DIR="/tmp/llvm-trunk"
+# BUILD_DIR="/tmp/llvm-build"
 # SVN_REPO_URL="http://llvm.org/svn/llvm-project/llvm/trunk"
+# CLANG_REPO_URL="http://llvm.org/svn/llvm-project/cfe/trunk"
 # SVN_REV="-r 8301" empty if latest revision is wanted
-# CONFIGURE_COMMAND="$SVN_REPO_DIR/configure --enable-optimized --prefix=/home/elhigu/stow_sources/tce-1.0-llvm-svn/tce/tools/scripts/buildbot/test_update_svn_instalation/install"
+# CONFIGURE_COMMAND="$SVN_REPO_DIR/configure --enable-optimized --enable-shared --prefix=/tmp/llvm_install"
 
 #
 # author Mikael Lepistö 2009 
@@ -63,6 +64,7 @@ then
     echo "---------- SVN Checkout ---------------"
     echo "svn co ${SVN_REPO_URL} ${SVN_REPO_DIR}"
     svn co ${SVN_REPO_URL} ${SVN_REPO_DIR}
+    svn co ${CLANG_REPO_URL} ${SVN_REPO_DIR}/tools/clang
 fi
 
 cd ${SVN_REPO_DIR}
@@ -77,6 +79,12 @@ fi
 echo "---------- Updating svn directory ----------"
 echo "$PWD\$ svn up $SVN_REV"
 svn up $SVN_REV
+
+echo "---------- Updating clang ----------"
+cd tools/clang
+echo "$PWD\$ svn up $SVN_REV"
+svn up $SVN_REV
+cd ../..
 
 # go to build dir
 mkdir -p ${BUILD_DIR}
@@ -108,5 +116,5 @@ ${CONFIGURE_COMMAND}
 
 echo "---------- Make and install ----------"
 echo "$PWD\$ make"
-make REQUIRES_RTTI=1 
-make install
+make REQUIRES_RTTI=1 -j 2 > build.log 
+make install >install.log

@@ -51,21 +51,8 @@ export SVN_REV="-r $GOOD_LLVM_REV"
 export SVN_REPO_DIR="$TEST_DIRECTORY/llvm-trunk"
 export BUILD_DIR="$TEST_DIRECTORY/llvm-build"
 export SVN_REPO_URL="http://llvm.org/svn/llvm-project/llvm/trunk"
-export CONFIGURE_COMMAND="$SVN_REPO_DIR/configure --enable-optimized --prefix=$INSTALL_DIRECTORY"
-
-$TCE_LLVM_BZR_ROOT/tce/tools/scripts/buildbot/update_svn_installation.sh
-
-# checkout or update llvm-gcc installation
-export SVN_REPO_DIR="$TEST_DIRECTORY/llvm-gcc-trunk"
-export BUILD_DIR="$TEST_DIRECTORY/llvm-gcc-build"
-export SVN_REPO_URL="http://llvm.org/svn/llvm-project/llvm-gcc-4.2/trunk"
-export CONFIGURE_COMMAND="$TCE_LLVM_BZR_ROOT/tce-llvm-gcc/configure --prefix=$INSTALL_DIRECTORY --with-llvm-gcc-sources=$TEST_DIRECTORY/llvm-gcc-trunk"
-
-# run autoreconf if there's no configure
-if [ ! -e $TCE_LLVM_BZR_ROOT/tce-llvm-gcc/configure ]
-then
-	autoreconf $TCE_LLVM_BZR_ROOT/tce-llvm-gcc/
-fi
+export CLANG_REPO_URL="http://llvm.org/svn/llvm-project/cfe/trunk"
+export CONFIGURE_COMMAND="$SVN_REPO_DIR/configure --enable-optimized --enable-shared --prefix=$INSTALL_DIRECTORY"
 
 $TCE_LLVM_BZR_ROOT/tce/tools/scripts/buildbot/update_svn_installation.sh
 
