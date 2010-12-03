@@ -66,6 +66,8 @@ ${BRANCH_DIR}/tce/src/bintools/Compiler/tcecc --clear-plugin-cache
 #export CXXFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
 #export CPPFLAGS="-O3 -Wall -pedantic -Wno-long-long -g -Wno-variadic-macros -Wno-deprecated"
 
+./gen_config.sh
+
 tools/scripts/compiletest.sh > test.log
 
 if [ -s compiletest.error.log ]
