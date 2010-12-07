@@ -212,12 +212,12 @@ runner.cpp.*|\
 [[:space:]]*^[[:space:]]*|\
 .*unrecognized[[:space:]]*#pragma.*|\
 .*boost_1_31_0-gcc_2.95.4.*|\
-.*Unknown.compiler.version.-.please.run.the.configure.tests.and.report.the.results.*|\
+.*Unknown.compiler.version.-.please.run.the.conf.*|\
 .*/usr/.*/wx-2\.[[:digit:]]/.*warning.*|\
 .*warning:.*declared.at./usr/.*/wx-2\.[[:digit:]]/wx/.*|\
-.*TargetMemory.cc.*warning.*dereferencing.type.punned.*|\
-.*MemoryGridTable.cc.*warning.*dereferencing.type.punned.*|\
-.*TestSuite.h:.*warning.*comparison.between.signed.and.unsigned.*|\
+.*tMemory.cc.*warning.*dereferencing.type.pun.*|\
+.*idTable.cc.*warning.*dereferencing.type.pun.*|\
+.*TestSuite.h:.*warning.*comparison.between.sig.*|\
 .*install:.warning:.relinking.*|\
 .*/include/llvm/.*warning:.*|\
 Inconsistency.detected.by.ld\.so:.*Assertion.*|\
@@ -225,15 +225,15 @@ Inconsistency.detected.by.ld\.so:.*Assertion.*|\
 .*llvm/ADT/STLExtras.h.*|\
 .*llvm/Target/.*unused.parameter.*|\
 .*unused.parameter.*FrameIndex.*|\
-.*declared[[:space:]]with[[:space:]]attribute[[:space:]]warn_unused_result*|\
+.*declared[[:space:]]with[[:space:]]attribute[[:space:]]warn_unused_result|\
 In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 .*Makefile:.*:.warning:.*commands.for.target.*|\
-.*This.configuration.is.not.supported.in.the.following.subdirectories.*|\
+.*This.configuration.is.not.supported.in.the.following.subdir.*|\
 .*target-libgloss.*|\
 .*Any.other.directories.should.still.work.fine.*|\
-.*removing..*/Makefile.to.force.reconfigure.*|\
+.*removing..*/Makefile.to.force.reconf.*|\
 .*PluginTools.icc.*warning:.dereferencing.*|\
-.*PluginTools.icc.*note:.initialized.from.here.*|\
+.*PluginTools.icc.*note:.initialized.from.h.*|\
 .*TargetLowering.h:1307|\
 .*newlib/doc/makedoc.c:.*"
 
