@@ -224,7 +224,7 @@ Inconsistency.detected.by.ld\.so:.*Assertion.*|\
 .*/llvm/Target/TargetLowering.h.*|\
 .*llvm/ADT/STLExtras.h.*|\
 .*llvm/Target/.*unused.parameter.*|\
-.*unused parameter.*FrameIndex.*|\
+.*unused.parameter.*FrameIndex.*|\
 .*declared[[:space:]]with[[:space:]]attribute[[:space:]]warn_unused_result*|\
 In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 .*Makefile:.*:.warning:.*commands.for.target.*|\
