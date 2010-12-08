@@ -97,7 +97,7 @@ CriticalPathBBMoveNodeSelector::CriticalPathBBMoveNodeSelector(
     BasicBlock& bb, const TTAMachine::Machine& machine) : ddgOwned_(true) {
     
     DataDependenceGraphBuilder ddgBuilder;
-    ddg_ = ddgBuilder.build(bb);
+    ddg_ = ddgBuilder.build(bb,DataDependenceGraph::INTRA_BB_ANTIDEPS);
     ddg_->setMachine(machine);
     
 #ifdef WRITE_DOT_SNAPSHOTS

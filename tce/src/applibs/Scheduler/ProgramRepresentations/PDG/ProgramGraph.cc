@@ -60,7 +60,7 @@ ProgramGraph::ProgramGraph(TTAProgram::Program& program) : program_(program){
         cdgs_.push_back(cdg);
         DataDependenceGraphBuilder builder;
         DataDependenceGraph* ddg = NULL;
-        ddg = builder.build(*cfg);
+        ddg = builder.build(*cfg, DataDependenceGraph::ALL_ANTIDEPS);
         ddgs_.push_back(ddg);   
         ProgramDependenceGraph* pdg = NULL;
         pdg = new ProgramDependenceGraph(*cdg, *ddg);        

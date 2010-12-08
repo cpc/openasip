@@ -196,7 +196,7 @@ BBSchedulerController::handleProcedure(
     cfg.writeToDotFile(procedure.name() + "_cfg.dot");
 #endif
 
-    bigDDG_ = ddgBuilder().build(cfg);
+    bigDDG_ = ddgBuilder().build(cfg, DataDependenceGraph::INTRA_BB_ANTIDEPS);
     
     if (options_ != NULL && options_->dumpDDGsDot()) {
         bigDDG_->writeToDotFile( 
@@ -312,7 +312,8 @@ BBSchedulerController::createDDGFromBB(BasicBlock& bb) {
     if (bigDDG_ != NULL) {
         return bigDDG_->createSubgraph(bb);
     } else {
-        return this->ddgBuilder().build(bb);
+        return this->ddgBuilder().build(
+            bb, DataDependenceGraph::INTRA_BB_ANTIDEPS);
     }
 }
 
@@ -327,21 +328,9 @@ BBSchedulerController::executeDDGPass(
     throw (Exception) {
 
     DataDependenceGraph* ddg = createDDGFromBB(bb);
-
-#ifdef DDG_SNAPSHOTS
-    std::string name = "scheduling";
-    ddgSnapshot(ddg, name, false);
-#endif
-
     SimpleResourceManager* rm = SimpleResourceManager::createRM(targetMachine);
 
     ddgPass.handleDDG(*ddg, *rm, targetMachine);
-
-#ifdef DDG_SNAPSHOTS
-    std::string name = "scheduling";
-    ddgSnapshot(ddg, name, true);
-#endif
-
     copyRMToBB(*rm, bb, targetMachine);
     
     if (delaySlotFiller_ != NULL && bigDDG_ != NULL) {

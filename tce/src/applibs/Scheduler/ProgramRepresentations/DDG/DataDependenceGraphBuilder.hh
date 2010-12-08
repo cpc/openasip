@@ -73,11 +73,17 @@ public:
     void addAliasAnalyzer(MemoryAliasAnalyzer* analyzer);
     
     virtual DataDependenceGraph* build(
-        ControlFlowGraph& cGraph, const UniversalMachine* um = NULL);
+        ControlFlowGraph& cGraph,
+        DataDependenceGraph::AntidependenceLevel antidependenceLevel,
+        const UniversalMachine* um = NULL,
+        bool createMemAndFUDeps = true);
 
     virtual DataDependenceGraph* build(
-        BasicBlock& bb, const UniversalMachine* um = NULL) 
-        throw (IllegalProgram);    
+        BasicBlock& bb, 
+        DataDependenceGraph::AntidependenceLevel antidependenceLevel,
+        const TCEString& ddgname = "small bb",
+        const UniversalMachine* um = NULL,
+        bool createMemAndFUDeps = true);
 
 protected:
 
@@ -96,6 +102,10 @@ protected:
         BB_READY = 2,
         BB_STATES};
     
+    enum ConstructionPhase {
+        REGISTERS_AND_PROGRAM_OPERATIONS = 0,
+        MEMORY_AND_SIDE_EFFECTS};
+
     struct MNData2 {
         MNData2() : mn_(NULL) {} // just because STL sucks. there is always = after this.
         MNData2(
@@ -192,19 +202,30 @@ protected:
         RegisterUseSet fuDepAfter_;
     };
 
-    bool updateAliveAfter(BBData& bbd);
+    bool updateRegistersAliveAfter(BBData& bbd);
+    bool updateMemAndFuAliveAfter(BBData& bbd);
+    void createMemAndFUstateDeps();
+    void createRegisterDeps();
+    void initializeBBStates();
+    BasicBlockNode* queueFirstBB();
 
-    void iterateBBs(ControlFlowGraph& cfg);
+    void iterateBBs(
+        ConstructionPhase phase);
 
     void setSucceedingPredeps(
-        BBData& bbd, ControlFlowGraph& cfg, bool queueAll);
+        BBData& bbd, bool queueAll,
+        ConstructionPhase phase);
     bool appendUseMapSets(
         const RegisterUseMapSet& srcMap, RegisterUseMapSet& dstMap);
-        
-    void updateBB(BBData& bbd);
+   
+    void updateBB(
+        BBData& bbd, 
+        ConstructionPhase phase);
 
-    void constructIndividualBB() throw (IllegalProgram);
-    void constructIndividualBB(BBData& bbd);
+    void constructIndividualBB(ConstructionPhase phase);
+    void constructIndividualBB(
+        BBData& bbd,
+        ConstructionPhase);    
     
     void constructBB(BBNodeSet& inputBlocks) 
         throw (IllegalProgram);
@@ -221,7 +242,8 @@ protected:
 
     void processEntryNode(MoveNode& mn);
 
-    void processDestination(class MoveNode& moveNode);
+    void processDestination(
+        class MoveNode& moveNode, ConstructionPhase phase);
 
     void processRegUse(MNData2 mn, const std::string& reg);
     void updateRegUse(MNData2 mn, const std::string& reg);
@@ -234,8 +256,13 @@ protected:
     void processTriggerPO(
         class MoveNode& moveNode, Operation &dop) throw (IllegalProgram);
 
-    void processTrigger(class MoveNode& moveNode,
-                        class Operation &dop) throw (IllegalProgram);
+    void processTriggerRegistersAndOperations(
+        class MoveNode& moveNode,
+        class Operation &dop);
+
+    void processTriggerMemoryAndFUStates(
+        class MoveNode& moveNode,
+        class Operation &dop);
 
     void createTriggerDependencies(class MoveNode& moveNode,
                                    class Operation& dop);
@@ -321,6 +348,7 @@ protected:
 
     static const std::string RA_NAME;
     InterPassData* interPassData_;
+    ControlFlowGraph* cfg_;
 };
 
 #endif

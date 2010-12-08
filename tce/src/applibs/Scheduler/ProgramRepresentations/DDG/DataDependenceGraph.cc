@@ -130,9 +130,12 @@ DataDependenceGraph::addNode(MoveNode& moveNode, MoveNode& relatedNode) {
  * @param containsProcedure whether the DDG contains complete procedure
  */
 DataDependenceGraph::DataDependenceGraph(
-    const std::string& name, bool containsProcedure) : 
+    const std::string& name, 
+    AntidependenceLevel antidependenceLevel,
+    bool containsProcedure) : 
     BoostGraph<MoveNode, DataDependenceEdge>(name), cycleGrouping_(true), 
-    machine_(NULL), delaySlots_(0), procedureDDG_(containsProcedure) {
+    machine_(NULL), delaySlots_(0), procedureDDG_(containsProcedure),
+    registerAntidependenceLevel_(antidependenceLevel) {
 }
 
 /**
@@ -1000,10 +1003,9 @@ DataDependenceGraph::unMerge(MoveNode &resultNode, MoveNode& mergedNode) {
 bool
 DataDependenceGraph::resultUsed(MoveNode& resultNode) {
 
-    //naming of this variabl si reverse logic, ok if not used
-    bool wawOK = true;
+    bool killingWrite = true;
     if (!isRootGraphProcedureDDG()) {
-        wawOK = false;
+        killingWrite = false;
     }
     bool hasRAW = false;
     bool hasOtherEdge = false;
@@ -1013,6 +1015,7 @@ DataDependenceGraph::resultUsed(MoveNode& resultNode) {
     while (edgeIter != edges.end()) {
 
         DataDependenceEdge& edge = *(*edgeIter);
+        // don't care about operation edges.
         if (edge.edgeReason() == DataDependenceEdge::EDGE_OPERATION) {
             edgeIter++;
             continue;
@@ -1024,9 +1027,17 @@ DataDependenceGraph::resultUsed(MoveNode& resultNode) {
                 break;
             }
 
-            if (edge.dependenceType() == DataDependenceEdge::DEP_WAW) {
-                // result is overwritten
-                wawOK = true;
+            if (killingWrite == false) {
+                // TODO: does this break if the waw dest unconditional?
+                if (edge.dependenceType() == DataDependenceEdge::DEP_WAW &&
+                    !edge.headPseudo()) {
+                    MoveNode& head = 
+                    (static_cast<const DataDependenceGraph*>
+                     (rootGraph()))->headNode(edge);
+                    if (head.isMove() && head.move().isUnconditional()) {
+                        killingWrite = true;
+                    }
+                }
             }
 
         } else {
@@ -1035,7 +1046,7 @@ DataDependenceGraph::resultUsed(MoveNode& resultNode) {
         }
         edgeIter++;
     }
-    return (!wawOK || hasRAW || hasOtherEdge );
+    return (!killingWrite || hasRAW || hasOtherEdge );
 }
 
 /**

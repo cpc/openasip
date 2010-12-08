@@ -65,13 +65,22 @@ class DataDependenceGraph :
     public BoostGraph<MoveNode, DataDependenceEdge> {
 public:
 
+    enum AntidependenceLevel {
+        NO_ANTIDEPS,
+        INTRA_BB_ANTIDEPS,
+        SINGLE_BB_LOOP_ANTIDEPS,
+        ALL_ANTIDEPS
+    };
+
     enum DumpFileFormat {
         DUMP_DOT,
         DUMP_XML
     };
 
     DataDependenceGraph(
-        const std::string& name="", bool containsProcedure=false);
+        const std::string& name="", 
+        AntidependenceLevel antidependenceLevel = ALL_ANTIDEPS,
+        bool containsProcedure=false);
     virtual ~DataDependenceGraph();    
 
     /* Gets the BB in which this move belongs. This should be moved to
@@ -168,6 +177,18 @@ public:
     
     void moveFUDependenciesToTrigger(MoveNode& trigger);
 
+    inline bool hasAllRegisterAntidependencies() {
+        return registerAntidependenceLevel_ >= ALL_ANTIDEPS;
+    }
+
+    inline bool hasSingleBBLoopRegisterAntidependencies() {
+        return registerAntidependenceLevel_ >= SINGLE_BB_LOOP_ANTIDEPS;
+    }
+
+    inline bool hasIntraBBRegisterAntidependencies() {
+        return registerAntidependenceLevel_ >= INTRA_BB_ANTIDEPS;
+    }
+
 private:
     bool rWarEdgesOutUncond(MoveNode& mn);
     bool rWawRawEdgesOutUncond(MoveNode& mn);
@@ -209,6 +230,7 @@ private:
     std::map<std::string, int> operationLatencies_;
 
     bool procedureDDG_;
+    AntidependenceLevel registerAntidependenceLevel_;
 };
 
 #endif

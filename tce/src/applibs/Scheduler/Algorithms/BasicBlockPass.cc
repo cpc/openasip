@@ -176,5 +176,5 @@ void BasicBlockPass::copyRMToBB(
  */
 DataDependenceGraph*
 BasicBlockPass::createDDGFromBB(BasicBlock& bb) {
-    return ddgBuilder().build(bb);
+    return ddgBuilder().build(bb, DataDependenceGraph::INTRA_BB_ANTIDEPS);
 }

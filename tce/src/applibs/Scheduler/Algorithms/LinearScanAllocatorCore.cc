@@ -205,7 +205,7 @@ void LinearScanAllocatorCore::initProcedure(Procedure& proc) {
 
     DataDependenceGraphBuilder ddgb;
     // no mem deps, no antideps, death information.
-    ddg_ = ddgb.build(*cfg_, um_);
+    ddg_ = ddgb.build(*cfg_, DataDependenceGraph::NO_ANTIDEPS, um_, false);
 
     variablesByBirth_.clear();
     variablesByDeath_.clear(); 
