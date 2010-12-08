@@ -142,6 +142,9 @@ private:
         const TTAProgram::Instruction& instruction,
         const TTAProgram::Procedure& procedure,
         int moveIndex);
+    unsigned int findNextIndex(
+        const TTAProgram::Procedure& proc, 
+        int jumpInsIndex, int jumpMoveIndex);
 
     void addExit();
     void addEntryExitEdge();

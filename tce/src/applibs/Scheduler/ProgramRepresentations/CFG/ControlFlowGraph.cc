@@ -364,13 +364,12 @@ ControlFlowGraph::computeLeadersFromJumpSuccessors(
     // leaders of basic block too
     InstructionAddressMap targets;
     // The procedure start point is always a block leader.
-    const Instruction* instruction = &procedure.firstInstruction();
-    bool increase = true;
-    bool hasNext = true;
-    int delaySlots = 0;
-    while (1) {
+
+    const unsigned int iCount = procedure.instructionCount();
+    for (unsigned int insIndex = 0;insIndex < iCount;) {
+        Instruction* instruction = &procedure.instructionAtIndex(insIndex);
         // Only one control flow operation per cycle
-        increase = true;
+        bool increase = true;
         for (int i = 0; i < instruction->moveCount(); i++) {
             Move& m(instruction->move(i));
             if (m.isControlFlowMove()) {
@@ -385,49 +384,19 @@ ControlFlowGraph::computeLeadersFromJumpSuccessors(
                     leaders[targetAddr] = &iTarget;
                 }
                 increase = false;
-                // POM can contain scheduled and unscheduled code
-                // so each jump must test form it's target machine
-                // how many delay slots it needs
-                FunctionUnit& unit =
-                    const_cast<FunctionUnit&>(
-                        m.destination().functionUnit());
-                ControlUnit& control = dynamic_cast<ControlUnit&>(unit);
-                delaySlots = control.delaySlots();
-
-                for (int i = 0; i < delaySlots + 1; i++) {
-                    if (procedure.hasNextInstruction(*instruction)) {
-                        instruction =
-                            &procedure.nextInstruction(*instruction);
-                        if (instruction->hasControlFlowMove() &&
-                            i < delaySlots) {
-                        //test if there  is no another CF operation in delay
-                        // slots
-                            throw InvalidData(
-                                __FILE__, __LINE__, __func__,
-                                (boost::format(
-                                "Control flow operation in delay slot"
-                                " in %d!")
-                                % instruction->address().location()).str());
-                        }
-                    } else {
-                        hasNext = false;
-                        break;
-                    }
-                }
-                if (hasNext) {
+                unsigned int nextIndex = findNextIndex(procedure, insIndex, i);
+                if (iCount > nextIndex) {
+                    insIndex = nextIndex;
+                    instruction = &procedure.instructionAtIndex(insIndex);
                     leaders[instruction->address().location()] = instruction;
+                } else {
+                    return;
                 }
                 break;
             }
         }
-
-        if (procedure.hasNextInstruction(*instruction)) {
-            if (increase) {
-                instruction = &procedure.nextInstruction(*instruction);
-            }
-            hasNext = true;
-        } else {
-            break;
+        if (increase) {
+            insIndex++;
         }
     }
 }
@@ -484,6 +453,9 @@ ControlFlowGraph::createBlock(
     InstructionAddress blockEnd = endBlock.address().location();
     CodeSnippet& proc = leader.parent();
 
+    unsigned int blockStartIndex = blockStart - proc.startAddress().location();
+    unsigned int blockEndIndex = blockEnd - proc.startAddress().location();
+
     if (MapTools::containsKey(blocks_, blockStart)) {
         throw InvalidData(
             __FILE__, __LINE__, __func__,
@@ -496,16 +468,12 @@ ControlFlowGraph::createBlock(
     }
 
     BasicBlockNode* node = new BasicBlockNode(blockStart, blockEnd);
-    const Instruction* addInstruction = &leader;
-    while (addInstruction->address().location() <= blockEnd) {
-        Instruction* newInstruction = addInstruction->copy();
+
+    for (unsigned int i = blockStartIndex; i <= blockEndIndex; i++) {
+        Instruction *newInstruction = proc.instructionAtIndex(i).copy();
         node->basicBlock().add(newInstruction);
-        if (proc.hasNextInstruction(*addInstruction)) {
-            addInstruction = &proc.nextInstruction(*addInstruction);
-        } else {
-            break;
-        }
     }
+
     addNode(*node);
     // Create entry node and add edge from it into current BB
     // if it's start is also start of procedure
@@ -749,6 +717,59 @@ ControlFlowGraph::indirectJump(
             edgePredicate);
         dataCodeIterator++;
     }
+}
+
+/**
+ * Finds the index of the next instruction after jump and delay slots
+ * in the procedure. 
+ *
+ * Also checks for control flow moves in delay slots, and throws if found,
+ * or if the procedure ends before all delays slots.
+ *
+ * @param procedure procedure we are processing
+ * @param jumpInsIndex index of the jump inside in the procedure
+ * @param index of the jump move in the jump instruction.
+ */
+unsigned int
+ControlFlowGraph::findNextIndex(
+    const TTAProgram::Procedure& proc, int jumpInsIndex, int jumpMoveIndex) {
+    Instruction& instruction = proc.instructionAtIndex(jumpInsIndex);
+    
+    // POM allows mixed scheduled an unscheduled code, so each jump
+    // must check from machine how many delay slots it needs
+    FunctionUnit& unit = const_cast<FunctionUnit&>(
+            instruction.move(jumpMoveIndex).destination().functionUnit());
+    ControlUnit* control = dynamic_cast<ControlUnit*>(&unit);
+    if (control == NULL) {
+        throw ModuleRunTimeError(
+            __FILE__, __LINE__, __func__, (boost::format(
+            "Control flow move '%s' has destination unit %s, "
+            "not global control unit!")
+            % POMDisassembler::disassemble(instruction.move(jumpMoveIndex))
+            % unit.name()).str());
+    }
+    int delaySlots = control->delaySlots();
+    int nextIndex = jumpInsIndex + delaySlots + 1;
+    if (nextIndex > proc.instructionCount()) {
+        throw InvalidData(
+			__FILE__, __LINE__, __func__,
+			"Procedure ends before all delay slot instructions");
+    }
+    // Then check for control flow instructions inside delay slots.
+    for (int i = jumpInsIndex + 1; i < nextIndex; i++) {
+        Instruction &dsIns = proc.instructionAtIndex(i);
+        if (dsIns.hasControlFlowMove()) {
+            throw InvalidData(
+                __FILE__, __LINE__, __func__,
+                (boost::format(
+                     "Control flow operation in delay slot"
+                     " in %d! Instruction:\n%s")
+                 % dsIns.address().location()
+                 % POMDisassembler::disassemble(dsIns)
+                    ).str());
+        }
+    }
+    return nextIndex;
 }
 
 /**

@@ -131,12 +131,8 @@ Procedure::copy() const {
 
     Procedure* newProc = new Procedure(
         name_, start_.space(), start_.location());
-    if (instructionCount() > 0) {
-        Instruction* ins = &firstInstruction();
-        while (ins != &NullInstruction::instance()) {
-            newProc->add(ins->copy());
-            ins = &nextInstruction(*ins);
-        }
+    for (int i = 0; i < instructionCount(); i++) {
+        newProc->add(instructionAtIndex(i).copy());
     }
     return newProc;
 }
@@ -192,41 +188,30 @@ Procedure::insertAfter(const Instruction& pos, Instruction* ins)
     throw (IllegalRegistration) {
 
     if (!ins->isInProcedure()) {
-
-        Instruction& next = nextInstruction(pos);
-        if (&next != &NullInstruction::instance()) {
-
-            InsList::iterator iter = instructions_.begin();
-
-            while (iter != instructions_.end()) {
-
-                if ((*iter) == &next) {
-
+        for (InsList::iterator iter = instructions_.begin();
+             iter != instructions_.end(); iter++) {
+            
+            if ((*iter) == &pos) {
+                iter++;
+                if (iter != instructions_.end()) {
                     ins->setParent(*this);
-
-                    iter = instructions_.insert(iter, ins);
-
-                    iter++;
-
+                    instructions_.insert(iter, ins);
+                    
                     // if registered to a program, tell to move the procedures
                     // after this procedure 
                     if (parent_ != NULL && this != &parent_->lastProcedure()) {
                         parent_->moveProcedure(
                             parent_->nextProcedure(*this), 1);
-
                     }
                     return;
+                } else { // end of procedure
+                    add(ins);
+                    return;
                 }
-
-                iter++;
             }
-
-            // should not go here in any case
-            assert(false);
-
-        } else {
-            add(ins);
         }
+        // should not go here in any case
+        assert(false && "pos not in this procedure");
 
     } else {
         throw IllegalRegistration(
@@ -328,13 +313,13 @@ Procedure::remove(Instruction& ins) throw (IllegalRegistration) {
         first = true;
     }
 
-    InsList::iterator iter = instructions_.begin();
-    const InstructionAddress addr = ins.address().location();
-
-    for (; iter != instructions_.end(); iter++) {
+    int insIndex = 0;
+    for (InsList::iterator iter = instructions_.begin();
+         iter != instructions_.end(); iter++, insIndex++) {
         if ((*iter) == &ins) {
 
             iter = instructions_.erase(iter);
+            const InstructionAddress addr = start_.location() + insIndex;
 
             // remove code label of first instruction only if empty
             if ((!first && refs) || instructions_.empty()) {
