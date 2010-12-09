@@ -1455,29 +1455,24 @@ DataDependenceGraph::createSubgraph(
     DataDependenceGraph *subGraph = new DataDependenceGraph;
     constructSubGraph(*subGraph, nodes);
 
-    subGraph->moveNodeBlocks_ = moveNodeBlocks_;
+    typedef std::set<ProgramOperation*, ProgramOperation::Comparator> POSet;
+    POSet subgraphPOs;
 
-    // add all PO's which have some nodes to here
-    for (POList::iterator iter = programOperations_.begin();
-         iter != programOperations_.end(); iter++) {
-        ProgramOperation* po = *iter;
-        // check input moves
-        for (int i = 0; i < po->inputMoveCount(); i++ ) {
-            MoveNode* mn = &po->inputMove(i);
-            if( AssocTools::containsKey(nodes,mn)) {
-                subGraph->programOperations_.push_back(po);
-                break;
-            }
+    int nc = subGraph->nodeCount();
+    for (int i = 0; i < nc; i++) {
+        MoveNode& mn = subGraph->node(i);
+        BasicBlockNode* bbn = moveNodeBlocks_[&mn];
+        subGraph->moveNodeBlocks_[&mn] = bbn;
+        if (mn.isSourceOperation()) {
+            subgraphPOs.insert(&mn.sourceOperation());
         }
-
-        // check output moves
-        for (int i = 0; i < po->outputMoveCount(); i++ ) {
-            MoveNode* mn = &po->outputMove(i);
-            if( AssocTools::containsKey(nodes,mn)) {
-                subGraph->programOperations_.push_back(po);
-                break;
-            }
+        if (mn.isDestinationOperation()) {
+            subgraphPOs.insert(&mn.destinationOperation());
         }
+    }
+    for (POSet::iterator i = subgraphPOs.begin(); 
+         i != subgraphPOs.end();i++) {
+        subGraph->programOperations_.push_back(*i);
     }
 
     if ( !includeLoops ) {
