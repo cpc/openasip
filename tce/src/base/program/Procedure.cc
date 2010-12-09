@@ -211,7 +211,8 @@ Procedure::insertAfter(const Instruction& pos, Instruction* ins)
             }
         }
         // should not go here in any case
-        assert(false && "pos not in this procedure");
+        throw IllegalRegistration(
+            __FILE__,__LINE__,__func__,"pos not in this procedure");
 
     } else {
         throw IllegalRegistration(

@@ -131,97 +131,7 @@ ControlFlowGraph::ControlFlowGraph(
     computeLeadersFromJumpSuccessors(leaders, procedure);
     computeLeadersFromRelocations(leaders, dataCodeRellocations, procedure);
     createAllBlocks(leaders, procedure);
-    // Creates edges between basic blocks
-    InstructionAddress leaderAddr;
-    Instruction& iEnd = procedure.lastInstruction();
-    Instruction* instruction = &procedure.firstInstruction();
-    int delaySlots = 0;
-    bool hasCFMove = false;
-    unsigned int endAddr = iEnd.address().location();
-    unsigned int insAddr = instruction->address().location();
-    while (insAddr <= endAddr) {
-        if (MapTools::containsValue(leaders, instruction)) {
-            leaderAddr = insAddr;
-            if (!MapTools::containsKey(blocks_, leaderAddr)) {
-                throw InvalidData(
-                    __FILE__, __LINE__, __func__, "Basic block is missing!");
-            }
-            hasCFMove = false;
-        }
-        // We only deal with one JUMP or CALL per instruction,
-        // there is restriction that there can be no control flow
-        // operations in delay slots of previous operation
-        for (int i = 0, count = instruction->moveCount(); i < count; i++) {
-            if (instruction->move(i).isCall()) {
-                // There is some CF move in a basic block
-                hasCFMove = true;
-                // Find delay slots of call, can be different then delays
-                // slots of target machine in case partially scheduled code
-                const Instruction* iNext = instruction;
-                // Partially scheduled POM is possible input, so each
-                // call must check what is the number of delay slots in
-                // target machine
-                FunctionUnit& unit =
-                    const_cast<FunctionUnit&>(
-                    instruction->move(i).destination().functionUnit());
-                ControlUnit& control = dynamic_cast<ControlUnit&>(unit);
-                delaySlots = control.delaySlots();
-                for (int i = 0; i < delaySlots; i++) {
-                    // moves through delay slots and checks if there is
-                    // no another CF operation
-                    if (procedure.hasNextInstruction(*iNext)) {
-                        iNext = &procedure.nextInstruction(*iNext);
-                    }
-                    if (iNext->hasControlFlowMove()) {
-                        throw InvalidData(
-                          __FILE__, __LINE__, __func__,
-                            (boost::format(
-                                "Control flow operation in delay slot"
-                                " of CALL in %d!")
-                                % iNext->address().location()).str());
-                    }
-                }
-                if (procedure.hasNextInstruction(*iNext)) {
-                    iNext = &procedure.nextInstruction(*iNext);
-                    createControlFlowEdge(
-                        *leaders[leaderAddr], *iNext,
-                        ControlFlowEdge::CFLOW_EDGE_NORMAL, false);
-
-                }
-                break;
-            }
-            if (instruction->move(i).isJump()) {
-                // There is some CF move in basic block
-                hasCFMove = true;
-                createJumps(
-                    leaders, leaderAddr, dataCodeRellocations, *instruction,
-                    procedure,i);
-                break;
-            }
-        }
-        Instruction* nextInstruction =
-        &procedure.nextInstruction(*instruction);
-        if (nextInstruction != &NullInstruction::instance()) {
-            unsigned int nextAddr = nextInstruction->address().location();
-            // Look if next instruction is beginning of basic block
-            // and if there was no CF move in current basic block
-            // add fall true edge in such case
-            if (MapTools::containsValue(leaders, nextInstruction) &&
-                hasCFMove == false) {
-                BasicBlockNode& blockSource(*blocks_[leaderAddr]);
-                BasicBlockNode& blockTarget(
-                    *blocks_[nextAddr]);
-                if (!hasEdge(blockSource, blockTarget)) {
-                    createControlFlowEdge(
-                        *leaders[leaderAddr],*nextInstruction);
-                    }
-            }
-            instruction = nextInstruction;
-            insAddr = nextAddr;
-        } else {
-            break;
-        }
-    }
+    createBBEdges(procedure, leaders, dataCodeRellocations);
     addExit();
 
 #if 0
@@ -258,6 +168,82 @@ ControlFlowGraph::ControlFlowGraph(
 #endif
 }
 
+/**
+ * Creates edges between basic blocks.
+ *
+ * @param procedure Procedure that holds the instructions.
+ * @param leaders Leader instructions, first instructions in basic blocks.
+ * @param dataCodeRellocations Set of dataCodeRellocations that applies to the
+ *                             given procedure.
+ */
+void
+ControlFlowGraph::createBBEdges(
+    const TTAProgram::Procedure& procedure,
+    InstructionAddressMap& leaders,
+    InstructionAddressMap& dataCodeRellocations) {
+
+    InstructionAddress leaderAddr;
+    bool hasCFMove = false;
+
+    const int iCount = procedure.instructionCount();
+    for (int insIndex = 0; insIndex < iCount; insIndex++) {
+        Instruction* instruction = &procedure.instructionAtIndex(insIndex);
+        InstructionAddress addr = 
+            procedure.startAddress().location() + insIndex;
+
+        if (MapTools::containsKey(leaders, addr)) {
+            leaderAddr = addr;
+            hasCFMove = false;
+        }
+        // We only deal with one JUMP or CALL per instruction,
+        // there is restriction that there can be no control flow
+        // operations in delay slots of previous operation
+        for (int i = 0, count = instruction->moveCount(); i < count; i++) {
+            if (instruction->move(i).isCall()) {
+                // There is some CF move in a basic block
+                hasCFMove = true;
+                int nextIndex = findNextIndex(procedure, insIndex, i);
+                if (iCount > nextIndex) {
+                    Instruction& iNext = 
+                        procedure.instructionAtIndex(nextIndex);
+                    createControlFlowEdge(
+                        *leaders[leaderAddr], iNext,
+                        ControlFlowEdge::CFLOW_EDGE_NORMAL, false);
+                }
+                break;
+            }
+            if (instruction->move(i).isJump()) {
+                // There is some CF move in basic block
+                hasCFMove = true;
+                createJumps(
+                    leaders, leaderAddr, dataCodeRellocations,
+                    procedure, insIndex, i);
+                continue;
+            }
+        }
+        if (iCount > insIndex+1) {
+            Instruction& nextInstruction =
+                procedure.instructionAtIndex(insIndex+1);
+            // Look if next instruction is beginning of basic block
+            // and if there was no CF move in current basic block
+            // add fall true edge in such case
+            int nextInsAddr = procedure.startAddress().location() + insIndex+1;
+            if (hasCFMove == false &&
+                MapTools::containsKey(leaders, nextInsAddr)) {
+                BasicBlockNode& blockSource(*blocks_[leaderAddr]);
+                BasicBlockNode& blockTarget(
+                    *blocks_[nextInsAddr]);
+                if (!hasEdge(blockSource, blockTarget)) {
+                    createControlFlowEdge(
+                        *leaders[leaderAddr],nextInstruction,
+                        ControlFlowEdge::CFLOW_EDGE_NORMAL, true);
+                }
+            }
+        } else {
+            break;
+        }
+    }
+}
 
 /**
  * Internal helper. Find the leader instructions from program
@@ -989,10 +975,11 @@ ControlFlowGraph::createJumps(
     InstructionAddressMap& leaders,
     const InstructionAddress& leaderAddr,
     InstructionAddressMap& dataCodeRellocations,
-    const TTAProgram::Instruction& instruction,
     const TTAProgram::Procedure& procedure,
+    int insIndex,
     int moveIndex) {
 
+    const Instruction& instruction = procedure.instructionAtIndex(insIndex);
     if (instruction.move(moveIndex).source().isInstructionAddress()) {
         Move* tmp = &instruction.move(moveIndex);
         directJump(

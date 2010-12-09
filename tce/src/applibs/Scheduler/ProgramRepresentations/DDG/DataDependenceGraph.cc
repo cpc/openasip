@@ -154,7 +154,7 @@ DataDependenceGraph::~DataDependenceGraph() {
         //delete nodes.
         int nc = nodeCount();
         for (int i = 0; i < nc; i++) {
-            delete &node(i);
+            delete &node(i, false);
         }
 
         // delete program operations.

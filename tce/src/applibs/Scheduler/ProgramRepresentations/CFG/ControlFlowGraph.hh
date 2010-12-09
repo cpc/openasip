@@ -109,7 +109,10 @@ private:
         InstructionAddressMap& leaderSet,
         InstructionAddressMap& dataCodeRellocations,
         const TTAProgram::Procedure& procedure);
-
+    void createBBEdges(
+        const TTAProgram::Procedure& procedure,
+        InstructionAddressMap& leaders,
+        InstructionAddressMap& dataCodeRellocations);
     void createAllBlocks(
         InstructionAddressMap& leaders,
         const TTAProgram::Procedure& procedure);
@@ -139,8 +142,8 @@ private:
         InstructionAddressMap& leaders,
         const InstructionAddress& leaderAddr,
         InstructionAddressMap& dataCodeRellocations,
-        const TTAProgram::Instruction& instruction,
         const TTAProgram::Procedure& procedure,
+        int insIndex, 
         int moveIndex);
     unsigned int findNextIndex(
         const TTAProgram::Procedure& proc, 
