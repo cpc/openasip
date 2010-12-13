@@ -233,7 +233,11 @@ LLVMTCEBuilder::initDataSections() {
 #else
     // this doesn't look right, creating a MCContext just to get the
     // mangler initialized... --Pekka
+#ifdef LLVM_2_8
     MCContext* ctx = new MCContext(*tm_->getMCAsmInfo());
+#else
+    MCContext* ctx = new MCContext(*tm_->getMCAsmInfo(), NULL);
+#endif
     mang_ = new Mangler(*ctx, *tm_->getTargetData()); 
 #endif
     dmem_ = new TTAProgram::DataMemory(*dataAddressSpace_);

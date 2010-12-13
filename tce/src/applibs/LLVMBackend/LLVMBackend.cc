@@ -67,6 +67,15 @@
 
 #include <llvm/CodeGen/ObjectCodeEmitter.h>
 
+#include "llvm/Support/system_error.h"
+
+// These seem to be defined by LLVMs config.h. undef them.
+#undef PACKAGE_BUGREPORT
+#undef PACKAGE_NAME
+#undef PACKAGE_TARNAME
+#undef PACKAGE_VERSION
+#undef PACKAGE_STRING
+
 #include <cstdlib> // system()
 #include <fstream>
 #include <boost/functional/hash.hpp>
@@ -269,23 +278,34 @@ LLVMBackend::compile(
     }
 
     // Load bytecode file.
+#if (defined(LLVM_2_8) || defined(LLVM_2_7))
     std::string errorMessage;
+    std::string *error = &errorMessage;
+#else
+    error_code error;
+#endif
+    std::string errMsgParse;
     LLVMContext &context = getGlobalContext();
 
     // TODO: refactor
     std::auto_ptr<Module> m;
     std::auto_ptr<MemoryBuffer> buffer(
-        MemoryBuffer::getFileOrSTDIN(bytecodeFile, &errorMessage));
+        MemoryBuffer::getFileOrSTDIN(bytecodeFile, error));
     if (buffer.get()) {
-        m.reset(ParseBitcodeFile(buffer.get(), context, &errorMessage));
+        m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
     } else {
+#if (defined(LLVM_2_8) || defined(LLVM_2_7))
 	std::string msg = "Error reading bytecode file: " + bytecodeFile +
 	    "\n" + errorMessage;
+#else
+	std::string msg = "Error reading bytecode file: " + bytecodeFile +
+	    "\n" + error.message();
+#endif
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
     if (m.get() == 0) {
         std::string msg = "Error parsing bytecode file: " + bytecodeFile +
-	    "\n" + errorMessage;
+	    "\n" + errMsgParse;
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
@@ -294,18 +314,23 @@ LLVMBackend::compile(
 
     if (!emulationBytecodeFile.empty()) {
         std::auto_ptr<MemoryBuffer> emuBuffer(
-            MemoryBuffer::getFileOrSTDIN(emulationBytecodeFile, &errorMessage));
+            MemoryBuffer::getFileOrSTDIN(emulationBytecodeFile, error));
         if (emuBuffer.get()) {
             emuM.reset(
-		ParseBitcodeFile(emuBuffer.get(), context, &errorMessage));
+		ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
         } else {
+#if (defined(LLVM_2_8) || defined(LLVM_2_7))
 	    std::string msg = "Error reading bytecode file: " + bytecodeFile +
 		" of emulation library:\n" + errorMessage;
+#else
+	    std::string msg = "Error reading bytecode file: " + bytecodeFile +
+		" of emulation library:\n" + error.message();
+#endif
 	    throw CompileError(__FILE__, __LINE__, __func__, msg);
 	}
         if (emuM.get() == 0) {
             std::string msg = "Error parsing bytecode file: " + bytecodeFile 
-		+ " of emulation library \n" + errorMessage;
+		+ " of emulation library \n" + errMsgParse;
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
     }
