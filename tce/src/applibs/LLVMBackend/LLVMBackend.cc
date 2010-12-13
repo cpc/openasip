@@ -67,14 +67,13 @@
 
 #include <llvm/CodeGen/ObjectCodeEmitter.h>
 
-#include "llvm/Support/system_error.h"
+#include "tce_config.h" // to get llvm version
 
-// These seem to be defined by LLVMs config.h. undef them.
-#undef PACKAGE_BUGREPORT
-#undef PACKAGE_NAME
-#undef PACKAGE_TARNAME
-#undef PACKAGE_VERSION
-#undef PACKAGE_STRING
+#if (!(defined(LLVM_2_7) || defined(LLVM_2_8)))
+// cheat llvm's multi-include-protection
+#define CONFIG_H
+#include "llvm/Support/system_error.h"
+#endif
 
 #include <cstdlib> // system()
 #include <fstream>
@@ -83,8 +82,6 @@
 #include "LLVMBackend.hh"
 #include "LLVMTCECmdLineOptions.hh"
 #include "TDGen.hh"
-
-#include "tce_config.h" // CXX, SHARED_CXX_FLAGS, LLVM LD&CPP flags
 
 #include "Environment.hh"
 #include "Conversion.hh"
