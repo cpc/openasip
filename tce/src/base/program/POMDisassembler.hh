@@ -70,7 +70,9 @@ public:
 
     static std::string disassemble(const TTAProgram::Move& move);
     static std::string disassemble(
-        const TTAProgram::Instruction& instruction, bool indices=false);  
+        const TTAProgram::Instruction& instruction,
+        bool indices=false,
+        int addr = -1);
     static std::string disassemble(
         const TTAProgram::Procedure& proc, bool indices=false)
         throw (Exception);    

@@ -626,7 +626,7 @@ POMDisassembler::disassemble(const TTAProgram::Move& move) {
  */
 std::string 
 POMDisassembler::disassemble(
-    const TTAProgram::Instruction& instruction, bool indices) {
+    const TTAProgram::Instruction& instruction, bool indices, int addr) {
     
     std::string disasm = "";
     if (!instruction.isInProcedure() ||
@@ -714,7 +714,8 @@ POMDisassembler::disassemble(
         if (indices) {
             disasm += 
                 "\t# @" + 
-                Conversion::toString(instruction.address().location());
+                Conversion::toString(
+                    addr != -1 ? addr : instruction.address().location());
         }
 
 //to display source filename and line number
@@ -800,17 +801,17 @@ POMDisassembler::disassemble(const TTAProgram::Procedure& proc, bool indices)
         currentInstruction = 
             &proc.instructionAtIndex(instrIndex);
         
-        InstructionAddress addr = currentInstruction->address().location();
-            
-        for (int labelIndex = 0; 
-             labelIndex < POMDisassembler::labelCount(proc.parent(), addr); 
-             ++labelIndex) {
+        InstructionAddress addr = proc.startAddress().location() + instrIndex;
+//currentInstruction->address().location();
+
+        const int lc = POMDisassembler::labelCount(proc.parent(), addr); 
+        for (int labelIndex = 0; labelIndex < lc; ++labelIndex) {
 
             stringStream << POMDisassembler::label(
                 proc.parent(), addr, labelIndex) << ":" << std::endl;
         }
         stringStream << "\t" << POMDisassembler::disassemble(
-            *currentInstruction, indices) << std::endl;                
+            *currentInstruction, indices, addr) << std::endl;                
     }
     return stringStream.str();
 }
