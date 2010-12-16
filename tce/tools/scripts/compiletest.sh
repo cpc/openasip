@@ -235,7 +235,8 @@ In[[:space:]]file[[:space:]]included[[:space:]]from[[:space:]]runner.cpp.*|\
 .*PluginTools.icc.*warning:.dereferencing.*|\
 .*PluginTools.icc.*note:.initialized.from.h.*|\
 .*TargetLowering.h:1307|\
-.*newlib/doc/makedoc.c:.*"
+.*newlib/doc/makedoc.c:.*|\
+.*recipe.for.target.*.lib_a-mbtowc_r.o.*"
 
 SYSTEM_TEST_WARNING_FILTERS="\
 PHP Warning:  mime_magic: type regex.*|\
