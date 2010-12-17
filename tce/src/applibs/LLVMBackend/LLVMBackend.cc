@@ -275,30 +275,32 @@ LLVMBackend::compile(
     }
 
     // Load bytecode file.
-#if (defined(LLVM_2_8) || defined(LLVM_2_7))
-    std::string errorMessage;
-    std::string *error = &errorMessage;
-#else
-    error_code error;
-#endif
     std::string errMsgParse;
     LLVMContext &context = getGlobalContext();
 
-    // TODO: refactor
     std::auto_ptr<Module> m;
-    std::auto_ptr<MemoryBuffer> buffer(
-        MemoryBuffer::getFileOrSTDIN(bytecodeFile, error));
-    if (buffer.get()) {
-        m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
-    } else {
 #if (defined(LLVM_2_8) || defined(LLVM_2_7))
+    std::string errorMessage;
+
+    // TODO: refactor
+    std::auto_ptr<MemoryBuffer> buffer(        
+	MemoryBuffer::getFileOrSTDIN(bytecodeFile, &errorMessage));
+    if (!buffer.get()) {
 	std::string msg = "Error reading bytecode file: " + bytecodeFile +
 	    "\n" + errorMessage;
-#else
-	std::string msg = "Error reading bytecode file: " + bytecodeFile +
-	    "\n" + error.message();
-#endif
         throw CompileError(__FILE__, __LINE__, __func__, msg);
+    } 
+#else
+    OwningPtr<MemoryBuffer> buffer;
+    if (error_code ec = MemoryBuffer::getFileOrSTDIN(
+	    bytecodeFile.c_str(), buffer)) {
+	std::string msg = "Error reading bytecode file: " + bytecodeFile +
+	    "\n" + ec.message();
+        throw CompileError(__FILE__, __LINE__, __func__, msg);
+    }
+#endif
+    else {
+        m.reset(ParseBitcodeFile(buffer.get(), context, &errMsgParse));
     }
     if (m.get() == 0) {
         std::string msg = "Error parsing bytecode file: " + bytecodeFile +
@@ -306,28 +308,36 @@ LLVMBackend::compile(
         throw CompileError(__FILE__, __LINE__, __func__, msg);
     }
 
-    
     std::auto_ptr<Module> emuM;
-
     if (!emulationBytecodeFile.empty()) {
-        std::auto_ptr<MemoryBuffer> emuBuffer(
-            MemoryBuffer::getFileOrSTDIN(emulationBytecodeFile, error));
-        if (emuBuffer.get()) {
-            emuM.reset(
-		ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
-        } else {
 #if (defined(LLVM_2_8) || defined(LLVM_2_7))
-	    std::string msg = "Error reading bytecode file: " + bytecodeFile +
+        std::auto_ptr<MemoryBuffer> emuBuffer(
+            MemoryBuffer::getFileOrSTDIN(
+		emulationBytecodeFile, &errorMessage));
+        if (!emuBuffer.get()) {
+	    std::string msg = "Error reading bytecode file: " + 
+		emulationBytecodeFile +
 		" of emulation library:\n" + errorMessage;
-#else
-	    std::string msg = "Error reading bytecode file: " + bytecodeFile +
-		" of emulation library:\n" + error.message();
-#endif
 	    throw CompileError(__FILE__, __LINE__, __func__, msg);
 	}
+#else
+	OwningPtr<MemoryBuffer> emuBuffer;
+	if (error_code ec = MemoryBuffer::getFileOrSTDIN(
+		emulationBytecodeFile.c_str(), emuBuffer)) {
+	    std::string msg = "Error reading bytecode file: " + 
+		emulationBytecodeFile +
+		" of emulation library:\n" + ec.message();
+	    throw CompileError(__FILE__, __LINE__, __func__, msg);
+	}
+#endif
+	else {
+            emuM.reset(
+		ParseBitcodeFile(emuBuffer.get(), context, &errMsgParse));
+	}
         if (emuM.get() == 0) {
-            std::string msg = "Error parsing bytecode file: " + bytecodeFile 
-		+ " of emulation library \n" + errMsgParse;
+            std::string msg = "Error parsing bytecode file: " + 
+		emulationBytecodeFile + " of emulation library \n" 
+		+ errMsgParse;
             throw CompileError(__FILE__, __LINE__, __func__, msg);
         }
     }
