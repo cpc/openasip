@@ -175,15 +175,9 @@ FunctionUnit::port(const std::string& name) const
 BaseFUPort*
 FunctionUnit::port(int index) const
     throw (OutOfRange) {
-
-    if (index < 0 || index >= portCount()) {
-        string procName = "FunctionUnit::port";
-        throw OutOfRange(__FILE__, __LINE__, procName);
-    }
-    Port* port = Unit::port(index);
-    BaseFUPort* fuPort = dynamic_cast<BaseFUPort*>(port);
-    assert(fuPort != NULL);
-    return fuPort;
+    // the out of range test is already done in Unit::Port,
+    // no need to do it here also.
+    return static_cast<BaseFUPort*>(Unit::port(index));
 }
 
 
