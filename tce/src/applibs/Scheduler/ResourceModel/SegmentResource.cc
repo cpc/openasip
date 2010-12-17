@@ -55,10 +55,9 @@ SegmentResource::~SegmentResource() {}
  */
 bool
 SegmentResource::isInUse(const int cycle) const {
-    if (MapTools::containsKey(resourceRecord_, cycle)) {
-        if (MapTools::valueForKey<int>(resourceRecord_, cycle) != 0) {
-            return true;
-        }
+    ResourceRecordType::const_iterator i = resourceRecord_.find(cycle);
+    if (i != resourceRecord_.end()) {
+        return (i->second != 0);
     }
     return false;
 }

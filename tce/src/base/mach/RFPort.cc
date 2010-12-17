@@ -96,10 +96,7 @@ RFPort::width() const {
  */
 BaseRegisterFile*
 RFPort::parentUnit() const {
-    Unit* parent = Port::parentUnit();
-    BaseRegisterFile* rfParent = dynamic_cast<BaseRegisterFile*>(parent);
-    assert(rfParent != NULL);
-    return rfParent;
+    return static_cast<BaseRegisterFile*>(Port::parentUnit());
 }
 
 
