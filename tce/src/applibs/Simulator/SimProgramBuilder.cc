@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of SimProgramBuilder class.
  *
  * @author Jussi Nyk‰nen 2005 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005, 2010
  * @note rating: red
  */
 
@@ -274,6 +274,21 @@ SimProgramBuilder::processMove(
         // during runtime every time the move is simulated
         immediateSource = new InlineImmediateValue(move.bus().width());
         int immediate = move.source().value().sIntWordValue();
+
+        if (move.isControlFlowMove()) {
+            int targetWidth = move.destination().port().width();
+            if (targetWidth < MathTools::requiredBits(immediate)) {
+                TCEString errorMsg = 
+                    (boost::format(
+                        "Immediate of jump '%s' gets clipped due to the target "
+                        "port being too narrow. Wrong execution would occur.") 
+                     % move.toString()).str();
+                throw IllegalProgram(
+                    __FILE__, __LINE__, __func__, errorMsg);
+
+            }
+        }
+
         if (move.bus().signExtends()) {
             immediate = 
                 MathTools::signExtendTo(
@@ -282,7 +297,8 @@ SimProgramBuilder::processMove(
             immediate = 
                 MathTools::zeroExtendTo(
                     immediate, move.bus().immediateWidth());
-        }       
+        }  
+     
         SimValue val(immediate, move.bus().width());
         immediateSource->setValue(val);
     }  else {
