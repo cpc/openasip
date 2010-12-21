@@ -163,6 +163,7 @@ class Test {
         $test_OK = true;
         if ($this->verbose) {
             echo "Testing $test_description...";
+            $start_time = time();
         }
         debugPrintToLog("Testing $test_description");
         
@@ -184,14 +185,14 @@ class Test {
                     "cd ".$wdir.";".$this->watchdog." '"
                     .$test_bin." ".$bin_args
                     ." > ".$this->tempfile." 2>&1';diff "
-                    .$this->tempfile." ".$testdir."/".$output;
+                    .$testdir."/".$output." ".$this->tempfile;
             } else {
                 // normal case when inputs exists
                 $command = 
                     "cd ".$wdir.";".$this->watchdog." '"
                     .$test_bin." ".$bin_args." < ".$testdir."/"
                     .$inputs[$i]." > ".$this->tempfile." 2>&1';diff -u "
-                    .$this->tempfile." ".$testdir."/".$output;
+                    .$testdir."/".$output." ".$this->tempfile;
             }
 
             // output of diff command is saved in $out array
@@ -241,7 +242,8 @@ class Test {
         if ($test_OK == true) {
             if ($this->verbose) {
                 //echo "Testing $test_description...OK.\n";
-                echo "OK.\n";
+                echo "OK (".date("i.s", time() - $start_time).").\n";
+                
             }
             debugPrintToLog(" [OK].\n");
             

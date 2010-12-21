@@ -1,1 +1,0 @@
-No emulation functions for now.. 

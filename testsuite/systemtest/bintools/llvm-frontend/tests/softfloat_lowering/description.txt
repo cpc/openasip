@@ -1,1 +1,0 @@
-Tests that calculations with floating points does the same result than using the floating point library functions.

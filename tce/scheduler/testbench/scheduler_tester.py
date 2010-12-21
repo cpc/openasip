@@ -26,7 +26,8 @@
 # @author 2006-2010 Pekka Jääskeläinen
 #
 
-import getopt, sys, os, glob, __builtin__, subprocess, time, signal, csv, tempfile
+import getopt, sys, os, glob, __builtin__, subprocess, time, signal, csv, tempfile, math
+
 from os import *
 from subprocess import *
 from difflib import unified_diff
@@ -62,6 +63,7 @@ Options:
   -C Output in format suitable for copy-pasting to a spreadsheet (CSV).
   -d Leave the test directory dirty after a failed test (for inspecting
      what went wrong, etc.), that is, don't clean the produced files.
+  -e The root directory from which to find the test cases.
   -g <optimization-switches> Checks if tpef or bc generated from source
      code is correct. Compiles generated_program.bc when used with -x
      generated_seq_program otherwise.
@@ -125,6 +127,7 @@ schedulerExe = os.path.normpath(rootDir + "/" + schedulerExe)
 simulatorExe = os.path.normpath(rootDir + "/" + simulatorExe)
 tceccExe = os.path.normpath(rootDir + "/" + tceccExe)
 schedulerConfDir = os.path.normpath(rootDir + "/../passes")
+testRootDir = "."
 
 # LLVM compiler can be enabled with switch '-x'
 useLLVM = False
@@ -181,7 +184,7 @@ def ParseCommandLine():
            recompile, leaveDirty, configFileDefined, latexTable, moreStats, \
            normalOutput, testCaseFilters, useLLVM, schedulerConfDir, \
            extraCompileFlags, compiledSimulation, worsenedIsErrorLimit,\
-           loosenResults    
+           loosenResults, testRootDir
 
     configFileDefined = False
         
@@ -189,7 +192,7 @@ def ParseCommandLine():
         args_start = 1
             
         opts, args = getopt.getopt(\
-            sys.argv[args_start:], "g:a:b:shtTvVc:Copqrxw:dlLi:", ["help"])
+            sys.argv[args_start:], "g:a:b:shtTvVc:Copqrxw:dlLi:e:", ["help"])
 
     except getopt.GetoptError, e:
         # print help information and exit:
@@ -251,6 +254,8 @@ def ParseCommandLine():
             useLLVM = True
         elif o == '-w':
             worsenedIsErrorLimit = float(a)
+        elif o == '-e':
+            testRootDir = a
         else:
             usage()
             sys.exit(1)
@@ -292,7 +297,7 @@ def ParseCommandLine():
 
     else:
         if not file_readable(configFileName):
-            print "Cannot open the given scheduler configuration file for reading."
+            print "Cannot open the given scheduler configuration file %s for reading." % configFileName
             sys.exit(2)
     
     normalOutput = not latexTable and not csvFormat
@@ -564,6 +569,9 @@ class TestCase:
         tryRemove("src/generated_seq_program")
         tryRemove("generated_program.bc")
         tryRemove("src/generated_program.bc")
+        tryRemove("operations_executed")
+        tryRemove("registers_read")
+        tryRemove("registers_written")
 
         if not saveParallelPrograms:
             for tpef in self.parallelPrograms:
@@ -597,7 +605,7 @@ class TestCase:
 	
             if correctOutput != self.simStdOut:
                 # The outputs differ.
-                result = list(unified_diff(self.simStdOut, correctOutput))
+                result = list(unified_diff(correctOutput, self.simStdOut))
                 catted = ""
                 for line in result:
                     catted = catted + line.strip() + "\n"
@@ -627,7 +635,8 @@ class TestCase:
             schedulingCommand = tceccExe + ' ' + extraCompileFlags + ' '
             if (leaveDirty):
                 schedulingCommand += '-d '
-            
+
+            schedulingCommand += ' ' + extraCompileFlags;
             schedulingCommand += " -o " + dstProgFileName + \
                                 " -s " + configFileName + \
                                 " -a " + archFilename + \
@@ -827,7 +836,7 @@ close $cycle_file
         else:
             oldResult = int(self.oldResults[architecture][-1])
             difference = self.lastStats.cycleCount - oldResult
-            percentage = (difference / oldResult)*100
+            percentage = float(int((difference / oldResult)*1000))/10
 
             if difference > 0:
                 sign = "-"
@@ -883,7 +892,9 @@ close $cycle_file
 
             # copy generated_program.bc to program.bc to be able to run the
             # tests with the latest compiled binary
-            command += ";cp " + seqProgramName + " ../program.bc"
+            # Hmm? Should not do this ever. program.bc are for precompiled
+            # bitcodes!
+            #command += ";cp " + seqProgramName + " ../program.bc"
 
             if verboseOutput:
                 print command;
@@ -969,7 +980,7 @@ close $cycle_file
         if (topStatsUpdates and self.improvedRuns) or baselineUpdate or loosenResults:
             topStatsWriter = csv.writer(__builtin__.open(self.directory + "/topresults.csv", "w"))
             
-            for arch in set(self.architectures + self.oldResults.keys()):
+            for arch in set(self.architectures + (self.oldResults and self.oldResults.keys() or [])):
                 oldResult = None
                 if self.oldResults is not None and arch in self.oldResults:
                     oldResult = self.oldResults[arch]
@@ -998,9 +1009,9 @@ def get_subdirectories(root):
     "Walk does not follow symbolic links. So here's replacement."
     found_subdirs = [root]
     for subdir in os.listdir(root):
-        full_path = os.path.join(root,subdir)
+        full_path = os.path.join(root, subdir)
         if os.path.isdir(full_path):
-            found_subdirs += get_subdirectories(os.path.join(root,subdir))
+            found_subdirs += get_subdirectories(os.path.join(root, subdir))
             # TODO: check that same directory is not found many times in list
             #       (loop detection)
             
@@ -1021,7 +1032,7 @@ class Tester:
         
         self.testCases = []
         
-        for root in get_subdirectories("."):
+        for root in get_subdirectories(testRootDir):
             
             if recompile:
                 inputProg = 'src'

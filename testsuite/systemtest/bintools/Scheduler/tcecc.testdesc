@@ -4,9 +4,5 @@ $test_description="Compiling short test cases with tcecc";
 $test_bin = "../../../../tce/scheduler/testbench/scheduler_tester.py";
 $bin_args = "-vrx -w 1 -g \"-O3 -k_Output\" ".
     "-a ti64x_subset.adf ".
-    "-a huge.adf ".    
-    "-a RF_constrained.adf ".    
-    "-a FU_constrained.adf ".
-    "-a 2regcopies.adf ".
-    "-a minimal_with_io.adf";
+    "-a 2regcopies.adf ";
 ?>
