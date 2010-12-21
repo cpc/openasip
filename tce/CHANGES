@@ -6,6 +6,12 @@ Optimizations
 - tcecc: Decreased scheduling time.
 - tcecc: Decreased memory usage.
 
+Usability features
+------------------
+- tcecc: Reasonable error message if disk space runs out during TPEF writing.
+- ttasim: Refuses to simulate a program that moves a too wide immediate to 
+  a too narrow jump/PC port in the control unit. It would result in wrong
+  execution as it jumps to a clipped address.
 
 1.3    November 2010
 ====================
