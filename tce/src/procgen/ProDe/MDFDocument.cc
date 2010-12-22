@@ -236,7 +236,10 @@ MDFDocument::getModel() {
  */
 void
 MDFDocument::update() {
-    Modify(true);
+    if (model_->isModified()) {
+        Modify(true);
+        model_->setNotModified();
+    }
     UpdateAllViews();
 }
 

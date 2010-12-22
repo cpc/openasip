@@ -50,7 +50,7 @@ using namespace TTAMachine;
 /**
  * The Constructor.
  */
-Model::Model() : machine_(new Machine()), undone_(NULL) {
+Model::Model() : machine_(new Machine()), undone_(NULL), modified_(false) {
 }
 
 
@@ -76,7 +76,7 @@ Model::~Model() {
  */
 Model::Model(const std::string& fileName)
     throw (SerializerException, ObjectStateLoadingException) :
-    undone_(NULL) {
+    undone_(NULL), modified_(false) {
 
     // read Machine from fileName and set it to machine_
     ADFSerializer reader;
@@ -110,7 +110,8 @@ Model::undo() {
     undone_ = new Machine(*machine_);
 
     // pop last machine from the undo stack and set is as the machine
-    popFromStack();
+    // and set machine as modified.
+    popFromStack(true);
 }
 
 
@@ -152,7 +153,10 @@ Model::addObserver(ModelObserver* observer) {
  * Notifies all observers of this Model to update themselves.
  */
 void
-Model::notifyObservers() {
+Model::notifyObservers(bool modified) {
+    if (modified) {
+        modified_ = true;
+    }
     for (ObserverTable::iterator i = observers_.begin();
          i != observers_.end(); i++) {
         (*i)->update();
@@ -192,7 +196,7 @@ Model::pushToStack() {
  * undo stack.
  */
 void
-Model::popFromStack() {
+Model::popFromStack(bool modified) {
 
     if (machine_ != NULL) {
 	delete machine_;
@@ -200,7 +204,7 @@ Model::popFromStack() {
 
     machine_ = undoStack_.front();
     undoStack_.pop_front();
-    notifyObservers();
+    notifyObservers(modified);
 }
 
 
