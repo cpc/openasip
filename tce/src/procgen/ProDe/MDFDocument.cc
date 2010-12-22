@@ -190,6 +190,7 @@ MDFDocument::openADF(const string& filename) {
 
     // File opened succesfully.
     Modify(false);
+    UpdateAllViews();
     return true;
 }
 
