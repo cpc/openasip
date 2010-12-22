@@ -178,6 +178,27 @@ MachineCanvas::refreshToolFigure() {
  */
 void
 MachineCanvas::setZoomFactor(double factor) {
+    // when scrolling, try to:
+    // * On X direction, keep the middle pointing to same position in machine
+    // * On Y direction, keep the upper edge of the windows pointer to
+    //   same position in the machine.
+    // This code calculates this and does the scrolling.
+    int x,y;
+    int xSize, ySize;
+    int scrollUnitX, scrollUnitY;
+    GetScrollPixelsPerUnit(&scrollUnitX, &scrollUnitY);
+    GetViewStart(&x, &y);
+    x *= scrollUnitX;
+    y *= scrollUnitY;
+    GetSize(&xSize, &ySize);
+    double xPos = (x + (xSize>>1)) / zoomFactor_;
+    double yPos = y / zoomFactor_;
+    x = std::max(int(xPos*factor) - (xSize>>1),0);
+    y = yPos*factor;
+    Scroll((x+(scrollUnitX>>1))/scrollUnitX,
+           (y+(scrollUnitY>>1))/scrollUnitY);
+
+    // then do the zooming
     zoomFactor_ = factor;
     dirty_ = true;
     Refresh();

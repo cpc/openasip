@@ -60,10 +60,11 @@ public:
     bool canUndo();
     bool canRedo();
     void addObserver(ModelObserver* observer);
-    void notifyObservers();
+    void notifyObservers(bool modified = true);
     void pushToStack();
-    void popFromStack();
-
+    void popFromStack(bool modified = false);
+    void setNotModified() { modified_ = false; }
+    bool isModified() const { return modified_; }
 private:
 
     /// Maximum undo stack size.
@@ -90,6 +91,8 @@ private:
     UndoStack undoStack_;
     /// Undone modification cache for the redo funciton.
     TTAMachine::Machine* undone_;
+
+    bool modified_;
 };
 
 #endif

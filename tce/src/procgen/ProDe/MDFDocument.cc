@@ -190,6 +190,7 @@ MDFDocument::openADF(const string& filename) {
 
     // File opened succesfully.
     Modify(false);
+    UpdateAllViews();
     return true;
 }
 
@@ -235,7 +236,10 @@ MDFDocument::getModel() {
  */
 void
 MDFDocument::update() {
-    Modify(true);
+    if (model_->isModified()) {
+        Modify(true);
+        model_->setNotModified();
+    }
     UpdateAllViews();
 }
 
