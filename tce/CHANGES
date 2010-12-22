@@ -1,6 +1,10 @@
 1.4 not yet released
 ====================
 
+Code generator improvements
+---------------------------
+- Passes the first function parameter in register instead of stack.
+
 Optimizations
 -------------
 - tcecc: Decreased scheduling time.

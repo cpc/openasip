@@ -136,6 +136,7 @@ TDGen::writeRegisterDef(
     } else if (type == ARGUMENT) {
         argRegNames_.push_back(regName);
     } else if (type == RESULT) {
+        argRegNames_.push_back(regName);
         resRegNames_.push_back(regName);
     } else {
         assert(type == RESERVED);

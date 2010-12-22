@@ -72,7 +72,7 @@ static const unsigned ArgRegs[] = {
     TCE::IRES0
 };
 
-static const int argRegCount = 0;
+static const int argRegCount = 1;
 
 
 
@@ -164,14 +164,13 @@ TCETargetLowering::LowerFormalArguments(
         case MVT::i16:
         case MVT::i32: {
             // There may be a bug that marked as not used if varargs
-            if (!Ins[i].Used && !isVarArg) {
+            if (!Ins[i].Used) {
                 if (CurArgReg < ArgRegEnd) {
                     ++CurArgReg;
-                    ArgOffset -= 4; // undo coming offset inc
                 }
                 
                 InVals.push_back(DAG.getUNDEF(ObjectVT));
-            } else if (CurArgReg < ArgRegEnd) {
+            } else if (CurArgReg < ArgRegEnd && !isVarArg) {
                 unsigned VReg = RegInfo.createVirtualRegister(
                     TCE::I32RegsRegisterClass);
                 MF.getRegInfo().addLiveIn(*CurArgReg++, VReg);
@@ -183,7 +182,6 @@ TCETargetLowering::LowerFormalArguments(
                     Arg = DAG.getNode(ISD::TRUNCATE, dl, ObjectVT, Arg);
                    }
                 InVals.push_back(Arg);
-                ArgOffset -= 4; // undo coming offset inc
 
             } else {
 #ifdef LLVM_2_7
@@ -376,11 +374,10 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
         case MVT::i8:
         case MVT::i16:
         case MVT::i32:
+            ArgsSize += 4;
             if (regParams < argRegCount) {
                 regParams++;
-            } else {
-                ArgsSize += 4;
-            }
+            } 
             break;
         case MVT::f32:
             ArgsSize += 4;
@@ -411,7 +408,7 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 #endif
     EVT ObjectVT = Val.getValueType();
     SDValue ValToStore(0, 0);
-    unsigned ObjSize;
+    unsigned ObjSize = 0;
     switch (ObjectVT.getSimpleVT().SimpleTy) {
     default: assert(false && "Unhandled argument type!");
         
@@ -431,9 +428,10 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
     }
     case MVT::i32:
         ObjSize = 4;
-        if (RegsToPass.size() >= argRegCount) {
+        if (RegsToPass.size() >= argRegCount || isVarArg) {
             ValToStore = Val;
-        } else {
+        } 
+        if (RegsToPass.size() < argRegCount) {
             RegsToPass.push_back(
                 std::make_pair(ArgRegs[RegsToPass.size()], Val));
         }
@@ -462,9 +460,8 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
                                          PtrOff, MachinePointerInfo(),
                                          false, false, 0));
 #endif
-      ArgOffset += ObjSize;
     }
-
+    ArgOffset += ObjSize;
   }
 
   // Emit all stores, make sure the occur before any copies into physregs.

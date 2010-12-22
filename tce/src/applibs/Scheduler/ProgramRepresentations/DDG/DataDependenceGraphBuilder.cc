@@ -900,6 +900,12 @@ void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
     if (sp != "") {
         currentData_->regDefReaches_[sp].insert(mnd2);
     } 
+
+    std::string rv = specialRegisters_[REG_RV];
+    if (rv != "") {
+        currentData_->regDefReaches_[rv].insert(mnd2);
+    } 
+
     // params
     for (int i = 0; i < 4;i++) {
         std::string paramReg = specialRegisters_[REG_IPARAM+i];
@@ -1434,6 +1440,7 @@ void DataDependenceGraphBuilder::processCall(MoveNode& mn) {
 
     std::string rv = specialRegisters_[REG_RV];
     if (rv != "") {
+        processRegUse(mnd2,rv);
         processRegWrite(mnd2,rv);
     }
 
