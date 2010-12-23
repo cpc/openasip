@@ -349,6 +349,7 @@ protected:
     static const std::string RA_NAME;
     InterPassData* interPassData_;
     ControlFlowGraph* cfg_;
+    bool rvIsParamReg_;
 };
 
 #endif

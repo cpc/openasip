@@ -85,7 +85,7 @@ class BasicBlockNode;
  * Constructor of Data Dependence graph builder
  */
 DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
-    interPassData_(NULL), cfg_(NULL) {
+    interPassData_(NULL), cfg_(NULL), rvIsParamReg_(false) {
 
     // alias analyzers.
     
@@ -102,7 +102,7 @@ DataDependenceGraphBuilder::DataDependenceGraphBuilder() :
  * Constructor of Data Dependence graph builder
  */
 DataDependenceGraphBuilder::DataDependenceGraphBuilder(InterPassData& ipd) :
-    interPassData_(&ipd) {
+    interPassData_(&ipd), rvIsParamReg_(true) {
 
     static const TCEString SP_DATUM = "STACK_POINTER";
     static const TCEString RV_DATUM = "RV_REGISTER";
@@ -901,10 +901,12 @@ void DataDependenceGraphBuilder::processEntryNode(MoveNode& mn) {
         currentData_->regDefReaches_[sp].insert(mnd2);
     } 
 
-    std::string rv = specialRegisters_[REG_RV];
-    if (rv != "") {
-        currentData_->regDefReaches_[rv].insert(mnd2);
-    } 
+    if (rvIsParamReg_) {
+        std::string rv = specialRegisters_[REG_RV];
+        if (rv != "") {
+            currentData_->regDefReaches_[rv].insert(mnd2);
+        }
+    }
 
     // params
     for (int i = 0; i < 4;i++) {
@@ -1440,7 +1442,9 @@ void DataDependenceGraphBuilder::processCall(MoveNode& mn) {
 
     std::string rv = specialRegisters_[REG_RV];
     if (rv != "") {
-        processRegUse(mnd2,rv);
+        if (rvIsParamReg_) {
+            processRegUse(mnd2,rv);
+        }
         processRegWrite(mnd2,rv);
     }
 
