@@ -270,11 +270,6 @@ def XORbicmp: InstTCE<(outs I1Regs:$dst),(ins I1Regs:$src, i32imm:$val),
 def: Pat <(i32 (anyext I1Regs:$src)), (ANDext I1Regs:$src, 1)>;
 def: Pat <(i32 (zext I1Regs:$src)), (ANDext I1Regs:$src, 1)>;
 
-
-// for some reason it cannot automatically use zext for anyext,
-// so pattern here for it.
-//def : Pat <(i32 (anyext I1Regs:$src)),(MOVI1I32rr I1Regs:$src)>;
-
 // ----- Immediates -----
 def : Pat<(i1 imm:$val), (MOVI1ri imm:$val)>;
 def : Pat<(i32 imm:$val), (MOVI32ri imm:$val)>;
@@ -308,6 +303,9 @@ let isTerminator = 1, isBranch = 1 in {
 }
 
 include "GenInstrInfo.td"
+
+// sign extension from i1 means 0 -> 0 , 1(true) -> -1
+def: Pat <(i32 (sext I1Regs:$src)), (SUBir 0, (ANDext I1Regs:$src,1))>;
 
 // boolean store and load
 def STQBrb : InstTCE<(outs), (ins MEMrr:$op1,I1Regs:$op2), "", [(truncstorei8 I1Regs:$op2, ADDRrr:$op1)]>;
