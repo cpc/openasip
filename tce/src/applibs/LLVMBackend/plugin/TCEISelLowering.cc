@@ -496,7 +496,11 @@ TCETargetLowering::LowerCall(SDValue Chain, SDValue Callee,
 
   std::vector<EVT> NodeTys;
   NodeTys.push_back(MVT::Other);   // Returns a chain
+#if (defined(LLVM_2_7) || defined(LLVM_2_8))
   NodeTys.push_back(MVT::Flag);    // Returns a flag for retval copy to use.
+#else
+  NodeTys.push_back(MVT::Glue);    // Returns a flag for retval copy to use.
+#endif
   SDValue Ops[] = { Chain, Callee, InFlag };
   Chain = DAG.getNode(TCEISD::CALL, dl, NodeTys, Ops, InFlag.getNode() ? 3 : 2);
   InFlag = Chain.getValue(1);
