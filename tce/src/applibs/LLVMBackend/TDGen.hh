@@ -128,6 +128,7 @@ protected:
         const Operation& op,
         const OperationDAG& dag);
 
+    void writeCallSeq(std::ostream& o);
     void writeCallDef(std::ostream& o);
 
     std::string llvmOperationPattern(const std::string& osalOperationName);
