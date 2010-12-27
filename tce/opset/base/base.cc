@@ -82,9 +82,9 @@ END_OPERATION(SUB)
 OPERATION(LDW)
 
 TRIGGER
-    if (UINT(1) % 4 != 0) 
-        RUNTIME_ERROR("Memory access alignment error.")
-
+    if (UINT(1) % 4 != 0)
+	RUNTIME_ERROR_WITH_DATA(
+	    "Memory access alignment error, address: ", UINT(1));
     UIntWord data;
     MEMORY.read(UINT(1), 4, data);
     IO(2) = data;
@@ -111,8 +111,9 @@ END_OPERATION(LDQ)
 OPERATION(LDH)
 
 TRIGGER
-    if (UINT(1) % 2 != 0) 
-        RUNTIME_ERROR("Memory access alignment error.")
+    if (UINT(1) % 2 != 0)
+	RUNTIME_ERROR_WITH_DATA(
+	    "Memory access alignment error, address: ", UINT(1));
     UIntWord data;
     MEMORY.read(UINT(1), 2, data);
     IO(2) = SIGN_EXTEND(data, MAU_SIZE*2);
@@ -129,9 +130,9 @@ END_OPERATION(LDH)
 OPERATION(LDD)
 
 TRIGGER
-    if (UINT(1) % 4 != 0) 
-        RUNTIME_ERROR("Memory access alignment error.");
-
+    if (UINT(1) % 4 != 0)
+	RUNTIME_ERROR_WITH_DATA(
+	    "Memory access alignment error, address: ", UINT(1));
     DoubleWord d;
     MEMORY.read(UINT(1), d);
     IO(2) = d;
@@ -145,9 +146,9 @@ END_OPERATION(LDD)
 OPERATION(STW)
 
 TRIGGER
-    if (UINT(1) % 4 != 0) 
-        RUNTIME_ERROR("Memory access alignment error.");
-
+    if (UINT(1) % 4 != 0)
+	RUNTIME_ERROR_WITH_DATA(
+	    "Memory access alignment error, address: ", UINT(1));
     MEMORY.write(UINT(1), 4, UINT(2));
 END_TRIGGER;
 
@@ -170,8 +171,9 @@ END_OPERATION(STQ)
 OPERATION(STH)
 
 TRIGGER
-    if (UINT(1) % 2 != 0) 
-        RUNTIME_ERROR("Memory access alignment error.");
+    if (UINT(1) % 2 != 0)
+	RUNTIME_ERROR_WITH_DATA(
+	    "Memory access alignment error, address: ", UINT(1));
     MEMORY.write(UINT(1), 2, UINT(2));
 END_TRIGGER;
 
@@ -186,9 +188,9 @@ END_OPERATION(STH)
 OPERATION(STD)
 
 TRIGGER
-    if (UINT(1) % 4 != 0) 
-        RUNTIME_ERROR("Memory access alignment error.");
-
+    if (UINT(1) % 4 != 0)
+	RUNTIME_ERROR_WITH_DATA(
+	    "Memory access alignment error, address: ", UINT(1));
     assert(MAU_SIZE == sizeof(Byte)*8 && 
            "STD works only with byte sized MAU at the moment.");
 
@@ -1064,9 +1066,9 @@ END_OPERATION(LDQU)
 OPERATION(LDHU)
 
 TRIGGER
-    if (UINT(1) % 2 != 0) 
-        RUNTIME_ERROR("Memory access alignment error.")
-
+    if (UINT(1) % 2 != 0)
+	RUNTIME_ERROR_WITH_DATA(
+	    "Memory access alignment error, address: ", UINT(1));
     UIntWord data;
     MEMORY.read(UINT(1), 2, data);
     IO(2) = ZERO_EXTEND(data, MAU_SIZE*2);

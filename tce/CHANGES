@@ -17,6 +17,7 @@ Usability features
   a too narrow jump/PC port in the control unit. It would result in wrong
   execution as it jumps to a clipped address.
 - ProDe: Scroll position is kept when zooming.
+- In case of memory access alignment error, prints the address.
 
 Bugfixes
 --------
