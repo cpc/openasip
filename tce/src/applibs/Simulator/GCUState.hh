@@ -56,6 +56,7 @@ public:
     void setReturnAddress();
 
     virtual void advanceClock();
+    virtual void reset();
 
 protected:
 

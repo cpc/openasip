@@ -24,7 +24,10 @@ Bugfixes
 - Prode: Shows the machine which is being edited immediately also with
   WxWidgets 2.8
 - Prode: When some editing command is cancelled, and nothing is changed, 
-  the machine is not marked as modified to ProDe does not want to save it.
+  the machine is not marked as modified so ProDe does not want to save it.
+- ttasim: when the last instruction executed was a jump and the
+  simulation was killed (reseted), the jump was executed in the 
+  new simulation.
 
 1.3    November 2010
 ====================
