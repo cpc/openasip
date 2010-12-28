@@ -72,6 +72,7 @@ public:
     void endClockOfAllFUStates();
     void advanceClockOfAllGuardStates();
     void advanceClockOfAllLongImmediateUnitStates();
+    void resetAllFUs();
     void clearBuses();
     
     PortState& portState(

@@ -427,6 +427,7 @@ SimulationController::reset() {
     stopRequested_ = false;
     clockCount_ = 0;
     gcu_->programCounter() = initialPC_;
+    machineState_->resetAllFUs();
     state_ = STA_INITIALIZED;
     instructionMemory_->resetExecutionCounts();
 

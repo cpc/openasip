@@ -31,6 +31,7 @@
  */
 
 #include "FUState.hh"
+#include "GCUState.hh"
 #include "BusState.hh"
 #include "GuardState.hh"
 #include "LongImmediateUnitState.hh"
@@ -92,6 +93,20 @@ MachineState::endClockOfAllFUStates() {
         fu->endClock();
     }
 }
+
+/**
+ * Resets the state of all FUs and the GCU.
+ */
+inline void 
+MachineState::resetAllFUs() {
+    const size_t count = fuCache_.size(); 
+    for (size_t i = 0; i < count; ++i) {
+        FUState* fu = fuCache_[i];
+        fu->reset();
+    }
+    gcuState().reset();
+}
+
 
 /**
  * Advances the clocks of all GuardStates.

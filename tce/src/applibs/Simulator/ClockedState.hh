@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -26,7 +26,7 @@
  *
  * Declaration of ClockedState class.
  *
- * @author Jussi Nykänen 2004 (nykanen-no.spam-cs.tut.fi)
+ * @author Jussi Nykänen 2004,2010
  * @note rating: red
  */
 
@@ -34,7 +34,7 @@
 #define TTA_CLOCKED_STATE_HH
 
 /**
- * Interface implemented by state classes that need update their internal
+ * Interface implemented by state classes that need to update their internal
  * state whenever elapsing of a processor clock cycle is simulated.
  */
 class ClockedState {
@@ -45,6 +45,8 @@ public:
     virtual void endClock() = 0;
     virtual void advanceClock() = 0;
     virtual bool isIdle();
+    /// this is called at (re)initialization of the simulation
+    virtual void reset() {}
 
 private:
     /// Copying not allowed.

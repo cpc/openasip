@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2002-2009 Tampere University of Technology.
+    Copyright (c) 2002-2010 Tampere University of Technology.
 
     This file is part of TTA-Based Codesign Environment (TCE).
 
@@ -27,7 +27,7 @@
  * Definition of GCUState class.
  *
  * @author Jussi Nyk‰nen 2004 (nykanen-no.spam-cs.tut.fi)
- * @author Pekka J‰‰skel‰inen 2005 (pjaaskel-no.spam-cs.tut.fi)
+ * @author Pekka J‰‰skel‰inen 2005,2010
  * @note rating: red
  */
 
@@ -49,12 +49,19 @@ GCUState::GCUState(
     int latency, 
     int nww) : 
     naturalWordWidth_(nww), returnAddressRegister_(32), 
-    programCounter_(0), newProgramCounter_(0), latency_(latency), 
-    operationPending_(false), operationPendingTime_(0),
+    latency_(latency), 
     operationContext_(
         NULL, programCounter_, returnAddressRegister_) {
+    reset();
+}
+
+void
+GCUState::reset() {
     programCounter_ = 0;
     returnAddressRegister_ = 0;
+    newProgramCounter_ = 0;
+    operationPending_ = false;
+    operationPendingTime_ = 0;
 }
 
 /**
