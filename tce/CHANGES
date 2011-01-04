@@ -1,6 +1,11 @@
 1.4 not yet released
 ====================
 
+Notable new features
+--------------------
+- Generic VHDL implementations for the basic streaming operations
+  from Jani Boutellier / University of Oulu.
+
 Code generator improvements
 ---------------------------
 - Passes the first function parameter in register instead of stack.
