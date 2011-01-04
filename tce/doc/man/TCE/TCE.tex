@@ -2046,6 +2046,51 @@ You can test the code by creating a file \textit{ttasim\_stream.in}
 with some test data. The code should create a copy of that file to the
 stream output file \textit{ttasim\_stream.out}.
 
+\subsection{Streaming I/O function units}
+VHDL implementations and HDB entries for streaming I/O have been included 
+in TCE since version 1.4. The \textit{stream.hdb} -file in the TCE installation
+directory contains one function unit with STREAM\_IN and
+STREAM\_IN\_STATUS -operations, and another FU contains the STREAM\_OUT and STREAM\_OUT\_
+STATUS
+-operations. These FUs can directly be instantiated in ProDe and synthesized
+on an FPGA along with the rest of the processor.
+
+When these function units are instantiated in ProDe, they are realized with
+specific operation latencies. STREAM\_IN and STREAM\_OUT
+take 3 clock cycles, and STREAM\_IN\_STATUS and STREAM\_OUT
+\_STATUS execute in 1 clock cycle.
+
+The Stream In -FU has three external ports. \textit{ext\_data} is 8 bits wide
+and is used to communicate the data byte from the external stream source to the 
+TTA FU. When the TTA application program invokes the STREAM\_IN -operation, the
+\textit{ext\_data} signal is sampled by the FU and the Stream In -FU automatically sends
+an acknowledge-signal back to the stream source through the \textit{ext\_ack}
+port of the FU. The external stream source is supposed to provide the next stream
+data value to \textit{ext\_data} upon noticing a rising edge in \textit{ext\_ack}.
+The three cycle latency of the operation allows some time for this to happen. Finally,
+the TTA application program can query the availability of stream data by invoking
+the STREAM\_IN\_STATUS -operation. This command reads the value of the \textit{ext\_status}
+port of the Stream In FU and the external stream device is expected to keep the signal
+high in this port when there is still data available, and low when the stream 
+device has run out of data. The application program sees the status as a numerical 
+value '1' or '0'.
+
+The Stream Out -FU works in a similar fashion. The \textit{ext\_data} port is now 
+an output and provides the data to the external stream sink. The external stream
+sink is expected to sample the value of \textit{ext\_data} when \textit{ext\_dv}
+(data valid) is high. \textit{ext\_dv} is automatically operated by the FU when
+the application program invokes the operation STREAM\_OUT. STREAM\_OUT has also
+a latency of 3 clock cycles to allow the external stream sink to take care of the
+data sample. Invoking the STREAM\_OUT\_STATUS operation samples the signal in
+the \textit{ext\_status} -port, which the external stream sink is expected to keep
+high if there is still space in the stream sink. When the stream sink is full, the
+signal in the \textit{ext\_status} -port must be pulled low by the stream sink.
+
+Having several distinct stream sources or sinks must at the moment be realized
+by manually copying the FUs along with their HDB and VHDL parts. The operations
+must have distinct names so that the compiler is explicitly instructed to read
+from a specific source or write to a specific sink.
+
 \section{Implementing Programs in Parallel Assembly Code}
 \label{section:parallelAssemblyCoding}
 % TODO: add example of implementing a sort RISC assembly code as
