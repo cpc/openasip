@@ -194,7 +194,7 @@ MachineCanvas::setZoomFactor(double factor) {
     double xPos = (x + (xSize>>1)) / zoomFactor_;
     double yPos = y / zoomFactor_;
     x = std::max(static_cast<int>(xPos*factor) - (xSize>>1),0);
-    y = yPos*factor;
+    y = static_cast<int>(yPos*factor);
     Scroll((x+(scrollUnitX>>1))/scrollUnitX,
            (y+(scrollUnitY>>1))/scrollUnitY);
 
